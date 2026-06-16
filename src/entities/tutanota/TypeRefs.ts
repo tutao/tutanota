@@ -628,6 +628,9 @@ export type DraftRecipient = {
 	_id: Id;
 	name: string;
 	mailAddress: string;
+	firstRecipientName: null | string;
+	recipientsId: null | Id;
+	firstRecipientId: null | Id;
 }
 export const NewDraftAttachmentTypeRef: TypeRef<NewDraftAttachment> = new TypeRef("tutanota", 486)
 
@@ -681,6 +684,9 @@ export type DraftData = {
 	confidential: boolean;
 	method: NumberString;
 	compressedBodyText: null | string;
+	recipientsId: null | Id;
+	bodyId: null | Id;
+	senderId: null | Id;
 
 	toRecipients: DraftRecipient[];
 	ccRecipients: DraftRecipient[];

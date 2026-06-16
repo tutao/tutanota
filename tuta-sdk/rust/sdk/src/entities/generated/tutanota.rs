@@ -1001,6 +1001,12 @@ pub struct DraftRecipient {
 	pub name: String,
 	#[serde(rename = "485")]
 	pub mailAddress: String,
+    #[serde(rename = "1852")]
+    pub firstRecipientName: Option<String>,
+    #[serde(rename = "1853")]
+    pub recipientsId: Option<CustomId>,
+    #[serde(rename = "1854")]
+    pub firstRecipientId: Option<CustomId>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -1086,6 +1092,12 @@ pub struct DraftData {
 	pub method: i64,
 	#[serde(rename = "1194")]
 	pub compressedBodyText: Option<String>,
+    #[serde(rename = "1855")]
+    pub recipientsId: Option<CustomId>,
+    #[serde(rename = "1856")]
+    pub bodyId: Option<CustomId>,
+    #[serde(rename = "1857")]
+    pub senderId: Option<CustomId>,
 	#[serde(rename = "503")]
 	pub toRecipients: Vec<DraftRecipient>,
 	#[serde(rename = "504")]

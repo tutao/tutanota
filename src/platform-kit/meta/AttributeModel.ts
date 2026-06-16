@@ -3,7 +3,9 @@ import {
 	AttributeId,
 	AttributeName,
 	ClientModelUntypedInstance,
+	EncryptedParsedAssociation,
 	EncryptedParsedInstance,
+	EncryptedParsedValue,
 	ModelAssociation,
 	ModelValue,
 	ServerModelParsedInstance,
@@ -37,17 +39,60 @@ export class AttributeModel {
 	static getAttribute<T>(instance: EncryptedParsedInstance | ServerModelParsedInstance, attrName: string, typeModel: TypeModel): T {
 		const attrId = AttributeModel.getAttributeId(typeModel, attrName)
 		if (attrId) {
-			const value = instance[attrId]
+			let value
+			if (env.networkDebugging) {
+				const matchingKeys = Object.keys(instance).filter((key: string) => key.startsWith(attrId.toString() + ":") || key === attrId.toString())
+				if (matchingKeys.length !== 1) {
+					return undefined as any
+				}
+				value = instance[matchingKeys[0] as any]
+			} else {
+				value = instance[attrId]
+			}
 			return assertNotNull(downcast<T>(value), attrName)
 		} else {
+			console.log("---------------------------------------------------------------------------------------------------------------------------------")
+			console.log(instance)
+			console.log(attrName)
 			throw new ProgrammingError("null not allowed")
+		}
+	}
+
+	static setAttribute<T extends Nullable<EncryptedParsedValue> | EncryptedParsedAssociation>(
+		instance: EncryptedParsedInstance | ServerModelParsedInstance,
+		attrName: string,
+		typeModel: TypeModel,
+		valueOrAssociation: T,
+	): void {
+		const attrId = AttributeModel.getAttributeId(typeModel, attrName)
+		if (attrId) {
+			if (env.networkDebugging) {
+				const matchingKeys = Object.keys(instance).filter((key: string) => key.startsWith(attrId.toString() + ":") || key === attrId.toString())
+				if (matchingKeys.length !== 1) {
+					return undefined as any
+				}
+				instance[matchingKeys[0] as any] = valueOrAssociation
+			} else {
+				instance[attrId] = valueOrAssociation
+			}
+		} else {
+			throw new ProgrammingError("invalid attribute name for this instance type")
 		}
 	}
 
 	static getAttributeorNull<T>(instance: EncryptedParsedInstance | ServerModelParsedInstance, attrName: string, typeModel: TypeModel): Nullable<T> {
 		const attrId = AttributeModel.getAttributeId(typeModel, attrName)
 		if (attrId) {
-			const value = instance[attrId]
+			let value
+			if (env.networkDebugging) {
+				const matchingKeys = Object.keys(instance).filter((key: string) => key.startsWith(attrId.toString() + ":") || key === attrId.toString())
+				if (matchingKeys.length !== 1) {
+					return undefined as any
+				}
+				value = instance[matchingKeys[0] as any]
+			} else {
+				value = instance[attrId]
+			}
 			return downcast<T>(value)
 		} else {
 			return null

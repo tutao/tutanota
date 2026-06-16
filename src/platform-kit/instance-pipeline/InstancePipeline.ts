@@ -17,7 +17,7 @@ export class InstancePipeline {
 	readonly modelMapper: ModelMapper
 
 	constructor(
-		private readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
+		readonly clientTypeReferenceResolver: ClientTypeReferenceResolver,
 		private readonly serverTypeReferenceResolver: ServerTypeReferenceResolver | ClientTypeReferenceResolver,
 		symGroupKeyLoader: lazy<SymmetricGroupKeyLoader>,
 		symmetricCipherFacade: SymmetricCipherFacade,

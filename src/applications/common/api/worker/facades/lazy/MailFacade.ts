@@ -1,5 +1,7 @@
 import type { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import {
+	AttributeModel,
+	ClientModelUntypedInstance,
 	containsId,
 	elementIdPart,
 	Entity,
@@ -46,6 +48,7 @@ import {
 	isEmpty,
 	isNotNull,
 	noOp,
+	Nullable,
 	ofClass,
 	parseUrl,
 	promiseFilter,
@@ -87,9 +90,11 @@ import { CounterService, createWriteCounterData } from "@tutao/entities/monitor"
 import { CounterType } from "../../../../../../entities/monitor/Utils"
 import {
 	ApplyLabelService,
+	BodyTypeRef,
 	Contact,
 	createApplyLabelServicePostIn,
 	createAttachmentKeyData,
+	createBody,
 	createCreateExternalUserGroupData,
 	createCreateMailFolderData,
 	createDeleteMailData,
@@ -104,6 +109,8 @@ import {
 	createListUnsubscribeData,
 	createMail,
 	createMailAddress,
+	createMailDetails,
+	createMailDetailsDraft,
 	createManageLabelServiceDeleteIn,
 	createManageLabelServiceLabelData,
 	createManageLabelServicePostIn,
@@ -113,6 +120,7 @@ import {
 	createPopulateClientSpamTrainingDatum,
 	createProcessInboxDatum,
 	createProcessInboxPostIn,
+	createRecipients,
 	createReportMailPostData,
 	createResolveConversationsServiceGetIn,
 	createSecureExternalRecipientKeyData,
@@ -123,7 +131,10 @@ import {
 	createUnreadMailStatePostIn,
 	createUpdateMailFolderData,
 	DraftAttachment,
+	DraftCreateDataTypeRef,
+	DraftDataTypeRef,
 	DraftRecipient,
+	DraftRecipientTypeRef,
 	DraftService,
 	EncryptedMailAddress,
 	ExternalUserService,
@@ -133,9 +144,12 @@ import {
 	InternalRecipientKeyDataTypeRef,
 	ListUnsubscribeService,
 	Mail,
+	MailAddress,
+	MailAddressTypeRef,
 	MailDetails,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
+	MailDetailsTypeRef,
 	MailFolderService,
 	MailService,
 	MailSet,
@@ -147,6 +161,7 @@ import {
 	PopulateClientSpamTrainingDatum,
 	ProcessInboxDatum,
 	ProcessInboxService,
+	RecipientsTypeRef,
 	ReportedMailFieldMarker,
 	ReportMailService,
 	ResolveConversationsService,
@@ -320,6 +335,14 @@ export class MailFacade {
 		const sk = aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
+		const sessionKeyInfo: SessionKeyInfo = {
+			cipherVersion:
+				this.userFacade.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.Aead
+					? SymmetricCipherVersion.AeadWithSessionKey
+					: SymmetricCipherVersion.AesCbcThenHmac,
+			sessionKey: sk,
+		}
+
 		// create Mail, MailDetail and Files
 
 		const dummyMail = createMail({
@@ -328,6 +351,7 @@ export class MailFacade {
 			method,
 			sender: createMailAddress({ address: senderMailAddress, name: senderName, contact: null }),
 			// everything below is garbage
+			firstRecipient: createMailAddress({ address: "", name: "", contact: null }),
 			mailDetails: null,
 			mailDetailsDraft: null,
 			attachments: [],
@@ -349,31 +373,153 @@ export class MailFacade {
 			receivedDate: new Date(),
 			sets: [],
 			conversationEntry: ["", ""],
-			_errors: {},
-			_type: MailTypeRef,
-			_id: ["", ""],
-			_permissions: "",
-			_format: "",
-			_ownerEncSessionKey: null,
-			_ownerKeyVersion: null,
 			clientSpamClassifierResult: null,
-			firstRecipient: null,
 		})
 
-		const sessionKeyInfo: SessionKeyInfo = {
-			cipherVersion:
-				this.userFacade.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.Aead
-					? SymmetricCipherVersion.AeadWithSessionKey
-					: SymmetricCipherVersion.AesCbcThenHmac,
-			sessionKey: sk,
+		const clientModelUntypedInstance = await this.instancePipeline.mapAndEncrypt(MailTypeRef, dummyMail, sessionKeyInfo)
+		const sanitizedUntypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(clientModelUntypedInstance)
+
+		const mailModel = await this.instancePipeline.clientTypeReferenceResolver(MailTypeRef)
+		const sender = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(sanitizedUntypedInstance, "sender", mailModel)[0]
+
+		const mailAddressModel = await this.instancePipeline.clientTypeReferenceResolver(MailAddressTypeRef)
+		const encryptedSenderName = AttributeModel.getAttributeorNull<Base64>(sender, "name", mailAddressModel)
+
+		const senderId = AttributeModel.getAttributeorNull<Id>(sender, "_id", mailAddressModel)
+
+		const encryptedSubject = AttributeModel.getAttribute<Base64>(sanitizedUntypedInstance, "subject", mailModel)
+		const encryptedConfidential = AttributeModel.getAttribute<Base64>(sanitizedUntypedInstance, "confidential", mailModel)
+		const encryptedMethod = AttributeModel.getAttribute<Base64>(sanitizedUntypedInstance, "method", mailModel)
+
+		const recipientToKeyValuePair = async (recipient: PartialRecipient) => {
+			const dummyMail = createMail({
+				firstRecipient: createMailAddress({ address: recipient.address, name: recipient.name ?? "", contact: null }),
+				// everything below is garbage
+				confidential,
+				subject: "",
+				method: "",
+				sender: createMailAddress({ address: "", name: "", contact: null }),
+				mailDetails: null,
+				mailDetailsDraft: null,
+				attachments: [],
+				bucketKey: null,
+				sendAt: null,
+				unread: true,
+				authStatus: null,
+				differentEnvelopeSender: null,
+				encryptionAuthStatus: null,
+				movedTime: null,
+				serverClassificationData: null,
+				listUnsubscribe: false,
+				processNeeded: false,
+				phishingStatus: "",
+				processingState: "",
+				recipientCount: "",
+				replyType: "",
+				state: "",
+				receivedDate: new Date(),
+				sets: [],
+				conversationEntry: ["", ""],
+				clientSpamClassifierResult: null,
+			})
+
+			const clientModelUntypedInstance = await this.instancePipeline.mapAndEncrypt(MailTypeRef, dummyMail, sessionKeyInfo)
+			const sanitizedUntypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(clientModelUntypedInstance)
+
+			const firstRecipient = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(sanitizedUntypedInstance, "firstRecipient", mailModel)[0]
+
+			const encryptedFirstRecipientName = AttributeModel.getAttributeorNull<Base64>(firstRecipient, "name", mailAddressModel)
+
+			return [recipient.address, encryptedFirstRecipientName] as const
 		}
-		const clientModelUntypedInstance = this.instancePipeline.mapAndEncrypt(MailTypeRef, dummyMail, sessionKeyInfo)
+
+		const toRecipientAddressToEncryptedFirstRecipientName = new Map(await Promise.all(toRecipients.map(recipientToKeyValuePair)))
+		const ccRecipientAddressToEncryptedFirstRecipientName = new Map(await Promise.all(ccRecipients.map(recipientToKeyValuePair)))
+		const bccRecipientAddressToEncryptedFirstRecipientName = new Map(await Promise.all(bccRecipients.map(recipientToKeyValuePair)))
+
+		const dummyMailDetails = createMailDetails({
+			recipients: createRecipients({
+				toRecipients: toRecipients.map(recipientToMailAddress),
+				ccRecipients: ccRecipients.map(recipientToMailAddress),
+				bccRecipients: bccRecipients.map(recipientToMailAddress),
+			}),
+			body: createBody({
+				text: "",
+				compressedText: bodyText,
+			}),
+			// everything below is garbage
+			sentDate: new Date(),
+			authStatus: "",
+			headers: null,
+			replyTos: [],
+		})
+
+		const dummyMailDetailsDraft = createMailDetailsDraft({
+			details: dummyMailDetails,
+		})
+
+		const mailDetailsDraftClientModelUntypedInstance = await this.instancePipeline.mapAndEncrypt(
+			MailDetailsDraftTypeRef,
+			dummyMailDetailsDraft,
+			sessionKeyInfo,
+		)
+		const sanitizedMailDetailsDraftClientModelUntypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(
+			mailDetailsDraftClientModelUntypedInstance,
+		)
+
+		const mailDetailsDraftModel = await this.instancePipeline.clientTypeReferenceResolver(MailDetailsDraftTypeRef)
+		const details = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(
+			sanitizedMailDetailsDraftClientModelUntypedInstance,
+			"details",
+			mailDetailsDraftModel,
+		)[0]
+
+		const mailDetailsModel = await this.instancePipeline.clientTypeReferenceResolver(MailDetailsTypeRef)
+		const body = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(details, "body", mailDetailsModel)[0]
+		const bodyModel = await this.instancePipeline.clientTypeReferenceResolver(BodyTypeRef)
+
+		const bodyId = AttributeModel.getAttributeorNull<Id>(body, "_id", bodyModel)
+		const encryptedCompressedBodyText = AttributeModel.getAttributeorNull<Base64>(body, "compressedText", bodyModel)
+
+		const encryptedRecipients = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(details, "recipients", mailDetailsModel)[0]
+
+		const recipientsModel = await this.instancePipeline.clientTypeReferenceResolver(RecipientsTypeRef)
+		const recipientsId = AttributeModel.getAttribute<Id>(encryptedRecipients, "_id", recipientsModel)
+
+		const encryptedToRecipients = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(encryptedRecipients, "toRecipients", recipientsModel)
+		const encryptedCcRecipients = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(encryptedRecipients, "ccRecipients", recipientsModel)
+		const encryptedBccRecipients = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(encryptedRecipients, "bccRecipients", recipientsModel)
+
+		const toRecipientAddressToEncryptedName = new Map(
+			encryptedToRecipients.map((encryptedToRecipient) => {
+				const encryptedRecipientName = AttributeModel.getAttributeorNull<Base64>(encryptedToRecipient, "name", mailAddressModel)
+				const address = AttributeModel.getAttribute<string>(encryptedToRecipient, "address", mailAddressModel)
+				return [address, encryptedRecipientName] as const
+			}),
+		)
+		const ccRecipientAddressToEncryptedName = new Map(
+			encryptedCcRecipients.map((encryptedToRecipient) => {
+				const encryptedRecipientName = AttributeModel.getAttributeorNull<Base64>(encryptedToRecipient, "name", mailAddressModel)
+				const address = AttributeModel.getAttribute<string>(encryptedToRecipient, "address", mailAddressModel)
+				return [address, encryptedRecipientName] as const
+			}),
+		)
+		const bccRecipientAddressToEncryptedName = new Map(
+			encryptedBccRecipients.map((encryptedToRecipient) => {
+				const encryptedRecipientName = AttributeModel.getAttributeorNull<Base64>(encryptedToRecipient, "name", mailAddressModel)
+				const address = AttributeModel.getAttribute<string>(encryptedToRecipient, "address", mailAddressModel)
+				return [address, encryptedRecipientName] as const
+			}),
+		)
+
+		console.log(encryptedSenderName)
+		console.log(senderId)
 
 		// mapAndEncrypt each of them
 		// extract the values we need from each and put them on the DraftCreateData
 		// call serviceExecutor.post with already encrypted values
 
-		const service = createDraftCreateData({
+		const draftCreateData = createDraftCreateData({
 			previousMessageId: previousMessageId,
 			conversationType: conversationType,
 			ownerEncSessionKey: ownerEncSessionKey.key,
@@ -391,10 +537,67 @@ export class MailFacade {
 				addedAttachments: await this._createAddedAttachments(attachments, [], senderMailGroupId, mailGroupKey),
 				bodyText: "",
 				removedAttachments: [],
+				recipientsId,
+				bodyId,
+				senderId,
 			}),
 			ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 		})
-		const createDraftReturn = await this.serviceExecutor.post(DraftService, service, { sessionKey: sk })
+
+		const untypedDraftCreateData = await this.instancePipeline.mapAndEncrypt(DraftCreateDataTypeRef, draftCreateData, sessionKeyInfo)
+		const draftCreateDataModel = await this.instancePipeline.clientTypeReferenceResolver(DraftCreateDataTypeRef)
+		const draftData = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(untypedDraftCreateData, "draftData", draftCreateDataModel)[0]
+		const draftDataModel = await this.instancePipeline.clientTypeReferenceResolver(DraftDataTypeRef)
+
+		AttributeModel.setAttribute(draftData, "senderName", draftDataModel, encryptedSenderName)
+		AttributeModel.setAttribute(draftData, "method", draftDataModel, encryptedMethod)
+		AttributeModel.setAttribute(draftData, "confidential", draftDataModel, encryptedConfidential)
+		AttributeModel.setAttribute(draftData, "subject", draftDataModel, encryptedSubject)
+		AttributeModel.setAttribute(draftData, "compressedBodyText", draftDataModel, encryptedCompressedBodyText)
+
+		const draftRecipientModel = await this.instancePipeline.clientTypeReferenceResolver(DraftRecipientTypeRef)
+
+		for (const toRecipient of AttributeModel.getAttribute<ClientModelUntypedInstance[]>(draftData, "toRecipients", draftDataModel)) {
+			const mailAddress = AttributeModel.getAttribute<string>(toRecipient, "mailAddress", draftRecipientModel)
+			const encryptedName = toRecipientAddressToEncryptedName.get(mailAddress)
+			if (encryptedName === undefined) {
+				throw new ProgrammingError("address is not mapped")
+			}
+			AttributeModel.setAttribute(toRecipient, "name", draftRecipientModel, encryptedName)
+			const encryptedFirstRecipientName = toRecipientAddressToEncryptedFirstRecipientName.get(mailAddress)
+			if (encryptedFirstRecipientName === undefined) {
+				throw new ProgrammingError("address is not mapped")
+			}
+			AttributeModel.setAttribute(toRecipient, "firstRecipientName", draftRecipientModel, encryptedFirstRecipientName)
+		}
+		for (const ccRecipient of AttributeModel.getAttribute<ClientModelUntypedInstance[]>(draftData, "ccRecipients", draftDataModel)) {
+			const mailAddress = AttributeModel.getAttribute<string>(ccRecipient, "mailAddress", draftRecipientModel)
+			const encryptedName = ccRecipientAddressToEncryptedName.get(mailAddress)
+			if (encryptedName === undefined) {
+				throw new ProgrammingError("address is not mapped")
+			}
+			AttributeModel.setAttribute(ccRecipient, "name", draftRecipientModel, encryptedName)
+			const encryptedFirstRecipientName = ccRecipientAddressToEncryptedFirstRecipientName.get(mailAddress)
+			if (encryptedFirstRecipientName === undefined) {
+				throw new ProgrammingError("address is not mapped")
+			}
+			AttributeModel.setAttribute(ccRecipient, "firstRecipientName", draftRecipientModel, encryptedFirstRecipientName)
+		}
+		for (const bccRecipient of AttributeModel.getAttribute<ClientModelUntypedInstance[]>(draftData, "bccRecipients", draftDataModel)) {
+			const mailAddress = AttributeModel.getAttribute<string>(bccRecipient, "mailAddress", draftRecipientModel)
+			const encryptedName = bccRecipientAddressToEncryptedName.get(mailAddress)
+			if (encryptedName === undefined) {
+				throw new ProgrammingError("address is not mapped")
+			}
+			AttributeModel.setAttribute(bccRecipient, "name", draftRecipientModel, encryptedName)
+			const encryptedFirstRecipientName = bccRecipientAddressToEncryptedFirstRecipientName.get(mailAddress)
+			if (encryptedFirstRecipientName === undefined) {
+				throw new ProgrammingError("address is not mapped")
+			}
+			AttributeModel.setAttribute(bccRecipient, "firstRecipientName", draftRecipientModel, encryptedFirstRecipientName)
+		}
+
+		const createDraftReturn = await this.serviceExecutor.post(DraftService, draftCreateData, { sessionKey: sk, untypedInstance: untypedDraftCreateData })
 		return this.entityClient.load(MailTypeRef, createDraftReturn.draft)
 	}
 
@@ -456,6 +659,10 @@ export class MailFacade {
 				removedAttachments: this._getRemovedAttachments(attachments, currentAttachments),
 				addedAttachments: await this._createAddedAttachments(attachments, currentAttachments, senderMailGroupId, mailGroupKey),
 				bodyText: "",
+				// FIXME
+				senderId: null,
+				bodyId: null,
+				recipientsId: null,
 			}),
 		})
 		this.deferredDraftId = draft._id
@@ -1510,6 +1717,10 @@ function recipientToDraftRecipient(recipient: PartialRecipient): DraftRecipient 
 	return createDraftRecipient({
 		name: recipient.name ?? "",
 		mailAddress: recipient.address,
+		// FIXME
+		recipientsId: null,
+		firstRecipientId: null,
+		firstRecipientName: null,
 	})
 }
 
@@ -1517,6 +1728,20 @@ function recipientToEncryptedMailAddress(recipient: PartialRecipient): Encrypted
 	return createEncryptedMailAddress({
 		name: recipient.name ?? "",
 		address: recipient.address,
+	})
+}
+
+function recipientToMailAddress(recipient: PartialRecipient): MailAddress {
+	let contact: Nullable<IdTuple>
+	if (recipient.contact && !(recipient.contact instanceof Array)) {
+		contact = recipient.contact._id
+	} else {
+		contact = recipient.contact ?? null
+	}
+	return createMailAddress({
+		name: recipient.name ?? "",
+		address: recipient.address,
+		contact: contact,
 	})
 }
 
