@@ -703,8 +703,8 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 			repeatRule,
 			attendees,
 			organizer,
-			startTimeZone: startTzId,
-			endTimeZone: endTzId,
+			startTimeZone: allDay ? null : startTzId,
+			endTimeZone: allDay ? null : endTzId,
 		}
 
 		let alarms: AlarmInfoTemplate[] = []
