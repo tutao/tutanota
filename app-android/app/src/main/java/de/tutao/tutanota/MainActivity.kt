@@ -481,7 +481,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 		// and MimeTypeMap fails to handle it because of that /login path.
 		// There should be no actual resource under index-app.html/, it's only "virtual" paths (handled by JS) for the
 		// app so we assume that it is html.
-		if (url.startsWith("https://assets.tutanota.com/index-app.html/")) {
+		if (url.startsWith("https://assets.tutanota.com/index-app.html/") || url.startsWith("https://assets.tutanota.com/login")) {
 			return "text/html"
 		}
 		val ext = MimeTypeMap.getFileExtensionFromUrl(url)
