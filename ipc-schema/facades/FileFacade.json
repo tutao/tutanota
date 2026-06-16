@@ -164,17 +164,35 @@
 			],
 			"ret": "string"
 		},
-		"splitFile": {
-			"doc": "split a given file on disk into as many chunks as necessary to limit their size to the max byte size. returns the list of chunk file locations.",
+		"openFileForReading": {
+			"doc": "open a file for reading",
 			"arg": [
 				{
 					"fileUri": "string"
-				},
-				{
-					"maxChunkSizeBytes": "number"
 				}
 			],
-			"ret": "List<string>"
+			"ret": "string"
+		},
+		"closeFile": {
+			"doc": "close a file",
+			"arg": [
+				{
+					"streamUri": "string"
+				}
+			],
+			"ret": "void"
+		},
+		"readChunk": {
+			"doc": "read a chunk from an opened file",
+			"arg": [
+				{
+					"streamUri": "string"
+				},
+				{
+					"maxChunkSize": "number"
+				}
+			],
+			"ret": "string?"
 		},
 		"writeTempDataFile": {
 			"doc": "Save the unencrypted data file to the disk into a fixed temporary location, not the user's preferred download dir.",

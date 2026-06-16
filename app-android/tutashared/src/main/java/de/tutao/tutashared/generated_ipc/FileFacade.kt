@@ -101,12 +101,24 @@ interface FileFacade {
 		files: List<String>,
 	): String
 	/**
-	 * split a given file on disk into as many chunks as necessary to limit their size to the max byte size. returns the list of chunk file locations.
+	 * open a file for reading
 	 */
-	suspend fun splitFile(
+	suspend fun openFileForReading(
 		fileUri: String,
-		maxChunkSizeBytes: Int,
-	): List<String>
+	): String
+	/**
+	 * close a file
+	 */
+	suspend fun closeFile(
+		streamUri: String,
+	): Unit
+	/**
+	 * read a chunk from an opened file
+	 */
+	suspend fun readChunk(
+		streamUri: String,
+		maxChunkSize: Int,
+	): String?
 	/**
 	 * Save the unencrypted data file to the disk into a fixed temporary location, not the user's preferred download dir.
 	 */

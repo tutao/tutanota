@@ -9,10 +9,9 @@ import UIKit
 
 	public init(viewController: UIViewController) { self.viewController = viewController }
 
-	public func openFile(path: String) async {
+	public func openFile(_ fileUrl: URL) async {
 		let previewController = QLPreviewController()
 
-		let fileUrl = URL(fileURLWithPath: path)
 		return await withCheckedContinuation { continuation in
 			let delegate = Delegate(fileUrl: fileUrl) {
 				// Remove the reference to break retain cycle
