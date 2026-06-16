@@ -62,22 +62,22 @@ public final class IosFileFacade: FileFacade {
 	public func openFolderChooser() async throws -> String? { fatalError("not implemented for this platform") }
 	public func openMacImportFileChooser() async throws -> [String] { fatalError("not implemented for this platform") }
 
-	private func writeFile(_ file: String, _ content: DataWrapper) async throws {
-		let fileURL = URL(fileURLWithPath: file)
-		try content.data.write(to: fileURL, options: .atomic)
-	}
+	private func writeFile(at url: URL, _ content: DataWrapper) async throws { try content.data.write(to: url, options: .atomic) }
 
-	private func readFile(_ path: String) throws -> DataWrapper {
-		let data = try Data(contentsOf: URL(fileURLWithPath: path))
+	private func readFile(at url: URL) throws -> DataWrapper {
+		let data = try Data(contentsOf: url)
 		return data.wrap()
 	}
 
-	public func open(_ location: String, _ mimeType: String) async throws { await self.viewer.openFile(path: location) }
+	public func open(_ location: String, _ mimeType: String) async throws {
+		let url = try URL.from(fileUrl: location)
+		await self.viewer.openFile(url)
+	}
 
 	public func openFileChooser(_ boundingRect: IpcClientRect, _ filter: [String]?, _ isFileOnly: Bool? = false) async throws -> [String] {
 		let anchor = CGRect(x: boundingRect.x, y: boundingRect.y, width: boundingRect.width, height: boundingRect.height)
 		let files = try await self.chooser.open(withAnchorRect: anchor, isFileOnly: isFileOnly!)
-		var returnfiles = [String]()
+		var returnfiles = [URL]()
 		for file in files {
 			let fileUrl = URL(fileURLWithPath: file)
 			let isDirectory: Bool = (try? fileUrl.resourceValues(forKeys: [.isDirectoryKey]))?.isDirectory == true
@@ -85,32 +85,24 @@ public final class IosFileFacade: FileFacade {
 			// In those cases we just zip and add it.
 			if isDirectory {
 				let destinationPath = try zipDirectory(fileUrl: fileUrl)
-				returnfiles.append(destinationPath)
+				returnfiles.append(URL(filePath: destinationPath))
 			} else {
-				returnfiles.append(file)
+				returnfiles.append(URL(filePath: file))
 			}
 		}
-		return returnfiles
+		return returnfiles.map { $0.absoluteString }
 	}
 
-	public func deleteFile(_ file: String) async throws {
-		do { try FileManager.default.removeItem(atPath: file) } catch {
-			if (error as NSError).code == NSFileNoSuchFileError { return printLog("Tried to delete file \(file) that does not exist.") }
-			throw FileError(message: "Failed to delete file \(file)", underlyingError: error)
-		}
-	}
+	public func deleteFile(_ file: String) async throws { try await self.tempFs.deleteFile(uri: file) }
 
-	public func getName(_ file: String) async throws -> String {
-		let fileName = (file as NSString).lastPathComponent
-		if FileUtils.fileExists(atPath: file) { return fileName } else { throw FileError(message: "File does not exists") }
-	}
+	public func getName(_ file: String) async throws -> String { try await self.tempFs.fileInfo(uri: file).name }
 
-	public func getMimeType(_ file: String) async throws -> String { getFileMIMETypeWithDefault(path: file) }
+	public func getMimeType(_ file: String) async throws -> String { getFileMIMETypeWithDefault(path: try filePathFrom(urlString: file)) }
 
-	public func getSize(_ file: String) async throws -> Int { try getFileSize(file) }
+	public func getSize(_ file: String) async throws -> Int { try await Int(self.tempFs.fileInfo(uri: file).size) }
 
 	@MainActor public func putFileIntoDownloadsFolder(_ localFileUri: String, _ fileNameToSave: String) async throws -> String {
-		let url = URL(fileURLWithPath: localFileUri)
+		let url = try URL.from(fileUrl: localFileUri)
 		await chooser.pickDestinationDirectory(fileUri: url)
 		// The file is not directly accessible after having been moved by the destination directory picker.
 		// Apple docs say that we can create a security-scoped URL to a bookmark of the destination,
@@ -155,9 +147,10 @@ public final class IosFileFacade: FileFacade {
 		)
 
 		do {
+			// We would like to do streaming upload but there's no async version
 			let (data, response) = try await self.urlSession.upload(
 				for: self.schemeHandler.rewriteRequest(request),
-				fromFile: URL(fileURLWithPath: sourceFileUrl),
+				from: self.tempFs.readAsData(uri: sourceFileUrl),
 				delegate: uploadDelegate
 			)
 			let httpResponse = response as! HTTPURLResponse
@@ -209,7 +202,11 @@ public final class IosFileFacade: FileFacade {
 		{ throw CancelledError(message: "Download task was canceled", underlyingError: error) }
 		let httpResponse = response as! HTTPURLResponse
 		let encryptedFileUri: String?
-		if httpResponse.statusCode == 200 { encryptedFileUri = try self.writeEncryptedFile(fileName: filename, data: data) } else { encryptedFileUri = nil }
+		if httpResponse.statusCode == 200 {
+			encryptedFileUri = try self.writeEncryptedFile(fileName: filename, data: data).absoluteString
+		} else {
+			encryptedFileUri = nil
+		}
 		return DownloadTaskResponse(httpResponse: httpResponse, encryptedFileUri: encryptedFileUri)
 	}
 	public func abortDownload(_ fileId: String) async {
@@ -217,11 +214,12 @@ public final class IosFileFacade: FileFacade {
 		self.activeTransfersLock.withLock { $0[fileId]?.cancel() }
 	}
 
-	private func writeEncryptedFile(fileName: String, data: Data) throws -> String {
+	private func writeEncryptedFile(fileName: String, data: Data) throws -> URL {
 		let encryptedPath = try FileUtils.getEncryptedFolder()
 		let filePath = (encryptedPath as NSString).appendingPathComponent(fileName)
-		try data.write(to: URL(fileURLWithPath: filePath), options: .atomicWrite)
-		return filePath
+		let url = URL(fileURLWithPath: filePath)
+		try data.write(to: url, options: .atomicWrite)
+		return url
 	}
 
 	public func hashFile(_ fileUri: String) async throws -> String { try await BlobUtil(tempFs: self.tempFs).hashFile(fileUri: fileUri) }
@@ -254,40 +252,37 @@ public final class IosFileFacade: FileFacade {
 	}
 
 	public func joinFiles(_ filename: String, _ files: [String]) async throws -> String {
-		try await BlobUtil(tempFs: self.tempFs).joinFiles(fileName: filename, filePathsToJoin: files)
-	}
-
-	public func splitFile(_ fileUri: String, _ maxChunkSizeBytes: Int) async throws -> [String] {
-		try await BlobUtil(tempFs: self.tempFs).splitFile(fileUri: fileUri, maxBlobSize: maxChunkSizeBytes)
+		try await BlobUtil(tempFs: self.tempFs).joinFiles(fileName: filename, fileUrlsToJoin: files)
 	}
 
 	public func writeTempDataFile(_ file: DataFile) async throws -> String {
 		let decryptedFolder = try FileUtils.getDecryptedFolder()
 		let filePath = (decryptedFolder as NSString).appendingPathComponent(file.name)
-		try await self.writeFile(filePath, file.data)
+		let fileUrl = URL(fileURLWithPath: filePath)
+		try await self.writeFile(at: fileUrl, file.data)
 		return filePath
 	}
 
 	public func readDataFile(_ filePath: String) async throws -> DataFile? {
-		let data = try readFile(filePath)
+		let data = try readFile(at: URL.from(fileUrl: filePath))
 		return DataFile(name: try await getName(filePath), mimeType: try await getMimeType(filePath), size: try await getSize(filePath), data: data)
 	}
 	public func writeToAppDir(_ content: TutanotaSharedFramework.DataWrapper, _ name: String) async throws {
 		let supportDir = try FileUtils.getApplicationSupportFolder()
-		let filePath = supportDir.appendingPathComponent(name)
-		try await self.writeFile(filePath.path, content)
+		let fileUrl = supportDir.appendingPathComponent(name)
+		try await self.writeFile(at: fileUrl, content)
 	}
 
 	public func readFromAppDir(_ name: String) throws -> TutanotaSharedFramework.DataWrapper {
 		let supportDir = try FileUtils.getApplicationSupportFolder()
-		let filePath = supportDir.appendingPathComponent(name)
-		return try self.readFile(filePath.path)
+		let fileUrl = supportDir.appendingPathComponent(name)
+		return try self.readFile(at: fileUrl)
 	}
 
 	public func deleteFromAppDir(_ path: String) async throws {
 		let supportDir = try FileUtils.getApplicationSupportFolder()
-		let filePath = supportDir.appendingPathComponent(path)
-		try await self.deleteFile(filePath.path)
+		let fileUrl = supportDir.appendingPathComponent(path)
+		try await self.deleteFile(fileUrl.absoluteString)
 	}
 
 	private func clearDirectory(folderPath: String) async throws {
@@ -298,6 +293,13 @@ public final class IosFileFacade: FileFacade {
 	}
 
 	public func readDirectory(_ filePath: String) async throws -> TutanotaSharedFramework.DirectoryContents { fatalError("not implemented on this platform") }
+	public func openFileForReading(_ fileUri: String) async throws -> String { try await self.tempFs.openFileForReading(uri: fileUri) }
+	public func closeFile(_ streamUri: String) async throws { try await self.tempFs.closeFile(streamUri: streamUri) }
+	public func readChunk(_ streamUri: String, _ maxChunkSize: Int) async throws -> String? {
+		var stream = try await self.tempFs.fileStream(tutaUri: streamUri)
+		let buf = try stream.read(upToBytes: maxChunkSize)
+		if let buf { return await self.tempFs.createInMemoryFile(data: buf) } else { return nil }
+	}
 }
 
 extension UploadTaskResponse {
@@ -328,3 +330,8 @@ extension DownloadTaskResponse {
 /// From iOS13 we have a method to read headers case-insensitively: HTTPURLResponse.value(forHTTPHeaderField:)
 /// For older iOS we use this NSDictionary cast workaround as suggested by a commenter in the bug report.
 extension HTTPURLResponse { public func valueForHeaderField(_ headerField: String) -> String? { value(forHTTPHeaderField: headerField) } }
+
+func filePathFrom(urlString: String) throws -> String {
+	let url = try URL.from(fileUrl: urlString)
+	return url.path(percentEncoded: false)
+}

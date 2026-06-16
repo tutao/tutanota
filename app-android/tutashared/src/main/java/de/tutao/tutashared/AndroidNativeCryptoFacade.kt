@@ -4,19 +4,42 @@ import android.content.Context
 import android.net.Uri
 import androidx.annotation.Keep
 import androidx.annotation.VisibleForTesting
+import androidx.core.net.toUri
 import de.tutao.tutasdk.KyberException
 import de.tutao.tutasdk.kyberDecapsulateWithPrivKey
 import de.tutao.tutasdk.kyberEncapsulateWithPubKey
-import de.tutao.tutashared.ipc.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import de.tutao.tutashared.file.TempFs
+import de.tutao.tutashared.ipc.DataWrapper
+import de.tutao.tutashared.ipc.EncryptedFileInfo
+import de.tutao.tutashared.ipc.IPCEd25519KeyPair
+import de.tutao.tutashared.ipc.IPCEd25519PrivateKey
+import de.tutao.tutashared.ipc.IPCEd25519PublicKey
+import de.tutao.tutashared.ipc.IPCEd25519Signature
+import de.tutao.tutashared.ipc.KyberEncapsulation
+import de.tutao.tutashared.ipc.KyberKeyPair
+import de.tutao.tutashared.ipc.KyberPrivateKey
+import de.tutao.tutashared.ipc.KyberPublicKey
+import de.tutao.tutashared.ipc.NativeCryptoFacade
+import de.tutao.tutashared.ipc.RsaPrivateKey
+import de.tutao.tutashared.ipc.RsaPublicKey
+import de.tutao.tutashared.ipc.wrap
 import org.apache.commons.io.IOUtils
-import org.apache.commons.io.input.BoundedInputStream
-import java.io.*
-import java.security.*
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.io.OutputStream
+import java.security.InvalidKeyException
+import java.security.Key
+import java.security.MessageDigest
+import java.security.NoSuchAlgorithmException
+import java.security.SecureRandom
 import java.security.spec.MGF1ParameterSpec
-import java.util.*
-import javax.crypto.*
+import javax.crypto.BadPaddingException
+import javax.crypto.Cipher
+import javax.crypto.CipherInputStream
+import javax.crypto.IllegalBlockSizeException
+import javax.crypto.Mac
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.OAEPParameterSpec
 import javax.crypto.spec.PSource
@@ -24,7 +47,7 @@ import javax.crypto.spec.SecretKeySpec
 
 class AndroidNativeCryptoFacade(
 	private val context: Context,
-	private val tempDir: TempDir = TempDir(context),
+	private val tempFs: TempFs,
 	val randomizer: SecureRandom = SecureRandom(),
 ) : NativeCryptoFacade {
 
@@ -214,18 +237,15 @@ class AndroidNativeCryptoFacade(
 		}
 	}
 
+	@Suppress("BlockingMethodInNonBlockingContext")
 	@Throws(IOException::class, CryptoError::class)
 	override suspend fun aesEncryptFile(key: DataWrapper, fileUri: String, iv: DataWrapper): EncryptedFileInfo {
-		val parsedFileUri = Uri.parse(fileUri)
-		val outputFile = File(tempDir.encrypt, getFileInfo(context, parsedFileUri).name)
-		val inputStream = BoundedInputStream.builder()
-			.setInputStream(context.contentResolver.openInputStream(parsedFileUri))
-			.get()
-		val out: OutputStream = withContext(Dispatchers.IO) {
-			FileOutputStream(outputFile)
-		}
-		aesEncrypt(key.data, inputStream, out, iv.data, usePadding = true, useMac = true)
-		return EncryptedFileInfo(outputFile.toUri(), inputStream.count.toInt())
+		val inputStream = tempFs.fileStream(fileUri)
+		val inputSize = inputStream.available()
+		val outputStream = ByteArrayOutputStream(inputSize)
+		aesEncrypt(key.data, inputStream, outputStream, iv.data, usePadding = true, useMac = true)
+		val outputUri = this.tempFs.createInMemoryFile(outputStream.toByteArray())
+		return EncryptedFileInfo(outputUri, inputSize)
 	}
 
 	@Throws(IOException::class, CryptoError::class)
@@ -284,13 +304,13 @@ class AndroidNativeCryptoFacade(
 
 	@Throws(IOException::class, CryptoError::class)
 	override suspend fun aesDecryptFile(key: DataWrapper, fileUri: String): String {
-		val parsedFileUri = Uri.parse(fileUri)
+		val parsedFileUri = fileUri.toUri()
 		val file = getFileInfo(context, parsedFileUri)
-		val newFileName = getNonClobberingFileName(tempDir.decrypt, file.name)
-		val outputFile = File(tempDir.decrypt, newFileName)
 		val input = context.contentResolver.openInputStream(parsedFileUri)!!
-		val out: OutputStream = FileOutputStream(outputFile)
-		aesDecrypt(key.data, input, out, file.size, true)
+		val outputFile = tempFs.createTempFileDecrypt(file.name)
+		outputFile.outputStream().use { out ->
+			aesDecrypt(key.data, input, out, file.size, true)
+		}
 		return Uri.fromFile(outputFile).toString()
 	}
 

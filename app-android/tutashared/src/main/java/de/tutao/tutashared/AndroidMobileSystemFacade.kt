@@ -45,7 +45,8 @@ class AndroidMobileSystemFacade(
 	private val providerAuthority: String,
 	private val appType: AppType,
 	private val widgetRefresher: WidgetRefreshable?,
-) : MobileSystemFacade {
+	private val tempDir: TempDir
+	) : MobileSystemFacade {
 	private val authenticationPrompt = AuthenticationPrompt()
 
 	companion object {
@@ -94,7 +95,7 @@ class AndroidMobileSystemFacade(
 			val imageName = "logo-solo-red.png"
 			try {
 				val logoInputStream = activity.assets.open("tutanota/images/$imageName")
-				val logoFile = File(fileFacade.tempDir.decrypt, imageName)
+				val logoFile = File(tempDir.decrypt, imageName)
 				fileFacade.writeFileStream(logoFile, logoInputStream)
 				val logoUri = FileProvider.getUriForFile(activity, providerAuthority, logoFile)
 				val thumbnail = ClipData.newUri(
