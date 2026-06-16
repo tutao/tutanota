@@ -1209,7 +1209,7 @@ END:VCALENDAR`
 								advancedRules: [],
 							}),
 							startTimeZone: zone,
-							endTimeZone: null,
+							endTimeZone: zone,
 						}),
 						alarms: [],
 					},
