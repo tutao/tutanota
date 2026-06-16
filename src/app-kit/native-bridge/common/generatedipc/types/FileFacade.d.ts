@@ -75,9 +75,19 @@ export interface FileFacade {
 	joinFiles(filename: string, files: ReadonlyArray<string>): Promise<string>
 
 	/**
-	 * split a given file on disk into as many chunks as necessary to limit their size to the max byte size. returns the list of chunk file locations.
+	 * open a file for reading
 	 */
-	splitFile(fileUri: string, maxChunkSizeBytes: number): Promise<ReadonlyArray<string>>
+	openFileForReading(fileUri: string): Promise<string>
+
+	/**
+	 * close a file
+	 */
+	closeFile(streamUri: string): Promise<void>
+
+	/**
+	 * read a chunk from an opened file
+	 */
+	readChunk(streamUri: string, maxChunkSize: number): Promise<string | null>
 
 	/**
 	 * Save the unencrypted data file to the disk into a fixed temporary location, not the user's preferred download dir.

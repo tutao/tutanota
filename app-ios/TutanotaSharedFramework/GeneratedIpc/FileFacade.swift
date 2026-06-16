@@ -98,12 +98,24 @@ public protocol FileFacade : Sendable {
 		_ files: [String]
 	) async throws -> String
 	/**
-	 * split a given file on disk into as many chunks as necessary to limit their size to the max byte size. returns the list of chunk file locations.
+	 * open a file for reading
 	 */
-	func splitFile(
-		_ fileUri: String,
-		_ maxChunkSizeBytes: Int
-	) async throws -> [String]
+	func openFileForReading(
+		_ fileUri: String
+	) async throws -> String
+	/**
+	 * close a file
+	 */
+	func closeFile(
+		_ streamUri: String
+	) async throws -> Void
+	/**
+	 * read a chunk from an opened file
+	 */
+	func readChunk(
+		_ streamUri: String,
+		_ maxChunkSize: Int
+	) async throws -> String?
 	/**
 	 * Save the unencrypted data file to the disk into a fixed temporary location, not the user's preferred download dir.
 	 */

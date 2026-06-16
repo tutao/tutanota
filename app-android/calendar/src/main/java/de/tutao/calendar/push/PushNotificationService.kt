@@ -12,16 +12,19 @@ import de.tutao.tutashared.DateProviderImpl
 import de.tutao.tutashared.LifecycleJobService
 import de.tutao.tutashared.NetworkUtils
 import de.tutao.tutashared.SuspensionHandler
+import de.tutao.tutashared.TempDir
 import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.alarms.SystemAlarmFacade
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.data.SseInfo
+import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.push.SseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
+import java.security.SecureRandom
 import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 
@@ -74,9 +77,10 @@ class PushNotificationService : LifecycleJobService() {
 		state = State.CREATED
 
 		finishJobThread.start()
-
+		val tempDir = TempDir(applicationContext, SecureRandom())
+		val tempFs = TempFs(applicationContext, SecureRandom(), tempDir)
 		val appDatabase: AppDatabase = AppDatabase.getDatabase(this, allowMainThreadAccess = true)
-		val crypto = AndroidNativeCryptoFacade(this)
+		val crypto = AndroidNativeCryptoFacade(this, tempFs)
 		val keyStoreFacade = createAndroidKeyStoreFacade()
 		val dateProvider = DateProviderImpl()
 		val suspensionHandler = SuspensionHandler(dateProvider)

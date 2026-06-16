@@ -70,6 +70,7 @@ import de.tutao.tutashared.AppType
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.DateProviderImpl
 import de.tutao.tutashared.NetworkUtils
+import de.tutao.tutashared.TempDir
 import de.tutao.tutashared.Theme
 import de.tutao.tutashared.WebViewReloader
 import de.tutao.tutashared.alarms.AlarmNotificationsManager
@@ -78,6 +79,7 @@ import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.file.AndroidFileFacade
+import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.ipc.AndroidGlobalDispatcher
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.CommonNativeFacade
@@ -162,6 +164,8 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 
 		//we need to manually enable edge-to-edge to get `windowInsets` in Android ≤ 14
 		enableEdgeToEdge()
+		val tempDir = TempDir(applicationContext)
+		val tempFs = TempFs(applicationContext, SecureRandom(), tempDir)
 
 		val localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
 		val fileFacade =
@@ -170,6 +174,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 				this,
 				localNotificationsFacade,
 				SecureRandom(),
+				tempFs,
 				NetworkUtils.defaultClient,
 				{ fileId, bytes ->
 					lifecycleScope.launch {
@@ -184,7 +189,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 				BuildConfig.FILE_PROVIDER_AUTHORITY
 			)
 		val calendarFacade = AndroidCalendarFacade(NetworkUtils.defaultClient, webView.settings.userAgentString)
-		val cryptoFacade = AndroidNativeCryptoFacade(this, fileFacade.tempDir)
+		val cryptoFacade = AndroidNativeCryptoFacade(this, tempFs)
 
 
 		val alarmNotificationsManager = AlarmNotificationsManager(
@@ -208,7 +213,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 
 		sqlCipherFacade = AndroidSqlCipherFacade(this)
 		commonSystemFacade =
-			AndroidCommonSystemFacade(this, sqlCipherFacade, fileFacade.tempDir, NetworkUtils.defaultClient)
+			AndroidCommonSystemFacade(this, sqlCipherFacade, tempDir, NetworkUtils.defaultClient)
 
 		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson, "tutanota", BuildConfig.APPLICATION_ID)
 
@@ -225,7 +230,8 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 				db,
 				BuildConfig.FILE_PROVIDER_AUTHORITY,
 				AppType.MAIL,
-				null
+				null,
+				tempDir
 			),
 			CredentialsEncryptionFactory.create(this, cryptoFacade, db),
 			cryptoFacade,
