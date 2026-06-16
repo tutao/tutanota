@@ -5,11 +5,17 @@ import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { EntityRestClient } from "../../../../platform-kit/network/EntityRestClient"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailDetails, MailDetailsBlobTypeRef, MailDetailsDraftTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
-import { assertNotNull, first } from "@tutao/utils"
+import { assertNotNull, first, newPromise } from "@tutao/utils"
 import { isDraft } from "../../mail/model/MailChecks"
 import { elementIdPart, listIdPart } from "@tutao/meta"
 import { cryptoUtils } from "@tutao/crypto"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
+import { CancelledError } from "@tutao/app-env"
+
+export const enum MailIndexingAbortReason {
+	Cancelled = "MailIndexingCancelled",
+	Restarting = "MailIndexingRestarting",
+}
 
 /**
  * Handles indexing mails for mail groups.
@@ -27,6 +33,7 @@ export interface MailIndexer {
 	beforeImportedMailFinished(importedMailsList: Id): Promise<void>
 	rebuildIndex(user: User): Promise<void>
 	extendMailIndex(user: User): Promise<void>
+	cancelMailIndexing(): void
 }
 
 /**
@@ -96,4 +103,24 @@ export function defaultMailIndexerNewMailDownloader(entityClient: EntityClient |
 			}
 		}
 	}
+}
+
+/** A helper to cancel an async operation with {@link CancelledError} as soon as possible. */
+export function abortAware<T>(abortController: AbortController, loading: () => Promise<T>): Promise<T> {
+	type AbortEventListener = Parameters<AbortSignal["addEventListener"]>[1]
+
+	let listener: AbortEventListener | null = null
+	return Promise.race([
+		loading(),
+		newPromise<T>((_, reject) => {
+			// return right away if already aborted
+			if (abortController.signal.aborted) reject(new CancelledError("mail indexing canceled", abortController.signal.reason))
+			listener = () => reject(new CancelledError("mail indexing canceled", abortController.signal.reason))
+			abortController.signal.addEventListener("abort", listener, { once: true })
+		}),
+	]).finally(() => {
+		if (listener) {
+			abortController.signal.removeEventListener("abort", listener)
+		}
+	})
 }
