@@ -1,5 +1,16 @@
 import { stringToUtf8Uint8Array } from "./Encoding.js"
 import { downcast } from "./Utils"
+import {
+	AbstractMutableUint8Array,
+	BooleanArgument,
+	MutableUint8Array,
+	NumberArgument,
+	SecureFreeUint8Array,
+	SecureMutableUint8Array,
+	StringArgument,
+	Uint8ArrayArgument,
+	WebAssemblyArgument,
+} from "./WebAssemblyArgument"
 
 /**
  * General interface for WASM exports, whether from native WASM or a fallback.
@@ -60,30 +71,26 @@ export async function loadWasmFromFileOrNetwork<T extends WASMExports>(wasmPath:
  *
  * @return return value of the function
  */
-export function callWebAssemblyFunctionWithArguments<T>(
-	func: (...args: number[]) => T,
-	exports: WASMExports,
-	...args: (string | number | Uint8Array | Int8Array | MutableUint8Array | SecureFreeUint8Array | boolean | null)[]
-): T {
+export function callWebAssemblyFunctionWithArguments<T>(func: (...args: number[]) => T, exports: WASMExports, ...args: (WebAssemblyArgument | null)[]): T {
 	const argsToPass: number[] = []
 	const toFree: Ptr[] = []
 	const toClear: Uint8Array[] = []
-	const toOverwrite: { arrayInWASM: Uint8Array; originalBufferYouPassedIn: MutableUint8Array }[] = []
+	const toOverwrite: { arrayInWASM: Uint8Array; originalBufferYouPassedIn: AbstractMutableUint8Array }[] = []
 
 	try {
 		for (const arg of args) {
 			if (arg === null) {
 				// `NULL` in C is equal to 0
 				argsToPass.push(0)
-			} else if (typeof arg === "number") {
+			} else if (arg instanceof NumberArgument) {
 				// These can be passed as-is
-				argsToPass.push(arg)
-			} else if (typeof arg === "boolean") {
+				argsToPass.push(arg.numberInput)
+			} else if (arg instanceof BooleanArgument) {
 				// Convert to number
-				argsToPass.push(arg ? 1 : 0)
-			} else if (typeof arg === "string") {
+				argsToPass.push(arg.booleanInput ? 1 : 0)
+			} else if (arg instanceof StringArgument) {
 				// Strings require null termination and copying, so we do this here
-				const s = allocateStringCopy(arg, exports, toFree)
+				const s = allocateStringCopy(arg.stringInput, exports, toFree)
 				try {
 					toClear.push(s)
 					argsToPass.push(s.byteOffset)
@@ -93,21 +100,18 @@ export function callWebAssemblyFunctionWithArguments<T>(
 					throw e
 				}
 			} else if (arg instanceof MutableUint8Array) {
-				// Unwrap to get our original buffer back
-				const inputOutput = arg.uint8ArrayInputOutput
-				let arrayInWASM: Uint8Array
-				if (inputOutput instanceof SecureFreeUint8Array) {
-					arrayInWASM = allocateSecureArrayCopy(inputOutput.uint8ArrayInput, exports, toFree, toClear)
-				} else {
-					arrayInWASM = allocateArrayCopy(inputOutput, exports, toFree)
-				}
+				const arrayInWASM = allocateArrayCopy(arg.uint8ArrayInputOutput, exports, toFree)
+				toOverwrite.push({ arrayInWASM: arrayInWASM, originalBufferYouPassedIn: arg })
+				argsToPass.push(arrayInWASM.byteOffset)
+			} else if (arg instanceof SecureMutableUint8Array) {
+				const arrayInWASM = allocateSecureArrayCopy(arg.uint8ArrayInputOutput.uint8ArrayInput, exports, toFree, toClear)
 				toOverwrite.push({ arrayInWASM: arrayInWASM, originalBufferYouPassedIn: arg })
 				argsToPass.push(arrayInWASM.byteOffset)
 			} else if (arg instanceof SecureFreeUint8Array) {
 				const arrayInWASM = allocateSecureArrayCopy(arg.uint8ArrayInput, exports, toFree, toClear)
 				argsToPass.push(arrayInWASM.byteOffset)
-			} else if (arg instanceof Uint8Array || arg instanceof Int8Array) {
-				const arrayInWASM = allocateArrayCopy(arg, exports, toFree)
+			} else if (arg instanceof Uint8ArrayArgument) {
+				const arrayInWASM = allocateArrayCopy(arg.uint8ArrayInput, exports, toFree)
 				argsToPass.push(arrayInWASM.byteOffset)
 			} else {
 				throw new Error(`passed an unhandled argument type ${typeof arg}`)
@@ -117,11 +121,10 @@ export function callWebAssemblyFunctionWithArguments<T>(
 	} finally {
 		// First copy back in the contents from the WASM memory to JavaScript
 		for (const f of toOverwrite) {
-			const inputOutput = f.originalBufferYouPassedIn.uint8ArrayInputOutput
-			if (inputOutput instanceof SecureFreeUint8Array) {
-				inputOutput.uint8ArrayInput.set(f.arrayInWASM)
-			} else {
-				inputOutput.set(f.arrayInWASM)
+			if (f.originalBufferYouPassedIn instanceof MutableUint8Array) {
+				f.originalBufferYouPassedIn.uint8ArrayInputOutput.set(f.arrayInWASM)
+			} else if (f.originalBufferYouPassedIn instanceof SecureMutableUint8Array) {
+				f.originalBufferYouPassedIn.uint8ArrayInputOutput.uint8ArrayInput.set(f.arrayInWASM)
 			}
 		}
 		// Handle secure free buffers
@@ -134,6 +137,26 @@ export function callWebAssemblyFunctionWithArguments<T>(
 		}
 	}
 }
+
+/**
+ * Defines a pointer type
+ */
+export type Ptr = number
+
+/**
+ * Defines a pointer type for immutable memory
+ */
+export type ConstPtr = number
+
+/**
+ * Free function interface
+ */
+export type FreeFN = (what: Ptr) => void
+
+/*
+ * ArrayBuffer or SharedArrayBuffer that holds the raw bytes of memory
+ */
+export type MemoryIF = WebAssembly.Memory
 
 /**
  * Allocate memory on the heap of the WebAssembly instance.
@@ -156,80 +179,6 @@ export function allocateBuffer(length: number, exports: WASMExports): Uint8Array
 		throw e
 	}
 }
-
-/**
- * Wrapper to be passed to a WebAssembly function.
- *
- * The contents of the array will be updated when the function finishes.
- */
-export class MutableUint8Array {
-	constructor(readonly uint8ArrayInputOutput: Uint8Array | SecureFreeUint8Array) {}
-}
-
-/**
- * Wrapper to be passed to a WebAssembly function.
- *
- * The copy allocated on the VM will be filled with zero bytes. This is slower, but it will ensure that its contents won't linger after being freed.
- *
- * Note that the buffer pointed to by uint8ArrayInput is *not* zeroed out automatically, as it is not a deep copy, so remember to zero out the original buffer
- * when you are done with it, too!
- */
-export class SecureFreeUint8Array {
-	constructor(readonly uint8ArrayInput: Uint8Array) {}
-}
-
-/**
- * Convenience function for wrapping an array as a MutableUint8Array.
- *
- * Data from the WASM module will be copied back to the array once finished.
- * @param array array to wrap
- * @return wrapper
- */
-export function mutable(array: Uint8Array): MutableUint8Array {
-	return new MutableUint8Array(array)
-}
-
-/**
- * Convenience function for wrapping an array as a MutableUint8Array and SecureFreeUint8Array.
- *
- * Data from the WASM module will be copied back to the array once finished, and then it will be erased from the module.
- * @param array array to wrap
- * @return wrapper
- */
-export function mutableSecureFree(array: Uint8Array): MutableUint8Array {
-	return new MutableUint8Array(new SecureFreeUint8Array(array))
-}
-
-/**
- * Convenience function for wrapping an array as a MutableUint8Array and SecureFreeUint8Array.
- *
- * Data from the WASM module will be erased once finished.
- * @param array array to wrap
- * @return wrapper
- */
-export function secureFree(array: Uint8Array): SecureFreeUint8Array {
-	return new SecureFreeUint8Array(array)
-}
-
-/**
- * Defines a pointer type
- */
-export type Ptr = number
-
-/**
- * Defines a pointer type for immutable memory
- */
-export type ConstPtr = number
-
-/**
- * Free function interface
- */
-export type FreeFN = (what: Ptr) => void
-
-/*
- * ArrayBuffer or SharedArrayBuffer that holds the raw bytes of memory
- */
-export type MemoryIF = WebAssembly.Memory
 
 function allocateStringCopy(str: string, exports: WASMExports, toFree: Ptr[]): Uint8Array {
 	const strBytes = stringToUtf8Uint8Array(str)
