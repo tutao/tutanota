@@ -5,8 +5,7 @@ import { EntityClient } from "../../../platform-kit/network/EntityClient.js"
 import { ProgressTracker } from "../api/main/ProgressTracker.js"
 import { promiseMap } from "../../../platform-kit/utils"
 import { SessionType } from "../../../platform-kit/app-env"
-import { OfflineStorageSettingsModel } from "./OfflineStorageSettingsModel"
-import { SyncDonePriority, SyncTracker } from "../api/main/SyncTracker"
+import { SyncTracker } from "../api/main/SyncTracker"
 import { LoggedInEvent, PostLoginAction } from "../../../app-kit/native-bridge/common/PostLoginAction.js"
 import { ExposedCacheStorage } from "../../../app-kit/local-store/CacheStorage"
 import { NoopProgressMonitor } from "../../../platform-kit/network/ProgressMonitorInterface"
@@ -19,7 +18,6 @@ export class CachePostLoginAction implements PostLoginAction {
 		private readonly progressTracker: ProgressTracker,
 		private readonly cacheStorage: ExposedCacheStorage,
 		private readonly logins: LoginController,
-		private readonly offlineStorageSettings: OfflineStorageSettingsModel | null, // null if no cleaning e.g in calendar
 		private readonly syncTracker: SyncTracker,
 	) {}
 
@@ -45,17 +43,6 @@ export class CachePostLoginAction implements PostLoginAction {
 	}
 
 	async onPartialLoginSuccess(event: LoggedInEvent): Promise<void> {
-		if (event.sessionType === SessionType.Persistent) {
-			this.syncTracker.addSyncDoneListener({
-				onSyncDone: async () => {
-					if (this.offlineStorageSettings !== null) {
-						await this.offlineStorageSettings.init()
-						// Clear the excluded data (i.e. trash and spam lists, old data) in the offline storage.
-						await this.cacheStorage.clearExcludedData(this.offlineStorageSettings.getTimeRange())
-					}
-				},
-				priority: SyncDonePriority.LOW,
-			})
-		}
+		//no-op
 	}
 }
