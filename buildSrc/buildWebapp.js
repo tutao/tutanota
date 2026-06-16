@@ -210,7 +210,9 @@ async function bundleServiceWorker(bundles, version, minify, buildDir) {
 		plugins: [
 			typescript({
 				tsconfig: "tsconfig-dist-rollup.json",
-				outDir: buildDir,
+				compilerOptions: {
+					outDir: buildDir,
+				},
 			}),
 			// bundleDependencyCheckPlugin(),
 			minify && terser(),

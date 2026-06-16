@@ -41,7 +41,7 @@ import {
 } from "../instance-pipeline"
 import { lazyAsync, lazyMemoized } from "../utils"
 import { NoZoneDateProvider } from "../utils/NoZoneDateProvider.js"
-import { NativeCryptoFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { NativeCryptoFacade } from "../../app-kit/native-bridge/common/generatedipc/types/NativeCryptoFacade"
 import { ServiceExecutor } from "../network/ServiceExecutor"
 import { isAdminClient, isAndroidApp, isBrowser, isIOSApp } from "@tutao/app-env"
 import { PublicEncryptionKeyCache } from "./base-crypto/persistence/PublicEncryptionKeyCache"

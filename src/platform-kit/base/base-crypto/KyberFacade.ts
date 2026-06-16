@@ -1,5 +1,5 @@
 import { LazyLoaded } from "@tutao/utils"
-import { NativeCryptoFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { NativeCryptoFacade } from "../../../app-kit/native-bridge/common/generatedipc/types/NativeCryptoFacade"
 import { assertWorkerOrNode } from "@tutao/app-env"
 import {
 	decapsulateKyber,
