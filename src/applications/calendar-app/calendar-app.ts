@@ -150,7 +150,6 @@ import("../../ui/translations/en.js")
 					calendarLocator.progressTracker,
 					calendarLocator.cacheStorage,
 					calendarLocator.logins,
-					null,
 					calendarLocator.syncTracker,
 				)
 			})
