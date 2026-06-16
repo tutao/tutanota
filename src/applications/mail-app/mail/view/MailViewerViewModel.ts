@@ -1316,14 +1316,21 @@ export class MailViewerViewModel {
 	private async importCalendar(file: File) {
 		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
 		try {
-			const [{ CalendarImporter }, { ImportInteractionHandler }, { DefaultDateProvider }, { EventSeriesResolver }] = await Promise.all([
+			const [
+				{ CalendarImporter },
+				{ ImportInteractionHandler },
+				{ DefaultDateProvider },
+				{ EventSeriesResolver },
+				{ importCalendarFile },
+				{ parseCalendarFile },
+			] = await Promise.all([
 				import("../../../common/calendar/import/CalendarImporter"),
 				import("../../../common/calendar/gui/ImportInteractionHandler"),
 				import("../../../common/calendar/date/CalendarUtils"),
 				import("../../../common/calendar/import/EventSeriesResolver"),
+				import("../../../common/calendar/gui/CalendarImporterDialog"),
+				import("../../../calendar-app/calendar/export/CalendarParser"),
 			])
-			const { parseCalendarFile } = await import("../../../calendar-app/calendar/export/CalendarParser")
-			const { importCalendarFile } = await import("../../../common/calendar/gui/CalendarImporterDialog")
 
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const data = parseCalendarFile(dataFile)
