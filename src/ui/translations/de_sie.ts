@@ -2402,6 +2402,7 @@ export default {
 		"failedToLoadAlarms_error": "Failed to load alarms",
 		"clearCache_action": "Clear cache",
 		"clearCache_msg": "Clear cache message",
-		"clearCacheConfirm_msg": "Are you sure you want to clear cache?"
+		"clearCacheConfirm_msg": "Are you sure you want to clear cache?",
+		"notAllMailsSearchable_msg": "Not all emails are searchable, but in German"
 	}
 }
