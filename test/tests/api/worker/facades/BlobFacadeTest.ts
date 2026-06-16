@@ -12,17 +12,8 @@ import { AesApp } from "../../../../../src/app-kit/native-bridge/worker/AesApp.j
 import { Mode, ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { elementIdPart, getElementId, listIdPart } from "../../../../../src/platform-kit/meta"
 import { func, instance, matchers, object, verify, when } from "testdouble"
-import { aes256RandomKey } from "../../../../../src/platform-kit/crypto"
-import {
-	arrayEquals,
-	base64ExtToBase64,
-	base64ToUint8Array,
-	concat,
-	defer,
-	DeferredObject,
-	neverNull,
-	stringToUtf8Uint8Array,
-} from "../../../../../src/platform-kit/utils"
+import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
+import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, defer, neverNull, stringToUtf8Uint8Array } from "../../../../../src/platform-kit/utils"
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { BlobAccessTokenFacade } from "../../../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, withOverriddenEnv } from "../../../TestUtils.js"
@@ -44,7 +35,7 @@ import { ArchiveDataType } from "../../../../../src/entities/sys/Utils"
 import { File, FileTypeRef } from "@tutao/entities/tutanota"
 import { FileReference } from "../../../../../src/entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../src/entities/storage/BlobUtils"
-import { aesDecrypt, aesEncrypt } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
+import { aesDecrypt, aesEncrypt } from "../../../../../src/platform-kit/crypto"
 
 const { anything, captor } = matchers
 
@@ -167,7 +158,7 @@ o.spec("BlobFacade", function () {
 
 			const expectedReferenceTokens = [createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })]
 			const uploadedFileUri = "rawFileUri"
-			const chunkUris = ["uri1"]
+			const chunkUri = "tuta-tmp:chunky"
 
 			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
@@ -180,12 +171,14 @@ o.spec("BlobFacade", function () {
 			when(blobAccessTokenFacade.createQueryParams(blobAccessInfo, anything(), anything())).thenResolve({ test: "theseAreTheParamsIPromise" })
 
 			when(instancePipelineMock.decryptAndMap(anything(), anything(), anything())).thenResolve(blobServiceResponse)
-			when(fileAppMock.splitFile(uploadedFileUri, MAX_BLOB_SIZE_BYTES)).thenResolve(chunkUris)
+			const streamUri = "tuta-stream:whatever"
+			when(fileAppMock.openFileForReading(uploadedFileUri)).thenResolve(streamUri)
+			when(fileAppMock.readChunk(streamUri, MAX_BLOB_SIZE_BYTES)).thenResolve(chunkUri, null)
 			let encryptedFileInfo = {
 				uri: "encryptedChunkUri",
 				unencSize: 3,
 			}
-			when(aesAppMock.aesEncryptFile(sessionKey, chunkUris[0])).thenResolve(encryptedFileInfo)
+			when(aesAppMock.aesEncryptFile(sessionKey, chunkUri)).thenResolve(encryptedFileInfo)
 			const blobHash = "blobHash"
 			when(fileAppMock.hashFile(encryptedFileInfo.uri)).thenResolve(blobHash)
 			when(fileAppMock.upload(anything(), anything(), anything(), anything(), anything())).thenResolve({
@@ -1054,26 +1047,49 @@ o.spec("BlobFacade", function () {
 			o.check(refTokens).deepEquals(["token for encrypted-1", "token for encrypted-2", "token for encrypted-3"])
 		})
 		o.test("encrypts next chunk before the previous one has finished uploading", async function () {
-			const item1 = defer<number>()
-			const item2 = defer<number>()
-			const item3 = defer<number>()
-			const items = [item1, item2, item3]
-			const fetchNextChunk = () => items.shift()
-			const encryptChunk = func() as (_: DeferredObject<number>) => Promise<any>
-			when(encryptChunk(matchers.anything())).thenDo((item) => item)
-			const uploadChunk = (item) => item.promise
+			// We are testing that encrypt and upload are running in parallel at every step (except the first where
+			// we encrypt one item ahead).
+			// +-------+-----+-----+-----+
+			// |step   |0    |1    |2    |
+			// +-------+-----+-----+-----+
+			// |encrypt|item1|item2|item3|
+			// +-------+-----+-----+-----+
+			// |upload |     |item1|item2|
+			// +-------+-----+-----+-----+
 
-			// resolve the first upload. The first step is kind of weird and will get stuck otherwise
-			item1.resolve(1)
-			const generator = pipelineEncryptAndUpload(fetchNextChunk, encryptChunk, uploadChunk, new AbortController().signal)
-			// the first step will encrypt the first chunk and then encrypt the second chunk and uploading the first chunk
+			type UnencryptedItem = { value: number }
+			type EncryptedItem = { value: string }
+			const item1 = { value: 1 }
+			const item2 = { value: 2 }
+			const item3 = { value: 3 }
+			const items = [item1, item2, item3]
+			const fetchNextChunk = (): UnencryptedItem | null => items.shift() ?? null
+			const encryptChunk = func() as (_: UnencryptedItem) => Promise<EncryptedItem>
+			when(encryptChunk(matchers.anything())).thenDo(({ value }: UnencryptedItem) => {
+				return { value: String(value) }
+			})
+
+			// we want to wait for item2 to be uploaded
+			const item2UploadFinished = defer<BlobReferenceTokenWrapper>()
+			const item2UploadStarted = defer<void>()
+			const uploadChunk = (item: EncryptedItem): Promise<BlobReferenceTokenWrapper> => {
+				if (item.value === "2") {
+					item2UploadStarted.resolve()
+					return item2UploadFinished.promise
+				} else {
+					return Promise.resolve(createTestEntity(BlobReferenceTokenWrapperTypeRef, { blobReferenceToken: item.value }))
+				}
+			}
+
+			const generator = pipelineEncryptAndUpload<UnencryptedItem, EncryptedItem>(fetchNextChunk, encryptChunk, uploadChunk, new AbortController().signal)
+			// the first step will encrypt item1, encrypt item2 chunk and upload item1
 			await generator.next()
-			// the second step will encrypt the third chunk and upload the second one, except we manually postpone the upload for the second one
+			// the second step will encrypt item3 and item2, except we manually postpone the upload for the second one
 			generator.next()
+			await item2UploadStarted.promise
 			// even though we never finished the upload for item2, item 3 is already being encrypted
 			verify(encryptChunk(item3))
-
-			item2.resolve(2)
+			item2UploadFinished.resolve(createTestEntity(BlobReferenceTokenWrapperTypeRef, { blobReferenceToken: "3" }))
 		})
 	})
 })

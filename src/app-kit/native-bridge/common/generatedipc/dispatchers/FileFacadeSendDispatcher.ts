@@ -55,8 +55,14 @@ export class FileFacadeSendDispatcher implements FileFacade {
 	async joinFiles(...args: Parameters<FileFacade["joinFiles"]>) {
 		return this.transport.invokeNative("ipc", ["FileFacade", "joinFiles", ...args])
 	}
-	async splitFile(...args: Parameters<FileFacade["splitFile"]>) {
-		return this.transport.invokeNative("ipc", ["FileFacade", "splitFile", ...args])
+	async openFileForReading(...args: Parameters<FileFacade["openFileForReading"]>) {
+		return this.transport.invokeNative("ipc", ["FileFacade", "openFileForReading", ...args])
+	}
+	async closeFile(...args: Parameters<FileFacade["closeFile"]>) {
+		return this.transport.invokeNative("ipc", ["FileFacade", "closeFile", ...args])
+	}
+	async readChunk(...args: Parameters<FileFacade["readChunk"]>) {
+		return this.transport.invokeNative("ipc", ["FileFacade", "readChunk", ...args])
 	}
 	async writeTempDataFile(...args: Parameters<FileFacade["writeTempDataFile"]>) {
 		return this.transport.invokeNative("ipc", ["FileFacade", "writeTempDataFile", ...args])

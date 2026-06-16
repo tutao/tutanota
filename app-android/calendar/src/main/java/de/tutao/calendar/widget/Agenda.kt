@@ -53,10 +53,13 @@ import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.IdTuple
 import de.tutao.tutashared.SdkFileClient
 import de.tutao.tutashared.SdkRestClient
+import de.tutao.tutashared.TempDir
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.remote.RemoteStorage
+import java.security.SecureRandom
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -129,7 +132,9 @@ class Agenda : GlanceAppWidget() {
 	): Pair<WidgetUIViewModel, String?> {
 		val db = AppDatabase.getDatabase(context, true)
 		val remoteStorage = RemoteStorage(db)
-		val crypto = AndroidNativeCryptoFacade(context)
+		val tempDir = TempDir(context)
+		val tempFs = TempFs(context, SecureRandom(), tempDir)
+		val crypto = AndroidNativeCryptoFacade(context, tempFs)
 		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
 
 		val sdk = try {

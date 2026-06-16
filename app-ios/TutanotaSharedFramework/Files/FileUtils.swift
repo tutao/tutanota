@@ -64,6 +64,7 @@ public class FileUtils {
 	/// check if the given path points to a file on the file system.
 	/// the path must be an absolute path, not a file URL with file:// protocol.
 	public static func fileExists(atPath path: String) -> Bool { FileManager.default.fileExists(atPath: path) }
+	public static func fileExists(at url: URL) -> Bool { FileManager.default.fileExists(atPath: url.path(percentEncoded: false)) }
 
 	private static func makeTempDir(name: String) throws -> String {
 		let encryptedFolderPath = (NSTemporaryDirectory() as NSString).appendingPathComponent(name)
@@ -86,6 +87,10 @@ extension URL {
 		} else {
 			return nil
 		}
+	}
+	static func from(fileUrl: String) throws -> URL {
+		guard let url = URL(string: fileUrl), url.scheme == "file" else { throw FileError(message: "not a file URL: \(fileUrl)") }
+		return url
 	}
 }
 

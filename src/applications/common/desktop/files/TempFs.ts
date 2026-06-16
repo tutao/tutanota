@@ -1,10 +1,12 @@
 import path from "node:path"
 import { ElectronExports, FsExports } from "../ElectronExportTypes.js"
 import { CryptoFunctions } from "../CryptoFns.js"
-import { assertNotNull, base64ToBase64Url, filterInt, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
+import { base64ToBase64Url, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { FileNotFoundError } from "../../api/common/error/FileNotFoundError"
 import { Readable } from "node:stream"
+import fs from "node:fs"
+import { size } from "../../../../ui/size"
 
 type TmpSub = "reg" | "encrypted" | "decrypted"
 
@@ -21,6 +23,9 @@ export class TempFs {
 	private readonly topLevelTempDir = "tutanota"
 	/** we store all temporary files in a directory with a random name, so that the download location is not predictable */
 	private readonly randomDirectoryName: string
+
+	private inMemoryFiles = new Map<TmpFilename, Uint8Array>()
+	private openStreams: Map<string, fs.ReadStream> = new Map()
 
 	constructor(
 		private readonly fs: FsExports,
@@ -153,8 +158,6 @@ export class TempFs {
 		}
 	}
 
-	private inMemoryFiles = new Map<TmpFilename, Uint8Array>()
-
 	private readInMemoryFile(uri: string): Uint8Array | null {
 		const filename = this.uriToName(uri)
 		return this.inMemoryFiles.get(filename) ?? null
@@ -182,28 +185,24 @@ export class TempFs {
 		}
 	}
 
-	fileStream(uri: string): NodeJS.ReadableStream {
+	fileStream(uri: string): Readable {
 		if (uri.startsWith("tuta-tmp:")) {
 			const data = this.readInMemoryFile(uri)
 			if (data == null) {
 				throw new FileNotFoundError(uri)
 			}
 			return new TypedArrayReadableStream(data)
-		} else if (uri.startsWith("tuta-chunk:")) {
-			const { filePath, start, length } = this.parseChunkUri(uri)
-			// end is inclusive
-			return this.fs.createReadStream(filePath, { start, end: start + length - 1 })
+		} else if (uri.startsWith("tuta-stream:")) {
+			const fileName = uri.slice("tuta-stream:".length)
+			const stream = this.openStreams.get(fileName)
+			if (stream == null) {
+				throw new FileNotFoundError(uri)
+			}
+			return stream
 		} else {
 			this.assertInTmpDir(uri)
 			return this.fs.createReadStream(uri)
 		}
-	}
-
-	private parseChunkUri(uri: string): { filePath: string; start: number; length: number } {
-		const parsedUri = new URL(uri)
-		const start = filterInt(assertNotNull(parsedUri.searchParams.get("start"), "chunk uri has no start"))
-		const length = filterInt(assertNotNull(parsedUri.searchParams.get("length"), "chunk uri has no length"))
-		return { filePath: decodeURIComponent(parsedUri.pathname), start, length }
 	}
 
 	async getFileSize(uri: string): Promise<number> {
@@ -213,9 +212,6 @@ export class TempFs {
 				throw new FileNotFoundError(uri)
 			}
 			return data.length
-		} else if (uri.startsWith("tuta-chunk:")) {
-			const { length } = this.parseChunkUri(uri)
-			return length
 		} else {
 			// we only upload encrypted blobs so it should be safe
 			this.assertInTmpDir(uri)
@@ -231,10 +227,6 @@ export class TempFs {
 		}
 	}
 
-	createFileChunkUri(fileUri: string, start: number, length: number): string {
-		return `tuta-chunk:${fileUri}?start=${start}&length=${length}`
-	}
-
 	private nameToUri(filename: TmpFilename): `tuta-tmp:${string}` {
 		return `tuta-tmp:${filename}`
 	}
@@ -245,6 +237,20 @@ export class TempFs {
 		} else {
 			return possibleUri.slice(`tuta-tmp:`.length) as TmpFilename
 		}
+	}
+
+	public openFileForReading(fileUri: string): string {
+		const stream = this.fs.createReadStream(fileUri)
+		const fileName = this.generateFilename()
+		this.openStreams.set(fileName, stream)
+		const uri = `tuta-stream:${fileName}`
+		return uri
+	}
+
+	public closeFile(streamUri: string) {
+		const stream = this.openStreams.get(streamUri)
+		stream?.close()
+		this.openStreams.delete(streamUri)
 	}
 
 	private generateFilename(): TmpFilename {
@@ -275,6 +281,34 @@ class TypedArrayReadableStream extends Readable {
 			const chunk = this.array.slice(this.position, this.position + size)
 			this.position += size
 			this.push(chunk)
+		}
+	}
+}
+
+class LimitedReadableStream extends Readable {
+	private buffer: { buffer: Buffer; read: number } | null = null
+	private readBytes: number = 0
+	constructor(
+		private readonly upstream: Readable,
+		private readonly fileSize: number,
+	) {
+		super()
+	}
+
+	_read(size: number) {
+		if (this.readBytes === this.fileSize) {
+			if (this.buffer != null) {
+				const leftToRead = this.buffer.buffer.length - this.buffer.read
+				const newBuffer = Buffer.alloc(Math.min(size, leftToRead))
+				this.buffer.buffer.copy(newBuffer, 0, this.buffer.read, newBuffer.length)
+				return newBuffer
+			} else {
+				return null
+			}
+		}
+		const readBuffer = this.upstream.read()
+		if (readBuffer && readBuffer.length > size) {
+			this.buffer = readBuffer
 		}
 	}
 }

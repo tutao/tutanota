@@ -146,8 +146,7 @@ export class DesktopFileFacade implements FileFacade {
 
 	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
 	async getSize(filePath: string): Promise<number> {
-		const stats = await this.fs.promises.stat(filePath)
-		return stats.size
+		return this.tfs.getFileSize(filePath)
 	}
 
 	async hashFile(filePath: string): Promise<string> {
@@ -287,23 +286,6 @@ export class DesktopFileFacade implements FileFacade {
 		return savePath
 	}
 
-	/** can be used with arbitrary paths, is run on the selected file locations */
-	async splitFile(fileUri: string, maxChunkSizeBytes: number): Promise<Array<string>> {
-		// Instead of actually splitting the file into small files return a bunch of virtual
-		// URIs that point to a specific part of the file. aesEncryptFile() knows how to read them
-		const fileSize = await this.getSize(fileUri)
-		let currentOffset = 0
-		const chunks: string[] = []
-		while (currentOffset < fileSize) {
-			const start = currentOffset
-			const length = start + maxChunkSizeBytes > fileSize ? fileSize - start : maxChunkSizeBytes
-			const chunkUri = this.tfs.createFileChunkUri(fileUri, start, length)
-			chunks.push(chunkUri)
-			currentOffset = start + length
-		}
-		return chunks
-	}
-
 	async upload(fileUri: string, targetUrl: string, method: HttpMethod, headers: Record<string, string>, fileId: string): Promise<UploadTaskResponse> {
 		const fileStream: NodeJS.ReadableStream = this.tfs.fileStream(fileUri)
 		const size = await this.tfs.getFileSize(fileUri)
@@ -417,6 +399,23 @@ export class DesktopFileFacade implements FileFacade {
 			folders: folders,
 		}
 	}
+	async openFileForReading(fileUri: string): Promise<string> {
+		const file = this.tfs.openFileForReading(fileUri)
+		return file
+	}
+
+	async closeFile(streamUri: string): Promise<void> {
+		this.tfs.closeFile(streamUri)
+	}
+
+	async readChunk(streamUri: string, maxChunkSize: number): Promise<string | null> {
+		const stream = this.tfs.fileStream(streamUri)
+		if (stream.closed) {
+			return null
+		}
+		const buffer = await readStreamToBuffer(stream, maxChunkSize)
+		return this.tfs.createInMemoryFile(buffer)
+	}
 
 	/**
 	 * Select a non-colliding name in the configured downloadPath, preferably with the given file name
@@ -477,15 +476,36 @@ function closeFileStream(stream: FsModule.WriteStream): Promise<void> {
 	})
 }
 
-export async function readStreamToBuffer(stream: NodeJS.ReadableStream): Promise<Uint8Array> {
+export async function readStreamToBuffer(stream: NodeJS.ReadableStream, upToBytes?: number): Promise<Uint8Array> {
+	const CHUNK_SIZE = 1024 * 1024
 	return newPromise((resolve, reject) => {
+		// stream will give us data in whatever chunks it pleases so we need to assemble them manually
 		const data: Buffer[] = []
+		let readSize = 0
+		stream.on("readable", () => {
+			// read() will return null if there's no data immediately available
+			// if there is less than chunkSize data left it will return all the remaining data and dispatch "end"
+			// on the last chunk that we want to read there might be less than CHUNK_SIZE data available
+			while (true) {
+				const bytesToRead = upToBytes != null ? Math.min(upToBytes - readSize, CHUNK_SIZE) : CHUNK_SIZE
+				const chunk = stream.read(bytesToRead) as Buffer | null
+				if (chunk == null) break
 
-		stream.on("data", (chunk) => {
-			data.push(chunk as Buffer)
+				data.push(chunk)
+				readSize += chunk.length
+				// if we already read the amount of data that we wanted then we need to stop immediately
+				if (upToBytes && readSize === upToBytes) {
+					resolve(Buffer.concat(data))
+					stream.removeAllListeners("readable")
+					stream.removeAllListeners("end")
+					stream.removeAllListeners("error")
+					break
+				}
+			}
 		})
 
 		stream.on("end", () => {
+			// there's no more data left in the stream
 			resolve(Buffer.concat(data))
 		})
 
