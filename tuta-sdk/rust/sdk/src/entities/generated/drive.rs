@@ -206,6 +206,10 @@ pub struct DriveUploadedFile {
 	pub ownerEncSessionKey: Vec<u8>,
 	#[serde(rename = "112")]
 	pub ownerKeyVersion: i64,
+	#[serde(rename = "123")]
+	pub createdDate: Option<DateTime>,
+	#[serde(rename = "124")]
+	pub updatedDate: Option<DateTime>,
 	#[serde(rename = "60")]
 	pub referenceTokens: Vec<super::sys::BlobReferenceTokenWrapper>,
 

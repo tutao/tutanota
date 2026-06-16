@@ -60,6 +60,12 @@ public final class FileFacadeReceiveDispatcher: Sendable {
 				file
 			)
 			return toJson(result)
+		case "getTimestamps":
+			let file = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let result = try await self.facade.getTimestamps(
+				file
+			)
+			return toJson(result)
 		case "putFileIntoDownloadsFolder":
 			let localFileUri = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let fileNameToUse = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)

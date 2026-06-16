@@ -72,6 +72,13 @@ class FileFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"getTimestamps" -> {
+				val file: String = json.decodeFromString(arg[0])
+				val result: FileTimestamps = this.facade.getTimestamps(
+					file,
+				)
+				return json.encodeToString(result)
+			}
 			"putFileIntoDownloadsFolder" -> {
 				val localFileUri: String = json.decodeFromString(arg[0])
 				val fileNameToUse: String = json.decodeFromString(arg[1])

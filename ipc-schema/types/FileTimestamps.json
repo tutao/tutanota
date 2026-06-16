@@ -1,0 +1,9 @@
+{
+	"name": "FileTimestamps",
+	"type": "struct",
+	"doc": "file's creation time and last modification time in milliseconds since epoch",
+	"fields": {
+		"created": "number",
+		"modified": "number"
+	}
+}

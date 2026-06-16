@@ -180,6 +180,22 @@ export class DriveFacade {
 		return { files, folders }
 	}
 
+	public getFileTimestamps(file: WebFile | FileReference): [Date, Date] {
+		let createdDate: Date
+		let updatedDate: Date
+
+		if (file._type === "WebFile") {
+			// Web Files only offer lastModified, so that's all we can work with
+			createdDate = new Date()
+			updatedDate = new Date(file.file.lastModified)
+		} else {
+			createdDate = new Date(file.created)
+			updatedDate = new Date(file.modified)
+		}
+
+		return [createdDate, updatedDate]
+	}
+
 	/**
 	 * @param to this is the folder where the file will be uploaded
 	 */
@@ -216,10 +232,16 @@ export class DriveFacade {
 			return null
 		}
 
+		const [createdDate, updatedDate] = this.getFileTimestamps(file)
+		console.log("createdDate: ", createdDate)
+		console.log("updatedDate: ", updatedDate)
+
 		const uploadedFile = createDriveUploadedFile({
 			referenceTokens: blobRefTokens,
 			fileName: fileName,
 			mimeType: getCleanedMimeType(isWebFile(file) ? file.file.type : file.mimeType),
+			createdDate,
+			updatedDate,
 			ownerEncSessionKey: ownerEncSessionKey,
 			ownerKeyVersion: String(fileGroupKey.version),
 			_ownerGroup: assertNotNull(fileGroupId),

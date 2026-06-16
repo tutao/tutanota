@@ -1,6 +1,7 @@
 /* generated file, don't edit. */
 
 import { IpcClientRect } from "../types/IpcClientRect"
+import { FileTimestamps } from "../types/FileTimestamps"
 import { UploadTaskResponse } from "../types/UploadTaskResponse"
 import { DownloadTaskResponse } from "../types/DownloadTaskResponse"
 import { DataFile } from "../types/DataFile"
@@ -39,6 +40,11 @@ export interface FileFacade {
 	 * get the absolute size in bytes of the file at the given location
 	 */
 	getSize(file: string): Promise<number>
+
+	/**
+	 * get a file's creation time and last modification time in milliseconds since epoch
+	 */
+	getTimestamps(file: string): Promise<FileTimestamps>
 
 	/**
 	 * move and rename a decrypted file from the decryption location to the download location preferred by the user and return the absolute path to the moved file

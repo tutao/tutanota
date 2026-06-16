@@ -41,6 +41,10 @@ export class FileFacadeReceiveDispatcher {
 				const file: string = arg[0]
 				return this.facade.getSize(file)
 			}
+			case "getTimestamps": {
+				const file: string = arg[0]
+				return this.facade.getTimestamps(file)
+			}
 			case "putFileIntoDownloadsFolder": {
 				const localFileUri: string = arg[0]
 				const fileNameToUse: string = arg[1]

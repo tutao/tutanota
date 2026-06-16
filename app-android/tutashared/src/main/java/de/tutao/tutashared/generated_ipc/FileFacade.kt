@@ -51,6 +51,12 @@ interface FileFacade {
 		file: String,
 	): Int
 	/**
+	 * get a file's creation time and last modification time in milliseconds since epoch
+	 */
+	suspend fun getTimestamps(
+		file: String,
+	): FileTimestamps
+	/**
 	 * move and rename a decrypted file from the decryption location to the download location preferred by the user and return the absolute path to the moved file
 	 */
 	suspend fun putFileIntoDownloadsFolder(

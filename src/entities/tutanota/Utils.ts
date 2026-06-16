@@ -350,6 +350,8 @@ export interface FileReference {
 	mimeType: string
 	location: string
 	size: number
+	created: number
+	modified: number
 	cid?: string
 }
 

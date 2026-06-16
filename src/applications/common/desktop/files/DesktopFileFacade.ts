@@ -5,6 +5,7 @@ import {
 	DirectoryContents,
 	DownloadTaskResponse,
 	FileFacade,
+	FileTimestamps,
 	IpcClientRect,
 	UploadTaskResponse,
 } from "@tutao/native-bridge/generatedIpc/types"
@@ -148,6 +149,12 @@ export class DesktopFileFacade implements FileFacade {
 	async getSize(filePath: string): Promise<number> {
 		const stats = await this.fs.promises.stat(filePath)
 		return stats.size
+	}
+
+	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
+	async getTimestamps(filePath: string): Promise<FileTimestamps> {
+		const stats = await this.fs.promises.stat(filePath)
+		return { created: stats.ctimeMs, modified: stats.mtimeMs }
 	}
 
 	async hashFile(filePath: string): Promise<string> {

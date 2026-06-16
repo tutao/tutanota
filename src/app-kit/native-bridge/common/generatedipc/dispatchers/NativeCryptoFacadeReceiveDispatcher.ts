@@ -8,7 +8,6 @@ import { IPCEd25519PrivateKey } from "../types/IPCEd25519PrivateKey"
 import { IPCEd25519PublicKey } from "../types/IPCEd25519PublicKey"
 import { IPCEd25519Signature } from "../types/IPCEd25519Signature"
 import { NativeCryptoFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { InitializationVector } from "@tutao/crypto"
 
 export class NativeCryptoFacadeReceiveDispatcher {
 	constructor(private readonly facade: NativeCryptoFacade) {}
@@ -28,8 +27,8 @@ export class NativeCryptoFacadeReceiveDispatcher {
 			case "aesEncryptFile": {
 				const key: Uint8Array = arg[0]
 				const fileUri: string = arg[1]
-				const initializationVector: InitializationVector = arg[2]
-				return this.facade.aesEncryptFile(key, fileUri, initializationVector)
+				const iv: Uint8Array = arg[2]
+				return this.facade.aesEncryptFile(key, fileUri, iv)
 			}
 			case "aesDecryptFile": {
 				const key: Uint8Array = arg[0]

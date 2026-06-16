@@ -48,6 +48,12 @@ public protocol FileFacade : Sendable {
 		_ file: String
 	) async throws -> Int
 	/**
+	 * get a file's creation time and last modification time in milliseconds since epoch
+	 */
+	func getTimestamps(
+		_ file: String
+	) async throws -> FileTimestamps
+	/**
 	 * move and rename a decrypted file from the decryption location to the download location preferred by the user and return the absolute path to the moved file
 	 */
 	func putFileIntoDownloadsFolder(

@@ -6,7 +6,7 @@ import { FileFacade } from "./generatedipc/types/FileFacade.js"
 import { ExportFacade } from "./generatedipc/types/ExportFacade.js"
 import { FileReference } from "../../../entities/tutanota/Utils"
 import { DataFile, MailBundle } from "../../../entities/tutanota/MailBundle"
-import { DirectoryContents } from "@tutao/native-bridge/generatedIpc/types"
+import { DirectoryContents, FileTimestamps } from "@tutao/native-bridge/generatedIpc/types"
 
 export type FileUri = string
 
@@ -89,6 +89,14 @@ export class NativeFileApp {
 	}
 
 	/**
+	 * Returns the creation and modification timestamps of a file
+	 * @param file The uri of the file
+	 */
+	getTimestamps(file: FileUri): Promise<FileTimestamps> {
+		return this.fileFacade.getTimestamps(file)
+	}
+
+	/**
 	 * Copies the file into downloads folder and notifies system and user about that
 	 * @param localFileUri URI for the source file
 	 * @returns {*} absolute path of the destination file
@@ -105,6 +113,8 @@ export class NativeFileApp {
 			mimeType: data.mimeType,
 			size: data.size,
 			location: fileUri,
+			created: 0, // FIXME: read it off DataFile
+			modified: 0, // FIXME: read it off DataFile
 		}
 	}
 
@@ -189,23 +199,27 @@ export class NativeFileApp {
 
 	getFilesMetaData(filesUris: ReadonlyArray<string>): Promise<Array<FileReference>> {
 		return promiseMap(filesUris, async (uri) => {
-			const [name, mimeType, size] = await Promise.all([this.getName(uri), this.getMimeType(uri), this.getSize(uri)])
+			const [name, mimeType, size, ts] = await Promise.all([this.getName(uri), this.getMimeType(uri), this.getSize(uri), this.getTimestamps(uri)])
 			return {
 				_type: "FileReference",
 				name,
 				mimeType,
 				size,
+				created: ts.created,
+				modified: ts.modified,
 				location: uri,
 			}
 		})
 	}
 
 	uriToFileRef(uri: string): Promise<FileReference> {
-		return Promise.all([this.getName(uri), this.getMimeType(uri), this.getSize(uri)]).then(([name, mimeType, size]) => ({
+		return Promise.all([this.getName(uri), this.getMimeType(uri), this.getSize(uri), this.getTimestamps(uri)]).then(([name, mimeType, size, ts]) => ({
 			_type: "FileReference",
 			name,
 			mimeType,
 			size,
+			created: ts.created,
+			modified: ts.modified,
 			location: uri,
 		}))
 	}

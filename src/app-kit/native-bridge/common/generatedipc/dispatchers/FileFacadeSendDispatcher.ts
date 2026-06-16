@@ -31,6 +31,9 @@ export class FileFacadeSendDispatcher implements FileFacade {
 	async getSize(...args: Parameters<FileFacade["getSize"]>) {
 		return this.transport.invokeNative("ipc", ["FileFacade", "getSize", ...args])
 	}
+	async getTimestamps(...args: Parameters<FileFacade["getTimestamps"]>) {
+		return this.transport.invokeNative("ipc", ["FileFacade", "getTimestamps", ...args])
+	}
 	async putFileIntoDownloadsFolder(...args: Parameters<FileFacade["putFileIntoDownloadsFolder"]>) {
 		return this.transport.invokeNative("ipc", ["FileFacade", "putFileIntoDownloadsFolder", ...args])
 	}

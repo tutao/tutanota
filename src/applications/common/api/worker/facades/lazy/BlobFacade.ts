@@ -582,6 +582,8 @@ export class BlobFacade {
 				name: fileName,
 				mimeType,
 				size,
+				created: 0, // FIXME
+				modified: 0, // FIXME
 				location: decryptedFileUri,
 			}
 		} finally {

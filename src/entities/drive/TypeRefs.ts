@@ -140,6 +140,8 @@ export type DriveUploadedFile = {
 	mimeType: string;
 	ownerEncSessionKey: Uint8Array;
 	ownerKeyVersion: NumberString;
+	createdDate: null | Date;
+	updatedDate: null | Date;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
 }
