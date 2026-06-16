@@ -2394,3 +2394,4 @@ export type TranslationKeyType =
 	| "clearCache_action"
 	| "clearCache_msg"
 	| "clearCacheConfirm_msg"
+	| "notAllMailsSearchable_msg"

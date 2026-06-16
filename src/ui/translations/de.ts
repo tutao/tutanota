@@ -2393,9 +2393,9 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-
 		"clearCache_action": "Clear cache",
 		"clearCache_msg": "Clear cache message",
-		"clearCacheConfirm_msg": "Are you sure you want to clear cache?"
+		"clearCacheConfirm_msg": "Are you sure you want to clear cache?",
+		"notAllMailsSearchable_msg": "Not all emails are searchable, but in German"
 	}
 }
