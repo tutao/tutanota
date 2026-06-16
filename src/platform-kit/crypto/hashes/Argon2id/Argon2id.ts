@@ -1,6 +1,7 @@
 import { callWebAssemblyFunctionWithArguments, ConstPtr, mutableSecureFree, Ptr, secureFree, stringToUtf8Uint8Array, WASMExports } from "@tutao/utils"
 import { Aes256Key, uint8ArrayToKey } from "../../encryption/symmetric/SymmetricCipherUtils.js"
 import { AesKeyLength } from "../../encryption/symmetric/AesKeyLength"
+import { number, NumberArgument, Uint8ArrayArgument } from "../../../utils/WebAssemblyArgument"
 // Per OWASP's recommendations @ https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
 export const ARGON2ID_ITERATIONS = 4
 export const ARGON2ID_MEMORY_IN_KiB = 32 * 1024
@@ -55,15 +56,15 @@ async function argon2idHashRaw(
 	const result = callWebAssemblyFunctionWithArguments(
 		argon2.argon2id_hash_raw,
 		argon2,
-		timeCost,
-		memoryCost,
-		parallelism,
+		number(timeCost),
+		number(memoryCost),
+		number(parallelism),
 		secureFree(password),
-		password.length,
-		salt,
-		salt.length,
+		number(password.length),
+		new Uint8ArrayArgument(salt),
+		number(salt.length),
 		mutableSecureFree(hash),
-		hash.length,
+		number(hash.length),
 	)
 
 	if (result !== 0) {
