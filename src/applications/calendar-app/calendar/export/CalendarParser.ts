@@ -32,6 +32,8 @@ import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonC
 import { Stripped } from "@tutao/meta"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
 
+const TAG = "[CalendarParser]"
+
 type PropertyParamValue = string
 type Property = {
 	name: string
@@ -536,18 +538,22 @@ function parseEventDuration(durationValue: string, startTime: Date): Date {
 }
 
 function getTzId(prop: Property): string | null {
-	let tzId: string | null = null
 	const tzIdValue = prop.params["TZID"]
 
-	if (tzIdValue) {
-		if (IANAZone.isValidZone(tzIdValue)) {
-			tzId = tzIdValue
-		} else if (tzIdValue in WindowsZones) {
-			tzId = WindowsZones[tzIdValue as keyof typeof WindowsZones]
-		}
+	if (!tzIdValue) {
+		return null
 	}
 
-	return tzId
+	if (IANAZone.isValidZone(tzIdValue)) {
+		return tzIdValue
+	}
+
+	if (tzIdValue in WindowsZones) {
+		return WindowsZones[tzIdValue as keyof typeof WindowsZones]
+	}
+
+	console.warn(`${TAG} Unknown timezone at property ${prop.name}: ${tzIdValue}.`)
+	return null
 }
 
 function oneDayDurationEnd(startTime: Date, allDay: boolean, tzId: string | null, zone: string): Date {
@@ -922,10 +928,19 @@ export function parseTime(
 	allDay: boolean
 } {
 	const components = parseTimeIntoComponents(value)
+
 	// if minute is not provided it is an all day date YYYYMMDD
 	const isAllDay = !("minute" in components)
-	const effectiveZone = isAllDay ? "UTC" : (components.zone ?? eventTzid)
+	const effectiveZone = isAllDay ? "UTC" : (eventTzid ?? components.zone)
+	if (effectiveZone === undefined) {
+		console.warn(TAG + ` effectiveZone is undefined.  Local timezone will be used.`)
+	}
+	if (components.zone && eventTzid) {
+		console.warn("Parsing time with conflicting timezone information: Event TZID and ZoneOffset/UTC, TZID will be prioritized.")
+	}
+
 	delete components["zone"]
+
 	const filledComponents = Object.assign(
 		{},
 		isAllDay
