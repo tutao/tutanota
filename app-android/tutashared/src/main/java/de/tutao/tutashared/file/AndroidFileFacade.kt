@@ -18,10 +18,8 @@ import de.tutao.tutashared.ActivityUtils
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.HashingInputStream
 import de.tutao.tutashared.ProgressResponseBody
-import de.tutao.tutashared.TempDir
 import de.tutao.tutashared.bytes
 import de.tutao.tutashared.getFileInfo
-import de.tutao.tutashared.getNonClobberingFileName
 import de.tutao.tutashared.ipc.DataFile
 import de.tutao.tutashared.ipc.DataWrapper
 import de.tutao.tutashared.ipc.DirectoryContents
@@ -76,39 +74,22 @@ class AndroidFileFacade(
 	private val activityUtils: ActivityUtils,
 	private val notificationSender: FileNotificationSender,
 	private val random: SecureRandom,
+	private val tempFs: TempFs,
 	private val defaultClient: OkHttpClient,
 	private val downloadProgress: (fileId: String, bytesDownloaded: Int) -> Unit,
 	private val uploadProgress: (fileId: String, bytesDownloaded: Int) -> Unit,
 	private val providerAuthority: String,
 ) : FileFacade {
-
-	val tempDir = TempDir(context, random)
 	private val activeRequests = ConcurrentHashMap<String, Call>()
 
 	@Throws(Exception::class)
 	override suspend fun deleteFile(file: String) {
-		if (file.startsWith(Uri.fromFile(context.filesDir).toString())) {
-			// we do not deleteAlarmNotification files that are not stored in our cache dir
-			val fileInstance = File(file.toUri().path!!)
-			try {
-				val deleted = fileInstance.delete()
-				if (!deleted && fileInstance.exists()) {
-					throw Exception("Could not delete file $file")
-				}
-				Log.d(TAG, "Deleted file: $fileInstance")
-			} catch (e: Exception) {
-				Log.e(
-					TAG,
-					"Error type: ${e.javaClass}\nError message: ${e.message}\nStack Trace: ${e.stackTraceToString()}\nCause: ${e.cause}"
-				)
-			}
-		}
+		this.tempFs.deleteFile(file)
 	}
 
 	@Throws(IOException::class)
 	override suspend fun joinFiles(filename: String, files: List<String>): String {
-		val newFileName = getNonClobberingFileName(tempDir.decrypt, filename)
-		val outputFile = File(tempDir.decrypt, newFileName)
+		val outputFile = this.tempFs.createTempFileDecrypt(filename)
 		return withContext(Dispatchers.IO) {
 			outputFile.parentFile!!.mkdirs()
 
@@ -123,6 +104,23 @@ class AndroidFileFacade(
 				outputFile.toUri().toString()
 			}
 		}
+	}
+
+	override suspend fun openFileForReading(fileUri: String): String {
+		return this.tempFs.openFileForReading(fileUri)
+	}
+
+	override suspend fun closeFile(streamUri: String) {
+		return this.tempFs.closeFile(streamUri)
+	}
+
+	override suspend fun readChunk(streamUri: String, maxChunkSize: Int): String? {
+		val stream = this.tempFs.fileStream(streamUri)
+		if (stream.available() === 0) {
+			return null
+		}
+		val buffer = stream.limited(maxChunkSize.toLong()).readBytes()
+		return this.tempFs.createInMemoryFile(buffer)
 	}
 
 	override suspend fun openFileChooser(
@@ -172,7 +170,7 @@ class AndroidFileFacade(
 
 	@Throws(IOException::class)
 	override suspend fun writeTempDataFile(file: DataFile): String = withContext(Dispatchers.IO) {
-		val fileHandle = File(tempDir.decrypt, file.name)
+		val fileHandle = tempFs.createTempFileDecrypt(file.name)
 		fileHandle.writeBytes(file.data.data)
 		fileHandle.toUri().toString()
 	}
@@ -297,7 +295,7 @@ class AndroidFileFacade(
 
 	@Throws(FileNotFoundException::class)
 	override suspend fun getSize(file: String): Int {
-		return getFileInfo(context, Uri.parse(file)).size.toInt()
+		return this.tempFs.fileInfo(file).size.toInt()
 	}
 
 	@Throws(FileNotFoundException::class)
@@ -328,70 +326,66 @@ class AndroidFileFacade(
 				val parsedUri = Uri.parse(fileUrl)
 				val contentResolver = context.contentResolver
 				val contentType = contentResolver.getType(parsedUri)
+				val length = this@AndroidFileFacade.tempFs.fileInfo(fileUrl).size
 
 				try {
-					val response = contentResolver.openAssetFileDescriptor(parsedUri, "r")!!.use { fd ->
 
-						val requestBody: RequestBody = object : RequestBody() {
-							override fun contentLength(): Long {
-								return fd.length
-							}
+					val requestBody: RequestBody = object : RequestBody() {
+						override fun contentLength(): Long {
+							return length
+						}
 
-							override fun contentType(): MediaType? {
-								return contentType?.toMediaTypeOrNull()
-							}
+						override fun contentType(): MediaType? {
+							return contentType?.toMediaTypeOrNull()
+						}
 
-							@Throws(IOException::class)
-							override fun writeTo(sink: BufferedSink) {
-								val buffer = Buffer()
-								var total: Long = 0
+						@Throws(IOException::class)
+						override fun writeTo(sink: BufferedSink) {
+							val buffer = Buffer()
+							var total: Long = 0
 
-								fd.createInputStream().source().use { source ->
-									val chunkSize = 8192L // 8 KB (Okio segment size)
+							tempFs.fileStream(fileUrl).source().use { source ->
+								val chunkSize = 8192L // 8 KB (Okio segment size)
 
-									while (true) {
-										val read = source.read(buffer, chunkSize)
-										if (read == -1L) {
-											break
-										}
-
-										sink.write(buffer, read)
-										total += read
-
-										// .toInt() is fine because the read buffer is always small enough
-										//this@AndroidFileFacade.uploadProgress(fileId, total.toInt())
-										flow.tryEmit(total.toInt())
+								while (true) {
+									val read = source.read(buffer, chunkSize)
+									if (read == -1L) {
+										break
 									}
+
+									sink.write(buffer, read)
+									total += read
+
+									// .toInt() is fine because the read buffer is always small enough
+									//this@AndroidFileFacade.uploadProgress(fileId, total.toInt())
+									flow.tryEmit(total.toInt())
 								}
 							}
 						}
-
-						val requestBuilder = Request.Builder()
-							.url(targetUrl)
-							.method(method, requestBody)
-							.headers(headers.toHeaders())
-							.header("Content-Type", "application/octet-stream")
-							.header("Cache-Control", "no-cache")
-
-						// infinite timeout
-						// - the server stops listening after 10 minutes -> SocketException
-						// - if the internet connection dies -> SocketException
-						// we don't want to time out in case of a slow connection because we may already be
-						// waiting for the response code while the TCP stack is still busy sending our data
-						val call = defaultClient.newBuilder()
-							.connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
-							.writeTimeout(0, TimeUnit.SECONDS)
-							.readTimeout(0, TimeUnit.SECONDS)
-							.build()
-							.newCall(requestBuilder.build())
-
-						this@AndroidFileFacade.activeRequests[fileId] = call
-
-						call.execute()
 					}
 
+					val requestBuilder = Request.Builder()
+						.url(targetUrl)
+						.method(method, requestBody)
+						.headers(headers.toHeaders())
+						.header("Content-Type", "application/octet-stream")
+						.header("Cache-Control", "no-cache")
 
-					response.use { response ->
+					// infinite timeout
+					// - the server stops listening after 10 minutes -> SocketException
+					// - if the internet connection dies -> SocketException
+					// we don't want to time out in case of a slow connection because we may already be
+					// waiting for the response code while the TCP stack is still busy sending our data
+					val call = defaultClient.newBuilder()
+						.connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
+						.writeTimeout(0, TimeUnit.SECONDS)
+						.readTimeout(0, TimeUnit.SECONDS)
+						.build()
+						.newCall(requestBuilder.build())
+
+					this@AndroidFileFacade.activeRequests[fileId] = call
+
+					call.execute().use { response ->
 						// this would run into the read timeout if the upload is still running
 						val responseCode = response.code
 						val suspensionTime = response.header("Retry-After") ?: response.header("Suspension-Time")
@@ -492,7 +486,7 @@ class AndroidFileFacade(
 						var encryptedFile: File? = null
 						if (response.code == 200) {
 							val inputStream = response.body.byteStream()
-							encryptedFile = File(tempDir.encrypt, filename)
+							encryptedFile = tempFs.createTempFileEncrypt(filename)
 							writeFileStream(encryptedFile, inputStream)
 						}
 
@@ -535,9 +529,9 @@ class AndroidFileFacade(
 	override suspend fun readDataFile(filePath: String): DataFile? {
 		// We just allow files that came from other intents using content:// or
 		// that belongs to our folder scope
-		val uri = Uri.parse(filePath)
+		val uri = filePath.toUri()
 		val allowedLocation = uri.scheme == "content"
-				|| uri.scheme == "file" && uri.path != null && uri.path!!.startsWith(tempDir.root.path)
+				|| uri.scheme == "file" && uri.path != null && tempFs.isInTemp(uri.path!!)
 		require(allowedLocation) { "Not allowed to read file at $filePath" }
 
 		val bytes = withContext(Dispatchers.IO) {
@@ -563,45 +557,13 @@ class AndroidFileFacade(
 	}
 
 	override suspend fun clearFileData() {
-		clearDirectory(tempDir.root)
+		tempFs.clearTempDir()
 	}
 
-	private fun clearDirectory(file: File) {
-		file.listFiles()?.let { children ->
-			for (child in children) {
-				if (child.isDirectory) {
-					clearDirectory(child)
-				}
-				child.delete()
-			}
-		}
-	}
-
-	@Throws(IOException::class)
-	override suspend fun splitFile(fileUri: String, maxChunkSizeBytes: Int): List<String> =
-		withContext(Dispatchers.IO) {
-			val file = Uri.parse(fileUri)
-			val fileSize = getFileInfo(context, file).size
-			val inputStream = context.contentResolver.openInputStream(file)
-			val chunkUris: MutableList<String> = ArrayList()
-			var chunk = 0
-			while (chunk * maxChunkSizeBytes <= fileSize) {
-				val tmpFilename = Integer.toHexString(file.hashCode()) + "." + chunk + ".blob"
-				val chunkedInputStream = BoundedInputStream.builder()
-					.setInputStream(inputStream)
-					.setMaxCount(maxChunkSizeBytes.toLong())
-					.get()
-				val tmpFile = File(tempDir.decrypt, tmpFilename)
-				writeFileStream(tmpFile, chunkedInputStream)
-				chunkUris.add(tmpFile.toUri().toString())
-				chunk++
-			}
-			chunkUris
-		}
 
 	@Throws(IOException::class, NoSuchAlgorithmException::class)
 	override suspend fun hashFile(fileUri: String): String {
-		val inputStream = context.contentResolver.openInputStream(Uri.parse(fileUri))!!
+		val inputStream = this.tempFs.fileStream(fileUri)
 		val hashingInputStream = HashingInputStream(MessageDigest.getInstance("SHA-256"), inputStream)
 		val devNull: OutputStream = object : OutputStream() {
 			override fun write(b: Int) {}
@@ -625,6 +587,11 @@ class AndroidFileFacade(
 		}
 	}
 }
+
+fun InputStream.limited(bytes: Long): InputStream = BoundedInputStream.builder()
+	.setInputStream(this)
+	.setMaxCount(bytes)
+	.get()
 
 
 class FileOpenException(message: String) : Exception(message)

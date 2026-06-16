@@ -1,6 +1,5 @@
 package de.tutao.tutanota.push
 
-import android.app.Notification
 import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -12,17 +11,19 @@ import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.SdkFileClient
 import de.tutao.tutashared.SdkRestClient
+import de.tutao.tutashared.TempDir
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.push.SseStorage
-import de.tutao.tutashared.toSdkIdTupleGenerated
 import de.tutao.tutashared.push.toSdkCredentials
+import de.tutao.tutashared.toSdkIdTupleGenerated
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.security.SecureRandom
 
 /**
  * Performs mail notification actions
@@ -41,11 +42,15 @@ class MailNotificationActionReceiver : BroadcastReceiver() {
 				val keyStoreFacade = createAndroidKeyStoreFacade()
 				val sseStorage = SseStorage(db, keyStoreFacade)
 
-				val crypto = AndroidNativeCryptoFacade(context)
+				val crypto = AndroidNativeCryptoFacade(context, TempFs(context, SecureRandom(), TempDir(context)))
 				val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
 				val credentials = nativeCredentialsFacade.loadByUserId(notificationInfo.userId)!!.toSdkCredentials()
 
-				val sdk = Sdk(sseStorage.getSseOrigin()!!, SdkRestClient(), SdkFileClient(context.filesDir)).login(credentials)
+				val sdk = Sdk(
+					sseStorage.getSseOrigin()!!,
+					SdkRestClient(),
+					SdkFileClient(context.filesDir)
+				).login(credentials)
 
 				when (action) {
 					TRASH_ACTION -> sendMailToTrash(sdk, notificationInfo)

@@ -220,17 +220,16 @@ export class NativeFileApp {
 	joinFiles(filename: string, files: Array<FileUri>): Promise<FileUri> {
 		return this.fileFacade.joinFiles(filename, files)
 	}
-
-	/**
-	 * Splits the given file into chunks of the given maximum size. The chunks will be placed in the temporary decrypted directory.
-	 * @param fileUri
-	 * @param maxChunkSizeBytes
-	 */
-	async splitFile(fileUri: FileUri, maxChunkSizeBytes: number): Promise<ReadonlyArray<FileUri>> {
-		return this.fileFacade.splitFile(fileUri, maxChunkSizeBytes)
-	}
-
 	async readDirectory(dirPath: string): Promise<DirectoryContents> {
 		return await this.fileFacade.readDirectory(dirPath)
+	}
+	async openFileForReading(fileUri: string): Promise<string> {
+		return await this.fileFacade.openFileForReading(fileUri)
+	}
+	async closeFile(fileUri: string): Promise<void> {
+		return await this.fileFacade.closeFile(fileUri)
+	}
+	async readChunk(streamUri: string, maxChunkSize: number): Promise<string | null> {
+		return await this.fileFacade.readChunk(streamUri, maxChunkSize)
 	}
 }

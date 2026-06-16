@@ -124,12 +124,24 @@ public final class FileFacadeReceiveDispatcher: Sendable {
 				files
 			)
 			return toJson(result)
-		case "splitFile":
+		case "openFileForReading":
 			let fileUri = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
-			let maxChunkSizeBytes = try! JSONDecoder().decode(Int.self, from: arg[1].data(using: .utf8)!)
-			let result = try await self.facade.splitFile(
-				fileUri,
-				maxChunkSizeBytes
+			let result = try await self.facade.openFileForReading(
+				fileUri
+			)
+			return toJson(result)
+		case "closeFile":
+			let streamUri = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			try await self.facade.closeFile(
+				streamUri
+			)
+			return "null"
+		case "readChunk":
+			let streamUri = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let maxChunkSize = try! JSONDecoder().decode(Int.self, from: arg[1].data(using: .utf8)!)
+			let result = try await self.facade.readChunk(
+				streamUri,
+				maxChunkSize
 			)
 			return toJson(result)
 		case "writeTempDataFile":

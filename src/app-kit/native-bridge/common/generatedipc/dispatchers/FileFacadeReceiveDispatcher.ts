@@ -81,10 +81,18 @@ export class FileFacadeReceiveDispatcher {
 				const files: ReadonlyArray<string> = arg[1]
 				return this.facade.joinFiles(filename, files)
 			}
-			case "splitFile": {
+			case "openFileForReading": {
 				const fileUri: string = arg[0]
-				const maxChunkSizeBytes: number = arg[1]
-				return this.facade.splitFile(fileUri, maxChunkSizeBytes)
+				return this.facade.openFileForReading(fileUri)
+			}
+			case "closeFile": {
+				const streamUri: string = arg[0]
+				return this.facade.closeFile(streamUri)
+			}
+			case "readChunk": {
+				const streamUri: string = arg[0]
+				const maxChunkSize: number = arg[1]
+				return this.facade.readChunk(streamUri, maxChunkSize)
 			}
 			case "writeTempDataFile": {
 				const file: DataFile = arg[0]

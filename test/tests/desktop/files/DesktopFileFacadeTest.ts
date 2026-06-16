@@ -1,15 +1,14 @@
 import o, { assertThrows } from "@tutao/otest"
 
-import { DesktopFileFacade, getMimeTypeForFile } from "../../../../src/applications/common/desktop/files/DesktopFileFacade.js"
+import { DesktopFileFacade, getMimeTypeForFile, readStreamToBuffer } from "../../../../src/applications/common/desktop/files/DesktopFileFacade.js"
 import { ApplicationWindow } from "../../../../src/applications/common/desktop/ApplicationWindow.js"
 import { func, matchers, object, verify, when } from "testdouble"
 import { ElectronExports, FsExports, PathExports } from "../../../../src/applications/common/desktop/ElectronExportTypes.js"
 import * as restError from "../../../../src/platform-kit/rest-client/error"
 import { HttpMethod } from "../../../../src/platform-kit/rest-client/types"
 import type fs from "node:fs"
-import { stringToUtf8Uint8Array } from "../../../../src/platform-kit/utils"
+import { DateProvider, stringToUtf8Uint8Array } from "../../../../src/platform-kit/utils"
 import { DesktopConfig } from "../../../../src/applications/common/desktop/config/DesktopConfig.js"
-import { DateProvider } from "../../../../src/platform-kit/utils"
 import { TempFs } from "../../../../src/applications/common/desktop/files/TempFs.js"
 import { BuildConfigKey, DesktopConfigKey, ProgrammingError } from "../../../../src/platform-kit/app-env"
 import { FetchImpl, FetchResult } from "../../../../src/applications/common/desktop/net/NetAgent"
@@ -402,33 +401,26 @@ o.spec("DesktopFileFacade", function () {
 		})
 	})
 
-	o.spec("splitFile", function () {
-		o("returns one slice for a small file", async function () {
-			// fs mock returns file name as the content
-			const filename = "/tutanota/tmp/path/download/small.txt"
-			const fileContent = stringToUtf8Uint8Array(filename)
-			when(fs.promises.stat(filename)).thenResolve({ size: fileContent.length })
-			when(tfs.createFileChunkUri(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(
-				(path, start, length) => `tuta-chunk:${path}?start=${start}&length=${length}`,
-			)
-			const chunks = await ff.splitFile(filename, 1024)
-			o(chunks).deepEquals([`tuta-chunk:/tutanota/tmp/path/download/small.txt?start=0&length=${fileContent.length}`])("only one chunk")
+	o.spec("readStreamToBuffer", function () {
+		o.test("reads up to stream end correctly", async function () {
+			const inputBuffer = Buffer.alloc(16)
+			const stream = mockFsReadStream(inputBuffer)
+			const outputBuffer = await readStreamToBuffer(stream, 30)
+			o.check(Buffer.alloc(16) as Uint8Array).deepEquals(outputBuffer)
 		})
 
-		o("returns multiple slices for a bigger file", async function () {
-			// fs mock returns file name as the content
-			const filename = "/tutanota/tmp/path/download/big.txt"
-			// length 35
-			const fileContent = stringToUtf8Uint8Array(filename)
-			when(fs.promises.stat(filename)).thenResolve({ size: fileContent.length })
-			when(tfs.createFileChunkUri(matchers.anything(), matchers.anything(), matchers.anything())).thenDo(
-				(path, start, length) => `tuta-chunk:${path}?start=${start}&length=${length}`,
-			)
-			const chunks = await ff.splitFile(filename, 30)
-			o(chunks).deepEquals([
-				`tuta-chunk:/tutanota/tmp/path/download/big.txt?start=0&length=30`,
-				`tuta-chunk:/tutanota/tmp/path/download/big.txt?start=30&length=5`,
-			])
+		o.test("reads less than stream end correctly", async function () {
+			const inputBuffer = Buffer.alloc(32)
+			const stream = mockFsReadStream(inputBuffer)
+			const outputBuffer = await readStreamToBuffer(stream, 16)
+			o.check(Buffer.alloc(16) as Uint8Array).deepEquals(outputBuffer)
+		})
+
+		o.test("reads more than one chunk correctly", async function () {
+			const inputBuffer = Buffer.alloc(1024 * 1024 * 3)
+			const stream = mockFsReadStream(inputBuffer)
+			const outputBuffer = await readStreamToBuffer(stream, 1024 * 1024 + 256)
+			o.check(Buffer.alloc(1024 * 1024 + 256) as Uint8Array).deepEquals(outputBuffer)
 		})
 	})
 
@@ -469,7 +461,7 @@ o.spec("DesktopFileFacade", function () {
 
 	o.spec("size", function () {
 		o("size", async function () {
-			when(fs.promises.stat(matchers.anything())).thenResolve({ size: 33 })
+			when(tfs.getFileSize("/file1")).thenResolve(33)
 			o(await ff.getSize("/file1")).equals(33)
 		})
 	})

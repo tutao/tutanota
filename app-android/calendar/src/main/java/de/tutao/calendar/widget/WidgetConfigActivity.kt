@@ -106,8 +106,10 @@ import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.CredentialType
 import de.tutao.tutashared.SdkFileClient
 import de.tutao.tutashared.SdkRestClient
+import de.tutao.tutashared.TempDir
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.CredentialsInfo
 import de.tutao.tutashared.ipc.DataWrapper
@@ -116,6 +118,7 @@ import de.tutao.tutashared.parseColor
 import de.tutao.tutashared.remote.RemoteStorage
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.launch
+import java.security.SecureRandom
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -138,8 +141,9 @@ class WidgetConfigActivity : AppCompatActivity() {
 			val remoteStorage = RemoteStorage(db)
 
 			val serverURL = remoteStorage.getRemoteUrl()
-
-			val crypto = AndroidNativeCryptoFacade(baseContext)
+			val tempDir= TempDir(applicationContext)
+			val tempFs= TempFs(applicationContext, SecureRandom(),tempDir)
+			val crypto = AndroidNativeCryptoFacade(baseContext, tempFs)
 			val sdk =
 				if (serverURL == null) {
 					null

@@ -144,12 +144,26 @@ class FileFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
-			"splitFile" -> {
+			"openFileForReading" -> {
 				val fileUri: String = json.decodeFromString(arg[0])
-				val maxChunkSizeBytes: Int = json.decodeFromString(arg[1])
-				val result: List<String> = this.facade.splitFile(
+				val result: String = this.facade.openFileForReading(
 					fileUri,
-					maxChunkSizeBytes,
+				)
+				return json.encodeToString(result)
+			}
+			"closeFile" -> {
+				val streamUri: String = json.decodeFromString(arg[0])
+				val result: Unit = this.facade.closeFile(
+					streamUri,
+				)
+				return json.encodeToString(result)
+			}
+			"readChunk" -> {
+				val streamUri: String = json.decodeFromString(arg[0])
+				val maxChunkSize: Int = json.decodeFromString(arg[1])
+				val result: String? = this.facade.readChunk(
+					streamUri,
+					maxChunkSize,
 				)
 				return json.encodeToString(result)
 			}

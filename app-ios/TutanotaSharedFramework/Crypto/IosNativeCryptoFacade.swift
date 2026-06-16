@@ -4,28 +4,22 @@ import tutasdk
 /// Is an actor because we want to have serial execution for all the cryptogaphic operations, doing them in parallel is usually too
 /// much for the device.
 public actor IosNativeCryptoFacade: NativeCryptoFacade {
-	let tempFs: TempFs
+	private let tempFs: TempFs
 	public init(tempFs: TempFs) { self.tempFs = tempFs }
 
 	public func aesEncryptFile(_ key: DataWrapper, _ fileUri: String, _ iv: DataWrapper) async throws -> EncryptedFileInfo {
 		let fileInfo = try await tempFs.fileInfo(uri: fileUri)
-		let fileName = fileInfo.name
-		let chunkData = try await self.tempFs.fileStream(tutaUri: fileUri)
-		if !(try await self.tempFs.fileExists(uri: fileUri)) { throw CryptoError(message: "File to encrypt does not exist \(fileUri)") }
-		let encryptedFolder = try FileUtils.getEncryptedFolder()
-		let encryptedFilePath = (encryptedFolder as NSString).appendingPathComponent(fileName)
-		let outputData = try aesEncryptData(chunkData, withKey: key.data, withIV: iv.data)
-		let result = EncryptedFileInfo(uri: encryptedFilePath, unencryptedSize: Int(fileInfo.size))
-
-		try outputData.write(to: URL(fileURLWithPath: encryptedFilePath))
-
-		return result
+		let plaintextData = try await self.tempFs.readAsData(uri: fileUri)
+		let outputData = try aesEncryptData(plaintextData, withKey: key.data, withIV: iv.data)
+		let encryptedFilePath = await self.tempFs.createInMemoryFile(data: outputData)
+		return EncryptedFileInfo(uri: encryptedFilePath, unencryptedSize: Int(fileInfo.size))
 	}
 
 	public func aesDecryptFile(_ key: DataWrapper, _ fileUri: String) async throws -> String {
-		if !FileUtils.fileExists(atPath: fileUri) { throw CryptoError(message: "File to decrypt does not exist") }
+		let url = try URL.from(fileUrl: fileUri)
+		if !FileUtils.fileExists(at: url) { throw CryptoError(message: "File to decrypt does not exist") }
 
-		let encryptedData = try Data(contentsOf: URL(fileURLWithPath: fileUri))
+		let encryptedData = try Data(contentsOf: url)
 		let plaintextData = try aesDecryptData(encryptedData, withKey: key.data)
 
 		let decryptedFolder = try FileUtils.getDecryptedFolder()
@@ -33,7 +27,7 @@ public actor IosNativeCryptoFacade: NativeCryptoFacade {
 		let plaintextPath = (decryptedFolder as NSString).appendingPathComponent(fileName)
 		try plaintextData.write(to: URL(fileURLWithPath: plaintextPath), options: .atomic)
 
-		return plaintextPath
+		return URL(fileURLWithPath: plaintextPath).absoluteString
 	}
 
 	public func rsaEncrypt(_ publicKey: RsaPublicKey, _ data: DataWrapper, _ seed: DataWrapper) async throws -> DataWrapper {
