@@ -37,7 +37,6 @@ import { getDefaultSenderFromUser, getMailAddressDisplayText } from "../../commo
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
 import { getFolderName } from "../mail/model/MailUtils.js"
-import { OfflineStorageSettingsModel } from "../../common/offline/OfflineStorageSettingsModel"
 import { resolveMailSetEntries } from "../mail/model/MailSetListModel"
 import { MoveMode } from "../mail/model/MailModel"
 import { ProgressBar, ProgressBarType } from "../../../ui/base/ProgressBar"
@@ -82,7 +81,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	private customerInfo: CustomerInfo | null
 	private mailAddressTableModel: MailAddressTableModel | null = null
 	private mailAddressTableExpanded: boolean
-	private offlineStorageSettings = new OfflineStorageSettingsModel(mailLocator.logins.getUserController(), deviceConfig)
 
 	constructor() {
 		this._defaultSender = getDefaultSenderFromUser(mailLocator.logins.getUserController())
@@ -119,8 +117,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 		this.customerInfo = null
 		this._storageFieldValue = stream("")
-
-		this.offlineStorageSettings.init().then(() => m.redraw())
 	}
 
 	async oninit(): Promise<void> {
@@ -535,9 +531,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderLocalDataSection(): Children {
-		if (!this.offlineStorageSettings.available()) {
-			return null
-		}
 		return [m(".h4.mt-32#localdata", lang.get("localDataSection_label")), this.renderRebuildSearchIndex()]
 	}
 

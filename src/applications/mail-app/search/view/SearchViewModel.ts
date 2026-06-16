@@ -73,7 +73,6 @@ import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewer
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { ListFilter } from "../../../common/misc/ListModel"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
-import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { Indexer } from "../../workerUtils/index/Indexer"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
@@ -239,7 +238,6 @@ export class SearchViewModel {
 		private readonly calendarModel: CalendarModel,
 		private readonly updateUi: () => unknown,
 		private readonly selectionBehavior: ListAutoSelectBehavior,
-		private readonly offlineStorageSettings: OfflineStorageSettingsModel | null,
 	) {
 		this.currentQuery = this.search.result()?.query ?? ""
 		this._listModel = this.createList()
@@ -252,7 +250,6 @@ export class SearchViewModel {
 			this.onMailboxesChanged(mailboxes)
 		})
 		this.eventController.addEntityListener(this.entityEventsListener)
-		await this.offlineStorageSettings?.init()
 	})
 
 	getRestriction(): SearchRestriction {
@@ -490,27 +487,6 @@ export class SearchViewModel {
 			onIndexStateUpdate = (newState) => {
 				if (newState.progress === 0) {
 					dep.end(true)
-				}
-
-				if (this.offlineStorageSettings?.available()) {
-					const offlineRange = this.offlineStorageSettings.getTimeRange().getTime()
-					const isIndexingDoneOrCancelled = newState.progress === 0 && newState.error == null
-
-					// update offline storage range as index extends to not lose what's already indexed if the user logs
-					// out before indexing is done.
-					// Update offline range when indexing is cancelled to not continue indexing on next login
-					if (offlineRange > newState.currentMailIndexTimestamp || isIndexingDoneOrCancelled) {
-						this.offlineStorageSettings.setTimeRange(
-							new Date(
-								newState.currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP
-									? newState.currentMailIndexTimestamp
-									: // aimedMailIndexTimestamp is set by the user and therefore might not be valid
-										this.offlineStorageSettings.isValidDate(new Date(newState.aimedMailIndexTimestamp))
-										? newState.aimedMailIndexTimestamp
-										: FULL_INDEXED_TIMESTAMP,
-							),
-						)
-					}
 				}
 			}
 		} else {

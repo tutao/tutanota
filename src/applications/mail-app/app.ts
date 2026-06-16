@@ -297,14 +297,12 @@ import("../../ui/translations/en.js")
 					mailLocator.progressTracker,
 					mailLocator.cacheStorage,
 					mailLocator.logins,
-					assertNotNull(await mailLocator.offlineStorageSettingsModel()),
 					mailLocator.syncTracker,
 				)
 			})
 			mailLocator.logins.addPostLoginAction(async () => {
 				const { MailIndexerPostLoginAction } = await import("./search/model/MailIndexerPostLoginAction.js")
-				const offlineStorageSettings = await mailLocator.offlineStorageSettingsModel()
-				return new MailIndexerPostLoginAction(assertNotNull(offlineStorageSettings), mailLocator.indexerFacade, mailLocator.syncTracker)
+				return new MailIndexerPostLoginAction(mailLocator.indexerFacade, mailLocator.syncTracker)
 			})
 			mailLocator.logins.addPostLoginAction(async () => {
 				const { RegisterPushServicePostLoginAction } = await import("../common/native/RegisterPushServicePostLoginAction.js")
