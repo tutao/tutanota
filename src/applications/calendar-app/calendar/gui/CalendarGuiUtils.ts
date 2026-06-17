@@ -21,7 +21,7 @@ import {
 	newPromise,
 	numberRange,
 	typedValues,
-} from "../../../../platform-kit/utils"
+} from "@tutao/utils"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import {
 	formatDateTime,
@@ -47,7 +47,6 @@ import {
 	getStartOfDayWithZone,
 	getStartOfNextDayWithZone,
 	getStartOfWeek,
-	getTimeZone,
 	getWeekNumber,
 	incrementByRepeatPeriod,
 	StandardAlarmInterval,
@@ -398,28 +397,37 @@ export function getCalendarMonth(date: Date, firstDayOfWeekFromOffset: number, w
 	}
 }
 
-export function formatEventDuration(event: CalendarEventTimes, zone: string, includeTimezone: boolean): string {
-	if (isAllDayEvent(event)) {
-		const startTime = getEventStart(event, zone)
-		const startString = formatDateWithMonth(startTime)
-		const endTime = incrementByRepeatPeriod(getEventEnd(event, zone), RepeatPeriod.DAILY, -1, zone)
+function formatAllDayDurationText(event: CalendarEventTimes, startTimeZone: string, endTimeZone: string) {
+	const startTime = getEventStart(event, startTimeZone)
+	const startString = formatDateWithMonth(startTime)
+	const endTime = incrementByRepeatPeriod(getEventEnd(event, endTimeZone), RepeatPeriod.DAILY, -1, endTimeZone)
 
-		if (isSameDayOfDate(startTime, endTime)) {
-			return `${lang.get("allDay_label")}, ${startString}`
-		} else {
-			return `${lang.get("allDay_label")}, ${startString} - ${formatDateWithMonth(endTime)}`
-		}
+	if (isSameDayOfDate(startTime, endTime)) {
+		return `${lang.get("allDay_label")}, ${startString}`
 	} else {
-		const startString = formatDateTime(event.startTime)
-		let endString
+		return `${lang.get("allDay_label")}, ${startString} - ${formatDateWithMonth(endTime)}`
+	}
+}
 
-		if (isSameDay(event.startTime, event.endTime)) {
-			endString = formatTime(event.endTime)
-		} else {
-			endString = formatDateTime(event.endTime)
-		}
+function formatNormalEventDurationText(event: CalendarEventTimes, includeTimezone: boolean, startTimeZone: string, endTimeZone: string) {
+	const startAndEndIsSameDay = isSameDay(event.startTime, event.endTime)
 
-		return `${startString} - ${endString} ${includeTimezone ? getTimeZone() : ""}`
+	const startString = formatDateTime(event.startTime, { timeZone: startTimeZone })
+
+	let endString = startAndEndIsSameDay ? formatTime(event.endTime, { timeZone: endTimeZone }) : formatDateTime(event.endTime, { timeZone: endTimeZone })
+
+	// IANA always has a / in it so we can use ! here
+	const startZoneFormatted = "(" + startTimeZone.split("/").at(-1)!.replace("_", " ") + ")"
+	const endZoneFormatted = "(" + endTimeZone.split("/").at(-1)!.replace("_", " ") + ")"
+
+	return `${startString} ${includeTimezone ? startZoneFormatted : ""} - ${endString} ${includeTimezone ? endZoneFormatted : ""}`
+}
+
+export function formatEventDuration(event: CalendarEventTimes, startTimeZone: string, endTimeZone: string, includeTimezone: boolean): string {
+	if (isAllDayEvent(event)) {
+		return formatAllDayDurationText(event, startTimeZone, endTimeZone)
+	} else {
+		return formatNormalEventDurationText(event, includeTimezone, startTimeZone, endTimeZone)
 	}
 }
 

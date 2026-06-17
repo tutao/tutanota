@@ -69,4 +69,6 @@ o.spec("CalendarGuiUtils", function () {
 			minutes: 45,
 		})
 	})
+
+	o.spec("formatAllDayDurationText", function () {})
 })
