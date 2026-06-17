@@ -106,6 +106,7 @@ o.spec("CalendarParser", function () {
 			})
 		})
 	})
+
 	o("parsePropertyKeyValue", function () {
 		o(parsePropertyKeyValue("KEY=VALUE")).deepEquals({
 			KEY: "VALUE",
@@ -115,6 +116,7 @@ o.spec("CalendarParser", function () {
 			ANOTHERKEY: "ANOTHERVALUE",
 		})
 	})
+
 	o("parseDuration", function () {
 		o(parseDuration("P")).deepEquals({
 			positive: true,
@@ -237,6 +239,7 @@ o.spec("CalendarParser", function () {
 		})
 		o(() => parseDuration("P8W15M")).throws(Error)
 	})
+
 	o("triggerToAlarmInterval", function () {
 		o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-PT5H30M")).deepEquals({
 			unit: AlarmIntervalUnit.MINUTE,
@@ -255,17 +258,42 @@ o.spec("CalendarParser", function () {
 			value: 29,
 		})
 	})
-	o("parseTime", function () {
-		o(parseTime("20180115T214000Z", null)).deepEquals({
-			date: new Date(Date.UTC(2018, 0, 15, 21, 40, 0)),
-			allDay: false,
+
+	o.spec("parseTime", function () {
+		o.test("time with UTC indicator", function () {
+			o(parseTime("20180115T214000Z", null)).deepEquals({
+				date: new Date(Date.UTC(2018, 0, 15, 21, 40, 0)),
+				allDay: false,
+			})
 		})
-		o(parseTime("20180115T", "Europe/Berlin")).deepEquals({
-			date: new Date(Date.UTC(2018, 0, 15, 0, 0, 0)),
-			allDay: true,
+
+		o.test("time with timezone", function () {
+			o(parseTime("20180115T214000", zone)).deepEquals({
+				date: new Date(Date.UTC(2018, 0, 15, 21, 40, 0)),
+				allDay: false,
+			})
 		})
-		o(() => parseTime("20180015T214000Z", "Europe/Berlin")).throws(ParserError)
+
+		o.test("Edge-case, RFC non-compliant, time with UTC indicator and timezone prioritizes applying the timezone", function () {
+			const expectedDate = DateTime.fromObject({ year: 2026, month: 6, day: 17, hour: 16 }, { zone })
+			o(parseTime("20260617T214000Z", zone)).deepEquals({
+				date: expectedDate.toJSDate(),
+				allDay: false,
+			})
+		})
+
+		o.test("All day event doens't care about timezones", function () {
+			o(parseTime("20180115T", zone)).deepEquals({
+				date: new Date(Date.UTC(2018, 0, 15, 0, 0, 0)),
+				allDay: true,
+			})
+		})
+
+		o.test("Invalid month throws error", function () {
+			o(() => parseTime("20180015T214000Z", "Europe/Berlin")).throws(ParserError)
+		})
 	})
+
 	o.spec("parseCalendarEvents: fix illegal end times", function () {
 		const makeEvent = ({ start, end }) =>
 			parseICalendar(
