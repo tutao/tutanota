@@ -136,11 +136,11 @@ export default defineConfig([
 			sourceType: "module",
 		},
 	},
-	// {
-	// 	files: ["src/platform-kit/**/*.ts"],
-	// 	plugins: {"local": {rules: {noUnionExceptNullable}}},
-	// 	rules: {"local/noUnionExceptNullable": "error"},
-	// },
+	{
+		files: ["src/platform-kit/**/*.ts"],
+		plugins: {"local": {rules: {noUnionExceptNullable}}},
+		rules: {"local/noUnionExceptNullable": "error"},
+	},
 	[
 		globalIgnores([
 			"buildSrc/",
