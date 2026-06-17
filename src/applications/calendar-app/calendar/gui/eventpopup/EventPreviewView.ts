@@ -116,9 +116,13 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 				: null,
 			this.renderRow(
 				Icons.ClockFilled,
-				[formatEventDuration(event, getTimeZone(), false), m("small.text-fade", this.renderRepeatRule(event.repeatRule, isAllDayEvent(event)))],
+				[
+					formatEventDuration(event, getTimeZone(), getTimeZone(), false),
+					m("small.text-fade", this.renderRepeatRule(event.repeatRule, isAllDayEvent(event))),
+				],
 				true,
 			),
+			this.renderTimeZoneSection(event),
 			this.renderLocation(event.location),
 			this.renderAttendeesSection(attendees, participation),
 			this.renderAttendanceSection(event, attendees, participation, calendarEventPreviewModel),
@@ -131,6 +135,16 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 			this.renderSectionIndicator(headerIcon, isAlignedLeft ? { marginTop: isEventTitle ? "6px" : "2px" } : undefined),
 			m(".selectable.full-width.align-self-center.text-break", children),
 		])
+	}
+
+	private renderTimeZoneSection(event: Omit<CalendarEvent, "description">) {
+		if (!event.startTimeZone && !event.endTimeZone) return null
+
+		return this.renderRow(
+			Icons.GlobeOutline,
+			formatEventDuration(event, event.startTimeZone ?? getTimeZone(), event.endTimeZone ?? getTimeZone(), true),
+			true,
+		)
 	}
 
 	private renderSectionIndicator(icon: AllIcons, style: Record<string, any> = {}): Children {
