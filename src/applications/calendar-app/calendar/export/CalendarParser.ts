@@ -379,7 +379,7 @@ export function triggerToAlarmInterval(eventStart: Date, triggerValue: string): 
 	if (triggerValue.endsWith("Z")) {
 		// For absolute time we just convert the trigger to minutes. There might be a bigger unit that can express it but we don't have to take care about time
 		// zones or daylight saving in this case and it's simpler this way.
-		const triggerTime = parseTime(triggerValue).date
+		const triggerTime = parseTime(triggerValue, null).date
 		const tillEvent = eventStart.getTime() - triggerTime.getTime()
 		const minutes = Duration.fromMillis(tillEvent).as("minutes")
 		return { unit: AlarmIntervalUnit.MINUTE, value: minutes }
@@ -487,10 +487,10 @@ export function parseExDates(excludedDatesProps: Property[]): DateWrapper[] {
 	// it's possible that we have duplicated entries since this data comes from whereever, this deduplicates it.
 	const allExDates: Map<number, DateWrapper> = new Map<number, DateWrapper>()
 	for (let excludedDatesProp of excludedDatesProps) {
-		const tzId = getTzId(excludedDatesProp)
+		const tzId: string | null = getTzId(excludedDatesProp)
 		const values = separatedByCommaParser(new StringIterator(excludedDatesProp.value))
 		for (let value of values) {
-			const { date: exDate } = parseTime(value, tzId ?? undefined)
+			const { date: exDate } = parseTime(value, tzId)
 			allExDates.set(exDate.getTime(), createDateWrapper({ date: exDate }))
 		}
 	}
@@ -617,8 +617,8 @@ export function parseCalendarEvents(icalObject: ICalObject, userCalendarTimeZone
 function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEventAlarmTuple> {
 	return eventObjects.map((eventObj, index) => {
 		const startProp = getProp(eventObj, "DTSTART", false)
-		const startTzId = getTzId(startProp)
-		const { date: startTime, allDay } = parseTime(startProp.value, startTzId ?? undefined)
+		const startTzId: string | null = getTzId(startProp)
+		const { date: startTime, allDay } = parseTime(startProp.value, startTzId)
 
 		// start time and tzid is sorted, so we can worry about event identity now before proceeding...
 		let hasValidUid = false
@@ -801,8 +801,8 @@ function parseEndTime(eventObj: ICalObject, allDay: boolean, startTime: Date, tz
 
 	if (endProp) {
 		if (typeof endProp.value !== "string") throw new ParserError("DTEND value is not a string")
-		const endTzId = getTzId(endProp)
-		const parsedEndTime = parseTime(endProp.value, typeof endTzId === "string" ? endTzId : undefined)
+		const endTzId: string | null = getTzId(endProp)
+		const parsedEndTime = parseTime(endProp.value, endTzId)
 		const endTime = parsedEndTime.date
 		if (endTime > startTime) return endTime
 
@@ -922,7 +922,7 @@ export function parseUntilRruleTime(value: string, zone: string | null): Date {
  */
 export function parseTime(
 	value: string,
-	eventTzid?: string,
+	eventTzid: string | null,
 ): {
 	date: Date
 	allDay: boolean
