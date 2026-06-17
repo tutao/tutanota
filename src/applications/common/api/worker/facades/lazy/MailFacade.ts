@@ -1731,7 +1731,7 @@ function recipientToDraftRecipient(recipient: PartialRecipient): DraftRecipient 
 		name: recipient.name ?? "",
 		mailAddress: recipient.address,
 		// FIXME
-		recipientsId: null,
+		recipientId: null,
 		firstRecipientId: null,
 		firstRecipientName: null,
 	})

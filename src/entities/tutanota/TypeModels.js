@@ -2588,7 +2588,7 @@ const typeModels = {
 			},
 			"1853": {
 				"final": true,
-				"name": "recipientsId",
+				"name": "recipientId",
 				"id": 1853,
 				"type": "CustomId",
 				"cardinality": "ZeroOrOne",
