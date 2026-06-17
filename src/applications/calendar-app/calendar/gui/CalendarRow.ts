@@ -47,7 +47,7 @@ export class CalendarRow implements VirtualRow<CalendarEvent> {
 		}
 
 		this.calendarIndicatorDom.style.backgroundColor = `#${getEventColor(event, this.colors)}`
-		this.durationDom.innerText = formatEventDuration(this.entity, getTimeZone(), false)
+		this.durationDom.innerText = formatEventDuration(this.entity, getTimeZone(), getTimeZone(), false)
 
 		this.selectionSetter(selected, isInMultiSelect)
 	}
