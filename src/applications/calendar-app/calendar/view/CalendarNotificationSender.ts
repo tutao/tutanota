@@ -3,7 +3,7 @@ import { CalendarAttendeeStatus, MailMethod, mailMethodToCalendarMethod } from "
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
 import { makeInvitationCalendarFile } from "../export/CalendarExporter.js"
 import { getAttendeeStatus, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
-import { difference, noOp, ofClass } from "../../../../platform-kit/utils"
+import { difference, noOp } from "../../../../platform-kit/utils"
 import type { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
 import { windowFacade } from "../../../common/misc/WindowFacade.js"
 import { RecipientsNotFoundError } from "../../../../platform-kit/network/error/RecipientsNotFoundError.js"
@@ -270,7 +270,7 @@ export class CalendarNotificationSender {
 }
 
 function whenLine(event: CalendarEvent, highlightChange: boolean, theme: EmailTheme): string {
-	const duration = formatEventDuration(event, getTimeZone(), true)
+	const duration = formatEventDuration(event, event.startTimeZone ?? getTimeZone(), event.endTimeZone ?? getTimeZone(), true)
 	return newLine(getLabel("when_label", highlightChange), duration, false)
 }
 
@@ -491,7 +491,7 @@ function isAttendanceUpdateNotification(eventInviteEmailType: EventInviteEmailTy
 
 function makePlainTextBody({ event, infoBannerMessage, eventInviteEmailType, comment }: EmailBodyIngredients) {
 	const organizer: CalendarEventAttendee | undefined = event.attendees.find((attendee) => attendee.address.address === event.organizer?.address)
-	const duration = formatEventDuration(event, getTimeZone(), true)
+	const duration = formatEventDuration(event, event.startTimeZone ?? getTimeZone(), event.endTimeZone ?? getTimeZone(), true)
 	const eventLines: string[] = []
 
 	eventLines.push(`${infoBannerMessage}`)
