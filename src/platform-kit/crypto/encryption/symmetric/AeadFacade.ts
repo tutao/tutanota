@@ -113,6 +113,7 @@ export class AeadFacade {
 			blake3MacVerify(authenticationKey, authenticatedData, parsedCiphertext.macTag)
 		} catch (e) {
 			console.log(`verification failed, context: "${(subKeys as any).context}", associatedData: "${uint8ArrayToString("utf-8", associatedData)}"`)
+			throw e
 		}
 
 		const paddedPlaintext = bitArrayToUint8Array(
