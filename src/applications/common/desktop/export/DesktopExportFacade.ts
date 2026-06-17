@@ -210,6 +210,9 @@ export class DesktopExportFacade implements ExportFacade {
 			throw new ProgrammingError("Export is not running")
 		}
 
+		if (exportState.failedMailIds === null || exportState.failedMailIds === undefined) {
+			exportState.failedMailIds = []
+		}
 		await this.mailboxExportPersistence.setStateForUser({
 			type: "running",
 			userId,
