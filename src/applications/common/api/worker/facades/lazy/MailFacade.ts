@@ -429,13 +429,14 @@ export class MailFacade {
 			const firstRecipient = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(sanitizedUntypedInstance, "firstRecipient", mailModel)[0]
 
 			const encryptedFirstRecipientName = AttributeModel.getAttributeorNull<Base64>(firstRecipient, "name", mailAddressModel)
+			const firstRecipientId = AttributeModel.getAttributeorNull<Base64>(firstRecipient, "_id", mailAddressModel)
 
-			return [recipient.address, encryptedFirstRecipientName] as const
+			return [recipient.address, [encryptedFirstRecipientName, firstRecipientId]] as const
 		}
 
-		const toRecipientAddressToEncryptedFirstRecipientName = new Map(await Promise.all(toRecipients.map(recipientToKeyValuePair)))
-		const ccRecipientAddressToEncryptedFirstRecipientName = new Map(await Promise.all(ccRecipients.map(recipientToKeyValuePair)))
-		const bccRecipientAddressToEncryptedFirstRecipientName = new Map(await Promise.all(bccRecipients.map(recipientToKeyValuePair)))
+		const toRecipientAddressToEncryptedFirstRecipientNameAndFirstRecipientId = new Map(await Promise.all(toRecipients.map(recipientToKeyValuePair)))
+		const ccRecipientAddressToEncryptedFirstRecipientNameAndFirstRecipientId = new Map(await Promise.all(ccRecipients.map(recipientToKeyValuePair)))
+		const bccRecipientAddressToEncryptedFirstRecipientNameAndFirstRecipientId = new Map(await Promise.all(bccRecipients.map(recipientToKeyValuePair)))
 
 		const dummyMailDetails = createMailDetails({
 			recipients: createRecipients({
@@ -492,28 +493,28 @@ export class MailFacade {
 
 		const toRecipientAddressToEncryptedName = new Map(
 			encryptedToRecipients.map((encryptedToRecipient) => {
-				const encryptedRecipientName = AttributeModel.getAttributeorNull<Base64>(encryptedToRecipient, "name", mailAddressModel)
 				const address = AttributeModel.getAttribute<string>(encryptedToRecipient, "address", mailAddressModel)
-				return [address, encryptedRecipientName] as const
+				const encryptedRecipientName = AttributeModel.getAttributeorNull<Base64>(encryptedToRecipient, "name", mailAddressModel)
+				const id = AttributeModel.getAttribute<string>(encryptedToRecipient, "_id", mailAddressModel)
+				return [address, [encryptedRecipientName, id]] as const
 			}),
 		)
 		const ccRecipientAddressToEncryptedName = new Map(
-			encryptedCcRecipients.map((encryptedToRecipient) => {
-				const encryptedRecipientName = AttributeModel.getAttributeorNull<Base64>(encryptedToRecipient, "name", mailAddressModel)
-				const address = AttributeModel.getAttribute<string>(encryptedToRecipient, "address", mailAddressModel)
-				return [address, encryptedRecipientName] as const
+			encryptedCcRecipients.map((encryptedCcRecipient) => {
+				const address = AttributeModel.getAttribute<string>(encryptedCcRecipient, "address", mailAddressModel)
+				const encryptedRecipientName = AttributeModel.getAttributeorNull<Base64>(encryptedCcRecipient, "name", mailAddressModel)
+				const id = AttributeModel.getAttribute<string>(encryptedCcRecipient, "_id", mailAddressModel)
+				return [address, [encryptedRecipientName, id]] as const
 			}),
 		)
 		const bccRecipientAddressToEncryptedName = new Map(
-			encryptedBccRecipients.map((encryptedToRecipient) => {
-				const encryptedRecipientName = AttributeModel.getAttributeorNull<Base64>(encryptedToRecipient, "name", mailAddressModel)
-				const address = AttributeModel.getAttribute<string>(encryptedToRecipient, "address", mailAddressModel)
-				return [address, encryptedRecipientName] as const
+			encryptedBccRecipients.map((encryptedBccRecipient) => {
+				const address = AttributeModel.getAttribute<string>(encryptedBccRecipient, "address", mailAddressModel)
+				const encryptedRecipientName = AttributeModel.getAttributeorNull<Base64>(encryptedBccRecipient, "name", mailAddressModel)
+				const id = AttributeModel.getAttribute<string>(encryptedBccRecipient, "_id", mailAddressModel)
+				return [address, [encryptedRecipientName, id]] as const
 			}),
 		)
-
-		console.log(encryptedSenderName)
-		console.log(senderId)
 
 		// mapAndEncrypt each of them
 		// extract the values we need from each and put them on the DraftCreateData
@@ -559,42 +560,54 @@ export class MailFacade {
 
 		for (const toRecipient of AttributeModel.getAttribute<ClientModelUntypedInstance[]>(draftData, "toRecipients", draftDataModel)) {
 			const mailAddress = AttributeModel.getAttribute<string>(toRecipient, "mailAddress", draftRecipientModel)
-			const encryptedName = toRecipientAddressToEncryptedName.get(mailAddress)
-			if (encryptedName === undefined) {
+			const value = toRecipientAddressToEncryptedName.get(mailAddress)
+			if (value == null) {
 				throw new ProgrammingError("address is not mapped")
 			}
+			const [encryptedName, id] = value
 			AttributeModel.setAttribute(toRecipient, "name", draftRecipientModel, encryptedName)
-			const encryptedFirstRecipientName = toRecipientAddressToEncryptedFirstRecipientName.get(mailAddress)
-			if (encryptedFirstRecipientName === undefined) {
+			AttributeModel.setAttribute(toRecipient, "recipientId", draftRecipientModel, id)
+			const firstRecipientValue = toRecipientAddressToEncryptedFirstRecipientNameAndFirstRecipientId.get(mailAddress)
+			if (firstRecipientValue == null) {
 				throw new ProgrammingError("address is not mapped")
 			}
+			const [encryptedFirstRecipientName, firstRecipientId] = firstRecipientValue
 			AttributeModel.setAttribute(toRecipient, "firstRecipientName", draftRecipientModel, encryptedFirstRecipientName)
+			AttributeModel.setAttribute(toRecipient, "firstRecipientId", draftRecipientModel, firstRecipientId)
 		}
 		for (const ccRecipient of AttributeModel.getAttribute<ClientModelUntypedInstance[]>(draftData, "ccRecipients", draftDataModel)) {
 			const mailAddress = AttributeModel.getAttribute<string>(ccRecipient, "mailAddress", draftRecipientModel)
-			const encryptedName = ccRecipientAddressToEncryptedName.get(mailAddress)
-			if (encryptedName === undefined) {
+			const value = ccRecipientAddressToEncryptedName.get(mailAddress)
+			if (value == null) {
 				throw new ProgrammingError("address is not mapped")
 			}
+			const [encryptedName, id] = value
 			AttributeModel.setAttribute(ccRecipient, "name", draftRecipientModel, encryptedName)
-			const encryptedFirstRecipientName = ccRecipientAddressToEncryptedFirstRecipientName.get(mailAddress)
-			if (encryptedFirstRecipientName === undefined) {
+			AttributeModel.setAttribute(ccRecipient, "recipientId", draftRecipientModel, id)
+			const firstRecipientValue = ccRecipientAddressToEncryptedFirstRecipientNameAndFirstRecipientId.get(mailAddress)
+			if (firstRecipientValue == null) {
 				throw new ProgrammingError("address is not mapped")
 			}
+			const [encryptedFirstRecipientName, firstRecipientId] = firstRecipientValue
 			AttributeModel.setAttribute(ccRecipient, "firstRecipientName", draftRecipientModel, encryptedFirstRecipientName)
+			AttributeModel.setAttribute(ccRecipient, "firstRecipientId", draftRecipientModel, firstRecipientId)
 		}
 		for (const bccRecipient of AttributeModel.getAttribute<ClientModelUntypedInstance[]>(draftData, "bccRecipients", draftDataModel)) {
 			const mailAddress = AttributeModel.getAttribute<string>(bccRecipient, "mailAddress", draftRecipientModel)
-			const encryptedName = bccRecipientAddressToEncryptedName.get(mailAddress)
-			if (encryptedName === undefined) {
+			const value = bccRecipientAddressToEncryptedName.get(mailAddress)
+			if (value == null) {
 				throw new ProgrammingError("address is not mapped")
 			}
+			const [encryptedName, id] = value
 			AttributeModel.setAttribute(bccRecipient, "name", draftRecipientModel, encryptedName)
-			const encryptedFirstRecipientName = bccRecipientAddressToEncryptedFirstRecipientName.get(mailAddress)
-			if (encryptedFirstRecipientName === undefined) {
+			AttributeModel.setAttribute(bccRecipient, "recipientId", draftRecipientModel, id)
+			const firstRecipientValue = bccRecipientAddressToEncryptedFirstRecipientNameAndFirstRecipientId.get(mailAddress)
+			if (firstRecipientValue == null) {
 				throw new ProgrammingError("address is not mapped")
 			}
+			const [encryptedFirstRecipientName, firstRecipientId] = firstRecipientValue
 			AttributeModel.setAttribute(bccRecipient, "firstRecipientName", draftRecipientModel, encryptedFirstRecipientName)
+			AttributeModel.setAttribute(bccRecipient, "firstRecipientId", draftRecipientModel, firstRecipientId)
 		}
 
 		const createDraftReturn = await this.serviceExecutor.post(DraftService, draftCreateData, { sessionKey: sk, untypedInstance: untypedDraftCreateData })
