@@ -525,6 +525,14 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			icon: Icons.Paperclip,
 			size: ButtonSize.Compact,
 		}
+		const templatePopupButtonAttrs: IconButtonAttrs = {
+			title: "openTemplatePopup_msg",
+			click: () => {
+				this.openTemplates()
+			},
+			icon: Icons.Template,
+			size: ButtonSize.Compact,
+		}
 
 		const darkTheme = isDarkTheme()
 
@@ -812,6 +820,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 								toggled: model.getSendAtDate() != null,
 							})
 						: null,
+					this.templateModel ? m(IconButton, templatePopupButtonAttrs) : null,
 					toolbarButton(),
 					m(IconButton, attachFilesButtonAttrs),
 				]),
@@ -931,18 +940,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					imageButtonClickHandler: isApp()
 						? null
 						: (event: Event) => this.imageButtonClickHandler(model, (event.target as HTMLElement).getBoundingClientRect()),
-					customButtonAttrs: this.templateModel
-						? [
-								{
-									title: "openTemplatePopup_msg",
-									click: () => {
-										this.openTemplates()
-									},
-									icon: Icons.Template,
-									size: ButtonSize.Compact,
-								},
-							]
-						: [],
 				}),
 				m("hr.hr"),
 			],
