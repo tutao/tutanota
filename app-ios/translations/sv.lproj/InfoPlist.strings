@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "Lås upp inloggningsuppgifter";
 TutaoPushNewMail = "Nytt meddelande mottaget.";
 TutaoDeleteAction = "Radera";
 TutaoMarkReadAction = "Markera som läst";
+TutaoArchiveAction = "Arkiv";
 TutaoWidgetOpenAppAction = "Öppna appen";
 TutaoWidgetUnexpectedErrorMsg = "Oops! Något gick fel.";
 TutaoWidgetSendLogsAction = "Skicka loggar";

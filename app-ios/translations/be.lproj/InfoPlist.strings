@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "Разамкнуць даныя ўваходу";
 TutaoPushNewMail = "Прыйшоў новы ліст.";
 TutaoDeleteAction = "Выдаліць";
 TutaoMarkReadAction = "Пазначыць прачытаным";
+TutaoArchiveAction = "Архіў";
 TutaoWidgetOpenAppAction = "Адкрыць праграму";
 TutaoWidgetUnexpectedErrorMsg = "Матухна! Штось пайшло не туды.";
 TutaoWidgetSendLogsAction = "Даслаць рапарты";

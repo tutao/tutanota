@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "අක්තපත්‍ර අගුළුහ�
 TutaoPushNewMail = "නව තැපෑලක් ලැබුණි.";
 TutaoDeleteAction = "මකන්න";
 TutaoMarkReadAction = "කියවූ ලෙස ලකුණු කරන්න";
+TutaoArchiveAction = "සංරක්‍ෂණය";
 TutaoWidgetOpenAppAction = "යෙදුම අරින්න";
 TutaoWidgetSendLogsAction = "සටහන් යවන්න";
 TutaoWidgetNoEventsMsg = "සිදුවීම් නැත";

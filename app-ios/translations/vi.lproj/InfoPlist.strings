@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "Mở khoá thông tin đăng nhập";
 TutaoPushNewMail = "Đã nhận được thư mới.";
 TutaoDeleteAction = "Xoá";
 TutaoMarkReadAction = "Đánh dấu đã đọc";
+TutaoArchiveAction = "Kho trữ";
 TutaoWidgetSendLogsAction = "Gửi nhật kí";
 TutaoAccountLabel = "Người dùng";
 TutaoDefaultCalendarNameTitle = "Riêng";

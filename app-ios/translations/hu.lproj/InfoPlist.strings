@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "Hitelesítő adatok feloldása.";
 TutaoPushNewMail = "Új levél érkezett.";
 TutaoDeleteAction = "Törlés";
 TutaoMarkReadAction = "Megjelölés olvasottként";
+TutaoArchiveAction = "Archívum";
 TutaoWidgetOpenAppAction = "Nyissa meg az alkalmazást!";
 TutaoWidgetUnexpectedErrorMsg = "Hajaj! Valami nem sikerült.";
 TutaoWidgetSendLogsAction = "Naplók küldése";

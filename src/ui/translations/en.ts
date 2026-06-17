@@ -712,6 +712,7 @@ export default {
 		"externalNotificationMailSubject_msg": "Confidential email from {1}",
 		"facebook_label": "Facebook",
 		"failedDebitAttempt_msg": "If our debit attempt failed, we will try again in a few days. Please make sure that your account is covered.",
+		"failedToDeleteFolders_label": "Failed-to-delete folders",
 		"failedToExport_label": "{0} failures",
 		"failedToExport_msg": "Some emails failed to export. You can check the list below.",
 		"failedToExport_title": "Export finished with errors",
@@ -1919,6 +1920,7 @@ export default {
 		"showOlder_label": "Show next older mail",
 		"showOnlySelectedMail_label": "Show selected email only",
 		"showParentFolders_action": "Show parent folders",
+		"showQuickActionsBar_action": "Show quick actions bar",
 		"showRejectReason_action": "Show reject reason",
 		"showRichTextToolbar_action": "Show formatting tools",
 		"showSource_action": "Show email source code",
@@ -2309,8 +2311,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"showQuickActionsBar_action": "Show quick actions bar",
-		"failedToDeleteFolders_label": "Failed-to-delete folders"
+		"zoomOut_action": "Zoom Out"
 	}
 }

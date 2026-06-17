@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "Lås opp opplysninger";
 TutaoPushNewMail = "Ny e-post mottatt.";
 TutaoDeleteAction = "Slett";
 TutaoMarkReadAction = "Marker som lest";
+TutaoArchiveAction = "Arkiv";
 TutaoWidgetOpenAppAction = "Åpne appen";
 TutaoWidgetUnexpectedErrorMsg = "Ops! Noe gikk galt.";
 TutaoWidgetSendLogsAction = "Send loggene";

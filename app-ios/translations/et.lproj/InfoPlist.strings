@@ -9,6 +9,7 @@ TutaoCalendarAlarmTitle = "Meeldetuletus";
 TutaoPushNewMail = "Uus e-kiri saabunud.";
 TutaoDeleteAction = "Kustuta";
 TutaoMarkReadAction = "Märgi loetuks";
+TutaoArchiveAction = "Arhiiv";
 TutaoAccountLabel = "Kasutaja";
 TutaoDefaultCalendarNameTitle = "Privaatne";
 TutaoAllDayLabel = "Kogu päev";

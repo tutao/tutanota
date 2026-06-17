@@ -8,6 +8,7 @@
     <string name="unlockCredentials_action">Desbloquejar credencials</string>
     <string name="delete_action">Elimina</string>
     <string name="markRead_action">Marcar com a llegit</string>
+    <string name="archive_action">Arxiu</string>
     <string name="sendLogs_action">Envia els registres</string>
     <string name="account_label">Usuari</string>
     <string name="calendars_label">Calendaris</string>

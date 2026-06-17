@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "Deblochează datele de autentificare";
 TutaoPushNewMail = "E-mail nou primit.";
 TutaoDeleteAction = "Șterge";
 TutaoMarkReadAction = "Marchează ca citit.";
+TutaoArchiveAction = "Arhivă";
 TutaoWidgetOpenAppAction = "Deschide aplicația";
 TutaoWidgetUnexpectedErrorMsg = "Ceva nu a mers bine.";
 TutaoWidgetSendLogsAction = "Trimite jurnale";

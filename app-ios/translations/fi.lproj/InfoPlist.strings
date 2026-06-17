@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "Avaa tunnistetiedot";
 TutaoPushNewMail = "Olet saanut uuden sähköpostin.";
 TutaoDeleteAction = "Poista";
 TutaoMarkReadAction = "Merkitse luetuksi";
+TutaoArchiveAction = "Arkisto";
 TutaoWidgetOpenAppAction = "Avaa sovellus";
 TutaoWidgetUnexpectedErrorMsg = "Hups! Jotain meni pieleen.";
 TutaoWidgetSendLogsAction = "Lähetä lokit";

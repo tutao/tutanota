@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "Odkleni poverilnice";
 TutaoPushNewMail = "Prejeli ste novo e-pošto.";
 TutaoDeleteAction = "Izbriši";
 TutaoMarkReadAction = "Označi prebrano";
+TutaoArchiveAction = "Arhiv";
 TutaoWidgetOpenAppAction = "Odpri aplikacijo";
 TutaoWidgetUnexpectedErrorMsg = "Ups! Nekaj se je zalomilo.";
 TutaoWidgetSendLogsAction = "Pošlji dnevnike";

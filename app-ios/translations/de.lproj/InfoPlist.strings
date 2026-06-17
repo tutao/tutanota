@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "Zugangsdaten Entschlüsseln";
 TutaoPushNewMail = "Neue E-Mail eingegangen.";
 TutaoDeleteAction = "Löschen";
 TutaoMarkReadAction = "Gelesen";
+TutaoArchiveAction = "Archivieren";
 TutaoWidgetOpenAppAction = "Die App öffnen";
 TutaoWidgetUnexpectedErrorMsg = "Etwas ist schief gelaufen.";
 TutaoWidgetSendLogsAction = "Logs senden";

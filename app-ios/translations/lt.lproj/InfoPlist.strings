@@ -8,5 +8,6 @@ TutaoSettingsAction = "Nustatymai";
 TutaoPushNewMail = "Gautas naujas laiškas.";
 TutaoDeleteAction = "Pašalinti";
 TutaoMarkReadAction = "Žymėti kaip skaitytą";
+TutaoArchiveAction = "Archyvas";
 TutaoAccountLabel = "Vartotojas";
 TutaoAttachFilesAction = "Prisegti failus";

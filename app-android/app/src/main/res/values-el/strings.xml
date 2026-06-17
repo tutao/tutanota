@@ -8,6 +8,7 @@
     <string name="unlockCredentials_action">Ξεκλείδωμα πιστοποιητικών.</string>
     <string name="delete_action">Διαγραφή</string>
     <string name="markRead_action">Σήμανση ως αναγνωσμένου</string>
+    <string name="archive_action">Αρχειοθήκη</string>
     <string name="sendLogs_action">Αποστολή αρχείων καταγραφής</string>
     <string name="account_label">Χρήστης</string>
     <string name="calendars_label">Ημερολόγια</string>

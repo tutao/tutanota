@@ -9,6 +9,7 @@
     <string name="unlockCredentials_action">Unlock credentials</string>
     <string name="delete_action">Delete</string>
     <string name="markRead_action">Mark read</string>
+    <string name="archive_action">Archive</string>
     <string name="sendLogs_action">Send Logs</string>
     <string name="account_label">User</string>
     <string name="calendars_label">Calendars</string>

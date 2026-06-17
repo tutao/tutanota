@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "Membuka kunci kredensial";
 TutaoPushNewMail = "Surel baru diterima.";
 TutaoDeleteAction = "Hapus";
 TutaoMarkReadAction = "Tandai dibaca";
+TutaoArchiveAction = "Arsip";
 TutaoWidgetSendLogsAction = "Kirim catatan aktivitas";
 TutaoAccountLabel = "Pengguna";
 TutaoDefaultCalendarNameTitle = "Pribadi";

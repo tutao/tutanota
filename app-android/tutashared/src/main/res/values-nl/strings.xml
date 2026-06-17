@@ -8,6 +8,7 @@
     <string name="unlockCredentials_action">Gegevens deblokkeren</string>
     <string name="delete_action">Verwijderen</string>
     <string name="markRead_action">Gelezen</string>
+    <string name="archive_action">Archief</string>
     <string name="sendLogs_action">Verstuur de logbestanden</string>
     <string name="account_label">Gebruiker</string>
     <string name="calendars_label">Kalenders</string>

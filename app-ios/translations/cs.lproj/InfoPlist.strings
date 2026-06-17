@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "Odemknout přístupové údaje";
 TutaoPushNewMail = "Nový e-mail";
 TutaoDeleteAction = "Odstranit";
 TutaoMarkReadAction = "Označit jako přečtené";
+TutaoArchiveAction = "Archiv";
 TutaoWidgetOpenAppAction = "Otevřít aplikaci";
 TutaoWidgetUnexpectedErrorMsg = "Jejda! Něco se pokazilo.";
 TutaoWidgetSendLogsAction = "Odeslat protokol";

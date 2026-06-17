@@ -2,5 +2,6 @@
     <string name="pushNewMail_msg">Gautas naujas laiškas.</string>
     <string name="delete_action">Pašalinti</string>
     <string name="markRead_action">Žymėti kaip skaitytą</string>
+    <string name="archive_action">Archyvas</string>
     <string name="account_label">Vartotojas</string>
 </resources>

@@ -8,6 +8,7 @@
     <string name="unlockCredentials_action">Zugangsdaten Entschlüsseln</string>
     <string name="delete_action">Löschen</string>
     <string name="markRead_action">Gelesen</string>
+    <string name="archive_action">Archivieren</string>
     <string name="sendLogs_action">Logs senden</string>
     <string name="account_label">Benutzer</string>
     <string name="calendars_label">Kalender</string>

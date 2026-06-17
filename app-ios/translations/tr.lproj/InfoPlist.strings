@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "Kimlik bilgilerini çöz";
 TutaoPushNewMail = "Yeni e-posta alındı.";
 TutaoDeleteAction = "Sil";
 TutaoMarkReadAction = "Okunmuş olarak işaretle";
+TutaoArchiveAction = "Arşiv";
 TutaoWidgetOpenAppAction = "Uygulamayı aç";
 TutaoWidgetUnexpectedErrorMsg = "Hay aksi! Bir şeyler ters gitti.";
 TutaoWidgetSendLogsAction = "Sistem Günlüklerini Gönder";

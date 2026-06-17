@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "إلغاء بيانات الاعتماد";
 TutaoPushNewMail = "تم تلقي بريد إلكتروني جديد.";
 TutaoDeleteAction = "حذف";
 TutaoMarkReadAction = "علِم كمقروء";
+TutaoArchiveAction = "أرشيف";
 TutaoWidgetSendLogsAction = "إرسال السجلات";
 TutaoAccountLabel = "مستخدم";
 TutaoDefaultCalendarNameTitle = "خاصّ ";

@@ -17,6 +17,7 @@ TutaoUnlockCredentialsAction = "Розблокувати облікові дан
 TutaoPushNewMail = "Отримано новий лист.";
 TutaoDeleteAction = "Видалити";
 TutaoMarkReadAction = "Позначити як прочитане";
+TutaoArchiveAction = "Архівувати";
 TutaoWidgetOpenAppAction = "Відкрити застосунок";
 TutaoWidgetUnexpectedErrorMsg = "Уупс! Щось пішло не так.";
 TutaoWidgetSendLogsAction = "Надіслати журнали";

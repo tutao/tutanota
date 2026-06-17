@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "Otključavanje vjerodajnica";
 TutaoPushNewMail = "Nova e-pošta je primljena";
 TutaoDeleteAction = "Izbriši";
 TutaoMarkReadAction = "Označi pročitanim";
+TutaoArchiveAction = "Arhiva";
 TutaoWidgetSendLogsAction = "Pošalji zapise";
 TutaoAccountLabel = "Korisnik";
 TutaoCalendarsLabel = "Kalendari";

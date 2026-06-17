@@ -2307,6 +2307,6 @@ export type TranslationKeyType =
 	| "lastSelected_label"
 	| "defaultCalendarView_label"
 	| "uploadFolders_action"
-	| "emptyString_msg"
 	| "showQuickActionsBar_action"
 	| "failedToDeleteFolders_label"
+	| "emptyString_msg"

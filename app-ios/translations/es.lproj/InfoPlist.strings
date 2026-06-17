@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "Desbloquear credenciales";
 TutaoPushNewMail = "Nuevo correo recibido.";
 TutaoDeleteAction = "Borrar";
 TutaoMarkReadAction = "Marcar como leído";
+TutaoArchiveAction = "Archivar";
 TutaoWidgetOpenAppAction = "Abrir la aplicación";
 TutaoWidgetUnexpectedErrorMsg = "¡Uy! Algo ha salido mal.";
 TutaoWidgetSendLogsAction = "Enviar registros";

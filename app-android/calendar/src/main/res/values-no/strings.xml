@@ -8,6 +8,7 @@
     <string name="unlockCredentials_action">Lås opp opplysninger</string>
     <string name="delete_action">Slett</string>
     <string name="markRead_action">Marker som lest</string>
+    <string name="archive_action">Arkiv</string>
     <string name="sendLogs_action">Send loggene</string>
     <string name="account_label">Bruker</string>
     <string name="calendars_label">Kalendre</string>

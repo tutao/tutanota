@@ -8,6 +8,7 @@
     <string name="unlockCredentials_action">Розблокувати облікові дані</string>
     <string name="delete_action">Видалити</string>
     <string name="markRead_action">Позначити як прочитане</string>
+    <string name="archive_action">Архівувати</string>
     <string name="sendLogs_action">Надіслати журнали</string>
     <string name="account_label">Користувач</string>
     <string name="calendars_label">Календарі</string>

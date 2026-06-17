@@ -712,6 +712,7 @@ export default {
 		"externalNotificationMailSubject_msg": "Vertrauliche Nachricht von {1}",
 		"facebook_label": "Facebook",
 		"failedDebitAttempt_msg": "Bei fehlgeschlagener Abbuchung,  werden wir es in einigen Tagen erneut versuchen. Sorge bitte dafür, dass ausreichend Guthaben vorhanden ist.",
+		"failedToDeleteFolders_label": "Ordner mit fehlgeschlagener Löschung",
 		"failedToExport_label": "{0} Fehler",
 		"failedToExport_msg": "Einige E-Mails konnten nicht exportiert werden. Du kannst sie dir unten ansehen.",
 		"failedToExport_title": "Export mit Fehlern beendet",
@@ -1919,6 +1920,7 @@ export default {
 		"showOlder_label": "Nächst ältere anzeigen",
 		"showOnlySelectedMail_label": "Nur die ausgewählte E-Mail anzeigen",
 		"showParentFolders_action": "Zeige übergeordnete Ordner",
+		"showQuickActionsBar_action": "Schnellaktionsleiste anzeigen",
 		"showRejectReason_action": "Ablehnungsgrund anzeigen",
 		"showRichTextToolbar_action": "Formatierungswerkzeuge",
 		"showSource_action": "E-Mail-Quellcode anzeigen",
@@ -2309,8 +2311,6 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"showQuickActionsBar_action": "Show quick actions bar",
-		"failedToDeleteFolders_label": "Failed-to-delete folders"
+		"zoomOut_action": "Herauszoomen"
 	}
 }

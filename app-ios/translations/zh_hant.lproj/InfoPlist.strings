@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "解鎖登入資料";
 TutaoPushNewMail = "收到新電郵。";
 TutaoDeleteAction = "刪除";
 TutaoMarkReadAction = "標記為已讀";
+TutaoArchiveAction = "封存";
 TutaoWidgetOpenAppAction = "開啟應用程式";
 TutaoWidgetUnexpectedErrorMsg = "哎喲！發生問題。";
 TutaoWidgetSendLogsAction = "發送記錄";

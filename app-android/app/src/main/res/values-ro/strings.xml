@@ -9,6 +9,7 @@ Puteți adăuga un mesaj pentru a ne ajuta să remediem eroarea.</string>
     <string name="unlockCredentials_action">Deblochează datele de autentificare</string>
     <string name="delete_action">Șterge</string>
     <string name="markRead_action">Marchează ca citit.</string>
+    <string name="archive_action">Arhivă</string>
     <string name="sendLogs_action">Trimite jurnale</string>
     <string name="account_label">Utilizator</string>
     <string name="calendars_label">Calendare</string>

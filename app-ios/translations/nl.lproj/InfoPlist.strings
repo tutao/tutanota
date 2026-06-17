@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "Gegevens deblokkeren";
 TutaoPushNewMail = "Nieuwe e-mail ontvangen";
 TutaoDeleteAction = "Verwijderen";
 TutaoMarkReadAction = "Gelezen";
+TutaoArchiveAction = "Archief";
 TutaoWidgetOpenAppAction = "Open de app";
 TutaoWidgetUnexpectedErrorMsg = "Oeps! Er is iets fout gegaan.";
 TutaoWidgetSendLogsAction = "Verstuur de logbestanden";

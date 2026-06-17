@@ -15,6 +15,7 @@ TutaoUnlockCredentialsAction = "Déverrouillage des données ";
 TutaoPushNewMail = "Nouveau message reçu.";
 TutaoDeleteAction = "Supprimer";
 TutaoMarkReadAction = "Marquer comme lu";
+TutaoArchiveAction = "Archives";
 TutaoWidgetOpenAppAction = "Ouvrez l'application";
 TutaoWidgetUnexpectedErrorMsg = "Oups ! Une erreur s'est produite.";
 TutaoWidgetSendLogsAction = "Envoyer les journaux";

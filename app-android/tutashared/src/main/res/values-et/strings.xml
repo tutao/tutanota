@@ -4,5 +4,6 @@
     <string name="wantToSendReport_msg">Midagi ootamatut läks valesti. Kas soovite saata veateadet? Võite lisada sõnumi, et aidata meil seda viga parandada.</string>
     <string name="delete_action">Kustuta</string>
     <string name="markRead_action">Märgi loetuks</string>
+    <string name="archive_action">Arhiiv</string>
     <string name="account_label">Kasutaja</string>
 </resources>
