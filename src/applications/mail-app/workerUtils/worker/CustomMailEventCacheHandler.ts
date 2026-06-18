@@ -1,5 +1,5 @@
 import { lazyAsync } from "../../../../platform-kit/utils"
-import { MailIndexer } from "../index/MailIndexer"
+import { WebMailIndexer } from "../index/WebMailIndexer"
 import { CustomCacheHandler } from "../../../../app-kit/local-store/CustomCacheHandler"
 import { Mail } from "@tutao/entities/tutanota"
 
@@ -7,7 +7,7 @@ import { Mail } from "@tutao/entities/tutanota"
  * Handles telling the indexer to index or un-index mail data on updates.
  */
 export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
-	constructor(private readonly indexer: lazyAsync<MailIndexer>) {}
+	constructor(private readonly indexer: lazyAsync<WebMailIndexer>) {}
 
 	shouldLoadOnCreateEvent(): boolean {
 		// New emails should be pre-cached.
