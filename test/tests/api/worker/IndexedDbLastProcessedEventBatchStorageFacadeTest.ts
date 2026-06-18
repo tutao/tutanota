@@ -4,13 +4,13 @@ import { IndexerCore } from "../../../../src/applications/mail-app/workerUtils/i
 import { EphemeralCacheStorage } from "../../../../src/app-kit/local-store/EphemeralCacheStorage"
 import { IndexedDbLastProcessedEventBatchStorageFacade } from "../../../../src/applications/common/api/worker/LastProcessedEventBatchStorageFacade"
 import { IndexingNotSupportedError } from "../../../../src/applications/common/api/common/error/IndexingNotSupportedError"
-import { MailIndexer } from "../../../../src/applications/mail-app/workerUtils/index/MailIndexer"
+import { WebMailIndexer } from "../../../../src/applications/mail-app/workerUtils/index/WebMailIndexer"
 
 o.spec("LastProcessedEventBatchStorageFacadeTest", () => {
 	o.spec("IndexedDbLastProcessedEventBatchStorageFacade", () => {
 		let coreMock: IndexerCore
 		let ephemeralCacheMock: EphemeralCacheStorage
-		let mailIndexerMock: MailIndexer
+		let mailIndexerMock: WebMailIndexer
 		let indexedDbLastProcessedEventBatchStorageFacade: IndexedDbLastProcessedEventBatchStorageFacade
 		const groupId1 = "groupId1"
 		const lastProcessedEventBatchId1 = "lastProcessedEventBatchId1"
@@ -22,7 +22,7 @@ o.spec("LastProcessedEventBatchStorageFacadeTest", () => {
 				get mailIndexingEnabled() {
 					return this._mailIndexingEnabled
 				},
-			} as unknown as MailIndexer
+			} as unknown as WebMailIndexer
 			indexedDbLastProcessedEventBatchStorageFacade = new IndexedDbLastProcessedEventBatchStorageFacade(
 				() => Promise.resolve(coreMock),
 				() => Promise.resolve(ephemeralCacheMock),
