@@ -13,7 +13,7 @@ export class AesApp {
 	aesEncryptFile(key: AesKey, fileUrl: FileUri): Promise<EncryptedFileInfo> {
 		const initializationVector = generateInitializationVector()
 		const encodedKey = keyToUint8Array(key)
-		return this.nativeCryptoFacade.aesEncryptFile(encodedKey, fileUrl, initializationVector)
+		return this.nativeCryptoFacade.aesEncryptFile(encodedKey, fileUrl, initializationVector.bytes)
 	}
 
 	/**

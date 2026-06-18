@@ -3,7 +3,6 @@
 import { CredentialEncryptionMode } from "../types/CredentialEncryptionMode"
 import { PersistedCredentials } from "../types/PersistedCredentials"
 import { UnencryptedCredentials } from "../types/UnencryptedCredentials"
-
 /**
  * Operations for credential encryption operations using OS keychain.
  */
