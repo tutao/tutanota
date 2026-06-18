@@ -23,14 +23,7 @@ import {
 	typedValues,
 } from "@tutao/utils"
 import { IconButton } from "../../../../ui/base/IconButton.js"
-import {
-	formatDateTime,
-	formatDateWithMonth,
-	formatDateWithWeekday,
-	formatMonthWithFullYear,
-	formatTime,
-	timeStringFromParts,
-} from "../../../../ui/utils/Formatter.js"
+import { formatDateTime, formatDateWithMonth, formatDateWithWeekday, formatMonthWithFullYear, formatTime } from "../../../../ui/utils/Formatter.js"
 import {
 	AlarmInterval,
 	alarmIntervalToLuxonDurationLikeObject,
@@ -63,10 +56,10 @@ import {
 	ShareCapability,
 	Weekday,
 	WeekStart,
-} from "../../../../platform-kit/app-env"
+} from "@tutao/app-env"
 import { AllIcons } from "../../../../ui/base/Icon.js"
 import { SelectorItemList } from "../../../../ui/base/DropDownSelector.js"
-import { DateTime, Duration } from "luxon"
+import { Duration } from "luxon"
 import { CalendarEventTimes, CalendarViewType, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { layout_size } from "../../../../ui/size.js"
 import { hslToHex, MAX_HUE_ANGLE } from "../../../../ui/base/Color.js"
@@ -89,7 +82,7 @@ import { Key } from "../../../../ui/utils/KeyManager.js"
 import { AdvancedRepeatRule, CalendarEvent } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus } from "../../../../entities/tutanota/Utils"
 import { AccountType, hasCapabilityOnGroup } from "../../../../entities/sys/Utils"
-import { clone } from "../../../../platform-kit/meta"
+import { clone } from "@tutao/meta"
 import { IcsCalendarEvent } from "../export/CalendarParser"
 
 export interface IntervalOption {
@@ -101,7 +94,7 @@ export interface IntervalOption {
 export type TextFormatterTimezones = {
 	startTimeZone?: string
 	endTimeZone?: string
-	calendarTimezone: string
+	calendarTimeZone: string
 }
 
 export function renderCalendarSwitchLeftButton(label: TranslationKey, click: () => unknown): Child {
@@ -418,9 +411,9 @@ function formatAllDayDurationText(event: CalendarEventTimes, startTimeZone: stri
 function formatNormalEventDurationText(event: CalendarEventTimes, includeTimezone: boolean, startTimeZone: string, endTimeZone: string) {
 	const startAndEndIsSameDay = isSameDay(event.startTime, event.endTime)
 
-	const startString = formatDateTime(event.startTime, { timeZone: startTimeZone })
+	const startString = formatDateTime(event.startTime, startTimeZone)
 
-	let endString = startAndEndIsSameDay ? formatTime(event.endTime, { timeZone: endTimeZone }) : formatDateTime(event.endTime, { timeZone: endTimeZone })
+	let endString = startAndEndIsSameDay ? formatTime(event.endTime, endTimeZone) : formatDateTime(event.endTime, endTimeZone)
 
 	// IANA always has a / in it so we can use ! here
 	const startZoneFormatted = "(" + startTimeZone.split("/").at(-1)!.replace("_", " ") + ")"
@@ -431,13 +424,13 @@ function formatNormalEventDurationText(event: CalendarEventTimes, includeTimezon
 
 export function formatEventDuration(
 	event: CalendarEventTimes,
-	{ startTimeZone, endTimeZone, calendarTimezone }: TextFormatterTimezones,
+	{ startTimeZone, endTimeZone, calendarTimeZone }: TextFormatterTimezones,
 	includeTimezone: boolean,
 ): string {
 	if (isAllDayEvent(event)) {
-		return formatAllDayDurationText(event, calendarTimezone, calendarTimezone)
+		return formatAllDayDurationText(event, calendarTimeZone, calendarTimeZone)
 	} else {
-		return formatNormalEventDurationText(event, includeTimezone, startTimeZone ?? calendarTimezone, endTimeZone ?? calendarTimezone)
+		return formatNormalEventDurationText(event, includeTimezone, startTimeZone ?? calendarTimeZone, endTimeZone ?? calendarTimeZone)
 	}
 }
 
@@ -665,47 +658,101 @@ export function humanDescriptionForAlarmIntervalUnit(unit: AlarmIntervalUnit): s
 	}
 }
 
-export function timeString(date: Date, amPm: boolean): string {
-	return timeStringFromParts(date.getHours(), date.getMinutes(), amPm)
-}
+function formatTimeWithZoneInfo({ endTime, startTime }: CalendarEventTimes, showTime: EventTextTimeOption, formatterTimezones: TextFormatterTimezones) {
+	const startTimeZone = formatterTimezones.startTimeZone ?? formatterTimezones.calendarTimeZone
+	const startTimezoneCity = startTimeZone.split("/").at(-1)!.replaceAll("_", " ")
 
-export function timeStringInZone(date: Date, amPm: boolean, zone: string): string {
-	const { hour, minute } = DateTime.fromJSDate(date, {
-		zone,
-	})
-	return timeStringFromParts(hour, minute, amPm)
-}
+	const endTimeZone = formatterTimezones.endTimeZone ?? formatterTimezones.calendarTimeZone
+	const endTimezoneCity = endTimeZone.split("/").at(-1)!.replaceAll("_", " ")
 
-export function formatEventTime({ endTime, startTime }: CalendarEventTimes, showTime: EventTextTimeOption): string {
+	const isSameTimeZone = startTimeZone === endTimeZone
+
+	const startTimeText = `${startTimezoneCity} ${formatTime(startTime, startTimeZone)}`
+	const endTimeText = `${isSameTimeZone && showTime !== EventTextTimeOption.END_TIME ? "" : ` ${endTimezoneCity}`} ${formatTime(endTime, endTimeZone)}`
+
 	switch (showTime) {
 		case EventTextTimeOption.START_TIME:
-			return formatTime(startTime)
+			return startTimeText
 
 		case EventTextTimeOption.END_TIME:
-			return ` - ${formatTime(endTime)}`
+			return ` - ${endTimeText}`
 
 		case EventTextTimeOption.START_END_TIME:
-			return `${formatTime(startTime)} - ${formatTime(endTime)}`
+			return `${startTimeText} - ${endTimeText}`
+	}
+}
+
+export function formatEventTime(
+	{ endTime, startTime }: CalendarEventTimes,
+	showTime: EventTextTimeOption,
+	includeTimeZone: boolean,
+	formatterTimezones: TextFormatterTimezones,
+): string {
+	const timeZoneInfo = includeTimeZone ? ` (${formatTimeWithZoneInfo({ endTime, startTime }, showTime, formatterTimezones)})` : ""
+
+	switch (showTime) {
+		case EventTextTimeOption.START_TIME:
+			return formatTime(startTime) + timeZoneInfo
+
+		case EventTextTimeOption.END_TIME:
+			return ` - ${formatTime(endTime)} ${timeZoneInfo}`
+
+		case EventTextTimeOption.START_END_TIME:
+			return `${formatTime(startTime)} - ${formatTime(endTime)}` + timeZoneInfo
 
 		default:
 			throw new ProgrammingError(`Unknown time option: ${showTime}`)
 	}
 }
 
-export function formatEventTimesAtDate(day: Date, event: CalendarEvent, calendarTimeZone: string): string {
+export function formatEventTimesAtDate(day: Date, event: CalendarEvent, includeTimeZone: boolean, formatterTimezones: TextFormatterTimezones): string {
 	if (isAllDayEvent(event)) {
 		return lang.get("allDay_label")
 	} else {
-		const startsBefore = eventStartsBefore(day, calendarTimeZone, event)
-		const endsAfter = eventEndsAfterDay(day, calendarTimeZone, event)
+		const startsBefore = eventStartsBefore(day, formatterTimezones.calendarTimeZone, event)
+		const endsAfter = eventEndsAfterDay(day, formatterTimezones.calendarTimeZone, event)
 		if (startsBefore && endsAfter) {
 			return lang.get("allDay_label")
 		} else {
 			const startTime: Date = startsBefore ? day : event.startTime
-			const endTime: Date = endsAfter ? getEndOfDayWithZone(day, calendarTimeZone) : event.endTime
-			return formatEventTime({ startTime, endTime }, EventTextTimeOption.START_END_TIME)
+			const endTime: Date = endsAfter ? getEndOfDayWithZone(day, formatterTimezones.calendarTimeZone) : event.endTime
+			return formatEventTime({ startTime, endTime }, EventTextTimeOption.START_END_TIME, includeTimeZone, formatterTimezones)
 		}
 	}
+}
+
+export function shouldShowTimeZones(calendarTimeZone: string, startTimeZone: string | null, endTimeZone: string | null) {
+	if (startTimeZone === null && endTimeZone === null) {
+		return false
+	}
+
+	if (startTimeZone !== null && startTimeZone === calendarTimeZone && endTimeZone === null) {
+		return false
+	}
+
+	if (endTimeZone !== null && endTimeZone === calendarTimeZone && startTimeZone === null) {
+		return false
+	}
+
+	if (startTimeZone === endTimeZone && startTimeZone === calendarTimeZone) {
+		return false
+	}
+
+	return true
+}
+
+export function getTextFormatterTimeZones(event: Omit<CalendarEvent, "description">, calendarTimeZone: string) {
+	const timeZones: TextFormatterTimezones = {
+		calendarTimeZone,
+	}
+	if (event.startTimeZone) {
+		timeZones.startTimeZone = event.startTimeZone
+	}
+	if (event.endTimeZone) {
+		timeZones.endTimeZone = event.endTimeZone
+	}
+
+	return timeZones
 }
 
 export const createCustomRepeatRuleUnitValues = (): SelectorItemList<AlarmIntervalUnit | null> => {
