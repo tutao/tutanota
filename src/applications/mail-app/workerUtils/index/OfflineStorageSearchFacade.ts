@@ -2,7 +2,7 @@ import { SearchFacade } from "./SearchFacade"
 import { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { sql } from "../../../../app-kit/local-store/Sql"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { MailIndexer } from "./MailIndexer"
+import { WebMailIndexer } from "./WebMailIndexer"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
 import { assertNotNull, first, isEmpty, last, splitArrayAt } from "../../../../platform-kit/utils"
 import { isSameId, isSameTypeRef } from "../../../../platform-kit/meta"
@@ -18,7 +18,7 @@ import { SearchToken, splitQuery } from "../../../../ui/utils/QueryTokenUtils"
 export class OfflineStorageSearchFacade implements SearchFacade {
 	constructor(
 		private readonly sqlCipherFacade: SqlCipherFacade,
-		private readonly mailIndexer: MailIndexer,
+		private readonly mailIndexer: WebMailIndexer,
 		private readonly contactIndexer: ContactIndexer,
 	) {}
 

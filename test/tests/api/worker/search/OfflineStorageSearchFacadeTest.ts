@@ -4,7 +4,7 @@ import { OfflineStoragePersistence, SearchTableDefinitions } from "../../../../.
 import { SqlCipherFacade } from "../../../../../src/app-kit/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
 import { OfflineStorageSearchFacade } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStorageSearchFacade"
 import { ContactIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/ContactIndexer"
-import { MailIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexer"
+import { WebMailIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/WebMailIndexer"
 import { object, replace } from "testdouble"
 import { sql } from "../../../../../src/app-kit/local-store/Sql"
 import { assertNotNull, typedValues } from "../../../../../src/platform-kit/utils"
@@ -34,7 +34,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 	let cacheStorage: CacheStorage
 	let offlineStorageSearchFacade: OfflineStorageSearchFacade
 	let contactIndexer: ContactIndexer
-	let mailIndexer: MailIndexer
+	let mailIndexer: WebMailIndexer
 	const userId = "my id"
 
 	o.beforeEach(async () => {

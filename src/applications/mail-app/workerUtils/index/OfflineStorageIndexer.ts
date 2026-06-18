@@ -1,5 +1,5 @@
 import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade"
-import { MailIndexer } from "./MailIndexer"
+import { WebMailIndexer } from "./WebMailIndexer"
 import { assertNotNull, difference } from "../../../../platform-kit/utils"
 import { filterIndexMemberships } from "../../../common/api/common/utils/IndexUtils"
 import { NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../platform-kit/app-env"
@@ -14,7 +14,7 @@ export class OfflineStorageIndexer implements Indexer {
 	constructor(
 		private readonly userFacade: UserFacade,
 		private readonly persistence: OfflineStoragePersistence,
-		private readonly mailIndexer: MailIndexer,
+		private readonly mailIndexer: WebMailIndexer,
 		private readonly infoMessageHandler: InfoMessageHandler,
 		private readonly contactIndexer: ContactIndexer,
 	) {}
