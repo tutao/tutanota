@@ -49,7 +49,7 @@ import {
 	TutanotaError,
 } from "../../../../../src/platform-kit/app-env"
 
-import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
+import { CryptoFacade, RecipientKeyData } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { assertNotNull, concat, findAllAndRemove, lazyAsync, lazyMemoized, Versioned } from "../../../../../src/platform-kit/utils"
 import { RecoverCodeFacade } from "../../../../../src/platform-kit/base/facades/lazy/RecoverCodeFacade.js"
 import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade.js"
@@ -804,13 +804,16 @@ o.spec("KeyRotationFacade", function () {
 					const pubEncBucketKeyMock = object<Uint8Array>()
 					const protocolVersion = CryptoProtocolVersion.TUTA_CRYPT
 					when(cryptoFacade.encryptBucketKeyForInternalRecipient(userGroupId, anything(), memberMailAddress, [], [])).thenResolve(
-						createTestEntity(InternalRecipientKeyDataTypeRef, {
-							protocolVersion,
-							senderKeyVersion: user.userGroup.groupKeyVersion,
-							mailAddress: memberMailAddress,
-							recipientKeyVersion,
-							pubEncBucketKey: pubEncBucketKeyMock,
-						}),
+						new RecipientKeyData(
+							createTestEntity(InternalRecipientKeyDataTypeRef, {
+								protocolVersion,
+								senderKeyVersion: user.userGroup.groupKeyVersion,
+								mailAddress: memberMailAddress,
+								recipientKeyVersion,
+								pubEncBucketKey: pubEncBucketKeyMock,
+							}),
+							null,
+						),
 					)
 					when(cryptoWrapperMock.aes256RandomKey()).thenReturn(NEW_GROUP_KEY.object, MEMBER1_BUCKET_KEY, MEMBER1_SESSION_KEY)
 					when(cryptoWrapperMock.encryptKey(MEMBER1_BUCKET_KEY, MEMBER1_SESSION_KEY)).thenReturn(MEMBER1_BUCKET_KEY_ENC_MEMBER1_SESSION_KEY)
