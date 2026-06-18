@@ -100,6 +100,13 @@ type ResolvedSessionKeys = {
 	instanceSessionKeys: Array<InstanceSessionKey>
 }
 
+export class RecipientKeyData {
+	constructor(
+		readonly pubEncRecipientKeyData: Nullable<InternalRecipientKeyData>,
+		readonly symEncRecipientKeyData: Nullable<SymEncInternalRecipientKeyData>,
+	) {}
+}
+
 export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	constructor(
 		private readonly userFacade: UserFacade,
@@ -622,7 +629,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		recipientMailAddress: string,
 		notFoundRecipients: Array<string>,
 		keyVerificationMismatchRecipients: Array<string>,
-	): Promise<InternalRecipientKeyData | SymEncInternalRecipientKeyData | null> {
+	): Promise<RecipientKeyData | null> {
 		try {
 			const publicKey = await this.publicEncryptionKeyProvider.loadCurrentPublicEncryptionKey({
 				identifier: recipientMailAddress,
@@ -638,11 +645,19 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			const isExternalSender = this.userFacade.getUser()?.accountType === AccountType.EXTERNAL
 			// we only encrypt symmetric as external sender if the recipient supports tuta-crypt.
 			// Clients need to support symmetric decryption from external users. We can always encrypt symmetrically when old clients are deactivated that don't support tuta-crypt.
+			let pubEncRecipientKeyData: Nullable<InternalRecipientKeyData> = null
+			let symEncRecipientKeyData: Nullable<SymEncInternalRecipientKeyData> = null
 			if (isVersionedPqPublicKey(publicKey.publicEncryptionKey) && isExternalSender) {
-				return this.createSymEncInternalRecipientKeyData(recipientMailAddress, bucketKey)
+				symEncRecipientKeyData = await this.createSymEncInternalRecipientKeyData(recipientMailAddress, bucketKey)
 			} else {
-				return this.createPubEncInternalRecipientKeyData(bucketKey, recipientMailAddress, publicKey.publicEncryptionKey, senderUserGroupId)
+				pubEncRecipientKeyData = await this.createPubEncInternalRecipientKeyData(
+					bucketKey,
+					recipientMailAddress,
+					publicKey.publicEncryptionKey,
+					senderUserGroupId,
+				)
 			}
+			return new RecipientKeyData(pubEncRecipientKeyData, symEncRecipientKeyData)
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				notFoundRecipients.push(recipientMailAddress)

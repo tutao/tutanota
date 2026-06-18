@@ -722,8 +722,8 @@ export class KeyRotationFacade {
 					notFoundRecipients,
 					keyVerificationMismatchRecipients,
 				)
-				if (recipientKeyData != null && isSameTypeRef(recipientKeyData._type, InternalRecipientKeyDataTypeRef)) {
-					const keyData = recipientKeyData as InternalRecipientKeyData
+				if (recipientKeyData != null && recipientKeyData.pubEncRecipientKeyData != null) {
+					const keyData = recipientKeyData.pubEncRecipientKeyData
 					const pubEncKeyData = createPubEncKeyData({
 						recipientIdentifier: keyData.mailAddress,
 						recipientIdentifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
