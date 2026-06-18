@@ -75,7 +75,12 @@ export function formatTimeOrDateOrYesterday(date: Date): string {
 	}
 }
 
-export function formatTime(date: Date, formatterOptions?: TimeZoneFormatterOptions | null): string {
+/**
+ * Formats a string to represent the time information according to the user settings, optionally applying a timezone
+ * @param date
+ * @param timeZone - Timezone to apply
+ */
+export function formatTime(date: Date, timeZone?: Intl.DateTimeFormatOptions["timeZone"]): string {
 	const currentOptions = lang.formats.time.resolvedOptions()
 	const options: Intl.DateTimeFormatOptions = {
 		day: currentOptions.day,
@@ -84,7 +89,7 @@ export function formatTime(date: Date, formatterOptions?: TimeZoneFormatterOptio
 		hour: currentOptions.hour,
 		minute: currentOptions.minute,
 		hourCycle: currentOptions.hourCycle,
-		...formatterOptions,
+		timeZone,
 	} as Intl.DateTimeFormatOptions
 
 	const timeFormat = new Intl.DateTimeFormat(lang.languageTag, options)
@@ -96,10 +101,12 @@ export function formatShortTime(date: Date): string {
 	return lang.formats.shortTime.format(date)
 }
 
-export type TimeZoneFormatterOptions = {
-	timeZone?: Intl.DateTimeFormatOptions["timeZone"]
-}
-export function formatDateTime(date: Date, formatterOptions?: TimeZoneFormatterOptions | null): string {
+/**
+ * Formats a string to represent the date and time information according to the user settings, optionally applying a timezone
+ * @param date
+ * @param timeZone - Timezone to apply
+ */
+export function formatDateTime(date: Date, timeZone?: Intl.DateTimeFormatOptions["timeZone"]): string {
 	const currentOptions = lang.formats.dateTime.resolvedOptions()
 	const options: Intl.DateTimeFormatOptions = {
 		day: currentOptions.day,
@@ -108,7 +115,7 @@ export function formatDateTime(date: Date, formatterOptions?: TimeZoneFormatterO
 		hour: currentOptions.hour,
 		minute: currentOptions.minute,
 		hourCycle: currentOptions.hourCycle,
-		...formatterOptions,
+		timeZone,
 	} as Intl.DateTimeFormatOptions
 
 	const dateTimeFormat = new Intl.DateTimeFormat(lang.languageTag, options)
