@@ -27,7 +27,6 @@ import {
 	aesDecrypt,
 	aesEncrypt,
 	AesKey,
-	bitArrayToUint8Array,
 	cryptoUtils,
 	CryptoWrapper,
 	decryptKey,
@@ -726,18 +725,20 @@ o.spec("CryptoFacadeTest", function () {
 			cryptoProtocolVersion: CryptoProtocolVersion.TUTA_CRYPT,
 		})
 
-		const internalRecipientKeyData = (await crypto.encryptBucketKeyForInternalRecipient(
-			senderUserGroup._id,
-			bk,
-			recipientMailAddress,
-			notFoundRecipients,
-			keyVerificationMismatchRecipients,
-		)) as InternalRecipientKeyData
+		const pubEncRecipientKeyData = assertNotNull(
+			await crypto.encryptBucketKeyForInternalRecipient(
+				senderUserGroup._id,
+				bk,
+				recipientMailAddress,
+				notFoundRecipients,
+				keyVerificationMismatchRecipients,
+			),
+		).pubEncRecipientKeyData!
 
-		o(internalRecipientKeyData!.recipientKeyVersion).equals("0")
-		o(internalRecipientKeyData.protocolVersion).equals(CryptoProtocolVersion.TUTA_CRYPT)
-		o(internalRecipientKeyData!.mailAddress).equals(recipientMailAddress)
-		o(internalRecipientKeyData!.pubEncBucketKey).deepEquals(encodedPqMessage)
+		o(pubEncRecipientKeyData.recipientKeyVersion).equals("0")
+		o(pubEncRecipientKeyData.protocolVersion).equals(CryptoProtocolVersion.TUTA_CRYPT)
+		o(pubEncRecipientKeyData.mailAddress).equals(recipientMailAddress)
+		o(pubEncRecipientKeyData.pubEncBucketKey).deepEquals(encodedPqMessage)
 		verify(
 			publicEncryptionKeyProvider.loadCurrentPublicEncryptionKey({
 				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
@@ -815,18 +816,20 @@ o.spec("CryptoFacadeTest", function () {
 			cryptoProtocolVersion: CryptoProtocolVersion.RSA,
 		})
 
-		const internalRecipientKeyData = (await crypto.encryptBucketKeyForInternalRecipient(
-			senderUserGroup._id,
-			bk,
-			recipientMailAddress,
-			notFoundRecipients,
-			keyVerificationMismatchRecipients,
-		)) as InternalRecipientKeyData
+		const pubEncRecipientKeyData = assertNotNull(
+			await crypto.encryptBucketKeyForInternalRecipient(
+				senderUserGroup._id,
+				bk,
+				recipientMailAddress,
+				notFoundRecipients,
+				keyVerificationMismatchRecipients,
+			),
+		).pubEncRecipientKeyData!
 
-		o(internalRecipientKeyData!.recipientKeyVersion).equals("0")
-		o(internalRecipientKeyData!.mailAddress).equals(recipientMailAddress)
-		o(internalRecipientKeyData.protocolVersion).equals(CryptoProtocolVersion.RSA)
-		o(internalRecipientKeyData.pubEncBucketKey).deepEquals(pubEncBucketKey)
+		o(pubEncRecipientKeyData.recipientKeyVersion).equals("0")
+		o(pubEncRecipientKeyData.mailAddress).equals(recipientMailAddress)
+		o(pubEncRecipientKeyData.protocolVersion).equals(CryptoProtocolVersion.RSA)
+		o(pubEncRecipientKeyData.pubEncBucketKey).deepEquals(pubEncBucketKey)
 		verify(
 			publicEncryptionKeyProvider.loadCurrentPublicEncryptionKey({
 				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
