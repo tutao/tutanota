@@ -20,7 +20,7 @@ import { isAllDayEvent, setNextHalfHour } from "../../../common/api/common/utils
 import { Time } from "../../../common/calendar/date/Time.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
 
-import { formatEventTimes, getEventColor, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
+import { formatEventTimesAtDate, getEventColor, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
 import { PageView } from "../../../../ui/base/PageView.js"
 import { getIfLargeScroll } from "../../../../ui/base/GuiUtils.js"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager.js"
@@ -313,7 +313,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 		this.lastScrollPosition = attrs.scrollPosition
 	}
 
-	private renderEventsForDay(events: readonly EventWrapper[], zone: string, day: Date, attrs: CalendarAgendaViewAttrs) {
+	private renderEventsForDay(events: readonly EventWrapper[], calendarTimeZone: string, day: Date, attrs: CalendarAgendaViewAttrs) {
 		const { groupColors: colors, onEventClicked, onEventKeyDown: keyDown, eventPreviewModel: modelPromise } = attrs
 		const agendaItemHeight = 62
 		const agendaGap = 3
@@ -402,10 +402,10 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 						}
 						keyDown(eventWrapper.event, domEvent)
 					},
-					zone,
+					calendarTimeZone: calendarTimeZone,
 					day: day,
 					height: agendaItemHeight,
-					timeText: formatEventTimes(day, eventWrapper.event, zone),
+					timeText: formatEventTimesAtDate(day, eventWrapper.event, calendarTimeZone),
 				}),
 			)
 		}
