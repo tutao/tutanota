@@ -21,8 +21,8 @@ import {
 	getRepeatEndTimeForDisplay,
 	getTimeZone,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { EndType, RepeatPeriod, UpgradePromptType } from "../../../../../platform-kit/app-env"
-import { cleanMailAddress, downcast, memoized } from "../../../../../platform-kit/utils"
+import { EndType, RepeatPeriod, UpgradePromptType } from "@tutao/app-env"
+import { cleanMailAddress, downcast, memoized } from "@tutao/utils"
 import { lang, TranslationKey } from "../../../../../ui/utils/LanguageViewModel.js"
 import { findAttendeeInAddresses, isAllDayEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { formatDateWithMonth } from "../../../../../ui/utils/Formatter.js"
@@ -32,12 +32,19 @@ import { CalendarEventPreviewViewModel } from "./CalendarEventPreviewViewModel.j
 import { UpgradeRequiredError } from "../../../../common/api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/SubscriptionDialogs.js"
 import { ExternalLink } from "../../../../../ui/base/ExternalLink.js"
-import { calendarAttendeeStatusSymbol, formatEventDuration, getDisplayEventTitle, repeatRuleOptions, TextFormatterTimezones } from "../CalendarGuiUtils.js"
+import {
+	calendarAttendeeStatusSymbol,
+	formatEventDuration,
+	getDisplayEventTitle,
+	getTextFormatterTimeZones,
+	repeatRuleOptions,
+	shouldShowTimeZones,
+} from "../CalendarGuiUtils.js"
 import { font_size, px, size } from "../../../../../ui/size.js"
 import { SearchToken } from "../../../../../ui/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../../ui/TextHighlightViewUtils"
 import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../../../ui/base/ExpandableTextArea.js"
-import { hasError } from "../../../../../platform-kit/meta"
+import { hasError } from "@tutao/meta"
 
 export type EventPreviewViewAttrs = {
 	calendarEventPreviewModel: CalendarEventPreviewViewModel
@@ -117,7 +124,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 			this.renderRow(
 				Icons.ClockFilled,
 				[
-					formatEventDuration(event, { calendarTimezone: getTimeZone() }, false),
+					formatEventDuration(event, { calendarTimeZone: getTimeZone() }, false),
 					m("small.text-fade", this.renderRepeatRule(event.repeatRule, isAllDayEvent(event))),
 				],
 				true,
@@ -138,19 +145,13 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	}
 
 	private renderTimeZoneSection(event: Omit<CalendarEvent, "description">) {
-		if (!event.startTimeZone && !event.endTimeZone) return null
+		const calendarTimeZone = getTimeZone()
 
-		const timezones: TextFormatterTimezones = {
-			calendarTimezone: getTimeZone(),
-		}
-		if (event.startTimeZone) {
-			timezones.startTimeZone = event.startTimeZone
-		}
-		if (event.endTimeZone) {
-			timezones.endTimeZone = event.endTimeZone
+		if (!shouldShowTimeZones(calendarTimeZone, event.startTimeZone, event.endTimeZone)) {
+			return null
 		}
 
-		return this.renderRow(Icons.GlobeOutline, formatEventDuration(event, timezones, true), true)
+		return this.renderRow(Icons.GlobeOutline, formatEventDuration(event, getTextFormatterTimeZones(event, calendarTimeZone), true), true)
 	}
 
 	private renderSectionIndicator(icon: AllIcons, style: Record<string, any> = {}): Children {
