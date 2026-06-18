@@ -15,16 +15,16 @@ import { layout_size, px, size } from "../../../../ui/size.js"
 import { DaySelector } from "../gui/day-selector/DaySelector.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { EventDetailsView } from "./EventDetailsView.js"
-import { getElementId, getListId } from "../../../../platform-kit/meta"
+import { getElementId, getListId } from "@tutao/meta"
 import { isAllDayEvent, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { Time } from "../../../common/calendar/date/Time.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
 
-import { formatEventTimesAtDate, getEventColor, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
+import { formatEventTimesAtDate, getEventColor, getTextFormatterTimeZones, shouldDisplayEvent, shouldShowTimeZones } from "../gui/CalendarGuiUtils.js"
 import { PageView } from "../../../../ui/base/PageView.js"
 import { getIfLargeScroll } from "../../../../ui/base/GuiUtils.js"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager.js"
-import { Keys } from "../../../../platform-kit/app-env"
+import { Keys } from "@tutao/app-env"
 import { MainCreateButton } from "../../../../ui/MainCreateButton.js"
 import { CalendarContactPreviewViewModel } from "../gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { ContactCardViewer } from "../../../mail-app/contacts/view/ContactCardViewer.js"
@@ -363,6 +363,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 			}
 
 			const eventColor = getEventColor(eventWrapper.event, colors)
+
 			eventsNodes.push(
 				m(CalendarAgendaItemView, {
 					key: getListId(eventWrapper.event) + getElementId(eventWrapper.event) + eventWrapper.event.startTime.toISOString(),
@@ -405,7 +406,12 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 					calendarTimeZone: calendarTimeZone,
 					day: day,
 					height: agendaItemHeight,
-					timeText: formatEventTimesAtDate(day, eventWrapper.event, calendarTimeZone),
+					timeText: formatEventTimesAtDate(
+						day,
+						eventWrapper.event,
+						shouldShowTimeZones(calendarTimeZone, eventWrapper.event.startTimeZone, eventWrapper.event.endTimeZone),
+						getTextFormatterTimeZones(eventWrapper.event, calendarTimeZone),
+					),
 				}),
 			)
 		}

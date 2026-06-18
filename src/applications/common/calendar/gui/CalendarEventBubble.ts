@@ -57,7 +57,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 			? EventTextTimeOption.START_END_TIME
 			: getTimeTextFormatForLongEvent(calendarEvent, baseDate, baseDate, getTimeZone())
 
-		const eventTime = timeFormat ? formatEventTime(calendarEvent, timeFormat) : ""
+		const eventTime = timeFormat ? formatEventTime(calendarEvent, timeFormat, false, { calendarTimeZone: getTimeZone() }) : ""
 		const eventTitle = isLongNormalEvent ? `${eventTime} ${getDisplayEventTitle(calendarEvent.summary)}` : getDisplayEventTitle(calendarEvent.summary)
 
 		const resolvedStyles = this.resolveStyles(attrs)
