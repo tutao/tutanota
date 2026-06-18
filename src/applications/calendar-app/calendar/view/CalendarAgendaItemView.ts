@@ -9,7 +9,7 @@ import { EventWrapper } from "./CalendarViewModel.js"
 
 export interface CalendarAgendaItemViewAttrs {
 	day: Date
-	zone: string
+	calendarTimeZone: string
 	event: EventWrapper
 	calendarColor: string
 	click: (domEvent: MouseEvent) => unknown
