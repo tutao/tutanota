@@ -28,6 +28,7 @@ import { DefaultAnimationTime } from "../../../../../ui/animation/Animations.js"
 import { Icons } from "../../../../../ui/base/icons/Icons.js"
 import { SectionButton } from "../../../../../ui/base/buttons/SectionButton.js"
 import { CalendarRepeatRule } from "@tutao/entities/tutanota"
+import { TimeZoneSelector } from "./TimezoneSelector"
 
 export type CalendarEventEditViewAttrs = {
 	model: CalendarEventModel
@@ -55,6 +56,7 @@ export enum EditorPages {
 	MAIN,
 	REPEAT_RULES,
 	GUESTS,
+	TIMEZONE_SELECTOR,
 }
 
 /**
@@ -90,6 +92,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 		this.pages.set(EditorPages.REPEAT_RULES, this.renderRepeatRulesPage)
 		this.pages.set(EditorPages.GUESTS, this.renderGuestsPage)
+		this.pages.set(EditorPages.TIMEZONE_SELECTOR, this.renderTimezoneSelectorPage)
 
 		vnode.attrs.currentPage.map((page) => {
 			this.hasAnimationEnded = false
@@ -255,6 +258,10 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				},
 			} satisfies EventTimeEditorAttrs),
 		)
+	}
+
+	private renderTimezoneSelectorPage({ attrs }: Vnode<CalendarEventEditViewAttrs>) {
+		return m(TimeZoneSelector)
 	}
 
 	private renderRepeatRuleNavButton({ model, navigationCallback }: CalendarEventEditViewAttrs): Children {
@@ -463,6 +470,15 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 							this.renderReadonlyMessage(vnode.attrs),
 							this.renderTitle(vnode.attrs),
 							this.renderEventTimeEditor(vnode.attrs),
+							m(SectionButton, {
+								leftIcon: { icon: Icons.Sync, title: "calendarRepeating_label" },
+								text: lang.makeTranslation("timezoneSelectorPage", "Timezone Selector Page"),
+								isDisabled: false,
+								classes: "overflow-hidden repeat-rule",
+								onclick: () => {
+									this.transitionTo(EditorPages.TIMEZONE_SELECTOR, vnode.attrs.navigationCallback)
+								},
+							}),
 							this.renderCalendarPicker(vnode),
 							this.renderRepeatRuleNavButton(vnode.attrs),
 							this.renderRemindersEditor(vnode),
