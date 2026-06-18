@@ -20,7 +20,7 @@ import { styles } from "../../../../ui/styles"
 import { layout_size, px, size } from "../../../../ui/size"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
-import { collidesWith, formatEventTimes } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
+import { collidesWith, formatEventTimesAtDate } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { BannerButton } from "../../../../ui/base/buttons/BannerButton"
 import { ReplyButtons } from "../../../calendar-app/calendar/gui/eventpopup/EventPreviewView"
@@ -187,7 +187,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					event.organizer?.address
 						? m(".flex.items-center.small.mt-8", [
 								m("span.b", lang.getTranslation("when_label").text),
-								m("span.ml-4", formatEventTimes(getStartOfDay(event.startTime), event, "")),
+								m("span.ml-4", formatEventTimesAtDate(getStartOfDay(event.startTime), event, "")),
 							])
 						: null,
 					replySection,
