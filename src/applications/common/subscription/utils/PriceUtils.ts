@@ -1,4 +1,4 @@
-import { Const, isIOSApp, ProgrammingError, reverse } from "@tutao/app-env"
+import { Const, isIOSApp, ProgrammingError } from "@tutao/app-env"
 import { assertTranslation, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { assertNotNull, downcast, neverNull } from "@tutao/utils"
 import { UpgradePriceType, WebsitePlanPrices } from "../FeatureListProvider"
@@ -19,6 +19,7 @@ import {
 } from "@tutao/entities/sys"
 import { BookingItemFeatureType, PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
 import { PlanTypeToName } from "./SubscriptionUtils"
+import { reverse } from "../../misc/EnumUtils"
 
 export enum PaymentInterval {
 	Monthly = 1,
