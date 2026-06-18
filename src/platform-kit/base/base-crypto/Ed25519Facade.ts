@@ -20,6 +20,7 @@ import { IPCEd25519PublicKey } from "../../../app-kit/native-bridge/common/gener
 import { NativeCryptoFacade } from "../../../app-kit/native-bridge/common/generatedipc/types/NativeCryptoFacade"
 import { IPCEd25519PrivateKey } from "../../../app-kit/native-bridge/common/generatedipc/types/IPCEd25519PrivateKey"
 import { IPCEd25519Signature } from "../../../app-kit/native-bridge/common/generatedipc/types/IPCEd25519Signature"
+import { initEd25519ForTesting } from "../../crypto/encryption/Ed25519"
 
 assertWorkerOrNode()
 
@@ -40,7 +41,7 @@ export class WASMEd25519Facade implements Ed25519Facade {
 	// loads liboqs WASM
 	private initEd25519: LazyLoaded<void> = new LazyLoaded(async () => {
 		if (this.testWASM) {
-			return initEd25519(this.testWASM)
+			return initEd25519ForTesting(this.testWASM)
 		} else {
 			await initEd25519("./crypto_primitives_bg.wasm")
 		}
