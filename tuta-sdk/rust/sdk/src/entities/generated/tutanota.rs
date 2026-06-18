@@ -1095,8 +1095,10 @@ pub struct DraftData {
 	#[serde(rename = "1855")]
 	pub recipientsId: Option<CustomId>,
 	#[serde(rename = "1856")]
-	pub bodyId: Option<CustomId>,
+	pub mailDetailsId: Option<CustomId>,
 	#[serde(rename = "1857")]
+	pub bodyId: Option<CustomId>,
+	#[serde(rename = "1858")]
 	pub senderId: Option<CustomId>,
 	#[serde(rename = "503")]
 	pub toRecipients: Vec<DraftRecipient>,

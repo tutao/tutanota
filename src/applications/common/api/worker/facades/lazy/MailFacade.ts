@@ -476,6 +476,7 @@ export class MailFacade {
 		)[0]
 
 		const mailDetailsModel = await this.instancePipeline.clientTypeReferenceResolver(MailDetailsTypeRef)
+		const mailDetailsId = AttributeModel.getAttribute<Id>(details, "_id", mailDetailsModel)
 		const body = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(details, "body", mailDetailsModel)[0]
 		const bodyModel = await this.instancePipeline.clientTypeReferenceResolver(BodyTypeRef)
 
@@ -539,6 +540,7 @@ export class MailFacade {
 				bodyText: "",
 				removedAttachments: [],
 				recipientsId,
+				mailDetailsId,
 				bodyId,
 				senderId,
 			}),
@@ -676,6 +678,7 @@ export class MailFacade {
 				senderId: null,
 				bodyId: null,
 				recipientsId: null,
+				mailDetailsId: null,
 			}),
 		})
 		this.deferredDraftId = draft._id

@@ -2806,7 +2806,7 @@ const typeModels = {
 			},
 			"1856": {
 				"final": true,
-				"name": "bodyId",
+				"name": "mailDetailsId",
 				"id": 1856,
 				"type": "CustomId",
 				"cardinality": "ZeroOrOne",
@@ -2814,8 +2814,16 @@ const typeModels = {
 			},
 			"1857": {
 				"final": true,
-				"name": "senderId",
+				"name": "bodyId",
 				"id": 1857,
+				"type": "CustomId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"1858": {
+				"final": true,
+				"name": "senderId",
+				"id": 1858,
 				"type": "CustomId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false

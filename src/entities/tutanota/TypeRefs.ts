@@ -687,6 +687,7 @@ export type DraftData = {
 	method: NumberString;
 	compressedBodyText: null | string;
 	recipientsId: null | Id;
+	mailDetailsId: null | Id;
 	bodyId: null | Id;
 	senderId: null | Id;
 
