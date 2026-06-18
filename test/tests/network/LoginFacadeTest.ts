@@ -51,7 +51,7 @@ import {
 } from "@tutao/entities/sys"
 import { DEFAULT_KDF_TYPE, KdfType } from "../../../src/platform-kit/base/base-crypto/Constants.js"
 import { AccountType } from "../../../src/entities/sys/Utils"
-import { CacheStorageLateInitializer } from "../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
+import { CacheStorageLateInitializer, EphemeralStorageArgs, OfflineStorageArgs } from "../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
 import { DefaultLoginListener } from "../../../src/applications/common/api/worker/utils/DefaultLoginListener"
 import { encryptKey } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 import { _encryptString } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
@@ -148,21 +148,13 @@ o.spec("LoginFacadeTest", function () {
 		cryptoFacadeMock = object()
 		usingOfflineStorage = false
 		cacheStorageInitializerMock = object()
-		when(
-			cacheStorageInitializerMock.initialize({
-				userId: anything(),
-				databaseKey: anything(),
-				timeRangeDate: anything(),
-				forceNewDatabase: anything(),
-				type: "offline",
-			}),
-		).thenDo(async () => {
+		when(cacheStorageInitializerMock.initialize(matchers.isA(OfflineStorageArgs))).thenDo(async () => {
 			return {
 				isPersistent: usingOfflineStorage,
 				isNewOfflineDb: false,
 			}
 		})
-		when(cacheStorageInitializerMock.initialize({ userId: anything() as Id, type: "ephemeral" })).thenResolve({
+		when(cacheStorageInitializerMock.initialize(matchers.isA(EphemeralStorageArgs))).thenResolve({
 			isPersistent: false,
 			isNewOfflineDb: false,
 		})
@@ -226,15 +218,8 @@ o.spec("LoginFacadeTest", function () {
 
 			o.test("When a database key is provided and session is persistent it is passed to the local-store storage initializer", async function () {
 				await facade.createSession(login, passphrase, "client", SessionType.Persistent, dbKey)
-				verify(
-					cacheStorageInitializerMock.initialize({
-						type: "offline",
-						databaseKey: dbKey,
-						userId,
-						timeRangeDate: null,
-						forceNewDatabase: false,
-					}),
-				)
+				const expectedStorageArgs = new OfflineStorageArgs(userId, dbKey, null, false)
+				verify(cacheStorageInitializerMock.initialize(expectedStorageArgs))
 				verify(databaseKeyFactoryMock.generateKey(), { times: 0 })
 				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
@@ -242,21 +227,14 @@ o.spec("LoginFacadeTest", function () {
 				const databaseKey = Uint8Array.from([1, 2, 3, 4])
 				when(databaseKeyFactoryMock.generateKey()).thenResolve(databaseKey)
 				await facade.createSession(login, passphrase, "client", SessionType.Persistent, null)
-				verify(
-					cacheStorageInitializerMock.initialize({
-						type: "offline",
-						userId,
-						databaseKey,
-						timeRangeDate: null,
-						forceNewDatabase: true,
-					}),
-				)
+				const expectedStorageArgs = new OfflineStorageArgs(userId, databaseKey, null, true)
+				verify(cacheStorageInitializerMock.initialize(expectedStorageArgs))
 				verify(databaseKeyFactoryMock.generateKey(), { times: 1 })
 				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
 			o.test("When no database key is provided and session is Login, nothing is passed to the local-store storage initialzier", async function () {
 				await facade.createSession(login, passphrase, "client", SessionType.Login, null)
-				verify(cacheStorageInitializerMock.initialize({ type: "ephemeral", userId }))
+				verify(cacheStorageInitializerMock.initialize(new EphemeralStorageArgs(userId)))
 				verify(databaseKeyFactoryMock.generateKey(), { times: 0 })
 				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
@@ -350,35 +328,21 @@ o.spec("LoginFacadeTest", function () {
 			o.test("When resuming a session and there is a database key, it is passed to local-store storage initialization", async function () {
 				usingOfflineStorage = true
 				await facade.resumeSession(credentials, null, dbKey, timeRangeDate)
-				verify(
-					cacheStorageInitializerMock.initialize({
-						type: "offline",
-						databaseKey: dbKey,
-						userId,
-						timeRangeDate,
-						forceNewDatabase: false,
-					}),
-				)
+				const expectedStorageArgs = new OfflineStorageArgs(userId, dbKey, timeRangeDate, false)
+				verify(cacheStorageInitializerMock.initialize(expectedStorageArgs))
 			})
 
 			o.test("When resuming a session and there is no database key, nothing is passed to local-store storage initialization", async function () {
 				usingOfflineStorage = true
 				await facade.resumeSession(credentials, null, null, timeRangeDate)
-				verify(cacheStorageInitializerMock.initialize({ type: "ephemeral", userId }))
+				verify(cacheStorageInitializerMock.initialize(new EphemeralStorageArgs(userId)))
 			})
 
 			o.test("when resuming a session and the local-store initialization has created a new database, we do synchronous login", async function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.PAID
-				when(
-					cacheStorageInitializerMock.initialize({
-						type: "offline",
-						databaseKey: dbKey,
-						userId,
-						timeRangeDate,
-						forceNewDatabase: false,
-					}),
-				).thenResolve({
+				const expectedStorageArgs = new OfflineStorageArgs(userId, dbKey, timeRangeDate, false)
+				when(cacheStorageInitializerMock.initialize(expectedStorageArgs)).thenResolve({
 					isPersistent: true,
 					isNewOfflineDb: true,
 				})
@@ -393,15 +357,7 @@ o.spec("LoginFacadeTest", function () {
 				usingOfflineStorage = true
 				user.accountType = AccountType.PAID
 
-				when(
-					cacheStorageInitializerMock.initialize({
-						type: "offline",
-						databaseKey: dbKey,
-						userId,
-						timeRangeDate,
-						forceNewDatabase: false,
-					}),
-				).thenResolve({
+				when(cacheStorageInitializerMock.initialize(new OfflineStorageArgs(userId, dbKey, timeRangeDate, false))).thenResolve({
 					isPersistent: true,
 					isNewOfflineDb: false,
 				})

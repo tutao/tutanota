@@ -102,7 +102,7 @@ import {
 	SessionExpiredError,
 } from "@tutao/rest-client/error"
 import { SessionTypeProvider } from "./SessionTypeProvider"
-import { CacheStorageLateInitializer } from "./CacheStorageLateInitializer"
+import { CacheStorageLateInitializer, EphemeralStorageArgs, OfflineStorageArgs } from "./CacheStorageLateInitializer"
 import { CacheManager } from "../base-crypto/persistence/CacheManager"
 import {
 	CacheMode,
@@ -1106,23 +1106,16 @@ export class LoginFacade implements SessionTypeProvider {
 	 */
 	private async initCache({ userId, databaseKey, timeRangeDate, forceNewDatabase }: InitCacheOptions): Promise<CacheInfo> {
 		if (databaseKey != null) {
-			const { isPersistent, isNewOfflineDb } = await this.cacheInitializer.initialize({
-				type: "offline",
-				userId,
-				databaseKey,
-				timeRangeDate,
-				forceNewDatabase,
-			})
+			const { isPersistent, isNewOfflineDb } = await this.cacheInitializer.initialize(
+				new OfflineStorageArgs(userId, databaseKey, timeRangeDate, forceNewDatabase),
+			)
 			return {
 				isPersistent,
 				isNewOfflineDb,
 				databaseKey,
 			}
 		} else {
-			const { isPersistent, isNewOfflineDb } = await this.cacheInitializer.initialize({
-				type: "ephemeral",
-				userId,
-			})
+			const { isPersistent, isNewOfflineDb } = await this.cacheInitializer.initialize(new EphemeralStorageArgs(userId))
 			return { isPersistent, isNewOfflineDb, databaseKey: null }
 		}
 	}
