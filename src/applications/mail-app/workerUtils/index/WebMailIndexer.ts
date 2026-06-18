@@ -87,7 +87,7 @@ enum MailImportType {
 	ImapImport,
 }
 
-export class MailIndexer {
+export class WebMailIndexer {
 	// {@link currentIndexTimestamp}: the **oldest** timestamp that has been indexed for all mail lists
 	// There are two scenarios in which new mails are indexed:
 	// a) a new mail (internal/external) is received from our mail server
