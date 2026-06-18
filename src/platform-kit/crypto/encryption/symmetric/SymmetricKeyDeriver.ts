@@ -82,11 +82,23 @@ export class SymmetricKeyDeriver {
 		}
 	}
 
+	private handleSpecialCase(instanceTypeId: InstanceTypeId): InstanceTypeId {
+		if (instanceTypeId.app === "tutanota" && instanceTypeId.id === 1290) {
+			return {
+				app: "tutanota",
+				id: 1298,
+				name: "MailDetailsDraft",
+			}
+		}
+		return instanceTypeId
+	}
+
 	/**
 	 * Derive encryption and authentication keys for AEAD from groupKey in the correct version and kdfNonce for the instance type.
 	 */
 	deriveSubKeysAeadFromGroupKey(groupKey: VersionedKey, kdfNonce: KdfNonce, instanceTypeId: InstanceTypeId): AeadSubKeys {
-		const context = `${AEAD_GROUP_KEY_NONCE_DERIVATION}${instanceTypeId.app}/${instanceTypeId.id}`
+		const instanceTypeIdWithSpecialHandlingApplied = this.handleSpecialCase(instanceTypeId)
+		const context = `${AEAD_GROUP_KEY_NONCE_DERIVATION}${instanceTypeIdWithSpecialHandlingApplied.app}/${instanceTypeIdWithSpecialHandlingApplied.id}`
 		const inputKeyMaterial = concat(keyToUint8Array(groupKey.object), kdfNonce)
 		return this.deriveAeadSubKeys(inputKeyMaterial, context, { cipherVersion: SymmetricCipherVersion.AeadWithGroupKey, groupKeyVersion: groupKey.version })
 	}
@@ -95,7 +107,8 @@ export class SymmetricKeyDeriver {
 	 * Derive encryption and authentication keys for AEAD from the session key for the instance type.
 	 */
 	deriveSubKeysAeadFromSessionKey(sessionKey: AesKey, instanceTypeId: InstanceTypeId): AeadSubKeys {
-		const context = `${AEAD_SESSION_KEY_DERIVATION}${instanceTypeId.app}/${instanceTypeId.id}`
+		const instanceTypeIdWithSpecialHandlingApplied = this.handleSpecialCase(instanceTypeId)
+		const context = `${AEAD_SESSION_KEY_DERIVATION}${instanceTypeIdWithSpecialHandlingApplied.app}/${instanceTypeIdWithSpecialHandlingApplied.id}`
 		const inputKeyMaterial = keyToUint8Array(sessionKey)
 		return this.deriveAeadSubKeys(inputKeyMaterial, context, { cipherVersion: SymmetricCipherVersion.AeadWithSessionKey })
 	}

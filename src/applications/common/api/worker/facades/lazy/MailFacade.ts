@@ -110,7 +110,7 @@ import {
 	createMail,
 	createMailAddress,
 	createMailDetails,
-	createMailDetailsDraft,
+	createMailDetailsBlob,
 	createManageLabelServiceDeleteIn,
 	createManageLabelServiceLabelData,
 	createManageLabelServicePostIn,
@@ -455,24 +455,22 @@ export class MailFacade {
 			replyTos: [],
 		})
 
-		const dummyMailDetailsDraft = createMailDetailsDraft({
+		const dummyMailDetailsBlob = createMailDetailsBlob({
 			details: dummyMailDetails,
 		})
 
-		const mailDetailsDraftClientModelUntypedInstance = await this.instancePipeline.mapAndEncrypt(
-			MailDetailsDraftTypeRef,
-			dummyMailDetailsDraft,
+		const mailDetailsBlobClientModelUntypedInstance = await this.instancePipeline.mapAndEncrypt(
+			MailDetailsBlobTypeRef,
+			dummyMailDetailsBlob,
 			sessionKeyInfo,
 		)
-		const sanitizedMailDetailsDraftClientModelUntypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(
-			mailDetailsDraftClientModelUntypedInstance,
-		)
+		const sanitizedMailDetailsBlobClientModelUntypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(mailDetailsBlobClientModelUntypedInstance)
 
-		const mailDetailsDraftModel = await this.instancePipeline.clientTypeReferenceResolver(MailDetailsDraftTypeRef)
+		const mailDetailsBlobModel = await this.instancePipeline.clientTypeReferenceResolver(MailDetailsBlobTypeRef)
 		const details = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(
-			sanitizedMailDetailsDraftClientModelUntypedInstance,
+			sanitizedMailDetailsBlobClientModelUntypedInstance,
 			"details",
-			mailDetailsDraftModel,
+			mailDetailsBlobModel,
 		)[0]
 
 		const mailDetailsModel = await this.instancePipeline.clientTypeReferenceResolver(MailDetailsTypeRef)

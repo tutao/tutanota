@@ -95,17 +95,24 @@ export class CryptoMapper {
 		return groupId ? (groupKeyVersion: KeyVersion) => this.symGroupKeyLoader().loadSymGroupKey(groupId, groupKeyVersion) : null
 	}
 
+	private handle(associationId: number): number {
+		if (associationId === 1297) {
+			return 1305
+		}
+
+		return associationId
+	}
+
 	public async decryptParsedInstance(
 		serverTypeModel: ServerTypeModel | ClientTypeModel,
 		encryptedInstance: ServerModelEncryptedParsedInstance,
 		sessionKey: Nullable<AesKey>,
 		kdfNonce: Nullable<KdfNonce>,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
-		fieldPathPrefix: string = "",
 	): Promise<ServerModelParsedInstance> {
 		const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(sessionKey, kdfNonce, serverTypeModel)
 
-		return this.decryptParsedInstanceInternal(serverTypeModel, encryptedInstance, instanceDecryptor, ownerKeyProvider, fieldPathPrefix)
+		return this.decryptParsedInstanceInternal(serverTypeModel, encryptedInstance, instanceDecryptor, ownerKeyProvider)
 	}
 
 	private async decryptParsedInstanceInternal(
@@ -153,7 +160,8 @@ export class CryptoMapper {
 			if (associationType.type === AssociationType.Aggregation) {
 				const appName = associationType.dependency ?? serverTypeModel.app
 				const associationTypeModel = await this.serverTypeReferenceResolver(new TypeRef(appName, associationType.refTypeId))
-				const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${associationId}/`
+				const handledAssociationId = this.handle(associationId)
+				const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${handledAssociationId}/`
 				const decryptedAggregates = await this.decryptAggregateAssociation(
 					associationTypeModel,
 					encryptedInstanceValue as Array<ServerModelEncryptedParsedInstance>,
