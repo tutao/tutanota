@@ -1,7 +1,7 @@
 import type { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { downcast, isEmpty, LazyLoaded } from "@tutao/utils"
 import { locator } from "../../api/main/CommonLocator"
-import { ApprovalStatus, CertificateType, getClientType, isIOSApp, ProgrammingError, reverse, UpgradePromptType } from "@tutao/app-env"
+import { ApprovalStatus, CertificateType, getClientType, isIOSApp, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest.js"
 import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
@@ -36,6 +36,7 @@ import {
 } from "../../../../entities/sys/Utils"
 import { EntityUpdateData, isUpdateFor, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { reverse } from "../../misc/EnumUtils"
 
 export const enum UpgradeType {
 	/**
