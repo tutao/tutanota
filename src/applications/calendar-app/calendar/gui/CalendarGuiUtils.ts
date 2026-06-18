@@ -692,17 +692,17 @@ export function formatEventTime({ endTime, startTime }: CalendarEventTimes, show
 	}
 }
 
-export function formatEventTimes(day: Date, event: CalendarEvent, zone: string): string {
+export function formatEventTimesAtDate(day: Date, event: CalendarEvent, calendarTimeZone: string): string {
 	if (isAllDayEvent(event)) {
 		return lang.get("allDay_label")
 	} else {
-		const startsBefore = eventStartsBefore(day, zone, event)
-		const endsAfter = eventEndsAfterDay(day, zone, event)
+		const startsBefore = eventStartsBefore(day, calendarTimeZone, event)
+		const endsAfter = eventEndsAfterDay(day, calendarTimeZone, event)
 		if (startsBefore && endsAfter) {
 			return lang.get("allDay_label")
 		} else {
 			const startTime: Date = startsBefore ? day : event.startTime
-			const endTime: Date = endsAfter ? getEndOfDayWithZone(day, zone) : event.endTime
+			const endTime: Date = endsAfter ? getEndOfDayWithZone(day, calendarTimeZone) : event.endTime
 			return formatEventTime({ startTime, endTime }, EventTextTimeOption.START_END_TIME)
 		}
 	}
