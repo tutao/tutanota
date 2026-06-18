@@ -873,10 +873,10 @@ export class MailFacade {
 				if (keyData == null) {
 					// cannot add recipient because of notFoundError
 					// we do not throw here because we want to collect all not found recipients first
-				} else if (isSameTypeRef(keyData._type, SymEncInternalRecipientKeyDataTypeRef)) {
-					sendDraftParameters.symEncInternalRecipientKeyData.push(keyData as SymEncInternalRecipientKeyData)
-				} else if (isSameTypeRef(keyData._type, InternalRecipientKeyDataTypeRef)) {
-					sendDraftParameters.internalRecipientKeyData.push(keyData as InternalRecipientKeyData)
+				} else if (keyData.symEncRecipientKeyData != null) {
+					sendDraftParameters.symEncInternalRecipientKeyData.push(keyData.symEncRecipientKeyData)
+				} else if (keyData.pubEncRecipientKeyData != null) {
+					sendDraftParameters.internalRecipientKeyData.push(keyData.pubEncRecipientKeyData)
 				}
 			}
 		}
