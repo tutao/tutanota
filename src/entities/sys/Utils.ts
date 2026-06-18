@@ -1,4 +1,4 @@
-import { reverse, ShareCapability } from "../../platform-kit/app-env"
+import { ShareCapability } from "../../platform-kit/app-env"
 import { Group, GroupInfo, GroupMember, GroupMembership, ReceivedGroupInvitation, User } from "./TypeRefs"
 import { downcast } from "../../platform-kit/utils"
 import { getEtId, isSameId } from "../../platform-kit/meta"
@@ -170,7 +170,6 @@ export enum PaymentMethodType {
 	AppStore = "5",
 }
 
-export const PaymentMethodTypeToName = reverse(PaymentMethodType) // Group invitations without a type set were sent when Calendars were the only shareable kind of user group
 /**
  * Whether or not a user has a given capability for a shared group. If the group type is not shareable, this will always return false
  * @param user
@@ -212,8 +211,6 @@ export function getMemberCapability(memberInfo: GroupMemberInfo, group: Group): 
 
 	return downcast(memberInfo.member.capability)
 }
-
-export const GroupTypeNameByCode = reverse(GroupType)
 
 const DEFAULT_GROUP_TYPE = GroupType.Calendar
 

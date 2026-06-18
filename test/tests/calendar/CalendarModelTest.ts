@@ -177,6 +177,7 @@ o.spec("CalendarModel", function () {
 		const calendarGroupInfo = createTestEntity(GroupInfoTypeRef, {
 			_id: calendarGroupMembership.groupInfo,
 			group: calendarGroupMembership.group,
+			groupType: GroupType.Calendar,
 		})
 
 		groupMemberMock = createTestEntity(GroupMemberTypeRef, {

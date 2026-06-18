@@ -24,7 +24,8 @@ import {
 	ParserError,
 	StringIterator,
 } from "../../../common/misc/parsing/ParserCombinator"
-import { DAY_IN_MILLIS, EndType, RepeatPeriod, reverse } from "@tutao/app-env"
+import { DAY_IN_MILLIS, EndType, RepeatPeriod } from "@tutao/app-env"
+import { reverse } from "../../../common/misc/EnumUtils"
 import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
