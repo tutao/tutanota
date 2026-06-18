@@ -8,7 +8,9 @@ import { CryptoError } from "../../error.js"
 import __wbg_init, { aead_decrypt, aead_encrypt } from "@tutao/crypto-primitives"
 import { MacTag } from "../../misc/Constants"
 
-await __wbg_init({ module_or_path: "./crypto_primitives_bg.wasm" })
+if (typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope) {
+	await __wbg_init({ module_or_path: "./crypto_primitives_bg.wasm" })
+}
 
 export const PADDING_BLOCK_SIZE: number = 4
 export const PADDING_BYTE: number = 0x80
