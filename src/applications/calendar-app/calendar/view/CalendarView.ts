@@ -26,7 +26,6 @@ import {
 	isDesktop,
 	Keys,
 	ProgrammingError,
-	reverse,
 	ShareCapability,
 	TimeFormat,
 	UpgradePromptType,
@@ -125,6 +124,7 @@ import { exportCalendar } from "../../../common/calendar/gui/CalendarImporterDia
 import { CalendarImporter } from "../../../common/calendar/import/CalendarImporter"
 import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInteractionHandler"
 import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
+import { reverse } from "../../../common/misc/EnumUtils"
 
 export type GroupColors = Map<Id, string>
 

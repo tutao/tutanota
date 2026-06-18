@@ -3,15 +3,15 @@ import { isAdminClient, isApp, isDesktop } from "./Env"
 
 export type Country = any
 
-type ObjectPropertyKey = string | number | symbol
-export const reverse = <K extends ObjectPropertyKey, V extends ObjectPropertyKey>(objectMap: Record<K, V>): Record<V, K> =>
-	Object.keys(objectMap).reduce(
-		(r, k) => {
-			const v = objectMap[k as any as K]
-			return Object.assign(r, { [v]: k })
-		},
-		{} as Record<V, K>,
-	)
+export function enumKeyByValue<T extends Record<string, string>>(e: T, value: T[keyof T]): keyof T {
+	const key = Object.keys(e).find((k) => e[k] === value)
+
+	if (key === undefined) {
+		throw new Error(`Unknown enum value: ${value}`)
+	}
+
+	return key
+}
 
 type ConstType = {
 	INITIAL_UPGRADE_REMINDER_INTERVAL_MS: number
@@ -841,10 +841,6 @@ export enum CredentialEncryptionMode {
 	 */
 	APP_PASSWORD = "APP_PASSWORD",
 }
-
-export const UsageTestParticipationModeToName = reverse(UsageTestParticipationMode)
-export const UsageTestMetricTypeToName = reverse(UsageTestMetricType)
-export const UsageTestStateToName = reverse(UsageTestState)
 
 export function getClientType(): ClientType {
 	return isApp() ? ClientType.App : isDesktop() || isAdminClient() ? ClientType.Desktop : ClientType.Browser
