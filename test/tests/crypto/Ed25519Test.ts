@@ -1,12 +1,13 @@
 import o from "@tutao/otest"
-import { generateEd25519KeyPair, initEd25519, signWithEd25519, verifyEd25519Signature } from "../../../src/platform-kit/crypto"
+import { generateEd25519KeyPair, signWithEd25519, verifyEd25519Signature } from "../../../src/platform-kit/crypto"
 import { matchers, object, verify } from "testdouble"
 import { loadWasmFromFileOrNetwork } from "./WebAssemblyTestUtils"
 import { assertNotNull } from "../../../src/platform-kit/utils"
+import { initEd25519ForTesting } from "../../../src/platform-kit/crypto/encryption/Ed25519"
 
 o.spec("Ed25519Test", function () {
 	o.before(async function () {
-		await initEd25519(await loadWasmFromFileOrNetwork("crypto_primitives_bg.wasm"))
+		await initEd25519ForTesting(await loadWasmFromFileOrNetwork("crypto_primitives_bg.wasm"))
 	})
 
 	o("valid Ed25519 round trip", function () {
