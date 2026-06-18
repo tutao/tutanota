@@ -261,7 +261,10 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	}
 
 	private renderTimeZoneSelectorPage({ attrs }: Vnode<CalendarEventEditViewAttrs>) {
-		return m(TimeZoneSelector, { onSelectTimeZone: (timeZone) => console.log(`Selected time zone = ${timeZone}`) })
+		return m(TimeZoneSelector, {
+			width: this.pageWidth,
+			onSelectTimeZone: (timeZone) => console.log(`Selected time zone = ${timeZone}`),
+		})
 	}
 
 	private renderRepeatRuleNavButton({ model, navigationCallback }: CalendarEventEditViewAttrs): Children {
