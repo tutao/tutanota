@@ -98,6 +98,12 @@ export interface IntervalOption {
 	name: string
 }
 
+export type TextFormatterTimezones = {
+	startTimeZone?: string
+	endTimeZone?: string
+	calendarTimezone: string
+}
+
 export function renderCalendarSwitchLeftButton(label: TranslationKey, click: () => unknown): Child {
 	return m(IconButton, {
 		title: label,
@@ -423,11 +429,15 @@ function formatNormalEventDurationText(event: CalendarEventTimes, includeTimezon
 	return `${startString} ${includeTimezone ? startZoneFormatted : ""} - ${endString} ${includeTimezone ? endZoneFormatted : ""}`
 }
 
-export function formatEventDuration(event: CalendarEventTimes, startTimeZone: string, endTimeZone: string, includeTimezone: boolean): string {
+export function formatEventDuration(
+	event: CalendarEventTimes,
+	{ startTimeZone, endTimeZone, calendarTimezone }: TextFormatterTimezones,
+	includeTimezone: boolean,
+): string {
 	if (isAllDayEvent(event)) {
-		return formatAllDayDurationText(event, startTimeZone, endTimeZone)
+		return formatAllDayDurationText(event, calendarTimezone, calendarTimezone)
 	} else {
-		return formatNormalEventDurationText(event, includeTimezone, startTimeZone, endTimeZone)
+		return formatNormalEventDurationText(event, includeTimezone, startTimeZone ?? calendarTimezone, endTimeZone ?? calendarTimezone)
 	}
 }
 
