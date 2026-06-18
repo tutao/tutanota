@@ -32,7 +32,7 @@ import { CalendarEventPreviewViewModel } from "./CalendarEventPreviewViewModel.j
 import { UpgradeRequiredError } from "../../../../common/api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/SubscriptionDialogs.js"
 import { ExternalLink } from "../../../../../ui/base/ExternalLink.js"
-import { calendarAttendeeStatusSymbol, formatEventDuration, getDisplayEventTitle, repeatRuleOptions } from "../CalendarGuiUtils.js"
+import { calendarAttendeeStatusSymbol, formatEventDuration, getDisplayEventTitle, repeatRuleOptions, TextFormatterTimezones } from "../CalendarGuiUtils.js"
 import { font_size, px, size } from "../../../../../ui/size.js"
 import { SearchToken } from "../../../../../ui/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../../ui/TextHighlightViewUtils"
@@ -117,7 +117,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 			this.renderRow(
 				Icons.ClockFilled,
 				[
-					formatEventDuration(event, getTimeZone(), getTimeZone(), false),
+					formatEventDuration(event, { calendarTimezone: getTimeZone() }, false),
 					m("small.text-fade", this.renderRepeatRule(event.repeatRule, isAllDayEvent(event))),
 				],
 				true,
@@ -140,11 +140,17 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	private renderTimeZoneSection(event: Omit<CalendarEvent, "description">) {
 		if (!event.startTimeZone && !event.endTimeZone) return null
 
-		return this.renderRow(
-			Icons.GlobeOutline,
-			formatEventDuration(event, event.startTimeZone ?? getTimeZone(), event.endTimeZone ?? getTimeZone(), true),
-			true,
-		)
+		const timezones: TextFormatterTimezones = {
+			calendarTimezone: getTimeZone(),
+		}
+		if (event.startTimeZone) {
+			timezones.startTimeZone = event.startTimeZone
+		}
+		if (event.endTimeZone) {
+			timezones.endTimeZone = event.endTimeZone
+		}
+
+		return this.renderRow(Icons.GlobeOutline, formatEventDuration(event, timezones, true), true)
 	}
 
 	private renderSectionIndicator(icon: AllIcons, style: Record<string, any> = {}): Children {
