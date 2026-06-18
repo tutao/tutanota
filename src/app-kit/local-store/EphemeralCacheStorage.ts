@@ -23,7 +23,7 @@ import { ProgrammingError } from "../../platform-kit/app-env"
 import { ModelMapper, ServerTypeModelResolver } from "../../platform-kit/instance-pipeline"
 import { CacheStorage, LastUpdateTime } from "./CacheStorage"
 
-import { EphemeralStorageInitArgs } from "../../platform-kit/base/facades/CacheStorageLateInitializer"
+import { EphemeralStorageArgs } from "../../platform-kit/base/facades/CacheStorageLateInitializer"
 
 /** Cache for a single list. */
 type ListCache = {
@@ -64,7 +64,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 		return this.userId != null
 	}
 
-	init({ userId }: EphemeralStorageInitArgs) {
+	init({ userId }: EphemeralStorageArgs) {
 		this.userId = userId
 	}
 
