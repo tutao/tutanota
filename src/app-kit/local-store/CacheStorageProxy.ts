@@ -1,7 +1,7 @@
 import { OfflineStorage, Range } from "./OfflineStorage.js"
 import { ProgrammingError } from "../../platform-kit/app-env"
 import { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeRef } from "../../platform-kit/meta"
-import { Nullable } from "../../platform-kit/utils"
+import { downcast, Nullable } from "../../platform-kit/utils"
 import { EphemeralCacheStorage } from "./EphemeralCacheStorage"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { CacheStorage, LastUpdateTime } from "./CacheStorage.js"
@@ -10,6 +10,7 @@ import {
 	CacheStorageLateInitializer,
 	EphemeralStorageArgs,
 	OfflineStorageArgs,
+	StorageArgs,
 } from "../../platform-kit/base/facades/CacheStorageLateInitializer"
 
 /**
@@ -68,7 +69,7 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this._inner
 	}
 
-	async initialize(args: OfflineStorageArgs | EphemeralStorageArgs): Promise<CacheStorageInitReturn> {
+	async initialize(args: StorageArgs): Promise<CacheStorageInitReturn> {
 		// We might call this multiple times.
 		// This happens when persistent credentials login fails, and we need to start with new cache for new login.
 		const { storage, isPersistent, isNewOfflineDb } = await this.getStorage(args)
@@ -84,10 +85,8 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		this._inner = null
 	}
 
-	private async getStorage(
-		args: OfflineStorageArgs | EphemeralStorageArgs,
-	): Promise<{ storage: SomeStorage; isPersistent: boolean; isNewOfflineDb: boolean }> {
-		if (args.type === "offline") {
+	private async getStorage(args: StorageArgs): Promise<{ storage: SomeStorage; isPersistent: boolean; isNewOfflineDb: boolean }> {
+		if (args instanceof OfflineStorageArgs) {
 			try {
 				const storage = await this.offlineStorageProvider()
 				if (storage != null) {
@@ -102,11 +101,12 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 				// Precaution in case something bad happens to offline database. We want users to still be able to log in.
 				console.error("Error while initializing offline cache storage", e)
 				this.sendError(e)
+				args = new EphemeralStorageArgs(args.userId)
 			}
 		}
 		// both "else" case and fallback for unavailable storage and error cases
 		const storage = await this.ephemeralStorageProvider()
-		storage.init(args)
+		storage.init(downcast<EphemeralStorageArgs>(args))
 		return {
 			storage,
 			isPersistent: false,

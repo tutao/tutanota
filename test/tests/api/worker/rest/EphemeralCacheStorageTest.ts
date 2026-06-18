@@ -20,6 +20,7 @@ import {
 } from "@tutao/entities/tutanota"
 
 import { User, UserTypeRef } from "@tutao/entities/sys"
+import { EphemeralStorageArgs } from "../../../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
 
 o.spec("EphemeralCacheStorage", function () {
 	const userId = "userId"
@@ -39,7 +40,7 @@ o.spec("EphemeralCacheStorage", function () {
 
 	o.spec("BlobElementType", function () {
 		o("cache roundtrip: put, get, delete", async function () {
-			storage.init({ userId })
+			storage.init(new EphemeralStorageArgs(userId))
 			const storableMailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
 				_id: [archiveId, blobElementId],
 				_permissions: "permissionId",
@@ -71,7 +72,7 @@ o.spec("EphemeralCacheStorage", function () {
 		})
 
 		o("cache roundtrip: putMultiple, provideMultiple, delete", async function () {
-			storage.init({ userId })
+			storage.init(new EphemeralStorageArgs(userId))
 			const storableMailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
 				_id: [archiveId, blobElementId],
 				_permissions: "permissionId",
@@ -104,7 +105,7 @@ o.spec("EphemeralCacheStorage", function () {
 
 		o("cache roundtrip: put, get, deleteAllOwnedBy", async function () {
 			const _ownerGroup = "owenerGroup"
-			storage.init({ userId })
+			storage.init(new EphemeralStorageArgs(userId))
 			const storableMailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
 				_id: [archiveId, blobElementId],
 				_permissions: "permissionId",
@@ -134,7 +135,7 @@ o.spec("EphemeralCacheStorage", function () {
 		const userId = "userId1"
 
 		o.beforeEach(async function () {
-			await storage.init({ userId })
+			await storage.init(new EphemeralStorageArgs(userId))
 		})
 
 		o.test("put calls the cache handler", async function () {
@@ -182,7 +183,7 @@ o.spec("EphemeralCacheStorage", function () {
 			const mailSetEntryListElementIdTwo = "mseElement2"
 			const mailSetEntryOtherListId = "mseOtherListId"
 			const mailSetEntryOtherElementId = "mseOtherElement"
-			storage.init({ userId })
+			storage.init(new EphemeralStorageArgs(userId))
 
 			const mailSetEntryListOne = createTestEntity(
 				MailSetEntryTypeRef,

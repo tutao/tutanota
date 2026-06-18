@@ -65,6 +65,7 @@ import { CachingStatus, EntityUpdateData, entityUpdateToUpdateData } from "../..
 import { EntityRestClient } from "../../../../../src/platform-kit/network/EntityRestClient"
 import { LastProcessedEventBatchProvider } from "../../../../../src/platform-kit/network/LastProcessedEventBatchProvider"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
+import { OfflineStorageArgs } from "../../../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
 
 const { anything } = matchers
 
@@ -100,11 +101,7 @@ async function getOfflineStorage(userId: Id, handlerMap: CustomCacheHandlerMap):
 		handlerMap,
 		{},
 	)
-	await offlineStorage.init({
-		userId,
-		databaseKey: offlineDatabaseTestKey,
-		forceNewDatabase: false,
-	})
+	await offlineStorage.init(new OfflineStorageArgs(userId, offlineDatabaseTestKey, false))
 	return offlineStorage
 }
 

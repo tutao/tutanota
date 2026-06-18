@@ -6,22 +6,19 @@ import {
 	deconstructMailSetEntryId,
 	elementIdPart,
 	Entity,
-	expandId,
 	GENERATED_MAX_ID,
-	GENERATED_MIN_ID,
 	getTypeString,
 	listIdPart,
 	ServerModelParsedInstance,
-	SomeEntity,
 	timestampToGeneratedId,
 	Type as TypeId,
 	TypeRef,
 } from "../../../../src/platform-kit/meta"
-import { assertNotNull, downcast, getDayShifted, getFirstOrThrow, lastThrow, promiseMap, typedKeys } from "../../../../src/platform-kit/utils"
+import { assertNotNull, downcast, getDayShifted, typedKeys } from "../../../../src/platform-kit/utils"
 import { DateProvider } from "../../../../src/platform-kit/utils/DateProvider.js"
 import { OfflineStorageMigrator } from "../../../../src/app-kit/local-store/OfflineStorageMigrator.js"
 import { DesktopSqlCipher } from "../../../../src/applications/common/desktop/db/DesktopSqlCipher.js"
-import { clientInitializedTypeModelResolver, createTestEntity, IdGenerator, modelMapperFromTypeModelResolver, removeOriginals } from "../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../TestUtils.js"
 import { sql } from "../../../../src/app-kit/local-store/Sql.js"
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../src/app-kit/local-store/CustomCacheHandler"
 import { ModelMapper, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
@@ -36,18 +33,12 @@ import {
 	ContactListTypeRef,
 	ContactTypeRef,
 	createContactList,
-	createMailSetRef,
 	Mail,
 	MailAddressTypeRef,
-	MailBagTypeRef,
-	MailBoxTypeRef,
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
-	MailSet,
-	MailSetEntry,
 	MailSetEntryTypeRef,
-	MailSetTypeRef,
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
@@ -55,8 +46,7 @@ import { BlobArchiveRefTypeRef, createBlobArchiveRef } from "@tutao/entities/sto
 import { SqlType } from "../../../../src/app-kit/local-store/Types.js"
 
 import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
-import { AccountType } from "../../../../src/entities/sys/Utils"
-import { MailSetKind } from "../../../../src/entities/tutanota/Utils"
+import { OfflineStorageArgs } from "../../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
 
 function incrementMailSetEntryId(mailSetEntryId, mailId, ms: number) {
 	const { receiveDate } = deconstructMailSetEntryId(mailSetEntryId)
@@ -126,7 +116,7 @@ o.spec("OfflineStorageDb", function () {
 			sqlMock = object()
 			// to satisfy the external o.afterEach()
 			// we won't actually use this storage instance for these tests, since we don't want to test with real facades
-			await storage.init({ userId, databaseKey, forceNewDatabase: false })
+			await storage.init(new OfflineStorageArgs(userId, databaseKey, false))
 		})
 
 		o.test("init calls createTables which initializes all tables", async () => {
@@ -140,7 +130,7 @@ o.spec("OfflineStorageDb", function () {
 					purgedWithCache: true,
 				},
 			})
-			await storageWithMockedSql.init({ userId, databaseKey, forceNewDatabase: false })
+			await storageWithMockedSql.init(new OfflineStorageArgs(userId, databaseKey, false))
 			verify(sqlMock.run("some statement will be run here", []))
 			verify(sqlMock.run("another statement will be run here", []))
 
@@ -169,7 +159,7 @@ o.spec("OfflineStorageDb", function () {
 					purgedWithCache: true,
 				},
 			})
-			await storageWithMockedSql.init({ userId, databaseKey, forceNewDatabase: false })
+			await storageWithMockedSql.init(new OfflineStorageArgs(userId, databaseKey, false))
 			await storageWithMockedSql.purgeStorage()
 			verify(sqlMock.run("DROP TABLE IF EXISTS another_table", []))
 			verify(sqlMock.run("DROP TABLE IF EXISTS some_table", []), { times: 0 })
@@ -199,7 +189,7 @@ o.spec("OfflineStorageDb", function () {
 					purgedWithCache: true,
 				},
 			})
-			await storageWithMockedSql.init({ userId, databaseKey, forceNewDatabase: false })
+			await storageWithMockedSql.init(new OfflineStorageArgs(userId, databaseKey, false))
 			await storageWithMockedSql.purgeStorage()
 			verify(sqlMock.run("onBeforePurged was called", []), { times: 1 })
 		})
@@ -219,7 +209,7 @@ o.spec("OfflineStorageDb", function () {
 			when(migratorMock.migrate(storageWithMockedSql)).thenDo(() => {
 				verify(sqlMock.run("some statement will be run here", []), { times: 1 })
 			})
-			await storageWithMockedSql.init({ userId, databaseKey, forceNewDatabase: false })
+			await storageWithMockedSql.init(new OfflineStorageArgs(userId, databaseKey, false))
 			verify(sqlMock.run("some statement will be run here", []), { times: 2 })
 		})
 	})
@@ -251,7 +241,7 @@ o.spec("OfflineStorageDb", function () {
 		}
 
 		o.test("migrations are run", async function () {
-			await storage.init({ userId, databaseKey, forceNewDatabase: false })
+			await storage.init(new OfflineStorageArgs(userId, databaseKey, false))
 			verify(migratorMock.migrate(storage))
 		})
 
@@ -259,7 +249,7 @@ o.spec("OfflineStorageDb", function () {
 			const userId = "userId1"
 
 			o.beforeEach(async function () {
-				await storage.init({ userId, databaseKey, forceNewDatabase: false })
+				await storage.init(new OfflineStorageArgs(userId, databaseKey, false))
 			})
 
 			o.test("put calls the cache handler", async function () {
@@ -337,7 +327,7 @@ o.spec("OfflineStorageDb", function () {
 					const userCacheHandler: CustomCacheHandler<User> = object()
 					when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
 
-					await storage.init({ userId, databaseKey, forceNewDatabase: false })
+					await storage.init(new OfflineStorageArgs(userId, databaseKey, false))
 
 					await storage.put(UserTypeRef, storableUser)
 
@@ -542,7 +532,7 @@ o.spec("OfflineStorageDb", function () {
 					})
 					const storableUser = await toStorableInstance(user)
 
-					await storage.init({ userId, databaseKey, forceNewDatabase: false })
+					await storage.init(new OfflineStorageArgs(userId, databaseKey, false))
 
 					let storedUser = await storage.get(UserTypeRef, null, userId)
 					o.check(storedUser).equals(null)
@@ -590,7 +580,7 @@ o.spec("OfflineStorageDb", function () {
 						}),
 					]
 
-					await storage.init({ userId: userId1, databaseKey, forceNewDatabase: false })
+					await storage.init(new OfflineStorageArgs(userId1, databaseKey, false))
 
 					let storedUsers = [await storage.get(UserTypeRef, null, userId1), await storage.get(UserTypeRef, null, userId2)].filter((u) => u != null)
 					o(storedUsers).deepEquals([])
@@ -604,7 +594,7 @@ o.spec("OfflineStorageDb", function () {
 
 			o.spec("put", function () {
 				o.test("when updating element types the rowid is preserved", async function () {
-					await storage.init({ userId, databaseKey, forceNewDatabase: false })
+					await storage.init(new OfflineStorageArgs(userId, databaseKey, false))
 					const id = "id1"
 					const ownerGroup = "ownerGroup1"
 
@@ -631,7 +621,7 @@ o.spec("OfflineStorageDb", function () {
 				})
 
 				o.test("when updating list element types the rowid is preserved", async function () {
-					await storage.init({ userId, databaseKey, forceNewDatabase: false })
+					await storage.init(new OfflineStorageArgs(userId, databaseKey, false))
 					const id: IdTuple = ["id1", "idPart2"]
 					const ownerGroup = "ownerGroup1"
 
@@ -656,7 +646,7 @@ o.spec("OfflineStorageDb", function () {
 				})
 
 				o.test("when updating blob element types the rowid is preserved", async function () {
-					await storage.init({ userId, databaseKey, forceNewDatabase: false })
+					await storage.init(new OfflineStorageArgs(userId, databaseKey, false))
 					const id: IdTuple = ["id1", "idPart2"]
 					const ownerGroup = "ownerGroup1"
 
@@ -696,7 +686,7 @@ o.spec("OfflineStorageDb", function () {
 						}),
 					)
 
-					await storage.init({ userId: elementId, databaseKey, forceNewDatabase: false })
+					await storage.init(new OfflineStorageArgs(elementId, databaseKey, false))
 
 					let mail = await storage.get(MailTypeRef, listId, elementId)
 					o.check(mail).equals(null)
@@ -747,7 +737,7 @@ o.spec("OfflineStorageDb", function () {
 						}),
 					)
 
-					await storage.init({ userId: elementId, databaseKey, forceNewDatabase: false })
+					await storage.init(new OfflineStorageArgs(elementId, databaseKey, false))
 
 					let mail = await storage.get(MailTypeRef, listId, elementId)
 					o.check(mail).equals(null)
@@ -807,7 +797,7 @@ o.spec("OfflineStorageDb", function () {
 						conversationEntry: ["listId", "listElementId"],
 					})
 
-					await storage.init({ userId: elementId1, databaseKey, forceNewDatabase: false })
+					await storage.init(new OfflineStorageArgs(elementId1, databaseKey, false))
 
 					let mails = await storage.provideMultiple(MailTypeRef, listId, [elementId1])
 					o.check(mails).deepEquals([])
@@ -837,7 +827,7 @@ o.spec("OfflineStorageDb", function () {
 						mail: ["mailListId", "mailId"],
 					})
 
-					await storage.init({ userId: elementId, databaseKey, forceNewDatabase: false })
+					await storage.init(new OfflineStorageArgs(elementId, databaseKey, false))
 
 					let mailSetEntry = await storage.get(MailSetEntryTypeRef, listId, elementId)
 					o.check(mailSetEntry).equals(null)
@@ -876,7 +866,7 @@ o.spec("OfflineStorageDb", function () {
 					})
 					storableMailSetEntry2._original = structuredClone(storableMailSetEntry2)
 
-					await storage.init({ userId: elementId1, databaseKey, forceNewDatabase: false })
+					await storage.init(new OfflineStorageArgs(elementId1, databaseKey, false))
 
 					let mails = await storage.provideMultiple(MailSetEntryTypeRef, listId, [elementId1])
 					o.check(mails).deepEquals([])
@@ -907,7 +897,7 @@ o.spec("OfflineStorageDb", function () {
 						}),
 					})
 
-					await storage.init({ userId, databaseKey, forceNewDatabase: false })
+					await storage.init(new OfflineStorageArgs(userId, databaseKey, false))
 
 					let mailDetailsBlob = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
 					o.check(mailDetailsBlob).equals(null)
@@ -949,7 +939,7 @@ o.spec("OfflineStorageDb", function () {
 						}),
 					]
 
-					await storage.init({ userId, databaseKey, forceNewDatabase: false })
+					await storage.init(new OfflineStorageArgs(userId, databaseKey, false))
 
 					let mailDetailsBlob = await storage.provideMultiple(MailDetailsBlobTypeRef, archiveId, [blobElementId1, blobElementId2])
 					o.check(mailDetailsBlob).deepEquals([])
@@ -979,7 +969,7 @@ o.spec("OfflineStorageDb", function () {
 						}),
 					})
 
-					await storage.init({ userId, databaseKey, forceNewDatabase: false })
+					await storage.init(new OfflineStorageArgs(userId, databaseKey, false))
 
 					await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(storableMailDetails))
 
@@ -997,7 +987,7 @@ o.spec("OfflineStorageDb", function () {
 		const groupId1 = "groupId1"
 		const lastProcessedEventBatchId1 = "lastProcessedEventBatchId1"
 		o.beforeEach(async function () {
-			await storage.init({ userId, databaseKey, forceNewDatabase: false })
+			await storage.init(new OfflineStorageArgs(userId, databaseKey, false))
 			offlineStorageLastProcessedEventBatchStorageFacade = new OfflineStorageLastProcessedEventBatchStorageFacade(dbFacade)
 		})
 		o.test("getLastEntityEventBatchForGroup roundtrip works", async () => {

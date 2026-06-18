@@ -54,7 +54,7 @@ import { FormattedQuery, TaggedSqlValue } from "./Types"
 import { tagSqlValue, untagSqlObject, untagSqlValue } from "./SqlValue"
 import type { SqlValue } from "./Types.ts"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { OfflineStorageInitArgs } from "../../platform-kit/base/facades/CacheStorageLateInitializer"
+import { OfflineStorageArgs } from "../../platform-kit/base/facades/CacheStorageLateInitializer"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -239,7 +239,7 @@ export class OfflineStorage implements CacheStorage {
 	/**
 	 * @return {boolean} whether the database was newly created or not
 	 */
-	async init({ userId, databaseKey, forceNewDatabase }: OfflineStorageInitArgs): Promise<boolean> {
+	async init({ userId, databaseKey, forceNewDatabase }: OfflineStorageArgs): Promise<boolean> {
 		this.userId = userId
 		this.databaseKey = databaseKey
 		if (forceNewDatabase) {
