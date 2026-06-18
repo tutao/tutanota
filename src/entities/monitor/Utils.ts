@@ -1,5 +1,3 @@
-import { reverse } from "../../platform-kit/app-env"
-
 export enum CounterType {
 	Default = "0",
 	Signup = "1",
@@ -9,5 +7,3 @@ export enum CounterType {
 	UserStorage = "5",
 	GroupStorage = "6",
 }
-
-export const CounterTypeToName = reverse(CounterType)
