@@ -9,7 +9,12 @@ import { windowFacade } from "../../../common/misc/WindowFacade.js"
 import { RecipientsNotFoundError } from "../../../../platform-kit/network/error/RecipientsNotFoundError.js"
 import { findRecipientWithAddress } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 
-import { calendarAttendeeStatusSymbol, eventInviteEmailTypeToCalendarAttendeeStatus, formatEventDuration } from "../gui/CalendarGuiUtils.js"
+import {
+	calendarAttendeeStatusSymbol,
+	eventInviteEmailTypeToCalendarAttendeeStatus,
+	formatEventDuration,
+	TextFormatterTimezones,
+} from "../gui/CalendarGuiUtils.js"
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getLocationUrl } from "../gui/eventpopup/EventPreviewView"
 import { ProgrammingError } from "../../../../platform-kit/app-env"
@@ -270,7 +275,17 @@ export class CalendarNotificationSender {
 }
 
 function whenLine(event: CalendarEvent, highlightChange: boolean, theme: EmailTheme): string {
-	const duration = formatEventDuration(event, event.startTimeZone ?? getTimeZone(), event.endTimeZone ?? getTimeZone(), true)
+	const timezones: TextFormatterTimezones = {
+		calendarTimezone: getTimeZone(),
+	}
+	if (event.startTimeZone) {
+		timezones.startTimeZone = event.startTimeZone
+	}
+	if (event.endTimeZone) {
+		timezones.endTimeZone = event.endTimeZone
+	}
+
+	const duration = formatEventDuration(event, timezones, true)
 	return newLine(getLabel("when_label", highlightChange), duration, false)
 }
 
@@ -491,7 +506,18 @@ function isAttendanceUpdateNotification(eventInviteEmailType: EventInviteEmailTy
 
 function makePlainTextBody({ event, infoBannerMessage, eventInviteEmailType, comment }: EmailBodyIngredients) {
 	const organizer: CalendarEventAttendee | undefined = event.attendees.find((attendee) => attendee.address.address === event.organizer?.address)
-	const duration = formatEventDuration(event, event.startTimeZone ?? getTimeZone(), event.endTimeZone ?? getTimeZone(), true)
+
+	const timezones: TextFormatterTimezones = {
+		calendarTimezone: getTimeZone(),
+	}
+	if (event.startTimeZone) {
+		timezones.startTimeZone = event.startTimeZone
+	}
+	if (event.endTimeZone) {
+		timezones.endTimeZone = event.endTimeZone
+	}
+
+	const duration = formatEventDuration(event, timezones, true)
 	const eventLines: string[] = []
 
 	eventLines.push(`${infoBannerMessage}`)
