@@ -5,27 +5,29 @@ export interface CacheStorageInitReturn {
 	isNewOfflineDb: boolean
 }
 
-export interface EphemeralStorageArgs extends EphemeralStorageInitArgs {
-	type: "ephemeral"
+export abstract class StorageArgs {
+	__brand: null = null
 }
 
-export interface OfflineStorageInitArgs {
-	userId: Id
-	databaseKey: Uint8Array
-	timeRangeDate: Date | null
-	forceNewDatabase: boolean
+export class EphemeralStorageArgs extends StorageArgs {
+	constructor(readonly userId: Id) {
+		super()
+	}
 }
 
-export type OfflineStorageArgs = OfflineStorageInitArgs & {
-	type: "offline"
+export class OfflineStorageArgs extends StorageArgs {
+	constructor(
+		readonly userId: Id,
+		readonly databaseKey: Uint8Array,
+		readonly timeRangeDate: Date | null,
+		readonly forceNewDatabase: boolean,
+	) {
+		super()
+	}
 }
 
 export interface CacheStorageLateInitializer {
-	initialize(args: OfflineStorageArgs | EphemeralStorageArgs): Promise<CacheStorageInitReturn>
+	initialize(args: StorageArgs): Promise<CacheStorageInitReturn>
 
 	deInitialize(): Promise<void>
-}
-
-export interface EphemeralStorageInitArgs {
-	userId: Id
 }
