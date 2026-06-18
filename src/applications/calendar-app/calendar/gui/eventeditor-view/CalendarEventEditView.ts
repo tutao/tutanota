@@ -92,7 +92,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 		this.pages.set(EditorPages.REPEAT_RULES, this.renderRepeatRulesPage)
 		this.pages.set(EditorPages.GUESTS, this.renderGuestsPage)
-		this.pages.set(EditorPages.TIMEZONE_SELECTOR, this.renderTimezoneSelectorPage)
+		this.pages.set(EditorPages.TIMEZONE_SELECTOR, this.renderTimeZoneSelectorPage)
 
 		vnode.attrs.currentPage.map((page) => {
 			this.hasAnimationEnded = false
@@ -260,8 +260,8 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		)
 	}
 
-	private renderTimezoneSelectorPage({ attrs }: Vnode<CalendarEventEditViewAttrs>) {
-		return m(TimeZoneSelector)
+	private renderTimeZoneSelectorPage({ attrs }: Vnode<CalendarEventEditViewAttrs>) {
+		return m(TimeZoneSelector, { onSelectTimeZone: (timeZone) => console.log(`Selected time zone = ${timeZone}`) })
 	}
 
 	private renderRepeatRuleNavButton({ model, navigationCallback }: CalendarEventEditViewAttrs): Children {
