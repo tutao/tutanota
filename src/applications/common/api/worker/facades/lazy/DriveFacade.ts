@@ -75,6 +75,11 @@ export const enum DriveFolderType {
 	Trash = "2",
 }
 
+export interface DriveItemTimestamps {
+	createdDate: Date
+	updatedDate: Date
+}
+
 /**
  * Exposes operations on the Drive.
  */
@@ -180,7 +185,7 @@ export class DriveFacade {
 		return { files, folders }
 	}
 
-	public getFileTimestamps(file: WebFile | FileReference): [Date, Date] {
+	public async getFileTimestamps(file: WebFile | FileReference): Promise<DriveItemTimestamps> {
 		let createdDate: Date
 		let updatedDate: Date
 
@@ -193,7 +198,7 @@ export class DriveFacade {
 			updatedDate = new Date(file.modified)
 		}
 
-		return [createdDate, updatedDate]
+		return { createdDate, updatedDate }
 	}
 
 	/**
@@ -232,7 +237,7 @@ export class DriveFacade {
 			return null
 		}
 
-		const [createdDate, updatedDate] = this.getFileTimestamps(file)
+		const { createdDate, updatedDate } = await this.getFileTimestamps(file)
 		console.log("createdDate: ", createdDate)
 		console.log("updatedDate: ", updatedDate)
 

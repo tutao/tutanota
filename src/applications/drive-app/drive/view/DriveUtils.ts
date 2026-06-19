@@ -117,6 +117,8 @@ export interface DiskFolder<FileType> {
 	entry?: FileSystemDirectoryEntry
 
 	name: string
+	created: number
+	modified: number
 	files: FileType[]
 	folders: DiskFolder<FileType>[]
 }

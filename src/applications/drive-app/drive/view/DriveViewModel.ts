@@ -42,7 +42,7 @@ import { FileReference, WebFile } from "../../../../entities/tutanota/Utils"
 import { DownloadProgressInfo, TransferId, UploadProgressInfo } from "../../../../entities/drive/Utils"
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 import { isWebFile } from "../../../../ui/utils/FileUtils"
-import { isOfflineError, handleRestError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
+import { handleRestError, isOfflineError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { WebFileResolver } from "./WebFileResolver"
 
 export interface RegularFolder {
@@ -604,6 +604,7 @@ export class DriveViewModel {
 		for (const folder of folders ?? []) {
 			folder.name = pickNewFileName(folder.name, takenFileNames)
 			await walkTree({ folder, parent: targetFolderId }, async ({ folder: currentFolder, parent }) => {
+				const timestamps = await this.driveFacade.getFileTimestamps(currentFolder)
 				const createdFolder = await this.driveFacade.createFolder(currentFolder.name, parent)
 				for (const childFile of currentFolder.files) {
 					const fileName = isWebFile(childFile) ? childFile.file.name : childFile.name
