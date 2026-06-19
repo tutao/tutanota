@@ -382,6 +382,7 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 				showLeftBorderAtFirstColumn,
 			},
 			time: currentTime,
+			showTimeZonesAtEventBubble: dates.length <= 3, // Day View and Three Days View
 		} satisfies CalendarTimeGridAttributes)
 	}
 
