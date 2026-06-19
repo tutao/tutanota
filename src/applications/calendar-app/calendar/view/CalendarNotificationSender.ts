@@ -9,16 +9,12 @@ import { windowFacade } from "../../../common/misc/WindowFacade.js"
 import { RecipientsNotFoundError } from "../../../../platform-kit/network/error/RecipientsNotFoundError.js"
 import { findRecipientWithAddress } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 
-import {
-	calendarAttendeeStatusSymbol,
-	eventInviteEmailTypeToCalendarAttendeeStatus,
-	formatEventDuration,
-	getTextFormatterTimeZones,
-} from "../gui/CalendarGuiUtils.js"
+import { calendarAttendeeStatusSymbol, eventInviteEmailTypeToCalendarAttendeeStatus } from "../gui/CalendarGuiUtils.js"
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getLocationUrl } from "../gui/eventpopup/EventPreviewView"
 import { ProgrammingError } from "@tutao/app-env"
 import { ofClassAsync } from "../../../../platform-kit/utils/PromiseUtils"
+import { formatEventDuration, getTextFormatterTimeZones } from "../gui/DateTimeTextFormatterUtils"
 
 export class CalendarNotificationSender {
 	/** Used for knowing how many emails are in the process of being sent. */
