@@ -279,15 +279,15 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 				".flex.items-center.justify-center",
 				{
 					style: {
-						width: "24px",
-						height: "24px",
+						width: px(size.spacing_24),
+						height: px(size.spacing_24),
 					},
 				},
 				m("", {
 					style: {
 						borderRadius: "50%",
-						width: px(size.spacing_24),
-						height: px(size.spacing_24),
+						width: px(size.spacing_16),
+						height: px(size.spacing_16),
 						backgroundColor: `#${calendarColor}`,
 					},
 				}),
