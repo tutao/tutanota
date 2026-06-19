@@ -308,6 +308,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 														hideRightBorder: true,
 														showLeftBorderAtFirstColumn: false,
 													},
+													showTimeZonesAtEventBubble: false,
 												} satisfies CalendarTimeGridAttributes),
 											),
 										])
