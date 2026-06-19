@@ -96,6 +96,7 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 						interactions: eventBubbleHandlers,
 						baseDate: getFirstOrThrow(dates),
 						height: this.bubbleSize,
+						showTimeZones: false,
 					} satisfies CalendarEventBubbleAttrs,
 					eventWrapper.event.summary,
 				)
