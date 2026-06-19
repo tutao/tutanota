@@ -20,7 +20,7 @@ import { isAllDayEvent, setNextHalfHour } from "../../../common/api/common/utils
 import { Time } from "../../../common/calendar/date/Time.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
 
-import { formatEventTimesAtDate, getEventColor, getTextFormatterTimeZones, shouldDisplayEvent, shouldShowTimeZones } from "../gui/CalendarGuiUtils.js"
+import { getEventColor, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"
 import { PageView } from "../../../../ui/base/PageView.js"
 import { getIfLargeScroll } from "../../../../ui/base/GuiUtils.js"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager.js"
@@ -32,6 +32,7 @@ import { TimeIndicator } from "../../../common/calendar/gui/TimeIndicator"
 import { TimeBadgeVarient } from "../../../common/calendar/gui/TimeBadge"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { formatEventTimesAtDate, getTextFormatterTimeZones, shouldShowTimeZones } from "../gui/DateTimeTextFormatterUtils"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
