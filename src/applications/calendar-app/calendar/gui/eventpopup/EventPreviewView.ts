@@ -32,19 +32,13 @@ import { CalendarEventPreviewViewModel } from "./CalendarEventPreviewViewModel.j
 import { UpgradeRequiredError } from "../../../../common/api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/SubscriptionDialogs.js"
 import { ExternalLink } from "../../../../../ui/base/ExternalLink.js"
-import {
-	calendarAttendeeStatusSymbol,
-	formatEventDuration,
-	getDisplayEventTitle,
-	getTextFormatterTimeZones,
-	repeatRuleOptions,
-	shouldShowTimeZones,
-} from "../CalendarGuiUtils.js"
+import { calendarAttendeeStatusSymbol, getDisplayEventTitle, repeatRuleOptions } from "../CalendarGuiUtils.js"
 import { font_size, px, size } from "../../../../../ui/size.js"
 import { SearchToken } from "../../../../../ui/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../../ui/TextHighlightViewUtils"
 import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../../../ui/base/ExpandableTextArea.js"
 import { hasError } from "@tutao/meta"
+import { formatEventDuration, getTextFormatterTimeZones, shouldShowTimeZones } from "../DateTimeTextFormatterUtils"
 
 export type EventPreviewViewAttrs = {
 	calendarEventPreviewModel: CalendarEventPreviewViewModel
