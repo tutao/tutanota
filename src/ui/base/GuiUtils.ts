@@ -11,9 +11,11 @@ import m, { Children } from "mithril"
 import { IconButtonAttrs } from "./IconButton.js"
 import { client } from "../../platform-kit/app-env/boot/ClientDetector.js"
 import { isColorLight, isValidCSSHexColor } from "./Color.js"
-import { size } from "../size"
+import { font_size, px, size } from "../size"
 
 import { PosRect } from "../utils/PosRect"
+import { Icon, IconSize } from "./Icon"
+import { theme } from "../theme"
 
 export const enum DropType {
 	ExternalFile = "ExternalFile",
@@ -381,4 +383,88 @@ export function transformTouchEvent(event: TouchEvent): MouseEvent | undefined {
 export function getDetachedDropdownBounds(): PosRect {
 	// just putting the move mail dropdown in the left side of the viewport with a bit of margin
 	return new DomRectReadOnlyPolyfilled(size.spacing_24, size.spacing_32, 0, 0)
+}
+
+export function renderDragElement(name: string, icon: Icons, count: number, subString: string | null = null) {
+	const el = document.createElement("div")
+	document.body.append(el)
+	// TODO: Use theme as soon as we agreed on it.
+	const boxShadow = `#D5D5D5 1px 1px 1px`
+
+	m.render(
+		el,
+		m(
+			".rel",
+			{
+				style: {
+					// give some padding so we have the space to put the stack card and counter outside of the
+					// primary card
+					padding: px(size.spacing_8),
+					width: "200px",
+					// drag image element has to be in the DOM but we don't want it to be visible, shift it out of
+					// the view
+					translate: "-100%",
+				},
+			},
+			[
+				// when multiple elements are dragged render another card behind to create a "stack"
+				// it is offset almost to the edge of the container
+				count > 1
+					? m(".abs.border-radius-12", {
+							style: {
+								// TODO: Use theme as soon as we agreed on it.
+								background: "#EAEAEA",
+								width: `calc(100% - ${size.spacing_8}px * 2)`,
+								height: `calc(100% - ${size.spacing_8}px * 2)`,
+								right: px(size.spacing_8 / 2),
+								bottom: px(size.spacing_8 / 2),
+								boxShadow,
+							},
+						})
+					: null,
+				m(
+					".flex.items-center.overflow-hidden.border-radius-12.rel",
+					{
+						style: {
+							color: theme.on_surface,
+							padding: `${size.spacing_16}px ${size.spacing_8}px`,
+							background: theme.surface,
+							boxShadow,
+						},
+					},
+					m(Icon, {
+						icon: icon,
+						size: IconSize.PX24,
+						style: {
+							fill: theme.primary,
+							display: "block",
+							margin: `0 ${size.core_8}px`,
+						},
+					}),
+					m(".overflow-hidden", [m(".text-ellipsis", name), m(".text-ellipsis", subString ?? null)]),
+				),
+				// render counter in the corner
+				count > 1
+					? m(
+							".abs.small.text-center",
+							{
+								style: {
+									top: 0,
+									right: 0,
+									backgroundColor: theme.primary,
+									color: theme.on_primary,
+									aspectRatio: "1 / 1",
+									borderRadius: "100%",
+									padding: px(size.base_4),
+									lineHeight: px(font_size.small),
+									height: `calc(1em + ${size.base_4}px * 2)`,
+								},
+							},
+							count,
+						)
+					: null,
+			],
+		),
+	)
+	return el
 }

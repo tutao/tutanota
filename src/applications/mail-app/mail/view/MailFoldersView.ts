@@ -17,7 +17,7 @@ import { RowButton } from "../../../../ui/base/buttons/RowButton.js"
 import { MailModel } from "../model/MailModel.js"
 import { getFolderName, MAX_FOLDER_INDENT_LEVEL } from "../model/MailUtils.js"
 import { isSpamOrTrashFolder } from "../model/MailChecks.js"
-import { DropData, DropType } from "../../../../ui/base/GuiUtils"
+import { DropData, DropType, renderDragElement } from "../../../../ui/base/GuiUtils"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../../../../ui/HtmlUtils"
 import { theme } from "../../../../ui/theme.js"
@@ -129,7 +129,8 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 							requestAnimationFrame(() => {
 								if (domElement) domElement.style.background = ""
 							})
-
+							const el = renderDragElement(system.folder.name, Icons.FolderFilled, 0)
+							e.dataTransfer?.setDragImage(el, 10, 10)
 							e.dataTransfer?.setData(DropType.Folder, getElementId(system.folder))
 						}
 					: undefined,

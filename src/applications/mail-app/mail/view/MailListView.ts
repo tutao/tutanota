@@ -26,9 +26,9 @@ import { theme } from "../../../../ui/theme.js"
 import { VirtualRow } from "../../../../ui/base/ListUtils.js"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager.js"
 import { mailLocator } from "../../mailLocator.js"
-import { canDoDragAndDropExport } from "./MailViewerUtils.js"
+import { canDoDragAndDropExport, getSenderOrRecipientHeading } from "./MailViewerUtils.js"
 import { isDraft, isMailMovable, isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
-import { DropType } from "../../../../ui/base/GuiUtils"
+import { DropType, renderDragElement } from "../../../../ui/base/GuiUtils"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel"
 import { generateExportFileName } from "../export/emlUtils.js"
 import { makeTrackedProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
@@ -136,6 +136,13 @@ export class MailListView implements Component<MailListViewAttrs> {
 
 			this._doExportDrag(draggedMails)
 		} else if (styles.isDesktopLayout()) {
+			// provide the element that will be displayed as a dragged item
+			// it has to be in the DOM
+
+			const name = getSenderOrRecipientHeading(row, true)
+			const el = renderDragElement(name, Icons.MailFilled, selected.size, row.subject)
+			event.dataTransfer?.setDragImage(el, 10, 10)
+
 			// Desktop layout only because it doesn't make sense to drag mails to mailSets when the folder list and mail list aren't visible at the same time
 			event.dataTransfer?.setData(DropType.Mail, getElementId(mailUnderCursor))
 		} else {
