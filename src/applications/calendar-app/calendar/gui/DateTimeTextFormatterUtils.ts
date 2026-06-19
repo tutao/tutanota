@@ -57,7 +57,7 @@ export function formatEventDuration(
 	}
 }
 
-function formatTimeWithZoneInfo({ endTime, startTime }: CalendarEventTimes, showTime: EventTextTimeOption, formatterTimezones: TextFormatterTimezones) {
+export function formatTimeWithZoneInfo({ endTime, startTime }: CalendarEventTimes, showTime: EventTextTimeOption, formatterTimezones: TextFormatterTimezones) {
 	const startTimeZone = formatterTimezones.startTimeZone ?? formatterTimezones.calendarTimeZone
 	const startTimezoneCity = startTimeZone.split("/").at(-1)!.replaceAll("_", " ")
 
