@@ -3,19 +3,17 @@ import { ClipboardAction, DriveClipboard, SortColumn, SortingPreference } from "
 import { DriveFolderContentEntry, DriveFolderContentEntryAttrs, FileActions } from "./DriveFolderContentEntry"
 import { DriveSortArrow } from "./DriveSortArrow"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
-import { component_size, font_size, px, size } from "../../../../ui/size"
+import { component_size, px, size } from "../../../../ui/size"
 import { ListState } from "../../../../ui/base/List"
 import { getElementId, isSameId } from "../../../../platform-kit/meta"
-import { DropType } from "../../../../ui/base/GuiUtils"
-import { theme } from "../../../../ui/theme"
-import { Icon, IconSize } from "../../../../ui/base/Icon"
+import { DropType, renderDragElement } from "../../../../ui/base/GuiUtils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { FolderItem, folderItemEntity, FolderItemId } from "./DriveUtils"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager"
 import { Keys } from "../../../../platform-kit/app-env"
 import { DriveFolderContentMobile } from "./DriveFolderContentMobile"
 import { isMobileDriveLayout } from "./DriveGuiUtils"
-import { getDisplayType, getFileIcon, getItemIconFill } from "../model/DriveMimeUtils"
+import { getDisplayType, getFileIcon } from "../model/DriveMimeUtils"
 import { assertNotNull } from "../../../../platform-kit/utils"
 
 export type SelectionState = { type: "multiselect"; selectedItemCount: number; selectedAll: boolean } | { type: "none" }
@@ -179,7 +177,10 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 
 										// provide the element that will be displayed as a dragged item
 										// it has to be in the DOM
-										const el = this.renderDragElement(item, itemsToDrag.length)
+										const name = item.type === "folder" ? item.folder.name : item.file.name
+										const icon: Icons =
+											item.type === "folder" ? Icons.FolderFilled : getFileIcon(assertNotNull(getDisplayType(item.file.mimeType)))
+										const el = renderDragElement(name, icon, itemsToDrag.length)
 										event.dataTransfer?.setDragImage(el, 10, 10)
 										this.dragImageEl = el
 
@@ -203,90 +204,6 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 						),
 					],
 		)
-	}
-
-	private renderDragElement(item: FolderItem, count: number) {
-		const el = document.createElement("div")
-		document.body.append(el)
-		// TODO: Use theme as soon as we agreed on it.
-		const boxShadow = `#D5D5D5 1px 1px 1px`
-		const displayType = item.type === "file" ? getDisplayType(item.file.mimeType) : null
-		m.render(
-			el,
-			m(
-				".rel",
-				{
-					style: {
-						// give some padding so we have the space to put the stack card and counter outside of the
-						// primary card
-						padding: px(size.spacing_8),
-						width: "200px",
-						// drag image element has to be in the DOM but we don't want it to be visible, shift it out of
-						// the view
-						translate: "-100%",
-					},
-				},
-				[
-					// when multiple elements are dragged render another card behind to create a "stack"
-					// it is offset almost to the edge of the container
-					count > 1
-						? m(".abs.border-radius-12", {
-								style: {
-									// TODO: Use theme as soon as we agreed on it.
-									background: "#EAEAEA",
-									width: `calc(100% - ${size.spacing_8}px * 2)`,
-									height: `calc(100% - ${size.spacing_8}px * 2)`,
-									right: px(size.spacing_8 / 2),
-									bottom: px(size.spacing_8 / 2),
-									boxShadow,
-								},
-							})
-						: null,
-					m(
-						".flex.items-center.overflow-hidden.border-radius-12.rel",
-						{
-							style: {
-								color: theme.on_surface,
-								padding: `${size.spacing_16}px ${size.spacing_8}px`,
-								background: theme.surface,
-								boxShadow,
-							},
-						},
-						m(Icon, {
-							icon: item.type === "folder" ? Icons.FolderFilled : getFileIcon(assertNotNull(displayType)),
-							size: IconSize.PX24,
-							style: {
-								fill: getItemIconFill(displayType),
-								display: "block",
-								margin: `0 ${size.core_8}px`,
-							},
-						}),
-						m(".text-ellipsis", item.type === "folder" ? item.folder.name : item.file.name),
-					),
-					// render counter in the corner
-					count > 1
-						? m(
-								".abs.small.text-center",
-								{
-									style: {
-										top: 0,
-										right: 0,
-										backgroundColor: theme.primary,
-										color: theme.on_primary,
-										aspectRatio: "1 / 1",
-										borderRadius: "100%",
-										padding: px(size.base_4),
-										lineHeight: px(font_size.small),
-										height: `calc(1em + ${size.base_4}px * 2)`,
-									},
-								},
-								count,
-							)
-						: null,
-				],
-			),
-		)
-		return el
 	}
 
 	private renderHeader(selection: SelectionState, sortOrder: SortingPreference, onSort: (column: SortColumn) => unknown, onSelectAll: () => unknown) {
