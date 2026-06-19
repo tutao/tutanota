@@ -2573,24 +2573,8 @@
 			},
 			"1852": {
 				"final": true,
-				"name": "firstRecipientName",
-				"id": 1852,
-				"type": "String",
-				"cardinality": "ZeroOrOne",
-				"encrypted": true
-			},
-			"1853": {
-				"final": true,
 				"name": "recipientId",
-				"id": 1853,
-				"type": "CustomId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"1854": {
-				"final": true,
-				"name": "firstRecipientId",
-				"id": 1854,
+				"id": 1852,
 				"type": "CustomId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -2789,34 +2773,34 @@
 				"cardinality": "ZeroOrOne",
 				"encrypted": true
 			},
-			"1855": {
-				"final": true,
-				"name": "recipientsId",
-				"id": 1855,
-				"type": "CustomId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"1856": {
-				"final": true,
-				"name": "mailDetailsId",
-				"id": 1856,
-				"type": "CustomId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
-			"1857": {
-				"final": true,
-				"name": "bodyId",
-				"id": 1857,
-				"type": "CustomId",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false
-			},
 			"1858": {
 				"final": true,
-				"name": "senderId",
+				"name": "recipientsId",
 				"id": 1858,
+				"type": "CustomId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"1859": {
+				"final": true,
+				"name": "mailDetailsId",
+				"id": 1859,
+				"type": "CustomId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"1860": {
+				"final": true,
+				"name": "bodyId",
+				"id": 1860,
+				"type": "CustomId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"1861": {
+				"final": true,
+				"name": "senderId",
+				"id": 1861,
 				"type": "CustomId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -2875,6 +2859,15 @@
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 612,
+				"dependency": null
+			},
+			"1862": {
+				"final": true,
+				"name": "firstRecipient",
+				"id": 1862,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 1853,
 				"dependency": null
 			}
 		}
@@ -10173,7 +10166,63 @@
 				"cardinality": "Any",
 				"refTypeId": 542,
 				"dependency": null
+			},
+			"1865": {
+				"final": true,
+				"name": "firstRecipients",
+				"id": 1865,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1853,
+				"dependency": null
 			}
 		}
+	},
+	"1853": {
+		"name": "FirstRecipient",
+		"app": "tutanota",
+		"version": 109,
+		"since": 109,
+		"type": "AGGREGATED_TYPE",
+		"id": 1853,
+		"rootId": "CHR1dGFub3RhAAc9",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1854": {
+				"final": true,
+				"name": "_id",
+				"id": 1854,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1855": {
+				"final": true,
+				"name": "mailAddress",
+				"id": 1855,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1856": {
+				"final": true,
+				"name": "skEncName",
+				"id": 1856,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1857": {
+				"final": true,
+				"name": "aggregatedId",
+				"id": 1857,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
 	}
 }

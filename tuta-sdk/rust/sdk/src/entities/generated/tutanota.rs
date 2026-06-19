@@ -1002,11 +1002,7 @@ pub struct DraftRecipient {
 	#[serde(rename = "485")]
 	pub mailAddress: String,
 	#[serde(rename = "1852")]
-	pub firstRecipientName: Option<String>,
-	#[serde(rename = "1853")]
 	pub recipientId: Option<CustomId>,
-	#[serde(rename = "1854")]
-	pub firstRecipientId: Option<CustomId>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -1092,13 +1088,13 @@ pub struct DraftData {
 	pub method: i64,
 	#[serde(rename = "1194")]
 	pub compressedBodyText: Option<String>,
-	#[serde(rename = "1855")]
-	pub recipientsId: Option<CustomId>,
-	#[serde(rename = "1856")]
-	pub mailDetailsId: Option<CustomId>,
-	#[serde(rename = "1857")]
-	pub bodyId: Option<CustomId>,
 	#[serde(rename = "1858")]
+	pub recipientsId: Option<CustomId>,
+	#[serde(rename = "1859")]
+	pub mailDetailsId: Option<CustomId>,
+	#[serde(rename = "1860")]
+	pub bodyId: Option<CustomId>,
+	#[serde(rename = "1861")]
 	pub senderId: Option<CustomId>,
 	#[serde(rename = "503")]
 	pub toRecipients: Vec<DraftRecipient>,
@@ -1112,6 +1108,8 @@ pub struct DraftData {
 	pub removedAttachments: Vec<IdTupleGenerated>,
 	#[serde(rename = "819")]
 	pub replyTos: Vec<EncryptedMailAddress>,
+	#[serde(rename = "1862")]
+	pub firstRecipient: Option<FirstRecipient>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -4358,6 +4356,8 @@ pub struct SendDraftParameters {
 	pub symEncInternalRecipientKeyData: Vec<SymEncInternalRecipientKeyData>,
 	#[serde(rename = "1800")]
 	pub attachmentKeyData: Vec<AttachmentKeyData>,
+	#[serde(rename = "1865")]
+	pub firstRecipients: Vec<FirstRecipient>,
 }
 
 impl Entity for SendDraftParameters {
@@ -4365,6 +4365,29 @@ impl Entity for SendDraftParameters {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(1788),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct FirstRecipient {
+	#[serde(rename = "1854")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1855")]
+	pub mailAddress: String,
+	#[serde(rename = "1856")]
+	#[serde(with = "serde_bytes")]
+	pub skEncName: Vec<u8>,
+	#[serde(rename = "1857")]
+	pub aggregatedId: CustomId,
+}
+
+impl Entity for FirstRecipient {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1853),
 		}
 	}
 }

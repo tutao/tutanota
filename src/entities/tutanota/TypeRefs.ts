@@ -630,9 +630,7 @@ export type DraftRecipient = {
 	_id: Id;
 	name: string;
 	mailAddress: string;
-	firstRecipientName: null | string;
 	recipientId: null | Id;
-	firstRecipientId: null | Id;
 }
 export const NewDraftAttachmentTypeRef: TypeRef<NewDraftAttachment> = new TypeRef("tutanota", 486)
 
@@ -697,6 +695,7 @@ export type DraftData = {
 	addedAttachments: DraftAttachment[];
 	removedAttachments: IdTuple[];
 	replyTos: EncryptedMailAddress[];
+	firstRecipient: null | FirstRecipient;
 }
 export const DraftCreateDataTypeRef: TypeRef<DraftCreateData> = new TypeRef("tutanota", 508)
 
@@ -2798,4 +2797,20 @@ export type SendDraftParameters = {
 	secureExternalRecipientKeyData: SecureExternalRecipientKeyData[];
 	symEncInternalRecipientKeyData: SymEncInternalRecipientKeyData[];
 	attachmentKeyData: AttachmentKeyData[];
+	firstRecipients: FirstRecipient[];
+}
+export const FirstRecipientTypeRef: TypeRef<FirstRecipient> = new TypeRef("tutanota", 1853)
+
+export function createFirstRecipient(values: StrippedEntity<FirstRecipient>): FirstRecipient {
+    return Object.assign(create(typeModels[FirstRecipientTypeRef.typeId], FirstRecipientTypeRef), values)
+}
+
+export type FirstRecipient = {
+	_type: TypeRef<FirstRecipient>;
+	_original?: FirstRecipient
+
+	_id: Id;
+	mailAddress: string;
+	skEncName: Uint8Array;
+	aggregatedId: Id;
 }
