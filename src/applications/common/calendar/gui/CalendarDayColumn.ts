@@ -24,6 +24,7 @@ export type CalendarDayColumnAttrs = {
 		hideRightBorder: boolean
 		showLeftBorder: boolean
 	}
+	showTimeZonesAtEventBubble: boolean
 }
 
 export class CalendarDayColumn implements ClassComponent<CalendarDayColumnAttrs> {
@@ -94,17 +95,12 @@ export class CalendarDayColumn implements ClassComponent<CalendarDayColumnAttrs>
 	 * Renders a column of events using grids for a given base date.
 	 * This function is deepMemoized to prevent unnecessary layout calculation
 	 *
-	 * @param eventsForThisDate - Array of events to render in this column
-	 * @param timeRange - Visible time range for the day (e.g., 00:00 AM to 23:00 PM)
-	 * @param subRowAsMinutes - Minutes represented by each grid subrow
-	 * @param timeScale - Time scale factor for interval subdivision (1, 2, or 4)
-	 * @param baseDate - The date for this column
 	 * @returns Child nodes representing the rendered events
 	 *
-	 * @private
+	 * @param columnViewAttrs
 	 */
 	private renderEvents(columnViewAttrs: CalendarDayColumnAttrs): Children {
-		const { timeColumnGrid, baseDate, eventInteractions, intervals } = columnViewAttrs
+		const { timeColumnGrid, baseDate, eventInteractions, intervals, showTimeZonesAtEventBubble } = columnViewAttrs
 
 		const firstInterval = getFirstOrThrow(intervals)
 		const secondInterval = assertNotNull(intervals.at(1))
@@ -133,6 +129,7 @@ export class CalendarDayColumn implements ClassComponent<CalendarDayColumnAttrs>
 					start: false,
 					end: false,
 				},
+				showTimeZones: showTimeZonesAtEventBubble,
 			} satisfies CalendarEventBubbleAttrs)
 		})
 	}
