@@ -6,10 +6,10 @@ import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { FULL_INDEXED_TIMESTAMP } from "../../../../platform-kit/app-env"
 import { formatDate } from "../../../../ui/utils/Formatter.js"
-import { formatEventDuration } from "../gui/CalendarGuiUtils.js"
 import { getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
 import { isSameTypeRef, TypeRef } from "../../../../platform-kit/meta"
+import { formatEventDuration } from "../gui/DateTimeTextFormatterUtils"
 
 type CalendarSearchBarOverlayAttrs = {
 	state: CalendarSearchBarState
