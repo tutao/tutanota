@@ -405,11 +405,14 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 		}
 
 		const diff = DateTime.fromJSDate(eventTimeRange.endTime).diff(DateTime.fromObject(dateParts).plus({ minutes: interval }), "minutes").minutes
-
 		const diffFromRangeStartToEventEnd = timeRange.start.diff(Time.fromDate(eventTimeRange.endTime))
+
 		const eventEndsAfterRange = eventTimeRange.endTime > getStartOfNextDay(baseDate) || diff > 0
+		const eventEndsAtMidnight = eventTimeRange.endTime.getTime() === getStartOfNextDay(baseDate).getTime()
+
 		const maxRows = (timeRange.end.asMinutes() + interval - timeRange.start.asMinutes()) / subRowAsMinutes + 1
-		let end = eventEndsAfterRange ? maxRows : Math.ceil(diffFromRangeStartToEventEnd / subRowAsMinutes) + 1
+
+		let end = eventEndsAfterRange || eventEndsAtMidnight ? maxRows : Math.ceil(diffFromRangeStartToEventEnd / subRowAsMinutes) + 1
 		if (!eventEndsAfterRange) {
 			end = Math.max(end, start + MIN_ROW_SPAN) // Assert events has at least row span of MIN_ROW_SPAN
 		}
