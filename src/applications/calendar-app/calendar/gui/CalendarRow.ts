@@ -6,10 +6,11 @@ import { getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { ViewHolder } from "../../../../ui/base/List.js"
 import { styles } from "../../../../ui/styles.js"
 import { DefaultAnimationTime } from "../../../../ui/animation/Animations.js"
-import { formatEventDuration, getEventColor } from "./CalendarGuiUtils.js"
+import { getEventColor } from "./CalendarGuiUtils.js"
 import { GroupColors } from "../view/CalendarView.js"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { CalendarInfoBase } from "../model/CalendarModel"
+import { formatEventDuration } from "./DateTimeTextFormatterUtils"
 
 export class CalendarRow implements VirtualRow<CalendarEvent> {
 	top: number

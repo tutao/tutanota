@@ -11,11 +11,12 @@ import {
 	EventWrapper,
 	EventWrapperFlags,
 } from "../../../calendar-app/calendar/view/CalendarViewModel"
-import { formatEventTime, getDisplayEventTitle, TEMPORARY_EVENT_OPACITY } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
+import { getDisplayEventTitle, TEMPORARY_EVENT_OPACITY } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { EventTextTimeOption, TabIndex } from "@tutao/app-env"
 import { EventWrapperFlagKeys, FlagKeyToIcon, getDiffIn60mIntervals, getTimeTextFormatForLongEvent, getTimeZone } from "../date/CalendarUtils"
 import { Time } from "../date/Time"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
+import { formatEventTime } from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
 
 export const MIN_ROW_SPAN = 3
 
