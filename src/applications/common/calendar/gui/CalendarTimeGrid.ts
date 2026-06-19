@@ -42,6 +42,7 @@ export interface CalendarTimeGridAttributes {
 	 * When defined, renders a time indicator at the provided time for the current date
 	 */
 	time?: Time
+	showTimeZonesAtEventBubble: boolean
 }
 
 /**
@@ -177,6 +178,7 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 			cellActionHandlers,
 			eventBubbleHandlers,
 			layout: { rowCountForRange, gridRowHeight },
+			showTimeZonesAtEventBubble,
 		} = timeViewAttrs
 		const subRowAsMinutes = getSubRowAsMinutes(timeScale)
 		const startOfTomorrow = getStartOfNextDay(baseDate)
@@ -199,6 +201,7 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 				gridRowHeight,
 			},
 			time: timeViewAttrs.time,
+			showTimeZonesAtEventBubble,
 		} as CalendarDayColumnAttrs)
 	}
 
