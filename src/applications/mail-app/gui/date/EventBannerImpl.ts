@@ -20,7 +20,7 @@ import { styles } from "../../../../ui/styles"
 import { layout_size, px, size } from "../../../../ui/size"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
-import { collidesWith, formatEventTimesAtDate, getTextFormatterTimeZones, shouldShowTimeZones } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
+import { collidesWith } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { BannerButton } from "../../../../ui/base/buttons/BannerButton"
 import { ReplyButtons } from "../../../calendar-app/calendar/gui/eventpopup/EventPreviewView"
@@ -42,6 +42,7 @@ import { Keys, ProgrammingError, SECOND_IN_MILLIS, TabIndex } from "@tutao/app-e
 import { clone, GENERATED_MIN_ID } from "@tutao/meta"
 import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
 import { getTimeZone } from "../../../common/calendar/date/CalendarUtils"
+import { formatEventTimesAtDate, getTextFormatterTimeZones, shouldShowTimeZones } from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData

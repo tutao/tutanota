@@ -7,7 +7,6 @@ import { memoized, noOp } from "../../../../../platform-kit/utils"
 import { lang, TranslationKey } from "../../../../../ui/utils/LanguageViewModel.js"
 import { BannerButton, BannerButtonAttrs } from "../../../../../ui/base/buttons/BannerButton.js"
 import { pureComponent } from "../../../../../ui/base/PureComponent.js"
-import { formatEventDuration } from "../CalendarGuiUtils.js"
 import { getLocationUrl } from "./EventPreviewView.js"
 import { isoDateToBirthday } from "../../../../common/api/common/utils/BirthdayUtils.js"
 import { createDropdown } from "../../../../../ui/base/Dropdown.js"
@@ -15,6 +14,7 @@ import { writeMail } from "../../../../mail-app/contacts/view/ContactView.js"
 import { getContactTitle } from "../../../../common/contactsFunctionality/ContactUtils"
 import { CalendarEvent, Contact } from "@tutao/entities/tutanota"
 import { client } from "../../../../../platform-kit/app-env/boot/ClientDetector"
+import { formatEventDuration } from "../DateTimeTextFormatterUtils"
 
 export type ContactPreviewViewAttrs = {
 	event: CalendarEvent
