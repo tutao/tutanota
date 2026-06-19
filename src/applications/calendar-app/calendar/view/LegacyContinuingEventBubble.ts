@@ -3,11 +3,12 @@ import { getTimeZone, hasAlarmsForTheUser, isBirthdayCalendar } from "../../../c
 import { listIdPart } from "@tutao/meta"
 import type { EventTextTimeOption } from "@tutao/app-env"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventWrapper } from "./CalendarViewModel"
-import { formatEventTime, getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
+import { getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
 import { LegacyCalendarEventBubble } from "./LegacyCalendarEventBubble"
 import { px } from "../../../../ui/size"
 import { normalizeColorHex } from "../../../../ui/base/GuiUtils"
 import { User } from "@tutao/entities/sys"
+import { formatEventTime } from "../gui/DateTimeTextFormatterUtils"
 
 export type LegacyContinuingCalendarEventBubbleAttrs = {
 	eventWrapper: EventWrapper
