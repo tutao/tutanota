@@ -30,6 +30,7 @@ import {
 	moveMails,
 	moveMailsToSystemFolder,
 	showDownloadProgressDialog,
+	showMoveMailsDropdown,
 } from "./MailGuiUtils"
 import { DownloadPostProcessing, FileController } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
@@ -54,8 +55,8 @@ import { InlineImages, revokeInlineImages } from "../../../common/mailFunctional
 import { getDefaultSender, getEnabledMailAddressesWithUser, getMailboxName, isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
-import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./MailViewerUtils.js"
-import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
+import { editDraft, isNoReplyTeamAddress, isSystemNotification, loadMailDetails, MailViewerToolbarActions } from "./MailViewerUtils.js"
+import { getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
 import { isDraft, isEditableDraft, isMailDeletable, isMailMovable, isMailScheduled } from "../model/MailChecks"
 import type { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
@@ -88,6 +89,10 @@ import {
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EncryptionAuthStatus, FeatureType, isBrowser, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
+import { LabelsPopup } from "./LabelsPopup"
+import { styles } from "../../../../ui/styles"
+import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
+import { PosRect } from "../../../../ui/utils/PosRect"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -595,30 +600,25 @@ export class MailViewerViewModel {
 
 	async reportSpamForMail(reportType: MailReportType): Promise<void> {
 		try {
-			const mailboxDetail = await this.mailModel.getMailboxDetailsForMail(this.mail)
-			// We should always have a mailbox, the check above throws due AssertNotNull in response.
-			if (mailboxDetail == null) {
-				return
-			}
-			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
-			const spamFolder = assertSystemFolderOfType(folders, MailSetKind.SPAM)
-
-			if (reportType === MailReportType.PHISHING) {
-				// When reported as phishing mail is moved to spam, this move can't be undone
-				await this.markAsPhishing()
-				await this.mailModel.moveMails([this.mail._id], spamFolder, MoveMode.Mails)
-				await this.mailModel.reportMails(MailReportType.PHISHING, [this.mail])
-			} else {
-				// The moving of mails into spam folder will mark them as spam
-				await moveMails({
-					mailboxModel: this.mailboxModel,
-					mailModel: this.mailModel,
-					mailIds: [this.mail._id],
-					targetFolder: spamFolder,
-					moveMode: MoveMode.Mails,
-					undoModel: this.undoModel,
-					contactModel: mailLocator.contactModel,
-				})
+			const currentFolder = this.mailModel.getMailFolderForMail(this.mail)
+			if (currentFolder) {
+				if (reportType === MailReportType.PHISHING) {
+					// When reported as phishing mail is moved to spam, this move can't be undone
+					await this.markAsPhishing()
+					await this.mailModel.simpleMoveMails([this.mail._id], MailSetKind.SPAM)
+					await this.mailModel.reportMails(MailReportType.PHISHING, [this.mail])
+				} else {
+					await moveMailsToSystemFolder({
+						mailboxModel: locator.mailboxModel,
+						mailModel: this.mailModel,
+						mailIds: [this.mail._id],
+						targetFolderType: MailSetKind.SPAM,
+						currentFolder,
+						moveMode: MoveMode.Mails,
+						undoModel: this.undoModel,
+						contactModel: mailLocator.contactModel,
+					})
+				}
 			}
 		} catch (e) {
 			if (e instanceof NotFoundError) {
@@ -1439,5 +1439,65 @@ export class MailViewerViewModel {
 
 	isExternalUser() {
 		return !this.logins.isInternalUserLoggedIn()
+	}
+
+	// Trash or Delete is passed in as this is handled different ways in different views
+	getMailActions(deleteAction: (() => unknown) | null, trash: (() => unknown) | null): MailViewerToolbarActions {
+		const actions: MailViewerToolbarActions = {}
+
+		if (this.isScheduled()) {
+			actions.cancelScheduled = async () => {
+				await this.unscheduleMail()
+				editDraft(this)
+			}
+		} else if (this.isEditableDraft()) {
+			actions.edit = () => editDraft(this)
+		} else {
+			if (this.canReply()) {
+				actions.reply = () => this.reply(false)
+			}
+			if (this.canReplyAll()) {
+				actions.replyAll = () => this.reply(true)
+			}
+			if (this.canForward()) {
+				actions.forward = () => this.forward()
+			}
+		}
+
+		if (this.isMovableMail()) {
+			actions.move = (origin: PosRect) => {
+				showMoveMailsDropdown(this.mailboxModel, this.mailModel, this.undoModel, origin, [this.mail], MoveMode.Mails, mailLocator.contactModel)
+			}
+		}
+
+		if (this.mailModel.canAssignLabels()) {
+			actions.label = (dom: HTMLElement) => {
+				const popup = new LabelsPopup(
+					dom,
+					dom.getBoundingClientRect(),
+					styles.isDesktopLayout() ? 300 : 200,
+					new LabelsPopupViewModel(this.mailModel.getLabelsForMails([this.mail]), this.mailModel.getLabelStatesForMails([this.mail])),
+					(addedLabels, removedLabels) => this.mailModel.applyLabels([this.mail._id], addedLabels, removedLabels),
+				)
+				// waiting for the dropdown to be closed
+				setTimeout(() => {
+					popup.show()
+				}, 16)
+			}
+		}
+
+		if (this.isDeletingMailAllowed() && deleteAction) {
+			actions.deleteAction = deleteAction
+		} else if (this.isMovableMail() && trash) {
+			actions.trash = trash
+		}
+
+		if (this.isUnread()) {
+			actions.read = () => this.setUnread(false)
+		} else {
+			actions.unread = () => this.setUnread(true)
+		}
+
+		return actions
 	}
 }

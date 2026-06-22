@@ -11,6 +11,8 @@ import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { getFolderIcon } from "./MailGuiUtils"
 import { MailSet } from "@tutao/entities/tutanota"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { contextDropdown } from "../../../../ui/base/GuiUtils"
+import { DropdownButtonAttrs } from "../../../../ui/base/Dropdown"
 
 export type MailFolderRowAttrs = {
 	count: number
@@ -28,6 +30,7 @@ export type MailFolderRowAttrs = {
 	onHover: () => void
 	onDragEnter: () => void
 	fullFolderPath: string
+	contextMenuButtonAttrs: DropdownButtonAttrs[]
 }
 
 export class MailFolderRow implements Component<MailFolderRowAttrs> {
@@ -66,6 +69,9 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 				onmouseenter: onHover,
 				onmouseleave: () => {
 					this.hovered = false
+				},
+				oncontextmenu: (e: MouseEvent) => {
+					contextDropdown(e, vnode.attrs.contextMenuButtonAttrs)
 				},
 			},
 			[
