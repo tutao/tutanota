@@ -1,6 +1,6 @@
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
-import { assertNotNull, count, debounce, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass, settledThen } from "@tutao/utils"
+import { assertNotNull, count, debounce, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass } from "../../../../platform-kit/utils"
 import { ListLoadingState, ListState } from "../../../../ui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
@@ -82,8 +82,6 @@ export class MailViewModel {
 	private currentShowTargetMarker: object = {}
 	/* We only attempt counter fixup once after switching mailSets and loading the list fully. */
 	private shouldAttemptCounterFixup: boolean = true
-
-	private listModelReloadPromise: Promise<unknown> = Promise.resolve()
 
 	constructor(
 		private readonly mailboxModel: MailboxModel,
@@ -435,19 +433,6 @@ export class MailViewModel {
 			// if the preference for conversation in the list has changed, we need to re-create the list model
 			this.updateListModel()
 		}
-		this.syncTracker.addSyncDoneListener({
-			onSyncDone: async () => {
-				if (this.listModel) {
-					// chain reloads to prevent race conditions when sync is marked as done before an ongoing reload is settled
-					this.listModelReloadPromise = settledThen(this.listModelReloadPromise, async () => {
-						await this.listModel?.reload()
-					})
-				} else {
-					this.updateListModel()
-				}
-			},
-			priority: SyncDonePriority.HIGH,
-		})
 	}
 
 	private readonly onceInit = lazyMemoized(() => {
@@ -734,10 +719,7 @@ export class MailViewModel {
 				}
 			}
 
-			if (isInitialSyncDone) {
-				// we need to await the reload promise here, to populate the map (conversationMap/mailMap) inside the list model
-				this.listModelReloadPromise.then(async () => await listModel.handleEntityUpdate(update))
-			}
+			await listModel.handleEntityUpdate(update)
 		}
 	}
 
