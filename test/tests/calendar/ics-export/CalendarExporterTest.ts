@@ -12,11 +12,11 @@ import { EndType, RepeatPeriod } from "../../../../src/platform-kit/app-env"
 import { getAllDayDateUTC } from "../../../../src/applications/common/api/common/utils/CommonCalendarUtils.js"
 import { createTestEntity } from "../../TestUtils.js"
 
-import { CalendarEventTypeRef } from "@tutao/entities/tutanota"
+import { CalendarEventTypeRef, CalendarRepeatRuleTypeRef } from "@tutao/entities/tutanota"
 
 import { AlarmInfoTypeRef, DateWrapperTypeRef, RepeatRuleTypeRef, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
 
-const zone = "Europe/Berlin"
+const calendarTimeZone = "Europe/Berlin"
 const now = new Date("2019-08-13T14:01:00.630Z")
 
 o.spec("CalendarExporter", function () {
@@ -36,7 +36,7 @@ o.spec("CalendarExporter", function () {
 								hour: 5,
 								minute: 6,
 							},
-							{ zone },
+							{ zone: calendarTimeZone },
 						).toJSDate(),
 						endTime: DateTime.fromObject(
 							{
@@ -46,7 +46,7 @@ o.spec("CalendarExporter", function () {
 								hour: 5,
 								minute: 6,
 							},
-							{ zone },
+							{ zone: calendarTimeZone },
 						).toJSDate(),
 						description: "Descr \\ ;, \n",
 						uid: "test@tuta.com",
@@ -54,7 +54,7 @@ o.spec("CalendarExporter", function () {
 					}),
 					[],
 					now,
-					zone,
+					calendarTimeZone,
 				),
 			).deepEquals([
 				"BEGIN:VEVENT",
@@ -180,7 +180,7 @@ o.spec("CalendarExporter", function () {
 								hour: 5,
 								minute: 6,
 							},
-							{ zone },
+							{ zone: calendarTimeZone },
 						).toJSDate(),
 						endTime: DateTime.fromObject(
 							{
@@ -190,13 +190,13 @@ o.spec("CalendarExporter", function () {
 								hour: 5,
 								minute: 6,
 							},
-							{ zone },
+							{ zone: calendarTimeZone },
 						).toJSDate(),
 						description: "Descr \\ ; \n",
 					}),
 					[alarmOne, alarmTwo],
 					now,
-					zone,
+					calendarTimeZone,
 				),
 			).deepEquals([
 				"BEGIN:VEVENT",
@@ -220,6 +220,7 @@ o.spec("CalendarExporter", function () {
 				"END:VEVENT",
 			])
 		})
+
 		o.spec("Repeat rule", function () {
 			o("with repeat rule (never ends)", function () {
 				o(
@@ -236,7 +237,7 @@ o.spec("CalendarExporter", function () {
 									hour: 5,
 									minute: 6,
 								},
-								{ zone },
+								{ zone: calendarTimeZone },
 							).toJSDate(),
 							endTime: DateTime.fromObject(
 								{
@@ -246,24 +247,24 @@ o.spec("CalendarExporter", function () {
 									hour: 5,
 									minute: 6,
 								},
-								{ zone },
+								{ zone: calendarTimeZone },
 							).toJSDate(),
 							repeatRule: createTestEntity(RepeatRuleTypeRef, {
 								endType: EndType.Never,
 								interval: "3",
 								frequency: RepeatPeriod.WEEKLY,
-								timeZone: zone,
+								timeZone: calendarTimeZone,
 								endValue: null,
 							}),
 						}),
 						[],
 						now,
-						zone,
+						calendarTimeZone,
 					),
 				).deepEquals([
 					"BEGIN:VEVENT",
-					`DTSTART;TZID=${zone}:20190813T050600`,
-					`DTEND;TZID=${zone}:20190913T050600`,
+					`DTSTART;TZID=${calendarTimeZone}:20190813T050600`,
+					`DTEND;TZID=${calendarTimeZone}:20190913T050600`,
 					`DTSTAMP:20190813T140100Z`,
 					`UID:ownerId${now.getTime()}@tuta.com`,
 					"SEQUENCE:0",
@@ -287,7 +288,7 @@ o.spec("CalendarExporter", function () {
 									hour: 5,
 									minute: 6,
 								},
-								{ zone },
+								{ zone: calendarTimeZone },
 							).toJSDate(),
 							endTime: DateTime.fromObject(
 								{
@@ -297,24 +298,24 @@ o.spec("CalendarExporter", function () {
 									hour: 5,
 									minute: 6,
 								},
-								{ zone },
+								{ zone: calendarTimeZone },
 							).toJSDate(),
 							repeatRule: createTestEntity(RepeatRuleTypeRef, {
 								endType: EndType.Count,
 								interval: "3",
 								frequency: RepeatPeriod.DAILY,
 								endValue: "100",
-								timeZone: zone,
+								timeZone: calendarTimeZone,
 							}),
 						}),
 						[],
 						now,
-						zone,
+						calendarTimeZone,
 					),
 				).deepEquals([
 					"BEGIN:VEVENT",
-					`DTSTART;TZID=${zone}:20190813T050600`,
-					`DTEND;TZID=${zone}:20190913T050600`,
+					`DTSTART;TZID=${calendarTimeZone}:20190813T050600`,
+					`DTEND;TZID=${calendarTimeZone}:20190913T050600`,
 					`DTSTAMP:20190813T140100Z`,
 					`UID:ownerId${now.getTime()}@tuta.com`,
 					"SEQUENCE:0",
@@ -338,7 +339,7 @@ o.spec("CalendarExporter", function () {
 									hour: 5,
 									minute: 6,
 								},
-								{ zone },
+								{ zone: calendarTimeZone },
 							).toJSDate(),
 							endTime: DateTime.fromObject(
 								{
@@ -348,7 +349,7 @@ o.spec("CalendarExporter", function () {
 									hour: 5,
 									minute: 6,
 								},
-								{ zone },
+								{ zone: calendarTimeZone },
 							).toJSDate(),
 							repeatRule: createTestEntity(RepeatRuleTypeRef, {
 								endType: EndType.UntilDate,
@@ -361,20 +362,20 @@ o.spec("CalendarExporter", function () {
 											month: 9,
 											day: 20,
 										},
-										{ zone },
+										{ zone: calendarTimeZone },
 									).toMillis(),
 								),
-								timeZone: zone,
+								timeZone: calendarTimeZone,
 							}),
 						}),
 						[],
 						now,
-						zone,
+						calendarTimeZone,
 					),
 				).deepEquals([
 					"BEGIN:VEVENT",
-					`DTSTART;TZID=${zone}:20190813T050600`,
-					`DTEND;TZID=${zone}:20190913T050600`,
+					`DTSTART;TZID=${calendarTimeZone}:20190813T050600`,
+					`DTEND;TZID=${calendarTimeZone}:20190913T050600`,
 					`DTSTAMP:20190813T140100Z`,
 					`UID:ownerId${now.getTime()}@tuta.com`,
 					"SEQUENCE:0",
@@ -418,12 +419,12 @@ o.spec("CalendarExporter", function () {
 										}).toJSDate(),
 									).getTime(),
 								),
-								timeZone: zone,
+								timeZone: calendarTimeZone,
 							}),
 						}),
 						[],
 						now,
-						zone,
+						calendarTimeZone,
 					),
 				).deepEquals([
 					"BEGIN:VEVENT",
@@ -438,6 +439,7 @@ o.spec("CalendarExporter", function () {
 				])
 			})
 		})
+
 		o.spec("Altered instance", function () {
 			o.test("Simple event", function () {
 				const originalStartTime = DateTime.fromObject(
@@ -448,7 +450,7 @@ o.spec("CalendarExporter", function () {
 						hour: 5,
 						minute: 6,
 					},
-					{ zone },
+					{ zone: calendarTimeZone },
 				).toJSDate()
 				const alteredInstanceStartTime = DateTime.fromJSDate(originalStartTime).plus({ day: 1 }).toJSDate()
 				const alteredInstanceEndTime = DateTime.fromJSDate(originalStartTime).plus({ day: 2 }).toJSDate()
@@ -466,7 +468,7 @@ o.spec("CalendarExporter", function () {
 					}),
 					[],
 					now,
-					zone,
+					calendarTimeZone,
 				)
 
 				o.check(serializedEvent).deepEquals([
@@ -509,7 +511,7 @@ o.spec("CalendarExporter", function () {
 					location: "Some location",
 					recurrenceId: originalAlldayStartTime,
 				})
-				const serializedEvent = serializeEvent(calendarEvent, [], now, zone)
+				const serializedEvent = serializeEvent(calendarEvent, [], now, calendarTimeZone)
 
 				o.check(serializedEvent).deepEquals([
 					"BEGIN:VEVENT",
@@ -524,6 +526,150 @@ o.spec("CalendarExporter", function () {
 					"LOCATION:Some location",
 					"END:VEVENT",
 				])
+			})
+		})
+
+		o.spec("Events with timeZones", function () {
+			const saoPauloTimeZone = "America/Sao_Paulo"
+			const tokyoTimeZone = "Asia/Tokyo"
+
+			o.test("Event with the same start and end timezones", function () {
+				const calendarEvent = createTestEntity(CalendarEventTypeRef, {
+					summary: "Very long flight",
+					startTime: DateTime.fromObject(
+						{
+							year: 2019,
+							month: 8,
+							day: 13,
+							hour: 5,
+							minute: 6,
+						},
+						{ zone: saoPauloTimeZone },
+					).toJSDate(),
+					endTime: DateTime.fromObject(
+						{
+							year: 2019,
+							month: 9,
+							day: 13,
+							hour: 10,
+							minute: 6,
+						},
+						{ zone: saoPauloTimeZone },
+					).toJSDate(),
+					uid: "test@tuta.com",
+					startTimeZone: saoPauloTimeZone,
+					endTimeZone: saoPauloTimeZone,
+				})
+
+				const expectedSerializedEventLines = [
+					"BEGIN:VEVENT",
+					"DTSTART;TZID=America/Sao_Paulo:20190813T050600",
+					"DTEND;TZID=America/Sao_Paulo:20190913T100600",
+					`DTSTAMP:20190813T140100Z`,
+					"UID:test@tuta.com",
+					"SEQUENCE:0",
+					"SUMMARY:Very long flight",
+					"END:VEVENT",
+				]
+
+				const serializedEvent = serializeEvent(calendarEvent, [], now, calendarTimeZone)
+
+				o.check(serializedEvent).deepEquals(expectedSerializedEventLines)
+			})
+
+			o.test("Event with different start and end timezones", function () {
+				const calendarEvent = createTestEntity(CalendarEventTypeRef, {
+					summary: "Very long flight",
+					startTime: DateTime.fromObject(
+						{
+							year: 2019,
+							month: 8,
+							day: 13,
+							hour: 5,
+							minute: 6,
+						},
+						{ zone: saoPauloTimeZone },
+					).toJSDate(),
+					endTime: DateTime.fromObject(
+						{
+							year: 2019,
+							month: 9,
+							day: 13,
+							hour: 5,
+							minute: 6,
+						},
+						{ zone: tokyoTimeZone },
+					).toJSDate(),
+					uid: "test@tuta.com",
+					startTimeZone: saoPauloTimeZone,
+					endTimeZone: tokyoTimeZone,
+				})
+
+				const expectedSerializedEventLines = [
+					"BEGIN:VEVENT",
+					"DTSTART;TZID=America/Sao_Paulo:20190813T050600",
+					"DTEND;TZID=Asia/Tokyo:20190913T050600",
+					`DTSTAMP:20190813T140100Z`,
+					"UID:test@tuta.com",
+					"SEQUENCE:0",
+					"SUMMARY:Very long flight",
+					"END:VEVENT",
+				]
+
+				const serializedEvent = serializeEvent(calendarEvent, [], now, calendarTimeZone)
+
+				o.check(serializedEvent).deepEquals(expectedSerializedEventLines)
+			})
+
+			o.test("Repeating event with different timezones should have both TZID serialized", function () {
+				const calendarEvent = createTestEntity(CalendarEventTypeRef, {
+					summary: "Very long flight",
+					startTime: DateTime.fromObject(
+						{
+							year: 2019,
+							month: 8,
+							day: 13,
+							hour: 5,
+							minute: 6,
+						},
+						{ zone: saoPauloTimeZone },
+					).toJSDate(),
+					endTime: DateTime.fromObject(
+						{
+							year: 2019,
+							month: 9,
+							day: 13,
+							hour: 5,
+							minute: 6,
+						},
+						{ zone: tokyoTimeZone },
+					).toJSDate(),
+					uid: "test@tuta.com",
+					startTimeZone: saoPauloTimeZone,
+					endTimeZone: tokyoTimeZone,
+					repeatRule: createTestEntity(CalendarRepeatRuleTypeRef, {
+						endType: EndType.Never,
+						interval: "1",
+						frequency: RepeatPeriod.DAILY,
+						timeZone: saoPauloTimeZone,
+					}),
+				})
+
+				const expectedSerializedEventLines = [
+					"BEGIN:VEVENT",
+					"DTSTART;TZID=America/Sao_Paulo:20190813T050600",
+					"DTEND;TZID=Asia/Tokyo:20190913T050600",
+					`DTSTAMP:20190813T140100Z`,
+					"UID:test@tuta.com",
+					"SEQUENCE:0",
+					"SUMMARY:Very long flight",
+					"RRULE:FREQ=DAILY;INTERVAL=1",
+					"END:VEVENT",
+				]
+
+				const serializedEvent = serializeEvent(calendarEvent, [], now, calendarTimeZone)
+
+				o.check(serializedEvent).deepEquals(expectedSerializedEventLines)
 			})
 		})
 	})
