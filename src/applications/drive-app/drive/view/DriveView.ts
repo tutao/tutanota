@@ -479,7 +479,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 									const activeTransfers = currentTransfers.filter((transfer) => transfer.state === "active" || transfer.state === "waiting")
 									if (isNotEmpty(activeTransfers)) {
 										const ok =
-											currentTransfers.length === 1
+											activeTransfers.length === 1
 												? true
 												: await Dialog.confirm(
 														lang.getTranslation("confirmCancelTransfers_msg", { "{count}": activeTransfers.length }),
@@ -489,9 +489,11 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 											for (const { id } of currentTransfers) {
 												this.driveViewModel.cancelTransfer(id)
 											}
+											this.driveViewModel.flushTransfers()
 										}
+									} else {
+										this.driveViewModel.flushTransfers()
 									}
-									this.driveViewModel.flushTransfers()
 								},
 							} satisfies DriveTransferStackAttrs),
 						],
