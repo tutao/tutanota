@@ -32,6 +32,7 @@ import { DropType, renderDragElement } from "../../../../ui/base/GuiUtils"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel"
 import { generateExportFileName } from "../export/emlUtils.js"
 import { makeTrackedProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
+import { DropdownButtonAttrs } from "../../../../ui/base/Dropdown"
 
 assertMainOrNode()
 
@@ -46,6 +47,7 @@ export interface MailListViewAttrs {
 	onSingleExclusiveSelection: ListElementListModel<Mail>["onSingleExclusiveSelection"]
 	onTrashSwipe: (ownerGroup: Id, mails: readonly IdTuple[]) => unknown
 	onMoveSwipe: (targetFolderType: SystemFolderType, mails: readonly IdTuple[]) => Promise<boolean>
+	contextDropdownAttrs?: (mail: Mail) => DropdownButtonAttrs[]
 }
 
 export class MailListView implements Component<MailListViewAttrs> {
@@ -390,6 +392,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 							onStopLoading() {
 								listModel.stopLoading()
 							},
+							contextDropdownAttrs: this.attrs.contextDropdownAttrs,
 						} satisfies ListAttrs<Mail, MailRow>),
 			),
 		)
