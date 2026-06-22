@@ -643,6 +643,8 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 			recurrenceId = parseRecurrenceId(recurrenceIdProp, startTzId)
 		}
 
+		const endProp = getProp(eventObj, "DTEND", true)
+		const endTzId = endProp ? getTzId(endProp) : null
 		const endTime = parseEndTime(eventObj, allDay, startTime, startTzId, zone)
 
 		let summary: string = ""
@@ -693,9 +695,6 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 				console.log("organizer has no address or address is invalid, ignoring: ", organizerAddress)
 			}
 		}
-
-		const endProp = getProp(eventObj, "DTEND", true)
-		const endTzId = endProp ? getTzId(endProp) : null
 
 		const icsCalendarEvent: IcsCalendarEvent = {
 			summary,
@@ -796,15 +795,24 @@ function parseICalText(eventObj: ICalObject, tag: string) {
 	return text
 }
 
-function parseEndTime(eventObj: ICalObject, allDay: boolean, startTime: Date, tzId: string | null, zone: string): Date {
+function parseEndTime(eventObj: ICalObject, allDay: boolean, startTime: Date, startTzId: string | null, calendarTimeZone: string): Date {
 	const endProp = getProp(eventObj, "DTEND", true)
 
 	if (endProp) {
-		if (typeof endProp.value !== "string") throw new ParserError("DTEND value is not a string")
-		const endTzId: string | null = getTzId(endProp)
+		if (typeof endProp.value !== "string") {
+			throw new ParserError("DTEND value is not a string")
+		}
+
+		let endTzId: string | null = getTzId(endProp)
+		if (!endTzId && !parseTimeIntoComponents(endProp.value).zone) {
+			endTzId = startTzId
+		}
+
 		const parsedEndTime = parseTime(endProp.value, endTzId)
 		const endTime = parsedEndTime.date
-		if (endTime > startTime) return endTime
+		if (endTime > startTime) {
+			return endTime
+		}
 
 		// as per RFC, these are _technically_ illegal: https://tools.ietf.org/html/rfc5545#section-3.8.2.2
 		if (allDay) {
@@ -829,7 +837,7 @@ function parseEndTime(eventObj: ICalObject, allDay: boolean, startTime: Date, tz
 			// "DURATION" property, the event's duration is taken to be one day.
 			//
 			// https://tools.ietf.org/html/rfc5545#section-3.6.1
-			return oneDayDurationEnd(startTime, allDay, tzId, zone)
+			return oneDayDurationEnd(startTime, allDay, startTzId, calendarTimeZone)
 		}
 	}
 }
