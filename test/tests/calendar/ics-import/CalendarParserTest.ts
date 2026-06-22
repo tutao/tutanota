@@ -274,12 +274,8 @@ o.spec("CalendarParser", function () {
 			})
 		})
 
-		o.test("Edge-case, RFC non-compliant, time with UTC indicator and timezone prioritizes applying the timezone", function () {
-			const expectedDate = DateTime.fromObject({ year: 2026, month: 6, day: 17, hour: 16 }, { zone })
-			o(parseTime("20260617T214000Z", zone)).deepEquals({
-				date: expectedDate.toJSDate(),
-				allDay: false,
-			})
+		o.test("Edge-case, RFC non-compliant, time with UTC indicator and timezone throws ParserError", function () {
+			o.check(parseTime("20260617T214000Z", zone)).throws(ParserError)
 		})
 
 		o.test("All day event doens't care about timezones", function () {
