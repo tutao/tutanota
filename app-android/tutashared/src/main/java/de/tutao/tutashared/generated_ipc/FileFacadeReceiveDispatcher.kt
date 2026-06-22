@@ -67,7 +67,7 @@ class FileFacadeReceiveDispatcher(
 			}
 			"getSize" -> {
 				val file: String = json.decodeFromString(arg[0])
-				val result: Int = this.facade.getSize(
+				val result: Long = this.facade.getSize(
 					file,
 				)
 				return json.encodeToString(result)
@@ -160,7 +160,7 @@ class FileFacadeReceiveDispatcher(
 			}
 			"readChunk" -> {
 				val streamUri: String = json.decodeFromString(arg[0])
-				val maxChunkSize: Int = json.decodeFromString(arg[1])
+				val maxChunkSize: Long = json.decodeFromString(arg[1])
 				val result: String? = this.facade.readChunk(
 					streamUri,
 					maxChunkSize,

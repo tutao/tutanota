@@ -151,7 +151,7 @@ class CommonNativeFacadeSendDispatcher (
 	
 	override suspend fun downloadProgress(
 		fileId: String,
-		bytes: Int,
+		bytes: Long,
 	): Unit
 	{
 		val encodedMethod = json.encodeToString("downloadProgress")
@@ -163,7 +163,7 @@ class CommonNativeFacadeSendDispatcher (
 	
 	override suspend fun uploadProgress(
 		fileId: String,
-		bytes: Int,
+		bytes: Long,
 	): Unit
 	{
 		val encodedMethod = json.encodeToString("uploadProgress")

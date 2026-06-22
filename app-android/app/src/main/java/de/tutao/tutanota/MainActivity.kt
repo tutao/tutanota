@@ -178,12 +178,12 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 				NetworkUtils.defaultClient,
 				{ fileId, bytes ->
 					lifecycleScope.launch {
-						commonNativeFacade.downloadProgress(fileId, bytes)
+						commonNativeFacade.downloadProgress(fileId, bytes.toLong())
 					}
 				},
 				{ fileId, bytes ->
 					lifecycleScope.launch {
-						commonNativeFacade.uploadProgress(fileId, bytes)
+						commonNativeFacade.uploadProgress(fileId, bytes.toLong())
 					}
 				},
 				BuildConfig.FILE_PROVIDER_AUTHORITY
@@ -291,7 +291,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 			)
 			val imeHeight = windowInsets.getInsets(ime()).bottom
 			lifecycleScope.launch {
-				mobileFacade.keyboardSizeChanged(imeHeight.toDp())
+				mobileFacade.keyboardSizeChanged(imeHeight.toDp().toLong())
 			}
 
 			// Convert raw pixels to density independent pixels

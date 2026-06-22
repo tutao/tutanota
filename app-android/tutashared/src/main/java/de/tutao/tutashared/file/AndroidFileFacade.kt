@@ -30,6 +30,7 @@ import de.tutao.tutashared.ipc.UploadTaskResponse
 import de.tutao.tutashared.ipc.wrap
 import de.tutao.tutashared.toBase64
 import de.tutao.tutashared.toHexString
+import de.tutao.tutashared.toIntChecked
 import de.tutao.tutashared.writeBytes
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -51,6 +52,7 @@ import okio.BufferedSink
 import okio.source
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.input.BoundedInputStream
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
@@ -114,13 +116,18 @@ class AndroidFileFacade(
 		return this.tempFs.closeFile(streamUri)
 	}
 
-	override suspend fun readChunk(streamUri: String, maxChunkSize: Int): String? {
+	override suspend fun readChunk(streamUri: String, maxChunkSize: Long): String? {
 		val stream = this.tempFs.fileStream(streamUri)
-		if (stream.available() === 0) {
-			return null
+		// available() is unreliable. For large files (larger than Int.MAX_VALUE) it returns 0.
+		// BoundedInputStream#available() return the size from the underlying stream and
+		// shouldn't be used.
+		val limitedStream = stream.limited(maxChunkSize)
+		val buffer = limitedStream.readBytes(maxChunkSize.toIntChecked())
+		return if (buffer.isEmpty()) {
+			null
+		} else {
+			this.tempFs.createInMemoryFile(buffer)
 		}
-		val buffer = stream.limited(maxChunkSize.toLong()).readBytes()
-		return this.tempFs.createInMemoryFile(buffer)
 	}
 
 	override suspend fun openFileChooser(
@@ -294,8 +301,8 @@ class AndroidFileFacade(
 	}
 
 	@Throws(FileNotFoundException::class)
-	override suspend fun getSize(file: String): Int {
-		return this.tempFs.fileInfo(file).size.toInt()
+	override suspend fun getSize(file: String): Long {
+		return this.tempFs.fileInfo(file).size
 	}
 
 	@Throws(FileNotFoundException::class)
@@ -395,7 +402,7 @@ class AndroidFileFacade(
 							byteArrayOf().wrap()
 						}
 						UploadTaskResponse(
-							statusCode = responseCode,
+							statusCode = responseCode.toLong(),
 							errorId = response.header("Error-Id"),
 							precondition = response.header("Precondition"),
 							suspensionTime = suspensionTime,
@@ -491,7 +498,7 @@ class AndroidFileFacade(
 						}
 
 						DownloadTaskResponse(
-							statusCode = response.code,
+							statusCode = response.code.toLong(),
 							errorId = response.header("Error-Id"),
 							precondition = response.header("Precondition"),
 							suspensionTime = response.header("Retry-After") ?: response.header("Suspension-Time"),
@@ -593,6 +600,12 @@ fun InputStream.limited(bytes: Long): InputStream = BoundedInputStream.builder()
 	.setMaxCount(bytes)
 	.get()
 
+// Reimplement Kotlin's readBytes() in a way that doesn't take available() into account
+fun InputStream.readBytes(outputSize: Int = DEFAULT_BUFFER_SIZE): ByteArray {
+	val baos = ByteArrayOutputStream(outputSize)
+	copyTo(baos)
+	return baos.toByteArray()
+}
 
 class FileOpenException(message: String) : Exception(message)
 
