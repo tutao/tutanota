@@ -572,6 +572,11 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 	private async getSubKeyInfoOnUpdate<T extends SomeEntity>(ownerKey: VersionedKey | undefined, instance: T): Promise<SubKeyInfo> {
+		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(instance._type)
+		if (!serverTypeModel.encrypted) {
+			return null
+		}
+
 		if (this.authDataProvider.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.AesCbc) {
 			const sessionKey: Nullable<AesKey> = await this.sessionKeyResolver().resolveSessionKeyWithOwnerKey(ownerKey?.object, instance)
 			return { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, sessionKey }
