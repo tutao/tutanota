@@ -931,12 +931,14 @@ export function parseTime(
 
 	// if minute is not provided it is an all day date YYYYMMDD
 	const isAllDay = !("minute" in components)
+
+	if (!isAllDay && components.zone && eventTzid) {
+		throw new ParserError(`Failed to parse time from ${value}, due to conflicting time zone representation. Event has a TZID ${eventTzid} and UTC time.`)
+	}
+
 	const effectiveZone = isAllDay ? "UTC" : (eventTzid ?? components.zone)
 	if (effectiveZone === undefined) {
 		console.warn(TAG + ` effectiveZone is undefined.  Local timezone will be used.`)
-	}
-	if (components.zone && eventTzid) {
-		console.warn("Parsing time with conflicting timezone information: Event TZID and ZoneOffset/UTC, TZID will be prioritized.")
 	}
 
 	delete components["zone"]
