@@ -568,9 +568,10 @@ export class CalendarModel {
 			}
 
 			let parsedExternalEvents: ParsedEventAlarmTuple[] = []
+			const calendarTimeZone = getTimeZone()
 			try {
 				const externalCalendar = await this.fetchExternalCalendar(calendar.url)
-				parsedExternalEvents = parseCalendarStringData(externalCalendar, getTimeZone()).contents
+				parsedExternalEvents = parseCalendarStringData(externalCalendar, calendarTimeZone).contents
 			} catch (error) {
 				let calendarName = calendar.name
 				console.log("failed to sync external calendar", error)
@@ -595,7 +596,7 @@ export class CalendarModel {
 				parsedExternalEvents,
 				existingEventList,
 				currentCalendarGroupRoot,
-				getTimeZone(),
+				calendarTimeZone,
 			)
 			const duplicates = rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? []
 			const eventsToUpdate = duplicates.filter((event) => {
@@ -604,6 +605,10 @@ export class CalendarModel {
 				if (!existingEvent) {
 					console.warn("Found a duplicate without an existing event!")
 					return false
+				}
+
+				if (event.repeatRule?.timeZone === "") {
+					event.repeatRule.timeZone = calendarTimeZone // For repeating events we always keep a timezone in the repeat rule
 				}
 
 				return !eventHasSameFields(event, existingEvent)
