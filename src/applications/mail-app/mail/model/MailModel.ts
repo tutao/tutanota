@@ -214,8 +214,7 @@ export class MailModel {
 				const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
 
 				let targetFolder = sourceMailFolder
-				const isInternalUser = this.logins.getUserController().isInternalUser()
-				if (isInternalUser && mailboxDetail && folderSystem) {
+				if (this.isInternalUser() && mailboxDetail && folderSystem) {
 					targetFolder = await this.processInboxHandler().handleIncomingMail(mail, sourceMailFolder, mailboxDetail, folderSystem, isLeaderClient)
 				}
 				if (EnvProvider.get().isBrowser()) {
@@ -417,10 +416,14 @@ export class MailModel {
 	}
 
 	canManageLabels(): boolean {
-		return this.logins.getUserController().isInternalUser()
+		return this.isInternalUser()
 	}
 
 	canAssignLabels(): boolean {
+		return this.isInternalUser()
+	}
+
+	isInternalUser(): boolean {
 		return this.logins.getUserController().isInternalUser()
 	}
 
@@ -432,7 +435,7 @@ export class MailModel {
 	 * @return true if the user is allowed to use conversation views (listing and viewing mails)
 	 */
 	canUseConversationView(): boolean {
-		return this.logins.getUserController().isInternalUser()
+		return this.isInternalUser()
 	}
 
 	async markMails(mails: readonly IdTuple[], unread: boolean): Promise<void> {

@@ -12,6 +12,8 @@ import { theme, ThemeId } from "../theme.js"
 import { Coordinate2D } from "./SwipeHandler.js"
 import { Styles } from "../styles.js"
 import { Keys } from "../utils/KeyboardKeys"
+import { DropdownButtonAttrs } from "./Dropdown"
+import { contextDropdown } from "./GuiUtils"
 
 export type ListState<T> = Readonly<{
 	items: ReadonlyArray<T>
@@ -97,6 +99,8 @@ export interface ListAttrs<T, R extends ViewHolder<T>> {
 
 	/** called when stop button was pressed in progress item */
 	onStopLoading(): unknown
+
+	contextDropdownAttrs?: (entity: T) => DropdownButtonAttrs[]
 }
 
 export interface ListRow<T, R extends ViewHolder<T>> {
@@ -311,6 +315,12 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			})
 			if (renderConfig.dragStart) {
 				if (row.entity && this.state) renderConfig.dragStart(e, row.entity, this.state.selectedItems)
+			}
+		}
+
+		domElement.oncontextmenu = async (e: MouseEvent) => {
+			if (this.lastAttrs.contextDropdownAttrs && row.entity) {
+				contextDropdown(e, this.lastAttrs.contextDropdownAttrs(row.entity))
 			}
 		}
 
