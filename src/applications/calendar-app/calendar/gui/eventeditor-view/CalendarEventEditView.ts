@@ -28,7 +28,7 @@ import { DefaultAnimationTime } from "../../../../../ui/animation/Animations.js"
 import { Icons } from "../../../../../ui/base/icons/Icons.js"
 import { SectionButton } from "../../../../../ui/base/buttons/SectionButton.js"
 import { CalendarRepeatRule } from "@tutao/entities/tutanota"
-import { TimeZoneSelector, TimeZoneSelectorAttrs } from "./TimezoneSelector"
+import { TimeZoneSelector, TimeZoneSelectorAttrs } from "./TimeZoneSelector"
 
 export type CalendarEventEditViewAttrs = {
 	model: CalendarEventModel

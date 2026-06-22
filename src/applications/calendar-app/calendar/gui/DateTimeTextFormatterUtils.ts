@@ -153,3 +153,26 @@ export function getTextFormatterTimeZones(event: Omit<CalendarEvent, "descriptio
 
 	return timeZones
 }
+
+export function getTimeZoneLongName(timeZone: string) {
+	const dateTimeFormat = new Intl.DateTimeFormat(lang.languageTag, { timeZoneName: "long", timeZone })
+
+	let longName = ""
+	for (const part of dateTimeFormat.formatToParts(new Date())) {
+		if (part.type === "timeZoneName") {
+			longName = part.value
+		}
+	}
+	return longName
+}
+
+export function getTimeZoneOffset(timeZone: string) {
+	const dateTimeFormat = new Intl.DateTimeFormat(lang.languageTag, { timeZoneName: "short", timeZone })
+	let offsetString = ""
+	for (const part of dateTimeFormat.formatToParts(new Date())) {
+		if (part.type === "timeZoneName") {
+			offsetString = part.value
+		}
+	}
+	return offsetString
+}
