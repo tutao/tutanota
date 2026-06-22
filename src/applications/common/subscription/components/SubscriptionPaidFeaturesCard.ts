@@ -101,7 +101,7 @@ export class SubscriptionPaidFeaturesCard implements Component<SubscriptionPaidF
 						}),
 						route &&
 							m(IconButton, {
-								title: "goToSetting_label",
+								label: "goToSetting_label",
 								icon: Icons.OpenOutline,
 								click: () => m.route.set(route),
 							}),

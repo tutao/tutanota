@@ -552,7 +552,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 	private renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => boolean): Children {
 		const addButtonAttrs: IconButtonAttrs = {
-			title: "buyGiftCard_label",
+			label: "buyGiftCard_label",
 			click: createNotAvailableForFreeClickHandler(
 				UpgradePromptType.PURCHASE_GIFT_CARDS,
 				NewPaidPlans,
@@ -571,7 +571,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					cells: [formatDate(giftCard.orderDate), formatPrice(parseFloat(giftCard.value), true)],
 					actionButtonAttrs: attachDropdown({
 						mainButtonAttrs: {
-							title: "options_action",
+							label: "options_action",
 							icon: Icons.More,
 							size: ButtonSize.Compact,
 						},
