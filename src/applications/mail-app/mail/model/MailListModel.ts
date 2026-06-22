@@ -2,7 +2,7 @@ import { ListFilter, ListModel } from "../../../common/misc/ListModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { ConversationPrefProvider } from "../view/ConversationViewModel"
 import { assertMainOrNode } from "../../../../platform-kit/app-env"
-import { assertNotNull, first, last, memoizedWithHiddenArgument } from "../../../../platform-kit/utils"
+import { assertNotNull, first, last, memoizedWithHiddenArgument, settledThen } from "@tutao/utils"
 import { ListLoadingState, ListState } from "../../../../ui/base/List"
 import Stream from "mithril/stream"
 import { MailModel } from "./MailModel"
@@ -37,6 +37,8 @@ export class MailListModel implements MailSetListModel {
 
 	// keep a reverse map for going from Mail element id -> LoadedMail
 	private readonly mailMap: Map<Id, LoadedMail> = new Map()
+
+	private listReloadPromise: Promise<unknown> = Promise.resolve()
 
 	constructor(
 		private readonly mailSet: MailSet,
@@ -272,7 +274,12 @@ export class MailListModel implements MailSetListModel {
 	}
 
 	async reload() {
-		await this.listModel.reload()
+		// chain reloads to prevent race conditions, as list might get reloaded before an ongoing reload is settled
+		this.listReloadPromise = settledThen(this.listReloadPromise, async () => {
+			await this.listModel.reload()
+		})
+
+		await this.listReloadPromise
 	}
 
 	stopLoading() {

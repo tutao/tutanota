@@ -1,6 +1,6 @@
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
-import { assertNotNull, count, debounce, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass } from "../../../../platform-kit/utils"
+import { assertNotNull, count, debounce, isEmpty, lazyMemoized, mapWith, mapWithout, ofClass, settledThen } from "@tutao/utils"
 import { ListLoadingState, ListState } from "../../../../ui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
@@ -83,7 +83,7 @@ export class MailViewModel {
 	/* We only attempt counter fixup once after switching mailSets and loading the list fully. */
 	private shouldAttemptCounterFixup: boolean = true
 
-	private listModelReloadPromise: Promise<void> = Promise.resolve()
+	private listModelReloadPromise: Promise<unknown> = Promise.resolve()
 
 	constructor(
 		private readonly mailboxModel: MailboxModel,
@@ -438,7 +438,10 @@ export class MailViewModel {
 		this.syncTracker.addSyncDoneListener({
 			onSyncDone: async () => {
 				if (this.listModel) {
-					this.listModelReloadPromise = this.listModel?.reload()
+					// chain reloads to prevent race conditions when sync is marked as done before an ongoing reload is settled
+					this.listModelReloadPromise = settledThen(this.listModelReloadPromise, async () => {
+						await this.listModel?.reload()
+					})
 				} else {
 					this.updateListModel()
 				}

@@ -15,7 +15,8 @@ import {
 	last,
 	mapWithout,
 	memoizedWithHiddenArgument,
-} from "../../../../platform-kit/utils"
+	settledThen,
+} from "@tutao/utils"
 import { ListFetchResult } from "../../../../ui/base/ListUtils"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
@@ -57,6 +58,8 @@ export class ConversationListModel implements MailSetListModel {
 	//
 	// this is cleared upon changing the selection
 	private olderDisplayedSelectedMailOverride: Id | null = null
+
+	private listReloadPromise: Promise<unknown> = Promise.resolve()
 
 	constructor(
 		private readonly mailSet: MailSet,
@@ -355,11 +358,16 @@ export class ConversationListModel implements MailSetListModel {
 	}
 
 	async reload() {
-		// await any pending loading before clearing mail and conversation maps, as they are used when fetching entities
-		await this.listModel.waitLoad()
-		this.conversationMap.clear()
-		this.mailToConversationMap = new Map()
-		await this.listModel.reload()
+		// chain reloads to prevent race conditions, as list might get reloaded before an ongoing reload is settled
+		this.listReloadPromise = settledThen(this.listReloadPromise, async () => {
+			// await any pending loading before clearing mail and conversation maps, as they are used when fetching entities
+			await this.listModel.waitLoad()
+			this.conversationMap.clear()
+			this.mailToConversationMap = new Map()
+			await this.listModel.reload()
+		})
+
+		await this.listReloadPromise
 	}
 
 	selectAll(): void {
