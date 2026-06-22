@@ -12,7 +12,7 @@ import { FileUri } from "../../../../app-kit/native-bridge/common/FileApp.js"
 import { ElectronExports, FsExports, PathExports } from "../ElectronExportTypes.js"
 import path from "node:path"
 import { ApplicationWindow } from "../ApplicationWindow.js"
-import { assertNotNull, DateProvider, newPromise, throttle, uint8ArrayToBase64 } from "@tutao/utils"
+import { assertNotNull, DateProvider, first, newPromise, promiseFilter, throttle, uint8ArrayToBase64 } from "@tutao/utils"
 import { looksExecutable, nonClobberingFilename } from "../PathUtils.js"
 import url from "node:url"
 import FsModule, { WriteStream } from "node:fs"
@@ -246,22 +246,26 @@ export class DesktopFileFacade implements FileFacade {
 		}
 	}
 
-	async openFileChooser(boundingRect: IpcClientRect, filter: ReadonlyArray<string> | null): Promise<Array<string>> {
+	async openFileChooser(_boundingRect: IpcClientRect, filter: ReadonlyArray<string> | null): Promise<Array<string>> {
 		const opts: OpenDialogOptions = { properties: ["openFile", "multiSelections"] }
 		if (filter != null) {
 			opts.filters = [{ name: "Filter", extensions: filter.slice() }]
 		}
 		const { filePaths } = await this.electron.dialog.showOpenDialog(this.win._browserWindow, opts)
-		return filePaths
+		// File pickers are odd and sometimes allow choosing directories or other files instead
+		return await promiseFilter(filePaths, async (f) => (await this.fs.promises.stat(f)).isFile())
 	}
 
-	openFolderChooser(): Promise<string | null> {
-		// open folder dialog
-		return this.electron.dialog
-			.showOpenDialog(this.win._browserWindow, {
-				properties: ["openDirectory"],
-			})
-			.then(({ filePaths }) => filePaths[0] ?? null)
+	async openFolderChooser(): Promise<string | null> {
+		const { filePaths } = await this.electron.dialog.showOpenDialog(this.win._browserWindow, {
+			properties: ["openDirectory"],
+		})
+		const firstPath = first(filePaths)
+		if (firstPath && (await this.fs.promises.stat(firstPath)).isDirectory()) {
+			return firstPath
+		} else {
+			return null
+		}
 	}
 
 	/**
