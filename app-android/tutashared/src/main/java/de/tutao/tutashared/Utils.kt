@@ -15,7 +15,11 @@ import kotlinx.coroutines.withContext
 import org.apache.commons.io.IOUtils
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.*
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileNotFoundException
+import java.io.FileOutputStream
+import java.io.IOException
 import java.nio.charset.Charset
 import java.security.SecureRandom
 import java.text.SimpleDateFormat
@@ -87,7 +91,8 @@ fun getFileInfo(context: Context, fileUri: Uri): FileInfo {
 					val filename =
 						cursor.getString(cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME))
 							?: fileUri.lastPathSegment
-					return FileInfo(filename!!, cursor.getLong(cursor.getColumnIndexOrThrow(OpenableColumns.SIZE)))
+					val size = cursor.getLong(cursor.getColumnIndexOrThrow(OpenableColumns.SIZE))
+					return FileInfo(filename!!, size)
 				}
 			}
 		} catch (e: SecurityException) {
@@ -229,4 +234,11 @@ fun isSameDay(time1: Long, time2: Long, timeZone: TimeZone = TimeZone.getDefault
  */
 fun midnightInDate(zoneId: ZoneId, date: LocalDateTime): Long {
 	return date.truncatedTo(ChronoUnit.DAYS).toInstant(zoneId.rules.getOffset(date)).toEpochMilli()
+}
+
+fun Long.toIntChecked(): Int {
+	require(this in Int.MIN_VALUE..Int.MAX_VALUE) {
+		"The number is out of Int bounds: $this"
+	}
+	return this.toInt()
 }

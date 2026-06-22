@@ -12,6 +12,6 @@ import kotlinx.serialization.json.*
  */
 @Serializable
 data class NativeKey(
-	val code: Int,
+	val code: Long,
 	val name: String,
 )
