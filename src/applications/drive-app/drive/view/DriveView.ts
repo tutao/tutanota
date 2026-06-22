@@ -17,7 +17,7 @@ import { DriveSidebar } from "./Sidebar"
 import { listSelectionKeyboardShortcuts } from "../../../../ui/base/ListUtils"
 import { ListState, MultiselectMode } from "../../../../ui/base/List"
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
-import { AppType, isAndroidApp, Keys, OperationStatus, UpgradePromptType } from "@tutao/app-env"
+import { AppType, CancelledError, isAndroidApp, Keys, OperationStatus, UpgradePromptType } from "@tutao/app-env"
 import { formatStorageSize } from "../../../../ui/utils/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
 import { modal } from "../../../../ui/base/Modal"
@@ -710,8 +710,14 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	}
 
 	private async onPickFoldersForUpload(boundingRect: DOMRect): Promise<void> {
-		const folders = await this.filePicker.pickFolders(boundingRect)
-		await this.driveViewModel.uploadFiles([], folders)
+		try {
+			const folders = await this.filePicker.pickFolders(boundingRect)
+			await this.driveViewModel.uploadFiles([], folders)
+		} catch (e) {
+			if (!(e instanceof CancelledError)) {
+				throw e
+			}
+		}
 	}
 
 	async onCreateFolder(): Promise<void> {
