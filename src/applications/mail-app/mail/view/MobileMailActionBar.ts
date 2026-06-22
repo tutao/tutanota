@@ -18,7 +18,6 @@ export interface MobileMailActionBarAttrs {
 	setUnreadStateAction: ((unread: boolean) => void) | null
 	isUnread: boolean | null
 	editDraftAction: (() => void) | null
-	exportAction: (() => void) | null
 	replyAction: (() => void) | null
 	replyAllAction: (() => void) | null
 	forwardAction: (() => void) | null
@@ -89,14 +88,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return this.dom?.offsetWidth ? this.dom.offsetWidth - DROPDOWN_MARGIN * 2 : undefined
 	}
 
-	private moreButton({
-		exportAction,
-		applyLabelsAction,
-		setUnreadStateAction,
-		isUnread,
-		mailViewerMoreActions,
-		reportNotSpamAction,
-	}: MobileMailActionBarAttrs) {
+	private moreButton({ applyLabelsAction, setUnreadStateAction, isUnread, mailViewerMoreActions, reportNotSpamAction }: MobileMailActionBarAttrs) {
 		return m(IconButton, {
 			label: "more_label",
 			click: createDropdown({
@@ -139,7 +131,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 						}
 					}
 
-					return [...moreButtons, ...multipleMailViewerMoreActions(exportAction, mailViewerMoreActions)]
+					return [...moreButtons, ...multipleMailViewerMoreActions(mailViewerMoreActions)]
 				},
 				width: this.dropdownWidth(),
 				withBackground: true,

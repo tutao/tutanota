@@ -109,20 +109,29 @@ function createFolderMoreButton(
 				return new DOMRect(original.x, original.y - size.icon_24, original.width, original.height)
 			}
 		},
-		childAttrs: async () => {
-			return folder.folderType === MailSetKind.CUSTOM || folder.folderType === MailSetKind.LABEL
-				? // cannot add new folder to custom folder in spam, trash, or orphan folder tree
-					folderSystemKind === FolderSystemKind.Orphan || isSpamOrTrashFolder(folders, folder)
-					? [buttonAttrs.edit(actionAttrs, mailGroup._id, folders, folder), buttonAttrs.delete(actionAttrs, folder)]
-					: [
-							buttonAttrs.edit(actionAttrs, mailGroup._id, folders, folder),
-							buttonAttrs.add(actionAttrs, mailGroup._id, folder),
-							buttonAttrs.delete(actionAttrs, folder),
-						]
-				: [buttonAttrs.add(actionAttrs, mailGroup._id, folder)]
-		},
+		childAttrs: async () => getFolderActionsButtonAttrs(folder, folders, mailGroup, buttonAttrs, actionAttrs, folderSystemKind),
 		onClose,
 	})
+}
+
+function getFolderActionsButtonAttrs(
+	folder: MailSet,
+	folders: FolderSystem,
+	mailGroup: Group,
+	buttonAttrs: MailSetTreeButtonAttrs,
+	actionAttrs: MailSetTreeActionAttrs,
+	folderSystemKind: FolderSystemKind,
+) {
+	return folder.folderType === MailSetKind.CUSTOM || folder.folderType === MailSetKind.LABEL
+		? // cannot add new folder to custom folder in spam, trash, or orphan folder tree
+			folderSystemKind === FolderSystemKind.Orphan || isSpamOrTrashFolder(folders, folder)
+			? [buttonAttrs.edit(actionAttrs, mailGroup._id, folders, folder), buttonAttrs.delete(actionAttrs, folder)]
+			: [
+					buttonAttrs.edit(actionAttrs, mailGroup._id, folders, folder),
+					buttonAttrs.add(actionAttrs, mailGroup._id, folder),
+					buttonAttrs.delete(actionAttrs, folder),
+				]
+		: [buttonAttrs.add(actionAttrs, mailGroup._id, folder)]
 }
 
 export function renderFolderTree(
@@ -236,6 +245,14 @@ export function renderFolderTree(
 					},
 					fullFolderPath: fullFolderPath,
 					getIconForMailSet: attrs.getIconForMailSet,
+					contextMenuButtonAttrs: getFolderActionsButtonAttrs(
+						system.folder,
+						folders,
+						attrs.mailboxDetail.mailGroup,
+						attrs.buttonAttrs,
+						attrs.actionAttrs,
+						folderSystemKind,
+					),
 				}),
 				childResult.children,
 			],
