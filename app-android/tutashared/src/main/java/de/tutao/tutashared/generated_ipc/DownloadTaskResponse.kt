@@ -12,7 +12,7 @@ import kotlinx.serialization.json.*
  */
 @Serializable
 data class DownloadTaskResponse(
-	val statusCode: Int,
+	val statusCode: Long,
 	val errorId: String?,
 	val precondition: String?,
 	val suspensionTime: String?,

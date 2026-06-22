@@ -241,11 +241,12 @@ class AndroidNativeCryptoFacade(
 	@Throws(IOException::class, CryptoError::class)
 	override suspend fun aesEncryptFile(key: DataWrapper, fileUri: String, iv: DataWrapper): EncryptedFileInfo {
 		val inputStream = tempFs.fileStream(fileUri)
+		// available is int but we are encrypting only small chunks
 		val inputSize = inputStream.available()
 		val outputStream = ByteArrayOutputStream(inputSize)
 		aesEncrypt(key.data, inputStream, outputStream, iv.data, usePadding = true, useMac = true)
 		val outputUri = this.tempFs.createInMemoryFile(outputStream.toByteArray())
-		return EncryptedFileInfo(outputUri, inputSize)
+		return EncryptedFileInfo(outputUri, inputSize.toLong())
 	}
 
 	@Throws(IOException::class, CryptoError::class)

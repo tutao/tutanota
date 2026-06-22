@@ -9,8 +9,8 @@ import kotlinx.serialization.json.*
 
 @Serializable
 data class RsaPrivateKey(
-	val version: Int,
-	val keyLength: Int,
+	val version: Long,
+	val keyLength: Long,
 	val modulus: String,
 	val privateExponent: String,
 	val primeP: String,

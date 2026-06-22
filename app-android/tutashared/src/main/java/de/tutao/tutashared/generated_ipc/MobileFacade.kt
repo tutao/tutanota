@@ -25,7 +25,7 @@ interface MobileFacade {
 	 * iOS: called when keyboard opens/closes/resizes. Passes the height of the keyboard.
 	 */
 	suspend fun keyboardSizeChanged(
-		newSize: Int,
+		newSize: Long,
 	): Unit
 	/**
 	 * iOS: called when an Apple in-app event should open signup or the upgrade flow.

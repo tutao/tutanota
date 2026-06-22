@@ -31,7 +31,7 @@ class MobileFacadeSendDispatcher (
 	}
 	
 	override suspend fun keyboardSizeChanged(
-		newSize: Int,
+		newSize: Long,
 	): Unit
 	{
 		val encodedMethod = json.encodeToString("keyboardSizeChanged")
