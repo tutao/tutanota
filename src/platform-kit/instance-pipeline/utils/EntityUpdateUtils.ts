@@ -27,6 +27,13 @@ export type EntityUpdateData<T extends SomeEntity = SomeEntity> = {
 	// emptyList: when server did not send patchList, or empty re-write to the server database.
 	// length > 0: normal case for patch
 	patches: Nullable<Array<Patch>>
+	// status indicating if the update was put to the cache. Missed updates are put to the cache using putMultiple in DefaultEntityRestCache.updateCacheWithMissedEntityUpdates
+	cachingStatus: CachingStatus
+}
+
+export enum CachingStatus {
+	NotCached = "NotCached",
+	Cached = "Cached",
 }
 
 export async function entityUpdateToUpdateData<T extends SomeEntity>(
@@ -44,6 +51,7 @@ export async function entityUpdateToUpdateData<T extends SomeEntity>(
 		patches: update.patch?.patches ?? null,
 		instance,
 		blobInstance,
+		cachingStatus: CachingStatus.NotCached,
 	}
 }
 

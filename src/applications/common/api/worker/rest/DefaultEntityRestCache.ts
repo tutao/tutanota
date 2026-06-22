@@ -18,13 +18,14 @@ import {
 	ListElementEntity,
 	listIdPart,
 	OperationType,
+	parseTypeString,
 	ServerModelParsedInstance,
 	SomeEntity,
 	TypeModel,
 	TypeRef,
 	ValueType,
 } from "@tutao/meta"
-import { assertNotNull, downcast, getFirstOrThrow, isNotEmpty, lastThrow, lazyAsync, Nullable } from "@tutao/utils"
+import { assertNotNull, downcast, getFirstOrThrow, groupBy, isNotEmpty, isNotNull, lastThrow, lazyAsync, Nullable } from "@tutao/utils"
 import { assertWorkerOrNode, isTest, ProgrammingError } from "@tutao/app-env"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../../../../../app-kit/local-store/event/EventBusClient.js"
 import { OwnerEncSessionKeyProvider, PatchMerger, TypeModelResolver } from "@tutao/instance-pipeline"
@@ -55,7 +56,12 @@ import {
 	UserGroupKeyDistributionTypeRef,
 	UserGroupRootTypeRef,
 } from "@tutao/entities/sys"
-import { EntityUpdateData, getLogStringForEntityEvent, isUpdateForTypeRef } from "../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import {
+	CachingStatus,
+	EntityUpdateData,
+	getLogStringForEntityEvent,
+	isUpdateForTypeRef,
+} from "../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { isExpectedErrorForSynchronization } from "@tutao/rest-client/error"
 import {
 	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
@@ -696,6 +702,9 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 	private async processCreateEvent(typeRef: TypeRef<any>, update: EntityUpdateData): Promise<EntityUpdateData | null> {
 		// if there is a custom handler we follow its decision
+		if (update.cachingStatus === CachingStatus.Cached) {
+			return update
+		}
 		let shouldUpdateDb = this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update)
 		// otherwise, we do a range check to see if we need to keep the range up-to-date. No need to load anything out of range
 		// we put new instances into cache only when it's a new instance in the cached range which is only for the list instances
@@ -725,6 +734,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			console.log("DefaultEntityRestCache - processUpdateEvent of type Group:" + update.instanceId)
 		}
 
+		if (update.cachingStatus === CachingStatus.Cached) {
+			return update
+		}
+
 		const cached = await this.storage.getParsed(update.typeRef, update.instanceListId, update.instanceId)
 		// if the entity is not in cache we don't want to patch or re-download it
 		if (cached) {
@@ -751,6 +764,25 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			return update
 		} else {
 			return update
+		}
+	}
+
+	async updateCacheWithMissedEntityUpdates(entityUpdates: EntityUpdateData[]): Promise<void> {
+		const eventsByType = groupBy(entityUpdates, (entityUpdate) => getTypeString(entityUpdate.typeRef))
+		for (const [typeRef, entityUpdates] of eventsByType) {
+			const entityUpdatesWithValidInstances = entityUpdates.filter((entityUpdate) => entityUpdate.instance !== null && !hasError(entityUpdate.instance))
+			const instances = entityUpdatesWithValidInstances.map((entityUpdate) => entityUpdate.instance).filter(isNotNull)
+			await this.storage.putMultiple(parseTypeString(typeRef), instances)
+			if (isSameTypeRef(MailTypeRef, parseTypeString(typeRef))) {
+				const entityUpdatesWithValidBlobInstances = entityUpdatesWithValidInstances.filter(
+					(entityUpdate) => entityUpdate.blobInstance !== null && !hasError(entityUpdate.blobInstance),
+				)
+				const blobInstances = entityUpdatesWithValidBlobInstances.map((entityUpdate) => entityUpdate.blobInstance).filter(isNotNull)
+				await this.storage.putMultiple(MailDetailsBlobTypeRef, blobInstances)
+				entityUpdatesWithValidBlobInstances.map((entityUpdate) => (entityUpdate.cachingStatus = CachingStatus.Cached))
+			} else {
+				entityUpdatesWithValidInstances.map((entityUpdate) => (entityUpdate.cachingStatus = CachingStatus.Cached))
+			}
 		}
 	}
 

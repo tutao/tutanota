@@ -25,7 +25,7 @@ import { DateProvider } from "../../../../../src/platform-kit/utils/DateProvider
 import { ContactListTypeRef, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { ClientTypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import { EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
-import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CachingStatus, EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { decryptKey, encryptKey } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 import { aesEncrypt } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
@@ -48,10 +48,11 @@ contactList.contacts = "contactListId"
 o.spec("IndexedDbIndexer", () => {
 	const OUT_OF_DATE_SERVER_TIME = SERVER_TIME - daysToMillis(ENTITY_EVENT_BATCH_TTL_DAYS) - 1000 * 60 * 60 * 24
 
-	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches" | "blobInstance"> = {
+	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches" | "blobInstance" | "cachingStatus"> = {
 		instance: null,
 		patches: null,
 		blobInstance: null,
+		cachingStatus: CachingStatus.NotCached,
 	}
 
 	let keyLoaderFacade: KeyLoaderFacade
