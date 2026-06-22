@@ -3205,6 +3205,9 @@ export class MainStyles {
 				".lh-l": {
 					"line-height": 5 / 3,
 				},
+				".top-0": {
+					top: 0,
+				},
 				pre: {
 					margin: 0,
 				},

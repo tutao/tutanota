@@ -263,11 +263,11 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	private renderTimeZoneSelectorPage({ attrs }: Vnode<CalendarEventEditViewAttrs>) {
 		return m(TimeZoneSelector, {
 			width: this.pageWidth,
+			selectedTimeZone: attrs.model.editModels.whenModel.startTimeZone,
 			selectedTime: new Date(),
 			timeFormat: attrs.timeFormat,
 			onSelectTimeZone: (timeZone) => {
 				console.log(`Selected time zone = ${timeZone}`)
-				attrs.navigationCallback(EditorPages.MAIN)
 				attrs.model.editModels.whenModel.startTimeZone = timeZone
 			},
 		} satisfies TimeZoneSelectorAttrs)
@@ -517,29 +517,14 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	}
 
 	private renderTimeZoneEditSection(attrs: CalendarEventEditViewAttrs) {
-		if (attrs.model.editModels.whenModel.startTimeZone) {
-			// We have at least one timezone
-			return m(SectionButton, {
-				leftIcon: { icon: Icons.GlobeOutline, title: "calendarRepeating_label" },
-				rightIcon: { icon: Icons.X, title: "calendarRepeating_label" },
-				text: lang.makeTranslation("timezoneSelectorPage", attrs.model.editModels.whenModel.startTimeZone),
-				isDisabled: false,
-				classes: "overflow-hidden repeat-rule",
-				onclick: () => {
-					attrs.model.editModels.whenModel.startTimeZone = null
-					attrs.model.editModels.whenModel.endTimeZone = null
-				},
-			})
-		} else {
-			return m(SectionButton, {
-				leftIcon: { icon: Icons.GlobeOutline, title: "calendarRepeating_label" },
-				text: lang.makeTranslation("timezoneSelectorPage", "Select Time Zone"),
-				isDisabled: false,
-				classes: "overflow-hidden repeat-rule",
-				onclick: () => {
-					this.transitionTo(EditorPages.TIMEZONE_SELECTOR, attrs.navigationCallback)
-				},
-			})
-		}
+		return m(SectionButton, {
+			leftIcon: { icon: Icons.GlobeOutline, title: "calendarRepeating_label" },
+			text: lang.makeTranslation("timezoneSelectorPage", "Select Time Zone"),
+			isDisabled: false,
+			classes: "overflow-hidden repeat-rule",
+			onclick: () => {
+				this.transitionTo(EditorPages.TIMEZONE_SELECTOR, attrs.navigationCallback)
+			},
+		})
 	}
 }
