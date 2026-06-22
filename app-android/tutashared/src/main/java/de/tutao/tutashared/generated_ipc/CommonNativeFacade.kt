@@ -86,13 +86,13 @@ interface CommonNativeFacade {
 	 */
 	suspend fun downloadProgress(
 		fileId: String,
-		bytes: Int,
+		bytes: Long,
 	): Unit
 	/**
 	 * Bytes uploaded so far for a given file id
 	 */
 	suspend fun uploadProgress(
 		fileId: String,
-		bytes: Int,
+		bytes: Long,
 	): Unit
 }

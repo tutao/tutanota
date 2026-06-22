@@ -49,7 +49,7 @@ interface FileFacade {
 	 */
 	suspend fun getSize(
 		file: String,
-	): Int
+	): Long
 	/**
 	 * move and rename a decrypted file from the decryption location to the download location preferred by the user and return the absolute path to the moved file
 	 */
@@ -117,7 +117,7 @@ interface FileFacade {
 	 */
 	suspend fun readChunk(
 		streamUri: String,
-		maxChunkSize: Int,
+		maxChunkSize: Long,
 	): String?
 	/**
 	 * Save the unencrypted data file to the disk into a fixed temporary location, not the user's preferred download dir.

@@ -328,7 +328,7 @@ class CompatibilityTest {
 				primeExponentP = keyParts[4],
 				primeExponentQ = keyParts[5],
 				crtCoefficient = keyParts[6],
-				keyLength = AndroidNativeCryptoFacade.RSA_KEY_LENGTH_IN_BITS,
+				keyLength = AndroidNativeCryptoFacade.RSA_KEY_LENGTH_IN_BITS.toLong(),
 			)
 		}
 
@@ -336,8 +336,8 @@ class CompatibilityTest {
 			return RsaPublicKey(
 				version = 0,
 				modulus = keyArray[0].toByteArray().toBase64(),
-				keyLength = AndroidNativeCryptoFacade.RSA_KEY_LENGTH_IN_BITS,
-				publicExponent = AndroidNativeCryptoFacade.RSA_PUBLIC_EXPONENT,
+				keyLength = AndroidNativeCryptoFacade.RSA_KEY_LENGTH_IN_BITS.toLong(),
+				publicExponent = AndroidNativeCryptoFacade.RSA_PUBLIC_EXPONENT.toLong(),
 			)
 		}
 

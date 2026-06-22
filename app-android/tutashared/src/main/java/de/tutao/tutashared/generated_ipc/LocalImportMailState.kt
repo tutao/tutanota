@@ -13,9 +13,9 @@ import kotlinx.serialization.json.*
 @Serializable
 data class LocalImportMailState(
 	val remoteStateId: de.tutao.tutashared.IdTuple,
-	val status: Int,
-	val start_timestamp: Int,
-	val totalMails: Int,
-	val successfulMails: Int,
-	val failedMails: Int,
+	val status: Long,
+	val start_timestamp: Long,
+	val totalMails: Long,
+	val successfulMails: Long,
+	val failedMails: Long,
 )

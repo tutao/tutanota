@@ -163,12 +163,12 @@ class MainActivity : FragmentActivity(), ActivityUtils {
 				NetworkUtils.defaultClient,
 				{ fileId, bytes ->
 					lifecycleScope.launch {
-						commonNativeFacade.downloadProgress(fileId, bytes)
+						commonNativeFacade.downloadProgress(fileId, bytes.toLong())
 					}
 				},
 				{ fileId, bytes ->
 					lifecycleScope.launch {
-						commonNativeFacade.uploadProgress(fileId, bytes)
+						commonNativeFacade.uploadProgress(fileId, bytes.toLong())
 					}
 				}, "unused"
 			)
@@ -274,7 +274,7 @@ class MainActivity : FragmentActivity(), ActivityUtils {
 			)
 			val imeHeight = windowInsets.getInsets(ime()).bottom
 			lifecycleScope.launch {
-				mobileFacade.keyboardSizeChanged(imeHeight.toDp())
+				mobileFacade.keyboardSizeChanged(imeHeight.toDp().toLong())
 			}
 
 			// Convert raw pixels to density independent pixels

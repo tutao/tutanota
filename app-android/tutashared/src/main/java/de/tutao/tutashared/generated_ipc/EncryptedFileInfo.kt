@@ -13,5 +13,5 @@ import kotlinx.serialization.json.*
 @Serializable
 data class EncryptedFileInfo(
 	val uri: String,
-	val unencryptedSize: Int,
+	val unencryptedSize: Long,
 )

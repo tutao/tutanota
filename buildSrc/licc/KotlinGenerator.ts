@@ -287,7 +287,7 @@ function renderKotlinType(parsed: ParsedType): RenderedType {
 		case "boolean":
 			return { externals: [], name: maybeNullable("Boolean", nullable) }
 		case "number":
-			return { externals: [], name: maybeNullable("Int", nullable) }
+			return { externals: [], name: maybeNullable("Long", nullable) }
 		case "bytes":
 			return { externals: [], name: maybeNullable("DataWrapper", nullable) }
 		case "void":

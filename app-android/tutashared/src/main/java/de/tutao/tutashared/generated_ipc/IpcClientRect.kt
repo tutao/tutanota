@@ -12,8 +12,8 @@ import kotlinx.serialization.json.*
  */
 @Serializable
 data class IpcClientRect(
-	val x: Int,
-	val y: Int,
-	val width: Int,
-	val height: Int,
+	val x: Long,
+	val y: Long,
+	val width: Long,
+	val height: Long,
 )

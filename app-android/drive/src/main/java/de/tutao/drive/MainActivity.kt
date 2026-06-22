@@ -144,12 +144,12 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 				NetworkUtils.defaultClient,
 				{ fileId, bytes ->
 					lifecycleScope.launch {
-						commonNativeFacade.downloadProgress(fileId, bytes)
+						commonNativeFacade.downloadProgress(fileId, bytes.toLong())
 					}
 				},
 				{ fileId, bytes ->
 					lifecycleScope.launch {
-						commonNativeFacade.uploadProgress(fileId, bytes)
+						commonNativeFacade.uploadProgress(fileId, bytes.toLong())
 					}
 				},
 				BuildConfig.FILE_PROVIDER_AUTHORITY
@@ -238,7 +238,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 			)
 			val imeHeight = windowInsets.getInsets(ime()).bottom
 			lifecycleScope.launch {
-				mobileFacade.keyboardSizeChanged(imeHeight.toDp())
+				mobileFacade.keyboardSizeChanged(imeHeight.toDp().toLong())
 			}
 
 			// Convert raw pixels to density independent pixels
@@ -309,6 +309,9 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 							slice(1..lastIndex)
 						}
 						if (!assetPath.startsWith(BuildConfig.RES_ADDRESS)) throw IOException("can't find this")
+						//Devtools sometimes requests non-existent files. That's why we let it run into IO error
+						//instead of crashing because of failing to determine the mime type
+						val data = assets.open(assetPath)
 						val mimeType = getMimeTypeForUrl(url.toString())
 						WebResourceResponse(
 							mimeType,
@@ -316,7 +319,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 							200,
 							"OK",
 							null,
-							assets.open(assetPath)
+							data
 						)
 					} catch (e: IOException) {
 						Log.w(TAG, "Resource not found ${url.path}")

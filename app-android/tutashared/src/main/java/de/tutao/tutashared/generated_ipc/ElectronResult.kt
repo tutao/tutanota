@@ -12,6 +12,6 @@ import kotlinx.serialization.json.*
  */
 @Serializable
 data class ElectronResult(
-	val matches: Int,
-	val activeMatchOrdinal: Int,
+	val matches: Long,
+	val activeMatchOrdinal: Long,
 )
