@@ -16,7 +16,6 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { MailViewerMoreActions } from "./MailViewerUtils"
-import { MailHeaderActions } from "./MailViewerHeader"
 import { MailTypeRef } from "@tutao/entities/tutanota"
 import { elementIdPart, isSameId, isSameTypeRef } from "../../../../platform-kit/meta"
 
@@ -24,7 +23,8 @@ export interface ConversationViewerAttrs {
 	viewModel: ConversationViewModel
 	actionableMailViewerViewModel: () => MailViewerViewModel | undefined
 	delayBodyRendering: Promise<unknown>
-	actions: (mailViewerModel: MailViewerViewModel) => MailHeaderActions
+	deleteAction: (() => unknown) | null
+	trash: (() => unknown) | null
 	moreActions: (mailViewerModel: MailViewerViewModel) => MailViewerMoreActions
 }
 
@@ -135,7 +135,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 						console.log("remove container")
 					},
 				},
-				this.renderItems(viewModel, this.lastItems, vnode.attrs.actions, vnode.attrs.moreActions),
+				this.renderItems(viewModel, this.lastItems, vnode.attrs.moreActions, vnode.attrs.deleteAction, vnode.attrs.trash),
 				this.renderLoadingState(viewModel),
 				this.renderFooter(),
 			),
@@ -159,8 +159,9 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 	private renderItems(
 		viewModel: ConversationViewModel,
 		entries: readonly ConversationItem[],
-		actions: ConversationViewerAttrs["actions"],
 		moreActions: ConversationViewerAttrs["moreActions"],
+		deleteAction: (() => unknown) | null,
+		trash: (() => unknown) | null,
 	): Children {
 		return entries.map((entry, position) => {
 			switch (entry.type_ref.typeId) {
@@ -171,8 +172,9 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 					return this.renderViewer(
 						mailViewerViewModel,
 						isPrimary,
-						actions(mailViewerViewModel),
 						moreActions(mailViewerViewModel),
+						deleteAction,
+						trash,
 						viewModel.isFinished() ? position : null,
 					)
 				}
@@ -206,8 +208,9 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 	private renderViewer(
 		mailViewerViewModel: MailViewerViewModel,
 		isPrimary: boolean,
-		actions: MailHeaderActions,
 		moreActions: MailViewerMoreActions,
+		deleteAction: (() => unknown) | null,
+		trash: (() => unknown) | null,
 		position: number | null,
 	): Children {
 		const verificationBanner = null
@@ -238,7 +241,8 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 							// we want to expand for the first email like when it's a forwarded email
 							defaultQuoteBehavior: position === 0 ? "expand" : "collapse",
 							moreActions,
-							actions,
+							deleteAction,
+							trash,
 						}),
 			),
 		)

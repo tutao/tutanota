@@ -17,7 +17,6 @@ import {
 } from "../../../../platform-kit/utils"
 import { CUSTOM_MIN_ID, elementIdPart, getElementId, listIdPart, OperationType } from "../../../../platform-kit/meta"
 import { FeatureType, isBrowser, ProgrammingError, TutanotaError } from "../../../../platform-kit/app-env"
-
 import m from "mithril"
 import { Notifications, NotificationType } from "../../../../ui/Notifications.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"

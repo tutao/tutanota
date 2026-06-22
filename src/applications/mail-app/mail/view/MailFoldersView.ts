@@ -211,6 +211,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 							}
 						},
 						fullFolderPath: fullFolderPath,
+						contextMenuButtonAttrs: this.getFolderActionsButtonAttrs(system.folder, subSystemsKind, folders, attrs),
 					}),
 					childResult.children,
 				],
@@ -279,15 +280,24 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				}
 			},
 			childAttrs: async () => {
-				return folder.folderType === MailSetKind.CUSTOM
-					? // cannot add new folder to custom folder in spam, trash, or orphan folder tree
-						folderSystemKind === FolderSystemKind.Orphan || isSpamOrTrashFolder(folders, folder)
-						? [this.editButtonAttrs(attrs, folders, folder), this.deleteButtonAttrs(attrs, folder)]
-						: [this.editButtonAttrs(attrs, folders, folder), this.addButtonAttrs(attrs, folder), this.deleteButtonAttrs(attrs, folder)]
-					: [this.addButtonAttrs(attrs, folder)]
+				return this.getFolderActionsButtonAttrs(folder, folderSystemKind, folders, attrs)
 			},
 			onClose,
 		})
+	}
+
+	private getFolderActionsButtonAttrs(
+		folder: MailSet,
+		folderSystemKind: FolderSystemKind,
+		folders: FolderSystem,
+		attrs: MailFolderViewAttrs,
+	): DropdownButtonAttrs[] {
+		return folder.folderType === MailSetKind.CUSTOM
+			? // cannot add new folder to custom folder in spam or trash folder
+				folderSystemKind === FolderSystemKind.Orphan || isSpamOrTrashFolder(folders, folder)
+				? [this.editButtonAttrs(attrs, folders, folder), this.deleteButtonAttrs(attrs, folder)]
+				: [this.editButtonAttrs(attrs, folders, folder), this.addButtonAttrs(attrs, folder), this.deleteButtonAttrs(attrs, folder)]
+			: [this.addButtonAttrs(attrs, folder)]
 	}
 
 	private deleteButtonAttrs(attrs: MailFolderViewAttrs, folder: MailSet): DropdownButtonAttrs {
