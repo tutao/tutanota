@@ -337,7 +337,9 @@ export class BlobFacade {
 			}
 
 			const encryptChunk = async (chunk: NativeChunk) => {
-				return { chunkUri: await this.encryptChunkNative(sessionKey, chunk.chunkUri), chunkId: chunk.chunkId } as EncryptedNativeChunk
+				const encryptedChunkUri = await this.encryptChunkNative(sessionKey, chunk.chunkUri)
+				await this.fileApp.deleteFile(chunk.chunkUri)
+				return { chunkUri: encryptedChunkUri, chunkId: chunk.chunkId } as EncryptedNativeChunk
 			}
 
 			const uploadEncryptedChunk = (encryptedChunk: EncryptedNativeChunk) => {
