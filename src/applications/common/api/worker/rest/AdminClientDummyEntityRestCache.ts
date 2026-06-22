@@ -15,6 +15,10 @@ export class AdminClientDummyEntityRestCache implements EntityRestCache {
 		throw new ProgrammingError("erase not implemented")
 	}
 
+	async updateCacheWithMissedEntityUpdates(missedEntityUpdates: readonly EntityUpdateData[]): Promise<void> {
+		return Promise.resolve()
+	}
+
 	deleteFromCacheIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Iterable<Id>): Promise<void> {
 		throw new Error("deleteFromCacheIdExists not implemented.")
 	}

@@ -17,7 +17,7 @@ import { IdentityKeyCreator } from "../../../../src/platform-kit/base/base-crypt
 import { noPatchesAndInstance } from "./EventBusClientTest"
 import { OperationType } from "../../../../src/platform-kit/meta"
 import { Group, GroupKeyUpdateTypeRef, GroupMembershipTypeRef, GroupTypeRef, User, UserGroupKeyDistributionTypeRef, UserTypeRef } from "@tutao/entities/sys"
-import { EntityUpdateData } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CachingStatus, EntityUpdateData } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 o.spec("EventBusEventCoordinatorTest", () => {
 	let eventBusEventCoordinator: EventBusEventCoordinator
@@ -240,6 +240,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 				instance: null,
 				patches: null,
 				blobInstance: null,
+				cachingStatus: CachingStatus.CacheNotUpdated,
 			},
 		]
 

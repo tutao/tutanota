@@ -118,6 +118,10 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.deleteIfExists(typeRef, listId, id)
 	}
 
+	deleteMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, ids: T["_id"][]): Promise<void> {
+		return this.inner.deleteMultiple(typeRef, ids)
+	}
+
 	deleteRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: string): Promise<void> {
 		return this.inner.deleteRange(typeRef, listId)
 	}

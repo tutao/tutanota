@@ -18,13 +18,14 @@ import {
 	ListElementEntity,
 	listIdPart,
 	OperationType,
+	parseTypeString,
 	ServerModelParsedInstance,
 	SomeEntity,
 	TypeModel,
 	TypeRef,
 	ValueType,
 } from "@tutao/meta"
-import { assertNotNull, downcast, getFirstOrThrow, isNotEmpty, lastThrow, lazyAsync, Nullable } from "@tutao/utils"
+import { assertNotNull, downcast, getFirstOrThrow, groupBy, isNotEmpty, isNotNull, lastThrow, lazyAsync, Nullable } from "@tutao/utils"
 import { assertWorkerOrNode, isTest, ProgrammingError } from "@tutao/app-env"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../../../../../app-kit/local-store/event/EventBusClient.js"
 import { OwnerEncSessionKeyProvider, PatchMerger, TypeModelResolver } from "@tutao/instance-pipeline"
@@ -55,7 +56,12 @@ import {
 	UserGroupKeyDistributionTypeRef,
 	UserGroupRootTypeRef,
 } from "@tutao/entities/sys"
-import { EntityUpdateData, getLogStringForEntityEvent, isUpdateForTypeRef } from "../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import {
+	CachingStatus,
+	EntityUpdateData,
+	getLogStringForEntityEvent,
+	isUpdateForTypeRef,
+} from "../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { isExpectedErrorForSynchronization } from "@tutao/rest-client/error"
 import {
 	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
@@ -617,6 +623,13 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				filteredUpdateEvents.push(update)
 				continue
 			}
+			// for missed entity updates, we update the cache storage using putMultiple and deleteMultiple calls in updateCacheWithMissedEntityUpdates
+			// after we log in or re-establish the ws connection to minimize the IPC overhead, so we can continue here and
+			// do singular processing only for events we receive when we're online
+			if (update.cachingStatus === CachingStatus.CacheUpdated) {
+				filteredUpdateEvents.push(update)
+				continue
+			}
 
 			switch (update.operation) {
 				case OperationType.UPDATE: {
@@ -751,6 +764,30 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			return update
 		} else {
 			return update
+		}
+	}
+
+	async updateCacheWithMissedEntityUpdates(entityUpdates: EntityUpdateData[]): Promise<void> {
+		const eventsByType = groupBy(entityUpdates, (entityUpdate) => getTypeString(entityUpdate.typeRef))
+		for (const [typeIdentifier, entityUpdates] of eventsByType) {
+			const typeRef = parseTypeString(typeIdentifier) as TypeRef<SomeEntity>
+			const entityUpdatesWithValidInstances = entityUpdates.filter((entityUpdate) => entityUpdate.instance !== null && !hasError(entityUpdate.instance))
+			const instances = entityUpdatesWithValidInstances.map((entityUpdate) => entityUpdate.instance).filter(isNotNull)
+			await this.storage.putMultiple(typeRef, instances)
+			if (isSameTypeRef(MailTypeRef, typeRef)) {
+				const entityUpdatesWithValidBlobInstances = entityUpdatesWithValidInstances.filter(
+					(entityUpdate) => entityUpdate.blobInstance !== null && !hasError(entityUpdate.blobInstance),
+				)
+				const blobInstances = entityUpdatesWithValidBlobInstances.map((entityUpdate) => entityUpdate.blobInstance).filter(isNotNull)
+				await this.storage.putMultiple(MailDetailsBlobTypeRef, blobInstances)
+				entityUpdatesWithValidBlobInstances.map((entityUpdate) => (entityUpdate.cachingStatus = CachingStatus.CacheUpdated))
+			} else {
+				entityUpdatesWithValidInstances.map((entityUpdate) => (entityUpdate.cachingStatus = CachingStatus.CacheUpdated))
+			}
+			const deleteEvents = entityUpdates.filter((entityUpdate) => entityUpdate.operation === OperationType.DELETE)
+			const deleteEventIds = deleteEvents.map((entityUpdate) => collapseId(entityUpdate.instanceListId, entityUpdate.instanceId))
+			await this.storage.deleteMultiple(typeRef, deleteEventIds)
+			deleteEvents.map((entityUpdate) => (entityUpdate.cachingStatus = CachingStatus.CacheUpdated))
 		}
 	}
 

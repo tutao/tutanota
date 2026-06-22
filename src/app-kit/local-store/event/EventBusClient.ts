@@ -10,7 +10,17 @@ import {
 	SessionExpiredError,
 	TooManyRequestsError,
 } from "@tutao/rest-client/error"
-import { type AppName, AttributeModel, hasError, isSameTypeRef, timestampToGeneratedId, TypeRef } from "@tutao/meta"
+import {
+	type AppName,
+	AttributeModel,
+	Entity,
+	hasError,
+	isSameTypeRef,
+	ServerModelParsedInstance,
+	ServerModelUntypedInstance,
+	timestampToGeneratedId,
+	TypeRef,
+} from "@tutao/meta"
 import { assertNotNull, DateProvider, delay, identity, isNotEmpty, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval } from "@tutao/utils"
 import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
 import { CloseEventBusOption, ConnectMode, WsConnectionState } from "../../../platform-kit/network/Constants.js"
@@ -34,7 +44,6 @@ import {
 } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
 import { MailDetailsBlobTypeRef, MailTypeRef, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker, tutanotaModelInfo } from "@tutao/entities/tutanota"
-import { Entity, ServerModelParsedInstance, ServerModelUntypedInstance } from "@tutao/meta"
 import { EventQueue, QueuedBatch } from "./EventQueue.js"
 import { EntityUpdateData, entityUpdateToUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityMigrator } from "../../../platform-kit/network/EntityRestClient"
@@ -373,9 +382,13 @@ export class EventBusClient {
 				break
 			}
 			case MessageType.InitialSyncDone: {
+				const allMissedEventsFlat = this.eventQueue.eventQueue.flatMap((batch) => batch.events)
+				await this.cache.updateCacheWithMissedEntityUpdates(allMissedEventsFlat)
+
 				console.log(TAG, "Reached final event, sync is done")
 
 				this.isInitialSyncDone = true
+				this.eventQueue.resume()
 				// if we received no missed batches and lastMissedBatchId remains null, we should call the syncDone listener directly
 				if (this.lastMissedBatchId === null) {
 					this.listener.onSyncDone()
@@ -517,7 +530,6 @@ export class EventBusClient {
 
 	private async initEntityEvents(connectMode: ConnectMode): Promise<void> {
 		return this.initConnection()
-			.then(() => this.eventQueue.resume())
 			.catch(
 				ofClass(ConnectionError, (e) => {
 					console.log(TAG, "ws not connected in connect(), close websocket", e)
@@ -557,7 +569,6 @@ export class EventBusClient {
 				}),
 			)
 			.catch((e) => {
-				this.eventQueue.resume()
 				this.listener.onError(e)
 			})
 	}
@@ -727,6 +738,7 @@ export class EventBusClient {
 	}
 
 	async waitForEmptyQueue(): Promise<void> {
+		this.eventQueue.resume()
 		await this.eventQueue.waitForEmptyQueue()
 	}
 }

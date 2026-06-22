@@ -26,14 +26,15 @@ import {
 } from "@tutao/entities/sys"
 import { WebsocketConnectivityListener } from "../../../../src/platform-kit/network/WebsocketConnectivityListener"
 import { LastProcessedEventBatchProvider } from "../../../../src/platform-kit/network/LastProcessedEventBatchProvider"
-import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CachingStatus, EntityUpdateData, entityUpdateToUpdateData } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupType } from "../../../../src/entities/sys/Utils"
 import { ProgressMonitorInterface } from "../../../../src/platform-kit/network/ProgressMonitorInterface"
 
-export const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches" | "blobInstance"> = {
+export const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches" | "blobInstance" | "cachingStatus"> = {
 	instance: null,
 	patches: null,
 	blobInstance: null,
+	cachingStatus: CachingStatus.CacheNotUpdated,
 }
 o.spec("EventBusClient", function () {
 	let ebc: EventBusClient
@@ -214,6 +215,7 @@ o.spec("EventBusClient", function () {
 		await Promise.all([p1, p2])
 
 		await ebc.messageQueue
+		await ebc.waitForEmptyQueue()
 
 		// Is waiting for cache to process the first event
 		verify(cacheMock.entityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything()), { times: 2 })
@@ -467,6 +469,46 @@ o.spec("EventBusClient", function () {
 			await ebc.messageQueue
 
 			o.check(updateTotalWorkCaptor.value).equals(1230 + 5)
+		})
+	})
+
+	o.spec("handle InitialSyncDone message", function () {
+		o.test("initialSyncDone message calls updateCacheWithMissedEntityUpdates method on cache and resumes the event queue", async function () {
+			await ebc.connect(ConnectMode.Initial)
+			await socket.onopen?.(new Event("open"))
+			const eventBatchId = "1"
+			const entityUpdateData = await entityUpdateToUpdateData(
+				createTestEntity(EntityUpdateTypeRef, {
+					application: MailTypeRef.app,
+					typeId: String(MailTypeRef.typeId),
+					operation: OperationType.UPDATE,
+				}),
+			)
+			when(cacheMock.entityEventsReceived(matchers.anything(), eventBatchId, "mailGroupId")).thenResolve([entityUpdateData])
+			when(createProgressMonitor(matchers.anything())).thenReturn(object<ProgressMonitorInterface>())
+			await ebc.connect(ConnectMode.Initial)
+			await socket.onopen?.(new Event("open"))
+
+			o.check(ebc["eventQueue"]["paused"]).equals(true)
+
+			await socket.onmessage?.({
+				data: "initialSyncWorkEstimate;1",
+			} as MessageEvent)
+			const entityData = createEntityData({
+				eventBatchId,
+				application: "tutanota",
+				typeId: String(MailTypeRef.typeId),
+				eventBatchOwner: "mailGroupId",
+			})
+			await socket.onmessage?.({
+				data: await createEntityMessage(entityData),
+			} as MessageEvent)
+			await socket.onmessage?.({
+				data: "initialSyncDone;1",
+			} as MessageEvent)
+			await ebc.messageQueue
+			verify(cacheMock.updateCacheWithMissedEntityUpdates([entityUpdateData]), { times: 1 })
+			o.check(ebc["eventQueue"]["paused"]).equals(false)
 		})
 	})
 
