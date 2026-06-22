@@ -402,7 +402,7 @@ export class MailFacade {
 		const firstRecipientNameBytes = base64ToUint8Array(firstRecipientName)
 
 		const firstRecipient = createFirstRecipient({
-			aggregatedId: firstRecipientId,
+			clientGeneratedAggregateId: firstRecipientId,
 			mailAddress: firstRecipientMailAddress,
 			skEncName: firstRecipientNameBytes,
 		})
@@ -898,7 +898,7 @@ export class MailFacade {
 			const encryptedFirstRecipientNameBytes = base64ToUint8Array(encryptedFirstRecipientName)
 
 			return createFirstRecipient({
-				aggregatedId: firstRecipientId,
+				clientGeneratedAggregateId: firstRecipientId,
 				mailAddress: recipient.address,
 				skEncName: encryptedFirstRecipientNameBytes,
 			})

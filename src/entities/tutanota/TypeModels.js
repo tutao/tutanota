@@ -10223,7 +10223,7 @@ const typeModels = {
 			},
 			"1857": {
 				"final": true,
-				"name": "aggregatedId",
+				"name": "clientGeneratedAggregateId",
 				"id": 1857,
 				"type": "CustomId",
 				"cardinality": "One",

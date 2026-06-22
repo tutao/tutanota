@@ -146,7 +146,7 @@ o.spec("ImportExportUtilsTest", function () {
 			eventB._errors = { someErrorKey: "someError" }
 			o.check(eventHasSameFields(eventA, eventB)).equals(true)
 		})
-		o.test("calendar events A are B same if aggregatedIds do not match", function () {
+		o.test("calendar events A are B same if aggregateIds do not match", function () {
 			eventA.organizer!._id = "newId"
 			eventB.attendees.map((attendee) => {
 				attendee._id = "newId"

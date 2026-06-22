@@ -4380,7 +4380,7 @@ pub struct FirstRecipient {
 	#[serde(with = "serde_bytes")]
 	pub skEncName: Vec<u8>,
 	#[serde(rename = "1857")]
-	pub aggregatedId: CustomId,
+	pub clientGeneratedAggregateId: CustomId,
 }
 
 impl Entity for FirstRecipient {

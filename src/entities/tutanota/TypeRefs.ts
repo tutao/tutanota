@@ -2812,5 +2812,5 @@ export type FirstRecipient = {
 	_id: Id;
 	mailAddress: string;
 	skEncName: Uint8Array;
-	aggregatedId: Id;
+	clientGeneratedAggregateId: Id;
 }
