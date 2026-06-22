@@ -1,12 +1,13 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { AllIcons, Icon, IconSize } from "./Icon"
 import { isNavButtonSelected, NavButton, NavButtonAttrs } from "./NavButton"
-import { ClickHandler, DropData } from "./GuiUtils"
+import { ClickHandler, contextDropdown, DropData } from "./GuiUtils"
 import type { MaybeTranslation } from "../utils/LanguageViewModel"
 import { assertNotNull } from "../../platform-kit/utils"
 import { client } from "../../platform-kit/app-env/boot/ClientDetector"
 import { IconButton, IconButtonAttrs } from "./IconButton"
 import { theme } from "../theme"
+import { DropdownButtonAttrs } from "./Dropdown"
 
 export interface SidebarSectionRowAttrs {
 	icon: AllIcons
@@ -19,6 +20,7 @@ export interface SidebarSectionRowAttrs {
 	isSelectedPrefix?: string | boolean
 	disabled?: boolean
 	dropHandler?: (dropData: DropData) => unknown
+	contextMenuAttrs?: DropdownButtonAttrs[]
 }
 
 /**
@@ -63,6 +65,11 @@ export class SidebarSectionRow implements Component<SidebarSectionRowAttrs> {
 				onmouseenter: onHover,
 				onmouseleave: () => {
 					this.hovered = false
+				},
+				oncontextmenu: (e: MouseEvent) => {
+					if (attrs.contextMenuAttrs) {
+						contextDropdown(e, attrs.contextMenuAttrs)
+					}
 				},
 			},
 			[

@@ -4,13 +4,13 @@ import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { assertNotNull, filterInt } from "../../../../platform-kit/utils"
 import { IconButton, IconButtonAttrs } from "../../../../ui/base/IconButton"
-import { attachDropdown, DomRectReadOnlyPolyfilled, Dropdown } from "../../../../ui/base/Dropdown"
+import { attachDropdown, DropdownButtonAttrs } from "../../../../ui/base/Dropdown"
 import { theme } from "../../../../ui/theme"
-import { modal } from "../../../../ui/base/Modal"
 import { FolderItem } from "./DriveUtils"
 import { TabIndex } from "../../../../platform-kit/app-env"
 import { getContextActions, isDraggingDriveItems } from "./DriveGuiUtils"
 import { getDisplayType, getFileIcon, getItemIconFill } from "../model/DriveMimeUtils"
+import { contextDropdown } from "../../../../ui/base/GuiUtils"
 
 export interface FileActions {
 	onCut: (f: FolderItem) => unknown
@@ -124,14 +124,10 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 					}
 				},
 				oncontextmenu: (e: MouseEvent) => {
-					e.preventDefault()
-					e.stopPropagation()
-					const dropdown = new Dropdown(
-						() => getContextActions(item, onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete, onDownload),
-						300,
+					contextDropdown(
+						e,
+						getContextActions(item, onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete, onDownload) as DropdownButtonAttrs[],
 					)
-					dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
-					modal.displayUnique(dropdown, false)
 				},
 			},
 			[

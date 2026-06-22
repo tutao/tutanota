@@ -15,13 +15,13 @@ import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { styles } from "../../../../ui/styles"
 import { DropdownButtonAttrs, DropdownChildAttrs, showDropdownAtPosition } from "../../../../ui/base/Dropdown.js"
 import { applyDarkThemeFix, replaceCidsWithInlineImages } from "./MailGuiUtils"
-import { getCoordsOfMouseOrTouchEvent } from "../../../../ui/base/GuiUtils"
+import { contextDropdown, getCoordsOfMouseOrTouchEvent } from "../../../../ui/base/GuiUtils"
 import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel"
 import { UserError } from "../../../common/api/main/UserError"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
-import { MailHeaderActions, MailViewerHeader } from "./MailViewerHeader.js"
-import { editDraft, MailViewerMoreActions, showHeaderDialog, showSourceDialog } from "./MailViewerUtils.js"
+import { MailViewerHeader } from "./MailViewerHeader.js"
+import { editDraft, getMailActionAttrs, MailViewerMoreActions, showHeaderDialog, showSourceDialog } from "./MailViewerUtils.js"
 import { ToggleButton } from "../../../../ui/base/buttons/ToggleButton.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { PinchZoom } from "../../../../ui/PinchZoom.js"
@@ -53,7 +53,8 @@ export type MailViewerAttrs = {
 	 *
 	 */
 	defaultQuoteBehavior: "collapse" | "expand"
-	actions: MailHeaderActions
+	deleteAction: (() => unknown) | null
+	trash: (() => unknown) | null
 	moreActions: MailViewerMoreActions
 }
 
@@ -159,21 +160,32 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		const forceWhiteBackground = isDarkTheme() && !this.shouldViewInDarkMode()
 
 		return [
-			m(".mail-viewer.overflow-x-hidden", [
-				this.renderMailHeader(vnode.attrs),
-				this.renderMailSubject(vnode.attrs),
-				m(
-					".flex-grow.scroll-x.pt-16.pb-16.border-radius-12" + (forceWhiteBackground ? ".bg-white.content-black" : ""),
-					{
-						class: responsiveCardHPadding(),
-						oncreate: (vnode) => {
-							this.scrollDom = vnode.dom as HTMLElement
-						},
+			m(
+				".mail-viewer.overflow-x-hidden",
+				{
+					oncontextmenu: (e: MouseEvent) => {
+						// If text is selected show typical right click menu, so text can be copied
+						if (window.getSelection()?.toString() === "") {
+							contextDropdown(e, getMailActionAttrs(this.viewModel.getMailActions(vnode.attrs.deleteAction, vnode.attrs.trash)))
+						}
 					},
-					this.renderMailBodySection(vnode.attrs),
-				),
-				this.renderQuoteExpanderButton(),
-			]),
+				},
+				[
+					this.renderMailHeader(vnode.attrs),
+					this.renderMailSubject(vnode.attrs),
+					m(
+						".flex-grow.scroll-x.pt-16.pb-16.border-radius-12" + (forceWhiteBackground ? ".bg-white.content-black" : ""),
+						{
+							class: responsiveCardHPadding(),
+							oncreate: (vnode) => {
+								this.scrollDom = vnode.dom as HTMLElement
+							},
+						},
+						this.renderMailBodySection(vnode.attrs),
+					),
+					this.renderQuoteExpanderButton(),
+				],
+			),
 		]
 	}
 
@@ -254,7 +266,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			isPrimary: attrs.isPrimary,
 			importFile: (file: File) => this.handleAttachmentImport(file),
 			moreActions: attrs.moreActions,
-			actions: attrs.actions,
+			deleteAction: attrs.deleteAction,
+			trash: attrs.trash,
 		})
 	}
 

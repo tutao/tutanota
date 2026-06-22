@@ -22,6 +22,8 @@ import { getFolderIcon } from "./MailGuiUtils"
 import { IconSize } from "../../../../ui/base/Icon"
 import { FolderSystemKind, MailSetTreeActionAttrs, MailSetTreeAttrs, renderFolderTree } from "./MailSetTreeUtils"
 import { Group } from "@tutao/entities/sys"
+import { MailSetKind } from "../../../../entities/tutanota/Utils"
+import { isSpamOrTrashFolder } from "../model/MailChecks"
 
 export interface MailFolderViewAttrs {
 	mailModel: MailModel
