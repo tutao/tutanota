@@ -435,16 +435,6 @@ export class MailViewModel {
 			// if the preference for conversation in the list has changed, we need to re-create the list model
 			this.updateListModel()
 		}
-		this.syncTracker.addSyncDoneListener({
-			onSyncDone: async () => {
-				if (this.listModel) {
-					this.listModelReloadPromise = this.listModel?.reload()
-				} else {
-					this.updateListModel()
-				}
-			},
-			priority: SyncDonePriority.HIGH,
-		})
 	}
 
 	private readonly onceInit = lazyMemoized(() => {
@@ -731,10 +721,7 @@ export class MailViewModel {
 				}
 			}
 
-			if (isInitialSyncDone) {
-				// we need to await the reload promise here, to populate the map (conversationMap/mailMap) inside the list model
-				this.listModelReloadPromise.then(async () => await listModel.handleEntityUpdate(update))
-			}
+			await listModel.handleEntityUpdate(update)
 		}
 	}
 
