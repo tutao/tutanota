@@ -13,7 +13,16 @@ import { Mode, ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { elementIdPart, getElementId, listIdPart } from "../../../../../src/platform-kit/meta"
 import { func, instance, matchers, object, verify, when } from "testdouble"
 import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
-import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, defer, neverNull, stringToUtf8Uint8Array } from "../../../../../src/platform-kit/utils"
+import {
+	arrayEquals,
+	base64ExtToBase64,
+	base64ToUint8Array,
+	concat,
+	defer,
+	neverNull,
+	noOp,
+	stringToUtf8Uint8Array,
+} from "../../../../../src/platform-kit/utils"
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { BlobAccessTokenFacade } from "../../../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, withOverriddenEnv } from "../../../TestUtils.js"
@@ -1013,8 +1022,17 @@ o.spec("BlobFacade", function () {
 			const uploadEncryptedChunk = async (encrypted: `encrypted-${number}`): Promise<BlobReferenceTokenWrapper> => {
 				return createTestEntity(BlobReferenceTokenWrapperTypeRef, { blobReferenceToken: `token for ${encrypted}` })
 			}
+			const disposeUnencryptedChunk = func() as (chunk: number) => Promise<void>
+			const disposeEncryptedChunk = func() as (chunk: `encrypted-${number}`) => Promise<void>
 
-			const generator = pipelineEncryptAndUpload(fetchNextChunk, encryptChunk, uploadEncryptedChunk, new AbortController().signal)
+			const generator = pipelineEncryptAndUpload(
+				fetchNextChunk,
+				encryptChunk,
+				uploadEncryptedChunk,
+				new AbortController().signal,
+				disposeUnencryptedChunk,
+				disposeEncryptedChunk,
+			)
 			const chunks: `encrypted-${number}`[] = []
 			const refTokens: string[] = []
 			for await (const [chunk, referenceToken] of generator) {
@@ -1024,6 +1042,14 @@ o.spec("BlobFacade", function () {
 
 			o.check(chunks).deepEquals(["encrypted-1", "encrypted-2", "encrypted-3", "encrypted-4"])
 			o.check(refTokens).deepEquals(["token for encrypted-1", "token for encrypted-2", "token for encrypted-3", "token for encrypted-4"])
+			verify(disposeUnencryptedChunk(1))
+			verify(disposeUnencryptedChunk(2))
+			verify(disposeUnencryptedChunk(3))
+			verify(disposeUnencryptedChunk(4))
+			verify(disposeEncryptedChunk("encrypted-1"))
+			verify(disposeEncryptedChunk("encrypted-2"))
+			verify(disposeEncryptedChunk("encrypted-3"))
+			verify(disposeEncryptedChunk("encrypted-4"))
 		})
 		o.test("processes an odd number of chunks completely", async function () {
 			const items = [1, 2, 3]
@@ -1034,8 +1060,17 @@ o.spec("BlobFacade", function () {
 			const uploadEncryptedChunk = async (encrypted: `encrypted-${number}`): Promise<BlobReferenceTokenWrapper> => {
 				return createTestEntity(BlobReferenceTokenWrapperTypeRef, { blobReferenceToken: `token for ${encrypted}` })
 			}
+			const disposeUnencryptedChunk = func() as (chunk: number) => Promise<void>
+			const disposeEncryptedChunk = func() as (chunk: `encrypted-${number}`) => Promise<void>
 
-			const generator = pipelineEncryptAndUpload(fetchNextChunk, encryptChunk, uploadEncryptedChunk, new AbortController().signal)
+			const generator = pipelineEncryptAndUpload(
+				fetchNextChunk,
+				encryptChunk,
+				uploadEncryptedChunk,
+				new AbortController().signal,
+				disposeUnencryptedChunk,
+				disposeEncryptedChunk,
+			)
 			const chunks: `encrypted-${number}`[] = []
 			const refTokens: string[] = []
 			for await (const [chunk, referenceToken] of generator) {
@@ -1045,6 +1080,12 @@ o.spec("BlobFacade", function () {
 
 			o.check(chunks).deepEquals(["encrypted-1", "encrypted-2", "encrypted-3"])
 			o.check(refTokens).deepEquals(["token for encrypted-1", "token for encrypted-2", "token for encrypted-3"])
+			verify(disposeUnencryptedChunk(1))
+			verify(disposeUnencryptedChunk(2))
+			verify(disposeUnencryptedChunk(3))
+			verify(disposeEncryptedChunk("encrypted-1"))
+			verify(disposeEncryptedChunk("encrypted-2"))
+			verify(disposeEncryptedChunk("encrypted-3"))
 		})
 		o.test("encrypts next chunk before the previous one has finished uploading", async function () {
 			// We are testing that encrypt and upload are running in parallel at every step (except the first where
@@ -1081,7 +1122,14 @@ o.spec("BlobFacade", function () {
 				}
 			}
 
-			const generator = pipelineEncryptAndUpload<UnencryptedItem, EncryptedItem>(fetchNextChunk, encryptChunk, uploadChunk, new AbortController().signal)
+			const generator = pipelineEncryptAndUpload<UnencryptedItem, EncryptedItem>(
+				fetchNextChunk,
+				encryptChunk,
+				uploadChunk,
+				new AbortController().signal,
+				async () => {},
+				async () => {},
+			)
 			// the first step will encrypt item1, encrypt item2 chunk and upload item1
 			await generator.next()
 			// the second step will encrypt item3 and item2, except we manually postpone the upload for the second one
