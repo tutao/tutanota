@@ -135,7 +135,8 @@ public final class IosFileFacade: FileFacade {
 
 				taskCreated(task)
 				self.progressCancellable = task.progress.publisher(for: \.fractionCompleted)
-					.throttle(for: .milliseconds(50), scheduler: RunLoop.main, latest: true).sink { _ in self.reporter(Int(task.countOfBytesSent)) }
+					.throttle(for: .milliseconds(50), scheduler: RunLoop.main, latest: true)
+					.sink { [weak self] _ in self?.reporter(Int(task.countOfBytesSent)) }
 			}
 		}
 		let uploadDelegate = UploadDelegate(
@@ -188,7 +189,8 @@ public final class IosFileFacade: FileFacade {
 				// directly for the bytes received.
 				taskCreated(task)
 				self.progressCancellable = task.progress.publisher(for: \.fractionCompleted)
-					.throttle(for: .milliseconds(50), scheduler: RunLoop.main, latest: true).sink { _ in self.reporter(Int(task.countOfBytesReceived)) }
+					.throttle(for: .milliseconds(50), scheduler: RunLoop.main, latest: true)
+					.sink { [weak self] _ in self?.reporter(Int(task.countOfBytesReceived)) }
 			}
 		}
 		let downloadDelegate = DownloadDelegate(
