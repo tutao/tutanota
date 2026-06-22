@@ -34,6 +34,7 @@ import { generateExportFileName } from "../export/emlUtils.js"
 import { makeTrackedProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { AsyncResultStateOptions } from "../../../../platform-kit/utils/AsyncResult"
+import { DropdownButtonAttrs } from "../../../../ui/base/Dropdown"
 
 EnvProvider.assertMainOrNode()
 
@@ -48,6 +49,7 @@ export interface MailListViewAttrs {
 	onSingleExclusiveSelection: ListElementListModel<Mail>["onSingleExclusiveSelection"]
 	onTrashSwipe: (ownerGroup: Id, mails: readonly IdTuple[]) => unknown
 	onMoveSwipe: (targetFolderType: SystemFolderType, mails: readonly IdTuple[]) => Promise<boolean>
+	contextDropdownAttrs?: (mail: Mail) => DropdownButtonAttrs[]
 }
 
 export class MailListView implements Component<MailListViewAttrs> {
@@ -380,6 +382,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 							onStopLoading() {
 								listModel.stopLoading()
 							},
+							contextDropdownAttrs: this.attrs.contextDropdownAttrs,
 						} satisfies ListAttrs<Mail, MailRow>),
 			),
 		)

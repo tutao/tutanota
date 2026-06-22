@@ -207,6 +207,20 @@ class Modal implements Component {
 		this.uniqueComponent = component
 	}
 
+	/**
+	 * used for modal components that should only be opened once but
+	 * multiple calls will override the existing
+	 * @param component
+	 */
+	displayUniqueOverride(component: ModalComponent, needsBg: boolean = true) {
+		if (this.uniqueComponent) {
+			this.remove(this.uniqueComponent)
+		}
+		this.uniqueComponent = component
+
+		this.display(component, needsBg)
+	}
+
 	private getComponentByKey(key: number): ModalComponent | null {
 		const entry = this.components.find((c) => c.key === key)
 		return entry?.component ?? null

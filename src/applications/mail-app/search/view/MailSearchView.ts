@@ -30,7 +30,6 @@ import { IconButton } from "../../../../ui/base/IconButton"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { MAIL_PREFIX } from "../../../../ui/utils/RouteChange"
 import { ProgressBar } from "../../../../ui/base/ProgressBar"
-import { BaseSearchBarAttrs } from "../../../../ui/base/BaseSearchBar"
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { elementIdToId, getElementId, getIds, isSameId } from "@tutao/meta"
 import { Mail } from "@tutao/entities/tutanota"
@@ -80,7 +79,7 @@ import { showDateRangeSelectionDialog } from "../../../calendar-app/calendar/gui
 import { listSelectionKeyboardShortcuts } from "../../../../ui/base/ListUtils"
 import { MultiselectMode } from "../../../../ui/base/List"
 import { SimpleMoveMailTarget } from "../../mail/MailUtils"
-import { MailSearchListView, MailSearchListViewAttrs } from "./MailSearchListView"
+import { MailSearchListView } from "./MailSearchListView"
 
 import { AppPromo } from "../../../common/gui/AppPromo"
 import { SearchViewSearchBar } from "../../../common/search/SearchViewSearchBar"
@@ -210,7 +209,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 					},
 					extendMailIndex: (time: number) => this.searchViewModel.extendMailIndex(time),
 					cancelMailIndexing: () => this.searchViewModel.cancelMailIndexing(),
-				} satisfies MailSearchListViewAttrs),
+				}),
 			),
 		])
 	}
@@ -422,7 +421,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 				this.searchViewModel.onSearchQueryUpdated(text)
 			},
 			onClear: () => this.searchViewModel.onSearchQueryUpdated(""),
-		} satisfies BaseSearchBarAttrs)
+		})
 	}
 
 	protected async onNewUrl(args: Record<string, any>, requestedPath: string) {
@@ -571,21 +570,24 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 			const actions = m(MailViewerActions, {
 				selectedMails: selectedMails,
 				selectNone: () => this.searchViewModel.listModel.selectNone(),
-				trashMailsAction: trashAction,
-				deleteMailAction: deleteAction,
-				moveMailsAction: this.getMoveMailsAction(),
-				applyLabelsAction: this.getLabelsAction(),
 				setUnreadStateAction: (unread) => this.setUnreadState(unread),
 				isUnread: null,
-				editDraftAction: this.getEditDraftAction(),
-				unscheduleMailAction: this.getUnscheduleAction(),
-				exportAction: this.getExportAction(),
-				replyAction: null,
-				replyAllAction: null,
-				forwardAction: null,
-				mailViewerMoreActions: null,
-				reportSpamAction: this.getReportSelectedMailsSpamAction(),
-				reportNotSpamAction: null,
+				mailViewerActions: {
+					deleteAction,
+					trash: trashAction,
+					move: this.getMoveMailsAction(),
+					label: this.getLabelsAction(),
+					markSpam: this.getReportSelectedMailsSpamAction(),
+					markNotSpam: null,
+					edit: this.getEditDraftAction(),
+					cancelScheduled: this.getUnscheduleAction(),
+					reply: null,
+					replyAll: null,
+					forward: null,
+				},
+				mailViewerMoreActions: {
+					exportAction: this.getExportAction(),
+				},
 			})
 			return m(BackgroundColumnLayout, {
 				backgroundColor: theme.surface_container,
@@ -613,28 +615,30 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 			const { deleteAction, trashAction } = this.getDeleteAndTrashActions()
 			const actions = m(MailViewerActions, {
 				selectedMails: [conversationViewModel.primaryMail],
-				trashMailsAction: trashAction,
-				deleteMailAction: deleteAction,
-				moveMailsAction: this.getMoveMailsAction(),
-				applyLabelsAction: this.getLabelsAction(),
 				setUnreadStateAction: (unread) => this.setUnreadState(unread),
 				isUnread: this.getUnreadState(),
-				editDraftAction: this.getEditDraftAction(),
-				unscheduleMailAction: this.getUnscheduleAction(),
-				exportAction: this.getExportAction(),
-				replyAction: this.getReplyAction(conversationViewModel, false),
-				replyAllAction: this.getReplyAction(conversationViewModel, true),
-				forwardAction: this.getForwardAction(conversationViewModel),
+				mailViewerActions: {
+					deleteAction,
+					trash: trashAction,
+					move: this.getMoveMailsAction(),
+					label: this.getLabelsAction(),
+					markSpam: this.getReportSelectedMailsSpamAction(),
+					markNotSpam: null,
+					edit: this.getEditDraftAction(),
+					cancelScheduled: this.getUnscheduleAction(),
+					reply: this.getReplyAction(conversationViewModel, false),
+					replyAll: this.getReplyAction(conversationViewModel, true),
+					forward: this.getForwardAction(conversationViewModel),
+				},
 				mailViewerMoreActions: getMailViewerMoreActions({
 					viewModel: conversationViewModel.primaryViewModel(),
+					exportAction: this.getExportAction(),
 					print: this.getPrintAction(),
 					reapplyInboxRules: null,
 					reportSpam: this.getSingleMailReportNotSpamAction(conversationViewModel.primaryViewModel()),
 					reportNotSpam: this.getSingleMailReportNotSpamAction(conversationViewModel.primaryViewModel()),
 					reportPhishing: this.getSingleMailPhishingAction(conversationViewModel.primaryViewModel()),
 				}),
-				reportSpamAction: this.getReportSelectedMailsSpamAction(),
-				reportNotSpamAction: null,
 			})
 			return m(BackgroundColumnLayout, {
 				backgroundColor: theme.surface_container,
@@ -655,34 +659,22 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 					viewModel: conversationViewModel,
 					actionableMailViewerViewModel: () => conversationViewModel.primaryViewModel(),
 					delayBodyRendering: Promise.resolve(),
-					actions: (mailViewerModel: MailViewerViewModel) => {
-						return {
-							trash: mailViewerModel.isMovableMail()
-								? () => {
-										trashMails(mailViewerModel.mailboxModel, mailViewerModel.mailModel, this.undoModel, [mailViewerModel.mail])
-									}
-								: null,
-							delete: mailViewerModel.isDeletingMailAllowed()
-								? () => promptAndDeleteMails(mailViewerModel.mailModel, [mailViewerModel.mail._id], null, noOp)
-								: null,
-							move: mailViewerModel.isMovableMail()
-								? (dom) => {
-										showMoveMailsDropdown(
-											mailViewerModel.mailboxModel,
-											mailViewerModel.mailModel,
-											this.undoModel,
-											dom.getBoundingClientRect(),
-											[mailViewerModel.mail],
-											MoveMode.Mails,
-											mailLocator.contactModel,
-										)
-									}
-								: null,
-						}
+					deleteAction: (mailViewerModel) => {
+						return mailViewerModel.isDeletingMailAllowed()
+							? () => promptAndDeleteMails(mailViewerModel.mailModel, [mailViewerModel.mail._id], null, noOp)
+							: null
+					},
+					trash: (mailViewerModel) => {
+						return !mailViewerModel.isDeletingMailAllowed() && mailViewerModel.isMovableMail()
+							? () => {
+									trashMails(mailViewerModel.mailboxModel, mailViewerModel.mailModel, this.undoModel, [mailViewerModel.mail])
+								}
+							: null
 					},
 					moreActions: (mailViewerModel) => {
 						return getMailViewerMoreActions({
 							viewModel: mailViewerModel,
+							exportAction: null,
 							print: this.getPrintAction(),
 							reapplyInboxRules: null,
 							reportSpam: this.getSingleMailSpamAction(mailViewerModel),
@@ -877,12 +869,12 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 				isUnread: this.getUnreadState(),
 				editDraftAction: this.getEditDraftAction(),
 				unscheduleMailAction: this.getUnscheduleAction(),
-				exportAction: this.getExportAction(),
 				replyAction: this.getReplyAction(conversationViewModel, false),
 				replyAllAction: this.getReplyAction(conversationViewModel, true),
 				forwardAction: this.getForwardAction(conversationViewModel),
 				mailViewerMoreActions: getMailViewerMoreActions({
 					viewModel: conversationViewModel.primaryViewModel(),
+					exportAction: this.getExportAction(),
 					print: this.getPrintAction(),
 					reapplyInboxRules: null,
 					reportSpam: this.getSingleMailSpamAction(conversationViewModel.primaryViewModel()),
