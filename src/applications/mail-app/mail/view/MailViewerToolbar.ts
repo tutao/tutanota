@@ -3,12 +3,11 @@ import { IconButton } from "../../../../ui/base/IconButton.js"
 import { isEmpty } from "../../../../platform-kit/utils"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { createDropdown, DropdownButtonAttrs } from "../../../../ui/base/Dropdown.js"
-import type { MailViewerMoreActions } from "./MailViewerUtils.js"
-import { multipleMailViewerMoreActions } from "./MailViewerUtils.js"
-import { ShowMoveMailsDropdownOpts } from "./MailGuiUtils"
-
-import { PosRect } from "../../../../ui/utils/PosRect"
+import { getMailActionAttrs, MailViewerMoreActions, MailViewerToolbarActions, multipleMailViewerMoreActions } from "./MailViewerUtils.js"
 import { Mail } from "@tutao/entities/tutanota"
+import { MaybeTranslation } from "../../../../ui/utils/LanguageViewModel"
+import { ClickHandler } from "../../../../ui/base/GuiUtils"
+import { AllIcons } from "../../../../ui/base/Icon"
 
 /*
 	note that mailViewerViewModel has a mailModel, so you do not need to pass both if you pass a mailViewerViewModel
@@ -16,21 +15,10 @@ import { Mail } from "@tutao/entities/tutanota"
 export interface MailViewerToolbarAttrs {
 	selectedMails: readonly Mail[]
 	selectNone?: () => void
-	trashMailsAction: (() => void) | null
-	deleteMailAction: (() => void) | null
-	moveMailsAction: ((origin: PosRect, opts?: ShowMoveMailsDropdownOpts) => void) | null
-	applyLabelsAction: ((dom: HTMLElement) => void) | null
 	setUnreadStateAction: ((unread: boolean) => void) | null
 	isUnread: boolean | null
-	editDraftAction: (() => void) | null
-	exportAction: (() => void) | null
-	replyAction: (() => void) | null
-	replyAllAction: (() => void) | null
-	forwardAction: (() => void) | null
+	mailViewerActions: MailViewerToolbarActions
 	mailViewerMoreActions: MailViewerMoreActions | null
-	reportSpamAction: (() => void) | null
-	unscheduleMailAction: (() => void) | null
-	reportNotSpamAction: (() => void) | null
 }
 
 // Note: this is only used for non-mobile views. Please also update MobileMailMultiselectionActionBar or MobileMailActionBar
@@ -47,171 +35,76 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 
 	private renderActions(attrs: MailViewerToolbarAttrs): Children {
 		if (attrs.selectedMails.length > 0) {
+			// These are pulled out as some action are only for single mails
+			const { deleteAction, trash, move, label, markSpam, markNotSpam } = attrs.mailViewerActions
+			const setUnreadAction = attrs.setUnreadStateAction
+			const { read, unread } = this.getReadingActions(attrs.isUnread, setUnreadAction)
 			return [
-				this.renderDeleteButton(attrs) ?? this.renderTrashButton(attrs),
-				this.renderMoveButton(attrs),
-				this.renderLabelButton(attrs),
-				this.renderReadButton(attrs),
-				this.renderReportSpamButton(attrs),
-				this.renderReportNotSpamButton(attrs),
-				this.renderExtraButtons(attrs.exportAction, attrs.mailViewerMoreActions),
+				this.renderActionAttrsAsIconButtons(
+					getMailActionAttrs({
+						deleteAction,
+						trash,
+						move,
+						label,
+						read,
+						unread,
+						markSpam,
+						markNotSpam,
+					}),
+				),
+				this.renderExtraButtons(attrs.mailViewerMoreActions),
 			]
 		}
+	}
+
+	renderActionAttrsAsIconButtons(actions: Array<{ label: MaybeTranslation; click: ClickHandler; icon: AllIcons }>): Children {
+		return actions.map(({ label, click, icon }) =>
+			m(IconButton, {
+				label,
+				click,
+				icon,
+			}),
+		)
 	}
 
 	/*
 	 * Actions that can only be taken on a single mail (reply, forward, edit, assign)
 	 */
 	private renderSingleMailActions(attrs: MailViewerToolbarAttrs): Children {
-		const { editDraftAction, replyAction, replyAllAction, forwardAction, reportNotSpamAction } = attrs
-		if (editDraftAction == null && replyAction == null && replyAllAction == null && forwardAction == null) {
+		const { edit, reply, replyAll, forward, markNotSpam } = attrs.mailViewerActions
+		if (edit == null && reply == null && replyAll == null && forward == null) {
 			return null
 		}
 
-		const isShowReportNotSpamAction = reportNotSpamAction != null
+		const isShowReportNotSpamAction = markNotSpam != null
 		if (!isShowReportNotSpamAction) {
-			return [this.renderEditButton(editDraftAction), this.renderReplyButton(replyAction, replyAllAction), this.renderForwardButton(forwardAction)]
+			return [this.renderActionAttrsAsIconButtons(getMailActionAttrs({ edit, reply, replyAll, forward }))]
 		} else {
 			return []
 		}
 	}
 
-	private renderTrashButton({ trashMailsAction }: MailViewerToolbarAttrs): Children {
-		return (
-			trashMailsAction &&
-			m(IconButton, {
-				label: "trash_action",
-				click: trashMailsAction,
-				icon: Icons.TrashFilled,
-			})
-		)
-	}
-
-	private renderDeleteButton({ deleteMailAction }: MailViewerToolbarAttrs): Children {
-		return (
-			deleteMailAction &&
-			m(IconButton, {
-				label: "delete_action",
-				click: deleteMailAction,
-				icon: Icons.TrashCrossFilled,
-			})
-		)
-	}
-
-	private renderReportSpamButton({ reportSpamAction }: MailViewerToolbarAttrs): Children {
-		return (
-			reportSpamAction &&
-			m(IconButton, {
-				label: "reportSpam_action",
-				click: reportSpamAction,
-				icon: Icons.BugFilled,
-			})
-		)
-	}
-
-	private renderReportNotSpamButton({ reportNotSpamAction }: MailViewerToolbarAttrs): Children {
-		return (
-			reportNotSpamAction &&
-			m(IconButton, {
-				label: "reportNotSpam_action",
-				click: reportNotSpamAction,
-				icon: Icons.BugCrossedFilled,
-			})
-		)
-	}
-
-	private renderMoveButton({ moveMailsAction }: MailViewerToolbarAttrs): Children {
-		return (
-			moveMailsAction &&
-			m(IconButton, {
-				label: "move_action",
-				icon: Icons.FolderFilled,
-				click: (e, dom) => moveMailsAction(dom.getBoundingClientRect()),
-			})
-		)
-	}
-
-	private renderLabelButton({ applyLabelsAction }: MailViewerToolbarAttrs): Children {
-		return (
-			applyLabelsAction &&
-			m(IconButton, {
-				label: "assignLabel_action",
-				icon: Icons.LabelFilled,
-				click: (_, dom) => {
-					applyLabelsAction(dom)
-				},
-			})
-		)
-	}
-
-	private renderReadButton({ setUnreadStateAction, isUnread }: MailViewerToolbarAttrs): Children {
-		if (setUnreadStateAction == null) {
-			return null
+	private getReadingActions(
+		isUnread: boolean | null,
+		unreadAction: ((unread: boolean) => void) | null,
+	): { read: (() => unknown) | null; unread: (() => unknown) | null } {
+		if (unreadAction == null) {
+			return { read: null, unread: null }
 		}
-
-		const markReadButton = m(IconButton, {
-			label: "markRead_action",
-			click: () => setUnreadStateAction(false),
-			icon: Icons.EyeFilled,
-		})
-		const markUnreadButton = m(IconButton, {
-			label: "markUnread_action",
-			click: () => setUnreadStateAction(true),
-			icon: Icons.EyeCrossedFilled,
-		})
-
-		// isUnread means we are viewing one mail; otherwise, it is coming from a MultiViewer
-		if (isUnread != null) {
-			if (isUnread) {
-				return markReadButton
-			} else {
-				return markUnreadButton
-			}
+		const read = () => unreadAction(false)
+		const unread = () => unreadAction(true)
+		if (isUnread == null) {
+			// if unread is null we are in multi-mail selection and want to see both
+			return { read, unread }
+		} else if (isUnread) {
+			return { read, unread: null }
 		} else {
-			return [markReadButton, markUnreadButton]
+			return { read: null, unread }
 		}
 	}
 
-	private renderReplyButton(replyAction: (() => void) | null, replyAllAction: (() => void) | null) {
-		const actions: Children = []
-
-		if (replyAction == null) {
-			return actions
-		}
-
-		actions.push(
-			m(IconButton, {
-				label: "reply_action",
-				click: replyAction,
-				icon: Icons.ArrowBackFilled,
-			}),
-		)
-
-		if (replyAllAction != null) {
-			actions.push(
-				m(IconButton, {
-					label: "replyAll_action",
-					click: replyAllAction,
-					icon: Icons.DoubleArrowBackFilled,
-				}),
-			)
-		}
-		return actions
-	}
-
-	private renderForwardButton(forwardAction: (() => void) | null) {
-		return (
-			forwardAction &&
-			m(IconButton, {
-				label: "forward_action",
-				click: forwardAction,
-				icon: Icons.ArrowForwardFilled,
-			})
-		)
-	}
-
-	private renderExtraButtons(exportAction: (() => void) | null, moreActions: MailViewerMoreActions | null): Children {
-		let actions: DropdownButtonAttrs[] = multipleMailViewerMoreActions(exportAction, moreActions)
+	private renderExtraButtons(moreActions: MailViewerMoreActions | null): Children {
+		let actions: DropdownButtonAttrs[] = multipleMailViewerMoreActions(moreActions)
 
 		if (isEmpty(actions)) {
 			return null
@@ -225,15 +118,5 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 				}),
 			})
 		}
-	}
-
-	private renderEditButton(editDraftAction: (() => void) | null) {
-		return editDraftAction
-			? m(IconButton, {
-					label: "edit_action",
-					click: editDraftAction,
-					icon: Icons.PenFilled,
-				})
-			: null
 	}
 }
