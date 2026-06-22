@@ -6,7 +6,6 @@ import { ProgrammingError } from "@tutao/app-env"
 import { FileNotFoundError } from "../../api/common/error/FileNotFoundError"
 import { Readable } from "node:stream"
 import fs from "node:fs"
-import { size } from "../../../../ui/size"
 
 type TmpSub = "reg" | "encrypted" | "decrypted"
 
@@ -242,8 +241,7 @@ export class TempFs {
 		const stream = this.fs.createReadStream(fileUri)
 		const fileName = this.generateFilename()
 		this.openStreams.set(fileName, stream)
-		const uri = `tuta-stream:${fileName}`
-		return uri
+		return `tuta-stream:${fileName}`
 	}
 
 	public closeFile(streamUri: string) {
@@ -280,34 +278,6 @@ class TypedArrayReadableStream extends Readable {
 			const chunk = this.array.slice(this.position, this.position + size)
 			this.position += size
 			this.push(chunk)
-		}
-	}
-}
-
-class LimitedReadableStream extends Readable {
-	private buffer: { buffer: Buffer; read: number } | null = null
-	private readBytes: number = 0
-	constructor(
-		private readonly upstream: Readable,
-		private readonly fileSize: number,
-	) {
-		super()
-	}
-
-	_read(size: number) {
-		if (this.readBytes === this.fileSize) {
-			if (this.buffer != null) {
-				const leftToRead = this.buffer.buffer.length - this.buffer.read
-				const newBuffer = Buffer.alloc(Math.min(size, leftToRead))
-				this.buffer.buffer.copy(newBuffer, 0, this.buffer.read, newBuffer.length)
-				return newBuffer
-			} else {
-				return null
-			}
-		}
-		const readBuffer = this.upstream.read()
-		if (readBuffer && readBuffer.length > size) {
-			this.buffer = readBuffer
 		}
 	}
 }

@@ -24,7 +24,7 @@ import {
 } from "@tutao/utils"
 import { assertWorkerOrNode, CancelledError, isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
 import { AttributeModel, ServerModelUntypedInstance, SomeEntity } from "@tutao/meta"
-import { _encryptBytes, AesKey, sha256Hash } from "@tutao/crypto"
+import { _encryptBytes, aesDecrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto"
 import type { FileUri, NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
 import type { AesApp } from "../../../../../../app-kit/native-bridge/worker/AesApp.js"
 import { splitFileIntoChunks } from "../../../../../../ui/utils/FileUtils.js"
@@ -45,7 +45,6 @@ import {
 } from "@tutao/entities/storage"
 import { FileReference } from "../../../../../../entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
-import { aesDecrypt, asyncDecryptBytes } from "@tutao/crypto"
 import { DEFAULT_REST_CLIENT_OPTIONS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 
 assertWorkerOrNode()
@@ -89,12 +88,16 @@ type EncryptedNativeChunk = NativeChunk & { readonly __brand: unique symbol }
  * @param encrypt callback to receive an unencrypted chunk and return an encrypted form of it
  * @param upload callback to receive an encrypted chunk and upload it
  * @param abortSignal signal to stop execution of the pipeline
+ * @param disposeUnencryptedChunk callback to cleanup previously fetched chunk
+ * @param disposeEncryptedChunk callback to cleanup previously encrypted chunk
  */
 export async function* pipelineEncryptAndUpload<Unencrypted, Encrypted>(
 	fetchNextChunk: () => Promise<Unencrypted | null>,
 	encrypt: (chunk: Unencrypted) => Promise<Encrypted>,
 	upload: (encryptedChunk: Encrypted) => Promise<BlobReferenceTokenWrapper>,
 	abortSignal: AbortSignal,
+	disposeUnencryptedChunk: (chunk: Unencrypted) => Promise<void>,
+	disposeEncryptedChunk: (chunk: Encrypted) => Promise<void>,
 ): AsyncGenerator<[Encrypted, BlobReferenceTokenWrapper], void, void> {
 	const encryptNextChunk = async (chunk: Unencrypted | null): Promise<Encrypted | null> => {
 		if (chunk == null) {
@@ -109,20 +112,40 @@ export async function* pipelineEncryptAndUpload<Unencrypted, Encrypted>(
 		return
 	}
 
-	let chunkToBeUploaded: Encrypted | null = await encrypt(firstChunk)
+	let chunkToBeUploaded: Encrypted | null = null
+	let chunkToBeEncrypted: Unencrypted | null = firstChunk
+	try {
+		chunkToBeUploaded = await encrypt(chunkToBeEncrypted)
+		await disposeUnencryptedChunk(chunkToBeEncrypted)
+		chunkToBeEncrypted = null
 
-	while (chunkToBeUploaded != null) {
-		if (abortSignal.aborted) {
-			throw new CancelledError("upload aborted")
+		while (chunkToBeUploaded != null) {
+			if (abortSignal.aborted) {
+				throw new CancelledError("upload aborted")
+			}
+
+			chunkToBeEncrypted = await fetchNextChunk()
+
+			const uploadAndEncrypt: Promise<[BlobReferenceTokenWrapper, Encrypted | null]> = Promise.all([
+				upload(chunkToBeUploaded),
+				encryptNextChunk(chunkToBeEncrypted),
+			])
+			const [response, freshEncryptedChunk] = await uploadAndEncrypt
+			const uploadedChunk = chunkToBeUploaded
+			yield [uploadedChunk, response]
+
+			if (chunkToBeEncrypted) {
+				await disposeUnencryptedChunk(chunkToBeEncrypted)
+				chunkToBeEncrypted = null
+			}
+			await disposeEncryptedChunk(chunkToBeUploaded)
+
+			chunkToBeUploaded = freshEncryptedChunk
 		}
-
-		const nextChunk = await fetchNextChunk()
-
-		const uploadAndEncrypt: Promise<[BlobReferenceTokenWrapper, Encrypted | null]> = Promise.all([upload(chunkToBeUploaded), encryptNextChunk(nextChunk)])
-		const [response, freshEncryptedChunk] = await uploadAndEncrypt
-		const uploadedChunk = chunkToBeUploaded
-		chunkToBeUploaded = freshEncryptedChunk
-		yield [uploadedChunk, response]
+	} finally {
+		// cleanup in case of error/cancellation
+		if (chunkToBeEncrypted) await disposeUnencryptedChunk(chunkToBeEncrypted)
+		if (chunkToBeUploaded) await disposeEncryptedChunk(chunkToBeUploaded)
 	}
 }
 
@@ -280,6 +303,9 @@ export class BlobFacade {
 			encryptChunk,
 			uploadEncryptedChunk,
 			abortController.signal,
+			// in-memory chunks do not need any special cleanup
+			/*disposeUnencryptedChunk=*/ async () => {},
+			/*disposeEncryptedChunk=*/ async () => {},
 		)) {
 			yield { totalBytes: fileSize, uploadedBytes: encryptedChunk.byteLength, referenceTokenWrapper: referenceTokens }
 		}
@@ -303,7 +329,6 @@ export class BlobFacade {
 		}
 		const fileHandle = await this.fileApp.openFileForReading(fileUri)
 		try {
-			const uploadedChunkIds: string[] = []
 			const [fileMeta] = await this.fileApp.getFilesMetaData([fileUri])
 			const uploadState: FileUploadState = {
 				transferId,
@@ -319,19 +344,17 @@ export class BlobFacade {
 					throw new CancelledError("Upload canceled")
 				}
 				const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
-				const tokenWrapper = await this.uploadNativeEncryptedChunk(encryptedChunk.chunkUri, blobServerAccessInfo, encryptedChunk.chunkId)
-				await this.fileApp.deleteFile(encryptedChunk.chunkUri)
-				return tokenWrapper
+				return await this.uploadNativeEncryptedChunk(encryptedChunk.chunkUri, blobServerAccessInfo, encryptedChunk.chunkId)
 			}
 			const referenceTokens: BlobReferenceTokenWrapper[] = []
 
-			const fetchNextChunk = async () => {
-				const chunk = { chunkUri: await this.fileApp.readChunk(fileHandle, MAX_BLOB_SIZE_BYTES), chunkId: generateFileChunkId() }
-				const chunkUri = chunk.chunkUri
+			const fetchNextChunk = async (): Promise<NativeChunk | null> => {
+				const chunkUri = await this.fileApp.readChunk(fileHandle, MAX_BLOB_SIZE_BYTES)
 				if (chunkUri != null) {
 					uploadState.bytesUploadedPerBlob.set(chunkUri, 0)
-					this.nativeUploadProgressState.set(chunk.chunkId, uploadState)
-					return chunk
+					const chunkId = generateFileChunkId()
+					this.nativeUploadProgressState.set(chunkId, uploadState)
+					return { chunkUri, chunkId }
 				} else {
 					return null
 				}
@@ -339,7 +362,6 @@ export class BlobFacade {
 
 			const encryptChunk = async (chunk: NativeChunk) => {
 				const encryptedChunkUri = await this.encryptChunkNative(sessionKey, chunk.chunkUri)
-				await this.fileApp.deleteFile(chunk.chunkUri)
 				return { chunkUri: encryptedChunkUri, chunkId: chunk.chunkId } as EncryptedNativeChunk
 			}
 
@@ -348,20 +370,21 @@ export class BlobFacade {
 			}
 
 			try {
-				for await (const [encryptedChunk, uploadedReferenceTokens] of pipelineEncryptAndUpload(
+				for await (const [_, uploadedReferenceTokens] of pipelineEncryptAndUpload<NativeChunk, EncryptedNativeChunk>(
 					fetchNextChunk,
 					encryptChunk,
 					uploadEncryptedChunk,
 					abortController.signal,
+					(unencryptedChunk) => this.fileApp.deleteFile(unencryptedChunk.chunkUri),
+					async (encryptedChunk) => {
+						this.nativeUploadProgressState.delete(encryptedChunk.chunkId)
+						await this.fileApp.deleteFile(encryptedChunk.chunkUri)
+					},
 				)) {
 					referenceTokens.push(uploadedReferenceTokens)
-					uploadedChunkIds.push(encryptedChunk.chunkId)
 				}
 			} finally {
 				this.abortControllers.delete(transferId)
-				for (const chunkId of uploadedChunkIds) {
-					this.nativeUploadProgressState.delete(chunkId)
-				}
 			}
 			return referenceTokens
 		} finally {
