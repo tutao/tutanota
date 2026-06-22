@@ -83,7 +83,7 @@ export class CalendarEventWhenModel {
 
 		this.timeZones = {
 			startTimeZone: initialValues.startTimeZone ?? null,
-			endTimeZone: initialValues.endTimeZone ?? null,
+			endTimeZone: initialValues.endTimeZone ?? initialValues.startTimeZone ?? null,
 		}
 	}
 
@@ -447,6 +447,9 @@ export class CalendarEventWhenModel {
 
 	set startTimeZone(startTimeZone: string | null) {
 		this.timeZones.startTimeZone = startTimeZone
+		if (this.timeZones.endTimeZone === null) {
+			this.timeZones.endTimeZone = startTimeZone
+		}
 		this.uiUpdateCallback()
 	}
 
