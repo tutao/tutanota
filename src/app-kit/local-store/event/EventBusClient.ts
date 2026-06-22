@@ -392,9 +392,9 @@ export class EventBusClient {
 				if (this.progressMonitor == null) {
 					// add and finish some work (25) directly, to immediately show some progress and start estimating
 					this.progressMonitor = this.createProgressMonitor(newWorkEstimate + this.artificialWorkEstimate + this.initialWorkDone)
-					await this.progressMonitor.workDone(this.initialWorkDone)
+					this.progressMonitor.workDone(this.initialWorkDone)
 				} else {
-					await this.progressMonitor.updateTotalWork(this.progressMonitor.totalWork + newWorkEstimate)
+					this.progressMonitor.updateTotalWork(this.progressMonitor.totalWork + newWorkEstimate)
 				}
 				break
 			}
@@ -678,7 +678,7 @@ export class EventBusClient {
 			}
 
 			if (!(await this.progressMonitor?.isDone())) {
-				await this.progressMonitor?.workDone(1)
+				this.progressMonitor?.workDone(1)
 			}
 
 			// call syncDone listener right after the last missed batch is processed
