@@ -129,6 +129,8 @@ export interface CacheStorage extends ExposedCacheStorage {
 
 	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
 
+	deleteMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, ids: T["_id"][]): Promise<void>
+
 	/**
 	 * remove a complete range for a ListElementEntity from the cache by typeRef and listId.
 	 * deleting an entire range is helpful, when the instances should be explicitly reloaded the

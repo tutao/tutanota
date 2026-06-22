@@ -299,7 +299,7 @@ export class OfflineStorage implements CacheStorage {
 		elementId: Id,
 	): Promise<void> {
 		const fullId: T["_id"] = listId == null ? elementId : [listId, elementId]
-		await this.deleteByIds(typeRef, [fullId])
+		await this.deleteMultiple(typeRef, [fullId])
 	}
 
 	async deleteAllOfType(typeRef: TypeRef<SomeEntity>): Promise<void> {
@@ -329,7 +329,7 @@ export class OfflineStorage implements CacheStorage {
 		const taggedRows = await this.sqlCipherFacade.all(formattedQuery.query, formattedQuery.params)
 		const rows = taggedRows.map(untagSqlObject) as { listId?: Id; elementId: Id }[]
 		const ids = rows.map((row) => collapseId(row.listId ?? null, localToServerIdEncoding(typeModel, row.elementId)))
-		await this.deleteByIds(typeRef, ids)
+		await this.deleteMultiple(typeRef, ids)
 	}
 
 	/**
@@ -785,7 +785,7 @@ export class OfflineStorage implements CacheStorage {
 		const groupedByType = groupBy(rows, (row) => row.type)
 		for (const [type, rows] of groupedByType) {
 			const typeRef = parseTypeString(type) as TypeRef<BlobElementEntity>
-			await this.deleteByIds(
+			await this.deleteMultiple(
 				typeRef,
 				rows.map((row) => [row.listId, row.elementId]),
 			)
@@ -821,7 +821,7 @@ export class OfflineStorage implements CacheStorage {
 						   WHERE type = ${type}
 							 AND listId IN ${paramList(c)}`,
 			)
-			await this.deleteByIds(
+			await this.deleteMultiple(
 				typeRef,
 				rows.map((row) => [row.listId, row.elementId]),
 			)
@@ -841,7 +841,7 @@ export class OfflineStorage implements CacheStorage {
 		)
 		for (const [type, ids] of groupedByType) {
 			const typeRef = parseTypeString(type) as TypeRef<ElementEntity>
-			await this.deleteByIds(typeRef, ids)
+			await this.deleteMultiple(typeRef, ids)
 		}
 	}
 
@@ -900,7 +900,7 @@ export class OfflineStorage implements CacheStorage {
 	 * A neat helper which can delete types in any lists as long as they belong to the same type.
 	 * Will invoke {@link CustomCacheHandler#onBeforeCacheDeletion}.
 	 */
-	private async deleteByIds<T extends SomeEntity>(typeRef: TypeRef<T>, ids: T["_id"][]) {
+	async deleteMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, ids: T["_id"][]) {
 		if (isEmpty(ids)) {
 			return
 		}
@@ -970,7 +970,7 @@ export class OfflineStorage implements CacheStorage {
 		if (isEmpty(elementIds)) return
 
 		const fullIds: T["_id"][] = listId == null ? elementIds : elementIds.map((id) => [listId, id])
-		await this.deleteByIds(typeRef, fullIds)
+		await this.deleteMultiple(typeRef, fullIds)
 	}
 
 	async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, rawCutoffId: Id): Promise<void> {

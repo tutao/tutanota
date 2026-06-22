@@ -2,12 +2,14 @@ import {
 	AttributeModel,
 	BlobElementEntity,
 	clone,
+	elementIdPart,
 	Entity,
 	expandId,
 	firstBiggerThanSecondBase64Ext,
 	getTypeString,
 	hasError,
 	ListElementEntity,
+	listIdPart,
 	localToServerIdEncoding,
 	parseTypeString,
 	ServerModelParsedInstance,
@@ -208,6 +210,33 @@ export class EphemeralCacheStorage implements CacheStorage {
 				break
 			default:
 				throw new ProgrammingError("must be a persistent type")
+		}
+	}
+
+	async deleteMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, ids: T["_id"][]) {
+		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
+		switch (typeModel.type) {
+			case TypeId.Element: {
+				for (const id of ids as Id[]) {
+					await this.deleteIfExists(typeRef, null as T extends ListElementEntity | BlobElementEntity ? string : null, id)
+				}
+				break
+			}
+			case TypeId.ListElement: {
+				for (const id of ids as IdTuple[]) {
+					await this.deleteIfExists(typeRef, listIdPart(id) as T extends ListElementEntity | BlobElementEntity ? string : null, elementIdPart(id))
+				}
+				break
+			}
+			case TypeId.BlobElement: {
+				for (const id of ids as IdTuple[]) {
+					await this.deleteIfExists(typeRef, listIdPart(id) as T extends ListElementEntity | BlobElementEntity ? string : null, elementIdPart(id))
+				}
+				break
+			}
+			default: {
+				throw new ProgrammingError("must be a persistent type")
+			}
 		}
 	}
 

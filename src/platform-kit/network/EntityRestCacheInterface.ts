@@ -115,4 +115,9 @@ export interface EntityRestCache extends EntityRestInterface {
 	 * Delete a cached entity. Sometimes this is necessary to do to ensure you always load the new version
 	 */
 	deleteFromCacheIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void>
+	/**
+	 * Updates the cache with the given missed entity updates. Groups the entity updates by typeRef, and uses cacheStorage.putMultiple to update the cache.
+	 * This is used because IPC is slow on Desktop and Android, and syncing takes longer if putMultiple is not used and the items are put to cache one-by-one.
+	 */
+	updateCacheWithMissedEntityUpdates(entityUpdates: EntityUpdateData[]): Promise<void>
 }

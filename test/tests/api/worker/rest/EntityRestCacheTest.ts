@@ -62,7 +62,7 @@ import {
 	PermissionTypeRef,
 	RootInstanceTypeRef,
 } from "@tutao/entities/sys"
-import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CachingStatus, EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityRestClient } from "../../../../../src/platform-kit/network/EntityRestClient"
 import { LastProcessedEventBatchProvider } from "../../../../../src/platform-kit/network/LastProcessedEventBatchProvider"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
@@ -963,6 +963,199 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o(mails).deepEquals([originalMails[0], originalMails[2]])
 			})
 		}) // entityEventsReceived
+
+		o.spec("ERC updateCacheWithMissedEntityUpdates", function () {
+			const contactListId = "contactListId"
+			const contactId = "contactId"
+			const mailListId = "mailListId"
+			const mailId = "mailId"
+			const blobListId = "archiveId"
+			const blobId = createId("blobId")
+			o.test("groups instances by type and puts them to the storage", async () => {
+				const contact = createTestEntity(ContactTypeRef, {
+					_id: [contactListId, contactId],
+					_ownerGroup: "contact",
+				})
+				const mail = createTestEntity(MailTypeRef, {
+					_id: [mailListId, mailId],
+					mailDetails: [blobListId, createId("blobId2")],
+					_ownerGroup: "mail",
+					subject: "Test",
+					sender: createTestEntity(MailAddressTypeRef, {
+						name: "a",
+						address: "test@example.com",
+					}),
+					conversationEntry: ["listId", "elementId"],
+				})
+				const blob = createMailDetailsBlobInstance(blobListId, blobId, "Test body")
+				const contactUpdate = await updateDataForCreate(ContactTypeRef, getListId(contact), getElementId(contact), contact)
+				const mailUpdate = await updateDataForCreate(MailTypeRef, getListId(mail), getElementId(mail), mail)
+
+				mailUpdate.blobInstance = await toStorableInstance(blob)
+
+				const updates = [contactUpdate, mailUpdate]
+
+				await cache.updateCacheWithMissedEntityUpdates(updates)
+
+				o.check(await storage.get(MailTypeRef, mailListId, mailId)).notEquals(null)
+				o.check(await storage.get(ContactTypeRef, contactListId, contactId)).notEquals(null)
+				o.check(await storage.get(MailDetailsBlobTypeRef, blobListId, createId(blobId))).notEquals(null)
+				o.check(contactUpdate.cachingStatus).equals(CachingStatus.CacheUpdated)
+				o.check(mailUpdate.cachingStatus).equals(CachingStatus.CacheUpdated)
+			})
+
+			o.test("filters out updates with null instance or errors", async () => {
+				const goodContact = createTestEntity(ContactTypeRef, {
+					_id: [contactListId, contactId],
+					_ownerGroup: "contact",
+				})
+				const badContact = createTestEntity(ContactTypeRef, {
+					_id: [contactListId, "id2"],
+					_ownerGroup: "contact",
+				})
+				const badContactStorable = await toStorableInstance(badContact)
+				badContactStorable._errors = { 12: "some error" }
+
+				const goodUpdate = await updateDataForCreate(ContactTypeRef, getListId(goodContact), getElementId(goodContact), goodContact)
+				const badUpdate = await updateDataForCreate(ContactTypeRef, getListId(badContact), getElementId(badContact), badContact)
+				badUpdate.instance = badContactStorable
+				const nullUpdate = await updateDataForCreate(ContactTypeRef, contactListId, "id3", null)
+				const batch = [goodUpdate, badUpdate, nullUpdate]
+
+				await cache.updateCacheWithMissedEntityUpdates(batch)
+
+				o.check(await storage.get(ContactTypeRef, contactListId, contactId)).notEquals(null)
+				o.check(await storage.get(ContactTypeRef, contactListId, "id2")).equals(null)
+				o.check(await storage.get(ContactTypeRef, contactListId, "id3")).equals(null)
+				o.check(goodUpdate.cachingStatus).equals(CachingStatus.CacheUpdated)
+				o.check(badUpdate.cachingStatus).equals(CachingStatus.CacheNotUpdated)
+				o.check(nullUpdate.cachingStatus).equals(CachingStatus.CacheNotUpdated)
+			})
+
+			o.test("handles mail type by storing blob instances as well", async () => {
+				const mail1 = createTestEntity(MailTypeRef, {
+					_id: [mailListId, mailId],
+					mailDetails: [blobListId, blobId],
+					_ownerGroup: "mail",
+					subject: "Test",
+					sender: createTestEntity(MailAddressTypeRef, {
+						name: "a",
+						address: "test@example.com",
+					}),
+					conversationEntry: ["listId", "elementId"],
+				})
+				const mail2 = createTestEntity(MailTypeRef, {
+					_id: [mailListId, "mailId2"],
+					mailDetails: ["blobListId2", createId("blobId2")],
+					_ownerGroup: "mail",
+					subject: "Test2",
+					sender: createTestEntity(MailAddressTypeRef, {
+						name: "a",
+						address: "test@example.com",
+					}),
+					conversationEntry: ["listId", "elementId"],
+				})
+				const blob1 = createMailDetailsBlobInstance(blobListId, blobId, "Test body")
+
+				const blob2 = createMailDetailsBlobInstance(blobListId, "blobId2", "Test body")
+				const mailUpdate = await updateDataForCreate(MailTypeRef, getListId(mail1), getElementId(mail1), mail1)
+				const mailUpdate2 = await updateDataForCreate(MailTypeRef, getListId(mail2), getElementId(mail2), mail2)
+				const blob1Storable = await toStorableInstance(blob1)
+				const blob2Storable = await toStorableInstance(blob2)
+				mailUpdate.blobInstance = blob1Storable
+				mailUpdate2.blobInstance = blob2Storable
+				const batch = [mailUpdate, mailUpdate2]
+
+				await cache.updateCacheWithMissedEntityUpdates(batch)
+
+				o.check(await storage.get(MailTypeRef, mailListId, mailId)).notEquals(null)
+				o.check(await storage.get(MailTypeRef, mailListId, "mailId2")).notEquals(null)
+				o.check(await storage.get(MailDetailsBlobTypeRef, blobListId, createId("blobId"))).notEquals(null)
+				o.check(await storage.get(MailDetailsBlobTypeRef, blobListId, createId("blobId2"))).notEquals(null)
+				o.check(mailUpdate.cachingStatus).equals(CachingStatus.CacheUpdated)
+				o.check(mailUpdate2.cachingStatus).equals(CachingStatus.CacheUpdated)
+			})
+
+			o.test("does not store blob instances if blobInstance is null or has errors", async () => {
+				const mail1 = createTestEntity(MailTypeRef, {
+					_id: [mailListId, mailId],
+					mailDetails: [blobListId, blobId],
+					_ownerGroup: "mail",
+					subject: "Test",
+					sender: createTestEntity(MailAddressTypeRef, {
+						name: "a",
+						address: "test@example.com",
+					}),
+					conversationEntry: ["listId", "elementId"],
+				})
+				const mail2 = createTestEntity(MailTypeRef, {
+					_id: [mailListId, "mailId2"],
+					mailDetails: null,
+					_ownerGroup: "mail",
+					subject: "Test2",
+					sender: createTestEntity(MailAddressTypeRef, {
+						name: "a",
+						address: "test@example.com",
+					}),
+					conversationEntry: ["listId", "elementId"],
+				})
+				const badBlob = createMailDetailsBlobInstance(blobListId, blobId, "Test body")
+				const badBlobStorable = await toStorableInstance(badBlob)
+				badBlobStorable._errors = { 12: "error" }
+
+				const mailUpdate = await updateDataForCreate(MailTypeRef, getListId(mail1), getElementId(mail1), mail1)
+				mailUpdate.blobInstance = badBlobStorable
+				const mailUpdate2 = await updateDataForCreate(MailTypeRef, getListId(mail2), getElementId(mail2), mail1)
+				mailUpdate2.blobInstance = null
+				const batch = [mailUpdate, mailUpdate2]
+
+				await cache.updateCacheWithMissedEntityUpdates(batch)
+
+				o.check(await storage.get(MailTypeRef, mailListId, mailId)).notEquals(null)
+				o.check(await storage.get(MailTypeRef, mailListId, "mailId2")).equals(null)
+				o.check(await storage.get(MailDetailsBlobTypeRef, blobListId, createId(blobId))).equals(null)
+				o.check(mailUpdate.cachingStatus).equals(CachingStatus.CacheNotUpdated)
+				o.check(mailUpdate2.cachingStatus).equals(CachingStatus.CacheNotUpdated)
+			})
+
+			o.test("delete events delete instances in the offline storage", async () => {
+				const mail = createTestEntity(MailTypeRef, {
+					_id: [mailListId, mailId],
+					mailDetails: [blobListId, createId("blobId2")],
+					_ownerGroup: "mail",
+					subject: "Test",
+					sender: createTestEntity(MailAddressTypeRef, {
+						name: "a",
+						address: "test@example.com",
+					}),
+					conversationEntry: ["listId", "elementId"],
+				})
+				const mail2 = createTestEntity(MailTypeRef, {
+					_id: [mailListId, "mailId2"],
+					mailDetails: [blobListId, createId("blobId2")],
+					_ownerGroup: "mail",
+					subject: "Test",
+					sender: createTestEntity(MailAddressTypeRef, {
+						name: "a",
+						address: "test@example.com",
+					}),
+					conversationEntry: ["listId", "elementId"],
+				})
+				await storage.put(MailTypeRef, await toStorableInstance(mail))
+				await storage.put(MailTypeRef, await toStorableInstance(mail2))
+				const mailUpdate = await updateDataForDelete(MailTypeRef, getListId(mail), getElementId(mail))
+				const mail2Update = await updateDataForDelete(MailTypeRef, getListId(mail2), getElementId(mail2))
+
+				const updates = [mailUpdate, mail2Update]
+
+				await cache.updateCacheWithMissedEntityUpdates(updates)
+
+				o.check(await storage.get(MailTypeRef, mailListId, mailId)).equals(null)
+				o.check(await storage.get(MailTypeRef, mailListId, "mailId2")).equals(null)
+				o.check(mailUpdate.cachingStatus).equals(CachingStatus.CacheUpdated)
+				o.check(mail2Update.cachingStatus).equals(CachingStatus.CacheUpdated)
+			})
+		})
 
 		o("when reading from the cache, the entities will be cloned", async function () {
 			const archiveId = "archiveId"
