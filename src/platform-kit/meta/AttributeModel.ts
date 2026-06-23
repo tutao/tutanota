@@ -51,9 +51,6 @@ export class AttributeModel {
 			}
 			return assertNotNull(downcast<T>(value), attrName)
 		} else {
-			console.log("---------------------------------------------------------------------------------------------------------------------------------")
-			console.log(instance)
-			console.log(attrName)
 			throw new ProgrammingError("null not allowed")
 		}
 	}
