@@ -2399,6 +2399,9 @@ export default {
 		"endTimeZone_title": "Endzeitzone",
 		"confirm_action": "Bestätigen",
 		"removeTimeZone_action": "Zeitzone entfernen",
-		"failedToLoadAlarms_error": "Failed to load alarms"
+		"failedToLoadAlarms_error": "Failed to load alarms",
+		"clearCache_action": "Clear cache",
+		"clearCache_msg": "Clear cache message",
+		"clearCacheConfirm_msg": "Are you sure you want to clear cache?"
 	}
 }
