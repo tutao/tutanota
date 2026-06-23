@@ -139,6 +139,7 @@ import {
 	DraftRecipient,
 	DraftRecipientTypeRef,
 	DraftService,
+	DraftUpdateDataTypeRef,
 	EncryptedMailAddress,
 	ExternalUserService,
 	File,
@@ -660,30 +661,21 @@ export class MailFacade {
 
 	/**
 	 * Updates a draft mail.
-	 * @param subject The subject of the mail.
-	 * @param body The body text of the mail.
-	 * @param senderMailAddress The senders mail address.
-	 * @param senderName The name of the sender that is sent together with the mail address of the sender.
-	 * @param toRecipients The recipients the mail shall be sent to.
-	 * @param ccRecipients The recipients the mail shall be sent to in cc.
-	 * @param bccRecipients The recipients the mail shall be sent to in bcc.
-	 * @param attachments The files that shall be attached to this mail or null if the current attachments shall not be changed.
-	 * @param confidential True if the mail shall be sent end-to-end encrypted, false otherwise.
-	 * @param draft The draft to update.
+	 * @param parameters.subject The subject of the mail.
+	 * @param parameters.body The body text of the mail.
+	 * @param parameters.senderMailAddress The senders mail address.
+	 * @param parameters.senderName The name of the sender that is sent together with the mail address of the sender.
+	 * @param parameters.toRecipients The recipients the mail shall be sent to.
+	 * @param parameters.ccRecipients The recipients the mail shall be sent to in cc.
+	 * @param parameters.bccRecipients The recipients the mail shall be sent to in bcc.
+	 * @param parameters.attachments The files that shall be attached to this mail or null if the current attachments shall not be changed.
+	 * @param parameters.confidential True if the mail shall be sent end-to-end encrypted, false otherwise.
+	 * @param parameters.draft The draft to update.
 	 * @return The updated draft. Rejected with TooManyRequestsError if the number allowed mails was exceeded, AccessBlockedError if the customer is not allowed to send emails currently because he is marked for approval.
 	 */
-	async updateDraft({
-		subject,
-		body,
-		senderMailAddress,
-		senderName,
-		toRecipients,
-		ccRecipients,
-		bccRecipients,
-		attachments,
-		confidential,
-		draft,
-	}: UpdateDraftParams): Promise<Mail> {
+	async updateDraft(parameters: UpdateDraftParams): Promise<Mail> {
+		const { body, senderMailAddress, toRecipients, ccRecipients, bccRecipients, attachments, draft } = parameters
+
 		if (byteLength(body) > UNCOMPRESSED_MAX_SIZE) {
 			throw new MailBodyTooLargeError(`Can't update draft, mail body too large (${byteLength(body)})`)
 		}
@@ -697,39 +689,78 @@ export class MailFacade {
 			object: await this.keyLoaderFacade.loadSymGroupKey(senderMailGroupId, mailGroupKeyVersion),
 		}
 		const currentAttachments = await this.getAttachmentIds(draft)
-		const replyTos = await this.getReplyTos(draft)
 
-		const sk = decryptKey(mailGroupKey.object, assertNotNull(draft._ownerEncSessionKey))
-		const service = createDraftUpdateData({
+		const sessionKey = decryptKey(mailGroupKey.object, assertNotNull(draft._ownerEncSessionKey))
+
+		const sessionKeyInfo: SessionKeyInfo = {
+			cipherVersion:
+				this.userFacade.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.Aead
+					? SymmetricCipherVersion.AeadWithSessionKey
+					: SymmetricCipherVersion.AesCbcThenHmac,
+			sessionKey,
+		}
+
+		const { senderId, firstRecipient, encryptedSenderName, encryptedSubject, encryptedConfidential, encryptedMethod } = await this.encryptMailForDraft(
+			{ bodyText: parameters.body, ...parameters },
+			sessionKeyInfo,
+		)
+		const {
+			mailDetailsId,
+			bodyId,
+			recipientsId,
+			encryptedCompressedBodyText,
+			toRecipientAddressToEncryptedName,
+			ccRecipientAddressToEncryptedName,
+			bccRecipientAddressToEncryptedName,
+		} = await this.encryptMailDetailsForDraft({ bodyText: parameters.body, ...parameters }, sessionKeyInfo)
+
+		const draftUpdateData = createDraftUpdateData({
 			draft: draft._id,
 			draftData: createDraftData({
-				subject: subject,
-				compressedBodyText: body,
 				senderMailAddress: senderMailAddress,
-				senderName: senderName,
-				confidential: confidential,
-				method: draft.method,
 				toRecipients: toRecipients.map(recipientToDraftRecipient),
 				ccRecipients: ccRecipients.map(recipientToDraftRecipient),
 				bccRecipients: bccRecipients.map(recipientToDraftRecipient),
-				replyTos: replyTos,
 				removedAttachments: this._getRemovedAttachments(attachments, currentAttachments),
 				addedAttachments: await this._createAddedAttachments(attachments, currentAttachments, senderMailGroupId, mailGroupKey),
 				bodyText: "",
-				// FIXME
-				senderId: null,
-				bodyId: null,
-				recipientsId: null,
-				mailDetailsId: null,
-				firstRecipient: null,
+				senderId,
+				bodyId,
+				recipientsId,
+				mailDetailsId,
+				firstRecipient,
+				// garbage (encrypted values that will get replaced later)
+				senderName: "",
+				subject: "",
+				confidential: true,
+				method: "",
+				compressedBodyText: null,
+				// replyTos are currently unused and not handled
+				replyTos: [],
 			}),
 		})
+
+		const untypedDraftUpdateData = await this.instancePipeline.mapAndEncrypt(DraftUpdateDataTypeRef, draftUpdateData, sessionKeyInfo)
+		const draftUpdateDataModel = await this.instancePipeline.clientTypeReferenceResolver(DraftUpdateDataTypeRef)
+		const draftData = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(untypedDraftUpdateData, "draftData", draftUpdateDataModel)[0]
+
+		await this.setEncryptedValuesOfDraftData(draftData, {
+			encryptedSenderName,
+			encryptedMethod,
+			encryptedConfidential,
+			encryptedSubject,
+			encryptedCompressedBodyText,
+			toRecipientAddressToEncryptedName,
+			ccRecipientAddressToEncryptedName,
+			bccRecipientAddressToEncryptedName,
+		})
+
 		this.deferredDraftId = draft._id
 		// we have to wait for the updated mail because sendMail() might be called right after this update
 		this.deferredDraftUpdate = defer()
 		// use a local reference here because this._deferredDraftUpdate is set to null when the event is received async
 		const deferredUpdatePromiseWrapper = this.deferredDraftUpdate
-		await this.serviceExecutor.put(DraftService, service, { sessionKey: sk })
+		await this.serviceExecutor.put(DraftService, draftUpdateData, { sessionKey, untypedInstance: untypedDraftUpdateData })
 		return deferredUpdatePromiseWrapper.promise
 	}
 
