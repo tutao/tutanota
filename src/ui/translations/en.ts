@@ -2399,6 +2399,9 @@ export default {
 		"endTimeZone_title": "End time zone",
 		"confirm_action": "Confirm",
 		"removeTimeZone_action": "Remove time zone",
-		"failedToLoadAlarms_error": "Failed to load alarms"
+		"failedToLoadAlarms_error": "Failed to load alarms",
+		"clearCache_action": "Clear cache",
+		"clearCache_msg": "Clear all downloaded data. Device data, such as stored credentials and verified contacts, won't be deleted.",
+		"clearCacheConfirm_msg": "Clearing cache will refresh the app."
 	}
 }
