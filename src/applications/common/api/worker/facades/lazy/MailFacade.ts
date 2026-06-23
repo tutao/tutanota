@@ -143,6 +143,7 @@ import {
 	ExternalUserService,
 	File,
 	FileTypeRef,
+	FirstRecipient,
 	InternalRecipientKeyData,
 	InternalRecipientKeyDataTypeRef,
 	ListUnsubscribeService,
@@ -231,6 +232,16 @@ interface UpdateDraftParams {
 	confidential: boolean
 	draft: Mail
 }
+interface CommonDraftParameters {
+	subject: string
+	bodyText: string
+	senderName: string
+	toRecipients: RecipientList
+	ccRecipients: RecipientList
+	bccRecipients: RecipientList
+	confidential: boolean
+	method?: MailMethod
+}
 
 export class MailFacade {
 	private phishingMarkers: Set<string> = new Set()
@@ -306,55 +317,24 @@ export class MailFacade {
 		}
 	}
 
-	/**
-	 * Creates a draft mail.
-	 * @param bodyText The bodyText of the mail formatted as HTML.
-	 * @param previousMessageId The id of the message that this mail is a reply or forward to. Null if this is a new mail.
-	 * @param attachments The files that shall be attached to this mail or null if no files shall be attached. TutanotaFiles are already exising on the server, DataFiles are files from the local file system. Attention: the DataFile class information is lost
-	 * @param confidential True if the mail shall be sent end-to-end encrypted, false otherwise.
-	 */
-	async createDraft({
-		subject,
-		bodyText,
-		senderMailAddress,
-		senderName,
-		toRecipients,
-		ccRecipients,
-		bccRecipients,
-		conversationType,
-		previousMessageId,
-		attachments,
-		confidential,
-		replyTos,
-		method,
-	}: CreateDraftParams): Promise<Mail> {
-		if (byteLength(bodyText) > UNCOMPRESSED_MAX_SIZE) {
-			throw new MailBodyTooLargeError(`Can't update draft, mail body too large (${byteLength(bodyText)})`)
-		}
-
-		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), senderMailAddress)
-		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(senderMailGroupId)
-
-		const sk = aes256RandomKey()
-		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
-
-		const sessionKeyInfo: SessionKeyInfo = {
-			cipherVersion:
-				this.userFacade.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.Aead
-					? SymmetricCipherVersion.AeadWithSessionKey
-					: SymmetricCipherVersion.AesCbcThenHmac,
-			sessionKey: sk,
-		}
-
-		// create Mail, MailDetail and Files
-
+	private async encryptMailForDraft(
+		{ subject, senderName, toRecipients, ccRecipients, bccRecipients, confidential, method }: CommonDraftParameters,
+		sessionKeyInfo: SessionKeyInfo,
+	): Promise<{
+		encryptedSenderName: Nullable<Base64>
+		senderId: Id
+		firstRecipient: FirstRecipient
+		encryptedSubject: Base64
+		encryptedConfidential: Base64
+		encryptedMethod: Base64
+	}> {
 		const firstPartialRecipient = toRecipients[0] ?? ccRecipients[0] ?? bccRecipients[0] ?? null
 
 		const dummyMail = createMail({
 			subject,
 			confidential,
-			method,
-			sender: createMailAddress({ address: senderMailAddress, name: senderName, contact: null }),
+			method: method ?? "",
+			sender: createMailAddress({ address: "", name: senderName, contact: null }),
 			firstRecipient: createMailAddress({ address: firstPartialRecipient.address, name: firstPartialRecipient.name ?? "", contact: null }),
 			// everything below is garbage
 			mailDetails: null,
@@ -390,7 +370,7 @@ export class MailFacade {
 		const mailAddressModel = await this.instancePipeline.clientTypeReferenceResolver(MailAddressTypeRef)
 		const encryptedSenderName = AttributeModel.getAttributeorNull<Base64>(sender, "name", mailAddressModel)
 
-		const senderId = AttributeModel.getAttributeorNull<Id>(sender, "_id", mailAddressModel)
+		const senderId = AttributeModel.getAttribute<Id>(sender, "_id", mailAddressModel)
 
 		const firstRecipientUntypedInstance = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(
 			sanitizedUntypedInstance,
@@ -412,6 +392,28 @@ export class MailFacade {
 		const encryptedConfidential = AttributeModel.getAttribute<Base64>(sanitizedUntypedInstance, "confidential", mailModel)
 		const encryptedMethod = AttributeModel.getAttribute<Base64>(sanitizedUntypedInstance, "method", mailModel)
 
+		return {
+			encryptedSenderName,
+			senderId,
+			firstRecipient,
+			encryptedSubject,
+			encryptedConfidential,
+			encryptedMethod,
+		}
+	}
+
+	private async encryptMailDetailsForDraft(
+		{ bodyText, toRecipients, ccRecipients, bccRecipients }: CommonDraftParameters,
+		sessionKeyInfo: SessionKeyInfo,
+	): Promise<{
+		mailDetailsId: Id
+		bodyId: Id
+		encryptedCompressedBodyText: Nullable<Base64>
+		recipientsId: Id
+		toRecipientAddressToEncryptedName: Map<string, readonly [Nullable<Base64>, Id]>
+		ccRecipientAddressToEncryptedName: Map<string, readonly [Nullable<Base64>, Id]>
+		bccRecipientAddressToEncryptedName: Map<string, readonly [Nullable<Base64>, Id]>
+	}> {
 		const dummyMailDetails = createMailDetails({
 			recipients: createRecipients({
 				toRecipients: toRecipients.map(recipientToMailAddress),
@@ -452,7 +454,7 @@ export class MailFacade {
 		const body = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(details, "body", mailDetailsModel)[0]
 		const bodyModel = await this.instancePipeline.clientTypeReferenceResolver(BodyTypeRef)
 
-		const bodyId = AttributeModel.getAttributeorNull<Id>(body, "_id", bodyModel)
+		const bodyId = AttributeModel.getAttribute<Id>(body, "_id", bodyModel)
 		const encryptedCompressedBodyText = AttributeModel.getAttributeorNull<Base64>(body, "compressedText", bodyModel)
 
 		const encryptedRecipients = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(details, "recipients", mailDetailsModel)[0]
@@ -464,6 +466,7 @@ export class MailFacade {
 		const encryptedCcRecipients = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(encryptedRecipients, "ccRecipients", recipientsModel)
 		const encryptedBccRecipients = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(encryptedRecipients, "bccRecipients", recipientsModel)
 
+		const mailAddressModel = await this.instancePipeline.clientTypeReferenceResolver(MailAddressTypeRef)
 		const toRecipientAddressToEncryptedName = new Map(
 			encryptedToRecipients.map((encryptedToRecipient) => {
 				const address = AttributeModel.getAttribute<string>(encryptedToRecipient, "address", mailAddressModel)
@@ -484,45 +487,44 @@ export class MailFacade {
 			encryptedBccRecipients.map((encryptedBccRecipient) => {
 				const address = AttributeModel.getAttribute<string>(encryptedBccRecipient, "address", mailAddressModel)
 				const encryptedRecipientName = AttributeModel.getAttributeorNull<Base64>(encryptedBccRecipient, "name", mailAddressModel)
-				const id = AttributeModel.getAttribute<string>(encryptedBccRecipient, "_id", mailAddressModel)
+				const id = AttributeModel.getAttribute<Id>(encryptedBccRecipient, "_id", mailAddressModel)
 				return [address, [encryptedRecipientName, id]] as const
 			}),
 		)
 
-		// mapAndEncrypt each of them
-		// extract the values we need from each and put them on the DraftCreateData
-		// call serviceExecutor.post with already encrypted values
+		return {
+			mailDetailsId,
+			bodyId,
+			encryptedCompressedBodyText,
+			recipientsId,
+			toRecipientAddressToEncryptedName,
+			ccRecipientAddressToEncryptedName,
+			bccRecipientAddressToEncryptedName,
+		}
+	}
 
-		const draftCreateData = createDraftCreateData({
-			previousMessageId: previousMessageId,
-			conversationType: conversationType,
-			ownerEncSessionKey: ownerEncSessionKey.key,
-			draftData: createDraftData({
-				subject,
-				compressedBodyText: bodyText,
-				senderMailAddress,
-				senderName,
-				confidential,
-				method,
-				toRecipients: toRecipients.map(recipientToDraftRecipient),
-				ccRecipients: ccRecipients.map(recipientToDraftRecipient),
-				bccRecipients: bccRecipients.map(recipientToDraftRecipient),
-				replyTos: replyTos.map(recipientToEncryptedMailAddress),
-				addedAttachments: await this._createAddedAttachments(attachments, [], senderMailGroupId, mailGroupKey),
-				bodyText: "",
-				removedAttachments: [],
-				recipientsId,
-				mailDetailsId,
-				bodyId,
-				senderId,
-				firstRecipient,
-			}),
-			ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-		})
-
-		const untypedDraftCreateData = await this.instancePipeline.mapAndEncrypt(DraftCreateDataTypeRef, draftCreateData, sessionKeyInfo)
-		const draftCreateDataModel = await this.instancePipeline.clientTypeReferenceResolver(DraftCreateDataTypeRef)
-		const draftData = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(untypedDraftCreateData, "draftData", draftCreateDataModel)[0]
+	private async setEncryptedValuesOfDraftData(
+		draftData: ClientModelUntypedInstance,
+		{
+			encryptedSenderName,
+			encryptedSubject,
+			encryptedConfidential,
+			encryptedMethod,
+			encryptedCompressedBodyText,
+			toRecipientAddressToEncryptedName,
+			ccRecipientAddressToEncryptedName,
+			bccRecipientAddressToEncryptedName,
+		}: {
+			encryptedSenderName: Nullable<Base64>
+			encryptedSubject: Base64
+			encryptedConfidential: Base64
+			encryptedMethod: Base64
+			encryptedCompressedBodyText: Nullable<Base64>
+			toRecipientAddressToEncryptedName: Map<string, readonly [Nullable<Base64>, Id]>
+			ccRecipientAddressToEncryptedName: Map<string, readonly [Nullable<Base64>, Id]>
+			bccRecipientAddressToEncryptedName: Map<string, readonly [Nullable<Base64>, Id]>
+		},
+	) {
 		const draftDataModel = await this.instancePipeline.clientTypeReferenceResolver(DraftDataTypeRef)
 
 		AttributeModel.setAttribute(draftData, "senderName", draftDataModel, encryptedSenderName)
@@ -563,6 +565,94 @@ export class MailFacade {
 			AttributeModel.setAttribute(bccRecipient, "name", draftRecipientModel, encryptedName)
 			AttributeModel.setAttribute(bccRecipient, "recipientId", draftRecipientModel, id)
 		}
+	}
+
+	/**
+	 * Creates a draft mail.
+	 * @param parameters.bodyText The bodyText of the mail formatted as HTML.
+	 * @param parameters.previousMessageId The id of the message that this mail is a reply or forward to. Null if this is a new mail.
+	 * @param parameters.attachments The files that shall be attached to this mail or null if no files shall be attached. TutanotaFiles are already exising on the server, DataFiles are files from the local file system. Attention: the DataFile class information is lost
+	 * @param parameters.confidential True if the mail shall be sent end-to-end encrypted, false otherwise.
+	 */
+	async createDraft(parameters: CreateDraftParams): Promise<Mail> {
+		const { bodyText, senderMailAddress, conversationType, previousMessageId, attachments, toRecipients, ccRecipients, bccRecipients } = parameters
+
+		if (byteLength(bodyText) > UNCOMPRESSED_MAX_SIZE) {
+			throw new MailBodyTooLargeError(`Can't update draft, mail body too large (${byteLength(bodyText)})`)
+		}
+
+		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), senderMailAddress)
+		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(senderMailGroupId)
+
+		const sk = aes256RandomKey()
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
+
+		const sessionKeyInfo: SessionKeyInfo = {
+			cipherVersion:
+				this.userFacade.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.Aead
+					? SymmetricCipherVersion.AeadWithSessionKey
+					: SymmetricCipherVersion.AesCbcThenHmac,
+			sessionKey: sk,
+		}
+
+		const { encryptedSenderName, senderId, firstRecipient, encryptedSubject, encryptedConfidential, encryptedMethod } = await this.encryptMailForDraft(
+			parameters,
+			sessionKeyInfo,
+		)
+
+		const {
+			mailDetailsId,
+			bodyId,
+			encryptedCompressedBodyText,
+			recipientsId,
+			toRecipientAddressToEncryptedName,
+			ccRecipientAddressToEncryptedName,
+			bccRecipientAddressToEncryptedName,
+		} = await this.encryptMailDetailsForDraft(parameters, sessionKeyInfo)
+
+		const draftCreateData = createDraftCreateData({
+			previousMessageId: previousMessageId,
+			conversationType: conversationType,
+			ownerEncSessionKey: ownerEncSessionKey.key,
+			draftData: createDraftData({
+				senderMailAddress,
+				addedAttachments: await this._createAddedAttachments(attachments, [], senderMailGroupId, mailGroupKey),
+				bodyText: "",
+				removedAttachments: [],
+				recipientsId,
+				mailDetailsId,
+				bodyId,
+				senderId,
+				firstRecipient,
+				// garbage (encrypted values that will get replaced later)
+				subject: "",
+				senderName: "",
+				confidential: true,
+				method: "",
+				compressedBodyText: "",
+				toRecipients: toRecipients.map(recipientToDraftRecipient),
+				ccRecipients: ccRecipients.map(recipientToDraftRecipient),
+				bccRecipients: bccRecipients.map(recipientToDraftRecipient),
+				// replyTos are currently unused and not handled
+				replyTos: [],
+			}),
+			ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
+		})
+
+		const untypedDraftCreateData = await this.instancePipeline.mapAndEncrypt(DraftCreateDataTypeRef, draftCreateData, sessionKeyInfo)
+		const draftCreateDataModel = await this.instancePipeline.clientTypeReferenceResolver(DraftCreateDataTypeRef)
+		const draftData = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(untypedDraftCreateData, "draftData", draftCreateDataModel)[0]
+
+		await this.setEncryptedValuesOfDraftData(draftData, {
+			encryptedSenderName,
+			encryptedMethod,
+			encryptedConfidential,
+			encryptedSubject,
+			encryptedCompressedBodyText,
+			toRecipientAddressToEncryptedName,
+			ccRecipientAddressToEncryptedName,
+			bccRecipientAddressToEncryptedName,
+		})
 
 		const createDraftReturn = await this.serviceExecutor.post(DraftService, draftCreateData, { sessionKey: sk, untypedInstance: untypedDraftCreateData })
 		return this.entityClient.load(MailTypeRef, createDraftReturn.draft)
