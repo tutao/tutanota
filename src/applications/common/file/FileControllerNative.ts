@@ -86,9 +86,7 @@ export class FileControllerNative extends FileController {
 	}
 
 	async openDownloadedFiles(downloadedFiles: FileReference[]): Promise<void> {
-		if (isIOSApp()) {
-			await this.processDownloadedFilesIOS(downloadedFiles)
-		} else if (isDesktop() || isAndroidApp()) {
+		if (isDesktop() || isAndroidApp() || isIOSApp()) {
 			await this.openFiles(downloadedFiles)
 		} else {
 			throw new ProgrammingError("in filecontroller native but not in ios, android or desktop? - tried to open")
