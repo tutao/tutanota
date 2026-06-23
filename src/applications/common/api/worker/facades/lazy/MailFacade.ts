@@ -107,6 +107,7 @@ import {
 	createDraftUpdateData,
 	createEncryptedMailAddress,
 	createExternalUserData,
+	createFile,
 	createFirstRecipient,
 	createListUnsubscribeData,
 	createMail,
@@ -823,19 +824,46 @@ export class MailFacade {
 			})
 	}
 
-	private createAndEncryptDraftAttachment(
+	private async createAndEncryptDraftAttachment(
 		referenceTokens: BlobReferenceTokenWrapper[],
 		fileSessionKey: AesKey,
 		providedFile: DataFile | FileReference,
 		mailGroupKey: VersionedKey,
-	): DraftAttachment {
+	): Promise<DraftAttachment> {
+		const dummyFile = createFile({
+			name: providedFile.name,
+			mimeType: providedFile.mimeType,
+			cid: providedFile.cid ?? null,
+			// garbage below
+			blobs: [],
+			parent: null,
+			size: "",
+			subFiles: null,
+		})
+
+		const sessionKeyInfo: SessionKeyInfo = {
+			cipherVersion:
+				this.userFacade.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.Aead
+					? SymmetricCipherVersion.AeadWithSessionKey
+					: SymmetricCipherVersion.AesCbcThenHmac,
+			sessionKey: fileSessionKey,
+		}
+
+		const clientModelUntypedInstance = await this.instancePipeline.mapAndEncrypt(FileTypeRef, dummyFile, sessionKeyInfo)
+		const sanitizedUntypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(clientModelUntypedInstance)
+
+		const fileModel = await this.instancePipeline.clientTypeReferenceResolver(FileTypeRef)
+		const name = AttributeModel.getAttribute<Base64>(sanitizedUntypedInstance, "name", fileModel)
+		const mimeType = AttributeModel.getAttribute<Base64>(sanitizedUntypedInstance, "mimeType", fileModel)
+		const cid = AttributeModel.getAttributeorNull<Base64>(sanitizedUntypedInstance, "cid", fileModel)
+
 		const ownerEncFileSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, fileSessionKey)
 		return createDraftAttachment({
 			newFile: createNewDraftAttachment({
-				encFileName: this.cryptoWrapper.encryptString(fileSessionKey, providedFile.name),
-				encMimeType: this.cryptoWrapper.encryptString(fileSessionKey, providedFile.mimeType),
+				encFileName: base64ToUint8Array(name),
+				encMimeType: base64ToUint8Array(mimeType),
 				referenceTokens: referenceTokens,
-				encCid: providedFile.cid == null ? null : this.cryptoWrapper.encryptString(fileSessionKey, providedFile.cid),
+				encCid: cid == null ? null : base64ToUint8Array(cid),
 			}),
 			ownerEncFileSessionKey: ownerEncFileSessionKey.key,
 			ownerKeyVersion: ownerEncFileSessionKey.encryptingKeyVersion.toString(),
