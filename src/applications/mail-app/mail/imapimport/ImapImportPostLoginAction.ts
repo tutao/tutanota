@@ -48,7 +48,12 @@ export class ImapImportPostLoginAction implements PostLoginAction {
 				onSyncDone: async () => {
 					for (const session of await this.imapImporter.getActiveImapImportSessions()) {
 						// in case a user manually paused a sync task we do not want to continue it after login
-						if (session.imapAccountSyncState.status === ImapAccountSyncStatus.PAUSED) {
+						// nor if there are errors.
+						if (
+							session.imapAccountSyncState.status === ImapAccountSyncStatus.PAUSED ||
+							session.imapAccountSyncState.status === ImapAccountSyncStatus.AUTH_ERROR ||
+							session.imapAccountSyncState.status === ImapAccountSyncStatus.ERROR
+						) {
 							continue
 						}
 

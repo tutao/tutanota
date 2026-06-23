@@ -1,4 +1,4 @@
-import { assertMainOrNode, ProgrammingError } from "@tutao/app-env"
+import { assertMainOrNode } from "@tutao/app-env"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { ImapImporter, ImportResult, InitializeImapImportParams } from "../../workerUtils/imapimport/ImapImporter"
 import { MailModel } from "../../mail/model/MailModel"
@@ -18,6 +18,7 @@ import { EventController } from "../../../common/api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { showUpdateImapCredentialsDialog } from "../../../common/gui/dialogs/UpdateImapCredentialsDialog"
 import { OAuthHandler } from "./oauth/OAuthHandler"
+import { Dialog } from "../../../../ui/base/Dialog"
 
 assertMainOrNode()
 
@@ -80,7 +81,7 @@ export class ImapMailImportController {
 					}
 					const shouldDisplayErrorDialog = imapAccountSyncState.status === ImapAccountSyncStatus.ERROR
 					if (shouldDisplayErrorDialog) {
-						throw new ProgrammingError("The sync has encountered an irrecoverable problem, please start over...")
+						Dialog.message("imapSyncFailure_msg")
 					}
 				}
 			}
@@ -168,6 +169,10 @@ export class ImapMailImportController {
 
 	shouldRenderCheckmarkIcon(session: ImapImportUiSession) {
 		return session.imapAccountSyncStatus === ImapAccountSyncStatus.FINISHED
+	}
+
+	shouldRenderErrorIcon(session: ImapImportUiSession) {
+		return session.imapAccountSyncStatus === ImapAccountSyncStatus.ERROR || session.imapAccountSyncStatus === ImapAccountSyncStatus.AUTH_ERROR
 	}
 
 	shouldDisableButtons() {

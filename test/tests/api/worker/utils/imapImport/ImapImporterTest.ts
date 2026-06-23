@@ -265,7 +265,6 @@ o.spec("ImapImporter", () => {
 
 		imapMailboxStatusMock.uidValidity = 123n
 		await importer.onMailboxStatus(accountSyncStateIdMock, imapMailboxStatusMock)
-		verify(imapFacadeMock.deleteImapFolderSyncState(folderSyncStateIdMock), { times: 1 })
 		verify(imapFacadeMock.updateImapAccountSyncStateStatus(accountSyncStateMock, ImapAccountSyncStatus.ERROR), { times: 1 })
 	})
 

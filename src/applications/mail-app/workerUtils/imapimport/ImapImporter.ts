@@ -331,7 +331,6 @@ export class ImapImporter implements ImapSyncFacade {
 			// This should usually never happen, only with bad IMAP server implementations.
 			if (folderSyncState.uidvalidity && !(folderSyncState.uidvalidity === imapMailboxStatus.uidValidity.toString())) {
 				await this.imapFacade.updateImapAccountSyncStateStatus(session.imapAccountSyncState, ImapAccountSyncStatus.ERROR)
-				await this.imapFacade.deleteImapFolderSyncState(folderSyncState._id)
 				console.error(
 					`uidvalidity of a folder has changed for the account sync state ${accountSyncStateId} on mail group ${folderSyncState._ownerGroup}.`,
 				)

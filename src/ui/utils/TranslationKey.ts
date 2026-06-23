@@ -2364,3 +2364,4 @@ export type TranslationKeyType =
 	| "resyncImapImport_action"
 	| "imapSyncUpdateCredentials_title"
 	| "imapUpdateSyncCredentialsInfo_msg"
+	| "imapSyncFailure_msg"

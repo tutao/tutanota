@@ -141,6 +141,8 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 				syncMessage = lang.getTranslation("imapSyncPostponed_msg", {
 					"{postponedUntil}": session.postponedUntil.toLocaleTimeString(),
 				})
+			} else if (this.imapImportController().shouldRenderErrorIcon(session)) {
+				syncMessage = lang.getTranslation("imapSyncFailure_msg")
 			}
 
 			const mailboxDetail = assertNotNull(this.imapImportController().getDestinationMailboxDetailForSession(session))
@@ -156,12 +158,22 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 					? Icons.ClockOutlines
 					: this.imapImportController().shouldRenderCheckmarkIcon(session)
 						? Icons.Checkmark
-						: Icons.Sync
+						: this.imapImportController().shouldRenderErrorIcon(session)
+							? Icons.SyncProblem
+							: Icons.Sync
+			const iconFill =
+				statusIcon === Icons.Checkmark
+					? theme.success
+					: statusIcon === Icons.PauseOutline
+						? theme.warning
+						: statusIcon === Icons.SyncProblem
+							? theme.error
+							: theme.on_surface
 			const statusIconParameters: Partial<IconAttrs> = {
 				icon: statusIcon,
 				class: statusIcon === Icons.Sync ? "icon-progress" : "",
 				style: {
-					fill: statusIcon === Icons.Checkmark ? theme.success : statusIcon === Icons.PauseOutline ? theme.warning : theme.on_surface,
+					fill: iconFill,
 				},
 			}
 

@@ -2367,5 +2367,6 @@ export default {
 		"resyncImapImport_action": "Resync IMAP import",
 		"imapSyncUpdateCredentials_title": "Imap Sync Error",
 		"imapUpdateSyncCredentialsInfo_msg": "The sync authentication has failed and we need you to update your credentials in order to continue.",
+		"imapSyncFailure_msg": "Irrecoverable error encountered, please start over again.",
 	}
 }
