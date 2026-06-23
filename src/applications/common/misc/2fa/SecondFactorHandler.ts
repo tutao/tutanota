@@ -44,7 +44,7 @@ export class SecondFactorHandler {
 		this.otherLoginListenerInitialized = true
 		this.eventController.addEntityListener({
 			onEntityUpdatesReceived: (updates) => this.entityEventsReceived(updates),
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+			priority: OnEntityUpdateReceivedPriority.HIGH,
 		})
 	}
 
