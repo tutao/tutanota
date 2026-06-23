@@ -125,14 +125,14 @@ export class SymmetricKeyDeriver {
 				groupKeyVersion: cipherVersion.groupKeyVersion,
 				encryptionKey,
 				authenticationKey,
-				context,
+				// context,
 			} as any
 		} else {
 			return {
 				cipherVersion: cipherVersion.cipherVersion,
 				encryptionKey,
 				authenticationKey,
-				context,
+				// context,
 			} as any
 		}
 	}

@@ -33,7 +33,7 @@ import {
 	ReportedMailFieldMarkerTypeRef,
 	SecureExternalRecipientKeyDataTypeRef,
 	SendDraftData,
-	SendDraftDataTypeRef,
+	SendDraftParametersTypeRef,
 	SymEncInternalRecipientKeyDataTypeRef,
 	UnreadMailStateService,
 } from "@tutao/entities/tutanota"
@@ -403,7 +403,7 @@ o.spec("MailFacade test", function () {
 
 			o(
 				facade.isTutaCryptMail(
-					createTestEntity(SendDraftDataTypeRef, {
+					createTestEntity(SendDraftParametersTypeRef, {
 						internalRecipientKeyData: [pqRecipient],
 						secureExternalRecipientKeyData: [],
 						symEncInternalRecipientKeyData: [],
@@ -413,7 +413,7 @@ o.spec("MailFacade test", function () {
 
 			o(
 				facade.isTutaCryptMail(
-					createTestEntity(SendDraftDataTypeRef, {
+					createTestEntity(SendDraftParametersTypeRef, {
 						internalRecipientKeyData: [pqRecipient, pqRecipient],
 						secureExternalRecipientKeyData: [],
 						symEncInternalRecipientKeyData: [],
@@ -423,7 +423,7 @@ o.spec("MailFacade test", function () {
 
 			o(
 				facade.isTutaCryptMail(
-					createTestEntity(SendDraftDataTypeRef, {
+					createTestEntity(SendDraftParametersTypeRef, {
 						internalRecipientKeyData: [],
 						secureExternalRecipientKeyData: [],
 						symEncInternalRecipientKeyData: [],
@@ -433,7 +433,7 @@ o.spec("MailFacade test", function () {
 
 			o(
 				facade.isTutaCryptMail(
-					createTestEntity(SendDraftDataTypeRef, {
+					createTestEntity(SendDraftParametersTypeRef, {
 						internalRecipientKeyData: [pqRecipient, rsaRecipient],
 						secureExternalRecipientKeyData: [],
 						symEncInternalRecipientKeyData: [],
@@ -443,7 +443,7 @@ o.spec("MailFacade test", function () {
 
 			o(
 				facade.isTutaCryptMail(
-					createTestEntity(SendDraftDataTypeRef, {
+					createTestEntity(SendDraftParametersTypeRef, {
 						internalRecipientKeyData: [pqRecipient],
 						secureExternalRecipientKeyData: [secureExternalRecipient],
 						symEncInternalRecipientKeyData: [],
@@ -453,7 +453,7 @@ o.spec("MailFacade test", function () {
 
 			o(
 				facade.isTutaCryptMail(
-					createTestEntity(SendDraftDataTypeRef, {
+					createTestEntity(SendDraftParametersTypeRef, {
 						internalRecipientKeyData: [pqRecipient],
 						secureExternalRecipientKeyData: [],
 						symEncInternalRecipientKeyData: [symEncInternalRecipient],
@@ -629,11 +629,11 @@ o.spec("MailFacade test", function () {
 
 			const notFoundRecipient1: Recipient = object()
 			// @ts-ignore
-			notFoundRecipient1.address = "one@tuta.com"
+			notFoundRecipient1["address"] = "one@tuta.com"
 
 			const notFoundRecipient2: Recipient = object()
 			// @ts-ignore
-			notFoundRecipient2.address = "two@tuta.com"
+			notFoundRecipient2["address"] = "two@tuta.com"
 
 			const someRecipient1: Recipient = object()
 			const someRecipient2: Recipient = object()
@@ -681,11 +681,11 @@ o.spec("MailFacade test", function () {
 
 			const unverifiedRecipient1: Recipient = object()
 			// @ts-ignore
-			unverifiedRecipient1.address = "one@tuta.com"
+			unverifiedRecipient1["address"] = "one@tuta.com"
 
 			const unverifiedRecipient2: Recipient = object()
 			// @ts-ignore
-			unverifiedRecipient2.address = "two@tuta.com"
+			unverifiedRecipient2["address"] = "two@tuta.com"
 
 			const someRecipient1: Recipient = object()
 			const someRecipient2: Recipient = object()
