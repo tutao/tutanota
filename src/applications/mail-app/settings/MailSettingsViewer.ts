@@ -70,6 +70,7 @@ import { InboxRuleType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, ReportMove
 import { CustomerInfo } from "@tutao/entities/sys"
 import { ButtonType } from "../../../ui/base/Button"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { windowFacade } from "../../common/misc/WindowFacade"
 
 assertMainOrNode()
 
@@ -573,6 +574,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				],
 			}),
 			this.renderRebuildSearchIndex(),
+			this.renderClearCacheButton(),
 		]
 	}
 
@@ -597,7 +599,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 							m(PrimaryButton, {
 								width: "flex",
 								label: "rebuildSearchIndex_action",
-								onclick: () => this.confirmClearData(),
+								onclick: () => this.confirmRebuildSearchIndex(),
 							}),
 						),
 						m("small.mt-12", lang.getTranslationText("reIndexLocalData_msg")),
@@ -605,7 +607,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		)
 	}
 
-	private async confirmClearData(): Promise<void> {
+	private async confirmRebuildSearchIndex(): Promise<void> {
 		const confirm = await Dialog.confirm(
 			lang.makeTranslation(
 				"reIndexLocalData_msg",
@@ -614,6 +616,36 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		)
 		if (confirm) {
 			await mailLocator.indexerFacade.rebuildMailIndex()
+		}
+	}
+
+	private renderClearCacheButton() {
+		return m("", [
+			m(
+				".mt-16",
+				m(PrimaryButton, {
+					width: "flex",
+					label: "clearCache_action",
+					onclick: () => this.confirmClearCache(),
+				}),
+			),
+			m("small.mt-12", lang.getTranslationText("clearCache_msg")),
+		])
+	}
+
+	private async confirmClearCache(): Promise<void> {
+		const confirm = await Dialog.confirm(lang.getTranslation("clearCacheConfirm_msg"))
+		if (confirm) {
+			await showProgressDialog(
+				"clearCache_action",
+				Promise.resolve().then(async () => {
+					await mailLocator.cacheStorage.purgeStorage()
+
+					// we need to reload the page, as purging storage will put the client in a broken state
+					await mailLocator.logins.logout(false)
+					await windowFacade.reload({})
+				}),
+			)
 		}
 	}
 
