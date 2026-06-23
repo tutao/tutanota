@@ -585,15 +585,15 @@ export class MailFacade {
 		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), senderMailAddress)
 		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(senderMailGroupId)
 
-		const sk = aes256RandomKey()
-		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
+		const sessionKey = aes256RandomKey()
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
 
 		const sessionKeyInfo: SessionKeyInfo = {
 			cipherVersion:
 				this.userFacade.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.Aead
 					? SymmetricCipherVersion.AeadWithSessionKey
 					: SymmetricCipherVersion.AesCbcThenHmac,
-			sessionKey: sk,
+			sessionKey: sessionKey,
 		}
 
 		const { encryptedSenderName, senderId, firstRecipient, encryptedSubject, encryptedConfidential, encryptedMethod } = await this.encryptMailForDraft(
@@ -655,7 +655,7 @@ export class MailFacade {
 			bccRecipientAddressToEncryptedName,
 		})
 
-		const createDraftReturn = await this.serviceExecutor.post(DraftService, draftCreateData, { sessionKey: sk, untypedInstance: untypedDraftCreateData })
+		const createDraftReturn = await this.serviceExecutor.post(DraftService, draftCreateData, { sessionKey, untypedInstance: untypedDraftCreateData })
 		return this.entityClient.load(MailTypeRef, createDraftReturn.draft)
 	}
 
