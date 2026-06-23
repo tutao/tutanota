@@ -83,6 +83,7 @@ import { Dialog } from "../../../ui/base/Dialog.js"
 import { createUserAreaGroupDeleteData, TemplateGroupService, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
 import { ButtonType } from "../../../ui/base/Button"
 import { renderHeaderButtons } from "../../calendar-app/gui/HeaderButtons"
+import ImapImportSettingsViewer from "./imapimport/ImapImportSettingsViewer.js"
 
 assertMainOrNode()
 
@@ -201,6 +202,26 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					undefined,
 				),
 			)
+
+			const userController = this.logins.getUserController()
+			const customer = userController.getCustomer()
+			if (customer && isCustomizationEnabledForCustomer(customer, FeatureType.ImapImport)) {
+				this._userFolders.push(
+					new SettingsFolder(
+						() => "imapImportSettings_label",
+						() => Icons.Sync,
+						"imapImport",
+						() => {
+							if (isDesktop()) {
+								return new ImapImportSettingsViewer(() => mailLocator.getImapImportController())
+							} else {
+								return new WebMailImportSettingsViewer()
+							}
+						},
+						undefined,
+					),
+				)
+			}
 		})
 
 		this._userFolders.push(

@@ -23,11 +23,13 @@ import {
 } from "@tutao/entities/sys"
 import { isSameId, OperationType } from "@tutao/meta"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { ImapImporter } from "../../../mail-app/workerUtils/imapimport/ImapImporter"
 
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {
 	constructor(
 		private readonly mailFacade: lazyAsync<MailFacade> | null,
+		private readonly imapImporter: lazyAsync<ImapImporter> | null,
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
 		private readonly eventController: ExposedEventController,
@@ -45,6 +47,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 	async onEntityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean): Promise<void> {
 		await this.entityEventsReceived(events)
 		await (await this.mailFacade?.())?.entityEventsReceived(events)
+		await (await this.imapImporter?.())?.entityEventsReceived(events, groupId)
 		await this.eventController.onEntityUpdateReceived(events, groupId, isInitialSyncDone)
 		// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
 		// shall not receive the event twice.

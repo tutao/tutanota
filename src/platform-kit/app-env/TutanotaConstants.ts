@@ -193,6 +193,7 @@ export enum FeatureType {
 	ReceivesNoTutaNewsletters = "21",
 	DriveInternalBeta = "22", // Enables drive access for internal testing
 	SolutionPartner = "23",
+	ImapImport = "24",
 }
 
 export const GENERATED_ID_MAX_TIMESTAMP: number = Math.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
@@ -720,9 +721,7 @@ export const DEFAULT_ERROR = "defaultError"
 
 export const BIRTHDAY_CALENDAR_BASE_ID = "birthday_calendar"
 export const DEFAULT_BIRTHDAY_CALENDAR_COLOR = "FF9933"
-
 export const MAX_LABELS_PER_MAIL = 5
-
 export const TUTA_MAIL_GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=de.tutao.tutanota"
 export const TUTA_MAIL_APP_STORE_URL = "https://apps.apple.com/app/secure-mail-client-tuta/id922429609"
 export const TUTA_CALENDAR_GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=de.tutao.calendar"

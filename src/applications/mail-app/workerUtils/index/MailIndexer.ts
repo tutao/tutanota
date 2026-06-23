@@ -12,7 +12,17 @@ import {
 	newPromise,
 	promiseMap,
 } from "../../../../platform-kit/utils"
-import { deconstructMailSetEntryId, elementIdPart, getElementId, hasError, isSameId, listIdPart, OperationType } from "../../../../platform-kit/meta"
+import {
+	deconstructMailSetEntryId,
+	elementIdPart,
+	getElementId,
+	hasError,
+	isSameId,
+	ListElementEntity,
+	listIdPart,
+	OperationType,
+	TypeRef,
+} from "../../../../platform-kit/meta"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes.js"
@@ -28,7 +38,9 @@ import { ProgressMonitor } from "../../../../platform-kit/network/ProgressMonito
 import {
 	File,
 	ImportedFileMailTypeRef,
+	ImportedImapMailTypeRef,
 	ImportFileMailStateTypeRef,
+	ImapFolderSyncStateTypeRef,
 	Mail,
 	MailBox,
 	MailboxGroupRootTypeRef,
@@ -41,7 +53,7 @@ import {
 	MailSetTypeRef,
 	MailTypeRef,
 } from "@tutao/entities/tutanota"
-import { ImportStatus, MailSetKind } from "../../../../entities/tutanota/Utils"
+import { ImapFolderSyncStatus, FileImportStatus, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { User } from "@tutao/entities/sys"
 import { isFolder } from "../../mail/MailUtils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -54,6 +66,24 @@ const TAG = "MailIndexer"
 const enum MailIndexingAbortReason {
 	Cancelled = "MailIndexingCancelled",
 	Restarting = "MailIndexingRestarting",
+}
+
+type CommonImportStateFields = {
+	status: NumberString
+	importedMails: Id
+	_ownerGroup: null | Id
+}
+
+type CommonImportedMailFields = {
+	mailSetEntry: IdTuple
+}
+
+type CommonImportState = ListElementEntity & CommonImportStateFields
+type CommonImportedMail = ListElementEntity & CommonImportedMailFields
+
+enum MailImportType {
+	FileImport,
+	ImapImport,
 }
 
 export class MailIndexer {
@@ -533,13 +563,13 @@ export class MailIndexer {
 		return await this.entityClient.loadAll(MailSetTypeRef, mailbox.mailSets.mailSets)
 	}
 
-	private async processImportStateEntityEvents(operation: OperationType, importStateId: IdTuple): Promise<void> {
+	private async processImportStateEntityEvents(operation: OperationType, importStateId: IdTuple, importType: MailImportType): Promise<void> {
 		await this.initialized.promise
 		if (!this._mailIndexingEnabled) return
 		// we can only process create and update events (create is because of EntityEvent optimization
 		// (CREATE + UPDATE = CREATE) which requires us to process CREATE events with imported mails)
 		if (operation === OperationType.CREATE || operation === OperationType.UPDATE) {
-			const mailIds: IdTuple[] = await this.loadImportedMailIdsInIndexDateRange(importStateId)
+			const mailIds: IdTuple[] = await this.loadImportedMailIdsInIndexDateRange(importStateId, importType)
 
 			const mailData = await this.preloadMails(mailIds)
 			for (const singleMailData of mailData) {
@@ -568,13 +598,37 @@ export class MailIndexer {
 		})
 	}
 
-	private async loadImportedMailIdsInIndexDateRange(importStateId: IdTuple): Promise<IdTuple[]> {
-		const importMailState = await this.entityClient.load(ImportFileMailStateTypeRef, importStateId)
-		const status = parseInt(importMailState.status) as ImportStatus
-		if (status !== ImportStatus.Finished && status !== ImportStatus.Canceled) {
+	private async loadImportedMailIdsInIndexDateRange(importStateId: IdTuple, mailImportType: MailImportType): Promise<IdTuple[]> {
+		const typeMapping = {
+			[MailImportType.FileImport]: {
+				state: ImportFileMailStateTypeRef,
+				mail: ImportedFileMailTypeRef,
+			},
+			[MailImportType.ImapImport]: {
+				state: ImapFolderSyncStateTypeRef,
+				mail: ImportedImapMailTypeRef,
+			},
+		}
+		const refs = typeMapping[mailImportType]
+		if (!refs) {
 			return []
 		}
-		const importedMailEntries = await this.entityClient.loadAll(ImportedFileMailTypeRef, importMailState.importedMails)
+
+		const importMailState = await this.entityClient.load(refs.state as TypeRef<CommonImportState>, importStateId)
+
+		if (mailImportType === MailImportType.ImapImport) {
+			const imapFolderSyncStatus = importMailState.status as ImapFolderSyncStatus
+			// We do not index while still syncing the folder from the IMAP server.
+			if (imapFolderSyncStatus === ImapFolderSyncStatus.RUNNING) {
+				return []
+			}
+		} else if (mailImportType === MailImportType.FileImport) {
+			const fileImportStatus = parseInt(importMailState.status) as FileImportStatus
+			if (fileImportStatus !== FileImportStatus.Finished && fileImportStatus !== FileImportStatus.Canceled) {
+				return []
+			}
+		}
+		const importedMailEntries = await this.entityClient.loadAll(refs.mail as TypeRef<CommonImportedMail>, importMailState.importedMails)
 
 		if (isEmpty(importedMailEntries)) {
 			return []
@@ -604,7 +658,9 @@ export class MailIndexer {
 
 		for (const event of events) {
 			if (isUpdateForTypeRef(ImportFileMailStateTypeRef, event)) {
-				await this.processImportStateEntityEvents(event.operation, [event.instanceListId, event.instanceId])
+				await this.processImportStateEntityEvents(event.operation, [event.instanceListId, event.instanceId], MailImportType.FileImport)
+			} else if (isUpdateForTypeRef(ImapFolderSyncStateTypeRef, event)) {
+				await this.processImportStateEntityEvents(event.operation, [event.instanceListId, event.instanceId], MailImportType.ImapImport)
 			}
 		}
 	}

@@ -37,6 +37,7 @@ export const enum DialogType {
 	EditMedium = "EditMedium",
 	EditLarger = "EditLarger",
 	EditLarge = "EditLarge",
+	SetupWizard = "SetupWizard",
 }
 
 type Validator = () => Promise<TranslationKey | null>
@@ -272,6 +273,8 @@ export class Dialog implements ModalComponent {
 			dialogStyle += ".dialog-width-m.border-radius-bottom-8"
 		} else if (dialogType === DialogType.EditLarge || dialogType === DialogType.EditLarger) {
 			dialogStyle += ".dialog-width-l.border-radius-bottom-8"
+		} else if (dialogType === DialogType.SetupWizard) {
+			dialogStyle = ".dialog.flex-grow.border-radius-top-8.dialog-width-l.border-radius-bottom-8.nav-bg"
 		}
 
 		return dialogStyle
@@ -843,6 +846,37 @@ export class Dialog implements ModalComponent {
 		})
 	}
 
+	static async showImapInitializationSuccessfulDialog(): Promise<void> {
+		const { ImageWithOptionsDialog } = await import("../dialogs/ImageWithOptionsDialog")
+		return newPromise((resolve) => {
+			let dialog: Dialog
+
+			const closeAction = () => {
+				dialog.close()
+				setTimeout(() => resolve(), DefaultAnimationTime)
+			}
+
+			dialog = new Dialog(DialogType.EditMedium, {
+				view: () =>
+					m(
+						".plr-48",
+						m(ImageWithOptionsDialog, {
+							image: `/images/imap-import/initialization-success.svg`,
+							titleText: "imapImportSetup_title",
+							messageText: "imapImportSetupFinished_msg",
+							mainActionText: "ok_action",
+							mainActionClick: () => {
+								closeAction()
+							},
+							subActionText: null,
+							subActionClick: () => {},
+						}),
+					),
+			})
+			dialog.show()
+		})
+	}
+
 	/**
 	 * Shows a dialog with a text field input and ok/cancel buttons.
 	 * @param   props.child either a component (object with view function that returns a Children) or a naked view Function
@@ -1127,6 +1161,17 @@ export class Dialog implements ModalComponent {
 
 	static editSmallDialog<T extends object>(headerBarAttrs: DialogHeaderBarAttrs, child: () => Children): Dialog {
 		return new Dialog(DialogType.EditSmall, {
+			view: () => [
+				/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
+				headerBarAttrs.noHeader ? null : m(DialogHeaderBar, headerBarAttrs),
+				/** variable-size child container that may be scrollable. */
+				m(".scroll.hide-outline.plr-24", child()),
+			],
+		})
+	}
+
+	static openSetupWizardDialog<T extends object>(headerBarAttrs: DialogHeaderBarAttrs, child: () => Children): Dialog {
+		return new Dialog(DialogType.SetupWizard, {
 			view: () => [
 				/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
 				headerBarAttrs.noHeader ? null : m(DialogHeaderBar, headerBarAttrs),

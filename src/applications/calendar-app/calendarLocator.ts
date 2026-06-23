@@ -49,6 +49,7 @@ import {
 	ContactSuggestion,
 	DesktopSystemFacade,
 	ExternalCalendarFacade,
+	ImapSyncFacade,
 	MobileContactsFacade,
 	MobilePaymentsFacade,
 	MobileSystemFacade,
@@ -197,6 +198,7 @@ class CalendarLocator implements CommonLocator {
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 	driveFacade!: DriveFacade
 	transferProgressDispatcher!: TransferProgressDispatcher
+	imapImporter!: ImapSyncFacade
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -695,7 +697,8 @@ class CalendarLocator implements CommonLocator {
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)
 
 			this.transferProgressDispatcher = new TransferProgressDispatcher()
-
+			// fixme should we move that out of the window?
+			this.imapImporter = {} as ImapSyncFacade
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, CALENDAR_PREFIX)
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
@@ -704,6 +707,7 @@ class CalendarLocator implements CommonLocator {
 					async () => this.native,
 					() => this.desktopSettingsFacade,
 				),
+				this.imapImporter,
 				new WebInterWindowEventFacade(this.logins, windowFacade, deviceConfig),
 				new WebCommonNativeFacade(
 					this.logins,

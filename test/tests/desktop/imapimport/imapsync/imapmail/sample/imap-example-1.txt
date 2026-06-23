@@ -1,0 +1,166 @@
+Delivered-To: delivered@competitor.com
+Received: by 2002:a59:cccc:0:b0:482:c705:4089 with SMTP id q12csaa111111vqv;
+        Thu, 22 Aug 2024 09:02:22 -0700 (PDT)
+X-Forwarded-Encrypted: i=2; AJvYcCXeDj1JO1b8XDAeEoifr+VRHzyPnxm9m6DzREb0NWpxgUT4T02I3kVjs5oYQqJ/phyB2yF0hieXUB6y@gmail.com
+X-Google-Smtp-Source: AGHT+IGrBTWx30uDGu5vZ33ejzuTY39BieF5eJFEXo/fz5RwzwqUc0x360t9kcP+h+/IboZBIaVG
+X-Received: by 2002:a05:6122:3685:b0:4ef:280f:96ea with SMTP id 71dfb90a1353d-4fd099036f4mr3346080e0c.4.1724342541664;
+        Thu, 22 Aug 2024 09:02:21 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1724342541; cv=none;
+        d=google.com; s=arc-20160816;
+        b=UXydEMOb7fmG00VsSEv2D+4ADA+zDfwRW2uGE3LmonktYeo7fSJ+GujemmQXo4dAsF
+         oLrJrmmM16kMX2DmlUi9iLe+o7JOMRL5hGBqeg1RmTsVAqZb2SK0FjErBDYcdhmzGSxe
+         6O378i59k6UKbQ5TMQccX5mwpTUGNEy8ILOtbTxHoEzF3aiBEezGTrPKJ33nYivKlXdB
+         m5kuZtqjXMAlAgoxlQnECRM8ej3Rmj8jVnr9wah9lzGnksbcmcsGXENiveSlb8+i1gcY
+         IcKMjfa18wToMm3XNS5ztr6EjpbyYBtiatUzbZ9Nt/8zFruukBKXk8tFVHyl2LxwQYSW
+         2z8g==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20160816;
+        h=sender:errors-to:list-subscribe:list-help:list-post:list-archive
+         :list-unsubscribe:list-id:precedence:message-id:date:reply-to:to
+         :subject:from:mime-version;
+        bh=nCxseUxocAW6TFPj741WLW3T3E9oeVGaV1BpvIP69Hw=;
+        fh=x15q1sPptUrjyB6Axff4XAHYFD2YGZQxbQ8JwkDUtDw=;
+        b=MSjj3zCnHvvDjCL6Cftfn44l71zxeQ2rVdbdOTzoS+AGMPi0Wo/nYM0+1oWO8MzZqh
+         61J2zBg/jvznOv/NOOD9aaHNew1YjWC+W+gjuVJBHiKrjcdIwAjgYG7eHvJGdmK/7EMK
+         W8dR5QiB8+s0XaVfNNaBpY3wNReOHNUVhDlcrIpBCU89nqSww46FHydBhrL3MqueKoCl
+         O815E1QkaH5KDQA1j6dpNH7GwL0uhHBpOMHHp5HVMr9BhvcavB0whAKYNTLYSPri1LwC
+         yoFEdAmC+Ta78mKV4MsmizAMI0rCCTy1R9AuQCS8vv585lMV12P/AfxB5x8naQZlHsIM
+         8Z7Q==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       spf=pass (google.com: domain of some-user-bounces+bedfortest=gmail.com@domain.org designates 209.51.188.17 as permitted sender) smtp.mailfrom="some-user-bounces+bedfortest=gmail.com@domain.org";
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=domain.org
+Return-Path: <some-user-bounces+bedfortest=gmail.com@domain.org>
+Received: from lists.domain.org (lists.domain.org. [209.51.188.17])
+        by mx.google.com with ESMTPS id 71dfb90a1353d-4fd0832d38fsi364635e0c.157.2024.08.22.09.02.21
+        for <bedfortest@gmail.com>
+        (version=TLS1_2 cipher=ECDHE-ECDSA-CHACHA20-POLY1305 bits=256/256);
+        Thu, 22 Aug 2024 09:02:21 -0700 (PDT)
+Received-SPF: pass (google.com: domain of some-user-bounces+bedfortest=gmail.com@domain.org designates 209.51.188.17 as permitted sender) client-ip=209.51.188.17;
+Authentication-Results: mx.google.com;
+       spf=pass (google.com: domain of some-user-bounces+bedfortest=gmail.com@domain.org designates 209.51.188.17 as permitted sender) smtp.mailfrom="some-user-bounces+bedfortest=gmail.com@domain.org";
+       dmarc=pass (p=NONE sp=NONE dis=NONE) header.from=domain.org
+Received: from localhost ([::1] helo=lists1p.domain.org)
+	by lists.domain.org with esmtp (Exim 4.90_1)
+	(envelope-from <some-user-bounces@domain.org>)
+	id 1shAEU-00025h-HG; Thu, 22 Aug 2024 12:00:18 -0400
+Content-Type: multipart/mixed; boundary="===============5540717132988592605=="
+MIME-Version: 1.0
+From: some-user-request@domain.org
+Subject: =?utf-8?q?some-user_Digest=2C_Vol_261=2C_Issue_10?=
+To: some-user@domain.org
+Reply-To: some-user@domain.org
+Date: Thu, 22 Aug 2024 12:00:14 -0400
+Message-ID: <mailman.64.1724342414.4524.some-user@domain.org>
+X-BeenThere: some-user@domain.org
+X-Mailman-Version: 2.1.29
+Precedence: list
+List-Id: General related discussions <some-user.domain.org>
+List-Unsubscribe: <https://lists.domain.org/mailman/options/some-user>,
+ <mailto:some-user-request@domain.org?subject=unsubscribe>
+List-Archive: <https://lists.domain.org/archive/html/some-user>
+List-Post: <mailto:some-user@domain.org>
+List-Help: <mailto:some-user-request@domain.org?subject=help>
+List-Subscribe: <https://lists.domain.org/mailman/listinfo/some-user>,
+ <mailto:some-user-request@domain.org?subject=subscribe>
+Errors-To: some-user-bounces+bedfortest=gmail.com@domain.org
+Sender: some-user-bounces+bedfortest=gmail.com@domain.org
+
+--===============5540717132988592605==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Description: some-user Digest, Vol 261, Issue 10
+
+c29tZSBiYXNlLTY0IGVuY29kZWQgbWVzc2FnZQ==
+
+--===============5540717132988592605==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Description: Today's Topics (1 messages)
+
+YW5vdGhlciBtZXNzYWdl
+
+--===============5540717132988592605==
+Content-Type: multipart/digest; boundary="===============6222024789122253663=="
+MIME-Version: 1.0
+
+--===============6222024789122253663==
+Content-Type: message/rfc822
+MIME-Version: 1.0
+
+List-Post: <mailto:some-user@domain.org>
+From: Third Person <third@competi.tor>
+Precedence: list
+MIME-Version: 1.0
+Cc: some-user@domain.org
+To: Other Person <other.person@competitor2.net>
+References: <reference@competitor2.net>
+In-Reply-To: <reference@competitor2.net>
+Date: Wed, 12 Aug 2022 21:21:29 -0300
+Message-ID: <20240821212129.7647d035@tintin>
+Content-Type: multipart/signed; boundary="Sig_/gs7PlQoaL.jUlKsVGbEfZdo";
+ protocol="application/pgp-signature"; micalg=pgp-sha512
+Subject: Re: some subject
+Message: 1
+
+--Sig_/gs7PlQoaL.jUlKsVGbEfZdo
+Content-Type: multipart/mixed; boundary="MP_/UFaAlRFpJKKEvkodH0kf3df"
+
+--MP_/UFaAlRFpJKKEvkodH0kf3df
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
+
+Hello Someone,
+
+> I'm facing the problem mentioned!
+
+	afaict, we do not support it
+
+--MP_/UFaAlRFpJKKEvkodH0kf3df
+Content-Type: text/x-scheme
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment; filename=code-attachment.scm
+
+#! /bin/sh
+# -*- mode: scheme; coding: utf-8 -*-
+exec executable -e main -s "$0" "$@"
+!#
+
+(eval-when (expand load eval)
+  (use-modules modules)
+
+--MP_/UFaAlRFpJKKEvkodH0kf3df--
+
+--Sig_/gs7PlQoaL.jUlKsVGbEfZdo
+Content-Type: application/pgp-signature
+Content-Description: OpenPGP digital signature
+
+-----BEGIN PGP SIGNATURE-----
+
+iQEzBAEBCgAdFiEEhCJlRZtBM3furJHe83T9k6MFetcFAmbGhIkACgkQ83T9k6MF
+etc/Mgf8DV/hrjvHR8pKEaPWQDZq+/ZRd7nQl4ponbkZuiwnHC6yCPl5ZHhgQuTb
+pTwhTFH2RsIdRlbm5FDxftdgkt1f4M4Yp1v1Je5x4cag6JO2AP7HmGqI3wmUJNyD
+uNZj4SrgQYN4mtECN4erHFRcRdn8kkSB7o6FadVJwr4BIOSo4wFfh0gstD18Sslq
+xcT4qz7+oqeUSAMNVZOf+55g7LNoHJFv1O89UexWQaKiHM+hmOG1f0oKAVBs4Hc+
+ONxZmfAf/M31jCeNlFl+206lWgF90ETkGGgajue/sg5eELlY4as4LazANGGDiv9c
+lia7b4x6Ltlt8bFHlEdnrQxSpWg4FA==
+=gIFv
+-----END PGP SIGNATURE-----
+
+--Sig_/gs7PlQoaL.jUlKsVGbEfZdo--
+
+
+
+--===============6222024789122253663==--
+
+--===============5540717132988592605==
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: base64
+Content-Description: Digest Footer
+
+c29tZSBmb290ZXI=
+
+--===============5540717132988592605==--

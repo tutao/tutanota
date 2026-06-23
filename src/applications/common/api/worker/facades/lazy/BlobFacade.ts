@@ -448,8 +448,9 @@ export class BlobFacade {
 			blobServerAccessInfo.servers,
 			async (serverUrl) => {
 				const response = await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
 					queryParams,
-					body: encryptedData,
+					body: new RestBinaryBody(encryptedData),
 					responseType: MediaType.Json,
 					baseUrl: serverUrl,
 					abortSignal,
@@ -817,11 +818,11 @@ export class BlobFacade {
 
 	public async parseBlobPostOutResponseMultiple(jsonData: string): Promise<BlobReferenceTokenWrapper[]> {
 		const instance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(JSON.parse(jsonData))
-		const { blobReferenceTokens } = await this.instancePipeline.decryptAndMap(BlobPostOutTypeRef, instance, null)
-		if (isEmpty(blobReferenceTokens)) {
-			throw new ProgrammingError("empty blobReferenceTokens not allowed for post multiple blob")
+		const blobPostOut = await this.instancePipeline.decryptAndMap(BlobPostOutTypeRef, instance, null)
+		if (isEmpty(blobPostOut.blobReferenceTokens)) {
+			throw new ProgrammingError(`empty blobReferenceTokens not allowed for post multiple blob ${JSON.stringify(blobPostOut)}`)
 		}
-		return blobReferenceTokens
+		return blobPostOut.blobReferenceTokens
 	}
 
 	private async downloadAndDecryptMultipleBlobsOfArchives(
