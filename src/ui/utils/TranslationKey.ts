@@ -2391,3 +2391,6 @@ export type TranslationKeyType =
 	| "migrationProviderOther_label"
 	| "migrationPausedProgressInfo_msg"
 	| "emptyString_msg"
+	| "clearCache_action"
+	| "clearCache_msg"
+	| "clearCacheConfirm_msg"
