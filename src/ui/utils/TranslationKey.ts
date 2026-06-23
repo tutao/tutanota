@@ -2398,3 +2398,6 @@ export type TranslationKeyType =
 	| "removeTimeZone_action"
 	| "failedToLoadAlarms_error"
 	| "migrationPausedProgressInfo_msg"
+	| "clearCache_action"
+	| "clearCache_msg"
+	| "clearCacheConfirm_msg"
