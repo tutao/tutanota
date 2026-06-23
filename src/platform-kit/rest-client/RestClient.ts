@@ -1,5 +1,5 @@
 import { assertWorkerOrNode, CancelledError, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "@tutao/app-env"
-import { assertNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
+import { assertNotNull, isNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
 import * as restSuspension from "./SuspensionHandler.js"
 import { ConnectionError, handleRestError, PayloadTooLargeError, SuspensionError } from "./error.js"
 import {
@@ -74,8 +74,21 @@ export class RestClient implements RestClientInterface {
 
 				const queryParams: Dict = options.queryParams ?? {}
 
-				if (method === HttpMethod.GET && options.body instanceof RestTextBody) {
-					queryParams["_body"] = options.body.payload // get requests are not allowed to send a body. Therefore, we convert our body to a parameter
+				if (method === HttpMethod.GET && isNotNull(options.body)) {
+					// get requests are not allowed to send a body. Therefore, we convert our body to a parameter
+					if (options.body instanceof RestTextBody) {
+						queryParams["_body"] = options.body.payload
+					}
+					// == fix for adminClient that does not yet send RestBody
+					else if (typeof (options.body as any) === "string") {
+						queryParams["_body"] = options.body as string
+					}
+					// end: fix for adminClient that does not yet send RestBody
+					else {
+						console.warn(
+							"Found a body that is neither a string nor byteArray. Prolly something crossed ipc and is just Object now or is RestBinaryBody",
+						)
+					}
 				}
 
 				if (options.noCORS) {
@@ -276,7 +289,20 @@ export class RestClient implements RestClientInterface {
 					xhr.send(uint8ArrayToArrayBuffer(options.body.payload))
 				} else if (options.body instanceof RestTextBody) {
 					xhr.send(options.body.payload)
-				} else {
+				}
+				// == fix for adminClient that does not yet send RestBody
+				else if (isNotNull(options.body)) {
+					if (typeof (options.body as any) === "string") {
+						xhr.send(options.body as string)
+					} else if (typeof (options.body as any).byteLength === "number") {
+						xhr.send(uint8ArrayToArrayBuffer(options.body as Uint8Array))
+					} else {
+						// this case need to be handled even after admin client fix
+						console.warn("Found a body that is neither a string nor byteArray. Prolly something crossed ipc and is just Object now")
+					}
+				}
+				// == end: fix for adminClient that does not yet send RestBody
+				else {
 					xhr.send()
 				}
 			})
