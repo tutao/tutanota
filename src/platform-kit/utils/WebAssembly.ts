@@ -39,14 +39,14 @@ export async function loadWasmFromFileOrNetwork<T extends WASMExports>(wasmPath:
 
 	let instantiatedSource: WebAssembly.WebAssemblyInstantiatedSource
 	if (wasmUrl.protocol === "file:") {
-		// use module.require to opt out of bundler resolution (we ensure that the file is there manually)
-		const bytes = await module.require("node:fs/promises").readFile(wasmUrl)
-		instantiatedSource = await WebAssembly.instantiate(bytes)
+		// node supports importing wasm modules directly without flag since v24.5.0, v22.19.0
+		// see https://nodejs.org/api/esm.html#wasm-modules
+		return await import(wasmUrl.toString())
 	} else {
 		const response = await fetch(wasmUrl)
-		instantiatedSource = await WebAssembly.instantiateStreaming(response)
+		const instantiatedSource = await WebAssembly.instantiateStreaming(response)
+		return instantiatedSource.instance.exports as unknown as T
 	}
-	return instantiatedSource.instance.exports as unknown as T
 }
 
 /**
