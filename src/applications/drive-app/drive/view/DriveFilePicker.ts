@@ -32,7 +32,7 @@ export class AppFilePicker implements DriveFilePicker {
 	}
 
 	pickFiles(rect: PosRect): Promise<FileReference[]> {
-		return this.fileApp.openFileChooser(rect, undefined, true)
+		return this.fileApp.openFileChooser(rect, undefined)
 	}
 
 	async pickFolders(_rect: PosRect): Promise<DiskFolder<FileReference>[]> {
