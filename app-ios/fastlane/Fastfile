@@ -171,7 +171,37 @@ platform :ios do
 			precheck_include_in_app_purchases: false,
 			# must use force as long as we don't automatically create html previews
 			force: true,
-			api_key_path: ENV["API_KEY_JSON_FILE_PATH"]
+			api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
+			languages: [
+                        'ar-SA',
+                        'da',
+                        'de-DE',
+                        'el',
+                        'en-AU',
+                        'en-CA',
+                        'en-GB',
+                        'en-US',
+                        'es-ES',
+                        'es-MX',
+                        'fi',
+                        'fr-CA',
+                        'fr-FR',
+                        'id',
+                        'it',
+                        'ja',
+                        'ko',
+                        'nl-NL',
+                        'no',
+                        'pl',
+                        'pt-BR',
+                        'pt-PT',
+                        'ro',
+                        'ru',
+                        'sv',
+                        'tr',
+                        'zh-Hans',
+                        'zh-Hant'
+                        ]
 		)
 	end
 
@@ -448,7 +478,11 @@ platform :ios do
 			# must use force as long as we don't automatically create html previews
 			force: true,
 			api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
-			app_identifier: "de.tutao.calendar"
+			app_identifier: "de.tutao.calendar",
+            languages: [
+                        'de-DE',
+                        'en-US'
+                        ]
 		)
 	end
 
@@ -675,7 +709,11 @@ platform :ios do
 			# must use force as long as we don't automatically create html previews
 			force: true,
 			api_key_path: ENV["API_KEY_JSON_FILE_PATH"],
-			app_identifier: "de.tutao.drive"
+			app_identifier: "de.tutao.drive",
+            languages: [
+                        'de-DE',
+                        'en-US'
+                        ]
 		)
 	end
 
