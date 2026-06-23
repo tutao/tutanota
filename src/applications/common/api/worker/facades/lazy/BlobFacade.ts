@@ -112,8 +112,11 @@ export async function* pipelineEncryptAndUpload<Unencrypted, Encrypted>(
 		return
 	}
 
-	let chunkToBeUploaded: Encrypted | null = null
 	let chunkToBeEncrypted: Unencrypted | null = firstChunk
+	let chunkToBeUploaded: Encrypted | null = null
+	// Keep track of the current encryption operation so that we can clean up even if it finishes after the upload
+	// has aborted
+	let currentEncryptionPromise: Promise<Encrypted | null> | null = null
 	try {
 		chunkToBeUploaded = await encrypt(chunkToBeEncrypted)
 		await disposeUnencryptedChunk(chunkToBeEncrypted)
@@ -125,11 +128,9 @@ export async function* pipelineEncryptAndUpload<Unencrypted, Encrypted>(
 			}
 
 			chunkToBeEncrypted = await fetchNextChunk()
+			currentEncryptionPromise = encryptNextChunk(chunkToBeEncrypted)
 
-			const uploadAndEncrypt: Promise<[BlobReferenceTokenWrapper, Encrypted | null]> = Promise.all([
-				upload(chunkToBeUploaded),
-				encryptNextChunk(chunkToBeEncrypted),
-			])
+			const uploadAndEncrypt: Promise<[BlobReferenceTokenWrapper, Encrypted | null]> = Promise.all([upload(chunkToBeUploaded), currentEncryptionPromise])
 			const [response, freshEncryptedChunk] = await uploadAndEncrypt
 			const uploadedChunk = chunkToBeUploaded
 			yield [uploadedChunk, response]
@@ -141,11 +142,16 @@ export async function* pipelineEncryptAndUpload<Unencrypted, Encrypted>(
 			await disposeEncryptedChunk(chunkToBeUploaded)
 
 			chunkToBeUploaded = freshEncryptedChunk
+			// Make sure that chunkToBeUploaded and currentEncryptionPromise do not point to the same chunk, or we will
+			// try to double dispose it
+			currentEncryptionPromise = null
 		}
 	} finally {
 		// cleanup in case of error/cancellation
-		if (chunkToBeEncrypted) await disposeUnencryptedChunk(chunkToBeEncrypted)
-		if (chunkToBeUploaded) await disposeEncryptedChunk(chunkToBeUploaded)
+		if (chunkToBeEncrypted != null) await disposeUnencryptedChunk(chunkToBeEncrypted)
+		if (chunkToBeUploaded != null) await disposeEncryptedChunk(chunkToBeUploaded)
+		const justEncryptedChunk = await currentEncryptionPromise?.catch(() => null)
+		if (justEncryptedChunk != null) await disposeEncryptedChunk(justEncryptedChunk)
 	}
 }
 
