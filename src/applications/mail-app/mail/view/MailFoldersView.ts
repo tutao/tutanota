@@ -7,7 +7,7 @@ import { FolderSubtree, FolderSystem } from "../../../common/api/common/mail/Fol
 import { isSelectedPrefix, NavButtonAttrs, NavButtonColor } from "../../../../ui/base/NavButton.js"
 import { MAIL_PREFIX } from "../../../../ui/utils/RouteChange.js"
 import { MailFolderRow } from "./MailFolderRow.js"
-import { isNotEmpty, last, noOp, Thunk } from "../../../../platform-kit/utils"
+import { last, Thunk } from "../../../../platform-kit/utils"
 import { attachDropdown, DropdownButtonAttrs } from "../../../../ui/base/Dropdown.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { ButtonColor } from "../../../../ui/base/Button.js"
@@ -42,12 +42,6 @@ export interface MailFolderViewAttrs {
 
 type Counters = Record<string, number>
 
-const enum FolderSystemKind {
-	System,
-	Custom,
-	Orphan,
-}
-
 /** Displays a tree of all mailSets. */
 export class MailFoldersView implements Component<MailFolderViewAttrs> {
 	// Contains the id of the visible row
@@ -60,7 +54,6 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		// Important: this array is keyed so each item must have a key and `null` cannot be in the array
 		// So instead we push or not push into array
 		const customSystems = folders?.customSubtrees ?? []
-		const orphanSystems = folders?.orphanSubtrees ?? []
 		const systemSystems = folders?.systemSubtrees ?? []
 		const children: Children = []
 		const selectedFolder = folders
@@ -69,14 +62,12 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			.find((f) => isSelectedPrefix(MAIL_PREFIX + "/" + getElementId(f)))
 		const path = folders && selectedFolder ? folders.getPathToFolder(selectedFolder._id) : []
 		const isInternalUser = locator.logins.isInternalUserLoggedIn()
-		const systemChildren = folders && this.renderFolderTree(systemSystems, FolderSystemKind.System, groupCounters, folders, attrs, path, isInternalUser)
+		const systemChildren = folders && this.renderFolderTree(systemSystems, groupCounters, folders, attrs, path, isInternalUser)
 		if (systemChildren) {
 			children.push(...systemChildren.children)
 		}
 		if (isInternalUser) {
-			const customChildren = folders
-				? this.renderFolderTree(customSystems, FolderSystemKind.Custom, groupCounters, folders, attrs, path, isInternalUser).children
-				: []
+			const customChildren = folders ? this.renderFolderTree(customSystems, groupCounters, folders, attrs, path, isInternalUser).children : []
 			children.push(
 				m(
 					SidebarSection,
@@ -89,31 +80,12 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				),
 			)
 			children.push(this.renderAddFolderButtonRow(attrs))
-
-			const orphanChildren = folders
-				? this.renderFolderTree(orphanSystems, FolderSystemKind.Orphan, groupCounters, folders, attrs, path, isInternalUser).children
-				: []
-			if (isNotEmpty(orphanChildren)) {
-				children.push(
-					m(
-						SidebarSection,
-						{
-							name: "failedToDeleteFolders_label",
-							button: !attrs.inEditMode ? this.renderEditFoldersButton(attrs) : null,
-							key: "orphanFolders", // we need to set a key because folder rows also have a key.
-						},
-						orphanChildren,
-					),
-				)
-			}
 		}
-
 		return children
 	}
 
 	private renderFolderTree(
 		subSystems: readonly FolderSubtree[],
-		subSystemsKind: FolderSystemKind,
 		groupCounters: Counters,
 		folders: FolderSystem,
 		attrs: MailFolderViewAttrs,
@@ -146,7 +118,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				isSelectedPrefix: attrs.inEditMode ? false : MAIL_PREFIX + "/" + getElementId(system.folder),
 				colors: NavButtonColor.Nav,
 				click: () => attrs.onFolderClick(system.folder),
-				dropHandler: subSystemsKind === FolderSystemKind.Orphan ? noOp : (dropData) => attrs.onFolderDrop(dropData, system.folder),
+				dropHandler: (dropData) => attrs.onFolderDrop(dropData, system.folder),
 				disableHoverBackground: true,
 				disabled: attrs.inEditMode,
 				dragStartHandler: isNestableMailSet(system.folder)
@@ -168,12 +140,12 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			const summedCount = !currentExpansionState && hasChildren ? this.getTotalFolderCounter(groupCounters, system) : groupCounters[counterId]
 			const childResult =
 				hasChildren && currentExpansionState
-					? this.renderFolderTree(system.children, subSystemsKind, groupCounters, folders, attrs, path, isInternalUser, indentationLevel + 1)
+					? this.renderFolderTree(system.children, groupCounters, folders, attrs, path, isInternalUser, indentationLevel + 1)
 					: { children: null, numRows: 0 }
 			const isRightButtonVisible = this.visibleRow === id
 			const rightButton =
 				isInternalUser && (isEditableMailSet(system.folder) || canHaveDescendents(system.folder)) && (isRightButtonVisible || attrs.inEditMode)
-					? this.createFolderMoreButton(system.folder, subSystemsKind, folders, attrs, () => {
+					? this.createFolderMoreButton(system.folder, folders, attrs, () => {
 							this.visibleRow = null
 						})
 					: null
@@ -252,13 +224,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		return (counters[counterId] ?? 0) + system.children.reduce((acc, child) => acc + this.getTotalFolderCounter(counters, child), 0)
 	}
 
-	private createFolderMoreButton(
-		folder: MailSet,
-		folderSystemKind: FolderSystemKind,
-		folders: FolderSystem,
-		attrs: MailFolderViewAttrs,
-		onClose: Thunk,
-	): IconButtonAttrs {
+	private createFolderMoreButton(folder: MailSet, folders: FolderSystem, attrs: MailFolderViewAttrs, onClose: Thunk): IconButtonAttrs {
 		return attachDropdown({
 			mainButtonAttrs: {
 				title: "more_label",
@@ -279,8 +245,8 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			},
 			childAttrs: async () => {
 				return folder.folderType === MailSetKind.CUSTOM
-					? // cannot add new folder to custom folder in spam, trash, or orphan folder tree
-						folderSystemKind === FolderSystemKind.Orphan || isSpamOrTrashFolder(folders, folder)
+					? // cannot add new folder to custom folder in spam or trash folder
+						isSpamOrTrashFolder(folders, folder)
 						? [this.editButtonAttrs(attrs, folders, folder), this.deleteButtonAttrs(attrs, folder)]
 						: [this.editButtonAttrs(attrs, folders, folder), this.addButtonAttrs(attrs, folder), this.deleteButtonAttrs(attrs, folder)]
 					: [this.addButtonAttrs(attrs, folder)]
