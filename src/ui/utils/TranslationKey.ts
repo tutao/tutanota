@@ -2310,3 +2310,6 @@ export type TranslationKeyType =
 	| "showQuickActionsBar_action"
 	| "failedToDeleteFolders_label"
 	| "emptyString_msg"
+	| "clearCache_action"
+	| "clearCache_msg"
+	| "clearCacheConfirm_msg"
