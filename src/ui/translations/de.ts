@@ -2390,6 +2390,10 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+
+		"clearCache_action": "Clear cache",
+		"clearCache_msg": "Clear cache message",
+		"clearCacheConfirm_msg": "Are you sure you want to clear cache?"
 	}
 }
