@@ -2320,3 +2320,6 @@ export type TranslationKeyType =
 	| "revocation_text"
 	| "revocationOnlyPersonalPlans_msg"
 	| "emptyString_msg"
+	| "clearCache_action"
+	| "clearCache_msg"
+	| "clearCacheConfirm_msg"
