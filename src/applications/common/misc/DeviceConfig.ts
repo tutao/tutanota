@@ -72,6 +72,8 @@ interface ConfigObject {
 	/** Map from user id to the size of the list */
 	mailListSize: Record<Id, number>
 	isUndoSendEnabled: boolean
+	/** Queue for the "LAST USED" section on the time zone selector page */
+	lastSelectedTimeZonesFIFOQueue: string[]
 
 	/**
 	 * A list of dates on which a user has sent an e-mail or created a calendar event. Each date is represented as the date's timestamp.
@@ -101,6 +103,8 @@ interface ConfigObject {
 export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeConfigurator {
 	public static readonly Version = 8
 	public static readonly LocalStorageKey = "tutanotaConfig"
+
+	private static LAST_SELECTED_TIME_ZONE_FIFO_QUEUE_MAX_LENGTH = 2
 
 	private config!: ConfigObject
 	private lastSyncStream: Stream<Map<Id, LastExternalCalendarSyncEntry>> = stream(new Map())
@@ -161,6 +165,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 			scrollTime: loadedConfig.scrollTime ?? 8,
 			installationDate: loadedConfig.installationDate ?? getStartOfDay(new Date()).getTime().toString(),
 			isUndoSendEnabled: loadedConfig.isUndoSendEnabled ?? true,
+			lastSelectedTimeZonesFIFOQueue: loadedConfig.lastSelectedTimeZonesFIFOQueue ?? [],
 		}
 
 		this.lastSyncStream(new Map(Object.entries(this.config.lastExternalCalendarSync)))
@@ -558,6 +563,32 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 
 	public getInstallationDate(): Date {
 		return new Date(parseInt(this.config.installationDate))
+	}
+
+	public enqueueLastSelectedTimeZone(timeZone: string) {
+		const queue = this.config.lastSelectedTimeZonesFIFOQueue
+
+		// If timeZone is already in the queue, remove it
+		const MAX_ITERATIONS = 100
+		let i: number
+		for (i = 0; i < MAX_ITERATIONS; ++i) {
+			const indexToRemove = queue.indexOf(timeZone)
+			if (indexToRemove === -1) break
+			queue.splice(indexToRemove, 1)
+		}
+		if (i >= MAX_ITERATIONS) throw new Error("MAX_ITERATIONS exceeded")
+
+		// Enqueue timeZone
+		queue.unshift(timeZone)
+
+		// Truncate queue to maximum length, discarding the oldest "first-in" entries
+		if (queue.length > DeviceConfig.LAST_SELECTED_TIME_ZONE_FIFO_QUEUE_MAX_LENGTH) {
+			queue.length = DeviceConfig.LAST_SELECTED_TIME_ZONE_FIFO_QUEUE_MAX_LENGTH
+		}
+	}
+
+	public getLastSelectedTimeZonesFIFOQueue(): string[] {
+		return this.config.lastSelectedTimeZonesFIFOQueue
 	}
 }
 

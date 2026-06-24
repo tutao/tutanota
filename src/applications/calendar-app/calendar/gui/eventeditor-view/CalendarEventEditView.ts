@@ -263,6 +263,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	private renderTimeZoneSelectorPage({ attrs }: Vnode<CalendarEventEditViewAttrs>) {
 		return m(TimeZoneSelector, {
 			width: this.pageWidth,
+			calendarTimeZone: attrs.model.editModels.whenModel.calendarTimeZone,
 			selectedTimeZone: attrs.model.editModels.whenModel.startTimeZone,
 			selectedTime: new Date(),
 			timeFormat: attrs.timeFormat,
