@@ -12,7 +12,7 @@ import {
 import { AES_CBC_FACADE, AesCbcFacade, AuthenticationEnforcement, PaddingStandard } from "../encryption/symmetric/AesCbcFacade.js"
 import { SymmetricCipherVersion } from "../encryption/symmetric/SymmetricCipherVersion.js"
 import { Nullable } from "@tutao/utils"
-import { AesKeyLength, assertAesKey } from "../encryption/symmetric/AesKeyLength"
+import { AesKeyLength } from "../encryption/symmetric/AesKeyLength"
 import { AEAD_FACADE, AeadFacade } from "../encryption/symmetric/AeadFacade.js"
 import {
 	AeadSubKeys,
@@ -252,7 +252,6 @@ export class SymmetricCipherFacade {
 		if (key instanceof AesCbcSubKeys) {
 			subKeys = key
 		} else if (key instanceof AesKey) {
-			assertAesKey(key)
 			if (cipherVersion === SymmetricCipherVersion.AesCbcThenHmac) {
 				subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbcHmac(key)
 			} else if (cipherVersion === SymmetricCipherVersion.UnusedReservedUnauthenticated) {
@@ -277,7 +276,6 @@ export class SymmetricCipherFacade {
 		initializationVectorVariant: InitializationVectorVariant = InitializationVectorVariant.Random,
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
 	): Uint8Array {
-		assertAesKey(key)
 		const parsedCiphertext = parseVersionedCiphertext(cipherText, initializationVectorVariant)
 		if (parsedCiphertext instanceof ParsedCiphertextUnusedReservedUnauthenticated) {
 			const subKeys = new UnusedReservedUnauthenticatedSubKeys(key)
