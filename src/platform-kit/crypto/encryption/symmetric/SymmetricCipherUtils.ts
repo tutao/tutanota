@@ -115,8 +115,8 @@ export function base64ToKey(base64: Base64, acceptedBitLength?: AesKeyLength): A
 }
 
 export function uint8ArrayToKey(array: Uint8Array): AesKey
-export function uint8ArrayToKey(array: Uint8Array, acceptedBitLengths: typeof AesKeyLength.Aes128): Aes128Key
-export function uint8ArrayToKey(array: Uint8Array, acceptedBitLengths: typeof AesKeyLength.Aes256): Aes256Key
+export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength: typeof AesKeyLength.Aes128): Aes128Key
+export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength: typeof AesKeyLength.Aes256): Aes256Key
 export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey
 export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey {
 	let key = uint8ArrayToBitArray(array)
