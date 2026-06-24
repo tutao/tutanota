@@ -15,7 +15,7 @@ export function getKeyLengthInBytes(keyLength: AesKeyLength): number {
 	return keyLength / 8
 }
 
-export function wrapKey(key: BitArray, acceptedBitLengths: AesKeyLength[] = ACCEPTED_BIT_LENGTHS): Aes256Key {
+export function makeAesKey(key: BitArray, acceptedBitLengths: AesKeyLength[] = ACCEPTED_BIT_LENGTHS): AesKey {
 	// AesKey is an array of 4 byte numbers. therefore converting the length to bits means 4*8
 	const keyLength: number = key.length * 4 * 8
 	if (!acceptedBitLengths.includes(keyLength)) {
