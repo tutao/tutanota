@@ -268,8 +268,8 @@ o.spec("ImapMailImportController", () => {
 		when(mailModel.getFolderSystemByGroupId("group1")).thenReturn(folderSystem)
 		const result = await controller.constructImapMailboxesToTutaFoldersMap(imapMailboxes)
 
-		o.check(result.get("INBOX")).equals("inboxFolderId")
-		o.check(result.get("Custom")).equals("customFolderId")
+		o.check(result.get("INBOX")?.mailSetElementId).equals("inboxFolderId")
+		o.check(result.get("Custom")?.mailSetElementId).equals("customFolderId")
 	})
 
 	o.test("onNewMailboxSelected - updates selectedMailBoxDetail", () => {

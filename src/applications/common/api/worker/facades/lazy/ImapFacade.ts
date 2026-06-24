@@ -6,7 +6,7 @@
  */
 import { aes256RandomKey, CryptoWrapper } from "@tutao/crypto"
 import { MailFacade } from "./MailFacade.js"
-import { InitializeImapImportParams } from "../../../../../mail-app/workerUtils/imapimport/ImapImporter"
+import { InitializeImapImportParams, MailSetMapping } from "../../../../../mail-app/workerUtils/imapimport/ImapImporter"
 import { assertNotNull } from "@tutao/utils"
 import {
 	createImapDeleteIn,
@@ -43,7 +43,9 @@ export class ImapFacade {
 		private readonly cryptoWrapper: CryptoWrapper,
 	) {}
 
-	async initializeImapImport(initializeParams: InitializeImapImportParams): Promise<ImapAccountSyncState> {
+	async initializeImapImport(
+		initializeParams: InitializeImapImportParams,
+	): Promise<{ imapAccountSyncState: ImapAccountSyncState; initialFolderSyncStates?: ImapFolderSyncState[] }> {
 		const mailGroupId = initializeParams.mailGroupId
 
 		if (initializeParams.rootImportMailFolderName === "" && !initializeParams.matchImapMailboxesToTutaMailSets) {
@@ -69,13 +71,14 @@ export class ImapFacade {
 		})
 
 		const imapPostOut = await this.serviceExecutor.post(ImapService, imapPostIn, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
-		const accountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapPostOut.imapAccountSyncState)
+		const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapPostOut.imapAccountSyncState)
 
+		let initialFolderSyncStates: ImapFolderSyncState[] = []
 		if (initializeParams.imapMailboxesToTutaMailSets) {
-			await this.createInitialImportMailFolders(accountSyncState, initializeParams.imapMailboxesToTutaMailSets)
+			initialFolderSyncStates = await this.createInitialImportMailFolders(imapAccountSyncState, initializeParams.imapMailboxesToTutaMailSets)
 		}
 
-		return accountSyncState
+		return { imapAccountSyncState, initialFolderSyncStates }
 	}
 
 	async postponeImapImport(postponedUntil: Date, imapAccountSyncStateId: IdTuple): Promise<void> {
@@ -101,7 +104,7 @@ export class ImapFacade {
 		const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId)
 		const imapFolderSyncStates = await this.getAllImapFolderSyncStates(imapAccountSyncState.imapFolderSyncStateList)
 		for (const imapFolderSyncState of imapFolderSyncStates) {
-			if (imapFolderSyncState.status !== status) {
+			if (imapFolderSyncState.status !== status && imapFolderSyncState.status !== ImapFolderSyncStatus.NO_SYNC) {
 				imapFolderSyncState.status = status
 				try {
 					await this.entityClient.update(imapFolderSyncState)
@@ -125,11 +128,15 @@ export class ImapFacade {
 		await this.serviceExecutor.delete(ImapService, imapDeleteIn, null)
 	}
 
-	async createInitialImportMailFolders(imapAccountSyncState: ImapAccountSyncState, imapMailboxesToTutaFolders: Map<string, Id>) {
+	async createInitialImportMailFolders(
+		imapAccountSyncState: ImapAccountSyncState,
+		imapMailboxesToTutaFolders: Map<string, MailSetMapping>,
+	): Promise<ImapFolderSyncState[]> {
 		const mailGroupId = assertNotNull(imapAccountSyncState._ownerGroup)
 		const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, mailGroupId)
 		const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
-		for (const [imapMailboxPath, mailSetElementId] of imapMailboxesToTutaFolders.entries()) {
+		const imapFolderSyncStates: ImapFolderSyncState[] = []
+		for (const [imapMailboxPath, { mailSetElementId, shouldSync }] of imapMailboxesToTutaFolders.entries()) {
 			const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
 			const sk = aes256RandomKey()
 			const imapFolderPostIn = createImapFolderPostIn({
@@ -137,24 +144,27 @@ export class ImapFacade {
 				ownerGroup: mailGroupId,
 				path: imapMailboxPath,
 				imapAccountSyncState: imapAccountSyncState._id,
-				mailFolder: [mailbox.mailSets.mailSets, mailSetElementId],
+				mailFolder: shouldSync ? [mailbox.mailSets.mailSets, mailSetElementId] : null,
 			})
-
-			await this.serviceExecutor.post(ImapFolderService, imapFolderPostIn, {
+			const imapFolderPostOut = await this.serviceExecutor.post(ImapFolderService, imapFolderPostIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				sessionKey: sk,
 			})
+			const imapFolderSyncState = await this.entityClient.load(ImapFolderSyncStateTypeRef, imapFolderPostOut.imapFolderSyncState)
+			imapFolderSyncStates.push(imapFolderSyncState)
 		}
+		return imapFolderSyncStates
 	}
 
 	async createImportMailFolder(
 		imapMailbox: ImapMailbox,
 		imapAccountSyncState: ImapAccountSyncState,
 		parentFolderId: IdTuple | null,
+		shouldSync: boolean,
 	): Promise<ImapFolderSyncState | undefined> {
 		if (imapMailbox.name) {
 			const mailGroupId = assertNotNull(imapAccountSyncState._ownerGroup)
-			const mailFolderId = await this.mailFacade.createMailFolder(imapMailbox.name, parentFolderId, mailGroupId)
+			const mailFolderId = shouldSync ? await this.mailFacade.createMailFolder(imapMailbox.name, parentFolderId, mailGroupId) : null
 
 			const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
 			const sk = aes256RandomKey()

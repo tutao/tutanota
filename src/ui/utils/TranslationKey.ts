@@ -2365,3 +2365,7 @@ export type TranslationKeyType =
 	| "imapSyncUpdateCredentials_title"
 	| "imapUpdateSyncCredentialsInfo_msg"
 	| "imapSyncFailure_msg"
+	| "imapCreateFolder_action"
+	| "disableImapSyncForFolder_action"
+	| "enableImapSyncForFolder_action"
+	| "imapNoSyncFolderName_msg"

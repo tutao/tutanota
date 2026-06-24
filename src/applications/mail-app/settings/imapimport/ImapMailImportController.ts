@@ -1,6 +1,6 @@
 import { assertMainOrNode } from "@tutao/app-env"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
-import { ImapImporter, ImportResult, InitializeImapImportParams } from "../../workerUtils/imapimport/ImapImporter"
+import { ImapImporter, ImportResult, InitializeImapImportParams, MailSetMapping } from "../../workerUtils/imapimport/ImapImporter"
 import { MailModel } from "../../mail/model/MailModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { assertNotNull, first, promiseMap } from "@tutao/utils"
@@ -194,21 +194,21 @@ export class ImapMailImportController {
 		return assertNotNull(this.mailModel.getFolderSystemByGroupId(ownerGroup))
 	}
 
-	async constructImapMailboxesToTutaFoldersMap(imapMailboxes: ReadonlyArray<ImapMailbox>): Promise<Map<string, Id>> {
-		const imapMailboxesToTutaFolders = new Map<string, Id>()
+	async constructImapMailboxesToTutaFoldersMap(imapMailboxes: ReadonlyArray<ImapMailbox>): Promise<Map<string, MailSetMapping>> {
+		const imapMailboxesToTutaFolders = new Map<string, MailSetMapping>()
 		const folderSystem = await this.getFolderSystemForSelectedMailbox()
 		for (const imapMailbox of imapMailboxes) {
 			if (imapMailbox.specialUse) {
 				const systemFolderType = getSpecialUseAsSystemFolderType(imapMailbox)
 				if (systemFolderType !== null) {
 					const systemFolder = assertNotNull(folderSystem.getSystemFolderByType(systemFolderType))
-					imapMailboxesToTutaFolders.set(imapMailbox.path, getElementId(systemFolder))
+					imapMailboxesToTutaFolders.set(imapMailbox.path, { mailSetElementId: getElementId(systemFolder), shouldSync: true })
 				}
 			} else {
 				const customFolders = folderSystem.getCustomFoldersOfParent(null)
 				const matchingFolder = customFolders.find((customFolder) => imapMailbox.name && customFolder.name === imapMailbox.name)
 				if (imapMailbox.name && matchingFolder) {
-					imapMailboxesToTutaFolders.set(imapMailbox.name, getElementId(matchingFolder))
+					imapMailboxesToTutaFolders.set(imapMailbox.path, { mailSetElementId: getElementId(matchingFolder), shouldSync: true })
 				}
 			}
 		}

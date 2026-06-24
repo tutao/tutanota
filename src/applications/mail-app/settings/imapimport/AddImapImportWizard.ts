@@ -13,6 +13,7 @@ import ImapImportSummaryPage, { ImapImportSummaryPageAttrs } from "./ImapImportS
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog"
 import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
+import { MailSetMapping } from "../../workerUtils/imapimport/ImapImporter"
 
 assertMainOrNode()
 
@@ -30,7 +31,7 @@ export type ImapImportData = {
 	matchImapMailboxesToTutaMailSets: boolean
 	imapMailboxes: ImapMailbox[]
 	folderSystem: FolderSystem
-	imapMailboxesToTutaMailSets?: Map<string, Id>
+	imapMailboxesToTutaMailSets?: Map<string, MailSetMapping>
 	addLabelToImportedMails: boolean
 	isImapServerSupportingOAuth: boolean
 	imapSyncLabelData: ManageLabelServiceLabelData | null

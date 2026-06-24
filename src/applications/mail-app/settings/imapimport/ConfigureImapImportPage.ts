@@ -2,7 +2,6 @@ import { assertMainOrNode } from "@tutao/app-env"
 import m, { Children, Vnode } from "mithril"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog"
 import { ImapImportData } from "./AddImapImportWizard"
-import { ImapCredentials } from "../../../common/api/common/utils/imapImportUtils/ImapSyncContext"
 import { ImapMailbox } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { Icons } from "../../../../ui/base/icons/Icons"
@@ -25,18 +24,18 @@ import { DropDownSelectorNew, DropDownSelectorNewAttrs } from "../../../../ui/ba
 import { getFolderName } from "../../mail/model/MailUtils"
 import { getFolderIconByType } from "../../mail/view/MailGuiUtils"
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
-import { elementIdPart, getElementId } from "@tutao/meta"
+import { elementIdPart, GENERATED_MIN_ID, getElementId } from "@tutao/meta"
 import { showEditFolderDialog } from "../../mail/view/EditFolderDialog"
 import { Card } from "../../../../ui/base/Card"
+import { MailSetMapping } from "../../workerUtils/imapimport/ImapImporter"
 
 assertMainOrNode()
 
 class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 	private shouldDisplayFolderTextField: boolean = true
 	private shouldDisplayLabelField: boolean = false
-	private imapAccount: ImapCredentials | null = null
 	private imapMailboxes: ImapMailbox[] = []
-	private imapMailboxesToTutaFolders: Map<string, Id> | null = null
+	private imapMailboxesToTutaFolders: Map<string, MailSetMapping> | null = null
 	private folderSystem: FolderSystem = new FolderSystem([])
 	private titleSectionParams = {
 		icon: Icons.GearWheelFilled,
@@ -261,12 +260,12 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 
 	private renderFolderMapping(data: ImapImportData) {
 		const imapMailboxToTutaFolderRows = this.imapMailboxes.map((imapMailbox) => {
-			const tutaMailSetElementId = data.imapMailboxesToTutaMailSets?.get(imapMailbox.path)
+			const mailSetMapping = data.imapMailboxesToTutaMailSets?.get(imapMailbox.path)
 			let tutaMailSet: MailSet | null = null
-			if (tutaMailSetElementId) {
-				tutaMailSet = this.folderSystem.getFolderById(tutaMailSetElementId)
+			if (mailSetMapping?.mailSetElementId) {
+				tutaMailSet = this.folderSystem.getFolderById(mailSetMapping.mailSetElementId)
 			}
-			return { imapMailbox, tutaMailSet }
+			return { imapMailbox, tutaMailSet, shouldSync: mailSetMapping?.shouldSync ?? true }
 		})
 		const obj = this
 		return m(
@@ -290,29 +289,40 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 					}),
 					m(DropDownSelectorNew, {
 						selectedValue: mailboxToRow.tutaMailSet,
-						selectedValueDisplay: mailboxToRow.tutaMailSet
-							? getFolderName(mailboxToRow.tutaMailSet)
-							: lang.getTranslationText("imapChooseFolder_msg"),
+						selectedValueDisplay: mailboxToRow.shouldSync
+							? mailboxToRow.tutaMailSet
+								? getFolderName(mailboxToRow.tutaMailSet)
+								: lang.getTranslationText("imapChooseFolder_msg")
+							: lang.getTranslationText("imapNoSyncFolderName_msg"),
 						items: obj.folderSystem
 							.getIndentedList(null)
 							.map((indentedFolder) => ({ name: getFolderName(indentedFolder.folder), value: indentedFolder.folder })),
-						style: mailboxToRow.tutaMailSet
-							? {}
-							: {
-									background: theme.warning_container,
-									color: theme.on_warning_container,
-								},
+						style:
+							mailboxToRow.tutaMailSet || !mailboxToRow.shouldSync
+								? {}
+								: {
+										background: theme.warning_container,
+										color: theme.on_warning_container,
+									},
 						icon: {
-							icon: !mailboxToRow.tutaMailSet ? Icons.FolderFilled : getFolderIconByType(mailboxToRow.tutaMailSet.folderType as MailSetKind),
+							icon:
+								!mailboxToRow.tutaMailSet || !mailboxToRow.shouldSync
+									? Icons.FolderFilled
+									: getFolderIconByType(mailboxToRow.tutaMailSet.folderType as MailSetKind),
 							color: theme.on_surface_variant,
 						},
 						selectionChangedHandler: (selectedMailSet) => {
-							this.imapMailboxesToTutaFolders?.set(mailboxToRow.imapMailbox.path, getElementId(selectedMailSet))
+							const shouldSync = data.imapMailboxesToTutaMailSets?.get(mailboxToRow.imapMailbox.path)?.shouldSync ?? true
+							data.imapMailboxesToTutaMailSets?.set(mailboxToRow.imapMailbox.path, {
+								mailSetElementId: getElementId(selectedMailSet),
+								shouldSync,
+							})
 						},
+						disabled: !mailboxToRow.shouldSync,
 					} satisfies DropDownSelectorNewAttrs<MailSet>),
 					m(IconButton, {
 						icon: Icons.Plus,
-						title: "selectMultiple_action",
+						title: "imapCreateFolder_action",
 						click: async () => {
 							let newFolderElementId: Id | null = null
 							await showEditFolderDialog(
@@ -324,12 +334,46 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 									newFolderElementId = elementIdPart(folderId)
 									obj.folderSystem = await mailLocator.getImapImportController().getFolderSystemForSelectedMailbox()
 									if (newFolderElementId !== null) {
-										data.imapMailboxesToTutaMailSets?.set(mailboxToRow.imapMailbox.path, newFolderElementId)
+										data.imapMailboxesToTutaMailSets?.set(mailboxToRow.imapMailbox.path, {
+											mailSetElementId: newFolderElementId,
+											shouldSync: true,
+										})
 									}
 								},
 							)
 						},
+						disabled: !mailboxToRow.shouldSync,
 					}),
+					mailboxToRow.shouldSync
+						? m(IconButton, {
+								icon: Icons.X,
+								title: "disableImapSyncForFolder_action",
+								click: async () => {
+									const mappedMailSet = data.imapMailboxesToTutaMailSets?.get(mailboxToRow.imapMailbox.path)
+									if (mappedMailSet) {
+										mappedMailSet.shouldSync = false
+									} else {
+										data.imapMailboxesToTutaMailSets?.set(mailboxToRow.imapMailbox.path, {
+											mailSetElementId: GENERATED_MIN_ID,
+											shouldSync: false,
+										})
+									}
+								},
+							})
+						: m(IconButton, {
+								icon: Icons.Checkmark,
+								title: "enableImapSyncForFolder_action",
+								click: async () => {
+									const mappedMailSet = data.imapMailboxesToTutaMailSets?.get(mailboxToRow.imapMailbox.path)
+									if (mappedMailSet) {
+										if (mappedMailSet.mailSetElementId === GENERATED_MIN_ID) {
+											data.imapMailboxesToTutaMailSets?.delete(mailboxToRow.imapMailbox.path)
+										} else {
+											mappedMailSet.shouldSync = true
+										}
+									}
+								},
+							}),
 				])
 			}),
 		)

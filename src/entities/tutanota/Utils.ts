@@ -325,6 +325,7 @@ export const enum ImapFolderSyncStatus {
 	RUNNING = "0",
 	PAUSED = "1",
 	FINISHED = "2",
+	NO_SYNC = "3"
 }
 
 export enum ImapAccountSyncStatus {

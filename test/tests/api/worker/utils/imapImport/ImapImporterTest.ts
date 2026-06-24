@@ -123,7 +123,7 @@ o.spec("ImapImporter", () => {
 			imapSyncLabelData: null,
 			provider: ImapProvider.Other,
 		} as InitializeImapImportParams
-		when(imapFacadeMock.initializeImapImport(initParams)).thenResolve(accountSyncStateMock)
+		when(imapFacadeMock.initializeImapImport(initParams)).thenResolve({ imapAccountSyncState: accountSyncStateMock })
 		const session = await importer.initializeNewImport(initParams)
 
 		o.check(session.imapAccountSyncState).equals(accountSyncStateMock)
@@ -221,7 +221,7 @@ o.spec("ImapImporter", () => {
 		const session = newImapImportSession(accountSyncStateMock, [])
 		importer.activeImapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
-		when(imapFacadeMock.createImportMailFolder(imapMailboxMock, session.imapAccountSyncState, null)).thenResolve(folderSyncStateMock)
+		when(imapFacadeMock.createImportMailFolder(imapMailboxMock, session.imapAccountSyncState, null, true)).thenResolve(folderSyncStateMock)
 
 		await importer.onMailbox(accountSyncStateIdMock, imapMailboxMock, ImapSyncEventType.CREATE)
 

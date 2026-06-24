@@ -2368,5 +2368,9 @@ export default {
 		"imapSyncUpdateCredentials_title": "Imap Sync Error",
 		"imapUpdateSyncCredentialsInfo_msg": "The sync authentication has failed and we need you to update your credentials in order to continue.",
 		"imapSyncFailure_msg": "Irrecoverable error encountered, please start over again.",
+		"imapCreateFolder_action": "Create folder",
+		"disableImapSyncForFolder_action": "Disable IMAP sync for this folder",
+		"enableImapSyncForFolder_action": "Enable IMAP sync for this folder",
+		"imapNoSyncFolderName_msg": "Not Synced",
 	}
 }
