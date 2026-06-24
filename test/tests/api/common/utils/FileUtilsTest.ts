@@ -86,14 +86,14 @@ o.spec("FileUtils", function () {
 
 		o.test("getFileBaseNameAndExtensions -- hello.tar.gz", function () {
 			const [base, ext] = getFileBaseNameAndExtensions("hello.tar.gz")
-			o.check(base).equals("hello")
-			o.check(ext).equals(".tar.gz")
+			o.check(base).equals("hello.tar")
+			o.check(ext).equals(".gz")
 		})
 
 		o.test("getFileBaseNameAndExtensions -- .hello", function () {
 			const [base, ext] = getFileBaseNameAndExtensions(".hello")
-			o.check(base).equals("")
-			o.check(ext).equals(".hello")
+			o.check(base).equals(".hello")
+			o.check(ext).equals(null)
 		})
 
 		o.test("getFileBaseNameAndExtensions -- hello", function () {
@@ -104,14 +104,14 @@ o.spec("FileUtils", function () {
 
 		o.test("getFileBaseNameAndExtensions -- hello.", function () {
 			const [base, ext] = getFileBaseNameAndExtensions("hello.")
-			o.check(base).equals("hello.")
-			o.check(ext).equals(null)
+			o.check(base).equals("hello")
+			o.check(ext).equals(".")
 		})
 
 		o.test("getFileBaseNameAndExtensions -- h. el.lo.", function () {
 			const [base, ext] = getFileBaseNameAndExtensions("h. el.lo.")
-			o.check(base).equals("h")
-			o.check(ext).equals(". el.lo.")
+			o.check(base).equals("h. el.lo")
+			o.check(ext).equals(".")
 		})
 	})
 })
