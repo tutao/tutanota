@@ -2309,7 +2309,6 @@ export type TranslationKeyType =
 	| "uploadFolders_action"
 	| "showQuickActionsBar_action"
 	| "failedToDeleteFolders_label"
-	| "emptyString_msg"
 	| "revocation_action"
 	| "revocationForm_title"
 	| "revocationPeriodEnded_msg"
@@ -2320,3 +2319,4 @@ export type TranslationKeyType =
 	| "revokeSubscriptionWithAppStoreSubscription_msg"
 	| "revocation_text"
 	| "revocationOnlyPersonalPlans_msg"
+	| "emptyString_msg"
