@@ -32,17 +32,9 @@ export function makeAesKey(key: BitArray, acceptedBitLengths: AesKeyLength[] = A
 
 export function assert256BitKey(key: AesKey): Aes256Key {
 	const length = key.bits.length * 4 * 8
-	if (key instanceof Aes256Key && length === AesKeyLength.Aes256) {
+	if (key instanceof Aes256Key) {
 		return key
 	} else {
 		throw new CryptoError(`Illegal key length: ${length} (expected: 256)`)
 	}
-}
-
-export function assertAesKey(key: AesKey): AesKey {
-	const length = key.bits.length * 4 * 8
-	if (length !== AesKeyLength.Aes128 && length !== AesKeyLength.Aes256) {
-		throw new CryptoError(`Illegal key length: ${length} (expected: 256)`)
-	}
-	return key
 }
