@@ -35,10 +35,11 @@ export function getFileBaseName(fileName: string): string {
  *   . -> [".", null]
  */
 export function getFileBaseNameAndExtensions(fileName: string): [string, string | null] {
-	const matches = assertNotNull(fileName.match(/^(.*?)(\..+)?$/))
-	const basename = matches[1] // always a string, at least an empty one
-	const ext = matches[2] ?? null // can be undefined
-	return [basename, ext]
+	const lastDot = fileName.lastIndexOf(".")
+	if (lastDot <= 0) {
+		return [fileName, null]
+	}
+	return [fileName.slice(0, lastDot), fileName.slice(lastDot)]
 }
 
 export function unreserveFileName(fileName: string): string {
