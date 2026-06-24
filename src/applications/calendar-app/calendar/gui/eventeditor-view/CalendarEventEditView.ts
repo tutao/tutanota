@@ -3,7 +3,7 @@ import { AttendeeListEditor } from "./AttendeeListEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { EventTimeEditor, EventTimeEditorAttrs } from "./EventTimeEditor.js"
 import { DEFAULT_CALENDAR_COLOR, RepeatPeriod, TabIndex, TimeFormat, Weekday } from "../../../../../platform-kit/app-env"
-import { lang, TranslationKey } from "../../../../../ui/utils/LanguageViewModel.js"
+import { lang, Translation, TranslationKey } from "../../../../../ui/utils/LanguageViewModel.js"
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
 import { AlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
@@ -270,6 +270,8 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			onSelectTimeZone: (timeZone) => {
 				console.log(`Selected time zone = ${timeZone}`)
 				attrs.model.editModels.whenModel.startTimeZone = timeZone
+				attrs.model.editModels.whenModel.endTimeZone = timeZone
+				attrs.navigationCallback(EditorPages.MAIN)
 			},
 		} satisfies TimeZoneSelectorAttrs)
 	}
@@ -518,9 +520,24 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	}
 
 	private renderTimeZoneEditSection(attrs: CalendarEventEditViewAttrs) {
+		const calendarTimeZone = attrs.model.editModels.whenModel.calendarTimeZone
+		const startTimeZone = attrs.model.editModels.whenModel.startTimeZone ?? calendarTimeZone
+		const endTimeZone = attrs.model.editModels.whenModel.endTimeZone ?? calendarTimeZone
+
+		let selectionButtonTextTranslation: Translation
+		if (startTimeZone === endTimeZone) {
+			if (startTimeZone === calendarTimeZone) {
+				selectionButtonTextTranslation = lang.makeTranslation("selectTimeZone", "Select Time Zone")
+			} else {
+				selectionButtonTextTranslation = lang.makeTranslation("timeZone", startTimeZone?.replaceAll("_", " "))
+			}
+		} else {
+			throw new Error("NOT IMPLEMENTED: case startTimeZone != endTimeZone")
+		}
+
 		return m(SectionButton, {
 			leftIcon: { icon: Icons.GlobeOutline, title: "calendarRepeating_label" },
-			text: lang.makeTranslation("timezoneSelectorPage", "Select Time Zone"),
+			text: selectionButtonTextTranslation,
 			isDisabled: false,
 			classes: "overflow-hidden repeat-rule",
 			onclick: () => {

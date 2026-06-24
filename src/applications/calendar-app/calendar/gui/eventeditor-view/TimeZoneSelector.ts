@@ -9,7 +9,6 @@ import { timeStringFromParts } from "../../../../../ui/utils/Formatter"
 import { TimeFormat } from "@tutao/app-env"
 import { DateTime } from "luxon"
 import { theme } from "../../../../../ui/theme"
-import { IconButton, IconButtonAttrs } from "../../../../../ui/base/IconButton"
 import { BaseButton, BaseButtonAttrs } from "../../../../../ui/base/buttons/BaseButton"
 import { getTimeZoneLongName, getTimeZoneOffset } from "../DateTimeTextFormatterUtils"
 import { deviceConfig } from "../../../../common/misc/DeviceConfig"
@@ -128,20 +127,10 @@ export class TimeZoneSelector implements Component<TimeZoneSelectorAttrs> {
 			} satisfies BaseButtonAttrs,
 			m(Card, { classes: ["flex", "gap-8"], style: { padding: `${size.spacing_8}px ${size.spacing_16}px` } } satisfies CardAttrs, [
 				m(Icon, { icon: Icons.GlobeOutline, size: IconSize.PX24 }),
-				m(".flex.col.flex-grow.min-width-0.button-min-height", [
+				m(".flex.col.flex-grow.min-width-0", [
 					m(".text-ellipsis", `${timeZoneEntry.timeZoneName} ${timeZoneEntry.clockTimeInTimeZone}`),
 					m("small.faded", `${timeZoneEntry.timeZoneLongName} (${timeZoneEntry.timeZoneOffset})`),
 				]),
-				timeZoneEntry.timeZone === attrs.selectedTimeZone
-					? m(IconButton, {
-							icon: Icons.X,
-							title: "remove_action",
-							click: (e) => {
-								e.stopPropagation()
-								attrs.onSelectTimeZone(null)
-							},
-						} satisfies IconButtonAttrs)
-					: null,
 			]),
 		)
 	}
