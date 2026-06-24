@@ -20,6 +20,8 @@ import { GroupInvitationDeleteDataTypeRef } from "./TypeRefs.js"
 import { ImapFolderPostInTypeRef } from "./TypeRefs.js"
 import { ImapFolderPostOutTypeRef } from "./TypeRefs.js"
 import { ImapFolderDeleteInTypeRef } from "./TypeRefs.js"
+import { ImapOauthConfigGetInTypeRef } from "./TypeRefs.js"
+import { ImapOauthConfigGetOutTypeRef } from "./TypeRefs.js"
 import { ImapPostInTypeRef } from "./TypeRefs.js"
 import { ImapPostOutTypeRef } from "./TypeRefs.js"
 import { ImapDeleteInTypeRef } from "./TypeRefs.js"
@@ -167,6 +169,15 @@ export const ImapFolderService = Object.freeze({
 	post: { data: ImapFolderPostInTypeRef, return: ImapFolderPostOutTypeRef },
 	put: null,
 	delete: { data: ImapFolderDeleteInTypeRef, return: null },
+} as const)
+
+export const ImapOauthConfigService = Object.freeze({
+	app: "tutanota",
+	name: "ImapOauthConfigService",
+	get: { data: ImapOauthConfigGetInTypeRef, return: ImapOauthConfigGetOutTypeRef },
+	post: null,
+	put: null,
+	delete: null,
 } as const)
 
 export const ImapService = Object.freeze({

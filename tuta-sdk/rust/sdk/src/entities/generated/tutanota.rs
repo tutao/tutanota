@@ -4540,7 +4540,7 @@ pub struct ImapFolderSyncState {
 	#[serde(rename = "1909")]
 	pub importedMails: GeneratedId,
 	#[serde(rename = "1910")]
-	pub mailFolder: IdTupleGenerated,
+	pub mailFolder: Option<IdTupleGenerated>,
 	#[serde(rename = "1928")]
 	pub imapAccountSyncState: IdTupleGenerated,
 
@@ -4584,6 +4584,8 @@ pub struct ImapAccountSyncState {
 	pub provider: i64,
 	#[serde(rename = "1923")]
 	pub status: i64,
+	#[serde(rename = "1968")]
+	pub importedMailCount: Option<i64>,
 	#[serde(rename = "1924")]
 	pub imapFolderSyncStateList: GeneratedId,
 	#[serde(rename = "1925")]
@@ -4623,7 +4625,7 @@ pub struct ImapFolderPostIn {
 	#[serde(rename = "1935")]
 	pub imapAccountSyncState: IdTupleGenerated,
 	#[serde(rename = "1936")]
-	pub mailFolder: IdTupleGenerated,
+	pub mailFolder: Option<IdTupleGenerated>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -4694,10 +4696,10 @@ pub struct ImapPostIn {
 	pub provider: i64,
 	#[serde(rename = "1952")]
 	pub imapAccount: ImapAccount,
-	#[serde(rename = "1953")]
-	pub labelData: Option<ManageLabelServiceLabelData>,
 	#[serde(rename = "1954")]
 	pub rootImportMailFolder: Option<IdTupleGenerated>,
+	#[serde(rename = "1967")]
+	pub syncLabel: Option<IdTupleGenerated>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -4744,6 +4746,42 @@ impl Entity for ImapDeleteIn {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(1958),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImapOauthConfigGetIn {
+	#[serde(rename = "1970")]
+	pub _format: i64,
+	#[serde(rename = "1971")]
+	pub clientId: String,
+}
+
+impl Entity for ImapOauthConfigGetIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1969),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImapOauthConfigGetOut {
+	#[serde(rename = "1973")]
+	pub _format: i64,
+	#[serde(rename = "1974")]
+	pub clientSecret: String,
+}
+
+impl Entity for ImapOauthConfigGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1972),
 		}
 	}
 }
