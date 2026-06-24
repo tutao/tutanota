@@ -2911,7 +2911,7 @@ export type ImapFolderSyncState = {
 	status: NumberString;
 
 	importedMails: Id;
-	mailFolder: IdTuple;
+	mailFolder: null | IdTuple;
 	imapAccountSyncState: IdTuple;
 }
 export const ImapAccountSyncStateTypeRef: TypeRef<ImapAccountSyncState> = new TypeRef("tutanota", 1911)
@@ -2936,6 +2936,7 @@ export type ImapAccountSyncState = {
 	postponedUntil: NumberString;
 	provider: NumberString;
 	status: NumberString;
+	importedMailCount: null | NumberString;
 
 	imapFolderSyncStateList: Id;
 	imapAccount: ImapAccount;
@@ -2960,7 +2961,7 @@ export type ImapFolderPostIn = {
 	path: string;
 
 	imapAccountSyncState: IdTuple;
-	mailFolder: IdTuple;
+	mailFolder: null | IdTuple;
 }
 export const ImapFolderPostOutTypeRef: TypeRef<ImapFolderPostOut> = new TypeRef("tutanota", 1937)
 
@@ -3010,8 +3011,8 @@ export type ImapPostIn = {
 	provider: NumberString;
 
 	imapAccount: ImapAccount;
-	labelData: null | ManageLabelServiceLabelData;
 	rootImportMailFolder: null | IdTuple;
+	syncLabel: null | IdTuple;
 }
 export const ImapPostOutTypeRef: TypeRef<ImapPostOut> = new TypeRef("tutanota", 1955)
 
@@ -3040,4 +3041,30 @@ export type ImapDeleteIn = {
 	_format: NumberString;
 
 	imapAccountSyncState: IdTuple;
+}
+export const ImapOauthConfigGetInTypeRef: TypeRef<ImapOauthConfigGetIn> = new TypeRef("tutanota", 1969)
+
+export function createImapOauthConfigGetIn(values: StrippedEntity<ImapOauthConfigGetIn>): ImapOauthConfigGetIn {
+    return Object.assign(create(typeModels[ImapOauthConfigGetInTypeRef.typeId], ImapOauthConfigGetInTypeRef), values)
+}
+
+export type ImapOauthConfigGetIn = {
+	_type: TypeRef<ImapOauthConfigGetIn>;
+	_original?: ImapOauthConfigGetIn
+
+	_format: NumberString;
+	clientId: string;
+}
+export const ImapOauthConfigGetOutTypeRef: TypeRef<ImapOauthConfigGetOut> = new TypeRef("tutanota", 1972)
+
+export function createImapOauthConfigGetOut(values: StrippedEntity<ImapOauthConfigGetOut>): ImapOauthConfigGetOut {
+    return Object.assign(create(typeModels[ImapOauthConfigGetOutTypeRef.typeId], ImapOauthConfigGetOutTypeRef), values)
+}
+
+export type ImapOauthConfigGetOut = {
+	_type: TypeRef<ImapOauthConfigGetOut>;
+	_original?: ImapOauthConfigGetOut
+
+	_format: NumberString;
+	clientSecret: string;
 }
