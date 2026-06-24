@@ -1,4 +1,16 @@
-import { AssociationType, Cardinality, Entity, ModelValue, Type, TypeModel, TypeRef, ValueType } from "../../../src/platform-kit/meta"
+import {
+	AssociationType,
+	Cardinality,
+	ClientTypeModel,
+	Entity,
+	ModelValue,
+	ServerTypeModel,
+	Type,
+	TypeModel,
+	TypeRef,
+	ValueTypeEnum,
+} from "../../../src/platform-kit/meta"
+import { ApplicationTypesHash, ClientTypeReferenceResolver, ServerTypeReferenceResolver, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
 
 export const testTypeModel: TypeModel = {
 	app: "tutanota",
@@ -13,7 +25,7 @@ export const testTypeModel: TypeModel = {
 		"1": {
 			id: 1,
 			name: "testValue",
-			type: ValueType.String,
+			type: ValueTypeEnum.String,
 			cardinality: Cardinality.One,
 			final: true,
 			encrypted: true,
@@ -21,7 +33,7 @@ export const testTypeModel: TypeModel = {
 		"2": {
 			id: 2,
 			name: "testValueZeroOrOne",
-			type: ValueType.String,
+			type: ValueTypeEnum.String,
 			cardinality: Cardinality.ZeroOrOne,
 			final: false,
 			encrypted: true,
@@ -29,7 +41,7 @@ export const testTypeModel: TypeModel = {
 		"5": {
 			id: 5,
 			name: "testDate",
-			type: ValueType.Date,
+			type: ValueTypeEnum.Date,
 			cardinality: Cardinality.One,
 			final: false,
 			encrypted: false,
@@ -37,7 +49,7 @@ export const testTypeModel: TypeModel = {
 		"7": {
 			id: 7,
 			name: "testBoolean",
-			type: ValueType.Boolean,
+			type: ValueTypeEnum.Boolean,
 			cardinality: Cardinality.ZeroOrOne,
 			final: false,
 			encrypted: true,
@@ -45,15 +57,15 @@ export const testTypeModel: TypeModel = {
 		"12": {
 			id: 12,
 			name: "testGeneratedId",
-			type: ValueType.GeneratedId,
+			type: ValueTypeEnum.GeneratedId,
 			cardinality: Cardinality.One,
 			final: false,
 			encrypted: false,
 		},
 		"13": {
-			id: 12,
+			id: 13,
 			name: "_id",
-			type: ValueType.GeneratedId,
+			type: ValueTypeEnum.GeneratedId,
 			cardinality: Cardinality.One,
 			final: false,
 			encrypted: false,
@@ -61,7 +73,7 @@ export const testTypeModel: TypeModel = {
 		"14": {
 			id: 14,
 			name: "_ownerEncSessionKey",
-			type: ValueType.Bytes,
+			type: ValueTypeEnum.Bytes,
 			cardinality: Cardinality.ZeroOrOne,
 			final: true,
 			encrypted: false,
@@ -69,7 +81,7 @@ export const testTypeModel: TypeModel = {
 		"15": {
 			id: 15,
 			name: "testFinalBoolean",
-			type: ValueType.Boolean,
+			type: ValueTypeEnum.Boolean,
 			cardinality: Cardinality.One,
 			final: true,
 			encrypted: true,
@@ -77,7 +89,7 @@ export const testTypeModel: TypeModel = {
 		"16": {
 			id: 16,
 			name: "_kdfNonce",
-			type: ValueType.Bytes,
+			type: ValueTypeEnum.Bytes,
 			cardinality: Cardinality.ZeroOrOne,
 			final: true,
 			encrypted: false,
@@ -111,8 +123,8 @@ export const testTypeModel: TypeModel = {
 			final: false,
 			dependency: null,
 		},
-		"14": {
-			id: 14,
+		"17": {
+			id: 17,
 			name: "testZeroOrOneListElementAssociation",
 			type: AssociationType.ListElementAssociationGenerated,
 			cardinality: Cardinality.ZeroOrOne,
@@ -138,7 +150,7 @@ export const testAggregateModel: TypeModel = {
 		"2": {
 			id: 2,
 			name: "testNumber",
-			type: ValueType.Number,
+			type: ValueTypeEnum.Number,
 			cardinality: Cardinality.One,
 			final: false,
 			encrypted: false,
@@ -146,7 +158,7 @@ export const testAggregateModel: TypeModel = {
 		"6": {
 			id: 6,
 			name: "_id",
-			type: ValueType.CustomId,
+			type: ValueTypeEnum.CustomId,
 			cardinality: Cardinality.One,
 			final: true,
 			encrypted: false,
@@ -189,7 +201,7 @@ export const testAggregateOnAggregateModel: TypeModel = {
 		"10": {
 			id: 10,
 			name: "testBytes",
-			type: ValueType.Bytes,
+			type: ValueTypeEnum.Bytes,
 			cardinality: Cardinality.ZeroOrOne,
 			final: false,
 			encrypted: false,
@@ -197,7 +209,7 @@ export const testAggregateOnAggregateModel: TypeModel = {
 		"11": {
 			id: 11,
 			name: "_id",
-			type: ValueType.CustomId,
+			type: ValueTypeEnum.CustomId,
 			cardinality: Cardinality.One,
 			final: true,
 			encrypted: false,
@@ -205,7 +217,7 @@ export const testAggregateOnAggregateModel: TypeModel = {
 		"17": {
 			id: 17,
 			name: "testEncryptedBytes",
-			type: ValueType.Bytes,
+			type: ValueTypeEnum.Bytes,
 			cardinality: Cardinality.ZeroOrOne,
 			final: false,
 			encrypted: true,
@@ -247,18 +259,40 @@ export type TestEntity = Entity & {
 
 export const dummyResolver = (tr: TypeRef<unknown>) => {
 	switch (tr.typeId) {
-		case 42:
+		case testTypeModel.id:
 			return Promise.resolve(testTypeModel)
-		case 43:
+		case testAggregateModel.id:
 			return Promise.resolve(testAggregateModel)
-		case 44:
+		case testAggregateOnAggregateModel.id:
 			return Promise.resolve(testAggregateOnAggregateModel)
 	}
 	return Promise.resolve(testTypeModel)
 }
 
+export class DummyTypeModelResolver extends TypeModelResolver {
+	constructor(
+		private readonly clientResolver: ClientTypeReferenceResolver = dummyResolver as ClientTypeReferenceResolver,
+		private readonly serverResolver: ServerTypeReferenceResolver = dummyResolver as ServerTypeReferenceResolver,
+	) {
+		super(null!, null!)
+	}
+
+	getServerApplicationTypesModelHash(): ApplicationTypesHash | null {
+		return null
+	}
+
+	resolveClientTypeReference(typeRef: TypeRef<any>): Promise<ClientTypeModel> {
+		return this.clientResolver(typeRef)
+	}
+	resolveServerTypeReference(typeRef: TypeRef<any>): Promise<ServerTypeModel> {
+		return this.serverResolver(typeRef)
+	}
+
+	setServerApplicationTypesModelHash(hash: ApplicationTypesHash): void {}
+}
+
 export function createEncryptedValueType(
-	type: Values<typeof ValueType>,
+	type: ValueTypeEnum,
 	cardinality: Values<typeof Cardinality>,
 ): ModelValue & {
 	encrypted: true

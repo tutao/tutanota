@@ -1,22 +1,11 @@
 import { CustomCacheHandler } from "../../../../app-kit/local-store/CustomCacheHandler"
-import {
-	AttributeModel,
-	CUSTOM_MAX_ID,
-	CUSTOM_MIN_ID,
-	elementIdPart,
-	firstBiggerThanSecond,
-	getElementId,
-	getServerIdEncodingForType,
-	LOAD_MULTIPLE_LIMIT,
-	ServerModelParsedInstance,
-	TypeModel,
-} from "../../../../platform-kit/meta"
+import { CUSTOM_MAX_ID, CUSTOM_MIN_ID, elementIdPart, firstBiggerThanSecond, getElementId, getServerIdEncodingForType, LOAD_MULTIPLE_LIMIT } from "@tutao/meta"
 import { Range } from "../../../../app-kit/local-store/OfflineStorage.js"
-import { ProgrammingError } from "../../../../platform-kit/app-env"
+import { ProgrammingError } from "@tutao/app-env"
 import { CacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { EntityRestClient } from "../../../../platform-kit/network/EntityRestClient"
 import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
-import { TypeModelResolver } from "../../../../platform-kit/instance-pipeline"
+import { DecryptedParsedInstance, TypeModelResolver } from "@tutao/instance-pipeline"
 
 /**
  * implements range loading in JS because the custom Ids of calendar events prevent us from doing
@@ -33,16 +22,16 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(CalendarEventTypeRef)
 
 		// if offline db for this list is empty load from server
-		let rawList: Array<ServerModelParsedInstance> = []
+		let rawList = new Array<DecryptedParsedInstance>()
 		if (range == null) {
-			let chunk: Array<ServerModelParsedInstance> = []
+			let chunk = new Array<DecryptedParsedInstance>()
 			let currentMinId = CUSTOM_MIN_ID
 			while (true) {
 				chunk = await this.entityRestClient.loadParsedInstancesRange(CalendarEventTypeRef, listId, currentMinId, LOAD_MULTIPLE_LIMIT, false)
 				rawList.push(...chunk)
 				if (chunk.length < LOAD_MULTIPLE_LIMIT) break
 				const lastEvent = chunk[chunk.length - 1]
-				currentMinId = eventElementId(typeModel, lastEvent)
+				currentMinId = elementIdPart(lastEvent.getAttributeByName("_id").asIdTuple())
 			}
 			await storage.putMultiple(CalendarEventTypeRef, rawList)
 
@@ -82,9 +71,4 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 			return []
 		}
 	}
-}
-
-function eventElementId(typeModel: TypeModel, lastEvent: ServerModelParsedInstance): Id {
-	const lastEventId = AttributeModel.getAttribute<IdTuple>(lastEvent, "_id", typeModel)
-	return elementIdPart(lastEventId)
 }

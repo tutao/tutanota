@@ -65,7 +65,6 @@ o.spec("TutaNotificationHandler", () => {
 			fetch,
 			appVersion,
 			nativeInstancePipeline,
-			typeModelResolver,
 		)
 	})
 
@@ -203,7 +202,7 @@ o.spec("TutaNotificationHandler", () => {
 			})
 
 			const sk = aes256RandomKey()
-			const mailLiteral = await nativeInstancePipeline.mapAndEncrypt(MailTypeRef, mailMetadata, sk)
+			const mailLiteral = await nativeInstancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mailMetadata, sk)
 
 			const requestDefer = mockFetchRequest(
 				fetch,
@@ -293,7 +292,7 @@ o.spec("TutaNotificationHandler", () => {
 						address: "recipient@example.com",
 					}),
 				})
-				return nativeInstancePipeline.mapAndEncrypt(MailTypeRef, mailMetadata, sk)
+				return nativeInstancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mailMetadata, sk)
 			})
 			const requestDefer = mockFetchRequest(
 				fetch,

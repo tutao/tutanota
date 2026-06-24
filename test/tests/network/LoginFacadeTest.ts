@@ -106,7 +106,7 @@ async function createSession(userId: string, accessKey: AesKey, instancePipeline
 		user: userId,
 		accessKey: keyToUint8Array(accessKey),
 	})
-	const untypedSession = await instancePipeline.mapAndEncrypt(SessionTypeRef, session, aes256RandomKey())
+	const untypedSession = await instancePipeline.mapAndEncryptToParsedInstance(SessionTypeRef, session, aes256RandomKey())
 	return untypedSession
 }
 

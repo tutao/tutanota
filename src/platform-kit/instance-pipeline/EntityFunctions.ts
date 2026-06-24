@@ -1,8 +1,20 @@
 import { assertNotNull, lazyAsync } from "@tutao/utils"
-import { type AppName, AppNameEnum, TypeRef } from "../meta/TypeRef.js"
-import type { AttributeId, ClientTypeModel, ModelAssociation, ModelValue, ServerTypeModel } from "../meta/EntityTypes"
-import { AssociationType, Cardinality, Type, ValueType } from "../meta/EntityConstants.js"
-import { isTest, ProgrammingError } from "@tutao/app-env"
+import {
+	type AppName,
+	AppNameEnum,
+	AssociationType,
+	AttributeId,
+	Cardinality,
+	ClientTypeModel,
+	ModelAssociation,
+	ModelValue,
+	ServerTypeModel,
+	Type,
+	TypeRef,
+	ValueType,
+	ValueTypeEnum,
+} from "@tutao/meta"
+import { InvalidModelError, isTest, ProgrammingError } from "@tutao/app-env"
 import { ApplicationTypesGetOut } from "./ApplicationTypesFacade"
 
 export type ApplicationTypesHash = string
@@ -78,7 +90,7 @@ export class ClientModelInfo {
 	public async resolveClientTypeReference(typeRef: TypeRef<any>): Promise<ClientTypeModel> {
 		const typeModel = this.typeModels[typeRef.app][typeRef.typeId]
 		if (typeModel == null) {
-			throw new Error("Cannot find TypeRef: " + JSON.stringify(typeRef))
+			throw new Error("Cannot find TypeRef: " + typeRef.toString())
 		} else {
 			for (const association of Object.values(typeModel.associations)) {
 				if (association.dependency != null) {
@@ -229,7 +241,13 @@ export class ServerModelInfo {
 			const modelValueInfoRecord = modelValueInfo as Record<string, unknown>
 			const attrId = this.asNumber(modelValueInfoRecord.id)
 			const serverEncrypted = this.asBoolean(modelValueInfoRecord.encrypted)
+			const serverValueType = this.ensureVariantOf(ValueType, String(modelValueInfoRecord.type)) as ValueTypeEnum
+			const serverName = this.asString(modelValueInfoRecord.name)
+			const serverFinal = this.asBoolean(modelValueInfoRecord.final)
+			const serverCardinality = this.ensureVariantOf(Cardinality, String(modelValueInfoRecord.cardinality))
+
 			const clientModelValue = clientModelType?.values[attrId]
+
 			if (clientModelValue) {
 				const isEncrypted = this.asBoolean(clientModelValue.encrypted)
 				if (isEncrypted && !serverEncrypted) {
@@ -237,14 +255,31 @@ export class ServerModelInfo {
 						`Trying to parse encrypted value as unencrypted for: ${clientModelType?.app}:${clientModelType.id}:${clientModelValue.id}`,
 					)
 				}
+
+				const clientValueType = clientModelValue.type
+				const isValidValueTypeChange =
+					clientValueType === serverValueType || // value type is same
+					(serverValueType === ValueTypeEnum.Number && clientValueType === ValueTypeEnum.Boolean) || // Boolean -> Number is allowed
+					(serverValueType === ValueTypeEnum.String && clientValueType === ValueTypeEnum.Number) // Number -> String is allowed
+
+				if (!isValidValueTypeChange) {
+					/*
+					 * check that the types on the server model and client model are compatible. if this doesn't pass for a pair of
+					 * type models, it's likely that the old client version needs to be disabled to roll out that change. We need to
+					 * have different functions for different directions of transformations such as BooleanToNumber or NumberToString.
+					 */
+					throw new InvalidModelError(
+						`Cannot map from server to client type: types of field ${attrId} on type ${serverName} are incompatible. This client is not compatible with the current server model.`,
+					)
+				}
 			}
 			const modelValue: ModelValue = {
 				id: attrId,
-				name: this.asString(modelValueInfoRecord.name),
-				final: this.asBoolean(modelValueInfoRecord.final),
-				type: this.ensureVariantOf(ValueType, String(modelValueInfoRecord.type)),
+				name: serverName,
+				final: serverFinal,
+				type: serverValueType,
 				encrypted: serverEncrypted,
-				cardinality: this.ensureVariantOf(Cardinality, String(modelValueInfoRecord.cardinality)),
+				cardinality: serverCardinality,
 			}
 
 			Object.assign(values, { [modelValue.id]: modelValue })
@@ -286,7 +321,7 @@ export class ServerModelInfo {
 		)
 	}
 
-	private ensureVariantOfList<T extends string>(knownVariants: string[], inputStr: string): string {
+	private ensureVariantOfList(knownVariants: string[], inputStr: string): string {
 		return assertNotNull(
 			knownVariants.find((a) => a === inputStr),
 			`Unknown value ${inputStr}. Could be one of: ${knownVariants}`,
@@ -367,5 +402,18 @@ export class TypeModelResolver implements ClientTypeModelResolver, ServerTypeMod
 
 	setServerApplicationTypesModelHash(hash: string): void {
 		this.serverModelInfo.setCurrentHash(hash)
+	}
+}
+
+export class ClientOnlyTypeModelResolver extends TypeModelResolver {
+	constructor(clientModelInfo: ClientModelInfo) {
+		const throwingFetcher: ServerTypeFetcher = () => {
+			throw new ProgrammingError("Not implemented for ClientOnlyTypeModelResolver")
+		}
+		super(clientModelInfo, ServerModelInfo.getPossiblyUninitializedInstance(clientModelInfo, throwingFetcher))
+	}
+
+	resolveServerTypeReference(typeRef: TypeRef<any>): Promise<ServerTypeModel> {
+		return this.resolveClientTypeReference(typeRef)
 	}
 }

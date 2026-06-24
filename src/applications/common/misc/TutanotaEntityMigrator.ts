@@ -1,14 +1,6 @@
 import { EntityMigrator } from "../../../platform-kit/network/EntityRestClient"
 import { AttributeModel, elementIdPart, Entity, isSameTypeRef, TypeRef } from "@tutao/meta"
-import {
-	EntityAdapter,
-	InstancePipeline,
-	LoggedInUserProvider,
-	PatchOperationType,
-	SymmetricGroupKeyLoader,
-	TypeModelResolver,
-	typeModelToRestPath,
-} from "@tutao/instance-pipeline"
+import { EntityAdapter, InstancePipeline, LoggedInUserProvider, PatchOperationType, SymmetricGroupKeyLoader, TypeModelResolver } from "@tutao/instance-pipeline"
 import {
 	createPatch,
 	createPatchList,
@@ -29,6 +21,7 @@ import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { IServiceExecutor } from "../../../platform-kit/network/ServiceRequest"
 import { CryptoNetworkHelper } from "../../../platform-kit/network/CryptoNetworkHelper"
 import { DEFAULT_REST_CLIENT_OPTIONS } from "@tutao/rest-client"
+import { EntityUtils } from "../../../platform-kit/instance-pipeline/EntityUtils"
 
 export class TutanotaEntityMigrator implements EntityMigrator {
 	constructor(
@@ -112,7 +105,7 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 
 		const id = instance._id
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
-		const path = typeModelToRestPath(typeModel) + "/" + (id instanceof Array ? id.join("/") : id)
+		const path = EntityUtils.typeModelToRestPath(typeModel) + "/" + (id instanceof Array ? id.join("/") : id)
 		const headers = this.loggedInUserProvider.createAuthHeaders()
 		headers.v = String(instance.typeModel.version)
 
@@ -138,7 +131,7 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 			],
 		})
 
-		const patchPayload = await this.instancePipeline.mapAndEncrypt(PatchListTypeRef, patchList, null)
+		const patchPayload = await this.instancePipeline.mapAndEncryptToParsedInstance(PatchListTypeRef, patchList, null)
 
 		await this.restClient
 			.request(path, HttpMethod.PATCH, {

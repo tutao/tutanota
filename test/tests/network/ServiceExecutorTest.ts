@@ -3,19 +3,19 @@ import { DEFAULT_REST_CLIENT_OPTIONS, RestClient } from "../../../src/platform-k
 import { HttpMethod, MediaType, RestClientOptions, RestTextBody } from "../../../src/platform-kit/rest-client/types"
 import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { matchers, object, when } from "testdouble"
-import { AttributeModel, DeleteService, GetService, PostService, PutService, ServerModelUntypedInstance } from "../../../src/platform-kit/meta"
+import { DeleteService, GetService, PostService, PutService } from "../../../src/platform-kit/meta"
 import { deepEqual, downcast } from "../../../src/platform-kit/utils"
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
-import { InstancePipeline, LoggedInUserProvider, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
+import { ClientOnlyTypeModelResolver, InstancePipeline, LoggedInUserProvider } from "../../../src/platform-kit/instance-pipeline"
 import { Aes128Key, aes256RandomKey } from "../../../src/platform-kit/crypto"
 import { LoginIncompleteError } from "../../../src/platform-kit/rest-client/error"
 import { CustomerAccountReturnTypeRef, CustomerAccountService } from "@tutao/entities/accounting"
-
 import { AlarmServicePostTypeRef, GiftCardCreateDataTypeRef, SaltDataTypeRef } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
 import { SymmetricEncryptionScheme } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../src/platform-kit/network/ServiceRequest"
+import { IncomingServerJson, OutgoingServerJson } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
 
 const { anything } = matchers
 
@@ -31,7 +31,7 @@ o.spec("ServiceExecutor", function () {
 	let executor: ServiceExecutor
 	let fullyLoggedIn: boolean = true
 	let previousNetworkDebugging
-	let typeModelResolver: TypeModelResolver
+	let typeModelResolver: ClientOnlyTypeModelResolver
 	const authDataProvider: LoggedInUserProvider = downcast({
 		createAuthHeaders(): Dict {
 			return authHeaders
@@ -64,8 +64,8 @@ o.spec("ServiceExecutor", function () {
 		verify(restClient.request(anything(), anything(), anything()), { ignoreExtraArgs: true, times: 0 })
 	}
 
-	function respondWith(response) {
-		when(restClient.request(anything(), anything(), anything()), { ignoreExtraArgs: true }).thenResolve(response)
+	function respondWith(response: string | null) {
+		when(restClient.request(anything(), anything(), anything()), { ignoreExtraArgs: true }).thenResolve(response ?? undefined)
 	}
 
 	o("decryptResponse removes network debugging info", async function () {
@@ -84,17 +84,18 @@ o.spec("ServiceExecutor", function () {
 		const expectedInstance = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 		const dataWithDebug = await realInstancePipeline.mapAndEncrypt(SaltDataTypeRef, expectedInstance, null)
 
-		const dataAsUntypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(dataWithDebug)
+		const dataAsUntypedInstance = IncomingServerJson.expectSingleInstance(
+			dataWithDebug,
+			await typeModelResolver.resolveServerTypeReference(SaltDataTypeRef),
+		)
 		when(
 			instancePipeline.decryptAndMap(
-				SaltDataTypeRef,
-				// all field names should have been removed before doing description
 				matchers.argThat((i) => deepEqual(i, dataAsUntypedInstance)),
 				null,
 			),
 		).thenResolve(expectedInstance)
 
-		respondWith(JSON.stringify(dataWithDebug))
+		respondWith(dataWithDebug.getJsonRepresentation())
 
 		const getResponse = await executor.get(getService, null, null)
 		const postResponse = await executor.post(getService, null, null)
@@ -118,10 +119,10 @@ o.spec("ServiceExecutor", function () {
 				},
 			}
 			const data = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
-			const literal = { literal: "1" }
+			const literal = OutgoingServerJson.newFromRecord({ literal: "1" })
 			when(instancePipeline.mapAndEncrypt(SaltDataTypeRef, data, null)).thenResolve(literal)
 
-			respondWith(undefined)
+			respondWith(null)
 
 			const response = await executor.get(getService, data, null)
 
@@ -144,10 +145,10 @@ o.spec("ServiceExecutor", function () {
 				},
 			}
 			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
-			const literal = { literal: "1" } as unknown as ServerModelUntypedInstance
-			when(instancePipeline.decryptAndMap(SaltDataTypeRef, literal, null)).thenResolve(returnData)
+			const literal = IncomingServerJson.expectSingleInstance({ literal: "1" }, await typeModelResolver.resolveServerTypeReference(SaltDataTypeRef))
+			when(instancePipeline.decryptAndMap(literal, null)).thenResolve(returnData)
 
-			respondWith(`{"literal":"1"}`)
+			respondWith(JSON.stringify(literal.getInnerJsonForTest()))
 
 			const response = await executor.get(getService, null, null)
 
@@ -169,10 +170,10 @@ o.spec("ServiceExecutor", function () {
 				},
 			}
 			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
-			const literal = { literal: "1" } as unknown as ServerModelUntypedInstance
-			when(instancePipeline.decryptAndMap(SaltDataTypeRef, literal, null)).thenResolve(returnData)
+			const literal = IncomingServerJson.expectSingleInstance(`{"literal":"1"}`, await typeModelResolver.resolveServerTypeReference(SaltDataTypeRef))
+			when(instancePipeline.decryptAndMap(literal, null)).thenResolve(returnData)
 
-			respondWith(`{"literal":"1"}`)
+			respondWith(JSON.stringify(literal.getInnerJsonForTest()))
 
 			const response = await executor.get(getService, null, null)
 
@@ -209,10 +210,10 @@ o.spec("ServiceExecutor", function () {
 			const sessionKey = new Aes128Key([1, 2, 3, 4])
 			fullyLoggedIn = false
 			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
-			const literal = { literal: "1" } as unknown as ServerModelUntypedInstance
-			when(instancePipeline.decryptAndMap(SaltDataTypeRef, literal, sessionKey)).thenResolve(returnData)
+			const literal = IncomingServerJson.expectSingleInstance(`{"literal":"1"}`, await typeModelResolver.resolveServerTypeReference(SaltDataTypeRef))
+			when(instancePipeline.decryptAndMap(literal, sessionKey)).thenResolve(returnData)
 
-			respondWith(`{"literal":"1"}`)
+			respondWith(JSON.stringify(literal.getInnerJsonForTest()))
 
 			const response = await executor.get(getService, null, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
 
@@ -236,8 +237,8 @@ o.spec("ServiceExecutor", function () {
 			}
 			fullyLoggedIn = false
 			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
-			const literal = { literal: "1" } as unknown as ServerModelUntypedInstance
-			when(instancePipeline.decryptAndMap(SaltDataTypeRef, literal, null)).thenResolve(returnData)
+			const literal = IncomingServerJson.expectSingleInstance(`{ literal: "1" }`, await typeModelResolver.resolveServerTypeReference(SaltDataTypeRef))
+			when(instancePipeline.decryptAndMap(literal, null)).thenResolve(returnData)
 
 			respondWith(`{"literal":"1"}`)
 
@@ -264,10 +265,10 @@ o.spec("ServiceExecutor", function () {
 				},
 			}
 			const data = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
-			const literal = { literal: "1" }
+			const literal = OutgoingServerJson.newFromRecord({ literal: "1" }, await typeModelResolver.resolveServerTypeReference(SaltDataTypeRef))
 			when(instancePipeline.mapAndEncrypt(SaltDataTypeRef, data, null)).thenResolve(literal)
 
-			respondWith(undefined)
+			respondWith(null)
 
 			const response = await executor.post(postService, data, null)
 
@@ -290,8 +291,8 @@ o.spec("ServiceExecutor", function () {
 				},
 			}
 			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
-			const literal = { literal: "1" } as unknown as ServerModelUntypedInstance
-			when(instancePipeline.decryptAndMap(SaltDataTypeRef, literal, null)).thenResolve(returnData)
+			const literal = IncomingServerJson.expectSingleInstance(`{ literal: "1" }`, await typeModelResolver.resolveServerTypeReference(SaltDataTypeRef))
+			when(instancePipeline.decryptAndMap(literal, null)).thenResolve(returnData)
 
 			respondWith(`{"literal":"1"}`)
 
@@ -330,8 +331,8 @@ o.spec("ServiceExecutor", function () {
 			const sessionKey = new Aes128Key([1, 2, 3, 4])
 			fullyLoggedIn = false
 			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
-			const literal = { literal: "1" } as unknown as ServerModelUntypedInstance
-			when(instancePipeline.decryptAndMap(SaltDataTypeRef, literal, sessionKey)).thenResolve(returnData)
+			const literal = IncomingServerJson.expectSingleInstance(`{ literal: "1" }`, await typeModelResolver.resolveServerTypeReference(SaltDataTypeRef))
+			when(instancePipeline.decryptAndMap(literal, sessionKey)).thenResolve(returnData)
 
 			respondWith(`{"literal":"1"}`)
 
@@ -358,10 +359,10 @@ o.spec("ServiceExecutor", function () {
 				},
 			}
 			const data = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
-			const literal = { literal: "1" }
+			const literal = OutgoingServerJson.newFromRecord({ literal: "1" })
 			when(instancePipeline.mapAndEncrypt(SaltDataTypeRef, data, null)).thenResolve(literal)
 
-			respondWith(undefined)
+			respondWith(null)
 
 			const response = await executor.put(putService, data, null)
 
@@ -384,8 +385,8 @@ o.spec("ServiceExecutor", function () {
 				},
 			}
 			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
-			const literal = { literal: "1" } as unknown as ServerModelUntypedInstance
-			when(instancePipeline.decryptAndMap(SaltDataTypeRef, literal, null)).thenResolve(returnData)
+			const literal = IncomingServerJson.expectSingleInstance(`{ literal: "1" }`, await typeModelResolver.resolveServerTypeReference(SaltDataTypeRef))
+			when(instancePipeline.decryptAndMap(literal, null)).thenResolve(returnData)
 
 			respondWith(`{"literal":"1"}`)
 
@@ -424,10 +425,10 @@ o.spec("ServiceExecutor", function () {
 				},
 			}
 			const data = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
-			const literal = { literal: "1" }
+			const literal = OutgoingServerJson.newFromRecord({ literal: "1" })
 			when(instancePipeline.mapAndEncrypt(SaltDataTypeRef, data, null)).thenResolve(literal)
 
-			respondWith(undefined)
+			respondWith(null)
 
 			const response = await executor.delete(deleteService, data, null)
 
@@ -450,8 +451,8 @@ o.spec("ServiceExecutor", function () {
 				},
 			}
 			const returnData = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
-			const literal = { literal: "1" } as unknown as ServerModelUntypedInstance
-			when(instancePipeline.decryptAndMap(SaltDataTypeRef, literal, null)).thenResolve(returnData)
+			const literal = IncomingServerJson.expectSingleInstance(`{ literal: "1" }`, await typeModelResolver.resolveServerTypeReference(SaltDataTypeRef))
+			when(instancePipeline.decryptAndMap(literal, null)).thenResolve(returnData)
 
 			respondWith(`{"literal":"1"}`)
 
@@ -493,7 +494,7 @@ o.spec("ServiceExecutor", function () {
 			const data = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const query = Object.freeze({ myQueryParam: "2" })
 			when(instancePipeline.mapAndEncrypt(anything(), anything(), anything())).thenResolve({})
-			respondWith(undefined)
+			respondWith(null)
 
 			const response = await executor.get(getService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, queryParams: query })
 
@@ -518,8 +519,8 @@ o.spec("ServiceExecutor", function () {
 			const data = createTestEntity(SaltDataTypeRef, { mailAddress: "test" })
 			const headers = Object.freeze({ myHeader: "2" })
 			const saltTypeModel = await typeModelResolver.resolveClientTypeReference(SaltDataTypeRef)
-			when(instancePipeline.mapAndEncrypt(anything(), anything(), anything())).thenResolve({})
-			respondWith(undefined)
+			when(instancePipeline.mapAndEncryptToParsedInstance(anything(), anything(), anything())).thenResolve({})
+			respondWith(null)
 
 			const response = await executor.get(getService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, extraHeaders: headers })
 
@@ -551,8 +552,8 @@ o.spec("ServiceExecutor", function () {
 			const accessToken = "myAccessToken"
 			authHeaders = { accessToken }
 			const saltTypeModel = await typeModelResolver.resolveClientTypeReference(SaltDataTypeRef)
-			when(instancePipeline.mapAndEncrypt(anything(), anything(), anything())).thenResolve({})
-			respondWith(undefined)
+			when(instancePipeline.mapAndEncryptToParsedInstance(anything(), anything(), anything())).thenResolve({})
+			respondWith(null)
 
 			const response = await executor.get(getService, data, null)
 
@@ -586,7 +587,7 @@ o.spec("ServiceExecutor", function () {
 			})
 
 			const sk = aes256RandomKey()
-			const untypedInstance = await instancePipeline.mapAndEncrypt(CustomerAccountReturnTypeRef, customerAccountReturn, sk)
+			const untypedInstance = await instancePipeline.mapAndEncryptToParsedInstance(CustomerAccountReturnTypeRef, customerAccountReturn, sk)
 			when(cryptoFacade.resolveServiceSessionKey(anything())).thenResolve(sk)
 
 			respondWith(JSON.stringify(untypedInstance))
@@ -612,7 +613,7 @@ o.spec("ServiceExecutor", function () {
 			})
 
 			const sessionKey = aes256RandomKey()
-			const untypedInstance = await instancePipeline.mapAndEncrypt(CustomerAccountReturnTypeRef, customerAccountReturn, sessionKey)
+			const untypedInstance = await instancePipeline.mapAndEncryptToParsedInstance(CustomerAccountReturnTypeRef, customerAccountReturn, sessionKey)
 			when(cryptoFacade.resolveServiceSessionKey(anything())).thenResolve(null)
 
 			respondWith(JSON.stringify(untypedInstance))
@@ -643,10 +644,10 @@ o.spec("ServiceExecutor", function () {
 			}
 			const giftCardCreateData = createTestEntity(GiftCardCreateDataTypeRef, { message: "test" })
 			const sessionKey = new Aes128Key([1, 2, 3, 4])
-			const encrypted = { encrypted: "1" }
+			const encrypted = OutgoingServerJson.newFromRecord({ encrypted: "1" })
 			when(instancePipeline.mapAndEncrypt(GiftCardCreateDataTypeRef, giftCardCreateData, sessionKey)).thenResolve(encrypted)
 
-			respondWith(undefined)
+			respondWith(null)
 
 			const response = await executor.get(getService, giftCardCreateData, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
 

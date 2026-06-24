@@ -1,6 +1,6 @@
 import o, { assertThrows } from "@tutao/otest"
 import { stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
-import { Cardinality, Type, TypeModel, ValueType } from "../../../src/platform-kit/meta"
+import { Cardinality, Type, TypeModel, ValueType, ValueTypeEnum } from "../../../src/platform-kit/meta"
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { ApplicationTypesFacade } from "../../../src/platform-kit/instance-pipeline/ApplicationTypesFacade"
 import { object } from "testdouble"
@@ -34,7 +34,7 @@ o.spec("EntityFunctionsTest", function () {
 					"1": {
 						id: 1,
 						name: "testValue",
-						type: ValueType.String,
+						type: ValueTypeEnum.String,
 						cardinality: Cardinality.One,
 						final: true,
 						encrypted: true,

@@ -5,15 +5,7 @@ import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import { EventBusClient } from "../../../../app-kit/local-store/event/EventBusClient.js"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate.js"
-import {
-	assertWorkerOrNode,
-	Const,
-	getWebsocketBaseUrl,
-	isAdminClient,
-	isBrowser,
-	isOfflineStorageAvailable,
-	ProgrammingError,
-} from "../../../../platform-kit/app-env"
+import { assertWorkerOrNode, Const, getWebsocketBaseUrl, isAdminClient, isBrowser, isOfflineStorageAvailable, ProgrammingError } from "@tutao/app-env"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface.js"
 import { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp.js"
@@ -25,7 +17,7 @@ import { LateInitializedCacheStorageImpl } from "../../../../app-kit/local-store
 import type { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
 import type { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade.js"
 import { OfflineStorage } from "../../../../app-kit/local-store/OfflineStorage.js"
-import { LocalIdentityKeyTrustDatabase, KeyVerificationTableDefinitions } from "../../../../app-kit/local-store/LocalIdentityKeyTrustDatabase.js"
+import { KeyVerificationTableDefinitions, LocalIdentityKeyTrustDatabase } from "../../../../app-kit/local-store/LocalIdentityKeyTrustDatabase.js"
 import {
 	ExportFacadeSendDispatcher,
 	FileFacadeSendDispatcher,
@@ -60,7 +52,6 @@ import { PdfWriter } from "../../../common/api/worker/pdf/PdfWriter.js"
 import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { NamedClientModel } from "../../../../platform-kit/instance-pipeline"
-import { random } from "../../../../platform-kit/crypto"
 import { createOfflineStorageMigrations, OfflineStorageMigrator } from "../../../../app-kit/local-store/OfflineStorageMigrator.js"
 import { CustomCacheHandlerMap } from "../../../../app-kit/local-store/CustomCacheHandler"
 import { CustomUserCacheHandler } from "../../../common/api/worker/rest/CustomUserCacheHandler"
@@ -72,6 +63,7 @@ import { createBaseLocator } from "../../../../platform-kit/base/BaseLocator"
 import { createRsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
 import { TutanotaEntityMigrator } from "../../../common/misc/TutanotaEntityMigrator.js"
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
+import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 
 assertWorkerOrNode()
 
@@ -145,6 +137,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 				ref: CalendarEventTypeRef,
 				handler: new CustomCalendarEventCacheHandler(locator.base.entityRestClient, locator.base.typeModelResolver),
 			})
+			const offlineMapper = new OfflineMapper(locator.base.typeModelResolver)
 			return new OfflineStorage(
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
@@ -153,6 +146,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 				new CalendarOfflineCleaner(),
 				locator.base.instancePipeline.modelMapper,
 				locator.base.typeModelResolver,
+				offlineMapper,
 				customCacheHandler,
 				KeyVerificationTableDefinitions,
 			)

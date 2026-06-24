@@ -38,15 +38,7 @@ import {
 import { RecipientNotResolvedError } from "../../network/error/RecipientNotResolvedError"
 import { IServiceExecutor } from "../../network/ServiceRequest"
 import { UserFacade } from "../facades/UserFacade"
-import {
-	EntityAdapter,
-	InstancePipeline,
-	OwnerKeyProvider,
-	PatchOperationType,
-	SessionKeyResolver,
-	SymmetricGroupKeyLoader,
-	typeModelToRestPath,
-} from "@tutao/instance-pipeline"
+import { EntityAdapter, InstancePipeline, OwnerKeyProvider, PatchOperationType, SessionKeyResolver, SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
 import { AsymmetricCryptoFacade, AuthenticateSenderReturnType } from "./AsymmetricCryptoFacade.js"
 import PublicEncryptionKeyProvider from "./PublicEncryptionKeyProvider.js"
 import { KeyRotationFacade } from "./KeyRotationFacade.js"
@@ -75,7 +67,7 @@ import {
 } from "@tutao/entities/sys"
 import { AccountType, GroupType, PermissionType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../entities/sys/Utils"
 import { TypeModelResolver } from "../../instance-pipeline/EntityFunctions"
-import { Entity, ServerModelEncryptedParsedInstance, SomeEntity } from "../../meta/EntityTypes"
+import { Entity, SomeEntity } from "../../meta/EntityTypes"
 import { asCryptoProtoocolVersion, BucketPermissionType } from "./Constants"
 import {
 	createInternalRecipientKeyData,
@@ -91,6 +83,8 @@ import { HttpMethod, RestTextBody } from "@tutao/rest-client/types"
 import { CryptoNetworkHelper } from "../../network/CryptoNetworkHelper"
 import { CacheManager } from "./persistence/CacheManager"
 import { InstanceSessionKeysCache } from "./persistence/InstanceSessionKeysCache"
+import { EntityUtils } from "../../instance-pipeline/EntityUtils"
+import { OutgoingServerJson } from "../../instance-pipeline/TypeMapper"
 
 assertWorkerOrNode()
 
@@ -448,19 +442,18 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	}
 
 	private async getDecryptedMailFromAdapter(instance: Entity, resolvedSessionKeyForInstance: AesKey): Promise<Mail> {
-		let decryptedInstance: Entity = instance
-		if (decryptedInstance.isAdapter) {
+		if (instance.isAdapter) {
 			const entityAdapter = downcast<EntityAdapter>(instance)
 			const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
-				await this.typeModelResolver.resolveServerTypeReference(instance._type),
-				entityAdapter.encryptedParsedInstance as ServerModelEncryptedParsedInstance,
+				entityAdapter.getWrappedEncryptedInstance(),
 				resolvedSessionKeyForInstance,
 				validateKdfNonceLength(instance._kdfNonce ?? null),
 				this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(instance._ownerGroup ?? null),
 			)
-			decryptedInstance = await this.instancePipeline.modelMapper.mapToInstance(instance._type, parsedInstance)
+			return await this.instancePipeline.modelMapper.mapToInstance<Mail>(parsedInstance)
+		} else {
+			return downcast<Mail>(instance)
 		}
-		return downcast<Mail>(decryptedInstance)
 	}
 
 	private async tryAuthenticateSenderOfMainInstance(
@@ -816,7 +809,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 
 		const id = instance._id
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
-		const path = typeModelToRestPath(typeModel) + "/" + (id instanceof Array ? id.join("/") : id)
+		const path = EntityUtils.typeModelToRestPath(typeModel) + "/" + (id instanceof Array ? id.join("/") : id)
 		const headers = this.userFacade.createAuthHeaders()
 		headers.v = String(instance.typeModel.version)
 
@@ -831,12 +824,12 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			patches: [
 				createPatch({
 					patchOperation: PatchOperationType.REPLACE,
-					value: uint8ArrayToBase64(newOwnerEncSessionKey.key),
+					value: OutgoingServerJson.stringifyBytes(newOwnerEncSessionKey.key),
 					attributePath: ownerEncSessionKeyAttributeIdStr,
 				}),
 				createPatch({
 					patchOperation: PatchOperationType.REPLACE,
-					value: newOwnerEncSessionKey.encryptingKeyVersion.toString(),
+					value: OutgoingServerJson.stringifyNumber(newOwnerEncSessionKey.encryptingKeyVersion),
 					attributePath: ownerKeyVersionAttributeIdStr,
 				}),
 			],
@@ -848,7 +841,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			.request(path, HttpMethod.PATCH, {
 				...DEFAULT_REST_CLIENT_OPTIONS,
 				headers,
-				body: new RestTextBody(JSON.stringify(patchPayload)),
+				body: new RestTextBody(patchPayload.getJsonRepresentation()),
 				queryParams: { updateOwnerEncSessionKey: "true" },
 			})
 			.catch(

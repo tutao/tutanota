@@ -27,7 +27,7 @@ import { DesktopConfigMigrator } from "./config/migrations/DesktopConfigMigrator
 import { DesktopKeyStoreFacade } from "./DesktopKeyStoreFacade.js"
 import { SchedulerImpl } from "../api/common/utils/Scheduler.js"
 import { DesktopThemeFacade } from "./DesktopThemeFacade"
-import { BuildConfigKey, DesktopConfigKey, ProgrammingError } from "../../../platform-kit/app-env"
+import { BuildConfigKey, DesktopConfigKey, ProgrammingError } from "@tutao/app-env"
 import { DesktopNativeCredentialsFacade } from "./credentials/DesktopNativeCredentialsFacade.js"
 import { WebDialogController } from "./WebDialog.js"
 import path from "node:path"
@@ -72,7 +72,7 @@ import { customFetch } from "./net/NetAgent"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade.js"
 import { MailboxExportPersistence } from "./export/MailboxExportPersistence.js"
 import { DesktopExportLock } from "./export/DesktopExportLock"
-import { InstancePipeline, NamedClientModel } from "../../../platform-kit/instance-pipeline"
+import { ClientOnlyTypeModelResolver, InstancePipeline, NamedClientModel } from "../../../platform-kit/instance-pipeline"
 import { CommandExecutor } from "./CommandExecutor"
 import { makeSuspensionAwareFetch } from "./net/SuspensionAwareFetch"
 import { restSuspension } from "../../../platform-kit/rest-client"
@@ -212,9 +212,8 @@ async function createComponents(): Promise<Components> {
 
 	// We need a custom instance pipeline for everything native as we only process them with the client type model
 	// When upgrading things in SseFacade and AlarmStorage, we need to deprecate the old clients potentially
-	const nativeInstancePipeline = new InstancePipeline(
-		clientModelInfo.resolveClientTypeReference.bind(clientModelInfo),
-		clientModelInfo.resolveClientTypeReference.bind(clientModelInfo),
+	const nativeInstancePipeline = InstancePipeline.newNativeOnly(
+		new ClientOnlyTypeModelResolver(clientModelInfo),
 		() => {
 			// Alarms are always encrypted using session keys by the client and never by the server.
 			// That is because, as they need to work offline, they cannot rely on being able to load group keys.
@@ -223,7 +222,7 @@ async function createComponents(): Promise<Components> {
 		SYMMETRIC_CIPHER_FACADE,
 	)
 	const sseStorage = new SseStorage(conf)
-	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, nativeInstancePipeline, clientModelInfo)
+	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, nativeInstancePipeline)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
 	const credentialsDb = new DesktopCredentialsStorage(makeDbPath("credentials"), app)
@@ -315,7 +314,6 @@ async function createComponents(): Promise<Components> {
 		suspensionAwareFetch,
 		app.getVersion(),
 		nativeInstancePipeline,
-		clientModelInfo,
 	)
 	const sseClient = new SseClient(desktopNet, new DesktopSseDelay(), schedulerImpl)
 	const sse = new TutaSseFacade(
@@ -328,7 +326,6 @@ async function createComponents(): Promise<Components> {
 		suspensionAwareFetch,
 		dateProvider,
 		nativeInstancePipeline,
-		clientModelInfo,
 	)
 
 	// It should be ok to await this, all we are waiting for is dynamic imports

@@ -1,4 +1,3 @@
-import { ClientModelUntypedInstance } from "../../../../platform-kit/meta"
 import type { DesktopNotifier } from "../notifications/DesktopNotifier"
 import type { WindowManager } from "../DesktopWindowManager"
 import type { DesktopAlarmStorage } from "./DesktopAlarmStorage"
@@ -8,6 +7,7 @@ import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
 import { formatNotificationForDisplay } from "../../../../ui/utils/Formatter"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { AlarmNotification } from "@tutao/entities/sys"
+import { EncryptedAlarmNotification } from "../../../../app-kit/native-bridge/common/EncryptedAlarmNotification"
 
 export class DesktopAlarmScheduler {
 	constructor(
@@ -39,7 +39,9 @@ export class DesktopAlarmScheduler {
 		log.info("Rescheduling alarms...")
 		const alarms = await this.alarmStorage.getScheduledAlarms()
 		const decryptedAlarms = await Promise.all(
-			alarms.map((alarm) => this.alarmStorage.decryptAlarmNotification(alarm.untypedInstance as unknown as ClientModelUntypedInstance)),
+			alarms.map((alarm) => {
+				return this.alarmStorage.decryptAlarmNotification(new EncryptedAlarmNotification(alarm.encryptedInstance))
+			}),
 		)
 		for (const alarm of decryptedAlarms) {
 			this.scheduleAlarms(alarm)

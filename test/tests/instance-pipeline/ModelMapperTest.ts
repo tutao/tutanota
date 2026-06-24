@@ -1,101 +1,47 @@
 import o, { assertThrows } from "@tutao/otest"
-import { random } from "../../../src/platform-kit/crypto"
+import { ClientEntity, DecryptedParsedInstance, ModelMapper, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
+import { Cardinality, ClientTypeModel, GENERATED_MIN_ID, ModelAssociation, TypeModel, ValueTypeEnum } from "../../../src/platform-kit/meta"
 import {
-	assertAndSupplyCorrectAssociationClientCardinality,
-	assertCorrectValueCardinality,
-	ClientTypeReferenceResolver,
-	convertDbToJsType,
-	convertJsToDbType,
-	isDefaultValue,
-	ModelMapper,
-	ServerTypeReferenceResolver,
-	valueToDefault,
-} from "../../../src/platform-kit/instance-pipeline"
-import {
-	AssociationType,
-	Cardinality,
-	ClientModelParsedInstance,
-	GENERATED_MIN_ID,
-	ModelAssociation,
-	ServerModelParsedInstance,
-	ValueType,
-} from "../../../src/platform-kit/meta"
-import { assertNotNull, downcast, uint8ArrayToBase64 } from "../../../src/platform-kit/utils"
-import { dummyResolver, TestAggregate, TestAggregateRef, TestEntity, TestTypeRef } from "./InstancePipelineTestUtils"
+	createEncryptedValueType,
+	DummyTypeModelResolver,
+	TestAggregate,
+	testAggregateModel,
+	TestAggregateRef,
+	TestEntity,
+	testTypeModel,
+	TestTypeRef,
+} from "./InstancePipelineTestUtils"
 import { InvalidModelError, ProgrammingError } from "../../../src/platform-kit/app-env"
 import { removeOriginals } from "../TestUtils"
+import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/PipelineTypes"
 
-o.spec("ModelMapper", function () {
-	const modelMapper: ModelMapper = new ModelMapper(dummyResolver as ClientTypeReferenceResolver, dummyResolver as ServerTypeReferenceResolver)
-
-	o.spec("convertDbToJsType", function () {
-		o("convert value to JS Date", function () {
-			let value = new Date().getTime().toString()
-			o(convertDbToJsType(ValueType.Date, value)).deepEquals(new Date(parseInt(value)))
-		})
-		o("convert unencrypted Bytes to JS type", function () {
-			const valueBytes = random.generateRandomData(15)
-			const value = uint8ArrayToBase64(valueBytes)
-			const jsBytes = convertDbToJsType(ValueType.Bytes, value)
-			o(jsBytes instanceof Uint8Array).equals(true)
-			o(Array.from(jsBytes as Uint8Array)).deepEquals(Array.from(valueBytes))
-		})
-		o("convert unencrypted Boolean to JS type", function () {
-			o(convertDbToJsType(ValueType.Boolean, "0")).equals(false)
-			o(convertDbToJsType(ValueType.Boolean, "1")).equals(true)
-		})
-		o("convert unencrypted Number to JS type", function () {
-			o(convertDbToJsType(ValueType.Number, "0")).equals("0")
-			o(convertDbToJsType(ValueType.Number, "1")).equals("1")
-			o(convertDbToJsType(ValueType.Number, "12456")).equals("12456")
-		})
-		o("convert unencrypted compressedString to JS type", function () {
-			o(convertDbToJsType(ValueType.CompressedString, "")).equals("")
-			o(convertDbToJsType(ValueType.CompressedString, "QHRlc3Q=")).equals("test")
-		})
-	})
-	o.spec("convertJsToDbType", function () {
-		o("convert unencrypted Date to DB type", function () {
-			let value = new Date()
-			o(convertJsToDbType(ValueType.Date, value)).equals(value.getTime().toString())
-		})
-
-		o("convert unencrypted Bytes to DB type", function () {
-			let valueBytes = random.generateRandomData(15)
-			const dbBytes = convertJsToDbType(ValueType.Bytes, valueBytes)
-			o(dbBytes instanceof Uint8Array).equals(true)
-			o(uint8ArrayToBase64(dbBytes as Uint8Array)).equals(uint8ArrayToBase64(valueBytes))
-		})
-
-		o("convert unencrypted Boolean to DB type", function () {
-			let value = false
-			o(convertJsToDbType(ValueType.Boolean, value)).equals("0")
-			value = true
-			o(convertJsToDbType(ValueType.Boolean, value)).equals("1")
-		})
-
-		o("convert unencrypted Number to DB type", function () {
-			let value = "0"
-			o(convertJsToDbType(ValueType.Number, value)).equals("0")
-			value = "1"
-			o(convertJsToDbType(ValueType.Number, value)).equals("1")
-		})
-	})
+o.spec("ModelMapperTest", function () {
+	const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver() as TypeModelResolver)
 
 	o.spec("mapToInstance", function () {
 		o("happy path", async function () {
-			const parsedInstance: ServerModelParsedInstance = {
-				1: "some encrypted string",
-				5: new Date("2025-01-01T13:00:00.000Z"),
-				3: [{ 2: "123", 6: "123456", 9: [], 10: [] } as unknown as ServerModelParsedInstance],
-				12: "generatedId",
-				13: ["listId", "elementId"],
-				4: ["associatedElementId"],
-				7: true,
-				8: [["listId", "listElementId"]],
-			} as unknown as ServerModelParsedInstance
-			const mappedInstance = (await modelMapper.mapToInstance(TestTypeRef, parsedInstance)) as any
+			const parsedInstance = DecryptedParsedInstance.outgoingToServer(testTypeModel as ClientTypeModel)
+				.addAttribute(1, ParsedValue.fromString("some encrypted string"))
+				.addAttribute(5, ParsedValue.fromString(new Date("2025-01-01T13:00:00.000Z").getTime().toString()))
+				.addAttribute(12, ParsedValue.fromId("generatedId"))
+				.addAttribute(13, ParsedValue.fromIdTupleList([["listId", "elementId"]]))
+				.addAttribute(4, ParsedValue.fromIdList(["associatedElementId"]))
+				.addAttribute(7, ParsedValue.fromBoolean(true))
+				.addAttribute(8, ParsedValue.fromIdTupleList([["listId", "listElementId"]]))
+				.addAttribute(
+					3,
+					ParsedValue.fromNestedItems([
+						DecryptedParsedInstance.outgoingToServer(testAggregateModel as ClientTypeModel)
+							.addAttribute(2, ParsedValue.fromString("123"))
+							.addAttribute(6, ParsedValue.fromString("123456"))
+							.addAttribute(9, ParsedValue.fromIdList([]))
+							.addAttribute(10, ParsedValue.fromIdList([])),
+					]),
+				)
+			const mappedInstance = (await modelMapper.mapToInstance(parsedInstance)) as any
+
 			removeOriginals(mappedInstance)
+
 			o(mappedInstance._type).deepEquals(TestTypeRef)
 			o(mappedInstance._id).deepEquals(["listId", "elementId"])
 			o(mappedInstance.testValue).equals("some encrypted string")
@@ -113,37 +59,53 @@ o.spec("ModelMapper", function () {
 			o(mappedInstance.testListElementAssociation).deepEquals([["listId", "listElementId"]])
 			o(typeof mappedInstance._errors).equals("undefined")
 		})
+
 		o("wrong cardinality on value field throws", async function () {
-			const parsedInstance: ServerModelParsedInstance = {
-				1: null,
-				5: new Date("2025-01-01T13:00:00.000Z"),
-				3: [{ 2: "123", 6: "123456" } as unknown as ServerModelParsedInstance],
-				4: ["associatedListId"],
-				7: true,
-			} as unknown as ServerModelParsedInstance
-			await assertThrows(ProgrammingError, async () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
+			const parsedInstance = DecryptedParsedInstance.outgoingToServer(testTypeModel as ClientTypeModel)
+				.addAttribute(1, ParsedValue.fromNull())
+				.addAttribute(5, ParsedValue.fromString(new Date("2025-01-01T13:00:00.000Z").getTime().toString()))
+				.addAttribute(4, ParsedValue.fromIdList(["associatedListId"]))
+				.addAttribute(7, ParsedValue.fromBoolean(true))
+				.addAttribute(
+					3,
+					ParsedValue.fromNestedItems([
+						DecryptedParsedInstance.outgoingToServer(testAggregateModel as ClientTypeModel)
+							.addAttribute(2, ParsedValue.fromString("123"))
+							.addAttribute(6, ParsedValue.fromString("123456")),
+					]),
+				)
+
+			await assertThrows(ProgrammingError, async () => modelMapper.mapToInstance(parsedInstance))
 		})
+
 		o("wrong aggregation cardinality throws", async function () {
-			const parsedInstance: ServerModelParsedInstance = {
-				1: "some encrypted string",
-				5: new Date("2025-01-01T13:00:00.000Z"),
-				3: [],
-				4: ["associatedListId"],
-				7: true,
-			} as unknown as ServerModelParsedInstance
-			await assertThrows(ProgrammingError, async () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
+			const parsedInstance = DecryptedParsedInstance.outgoingToServer(testTypeModel as ClientTypeModel)
+				.addAttribute(1, ParsedValue.fromString("some encrypted string"))
+				.addAttribute(5, ParsedValue.fromString(new Date("2025-01-01T13:00:00.000Z").getTime().toString()))
+				.addAttribute(3, ParsedValue.fromIdList([]))
+				.addAttribute(7, ParsedValue.fromBoolean(true))
+
+			await assertThrows(ProgrammingError, async () => modelMapper.mapToInstance(parsedInstance))
 		})
+
 		o("wrong reference cardinality throws", async function () {
-			const parsedInstance: ServerModelParsedInstance = {
-				1: "some encrypted string",
-				5: new Date("2025-01-01T13:00:00.000Z"),
-				3: [{ 2: "123", 6: "123456" } as unknown as ServerModelParsedInstance],
-				4: [],
-				7: true,
-			} as unknown as ServerModelParsedInstance
-			await assertThrows(ProgrammingError, async () => modelMapper.mapToInstance(TestTypeRef, parsedInstance))
+			const parsedInstance = DecryptedParsedInstance.outgoingToServer(testTypeModel as ClientTypeModel)
+				.addAttribute(1, ParsedValue.fromString("some encrypted string"))
+				.addAttribute(5, ParsedValue.fromString(new Date("2025-01-01T13:00:00.000Z").getTime().toString()))
+				.addAttribute(4, ParsedValue.fromIdList([]))
+				.addAttribute(7, ParsedValue.fromBoolean(true))
+				.addAttribute(
+					3,
+					ParsedValue.fromNestedItems([
+						DecryptedParsedInstance.outgoingToServer(testAggregateModel as ClientTypeModel)
+							.addAttribute(2, ParsedValue.fromString("123"))
+							.addAttribute(6, ParsedValue.fromString("123456")),
+					]),
+				)
+			await assertThrows(ProgrammingError, async () => modelMapper.mapToInstance(parsedInstance))
 		})
 	})
+
 	o.spec("mapToClientModelParsedInstance", function () {
 		o("happy path debug", async function () {
 			const instance: TestEntity = {
@@ -164,71 +126,79 @@ o.spec("ModelMapper", function () {
 				_id: [GENERATED_MIN_ID, GENERATED_MIN_ID],
 				testFinalBoolean: false,
 			}
-			const parsedInstance: ClientModelParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, instance)
+			const parsedInstance = await modelMapper.mapToDecryptedInstance(instance)
 
-			o(parsedInstance[1]).equals("some encrypted string")
-			o(parsedInstance[7]).equals(false)
-			o((parsedInstance[5] as Date).toISOString()).equals("2025-01-01T13:00:00.000Z")
-			const testAssociation = assertNotNull(parsedInstance[3])[0]
-			o(testAssociation[2]).equals("123456")
-			o(testAssociation[6].length).deepEquals(6) // custom generated id
-			o(parsedInstance[4]).deepEquals(["associatedElementId"])
-			o(typeof parsedInstance._errors).equals("undefined")
+			o(parsedInstance.getAttributeById(1).asString()).equals("some encrypted string")
+			o(parsedInstance.getAttributeById(7).asBoolean()).equals(false)
+			o(parsedInstance.getAttributeById(5).asDate().toISOString()).equals("2025-01-01T13:00:00.000Z")
+			const testAssociation = parsedInstance.getAttributeById(3).asNestedObjList()[0]
+			o(testAssociation.getAttributeById(2).asString()).equals("123456")
+			// aggregate _id is randomly generated if not found
+			o(testAssociation.getAttributeById(6).asString().length).deepEquals(6)
+			o(parsedInstance.getAttributeById(4).asIdList()).deepEquals(["associatedElementId"])
+			o(parsedInstance.hasError()).equals(false)
 		})
 	})
-	o.spec("default value mappings", function () {
-		o("valueToDefault and isDefaultValue are compatible", async function () {
-			const types = JSON.parse(JSON.stringify(ValueType))
-			delete types.GeneratedId
-			delete types.CustomId
-			for (const valueType of Object.values(types as typeof ValueType)) {
-				o(isDefaultValue(valueType, valueToDefault(valueType))).equals(true)
-			}
 
-			await assertThrows(ProgrammingError, async () => valueToDefault(ValueType.GeneratedId))
-			await assertThrows(ProgrammingError, async () => valueToDefault(ValueType.CustomId))
-			await assertThrows(ProgrammingError, async () => isDefaultValue(ValueType.GeneratedId, ""))
-			await assertThrows(ProgrammingError, async () => isDefaultValue(ValueType.CustomId, ""))
-		})
-	})
 	o.spec("cardinality assertions", function () {
 		o("assertCorrectAssociationClientCardinality", async function () {
-			const f = (type, cardinality, value) =>
-				assertAndSupplyCorrectAssociationClientCardinality(
-					TestTypeRef,
-					"1",
-					downcast<ModelAssociation>({
-						type,
-						cardinality,
-					}),
-					value,
-				)
-			o(f(AssociationType.ListAssociation, Cardinality.One, ["v"])).deepEquals("v")
-			o(f(AssociationType.ListAssociation, Cardinality.ZeroOrOne, ["v"])).deepEquals("v")
-			o(f(AssociationType.ListAssociation, Cardinality.ZeroOrOne, [])).deepEquals(null)
-			o(f(AssociationType.ListAssociation, Cardinality.Any, ["v"])).deepEquals(["v"])
-			o(f(AssociationType.ListAssociation, Cardinality.Any, ["v", "v2"])).deepEquals(["v", "v2"])
-			o(f(AssociationType.ListElementAssociationGenerated, Cardinality.ZeroOrOne, [["listId", "listElementId"]])).deepEquals(["listId", "listElementId"])
-			o(f(AssociationType.ListElementAssociationGenerated, Cardinality.One, [["listId", "listElementId"]])).deepEquals(["listId", "listElementId"])
-			o(f(AssociationType.ListElementAssociationGenerated, Cardinality.Any, [["listId", "listElementId"]])).deepEquals([["listId", "listElementId"]])
-			o(f(AssociationType.ListElementAssociationGenerated, Cardinality.Any, [])).deepEquals([])
+			const f = (cardinality, value) => {
+				const rec = {}
 
-			await assertThrows(InvalidModelError, async () => f(AssociationType.ListElementAssociationGenerated, Cardinality.One, ["v", "v1", "v2"]))
-			await assertThrows(InvalidModelError, async () => f(AssociationType.ListElementAssociationGenerated, Cardinality.ZeroOrOne, ["v", "v1", "v2"]))
-			await assertThrows(InvalidModelError, async () => f(AssociationType.ListAssociation, Cardinality.One, []))
-			await assertThrows(InvalidModelError, async () => f(AssociationType.ListAssociation, Cardinality.One, ["v", "v2"]))
-			await assertThrows(InvalidModelError, async () => f(AssociationType.ListAssociation, Cardinality.ZeroOrOne, ["v", "v2"]))
+				const stubTypeModel = {
+					associations: {
+						"1": {
+							name: "res",
+							cardinality,
+						} as ModelAssociation,
+					},
+				} as unknown as TypeModel
+				const r = new ClientEntity(stubTypeModel as ClientTypeModel, rec)
+				r.setAssociationForTest(1, value)
+				return rec["res"]
+			}
+
+			o(f(Cardinality.One, ["v"])).deepEquals("v")
+			o(f(Cardinality.ZeroOrOne, ["v"])).deepEquals("v")
+			o(f(Cardinality.ZeroOrOne, [])).deepEquals(null)
+			o(f(Cardinality.Any, ["v"])).deepEquals(["v"])
+			o(f(Cardinality.Any, ["v", "v2"])).deepEquals(["v", "v2"])
+			o(f(Cardinality.ZeroOrOne, [["listId", "listElementId"]])).deepEquals(["listId", "listElementId"])
+			o(f(Cardinality.One, [["listId", "listElementId"]])).deepEquals(["listId", "listElementId"])
+			o(f(Cardinality.Any, [["listId", "listElementId"]])).deepEquals([["listId", "listElementId"]])
+			o(f(Cardinality.Any, [])).deepEquals([])
+
+			await assertThrows(InvalidModelError, async () => f(Cardinality.One, ["v", "v1", "v2"]))
+			await assertThrows(InvalidModelError, async () => f(Cardinality.ZeroOrOne, ["v", "v1", "v2"]))
+			await assertThrows(InvalidModelError, async () => f(Cardinality.One, []))
+			await assertThrows(InvalidModelError, async () => f(Cardinality.One, ["v", "v2"]))
+			await assertThrows(InvalidModelError, async () => f(Cardinality.ZeroOrOne, ["v", "v2"]))
 		})
 
 		o("assertCorrectValueCardinality", async function () {
-			const f = (card, value) => assertCorrectValueCardinality(TestTypeRef, "1", card, value)
-			o(f(Cardinality.One, "v")).deepEquals("v")
-			o(f(Cardinality.ZeroOrOne, "v")).deepEquals("v")
-			o(f(Cardinality.ZeroOrOne, null)).deepEquals(null)
+			const cardinalityOne = createEncryptedValueType(ValueTypeEnum.String, Cardinality.One)
+			const cardinalityZeroOrOne = createEncryptedValueType(ValueTypeEnum.String, Cardinality.ZeroOrOne)
+			const cardinalityAny = createEncryptedValueType(ValueTypeEnum.String, Cardinality.Any)
 
-			await assertThrows(InvalidModelError, async () => f(Cardinality.One, null))
-			await assertThrows(InvalidModelError, async () => f(Cardinality.Any, null))
-			await assertThrows(InvalidModelError, async () => f(Cardinality.Any, "v"))
+			o(modelMapper.assertCorrectValueCardinality(TestTypeRef, cardinalityOne, cardinalityOne, ParsedValue.fromString("v"))).deepEquals(
+				ParsedValue.fromString("v"),
+			)
+			o(modelMapper.assertCorrectValueCardinality(TestTypeRef, cardinalityZeroOrOne, cardinalityZeroOrOne, ParsedValue.fromString("v"))).deepEquals(
+				ParsedValue.fromString("v"),
+			)
+			o(modelMapper.assertCorrectValueCardinality(TestTypeRef, cardinalityZeroOrOne, cardinalityZeroOrOne, ParsedValue.fromNull())).equals(
+				ParsedValue.fromNull(),
+			)
+
+			await assertThrows(InvalidModelError, async () =>
+				modelMapper.assertCorrectValueCardinality(TestTypeRef, cardinalityOne, cardinalityOne, ParsedValue.fromNull()),
+			)
+			await assertThrows(InvalidModelError, async () =>
+				modelMapper.assertCorrectValueCardinality(TestTypeRef, cardinalityAny, cardinalityAny, ParsedValue.fromNull()),
+			)
+			await assertThrows(InvalidModelError, async () =>
+				modelMapper.assertCorrectValueCardinality(TestTypeRef, cardinalityAny, cardinalityAny, ParsedValue.fromString("v")),
+			)
 		})
 	})
 })

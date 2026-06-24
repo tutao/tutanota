@@ -17,7 +17,6 @@ import { elementIdPart, listIdPart, OperationType } from "../../../../../src/pla
 import {
 	AlarmInfoTypeRef,
 	AlarmNotification,
-	AlarmNotificationTypeRef,
 	AlarmService,
 	CalendarEventRefTypeRef,
 	createAlarmInfo,
@@ -183,7 +182,7 @@ o.spec("AlarmFacadeTest", function () {
 			const instanceLiteralSentToFacade = assertNotNull(JSON.parse(allInstanceSentToFacade)[0])
 
 			// if we were able to decryptAndMap, it already verifies that no field has network debug info,
-			const instanceSentToFacade = await instancePipeline.decryptAndMap(AlarmNotificationTypeRef, instanceLiteralSentToFacade, sessionKey)
+			const instanceSentToFacade = await instancePipeline.decryptAndMap<AlarmNotification>(instanceLiteralSentToFacade, sessionKey)
 			o(instanceSentToFacade.operation).equals(OperationType.CREATE)
 		})
 	})

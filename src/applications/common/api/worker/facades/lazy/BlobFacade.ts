@@ -1,8 +1,8 @@
 import { addParamsToUrl, DEFAULT_REST_CLIENT_OPTIONS, MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "@tutao/rest-client"
 import { handleRestError } from "@tutao/rest-client/error"
-import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "@tutao/entities/sys"
+import { Blob, BlobReferenceTokenWrapper, BlobReferenceTokenWrapperTypeRef, createBlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType } from "../../../../../../entities/sys/Utils"
-import { HttpMethod, MediaType, RestBinaryBody, RestTextBody } from "../../../../../../platform-kit/rest-client/types"
+import { HttpMethod, MediaType, RestBinaryBody, RestTextBody } from "@tutao/rest-client/types"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import {
 	assertNonNull,
@@ -23,8 +23,8 @@ import {
 	uint8ArrayToString,
 } from "@tutao/utils"
 import { assertWorkerOrNode, CancelledError, isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
-import { AttributeModel, ServerModelUntypedInstance, SomeEntity } from "@tutao/meta"
-import { _encryptBytes, AesKey, sha256Hash } from "@tutao/crypto"
+import { SomeEntity } from "@tutao/meta"
+import { _encryptBytes, aesDecrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto"
 import type { FileUri, NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
 import type { AesApp } from "../../../../../../app-kit/native-bridge/worker/AesApp.js"
 import { splitFileIntoChunks } from "../../../../../../ui/utils/FileUtils.js"
@@ -34,18 +34,11 @@ import { CryptoError } from "@tutao/crypto/error"
 import { TransferProgressDispatcher } from "../../../main/TransferProgressDispatcher"
 import { doBlobRequestWithRetry, tryServers } from "../../../../../../platform-kit/network/EntityRestClient"
 import { TransferId, UploadProgressInfo } from "../../../../../../entities/drive/Utils"
-import {
-	BlobGetInTypeRef,
-	BlobPostOutTypeRef,
-	BlobServerAccessInfo,
-	BlobService,
-	createBlobGetIn,
-	createBlobId,
-	storageTypeModels,
-} from "@tutao/entities/storage"
+import { BlobGetInTypeRef, BlobPostOut, BlobServerAccessInfo, BlobService, createBlobGetIn, createBlobId, storageTypeModels } from "@tutao/entities/storage"
 import { FileReference } from "../../../../../../entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
-import { aesDecrypt, asyncDecryptBytes } from "../../../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
+
+import { IncomingServerJson } from "../../../../../../platform-kit/instance-pipeline/TypeMapper"
 
 assertWorkerOrNode()
 export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.name.toLowerCase()}`
@@ -700,8 +693,9 @@ export class BlobFacade {
 
 	// Visible for testing
 	public async parseBlobPostOutResponse(jsonData: string): Promise<BlobReferenceTokenWrapper> {
-		const instance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(JSON.parse(jsonData))
-		const { blobReferenceToken } = await this.instancePipeline.decryptAndMap(BlobPostOutTypeRef, instance, null)
+		const typeModel = await this.instancePipeline.typeModelResolver.resolveServerTypeReference(BlobReferenceTokenWrapperTypeRef)
+		const serverJson = IncomingServerJson.expectSingleInstance(jsonData, typeModel)
+		const { blobReferenceToken } = await this.instancePipeline.decryptAndMap<BlobPostOut>(serverJson, null)
 		// is null in case of post multiple to the BlobService, currently only supported in the rust-sdk
 		// post single always has a valid blobRefernceToken with cardinality one.
 		if (blobReferenceToken == null) {
@@ -773,15 +767,14 @@ export class BlobFacade {
 				blobId: null,
 				blobIds: processBlobs.map(({ blobId }) => createBlobId({ blobId: blobId })),
 			})
-			const untypedInstance = await this.instancePipeline.mapAndEncrypt(BlobGetInTypeRef, getData, null)
-			const body = JSON.stringify(untypedInstance)
+			const outgoingJson = await this.instancePipeline.mapAndEncrypt(BlobGetInTypeRef, getData, null)
 			const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, BlobGetInTypeRef)
 			const concatBinaryData = await tryServers(
 				blobServerAccessInfo.servers,
 				async (serverUrl) => {
-					const response = await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, {
+					return await this.restClient.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, {
 						queryParams: queryParams,
-						body: new RestTextBody(body),
+						body: new RestTextBody(outgoingJson.getJsonRepresentation()),
 						responseType: MediaType.Binary,
 						baseUrl: serverUrl,
 						noCORS: true,
@@ -795,7 +788,6 @@ export class BlobFacade {
 						},
 						abortSignal,
 					})
-					return response
 				},
 				`can't download from server `,
 			)
@@ -815,15 +807,21 @@ export class BlobFacade {
 			blobId,
 			blobIds: [],
 		})
-		const untypedInstance = await this.instancePipeline.mapAndEncrypt(BlobGetInTypeRef, getData, null)
-		const _body = JSON.stringify(untypedInstance)
+		const outJson = await this.instancePipeline.mapAndEncrypt(BlobGetInTypeRef, getData, null)
 
 		const blobFilename = blobId + ".blob"
 
 		return tryServers(
 			blobServerAccessInfo.servers,
 			async (serverUrl) => {
-				return await this.downloadNative(serverUrl, blobServerAccessInfo, sessionKey, blobFilename, { _body }, blob.blobId)
+				return await this.downloadNative(
+					serverUrl,
+					blobServerAccessInfo,
+					sessionKey,
+					blobFilename,
+					{ _body: outJson.getJsonRepresentation() },
+					blob.blobId,
+				)
 			},
 			`can't download native from server `,
 		)

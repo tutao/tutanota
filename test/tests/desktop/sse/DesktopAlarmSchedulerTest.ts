@@ -9,7 +9,6 @@ import { DesktopAlarmStorage } from "../../../../src/applications/common/desktop
 import { DesktopNativeCryptoFacade } from "../../../../src/applications/common/desktop/DesktopNativeCryptoFacade.js"
 import { makeAlarmScheduler } from "../../calendar/CalendarTestUtils.js"
 import { matchers, object, verify, when } from "testdouble"
-import { ServerModelUntypedInstance } from "../../../../src/platform-kit/meta"
 import { AlarmScheduler } from "../../../../src/applications/common/calendar/date/AlarmScheduler.js"
 import { createTestEntity, makePopulatedClientModelInfo } from "../../TestUtils"
 import { EncryptedAlarmNotification } from "../../../../src/app-kit/native-bridge/common/EncryptedAlarmNotification"
@@ -114,13 +113,9 @@ o.spec("DesktopAlarmScheduler", function () {
 				interval: "1",
 			})
 			// crypto is a stub which just returns things back
-			alarmStorageMock.getScheduledAlarms = async () =>
-				Promise.resolve([
-					await EncryptedAlarmNotification.from(
-						(await alarmStorageMock.encryptAlarmNotification(an, null)) as ServerModelUntypedInstance,
-						typeModelResolver,
-					),
-				])
+			alarmStorageMock.getScheduledAlarms = async () => {
+				return Promise.resolve([new EncryptedAlarmNotification(await alarmStorageMock.encryptAlarmNotification(an, null))])
+			}
 
 			await scheduler.rescheduleAll()
 

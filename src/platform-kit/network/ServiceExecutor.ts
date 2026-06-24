@@ -1,6 +1,6 @@
 import {
-	AttributeModel,
 	DeleteService,
+	Entity,
 	GetService,
 	getServiceRestPath,
 	isSameTypeRef,
@@ -10,16 +10,16 @@ import {
 	PutService,
 	ReturnTypeFromRef,
 	TypeRef,
-} from "../meta"
+} from "@tutao/meta"
 import { DEFAULT_REST_CLIENT_OPTIONS, RestClient } from "@tutao/rest-client"
-import { HttpMethod, MediaType, RestTextBody } from "../rest-client/types"
+import { HttpMethod, MediaType, RestTextBody } from "@tutao/rest-client/types"
 import { ExtraServiceParams, IServiceExecutor } from "./ServiceRequest.js"
-import { lazy, Nullable } from "@tutao/utils"
+import { isNotNull, lazy, Nullable } from "@tutao/utils"
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
-import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver } from "@tutao/instance-pipeline"
-import { TypeModelResolver } from "../instance-pipeline/EntityFunctions"
-import { Entity, ServerModelUntypedInstance } from "../meta/EntityTypes"
+import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
+
+import { IncomingServerJson, OutgoingServerJson } from "../instance-pipeline/TypeMapper"
 
 assertWorkerOrNode()
 
@@ -97,7 +97,7 @@ export class ServiceExecutor implements IServiceExecutor {
 			queryParams: params?.queryParams ?? null,
 			headers,
 			responseType: MediaType.Json,
-			body: encryptedEntity ? new RestTextBody(encryptedEntity) : null,
+			body: isNotNull(encryptedEntity) ? new RestTextBody(encryptedEntity.getJsonRepresentation()) : null,
 			suspensionBehavior: params?.suspensionBehavior ?? DEFAULT_REST_CLIENT_OPTIONS.suspensionBehavior,
 			baseUrl: params?.baseUrl ?? null,
 		})
@@ -138,7 +138,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		service: AnyService,
 		method: HttpMethod,
 		params: ExtraServiceParams | null,
-	): Promise<string | null> {
+	): Promise<Nullable<OutgoingServerJson>> {
 		if (methodDefinition.data != null) {
 			if (requestEntity == null || !isSameTypeRef(methodDefinition.data, requestEntity._type)) {
 				throw new ProgrammingError(`Invalid service data! ${service.name} ${method}`)
@@ -149,23 +149,23 @@ export class ServiceExecutor implements IServiceExecutor {
 				throw new ProgrammingError("Must provide a session key for an encrypted data transfer type!: " + service)
 			}
 
-			const encryptedUntypedInstance = await this.instancePipeline.mapAndEncrypt(requestEntity._type, requestEntity, params?.sessionKey ?? null)
-
-			return JSON.stringify(encryptedUntypedInstance)
+			return await this.instancePipeline.mapAndEncrypt(requestEntity._type, requestEntity, params?.sessionKey ?? null)
 		} else {
 			return null
 		}
 	}
 
 	private async decryptResponse<T extends Entity>(typeRef: TypeRef<T>, data: string, params: Nullable<ExtraServiceParams> = null): Promise<T> {
-		// Filter out __proto__ to avoid prototype pollution.
-		const instance: ServerModelUntypedInstance = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
-		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
-		const cleanInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(instance)
-		const encryptedParsedInstance = await this.instancePipeline.typeMapper.applyJsTypes(serverTypeModel, cleanInstance)
-		const entityAdapter = await EntityAdapter.from(serverTypeModel, encryptedParsedInstance, this.instancePipeline.modelMapper)
+		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
+		const incomingJson = IncomingServerJson.expectSingleInstance(data, typeModel)
+		const encryptedParsedInstance = await this.instancePipeline.typeMapper.parseServerJson(incomingJson)
+		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(
+			encryptedParsedInstance,
+			this.instancePipeline.modelMapper,
+			this.instancePipeline.cryptoMapper,
+		)
 		const sessionKey = (await this.sessionKeyResolver().resolveServiceSessionKey(entityAdapter)) ?? params?.sessionKey ?? null
 
-		return await this.instancePipeline.decryptAndMap(typeRef, cleanInstance, sessionKey)
+		return await this.instancePipeline.decryptAndMap(incomingJson, sessionKey)
 	}
 }

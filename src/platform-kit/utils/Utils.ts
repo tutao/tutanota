@@ -1,3 +1,5 @@
+import { ProgrammingError } from "@tutao/app-env"
+
 export interface ErrorInfo {
 	readonly name: string | null
 	readonly message: string | null
@@ -135,6 +137,13 @@ export function assertNotNull<T>(value: T | null, message: string = "null"): Non
 	}
 
 	return value
+}
+
+export function assertNotNaN(number: number): number {
+	if (isNaN(number)) {
+		throw new ProgrammingError("Number is NaN. Not expected: ")
+	}
+	return number
 }
 
 /**
@@ -368,9 +377,10 @@ export function errorsToString(errors: Array<ErrorInfo>): string {
 	return errors.join("\n--- next error ---\n")
 }
 
-/**
- * modified deepEquals from ospec is only needed as long as we use custom classes (TypeRef) and Date is not properly handled
- */
+export interface DeepEquals {
+	deepEquals(other: this): boolean
+}
+
 export function deepEqual(a: any, b: any): boolean {
 	if (a === b) return true
 	if (xor(a === null, b === null) || xor(a === undefined, b === undefined)) return false
@@ -386,6 +396,15 @@ export function deepEqual(a: any, b: any): boolean {
 
 			for (let i = 0; i < aKeys.length; i++) {
 				if (!hasOwn.call(b, aKeys[i]) || !deepEqual(a[aKeys[i]], b[aKeys[i]])) return false
+			}
+
+			return true
+		}
+
+		if (a instanceof Uint8Array && b instanceof Uint8Array) {
+			if (a.length !== b.length) return false
+			for (let i = 0; i < a.length; i++) {
+				if (a[i] !== b[i]) return false
 			}
 
 			return true
@@ -427,6 +446,11 @@ export function deepEqual(a: any, b: any): boolean {
 			return true
 		}
 
+		// See: DeepEquals interface
+		if (typeof (a as DeepEquals).deepEquals === "function" && typeof (b as DeepEquals).deepEquals === "function") {
+			return a.deepEquals(b)
+		}
+
 		if (a.valueOf() === b.valueOf()) return true
 	}
 
@@ -439,12 +463,13 @@ function xor(a: boolean, b: boolean): boolean {
 	return (aBool && !bBool) || (bBool && !aBool)
 }
 
-function isArguments(a: any) {
+function isArguments(a: any): boolean {
 	if ("callee" in a) {
 		for (let i in a) if (i === "callee") return false
 
 		return true
 	}
+	return false
 }
 
 const hasOwn = {}.hasOwnProperty

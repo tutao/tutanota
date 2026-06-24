@@ -18,8 +18,6 @@ o.spec("EntityAdapter", () => {
 	})
 
 	o.test("can create local mapped/decrypted instance - GroupInfo", async () => {
-		const groupModel = await typeModelResolver.resolveClientTypeReference(GroupInfoTypeRef)
-
 		const groupInfo = createTestEntity(GroupInfoTypeRef, {
 			_id: undefined,
 			_ownerGroup: "ownerGroupId",
@@ -30,8 +28,8 @@ o.spec("EntityAdapter", () => {
 			_listEncSessionKey: stringToUtf8Uint8Array("listEncSessionKey"),
 			group: "someGroup",
 		})
-		const groupInfoParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(GroupInfoTypeRef, groupInfo)
-		const entityAdapter = await EntityAdapter.from(groupModel, groupInfoParsed, instancePipeline.modelMapper)
+		const groupInfoParsed = await instancePipeline.mapAndEncryptToParsedInstance(GroupInfoTypeRef, groupInfo, null)
+		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(groupInfoParsed, instancePipeline.modelMapper, instancePipeline.cryptoMapper)
 
 		await assertThrows(Error, () => Promise.resolve(entityAdapter._id))
 		o(entityAdapter._ownerGroup).equals("ownerGroupId")
@@ -43,8 +41,6 @@ o.spec("EntityAdapter", () => {
 	})
 
 	o.test("can create local mapped/decrypted instance - Mail", async () => {
-		const mailModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
-
 		const mail = createTestEntity(MailTypeRef, {
 			_id: undefined,
 			_ownerGroup: "ownerGroupId",
@@ -59,9 +55,9 @@ o.spec("EntityAdapter", () => {
 			conversationEntry: ["list", "element"],
 		})
 
-		const mailParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(MailTypeRef, mail)
-		const mailBucketKey = await instancePipeline.modelMapper.mapToInstance(BucketKeyTypeRef, mailParsed["1310"]![0])
-		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline.modelMapper)
+		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, null)
+		const mailBucketKey = await instancePipeline.decryptAndMapEncryptedInstance<BucketKey>(mailParsed.getAttributeById(1310).asNestedObjList()[0], null)
+		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(mailParsed, instancePipeline.modelMapper, instancePipeline.cryptoMapper)
 
 		await assertThrows(Error, () => Promise.resolve(entityAdapter._id))
 		o(entityAdapter._ownerGroup).equals("ownerGroupId")
@@ -73,16 +69,18 @@ o.spec("EntityAdapter", () => {
 	})
 
 	o.test("can create local mapped/decrypted data transfer instance", async () => {
-		const importMailGetInModel = await typeModelResolver.resolveClientTypeReference(ImportMailGetInTypeRef)
-
 		const importMailGetIn = createTestEntity(ImportMailGetInTypeRef, {
 			ownerGroup: "ownerGroupId", // ownerGroupId is currently not used as MailGroup is hardcoded in CryptoFacade#resolveSessionKey
 			targetMailFolder: ["folderList", "folderId"],
 			ownerEncSessionKey: stringToUtf8Uint8Array("ownerEncSessionKey"),
 			ownerKeyVersion: "99",
 		})
-		const importMailGetInParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(ImportMailGetInTypeRef, importMailGetIn)
-		const entityAdapter = await EntityAdapter.from(importMailGetInModel, importMailGetInParsed, instancePipeline.modelMapper)
+		const importMailGetInParsed = await instancePipeline.mapAndEncryptToParsedInstance(ImportMailGetInTypeRef, importMailGetIn, null)
+		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(
+			importMailGetInParsed,
+			instancePipeline.modelMapper,
+			instancePipeline.cryptoMapper,
+		)
 
 		await assertThrows(Error, () => Promise.resolve(entityAdapter._id))
 		o(entityAdapter.ownerEncSessionKey).equals(importMailGetIn.ownerEncSessionKey!)
@@ -90,16 +88,14 @@ o.spec("EntityAdapter", () => {
 	})
 
 	o.test("set _ownerEncSessionKey", async () => {
-		const mailModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
-
 		const mail = createTestEntity(MailTypeRef, {
 			_permissions: "permissionListId",
 			sender: createTestEntity(MailAddressTypeRef, { name: "a", address: "a@a.a" }),
 			conversationEntry: ["list", "element"],
 		})
 
-		const mailParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(MailTypeRef, mail)
-		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline.modelMapper)
+		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, null)
+		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(mailParsed, instancePipeline.modelMapper, instancePipeline.cryptoMapper)
 
 		const ownerEncSk: Uint8Array = new Uint8Array([1, 2, 3])
 
@@ -114,16 +110,14 @@ o.spec("EntityAdapter", () => {
 	})
 
 	o.test("set _kdfNonce", async () => {
-		const mailModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
-
 		const mail = createTestEntity(MailTypeRef, {
 			_permissions: "permissionListId",
 			sender: createTestEntity(MailAddressTypeRef, { name: "a", address: "a@a.a" }),
 			conversationEntry: ["list", "element"],
 		})
 
-		const mailParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(MailTypeRef, mail)
-		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline.modelMapper)
+		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, null)
+		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(mailParsed, instancePipeline.modelMapper, instancePipeline.cryptoMapper)
 
 		const kdfNonce: Uint8Array = new Uint8Array([3, 4, 5])
 
@@ -135,15 +129,13 @@ o.spec("EntityAdapter", () => {
 	})
 
 	o.test("set _ownerGroup", async () => {
-		const mailModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
-
 		const mail = createTestEntity(MailTypeRef, {
 			_permissions: "permissionListId",
 			sender: createTestEntity(MailAddressTypeRef, { name: "a", address: "a@a.a" }),
 			conversationEntry: ["list", "element"],
 		})
-		const mailParsed = await instancePipeline.modelMapper.mapToClientModelParsedInstance(MailTypeRef, mail)
-		const entityAdapter = await EntityAdapter.from(mailModel, mailParsed, instancePipeline.modelMapper)
+		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, null)
+		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(mailParsed, instancePipeline.modelMapper, instancePipeline.cryptoMapper)
 
 		const ownerGroupId = "ownerGroupId"
 		o(entityAdapter._ownerGroup).equals(null)

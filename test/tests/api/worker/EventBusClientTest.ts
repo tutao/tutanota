@@ -488,7 +488,7 @@ o.spec("EventBusClient", function () {
 	}
 
 	async function createEntityMessage(event: WebsocketEntityData): Promise<string> {
-		const instanceAsData = await instancePipeline.mapAndEncrypt(event._type, event, null)
+		const instanceAsData = await instancePipeline.mapAndEncryptToParsedInstance(event._type, event, null)
 		return "entityUpdate;" + JSON.stringify(instanceAsData)
 	}
 
@@ -509,7 +509,7 @@ o.spec("EventBusClient", function () {
 	}
 
 	async function createCounterMessage(event: WebsocketCounterData): Promise<string> {
-		const instanceAsData = await instancePipeline.mapAndEncrypt(event._type, event, null)
+		const instanceAsData = await instancePipeline.mapAndEncryptToParsedInstance(event._type, event, null)
 		return "unreadCounterUpdate;" + JSON.stringify(instanceAsData)
 	}
 })

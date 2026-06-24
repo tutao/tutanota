@@ -7,7 +7,7 @@ import { AesKey, KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtil
 import { VersionedKey } from "../../CryptoTypes"
 
 export abstract class SubKeyInfo {
-	constructor(public readonly cipherVersion: SymmetricCipherVersion) {}
+	protected constructor(public readonly cipherVersion: SymmetricCipherVersion) {}
 }
 
 export class SubKeyInfoWithSessionKey extends SubKeyInfo {
