@@ -3,7 +3,7 @@ import { CryptoError } from "@tutao/crypto/error"
 import { base64ToBase64Url, base64ToUint8Array, hexToUint8Array, Nullable, uint8ArrayToArrayBuffer, uint8ArrayToBase64 } from "@tutao/utils"
 import { sha256Hash } from "../../hashes/Sha256.js"
 import sjcl from "../../internal/sjcl.js"
-import { AesKeyLength, getKeyLengthInBytes, wrapKey } from "./AesKeyLength.js"
+import { AesKeyLength, getKeyLengthInBytes, makeAesKey } from "./AesKeyLength.js"
 import { KeyOrSubKey } from "./SymmetricKeyDeriver"
 import { InitializationVectorVariant } from "./ParsedCiphertext"
 
@@ -28,13 +28,21 @@ export abstract class AesKey extends KeyOrSubKey {
 }
 
 export class Aes256Key extends AesKey {
-	keyLength = AesKeyLength.Aes256
+	keyLength: typeof AesKeyLength.Aes256 = AesKeyLength.Aes256
+
+	/**
+	 * The caller must ensure bits has the correct length.
+	 */
 	constructor(public readonly bits: BitArray) {
 		super()
 	}
 }
 export class Aes128Key extends AesKey {
-	keyLength = AesKeyLength.Aes128
+	keyLength: typeof AesKeyLength.Aes128 = AesKeyLength.Aes128
+
+	/**
+	 * The caller must ensure bits has the correct length.
+	 */
 	constructor(public readonly bits: BitArray) {
 		super()
 	}
@@ -112,7 +120,7 @@ export function uint8ArrayToKey(array: Uint8Array, acceptedBitLengths: typeof Ae
 export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey
 export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey {
 	let key = uint8ArrayToBitArray(array)
-	return wrapKey(key, acceptedBitLength ? [acceptedBitLength] : undefined)
+	return makeAesKey(key, acceptedBitLength ? [acceptedBitLength] : undefined)
 }
 
 export function keyToUint8Array(key: AesKey): Uint8Array {
