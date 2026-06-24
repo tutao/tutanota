@@ -4540,7 +4540,7 @@ pub struct ImapFolderSyncState {
 	#[serde(rename = "1909")]
 	pub importedMails: GeneratedId,
 	#[serde(rename = "1910")]
-	pub mailFolder: IdTupleGenerated,
+	pub mailFolder: Option<IdTupleGenerated>,
 	#[serde(rename = "1928")]
 	pub imapAccountSyncState: IdTupleGenerated,
 
@@ -4623,7 +4623,7 @@ pub struct ImapFolderPostIn {
 	#[serde(rename = "1935")]
 	pub imapAccountSyncState: IdTupleGenerated,
 	#[serde(rename = "1936")]
-	pub mailFolder: IdTupleGenerated,
+	pub mailFolder: Option<IdTupleGenerated>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -4694,10 +4694,10 @@ pub struct ImapPostIn {
 	pub provider: i64,
 	#[serde(rename = "1952")]
 	pub imapAccount: ImapAccount,
-	#[serde(rename = "1953")]
-	pub labelData: Option<ManageLabelServiceLabelData>,
 	#[serde(rename = "1954")]
 	pub rootImportMailFolder: Option<IdTupleGenerated>,
+	#[serde(rename = "1967")]
+	pub syncLabel: Option<IdTupleGenerated>,
 
 	#[serde(default)]
 	pub _errors: Errors,

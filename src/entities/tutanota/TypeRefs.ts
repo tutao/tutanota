@@ -2911,7 +2911,7 @@ export type ImapFolderSyncState = {
 	status: NumberString;
 
 	importedMails: Id;
-	mailFolder: IdTuple;
+	mailFolder: null | IdTuple;
 	imapAccountSyncState: IdTuple;
 }
 export const ImapAccountSyncStateTypeRef: TypeRef<ImapAccountSyncState> = new TypeRef("tutanota", 1911)
@@ -2960,7 +2960,7 @@ export type ImapFolderPostIn = {
 	path: string;
 
 	imapAccountSyncState: IdTuple;
-	mailFolder: IdTuple;
+	mailFolder: null | IdTuple;
 }
 export const ImapFolderPostOutTypeRef: TypeRef<ImapFolderPostOut> = new TypeRef("tutanota", 1937)
 
@@ -3010,8 +3010,8 @@ export type ImapPostIn = {
 	provider: NumberString;
 
 	imapAccount: ImapAccount;
-	labelData: null | ManageLabelServiceLabelData;
 	rootImportMailFolder: null | IdTuple;
+	syncLabel: null | IdTuple;
 }
 export const ImapPostOutTypeRef: TypeRef<ImapPostOut> = new TypeRef("tutanota", 1955)
 
