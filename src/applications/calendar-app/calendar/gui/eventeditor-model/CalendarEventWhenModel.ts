@@ -594,8 +594,6 @@ export class CalendarEventWhenModel {
 		const { startTime, endTime } = this.getTimes()
 		const { startTimeZone, endTimeZone } = this.timeZones
 
-		console.log("[WhenModel] Result: ", { startTime, endTime, repeatRule, startTimeZone, endTimeZone })
-
 		return { startTime, endTime, repeatRule, startTimeZone, endTimeZone }
 	}
 
