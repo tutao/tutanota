@@ -97,7 +97,7 @@ o.spec("CalendarImporter", function () {
 
 		o.spec("Canceled operations", function () {
 			o.test("should show empty file message when no events are provided", async function () {
-				await calendarImporter.import(calendarGroupRoot, calendarInfoBase, [], CalendarImporter.classifyImportedEvents, calendarInfoBase.type)
+				await calendarImporter.import(calendarGroupRoot, calendarInfoBase, [], CalendarImporter.classifyAndPrepareImportedEvents, calendarInfoBase.type)
 				verify(mockImportInteractionHandler.showEmptyFileMessage(), { times: 1 })
 			})
 
@@ -115,7 +115,7 @@ o.spec("CalendarImporter", function () {
 					),
 				).thenResolve(false)
 
-				await calendarImporter.import(calendarGroupRoot, calendarInfoBase, parsedEventAlarmTuples, CalendarImporter.classifyImportedEvents)
+				await calendarImporter.import(calendarGroupRoot, calendarInfoBase, parsedEventAlarmTuples, CalendarImporter.classifyAndPrepareImportedEvents)
 
 				verify(mockCalendarModel.doUpdateEvent(anything(), anything()), { times: 0 })
 				verify(mockCalendarModel.createCalendarEvents(anything(), anything()), { times: 0 })
@@ -368,7 +368,7 @@ o.spec("CalendarImporter", function () {
 			}
 			const calendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef)
 
-			const { rejectedEvents, eventsForCreationTuples } = CalendarImporter.classifyImportedEvents(
+			const { rejectedEvents, eventsForCreationTuples } = CalendarImporter.classifyAndPrepareImportedEvents(
 				[
 					{ icsCalendarEvent: duplicateProgenitor, alarms: [] },
 					{ icsCalendarEvent: newProgenitor, alarms: [] },
@@ -424,7 +424,7 @@ o.spec("CalendarImporter", function () {
 
 			const expectedRejectedProgenitor = makeCalendarEventFromIcsCalendarEvent(existingProgenitorIcs)
 
-			const { rejectedEvents, eventsForCreationTuples } = CalendarImporter.classifyImportedEvents(
+			const { rejectedEvents, eventsForCreationTuples } = CalendarImporter.classifyAndPrepareImportedEvents(
 				[
 					{ icsCalendarEvent: newProgenitorIcs, alarms: [] },
 					{ icsCalendarEvent: existingProgenitorIcs, alarms: [] },
@@ -461,7 +461,7 @@ o.spec("CalendarImporter", function () {
 				endTimeZone: null,
 			}
 
-			const { rejectedEvents, eventsForCreationTuples } = CalendarImporter.classifyImportedEvents(
+			const { rejectedEvents, eventsForCreationTuples } = CalendarImporter.classifyAndPrepareImportedEvents(
 				[
 					{ icsCalendarEvent: parsedProgenitor, alarms: [] },
 					{ icsCalendarEvent: parsedProgenitor, alarms: [] },

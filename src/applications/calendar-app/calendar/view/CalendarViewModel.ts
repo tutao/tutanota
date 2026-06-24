@@ -954,7 +954,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			new EventSeriesResolver(this.calendarModel, new DefaultDateProvider()),
 			this.timeZone,
 		)
-		await importer.import(groupRoot, calendarInfo, parsedEventAlarmTuples, CalendarImporter.classifyImportedEvents, calendarInfo.type)
+		await importer.import(groupRoot, calendarInfo, parsedEventAlarmTuples, CalendarImporter.classifyAndPrepareImportedEvents, calendarInfo.type)
 	}
 }
 

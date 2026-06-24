@@ -6,6 +6,7 @@ import {
 	delay,
 	downcast,
 	filterInt,
+	filterNull,
 	findAndRemove,
 	getFirstOrThrow,
 	getFromMap,
@@ -138,6 +139,7 @@ import { IcsCalendarEvent, parseCalendarStringData, ParsedCalendarData, ParsedEv
 import { CalendarImporter, EventImportRejectionReason } from "../../../common/calendar/import/CalendarImporter"
 import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { repeatRuleWithExcludedAlteredInstances } from "../gui/eventeditor-model/CalendarEventWhenModel"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
@@ -185,6 +187,13 @@ export function assertEventValidity(event: CalendarEvent) {
 		case CalendarEventValidity.Valid:
 		// event is valid, nothing to do
 	}
+}
+
+export type SyncChanges = {
+	eventsToRemove: CalendarEvent[]
+	eventsToUpdate: CalendarEvent[]
+	eventsForCreationTuples: EventAlarmInfoTemplatesTuple[]
+	duplicatesCount: number
 }
 
 export class CalendarModel {
@@ -500,32 +509,49 @@ export class CalendarModel {
 		}, EXTERNAL_CALENDAR_SYNC_INTERVAL)
 	}
 
-	private async collectExternalCalendarsToSync(groupSettings: GroupSettings[] | null = null) {
+	/**
+	 * Adds external calendars configured by the user to the synchronization queue.
+	 *
+	 * If no group settings are provided, they are loaded from the user's settings.
+	 * Calendars without a source URL are ignored, and calendars already present in
+	 * the queue are not added again.
+	 */
+	private async collectExternalCalendarsToSync(existingGroupSettings: GroupSettings[] | null = null) {
 		const userController = this.logins.getUserController()
-		let existingGroupSettings = groupSettings
+		let groupSettingsToSync = existingGroupSettings
 
-		if (!existingGroupSettings) {
-			const { groupSettings: gSettings } = await locator.entityClient.load(UserSettingsGroupRootTypeRef, userController.user.userGroup.group)
-			existingGroupSettings = gSettings
+		if (!groupSettingsToSync) {
+			const { groupSettings } = await locator.entityClient.load(UserSettingsGroupRootTypeRef, userController.user.userGroup.group)
+			groupSettingsToSync = groupSettings
 		}
 
-		for (const { sourceUrl, group, name } of existingGroupSettings) {
+		for (const { sourceUrl, group, name } of groupSettingsToSync) {
 			if (!sourceUrl) continue
 
 			const calendar: ExternalCalendarQueueItem = { url: sourceUrl, group, name }
-			if (this.externalCalendarSyncQueue.some((queueItem) => deepEqual(calendar, queueItem))) continue
+			if (this.externalCalendarSyncQueue.some((queueItem) => deepEqual(calendar, queueItem))) {
+				continue
+			}
 
 			this.externalCalendarSyncQueue.push(calendar)
 		}
 	}
 
+	/**
+	 * Synchronizes all configured external calendars.
+	 *
+	 * External calendars are collected from the provided group settings or loaded
+	 * from the user's settings if none are provided.
+	 * Synchronization is skipped if external calendar support is unavailable, the user is not fully logged in,
+	 * or the initial app sync has not completed yet.
+	 */
 	public async syncExternalCalendars(
 		groupSettings: GroupSettings[] | null = null,
 		syncInterval: number = EXTERNAL_CALENDAR_SYNC_INTERVAL,
 		longErrorMessage: boolean = false,
 		forceSync: boolean = false,
 	) {
-		if (!this.externalCalendarFacade || !locator.logins.isFullyLoggedIn() || !this.syncTracker.isSyncDone) {
+		if (!this.externalCalendarFacade || !this.logins.isFullyLoggedIn() || !this.syncTracker.isSyncDone) {
 			return
 		}
 
@@ -533,116 +559,89 @@ export class CalendarModel {
 		return this.processExternalCalendarQueue(forceSync, syncInterval, longErrorMessage)
 	}
 
+	/**
+	 * Processes all queued external calendars and synchronizes their events.
+	 *
+	 * Calendars are synchronized one at a time. Depending on the current sync
+	 * state, a calendar may be skipped, retried, or synchronized by creating,
+	 * updating, and removing events as necessary. Failures to fetch or parse an
+	 * external calendar are collected and reported after the queue has been
+	 * processed.
+	 *
+	 * @param forceSync If true, synchronizes calendars regardless of their last
+	 * successful synchronization time.
+	 * @param syncInterval Minimum time in milliseconds between successful
+	 * synchronizations of the same calendar.
+	 * @param longErrorMessage If true, includes per-calendar error details in the
+	 * aggregated error message.
+	 *
+	 * @throws {Error} If one or more calendars could not be synchronized.
+	 */
 	private async processExternalCalendarQueue(forceSync: boolean, syncInterval: number, longErrorMessage: boolean) {
 		const skippedCalendars: Map<Id, { calendarName: string; error: Error }> = new Map()
 
 		while (this.externalCalendarSyncQueue.length > 0) {
-			const calendar = this.externalCalendarSyncQueue.shift()
-			if (!calendar) break
+			const queuedExternalCalendarEntry = this.externalCalendarSyncQueue.shift()
+			if (!queuedExternalCalendarEntry) break
 
-			const retryCount = this.externalCalendarRetryCount.get(calendar.group) ?? 0
+			const retryCount = this.externalCalendarRetryCount.get(queuedExternalCalendarEntry.group) ?? 0
 
 			await delay(retryCount * EXTERNAL_CALENDAR_RETRY_DELAY_MS)
 
-			const userController = this.logins.getUserController()
-			const groupRootsPromises: Promise<CalendarGroupRoot>[] = []
-			let calendarGroupRootsList: CalendarGroupRoot[] = []
-			for (const membership of userController.getCalendarMemberships()) {
-				groupRootsPromises.push(this.entityClient.load(CalendarGroupRootTypeRef, membership.group))
+			let calendarGroupRootsList: CalendarGroupRoot[] = await this.fetchCalendarGroupRoots()
+
+			if (this.shoudSkipExternalCalendarSync(queuedExternalCalendarEntry, forceSync, syncInterval)) {
+				continue
 			}
-			calendarGroupRootsList = await Promise.all(groupRootsPromises)
 
-			const lastSyncEntry = this.deviceConfig.getLastExternalCalendarSync().get(calendar.group)
-			const offset = 1000 // Add an offset to account for cpu speed when storing or generating timestamps
-			const shouldSkipSync =
-				!forceSync &&
-				lastSyncEntry?.lastSyncStatus === SyncStatus.Success &&
-				lastSyncEntry.lastSuccessfulSync &&
-				Date.now() + offset - lastSyncEntry.lastSuccessfulSync < syncInterval
-			if (shouldSkipSync) continue
-
-			const currentCalendarGroupRoot = calendarGroupRootsList.find((calendarGroupRoot) => isSameId(calendarGroupRoot._id, calendar.group)) ?? null
+			const currentCalendarGroupRoot =
+				calendarGroupRootsList.find((calendarGroupRoot) => isSameId(calendarGroupRoot._id, queuedExternalCalendarEntry.group)) ?? null
 			if (!currentCalendarGroupRoot) {
-				console.error(`Trying to sync a calendar the user isn't subscribed to anymore: ${calendar.group}`)
+				console.error(`Trying to sync a calendar the user isn't subscribed to anymore: ${queuedExternalCalendarEntry.group}`)
 				continue
 			}
 
 			let parsedExternalEvents: ParsedEventAlarmTuple[] = []
-			const calendarTimeZone = getTimeZone()
 			try {
-				const externalCalendar = await this.fetchExternalCalendar(calendar.url)
-				parsedExternalEvents = parseCalendarStringData(externalCalendar, calendarTimeZone).contents
+				const externalCalendar = await this.fetchExternalCalendar(queuedExternalCalendarEntry.url)
+				parsedExternalEvents = parseCalendarStringData(externalCalendar, this.zone).contents
 			} catch (error) {
-				let calendarName = calendar.name
-				console.log("failed to sync external calendar", error)
+				let calendarName = queuedExternalCalendarEntry.name
+				console.warn("Failed to sync external calendar, skipping.", error)
 				if (!calendarName) {
 					const calendars = await this.getCalendarInfos()
-					calendarName = calendars.get(calendar.group)?.groupInfo.name!
+					calendarName = calendars.get(queuedExternalCalendarEntry.group)?.groupInfo.name!
 				}
-				skippedCalendars.set(calendar.group, { calendarName, error })
+				skippedCalendars.set(queuedExternalCalendarEntry.group, { calendarName, error })
 				continue
 			}
 
-			const existingEventList = await this.loadAllEvents(currentCalendarGroupRoot)
+			const existingEvents = await this.loadAllEvents(currentCalendarGroupRoot)
 
-			/**
-			 * Sync strategy
-			 * - Deduplicate events with same UID
-			 * - Remove duplicated and not imported events
-			 * - Update existing events
-			 * - Add new
-			 */
-			const { rejectedEvents, eventsForCreationTuples } = CalendarImporter.classifyImportedEvents(
-				parsedExternalEvents,
-				existingEventList,
-				currentCalendarGroupRoot,
-				calendarTimeZone,
-			)
-			const duplicates = rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? []
-			const eventsToUpdate = duplicates.filter((event) => {
-				const existingEvent = existingEventList.find((existing) => shallowIsSameEvent(event, existing))
+			const syncChanges = this.getSyncChanges(parsedExternalEvents, existingEvents, currentCalendarGroupRoot)
 
-				if (!existingEvent) {
-					console.warn("Found a duplicate without an existing event!")
-					return false
-				}
-
-				if (event.repeatRule?.timeZone === "") {
-					event.repeatRule.timeZone = calendarTimeZone // For repeating events we always keep a timezone in the repeat rule
-				}
-
-				return !eventHasSameFields(event, existingEvent)
-			})
-
-			const eventsToRemove = existingEventList.filter(
-				(existingEvent) => !parsedExternalEvents.some((externalEvent) => shallowIsSameEvent(externalEvent.icsCalendarEvent, existingEvent)),
-			)
-			eventsToRemove.push(...this.findDuplicatedEvents(existingEventList))
-
-			const creationRequests = Math.ceil(eventsForCreationTuples.length / POST_MULTIPLE_LIMIT)
-			const totalRequests = creationRequests + eventsToRemove.length + eventsToUpdate.length
+			const creationRequests = Math.ceil(syncChanges.eventsForCreationTuples.length / POST_MULTIPLE_LIMIT)
+			const totalRequests = creationRequests + syncChanges.eventsToRemove.length + syncChanges.eventsToUpdate.length // This sum does not consider alarm creation
+			const MAX_REQUESTS_ALLOWED_BEFORE_WIPE_CALENDAR = 50
 
 			try {
 				await this.processExternalCalendarOperations(
-					eventsToRemove,
-					eventsToUpdate,
-					existingEventList,
-					duplicates.length,
-					eventsForCreationTuples,
+					syncChanges,
+					existingEvents,
 					currentCalendarGroupRoot,
-					totalRequests > 50,
+					totalRequests > MAX_REQUESTS_ALLOWED_BEFORE_WIPE_CALENDAR,
 				)
 
-				this.deviceConfig.updateLastSync(calendar.group)
+				this.deviceConfig.updateLastSync(queuedExternalCalendarEntry.group)
 			} catch (err) {
-				this.externalCalendarRetryCount.set(calendar.group, retryCount + 1)
+				this.externalCalendarRetryCount.set(queuedExternalCalendarEntry.group, retryCount + 1)
 
 				if (retryCount >= EXTERNAL_CALENDAR_RETRY_LIMIT) {
 					if (!(err instanceof NotFoundError)) {
 						throw err
 					}
 				} else {
-					this.externalCalendarSyncQueue.push(calendar)
+					this.externalCalendarSyncQueue.push(queuedExternalCalendarEntry)
 				}
 			}
 		}
@@ -654,6 +653,77 @@ export class CalendarModel {
 				this.deviceConfig.updateLastSync(group, SyncStatus.Failed)
 			}
 			throw new Error(errorMessage)
+		}
+	}
+
+	private shoudSkipExternalCalendarSync(calendar: ExternalCalendarQueueItem, forceSync: boolean, syncInterval: number) {
+		const lastSyncEntry = this.deviceConfig.getLastExternalCalendarSync().get(calendar.group)
+		const offset = 1000 // Add an offset to account for cpu speed when storing or generating timestamps
+		const shouldSkipSync =
+			!forceSync &&
+			lastSyncEntry?.lastSyncStatus === SyncStatus.Success &&
+			lastSyncEntry.lastSuccessfulSync &&
+			Date.now() + offset - lastSyncEntry.lastSuccessfulSync < syncInterval
+		return shouldSkipSync
+	}
+
+	private async fetchCalendarGroupRoots() {
+		const userController = this.logins.getUserController()
+		const groupRootsPromises: Promise<CalendarGroupRoot>[] = []
+		for (const membership of userController.getCalendarMemberships()) {
+			groupRootsPromises.push(this.entityClient.load(CalendarGroupRootTypeRef, membership.group))
+		}
+		return await Promise.all(groupRootsPromises)
+	}
+
+	/**
+	 * Deduplicate events with same UID and separate incoming events into to update, remove and create.
+	 *
+	 * Existing events might have been changed in the external calendar, so we check the "duplicate" events to see
+	 * if changes must be applied & mark them for update.
+	 *
+	 * @param parsedExternalEvents
+	 * @param existingEvents
+	 * @param calendarGroupRoot
+	 * @private
+	 */
+	private getSyncChanges(
+		parsedExternalEvents: ParsedEventAlarmTuple[],
+		existingEvents: Array<CalendarEvent>,
+		calendarGroupRoot: CalendarGroupRoot,
+	): SyncChanges {
+		const { rejectedEvents, eventsForCreationTuples } = CalendarImporter.classifyAndPrepareImportedEvents(
+			parsedExternalEvents,
+			existingEvents,
+			calendarGroupRoot,
+			this.zone,
+		)
+		const duplicates = rejectedEvents.get(EventImportRejectionReason.Duplicate) ?? []
+		const eventsToUpdate = duplicates.filter((event) => {
+			const existingEvent = existingEvents.find((existing) => shallowIsSameEvent(event, existing))
+
+			if (!existingEvent) {
+				console.warn("Found a duplicate without an existing event!")
+				return false
+			}
+
+			if (event.repeatRule?.timeZone === "") {
+				event.repeatRule.timeZone = this.zone // For repeating events we always keep a timezone in the repeat rule
+			}
+
+			return !eventHasSameFields(event, existingEvent)
+		})
+
+		const eventsToRemove = existingEvents.filter(
+			(existingEvent) => !parsedExternalEvents.some((externalEvent) => shallowIsSameEvent(externalEvent.icsCalendarEvent, existingEvent)),
+		)
+		eventsToRemove.push(...this.findDuplicatedEvents(existingEvents))
+
+		return {
+			eventsToRemove,
+			eventsToUpdate,
+			eventsForCreationTuples,
+			duplicatesCount: duplicates.length,
 		}
 	}
 
@@ -673,12 +743,15 @@ export class CalendarModel {
 		return duplicatedEvents
 	}
 
+	/**
+	 * Sync strategy
+	 * - Remove duplicated and not imported events
+	 * - Update existing events
+	 * - Add new
+	 */
 	private async processExternalCalendarOperations(
-		eventsToRemove: CalendarEvent[],
-		eventsToUpdate: CalendarEvent[],
+		{ eventsToUpdate, eventsToRemove, eventsForCreationTuples, duplicatesCount }: SyncChanges,
 		existingEventList: Array<CalendarEvent>,
-		duplicatesCount: number,
-		eventsForCreation: Array<EventAlarmInfoTemplatesTuple>,
 		currentCalendarGroupRoot: CalendarGroupRoot,
 		wipeCalendar: boolean,
 	) {
@@ -723,9 +796,12 @@ export class CalendarModel {
 				continue
 			}
 
+			this.handleSyncExcludedDatesForProgenitor(duplicatedEvent, eventsForCreationTuples, eventsToUpdate, existingEventList, eventsToRemove)
+
 			if (eventHasSameFields(duplicatedEvent, existingEvent)) {
 				continue
 			}
+
 			await this.updateEventWithExternal(existingEvent, duplicatedEvent)
 			operationsLog.updated++
 		}
@@ -734,28 +810,68 @@ export class CalendarModel {
 		console.log(TAG, `${operationsLog.updated} events updated (same UID with changes)`)
 
 		// Add new event
-		for (const { event } of eventsForCreation) {
+		for (const { event } of eventsForCreationTuples) {
 			assignEventId(event, getTimeZone(), currentCalendarGroupRoot)
 			// Reset _ownerEncSessionKey, _kdfNonce because it cannot be set for new entity, it will be assigned by the CryptoFacade
 			event._ownerEncSessionKey = null
 			event._kdfNonce = null
 
-			if (event.repeatRule != null) {
-				event.repeatRule.excludedDates = event.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date }))
-			}
+			this.handleSyncExcludedDatesForProgenitor(event, eventsForCreationTuples, eventsToUpdate, existingEventList, eventsToRemove)
+
 			// Reset permissions because server will assign them
 			downcast(event)._permissions = null
 			event._ownerGroup = currentCalendarGroupRoot._id
 			assertEventValidity(event)
 			operationsLog.created++
 		}
-		if (isNotEmpty(eventsForCreation)) {
+		if (isNotEmpty(eventsForCreationTuples)) {
 			let eventCreationOperation = this.operationProgressTracker.startNewOperation()
-			const result = await this.calendarFacade.createCalendarEvents(eventsForCreation, eventCreationOperation.id)
+			const result = await this.calendarFacade.createCalendarEvents(eventsForCreationTuples, eventCreationOperation.id)
 			this.handleSaveCalendarEventsErrorIfNeeded(result)
 			eventCreationOperation.done()
 		}
 		console.log(TAG, `${operationsLog.created} events created`)
+	}
+
+	/** For populating the progenitor's excluded dates, specifically for external calendar subscription synchronization.
+	 *
+	 * @param incomingEvent
+	 * @param eventsForCreation
+	 * @param eventsToUpdate
+	 * @param existingEventList
+	 * @param eventsToRemove
+	 * @private
+	 */
+	private handleSyncExcludedDatesForProgenitor(
+		incomingEvent: CalendarEvent,
+		eventsForCreation: Array<EventAlarmInfoTemplatesTuple>,
+		eventsToUpdate: CalendarEvent[],
+		existingEventList: Array<CalendarEvent>,
+		eventsToRemove: CalendarEvent[],
+	) {
+		if (incomingEvent.repeatRule) {
+			const existingEvent = existingEventList.find((ev) => shallowIsSameEvent(ev, incomingEvent))!
+			const newAlteredInstances = eventsForCreation.map((tuple) => tuple.event).filter((event) => event.uid === incomingEvent.uid && event.recurrenceId)
+			const toUpdateAlteredInstances = eventsToUpdate.filter((event) => event.uid === incomingEvent.uid && event.recurrenceId)
+			const skippedAlteredInstances = existingEventList.filter(
+				(event) =>
+					event.uid === incomingEvent.uid &&
+					event.recurrenceId &&
+					!toUpdateAlteredInstances.some((existingAi) => shallowIsSameEvent(existingAi, event)) &&
+					!eventsToRemove.some((existingAi) => shallowIsSameEvent(existingAi, event)),
+			)
+
+			const removedIds = filterNull(eventsToRemove.map((ev) => ev.recurrenceId?.getTime()))
+			const excludedDatesToKeep = existingEvent.repeatRule?.excludedDates.filter((exDate) => removedIds.includes(exDate.date.getTime())) ?? []
+
+			const allAlteredInstances = [...newAlteredInstances, ...toUpdateAlteredInstances, ...skippedAlteredInstances]
+
+			incomingEvent.repeatRule = repeatRuleWithExcludedAlteredInstances(
+				incomingEvent,
+				[...allAlteredInstances.map((ai) => ai.recurrenceId!), ...excludedDatesToKeep.map((ex) => ex.date)],
+				this.zone,
+			)
+		}
 	}
 
 	private async loadOrCreateCalendarInfo(progressMonitor: ProgressMonitorInterface): Promise<ReadonlyMap<Id, CalendarInfo>> {
@@ -1579,10 +1695,11 @@ export class CalendarModel {
 	}
 
 	async loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEvent>> {
-		return Promise.all([
-			locator.entityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents),
-			locator.entityClient.loadAll(CalendarEventTypeRef, groupRoot.shortEvents),
-		]).then((results) => results.flat())
+		const loadEventsPromises = [
+			this.entityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents),
+			this.entityClient.loadAll(CalendarEventTypeRef, groupRoot.shortEvents),
+		]
+		return Promise.all(loadEventsPromises).then((results) => results.flat())
 	}
 }
 

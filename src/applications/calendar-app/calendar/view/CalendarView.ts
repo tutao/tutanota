@@ -983,7 +983,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				getTimeZone(),
 			)
 
-			await calendarImporter.import(calendarGroupRoot, calendarInfo, events, CalendarImporter.classifyImportedEvents, CalendarType.External)
+			await calendarImporter.import(calendarGroupRoot, calendarInfo, events, CalendarImporter.classifyAndPrepareImportedEvents, CalendarType.External)
 			this.viewModel.isCreatingExternalCalendar = false
 			dialog.close()
 		}

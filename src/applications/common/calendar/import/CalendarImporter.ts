@@ -30,11 +30,16 @@ export class CalendarImporter {
 		private readonly timezone: string,
 	) {}
 
-	/** Sort parsed events into event to create and rejected events with a rejection reason
+	/**
+	 * Classifies imported events as either ready for creation or rejected.
 	 *
-	 * This function will assign event id according to the calendarGroupRoot and the long/short event list
-	 **/
-	static classifyImportedEvents(
+	 * Events are grouped by UID so duplicates within the same ICS import can be
+	 * detected.
+	 *
+	 * Accepted events are prepared for creation by assigning event IDs
+	 * and ownership information based on the target calendar.
+	 */
+	static classifyAndPrepareImportedEvents(
 		parsedEventAlarmTuples: ParsedEventAlarmTuple[],
 		existingEvents: Array<CalendarEvent>,
 		calendarGroupRoot: CalendarGroupRoot,
@@ -243,7 +248,7 @@ function classifyUidGroup(
 	for (let i = 0; i < parsedUidGroup.length; i++) {
 		const parsedTuple = parsedUidGroup[i]
 
-		const classification = classifyParsedEvent(parsedTuple, parsedUidGroup.slice(i + 1), existingUidGroup, calendarGroupRoot, zone)
+		const classification = classifyAndPrepareEventInUidGroup(parsedTuple, parsedUidGroup.slice(i + 1), existingUidGroup, calendarGroupRoot, zone)
 
 		appendClassificationResult(result, classification)
 	}
@@ -251,7 +256,7 @@ function classifyUidGroup(
 	return result
 }
 
-function classifyParsedEvent(
+function classifyAndPrepareEventInUidGroup(
 	parsedTuple: ParsedEventAlarmTuple,
 	followingParsedEvents: ParsedEventAlarmTuple[],
 	existingEvents: CalendarEvent[],
@@ -277,6 +282,12 @@ function classifyParsedEvent(
 	}
 }
 
+/**
+ * Prepares an imported event for creation.
+ *
+ * Assigns the target calendar owner, generates identifiers for the event and
+ * its alarms, and returns the event together with its prepared alarm templates.
+ */
 function prepareEventForImport(
 	calendarEvent: CalendarEvent,
 	alarms: AlarmInfoTemplate[],

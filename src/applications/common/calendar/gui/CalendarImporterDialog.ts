@@ -285,6 +285,6 @@ export async function importCalendarFile(
 
 	calendarSelectionDialog(Array.from(calendarInfos.values()), userController, groupColors, (dialog, selectedCalendar) => {
 		dialog.close()
-		calendarImporter.import(selectedCalendar.groupRoot, selectedCalendar, events, CalendarImporter.classifyImportedEvents, selectedCalendar.type)
+		calendarImporter.import(selectedCalendar.groupRoot, selectedCalendar, events, CalendarImporter.classifyAndPrepareImportedEvents, selectedCalendar.type)
 	})
 }
