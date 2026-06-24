@@ -5,18 +5,16 @@ import { sha256Hash } from "../../hashes/Sha256.js"
 import sjcl from "../../internal/sjcl.js"
 import { AesKeyLength, getKeyLengthInBytes, wrapKey } from "./AesKeyLength.js"
 import { KeyOrSubKey } from "./SymmetricKeyDeriver"
+import { InitializationVectorVariant } from "./ParsedCiphertext"
 
 export class InitializationVector {
-	constructor(public readonly bytes: Uint8Array) {}
+	constructor(
+		public readonly bytes: Uint8Array,
+		public readonly variant: InitializationVectorVariant,
+	) {}
 }
 
-export class FixedInitializationVector extends InitializationVector {
-	constructor() {
-		super(hexToUint8Array("88888888888888888888888888888888"))
-	}
-}
-
-export const FIXED_INITIALIZATION_VECTOR = new FixedInitializationVector()
+export const FIXED_INITIALIZATION_VECTOR = new InitializationVector(hexToUint8Array("88888888888888888888888888888888"), InitializationVectorVariant.Fixed)
 export const BLOCK_SIZE_BYTES = 16
 export const INITIALIZATION_VECTOR_LENGTH_BYTES = BLOCK_SIZE_BYTES
 export const KDF_NONCE_LENGTH_BYTES = 32
@@ -133,7 +131,7 @@ export function aes256RandomKey(): Aes256Key {
 export type KdfNonce = Uint8Array & { readonly __brand: "KdfNonce" }
 
 export function generateInitializationVector(): InitializationVector {
-	return new InitializationVector(random.generateRandomData(INITIALIZATION_VECTOR_LENGTH_BYTES))
+	return new InitializationVector(random.generateRandomData(INITIALIZATION_VECTOR_LENGTH_BYTES), InitializationVectorVariant.Random)
 }
 
 export function generateKdfNonce(): KdfNonce {
@@ -149,7 +147,7 @@ export function validateInitializationVectorLength(initializationVector: Nullabl
 	if (initializationVector.length !== INITIALIZATION_VECTOR_LENGTH_BYTES) {
 		throw new CryptoError(`invalid initialization vector length: ${initializationVector.length} bytes`)
 	}
-	return new InitializationVector(initializationVector)
+	return new InitializationVector(initializationVector, InitializationVectorVariant.Random)
 }
 
 export function validateKdfNonceLength(kdfNonce: Uint8Array): KdfNonce

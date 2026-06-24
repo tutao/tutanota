@@ -1,5 +1,5 @@
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
-import { AesKey, bitArrayToUint8Array, FixedInitializationVector, InitializationVector, keyToUint8Array, uint8ArrayToBitArray } from "./SymmetricCipherUtils"
+import { AesKey, bitArrayToUint8Array, InitializationVector, keyToUint8Array, uint8ArrayToBitArray } from "./SymmetricCipherUtils"
 import { CryptoError } from "@tutao/crypto/error"
 import { assertNotNull, concat, downcast } from "@tutao/utils"
 import sjcl from "../../internal/sjcl"
@@ -52,7 +52,7 @@ export class AesCbcFacade {
 		)
 
 		let unauthenticatedCiphertext
-		if (initializationVector instanceof FixedInitializationVector) {
+		if (initializationVector.variant === InitializationVectorVariant.Fixed) {
 			unauthenticatedCiphertext = ciphertext
 		} else {
 			//version byte is not included into authentication tag for legacy reasons
