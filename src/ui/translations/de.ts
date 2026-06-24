@@ -2311,16 +2311,6 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"revocation_action": "Widerruf einreichen",
-		"revocationForm_title": "Widerrufsformular",
-		"revocationPeriodEnded_msg": "Dieser Account befindet sich nicht mehr innerhalb der zweiwöchigen Widerrufsfrist. Du kannst deinen Vertrag in den App-Einstellungen regulär kündigen.",
-		"downgradeFailed_msg": "Dein Account konnte nicht auf Free zurückgesetzt werden. Du kannst keine E-Mails mehr senden oder empfangen bis du alle aktiven Premium-Funktionen deaktiviert hast.",
-		"revocationSubmitted_label": "Widerruf eingereicht",
-		"revocationSubmitted_msg": "Der Widerruf des Abonnements für den Account {accountName} wurde erfolgreich eingereicht. Er ist am {receivedDate} bei uns eingegangen und wird in Kürze bearbeitet.",
-		"revocationAlreadySubmitted_msg": "Für diesen Account wurde bereits ein Widerruf eingereicht.",
-		"revokeSubscriptionWithAppStoreSubscription_msg": "Dein Abonnement wird über den Apple App Store verwaltet. Du musst es dort widerrufen. Siehe {AppStorePayment}",
-		"revocation_text": "Du kannst deinen Vertrag innerhalb von 14 Tagen widerrufen, wenn du ein privates Abo abgeschlossen hast.\n\nBitte gib die Zugangsdaten für den Account an, dessen Abonnement du widerrufen möchtest.",
-		"revocationOnlyPersonalPlans_msg": "Widerrufe können nur für private Abos eingereicht werden. Bitte kontaktiere den Support, wenn du Hilfe benötigst."
+		"zoomOut_action": "Herauszoomen"
 	}
 }
