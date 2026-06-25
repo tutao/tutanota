@@ -174,7 +174,7 @@ export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButt
 				hideRefreshButton
 					? null
 					: {
-							title: "refresh_action",
+							label: "refresh_action",
 							icon: Icons.Sync,
 							size: ButtonSize.Compact,
 							click: () => _updateDnsStatus(domainStatus),

@@ -77,7 +77,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 			showActionButtonColumn: true,
 			lines: this.auditLogLines,
 			addButtonAttrs: {
-				title: "refresh_action",
+				label: "refresh_action",
 				click: () => showProgressDialog("loading_msg", this.updateAuditLog()).then(() => m.redraw()),
 				icon: Icons.Sync,
 				size: ButtonSize.Compact,
@@ -296,7 +296,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 							return {
 								cells: [auditLogEntry.action, auditLogEntry.modifiedEntity, formatDateTimeFromYesterdayOn(auditLogEntry.date)],
 								actionButtonAttrs: {
-									title: "showMore_action",
+									label: "showMore_action",
 									icon: Icons.More,
 									click: () => this.showAuditLogDetails(auditLogEntry, customer),
 									size: ButtonSize.Compact,

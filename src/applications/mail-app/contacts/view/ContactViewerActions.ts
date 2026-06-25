@@ -26,7 +26,7 @@ export class ContactViewerActions implements Component<ContactViewToolbarAttrs> 
 		if (this.canEdit(contacts)) {
 			actionButtons.push(
 				m(IconButton, {
-					title: "edit_action",
+					label: "edit_action",
 					click: () => onEdit(contacts[0]),
 					icon: Icons.PenFilled,
 				}),
@@ -34,7 +34,7 @@ export class ContactViewerActions implements Component<ContactViewToolbarAttrs> 
 		} else if (this.canMerge(contacts)) {
 			actionButtons.push(
 				m(IconButton, {
-					title: "merge_action",
+					label: "merge_action",
 					click: () => onMerge(contacts[0], contacts[1]),
 					icon: Icons.PeopleFilled,
 				}),
@@ -44,7 +44,7 @@ export class ContactViewerActions implements Component<ContactViewToolbarAttrs> 
 		if (this.canExport(contacts)) {
 			actionButtons.push(
 				m(IconButton, {
-					title: "export_action",
+					label: "export_action",
 					click: () => onExport(contacts),
 					icon: Icons.CloudDownloadFilled,
 				}),
@@ -53,7 +53,7 @@ export class ContactViewerActions implements Component<ContactViewToolbarAttrs> 
 		if (this.canDelete(contacts)) {
 			actionButtons.push(
 				m(IconButton, {
-					title: "delete_action",
+					label: "delete_action",
 					click: () => onDelete(contacts),
 					icon: Icons.TrashFilled,
 				}),

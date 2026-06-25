@@ -94,7 +94,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 					m(
 						".mr-negative-8",
 						m(IconButton, {
-							title: "createSharedMailbox_label",
+							label: "createSharedMailbox_label",
 							icon: Icons.Plus,
 							click: () => this.addButtonClicked(),
 						}),

@@ -111,7 +111,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 					size: IconSize.PX24,
 				}),
 				m(IconButton, {
-					title: "cancel_action",
+					label: "cancel_action",
 					icon: Icons.X,
 					click: () => {
 						controller.cancelExport()

@@ -73,7 +73,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		const rowAdd = m(".full-width.flex-space-between.items-center.mb-8", [
 			lang.get("emailPushNotification_action"),
 			m(IconButton, {
-				title: "emailPushNotification_action",
+				label: "emailPushNotification_action",
 				click: () => this.showAddEmailNotificationDialog(),
 				icon: Icons.Plus,
 				size: ButtonSize.Compact,

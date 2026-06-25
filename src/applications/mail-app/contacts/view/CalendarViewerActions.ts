@@ -26,7 +26,7 @@ export class CalendarViewerActions implements Component<CalendarViewToolbarAttrs
 			if (this.canEdit(event)) {
 				actionButtons.push(
 					m(IconButton, {
-						title: "edit_action",
+						label: "edit_action",
 						click: () => onEdit(event),
 						icon: Icons.PenFilled,
 					}),
@@ -36,7 +36,7 @@ export class CalendarViewerActions implements Component<CalendarViewToolbarAttrs
 			if (this.canExport(event)) {
 				actionButtons.push(
 					m(IconButton, {
-						title: "export_action",
+						label: "export_action",
 						click: () => onExport(event),
 						icon: Icons.CloudDownloadFilled,
 					}),
@@ -45,7 +45,7 @@ export class CalendarViewerActions implements Component<CalendarViewToolbarAttrs
 			if (this.canDelete(event)) {
 				actionButtons.push(
 					m(IconButton, {
-						title: "delete_action",
+						label: "delete_action",
 						click: () => onDelete(event),
 						icon: Icons.TrashFilled,
 					}),

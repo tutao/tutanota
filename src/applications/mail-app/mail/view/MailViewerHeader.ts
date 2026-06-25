@@ -828,7 +828,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private moreButton(attrs: MailViewerHeaderAttrs): Children {
 		return m(IconButton, {
-			title: "more_label",
+			label: "more_label",
 			icon: Icons.More,
 			click: this.prepareMoreActions(attrs),
 		})

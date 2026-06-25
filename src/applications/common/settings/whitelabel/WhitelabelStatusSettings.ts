@@ -25,7 +25,7 @@ export class WhitelabelStatusSettings implements Component<WhitelabelStatusSetti
 
 	private renderEnable(): Children {
 		return m(IconButton, {
-			title: "whitelabelDomain_label",
+			label: "whitelabelDomain_label",
 			click: async () => {
 				const plansWithWhitelabel = await getAvailablePlansWithWhitelabel()
 				showPlanUpgradeRequiredDialog(UpgradePromptType.WHITELABEL, plansWithWhitelabel)

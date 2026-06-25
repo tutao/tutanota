@@ -80,7 +80,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		return (
 			trashMailsAction &&
 			m(IconButton, {
-				title: "trash_action",
+				label: "trash_action",
 				click: trashMailsAction,
 				icon: Icons.TrashFilled,
 			})
@@ -91,7 +91,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		return (
 			deleteMailAction &&
 			m(IconButton, {
-				title: "delete_action",
+				label: "delete_action",
 				click: deleteMailAction,
 				icon: Icons.TrashCrossFilled,
 			})
@@ -102,7 +102,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		return (
 			reportSpamAction &&
 			m(IconButton, {
-				title: "reportSpam_action",
+				label: "reportSpam_action",
 				click: reportSpamAction,
 				icon: Icons.BugFilled,
 			})
@@ -113,7 +113,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		return (
 			reportNotSpamAction &&
 			m(IconButton, {
-				title: "reportNotSpam_action",
+				label: "reportNotSpam_action",
 				click: reportNotSpamAction,
 				icon: Icons.BugCrossedFilled,
 			})
@@ -124,7 +124,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		return (
 			moveMailsAction &&
 			m(IconButton, {
-				title: "move_action",
+				label: "move_action",
 				icon: Icons.FolderFilled,
 				click: (e, dom) => moveMailsAction(dom.getBoundingClientRect()),
 			})
@@ -135,7 +135,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		return (
 			applyLabelsAction &&
 			m(IconButton, {
-				title: "assignLabel_action",
+				label: "assignLabel_action",
 				icon: Icons.LabelFilled,
 				click: (_, dom) => {
 					applyLabelsAction(dom)
@@ -150,12 +150,12 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		}
 
 		const markReadButton = m(IconButton, {
-			title: "markRead_action",
+			label: "markRead_action",
 			click: () => setUnreadStateAction(false),
 			icon: Icons.EyeFilled,
 		})
 		const markUnreadButton = m(IconButton, {
-			title: "markUnread_action",
+			label: "markUnread_action",
 			click: () => setUnreadStateAction(true),
 			icon: Icons.EyeCrossedFilled,
 		})
@@ -181,7 +181,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 
 		actions.push(
 			m(IconButton, {
-				title: "reply_action",
+				label: "reply_action",
 				click: replyAction,
 				icon: Icons.ArrowBackFilled,
 			}),
@@ -190,7 +190,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		if (replyAllAction != null) {
 			actions.push(
 				m(IconButton, {
-					title: "replyAll_action",
+					label: "replyAll_action",
 					click: replyAllAction,
 					icon: Icons.DoubleArrowBackFilled,
 				}),
@@ -203,7 +203,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 		return (
 			forwardAction &&
 			m(IconButton, {
-				title: "forward_action",
+				label: "forward_action",
 				click: forwardAction,
 				icon: Icons.ArrowForwardFilled,
 			})
@@ -217,7 +217,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 			return null
 		} else {
 			return m(IconButton, {
-				title: "more_label",
+				label: "more_label",
 				icon: Icons.More,
 				click: createDropdown({
 					lazyButtons: () => actions,
@@ -230,7 +230,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 	private renderEditButton(editDraftAction: (() => void) | null) {
 		return editDraftAction
 			? m(IconButton, {
-					title: "edit_action",
+					label: "edit_action",
 					click: editDraftAction,
 					icon: Icons.PenFilled,
 				})

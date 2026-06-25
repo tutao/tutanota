@@ -33,7 +33,7 @@ export class DummyTemplateListView implements Component<DummyTemplateListViewAtt
 					m(
 						".mr-negative-8",
 						m(IconButton, {
-							title: "addTemplate_label",
+							label: "addTemplate_label",
 							icon: Icons.Plus,
 							click: () => {
 								// SettingsView will reroute to the folder for the newly created template list (if there is one)

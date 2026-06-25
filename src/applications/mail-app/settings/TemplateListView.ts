@@ -127,7 +127,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 						? m(
 								".mr-negative-8",
 								m(IconButton, {
-									title: "addTemplate_label",
+									label: "addTemplate_label",
 									icon: Icons.Plus,
 									click: () => {
 										showTemplateEditor(null, this.groupInstance.groupRoot)

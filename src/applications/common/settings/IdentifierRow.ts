@@ -23,7 +23,7 @@ export class IdentifierRow implements Component<IdentifierRowAttrs> {
 	view(vnode: Vnode<IdentifierRowAttrs>): Children {
 		const dropdownAttrs = attachDropdown({
 			mainButtonAttrs: {
-				title: "edit_action",
+				label: "edit_action",
 				icon: Icons.More,
 				size: ButtonSize.Compact,
 			},

@@ -63,7 +63,7 @@ export class DropDownSelectorNew<T> implements ClassComponent<DropDownSelectorNe
 							{ style: { width: "30px", height: "30px" } },
 							m(IconButton, {
 								icon: Icons.ArrowDown,
-								title: "show_action",
+								label: "show_action",
 								click: a.disabled ? noOp : this.createDropdown(a),
 								size: ButtonSize.Compact,
 							}),

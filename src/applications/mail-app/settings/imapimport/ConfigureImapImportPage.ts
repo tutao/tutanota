@@ -130,7 +130,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 				m("", lang.getTranslationText("migrationAddLabelToImportedMails_label")),
 				m(IconButton, {
 					icon: Icons.QuestionmarkFilled,
-					title: "migrationAddLabelToImportedMails_label",
+					label: "migrationAddLabelToImportedMails_label",
 					click: this.updateHoverMessage("migrationConfigurationAddLabelInfo_msg"),
 				}),
 			]),
@@ -196,7 +196,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 				m("", lang.getTranslationText("matchMigrationFoldersToTutaMailSets_label")),
 				m(IconButton, {
 					icon: Icons.QuestionmarkFilled,
-					title: "migrationFolderMapping_title",
+					label: "migrationFolderMapping_title",
 					click: this.updateHoverMessage("migrationConfigurationLinkFoldersInfo_msg"),
 				}),
 				!this.shouldDisplayFolderTextField && this.successfullyLoadedMailboxes && !isFolderMappingCompleted
@@ -238,7 +238,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 						}),
 						m(IconButton, {
 							icon: Icons.InfoFilled,
-							title: "migrationCannotMapSpamFolder_label",
+							label: "migrationCannotMapSpamFolder_label",
 							click: this.updateHoverMessage("migrationCannotMapSpamFolder_msg"),
 						}),
 					])
@@ -314,7 +314,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 					mailboxToRow.shouldSync
 						? m(IconButton, {
 								icon: Icons.CheckboxChecked,
-								title: "disableMigrationSyncForFolder_action",
+								label: "disableMigrationSyncForFolder_action",
 								click: async () => {
 									const mappedMailSet = data.imapMailboxesToTutaMailSets?.get(mailboxToRow.imapMailbox.path)
 									if (mappedMailSet) {
@@ -329,7 +329,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 							})
 						: m(IconButton, {
 								icon: Icons.CheckboxEmpty,
-								title: "enableMigrationSyncForFolder_action",
+								label: "enableMigrationSyncForFolder_action",
 								click: async () => {
 									const mappedMailSet = data.imapMailboxesToTutaMailSets?.get(mailboxToRow.imapMailbox.path)
 									if (mappedMailSet) {
@@ -392,7 +392,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 					isHamFolder
 						? m(IconButton, {
 								icon: Icons.Plus,
-								title: "migrationCreateFolder_action",
+								label: "migrationCreateFolder_action",
 								click: async () => {
 									let newFolderElementId: Id | null = null
 									await showEditFolderDialog(
@@ -416,7 +416,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 							})
 						: m(IconButton, {
 								icon: Icons.InfoFilled,
-								title: "migrationCannotMapSpamFolder_label",
+								label: "migrationCannotMapSpamFolder_label",
 								click: this.updateHoverMessage("migrationCannotMapSpamFolder_msg"),
 							}),
 				])

@@ -11,7 +11,7 @@ assertMainOrNode()
 
 export interface IconButtonAttrs {
 	icon: AllIcons
-	title: MaybeTranslation
+	label: MaybeTranslation
 	click: ClickHandler
 	colors?: ButtonColor
 	size?: ButtonSize
@@ -25,7 +25,7 @@ export interface IconButtonAttrs {
 export class IconButton implements Component<IconButtonAttrs> {
 	view({ attrs }: Vnode<IconButtonAttrs>): Children {
 		return m(BaseButton, {
-			label: attrs.title,
+			label: attrs.label,
 			icon: m(Icon, {
 				icon: attrs.icon,
 				container: "div",

@@ -31,7 +31,7 @@ export class FloatingActionButton implements Component<FloatingActionButtonAttrs
 			m(IconButton, {
 				colors,
 				icon,
-				title,
+				label: title,
 				click: click,
 				size: ButtonSize.Large,
 			}),
