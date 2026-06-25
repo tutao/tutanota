@@ -425,6 +425,11 @@ export function deepEqual(a: any, b: any): boolean {
 			return true
 		}
 
+		// See: DeepEquals interface
+		if (typeof (a as DeepEquals).deepEquals === "function" && typeof (b as DeepEquals).deepEquals === "function") {
+			return a.deepEquals(b)
+		}
+
 		if (a instanceof Object && b instanceof Object && !aIsArgs && !bIsArgs) {
 			for (let i in a) {
 				if (!(i in b) || !deepEqual(a[i], b[i])) return false
@@ -444,11 +449,6 @@ export function deepEqual(a: any, b: any): boolean {
 			}
 
 			return true
-		}
-
-		// See: DeepEquals interface
-		if (typeof (a as DeepEquals).deepEquals === "function" && typeof (b as DeepEquals).deepEquals === "function") {
-			return a.deepEquals(b)
 		}
 
 		if (a.valueOf() === b.valueOf()) return true

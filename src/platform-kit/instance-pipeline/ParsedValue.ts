@@ -168,7 +168,7 @@ export class ParsedValue<NestedObject extends DeepEquals> implements DeepEquals 
 		return new Date(parseInt(this.asString()))
 	}
 
-	deepEquals(other: ParsedValue<NestedObject>): boolean {
+	deepEquals(other: this): boolean {
 		if (this.isString() === other.isString() && this.isArray() === other.isArray() && this.isNestedObj() === other.isNestedObj()) {
 			if (this.isString()) {
 				return this.asString() === other.asString()
@@ -179,6 +179,6 @@ export class ParsedValue<NestedObject extends DeepEquals> implements DeepEquals 
 			}
 		}
 
-		return false
+		return this.isNull() === other.isNull()
 	}
 }
