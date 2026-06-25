@@ -9,7 +9,6 @@ import {
 	DomainSeparator,
 	InstanceDecryptor,
 	KdfNonce,
-	MissingSessionKey,
 	SubKeyInfo,
 	SubKeyProvider,
 	SymmetricCipherFacade,
