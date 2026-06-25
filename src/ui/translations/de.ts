@@ -2320,7 +2320,7 @@ export default {
 		"imapChooseFolder_msg": "Choose a folder",
 		"imapConfigurationAddLabelInfo_msg": "A label is connected to a color to help you visually find the e-mails faster.",
 		"imapConfigurationLinkFoldersInfo_msg": "You can link each folder from your previous account to a matching folder in your Tuta account. This happens in the next step",
-		"imapImportActiveSync_label": "Active synchronizations",
+		"imapImportActiveSyncs_label": "Active synchronizations",
 		"imapImportAuthFailed_msg": "Imap failed to start because credentials are incorrect, please check your credentials",
 		"imapImportCancelConfirm_msg": "Are you sure you want to permanently remove the synchronization? This action cannot be undone!",
 		"imapImportDestination_label": "Import destination",
@@ -2372,5 +2372,6 @@ export default {
 		"disableImapSyncForFolder_action": "Disable IMAP sync for this folder",
 		"enableImapSyncForFolder_action": "Enable IMAP sync for this folder",
 		"imapNoSyncFolderName_msg": "Not Synced",
+		"imapImportCanceledSyncs_label": "Canceled Syncs"
 	}
 }

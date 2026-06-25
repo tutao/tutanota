@@ -2318,7 +2318,7 @@ export type TranslationKeyType =
 	| "imapChooseFolder_msg"
 	| "imapConfigurationAddLabelInfo_msg"
 	| "imapConfigurationLinkFoldersInfo_msg"
-	| "imapImportActiveSync_label"
+	| "imapImportActiveSyncs_label"
 	| "imapImportAuthFailed_msg"
 	| "imapImportCancelConfirm_msg"
 	| "imapImportDestination_label"
@@ -2369,3 +2369,4 @@ export type TranslationKeyType =
 	| "disableImapSyncForFolder_action"
 	| "enableImapSyncForFolder_action"
 	| "imapNoSyncFolderName_msg"
+	| "imapImportCanceledSyncs_label"

@@ -325,7 +325,8 @@ export const enum ImapFolderSyncStatus {
 	RUNNING = "0",
 	PAUSED = "1",
 	FINISHED = "2",
-	NO_SYNC = "3"
+	NO_SYNC = "3",
+	CANCELED = "4"
 }
 
 export enum ImapAccountSyncStatus {
@@ -334,7 +335,8 @@ export enum ImapAccountSyncStatus {
 	POSTPONED = "2",
 	FINISHED = "3",
 	ERROR = "4",
-	AUTH_ERROR = "5"
+	AUTH_ERROR = "5",
+	CANCELED = "6"
 }
 
 

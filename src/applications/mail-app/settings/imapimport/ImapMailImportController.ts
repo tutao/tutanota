@@ -39,6 +39,7 @@ export class ImapMailImportController {
 	public mailboxDetails: MailboxDetail[] = []
 	public selectedMailBoxDetail: MailboxDetail | null = null
 	public activeImapImportUiSessions: ImapImportUiSession[] = []
+	public cancenImapImportUiSessions: ImapImportUiSession[] = []
 
 	constructor(
 		private readonly imapImporter: ImapImporter,
@@ -142,8 +143,14 @@ export class ImapMailImportController {
 		return this.activeImapImportUiSessions.length > 0
 	}
 
+	hasCanceledSync() {
+		return this.cancenImapImportUiSessions.length > 0
+	}
+
 	async updateActiveUiSessions() {
-		this.activeImapImportUiSessions = await this.imapImporter.getActiveImapImportUiSessions()
+		const { activeSessions, canceledSessions } = await this.imapImporter.getActiveImapImportUiSessions()
+		this.activeImapImportUiSessions = activeSessions
+		this.cancenImapImportUiSessions = canceledSessions
 		m.redraw()
 	}
 
@@ -157,6 +164,10 @@ export class ImapMailImportController {
 
 	shouldRenderPlayButton(session: ImapImportUiSession) {
 		return session.imapAccountSyncStatus === ImapAccountSyncStatus.PAUSED
+	}
+
+	shouldRenderCancelButton(session: ImapImportUiSession) {
+		return session.imapAccountSyncStatus !== ImapAccountSyncStatus.CANCELED
 	}
 
 	shouldRenderPauseIcon(session: ImapImportUiSession) {
@@ -173,6 +184,10 @@ export class ImapMailImportController {
 
 	shouldRenderErrorIcon(session: ImapImportUiSession) {
 		return session.imapAccountSyncStatus === ImapAccountSyncStatus.ERROR || session.imapAccountSyncStatus === ImapAccountSyncStatus.AUTH_ERROR
+	}
+
+	shouldRenderCanceledIcon(session: ImapImportUiSession) {
+		return session.imapAccountSyncStatus === ImapAccountSyncStatus.CANCELED
 	}
 
 	shouldDisableButtons() {

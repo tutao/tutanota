@@ -3,7 +3,7 @@ import { ImapMailbox, ImapMailboxStatus } from "../../../common/api/common/utils
 import { ImapMail, ImapMailAttachment } from "../../../common/api/common/utils/imapImportUtils/ImapMail.js"
 import { ImapError } from "../../../common/api/common/error/ImapError.js"
 
-import { assertNotNull, getFirstOrThrow, isEmpty, promiseMap, uint8ArrayToString } from "@tutao/utils"
+import { assertNotNull, getFirstOrThrow, isEmpty, partition, promiseMap, uint8ArrayToString } from "@tutao/utils"
 import { sha256Hash } from "@tutao/crypto"
 import { ImapImportDataFile, ImapImportTutaFileId, ImportMailFacade, ImportMailParams } from "../../../common/api/worker/facades/lazy/ImportMailFacade"
 import { SuspensionError } from "../../../common/api/common/error/SuspensionError"
@@ -83,6 +83,9 @@ export class ImapImporter implements ImapSyncFacade {
 			if (mailbox.imapAccountSyncStates) {
 				const imapAccountSyncStates = await this.imapFacade.getAllImapAccountSyncStates(mailbox.imapAccountSyncStates)
 				for (const accountSyncState of imapAccountSyncStates) {
+					if (accountSyncState.status === ImapAccountSyncStatus.CANCELED) {
+						continue
+					}
 					const imapFolderSyncStates = await this.imapFacade.getAllImapFolderSyncStates(accountSyncState.imapFolderSyncStateList)
 					const session = newImapImportSession(accountSyncState, imapFolderSyncStates)
 					this.activeImapImportSessions.set(this.getImapImportSessionsMapKey(accountSyncState._id), session)
@@ -104,6 +107,13 @@ export class ImapImporter implements ImapSyncFacade {
 	 */
 	async continueImport(imapAccountSyncStateId: IdTuple, retryAttempts = 0): Promise<ImportResult> {
 		let session = assertNotNull(this.getActiveImapImportSessionOrNull(imapAccountSyncStateId))
+
+		if (session.imapAccountSyncState.status === ImapAccountSyncStatus.CANCELED) {
+			return Promise.resolve({
+				state: { status: ImapAccountSyncStatus.CANCELED },
+				remoteStateId: session.imapAccountSyncState._id,
+			})
+		}
 
 		if (
 			session.imapAccountSyncState.status === ImapAccountSyncStatus.POSTPONED &&
@@ -431,17 +441,23 @@ export class ImapImporter implements ImapSyncFacade {
 			if (isUpdateForTypeRef(ImapAccountSyncStateTypeRef, update)) {
 				const accountSyncStateId = collapseId(update.instanceListId, update.instanceId) as IdTuple
 				const idKey = this.getImapImportSessionsMapKey(accountSyncStateId)
-				if (update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) {
+				const accountSyncState = await this.imapFacade.getImapAccountSyncStateById(accountSyncStateId)
+				if (
+					update.operation === OperationType.CREATE ||
+					update.operation === OperationType.UPDATE /*&& accountSyncState.status !== ImapAccountSyncStatus.CANCELED*/
+				) {
 					const session = this.getActiveImapImportSessionOrNull(accountSyncStateId)
 					if (session) {
 						session.imapAccountSyncState = await this.imapFacade.getImapAccountSyncStateById(accountSyncStateId)
 					} else {
-						const accountSyncState = await this.imapFacade.getImapAccountSyncStateById(accountSyncStateId)
 						const folderSyncStates = await this.imapFacade.getAllImapFolderSyncStates(accountSyncState.imapFolderSyncStateList)
 						const session = newImapImportSession(accountSyncState, folderSyncStates)
 						this.activeImapImportSessions.set(idKey, session)
 					}
-				} else if (update.operation === OperationType.DELETE) {
+				} else if (
+					update.operation === OperationType.DELETE
+					// || (update.operation === OperationType.UPDATE && accountSyncState.status === ImapAccountSyncStatus.CANCELED)
+				) {
 					this.activeImapImportSessions.delete(idKey)
 				}
 			} else if (isUpdateForTypeRef(ImapFolderSyncStateTypeRef, update)) {
@@ -451,7 +467,10 @@ export class ImapImporter implements ImapSyncFacade {
 				const session = this.activeImapImportSessions.get(idKey)
 
 				if (session) {
-					if (update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) {
+					if (
+						update.operation === OperationType.CREATE ||
+						update.operation === OperationType.UPDATE /*&& folderSyncState.status !== ImapFolderSyncStatus.CANCELED*/
+					) {
 						const folderSyncStateIndex = session.imapFolderSyncStates.findIndex((folderSyncState) =>
 							isSameId(folderSyncState._id, folderSyncStateId),
 						)
@@ -460,7 +479,10 @@ export class ImapImporter implements ImapSyncFacade {
 						} else {
 							session.imapFolderSyncStates.push(folderSyncState)
 						}
-					} else if (update.operation === OperationType.DELETE) {
+					} else if (
+						update.operation === OperationType.DELETE
+						// || (update.operation === OperationType.UPDATE && folderSyncState.status === ImapFolderSyncStatus.CANCELED)
+					) {
 						const folderSyncStateIndex = session.imapFolderSyncStates.findIndex((folderSyncState) =>
 							isSameId(folderSyncState._id, folderSyncStateId),
 						)
@@ -511,21 +533,24 @@ export class ImapImporter implements ImapSyncFacade {
 		return Array.from(this.activeImapImportSessions.values())
 	}
 
-	async getActiveImapImportUiSessions(): Promise<ImapImportUiSession[]> {
-		return Promise.resolve(
-			Array.from(this.activeImapImportSessions.values()).map((session) => {
-				return {
-					imapAccountSyncStateId: session.imapAccountSyncState._id,
-					mailGroupId: assertNotNull(session.imapAccountSyncState._ownerGroup),
-					sourceImapAddress: session.imapAccountSyncState.imapAccount.username,
-					imapAccountSyncStatus: session.imapAccountSyncState.status as ImapAccountSyncStatus,
-					postponedUntil: new Date(parseInt(session.imapAccountSyncState.postponedUntil)),
-					syncProgress: {
-						completed: session.imapFolderSyncStates.filter((folderSyncState) => folderSyncState.status === ImapFolderSyncStatus.FINISHED).length,
-						total: session.imapFolderSyncStates.filter((folderSyncState) => folderSyncState.status !== ImapFolderSyncStatus.NO_SYNC).length,
-					},
-				}
-			}),
+	async getActiveImapImportUiSessions(): Promise<{ activeSessions: ImapImportUiSession[]; canceledSessions: ImapImportUiSession[] }> {
+		const imapImportUiSessions = Array.from(this.activeImapImportSessions.values()).map((session) => {
+			return {
+				imapAccountSyncStateId: session.imapAccountSyncState._id,
+				mailGroupId: assertNotNull(session.imapAccountSyncState._ownerGroup),
+				sourceImapAddress: session.imapAccountSyncState.imapAccount.username,
+				imapAccountSyncStatus: session.imapAccountSyncState.status as ImapAccountSyncStatus,
+				postponedUntil: new Date(parseInt(session.imapAccountSyncState.postponedUntil)),
+				syncProgress: {
+					completed: session.imapFolderSyncStates.filter((folderSyncState) => folderSyncState.status === ImapFolderSyncStatus.FINISHED).length,
+					total: session.imapFolderSyncStates.filter((folderSyncState) => folderSyncState.status !== ImapFolderSyncStatus.NO_SYNC).length,
+				},
+			}
+		})
+		const [activeSessions, canceledSessions] = partition(
+			imapImportUiSessions,
+			(imapImportUiSession) => imapImportUiSession.imapAccountSyncStatus !== ImapAccountSyncStatus.CANCELED,
 		)
+		return Promise.resolve({ activeSessions, canceledSessions })
 	}
 }

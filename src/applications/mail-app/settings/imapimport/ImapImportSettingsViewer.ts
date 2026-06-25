@@ -33,6 +33,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 
 	view(): Children {
 		const hasActiveSync = this.imapImportController().hasActiveSync()
+		const hasCanceledSync = this.imapImportController().hasCanceledSync()
 		return m(
 			".fill-absolute.scroll.plr-24.pb-48",
 			{
@@ -43,7 +44,14 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 					flexDirection: "column",
 				},
 			},
-			[this.renderTitleSection(), hasActiveSync ? this.renderActiveSyncTitle() : this.renderInfo(), this.renderSyncProgress(), this.renderButton()],
+			[
+				this.renderTitleSection(),
+				hasActiveSync ? this.renderActiveSyncsTitle() : this.renderInfo(),
+				this.renderSyncProgressForActiveSyncSessions(),
+				hasCanceledSync ? this.renderCanceledSyncsTitle() : null,
+				hasCanceledSync ? this.renderSyncProgressForCanceledSyncSessions() : null,
+				this.renderButton(),
+			],
 		)
 	}
 
@@ -66,11 +74,15 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	private renderActiveSyncTitle(): Children {
-		return m(MenuTitle, { content: lang.getTranslationText("imapImportActiveSync_label") })
+	private renderActiveSyncsTitle(): Children {
+		return m(MenuTitle, { content: lang.getTranslationText("imapImportActiveSyncs_label") })
 	}
 
-	private renderSyncProgress(): Children {
+	private renderCanceledSyncsTitle(): Children {
+		return m(MenuTitle, { content: lang.getTranslationText("imapImportCanceledSyncs_label") })
+	}
+
+	private renderSyncProgressForActiveSyncSessions(): Children {
 		const activeImapImportUiSessions = this.imapImportController().activeImapImportUiSessions
 		return activeImapImportUiSessions.map((session) => {
 			const buttons: Children[] = []
@@ -116,7 +128,6 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 					}),
 				)
 			}
-
 			buttons.push(
 				m(IconButton, {
 					title: "cancel_action",
@@ -191,6 +202,40 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 						]),
 					]),
 					m(".flex-column.items-center", buttons),
+				]),
+			)
+		})
+	}
+
+	private renderSyncProgressForCanceledSyncSessions(): Children {
+		const cancenImapImportUiSessions = this.imapImportController().cancenImapImportUiSessions
+		return cancenImapImportUiSessions.map((session) => {
+			const mailboxDetail = assertNotNull(this.imapImportController().getDestinationMailboxDetailForSession(session))
+			const destinationTutaMailbox = getMailboxName(mailLocator.logins, mailboxDetail)
+			const syncSourceAndDestinationMessage = lang.getTranslation("imapSyncInProgressAccounts_msg", {
+				"{sourceAddress}": session.sourceImapAddress,
+				"{tutaMailbox}": destinationTutaMailbox,
+			})
+
+			const statusIcon = Icons.X
+			const statusIconParameters: Partial<IconAttrs> = {
+				icon: statusIcon,
+				class: "",
+				style: {
+					fill: theme.on_surface,
+				},
+			}
+
+			return m(
+				Card,
+				m(".flex.items-center.justify-between", [
+					m(".flex.items-center.gap-16", [
+						m(Icon, {
+							...statusIconParameters,
+							size: IconSize.PX32,
+						} as IconAttrs),
+						m(".pl-4.pr-32.items-base.flex-column", [m(".text-preline.text-ellipsis", syncSourceAndDestinationMessage.text)]),
+					]),
 				]),
 			)
 		})
