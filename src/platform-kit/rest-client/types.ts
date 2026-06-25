@@ -35,18 +35,24 @@ export const enum HttpMethod {
 	PATCH = "PATCH",
 	DELETE = "DELETE",
 }
+export const enum RestBodyType {
+	Text,
+	Binary,
+}
 
-export abstract class RestBody {}
+export abstract class RestBody {
+	protected constructor(public readonly bodyType: RestBodyType) {}
+}
 
 export class RestTextBody extends RestBody {
 	constructor(public readonly payload: string) {
-		super()
+		super(RestBodyType.Text)
 	}
 }
 
 export class RestBinaryBody extends RestBody {
 	constructor(public readonly payload: Uint8Array) {
-		super()
+		super(RestBodyType.Binary)
 	}
 }
 

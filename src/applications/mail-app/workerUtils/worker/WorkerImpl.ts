@@ -53,6 +53,7 @@ import { EntityRestInterface } from "../../../../platform-kit/network/EntityRest
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { NamedClientModel } from "@tutao/instance-pipeline"
 import { NotAuthenticatedError } from "@tutao/rest-client/error"
+import { RestBinaryBody, RestBodyType, RestTextBody } from "@tutao/rest-client/types"
 
 assertWorkerOrNode()
 
@@ -352,6 +353,17 @@ export class WorkerImpl implements NativeInterface {
 				const args = message.args as Parameters<RestClient["request"]>
 				let [path, method, options] = args
 				options = options ?? {}
+				// We need to preserve the type of RestBody in order for the RestClient to send it correctly
+				if (options.body) {
+					switch (options.body.bodyType) {
+						case RestBodyType.Text:
+							options.body = new RestTextBody((options.body as RestTextBody).payload)
+							break
+						case RestBodyType.Binary:
+							options.body = new RestBinaryBody((options.body as RestBinaryBody).payload)
+							break
+					}
+				}
 				options.headers = { ...locator.base.user.createAuthHeaders(), ...options.headers }
 				return locator.base.restClient.request(path, method, options)
 			},
