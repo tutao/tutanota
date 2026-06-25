@@ -5,6 +5,7 @@ import { Session } from "electron"
 import { errorToObj, lazyMemoized } from "@tutao/utils"
 import { getMimeTypeForFile } from "../files/DesktopFileFacade.js"
 import { convertHeaders, customFetch, FetchImpl, toGlobalResponse, UndiciRequestInit } from "./NetAgent"
+import { pathToFileURL } from "node:url"
 
 const TAG = "[ProtocolProxy]"
 
@@ -129,7 +130,7 @@ export async function fileFetch(filePath: string, fsModule: typeof fs): Promise<
 	const content = await fsModule.promises.readFile(filePath)
 	const headers = new Headers({
 		"Content-Length": String(content.byteLength),
-		"Content-Type": await getMimeTypeForFile(filePath),
+		"Content-Type": await getMimeTypeForFile(pathToFileURL(filePath)),
 	})
 	return new Response(content, { status: 200, headers })
 }

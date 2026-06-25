@@ -14,7 +14,7 @@ import path from "node:path"
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { assertNotNull, DateProvider, first, newPromise, promiseFilter, throttle, uint8ArrayToBase64 } from "@tutao/utils"
 import { looksExecutable, nonClobberingFilename } from "../PathUtils.js"
-import url from "node:url"
+import { fileURLToPath, pathToFileURL } from "node:url"
 import FsModule, { WriteStream } from "node:fs"
 import { Buffer } from "node:buffer"
 import { ReadableStream } from "node:stream/web"
@@ -30,6 +30,7 @@ import { OpenDialogOptions } from "electron"
 import { CommandExecutor } from "../CommandExecutor"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
 import { createHash } from "node:crypto"
+import { fileUrlFromString } from "./fileUtils"
 
 const TAG = "[DesktopFileFacade]"
 
@@ -79,23 +80,23 @@ export class DesktopFileFacade implements FileFacade {
 		try {
 			const { status, headers: headersIncoming, body } = await this.fetch(sourceUrl, { method: "GET", headers, signal: abortController.signal })
 
-			let encryptedFilePath
+			let encryptedFileUrl: URL | null
 			if (status === 200 && body != null) {
 				const downloadDirectory = await this.tfs.ensureEncryptedDir()
-				encryptedFilePath = path.join(downloadDirectory, fileName)
+				encryptedFileUrl = pathToFileURL(path.join(downloadDirectory, fileName))
 				const readable: stream.Readable = bodyToReadable(body)
 				// debounce so that we don't post the message too often
 				const onProgress = throttle(100, (bytes: number) => {
 					this.progressTracker.downloadProgress(fileId, bytes)
 				})
-				await this.pipeIntoFile(readable, encryptedFilePath, onProgress)
+				await this.pipeIntoFile(readable, encryptedFileUrl, onProgress)
 			} else {
-				encryptedFilePath = null
+				encryptedFileUrl = null
 			}
 
 			const result = {
 				statusCode: status,
-				encryptedFileUri: encryptedFilePath,
+				encryptedFileUri: encryptedFileUrl?.toString() ?? null,
 				errorId: getHttpHeader(headersIncoming, "error-id"),
 				precondition: getHttpHeader(headersIncoming, "precondition"),
 				suspensionTime: getHttpHeader(headersIncoming, "suspension-time") ?? getHttpHeader(headersIncoming, "retry-after"),
@@ -113,8 +114,8 @@ export class DesktopFileFacade implements FileFacade {
 		this.activeRequests.get(fileId)?.abort(new CancelledError("Request canceled"))
 	}
 
-	private async pipeIntoFile(response: stream.Readable, encryptedFilePath: string, progress: (bytes: number) => unknown) {
-		const fileStream: WriteStream = this.fs.createWriteStream(encryptedFilePath, { emitClose: true })
+	private async pipeIntoFile(response: stream.Readable, encryptedFileURL: URL, progress: (bytes: number) => unknown) {
+		const fileStream: WriteStream = this.fs.createWriteStream(encryptedFileURL, { emitClose: true })
 		try {
 			await pipeline(
 				response,
@@ -129,19 +130,19 @@ export class DesktopFileFacade implements FileFacade {
 				fileStream,
 			)
 		} catch (e) {
-			await this.fs.promises.unlink(encryptedFilePath)
+			await this.fs.promises.unlink(encryptedFileURL)
 			throw e
 		}
 	}
 
 	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
 	async getMimeType(filePath: string): Promise<string> {
-		return await getMimeTypeForFile(filePath)
+		return await getMimeTypeForFile(fileUrlFromString(filePath))
 	}
 
 	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
 	async getName(filePath: string): Promise<string> {
-		return path.basename(filePath)
+		return path.basename(fileURLToPath(filePath))
 	}
 
 	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
@@ -171,8 +172,8 @@ export class DesktopFileFacade implements FileFacade {
 
 		try {
 			for (const infile of files) {
-				this.tfs.assertInTmpDir(infile)
-				const readStream = this.fs.createReadStream(infile)
+				const inFileUrl = this.tfs.assertInTmpDir(infile)
+				const readStream = this.fs.createReadStream(inFileUrl)
 				try {
 					await newPromise<void>((resolve, reject) => {
 						readStream.on("end", resolve)
@@ -182,7 +183,7 @@ export class DesktopFileFacade implements FileFacade {
 				} finally {
 					readStream.close()
 				}
-				await this.fs.promises.unlink(infile)
+				await this.fs.promises.unlink(inFileUrl)
 			}
 
 			await closeFileStream(outStream)
@@ -196,7 +197,7 @@ export class DesktopFileFacade implements FileFacade {
 			throw e
 		}
 
-		return filePath
+		return pathToFileURL(filePath).toString()
 	}
 
 	async open(location: string /* , mimeType: string omitted */): Promise<void> {
@@ -253,7 +254,8 @@ export class DesktopFileFacade implements FileFacade {
 		}
 		const { filePaths } = await this.electron.dialog.showOpenDialog(this.win._browserWindow, opts)
 		// File pickers are odd and sometimes allow choosing directories or other files instead
-		return await promiseFilter(filePaths, async (f) => (await this.fs.promises.stat(f)).isFile())
+		const onlyFilePaths = await promiseFilter(filePaths, async (f) => (await this.fs.promises.stat(f)).isFile())
+		return onlyFilePaths.map((path) => pathToFileURL(path).toString())
 	}
 
 	async openFolderChooser(): Promise<string | null> {
@@ -262,7 +264,7 @@ export class DesktopFileFacade implements FileFacade {
 		})
 		const firstPath = first(filePaths)
 		if (firstPath && (await this.fs.promises.stat(firstPath)).isDirectory()) {
-			return firstPath
+			return pathToFileURL(firstPath).toString()
 		} else {
 			return null
 		}
@@ -276,16 +278,16 @@ export class DesktopFileFacade implements FileFacade {
 		const opts: OpenDialogOptions = { properties: ["openDirectory", "openFile", "multiSelections"] }
 		opts.filters = [{ name: "Filter", extensions: ["eml", "mbox"].slice() }]
 		const { filePaths } = await this.electron.dialog.showOpenDialog(this.win._browserWindow, opts)
-		return filePaths
+		return filePaths.map((path) => pathToFileURL(path).toString())
 	}
 
 	async putFileIntoDownloadsFolder(localFileUri: string, fileNameToUse: string): Promise<string> {
-		this.tfs.assertInTmpDir(localFileUri)
+		const url = this.tfs.assertInTmpDir(localFileUri)
 		const savePath = await this.pickSavePath(fileNameToUse)
 		await this.fs.promises.mkdir(path.dirname(savePath), {
 			recursive: true,
 		})
-		await this.fs.promises.copyFile(localFileUri, savePath)
+		await this.fs.promises.copyFile(url, savePath)
 		await this.showInFileExplorer(savePath)
 		return savePath
 	}
@@ -364,18 +366,14 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	/** this is used to read unencrypted data from arbitrary locations */
-	async readDataFile(uriOrPath: FileUri): Promise<DataFile | null> {
-		try {
-			uriOrPath = url.fileURLToPath(uriOrPath)
-		} catch (e) {
-			// the thing already was a path, or at least not an URI
-		}
-		const name = path.basename(uriOrPath)
+	async readDataFile(fileUri: FileUri): Promise<DataFile | null> {
+		const url = fileUrlFromString(fileUri)
+		const name = path.basename(fileUri)
 		try {
 			const [data, mimeType] = await Promise.all([
-				this.fs.promises.readFile(uriOrPath),
+				this.fs.promises.readFile(fileUri),
 				// freestanding function doesn't have the checks
-				getMimeTypeForFile(uriOrPath),
+				getMimeTypeForFile(url),
 			])
 			if (data == null) return null
 			return {
@@ -391,21 +389,21 @@ export class DesktopFileFacade implements FileFacade {
 		}
 	}
 
-	async readDirectory(filePath: string): Promise<DirectoryContents> {
-		const children = await this.fs.promises.readdir(filePath, { withFileTypes: true })
-		const files = children.filter((f) => f.isFile()).map((f) => this.path.join(filePath, f.name))
-		const folders = children.filter((f) => f.isDirectory()).map((f) => this.path.join(filePath, f.name))
-		const name = this.path.basename(filePath)
+	async readDirectory(dirUrlString: string): Promise<DirectoryContents> {
+		const dirPath = fileURLToPath(dirUrlString)
+		const children = await this.fs.promises.readdir(dirUrlString, { withFileTypes: true })
+		const files = children.filter((f) => f.isFile()).map((f) => pathToFileURL(this.path.join(dirPath, f.name)).toString())
+		const folders = children.filter((f) => f.isDirectory()).map((f) => pathToFileURL(this.path.join(dirPath, f.name)).toString())
+		const name = this.path.basename(dirPath)
 		return {
 			name,
 			files: files,
-			path: filePath,
+			path: dirUrlString,
 			folders: folders,
 		}
 	}
 	async openFileForReading(fileUri: string): Promise<string> {
-		const file = this.tfs.openFileForReading(fileUri)
-		return file
+		return this.tfs.openFileForReading(fileUri)
 	}
 
 	async closeFile(streamUri: string): Promise<void> {
@@ -430,7 +428,8 @@ export class DesktopFileFacade implements FileFacade {
 
 		if (defaultDownloadPath != null) {
 			const fileName = path.basename(filename)
-			return path.join(defaultDownloadPath, nonClobberingFilename(await this.fs.promises.readdir(defaultDownloadPath), fileName))
+			const savePath = path.join(defaultDownloadPath, nonClobberingFilename(await this.fs.promises.readdir(defaultDownloadPath), fileName))
+			return pathToFileURL(savePath).toString()
 		} else {
 			const { canceled, filePath } = await this.electron.dialog.showSaveDialog({
 				defaultPath: path.join(this.electron.app.getPath("downloads"), filename),
@@ -439,7 +438,7 @@ export class DesktopFileFacade implements FileFacade {
 			if (canceled) {
 				throw new CancelledError("Path selection cancelled")
 			} else {
-				return assertNotNull(filePath)
+				return pathToFileURL(filePath).toString()
 			}
 		}
 	}
@@ -452,7 +451,7 @@ export class DesktopFileFacade implements FileFacade {
 
 		if (lastOpenedFileManagerAt == null || this.dateProvider.now() - lastOpenedFileManagerAt > fileManagerTimeout) {
 			this.lastOpenedFileManagerAt = this.dateProvider.now()
-			this.electron.shell.showItemInFolder(savePath)
+			this.electron.shell.showItemInFolder(fileURLToPath(savePath))
 		}
 	}
 	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
@@ -465,8 +464,8 @@ export class DesktopFileFacade implements FileFacade {
 	}
 }
 
-export async function getMimeTypeForFile(filePath: string): Promise<string> {
-	const ext = path.extname(filePath).slice(1).toLowerCase() // remove the dot and normalize
+export async function getMimeTypeForFile(url: URL): Promise<string> {
+	const ext = path.extname(fileURLToPath(url)).slice(1).toLowerCase() // remove the dot and normalize
 	const { extensionToMimeType } = await import("../flat-mimes.js")
 	const candidates = extensionToMimeType[ext]
 	// sometimes there are multiple options, but we'll take the first and reorder if issues arise.

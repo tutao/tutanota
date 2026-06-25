@@ -92,12 +92,12 @@ o.spec("DesktopFileFacade", function () {
 	o.spec("download", function () {
 		o("no error", async function () {
 			const headers = { v: "foo", accessToken: "bar" }
-			const expectedFilePath = "/tutanota/tmp/path/encrypted/nativelyDownloadedFile"
+			const expectedFileUrl = "file:///tutanota/tmp/path/encrypted/nativelyDownloadedFile"
 			const fileBody = new Uint8Array([3, 4, 6, 9])
 			const response: FetchResult = mockResponse(200, { responseBody: fileBody })
 			const ws: BufferWritableStream = mockWriteStream() satisfies stream.Writable
 			const fws = ws as unknown as fs.WriteStream
-			when(fs.createWriteStream(expectedFilePath, { emitClose: true })).thenReturn(fws)
+			when(fs.createWriteStream(urlLike(expectedFileUrl), { emitClose: true })).thenReturn(fws)
 			when(
 				fetch(urlMatches(new URL("some://url/file")), {
 					method: "GET",
@@ -109,7 +109,7 @@ o.spec("DesktopFileFacade", function () {
 
 			const downloadResult = await ff.download("some://url/file", "nativelyDownloadedFile", headers, "fileId")
 			o(downloadResult.statusCode).equals(200)
-			o(downloadResult.encryptedFileUri).equals(expectedFilePath)
+			o(downloadResult.encryptedFileUri).equals(expectedFileUrl)
 			o(ws.result()).deepEquals(fileBody)
 		})
 
@@ -222,7 +222,7 @@ o.spec("DesktopFileFacade", function () {
 
 			const e = await assertThrows(Error, () => ff.download("some://url/file", "nativelyDownloadedFile", headers, "fileId"))
 			o(e).equals(error)
-			verify(fs.promises.unlink("/tutanota/tmp/path/encrypted/nativelyDownloadedFile"), { times: 1 })
+			verify(fs.promises.unlink(urlLike("file:///tutanota/tmp/path/encrypted/nativelyDownloadedFile")), { times: 1 })
 		})
 	})
 
@@ -396,7 +396,7 @@ o.spec("DesktopFileFacade", function () {
 			when(fs.promises.readdir("/tutanota/tmp/path/unencrypted")).thenResolve(["folderContents"])
 			when(tfs.ensureUnencrytpedDir()).thenResolve("/tutanota/tmp/path/unencrypted")
 			const joinedFilePath = await ff.joinFiles("fileName.pdf", ["/file1"])
-			o(joinedFilePath).equals("/tutanota/tmp/path/unencrypted/fileName.pdf")
+			o(joinedFilePath).equals("file:///tutanota/tmp/path/unencrypted/fileName.pdf")
 			verify(tfs.assertInTmpDir("/file1"))
 		})
 	})
@@ -426,35 +426,33 @@ o.spec("DesktopFileFacade", function () {
 
 	o.spec("showInFileExplorer", function () {
 		o("two downloads, open two filemanagers", async function () {
-			const dir = "/path/to"
-			const p = dir + "/file.txt"
-			await ff.showInFileExplorer(p)
-			verify(electron.shell.showItemInFolder(p), { times: 1 })
+			await ff.showInFileExplorer("file:///path/to/file.txt")
+			verify(electron.shell.showItemInFolder("/path/to/file.txt"), { times: 1 })
 		})
 
 		o("two downloads, open two filemanagers after a pause", async function () {
 			const time = 1629115820468
-			const dir = "/path/to"
-			const p = dir + "/file.txt"
-			await ff.showInFileExplorer(p)
+			await ff.showInFileExplorer("file:///path/to/file.txt")
 			when(dp.now()).thenReturn(time)
 			when(conf.getConst(BuildConfigKey.fileManagerTimeout)).thenResolve(2)
-			verify(electron.shell.showItemInFolder(p), { times: 1 })
+			verify(electron.shell.showItemInFolder("/path/to/file.txt"), { times: 1 })
 			when(dp.now()).thenReturn(time + 10)
-			await ff.showInFileExplorer(p)
-			verify(electron.shell.showItemInFolder(p), { times: 2 })
+			await ff.showInFileExplorer("file:///path/to/file.txt")
+			verify(electron.shell.showItemInFolder("/path/to/file.txt"), { times: 2 })
 		})
 	})
 
 	o.spec("putFileIntoDownloadsFolder", function () {
 		o("putFileIntoDownloadsFolder", async function () {
-			const src = "/path/random.pdf"
+			const src = "file:///path/random.pdf"
+			when(tfs.assertInTmpDir(src)).thenReturn(new URL(src))
 			const filename = "fileName.pdf"
-			when(conf.getVar(DesktopConfigKey.defaultDownloadPath)).thenResolve(DEFAULT_DOWNLOAD_PATH)
+			const defaultDownloadPath = "/some/downloads"
+			when(conf.getVar(DesktopConfigKey.defaultDownloadPath)).thenResolve(defaultDownloadPath)
 			when(fs.promises.readdir(matchers.anything())).thenResolve([])
 			const copiedFileUri = await ff.putFileIntoDownloadsFolder(src, filename)
-			verify(fs.promises.copyFile(src, DEFAULT_DOWNLOAD_PATH + "fileName.pdf"))
-			o(copiedFileUri).equals(DEFAULT_DOWNLOAD_PATH + "fileName.pdf")
+			verify(fs.promises.copyFile(urlLike(src), urlLike("file:///some/downloads/fileName.pdf")))
+			o(copiedFileUri).equals("file:///some/downloads/fileName.pdf")
 			verify(tfs.assertInTmpDir(src))
 		})
 	})
@@ -476,15 +474,15 @@ o.spec("DesktopFileFacade", function () {
 
 	o.spec("getMimeTypeForFile", function () {
 		o.test("given lowercased four-letter extension it returns the correct mime type", async function () {
-			o.check(await getMimeTypeForFile("/tmp/picture.jpg")).equals("image/jpeg")
+			o.check(await getMimeTypeForFile(new URL("file:///tmp/picture.jpg"))).equals("image/jpeg")
 		})
 
 		o.test("given uppercased four-letter extension it returns the correct mime type", async function () {
-			o.check(await getMimeTypeForFile("/tmp/picture.JPEG")).equals("image/jpeg")
+			o.check(await getMimeTypeForFile(new URL("file:///tmp/picture.JPEG"))).equals("image/jpeg")
 		})
 
 		o.test("given nonexisting extension it returns default fallback", async function () {
-			o.check(await getMimeTypeForFile("/tmp/picture.nonsense")).equals("application/octet-stream")
+			o.check(await getMimeTypeForFile(new URL("file:///tmp/picture.nonsense"))).equals("application/octet-stream")
 		})
 	})
 
@@ -575,3 +573,10 @@ function mockResponse(
 		headers: new Headers(responseHeaders),
 	}) as FetchResult
 }
+
+const urlLike = matchers.create({
+	name: `url like`,
+	matches: (matcherArgs: any[], actual: any) => {
+		return matcherArgs[0] === actual.toString()
+	},
+})
