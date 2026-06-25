@@ -7,15 +7,18 @@ import { blake3Kdf } from "../../hashes/Blake3.js"
 import { concat, KeyVersion } from "@tutao/utils"
 import { AEAD_GROUP_KEY_NONCE_DERIVATION, AEAD_SESSION_KEY_DERIVATION, VersionedKey } from "../../CryptoTypes"
 import { ProgrammingError } from "@tutao/app-env"
+import { CryptoError } from "@tutao/crypto/error"
 
 export abstract class KeyOrSubKey {}
-export abstract class SymmetricSubKeys implements KeyOrSubKey {
+export abstract class SymmetricSubKeys extends KeyOrSubKey {
 	abstract readonly cipherVersion: SymmetricCipherVersion
 
 	constructor(
 		public readonly encryptionKey: AesKey,
 		public readonly authenticationKey: AesKey | null = null,
-	) {}
+	) {
+		super()
+	}
 }
 
 export abstract class AesCbcSubKeys extends SymmetricSubKeys {
@@ -58,7 +61,7 @@ export class AeadWithGroupKeySubKeys extends AeadSubKeys {
 	constructor(
 		public readonly groupKeyVersion: KeyVersion,
 		encryptionKey: Aes256Key,
-		override readonly authenticationKey: Aes256Key,
+		authenticationKey: Aes256Key,
 	) {
 		super(encryptionKey, authenticationKey)
 	}
@@ -88,22 +91,28 @@ export class SymmetricKeyDeriver {
 	/**
 	 * Derives encryption and authentication keys as needed for the symmetric cipher implementations
 	 */
-	deriveSubKeysAesCbcHmac(key: AesKey): AesCbcSubKeys {
-		let hashedKey: Uint8Array
-		let keyLengthInBytes: number
-		if (key instanceof Aes128Key) {
-			hashedKey = sha256Hash(keyToUint8Array(key))
-			keyLengthInBytes = getKeyLengthInBytes(AesKeyLength.Aes128)
-		} else if (key instanceof Aes256Key) {
-			hashedKey = sha512Hash(keyToUint8Array(key))
-			keyLengthInBytes = getKeyLengthInBytes(AesKeyLength.Aes256)
-		} else {
-			throw new ProgrammingError("invalid key type")
+	deriveSubKeysAesCbc(key: AesKey, cipherVersion: SymmetricCipherVersion): AesCbcSubKeys {
+		switch (cipherVersion) {
+			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
+				return new UnusedReservedUnauthenticatedSubKeys(key)
+			case SymmetricCipherVersion.AesCbcThenHmac: {
+				let hashedKey: Uint8Array
+				if (key instanceof Aes128Key) {
+					hashedKey = sha256Hash(keyToUint8Array(key))
+				} else if (key instanceof Aes256Key) {
+					hashedKey = sha512Hash(keyToUint8Array(key))
+				} else {
+					throw new ProgrammingError("invalid key type")
+				}
+				const keyLengthInBytes: number = getKeyLengthInBytes(key.keyLength)
+				return new AesCbcThenHmacSubKeys(
+					uint8ArrayToKey(hashedKey.subarray(0, keyLengthInBytes)),
+					uint8ArrayToKey(hashedKey.subarray(keyLengthInBytes, hashedKey.length)),
+				)
+			}
+			default:
+				throw new CryptoError(`unexpected cipher version ${cipherVersion}`)
 		}
-		return new AesCbcThenHmacSubKeys(
-			uint8ArrayToKey(hashedKey.subarray(0, keyLengthInBytes)),
-			uint8ArrayToKey(hashedKey.subarray(keyLengthInBytes, hashedKey.length)),
-		)
 	}
 
 	/**
