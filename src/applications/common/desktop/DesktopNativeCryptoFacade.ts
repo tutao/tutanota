@@ -21,6 +21,7 @@ import path from "node:path"
 import { nonClobberingFilename } from "./PathUtils.js"
 import { TempFs } from "./files/TempFs.js"
 import { readStreamToBuffer } from "./files/DesktopFileFacade"
+import { pathToFileURL } from "node:url"
 
 type FsExports = typeof FsModule
 
@@ -56,18 +57,13 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	}
 
 	async aesEncryptFile(key: Uint8Array, fileUri: string): Promise<EncryptedFileInfo> {
-		const fileStream = this.tfs.fileStream(fileUri)
-		try {
-			const bytes = await readStreamToBuffer(fileStream)
-			const keyBits = this.cryptoFns.bytesToKey(key)
-			const encrypted = this.cryptoFns.aesEncrypt(keyBits, bytes)
-			const encryptedUri = this.tfs.createInMemoryFile(encrypted)
-			return {
-				uri: encryptedUri,
-				unencryptedSize: bytes.length,
-			}
-		} finally {
-			this.tfs.closeFileStream(fileStream)
+		const bytes = await this.tfs.readAsData(fileUri)
+		const keyBits = this.cryptoFns.bytesToKey(key)
+		const encrypted = this.cryptoFns.aesEncrypt(keyBits, bytes)
+		const encryptedUri = this.tfs.createInMemoryFile(encrypted)
+		return {
+			uri: encryptedUri,
+			unencryptedSize: bytes.length,
 		}
 	}
 
@@ -76,7 +72,7 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	 */
 	async aesDecryptFile(key: Uint8Array, encryptedFileUri: FileUri): Promise<FileUri> {
 		const targetDir = await this.tfs.ensureUnencrytpedDir()
-		const encData = await this.fs.promises.readFile(encryptedFileUri)
+		const encData = await this.tfs.readAsData(encryptedFileUri)
 		const bitKey = this.cryptoFns.bytesToKey(key)
 		const decData = this.cryptoFns.aesDecrypt(bitKey, encData)
 
@@ -85,11 +81,11 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		// is called, we could re-generate a random name here.
 		const writtenFileName = path.basename(encryptedFileUri)
 		const newFilename = nonClobberingFilename(filesInDirectory, writtenFileName)
-		const decryptedFileUri = path.join(targetDir, newFilename)
+		const decryptedFileUri = pathToFileURL(path.join(targetDir, newFilename))
 		await this.fs.promises.writeFile(decryptedFileUri, decData, {
 			encoding: "binary",
 		})
-		return decryptedFileUri
+		return decryptedFileUri.toString()
 	}
 
 	/**

@@ -6,6 +6,9 @@ import { ProgrammingError } from "@tutao/app-env"
 import { FileNotFoundError } from "../../api/common/error/FileNotFoundError"
 import { Readable } from "node:stream"
 import fs from "node:fs"
+import { readStreamToBuffer } from "./DesktopFileFacade"
+import { fileURLToPath } from "node:url"
+import { fileUrlFromString } from "./fileUtils"
 
 type TmpSub = "reg" | "encrypted" | "decrypted"
 
@@ -150,70 +153,78 @@ export class TempFs {
 		return downloadDirectory
 	}
 
-	assertInTmpDir(unresolvedPath: string) {
+	assertInTmpDir(unresolvedFileUrl: string): URL {
+		const url = fileUrlFromString(unresolvedFileUrl)
+		const unresolvedPath = fileURLToPath(url)
 		const resolvedTarget = path.resolve(unresolvedPath)
 		if (!resolvedTarget.startsWith(this.getTutanotaTempPath() + path.sep)) {
-			throw new ProgrammingError("Invalid file path: " + unresolvedPath)
+			throw new ProgrammingError("Invalid file path: " + unresolvedFileUrl)
 		}
+		return url
 	}
 
-	private readInMemoryFile(uri: string): Uint8Array | null {
-		const filename = this.uriToName(uri)
-		return this.inMemoryFiles.get(filename) ?? null
-	}
-
-	createInMemoryFile(content: Uint8Array): `tuta-tmp:${string}` {
+	createInMemoryFile(content: Uint8Array): string {
 		const filename = this.generateFilename()
 		this.inMemoryFiles.set(filename, content)
-		return this.nameToUri(filename)
+		return tutaUrlToString({ type: "tmp", name: filename })
 	}
 
-	private deleteInMemoryFile(uri: string) {
-		const filename = this.uriToName(uri)
-		this.inMemoryFiles.delete(filename)
+	private deleteInMemoryFile(name: TmpFilename) {
+		this.inMemoryFiles.delete(name)
 	}
 
 	async deleteFile(uri: string) {
-		if (uri.startsWith("tuta-tmp:")) {
-			this.deleteInMemoryFile(uri)
-		} else if (uri.startsWith("tuta-chunk:")) {
-			// no-op
-		} else {
-			this.assertInTmpDir(uri)
-			await this.fs.promises.unlink(uri)
+		const tutaUrl = tutaUrlFromString(uri)
+		switch (tutaUrl.type) {
+			case "tmp":
+				this.deleteInMemoryFile(tutaUrl.name)
+				break
+			case "file":
+				this.assertInTmpDir(uri)
+				await this.fs.promises.unlink(tutaUrl.url)
+				break
+			case "stream":
+				throw new ProgrammingError(`Cannot delete stream ${uri}`)
 		}
 	}
 
 	fileStream(uri: string): Readable {
-		if (uri.startsWith("tuta-tmp:")) {
-			const data = this.readInMemoryFile(uri)
-			if (data == null) {
-				throw new FileNotFoundError(uri)
+		const tutaUrl = tutaUrlFromString(uri)
+		switch (tutaUrl.type) {
+			case "tmp": {
+				const data = this.inMemoryFiles.get(tutaUrl.name) ?? null
+				if (data == null) {
+					throw new FileNotFoundError(uri)
+				}
+				return new TypedArrayReadableStream(data)
 			}
-			return new TypedArrayReadableStream(data)
-		} else if (uri.startsWith("tuta-stream:")) {
-			const fileName = uri.slice("tuta-stream:".length)
-			const stream = this.openStreams.get(fileName)
-			if (stream == null) {
-				throw new FileNotFoundError(uri)
+			case "file":
+				this.assertInTmpDir(uri)
+				return this.fs.createReadStream(tutaUrl.url)
+			case "stream": {
+				const stream = this.openStreams.get(tutaUrl.name)
+				if (stream == null) {
+					throw new FileNotFoundError(uri)
+				}
+				return stream
 			}
-			return stream
-		} else {
-			this.assertInTmpDir(uri)
-			return this.fs.createReadStream(uri)
 		}
 	}
 
 	async getFileSize(uri: string): Promise<number> {
-		if (uri.startsWith("tuta-tmp:")) {
-			const data = this.readInMemoryFile(uri)
-			if (data == null) {
-				throw new FileNotFoundError(uri)
+		const tutaUrl = tutaUrlFromString(uri)
+		switch (tutaUrl.type) {
+			case "tmp": {
+				const data = this.inMemoryFiles.get(tutaUrl.name)
+				if (data == null) {
+					throw new FileNotFoundError(uri)
+				}
+				return data.length
 			}
-			return data.length
-		} else {
-			// we only upload encrypted blobs so it should be safe
-			return (await this.fs.promises.stat(uri)).size
+			case "file":
+				return (await this.fs.promises.stat(tutaUrl.url)).size
+			case "stream":
+				throw new ProgrammingError(`Cannot get size of a stream ${uri}`)
 		}
 	}
 
@@ -225,29 +236,56 @@ export class TempFs {
 		}
 	}
 
-	private nameToUri(filename: TmpFilename): `tuta-tmp:${string}` {
-		return `tuta-tmp:${filename}`
-	}
-
-	private uriToName(possibleUri: string): TmpFilename {
-		if (!possibleUri.startsWith("tuta-tmp:")) {
-			throw new ProgrammingError(`Invalid tmp uri: ${possibleUri}`)
-		} else {
-			return possibleUri.slice(`tuta-tmp:`.length) as TmpFilename
-		}
-	}
-
 	public openFileForReading(fileUri: string): string {
-		const stream = this.fs.createReadStream(fileUri)
+		const url = fileUrlFromString(fileUri)
+		const stream = this.fs.createReadStream(url)
 		const fileName = this.generateFilename()
 		this.openStreams.set(fileName, stream)
-		return `tuta-stream:${fileName}`
+		return tutaUrlToString({ type: "stream", name: fileName })
 	}
 
 	public closeFile(streamUri: string) {
-		const stream = this.openStreams.get(streamUri)
-		stream?.close()
-		this.openStreams.delete(streamUri)
+		const url = tutaUrlFromString(streamUri)
+		switch (url.type) {
+			case "stream": {
+				const stream = this.openStreams.get(streamUri)
+				stream?.close()
+				this.openStreams.delete(streamUri)
+				return
+			}
+			default:
+				throw new ProgrammingError(`Cannot close with url ${streamUri}`)
+		}
+	}
+
+	public async readAsData(uri: string): Promise<Uint8Array> {
+		const tutaUrl = tutaUrlFromString(uri)
+		switch (tutaUrl.type) {
+			case "tmp": {
+				const data = this.inMemoryFiles.get(tutaUrl.name)
+				if (data == null) {
+					throw new FileNotFoundError(uri)
+				}
+				return data
+			}
+			case "stream": {
+				const stream = this.openStreams.get(tutaUrl.name)
+				if (stream == null) {
+					throw new FileNotFoundError(uri)
+				}
+				return await readStreamToBuffer(stream)
+			}
+			case "file":
+				try {
+					return await this.fs.promises.readFile(tutaUrl.url)
+				} catch (e) {
+					if (e.code === "ENOENT") {
+						throw new FileNotFoundError(uri)
+					} else {
+						throw e
+					}
+				}
+		}
 	}
 
 	private generateFilename(): TmpFilename {
@@ -279,5 +317,38 @@ class TypedArrayReadableStream extends Readable {
 			this.position += size
 			this.push(chunk)
 		}
+	}
+}
+
+type TutaUrl = { type: "file"; url: URL } | { type: "tmp"; name: TmpFilename } | { type: "stream"; name: TmpFilename }
+
+function tutaUrlFromString(urlString: string): TutaUrl {
+	let url: URL
+	try {
+		url = new URL(urlString)
+	} catch (e) {
+		throw new ProgrammingError(`Invalid url: ${urlString}`)
+	}
+
+	switch (url.protocol) {
+		case "file:":
+			return { type: "file", url }
+		case "tuta-tmp:":
+			return { type: "tmp", name: url.pathname as TmpFilename }
+		case "tuta-stream:":
+			return { type: "stream", name: url.pathname as TmpFilename }
+		default:
+			throw new ProgrammingError(`Invalid url: ${urlString}`)
+	}
+}
+
+function tutaUrlToString(tutaUrl: TutaUrl): string {
+	switch (tutaUrl.type) {
+		case "file":
+			return tutaUrl.url.toString()
+		case "tmp":
+			return `tuta-tmp:${tutaUrl.name}`
+		case "stream":
+			return `tuta-stream:${tutaUrl.name}`
 	}
 }
