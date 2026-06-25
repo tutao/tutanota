@@ -20,14 +20,8 @@ export function getSymmetricCipherVersion(ciphertext: Uint8Array): SymmetricCiph
 	// therefore we will only have an odd number of bytes if there is a mac
 	if (ciphertext.length % 2 === 1) {
 		const versionByte = ciphertext[0]
-		if (versionByte === SymmetricCipherVersion.AesCbcThenHmac) {
-			return SymmetricCipherVersion.AesCbcThenHmac
-		} else if (versionByte === SymmetricCipherVersion.AeadWithGroupKey) {
-			return SymmetricCipherVersion.AeadWithGroupKey
-		} else if (versionByte === SymmetricCipherVersion.AeadWithSessionKey) {
-			return SymmetricCipherVersion.AeadWithSessionKey
-		} else if (versionByte === SymmetricCipherVersion.UnusedReservedUnauthenticated) {
-			return SymmetricCipherVersion.UnusedReservedUnauthenticated
+		if (Object.values(SymmetricCipherVersion).includes(versionByte as SymmetricCipherVersion)) {
+			return versionByte as SymmetricCipherVersion
 		}
 		throw new CryptoError("invalid cipher version")
 	} else {
@@ -39,9 +33,5 @@ export function getSymmetricCipherVersion(ciphertext: Uint8Array): SymmetricCiph
  * Get a byte array of length 1 that holds the provided version byte.
  */
 export function symmetricCipherVersionToUint8Array(version: SymmetricCipherVersion): Uint8Array {
-	return Uint8Array.from([getVersionByte(version)])
-}
-
-export function getVersionByte(version: SymmetricCipherVersion): number {
-	return version as number
+	return Uint8Array.from([version.valueOf()])
 }
