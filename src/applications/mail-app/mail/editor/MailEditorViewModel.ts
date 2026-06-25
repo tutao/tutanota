@@ -11,7 +11,7 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import { FileChooserMultiMode, DownloadPostProcessing, showFileChooser } from "../../../common/file/FileController.js"
 import { Mode, ProgrammingError } from "@tutao/app-env"
 import { AttachmentBubbleAttrs, AttachmentType } from "../../../../ui/AttachmentBubble.js"
-import { Attachment, FileReference, isFileReference } from "../../../../entities/tutanota/Utils"
+import { Attachment, FileReference } from "../../../../entities/tutanota/Utils"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
 import { AttachmentDownloader } from "../view/MailGuiUtils"
 
@@ -101,9 +101,9 @@ export function createAttachmentBubbleAttrs(
 	}))
 }
 
-export const cleanupInlineAttachments: (arg0: HTMLElement, arg2: Array<Attachment>, arg3: Array<Attachment>) => void = debounce(
+export const cleanupInlineAttachments: (arg0: HTMLElement, arg2: Array<Attachment>, arg3: Array<Attachment>, arg4: Set<string>) => void = debounce(
 	50,
-	(domElement: HTMLElement, attachments: Array<Attachment>, removedInlineImages: Array<Attachment>) => {
+	(domElement: HTMLElement, attachments: Array<Attachment>, removedInlineImages: Array<Attachment>, nonInlineAttachmentsCids: Set<string>) => {
 		// Previously we replied on subtree option of MutationObserver to receive info when nested child is removed.
 		// It works but it doesn't work if the parent of the nested child is removed, we would have to go over each mutation
 		// and check each descendant and if it's an image with CID or not.
@@ -137,7 +137,7 @@ export const cleanupInlineAttachments: (arg0: HTMLElement, arg2: Array<Attachmen
 
 			for (const attachment of attachments) {
 				// if the attachment has a cid then it is an inline image
-				if (attachment.cid && !imageCids.includes(attachment.cid)) {
+				if (attachment.cid && !imageCids.includes(attachment.cid) && !nonInlineAttachmentsCids.has(attachment.cid)) {
 					elementsToRemove.push(attachment)
 					removedInlineImages.push(attachment)
 				}
