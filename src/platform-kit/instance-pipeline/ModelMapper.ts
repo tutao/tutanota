@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, InvalidModelError, isTest } from "@tutao/app-env"
+import { assertWorkerOrNode, InvalidModelError, isTest, ProgrammingError } from "@tutao/app-env"
 import { assert, assertNotNull, base64ToBase64Url, DeepEquals, isNotNull, Nullable, promiseMap, uint8ArrayToBase64 } from "@tutao/utils"
 import {
 	AssociationReprType,
@@ -163,14 +163,20 @@ export class ModelMapper {
 		}
 
 		const cardinality = clientModelValue.cardinality
-		const isValidCardinality = cardinality === Cardinality.ZeroOrOne || (cardinality === Cardinality.One && !valueToKeep.isNull())
-		if (!isValidCardinality) {
-			throw new InvalidModelError(
-				`invalid value / cardinality combination for value ${clientModelValue.id} on type ${typeRef.app}/${typeRef.typeId}: ${cardinality}, isNull: ${value.isNull()}`,
-			)
+
+		if (cardinality === Cardinality.One && valueToKeep.isNull()) {
+			throw new InvalidModelError(`Expected non-null value for attribute with One cardinality. ${typeRef.toString()}/${clientModelValue.name}`)
+		} else if (cardinality === Cardinality.Any) {
+			throw new InvalidModelError("Current metamodel does not support ANY cardinality value")
 		}
 
-		return valueToKeep
+		const isIdTuple = clientModelValue.name === "_id" && isNotNull(value.getIdTupleOrNull())
+		if (isIdTuple || valueToKeep.isString() || valueToKeep.isNull()) {
+			// all value are nullable string or, IdTuple(in case of ListElement type's _id)
+			return valueToKeep
+		}
+
+		throw new ProgrammingError(`Invalid value/cardinality combination`)
 	}
 }
 

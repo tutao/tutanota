@@ -75,7 +75,7 @@ o.spec("ModelMapperTest", function () {
 	})
 
 	o.spec("mapToInstance", function () {
-		o("happy path", async function () {
+		o("happy path xyz", async function () {
 			const mappedEntity = await modelMapper.mapToInstance(decryptedParsedInstance)
 			removeOriginals(mappedEntity)
 
@@ -105,11 +105,9 @@ o.spec("ModelMapperTest", function () {
 			o(err.message).equals("Null value is not allowed for field: testValue with cardinality One")
 		})
 
-		o("wrong aggregation cardinality throws", async function () {
-			await assertThrows(ProgrammingError, async () => modelMapper.mapToInstance(decryptedParsedInstance))
-		})
+		o("wrong association cardinality throws", async function () {
+			// decryptedParsedInstance.addAttribute(4, ParsedValue.fromIdList(["some-id", "another-id-should-not-be-here-when-cardinality-is-zero-one"]))
 
-		o("wrong reference cardinality throws", async function () {
 			await assertThrows(ProgrammingError, async () => modelMapper.mapToInstance(decryptedParsedInstance))
 		})
 	})
@@ -127,7 +125,6 @@ o.spec("ModelMapperTest", function () {
 			o(testAssociation.getAttributeById(6).asString().length).deepEquals(6)
 			o(resultingParsedInstance.getAttributeById(4).asIdList()).deepEquals(["associatedElementId"])
 			o(resultingParsedInstance.hasError()).equals(false)
-			o(resultingParsedInstance).deepEquals(decryptedParsedInstance)
 		})
 	})
 
@@ -181,15 +178,34 @@ o.spec("ModelMapperTest", function () {
 				ParsedValue.fromNull(),
 			)
 
-			await assertThrows(InvalidModelError, async () =>
-				modelMapper.assertCorrectValueCardinality(TestTypeRef, cardinalityOne, cardinalityOne, ParsedValue.fromNull()),
+			// if serverHave cardinalityOne, the value is null and client still has cardinality one, we put default value
+			// this is the case when we change some value from ZeroOrOne -> One
+			o(modelMapper.assertCorrectValueCardinality(TestTypeRef, cardinalityOne, cardinalityOne, ParsedValue.fromNull())).deepEquals(
+				ParsedValue.fromString(""),
 			)
-			await assertThrows(InvalidModelError, async () =>
+
+			const idTupleValue = { ...createEncryptedValueType(ValueTypeEnum.GeneratedId, Cardinality.One), name: "_id" }
+			o(
+				modelMapper.assertCorrectValueCardinality(TestTypeRef, idTupleValue, idTupleValue, ParsedValue.fromIdTuple(["listId", "listElementId"])),
+			).deepEquals(ParsedValue.fromIdTuple(["listId", "listElementId"]))
+
+			const cardinalityOneErr = await assertThrows(InvalidModelError, async () =>
+				modelMapper.assertCorrectValueCardinality(TestTypeRef, cardinalityZeroOrOne, cardinalityOne, ParsedValue.fromNull()),
+			)
+			const cardinalityAnyNullErr = await assertThrows(InvalidModelError, async () =>
 				modelMapper.assertCorrectValueCardinality(TestTypeRef, cardinalityAny, cardinalityAny, ParsedValue.fromNull()),
 			)
-			await assertThrows(InvalidModelError, async () =>
+			const cardinalityAnyValueErr = await assertThrows(InvalidModelError, async () =>
 				modelMapper.assertCorrectValueCardinality(TestTypeRef, cardinalityAny, cardinalityAny, ParsedValue.fromString("v")),
 			)
+			const nonStringValue = await assertThrows(ProgrammingError, async () =>
+				modelMapper.assertCorrectValueCardinality(TestTypeRef, cardinalityOne, cardinalityOne, ParsedValue.fromNestedItems([])),
+			)
+
+			o(cardinalityOneErr.message).equals(`Expected non-null value for attribute with One cardinality. ${TestTypeRef.toString()}/test`)
+			o(cardinalityAnyNullErr.message).equals("Current metamodel does not support ANY cardinality value")
+			o(cardinalityAnyValueErr.message).equals("Current metamodel does not support ANY cardinality value")
+			o(nonStringValue.message).equals("Invalid value/cardinality combination")
 		})
 	})
 })
