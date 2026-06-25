@@ -8,6 +8,8 @@ import { object, when } from "testdouble"
 
 import {
 	BodyTypeRef,
+	Contact,
+	ContactTypeRef,
 	Mail,
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
@@ -272,25 +274,54 @@ o.spec("EphemeralCacheStorage", function () {
 				verify(userCacheHandler.onBeforeCacheDeletion?.(userId))
 			})
 
-			o.test("calls the cache handler for list element types", async function () {
-				const id: IdTuple = ["listId", "id1"]
-				const entityToStore = createTestEntity(
-					MailTypeRef,
-					{
-						_id: id,
-						_ownerGroup: groupId,
-					},
-					{ populateAggregates: true },
-				)
-				const storableEntity = (await modelMapper.mapToClientModelParsedInstance(MailTypeRef, entityToStore)) as unknown as ServerModelParsedInstance
+			o.spec("calls the cache handler for list element types", function () {
+				o.test("Mail ListElementType", async function () {
+					const id: IdTuple = ["listId", "id1"]
+					const entityToStore = createTestEntity(
+						MailTypeRef,
+						{
+							_id: id,
+							_ownerGroup: groupId,
+						},
+						{ populateAggregates: true },
+					)
+					const storableEntity = (await modelMapper.mapToClientModelParsedInstance(
+						MailTypeRef,
+						entityToStore,
+					)) as unknown as ServerModelParsedInstance
 
-				const customCacheHandler: CustomCacheHandler<Mail> = object()
-				when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
+					const customCacheHandler: CustomCacheHandler<Mail> = object()
+					when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
 
-				await storage.put(MailTypeRef, storableEntity)
+					await storage.put(MailTypeRef, storableEntity)
 
-				await storage.deleteAllOwnedBy(groupId)
-				verify(customCacheHandler.onBeforeCacheDeletion?.(id))
+					await storage.deleteAllOwnedBy(groupId)
+					verify(customCacheHandler.onBeforeCacheDeletion?.(id))
+				})
+
+				o.test("Contact ListElementType", async function () {
+					const id: IdTuple = ["listId", "id1"]
+					const entityToStore = createTestEntity(
+						ContactTypeRef,
+						{
+							_id: id,
+							_ownerGroup: groupId,
+						},
+						{ populateAggregates: true },
+					)
+					const storableEntity = (await modelMapper.mapToClientModelParsedInstance(
+						ContactTypeRef,
+						entityToStore,
+					)) as unknown as ServerModelParsedInstance
+
+					const customCacheHandler: CustomCacheHandler<Contact> = object()
+					when(customCacheHandlerMap.get(ContactTypeRef)).thenReturn(customCacheHandler)
+
+					await storage.put(ContactTypeRef, storableEntity)
+
+					await storage.deleteAllOwnedBy(groupId)
+					verify(customCacheHandler.onBeforeCacheDeletion?.(id))
+				})
 			})
 
 			o.test("calls the cache handler for blob element types", async function () {

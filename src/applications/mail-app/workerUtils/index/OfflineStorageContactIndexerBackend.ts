@@ -29,8 +29,12 @@ export class OfflineStorageContactIndexerBackend implements ContactIndexerBacken
 		await this.persistence.storeContactData([contact])
 	}
 
-	async onContactDeleted(contact: IdTuple): Promise<void> {
+	async onBeforeContactDeleted(contact: IdTuple): Promise<void> {
 		await this.persistence.deleteContactData(contact)
+	}
+
+	async onContactDeleted(contact: IdTuple): Promise<void> {
+		// no-op: processed in onBeforeContactDeleted()
 	}
 
 	async onContactUpdated(contact: Contact): Promise<void> {

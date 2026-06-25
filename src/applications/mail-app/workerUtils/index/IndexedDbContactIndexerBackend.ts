@@ -71,6 +71,10 @@ export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 		await Promise.all([this._core.writeIndexUpdate(indexUpdate), this.suggestionFacade.store()])
 	}
 
+	async onBeforeContactDeleted(_: IdTuple): Promise<void> {
+		// no-op: does processing in onContactDeleted()
+	}
+
 	async onContactDeleted(contact: IdTuple): Promise<void> {
 		const indexUpdate = _createNewIndexUpdate(typeRefToTypeInfo(ContactTypeRef))
 		await this._core._processDeleted(ContactTypeRef, elementIdPart(contact), indexUpdate)

@@ -78,7 +78,6 @@ import { NamedClientModel } from "../../../../platform-kit/instance-pipeline"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { assertNotNull, DateProvider, lazyAsync, lazyMemoized } from "../../../../platform-kit/utils"
-import { random } from "../../../../platform-kit/crypto"
 import { MailLoginListener } from "./MailLoginListener"
 import { BaseLocator } from "../../../../platform-kit/base/BaseLocator.js"
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
@@ -89,6 +88,7 @@ import { TutanotaEntityMigrator } from "../../../common/api/worker/TutanotaEntit
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { ImapImporter } from "../imapimport/ImapImporter"
 import { OAuthErrorHandler } from "../imapimport/OAuthErrorHandler"
+import { CustomContactEventCacheHandler } from "./CustomContactEventCacheHandler"
 
 assertWorkerOrNode()
 
@@ -293,6 +293,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 				{
 					ref: MailTypeRef,
 					handler: new CustomMailEventCacheHandler(mailIndexer),
+				},
+				{
+					ref: ContactTypeRef,
+					handler: new CustomContactEventCacheHandler(contactIndexer),
 				},
 				{
 					ref: UserTypeRef,
