@@ -7,7 +7,7 @@ import { FileNotFoundError } from "../../api/common/error/FileNotFoundError"
 import { Readable } from "node:stream"
 import fs from "node:fs"
 import { readStreamToBuffer } from "./DesktopFileFacade"
-import { fileURLToPath } from "node:url"
+import { fileURLToPath, pathToFileURL } from "node:url"
 import { fileUrlFromString } from "./fileUtils"
 
 type TmpSub = "reg" | "encrypted" | "decrypted"
@@ -121,7 +121,7 @@ export class TempFs {
 	 * @param contents the contents of the file to write
 	 * @param subfolder the subfolder of the tmp files to write to
 	 * @param option the options for write file as encoding and file permissions
-	 * @returns path to the written file
+	 * @returns URL to the written file
 	 */
 	async writeToDisk(contents: string | Uint8Array, subfolder: TmpSub, option?: { encoding: BufferEncoding; mode: number }): Promise<string> {
 		const tmpPath = path.join(this.getTutanotaTempPath(), subfolder)
@@ -132,7 +132,7 @@ export class TempFs {
 
 		await this.fs.promises.writeFile(filePath, contents, option)
 
-		return filePath
+		return pathToFileURL(filePath).toString()
 	}
 
 	/** removes the given subfolder of our tmp directory with all its contents */

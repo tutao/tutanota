@@ -1,7 +1,6 @@
 import path from "node:path"
-import { spawn } from "node:child_process"
 import type { NativeImage, Rectangle } from "electron"
-import { defer, delay, LazyLoaded } from "@tutao/utils"
+import { delay, LazyLoaded } from "@tutao/utils"
 import { log } from "./DesktopLog"
 import { swapFilename } from "./PathUtils"
 import { makeRegisterKeysTemplate, RegistryRoot, RegistryValue } from "./reg-templater"
@@ -171,36 +170,6 @@ export class DesktopUtils {
 				log.warn("tuta protocol called with unknown request type", url)
 			}
 		}
-	}
-
-	/**
-	 * this will silently fail if we're not admin.
-	 * @param script: source of the registry script
-	 * @private
-	 */
-	private async executeRegistryScript(script: string): Promise<void> {
-		const deferred = defer<void>()
-
-		const file = await this.tfs.writeToDisk(script, "reg", {
-			encoding: "utf-8",
-			// read only by owner, because the most we're doing with this is
-			// passing it to reg.exe and then delete it
-			mode: 0o400,
-		})
-
-		spawn("reg.exe", ["import", file], {
-			stdio: ["ignore", "inherit", "inherit"],
-			detached: false,
-		}).on("exit", (code, _signal) => {
-			this.tfs.clearTmpSub("reg")
-
-			if (code === 0) {
-				deferred.resolve(undefined)
-			} else {
-				deferred.reject(new Error("couldn't execute registry script"))
-			}
-		})
-		return deferred.promise
 	}
 
 	async doRegisterMailtoOnWin32WithCurrentUser(): Promise<void> {
