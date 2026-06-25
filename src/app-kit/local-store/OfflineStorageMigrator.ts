@@ -10,13 +10,14 @@ import { offline9 } from "./migrations/offline-v9"
 import { offline10 } from "./migrations/offline-v10"
 import { offline11 } from "./migrations/offline-v11"
 import { offline12 } from "./migrations/offline-v12"
+import { offline13 } from "./migrations/offline-v13"
 import { ApplicationTypesFacade } from "../../platform-kit/instance-pipeline"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { OfflineMigration } from "./OfflineMigration"
 
 // in cases where the actual migration is not there anymore (we clean up old migrations no client would apply anymore)
 // and we create a new offline database, we still need to set the offline version to the current value.
-export const CURRENT_OFFLINE_VERSION = 12
+export const CURRENT_OFFLINE_VERSION = 13
 
 /**
  * List of migrations that will be run when needed. Please add your migrations to the list.
@@ -37,6 +38,7 @@ export function createOfflineStorageMigrations(
 		new offline10(sqlCipherFacade),
 		new offline11(applicationTypesFacade),
 		new offline12(sqlCipherFacade),
+		new offline13(sqlCipherFacade),
 	] as ReadonlyArray<OfflineMigration>
 }
 
