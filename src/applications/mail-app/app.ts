@@ -20,19 +20,16 @@ import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu.js"
 import { MailView, MailViewAttrs, MailViewCache } from "./mail/view/MailView.js"
 import { ContactView, ContactViewAttrs } from "./contacts/view/ContactView.js"
 import { SettingsView } from "./settings/SettingsView.js"
-import { SearchView, SearchViewAttrs } from "./search/view/SearchView.js"
 import { TopLevelAttrs, TopLevelView } from "../../ui/base/TopLevelView.js"
 import { AppHeaderAttrs } from "../../ui/Header.js"
 import { CalendarViewModel } from "../calendar-app/calendar/view/CalendarViewModel.js"
 import { ExternalLoginView, ExternalLoginViewAttrs, ExternalLoginViewModel } from "./mail/view/ExternalLoginView.js"
 import { LoginController } from "../common/api/main/LoginController.js"
 import { MailViewModel } from "./mail/view/MailViewModel.js"
-import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
 import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import { UndoModel } from "./UndoModel"
 import { CommonLocator } from "../common/api/main/CommonLocator"
 import { DriveView, DriveViewAttrs } from "../drive-app/drive/view/DriveView"
@@ -44,7 +41,7 @@ import { initUiSingletons, MakeViewResolverOptions } from "../common/app-common"
 import { AppNameEnum } from "@tutao/meta"
 import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
 import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
-import { tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
+import { Contact, tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
 import { driveModelInfo, driveTypeModels } from "@tutao/entities/drive"
 import { storageModelInfo, storageTypeModels } from "@tutao/entities/storage"
 import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
@@ -56,6 +53,16 @@ import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../platfor
 import { RevocationView, RevocationViewAttrs } from "../common/revocation/RevocationView"
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
 import { AttachmentDownloader } from "./mail/view/MailGuiUtils"
+import { MailSearchView, MailSearchViewAttrs } from "./search/view/MailSearchView"
+import { MailSearchViewModel } from "./search/view/MailSearchViewModel"
+import { ContactSearchView, ContactSearchViewAttrs } from "./search/view/ContactSearchView"
+import { ContactSearchViewModel } from "./search/view/ContactSearchViewModel"
+import { CalendarSearchView, CalendarSearchViewAttrs } from "../calendar-app/calendar/search/view/CalendarSearchView"
+import { CalendarSearchViewModel } from "../calendar-app/calendar/search/view/CalendarSearchViewModel"
+import { DriveSearchView, DriveSearchViewAttrs } from "../drive-app/search/view/DriveSearchView"
+import { DriveSearchViewModel } from "../drive-app/search/view/DriveSearchViewModel"
+import { FolderItem } from "../drive-app/drive/view/DriveUtils"
+import { MoveItems } from "../drive-app/drive/view/DriveMoveItemDialog"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
@@ -562,39 +569,143 @@ import("../../ui/translations/en.js")
 				},
 				mailLocator.logins,
 			),
-			search: makeViewResolver<
-				SearchViewAttrs,
-				SearchView,
+			mailSearch: makeViewResolver<
+				MailSearchViewAttrs,
+				MailSearchView,
 				{
+					undoModel: UndoModel
 					drawerAttrsFactory: () => DrawerMenuAttrs
 					header: AppHeaderAttrs
-					searchViewModelFactory: () => SearchViewModel
-					contactModel: ContactModel
-					undoModel: UndoModel
+					makeViewModel: () => MailSearchViewModel
 				}
 			>(
 				{
 					prepareRoute: async () => {
-						const { SearchView } = await import("./search/view/SearchView.js")
+						const { MailSearchView } = await import("./search/view/MailSearchView.js")
 						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
+						const undoModel = await mailLocator.undoModel()
+						const makeViewModel = await mailLocator.mailSearchViewModelFactory()
 						return {
-							component: SearchView,
+							component: MailSearchView,
 							cache: {
+								undoModel,
 								drawerAttrsFactory,
 								header: await mailLocator.appHeaderAttrs(),
-								searchViewModelFactory: await mailLocator.searchViewModelFactory(),
-								contactModel: mailLocator.contactModel,
-								undoModel: await mailLocator.undoModel(),
+								makeViewModel,
 							},
 						}
 					},
-					prepareAttrs: (cache) => ({
-						drawerAttrs: cache.drawerAttrsFactory(),
-						header: cache.header,
-						makeViewModel: cache.searchViewModelFactory,
-						contactModel: cache.contactModel,
-						undoModel: cache.undoModel,
-					}),
+					prepareAttrs: (cache) => {
+						return {
+							contactModel: mailLocator.contactModel,
+							undoModel: cache.undoModel,
+							header: cache.header,
+							drawerAttrs: cache.drawerAttrsFactory(),
+							makeViewModel: cache.makeViewModel,
+						}
+					},
+				},
+				mailLocator.logins,
+			),
+			contactSearch: makeViewResolver<
+				ContactSearchViewAttrs,
+				ContactSearchView,
+				{ drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs; makeViewModel: () => ContactSearchViewModel }
+			>(
+				{
+					prepareRoute: async () => {
+						const { ContactSearchView } = await import("./search/view/ContactSearchView.js")
+						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
+						const makeViewModel = await mailLocator.contactSearchViewModelFactory()
+						return {
+							component: ContactSearchView,
+							cache: {
+								drawerAttrsFactory,
+								header: await mailLocator.appHeaderAttrs(),
+								makeViewModel: makeViewModel,
+							},
+						}
+					},
+					prepareAttrs: (cache) => {
+						return {
+							makeViewModel: cache.makeViewModel,
+							header: cache.header,
+							drawerAttrs: cache.drawerAttrsFactory(),
+						}
+					},
+				},
+				mailLocator.logins,
+			),
+			calendarSearch: makeViewResolver<
+				CalendarSearchViewAttrs,
+				CalendarSearchView,
+				{ header: AppHeaderAttrs; drawerAttrsFactory: () => DrawerMenuAttrs; makeViewModel: () => CalendarSearchViewModel }
+			>(
+				{
+					prepareRoute: async () => {
+						const { CalendarSearchView } = await import("../calendar-app/calendar/search/view/CalendarSearchView.js")
+						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
+						const makeViewModel = await mailLocator.calendarSearchViewModelFactory()
+						return {
+							component: CalendarSearchView,
+							cache: {
+								header: await mailLocator.appHeaderAttrs(),
+								drawerAttrsFactory,
+								makeViewModel,
+							},
+						}
+					},
+					prepareAttrs: (cache) => {
+						return {
+							header: cache.header,
+							drawerAttrs: cache.drawerAttrsFactory(),
+							makeViewModel: cache.makeViewModel,
+							editContact: async (contact: Contact) => (await mailLocator.contactEditor(contact)).show(),
+						}
+					},
+				},
+				mailLocator.logins,
+			),
+			driveSearch: makeViewResolver<
+				DriveSearchViewAttrs,
+				DriveSearchView,
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					header: AppHeaderAttrs
+					makeViewModel: () => DriveSearchViewModel
+					showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown
+					filePicker: DriveFilePicker
+					bottomNav: () => Children
+				}
+			>(
+				{
+					prepareRoute: async () => {
+						const { DriveSearchView } = await import("../drive-app/search/view/DriveSearchView.js")
+						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
+						const makeViewModel = await mailLocator.driveSearchViewModelFactory()
+						const filePicker = await mailLocator.driveFilePicker()
+						return {
+							component: DriveSearchView,
+							cache: {
+								header: await mailLocator.appHeaderAttrs(),
+								drawerAttrsFactory,
+								makeViewModel,
+								showMoveItemDialog: (items, moveItems) => mailLocator.showMoveItemDialog(items, moveItems),
+								bottomNav: () => m(BottomNav),
+								filePicker,
+							},
+						}
+					},
+					prepareAttrs: (cache) => {
+						return {
+							header: cache.header,
+							drawerAttrs: cache.drawerAttrsFactory(),
+							makeViewModel: cache.makeViewModel,
+							showMoveItemDialog: cache.showMoveItemDialog,
+							bottomNav: cache.bottomNav,
+							filePicker: cache.filePicker,
+						}
+					},
 				},
 				mailLocator.logins,
 			),
@@ -606,13 +717,11 @@ import("../../ui/translations/en.js")
 					header: AppHeaderAttrs
 					calendarViewModel: CalendarViewModel
 					bottomNav: () => Children
-					lazySearchBar: () => Children
 				}
 			>(
 				{
 					prepareRoute: async (cache) => {
 						const { CalendarView } = await import("../calendar-app/calendar/view/CalendarView.js")
-						const { lazySearchBar } = await import("./LazySearchBar.js")
 						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
 						return {
 							component: CalendarView,
@@ -621,19 +730,14 @@ import("../../ui/translations/en.js")
 								header: await mailLocator.appHeaderAttrs(),
 								calendarViewModel: await mailLocator.calendarViewModel(),
 								bottomNav: () => m(BottomNav),
-								lazySearchBar: () =>
-									m(lazySearchBar, {
-										placeholder: lang.get("searchCalendar_placeholder"),
-									}),
 							},
 						}
 					},
-					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory, bottomNav, lazySearchBar }) => ({
+					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory, bottomNav }) => ({
 						drawerAttrs: drawerAttrsFactory(),
 						header,
 						calendarViewModel,
 						bottomNav,
-						lazySearchBar,
 					}),
 				},
 				mailLocator.logins,
@@ -646,14 +750,12 @@ import("../../ui/translations/en.js")
 					header: AppHeaderAttrs
 					driveViewModel: DriveViewModel
 					bottomNav: () => Children
-					lazySearchBar: () => Children
 					filePicker: DriveFilePicker
 				}
 			>(
 				{
 					prepareRoute: async (cache) => {
 						const { DriveView } = await import("../drive-app/drive/view/DriveView.js")
-						const { lazySearchBar } = await import("./LazySearchBar.js")
 						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
 						const filePicker = await mailLocator.driveFilePicker()
 						return {
@@ -663,20 +765,15 @@ import("../../ui/translations/en.js")
 								header: await mailLocator.appHeaderAttrs(),
 								driveViewModel: await mailLocator.driveViewModel(),
 								bottomNav: () => m(BottomNav),
-								lazySearchBar: () =>
-									m(lazySearchBar, {
-										placeholder: lang.get("searchCalendar_placeholder"),
-									}),
 								filePicker,
 							},
 						}
 					},
-					prepareAttrs: ({ header, driveViewModel, drawerAttrsFactory, bottomNav, lazySearchBar, filePicker }) => ({
+					prepareAttrs: ({ header, driveViewModel, drawerAttrsFactory, bottomNav, filePicker }) => ({
 						drawerAttrs: drawerAttrsFactory(),
 						header,
 						driveViewModel,
 						bottomNav,
-						lazySearchBar,
 						showMoveItemDialog: (items, moveItems) => mailLocator.showMoveItemDialog(items, moveItems),
 						filePicker,
 					}),

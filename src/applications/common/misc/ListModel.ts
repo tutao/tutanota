@@ -455,7 +455,7 @@ export class ListModel<ItemType, IdType> {
 	}
 
 	areAllSelected(): boolean {
-		return this.rawState.inMultiselect && this.state.selectedItems.size === this.state.items.length
+		return wholeListSelected(this.state)
 	}
 
 	selectAll() {
@@ -679,4 +679,8 @@ export function selectionAttrsForList<ItemType, IdType>(listModel: Pick<ListMode
 		selectNone: () => listModel?.selectNone(),
 		selectAll: () => listModel?.selectAll(),
 	}
+}
+
+export function wholeListSelected(listState: ListState<unknown>): boolean {
+	return listState.inMultiselect && listState.selectedItems.size === listState.items.length
 }

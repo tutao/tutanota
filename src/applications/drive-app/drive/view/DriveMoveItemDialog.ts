@@ -10,7 +10,7 @@ import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { assertNotNull } from "../../../../platform-kit/utils"
 import { getElementId, isSameId } from "../../../../platform-kit/meta"
-import { FolderItem, folderItemEntity, FolderItemId, folderItemToId, toFolderItems } from "./DriveUtils"
+import { FolderFolderItem, FolderItem, folderItemEntity, FolderItemId, folderItemToId, toFolderItem, toFolderItems } from "./DriveUtils"
 import { DialogHeaderBar } from "../../../../ui/base/DialogHeaderBar"
 import { ButtonType } from "../../../../ui/base/Button"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
@@ -21,9 +21,9 @@ import { component_size, size } from "../../../../ui/size"
 import { DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 
 interface State {
-	currentFolder: DriveFolder
+	currentFolder: FolderFolderItem
 	items: readonly FolderItem[]
-	parents: readonly DriveFolder[]
+	parents: readonly FolderFolderItem[]
 	newFolderName: string | null
 }
 
@@ -38,7 +38,8 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 	const parentFolderId = firstItem.type === "file" ? firstItem.file.folder : assertNotNull(firstItem.folder.parent)
 	// TODO: show a progress here?
 	let state: State = await loadFolder(parentFolderId)
-	const loadParents = async () => driveFacade.getFolderParents(state.currentFolder._id) // this.driveViewModel.getMoreParents()
+	//We do not need a parent here so we don't provide it
+	const loadParents = async () => driveFacade.getFolderParents(state.currentFolder.folder._id).then((parents) => parents.map((p) => toFolderItem(p, null)))
 	let itemLabel: string
 	if (itemsToMove.length === 1) {
 		itemLabel = firstItem.type === "file" ? firstItem.file.name : firstItem.folder.name
@@ -47,11 +48,11 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 	}
 
 	async function loadFolder(folderId: IdTuple): Promise<State> {
-		const currentFolder = await entityClient.load(DriveFolderTypeRef, folderId)
+		const currentFolder = toFolderItem(await entityClient.load(DriveFolderTypeRef, folderId), null)
 
 		const contents = await driveFacade.getFolderContents(folderId)
 		const items = toFolderItems(contents)
-		const parents = currentFolder.parent ? [await entityClient.load(DriveFolderTypeRef, currentFolder.parent)] : []
+		const parents = currentFolder.folder.parent ? [toFolderItem(await entityClient.load(DriveFolderTypeRef, currentFolder.folder.parent), null)] : []
 		return { currentFolder, parents, items, newFolderName: null }
 	}
 
@@ -71,7 +72,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 							{
 								label: "moveItemHere_action",
 								click: () => {
-									moveItems(itemsToMove.map(folderItemToId), state.currentFolder)
+									moveItems(itemsToMove.map(folderItemToId), state.currentFolder.folder)
 									moveDialog.close()
 								},
 								type: ButtonType.Secondary,
@@ -124,7 +125,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 								m(".small.uppercase.font-weight-700", lang.getTranslationText("folderContent_label")),
 								[
 									m(DriveFolderBrowser, {
-										key: getElementId(currentFolder),
+										key: getElementId(currentFolder.folder),
 										items: currentFolderItems,
 										disabledTargetIds,
 										onItemClicked: (item: FolderItem) => {
@@ -159,14 +160,15 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 									: [
 											m(
 												".small.uppercase.font-weight-700",
-												lang.getTranslation(`createNewFolderIn_label`, { "{folderName}": driveFolderName(currentFolder).text }).text,
+												lang.getTranslation(`createNewFolderIn_label`, { "{folderName}": driveFolderName(currentFolder.folder).text })
+													.text,
 											),
 											m(DriveFolderBrowserNewFolderEntry, {
 												newFolderName: newFolderName,
 												onNewFolderNameInput: (name) => {
 													state.newFolderName = name
 												},
-												onCreateFolder: () => this.onCreateFolder(newFolderName, currentFolder),
+												onCreateFolder: () => this.onCreateFolder(newFolderName, currentFolder.folder),
 											}),
 										],
 							]),

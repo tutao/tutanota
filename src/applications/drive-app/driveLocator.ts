@@ -58,7 +58,7 @@ import type { AutosaveFacade, LocalAutosavedDraftData } from "../common/api/work
 import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
-import { DriveSearchModelStub } from "./search/model/DriveSearchModelStub"
+import { DriveSearchModel } from "./search/model/DriveSearchModel"
 import type { DriveViewModel } from "./drive/view/DriveViewModel"
 import type { CalendarEventModel, CalendarOperation } from "../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel"
 import type { CalendarInfo, CalendarModel } from "../calendar-app/calendar/model/CalendarModel"
@@ -123,13 +123,17 @@ import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 import type { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
 import type { AlarmInterval } from "../common/calendar/date/CalendarUtils"
 import { showWindowCloseConfirmation } from "../../ui/base/GuiUtils"
+import { SearchRouter } from "../common/search/view/SearchRouter"
+import { DriveModel } from "./drive/model/DriveModel"
+import { DriveTransferController } from "./drive/view/DriveTransferController"
+import { DriveSearchViewModel } from "./search/view/DriveSearchViewModel"
 
 EnvProvider.assertMainOrNode()
 
 class DriveLocator implements CommonLocator {
 	clientModelInfo!: ClientModelInfo
 	eventController!: EventController
-	search!: DriveSearchModelStub
+	search!: DriveSearchModel
 	mailboxModel!: MailboxModel
 	contactModel!: ContactModel
 	entityClient!: EntityClient
@@ -185,6 +189,8 @@ class DriveLocator implements CommonLocator {
 	driveFacade!: DriveFacade
 	transferProgressDispatcher!: TransferProgressDispatcher
 	imapImporter!: ImapSyncFacade
+	searchRouter!: SearchRouter
+	searchModel!: DriveSearchModel
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -228,30 +234,34 @@ class DriveLocator implements CommonLocator {
 	}
 
 	readonly throttledRouter: lazy<Router> = lazyMemoized(() => new ThrottledRouter())
+	readonly driveOperations: lazyAsync<DriveModel> = lazyMemoized(async () => {
+		const { DriveModel } = await import("./drive/model/DriveModel.js")
+		const redraw = await this.redraw()
+		const transferController = new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController)
+		return new DriveModel(transferController, this.driveFacade, this.entityClient, this.eventController, this.transferProgressDispatcher)
+	})
 
 	readonly driveViewModel: lazyAsync<DriveViewModel> = lazyMemoized(async () => {
 		const { DriveViewModel } = await import("./drive/view/DriveViewModel.js")
 		const router = new ScopedThrottledRouter("/drive")
-		const { DriveTransferController } = await import("./drive/view/DriveTransferController.js")
 		const { WebFileResolver } = await import("../drive-app/drive/view/WebFileResolver.js")
-
 		const redraw = await this.redraw()
-		const driveUploadStackModel = new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController)
 
 		return new DriveViewModel(
 			this.entityClient,
 			this.driveFacade,
 			router,
-			this.transferProgressDispatcher,
 			this.eventController,
 			this.logins,
 			this.userManagementFacade,
-			driveUploadStackModel,
 			EnvProvider.get().isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp, this.desktopSystemFacade) : null,
 			windowFacade,
 			redraw,
 			() => showWindowCloseConfirmation("closeWindowWithActiveTransfers_msg"),
 			this.connectivityModel,
+			this.searchModel,
+			this.searchRouter,
+			await this.driveOperations(),
 		)
 	})
 
@@ -567,8 +577,8 @@ class DriveLocator implements CommonLocator {
 		this.progressTracker = new ProgressTracker()
 		this.eventController = new EventController(driveLocator.logins)
 		this.syncTracker = new SyncTracker()
-		this.search = new DriveSearchModelStub()
 		this.entityClient = new EntityClient(restInterface, this.clientModelInfo)
+		this.search = new DriveSearchModel(this.eventController, this.entityClient)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
 		this.entropyFacade = entropyFacade
@@ -1027,6 +1037,32 @@ class DriveLocator implements CommonLocator {
 		const { GroupSettingsModel } = await import("../common/sharing/model/GroupSettingsModel.js")
 		return new GroupSettingsModel(this.entityClient, this.logins)
 	})
+	readonly scopedSearchRouter: lazyAsync<SearchRouter> = lazyMemoized(async () => {
+		const { SearchRouter } = await import("../common/search/view/SearchRouter.js")
+		return new SearchRouter(new ScopedThrottledRouter("/search"))
+	})
+	async driveSearchViewModelFactory(): Promise<() => DriveSearchViewModel> {
+		const { DriveSearchViewModel } = await import("../drive-app/search/view/DriveSearchViewModel.js")
+		const redraw = await this.redraw()
+		const searchRouter = await this.scopedSearchRouter()
+		const router = await this.throttledRouter()
+		const dateProvider = await this.noZoneDateProvider()
+		const driveOperations = await this.driveOperations()
+		return () =>
+			new DriveSearchViewModel(
+				searchRouter,
+				this.search,
+				router,
+				dateProvider,
+				this.logins,
+				this.driveFacade,
+				redraw,
+				this.transferProgressDispatcher,
+				driveOperations,
+				windowFacade,
+				() => showWindowCloseConfirmation("closeWindowWithActiveTransfers_msg"),
+			)
+	}
 }
 
 export type IDriveLocator = Readonly<DriveLocator>

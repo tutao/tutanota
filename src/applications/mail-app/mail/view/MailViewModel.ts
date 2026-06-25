@@ -62,6 +62,10 @@ import { getMailSetKind, isPermanentDeleteAllowedForFolder } from "../MailUtils"
 import { ProgrammingError } from "../../../../platform-kit/app-env"
 import { $Promisable } from "../../workerUtils/index/IndexerPromiseUtils"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { SearchRouter } from "../../../common/search/view/SearchRouter"
+import { MailSearchModel } from "../../search/model/MailSearchModel"
+
+import { SearchQuery } from "../../../common/search/SearchUtils"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -140,6 +144,8 @@ export class MailViewModel {
 		private readonly router: Router,
 		private readonly updateUi: () => unknown,
 		private readonly syncTracker: SyncTracker,
+		private readonly searchRouter: SearchRouter,
+		private readonly searchModel: MailSearchModel,
 	) {}
 
 	getSelectedMailSetKind(): MailSetKind | null {
@@ -968,6 +974,12 @@ export class MailViewModel {
 
 	getMoveMode(folder: MailSet): MoveMode {
 		return this.groupMailsByConversation(folder) ? MoveMode.Conversation : MoveMode.Mails
+	}
+	selectSearchResult(searchQuery: SearchQuery, mail: Mail | null) {
+		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, mail ? getElementId(mail) : null)
+	}
+	getSearchResult(searchQuery: SearchQuery) {
+		return this.searchModel.searchMails(searchQuery)
 	}
 
 	deinit() {

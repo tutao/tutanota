@@ -1,7 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveClipboard, SortColumn, SortingPreference } from "./DriveViewModel"
 import { DriveFolderNav, DriveSelectedItemsActions } from "./DriveFolderNav"
-import { DriveFolderContent, DriveFolderContentAttrs, DriveFolderSelectionEvents, SelectionState } from "./DriveFolderContent"
+import { DriveFolderContent, DriveFolderContentAttrs } from "./DriveFolderContent"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { ListLoadingState, ListState } from "../../../../ui/base/List"
 import { px, size } from "../../../../ui/size"
@@ -11,24 +10,24 @@ import { theme } from "../../../../ui/theme"
 import { IconMessageBox } from "../../../../ui/base/ColumnEmptyMessageBox"
 import { LayerType } from "../../../../ui/base/RootView"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
-import { DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs } from "../../../../ui/base/Dropdown"
-import { getFileContextActions, getSelectionContextActions, isMobileDriveLayout, newItemActions, parseDragItems } from "./DriveGuiUtils"
+import { DomRectReadOnlyPolyfilled, Dropdown } from "../../../../ui/base/Dropdown"
+import { driveItemContextMenu, isMobileDriveLayout, newItemActions, parseDragItems } from "./DriveGuiUtils"
 import { modal } from "../../../../ui/base/Modal"
 import { DropType } from "../../../../ui/base/GuiUtils"
 import { FileActions } from "./DriveFolderContentEntry"
-import { FolderFolderItem, FolderItem, FolderItemId } from "./DriveUtils"
+import { FolderFolderItem, FolderItem, FolderItemId, SortColumn, SortingPreference } from "./DriveUtils"
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
-import { DriveFolder } from "@tutao/entities/drive"
+import { DriveClipboard } from "../model/DriveModel"
+import { ListItemSelectionCallbacks } from "../../../../ui/base/ListUtils"
 
 export interface DriveFolderViewAttrs {
-	selection: SelectionState
 	selectedItemsActions: DriveSelectedItemsActions
-	currentFolder: DriveFolder | null
-	parents: readonly DriveFolder[]
+	currentFolder: FolderFolderItem | null
+	parents: readonly FolderFolderItem[]
 	listState: ListState<FolderItem>
-	selectionEvents: DriveFolderSelectionEvents
+	selectionEvents: ListItemSelectionCallbacks<FolderItem>
 	onDropFiles: (files: File[], folders: FileSystemDirectoryEntry[]) => unknown
-	loadParents: () => Promise<DriveFolder[]>
+	loadParents: () => Promise<FolderFolderItem[]>
 	onUploadFiles: (event: MouseEvent, dom: HTMLElement) => unknown
 	onCreateFolder: () => unknown
 	onUploadFolders: (event: MouseEvent, dom: HTMLElement) => unknown
@@ -40,8 +39,8 @@ export interface DriveFolderViewAttrs {
 	onPaste?: () => unknown
 }
 
-function canDropFilesToFolder(currentFolder: DriveFolder | null): boolean {
-	return currentFolder != null && currentFolder.type !== DriveFolderType.Trash
+function canDropFilesToFolder(currentFolder: FolderFolderItem | null): boolean {
+	return currentFolder != null && currentFolder.folder.type !== DriveFolderType.Trash
 }
 
 function isValidDataTransferItem(item: DataTransferItem): boolean {
@@ -57,7 +56,6 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 			onDropFiles,
 			currentFolder,
 			parents,
-			selection,
 			selectionEvents,
 			listState,
 			loadParents,
@@ -121,12 +119,12 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 						dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
 						modal.displayUnique(dropdown, false)
 
-						selectionEvents.onSelectNone()
+						selectionEvents.selectNone()
 					}
 				},
 				onclick: (e: MouseEvent) => {
 					if (!isMobileDriveLayout()) {
-						selectionEvents.onSelectNone()
+						selectionEvents.selectNone()
 					}
 				},
 			},
@@ -147,42 +145,16 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 						fileActions,
 						onSort: onSortColumn,
 						onDropInto,
-						selection,
 						listState,
 						selectionEvents,
 						clipboard,
-						onEntryContextMenu: (f, e) =>
-							this.onEntryContextMenu(f, e, selection, selectionEvents, selectedItemsActions, fileActions, listState.selectedItems.has(f)),
+						displayLocation: false,
+						onEntryContextMenu: (item, event) => driveItemContextMenu(selectionEvents, selectedItemsActions, fileActions, listState, item, event),
 					} satisfies DriveFolderContentAttrs),
 		)
 	}
 
-	private onEntryContextMenu(
-		item: FolderItem,
-		e: MouseEvent,
-		selection: SelectionState,
-		selectionEvents: DriveFolderSelectionEvents,
-		selectedItemsActions: DriveSelectedItemsActions,
-		fileActions: FileActions,
-		isItemSelected: boolean,
-	) {
-		let contextActions: DropdownChildAttrs[]
-
-		if (isItemSelected && selection.type === "multiselect" && selection.selectedItemCount > 1) {
-			contextActions = getSelectionContextActions(selectedItemsActions)
-		} else {
-			selectionEvents.onSingleSelection(item)
-
-			// Nothing is selected, open the context menu for the item that received the event.
-			contextActions = getFileContextActions(item, fileActions)
-		}
-
-		const dropdown = new Dropdown(() => contextActions, 300)
-		dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
-		modal.displayUnique(dropdown, false)
-	}
-
-	private renderEmptyView(folder: DriveFolder | null): Children {
+	private renderEmptyView(folder: FolderFolderItem | null): Children {
 		return m(
 			"",
 			{
@@ -190,7 +162,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 					marginTop: "6.4rem",
 				},
 			},
-			folder && folder.type === DriveFolderType.Trash
+			folder && folder.folder.type === DriveFolderType.Trash
 				? m(IconMessageBox, {
 						message: lang.getTranslation("trashIsEmpty_msg"),
 						icon: Icons.TrashEmptyFilled,

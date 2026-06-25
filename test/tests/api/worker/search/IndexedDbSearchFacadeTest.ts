@@ -12,6 +12,7 @@ import {
 import { TypeInfo, typeInfoToTypeRef, typeRefToTypeInfo } from "../../../../../src/applications/common/api/common/utils/IndexUtils.js"
 import {
 	ElementDataDbRow,
+	SearchCategoryType,
 	SearchIndexEntry,
 	SearchIndexMetaDataRow,
 	SearchRestriction,
@@ -155,7 +156,7 @@ o.spec("IndexedDbSearchFacade", () => {
 
 	let createMailRestriction = (attributeIds?: number[] | null, listId?: Id | null, start?: number | null, end?: number | null): SearchRestriction => {
 		return {
-			type: MailTypeRef,
+			type: SearchCategoryType.mail,
 			start: start ?? null,
 			end: end ?? null,
 			field: null,
@@ -177,9 +178,9 @@ o.spec("IndexedDbSearchFacade", () => {
 	): Promise<void> => {
 		await createDbContent(transaction, dbData, dbListIds)
 		const s = createSearchFacade(transaction, currentIndexTimestamp)
-		const typeModel = await typeModelResolver.resolveClientTypeReference(restriction.type)
+		const typeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 
-		const result = await s.search(query, restriction, minSuggestionCount, maxResults)
+		const result = await s.search(query, restriction, { minSuggestionCount, maxResults })
 		o.check(result.query).equals(query)
 		o.check(result.restriction).deepEquals(restriction)
 		o.check(result.results).deepEquals(
@@ -423,7 +424,7 @@ o.spec("IndexedDbSearchFacade", () => {
 			query,
 			tokens,
 			restriction: {
-				type: MailTypeRef,
+				type: SearchCategoryType.mail,
 				start,
 				end,
 				field: null,

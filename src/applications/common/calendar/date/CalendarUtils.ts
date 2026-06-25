@@ -1,10 +1,9 @@
-import { clone, isSameId, isSameSingleId } from "@tutao/meta"
+import { clone, elementIdPart, isSameId, isSameSingleId } from "@tutao/meta"
 import {
 	AdvancedRepeatRule,
 	CalendarEvent,
 	CalendarEventAttendee,
 	CalendarEventParams,
-	CalendarEventTypeRef,
 	CalendarGroupRoot,
 	CalendarRepeatRule,
 	createCalendarEvent,
@@ -30,7 +29,6 @@ import {
 	insertIntoSortedArray,
 	isNotEmpty,
 	isNotNull,
-	isSameDayOfDate,
 	isValidDate,
 	memoized,
 	neverNull,
@@ -48,11 +46,8 @@ import {
 } from "../../api/common/utils/CommonCalendarUtils"
 import { Time } from "./Time.js"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
-import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import { ResolvedUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
-import { LoginController } from "../../api/main/LoginController.js"
-import { BirthdayEventRegistry } from "./CalendarEventsRepository.js"
 import type { TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
 import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
 import { EventWrapper, type EventWrapperFlags } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
@@ -120,28 +115,6 @@ export function getMonthRange(date: Date, zone: string): CalendarTimeRange {
 	}
 }
 
-export function getDayRange(date: Date, zone: string): CalendarTimeRange {
-	const startDateTime = DateTime.fromJSDate(date, {
-		zone,
-	}).set({
-		hour: 0,
-		minute: 0,
-		second: 0,
-		millisecond: 0,
-	})
-	const start = startDateTime.toJSDate().getTime()
-	const end = startDateTime
-		.plus({
-			day: 1,
-		})
-		.toJSDate()
-		.getTime()
-	return {
-		start,
-		end,
-	}
-}
-
 /**
  * @param date a date object representing a calendar date (like 1st of May 2023 15:15) in {@param zone}
  * @param zone the time zone to calculate which calendar date {@param date} represents.
@@ -163,21 +136,6 @@ export function getStartOfNextDayWithZone(date: Date, zone: string): Date {
 			millisecond: 0,
 		})
 		.plus({ day: 1 })
-		.toJSDate()
-}
-
-/** @param date a date object representing some time on some calendar date (like 1st of May 2023) in {@param zone}
- * @param zone the time zone for which to calculate the calendar date that {@param date} represents
- * @returns a date object representing the start of the previous calendar date (30nd of April 2023 00:00) in {@param zone} */
-export function getStartOfPreviousDayWithZone(date: Date, zone: string): Date {
-	return DateTime.fromJSDate(date, { zone })
-		.set({
-			hour: 0,
-			minute: 0,
-			second: 0,
-			millisecond: 0,
-		})
-		.minus({ day: 1 })
 		.toJSDate()
 }
 
@@ -1546,17 +1504,6 @@ export function findFirstPrivateCalendar(calendarInfo: ReadonlyMap<Id, CalendarI
 	return null
 }
 
-export const DEFAULT_HOUR_OF_DAY = 6
-
-/** Get CSS class for the date element. */
-export function getDateIndicator(day: Date, selectedDate: Date | null): string {
-	if (isSameDayOfDate(day, selectedDate)) {
-		return ".accent-bg.circle"
-	} else {
-		return ""
-	}
-}
-
 /**
  * Determine what format the time of an event should be rendered, given a surrounding time period.
  *
@@ -1612,15 +1559,6 @@ export function getFirstDayOfMonth(d: Date): Date {
 	const date = new Date(d)
 	date.setDate(1)
 	return date
-}
-
-/**
- * get the "primary" event of a series - the one that contains the repeat rule and is not a repeated or a rescheduled instance.
- * @param calendarEvent
- * @param entityClient
- */
-export async function resolveCalendarEventProgenitor(calendarEvent: CalendarEvent, entityClient: EntityClient): Promise<CalendarEvent> {
-	return calendarEvent.repeatRule ? await entityClient.load(CalendarEventTypeRef, calendarEvent._id) : calendarEvent
 }
 
 /** clip the range start-end to the range given by min-max. if the result would have length 0, null is returned. */
@@ -1806,29 +1744,6 @@ export function extractYearFromBirthday(birthday: string | null): number | null 
 	return Number.parseInt(dateParts[0])
 }
 
-export async function retrieveBirthdayEventsForUser(
-	logins: LoginController,
-	searchResultEventIds: IdTuple[],
-	birthdayEventsByMonth: Map<number, BirthdayEventRegistry[]>,
-) {
-	if (!(await logins.getUserController().isNewPaidPlan())) {
-		return []
-	}
-
-	const birthdayEventsFromSearchResult = searchResultEventIds.filter(([calendarId, _]) => isBirthdayCalendar(calendarId))
-	const birthdayEventIdsString = birthdayEventsFromSearchResult.flatMap((eventId) => eventId.join("/"))
-	const retrievedEvents: CalendarEvent[] = []
-
-	const allBirthdayEvents = Array.from(birthdayEventsByMonth.values()).flat()
-	for (const event of allBirthdayEvents) {
-		if (birthdayEventIdsString.includes(event.event._id.join("/"))) {
-			retrievedEvents.push(event.event)
-		}
-	}
-
-	return retrievedEvents
-}
-
 export function calculateContactsAge(birthYear: number | null, currentYear: number): number | null {
 	if (!birthYear) {
 		return null
@@ -1837,12 +1752,26 @@ export function calculateContactsAge(birthYear: number | null, currentYear: numb
 	return currentYear - birthYear
 }
 
-export function extractContactIdFromEvent(id: string | null | undefined): string | null {
-	if (id == null) {
+/**
+ * Get contact id that was used to derive {@param calendarEventId}.
+ * For birthdays, we create "virtual" (client-only) calendar events. Their id is derived from the contact id. This
+ * function does the opposite, giving the original contact id.
+ */
+export function birthdayCalendarEventContactId(calendarEventId: IdTuple): IdTuple | null {
+	const idParts = elementIdPart(calendarEventId).split("#")
+	if (idParts.length !== 2) {
 		return null
 	}
-
-	return decodeBase64("utf-8", id)
+	const [_, encodedContactId] = idParts
+	const contactId = decodeBase64("utf-8", encodedContactId)
+	if (contactId == null) {
+		return null
+	}
+	const contactIdParts = contactId.split("/")
+	if (contactIdParts.length !== 2) {
+		return null
+	}
+	return [contactIdParts[0], contactIdParts[1]]
 }
 
 /**

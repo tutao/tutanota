@@ -18,12 +18,13 @@ import {
 	debounce,
 	deepEqual,
 	findAndRemove,
+	getEndOfDay,
 	getStartOfDay,
 	groupByAndMapUniquely,
 	identity,
 	incrementDate,
+	incrementMonth,
 	insertIntoSortedArray,
-	last,
 	lazy,
 	memoized,
 	millisToDays,
@@ -44,11 +45,11 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import {
 	addDaysForRecurringEvent,
+	birthdayCalendarEventContactId,
 	CalendarTimeRange,
 	CalendarType,
 	DefaultDateProvider,
 	eventComparator,
-	extractContactIdFromEvent,
 	getDiffIn60mIntervals,
 	getMonthRange,
 	getStartOfDayWithZone,
@@ -96,6 +97,10 @@ import { EventSeriesResolver } from "../../../common/calendar/import/EventSeries
 import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
+import { SearchRouter } from "../../../common/search/view/SearchRouter"
+import { encodeCalendarSearchKey } from "../search/model/CalendarSearchUtils"
+import { CalendarSearchModel } from "../../search/model/CalendarSearchModel"
+import { LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
 
 export interface EventWrapperFlags {
 	/**
@@ -223,7 +228,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	private _isNewPaidPlan: boolean = false
 	isCreatingExternalCalendar: boolean = false
 
-	private cancelSignal: Stream<boolean> = stream(false)
+	private abortController: AbortController = new AbortController()
 
 	private calendarColorsMap: (availableCalendars: ReadonlyArray<CalendarInfoBase>) => Map<Id, string>
 
@@ -254,6 +259,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		private readonly createCalendarEventPreviewModel: CalendarEventPreviewModelFactory,
 		private readonly createCalendarContactPreviewModel: CalendarContactPreviewModelFactory,
 		private readonly calendarModel: CalendarModel,
+		private readonly searchModel: CalendarSearchModel,
 		private readonly eventsRepository: CalendarEventsRepository,
 		private readonly entityClient: EntityClient,
 		eventController: EventController,
@@ -266,6 +272,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		private readonly groupSettingsModel: lazy<Promise<GroupSettingsModel>>,
 		private readonly operationProgressTracker: OperationProgressTracker,
 		private readonly connectivityModel: WebsocketConnectivityModel,
+		private readonly searchRouter: SearchRouter,
 	) {
 		this.calendarColorsMap = memoized((availableCalendars: ReadonlyArray<CalendarInfoBase>) => {
 			const calendarColors = new Map()
@@ -350,9 +357,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	private _sendCancelSignal() {
-		this.cancelSignal(true)
-		this.cancelSignal.end(true)
-		this.cancelSignal = stream(false)
+		this.abortController.abort()
+		this.abortController = new AbortController()
 	}
 
 	setPreviewedEventId(id: IdTuple | null) {
@@ -424,7 +430,12 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			if (hasNewPaidPlan) {
 				await this.eventsRepository.loadContactsBirthdays()
 			}
-			await this.loadMonthsIfNeeded([new Date(thisMonthStart), nextMonthDate, previousMonthDate], progressMonitor, this.cancelSignal, isForceReload)
+			await this.loadMonthsIfNeeded(
+				[new Date(thisMonthStart), nextMonthDate, previousMonthDate],
+				progressMonitor,
+				this.abortController.signal,
+				isForceReload,
+			)
 		} finally {
 			progressMonitor.completed()
 			this.doRedraw()
@@ -800,10 +811,14 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			const calendarInfos = await this.calendarModel.getCalendarInfosCreateIfNeeded()
 			let previewModel: CalendarPreviewModels
 			if (isBirthdayCalendar(listIdPart(event._id))) {
-				const idParts = event._id[1].split("#")!
-				const contactId = extractContactIdFromEvent(last(idParts))!
-				const contactIdParts = contactId.split("/")
-				const contact = await this.contactModel.loadContactFromId([contactIdParts[0], contactIdParts[1]])
+				const contactId = birthdayCalendarEventContactId(event._id)
+				if (contactId == null) {
+					console.warn("Invalid birthday event id: ", event._id.join("/"))
+					this.previewedEvent(null)
+					this.doRedraw()
+					return null
+				}
+				const contact = await this.contactModel.loadContactFromId(contactId)
 				previewModel = await this.createCalendarContactPreviewModel(event, contact, true)
 			} else {
 				previewModel = await this.createCalendarEventPreviewModel(event, calendarInfos, [])
@@ -862,7 +877,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return this.calendarModel.getCalendarInfosCreateIfNeeded()
 	}
 
-	loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: ProgressMonitorInterface, canceled: Stream<boolean>, isForceReload: boolean): Promise<void> {
+	loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: ProgressMonitorInterface, canceled: AbortSignal, isForceReload: boolean): Promise<void> {
 		return this.eventsRepository.loadMonthsIfNeeded(daysInMonths, canceled, progressMonitor, undefined, isForceReload)
 	}
 
@@ -981,6 +996,31 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			this.timeZone,
 		)
 		await importer.import(groupRoot, calendarInfo, parsedEventAlarmTuples, CalendarImporter.classifyImportedEvents, calendarInfo.type)
+	}
+
+	selectSearchResult(searchQuery: SearchQuery, calendarEvent: CalendarEvent | null) {
+		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, calendarEvent ? encodeCalendarSearchKey(calendarEvent) : null)
+	}
+
+	getSearchResult(searchQuery: SearchQuery): Promise<LiveSearchResult<CalendarEvent>> {
+		const selectedDate = this.selectedDate()
+
+		let startDate: Date
+
+		if (this.logins.getUserController().isFreeAccount()) {
+			startDate = new Date()
+		} else {
+			startDate = new Date(selectedDate)
+		}
+		startDate.setDate(1)
+
+		searchQuery.restriction.start = getStartOfDay(startDate).getTime()
+
+		let endDate = incrementMonth(new Date(searchQuery.restriction.start), 3)
+		endDate.setDate(0)
+		searchQuery.restriction.end = getEndOfDay(endDate).getTime()
+
+		return this.searchModel.searchCalendar(searchQuery, this.abortController.signal)
 	}
 
 	deinit() {

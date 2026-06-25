@@ -1,106 +1,87 @@
-import { TopLevelAttrs, TopLevelView } from "../../../../../ui/base/TopLevelView.js"
-import { AppHeaderAttrs, Header } from "../../../../../ui/Header.js"
-import { CalendarSearchViewModel, PaidFunctionResult } from "./CalendarSearchViewModel.js"
-import { BaseTopLevelView } from "../../../../../ui/BaseTopLevelView.js"
-import { ColumnType, ViewColumn } from "../../../../../ui/base/ViewColumn.js"
-import { ViewSlider } from "../../../../../ui/nav/ViewSlider.js"
-import { isSameSingleId } from "../../../../../platform-kit/meta"
-import { assertNotNull, isSameDayOfDate, last, LazyLoaded, lazyMemoized, memoized, stringToBase64 } from "../../../../../platform-kit/utils"
-import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel.js"
+import { TopLevelAttrs, TopLevelView } from "../../../../../ui/base/TopLevelView"
+import { AppHeaderAttrs, Header } from "../../../../../ui/Header"
+import { BaseTopLevelView } from "../../../../../ui/BaseTopLevelView"
+import { ColumnType, ViewColumn } from "../../../../../ui/base/ViewColumn"
+import { ViewSlider } from "../../../../../ui/nav/ViewSlider"
+import { CalendarSearchViewModel } from "./CalendarSearchViewModel"
 import m, { Children, Vnode } from "mithril"
-import { NavButton } from "../../../../../ui/base/NavButton.js"
-import { layout_size } from "../../../../../ui/size.js"
-import { lang, type MaybeTranslation } from "../../../../../ui/utils/LanguageViewModel.js"
-import { BackgroundColumnLayout } from "../../../../../ui/BackgroundColumnLayout.js"
-import { theme } from "../../../../../ui/theme.js"
-import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../../ui/DesktopToolbars.js"
-import { CalendarSearchListView, CalendarSearchListViewAttrs } from "./CalendarSearchListView.js"
-import { keyManager, Shortcut } from "../../../../../ui/utils/KeyManager.js"
-import { Styles } from "../../../../../ui/styles.js"
-import { BaseMobileHeader } from "../../../../../ui/BaseMobileHeader.js"
-import { MobileHeader } from "../../../../../ui/MobileHeader.js"
-import { searchBar } from "../CalendarSearchBar.js"
-import { ProgressBar } from "../../../../../ui/base/ProgressBar.js"
-import ColumnEmptyMessageBox from "../../../../../ui/base/ColumnEmptyMessageBox.js"
-import { CalendarEvent, Contact } from "@tutao/entities/tutanota"
-import { PartialRecipient } from "../../../../../entities/tutanota/Utils"
+import { SidebarSection } from "../../../../../ui/SidebarSection"
+import { layout_size } from "../../../../../ui/size"
+import { DrawerMenuAttrs } from "../../../../common/gui/nav/DrawerMenu"
+import { showProgressDialog } from "../../../../../ui/dialogs/ProgressDialog"
+import { EventEditorDialog } from "../../gui/eventeditor-view/CalendarEventEditDialog"
+import { Icons } from "../../../../../ui/base/icons/Icons"
+import { FilterChip } from "../../../../../ui/base/FilterChip"
+import { lang, TranslationKey } from "../../../../../ui/utils/LanguageViewModel"
+import { formatDate } from "../../../../../ui/utils/Formatter"
+import { isSameDayOfDate, lazy, lazyMemoized } from "@tutao/utils"
+import { createDropdown } from "../../../../../ui/base/Dropdown"
+import { SearchCategoryType } from "../../../../common/api/worker/search/SearchTypes"
+import { showNotAvailableForFreeDialog } from "../../../../common/misc/SubscriptionDialogs"
+import { ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { showDateRangeSelectionDialog } from "../../gui/pickers/DatePickerDialog"
+import { BackgroundColumnLayout } from "../../../../../ui/BackgroundColumnLayout"
+import { theme } from "../../../../../ui/theme"
+import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../../ui/DesktopToolbars"
+import { BaseMobileHeader } from "../../../../../ui/BaseMobileHeader"
+import { NavButton } from "../../../../../ui/base/NavButton"
+import { CALENDAR_PREFIX } from "../../../../../ui/utils/RouteChange"
+import { ProgressBar } from "../../../../../ui/base/ProgressBar"
+import { IconButton } from "../../../../../ui/base/IconButton"
+import { MobileActionAttrs, MobileActionBar } from "../../../../../ui/MobileActionBar"
 import {
 	EventDetailsView,
 	EventDetailsViewAttrs,
 	handleEventDeleteButtonClick,
 	handleEventEditButtonClick,
 	handleSendUpdatesClick,
-} from "../../view/EventDetailsView.js"
-import { Icons } from "../../../../../ui/base/icons/Icons.js"
-import { EnvProvider, FeatureType, ProgrammingError, UpgradePromptType } from "../../../../../platform-kit/app-env"
-import { IconButton } from "../../../../../ui/base/IconButton.js"
-import { showNotAvailableForFreeDialog } from "../../../../common/misc/SubscriptionDialogs.js"
-import { listSelectionKeyboardShortcuts } from "../../../../../ui/base/ListUtils.js"
-import { MultiselectMode } from "../../../../../ui/base/List.js"
-import { showProgressDialog } from "../../../../../ui/dialogs/ProgressDialog.js"
-import { CalendarOperation } from "../../gui/eventeditor-model/CalendarEventModel.js"
-import { getEventWithDefaultTimes, setNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { MobileActionAttrs, MobileActionBar } from "../../../../../ui/MobileActionBar.js"
-import { calendarLocator } from "../../../calendarLocator.js"
-import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
-import { CALENDAR_PREFIX } from "../../../../../ui/utils/RouteChange.js"
-import { Dialog } from "../../../../../ui/base/Dialog.js"
-import { extractContactIdFromEvent, isBirthdayEvent } from "../../../../common/calendar/date/CalendarUtils.js"
-import { ContactCardViewer } from "../../../../mail-app/contacts/view/ContactCardViewer.js"
-import { ContactModel } from "../../../../common/contactsFunctionality/ContactModel.js"
-import { simulateMailToClick } from "../../gui/eventpopup/ContactPreviewView.js"
-import { DatePicker, DatePickerAttrs } from "../../gui/pickers/DatePicker.js"
-import { EventEditorDialog } from "../../gui/eventeditor-view/CalendarEventEditDialog.js"
-import { FilterChip } from "../../../../../ui/base/FilterChip"
-import { formatDate } from "../../../../../ui/utils/Formatter"
-import { createDropdown } from "../../../../../ui/base/Dropdown"
-import { showDateRangeSelectionDialog } from "../../gui/pickers/DatePickerDialog"
-import { CalendarInfo } from "../../model/CalendarModel"
+} from "../../view/EventDetailsView"
+import { Contact } from "@tutao/entities/tutanota"
+import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel"
+import { MobileHeader } from "../../../../../ui/MobileHeader"
+import ColumnEmptyMessageBox from "../../../../../ui/base/ColumnEmptyMessageBox"
+import { ContactCardViewer } from "../../../../mail-app/contacts/view/ContactCardViewer"
+import { writeMail } from "../../../../mail-app/contacts/view/ContactView"
 import { windowFacade } from "../../../../common/misc/WindowFacade"
+import { keyManager, Shortcut } from "../../../../../ui/utils/KeyManager"
 import { renderHeaderButtons } from "../../../gui/HeaderButtons"
+import { BottomNav } from "../../../../mail-app/gui/BottomNav"
+import { FolderColumnView } from "../../../../common/gui/FolderColumnView"
+import { ClickHandler } from "../../../../../ui/base/GuiUtils"
+import { listSelectionKeyboardShortcuts } from "../../../../../ui/base/ListUtils"
+import { MultiselectMode } from "../../../../../ui/base/List"
+import { CalendarSearchListView, CalendarSearchListViewAttrs } from "./CalendarSearchListView"
+import { AppPromo } from "../../../../common/gui/AppPromo"
+import { SearchViewSearchBar } from "../../../../common/search/SearchViewSearchBar"
+import { isSameSingleId } from "@tutao/meta"
 import { isFreeSignupOnly } from "../../../../common/misc/LoginUtils"
-import { locator } from "../../../../common/api/main/CommonLocator"
 import { Keys } from "../../../../../ui/utils/KeyboardKeys"
-
-EnvProvider.assertMainOrNode()
+import { Styles } from "../../../../../ui/styles"
+import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector"
 
 export interface CalendarSearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
 	makeViewModel: () => CalendarSearchViewModel
-	contactModel: ContactModel
+	drawerAttrs: DrawerMenuAttrs
+	editContact: (contact: Contact) => unknown
 }
 
+/**
+ * View for searching and displaying calendar events.
+ *
+ * For birthday events it shows contact info.
+ */
 export class CalendarSearchView extends BaseTopLevelView implements TopLevelView<CalendarSearchViewAttrs> {
 	private readonly resultListColumn: ViewColumn
 	private readonly resultDetailsColumn: ViewColumn
+	private readonly folderColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
 	private readonly searchViewModel: CalendarSearchViewModel
-	private readonly contactModel: ContactModel
 	private readonly startOfTheWeekOffset: number
-
-	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
-		new LazyLoaded(async () => {
-			const calendars = await this.searchViewModel.getAvailableCalendars(false)
-			const calendarInfosMap = new Map(calendars.map((calendarInfo) => [calendarInfo.id, calendarInfo as CalendarInfo]))
-			const eventPreviewModel = await calendarLocator.calendarEventPreviewModel(event, calendarInfosMap, [])
-			eventPreviewModel.sanitizeDescription().then(() => m.redraw())
-			return eventPreviewModel
-		}).load(),
-	)
-
-	private getContactPreviewData = memoized((id: string) =>
-		new LazyLoaded(async () => {
-			const idParts = id.split("/")
-			const contact = await this.contactModel.loadContactFromId([idParts[0], idParts[1]])
-			m.redraw()
-			return contact
-		}).load(),
-	)
 
 	constructor(vnode: Vnode<CalendarSearchViewAttrs>) {
 		super()
 		this.searchViewModel = vnode.attrs.makeViewModel()
-		this.contactModel = vnode.attrs.contactModel
 		this.startOfTheWeekOffset = this.searchViewModel.getStartOfTheWeekOffset()
 
 		this.resultListColumn = new ViewColumn(
@@ -123,7 +104,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		)
 		this.resultDetailsColumn = new ViewColumn(
 			{
-				view: () => this.renderDetailsView(vnode.attrs.header),
+				view: () => this.renderDetailsView(vnode.attrs.header, vnode.attrs.editContact),
 			},
 			ColumnType.Background,
 			{
@@ -131,325 +112,54 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				maxWidth: layout_size.third_col_max_width,
 			},
 		)
-		this.viewSlider = new ViewSlider([this.resultListColumn, this.resultDetailsColumn], windowFacade, false)
-	}
-
-	private getResultColumnLayout() {
-		return m(".flex.col.fill-absolute", [
-			this.renderFilterBar(),
-			m(
-				".rel.flex-grow",
-				m(CalendarSearchListView, {
-					listModel: this.searchViewModel.listModel,
-					onSingleSelection: (item) => {
-						this.viewSlider.focus(this.resultDetailsColumn)
-					},
-					cancelCallback: () => {
-						this.searchViewModel.sendStopLoadingSignal()
-					},
-					isFreeAccount: calendarLocator.logins.getUserController().isFreeAccount(),
-					availableCalendars: this.searchViewModel.getAvailableCalendars(true),
-				} satisfies CalendarSearchListViewAttrs),
-			),
-		])
-	}
-
-	oncreate(): void {
-		this.searchViewModel.init()
-
-		keyManager.registerShortcuts(this.shortcuts())
-	}
-
-	onremove(): void {
-		this.searchViewModel.dispose()
-
-		keyManager.unregisterShortcuts(this.shortcuts())
-	}
-
-	private renderMobileListHeader(header: AppHeaderAttrs) {
-		return this.renderMobileListActionsHeader(header)
-	}
-
-	private renderMobileListActionsHeader(header: AppHeaderAttrs) {
-		const rightActions = []
-
-		if (Styles.get().isSingleColumnLayout()) {
-			rightActions.push(this.renderHeaderRightView())
-		}
-
-		return m(BaseMobileHeader, {
-			left: m(
-				".icon-button",
-				m(NavButton, {
-					label: "back_action",
-					hideLabel: true,
-					icon: () => Icons.ChevronLeft,
-					href: CALENDAR_PREFIX,
-					centred: true,
-					fillSpaceAround: false,
-				}),
-			),
-			right: rightActions,
-			center: m(
-				".flex-grow.flex.justify-center.mr-12",
-				m(searchBar, {
-					placeholder: this.searchBarPlaceholder(),
-					returnListener: () => this.resultListColumn.focus(),
-				}),
-			),
-			injections: m(ProgressBar, { progress: header.offlineIndicatorModel.getProgress() }),
-		})
-	}
-
-	/** depending on the search and selection state we want to render a
-	 * (multi) mail viewer or a (multi) contact viewer or an event preview
-	 */
-	private renderDetailsView(header: AppHeaderAttrs): Children {
-		if (this.searchViewModel.listModel.isSelectionEmpty() && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
-			this.viewSlider.focus(this.resultListColumn)
-			return null
-		}
-
-		const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
-		return m(BackgroundColumnLayout, {
-			backgroundColor: theme.surface_container,
-			desktopToolbar: () => m(DesktopViewerToolbar, []),
-			mobileHeader: () =>
-				m(MobileHeader, {
-					...header,
-					backAction: () => this.viewSlider.focusPreviousColumn(),
-					columnType: "other",
-					title: "search_label",
-					actions: null,
-					multicolumnActions: () => [],
-					primaryAction: () => this.renderHeaderRightView(),
-				}),
-			columnLayout:
-				selectedEvent == null
-					? m(ColumnEmptyMessageBox, {
-							message: "noEventSelect_msg",
-							icon: Icons.CalendarFilled,
-							color: theme.on_surface_variant,
-							backgroundColor: theme.surface_container,
-						})
-					: !this.getSanitizedPreviewData(selectedEvent).isLoaded()
-						? null
-						: this.renderEventPreview(selectedEvent),
-		})
-	}
-
-	private renderEventPreview(event: CalendarEvent) {
-		if (isBirthdayEvent(event.uid)) {
-			const idParts = event._id[1].split("#")
-
-			const contactId = extractContactIdFromEvent(last(idParts))
-			if (contactId != null && this.getContactPreviewData(contactId).isLoaded()) {
-				return this.renderContactPreview(this.getContactPreviewData(contactId).getSync()!)
-			}
-
-			return null
-		} else if (this.getSanitizedPreviewData(event).isLoaded()) {
-			return this.renderEventDetails(event)
-		}
-
-		return null
-	}
-
-	private renderContactPreview(contact: Contact) {
-		return m(
-			".fill-absolute.flex.col.overflow-y-scroll",
-			m(ContactCardViewer, {
-				contact: contact,
-				editAction: async (contact) => {
-					if (!(await Dialog.confirm("openMailApp_msg", "yes_label"))) return
-
-					const query = `contactId=${stringToBase64(contact._id.join("/"))}`
-					calendarLocator.systemFacade.openMailApp(stringToBase64(query))
+		this.folderColumn = new ViewColumn(
+			{
+				view: () => {
+					return m(FolderColumnView, {
+						drawer: vnode.attrs.drawerAttrs,
+						button: this.getMainButton(),
+						content: [
+							m(SidebarSection, {
+								name: "searchFilters_label",
+							}),
+							m(".flex.wrap.plr-16.gap-8.flex-shrink-children", this.renderFilterChips()),
+							m(".flex-grow"),
+							m(AppPromo),
+						],
+						ariaLabel: "search_label",
+					})
 				},
-				onWriteMail: (to: PartialRecipient) => simulateMailToClick(to.address),
-				extendedActions: true,
-			}),
+			},
+			ColumnType.Foreground,
+			{
+				minWidth: layout_size.first_col_min_width,
+				maxWidth: layout_size.first_col_max_width,
+				headerCenter: "search_label",
+			},
 		)
+
+		this.viewSlider = new ViewSlider([this.folderColumn, this.resultListColumn, this.resultDetailsColumn], windowFacade)
 	}
 
-	private renderEventDetails(selectedEvent: CalendarEvent) {
-		return m(
-			".height-100p.overflow-y-scroll.mb-32.fill-absolute.pb-32",
-			m(
-				".border-radius-12.flex.col.flex-grow.content-bg",
-				{
-					class: Styles.get().isDesktopLayout() ? "mlr-24" : "mlr-12",
-				},
-				m(EventDetailsView, {
-					eventPreviewModel: assertNotNull(this.getSanitizedPreviewData(selectedEvent).getSync()),
-				} satisfies EventDetailsViewAttrs),
-			),
-		)
-	}
-
-	private renderSearchResultActions() {
-		if (this.viewSlider.focusedColumn !== this.resultDetailsColumn) return null
-
-		const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
-		if (!selectedEvent) {
-			this.viewSlider.focus(this.resultListColumn)
-			return m(MobileActionBar, { actions: [] })
-		}
-		const previewModel = this.getSanitizedPreviewData(selectedEvent).getSync()
-		const actions: Array<MobileActionAttrs> = []
-		if (previewModel) {
-			if (previewModel.canSendUpdates) {
-				actions.push({
-					icon: Icons.MailFilled,
-					title: "sendUpdates_label",
-					action: () => handleSendUpdatesClick(previewModel),
-				})
-			}
-			if (previewModel.canEdit) {
-				actions.push({
-					icon: Icons.PenFilled,
-					title: "edit_action",
-					action: (ev: MouseEvent, receiver: HTMLElement) => handleEventEditButtonClick(previewModel, ev, receiver),
-				})
-			}
-			if (previewModel.canDelete) {
-				actions.push({
-					icon: Icons.TrashFilled,
-					title: "delete_action",
-					action: (ev: MouseEvent, receiver: HTMLElement) => handleEventDeleteButtonClick(previewModel, ev, receiver),
-				})
-			}
-		} else {
-			this.getSanitizedPreviewData(selectedEvent).load()
-		}
-
-		return actions.map((action) =>
-			m(IconButton, {
-				title: action.title,
-				icon: action.icon,
-				click: action.action,
-			}),
-		)
-	}
-
-	private searchBarPlaceholder() {
-		return lang.get("searchCalendar_placeholder")
-	}
-
-	getViewSlider(): ViewSlider | null {
-		return this.viewSlider
-	}
-
-	private renderHeaderRightView(): Children {
-		if (Styles.get().isUsingBottomNavigation() && !ClientDetector.get().isCalendarApp()) {
-			return m(IconButton, {
-				click: () => this.createNewEventDialog(),
-				title: "newEvent_action",
-				icon: Icons.Plus,
-			})
-		} else if (ClientDetector.get().isCalendarApp()) {
-			return m.fragment({}, [this.renderSearchResultActions()])
-		}
-	}
-
-	private renderDateRangeSelection(): Children {
-		const renderedHelpText: MaybeTranslation | undefined =
-			this.searchViewModel.warning === "startafterend"
-				? "startAfterEnd_label"
-				: this.searchViewModel.warning === "long"
-					? "longSearchRange_msg"
-					: this.searchViewModel.startDate == null
-						? "unlimited_label"
-						: undefined
-		return m(
-			".flex.col",
-			m(
-				".pl-4.flex-grow.flex-space-between.flex-column",
-				m(DatePicker, {
-					date: this.searchViewModel.startDate,
-					onDateSelected: (date) => {
-						if (this.searchViewModel.selectStartDate(date) !== PaidFunctionResult.Success) {
-							showNotAvailableForFreeDialog(UpgradePromptType.CALENDAR_SEARCH)
-						}
-					},
-					startOfTheWeekOffset: this.startOfTheWeekOffset,
-					label: lang.getTranslation("dateFrom_label"),
-					nullSelectionText: renderedHelpText,
-					rightAlignDropdown: true,
-				} satisfies DatePickerAttrs),
-			),
-			m(
-				".pl-4.flex-grow.flex-space-between.flex-column",
-				m(DatePicker, {
-					date: this.searchViewModel.endDate,
-					onDateSelected: (date) => {
-						if (this.searchViewModel.selectEndDate(date) !== PaidFunctionResult.Success) {
-							showNotAvailableForFreeDialog(UpgradePromptType.CALENDAR_SEARCH)
-						}
-					},
-					startOfTheWeekOffset: this.startOfTheWeekOffset,
-					label: lang.getTranslation("dateTo_label"),
-					rightAlignDropdown: true,
-				} satisfies DatePickerAttrs),
-			),
-		)
-	}
-
-	private readonly shortcuts = lazyMemoized<ReadonlyArray<Shortcut>>(() => [
-		...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.searchViewModel.listModel),
-		{
-			key: Keys.N,
-			exec: () => {
+	private getMainButton(): {
+		label: TranslationKey
+		click: ClickHandler
+	} | null {
+		return {
+			click: () => {
 				this.createNewEventDialog()
 			},
-			enabled: () => calendarLocator.logins.isInternalUserLoggedIn() && !calendarLocator.logins.isEnabled(FeatureType.ReplyOnly),
-			help: "newMail_action",
-		},
-	])
-
-	async onNewUrl(args: Record<string, any>, requestedPath: string) {
-		// calling init here too because this is called very early in the lifecycle and onNewUrl won't work properly if init is called
-		// afterwords
-		await this.searchViewModel.init()
-		this.searchViewModel.onNewUrl(args, requestedPath)
-		this.invalidateBirthdayPreview()
-		// redraw because init() is async
-		m.redraw()
-	}
-
-	private invalidateBirthdayPreview() {
-		const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
-		if (!selectedEvent || !isBirthdayEvent(selectedEvent.uid)) {
-			return
+			label: "newEvent_action",
 		}
-
-		const idParts = selectedEvent._id[1].split("#")
-		const contactId = extractContactIdFromEvent(last(idParts))
-		if (!contactId) {
-			return
-		}
-
-		this.getContactPreviewData(contactId).reload().then(m.redraw)
 	}
-
 	private async createNewEventDialog(): Promise<void> {
-		const dateToUse = this.searchViewModel.startDate ? setNextHalfHour(new Date(this.searchViewModel.startDate)) : setNextHalfHour(new Date())
-
 		// Disallow creation of events when there is no existing calendar
 		const calendarInfos = this.searchViewModel.getAvailableCalendars(false)
 		if (!calendarInfos.length) {
 			await showProgressDialog("pleaseWait_msg", this.searchViewModel.loadCalendarInfos())
 		}
 
-		const mailboxDetails = await calendarLocator.mailboxModel.getUserMailboxDetails()
-		const mailboxProperties = await calendarLocator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-		const model = await calendarLocator.calendarEventModel(
-			CalendarOperation.Create,
-			getEventWithDefaultTimes(dateToUse),
-			mailboxDetails,
-			mailboxProperties,
-			null,
-		)
+		const model = await this.searchViewModel.newEventModel()
 
 		if (model) {
 			const eventEditor = new EventEditorDialog()
@@ -457,27 +167,106 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		}
 	}
 
-	view({ attrs }: Vnode<CalendarSearchViewAttrs>): Children {
-		return m(
-			"#search.main-view" + (EnvProvider.get().isAndroidApp() ? ".bottom-safe-inset" : ""),
-			m(this.viewSlider, {
-				header: m(Header, {
-					searchBar: () =>
-						m(searchBar, {
-							placeholder: this.searchBarPlaceholder(),
-							returnListener: () => this.resultListColumn.focus(),
-						}),
-					...attrs.header,
-					buttons: renderHeaderButtons(),
+	private renderFilterChips() {
+		const availableCalendars = this.searchViewModel.getAvailableCalendars(true)
+		const selectedCalendar = this.searchViewModel.selectedCalendar
+		return [
+			!ClientDetector.get().isCalendarApp() ? this.renderCategoryChip("calendar_label", Icons.CalendarFilled) : null,
+			m(FilterChip, {
+				label: lang.makeTranslation(
+					"btn:date",
+					`${this.searchViewModel.startDate ? formatDate(this.searchViewModel.startDate) : lang.getTranslationText("unlimited_label")} - ${
+						isSameDayOfDate(new Date(), this.searchViewModel.endDate)
+							? lang.getTranslationText("today_label")
+							: formatDate(this.searchViewModel.endDate)
+					}`,
+				),
+				selected: true,
+				chevron: false,
+				onClick: (_) => {
+					if (isFreeSignupOnly() && !this.searchViewModel.canSelectTimePeriod()) {
+						return
+					}
+
+					this.onCalendarDateRangeSelect()
+				},
+			}),
+			m(FilterChip, {
+				label: selectedCalendar
+					? lang.makeTranslation(
+							"calendar_label",
+							availableCalendars.find((calendarInfo) => isSameSingleId(calendarInfo.id, selectedCalendar?.id))?.name ?? "",
+						)
+					: lang.getTranslation("calendar_label"),
+				selected: selectedCalendar != null,
+				chevron: true,
+				onClick: createDropdown({
+					lazyButtons: () => [
+						{
+							label: lang.getTranslation("all_label"),
+							click: () => this.searchViewModel.selectCalendar(null),
+						},
+						...availableCalendars.map((calendarInfo) => ({
+							label: lang.makeTranslation(calendarInfo.name, calendarInfo.name),
+							click: () => this.searchViewModel.selectCalendar(calendarInfo),
+						})),
+					],
 				}),
 			}),
-		)
+			m(FilterChip, {
+				label: lang.getTranslation("includeRepeatingEvents_action"),
+				selected: this.searchViewModel.includeRepeatingEvents,
+				chevron: false,
+				onClick: () => this.searchViewModel.selectIncludeRepeatingEvents(!this.searchViewModel.includeRepeatingEvents),
+			}),
+		]
 	}
-
-	private renderFilterBar(): Children {
-		return m(".flex.gap-8.pl-16.pr-16.pt-8.pb-8.scroll-x", this.renderCalendarFilterChips())
+	private renderCategoryChip(label: TranslationKey, icon: Icons): Children {
+		return m(FilterChip, {
+			label: lang.getTranslation(label),
+			icon,
+			selected: true,
+			chevron: true,
+			onClick: createDropdown({
+				lazyButtons: () => [
+					{
+						label: "emails_label",
+						click: () => {
+							const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryType.mail)
+							m.route.set(href)
+						},
+						icon: Icons.MailFilled,
+					},
+					{
+						label: "contacts_label",
+						click: () => {
+							const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryType.contact)
+							m.route.set(href)
+						},
+						icon: Icons.PeopleFilled,
+					},
+					{
+						label: "calendar_label",
+						click: () => {
+							const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryType.calendar)
+							m.route.set(href)
+						},
+						icon: Icons.CalendarFilled,
+					},
+					!ClientDetector.get().isMailApp()
+						? {
+								label: "driveView_action",
+								click: () => {
+									const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryType.drive)
+									m.route.set(href)
+								},
+								icon: Icons.DriveFilled,
+							}
+						: null,
+				],
+			}),
+		})
 	}
-
 	private async onCalendarDateRangeSelect() {
 		if (!this.searchViewModel.canSelectTimePeriod()) {
 			showNotAvailableForFreeDialog(UpgradePromptType.CALENDAR_SEARCH)
@@ -505,56 +294,275 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		}
 	}
 
-	private renderCalendarFilterChips() {
-		const availableCalendars = this.searchViewModel.getAvailableCalendars(true)
-		const selectedCalendar = this.searchViewModel.selectedCalendar
-		return [
-			m(FilterChip, {
-				label: lang.makeTranslation(
-					"btn:date",
-					`${this.searchViewModel.startDate ? formatDate(this.searchViewModel.startDate) : lang.getTranslationText("unlimited_label")} - ${
-						isSameDayOfDate(new Date(), this.searchViewModel.endDate)
-							? lang.getTranslationText("today_label")
-							: formatDate(this.searchViewModel.endDate)
-					}`,
-				),
-				selected: true,
-				chevron: false,
-				onClick: (_) => {
-					if (isFreeSignupOnly() && locator.logins.getUserController().isFreeAccount()) {
-						return
-					}
-					this.onCalendarDateRangeSelect()
-				},
-			}),
-			m(FilterChip, {
-				label: selectedCalendar
-					? lang.makeTranslation(
-							"calendar_label",
-							availableCalendars.find((calendarInfo) => isSameSingleId(calendarInfo.id, selectedCalendar.id))?.name ?? "",
-						)
-					: lang.getTranslation("calendar_label"),
-				selected: selectedCalendar != null,
-				chevron: true,
-				onClick: createDropdown({
-					lazyButtons: () => [
-						{
-							label: lang.getTranslation("all_label"),
-							click: () => this.searchViewModel.selectCalendar(null),
-						},
-						...availableCalendars.map((calendarInfo) => ({
-							label: lang.makeTranslation(calendarInfo.name, calendarInfo.name),
-							click: () => this.searchViewModel.selectCalendar(calendarInfo),
-						})),
-					],
+	private renderMobileListHeader(header: AppHeaderAttrs): Children {
+		return this.renderMobileListActionsHeader(header)
+	}
+
+	private renderMobileListActionsHeader(header: AppHeaderAttrs) {
+		const rightActions = []
+
+		if (Styles.get().isSingleColumnLayout()) {
+			rightActions.push(this.renderHeaderRightView())
+		}
+
+		return m(BaseMobileHeader, {
+			left: m(
+				".icon-button",
+				m(NavButton, {
+					label: "back_action",
+					hideLabel: true,
+					icon: () => Icons.ChevronLeft,
+					href: CALENDAR_PREFIX,
+					centred: true,
+					fillSpaceAround: false,
 				}),
+			),
+			right: rightActions,
+			center: m(".flex-grow.flex.justify-center.mr-12", this.renderSearchbar()),
+			injections: m(ProgressBar, { progress: header.offlineIndicatorModel.getProgress() }),
+		})
+	}
+
+	private renderHeaderRightView(): Children {
+		if (Styles.get().isUsingBottomNavigation() && !ClientDetector.get().isCalendarApp()) {
+			return m(IconButton, {
+				click: () => this.createNewEventDialog(),
+				title: "newEvent_action",
+				icon: Icons.Plus,
+			})
+		} else if (ClientDetector.get().isCalendarApp()) {
+			return m.fragment({}, [this.renderSearchResultActions()])
+		}
+	}
+
+	private renderSearchResultActions() {
+		if (this.viewSlider.focusedColumn !== this.resultDetailsColumn) return null
+
+		const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
+		if (!selectedEvent) {
+			this.viewSlider.focus(this.resultListColumn)
+			return m(MobileActionBar, { actions: [] })
+		}
+		const previewModel = this.searchViewModel.eventPreviewData
+		const actions: Array<MobileActionAttrs> = []
+		if (previewModel) {
+			if (previewModel.canSendUpdates) {
+				actions.push({
+					icon: Icons.MailFilled,
+					title: "sendUpdates_label",
+					action: () => handleSendUpdatesClick(previewModel),
+				})
+			}
+			if (previewModel.canEdit) {
+				actions.push({
+					icon: Icons.PenFilled,
+					title: "edit_action",
+					action: (ev: MouseEvent, receiver: HTMLElement) => handleEventEditButtonClick(previewModel, ev, receiver),
+				})
+			}
+			if (previewModel.canDelete) {
+				actions.push({
+					icon: Icons.TrashFilled,
+					title: "delete_action",
+					action: (ev: MouseEvent, receiver: HTMLElement) => handleEventDeleteButtonClick(previewModel, ev, receiver),
+				})
+			}
+		}
+
+		return actions.map((action) =>
+			m(IconButton, {
+				title: action.title,
+				icon: action.icon,
+				click: action.action,
 			}),
-			m(FilterChip, {
-				label: lang.getTranslation("includeRepeatingEvents_action"),
-				selected: this.searchViewModel.includeRepeatingEvents,
-				chevron: false,
-				onClick: () => this.searchViewModel.selectIncludeRepeatingEvents(!this.searchViewModel.includeRepeatingEvents),
+		)
+	}
+
+	private getResultColumnLayout(): Children {
+		return m(".flex.col.fill-absolute", [
+			Styles.get().isDesktopLayout() ? null : this.renderFilterBar(),
+			m(
+				".rel.flex-grow",
+				m(CalendarSearchListView, {
+					listModel: this.searchViewModel.listModel,
+					onSingleSelection: (item) => this.viewSlider.focus(this.resultDetailsColumn),
+					cancelCallback: () => {
+						this.searchViewModel.sendStopLoadingSignal()
+					},
+					highlightedStrings: this.searchViewModel.getHighlightedStrings(),
+					availableCalendars: this.searchViewModel.getAvailableCalendars(true),
+					currentStartDate: this.searchViewModel.startDate,
+					extendSearchResult: (extendDate: Date) => {
+						void this.searchViewModel.selectStartDate(extendDate)
+					},
+				} satisfies CalendarSearchListViewAttrs),
+			),
+		])
+	}
+	private renderFilterBar(): Children {
+		return m(".flex.gap-8.pl-16.pr-16.pt-8.pb-8.scroll-x", this.renderFilterChips())
+	}
+
+	private renderDetailsView(header: AppHeaderAttrs, editContact: (contact: Contact) => unknown): Children {
+		if (this.searchViewModel.listModel.isSelectionEmpty() && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
+			this.viewSlider.focus(this.resultListColumn)
+			return null
+		}
+		const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
+		return m(BackgroundColumnLayout, {
+			backgroundColor: theme.surface_container,
+			desktopToolbar: () => m(DesktopViewerToolbar, []),
+			mobileHeader: () =>
+				m(MobileHeader, {
+					...header,
+					backAction: () => this.viewSlider.focusPreviousColumn(),
+					columnType: "other",
+					title: "search_label",
+					actions: null,
+					multicolumnActions: () => [],
+					primaryAction: () => {
+						return m(IconButton, {
+							click: () => this.createNewEventDialog(),
+							title: "newEvent_action",
+							icon: Icons.Plus,
+						})
+					},
+				}),
+			columnLayout:
+				selectedEvent == null
+					? m(ColumnEmptyMessageBox, {
+							message: "noEventSelect_msg",
+							icon: Icons.CalendarFilled,
+							color: theme.on_surface_variant,
+							backgroundColor: theme.surface_container,
+						})
+					: this.renderEventPreview(editContact),
+		})
+	}
+	private renderEventPreview(editContact: (contact: Contact) => unknown): Children {
+		if (this.searchViewModel.birthdayContact) {
+			return this.renderContactPreview(this.searchViewModel.birthdayContact, editContact)
+		} else if (this.searchViewModel.eventPreviewData) {
+			return this.renderEventDetails(this.searchViewModel.eventPreviewData)
+		} else {
+			return null
+		}
+	}
+	private renderContactPreview(contact: Contact, editContact: (contact: Contact) => unknown): Children {
+		return m(
+			".fill-absolute.flex.col.overflow-y-scroll",
+			m(ContactCardViewer, {
+				contact: contact,
+				editAction: (contact) => editContact(contact),
+				onWriteMail: writeMail,
+				extendedActions: true,
+				highlightedStrings: this.searchViewModel.getHighlightedStrings(),
 			}),
-		]
+		)
+	}
+	private renderEventDetails(eventPreviewModel: CalendarEventPreviewViewModel): Children {
+		return m(
+			".height-100p.overflow-y-scroll.mb-32.fill-absolute.pb-32",
+			m(
+				".border-radius-12.flex.col.flex-grow.content-bg",
+				{
+					class: Styles.get().isDesktopLayout() ? "mlr-24" : "mlr-12",
+				},
+				m(EventDetailsView, {
+					eventPreviewModel,
+					highlightedStrings: this.searchViewModel.getHighlightedStrings(),
+				} satisfies EventDetailsViewAttrs),
+			),
+		)
+	}
+
+	protected async onNewUrl(args: Record<string, any>, requestedPath: string): Promise<void> {
+		await this.searchViewModel.init()
+		this.searchViewModel.onNewUrl(args, requestedPath)
+		m.redraw()
+	}
+
+	view({ attrs }: Vnode<CalendarSearchViewAttrs>): Children {
+		return m(
+			"#search.main-view",
+			m(this.viewSlider, {
+				header: m(Header, {
+					firstColWidth: this.folderColumn.width,
+					searchBar: () => this.renderSearchbar(),
+					...attrs.header,
+					buttons: renderHeaderButtons(),
+				}),
+				bottomNav: !ClientDetector.get().isCalendarApp() ? this.renderBottomNav() : null,
+			}),
+		)
+	}
+
+	private readonly shortcuts: lazy<readonly Shortcut[]> = lazyMemoized<ReadonlyArray<Shortcut>>((): Shortcut[] => [
+		...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.searchViewModel.listModel),
+		{
+			key: Keys.N,
+			exec: () => {
+				this.createNewEventDialog()
+			},
+			help: "newEvent_action",
+		},
+	])
+
+	oncreate() {
+		this.searchViewModel.init()
+		keyManager.registerShortcuts(this.shortcuts())
+	}
+	onremove() {
+		this.searchViewModel.dispose()
+		keyManager.unregisterShortcuts(this.shortcuts())
+	}
+
+	private renderSearchbar(): Children {
+		return m(SearchViewSearchBar, {
+			placeholder: lang.getTranslationText("searchCalendar_placeholder"),
+			text: this.searchViewModel.getCurrentQuery(),
+			busy: this.searchViewModel.busy,
+			onInput: (text: string) => this.searchViewModel.onSearchQueryUpdated(text),
+			onClear: () => this.searchViewModel.onSearchQueryUpdated(""),
+		})
+	}
+
+	private renderBottomNav(): Children {
+		if (!Styles.get().isSingleColumnLayout()) return m(BottomNav)
+		const isInMultiselect = this.searchViewModel.listModel.state.inMultiselect ?? false
+		if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
+			const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
+			if (!selectedEvent) {
+				this.viewSlider.focus(this.resultListColumn)
+				return m(MobileActionBar, { actions: [] })
+			}
+			const previewModel = this.searchViewModel.eventPreviewData
+			const actions: Array<MobileActionAttrs> = []
+			if (previewModel) {
+				if (previewModel.canSendUpdates) {
+					actions.push({
+						icon: Icons.MailFilled,
+						title: "sendUpdates_label",
+						action: () => handleSendUpdatesClick(previewModel),
+					})
+				}
+				if (previewModel.canEdit) {
+					actions.push({
+						icon: Icons.PenFilled,
+						title: "edit_action",
+						action: (ev: MouseEvent, receiver: HTMLElement) => handleEventEditButtonClick(previewModel, ev, receiver),
+					})
+				}
+				if (previewModel.canDelete) {
+					actions.push({
+						icon: Icons.TrashFilled,
+						title: "delete_action",
+						action: (ev: MouseEvent, receiver: HTMLElement) => handleEventDeleteButtonClick(previewModel, ev, receiver),
+					})
+				}
+			}
+			return m(MobileActionBar, { actions })
+		}
+		return m(BottomNav)
 	}
 }

@@ -1,0 +1,399 @@
+import m, { Children, Component, Vnode } from "mithril"
+import { layout_size, px, size } from "../../../ui/size"
+import { displayOverlay, overlayBottomMargin, PositionRect } from "../../../ui/base/Overlay"
+import type { Shortcut } from "../../../ui/utils/KeyManager"
+import { isKeyPressed, keyManager } from "../../../ui/utils/KeyManager"
+import { debounce, getFirstOrThrow, isNotEmpty, lastIndex, mod } from "@tutao/utils"
+import { BrowserType } from "../../../platform-kit/app-env/boot/ClientConstants"
+import { SearchBarOverlay } from "./SearchBarOverlay"
+import { LayerType } from "../../../ui/base/RootView"
+import { BaseSearchBar, BaseSearchBarAttrs } from "../../../ui/base/BaseSearchBar.js"
+import { windowFacade } from "../misc/WindowFacade"
+import { LiveSearchResult, SearchQuery } from "./SearchUtils"
+import { EnvProvider } from "@tutao/app-env"
+import { Keys } from "../../../ui/utils/KeyboardKeys"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { Styles } from "../../../ui/styles"
+
+EnvProvider.assertMainOrNode()
+
+export interface ShowMoreAction {
+	indexTimestamp: number
+	shouldOfferUpgrade: boolean
+}
+
+type ResultLoader<T> = (query: string) => Promise<LiveSearchResult<T>>
+
+export interface SearchBarAttrs<T> {
+	placeholder?: string | null
+	returnListener?: (() => unknown) | null
+	disabled?: boolean
+	loadResults: ResultLoader<T>
+	renderResult: (entry: T, isSelected: boolean) => Children
+	selectResult: (searchQuery: SearchQuery, entry: T | null) => unknown
+	shouldOfferUpgrade: boolean
+	confirmSearch?: () => Promise<boolean>
+}
+
+interface SearchBarState<T> {
+	query: string | null
+	searchResult: LiveSearchResult<T> | null
+	selected: number | "showmore" | null
+	busy: boolean
+}
+
+// by the age of 12, each SearchBar need to know:
+//  - how to get search results
+//  - how to display them
+//  - how to finally select a result
+export class QuickSearchBar<T> implements Component<SearchBarAttrs<T>> {
+	private focused: boolean = false
+	private state: SearchBarState<T>
+	private closeOverlayFunction: (() => void) | null = null
+	private readonly overlayContentComponent: Component
+	private confirmDialogShown: boolean = false
+	private domWrapper!: HTMLElement
+	private domInput!: HTMLElement
+	private lastAttrs: SearchBarAttrs<T>
+
+	constructor({ attrs }: Vnode<SearchBarAttrs<T>>) {
+		this.state = {
+			query: null,
+			searchResult: null,
+			selected: null,
+			busy: false,
+		}
+		this.lastAttrs = attrs
+
+		this.overlayContentComponent = {
+			view: () => {
+				return m(SearchBarOverlay<T>, {
+					items: this.state.searchResult?.items ?? [],
+					selected: this.state.selected,
+					isFocused: this.focused,
+					renderResult: this.lastAttrs.renderResult,
+					selectResult: (entry) => {
+						this.selectResult(entry)
+					},
+					showMoreAction:
+						this.state.query != null && this.state.searchResult != null
+							? {
+									indexTimestamp: this.state.searchResult?.searchResult.currentIndexTimestamp ?? 0,
+									shouldOfferUpgrade: attrs.shouldOfferUpgrade,
+								}
+							: null,
+				})
+			},
+		}
+	}
+
+	view(vnode: Vnode<SearchBarAttrs<T>>): Children {
+		this.lastAttrs = vnode.attrs
+
+		return m(
+			// form wrapper to isolate the search input and prevent it from being autofilled when unrelated buttons are clicked on chrome
+			// this is done because chrome doesn't appear to respect `autocomplete="off"` and will autofill the field anyway
+			"form.full-width",
+			{
+				style: {
+					maxWidth: Styles.get().isUsingBottomNavigation() ? "" : px(layout_size.second_col_max_width + 50),
+				},
+				onsubmit: (e: SubmitEvent) => {
+					e.stopPropagation()
+					e.preventDefault()
+				},
+			},
+			m(BaseSearchBar, {
+				placeholder: vnode.attrs.placeholder,
+				text: this.state.query ?? "",
+				busy: this.state.busy,
+				disabled: vnode.attrs.disabled,
+				onInput: (text) => this.search(text),
+				onSearchClick: () => this.handleSearchClick(),
+				onClear: () => {
+					this.clear()
+				},
+				onWrapperCreated: (dom) => {
+					this.domWrapper = dom
+					this.showOverlay()
+				},
+				onInputCreated: (dom) => {
+					this.domInput = dom
+				},
+				onFocus: () => (this.focused = true),
+				onBlur: () => this.onBlur(),
+				onKeyDown: (e) => this.onkeydown(e, vnode.attrs.loadResults),
+			} satisfies BaseSearchBarAttrs),
+		)
+	}
+
+	private readonly onkeydown = (e: KeyboardEvent, loadResults: (query: string) => Promise<LiveSearchResult<T>>) => {
+		const { selected, searchResult } = this.state
+		const entities = searchResult?.items
+		const selectedEntity = typeof selected === "number" && entities?.[selected]
+		const keyHandlers = [
+			{
+				key: Keys.F1,
+				exec: () => keyManager.openF1Help(),
+			},
+			{
+				key: Keys.ESC,
+				exec: () => this.clear(),
+			},
+			{
+				key: Keys.RETURN,
+				exec: () => {
+					if (selected === "showmore") {
+						this.selectResult(null)
+					} else if (selectedEntity) {
+						this.selectResult(selectedEntity)
+					} else {
+						this.search()
+					}
+					// blur() is used to hide keyboard on return button click
+					this.domInput.blur()
+				},
+			},
+			{
+				key: Keys.UP,
+				exec: () => {
+					if (entities && entities.length > 0) {
+						const oldSelected = selectedEntity || getFirstOrThrow(entities)
+
+						let newSelected: SearchBarState<T>["selected"]
+						if (selected === 0) {
+							newSelected = "showmore"
+						} else if (selected === "showmore") {
+							newSelected = lastIndex(entities)
+						} else {
+							newSelected = mod(entities.indexOf(oldSelected) - 1, entities.length)
+						}
+						this.updateState({ selected: newSelected })
+					}
+				},
+			},
+			{
+				key: Keys.DOWN,
+				exec: () => {
+					if (entities && entities.length > 0) {
+						const oldSelected = selectedEntity || getFirstOrThrow(entities)
+
+						let newSelected: SearchBarState<T>["selected"]
+						if (selected === lastIndex(entities)) {
+							newSelected = "showmore"
+						} else if (selected === "showmore") {
+							newSelected = 0
+						} else {
+							newSelected = mod(entities.indexOf(oldSelected) + 1, entities.length)
+						}
+						this.updateState({ selected: newSelected })
+					}
+				},
+			},
+		]
+		let keyHandler = keyHandlers.find((handler) => isKeyPressed(e.key, handler.key))
+
+		if (keyHandler) {
+			keyHandler.exec()
+			e.preventDefault()
+		}
+
+		// disable shortcuts
+		e.stopPropagation()
+		return true
+	}
+
+	oncreate() {
+		if (EnvProvider.get().isApp()) {
+			// only focus in the mobile app, the search bar always exists in desktop/web and will always be grabbing attention
+			this.onFocus()
+		}
+		keyManager.registerShortcuts(this.shortcuts)
+	}
+
+	onremove() {
+		this.focused = false
+
+		if (this.shortcuts) keyManager.unregisterShortcuts(this.shortcuts)
+
+		this.clear()
+		this.closeOverlay()
+	}
+
+	/**
+	 * Ensure that overlay exists in DOM
+	 */
+	private showOverlay() {
+		if (this.closeOverlayFunction == null && this.domWrapper != null) {
+			this.closeOverlayFunction = displayOverlay(
+				() => this.makeOverlayRect(),
+				this.overlayContentComponent,
+				undefined,
+				undefined,
+				"dropdown-shadow border-radius",
+			)
+		} else {
+			m.redraw()
+		}
+	}
+
+	private closeOverlay() {
+		if (this.closeOverlayFunction) {
+			this.closeOverlayFunction()
+
+			this.closeOverlayFunction = null
+		}
+	}
+
+	private makeOverlayRect(): PositionRect {
+		// note: this is called on every render which probably thrashes our layout constantly.
+		// we should at least not do it while we don't have anything to show
+		let overlayRect: PositionRect
+
+		const domRect = this.domWrapper.getBoundingClientRect()
+		// Adjust position when the keyboard is open. Keyboard is not included in safe area insets.
+		// We need to subtract overlay margin because by default it included bottom nav and safe area which we don't
+		// need if the keyboard is open.
+		const overlayMargin = overlayBottomMargin() ?? 0
+		const bottom = windowFacade.keyboardSize() === 0 ? px(size.spacing_16) : px(windowFacade.keyboardSize() - overlayMargin + size.spacing_16)
+		if (Styles.get().isDesktopLayout()) {
+			overlayRect = {
+				top: px(domRect.bottom + 5),
+				right: px(window.innerWidth - domRect.right),
+				width: px(350),
+				zIndex: LayerType.LowPriorityOverlay,
+			}
+		} else if (window.innerWidth < 500) {
+			overlayRect = {
+				bottom,
+				left: px(16),
+				right: px(16),
+				zIndex: LayerType.LowPriorityOverlay,
+			}
+		} else {
+			overlayRect = {
+				bottom,
+				left: px(domRect.left),
+				right: px(window.innerWidth - domRect.right),
+				zIndex: LayerType.LowPriorityOverlay,
+			}
+		}
+
+		return overlayRect
+	}
+
+	private readonly shortcuts: ReadonlyArray<Shortcut> = [
+		{
+			key: Keys.F,
+			enabled: () => true,
+			exec: () => {
+				this.onFocus()
+				m.redraw()
+			},
+			help: "search_label",
+		},
+	]
+
+	handleSearchClick() {
+		if (!this.focused) {
+			this.onFocus()
+		} else {
+			this.search()
+		}
+	}
+
+	private async search(query?: string) {
+		let oldQuery = this.state.query
+		const searchQuery: string = query ?? oldQuery ?? ""
+		this.updateState({
+			query: searchQuery,
+		})
+
+		if (this.confirmDialogShown) {
+			return
+		}
+		this.confirmDialogShown = true
+		this.focused = false
+		try {
+			if ((await this.lastAttrs.confirmSearch?.()) ?? true) {
+				this.focused = true
+				// setTimeout to fix bug in current Safari with losing focus
+				setTimeout(() => this.domInput.focus(), ClientDetector.get().browser === BrowserType.SAFARI ? 200 : 0)
+			} else {
+				return
+			}
+		} finally {
+			this.confirmDialogShown = false
+		}
+
+		if (searchQuery.trim() !== "") {
+			this.updateState({ busy: true })
+		}
+
+		this.doSearch(searchQuery, () => {
+			this.updateState({ busy: false })
+		})
+	}
+
+	private readonly doSearch = debounce(300, (query: string, cb: () => void) => {
+		;(async () => {
+			this.state.searchResult?.dispose()
+			if (query === "") {
+				this.updateState({
+					searchResult: null,
+					selected: null,
+				})
+			} else {
+				const liveResult: LiveSearchResult<T> = await this.lastAttrs.loadResults(query)
+
+				this.updateState({
+					searchResult: liveResult,
+					selected: isNotEmpty(liveResult.items) ? 0 : "showmore",
+				})
+			}
+		})().finally(() => cb())
+	})
+
+	private clear() {
+		this.state.searchResult?.dispose()
+		this.updateState({
+			query: null,
+			selected: null,
+			searchResult: null,
+		})
+	}
+
+	private selectResult(entry: T | null) {
+		if (this.state.searchResult) {
+			const {
+				searchResult: { query, restriction, maxResults },
+			} = this.state.searchResult
+			this.lastAttrs.selectResult({ query, restriction, maxResults: maxResults ?? null }, entry)
+		}
+	}
+
+	private onFocus() {
+		if (!this.focused) {
+			this.focused = true
+			// setTimeout to fix bug in current Safari with losing focus
+			setTimeout(
+				() => {
+					this.domInput.focus()
+
+					this.search()
+				},
+				ClientDetector.get().browser === BrowserType.SAFARI ? 200 : 0,
+			)
+		}
+	}
+
+	private onBlur() {
+		this.focused = false
+		m.redraw()
+	}
+
+	private updateState(update: Partial<SearchBarState<T>>) {
+		this.state = { ...this.state, ...update }
+		m.redraw()
+	}
+}

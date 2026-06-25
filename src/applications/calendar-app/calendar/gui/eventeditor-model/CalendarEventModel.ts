@@ -166,6 +166,17 @@ export const enum CalendarOperation {
 }
 
 /**
+ * A function for making CalendarEventModel with only data dependencies
+ */
+export type CalendarEventModelFactory = (
+	editMode: CalendarOperation,
+	event: Partial<CalendarEvent>,
+	mailboxDetail: MailboxDetail,
+	mailboxProperties: MailboxProperties,
+	responseTo: Mail | null,
+) => Promise<CalendarEventModel | null>
+
+/**
  * get the models enabling consistent calendar event updates.
  */
 export async function makeCalendarEventModel(

@@ -23,7 +23,7 @@ export interface VirtualRow<ElementType> {
 }
 
 export interface ListFetchResult<ElementType> {
-	items: Array<ElementType>
+	items: readonly ElementType[]
 	/** Complete means that we loaded the whole list and additional requests will not yield any results. */
 	complete: boolean
 }
@@ -33,6 +33,13 @@ export interface ListSelectionCallbacks {
 	areAllSelected(): boolean
 	selectNone(): void
 	selectAll(): void
+}
+
+export interface ListItemSelectionCallbacks<T> extends ListSelectionCallbacks {
+	onSingleSelection: (item: T) => unknown
+	onSingleExclusiveSelection: (item: T) => unknown
+	onSingleInclusiveSelection: (item: T) => unknown
+	onRangeSelectionTowards: (item: T) => unknown
 }
 
 export function listSelectionKeyboardShortcuts(multiselectMode: MultiselectMode, callbacks: () => ListSelectionCallbacks | null): Array<Shortcut> {

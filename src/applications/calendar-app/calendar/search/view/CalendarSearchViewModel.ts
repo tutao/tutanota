@@ -1,336 +1,171 @@
-import { CalendarSearchResultListEntry } from "./CalendarSearchListView.js"
-import { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes.js"
-import { EventController } from "../../../../common/api/main/EventController.js"
+import { CalendarInfo, CalendarInfoBase, CalendarModel, isBirthdayCalendarInfo, isCalendarInfo } from "../../model/CalendarModel"
+import Id from "../../../../../ui/translations/id"
+import { getElementId, isSameId, isSameIdTuple, isSameSingleId } from "@tutao/meta"
+import { SearchCategoryType, SearchRestriction } from "../../../../common/api/worker/search/SearchTypes"
 import {
-	assertIsEntity2,
-	elementIdPart,
-	Entity,
-	GENERATED_MAX_ID,
-	getElementId,
-	isSameId,
-	isSameIdTuple,
-	isSameSingleId,
-	isSameTypeRef,
-	ListElement,
-	TypeRef,
-} from "../../../../../platform-kit/meta"
-import { ListLoadingState, ListState } from "../../../../../ui/base/List.js"
-import {
-	deepEqual,
-	downcast,
+	assertNotNull,
+	debounce,
 	getEndOfDay,
 	getStartOfDay,
 	incrementMonth,
+	isNotNull,
 	isSameDayOfDate,
-	lazyMemoized,
-	neverNull,
 	Nullable,
-	ofClass,
-	stringToBase64,
+	onceAsync,
 	YEAR_IN_MILLIS,
-} from "../../../../../platform-kit/utils"
-import { areResultsForTheSameQuery, CalendarSearchModel, hasMoreResults, isSameSearchRestriction } from "../model/CalendarSearchModel.js"
-import { NotFoundError } from "../../../../../platform-kit/rest-client/error"
-import { createRestriction, decodeCalendarSearchKey, encodeCalendarSearchKey, getRestriction } from "../model/SearchUtils.js"
+} from "@tutao/utils"
+import { ListModel } from "../../../../common/misc/ListModel"
+import { CalendarEvent, Contact, ContactTypeRef } from "@tutao/entities/tutanota"
+import { LoginController } from "../../../../common/api/main/LoginController"
+import { SearchToken } from "../../../../../ui/utils/QueryTokenUtils"
 import Stream from "mithril/stream"
-import stream from "mithril/stream"
-import { generateCalendarInstancesInRange, isBirthdayCalendar, retrieveBirthdayEventsForUser } from "../../../../common/calendar/date/CalendarUtils.js"
-import { LoginController } from "../../../../common/api/main/LoginController.js"
-import { EntityClient } from "../../../../../platform-kit/network/EntityClient.js"
-
-import { CalendarInfoBase, CalendarModel, isBirthdayCalendarInfo, isCalendarInfo } from "../../model/CalendarModel.js"
-import { CalendarFacade } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
-import { ProgressTracker } from "../../../../common/api/main/ProgressTracker.js"
-import { ListAutoSelectBehavior } from "../../../../common/misc/DeviceConfig.js"
-import { ProgrammingError } from "../../../../../platform-kit/app-env"
-import { SearchRouter } from "../../../../common/search/view/SearchRouter.js"
-import { CalendarEventsRepository } from "../../../../common/calendar/date/CalendarEventsRepository"
-import { ListElementListModel } from "../../../../common/misc/ListElementListModel"
-import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
+import { SearchRouter } from "../../../../common/search/view/SearchRouter"
+import { CancelledError } from "@tutao/app-env"
+import { EventController } from "../../../../common/api/main/EventController"
 import {
-	EntityUpdatesListener,
 	EntityUpdateData,
+	EntityUpdatesListener,
 	isUpdateForTypeRef,
 	ListenerPriority,
-} from "../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils.js"
-import { CalendarEvent, CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
-import { SelectedCalendarId } from "../../../../mail-app/search/view/SearchViewModel"
+} from "../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityClient } from "../../../../../platform-kit/network/EntityClient"
+import { createCalendarRestriction, encodeCalendarSearchKey, getCalendarRestriction } from "../model/CalendarSearchUtils"
+import { birthdayCalendarEventContactId, isBirthdayCalendar, isBirthdayEvent } from "../../../../common/calendar/date/CalendarUtils"
+import { onlySingleSelection } from "../../../../../ui/base/ListUtils"
+import { ListAutoSelectBehavior } from "../../../../common/misc/DeviceConfig"
+import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
+import {
+	createEmptyRestriction,
+	emptyListModel,
+	getSearchUrl,
+	isNewSearch,
+	LiveSearchResult,
+	PaidFunctionResult,
+	SearchableTypes,
+	SearchQuery,
+} from "../../../../common/search/SearchUtils"
+import { CalendarSearchModel } from "../../../search/model/CalendarSearchModel"
+import { getEventWithDefaultTimes, setNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils"
+import { CalendarEventModel, CalendarEventModelFactory, CalendarOperation } from "../../gui/eventeditor-model/CalendarEventModel"
+import { MailboxModel } from "../../../../common/mailFunctionality/MailboxModel"
+import { ListState } from "../../../../../ui/base/List"
+import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel"
 
-const SEARCH_PAGE_SIZE = 100
+type EventPreviewData =
+	| {
+			type: "birthday"
+			id: IdTuple
+			contact: Contact | null
+	  }
+	| {
+			type: "event"
+			id: IdTuple
+			model: CalendarEventPreviewViewModel | null
+	  }
 
-export enum PaidFunctionResult {
-	Success,
-	PaidSubscriptionNeeded,
+interface SelectedCalendarId {
+	birthdayCalendarId: Id | null
+	longListShortList: IdTuple | null
 }
 
 export class CalendarSearchViewModel {
-	private _listModel: ListElementListModel<CalendarSearchResultListEntry>
-	get listModel(): ListElementListModel<CalendarSearchResultListEntry> {
-		return this._listModel
+	#listModel: ListModel<CalendarEvent, Id> = emptyListModel()
+	private abortController: AbortController | null = null
+	#delayingSearch: boolean = false
+	private searchResult: LiveSearchResult<unknown> | null = null
+	private listStateSubscription: Stream<void> | null = null
+	get busy(): boolean {
+		return this.#delayingSearch
+	}
+	get listModel(): ListModel<CalendarEvent, Id> {
+		return this.#listModel
 	}
 
-	private _includeRepeatingEvents: boolean = true
+	#eventPreviewData: EventPreviewData | null = null
+	get birthdayContact(): Contact | null {
+		return this.#eventPreviewData?.type === "birthday" ? this.#eventPreviewData.contact : null
+	}
+	get eventPreviewData(): CalendarEventPreviewViewModel | null {
+		return this.#eventPreviewData?.type === "event" ? this.#eventPreviewData.model : null
+	}
+
+	#startDate: Date | null = null
+	#endDate: Date | null = null
+	#selectedCalendar: SelectedCalendarId | null = null
+	private currentQuery: string = ""
+	#includeRepeatingEvents: boolean = true
 	get includeRepeatingEvents(): boolean {
-		return this._includeRepeatingEvents
+		return this.#includeRepeatingEvents
 	}
-
-	get warning(): "long" | "startafterend" | null {
-		if (this.startDate && this.startDate.getTime() > this.endDate.getTime()) {
-			return "startafterend"
-		} else if (this.startDate && this.endDate.getTime() - this.startDate.getTime() > YEAR_IN_MILLIS) {
-			return "long"
-		} else {
-			return null
-		}
-	}
-
-	private _startDate: Date | null = null // null = the beginning of the current month
-	get startDate(): Date | null {
-		let returnDate = this._startDate
-		if (!returnDate) {
-			returnDate = new Date()
-			returnDate.setDate(1)
-		}
-		return returnDate
-	}
-
-	private _endDate: Date | null = null // null = end of 2 months in the future
-	get endDate(): Date {
-		let returnDate = this._endDate
-		if (!returnDate) {
-			returnDate = incrementMonth(new Date(), 3)
-			returnDate.setDate(0)
-		}
-		return returnDate
-	}
-
-	// isn't an IdTuple because it is two list ids
-	private _selectedCalendar: Nullable<SelectedCalendarId> = null // [longListId, shorListId] || birthDay_calendar_id | null
 	get selectedCalendar(): CalendarInfoBase | null {
 		const calendars = this.getAvailableCalendars(true)
 		const selectedCalendar =
 			calendars.find((calendarInfo) => {
-				if (this._selectedCalendar == null) {
+				if (this.#selectedCalendar == null) {
 					return false
 				}
 				if (isBirthdayCalendarInfo(calendarInfo)) {
-					return calendarInfo.id === this._selectedCalendar.birthdayCalendarId
-				}
-				if (isCalendarInfo(calendarInfo)) {
+					return calendarInfo.id === this.#selectedCalendar.birthdayCalendarId
+				} else if (isCalendarInfo(calendarInfo)) {
 					const groupRoot = calendarInfo.groupRoot
-					return isSameIdTuple([groupRoot.longEvents, groupRoot.shortEvents], this._selectedCalendar.longListShortList)
+					return isSameIdTuple([groupRoot.longEvents, groupRoot.shortEvents], this.#selectedCalendar.longListShortList)
 				}
 			}) ?? null
 		return selectedCalendar
 	}
-
-	// Contains load more results even when searchModel doesn't.
-	// Load more should probably be moved to the model to update it's result stream.
-	private searchResult: SearchResult | null = null
-	private latestCalendarRestriction: SearchRestriction | null = null
-	private resultSubscription: Stream<void> | null = null
-	private listStateSubscription: Stream<unknown> | null = null
-	loadingAllForSearchResult: SearchResult | null = null
-
-	currentQuery: string = ""
-
 	constructor(
-		readonly router: SearchRouter,
-		private readonly search: CalendarSearchModel,
 		private readonly calendarModel: CalendarModel,
 		private readonly logins: LoginController,
-		private readonly entityClient: EntityClient,
+		private readonly search: CalendarSearchModel,
+		private readonly router: SearchRouter,
 		private readonly eventController: EventController,
-		private readonly calendarFacade: CalendarFacade,
-		private readonly progressTracker: ProgressTracker,
-		private readonly eventsRepository: CalendarEventsRepository,
+		private readonly entityClient: EntityClient,
+		private readonly mailboxModel: MailboxModel,
+		private readonly createCalendarEventModel: CalendarEventModelFactory,
+		private readonly createEventPreviewModel: (
+			selectedEvent: CalendarEvent,
+			calendars: ReadonlyMap<string, CalendarInfo>,
+			highlightedTokens: readonly SearchToken[],
+		) => Promise<CalendarEventPreviewViewModel>,
 		private readonly updateUi: () => unknown,
-	) {
-		this.currentQuery = this.search.result()?.query ?? ""
-		this._listModel = this.createList()
+	) {}
+	get startDate(): Date | null {
+		return this.#startDate
+	}
+	get endDate(): Date {
+		if (this.#endDate) {
+			return this.#endDate
+		} else {
+			let returnDate = incrementMonth(new Date(), 3)
+			returnDate.setDate(0)
+			return returnDate
+		}
 	}
 
-	readonly init = lazyMemoized(() => {
-		this.resultSubscription = this.search.result.map((result) => {
-			if (this.searchResult == null || result == null || !areResultsForTheSameQuery(result, this.searchResult)) {
-				this.listModel.cancelLoadAll()
-
-				this.searchResult = result
-
-				this._listModel = this.createList()
-				this.listModel.loadInitial()
-				this.listStateSubscription?.end(true)
-				this.listStateSubscription = this.listModel.stateStream.map((state) => this.onListStateChange(state))
-			}
-		})
-
-		this.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
+	readonly init = onceAsync(async () => {
+		this.eventController.addEntityUpdatesListener(this.entityEventsListener)
 	})
 
-	private readonly entityUpdatesListener: EntityUpdatesListener = {
-		id: "CalendarSearchViewModel",
-		onEntityUpdatesReceived: async (updates) => {
-			await this.onEntityUpdatesReceived(updates)
-		},
-		priority: ListenerPriority.NORMAL,
+	getStartOfTheWeekOffset(): number {
+		return getStartOfTheWeekOffsetForUser(this.logins.getUserController().userSettingsGroupRoot)
+	}
+	getAvailableCalendars(includesBirthday: boolean): ReadonlyArray<CalendarInfoBase> {
+		return this.calendarModel.getAvailableCalendars(includesBirthday)
 	}
 
-	onNewUrl(args: Record<string, any>, requestedPath: string) {
-		let restriction
-		try {
-			restriction = getRestriction(requestedPath)
-		} catch (e) {
-			// if restriction is broken replace it with non-broken version
-			this.router.routeTo(args.query, createRestriction(null, null, [], false))
-			return
-		}
-
-		this.currentQuery = args.query
-		const lastQuery = this.search.lastQueryString()
-		const maxResults = isSameTypeRef(MailTypeRef, restriction.type) ? SEARCH_PAGE_SIZE : null
-		const listModel = this.listModel
-		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
-		if (Object.hasOwn(args, "query") && this.search.isNewSearch(args.query, restriction)) {
-			this.searchResult = null
-			listModel.updateLoadingStatus(ListLoadingState.Loading)
-			this.search
-				.search(
-					{
-						query: args.query,
-						restriction,
-						minSuggestionCount: 0,
-						maxResults,
-					},
-					this.progressTracker,
-				)
-				.then(() => listModel.updateLoadingStatus(ListLoadingState.Done))
-				.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
-		} else if (lastQuery && this.search.isNewSearch(lastQuery, restriction)) {
-			this.searchResult = null
-
-			// If query is not set for some reason (e.g. switching search type), use the last query value
-			listModel.selectNone()
-			listModel.updateLoadingStatus(ListLoadingState.Loading)
-			this.search
-				.search(
-					{
-						query: lastQuery,
-						restriction,
-						minSuggestionCount: 0,
-						maxResults,
-					},
-					this.progressTracker,
-				)
-				.then(() => listModel.updateLoadingStatus(ListLoadingState.Done))
-				.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
-		} else if (!Object.hasOwn(args, "query") && !lastQuery) {
-			// no query at all yet
-			listModel.updateLoadingStatus(ListLoadingState.Done)
-		}
-
-		this._startDate = restriction.start ? new Date(restriction.start) : null
-		this._endDate = restriction.end ? new Date(restriction.end) : null
-		this._includeRepeatingEvents = restriction.eventSeries ?? true
-		this.latestCalendarRestriction = restriction
-
-		// Check if user is trying to search in a birthday calendar while using a free account
-		const listIdsOrBirthdayCalendarId = this.extractCalendarListIds(restriction.folderIds)
-		if (listIdsOrBirthdayCalendarId && listIdsOrBirthdayCalendarId.longListShortList) {
-			this._selectedCalendar = listIdsOrBirthdayCalendarId
-		} else {
-			this._selectedCalendar = null
-			return
-		}
-
-		if (args.id != null) {
-			try {
-				const { start, id } = decodeCalendarSearchKey(args.id)
-				this.loadAndSelectIfNeeded(id, ({ entry }: CalendarSearchResultListEntry) => {
-					entry = entry as CalendarEvent
-					return id === getElementId(entry) && start === entry.startTime.getTime()
-				})
-			} catch (err) {
-				console.log("Invalid ID, selecting none")
-				this.listModel.selectNone()
-			}
-		}
+	loadCalendarInfos(): Promise<ReadonlyMap<Id, CalendarInfo>> {
+		return this.calendarModel.getCalendarInfos()
 	}
 
-	private extractCalendarListIds(listIds: string[]): Nullable<SelectedCalendarId> {
-		if (listIds.length < 1) return null
-		else if (listIds.length === 1) return { birthdayCalendarId: listIds[0], longListShortList: null }
-
-		return { birthdayCalendarId: null, longListShortList: [listIds[0], listIds[1]] }
-	}
-
-	private loadAndSelectIfNeeded(id: string | null, finder?: (a: ListElement) => boolean) {
-		// nothing to select
-		if (id == null) {
-			return
-		}
-
-		if (!this.listModel.isItemSelected(id)) {
-			this.handleLoadAndSelection(id, finder)
-		}
-	}
-
-	private handleLoadAndSelection(id: string, finder: ((a: ListElement) => boolean) | undefined) {
-		if (this.listModel.isLoadedCompletely()) {
-			return this.selectItem(id, finder)
-		}
-
-		const listStateStream = stream.combine((a) => a(), [this.listModel.stateStream])
-		listStateStream.map((state) => {
-			if (state.loadingStatus === ListLoadingState.Done) {
-				this.selectItem(id, finder)
-				listStateStream.end(true)
-			}
-		})
-	}
-
-	private selectItem(id: string, finder: ((a: ListElement) => boolean) | undefined) {
-		const listModel = this.listModel
-		this.listModel.loadAndSelect(id, () => !deepEqual(this.listModel, listModel), finder)
-	}
-
-	async loadAll() {
-		if (this.loadingAllForSearchResult != null) return
-		this.loadingAllForSearchResult = this.searchResult ?? null
-		this.listModel.selectAll()
-		try {
-			while (
-				this.searchResult?.restriction &&
-				this.loadingAllForSearchResult &&
-				isSameSearchRestriction(this.searchResult?.restriction, this.loadingAllForSearchResult.restriction) &&
-				!this.listModel.isLoadedCompletely()
-			) {
-				await this.listModel.loadMore()
-				if (
-					this.searchResult.restriction &&
-					this.loadingAllForSearchResult.restriction &&
-					isSameSearchRestriction(this.searchResult.restriction, this.loadingAllForSearchResult.restriction)
-				) {
-					this.listModel.selectAll()
-				}
-			}
-		} finally {
-			this.loadingAllForSearchResult = null
-		}
-	}
-
-	stopLoadAll() {
-		this.listModel.cancelLoadAll()
+	getUrlFromSearchCategory(category: SearchCategoryType): string {
+		return getSearchUrl(this.currentQuery, createEmptyRestriction(category))
 	}
 
 	canSelectTimePeriod(): boolean {
 		return !this.logins.getUserController().isFreeAccount()
 	}
 
-	getStartOfTheWeekOffset(): number {
-		return getStartOfTheWeekOffsetForUser(this.logins.getUserController().userSettingsGroupRoot)
-	}
-
-	public checkDates(startDate: Date | null, endDate: Date | null): "long" | "startafterend" | null {
+	checkDates(startDate: Date | null, endDate: Date | null): "long" | "startafterend" | null {
 		if (startDate && endDate) {
 			if (startDate.getTime() > endDate.getTime()) {
 				return "startafterend"
@@ -339,17 +174,6 @@ export class CalendarSearchViewModel {
 			}
 		}
 		return null
-	}
-
-	selectCalendar(calendarInfo: CalendarInfoBase | null) {
-		if (!calendarInfo) {
-			this._selectedCalendar = null
-		} else if (isBirthdayCalendarInfo(calendarInfo)) {
-			this._selectedCalendar = { birthdayCalendarId: calendarInfo.id, longListShortList: null }
-		} else if (isCalendarInfo(calendarInfo)) {
-			this._selectedCalendar = { birthdayCalendarId: null, longListShortList: [calendarInfo.groupRoot.longEvents, calendarInfo.groupRoot.shortEvents] }
-		}
-		this.searchAgain()
 	}
 
 	selectStartDate(startDate: Date | null): PaidFunctionResult {
@@ -361,10 +185,8 @@ export class CalendarSearchViewModel {
 			return PaidFunctionResult.PaidSubscriptionNeeded
 		}
 
-		this._startDate = startDate
-
+		this.#startDate = startDate
 		this.searchAgain()
-
 		return PaidFunctionResult.Success
 	}
 
@@ -377,34 +199,84 @@ export class CalendarSearchViewModel {
 			return PaidFunctionResult.PaidSubscriptionNeeded
 		}
 
-		this._endDate = endDate
+		this.#endDate = endDate
 
 		this.searchAgain()
 
 		return PaidFunctionResult.Success
 	}
 
-	selectIncludeRepeatingEvents(include: boolean) {
-		this._includeRepeatingEvents = include
-		this.searchAgain()
-	}
-
-	private searchAgain(): void {
+	private searchAgain() {
 		this.updateSearchUrl()
 		this.updateUi()
 	}
 
+	selectCalendar(calendarInfo: CalendarInfoBase | null) {
+		if (!calendarInfo) {
+			this.#selectedCalendar = null
+		} else if (isBirthdayCalendarInfo(calendarInfo)) {
+			this.#selectedCalendar = { birthdayCalendarId: calendarInfo.id, longListShortList: null }
+		} else if (isCalendarInfo(calendarInfo)) {
+			this.#selectedCalendar = { birthdayCalendarId: null, longListShortList: [calendarInfo.groupRoot.longEvents, calendarInfo.groupRoot.shortEvents] }
+		}
+		this.searchAgain()
+	}
+
+	selectIncludeRepeatingEvents(include: boolean) {
+		this.#includeRepeatingEvents = include
+		this.searchAgain()
+	}
+
+	getSelectedEvents(): CalendarEvent[] {
+		return this.#listModel.getSelectedAsArray()
+	}
+
+	/**
+	 * Abort current search.
+	 * Searching calendar events requires loading and calculating occurrences for the whole time period. User has an
+	 * option to abort this if it takes too long.
+	 */
+	sendStopLoadingSignal() {
+		this.abortController?.abort()
+	}
+
+	getHighlightedStrings(): readonly SearchToken[] {
+		return this.searchResult?.searchResult.tokens ?? []
+	}
+
+	getCurrentQuery(): string {
+		return this.currentQuery
+	}
+
+	onSearchQueryUpdated(query: string) {
+		this.currentQuery = query
+		this.#delayingSearch = true
+		this.debouncedUpdateSearchUrl(() => {
+			this.#delayingSearch = false
+		})
+	}
+
+	private readonly debouncedUpdateSearchUrl = debounce(200, (cb) => {
+		this.updateSearchUrl()
+		cb()
+	})
+
 	private updateSearchUrl() {
-		const selectedElement = this.listModel.state.selectedItems.size === 1 ? this.listModel.getSelectedAsArray().at(0) : null
+		const selectedElement = this.#listModel.state.selectedItems.size === 1 ? this.#listModel.getSelectedAsArray().at(0) : null
 		this.routeCalendar(
-			(selectedElement?.entry as CalendarEvent) ?? null,
-			createRestriction(
-				this._startDate ? getStartOfDay(this._startDate).getTime() : null,
-				this._endDate ? getEndOfDay(this._endDate).getTime() : null,
-				this.getCalendarLists(),
-				this._includeRepeatingEvents,
-			),
+			selectedElement ?? null,
+			createCalendarRestriction({
+				start: this.#startDate ? getStartOfDay(this.#startDate).getTime() : null,
+				end: this.#endDate ? getEndOfDay(this.#endDate).getTime() : null,
+				folderIds: this.getCalendarLists(),
+				eventSeries: this.#includeRepeatingEvents,
+			}),
 		)
+	}
+
+	private routeCalendar(event: CalendarEvent | null, restriction: SearchRestriction) {
+		const selectionKey = event ? encodeCalendarSearchKey(event) : null
+		this.router.routeTo(this.currentQuery, restriction, selectionKey)
 	}
 
 	private getCalendarLists(): string[] {
@@ -419,223 +291,224 @@ export class CalendarSearchViewModel {
 		return []
 	}
 
-	private routeCalendar(element: CalendarEvent | null, restriction: SearchRestriction) {
-		const selectionKey = this.generateSelectionKey(element)
-		this.router.routeTo(this.currentQuery, restriction, selectionKey)
+	private readonly entityEventsListener: EntityUpdatesListener = {
+		id: "CalendarSearchViewModel",
+		onEntityUpdatesReceived: async (updates) => {
+			for (const update of updates) {
+				await this.entityEventReceived(update)
+			}
+		},
+		priority: ListenerPriority.NORMAL,
 	}
 
-	private generateSelectionKey(element: CalendarEvent | null): string | null {
-		if (element == null) return null
-		return encodeCalendarSearchKey(element)
-	}
-
-	private isPossibleABirthdayContactUpdate(update: EntityUpdateData): update is EntityUpdateData {
-		if (isUpdateForTypeRef(ContactTypeRef, update)) {
-			const { instanceListId, instanceId } = update
-			const encodedContactId = stringToBase64(`${instanceListId}/${instanceId}`)
-
-			return this.listModel.stateStream().items.some((searchEntry) => searchEntry._id[1].endsWith(encodedContactId))
-		} else {
-			return false
+	private async entityEventReceived(update: EntityUpdateData): Promise<void> {
+		if (isUpdateForTypeRef(ContactTypeRef, update) && this.isPreviewingContact([assertNotNull(update.instanceListId), update.instanceId])) {
+			await this.loadBirthdayContact([assertNotNull(update.instanceListId), update.instanceId])
 		}
 	}
 
-	private isSelectedEventAnUpdatedBirthday(update: EntityUpdateData): boolean {
-		if (isUpdateForTypeRef(ContactTypeRef, update)) {
-			const { instanceListId, instanceId } = update
-			const encodedContactId = stringToBase64(`${instanceListId}/${instanceId}`)
-
-			const selectedItem = this.listModel.getSelectedAsArray().at(0)
-			if (!selectedItem) {
-				return false
-			}
-
-			return selectedItem._id[1].endsWith(encodedContactId)
-		}
-
-		return false
+	private isPreviewingContact(contactId: IdTuple): boolean {
+		return this.#eventPreviewData != null && this.#eventPreviewData.type === "birthday" && isSameId(this.#eventPreviewData.id, contactId)
 	}
 
-	private async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		for (const update of updates) {
-			const isPossibleABirthdayContactUpdate = this.isPossibleABirthdayContactUpdate(update)
+	private isPreviewingEvent(eventId: IdTuple): boolean {
+		return this.#eventPreviewData != null && this.#eventPreviewData.type === "event" && isSameId(this.#eventPreviewData.id, eventId)
+	}
 
-			if (!isUpdateForTypeRef(CalendarEventTypeRef, update) && !isPossibleABirthdayContactUpdate) {
-				return
+	private async loadEventPreview(selectedEvent: CalendarEvent) {
+		const calendars = this.calendarModel.getAvailableCalendars(false)
+		const calendarInfosMap = new Map(calendars.map((calendarInfo) => [calendarInfo.id, calendarInfo]))
+		void this.createEventPreviewModel(selectedEvent, calendarInfosMap, this.searchResult?.searchResult.tokens ?? []).then(async (model) => {
+			await model.sanitizeDescription()
+			// only change data if selection hasn't changed
+			if (this.isPreviewingEvent(selectedEvent._id)) {
+				this.#eventPreviewData = { type: "event", id: selectedEvent._id, model: model }
+				this.updateUi()
 			}
+		})
+	}
 
-			const { instanceListId, instanceId, operation } = update
-			const id = [neverNull(instanceListId), instanceId] as const
-
-			const typeRef = update.typeRef
-
-			if (!this.isInSearchResult(typeRef, id) && isPossibleABirthdayContactUpdate) {
-				return
-			}
-
-			// due to the way calendar event changes are sort of non-local, we throw away the whole list and re-render it if
-			// the contents are edited. we do the calculation on a new list and then swap the old list out once the new one is
-			// ready
-			const selectedItem = this.listModel.getSelectedAsArray().at(0)
-			const listModel = this.createList()
-
-			if (isPossibleABirthdayContactUpdate && (await this.eventsRepository.canLoadBirthdaysCalendar())) {
-				await this.eventsRepository.handleContactEvent(update.operation, [update.instanceListId!, update.instanceId])
-			}
-
-			await listModel.loadInitial()
-			if (selectedItem != null) {
-				if (isPossibleABirthdayContactUpdate && this.isSelectedEventAnUpdatedBirthday(update)) {
-					// We must invalidate the selected item to refresh the contact preview
-					this.listModel.selectNone()
-				}
-
-				await listModel.loadAndSelect(elementIdPart(selectedItem._id), () => false)
-			}
-			this._listModel = listModel
-			this.listStateSubscription?.end(true)
-			this.listStateSubscription = this.listModel.stateStream.map((state) => this.onListStateChange(state))
-			this.updateSearchUrl()
+	private async loadBirthdayContact(id: IdTuple) {
+		const updatedContact = await this.entityClient.load(ContactTypeRef, id)
+		// only update if the selection hasn't changed while loading
+		if (this.isPreviewingContact(id)) {
+			this.#eventPreviewData = { type: "birthday", id: id, contact: updatedContact }
 			this.updateUi()
 		}
 	}
 
-	getSelectedEvents(): CalendarEvent[] {
-		return this.listModel
-			.getSelectedAsArray()
-			.map((e) => e.entry)
-			.filter(assertIsEntity2(CalendarEventTypeRef))
+	private extractCalendarListIds(listIds: string[]): Nullable<SelectedCalendarId> {
+		if (listIds.length < 1) return null
+		else if (listIds.length === 1) return { birthdayCalendarId: listIds[0], longListShortList: null }
+
+		return { birthdayCalendarId: null, longListShortList: [listIds[0], listIds[1]] }
 	}
 
-	private onListStateChange(newState: ListState<CalendarSearchResultListEntry>) {
-		this.updateSearchUrl()
+	onNewUrl(args: Record<string, any>, _requestedPath: string) {
+		const restriction = getCalendarRestriction(args)
+
+		this.currentQuery = args.query ?? this.currentQuery
+		const newQuery: SearchQuery = { query: this.currentQuery, restriction, maxResults: null }
+		if (isNewSearch(this.searchResult, newQuery)) {
+			this.searchResult?.dispose()
+			this.stopLoadAll()
+			this.abortController?.abort()
+			this.#startDate = restriction.start ? new Date(restriction.start) : null
+			this.#endDate = restriction.end ? new Date(restriction.end) : null
+			this.#includeRepeatingEvents = restriction.eventSeries ?? true
+
+			// Check if user is trying to search in a birthday calendar while using a free account
+			const listIdsOrBirthdayCalendarId = this.extractCalendarListIds(restriction.folderIds)
+			if (listIdsOrBirthdayCalendarId == null || listIdsOrBirthdayCalendarId.longListShortList != null) {
+				this.#selectedCalendar = listIdsOrBirthdayCalendarId
+			} else if (isBirthdayCalendar(listIdsOrBirthdayCalendarId.toString())) {
+				const availableCalendars = this.getAvailableCalendars(true)
+				if (availableCalendars.some(isBirthdayCalendarInfo)) {
+					this.#selectedCalendar = listIdsOrBirthdayCalendarId
+				}
+				this.#selectedCalendar = null
+				return
+			}
+
+			// Calendar search can be canceled and restarted again via "load more"
+			const restartSearch = () => {
+				this.abortController = new AbortController()
+
+				const searchPromise = this.search.searchCalendar(newQuery, this.abortController.signal).then((result) => {
+					this.applyLiveSearchResults(result)
+					return result
+				})
+				this.listStateSubscription?.end(true)
+				const listModel = this.createList(searchPromise, restartSearch)
+				this.#listModel = listModel
+				this.listStateSubscription = listModel.stateStream.map((state) => {
+					this.onListStateUpdate(state)
+				})
+
+				void listModel.loadInitial()
+				this.loadAndSelectIfNeeded(args.id, (item) => encodeCalendarSearchKey(item) === args.id)
+			}
+
+			restartSearch()
+		}
+	}
+
+	private onListStateUpdate(state: ListState<CalendarEvent>) {
+		// handled birthday contact preview data
+		const selectedEvent = onlySingleSelection(state)
+		if (selectedEvent != null && isBirthdayEvent(selectedEvent.uid)) {
+			const contactId = birthdayCalendarEventContactId(selectedEvent._id)
+			if (contactId && this.isPreviewingContact(contactId)) {
+				// nothing to do
+			} else if (contactId == null) {
+				// not a valid contact id? nothing to do
+				this.#eventPreviewData = null
+			} else {
+				this.#eventPreviewData = { type: "birthday", id: contactId, contact: null }
+				void this.loadBirthdayContact(contactId)
+			}
+		} else if (selectedEvent) {
+			if (this.isPreviewingEvent(selectedEvent._id)) {
+				// nothing to do
+			} else {
+				this.#eventPreviewData = { type: "event", id: selectedEvent._id, model: null }
+				void this.loadEventPreview(selectedEvent)
+			}
+		} else {
+			this.#eventPreviewData = null
+		}
 		this.updateUi()
 	}
 
-	private createList(): ListElementListModel<CalendarSearchResultListEntry> {
-		// since we recreate the list every time we set a new result object,
-		// we bind the value of result for the lifetime of this list model
-		// at this point
+	private createList(deferredResult: Promise<LiveSearchResult<CalendarEvent>>, restartSearch: () => unknown): ListModel<CalendarEvent, Id> {
+		// the list is recreated every time a new search is performed, but not when the current result is extended
 		// note in case of refactor: the fact that the list updates the URL every time it changes
 		// its state is a major source of complexity and makes everything very order-dependent
-		return new ListElementListModel<CalendarSearchResultListEntry>({
-			fetch: async (lastFetchedEntity: CalendarSearchResultListEntry, count: number) => {
-				const startId = lastFetchedEntity == null ? GENERATED_MAX_ID : getElementId(lastFetchedEntity)
-				const lastResult = this.searchResult
-				if (lastResult !== this.searchResult) {
-					console.warn("got a fetch request for outdated results object, ignoring")
-					// this.searchResults was reassigned, we'll create a new ListElementListModel soon
-					return { items: [], complete: true }
-				}
 
-				if (!lastResult || (lastResult.results.length === 0 && !hasMoreResults(lastResult))) {
-					return { items: [], complete: true }
+		let initialLoadAborted = false
+		return new ListModel<CalendarEvent, Id>({
+			fetch: async (lastFetchedEntity: CalendarEvent | null, count: number) => {
+				let result
+				try {
+					result = await deferredResult
+					initialLoadAborted = false
+				} catch (e) {
+					if (e instanceof CancelledError) {
+						if (initialLoadAborted) {
+							restartSearch()
+						}
+						initialLoadAborted = true
+						return { items: [], complete: true }
+					} else {
+						throw e
+					}
 				}
-
-				const { items, newSearchResult } = await this.loadSearchResults(lastResult, startId, count)
-				const entries = items.map((instance) => new CalendarSearchResultListEntry(instance))
-				const complete = !hasMoreResults(newSearchResult)
-
-				return { items: entries, complete }
-			},
-			loadSingle: async (_listId: Id, elementId: Id) => {
-				const lastResult = this.searchResult
-				if (!lastResult) {
-					return null
-				}
-				const id = lastResult.results.find((resultId) => elementIdPart(resultId) === elementId)
-				if (id) {
-					return this.entityClient
-						.load(lastResult.restriction.type, id)
-						.then((entity) => new CalendarSearchResultListEntry(entity))
-						.catch(
-							ofClass(NotFoundError, (_) => {
-								return null
-							}),
-						)
+				let newItems
+				if (isNotNull(lastFetchedEntity)) {
+					newItems = await result.loadMoreResults(count)
 				} else {
-					return null
+					newItems = result.items
 				}
+				const complete = !result.hasMoreResults
+				return { items: newItems, complete }
 			},
-			sortCompare: (o1: CalendarSearchResultListEntry, o2: CalendarSearchResultListEntry) =>
-				downcast(o1.entry).startTime.getTime() - downcast(o2.entry).startTime.getTime(),
+			getItemId(item: CalendarEvent): Id {
+				return encodeCalendarSearchKey(item)
+			},
+			isSameId(id1, id2): boolean {
+				return isSameSingleId(id1, id2)
+			},
+			sortCompare: (o1: CalendarEvent, o2: CalendarEvent) => o1.startTime.getTime() - o2.startTime.getTime(),
 			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		})
 	}
 
-	isInSearchResult(typeRef: TypeRef<Entity>, id: IdTuple): boolean {
-		const result = this.searchResult
-
-		if (result && isSameTypeRef(typeRef, result.restriction.type)) {
-			// The list id must be null/empty, otherwise the user is filtering by list, and it shouldn't be ignored
-
-			const ignoreList = isSameTypeRef(typeRef, MailTypeRef) && result.restriction.folderIds.length === 0
-
-			return result.results.some((r) => this.compareItemId(r, id, ignoreList))
-		}
-
-		return false
-	}
-
-	private compareItemId(id1: IdTuple, id2: IdTuple, ignoreList: boolean) {
-		return ignoreList ? isSameSingleId(elementIdPart(id1), elementIdPart(id2)) : isSameId(id1, id2)
-	}
-
-	private async loadSearchResults(
-		currentResult: SearchResult,
-		startId: Id,
-		count: number,
-	): Promise<{ items: CalendarEvent[]; newSearchResult: SearchResult }> {
-		const updatedResult = currentResult
-		// we need to override global reference for other functions
-		this.searchResult = updatedResult
-
-		let items: CalendarEvent[]
-		if (isSameTypeRef(currentResult.restriction.type, CalendarEventTypeRef)) {
-			try {
-				const { start, end } = currentResult.restriction
-				if (start == null || end == null) {
-					throw new ProgrammingError("invalid search time range for calendar")
+	private applyLiveSearchResults(result: LiveSearchResult<SearchableTypes>) {
+		this.searchResult = result
+		// LiveSearchResult#dispose() will end the stream
+		result.updates.map((update) => {
+			switch (update.type) {
+				case "reset": {
+					// reset preview to not show outdated data
+					this.#eventPreviewData = null
+					const selectedItem = onlySingleSelection(this.listModel.state)
+					this.listModel.reload()
+					if (selectedItem) {
+						this.loadAndSelectIfNeeded(getElementId(selectedItem))
+					}
 				}
-				items = [
-					...(await this.calendarFacade.reifyCalendarSearchResult(start, end, updatedResult.results)),
-					...(await this.getClientOnlyEventsSeries(start, end, updatedResult.results)),
-				]
-			} finally {
-				this.updateUi()
 			}
-		} else {
-			// this type is not shown in the search view, e.g. group info
-			items = []
+		})
+	}
+	private loadAndSelectIfNeeded(id: string | null, finder?: (a: CalendarEvent) => boolean) {
+		// nothing to select
+		if (id == null) {
+			return
 		}
-
-		return { items: items, newSearchResult: updatedResult }
+		if (!this.#listModel.isItemSelected(id)) {
+			this.handleLoadAndSelection(id, finder)
+		}
 	}
-
-	private async getClientOnlyEventsSeries(start: number, end: number, events: IdTuple[]) {
-		const eventList = await retrieveBirthdayEventsForUser(this.logins, events, this.eventsRepository.getBirthdayEvents())
-		return generateCalendarInstancesInRange(eventList, { start, end })
+	private handleLoadAndSelection(id: string, finder: ((a: CalendarEvent) => boolean) | undefined) {
+		const listModel = this.#listModel
+		let iterations = 0
+		this.#listModel.loadAndSelect(finder ?? ((item) => isSameSingleId(getElementId(item), id)), () => listModel !== this.#listModel || iterations++ > 10)
 	}
-
-	getAvailableCalendars(includesBirthday: boolean): ReadonlyArray<CalendarInfoBase> {
-		return this.calendarModel.getAvailableCalendars(includesBirthday)
-	}
-
-	loadCalendarInfos() {
-		return this.calendarModel.getCalendarInfos()
-	}
-
-	sendStopLoadingSignal() {
-		this.search.sendCancelSignal()
+	stopLoadAll() {
+		this.#listModel.cancelLoadAll()
 	}
 
 	dispose() {
+		this.searchResult?.dispose()
+		this.abortController?.abort()
+		this.eventController.removeEntityUpdatesListener(this.entityEventsListener)
 		this.stopLoadAll()
-		this.resultSubscription?.end(true)
-		this.resultSubscription = null
-		this.listStateSubscription?.end(true)
-		this.listStateSubscription = null
-		this.search.sendCancelSignal()
-		this.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
+	}
+
+	async newEventModel(): Promise<CalendarEventModel | null> {
+		const dateToUse = this.startDate ? setNextHalfHour(new Date(this.startDate)) : setNextHalfHour(new Date())
+		const mailboxDetails = await this.mailboxModel.getUserMailboxDetails()
+		const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+		return await this.createCalendarEventModel(CalendarOperation.Create, getEventWithDefaultTimes(dateToUse), mailboxDetails, mailboxProperties, null)
 	}
 }

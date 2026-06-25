@@ -1,16 +1,16 @@
 import { SearchFacade } from "./SearchFacade"
-import { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
+import { SearchCategoryType, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { sql } from "../../../../app-kit/local-store/Sql"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { MailIndexer } from "./MailIndexer"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
 import { assertNotNull, first, isEmpty, last, splitArrayAt } from "../../../../platform-kit/utils"
-import { getTypeString, isSameId, isSameTypeRef } from "../../../../platform-kit/meta"
+import { getTypeString, isSameId } from "../../../../platform-kit/meta"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
 import { ContactIndexer } from "./ContactIndexer"
-import { ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { untagSqlValue } from "../../../../app-kit/local-store/SqlValue"
 import { SearchToken, splitQuery } from "../../../../ui/utils/QueryTokenUtils"
+import { ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 
 /**
  * Handles preparing and running SQLite+FTS5 search queries
@@ -22,15 +22,19 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 		private readonly contactIndexer: ContactIndexer,
 	) {}
 
-	async search(query: string, restriction: SearchRestriction, _minSuggestionCount: number, maxResults?: number): Promise<SearchResult> {
+	async search(
+		query: string,
+		restriction: SearchRestriction,
+		{ maxResults }: { minSuggestionCount?: number; maxResults?: number } = {},
+	): Promise<SearchResult> {
 		const tokens = await this.tokenize(query)
 
-		if (isSameTypeRef(restriction.type, MailTypeRef)) {
+		if (restriction.type === SearchCategoryType.mail) {
 			return this.searchMails(query, tokens, restriction, maxResults)
-		} else if (isSameTypeRef(restriction.type, ContactTypeRef)) {
+		} else if (restriction.type === SearchCategoryType.contact) {
 			return this.searchContacts(query, tokens, restriction)
 		} else {
-			throw new ProgrammingError(`cannot search ${restriction.type.typeId}`)
+			throw new ProgrammingError(`cannot search ${restriction.type}`)
 		}
 	}
 
@@ -48,7 +52,7 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 			end: extensionEnd,
 		}
 
-		return this.search(result.query, extensionRestriction, 0).then((extensionResult) => {
+		return this.search(result.query, extensionRestriction).then((extensionResult) => {
 			let moreResultsEntries: IdTuple[]
 
 			if (isEmpty(extensionResult.results)) {
