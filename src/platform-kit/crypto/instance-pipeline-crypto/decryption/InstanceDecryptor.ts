@@ -1,4 +1,4 @@
-import { downcast, Nullable, stringToUtf8Uint8Array } from "@tutao/utils"
+import { Nullable, stringToUtf8Uint8Array } from "@tutao/utils"
 import { AesKey, KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { AesCbcFacade } from "../../encryption/symmetric/AesCbcFacade"
 import { AeadFacade } from "../../encryption/symmetric/AeadFacade"
@@ -13,9 +13,6 @@ import {
 } from "../../encryption/symmetric/ParsedCiphertext"
 import { AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN, AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN } from "../../CryptoTypes"
 import { InstanceSubKeyCache } from "./SubKeyCache"
-
-export const MissingSessionKey = "missing session key" as const
-export type MissingSessionKey = typeof MissingSessionKey
 
 export class InstanceDecryptor {
 	private readonly instanceAesSubKeyCache = new InstanceSubKeyCache<AesCbcSubKeys>()
@@ -43,7 +40,7 @@ export class InstanceDecryptor {
 			}
 			const associatedData = stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN + fieldPath)
 			return new AeadWithGroupKeyDecryptor(
-				downcast<ParsedCiphertextAeadWithGroupKey>(parsedCiphertext),
+				parsedCiphertext,
 				this.aeadFacade,
 				this.kdfNonce,
 				this.instanceTypeId,

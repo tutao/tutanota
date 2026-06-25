@@ -54,7 +54,7 @@ export class InstancePipeline {
 	): Promise<ClientModelUntypedInstance> {
 		const sk = await sessionKey
 		let subKeyInfo: SubKeyInfo
-		if (sk) {
+		if (sk != null) {
 			subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
 		} else {
 			subKeyInfo = new SubKeyInfoWithoutSessionKey(SymmetricCipherVersion.AesCbcThenHmac)
