@@ -171,7 +171,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}
 
 		const changeSignatureButtonAttrs: IconButtonAttrs = {
-			title: "userEmailSignature_label",
+			label: "userEmailSignature_label",
 			click: () => showEditSignatureDialog(mailLocator.logins.getUserController().props),
 			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
@@ -185,7 +185,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}
 
 		const editOutOfOfficeNotificationButtonAttrs: IconButtonAttrs = {
-			title: "outOfOfficeNotification_title",
+			label: "outOfOfficeNotification_title",
 			click: () => {
 				this._outOfOfficeNotification.getAsync().then((notification) => showEditOutOfOfficeNotificationDialog(notification))
 			},
@@ -292,7 +292,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		const reportMovedMailsAttrs = this.makeReportMovedMailsDropdownAttrs()
 		const templateRule = createInboxRuleTemplate(InboxRuleType.RECIPIENT_TO_EQUALS, "")
 		const addInboxRuleButtonAttrs: IconButtonAttrs = {
-			title: "addInboxRule_action",
+			label: "addInboxRule_action",
 			click: () => mailLocator.mailboxModel.getUserMailboxDetails().then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, templateRule)),
 			icon: Icons.Plus,
 			size: ButtonSize.Compact,

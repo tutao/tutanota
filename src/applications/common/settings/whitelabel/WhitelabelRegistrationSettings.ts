@@ -52,7 +52,7 @@ export class WhitelabelRegistrationSettings implements Component<WhitelabelRegis
 			injectionsRight: () =>
 				onWhitelabelCodeChanged
 					? m(IconButton, {
-							title: "edit_action",
+							label: "edit_action",
 							click: () => this.editRegistrationCode(whitelabelCode, onWhitelabelCodeChanged),
 							icon: Icons.PenFilled,
 							size: ButtonSize.Compact,

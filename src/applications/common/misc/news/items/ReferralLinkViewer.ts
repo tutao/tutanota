@@ -64,13 +64,13 @@ export class ReferralLinkViewer implements Component<ReferralLinkAttrs> {
 
 		return [
 			m(IconButton, {
-				title: "copy_action",
+				label: "copy_action",
 				click: () => this.copyAction(referralLink),
 				icon: Icons.CopyFilled,
 				size: ButtonSize.Compact,
 			}),
 			m(IconButton, {
-				title: "share_action",
+				label: "share_action",
 				click: () => this.shareAction(referralLink),
 				icon: Icons.ShareFilled,
 				size: ButtonSize.Compact,

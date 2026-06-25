@@ -105,7 +105,7 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 					m(
 						".mr-negative-8",
 						m(IconButton, {
-							title: "addManagedCustomers_action",
+							label: "addManagedCustomers_action",
 							icon: Icons.Plus,
 							click: () => this.addButtonClicked(),
 						}),

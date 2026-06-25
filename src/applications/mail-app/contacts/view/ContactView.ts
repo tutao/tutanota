@@ -261,7 +261,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 			const recipients = this.contactListViewModel.getSelectedContactListEntries()
 			if (recipients && recipients.length > 0 && this.canEditSelectedContactList()) {
 				return m(IconButton, {
-					title: "delete_action",
+					label: "delete_action",
 					icon: Icons.TrashFilled,
 					click: () => this.contactListViewModel.deleteContactListEntries(recipients),
 				})
@@ -389,7 +389,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 
 	private renderHeaderRightView(): Children {
 		return m(IconButton, {
-			title: "newContact_action",
+			label: "newContact_action",
 			click: () => this.createNewContact(),
 			icon: Icons.Plus,
 		})
@@ -398,7 +398,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	private renderContactListHeaderRightView(): Children {
 		if (this.canEditSelectedContactList()) {
 			return m(IconButton, {
-				title: "addEntries_action",
+				label: "addEntries_action",
 				click: () => this.addAddressesToContactList(),
 				icon: Icons.Plus,
 			})
@@ -511,7 +511,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 					button: m(IconButton, {
 						icon: Icons.Plus,
 						size: ButtonSize.Compact,
-						title: "addContactList_action",
+						label: "addContactList_action",
 						click: () => {
 							this.addContactList()
 						},
@@ -570,7 +570,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	private createMoreButtonAttrs(): IconButtonAttrs {
 		return attachDropdown({
 			mainButtonAttrs: {
-				title: "more_label",
+				label: "more_label",
 				icon: Icons.More,
 				size: ButtonSize.Compact,
 				colors: ButtonColor.Nav,
@@ -628,7 +628,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	createContactListMoreButton(contactListInfo: ContactListInfo): IconButtonAttrs {
 		return attachDropdown({
 			mainButtonAttrs: {
-				title: "more_label",
+				label: "more_label",
 				icon: Icons.More,
 				colors: ButtonColor.Nav,
 				size: ButtonSize.Compact,
@@ -852,7 +852,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				m(".flex-grow"),
 				this.canEditSelectedContactList()
 					? m(IconButton, {
-							title: "addEntries_action",
+							label: "addEntries_action",
 							icon: Icons.Plus,
 							click: () => {
 								this.addAddressesToContactList()
@@ -880,7 +880,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 
 	private renderSortByButton() {
 		return m(IconButton, {
-			title: "sortBy_label",
+			label: "sortBy_label",
 			icon: Icons.OrderedList,
 			click: (e: MouseEvent, dom: HTMLElement) => {
 				createDropdown({
