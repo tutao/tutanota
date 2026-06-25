@@ -1,12 +1,13 @@
 import { X25519PrivateKey, X25519PublicKey } from "./X25519.js"
-import { PublicKey, AsymmetricKeyPair, KeyPairType } from "./AsymmetricKeyPair.js"
+import { AsymmetricKeyPair, KeyPairType, PublicKey } from "./AsymmetricKeyPair.js"
 
 export class RsaKeyPair extends AsymmetricKeyPair {
+	override keyPairType = KeyPairType.RSA
 	constructor(
 		public readonly publicKey: RsaPublicKey,
 		public readonly privateKey: RsaPrivateKey,
 	) {
-		super(KeyPairType.RSA)
+		super()
 	}
 }
 export class RsaX25519KeyPair extends RsaKeyPair {
@@ -38,7 +39,7 @@ export class RsaPrivateKey {
  * Just the raw values without the keyPair type
  */
 export class RsaPublicKey extends PublicKey {
-	keyPairType = KeyPairType.RSA
+	override keyPairType = KeyPairType.RSA
 	constructor(
 		public readonly version: number,
 		public readonly keyLength: number,
@@ -50,7 +51,7 @@ export class RsaPublicKey extends PublicKey {
 }
 
 export class RsaX25519PublicKey extends RsaPublicKey {
-	keyPairType = KeyPairType.RSA_AND_X25519
+	override keyPairType = KeyPairType.RSA_AND_X25519
 	constructor(
 		version: number,
 		keyLength: number,

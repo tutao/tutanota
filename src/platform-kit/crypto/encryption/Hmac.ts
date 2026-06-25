@@ -27,10 +27,13 @@ export function verifyHmacSha256(key: AesKey, data: Uint8Array, tag: MacTag) {
  * Create an HMAC-SHA-256 tag over the given data using the given key.
  */
 export async function hmacSha256Async(key: AesKey, data: Uint8Array): Promise<MacTag> {
-	const keyLength = key.keyLength
-	const subtleAuthenticationKey = await crypto.subtle.importKey("raw", keyToUint8Array(key), { name: "HMAC", hash: "SHA-256", length: keyLength }, false, [
-		"sign",
-	])
+	const subtleAuthenticationKey = await crypto.subtle.importKey(
+		"raw",
+		keyToUint8Array(key),
+		{ name: "HMAC", hash: "SHA-256", length: key.keyLength },
+		false,
+		["sign"],
+	)
 	return new Uint8Array(await crypto.subtle.sign("HMAC", subtleAuthenticationKey, data)) as MacTag
 }
 
