@@ -2421,3 +2421,6 @@ export type TranslationKeyType =
 	| "migrationSyncStateGmailAllMailsDisabledImapError_msg"
 	| "migrationGmailAllMailsDisabledImapError_msg"
 	| "emptyString_msg"
+	| "alternativePaymentMethods_label"
+	| "proxyStorePayment_msg"
+	| "openProxystore_action"

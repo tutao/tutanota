@@ -25,7 +25,7 @@ import { ButtonSize } from "../../../ui/base/ButtonSize.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { DeviceType } from "../../../platform-kit/app-env/boot/ClientConstants.js"
-import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
+import { PrimaryButton, SecondaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { showSwitchDialog } from "./SwitchSubscriptionDialog.js"
 import { createDropdown } from "../../../ui/base/Dropdown.js"
@@ -48,6 +48,7 @@ import { CustomerAccountService } from "../../../entities/accounting/Services"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError } from "@tutao/rest-client/error"
+import { windowFacade } from "../misc/WindowFacade"
 
 assertMainOrNode()
 
@@ -83,7 +84,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			{
 				role: "group",
 			},
-			[this.renderInvoiceData(), this.renderPaymentMethod(), this.renderPostings()],
+			[this.renderInvoiceData(), this.renderPaymentMethod(), this.renderPostings(), this.renderOtherPaymentMethods()],
 		)
 	}
 
@@ -312,6 +313,21 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				m(".small", lang.get("invoiceSettingDescription_msg") + " " + lang.get("laterInvoicingInfo_msg")),
 			]
 		}
+	}
+
+	private renderOtherPaymentMethods(): Children {
+		return [
+			m("mt-32.mb-8", [
+				m(".h4.pt-16.pb-8", lang.getTranslationText("alternativePaymentMethods_label")),
+				m(".small.pb-8", lang.getTranslationText("proxyStorePayment_msg")),
+				m(SecondaryButton, {
+					label: lang.getTranslation("openProxystore_action"),
+					width: "flex",
+					icon: Icons.OpenOutline,
+					onclick: () => windowFacade.openLink("https://digitalgoods.proxysto.re/brand/tuta"),
+				}),
+			]),
+		]
 	}
 
 	private postingLineAttrs(posting: CustomerAccountPosting): TableLineAttrs {
