@@ -4,7 +4,7 @@ import { CryptoError } from "@tutao/crypto/error"
 import { concat } from "@tutao/utils"
 import sjcl from "../../internal/sjcl"
 import { hmacSha256, verifyHmacSha256, verifyHmacSha256Async } from "../Hmac"
-import { AesCbcThenHmacSubKeys, SymmetricSubKeys, UnusedReservedUnauthenticatedSubKeys } from "./SymmetricKeyDeriver"
+import { AesCbcSubKeys, AesCbcThenHmacSubKeys, UnusedReservedUnauthenticatedSubKeys } from "./SymmetricKeyDeriver"
 import { AesKeyLength } from "./AesKeyLength"
 import { ProgrammingError } from "@tutao/app-env"
 import { InitializationVectorVariant, ParsedCiphertextAesCbc, ParsedCiphertextAesCbcThenHmac } from "./ParsedCiphertext"
@@ -32,7 +32,7 @@ export class AesCbcFacade {
 	 * This should not be called directly! Use SymmetricCipherFacade instead
 	 */
 	encrypt(
-		subKeys: SymmetricSubKeys,
+		subKeys: AesCbcSubKeys,
 		plainText: Uint8Array,
 		initializationVector: InitializationVector,
 		paddingStandard: PaddingStandard,
@@ -82,7 +82,7 @@ export class AesCbcFacade {
 	 * This should not be called directly! Use SymmetricCipherFacade instead
 	 */
 	decrypt(
-		subKeys: SymmetricSubKeys,
+		subKeys: AesCbcSubKeys,
 		parsedCiphertext: ParsedCiphertextAesCbc,
 		paddingStandard: PaddingStandard,
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
@@ -105,7 +105,7 @@ export class AesCbcFacade {
 	}
 
 	async decryptAsync(
-		subKeys: SymmetricSubKeys,
+		subKeys: AesCbcSubKeys,
 		parsedCiphertext: ParsedCiphertextAesCbc,
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
 	): Promise<Uint8Array> {
@@ -121,7 +121,7 @@ export class AesCbcFacade {
 	}
 
 	private authenticate<T>(
-		subKeys: SymmetricSubKeys,
+		subKeys: AesCbcSubKeys,
 		parsedCiphertext: ParsedCiphertextAesCbc,
 		authenticationEnforcement: AuthenticationEnforcement,
 		verifyHmac: (key: AesKey, data: Uint8Array, tag: MacTag) => T,
@@ -147,7 +147,7 @@ export class AesCbcFacade {
 		}
 	}
 
-	private tryToEnforceAuthentication(subKeys: SymmetricSubKeys, cipherVersion: SymmetricCipherVersion, authenticationEnforcement: AuthenticationEnforcement) {
+	private tryToEnforceAuthentication(subKeys: AesCbcSubKeys, cipherVersion: SymmetricCipherVersion, authenticationEnforcement: AuthenticationEnforcement) {
 		if (cipherVersion === SymmetricCipherVersion.UnusedReservedUnauthenticated) {
 			// this is an unauthenticated cipher version which we only accept for certain exceptions and legacy encryption versions which are only possible for 128-bit keys
 			if (authenticationEnforcement === AuthenticationEnforcement.Relaxed) {
