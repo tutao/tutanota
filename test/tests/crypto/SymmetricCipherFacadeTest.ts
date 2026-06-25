@@ -38,6 +38,9 @@ o.spec("SymmetricCipherFacadeTest", function () {
 	let keyToEncrypt_256: Aes256Key
 	let aes128SubKeys: AesCbcThenHmacSubKeys
 	let aes256SubKeys: AesCbcThenHmacSubKeys
+	let unusedSubKeys256: UnusedReservedUnauthenticatedSubKeys
+	let unusedSubKeys128: UnusedReservedUnauthenticatedSubKeys
+
 	let macTag: MacTag
 	let initializationVector: InitializationVector
 	o.beforeEach(function () {
@@ -49,8 +52,12 @@ o.spec("SymmetricCipherFacadeTest", function () {
 		aes128Key = _aes128RandomKey()
 		aes128SubKeys = new AesCbcThenHmacSubKeys(_aes128RandomKey(), _aes128RandomKey())
 		aes256SubKeys = new AesCbcThenHmacSubKeys(aes256RandomKey(), aes256RandomKey())
-		when(symmetricKeyDeriver.deriveSubKeysAesCbcHmac(aes128Key)).thenReturn(aes128SubKeys)
-		when(symmetricKeyDeriver.deriveSubKeysAesCbcHmac(aes256Key)).thenReturn(aes256SubKeys)
+		unusedSubKeys256 = new UnusedReservedUnauthenticatedSubKeys(aes256Key)
+		unusedSubKeys128 = new UnusedReservedUnauthenticatedSubKeys(aes128Key)
+		when(symmetricKeyDeriver.deriveSubKeysAesCbc(aes128Key, SymmetricCipherVersion.AesCbcThenHmac)).thenReturn(aes128SubKeys)
+		when(symmetricKeyDeriver.deriveSubKeysAesCbc(aes256Key, SymmetricCipherVersion.AesCbcThenHmac)).thenReturn(aes256SubKeys)
+		when(symmetricKeyDeriver.deriveSubKeysAesCbc(aes256Key, SymmetricCipherVersion.UnusedReservedUnauthenticated)).thenReturn(unusedSubKeys256)
+		when(symmetricKeyDeriver.deriveSubKeysAesCbc(aes128Key, SymmetricCipherVersion.UnusedReservedUnauthenticated)).thenReturn(unusedSubKeys128)
 		plaintext = keyToUint8Array(aes256RandomKey()) // just 32 random bytes
 		keyToEncrypt_128 = _aes128RandomKey()
 		keyToEncrypt_256 = aes256RandomKey()
@@ -85,11 +92,10 @@ o.spec("SymmetricCipherFacadeTest", function () {
 			)
 		})
 		o("encryptBytesDeprecatedUnauthenticated", function () {
-			const subKeys = new UnusedReservedUnauthenticatedSubKeys(aes256Key)
 			symmetricCipherFacade.encryptBytesDeprecatedUnauthenticated(aes256Key, plaintext)
 			verify(
 				aesCbcFacade.encrypt(
-					subKeys,
+					unusedSubKeys256,
 					plaintext,
 					matchers.argThat((arg) => arg instanceof InitializationVector),
 					PaddingStandard.Pkcs5,
@@ -103,11 +109,10 @@ o.spec("SymmetricCipherFacadeTest", function () {
 			verify(aesCbcFacade.encrypt(aes256SubKeys, plaintext, customInitializationVector, PaddingStandard.Pkcs5, SymmetricCipherVersion.AesCbcThenHmac))
 		})
 		o("encryptBytesDeprecatedUnauthenticatedCustomInitializationVector", function () {
-			const subKeys = new UnusedReservedUnauthenticatedSubKeys(aes256Key)
 			symmetricCipherFacade.encryptBytesDeprecatedUnauthenticatedCustomInitializationVector(aes256Key, plaintext, customInitializationVector)
 			verify(
 				aesCbcFacade.encrypt(
-					subKeys,
+					unusedSubKeys256,
 					plaintext,
 					customInitializationVector,
 					PaddingStandard.Pkcs5,
@@ -195,11 +200,10 @@ o.spec("SymmetricCipherFacadeTest", function () {
 	})
 	o.spec("Encrypt/Decrypt key", function () {
 		o("encryptKey 128", function () {
-			const subKeys = new UnusedReservedUnauthenticatedSubKeys(aes128Key)
 			symmetricCipherFacade.encryptKey(aes128Key, keyToEncrypt_128)
 			verify(
 				aesCbcFacade.encrypt(
-					subKeys,
+					unusedSubKeys128,
 					keyToUint8Array(keyToEncrypt_128),
 					FIXED_INITIALIZATION_VECTOR,
 					PaddingStandard.None,

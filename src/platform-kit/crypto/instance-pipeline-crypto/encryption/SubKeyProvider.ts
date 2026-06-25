@@ -55,7 +55,7 @@ export class SubKeyProvider {
 				throw new CryptoError(`Encrypting ${this.instanceTypeId.app}/${this.instanceTypeId.name} requires a session key!`)
 			case SymmetricCipherVersion.AesCbcThenHmac: {
 				if (this.subKeyInfo instanceof SubKeyInfoWithSessionKey) {
-					return this.symmetricKeyDeriver.deriveSubKeysAesCbcHmac(this.subKeyInfo.sessionKey) as AesCbcThenHmacSubKeys
+					return this.symmetricKeyDeriver.deriveSubKeysAesCbc(this.subKeyInfo.sessionKey, this.subKeyInfo.cipherVersion) as AesCbcThenHmacSubKeys
 				} else {
 					throw new CryptoError(`Encrypting ${this.instanceTypeId.app}/${this.instanceTypeId.name} requires a session key!`)
 				}
