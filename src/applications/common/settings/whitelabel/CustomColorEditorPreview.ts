@@ -59,7 +59,7 @@ export class CustomColorEditorPreview implements Component {
 				]),
 				m(".pt-16", [
 					m(IconButton, {
-						title: lang.makeTranslation("icon_button", "Icon button"),
+						label: lang.makeTranslation("icon_button", "Icon button"),
 						icon: Icons.FolderFilled,
 						click: noOp,
 					}),

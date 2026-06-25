@@ -22,7 +22,7 @@ export class WhitelabelCustomMetaTagsSettings implements Component<WhitelabelCus
 			injectionsRight: () =>
 				onMetaTagsChanged
 					? m(IconButton, {
-							title: "edit_action",
+							label: "edit_action",
 							click: () => this.showEditMetaTagsDialog(metaTags, onMetaTagsChanged),
 							icon: Icons.PenFilled,
 							size: ButtonSize.Compact,

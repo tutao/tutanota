@@ -38,7 +38,7 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 		}
 		const addAliasButtonAttrs: IconButtonAttrs | null = model.userCanModifyAliases()
 			? {
-					title: "addEmailAlias_label",
+					label: "addEmailAlias_label",
 					click: () => this.onAddAlias(attrs),
 					icon: Icons.Plus,
 					size: ButtonSize.Compact,
@@ -182,7 +182,7 @@ export function getAliasLineAttrs(attrs: MailAddressTableAttrs): Array<TableLine
 				? null
 				: attachDropdown({
 						mainButtonAttrs: {
-							title: "edit_action",
+							label: "edit_action",
 							icon: Icons.More,
 							size: ButtonSize.Compact,
 						},

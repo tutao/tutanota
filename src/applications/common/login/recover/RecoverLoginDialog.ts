@@ -41,7 +41,7 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 		width: 300,
 	})
 	const resetActionButtonAttrs: IconButtonAttrs = {
-		title: "action_label",
+		label: "action_label",
 		click: resetActionClickHandler,
 		icon: Icons.PenFilled,
 		size: ButtonSize.Compact,

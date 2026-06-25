@@ -118,7 +118,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			isReadOnly: true,
 			injectionsRight: () =>
 				m(IconButton, {
-					title: "paymentMethod_label",
+					label: "paymentMethod_label",
 					click: (e, dom) => this.handlePaymentMethodClick(e, dom),
 					icon: this.getIconForPaymentMethodSetting(this.accountingInfo),
 					size: ButtonSize.Compact,
@@ -328,7 +328,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			actionButtonAttrs:
 				posting.type === PostingType.UsageFee || posting.type === PostingType.Credit || posting.type === PostingType.SalesCommission
 					? {
-							title: "download_action",
+							label: "download_action",
 							icon: Icons.DownloadFilled,
 							size: ButtonSize.Compact,
 							click: (e, dom) => {
@@ -487,7 +487,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			m(".flex-space-between.items-center.mt-32.mb-8", [
 				m(".h4", lang.get("invoiceData_msg")),
 				m(IconButton, {
-					title: "invoiceData_msg",
+					label: "invoiceData_msg",
 					click: createNotAvailableForFreeClickHandler(
 						UpgradePromptType.VIEW_INVOICE,
 						NewPaidPlans,

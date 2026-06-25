@@ -46,7 +46,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 
 	private renderDeactivateButton(whitelabelDomain: string): Children {
 		return m(IconButton, {
-			title: "deactivate_action",
+			label: "deactivate_action",
 			click: () => this.deactivate(whitelabelDomain),
 			icon: Icons.X,
 			size: ButtonSize.Compact,
@@ -72,7 +72,7 @@ export class WhitelabelBrandingDomainSettings implements Component<WhitelabelBra
 
 	_renderEditButton(customerInfo: CustomerInfo, certificateInfo: CertificateInfo | null, isWhitelabelFeatureEnabled: boolean): Children {
 		return m(IconButton, {
-			title: "edit_action",
+			label: "edit_action",
 			click: () => this.edit(isWhitelabelFeatureEnabled, customerInfo),
 			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,

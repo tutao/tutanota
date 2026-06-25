@@ -322,7 +322,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 
 		return actions.map((action) =>
 			m(IconButton, {
-				title: action.title,
+				label: action.title,
 				icon: action.icon,
 				click: action.action,
 			}),
@@ -341,7 +341,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		if (styles.isUsingBottomNavigation() && !client.isCalendarApp()) {
 			return m(IconButton, {
 				click: () => this.createNewEventDialog(),
-				title: "newEvent_action",
+				label: "newEvent_action",
 				icon: Icons.Plus,
 			})
 		} else if (client.isCalendarApp()) {
