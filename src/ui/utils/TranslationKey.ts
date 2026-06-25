@@ -2419,3 +2419,6 @@ export type TranslationKeyType =
 	| "migrationConfigInfoGmail_msg"
 	| "migrationInProgressInfoGmail_msg"
 	| "emptyString_msg"
+	| "alternativePaymentMethods_label"
+	| "proxyStorePayment_msg"
+	| "openProxystore_action"
