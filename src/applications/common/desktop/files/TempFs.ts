@@ -158,7 +158,7 @@ export class TempFs {
 		const unresolvedPath = fileURLToPath(url)
 		const resolvedTarget = path.resolve(unresolvedPath)
 		if (!resolvedTarget.startsWith(this.getTutanotaTempPath() + path.sep)) {
-			throw new ProgrammingError("Invalid file path: " + unresolvedFileUrl)
+			throw new ProgrammingError("Invalid file url: " + unresolvedFileUrl)
 		}
 		return url
 	}
