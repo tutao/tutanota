@@ -11,14 +11,14 @@ import { attachDropdown } from "../../../../ui/base/Dropdown"
 import { formatDateTime, formatStorageSize } from "../../../../ui/utils/Formatter"
 import { FileActions } from "./DriveFolderContentEntry"
 import { getFileContextActions } from "./DriveGuiUtils"
-import { DriveFolderSelectionEvents } from "./DriveFolderContent"
 import { getDisplayType, getFileIcon, getItemIconFill } from "../model/DriveMimeUtils"
 import { assertNotNull, filterInt } from "@tutao/utils"
+import { ListItemSelectionCallbacks } from "../../../../ui/base/ListUtils"
 
 export interface DriveFolderContentMobileAttrs {
 	listState: ListState<FolderItem>
 	fileActions: FileActions
-	selectionEvents: DriveFolderSelectionEvents
+	selectionEvents: ListItemSelectionCallbacks<FolderItem>
 }
 
 export class DriveFolderContentMobile implements Component<DriveFolderContentMobileAttrs> {

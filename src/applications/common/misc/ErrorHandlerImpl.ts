@@ -50,8 +50,14 @@ let showingImportError = false
 let odbUnavailableDialogShown = false
 const ignoredMessages = ["webkitExitFullScreen", "googletag", "avast_submit"]
 
+const indexingNotAvailableHandlers: (() => unknown)[] = []
+
+export function registerIndexingNotAvailableHandler(handler: () => unknown) {
+	indexingNotAvailableHandlers.push(handler)
+}
+
 export async function handleUncaughtErrorImpl(e: Error) {
-	const { logins, interWindowEventSender, worker, search } = locator
+	const { logins, interWindowEventSender, worker } = locator
 
 	if (isLoggingOut) {
 		// ignore all errors while logging out
@@ -129,11 +135,10 @@ export async function handleUncaughtErrorImpl(e: Error) {
 			})
 		}
 	} else if (e instanceof IndexingNotSupportedError) {
-		console.log("Indexing not supported", e)
-		if ("indexingSupported" in search) {
-			// search can be in two flavours: "SearchModel" and "CalendarSearchModel. Only "SearchModel" has indexing
-			search.indexingSupported = false
+		for (const handler of indexingNotAvailableHandlers) {
+			handler()
 		}
+		console.log("Indexing not supported", e)
 	} else if (e instanceof QuotaExceededError) {
 		if (!shownQuotaError) {
 			shownQuotaError = true

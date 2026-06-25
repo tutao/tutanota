@@ -1,5 +1,5 @@
-import { AppName, Entity, isSameTypeRef, TypeModel, TypeRef } from "@tutao/meta"
-import type { IndexUpdate, SearchIndexMetadataEntry, SearchRestriction } from "../../worker/search/SearchTypes"
+import { AppName, Entity, TypeModel, TypeRef } from "@tutao/meta"
+import { IndexUpdate, SearchCategoryType, SearchIndexMetadataEntry, SearchRestriction } from "../../worker/search/SearchTypes"
 import { EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { GroupMembership, User } from "@tutao/entities/sys"
 import { GroupType } from "../../../../../entities/sys/Utils"
@@ -297,7 +297,7 @@ export function shouldMeasure(): boolean {
 export function getSearchEndTimestamp(currentMailIndexTimestamp: number, restriction: SearchRestriction): number {
 	if (restriction.end) {
 		return restriction.end
-	} else if (isSameTypeRef(MailTypeRef, restriction.type)) {
+	} else if (restriction.type === SearchCategoryType.mail) {
 		return currentMailIndexTimestamp === NOTHING_INDEXED_TIMESTAMP ? Date.now() : currentMailIndexTimestamp
 	} else {
 		return FULL_INDEXED_TIMESTAMP

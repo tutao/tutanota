@@ -197,6 +197,7 @@ export class DriveTransferController {
 		if (stateForThisFile) {
 			stateForThisFile.transferredBytes = uploadedBytesSoFar
 			stateForThisFile.lastChunkUpdateTime = new Date()
+			this.updateUi()
 		} else {
 			console.debug(`${transferId} is not part of the state. This can be due to an upload being canceled`)
 		}

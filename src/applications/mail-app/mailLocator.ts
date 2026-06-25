@@ -1,6 +1,6 @@
 import { AppType, Const, EnvProvider, FeatureType, ProgrammingError } from "@tutao/app-env"
 import { EventController } from "../common/api/main/EventController.js"
-import { SearchModel } from "./search/model/SearchModel.js"
+import { MailSearchModel } from "./search/model/MailSearchModel.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
 import { MinimizedMailEditorViewModel } from "./mail/model/MinimizedMailEditorViewModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
@@ -65,7 +65,6 @@ import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorVi
 import { Router, ScopedThrottledRouter, ThrottledRouter } from "../../ui/ScopedThrottledRouter.js"
 import { DeviceConfig, deviceConfig } from "../common/misc/DeviceConfig.js"
 import { InboxRuleHandler } from "./mail/model/InboxRuleHandler.js"
-import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "./mail/view/MailViewModel.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
@@ -160,13 +159,27 @@ import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarP
 import { showWindowCloseConfirmation } from "../../ui/base/GuiUtils"
 import type { ImapMailImportController } from "./settings/imapimport/ImapMailImportController"
 import type { AlarmInterval } from "../common/calendar/date/CalendarUtils"
+import { MailSearchViewModel } from "./search/view/MailSearchViewModel"
+import { ContactSearchViewModel } from "./search/view/ContactSearchViewModel"
+import { CalendarSearchViewModel } from "../calendar-app/calendar/search/view/CalendarSearchViewModel"
+import { DriveSearchViewModel } from "../drive-app/search/view/DriveSearchViewModel"
+import { CalendarSearchModel } from "../calendar-app/search/model/CalendarSearchModel"
+import { ContactSearchModel } from "./search/model/ContactSearchModel"
+import { DriveSearchModel } from "../drive-app/search/model/DriveSearchModel"
+import type { DriveTransferController } from "../drive-app/drive/view/DriveTransferController"
+import { registerIndexingNotAvailableHandler } from "../common/misc/ErrorHandlerImpl"
+import { DriveModel } from "../drive-app/drive/model/DriveModel"
+import { ContactEditor } from "./contacts/ContactEditor"
 
 EnvProvider.assertMainOrNode()
 
 class MailLocator implements CommonLocator {
 	clientModelInfo!: ClientModelInfo
 	eventController!: EventController
-	search!: SearchModel
+	mailSearchModel!: MailSearchModel
+	calendarSearchModel!: CalendarSearchModel
+	contactSearchModel!: ContactSearchModel
+	driveSearchModel!: DriveSearchModel
 	mailboxModel!: MailboxModel
 	mailModel!: MailModel
 	minimizedMailModel!: MinimizedMailEditorViewModel
@@ -296,6 +309,8 @@ class MailLocator implements CommonLocator {
 			router,
 			await this.redraw(),
 			this.syncTracker,
+			await this.unscopedSearchRouter(),
+			this.mailSearchModel,
 		)
 	})
 
@@ -315,34 +330,6 @@ class MailLocator implements CommonLocator {
 	readonly processInboxHandler = lazyMemoized(() => {
 		return new ProcessInboxHandler(this.logins, this.mailFacade, this.cryptoFacade, this.spamClassificationHandler, this.inboxRuleHandler)
 	})
-
-	async searchViewModelFactory(): Promise<() => SearchViewModel> {
-		const { SearchViewModel } = await import("./search/view/SearchViewModel.js")
-		const conversationViewModelFactory = await this.conversationViewModelFactory()
-		const redraw = await this.redraw()
-		const searchRouter = await this.scopedSearchRouter()
-		const calendarEventsRepository = await this.calendarEventsRepository()
-		const calendarModel = await this.calendarModel()
-		return () => {
-			return new SearchViewModel(
-				searchRouter,
-				this.search,
-				this.mailboxModel,
-				this.logins,
-				this.indexerFacade,
-				this.entityClient,
-				this.eventController,
-				this.mailOpenedListener,
-				this.calendarFacade,
-				this.progressTracker,
-				conversationViewModelFactory,
-				calendarEventsRepository,
-				calendarModel,
-				redraw,
-				deviceConfig.getMailAutoSelectBehavior(),
-			)
-		}
-	}
 
 	readonly throttledRouter: lazy<Router> = lazyMemoized(() => new ThrottledRouter())
 
@@ -372,7 +359,16 @@ class MailLocator implements CommonLocator {
 	readonly contactViewModel = lazyMemoized(async () => {
 		const { ContactViewModel } = await import("./contacts/view/ContactViewModel.js")
 		const router = new ScopedThrottledRouter("/contact")
-		return new ContactViewModel(this.contactModel, this.entityClient, this.eventController, router, await this.redraw(), this.connectivityModel)
+		return new ContactViewModel(
+			this.contactModel,
+			this.entityClient,
+			this.eventController,
+			router,
+			await this.redraw(),
+			this.connectivityModel,
+			await this.unscopedSearchRouter(),
+			this.contactSearchModel,
+		)
 	})
 
 	readonly contactListViewModel = lazyMemoized(async () => {
@@ -415,6 +411,7 @@ class MailLocator implements CommonLocator {
 			(...args) => this.calendarEventPreviewModel(...args),
 			(...args) => this.calendarContactPreviewModel(...args),
 			await this.calendarModel(),
+			this.calendarSearchModel,
 			await this.calendarEventsRepository(),
 			this.entityClient,
 			this.eventController,
@@ -427,6 +424,7 @@ class MailLocator implements CommonLocator {
 			this.groupSettingsModel,
 			this.operationProgressTracker,
 			this.connectivityModel,
+			await this.unscopedSearchRouter(),
 		)
 	})
 
@@ -579,7 +577,7 @@ class MailLocator implements CommonLocator {
 				this.logins,
 				this.eventController,
 				this.workerFacade,
-				this.search,
+				this.mailSearchModel,
 				this.mailFacade,
 				this.cryptoFacade,
 				() => this.contactImporter(),
@@ -862,8 +860,11 @@ class MailLocator implements CommonLocator {
 		this.progressTracker = new ProgressTracker()
 		this.eventController = new EventController(mailLocator.logins)
 		this.syncTracker = new SyncTracker()
-		this.search = new SearchModel(this.searchFacade, () => this.calendarEventsRepository())
 		this.entityClient = new EntityClient(restInterface, this.clientModelInfo)
+		this.mailSearchModel = new MailSearchModel(this.searchFacade, this.eventController, this.entityClient, registerIndexingNotAvailableHandler)
+		this.calendarSearchModel = new CalendarSearchModel(this.eventController, this.calendarEventsRepository, this.progressTracker)
+		this.contactSearchModel = new ContactSearchModel(this.searchFacade, this.eventController, this.entityClient, registerIndexingNotAvailableHandler)
+		this.driveSearchModel = new DriveSearchModel(this.eventController, this.entityClient)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
 		this.entropyFacade = entropyFacade
@@ -885,7 +886,7 @@ class MailLocator implements CommonLocator {
 		)
 		this.operationProgressTracker = new OperationProgressTracker()
 		this.infoMessageHandler = new InfoMessageHandler((state: SearchIndexStateInfo) => {
-			mailLocator.search.indexState(state)
+			mailLocator.mailSearchModel.indexState(state)
 		})
 		this.autosaveFacade = autosaveFacade
 		this.imapImporter = imapImporter
@@ -1420,29 +1421,38 @@ class MailLocator implements CommonLocator {
 		}
 	}
 
+	readonly driveTransferController: lazyAsync<DriveTransferController> = lazyMemoized(async () => {
+		const { DriveTransferController } = await import("../drive-app/drive/view/DriveTransferController.js")
+		const redraw = await this.redraw()
+		return new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController)
+	})
+	readonly driveOperations: lazyAsync<DriveModel> = lazyMemoized(async () => {
+		const { DriveModel } = await import("../drive-app/drive/model/DriveModel.js")
+		return new DriveModel(await this.driveTransferController(), this.driveFacade, this.entityClient, this.eventController, this.transferProgressDispatcher)
+	})
+
 	readonly driveViewModel: lazyAsync<DriveViewModel> = lazyMemoized(async () => {
 		const { DriveViewModel } = await import("../drive-app/drive/view/DriveViewModel.js")
 		const router = new ScopedThrottledRouter("/drive")
-		const { DriveTransferController } = await import("../drive-app/drive/view/DriveTransferController.js")
 		const { WebFileResolver } = await import("../drive-app/drive/view/WebFileResolver.js")
 
 		const redraw = await this.redraw()
-		const driveUploadStackModel = new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController)
 
 		const model = new DriveViewModel(
 			this.entityClient,
 			this.driveFacade,
 			router,
-			this.transferProgressDispatcher,
 			this.eventController,
 			this.logins,
 			this.userManagementFacade,
-			driveUploadStackModel,
 			EnvProvider.get().isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp, this.desktopSystemFacade) : null,
 			windowFacade,
 			redraw,
 			() => showWindowCloseConfirmation("closeWindowWithActiveTransfers_msg"),
 			this.connectivityModel,
+			this.driveSearchModel,
+			await this.unscopedSearchRouter(),
+			await this.driveOperations(),
 		)
 		await model.init()
 
@@ -1462,6 +1472,80 @@ class MailLocator implements CommonLocator {
 			const { WebFilePicker } = await import("../drive-app/drive/view/DriveFilePicker.js")
 			return new WebFilePicker()
 		}
+	}
+	async contactSearchViewModelFactory(): Promise<() => ContactSearchViewModel> {
+		const { ContactSearchViewModel } = await import("./search/view/ContactSearchViewModel.js")
+		const redraw = await this.redraw()
+		const router = await this.scopedSearchRouter()
+		return () => new ContactSearchViewModel(this.logins, router, this.entityClient, this.contactSearchModel, redraw)
+	}
+
+	async mailSearchViewModelFactory(): Promise<() => MailSearchViewModel> {
+		const { MailSearchViewModel } = await import("./search/view/MailSearchViewModel.js")
+		const redraw = await this.redraw()
+		const router = await this.scopedSearchRouter()
+		const dateProvider = await this.noZoneDateProvider()
+		const conversationViewModelFactory = await this.conversationViewModelFactory()
+		return () =>
+			new MailSearchViewModel(
+				router,
+				this.mailSearchModel,
+				this.mailboxModel,
+				this.mailModel,
+				this.logins,
+				this.indexerFacade,
+				deviceConfig.getMailAutoSelectBehavior(),
+				conversationViewModelFactory,
+				this.mailOpenedListener,
+				dateProvider,
+				redraw,
+			)
+	}
+	async calendarSearchViewModelFactory(): Promise<() => CalendarSearchViewModel> {
+		const { CalendarSearchViewModel } = await import("../calendar-app/calendar/search/view/CalendarSearchViewModel.js")
+		const calendarModel = await this.calendarModel()
+		const redraw = await this.redraw()
+		const router = await this.scopedSearchRouter()
+		return () =>
+			new CalendarSearchViewModel(
+				calendarModel,
+				this.logins,
+				this.calendarSearchModel,
+				router,
+				this.eventController,
+				this.entityClient,
+				this.mailboxModel,
+				(...args) => this.calendarEventModel(...args),
+				(...args) => this.calendarEventPreviewModel(...args),
+				redraw,
+			)
+	}
+	async driveSearchViewModelFactory(): Promise<() => DriveSearchViewModel> {
+		const { DriveSearchViewModel } = await import("../drive-app/search/view/DriveSearchViewModel.js")
+		const redraw = await this.redraw()
+		const searchRouter = await this.scopedSearchRouter()
+		const router = await this.throttledRouter()
+		const dateProvider = await this.noZoneDateProvider()
+		const driveOperations = await this.driveOperations()
+		return () =>
+			new DriveSearchViewModel(
+				searchRouter,
+				this.driveSearchModel,
+				router,
+				dateProvider,
+				this.logins,
+				this.driveFacade,
+				redraw,
+				this.transferProgressDispatcher,
+				driveOperations,
+				windowFacade,
+				() => showWindowCloseConfirmation("closeWindowWithActiveTransfers_msg"),
+			)
+	}
+
+	async contactEditor(contact: Contact): Promise<ContactEditor> {
+		const { ContactEditor } = await import("./contacts/ContactEditor.js")
+		return new ContactEditor(this.entityClient, contact)
 	}
 }
 

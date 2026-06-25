@@ -1,5 +1,4 @@
 import m, { Children, CommonAttributes, Component, Vnode } from "mithril"
-import { ClipboardAction, DriveClipboard, SortColumn, SortingPreference } from "./DriveViewModel"
 import { DriveFolderContentEntry, DriveFolderContentEntryAttrs, FileActions } from "./DriveFolderContentEntry"
 import { DriveSortArrow } from "./DriveSortArrow"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
@@ -8,37 +7,29 @@ import { ListState } from "../../../../ui/base/List"
 import { getElementId, isSameId } from "../../../../platform-kit/meta"
 import { DropType, renderDragElement } from "../../../../ui/base/GuiUtils"
 import { Icons } from "../../../../ui/base/icons/Icons"
-import { FolderItem, folderItemEntity, FolderItemId } from "./DriveUtils"
+import { FolderItem, folderItemEntity, FolderItemId, SortColumn, SortingPreference } from "./DriveUtils"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager"
 import { DriveFolderContentMobile } from "./DriveFolderContentMobile"
 import { isMobileDriveLayout } from "./DriveGuiUtils"
 import { getDisplayType, getFileIcon } from "../model/DriveMimeUtils"
 import { assertNotNull } from "../../../../platform-kit/utils"
+import { wholeListSelected } from "../../../common/misc/ListModel"
+import { ClipboardAction, DriveClipboard } from "../model/DriveModel"
+import { ListItemSelectionCallbacks } from "../../../../ui/base/ListUtils"
+import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
-export type SelectionState = { type: "multiselect"; selectedItemCount: number; selectedAll: boolean } | { type: "none" }
-
-export interface DriveFolderSelectionEvents {
-	onSingleSelection: (item: FolderItem) => unknown
-	onSingleExclusiveSelection: (item: FolderItem) => unknown
-	onSingleInclusiveSelection: (item: FolderItem) => unknown
-	onSelectPrevious: (item: FolderItem) => unknown
-	onSelectNext: (item: FolderItem) => unknown
-	onSelectAll: () => unknown
-	onSelectNone: () => unknown
-	onRangeSelectionTowards: (item: FolderItem) => unknown
-}
-
 export interface DriveFolderContentAttrs {
-	selection: SelectionState
 	sortOrder: SortingPreference
 	fileActions: FileActions
 	onSort: (column: SortColumn) => unknown
 	listState: ListState<FolderItem>
-	selectionEvents: DriveFolderSelectionEvents
+	selectionEvents: ListItemSelectionCallbacks<FolderItem>
 	onDropInto: (f: FolderItem, event: DragEvent) => unknown
 	onEntryContextMenu: (f: FolderItem, event: MouseEvent) => unknown
 	clipboard: DriveClipboard | null
+	displayLocation: boolean
+	highlightedStrings?: readonly SearchToken[]
 }
 
 const columnStyle = {
@@ -87,14 +78,14 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 	private focusedOnMoreActions: boolean = false
 
 	view({
-		attrs: { selection, sortOrder, onSort, fileActions, selectionEvents, listState, clipboard, onDropInto, onEntryContextMenu },
+		attrs: { sortOrder, onSort, fileActions, selectionEvents, listState, clipboard, onDropInto, onEntryContextMenu, displayLocation, highlightedStrings },
 	}: Vnode<DriveFolderContentAttrs>): Children {
 		return m(
 			"div.flex.col.overflow-hidden.column-gap-12",
 			{
 				style: {
 					display: "grid",
-					"grid-template-columns": "calc(25px + 24px) 50px auto 100px 100px 300px calc(44px + 12px)",
+					"grid-template-columns": `calc(25px + 24px) 50px auto ${displayLocation ? "150px" : ""} 100px 100px 200px calc(44px + 12px)`,
 				},
 				onkeydown: (event: KeyboardEvent) => {
 					if (this.focusedInContent && isKeyPressed(event.key, Keys.TAB) && event.shiftKey) {
@@ -131,7 +122,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 						selectionEvents,
 					})
 				: [
-						this.renderHeader(selection, sortOrder, onSort, selectionEvents.onSelectAll),
+						this.renderHeader(listState, sortOrder, onSort, selectionEvents.selectAll, selectionEvents.selectNone, displayLocation),
 
 						m(
 							".flex.col.scroll.scrollbar-gutter-stable-or-fallback",
@@ -140,7 +131,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 								"data-testid": "grid:folderContent",
 								style: {
 									"grid-column-start": "1",
-									"grid-column-end": "8",
+									"grid-column-end": displayLocation ? "9" : "8",
 									display: "grid",
 									"grid-template-columns": "subgrid",
 								},
@@ -201,6 +192,8 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 									},
 									onDropInto,
 									onContextMenu: onEntryContextMenu,
+									displayLocation,
+									highlightedStrings,
 								} satisfies DriveFolderContentEntryAttrs & CommonAttributes<DriveFolderContentEntryAttrs, DriveFolderContentEntry>),
 							),
 						),
@@ -208,7 +201,14 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 		)
 	}
 
-	private renderHeader(selection: SelectionState, sortOrder: SortingPreference, onSort: (column: SortColumn) => unknown, onSelectAll: () => unknown) {
+	private renderHeader(
+		listState: ListState<unknown>,
+		sortOrder: SortingPreference,
+		onSort: (column: SortColumn) => unknown,
+		onSelectAll: () => unknown,
+		onSelectNone: () => unknown,
+		displayLocation: boolean,
+	) {
 		return m(
 			"div.flex.row.folder-row",
 			{
@@ -217,7 +217,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 					// ensure that the bar does not shrink too much if we have only text
 					minHeight: px(component_size.button_height + 2 * size.core_8),
 					"grid-column-start": "1",
-					"grid-column-end": "8",
+					"grid-column-end": displayLocation ? "9" : "8",
 					display: "grid",
 					"grid-template-columns": "subgrid",
 				},
@@ -233,18 +233,19 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 						type: "checkbox",
 						"data-testid": "cb:selectAllLoaded_action",
 						title: lang.getTranslationText("selectAllLoaded_action"),
-						checked: selection.type === "multiselect" && selection.selectedAll,
-						onchange: onSelectAll,
+						checked: wholeListSelected(listState),
+						onchange: wholeListSelected(listState) ? onSelectNone : onSelectAll,
 						oncreate: ({ dom }) => {
 							this.selectAllDom = dom as HTMLElement
 						},
 					}),
 				),
-				selection.type === "multiselect"
-					? [m(""), m(".b", lang.getTranslation("itemsSelected_label", { "{number}": selection.selectedItemCount }).text)]
+				listState.inMultiselect
+					? [m(""), m(".b", lang.getTranslation("itemsSelected_label", { "{number}": listState.selectedItems.size }).text)]
 					: [
 							m("div", { style: { ...columnStyle } }, []),
 							renderHeaderCell(lang.getTranslation("name_label"), SortColumn.name, sortOrder, onSort),
+							displayLocation ? renderHeaderCell(lang.getTranslation("location_label"), SortColumn.location, sortOrder, onSort) : null,
 							renderHeaderCell(lang.getTranslation("type_label"), SortColumn.mimeType, sortOrder, onSort),
 							renderHeaderCell(lang.getTranslation("size_label"), SortColumn.size, sortOrder, onSort),
 							renderHeaderCell(lang.getTranslation("date_label"), SortColumn.date, sortOrder, onSort),

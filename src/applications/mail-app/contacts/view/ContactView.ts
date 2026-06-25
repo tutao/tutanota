@@ -42,7 +42,6 @@ import { ContactViewerActions } from "./ContactViewerActions.js"
 import { MobileBottomActionBar } from "../../../../ui/MobileBottomActionBar.js"
 import { exportAsVCard, importAsVCard } from "./ImportAsVCard.js"
 import { MobileHeader } from "../../../../ui/MobileHeader.js"
-import { LazySearchBar } from "../../LazySearchBar.js"
 import { MultiselectMobileHeader } from "../../../../ui/MultiselectMobileHeader.js"
 import { MultiselectMode } from "../../../../ui/base/List.js"
 import { EnterMultiselectIconButton } from "../../../../ui/EnterMultiselectIconButton.js"
@@ -68,6 +67,8 @@ import { PartialRecipient } from "../../../../entities/tutanota/Utils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { ContactQuickSearchBar, ContactSearchBarAttrs } from "./ContactQuickSearchBar"
+import { LazyComponent } from "../../../common/gui/LazyComponent"
 
 EnvProvider.assertMainOrNode()
 
@@ -305,8 +306,15 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 							searchBar: () =>
 								this.inContactListView()
 									? null
-									: m(LazySearchBar, {
-											placeholder: lang.get("searchContacts_placeholder"),
+									: m(LazyComponent<ContactSearchBarAttrs, ContactQuickSearchBar>, {
+											loader: async () => (await import("./ContactQuickSearchBar.js")).ContactQuickSearchBar,
+											attrs: {
+												loadResults: (searchQuery) => this.contactViewModel.getSearchResults(searchQuery),
+												selectResult: (searchQuery, contact) => {
+													this.contactViewModel.selectSearchResult(searchQuery, contact)
+												},
+												indexingSupported: mailLocator.contactSearchModel.indexingSupported,
+											},
 										}),
 							...attrs.header,
 							buttons: renderHeaderButtons(),

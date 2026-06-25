@@ -4,7 +4,7 @@ import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver,
 import { lang, languageCodeToTag, languages } from "../../ui/utils/LanguageViewModel.js"
 import { root } from "../../ui/base/RootView.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-import { assertNotNull } from "../../platform-kit/utils"
+import { assertNotNull, stringToBase64 } from "../../platform-kit/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
 import { Styles } from "../../ui/styles.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
@@ -23,9 +23,6 @@ import { AppHeaderAttrs } from "../../ui/Header.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
 import { LoginController } from "../common/api/main/LoginController.js"
 import { MobileSettingsViewAttrs, SettingsViewSection } from "../common/settings/Interfaces.js"
-import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView.js"
-import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
-import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import type { MobileSettingsView } from "../common/settings/MobileSettingsView.js"
 import { AppType, DomainConfig, EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { CALENDAR_PREFIX } from "../../ui/utils/RouteChange"
@@ -34,7 +31,7 @@ import { NamedClientModel } from "@tutao/instance-pipeline"
 import { AppNameEnum } from "@tutao/meta"
 import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
 import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
-import { tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
+import { Contact, tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
 import { driveModelInfo, driveTypeModels } from "@tutao/entities/drive"
 import { storageModelInfo, storageTypeModels } from "@tutao/entities/storage"
 import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
@@ -43,6 +40,9 @@ import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accou
 import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
 import { RevocationView, RevocationViewAttrs } from "../common/revocation/RevocationView"
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
+import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView"
+import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel"
+import { Dialog } from "../../ui/base/Dialog"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
@@ -279,32 +279,37 @@ import("../../ui/translations/en.js")
 				},
 				calendarLocator.logins,
 			),
-			search: makeViewResolver<
+			calendarSearch: makeViewResolver<
 				CalendarSearchViewAttrs,
 				CalendarSearchView,
-				{
-					header: AppHeaderAttrs
-					searchViewModelFactory: () => CalendarSearchViewModel
-					contactModel: ContactModel
-				}
+				{ header: AppHeaderAttrs; drawerAttrsFactory: () => DrawerMenuAttrs; makeViewModel: () => CalendarSearchViewModel }
 			>(
 				{
 					prepareRoute: async () => {
 						const { CalendarSearchView } = await import("./calendar/search/view/CalendarSearchView.js")
+						const drawerAttrsFactory = await calendarLocator.drawerAttrsFactory()
+						const makeViewModel = await calendarLocator.calendarSearchViewModelFactory()
 						return {
 							component: CalendarSearchView,
 							cache: {
 								header: await calendarLocator.appHeaderAttrs(),
-								searchViewModelFactory: await calendarLocator.searchViewModelFactory(),
-								contactModel: calendarLocator.contactModel,
+								drawerAttrsFactory,
+								makeViewModel,
 							},
 						}
 					},
-					prepareAttrs: (cache) => ({
-						header: cache.header,
-						makeViewModel: cache.searchViewModelFactory,
-						contactModel: cache.contactModel,
-					}),
+					prepareAttrs: (cache) => {
+						return {
+							header: cache.header,
+							drawerAttrs: cache.drawerAttrsFactory(),
+							makeViewModel: cache.makeViewModel,
+							editContact: async (contact: Contact) => {
+								if (!(await Dialog.confirm("openMailApp_msg", "yes_label"))) return
+								const query = `contactId=${stringToBase64(contact._id.join("/"))}`
+								calendarLocator.systemFacade.openMailApp(stringToBase64(query))
+							},
+						}
+					},
 				},
 				calendarLocator.logins,
 			),
@@ -315,13 +320,11 @@ import("../../ui/translations/en.js")
 					drawerAttrsFactory: () => DrawerMenuAttrs
 					header: AppHeaderAttrs
 					calendarViewModel: CalendarViewModel
-					lazySearchBar: () => Children
 				}
 			>(
 				{
 					prepareRoute: async (cache) => {
 						const { CalendarView } = await import("./calendar/view/CalendarView.js")
-						const { lazyCalendarSearchBar } = await import("./LazyCalendarSearchBar.js")
 						const drawerAttrsFactory = await calendarLocator.drawerAttrsFactory()
 						return {
 							component: CalendarView,
@@ -329,19 +332,13 @@ import("../../ui/translations/en.js")
 								drawerAttrsFactory,
 								header: await calendarLocator.appHeaderAttrs(),
 								calendarViewModel: await calendarLocator.calendarViewModel(),
-								lazySearchBar: () => {
-									return m(lazyCalendarSearchBar, {
-										placeholder: lang.get("searchCalendar_placeholder"),
-									})
-								},
 							},
 						}
 					},
-					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory, lazySearchBar }) => ({
+					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory }) => ({
 						drawerAttrs: drawerAttrsFactory(),
 						header,
 						calendarViewModel,
-						lazySearchBar,
 					}),
 				},
 				calendarLocator.logins,
