@@ -2391,3 +2391,6 @@ export type TranslationKeyType =
 	| "migrationProviderOther_label"
 	| "migrationPausedProgressInfo_msg"
 	| "emptyString_msg"
+	| "alternativePaymentMethods_label"
+	| "proxyStorePayment_msg"
+	| "openProxystore_action"
