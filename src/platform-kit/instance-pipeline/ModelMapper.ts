@@ -222,7 +222,7 @@ export class ClientEntity {
 				break
 			}
 			case Cardinality.One:
-				if (associationList.length !== 0) {
+				if (associationList.length !== 1) {
 					throw new InvalidModelError(`Cardinality One should have exactly one item. Found: ${associationList.length}`)
 				}
 				this.entityRecord[associationModel.name] = associationList[0]
@@ -237,7 +237,7 @@ export class ClientEntity {
 	setAggregations(associationId: AttributeId, aggregates: Array<ClientEntity>) {
 		this.setAssociation(
 			associationId,
-			aggregates.map((agg) => agg.entityRecord),
+			aggregates.map((agg) => agg.castAsEntity()),
 		)
 	}
 
