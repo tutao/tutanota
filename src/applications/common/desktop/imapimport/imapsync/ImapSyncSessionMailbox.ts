@@ -32,15 +32,15 @@ export class ImapSyncSessionMailbox {
 			case ImapMailboxSpecialUse.INBOX:
 				this.importance = SyncSessionMailboxImportance.HIGH
 				break
-			case ImapMailboxSpecialUse.TRASH:
 			case ImapMailboxSpecialUse.ARCHIVE:
 			case ImapMailboxSpecialUse.ALL:
 			case ImapMailboxSpecialUse.SENT:
-			case ImapMailboxSpecialUse.JUNK:
-				this.importance = SyncSessionMailboxImportance.LOW
-				break
-			default:
 				this.importance = SyncSessionMailboxImportance.MEDIUM
+				break
+			case ImapMailboxSpecialUse.JUNK:
+			case ImapMailboxSpecialUse.TRASH:
+			default:
+				this.importance = SyncSessionMailboxImportance.LOW
 				break
 		}
 	}
