@@ -2405,3 +2405,6 @@ export type TranslationKeyType =
 	| "moreEmailsAvailable_msg"
 	| "sendDate_label"
 	| "emptyString_msg"
+	| "alternativePaymentMethods_label"
+	| "proxyStorePayment_msg"
+	| "openProxystore_action"
