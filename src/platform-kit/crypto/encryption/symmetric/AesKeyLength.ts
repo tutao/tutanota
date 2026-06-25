@@ -31,10 +31,10 @@ export function makeAesKey(key: BitArray, acceptedBitLengths: AesKeyLength[] = A
 }
 
 export function assert256BitKey(key: AesKey): Aes256Key {
-	const length = key.bits.length * 4 * 8
 	if (key instanceof Aes256Key) {
 		return key
 	} else {
+		const length = key.bits.length * 4 * 8
 		throw new CryptoError(`Illegal key length: ${length} (expected: 256)`)
 	}
 }

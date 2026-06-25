@@ -53,7 +53,7 @@ export abstract class AeadSubKeys extends SymmetricSubKeys {
 }
 
 export class AeadWithGroupKeySubKeys extends AeadSubKeys {
-	override readonly cipherVersion = SymmetricCipherVersion.AeadWithGroupKey
+	override readonly cipherVersion: SymmetricCipherVersion.AeadWithGroupKey = SymmetricCipherVersion.AeadWithGroupKey
 
 	constructor(
 		public readonly groupKeyVersion: KeyVersion,
@@ -65,7 +65,7 @@ export class AeadWithGroupKeySubKeys extends AeadSubKeys {
 }
 
 export class AeadWithSessionKeySubKeys extends AeadSubKeys {
-	override cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
+	override cipherVersion: SymmetricCipherVersion.AeadWithSessionKey = SymmetricCipherVersion.AeadWithSessionKey
 
 	constructor(encryptionKey: Aes256Key, authenticationKey: Aes256Key) {
 		super(encryptionKey, authenticationKey)
