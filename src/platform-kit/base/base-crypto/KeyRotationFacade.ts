@@ -56,7 +56,6 @@ import {
 	createKeyPair,
 	createMembershipPutIn,
 	createPubEncKeyData,
-	createPublicKeySignature,
 	createRecoverCodeData,
 	createUserGroupKeyRotationData,
 	createUserGroupKeyRotationPostIn,
@@ -90,7 +89,7 @@ import {
 } from "@tutao/entities/sys"
 import { AccountType, GroupType } from "../../../entities/sys/Utils"
 import { assertEnumValue, elementIdPart, getElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
-import { asPublicKeyIdentifier, PublicKeySignatureType } from "./Constants"
+import { asPublicKeyIdentifier } from "./Constants"
 import { GroupInvitationPostData, InternalRecipientKeyData, InternalRecipientKeyDataTypeRef } from "@tutao/entities/tutanota"
 
 assertWorkerOrNode()
