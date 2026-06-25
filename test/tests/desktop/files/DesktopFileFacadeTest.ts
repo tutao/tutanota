@@ -426,18 +426,18 @@ o.spec("DesktopFileFacade", function () {
 
 	o.spec("showInFileExplorer", function () {
 		o("two downloads, open two filemanagers", async function () {
-			await ff.showInFileExplorer("file:///path/to/file.txt")
+			await ff.showInFileExplorer(new URL("file:///path/to/file.txt"))
 			verify(electron.shell.showItemInFolder("/path/to/file.txt"), { times: 1 })
 		})
 
 		o("two downloads, open two filemanagers after a pause", async function () {
 			const time = 1629115820468
-			await ff.showInFileExplorer("file:///path/to/file.txt")
+			await ff.showInFileExplorer(new URL("file:///path/to/file.txt"))
 			when(dp.now()).thenReturn(time)
 			when(conf.getConst(BuildConfigKey.fileManagerTimeout)).thenResolve(2)
 			verify(electron.shell.showItemInFolder("/path/to/file.txt"), { times: 1 })
 			when(dp.now()).thenReturn(time + 10)
-			await ff.showInFileExplorer("file:///path/to/file.txt")
+			await ff.showInFileExplorer(new URL("file:///path/to/file.txt"))
 			verify(electron.shell.showItemInFolder("/path/to/file.txt"), { times: 2 })
 		})
 	})
