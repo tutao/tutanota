@@ -164,13 +164,19 @@ export class TempFs {
 
 	createInMemoryFile(content: Uint8Array): `tuta-tmp:${string}` {
 		const filename = this.generateFilename()
+		const sizeBefore = this.inMemoryFiles.size
+		console.log("[TempFS]", `creating in-memory file ${filename} ${sizeBefore} -> ${sizeBefore + 1}`)
 		this.inMemoryFiles.set(filename, content)
 		return this.nameToUri(filename)
 	}
 
 	private deleteInMemoryFile(uri: string) {
 		const filename = this.uriToName(uri)
+
+		const sizeBefore = this.inMemoryFiles.size
 		this.inMemoryFiles.delete(filename)
+		console.log("[TempFS]", `deleting in-memory file ${filename} ${sizeBefore} -> ${this.inMemoryFiles.size}`)
+		console.log("[TempFS]", JSON.stringify([...this.inMemoryFiles.keys()]))
 	}
 
 	async deleteFile(uri: string) {

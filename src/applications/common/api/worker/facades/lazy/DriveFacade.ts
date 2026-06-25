@@ -5,8 +5,8 @@ import { ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
 import { aes256RandomKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
-import { assertNotNull, first, groupBy, isEmpty, partition, promiseMap, Require } from "@tutao/utils"
-import { getElementId, getListId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
+import { assertNotNull, first, groupBy, isEmpty, lastThrow, partition, promiseMap, Require } from "@tutao/utils"
+import { GENERATED_MAX_ID, getElementId, getListId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade"
@@ -351,6 +351,49 @@ export class DriveFacade {
 			result.unshift(currentParent)
 		} while (currentParent.parent != null)
 		return result
+	}
+
+	async search(query: string): Promise<void> {
+		const { fileGroupId } = await this.getCryptoInfo()
+		const groupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
+		const start = Date.now()
+		let filesChecked = 0
+		let foldersChecked = 0
+		for (const fileBagId of groupRoot.fileBags) {
+			let currentId = GENERATED_MAX_ID
+			while (true) {
+				const chunk = await this.entityClient.loadRange(DriveFileTypeRef, fileBagId.files, currentId, 100, true)
+				if (isEmpty(chunk)) {
+					break
+				}
+				for (const item of chunk) {
+					filesChecked++
+					if (item.name.toLowerCase().includes(query)) {
+						console.log("FOUND ITEM", item._id, item.name)
+					}
+				}
+
+				currentId = getElementId(lastThrow(chunk))
+			}
+		}
+		for (const folderBagId of groupRoot.folderBags) {
+			let currentId = GENERATED_MAX_ID
+			while (true) {
+				const chunk = await this.entityClient.loadRange(DriveFolderTypeRef, folderBagId.folders, currentId, 100, true)
+				if (isEmpty(chunk)) {
+					break
+				}
+				for (const item of chunk) {
+					foldersChecked++
+					if (item.name.toLowerCase().includes(query)) {
+						console.log("FOUND ITEM", item._id, item.name)
+					}
+				}
+
+				currentId = getElementId(lastThrow(chunk))
+			}
+		}
+		console.log(`checked ${filesChecked + foldersChecked} items in ${Date.now() - start}ms (${filesChecked} files, ${foldersChecked} folders)`)
 	}
 
 	private async getCryptoInfo(): Promise<DriveCryptoInfo> {
