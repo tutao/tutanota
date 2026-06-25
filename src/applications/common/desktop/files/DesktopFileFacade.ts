@@ -289,11 +289,10 @@ export class DesktopFileFacade implements FileFacade {
 		})
 		await this.fs.promises.copyFile(url, savePath)
 		await this.showInFileExplorer(savePath)
-		return savePath
+		return pathToFileURL(savePath).toString()
 	}
 
 	async upload(fileUri: string, targetUrl: string, method: HttpMethod, headers: Record<string, string>, fileId: string): Promise<UploadTaskResponse> {
-		const fileStream: NodeJS.ReadableStream = this.tfs.fileStream(fileUri)
 		const size = await this.tfs.getFileSize(fileUri)
 		headers["Content-Length"] = `${size}`
 
@@ -303,6 +302,8 @@ export class DesktopFileFacade implements FileFacade {
 		const onProgress = throttle(100, (bytes) => {
 			this.progressTracker.uploadProgress(fileId, bytes)
 		})
+
+		const fileStream: NodeJS.ReadableStream = this.tfs.fileStream(fileUri)
 		const progressStream = wrapReadableAsCountable(fileStream, onProgress)
 
 		try {
@@ -368,7 +369,7 @@ export class DesktopFileFacade implements FileFacade {
 	/** this is used to read unencrypted data from arbitrary locations */
 	async readDataFile(fileUri: FileUri): Promise<DataFile | null> {
 		const url = fileUrlFromString(fileUri)
-		const name = path.basename(fileUri)
+		const name = path.basename(fileURLToPath(fileUri))
 		try {
 			const [data, mimeType] = await Promise.all([
 				this.fs.promises.readFile(fileUri),
@@ -423,7 +424,7 @@ export class DesktopFileFacade implements FileFacade {
 	 * Select a non-colliding name in the configured downloadPath, preferably with the given file name
 	 * public for testing
 	 */
-	async pickSavePath(filename: string): Promise<string> {
+	private async pickSavePath(filename: string): Promise<string> {
 		const defaultDownloadPath = await this.conf.getVar(DesktopConfigKey.defaultDownloadPath)
 
 		if (defaultDownloadPath != null) {
