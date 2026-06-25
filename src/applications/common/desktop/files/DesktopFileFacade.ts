@@ -429,8 +429,7 @@ export class DesktopFileFacade implements FileFacade {
 
 		if (defaultDownloadPath != null) {
 			const fileName = path.basename(filename)
-			const savePath = path.join(defaultDownloadPath, nonClobberingFilename(await this.fs.promises.readdir(defaultDownloadPath), fileName))
-			return pathToFileURL(savePath).toString()
+			return path.join(defaultDownloadPath, nonClobberingFilename(await this.fs.promises.readdir(defaultDownloadPath), fileName))
 		} else {
 			const { canceled, filePath } = await this.electron.dialog.showSaveDialog({
 				defaultPath: path.join(this.electron.app.getPath("downloads"), filename),
@@ -439,7 +438,7 @@ export class DesktopFileFacade implements FileFacade {
 			if (canceled) {
 				throw new CancelledError("Path selection cancelled")
 			} else {
-				return pathToFileURL(filePath).toString()
+				return filePath
 			}
 		}
 	}
@@ -452,7 +451,7 @@ export class DesktopFileFacade implements FileFacade {
 
 		if (lastOpenedFileManagerAt == null || this.dateProvider.now() - lastOpenedFileManagerAt > fileManagerTimeout) {
 			this.lastOpenedFileManagerAt = this.dateProvider.now()
-			this.electron.shell.showItemInFolder(fileURLToPath(savePath))
+			this.electron.shell.showItemInFolder(savePath)
 		}
 	}
 	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
