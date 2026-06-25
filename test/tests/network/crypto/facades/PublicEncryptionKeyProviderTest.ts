@@ -34,8 +34,8 @@ import {
 } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../../../src/platform-kit/network/ServiceExecutor"
 import { KeyAuthenticationFacade } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
-import { EncryptedPqKeyPairs } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 import { MaybeSignedPublicKey } from "../../../../../src/platform-kit/base/base-crypto/MaybeSignedPublicKey"
+import { EncryptedPqKeyPairs } from "../../../../../src/platform-kit/crypto/encryption/EncryptedKeyPairs"
 
 const PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS = "alice@tuta.com"
 

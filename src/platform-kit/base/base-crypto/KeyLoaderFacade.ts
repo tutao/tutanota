@@ -7,22 +7,25 @@ import {
 	decryptKey,
 	decryptKeyPair,
 	Ed25519PrivateKey,
+	EncryptedKeyPairs,
+	EncryptedPqKeyPairs,
+	EncryptedRsaKeyPairs,
+	EncryptedRsaX25519KeyPairs,
 	isRsaOrRsaX25519KeyPair,
 	VersionedKey,
 } from "@tutao/crypto"
-import { base64UrlCustomIdToString, KeyVersion, lazyAsync, Nullable, promiseMap, stringToBase64UrlCustomId, Versioned } from "@tutao/utils"
+import { base64UrlCustomIdToString, downcast, KeyVersion, lazyAsync, Nullable, promiseMap, stringToBase64UrlCustomId, Versioned } from "@tutao/utils"
 import { UserFacade } from "../facades/UserFacade.js"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { getElementId, isSameId } from "../../meta"
 import { KeyCache } from "./persistence/KeyCache.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
-import { Group, GroupKey, GroupKeyTypeRef, GroupTypeRef, KeyPair } from "@tutao/entities/sys"
+import { createKeyPair, Group, GroupKey, GroupKeyTypeRef, GroupTypeRef, KeyPair } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
 import { TypeId } from "../../meta/EntityTypes"
 import { ProgrammingError } from "@tutao/app-env"
 import { CacheManager } from "./persistence/CacheManager"
-import { toEncryptedKeyPair } from "./EncryptedKeyPair"
 
 function convertCustomIdToKeyVersion(customId: Id): KeyVersion {
 	return cryptoUtils.parseKeyVersion(base64UrlCustomIdToString(customId))
@@ -305,10 +308,73 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 			throw new NotFoundError(`no key pair on group ${groupId}`)
 		}
 		// this cast is acceptable as those are the constraints we have on KeyPair. we just cannot know which one we have statically
-		const decryptedKeyPair = decryptKeyPair(groupKey.object, toEncryptedKeyPair(keyPair))
+		const decryptedKeyPair = decryptKeyPair(groupKey.object, toEncryptedKeyPairs(keyPair))
 		if (groupKey.version !== 0 && isRsaOrRsaX25519KeyPair(decryptedKeyPair)) {
 			throw new CryptoError("received an rsa key pair in a version other than 0: " + groupKey.version)
 		}
 		return decryptedKeyPair
 	}
+}
+
+export function toEncryptedKeyPairs(keyPair: KeyPair): EncryptedKeyPairs {
+	if (keyPair.pubRsaKey != null) {
+		if (keyPair.pubEccKey != null && keyPair.symEncPrivEccKey != null && keyPair.symEncPrivRsaKey != null) {
+			return new EncryptedRsaX25519KeyPairs(keyPair.pubEccKey, keyPair.pubRsaKey, keyPair.symEncPrivEccKey, keyPair.symEncPrivRsaKey, keyPair.signature)
+		} else if (keyPair.symEncPrivRsaKey != null) {
+			return new EncryptedRsaKeyPairs(keyPair.pubRsaKey, keyPair.symEncPrivRsaKey, keyPair.signature)
+		}
+	}
+	if (keyPair.pubKyberKey != null && keyPair.symEncPrivKyberKey != null && keyPair.pubEccKey != null && keyPair.symEncPrivEccKey != null) {
+		return new EncryptedPqKeyPairs(keyPair.pubEccKey, keyPair.pubKyberKey, keyPair.symEncPrivEccKey, keyPair.symEncPrivKyberKey, keyPair.signature)
+	}
+	throw new CryptoError("Invalid key pair")
+}
+
+export function toKeyPair(keyPair: EncryptedKeyPairs): KeyPair {
+	if (keyPair instanceof EncryptedRsaX25519KeyPairs) {
+		const { pubEccKey, pubRsaKey, symEncPrivEccKey, symEncPrivRsaKey, signature } = keyPair
+		return createKeyPair({
+			pubKyberKey: null,
+			symEncPrivKyberKey: null,
+			pubEccKey,
+			pubRsaKey,
+			symEncPrivEccKey,
+			symEncPrivRsaKey,
+			signature: downcast(signature),
+		})
+	} else if (keyPair instanceof EncryptedRsaKeyPairs) {
+		const { pubRsaKey, symEncPrivRsaKey, signature } = keyPair
+		return createKeyPair({
+			pubKyberKey: null,
+			symEncPrivKyberKey: null,
+			pubEccKey: null,
+			symEncPrivEccKey: null,
+			pubRsaKey,
+			symEncPrivRsaKey,
+			signature: downcast(signature),
+		})
+	} else if (keyPair instanceof EncryptedPqKeyPairs) {
+		const { pubEccKey, pubKyberKey, symEncPrivEccKey, symEncPrivKyberKey, signature } = keyPair
+		return createKeyPair({
+			pubKyberKey,
+			symEncPrivKyberKey,
+			pubEccKey,
+			symEncPrivEccKey,
+			pubRsaKey: null,
+			symEncPrivRsaKey: null,
+			signature: downcast(signature),
+		})
+	}
+	throw new CryptoError("Invalid key pair")
+}
+
+export function isEncryptedPqKeyPairs(keyPair: KeyPair): boolean {
+	return (
+		keyPair.pubEccKey != null &&
+		keyPair.pubKyberKey != null &&
+		keyPair.symEncPrivEccKey != null &&
+		keyPair.symEncPrivKyberKey != null &&
+		keyPair.pubRsaKey == null &&
+		keyPair.symEncPrivRsaKey == null
+	)
 }
