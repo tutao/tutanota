@@ -174,6 +174,12 @@ o.spec("IndexedDbContactIndexerBackend", () => {
 		verify(core.encryptSearchIndexEntries(contact._id, neverNull(contact._ownerGroup), new Map(), newIndexUpdate))
 	})
 
+	o.test("onBeforeContactDeleted", async () => {
+		await backend.onBeforeContactDeleted(["contact-list", "1"])
+		// contact delete handling is done in onContactDeleted()
+		verify(core._processDeleted(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+	})
+
 	o.test("onContactDeleted", async () => {
 		const contact = createTestEntity(ContactTypeRef, { _id: ["contact-list", "1"] })
 		await backend.onContactDeleted(contact._id)
