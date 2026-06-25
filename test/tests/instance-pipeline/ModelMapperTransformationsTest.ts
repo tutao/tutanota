@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { DecryptedParsedInstance, InstancePipeline, ModelMapper } from "../../../src/platform-kit/instance-pipeline"
 import { AssociationType, Cardinality, ClientTypeModel, ServerTypeModel, Type, TypeRef, ValueType } from "../../../src/platform-kit/meta"
-import { DummyTypeModelResolver, TestEntity } from "./InstancePipelineTestUtils"
+import { DummyTypeModelResolver, TestAggregateRef, TestEntity } from "./InstancePipelineTestUtils"
 import { removeOriginals } from "../TestUtils"
 import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 
@@ -812,7 +812,6 @@ o.spec("ModelMapperTransformations", function () {
 		})
 	})
 
-	/*
 	o.spec("ChangeAssociationCardinality", function () {
 		o("change aggregation from Any to One", async function () {
 			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
@@ -905,13 +904,13 @@ o.spec("ModelMapperTransformations", function () {
 
 			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(
-				clientModelResolver as ClientTypeReferenceResolver,
-				serverModelResolver as ServerTypeReferenceResolver,
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+
+			let serverTypeModel = await serverModelResolver(TestTypeRef)
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverTypeModel).addAttribute(
+				3,
+				ParsedValue.fromNestedItems([DecryptedParsedInstance.incomingFromServer(serverTypeModel)]),
 			)
-			const parsedInstance: ServerModelParsedInstance = {
-				3: [{} as any as ServerModelParsedInstance],
-			} as any as ServerModelParsedInstance
 
 			const mappedInstance = (await modelMapper.mapToInstance(parsedInstance)) as any
 			removeOriginals(mappedInstance)
@@ -925,7 +924,7 @@ o.spec("ModelMapperTransformations", function () {
 			} as any)
 			o(typeof mappedInstance._errors).equals("undefined")
 
-			const newParsedInstance = await modelMapper.mapToClientModelParsedInstance(TestTypeRef, mappedInstance)
+			const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
 			o(newParsedInstance).deepEquals(parsedInstance as any as ClientEntity)
 		})
 		o("change aggregation from One to Any null value", async function () {
@@ -3164,5 +3163,4 @@ o.spec("ModelMapperTransformations", function () {
 			} as any)
 		})
 	})
-	 */
 })
