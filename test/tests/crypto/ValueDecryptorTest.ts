@@ -1,7 +1,5 @@
 import {
-	InitializationVectorVariant,
 	ParsedCiphertextAead,
-	ParsedCiphertextAesCbc,
 	ParsedCiphertextAesCbcThenHmac,
 	ParsedCiphertextUnusedReservedUnauthenticated,
 	parseVersionedCiphertext,
@@ -54,11 +52,7 @@ o.spec("ValueDecryptorTest", () => {
 
 	o.test("UnusedReservedUnauthenticated, unauthenticated with session key present", () => {
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(aes256Key, null, instanceTypeId)
-		const parsedCiphertext = new ParsedCiphertextUnusedReservedUnauthenticated(
-			initializationVector,
-			new Uint8Array([1, 2]),
-			InitializationVectorVariant.Random,
-		)
+		const parsedCiphertext = new ParsedCiphertextUnusedReservedUnauthenticated(initializationVector, new Uint8Array([1, 2]))
 		const ciphertext = concat(symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion), initializationVector.bytes, parsedCiphertext.ciphertext)
 		const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, "") as ValueDecryptor
 		o.check(valueDecryptor.requiredGroupKeyVersion).equals(null)
@@ -71,10 +65,8 @@ o.spec("ValueDecryptorTest", () => {
 
 	o.test("AesCbcThenHmac, with session key present", () => {
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(aes256Key, null, instanceTypeId)
-		const cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
 		const ciphertextRaw = new Uint8Array([1, 2])
-		const initializationVectorVariant = InitializationVectorVariant.Random
-		const parsedCiphertext = new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertextRaw, macTag, initializationVectorVariant)
+		const parsedCiphertext = new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertextRaw, macTag)
 
 		const ciphertext = concat(
 			symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
