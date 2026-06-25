@@ -133,7 +133,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 			},
 		}
 		const editSpellcheckLanguageButtonAttrs: IconButtonAttrs = {
-			title: "checkSpelling_action",
+			label: "checkSpelling_action",
 			click: () => this.spellCheckLanguageDialog.showSpellcheckLanguageDialog().then((newLabel) => this.spellCheckLang(newLabel)),
 			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
@@ -215,7 +215,7 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 		}
 		const changeDefaultDownloadPathAttrs: IconButtonAttrs = attachDropdown({
 			mainButtonAttrs: {
-				title: "edit_action",
+				label: "edit_action",
 				icon: Icons.PenFilled,
 				size: ButtonSize.Compact,
 			},

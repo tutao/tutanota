@@ -287,7 +287,7 @@ export class ContactMergeView {
 
 	_createDeleteContactButton(action: ContactMergeAction): Children {
 		return m(IconButton, {
-			title: "delete_action",
+			label: "delete_action",
 			click: () => {
 				Dialog.confirm("deleteContact_msg").then((confirmed) => {
 					if (confirmed) {

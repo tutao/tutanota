@@ -262,7 +262,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 	): IconButtonAttrs {
 		return attachDropdown({
 			mainButtonAttrs: {
-				title: "more_label",
+				label: "more_label",
 				icon: Icons.More,
 				colors: ButtonColor.Nav,
 				size: ButtonSize.Compact,
@@ -326,7 +326,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 
 	private renderCreateFolderAddButton(parentFolder: MailSet | null, attrs: MailFolderViewAttrs): Child {
 		return m(IconButton, {
-			title: "addFolder_action",
+			label: "addFolder_action",
 			click: () => {
 				return attrs.onShowFolderAddEditDialog(attrs.mailboxDetail.mailGroup._id, null, parentFolder)
 			},
@@ -337,7 +337,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 
 	private renderEditFoldersButton(attrs: MailFolderViewAttrs): Child {
 		return m(IconButton, {
-			title: "edit_action",
+			label: "edit_action",
 			click: () => attrs.onEditMailbox(),
 			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,

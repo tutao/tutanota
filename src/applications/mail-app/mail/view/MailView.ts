@@ -764,7 +764,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		return isNewMailActionAvailable()
 			? [
 					m(IconButton, {
-						title: "newMail_action",
+						label: "newMail_action",
 						click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
 						icon: Icons.Write,
 					}),
@@ -1510,7 +1510,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 									moreButton: attachDropdown({
 										mainButtonAttrs: {
 											icon: Icons.More,
-											title: "more_label",
+											label: "more_label",
 										},
 										childAttrs: async () => [
 											{
@@ -1552,14 +1552,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		return m(IconButton, {
 			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
-			title: "edit_action",
+			label: "edit_action",
 			click: onEditMailbox,
 		})
 	}
 
 	private renderAddLabelButton(mailboxDetail: MailboxDetail) {
 		return m(IconButton, {
-			title: "addLabel_action",
+			label: "addLabel_action",
 			icon: Icons.Plus,
 			click: () => {
 				this.showLabelAddDialog(mailboxDetail.mailbox)

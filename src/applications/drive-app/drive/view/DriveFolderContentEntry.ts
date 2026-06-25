@@ -178,7 +178,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 							...attachDropdown({
 								mainButtonAttrs: {
 									icon: Icons.More,
-									title: "more_label",
+									label: "more_label",
 									// is focused programmatically
 									tabindex: TabIndex.Programmatic,
 								},

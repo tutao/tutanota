@@ -159,23 +159,23 @@ export class CalendarEventPopup implements ModalComponent {
 
 	private renderDuplicateButton(): Children {
 		if (!this.model.canEdit) return null
-		return m(IconButton, { title: "duplicateEvent_label", icon: Icons.DuplicateFilled, click: this.handleCloneButtonClick })
+		return m(IconButton, { label: "duplicateEvent_label", icon: Icons.DuplicateFilled, click: this.handleCloneButtonClick })
 	}
 
 	private renderEditButton(): Children {
 		if (!this.model.canEdit) return null
-		return m(IconButton, { title: "edit_action", icon: Icons.PenFilled, click: this.handleEditButtonClick })
+		return m(IconButton, { label: "edit_action", icon: Icons.PenFilled, click: this.handleEditButtonClick })
 	}
 
 	private renderDeleteButton(): Children {
 		if (!this.model.canDelete) return null
-		return m(IconButton, { title: "delete_action", icon: Icons.TrashFilled, click: this.handleDeleteButtonClick })
+		return m(IconButton, { label: "delete_action", icon: Icons.TrashFilled, click: this.handleDeleteButtonClick })
 	}
 
 	private renderSendUpdateButton(): Children {
 		if (!this.model.canSendUpdates) return null
 		return m(IconButton, {
-			title: "sendUpdates_label",
+			label: "sendUpdates_label",
 			click: () => this.handleSendUpdatesClick(),
 			icon: Icons.MailFilled,
 		})
@@ -183,7 +183,7 @@ export class CalendarEventPopup implements ModalComponent {
 
 	private renderCloseButton(): Children {
 		return m(IconButton, {
-			title: "close_alt",
+			label: "close_alt",
 			click: () => this.close(),
 			icon: Icons.X,
 		})

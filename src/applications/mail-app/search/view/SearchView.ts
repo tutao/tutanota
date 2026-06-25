@@ -534,7 +534,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				? m(
 						".icon-button",
 						m(IconButton, {
-							title: "back_action",
+							label: "back_action",
 							icon: Icons.ChevronLeft,
 							click: () => {
 								if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {

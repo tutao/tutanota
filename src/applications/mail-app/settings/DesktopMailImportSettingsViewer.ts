@@ -170,14 +170,14 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 			}),
 		)
 		const resumeMailImportIconButtonAttrs: IconButtonAttrs = {
-			title: "resumeMailImport_action",
+			label: "resumeMailImport_action",
 			icon: Icons.PlayOutline,
 			click: () => this.fileMailImportController().onResumeBtnClick(),
 			size: ButtonSize.Normal,
 			hidden: this.fileMailImportController().shouldDisableResumeButton(),
 		}
 		const pauseMailImportIconButtonAttrs: IconButtonAttrs = {
-			title: "pauseMailImport_action",
+			label: "pauseMailImport_action",
 			icon: Icons.PauseOutline,
 			click: () => {
 				this.fileMailImportController().onPauseBtnClick()
@@ -186,7 +186,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 			hidden: this.fileMailImportController().shouldDisablePauseButton(),
 		}
 		const cancelMailImportIconButtonAttrs: IconButtonAttrs = {
-			title: "cancelMailImport_action",
+			label: "cancelMailImport_action",
 			icon: Icons.X,
 			click: () => {
 				this.fileMailImportController().onCancelBtnClick()

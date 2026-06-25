@@ -136,7 +136,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 							? m(".full-width.flex-space-between.items-center.pl-8", [
 									lang.get("keyManagement.verifyMailAddress_action"),
 									m(IconButton, {
-										title: "keyManagement.verifyMailAddress_action",
+										label: "keyManagement.verifyMailAddress_action",
 										click: async () => {
 											await showKeyVerificationDialog(
 												this.keyVerificationFacade,

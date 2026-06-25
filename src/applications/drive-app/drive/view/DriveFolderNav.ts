@@ -58,7 +58,7 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 				// Caution: when adding actions, make sure they match the order in the file context menu.
 				onPaste
 					? m(IconButton, {
-							title: "paste_action",
+							label: "paste_action",
 							click: onPaste,
 							icon: Icons.ClipboardFilled,
 						})
@@ -66,49 +66,49 @@ export class DriveFolderNav implements Component<DriveFolderNavAttrs> {
 				isNotNull(onPaste) && [onRestore, onDelete, onCopy, onCut, onTrash].some(isNotNull) ? m(".nav-bar-spacer") : null,
 				onDownload
 					? m(IconButton, {
-							title: "download_action",
+							label: "download_action",
 							click: onDownload,
 							icon: Icons.DownloadFilled,
 						})
 					: null,
 				onRestore
 					? m(IconButton, {
-							title: "restoreFromTrash_action",
+							label: "restoreFromTrash_action",
 							click: onRestore,
 							icon: Icons.ArrowBackFilled,
 						})
 					: null,
 				onDelete
 					? m(IconButton, {
-							title: "delete_action",
+							label: "delete_action",
 							click: onDelete,
 							icon: Icons.TrashCrossFilled,
 						})
 					: null,
 				onCopy
 					? m(IconButton, {
-							title: "copy_action",
+							label: "copy_action",
 							click: onCopy,
 							icon: Icons.CopyFilled,
 						})
 					: null,
 				onCut
 					? m(IconButton, {
-							title: "cut_action",
+							label: "cut_action",
 							click: onCut,
 							icon: Icons.ScissorsFilled,
 						})
 					: null,
 				onMove
 					? m(IconButton, {
-							title: "move_action",
+							label: "move_action",
 							click: onMove,
 							icon: Icons.Move,
 						})
 					: null,
 				onTrash
 					? m(IconButton, {
-							title: "trash_action",
+							label: "trash_action",
 							click: onTrash,
 							icon: Icons.TrashFilled,
 						})
