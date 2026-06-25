@@ -15,10 +15,11 @@ export interface SearchFacade {
 	 *
 	 * @param query search string
 	 * @param restriction search parameters
-	 * @param minSuggestionCount
-	 * @param maxResults desired number of results, or unlimited if left undefined
+	 * @param opts
+	 * @param opts.minSuggestionCount
+	 * @param opts.maxResults desired number of results, or unlimited if left undefined
 	 */
-	search(query: string, restriction: SearchRestriction, minSuggestionCount: number, maxResults?: number): Promise<SearchResult>
+	search(query: string, restriction: SearchRestriction, opts?: { minSuggestionCount?: number; maxResults?: number }): Promise<SearchResult>
 
 	/**
 	 * Extend search result to {@link extensionEnd}.

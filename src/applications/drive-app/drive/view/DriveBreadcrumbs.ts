@@ -6,7 +6,7 @@ import { Dropdown } from "../../../../ui/base/Dropdown"
 import { BaseButton, BaseButtonAttrs } from "../../../../ui/base/buttons/BaseButton"
 import { theme } from "../../../../ui/theme"
 import { driveFolderName, isDraggingDriveItems } from "./DriveGuiUtils"
-import { FolderItem } from "./DriveUtils"
+import { FolderFolderItem, FolderItem } from "./DriveUtils"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { modal } from "../../../../ui/base/Modal"
@@ -14,9 +14,9 @@ import { DriveFolder } from "@tutao/entities/drive"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 export interface DriveBreadcrumbsAttrs {
-	currentFolder: DriveFolder | null
-	parents: readonly DriveFolder[]
-	loadParents: () => Promise<DriveFolder[]>
+	currentFolder: FolderFolderItem | null
+	parents: readonly FolderFolderItem[]
+	loadParents: () => Promise<FolderFolderItem[]>
 	onDropInto?: (f: FolderItem, event: DragEvent) => unknown
 	onClick?: (f: DriveFolder, event: MouseEvent) => unknown
 }
@@ -84,7 +84,7 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 					.map((entry, index) => {
 						return [
 							// if it's the first item and it has a parent it means we don't have the full path
-							index === 0 && entry.parent
+							index === 0 && entry.folder.parent
 								? [
 										m(BaseButton, {
 											class: "click state-bg pl-8 pr-8 pt-4 pb-4 border-radius-4",
@@ -106,14 +106,14 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 									]
 								: null,
 							m(BreadcrumbLink, {
-								label: driveFolderName(entry),
-								href: folderRoute(entry),
+								label: driveFolderName(entry.folder),
+								href: folderRoute(entry.folder),
 								onClick: (e: MouseEvent) => {
-									onClick?.(entry, e)
+									onClick?.(entry.folder, e)
 								},
 								onDrop: onDropInto
 									? (event) => {
-											onDropInto({ type: "folder", folder: entry }, event)
+											onDropInto({ type: "folder", folder: entry.folder, parentFolder: entry.parentFolder }, event)
 										}
 									: undefined,
 							}),
@@ -126,7 +126,7 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 					})
 					.flat(),
 				// it has to be an array to satisfy mithil key requirements
-				currentFolder ? [this.renderCurrentFolder(currentFolder)] : null,
+				currentFolder ? [this.renderCurrentFolder(currentFolder.folder)] : null,
 			],
 		)
 	}
@@ -149,7 +149,7 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 
 	private async onLoadParents(
 		dom: HTMLElement,
-		loadParents: () => Promise<DriveFolder[]>,
+		loadParents: () => Promise<FolderFolderItem[]>,
 		onClick: DriveBreadcrumbsAttrs["onClick"],
 		onDropInto: DriveBreadcrumbsAttrs["onDropInto"],
 	) {
@@ -160,17 +160,17 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 
 			return loadedParents.map((parent) => {
 				return {
-					label: driveFolderName(parent),
+					label: driveFolderName(parent.folder),
 					click: (event) => {
 						if (onClick) {
-							onClick(parent, event)
+							onClick(parent.folder, event)
 						} else {
-							m.route.set(folderRoute(parent))
+							m.route.set(folderRoute(parent.folder))
 						}
 					},
 					drop: (event) => {
 						dropdown.close()
-						onDropInto?.({ type: "folder", folder: parent }, event)
+						onDropInto?.({ type: "folder", folder: parent.folder, parentFolder: parent.parentFolder }, event)
 					},
 					dragover: (event) => {
 						if (timeoutId != null) {

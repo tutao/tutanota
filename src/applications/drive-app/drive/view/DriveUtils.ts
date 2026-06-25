@@ -6,6 +6,8 @@ import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@t
 import { getElementId } from "@tutao/meta"
 import { WebFile } from "../../../../entities/tutanota/Utils"
 import { DriveTransferState } from "./DriveTransferController"
+import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
+import { OperationStatus } from "@tutao/app-env"
 
 export function makeDuplicateFileName(fileName: string, indicator: string = "copy"): string {
 	const [basename, ext] = getFileBaseNameAndExtensions(fileName)
@@ -16,11 +18,13 @@ export function makeDuplicateFileName(fileName: string, indicator: string = "cop
 export interface FileFolderItem {
 	type: "file"
 	file: DriveFile
+	parentFolder: DriveFolder | null
 }
 
 export interface FolderFolderItem {
 	type: "folder"
 	folder: DriveFolder
+	parentFolder: DriveFolder | null
 }
 
 export type FolderItem = FileFolderItem | FolderFolderItem
@@ -31,9 +35,24 @@ export function folderItemEntity(folderItem: FileFolderItem | FolderFolderItem):
 
 export function toFolderItems(folderContents: FolderContents): FolderItem[] {
 	return [
-		...folderContents.folders.map((folder) => ({ type: "folder", folder }) satisfies FolderFolderItem),
-		...folderContents.files.map((file) => ({ type: "file", file }) satisfies FileFolderItem),
+		...folderContents.folders.map((folder) => ({ type: "folder", folder, parentFolder: null }) satisfies FolderFolderItem),
+		...folderContents.files.map((file) => ({ type: "file", file, parentFolder: null }) satisfies FileFolderItem),
 	]
+}
+
+export function toFolderItem(item: DriveFolder, parentFolder: DriveFolder | null): FolderFolderItem
+export function toFolderItem(item: DriveFile, parentFolder: DriveFolder | null): FileFolderItem
+export function toFolderItem(item: DriveFile | DriveFolder, parentFolder: DriveFolder | null): FolderItem
+export function toFolderItem(item: DriveFile | DriveFolder, parentFolder: DriveFolder | null): FolderItem {
+	if (isDriveFile(item)) {
+		return { type: "file", file: item, parentFolder: parentFolder }
+	} else {
+		return { type: "folder", folder: item, parentFolder: parentFolder }
+	}
+}
+
+export function folderItemId(item: FolderItem): IdTuple {
+	return folderItemEntity(item)._id
 }
 
 function isFolderFolderItem(item: FolderItem): item is FolderFolderItem {
@@ -210,5 +229,111 @@ export async function walkTree<EL>(root: EL, processNode: (el: EL) => Promise<EL
 		const currentEl = assertNotNull(stack.pop())
 		const newElements = await processNode(currentEl)
 		stack.push(...newElements)
+	}
+}
+
+export function folderItemParentId(item: FolderItem): IdTuple | null {
+	if (item.type === "file") {
+		return item.file.folder
+	} else {
+		return item.folder.parent
+	}
+}
+
+export function itemsIntoIds(items: readonly FolderItemId[]): { fileIds: IdTuple[]; folderIds: IdTuple[] } {
+	const [fileFolderItems, folderFolderItems] = partition(items, (item) => item.type === "file")
+	return {
+		fileIds: fileFolderItems.map((item) => item.id),
+		folderIds: folderFolderItems.map((item) => item.id),
+	}
+}
+export type ComparisonFunction = (f1: FolderItem, f2: FolderItem) => number
+
+export const enum SortColumn {
+	name = "name",
+	mimeType = "mimeType",
+	size = "size",
+	date = "date",
+	location = "location",
+}
+
+export interface SortingPreference {
+	column: SortColumn
+	order: SortOrder
+}
+
+export type SortOrder = "asc" | "desc"
+
+export function comparisonFunction(column: SortColumn, order: "asc" | "desc"): ComparisonFunction {
+	const itemName = (item: FolderItem) => (item.type === "folder" ? item.folder.name : item.file.name)
+	const itemDate = (item: FolderItem) => (item.type === "folder" ? item.folder.updatedDate : item.file.updatedDate)
+	const itemSize = (item: FolderItem) => (item.type === "folder" ? 0n : BigInt(item.file.size))
+
+	const itemMimeType = (item: FolderItem) => (item.type === "folder" ? "" : item.file.mimeType)
+	const itemLocation = (item: FolderItem) => item.parentFolder?.name || ""
+
+	const attrToComparisonFunction: Record<SortColumn, ComparisonFunction> = {
+		name: (f1: FolderItem, f2: FolderItem) => compareString(itemName(f1), itemName(f2)),
+		mimeType: (f1: FolderItem, f2: FolderItem) => compareString(itemMimeType(f1), itemMimeType(f2)),
+		location: (f1: FolderItem, f2: FolderItem) => compareString(itemLocation(f1), itemLocation(f2)),
+		size: (f1: FolderItem, f2: FolderItem) => compareNumber(itemSize(f1), itemSize(f2)),
+		date: (f1: FolderItem, f2: FolderItem) => compareNumber(itemDate(f1).getTime(), itemDate(f2).getTime()),
+	}
+
+	const comparisonFn = attrToComparisonFunction[column]
+
+	// invert comparison function when the order is descending
+	const sortFunction: typeof comparisonFn = order === "asc" ? comparisonFn : (l, r) => -comparisonFn(l, r)
+	return sortFunction
+}
+
+const compareString = (s1: string, s2: string) => {
+	s1 = s1.toLowerCase()
+	s2 = s2.toLowerCase()
+
+	if (s1 > s2) {
+		return 1
+	} else if (s2 > s1) {
+		return -1
+	}
+	return 0
+}
+
+const compareNumber = (n1: number | bigint, n2: number | bigint) => {
+	if (n1 > n2) {
+		return 1
+	} else if (n1 < n2) {
+		return -1
+	} else {
+		return 0
+	}
+}
+
+export enum DriveOperationType {
+	Copy,
+	Delete,
+	Move,
+	Trash,
+	Restore,
+}
+
+export interface RunningOperation {
+	type: DriveOperationType
+	count: number
+}
+
+export interface OperationUpdate {
+	type: DriveOperationType
+	count: number
+	status: OperationStatus
+	error: Error | null
+}
+
+export function toggleSort(currentPreference: SortingPreference, column: SortColumn): SortingPreference {
+	if (currentPreference.column === column) {
+		// flip order
+		return { column: column, order: currentPreference.order === "asc" ? "desc" : "asc" }
+	} else {
+		return { column: column, order: "asc" }
 	}
 }

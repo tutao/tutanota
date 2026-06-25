@@ -46,7 +46,7 @@ import { LoadingStateTracker } from "../../../common/offline/LoadingState"
 import { InitAsResponseArgs } from "../../../common/mailFunctionality/SendMailModel.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
-import { SearchModel } from "../../search/model/SearchModel.js"
+import { MailSearchModel } from "../../search/model/MailSearchModel.js"
 import { ParsedIcalFileContent } from "../../../calendar-app/calendar/view/CalendarInvites.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFacade.js"
@@ -180,7 +180,7 @@ export class MailViewerViewModel {
 		readonly logins: LoginController,
 		private readonly eventController: EventController,
 		private readonly workerFacade: WorkerFacade,
-		private readonly searchModel: SearchModel,
+		private readonly searchModel: MailSearchModel,
 		private readonly mailFacade: MailFacade,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly contactImporter: lazyAsync<ContactImporter>,

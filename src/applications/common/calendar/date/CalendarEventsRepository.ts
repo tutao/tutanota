@@ -71,6 +71,7 @@ export class CalendarEventsRepository {
 	private readonly loadedMonths: Map<number, string[]> = new Map() // First day of the month at midnight -> CalendarID
 	private daysToEvents: Stream<DaysToEvents> = stream(new Map())
 	private pendingLoadRequest: Promise<void> = Promise.resolve()
+	/** number of the month (zero indexed) to birthday data */
 	private monthsToBirthdayEvents: Map<number, BirthdayEventRegistry[]> = new Map()
 	private calendarMemberships: string[]
 
@@ -137,7 +138,7 @@ export class CalendarEventsRepository {
 
 	async loadMonthsIfNeeded(
 		daysInMonths: Array<Date>,
-		canceled: Stream<boolean>,
+		canceled: AbortSignal,
 		progressMonitor: ProgressMonitorInterface | null,
 		calendarToLoad?: string,
 		isForceReload: boolean = false,
@@ -147,7 +148,7 @@ export class CalendarEventsRepository {
 		}
 		const promiseForThisLoadRequest = this.pendingLoadRequest.then(async () => {
 			for (const dayInMonth of daysInMonths) {
-				if (canceled()) return
+				if (canceled.aborted) return
 
 				const monthRange = getMonthRange(dayInMonth, this.zone)
 				if (isForceReload) {
@@ -416,7 +417,7 @@ export class CalendarEventsRepository {
 			const removedCalendars = this.calendarMemberships.filter((membership) => !updatedMemberships.some((it) => it.group === membership))
 			const dates = Array.from(this.loadedMonths.keys()).map((it) => new Date(it))
 
-			await Promise.all(newCalendars.map((calendar) => this.loadMonthsIfNeeded(dates, stream(false), null, calendar.group)))
+			await Promise.all(newCalendars.map((calendar) => this.loadMonthsIfNeeded(dates, new AbortController().signal, null, calendar.group)))
 			for (const calendar of removedCalendars) {
 				this.removeEventForCalendar(calendar)
 			}

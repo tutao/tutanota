@@ -13,6 +13,9 @@ import { getElementId } from "../../../../platform-kit/meta"
 import { EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { ConnectionStateListener, WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
+import { SearchRouter } from "../../../common/search/view/SearchRouter"
+import { ContactSearchModel } from "../../search/model/ContactSearchModel"
+import { LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
 
 /** ViewModel for the overall contact view. */
 export class ContactViewModel {
@@ -29,6 +32,8 @@ export class ContactViewModel {
 		private readonly router: Router,
 		private readonly updateUi: () => unknown,
 		private readonly connectivityModel: WebsocketConnectivityModel,
+		private readonly searchRouter: SearchRouter,
+		private readonly searchModel: ContactSearchModel,
 	) {}
 
 	readonly listModel: ListElementListModel<Contact> = new ListElementListModel<Contact>({
@@ -133,5 +138,11 @@ export class ContactViewModel {
 		this.connectivityModel.removeConnectionStateListener(this.connectivityListener)
 		this.listModelStateStream?.end(true)
 		this.listModelStateStream = null
+	}
+	selectSearchResult(searchQuery: SearchQuery, contact: Contact | null) {
+		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, contact ? getElementId(contact) : null)
+	}
+	async getSearchResults(searchQuery: SearchQuery): Promise<LiveSearchResult<Contact>> {
+		return this.searchModel.searchContacts(searchQuery)
 	}
 }

@@ -8,8 +8,10 @@ import { attachDropdown } from "../../../../ui/base/Dropdown"
 import { theme } from "../../../../ui/theme"
 import { FolderItem } from "./DriveUtils"
 import { TabIndex } from "../../../../platform-kit/app-env"
-import { getFileContextActions, isDraggingDriveItems } from "./DriveGuiUtils"
+import { driveFolderName, getFileContextActions, isDraggingDriveItems } from "./DriveGuiUtils"
 import { getDisplayType, getFileIcon, getItemIconFill } from "../model/DriveMimeUtils"
+import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
+import { highlightTextInQueryAsChildren } from "../../../../ui/TextHighlightViewUtils"
 
 export interface FileActions {
 	onCut: (f: FolderItem) => unknown
@@ -39,6 +41,8 @@ export interface DriveFolderContentEntryAttrs {
 	isCut: boolean
 	onContextMenu: (f: FolderItem, event: MouseEvent) => unknown
 	onDomUpdated?: (dom: HTMLElement, moreActionsDom: HTMLElement) => unknown
+	displayLocation: boolean
+	highlightedStrings?: readonly SearchToken[]
 }
 
 export class DriveFolderContentEntry implements Component<DriveFolderContentEntryAttrs> {
@@ -65,6 +69,8 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 			onContextMenu,
 			isCut,
 			fileActions,
+			displayLocation,
+			highlightedStrings,
 		},
 	}: Vnode<DriveFolderContentEntryAttrs>): Children {
 		const updatedDate = item.type === "file" ? item.file.updatedDate : item.folder.updatedDate
@@ -85,7 +91,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 					"margin-bottom": "4px",
 					padding: "6px 12px 6px 24px",
 					"grid-column-start": "1",
-					"grid-column-end": "8",
+					"grid-column-end": displayLocation ? "9" : "8",
 					display: "grid",
 					"grid-template-columns": "subgrid",
 					background: selected ? theme.state_bg_hover : theme.surface,
@@ -161,8 +167,9 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 				m(
 					"div.text-ellipsis",
 					{ "data-testid": "drivecontententry:name", role: "gridcell" },
-					m("span", item.type === "file" ? item.file.name : item.folder.name),
+					this.renderItemName(item.type === "file" ? item.file.name : item.folder.name, highlightedStrings),
 				),
+				displayLocation ? m("div.text-ellipsis", { role: "gridcell" }, item.parentFolder ? driveFolderName(item.parentFolder).text : null) : null,
 				m("div", { role: "gridcell" }, fileFormat),
 				m("div", { role: "gridcell" }, item.type === "folder" ? "🐱" : formatStorageSize(filterInt(item.file.size))),
 				m("div", { role: "gridcell" }, updatedDate.toLocaleString()),
@@ -188,5 +195,13 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 				),
 			],
 		)
+	}
+
+	private renderItemName(name: string, highlightedStrings?: readonly SearchToken[]): Children {
+		if (highlightedStrings) {
+			return m("span", highlightTextInQueryAsChildren(name, highlightedStrings))
+		} else {
+			return m("span", [name])
+		}
 	}
 }

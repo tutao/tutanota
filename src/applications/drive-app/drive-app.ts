@@ -35,6 +35,10 @@ import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
 import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
 import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
 import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
+import { DriveSearchView, DriveSearchViewAttrs } from "./search/view/DriveSearchView"
+import { DriveSearchViewModel } from "./search/view/DriveSearchViewModel"
+import { FolderItem } from "./drive/view/DriveUtils"
+import { MoveItems } from "./drive/view/DriveMoveItemDialog"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
@@ -187,7 +191,6 @@ import("../../ui/translations/en.js")
 					drawerAttrsFactory: () => DrawerMenuAttrs
 					header: AppHeaderAttrs
 					driveViewModel: DriveViewModel
-					lazySearchBar: () => Children
 					filePicker: DriveFilePicker
 					bottomNav: () => Children
 				}
@@ -195,7 +198,6 @@ import("../../ui/translations/en.js")
 				{
 					prepareRoute: async (cache) => {
 						const { DriveView } = await import("../drive-app/drive/view/DriveView.js")
-						const { lazyDriveSearchBarStub } = await import("./LazyDriveSearchBarStub.js")
 						const drawerAttrsFactory = await driveLocator.drawerAttrsFactory()
 						const filePicker = await driveLocator.driveFilePicker()
 						return {
@@ -204,24 +206,59 @@ import("../../ui/translations/en.js")
 								drawerAttrsFactory,
 								header: await driveLocator.appHeaderAttrs(),
 								driveViewModel: await driveLocator.driveViewModel(),
-								lazySearchBar: () =>
-									m(lazyDriveSearchBarStub, {
-										placeholder: "stub",
-									}),
 								filePicker,
 								bottomNav: () => null,
 							},
 						}
 					},
-					prepareAttrs: ({ header, driveViewModel, drawerAttrsFactory, lazySearchBar, filePicker, bottomNav }) => ({
+					prepareAttrs: ({ header, driveViewModel, drawerAttrsFactory, filePicker, bottomNav }) => ({
 						drawerAttrs: drawerAttrsFactory(),
 						header,
 						driveViewModel,
-						lazySearchBar,
 						showMoveItemDialog: (items, moveItems) => driveLocator.showMoveItemDialog(items, moveItems),
 						filePicker,
 						bottomNav,
 					}),
+				},
+				driveLocator.logins,
+			),
+			search: makeViewResolver<
+				DriveSearchViewAttrs,
+				DriveSearchView,
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					header: AppHeaderAttrs
+					makeViewModel: () => DriveSearchViewModel
+					showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown
+					filePicker: DriveFilePicker
+				}
+			>(
+				{
+					prepareRoute: async () => {
+						const { DriveSearchView } = await import("./search/view/DriveSearchView.js")
+						const drawerAttrsFactory = await driveLocator.drawerAttrsFactory()
+						const makeViewModel = await driveLocator.driveSearchViewModelFactory()
+						const filePicker = await driveLocator.driveFilePicker()
+						return {
+							component: DriveSearchView,
+							cache: {
+								header: await driveLocator.appHeaderAttrs(),
+								drawerAttrsFactory,
+								makeViewModel,
+								showMoveItemDialog: (items, moveItems) => driveLocator.showMoveItemDialog(items, moveItems),
+								filePicker,
+							},
+						}
+					},
+					prepareAttrs: (cache) => {
+						return {
+							header: cache.header,
+							drawerAttrs: cache.drawerAttrsFactory(),
+							makeViewModel: cache.makeViewModel,
+							showMoveItemDialog: cache.showMoveItemDialog,
+							filePicker: cache.filePicker,
+						}
+					},
 				},
 				driveLocator.logins,
 			),

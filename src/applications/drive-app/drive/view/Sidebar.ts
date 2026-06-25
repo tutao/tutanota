@@ -8,7 +8,7 @@ import { theme } from "../../../../ui/theme"
 import { pureComponent } from "../../../../ui/base/PureComponent"
 import { AllIcons } from "../../../../ui/base/Icon"
 import { ClickHandler, DriveDropData } from "../../../../ui/base/GuiUtils"
-import { FolderItemId } from "./DriveUtils"
+import { FolderItem, FolderItemId } from "./DriveUtils"
 import { parseDragItems } from "./DriveGuiUtils"
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
 

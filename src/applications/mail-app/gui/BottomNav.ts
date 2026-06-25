@@ -18,6 +18,8 @@ function getHrefForSearch(): string {
 		return "/search/contact"
 	} else if (route.startsWith(CALENDAR_PREFIX)) {
 		return "/search/calendar"
+	} else if (route.startsWith(DRIVE_PREFIX)) {
+		return "/search/drive"
 	} else {
 		return "/search/mail"
 	}

@@ -2,7 +2,6 @@ import o, { verify } from "@tutao/otest"
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
 import { DriveFacade, DriveFolderType, DriveRootFolders } from "../../../src/applications/common/api/worker/facades/lazy/DriveFacade"
 import { Router } from "../../../src/ui/ScopedThrottledRouter"
-import { TransferProgressDispatcher } from "../../../src/applications/common/api/main/TransferProgressDispatcher"
 import { EventController } from "../../../src/applications/common/api/main/EventController"
 import { LoginController } from "../../../src/applications/common/api/main/LoginController"
 import { UserManagementFacade } from "../../../src/applications/common/api/worker/facades/lazy/UserManagementFacade"
@@ -11,16 +10,13 @@ import { func, matchers, object, when } from "testdouble"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock"
 import { clientInitializedTypeModelResolver, createTestEntity, withOverriddenEnv } from "../TestUtils"
 import { UserController } from "../../../src/applications/common/api/main/UserController"
-import { elementIdPart, getElementId } from "../../../src/platform-kit/meta"
-import { FolderItemId } from "../../../src/applications/drive-app/drive/view/DriveUtils"
-import { DriveTransferController } from "../../../src/applications/drive-app/drive/view/DriveTransferController"
 import { WebFile } from "../../../src/entities/tutanota/Utils"
 import { TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
-import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
-import { GroupInfoTypeRef, PlanConfigurationTypeRef } from "@tutao/entities/sys"
-import { DuplicateFilesDialogDecision } from "../../../src/applications/drive-app/drive/view/DriveGuiUtils"
+import { DriveFileTypeRef, DriveFolderTypeRef } from "@tutao/entities/drive"
+import { CustomerInfoTypeRef, GroupInfoTypeRef, PlanConfigurationTypeRef } from "@tutao/entities/sys"
 import { WindowFacade } from "../../../src/applications/common/misc/WindowFacade"
 import { Mode } from "../../../src/platform-kit/app-env"
+import { DriveModel } from "../../../src/applications/drive-app/drive/model/DriveModel"
 
 o.spec("DriveViewModel", function () {
 	let driveViewModel: DriveViewModel
@@ -29,15 +25,14 @@ o.spec("DriveViewModel", function () {
 	let entityClient: EntityClient
 	let driveFacade: DriveFacade
 	let router: Router
-	let uploadProgressController: TransferProgressDispatcher
 	let eventController: EventController
 	let loginController: LoginController
 	let userController: UserController
 	let userManagementFacade: UserManagementFacade
-	let transferController: DriveTransferController
 	let windowFacade: WindowFacade
 	let windowCloseConfirmation: () => Promise<boolean>
 	let allTransfersDoneNotification = func() as () => void
+	let driveModel: DriveModel
 
 	const rootIds: Readonly<DriveRootFolders> = {
 		root: ["RootListID", "RootElementID"],
@@ -72,10 +67,10 @@ o.spec("DriveViewModel", function () {
 		entityClient = new EntityClient(entityRestClientMock, clientInitializedTypeModelResolver())
 		driveFacade = object()
 		router = object()
-		uploadProgressController = object()
 		eventController = object()
 		loginController = object()
 		windowFacade = object()
+		driveModel = object()
 		windowCloseConfirmation = func() as () => Promise<boolean>
 
 		const props = createTestEntity(TutanotaPropertiesTypeRef, {
@@ -88,19 +83,19 @@ o.spec("DriveViewModel", function () {
 			props,
 			userGroupInfo: userGroupInfo,
 			getPlanConfig: async () => createTestEntity(PlanConfigurationTypeRef, { drive: true }),
+			loadCustomerInfo: async () => createTestEntity(CustomerInfoTypeRef),
 		} satisfies Partial<UserController> as UserController
 		userManagementFacade = object()
 
 		when(loginController.getUserController()).thenReturn(userController)
 		when(loginController.waitForFullLogin()).thenResolve()
 		when(driveFacade.loadRootFolders(matchers.anything())).thenResolve(rootIds)
+		when(driveFacade.getFolderContents(matchers.anything())).thenResolve({ files: [], folders: [] })
 		when(windowCloseConfirmation()).thenResolve(true)
 
 		entityRestClientMock.addListInstances(rootFolders.root)
 
-		transferController = object()
-
-		when(transferController.setAllTransfersDoneListener(matchers.anything())).thenDo((listener: () => void) => {
+		when(driveModel.setAllTransfersDoneListener(matchers.anything())).thenDo((listener: () => void) => {
 			allTransfersDoneNotification = listener
 		})
 
@@ -108,407 +103,141 @@ o.spec("DriveViewModel", function () {
 			entityClient,
 			driveFacade,
 			router,
-			uploadProgressController,
 			eventController,
 			loginController,
 			userManagementFacade,
-			transferController,
 			null,
 			windowFacade,
 			() => {},
 			windowCloseConfirmation,
 			object(),
+			object(),
+			object(),
+			driveModel,
 		)
 		await driveViewModel.init()
 	})
 
-	o.spec("copyItems", function () {
-		o.test("when copying into current folder without name conflicts it calls driveFacade with empty rename map", async function () {
-			const files: FolderItemId[] = [
-				{ type: "file", id: ["lid1", "eid1"] },
-				{ type: "file", id: ["lid1", "eid2"] },
-			]
-
-			const folders: FolderItemId[] = [
-				{ type: "folder", id: ["lid1", "eid3"] },
-				{ type: "folder", id: ["lid1", "eid4"] },
-			]
-
-			const items: FolderItemId[] = [...files, ...folders]
-
-			const driveFiles: DriveFile[] = files.map((f) =>
-				createTestEntity(DriveFileTypeRef, {
-					_id: f.id,
-					name: `my favorite file ${f.id}`,
-				}),
-			)
-			const driveFolders: DriveFolder[] = folders.map((f) =>
-				createTestEntity(DriveFolderTypeRef, {
-					_id: f.id,
-					name: `my favorite folder ${f.id}`,
-				}),
-			)
-			entityRestClientMock.addListInstances(...driveFiles, ...driveFolders)
-			when(driveFacade.getFolderContents(rootFolders.root._id)).thenResolve({ files: [], folders: [] })
-
-			await driveViewModel.displayFolder(rootIds.root)
-			await driveViewModel.copyItems(items, driveViewModel.currentFolder!.folder)
-			const renameCaptor = matchers.captor()
-			verify(driveFacade.copyItems(driveFiles, driveFolders, driveViewModel.currentFolder!.folder, renameCaptor.capture()))
-			o.check(renameCaptor.value).deepEquals(new Map())
-		})
-
-		o.test("when copying into current folder with file name conflicts it calls driveFacade with a partly-populated rename map", async function () {
-			const files: FolderItemId[] = [
-				{ type: "file", id: ["lid1", "eid1"] },
-				{ type: "file", id: ["lid1", "eid2"] },
-			]
-
-			const folders: FolderItemId[] = [
-				{ type: "folder", id: ["lid1", "eid3"] },
-				{ type: "folder", id: ["lid1", "eid4"] },
-			]
-
-			const items: FolderItemId[] = [...files, ...folders]
-
-			const driveFiles: DriveFile[] = files.map((f) => createTestEntity(DriveFileTypeRef, { _id: f.id, name: `file1` }))
-			const driveFolders: DriveFolder[] = folders.map((f) =>
-				createTestEntity(DriveFolderTypeRef, {
-					_id: f.id,
-					name: `my favorite folder ${f.id}`,
-				}),
-			)
-
-			entityRestClientMock.addListInstances(...driveFiles, ...driveFolders)
-			when(driveFacade.getFolderContents(rootFolders.root._id)).thenResolve({ files: [], folders: [] })
-
-			await driveViewModel.copyItems(items, rootFolders.root)
-
-			const expectedRenameMap = new Map<Id, string>()
-			expectedRenameMap.set(getElementId(driveFiles[1]), "file1 (copy)")
-
-			const renameCaptor = matchers.captor()
-			verify(driveFacade.copyItems(driveFiles, driveFolders, rootFolders.root, renameCaptor.capture()))
-			o.check(renameCaptor.value).deepEquals(expectedRenameMap)
-		})
-
-		o.test("when copying into current folder with folder name conflicts it calls driveFacade with a partly-populated rename map", async function () {
-			const files: FolderItemId[] = [
-				{ type: "file", id: ["lid1", "eid1"] },
-				{ type: "file", id: ["lid1", "eid2"] },
-			]
-
-			const folders: FolderItemId[] = [
-				{ type: "folder", id: ["lid1", "eid3"] },
-				{ type: "folder", id: ["lid1", "eid4"] },
-			]
-
-			const items: FolderItemId[] = [...files, ...folders]
-
-			const driveFiles: DriveFile[] = files.map((f) =>
-				createTestEntity(DriveFileTypeRef, {
-					_id: f.id,
-					name: `my favorite file ${f.id}`,
-				}),
-			)
-			const driveFolders: DriveFolder[] = folders.map((f) =>
-				createTestEntity(DriveFolderTypeRef, {
-					_id: f.id,
-					name: `folder1`,
-				}),
-			)
-
-			entityRestClientMock.addListInstances(...driveFiles, ...driveFolders)
-			when(driveFacade.getFolderContents(rootFolders.root._id)).thenResolve({ files: [], folders: [] })
-
-			await driveViewModel.copyItems(items, rootFolders.root)
-
-			const expectedRenameMap = new Map<Id, string>()
-			expectedRenameMap.set(getElementId(driveFolders[1]), "folder1 (copy)")
-
-			const renameCaptor = matchers.captor()
-			verify(driveFacade.copyItems(driveFiles, driveFolders, rootFolders.root, renameCaptor.capture()))
-			o.check(renameCaptor.value).deepEquals(expectedRenameMap)
-		})
-
-		o.test(
-			"when copying into current folder with folder and file name conflicts it calls driveFacade with a partly-populated rename map",
-			async function () {
-				const files: FolderItemId[] = [{ type: "file", id: ["lid1", "eid1"] }]
-
-				const folders: FolderItemId[] = [{ type: "folder", id: ["lid1", "eid3"] }]
-
-				const items: FolderItemId[] = [...files, ...folders]
-
-				const driveFiles: DriveFile[] = files.map((f) =>
-					createTestEntity(DriveFileTypeRef, {
-						_id: f.id,
-						name: `same name`,
-					}),
-				)
-				const driveFolders: DriveFolder[] = folders.map((f) =>
-					createTestEntity(DriveFolderTypeRef, {
-						_id: f.id,
-						name: `same name`,
-					}),
-				)
-
-				entityRestClientMock.addListInstances(...driveFiles, ...driveFolders)
-				when(driveFacade.getFolderContents(rootFolders.root._id)).thenResolve({ files: [], folders: [] })
-
-				await driveViewModel.copyItems(items, rootFolders.root)
-
-				const expectedRenameMap = new Map<Id, string>([[getElementId(driveFolders[0]), "same name (copy)"]])
-
-				const renameCaptor = matchers.captor()
-				verify(driveFacade.copyItems(driveFiles, driveFolders, rootFolders.root, renameCaptor.capture()))
-				o.check(renameCaptor.value).deepEquals(expectedRenameMap)
-			},
-		)
-
-		o.test(
-			"when copying files into current folder and there are name conflicts with existing files it calls driveFacade with a partly-populated rename map",
-			async function () {
-				const files: FolderItemId[] = [{ type: "file", id: ["lid1", "eid1"] }]
-				const items: FolderItemId[] = [...files]
-				const existingFiles: DriveFile[] = [
-					createTestEntity(DriveFileTypeRef, {
-						_id: ["lid1", "eid0"],
-						name: `same name`,
-					}),
-				]
-				when(driveFacade.getFolderContents(rootFolders.root._id)).thenResolve({ files: existingFiles, folders: [] })
-
-				const driveFiles: DriveFile[] = files.map((f) =>
-					createTestEntity(DriveFileTypeRef, {
-						_id: f.id,
-						name: `same name`,
-					}),
-				)
-
-				entityRestClientMock.addListInstances(...driveFiles)
-
-				await driveViewModel.copyItems(items, rootFolders.root)
-
-				const expectedRenameMap = new Map<Id, string>([[getElementId(driveFiles[0]), "same name (copy)"]])
-
-				const renameCaptor = matchers.captor()
-				verify(driveFacade.copyItems(driveFiles, [], rootFolders.root, renameCaptor.capture()))
-				o.check(renameCaptor.value).deepEquals(expectedRenameMap)
-			},
-		)
-
-		o.test(
-			"when copying files into current folder and there are name conflicts with existing files it calls driveFacade with a partly-populated rename map",
-			async function () {
-				const folders: FolderItemId[] = [{ type: "folder", id: ["lid1", "eid1"] }]
-				const items: FolderItemId[] = [...folders]
-				const existingFiles: DriveFile[] = [
-					createTestEntity(DriveFileTypeRef, {
-						_id: ["lid1", "eid0"],
-						name: `same name`,
-					}),
-				]
-				when(driveFacade.getFolderContents(rootFolders.root._id)).thenResolve({ files: existingFiles, folders: [] })
-
-				const driveFolders: DriveFolder[] = folders.map((f) =>
-					createTestEntity(DriveFolderTypeRef, {
-						_id: f.id,
-						name: `same name`,
-					}),
-				)
-
-				entityRestClientMock.addListInstances(...driveFolders)
-
-				await driveViewModel.copyItems(items, rootFolders.root)
-
-				const expectedRenameMap = new Map<Id, string>([[getElementId(driveFolders[0]), "same name (copy)"]])
-
-				const renameCaptor = matchers.captor()
-				verify(driveFacade.copyItems([], driveFolders, rootFolders.root, renameCaptor.capture()))
-				o.check(renameCaptor.value).deepEquals(expectedRenameMap)
-			},
-		)
-	})
-
 	o.spec("uploadFiles", function () {
-		o.test("when uploading a single file it succeeds", async function () {
-			const webFiles: WebFile[] = [
-				{
-					_type: "WebFile",
-					file: {
-						name: "meow",
-						size: 1024,
-					} as File,
-				},
-			]
-			await driveViewModel.displayFolder(rootIds.root)
-			await driveViewModel.uploadFiles(webFiles, async (fileName: string, fileCount: number): Promise<DuplicateFilesDialogDecision> => {
-				return { choice: "keepBoth", applyToAll: true }
+		const webFiles: WebFile[] = [
+			{
+				_type: "WebFile",
+				file: {
+					name: "meow",
+					size: 1024,
+				} as File,
+			},
+		]
+
+		o.spec("destination", function () {
+			o.test("when in normal folder without target it uploads there", async function () {
+				const showDuplicateFilesChoiceDialog = () => Promise.reject(new Error())
+
+				await driveViewModel.uploadFiles(webFiles, showDuplicateFilesChoiceDialog)
+
+				verify(driveModel.uploadFiles(webFiles, rootIds.root, showDuplicateFilesChoiceDialog, undefined))
 			})
 
-			verify(transferController.upload(webFiles[0], "meow", rootIds.root))
-		})
+			o.test("when in trash folder without target it uploads to root", async function () {
+				const showDuplicateFilesChoiceDialog = () => Promise.reject(new Error())
+				await driveViewModel.displayFolder(rootIds.trash)
 
-		o.test("when uploading two files with the same name, the second one gets renamed", async function () {
-			const webFiles: WebFile[] = [
-				{
-					_type: "WebFile",
-					file: {
-						name: "meow",
-						size: 1024,
-					} as File,
-				},
-				{
-					_type: "WebFile",
-					file: {
-						name: "meow",
-						size: 512,
-					} as File,
-				},
-			]
-			const duplicateOptions: DuplicateFilesDialogDecision = { choice: "keepBoth", applyToAll: true }
-			await driveViewModel.displayFolder(rootIds.root)
-			await driveViewModel.uploadFiles(webFiles, async (fileName: "meow", fileCount: 2): Promise<DuplicateFilesDialogDecision> => {
-				return duplicateOptions
+				await driveViewModel.uploadFiles(webFiles, showDuplicateFilesChoiceDialog)
+
+				verify(driveModel.uploadFiles(webFiles, rootIds.root, showDuplicateFilesChoiceDialog, undefined))
 			})
 
-			verify(transferController.upload(webFiles[0], "meow", rootIds.root))
-			verify(transferController.upload(webFiles[1], "meow (copy)", rootIds.root))
+			o.test("when in normal folder with a target it uploads to that target", async function () {
+				const showDuplicateFilesChoiceDialog = () => Promise.reject(new Error())
+				const customFolderTarget: IdTuple = ["customList", "customElement"]
+
+				await driveViewModel.uploadFiles(webFiles, showDuplicateFilesChoiceDialog, [], customFolderTarget)
+
+				verify(driveModel.uploadFiles(webFiles, customFolderTarget, showDuplicateFilesChoiceDialog, []))
+			})
+
+			o.test("when in trash folder with a target it uploads to that target", async function () {
+				const showDuplicateFilesChoiceDialog = () => Promise.reject(new Error())
+				const customFolderTarget: IdTuple = ["customList", "customElement"]
+				await driveViewModel.displayFolder(rootIds.trash)
+
+				await driveViewModel.uploadFiles(webFiles, showDuplicateFilesChoiceDialog, [], customFolderTarget)
+
+				verify(driveModel.uploadFiles(webFiles, customFolderTarget, showDuplicateFilesChoiceDialog, []))
+			})
 		})
 
-		o.test(
-			"when uploading two files with the same name, the second one conflicts with an existing folder after renaming but gets renamed again",
-			async function () {
-				const webFiles: WebFile[] = [
-					{
-						_type: "WebFile",
-						file: {
-							name: "meow",
-							size: 1024,
-						} as File,
-					},
-					{
-						_type: "WebFile",
-						file: {
-							name: "meow",
-							size: 512,
-						} as File,
-					},
-				]
+		o.spec("windows close listener", function () {
+			o.beforeEach(function () {
+				when(driveModel.uploadFiles(matchers.anything(), matchers.anything(), matchers.anything()), { ignoreExtraArgs: true }).thenResolve(true)
+			})
 
-				const existingFolders: DriveFolder[] = [
-					createTestEntity(DriveFolderTypeRef, {
-						_id: ["lid1", "eid0"],
-						name: `meow (copy)`,
-					}),
-				]
-
-				when(driveFacade.getFolderContents(rootFolders.root._id)).thenResolve({ files: [], folders: existingFolders })
-				const duplicateOptions: DuplicateFilesDialogDecision = { choice: "keepBoth", applyToAll: true }
+			o.test("should set up a close listener when uploading and remove it and close the window on user request", async function () {
+				const deleteListenerFunction = func() as () => void
+				let windowCloseRequest: () => void
+				when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
+					windowCloseRequest = listener
+					return deleteListenerFunction
+				})
 				await driveViewModel.displayFolder(rootIds.root)
-				await driveViewModel.uploadFiles(webFiles, async (fileName: "meow", fileCount: 2) => {
-					return duplicateOptions
+
+				await driveViewModel.uploadFiles(webFiles, () => Promise.reject(new Error()))
+
+				verify(driveModel.uploadFiles(matchers.anything(), matchers.anything(), matchers.anything()), { ignoreExtraArgs: true })
+				await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
+					await windowCloseRequest!()
+
+					verify(deleteListenerFunction())
+					verify(windowFacade.closeWindow())
+				})
+			})
+
+			o.test("does not set up a close listener if nothing is uploaded", async function () {
+				const deleteListenerFunction = func() as () => void
+				let windowCloseRequest: (() => void) | null = null
+				when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
+					windowCloseRequest = listener
+					return deleteListenerFunction
+				})
+				await driveViewModel.displayFolder(rootIds.root)
+				when(driveModel.uploadFiles(matchers.anything(), matchers.anything(), matchers.anything()), { ignoreExtraArgs: true }).thenResolve(false)
+
+				await driveViewModel.uploadFiles(webFiles, () => Promise.reject(new Error()))
+
+				o.check(windowCloseRequest).equals(null)
+			})
+
+			o.test("should set up a close listener when uploading and remove it once all uploads are done", async function () {
+				const deleteListenerFunction = func() as () => void
+				when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
+					return deleteListenerFunction
 				})
 
-				verify(transferController.upload(webFiles[0], "meow", rootIds.root))
-				verify(transferController.upload(webFiles[1], "meow (copy) (copy)", rootIds.root))
-			},
-		)
+				await driveViewModel.displayFolder(rootIds.root)
+				await driveViewModel.uploadFiles(webFiles, () => Promise.reject(new Error()))
 
-		o.test("should set up a close listener when uploading and remove it and close the window on user request", async function () {
-			const webFiles: WebFile[] = [
-				{
-					_type: "WebFile",
-					file: {
-						name: "meow",
-						size: 1024,
-					} as File,
-				},
-			]
+				allTransfersDoneNotification()
 
-			const deleteListenerFunction = func() as () => void
-			let windowCloseRequest: () => void
-			when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
-				windowCloseRequest = listener
-				return deleteListenerFunction
-			})
-
-			const duplicateOptions: DuplicateFilesDialogDecision = { choice: "keepBoth", applyToAll: true }
-			await driveViewModel.displayFolder(rootIds.root)
-			await driveViewModel.uploadFiles(webFiles, async (fileName: "meow", fileCount: 1) => {
-				return duplicateOptions
-			})
-
-			verify(transferController.upload(webFiles[0], "meow", rootIds.root))
-			await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
-				await windowCloseRequest!()
-
+				verify(driveModel.uploadFiles(matchers.anything(), matchers.anything(), matchers.anything()), { ignoreExtraArgs: true })
 				verify(deleteListenerFunction())
-				verify(windowFacade.closeWindow())
-			})
-		})
-
-		o.test("should set up a close listener when uploading and remove it once all uploads are done", async function () {
-			const webFiles: WebFile[] = [
-				{
-					_type: "WebFile",
-					file: {
-						name: "meow",
-						size: 1024,
-					} as File,
-				},
-			]
-
-			const deleteListenerFunction = func() as () => void
-			let windowCloseRequest: () => void
-			when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
-				windowCloseRequest = listener
-				return deleteListenerFunction
 			})
 
-			const duplicateOptions: DuplicateFilesDialogDecision = { choice: "keepBoth", applyToAll: true }
-			await driveViewModel.displayFolder(rootIds.root)
-			await driveViewModel.uploadFiles(webFiles, async (fileName: "meow", fileCount: 1) => {
-				return duplicateOptions
-			})
+			o.test("should set up a close listener when uploading and do not remove it before the upload is done", async function () {
+				const deleteListenerFunction = func() as () => void
+				let windowCloseListenerRan = false
+				when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
+					windowCloseListenerRan = true
+					return deleteListenerFunction
+				})
 
-			allTransfersDoneNotification()
+				await driveViewModel.displayFolder(rootIds.root)
+				await driveViewModel.uploadFiles(webFiles, () => Promise.reject(new Error()))
 
-			verify(transferController.upload(webFiles[0], "meow", rootIds.root))
-			verify(deleteListenerFunction())
-		})
-
-		o.test("should set up a close listener when uploading and do not remove it before the upload is done", async function () {
-			const webFiles: WebFile[] = [
-				{
-					_type: "WebFile",
-					file: {
-						name: "meow",
-						size: 1024,
-					} as File,
-				},
-			]
-
-			const deleteListenerFunction = func() as () => void
-			let windowCloseRequest: () => void
-			let windowCloseListenerRan = false
-			when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
-				windowCloseListenerRan = true
-				windowCloseRequest = listener
-				return deleteListenerFunction
-			})
-
-			const duplicateOptions: DuplicateFilesDialogDecision = { choice: "keepBoth", applyToAll: true }
-			await driveViewModel.displayFolder(rootIds.root)
-			await driveViewModel.uploadFiles(webFiles, async (fileName: "meow", fileCount: 1) => {
-				return duplicateOptions
-			})
-
-			verify(transferController.upload(webFiles[0], "meow", rootIds.root))
-			await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
-				o.check(windowCloseListenerRan).equals(true)
-				verify(deleteListenerFunction(), { times: 0 })
+				verify(driveModel.uploadFiles(matchers.anything(), matchers.anything(), matchers.anything()), { ignoreExtraArgs: true })
+				await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
+					o.check(windowCloseListenerRan).equals(true)
+					verify(deleteListenerFunction(), { times: 0 })
+				})
 			})
 		})
 	})
@@ -526,7 +255,7 @@ o.spec("DriveViewModel", function () {
 
 			await driveViewModel.downloadFile(createTestEntity(DriveFileTypeRef))
 
-			verify(transferController.download(fileToDownload, "download"))
+			verify(driveModel.downloadFile(fileToDownload))
 			await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
 				await windowCloseRequest!()
 
@@ -539,9 +268,7 @@ o.spec("DriveViewModel", function () {
 			const fileToDownload = createTestEntity(DriveFileTypeRef)
 
 			const deleteListenerFunction = func() as () => void
-			let windowCloseRequest: () => void
 			when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
-				windowCloseRequest = listener
 				return deleteListenerFunction
 			})
 
@@ -549,7 +276,7 @@ o.spec("DriveViewModel", function () {
 
 			allTransfersDoneNotification()
 
-			verify(transferController.download(fileToDownload, "download"))
+			verify(driveModel.downloadFile(fileToDownload))
 			verify(deleteListenerFunction())
 		})
 
@@ -557,72 +284,19 @@ o.spec("DriveViewModel", function () {
 			const fileToDownload = createTestEntity(DriveFileTypeRef)
 
 			const deleteListenerFunction = func() as () => void
-			let windowCloseRequest: () => void
 			let windowCloseListenerRan = false
 			when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
 				windowCloseListenerRan = true
-				windowCloseRequest = listener
 				return deleteListenerFunction
 			})
 
 			await driveViewModel.downloadFile(createTestEntity(DriveFileTypeRef))
 
-			verify(transferController.download(fileToDownload, "download"))
+			verify(driveModel.downloadFile(fileToDownload))
 			await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
 				o.check(windowCloseListenerRan).equals(true)
 				verify(deleteListenerFunction(), { times: 0 })
 			})
-		})
-	})
-
-	o.spec("moveItems", function () {
-		o.test("when moving item with the same name as existing one the it gets renamed", async function () {
-			const existingFiles: DriveFile[] = [
-				createTestEntity(DriveFileTypeRef, {
-					_id: ["lid1", "eid0"],
-					name: `same name`,
-				}),
-			]
-			when(driveFacade.getFolderContents(rootFolders.root._id)).thenResolve({ files: existingFiles, folders: [] })
-
-			const files: FolderItemId[] = [{ type: "file", id: ["lid1", "eid1"] }]
-			const driveFiles: DriveFile[] = files.map((f) =>
-				createTestEntity(DriveFileTypeRef, {
-					_id: f.id,
-					name: `same name`,
-				}),
-			)
-			entityRestClientMock.addListInstances(...driveFiles)
-
-			await driveViewModel.moveItems(files, rootFolders.root._id)
-			verify(driveFacade.move([driveFiles[0]], [], rootFolders.root._id, new Map([[getElementId(driveFiles[0]), `same name (copy)`]])))
-		})
-
-		o.test("when moving items and the picked name conflicts with existing one it gets renamed", async function () {
-			const existingFiles: DriveFile[] = [
-				createTestEntity(DriveFileTypeRef, {
-					_id: ["lid1", "eid0"],
-					name: `same name (copy)`,
-				}),
-			]
-			when(driveFacade.getFolderContents(rootFolders.root._id)).thenResolve({ files: existingFiles, folders: [] })
-
-			const files: FolderItemId[] = [
-				{ type: "file", id: ["lid1", "eid1"] },
-				{ type: "file", id: ["lid1", "eid2"] },
-			]
-			const driveFiles: DriveFile[] = files.map((f) =>
-				createTestEntity(DriveFileTypeRef, {
-					_id: f.id,
-					name: `same name`,
-				}),
-			)
-			entityRestClientMock.addListInstances(...driveFiles)
-
-			await driveViewModel.moveItems(files, rootFolders.root._id)
-			const mapCaptor = matchers.captor()
-			verify(driveFacade.move([driveFiles[0], driveFiles[1]], [], rootFolders.root._id, mapCaptor.capture()))
-			o.check(mapCaptor.value).deepEquals(new Map([[elementIdPart(files[1].id), `same name (copy) (copy)`]]))
 		})
 	})
 })

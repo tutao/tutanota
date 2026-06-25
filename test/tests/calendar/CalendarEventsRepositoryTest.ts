@@ -7,7 +7,6 @@ import { UserController } from "../../../src/applications/common/api/main/UserCo
 import { LoginController } from "../../../src/applications/common/api/main/LoginController"
 import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../../../src/applications/calendar-app/calendar/model/CalendarModel"
 import Stream from "mithril/stream"
-import stream from "mithril/stream"
 import { DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CALENDAR_COLOR } from "../../../src/platform-kit/app-env"
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
 import { createTestEntity } from "../TestUtils"
@@ -43,6 +42,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 		let calendarEventsRepository: CalendarEventsRepository
 		let initialCalendarInfos: Map<string, CalendarInfo>
 		let initialCalendarMembership: GroupMembership
+		let abortController: AbortController
 
 		o.beforeEach(function () {
 			userControllerMock = object<UserController>()
@@ -50,6 +50,8 @@ o.spec("CalendarEventRepositoryTest", function () {
 			loginControllerMock = object()
 			calendarModelMock = object()
 			entityClientMock = object<EntityClient>()
+
+			abortController = new AbortController()
 
 			calendarInfosStreamMock = object()
 
@@ -103,7 +105,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 					daysToEventsMock,
 				)
 				// Making sure EventRepository.daysToEvents and EventRepository.loadedMonths is initialized
-				await calendarEventsRepository.loadMonthsIfNeeded([dateFarFromEvent], stream(false), null)
+				await calendarEventsRepository.loadMonthsIfNeeded([dateFarFromEvent], abortController.signal, null)
 
 				// Act
 				const calendarEventUpdate: EntityUpdateData = object()
@@ -140,7 +142,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 					daysToEventsMock,
 				)
 				// Making sure EventRepository.daysToEvents and EventRepository.loadedMonths is initialized
-				await calendarEventsRepository.loadMonthsIfNeeded([eventStartDate], stream(false), null)
+				await calendarEventsRepository.loadMonthsIfNeeded([eventStartDate], abortController.signal, null)
 
 				// Act
 				const calendarEventUpdate: EntityUpdateData = object()
@@ -167,7 +169,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 					daysToEventsMock, // Provide a initialized Map with an empty day
 				)
 				// Making sure EventRepository.daysToEvents and EventRepository.loadedMonths is initialized
-				await calendarEventsRepository.loadMonthsIfNeeded([eventStartDate], stream(false), null)
+				await calendarEventsRepository.loadMonthsIfNeeded([eventStartDate], abortController.signal, null)
 
 				const newCalendarGroupId = "newCalendarGroupId"
 				const newCalendarInfo: CalendarInfo = object()
