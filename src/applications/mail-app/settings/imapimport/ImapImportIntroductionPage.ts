@@ -1,5 +1,5 @@
 import m, { Children, Vnode } from "mithril"
-import { assertMainOrNode } from "@tutao/app-env"
+import { assertMainOrNode, ProgrammingError } from "@tutao/app-env"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog"
 import { ImapImportData } from "./AddImapImportWizard"
 import { mailLocator } from "../../mailLocator"
@@ -16,10 +16,33 @@ import { DropDownSelectorNew, DropDownSelectorNewAttrs } from "../../../../ui/ba
 import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtils"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { isMailAddress } from "@tutao/utils"
+import { OAuthHandler } from "./oauth/OAuthHandler"
 
 assertMainOrNode()
 
 export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
+	private shouldDisableNextButton: boolean = false
+	private titleSectionParams: Partial<TitleSectionAttrs> = {
+		icon: Icons.MailFilled,
+		iconOptions: { color: theme.on_surface_variant },
+		subTitle: lang.getTranslationText("imapSyncCredentialsInfo_msg"),
+	}
+
+	oninit(vnode: Vnode<WizardPageAttrs<ImapImportData>>) {
+		const provider = vnode.attrs.data.imapProvider
+		switch (provider) {
+			case ImapProvider.Google:
+				this.titleSectionParams.icon = undefined
+				this.titleSectionParams.iconOptions = undefined
+				this.titleSectionParams.customIcon = m.trust(GmailLogo)
+				break
+			case ImapProvider.Microsoft:
+				this.titleSectionParams.icon = undefined
+				this.titleSectionParams.iconOptions = undefined
+				this.titleSectionParams.customIcon = m.trust(OutlookLogo)
+				break
+		}
+	}
 	view(vnode: Vnode<WizardPageAttrs<ImapImportData>>): Children {
 		const imapProvider = vnode.attrs.data.imapProvider
 		let titleSectionParams: Partial<TitleSectionAttrs>
@@ -76,22 +99,57 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 						label: "continue_action",
 						class: "wizard-next-button",
 						onclick: async (_, dom) => {
-							if (vnode.attrs.data.imapProvider === ImapProvider.Other) {
-								//Get settings if user is not using IMAP and if none exist, allow the user
-								//to set it up.
-								const imapConfig = guessServerImapConfigFromEmail(vnode.attrs.data.imapAccountUsername)
-								if (imapConfig) {
-									vnode.attrs.data.imapAccountHost = imapConfig.host
-									vnode.attrs.data.imapAccountPort = Number.parseInt(imapConfig.port)
+							if (vnode.attrs.data.isImapServerSupportingOAuth) {
+								this.shouldDisableNextButton = true
+								const config = vnode.attrs.data.oauthConfig
+								if (config === undefined) {
+									throw new ProgrammingError("The provider set to support OAuth without having configs, please review ImapKnownConfigs.ts")
 								}
+								const oauthHandler = new OAuthHandler(config)
+								const extraParams = { login_hint: vnode.attrs.data.imapAccountUsername }
+								await oauthHandler.setupOauthLoginParams(extraParams)
+								const responseUrl = await mailLocator
+									.getImapImportController()
+									.openOauthAuthenticationWindow(oauthHandler.buildAuthorizationUrl(), config.redirectUri)
+								if (responseUrl) {
+									try {
+										vnode.attrs.data.imapAccountOAuthToken = await oauthHandler.getAuthTokens(responseUrl)
+										//Only go forward if we have a token
+										emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
+									} catch (e) {
+										// this happens when the user denies the permissions
+										this.changeTitleSectionToErrorState()
+									}
+								} else {
+									this.changeTitleSectionToErrorState()
+								}
+							} else {
+								if (vnode.attrs.data.imapProvider === ImapProvider.Other) {
+									//Get settings if user is not using IMAP and if none exist, allow the user
+									//to set it up.
+									const imapConfig = guessServerImapConfigFromEmail(vnode.attrs.data.imapAccountUsername)
+									if (imapConfig) {
+										vnode.attrs.data.imapAccountHost = imapConfig.host
+										vnode.attrs.data.imapAccountPort = Number.parseInt(imapConfig.port)
+									}
+								}
+								emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
 							}
-							emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
 						},
-						disabled: !isMailAddress(vnode.attrs.data.imapAccountUsername, true),
+						disabled: this.shouldDisableNextButton || !isMailAddress(vnode.attrs.data.imapAccountUsername, true),
 					}),
 				),
 			),
 		])
+	}
+
+	private changeTitleSectionToErrorState() {
+		this.shouldDisableNextButton = false
+		this.titleSectionParams = {
+			icon: Icons.FailureFilled,
+			iconOptions: { color: theme.error },
+			subTitle: lang.getTranslationText("imapImportWindowClosedFailure_msg"),
+		}
 	}
 
 	private renderMailboxSelectionControls() {
@@ -139,6 +197,6 @@ export class ImapImportIntroductionPageAttrs implements WizardPageAttrs<ImapImpo
 	}
 
 	isEnabled(): boolean {
-		return !this.data.isImapServerSupportingOAuth
+		return true
 	}
 }
