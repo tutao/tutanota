@@ -2387,3 +2387,6 @@ export type TranslationKeyType =
 	| "migrationRootMailFolderNameAlreadyExists_helpLabel"
 	| "migrationConfigLoading_msg"
 	| "emptyString_msg"
+	| "alternativePaymentMethods_label"
+	| "proxyStorePayment_msg"
+	| "openProxystore_action"

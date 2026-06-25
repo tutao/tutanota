@@ -2388,6 +2388,9 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"alternativePaymentMethods_label": "Alternative payment methods",
+		"proxyStorePayment_msg": "You can upgrade with cash or cryptocurrencies with a gift card via our partner ProxyStore",
+		"openProxystore_action": "Open ProxyStore"
 	}
 }
