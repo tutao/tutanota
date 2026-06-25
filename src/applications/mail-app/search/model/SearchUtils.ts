@@ -41,6 +41,7 @@ export const enum SearchCategoryTypes {
 	mail = "mail",
 	contact = "contact",
 	calendar = "calendar",
+	drive = "drive",
 }
 
 const SEARCH_CATEGORIES = [
@@ -310,6 +311,8 @@ export function getRestriction(route: string): SearchRestriction {
 			endDate.setDate(0)
 			end = getEndOfDay(endDate).getTime()
 		}
+	} else if (route.startsWith("/drive") || route.startsWith("/search/drive")) {
+		category = SearchCategoryTypes.drive
 	} else {
 		throw new Error("invalid type " + route)
 	}

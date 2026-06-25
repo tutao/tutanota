@@ -165,6 +165,8 @@ export class TempFs {
 
 	createInMemoryFile(content: Uint8Array): string {
 		const filename = this.generateFilename()
+		const sizeBefore = this.inMemoryFiles.size
+		console.log("[TempFS]", `creating in-memory file ${filename} ${sizeBefore} -> ${sizeBefore + 1}`)
 		this.inMemoryFiles.set(filename, content)
 		return tutaUrlToString({ type: "tmp", name: filename })
 	}

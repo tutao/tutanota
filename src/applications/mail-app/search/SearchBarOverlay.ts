@@ -20,6 +20,7 @@ import { mailLocator } from "../mailLocator.js"
 import { renderSearchInOurApps } from "./view/SearchView"
 import { isTutaTeamMail } from "../../common/mailFunctionality/SharedMailUtils"
 import { companyTeamLabel } from "../../../platform-kit/app-env/boot/ClientConstants"
+import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 
 type SearchBarOverlayAttrs = {
 	state: SearchBarState
@@ -79,6 +80,10 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 			return this.renderContactResult(downcast(result))
 		} else if (isSameTypeRef(CalendarEventTypeRef, type)) {
 			return this.renderCalendarEventResult(downcast(result))
+		} else if (isSameTypeRef(DriveFileTypeRef, type)) {
+			return `file! ${(result as DriveFile).name}`
+		} else if (isSameTypeRef(DriveFolderTypeRef, type)) {
+			return `folder! ${(result as DriveFolder).name}`
 		} else {
 			return []
 		}

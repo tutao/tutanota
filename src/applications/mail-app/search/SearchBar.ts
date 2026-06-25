@@ -28,6 +28,7 @@ import { compareMails } from "../mail/model/MailUtils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import { WhitelabelChild } from "@tutao/entities/sys"
 import { windowFacade } from "../../common/misc/WindowFacade"
+import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 
 assertMainOrNode()
 export type ShowMoreAction = {
@@ -43,7 +44,7 @@ export type SearchBarAttrs = {
 }
 
 const MAX_SEARCH_PREVIEW_RESULTS = 10
-export type Entry = Mail | Contact | CalendarEvent | WhitelabelChild | ShowMoreAction
+export type Entry = Mail | Contact | CalendarEvent | DriveFile | DriveFolder | ShowMoreAction
 type Entries = Array<Entry>
 export type SearchBarState = {
 	query: string
@@ -312,7 +313,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		},
 	]
 
-	private selectResult(result: (Mail | null) | Contact | WhitelabelChild | CalendarEvent | ShowMoreAction) {
+	private selectResult(result: (Mail | null) | Contact | CalendarEvent | ShowMoreAction | DriveFile | DriveFolder) {
 		const { query } = this.state()
 
 		if (result != null) {
@@ -324,11 +325,13 @@ export class SearchBar implements Component<SearchBarAttrs> {
 					this.updateSearchUrl(query)
 				}
 			} else if (isSameTypeRef(MailTypeRef, type)) {
-				this.updateSearchUrl(query, downcast(result))
+				this.updateSearchUrl(query, result as Mail)
 			} else if (isSameTypeRef(ContactTypeRef, type)) {
-				this.updateSearchUrl(query, downcast(result))
+				this.updateSearchUrl(query, result as Contact)
 			} else if (isSameTypeRef(CalendarEventTypeRef, type)) {
-				this.updateSearchUrl(query, downcast(result))
+				this.updateSearchUrl(query, result as CalendarEvent)
+			} else if (isSameTypeRef(DriveFolderTypeRef, type) || isSameTypeRef(DriveFileTypeRef, type)) {
+				this.updateSearchUrl(query, result as DriveFolder | DriveFile)
 			}
 		}
 	}
