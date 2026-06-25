@@ -115,7 +115,7 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 
 	private renderAddLangButton() {
 		return m(IconButton, {
-			title: "addLanguage_action",
+			label: "addLanguage_action",
 			icon: Icons.Plus,
 			size: ButtonSize.Compact,
 			click: createDropdown({
@@ -131,7 +131,7 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 
 	private renderSelectLangButton() {
 		return m(IconButton, {
-			title: "languages_label",
+			label: "languages_label",
 			icon: Icons.Language,
 			size: ButtonSize.Compact,
 			click: createDropdown({
@@ -155,7 +155,7 @@ class TemplateEditor implements Component<TemplateEditorAttrs> {
 
 	private renderRemoveLangButton() {
 		return m(IconButton, {
-			title: "removeLanguage_action",
+			label: "removeLanguage_action",
 			icon: Icons.TrashFilled,
 			click: () => this.removeLanguage(),
 			size: ButtonSize.Compact,

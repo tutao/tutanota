@@ -96,7 +96,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
 			showActionButtonColumn: true,
 			addButtonAttrs: {
-				title: "addSpamRule_action",
+				label: "addSpamRule_action",
 				click: () => showAddSpamRuleDialog(null),
 				icon: Icons.Plus,
 				size: ButtonSize.Compact,
@@ -108,7 +108,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			columnWidths: [ColumnWidth.Largest],
 			showActionButtonColumn: true,
 			addButtonAttrs: {
-				title: "refresh_action",
+				label: "refresh_action",
 				click: () => {
 					this.updateRejectedSenderTable()
 				},
@@ -122,7 +122,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
 			showActionButtonColumn: true,
 			addButtonAttrs: {
-				title: "addCustomDomain_action",
+				label: "addCustomDomain_action",
 				click: async () => {
 					const customerInfo = await this.customerInfo.getAsync()
 					if (locator.logins.getUserController().isFreeAccount()) {
@@ -245,7 +245,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 							},
 							actionButtonAttrs: attachDropdown({
 								mainButtonAttrs: {
-									title: "showMore_action",
+									label: "showMore_action",
 									icon: Icons.More,
 									size: ButtonSize.Compact,
 								},
@@ -321,7 +321,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 						},
 					],
 					actionButtonAttrs: {
-						title: "action_label" as const,
+						label: "action_label" as const,
 						icon: Icons.More,
 						size: ButtonSize.Compact,
 						click: createDropdown({

@@ -65,7 +65,7 @@ export class ProgressSnackBar implements Component<ProgressSnackBarAttrs> {
 				? m(IconButton, {
 						click: () => onCancel(),
 						icon: Icons.X,
-						title: "cancel_action",
+						label: "cancel_action",
 						size: ButtonSize.Normal,
 					})
 				: m("", {
@@ -82,7 +82,7 @@ export class ProgressSnackBar implements Component<ProgressSnackBarAttrs> {
 			return m(IconButton, {
 				click: () => onRetry(),
 				icon: Icons.Refresh,
-				title: "retry_action",
+				label: "retry_action",
 				size: ButtonSize.Normal,
 			})
 		} else {

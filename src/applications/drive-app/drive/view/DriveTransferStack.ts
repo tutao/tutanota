@@ -158,7 +158,7 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 							this.expanded = !this.expanded
 						},
 						icon: this.expanded ? Icons.ChevronDown : Icons.ChevronUp,
-						title: this.expanded ? "collapseTransferStack_label" : "expandTransferStack_label",
+						label: this.expanded ? "collapseTransferStack_label" : "expandTransferStack_label",
 						size: ButtonSize.Normal,
 					}),
 
@@ -166,7 +166,7 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 						? m(IconButton, {
 								click: () => retryFailedTransfers(),
 								icon: Icons.Refresh,
-								title: "retryFailedTransfers_action",
+								label: "retryFailedTransfers_action",
 								size: ButtonSize.Normal,
 							})
 						: null,
@@ -174,7 +174,7 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 					m(IconButton, {
 						click: async () => cancelAllTransfers(),
 						icon: Icons.X,
-						title: "close_alt",
+						label: "close_alt",
 						size: ButtonSize.Normal,
 					}),
 				]),

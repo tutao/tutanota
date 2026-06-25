@@ -152,7 +152,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			isReadOnly: true,
 			injectionsRight: () =>
 				m(IconButton, {
-					title: "paymentMethod_label",
+					label: "paymentMethod_label",
 					click: (e, dom) => this.handlePaymentMethodClick(e, dom),
 					icon: this.getIconForPaymentMethodSetting(this.accountingInfo),
 					size: ButtonSize.Compact,
@@ -364,7 +364,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			actionButtonAttrs:
 				posting.type === PostingType.UsageFee || posting.type === PostingType.Credit || posting.type === PostingType.SalesCommission
 					? {
-							title: "download_action",
+							label: "download_action",
 							icon: Icons.DownloadFilled,
 							size: ButtonSize.Compact,
 							click: (e, dom) => {
@@ -529,7 +529,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			m(".flex-space-between.items-center.mt-32.mb-8", [
 				m(".h4", lang.get("invoiceData_msg")),
 				m(IconButton, {
-					title: "invoiceData_msg",
+					label: "invoiceData_msg",
 					click: createNotAvailableForFreeClickHandler(
 						UpgradePromptType.VIEW_INVOICE,
 						NewPaidPlans,
@@ -552,7 +552,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 	private renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => boolean): Children {
 		const addButtonAttrs: IconButtonAttrs = {
-			title: "buyGiftCard_label",
+			label: "buyGiftCard_label",
 			click: createNotAvailableForFreeClickHandler(
 				UpgradePromptType.PURCHASE_GIFT_CARDS,
 				NewPaidPlans,
@@ -571,7 +571,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					cells: [formatDate(giftCard.orderDate), formatPrice(parseFloat(giftCard.value), true)],
 					actionButtonAttrs: attachDropdown({
 						mainButtonAttrs: {
-							title: "options_action",
+							label: "options_action",
 							icon: Icons.More,
 							size: ButtonSize.Compact,
 						},

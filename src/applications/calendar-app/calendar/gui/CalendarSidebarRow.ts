@@ -68,7 +68,7 @@ export class CalendarSidebarRow implements Component<CalendarSidebarRowAttrs> {
 					})
 				: null,
 			m(IconButton, {
-				title: "more_label",
+				label: "more_label",
 				colors: ButtonColor.Nav,
 				icon: Icons.More,
 				size: ButtonSize.Compact,

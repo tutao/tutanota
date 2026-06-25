@@ -77,7 +77,7 @@ export interface IntervalOption {
 
 export function renderCalendarSwitchLeftButton(label: TranslationKey, click: () => unknown): Child {
 	return m(IconButton, {
-		title: label,
+		label: label,
 		icon: Icons.ChevronLeft,
 		click,
 	})
@@ -85,7 +85,7 @@ export function renderCalendarSwitchLeftButton(label: TranslationKey, click: () 
 
 export function renderCalendarSwitchRightButton(label: TranslationKey, click: () => unknown): Child {
 	return m(IconButton, {
-		title: label,
+		label: label,
 		icon: Icons.ChevronRight,
 		click,
 	})

@@ -629,7 +629,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 				? m(
 						".icon-button",
 						m(IconButton, {
-							title: "back_action",
+							label: "back_action",
 							icon: Icons.ChevronLeft,
 							click: () => this.searchViewModel.goToDriveView(),
 						}),

@@ -39,7 +39,7 @@ export class DriveMobileSortButton implements Component<DriveMobileSortButtonAtt
 		})
 
 		return m(IconButton, {
-			title: "sortBy_label",
+			label: "sortBy_label",
 			icon: Icons.OrderedList,
 			click: (e: MouseEvent, dom: HTMLElement) => {
 				createDropdown({
