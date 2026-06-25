@@ -47,6 +47,7 @@ import {
 	getFromMap,
 	isMailAddress,
 	LazyLoaded,
+	mapAndFilterNull,
 	neverNull,
 	noOp,
 	ofClass,
@@ -171,6 +172,9 @@ export class SendMailModel {
 	private attachments: Array<Attachment> = []
 	// We want to keep track of these for use in the mail editor, to allowing undo of deleting images
 	private removedInlineImages: Array<Attachment> = []
+	// Non-inline attachments in mails received from other providers (like Gmail) may include cid.
+	// These are excluded when removing inline attachments that are unreferenced in the mail body
+	private nonInlineAttachmentsCids: Set<string> = new Set<string>()
 
 	private replyTos: Array<ResolvableRecipient> = []
 
@@ -632,6 +636,11 @@ export class SendMailModel {
 		this.attachments = []
 
 		if (attachments) {
+			this.nonInlineAttachmentsCids = new Set(
+				mapAndFilterNull(attachments, (attachment) => {
+					return attachment.cid == null || this.loadedInlineImages.has(attachment.cid) ? null : attachment.cid
+				}),
+			)
 			this.attachFiles(attachments)
 		}
 
@@ -809,6 +818,10 @@ export class SendMailModel {
 
 	getRemovedInlineImages(): Array<Attachment> {
 		return this.removedInlineImages
+	}
+
+	getNonInlineAttachmentsCids(): Set<string> {
+		return this.nonInlineAttachmentsCids
 	}
 
 	/** @throws UserError in case files are too big to add */
