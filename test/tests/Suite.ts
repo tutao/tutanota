@@ -241,7 +241,6 @@ import "./crypto/ValueDecryptorTest.js"
 import "./crypto/SubKeyProviderTest.js"
 
 import * as td from "testdouble"
-import { Mode } from "../../src/platform-kit/app-env"
 import { EntropySource } from "../../src/platform-kit/crypto"
 
 export async function run({ integration, filter, regexp, exclude }: { integration?: boolean; filter?: string; regexp?: string; exclude?: string } = {}) {
@@ -322,6 +321,8 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 	td.config({
 		ignoreWarnings: true,
 	})
+
+	const originalEnv = structuredClone(env)
 	o.before(async function () {
 		// setup the Entropy for all testcases
 		await random.addEntropy([{ data: 36, entropy: 256, source: EntropySource.Key }])
@@ -329,8 +330,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 
 	o.afterEach(function () {
 		td.reset()
-
-		// Reset env.mode in case any tests have fiddled with it
-		env.mode = Mode.Test
+		// Reset env in case any tests have fiddled with it
+		env = originalEnv
 	})
 }

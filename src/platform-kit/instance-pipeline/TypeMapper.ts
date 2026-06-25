@@ -76,7 +76,6 @@ export class TypeMapper {
 
 			switch (getAssociationReprType(modelAssociation.type)) {
 				case AssociationReprType.Aggregation: {
-					const aggregateTypeRef = new TypeRef(modelAssociation.dependency ?? typeModel.app, modelAssociation.refTypeId)
 					const mappedAggregations = associationValue.asNestedObjList().map((agg) => this.makeServerJson(agg))
 					serverJson.addAggregationList(attrId, await Promise.all(mappedAggregations))
 					break

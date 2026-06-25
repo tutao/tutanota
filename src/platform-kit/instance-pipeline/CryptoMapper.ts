@@ -393,12 +393,12 @@ export class EncryptedParsedInstance implements DeepEquals {
 	}
 
 	ensureOutgoing(): ClientTypeModel {
-		assert(this.direction === InstanceDirection.OutgoingToServer, "FIXME: msg")
+		assert(this.direction === InstanceDirection.OutgoingToServer, "Expected encryptedInstance to be originated from client")
 		return this.typeModel as ClientTypeModel
 	}
 
 	ensureIncoming(): ServerTypeModel {
-		assert(this.direction === InstanceDirection.IncomingFromServer, "FIXME: msg")
+		assert(this.direction === InstanceDirection.IncomingFromServer, "Expected encryptedInstance to be originated from server")
 		return this.typeModel as ServerTypeModel
 	}
 
