@@ -1,4 +1,4 @@
-import { OperationType, timestampToGeneratedId, TypeRef } from "../../../../../src/platform-kit/meta"
+import { OperationType, timestampToGeneratedId } from "../../../../../src/platform-kit/meta"
 import { DbFacade } from "../../../../../src/applications/common/api/worker/search/DbFacade.js"
 import { daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { IndexedDbIndexer, initSearchIndexObjectStores } from "../../../../../src/applications/mail-app/workerUtils/index/IndexedDbIndexer.js"
@@ -572,23 +572,31 @@ o.spec("IndexedDbIndexer", () => {
 				indexerMock.initDeferred.resolve()
 			})
 
-			function newUpdate<T>(typeRef: TypeRef<T>) {
-				return {
-					typeRef,
-				} as Partial<EntityUpdateData> as EntityUpdateData
-			}
-
-			let events = [newUpdate(MailTypeRef), newUpdate(ContactTypeRef), newUpdate(UserTypeRef)]
+			const events: EntityUpdateData[] = [
+				{ typeRef: MailTypeRef, operation: OperationType.CREATE, instanceListId: "mail-list", instanceId: "mail-create" },
+				{ typeRef: MailTypeRef, operation: OperationType.UPDATE, instanceListId: "mail-list", instanceId: "mail-update" },
+				{ typeRef: MailTypeRef, operation: OperationType.DELETE, instanceListId: "mail-list", instanceId: "mail-delete" },
+				{ typeRef: ContactTypeRef, operation: OperationType.CREATE, instanceListId: "contact-list", instanceId: "contact-create" },
+				{ typeRef: ContactTypeRef, operation: OperationType.UPDATE, instanceListId: "contact-list", instanceId: "contact-update" },
+				{ typeRef: ContactTypeRef, operation: OperationType.DELETE, instanceListId: "contact-list", instanceId: "contact-delete" },
+				{ typeRef: UserTypeRef },
+			] as Partial<EntityUpdateData>[] as EntityUpdateData[]
 			const batch = {
 				events,
 				groupId,
 				batchId,
 				isInitialSyncDone: true,
 			}
+
 			await indexer._processEntityEvents(batch)
 			verify(core.putLastBatchIdForGroup(groupId, batchId))
 			verify(mailIndexer.processEntityEvents(events, groupId, batchId), { times: 1 })
-			verify(contactIndexer.processEntityEvents(events, groupId, batchId), { times: 1 })
+			verify(mailIndexer.afterMailCreated(["mail-list", "mail-create"]), { times: 1 })
+			verify(mailIndexer.afterMailUpdated(["mail-list", "mail-update"]), { times: 1 })
+			verify(mailIndexer.afterMailDeleted(["mail-list", "mail-delete"]), { times: 1 })
+			verify(contactIndexer.afterContactCreated(["contact-list", "contact-create"]), { times: 1 })
+			verify(contactIndexer.afterContactUpdated(["contact-list", "contact-update"]), { times: 1 })
+			verify(contactIndexer.afterContactDeleted(["contact-list", "contact-delete"]), { times: 1 })
 		})
 
 		o.test("when it receives the events it queues them for processing", async function () {
@@ -716,11 +724,11 @@ o.spec("IndexedDbIndexer", () => {
 
 			verify(core.putLastBatchIdForGroup(groupId, batchId1))
 			verify(mailIndexer.processEntityEvents(events1, groupId, batchId1))
-			verify(contactIndexer.processEntityEvents(events1, groupId, batchId1))
+			verify(mailIndexer.afterMailCreated(["list-id", "id-1"]))
 
 			verify(core.putLastBatchIdForGroup(groupId, batchId2))
 			verify(mailIndexer.processEntityEvents(events2, groupId, batchId2))
-			verify(contactIndexer.processEntityEvents(events2, groupId, batchId2))
+			verify(mailIndexer.afterMailCreated(["list-id", "id-2"]))
 		})
 
 		o.spec("handles mail updates", () => {
