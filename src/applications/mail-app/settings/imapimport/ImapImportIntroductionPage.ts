@@ -106,7 +106,11 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 									throw new ProgrammingError("The provider set to support OAuth without having configs, please review ImapKnownConfigs.ts")
 								}
 								const oauthHandler = new OAuthHandler(config)
-								const extraParams = { login_hint: vnode.attrs.data.imapAccountUsername }
+								const extraParams = {
+									login_hint: vnode.attrs.data.imapAccountUsername,
+									access_type: "offline",
+									prompt: "consent",
+								}
 								await oauthHandler.setupOauthLoginParams(extraParams)
 								const responseUrl = await mailLocator
 									.getImapImportController()
@@ -114,7 +118,7 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 								if (responseUrl) {
 									try {
 										vnode.attrs.data.imapAccountOAuthToken = await oauthHandler.getAuthTokens(responseUrl)
-										//Only go forward if we have a token
+										// only go forward if we have a token
 										emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
 									} catch (e) {
 										// this happens when the user denies the permissions

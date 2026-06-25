@@ -63,9 +63,14 @@ export class ImapFacade {
 		}
 
 		const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
+
+		console.log("mailGroupKey" + mailGroupKey.version)
+
 		const sk = this.cryptoWrapper.aes256RandomKey()
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 		const imapPostIn = createImapPostIn({
-			ownerEncSessionKey: this.cryptoWrapper.encryptKey(mailGroupKey.object, sk),
+			ownerEncSessionKey: ownerEncSessionKey.key,
+			ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 			ownerGroup: mailGroupId,
 			imapAccount: initializeParams.imapAccount,
 			maxQuota: initializeParams.maxQuota,
@@ -144,8 +149,10 @@ export class ImapFacade {
 		for (const [imapMailboxPath, { mailSetElementId, shouldSync }] of imapMailboxesToTutaFolders.entries()) {
 			const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
 			const sk = this.cryptoWrapper.aes256RandomKey()
+			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 			const imapFolderPostIn = createImapFolderPostIn({
-				ownerEncSessionKey: this.cryptoWrapper.encryptKey(mailGroupKey.object, sk),
+				ownerEncSessionKey: ownerEncSessionKey.key,
+				ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 				ownerGroup: mailGroupId,
 				path: imapMailboxPath,
 				imapAccountSyncState: imapAccountSyncState._id,
@@ -173,8 +180,10 @@ export class ImapFacade {
 
 			const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
 			const sk = this.cryptoWrapper.aes256RandomKey()
+			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 			const imapFolderPostIn = createImapFolderPostIn({
-				ownerEncSessionKey: this.cryptoWrapper.encryptKey(mailGroupKey.object, sk),
+				ownerEncSessionKey: ownerEncSessionKey.key,
+				ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 				ownerGroup: mailGroupId,
 				path: imapMailbox.path,
 				imapAccountSyncState: imapAccountSyncState._id,

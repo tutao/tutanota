@@ -419,18 +419,16 @@ export class ImapImporter implements ImapSyncFacade {
 	}
 
 	async onError(accountSyncStateId: IdTuple, imapError: ImapError): Promise<void> {
-		console.error("Error while importing from IMAP, error:", accountSyncStateId, imapError)
+		console.error(`Error while synchronizing IMAP account with accountSyncState ${accountSyncStateId}, error`, imapError)
 
 		const session = this.getActiveImapImportSessionOrNull(accountSyncStateId)
 		if (session) {
-			await this.pauseImport(accountSyncStateId)
 			if (this.oAuthErrorHandler.isAuthError(imapError)) {
+				this.pauseImport(accountSyncStateId)
 				const shouldRetry = await this.oAuthErrorHandler.handleAuthError(session.imapAccountSyncState)
 				if (shouldRetry) {
 					this.continueImport(accountSyncStateId)
 				}
-			} else {
-				//
 			}
 		}
 		return Promise.resolve()

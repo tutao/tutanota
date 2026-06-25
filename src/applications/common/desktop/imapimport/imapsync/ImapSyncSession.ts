@@ -153,6 +153,8 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			}
 		})
 
+		console.log("startNextMailboxSync, #remaining mailboxes -> ", remainingMailboxes.length)
+
 		if (isEmpty(remainingMailboxes)) {
 			await this.onAllMailboxesFinish()
 			return
@@ -164,6 +166,8 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		}
 
 		const nextMailbox = first(remainingMailboxes)
+
+		console.log("startNextMailboxSync, next mailbox -> ", nextMailbox?.mailboxState.path)
 		if (nextMailbox) {
 			this.startMailboxSync(nextMailbox)
 		}
