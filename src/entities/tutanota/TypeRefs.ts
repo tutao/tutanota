@@ -2797,7 +2797,6 @@ export type SendDraftParameters = {
 	secureExternalRecipientKeyData: SecureExternalRecipientKeyData[];
 	symEncInternalRecipientKeyData: SymEncInternalRecipientKeyData[];
 	attachmentKeyData: AttachmentKeyData[];
-	firstRecipients: FirstRecipient[];
 }
 export const FirstRecipientTypeRef: TypeRef<FirstRecipient> = new TypeRef("tutanota", 1853)
 

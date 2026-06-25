@@ -4356,8 +4356,6 @@ pub struct SendDraftParameters {
 	pub symEncInternalRecipientKeyData: Vec<SymEncInternalRecipientKeyData>,
 	#[serde(rename = "1800")]
 	pub attachmentKeyData: Vec<AttachmentKeyData>,
-	#[serde(rename = "1865")]
-	pub firstRecipients: Vec<FirstRecipient>,
 }
 
 impl Entity for SendDraftParameters {

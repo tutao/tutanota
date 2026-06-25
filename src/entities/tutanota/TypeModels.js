@@ -10173,15 +10173,6 @@ const typeModels = {
 				"cardinality": "Any",
 				"refTypeId": 542,
 				"dependency": null
-			},
-			"1865": {
-				"final": true,
-				"name": "firstRecipients",
-				"id": 1865,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refTypeId": 1853,
-				"dependency": null
 			}
 		}
 	},

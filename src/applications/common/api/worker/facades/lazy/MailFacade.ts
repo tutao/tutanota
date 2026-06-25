@@ -968,68 +968,6 @@ export class MailFacade {
 	}
 
 	async sendDraft(draft: Mail, recipients: Array<Recipient>, language: string, sendAt: Date | null, allowUndo: boolean = false): Promise<SendDraftReturn> {
-		const recipientToKeyValuePair = async (recipient: Recipient) => {
-			const dummyMail = createMail({
-				firstRecipient: createMailAddress({ address: recipient.address, name: recipient.name ?? "", contact: null }),
-				// everything below is garbage
-				confidential: false,
-				subject: "",
-				method: "",
-				sender: createMailAddress({ address: "", name: "", contact: null }),
-				mailDetails: null,
-				mailDetailsDraft: null,
-				attachments: [],
-				bucketKey: null,
-				sendAt: null,
-				unread: true,
-				authStatus: null,
-				differentEnvelopeSender: null,
-				encryptionAuthStatus: null,
-				movedTime: null,
-				serverClassificationData: null,
-				listUnsubscribe: false,
-				processNeeded: false,
-				phishingStatus: "",
-				processingState: "",
-				recipientCount: "",
-				replyType: "",
-				state: "",
-				receivedDate: new Date(),
-				sets: [],
-				conversationEntry: ["", ""],
-				clientSpamClassifierResult: null,
-			})
-
-			const sk = assertNotNull(await this.crypto.resolveSessionKey(draft))
-
-			const sessionKeyInfo: SessionKeyInfo = {
-				cipherVersion:
-					this.userFacade.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.Aead
-						? SymmetricCipherVersion.AeadWithSessionKey
-						: SymmetricCipherVersion.AesCbcThenHmac,
-				sessionKey: sk,
-			}
-
-			const clientModelUntypedInstance = await this.instancePipeline.mapAndEncrypt(MailTypeRef, dummyMail, sessionKeyInfo)
-			const sanitizedUntypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(clientModelUntypedInstance)
-
-			const mailModel = await this.instancePipeline.clientTypeReferenceResolver(MailTypeRef)
-			const firstRecipient = AttributeModel.getAttribute<ClientModelUntypedInstance[]>(sanitizedUntypedInstance, "firstRecipient", mailModel)[0]
-
-			const mailAddressModel = await this.instancePipeline.clientTypeReferenceResolver(MailAddressTypeRef)
-			const encryptedFirstRecipientName = AttributeModel.getAttributeorNull<Base64>(firstRecipient, "name", mailAddressModel) ?? ""
-			const firstRecipientId = AttributeModel.getAttribute<Id>(firstRecipient, "_id", mailAddressModel)
-			const encryptedFirstRecipientNameBytes = base64ToUint8Array(encryptedFirstRecipientName)
-
-			return createFirstRecipient({
-				clientGeneratedAggregateId: firstRecipientId,
-				mailAddress: recipient.address,
-				skEncName: encryptedFirstRecipientNameBytes,
-			})
-		}
-
-		const firstRecipients = await Promise.all(recipients.map(recipientToKeyValuePair))
-
 		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), draft.sender.address)
 		const bucketKey = aes256RandomKey()
 		const parameters: StrippedEntity<SendDraftParameters> = {
@@ -1045,7 +983,6 @@ export class MailFacade {
 			secureExternalRecipientKeyData: [],
 			symEncInternalRecipientKeyData: [],
 			sessionEncEncryptionAuthStatus: null,
-			firstRecipients,
 		}
 
 		const attachments = await this.getAttachmentIds(draft)
