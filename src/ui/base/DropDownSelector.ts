@@ -62,7 +62,7 @@ export class DropDownSelector<T> implements ClassComponent<DropDownSelectorAttrs
 							{ style: { width: "30px", height: "30px" } },
 							m(IconButton, {
 								icon: a.icon ? a.icon : Icons.PaddedArrowDown,
-								title: "show_action",
+								label: "show_action",
 								click: a.disabled ? noOp : this.createDropdown(a),
 								size: ButtonSize.Compact,
 							}),

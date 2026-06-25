@@ -4,7 +4,7 @@ import { ClickHandler } from "./base/GuiUtils.js"
 
 export interface MobileActionAttrs {
 	icon: IconButtonAttrs["icon"]
-	title: IconButtonAttrs["title"]
+	title: IconButtonAttrs["label"]
 	action: ClickHandler
 }
 
@@ -26,7 +26,7 @@ export class MobileActionBar implements Component<MobileActionBarAttrs> {
 			},
 			attrs.actions.map((action) =>
 				m(IconButton, {
-					title: action.title,
+					label: action.title,
 					icon: action.icon,
 					click: action.action,
 				}),

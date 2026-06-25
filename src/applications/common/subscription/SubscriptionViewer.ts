@@ -141,14 +141,14 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					return null
 				} else if (locator.logins.getUserController().isFreeAccount()) {
 					return m(IconButton, {
-						title: "upgrade_action",
+						label: "upgrade_action",
 						click: () => showProgressDialog("pleaseWait_msg", this.handleUpgradeSubscription()),
 						icon: Icons.PenFilled,
 						size: ButtonSize.Compact,
 					})
 				} else {
 					return m(IconButton, {
-						title: "subscription_label",
+						label: "subscription_label",
 						click: () => this.onSubscriptionClick(),
 						icon: Icons.PenFilled,
 						size: ButtonSize.Compact,
@@ -759,7 +759,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	private renderShowProcessingAgreementAction() {
 		return m(IconButton, {
-			title: "show_action",
+			label: "show_action",
 			click: () =>
 				locator.entityClient
 					.load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
@@ -771,7 +771,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	private renderSignProcessingAgreementAction() {
 		return m(IconButton, {
-			title: "sign_action",
+			label: "sign_action",
 			click: () => SignOrderAgreementDialog.showForSigning(neverNull(this._customer), neverNull(this._accountingInfo)),
 			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
@@ -816,7 +816,7 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
 	const addButtonAttrs: IconButtonAttrs | null = isFreeSignupOnly()
 		? null
 		: {
-				title: "buyGiftCard_label",
+				label: "buyGiftCard_label",
 				click: createNotAvailableForFreeClickHandler(
 					UpgradePromptType.PURCHASE_GIFT_CARDS,
 					NewPaidPlans,
@@ -835,7 +835,7 @@ function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => bo
 				cells: [formatDate(giftCard.orderDate), formatPrice(parseFloat(giftCard.value), true)],
 				actionButtonAttrs: attachDropdown({
 					mainButtonAttrs: {
-						title: "options_action",
+						label: "options_action",
 						icon: Icons.More,
 						size: ButtonSize.Compact,
 					},

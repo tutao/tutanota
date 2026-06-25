@@ -65,7 +65,7 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 			onDomainChanged: (domain) => (domainInfo = domain),
 			onBusyStateChanged: (isBusy) => (a.isMailVerificationBusy = isBusy),
 			injectionsRightButtonAttrs: {
-				title: "addEmailAlias_label",
+				label: "addEmailAlias_label",
 				icon: Icons.Plus,
 				size: ButtonSize.Compact,
 				click: () =>

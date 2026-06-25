@@ -96,7 +96,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 								injectionsRight: () => {
 									return m(IconButton, {
 										icon: Icons.PenFilled,
-										title: "edit_action",
+										label: "edit_action",
 										click: () => {
 											if (styles.bodyWidth >= layout_size.wizard_show_illustration_min_width && !data.options.businessUse()) {
 												data.inlinePlanSelectorOpen(!data.inlinePlanSelectorOpen())
@@ -122,7 +122,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 										? undefined
 										: m(IconButton, {
 												icon: Icons.PenFilled,
-												title: "edit_action",
+												label: "edit_action",
 												click: () => {
 													this._setStep(ctx, 2)
 												},
@@ -142,7 +142,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 									injectionsRight: () => {
 										return m(IconButton, {
 											icon: Icons.PenFilled,
-											title: "edit_action",
+											label: "edit_action",
 											click: () => {
 												this._setStep(ctx, 2)
 											},
@@ -162,7 +162,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 								injectionsRight: () => {
 									return m(IconButton, {
 										icon: Icons.Swap,
-										title: "edit_action",
+										label: "edit_action",
 										click: () => {
 											if (isYearly) {
 												data.options.paymentInterval(PaymentInterval.Monthly)

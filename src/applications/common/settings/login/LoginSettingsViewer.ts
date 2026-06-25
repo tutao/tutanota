@@ -81,7 +81,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			isReadOnly: true,
 		}
 		const changePasswordButtonAttrs: IconButtonAttrs = {
-			title: "changePassword_label",
+			label: "changePassword_label",
 			click: () => showChangeOwnPasswordDialog(),
 			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
@@ -96,7 +96,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		}
 		const recoveryCodeDropdownButtonAttrs: IconButtonAttrs = attachDropdown({
 			mainButtonAttrs: {
-				title: "edit_action",
+				label: "edit_action",
 				icon: Icons.PenFilled,
 				size: ButtonSize.Compact,
 			},
@@ -215,7 +215,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 			injectionsRight: () =>
 				isAdmin
 					? m(IconButton, {
-							title: "edit_action",
+							label: "edit_action",
 							click: () => this.onChangeName(groupInfo),
 							icon: Icons.PenFilled,
 							size: ButtonSize.Compact,
@@ -293,7 +293,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 				isReadOnly: true,
 				injectionsRight: () =>
 					m(IconButton, {
-						title: "edit_action",
+						label: "edit_action",
 						icon: Icons.PenFilled,
 						click: () => onEdit(),
 					}),
@@ -308,7 +308,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 				isReadOnly: true,
 				injectionsRight: () =>
 					m(IconButton, {
-						title: "edit_action",
+						label: "edit_action",
 						icon: Icons.PenFilled,
 						click: () => showCredentialsEncryptionModeDialog(this.credentialsProvider).then(() => this.updateAppLockData()),
 					}),
@@ -349,7 +349,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 						actionButtonAttrs: thisSession
 							? null
 							: ({
-									title: "closeSession_action",
+									label: "closeSession_action",
 									click: () => {
 										this._closeSession(session)
 									},

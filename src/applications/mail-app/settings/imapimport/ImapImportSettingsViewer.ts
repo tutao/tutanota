@@ -104,7 +104,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 				// Running
 				buttons.push(
 					m(IconButton, {
-						title: "pauseMigration_action",
+						label: "pauseMigration_action",
 						icon: Icons.PauseOutline,
 						size: ButtonSize.Normal,
 						disabled: this.imapImportController().shouldDisableButtons(),
@@ -117,7 +117,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 				// Finished or Postponed
 				buttons.push(
 					m(IconButton, {
-						title: "resyncMigration_action",
+						label: "resyncMigration_action",
 						icon: Icons.Refresh,
 						size: ButtonSize.Normal,
 						disabled: this.imapImportController().shouldDisableButtons(),
@@ -142,7 +142,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 				// Paused
 				buttons.push(
 					m(IconButton, {
-						title: "resumeMigration_action",
+						label: "resumeMigration_action",
 						icon: Icons.PlayOutline,
 						size: ButtonSize.Normal,
 						disabled: this.imapImportController().shouldDisableButtons(),
@@ -161,7 +161,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 			}
 			buttons.push(
 				m(IconButton, {
-					title: "cancel_action",
+					label: "cancel_action",
 					icon: Icons.X,
 					size: ButtonSize.Normal,
 					disabled: this.imapImportController().shouldDisableButtons(),

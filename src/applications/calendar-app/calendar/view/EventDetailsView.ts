@@ -49,7 +49,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 	private renderEditButton(callback?: () => void): Children {
 		if (this.model == null || !this.model.canEdit || styles.isSingleColumnLayout()) return null
 		return m(IconButton, {
-			title: "edit_action",
+			label: "edit_action",
 			icon: Icons.PenFilled,
 			click: (event, dom) => handleEventEditButtonClick(this.model, event, dom, callback),
 		})
@@ -58,7 +58,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 	private renderDeleteButton(callback?: () => void): Children {
 		if (this.model == null || !this.model.canDelete || styles.isSingleColumnLayout()) return null
 		return m(IconButton, {
-			title: "delete_action",
+			label: "delete_action",
 			icon: Icons.TrashFilled,
 			click: (event, dom) => handleEventDeleteButtonClick(this.model, event, dom, callback),
 		})
@@ -67,7 +67,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 	private renderSendUpdateButton(): Children {
 		if (this.model == null || !this.model.canSendUpdates || styles.isSingleColumnLayout()) return null
 		return m(IconButton, {
-			title: "sendUpdates_label",
+			label: "sendUpdates_label",
 			click: () => handleSendUpdatesClick(this.model),
 			icon: Icons.MailFilled,
 		})
@@ -76,7 +76,7 @@ export class EventDetailsView implements Component<EventDetailsViewAttrs> {
 	private renderDuplicateButton(): Children {
 		if (this.model == null || !this.model.canEdit || styles.isSingleColumnLayout()) return null
 		return m(IconButton, {
-			title: "duplicateEvent_label",
+			label: "duplicateEvent_label",
 			click: () => handleEventDuplicate(this.model!),
 			icon: Icons.DuplicateFilled,
 		})
