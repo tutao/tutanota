@@ -283,13 +283,13 @@ export class DesktopFileFacade implements FileFacade {
 
 	async putFileIntoDownloadsFolder(localFileUri: string, fileNameToUse: string): Promise<string> {
 		const url = this.tfs.assertInTmpDir(localFileUri)
-		const savePath = await this.pickSavePath(fileNameToUse)
-		await this.fs.promises.mkdir(path.dirname(savePath), {
+		const savedFileUrl = await this.pickSavePath(fileNameToUse)
+		await this.fs.promises.mkdir(path.dirname(fileURLToPath(savedFileUrl)), {
 			recursive: true,
 		})
-		await this.fs.promises.copyFile(url, savePath)
-		await this.showInFileExplorer(savePath)
-		return pathToFileURL(savePath).toString()
+		await this.fs.promises.copyFile(url, savedFileUrl)
+		await this.showInFileExplorer(savedFileUrl)
+		return savedFileUrl.toString()
 	}
 
 	async upload(fileUri: string, targetUrl: string, method: HttpMethod, headers: Record<string, string>, fileId: string): Promise<UploadTaskResponse> {
@@ -424,12 +424,13 @@ export class DesktopFileFacade implements FileFacade {
 	 * Select a non-colliding name in the configured downloadPath, preferably with the given file name
 	 * public for testing
 	 */
-	private async pickSavePath(filename: string): Promise<string> {
+	private async pickSavePath(filename: string): Promise<URL> {
 		const defaultDownloadPath = await this.conf.getVar(DesktopConfigKey.defaultDownloadPath)
 
 		if (defaultDownloadPath != null) {
 			const fileName = path.basename(filename)
-			return path.join(defaultDownloadPath, nonClobberingFilename(await this.fs.promises.readdir(defaultDownloadPath), fileName))
+			const destinationPath = path.join(defaultDownloadPath, nonClobberingFilename(await this.fs.promises.readdir(defaultDownloadPath), fileName))
+			return pathToFileURL(destinationPath)
 		} else {
 			const { canceled, filePath } = await this.electron.dialog.showSaveDialog({
 				defaultPath: path.join(this.electron.app.getPath("downloads"), filename),
@@ -438,20 +439,20 @@ export class DesktopFileFacade implements FileFacade {
 			if (canceled) {
 				throw new CancelledError("Path selection cancelled")
 			} else {
-				return filePath
+				return pathToFileURL(filePath)
 			}
 		}
 	}
 
 	/** public for testing */
-	async showInFileExplorer(savePath: string): Promise<void> {
+	async showInFileExplorer(fileUrl: URL): Promise<void> {
 		// See doc for _lastOpenedFileManagerAt on why we do this throttling.
 		const lastOpenedFileManagerAt = this.lastOpenedFileManagerAt
 		const fileManagerTimeout = await this.conf.getConst(BuildConfigKey.fileManagerTimeout)
 
 		if (lastOpenedFileManagerAt == null || this.dateProvider.now() - lastOpenedFileManagerAt > fileManagerTimeout) {
 			this.lastOpenedFileManagerAt = this.dateProvider.now()
-			this.electron.shell.showItemInFolder(savePath)
+			this.electron.shell.showItemInFolder(fileURLToPath(fileUrl))
 		}
 	}
 	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
