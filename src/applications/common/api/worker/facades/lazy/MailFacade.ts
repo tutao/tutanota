@@ -1218,7 +1218,7 @@ export class MailFacade {
 		const sk = aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
-		await this.serviceExecutor.post(
+		const manageLabelPostOut = await this.serviceExecutor.post(
 			ManageLabelService,
 			createManageLabelServicePostIn({
 				ownerGroup: mailGroupId,
@@ -1234,6 +1234,7 @@ export class MailFacade {
 				sessionKey: sk,
 			},
 		)
+		return manageLabelPostOut.label
 	}
 
 	/*

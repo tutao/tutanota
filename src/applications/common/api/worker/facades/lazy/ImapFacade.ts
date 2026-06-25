@@ -57,6 +57,11 @@ export class ImapFacade {
 			rootImportMailFolderId = await this.mailFacade.createMailFolder(initializeParams.rootImportMailFolderName, null, mailGroupId)
 		}
 
+		let syncLabelId: IdTuple | null = null
+		if (initializeParams.imapSyncLabelData) {
+			syncLabelId = await this.mailFacade.createLabel(mailGroupId, initializeParams.imapSyncLabelData)
+		}
+
 		const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
 		const sk = aes256RandomKey()
 		const imapPostIn = createImapPostIn({
@@ -66,7 +71,7 @@ export class ImapFacade {
 			maxQuota: initializeParams.maxQuota,
 			postponedUntil: Date.now().toString(),
 			rootImportMailFolder: rootImportMailFolderId,
-			labelData: initializeParams.imapSyncLabelData,
+			syncLabel: syncLabelId,
 			provider: initializeParams.provider.toString(),
 		})
 
