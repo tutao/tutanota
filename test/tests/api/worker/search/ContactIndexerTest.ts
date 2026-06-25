@@ -7,13 +7,9 @@ import { ContactIndexerBackend } from "../../../../../src/applications/mail-app/
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
 import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade"
 
-import { noPatchesAndInstance } from "../EventBusClientTest"
-
-import { Contact, ContactList, ContactListTypeRef, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
-import { OperationType, TypeRef } from "../../../../../src/platform-kit/meta"
+import { Contact, ContactList, ContactListTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
 
 import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
-import { EntityUpdateData } from "../../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 o.spec("ContactIndexer", () => {
 	let entityClient: EntityClient
@@ -75,41 +71,23 @@ o.spec("ContactIndexer", () => {
 			when(entityClient.load(ContactTypeRef, testContact._id)).thenResolve(testContact)
 		})
 
-		o.test("ignores non contact updates", async () => {
-			const nonContactCreate = createUpdate(OperationType.CREATE, "hello", "world", MailTypeRef)
-			const nonContactDelete = createUpdate(OperationType.DELETE, "hello", "world", MailTypeRef)
-			const nonContactUpdate = createUpdate(OperationType.UPDATE, "hello", "world", MailTypeRef)
-			await indexer.processEntityEvents([nonContactUpdate, nonContactCreate, nonContactDelete], "a", "b")
-			verify(entityClient.load(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
-			verify(backend.onContactDeleted(matchers.anything()), { times: 0 })
-			verify(backend.onContactCreated(matchers.anything()), { times: 0 })
-			verify(backend.onContactUpdated(matchers.anything()), { times: 0 })
-		})
 		o.test("create", async () => {
-			const contactCreate = createUpdate(OperationType.CREATE, contactsListId, testContactId, ContactTypeRef)
-			await indexer.processEntityEvents([contactCreate], "a", "b")
+			await indexer.afterContactCreated([contactsListId, testContactId])
 			verify(backend.onContactCreated(testContact))
 		})
+		o.test("before delete", async () => {
+			await indexer.beforeContactDeleted([contactsListId, testContactId])
+			verify(backend.onBeforeContactDeleted([contactsListId, testContactId]))
+			verify(entityClient.load(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+		})
 		o.test("delete", async () => {
-			const contactDelete = createUpdate(OperationType.DELETE, contactsListId, testContactId, ContactTypeRef)
-			await indexer.processEntityEvents([contactDelete], "a", "b")
+			await indexer.afterContactDeleted([contactsListId, testContactId])
 			verify(backend.onContactDeleted([contactsListId, testContactId]))
 			verify(entityClient.load(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 		})
 		o.test("update", async () => {
-			const contactUpdate = createUpdate(OperationType.UPDATE, contactsListId, testContactId, ContactTypeRef)
-			await indexer.processEntityEvents([contactUpdate], "a", "b")
+			await indexer.afterContactUpdated([contactsListId, testContactId])
 			verify(backend.onContactUpdated(testContact))
 		})
 	})
 })
-
-function createUpdate(operation: OperationType, instanceListId: NonEmptyString, instanceId: Id, typeRef: TypeRef<any> = ContactTypeRef): EntityUpdateData {
-	return {
-		operation: operation,
-		instanceId: instanceId,
-		instanceListId: instanceListId,
-		typeRef: typeRef,
-		...noPatchesAndInstance,
-	}
-}

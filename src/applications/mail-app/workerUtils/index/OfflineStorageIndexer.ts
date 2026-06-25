@@ -64,7 +64,6 @@ export class OfflineStorageIndexer implements Indexer {
 
 	async processEntityEvents(updates: readonly EntityUpdateData[], batchId: Id, groupId: Id) {
 		await this.mailIndexer.processEntityEvents(updates, groupId, batchId)
-		await this.contactIndexer.processEntityEvents(updates, groupId, batchId)
 	}
 
 	async extendMailIndex(time: number) {

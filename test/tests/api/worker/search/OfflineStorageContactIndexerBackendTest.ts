@@ -47,9 +47,15 @@ o.spec("OfflineStorageContactIndexerBackend", () => {
 		verify(persistence.setContactsIndexed(true))
 	})
 
+	o.test("onBeforeContactDeleted", async () => {
+		await backend.onBeforeContactDeleted(["hello", "world"])
+		verify(persistence.deleteContactData(["hello", "world"]))
+	})
+
 	o.test("onContactDeleted", async () => {
 		await backend.onContactDeleted(["hello", "world"])
-		verify(persistence.deleteContactData(["hello", "world"]))
+		// contact delete handling is done in onBeforeContactDeleted()
+		verify(persistence.deleteContactData(matchers.anything()), { times: 0 })
 	})
 
 	o.test("onContactUpdated", async () => {
