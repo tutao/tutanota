@@ -55,10 +55,10 @@ class NativePushFacadeReceiveDispatcher(
 			}
 			"scheduleAlarms" -> {
 				val alarmNotificationsWireFormat: String = json.decodeFromString(arg[0])
-				val newDeviceSessionKeyInfoWireFormat: String = json.decodeFromString(arg[1])
+				val newDeviceSessionKey: String = json.decodeFromString(arg[1])
 				val result: Unit = this.facade.scheduleAlarms(
 					alarmNotificationsWireFormat,
-					newDeviceSessionKeyInfoWireFormat,
+					newDeviceSessionKey,
 				)
 				return json.encodeToString(result)
 			}

@@ -56,7 +56,7 @@
 					"alarmNotificationsWireFormat": "string"
 				},
 				{
-					"newDeviceSessionKeyInfoWireFormat": "string"
+					"newDeviceSessionKey": "string"
 				}
 			],
 			"ret": "void"

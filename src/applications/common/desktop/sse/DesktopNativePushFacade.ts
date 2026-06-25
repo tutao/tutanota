@@ -6,7 +6,7 @@ import { SseStorage } from "./SseStorage.js"
 import { TutaSseFacade } from "./TutaSseFacade.js"
 import { ClientModelUntypedInstance, ServerModelUntypedInstance } from "../../../../platform-kit/meta"
 import { InstancePipeline } from "../../../../platform-kit/instance-pipeline"
-import { SessionKeyInfo } from "../../../../platform-kit/crypto"
+import { base64ToKey } from "../../../../platform-kit/crypto"
 import { log } from "../DesktopLog"
 import { AlarmNotificationTypeRef } from "@tutao/entities/sys"
 
@@ -46,18 +46,18 @@ export class DesktopNativePushFacade implements NativePushFacade {
 	}
 
 	async initPushNotifications(): Promise<void> {
-		// make sure that we are connected if we just received new push datap
+		// make sure that we are connected if we just received new push data
 		await this.sse.connect()
 	}
 
-	async scheduleAlarms(alarmNotificationWireFormat: string, newDeviceSessionKeyInfoWireFormat: string): Promise<void> {
+	async scheduleAlarms(alarmNotificationWireFormat: string, newDeviceSessionKey: Base64): Promise<void> {
 		const alarms: ClientModelUntypedInstance[] = JSON.parse(alarmNotificationWireFormat)
-		const newDeviceSessionKeyInfo: SessionKeyInfo = JSON.parse(newDeviceSessionKeyInfoWireFormat)
 		for (const alarm of alarms) {
+			const sessionKey = base64ToKey(newDeviceSessionKey)
 			const alarmNotification = await this.alarmStorageInstancePipeline.decryptAndMap(
 				AlarmNotificationTypeRef,
 				alarm as unknown as ServerModelUntypedInstance,
-				newDeviceSessionKeyInfo.sessionKey,
+				sessionKey,
 			)
 			await this.alarmScheduler.handleCreateAlarm(alarmNotification)
 		}

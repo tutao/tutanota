@@ -1,4 +1,13 @@
-import { aes256RandomKey, AesKey, CryptoWrapper, SessionKeyInfo, SymmetricCipherVersion, SymmetricEncryptionScheme, VersionedKey } from "@tutao/crypto"
+import {
+	aes256RandomKey,
+	AesKey,
+	CryptoWrapper,
+	keyToBase64,
+	SessionKeyInfo,
+	SymmetricCipherVersion,
+	SymmetricEncryptionScheme,
+	VersionedKey,
+} from "@tutao/crypto"
 import type { EventAlarmInfoTemplatesTuple } from "../../../../calendar/gui/ImportExportUtils"
 import { AttributeModel, ClientModelUntypedInstance, elementIdPart, listIdPart, OperationType } from "@tutao/meta"
 import { TooManyRequestsError } from "@tutao/rest-client/error"
@@ -87,9 +96,8 @@ export class AlarmFacade {
 				}),
 			),
 		)
-		const sessionKeyInfoWireFormat = JSON.stringify(sessionKeyInfo)
 
-		await this.nativePushFacade.scheduleAlarms(encryptedNotificationsWireFormat, sessionKeyInfoWireFormat)
+		await this.nativePushFacade.scheduleAlarms(encryptedNotificationsWireFormat, keyToBase64(sessionKey))
 	}
 
 	private async prepareAlarmServicePostData(

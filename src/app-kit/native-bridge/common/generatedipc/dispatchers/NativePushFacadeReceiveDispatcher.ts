@@ -31,8 +31,8 @@ export class NativePushFacadeReceiveDispatcher {
 			}
 			case "scheduleAlarms": {
 				const alarmNotificationsWireFormat: string = arg[0]
-				const newDeviceSessionKeyInfoWireFormat: string = arg[1]
-				return this.facade.scheduleAlarms(alarmNotificationsWireFormat, newDeviceSessionKeyInfoWireFormat)
+				const newDeviceSessionKey: string = arg[1]
+				return this.facade.scheduleAlarms(alarmNotificationsWireFormat, newDeviceSessionKey)
 			}
 			case "invalidateAlarmsForUser": {
 				const userId: string = arg[0]

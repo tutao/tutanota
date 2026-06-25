@@ -46,10 +46,10 @@ public final class NativePushFacadeReceiveDispatcher: Sendable {
 			return "null"
 		case "scheduleAlarms":
 			let alarmNotificationsWireFormat = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
-			let newDeviceSessionKeyInfoWireFormat = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
+			let newDeviceSessionKey = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
 			try await self.facade.scheduleAlarms(
 				alarmNotificationsWireFormat,
-				newDeviceSessionKeyInfoWireFormat
+				newDeviceSessionKey
 			)
 			return "null"
 		case "invalidateAlarmsForUser":
