@@ -32,7 +32,7 @@ export type PlanBoxContainerAttrs = {
 	currentPlan: PlanType | undefined
 	isApplePrice: boolean
 	priceAndConfigProvider: PriceAndConfigProvider
-	selectedPlan: Stream<PlanType | null>
+	selectedPlan: Stream<PlanType>
 	selectedSubscriptionOptions: SelectedSubscriptionOptions
 	showMultiUser: boolean
 	discountDetails?: DiscountDetails
@@ -56,11 +56,11 @@ export function isPersonalPlanAvailable(availablePlans: readonly AvailablePlanTy
 export function filterPlanConfigsAndGetSelectedPlan(
 	planConfigs: PlanConfig[],
 	availablePlans: readonly PlanType[],
-	selectedPlan: PlanType | null,
+	selectedPlan: PlanType,
 	currentPlan: PlanType | undefined,
 ): {
 	planConfigs: PlanConfig[]
-	selectedPlan: PlanType | null
+	selectedPlan: PlanType
 } {
 	planConfigs = planConfigs.map((planConfig) => {
 		if (!availablePlans.includes(planConfig.type)) {
@@ -76,13 +76,13 @@ export function filterPlanConfigsAndGetSelectedPlan(
 	const availablePlansForCurrentView = planConfigs
 		.filter((planConfig) => !planConfig.isDisabled && planConfig.type !== currentPlan)
 		.map((config) => config.type)
-	if (selectedPlan == null || !availablePlansForCurrentView.includes(selectedPlan)) {
+	if (!availablePlansForCurrentView.includes(selectedPlan)) {
 		const enabledAndNotCurrentPlans = planConfigs.filter((planConfig) => planConfig.type !== currentPlan && !planConfig.isDisabled)
 		selectedPlan = enabledAndNotCurrentPlans.length > 0 ? enabledAndNotCurrentPlans[0].type : PlanType.Free
 
 		const isPrivate = availablePlansForCurrentView.includes(PlanType.Free)
-		const defaultPlanForCurrentView = isPrivate ? PlanType.Revolutionary : null
-		if (defaultPlanForCurrentView == null || availablePlansForCurrentView.includes(defaultPlanForCurrentView)) {
+		const defaultPlanForCurrentView = isPrivate ? PlanType.Legend : PlanType.Advanced
+		if (availablePlansForCurrentView.includes(defaultPlanForCurrentView)) {
 			selectedPlan = defaultPlanForCurrentView
 		}
 	}

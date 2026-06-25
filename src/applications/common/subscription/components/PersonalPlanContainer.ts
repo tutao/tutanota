@@ -76,11 +76,14 @@ export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 	]
 
 	oncreate({ attrs }: Vnode<PlanBoxContainerAttrs>) {
-		if (attrs.selectedPlan() === attrs.currentPlan || attrs.selectedPlan() == null) {
-			const { planConfigs, selectedPlan } = filterPlanConfigsAndGetSelectedPlan(this.paidPlanConfigs, attrs.availablePlans, null, attrs.currentPlan)
-			this.paidPlanConfigs = planConfigs
-			attrs.selectedPlan(selectedPlan)
-		}
+		const { planConfigs, selectedPlan } = filterPlanConfigsAndGetSelectedPlan(
+			this.paidPlanConfigs,
+			attrs.availablePlans,
+			attrs.selectedPlan(),
+			attrs.currentPlan,
+		)
+		this.paidPlanConfigs = planConfigs
+		attrs.selectedPlan(selectedPlan)
 		m.redraw()
 	}
 
