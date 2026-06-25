@@ -48,7 +48,7 @@ export class AesCbcThenHmacSubKeys extends AesCbcSubKeys {
 
 export abstract class AeadSubKeys extends SymmetricSubKeys {
 	constructor(
-		encryptionKey: Aes256Key,
+		override readonly encryptionKey: Aes256Key,
 		override readonly authenticationKey: Aes256Key,
 	) {
 		super(encryptionKey, authenticationKey)
@@ -121,8 +121,7 @@ export class SymmetricKeyDeriver {
 	deriveSubKeysAeadFromGroupKey(groupKey: VersionedKey, kdfNonce: KdfNonce, instanceTypeId: InstanceTypeId): AeadWithGroupKeySubKeys {
 		const context = `${AEAD_GROUP_KEY_NONCE_DERIVATION}${instanceTypeId.app}/${instanceTypeId.id}`
 		const inputKeyMaterial = concat(keyToUint8Array(groupKey.object), kdfNonce)
-		const keys = this.deriveAeadSubKeys(inputKeyMaterial, context)
-		return new AeadWithGroupKeySubKeys(groupKey.version, keys.encryptionKey, keys.authenticationKey)
+		return this.deriveAeadSubKeys(inputKeyMaterial, context, groupKey.version)
 	}
 
 	/**
@@ -131,22 +130,22 @@ export class SymmetricKeyDeriver {
 	deriveSubKeysAeadFromSessionKey(sessionKey: AesKey, instanceTypeId: InstanceTypeId): AeadWithSessionKeySubKeys {
 		const context = `${AEAD_SESSION_KEY_DERIVATION}${instanceTypeId.app}/${instanceTypeId.id}`
 		const inputKeyMaterial = keyToUint8Array(sessionKey)
-		const keys = this.deriveAeadSubKeys(inputKeyMaterial, context)
-		return new AeadWithSessionKeySubKeys(keys.encryptionKey, keys.authenticationKey)
+		return this.deriveAeadSubKeys(inputKeyMaterial, context)
 	}
 
-	private deriveAeadSubKeys(inputKeyMaterial: Uint8Array, context: string): EncryptionAndAuthenticationKey {
+	private deriveAeadSubKeys(inputKeyMaterial: Uint8Array, context: string): AeadWithSessionKeySubKeys
+	private deriveAeadSubKeys(inputKeyMaterial: Uint8Array, context: string, groupKeyVersion: KeyVersion): AeadWithGroupKeySubKeys
+	private deriveAeadSubKeys(inputKeyMaterial: Uint8Array, context: string, groupKeyVersion?: KeyVersion): AeadSubKeys {
 		const derivedBytes = blake3Kdf(inputKeyMaterial, context, DEFAULT_TOTAL_KEY_LENGTH_BYTES)
 
 		const encryptionKey = uint8ArrayToKey(derivedBytes.subarray(0, DEFAULT_LENGTH_PER_KEY_BYTES), AesKeyLength.Aes256)
 		const authenticationKey = uint8ArrayToKey(derivedBytes.subarray(DEFAULT_LENGTH_PER_KEY_BYTES, DEFAULT_TOTAL_KEY_LENGTH_BYTES), AesKeyLength.Aes256)
-		return { encryptionKey, authenticationKey }
+		if (groupKeyVersion == null) {
+			return new AeadWithSessionKeySubKeys(encryptionKey, authenticationKey)
+		} else {
+			return new AeadWithGroupKeySubKeys(groupKeyVersion, encryptionKey, authenticationKey)
+		}
 	}
-}
-
-type EncryptionAndAuthenticationKey = {
-	encryptionKey: Aes256Key
-	authenticationKey: Aes256Key
 }
 
 export const SYMMETRIC_KEY_DERIVER = new SymmetricKeyDeriver()
