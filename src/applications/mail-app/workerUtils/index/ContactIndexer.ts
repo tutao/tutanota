@@ -1,10 +1,8 @@
-import { collapseId, OperationType } from "../../../../platform-kit/meta"
 import { lazyMemoized } from "../../../../platform-kit/utils"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import { ContactIndexerBackend } from "./ContactIndexerBackend"
 import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade"
 import { ContactListTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 export class ContactIndexer {
 	constructor(
@@ -28,22 +26,22 @@ export class ContactIndexer {
 		await this.backend.indexContactList(await this.userContactList())
 	}
 
-	async processEntityEvents(events: readonly EntityUpdateData[], _groupId: Id, _batchId: Id): Promise<void> {
-		for (const event of events) {
-			if (!isUpdateForTypeRef(ContactTypeRef, event)) {
-				continue
-			}
-			const contactId = collapseId(event.instanceListId, event.instanceId) as IdTuple
-			if (event.operation === OperationType.CREATE) {
-				const contact = await this.entityClient.load(ContactTypeRef, contactId)
-				await this.backend.onContactCreated(contact)
-			} else if (event.operation === OperationType.UPDATE) {
-				const contact = await this.entityClient.load(ContactTypeRef, contactId)
-				await this.backend.onContactUpdated(contact)
-			} else if (event.operation === OperationType.DELETE) {
-				await this.backend.onContactDeleted(contactId)
-			}
-		}
+	async beforeContactDeleted(contactId: IdTuple): Promise<void> {
+		await this.backend.onBeforeContactDeleted(contactId)
+	}
+
+	async afterContactDeleted(contactId: IdTuple): Promise<void> {
+		await this.backend.onContactDeleted(contactId)
+	}
+
+	async afterContactCreated(contactId: IdTuple): Promise<void> {
+		const contact = await this.entityClient.load(ContactTypeRef, contactId)
+		await this.backend.onContactCreated(contact)
+	}
+
+	async afterContactUpdated(contactId: IdTuple): Promise<void> {
+		const contact = await this.entityClient.load(ContactTypeRef, contactId)
+		await this.backend.onContactUpdated(contact)
 	}
 
 	private userContactList = lazyMemoized(() => {

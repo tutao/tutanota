@@ -17,6 +17,15 @@ export interface ContactIndexerBackend {
 
 	onContactUpdated(contact: Contact): Promise<void>
 
+	/**
+	 * Called before the contact is deleted from the cache.
+	 * Useful if updating the index requires using the cached data.
+	 */
+	onBeforeContactDeleted(contact: IdTuple): Promise<void>
+
+	/**
+	 * Called when processing entity event that deletes contact
+	 */
 	onContactDeleted(contact: IdTuple): Promise<void>
 
 	areContactsIndexed(contactList: ContactList): Promise<boolean>

@@ -43,7 +43,7 @@ import { Indexer, IndexerInitParams } from "./Indexer"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
 import { OutOfSyncError } from "../../../../platform-kit/app-env/OutOfSyncError"
-import { MailTypeRef } from "@tutao/entities/tutanota"
+import { ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { GroupMembership, User, UserTypeRef } from "@tutao/entities/sys"
 import { getMembershipGroupType, GroupType } from "../../../../entities/sys/Utils"
 import { ClientTypeModelResolver } from "../../../../platform-kit/instance-pipeline"
@@ -475,7 +475,7 @@ export class IndexedDbIndexer implements Indexer {
 			await this._processUserEntityEvents(events)
 			await this.processMailEntityEvents(events)
 			await this.mailIndexer.processEntityEvents(events, groupId, batchId)
-			await this.contactIndexer.processEntityEvents(events, groupId, batchId)
+			await this.processContactEntityEvents(events)
 			await this.core.putLastBatchIdForGroup(groupId, batchId)
 		} catch (e) {
 			if (e instanceof CancelledError) {
@@ -515,6 +515,40 @@ export class IndexedDbIndexer implements Indexer {
 							break
 						case OperationType.CREATE:
 							await this.mailIndexer.afterMailCreated(mailId)
+							break
+					}
+				} catch (e) {
+					if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {
+						continue
+					} else {
+						throw e
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Process all contact entity events and delegates them to the indexer.
+	 *
+	 * This is required because we do not use cache handlers, so we have to call these methods on ContactIndexer ourselves.
+	 *
+	 * ATTENTION: Must be called before the group batch ID is written.
+	 */
+	private async processContactEntityEvents(events: Iterable<EntityUpdateData>) {
+		for (const event of events) {
+			if (isUpdateForTypeRef(ContactTypeRef, event)) {
+				const contactId: IdTuple = [event.instanceListId, event.instanceId]
+				try {
+					switch (event.operation) {
+						case OperationType.DELETE:
+							await this.contactIndexer.afterContactDeleted(contactId)
+							break
+						case OperationType.UPDATE:
+							await this.contactIndexer.afterContactUpdated(contactId)
+							break
+						case OperationType.CREATE:
+							await this.contactIndexer.afterContactCreated(contactId)
 							break
 					}
 				} catch (e) {
