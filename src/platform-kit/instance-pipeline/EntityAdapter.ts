@@ -3,7 +3,7 @@ import { Entity, ServerTypeModel, TypeRef } from "@tutao/meta"
 import { ModelMapper } from "./ModelMapper"
 import { BucketKey, BucketKeyTypeRef } from "@tutao/entities/sys"
 import { CryptoMapper, EncryptedParsedInstance } from "./CryptoMapper"
-import { ParsedValue } from "./PipelineTypes"
+import { ParsedValue } from "./ParsedValue"
 
 export class EntityAdapter implements Entity {
 	isAdapter = true

@@ -98,7 +98,7 @@ import { InstanceSessionKeysCache } from "../../../../src/platform-kit/base/base
 import { ProcessingState } from "../../../../src/entities/tutanota/Utils"
 import { GroupType, PermissionType } from "../../../../src/entities/sys/Utils"
 import { CacheManager } from "../../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
-import { ParsedValue } from "../../../../src/platform-kit/instance-pipeline/PipelineTypes"
+import { ParsedValue } from "../../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 const { anything, argThat } = matchers
 

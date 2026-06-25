@@ -9,7 +9,7 @@ import {
 	ValueType,
 	ValueTypeEnum,
 } from "@tutao/meta"
-import { ParsedValue } from "./PipelineTypes"
+import { ParsedValue } from "./ParsedValue"
 import { createPatch, createPatchList, Patch, PatchList } from "@tutao/entities/sys"
 import { arrayEquals, arrayEqualsWithPredicate, assert, assertNotNull, deepEqual, isEmpty, isNotEmpty, isNotNull, Nullable } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"

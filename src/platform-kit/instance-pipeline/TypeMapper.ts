@@ -15,7 +15,7 @@ import {
 	TypeModel,
 	TypeRef,
 } from "@tutao/meta"
-import { ParsedValue } from "./PipelineTypes"
+import { ParsedValue } from "./ParsedValue"
 import { assert, assertNotNull, deepEqual, DeepEquals, isNotNull, Nullable, uint8ArrayToBase64 } from "@tutao/utils"
 import { EncryptedParsedInstance, EncryptedParsedValue } from "./CryptoMapper"
 import { assertNotNaN } from "../utils/Utils"

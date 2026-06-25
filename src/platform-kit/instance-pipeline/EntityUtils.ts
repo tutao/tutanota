@@ -3,7 +3,7 @@ import { assert, DeepEquals, Nullable, stringToUtf8Uint8Array, uint8ArrayToBase6
 import { assertNotNaN } from "../utils/Utils"
 import { compress, uncompress } from "./Compression"
 import { ProgrammingError } from "@tutao/app-env"
-import { ParsedValue } from "./PipelineTypes"
+import { ParsedValue } from "./ParsedValue"
 
 export class EntityUtils {
 	public static getValue<NestedObj extends DeepEquals>(valueModel: ModelValue, value: Nullable<any>): ParsedValue<NestedObj> {

@@ -3,7 +3,7 @@ import { Cardinality, ValueTypeEnum } from "../../../src/platform-kit/meta"
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { EntityUtils } from "../../../src/platform-kit/instance-pipeline/EntityUtils"
 import { createEncryptedValueType } from "./InstancePipelineTestUtils"
-import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/PipelineTypes"
+import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { stringToBase64, uint8ArrayToBase64 } from "../../../src/platform-kit/utils"
 import { random } from "../../../src/platform-kit/crypto"
 

@@ -70,7 +70,7 @@ import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
 import { AccountType } from "../../../../src/entities/sys/Utils"
 import { MailSetKind } from "../../../../src/entities/tutanota/Utils"
 import { OfflineMapper } from "../../../../src/platform-kit/instance-pipeline/OfflineMapper"
-import { InstanceDirection } from "../../../../src/platform-kit/instance-pipeline/PipelineTypes"
+import { InstanceDirection } from "../../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 function incrementMailSetEntryId(mailSetEntryId, mailId, ms: number) {
 	const { receiveDate } = deconstructMailSetEntryId(mailSetEntryId)

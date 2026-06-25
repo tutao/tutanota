@@ -1,6 +1,6 @@
 import { assert, assertNotNull, deepEqual, DeepEquals, isNotNull, promiseMap } from "@tutao/utils"
 import { ServerTypeModelResolver } from "./EntityFunctions"
-import { InstanceDirection, ParsedValue } from "./PipelineTypes"
+import { InstanceDirection, ParsedValue } from "./ParsedValue"
 import {
 	AssociationReprType,
 	AttributeId,

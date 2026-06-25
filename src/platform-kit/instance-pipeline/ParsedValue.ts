@@ -127,8 +127,7 @@ export class ParsedValue<NestedObject extends DeepEquals> implements DeepEquals 
 	}
 
 	asBoolean(): boolean {
-		const numberValue = parseInt(this.asString())
-		return numberValue !== 0
+		return this.asString() !== "0"
 	}
 
 	asByteArray(): Uint8Array {

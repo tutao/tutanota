@@ -14,16 +14,7 @@ import {
 	VersionedKey,
 } from "../../../src/platform-kit/crypto"
 import { matchers, object, replace, verify, when } from "testdouble"
-import {
-	AppNameEnum,
-	Cardinality,
-	ClientTypeModel,
-	EncryptedModelValue,
-	ModelValue,
-	ServerTypeModel,
-	TypeRef,
-	ValueTypeEnum,
-} from "../../../src/platform-kit/meta"
+import { AppNameEnum, Cardinality, ClientTypeModel, EncryptedModelValue, ModelValue, ServerTypeModel, ValueTypeEnum } from "../../../src/platform-kit/meta"
 import {
 	arrayEquals,
 	assertNotNull,
@@ -42,14 +33,14 @@ import {
 	ModelMapper,
 	SymmetricGroupKeyLoader,
 } from "../../../src/platform-kit/instance-pipeline"
-import { createEncryptedValueType, dummyResolver, testAggregateModel, testTypeModel } from "./InstancePipelineTestUtils"
+import { createEncryptedValueType, testAggregateModel, testAggregateOnAggregateModel, testTypeModel } from "./InstancePipelineTestUtils"
 import { CryptoError, SessionKeyNotFoundError } from "../../../src/platform-kit/crypto/error"
 import { InstanceDecryptor } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/decryption/InstanceDecryptor"
 import { ValueDecryptor } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/decryption/ValueDecryptor"
 import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { aesDecrypt, aesEncrypt } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
-import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/PipelineTypes"
-import { base64Decode, clientInitializedTypeModelResolver } from "../TestUtils"
+import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
+import { base64Decode } from "../TestUtils"
 import { EntityUtils } from "../../../src/platform-kit/instance-pipeline/EntityUtils"
 
 o.spec("CryptoMapperTest", () => {
@@ -62,31 +53,34 @@ o.spec("CryptoMapperTest", () => {
 		id: 0,
 		name: "name",
 	}
-	const typeModelResolver = clientInitializedTypeModelResolver()
-	let encryptedParsedInstance: EncryptedParsedInstance = null!
-	let decryptedParsedInstance: DecryptedParsedInstance
 
+	let decryptedParsedInstance: DecryptedParsedInstance
 	const sampleEncryptedParsedInstance = (sk: AesKey) => {
 		const encryptedAggregate = EncryptedParsedInstance.incomingFromServer(testAggregateModel as ServerTypeModel)
 			.addAttributeById(2, ParsedValue.fromString("123"))
 			.addAttributeById(6, ParsedValue.fromId("someCustomId"))
-			.addAttributeById(9, ParsedValue.fromNestedItems([]))
+			.addAttributeById(
+				9,
+				ParsedValue.fromNestedItems([
+					EncryptedParsedInstance.incomingFromServer(testAggregateOnAggregateModel as ServerTypeModel)
+						.addAttributeById(17, ParsedValue.fromByteArray(aesEncrypt(sk, Uint8Array.of(42))))
+						.addAttributeById(10, ParsedValue.fromNull())
+						.addAttributeById(11, ParsedValue.fromId("anotherCustomId")),
+				]),
+			)
 			.addAttributeById(10, ParsedValue.fromIdList([]))
 		return EncryptedParsedInstance.incomingFromServer(testTypeModel as ServerTypeModel)
-			.addAttributeById(
-				1,
-				ParsedValue.fromString("AV1kmZZfCms1pNvUtGrdhOlnDAr3zb2JWpmlpWEhgG5zqYK3g7PfRsi0vQAKLxXmrNRGp16SBKBa0gqXeFw9F6l7nbGs3U8uNLvs6Fi+9IWj"),
-			)
+			.addAttributeById(1, ParsedValue.fromByteArray(aesEncrypt(sk, stringToUtf8Uint8Array("encrypted string"))))
+			.addAttributeById(7, ParsedValue.fromByteArray(aesEncrypt(sk, stringToUtf8Uint8Array("1"))))
+			.addAttributeById(15, ParsedValue.fromByteArray(aesEncrypt(sk, stringToUtf8Uint8Array("0"))))
 			.addAttributeById(2, ParsedValue.fromNull())
 			.addAttributeById(3, ParsedValue.fromNestedItems([encryptedAggregate]))
 			.addAttributeById(4, ParsedValue.fromIdList(["associatedElementId"]))
 			.addAttributeById(5, ParsedValue.fromString(new Date("2025-01-01T13:00:00.000Z").getTime().toString()))
-			.addAttributeById(7, ParsedValue.fromString("AWBaC3ipyi9kxJn7USkbW1SLXPjgU8T5YqpIP/dmTbyRwtXFU9tQbYBm12gNpI9KJfwO14FN25hjC3SlngSBlzs="))
 			.addAttributeById(8, ParsedValue.fromIdTupleList([]))
 			.addAttributeById(12, ParsedValue.fromId("some-id"))
 			.addAttributeById(13, ParsedValue.fromIdTuple(["listId", "listElementId"]))
 			.addAttributeById(14, ParsedValue.fromNull())
-			.addAttributeById(15, ParsedValue.fromByteArray(aesEncrypt(sk, stringToUtf8Uint8Array("0"))))
 			.addAttributeById(16, ParsedValue.fromNull())
 			.addAttributeById(17, ParsedValue.fromIdTupleList([]))
 	}
@@ -95,7 +89,15 @@ o.spec("CryptoMapperTest", () => {
 		const parsedAggregate = DecryptedParsedInstance.outgoingToServer(testAggregateModel as ClientTypeModel)
 			.addAttribute(2, ParsedValue.fromString("123"))
 			.addAttribute(6, ParsedValue.fromString("aggregateId"))
-			.addAttribute(9, ParsedValue.fromNestedItems([]))
+			.addAttribute(
+				9,
+				ParsedValue.fromNestedItems([
+					DecryptedParsedInstance.outgoingToServer(testAggregateOnAggregateModel as ClientTypeModel)
+						.addAttribute(17, ParsedValue.fromByteArray(Uint8Array.of(42)))
+						.addAttribute(10, ParsedValue.fromNull())
+						.addAttribute(11, ParsedValue.fromId("anotherCustomId")),
+				]),
+			)
 			.addAttribute(10, ParsedValue.fromIdList([]))
 		decryptedParsedInstance = DecryptedParsedInstance.outgoingToServer(testTypeModel as ClientTypeModel)
 			.addAttribute(1, ParsedValue.fromString("encrypted string"))
@@ -396,10 +398,16 @@ o.spec("CryptoMapperTest", () => {
 	})
 
 	o.test("decryptParsedInstance with missing sk sets _errors", async () => {
-		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => aes256RandomKey()
+		const sk = aes256RandomKey()
+		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => sk
+		const encryptedParsedInstance = sampleEncryptedParsedInstance(sk).addAttributeById(
+			1,
+			ParsedValue.fromString("AV1kmZZfCms1pNvUtGrdhOlnDAr3zb2JWpmlpWEhgG5zqYK3g7PfRsi0vQAKLxXmrNRGp16SBKBa0gqXeFw9F6l7nbGs3U8uNLvs6Fi+9IWj"),
+		)
+
 		const instance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, null, null, ownerKeyProvider, "")
 		o.check(instance.getAttributeById(1).asString()).equals("") // default value is assigned in case of crypto errors
-		o.check(instance.getErrors()["_ownerEncSessionKey"]).equals("Probably temporary SessionKeyNotFound")
+		o.check(instance.getErrors()[14]).equals("Probably temporary SessionKeyNotFound")
 	})
 
 	o.test("encryptParsedInstance with missing sk throws", async () => {
@@ -409,6 +417,9 @@ o.spec("CryptoMapperTest", () => {
 
 	o.test("decrypting default values works correctly", async () => {
 		const sk = new Aes256Key([4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205])
+		const encryptedParsedInstance = sampleEncryptedParsedInstance(sk)
+			.addAttributeById(1, ParsedValue.fromString(""))
+			.addAttributeById(2, ParsedValue.fromString(""))
 
 		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => aes256RandomKey()
 		const decryptedInstance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider, "")
@@ -420,6 +431,10 @@ o.spec("CryptoMapperTest", () => {
 
 	o.test("decryption errors are written to _errors field", async () => {
 		const sk = new Aes256Key([4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205])
+		const encryptedParsedInstance = sampleEncryptedParsedInstance(sk).addAttributeById(
+			1,
+			ParsedValue.fromString("AV1kmZZfCms1pNvUtGrdhOlnDAr3zb2pmlpWEhgG5iwzqYK3g7PfRsi0vQAKLxXmrNRGp16SBKBa0gqXeFw9F6l7nbGs3U8uNLvs6Fi+9IWj"),
+		)
 
 		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => aes256RandomKey()
 		const instanceWithErrors = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider, "")
@@ -432,7 +447,7 @@ o.spec("CryptoMapperTest", () => {
 		let valueType: EncryptedModelValue
 		let encryptedValue: EncryptedParsedValue
 
-		o.before(() => {
+		o.beforeEach(() => {
 			valueDecryptor = object()
 			when(valueDecryptor.getValue(matchers.anything())).thenReturn(new Uint8Array())
 			instanceDecryptor = object()
@@ -485,25 +500,7 @@ o.spec("CryptoMapperTest", () => {
 			when(symmetricCipherFacade.getInstanceDecryptor(matchers.anything(), matchers.anything(), matchers.anything())).thenReturn(instanceDecryptor)
 			replace(cryptoMapper, "symmetricCipherFacade", symmetricCipherFacade)
 			const sessionKey = aes256RandomKey()
-			const aggregateAssociationModel = testTypeModel.associations[3]
-			const encryptedInstance = EncryptedParsedInstance.outgoingToServer(
-				(await dummyResolver(new TypeRef(aggregateAssociationModel.dependency!, aggregateAssociationModel.refTypeId))) as ClientTypeModel,
-			).addAttributeById(
-				3,
-				ParsedValue.fromNestedItems([
-					EncryptedParsedInstance.outgoingToServer((await dummyResolver(new TypeRef("fakeApp", 0))) as ClientTypeModel)
-						.addAttributeById(10, ParsedValue.fromIdList([]))
-						.addAttributeById(6, ParsedValue.fromId("someCustomId"))
-						.addAttributeById(
-							9,
-							ParsedValue.fromNestedItems([
-								EncryptedParsedInstance.outgoingToServer((await dummyResolver(new TypeRef("fakeApp", 0))) as ClientTypeModel)
-									.addAttributeById(17, ParsedValue.fromByteArray(Uint8Array.of(42)))
-									.addAttributeById(11, ParsedValue.fromId("anotherCustomId")),
-							]),
-						),
-				]),
-			)
+			const encryptedInstance = sampleEncryptedParsedInstance(sessionKey)
 			const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => aes256RandomKey()
 			try {
 				await cryptoMapper.decryptParsedInstance(encryptedInstance, sessionKey, null, ownerKeyProvider, "")
@@ -517,32 +514,11 @@ o.spec("CryptoMapperTest", () => {
 		const sessionKey = new Aes256Key([4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205])
 		const encryptBytesWithAead = (symmetricCipherFacade.encryptBytesWithAead = spy(symmetricCipherFacade.encryptBytesWithAead))
 
-		const parsedInstance = DecryptedParsedInstance.outgoingToServer(testTypeModel as ClientTypeModel)
-			.addAttribute(1, ParsedValue.fromString("encrypted string"))
-			.addAttribute(5, ParsedValue.fromString(new Date("2025-01-01T13:00:00.000Z").getTime().toString()))
-			.addAttribute(7, ParsedValue.fromBoolean(true))
-			.addAttribute(
-				3,
-				ParsedValue.fromNestedItems([
-					DecryptedParsedInstance.outgoingToServer((await dummyResolver(new TypeRef("fakeApp", 0))) as ClientTypeModel)
-						.addAttribute(2, ParsedValue.fromString("123"))
-						.addAttribute(6, ParsedValue.fromId("someCustomId"))
-						.addAttribute(10, ParsedValue.fromIdList([]))
-						.addAttribute(
-							9,
-							ParsedValue.fromNestedItems([
-								DecryptedParsedInstance.outgoingToServer((await dummyResolver(new TypeRef("fakeApp", 0))) as ClientTypeModel)
-									.addAttribute(17, ParsedValue.fromByteArray(Uint8Array.of(42)))
-									.addAttribute(11, ParsedValue.fromId("anotherCustomId")),
-							]),
-						),
-				]),
-			)
 		const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AeadWithSessionKey, sessionKey)
-		await cryptoMapper.encryptParsedInstance(parsedInstance, subKeyInfo)
+		await cryptoMapper.encryptParsedInstance(decryptedParsedInstance, subKeyInfo)
 		o.check(
 			encryptBytesWithAead.invocations.some((invocationParameters) =>
-				arrayEquals(stringToUtf8Uint8Array("attributeEncSK3/someCustomId/9/anotherCustomId/17"), invocationParameters[2]),
+				arrayEquals(stringToUtf8Uint8Array("attributeEncSK3/aggregateId/9/anotherCustomId/17"), invocationParameters[2]),
 			),
 		).equals(true)
 	})

@@ -55,7 +55,7 @@ import { CacheManager } from "../../../src/platform-kit/base/base-crypto/persist
 import { SYMMETRIC_CIPHER_FACADE } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { CryptoWrapper } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { InstanceSessionKeysCache } from "../../../src/platform-kit/base/base-crypto/persistence/InstanceSessionKeysCache"
-import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/PipelineTypes"
+import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 o.spec("PatchMergerTest", () => {
 	let sk: AesKey

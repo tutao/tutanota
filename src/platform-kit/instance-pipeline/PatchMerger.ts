@@ -4,7 +4,7 @@
 // update the instance in the offline db
 
 import { AssociationReprType, getAssociationReprType, isSameId, isSameTypeRef, TypeRef } from "../meta"
-import { ParsedValue } from "./PipelineTypes"
+import { ParsedValue } from "./ParsedValue"
 import { arrayEquals, arrayEqualsWithPredicate, assertNotNull, deepEqual, isEmpty, isNotNull, KeyVersion, lazy, Nullable } from "@tutao/utils"
 import {
 	DecryptedParsedInstance,

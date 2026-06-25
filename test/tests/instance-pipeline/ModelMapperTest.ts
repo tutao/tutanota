@@ -13,7 +13,7 @@ import {
 } from "./InstancePipelineTestUtils"
 import { InvalidModelError, ProgrammingError } from "../../../src/platform-kit/app-env"
 import { removeOriginals } from "../TestUtils"
-import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/PipelineTypes"
+import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 o.spec("ModelMapperTest", function () {
 	const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver() as TypeModelResolver)

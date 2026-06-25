@@ -24,7 +24,7 @@ import { object } from "testdouble"
 
 import { createPatch } from "@tutao/entities/sys"
 import { SYMMETRIC_CIPHER_FACADE } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
-import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/PipelineTypes"
+import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 o.spec("computePatches", function () {
 	const typeModelResolver: TypeModelResolver = object()

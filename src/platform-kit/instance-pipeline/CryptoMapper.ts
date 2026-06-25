@@ -49,7 +49,7 @@ import { EntityAdapter } from "./EntityAdapter.js"
 import { User, WebsocketLeaderStatus } from "@tutao/entities/sys"
 import { OwnerKeyProvider } from "./PatchMerger"
 import { ModelMapper } from "./ModelMapper"
-import { InstanceDirection, ParsedValue } from "./PipelineTypes"
+import { InstanceDirection, ParsedValue } from "./ParsedValue"
 import { EntityUtils } from "./EntityUtils"
 
 export interface SymmetricGroupKeyLoader {
@@ -146,10 +146,10 @@ export class CryptoMapper {
 				if (e instanceof SessionKeyNotFoundError) {
 					const skAttrId = AttributeModel.getAttributeId(serverTypeModel, "_ownerEncSessionKey")
 					if (isNotNull(skAttrId)) {
-						decrypted.addError("_ownerEncSessionKey", "Probably temporary SessionKeyNotFound")
+						decrypted.addErrorByAttributeName("_ownerEncSessionKey", "Probably temporary SessionKeyNotFound")
 					}
 				} else {
-					decrypted.addError(valueModel.name, JSON.stringify(e))
+					decrypted.addErrorByAttributeName(valueModel.name, JSON.stringify(e))
 					console.error("error when decrypting value on type:", `[${serverTypeModel.app},${serverTypeModel.name}]`, "valueName:", valueName, e)
 				}
 			}
@@ -176,7 +176,7 @@ export class CryptoMapper {
 						// we must propagate up to the top level of the instance that there is an error somewhere in an aggregated type.
 						// this indicates to the caller whether decryption succeeded.
 						// e.g. in order to decide whether an instance should be cached or not.
-						decrypted.addError(associationModel.name, "Aggregated type decrypted with errors")
+						decrypted.addErrorByAttributeName(associationModel.name, "Aggregated type decrypted with errors")
 					}
 					break
 				}
@@ -459,7 +459,7 @@ export class DecryptedParsedInstance implements DeepEquals {
 		readonly typeModel: TypeModel,
 
 		private readonly parsedInstance: Map<AttributeId, DecryptedParsedValue> = new Map(),
-		private readonly _errors: Record<AttributeName, string> = {},
+		private readonly _errors: Record<AttributeId, string> = {},
 	) {}
 
 	public getTypeRef(): TypeRef<unknown> {
@@ -517,8 +517,12 @@ export class DecryptedParsedInstance implements DeepEquals {
 		return this.getAttributeById(attributeId)
 	}
 
-	public addError(attributeName: AttributeName, errorValue: string): this {
-		this._errors[attributeName] = errorValue
+	// FIXME: always use addErrorByAttributeId and remove this method
+	public addErrorByAttributeName(attributeName: AttributeName, errorValue: string): this {
+		return this.addErrorByAttributeId(AttributeModel.getAttributeId(this.typeModel, attributeName)!, errorValue)
+	}
+	public addErrorByAttributeId(attributeId: AttributeId, errorValue: string): this {
+		this._errors[attributeId] = errorValue
 		return this
 	}
 
@@ -526,11 +530,12 @@ export class DecryptedParsedInstance implements DeepEquals {
 		if (attributeName == null) {
 			return Object.keys(this._errors).length > 0
 		} else {
-			return isNotNull(attributeName) && isNotNull(this._errors[attributeName])
+			const attributeId = AttributeModel.getAttributeId(this.typeModel, attributeName)
+			return isNotNull(attributeId) && isNotNull(this._errors[attributeId])
 		}
 	}
 
-	public getErrors(): Record<string, string> {
+	public getErrors(): Record<AttributeId, string> {
 		return this._errors
 	}
 

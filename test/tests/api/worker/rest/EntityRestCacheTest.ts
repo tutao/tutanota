@@ -427,7 +427,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						blobInstance: null,
 					})
 					const contact1Parsed = await modelMapper.mapToDecryptedInstance(contact1)
-					contact1Parsed.addError("firstName", "some error for contact 1")
+					contact1Parsed.addErrorByAttributeName("firstName", "some error for contact 1")
 					const contact1EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact1, contact1Parsed, null)
 
 					const contact2 = createTestEntity(ContactTypeRef, {
@@ -450,7 +450,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						blobInstance: null,
 					})
 					const contact3Parsed = await modelMapper.mapToDecryptedInstance(contact3)
-					contact3Parsed.addError("firstName", "some error for contact 3")
+					contact3Parsed.addErrorByAttributeName("firstName", "some error for contact 3")
 					const contact3EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact3, contact3Parsed, null)
 
 					const batch: readonly EntityUpdateData[] = [
@@ -669,7 +669,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						_ownerGroup: ownerGroupId,
 					}),
 				)
-				dummyContact.addError("firstName", "some error for dummy contact")
+				dummyContact.addErrorByAttributeName("firstName", "some error for dummy contact")
 				when(entityRestClient.loadParsedInstance(anything(), anything())).thenResolve(dummyContact)
 
 				const batch: readonly EntityUpdateData[] = [

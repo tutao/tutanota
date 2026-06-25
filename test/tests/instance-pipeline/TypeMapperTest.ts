@@ -4,7 +4,7 @@ import { EncryptedParsedInstance, TypeModelResolver } from "../../../src/platfor
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { DummyTypeModelResolver, testAggregateModel, testTypeModel } from "./InstancePipelineTestUtils"
 import { IncomingServerJson, TypeMapper } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
-import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/PipelineTypes"
+import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 const networkDebuggedIncomingJson = `{
 	"1:testValue": "test string",

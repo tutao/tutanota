@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { DecryptedParsedInstance, ModelMapper } from "../../../src/platform-kit/instance-pipeline"
+import { DecryptedParsedInstance, InstancePipeline, ModelMapper } from "../../../src/platform-kit/instance-pipeline"
 import { AssociationType, Cardinality, ClientTypeModel, ServerTypeModel, Type, TypeRef, ValueType } from "../../../src/platform-kit/meta"
 import { DummyTypeModelResolver, TestEntity } from "./InstancePipelineTestUtils"
 import { removeOriginals } from "../TestUtils"
-import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/PipelineTypes"
+import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 o.spec("ModelMapperTransformations", function () {
 	o.spec("AddAssociation", function () {

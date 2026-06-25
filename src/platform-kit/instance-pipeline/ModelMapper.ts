@@ -19,7 +19,7 @@ import {
 import { TypeModelResolver } from "./EntityFunctions"
 import { random } from "@tutao/crypto"
 import { EntityUtils } from "./EntityUtils"
-import { ParsedValue } from "./PipelineTypes"
+import { ParsedValue } from "./ParsedValue"
 import { DecryptedParsedInstance, DecryptedParsedValue } from "./CryptoMapper"
 
 assertWorkerOrNode()
@@ -249,7 +249,8 @@ export class ClientEntity {
 		this.setAssociation(associationId, idTupleList)
 	}
 
-	setErrors(errors: Record<string, string>) {
+	setErrors(errors: Record<AttributeId, string>) {
+		// fixme:
 		this.entityRecord["_errors"] = errors
 	}
 
