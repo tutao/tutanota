@@ -4,7 +4,7 @@
  * The ImapFolderSyncState is needed to store relevant IMAP synchronization information for a single folder, most importantly the IMAP UID to Tuta mailId.
  * The facade communicates directly with the ImapService and ImapFolderService.
  */
-import { aes256RandomKey, CryptoWrapper } from "@tutao/crypto"
+import { CryptoWrapper } from "@tutao/crypto"
 import { MailFacade } from "./MailFacade.js"
 import { InitializeImapImportParams, MailSetMapping } from "../../../../../mail-app/workerUtils/imapimport/ImapImporter"
 import { assertNotNull } from "@tutao/utils"
@@ -63,7 +63,7 @@ export class ImapFacade {
 		}
 
 		const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
-		const sk = aes256RandomKey()
+		const sk = this.cryptoWrapper.aes256RandomKey()
 		const imapPostIn = createImapPostIn({
 			ownerEncSessionKey: this.cryptoWrapper.encryptKey(mailGroupKey.object, sk),
 			ownerGroup: mailGroupId,
@@ -143,7 +143,7 @@ export class ImapFacade {
 		const imapFolderSyncStates: ImapFolderSyncState[] = []
 		for (const [imapMailboxPath, { mailSetElementId, shouldSync }] of imapMailboxesToTutaFolders.entries()) {
 			const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
-			const sk = aes256RandomKey()
+			const sk = this.cryptoWrapper.aes256RandomKey()
 			const imapFolderPostIn = createImapFolderPostIn({
 				ownerEncSessionKey: this.cryptoWrapper.encryptKey(mailGroupKey.object, sk),
 				ownerGroup: mailGroupId,
@@ -172,7 +172,7 @@ export class ImapFacade {
 			const mailFolderId = shouldSync ? await this.mailFacade.createMailFolder(imapMailbox.name, parentFolderId, mailGroupId) : null
 
 			const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
-			const sk = aes256RandomKey()
+			const sk = this.cryptoWrapper.aes256RandomKey()
 			const imapFolderPostIn = createImapFolderPostIn({
 				ownerEncSessionKey: this.cryptoWrapper.encryptKey(mailGroupKey.object, sk),
 				ownerGroup: mailGroupId,
