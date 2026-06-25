@@ -88,10 +88,10 @@ export class AeadFacade {
 				if (!(subKeys instanceof AeadWithGroupKeySubKeys)) {
 					throw new ProgrammingError("AEAD encryption with group key requires a group key version")
 				}
-				return Uint8Array.of(subKeys.cipherVersion, keyVersionLengthByte, subKeys.groupKeyVersion)
+				return Uint8Array.of(subKeys.cipherVersion.valueOf(), keyVersionLengthByte, subKeys.groupKeyVersion)
 			}
 			case SymmetricCipherVersion.AeadWithSessionKey:
-				return Uint8Array.of(subKeys.cipherVersion)
+				return Uint8Array.of(subKeys.cipherVersion.valueOf())
 		}
 		throw new ProgrammingError("invalid cipher version")
 	}
