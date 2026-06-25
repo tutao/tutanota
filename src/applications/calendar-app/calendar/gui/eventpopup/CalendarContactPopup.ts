@@ -88,12 +88,12 @@ export class ContactEventPopup implements ModalComponent {
 
 	private renderEditButton(): Children {
 		if (!this.model.canEdit) return null
-		return m(IconButton, { title: "edit_action", icon: Icons.PersonGearFilled, click: this.handleEditButtonClick })
+		return m(IconButton, { label: "edit_action", icon: Icons.PersonGearFilled, click: this.handleEditButtonClick })
 	}
 
 	private renderCloseButton(): Children {
 		return m(IconButton, {
-			title: "close_alt",
+			label: "close_alt",
 			click: () => this.close(),
 			icon: Icons.X,
 		})

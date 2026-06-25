@@ -283,7 +283,7 @@ export class TemplatePopup implements ModalComponent {
 
 		if (templateGroupInstances.length === 0) {
 			return {
-				title: "createTemplate_action",
+				label: "createTemplate_action",
 				click: () => {
 					createInitialTemplateListIfAllowed().then((groupRoot) => {
 						if (groupRoot) {
@@ -296,7 +296,7 @@ export class TemplatePopup implements ModalComponent {
 			}
 		} else if (writeableGroups.length === 1) {
 			return {
-				title: "createTemplate_action",
+				label: "createTemplate_action",
 				click: () => this.showTemplateEditor(null, writeableGroups[0].groupRoot),
 				icon: Icons.Plus,
 				colors: ButtonColor.DrawerNav,
@@ -304,7 +304,7 @@ export class TemplatePopup implements ModalComponent {
 		} else if (writeableGroups.length > 1) {
 			return attachDropdown({
 				mainButtonAttrs: {
-					title: "createTemplate_action",
+					label: "createTemplate_action",
 					icon: Icons.Plus,
 					colors: ButtonColor.DrawerNav,
 				},
@@ -336,7 +336,7 @@ export class TemplatePopup implements ModalComponent {
 				IconButton,
 				attachDropdown({
 					mainButtonAttrs: {
-						title: "chooseLanguage_action",
+						label: "chooseLanguage_action",
 						icon: Icons.Language,
 					},
 					childAttrs: async () =>
@@ -356,7 +356,7 @@ export class TemplatePopup implements ModalComponent {
 			canEdit
 				? [
 						m(IconButton, {
-							title: "editTemplate_action",
+							label: "editTemplate_action",
 							click: () =>
 								locator.entityClient
 									.load(TemplateGroupRootTypeRef, idToElementId(neverNull(selectedTemplate._ownerGroup)))
@@ -365,7 +365,7 @@ export class TemplatePopup implements ModalComponent {
 							colors: ButtonColor.DrawerNav,
 						}),
 						m(IconButton, {
-							title: "remove_action",
+							label: "remove_action",
 							click: () => {
 								getConfirmation("deleteTemplate_msg").confirmed(() => locator.entityClient.erase(selectedTemplate))
 							},

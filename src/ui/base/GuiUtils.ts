@@ -56,7 +56,7 @@ export function createMoreActionButtonAttrs(
 	dropdownWidth?: number,
 ): IconButtonAttrs {
 	return {
-		title: "more_label",
+		label: "more_label",
 		colors: ButtonColor.Nav,
 		icon: Icons.More,
 		click: createAsyncDropdown({

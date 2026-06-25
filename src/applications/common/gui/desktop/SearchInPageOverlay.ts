@@ -157,12 +157,12 @@ export class SearchInPageOverlay {
 							[
 								this.inputField(),
 								m(IconButton, {
-									title: "previous_action",
+									label: "previous_action",
 									icon: Icons.ChevronLeft,
 									click: () => this.find(false, true),
 								}),
 								m(IconButton, {
-									title: "next_action",
+									label: "next_action",
 									icon: Icons.ChevronRight,
 									click: () => this.find(true, true),
 								}),
@@ -180,7 +180,7 @@ export class SearchInPageOverlay {
 							],
 						),
 						m(IconButton, {
-							title: "close_alt",
+							label: "close_alt",
 							icon: Icons.X,
 							click: () => this.close(),
 						}),

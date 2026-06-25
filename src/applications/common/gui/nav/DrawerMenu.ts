@@ -50,7 +50,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					? m(".news-button", [
 							m(IconButton, {
 								icon: Icons.LightbulbFilled,
-								title: "news_label",
+								label: "news_label",
 								click: () => showNewsDialog(newsModel),
 								colors: ButtonColor.DrawerNav,
 							}),
@@ -70,7 +70,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 				logins.isGlobalAdminUserLoggedIn() && userController.isPaidAccount() && !customer?.businessUse
 					? m(IconButton, {
 							icon: Icons.GiftFilled,
-							title: "buyGiftCard_label",
+							label: "buyGiftCard_label",
 							click: () => {
 								m.route.set("/settings/subscription")
 								import("../../subscription/giftcards/PurchaseGiftCardDialog").then(({ showPurchaseGiftCardDialog }) => {
@@ -83,7 +83,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 				desktopSystemFacade
 					? m(IconButton, {
 							icon: Icons.BrowserAddOutline,
-							title: "openNewWindow_action",
+							label: "openNewWindow_action",
 							click: () => {
 								desktopSystemFacade.openNewWindow()
 							},
@@ -93,13 +93,13 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 				!isIOSApp() && isLoggedIn && userController.isFreeAccount()
 					? m(IconButton, {
 							icon: Icons.TrophyFilled,
-							title: "upgradePremium_label",
+							label: "upgradePremium_label",
 							click: () => showUpgradeDialog(UpgradePromptType.DRAWER_MENU_UPGRADE_BUTTON),
 							colors: ButtonColor.DrawerNav,
 						})
 					: null,
 				m(IconButton, {
-					title: "showHelp_action",
+					label: "showHelp_action",
 					icon: Icons.QuestionmarkFilled,
 					click: (e, dom) =>
 						createDropdown({
@@ -122,7 +122,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 				isPartnerEnabled
 					? m(IconButton, {
 							icon: Icons.HeartFilled,
-							title: { testId: "partner_label", text: "Partner" },
+							label: { testId: "partner_label", text: "Partner" },
 							click: () => m.route.set(PARTNER_PREFIX),
 							colors: ButtonColor.DrawerNav,
 						})
@@ -130,14 +130,14 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 				isInternalUser
 					? m(IconButton, {
 							icon: Icons.GearWheelFilled,
-							title: "settings_label",
+							label: "settings_label",
 							click: () => m.route.set(SETTINGS_PREFIX),
 							colors: ButtonColor.DrawerNav,
 						})
 					: null,
 				m(IconButton, {
 					icon: Icons.Logout,
-					title: "switchAccount_action",
+					label: "switchAccount_action",
 					click: () => m.route.set(LogoutUrl),
 					colors: ButtonColor.DrawerNav,
 				}),

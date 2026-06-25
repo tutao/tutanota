@@ -262,7 +262,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 						} satisfies SelectAttributes<OrganizerSelectItem, string>),
 						model.operation !== CalendarOperation.EditThis && organizer && !isMe
 							? m(IconButton, {
-									title: "sendMail_alt",
+									label: "sendMail_alt",
 									click: async () =>
 										(await import("../../../../mail-app/contacts/view/ContactView.js")).writeMail(
 											organizer,
@@ -317,7 +317,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 			rightContent = m("", { style: { paddingRight: px(size.spacing_8) } }, this.renderAttendeeStatus(model.editModels.whoModel, guest))
 		} else if (whoModel.canModifyGuests) {
 			rightContent = m(IconButton, {
-				title: "remove_action",
+				label: "remove_action",
 				icon: Icons.X,
 				click: () => whoModel.removeAttendee(guest.address),
 			})

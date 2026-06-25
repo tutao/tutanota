@@ -106,7 +106,7 @@ export class UserListView implements UpdatableSettingsViewer {
 					m(
 						".mr-negative-8",
 						m(IconButton, {
-							title: "addUsers_action",
+							label: "addUsers_action",
 							icon: Icons.Plus,
 							click: () => this.addButtonClicked(),
 						}),
@@ -142,7 +142,7 @@ export class UserListView implements UpdatableSettingsViewer {
 				IconButton,
 				attachDropdown({
 					mainButtonAttrs: {
-						title: "more_label",
+						label: "more_label",
 						icon: Icons.More,
 					},
 					childAttrs: async () => [
