@@ -118,7 +118,7 @@ class DriveFolderItemRow implements ViewHolder<FolderItem> {
 						attachDropdown({
 							mainButtonAttrs: {
 								icon: Icons.More,
-								title: "more_label",
+								label: "more_label",
 							},
 							childAttrs: async () => {
 								if (this.item) {

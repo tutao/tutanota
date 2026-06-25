@@ -347,7 +347,7 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 				? m(
 						".icon-button",
 						m(IconButton, {
-							title: "back_action",
+							label: "back_action",
 							icon: Icons.ChevronLeft,
 							click: () => m.route.set(CONTACTS_PREFIX),
 						}),

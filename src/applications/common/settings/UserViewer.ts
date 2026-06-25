@@ -66,7 +66,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 					columnWidths: [ColumnWidth.Largest, ColumnWidth.Small],
 					showActionButtonColumn: true,
 					addButtonAttrs: {
-						title: "addGroup_label",
+						label: "addGroup_label",
 						icon: Icons.Plus,
 						click: () => this.showAddUserToGroupDialog(),
 					},
@@ -103,7 +103,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 
 	renderView(): Children {
 		const changePasswordButtonAttrs: IconButtonAttrs = {
-			title: "changePassword_label",
+			label: "changePassword_label",
 			click: () => this.changePassword(),
 			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
@@ -160,7 +160,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			isReadOnly: true,
 			injectionsRight: () =>
 				m(IconButton, {
-					title: "edit_action",
+					label: "edit_action",
 					click: () => this.onChangeName(name),
 					icon: Icons.PenFilled,
 					size: ButtonSize.Compact,
@@ -282,7 +282,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 					return {
 						cells: [getGroupInfoDisplayName(groupInfo), getGroupTypeDisplayName(neverNull(m.groupType))],
 						actionButtonAttrs: {
-							title: "remove_action",
+							label: "remove_action",
 							click: () => {
 								showProgressDialog(
 									"pleaseWait_msg",

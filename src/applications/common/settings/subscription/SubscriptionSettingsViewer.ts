@@ -289,7 +289,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 									!isAppleSubscription
 										? {
 												icon: Icons.PenFilled,
-												title: "changePlan_action",
+												label: "changePlan_action",
 												click: () => {
 													this.onSubscriptionClick()
 													m.redraw()
@@ -302,7 +302,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 								!isAppleSubscription
 									? this.getPriceCellAttrs(this._nextPriceFieldValue(), {
 											icon: Icons.Swap,
-											title: "changePaymentInterval_action",
+											label: "changePaymentInterval_action",
 											click: async () => {
 												const message = lang.getTranslation("subscriptionChangeInterval_msg", {
 													"{period}":

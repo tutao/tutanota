@@ -394,7 +394,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 				? m(
 						".icon-button",
 						m(IconButton, {
-							title: "back_action",
+							label: "back_action",
 							icon: Icons.ChevronLeft,
 							click: () => {
 								m.route.set(MAIL_PREFIX)

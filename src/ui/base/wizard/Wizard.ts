@@ -165,7 +165,7 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 				(Styles.get().isSingleColumnLayout()
 					? m(IconButton, {
 							icon: Icons.ChevronLeft,
-							title: lang.getTranslation("back_action"),
+							label: lang.getTranslation("back_action"),
 							click: ctx.goPrev,
 						})
 					: m(TertiaryButton, {

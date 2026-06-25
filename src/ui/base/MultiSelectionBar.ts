@@ -19,7 +19,7 @@ export class MultiSelectionBar {
 
 			[
 				m(IconButton, {
-					title: "cancel_action",
+					label: "cancel_action",
 					click: vnode.attrs.selectNoneHandler,
 					icon: Icons.X,
 				}),

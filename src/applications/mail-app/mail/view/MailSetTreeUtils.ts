@@ -93,7 +93,7 @@ function createFolderMoreButton(
 ): IconButtonAttrs {
 	return attachDropdown({
 		mainButtonAttrs: {
-			title: "more_label",
+			label: "more_label",
 			icon: Icons.More,
 			colors: ButtonColor.Nav,
 			size: ButtonSize.Compact,

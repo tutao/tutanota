@@ -336,7 +336,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 		return m(".flex-center.pt-32.ml-between-4", [
 			ClientDetector.get().isDesktopDevice() || ClientDetector.get().device === DeviceType.ANDROID
 				? m(IconButton, {
-						title: "appInfoAndroidImageAlt_alt",
+						label: "appInfoAndroidImageAlt_alt",
 						click: (e) => {
 							this._openUrl("https://play.google.com/store/apps/details?id=de.tutao.tutanota")
 
@@ -347,7 +347,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				: null,
 			ClientDetector.get().isDesktopDevice() || ClientDetector.get().device === DeviceType.IPAD || ClientDetector.get().device === DeviceType.IPHONE
 				? m(IconButton, {
-						title: "appInfoIosImageAlt_alt",
+						label: "appInfoIosImageAlt_alt",
 						click: (e) => {
 							this._openUrl("https://itunes.apple.com/app/tutanota/id922429609?mt=8&uo=4&at=10lSfb")
 
@@ -358,7 +358,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				: null,
 			ClientDetector.get().isDesktopDevice() || ClientDetector.get().device === DeviceType.ANDROID
 				? m(IconButton, {
-						title: "appInfoFDroidImageAlt_alt",
+						label: "appInfoFDroidImageAlt_alt",
 						click: (e) => {
 							this._openUrl("https://f-droid.org/packages/de.tutao.tutanota/")
 
