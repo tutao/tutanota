@@ -75,7 +75,7 @@ o.spec("ModelMapperTest", function () {
 	})
 
 	o.spec("mapToInstance", function () {
-		o("happy path xyz", async function () {
+		o("happy path", async function () {
 			const mappedEntity = await modelMapper.mapToInstance(decryptedParsedInstance)
 			removeOriginals(mappedEntity)
 
@@ -88,7 +88,7 @@ o.spec("ModelMapperTest", function () {
 			o(mappedInstance.testAssociation[0]).deepEquals({
 				_type: TestAggregateRef,
 				testNumber: "123",
-				_id: "123456",
+				_id: "some id",
 				testSecondLevelAssociation: [],
 				testZeroOrOneAggregation: null,
 			})
@@ -105,10 +105,11 @@ o.spec("ModelMapperTest", function () {
 			o(err.message).equals("Null value is not allowed for field: testValue with cardinality One")
 		})
 
-		o("wrong association cardinality throws", async function () {
-			// decryptedParsedInstance.addAttribute(4, ParsedValue.fromIdList(["some-id", "another-id-should-not-be-here-when-cardinality-is-zero-one"]))
+		o("wrong association cardinality throws xyz", async function () {
+			decryptedParsedInstance.addAttribute(4, ParsedValue.fromIdList(["some-id", "another-id-should-not-be-here-when-cardinality-is-zero-one"]))
 
-			await assertThrows(ProgrammingError, async () => modelMapper.mapToInstance(decryptedParsedInstance))
+			const err = await assertThrows(InvalidModelError, async () => modelMapper.mapToInstance(decryptedParsedInstance))
+			o(err.message).equals("Cardinality ZeroOrOne can hold at max one item. Found: 2")
 		})
 	})
 

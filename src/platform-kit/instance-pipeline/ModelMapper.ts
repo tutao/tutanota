@@ -155,11 +155,16 @@ export class ModelMapper {
 	): DecryptedParsedValue {
 		let valueToKeep = value
 
-		const isDeletedOnServerAndClientHaveOneCardinality = serverModelValue == null && clientModelValue.cardinality === Cardinality.One
-		const valueIsNullButServerHaveCardinalityOne = isNotNull(serverModelValue) && valueToKeep.isNull() && serverModelValue.cardinality === Cardinality.One
-
-		if (isDeletedOnServerAndClientHaveOneCardinality || valueIsNullButServerHaveCardinalityOne) {
-			valueToKeep = EntityUtils.valueToDefault(clientModelValue.type)
+		if (!serverModelValue) {
+			if (clientModelValue.cardinality === Cardinality.One) {
+				valueToKeep = EntityUtils.valueToDefault(clientModelValue.type)
+			} else if (clientModelValue.cardinality === Cardinality.ZeroOrOne) {
+				valueToKeep = ParsedValue.fromNull()
+			}
+		} else {
+			if (serverModelValue.cardinality === Cardinality.One && valueToKeep.isNull()) {
+				valueToKeep = EntityUtils.valueToDefault(serverModelValue.type)
+			}
 		}
 
 		const cardinality = clientModelValue.cardinality

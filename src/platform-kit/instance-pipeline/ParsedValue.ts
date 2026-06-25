@@ -144,6 +144,9 @@ export class ParsedValue<NestedObject extends DeepEquals> implements DeepEquals 
 	}
 
 	public getIdTupleOrNull(): Nullable<IdTuple> {
+		if (!this.isArray()) {
+			return null
+		}
 		const [lid, eid, ...rest] = this.asArray()
 		const isIdTuple = rest.length === 0 && isNotNull(lid) && isNotNull(eid) && lid.isString() && eid.isString()
 		if (isIdTuple) {
