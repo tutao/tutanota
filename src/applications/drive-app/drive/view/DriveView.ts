@@ -550,7 +550,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					}),
 					onPaste
 						? m(IconButton, {
-								title: "paste_action",
+								label: "paste_action",
 								icon: Icons.ClipboardFilled,
 								click: () => onPaste(),
 							})
@@ -563,7 +563,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 						: m(
 								IconButton,
 								attachDropdown({
-									mainButtonAttrs: { icon: Icons.Plus, title: "newDriveItem_action" },
+									mainButtonAttrs: { icon: Icons.Plus, label: "newDriveItem_action" },
 									childAttrs: async () =>
 										newItemActions({
 											onUploadFiles: (event, dom) => this.onPickFilesForUpload(dom.getBoundingClientRect()),

@@ -155,7 +155,7 @@ export class MailLabelsView implements Component<MailLabelViewAttrs> {
 
 	private renderCreateLabelAddButton(parentLabel: MailSet | null, attrs: MailLabelViewAttrs): Child {
 		return m(IconButton, {
-			title: "addFolder_action",
+			label: "addFolder_action",
 			click: () => {
 				return attrs.onShowLabelAddEditDialog(elementIdToId(attrs.mailboxDetail.mailGroup._id), null, parentLabel)
 			},
@@ -166,7 +166,7 @@ export class MailLabelsView implements Component<MailLabelViewAttrs> {
 
 	private renderEditLabelsButton(attrs: MailLabelViewAttrs): Child {
 		return m(IconButton, {
-			title: "edit_action",
+			label: "edit_action",
 			click: () => attrs.onEditMailbox(),
 			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,

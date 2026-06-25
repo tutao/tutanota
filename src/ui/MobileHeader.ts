@@ -77,7 +77,7 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 
 export const MobileHeaderBackButton = pureComponent(({ backAction }: { backAction: () => unknown }) => {
 	return m(IconButton, {
-		title: "back_action",
+		label: "back_action",
 		icon: Icons.ChevronLeft,
 		click: () => {
 			backAction()
@@ -102,7 +102,7 @@ export const MobileHeaderTitle = pureComponent(({ title, bottom, onTap }: { titl
 export const MobileHeaderMenuButton = pureComponent((attrs: Pick<MobileHeaderAttrs, "newsItemsCount" | "backAction">) => {
 	return m(".rel", [
 		m(IconButton, {
-			title: "menu_label",
+			label: "menu_label",
 			icon: Icons.Burger,
 			click: () => {
 				attrs.backAction()

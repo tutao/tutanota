@@ -115,7 +115,7 @@ export class SelectMailAddressFormNew implements Component<SelectMailAddressForm
 							IconButton,
 							attachDropdown({
 								mainButtonAttrs: {
-									title: "domain_label",
+									label: "domain_label",
 									icon: Icons.ArrowDown,
 									size: ButtonSize.Compact,
 								},

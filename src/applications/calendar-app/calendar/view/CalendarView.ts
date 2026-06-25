@@ -197,7 +197,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 										isFreeSignupOnly() && locator.logins.getUserController().isFreeAccount()
 											? null
 											: m(IconButton, {
-													title: "addCalendar_action",
+													label: "addCalendar_action",
 													colors: ButtonColor.Nav,
 													click:
 														(isApp() || isDesktop()) && findFirstPrivateCalendar(attrs.calendarViewModel.calendarInfos)
@@ -646,7 +646,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				actions.push(
 					m(IconButton, {
 						icon: Icons.MailFilled,
-						title: "sendUpdates_label",
+						label: "sendUpdates_label",
 						click: () => handleSendUpdatesClick(previewModel),
 					}),
 				)
@@ -655,7 +655,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				actions.push(
 					m(IconButton, {
 						icon: Icons.PenFilled,
-						title: "edit_action",
+						label: "edit_action",
 						click: (ev: MouseEvent, receiver: HTMLElement) => {
 							handleEventEditButtonClick(previewModel, ev, receiver, () => {
 								this.exitEventDetails()
@@ -668,7 +668,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				actions.push(
 					m(IconButton, {
 						icon: Icons.TrashFilled,
-						title: "delete_action",
+						label: "delete_action",
 						click: async (ev: MouseEvent, receiver: HTMLElement) => {
 							await handleEventDeleteButtonClick(previewModel, ev, receiver, () => this.exitEventDetails())
 						},

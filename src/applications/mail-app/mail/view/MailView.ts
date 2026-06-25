@@ -764,7 +764,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		return isNewMailActionAvailable()
 			? [
 					m(IconButton, {
-						title: "newMail_action",
+						label: "newMail_action",
 						click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
 						icon: Icons.Write,
 					}),
@@ -1152,7 +1152,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					name: lang.makeTranslation("mailbox_name", getMailboxName(locator.logins, mailboxDetail)),
 					button: userHasMultipleMailboxes
 						? m(IconButton, {
-								title: isMailGroupCollapsed ? "show_action" : "hide_action",
+								label: isMailGroupCollapsed ? "show_action" : "hide_action",
 								size: ButtonSize.Compact,
 								icon: isMailGroupCollapsed ? Icons.ChevronDown : Icons.ChevronUp,
 								click: () => {
@@ -1559,7 +1559,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		return m(IconButton, {
 			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
-			title: "edit_action",
+			label: "edit_action",
 			click: onEditMailbox,
 		})
 	}

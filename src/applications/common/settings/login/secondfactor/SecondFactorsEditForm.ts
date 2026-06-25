@@ -49,7 +49,7 @@ export class SecondFactorsEditForm {
 			lines: this._2FALineAttrs,
 			showActionButtonColumn: true,
 			addButtonAttrs: {
-				title: "addSecondFactor_action",
+				label: "addSecondFactor_action",
 				click: () => {
 					if (this.isDeactivated) {
 						Dialog.message("userAccountDeactivated_msg")
@@ -96,7 +96,7 @@ export class SecondFactorsEditForm {
 
 		this._2FALineAttrs = factors.map((f) => {
 			const removeButtonAttrs: IconButtonAttrs = {
-				title: "remove_action",
+				label: "remove_action",
 				click: () => {
 					if (this.isDeactivated) {
 						Dialog.message("userAccountDeactivated_msg")
