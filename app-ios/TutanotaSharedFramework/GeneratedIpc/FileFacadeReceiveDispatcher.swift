@@ -11,10 +11,10 @@ public final class FileFacadeReceiveDispatcher: Sendable {
 	public func dispatch(method: String, arg: [String]) async throws -> String {
 		switch method {
 		case "open":
-			let location = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let fileUrl = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let mimeType = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
 			try await self.facade.open(
-				location,
+				fileUrl,
 				mimeType
 			)
 			return "null"
@@ -37,27 +37,27 @@ public final class FileFacadeReceiveDispatcher: Sendable {
 			)
 			return toJson(result)
 		case "deleteFile":
-			let file = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let fileUrl = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			try await self.facade.deleteFile(
-				file
+				fileUrl
 			)
 			return "null"
 		case "getName":
-			let file = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let fileUrl = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let result = try await self.facade.getName(
-				file
+				fileUrl
 			)
 			return toJson(result)
 		case "getMimeType":
-			let file = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let fileUrl = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let result = try await self.facade.getMimeType(
-				file
+				fileUrl
 			)
 			return toJson(result)
 		case "getSize":
-			let file = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let fileUrl = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let result = try await self.facade.getSize(
-				file
+				fileUrl
 			)
 			return toJson(result)
 		case "putFileIntoDownloadsFolder":
@@ -107,9 +107,9 @@ public final class FileFacadeReceiveDispatcher: Sendable {
 			)
 			return "null"
 		case "hashFile":
-			let fileUri = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let fileUrl = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let result = try await self.facade.hashFile(
-				fileUri
+				fileUrl
 			)
 			return toJson(result)
 		case "clearFileData":
@@ -118,29 +118,29 @@ public final class FileFacadeReceiveDispatcher: Sendable {
 			return "null"
 		case "joinFiles":
 			let filename = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
-			let files = try! JSONDecoder().decode([String].self, from: arg[1].data(using: .utf8)!)
+			let filePartsUrls = try! JSONDecoder().decode([String].self, from: arg[1].data(using: .utf8)!)
 			let result = try await self.facade.joinFiles(
 				filename,
-				files
+				filePartsUrls
 			)
 			return toJson(result)
 		case "openFileForReading":
-			let fileUri = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let fileUrl = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let result = try await self.facade.openFileForReading(
-				fileUri
+				fileUrl
 			)
 			return toJson(result)
 		case "closeFile":
-			let streamUri = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let streamUrl = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			try await self.facade.closeFile(
-				streamUri
+				streamUrl
 			)
 			return "null"
 		case "readChunk":
-			let streamUri = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let streamUrl = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let maxChunkSize = try! JSONDecoder().decode(Int.self, from: arg[1].data(using: .utf8)!)
 			let result = try await self.facade.readChunk(
-				streamUri,
+				streamUrl,
 				maxChunkSize
 			)
 			return toJson(result)
@@ -152,34 +152,34 @@ public final class FileFacadeReceiveDispatcher: Sendable {
 			return toJson(result)
 		case "writeToAppDir":
 			let content = try! JSONDecoder().decode(DataWrapper.self, from: arg[0].data(using: .utf8)!)
-			let path = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
+			let name = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
 			try await self.facade.writeToAppDir(
 				content,
-				path
+				name
 			)
 			return "null"
 		case "readFromAppDir":
-			let path = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let name = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let result = try await self.facade.readFromAppDir(
-				path
+				name
 			)
 			return toJson(result)
 		case "deleteFromAppDir":
-			let path = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let name = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			try await self.facade.deleteFromAppDir(
-				path
+				name
 			)
 			return "null"
 		case "readDataFile":
-			let filePath = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let fileUrl = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let result = try await self.facade.readDataFile(
-				filePath
+				fileUrl
 			)
 			return toJson(result)
 		case "readDirectory":
-			let filePath = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let directoryUrl = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let result = try await self.facade.readDirectory(
-				filePath
+				directoryUrl
 			)
 			return toJson(result)
 		default:

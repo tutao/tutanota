@@ -11,7 +11,7 @@ public protocol FileFacade : Sendable {
 	 * Opens the file with the built-in viewer or external program.
 	 */
 	func open(
-		_ location: String,
+		_ fileUrl: String,
 		_ mimeType: String
 	) async throws -> Void
 	/**
@@ -33,22 +33,22 @@ public protocol FileFacade : Sendable {
 	func openMacImportFileChooser(
 	) async throws -> [String]
 	func deleteFile(
-		_ file: String
+		_ fileUrl: String
 	) async throws -> Void
 	func getName(
-		_ file: String
+		_ fileUrl: String
 	) async throws -> String
 	func getMimeType(
-		_ file: String
+		_ fileUrl: String
 	) async throws -> String
 	/**
 	 * get the absolute size in bytes of the file at the given location
 	 */
 	func getSize(
-		_ file: String
+		_ fileUrl: String
 	) async throws -> Int
 	/**
-	 * move and rename a decrypted file from the decryption location to the download location preferred by the user and return the absolute path to the moved file
+	 * move and rename a decrypted file from the decryption location to the download location preferred by the user and return the absolute URL to the moved file
 	 */
 	func putFileIntoDownloadsFolder(
 		_ localFileUri: String,
@@ -86,7 +86,7 @@ public protocol FileFacade : Sendable {
 	 * Calculates specified file hash (with SHA-256). Returns first 6 bytes of it as Base64.
 	 */
 	func hashFile(
-		_ fileUri: String
+		_ fileUrl: String
 	) async throws -> String
 	func clearFileData(
 	) async throws -> Void
@@ -95,29 +95,29 @@ public protocol FileFacade : Sendable {
 	 */
 	func joinFiles(
 		_ filename: String,
-		_ files: [String]
+		_ filePartsUrls: [String]
 	) async throws -> String
 	/**
 	 * open a file for reading
 	 */
 	func openFileForReading(
-		_ fileUri: String
+		_ fileUrl: String
 	) async throws -> String
 	/**
 	 * close a file
 	 */
 	func closeFile(
-		_ streamUri: String
+		_ streamUrl: String
 	) async throws -> Void
 	/**
 	 * read a chunk from an opened file
 	 */
 	func readChunk(
-		_ streamUri: String,
+		_ streamUrl: String,
 		_ maxChunkSize: Int
 	) async throws -> String?
 	/**
-	 * Save the unencrypted data file to the disk into a fixed temporary location, not the user's preferred download dir.
+	 * Save the unencrypted data file to the disk into a fixed temporary location, not the user's preferred download dir. Returns url with the file's location
 	 */
 	func writeTempDataFile(
 		_ file: DataFile
@@ -127,27 +127,27 @@ public protocol FileFacade : Sendable {
 	 */
 	func writeToAppDir(
 		_ content: DataWrapper,
-		_ path: String
+		_ name: String
 	) async throws -> Void
 	/**
 	 * Read file from given path relative to app data folder
 	 */
 	func readFromAppDir(
-		_ path: String
+		_ name: String
 	) async throws -> DataWrapper
 	/**
 	 * Delete file from given path relative to app data folder
 	 */
 	func deleteFromAppDir(
-		_ path: String
+		_ name: String
 	) async throws -> Void
 	/**
 	 * read the file at the given location into a DataFile. Returns null if reading fails for any reason.
 	 */
 	func readDataFile(
-		_ filePath: String
+		_ fileUrl: String
 	) async throws -> DataFile?
 	func readDirectory(
-		_ filePath: String
+		_ directoryUrl: String
 	) async throws -> DirectoryContents
 }

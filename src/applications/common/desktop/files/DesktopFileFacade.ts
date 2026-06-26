@@ -60,8 +60,8 @@ export class DesktopFileFacade implements FileFacade {
 		return Promise.resolve()
 	}
 
-	async deleteFile(filePath: string): Promise<void> {
-		await this.tfs.deleteFile(filePath)
+	async deleteFile(fileUrl: string): Promise<void> {
+		await this.tfs.deleteFile(fileUrl)
 	}
 
 	private async deleteFileQuietly(filePath: string): Promise<void> {
@@ -136,22 +136,22 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
-	async getMimeType(filePath: string): Promise<string> {
-		return await getMimeTypeForFile(fileUrlFromString(filePath))
+	async getMimeType(fileUrl: string): Promise<string> {
+		return await getMimeTypeForFile(fileUrlFromString(fileUrl))
 	}
 
 	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
-	async getName(filePath: string): Promise<string> {
-		return path.basename(fileURLToPath(filePath))
+	async getName(fileUrl: string): Promise<string> {
+		return path.basename(fileURLToPath(fileUrl))
 	}
 
 	/** can be used with arbitrary paths, is run on the selected file locations before the files are read */
-	async getSize(filePath: string): Promise<number> {
-		return this.tfs.getFileSize(filePath)
+	async getSize(fileUrl: string): Promise<number> {
+		return this.tfs.getFileSize(fileUrl)
 	}
 
-	async hashFile(filePath: string): Promise<string> {
-		const fileStream = this.tfs.fileStream(filePath)
+	async hashFile(fileUrl: string): Promise<string> {
+		const fileStream = this.tfs.fileStream(fileUrl)
 		try {
 			const hash = createHash("sha256")
 			await pipeline(fileStream, hash)
@@ -162,7 +162,7 @@ export class DesktopFileFacade implements FileFacade {
 		}
 	}
 
-	async joinFiles(filename: string, files: Array<string>): Promise<string> {
+	async joinFiles(filename: string, filePartsUrls: Array<string>): Promise<string> {
 		const downloadDirectory = await this.tfs.ensureUnencrytpedDir()
 
 		const filesInDirectory = await this.fs.promises.readdir(downloadDirectory)
@@ -171,7 +171,7 @@ export class DesktopFileFacade implements FileFacade {
 		const outStream = this.fs.createWriteStream(filePath, { autoClose: false })
 
 		try {
-			for (const infile of files) {
+			for (const infile of filePartsUrls) {
 				const inFileUrl = this.tfs.assertInTmpDir(infile)
 				const readStream = this.fs.createReadStream(inFileUrl)
 				try {
@@ -342,10 +342,10 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	// This write data to app dir and return full path
-	async writeToAppDir(fileConent: Uint8Array, fileName: string): Promise<void> {
-		const fullPath = this.path.join(this.electron.app.getPath("userData"), fileName)
+	async writeToAppDir(content: Uint8Array, name: string): Promise<void> {
+		const fullPath = this.path.join(this.electron.app.getPath("userData"), name)
 		this.assertPathWithinUserData(fullPath)
-		this.fs.writeFileSync(fullPath, fileConent)
+		this.fs.writeFileSync(fullPath, content)
 	}
 
 	async readFromAppDir(fileName: string): Promise<Uint8Array> {
@@ -368,12 +368,12 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	/** this is used to read unencrypted data from arbitrary locations */
-	async readDataFile(fileUri: FileUri): Promise<DataFile | null> {
-		const url = fileUrlFromString(fileUri)
-		const name = path.basename(fileURLToPath(fileUri))
+	async readDataFile(fileUrl: FileUri): Promise<DataFile | null> {
+		const url = fileUrlFromString(fileUrl)
+		const name = path.basename(fileURLToPath(fileUrl))
 		try {
 			const [data, mimeType] = await Promise.all([
-				this.fs.promises.readFile(fileUri),
+				this.fs.promises.readFile(fileUrl),
 				// freestanding function doesn't have the checks
 				getMimeTypeForFile(url),
 			])
@@ -391,29 +391,29 @@ export class DesktopFileFacade implements FileFacade {
 		}
 	}
 
-	async readDirectory(dirUrlString: string): Promise<DirectoryContents> {
-		const dirPath = fileURLToPath(dirUrlString)
-		const children = await this.fs.promises.readdir(dirUrlString, { withFileTypes: true })
+	async readDirectory(directoryUrl: string): Promise<DirectoryContents> {
+		const dirPath = fileURLToPath(directoryUrl)
+		const children = await this.fs.promises.readdir(directoryUrl, { withFileTypes: true })
 		const files = children.filter((f) => f.isFile()).map((f) => pathToFileURL(this.path.join(dirPath, f.name)).toString())
 		const folders = children.filter((f) => f.isDirectory()).map((f) => pathToFileURL(this.path.join(dirPath, f.name)).toString())
 		const name = this.path.basename(dirPath)
 		return {
 			name,
 			files: files,
-			path: dirUrlString,
+			path: directoryUrl,
 			folders: folders,
 		}
 	}
-	async openFileForReading(fileUri: string): Promise<string> {
-		return this.tfs.openFileForReading(fileUri)
+	async openFileForReading(fileUrl: string): Promise<string> {
+		return this.tfs.openFileForReading(fileUrl)
 	}
 
-	async closeFile(streamUri: string): Promise<void> {
-		this.tfs.closeFile(streamUri)
+	async closeFile(streamUrl: string): Promise<void> {
+		this.tfs.closeFile(streamUrl)
 	}
 
-	async readChunk(streamUri: string, maxChunkSize: number): Promise<string | null> {
-		const stream = this.tfs.fileStream(streamUri)
+	async readChunk(streamUrl: string, maxChunkSize: number): Promise<string | null> {
+		const stream = this.tfs.fileStream(streamUrl)
 		if (stream.closed) {
 			return null
 		}

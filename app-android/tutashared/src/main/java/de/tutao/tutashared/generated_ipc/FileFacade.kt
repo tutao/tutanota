@@ -14,7 +14,7 @@ interface FileFacade {
 	 * Opens the file with the built-in viewer or external program.
 	 */
 	suspend fun open(
-		location: String,
+		fileUrl: String,
 		mimeType: String,
 	): Unit
 	/**
@@ -36,22 +36,22 @@ interface FileFacade {
 	suspend fun openMacImportFileChooser(
 	): List<String>
 	suspend fun deleteFile(
-		file: String,
+		fileUrl: String,
 	): Unit
 	suspend fun getName(
-		file: String,
+		fileUrl: String,
 	): String
 	suspend fun getMimeType(
-		file: String,
+		fileUrl: String,
 	): String
 	/**
 	 * get the absolute size in bytes of the file at the given location
 	 */
 	suspend fun getSize(
-		file: String,
+		fileUrl: String,
 	): Long
 	/**
-	 * move and rename a decrypted file from the decryption location to the download location preferred by the user and return the absolute path to the moved file
+	 * move and rename a decrypted file from the decryption location to the download location preferred by the user and return the absolute URL to the moved file
 	 */
 	suspend fun putFileIntoDownloadsFolder(
 		localFileUri: String,
@@ -89,7 +89,7 @@ interface FileFacade {
 	 * Calculates specified file hash (with SHA-256). Returns first 6 bytes of it as Base64.
 	 */
 	suspend fun hashFile(
-		fileUri: String,
+		fileUrl: String,
 	): String
 	suspend fun clearFileData(
 	): Unit
@@ -98,29 +98,29 @@ interface FileFacade {
 	 */
 	suspend fun joinFiles(
 		filename: String,
-		files: List<String>,
+		filePartsUrls: List<String>,
 	): String
 	/**
 	 * open a file for reading
 	 */
 	suspend fun openFileForReading(
-		fileUri: String,
+		fileUrl: String,
 	): String
 	/**
 	 * close a file
 	 */
 	suspend fun closeFile(
-		streamUri: String,
+		streamUrl: String,
 	): Unit
 	/**
 	 * read a chunk from an opened file
 	 */
 	suspend fun readChunk(
-		streamUri: String,
+		streamUrl: String,
 		maxChunkSize: Long,
 	): String?
 	/**
-	 * Save the unencrypted data file to the disk into a fixed temporary location, not the user's preferred download dir.
+	 * Save the unencrypted data file to the disk into a fixed temporary location, not the user's preferred download dir. Returns url with the file's location
 	 */
 	suspend fun writeTempDataFile(
 		file: DataFile,
@@ -130,27 +130,27 @@ interface FileFacade {
 	 */
 	suspend fun writeToAppDir(
 		content: DataWrapper,
-		path: String,
+		name: String,
 	): Unit
 	/**
 	 * Read file from given path relative to app data folder
 	 */
 	suspend fun readFromAppDir(
-		path: String,
+		name: String,
 	): DataWrapper
 	/**
 	 * Delete file from given path relative to app data folder
 	 */
 	suspend fun deleteFromAppDir(
-		path: String,
+		name: String,
 	): Unit
 	/**
 	 * read the file at the given location into a DataFile. Returns null if reading fails for any reason.
 	 */
 	suspend fun readDataFile(
-		filePath: String,
+		fileUrl: String,
 	): DataFile?
 	suspend fun readDirectory(
-		filePath: String,
+		directoryUrl: String,
 	): DirectoryContents
 }

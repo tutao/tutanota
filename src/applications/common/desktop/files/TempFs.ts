@@ -188,6 +188,11 @@ export class TempFs {
 		}
 	}
 
+	/**
+	 *  Open specified resource as a stream.
+	 *
+	 *  Important: if this resource was not opened before it must be closed with {@link TempFs#closeFileStream()}
+	 */
 	fileStream(uri: string): Readable {
 		const tutaUrl = tutaUrlFromString(uri)
 		switch (tutaUrl.type) {

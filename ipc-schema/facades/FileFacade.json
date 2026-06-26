@@ -9,7 +9,7 @@
 			"doc": "Opens the file with the built-in viewer or external program.",
 			"arg": [
 				{
-					"location": "string"
+					"fileUrl": "string"
 				},
 				{
 					"mimeType": "string"
@@ -45,7 +45,7 @@
 		"deleteFile": {
 			"arg": [
 				{
-					"file": "string"
+					"fileUrl": "string"
 				}
 			],
 			"ret": "void"
@@ -53,7 +53,7 @@
 		"getName": {
 			"arg": [
 				{
-					"file": "string"
+					"fileUrl": "string"
 				}
 			],
 			"ret": "string"
@@ -61,7 +61,7 @@
 		"getMimeType": {
 			"arg": [
 				{
-					"file": "string"
+					"fileUrl": "string"
 				}
 			],
 			"ret": "string"
@@ -70,13 +70,13 @@
 			"doc": "get the absolute size in bytes of the file at the given location",
 			"arg": [
 				{
-					"file": "string"
+					"fileUrl": "string"
 				}
 			],
 			"ret": "number"
 		},
 		"putFileIntoDownloadsFolder": {
-			"doc": "move and rename a decrypted file from the decryption location to the download location preferred by the user and return the absolute path to the moved file",
+			"doc": "move and rename a decrypted file from the decryption location to the download location preferred by the user and return the absolute URL to the moved file",
 			"arg": [
 				{
 					"localFileUri": "string"
@@ -143,7 +143,7 @@
 			"doc": "Calculates specified file hash (with SHA-256). Returns first 6 bytes of it as Base64.",
 			"arg": [
 				{
-					"fileUri": "string"
+					"fileUrl": "string"
 				}
 			],
 			"ret": "string"
@@ -159,7 +159,7 @@
 					"filename": "string"
 				},
 				{
-					"files": "List<string>"
+					"filePartsUrls": "List<string>"
 				}
 			],
 			"ret": "string"
@@ -168,7 +168,7 @@
 			"doc": "open a file for reading",
 			"arg": [
 				{
-					"fileUri": "string"
+					"fileUrl": "string"
 				}
 			],
 			"ret": "string"
@@ -177,7 +177,7 @@
 			"doc": "close a file",
 			"arg": [
 				{
-					"streamUri": "string"
+					"streamUrl": "string"
 				}
 			],
 			"ret": "void"
@@ -186,7 +186,7 @@
 			"doc": "read a chunk from an opened file",
 			"arg": [
 				{
-					"streamUri": "string"
+					"streamUrl": "string"
 				},
 				{
 					"maxChunkSize": "number"
@@ -195,7 +195,7 @@
 			"ret": "string?"
 		},
 		"writeTempDataFile": {
-			"doc": "Save the unencrypted data file to the disk into a fixed temporary location, not the user's preferred download dir.",
+			"doc": "Save the unencrypted data file to the disk into a fixed temporary location, not the user's preferred download dir. Returns url with the file's location",
 			"arg": [
 				{
 					"file": "DataFile"
@@ -210,7 +210,7 @@
 					"content": "bytes"
 				},
 				{
-					"path": "string"
+					"name": "string"
 				}
 			],
 			"ret": "void"
@@ -219,7 +219,7 @@
 			"doc": "Read file from given path relative to app data folder",
 			"arg": [
 				{
-					"path": "string"
+					"name": "string"
 				}
 			],
 			"ret": "bytes"
@@ -228,7 +228,7 @@
 			"doc": "Delete file from given path relative to app data folder",
 			"arg": [
 				{
-					"path": "string"
+					"name": "string"
 				}
 			],
 			"ret": "void"
@@ -237,7 +237,7 @@
 			"doc": "read the file at the given location into a DataFile. Returns null if reading fails for any reason.",
 			"arg": [
 				{
-					"filePath": "string"
+					"fileUrl": "string"
 				}
 			],
 			"ret": "DataFile?"
@@ -245,7 +245,7 @@
 		"readDirectory": {
 			"arg": [
 				{
-					"filePath": "string"
+					"directoryUrl": "string"
 				}
 			],
 			"ret": "DirectoryContents"

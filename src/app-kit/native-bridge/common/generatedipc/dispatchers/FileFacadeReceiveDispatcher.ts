@@ -9,9 +9,9 @@ export class FileFacadeReceiveDispatcher {
 	async dispatch(method: string, arg: Array<any>): Promise<any> {
 		switch (method) {
 			case "open": {
-				const location: string = arg[0]
+				const fileUrl: string = arg[0]
 				const mimeType: string = arg[1]
-				return this.facade.open(location, mimeType)
+				return this.facade.open(fileUrl, mimeType)
 			}
 			case "openFileChooser": {
 				const boundingRect: IpcClientRect = arg[0]
@@ -26,20 +26,20 @@ export class FileFacadeReceiveDispatcher {
 				return this.facade.openMacImportFileChooser()
 			}
 			case "deleteFile": {
-				const file: string = arg[0]
-				return this.facade.deleteFile(file)
+				const fileUrl: string = arg[0]
+				return this.facade.deleteFile(fileUrl)
 			}
 			case "getName": {
-				const file: string = arg[0]
-				return this.facade.getName(file)
+				const fileUrl: string = arg[0]
+				return this.facade.getName(fileUrl)
 			}
 			case "getMimeType": {
-				const file: string = arg[0]
-				return this.facade.getMimeType(file)
+				const fileUrl: string = arg[0]
+				return this.facade.getMimeType(fileUrl)
 			}
 			case "getSize": {
-				const file: string = arg[0]
-				return this.facade.getSize(file)
+				const fileUrl: string = arg[0]
+				return this.facade.getSize(fileUrl)
 			}
 			case "putFileIntoDownloadsFolder": {
 				const localFileUri: string = arg[0]
@@ -70,29 +70,29 @@ export class FileFacadeReceiveDispatcher {
 				return this.facade.abortDownload(fileId)
 			}
 			case "hashFile": {
-				const fileUri: string = arg[0]
-				return this.facade.hashFile(fileUri)
+				const fileUrl: string = arg[0]
+				return this.facade.hashFile(fileUrl)
 			}
 			case "clearFileData": {
 				return this.facade.clearFileData()
 			}
 			case "joinFiles": {
 				const filename: string = arg[0]
-				const files: ReadonlyArray<string> = arg[1]
-				return this.facade.joinFiles(filename, files)
+				const filePartsUrls: ReadonlyArray<string> = arg[1]
+				return this.facade.joinFiles(filename, filePartsUrls)
 			}
 			case "openFileForReading": {
-				const fileUri: string = arg[0]
-				return this.facade.openFileForReading(fileUri)
+				const fileUrl: string = arg[0]
+				return this.facade.openFileForReading(fileUrl)
 			}
 			case "closeFile": {
-				const streamUri: string = arg[0]
-				return this.facade.closeFile(streamUri)
+				const streamUrl: string = arg[0]
+				return this.facade.closeFile(streamUrl)
 			}
 			case "readChunk": {
-				const streamUri: string = arg[0]
+				const streamUrl: string = arg[0]
 				const maxChunkSize: number = arg[1]
-				return this.facade.readChunk(streamUri, maxChunkSize)
+				return this.facade.readChunk(streamUrl, maxChunkSize)
 			}
 			case "writeTempDataFile": {
 				const file: DataFile = arg[0]
@@ -100,24 +100,24 @@ export class FileFacadeReceiveDispatcher {
 			}
 			case "writeToAppDir": {
 				const content: Uint8Array = arg[0]
-				const path: string = arg[1]
-				return this.facade.writeToAppDir(content, path)
+				const name: string = arg[1]
+				return this.facade.writeToAppDir(content, name)
 			}
 			case "readFromAppDir": {
-				const path: string = arg[0]
-				return this.facade.readFromAppDir(path)
+				const name: string = arg[0]
+				return this.facade.readFromAppDir(name)
 			}
 			case "deleteFromAppDir": {
-				const path: string = arg[0]
-				return this.facade.deleteFromAppDir(path)
+				const name: string = arg[0]
+				return this.facade.deleteFromAppDir(name)
 			}
 			case "readDataFile": {
-				const filePath: string = arg[0]
-				return this.facade.readDataFile(filePath)
+				const fileUrl: string = arg[0]
+				return this.facade.readDataFile(fileUrl)
 			}
 			case "readDirectory": {
-				const filePath: string = arg[0]
-				return this.facade.readDirectory(filePath)
+				const directoryUrl: string = arg[0]
+				return this.facade.readDirectory(directoryUrl)
 			}
 		}
 	}

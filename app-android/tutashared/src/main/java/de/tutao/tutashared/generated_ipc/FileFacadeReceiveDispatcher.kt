@@ -15,10 +15,10 @@ class FileFacadeReceiveDispatcher(
 	suspend fun dispatch(method: String, arg: List<String>): String {
 		when (method) {
 			"open" -> {
-				val location: String = json.decodeFromString(arg[0])
+				val fileUrl: String = json.decodeFromString(arg[0])
 				val mimeType: String = json.decodeFromString(arg[1])
 				val result: Unit = this.facade.open(
-					location,
+					fileUrl,
 					mimeType,
 				)
 				return json.encodeToString(result)
@@ -45,30 +45,30 @@ class FileFacadeReceiveDispatcher(
 				return json.encodeToString(result)
 			}
 			"deleteFile" -> {
-				val file: String = json.decodeFromString(arg[0])
+				val fileUrl: String = json.decodeFromString(arg[0])
 				val result: Unit = this.facade.deleteFile(
-					file,
+					fileUrl,
 				)
 				return json.encodeToString(result)
 			}
 			"getName" -> {
-				val file: String = json.decodeFromString(arg[0])
+				val fileUrl: String = json.decodeFromString(arg[0])
 				val result: String = this.facade.getName(
-					file,
+					fileUrl,
 				)
 				return json.encodeToString(result)
 			}
 			"getMimeType" -> {
-				val file: String = json.decodeFromString(arg[0])
+				val fileUrl: String = json.decodeFromString(arg[0])
 				val result: String = this.facade.getMimeType(
-					file,
+					fileUrl,
 				)
 				return json.encodeToString(result)
 			}
 			"getSize" -> {
-				val file: String = json.decodeFromString(arg[0])
+				val fileUrl: String = json.decodeFromString(arg[0])
 				val result: Long = this.facade.getSize(
-					file,
+					fileUrl,
 				)
 				return json.encodeToString(result)
 			}
@@ -124,9 +124,9 @@ class FileFacadeReceiveDispatcher(
 				return json.encodeToString(result)
 			}
 			"hashFile" -> {
-				val fileUri: String = json.decodeFromString(arg[0])
+				val fileUrl: String = json.decodeFromString(arg[0])
 				val result: String = this.facade.hashFile(
-					fileUri,
+					fileUrl,
 				)
 				return json.encodeToString(result)
 			}
@@ -137,32 +137,32 @@ class FileFacadeReceiveDispatcher(
 			}
 			"joinFiles" -> {
 				val filename: String = json.decodeFromString(arg[0])
-				val files: List<String> = json.decodeFromString(arg[1])
+				val filePartsUrls: List<String> = json.decodeFromString(arg[1])
 				val result: String = this.facade.joinFiles(
 					filename,
-					files,
+					filePartsUrls,
 				)
 				return json.encodeToString(result)
 			}
 			"openFileForReading" -> {
-				val fileUri: String = json.decodeFromString(arg[0])
+				val fileUrl: String = json.decodeFromString(arg[0])
 				val result: String = this.facade.openFileForReading(
-					fileUri,
+					fileUrl,
 				)
 				return json.encodeToString(result)
 			}
 			"closeFile" -> {
-				val streamUri: String = json.decodeFromString(arg[0])
+				val streamUrl: String = json.decodeFromString(arg[0])
 				val result: Unit = this.facade.closeFile(
-					streamUri,
+					streamUrl,
 				)
 				return json.encodeToString(result)
 			}
 			"readChunk" -> {
-				val streamUri: String = json.decodeFromString(arg[0])
+				val streamUrl: String = json.decodeFromString(arg[0])
 				val maxChunkSize: Long = json.decodeFromString(arg[1])
 				val result: String? = this.facade.readChunk(
-					streamUri,
+					streamUrl,
 					maxChunkSize,
 				)
 				return json.encodeToString(result)
@@ -176,38 +176,38 @@ class FileFacadeReceiveDispatcher(
 			}
 			"writeToAppDir" -> {
 				val content: DataWrapper = json.decodeFromString(arg[0])
-				val path: String = json.decodeFromString(arg[1])
+				val name: String = json.decodeFromString(arg[1])
 				val result: Unit = this.facade.writeToAppDir(
 					content,
-					path,
+					name,
 				)
 				return json.encodeToString(result)
 			}
 			"readFromAppDir" -> {
-				val path: String = json.decodeFromString(arg[0])
+				val name: String = json.decodeFromString(arg[0])
 				val result: DataWrapper = this.facade.readFromAppDir(
-					path,
+					name,
 				)
 				return json.encodeToString(result)
 			}
 			"deleteFromAppDir" -> {
-				val path: String = json.decodeFromString(arg[0])
+				val name: String = json.decodeFromString(arg[0])
 				val result: Unit = this.facade.deleteFromAppDir(
-					path,
+					name,
 				)
 				return json.encodeToString(result)
 			}
 			"readDataFile" -> {
-				val filePath: String = json.decodeFromString(arg[0])
+				val fileUrl: String = json.decodeFromString(arg[0])
 				val result: DataFile? = this.facade.readDataFile(
-					filePath,
+					fileUrl,
 				)
 				return json.encodeToString(result)
 			}
 			"readDirectory" -> {
-				val filePath: String = json.decodeFromString(arg[0])
+				val directoryUrl: String = json.decodeFromString(arg[0])
 				val result: DirectoryContents = this.facade.readDirectory(
-					filePath,
+					directoryUrl,
 				)
 				return json.encodeToString(result)
 			}

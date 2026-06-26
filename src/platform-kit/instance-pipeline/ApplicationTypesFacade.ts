@@ -17,21 +17,21 @@ assertWorkerOrNode()
  */
 export interface SimpleFileFacade {
 	/**
-	 * Save given file in given path relative to app data folder
+	 * Save given file in app data folder
 	 */
-	writeToAppDir(content: Uint8Array, path: string): Promise<void>
+	writeToAppDir(content: Uint8Array, name: string): Promise<void>
 
 	/**
 	 * Read file from given path relative to app data folder
 	 */
-	readFromAppDir(path: string): Promise<Uint8Array>
+	readFromAppDir(name: string): Promise<Uint8Array>
 
 	/**
 	 * Delete file from given path relative to app data folder
 	 */
-	deleteFromAppDir(path: string): Promise<void>
+	deleteFromAppDir(name: string): Promise<void>
 }
-export const APPLICATION_TYPES_PATH: string = "server_type_models.json"
+export const APPLICATION_TYPES_FILE_NAME: string = "server_type_models.json"
 export const APPLICATION_TYPES_PATH_SDK: string = "server_type_models_sdk.json"
 
 /**
@@ -122,7 +122,7 @@ export class ApplicationTypesFacade {
 		if (isDesktop() || isApp()) {
 			try {
 				const fileContent = stringToUtf8Uint8Array(newApplicationTypesJsonString)
-				await this.fileFacade.writeToAppDir(fileContent, APPLICATION_TYPES_PATH)
+				await this.fileFacade.writeToAppDir(fileContent, APPLICATION_TYPES_FILE_NAME)
 			} catch (err_to_ignore) {
 				console.error(`Failed to persist server model: ${err_to_ignore}`)
 			}
@@ -137,7 +137,7 @@ export class ApplicationTypesFacade {
 		// when the web app is started and store it in memory
 		if (isDesktop() || isApp()) {
 			try {
-				const applicationTypesJsonData = await this.fileFacade.readFromAppDir(APPLICATION_TYPES_PATH)
+				const applicationTypesJsonData = await this.fileFacade.readFromAppDir(APPLICATION_TYPES_FILE_NAME)
 				const applicationTypesHash = this.computeApplicationTypesHash(applicationTypesJsonData)
 				console.log(`initializing server model from local json data. Hash: ${applicationTypesHash}`)
 				const applicationTypesJson = uint8ArrayToString("utf-8", applicationTypesJsonData)
@@ -180,7 +180,7 @@ export class ApplicationTypesFacade {
 
 	async invalidateApplicationTypes() {
 		if (isDesktop() || isApp()) {
-			await this.fileFacade.deleteFromAppDir(APPLICATION_TYPES_PATH)
+			await this.fileFacade.deleteFromAppDir(APPLICATION_TYPES_FILE_NAME)
 			await this.fileFacade.deleteFromAppDir(APPLICATION_TYPES_PATH_SDK)
 		}
 	}

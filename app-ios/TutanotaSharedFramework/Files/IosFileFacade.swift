@@ -69,8 +69,8 @@ public final class IosFileFacade: FileFacade {
 		return data.wrap()
 	}
 
-	public func open(_ location: String, _ mimeType: String) async throws {
-		let url = try URL.from(fileUrl: location)
+	public func open(_ fileUrl: String, _ mimeType: String) async throws {
+		let url = try URL.from(fileUrl: fileUrl)
 		await self.viewer.openFile(url)
 	}
 
@@ -93,13 +93,13 @@ public final class IosFileFacade: FileFacade {
 		return returnfiles.map { $0.absoluteString }
 	}
 
-	public func deleteFile(_ file: String) async throws { try await self.tempFs.deleteFile(uri: file) }
+	public func deleteFile(_ fileUrl: String) async throws { try await self.tempFs.deleteFile(uri: fileUrl) }
 
-	public func getName(_ file: String) async throws -> String { try await self.tempFs.fileInfo(uri: file).name }
+	public func getName(_ fileUrl: String) async throws -> String { try await self.tempFs.fileInfo(uri: fileUrl).name }
 
-	public func getMimeType(_ file: String) async throws -> String { getFileMIMETypeWithDefault(path: try filePathFrom(urlString: file)) }
+	public func getMimeType(_ fileUrl: String) async throws -> String { getFileMIMETypeWithDefault(path: try filePathFrom(urlString: fileUrl)) }
 
-	public func getSize(_ file: String) async throws -> Int { try await Int(self.tempFs.fileInfo(uri: file).size) }
+	public func getSize(_ fileUrl: String) async throws -> Int { try await Int(self.tempFs.fileInfo(uri: fileUrl).size) }
 
 	@MainActor public func putFileIntoDownloadsFolder(_ localFileUri: String, _ fileNameToSave: String) async throws -> String {
 		let url = try URL.from(fileUrl: localFileUri)
@@ -224,7 +224,7 @@ public final class IosFileFacade: FileFacade {
 		return url
 	}
 
-	public func hashFile(_ fileUri: String) async throws -> String { try await BlobUtil(tempFs: self.tempFs).hashFile(fileUri: fileUri) }
+	public func hashFile(_ fileUrl: String) async throws -> String { try await BlobUtil(tempFs: self.tempFs).hashFile(fileUri: fileUrl) }
 
 	func zipDirectory(fileUrl: URL) throws -> String {
 		var returnPath: String = ""
@@ -253,8 +253,8 @@ public final class IosFileFacade: FileFacade {
 		)
 	}
 
-	public func joinFiles(_ filename: String, _ files: [String]) async throws -> String {
-		try await BlobUtil(tempFs: self.tempFs).joinFiles(fileName: filename, fileUrlsToJoin: files)
+	public func joinFiles(_ filename: String, _ filePartUrls: [String]) async throws -> String {
+		try await BlobUtil(tempFs: self.tempFs).joinFiles(fileName: filename, fileUrlsToJoin: filePartUrls)
 	}
 
 	public func writeTempDataFile(_ file: DataFile) async throws -> String {
@@ -281,9 +281,9 @@ public final class IosFileFacade: FileFacade {
 		return try self.readFile(at: fileUrl)
 	}
 
-	public func deleteFromAppDir(_ path: String) async throws {
+	public func deleteFromAppDir(_ name: String) async throws {
 		let supportDir = try FileUtils.getApplicationSupportFolder()
-		let fileUrl = supportDir.appendingPathComponent(path)
+		let fileUrl = supportDir.appendingPathComponent(name)
 		try await self.deleteFile(fileUrl.absoluteString)
 	}
 
@@ -295,10 +295,10 @@ public final class IosFileFacade: FileFacade {
 	}
 
 	public func readDirectory(_ filePath: String) async throws -> TutanotaSharedFramework.DirectoryContents { fatalError("not implemented on this platform") }
-	public func openFileForReading(_ fileUri: String) async throws -> String { try await self.tempFs.openFileForReading(uri: fileUri) }
-	public func closeFile(_ streamUri: String) async throws { try await self.tempFs.closeFile(streamUri: streamUri) }
-	public func readChunk(_ streamUri: String, _ maxChunkSize: Int) async throws -> String? {
-		var stream = try await self.tempFs.fileStream(tutaUri: streamUri)
+	public func openFileForReading(_ fileUrl: String) async throws -> String { try await self.tempFs.openFileForReading(uri: fileUrl) }
+	public func closeFile(_ streamUrl: String) async throws { try await self.tempFs.closeFile(streamUri: streamUrl) }
+	public func readChunk(_ streamUrl: String, _ maxChunkSize: Int) async throws -> String? {
+		var stream = try await self.tempFs.fileStream(tutaUri: streamUrl)
 		let buf = try stream.read(upToBytes: maxChunkSize)
 		if let buf { return await self.tempFs.createInMemoryFile(data: buf) } else { return nil }
 	}

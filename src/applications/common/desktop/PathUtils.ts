@@ -213,8 +213,8 @@ export function nonClobberingFilename(files: Array<string>, filename: string): s
 	}
 }
 
-export function looksExecutable(file: string): boolean {
-	const basename = path.basename(file)
+export function looksExecutable(filePath: string): boolean {
+	const basename = path.basename(filePath)
 	// if the file has an empty filename with just an extension (e.g. just ".exe" or ".bat")
 	// then path.extname will return an empty string resulting in this function returning false
 	// this is a problem because windows would still try to execute a file named ".exe", so it should return true
