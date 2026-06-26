@@ -4,7 +4,7 @@ import { ImapImporter, ImportResult, InitializeImapImportParams, MailSetMapping 
 import { MailModel } from "../../mail/model/MailModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { assertNotNull, first, promiseMap } from "@tutao/utils"
-import { ImapAccountSyncStateTypeRef } from "@tutao/entities/tutanota"
+import { createImapOauthConfigGetIn, ImapAccountSyncStateTypeRef, ImapOauthConfigService } from "@tutao/entities/tutanota"
 import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { collapseId, getElementId, OperationType } from "@tutao/meta"
 import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
@@ -19,6 +19,7 @@ import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } 
 import { showUpdateImapCredentialsDialog } from "../../../common/gui/dialogs/UpdateImapCredentialsDialog"
 import { OAuthHandler } from "./oauth/OAuthHandler"
 import { Dialog } from "../../../../ui/base/Dialog"
+import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest"
 
 assertMainOrNode()
 
@@ -41,6 +42,7 @@ export class ImapMailImportController {
 	public selectedMailBoxDetail: MailboxDetail | null = null
 	public activeImapImportUiSessions: ImapImportUiSession[] = []
 	public canceledImapImportUiSessions: ImapImportUiSession[] = []
+	public imapOauthProviderToSecretConfig: Map<ImapProvider, string> = new Map()
 
 	constructor(
 		private readonly imapImporter: ImapImporter,
@@ -49,6 +51,7 @@ export class ImapMailImportController {
 		private readonly entityClient: EntityClient,
 		private readonly oauthFacade: OauthFacade,
 		private readonly eventController: EventController,
+		private readonly serviceExecutor: IServiceExecutor,
 	) {
 		this.eventController.addEntityListener({
 			onEntityUpdatesReceived: (updates) => this.entityEventsReceived(updates),
@@ -66,7 +69,13 @@ export class ImapMailImportController {
 					const shouldDisplayCredentialsDialog = imapAccountSyncState.status === ImapAccountSyncStatus.AUTH_ERROR
 					if (shouldDisplayCredentialsDialog) {
 						showUpdateImapCredentialsDialog(
-							{ syncState: imapAccountSyncState, oauthHandlerFactory: (config) => new OAuthHandler(config) },
+							{
+								syncState: imapAccountSyncState,
+								oauthHandlerFactory: (config) => {
+									return new OAuthHandler(config)
+								},
+								imapOauthProviderToSecretConfig: this.imapOauthProviderToSecretConfig,
+							},
 							(dialog, updatedAccount) => {
 								if (updatedAccount) {
 									imapAccountSyncState.imapAccount = updatedAccount
@@ -93,7 +102,33 @@ export class ImapMailImportController {
 	async init(): Promise<void> {
 		this.mailboxDetails = await this.mailboxModel.getMailboxDetails()
 		this.selectedMailBoxDetail = first(this.mailboxDetails)
+
+		this.imapOauthProviderToSecretConfig = await this.initImapSecretConfig()
 		await this.updateActiveUiSessions()
+	}
+
+	private async initImapSecretConfig() {
+		const imapConfigProviders = [{ provider: ImapProvider.Google, providerName: "Google" }]
+		const providerMap = new Map<ImapProvider, string>()
+		for (const { provider, providerName } of imapConfigProviders) {
+			const secret = await this.fetchSecret(providerName)
+			if (secret !== null) {
+				providerMap.set(provider, secret)
+			}
+		}
+
+		return providerMap
+	}
+
+	private async fetchSecret(provider: string): Promise<string | null> {
+		try {
+			const { clientSecret } = await this.serviceExecutor.get(ImapOauthConfigService, createImapOauthConfigGetIn({ provider }), null)
+
+			return clientSecret
+		} catch (e) {
+			console.error(`Config for provider ${provider} not found.`)
+			return null
+		}
 	}
 
 	async initializeImport(initializeImportParams: InitializeImapImportParams) {
@@ -247,6 +282,7 @@ export class ImapMailImportController {
 			imapMailboxes: [],
 			folderSystem: new FolderSystem([]),
 			imapProvider: ImapProvider.Other,
+			credentialsMap: this.imapOauthProviderToSecretConfig,
 		}
 
 		if (!env.dist) {

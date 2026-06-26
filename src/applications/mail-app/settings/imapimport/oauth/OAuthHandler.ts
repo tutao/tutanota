@@ -1,6 +1,6 @@
 import * as openidClient from "./openid-client-custom"
 import type { Configuration } from "openid-client"
-import type { OauthConfigParams } from "../../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { ImapProvider, OauthConfigParams } from "../../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { assertMainOrNode, ProgrammingError } from "@tutao/app-env"
 
 const CODE_CHALLENGE_METHOD = "S256"

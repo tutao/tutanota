@@ -18,6 +18,7 @@ import { MailSetMapping } from "../../workerUtils/imapimport/ImapImporter"
 assertMainOrNode()
 
 export type ImapImportData = {
+	credentialsMap: Map<ImapProvider, string>
 	oauthConfig?: OauthConfigParams
 	imapAccountOAuthToken?: TokenEndpointResponse
 	imapProvider: ImapProvider

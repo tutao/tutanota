@@ -1,4 +1,4 @@
-import { getImapConfigForProvider, ImapProvider, type OauthConfigParams } from "../../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { getImapConfigForProvider, ImapProvider } from "../../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { EntityClient } from "../../../../../platform-kit/network/EntityClient"
 import { ImapAccountSyncState } from "@tutao/entities/tutanota"
 import { tokenEndpointResponseToOAuthTokenEndpointResponse } from "../../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
@@ -10,6 +10,7 @@ import { ProgrammingError } from "@tutao/app-env"
 export class OAuthErrorHandler {
 	constructor(
 		private readonly entityClient: EntityClient,
+		private readonly imapOauthProviderToSecretConfig: Map<ImapProvider, string>,
 		private readonly oauthHandlerFactory: OAuthHandlerFactory = (config) => new OAuthHandler(config),
 	) {}
 
@@ -24,7 +25,7 @@ export class OAuthErrorHandler {
 		const isOAuth = provider !== ImapProvider.Other
 
 		if (isOAuth) {
-			const oAuthConfig = getImapConfigForProvider(provider)?.oauthConfig
+			const oAuthConfig = getImapConfigForProvider(provider, this.imapOauthProviderToSecretConfig)?.oauthConfig
 			if (oAuthConfig) {
 				if (imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse?.refreshToken) {
 					// we need get a new token using refresh token

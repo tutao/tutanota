@@ -25,7 +25,7 @@ o.spec("OAuthHandler", () => {
 			scope: "openid email",
 			additionalAuthParams: { prompt: "consent" },
 		}
-		handler = new OAuthHandler(oauthConfigMock, clientMock)
+		handler = new OAuthHandler(oauthConfigMock)
 	})
 
 	o.test("setupOauthLoginParams - without clientSecret uses discovery without auth", async () => {
@@ -61,7 +61,7 @@ o.spec("OAuthHandler", () => {
 
 	o.test("setupOauthLoginParams - with clientSecret uses ClientSecretPost auth", async () => {
 		oauthConfigMock.clientSecret = "secret123"
-		handler = new OAuthHandler(oauthConfigMock, clientMock)
+		handler = new OAuthHandler(oauthConfigMock)
 
 		const authMock = noOp
 		when(clientMock.ClientSecretPost("secret123")).thenReturn(authMock)

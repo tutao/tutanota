@@ -1,4 +1,5 @@
 import { ImapAccount } from "@tutao/entities/tutanota"
+import { assertNotNull } from "@tutao/utils"
 
 export const enum ImapAuthType {
 	"Password",
@@ -41,7 +42,8 @@ const wellKnownConfigs = {
 				access_type: "offline", // required for refresh token
 				prompt: "consent", // forces refresh token on first login
 			},
-			clientSecret: "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",
+			//This thing needed a whole service because google can't do PKCE right.
+			clientSecret: "",
 		},
 	},
 	microsoft: {
@@ -93,10 +95,12 @@ const wellKnownConfigs = {
 	},
 }
 
-export function getImapConfigForProvider(provider: ImapProvider): ServerImapImportParams | null {
+export function getImapConfigForProvider(provider: ImapProvider, secretsMap: Map<ImapProvider, string>): ServerImapImportParams | null {
+	let gmailConfig = wellKnownConfigs.gmail
 	switch (provider) {
 		case ImapProvider.Google:
-			return wellKnownConfigs.gmail
+			gmailConfig.oauthConfig.clientSecret = assertNotNull(secretsMap.get(provider))
+			return gmailConfig
 		case ImapProvider.Microsoft:
 			return wellKnownConfigs.microsoft
 		case ImapProvider.Other:

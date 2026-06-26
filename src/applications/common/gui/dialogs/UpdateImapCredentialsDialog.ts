@@ -1,6 +1,6 @@
 import { Dialog, DialogType } from "../../../../ui/base/Dialog.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
-import m, { Children } from "mithril"
+import m from "mithril"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../../../ui/base/DialogHeaderBar.js"
 import { ButtonType } from "../../../../ui/base/Button.js"
 import { theme } from "../../../../ui/theme"
@@ -21,6 +21,7 @@ import { tokenEndpointResponseToOAuthTokenEndpointResponse } from "../../api/com
 export interface UpdateImapCredentialsDialogAttrs {
 	syncState: ImapAccountSyncState
 	oauthHandlerFactory: OAuthHandlerFactory
+	imapOauthProviderToSecretConfig: Map<ImapProvider, string>
 }
 
 /**
@@ -65,7 +66,7 @@ export function showUpdateImapCredentialsDialog(attrs: UpdateImapCredentialsDial
 									const provider = parseInt(viewModel.imapAccountSyncState.provider) as ImapProvider
 									const isOAuth = provider !== ImapProvider.Other
 									if (isOAuth) {
-										const oauthConfig = getImapConfigForProvider(provider)?.oauthConfig
+										const oauthConfig = getImapConfigForProvider(provider, attrs.imapOauthProviderToSecretConfig)?.oauthConfig
 										if (oauthConfig) {
 											const oauthHandler = attrs.oauthHandlerFactory(oauthConfig)
 											const extraParams = { login_hint: viewModel.imapAccountSyncState.imapAccount.username }

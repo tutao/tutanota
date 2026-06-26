@@ -53,7 +53,7 @@ export class ImapImportProviderSelectionPage implements WizardPageN<ImapImportDa
 						label: "continue_action",
 						class: "wizard-next-button",
 						onclick: async (_, dom) => {
-							const imapConfig = getImapConfigForProvider(this.selectedProvider)
+							const imapConfig = getImapConfigForProvider(this.selectedProvider, vnode.attrs.data.credentialsMap)
 							const isConfigAvailableForSelectedProvider = imapConfig && this.selectedProvider !== ImapProvider.Other && imapConfig !== null
 							if (isConfigAvailableForSelectedProvider) {
 								if (imapConfig.authType === ImapAuthType.Oauth2) {

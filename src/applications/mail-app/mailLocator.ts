@@ -1005,6 +1005,7 @@ class MailLocator implements CommonLocator {
 						this.entityClient,
 						this.oauthFacade,
 						this.eventController,
+						this.serviceExecutor,
 					)
 				}
 			} else if (isAndroidApp() || isIOSApp()) {

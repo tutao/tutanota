@@ -15,7 +15,7 @@ import {
 	isOfflineStorageAvailable,
 	ProgrammingError,
 } from "../../../../platform-kit/app-env"
-import { CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { CalendarEventTypeRef, ContactTypeRef, createImapOauthConfigGetIn, ImapOauthConfigService, MailTypeRef } from "@tutao/entities/tutanota"
 import { UserTypeRef } from "@tutao/entities/sys"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
@@ -89,6 +89,7 @@ import { TutanotaEntityMigrator } from "../../../common/api/worker/TutanotaEntit
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { ImapImporter } from "../imapimport/ImapImporter"
 import { OAuthErrorHandler } from "../../settings/imapimport/oauth/OAuthErrorHandler"
+import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 
 assertWorkerOrNode()
 
@@ -630,7 +631,11 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.base.cryptoWrapper,
 		)
 
-		const oauthErrorHandler = new OAuthErrorHandler(locator.base.cachingEntityClient)
+		// TODO: There must be a better way than initializing this on every possible place.
+		const { clientSecret } = await locator.base.serviceExecutor.get(ImapOauthConfigService, createImapOauthConfigGetIn({ provider: "Google" }), null)
+		const map = new Map<ImapProvider, string>()
+		map.set(ImapProvider.Google, clientSecret)
+		const oauthErrorHandler = new OAuthErrorHandler(locator.base.cachingEntityClient, map)
 		return new ImapImporter(new ImapSyncSystemFacadeSendDispatcher(worker), imapFacade, importMailFacade, oauthErrorHandler)
 	})
 
