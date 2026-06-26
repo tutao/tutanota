@@ -6,7 +6,7 @@ import TutaNotificationHandler from "../../../../src/applications/common/desktop
 import { SseClient, SseConnectOptions } from "../../../../src/applications/common/desktop/sse/SseClient.js"
 import { fetch as undiciFetch } from "undici"
 
-import { assertNotNull, DateProvider, deepEqual, downcast, stringToBase64, stringToUtf8Uint8Array } from "../../../../src/platform-kit/utils"
+import { assertNotNull, DateProvider, deepEqual, stringToUtf8Uint8Array } from "../../../../src/platform-kit/utils"
 import {
 	clientInitializedTypeModelResolver,
 	createTestEntity,
@@ -17,12 +17,12 @@ import {
 } from "../../TestUtils.js"
 import { SseInfo } from "../../../../src/applications/common/desktop/sse/SseInfo.js"
 import { InstancePipeline, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey } from "../../../../src/platform-kit/crypto"
+import { aes256RandomKey, aesEncrypt } from "../../../../src/platform-kit/crypto"
 import { DesktopAlarmStorage } from "../../../../src/applications/common/desktop/sse/DesktopAlarmStorage"
 import { DesktopAlarmScheduler } from "../../../../src/applications/common/desktop/sse/DesktopAlarmScheduler"
 import { EncryptedMissedNotification } from "../../../../src/app-kit/native-bridge/common/EncryptedMissedNotification"
 import { CryptoError } from "../../../../src/platform-kit/crypto/error"
-import { AttributeModel, OperationType } from "../../../../src/platform-kit/meta"
+import { OperationType } from "../../../../src/platform-kit/meta"
 import {
 	AlarmInfoTypeRef,
 	AlarmNotificationTypeRef,
@@ -41,12 +41,14 @@ import {
 	sysTypeModels,
 } from "@tutao/entities/sys"
 import { IncomingServerJson } from "../../../../src/platform-kit/instance-pipeline/TypeMapper"
+import { InstanceDirection, ParsedValue } from "../../../../src/platform-kit/instance-pipeline/ParsedValue"
+import { changeInstanceDirection } from "../../instance-pipeline/InstancePipelineTestUtils"
 
 const APP_V = env.versionNumber
 
 const { anything } = matchers
 
-o.spec("TutaSseFacade", () => {
+o.spec("TutaSseFacadeTest", () => {
 	let sseFacade: TutaSseFacade
 	let sseStorage: SseStorage
 	let notificationHandler: TutaNotificationHandler
@@ -185,7 +187,7 @@ o.spec("TutaSseFacade", () => {
 			})
 
 			const sk = aes256RandomKey()
-			const untypedInstance = await nativeInstancePipeline.mapAndEncryptToParsedInstance(MissedNotificationTypeRef, missedNotification, sk)
+			const untypedInstance = (await nativeInstancePipeline.mapAndEncrypt(MissedNotificationTypeRef, missedNotification, sk)).getJsonRepresentation()
 			const jsonDefer = mockFetchRequest(fetch, "http://something.com/rest/sys/missednotification/aWQ", headers, 200, untypedInstance)
 
 			when(alarmStorage.getNotificationSessionKey(alarmNotification.notificationSessionKeys)).thenResolve({
@@ -332,17 +334,21 @@ o.spec("TutaSseFacade", () => {
 				when(alarmStorage.getNotificationSessionKey(anything())).thenResolve(null)
 			})
 
-			// casting here is fine, since we just want to mimic server response data
-			const untypedInstance = await nativeInstancePipeline.mapAndEncryptToParsedInstance(MissedNotificationTypeRef, missedNotification, sk)
-			const missedNotificationTypeModel = await typeModelResolver.resolveClientTypeReference(MissedNotificationTypeRef)
-			const alarmNotificationTypeModel = await typeModelResolver.resolveClientTypeReference(AlarmNotificationTypeRef)
-			const anAttrId = assertNotNull(AttributeModel.getAttributeId(missedNotificationTypeModel, "alarmNotifications"))
-			const eventStartAttrId = assertNotNull(AttributeModel.getAttributeId(alarmNotificationTypeModel, "eventStart"))
-			downcast<Array<IncomingServerJson>>(untypedInstance[anAttrId])[0][eventStartAttrId] = stringToBase64("newDate")
-			const encryptedMissedNotification = new EncryptedMissedNotification(untypedInstance)
+			const encryptedNotificationInstance = await nativeInstancePipeline.mapAndEncryptToParsedInstance(MissedNotificationTypeRef, missedNotification, sk)
+			encryptedNotificationInstance
+				.getAttributeByName("alarmNotifications")
+				.asNestedObjList()[0]
+				// encrypt with another random sessionKey so that decrypt fails later
+				.addAttributeByName("eventStart", ParsedValue.fromByteArray(aesEncrypt(aes256RandomKey(), stringToUtf8Uint8Array("0"))))
 
-			await assertThrows(CryptoError, () => sseFacade.handleAlarmNotification(encryptedMissedNotification))
+			// simulate notification is coming from server
+			changeInstanceDirection(encryptedNotificationInstance, InstanceDirection.IncomingFromServer)
+
+			const encryptedMissedNotification = new EncryptedMissedNotification(encryptedNotificationInstance)
+
+			const err = await assertThrows(CryptoError, () => sseFacade.handleAlarmNotification(encryptedMissedNotification))
 			verify(alarmStorage.removePushIdentifierKey(anything()))
+			o(err.message).deepEquals("could not find session key to decrypt alarm notification")
 		})
 
 		o.test("passes lastProcessedNotificationId if present", async () => {
@@ -369,11 +375,17 @@ o.spec("TutaSseFacade", () => {
 			})
 
 			const sk = aes256RandomKey()
-			const untypedInstance = await nativeInstancePipeline.mapAndEncryptToParsedInstance(MissedNotificationTypeRef, missedNotification, sk)
+			const untypedInstance = await nativeInstancePipeline.mapAndEncrypt(MissedNotificationTypeRef, missedNotification, sk)
 
 			await sseFacade.connect()
 
-			const jsonDefer = mockFetchRequest(fetch, "http://something.com/rest/sys/missednotification/aWQ", headers, 200, untypedInstance)
+			const jsonDefer = mockFetchRequest(
+				fetch,
+				"http://something.com/rest/sys/missednotification/aWQ",
+				headers,
+				200,
+				untypedInstance.getJsonRepresentation(),
+			)
 
 			await sseFacade.onNewMessage("data: notification")
 

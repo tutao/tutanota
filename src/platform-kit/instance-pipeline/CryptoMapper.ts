@@ -141,15 +141,17 @@ export class CryptoMapper {
 				const decryptedValue = await this.decryptValue(valueModel, encryptedValue, instanceDecryptor, ownerKeyProvider, fieldPath)
 				decrypted.addAttribute(valueId, decryptedValue)
 			} catch (e) {
-				decrypted.addAttribute(valueId, EntityUtils.valueToDefault(valueModel.type))
+				const defaultValue = EntityUtils.valueToDefault(valueModel.type).asString()
+				const base64EncodedDefaultValue: DecryptedParsedValue = ParsedValue.fromString(stringToBase64(defaultValue))
+				decrypted.addAttribute(valueId, base64EncodedDefaultValue)
 
 				if (e instanceof SessionKeyNotFoundError) {
 					const skAttrId = AttributeModel.getAttributeId(serverTypeModel, "_ownerEncSessionKey")
 					if (isNotNull(skAttrId)) {
-						decrypted.addErrorByAttributeName("_ownerEncSessionKey", "Probably temporary SessionKeyNotFound")
+						decrypted.addErrorByAttributeId(skAttrId, "Probably temporary SessionKeyNotFound")
 					}
 				} else {
-					decrypted.addErrorByAttributeName(valueModel.name, JSON.stringify(e))
+					decrypted.addErrorByAttributeId(valueModel.id, JSON.stringify(e))
 					console.error("error when decrypting value on type:", `[${serverTypeModel.app},${serverTypeModel.name}]`, "valueName:", valueName, e)
 				}
 			}

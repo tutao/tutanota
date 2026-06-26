@@ -10,7 +10,15 @@ import {
 	TypeRef,
 	ValueTypeEnum,
 } from "../../../src/platform-kit/meta"
-import { ApplicationTypesHash, ClientTypeReferenceResolver, ServerTypeReferenceResolver, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
+import {
+	ApplicationTypesHash,
+	ClientTypeReferenceResolver,
+	DecryptedParsedInstance,
+	EncryptedParsedInstance,
+	ServerTypeReferenceResolver,
+	TypeModelResolver,
+} from "../../../src/platform-kit/instance-pipeline"
+import { InstanceDirection } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 export const testTypeModel: TypeModel = {
 	app: "tutanota",
@@ -309,4 +317,21 @@ export function createEncryptedValueType(
 		final: true,
 		encrypted: true,
 	} satisfies ModelValue
+}
+
+export function changeInstanceDirection(encryptedNotificationInstance: EncryptedParsedInstance, direction: InstanceDirection) {
+	// @ts-ignore
+	encryptedNotificationInstance.direction = direction
+	// @ts-ignore
+	const innerMap = encryptedNotificationInstance.parsedInstance
+
+	for (const parsedValue of innerMap.values()) {
+		if (parsedValue.isArray()) {
+			parsedValue.asArray().map((item) => {
+				if (item.isNestedObj()) {
+					changeInstanceDirection(item.asNestedObj(), direction)
+				}
+			})
+		}
+	}
 }

@@ -19,8 +19,8 @@ export class EncryptedAlarmNotification {
 		return this.encryptedInstance.getAttributeByName("alarmInfo").asNestedObjList()[0].getAttributeByName("alarmIdentifier").asId()
 	}
 
-	getOperation() {
-		return this.encryptedInstance.getAttributeByName("operation").asIdTupleList()[0]
+	getOperation(): NumberString {
+		return this.encryptedInstance.getAttributeByName("operation").asString()
 	}
 
 	getUser(): Id {

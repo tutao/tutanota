@@ -86,9 +86,9 @@ o.spec("TypeMapperTest", function () {
 	})
 
 	function changeDirectionOfParsedInstance(instance: EncryptedParsedInstance, direction: InstanceDirection) {
-		const aggregateedInstance = encryptedParsedInstance.getAttributeById(3).asNestedObjList()[0]
+		const aggregateedInstance = instance.getAttributeById(3).asNestedObjList()[0]
 		// @ts-ignore
-		encryptedParsedInstance.direction = direction
+		instance.direction = direction
 		// @ts-ignore
 		aggregateedInstance.direction = direction
 	}
