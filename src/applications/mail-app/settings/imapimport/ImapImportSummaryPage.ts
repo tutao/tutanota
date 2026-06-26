@@ -34,6 +34,7 @@ import { Dialog } from "../../../../ui/base/Dialog"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { isValidCSSHexColor } from "../../../../ui/base/Color"
 import { ColorOptionButton } from "../../../../ui/base/colorPicker/ColorOptionButton"
+import { ImapMailboxSpecialUse } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
 
 assertMainOrNode()
 
@@ -131,6 +132,7 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 		return m(
 			"",
 			imapMailboxToTutaFolderRows.map((mailboxToRow) => {
+				const isHamFolder = mailboxToRow.imapMailbox.specialUse !== ImapMailboxSpecialUse.JUNK
 				return m(".flex.gap-8.items-center.mt-8", [
 					m(TextField, {
 						class: "m-0",
@@ -177,7 +179,7 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 								shouldSync,
 							})
 						},
-						disabled: !mailboxToRow.shouldSync,
+						disabled: !mailboxToRow.shouldSync || !isHamFolder,
 					} satisfies DropDownSelectorNewAttrs<MailSet>),
 					m(IconButton, {
 						icon: Icons.Plus,
@@ -201,7 +203,7 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 								},
 							)
 						},
-						disabled: !mailboxToRow.shouldSync,
+						disabled: !mailboxToRow.shouldSync || !isHamFolder,
 					}),
 					mailboxToRow.shouldSync
 						? m(IconButton, {
@@ -262,7 +264,7 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 								? getFolderName(mailboxToRow.tutaMailSet)
 								: lang.getTranslationText("imapNoSyncFolderName_msg"),
 						isReadOnly: true,
-						class: mailboxToRow.shouldSync ? "surface-background" : "alternate-background",
+						class: "surface-background",
 						leadingIcon: {
 							icon: mailboxToRow.shouldSync
 								? getFolderIconByType(assertNotNull(mailboxToRow.tutaMailSet).folderType as MailSetKind)

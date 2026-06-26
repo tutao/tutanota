@@ -338,7 +338,7 @@ export class ImapImporter implements ImapSyncFacade {
 	async onMailboxStatus(accountSyncStateId: IdTuple, imapMailboxStatus: ImapMailboxStatus): Promise<void> {
 		const session = assertNotNull(this.getActiveImapImportSessionOrNull(accountSyncStateId))
 		const folderSyncState = getFolderSyncStateForMailboxPath(imapMailboxStatus.path, session.imapFolderSyncStates)
-		if (folderSyncState !== null) {
+		if (folderSyncState !== null && folderSyncState.status !== ImapFolderSyncStatus.NO_SYNC) {
 			// If the uidvalidity of a folder has changed, it means all IMAP uids are invalidated, and we cannot continue with the sync.
 			// This should usually never happen, only with bad IMAP server implementations.
 			if (folderSyncState.uidvalidity && !(folderSyncState.uidvalidity === imapMailboxStatus.uidValidity.toString())) {

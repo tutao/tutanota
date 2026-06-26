@@ -2375,5 +2375,7 @@ export default {
 		"imapImportCanceledSyncs_label": "Canceled Syncs",
 		"imapImportHistory_label": "IMAP Import History",
 		"imapImportHistoryTotalImportedMails_msg": "Total imported mails: {imported}",
+		"imapCannotMapSpamFolder_label": "Cannot map spam folder",
+		"imapCannotMapSpamFolder_msg": "The spam folder can only be mapped to the Spam folder, in order to maintain the quality of your spam filter."
 	}
 }

@@ -2372,3 +2372,5 @@ export type TranslationKeyType =
 	| "imapImportCanceledSyncs_label"
 	| "imapImportHistory_label"
 	| "imapImportHistoryTotalImportedMails_msg"
+	| "imapCannotMapSpamFolder_label"
+	| "imapCannotMapSpamFolder_msg"

@@ -2,7 +2,7 @@ import { assertMainOrNode } from "@tutao/app-env"
 import m, { Children, Vnode } from "mithril"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog"
 import { ImapImportData } from "./AddImapImportWizard"
-import { ImapMailbox } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
+import { ImapMailbox, ImapMailboxSpecialUse } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
@@ -271,6 +271,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 		return m(
 			"",
 			imapMailboxToTutaFolderRows.map((mailboxToRow) => {
+				const isHamFolder = mailboxToRow.imapMailbox.specialUse !== ImapMailboxSpecialUse.JUNK
 				return m(".flex.gap-8.items-center.mt-8", [
 					m(TextField, {
 						class: "m-0",
@@ -318,32 +319,38 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 								shouldSync,
 							})
 						},
-						disabled: !mailboxToRow.shouldSync,
+						disabled: !mailboxToRow.shouldSync || !isHamFolder,
 					} satisfies DropDownSelectorNewAttrs<MailSet>),
-					m(IconButton, {
-						icon: Icons.Plus,
-						title: "imapCreateFolder_action",
-						click: async () => {
-							let newFolderElementId: Id | null = null
-							await showEditFolderDialog(
-								assertNotNull(mailLocator.getImapImportController().selectedMailBoxDetail),
-								null,
-								null,
-								mailboxToRow.imapMailbox.name,
-								async (folderId) => {
-									newFolderElementId = elementIdPart(folderId)
-									obj.folderSystem = await mailLocator.getImapImportController().getFolderSystemForSelectedMailbox()
-									if (newFolderElementId !== null) {
-										data.imapMailboxesToTutaMailSets?.set(mailboxToRow.imapMailbox.path, {
-											mailSetElementId: newFolderElementId,
-											shouldSync: true,
-										})
-									}
+					isHamFolder
+						? m(IconButton, {
+								icon: Icons.Plus,
+								title: "imapCreateFolder_action",
+								click: async () => {
+									let newFolderElementId: Id | null = null
+									await showEditFolderDialog(
+										assertNotNull(mailLocator.getImapImportController().selectedMailBoxDetail),
+										null,
+										null,
+										mailboxToRow.imapMailbox.name,
+										async (folderId) => {
+											newFolderElementId = elementIdPart(folderId)
+											obj.folderSystem = await mailLocator.getImapImportController().getFolderSystemForSelectedMailbox()
+											if (newFolderElementId !== null) {
+												data.imapMailboxesToTutaMailSets?.set(mailboxToRow.imapMailbox.path, {
+													mailSetElementId: newFolderElementId,
+													shouldSync: true,
+												})
+											}
+										},
+									)
 								},
-							)
-						},
-						disabled: !mailboxToRow.shouldSync,
-					}),
+								disabled: !mailboxToRow.shouldSync,
+							})
+						: m(IconButton, {
+								icon: Icons.InfoFilled,
+								title: "imapCannotMapSpamFolder_label",
+								click: this.updateHoverMessage("imapCannotMapSpamFolder_msg"),
+							}),
 					mailboxToRow.shouldSync
 						? m(IconButton, {
 								icon: Icons.X,
