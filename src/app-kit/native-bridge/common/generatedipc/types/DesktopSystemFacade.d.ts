@@ -17,4 +17,6 @@ export interface DesktopSystemFacade {
 	 * request permission to stream video from the camera to the browser window
 	 */
 	requestVideoPermission(): Promise<boolean>
+
+	pathToFileUrl(path: string): Promise<string>
 }

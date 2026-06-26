@@ -19,6 +19,10 @@ export class DesktopSystemFacadeReceiveDispatcher {
 			case "requestVideoPermission": {
 				return this.facade.requestVideoPermission()
 			}
+			case "pathToFileUrl": {
+				const path: string = arg[0]
+				return this.facade.pathToFileUrl(path)
+			}
 		}
 	}
 }

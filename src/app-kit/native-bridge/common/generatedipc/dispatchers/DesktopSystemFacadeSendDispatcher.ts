@@ -19,4 +19,7 @@ export class DesktopSystemFacadeSendDispatcher implements DesktopSystemFacade {
 	async requestVideoPermission(...args: Parameters<DesktopSystemFacade["requestVideoPermission"]>) {
 		return this.transport.invokeNative("ipc", ["DesktopSystemFacade", "requestVideoPermission", ...args])
 	}
+	async pathToFileUrl(...args: Parameters<DesktopSystemFacade["pathToFileUrl"]>) {
+		return this.transport.invokeNative("ipc", ["DesktopSystemFacade", "pathToFileUrl", ...args])
+	}
 }

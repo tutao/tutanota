@@ -14,7 +14,7 @@ import path from "node:path"
 import { ApplicationWindow } from "../ApplicationWindow.js"
 import { assertNotNull, DateProvider, first, newPromise, promiseFilter, throttle, uint8ArrayToBase64 } from "@tutao/utils"
 import { looksExecutable, nonClobberingFilename } from "../PathUtils.js"
-import { fileURLToPath, pathToFileURL } from "node:url"
+import { fileURLToPath as nodeFileURLToPath, pathToFileURL } from "node:url"
 import FsModule, { WriteStream } from "node:fs"
 import { Buffer } from "node:buffer"
 import { ReadableStream } from "node:stream/web"
@@ -393,7 +393,7 @@ export class DesktopFileFacade implements FileFacade {
 
 	async readDirectory(directoryUrl: string): Promise<DirectoryContents> {
 		const dirPath = fileURLToPath(directoryUrl)
-		const children = await this.fs.promises.readdir(directoryUrl, { withFileTypes: true })
+		const children = await this.fs.promises.readdir(dirPath, { withFileTypes: true })
 		const files = children.filter((f) => f.isFile()).map((f) => pathToFileURL(this.path.join(dirPath, f.name)).toString())
 		const folders = children.filter((f) => f.isDirectory()).map((f) => pathToFileURL(this.path.join(dirPath, f.name)).toString())
 		const name = this.path.basename(dirPath)
@@ -545,4 +545,12 @@ function wrapReadableAsCountable(upstream: NodeJS.ReadableStream, onProgress: (b
 	})
 	upstream.pipe(progressStream)
 	return progressStream
+}
+
+function fileURLToPath(url: string | URL): string {
+	try {
+		return nodeFileURLToPath(url)
+	} catch (e) {
+		throw new ProgrammingError(`Invalid file URL: ${url}`)
+	}
 }

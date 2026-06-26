@@ -2,6 +2,7 @@ import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { WindowManager } from "./DesktopWindowManager.js"
 import { ApplicationWindow } from "./ApplicationWindow.js"
 import { Socketeer } from "./Socketeer.js"
+import { pathToFileURL } from "node:url"
 
 export class DesktopDesktopSystemFacade implements DesktopSystemFacade {
 	constructor(
@@ -25,5 +26,9 @@ export class DesktopDesktopSystemFacade implements DesktopSystemFacade {
 	async requestVideoPermission(): Promise<boolean> {
 		const { systemPreferences } = await import("electron")
 		return systemPreferences.askForMediaAccess("camera")
+	}
+
+	async pathToFileUrl(path: string): Promise<string> {
+		return pathToFileURL(path).toString()
 	}
 }

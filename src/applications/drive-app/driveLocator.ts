@@ -244,7 +244,7 @@ class DriveLocator implements CommonLocator {
 			this.logins,
 			this.userManagementFacade,
 			driveUploadStackModel,
-			isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp) : null,
+			isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp, this.desktopSystemFacade) : null,
 			redraw,
 		)
 	})

@@ -58,7 +58,12 @@ export class RemoteBridge {
 				facade: facadeHandler,
 				ipc: async ({ args }) => {
 					const [facade, method, ...methodArgs] = args
-					return await dispatcher.dispatch(facade, method, methodArgs)
+					try {
+						return await dispatcher.dispatch(facade, method, methodArgs)
+					} catch (e) {
+						console.warn(`Error in ${facade}.${method}`, e)
+						throw e
+					}
 				},
 			},
 			"node-main",

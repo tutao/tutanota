@@ -22,6 +22,14 @@
 			"doc": "request permission to stream video from the camera to the browser window",
 			"arg": [],
 			"ret": "boolean"
+		},
+		"pathToFileUrl": {
+			"arg": [
+				{
+					"path": "string"
+				}
+			],
+			"ret": "string"
 		}
 	}
 }
