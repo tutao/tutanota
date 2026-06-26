@@ -1429,10 +1429,9 @@ async function createMailEditorDialog(
 			windowCloseUnsubscribe()
 		},
 	}
-	const templatePopupModel =
-		locator.logins.isInternalUserLoggedIn() && client.isDesktopDevice()
-			? new TemplatePopupModel(locator.eventController, locator.logins, locator.entityClient)
-			: null
+	const templatePopupModel = locator.logins.isInternalUserLoggedIn()
+		? new TemplatePopupModel(locator.eventController, locator.logins, locator.entityClient)
+		: null
 
 	const createKnowledgebaseButtonAttrs = async (editor: Editor) => {
 		if (locator.logins.isInternalUserLoggedIn()) {
