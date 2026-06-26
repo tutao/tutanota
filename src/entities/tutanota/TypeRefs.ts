@@ -2936,6 +2936,7 @@ export type ImapAccountSyncState = {
 	postponedUntil: NumberString;
 	provider: NumberString;
 	status: NumberString;
+	importedMailCount: null | NumberString;
 
 	imapFolderSyncStateList: Id;
 	imapAccount: ImapAccount;

@@ -4584,6 +4584,8 @@ pub struct ImapAccountSyncState {
 	pub provider: i64,
 	#[serde(rename = "1923")]
 	pub status: i64,
+	#[serde(rename = "1968")]
+	pub importedMailCount: Option<i64>,
 	#[serde(rename = "1924")]
 	pub imapFolderSyncStateList: GeneratedId,
 	#[serde(rename = "1925")]

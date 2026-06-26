@@ -10739,6 +10739,14 @@ const typeModels = {
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
+			},
+			"1968": {
+				"final": true,
+				"name": "importedMailCount",
+				"id": 1968,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {
