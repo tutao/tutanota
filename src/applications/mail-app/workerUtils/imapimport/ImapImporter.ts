@@ -67,7 +67,7 @@ export type ImportResult = {
 
 export class ImapImporter implements ImapSyncFacade {
 	// key is the accountSyncState._id
-	activeImapImportSessions: Map<string, ImapImportSession> = new Map()
+	imapImportSessions: Map<string, ImapImportSession> = new Map()
 	deduplicatedImportedAttachmentHashToFileIdByMailGroup: Map<Id, Map<string, Promise<IdTuple | undefined>>> = new Map()
 	fileElementIdToAttachmentHashMap: Map<Id, string> = new Map()
 
@@ -85,7 +85,7 @@ export class ImapImporter implements ImapSyncFacade {
 				for (const accountSyncState of imapAccountSyncStates) {
 					const imapFolderSyncStates = await this.imapFacade.getAllImapFolderSyncStates(accountSyncState.imapFolderSyncStateList)
 					const session = newImapImportSession(accountSyncState, imapFolderSyncStates)
-					this.activeImapImportSessions.set(this.getImapImportSessionsMapKey(accountSyncState._id), session)
+					this.imapImportSessions.set(this.getImapImportSessionsMapKey(accountSyncState._id), session)
 				}
 			}
 		}
@@ -93,8 +93,8 @@ export class ImapImporter implements ImapSyncFacade {
 
 	async initializeNewImport(initializeParams: InitializeImapImportParams): Promise<ImapImportSession> {
 		const { imapAccountSyncState, initialFolderSyncStates } = await this.imapFacade.initializeImapImport(initializeParams)
-		const newSession = newImapImportSession(imapAccountSyncState, initialFolderSyncStates ?? [])
-		this.activeImapImportSessions.set(this.getImapImportSessionsMapKey(imapAccountSyncState._id), newSession)
+		const newSession = newImapImportSession(imapAccountSyncState, initialFolderSyncStates)
+		this.imapImportSessions.set(this.getImapImportSessionsMapKey(imapAccountSyncState._id), newSession)
 
 		return newSession
 	}
@@ -188,7 +188,7 @@ export class ImapImporter implements ImapSyncFacade {
 	async deleteImport(imapAccountSyncStateId: IdTuple): Promise<void> {
 		await this.imapFacade.deleteImapImport(imapAccountSyncStateId)
 		await this.imapSyncSystemFacade.stopSync(imapAccountSyncStateId)
-		this.activeImapImportSessions.delete(this.getImapImportSessionsMapKey(imapAccountSyncStateId))
+		this.imapImportSessions.delete(this.getImapImportSessionsMapKey(imapAccountSyncStateId))
 	}
 
 	async getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ImapGetMailboxResult> {
@@ -325,7 +325,7 @@ export class ImapImporter implements ImapSyncFacade {
 				break
 			case ImapSyncEventType.DELETE: {
 				const folderSyncStateForMailboxPath = getFolderSyncStateForMailboxPath(imapMailbox.path, session.imapFolderSyncStates)
-				if (folderSyncStateForMailboxPath) {
+				if (folderSyncStateForMailboxPath && folderSyncStateForMailboxPath.status !== ImapFolderSyncStatus.NO_SYNC) {
 					await this.imapFacade.deleteImapFolderSyncState(folderSyncStateForMailboxPath._id)
 				}
 				break
@@ -445,16 +445,16 @@ export class ImapImporter implements ImapSyncFacade {
 					} else {
 						const folderSyncStates = await this.imapFacade.getAllImapFolderSyncStates(accountSyncState.imapFolderSyncStateList)
 						const session = newImapImportSession(accountSyncState, folderSyncStates)
-						this.activeImapImportSessions.set(idKey, session)
+						this.imapImportSessions.set(idKey, session)
 					}
 				} else if (update.operation === OperationType.DELETE) {
-					this.activeImapImportSessions.delete(idKey)
+					this.imapImportSessions.delete(idKey)
 				}
 			} else if (isUpdateForTypeRef(ImapFolderSyncStateTypeRef, update)) {
 				const folderSyncStateId = collapseId(update.instanceListId, update.instanceId) as IdTuple
 				const folderSyncState = await this.imapFacade.getImapFolderSyncStateById(folderSyncStateId)
 				const idKey = this.getImapImportSessionsMapKey(folderSyncState.imapAccountSyncState)
-				const session = this.activeImapImportSessions.get(idKey)
+				const session = this.imapImportSessions.get(idKey)
 
 				if (session) {
 					if (update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) {
@@ -475,7 +475,7 @@ export class ImapImporter implements ImapSyncFacade {
 						}
 					}
 
-					this.activeImapImportSessions.set(idKey, session)
+					this.imapImportSessions.set(idKey, session)
 				}
 			} else if (isUpdateForTypeRef(DeduplicatedImportedAttachmentTypeRef, update)) {
 				if (update.operation === OperationType.CREATE) {
@@ -509,16 +509,16 @@ export class ImapImporter implements ImapSyncFacade {
 		return id.join("/")
 	}
 	private getActiveImapImportSessionOrNull(accountSyncId: IdTuple): ImapImportSession | null {
-		const session = this.activeImapImportSessions.get(this.getImapImportSessionsMapKey(accountSyncId))
+		const session = this.imapImportSessions.get(this.getImapImportSessionsMapKey(accountSyncId))
 		return session ?? null
 	}
 
 	async getActiveImapImportSessions() {
-		return Array.from(this.activeImapImportSessions.values())
+		return Array.from(this.imapImportSessions.values())
 	}
 
 	async getActiveImapImportUiSessions(): Promise<{ activeSessions: ImapImportUiSession[]; canceledSessions: ImapImportUiSession[] }> {
-		const imapImportUiSessions: ImapImportUiSession[] = Array.from(this.activeImapImportSessions.values()).map((session) => {
+		const imapImportUiSessions: ImapImportUiSession[] = Array.from(this.imapImportSessions.values()).map((session) => {
 			return {
 				imapAccountSyncStateId: session.imapAccountSyncState._id,
 				mailGroupId: assertNotNull(session.imapAccountSyncState._ownerGroup),

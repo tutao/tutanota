@@ -153,7 +153,10 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			}
 		})
 
-		console.log("startNextMailboxSync, #remaining mailboxes -> ", remainingMailboxes.length)
+		console.log(
+			"startNextMailboxSync, #remaining mailboxes -> ",
+			remainingMailboxes.map((mailbox) => mailbox.mailboxState.path),
+		)
 
 		if (isEmpty(remainingMailboxes)) {
 			await this.onAllMailboxesFinish()
@@ -242,7 +245,9 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		let syncSessionMailbox = knownMailboxes.find((value) => value.mailboxState.path === imapMailbox.path)
 		if (syncSessionMailbox === undefined) {
 			await this.imapSyncEventListener.onMailbox(imapMailbox, ImapSyncEventType.CREATE)
-			syncSessionMailbox = new ImapSyncSessionMailbox({ path: imapMailbox.path, importedUidToMailIdsMap: new Map(), noSync: false })
+			const parentMailbox = knownMailboxes.find((mailbox) => mailbox.mailboxState.path === imapMailbox.parentFolder?.path)
+			const noSync = parentMailbox?.importance === SyncSessionMailboxImportance.NO_SYNC
+			syncSessionMailbox = new ImapSyncSessionMailbox({ path: imapMailbox.path, importedUidToMailIdsMap: new Map(), noSync })
 		}
 
 		if (imapMailbox.specialUse) {
@@ -264,6 +269,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 	startMailboxSync(syncSessionMailbox: ImapSyncSessionMailbox): void {
 		if (this.state === SyncSessionState.RUNNING) {
+			// fixme go over these logs and remove any with unencrypted information before merge
 			console.log("startMailboxSync -> " + syncSessionMailbox.mailboxState.path)
 
 			if (!this.imapSyncContext) {

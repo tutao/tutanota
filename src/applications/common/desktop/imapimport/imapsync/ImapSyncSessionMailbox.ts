@@ -30,7 +30,9 @@ export class ImapSyncSessionMailbox {
 
 	set specialUse(value: ImapMailboxSpecialUse | null) {
 		this._specialUse = value
-
+		if (this.importance === SyncSessionMailboxImportance.NO_SYNC) {
+			return
+		}
 		switch (this._specialUse) {
 			case ImapMailboxSpecialUse.INBOX:
 				this.importance = SyncSessionMailboxImportance.HIGH

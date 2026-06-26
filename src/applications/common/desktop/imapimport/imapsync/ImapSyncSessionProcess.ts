@@ -1,4 +1,4 @@
-import { imapMailboxFromSyncSessionMailbox, ImapSyncSessionMailbox } from "./ImapSyncSessionMailbox.js"
+import { imapMailboxFromSyncSessionMailbox, ImapSyncSessionMailbox, SyncSessionMailboxImportance } from "./ImapSyncSessionMailbox.js"
 import type { ImapSyncEventListener } from "./ImapSyncEventListener.js"
 import { ImapCredentials, ImapMailId } from "../../../api/common/utils/imapImportUtils/ImapSyncContext.js"
 import { ImapMail } from "../../../api/common/utils/imapImportUtils/ImapMail.js"
@@ -85,6 +85,11 @@ export class ImapSyncSessionProcess {
 
 	private async runSyncSessionProcess(imapClient: ImapFlow, imapSyncEventListener: ImapSyncEventListener) {
 		let isMailboxFinished = false
+		if (this.syncSessionProcessMailbox.importance === SyncSessionMailboxImportance.NO_SYNC) {
+			isMailboxFinished = true
+			await this.logout(imapClient, isMailboxFinished)
+			return
+		}
 
 		try {
 			const imapQresyncImapMails: ImapMail[] = []

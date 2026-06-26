@@ -45,7 +45,7 @@ export class ImapFacade {
 
 	async initializeImapImport(
 		initializeParams: InitializeImapImportParams,
-	): Promise<{ imapAccountSyncState: ImapAccountSyncState; initialFolderSyncStates?: ImapFolderSyncState[] }> {
+	): Promise<{ imapAccountSyncState: ImapAccountSyncState; initialFolderSyncStates: ImapFolderSyncState[] }> {
 		const mailGroupId = initializeParams.mailGroupId
 
 		if (initializeParams.rootImportMailFolderName === "" && !initializeParams.matchImapMailboxesToTutaMailSets) {
@@ -114,7 +114,10 @@ export class ImapFacade {
 		const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId)
 		const imapFolderSyncStates = await this.getAllImapFolderSyncStates(imapAccountSyncState.imapFolderSyncStateList)
 		for (const imapFolderSyncState of imapFolderSyncStates) {
-			if (imapFolderSyncState.status !== status && imapFolderSyncState.status !== ImapFolderSyncStatus.NO_SYNC) {
+			if (imapFolderSyncState.status === ImapFolderSyncStatus.NO_SYNC) {
+				continue
+			}
+			if (imapFolderSyncState.status !== status) {
 				imapFolderSyncState.status = status
 				try {
 					await this.entityClient.update(imapFolderSyncState)
