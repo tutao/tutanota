@@ -13,7 +13,6 @@ import {
 import { InvalidModelError, ProgrammingError } from "../../../src/platform-kit/app-env"
 import { removeOriginals } from "../TestUtils"
 import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
-import { stringToBase64 } from "../../../src/platform-kit/utils"
 import { random } from "../../../src/platform-kit/crypto"
 
 o.spec("ModelMapperTest", function () {
@@ -49,10 +48,9 @@ o.spec("ModelMapperTest", function () {
 			testFinalBoolean: false,
 		}
 		decryptedParsedInstance = DecryptedParsedInstance.incomingFromServer(testTypeModel as ServerTypeModel)
-			// CryptoMapper will always put encrypted field in base64 format
-			.addAttribute(1, ParsedValue.fromString(stringToBase64("some encrypted string")))
-			.addAttribute(7, ParsedValue.fromString(stringToBase64("1")))
-			.addAttribute(15, ParsedValue.fromString(stringToBase64("1")))
+			.addAttribute(1, ParsedValue.fromString("some encrypted string"))
+			.addAttribute(7, ParsedValue.fromString("1"))
+			.addAttribute(15, ParsedValue.fromString("1"))
 			.addAttribute(16, ParsedValue.fromByteArray(random.generateRandomData(10)))
 			.addAttribute(2, ParsedValue.fromNull())
 			.addAttribute(14, ParsedValue.fromNull())

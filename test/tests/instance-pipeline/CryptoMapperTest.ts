@@ -21,7 +21,6 @@ import {
 	base64ToUint8Array,
 	KeyVersion,
 	neverNull,
-	stringToBase64,
 	stringToUtf8Uint8Array,
 	utf8Uint8ArrayToString,
 } from "../../../src/platform-kit/utils"
@@ -41,7 +40,6 @@ import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../../src/pla
 import { aesDecrypt, aesEncrypt } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
 import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { base64Decode } from "../TestUtils"
-import { EntityUtils } from "../../../src/platform-kit/instance-pipeline/EntityUtils"
 
 o.spec("CryptoMapperTest", () => {
 	const symmetricCipherFacade: SymmetricCipherFacade = SYMMETRIC_CIPHER_FACADE
@@ -127,7 +125,7 @@ o.spec("CryptoMapperTest", () => {
 				null,
 				"",
 			)
-			o.check(decryptedValue.asString()).equals(stringToBase64(value))
+			o.check(decryptedValue.asString()).equals(value)
 		})
 
 		o.test("decrypt number value", async () => {
@@ -141,7 +139,7 @@ o.spec("CryptoMapperTest", () => {
 				null,
 				"",
 			)
-			o.check(decryptedValue.asString()).equals(stringToBase64(value))
+			o.check(decryptedValue.asString()).equals(value)
 		})
 
 		o.test("decrypt boolean value", async () => {
@@ -152,27 +150,27 @@ o.spec("CryptoMapperTest", () => {
 			let value = "0"
 			let encryptedValue = aesEncrypt(sk, stringToUtf8Uint8Array(value))
 			let decryptedValue = await cryptoMapper.decryptValue(valueType, ParsedValue.fromByteArray(encryptedValue), instanceDecryptor, null, "")
-			o.check(decryptedValue.asString()).equals(stringToBase64(value))
+			o.check(decryptedValue.asBoolean()).equals(false)
 
 			value = "1"
 			encryptedValue = aesEncrypt(sk, stringToUtf8Uint8Array(value))
 			decryptedValue = await cryptoMapper.decryptValue(valueType, ParsedValue.fromByteArray(encryptedValue), instanceDecryptor, null, "")
-			o.check(decryptedValue.asString()).equals(stringToBase64(value))
+			o.check(decryptedValue.asBoolean()).equals(true)
 
 			value = "32498"
 			encryptedValue = aesEncrypt(sk, stringToUtf8Uint8Array(value))
 			decryptedValue = await cryptoMapper.decryptValue(valueType, ParsedValue.fromByteArray(encryptedValue), instanceDecryptor, null, "")
-			o.check(decryptedValue.asString()).equals(stringToBase64(value))
+			o.check(decryptedValue.asBoolean()).equals(true)
 		})
 
 		o.test("decrypt date value", async () => {
 			const valueType = createEncryptedValueType(ValueTypeEnum.Date, Cardinality.One)
 			const sk = aes256RandomKey()
-			const value = new Date().getTime().toString()
+			const value = new Date()
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
-			const encryptedValue: EncryptedParsedValue = ParsedValue.fromByteArray(aesEncrypt(sk, stringToUtf8Uint8Array(value)))
+			const encryptedValue: EncryptedParsedValue = ParsedValue.fromByteArray(aesEncrypt(sk, stringToUtf8Uint8Array(value.getTime().toString())))
 			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, null, "")
-			o.check(decryptedValue.asString()).deepEquals(stringToBase64(value))
+			o.check(decryptedValue.asDate()).deepEquals(value)
 		})
 
 		o.test("decrypt bytes value", async () => {
@@ -192,7 +190,7 @@ o.spec("CryptoMapperTest", () => {
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
 			const encryptedValue: EncryptedParsedValue = ParsedValue.fromByteArray(aesEncrypt(sk, value))
 			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, null, "")
-			o.check(EntityUtils.decompressString(decryptedValue.asByteArray())).equals("test")
+			o.check(decryptedValue.asString()).equals("test")
 		})
 
 		o.test("decrypt compressedString w resize", async () => {
@@ -202,7 +200,7 @@ o.spec("CryptoMapperTest", () => {
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
 			const encryptedValue: EncryptedParsedValue = ParsedValue.fromByteArray(aesEncrypt(sk, value))
 			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, null, "")
-			o.check(EntityUtils.decompressString(decryptedValue.asByteArray())).equals(
+			o.check(decryptedValue.asString()).equals(
 				"text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text text ",
 			)
 		})
@@ -260,7 +258,7 @@ o.spec("CryptoMapperTest", () => {
 			const encryptedValue = assertNotNull(cryptoMapper.encryptValue(ParsedValue.fromString(value), subKeyProvider, ""))
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
 			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, null, "")
-			o.check(base64Decode(decryptedValue.asString())).equals(value)
+			o.check(decryptedValue.asString()).equals(value)
 		})
 		o.test("encrypt boolean value", async () => {
 			const valueType = createEncryptedValueType(ValueTypeEnum.Boolean, Cardinality.One)
@@ -271,12 +269,12 @@ o.spec("CryptoMapperTest", () => {
 			let encryptedValue = assertNotNull(cryptoMapper.encryptValue(ParsedValue.fromBoolean(value), subKeyProvider, ""))
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
 			let decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, null, "")
-			o.check(base64Decode(decryptedValue.asString())).equals("0")
+			o.check(decryptedValue.asBoolean()).equals(false)
 
 			value = true
 			encryptedValue = assertNotNull(cryptoMapper.encryptValue(ParsedValue.fromBoolean(value), subKeyProvider, ""))
 			decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, null, "")
-			o.check(base64Decode(decryptedValue.asString())).equals("1")
+			o.check(decryptedValue.asBoolean()).equals(true)
 		})
 
 		o.test("encrypt date value", async () => {
@@ -288,7 +286,7 @@ o.spec("CryptoMapperTest", () => {
 			const encryptedValue = assertNotNull(cryptoMapper.encryptValue(ParsedValue.fromString(value.getTime().toString()), subKeyProvider, ""))
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
 			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, null, "")
-			o.check(base64Decode(decryptedValue.asString())).deepEquals(value.getTime().toString())
+			o.check(decryptedValue.asDate()).deepEquals(value)
 		})
 
 		o.test("encrypt bytes value", async () => {
@@ -371,7 +369,7 @@ o.spec("CryptoMapperTest", () => {
 		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => aes256RandomKey()
 		const decryptedInstance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider, "")
 
-		o.check(decryptedInstance.getAttributeById(1).asString()).equals(stringToBase64("encrypted string"))
+		o.check(decryptedInstance.getAttributeById(1).asString()).equals("encrypted string")
 		o.check(decryptedInstance.getAttributeById(5).asDate().toISOString()).equals("2025-01-01T13:00:00.000Z")
 
 		o.check(decryptedInstance.getAttributeById(3).asNestedObjList()[0].getAttributeById(2).asString()).equals("123")
