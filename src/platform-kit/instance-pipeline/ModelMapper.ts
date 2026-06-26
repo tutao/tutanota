@@ -315,8 +315,12 @@ export class OutgoingClientEntity {
 
 		switch (associationModel.cardinality) {
 			case Cardinality.One: {
-				if (value == null || Array.isArray(value)) {
-					throw new InvalidModelError("Association with cardinality one should have exactly one item")
+				if (value == null) {
+					throw new InvalidModelError("Association with cardinality one cannot be null")
+				} else if (Array.isArray(value) && getAssociationReprType(associationModel.type) === AssociationReprType.IdTuple && value.length === 2) {
+					return [value as T]
+				} else if (Array.isArray(value)) {
+					throw new InvalidModelError("Association with cardinality One cannot be an array")
 				}
 				return [value as T]
 			}

@@ -343,6 +343,17 @@ export function removeOriginals<T extends Entity>(instance: T | null): T | null 
 	return instance
 }
 
+export function remove_typeFromEntity<T extends Entity>(instance: T | null): T | null {
+	if (isNotNull(instance) && typeof instance === "object") {
+		// @ts-ignore
+		delete instance["_type"]
+		for (const i of Object.values(instance).filter(isNotNull)) {
+			removeOriginals(i)
+		}
+	}
+	return instance
+}
+
 export function removeAggregateIds(instance: Entity, aggregate: boolean = false): Entity {
 	if (aggregate && instance["_id"] !== undefined) {
 		delete instance["_id"]

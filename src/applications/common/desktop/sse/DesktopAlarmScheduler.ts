@@ -2,7 +2,7 @@ import type { DesktopNotifier } from "../notifications/DesktopNotifier"
 import type { WindowManager } from "../DesktopWindowManager"
 import type { DesktopAlarmStorage } from "./DesktopAlarmStorage"
 import { log } from "../DesktopLog"
-import type { AlarmScheduler } from "../../calendar/date/AlarmScheduler.js"
+import type { AlarmScheduler, EventInfo } from "../../calendar/date/AlarmScheduler.js"
 
 import { formatNotificationForDisplay } from "../../../../ui/utils/Formatter"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
@@ -65,7 +65,7 @@ export class DesktopAlarmScheduler {
 	}
 
 	private scheduleAlarms(decAn: AlarmNotification): void {
-		const eventInfo = {
+		const eventInfo: EventInfo = {
 			startTime: decAn.eventStart,
 			endTime: decAn.eventEnd,
 			summary: decAn.summary,
