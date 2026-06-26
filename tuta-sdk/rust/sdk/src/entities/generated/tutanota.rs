@@ -4749,3 +4749,39 @@ impl Entity for ImapDeleteIn {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImapOauthConfigGetIn {
+	#[serde(rename = "1970")]
+	pub _format: i64,
+	#[serde(rename = "1971")]
+	pub provider: String,
+}
+
+impl Entity for ImapOauthConfigGetIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1969),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImapOauthConfigGetOut {
+	#[serde(rename = "1973")]
+	pub _format: i64,
+	#[serde(rename = "1974")]
+	pub clientSecret: String,
+}
+
+impl Entity for ImapOauthConfigGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1972),
+		}
+	}
+}

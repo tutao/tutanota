@@ -27,6 +27,8 @@ use crate::entities::generated::tutanota::GroupInvitationDeleteData;
 use crate::entities::generated::tutanota::ImapFolderPostIn;
 use crate::entities::generated::tutanota::ImapFolderPostOut;
 use crate::entities::generated::tutanota::ImapFolderDeleteIn;
+use crate::entities::generated::tutanota::ImapOauthConfigGetIn;
+use crate::entities::generated::tutanota::ImapOauthConfigGetOut;
 use crate::entities::generated::tutanota::ImapPostIn;
 use crate::entities::generated::tutanota::ImapPostOut;
 use crate::entities::generated::tutanota::ImapDeleteIn;
@@ -143,6 +145,12 @@ pub struct ImapFolderService;
 crate::service_impl!(declare, ImapFolderService, "tutanota/imapfolderservice", 111);
 crate::service_impl!(POST, ImapFolderService, ImapFolderPostIn, ImapFolderPostOut);
 crate::service_impl!(DELETE, ImapFolderService, ImapFolderDeleteIn, ());
+
+
+pub struct ImapOauthConfigService;
+
+crate::service_impl!(declare, ImapOauthConfigService, "tutanota/imapoauthconfigservice", 111);
+crate::service_impl!(GET, ImapOauthConfigService, ImapOauthConfigGetIn, ImapOauthConfigGetOut);
 
 
 pub struct ImapService;

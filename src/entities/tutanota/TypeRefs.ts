@@ -3042,3 +3042,29 @@ export type ImapDeleteIn = {
 
 	imapAccountSyncState: IdTuple;
 }
+export const ImapOauthConfigGetInTypeRef: TypeRef<ImapOauthConfigGetIn> = new TypeRef("tutanota", 1969)
+
+export function createImapOauthConfigGetIn(values: StrippedEntity<ImapOauthConfigGetIn>): ImapOauthConfigGetIn {
+    return Object.assign(create(typeModels[ImapOauthConfigGetInTypeRef.typeId], ImapOauthConfigGetInTypeRef), values)
+}
+
+export type ImapOauthConfigGetIn = {
+	_type: TypeRef<ImapOauthConfigGetIn>;
+	_original?: ImapOauthConfigGetIn
+
+	_format: NumberString;
+	provider: string;
+}
+export const ImapOauthConfigGetOutTypeRef: TypeRef<ImapOauthConfigGetOut> = new TypeRef("tutanota", 1972)
+
+export function createImapOauthConfigGetOut(values: StrippedEntity<ImapOauthConfigGetOut>): ImapOauthConfigGetOut {
+    return Object.assign(create(typeModels[ImapOauthConfigGetOutTypeRef.typeId], ImapOauthConfigGetOutTypeRef), values)
+}
+
+export type ImapOauthConfigGetOut = {
+	_type: TypeRef<ImapOauthConfigGetOut>;
+	_original?: ImapOauthConfigGetOut
+
+	_format: NumberString;
+	clientSecret: string;
+}

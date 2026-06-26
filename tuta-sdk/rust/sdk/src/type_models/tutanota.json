@@ -11085,5 +11085,67 @@
 				"dependency": null
 			}
 		}
+	},
+	"1969": {
+		"name": "ImapOauthConfigGetIn",
+		"app": "tutanota",
+		"version": 111,
+		"since": 111,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1969,
+		"rootId": "CHR1dGFub3RhAAex",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1970": {
+				"final": false,
+				"name": "_format",
+				"id": 1970,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1971": {
+				"final": true,
+				"name": "provider",
+				"id": 1971,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"1972": {
+		"name": "ImapOauthConfigGetOut",
+		"app": "tutanota",
+		"version": 111,
+		"since": 111,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1972,
+		"rootId": "CHR1dGFub3RhAAe0",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1973": {
+				"final": false,
+				"name": "_format",
+				"id": 1973,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1974": {
+				"final": false,
+				"name": "clientSecret",
+				"id": 1974,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
 	}
 }
