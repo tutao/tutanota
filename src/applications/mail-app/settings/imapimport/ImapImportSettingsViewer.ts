@@ -208,8 +208,8 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderSyncProgressForCanceledSyncSessions(): Children {
-		const cancenImapImportUiSessions = this.imapImportController().cancenImapImportUiSessions
-		return cancenImapImportUiSessions.map((session) => {
+		const canceledImapImportUiSessions = this.imapImportController().canceledImapImportUiSessions
+		return canceledImapImportUiSessions.map((session) => {
 			const mailboxDetail = assertNotNull(this.imapImportController().getDestinationMailboxDetailForSession(session))
 			const destinationTutaMailbox = getMailboxName(mailLocator.logins, mailboxDetail)
 			const syncSourceAndDestinationMessage = lang.getTranslation("imapSyncInProgressAccounts_msg", {
@@ -258,7 +258,6 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(ImapAccountSyncStateTypeRef, update) || isUpdateForTypeRef(ImapFolderSyncStateTypeRef, update)) {
-				console.log("entityEventsReceived for ImapImportSettingsViewer")
 				await this.imapImportController().updateActiveUiSessions()
 			}
 		}

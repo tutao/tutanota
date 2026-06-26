@@ -137,7 +137,6 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 										vnode.attrs.data.imapAccountPort = Number.parseInt(imapConfig.port)
 									}
 								}
-
 								emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
 							}
 						},

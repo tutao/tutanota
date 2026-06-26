@@ -39,7 +39,7 @@ export class ImapMailImportController {
 	public mailboxDetails: MailboxDetail[] = []
 	public selectedMailBoxDetail: MailboxDetail | null = null
 	public activeImapImportUiSessions: ImapImportUiSession[] = []
-	public cancenImapImportUiSessions: ImapImportUiSession[] = []
+	public canceledImapImportUiSessions: ImapImportUiSession[] = []
 
 	constructor(
 		private readonly imapImporter: ImapImporter,
@@ -144,13 +144,13 @@ export class ImapMailImportController {
 	}
 
 	hasCanceledSync() {
-		return this.cancenImapImportUiSessions.length > 0
+		return this.canceledImapImportUiSessions.length > 0
 	}
 
 	async updateActiveUiSessions() {
 		const { activeSessions, canceledSessions } = await this.imapImporter.getActiveImapImportUiSessions()
 		this.activeImapImportUiSessions = activeSessions
-		this.cancenImapImportUiSessions = canceledSessions
+		this.canceledImapImportUiSessions = canceledSessions
 		m.redraw()
 	}
 
