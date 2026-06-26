@@ -3,7 +3,6 @@
 
 import { Option, program } from "commander"
 import fs from "node:fs"
-import path from "node:path"
 import { $ } from "zx"
 import { calculateClientVersions } from "./versionUtils.js"
 
@@ -86,6 +85,7 @@ async function bumpIosVersion(newVersionString) {
 	const plists = [
 		"app-ios/calendar/Info.plist",
 		"app-ios/tutanota/Info.plist",
+		"app-ios/drive/Info.plist",
 		"app-ios/TutanotaNotificationExtension/Info.plist",
 		"app-ios/tutanotaTests/Info.plist",
 	]
