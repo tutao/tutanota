@@ -2372,6 +2372,7 @@ export default {
 		"disableImapSyncForFolder_action": "Disable IMAP sync for this folder",
 		"enableImapSyncForFolder_action": "Enable IMAP sync for this folder",
 		"imapNoSyncFolderName_msg": "Not Synced",
-		"imapImportCanceledSyncs_label": "Canceled Syncs"
+		"imapImportCanceledSyncs_label": "Canceled Syncs",
+		"imapImportHistory_label": "IMAP Import History",
 	}
 }

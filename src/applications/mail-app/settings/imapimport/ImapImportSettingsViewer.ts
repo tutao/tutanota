@@ -21,14 +21,25 @@ import { IconButton } from "../../../../ui/base/IconButton"
 import { MenuTitle } from "../../../../ui/titles/MenuTitle"
 import { BannerType, InfoBanner } from "../../../../ui/base/InfoBanner"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
+import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
+import { ExpanderButton, ExpanderPanel } from "../../../../ui/base/Expander"
 
 assertMainOrNode()
 
 class ImapImportSettingsViewer implements UpdatableSettingsViewer {
+	private mailboxIdToImportHistoryExpanded: Map<Id, boolean> = new Map<Id, boolean>()
+
 	constructor(private readonly imapImportController: lazy<ImapMailImportController>) {}
 
 	async oninit() {
 		await this.imapImportController().init()
+		const mailboxDetails = this.imapImportController().mailboxDetails
+		if (mailboxDetails) {
+			const isSingleMailbox = mailboxDetails.length === 1
+			for (const detail of mailboxDetails) {
+				this.mailboxIdToImportHistoryExpanded.set(detail.mailbox._id, isSingleMailbox)
+			}
+		}
 	}
 
 	view(): Children {
@@ -48,9 +59,8 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 				this.renderTitleSection(),
 				hasActiveSync ? this.renderActiveSyncsTitle() : this.renderInfo(),
 				this.renderSyncProgressForActiveSyncSessions(),
-				hasCanceledSync ? this.renderCanceledSyncsTitle() : null,
-				hasCanceledSync ? this.renderSyncProgressForCanceledSyncSessions() : null,
 				this.renderButton(),
+				hasCanceledSync ? this.renderImapImportHistories() : null,
 			],
 		)
 	}
@@ -76,10 +86,6 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 
 	private renderActiveSyncsTitle(): Children {
 		return m(MenuTitle, { content: lang.getTranslationText("imapImportActiveSyncs_label") })
-	}
-
-	private renderCanceledSyncsTitle(): Children {
-		return m(MenuTitle, { content: lang.getTranslationText("imapImportCanceledSyncs_label") })
 	}
 
 	private renderSyncProgressForActiveSyncSessions(): Children {
@@ -207,17 +213,47 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	private renderSyncProgressForCanceledSyncSessions(): Children {
-		const canceledImapImportUiSessions = this.imapImportController().canceledImapImportUiSessions
-		return canceledImapImportUiSessions.map((session) => {
-			const mailboxDetail = assertNotNull(this.imapImportController().getDestinationMailboxDetailForSession(session))
-			const destinationTutaMailbox = getMailboxName(mailLocator.logins, mailboxDetail)
-			const syncSourceAndDestinationMessage = lang.getTranslation("imapSyncInProgressAccounts_msg", {
-				"{sourceAddress}": session.sourceImapAddress,
-				"{tutaMailbox}": destinationTutaMailbox,
-			})
+	private renderImapImportHistories() {
+		const mailboxDetails = this.imapImportController().mailboxDetails
+		if (mailboxDetails) {
+			return m(
+				"mt-16.mb-16",
+				mailboxDetails.map((details) => this.renderImapImportHistory(details, mailboxDetails.length <= 1)),
+			)
+		}
+		return null
+	}
 
-			const statusIcon = Icons.X
+	private renderImapImportHistory(mailboxDetail: MailboxDetail, isSingleMailbox: boolean) {
+		const mailboxLabel = isSingleMailbox ? "" : " · " + getMailboxName(mailLocator.logins, mailboxDetail)
+		const mailboxId = mailboxDetail.mailbox._id
+		return [
+			m(".flex-space-between.items-center.mt-4.mb-4", [
+				m(".h5", lang.getTranslation("imapImportHistory_label").text + mailboxLabel),
+				m(ExpanderButton, {
+					label: "show_action",
+					expanded: this.mailboxIdToImportHistoryExpanded.get(mailboxId) || false,
+					onExpandedChange: () => {
+						this.mailboxIdToImportHistoryExpanded.set(mailboxId, !this.mailboxIdToImportHistoryExpanded.get(mailboxId))
+					},
+				}),
+			]),
+			m(
+				ExpanderPanel,
+				{
+					expanded: this.mailboxIdToImportHistoryExpanded.get(mailboxId) || false,
+				},
+				this.renderPastSyncSessionsForMailbox(mailboxDetail),
+			),
+		]
+	}
+
+	private renderPastSyncSessionsForMailbox(mailboxDetail: MailboxDetail): Children {
+		const canceledImapImportUiSessionsForMailGroup = this.imapImportController().canceledImapImportUiSessions.filter(
+			(session) => session.mailGroupId === mailboxDetail.mailGroup._id,
+		)
+		return canceledImapImportUiSessionsForMailGroup.map((session) => {
+			const statusIcon = Icons.Checkmark
 			const statusIconParameters: Partial<IconAttrs> = {
 				icon: statusIcon,
 				class: "",
@@ -228,13 +264,16 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 
 			return m(
 				Card,
+				{
+					classes: ["mb-16"],
+				},
 				m(".flex.items-center.justify-between", [
 					m(".flex.items-center.gap-16", [
 						m(Icon, {
 							...statusIconParameters,
 							size: IconSize.PX32,
 						} as IconAttrs),
-						m(".pl-4.pr-32.items-base.flex-column", [m(".text-preline.text-ellipsis", syncSourceAndDestinationMessage.text)]),
+						m(".pl-4.pr-32.items-base.flex-column", [m(".text-preline.text-ellipsis", session.sourceImapAddress)]),
 					]),
 				]),
 			)
