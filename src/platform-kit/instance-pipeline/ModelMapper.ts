@@ -115,10 +115,9 @@ export class ModelMapper {
 		for (const clientModelValue of Object.values(clientTypeModel.values)) {
 			const valueId = clientModelValue.id
 			const serverModelValue = serverTypeModel.values[valueId] ?? null
-			const value = parsedInstance.getAttributeById(valueId)
 
+			const value = parsedInstance.getAttributeByIdOrNull(valueId) ?? ParsedValue.fromNull()
 			const valueToKeep = this.assertCorrectValueCardinality(typeRef, serverModelValue, clientModelValue, value)
-
 			clientInstance.setValue(clientModelValue.id, valueToKeep)
 		}
 
@@ -155,20 +154,14 @@ export class ModelMapper {
 	): DecryptedParsedValue {
 		let valueToKeep = value
 
-		if (!serverModelValue) {
-			if (clientModelValue.cardinality === Cardinality.One) {
-				valueToKeep = EntityUtils.valueToDefault(clientModelValue.type)
-			} else if (clientModelValue.cardinality === Cardinality.ZeroOrOne) {
-				valueToKeep = ParsedValue.fromNull()
-			}
-		} else {
-			if (serverModelValue.cardinality === Cardinality.One && valueToKeep.isNull()) {
-				valueToKeep = EntityUtils.valueToDefault(serverModelValue.type)
-			}
+		const isDeletedOnServerAndClientHaveOneCardinality = serverModelValue == null && clientModelValue.cardinality === Cardinality.One
+		const valueIsNullButServerHaveCardinalityOne = isNotNull(serverModelValue) && valueToKeep.isNull() && serverModelValue.cardinality === Cardinality.One
+
+		if (isDeletedOnServerAndClientHaveOneCardinality || valueIsNullButServerHaveCardinalityOne) {
+			valueToKeep = EntityUtils.valueToDefault(clientModelValue.type)
 		}
 
 		const cardinality = clientModelValue.cardinality
-
 		if (cardinality === Cardinality.One && valueToKeep.isNull()) {
 			throw new InvalidModelError(`Expected non-null value for attribute with One cardinality. ${typeRef.toString()}/${clientModelValue.name}`)
 		} else if (cardinality === Cardinality.Any) {

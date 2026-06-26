@@ -98,11 +98,21 @@ o.spec("ModelMapperTest", function () {
 			o(typeof mappedInstance._errors).equals("undefined")
 		})
 
-		o("wrong cardinality on value field throws", async function () {
+		o("if server cardinality is One, puts default value", async function () {
 			decryptedParsedInstance.addAttribute(1, ParsedValue.fromNull())
 
-			const err = await assertThrows(ProgrammingError, async () => modelMapper.mapToInstance(decryptedParsedInstance))
-			o(err.message).equals("Null value is not allowed for field: testValue with cardinality One")
+			const result = (await modelMapper.mapToInstance(decryptedParsedInstance)) as any
+			o(result.testValue).deepEquals("")
+		})
+
+		o("wrong cardinality on value field throws", async function () {
+			const serverModel = structuredClone(decryptedParsedInstance.typeModel)
+			serverModel.values["1"].cardinality = Cardinality.ZeroOrOne
+			;(decryptedParsedInstance as any).typeModel = serverModel
+
+			decryptedParsedInstance.addAttribute(1, ParsedValue.fromNull())
+			const err = await assertThrows(InvalidModelError, async () => modelMapper.mapToInstance(decryptedParsedInstance))
+			o(err.message).equals(`Expected non-null value for attribute with One cardinality. ${TestTypeRef.toString()}/testValue`)
 		})
 
 		o("wrong association cardinality throws xyz", async function () {
