@@ -19,6 +19,9 @@ export class ImapSyncSessionMailbox {
 
 	constructor(mailboxState: ImapMailboxState) {
 		this.mailboxState = mailboxState
+		if (mailboxState.noSync) {
+			this.importance = SyncSessionMailboxImportance.NO_SYNC
+		}
 	}
 
 	get specialUse(): ImapMailboxSpecialUse | null {

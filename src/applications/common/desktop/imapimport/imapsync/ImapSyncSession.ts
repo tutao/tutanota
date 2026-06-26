@@ -242,7 +242,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		let syncSessionMailbox = knownMailboxes.find((value) => value.mailboxState.path === imapMailbox.path)
 		if (syncSessionMailbox === undefined) {
 			await this.imapSyncEventListener.onMailbox(imapMailbox, ImapSyncEventType.CREATE)
-			syncSessionMailbox = new ImapSyncSessionMailbox({ path: imapMailbox.path, importedUidToMailIdsMap: new Map() })
+			syncSessionMailbox = new ImapSyncSessionMailbox({ path: imapMailbox.path, importedUidToMailIdsMap: new Map(), noSync: false })
 		}
 
 		if (imapMailbox.specialUse) {

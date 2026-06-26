@@ -83,9 +83,6 @@ export class ImapImporter implements ImapSyncFacade {
 			if (mailbox.imapAccountSyncStates) {
 				const imapAccountSyncStates = await this.imapFacade.getAllImapAccountSyncStates(mailbox.imapAccountSyncStates)
 				for (const accountSyncState of imapAccountSyncStates) {
-					if (accountSyncState.status === ImapAccountSyncStatus.CANCELED) {
-						continue
-					}
 					const imapFolderSyncStates = await this.imapFacade.getAllImapFolderSyncStates(accountSyncState.imapFolderSyncStateList)
 					const session = newImapImportSession(accountSyncState, imapFolderSyncStates)
 					this.activeImapImportSessions.set(this.getImapImportSessionsMapKey(accountSyncState._id), session)
@@ -203,9 +200,6 @@ export class ImapImporter implements ImapSyncFacade {
 		const imapFolderSyncStates = await this.imapFacade.getAllImapFolderSyncStates(session.imapAccountSyncState.imapFolderSyncStateList)
 
 		for (const folderSyncState of imapFolderSyncStates) {
-			if (folderSyncState.status === ImapFolderSyncStatus.NO_SYNC) {
-				continue
-			}
 			const importedImapUidToImapMailId = new Map<number, ImapMailId>()
 			const importedImapMails = await this.imapFacade.getImportedMails(folderSyncState.importedMails)
 			for (const importedImapMail of importedImapMails) {
@@ -220,7 +214,11 @@ export class ImapImporter implements ImapSyncFacade {
 				importedImapUidToImapMailId.set(imapUid, importedImapMailId)
 			}
 
-			const imapMailboxState: ImapMailboxState = { path: folderSyncState.path, importedUidToMailIdsMap: importedImapUidToImapMailId }
+			const imapMailboxState: ImapMailboxState = {
+				path: folderSyncState.path,
+				importedUidToMailIdsMap: importedImapUidToImapMailId,
+				noSync: folderSyncState.status === ImapFolderSyncStatus.NO_SYNC,
+			}
 			imapMailboxState.uidNext = folderSyncState.uidnext ? parseInt(folderSyncState.uidnext) : undefined
 			imapMailboxState.uidValidity = folderSyncState.uidvalidity ? BigInt(folderSyncState.uidvalidity) : undefined
 			imapMailboxState.highestModSeq = folderSyncState.highestmodseq ? BigInt(folderSyncState.highestmodseq) : null
