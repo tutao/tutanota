@@ -311,14 +311,27 @@ export class OutgoingClientEntity {
 	}
 
 	private getAssociation<T>(associationModel: ModelAssociation): Array<T> {
-		const value = this.entityRecord[associationModel.name]
+		const value = this.entityRecord[associationModel.name] ?? null
+
 		switch (associationModel.cardinality) {
-			case Cardinality.One:
+			case Cardinality.One: {
+				if (value == null || Array.isArray(value)) {
+					throw new InvalidModelError("Association with cardinality one should have exactly one item")
+				}
 				return [value as T]
-			case Cardinality.ZeroOrOne:
+			}
+			case Cardinality.ZeroOrOne: {
+				if (Array.isArray(value)) {
+					throw new InvalidModelError("Association with cardinality ZeroOrOne should have at most one item")
+				}
 				return isNotNull(value) ? [value as T] : []
-			case Cardinality.Any:
-				return value as Array<T>
+			}
+			case Cardinality.Any: {
+				if (!Array.isArray(value) && value != null) {
+					throw new InvalidModelError("Association with cardinality ZeroOrOne should have at most one item")
+				}
+				return (value as Array<T>) ?? []
+			}
 		}
 	}
 }

@@ -13,6 +13,7 @@ import {
 	ServerTypeModel,
 	TypeModel,
 	TypeRef,
+	ValueTypeEnum,
 } from "@tutao/meta"
 import {
 	assert,
@@ -26,6 +27,7 @@ import {
 	Nullable,
 	stringToBase64,
 	stringToUtf8Uint8Array,
+	utf8Uint8ArrayToString,
 	Versioned,
 } from "@tutao/utils"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
@@ -336,7 +338,19 @@ export class CryptoMapper {
 		const inputKey = await this.getInputKey(valueDecryptor.requiredGroupKeyVersion, ownerKeyProvider)
 		const decryptedBytes = valueDecryptor.getValue(inputKey)
 
-		return ParsedValue.fromByteArray(decryptedBytes)
+		switch (valueType.type) {
+			case ValueTypeEnum.String:
+			case ValueTypeEnum.Number:
+			case ValueTypeEnum.Date:
+			case ValueTypeEnum.Boolean:
+			case ValueTypeEnum.GeneratedId:
+			case ValueTypeEnum.CustomId:
+				return ParsedValue.fromString(utf8Uint8ArrayToString(decryptedBytes))
+			case ValueTypeEnum.Bytes:
+				return ParsedValue.fromByteArray(decryptedBytes)
+			case ValueTypeEnum.CompressedString:
+				return ParsedValue.fromString(EntityUtils.decompressString(decryptedBytes))
+		}
 	}
 
 	encryptValue(value: DecryptedParsedValue, subKeyProvider: SubKeyProvider, fieldPath: string): EncryptedParsedValue {

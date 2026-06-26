@@ -1,6 +1,5 @@
 import { Cardinality, ModelValue, TypeModel, ValueTypeEnum } from "@tutao/meta"
 import { assert, DeepEquals, Nullable, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
-import { assertNotNaN } from "../utils/Utils"
 import { compress, uncompress } from "./Compression"
 import { ProgrammingError } from "@tutao/app-env"
 import { ParsedValue } from "./ParsedValue"
@@ -45,36 +44,26 @@ export class EntityUtils {
 			return
 		}
 
-		if (modelValue.type === ValueTypeEnum.Bytes) {
-			entityRecord[key] = parsedValue.asByteArray()
-			return
-		} else if (modelValue.type === ValueTypeEnum.CompressedString) {
-			entityRecord[key] = EntityUtils.decompressString(parsedValue.asByteArray()) satisfies string
-			return
+		switch (modelValue.type) {
+			case ValueTypeEnum.Bytes:
+				entityRecord[key] = parsedValue.asByteArray()
+				break
+			case ValueTypeEnum.String:
+			case ValueTypeEnum.Number:
+			case ValueTypeEnum.CompressedString:
+				entityRecord[key] = parsedValue.asString()
+				break
+			case ValueTypeEnum.Date:
+				entityRecord[key] = parsedValue.asDate()
+				break
+			case ValueTypeEnum.Boolean:
+				entityRecord[key] = parsedValue.asBoolean()
+				break
+			case ValueTypeEnum.GeneratedId:
+			case ValueTypeEnum.CustomId:
+				entityRecord[key] = parsedValue.asId()
+				break
 		}
-
-		const value = modelValue.encrypted ? utf8Uint8ArrayToString(parsedValue.asByteArray()) : parsedValue.asString()
-		if (modelValue.type === ValueTypeEnum.String) {
-			entityRecord[key] = value satisfies string
-			return
-		} else if (modelValue.type === ValueTypeEnum.Number) {
-			entityRecord[key] = value satisfies NumberString
-			return
-		} else if (modelValue.type === ValueTypeEnum.Date) {
-			entityRecord[key] = new Date(assertNotNaN(parseInt(value)))
-			return
-		} else if (modelValue.type === ValueTypeEnum.Boolean) {
-			entityRecord[key] = value !== "0"
-			return
-		} else if (modelValue.type === ValueTypeEnum.GeneratedId) {
-			entityRecord[key] = value satisfies Id
-			return
-		} else if (modelValue.type === ValueTypeEnum.CustomId) {
-			entityRecord[key] = value satisfies Id
-			return
-		}
-
-		throw new ProgrammingError("unknown valueType")
 	}
 
 	// FIXME: there was a comment here? Put it somewhere

@@ -1,7 +1,7 @@
 import { ClientTypeModel, ServerTypeModel } from "../../../src/platform-kit/meta"
 import o from "@tutao/otest"
 import { EncryptedParsedInstance, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
-import { DummyTypeModelResolver, testAggregateModel, testTypeModel } from "./InstancePipelineTestUtils"
+import { changeInstanceDirection, DummyTypeModelResolver, testAggregateModel, testTypeModel } from "./InstancePipelineTestUtils"
 import { IncomingServerJson, TypeMapper } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
 import { InstanceDirection, ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 
@@ -85,14 +85,6 @@ o.spec("TypeMapperTest", function () {
 			.addAttributeById(17, ParsedValue.fromIdTupleList([]))
 	})
 
-	function changeDirectionOfParsedInstance(instance: EncryptedParsedInstance, direction: InstanceDirection) {
-		const aggregateedInstance = instance.getAttributeById(3).asNestedObjList()[0]
-		// @ts-ignore
-		instance.direction = direction
-		// @ts-ignore
-		aggregateedInstance.direction = direction
-	}
-
 	o("read incoming instances", async function () {
 		const resultingParsedInstance = await typeMapper.parseServerJson(
 			IncomingServerJson.expectSingleInstance(jsonInstance, testTypeModel as ServerTypeModel),
@@ -101,7 +93,7 @@ o.spec("TypeMapperTest", function () {
 			IncomingServerJson.expectSingleInstance(jsonInstanceNetDebugged, testTypeModel as ServerTypeModel),
 		)
 
-		changeDirectionOfParsedInstance(encryptedParsedInstance, InstanceDirection.IncomingFromServer)
+		changeInstanceDirection(encryptedParsedInstance, InstanceDirection.IncomingFromServer)
 		o(resultingParsedInstance).deepEquals(encryptedParsedInstance)
 		o(resultingParsedInstance).deepEquals(resultingParsedInstanceNetDebug)
 	})

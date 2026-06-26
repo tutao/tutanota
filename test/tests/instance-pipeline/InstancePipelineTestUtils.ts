@@ -319,9 +319,16 @@ export function createEncryptedValueType(
 	} satisfies ModelValue
 }
 
-export function changeInstanceDirection(encryptedNotificationInstance: EncryptedParsedInstance, direction: InstanceDirection) {
+// in production use-case, everything that we store in offlineStorage should come from server
+// and we guarantee this with assertions during runtime,
+// i.e flow should be: EncryptedParsedInstance --(cryptoMapper)-> DecryptedParsedInstance
+// but in test, we create it from: Entity --(modelMapper)-> DecryptedParsedInstance
+// which is the opposite direction.
+// since, we do not need that gurantee for test, we can just override the direction for now so
+
+export function changeInstanceDirection(encryptedNotificationInstance: EncryptedParsedInstance | DecryptedParsedInstance, direction: InstanceDirection) {
 	// @ts-ignore
-	encryptedNotificationInstance.direction = direction
+	encryptedNotificationInstance.direction! = direction
 	// @ts-ignore
 	const innerMap = encryptedNotificationInstance.parsedInstance
 

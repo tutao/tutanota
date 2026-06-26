@@ -71,6 +71,7 @@ import { AccountType } from "../../../../src/entities/sys/Utils"
 import { MailSetKind } from "../../../../src/entities/tutanota/Utils"
 import { OfflineMapper } from "../../../../src/platform-kit/instance-pipeline/OfflineMapper"
 import { InstanceDirection } from "../../../../src/platform-kit/instance-pipeline/ParsedValue"
+import { changeInstanceDirection } from "../../instance-pipeline/InstancePipelineTestUtils"
 
 function incrementMailSetEntryId(mailSetEntryId, mailId, ms: number) {
 	const { receiveDate } = deconstructMailSetEntryId(mailSetEntryId)
@@ -146,28 +147,7 @@ o.spec("OfflineStorageDb", function () {
 
 	async function toStorableInstance(entity: Entity): Promise<DecryptedParsedInstance> {
 		const decryptedInstance = await modelMapper.mapToDecryptedInstance(entity)
-		// in production use-case, everything that we store in offlineStorage should come from server
-		// and we guarantee this with assertions during runtime,
-		// i.e flow should be: EncryptedParsedInstance --(cryptoMapper)-> DecryptedParsedInstance
-		// but in test, we create it from: Entity --(modelMapper)-> DecryptedParsedInstance
-		// which is the opposite direction.
-		// since, we do not need that gurantee for test, we can just override the direction for now so,
-		// @ts-ignore
-		decryptedInstance.direction = InstanceDirection.IncomingFromServer
-		// @ts-ignore
-		const rawParsedInstance = decryptedInstance.parsedInstance
-
-		for (const parsedValue of rawParsedInstance.values()) {
-			if (parsedValue.isArray()) {
-				for (const v of parsedValue.asArray()) {
-					if (v.isNestedObj()) {
-						// @ts-ignore
-						v.asNestedObj().direction = InstanceDirection.IncomingFromServer
-					}
-				}
-			}
-		}
-
+		changeInstanceDirection(decryptedInstance, InstanceDirection.IncomingFromServer)
 		return decryptedInstance
 	}
 
@@ -397,7 +377,7 @@ o.spec("OfflineStorageDb", function () {
 					verify(userCacheHandler.onBeforeCacheDeletion?.(userId))
 				})
 
-				o.test("calls the cache handler for list element types", async function () {
+				o.test("calls the cache handler for list element types xyz", async function () {
 					const id: IdTuple = ["listId", "id1"]
 					const entityToStore = createTestEntity(
 						MailTypeRef,
