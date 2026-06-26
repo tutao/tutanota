@@ -27,30 +27,36 @@ export class OAuthErrorHandler {
 
 		if (isOAuth) {
 			const oAuthConfig = getImapConfigForProvider(provider)?.oauthConfig
-			if (oAuthConfig && imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse?.refreshToken) {
-				// we need get a new token using refresh token
-				const oauthHandler = this.oauthHandlerFactory(oAuthConfig)
-				await oauthHandler.setupOauthLoginParams()
-				try {
-					const tokenEndpointResponse = await oauthHandler.refreshTokens(imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse.refreshToken)
-					const oAuthTokenEndpointResponse = tokenEndpointResponseToOAuthTokenEndpointResponse(tokenEndpointResponse)
-					// When refreshing a token, the refresh token itself is not part of the response, so we must *not*
-					// replace the entire response.
-					const previousToken = imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse.refreshToken
-					imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse = oAuthTokenEndpointResponse
-					if (imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse.refreshToken === null) {
-						imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse.refreshToken = previousToken
-					}
+			if (oAuthConfig) {
+				if (imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse?.refreshToken) {
+					// we need get a new token using refresh token
+					const oauthHandler = this.oauthHandlerFactory(oAuthConfig)
+					await oauthHandler.setupOauthLoginParams()
+					try {
+						const tokenEndpointResponse = await oauthHandler.refreshTokens(imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse.refreshToken)
+						const oAuthTokenEndpointResponse = tokenEndpointResponseToOAuthTokenEndpointResponse(tokenEndpointResponse)
+						// When refreshing a token, the refresh token itself is not part of the response, so we must *not*
+						// replace the entire response.
+						const previousToken = imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse.refreshToken
+						imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse = oAuthTokenEndpointResponse
+						if (imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse.refreshToken === null) {
+							imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse.refreshToken = previousToken
+						}
 
-					await this.entityClient.update(imapAccountSyncState)
-					return true
-				} catch (e) {
-					// we need to get a new refreshToken
+						await this.entityClient.update(imapAccountSyncState)
+						return true
+					} catch (e) {
+						// we need to get a new refreshToken
+						await this.requestCredentialUpdate(imapAccountSyncState)
+						return false
+					}
+				} else {
+					// We somehow have lost the refreshToken
 					await this.requestCredentialUpdate(imapAccountSyncState)
 					return false
 				}
 			} else {
-				throw new ProgrammingError("imap sync entered an irrecoverable state")
+				throw new ProgrammingError("imap sync found no Oauth config")
 			}
 		} else {
 			// we need to get a new user password
