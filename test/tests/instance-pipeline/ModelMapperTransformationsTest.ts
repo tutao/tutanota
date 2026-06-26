@@ -93,7 +93,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(typeof mappedInstance._errors).equals("undefined")
 		})
 
-		o("add ZeroOrOne aggregation", async function () {
+		o("server adds ZeroOrOne aggregation", async function () {
 			const clientModel: Record<string, ClientTypeModel> = {
 				"42": {
 					app: "tutanota",
@@ -163,27 +163,33 @@ o.spec("ModelMapperTransformations", function () {
 			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
 				return clientModel[typeRef.typeId]
 			}
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				return serverModel[typeRef.typeId]
+			}
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, serverModelResolver))
+			const typeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttribute(
+			const serverDecryptedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttribute(
 				3,
 				ParsedValue.fromNestedItems([DecryptedParsedInstance.incomingFromServer(serverModel["43"]).addAttribute(2, ParsedValue.fromString("123"))]),
 			)
 
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-			const mappedInstance = (await modelMapper.mapToInstance(parsedInstance)) as any
+			const mappedInstance = await modelMapper.mapToInstance(serverDecryptedInstance)
 			removeOriginals(mappedInstance)
+
 			o(mappedInstance).deepEquals({
-				_type: TestTypeRef,
+				_type: typeRef,
 			} as any)
-			o(typeof mappedInstance._errors).equals("undefined")
+
+			o(typeof mappedInstance["_errors"]).equals("undefined")
 
 			// request is prepared with the client model and does not add ZeroOrOne aggregation
-			const newParsedInstance = await modelMapper.mapToInstance(mappedInstance)
-			o(newParsedInstance).deepEquals({} as any)
+			const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
+			const expectedDecryptedInstance = DecryptedParsedInstance.outgoingToServer(clientModel["42"])
+			o.check(newParsedInstance.deepEquals(expectedDecryptedInstance)).equals(true)
 		})
 
-		o("add Any aggregation", async function () {
+		o("server adds Any aggregation", async function () {
 			const serverModel: Record<string, ServerTypeModel> = {
 				"42": {
 					app: "tutanota",
@@ -253,24 +259,33 @@ o.spec("ModelMapperTransformations", function () {
 			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
 				return clientModel[typeRef.typeId]
 			}
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
+				return serverModel[typeRef.typeId]
+			}
+			const typeRef = new TypeRef<TestEntity>("tutanota", 42)
+			const aggregateTypeRef = new TypeRef<TestEntity>("tutanota", 43)
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttribute(
+			const clientTypeModel = await clientModelResolver(typeRef)
+			const serverTypeModel = await serverModelResolver(typeRef)
+			const serverAggregateModel = await serverModelResolver(aggregateTypeRef)
+
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, serverModelResolver))
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverTypeModel).addAttribute(
 				3,
-				ParsedValue.fromNestedItems([DecryptedParsedInstance.incomingFromServer(serverModel["43"]).addAttribute(2, ParsedValue.fromString("123"))]),
+				ParsedValue.fromNestedItems([DecryptedParsedInstance.incomingFromServer(serverAggregateModel).addAttribute(2, ParsedValue.fromString("123"))]),
 			)
 
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-			const mappedInstance = (await modelMapper.mapToInstance(parsedInstance)) as any
+			const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
-				_type: TestTypeRef,
+				_type: typeRef,
 			} as any)
-			o(typeof mappedInstance._errors).equals("undefined")
+			o(typeof mappedInstance["_errors"]).equals("undefined")
 
 			// request is prepared with the client model and does not add Any aggregation
-			const newParsedInstance = await modelMapper.mapToInstance(mappedInstance)
-			o(newParsedInstance).deepEquals({} as any)
+			const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
+			const expectedDecryptedInstance = DecryptedParsedInstance.outgoingToServer(clientModel["42"])
+			o.check(newParsedInstance.deepEquals(expectedDecryptedInstance)).equals(true)
 		})
 
 		o("add One list element association", async function () {
