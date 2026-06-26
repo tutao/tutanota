@@ -422,10 +422,10 @@ export class ImapImporter implements ImapSyncFacade {
 		const session = this.getActiveImapImportSessionOrNull(accountSyncStateId)
 		if (session) {
 			if (this.oAuthErrorHandler.isAuthError(imapError)) {
-				this.pauseImport(accountSyncStateId)
+				await this.pauseImport(accountSyncStateId)
 				const shouldRetry = await this.oAuthErrorHandler.handleAuthError(session.imapAccountSyncState)
 				if (shouldRetry) {
-					this.continueImport(accountSyncStateId)
+					await this.continueImport(accountSyncStateId)
 				}
 			}
 		}
@@ -517,7 +517,7 @@ export class ImapImporter implements ImapSyncFacade {
 		return Array.from(this.imapImportSessions.values())
 	}
 
-	async getActiveImapImportUiSessions(): Promise<{ activeSessions: ImapImportUiSession[]; canceledSessions: ImapImportUiSession[] }> {
+	async getImapImportUiSessions(): Promise<{ activeSessions: ImapImportUiSession[]; canceledSessions: ImapImportUiSession[] }> {
 		const imapImportUiSessions: ImapImportUiSession[] = Array.from(this.imapImportSessions.values()).map((session) => {
 			return {
 				imapAccountSyncStateId: session.imapAccountSyncState._id,

@@ -56,7 +56,6 @@ o.spec("OAuthHandler", () => {
 			redirect_uri: oauthConfigMock.redirectUri,
 			scope: oauthConfigMock.scope,
 			state: stateMock,
-			prompt: "consent",
 		})
 	})
 

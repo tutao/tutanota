@@ -69,6 +69,8 @@ o.spec("ImapMailImportController", () => {
 		when(mailboxModel.getMailboxDetails()).thenResolve([mailboxDetail1Mock, mailboxDetail2Mock])
 		const imapImportSession = newImapImportSession(accountSyncStateMock, [])
 		imapImportSession.imapFolderSyncStates = [{ ...folderSyncStateMock, status: ImapFolderSyncStatus.FINISHED }]
+		const activeSessions = [{ imapAccountSyncStateId: accountSyncStateMock._id } as ImapImportUiSession] as ImapImportUiSession[]
+		when(imapImporter.getImapImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
 		await controller.init()
 		o.check(controller.mailboxDetails).deepEquals([mailboxDetail1Mock, mailboxDetail2Mock])
 		o.check(controller.selectedMailBoxDetail).equals(mailboxDetail1Mock)
@@ -78,7 +80,8 @@ o.spec("ImapMailImportController", () => {
 		const params = {} as InitializeImapImportParams
 		const expectedSession = newImapImportSession(accountSyncStateMock, [])
 		when(imapImporter.initializeNewImport(params)).thenResolve(expectedSession)
-
+		const activeSessions = [{ imapAccountSyncStateId: expectedSession.imapAccountSyncState._id } as ImapImportUiSession] as ImapImportUiSession[]
+		when(imapImporter.getImapImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
 		const result = await controller.initializeImport(params)
 
 		o.check(result).equals(expectedSession)
@@ -149,11 +152,15 @@ o.spec("ImapMailImportController", () => {
 	})
 
 	o.test("pauseImport - delegates to imapImporter", async () => {
+		const activeSessions = [{ imapAccountSyncStateId: imapAccountSyncStateIdMock } as ImapImportUiSession] as ImapImportUiSession[]
+		when(imapImporter.getImapImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
 		await controller.pauseImport(imapAccountSyncStateIdMock)
 		verify(imapImporter.pauseImport(imapAccountSyncStateIdMock), { times: 1 })
 	})
 
 	o.test("deleteImport - delegates to imapImporter", async () => {
+		const activeSessions = [{ imapAccountSyncStateId: imapAccountSyncStateIdMock } as ImapImportUiSession] as ImapImportUiSession[]
+		when(imapImporter.getImapImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
 		await controller.deleteImport(imapAccountSyncStateIdMock)
 		verify(imapImporter.deleteImport(imapAccountSyncStateIdMock), { times: 1 })
 	})
@@ -165,6 +172,7 @@ o.spec("ImapMailImportController", () => {
 			{ imapAccountSyncStateId: session1Mock.imapAccountSyncState._id } as ImapImportUiSession,
 			{ imapAccountSyncStateId: session2Mock.imapAccountSyncState._id } as ImapImportUiSession,
 		]
+		when(imapImporter.getImapImportUiSessions()).thenResolve({ activeSessions: controller.activeImapImportUiSessions, canceledSessions: [] })
 
 		await controller.pauseImports()
 

@@ -7,8 +7,6 @@ import { OAuthHandler, OAuthHandlerFactory } from "./OAuthHandler"
 import { ImapAccountSyncStatus } from "../../../../../entities/tutanota/Utils"
 import { ProgrammingError } from "@tutao/app-env"
 
-export type OAuthErrorHandlerFactory = (config: OauthConfigParams) => OAuthErrorHandler
-
 export class OAuthErrorHandler {
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -66,10 +64,7 @@ export class OAuthErrorHandler {
 	}
 
 	isAuthError(e: ImapError) {
-		if (e.data === ImapErrorCause.AUTH_FAILED) {
-			return e.data === ImapErrorCause.AUTH_FAILED
-		}
-		return false
+		return e.data === ImapErrorCause.AUTH_FAILED
 	}
 
 	private async requestCredentialUpdate(imapAccountSyncState: ImapAccountSyncState) {

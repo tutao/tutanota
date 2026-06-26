@@ -149,7 +149,7 @@ export class ImapMailImportController {
 	}
 
 	async updateActiveUiSessions() {
-		const { activeSessions, canceledSessions } = await this.imapImporter.getActiveImapImportUiSessions()
+		const { activeSessions, canceledSessions } = await this.imapImporter.getImapImportUiSessions()
 		this.activeImapImportUiSessions = activeSessions
 		this.canceledImapImportUiSessions = canceledSessions
 		m.redraw()

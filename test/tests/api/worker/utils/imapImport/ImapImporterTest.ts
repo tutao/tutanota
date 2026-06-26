@@ -342,12 +342,15 @@ o.spec("ImapImporter", () => {
 		verify(imapFacadeMock.updateAllImapFolderSyncStates(accountSyncStateIdMock, ImapFolderSyncStatus.FINISHED), { times: 1 })
 	})
 
-	o.test("onError - sets session state to PAUSED", async () => {
+	o.test("onError - sets session state to PAUSED when the error is AUTH_FAILED", async () => {
 		accountSyncStateMock.status = ImapAccountSyncStatus.RUNNING
 		const session = newImapImportSession(accountSyncStateMock, [])
 		importer.imapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
+		when(imapFacadeMock.updateImapAccountSyncStateStatus(session.imapAccountSyncState, ImapAccountSyncStatus.PAUSED)).thenDo(() => {
+			session.imapAccountSyncState.status = ImapAccountSyncStatus.PAUSED
+		})
 
-		const imapError = new ImapError("Some error", ImapErrorCause.LIST_MAILBOX_FAILED)
+		const imapError = new ImapError("Some error", ImapErrorCause.AUTH_FAILED)
 		await importer.onError(accountSyncStateIdMock, imapError)
 
 		o.check(session.imapAccountSyncState.status).equals(ImapAccountSyncStatus.PAUSED)
@@ -467,7 +470,7 @@ o.spec("ImapImporter", () => {
 		const session = newImapImportSession(accountSyncStateMock, [])
 		importer.imapImportSessions.set("key", session)
 
-		const result = await importer.getActiveImapImportUiSessions()
+		const result = await importer.getImapImportUiSessions()
 
 		o.check(result).deepEquals({
 			activeSessions: [
