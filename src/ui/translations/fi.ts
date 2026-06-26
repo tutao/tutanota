@@ -1263,7 +1263,6 @@ export default {
 		"noEntryFound_label": "Tietueita ei löytynyt",
 		"noEventSelect_msg": "Tapahtumaa ei ole valittu",
 		"noExtraAddress_msg": "Ei lisäsähköpostiosoitteita",
-		"noImportableEvents_msg": "Tuontitoiminto ei tuonut mitään, koska mitään tapahtumia ei päätetty tuoda.",
 		"noInputWasMade_msg": "Syötekenttä on tyhjä!",
 		"noKeysForThisDomain_msg": "Et ole määritellyt tälle verkkotunnukselle yhtään turva-avainta. Lisää sellainen kirjautumisasetuksista.",
 		"noMail_msg": "Sähköpostia ei ole valittu.",

@@ -1263,7 +1263,7 @@ export default {
 		"noEntryFound_label": "Keine Einträge gefunden",
 		"noEventSelect_msg": "Kein Termin ausgewählt",
 		"noExtraAddress_msg": "Keine extra E-Mail-Adressen",
-		"noImportableEvents_msg": "Der Importvorgang lieferte keine Ergebnisse. Alle Ereignisse wurden abgelehnt.",
+		"noImportableEvents_msg": "Es wurden keine Termine importiert.",
 		"noInputWasMade_msg": "Eingabefeld ist leer!",
 		"noKeysForThisDomain_msg": "Sie haben keine Sicherheitsschlüssel für diese Domain konfiguriert. Bitte fügen Sie einen in den Einstellungen unter Anmeldung hinzu.",
 		"noMail_msg": "Keine E-Mail ausgewählt.",
@@ -2321,6 +2321,6 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
+		"zoomOut_action": "Herauszoomen"
 	}
 }

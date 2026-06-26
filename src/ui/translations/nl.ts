@@ -1261,7 +1261,6 @@ export default {
 		"noEntryFound_label": "Geen gegevens gevonden",
 		"noEventSelect_msg": "Geen gebeurtenis geselecteerd",
 		"noExtraAddress_msg": "Geen extra emailadres",
-		"noImportableEvents_msg": "De importbewerking had geen resultaat. Alle gebeurtenissen zijn afgewezen.",
 		"noInputWasMade_msg": "Het invoerveld is leeg!",
 		"noKeysForThisDomain_msg": "U heeft geen beveiligingssleutels geconfigureerd voor dit domein. Voeg er een toe in aanmeldinstellingen.",
 		"noMail_msg": "Geen e-mail geselecteerd.",

@@ -1262,7 +1262,6 @@ export default {
 		"noEntryFound_label": "エントリーが見つかりません",
 		"noEventSelect_msg": "イベントが選択されていません",
 		"noExtraAddress_msg": "追加のメールアドレスはありません",
-		"noImportableEvents_msg": "インポートは完了しましたが、結果はありませんでした。すべてのイベントが拒否されました。",
 		"noInputWasMade_msg": "入力欄が無記入です！",
 		"noKeysForThisDomain_msg": "このドメインにはセキュリティーキーが設定されていません。ログイン設定で追加してください。",
 		"noMail_msg": "メールが選択されていません",

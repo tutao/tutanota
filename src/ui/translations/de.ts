@@ -1263,7 +1263,7 @@ export default {
 		"noEntryFound_label": "Keine Einträge gefunden",
 		"noEventSelect_msg": "Kein Termin ausgewählt",
 		"noExtraAddress_msg": "Keine extra E-Mail-Adressen",
-		"noImportableEvents_msg": "Der Importvorgang lieferte keine Ergebnisse. Alle Ereignisse wurden abgelehnt.",
+		"noImportableEvents_msg": "Es wurden keine Termine importiert.",
 		"noInputWasMade_msg": "Eingabefeld ist leer!",
 		"noKeysForThisDomain_msg": "Du hast keine Sicherheitsschlüssel für diese Domain konfiguriert. Bitte füge einen in den Einstellungen unter Anmeldung hinzu.",
 		"noMail_msg": "Keine E-Mail ausgewählt.",
@@ -1688,7 +1688,7 @@ export default {
 		"referAFriendMoreInfo_label": "Mehr über unser Empfehlungsprogramm:",
 		"referAFriendOwnBenefit_label": "Tuta-Gutschrift in Höhe von 25% der ersten Zahlung deiner Freunde und gutes Karma für das Verbreiten der Botschaft",
 		"referAFriendOwnBenefit_title": "Du bekommst:",
-		"referAFriendSubTitle_label": "Hilf deinen Freunden dabie, sich mit einer privaten und sicheren Tuta-Mailbox von Big Tech zu befreien.",
+		"referAFriendSubTitle_label": "Hilf deinen Freunden dabei, sich mit einer privaten und sicheren Tuta-Mailbox von Big Tech zu befreien.",
 		"referAFriendTitle_label": "Teile Sicherheit und Privatsphäre mit deinen Freunden",
 		"referralCreditPosting_label": "Empfehlungsgutschrift",
 		"referralLink_label": "Empfehlungslink",
@@ -2321,6 +2321,6 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
+		"zoomOut_action": "Herauszoomen"
 	}
 }

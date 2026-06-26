@@ -1263,7 +1263,7 @@ export default {
 		"noEntryFound_label": "No entries found",
 		"noEventSelect_msg": "No event selected",
 		"noExtraAddress_msg": "No extra email addresses",
-		"noImportableEvents_msg": "Import operation had no results. All events were rejected.",
+		"noImportableEvents_msg": "No events imported.",
 		"noInputWasMade_msg": "Input field is empty!",
 		"noKeysForThisDomain_msg": "You do not have any security keys configured for this domain. Please add one in login settings.",
 		"noMail_msg": "No email selected.",
@@ -2321,6 +2321,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
+		"zoomOut_action": "Zoom Out"
 	}
 }

@@ -1262,7 +1262,6 @@ export default {
 		"noEntryFound_label": "Sem entradas encontradas",
 		"noEventSelect_msg": "Nenhum evento selecionado",
 		"noExtraAddress_msg": "Sem endereços de e-mail extras",
-		"noImportableEvents_msg": "Operação de importar não teve resultados. Todos os eventos foram rejeitados.",
 		"noInputWasMade_msg": "Campo vazio!",
 		"noKeysForThisDomain_msg": "Você não tem nenhuma chave de segurança configurada para este domínio. Adicione um nas configurações de login.",
 		"noMail_msg": "Nenhum e-mail selecionado. ",
