@@ -342,7 +342,7 @@ o.spec("DesktopFileFacade", function () {
 				when(executor.run(matchers.anything())).thenResolve({})
 				process.env!.ORIGINAL_XDG_CURRENT_DESKTOP = "original ;)"
 				process.env!.SOMETHING_ELSE = "something else!"
-				await ff.open("/some/folder/file")
+				await ff.open("file:///some/folder/file")
 
 				verify(
 					executor.run({
@@ -355,14 +355,14 @@ o.spec("DesktopFileFacade", function () {
 						},
 					}),
 				)
-				verify(tfs.assertInTmpDir("/some/folder/file"))
+				verify(tfs.assertInTmpDir("file:///some/folder/file"))
 			})
 			o.test("open on non ubuntu", async function () {
 				when(electron.shell.openPath("/some/folder/file")).thenReject(new Error("wrong function"))
 				when(executor.run(matchers.anything())).thenResolve({})
 				process.env!.ORIGINAL_XDG_CURRENT_DESKTOP = undefined
 				process.env!.SOMETHING_ELSE = "something else!"
-				await ff.open("/some/folder/file")
+				await ff.open("file:///some/folder/file")
 
 				verify(
 					executor.run({
@@ -382,7 +382,7 @@ o.spec("DesktopFileFacade", function () {
 					checkboxChecked: false,
 				}),
 			)
-			await ff.open("exec.exe")
+			await ff.open("file:///exec.exe")
 			verify(electron.shell.openPath(matchers.anything()), { times: 0 })
 		})
 	})

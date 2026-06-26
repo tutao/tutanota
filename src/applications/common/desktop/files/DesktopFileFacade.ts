@@ -200,18 +200,19 @@ export class DesktopFileFacade implements FileFacade {
 		return pathToFileURL(filePath).toString()
 	}
 
-	async open(location: string /* , mimeType: string omitted */): Promise<void> {
-		this.tfs.assertInTmpDir(location)
+	async open(fileUrl: string /* , mimeType: string omitted */): Promise<void> {
+		this.tfs.assertInTmpDir(fileUrl)
+		const filePath = fileURLToPath(fileUrl)
 		const openWithElectronShell = () =>
 			this.electron.shell
-				.openPath(location) // may resolve with "" or an error message
+				.openPath(filePath) // may resolve with "" or an error message
 				.catch((e) => {
 					const message = "failed to open path." + e
-					throw new FileOpenError("Could not open " + location + ", " + message)
+					throw new FileOpenError("Could not open " + fileUrl + ", " + message)
 				})
 
 		// only windows will happily execute a just downloaded program
-		if (this.process.platform === "win32" && looksExecutable(location)) {
+		if (this.process.platform === "win32" && looksExecutable(filePath)) {
 			const { response } = await this.electron.dialog.showMessageBox({
 				type: "warning",
 				buttons: [lang.get("yes_label"), lang.get("no_label")],
@@ -229,7 +230,7 @@ export class DesktopFileFacade implements FileFacade {
 			await this.commandExecutor
 				.run({
 					executable: "xdg-open",
-					args: [location],
+					args: [filePath],
 					env:
 						// electron replaces XDG_CURRENT_DESKTOP in some cases which breaks gio open which breaks xdg-open
 						this.process.env.ORIGINAL_XDG_CURRENT_DESKTOP == null
@@ -240,7 +241,7 @@ export class DesktopFileFacade implements FileFacade {
 								},
 				})
 				.catch((e) => {
-					throw new FileOpenError("Could not open " + location + ", " + e)
+					throw new FileOpenError("Could not open " + fileUrl + ", " + e)
 				})
 		} else {
 			await openWithElectronShell()
