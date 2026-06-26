@@ -183,17 +183,17 @@ class AndroidFileFacade(
 	}
 
 	@Throws(IOException::class)
-	override suspend fun writeToAppDir(content: DataWrapper, name: String) {
-		val fileHandle = context.openFileOutput(name, Context.MODE_PRIVATE);
-		fileHandle.write(content.data)
+	override suspend fun writeToAppDir(content: DataWrapper, name: String) = withContext(Dispatchers.IO) {
+		context.openFileOutput(name, Context.MODE_PRIVATE).use { outputStream ->
+			outputStream.write(content.data)
+		}
 	}
 
 	@Throws(IOException::class)
-	override suspend fun readFromAppDir(name: String): DataWrapper {
-		val fileHandle = context.openFileInput(name)
-		val data = DataWrapper(fileHandle.readBytes())
-		fileHandle.close()
-		return data
+	override suspend fun readFromAppDir(name: String): DataWrapper = withContext(Dispatchers.IO) {
+		context.openFileInput(name).use { outputStream ->
+			outputStream.readBytes().wrap()
+		}
 	}
 
 	@Throws(IOException::class)
