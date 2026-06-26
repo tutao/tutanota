@@ -16,7 +16,7 @@ export type OauthConfigParams = {
 	redirectUri: string
 	scope: string
 	server: string
-	additionalAuthParams: Record<string, string>
+	providerSpecificParams: Record<string, string>
 	//Some bad providers force us to have client secret...but we should not.
 	clientSecret?: string
 }
@@ -37,7 +37,7 @@ const wellKnownConfigs = {
 			clientId: "519651146463-m678auj2tuup41i6ihibcdrq5qblhq42.apps.googleusercontent.com", // webapp id
 			redirectUri: "http://localhost/",
 			scope: "https://mail.google.com/",
-			additionalAuthParams: {
+			providerSpecificParams: {
 				access_type: "offline", // required for refresh token
 				prompt: "consent", // forces refresh token on first login
 			},
@@ -55,7 +55,7 @@ const wellKnownConfigs = {
 			clientId: "864faa0d-ae70-42bb-8b15-12b9eb385f23",
 			redirectUri: "https://login.microsoftonline.com/common/oauth2/nativeclient",
 			scope: "offline_access https://outlook.office.com/IMAP.AccessAsUser.All",
-			additionalAuthParams: {
+			providerSpecificParams: {
 				prompt: "consent",
 				response_mode: "query",
 				tenant: "common",
@@ -74,7 +74,7 @@ const wellKnownConfigs = {
 			clientId: "dj0yJmk9VEdSclNGcmhBWjdsJmQ9WVdrOWJIbFlWRXhqY0hjbWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PTRk",
 			redirectUri: "http://localhost/",
 			scope: "openid",
-			additionalAuthParams: {},
+			providerSpecificParams: {},
 		},
 	},
 	gmx: {

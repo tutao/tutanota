@@ -33,7 +33,15 @@ export class OAuthErrorHandler {
 				await oauthHandler.setupOauthLoginParams()
 				try {
 					const tokenEndpointResponse = await oauthHandler.refreshTokens(imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse.refreshToken)
-					imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse = tokenEndpointResponseToOAuthTokenEndpointResponse(tokenEndpointResponse)
+					const oAuthTokenEndpointResponse = tokenEndpointResponseToOAuthTokenEndpointResponse(tokenEndpointResponse)
+					// When refreshing a token, the refresh token itself is not part of the response, so we must *not*
+					// replace the entire response.
+					const previousToken = imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse.refreshToken
+					imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse = oAuthTokenEndpointResponse
+					if (imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse.refreshToken === null) {
+						imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse.refreshToken = previousToken
+					}
+
 					await this.entityClient.update(imapAccountSyncState)
 					return true
 				} catch (e) {

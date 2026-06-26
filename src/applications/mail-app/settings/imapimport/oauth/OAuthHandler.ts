@@ -43,7 +43,7 @@ export class OAuthHandler {
 			redirect_uri: this.OauthConfig.redirectUri,
 			scope: this.OauthConfig.scope,
 			state: this.state,
-			...this.OauthConfig.additionalAuthParams,
+			...this.OauthConfig.providerSpecificParams,
 			...extraParams,
 		}
 	}

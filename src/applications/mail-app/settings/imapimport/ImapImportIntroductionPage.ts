@@ -108,8 +108,6 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 								const oauthHandler = new OAuthHandler(config)
 								const extraParams = {
 									login_hint: vnode.attrs.data.imapAccountUsername,
-									access_type: "offline",
-									prompt: "consent",
 								}
 								await oauthHandler.setupOauthLoginParams(extraParams)
 								const responseUrl = await mailLocator
