@@ -166,10 +166,6 @@ export class ImapMailImportController {
 		return session.imapAccountSyncStatus === ImapAccountSyncStatus.PAUSED
 	}
 
-	shouldRenderCancelButton(session: ImapImportUiSession) {
-		return session.imapAccountSyncStatus !== ImapAccountSyncStatus.CANCELED
-	}
-
 	shouldRenderPauseIcon(session: ImapImportUiSession) {
 		return session.imapAccountSyncStatus === ImapAccountSyncStatus.PAUSED
 	}
@@ -184,10 +180,6 @@ export class ImapMailImportController {
 
 	shouldRenderErrorIcon(session: ImapImportUiSession) {
 		return session.imapAccountSyncStatus === ImapAccountSyncStatus.ERROR || session.imapAccountSyncStatus === ImapAccountSyncStatus.AUTH_ERROR
-	}
-
-	shouldRenderCanceledIcon(session: ImapImportUiSession) {
-		return session.imapAccountSyncStatus === ImapAccountSyncStatus.CANCELED
 	}
 
 	shouldDisableButtons() {
