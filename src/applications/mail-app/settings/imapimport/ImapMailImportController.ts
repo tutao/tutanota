@@ -32,6 +32,7 @@ export type ImapImportUiSession = {
 		completed: number
 		total: number
 	}
+	importedMailCount: number
 }
 
 export class ImapMailImportController {

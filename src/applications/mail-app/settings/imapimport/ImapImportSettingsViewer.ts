@@ -153,6 +153,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 			let syncMessage = lang.getTranslation("imapSyncInProgressInfo_msg", {
 				"{completed}": session.syncProgress?.completed.toString() ?? "-",
 				"{total}": session.syncProgress?.total.toString() ?? "-",
+				"{mailCount}": session.importedMailCount,
 			})
 			if (this.imapImportController().shouldRenderClockIcon(session)) {
 				syncMessage = lang.getTranslation("imapSyncPostponed_msg", {
@@ -204,7 +205,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 						} as IconAttrs),
 						m(".pl-4.pr-32.items-base.flex-column", [
 							m(".text-preline.text-ellipsis", syncSourceAndDestinationMessage.text),
-							m(".small", syncMessage.text),
+							m(".text-preline.small", syncMessage.text),
 						]),
 					]),
 					m(".flex-column.items-center", buttons),
@@ -261,7 +262,9 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 					fill: theme.on_surface,
 				},
 			}
-
+			const importedMailsMessage = lang.getTranslation("imapImportHistoryTotalImportedMails_msg", {
+				"{imported}": session.importedMailCount.toString(),
+			})
 			return m(
 				Card,
 				{
@@ -273,7 +276,10 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 							...statusIconParameters,
 							size: IconSize.PX32,
 						} as IconAttrs),
-						m(".pl-4.pr-32.items-base.flex-column", [m(".text-preline.text-ellipsis", session.sourceImapAddress)]),
+						m(".pl-4.pr-32.items-base.flex-column", [
+							m(".text-preline.text-ellipsis", session.sourceImapAddress),
+							m(".text-preline.small", importedMailsMessage.text),
+						]),
 					]),
 				]),
 			)

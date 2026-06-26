@@ -2350,7 +2350,7 @@ export default {
 		"imapSyncFolderMapping_title": "Folder Mapping",
 		"imapSyncImap_title": "IMAP",
 		"imapSyncInProgressAccounts_msg": "{sourceAddress} to\n{tutaMailbox}",
-		"imapSyncInProgressInfo_msg": "Synchronizing your emails: {completed} / {total} folders completed",
+		"imapSyncInProgressInfo_msg": "Synchronizing your emails: {completed} / {total} folders completed.\nImported {mailCount} mails.",
 		"imapSyncInfo_msg": "Explaining how easy imap is. ",
 		"imapSyncIntroductionInfo_msg": "Please enter the login credentials of the account you want to synchronize",
 		"imapSyncPostponed_msg": "Synchronizing limit reached for today, will continue {postponedUntil}.",
@@ -2374,5 +2374,6 @@ export default {
 		"imapNoSyncFolderName_msg": "Not Synced",
 		"imapImportCanceledSyncs_label": "Canceled Syncs",
 		"imapImportHistory_label": "IMAP Import History",
+		"imapImportHistoryTotalImportedMails_msg": "Total imported mails: {imported}",
 	}
 }

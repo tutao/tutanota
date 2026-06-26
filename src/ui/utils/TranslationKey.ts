@@ -2371,3 +2371,4 @@ export type TranslationKeyType =
 	| "imapNoSyncFolderName_msg"
 	| "imapImportCanceledSyncs_label"
 	| "imapImportHistory_label"
+	| "imapImportHistoryTotalImportedMails_msg"
