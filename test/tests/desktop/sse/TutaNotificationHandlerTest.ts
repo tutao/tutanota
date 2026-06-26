@@ -25,10 +25,11 @@ import { Mail, MailAddressTypeRef, MailTypeRef, tutanotaModelInfo } from "@tutao
 import { CredentialType } from "../../../../src/platform-kit/network/types"
 
 import { createIdTupleWrapper, createNotificationInfo, NotificationInfo } from "@tutao/entities/sys"
+import { OutgoingServerJson } from "../../../../src/platform-kit/instance-pipeline/TypeMapper"
 
 type UndiciFetch = typeof undiciFetch
 
-o.spec("TutaNotificationHandler", () => {
+o.spec("TutaNotificationHandlerTest", () => {
 	const appVersion = "V_1"
 
 	let wm: WindowManager
@@ -202,7 +203,7 @@ o.spec("TutaNotificationHandler", () => {
 			})
 
 			const sk = aes256RandomKey()
-			const mailLiteral = await nativeInstancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mailMetadata, sk)
+			const mailLiteral = await nativeInstancePipeline.mapAndEncrypt(MailTypeRef, mailMetadata, sk)
 
 			const requestDefer = mockFetchRequest(
 				fetch,
@@ -213,7 +214,7 @@ o.spec("TutaNotificationHandler", () => {
 					accessToken: "accessToken",
 				},
 				200,
-				[mailLiteral],
+				[OutgoingServerJson.getJsonRepresentationOfMultiple([mailLiteral])],
 			)
 
 			await handler.onMailNotification(sseInfo, [notificationInfo])
@@ -292,7 +293,7 @@ o.spec("TutaNotificationHandler", () => {
 						address: "recipient@example.com",
 					}),
 				})
-				return nativeInstancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mailMetadata, sk)
+				return nativeInstancePipeline.mapAndEncrypt(MailTypeRef, mailMetadata, sk)
 			})
 			const requestDefer = mockFetchRequest(
 				fetch,
@@ -303,7 +304,7 @@ o.spec("TutaNotificationHandler", () => {
 					accessToken: "accessToken",
 				},
 				200,
-				await Promise.all(mailMetadataPromises),
+				OutgoingServerJson.getJsonRepresentationOfMultiple(await Promise.all(mailMetadataPromises)),
 			)
 
 			await handler.onMailNotification(sseInfo, notificationInfos)

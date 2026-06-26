@@ -149,7 +149,7 @@ class TutaNotificationHandler {
 						const notificationInfo = notificationInfos.filter((info) => {
 							const mailElementId = assertNotNull(info.mailId).listElementId
 							const alarmElementId = elementIdPart(encParsedInstance.getAttributeByName("_id").asIdTuple())
-							isSameId(mailElementId, alarmElementId)
+							return isSameId(mailElementId, alarmElementId)
 						})[0]
 						return this.encryptedMailToMailMetaData(encParsedInstance, notificationInfo)
 					}),

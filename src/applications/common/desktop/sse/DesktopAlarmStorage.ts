@@ -8,7 +8,7 @@ import { AesKey, base64ToKey, decryptKey, keyToBase64, uint8ArrayToKey } from "@
 import { EncryptedParsedInstance, InstancePipeline } from "../../../../platform-kit/instance-pipeline"
 import { CryptoError } from "@tutao/crypto/error"
 import { EncryptedAlarmNotification } from "../../../../app-kit/native-bridge/common/EncryptedAlarmNotification"
-import { AlarmInfoTypeRef, AlarmNotification, AlarmNotificationTypeRef, NotificationSessionKey } from "@tutao/entities/sys"
+import { AlarmNotification, AlarmNotificationTypeRef, NotificationSessionKey } from "@tutao/entities/sys"
 import { elementIdPart, hasError } from "@tutao/meta"
 import { IncomingServerJson, OutgoingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 
@@ -176,7 +176,7 @@ export class DesktopAlarmStorage {
 		}
 		const alarmNotificationTypeModel = await this.alarmStorageInstancePipeline.typeModelResolver.resolveServerTypeReference(AlarmNotificationTypeRef)
 		const incomingJsons = IncomingServerJson.expectMultipleInstance(rawAlarms, alarmNotificationTypeModel)
-		return await promiseMap(incomingJsons, (json) => this.alarmStorageInstancePipeline.typeMapper.parseServerJson(json))
+		return await Promise.all(incomingJsons.map((json) => this.alarmStorageInstancePipeline.typeMapper.parseServerJson(json)))
 	}
 
 	async encryptAlarmNotification(an: AlarmNotification, newDeviceSessionKey: AesKey | null): Promise<EncryptedParsedInstance> {

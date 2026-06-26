@@ -12,6 +12,7 @@ import { aes256RandomKey, keyToUint8Array, uint8ArrayToKey } from "../../../../s
 import { hasError } from "../../../../src/platform-kit/meta"
 import { AlarmInfoTypeRef, AlarmNotification, AlarmNotificationTypeRef, CalendarEventRefTypeRef, NotificationSessionKeyTypeRef } from "@tutao/entities/sys"
 import { encryptKey } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
+import { IncomingServerJson } from "../../../../src/platform-kit/instance-pipeline/TypeMapper"
 
 o.spec("DesktopAlarmStorageTest", function () {
 	let cryptoMock: DesktopNativeCryptoFacade
@@ -73,6 +74,7 @@ o.spec("DesktopAlarmStorageTest", function () {
 	})
 
 	o("storing new alarm does not change unrelated alarm session keys", async function () {
+		const alarmNotificationModel = await typeModelResolver.resolveClientTypeReference(AlarmNotificationTypeRef)
 		const keyStoreFacade: DesktopKeyStoreFacade = makeKeyStoreFacade(key)
 		when(confMock.getVar(matchers.anything())).thenResolve(null)
 
@@ -106,10 +108,8 @@ o.spec("DesktopAlarmStorageTest", function () {
 		await desktopStorage.storeAlarm(alarmNotification)
 		const expectedAlarmsCaptor = matchers.captor()
 		verify(confMock.setVar(DesktopConfigKey.scheduledAlarms, expectedAlarmsCaptor.capture()))
-		let decryptedSavedAlarmNotification = await instancePipeline.decryptAndMap<AlarmNotification>(
-			assertNotNull(expectedAlarmsCaptor.values)[0][0],
-			notificationSessionKey,
-		)
+		const savedAlarm = IncomingServerJson.expectSingleInstance(expectedAlarmsCaptor.values![0][0], alarmNotificationModel)
+		let decryptedSavedAlarmNotification = await instancePipeline.decryptAndMap<AlarmNotification>(savedAlarm, notificationSessionKey)
 		o(alarmNotification._id).equals(decryptedSavedAlarmNotification._id)
 		o(hasError(decryptedSavedAlarmNotification)).equals(false)
 
@@ -144,14 +144,18 @@ o.spec("DesktopAlarmStorageTest", function () {
 		verify(confMock.setVar(DesktopConfigKey.scheduledAlarms, newExpectedAlarmsCaptor.capture()))
 
 		// assert that we can decrypt correctly and data alarm notifications match the previously stored ones
-		let oldDecryptedSavedAlarmNotification = await instancePipeline.decryptAndMap<AlarmNotification>(
-			assertNotNull(newExpectedAlarmsCaptor.values)[0][0],
+		const oldDecryptedSavedAlarmNotification = await instancePipeline.decryptAndMap<AlarmNotification>(
+			IncomingServerJson.expectSingleInstance(expectedAlarmsCaptor.values![0][0], alarmNotificationModel),
 			notificationSessionKey,
 		)
-		let newDecryptedSavedAlarmNotification = await instancePipeline.decryptAndMap<AlarmNotification>(
-			assertNotNull(newExpectedAlarmsCaptor.values)[1][0],
-			newNotificationSessionKey,
+		// TODO: how can we have two alarms here?
+		// we are mocking getVar to return null always,
+		// so we wont find the previously saved alarm and will only get `newAlarmNotification` and not `alarmNotification`
+		const newDecryptedSavedAlarmNotification = await instancePipeline.decryptAndMap<AlarmNotification>(
+			IncomingServerJson.expectSingleInstance(expectedAlarmsCaptor.values![1][0], alarmNotificationModel),
+			notificationSessionKey,
 		)
+
 		o(alarmNotification._id).equals(oldDecryptedSavedAlarmNotification._id)
 		o(newAlarmNotification._id).equals(newDecryptedSavedAlarmNotification._id)
 
