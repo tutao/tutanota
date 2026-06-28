@@ -11,9 +11,11 @@ export type FetchImpl = (target: string | URL, init?: UndiciRequestInit) => Prom
 const SOCKET_IDLE_TIMEOUT_MS = 5 * 60 * 1000 + 1000
 /** Timeout between reading data. */
 const READ_TIMEOUT_MS = 20_000
+/** Per-address-family attempt timeout; raised above Node's 250ms default to survive slow IPv4 paths when IPv6 is unreachable. */
+const AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT_MS = 2_000
 
 // We do not enable HTTP2 yet because it is still experimental (and buggy).
-const agent = new Agent({
+export const desktopAgentOptions = {
 	connections: 3,
 	keepAliveTimeout: SOCKET_IDLE_TIMEOUT_MS,
 	bodyTimeout: READ_TIMEOUT_MS,
@@ -21,7 +23,10 @@ const agent = new Agent({
 	connectTimeout: READ_TIMEOUT_MS,
 	// this is needed to address issues in some cases where IPv6 does not really work
 	autoSelectFamily: true,
-})
+	autoSelectFamilyAttemptTimeout: AUTO_SELECT_FAMILY_ATTEMPT_TIMEOUT_MS,
+}
+
+const agent = new Agent(desktopAgentOptions)
 
 export const customFetch: FetchImpl = async (target: string | URL, init?: UndiciRequestInit): Promise<UndiciResponse> => {
 	if (init?.body != null) {

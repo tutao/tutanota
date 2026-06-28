@@ -304,6 +304,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./desktop/files/TempFsTest.js")
 		await import("./desktop/integration/DesktopIntegratorTest.js")
 		await import("./desktop/integration/WindowsRegistryFacadeTest.js")
+		await import("./desktop/net/NetAgentTest.js")
 		await import("./desktop/net/ProtocolProxyTest.js")
 		await import("./desktop/sse/DesktopAlarmSchedulerTest.js")
 		await import("./desktop/sse/DesktopAlarmStorageTest.js")
