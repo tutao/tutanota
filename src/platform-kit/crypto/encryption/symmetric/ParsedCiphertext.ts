@@ -19,7 +19,7 @@ export enum InitializationVectorVariant {
 abstract class ParsedCiphertext {
 	public abstract readonly cipherVersion: SymmetricCipherVersion
 
-	constructor(
+	protected constructor(
 		public readonly initializationVector: InitializationVector,
 		public readonly ciphertext: Uint8Array,
 	) {}
