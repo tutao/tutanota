@@ -18,10 +18,10 @@ export class NativeMailImportFacadeReceiveDispatcher {
 				const mailboxId: string = arg[0]
 				const targetOwnerGroup: string = arg[1]
 				const targetMailSet: ReadonlyArray<string> = arg[2]
-				const filePaths: ReadonlyArray<string> = arg[3]
+				const fileUris: ReadonlyArray<string> = arg[3]
 				const unencryptedTutaCredentials: UnencryptedCredentials = arg[4]
 				const apiUrl: string = arg[5]
-				return this.facade.prepareNewImport(mailboxId, targetOwnerGroup, targetMailSet, filePaths, unencryptedTutaCredentials, apiUrl)
+				return this.facade.prepareNewImport(mailboxId, targetOwnerGroup, targetMailSet, fileUris, unencryptedTutaCredentials, apiUrl)
 			}
 			case "setProgressAction": {
 				const mailboxId: string = arg[0]

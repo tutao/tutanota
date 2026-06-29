@@ -17,7 +17,7 @@ export interface NativeMailImportFacade {
 		mailboxId: string,
 		targetOwnerGroup: string,
 		targetMailSet: ReadonlyArray<string>,
-		filePaths: ReadonlyArray<string>,
+		fileUris: ReadonlyArray<string>,
 		unencryptedTutaCredentials: UnencryptedCredentials,
 		apiUrl: string,
 	): Promise<IdTuple>

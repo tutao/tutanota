@@ -8,6 +8,7 @@ import { LanguageViewModel } from "../../../../ui/utils/LanguageViewModel.js"
 import path from "node:path"
 import { ProgrammingError } from "@tutao/app-env"
 import { CredentialType } from "../../../../platform-kit/network/types"
+import { fileURLToPath } from "node:url"
 
 const TAG = "[DesktopMailImportFacade]"
 type Listener = DeferredObject<MailImportErrorMessage>["reject"]
@@ -136,23 +137,24 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 		mailboxId: string,
 		targetOwnerGroup: string,
 		targetMailset: readonly string[],
-		filePaths: readonly string[],
+		fileUris: readonly string[],
 		unencryptedTutaCredentials: UnencryptedCredentials,
 		apiUrl: string,
 	): Promise<readonly [string, string]> {
 		const tutaCredentials = this.createTutaCredentials(unencryptedTutaCredentials, apiUrl)
 
-		let hasOngoingImport = this.importerApis.has(mailboxId)
+		const hasOngoingImport = this.importerApis.has(mailboxId)
 		if (hasOngoingImport) {
 			throw new MailImportError({ category: ImportErrorCategories.ConcurrentImport })
 		}
 
-		let importerApiPromise = ImporterApi.prepareNewImport(
+		const filePaths = fileUris.map((url) => fileURLToPath(url))
+		const importerApiPromise = ImporterApi.prepareNewImport(
 			mailboxId,
 			tutaCredentials,
 			targetOwnerGroup,
 			[targetMailset[0], targetMailset[1]],
-			filePaths.slice(),
+			filePaths,
 			this.configDirectory,
 		)
 		// we want an unconditional error handler, but also don't want to change the type of the promise.

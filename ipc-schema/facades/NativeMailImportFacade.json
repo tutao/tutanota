@@ -36,7 +36,7 @@
 					"targetMailSet": "List<string>"
 				},
 				{
-					"filePaths": "List<string>"
+					"fileUris": "List<string>"
 				},
 				{
 					"unencryptedTutaCredentials": "UnencryptedCredentials"

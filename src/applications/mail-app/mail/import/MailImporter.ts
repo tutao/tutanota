@@ -260,10 +260,10 @@ export class MailImporter {
 
 	/**
 	 * Call to the nativeMailImportFacade in worker to start a mail import from .eml or .mbox files.
-	 * @param filePaths to the .eml/.mbox files to import mails from
+	 * @param fileUris to the .eml/.mbox files to import mails from
 	 */
-	async onStartBtnClick(filePaths: Array<string>) {
-		if (isEmpty(filePaths)) return
+	async onStartBtnClick(fileUris: Array<string>) {
+		if (isEmpty(fileUris)) return
 		if (!this.shouldRenderStartButton()) throw new ProgrammingError("can't change state to starting")
 
 		const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
@@ -291,7 +291,7 @@ export class MailImporter {
 				mailboxId,
 				mailOwnerGroupId,
 				selectedTargetFolder._id,
-				filePaths,
+				fileUris,
 				unencryptedCredentials,
 				apiUrl,
 			)
