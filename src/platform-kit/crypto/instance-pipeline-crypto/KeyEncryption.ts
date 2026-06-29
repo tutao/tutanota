@@ -4,13 +4,13 @@ import { hexToRsaPrivateKey, hexToRsaPublicKey, rsaPrivateKeyToHex } from "../en
 import { RsaKeyPair, RsaPrivateKey, RsaX25519KeyPair } from "../encryption/RsaKeyPair.js"
 import { bytesToKyberPrivateKey, bytesToKyberPublicKey, KyberPrivateKey, kyberPrivateKeyToBytes } from "../encryption/Liboqs/KyberKeyPair.js"
 import { X25519PrivateKey } from "../encryption/X25519.js"
-import { AsymmetricKeyPair, KeyPairType } from "../encryption/AsymmetricKeyPair.js"
-import type { PQKeyPairs } from "../encryption/PQKeyPairs.js"
+import { AsymmetricKeyPair } from "../encryption/AsymmetricKeyPair.js"
 import { Aes128Key, Aes256Key, AesKey } from "../encryption/symmetric/SymmetricCipherUtils.js"
 import { AesKeyLength, assert256BitKey, getKeyLengthInBytes } from "../encryption/symmetric/AesKeyLength.js"
 import { SYMMETRIC_CIPHER_FACADE } from "./SymmetricCipherFacade.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { EncryptedKeyPairs, EncryptedPqKeyPairs, EncryptedRsaKeyPairs, EncryptedRsaX25519KeyPairs } from "../encryption/EncryptedKeyPairs"
+import { PQKeyPairs } from "../encryption/PQKeyPairs"
 
 export function encryptKey(encryptionKey: AesKey, keyToBeEncrypted: AesKey): Uint8Array {
 	return SYMMETRIC_CIPHER_FACADE.encryptKey(encryptionKey, keyToBeEncrypted)
@@ -85,15 +85,14 @@ function decryptPQKeyPair(encryptionKey: Aes256Key, keyPair: EncryptedPqKeyPairs
 		aesDecrypt(encryptionKey, assertNotNull(keyPair.symEncPrivKyberKey, "expected enc priv kyber key for PQ keypair")),
 	)
 
-	return {
-		keyPairType: KeyPairType.TUTA_CRYPT,
-		x25519KeyPair: {
+	return new PQKeyPairs(
+		{
 			publicKey: eccPublicKey,
 			privateKey: eccPrivateKey,
 		},
-		kyberKeyPair: {
+		{
 			publicKey: kyberPublicKey,
 			privateKey: kyberPrivateKey,
 		},
-	}
+	)
 }
