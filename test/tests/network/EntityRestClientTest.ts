@@ -37,7 +37,7 @@ import {
 	AesKey,
 	generateKdfNonce,
 	KdfNonce,
-	SubKeyInfoWithGroupKey,
+	SubKeyInfoWithGroupKeyAead,
 	SymmetricCipherVersion,
 	VersionedKey,
 } from "../../../src/platform-kit/crypto"
@@ -895,7 +895,7 @@ o.spec("EntityRestClient", function () {
 
 			o.check(instancePipeline.mapAndEncryptWithSubKeyInfo.invocations.length).equals(1)
 			const invocation = instancePipeline.mapAndEncryptWithSubKeyInfo.invocations[0]
-			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[2]
+			const subKeyInfo: SubKeyInfoWithGroupKeyAead = invocation[2]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
@@ -933,7 +933,7 @@ o.spec("EntityRestClient", function () {
 
 			o.check(instancePipeline.mapAndEncryptWithSubKeyInfo.invocations.length).equals(1)
 			const invocation = instancePipeline.mapAndEncryptWithSubKeyInfo.invocations[0]
-			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[2]
+			const subKeyInfo: SubKeyInfoWithGroupKeyAead = invocation[2]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
@@ -1401,7 +1401,7 @@ o.spec("EntityRestClient", function () {
 			o.check(instancePipeline.cryptoMapper.encryptParsedInstance.invocations.length).equals(3)
 			const invocation = instancePipeline.cryptoMapper.encryptParsedInstance.invocations[0]
 			o.check(clientTypeModel).deepEquals(invocation[0])
-			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[2]
+			const subKeyInfo: SubKeyInfoWithGroupKeyAead = invocation[2]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
@@ -1451,7 +1451,7 @@ o.spec("EntityRestClient", function () {
 			o.check(instancePipeline.cryptoMapper.encryptParsedInstance.invocations.length).equals(3)
 			const invocation = instancePipeline.cryptoMapper.encryptParsedInstance.invocations[0]
 			o.check(clientTypeModel).deepEquals(invocation[0])
-			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[2]
+			const subKeyInfo: SubKeyInfoWithGroupKeyAead = invocation[2]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
@@ -1499,7 +1499,7 @@ o.spec("EntityRestClient", function () {
 			o.check(instancePipeline.cryptoMapper.encryptParsedInstance.invocations.length).equals(3)
 			const invocation = instancePipeline.cryptoMapper.encryptParsedInstance.invocations[0]
 			o.check(clientTypeModel).deepEquals(invocation[0])
-			const subKeyInfo: SubKeyInfoWithGroupKey = invocation[2]
+			const subKeyInfo: SubKeyInfoWithGroupKeyAead = invocation[2]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
