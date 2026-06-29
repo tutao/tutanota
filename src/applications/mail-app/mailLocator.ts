@@ -1195,7 +1195,7 @@ class MailLocator implements CommonLocator {
 					selectedCalendar.groupRoot,
 					selectedCalendar,
 					parsedEvents,
-					CalendarImporter.classifyImportedEvents,
+					CalendarImporter.classifyAndPrepareImportedEvents,
 					selectedCalendar.type,
 				)
 			})

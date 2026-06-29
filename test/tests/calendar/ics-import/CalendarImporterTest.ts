@@ -334,7 +334,7 @@ o.spec("CalendarImporter", function () {
 		})
 	})
 
-	o.spec("classifyImportedEvents", function () {
+	o.spec("classifyAndPrepareImportedEvents", function () {
 		o("repeated progenitors in ics file are skipped", function () {
 			const duplicateProgenitor: IcsCalendarEvent = {
 				uid: "hello",

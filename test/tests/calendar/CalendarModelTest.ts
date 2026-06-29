@@ -1,6 +1,6 @@
 import o, { verify } from "@tutao/otest"
 
-import { getFirstOrThrow, neverNull, Require } from "../../../src/platform-kit/utils"
+import { deepEqual, getFirstOrThrow, isEmpty, neverNull, noOp, Require } from "../../../src/platform-kit/utils"
 import { CalendarModel } from "../../../src/applications/calendar-app/calendar/model/CalendarModel.js"
 import { RepeatPeriod } from "../../../src/platform-kit/app-env"
 import { DateTime } from "luxon"
@@ -21,25 +21,27 @@ import { FileController } from "../../../src/applications/common/file/FileContro
 import { createTestEntity } from "../TestUtils.js"
 import { MailboxModel } from "../../../src/applications/common/mailFunctionality/MailboxModel.js"
 import { ExternalCalendarFacade } from "../../../src/app-kit/native-bridge/common/generatedipc/types"
-import { DeviceConfig } from "../../../src/applications/common/misc/DeviceConfig.js"
+import { DeviceConfig, LastExternalCalendarSyncEntry } from "../../../src/applications/common/misc/DeviceConfig.js"
 import { SyncTracker } from "../../../src/applications/common/api/main/SyncTracker.js"
 import { LanguageViewModel } from "../../../src/ui/utils/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../src/applications/common/native/NativePushServiceApp.js"
 import { AlarmScheduler } from "../../../src/applications/common/calendar/date/AlarmScheduler"
 import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest"
-import { DoubledObject, matchers, object, when } from "testdouble"
 import { ContactModel } from "../../../src/applications/common/contactsFunctionality/ContactModel"
-import { OperationProgressTracker } from "../../../src/applications/common/api/main/OperationProgressTracker"
+import { OperationId, OperationProgressTracker } from "../../../src/applications/common/api/main/OperationProgressTracker"
 import {
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
 	CalendarGroupRoot,
 	CalendarGroupRootTypeRef,
+	CalendarRepeatRuleTypeRef,
 	Contact,
 	ContactMailAddressTypeRef,
 	ContactTypeRef,
 	EncryptedMailAddressTypeRef,
+	GroupSettings,
+	GroupSettingsTypeRef,
 } from "@tutao/entities/tutanota"
 import {
 	AlarmInfoTypeRef,
@@ -59,13 +61,27 @@ import {
 } from "@tutao/entities/sys"
 import { clone, elementIdPart, getListId, listIdPart } from "../../../src/platform-kit/meta"
 import { ProgressMonitorInterface } from "../../../src/platform-kit/network/ProgressMonitorInterface"
-import { EntityUpdateData } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupType } from "../../../src/entities/sys/Utils"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../src/entities/tutanota/Utils"
 import { IcsCalendarEvent, ParsedCalendarData, ParsedEventAlarmTuple } from "../../../src/applications/calendar-app/calendar/export/CalendarParser"
+import { EventAlarmInfoTemplatesTuple, SyncStatus } from "../../../src/applications/common/calendar/import/ImportExportUtils"
+import { serializeCalendar } from "../../../src/applications/calendar-app/calendar/export/CalendarExporter"
+import { DoubledObject, matchers, object, when } from "testdouble"
+import stream from "mithril/stream"
 
 o.spec("CalendarModel", function () {
 	const { anything } = matchers
+
+	const timeZone = "Europe/Berlin"
+	const now = DateTime.fromObject(
+		{
+			year: 2026,
+			month: 6,
+			day: 1,
+			hour: 14,
+		},
+		{ zone: timeZone },
+	).toJSDate()
 
 	const uid = "uid"
 	const UNKNOWN_SENDER = "sender@example.com"
@@ -150,19 +166,17 @@ o.spec("CalendarModel", function () {
 		userMock._id = userId
 		userControllerMock.user = userMock
 
+		calendarGroupMembership = createTestEntity(GroupMembershipTypeRef, {
+			group: "calendar-group-id",
+			groupType: GroupType.Calendar,
+			groupInfo: ["group-info-listId", "calendar-group-info-id"],
+		})
 		userControllerMock.getCalendarMemberships = () => {
 			return [calendarGroupMembership]
 		}
 
 		const progressMonitorMock = object<ProgressMonitorInterface>()
 		when(progressTrackerMock.getMonitor(anything())).thenReturn(progressMonitorMock)
-
-		calendarGroupMembership = createTestEntity(GroupMembershipTypeRef, {
-			group: "calendar-group-id",
-			groupType: GroupType.Calendar,
-			groupInfo: ["group-info-listId", "calendar-group-info-id"],
-		})
-		// when(userControllerMock.getCalendarMemberships()).thenReturn([calendarGroupMembership])
 
 		calendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef, {
 			_id: calendarGroupMembership.group,
@@ -215,7 +229,7 @@ o.spec("CalendarModel", function () {
 			calendarFacadeMock,
 			fileControllerMock,
 			contactModelMock,
-			"Europe/Berlin",
+			timeZone,
 			externalCalendarFacadeMock,
 			deviceConfigMock,
 			nativePushServiceAppMock,
@@ -256,11 +270,6 @@ o.spec("CalendarModel", function () {
 		baseCalendarEventUidIndexEntry.progenitor = baseExistingProgenitor as CalendarEventProgenitor
 		baseCalendarEventUidIndexEntry.alteredInstances = []
 	})
-
-	const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches"> = {
-		instance: null,
-		patches: null,
-	}
 
 	o.spec("processCalendarData - CalendarMethod.REPLY", function () {
 		let baseParsedCalendarData: ParsedCalendarData
@@ -794,5 +803,723 @@ o.spec("CalendarModel", function () {
 			o(updatedEvent.pendingInvitation).equals(false)
 			o(oldEvent).deepEquals(baseExistingProgenitor)
 		})
+	})
+
+	o.spec("syncExternalCalendars", function () {
+		const externalCalSourceUrl = "https://calendar-subscription.com"
+		const calendarSubscriptionId = "calendar-subscription-id"
+		let externalCalendarGroupSettings: GroupSettings
+		let externalCalendarGroupRoot: CalendarGroupRoot
+		let lastExternalCalendarSyncRegistry: Map<Id, LastExternalCalendarSyncEntry>
+
+		o.beforeEach(function () {
+			externalCalendarGroupSettings = createTestEntity(GroupSettingsTypeRef, {
+				group: calendarSubscriptionId,
+				sourceUrl: externalCalSourceUrl,
+				name: "subscription",
+			})
+
+			userGroupInfo = object()
+			userGroupInfo.mailAddressAliases = new Array<MailAddressAlias>()
+			userGroupInfo.mailAddress = "user@tuta.io"
+
+			userControllerMock = object()
+			userControllerMock.userGroupInfo = userGroupInfo
+			userControllerMock.getCalendarMemberships = () => {
+				return [
+					createTestEntity(GroupMembershipTypeRef, {
+						group: calendarSubscriptionId,
+						groupType: GroupType.Calendar,
+						groupInfo: ["group-info-listId", "calendar-group-info-id"],
+					}),
+				]
+			}
+
+			when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
+			when(loginControllerMock.isFullyLoggedIn()).thenReturn(true)
+
+			when(operationProgressTracker.startNewOperation()).thenReturn({ id: 0, progress: stream(0), done: noOp })
+
+			externalCalendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef, {
+				_id: calendarSubscriptionId,
+				longEvents: "longEvents",
+				shortEvents: "shortEvents",
+			})
+			when(entityClientMock.load(CalendarGroupRootTypeRef, calendarSubscriptionId)).thenResolve(externalCalendarGroupRoot)
+
+			lastExternalCalendarSyncRegistry = new Map([
+				[
+					calendarSubscriptionId,
+					{
+						lastSuccessfulSync: null,
+						lastSyncStatus: SyncStatus.Success,
+					},
+				],
+			])
+			when(deviceConfigMock.getLastExternalCalendarSync()).thenReturn(lastExternalCalendarSyncRegistry)
+		})
+
+		o.spec("Simple non-recurring events", function () {
+			o.test("Sync adds events to empty calendar", async function () {
+				const workEvent = makeCalendarEvent(calendarSubscriptionId, "work-event@tuta.com", "Work Event", timeZone)
+				const holidayEvent = makeCalendarEvent(calendarSubscriptionId, "holiday-event@tuta.com", "Holiday Event", timeZone)
+				const simpleCalendarSubscriptionIcs = serializeCalendar(
+					"0",
+					[
+						{ event: workEvent, alarms: [] },
+						{ event: holidayEvent, alarms: [] },
+					],
+					now,
+					timeZone,
+				)
+
+				setupCalendarSubscription(simpleCalendarSubscriptionIcs, [], [])
+
+				let eventsToCreate: Array<EventAlarmInfoTemplatesTuple> = []
+				when(calendarFacadeMock.createCalendarEvents(anything(), anything())).thenDo(
+					(eventAlarmInfoTemplatesTuples: Array<EventAlarmInfoTemplatesTuple>, operationId: OperationId) => {
+						eventsToCreate = eventAlarmInfoTemplatesTuples
+						const result: CreateCalendarEventsResult = makeCreateCalendarEventsResult({
+							successfulEvents: eventAlarmInfoTemplatesTuples.map((tuple) => tuple.event),
+						})
+						return Promise.resolve(result)
+					},
+				)
+
+				await calendarModel.syncExternalCalendars([externalCalendarGroupSettings])
+
+				verify(entityClientMock.erase(anything()), { times: 0 })
+
+				verify(calendarFacadeMock.updateCalendarEvent(anything(), anything(), anything()), { times: 0 })
+				verify(calendarFacadeMock.replaceCalendarEvent(anything(), anything(), anything()), { times: 0 })
+
+				verify(deviceConfigMock.updateLastSync(calendarSubscriptionId), { times: 1 })
+
+				o.check(eventsToCreate.length).equals(2)
+			})
+
+			o.test("Full sync performs all operations: removal, update, creation, skip unchanged", async function () {
+				// Arrange
+				const unchangedEvent = makeCalendarEvent(calendarSubscriptionId, "simple-unchanged-example@tuta.com", "Simple Unchanged Event", timeZone)
+				const originalEventUpdated = makeCalendarEvent(calendarSubscriptionId, "updated-example@tuta.com", "Updated Event New Title", timeZone)
+				const newEvent = makeCalendarEvent(calendarSubscriptionId, "new-event-example@tuta.com", "New Event", timeZone)
+				const allOperationsEventsCal = serializeCalendar(
+					"0",
+					[
+						{ event: unchangedEvent, alarms: [] },
+						{ event: originalEventUpdated, alarms: [] },
+						{ event: newEvent, alarms: [] },
+					],
+					now,
+					timeZone,
+				)
+
+				const originalEvent = createTestEntity(CalendarEventTypeRef, {
+					...originalEventUpdated,
+					summary: "Event Old Title",
+				})
+				const calendarEventToBeRemoved = makeCalendarEvent(calendarSubscriptionId, "simple-deleted-example@tuta.com", "Simple Deleted Event", timeZone)
+
+				setupCalendarSubscription(allOperationsEventsCal, [unchangedEvent, originalEvent, calendarEventToBeRemoved], [])
+
+				// if this does not match on any input, test will fail due to timeout
+				// timeout may also occur if calendarFacade.replaceCalendarEvent is called instead of calendarFacade.updateCalendar event
+				// due to a date/time change
+				when(
+					calendarFacadeMock.createCalendarEvents(
+						matchers.argThat((arg: EventAlarmInfoTemplatesTuple[]) => {
+							return arg.length === 1 && arg[0].event.summary === newEvent.summary && arg[0].event.uid === newEvent.uid
+						}),
+						anything(),
+					),
+				).thenResolve(makeCreateCalendarEventsResult({ successfulEvents: [newEvent] }))
+
+				//Act
+				await calendarModel.syncExternalCalendars([externalCalendarGroupSettings])
+
+				// Assert
+				// capture event deletion input value
+				const deleteEventCaptor = matchers.captor()
+				verify(entityClientMock.erase(deleteEventCaptor.capture()), { times: 1 })
+
+				verify(calendarFacadeMock.createCalendarEvents(anything(), anything()), { times: 1 })
+
+				const updateEventCaptor = matchers.captor()
+				verify(calendarFacadeMock.updateCalendarEvent(updateEventCaptor.capture(), anything(), anything()), { times: 1 })
+
+				const eventToDelete: CalendarEvent = deleteEventCaptor.value
+				o.check(eventToDelete.summary).equals(calendarEventToBeRemoved.summary)
+				o.check(eventToDelete.uid).equals(calendarEventToBeRemoved.uid)
+
+				const eventToUpdate: CalendarEvent = updateEventCaptor.value
+				o.check(eventToUpdate.summary).equals(originalEventUpdated.summary)
+				o.check(eventToUpdate.uid).equals(originalEventUpdated.uid)
+			})
+
+			o.spec("With existing event stored from previous sync", function () {
+				let simpleExistingEvent: CalendarEvent
+				let simpleCalendarSubscriptionIcs: string
+
+				o.beforeEach(function () {
+					simpleExistingEvent = makeCalendarEvent(calendarSubscriptionId, "test-example@tuta.com", "Simple Event", timeZone)
+					simpleCalendarSubscriptionIcs = serializeCalendar("0", [{ event: simpleExistingEvent, alarms: [] }], now, timeZone)
+
+					when(entityClientMock.loadAll(CalendarEventTypeRef, externalCalendarGroupRoot.shortEvents)).thenResolve([simpleExistingEvent])
+					when(entityClientMock.loadAll(CalendarEventTypeRef, externalCalendarGroupRoot.longEvents)).thenResolve([])
+				})
+
+				o.test("Sync does not update unchanged events", async function () {
+					when(externalCalendarFacadeMock.fetchExternalCalendar(externalCalSourceUrl)).thenResolve(simpleCalendarSubscriptionIcs)
+
+					await calendarModel.syncExternalCalendars([externalCalendarGroupSettings])
+
+					verify(entityClientMock.erase(anything()), { times: 0 })
+
+					verify(calendarFacadeMock.updateCalendarEvent(anything(), anything(), anything()), { times: 0 })
+					verify(calendarFacadeMock.replaceCalendarEvent(anything(), anything(), anything()), { times: 0 })
+					verify(calendarFacadeMock.createCalendarEvents(anything(), anything()), { times: 0 })
+
+					verify(deviceConfigMock.updateLastSync(calendarSubscriptionId), { times: 1 })
+				})
+
+				o.test("Sync update events when content changes", async function () {
+					const newEventTitle = "New Event Title"
+					const calendarSubscriptionIcsWithChange = simpleCalendarSubscriptionIcs.replace("SUMMARY:Simple Event", `SUMMARY:${newEventTitle}`)
+
+					when(externalCalendarFacadeMock.fetchExternalCalendar(externalCalSourceUrl)).thenResolve(calendarSubscriptionIcsWithChange)
+
+					await calendarModel.syncExternalCalendars([externalCalendarGroupSettings])
+
+					verify(entityClientMock.erase(anything()), { times: 0 })
+
+					verify(calendarFacadeMock.createCalendarEvents(anything(), anything()), { times: 0 })
+					verify(calendarFacadeMock.replaceCalendarEvent(anything(), anything(), anything()), { times: 0 })
+
+					const eventCaptor = matchers.captor()
+					verify(calendarFacadeMock.updateCalendarEvent(eventCaptor.capture(), anything(), anything()), { times: 1 })
+
+					const eventToUpdate: CalendarEvent = eventCaptor.value
+					o.check(eventToUpdate.summary).equals(newEventTitle)
+
+					verify(deviceConfigMock.updateLastSync(calendarSubscriptionId), { times: 1 })
+				})
+
+				o.test("Simple - Sync add all new events and remove old ones", async function () {
+					// Arrange
+					const differentCalendarEvent = makeCalendarEvent(calendarSubscriptionId, "different-test-example@tuta.com", "Different Event", timeZone)
+					const differentCalendarSubscriptionIcs = serializeCalendar("0", [{ event: differentCalendarEvent, alarms: [] }], now, timeZone)
+
+					when(externalCalendarFacadeMock.fetchExternalCalendar(externalCalSourceUrl)).thenResolve(differentCalendarSubscriptionIcs)
+
+					// if this fails to match, test will fail due to timeout
+					when(
+						calendarFacadeMock.createCalendarEvents(
+							matchers.argThat((arg: EventAlarmInfoTemplatesTuple[]) => {
+								return (
+									arg.length === 1 &&
+									arg[0].event.summary === differentCalendarEvent.summary &&
+									arg[0].event.uid === differentCalendarEvent.uid
+								)
+							}),
+							anything(),
+						),
+					).thenResolve(makeCreateCalendarEventsResult({ successfulEvents: [differentCalendarEvent] }))
+
+					// Act
+					await calendarModel.syncExternalCalendars([externalCalendarGroupSettings])
+
+					// capture event deletion input value
+					const deleteEventCaptor = matchers.captor()
+					verify(entityClientMock.erase(deleteEventCaptor.capture()), { times: 1 })
+
+					verify(calendarFacadeMock.createCalendarEvents(anything(), anything()), { times: 1 })
+
+					// verify updateCalendarEvent is never called
+					verify(calendarFacadeMock.updateCalendarEvent(anything(), anything(), anything()), { times: 0 })
+
+					// Assert
+					const eventToDelete: CalendarEvent = deleteEventCaptor.value
+					o.check(eventToDelete.summary).equals("Simple Event")
+					o.check(eventToDelete.uid).equals("test-example@tuta.com")
+
+					verify(deviceConfigMock.updateLastSync(calendarSubscriptionId), { times: 1 })
+				})
+			})
+		})
+
+		o.spec("External calendar with repeating events", function () {
+			o.spec("No-changes", function () {
+				o.test("Sync skip progenitor with no changes", async function () {
+					const progenitor = makeCalendarEvent(calendarSubscriptionId, "event-series-uid@tuta.com", "Progenitor Event", timeZone)
+					progenitor.repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
+						frequency: RepeatPeriod.DAILY,
+						interval: "1",
+						timeZone,
+					})
+
+					const eventSeriesProgenitorIcs = serializeCalendar("0", [{ event: progenitor, alarms: [] }], now, timeZone)
+
+					setupCalendarSubscription(eventSeriesProgenitorIcs, [], [progenitor])
+
+					// Act
+					await calendarModel.syncExternalCalendars([externalCalendarGroupSettings])
+
+					verify(entityClientMock.erase(anything()), { times: 0 })
+
+					verify(calendarFacadeMock.updateCalendarEvent(anything(), anything(), anything()), { times: 0 })
+					verify(calendarFacadeMock.replaceCalendarEvent(anything(), anything(), anything()), { times: 0 })
+					verify(calendarFacadeMock.createCalendarEvents(anything(), anything()), { times: 0 })
+
+					verify(deviceConfigMock.updateLastSync(calendarSubscriptionId), { times: 1 })
+				})
+
+				o.test("Sync skip progenitor and altered instances with no change", async function () {
+					const progenitor = makeCalendarEvent(
+						calendarSubscriptionId,
+						"event-series-uid@tuta.com",
+						"Progenitor Event",
+						timeZone,
+					) as CalendarEventProgenitor
+					progenitor.repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
+						frequency: RepeatPeriod.DAILY,
+						interval: "1",
+						timeZone,
+					})
+					const alteredInstance = makeCalendarEvent(
+						calendarSubscriptionId,
+						progenitor.uid,
+						"Altered Instance",
+						timeZone,
+					) as CalendarEventAlteredInstance
+					alteredInstance.recurrenceId = DateTime.fromJSDate(progenitor.startTime, { zone: progenitor.repeatRule.timeZone })
+						.plus({ day: 1 })
+						.toJSDate()
+					progenitor.repeatRule.excludedDates = [createDateWrapper({ date: alteredInstance.recurrenceId })]
+
+					const eventSeriesIcs = serializeCalendar(
+						"0",
+						[
+							{ event: progenitor, alarms: [] },
+							{ event: alteredInstance, alarms: [] },
+						],
+						now,
+						timeZone,
+					)
+
+					setupCalendarSubscription(eventSeriesIcs, [alteredInstance], [progenitor])
+
+					// Act
+					await calendarModel.syncExternalCalendars([externalCalendarGroupSettings])
+
+					// Assert
+					verify(entityClientMock.erase(anything()), { times: 0 })
+					verify(calendarFacadeMock.updateCalendarEvent(anything(), anything(), anything()), { times: 0 })
+					verify(calendarFacadeMock.replaceCalendarEvent(anything(), anything(), anything()), { times: 0 })
+					verify(calendarFacadeMock.createCalendarEvents(anything(), anything()), { times: 0 })
+
+					verify(deviceConfigMock.updateLastSync(calendarSubscriptionId), { times: 1 })
+				})
+
+				o.test("Sync skip progenitor and altered instances with no change even when ics does not have excluded dates field", async function () {
+					const progenitor = makeCalendarEvent(
+						calendarSubscriptionId,
+						"event-series-uid@tuta.com",
+						"Progenitor Event",
+						timeZone,
+					) as CalendarEventProgenitor
+					progenitor.repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
+						frequency: RepeatPeriod.DAILY,
+						interval: "1",
+						timeZone,
+					})
+					const alteredInstance = makeCalendarEvent(
+						calendarSubscriptionId,
+						progenitor.uid,
+						"Altered Instance",
+						timeZone,
+					) as CalendarEventAlteredInstance
+					alteredInstance.recurrenceId = DateTime.fromJSDate(progenitor.startTime, { zone: progenitor.repeatRule.timeZone })
+						.plus({ day: 1 })
+						.toJSDate()
+
+					const eventSeriesIcs = serializeCalendar(
+						"0",
+						[
+							{ event: progenitor, alarms: [] },
+							{ event: alteredInstance, alarms: [] },
+						],
+						now,
+						timeZone,
+					)
+
+					const existingProgenitorWithExcludedDates = createTestEntity(CalendarEventTypeRef, { ...progenitor })
+					existingProgenitorWithExcludedDates.repeatRule!.excludedDates = [createDateWrapper({ date: alteredInstance.recurrenceId })]
+
+					setupCalendarSubscription(eventSeriesIcs, [alteredInstance], [existingProgenitorWithExcludedDates])
+
+					// Act
+					await calendarModel.syncExternalCalendars([externalCalendarGroupSettings])
+
+					// Assert
+					verify(entityClientMock.erase(anything()), { times: 0 })
+					verify(calendarFacadeMock.updateCalendarEvent(anything(), anything(), anything()), { times: 0 })
+					verify(calendarFacadeMock.replaceCalendarEvent(anything(), anything(), anything()), { times: 0 })
+					verify(calendarFacadeMock.createCalendarEvents(anything(), anything()), { times: 0 })
+
+					verify(deviceConfigMock.updateLastSync(calendarSubscriptionId), { times: 1 })
+				})
+			})
+
+			o.spec("Sync with changes", function () {
+				o.test("Sync update progenitor when content change", async function () {
+					const newProgenitor = makeCalendarEvent(calendarSubscriptionId, "event-series-uid@tuta.com", "Progenitor Event", timeZone)
+					newProgenitor.repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
+						frequency: RepeatPeriod.DAILY,
+						interval: "1",
+						timeZone,
+					})
+					const oldProgenitor = createTestEntity(CalendarEventTypeRef, {
+						...newProgenitor,
+						summary: "Old Progenitor",
+					})
+
+					const eventSeriesProgenitorIcs = serializeCalendar("0", [{ event: newProgenitor, alarms: [] }], now, timeZone)
+
+					setupCalendarSubscription(eventSeriesProgenitorIcs, [], [oldProgenitor])
+
+					await calendarModel.syncExternalCalendars([externalCalendarGroupSettings])
+
+					// Assert
+					verify(entityClientMock.erase(anything()), { times: 0 })
+					verify(
+						calendarFacadeMock.updateCalendarEvent(
+							matchers.argThat((calendarEvent: CalendarEvent) => {
+								return calendarEvent.uid === newProgenitor.uid && calendarEvent.summary === newProgenitor.summary
+							}),
+							anything(),
+							matchers.argThat((existingEvent: CalendarEvent) => {
+								return existingEvent.uid === oldProgenitor.uid && existingEvent.summary === oldProgenitor.summary
+							}),
+						),
+						{ times: 1 },
+					)
+					verify(calendarFacadeMock.replaceCalendarEvent(anything(), anything(), anything()), { times: 0 })
+					verify(calendarFacadeMock.createCalendarEvents(anything(), anything()), { times: 0 })
+
+					verify(deviceConfigMock.updateLastSync(calendarSubscriptionId), { times: 1 })
+				})
+
+				o.test("Sync update progenitor when content change and keep excluded dates from existing altered instance", async function () {
+					const newProgenitor = makeCalendarEvent(
+						calendarSubscriptionId,
+						"event-series-uid@tuta.com",
+						"Progenitor Event",
+						timeZone,
+					) as CalendarEventProgenitor
+					newProgenitor.repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
+						frequency: RepeatPeriod.DAILY,
+						interval: "1",
+						timeZone,
+					})
+
+					const existingAlteredInstance = makeCalendarEvent(
+						calendarSubscriptionId,
+						newProgenitor.uid,
+						"Altered Instance",
+						timeZone,
+					) as CalendarEventAlteredInstance
+					existingAlteredInstance.recurrenceId = DateTime.fromJSDate(newProgenitor.startTime, { zone: newProgenitor.repeatRule.timeZone })
+						.plus({ day: 1 })
+						.toJSDate()
+
+					const oldProgenitor = createTestEntity(CalendarEventTypeRef, {
+						...newProgenitor,
+						summary: "Old Progenitor",
+					}) as CalendarEventProgenitor
+					oldProgenitor.repeatRule!.excludedDates = [createDateWrapper({ date: existingAlteredInstance.recurrenceId })]
+
+					const eventSeriesIcs = serializeCalendar(
+						"0",
+						[
+							{ event: newProgenitor, alarms: [] },
+							{ event: existingAlteredInstance, alarms: [] },
+						],
+						now,
+						timeZone,
+					)
+
+					setupCalendarSubscription(eventSeriesIcs, [existingAlteredInstance], [oldProgenitor])
+
+					// Act
+					await calendarModel.syncExternalCalendars([externalCalendarGroupSettings])
+
+					// Assert
+					verify(entityClientMock.erase(anything()), { times: 0 })
+					verify(
+						calendarFacadeMock.updateCalendarEvent(
+							matchers.argThat((calendarEvent: CalendarEvent) => {
+								return (
+									calendarEvent.uid === newProgenitor.uid &&
+									calendarEvent.summary === newProgenitor.summary &&
+									deepEqual(calendarEvent.repeatRule?.excludedDates, oldProgenitor.repeatRule!.excludedDates)
+								)
+							}),
+							anything(),
+							matchers.argThat((existingEvent: CalendarEvent) => {
+								return existingEvent.uid === oldProgenitor.uid && existingEvent.summary === oldProgenitor.summary
+							}),
+						),
+						{ times: 1 },
+					)
+					// should not call update for altered instance because there is no change
+					verify(
+						calendarFacadeMock.updateCalendarEvent(
+							anything(),
+							anything(),
+							matchers.argThat((existingEvent: CalendarEvent) => {
+								return existingEvent.uid === existingAlteredInstance.uid && existingEvent.summary === existingAlteredInstance.summary
+							}),
+						),
+						{ times: 0 },
+					)
+					verify(calendarFacadeMock.replaceCalendarEvent(anything(), anything(), anything()), { times: 0 })
+					verify(calendarFacadeMock.createCalendarEvents(anything(), anything()), { times: 0 })
+
+					verify(deviceConfigMock.updateLastSync(calendarSubscriptionId), { times: 1 })
+				})
+
+				o.test("Sync update progenitor with new altered instance, and keep excluded dates from existing altered instance", async function () {
+					const newProgenitor = makeCalendarEvent(
+						calendarSubscriptionId,
+						"event-series-uid@tuta.com",
+						"Progenitor Event",
+						timeZone,
+					) as CalendarEventProgenitor
+					newProgenitor.repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
+						frequency: RepeatPeriod.DAILY,
+						interval: "1",
+						timeZone,
+					})
+
+					const existingAlteredInstance = makeCalendarEvent(
+						calendarSubscriptionId,
+						newProgenitor.uid,
+						"Altered Instance",
+						timeZone,
+					) as CalendarEventAlteredInstance
+					existingAlteredInstance.recurrenceId = DateTime.fromJSDate(newProgenitor.startTime, { zone: newProgenitor.repeatRule.timeZone })
+						.plus({ day: 1 })
+						.toJSDate()
+
+					const oldProgenitor = createTestEntity(CalendarEventTypeRef, {
+						...newProgenitor,
+						summary: "Old Progenitor",
+					}) as CalendarEventProgenitor
+					oldProgenitor.repeatRule!.excludedDates = [createDateWrapper({ date: existingAlteredInstance.recurrenceId })]
+
+					const newAlteredInstance = makeCalendarEvent(
+						calendarSubscriptionId,
+						newProgenitor.uid,
+						"New Altered Instance",
+						timeZone,
+					) as CalendarEventAlteredInstance
+					newAlteredInstance.recurrenceId = DateTime.fromJSDate(newProgenitor.startTime, { zone: newProgenitor.repeatRule.timeZone })
+						.plus({ day: 2 })
+						.toJSDate()
+
+					const eventSeriesIcs = serializeCalendar(
+						"0",
+						[
+							{ event: newProgenitor, alarms: [] },
+							{ event: existingAlteredInstance, alarms: [] },
+							{ event: newAlteredInstance, alarms: [] },
+						],
+						now,
+						timeZone,
+					)
+
+					setupCalendarSubscription(eventSeriesIcs, [existingAlteredInstance], [oldProgenitor])
+
+					let eventsToCreate: Array<EventAlarmInfoTemplatesTuple> = []
+					when(calendarFacadeMock.createCalendarEvents(anything(), anything())).thenDo(
+						(eventAlarmInfoTemplatesTuples: Array<EventAlarmInfoTemplatesTuple>, operationId: OperationId) => {
+							eventsToCreate = eventAlarmInfoTemplatesTuples
+							const result: CreateCalendarEventsResult = makeCreateCalendarEventsResult({
+								successfulEvents: eventAlarmInfoTemplatesTuples.map((tuple) => tuple.event),
+							})
+							return Promise.resolve(result)
+						},
+					)
+
+					const expectedExcludedDates = [...oldProgenitor.repeatRule!.excludedDates, createDateWrapper({ date: newAlteredInstance.recurrenceId })]
+
+					// Act
+					await calendarModel.syncExternalCalendars([externalCalendarGroupSettings])
+
+					// Assert
+					verify(entityClientMock.erase(anything()), { times: 0 })
+					verify(
+						calendarFacadeMock.updateCalendarEvent(
+							matchers.argThat((calendarEvent: CalendarEvent) => {
+								return (
+									calendarEvent.uid === newProgenitor.uid &&
+									calendarEvent.summary === newProgenitor.summary &&
+									deepEqual(calendarEvent.repeatRule?.excludedDates, expectedExcludedDates)
+								)
+							}),
+							anything(),
+							matchers.argThat((existingEvent: CalendarEvent) => {
+								return existingEvent.uid === oldProgenitor.uid && existingEvent.summary === oldProgenitor.summary
+							}),
+						),
+						{ times: 1 },
+					)
+					// should not call update for altered instance because there is no change
+					verify(
+						calendarFacadeMock.updateCalendarEvent(
+							anything(),
+							anything(),
+							matchers.argThat((existingEvent: CalendarEvent) => {
+								return existingEvent.uid === existingAlteredInstance.uid && existingEvent.summary === existingAlteredInstance.summary
+							}),
+						),
+						{ times: 0 },
+					)
+					verify(calendarFacadeMock.replaceCalendarEvent(anything(), anything(), anything()), { times: 0 })
+
+					o.check(eventsToCreate.length).equals(1)
+					o.check(eventsToCreate[0].event.summary).equals(newAlteredInstance.summary)
+
+					verify(deviceConfigMock.updateLastSync(calendarSubscriptionId), { times: 1 })
+				})
+
+				o.test("Sync keep excluded dates in progenitor when altered instances are removed", async function () {
+					const progenitor = makeCalendarEvent(
+						calendarSubscriptionId,
+						"event-series-uid@tuta.com",
+						"Progenitor Event",
+						timeZone,
+					) as CalendarEventProgenitor
+					progenitor.repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
+						frequency: RepeatPeriod.DAILY,
+						interval: "1",
+						timeZone,
+					})
+
+					const existingAlteredInstance = makeCalendarEvent(
+						calendarSubscriptionId,
+						progenitor.uid,
+						"Altered Instance",
+						timeZone,
+					) as CalendarEventAlteredInstance
+					existingAlteredInstance.recurrenceId = DateTime.fromJSDate(progenitor.startTime, { zone: progenitor.repeatRule.timeZone })
+						.plus({ day: 1 })
+						.toJSDate()
+
+					progenitor.repeatRule!.excludedDates = [createDateWrapper({ date: existingAlteredInstance.recurrenceId })]
+
+					const eventSeriesProgenitorIcs = serializeCalendar("0", [{ event: progenitor, alarms: [] }], now, timeZone)
+
+					setupCalendarSubscription(eventSeriesProgenitorIcs, [existingAlteredInstance], [progenitor])
+
+					await calendarModel.syncExternalCalendars([externalCalendarGroupSettings])
+
+					// Assert
+					verify(
+						entityClientMock.erase(matchers.argThat((eventBeingDeleted: CalendarEvent) => deepEqual(eventBeingDeleted, existingAlteredInstance))),
+						{ times: 1 },
+					)
+					verify(calendarFacadeMock.updateCalendarEvent(anything(), anything(), anything()), { times: 0 })
+					verify(calendarFacadeMock.replaceCalendarEvent(anything(), anything(), anything()), { times: 0 })
+					verify(calendarFacadeMock.createCalendarEvents(anything(), anything()), { times: 0 })
+
+					verify(deviceConfigMock.updateLastSync(calendarSubscriptionId), { times: 1 })
+				})
+
+				o.test(
+					"Sync remove excluded dates from progenitor when altered instances are removed and not in the excludedDates field from incoming progenitor",
+					async function () {
+						const progenitor = makeCalendarEvent(
+							calendarSubscriptionId,
+							"event-series-uid@tuta.com",
+							"Progenitor Event",
+							timeZone,
+						) as CalendarEventProgenitor
+						progenitor.repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
+							frequency: RepeatPeriod.DAILY,
+							interval: "1",
+							timeZone,
+						})
+						progenitor.repeatRule!.excludedDates = [createDateWrapper({ date: new Date(2026, 6, 29) })]
+
+						const incomingProgenitor = createTestEntity(CalendarEventTypeRef, {
+							...progenitor,
+							summary: "Incoming Progenitor",
+							repeatRule: createTestEntity(CalendarRepeatRuleTypeRef, {
+								frequency: RepeatPeriod.DAILY,
+								interval: "1",
+								timeZone,
+							}),
+						}) as CalendarEventProgenitor
+						const eventSeriesProgenitorIcs = serializeCalendar("0", [{ event: incomingProgenitor, alarms: [] }], now, timeZone)
+
+						setupCalendarSubscription(eventSeriesProgenitorIcs, [], [progenitor])
+
+						await calendarModel.syncExternalCalendars([externalCalendarGroupSettings])
+
+						verify(
+							calendarFacadeMock.updateCalendarEvent(
+								matchers.argThat(
+									(updatedProgenitor) => updatedProgenitor.uid === progenitor.uid && isEmpty(updatedProgenitor.repeatRule.excludedDates),
+								),
+								anything(),
+								matchers.argThat((eventBeingUpdated) => deepEqual(eventBeingUpdated, progenitor)),
+							),
+							{ times: 1 },
+						)
+
+						verify(calendarFacadeMock.replaceCalendarEvent(anything(), anything(), anything()), { times: 0 })
+						verify(calendarFacadeMock.createCalendarEvents(anything(), anything()), { times: 0 })
+
+						verify(deviceConfigMock.updateLastSync(calendarSubscriptionId), { times: 1 })
+					},
+				)
+			})
+		})
+
+		function makeCalendarEvent(calendarSubscriptionId: string, uid: string, summary: string, timeZone: string) {
+			return createTestEntity(CalendarEventTypeRef, {
+				_ownerGroup: calendarSubscriptionId,
+				startTime: DateTime.fromObject({ year: 2026, month: 6, day: 1, hour: 9 }, { zone: timeZone }).toJSDate(),
+				endTime: DateTime.fromObject(
+					{
+						year: 2026,
+						month: 6,
+						day: 1,
+						hour: 9,
+						minute: 30,
+					},
+					{ zone: timeZone },
+				).toJSDate(),
+				uid,
+				summary,
+			})
+		}
+
+		function setupCalendarSubscription(simpleCalendarSubscriptionIcs: string, shortEvents: CalendarEvent[], longEvents: CalendarEvent[]) {
+			when(externalCalendarFacadeMock.fetchExternalCalendar(externalCalSourceUrl)).thenResolve(simpleCalendarSubscriptionIcs)
+			when(entityClientMock.loadAll(CalendarEventTypeRef, externalCalendarGroupRoot.shortEvents)).thenResolve(shortEvents)
+			when(entityClientMock.loadAll(CalendarEventTypeRef, externalCalendarGroupRoot.longEvents)).thenResolve(longEvents)
+		}
+
+		function makeCreateCalendarEventsResult(data: Partial<CreateCalendarEventsResult>) {
+			return {
+				successfulEvents: data.successfulEvents ?? [],
+				failedEvents: data.failedEvents ?? [],
+				failedEventErrors: data.failedEventErrors ?? [],
+				failedAlarms: data.failedAlarms ?? [],
+				failedAlarmErrors: data.failedAlarmErrors ?? [],
+			}
+		}
 	})
 })
