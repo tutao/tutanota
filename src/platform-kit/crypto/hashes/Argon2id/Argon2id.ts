@@ -1,6 +1,6 @@
 import { callWebAssemblyFunctionWithArguments, ConstPtr, mutableSecureFree, Ptr, secureFree, stringToUtf8Uint8Array, WASMExports } from "@tutao/utils"
-import { Aes256Key, uint8ArrayToKey } from "../../encryption/symmetric/SymmetricCipherUtils.js"
-import { AesKeyLength } from "../../encryption/symmetric/AesKeyLength"
+import { uint8ArrayToKey } from "../../encryption/symmetric/SymmetricCipherUtils.js"
+import { Aes256Key, AesKeyLength } from "../../encryption/symmetric/AesKey"
 import { number, NumberArgument, Uint8ArrayArgument } from "../../../utils/WebAssemblyArgument"
 // Per OWASP's recommendations @ https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
 export const ARGON2ID_ITERATIONS = 4

@@ -1,9 +1,10 @@
 import { lazyMemoized, Nullable } from "@tutao/utils"
 import { InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
-import { AesKey, KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
+import { KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { VersionedKey } from "../../CryptoTypes"
 import { ProgrammingError } from "@tutao/app-env"
+import { AesKey } from "../../encryption/symmetric/AesKey"
 
 /**
  * Dummy class that can either hold SubKeyInfo or SubKeyProvider. As both are suitable to get the actual subkeys.

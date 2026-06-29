@@ -1,6 +1,6 @@
-import { AesKeyLength, getKeyLengthInBytes } from "./AesKeyLength.js"
+import { Aes128Key, Aes256Key, AesKey, AesKeyLength, AesKeyOrSubKeys, getKeyLengthInBytes } from "./AesKey.js"
 import { SymmetricCipherVersion } from "./SymmetricCipherVersion.js"
-import { Aes128Key, Aes256Key, AesKey, KdfNonce, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
+import { KdfNonce, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
 import { sha256Hash } from "../../hashes/Sha256.js"
 import { sha512Hash } from "../../hashes/Sha512.js"
 import { blake3Kdf } from "../../hashes/Blake3.js"
@@ -9,8 +9,7 @@ import { AEAD_GROUP_KEY_NONCE_DERIVATION, AEAD_SESSION_KEY_DERIVATION, Versioned
 import { ProgrammingError } from "@tutao/app-env"
 import { CryptoError } from "@tutao/crypto/error"
 
-export abstract class KeyOrSubKey {}
-export abstract class SymmetricSubKeys extends KeyOrSubKey {
+export abstract class SymmetricSubKeys extends AesKeyOrSubKeys {
 	abstract readonly cipherVersion: SymmetricCipherVersion
 
 	constructor(

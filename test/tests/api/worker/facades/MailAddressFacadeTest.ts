@@ -10,8 +10,8 @@ import { DateProvider } from "../../../../../src/platform-kit/utils/DateProvider
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
 import { MailAddressPropertiesTypeRef, MailboxGroupRootTypeRef, MailboxPropertiesTypeRef } from "@tutao/entities/tutanota"
 import { GroupInfoTypeRef, GroupMembershipTypeRef, MailAddressAliasTypeRef, UserTypeRef } from "@tutao/entities/sys"
-import { Aes128Key } from "@tutao/crypto/symmetric-cipher-utils"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClientLoadOptions } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
+import { Aes128Key } from "../../../../../src/platform-kit/crypto/encryption/symmetric/AesKey"
 
 o.spec("MailAddressFacadeTest", function () {
 	let userFacade: UserFacade

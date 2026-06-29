@@ -27,7 +27,8 @@ import {
 import { isSameId } from "../../../src/platform-kit/meta"
 
 import { BucketKeyTypeRef, InstanceSessionKeyTypeRef, TypeInfoTypeRef } from "@tutao/entities/sys"
-import { Aes256Key } from "@tutao/crypto/symmetric-cipher-utils"
+
+import { Aes256Key } from "../../../src/platform-kit/crypto/encryption/symmetric/AesKey"
 
 const { captor, anything } = matchers
 

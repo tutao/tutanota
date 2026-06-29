@@ -1,7 +1,4 @@
 import {
-	Aes128Key,
-	Aes256Key,
-	AesKey,
 	FIXED_INITIALIZATION_VECTOR,
 	generateInitializationVector,
 	InitializationVector,
@@ -12,16 +9,9 @@ import {
 import { AES_CBC_FACADE, AesCbcFacade, AuthenticationEnforcement, PaddingStandard } from "../encryption/symmetric/AesCbcFacade.js"
 import { SymmetricCipherVersion } from "../encryption/symmetric/SymmetricCipherVersion.js"
 import { Nullable } from "@tutao/utils"
-import { AesKeyLength } from "../encryption/symmetric/AesKeyLength"
+import { Aes128Key, Aes256Key, AesKey, AesKeyLength, AesKeyOrSubKeys } from "../encryption/symmetric/AesKey"
 import { AEAD_FACADE, AeadFacade } from "../encryption/symmetric/AeadFacade.js"
-import {
-	AeadSubKeys,
-	AesCbcSubKeys,
-	InstanceTypeId,
-	KeyOrSubKey,
-	SYMMETRIC_KEY_DERIVER,
-	SymmetricKeyDeriver,
-} from "../encryption/symmetric/SymmetricKeyDeriver.js"
+import { AeadSubKeys, AesCbcSubKeys, InstanceTypeId, SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver } from "../encryption/symmetric/SymmetricKeyDeriver.js"
 import { SubKeyInfo, SubKeyProvider } from "./encryption/SubKeyProvider"
 import { InstanceDecryptor } from "./decryption/InstanceDecryptor"
 import { InitializationVectorVariant, ParsedCiphertextAesCbc, parseVersionedCiphertext } from "../encryption/symmetric/ParsedCiphertext"
@@ -73,7 +63,7 @@ export class SymmetricCipherFacade {
 	 * @param bytes The data to encrypt.
 	 * @return The encrypted bytes.
 	 */
-	encryptBytes(key: KeyOrSubKey, bytes: Uint8Array): Uint8Array {
+	encryptBytes(key: AesKeyOrSubKeys, bytes: Uint8Array): Uint8Array {
 		return this.encrypt(key, bytes, PaddingStandard.Pkcs5, SymmetricCipherVersion.AesCbcThenHmac)
 	}
 
@@ -235,7 +225,7 @@ export class SymmetricCipherFacade {
 	}
 
 	private encrypt(
-		key: KeyOrSubKey,
+		key: AesKeyOrSubKeys,
 		plaintext: Uint8Array,
 		paddingStandard: PaddingStandard,
 		cipherVersion: SymmetricCipherVersion,

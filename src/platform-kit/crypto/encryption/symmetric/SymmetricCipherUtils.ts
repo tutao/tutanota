@@ -3,8 +3,7 @@ import { CryptoError } from "@tutao/crypto/error"
 import { base64ToBase64Url, base64ToUint8Array, hexToUint8Array, Nullable, uint8ArrayToArrayBuffer, uint8ArrayToBase64 } from "@tutao/utils"
 import { sha256Hash } from "../../hashes/Sha256.js"
 import sjcl from "../../internal/sjcl.js"
-import { AesKeyLength, getKeyLengthInBytes, makeAesKey } from "./AesKeyLength.js"
-import { KeyOrSubKey } from "./SymmetricKeyDeriver"
+import { Aes128Key, Aes256Key, AesKey, AesKeyLength, BitArray, getKeyLengthInBytes } from "./AesKey.js"
 import { InitializationVectorVariant } from "./ParsedCiphertext"
 
 export class InitializationVector {
@@ -20,33 +19,6 @@ export const INITIALIZATION_VECTOR_LENGTH_BYTES = BLOCK_SIZE_BYTES
 export const KDF_NONCE_LENGTH_BYTES = 32
 export const SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES = 1
 export const SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES = 32
-
-export type BitArray = number[]
-export abstract class AesKey extends KeyOrSubKey {
-	abstract readonly bits: BitArray
-	abstract readonly keyLength: AesKeyLength
-}
-
-export class Aes256Key extends AesKey {
-	keyLength: typeof AesKeyLength.Aes256 = AesKeyLength.Aes256
-
-	/**
-	 * The caller must ensure bits has the correct length.
-	 */
-	constructor(public readonly bits: BitArray) {
-		super()
-	}
-}
-export class Aes128Key extends AesKey {
-	keyLength: typeof AesKeyLength.Aes128 = AesKeyLength.Aes128
-
-	/**
-	 * The caller must ensure bits has the correct length.
-	 */
-	constructor(public readonly bits: BitArray) {
-		super()
-	}
-}
 
 /**
  * Creates the auth verifier from the password key.
@@ -120,7 +92,18 @@ export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength: typeof Aes
 export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey
 export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey {
 	let key = uint8ArrayToBitArray(array)
-	return makeAesKey(key, acceptedBitLength ? [acceptedBitLength] : undefined)
+	// AesKey is an array of 4 byte numbers. therefore converting the length to bits means 4*8
+	const keyLength: number = key.length * 4 * 8
+	if (acceptedBitLength != null && acceptedBitLength !== keyLength) {
+		throw new CryptoError(`Illegal key length: ${keyLength} (expected: ${acceptedBitLength})`)
+	}
+	switch (keyLength) {
+		case AesKeyLength.Aes128:
+			return new Aes128Key(key)
+		case AesKeyLength.Aes256:
+			return new Aes256Key(key)
+	}
+	throw new CryptoError(`Illegal key length: ${keyLength}`)
 }
 
 export function keyToUint8Array(key: AesKey): Uint8Array {
