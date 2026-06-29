@@ -769,8 +769,10 @@ export class CalendarModel {
 			return calendarInfos
 		}
 
+		//
+		// Recover from the case where the user has no private calendar.
+		//
 		await this.createCalendar("", null, [], null)
-
 		// Reload calendar infos to include the newly created calendar
 		return await this.loadCalendarInfos(progressMonitor)
 	}
@@ -1048,7 +1050,7 @@ export class CalendarModel {
 
 		// Load the events bypassing the cache because we might have already processed some updates and they might have changed the events we are about to load.
 		// We want to operate on the latest events only, otherwise we might lose some data.
-		const latestPersistedEventsIndexEntry: ResolvedUidIndexEntry | null = await this.getFirstUidIndexEntryMatch(
+		const latestPersistedEventsIndexEntry: ResolvedUidIndexEntry | null = await this.getFirstUidIndexEntryMatchInPrivateCalendars(
 			getFirstOrThrow(parsedCalendarData.contents).icsCalendarEvent.uid,
 		)
 		const icsEventRecurrenceIdTimestamp = parsedCalendarData.contents[0].icsCalendarEvent.recurrenceId?.getTime()
@@ -1082,10 +1084,13 @@ export class CalendarModel {
 		}
 	}
 
-	public async getFirstUidIndexEntryMatch(uid: string): Promise<ResolvedUidIndexEntry | null> {
+	public async getFirstUidIndexEntryMatchInPrivateCalendars(uid: string): Promise<ResolvedUidIndexEntry | null> {
 		const calendarInfos = await this.getCalendarInfos()
 
-		for (const calendarGroupId of calendarInfos.keys()) {
+		for (const [calendarGroupId, calendarInfo] of calendarInfos) {
+			// Skip non-private calendars
+			if (calendarInfo.type !== CalendarType.Private) continue
+
 			const entry = await this.calendarFacade.getEventsByUid(uid, calendarGroupId, CachingMode.Bypass)
 			if (entry) {
 				return entry
