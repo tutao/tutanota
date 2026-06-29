@@ -1,4 +1,4 @@
-import { assertNotNull, lazyAsync } from "@tutao/utils"
+import { assertNotNull, isNotNull, lazyAsync } from "@tutao/utils"
 import {
 	type AppName,
 	AppNameEnum,
@@ -230,7 +230,7 @@ export class ServerModelInfo {
 			isPublic: this.asBoolean(typeInfoRecord.isPublic),
 			rootId: this.asString(typeInfoRecord.rootId),
 			values: this.parseModelValues(valuesRecord, this.getClientModelType(app, String(typeId))),
-			associations: this.parseModelAssociations(associationsRecord),
+			associations: this.parseModelAssociations(associationsRecord, this.getClientModelType(app, String(typeId))),
 		} as ServerTypeModel
 	}
 
@@ -288,7 +288,10 @@ export class ServerModelInfo {
 		return values
 	}
 
-	private parseModelAssociations(modelAssociations: Record<number, unknown>): Record<AttributeId, ModelAssociation> {
+	private parseModelAssociations(
+		modelAssociations: Record<number, unknown>,
+		clientModelAssociation: ClientTypeModel | null,
+	): Record<AttributeId, ModelAssociation> {
 		let associations = {}
 
 		for (const associationInfo of Object.values(modelAssociations)) {
@@ -308,6 +311,21 @@ export class ServerModelInfo {
 			})
 
 			Object.assign(associations, { [modelAssociation.id]: modelAssociation })
+		}
+
+		if (isNotNull(clientModelAssociation)) {
+			for (const clientAssociation of Object.values(clientModelAssociation.associations)) {
+				const isRemovedInServer = !Object.keys(associations).some((serverAssocId) => clientAssociation.id.toString() === serverAssocId)
+
+				if (isRemovedInServer && clientAssociation.cardinality === Cardinality.One) {
+					// INFRA-NOTE:
+					// we should do more of these verification here. example: ( Adding a association with cardinality one )
+					// so when we fetch new server model json, we can already show client too old error, while parsing that model
+					throw new InvalidModelError(
+						`Server has removed an association: "${clientAssociation.name}" with a cardinality of One. The client version is probably too old.`,
+					)
+				}
+			}
 		}
 
 		return associations
