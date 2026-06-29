@@ -55,7 +55,9 @@ import { CacheManager } from "../../../src/platform-kit/base/base-crypto/persist
 import { SYMMETRIC_CIPHER_FACADE } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { CryptoWrapper } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { InstanceSessionKeysCache } from "../../../src/platform-kit/base/base-crypto/persistence/InstanceSessionKeysCache"
-import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
+import { InstanceDirection, ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
+import { changeInstanceDirection } from "./InstancePipelineTestUtils"
+import { OutgoingServerJson } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
 
 o.spec("PatchMergerTest", () => {
 	let sk: AesKey
@@ -107,7 +109,9 @@ o.spec("PatchMergerTest", () => {
 	})
 
 	async function toStorableInstance(entity: Entity): Promise<DecryptedParsedInstance> {
-		return await instancePipeline.modelMapper.mapToDecryptedInstance(entity)
+		const parsedInstance = await instancePipeline.modelMapper.mapToDecryptedInstance(entity)
+		changeInstanceDirection(parsedInstance, InstanceDirection.IncomingFromServer)
+		return parsedInstance
 	}
 
 	o.spec("Path traverse", () => {
@@ -138,6 +142,7 @@ o.spec("PatchMergerTest", () => {
 				_ownerEncSessionKey: encryptedSessionKey.key,
 				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
 				_ownerGroup: ownerGroupId,
+				unread: false,
 			}) as unknown
 
 			// remove unread to make it a partial mail, leading to addition of the unread flag with the patch
@@ -149,13 +154,14 @@ o.spec("PatchMergerTest", () => {
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: unreadAttributeId.toString(),
-					value: "0",
+					value: "1",
 					patchOperation: PatchOperationType.REPLACE,
 				}),
 			]
 
 			const parsedInstance = assertNotNull(await patchMerger.getPatchedInstanceParsed(MailTypeRef, "listId", "elementId", patches))
-			o(Object.keys(parsedInstance).find((attribute) => attribute === unreadAttributeId.toString())).equals("109")
+			const unreadValueAfterPatch = parsedInstance.getAttributeById(unreadAttributeId).asBoolean()
+			o(unreadValueAfterPatch).equals(true)
 		})
 	})
 
@@ -263,15 +269,10 @@ o.spec("PatchMergerTest", () => {
 			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 
 			const encryptionAuthStatusAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "encryptionAuthStatus"))
-			const valueType = mailTypeModel.values[encryptionAuthStatusAttributeId] as EncryptedModelValue
-			const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
-			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
-			const nullAuthStatus: ParsedValue<DecryptedParsedInstance> = ParsedValue.fromNull()
-			const encryptedNullAuthStatus = patchMerger.instancePipeline.cryptoMapper.encryptValue(nullAuthStatus, subKeyProvider, "")
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: encryptionAuthStatusAttributeId.toString(),
-					value: encryptedNullAuthStatus.asString(),
+					value: null,
 					patchOperation: PatchOperationType.REPLACE,
 				}),
 			]
@@ -407,7 +408,7 @@ o.spec("PatchMergerTest", () => {
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: pathString,
-					value: JSON.stringify(["newListId"]),
+					value: OutgoingServerJson.stringifyIdList(["newListId"]),
 					patchOperation: PatchOperationType.REPLACE,
 				}),
 			]
@@ -433,7 +434,7 @@ o.spec("PatchMergerTest", () => {
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: setsAttributeId.toString(),
-					value: JSON.stringify([
+					value: OutgoingServerJson.stringifyIdTupleList([
 						["listId2", "elementId1"],
 						["listId2", "elementId2"],
 					]),
@@ -465,11 +466,11 @@ o.spec("PatchMergerTest", () => {
 				name: "new name",
 				address: "address@tutao.de",
 			})
-			const untypedSender = await instancePipeline.mapAndEncryptToParsedInstance(MailAddressTypeRef, senderToAdd, sk)
+			const senderAsOutgoingJson = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, senderToAdd, sk)
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: senderAttributeId.toString(),
-					value: JSON.stringify([untypedSender]),
+					value: OutgoingServerJson.getJsonRepresentationOfMultiple([senderAsOutgoingJson]),
 					patchOperation: PatchOperationType.REPLACE,
 				}),
 			]
@@ -492,12 +493,12 @@ o.spec("PatchMergerTest", () => {
 			const calendarEventTypeModel = await typeModelResolver.resolveClientTypeReference(CalendarEventTypeRef)
 			const repeatRuleAttributeId = assertNotNull(AttributeModel.getAttributeId(calendarEventTypeModel, "repeatRule"))
 			const repeatRuleToAdd = createTestEntity(CalendarRepeatRuleTypeRef, { _id: "added-by-patch" })
-			const untypedRepeatRule = await instancePipeline.mapAndEncryptToParsedInstance(CalendarRepeatRuleTypeRef, repeatRuleToAdd, sk)
+			const untypedRepeatRule = await instancePipeline.mapAndEncrypt(CalendarRepeatRuleTypeRef, repeatRuleToAdd, sk)
 
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: repeatRuleAttributeId.toString(),
-					value: JSON.stringify([untypedRepeatRule]),
+					value: OutgoingServerJson.getJsonRepresentationOfMultiple([untypedRepeatRule]),
 					patchOperation: PatchOperationType.REPLACE,
 				}),
 			]
@@ -541,13 +542,13 @@ o.spec("PatchMergerTest", () => {
 				name: "new name",
 				address: "address@tutao.de",
 			})
-			const untypedToRecipient = await instancePipeline.mapAndEncryptToParsedInstance(MailAddressTypeRef, toRecipientToAdd, sk)
+			const untypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, toRecipientToAdd, sk)
 
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: attributePath,
-					value: JSON.stringify([untypedToRecipient]),
+					value: OutgoingServerJson.getJsonRepresentationOfMultiple([untypedToRecipient]),
 					patchOperation: PatchOperationType.REPLACE,
 				}),
 			]
@@ -610,7 +611,7 @@ o.spec("PatchMergerTest", () => {
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: setsAttributeId.toString(),
-					value: JSON.stringify([["listId", "elementId2"]]),
+					value: OutgoingServerJson.stringifyIdTupleList([["listId", "elementId2"]]),
 					patchOperation: PatchOperationType.ADD_ITEM,
 				}),
 			]
@@ -639,7 +640,7 @@ o.spec("PatchMergerTest", () => {
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: setsAttributeId.toString(),
-					value: JSON.stringify([
+					value: OutgoingServerJson.stringifyIdTupleList([
 						["listId", "elementId2"],
 						["listId", "elementId3"],
 					]),
@@ -672,7 +673,7 @@ o.spec("PatchMergerTest", () => {
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: setsAttributeId.toString(),
-					value: JSON.stringify([
+					value: OutgoingServerJson.stringifyIdTupleList([
 						["listId", "elementId"],
 						["listId", "elementId"],
 					]),
@@ -718,13 +719,13 @@ o.spec("PatchMergerTest", () => {
 				name: "new name",
 				address: "address@tutao.de",
 			})
-			const untypedToRecipient = await instancePipeline.mapAndEncryptToParsedInstance(MailAddressTypeRef, toRecipientToAdd, sk)
+			const untypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, toRecipientToAdd, sk)
 
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: attributePath,
-					value: JSON.stringify([untypedToRecipient]),
+					value: OutgoingServerJson.getJsonRepresentationOfMultiple([untypedToRecipient]),
 					patchOperation: PatchOperationType.ADD_ITEM,
 				}),
 			]
@@ -774,14 +775,14 @@ o.spec("PatchMergerTest", () => {
 				name: "second name",
 				address: "address2@tutao.de",
 			})
-			const firstUntypedToRecipient = await instancePipeline.mapAndEncryptToParsedInstance(MailAddressTypeRef, firstToRecipientToAdd, sk)
-			const secondUntypedToRecipient = await instancePipeline.mapAndEncryptToParsedInstance(MailAddressTypeRef, secondToRecipientToAdd, sk)
+			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, firstToRecipientToAdd, sk)
+			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sk)
 
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: attributePath,
-					value: JSON.stringify([firstUntypedToRecipient, secondUntypedToRecipient]),
+					value: OutgoingServerJson.getJsonRepresentationOfMultiple([firstUntypedToRecipient, secondUntypedToRecipient]),
 					patchOperation: PatchOperationType.ADD_ITEM,
 				}),
 			]
@@ -844,14 +845,14 @@ o.spec("PatchMergerTest", () => {
 				name: "second name",
 				address: "address2@tutao.de",
 			})
-			const firstUntypedToRecipient = await instancePipeline.mapAndEncryptToParsedInstance(MailAddressTypeRef, firstToRecipientToAdd, sk)
-			const secondUntypedToRecipient = await instancePipeline.mapAndEncryptToParsedInstance(MailAddressTypeRef, secondToRecipientToAdd, sk)
+			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, firstToRecipientToAdd, sk)
+			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sk)
 
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: attributePath,
-					value: JSON.stringify([firstUntypedToRecipient, secondUntypedToRecipient]),
+					value: OutgoingServerJson.getJsonRepresentationOfMultiple([firstUntypedToRecipient, secondUntypedToRecipient]),
 					patchOperation: PatchOperationType.ADD_ITEM,
 				}),
 			]
@@ -913,13 +914,13 @@ o.spec("PatchMergerTest", () => {
 				address: "address@tutao.de",
 			})
 
-			const firstUntypedToRecipient = await instancePipeline.mapAndEncryptToParsedInstance(MailAddressTypeRef, firstToRecipientToAdd, sk)
-			const secondUntypedToRecipient = await instancePipeline.mapAndEncryptToParsedInstance(MailAddressTypeRef, secondToRecipientToAdd, sk)
+			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, firstToRecipientToAdd, sk)
+			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sk)
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: attributePath,
-					value: JSON.stringify([firstUntypedToRecipient, secondUntypedToRecipient]),
+					value: OutgoingServerJson.getJsonRepresentationOfMultiple([firstUntypedToRecipient, secondUntypedToRecipient]),
 					patchOperation: PatchOperationType.ADD_ITEM,
 				}),
 			]
@@ -931,7 +932,7 @@ o.spec("PatchMergerTest", () => {
 			o(testMailDetailsBlobPatched.details.recipients.toRecipients.length).equals(1) // nothing is added as both entities are identical to existing toRecipient
 		})
 
-		o.test("apply_additem_on_Any_aggregation_multiple_existing_but_DIFFERENT_attribute_values_throws", async () => {
+		o.test("apply_additem_on_Any_aggregation_multiple_existing_but_DIFFERENT_attribute_values_throws xyz", async () => {
 			const mailDetailsBlob = createTestEntity(
 				MailDetailsBlobTypeRef,
 				{
@@ -979,14 +980,14 @@ o.spec("PatchMergerTest", () => {
 				name: "second name",
 				address: "address2@tutao.de",
 			})
-			const firstUntypedToRecipient = await instancePipeline.mapAndEncryptToParsedInstance(MailAddressTypeRef, firstToRecipientToAdd, sk)
-			const secondUntypedToRecipient = await instancePipeline.mapAndEncryptToParsedInstance(MailAddressTypeRef, secondToRecipientToAdd, sk)
+			const firstUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, firstToRecipientToAdd, sk)
+			const secondUntypedToRecipient = await instancePipeline.mapAndEncrypt(MailAddressTypeRef, secondToRecipientToAdd, sk)
 
 			const attributePath = `${detailsAttributeId}/detailsId/${recipientsAttributeId}/recipientsId/${toRecipientsAttributeId}`
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: attributePath,
-					value: JSON.stringify([firstUntypedToRecipient, secondUntypedToRecipient]),
+					value: OutgoingServerJson.getJsonRepresentationOfMultiple([firstUntypedToRecipient, secondUntypedToRecipient]),
 					patchOperation: PatchOperationType.ADD_ITEM,
 				}),
 			]
@@ -1046,7 +1047,7 @@ o.spec("PatchMergerTest", () => {
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: setsAttributeId.toString(),
-					value: JSON.stringify([
+					value: OutgoingServerJson.stringifyIdTupleList([
 						["listId", "elementId"],
 						["listId", "elementId2"],
 					]),
@@ -1078,7 +1079,7 @@ o.spec("PatchMergerTest", () => {
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: setsAttributeId.toString(),
-					value: JSON.stringify([
+					value: OutgoingServerJson.stringifyIdTupleList([
 						["listId", "elementId"],
 						["listId", "elementId"],
 					]),
@@ -1110,7 +1111,7 @@ o.spec("PatchMergerTest", () => {
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: setsAttributeId.toString(),
-					value: JSON.stringify([
+					value: OutgoingServerJson.stringifyIdTupleList([
 						["listId", "elementId2"],
 						["listId", "elementId3"],
 						["listId", "elementId4"],
@@ -1124,7 +1125,7 @@ o.spec("PatchMergerTest", () => {
 			o(testMailPatched.sets).deepEquals([["listId", "elementId"]])
 		})
 
-		o.test("apply_removeitem_on_Any_aggregation", async () => {
+		o.test("apply_removeitem_on_Any_aggregation xyz", async () => {
 			const mailDetailsBlob = createTestEntity(
 				MailDetailsBlobTypeRef,
 				{

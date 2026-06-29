@@ -94,7 +94,7 @@ export class ParsedValue<NestedObject extends DeepEquals> implements DeepEquals 
 	}
 
 	static fromIdList<NestedObject extends DeepEquals>(value: Array<Id>): ParsedValue<NestedObject> {
-		const items = value.map((a) => ParsedValue.fromString<NestedObject>(a))
+		const items = value.map((a) => ParsedValue.fromId<NestedObject>(a))
 		return new ParsedValue<NestedObject>(null, items, null)
 	}
 

@@ -328,10 +328,7 @@ export class CryptoMapper {
 			return ParsedValue.fromNull()
 		}
 		if (valueType.cardinality === Cardinality.One && value === "") {
-			// Migration for values added after the Type has been defined initially
-			// valueToDefault returns a ParsedValue by necessity. In this branch, the default value is encrypted, and we need to store it
-			// base64 encoded in the CryptoMapper.
-			return ParsedValue.fromString(stringToBase64(EntityUtils.valueToDefault(valueType.type).asString()))
+			return EntityUtils.valueToDefault(valueType.type)
 		}
 		const ciphertext = base64ToUint8Array(value)
 		const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, fieldPath)

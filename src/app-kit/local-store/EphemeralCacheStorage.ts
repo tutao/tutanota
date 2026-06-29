@@ -87,7 +87,8 @@ export class EphemeralCacheStorage implements CacheStorage {
 				return this.lists.get(type)?.get(assertNotNull(listId))?.elements.get(id)?.clone() ?? null
 			case TypeId.BlobElement:
 				return this.blobEntities.get(type)?.get(assertNotNull(listId))?.elements.get(id)?.clone() ?? null
-			default:
+			case TypeId.DataTransfer:
+			case TypeId.Aggregated:
 				throw new ProgrammingError("must be a persistent type")
 		}
 	}

@@ -5,7 +5,7 @@
 
 import { AssociationReprType, getAssociationReprType, isSameId, isSameTypeRef, TypeRef } from "../meta"
 import { ParsedValue } from "./ParsedValue"
-import { arrayEquals, arrayEqualsWithPredicate, assertNotNull, deepEqual, isEmpty, isNotNull, KeyVersion, lazy, Nullable } from "@tutao/utils"
+import { assertNotNull, deepEqual, isEmpty, isNotNull, KeyVersion, lazy, Nullable } from "@tutao/utils"
 import {
 	DecryptedParsedInstance,
 	DecryptedParsedValue,
@@ -144,19 +144,38 @@ export class PatchMerger {
 			if (pathResult == null) {
 				return false
 			}
-			const attributeId = pathResult.attributeId
-			const pathResultTypeModel = pathResult.typeModel
-			const associationType = pathResultTypeModel.associations[attributeId]?.type ?? null
 
-			// We need to map and decrypt for REPLACE and ADD_ITEM as the payloads are encrypted, REMOVE_ITEM only has either aggregate ids, generated ids, or id tuples
-			if (patch.patchOperation !== PatchOperationType.REMOVE_ITEM) {
-				const encryptedParsedValue = await this.parseValueOnPatch(pathResult, patch.value)
-				const fieldPath: string = this.removeNetworkDebuggingSymbolsIfNeeded(patch.attributePath)
-				const value = await this.decryptValueOnPatch(pathResult, encryptedParsedValue, ownerGroup, instanceDecryptor, fieldPath)
-				await this.applyPatchOperation(patch.patchOperation, pathResult, value)
-			} else {
-				const idArray = JSON.parse(assertNotNull(patch.value)) as Array<any>
-				await this.applyPatchOperation(patch.patchOperation, pathResult, ParsedValue.fromNestedItems(idArray))
+			switch (patch.patchOperation) {
+				// - For REMOVE_ITEM ( which is only allowed in associations ), patch value will always be Array<Id> or Array<IdTuple> which will not need decryption
+				case PatchOperationType.REMOVE_ITEM: {
+					const association = assertNotNull(pathResult.typeModel.associations[pathResult.attributeId], "Remove Item is only allowed in associations")
+					switch (getAssociationReprType(association.type)) {
+						case AssociationReprType.IdTuple: {
+							await this.applyPatchOperation(
+								patch.patchOperation,
+								pathResult,
+								ParsedValue.fromIdTupleList(JSON.parse(assertNotNull(patch.value))),
+							)
+							break
+						}
+						case AssociationReprType.SingleId:
+						case AssociationReprType.Aggregation: {
+							await this.applyPatchOperation(patch.patchOperation, pathResult, ParsedValue.fromIdList(JSON.parse(assertNotNull(patch.value))))
+						}
+					}
+
+					break
+				}
+
+				// - For ADD_ITEM, REMOVED_ITEM, patch value can be anything and might need decryption
+				case PatchOperationType.REPLACE:
+				case PatchOperationType.ADD_ITEM: {
+					const encryptedParsedValue = await this.parseValueOnPatch(pathResult, patch.value)
+					const fieldPath: string = this.removeNetworkDebuggingSymbolsIfNeeded(patch.attributePath)
+					const value = await this.decryptValueOnPatch(pathResult, encryptedParsedValue, ownerGroup, instanceDecryptor, fieldPath)
+					await this.applyPatchOperation(patch.patchOperation, pathResult, value)
+					break
+				}
 			}
 			return true
 		} catch (e) {
@@ -164,7 +183,7 @@ export class PatchMerger {
 		}
 	}
 
-	private removeNetworkDebuggingSymbolsIfNeeded(fieldPath: string) {
+	private removeNetworkDebuggingSymbolsIfNeeded(fieldPath: string): string {
 		if (!env.networkDebugging) {
 			return fieldPath
 		}
@@ -207,14 +226,14 @@ export class PatchMerger {
 				const newAssociationValue = associationArray.concat(valuesToAdd)
 				const distinctAggregates = this.distinctAssociations(newAssociationValue)
 				if (associationReprType === AssociationReprType.Aggregation) {
-					const aggregationsWithCommonIdsButDifferentValues = associationArray.filter((aggregate) => {
+					const hasAggregationsWithCommonIdsButDifferentValues = associationArray.some((aggregate) => {
 						const aggregateId = aggregate.asNestedObj().getAttributeByName("_id").asId()
-						valuesToAdd.some((addedIem) => {
+						return valuesToAdd.some((addedIem) => {
 							const addedItemId = addedIem.asNestedObj().getAttributeByName("_id").asId()
-							return isSameId(aggregateId, addedItemId) && PatchMerger.isSameDecryptedParsedValue(addedIem, aggregate)
+							return isSameId(aggregateId, addedItemId) && !PatchMerger.isSameDecryptedParsedValue(addedIem, aggregate)
 						})
 					})
-					if (!isEmpty(aggregationsWithCommonIdsButDifferentValues)) {
+					if (hasAggregationsWithCommonIdsButDifferentValues) {
 						throw new PatchOperationError(
 							`PatchMerger attempted to add an existing aggregate with different values. \
 							existing items: ${JSON.stringify(associationArray)}, \
@@ -254,7 +273,10 @@ export class PatchMerger {
 			}
 			case PatchOperationType.REPLACE: {
 				if (isValue) {
-					instanceToChange.addAttribute(attributeId, ParsedValue.fromString(valueInPatchPayload.asString()))
+					const newValue: DecryptedParsedValue = valueInPatchPayload.isNull()
+						? ParsedValue.fromNull()
+						: ParsedValue.fromString(valueInPatchPayload.asString())
+					instanceToChange.addAttribute(attributeId, newValue)
 				} else if (associationReprType === AssociationReprType.Aggregation) {
 					instanceToChange.addAttribute(attributeId, ParsedValue.fromNestedItems(valueInPatchPayload.asNestedObjList()))
 				} else if (associationReprType === AssociationReprType.IdTuple) {
@@ -291,8 +313,8 @@ export class PatchMerger {
 				return ParsedValue.fromIdTupleList(idTupleList)
 			}
 			case AssociationReprType.SingleId: {
-				const idTupleList = JSON.parse(associationValue) as Array<Id>
-				return ParsedValue.fromIdList(idTupleList)
+				const idList = JSON.parse(associationValue) as Array<Id>
+				return ParsedValue.fromIdList(idList)
 			}
 		}
 	}
@@ -398,19 +420,6 @@ export class PatchMerger {
 	}
 
 	private static isSameDecryptedParsedValue(first: DecryptedParsedValue, second: DecryptedParsedValue): boolean {
-		if (first.isString() && second.isString()) {
-			return deepEqual(first.asString(), second.asString())
-		} else if (first.isArray() && second.isArray()) {
-			return arrayEqualsWithPredicate(first.asArray(), second.asArray(), PatchMerger.isSameDecryptedParsedValue)
-		} else if (first.isNestedObj() && second.isNestedObj()) {
-			const o = second.asNestedObj()
-			const t = first.asNestedObj()
-			return (
-				arrayEquals(Object.keys(o), Object.keys(t)) &&
-				arrayEqualsWithPredicate(Object.values(o), Object.values(t), PatchMerger.isSameDecryptedParsedValue)
-			)
-		}
-
-		return first.isNull() && second.isNull()
+		return deepEqual(first, second)
 	}
 }

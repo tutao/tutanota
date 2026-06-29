@@ -312,12 +312,20 @@ export class OutgoingClientEntity {
 
 	private getAssociation<T>(associationModel: ModelAssociation): Array<T> {
 		const value = this.entityRecord[associationModel.name] ?? null
+		// IdTuple looks like an array, but we should treat it as single value of IdTuple
+		const isIdTuple =
+			getAssociationReprType(associationModel.type) === AssociationReprType.IdTuple &&
+			isNotNull(value) &&
+			Array.isArray(value) &&
+			value.length === 2 &&
+			typeof value[0] === "string" &&
+			typeof value[1] === "string"
 
 		switch (associationModel.cardinality) {
 			case Cardinality.One: {
 				if (value == null) {
-					throw new InvalidModelError("Association with cardinality one cannot be null")
-				} else if (Array.isArray(value) && getAssociationReprType(associationModel.type) === AssociationReprType.IdTuple && value.length === 2) {
+					throw new InvalidModelError(`Association "${associationModel.name}"(${associationModel.id}) with cardinality one cannot be null`)
+				} else if (isIdTuple) {
 					return [value as T]
 				} else if (Array.isArray(value)) {
 					throw new InvalidModelError("Association with cardinality One cannot be an array")
@@ -325,16 +333,16 @@ export class OutgoingClientEntity {
 				return [value as T]
 			}
 			case Cardinality.ZeroOrOne: {
-				if (Array.isArray(value)) {
-					throw new InvalidModelError("Association with cardinality ZeroOrOne should have at most one item")
+				if (isIdTuple || !Array.isArray(value)) {
+					return isNotNull(value) ? [value as T] : []
 				}
-				return isNotNull(value) ? [value as T] : []
+				throw new InvalidModelError("Association with cardinality ZeroOrOne should have at most one item")
 			}
 			case Cardinality.Any: {
-				if (!Array.isArray(value) && value != null) {
-					throw new InvalidModelError("Association with cardinality ZeroOrOne should have at most one item")
+				if (Array.isArray(value)) {
+					return (value as Array<T>) ?? []
 				}
-				return (value as Array<T>) ?? []
+				throw new InvalidModelError("Association with cardinality Any should have an array of items")
 			}
 		}
 	}

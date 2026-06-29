@@ -90,7 +90,7 @@ class MailSetEntryIdGenerator {
 const databasePath = ":memory:"
 export const offlineDatabaseTestKey = Uint8Array.from([3957386659, 354339016, 3786337319, 3366334248])
 
-o.spec("OfflineStorageDb", function () {
+o.spec("OfflineStorageDbTest", function () {
 	const now = new Date("2022-01-01 00:00:00 UTC")
 	const timeRangeDate = new Date("2021-12-22 00:00:00 UTC")
 	const userId = "userId"
@@ -646,10 +646,14 @@ o.spec("OfflineStorageDb", function () {
 					const id: IdTuple = ["id1", "idPart2"]
 					const ownerGroup = "ownerGroup1"
 
-					const entity = createTestEntity(MailDetailsBlobTypeRef, {
-						_id: id,
-						_ownerGroup: ownerGroup,
-					})
+					const entity = createTestEntity(
+						MailDetailsBlobTypeRef,
+						{
+							_id: id,
+							_ownerGroup: ownerGroup,
+						},
+						{ populateAggregates: true },
+					)
 
 					await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(entity))
 					const rowIdQuery = sql`SELECT rowid
