@@ -24,14 +24,15 @@ export class ThrottledRouter implements Router {
 	}
 }
 
-/** router that is scoped to a specific prefix and will ignore the path changes outside of it */
-export class ScopedRouter<Scope extends string> implements Router {
+/**
+ * Router that is scoped to a specific prefix and will ignore the path changes outside of it.
+ * Also implements throttling.
+ */
+export class ScopedThrottledRouter<Scope extends string> implements Router {
 	private readonly scope: string
+	private readonly throttledRoute = throttleRoute()
 
-	constructor(
-		private readonly router: Router,
-		scope: Scope,
-	) {
+	constructor(scope: Scope) {
 		if (!scope.startsWith("/")) {
 			throw new ProgrammingError(`Scope must start with a forward slash! got: ${scope}`)
 		}
@@ -42,14 +43,15 @@ export class ScopedRouter<Scope extends string> implements Router {
 	}
 
 	getFullPath(): string {
-		return this.router.getFullPath()
+		return m.route.get()
 	}
 
-	routeTo(path: string, params: Record<string, any>) {
-		if (routeMatchesPrefix(this.scope, this.router.getFullPath())) {
-			this.router.routeTo(path, params)
+	// check the route *after* debounce to avoid checking prematurely
+	readonly routeTo = debounceStart(32, (path: string, params: Record<string, any>) => {
+		if (routeMatchesPrefix(this.scope, this.getFullPath())) {
+			this.throttledRoute(path, params)
 		}
-	}
+	})
 }
 
 export function routeMatchesPrefix(prefixWithoutLeadingSlash: string, route: string): boolean {

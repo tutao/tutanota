@@ -1,7 +1,7 @@
 import o, { verify } from "@tutao/otest"
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
 import { DriveFacade, DriveFolderType, DriveRootFolders } from "../../../src/applications/common/api/worker/facades/lazy/DriveFacade"
-import { Router } from "../../../src/ui/ScopedRouter"
+import { Router } from "../../../src/ui/ScopedThrottledRouter"
 import { TransferProgressDispatcher } from "../../../src/applications/common/api/main/TransferProgressDispatcher"
 import { EventController } from "../../../src/applications/common/api/main/EventController"
 import { LoginController } from "../../../src/applications/common/api/main/LoginController"

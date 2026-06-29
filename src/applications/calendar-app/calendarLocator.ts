@@ -72,7 +72,7 @@ import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../../platform-kit/utils/NoZoneDateProvider.js"
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
 import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorViewModel.js"
-import { Router, ScopedRouter, ThrottledRouter } from "../../ui/ScopedRouter.js"
+import { Router, ScopedThrottledRouter, ThrottledRouter } from "../../ui/ScopedThrottledRouter.js"
 import { DeviceConfig, deviceConfig } from "../common/misc/DeviceConfig.js"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
@@ -265,7 +265,7 @@ class CalendarLocator implements CommonLocator {
 
 	readonly scopedSearchRouter: lazyAsync<SearchRouter> = lazyMemoized(async () => {
 		const { SearchRouter } = await import("../common/search/view/SearchRouter.js")
-		return new SearchRouter(new ScopedRouter(this.throttledRouter(), "/search"))
+		return new SearchRouter(new ScopedThrottledRouter("/search"))
 	})
 
 	readonly unscopedSearchRouter: lazyAsync<SearchRouter> = lazyMemoized(async () => {

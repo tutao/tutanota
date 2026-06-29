@@ -6,7 +6,7 @@ import { arrayEquals, debounce, lazy, lazyMemoized, memoized } from "../../../..
 import { EventController } from "../../../common/api/main/EventController.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { Router } from "../../../../ui/ScopedRouter.js"
+import { Router } from "../../../../ui/ScopedThrottledRouter.js"
 import { ContactListInfo, ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { ReceivedGroupInvitationsModel } from "../../../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"

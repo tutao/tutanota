@@ -1,4 +1,4 @@
-import { Router } from "../../../../ui/ScopedRouter"
+import { Router } from "../../../../ui/ScopedThrottledRouter"
 import { type MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { CalendarEventModel, CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel"

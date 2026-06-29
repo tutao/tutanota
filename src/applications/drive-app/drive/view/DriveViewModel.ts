@@ -2,7 +2,7 @@ import { elementIdPart, getElementId, isSameId, listIdPart, OperationType } from
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
-import { Router } from "../../../../ui/ScopedRouter"
+import { Router } from "../../../../ui/ScopedThrottledRouter"
 import m from "mithril"
 import { assertNotNull, debounceStart, filterInt, last, memoizedWithHiddenArgument, noOp, partition, promiseMap } from "@tutao/utils"
 import { DriveTransferController, DriveTransfers } from "./DriveTransferController"

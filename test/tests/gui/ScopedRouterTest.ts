@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { routeMatchesPrefix } from "../../../src/ui/ScopedRouter.js"
+import { routeMatchesPrefix } from "../../../src/ui/ScopedThrottledRouter.js"
 
 o.spec("ScopedRouter", function () {
 	o.spec("route matches prefix", function () {

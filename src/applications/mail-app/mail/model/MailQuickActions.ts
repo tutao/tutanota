@@ -3,7 +3,7 @@ import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/M
 import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtils"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { getPathToFolderString } from "./MailUtils"
-import { Router } from "../../../../ui/ScopedRouter"
+import { Router } from "../../../../ui/ScopedThrottledRouter"
 import { getElementId } from "../../../../platform-kit/meta"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { MAIL_PREFIX } from "../../../../ui/utils/RouteChange"

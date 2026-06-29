@@ -108,7 +108,7 @@ import { WhitelabelThemeGenerator } from "../../ui/WhitelabelThemeGenerator"
 import { NativeInterfaces } from "../common/native/NativeInterfaceFactory"
 import { EntropyFacade } from "../../platform-kit/base/facades/EntropyFacade"
 import { ClientModelInfo } from "@tutao/instance-pipeline"
-import { Router, ScopedRouter, ThrottledRouter } from "../../ui/ScopedRouter"
+import { Router, ScopedThrottledRouter, ThrottledRouter } from "../../ui/ScopedThrottledRouter"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils"
 import { CALENDAR_PREFIX } from "../../ui/utils/RouteChange"
@@ -228,7 +228,7 @@ class DriveLocator implements CommonLocator {
 
 	readonly driveViewModel: lazyAsync<DriveViewModel> = lazyMemoized(async () => {
 		const { DriveViewModel } = await import("./drive/view/DriveViewModel.js")
-		const router = new ScopedRouter(this.throttledRouter(), "/drive")
+		const router = new ScopedThrottledRouter("/drive")
 		const { DriveTransferController } = await import("./drive/view/DriveTransferController.js")
 		const { WebFileResolver } = await import("../drive-app/drive/view/WebFileResolver.js")
 

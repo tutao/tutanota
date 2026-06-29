@@ -1,7 +1,7 @@
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { ContactModel } from "../../common/contactsFunctionality/ContactModel"
 import { lang } from "../../../ui/utils/LanguageViewModel"
-import { Router } from "../../../ui/ScopedRouter"
+import { Router } from "../../../ui/ScopedThrottledRouter"
 import { ContactEditor } from "./ContactEditor"
 import { CONTACTS_PREFIX } from "../../../ui/utils/RouteChange"
 import { QuickAction } from "../../common/misc/quickactions/QuickActionsModel"

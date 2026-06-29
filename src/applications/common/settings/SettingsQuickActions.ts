@@ -1,5 +1,5 @@
 import { lang } from "../../../ui/utils/LanguageViewModel"
-import { Router } from "../../../ui/ScopedRouter"
+import { Router } from "../../../ui/ScopedThrottledRouter"
 import { isNotNull } from "../../../platform-kit/utils"
 import { LoginController } from "../api/main/LoginController"
 import { SETTINGS_PREFIX } from "../../../ui/utils/RouteChange"

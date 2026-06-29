@@ -8,7 +8,7 @@ import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnec
 import { isOfflineError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../../platform-kit/rest-client/error"
 import { UserError } from "../../../common/api/main/UserError.js"
 import Stream from "mithril/stream"
-import { Router } from "../../../../ui/ScopedRouter.js"
+import { Router } from "../../../../ui/ScopedThrottledRouter.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { assertSystemFolderOfType } from "../model/MailUtils.js"

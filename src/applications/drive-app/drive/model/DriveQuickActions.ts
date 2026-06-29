@@ -1,4 +1,4 @@
-import { Router } from "../../../../ui/ScopedRouter"
+import { Router } from "../../../../ui/ScopedThrottledRouter"
 import { QuickAction } from "../../../common/misc/quickactions/QuickActionsModel"
 import { DRIVE_PREFIX } from "../../../../ui/utils/RouteChange"
 import { DriveViewModel } from "../view/DriveViewModel"

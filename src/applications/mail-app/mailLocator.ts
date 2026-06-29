@@ -74,7 +74,7 @@ import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../../platform-kit/utils/NoZoneDateProvider.js"
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
 import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorViewModel.js"
-import { Router, ScopedRouter, ThrottledRouter } from "../../ui/ScopedRouter.js"
+import { Router, ScopedThrottledRouter, ThrottledRouter } from "../../ui/ScopedThrottledRouter.js"
 import { DeviceConfig, deviceConfig } from "../common/misc/DeviceConfig.js"
 import { InboxRuleHandler } from "./mail/model/InboxRuleHandler.js"
 import { SearchViewModel } from "./search/view/SearchViewModel.js"
@@ -288,7 +288,7 @@ class MailLocator implements CommonLocator {
 	readonly mailViewModel = lazyMemoized(async () => {
 		const { MailViewModel } = await import("./mail/view/MailViewModel.js")
 		const conversationViewModelFactory = await this.conversationViewModelFactory()
-		const router = new ScopedRouter(this.throttledRouter(), "/mail")
+		const router = new ScopedThrottledRouter("/mail")
 		return new MailViewModel(
 			this.mailboxModel,
 			this.mailModel,
@@ -357,7 +357,7 @@ class MailLocator implements CommonLocator {
 
 	readonly scopedSearchRouter: lazyAsync<SearchRouter> = lazyMemoized(async () => {
 		const { SearchRouter } = await import("../common/search/view/SearchRouter.js")
-		return new SearchRouter(new ScopedRouter(this.throttledRouter(), "/search"))
+		return new SearchRouter(new ScopedThrottledRouter("/search"))
 	})
 
 	readonly unscopedSearchRouter: lazyAsync<SearchRouter> = lazyMemoized(async () => {
@@ -380,13 +380,13 @@ class MailLocator implements CommonLocator {
 
 	readonly contactViewModel = lazyMemoized(async () => {
 		const { ContactViewModel } = await import("./contacts/view/ContactViewModel.js")
-		const router = new ScopedRouter(this.throttledRouter(), "/contact")
+		const router = new ScopedThrottledRouter("/contact")
 		return new ContactViewModel(this.contactModel, this.entityClient, this.eventController, router, await this.redraw())
 	})
 
 	readonly contactListViewModel = lazyMemoized(async () => {
 		const { ContactListViewModel } = await import("./contacts/view/ContactListViewModel.js")
-		const router = new ScopedRouter(this.throttledRouter(), "/contactlist")
+		const router = new ScopedThrottledRouter("/contactlist")
 		return new ContactListViewModel(
 			this.entityClient,
 			this.groupManagementFacade,
@@ -1380,7 +1380,7 @@ class MailLocator implements CommonLocator {
 
 	readonly driveViewModel: lazyAsync<DriveViewModel> = lazyMemoized(async () => {
 		const { DriveViewModel } = await import("../drive-app/drive/view/DriveViewModel.js")
-		const router = new ScopedRouter(this.throttledRouter(), "/drive")
+		const router = new ScopedThrottledRouter("/drive")
 		const { DriveTransferController } = await import("../drive-app/drive/view/DriveTransferController.js")
 		const { WebFileResolver } = await import("../drive-app/drive/view/WebFileResolver.js")
 

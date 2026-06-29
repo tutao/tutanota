@@ -85,7 +85,7 @@ import { CalendarEvent, Contact, Mail, MailboxProperties } from "@tutao/entities
 import { ThemeController } from "../../../../ui/ThemeController"
 import { WhitelabelThemeGenerator } from "../../../../ui/WhitelabelThemeGenerator"
 import { Header } from "../../../../ui/Header"
-import { Router } from "../../../../ui/ScopedRouter"
+import { Router } from "../../../../ui/ScopedThrottledRouter"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { ClientModelInfo } from "@tutao/instance-pipeline"
 
