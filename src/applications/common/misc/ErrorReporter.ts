@@ -89,25 +89,31 @@ async function showErrorOverlay(): Promise<{ decision: "send" | "cancel"; ignore
 		notificationOverlay.show(
 			{
 				view: () =>
-					m("", [
-						"An error occurred",
-						m(
-							".pt-16",
-							m(Checkbox, {
-								label: () => "Ignore the error for this session",
-								checked: ignore,
-								onChecked: (checked) => (ignore = checked),
-							}),
-						),
-					]),
+					m(
+						"",
+						{
+							"data-testid": `notification:uncaughtError`,
+						},
+						[
+							"An error occurred",
+							m(
+								".pt-16",
+								m(Checkbox, {
+									label: () => "Ignore the error for this session",
+									checked: ignore,
+									onChecked: (checked) => (ignore = checked),
+								}),
+							),
+						],
+					),
 			},
 			{
-				label: "close_alt",
+				label: lang.getTranslation("close_alt"),
 				click: () => resolve("cancel"),
 			},
 			[
 				{
-					label: "sendReport_label",
+					label: lang.getTranslation("sendReport_label"),
 					click: () => resolve("send"),
 					type: ButtonType.Secondary,
 				},
@@ -170,7 +176,13 @@ function showReportDialog(
 					{
 						expanded: detailsExpanded,
 					},
-					m(".selectable", [m(".selectable", subject), message.split("\n").map((l) => (l.trim() === "" ? m(".pb-16", "") : m("", l)))]),
+					m(
+						".selectable",
+						{
+							"data-testid": "text:errorMessage",
+						},
+						[m(".selectable", subject), message.split("\n").map((l) => (l.trim() === "" ? m(".pb-16", "") : m("", l)))],
+					),
 				),
 			]
 		},

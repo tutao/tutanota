@@ -47,6 +47,7 @@ export class ExpanderButton implements Component<ExpanderAttrs> {
 							if (!a.isPropagatingEvents) e.preventDefault()
 						}
 					},
+					"data-testid": `btn:${lang.getTestId(a.label)}`,
 					"aria-expanded": String(a.expanded),
 				},
 				[
