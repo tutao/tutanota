@@ -1770,7 +1770,7 @@ export default {
 		"retry_action": "Spróbuj ponownie",
 		"revealPassword_action": "Pokaż hasło",
 		"revocation_action": "Zgłoś wypowiedzenie",
-		"revocation_text": "Możesz złożyć wniosek wypowiedzenia subskrypcji, w ciągu 14 dni od momentu podwyższenia wersji subskrypcji, jeśli twoje konto jest w wersji płatnej dla osób fizycznych. \\n\\n Podaj dane logowania do konta, dla którego chcesz anulować subskrypcję.",
+		"revocation_text": "Możesz złożyć wniosek wypowiedzenia subskrypcji, w ciągu 14 dni od momentu podwyższenia wersji subskrypcji, jeśli twoje konto jest w wersji płatnej dla osób fizycznych. Podaj dane logowania do konta, dla którego chcesz anulować subskrypcję.",
 		"revocationAlreadySubmitted_msg": "Złożono już wniosek wypowiedzenia subskrypcji dla tego konta.",
 		"revocationForm_title": "Formularz wypowiedzenia",
 		"revocationOnlyPersonalPlans_msg": "Wypowiedzenie można składać wyłącznie w przypadku płatnych ofert dla osób fizycznych. Jeśli potrzebujesz pomocy, skontaktuj się z działem obsługi klienta.",

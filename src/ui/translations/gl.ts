@@ -1769,7 +1769,7 @@ export default {
 		"retry_action": "Intentar de novo",
 		"revealPassword_action": "Mostrar o contrasinal",
 		"revocation_action": "Ennviar desistimento",
-		"revocation_text": "Podes enviar unha solicitude para desistir da subscrición da conta dentro dos 14 días desde a súa mellora se estás nun plan persoal de pago. \\n\\n Por favor proporciona as credenciais da conta da que queres desistir da subscrición.",
+		"revocation_text": "Podes enviar unha solicitude para desistir da subscrición da conta dentro dos 14 días desde a súa mellora se estás nun plan persoal de pago. Por favor proporciona as credenciais da conta da que queres desistir da subscrición.",
 		"revocationAlreadySubmitted_msg": "Xa se ten enviada unha solicitude para desistir da subscrición esta conta.",
 		"revocationForm_title": "Formulario para desistir",
 		"revocationOnlyPersonalPlans_msg": "As solicitudes de desistimento só se poden enviar para plans persoais de pago. Contacta coa axuda se precisas asistencia.",

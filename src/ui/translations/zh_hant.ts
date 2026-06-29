@@ -1769,7 +1769,7 @@ export default {
 		"retry_action": "再試",
 		"revealPassword_action": "顯示密碼",
 		"revocation_action": "提交撤銷",
-		"revocation_text": "如果您的帳戶使用個人付費計劃，您可以於升級後14天內提交訂購計劃的撤銷要求。\\n\\n請提供您想撤銷您的訂購計劃的帳戶的登入資料。",
+		"revocation_text": "如果您的帳戶使用個人付費計劃，您可以於升級後14天內提交訂購計劃的撤銷要求。請提供您想撤銷您的訂購計劃的帳戶的登入資料。",
 		"revocationAlreadySubmitted_msg": "此帳戶已提出撤銷訂購計劃的要求。",
 		"revocationForm_title": "撤銷表格",
 		"revocationOnlyPersonalPlans_msg": "只有個人付費計劃下才可提交撤銷要求。如果您需要協助，請聯絡支援。",

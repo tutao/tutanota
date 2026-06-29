@@ -1769,7 +1769,7 @@ export default {
 		"retry_action": "Försök igen",
 		"revealPassword_action": "Visa lösenordet",
 		"revocation_action": "Skicka begäran",
-		"revocation_text": "Du kan ångra prenumerationen inom 14 dagar efter uppgraderingen om ditt konto ingår i en personlig betald plan. \\n\\n Ange inloggningsuppgifterna för det konto vars abonnemang du vill säga upp.",
+		"revocation_text": "Du kan ångra prenumerationen inom 14 dagar efter uppgraderingen om ditt konto ingår i en personlig betald plan. Ange inloggningsuppgifterna för det konto vars abonnemang du vill säga upp.",
 		"revocationAlreadySubmitted_msg": "En begäran om att ångra prenumerationen för detta konto har redan lämnats in.",
 		"revocationForm_title": "Formulär för att ångra köp",
 		"revocationOnlyPersonalPlans_msg": "Begäran om att ångra prenumerationen kan endast lämnas in för personligt betalda abonnemang. Kontakta supporten om du behöver hjälp.",

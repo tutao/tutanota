@@ -1770,7 +1770,7 @@ export default {
 		"retry_action": "Reinténtalo",
 		"revealPassword_action": "Mostrar la contraseña",
 		"revocation_action": "Enviar revocación",
-		"revocation_text": "Puedes solicitar una revocación si tu cuenta tiene un plan de pago personal dentro de los 14 días posteriores a la mejora. \\n\\n Proporciona las credenciales de la cuenta de la que quieres revocar la suscripción.",
+		"revocation_text": "Puedes solicitar una revocación si tu cuenta tiene un plan de pago personal dentro de los 14 días posteriores a la mejora. Proporciona las credenciales de la cuenta de la que quieres revocar la suscripción.",
 		"revocationAlreadySubmitted_msg": "Ya se solicitó una revocación de suscripción para esta cuenta.",
 		"revocationForm_title": "Ficha de baja",
 		"revocationOnlyPersonalPlans_msg": "La revocación solo aplica a planes personales. Contacta con soporte si necesitas ayuda.",

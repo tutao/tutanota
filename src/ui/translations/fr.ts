@@ -1770,7 +1770,7 @@ export default {
 		"retry_action": "Essayez à nouveau",
 		"revealPassword_action": "Révéler le mot de passe",
 		"revocation_action": "Envoyer la demande de rétractation",
-		"revocation_text": "Vous pouvez exercer votre droit de rétractation dans les 14 jours suivant le passage de votre compte à une offre personnelle payante. \\n\\n Veuillez saisir les identifiants du compte pour lequel vous souhaitez exercer votre droit de rétractation.",
+		"revocation_text": "Vous pouvez exercer votre droit de rétractation dans les 14 jours suivant le passage de votre compte à une offre personnelle payante. Veuillez saisir les identifiants du compte pour lequel vous souhaitez exercer votre droit de rétractation.",
 		"revocationAlreadySubmitted_msg": "Une demande de rétractation de l’abonnement a déjà été enregistrée pour ce compte.",
 		"revocationForm_title": "Formulaire de rétractation",
 		"revocationOnlyPersonalPlans_msg": "Le droit de rétractation ne peut être exercé que pour les offres personnelles payantes. Veuillez contacter le support si vous avez besoin d’aide.",
