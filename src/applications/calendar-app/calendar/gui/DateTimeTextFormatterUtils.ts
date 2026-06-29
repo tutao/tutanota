@@ -53,7 +53,7 @@ export function formatEventDuration(
 	if (isAllDayEvent(event)) {
 		return formatAllDayDurationText(event, calendarTimeZone, calendarTimeZone)
 	} else {
-		return formatNormalEventDurationText(event, includeTimezone, startTimeZone ?? calendarTimeZone, endTimeZone ?? calendarTimeZone)
+		return formatNormalEventDurationText(event, includeTimezone, startTimeZone ?? calendarTimeZone, endTimeZone ?? startTimeZone ?? calendarTimeZone)
 	}
 }
 
@@ -61,7 +61,7 @@ export function formatTimeWithZoneInfo({ endTime, startTime }: CalendarEventTime
 	const startTimeZone = formatterTimezones.startTimeZone ?? formatterTimezones.calendarTimeZone
 	const startTimezoneCity = startTimeZone.split("/").at(-1)!.replaceAll("_", " ")
 
-	const endTimeZone = formatterTimezones.endTimeZone ?? formatterTimezones.calendarTimeZone
+	const endTimeZone = formatterTimezones.endTimeZone ?? startTimeZone
 	const endTimezoneCity = endTimeZone.split("/").at(-1)!.replaceAll("_", " ")
 
 	const isSameTimeZone = startTimeZone === endTimeZone
