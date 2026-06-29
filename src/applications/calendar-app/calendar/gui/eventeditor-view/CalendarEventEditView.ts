@@ -500,7 +500,14 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		return m(TimeZoneSelectionPage, {
 			width: this.pageWidth,
 			model: attrs.model.editModels.whenModel,
-			onConfirm: () => attrs.navigationCallback(EditorPages.MAIN),
+			onConfirm: () => {
+				if (!attrs.model.editModels.whenModel.startTimeZone) {
+					// Ensure start time zone is always set when confirm is pressed
+					attrs.model.editModels.whenModel.startTimeZone = attrs.model.editModels.whenModel.calendarTimeZone
+				}
+
+				attrs.navigationCallback(EditorPages.MAIN)
+			},
 		} satisfies TimeZoneSelectionPageAttrs)
 	}
 
