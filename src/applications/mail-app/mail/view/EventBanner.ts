@@ -64,8 +64,8 @@ export function sendResponse(
 ): Promise<boolean> {
 	return showProgressDialog(
 		"pleaseWait_msg",
-		import("../../../calendar-app/calendar/view/CalendarInvites.js").then(async ({ getLatestEvent }) => {
-			const latestEvent = await getLatestEvent(event)
+		import("../../../calendar-app/calendar/view/CalendarInvites.js").then(async ({ getLatestEventInPrivateCalendars }) => {
+			const latestEvent = await getLatestEventInPrivateCalendars(event)
 			const ownAttendee = findAttendeeInAddresses(latestEvent.attendees, [recipient])
 			const calendarInviteHandler = await locator.calendarInviteHandler()
 
