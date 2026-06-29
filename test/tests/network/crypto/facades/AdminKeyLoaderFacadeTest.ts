@@ -72,7 +72,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 		const groupKeyVersion = 2
 
 		const pubUserGroupEccKey = object<X25519PublicKey>()
-		const groupKeyBytes = new Aes256Key([1])
+		const groupKeyBytes = new Aes256Key([1, 2, 3, 4, 5, 6, 7, 8])
 		const adminGroupEncGKey = object<Uint8Array>()
 		const pubAdminGroupEncSymKey = object<Uint8Array>()
 		const pubAdminGroupEncGKey = createTestEntity(PubEncKeyDataTypeRef, {
@@ -228,7 +228,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 						}),
 						adminGroupKeyVersion: "1",
 					})
-					userGroupSymKeyV1 = new Aes256Key([0])
+					userGroupSymKeyV1 = new Aes256Key([0, 1, 2, 3, 4, 5, 6, 7])
 					const adminKeyPairV1 = object<PQKeyPairs>()
 					when(keyLoaderFacade.loadKeypair(adminGroupId, 1)).thenResolve(adminKeyPairV1)
 					when(

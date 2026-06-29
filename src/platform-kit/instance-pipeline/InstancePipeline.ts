@@ -49,6 +49,7 @@ export class InstancePipeline {
 
 		return this.mapAndEncryptWithSubKeyInfo(typeRef, instance, subKeyInfo)
 	}
+
 	async mapAndEncryptWithSubKeyInfo<T extends Entity>(
 		typeRef: TypeRef<T>,
 		instance: T,

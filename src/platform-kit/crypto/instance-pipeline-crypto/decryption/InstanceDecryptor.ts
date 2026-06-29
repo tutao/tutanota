@@ -1,5 +1,5 @@
 import { Nullable, stringToUtf8Uint8Array } from "@tutao/utils"
-import { AesKey, KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
+import { KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { AesCbcFacade } from "../../encryption/symmetric/AesCbcFacade"
 import { AeadFacade } from "../../encryption/symmetric/AeadFacade"
 import { AeadSubKeys, AesCbcSubKeys, InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
@@ -13,6 +13,7 @@ import {
 } from "../../encryption/symmetric/ParsedCiphertext"
 import { AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN, AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN } from "../../CryptoTypes"
 import { InstanceSubKeyCache } from "./SubKeyCache"
+import { AesKey } from "../../encryption/symmetric/AesKey"
 
 export class InstanceDecryptor {
 	private readonly instanceAesSubKeyCache = new InstanceSubKeyCache<AesCbcSubKeys>()

@@ -9,16 +9,13 @@ import { EntityClient } from "../../../../../src/platform-kit/network/EntityClie
 import { instance, matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 import {
-	Aes128Key,
 	Aes256Key,
 	aes256RandomKey,
 	AesKey,
-	AesKeyLength,
 	bitArrayToUint8Array,
 	createAuthVerifier,
 	cryptoUtils,
 	Ed25519PrivateKey,
-	getKeyLengthInBytes,
 	KeyPairType,
 	KyberPrivateKey,
 	MacTag,
@@ -109,50 +106,50 @@ import { ServiceExecutor } from "../../../../../src/platform-kit/network/Service
 import { AccountType, GroupType } from "../../../../../src/entities/sys/Utils"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { EncryptedPqKeyPairs } from "../../../../../src/platform-kit/crypto/encryption/EncryptedKeyPairs"
+import { _aes128RandomKey } from "../../../crypto/AesTest"
 
 const { anything } = matchers
-const PQ_SAFE_BITARRAY_KEY_LENGTH = getKeyLengthInBytes(AesKeyLength.Aes256) / 4
 
-const PW_KEY: Aes256Key = new Aes256Key([0])
+const PW_KEY: Aes256Key = new Aes256Key(new Array(8).fill(0))
 
 const CURRENT_USER_GROUP_KEY: VersionedKey = {
-	object: new Aes256Key([1]),
+	object: new Aes256Key(new Array(8).fill(1)),
 	version: 0,
 }
 
 const CURRENT_ADMIN_GROUP_KEY: VersionedKey = {
-	object: new Aes256Key([2]),
+	object: new Aes256Key(new Array(8).fill(2)),
 	version: 0,
 }
 
 const NEW_USER_GROUP_KEY: VersionedAes256Key = {
-	object: new Aes256Key([3, 3, 3, 3]),
+	object: new Aes256Key(new Array(8).fill(3)),
 	version: 1,
 }
 const NEW_ADMIN_GROUP_KEY: VersionedAes256Key = {
-	object: new Aes256Key([4]),
+	object: new Aes256Key(new Array(8).fill(4)),
 	version: 1,
 }
 
-const RECOVER_CODE: Aes256Key = new Aes256Key([8])
+const RECOVER_CODE: Aes256Key = new Aes256Key(new Array(8).fill(5))
 const RECOVER_CODE_VERIFIER = new Uint8Array([9])
 const AUTH_VERIFIER = createAuthVerifier(PW_KEY)
-const DISTRIBUTION_KEY = new Aes256Key([10])
+const DISTRIBUTION_KEY = new Aes256Key(new Array(8).fill(6))
 
 const CURRENT_USER_AREA_GROUP_KEY: VersionedKey = {
-	object: new Aes256Key([11]),
+	object: new Aes256Key(new Array(8).fill(7)),
 	version: 0,
 }
 
 const NEW_GROUP_KEY: VersionedAes256Key = {
-	object: new Aes256Key([12]),
+	object: new Aes256Key(new Array(8).fill(8)),
 	version: 1,
 }
-const MEMBER1_BUCKET_KEY: Aes256Key = new Aes256Key([13])
-const MEMBER1_SESSION_KEY: Aes256Key = new Aes256Key([14])
+const MEMBER1_BUCKET_KEY: Aes256Key = new Aes256Key(new Array(8).fill(9))
+const MEMBER1_SESSION_KEY: Aes256Key = new Aes256Key(new Array(8).fill(10))
 
 const OTHER_MEMBER_USER_GROUP_KEY: VersionedKey = {
-	object: new Aes256Key([15]),
+	object: new Aes256Key(new Array(8).fill(11)),
 	version: 0,
 }
 
@@ -474,7 +471,7 @@ o.spec("KeyRotationFacade", function () {
 		asymmetricCryptoFacade = object()
 		keyAuthenticationFacade = object()
 		publicEncryptionKeyProvider = object()
-		groupKeyVersion0 = new Aes256Key([1, 2, 3])
+		groupKeyVersion0 = new Aes256Key(new Array(8).fill(12))
 		publicKeySignatureFacade = object()
 		adminKeyLoader = object()
 		keyRotationFacade = new KeyRotationFacade(
@@ -1889,7 +1886,7 @@ o.spec("KeyRotationFacade", function () {
 				prepareKeyMocks(cryptoWrapperMock)
 				// make admin group key at 128-bit key
 				const insecureUserGroupKey: VersionedKey = {
-					object: new Aes128Key([666]),
+					object: _aes128RandomKey(),
 					version: 0,
 				}
 				when(keyLoaderFacadeMock.getCurrentSymUserGroupKey()).thenReturn(insecureUserGroupKey)
@@ -2068,7 +2065,7 @@ o.spec("KeyRotationFacade", function () {
 				prepareKeyMocks(cryptoWrapperMock)
 				// make admin group key a 128-bit key
 				const insecureAdminGroupKey: VersionedKey = {
-					object: new Aes128Key([666]),
+					object: _aes128RandomKey(),
 					version: 0,
 				}
 				when(keyLoaderFacadeMock.getCurrentSymGroupKey(adminGroupId)).thenResolve(insecureAdminGroupKey)

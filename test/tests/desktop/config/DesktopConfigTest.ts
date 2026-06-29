@@ -7,7 +7,8 @@ import { DesktopNativeCryptoFacade } from "../../../../src/applications/common/d
 import { DesktopConfigKey } from "../../../../src/platform-kit/app-env/ConfigKeys.js"
 import { ConfigFile } from "../../../../src/applications/common/desktop/config/ConfigFile.js"
 import { function as fn, matchers, object, verify, when } from "testdouble"
-import { Aes256Key } from "@tutao/crypto/symmetric-cipher-utils"
+
+import { Aes256Key } from "../../../../src/platform-kit/crypto/encryption/symmetric/AesKey"
 
 o.spec("DesktopConfigTest", function () {
 	let desktopConfig: DesktopConfig

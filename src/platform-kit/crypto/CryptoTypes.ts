@@ -1,5 +1,5 @@
 import { KeyVersion, Versioned } from "@tutao/utils"
-import { Aes256Key, AesKey } from "./encryption/symmetric/SymmetricCipherUtils"
+import { Aes256Key, AesKey } from "./encryption/symmetric/AesKey"
 
 export const enum HkdfKeyDerivationDomains {
 	UserGroupKeyDistributionKey = "userGroupKeyDistributionKey",
