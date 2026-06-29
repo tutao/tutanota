@@ -5,7 +5,6 @@ import {
 	AttributeName,
 	Cardinality,
 	ClientTypeModel,
-	EncryptedModelValue,
 	getAssociationReprType,
 	getIdType,
 	IdType,
@@ -40,6 +39,7 @@ import {
 	InstanceDecryptor,
 	InstanceTypeId,
 	KdfNonce,
+	SubKeyFactory,
 	SubKeyInfo,
 	SubKeyProvider,
 	SymmetricCipherFacade,
@@ -53,6 +53,7 @@ import { OwnerKeyProvider } from "./PatchMerger"
 import { ModelMapper } from "./ModelMapper"
 import { InstanceDirection, ParsedValue } from "./ParsedValue"
 import { EntityUtils } from "./EntityUtils"
+import { ProgrammingError } from "@tutao/app-env"
 
 export interface SymmetricGroupKeyLoader {
 	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey>
@@ -238,13 +239,12 @@ export class CryptoMapper {
 
 	public async encryptParsedInstance(
 		parsedInstance: DecryptedParsedInstance,
-		subKeyInfo: SubKeyInfo | SubKeyProvider,
+		subKeyFactory: Nullable<SubKeyFactory>,
 		fieldPathPrefix: string = "",
 	): Promise<EncryptedParsedInstance> {
 		// todo: get rid of this casting by implementing ensureModel() function in DecryptedParsedInstance
 		const clientTypeModel = parsedInstance.typeModel as ClientTypeModel
-		const instanceTypeId: InstanceTypeId = { app: clientTypeModel.app, id: clientTypeModel.id, name: clientTypeModel.name }
-		const subKeyProvider = subKeyInfo instanceof SubKeyProvider ? subKeyInfo : this.symmetricCipherFacade.getSubKeyProvider(subKeyInfo, instanceTypeId)
+		const subKeyProvider = this.makeNullableSubKeyProvider(subKeyFactory, clientTypeModel)
 
 		const encryptedInstance = EncryptedParsedInstance.outgoingToServer(clientTypeModel)
 
@@ -293,9 +293,21 @@ export class CryptoMapper {
 		return encryptedInstance
 	}
 
+	private makeNullableSubKeyProvider(subKeyFactory: Nullable<SubKeyFactory>, clientTypeModel: ClientTypeModel): Nullable<SubKeyProvider> {
+		if (subKeyFactory instanceof SubKeyProvider) {
+			return subKeyFactory
+		} else if (subKeyFactory instanceof SubKeyInfo) {
+			return this.symmetricCipherFacade.getSubKeyProvider(subKeyFactory, clientTypeModel)
+		} else if (subKeyFactory == null) {
+			return null
+		} else {
+			throw new ProgrammingError("unknown SubKeyFactory")
+		}
+	}
+
 	private async encryptAggregateAssociation(
 		aggregateValues: Array<DecryptedParsedInstance>,
-		subKeyProvider: SubKeyProvider,
+		subKeyProvider: Nullable<SubKeyProvider>,
 		fieldPathPrefix: string,
 	): Promise<Array<EncryptedParsedInstance>> {
 		let encryptedAggregates = new Array<EncryptedParsedInstance>()
@@ -351,12 +363,17 @@ export class CryptoMapper {
 		}
 	}
 
-	encryptValue(valueType: ModelValue, value: DecryptedParsedValue, subKeyProvider: SubKeyProvider, fieldPath: string): EncryptedParsedValue {
+	encryptValue(valueType: ModelValue, value: DecryptedParsedValue, subKeyProvider: Nullable<SubKeyProvider>, fieldPath: string): EncryptedParsedValue {
 		if (value.isNull()) {
 			return ParsedValue.fromNull()
 		}
 
 		const bytes = valueType.type === ValueTypeEnum.Bytes ? value.asByteArray() : stringToUtf8Uint8Array(value.asString())
+		// we want to throw the error late in case we cannot derive the subkeys to handle types gracefully
+		// that do not have any actual encrypted values set
+		if (subKeyProvider == null) {
+			throw new CryptoError(`Encrypting ${valueType.name} requires keys!`)
+		}
 		const subKeys = subKeyProvider.getSubKeys()
 		let encryptedBytes: Uint8Array
 		if (subKeys.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac) {

@@ -4,11 +4,9 @@ import { lazy, Nullable } from "@tutao/utils"
 import {
 	AesKey,
 	SubKeyInfo,
-	SubKeyInfoWithoutSessionKey,
-	SubKeyInfoWithSessionKey,
 	SymmetricCipherFacade,
-	SymmetricCipherVersion,
 	validateKdfNonceLength,
+	makeNullableSubKeyInfoWithSessionKeyCbcThenHmac
 } from "@tutao/crypto"
 import { assertWorkerOrNode } from "@tutao/app-env"
 import { EntityAdapter } from "./EntityAdapter"
@@ -56,16 +54,11 @@ export class InstancePipeline {
 		sessionKey: Promise<Nullable<AesKey>> | Nullable<AesKey>,
 	): Promise<EncryptedParsedInstance> {
 		const sk = await sessionKey
-		let subKeyInfo: SubKeyInfo
-		if (sk != null) {
-			subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
-		} else {
-			subKeyInfo = new SubKeyInfoWithoutSessionKey(SymmetricCipherVersion.AesCbcThenHmac)
-		}
+		const subKeyInfo = makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(sk)
 
 		return this.mapAndEncryptWithSubKeyInfo(instance, subKeyInfo)
 	}
-	async mapAndEncryptWithSubKeyInfo<T extends Entity>(instance: T, subKeyInfo: SubKeyInfo): Promise<EncryptedParsedInstance> {
+	async mapAndEncryptWithSubKeyInfo<T extends Entity>(instance: T, subKeyInfo: Nullable<SubKeyInfo>): Promise<EncryptedParsedInstance> {
 		const parsedInstance = await this.modelMapper.mapToDecryptedInstance(instance)
 		return await this.cryptoMapper.encryptParsedInstance(parsedInstance, subKeyInfo)
 	}

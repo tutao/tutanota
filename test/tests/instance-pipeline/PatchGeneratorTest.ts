@@ -15,7 +15,7 @@ import {
 	PatchOperationType,
 	TypeModelResolver,
 } from "../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey, SubKeyInfoWithSessionKey, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
+import { aes256RandomKey, SubKeyInfoWithSessionKeyCbcThenHmac } from "../../../src/platform-kit/crypto"
 import { assertNotNull, base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "../../../src/platform-kit/utils"
 import { GENERATED_MAX_ID, GENERATED_MIN_ID, ValueTypeEnum } from "../../../src/platform-kit/meta"
 import { createTestEntityWithDummyResolver } from "../TestUtils"
@@ -254,7 +254,7 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
-		const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
+		const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(currentParsedInstance, subKeyInfo)
 
 		const firstTestAssociationEncryptedInstance = currentEncryptedParsedInstance.getAttributeByName("testAssociation")[1]
@@ -292,7 +292,7 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
-		const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
+		const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(currentParsedInstance, subKeyInfo)
 		const encryptedAssociationArray = currentEncryptedParsedInstance.getAttributeByName("testAssociation")
 		const testAssociationFirstEncryptedInstance = encryptedAssociationArray[0]
@@ -377,7 +377,7 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
-		const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
+		const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(currentParsedInstance, subKeyInfo)
 
 		const testAggregateEncrypted = currentEncryptedParsedInstance.getAttributeByName("testAssociation").asNestedObjList()[0]
@@ -400,7 +400,7 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
-		const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
+		const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(currentParsedInstance, subKeyInfo)
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
 		const testAssociationEncrypted = currentEncryptedParsedInstance.getAttributeByName("testAssociation").asNestedObjList()[0]
@@ -425,7 +425,7 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
-		const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
+		const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(currentParsedInstance, subKeyInfo)
 
 		const testAggregateEncrypted = currentEncryptedParsedInstance.getAttributeByName("testAssociation").asNestedObjList()[0]
@@ -449,7 +449,7 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
-		const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
+		const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(currentParsedInstance, subKeyInfo)
 		let objectDiff = await patchGenerator.computePatches(originalParsedInstance, currentParsedInstance, currentEncryptedParsedInstance)
 		o(objectDiff).deepEquals([
