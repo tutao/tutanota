@@ -24,11 +24,5 @@ fi
 
 # run prettier fix on the changed files
 npx prettier -w  $CHG > /dev/null
-
-# stash everything that's not staged so that we can check only part of the file in
-git stash --keep-index --quiet
-
 # re-add the fixed files
 git add $CHG > /dev/null
-
-git stash pop --quiet
