@@ -26,13 +26,13 @@ abstract class ParsedCiphertext {
 }
 
 export abstract class ParsedCiphertextAesCbc extends ParsedCiphertext {
-	constructor(initializationVector: InitializationVector, ciphertext: Uint8Array) {
+	protected constructor(initializationVector: InitializationVector, ciphertext: Uint8Array) {
 		super(initializationVector, ciphertext)
 	}
 }
 
 export abstract class ParsedCiphertextAead extends ParsedCiphertext {
-	constructor(
+	protected constructor(
 		initializationVector: InitializationVector,
 		ciphertext: Uint8Array,
 		public readonly macTag: MacTag,

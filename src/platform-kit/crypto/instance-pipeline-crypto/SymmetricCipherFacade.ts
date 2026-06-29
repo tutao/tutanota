@@ -102,7 +102,7 @@ export class SymmetricCipherFacade {
 			bytes,
 			PaddingStandard.Pkcs5,
 			SymmetricCipherVersion.UnusedReservedUnauthenticated,
-			generateInitializationVector(),
+			InitializationVectorVariant.Random,
 			AuthenticationEnforcement.Relaxed,
 		)
 	}
@@ -208,7 +208,7 @@ export class SymmetricCipherFacade {
 				keyToUint8Array(keyToEncrypt),
 				PaddingStandard.None,
 				SymmetricCipherVersion.UnusedReservedUnauthenticated,
-				FIXED_INITIALIZATION_VECTOR,
+				InitializationVectorVariant.Fixed,
 			)
 		} else if (key instanceof Aes256Key) {
 			return this.encrypt(key, keyToUint8Array(keyToEncrypt), PaddingStandard.None, SymmetricCipherVersion.AesCbcThenHmac)
@@ -234,14 +234,20 @@ export class SymmetricCipherFacade {
 		throw new ProgrammingError("invalid key type")
 	}
 
-	encrypt(
+	private encrypt(
 		key: KeyOrSubKey,
 		plaintext: Uint8Array,
 		paddingStandard: PaddingStandard,
 		cipherVersion: SymmetricCipherVersion,
-		initializationVector: InitializationVector = generateInitializationVector(),
+		initializationVectorVariant: InitializationVectorVariant = InitializationVectorVariant.Random,
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
 	): Uint8Array {
+		let initializationVector: InitializationVector
+		if (initializationVectorVariant === InitializationVectorVariant.Random) {
+			initializationVector = generateInitializationVector()
+		} else {
+			initializationVector = FIXED_INITIALIZATION_VECTOR
+		}
 		let subKeys: AesCbcSubKeys
 		if (key instanceof AesCbcSubKeys) {
 			subKeys = key
