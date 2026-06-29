@@ -91,6 +91,9 @@ export class SymmetricKeyDeriver {
 	/**
 	 * Derives encryption and authentication keys as needed for the symmetric cipher implementations
 	 */
+	deriveSubKeysAesCbc(key: AesKey, cipherVersion: typeof SymmetricCipherVersion.AesCbcThenHmac): AesCbcThenHmacSubKeys
+	deriveSubKeysAesCbc(key: AesKey, cipherVersion: typeof SymmetricCipherVersion.UnusedReservedUnauthenticated): UnusedReservedUnauthenticatedSubKeys
+	deriveSubKeysAesCbc(key: AesKey, cipherVersion: SymmetricCipherVersion): AesCbcSubKeys
 	deriveSubKeysAesCbc(key: AesKey, cipherVersion: SymmetricCipherVersion): AesCbcSubKeys {
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
