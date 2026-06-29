@@ -1,7 +1,13 @@
 import { KeyVersion, Nullable } from "@tutao/utils"
 import { AesKey, KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { AesCbcFacade, PaddingStandard } from "../../encryption/symmetric/AesCbcFacade"
-import { AeadSubKeys, AesCbcSubKeys, InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
+import {
+	AeadSubKeys,
+	AesCbcSubKeys,
+	InstanceTypeId,
+	SymmetricKeyDeriver,
+	UnusedReservedUnauthenticatedSubKeys,
+} from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { AeadFacade } from "../../encryption/symmetric/AeadFacade"
 import { ParsedCiphertextAeadWithGroupKey, ParsedCiphertextAeadWithSessionKey, ParsedCiphertextAesCbc } from "../../encryption/symmetric/ParsedCiphertext"
 import { CryptoError } from "@tutao/crypto/error"
@@ -32,8 +38,17 @@ export class AesCbcDecryptor implements ValueDecryptor {
 		}
 		let subKeys = this.instanceAesSubKeyCache.get(instanceAesSubKeyCacheKey)
 		if (subKeys == null) {
-			subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbcHmac(this.sessionKey)
-			this.instanceAesSubKeyCache.set(instanceAesSubKeyCacheKey, subKeys)
+			switch (instanceAesSubKeyCacheKey.cipherVersion) {
+				case SymmetricCipherVersion.UnusedReservedUnauthenticated:
+					subKeys = new UnusedReservedUnauthenticatedSubKeys(this.sessionKey)
+					break
+				case SymmetricCipherVersion.AesCbcThenHmac:
+					subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbcHmac(this.sessionKey)
+					this.instanceAesSubKeyCache.set(instanceAesSubKeyCacheKey, subKeys)
+					break
+				default:
+					throw new CryptoError(`unexpected cipher version ${instanceAesSubKeyCacheKey.cipherVersion}`)
+			}
 		}
 		return this.aesCbcFacade.decrypt(subKeys, this.parsedCiphertext, PaddingStandard.Pkcs5)
 	}
