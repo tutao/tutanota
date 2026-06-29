@@ -12,7 +12,7 @@ import { CryptoError } from "@tutao/crypto/error"
 export abstract class SymmetricSubKeys extends AesKeyOrSubKeys {
 	abstract readonly cipherVersion: SymmetricCipherVersion
 
-	constructor(
+	protected constructor(
 		public readonly encryptionKey: AesKey,
 		public readonly authenticationKey: AesKey | null = null,
 	) {
@@ -21,7 +21,7 @@ export abstract class SymmetricSubKeys extends AesKeyOrSubKeys {
 }
 
 export abstract class AesCbcSubKeys extends SymmetricSubKeys {
-	constructor(encryptionKey: AesKey, authenticationKey: AesKey | null = null) {
+	protected constructor(encryptionKey: AesKey, authenticationKey: AesKey | null = null) {
 		super(encryptionKey, authenticationKey)
 	}
 }
@@ -46,7 +46,7 @@ export class AesCbcThenHmacSubKeys extends AesCbcSubKeys {
 }
 
 export abstract class AeadSubKeys extends SymmetricSubKeys {
-	constructor(
+	protected constructor(
 		override readonly encryptionKey: Aes256Key,
 		override readonly authenticationKey: Aes256Key,
 	) {
