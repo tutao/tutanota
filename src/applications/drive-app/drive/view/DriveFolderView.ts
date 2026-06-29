@@ -78,6 +78,9 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 			if (item.type === "folder" && itemsData) {
 				const dragItems = parseDragItems(itemsData)
 				if (dragItems) onMove(dragItems, item)
+				// this is a drive item move, to not bubble it up to the file handling
+				event.preventDefault()
+				event.stopPropagation()
 			}
 		}
 
