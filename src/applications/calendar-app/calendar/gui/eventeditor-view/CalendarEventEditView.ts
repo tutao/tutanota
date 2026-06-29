@@ -28,6 +28,7 @@ import { DefaultAnimationTime } from "../../../../../ui/animation/Animations.js"
 import { Icons } from "../../../../../ui/base/icons/Icons.js"
 import { SectionButton } from "../../../../../ui/base/buttons/SectionButton.js"
 import { CalendarRepeatRule } from "@tutao/entities/tutanota"
+import { TimeZoneSelectionPage, TimeZoneSelectionPageAttrs } from "./TimeZoneSelectionPage"
 
 export type CalendarEventEditViewAttrs = {
 	model: CalendarEventModel
@@ -496,7 +497,11 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	}
 
 	private renderTimeZoneSelectionPage({ attrs }: Vnode<CalendarEventEditViewAttrs>) {
-		return m("", "TimeZone selection page")
+		return m(TimeZoneSelectionPage, {
+			width: this.pageWidth,
+			model: attrs.model.editModels.whenModel,
+			onConfirm: () => attrs.navigationCallback(EditorPages.MAIN),
+		} satisfies TimeZoneSelectionPageAttrs)
 	}
 
 	private getTranslatedRepeatRule(rule: CalendarRepeatRule | null, isAllDay: boolean): string {
