@@ -33,8 +33,8 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 					".block.center-h",
 					{
 						style: {
-							width: "30%",
-							maxWidth: px(160),
+							width: "80%",
+							maxWidth: px(320),
 						},
 					},
 					m(DynamicColorSvg, {
