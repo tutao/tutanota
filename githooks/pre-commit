@@ -1,5 +1,10 @@
 #!/bin/sh
 
+# pipefail is not a posix feature so we can't be sure it exists on every system
+if (set -o pipefail) 2>/dev/null; then
+	set -o pipefail
+fi
+
 # run swift formatter on macos
 if [ "$(uname)" = "Darwin" ]; then
     GIT_ROOT=$(git rev-parse --show-toplevel)
@@ -22,7 +27,48 @@ if [ "x$CHG" = "x" ]; then
    exit 0
 fi
 
-# run prettier fix on the changed files
-npx prettier -w  $CHG > /dev/null
-# re-add the fixed files
-git add $CHG > /dev/null
+format_staged_file() {
+	file="$1"
+	# we need to provide the file mode when manipulating the git index directly, so we have to track it.
+	mode=$(git ls-files -s -- "$file" | awk '{ print $1; exit }')
+
+	if [ "x$mode" = "x" ]; then
+		echo "could not read git index mode for $file"
+		return 1
+	fi
+
+	blob=$(
+		git show ":$file" | # read the staged file from the git index directly
+			npx prettier --stdin-filepath "$file" | # format
+			git hash-object -w --path="$file" --stdin # store output in git object db and return blob id
+	) || return 1
+
+	# point git index to the formatted blob
+	git update-index --cacheinfo "$mode" "$blob" "$file"
+}
+
+FILES_TO_ADD=""
+PARTIALLY_STAGED_FILES=""
+
+# formatting fully staged files is easier and faster and more common so we separate fully staged from partially staged files
+for file in $CHG; do
+	if git diff --quiet -- "$file"; then
+		FILES_TO_ADD="$FILES_TO_ADD $file"
+	else
+		PARTIALLY_STAGED_FILES="$PARTIALLY_STAGED_FILES $file"
+	fi
+done
+
+if [ -n "$FILES_TO_ADD" ]; then
+	# Format fully staged files and re-add them.
+	npx prettier -w $FILES_TO_ADD > /dev/null || exit 1
+	git add $FILES_TO_ADD > /dev/null || exit 1
+fi
+
+for file in $PARTIALLY_STAGED_FILES; do
+	echo "formatting staged content for $file"
+	format_staged_file "$file" || exit 1
+
+	# best effort formatting of worktree afterwards
+	npx prettier -w "$file" > /dev/null || echo "could not format worktree content for $file"
+done
