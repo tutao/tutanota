@@ -179,7 +179,9 @@ export class SignupViewModel {
 		const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
 		const featureListProvider = await FeatureListProvider.getInitializedInstance(domainConfig)
 		let message: MaybeTranslation | null = null
+		this.options.businessUse(prices.business)
 		if (isIOSApp()) {
+			this.options.businessUse(false)
 			const appstoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
 			// if we are on iOS app we only show other plans if AppStore payments are enabled and there's no subscription for this Apple ID.
 			if (appstoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
