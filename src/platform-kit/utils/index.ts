@@ -181,19 +181,7 @@ export type {
 	Nullable,
 } from "./Utils"
 
-export {
-	callWebAssemblyFunctionWithArguments,
-	allocateBuffer,
-	type Ptr,
-	type ConstPtr,
-	type FreeFN,
-	MutableUint8Array,
-	SecureFreeUint8Array,
-	mutableSecureFree,
-	secureFree,
-	mutable,
-	type WASMExports,
-} from "./WebAssembly.js"
+export { callWebAssemblyFunctionWithArguments, allocateBuffer, type Ptr, type ConstPtr, type FreeFN, type WASMExports } from "./WebAssembly.js"
 
 export { mod, clamp } from "./MathUtils.js"
 
@@ -207,3 +195,7 @@ export * from "./ErrorUtils.js"
 export * from "./SyncMetrics.js"
 export * from "./DateProvider.js"
 export * from "./FormatUtils.js"
+
+export { secureFree } from "./WebAssemblyArgument"
+export { mutableSecureFree } from "./WebAssemblyArgument"
+export { mutable } from "./WebAssemblyArgument"
