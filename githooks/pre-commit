@@ -22,7 +22,29 @@ if [ "x$CHG" = "x" ]; then
    exit 0
 fi
 
-# run prettier fix on the changed files
-npx prettier -w  $CHG > /dev/null
-# re-add the fixed files
-git add $CHG > /dev/null
+TMP_DIR=$(mktemp -d "/tmp/pre-commit.XXXXXX") || exit 1
+trap 'rm -rf "$TMP_DIR"' EXIT HUP INT TERM
+
+format_staged_file() {
+	file="$1"
+	mode=$(git ls-files -s -- "$file" | awk '{ print $1; exit }')
+
+	if [ "x$mode" = "x" ]; then
+		echo "could not read git index mode for $file"
+		return 1
+	fi
+
+	git show ":$file" > "$TMP_DIR/staged" || return 1
+	npx prettier --stdin-filepath "$file" < "$TMP_DIR/staged" > "$TMP_DIR/formatted" || return 1
+
+	blob=$(git hash-object -w --path="$file" --stdin < "$TMP_DIR/formatted") || return 1
+	git update-index --cacheinfo "$mode" "$blob" "$file"
+}
+
+for file in $CHG; do
+	echo "formatting staged content for $file"
+	format_staged_file "$file" || exit 1
+
+	# try keeping the worktree formatted too
+	npx prettier -w "$file" > /dev/null || echo "could not format worktree content for $file"
+done
