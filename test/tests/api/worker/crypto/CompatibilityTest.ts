@@ -194,7 +194,6 @@ o.spec("CompatibilityTest", function () {
 			const encryptedKey256 = encryptKey(key, keyToEncrypt256)
 			o(uint8ArrayToBase64(encryptedKey256)).equals(td.encryptedKey256)
 			const decryptedKey256 = decryptKey(key, encryptedKey256)
-			console.log(decryptedKey256)
 			o(uint8ArrayToHex(keyToUint8Array(decryptedKey256))).equals(td.keyToEncrypt256)
 		}
 	})

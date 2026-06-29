@@ -1,5 +1,5 @@
 import { KeyVersion, Nullable } from "@tutao/utils"
-import { AesKey, KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
+import { KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { AesCbcFacade, PaddingStandard } from "../../encryption/symmetric/AesCbcFacade"
 import { AeadSubKeys, AesCbcSubKeys, InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { AeadFacade } from "../../encryption/symmetric/AeadFacade"
@@ -7,6 +7,7 @@ import { ParsedCiphertextAeadWithGroupKey, ParsedCiphertextAeadWithSessionKey, P
 import { CryptoError } from "@tutao/crypto/error"
 import { InstanceSubKeyCache } from "./SubKeyCache"
 import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
+import { AesKey } from "@tutao/crypto"
 
 /**`
  * Decrypts one attribute of one given instance.

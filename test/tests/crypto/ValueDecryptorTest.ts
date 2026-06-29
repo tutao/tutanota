@@ -8,7 +8,6 @@ import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "@tut
 import { AesCbcFacade, PaddingStandard } from "@tutao/crypto/aes-cbc-facade"
 import { matchers, object, when } from "testdouble"
 import {
-	Aes256Key,
 	aes256RandomKey,
 	InitializationVector,
 	KDF_NONCE_LENGTH_BYTES,
@@ -24,6 +23,7 @@ import { concat, stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
 import { ValueDecryptor } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/decryption/ValueDecryptor"
 import { CryptoError, SessionKeyNotFoundError } from "../../../src/platform-kit/crypto/error"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { Aes256Key } from "../../../src/platform-kit/crypto/encryption/symmetric/AesKey"
 
 o.spec("ValueDecryptorTest", () => {
 	let symmetricCipherFacade: SymmetricCipherFacade
