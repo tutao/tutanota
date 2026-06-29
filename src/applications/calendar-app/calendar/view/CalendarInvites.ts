@@ -58,7 +58,7 @@ export async function getEventsFromFile(file: File): Promise<ParsedIcalFileConte
  * any calendar (because it has not been stored yet, e.g. in case of invite)
  * the given event is returned.
  */
-export async function getLatestEvent(event: IcsCalendarEvent): Promise<CalendarEvent> {
+export async function getLatestEventInPrivateCalendars(event: IcsCalendarEvent): Promise<CalendarEvent> {
 	const uid = event.uid
 	const fromIcsCalendarEvent = makeCalendarEventFromIcsCalendarEvent(event)
 	if (uid == null) {
@@ -66,7 +66,7 @@ export async function getLatestEvent(event: IcsCalendarEvent): Promise<CalendarE
 	}
 
 	const calendarModel = await locator.calendarModel()
-	const existingEvents = await calendarModel.getFirstUidIndexEntryMatch(uid)
+	const existingEvents = await calendarModel.getFirstUidIndexEntryMatchInPrivateCalendars(uid)
 
 	// If the file we are opening is newer than the one which we have on the server, update server version.
 	// Should not happen normally but can happen when e.g. reply and update were sent one after another before we accepted
