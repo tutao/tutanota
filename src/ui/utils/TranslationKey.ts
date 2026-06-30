@@ -2499,3 +2499,8 @@ export type TranslationKeyType =
 	| "confirmDeleteLabelWithSublabels_msg"
 	| "inboxRuleManagement_label"
 	| "inboxRuleManagement_text"
+	| "condition_label"
+	| "then_label"
+	| "saveAndApply_action"
+	| "applyingInboxRules_label"
+	| "inboxRuleExplainer_msg"
