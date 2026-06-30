@@ -615,7 +615,14 @@ export class DriveViewModel {
 	}
 
 	async createNewFolder(folderName: string, parentFolderId?: IdTuple): Promise<DriveFolder> {
-		parentFolderId = parentFolderId ??= assertNotNull(this.currentFolder?.folder)._id
+		if (parentFolderId == null) {
+			const currentFolder = assertNotNull(this.currentFolder).folder
+			if (currentFolder.type === DriveFolderType.Trash) {
+				parentFolderId = assertNotNull(this.roots).root
+			} else {
+				parentFolderId = currentFolder._id
+			}
+		}
 		return this.driveFacade.createFolder(folderName, parentFolderId)
 	}
 
