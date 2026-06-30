@@ -350,13 +350,7 @@ export class CalendarEventWhenModel {
 
 		switch (endType) {
 			case EndType.UntilDate:
-				this.repeatRule.endValue = getDefaultEndDateEndValue(
-					{
-						startTime: this._startDate,
-						endTime: this._endDate,
-					},
-					this.calendarTimeZone,
-				)
+				this.repeatRule.endValue = getDefaultEndDateEndValue(this._startDate, this.calendarTimeZone)
 				return
 			case EndType.Count:
 			case EndType.Never:
@@ -401,17 +395,7 @@ export class CalendarEventWhenModel {
 		if (this.repeatRule?.endType === EndType.UntilDate) {
 			return getRepeatEndTimeForDisplay(this.repeatRule, this.isAllDay, this.calendarTimeZone)
 		} else {
-			return new Date(
-				filterInt(
-					getDefaultEndDateEndValue(
-						{
-							startTime: this._startDate,
-							endTime: this._endDate,
-						},
-						this.calendarTimeZone,
-					),
-				),
-			)
+			return new Date(filterInt(getDefaultEndDateEndValue(this._startDate, this.calendarTimeZone)))
 		}
 	}
 
@@ -661,7 +645,7 @@ export class CalendarEventWhenModel {
 /**
  * create the default repeat end for an event series that ends on a date
  */
-export function getDefaultEndDateEndValue({ startTime }: CalendarEventTimes, timeZone: string): string {
+export function getDefaultEndDateEndValue(startTime: Date, timeZone: string): string {
 	// one month after the event's start time in the local time zone.
 	return String(incrementByRepeatPeriod(startTime, RepeatPeriod.MONTHLY, 1, timeZone).getTime())
 }
