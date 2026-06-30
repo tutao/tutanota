@@ -2551,3 +2551,8 @@ export type TranslationKeyType =
 	| "searchPlugins_placeholder"
 	| "emptyString_msg"
 	| "confirmClearFolder_msg"
+	| "condition_label"
+	| "then_label"
+	| "saveAndApply_action"
+	| "applyingInboxRules_label"
+	| "inboxRuleExplainer_msg"
