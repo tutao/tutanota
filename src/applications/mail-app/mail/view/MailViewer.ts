@@ -33,7 +33,7 @@ import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../ui/TextHighlightViewUtils"
 import { WindowSizeListener } from "../../../../ui/utils/WindowUtils"
 import { File, Mail } from "@tutao/entities/tutanota"
-import { InboxRuleType, MailSetKind, SpamRuleFieldType, SpamRuleType } from "../../../../entities/tutanota/Utils"
+import { InboxRuleConditionType, MailSetKind, SpamRuleFieldType, SpamRuleType } from "../../../../entities/tutanota/Utils"
 import { createEmailSenderListElement } from "@tutao/entities/sys"
 import { DownloadPostProcessing } from "../../../common/file/FileController"
 
@@ -602,7 +602,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 	private async createMailAddressContextButtons(args: {
 		mailAddress: MailAddressAndName
-		defaultInboxRuleField: InboxRuleType | null
+		defaultInboxRuleField: InboxRuleConditionType | null
 		createContact?: boolean
 	}): Promise<Array<DropdownButtonAttrs>> {
 		const { mailAddress, defaultInboxRuleField, createContact = true } = args
@@ -679,22 +679,22 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		return buttons
 	}
 
-	private addSpamRule(defaultInboxRuleField: InboxRuleType | null, address: string) {
+	private addSpamRule(defaultInboxRuleField: InboxRuleConditionType | null, address: string) {
 		const folder = this.viewModel.mailModel.getMailFolderForMail(this.viewModel.mail)
 
 		const spamRuleType = folder && folder.folderType === MailSetKind.SPAM ? SpamRuleType.WHITELIST : SpamRuleType.BLACKLIST
 
 		let spamRuleField: SpamRuleFieldType
 		switch (defaultInboxRuleField) {
-			case InboxRuleType.RECIPIENT_TO_EQUALS:
+			case InboxRuleConditionType.RECIPIENT_TO_EQUALS:
 				spamRuleField = SpamRuleFieldType.TO
 				break
 
-			case InboxRuleType.RECIPIENT_CC_EQUALS:
+			case InboxRuleConditionType.RECIPIENT_CC_EQUALS:
 				spamRuleField = SpamRuleFieldType.CC
 				break
 
-			case InboxRuleType.RECIPIENT_BCC_EQUALS:
+			case InboxRuleConditionType.RECIPIENT_BCC_EQUALS:
 				spamRuleField = SpamRuleFieldType.BCC
 				break
 

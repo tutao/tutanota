@@ -463,6 +463,7 @@ export type TutanotaProperties = {
 	lastPushedMail: null | IdTuple;
 	imapSyncConfig: ImapSyncConfiguration[];
 	inboxRules: InboxRule[];
+	expandedInboxRules: ExpandedInboxRule[];
 }
 export const NotificationMailTypeRef: TypeRef<NotificationMail> = new TypeRef("tutanota", 223)
 
@@ -3040,4 +3041,49 @@ export type ImapDeleteIn = {
 	_format: NumberString;
 
 	imapAccountSyncState: IdTuple;
+}
+export const InboxRuleConditionTypeRef: TypeRef<InboxRuleCondition> = new TypeRef("tutanota", 1967)
+
+export function createInboxRuleCondition(values: StrippedEntity<InboxRuleCondition>): InboxRuleCondition {
+    return Object.assign(create(typeModels[InboxRuleConditionTypeRef.typeId], InboxRuleConditionTypeRef), values)
+}
+
+export type InboxRuleCondition = {
+	_type: TypeRef<InboxRuleCondition>;
+	_original?: InboxRuleCondition
+
+	_id: Id;
+	type: string;
+	value: string;
+}
+export const InboxRuleResultTypeRef: TypeRef<InboxRuleResult> = new TypeRef("tutanota", 1971)
+
+export function createInboxRuleResult(values: StrippedEntity<InboxRuleResult>): InboxRuleResult {
+    return Object.assign(create(typeModels[InboxRuleResultTypeRef.typeId], InboxRuleResultTypeRef), values)
+}
+
+export type InboxRuleResult = {
+	_type: TypeRef<InboxRuleResult>;
+	_original?: InboxRuleResult
+
+	_id: Id;
+	type: string;
+
+	value: null | IdTuple;
+}
+export const ExpandedInboxRuleTypeRef: TypeRef<ExpandedInboxRule> = new TypeRef("tutanota", 1975)
+
+export function createExpandedInboxRule(values: StrippedEntity<ExpandedInboxRule>): ExpandedInboxRule {
+    return Object.assign(create(typeModels[ExpandedInboxRuleTypeRef.typeId], ExpandedInboxRuleTypeRef), values)
+}
+
+export type ExpandedInboxRule = {
+	_type: TypeRef<ExpandedInboxRule>;
+	_original?: ExpandedInboxRule
+
+	_id: Id;
+	name: string;
+
+	conditions: InboxRuleCondition[];
+	results: InboxRuleResult[];
 }

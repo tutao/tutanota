@@ -756,6 +756,8 @@ pub struct TutanotaProperties {
 	pub imapSyncConfig: Vec<ImapSyncConfiguration>,
 	#[serde(rename = "578")]
 	pub inboxRules: Vec<InboxRule>,
+	#[serde(rename = "1980")]
+	pub expandedInboxRules: Vec<ExpandedInboxRule>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -4744,6 +4746,77 @@ impl Entity for ImapDeleteIn {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(1958),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct InboxRuleCondition {
+	#[serde(rename = "1968")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1969")]
+	pub r#type: String,
+	#[serde(rename = "1970")]
+	pub value: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for InboxRuleCondition {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1967),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct InboxRuleResult {
+	#[serde(rename = "1972")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1973")]
+	pub r#type: String,
+	#[serde(rename = "1974")]
+	pub value: Option<IdTupleGenerated>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for InboxRuleResult {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1971),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ExpandedInboxRule {
+	#[serde(rename = "1976")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1977")]
+	pub name: String,
+	#[serde(rename = "1978")]
+	pub conditions: Vec<InboxRuleCondition>,
+	#[serde(rename = "1979")]
+	pub results: Vec<InboxRuleResult>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for ExpandedInboxRule {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1975),
 		}
 	}
 }

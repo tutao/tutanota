@@ -133,13 +133,26 @@ export const enum MailState {
 	SENDING = "3",
 }
 
-export const enum InboxRuleType {
+export const enum InboxRuleConditionType {
+	// Email Conditions - value will be an email or domain as a string
 	FROM_EQUALS = "0",
 	RECIPIENT_TO_EQUALS = "1",
 	RECIPIENT_CC_EQUALS = "2",
 	RECIPIENT_BCC_EQUALS = "3",
+	// Text Conditions - value will be a string
 	SUBJECT_CONTAINS = "4",
 	MAIL_HEADER_CONTAINS = "5",
+	// Boolean Conditions - value should be "true" or "false"
+	HAS_ATTACHMENT = "6"
+}
+
+export const enum InboxRuleResultType {
+	// Results that apply Mail Set - value will be a Mail Set
+	MOVE = "0",
+	LABEL = "1",
+	// Boolean Results - no value needed, existence is the positive
+	READ = "2",
+	EXCLUDE_SPAM = "3"
 }
 
 export enum SpamRuleType {
