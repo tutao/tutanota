@@ -2392,6 +2392,12 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"useSeparateEndTimeZone_label" : "Separate start and end time zone",
+		"startTimeZone_title": "Start time zone",
+		"startAndEndTimeZone_title": "Start and end time zone",
+		"endTimeZone_title": "End time zone",
+		"confirm_action": "Confirm",
+		"removeTimeZone_action": "Remove time zone",
 	}
 }
