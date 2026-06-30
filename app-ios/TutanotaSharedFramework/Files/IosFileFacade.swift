@@ -284,7 +284,11 @@ public final class IosFileFacade: FileFacade {
 	public func deleteFromAppDir(_ name: String) async throws {
 		let supportDir = try FileUtils.getApplicationSupportFolder()
 		let fileUrl = supportDir.appendingPathComponent(name)
-		try await self.deleteFile(fileUrl.absoluteString)
+		if fileUrl.absoluteString.starts(with: supportDir.absoluteString) {
+			try FileUtils.delete(file: fileUrl)
+		} else {
+			throw FileError(message: "File not found \(fileUrl)")
+		}
 	}
 
 	private func clearDirectory(folderPath: String) async throws {
