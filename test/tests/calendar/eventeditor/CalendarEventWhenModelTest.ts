@@ -74,6 +74,7 @@ o.spec("CalendarEventWhenModel", function () {
 			o(result.startTime.toISOString()).equals("2023-04-30T00:00:00.000Z")("start date on result is correct")
 			o(result.endTime.toISOString()).equals("2023-05-01T00:00:00.000Z")("end date on result is correct")
 		})
+
 		o("modifying the start time while the event is all-day has no effect after unsetting all-day", function () {
 			const model = getModelBerlin({
 				startTime: new Date("2023-04-27T08:27:45.523Z"),
@@ -106,6 +107,7 @@ o.spec("CalendarEventWhenModel", function () {
 			const result = model.result
 			o(result.endTime.toISOString()).equals("2023-04-27T08:57:00.000Z")("the not-all-day-result includes the time")
 		})
+
 		o("rescheduling the event by a few hours correctly updates start and end time", function () {
 			const model = getModelBerlin({
 				startTime: new Date("2023-04-27T08:27:45.523Z"),
@@ -159,6 +161,7 @@ o.spec("CalendarEventWhenModel", function () {
 			o(result.startTime.toISOString()).equals("2023-04-30T00:00:00.000Z")("result start time is correct")
 			o(result.endTime.toISOString()).equals("2023-05-01T00:00:00.000Z")("result end time is correct")
 		})
+
 		o("setting the start date correctly updates the start date and end date", function () {
 			const model = getModelBerlin({
 				startTime: new Date("2023-04-27T08:27:45.523Z"),
@@ -176,17 +179,19 @@ o.spec("CalendarEventWhenModel", function () {
 		})
 		o("setting the start date correctly updates the start date and end date, all day true", function () {
 			const model = getModelBerlin({
-				startTime: new Date("2023-04-27T00:00:00.000Z"),
+				startTime: new Date("2023-04-27T00:00:00.000Z"), // All-day event because start and end its at midnight UTC
 				endTime: new Date("2023-04-28T00:00:00.000Z"),
 			})
 
 			o(model.startDate.toISOString()).equals("2023-04-26T22:00:00.000Z")("correct display start date")
 			o(model.endDate.toISOString()).equals("2023-04-26T22:00:00.000Z")("correct display end date")
+
 			model.rescheduleEventToDate(new Date("2023-04-28T04:00:00.000Z"))
 			o(model.startTime.to24HourString()).equals("00:00")("start time did not change")
 			o(model.endTime.to24HourString()).equals("00:00")("end time did not change")
 			o(model.startDate.toISOString()).equals("2023-04-27T22:00:00.000Z")("the display start date is shifted by one day")
 			o(model.endDate.toISOString()).equals("2023-04-27T22:00:00.000Z")("the display end date was also moved by one day")
+
 			const result = model.result
 			o(result.startTime.toISOString()).equals("2023-04-28T00:00:00.000Z")("result start time is correct")
 			o(result.endTime.toISOString()).equals("2023-04-29T00:00:00.000Z")("result end time is correct")
@@ -417,12 +422,17 @@ o.spec("CalendarEventWhenModel", function () {
 				startTime: new Date("2023-04-27T00:00:00.000Z"),
 				endTime: new Date("2023-04-28T00:00:00.000Z"),
 			})
-			const resultBefore = model.result
+
+			const resultBeforeChanges = model.result
+
 			model.repeatEndOccurrences = 42
-			o(model.result).deepEquals(resultBefore)
+			o(model.result).deepEquals(resultBeforeChanges)
+
 			model.repeatEndDateForDisplay = new Date("2023-04-30T13:00:00.000Z")
-			o(model.result).deepEquals(resultBefore)
-			o(model.repeatEndDateForDisplay.toISOString()).equals("2023-05-26T22:00:00.000Z")
+			o(model.result).deepEquals(resultBeforeChanges)
+
+			const defaultEndDateOneMonthAfterEventStart = "2023-05-26T22:00:00.000Z"
+			o(model.repeatEndDateForDisplay.toISOString()).equals(defaultEndDateOneMonthAfterEventStart)
 		})
 
 		o("changing the end date if the event ends after count is a no-op", function () {
@@ -437,11 +447,18 @@ o.spec("CalendarEventWhenModel", function () {
 					excludedDates: [],
 				}),
 			})
-			const resultBefore = model.result
+
+			const resultBeforeChanges = model.result
+
 			model.repeatEndDateForDisplay = new Date("2023-04-30T13:00:00.000Z")
-			o(model.result).deepEquals(resultBefore)
-			o(model.repeatEndDateForDisplay.toISOString()).equals("2023-05-26T22:00:00.000Z")
+
 			o(model.repeatEndOccurrences).equals(42)
+			o(model.result).deepEquals(resultBeforeChanges)
+
+			const defaultEndDateOneMonthAfterEventStart = "2023-05-26T22:00:00.000Z"
+			o(model.repeatEndDateForDisplay.toISOString()).equals(defaultEndDateOneMonthAfterEventStart)(
+				"Assigning an endDate to a EndType.Count does not change the store value",
+			)
 		})
 
 		o("changing the end count if the event ends on date is a no-op", function () {

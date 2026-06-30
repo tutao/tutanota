@@ -868,7 +868,10 @@ export function getEventStart({ startTime, endTime }: CalendarEventTimes, timeZo
 	}
 }
 
-/** @param date encodes some calendar date in {@param zone} (like the 1st of May 2023)
+/**
+ * @param date encodes some calendar date in {@param zone} (like the 1st of May 2023)
+ * @param zone - Time zone applied to the given date
+ *
  * @returns {Date} encodes the same calendar date in UTC */
 export function getAllDayDateUTCFromZone(date: Date, zone: string): Date {
 	return DateTime.fromJSDate(date, { zone })
