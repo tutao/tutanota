@@ -756,6 +756,8 @@ pub struct TutanotaProperties {
 	pub imapSyncConfig: Vec<ImapSyncConfiguration>,
 	#[serde(rename = "578")]
 	pub inboxRules: Vec<InboxRule>,
+	#[serde(rename = "1999")]
+	pub expandedInboxRules: Vec<ExpandedInboxRule>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -4808,6 +4810,77 @@ impl Entity for ImapPutIn {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(1979),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct InboxRuleCondition {
+	#[serde(rename = "1987")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1988")]
+	pub r#type: String,
+	#[serde(rename = "1989")]
+	pub value: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for InboxRuleCondition {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1986),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct InboxRuleResult {
+	#[serde(rename = "1991")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1992")]
+	pub r#type: String,
+	#[serde(rename = "1993")]
+	pub value: Option<IdTupleGenerated>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for InboxRuleResult {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1990),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ExpandedInboxRule {
+	#[serde(rename = "1995")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1996")]
+	pub name: String,
+	#[serde(rename = "1997")]
+	pub conditions: Vec<InboxRuleCondition>,
+	#[serde(rename = "1998")]
+	pub results: Vec<InboxRuleResult>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for ExpandedInboxRule {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1994),
 		}
 	}
 }

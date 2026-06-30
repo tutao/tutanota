@@ -22,8 +22,8 @@ import {
 } from "../mail/model/MailUtils.js"
 import type { IndentedFolder } from "../../common/api/common/mail/FolderSystem.js"
 import { Checkbox } from "../../../ui/base/Checkbox"
-import { createInboxRule, InboxRule } from "@tutao/entities/tutanota"
-import { InboxRuleType, MailSetKind } from "../../../entities/tutanota/Utils"
+import { createExpandedInboxRule, createInboxRule, createInboxRuleCondition, createInboxRuleResult, InboxRule } from "@tutao/entities/tutanota"
+import { InboxRuleConditionType, InboxRuleResultType, MailSetKind } from "../../../entities/tutanota/Utils"
 
 assertMainOrNode()
 
@@ -64,7 +64,7 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 					value: inboxRuleValue(),
 					oninput: inboxRuleValue,
 					helpLabel: () =>
-						inboxRuleType() !== InboxRuleType.SUBJECT_CONTAINS && inboxRuleType() !== InboxRuleType.MAIL_HEADER_CONTAINS
+						inboxRuleType() !== InboxRuleConditionType.SUBJECT_CONTAINS && inboxRuleType() !== InboxRuleConditionType.MAIL_HEADER_CONTAINS
 							? lang.get("emailSenderPlaceholder_label")
 							: lang.get("emptyString_msg"),
 				}),
@@ -109,6 +109,33 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 			}
 			props.inboxRules = ruleId == null ? [...inboxRules, rule] : inboxRules.map((inboxRule) => (isSameId(inboxRule._id, ruleId) ? rule : inboxRule))
 
+			// New Expanded Rule too
+			// FIXME: This is just a starting point to make sure it works
+			let ruleResults = [createInboxRuleResult({ type: InboxRuleResultType.MOVE, value: inboxRuleTarget()._id })]
+
+			if (isRuleExcludedFromSpamFilter()) {
+				// in cases where the InboxRuleResultType is boolean, do not fill in value
+				ruleResults.push(createInboxRuleResult({ type: InboxRuleResultType.EXCLUDE_SPAM, value: null }))
+			}
+
+			let expandedRule = createExpandedInboxRule({
+				name: "FIXME: get me a name",
+				conditions: [
+					createInboxRuleCondition({
+						type: inboxRuleType(),
+						value: getCleanedValue(inboxRuleType(), inboxRuleValue()),
+					}),
+				],
+				results: ruleResults,
+			})
+
+			const expandedInboxRules = props.expandedInboxRules
+
+			props.expandedInboxRules =
+				ruleId == null
+					? [...expandedInboxRules, expandedRule]
+					: expandedInboxRules.map((inboxRule) => (isSameId(inboxRule._id, ruleId) ? expandedRule : inboxRule))
+
 			locator.entityClient
 				.update(props)
 				.then(() => {
@@ -140,7 +167,7 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 }
 
 export function createInboxRuleTemplate(ruleType: string | null, value: string): InboxRuleTemplate {
-	const type = ruleType ?? InboxRuleType.FROM_EQUALS
+	const type = ruleType ?? InboxRuleConditionType.FROM_EQUALS
 	return {
 		type,
 		value: getCleanedValue(type, value),
@@ -155,8 +182,8 @@ function validateInboxRuleInput(type: string, value: string, ruleId: Id | undefi
 	} else if (isInvalidRegex(currentCleanedValue)) {
 		return "invalidRegexSyntax_msg"
 	} else if (
-		type !== InboxRuleType.SUBJECT_CONTAINS &&
-		type !== InboxRuleType.MAIL_HEADER_CONTAINS &&
+		type !== InboxRuleConditionType.SUBJECT_CONTAINS &&
+		type !== InboxRuleConditionType.MAIL_HEADER_CONTAINS &&
 		!isRegularExpression(currentCleanedValue) &&
 		!isDomainName(currentCleanedValue) &&
 		!isMailAddress(currentCleanedValue, false)
@@ -174,7 +201,7 @@ function validateInboxRuleInput(type: string, value: string, ruleId: Id | undefi
 }
 
 function getCleanedValue(type: string, value: string) {
-	if (type === InboxRuleType.SUBJECT_CONTAINS || type === InboxRuleType.MAIL_HEADER_CONTAINS) {
+	if (type === InboxRuleConditionType.SUBJECT_CONTAINS || type === InboxRuleConditionType.MAIL_HEADER_CONTAINS) {
 		return value
 	} else {
 		return value.trim().toLowerCase()

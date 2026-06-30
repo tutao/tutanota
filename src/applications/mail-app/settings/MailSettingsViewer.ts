@@ -63,7 +63,7 @@ import {
 	TutanotaProperties,
 	TutanotaPropertiesTypeRef,
 } from "@tutao/entities/tutanota"
-import { InboxRuleType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, ReportMovedMailsType } from "../../../entities/tutanota/Utils"
+import { InboxRuleConditionType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, ReportMovedMailsType } from "../../../entities/tutanota/Utils"
 import { CustomerInfo } from "@tutao/entities/sys"
 import { ButtonType } from "../../../ui/base/Button"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -299,7 +299,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			dropdownWidth: 250,
 		}
 		const reportMovedMailsAttrs = this.makeReportMovedMailsDropdownAttrs()
-		const templateRule = createInboxRuleTemplate(InboxRuleType.RECIPIENT_TO_EQUALS, "")
+		const templateRule = createInboxRuleTemplate(InboxRuleConditionType.RECIPIENT_TO_EQUALS, "")
 		const addInboxRuleButtonAttrs: IconButtonAttrs = {
 			label: "addInboxRule_action",
 			click: () => mailLocator.mailboxModel.getUserMailboxDetails().then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, templateRule)),
@@ -643,27 +643,55 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 	_updateInboxRules(props: TutanotaProperties): void {
 		mailLocator.mailboxModel.getUserMailboxDetails().then(async (mailboxDetails) => {
-			this._inboxRulesTableLines(
-				await promiseMap(props.inboxRules, async (rule, index) => {
-					return {
-						cells: [getInboxRuleTypeName(rule.type), rule.value, await this.getTextForTarget(mailboxDetails, rule.targetFolder)],
-						actionButtonAttrs: createRowActions(
+			const ruleLines = await promiseMap(props.inboxRules, async (rule, index) => {
+				return {
+					cells: [getInboxRuleTypeName(rule.type), rule.value, await this.getTextForTarget(mailboxDetails, rule.targetFolder)],
+					actionButtonAttrs: createRowActions(
+						{
+							getArray: () => props.inboxRules,
+							updateInstance: () => mailLocator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
+						},
+						rule,
+						index,
+						[
 							{
-								getArray: () => props.inboxRules,
-								updateInstance: () => mailLocator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
+								label: "edit_action",
+								click: () => AddInboxRuleDialog.show(mailboxDetails, rule),
 							},
-							rule,
-							index,
-							[
-								{
-									label: "edit_action",
-									click: () => AddInboxRuleDialog.show(mailboxDetails, rule),
-								},
-							],
-						),
-					}
-				}),
-			)
+						],
+					),
+				}
+			})
+
+			// FIXME: showing both old and expanded rules to get this working, this will need to change more before finishing
+			const expandedRulesLines = await promiseMap(props.expandedInboxRules, async (rule, index) => {
+				return {
+					cells: [
+						rule.name,
+						getInboxRuleTypeName(rule.conditions[0].type),
+						await this.getTextForTarget(mailboxDetails, assertNotNull(rule.results[0].value)),
+					],
+					actionButtonAttrs: createRowActions(
+						{
+							getArray: () => props.expandedInboxRules,
+							updateInstance: () => mailLocator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
+						},
+						rule,
+						index,
+						[
+							{
+								label: "edit_action",
+								// TODO: adapt new inbox rule dialog to use ExpandedInboxRule
+								click: () => noOp(),
+							},
+						],
+					),
+				}
+			})
+
+			ruleLines.push(...expandedRulesLines)
+
+			this._inboxRulesTableLines(ruleLines)
 
 			m.redraw()
 		})
