@@ -1,0 +1,358 @@
+import o from "@tutao/otest"
+import {
+	ExpandedInboxRule,
+	ExpandedInboxRuleTypeRef,
+	HeaderTypeRef,
+	InboxRuleCondition,
+	InboxRuleConditionTypeRef,
+	InboxRuleResult,
+	InboxRuleResultTypeRef,
+	Mail,
+	MailAddressTypeRef,
+	MailDetails,
+	MailDetailsTypeRef,
+	MailSetTypeRef,
+	MailTypeRef,
+	RecipientsTypeRef,
+	TutanotaPropertiesTypeRef,
+} from "@tutao/entities/tutanota"
+import { InboxRuleConditionType, InboxRuleResultType, MailSetKind } from "../../../../src/entities/tutanota/Utils"
+import { createTestEntity } from "../../TestUtils"
+import { _findMatchingRule, ExpandedInboxRuleHandler } from "../../../../src/applications/mail-app/mail/model/ExpandedInboxRuleHandler"
+import { matchers, object, replace, when } from "testdouble"
+import { MailFacade } from "../../../../src/applications/common/api/worker/facades/lazy/MailFacade"
+import { LoginController } from "../../../../src/applications/common/api/main/LoginController"
+import { MailModel } from "../../../../src/applications/mail-app/mail/model/MailModel"
+import { MailboxDetail } from "../../../../src/applications/common/mailFunctionality/MailboxModel"
+import { FolderSystem } from "../../../../src/applications/common/api/common/mail/FolderSystem"
+import { getElementId } from "../../../../src/platform-kit/meta"
+import { UserController } from "../../../../src/applications/common/api/main/UserController"
+
+const { anything } = matchers
+
+o.spec("ExpandedInboxRuleHandler", () => {
+	let ruleHandler: ExpandedInboxRuleHandler
+	let mailFacade: MailFacade
+	let logins: LoginController
+	let mailModel: MailModel
+
+	o.beforeEach(() => {
+		mailFacade = object()
+		logins = object()
+		mailModel = object()
+
+		ruleHandler = new ExpandedInboxRuleHandler(mailFacade, logins, mailModel)
+	})
+
+	o.spec("findMatchingInboxRule", () => {
+		let userController: UserController
+		const inboxFolder = createTestEntity(MailSetTypeRef, {
+			_id: ["listId", "inboxFolderId"],
+			folderType: MailSetKind.INBOX,
+		})
+
+		o.beforeEach(() => {
+			userController = object()
+			when(logins.getUserController()).thenReturn(userController)
+		})
+
+		o.test("return matching rule when there is one", async () => {
+			const rule = _createRule([_createRuleCondition(InboxRuleConditionType.SUBJECT_CONTAINS, "test")], [])
+			const expandedInboxRules = [
+				_createRule([_createRuleCondition(InboxRuleConditionType.FROM_EQUALS, "someone@tuta.com")], []),
+				rule,
+				_createRule([_createRuleCondition(InboxRuleConditionType.RECIPIENT_CC_EQUALS, "someonecc@tuta.com")], []),
+			]
+			const mail = _createMailWithDifferentEnvelopeSender({ subject: "test subject", sets: [inboxFolder._id] })
+
+			const tutanotaProperties = createTestEntity(TutanotaPropertiesTypeRef, {
+				expandedInboxRules,
+			})
+			replace(userController, "props", tutanotaProperties)
+			when(userController.isPaidAccount()).thenReturn(true)
+
+			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
+			o.check(foundRule).deepEquals(rule)
+		})
+
+		o.test("return null when user has a free account", async () => {
+			const mail = _createMailWithDifferentEnvelopeSender({ subject: "test subject", sets: [inboxFolder._id] })
+			when(userController.isPaidAccount()).thenReturn(false)
+
+			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
+			o.check(foundRule).equals(null)
+		})
+	})
+
+	o.spec("getMoveResultValue", () => {
+		o.test("return null when inbox rule does not have a MOVE result", async () => {
+			const rule = _createRule([], [_createRuleResult(InboxRuleResultType.READ, null)])
+			const moveResultValue = await ruleHandler.getMoveResultValue(rule, object<MailboxDetail>())
+			o.check(moveResultValue).equals(null)
+		})
+
+		o.test("return target folder when inbox rule has a MOVE result", async () => {
+			const moveTargetFolder = createTestEntity(MailSetTypeRef, {
+				_id: ["listId", "folderId"],
+				folderType: MailSetKind.CUSTOM,
+			})
+			const rule = _createRule([], [_createRuleResult(InboxRuleResultType.MOVE, moveTargetFolder._id)])
+
+			const folders = object<FolderSystem>()
+			when(folders.getFolderById(getElementId(moveTargetFolder))).thenReturn(moveTargetFolder)
+			when(mailModel.getMailboxFoldersForId(anything())).thenResolve(folders)
+
+			const moveResultValue = await ruleHandler.getMoveResultValue(rule, object<MailboxDetail>())
+
+			o.check(moveResultValue).deepEquals(moveTargetFolder)
+		})
+	})
+
+	o.spec("getLabelResultValue", () => {
+		// FIXME
+	})
+
+	o.spec("getExcludeSpamResultValue", () => {
+		o.test("return true when inbox rule has an EXCLUDE_SPAM result", () => {
+			const rule = _createRule([], [_createRuleResult(InboxRuleResultType.EXCLUDE_SPAM, null)])
+			o.check(ruleHandler.getExcludeSpamResultValue(rule)).equals(true)
+		})
+		o.test("return false when inbox rule does not have EXCLUDE_SPAM result", () => {
+			const rule = _createRule([], [_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])])
+			o.check(ruleHandler.getExcludeSpamResultValue(rule)).equals(false)
+		})
+	})
+
+	o.spec("_findMatchingRule", () => {
+		o.test("sender is checked for FROM_EQUALS condition and matching rule is found", async () => {
+			const rule = _createRule(
+				[_createRuleCondition(InboxRuleConditionType.FROM_EQUALS, "sender@tuta.com")],
+				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+			)
+			const mail = _createMailWithDifferentEnvelopeSender()
+
+			const foundRule = await _findMatchingRule(mailFacade, mail, [rule])
+			o.check(foundRule).deepEquals(rule)
+		})
+		o.test("differentEnvelopeSender is checked for FROM_EQUALS condition and matching rule is found", async () => {
+			const rule = _createRule(
+				[_createRuleCondition(InboxRuleConditionType.FROM_EQUALS, "differentenvelopsender@something.com")],
+				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+			)
+			const mail = _createMailWithDifferentEnvelopeSender()
+
+			const foundRule = await _findMatchingRule(mailFacade, mail, [rule])
+			o.check(foundRule).deepEquals(rule)
+		})
+
+		o.test("matching rule for RECIPIENT_TO_EQUALS condition is found", async () => {
+			const rule = _createRule(
+				[_createRuleCondition(InboxRuleConditionType.RECIPIENT_TO_EQUALS, "to-recipient@tuta.com")],
+				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+			)
+			const mail = _createMailWithDifferentEnvelopeSender()
+			const mailDetails = _createMailDetails()
+
+			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
+
+			const foundRule = await _findMatchingRule(mailFacade, mail, [rule])
+			o.check(foundRule).deepEquals(rule)
+		})
+
+		o.test("matching rule for RECIPIENT_CC_EQUALS condition is found", async () => {
+			const rule = _createRule(
+				[_createRuleCondition(InboxRuleConditionType.RECIPIENT_CC_EQUALS, "cc-recipient@tuta.com")],
+				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+			)
+			const mail = _createMailWithDifferentEnvelopeSender()
+			const mailDetails = _createMailDetails()
+
+			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
+
+			const foundRule = await _findMatchingRule(mailFacade, mail, [rule])
+			o.check(foundRule).deepEquals(rule)
+		})
+
+		o.test("matching rule for RECIPIENT_BCC_EQUALS condition is found", async () => {
+			const rule = _createRule(
+				[_createRuleCondition(InboxRuleConditionType.RECIPIENT_BCC_EQUALS, "bcc-recipient@tuta.com")],
+				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+			)
+			const mail = _createMailWithDifferentEnvelopeSender()
+			const mailDetails = _createMailDetails()
+
+			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
+
+			const foundRule = await _findMatchingRule(mailFacade, mail, [rule])
+			o.check(foundRule).deepEquals(rule)
+		})
+
+		o.test("matching rule for SUBJECT_CONTAINS condition is found", async () => {
+			const rule = _createRule(
+				[_createRuleCondition(InboxRuleConditionType.SUBJECT_CONTAINS, "fri")],
+				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+			)
+			const mail = _createMailWithDifferentEnvelopeSender({ subject: "hello friend" })
+
+			const foundRule = await _findMatchingRule(mailFacade, mail, [rule])
+			o.check(foundRule).deepEquals(rule)
+		})
+		o.test("matching rule for SUBJECT_CONTAINS condition is found when value is a RegEx string", async () => {
+			const rule = _createRule(
+				[_createRuleCondition(InboxRuleConditionType.SUBJECT_CONTAINS, "/end$/")],
+				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+			)
+			const mail = _createMailWithDifferentEnvelopeSender({ subject: "hello friend" })
+
+			const foundRule = await _findMatchingRule(mailFacade, mail, [rule])
+			o.check(foundRule).deepEquals(rule)
+		})
+
+		o.test("matching rule for MAIL_HEADER_CONTAINS condition is found", async () => {
+			const rule = _createRule(
+				[_createRuleCondition(InboxRuleConditionType.MAIL_HEADER_CONTAINS, "X-Some-ID")],
+				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+			)
+			const mail = _createMailWithDifferentEnvelopeSender()
+			const mailDetails = _createMailDetails({
+				headers: createTestEntity(HeaderTypeRef, {
+					headers: "...\nX-Some-ID: 123\n...",
+				}),
+			})
+
+			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
+
+			const foundRule = await _findMatchingRule(mailFacade, mail, [rule])
+			o.check(foundRule).deepEquals(rule)
+		})
+		o.test("no rule is found for MAIL_HEADER_CONTAINS condition and mail without headers", async () => {
+			const rule = _createRule(
+				[_createRuleCondition(InboxRuleConditionType.MAIL_HEADER_CONTAINS, "X-Some-ID")],
+				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+			)
+			const mail = _createMailWithDifferentEnvelopeSender()
+			const mailDetails = _createMailDetails()
+
+			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
+
+			const foundRule = await _findMatchingRule(mailFacade, mail, [rule])
+			o.check(foundRule).equals(null)
+		})
+
+		o.test("matching rule for HAS_ATTACHMENT condition is found", async () => {
+			// FIXME
+		})
+
+		o.test("matching rule for multiple conditions is found", async () => {
+			const rule = _createRule(
+				[
+					_createRuleCondition(InboxRuleConditionType.SUBJECT_CONTAINS, "fri"),
+					_createRuleCondition(InboxRuleConditionType.RECIPIENT_TO_EQUALS, "to-recipient@tuta.com"),
+					_createRuleCondition(InboxRuleConditionType.RECIPIENT_CC_EQUALS, "cc-recipient@tuta.com"),
+					_createRuleCondition(InboxRuleConditionType.MAIL_HEADER_CONTAINS, "X-Some-ID"),
+				],
+				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+			)
+			const mail = _createMailWithDifferentEnvelopeSender({ subject: "hello friend" })
+			const mailDetails = _createMailDetails({
+				headers: createTestEntity(HeaderTypeRef, {
+					headers: "...\nX-Some-ID: 123\n...",
+				}),
+			})
+
+			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
+
+			const foundRule = await _findMatchingRule(mailFacade, mail, [rule])
+			o.check(foundRule).deepEquals(rule)
+		})
+		o.test("no rule is found for multiple conditions when not all conditions are met", async () => {
+			const rule = _createRule(
+				[
+					_createRuleCondition(InboxRuleConditionType.SUBJECT_CONTAINS, "fri"),
+					_createRuleCondition(InboxRuleConditionType.RECIPIENT_TO_EQUALS, "to-recipient@tuta.com"),
+					_createRuleCondition(InboxRuleConditionType.RECIPIENT_CC_EQUALS, "non-matching-cc@tuta.com"),
+					_createRuleCondition(InboxRuleConditionType.MAIL_HEADER_CONTAINS, "X-Some-ID"),
+				],
+				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+			)
+			const mail = _createMailWithDifferentEnvelopeSender({ subject: "hello friend" })
+			const mailDetails = _createMailDetails({
+				headers: createTestEntity(HeaderTypeRef, {
+					headers: "...\nX-Some-ID: 123\n...",
+				}),
+			})
+
+			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
+
+			const foundRule = await _findMatchingRule(mailFacade, mail, [rule])
+			o.check(foundRule).deepEquals(null)
+		})
+
+		o.test("no rule is found for an unknown condition", async () => {
+			const rule = _createRule(
+				// @ts-ignore
+				[_createRuleCondition("UNKNOWN_CONDITION", "something")],
+				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+			)
+			const mail = _createMailWithDifferentEnvelopeSender()
+
+			const foundRule = await _findMatchingRule(mailFacade, mail, [rule])
+			o.check(foundRule).equals(null)
+		})
+	})
+})
+
+function _createMailWithDifferentEnvelopeSender(values?: Partial<Mail>): Mail {
+	return createTestEntity(MailTypeRef, {
+		differentEnvelopeSender: "differentenvelopsender@something.com",
+		sender: createTestEntity(MailAddressTypeRef, {
+			address: "sender@tuta.com",
+		}),
+		...values,
+	})
+}
+
+function _createMailDetails(values?: Partial<MailDetails>): MailDetails {
+	return createTestEntity(MailDetailsTypeRef, {
+		recipients: createTestEntity(RecipientsTypeRef, {
+			toRecipients: [
+				createTestEntity(MailAddressTypeRef, {
+					address: "to-recipient@tuta.com",
+				}),
+			],
+			ccRecipients: [
+				createTestEntity(MailAddressTypeRef, {
+					address: "cc-recipient@tuta.com",
+				}),
+			],
+			bccRecipients: [
+				createTestEntity(MailAddressTypeRef, {
+					address: "bcc-recipient@tuta.com",
+				}),
+			],
+		}),
+		...values,
+	})
+}
+
+function _createRuleCondition(type: InboxRuleConditionType, value: InboxRuleCondition["value"]): InboxRuleCondition {
+	return createTestEntity(InboxRuleConditionTypeRef, {
+		type,
+		value,
+	})
+}
+
+function _createRuleResult(type: InboxRuleResultType, value: InboxRuleResult["value"] = null): InboxRuleResult {
+	return createTestEntity(InboxRuleResultTypeRef, {
+		type,
+		value,
+	})
+}
+
+function _createRule(conditions: InboxRuleCondition[], results: InboxRuleResult[], name?: string): ExpandedInboxRule {
+	return createTestEntity(ExpandedInboxRuleTypeRef, {
+		name: name ?? "no-name",
+		conditions,
+		results,
+	})
+}
