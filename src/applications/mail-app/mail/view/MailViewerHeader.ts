@@ -39,7 +39,7 @@ import { EventBanner, EventBannerAttrs } from "./EventBanner"
 import { getGroupColors } from "../../../common/misc/GroupColors"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 import { File } from "@tutao/entities/tutanota"
-import { InboxRuleType, NewsletterBannerRule } from "../../../../entities/tutanota/Utils"
+import { InboxRuleConditionType, NewsletterBannerRule } from "../../../../entities/tutanota/Utils"
 import { canSeeTutaLinks } from "../../../common/gui/base/TutaLinkUtils"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { DownloadPostProcessing } from "../../../common/file/FileController"
@@ -49,7 +49,7 @@ import { ExtensionPoint, PluginLanguageCode } from "../../../../plugin-kit/sdk/h
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
-	defaultInboxRuleField: InboxRuleType | null
+	defaultInboxRuleField: InboxRuleConditionType | null
 	createContact?: boolean
 }) => Promise<Array<DropdownButtonAttrs>>
 
@@ -441,7 +441,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									lazyButtons: () =>
 										createMailAddressContextButtons({
 											mailAddress: displayedSender,
-											defaultInboxRuleField: InboxRuleType.FROM_EQUALS,
+											defaultInboxRuleField: InboxRuleConditionType.FROM_EQUALS,
 										}),
 									width: bubbleMenuWidth,
 								}),
@@ -471,7 +471,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 												address: envelopeSender,
 												name: "",
 											},
-											defaultInboxRuleField: InboxRuleType.FROM_EQUALS,
+											defaultInboxRuleField: InboxRuleConditionType.FROM_EQUALS,
 											createContact: false,
 										})
 										return [...childElements, ...contextButtons]
@@ -498,7 +498,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 												lazyButtons: () =>
 													createMailAddressContextButtons({
 														mailAddress: recipient,
-														defaultInboxRuleField: InboxRuleType.RECIPIENT_TO_EQUALS,
+														defaultInboxRuleField: InboxRuleConditionType.RECIPIENT_TO_EQUALS,
 													}),
 												width: bubbleMenuWidth,
 											}),
@@ -527,7 +527,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 											lazyButtons: () =>
 												createMailAddressContextButtons({
 													mailAddress: recipient,
-													defaultInboxRuleField: InboxRuleType.RECIPIENT_CC_EQUALS,
+													defaultInboxRuleField: InboxRuleConditionType.RECIPIENT_CC_EQUALS,
 												}),
 											width: bubbleMenuWidth,
 										}),
@@ -554,7 +554,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 											lazyButtons: () =>
 												createMailAddressContextButtons({
 													mailAddress: recipient,
-													defaultInboxRuleField: InboxRuleType.RECIPIENT_BCC_EQUALS,
+													defaultInboxRuleField: InboxRuleConditionType.RECIPIENT_BCC_EQUALS,
 												}),
 											width: bubbleMenuWidth,
 										}),
