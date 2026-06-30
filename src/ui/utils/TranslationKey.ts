@@ -2494,3 +2494,8 @@ export type TranslationKeyType =
 	| "inboxRuleManagement_text"
 	| "paymentMethodOnAccountHowItWorks_msg"
 	| "emptyString_msg"
+	| "condition_label"
+	| "then_label"
+	| "saveAndApply_action"
+	| "applyingInboxRules_label"
+	| "inboxRuleExplainer_msg"
