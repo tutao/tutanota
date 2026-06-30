@@ -100,10 +100,12 @@ private enum TutaUrl {
 		guard let url = URL(string: urlString) else { throw GenericTutanotaError(message: "Invalid URL: \(urlString)") }
 		switch url.scheme {
 		case "tuta-tmp":
-			let name = Filename(fileName: url.path(percentEncoded: false))
+			// parse URL manually, can be removed once iOS 17 is unsupported
+			let name = Filename(fileName: String(url.absoluteString.dropFirst("tuta-tmp:".count)))
 			self = .tmp(name: name)
 		case "tuta-stream":
-			let name = Filename(fileName: url.path(percentEncoded: false))
+			// parse URL manually, can be removed once iOS 17 is unsupported
+			let name = Filename(fileName: String(url.absoluteString.dropFirst("tuta-stream:".count)))
 			self = .stream(name: name)
 		case "file": self = .file(url: url)
 		default: throw GenericTutanotaError(message: "Invalid URL: \(urlString)")
