@@ -33,6 +33,7 @@ export const enum DialogType {
 	Progress = "Progress",
 	Alert = "Alert",
 	Reminder = "Reminder",
+	InboxRule = "InboxRule",
 	EditSmall = "EditSmall",
 	EditMedium = "EditMedium",
 	EditLarger = "EditLarger",
@@ -267,6 +268,8 @@ export class Dialog implements ModalComponent {
 			dialogStyle += ".dialog-width-alert.pt-16.border-radius-bottom-8"
 		} else if (dialogType === DialogType.Reminder) {
 			dialogStyle += ".dialog-width-m.pt-16.flex.flex-column.border-radius-bottom-8"
+		} else if (dialogType === DialogType.InboxRule) {
+			dialogStyle = ".dialog.flex-grow.border-radius-top-8.dialog-width-l.flex.flex-column.border-radius-bottom-8.nav-bg"
 		} else if (dialogType === DialogType.EditSmall) {
 			dialogStyle += ".dialog-width-s.flex.flex-column.border-radius-bottom-8"
 		} else if (dialogType === DialogType.EditMedium) {
