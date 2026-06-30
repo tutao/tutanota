@@ -34,15 +34,15 @@ if (typeof CSS.registerProperty === "function") {
 interface TransferStackStatus {
 	progressState: ProgressState
 	percentage: number
-	mainText: string
+	mainText: Translation
 	infoText?: Translation
 }
 
 export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 	private expanded: boolean = false
-	getStackStatus(driveTransfers: DriveTransfers): TransferStackStatus {
+	private getStackStatus(driveTransfers: DriveTransfers): TransferStackStatus {
 		let progressState: ProgressState
-		let mainText: string
+		let mainText: Translation
 		let infoText: Translation
 		const { currentTransfers, allTransfers } = driveTransfers
 
@@ -57,17 +57,17 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 		const allTransfersDone = doneTransfers === totalTransfers
 		if (allTransfersDone) {
 			progressState = ProgressState.done
-			mainText = lang.getTranslationText("transfersDone_label")
+			mainText = lang.getTranslation("transfersDone_label")
 			infoText = lang.getTranslation("transfersCompleted_msg", { "{done}": doneTransfers, "{total}": totalTransfers })
 		} else {
 			const anyTransferFailed = allTransfers.some((transfer) => this.getProgressState(transfer.state) === ProgressState.error)
 			if (anyTransferFailed) {
 				progressState = ProgressState.error
-				mainText = lang.getTranslationText("transfersFailed_label")
+				mainText = lang.getTranslation("transfersFailed_label")
 				infoText = lang.getTranslation("transfersFailed_msg")
 			} else {
 				progressState = ProgressState.running
-				mainText = lang.getTranslationText("transferring_label")
+				mainText = lang.getTranslation("transferring_label")
 				infoText = lang.getTranslation("transfersCompleted_msg", { "{done}": doneTransfers, "{total}": totalTransfers })
 			}
 		}
@@ -129,8 +129,12 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 					m(".flex.flex-grow.items-center.gap-16.overflow-hidden.pl-16", [
 						this.expanded ? null : this.renderProgress(stackStatus.progressState, stackStatus.percentage),
 						m(".flex.col.gap-8.flex-shrink.overflow-hidden", [
-							m(".font-weight-500.text-ellipsis", stackStatus.mainText),
-							stackStatus.infoText ? m(".small", { "data-testid": stackStatus.infoText.testId }, stackStatus.infoText.text) : null,
+							m(
+								".font-weight-500.text-ellipsis",
+								{ "data-testid": "label:transfers_status", "data-progressstate": stackStatus.progressState },
+								lang.getTranslationText(stackStatus.mainText),
+							),
+							stackStatus.infoText ? m(".small", { "data-testid": lang.getTestId(stackStatus.infoText) }, stackStatus.infoText.text) : null,
 						]),
 					]),
 					m(IconButton, {
