@@ -84,6 +84,10 @@ export class ParsedValue<NestedObject extends DeepEquals> implements DeepEquals 
 		return new ParsedValue<NestedObject>(value, null, null)
 	}
 
+	static emptyAssociation<NestedObject extends DeepEquals>(): ParsedValue<NestedObject> {
+		return new ParsedValue<NestedObject>(null, [], null)
+	}
+
 	static fromNestedItem<NestedObject extends DeepEquals>(value: NestedObject): ParsedValue<NestedObject> {
 		return new ParsedValue<NestedObject>(null, null, value)
 	}

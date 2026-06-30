@@ -85,32 +85,32 @@ o.spec("CryptoMapperTest", () => {
 
 	o.beforeEach(async () => {
 		const parsedAggregate = DecryptedParsedInstance.outgoingToServer(testAggregateModel as ClientTypeModel)
-			.addAttribute(2, ParsedValue.fromString("123"))
-			.addAttribute(6, ParsedValue.fromString("aggregateId"))
-			.addAttribute(
+			.addAttributeById(2, ParsedValue.fromString("123"))
+			.addAttributeById(6, ParsedValue.fromString("aggregateId"))
+			.addAttributeById(
 				9,
 				ParsedValue.fromNestedItems([
 					DecryptedParsedInstance.outgoingToServer(testAggregateOnAggregateModel as ClientTypeModel)
-						.addAttribute(17, ParsedValue.fromByteArray(Uint8Array.of(42)))
-						.addAttribute(10, ParsedValue.fromNull())
-						.addAttribute(11, ParsedValue.fromId("anotherCustomId")),
+						.addAttributeById(17, ParsedValue.fromByteArray(Uint8Array.of(42)))
+						.addAttributeById(10, ParsedValue.fromNull())
+						.addAttributeById(11, ParsedValue.fromId("anotherCustomId")),
 				]),
 			)
-			.addAttribute(10, ParsedValue.fromIdList([]))
+			.addAttributeById(10, ParsedValue.fromIdList([]))
 		decryptedParsedInstance = DecryptedParsedInstance.outgoingToServer(testTypeModel as ClientTypeModel)
-			.addAttribute(1, ParsedValue.fromString("encrypted string"))
-			.addAttribute(2, ParsedValue.fromNull())
-			.addAttribute(3, ParsedValue.fromNestedItems([parsedAggregate]))
-			.addAttribute(4, ParsedValue.fromIdList(["associatedElementId"]))
-			.addAttribute(5, ParsedValue.fromString(new Date("2025-01-01T13:00:00.000Z").getTime().toString()))
-			.addAttribute(7, ParsedValue.fromBoolean(true))
-			.addAttribute(8, ParsedValue.fromIdTupleList([]))
-			.addAttribute(12, ParsedValue.fromId("some-id"))
-			.addAttribute(13, ParsedValue.fromIdTuple(["listId", "listElementId"]))
-			.addAttribute(14, ParsedValue.fromNull())
-			.addAttribute(15, ParsedValue.fromBoolean(true))
-			.addAttribute(16, ParsedValue.fromNull())
-			.addAttribute(17, ParsedValue.fromIdTupleList([]))
+			.addAttributeById(1, ParsedValue.fromString("encrypted string"))
+			.addAttributeById(2, ParsedValue.fromNull())
+			.addAttributeById(3, ParsedValue.fromNestedItems([parsedAggregate]))
+			.addAttributeById(4, ParsedValue.fromIdList(["associatedElementId"]))
+			.addAttributeById(5, ParsedValue.fromString(new Date("2025-01-01T13:00:00.000Z").getTime().toString()))
+			.addAttributeById(7, ParsedValue.fromBoolean(true))
+			.addAttributeById(8, ParsedValue.fromIdTupleList([]))
+			.addAttributeById(12, ParsedValue.fromId("some-id"))
+			.addAttributeById(13, ParsedValue.fromIdTuple(["listId", "listElementId"]))
+			.addAttributeById(14, ParsedValue.fromNull())
+			.addAttributeById(15, ParsedValue.fromBoolean(true))
+			.addAttributeById(16, ParsedValue.fromNull())
+			.addAttributeById(17, ParsedValue.fromIdTupleList([]))
 	})
 
 	o.spec("decryptValue aesCbc", () => {

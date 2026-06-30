@@ -1,7 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
 import { DecryptedParsedInstance, ModelMapper } from "../../../src/platform-kit/instance-pipeline"
 import { AssociationType, Cardinality, ClientTypeModel, ServerTypeModel, Type, TypeRef, ValueType } from "../../../src/platform-kit/meta"
-import { changeInstanceDirection, DummyTypeModelResolver, TestAggregateRef, TestEntity } from "./InstancePipelineTestUtils"
+import { changeInstanceDirection, DummyTypeModelResolver, TestAggregateRef, TestEntity, TestTypeRef } from "./InstancePipelineTestUtils"
 import { removeOriginals } from "../TestUtils"
 import { InstanceDirection, ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { InvalidModelError, ProgrammingError } from "../../../src/platform-kit/app-env"
@@ -80,12 +80,11 @@ o.spec("ModelMapperTransformations", function () {
 			}
 
 			const modelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttribute(
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttributeById(
 				3,
-				ParsedValue.fromNestedItems([DecryptedParsedInstance.incomingFromServer(serverModel["43"]).addAttribute(2, ParsedValue.fromString("123"))]),
+				ParsedValue.fromNestedItems([DecryptedParsedInstance.incomingFromServer(serverModel["43"]).addAttributeById(2, ParsedValue.fromString("123"))]),
 			)
 
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 			const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
@@ -169,12 +168,11 @@ o.spec("ModelMapperTransformations", function () {
 			}
 
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, serverModelResolver))
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttribute(
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttributeById(
 				3,
-				ParsedValue.fromNestedItems([DecryptedParsedInstance.incomingFromServer(serverModel["43"]).addAttribute(2, ParsedValue.fromString("123"))]),
+				ParsedValue.fromNestedItems([DecryptedParsedInstance.incomingFromServer(serverModel["43"]).addAttributeById(2, ParsedValue.fromString("123"))]),
 			)
 
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 			const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
 			removeOriginals(mappedInstance)
 
@@ -263,14 +261,15 @@ o.spec("ModelMapperTransformations", function () {
 			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
 				return serverModel[typeRef.typeId]
 			}
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-			const serverTypeModel = await serverModelResolver(typeRef)
-			const serverAggregateModel = await serverModelResolver(aggregateTypeRef)
+			const serverTypeModel = await serverModelResolver(TestTypeRef)
+			const serverAggregateModel = await serverModelResolver(TestAggregateRef)
 
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, serverModelResolver))
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverTypeModel).addAttribute(
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverTypeModel).addAttributeById(
 				3,
-				ParsedValue.fromNestedItems([DecryptedParsedInstance.incomingFromServer(serverAggregateModel).addAttribute(2, ParsedValue.fromString("123"))]),
+				ParsedValue.fromNestedItems([
+					DecryptedParsedInstance.incomingFromServer(serverAggregateModel).addAttributeById(2, ParsedValue.fromString("123")),
+				]),
 			)
 
 			const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
@@ -354,7 +353,7 @@ o.spec("ModelMapperTransformations", function () {
 			const typeRef = new TypeRef<TestEntity>("tutanota", 42)
 
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, serverModelResolver))
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttribute(
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttributeById(
 				3,
 				ParsedValue.fromIdTupleList([["listId", "listElementId"]]),
 			)
@@ -440,7 +439,7 @@ o.spec("ModelMapperTransformations", function () {
 
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, serverModelResolver))
 
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverTypeModel).addAttribute(
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverTypeModel).addAttributeById(
 				3,
 				ParsedValue.fromIdTupleList([["listId", "listElementId"]]),
 			)
@@ -528,11 +527,9 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttribute(
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttributeById(
 				3,
 				ParsedValue.fromIdTupleList([["listId", "listElementId"]]),
 			)
@@ -597,16 +594,15 @@ o.spec("ModelMapperTransformations", function () {
 				}
 				return clientModel[typeRef.typeId]
 			}
-			const testTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttribute(1, ParsedValue.fromString("example"))
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttributeById(1, ParsedValue.fromString("example"))
 
 			const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
-				_type: testTypeRef,
+				_type: TestTypeRef,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -669,7 +665,6 @@ o.spec("ModelMapperTransformations", function () {
 			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
 				return clientModel[typeRef.typeId]
 			}
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 
@@ -734,10 +729,9 @@ o.spec("ModelMapperTransformations", function () {
 			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
 				return clientModel[typeRef.typeId]
 			}
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttribute(1, ParsedValue.fromString("example"))
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttributeById(1, ParsedValue.fromString("example"))
 
 			const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
 			removeOriginals(mappedInstance)
@@ -807,36 +801,32 @@ o.spec("ModelMapperTransformations", function () {
 			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
 				return clientModel[typeRef.typeId]
 			}
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
+
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 
-			const falseParsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttribute(1, ParsedValue.fromBoolean(false))
-
+			const falseParsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttributeById(1, ParsedValue.fromBoolean(false))
+			const trueParsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttributeById(1, ParsedValue.fromString("anything"))
 			const falseMappedInstance = (await modelMapper.mapToInstance(falseParsedInstance)) as any
-			removeOriginals(falseMappedInstance)
-			o(falseMappedInstance).deepEquals({
-				_type: TestTypeRef,
-				testValue: false,
-			} as any)
-			o(typeof falseMappedInstance._errors).equals("undefined")
-
-			// request is prepared with the client model and does not add handle the boolean to number transformation
-			const newFalseParsedInstance = await modelMapper.mapToDecryptedInstance(falseMappedInstance)
-			o(newFalseParsedInstance).deepEquals(falseParsedInstance)
-
-			const trueParsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttribute(1, ParsedValue.fromString("anything"))
-
 			const trueMappedInstance = (await modelMapper.mapToInstance(trueParsedInstance)) as any
+
 			removeOriginals(trueMappedInstance)
+			removeOriginals(falseMappedInstance)
 			o(trueMappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: true,
 			} as any)
+			o(falseMappedInstance).deepEquals({
+				_type: TestTypeRef,
+				testValue: false,
+			} as any)
 			o(typeof trueMappedInstance._errors).equals("undefined")
+			o(typeof falseMappedInstance._errors).equals("undefined")
 
 			// request is prepared with the client model and does not add handle the boolean to number transformation
 			const newTrueParsedInstance = await modelMapper.mapToDecryptedInstance(trueMappedInstance)
-			o(newTrueParsedInstance).deepEquals(trueParsedInstance)
+			const newFalseParsedInstance = await modelMapper.mapToDecryptedInstance(falseMappedInstance)
+			o(newTrueParsedInstance.getAttributeByName("testValue").asBoolean()).equals(true)
+			o(newFalseParsedInstance.getAttributeByName("testValue").asBoolean()).equals(false)
 		})
 	})
 
@@ -930,13 +920,11 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 
 			let serverTypeModel = await serverModelResolver(TestTypeRef)
 			const aggregateTypeModel = await serverModelResolver(TestAggregateRef)
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverTypeModel).addAttribute(
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverTypeModel).addAttributeById(
 				3,
 				ParsedValue.fromNestedItems([DecryptedParsedInstance.incomingFromServer(aggregateTypeModel)]),
 			)
@@ -1046,20 +1034,16 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 
 			const typeModel = await serverModelResolver(TestTypeRef)
 
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel)
-			parsedInstance.addAttribute(3, ParsedValue.fromNestedItems([]))
+			parsedInstance.addAttributeById(3, ParsedValue.emptyAssociation())
 
-			// const parsedInstance: ServerModelParsedInstance = {
-			// 	3: [],
-			// } as any as ServerModelParsedInstance
 			// can't convert an empty array to one
-			await assertThrows(InvalidModelError, async () => modelMapper.mapToInstance(parsedInstance))
+			const err = await assertThrows(InvalidModelError, async () => modelMapper.mapToInstance(parsedInstance))
+			o(err.message).equals("Cardinality One should have exactly one item. Found: 0")
 		})
 		o("change aggregation from ZeroOrOne to Any null value", async function () {
 			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
@@ -1150,11 +1134,9 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 			const typeModel = await serverModelResolver(TestTypeRef)
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttribute(3, ParsedValue.fromNestedItems([]))
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(3, ParsedValue.fromNestedItems([]))
 
 			// can't convert an empty array to one
 			const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
@@ -1256,13 +1238,10 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const testTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-			const aggregateTypeRef = new TypeRef<TestEntity>("tutanota", 43)
-
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
-			const typeModel = await serverModelResolver(testTypeRef)
-			const aggregateTypeModel = await serverModelResolver(aggregateTypeRef)
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttribute(
+			const typeModel = await serverModelResolver(TestTypeRef)
+			const aggregateTypeModel = await serverModelResolver(TestAggregateRef)
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(
 				3,
 				ParsedValue.fromNestedItems([
 					DecryptedParsedInstance.incomingFromServer(aggregateTypeModel),
@@ -1362,11 +1341,9 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 			const typeModel = await serverModelResolver(TestTypeRef)
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttribute(3, ParsedValue.fromNestedItems([]))
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(3, ParsedValue.fromNestedItems([]))
 
 			// can convert an empty array to ZeroOrOne
 			const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
@@ -1468,13 +1445,10 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-			const aggregateTypeRef = new TypeRef<TestEntity>("tutanota", 43)
-
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 			const typeModel = await serverModelResolver(TestTypeRef)
-			const aggregateTypeModel = await serverModelResolver(aggregateTypeRef)
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttribute(
+			const aggregateTypeModel = await serverModelResolver(TestAggregateRef)
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(
 				3,
 				ParsedValue.fromNestedItems([DecryptedParsedInstance.incomingFromServer(aggregateTypeModel)]),
 			)
@@ -1580,11 +1554,9 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 			const typeModel = await serverModelResolver(TestTypeRef)
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttribute(
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(
 				3,
 				ParsedValue.fromIdTupleList([["listId", "listElementId"]]),
 			)
@@ -1690,11 +1662,9 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 			const typeModel = await serverModelResolver(TestTypeRef)
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttribute(3, ParsedValue.fromIdTupleList([]))
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(3, ParsedValue.fromIdTupleList([]))
 
 			// can't convert an empty array to one
 			const err = await assertThrows(InvalidModelError, async () => modelMapper.mapToInstance(parsedInstance))
@@ -1789,11 +1759,9 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 			const typeModel = await serverModelResolver(TestTypeRef)
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttribute(3, ParsedValue.fromIdTupleList([]))
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(3, ParsedValue.fromIdTupleList([]))
 
 			// can't convert an empty array to one
 			const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
@@ -1897,11 +1865,9 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 			const typeModel = await serverModelResolver(TestTypeRef)
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttribute(
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(
 				3,
 				ParsedValue.fromIdTupleList([
 					["listId", "listElementId1"],
@@ -2001,11 +1967,9 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 			const typeModel = await serverModelResolver(TestTypeRef)
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttribute(3, ParsedValue.fromIdTupleList([]))
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(3, ParsedValue.fromIdTupleList([]))
 
 			// can convert an empty array to ZeroOrOne
 			const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
@@ -2107,11 +2071,9 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 			const typeModel = await serverModelResolver(TestTypeRef)
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttribute(
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(
 				3,
 				ParsedValue.fromIdTupleList([["listId", "listElementId"]]),
 			)
@@ -2186,11 +2148,10 @@ o.spec("ModelMapperTransformations", function () {
 				}
 				return clientModel[typeRef.typeId]
 			}
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 			const typeModel = await serverModelResolver(TestTypeRef)
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttribute(1, ParsedValue.fromString("example"))
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(1, ParsedValue.fromString("example"))
 
 			const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
 			removeOriginals(mappedInstance)
@@ -2262,11 +2223,10 @@ o.spec("ModelMapperTransformations", function () {
 				}
 				return clientModel[typeRef.typeId]
 			}
-			const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
 			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 			const typeModel = await serverModelResolver(TestTypeRef)
-			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttribute(1, ParsedValue.fromString("example"))
+			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(1, ParsedValue.fromString("example"))
 
 			const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
 			removeOriginals(mappedInstance)
@@ -2338,11 +2298,10 @@ o.spec("ModelMapperTransformations", function () {
 					}
 					return clientModel[typeRef.typeId]
 				}
-				const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
 				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 				const typeModel = await serverModelResolver(TestTypeRef)
-				const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttribute(3, ParsedValue.fromNull())
+				const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(3, ParsedValue.fromNull())
 				await assertThrows(InvalidModelError, () => modelMapper.mapToInstance(parsedInstance))
 			})
 		})
@@ -2405,23 +2364,19 @@ o.spec("ModelMapperTransformations", function () {
 					}
 					return clientModel[typeRef.typeId]
 				}
-				const typeRef = new TypeRef<TestEntity>("tutanota", 42)
-				const typeModel = await serverModelResolver(typeRef)
-				const clientTypeModel = await clientModelResolver(typeRef)
 
+				const typeModel = await serverModelResolver(TestTypeRef)
 				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
-				const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttribute(3, ParsedValue.fromString("42"))
+				const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(1, ParsedValue.fromString("42"))
 
 				const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
-				const expectedInstance = DecryptedParsedInstance.incomingFromServer(clientTypeModel).addAttribute(3, ParsedValue.fromString("42"))
-				const expectedEntity = await modelMapper.mapToInstance(expectedInstance)
 				removeOriginals(mappedInstance)
-				o(mappedInstance).deepEquals(expectedEntity)
-				o(typeof parsedInstance.getErrors()).equals("undefined")
+				o(mappedInstance).deepEquals({ _type: TestTypeRef, testValue: "42" } as any)
+				o(parsedInstance.hasError()).equals(false)
 
 				// request is prepared with the client model and does not add handle the number to string transformation
 				const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
-				o.check(newParsedInstance.deepEquals(expectedInstance)).equals(true)
+				o.check(newParsedInstance.getAttributeByName("testValue").asString()).equals("42")
 			})
 			o("convert number to string value throws when server sends non numeric", async function () {
 				const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
@@ -2481,98 +2436,16 @@ o.spec("ModelMapperTransformations", function () {
 					}
 					return clientModel[typeRef.typeId]
 				}
-				const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
 				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 				const typeModel = await serverModelResolver(TestTypeRef)
-				const wrongParsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttribute(3, ParsedValue.fromString("example"))
+				const wrongParsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(1, ParsedValue.fromString("example"))
 
-				await assertThrows(ProgrammingError, () => modelMapper.mapToInstance(wrongParsedInstance))
+				const err = await assertThrows(ProgrammingError, () => modelMapper.mapToInstance(wrongParsedInstance))
+				o(err.message).equals("Non-numeric string for attribute: testValue")
 			})
 		})
 		o.spec("RemoveAssociation", function () {
-			o("remove One aggregation", async function () {
-				const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
-					const serverModel: Record<string, ServerTypeModel> = {
-						"42": {
-							app: "tutanota",
-							encrypted: true,
-							id: 42,
-							name: "TestType",
-							rootId: "SoMeId",
-							since: 0,
-							type: Type.ListElement,
-							isPublic: true,
-							values: {},
-							associations: {},
-							version: 0,
-							versioned: false,
-						} as unknown as ServerTypeModel,
-					}
-					return serverModel[typeRef.typeId]
-				}
-
-				const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
-					const clientModel: Record<string, ClientTypeModel> = {
-						"42": {
-							app: "tutanota",
-							encrypted: true,
-							id: 42,
-							name: "TestType",
-							rootId: "SoMeId",
-							since: 0,
-							type: Type.ListElement,
-							isPublic: true,
-							values: {},
-							associations: {
-								"3": {
-									id: 3,
-									name: "testAssociation",
-									type: AssociationType.Aggregation,
-									cardinality: Cardinality.One,
-									refTypeId: 43,
-									final: false,
-									dependency: "tutanota",
-								},
-							},
-							version: 0,
-							versioned: false,
-						} as unknown as ClientTypeModel,
-						"43": {
-							app: "tutanota",
-							encrypted: true,
-							id: 43,
-							name: "TestAggregate",
-							rootId: "SoMeId",
-							since: 0,
-							type: Type.Aggregated,
-							isPublic: true,
-							values: {
-								"2": {
-									id: 2,
-									name: "testNumber",
-									type: ValueType.Number,
-									cardinality: Cardinality.One,
-									final: false,
-									encrypted: false,
-								},
-							},
-							associations: {},
-							version: 0,
-							versioned: false,
-						} as unknown as ClientTypeModel,
-					}
-					return clientModel[typeRef.typeId]
-				}
-				const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
-
-				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
-				const typeModel = await serverModelResolver(TestTypeRef)
-				const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel)
-
-				// can't create the instance since One aggregation is removed
-				await assertThrows(InvalidModelError, () => modelMapper.mapToInstance(parsedInstance))
-			})
 			o("remove ZeroOrOne aggregation", async function () {
 				const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
 					const serverModel: Record<string, ServerTypeModel> = {
@@ -2646,28 +2519,20 @@ o.spec("ModelMapperTransformations", function () {
 					}
 					return clientModel[typeRef.typeId]
 				}
-				const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
 				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 				const typeModel = await serverModelResolver(TestTypeRef)
-				const clientTypeModel = await clientModelResolver(TestTypeRef)
 				const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel)
-
-				const exptectedInstance = DecryptedParsedInstance.incomingFromServer(clientTypeModel).addAttribute(3, ParsedValue.fromNull())
-				const expectedEntity = await modelMapper.mapToInstance(exptectedInstance)
 
 				// can remove aggregation with ZeroOrOne cardinality and supply null
 				const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
 				removeOriginals(mappedInstance)
-
-				o(mappedInstance).deepEquals(expectedEntity)
+				o(mappedInstance).deepEquals({ _type: TestTypeRef, testAssociation: null } as any)
 				o(typeof mappedInstance["_errors"]).equals("undefined")
 
 				// request is prepared with the client model and does NOT remove ZeroOrOne aggregation
 				const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
-				o(newParsedInstance).deepEquals({
-					3: [],
-				} as any)
+				o(newParsedInstance.getAttributeById(3).asNestedObjList()).deepEquals([])
 			})
 			o("remove Any aggregation", async function () {
 				const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
@@ -2742,7 +2607,6 @@ o.spec("ModelMapperTransformations", function () {
 					}
 					return clientModel[typeRef.typeId]
 				}
-				const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
 				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 				const typeModel = await serverModelResolver(TestTypeRef)
@@ -2759,9 +2623,7 @@ o.spec("ModelMapperTransformations", function () {
 
 				// request is prepared with the client model and does NOT remove Any aggregation
 				const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
-				o(newParsedInstance).deepEquals({
-					3: [],
-				} as any)
+				o(newParsedInstance.getAttributeById(3).asIdList()).deepEquals([])
 			})
 			o("remove ZeroOrOne list element association", async function () {
 				const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
@@ -2827,7 +2689,6 @@ o.spec("ModelMapperTransformations", function () {
 					}
 					return clientModel[typeRef.typeId]
 				}
-				const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
 				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 				const typeModel = await serverModelResolver(TestTypeRef)
@@ -2844,8 +2705,7 @@ o.spec("ModelMapperTransformations", function () {
 
 				// request is prepared with the client model and does NOT remove ZeroOrOne list element association
 				const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
-				changeInstanceDirection(parsedInstance, InstanceDirection.OutgoingToServer)
-				o.check(newParsedInstance.deepEquals(parsedInstance)).equals(true)
+				o.check(newParsedInstance.getAttributeById(3).asNestedObjList()).deepEquals([])
 			})
 			o("remove Any list element association", async function () {
 				const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
@@ -2920,7 +2780,6 @@ o.spec("ModelMapperTransformations", function () {
 					}
 					return clientModel[typeRef.typeId]
 				}
-				const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
 				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 				const typeModel = await serverModelResolver(TestTypeRef)
@@ -2936,10 +2795,6 @@ o.spec("ModelMapperTransformations", function () {
 				o(typeof mappedInstance["_errors"]).equals("undefined")
 
 				// request is prepared with the client model and does NOT remove Any list element association
-				const expectedInstance = DecryptedParsedInstance.outgoingToServer(await clientModelResolver(TestTypeRef)).addAttribute(
-					3,
-					ParsedValue.fromIdList([]),
-				)
 				const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
 				o.check(newParsedInstance.getAttributeById(3).asIdList()).deepEquals([])
 			})
@@ -2993,23 +2848,19 @@ o.spec("ModelMapperTransformations", function () {
 						}
 						return clientModel[typeRef.typeId]
 					}
-					const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 
 					const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 					const typeModel = await serverModelResolver(TestTypeRef)
-					const clientTypeModel = await clientModelResolver(TestTypeRef)
 					const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel)
 
 					const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
 					removeOriginals(mappedInstance)
 					o(mappedInstance).deepEquals({ _type: TestTypeRef, testValue: "" } as any)
-
 					o(typeof mappedInstance["_errors"]).equals("undefined")
 
 					// request is prepared with the client model and does NOT remove One value
-					const expectedInstance = DecryptedParsedInstance.outgoingToServer(clientTypeModel).addAttribute(1, ParsedValue.fromString(""))
 					const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
-					o.check(newParsedInstance.deepEquals(expectedInstance)).equals(true)
+					o.check(newParsedInstance.getAttributeByName("testValue").asString()).equals("")
 				})
 				o("server removes ZeroOrOne Value", async function () {
 					const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
@@ -3059,20 +2910,14 @@ o.spec("ModelMapperTransformations", function () {
 						}
 						return clientModel[typeRef.typeId]
 					}
-					const typeRef = new TypeRef<TestEntity>("tutanota", 42)
-					const typeModel = await serverModelResolver(typeRef)
+					const typeModel = await serverModelResolver(TestTypeRef)
 
-					const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, serverModelResolver))
-					const clientTypeModel = await clientModelResolver(typeRef)
+					const modelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, serverModelResolver))
 					const serverDecryptedParsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel)
 
 					const entity = await modelMapper.mapToInstance(serverDecryptedParsedInstance)
-
 					removeOriginals(entity)
-					const expectedInstance = DecryptedParsedInstance.outgoingToServer(clientTypeModel).addAttribute(1, ParsedValue.fromNull())
-
-					const expectedEntity = { _type: typeRef } as any
-					o(entity).deepEquals(expectedEntity)
+					o(entity).deepEquals({ _type: TestTypeRef, testValue: null } as any)
 
 					o(typeof entity["_errors"]).equals("undefined")
 

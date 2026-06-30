@@ -241,11 +241,11 @@ export class PatchMerger {
 						)
 					}
 
-					instanceToChange.addAttribute(attributeId, ParsedValue.fromNestedItems(distinctAggregates.map((assoc) => assoc.asNestedObj())))
+					instanceToChange.addAttributeById(attributeId, ParsedValue.fromNestedItems(distinctAggregates.map((assoc) => assoc.asNestedObj())))
 				} else if (associationReprType === AssociationReprType.IdTuple) {
-					instanceToChange.addAttribute(attributeId, ParsedValue.fromIdTupleList(distinctAggregates.map((assoc) => assoc.asIdTuple())))
+					instanceToChange.addAttributeById(attributeId, ParsedValue.fromIdTupleList(distinctAggregates.map((assoc) => assoc.asIdTuple())))
 				} else if (associationReprType === AssociationReprType.SingleId) {
-					instanceToChange.addAttribute(attributeId, ParsedValue.fromIdList(distinctAggregates.map((assoc) => assoc.asId())))
+					instanceToChange.addAttributeById(attributeId, ParsedValue.fromIdList(distinctAggregates.map((assoc) => assoc.asId())))
 				}
 				break
 			}
@@ -263,11 +263,11 @@ export class PatchMerger {
 				const uniqueAssociations = this.distinctAssociations(remainingAggregations)
 
 				if (associationReprType === AssociationReprType.Aggregation) {
-					instanceToChange.addAttribute(attributeId, ParsedValue.fromNestedItems(uniqueAssociations.map((item) => item.asNestedObj())))
+					instanceToChange.addAttributeById(attributeId, ParsedValue.fromNestedItems(uniqueAssociations.map((item) => item.asNestedObj())))
 				} else if (associationReprType === AssociationReprType.IdTuple) {
-					instanceToChange.addAttribute(attributeId, ParsedValue.fromIdTupleList(uniqueAssociations.map((item) => item.asIdTuple())))
+					instanceToChange.addAttributeById(attributeId, ParsedValue.fromIdTupleList(uniqueAssociations.map((item) => item.asIdTuple())))
 				} else if (associationReprType === AssociationReprType.SingleId) {
-					instanceToChange.addAttribute(attributeId, ParsedValue.fromIdList(uniqueAssociations.map((item) => item.asId())))
+					instanceToChange.addAttributeById(attributeId, ParsedValue.fromIdList(uniqueAssociations.map((item) => item.asId())))
 				}
 				break
 			}
@@ -276,13 +276,13 @@ export class PatchMerger {
 					const newValue: DecryptedParsedValue = valueInPatchPayload.isNull()
 						? ParsedValue.fromNull()
 						: ParsedValue.fromString(valueInPatchPayload.asString())
-					instanceToChange.addAttribute(attributeId, newValue)
+					instanceToChange.addAttributeById(attributeId, newValue)
 				} else if (associationReprType === AssociationReprType.Aggregation) {
-					instanceToChange.addAttribute(attributeId, ParsedValue.fromNestedItems(valueInPatchPayload.asNestedObjList()))
+					instanceToChange.addAttributeById(attributeId, ParsedValue.fromNestedItems(valueInPatchPayload.asNestedObjList()))
 				} else if (associationReprType === AssociationReprType.IdTuple) {
-					instanceToChange.addAttribute(attributeId, ParsedValue.fromIdTupleList(valueInPatchPayload.asIdTupleList()))
+					instanceToChange.addAttributeById(attributeId, ParsedValue.fromIdTupleList(valueInPatchPayload.asIdTupleList()))
 				} else if (associationReprType === AssociationReprType.SingleId) {
-					instanceToChange.addAttribute(attributeId, ParsedValue.fromIdList(valueInPatchPayload.asIdList()))
+					instanceToChange.addAttributeById(attributeId, ParsedValue.fromIdList(valueInPatchPayload.asIdList()))
 				}
 				break
 			}

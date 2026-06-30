@@ -58,7 +58,7 @@ export class OfflineMapper {
 		const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel)
 
 		for (const valueModel of Object.values(serverModel.values)) {
-			parsedInstance.addAttribute(valueModel.id, storedEntity.getValue(valueModel))
+			parsedInstance.addAttributeById(valueModel.id, storedEntity.getValue(valueModel))
 		}
 
 		for (const associationModel of Object.values(serverModel.associations)) {
@@ -70,15 +70,15 @@ export class OfflineMapper {
 					const mappedAggregates = await promiseMap(storedEntity.getAggregationList(associationModel, aggregateTypeModel), async (agg) => {
 						return await this.toParsedEntity(agg)
 					})
-					parsedInstance.addAttribute(associationModel.id, ParsedValue.fromNestedItems(mappedAggregates))
+					parsedInstance.addAttributeById(associationModel.id, ParsedValue.fromNestedItems(mappedAggregates))
 					break
 				}
 				case AssociationReprType.IdTuple: {
-					parsedInstance.addAttribute(associationModel.id, ParsedValue.fromIdTupleList(storedEntity.getIdTupleList(associationModel)))
+					parsedInstance.addAttributeById(associationModel.id, ParsedValue.fromIdTupleList(storedEntity.getIdTupleList(associationModel)))
 					break
 				}
 				case AssociationReprType.SingleId: {
-					parsedInstance.addAttribute(associationModel.id, ParsedValue.fromIdList(storedEntity.getIdList(associationModel)))
+					parsedInstance.addAttributeById(associationModel.id, ParsedValue.fromIdList(storedEntity.getIdList(associationModel)))
 					break
 				}
 			}

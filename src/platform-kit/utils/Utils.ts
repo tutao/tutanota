@@ -139,9 +139,9 @@ export function assertNotNull<T>(value: T | null, message: string = "null"): Non
 	return value
 }
 
-export function assertNotNaN(number: number): number {
+export function assertNotNaN(number: number, message: string = "Found NaN when valid number is expected"): number {
 	if (isNaN(number)) {
-		throw new ProgrammingError("Number is NaN. Not expected: ")
+		throw new ProgrammingError(message)
 	}
 	return number
 }

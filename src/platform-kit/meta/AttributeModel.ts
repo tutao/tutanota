@@ -50,7 +50,6 @@ export class AttributeModel {
 
 	public static getAttributeId(typeModel: TypeModel, attributeName: AttributeName): AttributeId | null {
 		if (AttributeModel.isKnownAttribute(typeModel, attributeName)) {
-			AttributeModel.computeAttributeIdsForTypeIfNotExists(typeModel)
 			return assertNotNull(AttributeModel.getResolvedAttributeId(typeModel, attributeName))
 		}
 

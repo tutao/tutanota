@@ -48,26 +48,26 @@ o.spec("ModelMapperTest", function () {
 			testFinalBoolean: false,
 		}
 		decryptedParsedInstance = DecryptedParsedInstance.incomingFromServer(testTypeModel as ServerTypeModel)
-			.addAttribute(1, ParsedValue.fromString("some encrypted string"))
-			.addAttribute(7, ParsedValue.fromString("1"))
-			.addAttribute(15, ParsedValue.fromString("1"))
-			.addAttribute(16, ParsedValue.fromByteArray(random.generateRandomData(10)))
-			.addAttribute(2, ParsedValue.fromNull())
-			.addAttribute(14, ParsedValue.fromNull())
-			.addAttribute(5, ParsedValue.fromString(new Date("2025-01-01T13:00:00.000Z").getTime().toString()))
-			.addAttribute(12, ParsedValue.fromId("generatedId"))
-			.addAttribute(13, ParsedValue.fromIdTuple(["listId", "elementId"]))
-			.addAttribute(4, ParsedValue.fromIdList(["associatedElementId"]))
-			.addAttribute(8, ParsedValue.fromIdTupleList([["listId", "listElementId"]]))
-			.addAttribute(17, ParsedValue.fromIdList([]))
-			.addAttribute(
+			.addAttributeById(1, ParsedValue.fromString("some encrypted string"))
+			.addAttributeById(7, ParsedValue.fromString("1"))
+			.addAttributeById(15, ParsedValue.fromString("1"))
+			.addAttributeById(16, ParsedValue.fromByteArray(random.generateRandomData(10)))
+			.addAttributeById(2, ParsedValue.fromNull())
+			.addAttributeById(14, ParsedValue.fromNull())
+			.addAttributeById(5, ParsedValue.fromString(new Date("2025-01-01T13:00:00.000Z").getTime().toString()))
+			.addAttributeById(12, ParsedValue.fromId("generatedId"))
+			.addAttributeById(13, ParsedValue.fromIdTuple(["listId", "elementId"]))
+			.addAttributeById(4, ParsedValue.fromIdList(["associatedElementId"]))
+			.addAttributeById(8, ParsedValue.fromIdTupleList([["listId", "listElementId"]]))
+			.addAttributeById(17, ParsedValue.fromIdList([]))
+			.addAttributeById(
 				3,
 				ParsedValue.fromNestedItems([
 					DecryptedParsedInstance.incomingFromServer(testAggregateModel as ServerTypeModel)
-						.addAttribute(2, ParsedValue.fromString("123"))
-						.addAttribute(6, ParsedValue.fromId("some id"))
-						.addAttribute(9, ParsedValue.fromIdList([]))
-						.addAttribute(10, ParsedValue.fromIdList([])),
+						.addAttributeById(2, ParsedValue.fromString("123"))
+						.addAttributeById(6, ParsedValue.fromId("some id"))
+						.addAttributeById(9, ParsedValue.fromIdList([]))
+						.addAttributeById(10, ParsedValue.fromIdList([])),
 				]),
 			)
 	})
@@ -97,7 +97,7 @@ o.spec("ModelMapperTest", function () {
 		})
 
 		o("if server cardinality is One, puts default value", async function () {
-			decryptedParsedInstance.addAttribute(1, ParsedValue.fromNull())
+			decryptedParsedInstance.addAttributeById(1, ParsedValue.fromNull())
 
 			const result = (await modelMapper.mapToInstance(decryptedParsedInstance)) as any
 			o(result.testValue).deepEquals("")
@@ -108,13 +108,13 @@ o.spec("ModelMapperTest", function () {
 			serverModel.values["1"].cardinality = Cardinality.ZeroOrOne
 			;(decryptedParsedInstance as any).typeModel = serverModel
 
-			decryptedParsedInstance.addAttribute(1, ParsedValue.fromNull())
+			decryptedParsedInstance.addAttributeById(1, ParsedValue.fromNull())
 			const err = await assertThrows(InvalidModelError, async () => modelMapper.mapToInstance(decryptedParsedInstance))
 			o(err.message).equals(`Expected non-null value for attribute with One cardinality. ${TestTypeRef.toString()}/testValue`)
 		})
 
 		o("wrong association cardinality throws xyz", async function () {
-			decryptedParsedInstance.addAttribute(4, ParsedValue.fromIdList(["some-id", "another-id-should-not-be-here-when-cardinality-is-zero-one"]))
+			decryptedParsedInstance.addAttributeById(4, ParsedValue.fromIdList(["some-id", "another-id-should-not-be-here-when-cardinality-is-zero-one"]))
 
 			const err = await assertThrows(InvalidModelError, async () => modelMapper.mapToInstance(decryptedParsedInstance))
 			o(err.message).equals("Cardinality ZeroOrOne can hold at max one item. Found: 2")

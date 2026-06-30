@@ -65,7 +65,7 @@ export class ModelMapper {
 				parsedValue = ParsedValue.fromString(randomAggregateId)
 			}
 
-			parsedInstance.addAttribute(valueId, parsedValue)
+			parsedInstance.addAttributeById(valueId, parsedValue)
 		}
 
 		for (const modelAssociation of Object.values(clientTypeModel.associations)) {
@@ -77,17 +77,17 @@ export class ModelMapper {
 					const aggregateTypeModel = await this.typeModelResolver.resolveClientTypeReference(aggregateTypeRef)
 					const aggregates = instance.getAggregationList(modelAssociation, aggregateTypeModel)
 					const mappedAggregates = await promiseMap(aggregates, (agg) => this._mapToDecryptedInstance(agg))
-					parsedInstance.addAttribute(associationId, ParsedValue.fromNestedItems(mappedAggregates))
+					parsedInstance.addAttributeById(associationId, ParsedValue.fromNestedItems(mappedAggregates))
 					break
 				}
 				case AssociationReprType.SingleId: {
 					const idList = instance.getIdList(modelAssociation)
-					parsedInstance.addAttribute(associationId, ParsedValue.fromIdList(idList))
+					parsedInstance.addAttributeById(associationId, ParsedValue.fromIdList(idList))
 					break
 				}
 				case AssociationReprType.IdTuple: {
 					const idTupleList = instance.getIdTupleList(modelAssociation)
-					parsedInstance.addAttribute(associationId, ParsedValue.fromIdTupleList(idTupleList))
+					parsedInstance.addAttributeById(associationId, ParsedValue.fromIdTupleList(idTupleList))
 					break
 				}
 			}
@@ -122,19 +122,21 @@ export class ModelMapper {
 		}
 
 		for (const associationModel of Object.values(clientTypeModel.associations)) {
-			const association = parsedInstance.getAttributeById(associationModel.id)
+			const association = parsedInstance.getAttributeByIdOrNull(associationModel.id) ?? ParsedValue.emptyAssociation()
 			switch (getAssociationReprType(associationModel.type)) {
 				case AssociationReprType.Aggregation: {
-					const aggregates = await promiseMap(association.asNestedObjList(), async (agg) => await this._mapToInstance(agg))
-					clientInstance.setAggregations(associationModel.id, aggregates)
+					const aggregates = association.asNestedObjList().map((agg) => this._mapToInstance(agg))
+					clientInstance.setAggregations(associationModel.id, await Promise.all(aggregates))
 					break
 				}
-				case AssociationReprType.IdTuple:
-					clientInstance.setIdTupleList(associationModel.id, association.asIdTupleList())
+				case AssociationReprType.IdTuple: {
+					clientInstance.setIdTupleList(associationModel.id, association?.asIdTupleList() ?? [])
 					break
-				case AssociationReprType.SingleId:
-					clientInstance.setIdList(associationModel.id, association.asIdList())
+				}
+				case AssociationReprType.SingleId: {
+					clientInstance.setIdList(associationModel.id, association?.asIdList() ?? [])
 					break
+				}
 			}
 		}
 

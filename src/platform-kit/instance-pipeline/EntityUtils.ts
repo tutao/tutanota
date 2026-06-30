@@ -3,6 +3,7 @@ import { assert, DeepEquals, Nullable, stringToUtf8Uint8Array, utf8Uint8ArrayToS
 import { compress, uncompress } from "./Compression"
 import { ProgrammingError } from "@tutao/app-env"
 import { ParsedValue } from "./ParsedValue"
+import { assertNotNaN } from "../utils/Utils"
 
 export class EntityUtils {
 	public static getValue<NestedObj extends DeepEquals>(valueModel: ModelValue, value: Nullable<any>): ParsedValue<NestedObj> {
@@ -48,8 +49,11 @@ export class EntityUtils {
 			case ValueTypeEnum.Bytes:
 				entityRecord[key] = parsedValue.asByteArray()
 				break
-			case ValueTypeEnum.String:
+
 			case ValueTypeEnum.Number:
+				entityRecord[key] = assertNotNaN(parseInt(parsedValue.asString()), `Non-numeric string for attribute: ${modelValue.name}`).toString()
+				break
+			case ValueTypeEnum.String:
 			case ValueTypeEnum.CompressedString:
 				entityRecord[key] = parsedValue.asString()
 				break

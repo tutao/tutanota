@@ -141,11 +141,11 @@ export class CryptoMapper {
 			try {
 				const fieldPath = `${fieldPathPrefix}${valueModel.id}`
 				const decryptedValue = await this.decryptValue(valueModel, encryptedValue, instanceDecryptor, ownerKeyProvider, fieldPath)
-				decrypted.addAttribute(valueId, decryptedValue)
+				decrypted.addAttributeById(valueId, decryptedValue)
 			} catch (e) {
 				const defaultValue = EntityUtils.valueToDefault(valueModel.type).asString()
 				const base64EncodedDefaultValue: DecryptedParsedValue = ParsedValue.fromString(stringToBase64(defaultValue))
-				decrypted.addAttribute(valueId, base64EncodedDefaultValue)
+				decrypted.addAttributeById(valueId, base64EncodedDefaultValue)
 
 				if (e instanceof SessionKeyNotFoundError) {
 					const skAttrId = AttributeModel.getAttributeId(serverTypeModel, "_ownerEncSessionKey")
@@ -174,7 +174,7 @@ export class CryptoMapper {
 						ownerKeyProvider,
 						fieldPathPrefixForThisAssociation,
 					)
-					decrypted.addAttribute(associationId, ParsedValue.fromNestedItems(decryptedAggregates))
+					decrypted.addAttributeById(associationId, ParsedValue.fromNestedItems(decryptedAggregates))
 
 					if (this.containErrors(decryptedAggregates)) {
 						// we must propagate up to the top level of the instance that there is an error somewhere in an aggregated type.
@@ -187,13 +187,13 @@ export class CryptoMapper {
 
 				case AssociationReprType.SingleId: {
 					const idList = encryptedInstance.getAttributeById(associationId).asIdList()
-					decrypted.addAttribute(associationId, ParsedValue.fromIdList(idList))
+					decrypted.addAttributeById(associationId, ParsedValue.fromIdList(idList))
 					break
 				}
 
 				case AssociationReprType.IdTuple: {
 					const idList = encryptedInstance.getAttributeById(associationId).asIdTupleList()
-					decrypted.addAttribute(associationId, ParsedValue.fromIdTupleList(idList))
+					decrypted.addAttributeById(associationId, ParsedValue.fromIdTupleList(idList))
 					break
 				}
 			}
@@ -435,6 +435,11 @@ export class EncryptedParsedInstance implements DeepEquals {
 	}
 
 	public addAttributeById(attributeId: AttributeId, parsedValue: EncryptedParsedValue): this {
+		assert(
+			isNotNull(this.typeModel.values[attributeId]) || isNotNull(this.typeModel.associations[attributeId]),
+			`Cannot add non-existent attributeId: ${attributeId} to instance of type: ${this.typeModel.app}/${this.typeModel.name}`,
+		)
+
 		this.parsedInstance.set(attributeId, parsedValue)
 		return this
 	}
@@ -497,7 +502,12 @@ export class DecryptedParsedInstance implements DeepEquals {
 		return this.typeModel as ClientTypeModel
 	}
 
-	public addAttribute(attributeId: AttributeId, parsedValue: ParsedValue<DecryptedParsedInstance>): this {
+	public addAttributeById(attributeId: AttributeId, parsedValue: ParsedValue<DecryptedParsedInstance>): this {
+		assert(
+			isNotNull(this.typeModel.values[attributeId]) || isNotNull(this.typeModel.associations[attributeId]),
+			`Cannot add non-existant attributeId: ${attributeId} to instance of type: ${this.typeModel.app}/${this.typeModel.name}`,
+		)
+
 		this.parsedInstance.set(attributeId, parsedValue)
 		return this
 	}
@@ -507,10 +517,10 @@ export class DecryptedParsedInstance implements DeepEquals {
 		const attributeId = assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_id"))
 		switch (getIdType(this.typeModel)) {
 			case IdType.IdTuple:
-				return this.addAttribute(attributeId, ParsedValue.fromIdTuple(parsedValue.asIdTuple()))
+				return this.addAttributeById(attributeId, ParsedValue.fromIdTuple(parsedValue.asIdTuple()))
 
 			case IdType.SingleId:
-				return this.addAttribute(attributeId, ParsedValue.fromId(parsedValue.asId()))
+				return this.addAttributeById(attributeId, ParsedValue.fromId(parsedValue.asId()))
 		}
 	}
 
@@ -525,7 +535,7 @@ export class DecryptedParsedInstance implements DeepEquals {
 	public getAttributeByName(attributeName: AttributeName): DecryptedParsedValue {
 		const attributeId = assertNotNull(
 			AttributeModel.getAttributeId(this.typeModel, attributeName),
-			`Attribute :${attributeName} not fount in: ${this.typeModel.app}/${this.typeModel.name}`,
+			`Attribute: ${attributeName} not found in: ${this.typeModel.app}/${this.typeModel.name}`,
 		)
 		return this.getAttributeById(attributeId)
 	}
