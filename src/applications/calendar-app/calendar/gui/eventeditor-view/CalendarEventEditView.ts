@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { AttendeeListEditor } from "./AttendeeListEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { EventTimeEditor, EventTimeEditorAttrs } from "./EventTimeEditor.js"
-import { DEFAULT_CALENDAR_COLOR, RepeatPeriod, TabIndex, TimeFormat, Weekday } from "../../../../../platform-kit/app-env"
+import { DEFAULT_CALENDAR_COLOR, RepeatPeriod, TabIndex, TimeFormat, Weekday } from "@tutao/app-env"
 import { lang, TranslationKey } from "../../../../../ui/utils/LanguageViewModel.js"
 import { RecipientsSearchModel } from "../../../../common/misc/RecipientsSearchModel.js"
 import { CalendarInfo } from "../../model/CalendarModel.js"
@@ -18,7 +18,7 @@ import { Card } from "../../../../../ui/base/Card.js"
 import { Select, SelectAttributes, SelectOption } from "../../../../../ui/base/Select.js"
 import { Icon, IconSize } from "../../../../../ui/base/Icon.js"
 import { theme } from "../../../../../ui/theme.js"
-import { deepEqual } from "../../../../../platform-kit/utils"
+import { deepEqual } from "@tutao/utils"
 import { ButtonColor, getColors } from "../../../../../ui/base/Button.js"
 import stream from "mithril/stream"
 import { RepeatRuleEditor, RepeatRuleEditorAttrs } from "./RepeatRuleEditor.js"
@@ -79,6 +79,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	private dialogHeight: number | null = null
 	private pageWidth: number = -1
 	private translate = 0
+	private separateStartAndEndTimeZone: boolean
 
 	constructor(vnode: Vnode<CalendarEventEditViewAttrs>) {
 		this.timeFormat = vnode.attrs.timeFormat
@@ -93,6 +94,8 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		this.pages.set(EditorPages.REPEAT_RULES, this.renderRepeatRulesPage)
 		this.pages.set(EditorPages.GUESTS, this.renderGuestsPage)
 		this.pages.set(EditorPages.TIMEZONE_SELECTOR, this.renderTimeZoneSelectionPage)
+
+		this.separateStartAndEndTimeZone = vnode.attrs.model.editModels.whenModel.hasSeparateStartAndEndTimeZone()
 
 		vnode.attrs.currentPage.map((page) => {
 			this.hasAnimationEnded = false
@@ -249,6 +252,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			{ style: { padding: `${padding} 0 ${padding} ${padding}` } },
 			m(EventTimeEditor, {
 				editModel: whenModel,
+				separateStartAndEndTimeZone: this.separateStartAndEndTimeZone,
 				timeFormat: this.timeFormat,
 				startOfTheWeekOffset: this.startOfTheWeekOffset,
 				disabled: !attrs.model.isFullyWritable(),
@@ -497,14 +501,23 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	}
 
 	private renderTimeZoneSelectionPage({ attrs }: Vnode<CalendarEventEditViewAttrs>) {
+		const whenModel = attrs.model.editModels.whenModel
+
 		return m(TimeZoneSelectionPage, {
 			width: this.pageWidth,
-			model: attrs.model.editModels.whenModel,
-			onConfirm: () => {
-				if (!attrs.model.editModels.whenModel.startTimeZone) {
-					// Ensure start time zone is always set when confirm is pressed
-					attrs.model.editModels.whenModel.startTimeZone = attrs.model.editModels.whenModel.calendarTimeZone
-				}
+			whenModel,
+			separateStartAndEndTimeZone: this.separateStartAndEndTimeZone,
+			onToggleSeparateStartAndEndTimeZone: (value) => {
+				this.separateStartAndEndTimeZone = value
+			},
+			onRemoveTimeZone: () => {
+				whenModel.unsetTimeZones()
+
+				attrs.navigationCallback(EditorPages.MAIN)
+			},
+			onConfirm: (selectedStartTimeZone, selectedEndTimeZone) => {
+				whenModel.setStartTimeZone(selectedStartTimeZone)
+				whenModel.setEndTimeZone(selectedEndTimeZone)
 
 				attrs.navigationCallback(EditorPages.MAIN)
 			},
