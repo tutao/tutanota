@@ -691,6 +691,7 @@ export type TutanotaPropertiesParams = {
 	lastPushedMail: null | IdTuple;
 	imapSyncConfig: ImapSyncConfiguration[];
 	inboxRules: InboxRule[];
+	expandedInboxRules: ExpandedInboxRule[];
 }
 
 export type TutanotaProperties = {
@@ -720,6 +721,7 @@ export type TutanotaProperties = {
 	lastPushedMail: null | IdTuple;
 	imapSyncConfig: ImapSyncConfiguration[];
 	inboxRules: InboxRule[];
+	expandedInboxRules: ExpandedInboxRule[];
 }
 export const NotificationMailTypeRef: TypeRef<NotificationMail> = new TypeRef("tutanota", 223)
 
@@ -4760,4 +4762,73 @@ export type ImapPutIn = {
 	newPostponedUntil: null | string;
 
 	imapAccountSyncState: IdTuple;
+}
+export const InboxRuleConditionTypeRef: TypeRef<InboxRuleCondition> = new TypeRef("tutanota", 1994)
+
+export function createInboxRuleCondition(values: InboxRuleConditionParams): InboxRuleCondition {
+    return Object.assign(create(typeModels[InboxRuleConditionTypeRef.typeId], InboxRuleConditionTypeRef), values)
+}
+
+export type InboxRuleConditionParams = {
+
+
+	type: string;
+	value: string;
+}
+
+export type InboxRuleCondition = {
+	_type: TypeRef<InboxRuleCondition>;
+	_original?: InboxRuleCondition
+
+	_id: Id;
+	type: string;
+	value: string;
+}
+export const InboxRuleResultTypeRef: TypeRef<InboxRuleResult> = new TypeRef("tutanota", 1998)
+
+export function createInboxRuleResult(values: InboxRuleResultParams): InboxRuleResult {
+    return Object.assign(create(typeModels[InboxRuleResultTypeRef.typeId], InboxRuleResultTypeRef), values)
+}
+
+export type InboxRuleResultParams = {
+
+
+	type: string;
+
+	value: null | IdTuple;
+}
+
+export type InboxRuleResult = {
+	_type: TypeRef<InboxRuleResult>;
+	_original?: InboxRuleResult
+
+	_id: Id;
+	type: string;
+
+	value: null | IdTuple;
+}
+export const ExpandedInboxRuleTypeRef: TypeRef<ExpandedInboxRule> = new TypeRef("tutanota", 2002)
+
+export function createExpandedInboxRule(values: ExpandedInboxRuleParams): ExpandedInboxRule {
+    return Object.assign(create(typeModels[ExpandedInboxRuleTypeRef.typeId], ExpandedInboxRuleTypeRef), values)
+}
+
+export type ExpandedInboxRuleParams = {
+
+
+	name: string;
+
+	conditions: InboxRuleCondition[];
+	results: InboxRuleResult[];
+}
+
+export type ExpandedInboxRule = {
+	_type: TypeRef<ExpandedInboxRule>;
+	_original?: ExpandedInboxRule
+
+	_id: Id;
+	name: string;
+
+	conditions: InboxRuleCondition[];
+	results: InboxRuleResult[];
 }

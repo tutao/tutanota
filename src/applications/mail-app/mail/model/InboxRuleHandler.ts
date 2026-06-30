@@ -10,7 +10,7 @@ import { MailModel } from "./MailModel"
 import { UnencryptedProcessInboxDatum } from "./ProcessInboxHandler"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
 import { InboxRule, Mail, MailSet } from "@tutao/entities/tutanota"
-import { InboxRuleType, MailSetKind, ProcessingState } from "../../../../entities/tutanota/Utils"
+import { InboxRuleConditionType, MailSetKind, ProcessingState } from "../../../../entities/tutanota/Utils"
 import { elementIdPart } from "../../../../platform-kit/meta"
 
 assertMainOrNode()
@@ -18,29 +18,30 @@ assertMainOrNode()
 export function getInboxRuleTypeNameMapping(): SelectorItemList<string> {
 	return [
 		{
-			value: InboxRuleType.FROM_EQUALS,
+			value: InboxRuleConditionType.FROM_EQUALS,
 			name: lang.get("inboxRuleSenderEquals_action"),
 		},
 		{
-			value: InboxRuleType.RECIPIENT_TO_EQUALS,
+			value: InboxRuleConditionType.RECIPIENT_TO_EQUALS,
 			name: lang.get("inboxRuleToRecipientEquals_action"),
 		},
 		{
-			value: InboxRuleType.RECIPIENT_CC_EQUALS,
+			value: InboxRuleConditionType.RECIPIENT_CC_EQUALS,
 			name: lang.get("inboxRuleCCRecipientEquals_action"),
 		},
 		{
-			value: InboxRuleType.RECIPIENT_BCC_EQUALS,
+			value: InboxRuleConditionType.RECIPIENT_BCC_EQUALS,
 			name: lang.get("inboxRuleBCCRecipientEquals_action"),
 		},
 		{
-			value: InboxRuleType.SUBJECT_CONTAINS,
+			value: InboxRuleConditionType.SUBJECT_CONTAINS,
 			name: lang.get("inboxRuleSubjectContains_action"),
 		},
 		{
-			value: InboxRuleType.MAIL_HEADER_CONTAINS,
+			value: InboxRuleConditionType.MAIL_HEADER_CONTAINS,
 			name: lang.get("inboxRuleMailHeaderContains_action"),
 		},
+		// TODO: need to add HAS_ATTACHMENT
 	]
 }
 
@@ -124,7 +125,7 @@ export async function _findMatchingRule(mailFacade: MailFacade, mail: Mail, rule
 async function checkInboxRule(mailFacade: MailFacade, mail: Mail, inboxRule: InboxRule): Promise<boolean> {
 	const ruleType = inboxRule.type
 	try {
-		if (ruleType === InboxRuleType.FROM_EQUALS) {
+		if (ruleType === InboxRuleConditionType.FROM_EQUALS) {
 			let mailAddresses = [mail.sender.address]
 
 			if (mail.differentEnvelopeSender) {
@@ -132,27 +133,27 @@ async function checkInboxRule(mailFacade: MailFacade, mail: Mail, inboxRule: Inb
 			}
 
 			return _checkEmailAddresses(mailAddresses, inboxRule)
-		} else if (ruleType === InboxRuleType.RECIPIENT_TO_EQUALS) {
+		} else if (ruleType === InboxRuleConditionType.RECIPIENT_TO_EQUALS) {
 			const toRecipients = (await mailFacade.loadMailDetailsBlob(mail)).recipients.toRecipients
 			return _checkEmailAddresses(
 				toRecipients.map((m) => m.address),
 				inboxRule,
 			)
-		} else if (ruleType === InboxRuleType.RECIPIENT_CC_EQUALS) {
+		} else if (ruleType === InboxRuleConditionType.RECIPIENT_CC_EQUALS) {
 			const ccRecipients = (await mailFacade.loadMailDetailsBlob(mail)).recipients.ccRecipients
 			return _checkEmailAddresses(
 				ccRecipients.map((m) => m.address),
 				inboxRule,
 			)
-		} else if (ruleType === InboxRuleType.RECIPIENT_BCC_EQUALS) {
+		} else if (ruleType === InboxRuleConditionType.RECIPIENT_BCC_EQUALS) {
 			const bccRecipients = (await mailFacade.loadMailDetailsBlob(mail)).recipients.bccRecipients
 			return _checkEmailAddresses(
 				bccRecipients.map((m) => m.address),
 				inboxRule,
 			)
-		} else if (ruleType === InboxRuleType.SUBJECT_CONTAINS) {
+		} else if (ruleType === InboxRuleConditionType.SUBJECT_CONTAINS) {
 			return _checkContainsRule(mail.subject, inboxRule)
-		} else if (ruleType === InboxRuleType.MAIL_HEADER_CONTAINS) {
+		} else if (ruleType === InboxRuleConditionType.MAIL_HEADER_CONTAINS) {
 			const details = await mailFacade.loadMailDetailsBlob(mail)
 			if (details.headers != null) {
 				return _checkContainsRule(getMailHeaders(details.headers), inboxRule)
