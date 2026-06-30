@@ -756,6 +756,8 @@ pub struct TutanotaProperties {
 	pub imapSyncConfig: Vec<ImapSyncConfiguration>,
 	#[serde(rename = "578")]
 	pub inboxRules: Vec<InboxRule>,
+	#[serde(rename = "1989")]
+	pub expandedInboxRules: Vec<ExpandedInboxRule>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -4782,6 +4784,77 @@ impl Entity for ImapOauthConfigGetOut {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(1972),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct InboxRuleCondition {
+	#[serde(rename = "1977")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1978")]
+	pub r#type: String,
+	#[serde(rename = "1979")]
+	pub value: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for InboxRuleCondition {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1976),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct InboxRuleResult {
+	#[serde(rename = "1981")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1982")]
+	pub r#type: String,
+	#[serde(rename = "1983")]
+	pub value: Option<IdTupleGenerated>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for InboxRuleResult {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1980),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ExpandedInboxRule {
+	#[serde(rename = "1985")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1986")]
+	pub name: String,
+	#[serde(rename = "1987")]
+	pub conditions: Vec<InboxRuleCondition>,
+	#[serde(rename = "1988")]
+	pub results: Vec<InboxRuleResult>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for ExpandedInboxRule {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1984),
 		}
 	}
 }
