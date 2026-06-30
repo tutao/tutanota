@@ -262,7 +262,7 @@ public final class IosFileFacade: FileFacade {
 		let filePath = (decryptedFolder as NSString).appendingPathComponent(file.name)
 		let fileUrl = URL(fileURLWithPath: filePath)
 		try await self.writeFile(at: fileUrl, file.data)
-		return filePath
+		return fileUrl.absoluteString
 	}
 
 	public func readDataFile(_ filePath: String) async throws -> DataFile? {
