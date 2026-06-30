@@ -10,7 +10,7 @@ import { MailModel } from "./MailModel"
 import { UnencryptedProcessInboxDatum } from "./ProcessInboxHandler"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
 import { InboxRule, Mail, MailSet } from "@tutao/entities/tutanota"
-import { InboxRuleConditionType, MailSetKind, ProcessingState } from "../../../../entities/tutanota/Utils"
+import { InboxRuleConditionType, InboxRuleResultType, MailSetKind, ProcessingState } from "../../../../entities/tutanota/Utils"
 import { elementIdPart } from "../../../../platform-kit/meta"
 
 assertMainOrNode()
@@ -19,29 +19,42 @@ export function getInboxRuleTypeNameMapping(): SelectorItemList<string> {
 	return [
 		{
 			value: InboxRuleConditionType.FROM_EQUALS,
-			name: lang.get("inboxRuleSenderEquals_action"),
+			name: lang.getTranslationText("inboxRuleSenderEquals_action"),
 		},
 		{
 			value: InboxRuleConditionType.RECIPIENT_TO_EQUALS,
-			name: lang.get("inboxRuleToRecipientEquals_action"),
+			name: lang.getTranslationText("inboxRuleToRecipientEquals_action"),
 		},
 		{
 			value: InboxRuleConditionType.RECIPIENT_CC_EQUALS,
-			name: lang.get("inboxRuleCCRecipientEquals_action"),
+			name: lang.getTranslationText("inboxRuleCCRecipientEquals_action"),
 		},
 		{
 			value: InboxRuleConditionType.RECIPIENT_BCC_EQUALS,
-			name: lang.get("inboxRuleBCCRecipientEquals_action"),
+			name: lang.getTranslationText("inboxRuleBCCRecipientEquals_action"),
 		},
 		{
 			value: InboxRuleConditionType.SUBJECT_CONTAINS,
-			name: lang.get("inboxRuleSubjectContains_action"),
+			name: lang.getTranslationText("inboxRuleSubjectContains_action"),
 		},
 		{
 			value: InboxRuleConditionType.MAIL_HEADER_CONTAINS,
-			name: lang.get("inboxRuleMailHeaderContains_action"),
+			name: lang.getTranslationText("inboxRuleMailHeaderContains_action"),
 		},
 		// TODO: need to add HAS_ATTACHMENT
+	]
+}
+
+export function getInboxRuleResultTypeNameMapping(): SelectorItemList<string> {
+	return [
+		{
+			value: InboxRuleResultType.MOVE,
+			name: lang.getTranslationText("inboxRuleTargetFolder_label"),
+		},
+		{
+			value: InboxRuleResultType.EXCLUDE_SPAM,
+			name: lang.getTranslationText("inboxRuleExcludedFromSpamFilter_msg"),
+		},
 	]
 }
 
@@ -122,7 +135,7 @@ export async function _findMatchingRule(mailFacade: MailFacade, mail: Mail, rule
 	return asyncFind(rules, (rule) => checkInboxRule(mailFacade, mail, rule)).then((v) => v ?? null)
 }
 
-async function checkInboxRule(mailFacade: MailFacade, mail: Mail, inboxRule: InboxRule): Promise<boolean> {
+export async function checkInboxRule(mailFacade: MailFacade, mail: Mail, inboxRule: InboxRule): Promise<boolean> {
 	const ruleType = inboxRule.type
 	try {
 		if (ruleType === InboxRuleConditionType.FROM_EQUALS) {

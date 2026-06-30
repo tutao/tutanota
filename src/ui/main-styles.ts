@@ -749,6 +749,9 @@ export class MainStyles {
 				".uppercase": {
 					"text-transform": "uppercase",
 				},
+				".lowercase": {
+					"text-transform": "lowercase",
+				},
 				".line-break-anywhere": {
 					"line-break": "anywhere",
 				},
@@ -1196,6 +1199,9 @@ export class MainStyles {
 				},
 				".gap-64": {
 					gap: px(size.spacing_64),
+				},
+				".row-gap-8": {
+					"row-gap": px(size.spacing_8),
 				},
 				".column-gap-12": {
 					"column-gap": px(size.spacing_12),
@@ -3409,6 +3415,19 @@ export class MainStyles {
 					border: `2px solid ${theme.outline}`,
 					"max-width": "250px",
 					"z-index": 1,
+				},
+				".inbox-rule-wrapping-row": {
+					display: "flex",
+					"flex-flow": "row wrap",
+				},
+				".inbox-rule-wrapping-row > *": {
+					"min-width": px(200),
+				},
+				".inbox-rule-wrapping-row > *:first-child": {
+					flex: "1 0 35%",
+				},
+				".inbox-rule-wrapping-row > *:last-child": {
+					flex: "1 0 65%",
 				},
 			}
 		})
