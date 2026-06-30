@@ -11,7 +11,6 @@ import m, { Children } from "mithril"
 import { assertNotNull, isEmpty, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/utils"
 import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
 import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel"
-import { getFolderName } from "../mail/model/MailUtils"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import { createInboxRuleTemplate } from "./AddInboxRuleDialog"
@@ -29,6 +28,7 @@ import { theme } from "../../../ui/theme"
 import { TitleSection } from "../../../ui/TitleSection"
 import { MenuTitle } from "../../../ui/titles/MenuTitle"
 import { Card } from "../../../ui/base/Card"
+import { getMailSetName } from "../mail/model/MailUtils"
 
 assertMainOrNode()
 
@@ -166,7 +166,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		let folder = folders.getFolderById(elementIdPart(targetFolderId))
 
 		if (folder) {
-			return getFolderName(folder)
+			return getMailSetName(folder)
 		} else {
 			return lang.get("deletedFolder_label")
 		}
