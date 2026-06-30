@@ -7,9 +7,9 @@ import { Blob } from "../sys/TypeRefs.js"
 import { BucketKey } from "../sys/TypeRefs.js"
 import { BlobReferenceTokenWrapper } from "../sys/TypeRefs.js"
 import { DateWrapper } from "../sys/TypeRefs.js"
+import { IdTupleWrapper } from "../sys/TypeRefs.js"
 import { StringWrapper } from "../sys/TypeRefs.js"
 import { GeneratedIdWrapper } from "../sys/TypeRefs.js"
-import { IdTupleWrapper } from "../sys/TypeRefs.js"
 import { InstanceSessionKey } from "../sys/TypeRefs.js"
 
 export const SubfilesTypeRef: TypeRef<Subfiles> = new TypeRef("tutanota", 11)
@@ -2318,6 +2318,7 @@ export type MailboxGroupRootParams = {
 	outOfOfficeNotification: null | Id
 	outOfOfficeNotificationRecipientList: null | OutOfOfficeNotificationRecipientList
 	mailboxProperties: null | Id
+	inboxRules: null | ExpandedInboxRuleList
 }
 
 export type MailboxGroupRoot = {
@@ -2336,6 +2337,7 @@ export type MailboxGroupRoot = {
 	outOfOfficeNotification: null | Id
 	outOfOfficeNotificationRecipientList: null | OutOfOfficeNotificationRecipientList
 	mailboxProperties: null | Id
+	inboxRules: null | ExpandedInboxRuleList
 
 	//== some entities have these and some don't
 
@@ -3906,6 +3908,7 @@ export type MailboxPropertiesParams = {
 	reportMovedMails: NumberString
 
 	mailAddressProperties: MailAddressProperties[]
+	inboxRuleOrder: IdTupleWrapper[]
 }
 
 export type MailboxProperties = {
@@ -3923,6 +3926,7 @@ export type MailboxProperties = {
 	// == associations
 
 	mailAddressProperties: MailAddressProperties[]
+	inboxRuleOrder: IdTupleWrapper[]
 
 	//== some entities have these and some don't
 
@@ -7231,5 +7235,156 @@ export type ImapPutIn = {
 	// === these are not present in metamodel
 	_type: TypeRef<ImapPutIn>
 	_original: Nullable<ImapPutIn>
+	isAdapter: false
+}
+export const InboxRuleConditionTypeRef: TypeRef<InboxRuleCondition> = new TypeRef("tutanota", 1995)
+
+export function createInboxRuleCondition(values: InboxRuleConditionParams): InboxRuleCondition {
+	return Object.assign(create(typeModels[InboxRuleConditionTypeRef.typeId], InboxRuleConditionTypeRef), values)
+}
+
+export type InboxRuleConditionParams = {
+	type: string
+	value: string
+}
+
+export type InboxRuleCondition = {
+	// == values
+
+	_id: Id
+	type: string
+	value: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<InboxRuleCondition>
+	_original: Nullable<InboxRuleCondition>
+	isAdapter: false
+}
+export const InboxRuleResultTypeRef: TypeRef<InboxRuleResult> = new TypeRef("tutanota", 1999)
+
+export function createInboxRuleResult(values: InboxRuleResultParams): InboxRuleResult {
+	return Object.assign(create(typeModels[InboxRuleResultTypeRef.typeId], InboxRuleResultTypeRef), values)
+}
+
+export type InboxRuleResultParams = {
+	type: string
+
+	value: null | IdTuple
+}
+
+export type InboxRuleResult = {
+	// == values
+
+	_id: Id
+	type: string
+
+	// == associations
+
+	value: null | IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<InboxRuleResult>
+	_original: Nullable<InboxRuleResult>
+	isAdapter: false
+}
+export const ExpandedInboxRuleTypeRef: TypeRef<ExpandedInboxRule> = new TypeRef("tutanota", 2003)
+
+export function createExpandedInboxRule(values: ExpandedInboxRuleParams): ExpandedInboxRule {
+	return Object.assign(create(typeModels[ExpandedInboxRuleTypeRef.typeId], ExpandedInboxRuleTypeRef), values)
+}
+
+export type ExpandedInboxRuleParams = {
+	name: string
+	enabled: boolean
+
+	conditions: InboxRuleCondition[]
+	results: InboxRuleResult[]
+}
+
+export type ExpandedInboxRule = {
+	// == values
+
+	_id: ListElementId
+	_permissions: Id
+	_format: NumberString
+	_ownerGroup: null | Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	name: string
+	enabled: boolean
+
+	// == associations
+
+	conditions: InboxRuleCondition[]
+	results: InboxRuleResult[]
+
+	//== some entities have these and some don't
+
+	bucketKey: null
+
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<ExpandedInboxRule>
+	_errors: Object
+	_original: Nullable<ExpandedInboxRule>
+	isAdapter: false
+}
+export const ExpandedInboxRuleListTypeRef: TypeRef<ExpandedInboxRuleList> = new TypeRef("tutanota", 2016)
+
+export function createExpandedInboxRuleList(values: ExpandedInboxRuleListParams): ExpandedInboxRuleList {
+	return Object.assign(create(typeModels[ExpandedInboxRuleListTypeRef.typeId], ExpandedInboxRuleListTypeRef), values)
+}
+
+export type ExpandedInboxRuleListParams = {
+	list: Id
+}
+
+export type ExpandedInboxRuleList = {
+	// == values
+
+	_id: Id
+
+	// == associations
+
+	list: Id
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<ExpandedInboxRuleList>
+	_original: Nullable<ExpandedInboxRuleList>
 	isAdapter: false
 }
