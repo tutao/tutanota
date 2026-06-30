@@ -4,10 +4,9 @@ import { theme } from "../../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../../ui/utils/LanguageViewModel"
 import { PrimaryButton, PrimaryButtonAttrs, SecondaryButton } from "../../../../../ui/base/buttons/VariantButtons"
 import { TimeZoneSelectorDropdown } from "./TimeZoneSelectorDropdown"
-import { IANATimeZone } from "../DateTimeTextFormatterUtils"
 import { Checkbox, CheckboxAttrs } from "../../../../../ui/base/Checkbox"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel"
-import { DateTime } from "luxon"
+import { DateTime, IANAZone } from "luxon"
 
 export type TimeZoneSelectionPageAttrs = {
 	width: number
@@ -15,12 +14,12 @@ export type TimeZoneSelectionPageAttrs = {
 	separateStartAndEndTimeZone: boolean
 	onToggleSeparateStartAndEndTimeZone: (useSeparateEndTimeZone: boolean) => void
 	onRemoveTimeZone: () => void
-	onConfirm: (startTimeZone: IANATimeZone, endTimezone: IANATimeZone) => void
+	onConfirm: (startTimeZone: string, endTimezone: string) => void
 }
 
 export class TimeZoneSelectionPage implements Component<TimeZoneSelectionPageAttrs> {
-	private selectedStartTimeZone: IANATimeZone
-	private selectedEndTimeZone: IANATimeZone
+	private selectedStartTimeZone: string
+	private selectedEndTimeZone: string
 
 	constructor({ attrs }: Vnode<TimeZoneSelectionPageAttrs>) {
 		this.selectedStartTimeZone = attrs.whenModel.getStartTimeZoneOrDefault()
@@ -86,8 +85,8 @@ export class TimeZoneSelectionPage implements Component<TimeZoneSelectionPageAtt
 	private renderTimeZoneDropdown(
 		dateTime: DateTime,
 		titleTranslationKey: TranslationKey,
-		selectedTimeZone: IANATimeZone,
-		onSelectionChanged: (newTimeZone: IANATimeZone) => void,
+		selectedTimeZone: string,
+		onSelectionChanged: (newTimeZone: string) => void,
 	): Children {
 		return m(".flex.col.gap-8", [
 			m("small.uppercase.b.text-ellipsis", { style: { color: theme.on_surface } }, lang.getTranslation(titleTranslationKey).text),
