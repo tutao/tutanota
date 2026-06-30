@@ -1,5 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { isApp, TimeFormat } from "../../../../../platform-kit/app-env"
+import { isApp, TimeFormat } from "@tutao/app-env"
 import { lang, Translation } from "../../../../../ui/utils/LanguageViewModel.js"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel.js"
 import { Switch } from "../../../../../ui/base/Switch.js"
@@ -18,6 +18,7 @@ export type EventTimeEditorAttrs = {
 	startOfTheWeekOffset: number
 	timeFormat: TimeFormat
 	editModel: CalendarEventWhenModel
+	separateStartAndEndTimeZone: boolean
 	disabled: boolean
 	dateSelectionChanged: (date: Date) => void
 	onTimeZoneSelectionClick: () => void
@@ -30,11 +31,12 @@ export type EventTimeEditorAttrs = {
 export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 	view(vnode: Vnode<EventTimeEditorAttrs>) {
 		const { attrs } = vnode
+		const editModel = attrs.editModel
+
+		const renderStartTimeZone = editModel.allowsTimeZones() && attrs.separateStartAndEndTimeZone
+		const renderEndTimeZone = editModel.allowsTimeZones()
 
 		const appClasses = isApp() ? ["smaller"] : []
-
-		const showStartTimeZoneButton =
-			!attrs.editModel.isAllDay && attrs.editModel.endTimeZone !== null && attrs.editModel.startTimeZone !== attrs.editModel.endTimeZone
 
 		return m(".flex", [
 			m(".flex.col.flex-grow.gap-8", [
@@ -50,8 +52,8 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 					m(
 						Switch,
 						{
-							checked: attrs.editModel.isAllDay,
-							onclick: (value) => (attrs.editModel.isAllDay = value),
+							checked: editModel.isAllDay,
+							onclick: (value) => (editModel.isAllDay = value),
 							ariaLabel: lang.get("allDay_label"),
 							disabled: attrs.disabled,
 							variant: "expanded",
@@ -68,7 +70,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							m(DatePicker, {
 								classes: appClasses,
 								date: attrs.editModel.startDate,
-								onDateSelected: (date) => date && vnode.attrs.dateSelectionChanged(date),
+								onDateSelected: (date) => date && attrs.dateSelectionChanged(date),
 								startOfTheWeekOffset: attrs.startOfTheWeekOffset,
 								label: "dateFrom_label",
 								useInputButton: true,
@@ -84,8 +86,8 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							},
 							m(TimePicker, {
 								classes: appClasses,
-								time: attrs.editModel.startTime,
-								onTimeSelected: (time) => (attrs.editModel.startTime = time),
+								time: editModel.startTime,
+								onTimeSelected: (time) => (editModel.startTime = time),
 								timeFormat: attrs.timeFormat,
 								disabled: attrs.disabled || attrs.editModel.isAllDay,
 								ariaLabel: "startTime_label",
@@ -93,7 +95,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							}),
 						),
 					]),
-					showStartTimeZoneButton ? this.renderTimeZoneButton(attrs, attrs.editModel.startTimeZone) : null,
+					renderStartTimeZone && this.renderTimeZoneButton(attrs, editModel.getStartTimeZoneOrDefault()),
 					m(".time-selection-grid.pr-8", [
 						m("", lang.get("dateTo_label")),
 						m(
@@ -117,16 +119,16 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							},
 							m(TimePicker, {
 								classes: appClasses,
-								time: attrs.editModel.endTime,
-								onTimeSelected: (time) => (attrs.editModel.endTime = time),
+								time: editModel.endTime,
+								onTimeSelected: (time) => (editModel.endTime = time),
 								timeFormat: attrs.timeFormat,
-								disabled: attrs.disabled || attrs.editModel.isAllDay,
+								disabled: attrs.disabled || editModel.isAllDay,
 								ariaLabel: "endTime_label",
 								renderAsTextField: false,
 							}),
 						),
 					]),
-					!attrs.editModel.isAllDay ? this.renderTimeZoneButton(attrs, attrs.editModel.endTimeZone) : null,
+					renderEndTimeZone && this.renderTimeZoneButton(attrs, editModel.getEndTimeZoneOrDefault()),
 				]),
 			]),
 		])
@@ -134,7 +136,6 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 
 	private renderTimeZoneButton(attrs: EventTimeEditorAttrs, timeZone: string) {
 		const selectionButtonTextTranslation: Translation = lang.makeTranslation("timeZone", timeZone.replaceAll("_", " "))
-		// lang.makeTranslation("selectTimeZone", "Select time zone") // FIXME add translations
 
 		return m(
 			BaseButton,
