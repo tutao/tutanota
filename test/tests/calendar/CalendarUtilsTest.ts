@@ -259,6 +259,13 @@ o.spec("CalendarUtilsTest", function () {
 			const result = getStartOfDayWithZone(date, "America/New_York")
 			o(result.toISOString()).equals(expected)(`${result.toISOString()} vs ${expected}`)
 		})
+
+		o("given a midnight date, it produces a date at the start of the previous day according to the time zone", function () {
+			const date = new Date("2023-01-29T00:00:00.000Z")
+			const expected = "2023-01-28T05:00:00.000Z"
+			const result = getStartOfDayWithZone(date, "America/New_York")
+			o(result.toISOString()).equals(expected)(`${result.toISOString()} vs ${expected}`)
+		})
 	})
 
 	o.spec("getAllDayDateForTimezone", function () {
