@@ -2325,6 +2325,10 @@ export default {
 
 		"clearCache_action": "Clear cache",
 		"clearCache_msg": "Clear cache message",
-		"clearCacheConfirm_msg": "Are you sure you want to clear cache?"
+		"clearCacheConfirm_msg": "Are you sure you want to clear cache?",
+		"applyInboxRules_action": "Apply inbox rules",
+		"condition_label": "Condition",
+		"matches_label": "matches",
+		"then_label": "then"
 	}
 }

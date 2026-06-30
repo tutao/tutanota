@@ -1,5 +1,5 @@
 import m from "mithril"
-import { Dialog } from "../../../ui/base/Dialog"
+import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { assertMainOrNode, UpgradePromptType } from "../../../platform-kit/app-env"
 import { isDomainName, isMailAddress, isRegularExpression } from "../../../platform-kit/utils/FormatUtils"
@@ -7,23 +7,23 @@ import { getInboxRuleTypeNameMapping } from "../mail/model/InboxRuleHandler"
 import { elementIdPart, isSameId } from "../../../platform-kit/meta"
 import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.js"
 import stream from "mithril/stream"
-import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
-import { Autocapitalize, LegacyTextField } from "../../../ui/base/LegacyTextField.js"
+import { Autocapitalize } from "../../../ui/base/LegacyTextField.js"
 import { isOfflineError, LockedError } from "../../../platform-kit/rest-client/error"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
 import { locator } from "../../common/api/main/CommonLocator"
 import { mailLocator } from "../mailLocator.js"
-import {
-	assertSystemFolderOfType,
-	getExistingRuleForType,
-	getFolderName,
-	getIndentedFolderNameForDropdown,
-	getPathToFolderString,
-} from "../mail/model/MailUtils.js"
+import { assertSystemFolderOfType, getExistingRuleForType, getFolderName, getIndentedFolderNameForDropdown } from "../mail/model/MailUtils.js"
 import type { IndentedFolder } from "../../common/api/common/mail/FolderSystem.js"
 import { Checkbox } from "../../../ui/base/Checkbox"
 import { createInboxRule, InboxRule } from "@tutao/entities/tutanota"
 import { InboxRuleType, MailSetKind } from "../../../entities/tutanota/Utils"
+import { Icons } from "../../../ui/base/icons/Icons"
+import { Card } from "../../../ui/base/Card"
+import { Icon, IconSize } from "../../../ui/base/Icon"
+import { MenuTitle } from "../../../ui/titles/MenuTitle"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons"
+import { DropDownSelectorNew } from "../../../ui/base/DropDownSelectorNew"
+import { TextField } from "../../../ui/base/TextField"
 
 assertMainOrNode()
 
@@ -52,40 +52,68 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 
 		let form = () => {
 			return [
-				m(DropDownSelector, {
-					items: getInboxRuleTypeNameMapping(),
-					label: "inboxRuleField_label",
-					selectedValue: inboxRuleType(),
-					selectionChangedHandler: inboxRuleType,
-				}),
-				m(LegacyTextField, {
-					label: "inboxRuleValue_label",
-					autocapitalize: Autocapitalize.none,
-					value: inboxRuleValue(),
-					oninput: inboxRuleValue,
-					helpLabel: () =>
-						inboxRuleType() !== InboxRuleType.SUBJECT_CONTAINS && inboxRuleType() !== InboxRuleType.MAIL_HEADER_CONTAINS
-							? lang.get("emailSenderPlaceholder_label")
-							: lang.get("emptyString_msg"),
-				}),
-				m(DropDownSelector, {
-					label: "inboxRuleTargetFolder_label",
-					items: targetFolders,
-					selectedValue: inboxRuleTarget(),
-					selectedValueDisplay: getFolderName(inboxRuleTarget()),
-					selectionChangedHandler: inboxRuleTarget,
-					helpLabel: () => getPathToFolderString(folders, inboxRuleTarget(), true),
-				}),
+				m(
+					Card,
+					{ classes: ["mt-12 mb-12"] },
+					m(
+						".center.pt-16",
+						m(Icon, {
+							icon: Icons.InboxFilled,
+							size: IconSize.PX32,
+						}),
+						//FIXME: need a proper text explains the configuration of Inbox Rules
+						m(".smaller.pl-16.pr-16.pb-16.pt-16", "This would be a short sentence that explains the configuration of Inbox Rules."),
+					),
+				),
+				m(MenuTitle, { content: lang.getTranslationText("condition_label") }),
+				m(".wrapping-row.pb-24", [
+					m(".full-width.flex-space-between.items-center", [
+						m(".smaller.text-center", lang.getTranslationText("when_label")),
+						m(DropDownSelectorNew, {
+							items: getInboxRuleTypeNameMapping(),
+							label: "inboxRuleField_label",
+							selectedValue: inboxRuleType(),
+							selectionChangedHandler: inboxRuleType,
+						}),
+						m(".smaller.text-center", lang.getTranslationText("matches_label")),
+					]),
+					m(TextField, {
+						label: "inboxRuleValue_label",
+						autocapitalize: Autocapitalize.none,
+						value: inboxRuleValue(),
+						oninput: inboxRuleValue,
+					}),
+				]),
+				m(MenuTitle, { content: lang.getTranslationText("searchResult_label") }),
+				m(".flex.items-center.mt-16", [
+					m(".smaller.text-center.mr-16", lang.getTranslationText("then_label")),
+					m(DropDownSelectorNew, {
+						label: "inboxRuleTargetFolder_label",
+						items: targetFolders,
+						selectedValue: inboxRuleTarget(),
+						selectedValueDisplay: getFolderName(inboxRuleTarget()),
+						selectionChangedHandler: inboxRuleTarget,
+						class: "flex-half pl-16",
+					}),
+				]),
 				inboxRuleTarget().folderType === MailSetKind.SPAM
 					? null
 					: m(
 							".pt-16",
 							m(Checkbox, {
-								label: () => lang.get("inboxRuleExcludedFromSpamFilter_msg"),
+								label: () => lang.getTranslationText("inboxRuleExcludedFromSpamFilter_msg"),
 								checked: isRuleExcludedFromSpamFilter(),
 								onChecked: (checked) => isRuleExcludedFromSpamFilter(checked),
 							}),
 						),
+				m(
+					".flex-end.mt-16",
+					m(PrimaryButton, {
+						width: "flex",
+						label: "applyInboxRules_action",
+						onclick: () => addInboxRuleOkAction(dialog),
+					}),
+				),
 			]
 		}
 
@@ -129,12 +157,12 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 				})
 		}
 
-		Dialog.showActionDialog({
+		const dialog = Dialog.showActionDialog({
 			title: "addInboxRule_action",
 			child: form,
 			validator: async () => validateInboxRuleInput(inboxRuleType(), inboxRuleValue(), ruleOrTemplate._id),
-			allowOkWithReturn: true,
-			okAction: addInboxRuleOkAction,
+			okAction: null,
+			type: DialogType.InboxRule,
 		})
 	}
 }

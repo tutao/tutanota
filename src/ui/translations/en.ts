@@ -1653,6 +1653,7 @@ export default {
 		"readResponse_action": "Read response",
 		"reallySubmitContent_msg": "Do you really want to send the entered data to an external site?",
 		"reapplyInboxRules_action": "Reapply inbox rules",
+		"applyInboxRules_action": "Apply inbox rules",
 		"rebuildSearchIndex_action": "Rebuild search index",
 		"receiveCalendarNotifications_label": "Receive calendar event notifications",
 		"received_action": "Inbox",
@@ -2325,6 +2326,10 @@ export default {
 
 		"clearCache_action": "Clear cache",
 		"clearCache_msg": "Clear all downloaded data. Device data, such as stored credentials and verified contacts, won't be deleted.",
-		"clearCacheConfirm_msg": "Clearing cache will refresh the app."
+		"clearCacheConfirm_msg": "Clearing cache will refresh the app.",
+		"condition_label": "Condition",
+		"matches_label": "matches",
+		"then_label": "then"
+
 	}
 }

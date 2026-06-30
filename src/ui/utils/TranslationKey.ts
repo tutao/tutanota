@@ -2323,3 +2323,7 @@ export type TranslationKeyType =
 	| "clearCache_action"
 	| "clearCache_msg"
 	| "clearCacheConfirm_msg"
+	| "applyInboxRules_action"
+	| "condition_label"
+	| "matches_label"
+	| "then_label"
