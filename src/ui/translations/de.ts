@@ -2408,6 +2408,11 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"inboxRuleManagement_label": "Inbox RuleManagement",
-		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Only the first matching rule will apply."
+		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Only the first matching rule will apply.",
+		"condition_label": "Condition",
+		"then_label": "Then",
+		"saveAndApply_action": "Save & Apply",
+		"applyingInboxRules_label": "Applying Inbox Rule(s)",
+		"inboxRuleExplainer_msg": "This would be a short sentence that explains the configuration of Inbox Rules."
 	}
 }
