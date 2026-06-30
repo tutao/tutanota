@@ -5,7 +5,7 @@ import { DriveFolderContent, DriveFolderContentAttrs, DriveFolderSelectionEvents
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { ListLoadingState, ListState } from "../../../../ui/base/List"
 import { px, size } from "../../../../ui/size"
-import { assertNotNull, isEmpty, partition } from "../../../../platform-kit/utils"
+import { assertNotNull, isEmpty } from "../../../../platform-kit/utils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { IconMessageBox } from "../../../../ui/base/ColumnEmptyMessageBox"
@@ -104,11 +104,8 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 					this.draggedOver = false
 
 					if (canDropFilesToFolder(currentFolder) && event.dataTransfer) {
-						const [files, folder] = partition(Array.from(event.dataTransfer.items), (item) => item.webkitGetAsEntry()?.isFile ?? false)
-						onDropFiles(
-							files.map((item) => assertNotNull(item.getAsFile())),
-							folder.map((item) => item.webkitGetAsEntry() as FileSystemDirectoryEntry),
-						)
+						const { files, folders } = parseDataTransferItems(event.dataTransfer)
+						onDropFiles(files, folders)
 					}
 				},
 				ondragleave: (event: DragEvent) => {
@@ -208,4 +205,20 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 			),
 		)
 	}
+}
+
+function parseDataTransferItems(dataTransfer: DataTransfer): { files: File[]; folders: FileSystemDirectoryEntry[] } {
+	const files: File[] = []
+	const folders: FileSystemDirectoryEntry[] = []
+	for (const item of Array.from(dataTransfer.items)) {
+		const itemEntry = item.webkitGetAsEntry()
+		if (itemEntry?.isFile) {
+			files.push(assertNotNull(item.getAsFile()))
+		} else if (itemEntry?.isDirectory) {
+			folders.push(itemEntry as FileSystemDirectoryEntry)
+		}
+		// skip the rest, could be a drive item dragged and not handled, could be another random
+		// item
+	}
+	return { files, folders }
 }
