@@ -187,7 +187,7 @@ impl LoginFacade {
 }
 
 /// Generate session id tuple from access token
-fn parse_session_id(access_token: &str) -> Result<IdTupleCustom, DecodeError> {
+pub(crate) fn parse_session_id(access_token: &str) -> Result<IdTupleCustom, DecodeError> {
 	let bytes = BASE64_URL_SAFE_NO_PAD.decode(access_token)?;
 	if bytes.len() < GENERATED_ID_BYTES_LENGTH {
 		return Err(DecodeError::InvalidLength(bytes.len()));

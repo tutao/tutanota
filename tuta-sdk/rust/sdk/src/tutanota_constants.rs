@@ -82,6 +82,20 @@ pub enum EncryptionAuthStatus {
 
 pub const SYSTEM_GROUP_MAIL_ADDRESS: &str = "system@tutanota.de";
 
+/// Type of a second factor for two factor authentication.
+#[derive(Debug, Clone, IntoPrimitive, TryFromPrimitive, PartialEq, Eq)]
+#[repr(i64)]
+pub enum SecondFactorType {
+	/// Legacy U2F second factor.
+	U2f = 0,
+
+	/// Time-based one time password (TOTP).
+	Totp = 1,
+
+	/// WebAuthn second factor.
+	Webauthn = 2,
+}
+
 /// Used for identifying the protocol version used for encrypting a session key.
 #[derive(Debug, Clone, TryFromPrimitive, PartialEq, Eq)]
 #[repr(i64)]
