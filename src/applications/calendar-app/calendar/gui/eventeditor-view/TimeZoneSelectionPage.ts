@@ -1,51 +1,29 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { px } from "../../../../../ui/size"
-import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel"
 import { theme } from "../../../../../ui/theme"
-import { lang } from "../../../../../ui/utils/LanguageViewModel"
-import { PrimaryButton, PrimaryButtonAttrs } from "../../../../../ui/base/buttons/VariantButtons"
-import { Select, SelectAttributes, SelectOption } from "../../../../../ui/base/Select"
-import stream from "mithril/stream"
-import Stream from "mithril/stream"
-import { Card } from "../../../../../ui/base/Card"
-import { Icon, IconSize } from "../../../../../ui/base/Icon"
-import { Icons } from "../../../../../ui/base/icons/Icons"
-import { getTimeZoneLongName, getTimeZoneOffset } from "../DateTimeTextFormatterUtils"
+import { lang, TranslationKey } from "../../../../../ui/utils/LanguageViewModel"
+import { PrimaryButton, PrimaryButtonAttrs, SecondaryButton } from "../../../../../ui/base/buttons/VariantButtons"
+import { TimeZoneSelectorDropdown } from "./TimeZoneSelectorDropdown"
+import { IANATimeZone } from "../DateTimeTextFormatterUtils"
+import { Checkbox, CheckboxAttrs } from "../../../../../ui/base/Checkbox"
+import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel"
 
 export type TimeZoneSelectionPageAttrs = {
 	width: number
-	model: CalendarEventWhenModel
-	onConfirm: () => void
-}
-
-interface TimeZoneSelectItem extends SelectOption<string> {
-	timeZoneName: string
-	timeZoneLongName: string
-	timeZoneOffset: string
+	whenModel: CalendarEventWhenModel
+	separateStartAndEndTimeZone: boolean
+	onToggleSeparateStartAndEndTimeZone: (useSeparateEndTimeZone: boolean) => void
+	onRemoveTimeZone: () => void
+	onConfirm: (startTimeZone: IANATimeZone, endTimezone: IANATimeZone) => void
 }
 
 export class TimeZoneSelectionPage implements Component<TimeZoneSelectionPageAttrs> {
-	private timeZoneEntriesMap: Map<string, TimeZoneSelectItem> = new Map()
-	private options: Stream<TimeZoneSelectItem[]> = stream()
+	private selectedStartTimeZone: IANATimeZone
+	private selectedEndTimeZone: IANATimeZone
 
-	oninit({ attrs }: Vnode<TimeZoneSelectionPageAttrs>) {
-		let timeZoneEntriesLists: TimeZoneSelectItem[] = []
-
-		for (const timeZone of Intl.supportedValuesOf("timeZone")) {
-			const timeZoneName = timeZone.replaceAll("_", " ")
-			const timeZoneEntry: TimeZoneSelectItem = {
-				value: timeZone,
-				timeZoneName: timeZoneName,
-				ariaValue: timeZoneName,
-				timeZoneLongName: getTimeZoneLongName(new Date(), timeZone),
-				timeZoneOffset: getTimeZoneOffset(new Date(), timeZone),
-			}
-
-			timeZoneEntriesLists.push(timeZoneEntry)
-			this.timeZoneEntriesMap.set(timeZone, timeZoneEntry)
-		}
-
-		this.options = stream(timeZoneEntriesLists)
+	constructor({ attrs }: Vnode<TimeZoneSelectionPageAttrs>) {
+		this.selectedStartTimeZone = attrs.whenModel.getStartTimeZoneOrDefault()
+		this.selectedEndTimeZone = attrs.whenModel.getEndTimeZoneOrDefault()
 	}
 
 	view({ attrs }: Vnode<TimeZoneSelectionPageAttrs>): Children {
@@ -58,34 +36,25 @@ export class TimeZoneSelectionPage implements Component<TimeZoneSelectionPageAtt
 			},
 			[
 				m(".flex.col.gap-16", [
-					m(".flex.col.gap-8", [
-						m(
-							"small.uppercase.pb-8.b.text-ellipsis",
-							{ style: { color: theme.on_surface } },
-							lang.makeTranslation("startAndEndTimeZone_title", "Start and end time zone").text,
-						), // FIXME Add translations
-						m(
-							Card,
-							{ style: { padding: px(0) } },
-							m(Select<TimeZoneSelectItem, string>, {
-								onchange: (val) => {
-									attrs.model.startTimeZone = val.value
-								},
-								options: this.options,
-								expanded: true,
-								selected: this.getSelected(attrs.model.startTimeZone ?? attrs.model.calendarTimeZone),
-								renderOption: this.renderOption,
-								renderDisplay: this.renderOption,
-								ariaLabel: "Calendar",
-								classes: ["pr-8"],
-							} satisfies SelectAttributes<TimeZoneSelectItem, string>),
-						),
-					]),
+					this.renderStartTimeZoneDropdown(attrs),
+					attrs.separateStartAndEndTimeZone && this.renderEndTimeZoneDropdown(),
+					this.renderUseSeparateEndTimeZoneCheckbox(attrs),
 				]),
 				m(".flex.gap-12.justify-right", [
+					m(SecondaryButton, {
+						label: lang.getTranslation("removeTimeZone_action"),
+						onclick: () => {
+							attrs.onRemoveTimeZone()
+							attrs.onToggleSeparateStartAndEndTimeZone(false)
+
+							this.selectedStartTimeZone = attrs.whenModel.getStartTimeZoneOrDefault()
+							this.selectedEndTimeZone = attrs.whenModel.getEndTimeZoneOrDefault()
+						},
+						width: "flex",
+					} satisfies PrimaryButtonAttrs),
 					m(PrimaryButton, {
-						label: lang.makeTranslation("confirm_action", "Confirm"),
-						onclick: attrs.onConfirm,
+						label: lang.getTranslation("confirm_action"),
+						onclick: () => attrs.onConfirm(this.selectedStartTimeZone, this.selectedEndTimeZone),
 						width: "flex",
 					} satisfies PrimaryButtonAttrs),
 				]),
@@ -93,20 +62,46 @@ export class TimeZoneSelectionPage implements Component<TimeZoneSelectionPageAtt
 		)
 	}
 
-	private renderOption(option: TimeZoneSelectItem) {
-		return m(".flex.items-center.gap-8.plr-12.pt-8.pb-8", [
-			m(Icon, {
-				icon: Icons.GlobeOutline,
-				size: IconSize.PX24,
-				style: {
-					fill: theme.on_surface_variant,
-				},
-			}),
-			m(".flex.col", [m("small.faded", "Central European Summer Time (GMT+2)"), m("span", option.timeZoneName)]),
+	private renderStartTimeZoneDropdown(attrs: TimeZoneSelectionPageAttrs): Children {
+		return this.renderTimeZoneDropdown(
+			attrs.separateStartAndEndTimeZone ? "startTimeZone_title" : "startAndEndTimeZone_title",
+			this.selectedStartTimeZone,
+			(newTimeZone) => {
+				this.selectedStartTimeZone = newTimeZone
+				if (!attrs.separateStartAndEndTimeZone) {
+					this.selectedEndTimeZone = newTimeZone
+				}
+			},
+		)
+	}
+
+	private renderEndTimeZoneDropdown(): Children {
+		return this.renderTimeZoneDropdown("endTimeZone_title", this.selectedEndTimeZone, (newTimeZone) => {
+			this.selectedEndTimeZone = newTimeZone
+		})
+	}
+
+	private renderTimeZoneDropdown(
+		titleTranslationKey: TranslationKey,
+		selectedTimeZone: IANATimeZone,
+		onSelectionChanged: (newTimeZone: IANATimeZone) => void,
+	): Children {
+		return m(".flex.col.gap-8", [
+			m("small.uppercase.b.text-ellipsis", { style: { color: theme.on_surface } }, lang.getTranslation(titleTranslationKey).text),
+			m(TimeZoneSelectorDropdown, { selectedTimeZone, onSelectionChanged }),
 		])
 	}
 
-	private getSelected(startTimeZone: string | null) {
-		return this.options().find((timeZoneOption) => timeZoneOption.value === startTimeZone)
+	private renderUseSeparateEndTimeZoneCheckbox(attrs: TimeZoneSelectionPageAttrs) {
+		return m(Checkbox, {
+			label: () => lang.getTranslation("useSeparateEndTimeZone_label").text,
+			checked: attrs.separateStartAndEndTimeZone,
+			onChecked: (separateEndTimeZone) => {
+				if (!separateEndTimeZone) {
+					this.selectedEndTimeZone = this.selectedStartTimeZone
+				}
+				attrs.onToggleSeparateStartAndEndTimeZone(separateEndTimeZone)
+			},
+		} satisfies CheckboxAttrs)
 	}
 }

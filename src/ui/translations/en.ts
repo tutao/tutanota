@@ -2389,5 +2389,11 @@ export default {
 		"migrationCreateMissingFolders_label": "Create missing folders",
 		"migrationCreatingMissingFolders_msg": "Creating missing folders ...",
 		"migrationSetupComplete_title": "Email migration started sucessfully!",
+		"useSeparateEndTimeZone_label" : "Separate start and end time zone",
+		"startTimeZone_title": "Start time zone",
+		"startAndEndTimeZone_title": "Start and end time zone",
+		"endTimeZone_title": "End time zone",
+		"confirm_action": "Confirm",
+		"removeTimeZone_action": "Remove time zone",
 	}
 }
