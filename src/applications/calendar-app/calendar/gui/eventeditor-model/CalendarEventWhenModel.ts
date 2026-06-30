@@ -29,7 +29,6 @@ import { clone, Stripped } from "@tutao/meta"
 import { EndType, RepeatPeriod, Weekday } from "@tutao/app-env"
 import { UserError } from "../../../../common/api/main/UserError.js"
 import m from "mithril"
-import { IANATimeZone } from "../DateTimeTextFormatterUtils"
 
 export type CalendarEventWhenModelResult = CalendarEventTimes &
 	CalendarEventTimeZones & {
@@ -477,30 +476,30 @@ export class CalendarEventWhenModel {
 		return !this._isAllDay
 	}
 
-	setStartTimeZone(startTimeZone: IANATimeZone) {
+	setStartTimeZone(startTimeZone: string) {
 		this.timeZones.startTimeZone = startTimeZone
 		this.uiUpdateCallback()
 	}
 
-	getStartTimeZoneOrDefault(): IANATimeZone {
+	getStartTimeZoneOrDefault(): string {
 		let timeZone = this.timeZones.startTimeZone
 		if (timeZone === null) {
 			timeZone = this.calendarTimeZone
 		}
-		return timeZone as IANATimeZone
+		return timeZone
 	}
 
-	setEndTimeZone(endTimeZone: IANATimeZone) {
+	setEndTimeZone(endTimeZone: string) {
 		this.timeZones.endTimeZone = endTimeZone
 		this.uiUpdateCallback()
 	}
 
-	getEndTimeZoneOrDefault(): IANATimeZone {
+	getEndTimeZoneOrDefault(): string {
 		let timeZone = this.timeZones.endTimeZone
 		if (timeZone === null) {
 			timeZone = this.calendarTimeZone
 		}
-		return timeZone as IANATimeZone
+		return timeZone
 	}
 
 	hasSeparateStartAndEndTimeZone(): boolean {

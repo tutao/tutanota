@@ -9,7 +9,7 @@ import {
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../../entities/tutanota/Utils"
 import { CalendarAdvancedRepeatRule, createCalendarAdvancedRepeatRule, createDateWrapper, createRepeatRule, DateWrapper, RepeatRule } from "@tutao/entities/sys"
 import { filterInt, isMailAddress, neverNull, utf8Uint8ArrayToString } from "@tutao/utils"
-import { DateTime, Duration, IANAZone } from "luxon"
+import { DateTime, Duration } from "luxon"
 import type { Parser } from "../../../common/misc/parsing/ParserCombinator"
 import {
 	combineParsers,
@@ -24,13 +24,13 @@ import {
 	ParserError,
 	StringIterator,
 } from "../../../common/misc/parsing/ParserCombinator"
-import WindowsZones from "./WindowsZones"
 import { DAY_IN_MILLIS, EndType, RepeatPeriod, reverse } from "@tutao/app-env"
 import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { Stripped } from "@tutao/meta"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
+import { timeZoneProvider } from "../../../common/calendar/TimeZoneProvider"
 
 const TAG = "[CalendarParser]"
 
@@ -539,21 +539,17 @@ function parseEventDuration(durationValue: string, startTime: Date): Date {
 
 function getTzId(prop: Property): string | null {
 	const tzIdValue = prop.params["TZID"]
-
 	if (!tzIdValue) {
 		return null
 	}
 
-	if (IANAZone.isValidZone(tzIdValue)) {
-		return tzIdValue
+	const result = timeZoneProvider.resolveTimeZoneForImport(tzIdValue)
+	if (!result) {
+		console.warn(`${TAG} Unknown timezone at property ${prop.name}: ${tzIdValue}.`)
+		return null
 	}
 
-	if (tzIdValue in WindowsZones) {
-		return WindowsZones[tzIdValue as keyof typeof WindowsZones]
-	}
-
-	console.warn(`${TAG} Unknown timezone at property ${prop.name}: ${tzIdValue}.`)
-	return null
+	return result
 }
 
 function oneDayDurationEnd(startTime: Date, allDay: boolean, tzId: string | null, zone: string): Date {
