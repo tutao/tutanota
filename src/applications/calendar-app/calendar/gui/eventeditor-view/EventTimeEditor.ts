@@ -93,7 +93,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							}),
 						),
 					]),
-					showStartTimeZoneButton ? this.renderTimeZoneButton(attrs, attrs.editModel.startTimeZone ?? attrs.editModel.calendarTimeZone) : null,
+					showStartTimeZoneButton ? this.renderTimeZoneButton(attrs, attrs.editModel.startTimeZone) : null,
 					m(".time-selection-grid.pr-8", [
 						m("", lang.get("dateTo_label")),
 						m(
@@ -126,7 +126,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							}),
 						),
 					]),
-					!attrs.editModel.isAllDay ? this.renderTimeZoneButton(attrs, attrs.editModel.endTimeZone ?? attrs.editModel.calendarTimeZone) : null,
+					!attrs.editModel.isAllDay ? this.renderTimeZoneButton(attrs, attrs.editModel.endTimeZone) : null,
 				]),
 			]),
 		])
