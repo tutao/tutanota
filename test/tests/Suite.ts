@@ -80,6 +80,8 @@ import "./api/worker/search/IndexUtilsTest.js"
 import "./api/worker/search/IndexerCoreTest.js"
 import "./api/worker/search/IndexerPromiseUtilsTest.js"
 import "./api/worker/search/IndexedDbIndexerTest.js"
+import "./api/worker/search/WebMailIndexerTest.js"
+import "./api/worker/search/OfflineMailIndexerTest.js"
 import "./api/worker/search/MailIndexerTest.js"
 import "./api/worker/search/IndexedDbMailIndexerBackendTest.js"
 import "./api/worker/search/IndexedDbSearchFacadeTest.js"
@@ -278,6 +280,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./api/worker/utils/spamClassification/SpamMailProcessorTest.js")
 		await import("./api/worker/utils/spamClassification/SpamClassifierTest.js")
 		await import("./network/offline/OfflineStorageMigratorTest.js")
+		await import("./network/offline/migrations/offline-v13.js")
 		await import("./network/offline/OfflineStorageTest.js")
 		await import("./desktop/ApplicationWindowTest.js")
 		await import("./desktop/DesktopContextMenuTest.js")
@@ -311,7 +314,6 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./desktop/sse/SseClientTest.js")
 		await import("./desktop/sse/TutaNotificationHandlerTest.js")
 		await import("./desktop/sse/TutaSseFacadeTest.js")
-		await import("./api/worker/search/OfflineStorageMailIndexerBackendTest.js")
 		await import("./api/worker/search/OfflineStoragePersistenceTest.js")
 		await import("./api/worker/search/OfflineStorageSearchFacadeTest.js")
 		await import("./api/worker/facades/OfflineStorageAutosaveFacadeTest.js")

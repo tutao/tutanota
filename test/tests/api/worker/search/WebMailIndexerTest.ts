@@ -1,0 +1,1225 @@
+import o from "@tutao/otest"
+import { DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
+import {
+	constructMailSetEntryId,
+	isSameId,
+	LEGACY_BCC_RECIPIENTS_ID,
+	LEGACY_BODY_ID,
+	LEGACY_CC_RECIPIENTS_ID,
+	LEGACY_TO_RECIPIENTS_ID,
+	timestampToGeneratedId,
+} from "../../../../../src/platform-kit/meta"
+import {
+	_getCurrentIndexTimestamp,
+	INITIAL_MAIL_INDEX_INTERVAL_DAYS,
+	MboxIndexData,
+	WebMailIndexer,
+} from "../../../../../src/applications/mail-app/workerUtils/index/WebMailIndexer.js"
+import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
+import { assertNotNull, defer, downcast, getDayShifted } from "../../../../../src/platform-kit/utils"
+import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
+import type { DateProvider } from "../../../../../src/applications/common/api/worker/DateProvider.js"
+import { func, matchers, object, verify, when } from "testdouble"
+import { InfoMessageHandler } from "../../../../../src/applications/common/gui/InfoMessageHandler.js"
+import { MailFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/MailFacade.js"
+import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient.js"
+import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithMailDetails } from "../../../../../src/applications/mail-app/workerUtils/index/BulkMailLoader.js"
+import { MailIndexerBackend, MailWithDetailsAndAttachments } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexerBackend"
+import { SearchIndexStateInfo } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
+import * as restError from "../../../../../src/platform-kit/rest-client/error"
+import {
+	BodyTypeRef,
+	File,
+	FileTypeRef,
+	Mail,
+	MailBagTypeRef,
+	MailBox,
+	MailboxGroupRootTypeRef,
+	MailBoxTypeRef,
+	MailDetailsBlob,
+	MailDetailsBlobTypeRef,
+	MailDetailsDraftTypeRef,
+	MailDetailsTypeRef,
+	MailSet,
+	MailSetEntry,
+	MailSetEntryTypeRef,
+	MailSetRefTypeRef,
+	MailSetTypeRef,
+	MailTypeRef,
+	RecipientsTypeRef,
+	tutanotaTypeModels,
+} from "@tutao/entities/tutanota"
+import { ClientTypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
+import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
+import { ProgressMonitor } from "../../../../../src/platform-kit/network/ProgressMonitorInterface"
+import { GroupType } from "../../../../../src/entities/sys/Utils"
+import { MailState } from "../../../../../src/entities/tutanota/Utils"
+import { defaultMailIndexerNewMailDownloader, MailIndexerNewMailDownloader } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexer"
+
+class FixedDateProvider implements DateProvider {
+	now: number
+
+	constructor(now: number) {
+		this.now = now
+	}
+
+	getStartOfDayShiftedBy(shiftedBy: number) {
+		const date = getDayShifted(new Date(this.now), shiftedBy)
+		// Making start of the day in UTC to make it deterministic. beforeNowInterval is calculated just like that and hardcoded to be reliable
+		date.setUTCHours(0, 0, 0, 0)
+		return date
+	}
+}
+
+const mailId = "L-dNNLe----0"
+
+o.spec("WebMailIndexer", () => {
+	const now = 1554720827674 // 2019-04-08T10:53:47.674Z
+	let entityMock: EntityRestClientMock
+	let entityClient: EntityClient
+	let bulkMailLoader: BulkMailLoader
+	let dateProvider: DateProvider
+	let backend: MailIndexerBackend
+	let mailFacade: MailFacade
+	let clientTypeModelResolver: ClientTypeModelResolver
+	let infoMessageHandler: InfoMessageHandler
+	let indexer: WebMailIndexer
+	let newMailDownloader: MailIndexerNewMailDownloader
+	const userId = "userId1"
+	const mailGroup1 = "mailGroup1"
+	let user: User
+	o.beforeEach(function () {
+		infoMessageHandler = object()
+		entityMock = new EntityRestClientMock()
+		mailFacade = object()
+		clientTypeModelResolver = clientInitializedTypeModelResolver()
+		entityClient = new EntityClient(entityMock, clientTypeModelResolver)
+		bulkMailLoader = new BulkMailLoader(entityClient, new EntityClient(entityMock, clientTypeModelResolver), mailFacade)
+		dateProvider = new FixedDateProvider(now)
+		backend = object()
+		user = createTestEntity(UserTypeRef, {
+			_id: userId,
+			memberships: [
+				createTestEntity(GroupMembershipTypeRef, {
+					group: mailGroup1,
+					groupType: GroupType.Mail,
+				}),
+			],
+		})
+		newMailDownloader = defaultMailIndexerNewMailDownloader(entityClient, mailFacade)
+
+		indexer = new WebMailIndexer(
+			infoMessageHandler,
+			() => Promise.resolve(bulkMailLoader),
+			entityClient,
+			dateProvider,
+			() => backend,
+			newMailDownloader,
+		)
+		when(backend.getCurrentIndexTimestamps(matchers.anything())).thenResolve(new Map())
+	})
+
+	async function initWithEnabled(enabled: boolean) {
+		when(backend.isMailIndexingEnabled()).thenResolve(enabled)
+		await indexer.init(user)
+	}
+
+	function _addFolder(mailbox: MailBox): MailSet {
+		const folder = createTestEntity(MailSetTypeRef)
+		folder._id = [mailbox.mailSets.mailSets, entityMock.getNextId()]
+		folder.entries = entityMock.getNextId()
+		return folder
+	}
+
+	o.spec("enableMailIndexing", function () {
+		o.test("when wasn't enabled it returns true", async function () {
+			await initWithEnabled(false)
+			const enabled = await indexer.enableMailIndexing()
+			verify(backend.enableIndexing())
+			o.check(enabled).equals(true)
+		})
+
+		o.test("when was enabled it returns false", async function () {
+			await initWithEnabled(true)
+			const enabled = await indexer.enableMailIndexing()
+			verify(backend.enableIndexing(), { times: 0 })
+			o.check(enabled).equals(false)
+		})
+	})
+
+	o.spec("indexMailboxes", function () {
+		o.spec("index one mailbox", function () {
+			// now = 2019-04-04T22:00:00.000Z
+			// rangeEnd = "2019-03-07T23:00:00.000Z"
+			// now                                  now - 28d      now - 29d       now - 30d
+			//  |--------------------------------------|---------------|---------------|
+			//  rangeStart                           rangeEnd      rangeEnd2          rangeEndShifted2Days
+			//                           m3      m4  m2     m1                            m0
+			const rangeStart = 1554415200000 // "2019-04-04T22:00:00.000Z"
+			// Simulating time zone changes by adding/subtracting one hour
+			const rangeEnd = getDayShifted(new Date(rangeStart), -INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime() + 60 * 60 * 1000
+			const rangeEnd2 = getDayShifted(new Date(rangeEnd), -1).getTime() - 60 * 60 * 1000
+			const rangeEndShifted2Days = getDayShifted(new Date(rangeEnd), -2).getTime()
+			const userId = "userId1"
+			let user: User
+			const mailGroup = "mail-group-id"
+			let mailbox: MailBox
+			let folder1: MailSet, folder2: MailSet
+			let mail0: Mail,
+				details0: MailDetailsBlob,
+				mailEntry0: MailSetEntry,
+				mail1: Mail,
+				details1: MailDetailsBlob,
+				mailEntry1: MailSetEntry,
+				mail2: Mail,
+				details2: MailDetailsBlob,
+				mailEntry2: MailSetEntry,
+				files: File[],
+				mail3: Mail,
+				details3: MailDetailsBlob,
+				mailEntry3: MailSetEntry,
+				mail4: Mail,
+				details4: MailDetailsBlob,
+				mailEntry4: MailSetEntry
+			// let transaction, core, indexer, db
+			o.beforeEach(() => {
+				user = createTestEntity(UserTypeRef, {
+					_id: userId,
+					memberships: [
+						createTestEntity(GroupMembershipTypeRef, {
+							group: mailGroup,
+							groupType: GroupType.Mail,
+						}),
+					],
+				})
+				const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
+					_id: mailGroup,
+					mailbox: "mailbox-id",
+				})
+				const mailBagMailListId = "mailBagMailListId"
+				mailbox = createTestEntity(MailBoxTypeRef, {
+					_id: "mailbox-id",
+					_ownerGroup: mailGroup,
+					currentMailBag: createTestEntity(MailBagTypeRef, { _id: "mailBagId", mails: mailBagMailListId }),
+				})
+				const folderRef = createTestEntity(MailSetRefTypeRef, {
+					mailSets: entityMock.getNextId(),
+				})
+				mailbox.mailSets = folderRef
+				folder1 = _addFolder(mailbox)
+				folder2 = _addFolder(mailbox)
+
+				// "2019-03-05T23:00:00.000Z" a.k.a Match 6th
+				const mail0Id = timestampToGeneratedId(rangeEndShifted2Days, 1)
+				;({
+					mail: mail0,
+					mailDetailsBlob: details0,
+					mailSetEntry: mailEntry0,
+				} = createMailInstances({
+					subject: "mail0",
+					mailSetEntryId: [folder1.entries, constructMailSetEntryId(new Date(rangeEndShifted2Days), mail0Id)],
+					mailId: [mailBagMailListId, mail0Id],
+					mailDetailsBlobId: ["details-list-id", entityMock.getNextId()],
+				}))
+
+				// "2019-03-07T22:59:00.000Z" a.k.a one minute before March 8th
+				const mail1Timestamp = rangeEnd - 60 * 60 * 1000
+				const mail1Id = timestampToGeneratedId(mail1Timestamp, 1)
+				;({
+					mail: mail1,
+					mailDetailsBlob: details1,
+					mailSetEntry: mailEntry1,
+				} = createMailInstances({
+					subject: "mail1",
+					mailSetEntryId: [folder1.entries, constructMailSetEntryId(new Date(mail1Timestamp), mail1Id)],
+					mailId: [mailBagMailListId, mail1Id],
+					mailDetailsBlobId: ["details-list-id", entityMock.getNextId()],
+				}))
+
+				// "2019-03-07T23:01:00.000Z" a.k.a one second after March 8th
+				const mail2Timestamp = rangeEnd + 60 * 60 * 1000
+				const mail2Id = timestampToGeneratedId(mail2Timestamp, 1)
+				;({
+					mail: mail2,
+					mailDetailsBlob: details2,
+					mailSetEntry: mailEntry2,
+					files,
+				} = createMailInstances({
+					subject: "mail2",
+					mailSetEntryId: [folder1.entries, constructMailSetEntryId(new Date(mail2Timestamp), mail2Id)],
+					mailId: [mailBagMailListId, mail2Id],
+					mailDetailsBlobId: ["details-list-id", entityMock.getNextId()],
+					attachmentIds: [
+						["attachment-listId", entityMock.getNextId()],
+						["attachment-listId1", entityMock.getNextId()],
+					],
+				}))
+
+				// "2019-03-10T23:00:00.000Z" a.k.a March 11th
+				const mail3Timestamp = rangeEnd + 3 * 24 * 60 * 60 * 1000
+				const mail3Id = timestampToGeneratedId(mail3Timestamp, 1)
+				;({
+					mail: mail3,
+					mailDetailsBlob: details3,
+					mailSetEntry: mailEntry3,
+				} = createMailInstances({
+					subject: "mail3",
+					mailSetEntryId: [folder1.entries, constructMailSetEntryId(new Date(mail3Timestamp), mail3Id)],
+					mailId: [mailBagMailListId, mail3Id],
+					mailDetailsBlobId: ["details-list-id", entityMock.getNextId()],
+				}))
+
+				// "2019-03-07T23:05:00.000Z" a.k.a 5 seconds after March 8th
+				const mail4Timestamp = rangeEnd + 5 * 60 * 60 * 1000
+				const mail4Id = timestampToGeneratedId(mail4Timestamp, 1)
+				;({
+					mail: mail4,
+					mailDetailsBlob: details4,
+					mailSetEntry: mailEntry4,
+				} = createMailInstances({
+					subject: "mail4",
+					mailSetEntryId: [folder1.entries, constructMailSetEntryId(new Date(mail4Timestamp), mail4Id)],
+					mailId: [mailBagMailListId, mail4Id],
+					mailDetailsBlobId: ["details-list-id", entityMock.getNextId()],
+				}))
+
+				entityMock.addBlobInstances(details0, details1, details2, details3, details4)
+				entityMock.addElementInstances(mailboxGroupRoot, mailbox)
+				entityMock.addListInstances(mail0, mail1, mail2, mail3, mail4, folder1, folder2, ...files)
+				entityMock.addListInstances(mailEntry0, mailEntry1, mailEntry2, mailEntry3, mailEntry4)
+			})
+
+			function checkMailsIndexed(timestamps: Map<string, number>, mailsWithData: readonly MailWithDetailsAndAttachments[]) {
+				const timestampsCaptor = matchers.captor()
+				const mailsCaptor = matchers.captor()
+				verify(backend.indexMails(timestampsCaptor.capture(), mailsCaptor.capture()))
+				o.check(timestampsCaptor.value).deepEquals(timestamps)
+				const indexedMailData: MailWithMailDetails[] = mailsCaptor.value
+				o.check(indexedMailData.length).equals(mailsWithData.length)(
+					`All mails are indexed. Actually indexed: ${indexedMailData.map((data) => data.mail.subject)}`,
+				)
+				for (const expectedData of mailsWithData) {
+					const matchingData = indexedMailData.find(({ mail }) => isSameId(mail._id, expectedData.mail._id))
+					o.check(matchingData).deepEquals(expectedData)(`Mail ${expectedData.mail.subject} is indexed`)
+				}
+			}
+
+			o.test("indexing disabled", async function () {
+				await initWithEnabled(false)
+				await indexer.indexMailboxes(user, rangeEnd)
+				verify(entityClient.load(matchers.anything(), matchers.anything()), { times: 0 })
+			})
+
+			o.test("fully indexed", async function () {
+				await initWithEnabled(true)
+				const timestamps: Map<Id, number> = new Map([[mailGroup, FULL_INDEXED_TIMESTAMP]])
+				when(backend.getCurrentIndexTimestamps([mailGroup])).thenResolve(timestamps)
+				// dirty partial mock
+				indexer._indexMailListsInTimeBatches = func<WebMailIndexer["_indexMailListsInTimeBatches"]>()
+
+				await indexer.indexMailboxes(user, rangeEnd)
+
+				verify(
+					indexer._indexMailListsInTimeBatches(
+						matchers.anything(),
+						matchers.anything(),
+						matchers.anything(),
+						matchers.anything(),
+						matchers.anything(),
+						matchers.anything(),
+					),
+					{ times: 0 },
+				)
+			})
+
+			o.test("one mailbox until certain point", async function () {
+				await initWithEnabled(true)
+				const timestamps: Map<Id, number> = new Map([[mailGroup, NOTHING_INDEXED_TIMESTAMP]])
+				when(backend.getCurrentIndexTimestamps([mailGroup])).thenResolve(timestamps)
+
+				// initial indexing - first time range
+				await indexer.indexMailboxes(user, rangeEnd)
+
+				checkMailsIndexed(new Map([[mailGroup, rangeEnd]]), [
+					{ mail: mail2, mailDetails: details2.details, attachments: files },
+					{ mail: mail3, mailDetails: details3.details, attachments: [] },
+					{ mail: mail4, mailDetails: details4.details, attachments: [] },
+				])
+			})
+
+			o.test("one mailbox extend once", async function () {
+				await initWithEnabled(true)
+				const timestamps: Map<Id, number> = new Map([[mailGroup, rangeEnd]])
+				when(backend.getCurrentIndexTimestamps([mailGroup])).thenResolve(timestamps)
+
+				// next index update - continue indexing
+				await indexer.indexMailboxes(user, rangeEnd2)
+
+				verify(
+					backend.indexMails(new Map([[mailGroup, rangeEnd2]]), [
+						{
+							mail: mail1,
+							mailDetails: details1.details,
+							attachments: [],
+						},
+					]),
+				)
+
+				checkMailsIndexed(new Map([[mailGroup, rangeEnd2]]), [
+					{
+						mail: mail1,
+						mailDetails: details1.details,
+						attachments: [],
+					},
+				])
+			})
+
+			o.test("one mailbox extend till end", async function () {
+				await initWithEnabled(true)
+				// "2019-03-06T22:00:00.000Z" a.k.a
+				const timestamps: Map<Id, number> = new Map([[mailGroup, rangeEnd2]])
+				when(backend.getCurrentIndexTimestamps([mailGroup])).thenResolve(timestamps)
+
+				// next index update - finish indexing "2019-03-05T22:00:00.000Z"
+				const rangeEnd3 = getDayShifted(new Date(rangeEnd2), -1).getTime()
+				await indexer.indexMailboxes(user, rangeEnd3)
+
+				checkMailsIndexed(new Map([[mailGroup, FULL_INDEXED_TIMESTAMP]]), [
+					{
+						mail: mail0,
+						mailDetails: details0.details,
+						attachments: [],
+					},
+				])
+			})
+		})
+
+		o.spec("loading mail data and updating progress", function () {
+			// from dateProvider above for current time (2019-04-08T10:53:47.674Z)
+
+			const point1 = new Date("2017-12-10T23:00:00.000Z") // 1512946800000
+			const point2 = new Date("2017-12-11T23:00:00.000Z") // 1513033200000
+
+			o.test("initial indexing", async function () {
+				await indexMailboxTest({
+					startIndexTimestamp: NOTHING_INDEXED_TIMESTAMP,
+					endIndexTimestamp: point1.getTime(),
+					expectedNewestTimestampForIndexMailListCall: new Date("2019-04-09T00:00:00.000Z").getTime(),
+				})
+			})
+
+			o.test("further indexing", async function () {
+				await indexMailboxTest({
+					startIndexTimestamp: point2.getTime(),
+					endIndexTimestamp: point1.getTime(),
+					expectedNewestTimestampForIndexMailListCall: point2.getTime(),
+				})
+			})
+
+			o.test("fully indexed", async function () {
+				await indexMailboxTest({
+					startIndexTimestamp: FULL_INDEXED_TIMESTAMP,
+					endIndexTimestamp: point1.getTime(),
+					expectedNewestTimestampForIndexMailListCall: null,
+				})
+			})
+
+			async function indexMailboxTest({
+				startIndexTimestamp,
+				endIndexTimestamp,
+				expectedNewestTimestampForIndexMailListCall,
+			}: {
+				startIndexTimestamp: number
+				endIndexTimestamp: number
+				expectedNewestTimestampForIndexMailListCall: number | null
+			}) {
+				const mailsChunk: Mail[] = []
+				const mailDetailsAndMailsChunk: MailWithMailDetails[] = []
+				for (let i = 0; i < MAIL_INDEXER_CHUNK; i++) {
+					const mail: Mail = createTestEntity(MailTypeRef)
+					mailsChunk.push(mail)
+					mailDetailsAndMailsChunk.push({
+						mail,
+						mailDetails: createTestEntity(MailDetailsTypeRef),
+					})
+				}
+
+				// For this test it is easier to use the mock. MailIndexer creates the loader on demand so it's fine
+				// to replace it here before the call.
+				bulkMailLoader = object()
+
+				// one mail per day
+				when(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything())).thenResolve([
+					createTestEntity(MailSetEntryTypeRef),
+				])
+
+				when(bulkMailLoader.loadMailsFromMultipleLists(matchers.anything())).thenResolve(mailsChunk)
+				when(bulkMailLoader.loadMailDetails(matchers.anything())).thenResolve(mailDetailsAndMailsChunk)
+				when(bulkMailLoader.loadAttachments(matchers.anything())).thenResolve([]) // doesn't matter for this test
+
+				const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
+					_id: mailGroup1,
+					mailbox: "mailbox-id",
+				})
+				const mailbox = createTestEntity(MailBoxTypeRef, {
+					_id: "mailbox-id",
+					_ownerGroup: mailGroup1,
+					mailSets: createTestEntity(MailSetRefTypeRef, {
+						mailSets: "mailSets-id",
+					}),
+				})
+				entityMock.addElementInstances(mailbox, mailboxGroupRoot)
+				entityMock.addListInstances(_addFolder(mailbox))
+
+				const currentIndexTimestampForGroup = startIndexTimestamp
+				when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, currentIndexTimestampForGroup]]))
+
+				let progressUpdates: number[] = []
+				let currentMailIndexTimestampUpdate: number | null = null
+				const indexingDefer = defer<void>()
+				when(infoMessageHandler.onSearchIndexStateUpdate(matchers.anything())).thenDo((indexState: SearchIndexStateInfo) => {
+					indexingDefer.resolve()
+
+					progressUpdates.push(indexState.progress)
+					if (currentMailIndexTimestampUpdate == null) {
+						currentMailIndexTimestampUpdate = indexState.currentMailIndexTimestamp
+					}
+				})
+
+				await initWithEnabled(true)
+
+				const indexPromise = indexer.indexMailboxes(user, endIndexTimestamp)
+				await indexingDefer.promise
+				o.check(indexer._isIndexing).equals(true)
+				await indexPromise
+				o.check(indexer._isIndexing).equals(false)
+
+				const indexRangeInDays = expectedNewestTimestampForIndexMailListCall
+					? Math.ceil((expectedNewestTimestampForIndexMailListCall - endIndexTimestamp) / DAY_IN_MILLIS)
+					: 0
+				const loadMailDataRequests = Math.ceil(indexRangeInDays / MAIL_INDEXER_CHUNK)
+
+				verify(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: indexRangeInDays })
+				verify(bulkMailLoader.loadMailDetails(matchers.anything()), { times: loadMailDataRequests })
+				verify(bulkMailLoader.loadAttachments(matchers.anything()), { times: loadMailDataRequests })
+				verify(bulkMailLoader.loadMailsFromMultipleLists(matchers.anything()), { times: loadMailDataRequests })
+
+				const [progressUpdateOnIndexingStart, ...progressUpdatesWhileIndexing] = progressUpdates
+				const progressUpdateOnIndexingEnd = assertNotNull(progressUpdatesWhileIndexing.pop())
+				const isProgressIncrementing = progressUpdatesWhileIndexing.every((progress, i, arr) => {
+					const nextProgress = arr[i + 1]
+					return nextProgress == null || nextProgress > progress
+				})
+
+				// progress is set to 1 when indexing starts
+				o.check(progressUpdateOnIndexingStart).equals(1)
+				// progress is set to 0 when indexing finishes
+				o.check(progressUpdateOnIndexingEnd).equals(0)
+				// progress is incrementing while indexing
+				o.check(isProgressIncrementing).equals(true)
+				// indexing is done in batches of one day, progress is updated after each batch
+				o.check(progressUpdatesWhileIndexing.length).equals(indexRangeInDays)
+				o.check(downcast<number>(currentMailIndexTimestampUpdate)).equals(currentIndexTimestampForGroup)
+			}
+		})
+
+		o.test("when indexing fails during network request it reports no error", async function () {
+			const indexingTimestampAim = now - 10_000
+			await initWithEnabled(true)
+			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
+				_id: mailGroup1,
+				mailbox: "mailbox-id",
+			})
+			const mailbox = createTestEntity(MailBoxTypeRef, {
+				_id: "mailbox-id",
+				_ownerGroup: mailGroup1,
+				mailSets: createTestEntity(MailSetRefTypeRef, {
+					mailSets: "foldersId",
+				}),
+			})
+			entityMock.addElementInstances(mailbox, mailboxGroupRoot)
+			entityMock.addListInstances(_addFolder(mailbox))
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, now]]))
+
+			bulkMailLoader.loadMailSetEntriesForTimeRange = func<BulkMailLoader["loadMailSetEntriesForTimeRange"]>()
+			when(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything())).thenReject(
+				new restError.ConnectionError("no connection"),
+			)
+
+			await indexer.indexMailboxes(user, indexingTimestampAim)
+
+			verify(
+				infoMessageHandler.onSearchIndexStateUpdate({
+					initializing: false,
+					mailIndexEnabled: true,
+					progress: 0,
+					currentMailIndexTimestamp: now,
+					aimedMailIndexTimestamp: indexingTimestampAim,
+					indexedMailCount: 0,
+					failedIndexingUpTo: indexingTimestampAim,
+					error: 1,
+				}),
+			)
+		})
+
+		o.test("when indexing starts it cancels any ongoing indexing", async function () {
+			const initPromise = initWithEnabled(true).then()
+			await initPromise
+			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
+				_id: mailGroup1,
+				mailbox: "mailbox-id",
+			})
+			const mailbox = createTestEntity(MailBoxTypeRef, {
+				_id: "mailbox-id",
+				_ownerGroup: mailGroup1,
+				mailSets: createTestEntity(MailSetRefTypeRef, {
+					mailSets: "foldersId",
+				}),
+			})
+			entityMock.addElementInstances(mailbox, mailboxGroupRoot)
+			entityMock.addListInstances(_addFolder(mailbox))
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, now]]))
+
+			const neverResolved = new Promise<MailSetEntry[]>(() => {})
+			bulkMailLoader.loadMailSetEntriesForTimeRange = func<BulkMailLoader["loadMailSetEntriesForTimeRange"]>()
+			when(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything())).thenReturn(neverResolved)
+
+			const mailboxIndexingPromise = indexer.indexMailboxes(user, now - 10_000)
+			await initPromise
+			void indexer.indexMailboxes(user, now - 20_000) // this will never resolve
+			await mailboxIndexingPromise
+
+			verify(
+				infoMessageHandler.onSearchIndexStateUpdate({
+					initializing: false,
+					mailIndexEnabled: true,
+					// progress is set to 1 when indexing is cancelled before restarting
+					progress: 1,
+					currentMailIndexTimestamp: now,
+					// aimedMailIndexTimestamp is set to currentMailIndexTimestamp when indexing is cancelled
+					aimedMailIndexTimestamp: now,
+					indexedMailCount: 0,
+					failedIndexingUpTo: null,
+					error: null,
+				}),
+			)
+		})
+	})
+
+	o.spec("entity event handlers", () => {
+		const mailListId = "mail-list"
+		const mailIdTuple: IdTuple = [mailListId, mailId]
+		const receivedDate: Date = new Date(now)
+
+		function setCurrentIndexTimestamp(timestamp: number) {
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, timestamp]]))
+		}
+
+		function addEntities(mailState: MailState = MailState.RECEIVED): MailWithDetailsAndAttachments {
+			const mailDetailsBlobId = ["details-list-id", "details-id"] as IdTuple
+			const { mail, mailDetailsBlob, files } = createMailInstances({
+				mailSetEntryId: ["mailSetListId", "mailListEntryId"],
+				mailId: mailIdTuple,
+				mailDetailsBlobId,
+				attachmentIds: [["file-list-id", "file-id"]],
+			})
+			mail.state = mailState
+			mail.receivedDate = receivedDate
+
+			if (mail.state === MailState.DRAFT) {
+				const mailDetailsListEntity = createTestEntity(MailDetailsDraftTypeRef, {
+					_id: mailDetailsBlobId,
+					details: mailDetailsBlob.details,
+				})
+				mail.mailDetailsDraft = mailDetailsBlobId
+				mail.mailDetails = null
+				entityMock.addListInstances(mail, mailDetailsListEntity, ...files)
+			} else {
+				entityMock.addListInstances(mail, ...files)
+				entityMock.addBlobInstances(mailDetailsBlob)
+			}
+
+			when(mailFacade.loadAttachments(mail)).thenResolve(files)
+			return { mail, mailDetails: mailDetailsBlob.details, attachments: files }
+		}
+
+		o.spec("afterMailCreated", () => {
+			o.test("no-op if mailIndexing is disabled", async () => {
+				await initWithEnabled(false)
+				await indexer.afterMailCreated(mailIdTuple)
+				verify(backend.onMailCreated(matchers.anything()), { times: 0 })
+			})
+			o.test("no-op if new email is out of index range", async () => {
+				addEntities()
+				setCurrentIndexTimestamp(now + 1)
+				await initWithEnabled(true)
+				await indexer.afterMailCreated(mailIdTuple)
+				verify(backend.onMailCreated(matchers.anything()), { times: 0 })
+			})
+			o.test("creates if mailIndexing is enabled", async () => {
+				const entities = addEntities()
+				setCurrentIndexTimestamp(now)
+				await initWithEnabled(true)
+				await indexer.afterMailCreated(mailIdTuple)
+				verify(backend.onMailCreated(entities))
+			})
+			o.test("no-op if draft details fail to download", async () => {
+				const entities = addEntities(MailState.DRAFT)
+				setCurrentIndexTimestamp(now)
+				await initWithEnabled(true)
+				entityMock.setListElementException(assertNotNull(entities.mail.mailDetailsDraft), new restError.NotAuthorizedError("blah"))
+				await indexer.afterMailUpdated(mailIdTuple)
+				verify(backend.onMailCreated(matchers.anything()), { times: 0 })
+			})
+			o.test("no-op if non-draft details fail to download", async () => {
+				const entities = addEntities(MailState.RECEIVED)
+				setCurrentIndexTimestamp(now)
+				await initWithEnabled(true)
+				entityMock.setBlobElementException(assertNotNull(entities.mail.mailDetails), new restError.NotAuthorizedError("blah"))
+				await indexer.afterMailUpdated(mailIdTuple)
+				verify(backend.onMailCreated(matchers.anything()), { times: 0 })
+			})
+			o.test("no-op if files fail to download", async () => {
+				const entities = addEntities(MailState.RECEIVED)
+				setCurrentIndexTimestamp(now)
+				await initWithEnabled(true)
+				when(mailFacade.loadAttachments(entities.mail)).thenReject(new restError.NotAuthorizedError("blah"))
+				await indexer.afterMailUpdated(mailIdTuple)
+				verify(backend.onMailCreated(matchers.anything()), { times: 0 })
+			})
+		})
+
+		o.spec("afterMailUpdated", () => {
+			o.test("no-op if mailIndexing is disabled", async () => {
+				setCurrentIndexTimestamp(now)
+				await initWithEnabled(false)
+				await indexer.afterMailUpdated(mailIdTuple)
+				verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
+				verify(backend.onPartialMailUpdated(matchers.anything()), { times: 0 })
+			})
+			o.test("no-op if updated email is out of range", async () => {
+				setCurrentIndexTimestamp(now)
+				await initWithEnabled(false)
+				await indexer.afterMailUpdated(mailIdTuple)
+				verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
+				verify(backend.onPartialMailUpdated(matchers.anything()), { times: 0 })
+			})
+			o.test("full update if draft", async () => {
+				const entities = addEntities(MailState.DRAFT)
+				setCurrentIndexTimestamp(now)
+				await initWithEnabled(true)
+				await indexer.afterMailUpdated(mailIdTuple)
+				verify(backend.onMailUpdated(entities))
+				verify(backend.onPartialMailUpdated(matchers.anything()), { times: 0 })
+			})
+			o.test("no-op if draft details fail to download", async () => {
+				const entities = addEntities(MailState.DRAFT)
+				setCurrentIndexTimestamp(now)
+				await initWithEnabled(true)
+				entityMock.setListElementException(assertNotNull(entities.mail.mailDetailsDraft), new restError.NotAuthorizedError("blah"))
+				await indexer.afterMailUpdated(mailIdTuple)
+				verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
+				verify(backend.onPartialMailUpdated(matchers.anything()), { times: 0 })
+			})
+			o.test("no-op if draft files fail to download", async () => {
+				const entities = addEntities(MailState.DRAFT)
+				setCurrentIndexTimestamp(now)
+				await initWithEnabled(true)
+				when(mailFacade.loadAttachments(entities.mail)).thenReject(new restError.NotAuthorizedError("blah"))
+				await indexer.afterMailUpdated(mailIdTuple)
+				verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
+				verify(backend.onPartialMailUpdated(matchers.anything()), { times: 0 })
+			})
+			o.test("partial update if non-draft", async () => {
+				const entities = addEntities(MailState.RECEIVED)
+				setCurrentIndexTimestamp(now)
+				await initWithEnabled(true)
+				await indexer.afterMailUpdated(mailIdTuple)
+				verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
+				verify(backend.onPartialMailUpdated(entities.mail))
+			})
+		})
+	})
+
+	o.test("_getCurrentIndexTimestamp", () => {
+		o.check(NOTHING_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([]))
+		o.check(NOTHING_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP]))
+		o.check(FULL_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([FULL_INDEXED_TIMESTAMP]))
+		let now = new Date().getTime()
+		let past = now - 1000
+		o.check(now).equals(_getCurrentIndexTimestamp([now]))
+		o.check(past).equals(_getCurrentIndexTimestamp([now, past]))
+		o.check(past).equals(_getCurrentIndexTimestamp([past, now]))
+		o.check(now).equals(_getCurrentIndexTimestamp([now, now]))
+		o.check(now).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP, now]))
+		o.check(now).equals(_getCurrentIndexTimestamp([now, NOTHING_INDEXED_TIMESTAMP]))
+		o.check(now).equals(_getCurrentIndexTimestamp([FULL_INDEXED_TIMESTAMP, now]))
+		o.check(now).equals(_getCurrentIndexTimestamp([now, FULL_INDEXED_TIMESTAMP]))
+		o.check(FULL_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP]))
+		o.check(FULL_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP, FULL_INDEXED_TIMESTAMP]))
+		o.check(now).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP, now, FULL_INDEXED_TIMESTAMP, now]))
+		o.check(now).equals(_getCurrentIndexTimestamp([now, NOTHING_INDEXED_TIMESTAMP, now, FULL_INDEXED_TIMESTAMP]))
+		o.check(now).equals(_getCurrentIndexTimestamp([now, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP]))
+	})
+
+	o.spec("extendIndexIfNeeded", function () {
+		o.test("not extends if fully indexed", async function () {
+			// shouldn't be used by anything
+			bulkMailLoader = object()
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, FULL_INDEXED_TIMESTAMP]]))
+			await initWithEnabled(true)
+			await indexer.extendIndexIfNeeded(user, 1000)
+			verify(infoMessageHandler.onSearchIndexStateUpdate(matchers.anything()), { times: 0 })
+			verify(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: 0 })
+		})
+
+		o.test("not extends if already indexed range", async function () {
+			// shouldn't be used by anything
+			bulkMailLoader = object()
+			const newOldTimestamp = 2000
+			const currentIndexTimestamp = newOldTimestamp - 1000
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, currentIndexTimestamp]]))
+			await initWithEnabled(true)
+			await indexer.extendIndexIfNeeded(user, newOldTimestamp)
+			verify(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: 0 })
+		})
+
+		o.test("extends", async function () {
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, now]]))
+			const beforeNowInterval = 1552262400000 // 2019-03-11T00:00:00.000Z
+			await initWithEnabled(true)
+			// dirty partial mock
+			indexer.indexMailboxes = func<WebMailIndexer["indexMailboxes"]>()
+
+			await indexer.extendIndexIfNeeded(user, beforeNowInterval)
+
+			verify(indexer.indexMailboxes(user, beforeNowInterval))
+		})
+	})
+
+	o.spec("resizeMailIndex", function () {
+		o.test("truncates if already indexed range", async function () {
+			const startingTimestamp = 1000
+			const targetTimestamp = 2000
+
+			// shouldn't be used by anything
+			bulkMailLoader = object()
+
+			let currentTimestamp = startingTimestamp
+			when(backend.truncateAllCurrentIndexTimestamps(matchers.anything())).thenDo(async (timestamp) => {
+				currentTimestamp = timestamp
+			})
+
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenDo(async (_: string[]) => {
+				return new Map([[mailGroup1, currentTimestamp]])
+			})
+
+			await initWithEnabled(true)
+			await indexer.resizeMailIndex(user, targetTimestamp)
+
+			verify(backend.truncateAllCurrentIndexTimestamps(targetTimestamp))
+			verify(backend.getCurrentIndexTimestamps([mailGroup1]), { times: 2 })
+			verify(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: 0 })
+			verify(
+				infoMessageHandler.onSearchIndexStateUpdate({
+					initializing: false,
+					mailIndexEnabled: true,
+					progress: 0,
+					currentMailIndexTimestamp: currentTimestamp,
+					aimedMailIndexTimestamp: currentTimestamp,
+					indexedMailCount: 0,
+					failedIndexingUpTo: null,
+				}),
+			)
+		})
+
+		o.test("extends", async function () {
+			let newOldTimestamp = 2000
+			const currentIndexTimestamp = newOldTimestamp + 1000
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, currentIndexTimestamp]]))
+			await initWithEnabled(true)
+			// dirty partial mock
+			indexer.indexMailboxes = func<WebMailIndexer["indexMailboxes"]>()
+			await indexer.resizeMailIndex(user, newOldTimestamp)
+			verify(indexer.indexMailboxes(user, newOldTimestamp))
+		})
+	})
+
+	o.spec("check mail index compatibility with models", function () {
+		// if this test fails, you need to think about migrating (or dropping)
+		// so old mail indexes use the new attribute ids.
+		o.test("mail does not have an attribute with id LEGACY_TO_RECIPIENTS_ID", function () {
+			o.check(
+				Object.values(tutanotaTypeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_TO_RECIPIENTS_ID).length,
+			).equals(0)
+		})
+		o.test("recipients does not have an attribute with id LEGACY_TO_RECIPIENTS_ID", function () {
+			o.check(
+				Object.values(tutanotaTypeModels[RecipientsTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_TO_RECIPIENTS_ID).length,
+			).equals(0)
+		})
+		o.test("mail does not have an attribute with id LEGACY_BODY_ID", function () {
+			o.check(Object.values(tutanotaTypeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_BODY_ID).length).equals(0)
+		})
+		o.test("maildetails does not have an attribute with id LEGACY_BODY_ID", function () {
+			o.check(Object.values(tutanotaTypeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_BODY_ID).length).equals(0)
+		})
+		o.test("mail does not have an attribute with id LEGACY_CC_RECIPIENTS_ID", function () {
+			o.check(
+				Object.values(tutanotaTypeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_CC_RECIPIENTS_ID).length,
+			).equals(0)
+		})
+		o.test("maildetails does not have an attribute with id LEGACY_CC_RECIPIENTS_ID", function () {
+			o.check(
+				Object.values(tutanotaTypeModels[MailDetailsTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_CC_RECIPIENTS_ID)
+					.length,
+			).equals(0)
+		})
+		o.test("mail does not have an attribute with id LEGACY_BCC_RECIPIENTS_ID", function () {
+			o.check(
+				Object.values(tutanotaTypeModels[MailTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_BCC_RECIPIENTS_ID).length,
+			).equals(0)
+		})
+		o.test("maildetails does not have an attribute with id LEGACY_BCC_RECIPIENTS_ID", function () {
+			o.check(
+				Object.values(tutanotaTypeModels[MailDetailsTypeRef.typeId.toString()].associations).filter((v: any) => v.id === LEGACY_BCC_RECIPIENTS_ID)
+					.length,
+			).equals(0)
+		})
+	})
+
+	o.spec("_indexMailListsInTimeBatches", () => {
+		o.test("empty mailbox index data", async () => {
+			const progressMonitor: ProgressMonitor = object()
+
+			await initWithEnabled(true)
+
+			const rangeStart = 10_000
+			const rangeEnd = 1_000
+
+			const { batchEnd, done } = await indexer._indexMailListsInTimeBatches(
+				[],
+				[rangeStart, rangeEnd],
+				progressMonitor,
+				bulkMailLoader,
+				updateIndexingState,
+				user,
+			)
+
+			o.check(done).equals(true)
+			o.check(batchEnd).equals(rangeEnd)
+		})
+
+		o.test("range end is newer than range start", async () => {
+			const progressMonitor: ProgressMonitor = object()
+
+			await initWithEnabled(true)
+
+			const rangeStart = 1_000
+			const rangeEnd = 10_000
+
+			const mboxData: MboxIndexData[] = [
+				{
+					mailSetListDatas: [
+						{
+							listId: "helloooo",
+							lastLoadedId: null,
+							loadedButUnusedEntries: [],
+							loadedCompletely: false,
+						},
+					],
+					newestTimestamp: rangeStart,
+					ownerGroup: "hi I'm an owner group",
+				},
+			]
+
+			const { batchEnd, done } = await indexer._indexMailListsInTimeBatches(
+				mboxData,
+				[rangeStart, rangeEnd],
+				progressMonitor,
+				bulkMailLoader,
+				updateIndexingState,
+				user,
+			)
+
+			o.check(done).equals(true)
+			o.check(batchEnd).equals(rangeEnd)
+		})
+
+		o.test("processed in fixed batches", async () => {
+			// For this test it is easier to use the mock. MailIndexer creates the loader on demand so it's fine
+			// to replace it here before the call.
+
+			bulkMailLoader = object()
+
+			const loadMailDataRequests = 5
+			const totalMails = MAIL_INDEXER_CHUNK * loadMailDataRequests
+			const rangeStart = DAY_IN_MILLIS * totalMails
+			const rangeEnd = 0
+
+			const lotsOfMails: Mail[] = []
+			const lotsOfMailDetailsAndMails: MailWithMailDetails[] = []
+			for (let i = 0; i < MAIL_INDEXER_CHUNK; i++) {
+				const _id: IdTuple = ["helloooo", "I'm a mail!"]
+				const mail: Mail = createTestEntity(MailTypeRef, {
+					_id,
+				})
+				lotsOfMails.push(mail)
+				lotsOfMailDetailsAndMails.push({
+					mail,
+					mailDetails: createTestEntity(MailDetailsTypeRef, {
+						recipients: createTestEntity(RecipientsTypeRef, {
+							toRecipients: [],
+							ccRecipients: [],
+							bccRecipients: [],
+						}),
+						body: createTestEntity(BodyTypeRef, {
+							compressedText: "tiiiiiiiiiiiiiny",
+						}),
+					}),
+				})
+			}
+
+			// one mail per day
+			when(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything())).thenResolve([createTestEntity(MailSetEntryTypeRef)])
+
+			when(bulkMailLoader.loadMailsFromMultipleLists(matchers.anything())).thenResolve(lotsOfMails)
+			when(bulkMailLoader.loadMailDetails(matchers.anything())).thenResolve(lotsOfMailDetailsAndMails)
+			when(bulkMailLoader.loadAttachments(matchers.anything())).thenResolve([]) // doesn't matter for this test
+
+			const mboxData: MboxIndexData[] = [
+				{
+					mailSetListDatas: [
+						{
+							listId: "helloooo",
+							lastLoadedId: null,
+							loadedButUnusedEntries: [],
+							loadedCompletely: false,
+						},
+					],
+					newestTimestamp: rangeStart,
+					ownerGroup: "hi I'm an owner group",
+				},
+			]
+
+			let progress = 0
+			const progressMonitor: ProgressMonitor = object()
+			when(progressMonitor.workDone(matchers.anything())).thenDo((amt: number) => {
+				progress += amt
+			})
+
+			await initWithEnabled(true)
+
+			// index first mail chunk
+			const firstBatchIndexResult = await indexer._indexMailListsInTimeBatches(
+				mboxData,
+				[rangeStart, rangeEnd],
+				progressMonitor,
+				bulkMailLoader,
+				updateIndexingState,
+				user,
+			)
+
+			o.check(firstBatchIndexResult.done).equals(false)
+			o.check(progress).equals(rangeStart - firstBatchIndexResult.batchEnd)
+			verify(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: MAIL_INDEXER_CHUNK })
+			verify(bulkMailLoader.loadMailDetails(matchers.anything()), { times: 1 })
+			verify(bulkMailLoader.loadAttachments(matchers.anything()), { times: 1 })
+			verify(bulkMailLoader.loadMailsFromMultipleLists(matchers.anything()), { times: 1 })
+
+			// index second mail chunk
+			const secondBatchIndexResult = await indexer._indexMailListsInTimeBatches(
+				mboxData,
+				[firstBatchIndexResult.batchEnd, rangeEnd],
+				progressMonitor,
+				bulkMailLoader,
+				updateIndexingState,
+				user,
+			)
+
+			o.check(firstBatchIndexResult.done).equals(false)
+			o.check(progress).equals(rangeStart - secondBatchIndexResult.batchEnd)
+			verify(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: MAIL_INDEXER_CHUNK * 2 })
+			verify(bulkMailLoader.loadMailDetails(matchers.anything()), { times: 2 })
+			verify(bulkMailLoader.loadAttachments(matchers.anything()), { times: 2 })
+			verify(bulkMailLoader.loadMailsFromMultipleLists(matchers.anything()), { times: 2 })
+
+			// index the rest in batches until done
+			let done = false
+			let batchStart = secondBatchIndexResult.batchEnd
+			while (!done) {
+				const batchIndexResult = await indexer._indexMailListsInTimeBatches(
+					mboxData,
+					[batchStart, rangeEnd],
+					progressMonitor,
+					bulkMailLoader,
+					updateIndexingState,
+					user,
+				)
+				batchStart = batchIndexResult.batchEnd
+				done = batchIndexResult.done
+			}
+
+			o.check(progress).equals(rangeStart - rangeEnd)
+			verify(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything()), { times: totalMails })
+			verify(bulkMailLoader.loadMailDetails(matchers.anything()), { times: loadMailDataRequests })
+			verify(bulkMailLoader.loadAttachments(matchers.anything()), { times: loadMailDataRequests })
+			verify(bulkMailLoader.loadMailsFromMultipleLists(matchers.anything()), { times: loadMailDataRequests })
+		})
+	})
+
+	o.spec("cancelMailIndexing", function () {
+		o.test("when canceled during network request it reports no error", async function () {
+			const indexingTimestampAim = now - 10_000
+			const initPromise = initWithEnabled(true).then()
+			await initPromise
+			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
+				_id: mailGroup1,
+				mailbox: "mailbox-id",
+			})
+			const mailbox = createTestEntity(MailBoxTypeRef, {
+				_id: "mailbox-id",
+				_ownerGroup: mailGroup1,
+				mailSets: createTestEntity(MailSetRefTypeRef, {
+					mailSets: "foldersId",
+				}),
+			})
+			entityMock.addElementInstances(mailbox, mailboxGroupRoot)
+			entityMock.addListInstances(_addFolder(mailbox))
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, now]]))
+
+			const neverResolved = new Promise<MailSetEntry[]>(() => {})
+			bulkMailLoader.loadMailSetEntriesForTimeRange = func<BulkMailLoader["loadMailSetEntriesForTimeRange"]>()
+			when(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything())).thenReturn(neverResolved)
+
+			const mailboxIndexingPromise = indexer.indexMailboxes(user, indexingTimestampAim)
+			await initPromise
+			indexer.cancelMailIndexing()
+			await mailboxIndexingPromise
+
+			verify(
+				infoMessageHandler.onSearchIndexStateUpdate({
+					initializing: false,
+					mailIndexEnabled: true,
+					progress: 0,
+					currentMailIndexTimestamp: now,
+					// aimedMailIndexTimestamp is set to currentMailIndexTimestamp when indexing is cancelled
+					aimedMailIndexTimestamp: now,
+					indexedMailCount: 0,
+					failedIndexingUpTo: null,
+					error: null,
+				}),
+			)
+		})
+	})
+
+	o.spec("cancelMailIndexingBeforeRestart", function () {
+		o.test("when cancelled before restarting during network request it reports no error", async function () {
+			const indexingTimestampAim = now - 10_000
+			const initPromise = initWithEnabled(true).then()
+			await initPromise
+			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
+				_id: mailGroup1,
+				mailbox: "mailbox-id",
+			})
+			const mailbox = createTestEntity(MailBoxTypeRef, {
+				_id: "mailbox-id",
+				_ownerGroup: mailGroup1,
+				mailSets: createTestEntity(MailSetRefTypeRef, {
+					mailSets: "foldersId",
+				}),
+			})
+			entityMock.addElementInstances(mailbox, mailboxGroupRoot)
+			entityMock.addListInstances(_addFolder(mailbox))
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, now]]))
+
+			const neverResolved = new Promise<MailSetEntry[]>(() => {})
+			bulkMailLoader.loadMailSetEntriesForTimeRange = func<BulkMailLoader["loadMailSetEntriesForTimeRange"]>()
+			when(bulkMailLoader.loadMailSetEntriesForTimeRange(matchers.anything(), matchers.anything())).thenReturn(neverResolved)
+
+			const mailboxIndexingPromise = indexer.indexMailboxes(user, indexingTimestampAim)
+			await initPromise
+			indexer.cancelMailIndexingBeforeRestart()
+			await mailboxIndexingPromise
+
+			verify(
+				infoMessageHandler.onSearchIndexStateUpdate({
+					initializing: false,
+					mailIndexEnabled: true,
+					// progress is set to 1 when indexing is cancelled before restarting
+					progress: 1,
+					currentMailIndexTimestamp: now,
+					// aimedMailIndexTimestamp is set to currentMailIndexTimestamp when indexing is cancelled
+					aimedMailIndexTimestamp: now,
+					indexedMailCount: 0,
+					failedIndexingUpTo: null,
+					error: null,
+				}),
+			)
+		})
+	})
+})
+
+function createMailInstances({
+	subject,
+	mailSetEntryId,
+	mailId,
+	mailDetailsBlobId,
+	attachmentIds = [],
+}: {
+	subject?: string
+	mailSetEntryId: IdTuple
+	mailId: IdTuple
+	mailDetailsBlobId: IdTuple
+	attachmentIds?: Array<IdTuple>
+}): {
+	mail: Mail
+	mailDetailsBlob: MailDetailsBlob
+	mailSetEntry: MailSetEntry
+	files: Array<File>
+} {
+	const mailSetEntry = createTestEntity(MailSetEntryTypeRef, {
+		_id: mailSetEntryId,
+		mail: mailId,
+	})
+	let mail = createTestEntity(MailTypeRef, {
+		_id: mailId,
+		subject,
+		_ownerEncSessionKey: new Uint8Array(),
+		mailDetails: mailDetailsBlobId,
+		attachments: attachmentIds,
+		//state: MailState.RECEIVED,
+	})
+	let mailDetailsBlob = createTestEntity(MailDetailsBlobTypeRef, {
+		_id: mailDetailsBlobId,
+		details: createTestEntity(MailDetailsTypeRef, {
+			body: createTestEntity(BodyTypeRef),
+			recipients: createTestEntity(RecipientsTypeRef),
+		}),
+	})
+	const files = attachmentIds.map((id) => {
+		const file = createTestEntity(FileTypeRef)
+		file._id = id
+		return file
+	})
+	return {
+		mail,
+		mailDetailsBlob,
+		mailSetEntry,
+		files: files,
+	}
+}
+
+function updateIndexingState(info?: Partial<SearchIndexStateInfo>): SearchIndexStateInfo {
+	const defaultInfo: SearchIndexStateInfo = {
+		initializing: false,
+		mailIndexEnabled: false,
+		progress: 0,
+		currentMailIndexTimestamp: 0,
+		aimedMailIndexTimestamp: 0,
+		indexedMailCount: 0,
+		failedIndexingUpTo: null,
+		error: null,
+	}
+	return defaultInfo
+}

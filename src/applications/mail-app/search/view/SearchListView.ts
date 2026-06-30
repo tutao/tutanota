@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, UpgradePromptType } from "@tutao/app-env"
+import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isOfflineStorageAvailable, UpgradePromptType } from "@tutao/app-env"
 import { downcast, YEAR_IN_MILLIS } from "@tutao/utils"
 import { MailRow } from "../../mail/view/MailRow"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
@@ -80,7 +80,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 		return m(
 			ListColumnWrapper,
 			{ headerContent: null, class: styles.isSingleColumnLayout() ? undefined : "column-resize-margin" },
-			attrs.listModel.isEmptyAndDone()
+			attrs.listModel.isEmptyAndDone() && attrs.indexStateStream().currentMailIndexTimestamp === FULL_INDEXED_TIMESTAMP
 				? m(ColumnEmptyMessageBox, {
 						icon,
 						message: "searchNoResults_msg",
@@ -154,10 +154,10 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 				}),
 			]
 		} else if (
-			attrs.listModel.state.loadingStatus === ListLoadingState.Done &&
-			attrs.indexStateStream().currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
-			sixMonthsBeforeStartDate &&
-			sixMonthsBeforeStartDate.getTime() < attrs.indexStateStream().currentMailIndexTimestamp
+			(attrs.listModel.state.loadingStatus === ListLoadingState.Done &&
+				attrs.indexStateStream().currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
+				isOfflineStorageAvailable()) ||
+			(sixMonthsBeforeStartDate && sixMonthsBeforeStartDate.getTime() < attrs.indexStateStream().currentMailIndexTimestamp)
 		) {
 			// If the list is in Loading or ConnectionLost, the list has a default message that should be displayed
 			innerChildren = m(
@@ -167,19 +167,11 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 						if (locator.logins.getUserController().isFreeAccount()) {
 							showNotAvailableForFreeDialog(UpgradePromptType.EXTEND_MAIL_SEARCH_RANGE)
 						} else {
-							this.attrs.extendSearchResult(sixMonthsBeforeStartDate)
+							this.attrs.extendSearchResult(sixMonthsBeforeStartDate ?? new Date())
 						}
 					},
 				},
-				[
-					m(".flex-center.content-accent-fg.b", lang.getTranslationText("showMore_action")),
-					m(
-						".bottom.small",
-						lang.getTranslation("searchUntil_msg", {
-							"{1}": formatDate(sixMonthsBeforeStartDate),
-						}).text,
-					),
-				],
+				this.renderShowMoreButton(isOfflineStorageAvailable() ? null : sixMonthsBeforeStartDate),
 			)
 		} else {
 			return null
@@ -198,6 +190,20 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 			},
 			innerChildren,
 		)
+	}
+
+	private renderShowMoreButton(sixMonthsBeforeStartDate: Date | null): Children {
+		return [
+			m(".flex-center.content-accent-fg.b", lang.getTranslationText("showMore_action")),
+			m(
+				".bottom.small",
+				sixMonthsBeforeStartDate == null
+					? lang.getTranslation("notAllMailsSearchable_msg").text
+					: lang.getTranslation("searchUntil_msg", {
+							"{1}": formatDate(sixMonthsBeforeStartDate),
+						}).text,
+			),
+		]
 	}
 
 	private getRenderItems(type: TypeRef<Mail | Contact | CalendarEvent>): {

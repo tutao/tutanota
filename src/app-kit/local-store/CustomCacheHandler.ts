@@ -1,7 +1,7 @@
 import { getTypeString, SomeEntity, TypeRef } from "../../platform-kit/meta"
 import { freezeMap } from "../../platform-kit/utils"
 import { ExposedCacheStorage } from "./CacheStorage"
-import { CalendarEvent, Mail } from "@tutao/entities/tutanota"
+import { CalendarEvent, ImportFileMailState, Mail } from "@tutao/entities/tutanota"
 import { EntityUpdateData } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { User } from "@tutao/entities/sys"
 
@@ -10,7 +10,7 @@ import { User } from "@tutao/entities/sys"
  * add new types to the union when implementing new
  * custom cache handlers.
  */
-export type CustomCacheHandledType = never | CalendarEvent | Mail | User
+export type CustomCacheHandledType = never | CalendarEvent | Mail | User | ImportFileMailState
 
 /**
  * makes sure that any {ref<A>, handler<A>} pair passed to
