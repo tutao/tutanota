@@ -1,16 +1,14 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { SelectOption } from "../../../../../ui/base/Select"
+import { Card } from "../../../../../ui/base/Card"
+import { px } from "../../../../../ui/size"
+import { Select, SelectAttributes, SelectOption } from "../../../../../ui/base/Select"
 import stream from "mithril/stream"
-import Stream from "mithril/stream"
-import { getTimeZoneOffsetString, IANATimeZone, IANATimeZonesList } from "../DateTimeTextFormatterUtils"
+import { getTimeZoneLongName, getTimeZoneOffset, IANATimeZone, IANATimeZonesList } from "../DateTimeTextFormatterUtils"
+import { Icon, IconSize } from "../../../../../ui/base/Icon"
 import { Icons } from "../../../../../ui/base/icons/Icons"
 import { theme } from "../../../../../ui/theme"
-import { DateTime } from "luxon"
-import { DropDownSelectorNew, DropDownSelectorNewAttrs } from "../../../../../ui/base/DropDownSelectorNew"
-import { lang } from "../../../../../ui/utils/LanguageViewModel"
 
 export type TimeZoneSelectorDropdownAttrs = {
-	dateTime: DateTime
 	selectedTimeZone: IANATimeZone
 	onSelectionChanged: (selectedTimezone: IANATimeZone) => void
 }
@@ -18,51 +16,55 @@ export type TimeZoneSelectorDropdownAttrs = {
 interface TimeZoneSelectOption extends SelectOption<IANATimeZone> {
 	timeZoneName: string
 	timeZoneLongName: string
-	timeZoneGMTOffset: string
+	timeZoneOffset: string
 }
 
 export class TimeZoneSelectorDropdown implements Component<TimeZoneSelectorDropdownAttrs> {
-	private timeZoneOptionsList: ReadonlyArray<TimeZoneSelectOption> = []
-	private options: Stream<TimeZoneSelectOption[]> = stream()
+	private timeZoneOptionsList: TimeZoneSelectOption[] = []
 
 	oninit({ attrs }: Vnode<TimeZoneSelectorDropdownAttrs>) {
 		this.timeZoneOptionsList = IANATimeZonesList.map((timeZone) => {
-			const dateTimeInTimeZone = attrs.dateTime.setZone(timeZone)
-
 			const timeZoneName = timeZone.replaceAll("_", " ")
 			return {
 				value: timeZone,
 				timeZoneName: timeZoneName,
 				ariaValue: timeZoneName,
-				timeZoneLongName: dateTimeInTimeZone.offsetNameLong ?? "",
-				timeZoneGMTOffset: `GMT${getTimeZoneOffsetString(dateTimeInTimeZone)}`,
+				timeZoneLongName: getTimeZoneLongName(new Date(), timeZone),
+				timeZoneOffset: getTimeZoneOffset(new Date(), timeZone),
 			}
 		})
-
-		this.options = stream([...this.timeZoneOptionsList])
 	}
 
 	public view({ attrs }: Vnode<TimeZoneSelectorDropdownAttrs>): Children {
-		const selected = this.getSelected(attrs.selectedTimeZone)!
-		const selectedLabelText = `${selected.timeZoneLongName} (${selected.timeZoneGMTOffset})`
+		return m(
+			Card,
+			{ style: { padding: px(0) } },
+			m(Select<TimeZoneSelectOption, string>, {
+				onchange: (val) => {
+					attrs.onSelectionChanged(val.value)
+				},
+				options: stream(this.timeZoneOptionsList),
+				expanded: true,
+				selected: this.getSelected(attrs.selectedTimeZone),
+				renderOption: this.renderOption,
+				renderDisplay: this.renderOption,
+				ariaLabel: "Calendar",
+				classes: ["pr-8"],
+			} satisfies SelectAttributes<TimeZoneSelectOption, string>),
+		)
+	}
 
-		return m(DropDownSelectorNew, {
-			label: lang.makeTranslation(selectedLabelText, selectedLabelText),
-			items: this.options().map((op) => ({
-				name: op.timeZoneName,
-				value: op,
+	private renderOption(option: TimeZoneSelectOption) {
+		return m(".flex.items-center.gap-8.plr-12.pt-8.pb-8", [
+			m(Icon, {
 				icon: Icons.GlobeOutline,
-				secondaryTextLine: `${op.timeZoneLongName} (${op.timeZoneGMTOffset})`,
-			})),
-			selectedValue: selected,
-			icon: {
-				icon: Icons.GlobeOutline,
-				color: theme.on_surface_variant,
-			},
-			selectionChangedHandler: (selectedOption) => {
-				attrs.onSelectionChanged(selectedOption.value)
-			},
-		} satisfies DropDownSelectorNewAttrs<TimeZoneSelectOption>)
+				size: IconSize.PX24,
+				style: {
+					fill: theme.on_surface_variant,
+				},
+			}),
+			m(".flex.col", [m("small.faded", option.timeZoneLongName), m("span", option.timeZoneName)]),
+		])
 	}
 
 	private getSelected(startTimeZone: string) {
