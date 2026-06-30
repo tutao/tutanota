@@ -2,18 +2,18 @@ import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
 import { SpamClassifier } from "../../../src/applications/mail-app/workerUtils/spamClassification/SpamClassifier"
 import { EncryptionAuthStatus, MailAuthenticationStatus } from "../../../src/platform-kit/app-env"
-import { ClientClassifierType } from "../../../src/applications/common/api/common/ClientClassifierType"
 import { createTestEntity } from "../TestUtils"
-import { SERVER_CLASSIFIERS_TO_TRUST, SpamClassificationHandler } from "../../../src/applications/mail-app/mail/model/SpamClassificationHandler"
-import { FolderSystem } from "../../../src/applications/common/api/common/mail/FolderSystem"
-import { UnencryptedProcessInboxDatum } from "../../../src/applications/mail-app/mail/model/ProcessInboxHandler"
+import {
+	SERVER_CLASSIFIERS_TO_TRUST,
+	SkipClientSpamClassificationReason,
+	SpamClassificationHandler,
+} from "../../../src/applications/mail-app/mail/model/SpamClassificationHandler"
 import { UserController } from "../../../src/applications/common/api/main/UserController"
 import { ContactModel } from "../../../src/applications/common/contactsFunctionality/ContactModel"
 import { MailFacade } from "../../../src/applications/common/api/worker/facades/lazy/MailFacade"
 import { LoginController } from "../../../src/applications/common/api/main/LoginController"
-import { assert, assertNotNull } from "../../../src/platform-kit/utils"
 
-import { MailPhishingStatus, MailSetKind, MailState, ProcessingState, SpamDecision } from "../../../src/entities/tutanota/Utils"
+import { MailPhishingStatus, MailState, ProcessingState, SpamDecision } from "../../../src/entities/tutanota/Utils"
 import {
 	Body,
 	BodyTypeRef,
@@ -24,385 +24,208 @@ import {
 	MailAddressTypeRef,
 	MailDetails,
 	MailDetailsTypeRef,
-	MailSetTypeRef,
 	MailTypeRef,
 	Recipients,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
-import { isSameId } from "../../../src/platform-kit/meta"
 
 import { UserTypeRef } from "@tutao/entities/sys"
 
 const { anything } = matchers
 
-o.spec("SpamClassificationHandlerTest", function () {
+o.spec("SpamClassificationHandler", function () {
 	const mailFacade = object<MailFacade>()
 	const logins = object<LoginController>()
 	const userController = object<UserController>()
-	let body: Body
-	let recipients: Recipients
-	let mail: Mail
+
 	let spamClassifier: SpamClassifier
-	let spamHandler: SpamClassificationHandler
-	let folderSystem: FolderSystem
-	let mailDetails: MailDetails
 	let contactModel: ContactModel
-
-	const inboxFolder = createTestEntity(MailSetTypeRef, { _id: ["listId", "inbox"], folderType: MailSetKind.INBOX })
-	const trashFolder = createTestEntity(MailSetTypeRef, { _id: ["listId", "trash"], folderType: MailSetKind.TRASH })
-	const spamFolder = createTestEntity(MailSetTypeRef, { _id: ["listId", "spam"], folderType: MailSetKind.SPAM })
-
-	const compressedUnencryptedTestVector = new Uint8Array([23, 3, 21, 12, 14, 2, 23, 3, 30, 3, 4, 3, 2, 31, 23, 22, 30])
+	let spamHandler: SpamClassificationHandler
 
 	o.beforeEach(async function () {
 		spamClassifier = object<SpamClassifier>()
 		contactModel = object<ContactModel>()
-
-		body = createTestEntity(BodyTypeRef, { text: "Body Text" })
-		recipients = createTestEntity(RecipientsTypeRef)
-		mailDetails = createTestEntity(MailDetailsTypeRef, { _id: "mailDetail", body, recipients })
-		mail = createTestEntity(MailTypeRef, {
-			_id: ["listId", "elementId"],
-			sets: [spamFolder._id],
-			subject: "subject",
-			sender: createTestEntity(MailAddressTypeRef, { address: "someExternal@gmail.com", name: "SomeExternal" }),
-			_ownerGroup: "owner",
-			mailDetails: ["detailsList", mailDetails._id],
-			unread: true,
-			processingState: ProcessingState.INBOX_RULE_NOT_PROCESSED,
-			clientSpamClassifierResult: createTestEntity(ClientSpamClassifierResultTypeRef, { spamDecision: SpamDecision.NONE }),
-			serverClassificationData: "0,10",
-		})
-
-		folderSystem = object<FolderSystem>()
-
-		when(folderSystem.getSystemFolderByType(MailSetKind.SPAM)).thenReturn(spamFolder)
-		when(folderSystem.getSystemFolderByType(MailSetKind.INBOX)).thenReturn(inboxFolder)
-		when(folderSystem.getSystemFolderByType(MailSetKind.TRASH)).thenReturn(trashFolder)
-		when(folderSystem.getFolderByMail(anything())).thenDo((mail: Mail) => {
-			assert(mail.sets.length === 1, "Expected exactly one mail set")
-			const mailFolderId = assertNotNull(mail.sets[0])
-			if (isSameId(mailFolderId, trashFolder._id)) return trashFolder
-			else if (isSameId(mailFolderId, spamFolder._id)) return spamFolder
-			else if (isSameId(mailFolderId, inboxFolder._id)) return inboxFolder
-			else throw new Error("Unknown mail Folder")
-		})
-
-		userController.user = createTestEntity(UserTypeRef)
-		when(logins.getUserController()).thenReturn(userController)
-		when(mailFacade.getAllMailAddressesForUser(userController.user)).thenResolve(["user@tuta.com"])
-
-		when(spamClassifier.createModelInputAndUploadVector(anything(), anything())).thenResolve({
-			modelInput: [0, 1],
-			uploadableVector: compressedUnencryptedTestVector,
-			uploadableVectorLegacy: compressedUnencryptedTestVector,
-		})
 		spamHandler = new SpamClassificationHandler(spamClassifier, contactModel, mailFacade, logins)
 	})
 
-	o("predictSpamForNewMail does move mail from inbox to spam folder if mail is spam", async function () {
-		mail.sets = [inboxFolder._id]
-		when(spamClassifier.predict(anything(), anything())).thenResolve(true)
-		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)
+	o.spec("predictSpamForNewMail", () => {
+		const modelInput = [0, 1]
+		const ownerGroupId = "ownerGroup"
 
-		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
-			mailId: mail._id,
-			targetMoveFolder: spamFolder._id,
-			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-			vectorLegacy: compressedUnencryptedTestVector,
-			vectorWithServerClassifiers: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [],
-		}
+		o.test("return false (HAM) when no prediction is returned by SpamClassifier", async () => {
+			when(spamClassifier.predict(anything(), anything())).thenResolve(null)
+			o.check(await spamHandler.predictSpamForNewMail(modelInput, ownerGroupId)).equals(false)
+			verify(spamClassifier.predict(modelInput, ownerGroupId))
+		})
 
-		verify(spamClassifier.predict(anything(), anything()), { times: 1 })
-		o(finalResult.targetFolder).deepEquals(spamFolder)
-		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
+		o.test("return false (HAM) when HAM prediction is returned by SpamClassifier", async () => {
+			when(spamClassifier.predict(anything(), anything())).thenResolve(false)
+			o.check(await spamHandler.predictSpamForNewMail(modelInput, ownerGroupId)).equals(false)
+			verify(spamClassifier.predict(modelInput, ownerGroupId))
+		})
+
+		o.test("return true (SPAM) when SPAM prediction is returned by SpamClassifier", async () => {
+			when(spamClassifier.predict(anything(), anything())).thenResolve(true)
+			o.check(await spamHandler.predictSpamForNewMail(modelInput, ownerGroupId)).equals(true)
+			verify(spamClassifier.predict(modelInput, ownerGroupId))
+		})
 	})
 
-	o("predictSpamForNewMail does NOT move mail from inbox to spam folder if mail is ham", async function () {
-		mail.sets = [inboxFolder._id]
-		when(spamClassifier.predict(anything(), anything())).thenResolve(false)
+	o.spec("preparePredictSpamForNewMail", () => {
+		let body: Body
+		let recipients: Recipients
+		let mail: Mail
+		let mailDetails: MailDetails
 
-		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)
+		const compressedUnencryptedTestVector = new Uint8Array([23, 3, 21, 12, 14, 2, 23, 3, 30, 3, 4, 3, 2, 31, 23, 22, 30])
 
-		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
-			mailId: mail._id,
-			targetMoveFolder: inboxFolder._id,
-			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-			vectorLegacy: compressedUnencryptedTestVector,
-			vectorWithServerClassifiers: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [],
-		}
+		o.beforeEach(() => {
+			body = createTestEntity(BodyTypeRef, { text: "Body Text" })
+			recipients = createTestEntity(RecipientsTypeRef)
+			mailDetails = createTestEntity(MailDetailsTypeRef, { _id: "mailDetail", body, recipients })
+			mail = createTestEntity(MailTypeRef, {
+				_id: ["listId", "elementId"],
+				subject: "subject",
+				sender: createTestEntity(MailAddressTypeRef, { address: "someExternal@gmail.com", name: "SomeExternal" }),
+				_ownerGroup: "owner",
+				mailDetails: ["detailsList", mailDetails._id],
+				unread: true,
+				processingState: ProcessingState.INBOX_RULE_NOT_PROCESSED,
+				clientSpamClassifierResult: createTestEntity(ClientSpamClassifierResultTypeRef, { spamDecision: SpamDecision.NONE }),
+				serverClassificationData: "0,10",
+			})
 
-		verify(spamClassifier.predict(anything(), anything()), { times: 1 })
-		o(finalResult.targetFolder).deepEquals(inboxFolder)
-		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
-	})
+			userController.user = createTestEntity(UserTypeRef)
+			when(logins.getUserController()).thenReturn(userController)
+			when(mailFacade.getAllMailAddressesForUser(userController.user)).thenResolve(["user@tuta.com"])
 
-	o("predictSpamForNewMail does NOT move mail from spam to inbox folder if mail is spam", async function () {
-		mail.sets = [spamFolder._id]
-		when(spamClassifier.predict(anything(), anything())).thenResolve(true)
+			when(spamClassifier.createModelInputAndUploadVector(anything(), anything())).thenResolve({
+				modelInput: [0, 1],
+				uploadableVector: compressedUnencryptedTestVector,
+				uploadableVectorLegacy: compressedUnencryptedTestVector,
+			})
+		})
 
-		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, spamFolder, folderSystem)
+		o.test("skip spam classification when mail is from Tuta Team", async function () {
+			mail.confidential = true
+			mail.state = MailState.RECEIVED
+			mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
+			mailDetails.recipients.toRecipients.push(mail.sender)
+			mail.sender = createTestEntity(MailAddressTypeRef, { address: "user@tutao.de", name: "Tuta Team" })
 
-		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
-			mailId: mail._id,
-			targetMoveFolder: spamFolder._id,
-			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-			vectorLegacy: compressedUnencryptedTestVector,
-			vectorWithServerClassifiers: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [],
-		}
+			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
+				mail,
+				mailDetails,
+			)
 
-		verify(spamClassifier.predict(anything(), anything()), { times: 1 })
-		o(finalResult.targetFolder).deepEquals(spamFolder)
-		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
-	})
+			o.check(modelInput).deepEquals([0, 1])
+			o.check(uploadableVectorLegacy).deepEquals(compressedUnencryptedTestVector)
+			o.check(uploadableVector).deepEquals(compressedUnencryptedTestVector)
+			o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.FromTrustedSender)
+		})
 
-	o("predictSpamForNewMail moves mail from spam to inbox folder if mail is ham", async function () {
-		mail.sets = [spamFolder._id]
-		when(spamClassifier.predict(anything(), anything())).thenResolve(false)
+		o.test("skip spam classification when mail is from user themselves", async function () {
+			mail.sender = createTestEntity(MailAddressTypeRef, { address: "user@tuta.com", name: "Tuta User" })
+			mailDetails.recipients.toRecipients.push(mail.sender)
 
-		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, spamFolder, folderSystem)
+			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
+				mail,
+				mailDetails,
+			)
 
-		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
-			mailId: mail._id,
-			targetMoveFolder: inboxFolder._id,
-			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-			vectorLegacy: compressedUnencryptedTestVector,
-			vectorWithServerClassifiers: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [],
-		}
+			o.check(modelInput).deepEquals([0, 1])
+			o.check(uploadableVectorLegacy).deepEquals(compressedUnencryptedTestVector)
+			o.check(uploadableVector).deepEquals(compressedUnencryptedTestVector)
+			o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.FromTrustedSender)
+		})
 
-		verify(spamClassifier.predict(anything(), anything()), { times: 1 })
-		o(finalResult.targetFolder).deepEquals(inboxFolder)
-		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
-	})
+		o.test("don't skip spam classification when mail is from user themselves, BUT NOT Authenticated", async function () {
+			mail.state = MailState.RECEIVED
+			mail.sender = createTestEntity(MailAddressTypeRef, { address: "user@tuta.com", name: "Tuta User" })
+			mailDetails.authStatus = MailAuthenticationStatus.INVALID_MAIL_FROM
+			mailDetails.recipients.toRecipients.push(mail.sender)
 
-	o("predictSpamForNewMail doesn't call classifier when mail is from user themselves", async function () {
-		mail.sets = [inboxFolder._id]
-		mail.sender = createTestEntity(MailAddressTypeRef, { address: "user@tuta.com", name: "Tuta User" })
-		mailDetails.recipients.toRecipients.push(mail.sender)
-		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)
+			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
+				mail,
+				mailDetails,
+			)
 
-		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
-			mailId: mail._id,
-			targetMoveFolder: inboxFolder._id,
-			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-			vectorLegacy: compressedUnencryptedTestVector,
-			vectorWithServerClassifiers: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [],
-		}
+			o.check(modelInput).deepEquals([0, 1])
+			o.check(uploadableVectorLegacy).deepEquals(compressedUnencryptedTestVector)
+			o.check(uploadableVector).deepEquals(compressedUnencryptedTestVector)
+			o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.None)
+		})
 
-		o(finalResult.targetFolder).deepEquals(inboxFolder)
-		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
-		verify(spamClassifier.predict(anything(), anything()), { times: 0 })
-	})
+		o.test("skip spam classification when sender is one of the aliases of the user", async function () {
+			mail.sender = createTestEntity(MailAddressTypeRef, { address: "alias@tuta.com", name: "Name" })
+			mailDetails.recipients.toRecipients.push(
+				createTestEntity(MailAddressTypeRef, {
+					address: "user@tuta.com",
+					name: "Name",
+				}),
+			)
+			when(mailFacade.getAllMailAddressesForUser(userController.user)).thenResolve(["alias@tuta.com", "user@tuta.com"])
 
-	o("predictSpamForNewMail doesn't call classifier when mail is from Tuta Team", async function () {
-		mail.sets = [inboxFolder._id]
+			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
+				mail,
+				mailDetails,
+			)
 
-		mail.confidential = true
-		mail.state = MailState.RECEIVED
-		mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
-		mailDetails.recipients.toRecipients.push(mail.sender)
-		mail.sender = createTestEntity(MailAddressTypeRef, { address: "user@tutao.de", name: "Tuta Team" })
+			o.check(modelInput).deepEquals([0, 1])
+			o.check(uploadableVectorLegacy).deepEquals(compressedUnencryptedTestVector)
+			o.check(uploadableVector).deepEquals(compressedUnencryptedTestVector)
+			o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.FromTrustedSender)
+		})
 
-		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)
+		o.test("skip spam classification when mail is from a contact", async function () {
+			mail.sender = createTestEntity(MailAddressTypeRef, { address: "user@tuta.com", name: "Tuta User" })
+			when(contactModel.searchForContact(mail.sender.address)).thenResolve(
+				createTestEntity(ContactTypeRef, {
+					mailAddresses: [createTestEntity(ContactMailAddressTypeRef, { address: mail.sender.address })],
+				}),
+			)
+			mailDetails.recipients.toRecipients.push(mail.sender)
 
-		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
-			mailId: mail._id,
-			targetMoveFolder: inboxFolder._id,
-			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-			vectorLegacy: compressedUnencryptedTestVector,
-			vectorWithServerClassifiers: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [],
-		}
+			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
+				mail,
+				mailDetails,
+			)
 
-		o(finalResult.targetFolder).deepEquals(inboxFolder)
-		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
-		verify(spamClassifier.predict(anything(), anything()), { times: 0 })
-	})
+			o.check(modelInput).deepEquals([0, 1])
+			o.check(uploadableVectorLegacy).deepEquals(compressedUnencryptedTestVector)
+			o.check(uploadableVector).deepEquals(compressedUnencryptedTestVector)
+			o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.FromTrustedSender)
+		})
 
-	o("predictSpamForNewMail calls classifier when mail is from user themselves, BUT NOT Authenticated", async function () {
-		mail.sets = [inboxFolder._id]
-		mail.state = MailState.RECEIVED
-		mail.sender = createTestEntity(MailAddressTypeRef, { address: "user@tuta.com", name: "Tuta User" })
-		mailDetails.authStatus = MailAuthenticationStatus.INVALID_MAIL_FROM
-		mailDetails.recipients.toRecipients.push(mail.sender)
-		when(spamClassifier.predict(anything(), anything())).thenResolve(false)
-		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)
+		o.test("skip spam classification when mail is suspected of phishing", async function () {
+			mail.sender = createTestEntity(MailAddressTypeRef, { address: "phisher@email.com", name: "Mr Phish" })
+			mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
+			mailDetails.recipients.toRecipients.push(mail.sender)
 
-		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
-			mailId: mail._id,
-			targetMoveFolder: inboxFolder._id,
-			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-			vectorLegacy: compressedUnencryptedTestVector,
-			vectorWithServerClassifiers: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [],
-		}
+			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
+				mail,
+				mailDetails,
+			)
 
-		o(finalResult.targetFolder).deepEquals(inboxFolder)
-		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
-		verify(spamClassifier.predict(anything(), anything()), { times: 1 })
-	})
+			o.check(modelInput).deepEquals([0, 1])
+			o.check(uploadableVectorLegacy).deepEquals(compressedUnencryptedTestVector)
+			o.check(uploadableVector).deepEquals(compressedUnencryptedTestVector)
+			o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.MarkedAsPhishing)
+		})
 
-	o("predictSpamForNewMail doesn't call classifier when mail is suspected of phishing", async function () {
-		mail.sets = [spamFolder._id]
-		mail.sender = createTestEntity(MailAddressTypeRef, { address: "phisher@email.com", name: "Mr Phish" })
-		mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
-		mailDetails.recipients.toRecipients.push(mail.sender)
-		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, spamFolder, folderSystem)
+		o.test("skip spam classification when mail is classified by trusted serverClassifier", async function () {
+			mail.serverClassificationData = "0,10"
+			SERVER_CLASSIFIERS_TO_TRUST.add(10)
 
-		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
-			mailId: mail._id,
-			targetMoveFolder: spamFolder._id,
-			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-			vectorLegacy: compressedUnencryptedTestVector,
-			vectorWithServerClassifiers: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [],
-		}
+			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
+				mail,
+				mailDetails,
+			)
 
-		o(finalResult.targetFolder).deepEquals(spamFolder)
-		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
-		verify(spamClassifier.predict(anything(), anything()), { times: 0 })
-	})
-
-	o("mail is not predicted if classified by trusted serverClassifier", async function () {
-		mail.sets = [spamFolder._id]
-		mail.serverClassificationData = "0,10"
-		SERVER_CLASSIFIERS_TO_TRUST.add(10)
-
-		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, spamFolder, folderSystem)
-
-		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
-			mailId: mail._id,
-			targetMoveFolder: spamFolder._id,
-			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-			vectorLegacy: compressedUnencryptedTestVector,
-			vectorWithServerClassifiers: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [],
-		}
-
-		o(finalResult.targetFolder).deepEquals(spamFolder)
-		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
-		verify(spamClassifier.predict(anything(), anything()), { times: 0 })
-	})
-
-	o("predictSpamForNewMail doesn't call classifier when mail is from a contact", async function () {
-		mail.sets = [inboxFolder._id]
-		mail.sender = createTestEntity(MailAddressTypeRef, { address: "user@tuta.com", name: "Tuta User" })
-		when(contactModel.searchForContact(mail.sender.address)).thenResolve(
-			createTestEntity(ContactTypeRef, {
-				mailAddresses: [createTestEntity(ContactMailAddressTypeRef, { address: mail.sender.address })],
-			}),
-		)
-		mailDetails.recipients.toRecipients.push(mail.sender)
-		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)
-
-		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
-			mailId: mail._id,
-			targetMoveFolder: inboxFolder._id,
-			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-			vectorLegacy: compressedUnencryptedTestVector,
-			vectorWithServerClassifiers: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [],
-		}
-
-		o(finalResult.targetFolder).deepEquals(inboxFolder)
-		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
-		verify(spamClassifier.predict(anything(), anything()), { times: 0 })
-	})
-
-	o("predictSpamForNewMail doesn't call classifier when mail is from user themselves", async function () {
-		mail.sets = [inboxFolder._id]
-		mail.sender = createTestEntity(MailAddressTypeRef, { address: "user@tuta.com", name: "Tuta User" })
-		mailDetails.recipients.toRecipients.push(mail.sender)
-		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)
-
-		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
-			mailId: mail._id,
-			targetMoveFolder: inboxFolder._id,
-			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-			vectorLegacy: compressedUnencryptedTestVector,
-			vectorWithServerClassifiers: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [],
-		}
-
-		o(finalResult.targetFolder).deepEquals(inboxFolder)
-		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
-		verify(spamClassifier.predict(anything(), anything()), { times: 0 })
-	})
-
-	o("predictSpamForNewMail doesn't call classifier when mail is from Tuta Team", async function () {
-		mail.sets = [inboxFolder._id]
-
-		mail.confidential = true
-		mail.state = MailState.RECEIVED
-		mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
-		mailDetails.recipients.toRecipients.push(mail.sender)
-		mail.sender = createTestEntity(MailAddressTypeRef, { address: "user@tutao.de", name: "Tuta Team" })
-
-		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)
-
-		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
-			mailId: mail._id,
-			targetMoveFolder: inboxFolder._id,
-			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-			vectorLegacy: compressedUnencryptedTestVector,
-			vectorWithServerClassifiers: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [],
-		}
-
-		o(finalResult.targetFolder).deepEquals(inboxFolder)
-		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
-		verify(spamClassifier.predict(anything(), anything()), { times: 0 })
-	})
-
-	o("predictSpamForNewMail doesn't call classifier when mail is suspected of phishing", async function () {
-		mail.sets = [spamFolder._id]
-		mail.sender = createTestEntity(MailAddressTypeRef, { address: "phisher@email.com", name: "Mr Phish" })
-		mail.phishingStatus = MailPhishingStatus.SUSPICIOUS
-		mailDetails.recipients.toRecipients.push(mail.sender)
-		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, spamFolder, folderSystem)
-
-		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
-			mailId: mail._id,
-			targetMoveFolder: spamFolder._id,
-			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-			vectorLegacy: compressedUnencryptedTestVector,
-			vectorWithServerClassifiers: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [],
-		}
-
-		o(finalResult.targetFolder).deepEquals(spamFolder)
-		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
-		verify(spamClassifier.predict(anything(), anything()), { times: 0 })
-	})
-
-	o("predictSpamForNewMail doesn't call classifier when sender is one of the aliases of the user", async function () {
-		mail.sets = [inboxFolder._id]
-		mail.sender = createTestEntity(MailAddressTypeRef, { address: "alias@tuta.com", name: "Name" })
-		mailDetails.recipients.toRecipients.push(
-			createTestEntity(MailAddressTypeRef, {
-				address: "user@tuta.com",
-				name: "Name",
-			}),
-		)
-		when(mailFacade.getAllMailAddressesForUser(userController.user)).thenResolve(["alias@tuta.com", "user@tuta.com"])
-		const finalResult = await spamHandler.predictSpamForNewMail(mail, mailDetails, inboxFolder, folderSystem)
-
-		const expectedProcessInboxDatum: UnencryptedProcessInboxDatum = {
-			mailId: mail._id,
-			targetMoveFolder: inboxFolder._id,
-			classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
-			vectorLegacy: compressedUnencryptedTestVector,
-			vectorWithServerClassifiers: compressedUnencryptedTestVector,
-			ownerEncMailSessionKeys: [],
-		}
-
-		o(finalResult.targetFolder).deepEquals(inboxFolder)
-		o(finalResult.processInboxDatum).deepEquals(expectedProcessInboxDatum)
-		verify(spamClassifier.predict(anything(), anything()), { times: 0 })
+			o.check(modelInput).deepEquals([0, 1])
+			o.check(uploadableVectorLegacy).deepEquals(compressedUnencryptedTestVector)
+			o.check(uploadableVector).deepEquals(compressedUnencryptedTestVector)
+			o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.ClassifiedByTrustedServerClassifier)
+		})
 	})
 })

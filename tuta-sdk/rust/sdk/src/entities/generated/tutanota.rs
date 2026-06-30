@@ -1688,6 +1688,8 @@ pub struct MailboxGroupRoot {
 	pub outOfOfficeNotificationRecipientList: Option<OutOfOfficeNotificationRecipientList>,
 	#[serde(rename = "1203")]
 	pub mailboxProperties: Option<GeneratedId>,
+	#[serde(rename = "2019")]
+	pub inboxRules: Option<ExpandedInboxRuleList>,
 }
 
 impl Entity for MailboxGroupRoot {
@@ -2745,6 +2747,8 @@ pub struct MailboxProperties {
 	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "1267")]
 	pub mailAddressProperties: Vec<MailAddressProperties>,
+	#[serde(rename = "2020")]
+	pub inboxRuleOrder: Vec<super::sys::IdTupleWrapper>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -4853,6 +4857,111 @@ impl Entity for ImapPutIn {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(1979),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct InboxRuleCondition {
+	#[serde(rename = "1996")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1997")]
+	pub r#type: String,
+	#[serde(rename = "1998")]
+	pub value: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for InboxRuleCondition {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1995),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct InboxRuleResult {
+	#[serde(rename = "2000")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2001")]
+	pub r#type: String,
+	#[serde(rename = "2002")]
+	pub value: Option<IdTupleGenerated>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for InboxRuleResult {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1999),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ExpandedInboxRule {
+	#[serde(rename = "2005")]
+	pub _id: Option<IdTupleGenerated>,
+	#[serde(rename = "2006")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "2007")]
+	pub _format: i64,
+	#[serde(rename = "2008")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2009")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2010")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2011")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2012")]
+	pub name: String,
+	#[serde(rename = "2013")]
+	pub enabled: bool,
+	#[serde(rename = "2014")]
+	pub conditions: Vec<InboxRuleCondition>,
+	#[serde(rename = "2015")]
+	pub results: Vec<InboxRuleResult>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for ExpandedInboxRule {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2003),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ExpandedInboxRuleList {
+	#[serde(rename = "2017")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2018")]
+	pub list: GeneratedId,
+}
+
+impl Entity for ExpandedInboxRuleList {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2016),
 		}
 	}
 }
