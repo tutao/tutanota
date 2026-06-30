@@ -373,7 +373,7 @@ export class DesktopFileFacade implements FileFacade {
 		const name = path.basename(fileURLToPath(fileUrl))
 		try {
 			const [data, mimeType] = await Promise.all([
-				this.fs.promises.readFile(fileUrl),
+				this.fs.promises.readFile(url),
 				// freestanding function doesn't have the checks
 				getMimeTypeForFile(url),
 			])
