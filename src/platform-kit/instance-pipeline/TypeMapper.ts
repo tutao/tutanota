@@ -147,7 +147,9 @@ export class IncomingServerJson implements DeepEquals {
 	}
 
 	getAggregationList(attrId: AttributeId, aggregatedTypeModel: ServerTypeModel): Array<IncomingServerJson> {
-		return (this.json[attrId] as Array<Record<string, any>>).map((j) => new IncomingServerJson(j, aggregatedTypeModel))
+		const aggregationArray = this.json[attrId] as Array<Record<string, any>>
+		assertNotNull(aggregationArray, `Aggregation: ${attrId} is not present in JSON string`)
+		return aggregationArray.map((j) => new IncomingServerJson(j, aggregatedTypeModel))
 	}
 
 	getIdList(attrId: AttributeId): Array<Id> {

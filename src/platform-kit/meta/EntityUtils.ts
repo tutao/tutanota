@@ -15,7 +15,7 @@ import {
 	uint8ArrayToBase64,
 	uint8arrayToBase64UrlCustomId,
 } from "@tutao/utils"
-import { clone, isSameTypeRef, TypeRef } from "./index"
+import { clone, isSameTypeRef, TypeRef, ValueTypeEnum } from "./index"
 import { ElementEntity, Entity, ModelValue, SomeEntity, TypeModel } from "./EntityTypes.js"
 import { Cardinality, ValueType } from "./EntityConstants.js"
 import { ProgrammingError } from "@tutao/app-env"
@@ -306,23 +306,23 @@ function _getDefaultValue(valueName: string, value: ModelValue): any {
 		return null
 	} else {
 		switch (value.type) {
-			case ValueType.Bytes:
+			case ValueTypeEnum.Bytes:
 				return new Uint8Array(0)
 
-			case ValueType.Date:
+			case ValueTypeEnum.Date:
 				return new Date()
 
-			case ValueType.Number:
+			case ValueTypeEnum.Number:
 				return "0"
 
-			case ValueType.String:
+			case ValueTypeEnum.String:
 				return ""
 
-			case ValueType.Boolean:
+			case ValueTypeEnum.Boolean:
 				return false
 
-			case ValueType.CustomId:
-			case ValueType.GeneratedId:
+			case ValueTypeEnum.CustomId:
+			case ValueTypeEnum.GeneratedId:
 				return null
 			// we have to use null although the value must be set to something different
 		}

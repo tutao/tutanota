@@ -1,6 +1,7 @@
 import { arrayEqualsWithPredicate, assert, assertNotNull, base64ToUint8Array, DeepEquals, isNotNull, Nullable, uint8ArrayToBase64 } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { elementIdPart, listIdPart } from "@tutao/meta"
+import { assertNotNaN } from "../utils/Utils"
 
 export const enum InstanceDirection {
 	OutgoingToServer,
@@ -172,7 +173,7 @@ export class ParsedValue<NestedObject extends DeepEquals> implements DeepEquals 
 	}
 
 	asDate(): Date {
-		return new Date(parseInt(this.asString()))
+		return new Date(assertNotNaN(parseInt(this.asString()), `Not a valid date number: ${this.asString()}`))
 	}
 
 	deepEquals(other: this): boolean {

@@ -25,7 +25,6 @@ import {
 	KeyVersion,
 	lazy,
 	Nullable,
-	stringToBase64,
 	stringToUtf8Uint8Array,
 	utf8Uint8ArrayToString,
 	Versioned,
@@ -144,7 +143,7 @@ export class CryptoMapper {
 				decrypted.addAttributeById(valueId, decryptedValue)
 			} catch (e) {
 				const defaultValue = EntityUtils.valueToDefault(valueModel.type).asString()
-				const base64EncodedDefaultValue: DecryptedParsedValue = ParsedValue.fromString(stringToBase64(defaultValue))
+				const base64EncodedDefaultValue: DecryptedParsedValue = ParsedValue.fromString(defaultValue)
 				decrypted.addAttributeById(valueId, base64EncodedDefaultValue)
 
 				if (e instanceof SessionKeyNotFoundError) {
@@ -327,6 +326,7 @@ export class CryptoMapper {
 			console.warn(`Found an encrypted attribute (${valueType.id}:${valueType.name}) with a Cardinality.ZeroOrOne and an empty value`)
 			return ParsedValue.fromNull()
 		}
+
 		if (valueType.cardinality === Cardinality.One && value === "") {
 			return EntityUtils.valueToDefault(valueType.type)
 		}

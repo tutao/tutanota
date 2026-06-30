@@ -76,7 +76,7 @@ export class ModelMapper {
 					const aggregateTypeRef = new TypeRef(modelAssociation.dependency ?? clientTypeModel.app, modelAssociation.refTypeId)
 					const aggregateTypeModel = await this.typeModelResolver.resolveClientTypeReference(aggregateTypeRef)
 					const aggregates = instance.getAggregationList(modelAssociation, aggregateTypeModel)
-					const mappedAggregates = await promiseMap(aggregates, (agg) => this._mapToDecryptedInstance(agg))
+					const mappedAggregates = await Promise.all(aggregates.map((agg) => this._mapToDecryptedInstance(agg)))
 					parsedInstance.addAttributeById(associationId, ParsedValue.fromNestedItems(mappedAggregates))
 					break
 				}

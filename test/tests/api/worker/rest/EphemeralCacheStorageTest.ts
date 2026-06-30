@@ -17,6 +17,8 @@ import {
 } from "@tutao/entities/tutanota"
 
 import { User, UserTypeRef } from "@tutao/entities/sys"
+import { changeInstanceDirection } from "../../../instance-pipeline/InstancePipelineTestUtils"
+import { InstanceDirection } from "../../../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 o.spec("EphemeralCacheStorage", function () {
 	const userId = "userId"
@@ -51,6 +53,7 @@ o.spec("EphemeralCacheStorage", function () {
 			o(mailDetailsBlobFromDb).equals(null)
 
 			const mailDetailsBlobParsedInstance = await modelMapper.mapToDecryptedInstance(storableMailDetailsBlob)
+			changeInstanceDirection(mailDetailsBlobParsedInstance, InstanceDirection.IncomingFromServer)
 
 			await storage.put(MailDetailsBlobTypeRef, mailDetailsBlobParsedInstance)
 
@@ -80,6 +83,7 @@ o.spec("EphemeralCacheStorage", function () {
 			o(mailDetailsBlobFromDb).deepEquals([])
 
 			const mailDetailsBlobParsedInstance = await modelMapper.mapToDecryptedInstance(storableMailDetailsBlob)
+			changeInstanceDirection(mailDetailsBlobParsedInstance, InstanceDirection.IncomingFromServer)
 
 			await storage.putMultiple(MailDetailsBlobTypeRef, [mailDetailsBlobParsedInstance])
 
@@ -135,6 +139,7 @@ o.spec("EphemeralCacheStorage", function () {
 				{ populateAggregates: true },
 			)
 			const storableUser = await modelMapper.mapToDecryptedInstance(user)
+			changeInstanceDirection(storableUser, InstanceDirection.IncomingFromServer)
 			user.userGroup._original = structuredClone(user.userGroup)
 			user._original = structuredClone(user)
 			const userCacheHandler: CustomCacheHandler<User> = object()
@@ -154,6 +159,7 @@ o.spec("EphemeralCacheStorage", function () {
 				{ populateAggregates: true },
 			)
 			const storableUser = await modelMapper.mapToDecryptedInstance(user)
+			changeInstanceDirection(storableUser, InstanceDirection.IncomingFromServer)
 
 			const userCacheHandler: CustomCacheHandler<User> = object()
 			when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
@@ -200,12 +206,15 @@ o.spec("EphemeralCacheStorage", function () {
 			o(mailSetEntryFromDb).equals(null)
 
 			const storableMailSetEntry = await modelMapper.mapToDecryptedInstance(mailSetEntryListOne)
+			changeInstanceDirection(storableMailSetEntry, InstanceDirection.IncomingFromServer)
 			await storage.put(MailSetEntryTypeRef, storableMailSetEntry)
 
 			const storableMailSetEntryTwo = await modelMapper.mapToDecryptedInstance(mailSetEntryListTwo)
+			changeInstanceDirection(storableMailSetEntryTwo, InstanceDirection.IncomingFromServer)
 			await storage.put(MailSetEntryTypeRef, storableMailSetEntryTwo)
 
 			const storableMailSetEntryOther = await modelMapper.mapToDecryptedInstance(mailSetEntryOther)
+			changeInstanceDirection(storableMailSetEntryOther, InstanceDirection.IncomingFromServer)
 			await storage.put(MailSetEntryTypeRef, storableMailSetEntryOther)
 
 			mailSetEntryFromDb = await storage.get(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryListElementIdOne)
@@ -243,6 +252,7 @@ o.spec("EphemeralCacheStorage", function () {
 					{ populateAggregates: true },
 				)
 				const storableUser = await modelMapper.mapToDecryptedInstance(user)
+				changeInstanceDirection(storableUser, InstanceDirection.IncomingFromServer)
 
 				const userCacheHandler: CustomCacheHandler<User> = object()
 				when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
@@ -264,6 +274,7 @@ o.spec("EphemeralCacheStorage", function () {
 					{ populateAggregates: true },
 				)
 				const storableEntity = await modelMapper.mapToDecryptedInstance(entityToStore)
+				changeInstanceDirection(storableEntity, InstanceDirection.IncomingFromServer)
 
 				const customCacheHandler: CustomCacheHandler<Mail> = object()
 				when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
@@ -285,10 +296,10 @@ o.spec("EphemeralCacheStorage", function () {
 					{ populateAggregates: true },
 				)
 				const storableEntity = await modelMapper.mapToDecryptedInstance(entityToStore)
+				changeInstanceDirection(storableEntity, InstanceDirection.IncomingFromServer)
 
 				const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
 				when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
-
 				await storage.put(MailDetailsBlobTypeRef, storableEntity)
 
 				await storage.deleteAllOwnedBy(groupId)
