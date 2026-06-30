@@ -2321,6 +2321,12 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"useSeparateEndTimeZone_label" : "Getrennte Start- und Endzeitzone",
+		"startTimeZone_title": "Startzietzone",
+		"startAndEndTimeZone_title": "Start- und Endzeitzone",
+		"endTimeZone_title": "Endzeitzone",
+		"confirm_action": "Bestätigen",
+		"removeTimeZone_action": "Zeitzone entfernen",
 	}
 }
