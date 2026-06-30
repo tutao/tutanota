@@ -2594,5 +2594,14 @@ export default {
 		"zoomOut_action": "Zoom Out",
 		"migrationProtonStartTLSError_msg": "We could not establish connection to the IMAP server.\nIf you are migrating from Proton using Proton Mail Bridge, please make sure to set the IMAP connection mode to SSL.\nYou can do this under Advanced Settings -> Connection Mode in Proton Mail Bridge.",
 		"confirmClearFolder_msg": "Do you really want to permanently delete all emails from the folder '{1}'? Depending on the number of emails this operation may take a long time and will be executed in the background.",
+		"inboxRuleManagement_label": "Inbox Rule Management",
+		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Order matters, as only the first matching rule will apply.",
+		"condition_label": "Condition",
+		"then_label": "Then",
+		"saveAndApply_action": "Save & Apply",
+		"applyingInboxRules_label": "Applying Inbox Rule(s)",
+		"inboxRuleExplainer_msg": "This would be a short sentence that explains the configuration of Inbox Rules.",
+		"addCondition_label": "Add condition",
+		"addResult_action": "Add result"
 	}
 }
