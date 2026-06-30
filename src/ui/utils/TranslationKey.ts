@@ -2522,3 +2522,8 @@ export type TranslationKeyType =
 	| "migrationGreetingTimeout_msg"
 	| "migrationUseSSL_label"
 	| "labelNameInvalidExisting_msg"
+	| "condition_label"
+	| "then_label"
+	| "saveAndApply_action"
+	| "applyingInboxRules_label"
+	| "inboxRuleExplainer_msg"
