@@ -365,7 +365,7 @@ export function errorToString(error: ErrorInfo): string {
 }
 
 export function errorsToString(errors: Array<ErrorInfo>): string {
-	return errors.join("\n--- next error ---\n")
+	return errors.map(errorToString).join("\n--- next error ---\n")
 }
 
 /**
