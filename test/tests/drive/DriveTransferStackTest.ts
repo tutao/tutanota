@@ -13,16 +13,18 @@ o.spec("DriveTransferStack", function () {
 				type: matchers.anything(),
 				filename: matchers.anything(),
 				state: "active",
-				transferredSize: 9007199254700000,
-				totalSize: 9007199254740991,
+				transferredBytes: 9007199254700000,
+				totalBytes: 9007199254740991,
+				timeRemainingSec: undefined,
 			}
 			const transfer2: DriveTransferState = {
 				id: matchers.anything(),
 				type: matchers.anything(),
 				filename: matchers.anything(),
 				state: "active",
-				transferredSize: 9007199254000000,
-				totalSize: 9007199254740991,
+				transferredBytes: 9007199254000000,
+				totalBytes: 9007199254740991,
+				timeRemainingSec: undefined,
 			}
 			const percentage = calculatePercentage([transfer1, transfer2])
 			o.check(percentage).satisfies((value) => (value >= 0 && value <= 100 ? { pass: true } : { pass: false, message: "percentage not in range" }))
