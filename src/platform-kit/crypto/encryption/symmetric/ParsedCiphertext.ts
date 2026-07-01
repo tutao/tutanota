@@ -42,7 +42,7 @@ export abstract class ParsedCiphertextAead extends ParsedCiphertext {
 }
 
 export class ParsedCiphertextUnusedReservedUnauthenticated extends ParsedCiphertextAesCbc {
-	cipherVersion: typeof SymmetricCipherVersion.UnusedReservedUnauthenticated = SymmetricCipherVersion.UnusedReservedUnauthenticated
+	public override readonly cipherVersion: typeof SymmetricCipherVersion.UnusedReservedUnauthenticated = SymmetricCipherVersion.UnusedReservedUnauthenticated
 
 	constructor(initializationVector: InitializationVector, ciphertext: Uint8Array) {
 		super(initializationVector, ciphertext)
@@ -50,7 +50,7 @@ export class ParsedCiphertextUnusedReservedUnauthenticated extends ParsedCiphert
 }
 
 export class ParsedCiphertextAesCbcThenHmac extends ParsedCiphertextAesCbc {
-	cipherVersion: typeof SymmetricCipherVersion.AesCbcThenHmac = SymmetricCipherVersion.AesCbcThenHmac
+	public override readonly cipherVersion: typeof SymmetricCipherVersion.AesCbcThenHmac = SymmetricCipherVersion.AesCbcThenHmac
 	constructor(
 		initializationVector: InitializationVector,
 		ciphertext: Uint8Array,
@@ -61,7 +61,7 @@ export class ParsedCiphertextAesCbcThenHmac extends ParsedCiphertextAesCbc {
 }
 
 export class ParsedCiphertextAeadWithGroupKey extends ParsedCiphertextAead {
-	cipherVersion: typeof SymmetricCipherVersion.AeadWithGroupKey = SymmetricCipherVersion.AeadWithGroupKey
+	public override readonly cipherVersion: typeof SymmetricCipherVersion.AeadWithGroupKey = SymmetricCipherVersion.AeadWithGroupKey
 	constructor(
 		public readonly groupKeyVersion: KeyVersion,
 		initializationVector: InitializationVector,
@@ -73,7 +73,7 @@ export class ParsedCiphertextAeadWithGroupKey extends ParsedCiphertextAead {
 }
 
 export class ParsedCiphertextAeadWithSessionKey extends ParsedCiphertextAead {
-	cipherVersion: typeof SymmetricCipherVersion.AeadWithSessionKey = SymmetricCipherVersion.AeadWithSessionKey
+	public override readonly cipherVersion: typeof SymmetricCipherVersion.AeadWithSessionKey = SymmetricCipherVersion.AeadWithSessionKey
 	constructor(initializationVector: InitializationVector, ciphertext: Uint8Array, macTag: MacTag) {
 		super(initializationVector, ciphertext, macTag)
 	}

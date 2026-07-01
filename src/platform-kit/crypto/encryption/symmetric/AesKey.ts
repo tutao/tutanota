@@ -15,7 +15,7 @@ export abstract class AesKey extends AesKeyOrSubKeys {
 }
 
 export class Aes256Key extends AesKey {
-	keyLength: typeof AesKeyLength.Aes256 = AesKeyLength.Aes256
+	readonly keyLength: typeof AesKeyLength.Aes256 = AesKeyLength.Aes256
 
 	constructor(public readonly bits: BitArray) {
 		// AesKey is an array of 4 byte numbers. therefore converting the length to bits means 4*8
@@ -28,7 +28,7 @@ export class Aes256Key extends AesKey {
 }
 
 export class Aes128Key extends AesKey {
-	keyLength: typeof AesKeyLength.Aes128 = AesKeyLength.Aes128
+	readonly keyLength: typeof AesKeyLength.Aes128 = AesKeyLength.Aes128
 
 	constructor(public readonly bits: BitArray) {
 		// AesKey is an array of 4 byte numbers. therefore converting the length to bits means 4*8
