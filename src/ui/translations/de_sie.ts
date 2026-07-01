@@ -2321,6 +2321,9 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"duplicateFileName_msg": "{fileName} existiert schon. Wie möchten Sie vorgehen?",
+		"keepBothFiles_action": "Behalten Sie beides",
+		"replaceFile_action": "Ersetzen"
 	}
 }

@@ -42,8 +42,10 @@ import { FileReference, WebFile } from "../../../../entities/tutanota/Utils"
 import { DownloadProgressInfo, TransferId, UploadProgressInfo } from "../../../../entities/drive/Utils"
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 import { isWebFile } from "../../../../ui/utils/FileUtils"
-import { isOfflineError, handleRestError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
+import { handleRestError, isOfflineError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { WebFileResolver } from "./WebFileResolver"
+import { Dialog } from "../../../../ui/base/Dialog"
+import { lang } from "../../../../ui/utils/LanguageViewModel"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -596,9 +598,22 @@ export class DriveViewModel {
 		const takenFileNames: Set<string> = new Set(folderItems.map((item) => folderItemEntity(item).name))
 
 		for (const file of files) {
-			const newName = pickNewFileName(isWebFile(file) ? file.file.name : file.name, takenFileNames)
-			takenFileNames.add(newName)
-			await this.transferController.upload(file, newName, targetFolderId)
+			let fileName = isWebFile(file) ? file.file.name : file.name
+			let keepBoth: boolean = false
+			if (takenFileNames.has(fileName)) {
+				keepBoth = await Dialog.choice(lang.getTranslation("duplicateFileName_msg"), [
+					{ text: lang.getTranslation("keepBothFiles_action"), value: true },
+					{ text: lang.getTranslation("replaceFile_action"), value: false },
+				])
+			}
+			if (keepBoth) {
+				fileName = pickNewFileName(fileName, takenFileNames)
+				takenFileNames.add(fileName)
+			} else {
+				const itemToReplace = folderItems.findLast((item) => folderItemEntity(item).name === fileName && item.type === "file")!
+				this.moveToTrash([{ type: itemToReplace.type, id: folderItemEntity(itemToReplace)._id }])
+			}
+			await this.transferController.upload(file, fileName, targetFolderId)
 		}
 
 		for (const folder of folders ?? []) {
