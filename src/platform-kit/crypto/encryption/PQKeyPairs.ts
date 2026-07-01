@@ -3,7 +3,7 @@ import { KyberKeyPair, KyberPublicKey } from "./Liboqs/KyberKeyPair.js"
 import { AsymmetricKeyPair, KeyPairType, PublicKey } from "./AsymmetricKeyPair.js"
 
 export class PQKeyPairs extends AsymmetricKeyPair {
-	override keyPairType = KeyPairType.TUTA_CRYPT
+	override readonly keyPairType: typeof KeyPairType.TUTA_CRYPT = KeyPairType.TUTA_CRYPT
 	constructor(
 		public readonly x25519KeyPair: X25519KeyPair,
 		public readonly kyberKeyPair: KyberKeyPair,
@@ -13,7 +13,7 @@ export class PQKeyPairs extends AsymmetricKeyPair {
 }
 
 export class PQPublicKeys extends PublicKey {
-	override keyPairType = KeyPairType.TUTA_CRYPT
+	override readonly keyPairType: typeof KeyPairType.TUTA_CRYPT = KeyPairType.TUTA_CRYPT
 	constructor(
 		public readonly x25519PublicKey: X25519PublicKey,
 		public readonly kyberPublicKey: KyberPublicKey,
@@ -23,9 +23,5 @@ export class PQPublicKeys extends PublicKey {
 }
 
 export function pqKeyPairsToPublicKeys(keyPairs: PQKeyPairs): PQPublicKeys {
-	return {
-		keyPairType: keyPairs.keyPairType,
-		x25519PublicKey: keyPairs.x25519KeyPair.publicKey,
-		kyberPublicKey: keyPairs.kyberKeyPair.publicKey,
-	}
+	return new PQPublicKeys(keyPairs.x25519KeyPair.publicKey, keyPairs.kyberKeyPair.publicKey)
 }

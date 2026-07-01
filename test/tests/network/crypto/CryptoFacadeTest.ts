@@ -27,14 +27,12 @@ import {
 	aesDecrypt,
 	aesEncrypt,
 	AesKey,
-	bitArrayToUint8Array,
 	cryptoUtils,
 	CryptoWrapper,
 	decryptKey,
 	encryptKey,
 	encryptRsaKey,
 	generateX25519KeyPair,
-	KeyPairType,
 	keyToUint8Array,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
@@ -706,13 +704,9 @@ o.spec("CryptoFacadeTest", function () {
 
 		const recipientPublicKeys: Versioned<PQPublicKeys> = {
 			version: 0,
-			object: {
-				keyPairType: KeyPairType.TUTA_CRYPT,
-				x25519PublicKey: recipientKeyPair.pubEccKey!,
-				kyberPublicKey: {
-					raw: recipientKeyPair.pubKyberKey!,
-				},
-			},
+			object: new PQPublicKeys(recipientKeyPair.pubEccKey!, {
+				raw: recipientKeyPair.pubKyberKey!,
+			}),
 		}
 		const loadedPublicKey: VerifiedPublicEncryptionKey = {
 			publicEncryptionKey: recipientPublicKeys,

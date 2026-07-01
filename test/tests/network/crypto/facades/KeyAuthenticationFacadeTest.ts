@@ -7,7 +7,15 @@ import {
 	PubDistKeyAuthenticationParams,
 	UserGroupKeyAuthenticationParams,
 } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade.js"
-import { Aes256Key, aes256RandomKey, cryptoUtils, Ed25519PublicKey, KeyPairType, KyberPublicKey, X25519PublicKey } from "../../../../../src/platform-kit/crypto"
+import {
+	Aes256Key,
+	aes256RandomKey,
+	cryptoUtils,
+	Ed25519PublicKey,
+	KyberPublicKey,
+	PQPublicKeys,
+	X25519PublicKey,
+} from "../../../../../src/platform-kit/crypto"
 import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
 import { KeyVersion } from "../../../../../src/platform-kit/utils"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
@@ -117,11 +125,7 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 				tagType: "NEW_ADMIN_PUB_KEY_TAG",
 				sourceOfTrust: { receivingUserGroupKey: currentUserGroupKey },
 				untrustedKey: {
-					newAdminPubKey: {
-						keyPairType: KeyPairType.TUTA_CRYPT,
-						kyberPublicKey,
-						x25519PublicKey,
-					},
+					newAdminPubKey: new PQPublicKeys(x25519PublicKey, kyberPublicKey),
 				},
 				bindingData: {
 					newAdminGroupKeyVersion,
@@ -178,7 +182,7 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 			const params: PubDistKeyAuthenticationParams = {
 				tagType: "PUB_DIST_KEY_TAG",
 				sourceOfTrust: { currentAdminGroupKey },
-				untrustedKey: { distPubKey: { keyPairType: KeyPairType.TUTA_CRYPT, kyberPublicKey, x25519PublicKey } },
+				untrustedKey: { distPubKey: new PQPublicKeys(x25519PublicKey, kyberPublicKey) },
 				bindingData: {
 					adminGroupId,
 					userGroupId,
