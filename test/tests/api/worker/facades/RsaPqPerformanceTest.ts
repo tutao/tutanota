@@ -4,7 +4,6 @@ import {
 	generateX25519KeyPair,
 	hexToRsaPrivateKey,
 	hexToRsaPublicKey,
-	KeyPairType,
 	keyToUint8Array,
 	pqKeyPairsToPublicKeys,
 	rsaDecrypt,
@@ -23,7 +22,7 @@ const publicKey = hexToRsaPublicKey(
 	"02008bb1bbcb2c6915c182b0c7cc93e1d8210181ffee4be4ae81f7a98fdba2d6e37cea72e2124ebb6b05d330ab1ddfbc6d85c9d1c90fc3b65bd9634c3b722fe77ab98f33cc28af975d51609e1c308324501d615cbb82836c33c2a240e00826ddf09460cee7a975c0607579d4f7b707e19287a1c754ba485e04aab664e44cae8fcab770b9bb5c95a271786aa79d6fa11dd21bdb3a08b679bd5f29fc95ab573a3dabcbd8e70aaec0cc2a817eefbc886d3eafea96abd0d5e364b83ccf74f4d18b3546b014fa24b90134179ed952209971211c623a2743da0c3236abd512499920a75651482b43b27c18d477e8735935425933d8f09a12fbf1950cf8a381ef5f2400fcf9",
 )
 
-export const RSA_TEST_KEYPAIR: RsaKeyPair = { keyPairType: KeyPairType.RSA, privateKey, publicKey }
+export const RSA_TEST_KEYPAIR = new RsaKeyPair(publicKey, privateKey)
 
 o.spec("RsaPqPerformanceTest", function () {
 	o.spec("perf", function () {

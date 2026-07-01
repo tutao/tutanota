@@ -1,6 +1,5 @@
 import o from "@tutao/otest"
 import {
-	AeadSubKeys,
 	AeadWithSessionKeySubKeys,
 	AesKeyLength,
 	AsymmetricKeyPair,
@@ -26,7 +25,6 @@ import {
 	INITIALIZATION_VECTOR_LENGTH_BYTES,
 	InstanceTypeId,
 	KeyLength,
-	KeyPairType,
 	keyToUint8Array,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
@@ -373,12 +371,8 @@ o.spec("CompatibilityTest", function () {
 				privateKey: bytesToKyberPrivateKey(hexToUint8Array(td.privateKyberKey)),
 			}
 
-			const pqPublicKeys: PQPublicKeys = {
-				keyPairType: KeyPairType.TUTA_CRYPT,
-				x25519PublicKey: x25519KeyPair.publicKey,
-				kyberPublicKey: kyberKeyPair.publicKey,
-			}
-			const pqKeyPairs: PQKeyPairs = { keyPairType: KeyPairType.TUTA_CRYPT, x25519KeyPair, kyberKeyPair }
+			const pqPublicKeys = new PQPublicKeys(x25519KeyPair.publicKey, kyberKeyPair.publicKey)
+			const pqKeyPairs = new PQKeyPairs(x25519KeyPair, kyberKeyPair)
 			const pqFacade = new PQFacade(new WASMKyberFacade(libOQS))
 
 			const encapsulation = await pqFacade.encapsulateAndEncode(x25519KeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
@@ -421,13 +415,7 @@ o.spec("CompatibilityTest", function () {
 						publicEccKey,
 						hexToUint8Array(td.privateEccKey),
 					)
-					encryptionPublicKey = new RsaX25519PublicKey(
-						rsaPublicKey.version,
-						rsaPublicKey.keyLength,
-						rsaPublicKey.modulus,
-						rsaPublicKey.publicExponent,
-						publicEccKey,
-					)
+					encryptionPublicKey = new RsaX25519PublicKey(rsaPublicKey, publicEccKey)
 				} else {
 					encryptionKeyPair = new RsaKeyPair(rsaPublicKey, hexToRsaPrivateKey(td.privateRsaKey))
 					encryptionPublicKey = rsaPublicKey

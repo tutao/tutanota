@@ -16,7 +16,6 @@ import {
 	createAuthVerifier,
 	cryptoUtils,
 	Ed25519PrivateKey,
-	KeyPairType,
 	KyberPrivateKey,
 	MacTag,
 	PQKeyPairs,
@@ -321,11 +320,7 @@ function prepareUserKeyRotation(
 
 	const adminPublicKey: Versioned<PQPublicKeys> = {
 		version: 1, // admin is rotated
-		object: {
-			x25519PublicKey: adminPubEccKeyBytes,
-			kyberPublicKey: { raw: adminPubKyberKeyBytes },
-			keyPairType: KeyPairType.TUTA_CRYPT,
-		},
+		object: new PQPublicKeys(adminPubEccKeyBytes, { raw: adminPubKyberKeyBytes }),
 	}
 	const loadedAdminPublicKey: VerifiedPublicEncryptionKey = {
 		publicEncryptionKey: adminPublicKey,

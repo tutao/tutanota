@@ -5,7 +5,6 @@ import {
 	Ed25519PrivateKey,
 	Ed25519PublicKey,
 	generateX25519KeyPair,
-	KeyPairType,
 	kyberPublicKeyToBytes,
 	PQKeyPairs,
 	PQPublicKeys,
@@ -51,38 +50,22 @@ o.spec("PublicKeySignatureFacadeTest", function () {
 		keyPairVersion = 10
 		tutaCryptKeyPair = { object: await pqFacade.generateKeyPairs(), version: keyPairVersion }
 		tutaCryptPubKey = {
-			object: {
-				keyPairType: KeyPairType.TUTA_CRYPT,
-				kyberPublicKey: tutaCryptKeyPair.object.kyberKeyPair.publicKey,
-				x25519PublicKey: tutaCryptKeyPair.object.x25519KeyPair.publicKey,
-			},
+			object: new PQPublicKeys(tutaCryptKeyPair.object.x25519KeyPair.publicKey, tutaCryptKeyPair.object.kyberKeyPair.publicKey),
 			version: tutaCryptKeyPair.version,
 		}
 		rsaOnlyKeyPair = { version: keyPairVersion, object: RSA_TEST_KEYPAIR }
 		rsaOnlyPubKey = {
 			version: rsaOnlyKeyPair.version,
-			object: {
-				...rsaOnlyKeyPair.object.publicKey,
-				keyPairType: KeyPairType.RSA,
-			},
+			object: rsaOnlyKeyPair.object.publicKey,
 		}
 		const x25519KeyPair = generateX25519KeyPair()
 		rsaEccKeyPair = {
 			version: keyPairVersion,
-			object: {
-				...RSA_TEST_KEYPAIR,
-				keyPairType: KeyPairType.RSA_AND_X25519,
-				privateEccKey: x25519KeyPair.privateKey,
-				publicEccKey: x25519KeyPair.publicKey,
-			},
+			object: new RsaX25519KeyPair(RSA_TEST_KEYPAIR.publicKey, RSA_TEST_KEYPAIR.privateKey, x25519KeyPair.publicKey, x25519KeyPair.privateKey),
 		}
 		rsaEccPubKey = {
 			version: rsaEccKeyPair.version,
-			object: {
-				...rsaEccKeyPair.object.publicKey,
-				keyPairType: KeyPairType.RSA_AND_X25519,
-				publicEccKey: rsaEccKeyPair.object.publicEccKey,
-			},
+			object: new RsaX25519PublicKey(rsaEccKeyPair.object.publicKey, rsaEccKeyPair.object.publicEccKey),
 		}
 	})
 	o.spec("Roundtrip", function () {

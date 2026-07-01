@@ -6,7 +6,6 @@ import {
 	hexToRsaPublicKey,
 	isVersionedPqPublicKey,
 	isVersionedRsaOrRsaX25519PublicKey,
-	KeyPairType,
 	PQPublicKeys,
 	PublicKey,
 	PublicKeyIdentifier,
@@ -154,10 +153,7 @@ class PublicEncryptionKeyProvider {
 			if (publicKeys.pubEccKey) {
 				const eccPublicKey = publicKeys.pubEccKey
 				const rsaPublicKey = hexToRsaPublicKey(uint8ArrayToHex(publicKeys.pubRsaKey))
-				const rsaEccPublicKey: RsaX25519PublicKey = Object.assign(rsaPublicKey, {
-					keyPairType: KeyPairType.RSA_AND_X25519,
-					publicEccKey: eccPublicKey,
-				})
+				const rsaEccPublicKey = new RsaX25519PublicKey(rsaPublicKey, eccPublicKey)
 				return {
 					version,
 					object: rsaEccPublicKey,
@@ -171,11 +167,7 @@ class PublicEncryptionKeyProvider {
 		} else if (publicKeys.pubKyberKey && publicKeys.pubEccKey) {
 			const eccPublicKey = publicKeys.pubEccKey
 			const kyberPublicKey = bytesToKyberPublicKey(publicKeys.pubKyberKey)
-			const pqPublicKey: PQPublicKeys = {
-				keyPairType: KeyPairType.TUTA_CRYPT,
-				x25519PublicKey: eccPublicKey,
-				kyberPublicKey,
-			}
+			const pqPublicKey = new PQPublicKeys(eccPublicKey, kyberPublicKey)
 			return {
 				version,
 				object: pqPublicKey,

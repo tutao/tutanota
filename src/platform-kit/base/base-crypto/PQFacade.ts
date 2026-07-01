@@ -7,7 +7,6 @@ import {
 	generateX25519KeyPair,
 	getKeyLengthInBytes,
 	hkdf,
-	KeyPairType,
 	kyberPublicKeyToBytes,
 	PQKeyPairs,
 	pqKeyPairsToPublicKeys,
@@ -32,11 +31,7 @@ export class PQFacade {
 	constructor(private readonly kyberFacade: KyberFacade) {}
 
 	public async generateKeyPairs(): Promise<PQKeyPairs> {
-		return {
-			keyPairType: KeyPairType.TUTA_CRYPT,
-			x25519KeyPair: generateX25519KeyPair(),
-			kyberKeyPair: await this.kyberFacade.generateKeypair(),
-		}
+		return new PQKeyPairs(generateX25519KeyPair(), await this.kyberFacade.generateKeypair())
 	}
 
 	public async encapsulateAndEncode(

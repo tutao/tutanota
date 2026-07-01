@@ -12,7 +12,7 @@ import { matchers, object, verify, when } from "testdouble"
 import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "../../../../../src/platform-kit/base/base-crypto/IdentityKeyCreator"
 import { freshVersioned } from "../../../../../src/platform-kit/utils"
-import { AesKey, KeyPairType, PQKeyPairs } from "../../../../../src/platform-kit/crypto"
+import { AesKey, PQKeyPairs } from "../../../../../src/platform-kit/crypto"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { CustomerTypeRef, GroupInfo, GroupInfoTypeRef } from "@tutao/entities/sys"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
@@ -66,11 +66,7 @@ o.spec("GroupManagementFacadeTest", function () {
 		const adminGroupKey = freshVersioned(object<AesKey>())
 		when(keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)).thenResolve(adminGroupKey)
 
-		const newMailGroupKeyPair: PQKeyPairs = {
-			x25519KeyPair: object(),
-			kyberKeyPair: object(),
-			keyPairType: KeyPairType.TUTA_CRYPT,
-		}
+		const newMailGroupKeyPair = new PQKeyPairs(object(), object())
 		when(pqFacade.generateKeyPairs()).thenResolve(newMailGroupKeyPair)
 		when(cryptoWrapper.encryptKeyWithVersionedKey(anything(), anything())).thenReturn(object())
 		let mailGroupId = "sharedMailGroupId"
