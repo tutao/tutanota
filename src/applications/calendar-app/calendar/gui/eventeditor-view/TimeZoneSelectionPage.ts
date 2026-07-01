@@ -7,6 +7,7 @@ import { TimeZoneSelectorDropdown } from "./TimeZoneSelectorDropdown"
 import { IANATimeZone } from "../DateTimeTextFormatterUtils"
 import { Checkbox, CheckboxAttrs } from "../../../../../ui/base/Checkbox"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel"
+import { DateTime } from "luxon"
 
 export type TimeZoneSelectionPageAttrs = {
 	width: number
@@ -37,7 +38,7 @@ export class TimeZoneSelectionPage implements Component<TimeZoneSelectionPageAtt
 			[
 				m(".flex.col.gap-16", [
 					this.renderStartTimeZoneDropdown(attrs),
-					attrs.separateStartAndEndTimeZone && this.renderEndTimeZoneDropdown(),
+					attrs.separateStartAndEndTimeZone && this.renderEndTimeZoneDropdown(attrs),
 					this.renderUseSeparateEndTimeZoneCheckbox(attrs),
 				]),
 				m(".flex.gap-12.justify-right", [
@@ -64,6 +65,7 @@ export class TimeZoneSelectionPage implements Component<TimeZoneSelectionPageAtt
 
 	private renderStartTimeZoneDropdown(attrs: TimeZoneSelectionPageAttrs): Children {
 		return this.renderTimeZoneDropdown(
+			attrs.whenModel.getStartDateTime(),
 			attrs.separateStartAndEndTimeZone ? "startTimeZone_title" : "startAndEndTimeZone_title",
 			this.selectedStartTimeZone,
 			(newTimeZone) => {
@@ -75,20 +77,21 @@ export class TimeZoneSelectionPage implements Component<TimeZoneSelectionPageAtt
 		)
 	}
 
-	private renderEndTimeZoneDropdown(): Children {
-		return this.renderTimeZoneDropdown("endTimeZone_title", this.selectedEndTimeZone, (newTimeZone) => {
+	private renderEndTimeZoneDropdown(attrs: TimeZoneSelectionPageAttrs): Children {
+		return this.renderTimeZoneDropdown(attrs.whenModel.getEndDateTime(), "endTimeZone_title", this.selectedEndTimeZone, (newTimeZone) => {
 			this.selectedEndTimeZone = newTimeZone
 		})
 	}
 
 	private renderTimeZoneDropdown(
+		dateTime: DateTime,
 		titleTranslationKey: TranslationKey,
 		selectedTimeZone: IANATimeZone,
 		onSelectionChanged: (newTimeZone: IANATimeZone) => void,
 	): Children {
 		return m(".flex.col.gap-8", [
 			m("small.uppercase.b.text-ellipsis", { style: { color: theme.on_surface } }, lang.getTranslation(titleTranslationKey).text),
-			m(TimeZoneSelectorDropdown, { selectedTimeZone, onSelectionChanged }),
+			m(TimeZoneSelectorDropdown, { dateTime, selectedTimeZone, onSelectionChanged }),
 		])
 	}
 
