@@ -605,11 +605,11 @@ export class CalendarEventWhenModel {
 	 * @param duration an object containing a duration in luxons year/quarter/... format
 	 */
 	shiftEvent(duration: DurationLikeObject): void {
-		const oldStartTime = this.createZonedDateTime(this._startDate, this._startTime ?? new Time(0, 0), this.getStartTimeZoneOrDefault(), true)
+		const oldStartTime = this.getStartDateTime()
 		const newStartDate = oldStartTime.plus(duration)
 		this._startDate = this.createJsDateAtStartOfDayAtSystemTimeZone(newStartDate)
 
-		const oldEndTime = this.createZonedDateTime(this._endDate, this._endTime ?? new Time(0, 0), this.getEndTimeZoneOrDefault(), true)
+		const oldEndTime = this.getEndDateTime()
 		const newEndDate = oldEndTime.plus(duration)
 		this._endDate = this.createJsDateAtStartOfDayAtSystemTimeZone(newEndDate)
 
@@ -654,8 +654,8 @@ export class CalendarEventWhenModel {
 			const endTime = getAllDayDateUTCFromZone(getStartOfNextDayWithZone(this._endDate, this.calendarTimeZone), this.calendarTimeZone)
 			return { startTime, endTime }
 		} else {
-			const startTime = this.createZonedDateTime(this._startDate, this._startTime!, this.getStartTimeZoneOrDefault(), true).toJSDate()
-			const endTime = this.createZonedDateTime(this._endDate, this._endTime!, this.getEndTimeZoneOrDefault(), true).toJSDate()
+			const startTime = this.getStartDateTime().toJSDate()
+			const endTime = this.getEndDateTime().toJSDate()
 			return { startTime, endTime }
 		}
 	}
@@ -677,6 +677,14 @@ export class CalendarEventWhenModel {
 			hour: clockTime.hour,
 			minute: clockTime.minute,
 		}).setZone(zone, { keepLocalTime: keepClockTime })
+	}
+
+	getStartDateTime() {
+		return this.createZonedDateTime(this._startDate, this._startTime ?? new Time(0, 0), this.getStartTimeZoneOrDefault(), true)
+	}
+
+	getEndDateTime() {
+		return this.createZonedDateTime(this._endDate, this._endTime ?? new Time(0, 0), this.getEndTimeZoneOrDefault(), true)
 	}
 
 	/**
