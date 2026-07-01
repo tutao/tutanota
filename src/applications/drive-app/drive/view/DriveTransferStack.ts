@@ -13,6 +13,7 @@ import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
 import { TransferId } from "../../../../entities/drive/Utils"
 import { CircleLoadingBar, CircleLoadingBarAttrs } from "../../../../ui/CircleLoadingBar"
 import { calculatePercentage } from "./DriveUtils"
+import { formatDurationNarrow } from "../../../../ui/utils/Formatter"
 
 export interface DriveTransferStackAttrs {
 	driveTransfers: DriveTransfers
@@ -35,6 +36,7 @@ if (typeof CSS.registerProperty === "function") {
 interface TransferStackStatus {
 	progressState: ProgressState
 	percentage: number
+	timeRemainingSec: number | null
 	mainText: Translation
 	infoText?: Translation
 }
@@ -73,7 +75,7 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 			}
 		}
 		const percentage = calculatePercentage(currentTransfers)
-		return { progressState, percentage, mainText, infoText }
+		return { progressState, percentage, mainText, infoText, timeRemainingSec: driveTransfers.timeRemainingSec }
 	}
 
 	// Sort transfers shown in the stack in an intuitive order.
@@ -100,13 +102,14 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 		const stackStatus = this.getStackStatus(driveTransfers)
 
 		const sortedTransfers = allTransfers.toSorted(this.compareTransfers)
-		const transferSnackBars = sortedTransfers.map((transferState, index) => {
+		const transferSnackBars = sortedTransfers.map((transferState) => {
 			return m(ProgressSnackBar, {
 				key: transferState.id,
 				mainText: transferState.filename,
 				runningIcon: () => this.renderRunningIcon(transferState.type),
 				progressState: this.getProgressState(transferState.state),
-				percentage: Math.min(Math.round((transferState.transferredSize / transferState.totalSize) * 100), 100),
+				percentage: Math.min(Math.round((transferState.transferredBytes / transferState.totalBytes) * 100), 100),
+				timeRemainingSec: transferState.timeRemainingSec ?? null,
 				onCancel: () => cancelTransfer(transferState.id),
 			} satisfies ProgressSnackBarAttrs & { key: string })
 		})
@@ -134,6 +137,15 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 								lang.getTranslationText(stackStatus.mainText),
 							),
 							stackStatus.infoText ? m(".small", { "data-testid": lang.getTestId(stackStatus.infoText) }, stackStatus.infoText.text) : null,
+							m(".flex.row.gap-8", [
+								!this.expanded && stackStatus.timeRemainingSec
+									? m(
+											".small",
+											lang.getTranslation("transferTimeRemaining_msg", { "{time}": formatDurationNarrow(stackStatus.timeRemainingSec) })
+												.text,
+										)
+									: null,
+							]),
 						]),
 					]),
 					m(IconButton, {
