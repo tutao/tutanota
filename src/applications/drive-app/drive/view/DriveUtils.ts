@@ -193,8 +193,8 @@ async function readAllFolderEntries(folder: FileSystemDirectoryEntry): Promise<F
 }
 
 export function calculatePercentage(currentTransfers: readonly DriveTransferState[]): number {
-	const totalSize = currentTransfers.reduce((acc, cur) => BigInt(cur.totalSize) + acc, 0n)
-	const totalTransferredSize = currentTransfers.reduce((acc, cur) => BigInt(cur.transferredSize) + acc, 0n)
+	const totalSize = currentTransfers.reduce((acc, cur) => BigInt(cur.totalBytes) + acc, 0n)
+	const totalTransferredSize = currentTransfers.reduce((acc, cur) => BigInt(cur.transferredBytes) + acc, 0n)
 	return totalSize === 0n ? 0 : Math.round(Number((totalTransferredSize * 10000n) / totalSize) / 100)
 }
 

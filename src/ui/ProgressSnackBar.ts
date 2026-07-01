@@ -6,6 +6,7 @@ import { lang } from "./utils/LanguageViewModel"
 import { Icon, IconAttrs, IconSize } from "./base/Icon"
 import { IconButton } from "./base/IconButton"
 import { ButtonSize } from "./base/ButtonSize"
+import { formatDurationNarrow } from "./utils/Formatter"
 
 export enum ProgressState {
 	done,
@@ -18,11 +19,12 @@ export interface ProgressSnackBarAttrs {
 	runningIcon?: () => Children
 	progressState: ProgressState
 	percentage: number
+	timeRemainingSec: number | null
 	onCancel: () => unknown
 }
 
 export class ProgressSnackBar implements Component<ProgressSnackBarAttrs> {
-	view({ attrs: { mainText, onCancel, progressState, percentage, runningIcon } }: Vnode<ProgressSnackBarAttrs>): Children {
+	view({ attrs: { mainText, onCancel, progressState, percentage, runningIcon, timeRemainingSec } }: Vnode<ProgressSnackBarAttrs>): Children {
 		return m(
 			".flex.col.border-radius.rel.clip",
 			{
@@ -37,6 +39,7 @@ export class ProgressSnackBar implements Component<ProgressSnackBarAttrs> {
 						this.renderIcon(progressState, runningIcon),
 						m(".flex.col.gap-8.flex-shrink.overflow-hidden", [m(".font-weight-500.text-ellipsis", mainText)]),
 					]),
+					progressState === ProgressState.running && timeRemainingSec != null ? m(".small.mr-8", formatDurationNarrow(timeRemainingSec)) : null,
 					this.renderCancelButton(progressState, onCancel),
 				]),
 				progressState === ProgressState.running

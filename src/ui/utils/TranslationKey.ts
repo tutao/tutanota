@@ -2494,3 +2494,4 @@ export type TranslationKeyType =
 	| "subscriptionSettingAppleWebsite_action"
 	| "paymentMethodOnAccountHowItWorks_msg"
 	| "emptyString_msg"
+	| "transferTimeRemaining_msg"
