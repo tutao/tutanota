@@ -3,12 +3,14 @@ import { Card } from "../../../../../ui/base/Card"
 import { px } from "../../../../../ui/size"
 import { Select, SelectAttributes, SelectOption } from "../../../../../ui/base/Select"
 import stream from "mithril/stream"
-import { getTimeZoneLongName, getTimeZoneOffset, IANATimeZone, IANATimeZonesList } from "../DateTimeTextFormatterUtils"
+import { getTimeZoneOffsetString, IANATimeZone, IANATimeZonesList } from "../DateTimeTextFormatterUtils"
 import { Icon, IconSize } from "../../../../../ui/base/Icon"
 import { Icons } from "../../../../../ui/base/icons/Icons"
 import { theme } from "../../../../../ui/theme"
+import { DateTime } from "luxon"
 
 export type TimeZoneSelectorDropdownAttrs = {
+	dateTime: DateTime
 	selectedTimeZone: IANATimeZone
 	onSelectionChanged: (selectedTimezone: IANATimeZone) => void
 }
@@ -16,7 +18,7 @@ export type TimeZoneSelectorDropdownAttrs = {
 interface TimeZoneSelectOption extends SelectOption<IANATimeZone> {
 	timeZoneName: string
 	timeZoneLongName: string
-	timeZoneOffset: string
+	timeZoneGMTOffset: string
 }
 
 export class TimeZoneSelectorDropdown implements Component<TimeZoneSelectorDropdownAttrs> {
@@ -24,13 +26,15 @@ export class TimeZoneSelectorDropdown implements Component<TimeZoneSelectorDropd
 
 	oninit({ attrs }: Vnode<TimeZoneSelectorDropdownAttrs>) {
 		this.timeZoneOptionsList = IANATimeZonesList.map((timeZone) => {
+			const dateTimeInTimeZone = attrs.dateTime.setZone(timeZone)
+
 			const timeZoneName = timeZone.replaceAll("_", " ")
 			return {
 				value: timeZone,
 				timeZoneName: timeZoneName,
 				ariaValue: timeZoneName,
-				timeZoneLongName: getTimeZoneLongName(new Date(), timeZone),
-				timeZoneOffset: getTimeZoneOffset(new Date(), timeZone),
+				timeZoneLongName: dateTimeInTimeZone.offsetNameLong ?? "",
+				timeZoneGMTOffset: `GMT${getTimeZoneOffsetString(dateTimeInTimeZone)}`,
 			}
 		})
 	}
@@ -63,7 +67,7 @@ export class TimeZoneSelectorDropdown implements Component<TimeZoneSelectorDropd
 					fill: theme.on_surface_variant,
 				},
 			}),
-			m(".flex.col", [m("small.faded", option.timeZoneLongName), m("span", option.timeZoneName)]),
+			m(".flex.col", [m("small.faded", `${option.timeZoneLongName} (${option.timeZoneGMTOffset})`), m("span", option.timeZoneName)]),
 		])
 	}
 
