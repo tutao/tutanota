@@ -281,6 +281,10 @@ export class OutgoingClientEntity {
 	public getValue<NestedObj extends DeepEquals>(modelValue: ModelValue): ParsedValue<NestedObj> {
 		const rawValue = this.entityRecord[modelValue.name]
 		if (modelValue.name === "_id") {
+			if (rawValue == null) {
+				return ParsedValue.fromNull()
+			}
+
 			switch (getIdType(this.typeModel)) {
 				case IdType.IdTuple:
 					return ParsedValue.fromIdTuple<NestedObj>(rawValue as IdTuple)

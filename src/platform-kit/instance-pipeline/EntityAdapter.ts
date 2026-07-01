@@ -1,7 +1,7 @@
 import { assertNotNull, isNotNull, Nullable } from "@tutao/utils"
 import { Entity, ServerTypeModel, TypeRef } from "@tutao/meta"
 import { ModelMapper } from "./ModelMapper"
-import { BucketKey, BucketKeyTypeRef } from "@tutao/entities/sys"
+import { BucketKey } from "@tutao/entities/sys"
 import { CryptoMapper, EncryptedParsedInstance } from "./CryptoMapper"
 import { ParsedValue } from "./ParsedValue"
 
@@ -20,7 +20,7 @@ export class EntityAdapter implements Entity {
 		cryptoMapper: CryptoMapper,
 	): Promise<EntityAdapter> {
 		let bucketKey: Nullable<BucketKey> = null
-		const encBucketKeyParsedInstance = encryptedParsedInstance.getAttributeByNameOrNull("bucketKey")?.asNestedObjList().at(0) ?? null
+		const encBucketKeyParsedInstance = encryptedParsedInstance.getAttributeByNameOrNull("bucketKey")?.getNullWhenNull()?.asNestedObjList().at(0) ?? null
 		if (isNotNull(encBucketKeyParsedInstance)) {
 			// since, bucket key is really not encrypted entity, we can just parse it to instance
 			const decryptedBucketKey = await cryptoMapper.decryptParsedInstance(encBucketKeyParsedInstance, null, null, null)

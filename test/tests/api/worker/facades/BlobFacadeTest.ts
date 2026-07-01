@@ -122,9 +122,9 @@ o.spec("BlobFacade", function () {
 				blobReferenceToken: expectedReferenceToken.blobReferenceToken,
 				blobReferenceTokens: [],
 			})
-			const blobServiceResponseWithDebug = await realInstancePipeline.mapAndEncryptToParsedInstance(BlobPostOutTypeRef, blobServiceResponse, null)
+			const blobServiceResponseWithDebug = await realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, blobServiceResponse, null)
 
-			const referenceTokens = await newBlobFacade.parseBlobPostOutResponse(JSON.stringify(blobServiceResponseWithDebug))
+			const referenceTokens = await newBlobFacade.parseBlobPostOutResponse(blobServiceResponseWithDebug.getJsonRepresentation())
 			o(referenceTokens).deepEquals(expectedReferenceToken)
 		})
 
@@ -144,7 +144,10 @@ o.spec("BlobFacade", function () {
 			const blobServiceResponse = createTestEntity(BlobPostOutTypeRef, {
 				blobReferenceToken: expectedReferenceTokens[0].blobReferenceToken,
 			})
-			when(instancePipelineMock.decryptAndMap(anything(), anything())).thenResolve(blobServiceResponse)
+
+			when(instancePipelineMock.decryptAndMap(anything(), anything()))
+				// todo: this should return DecryptedParsedInstance. maybe just use real instancePipeline?
+				.thenResolve(blobServiceResponse)
 			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything())).thenResolve(JSON.stringify(blobServiceResponse))
 
 			const referenceTokens = await blobFacade.encryptAndUpload(archiveDataType, blobData, ownerGroup, sessionKey, transferId)
@@ -178,7 +181,9 @@ o.spec("BlobFacade", function () {
 			})
 			when(blobAccessTokenFacade.createQueryParams(blobAccessInfo, anything(), anything())).thenResolve({ test: "theseAreTheParamsIPromise" })
 
-			when(instancePipelineMock.decryptAndMap(anything(), anything())).thenResolve(blobServiceResponse)
+			when(instancePipelineMock.decryptAndMap(anything(), anything()))
+				// todo: return DecryptedParsedInstance or just use real instance pipeline?
+				.thenResolve(blobServiceResponse)
 			when(fileAppMock.splitFile(uploadedFileUri, MAX_BLOB_SIZE_BYTES)).thenResolve(chunkUris)
 			let encryptedFileInfo = {
 				uri: "encryptedChunkUri",

@@ -7,6 +7,9 @@ import { EntityAdapter, InstancePipeline, TypeModelResolver } from "../../../src
 import { ImportMailGetInTypeRef, MailAddressTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 
 import { BucketKey, BucketKeyTypeRef, GroupInfoTypeRef } from "@tutao/entities/sys"
+import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
+import { changeInstanceDirection } from "./InstancePipelineTestUtils"
+import { InstanceDirection } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 o.spec("EntityAdapter", () => {
 	let typeModelResolver: TypeModelResolver
@@ -28,14 +31,15 @@ o.spec("EntityAdapter", () => {
 			_listEncSessionKey: stringToUtf8Uint8Array("listEncSessionKey"),
 			group: "someGroup",
 		})
-		const groupInfoParsed = await instancePipeline.mapAndEncryptToParsedInstance(GroupInfoTypeRef, groupInfo, null)
+		const groupInfoParsed = await instancePipeline.mapAndEncryptToParsedInstance(GroupInfoTypeRef, groupInfo, aes256RandomKey())
+		changeInstanceDirection(groupInfoParsed, InstanceDirection.IncomingFromServer)
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(groupInfoParsed, instancePipeline.modelMapper, instancePipeline.cryptoMapper)
 
 		await assertThrows(Error, () => Promise.resolve(entityAdapter._id))
 		o(entityAdapter._ownerGroup).equals("ownerGroupId")
-		o(entityAdapter._ownerEncSessionKey).equals(groupInfo._ownerEncSessionKey!)
+		o(entityAdapter._ownerEncSessionKey).deepEquals(groupInfo._ownerEncSessionKey!)
 		o(entityAdapter._ownerKeyVersion).equals("99")
-		o(entityAdapter._kdfNonce).equals(groupInfo._kdfNonce!)
+		o(entityAdapter._kdfNonce).deepEquals(groupInfo._kdfNonce!)
 		o(entityAdapter._permissions).equals("permissionListId")
 		o(entityAdapter._listEncSessionKey).deepEquals(stringToUtf8Uint8Array("listEncSessionKey"))
 	})
@@ -55,15 +59,16 @@ o.spec("EntityAdapter", () => {
 			conversationEntry: ["list", "element"],
 		})
 
-		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, null)
+		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, aes256RandomKey())
+		changeInstanceDirection(mailParsed, InstanceDirection.IncomingFromServer)
 		const mailBucketKey = await instancePipeline.decryptAndMapEncryptedInstance<BucketKey>(mailParsed.getAttributeById(1310).asNestedObjList()[0], null)
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(mailParsed, instancePipeline.modelMapper, instancePipeline.cryptoMapper)
 
 		await assertThrows(Error, () => Promise.resolve(entityAdapter._id))
 		o(entityAdapter._ownerGroup).equals("ownerGroupId")
-		o(entityAdapter._ownerEncSessionKey).equals(mail._ownerEncSessionKey!)
+		o(entityAdapter._ownerEncSessionKey).deepEquals(mail._ownerEncSessionKey!)
 		o(entityAdapter._ownerKeyVersion).equals("99")
-		o(entityAdapter._kdfNonce).equals(mail._kdfNonce!)
+		o(entityAdapter._kdfNonce).deepEquals(mail._kdfNonce!)
 		o(entityAdapter._permissions).equals("permissionListId")
 		o(entityAdapter.bucketKey).deepEquals(mailBucketKey as BucketKey)
 	})
@@ -75,7 +80,8 @@ o.spec("EntityAdapter", () => {
 			ownerEncSessionKey: stringToUtf8Uint8Array("ownerEncSessionKey"),
 			ownerKeyVersion: "99",
 		})
-		const importMailGetInParsed = await instancePipeline.mapAndEncryptToParsedInstance(ImportMailGetInTypeRef, importMailGetIn, null)
+		const importMailGetInParsed = await instancePipeline.mapAndEncryptToParsedInstance(ImportMailGetInTypeRef, importMailGetIn, aes256RandomKey())
+		changeInstanceDirection(importMailGetInParsed, InstanceDirection.IncomingFromServer)
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(
 			importMailGetInParsed,
 			instancePipeline.modelMapper,
@@ -83,7 +89,7 @@ o.spec("EntityAdapter", () => {
 		)
 
 		await assertThrows(Error, () => Promise.resolve(entityAdapter._id))
-		o(entityAdapter.ownerEncSessionKey).equals(importMailGetIn.ownerEncSessionKey!)
+		o(entityAdapter.ownerEncSessionKey).deepEquals(importMailGetIn.ownerEncSessionKey!)
 		o(entityAdapter.ownerKeyVersion).equals("99")
 	})
 
@@ -94,7 +100,8 @@ o.spec("EntityAdapter", () => {
 			conversationEntry: ["list", "element"],
 		})
 
-		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, null)
+		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, aes256RandomKey())
+		changeInstanceDirection(mailParsed, InstanceDirection.IncomingFromServer)
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(mailParsed, instancePipeline.modelMapper, instancePipeline.cryptoMapper)
 
 		const ownerEncSk: Uint8Array = new Uint8Array([1, 2, 3])
@@ -105,7 +112,7 @@ o.spec("EntityAdapter", () => {
 		entityAdapter._ownerEncSessionKey = ownerEncSk
 		entityAdapter._ownerKeyVersion = "99"
 
-		o(entityAdapter._ownerEncSessionKey).equals(ownerEncSk)
+		o(entityAdapter._ownerEncSessionKey).deepEquals(ownerEncSk)
 		o(entityAdapter._ownerKeyVersion).equals("99")
 	})
 
@@ -116,7 +123,8 @@ o.spec("EntityAdapter", () => {
 			conversationEntry: ["list", "element"],
 		})
 
-		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, null)
+		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, aes256RandomKey())
+		changeInstanceDirection(mailParsed, InstanceDirection.IncomingFromServer)
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(mailParsed, instancePipeline.modelMapper, instancePipeline.cryptoMapper)
 
 		const kdfNonce: Uint8Array = new Uint8Array([3, 4, 5])
@@ -125,7 +133,7 @@ o.spec("EntityAdapter", () => {
 
 		entityAdapter._kdfNonce = kdfNonce
 
-		o(entityAdapter._kdfNonce).equals(kdfNonce)
+		o(entityAdapter._kdfNonce).deepEquals(kdfNonce)
 	})
 
 	o.test("set _ownerGroup", async () => {
@@ -134,7 +142,8 @@ o.spec("EntityAdapter", () => {
 			sender: createTestEntity(MailAddressTypeRef, { name: "a", address: "a@a.a" }),
 			conversationEntry: ["list", "element"],
 		})
-		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, null)
+		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, aes256RandomKey())
+		changeInstanceDirection(mailParsed, InstanceDirection.IncomingFromServer)
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(mailParsed, instancePipeline.modelMapper, instancePipeline.cryptoMapper)
 
 		const ownerGroupId = "ownerGroupId"

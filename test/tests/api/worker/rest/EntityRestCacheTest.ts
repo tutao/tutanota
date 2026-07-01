@@ -70,6 +70,8 @@ import {
 import { EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClient } from "../../../../../src/platform-kit/network/EntityRestClient"
 import { LastProcessedEventBatchProvider } from "../../../../../src/platform-kit/network/LastProcessedEventBatchProvider"
+import { changeInstanceDirection } from "../../../instance-pipeline/InstancePipelineTestUtils"
+import { InstanceDirection } from "../../../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 const { anything } = matchers
 
@@ -164,7 +166,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				instance: null, // will be added by entityUpdateToUpdateData
 				blobInstance: null,
 			})
-			const instanceParsed = instance ? await modelMapper.mapToDecryptedInstance(instance) : null
+			const instanceParsed = instance ? await toStorableInstance(instance) : null
 			return await entityUpdateToUpdateData(entityUpdate, instanceParsed, null)
 		}
 		let updateDataForCreate = function <T extends SomeEntity>(
@@ -255,6 +257,13 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			return entityRestClient
 		}
 
+		function toStorableInstance(entity: Entity): Promise<DecryptedParsedInstance> {
+			return modelMapper.mapToDecryptedInstance(entity).then((parsedInstance) => {
+				changeInstanceDirection(parsedInstance, InstanceDirection.IncomingFromServer)
+				return parsedInstance
+			})
+		}
+
 		o.beforeEach(async function () {
 			userId = "userId"
 			customCacheHandlerMap = object()
@@ -329,15 +338,11 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, null),
 						await updateDataForCreate(ContactTypeRef, firstContactListId, id3, null),
 					]
-					when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id1])).thenResolve(
-						await modelMapper.mapToDecryptedInstance(firstContact),
-					)
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id1])).thenResolve(await toStorableInstance(firstContact))
 					when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id2])).thenReject(
 						new restError.NotFoundError("does not exist"),
 					)
-					when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id3])).thenResolve(
-						await modelMapper.mapToDecryptedInstance(thirdContact),
-					)
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id3])).thenResolve(await toStorableInstance(thirdContact))
 
 					const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
 					o(removeOriginals(await storage.get(ContactTypeRef, firstContactListId, id1))).deepEquals(firstContact)
@@ -351,7 +356,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id3)
 
 					const ownerGroupId = "someOwnerGroupId"
-					const dummyContact = await modelMapper.mapToDecryptedInstance(
+					const dummyContact = await toStorableInstance(
 						createTestEntity(ContactTypeRef, {
 							_id: ["dummyListId", "dummyId"],
 							_ownerGroup: ownerGroupId,
@@ -404,7 +409,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					await storage.setNewRangeForList(ContactTypeRef, firstContactListId, id1, id3)
 
 					const ownerGroupId = "someOwnerGroupId"
-					const dummyContact = await modelMapper.mapToDecryptedInstance(
+					const dummyContact = await toStorableInstance(
 						createTestEntity(ContactTypeRef, {
 							_id: ["dummyListId", "dummyId"],
 							_ownerGroup: ownerGroupId,
@@ -426,7 +431,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						instance: null, // will be added by entityUpdateToUpdateData
 						blobInstance: null,
 					})
-					const contact1Parsed = await modelMapper.mapToDecryptedInstance(contact1)
+					const contact1Parsed = await toStorableInstance(contact1)
 					contact1Parsed.addErrorByAttributeName("firstName", "some error for contact 1")
 					const contact1EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact1, contact1Parsed, null)
 
@@ -449,7 +454,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						instance: null, // will be added by entityUpdateToUpdateData
 						blobInstance: null,
 					})
-					const contact3Parsed = await modelMapper.mapToDecryptedInstance(contact3)
+					const contact3Parsed = await toStorableInstance(contact3)
 					contact3Parsed.addErrorByAttributeName("firstName", "some error for contact 3")
 					const contact3EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact3, contact3Parsed, null)
 
@@ -477,18 +482,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					const thirdContact = Object.assign(structuredClone(sampleContact), { _id: [secondContactListId, id3] })
 					const fourthContact = Object.assign(structuredClone(sampleContact), { _id: [secondContactListId, id4] })
 
-					when(entityRestClient.loadParsedInstance(ContactTypeRef, firstContact._id)).thenResolve(
-						await modelMapper.mapToDecryptedInstance(firstContact),
-					)
-					when(entityRestClient.loadParsedInstance(ContactTypeRef, secondContact._id)).thenResolve(
-						await modelMapper.mapToDecryptedInstance(secondContact),
-					)
-					when(entityRestClient.loadParsedInstance(ContactTypeRef, thirdContact._id)).thenResolve(
-						await modelMapper.mapToDecryptedInstance(thirdContact),
-					)
-					when(entityRestClient.loadParsedInstance(ContactTypeRef, fourthContact._id)).thenResolve(
-						await modelMapper.mapToDecryptedInstance(fourthContact),
-					)
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, firstContact._id)).thenResolve(await toStorableInstance(firstContact))
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, secondContact._id)).thenResolve(await toStorableInstance(secondContact))
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, thirdContact._id)).thenResolve(await toStorableInstance(thirdContact))
+					when(entityRestClient.loadParsedInstance(ContactTypeRef, fourthContact._id)).thenResolve(await toStorableInstance(fourthContact))
 
 					const batch = [
 						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, null),
@@ -517,7 +514,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 				o(await storage.get(ContactTypeRef, firstContactListId, id1)).equals(null)
 				o(await storage.get(ContactTypeRef, firstContactListId, id2)).equals(null)
-				o(updates).deepEquals([])
+				o(updates).deepEquals(batch)
 			})
 
 			o("update partially not found", async function () {
@@ -530,22 +527,18 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 				const secondContact = Object.assign(structuredClone(firstContact), { _id: [firstContactListId, id2] })
 				const thirdContact = Object.assign(structuredClone(firstContact), { _id: [firstContactListId, id3] })
-				await storage.put(ContactTypeRef, await modelMapper.mapToDecryptedInstance(firstContact))
-				await storage.put(ContactTypeRef, await modelMapper.mapToDecryptedInstance(secondContact))
-				await storage.put(ContactTypeRef, await modelMapper.mapToDecryptedInstance(thirdContact))
+				await storage.put(ContactTypeRef, await toStorableInstance(firstContact))
+				await storage.put(ContactTypeRef, await toStorableInstance(secondContact))
+				await storage.put(ContactTypeRef, await toStorableInstance(thirdContact))
 
 				const batch: readonly EntityUpdateData[] = [
 					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null),
 					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null),
 					await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null),
 				]
-				when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id1])).thenResolve(
-					await modelMapper.mapToDecryptedInstance(firstContact),
-				)
+				when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id1])).thenResolve(await toStorableInstance(firstContact))
 				when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id2])).thenReject(new restError.NotFoundError("does not exist"))
-				when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id3])).thenResolve(
-					await modelMapper.mapToDecryptedInstance(thirdContact),
-				)
+				when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id3])).thenResolve(await toStorableInstance(thirdContact))
 
 				const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
 				o(removeOriginals(await storage.get(ContactTypeRef, firstContactListId, id1))).deepEquals(firstContact)
@@ -572,12 +565,12 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					_id: [firstContactListId, id3],
 					_ownerGroup: ownerGroupId,
 				})
-				const parsedInstance1 = await modelMapper.mapToDecryptedInstance(contact1)
-				const parsedInstance2 = await modelMapper.mapToDecryptedInstance(contact2)
-				const parsedInstance3 = await modelMapper.mapToDecryptedInstance(contact3)
+				const parsedInstance1 = await toStorableInstance(contact1)
+				const parsedInstance2 = await toStorableInstance(contact2)
+				const parsedInstance3 = await toStorableInstance(contact3)
 				await storage.putMultiple(ContactTypeRef, [parsedInstance1, parsedInstance2, parsedInstance3])
 
-				const dummyContact = await modelMapper.mapToDecryptedInstance(
+				const dummyContact = await toStorableInstance(
 					createTestEntity(ContactTypeRef, {
 						_id: ["dummyListId", "dummyId"],
 						_ownerGroup: ownerGroupId,
@@ -616,12 +609,12 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					_ownerGroup: ownerGroupId,
 				})
 				await storage.putMultiple(ContactTypeRef, [
-					await modelMapper.mapToDecryptedInstance(contact1),
-					await modelMapper.mapToDecryptedInstance(contact2),
-					await modelMapper.mapToDecryptedInstance(contact3),
+					await toStorableInstance(contact1),
+					await toStorableInstance(contact2),
+					await toStorableInstance(contact3),
 				])
 
-				const dummyContact = await modelMapper.mapToDecryptedInstance(
+				const dummyContact = await toStorableInstance(
 					createTestEntity(ContactTypeRef, {
 						_id: ["dummyListId", "dummyId"],
 						_ownerGroup: ownerGroupId,
@@ -658,12 +651,12 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					_ownerGroup: ownerGroupId,
 				})
 				await storage.putMultiple(ContactTypeRef, [
-					await modelMapper.mapToDecryptedInstance(contact1),
-					await modelMapper.mapToDecryptedInstance(contact2),
-					await modelMapper.mapToDecryptedInstance(contact3),
+					await toStorableInstance(contact1),
+					await toStorableInstance(contact2),
+					await toStorableInstance(contact3),
 				])
 
-				const dummyContact = await modelMapper.mapToDecryptedInstance(
+				const dummyContact = await toStorableInstance(
 					createTestEntity(ContactTypeRef, {
 						_id: ["dummyListId", "dummyId"],
 						_ownerGroup: ownerGroupId,
@@ -703,10 +696,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const thirdContact = Object.assign(structuredClone(sampleContact), { _id: [secondContactListId, id3] })
 				const fourthContact = Object.assign(structuredClone(sampleContact), { _id: [secondContactListId, id4] })
 
-				await storage.put(ContactTypeRef, await modelMapper.mapToDecryptedInstance(firstContact))
-				await storage.put(ContactTypeRef, await modelMapper.mapToDecryptedInstance(fourthContact))
-				await storage.put(ContactTypeRef, await modelMapper.mapToDecryptedInstance(thirdContact))
-				await storage.put(ContactTypeRef, await modelMapper.mapToDecryptedInstance(secondContact))
+				await storage.put(ContactTypeRef, await toStorableInstance(firstContact))
+				await storage.put(ContactTypeRef, await toStorableInstance(fourthContact))
+				await storage.put(ContactTypeRef, await toStorableInstance(thirdContact))
+				await storage.put(ContactTypeRef, await toStorableInstance(secondContact))
 
 				const contactTypeModel = await typeModelResolver.resolveClientTypeReference(ContactTypeRef)
 
@@ -734,19 +727,19 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 				when(patchMergerMock.patchAndStoreInstance(batch[0])).thenResolve(null)
 				when(entityRestClient.loadParsedInstance(ContactTypeRef, collapseId(firstContactListId, id1) as IdTuple)).thenResolve(
-					await modelMapper.mapToDecryptedInstance(secondContact),
+					await toStorableInstance(secondContact),
 				)
 				when(patchMergerMock.patchAndStoreInstance(batch[1])).thenDo(async () => {
-					const firstContactPatchedParsed = await modelMapper.mapToDecryptedInstance(firstContactPatched)
+					const firstContactPatchedParsed = await toStorableInstance(firstContactPatched)
 					await storage.put(ContactTypeRef, firstContactPatchedParsed)
 					return firstContactPatchedParsed
 				})
 				when(patchMergerMock.patchAndStoreInstance(batch[2])).thenResolve(null)
 				when(entityRestClient.loadParsedInstance(ContactTypeRef, collapseId(secondContactListId, id3) as IdTuple)).thenResolve(
-					await modelMapper.mapToDecryptedInstance(thirdContact),
+					await toStorableInstance(thirdContact),
 				)
 				when(patchMergerMock.patchAndStoreInstance(batch[3])).thenDo(async () => {
-					const fourthContactPatchedParsed = await modelMapper.mapToDecryptedInstance(fourthContactPatched)
+					const fourthContactPatchedParsed = await toStorableInstance(fourthContactPatched)
 					await storage.put(ContactTypeRef, fourthContactPatchedParsed)
 					return fourthContactPatchedParsed
 				})
@@ -771,12 +764,13 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					_ownerGroup: "owner-group",
 				})
 				const firstContact = Object.assign(structuredClone(sampleContact), { _id: [firstContactListId, id1] })
+				const secondContact = Object.assign(structuredClone(sampleContact), { _id: [firstContactListId, id2] })
 
-				await storage.put(ContactTypeRef, await modelMapper.mapToDecryptedInstance(firstContact))
+				await storage.put(ContactTypeRef, await toStorableInstance(firstContact))
 
 				const contactTypeModel = await typeModelResolver.resolveClientTypeReference(ContactTypeRef)
 
-				const firstNamePatch = createPatch({
+				const patchFirstName = createPatch({
 					attributePath: assertNotNull(AttributeModel.getAttributeId(contactTypeModel, "firstName")).toString(),
 					patchOperation: PatchOperationType.REPLACE,
 					value: "CipherTextForGuenther",
@@ -788,12 +782,12 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const batch = [
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, [firstNamePatch]),
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, [firstNamePatch]), // update for item not in cache should be skipped
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, [patchFirstName]),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, [patchFirstName]), // update for item not in cache should be skipped
 				]
 
 				when(patchMergerMock.patchAndStoreInstance(batch[0])).thenDo(async () => {
-					const firstContactPatchedParsed = await modelMapper.mapToDecryptedInstance(firstContactPatched)
+					const firstContactPatchedParsed = await toStorableInstance(firstContactPatched)
 					await storage.put(ContactTypeRef, firstContactPatchedParsed)
 					return firstContactPatchedParsed
 				})
@@ -802,9 +796,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id1)))).deepEquals(firstContactPatched)
 				o(await storage.get(ContactTypeRef, firstContactListId, id2)).deepEquals(null)
 
-				o(filteredUpdates.length).equals(1)
+				o(filteredUpdates.length).equals(2)
 				o(filteredUpdates.includes(batch[0])).equals(true)
-				o(filteredUpdates.includes(batch[1])).equals(false)
+				o(filteredUpdates.includes(batch[1])).equals(true)
 			})
 
 			o.test("Create event for new entity is received, it should not be downloaded - when update has instance attached", async () => {
@@ -849,7 +843,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const archiveId = "archiveId"
 				const mailDetailsId = "detailsId1"
 				let mailDetailsBlob = createMailDetailsBlobInstance(archiveId, mailDetailsId, "hello")
-				await storage.put(MailDetailsBlobTypeRef, await modelMapper.mapToDecryptedInstance(mailDetailsBlob))
+				await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
 
 				when(entityRestClient.loadParsedInstance(MailDetailsBlobTypeRef, mailDetailsBlob._id, anything())).thenReject(
 					new restError.NotFoundError("not found"),
@@ -876,11 +870,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const newListId = "listId2"
 
 				when(entityRestClient.loadParsedInstancesRange(MailSetEntryTypeRef, listId, GENERATED_MIN_ID, 3, false, anything())).thenResolve(
-					await promiseMap(mailSetEntries, (entry) =>
-						(async function (entity: Entity): Promise<DecryptedParsedInstance> {
-							return await modelMapper.mapToDecryptedInstance(entity)
-						})(entry),
-					),
+					await promiseMap(mailSetEntries, (entry) => toStorableInstance(entry)),
 				)
 
 				await cache.loadRange(MailSetEntryTypeRef, listId, GENERATED_MIN_ID, 3, false)
@@ -919,11 +909,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				)
 
 				when(entityRestClient.loadParsedInstancesRange(MailSetEntryTypeRef, listId, CUSTOM_MIN_ID, 3, false, anything())).thenResolve(
-					await promiseMap(mailSetEntries, (entry) =>
-						(async function (entity: Entity): Promise<DecryptedParsedInstance> {
-							return await modelMapper.mapToDecryptedInstance(entity)
-						})(entry),
-					),
+					await promiseMap(mailSetEntries, (entry) => toStorableInstance(entry)),
 				)
 
 				when(entityRestClient.loadParsedInstancesRange(MailSetEntryTypeRef, "listId2", CUSTOM_MIN_ID, 3, false, anything())).thenResolve([])
@@ -954,8 +940,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const mailDetailsBlob = createMailDetailsBlobInstance("archiveId", "blobId", "some body")
 				mail.mailDetails = mailDetailsBlob._id
 
-				await storage.put(MailTypeRef, await modelMapper.mapToDecryptedInstance(mail))
-				await storage.put(MailDetailsBlobTypeRef, await modelMapper.mapToDecryptedInstance(mailDetailsBlob))
+				await storage.put(MailTypeRef, await toStorableInstance(mail))
+				await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
 
 				await cache.entityEventsReceived([await updateDataForDelete(MailTypeRef, getListId(mail), getElementId(mail))], "batchId", groupId)
 
@@ -969,7 +955,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				}
 				when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
 				const mail = createMailInstance("listId1", "id1", "i am a mail")
-				when(entityRestClient.loadParsedInstance(MailTypeRef, mail._id)).thenResolve(await modelMapper.mapToDecryptedInstance(mail))
+				when(entityRestClient.loadParsedInstance(MailTypeRef, mail._id)).thenResolve(await toStorableInstance(mail))
 				when(entityRestClient.load(MailTypeRef, mail._id)).thenResolve(mail)
 
 				await cache.entityEventsReceived([await updateDataForCreate(MailTypeRef, getListId(mail), getElementId(mail), mail)], "batchId", groupId)
@@ -991,7 +977,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		o("when reading from the cache, the entities will be cloned", async function () {
 			const archiveId = "archiveId"
 			const mailDetailsBlob = createMailDetailsBlobInstance(archiveId, "id1", "hello")
-			await storage.put(MailDetailsBlobTypeRef, await modelMapper.mapToDecryptedInstance(mailDetailsBlob))
+			await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
 
 			const mailDetailsBlob1 = await cache.load(MailDetailsBlobTypeRef, [archiveId, createId("id1")])
 			removeOriginals(mailDetailsBlob1)
@@ -1003,7 +989,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 		o("when reading from the cache, the entities will be cloned pt.2", async function () {
 			let mail = createMailInstance("listId1", "id1", "hello")
-			await storage.put(MailTypeRef, await modelMapper.mapToDecryptedInstance(mail))
+			await storage.put(MailTypeRef, await toStorableInstance(mail))
 			const mail1 = await cache.load(MailTypeRef, ["listId1", createId("id1")])
 			removeOriginals(mail1)
 			o.check(mail1).notEquals(mail)
@@ -1020,11 +1006,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			let count = loadedUntilMinId ? 4 : 3
 
 			when(entityRestClient.loadParsedInstancesRange(MailTypeRef, "listId1", startId, count, true, anything())).thenResolve(
-				await promiseMap([mail3, mail2, mail1], (mail) =>
-					(async function (entity: Entity): Promise<DecryptedParsedInstance> {
-						return await modelMapper.mapToDecryptedInstance(entity)
-					})(mail),
-				),
+				await promiseMap([mail3, mail2, mail1], (mail) => toStorableInstance(mail)),
 			)
 
 			// load the mails in reverse because this is the mail use case. return them in reverse to have the intuitive order
@@ -1126,7 +1108,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 		o("load list elements partly from server - range min to id3 loaded", async function () {
 			const mail4 = createMailInstance("listId1", "id4", "subject4")
-			let storableMail4 = await modelMapper.mapToDecryptedInstance(mail4)
+			let storableMail4 = await toStorableInstance(mail4)
 			const cachedMails = await setupMailList(true, false)
 			const loadParsedInstancesRange = spy(function (typeRef, listId, start, count, reverse) {
 				o(isSameTypeRef(typeRef, MailTypeRef)).equals(true)
@@ -1157,7 +1139,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o(start).equals(getElementId(cachedMails[2]))
 				o(count).equals(1)
 				o(reverse).equals(false)
-				return [await modelMapper.mapToDecryptedInstance(mail4)]
+				return [await toStorableInstance(mail4)]
 			})
 
 			const loadRangeMock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
@@ -1180,7 +1162,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o(start).equals(getElementId(cachedMails[0]))
 				o(count).equals(3)
 				o(reverse).equals(true)
-				return [await modelMapper.mapToDecryptedInstance(mail0)]
+				return [await toStorableInstance(mail0)]
 			})
 
 			const loadRangeMock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
@@ -1201,7 +1183,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o(start).equals(cachedMails[0]._id[1])
 				o(count).equals(4)
 				o(reverse).equals(true)
-				return [await modelMapper.mapToDecryptedInstance(mail0)]
+				return [await toStorableInstance(mail0)]
 			})
 
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
@@ -1226,7 +1208,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o(count).equals(EXTEND_RANGE_MIN_CHUNK_SIZE)
 				// the cache actually loads from the end of the range which is id4
 				o(reverse).equals(false)
-				return Promise.resolve([await modelMapper.mapToDecryptedInstance(mail5), await modelMapper.mapToDecryptedInstance(mail6)])
+				return Promise.resolve([await toStorableInstance(mail5), await toStorableInstance(mail6)])
 			})
 
 			const loadRangeMock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
@@ -1254,7 +1236,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o(start).equals(createId("id1"))
 				o(count).equals(EXTEND_RANGE_MIN_CHUNK_SIZE)
 				o(reverse).equals(true)
-				return Promise.resolve([await modelMapper.mapToDecryptedInstance(mailSecond), await modelMapper.mapToDecryptedInstance(mailFirst)])
+				return Promise.resolve([await toStorableInstance(mailSecond), await toStorableInstance(mailFirst)])
 			})
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
 			const result = await cache.loadRange(MailTypeRef, "listId1", createId("ic6"), 4, true)
@@ -1344,7 +1326,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o(start).equals(CUSTOM_MIN_ID)
 				o(count).equals(1)
 				o(reverse).equals(false)
-				return [await modelMapper.mapToDecryptedInstance(ref)]
+				return [await toStorableInstance(ref)]
 			})
 
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
@@ -1368,20 +1350,13 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const mail3 = createMailInstance(listId1, ids[2], "hello3")
 
 			await storage.setNewRangeForList(MailTypeRef, listId1, ids[0], ids[2])
-			await storage.putMultiple(MailTypeRef, [
-				await modelMapper.mapToDecryptedInstance(mail1),
-				await modelMapper.mapToDecryptedInstance(mail2),
-				await modelMapper.mapToDecryptedInstance(mail3),
-			])
+			await storage.putMultiple(MailTypeRef, [await toStorableInstance(mail1), await toStorableInstance(mail2), await toStorableInstance(mail3)])
 			const moreMails = new Map()
 			moreMails.set(ids[3], createMailInstance(listId1, ids[3], "hello4"))
 			moreMails.set(ids[4], createMailInstance(listId1, ids[4], "hello5"))
 
 			const loadRange = spy(async function (...an) {
-				return Promise.resolve([
-					await modelMapper.mapToDecryptedInstance(moreMails.get(ids[3])),
-					await modelMapper.mapToDecryptedInstance(moreMails.get(ids[4])),
-				])
+				return Promise.resolve([await toStorableInstance(moreMails.get(ids[3])), await toStorableInstance(moreMails.get(ids[4]))])
 			})
 
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
@@ -1416,14 +1391,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			await storage.setNewRangeForList(MailTypeRef, listId1, ids[2], ids[4])
 
-			await storage.putMultiple(MailTypeRef, [
-				await modelMapper.mapToDecryptedInstance(mail3),
-				await modelMapper.mapToDecryptedInstance(mail4),
-				await modelMapper.mapToDecryptedInstance(mail5),
-			])
+			await storage.putMultiple(MailTypeRef, [await toStorableInstance(mail3), await toStorableInstance(mail4), await toStorableInstance(mail5)])
 
 			const loadRange = spy(async function () {
-				return Promise.resolve([await modelMapper.mapToDecryptedInstance(mail2), await modelMapper.mapToDecryptedInstance(mail1)])
+				return Promise.resolve([await toStorableInstance(mail2), await toStorableInstance(mail1)])
 			})
 
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadRange)
@@ -1473,14 +1444,14 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const mail6 = createMailInstance(listId, id6, "hello6")
 
 				await storage.setNewRangeForList(MailTypeRef, listId, id1, id2)
-				await storage.put(MailTypeRef, await modelMapper.mapToDecryptedInstance(mail1))
-				await storage.put(MailTypeRef, await modelMapper.mapToDecryptedInstance(mail2))
+				await storage.put(MailTypeRef, await toStorableInstance(mail1))
+				await storage.put(MailTypeRef, await toStorableInstance(mail2))
 
 				when(clientMock.loadParsedInstancesRange(anything(), listId, id2, EXTEND_RANGE_MIN_CHUNK_SIZE, false, anything())).thenResolve([
-					await modelMapper.mapToDecryptedInstance(mail3),
-					await modelMapper.mapToDecryptedInstance(mail4),
-					await modelMapper.mapToDecryptedInstance(mail5),
-					await modelMapper.mapToDecryptedInstance(mail6),
+					await toStorableInstance(mail3),
+					await toStorableInstance(mail4),
+					await toStorableInstance(mail5),
+					await toStorableInstance(mail6),
 				])
 
 				const result = await cache.loadRange(MailTypeRef, listId, id3, 2, false)
@@ -1510,8 +1481,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const mails = arrayOf(100, (idx) => createMailInstance(listId, createId(`${idx}`), `hola ${idx}`))
 
 				await storage.setNewRangeForList(MailTypeRef, listId, getElementId(mails[98]), getElementId(mails[99]))
-				await storage.put(MailTypeRef, await modelMapper.mapToDecryptedInstance(mails[98]))
-				await storage.put(MailTypeRef, await modelMapper.mapToDecryptedInstance(mails[99]))
+				await storage.put(MailTypeRef, await toStorableInstance(mails[98]))
+				await storage.put(MailTypeRef, await toStorableInstance(mails[99]))
 
 				when(
 					clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[98]), EXTEND_RANGE_MIN_CHUNK_SIZE, true, anything()),
@@ -1520,11 +1491,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						mails
 							.slice(58, 98)
 							.reverse()
-							.map((m) =>
-								(async function (entity: Entity): Promise<DecryptedParsedInstance> {
-									return await modelMapper.mapToDecryptedInstance(entity)
-								})(m),
-							),
+							.map((m) => toStorableInstance(m)),
 					),
 				)
 
@@ -1535,11 +1502,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						mails
 							.slice(18, 58)
 							.reverse()
-							.map((m) =>
-								(async function (entity: Entity): Promise<DecryptedParsedInstance> {
-									return await modelMapper.mapToDecryptedInstance(entity)
-								})(m),
-							),
+							.map((m) => toStorableInstance(m)),
 					),
 				)
 
@@ -1550,11 +1513,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						mails
 							.slice(0, 18)
 							.reverse()
-							.map((m) =>
-								(async function (entity: Entity): Promise<DecryptedParsedInstance> {
-									return await modelMapper.mapToDecryptedInstance(entity)
-								})(m),
-							),
+							.map((m) => toStorableInstance(m)),
 					),
 				)
 
@@ -1583,38 +1542,20 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const mails = arrayOf(100, (idx) => createMailInstance(listId, createId(`${idx}`), `hola ${idx}`))
 
 				await storage.setNewRangeForList(MailTypeRef, listId, getElementId(mails[0]), getElementId(mails[1]))
-				await storage.put(MailTypeRef, await modelMapper.mapToDecryptedInstance(mails[0]))
-				await storage.put(MailTypeRef, await modelMapper.mapToDecryptedInstance(mails[1]))
+				await storage.put(MailTypeRef, await toStorableInstance(mails[0]))
+				await storage.put(MailTypeRef, await toStorableInstance(mails[1]))
 
 				when(
 					clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[1]), EXTEND_RANGE_MIN_CHUNK_SIZE, false, anything()),
-				).thenResolve(
-					await Promise.all(
-						mails.slice(2, 42).map(async function (entity: Entity): Promise<DecryptedParsedInstance> {
-							return await modelMapper.mapToDecryptedInstance(entity)
-						}),
-					),
-				)
+				).thenResolve(await Promise.all(mails.slice(2, 42).map(toStorableInstance)))
 
 				when(
 					clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[41]), EXTEND_RANGE_MIN_CHUNK_SIZE, false, anything()),
-				).thenResolve(
-					await Promise.all(
-						mails.slice(42, 82).map(async function (entity: Entity): Promise<DecryptedParsedInstance> {
-							return await modelMapper.mapToDecryptedInstance(entity)
-						}),
-					),
-				)
+				).thenResolve(await Promise.all(mails.slice(42, 82).map(toStorableInstance)))
 
 				when(
 					clientMock.loadParsedInstancesRange(anything(), listId, getElementId(mails[81]), EXTEND_RANGE_MIN_CHUNK_SIZE, false, anything()),
-				).thenResolve(
-					await Promise.all(
-						mails.slice(82).map(async function (entity: Entity): Promise<DecryptedParsedInstance> {
-							return await modelMapper.mapToDecryptedInstance(entity)
-						}),
-					),
-				)
+				).thenResolve(await Promise.all(mails.slice(82).map(toStorableInstance)))
 
 				const result = await cache.loadRange(MailTypeRef, listId, GENERATED_MAX_ID, 2, true)
 				result.map(removeOriginals)
@@ -1652,19 +1593,19 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const mail5 = createMailInstance(listId, id5, "ok")
 
 				await storage.setNewRangeForList(MailTypeRef, listId, id2, id3)
-				await storage.put(MailTypeRef, await modelMapper.mapToDecryptedInstance(mail2))
-				await storage.put(MailTypeRef, await modelMapper.mapToDecryptedInstance(mail3))
+				await storage.put(MailTypeRef, await toStorableInstance(mail2))
+				await storage.put(MailTypeRef, await toStorableInstance(mail3))
 
 				// First it will try to load in the direction of start id from the existing range
 				when(clientMock.loadParsedInstancesRange(anything(), listId, id2, EXTEND_RANGE_MIN_CHUNK_SIZE, true, anything())).thenResolve([
-					await modelMapper.mapToDecryptedInstance(mail1),
+					await toStorableInstance(mail1),
 				])
 
 				// It will then fall into the "load from within the range" case
 				// It will try to load starting from the end of the range
 				when(clientMock.loadParsedInstancesRange(anything(), listId, id3, 7, false, anything())).thenResolve([
-					await modelMapper.mapToDecryptedInstance(mail4),
-					await modelMapper.mapToDecryptedInstance(mail5),
+					await toStorableInstance(mail4),
+					await toStorableInstance(mail5),
 				])
 
 				const result = await cache.loadRange(MailTypeRef, listId, GENERATED_MIN_ID, 10, false)
@@ -1685,16 +1626,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const inCache = [createMailInstance(listId, "1", "1"), createMailInstance(listId, "3", "3")]
 
 			const notInCache = [createMailInstance(listId, "2", "2"), createMailInstance(listId, "5", "5")]
-			await Promise.all(inCache.map(async (i) => await storage.put(MailTypeRef, await modelMapper.mapToDecryptedInstance(i))))
+			await Promise.all(inCache.map(async (i) => await storage.put(MailTypeRef, await toStorableInstance(i))))
 			const ids = inCache.concat(notInCache).map(getElementId)
 
-			const loadMultipleParsedInstances = spy((...any) =>
-				Promise.all(
-					notInCache.map(async function (entity: Entity): Promise<DecryptedParsedInstance> {
-						return await modelMapper.mapToDecryptedInstance(entity)
-					}),
-				),
-			)
+			const loadMultipleParsedInstances = spy((...any) => Promise.all(notInCache.map(toStorableInstance)))
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadMultipleParsedInstances, loadMultipleParsedInstances)
 
 			const result = await cache.loadMultiple(MailTypeRef, listId, ids)
@@ -1718,16 +1653,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const inCache = [createCustomer("customer1"), createCustomer("customer2")]
 
 			const notInCache = [createCustomer("customer3"), createCustomer("customer4")]
-			await Promise.all(inCache.map(async (i) => await storage.put(CustomerTypeRef, await modelMapper.mapToDecryptedInstance(i))))
+			await Promise.all(inCache.map(async (i) => await storage.put(CustomerTypeRef, await toStorableInstance(i))))
 			const ids = inCache.concat(notInCache).map((c) => c._id)
 
-			const loadMultipleParsedInstances = spy((...any) =>
-				Promise.all(
-					notInCache.map(async function (entity: Entity): Promise<DecryptedParsedInstance> {
-						return await modelMapper.mapToDecryptedInstance(entity)
-					}),
-				),
-			)
+			const loadMultipleParsedInstances = spy((...any) => Promise.all(notInCache.map(toStorableInstance)))
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadMultipleParsedInstances, loadMultipleParsedInstances)
 
 			const result = await cache.loadMultiple(CustomerTypeRef, null, ids)
@@ -1752,16 +1681,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const inCache = [createMailDetailsBlobInstance(archiveId, "1", "1"), createMailDetailsBlobInstance(archiveId, "3", "3")]
 
 			const notInCache = [createMailDetailsBlobInstance(archiveId, "2", "2"), createMailDetailsBlobInstance(archiveId, "5", "5")]
-			await Promise.all(inCache.map(async (i) => await storage.put(MailDetailsBlobTypeRef, await modelMapper.mapToDecryptedInstance(i))))
+			await Promise.all(inCache.map(async (i) => await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(i))))
 			const ids = inCache.concat(notInCache).map(getElementId)
 
-			const loadMultipleParsedInstances = spy((...any) =>
-				Promise.all(
-					notInCache.map(async function (entity: Entity): Promise<DecryptedParsedInstance> {
-						return await modelMapper.mapToDecryptedInstance(entity)
-					}),
-				),
-			)
+			const loadMultipleParsedInstances = spy((...any) => Promise.all(notInCache.map(toStorableInstance)))
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadMultipleParsedInstances, loadMultipleParsedInstances)
 
 			const result = await cache.loadMultiple(MailDetailsBlobTypeRef, archiveId, ids)
@@ -1789,16 +1712,12 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const serverMails = [...inCache, createMailInstance(listId, "4", "4"), createMailInstance(listId, "5", "5"), createMailInstance(listId, "6", "6")]
 
 			await storage.setNewRangeForList(MailTypeRef, listId, GENERATED_MIN_ID, createId("3"))
-			await Promise.all(inCache.map(async (i) => await storage.put(MailTypeRef, await modelMapper.mapToDecryptedInstance(i))))
+			await Promise.all(inCache.map(async (i) => await storage.put(MailTypeRef, await toStorableInstance(i))))
 
 			const loadParsedInstancesRange = spy(async (typeRef, listIdToLoad: string, startId: Id, count: number, reverse: boolean) => {
 				if (listId !== listIdToLoad) throw new restError.NotFoundError("unknown list id")
 				const startOfList = serverMails.filter((mail) => firstBiggerThanSecondBase64Ext(getElementId(mail), startId)).slice(0, count)
-				return Promise.all(
-					startOfList.map(async function (entity: Entity): Promise<DecryptedParsedInstance> {
-						return await modelMapper.mapToDecryptedInstance(entity)
-					}),
-				)
+				return Promise.all(startOfList.map(toStorableInstance))
 			})
 
 			const mockLoadRange = mockAttribute(entityRestClient, entityRestClient.loadParsedInstancesRange, loadParsedInstancesRange)
@@ -1843,7 +1762,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						myHeader: "header",
 					},
 				})
-				return await modelMapper.mapToDecryptedInstance(contact)
+				return toStorableInstance(contact)
 			})
 			const patchMergerMock = object<PatchMerger>()
 			const cache = new DefaultEntityRestCache(entityRestClient, storage, typeModelResolver, patchMergerMock, () =>
@@ -1868,9 +1787,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				_permissions: "permid",
 				_ownerGroup: "owner-group",
 			})
-			when(entityRestClient.loadParsedInstance(anything(), anything(), anything())).thenResolve(
-				await modelMapper.mapToDecryptedInstance(contactOnTheServer),
-			)
+			when(entityRestClient.loadParsedInstance(anything(), anything(), anything())).thenResolve(await toStorableInstance(contactOnTheServer))
 			const patchMergerMock = object<PatchMerger>()
 			const cache = new DefaultEntityRestCache(entityRestClient, storage, typeModelResolver, patchMergerMock, () =>
 				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
@@ -1893,9 +1810,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					Array(6)
 						.fill({})
 						.map((_v, i) =>
-							(async function (entity: Entity): Promise<DecryptedParsedInstance> {
-								return await modelMapper.mapToDecryptedInstance(entity)
-							})(
+							toStorableInstance(
 								createTestEntity(ContactTypeRef, {
 									_permissions: "permid" + i,
 									_id: [listId, createId(i.toString())],
@@ -1936,7 +1851,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			o(client.load.callCount).equals(2)("The permission was loaded both times from the server")
 		})
 
-		o.test("when loading single ET custom id entity it is cached", async function () {
+		o.test(`${name} when loading single ET custom id entity it is cached`, async function () {
 			const id = stringToBase64UrlCustomId("1")
 			const client: EntityRestClient = mockRestClient()
 			const entity = createTestEntity(MailAddressToGroupTypeRef, {
@@ -1944,7 +1859,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				_permissions: "permid",
 				_ownerGroup: "owner-group",
 			})
-			when(client.loadParsedInstance(MailAddressToGroupTypeRef, id, anything())).thenResolve(await modelMapper.mapToDecryptedInstance(entity))
+			when(client.loadParsedInstance(MailAddressToGroupTypeRef, id, anything())).thenResolve(await toStorableInstance(entity))
 			const patchMergerMock = object<PatchMerger>()
 			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
 				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
@@ -1966,7 +1881,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				reference: "refid",
 				_ownerGroup: "owner-group",
 			})
-			when(client.loadParsedInstance(RootInstanceTypeRef, id, anything())).thenResolve(await modelMapper.mapToDecryptedInstance(entity))
+			when(client.loadParsedInstance(RootInstanceTypeRef, id, anything())).thenResolve(await toStorableInstance(entity))
 			const patchMergerMock = object<PatchMerger>()
 			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
 				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
@@ -1994,8 +1909,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			})
 
 			when(client.loadMultipleParsedInstances(MailAddressToGroupTypeRef, null, ids), { ignoreExtraArgs: true }).thenResolve([
-				await modelMapper.mapToDecryptedInstance(firstEntity),
-				await modelMapper.mapToDecryptedInstance(secondEntity),
+				await toStorableInstance(firstEntity),
+				await toStorableInstance(secondEntity),
 			])
 			const patchMergerMock = object<PatchMerger>()
 			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
@@ -2034,7 +1949,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			when(client.loadMultipleParsedInstances(RootInstanceTypeRef, listId, [elementIdPart(ids[0]), elementIdPart(ids[1])], anything()), {
 				ignoreExtraArgs: true,
-			}).thenResolve([await modelMapper.mapToDecryptedInstance(firstEntity), await modelMapper.mapToDecryptedInstance(secondEntity)])
+			}).thenResolve([await toStorableInstance(firstEntity), await toStorableInstance(secondEntity)])
 			const patchMergerMock = object<PatchMerger>()
 			const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
 				Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
@@ -2056,7 +1971,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				userId = null
 				entityRestClient.loadParsedInstance = spy(
 					async () =>
-						await modelMapper.mapToDecryptedInstance(
+						await toStorableInstance(
 							createTestEntity(ContactTypeRef, {
 								_id: ["listId", "id"],
 								_permissions: "permid",
@@ -2089,7 +2004,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const client: EntityRestClient = mockRestClient()
-				when(client.loadParsedInstance(ContactTypeRef, contactId, anything())).thenResolve(await modelMapper.mapToDecryptedInstance(contactOnTheServer))
+				when(client.loadParsedInstance(ContactTypeRef, contactId, anything())).thenResolve(await toStorableInstance(contactOnTheServer))
 				const patchMergerMock = object<PatchMerger>()
 				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
 					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
@@ -2148,14 +2063,14 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 				const client: EntityRestClient = mockRestClient()
 				when(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], anything(), anything())).thenResolve([
-					await modelMapper.mapToDecryptedInstance(contactAOnTheServer),
+					await toStorableInstance(contactAOnTheServer),
 				])
 				when(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactBId)], anything(), anything())).thenResolve([
-					await modelMapper.mapToDecryptedInstance(contactBOnTheServer),
+					await toStorableInstance(contactBOnTheServer),
 				])
 				when(
 					client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], anything(), anything()),
-				).thenResolve([await modelMapper.mapToDecryptedInstance(contactAOnTheServer), await modelMapper.mapToDecryptedInstance(contactBOnTheServer)])
+				).thenResolve([await toStorableInstance(contactAOnTheServer), await toStorableInstance(contactBOnTheServer)])
 				const patchMergerMock = object<PatchMerger>()
 				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
 					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
@@ -2225,7 +2140,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const client: EntityRestClient = mockRestClient()
-				when(client.loadParsedInstance(ContactTypeRef, contactId, anything())).thenResolve(await modelMapper.mapToDecryptedInstance(contactOnTheServer))
+				when(client.loadParsedInstance(ContactTypeRef, contactId, anything())).thenResolve(await toStorableInstance(contactOnTheServer))
 				const patchMergerMock = object<PatchMerger>()
 				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>
 					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
@@ -2275,10 +2190,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 				const client: EntityRestClient = mockRestClient()
 				when(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], anything(), anything())).thenResolve([
-					await modelMapper.mapToDecryptedInstance(contactAOnTheServer),
+					await toStorableInstance(contactAOnTheServer),
 				])
 				when(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactBId)], anything(), anything())).thenResolve([
-					await modelMapper.mapToDecryptedInstance(contactBOnTheServer),
+					await toStorableInstance(contactBOnTheServer),
 				])
 
 				const patchMergerMock = object<PatchMerger>()
@@ -2344,8 +2259,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const client: EntityRestClient = object()
 				when(client.loadRange(ContactTypeRef, listId, createId("0"), 2, false, anything())).thenResolve([contactAOnTheServer, contactBOnTheServer])
 				when(client.loadParsedInstancesRange(ContactTypeRef, listId, createId("0"), 2, false, anything())).thenResolve([
-					await modelMapper.mapToDecryptedInstance(contactAOnTheServer),
-					await modelMapper.mapToDecryptedInstance(contactBOnTheServer),
+					await toStorableInstance(contactAOnTheServer),
+					await toStorableInstance(contactBOnTheServer),
 				])
 
 				const patchMergerMock = object<PatchMerger>()
@@ -2402,12 +2317,12 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					contactBOnTheServer,
 				])
 				when(client.loadParsedInstancesRange(ContactTypeRef, listId, createId("0"), anything(), false, anything())).thenResolve([
-					await modelMapper.mapToDecryptedInstance(contactAOnTheServer),
-					await modelMapper.mapToDecryptedInstance(contactBOnTheServer),
+					await toStorableInstance(contactAOnTheServer),
+					await toStorableInstance(contactBOnTheServer),
 				])
 				when(client.loadRange(ContactTypeRef, listId, createId("1"), anything(), false, anything())).thenResolve([contactBOnTheServer])
 				when(client.loadParsedInstancesRange(ContactTypeRef, listId, createId("1"), anything(), false, anything())).thenResolve([
-					await modelMapper.mapToDecryptedInstance(contactBOnTheServer),
+					await toStorableInstance(contactBOnTheServer),
 				])
 				const patchMergerMock = object<PatchMerger>()
 				const cache = new DefaultEntityRestCache(client, storage, typeModelResolver, patchMergerMock, () =>

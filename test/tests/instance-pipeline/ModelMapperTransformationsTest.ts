@@ -2301,7 +2301,7 @@ o.spec("ModelMapperTransformations", function () {
 
 				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
 				const typeModel = await serverModelResolver(TestTypeRef)
-				const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(3, ParsedValue.fromNull())
+				const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(1, ParsedValue.fromNull())
 				await assertThrows(InvalidModelError, () => modelMapper.mapToInstance(parsedInstance))
 			})
 		})

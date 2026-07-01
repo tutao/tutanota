@@ -145,7 +145,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 		if (cachedEntity == null) {
 			const parsedInstance = await this.entityRestClient.loadParsedInstance(typeRef, id, opts)
-			if (cachingBehavior.writesToCache && parsedInstance.hasError()) {
+			if (cachingBehavior.writesToCache && !parsedInstance.hasError()) {
 				await this.storage.put(typeRef, parsedInstance)
 			}
 

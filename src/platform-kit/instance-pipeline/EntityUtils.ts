@@ -104,26 +104,6 @@ export class EntityUtils {
 		}
 	}
 
-	// visibleForTesting
-	static isDefaultValue(type: ValueTypeEnum, value: unknown): boolean {
-		switch (type) {
-			case ValueTypeEnum.String:
-				return value === ""
-			case ValueTypeEnum.CompressedString:
-				return value === ""
-			case ValueTypeEnum.Number:
-				return value === "0"
-			case ValueTypeEnum.Bytes:
-				return (value as Uint8Array).length === 0
-			case ValueTypeEnum.Date:
-				return (value as Date).getTime() === 0
-			case ValueTypeEnum.Boolean:
-				return value === false
-			default:
-				throw new ProgrammingError(`${type} is not a value type with a defined default`)
-		}
-	}
-
 	static typeModelToRestPath(typeModel: TypeModel): string {
 		return `/rest/${typeModel.app}/${typeModel.name.toLowerCase()}`
 	}
