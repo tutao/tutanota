@@ -21,7 +21,8 @@ export const _expectedBuiltInsArePresent =
 	typeof Promise.prototype.finally !== "undefined" &&
 	typeof String.prototype.replaceAll === "function" &&
 	typeof BigInt !== "undefined" &&
-	typeof structuredClone === "function"
+	typeof structuredClone === "function" &&
+	typeof Intl.DurationFormat !== "undefined"
 
 export function _cssQuerySelectorIsSupported(): boolean {
 	try {

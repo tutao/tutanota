@@ -2494,3 +2494,4 @@ export type TranslationKeyType =
 	| "importFileFailuresError_msg"
 	| "fromAfterToError_msg"
 	| "emptyString_msg"
+	| "transferTimeRemaining_msg"
