@@ -85,6 +85,7 @@ export interface SelectAttributes<U extends SelectOption<T>, T> {
 	 * {@link https://webaim.org/techniques/keyboard/tabindex#overview webaim.org - Tabindex Overview}
 	 */
 	tabIndex?: number
+	onclick?: () => void
 	onclose?: () => void
 	oncreate?: (...args: any[]) => unknown
 	dropdownPosition?: "top" | "bottom"
@@ -99,7 +100,8 @@ export interface SelectState {
 }
 
 /**
- * Select component
+ * Very flexible Select/Dropdown component
+ *
  * @see Component attributes: {@link SelectAttributes}
  * @example
  *
@@ -128,6 +130,7 @@ export interface SelectState {
  */
 export class Select<U extends SelectOption<T>, T> implements ClassComponent<SelectAttributes<U, T>> {
 	private dropdownContainer: OptionListContainer | null = null
+	private triggerDomElement: HTMLElement | null = null
 	private key: number = 0
 
 	view({
@@ -150,6 +153,7 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 			oncreate,
 			dropdownPosition,
 			responsive,
+			onclick,
 		},
 	}: Vnode<SelectAttributes<U, T>, this>) {
 		return m(
@@ -169,6 +173,7 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 							oncreate?.(vnode)
 
 							const dom = vnode.dom
+							this.triggerDomElement = dom as HTMLElement
 							dom.addEventListener("focusout", (e: FocusEvent) => this.handleSelectFocusOut(dom as HTMLElement, e))
 						},
 						onremove: ({ dom }: VnodeDOM<HTMLElement>) => {
@@ -188,6 +193,7 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 								)
 								m.redraw.sync()
 							}
+							onclick?.()
 						},
 						role: AriaRole.Combobox,
 						ariaLabel,
@@ -217,9 +223,15 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 	}
 
 	private handleSelectFocusOut = (dom: HTMLElement, e: FocusEvent) => {
+		console.trace("[Select]", "Losing focus")
+
 		if (this.dropdownContainer?.dom != null && this.dropdownContainer.isOpen) {
+			console.trace("[Select]", "Target:", { target: e.relatedTarget as HTMLElement })
 			const isInsideSelect = dom.contains(e.relatedTarget as HTMLElement) || this.dropdownContainer.dom.contains(e.relatedTarget as HTMLElement)
-			if (!isInsideSelect) this.dropdownContainer.onClose()
+			if (!isInsideSelect) {
+				console.trace("[Select]", "Interacting with outside element")
+				this.dropdownContainer.onClose()
+			}
 		}
 	}
 
@@ -258,6 +270,7 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 		dropdownPosition?: "top" | "bottom",
 	) {
 		const optionListContainer: OptionListContainer = new OptionListContainer(
+			this.triggerDomElement!,
 			options,
 			(option: U) => {
 				return m.fragment(
@@ -272,6 +285,7 @@ export class Select<U extends SelectOption<T>, T> implements ClassComponent<Sele
 		)
 
 		optionListContainer.onClose = () => {
+			console.trace("[OptionListContainer]", "Closing")
 			this.dropdownContainer = null
 			onClose?.()
 		}
@@ -346,8 +360,11 @@ class OptionListContainer implements ClassComponent {
 
 	private domDropdown: HTMLElement | null = null
 	private domDropdownContents: HTMLElement | null = null
+
 	private maxHeight: number | null = null
+
 	private children: Children[] = []
+
 	private isDropdownOpen = false
 	private isInitialFocusTriggered = false
 	private oldShortcut = keyManager.getShortcutForKey(Keys.ESC)
@@ -360,6 +377,7 @@ class OptionListContainer implements ClassComponent {
 	]
 
 	constructor(
+		private readonly selectTriggerDomElement: HTMLElement,
 		private readonly items: Stream<Array<unknown>>,
 		private readonly buildFunction: (option: unknown) => Children,
 		dropdownPosition?: "top" | "bottom",
@@ -373,6 +391,7 @@ class OptionListContainer implements ClassComponent {
 					text: lang.get("close_alt"),
 					class: "hidden-until-focus content-accent-fg button-content tutaui-select-close",
 					onclick: () => this.onClose(),
+					tabindex: TabIndex.Default,
 				}),
 			)
 		})
@@ -530,11 +549,17 @@ class OptionListContainer implements ClassComponent {
 
 	private handleMouseClick = (e: MouseEvent) => {
 		const dropdownContainsTarget = this.domDropdown?.contains(e.target as HTMLElement)
+
 		if (e.target === this.domDropdown || dropdownContainsTarget) {
 			// By default, when an element is clicked, the browser sets focus on that element or its children.
 			// Calling preventDefault() stops this default behavior (and any other default actions triggered by the click).
 			// In this case, it prevents the 'focusin' event from firing when clicking an option inside the select element.
 			e.preventDefault()
+		}
+
+		const isTargetPartOfSelectComponentChildren = this.selectTriggerDomElement.contains(e.target as HTMLElement)
+		if (isTargetPartOfSelectComponentChildren) {
+			return
 		}
 
 		if (!dropdownContainsTarget) {

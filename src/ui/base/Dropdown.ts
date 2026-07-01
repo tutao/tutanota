@@ -34,6 +34,8 @@ export interface DropdownButtonAttrs {
 	label: MaybeTranslation
 	/** visible text inside button */
 	text?: MaybeTranslation
+	/** Small text on top of line */
+	secondaryText?: MaybeTranslation
 	icon?: AllIcons
 	click?: ClickHandler
 	drop?: (event: DragEvent) => unknown
