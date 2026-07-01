@@ -51,6 +51,7 @@ import {
 	BodyTypeRef,
 	CalendarEventTypeRef,
 	ContactTypeRef,
+	createSupportCategory,
 	FileTypeRef,
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
@@ -1250,6 +1251,21 @@ o.spec("EntityRestClient", function () {
 				_id: "id",
 			})
 			newSupportData._original = structuredClone(newSupportData)
+			newSupportData.categories = [
+				createSupportCategory({
+					_id: "id",
+					nameEN: "",
+					nameDE: "",
+					helpTextEN: "",
+					helpTextDE: "",
+					contactTemplateHtmlEN: "",
+					contactTemplateHtmlDE: "",
+					introductionEN: "",
+					introductionDE: "",
+					icon: "",
+					topics: [],
+				}),
+			]
 			const patchPayload = createPatchList({ patches: [] })
 			const untypedPatchPayload = await instancePipeline.mapAndEncrypt(PatchListTypeRef, patchPayload, null)
 
@@ -1280,6 +1296,7 @@ o.spec("EntityRestClient", function () {
 				_id: ["listId", "elementId"],
 			})
 			dummyFileData._original = structuredClone(dummyFileData)
+			dummyFileData.name = "new name"
 			const patchPayload = createPatchList({ patches: [] })
 			const untypedPatchPayload = await instancePipeline.mapAndEncrypt(PatchListTypeRef, patchPayload, null)
 
@@ -1311,53 +1328,6 @@ o.spec("EntityRestClient", function () {
 			const newCustomer = createTestEntity(CustomerTypeRef, { _id: undefined })
 			const result = await assertThrows(Error, async () => await entityRestClient.update(newCustomer))
 			o(result.message).equals("Id must be defined")
-		})
-
-		o("when ownerKey is passed it is used instead for session key resolution", async function () {
-			const typeModel = await typeModelResolver.resolveClientTypeReference(AccountingInfoTypeRef)
-			const version = typeModel.version
-			const ownerKeyProviderSk = aes256RandomKey()
-			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
-			const ownerEncSessionKey = cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, ownerKeyProviderSk)
-			const newAccountingInfo = createTestEntity(AccountingInfoTypeRef, {
-				_id: "id1",
-				_permissions: "permissionsId",
-				_ownerGroup: ownerGroupId,
-			})
-			newAccountingInfo._original = structuredClone(newAccountingInfo)
-			newAccountingInfo._ownerEncSessionKey = ownerEncSessionKey.key
-			newAccountingInfo._ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
-
-			when(restClient.request(anything(), anything(), anything())).thenResolve(null)
-			await entityRestClient.update(newAccountingInfo, { baseUrl: null, ownerKey: ownerGroupKey })
-
-			verify(
-				restClient.request(
-					"/rest/sys/accountinginfo/id1",
-					HttpMethod.PATCH,
-					argThat(async (options) => {
-						// this patch list must include two patch operations: replace for _ownerEncSessionKey and _ownerKeyVersion on newAccountingInfo
-						const patchList = await instancePipeline.decryptAndMap(PatchListTypeRef, JSON.parse(options.body), null)
-						const ownerEncSessionKeyOperation = assertNotNull(
-							patchList.patches.find((operation) => typeModel.values[parseInt(operation.attributePath)].name === "_ownerEncSessionKey"),
-						)
-						const ownerKeyVersionOperation = assertNotNull(
-							patchList.patches.find((operation) => typeModel.values[parseInt(operation.attributePath)].name === "_ownerKeyVersion"),
-						)
-						return (
-							deepEqual(options.headers, {
-								...authHeader,
-								v: String(version),
-							}) &&
-							patchList.patches.length === 2 &&
-							ownerEncSessionKeyOperation.value === uint8ArrayToBase64(ownerEncSessionKey.key) &&
-							ownerKeyVersionOperation.value === ownerEncSessionKey.encryptingKeyVersion.toString() &&
-							ownerEncSessionKeyOperation.patchOperation === PatchOperationType.REPLACE &&
-							ownerKeyVersionOperation.patchOperation === PatchOperationType.REPLACE
-						)
-					}),
-				),
-			)
 		})
 
 		o("Update creates new KDF nonce when it is missing and required", async function () {

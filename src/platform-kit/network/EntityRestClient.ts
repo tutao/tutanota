@@ -2,7 +2,7 @@ import { type RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType, RestTextBody } from "../rest-client/types"
 import { AttributeModel, elementIdPart, expandId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT, Type, TypeRef } from "../meta"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { assertNotNull, Category, downcast, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, syncMetrics } from "@tutao/utils"
+import { assertNotNull, Category, downcast, isNotEmpty, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, syncMetrics } from "@tutao/utils"
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
 import { SetupMultipleError } from "./error/SetupMultipleError"
 import { BlobAccessTokenFacade } from "./BlobAccessTokenFacade.js"
@@ -507,16 +507,18 @@ export class EntityRestClient implements EntityRestInterface {
 			typeReferenceResolver,
 			env.networkDebugging,
 		)
-		// PatchList has no encrypted fields (sk == null)
-		const patchPayload = await this.instancePipeline.mapAndEncrypt(PatchListTypeRef, patchList, null)
-		await this.restClient.request(path, HttpMethod.PATCH, {
-			...DEFAULT_REST_CLIENT_OPTIONS,
-			baseUrl: options?.baseUrl ?? null,
-			queryParams,
-			headers,
-			body: new RestTextBody(JSON.stringify(patchPayload)),
-			responseType: MediaType.Json,
-		})
+		if (isNotEmpty(patchList.patches)) {
+			// PatchList has no encrypted fields (sk == null)
+			const patchPayload = await this.instancePipeline.mapAndEncrypt(PatchListTypeRef, patchList, null)
+			await this.restClient.request(path, HttpMethod.PATCH, {
+				...DEFAULT_REST_CLIENT_OPTIONS,
+				baseUrl: options?.baseUrl ?? null,
+				queryParams,
+				headers,
+				body: new RestTextBody(JSON.stringify(patchPayload)),
+				responseType: MediaType.Json,
+			})
+		}
 	}
 
 	private async getSubKeyInfoOnSetup<T extends SomeEntity>(
