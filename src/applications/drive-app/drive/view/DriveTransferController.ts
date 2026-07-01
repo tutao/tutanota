@@ -21,6 +21,7 @@ export interface DriveTransferState {
 	state: "finished" | "failed" | "active" | "waiting"
 	transferredSize: number // bytes
 	totalSize: number // bytes
+	speed: number // bytes per second
 }
 
 type QueuedTransfer =
@@ -30,6 +31,9 @@ type QueuedTransfer =
 			file: DriveFile
 			type: "download"
 			transferredSize: number // bytes
+			startTime: number
+			chunkTransferTime: number
+			speed: number
 			filename: string
 			intent: "download" | "open"
 	  }
@@ -39,6 +43,9 @@ type QueuedTransfer =
 			file: WebFile | FileReference
 			type: "upload"
 			transferredSize: number // bytes
+			startTime: number
+			chunkTransferTime: number
+			speed: number
 			filename: string
 			targetFolderId: IdTuple
 	  }
@@ -80,6 +87,9 @@ export class DriveTransferController {
 			filename,
 			type: "upload",
 			transferredSize: 0,
+			startTime: 0,
+			chunkTransferTime: 0,
+			speed: 0,
 			targetFolderId,
 		})
 		this.drainQueue("upload")
@@ -150,6 +160,7 @@ export class DriveTransferController {
 
 	private startUpload(transfer: QueuedTransfer) {
 		transfer.state = "active"
+		transfer.startTime = new Date().getTime()
 		this.updateUi()
 	}
 
@@ -157,6 +168,8 @@ export class DriveTransferController {
 		const stateForThisFile = this.transferForId(transferId)
 		if (stateForThisFile) {
 			stateForThisFile.transferredSize = uploadedBytesSoFar
+			stateForThisFile.chunkTransferTime = new Date().getTime()
+			stateForThisFile.speed = uploadedBytesSoFar / ((stateForThisFile.chunkTransferTime - stateForThisFile.startTime) / 1000)
 		} else {
 			console.debug(`${transferId} is not part of the state. This can be due to an upload being canceled`)
 		}
@@ -201,6 +214,9 @@ export class DriveTransferController {
 			file: file,
 			type: "download",
 			transferredSize: 0,
+			startTime: 0,
+			chunkTransferTime: 0,
+			speed: 0,
 			filename: file.name,
 			intent: intent,
 		})
@@ -211,6 +227,7 @@ export class DriveTransferController {
 		const stateForThisFile = this.transferForId(fileId)
 		if (stateForThisFile) {
 			stateForThisFile.state = "active"
+			stateForThisFile.startTime = new Date().getTime()
 			this.updateUi()
 		}
 	}
@@ -219,6 +236,8 @@ export class DriveTransferController {
 		const fileState = this.transferForId(transferId)
 		if (fileState != null) {
 			fileState.transferredSize = completedBytes
+			fileState.chunkTransferTime = new Date().getTime()
+			fileState.speed = completedBytes / ((fileState.chunkTransferTime - fileState.startTime) / 1000)
 			this.updateUi()
 		}
 	}
@@ -268,5 +287,6 @@ function queuedTransferToState(transfer: QueuedTransfer): DriveTransferState {
 		filename: transfer.filename,
 		totalSize: transferSize(transfer),
 		transferredSize: transfer.transferredSize,
+		speed: transfer.speed,
 	}
 }

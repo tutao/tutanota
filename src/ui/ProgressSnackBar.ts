@@ -18,6 +18,7 @@ export interface ProgressSnackBarAttrs {
 	runningIcon?: () => Children
 	progressState: ProgressState
 	percentage: number
+
 	onCancel: () => unknown
 }
 

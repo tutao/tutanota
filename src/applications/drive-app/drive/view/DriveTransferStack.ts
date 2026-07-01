@@ -34,6 +34,8 @@ if (typeof CSS.registerProperty === "function") {
 interface TransferStackStatus {
 	progressState: ProgressState
 	percentage: number
+	speed?: number
+	timeRemaining?: number
 	mainText: Translation
 	infoText?: Translation
 }
@@ -74,7 +76,29 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 		const percentagesSum = currentTransfers.reduce((acc, cur) => (cur.transferredSize / cur.totalSize) * 100 + acc, 0)
 		const percentage = Math.min(Math.round(percentagesSum / currentTransfers.length), 100)
 
-		return { progressState, percentage, mainText, infoText }
+		const speed = currentTransfers.some((t) => t.state === "active") ? this.averageTransferSpeed(currentTransfers.filter((t) => t.state === "active")) : 0
+		const currentBatchTotalSize = currentTransfers.reduce((acc, curr) => curr.totalSize + acc, 0)
+		const currentBatchTransferredSize = currentTransfers.reduce((acc, curr) => curr.transferredSize + acc, 0)
+
+		const timeRemaining = speed !== 0 ? (currentBatchTotalSize - currentBatchTransferredSize) / speed : 0
+
+		return { progressState, percentage, speed, timeRemaining, mainText, infoText }
+	}
+	//calculates the average transfer speed if there are two active transfers at the same time (one download and one upload)
+	averageTransferSpeed(transfers: DriveTransferState[]): number {
+		const speed = transfers.reduce((acc, curr) => curr.speed + acc, 0) / transfers.length
+		return speed
+	}
+	// returns time in "1h 2m 3s" format
+	remainingTimeFormation(totalSeconds: number): string {
+		const totalTime: string[] = []
+		const hours = Math.round(totalSeconds / 3600)
+		const minutes = Math.round((totalSeconds % 3600) / 60)
+		const seconds = Math.round(totalSeconds % 60)
+		if (hours) totalTime.push(hours + "h")
+		if (minutes) totalTime.push(minutes + "m")
+		if (seconds || totalTime.length === 0) totalTime.push(seconds + "s")
+		return totalTime.join(" ")
 	}
 
 	// Sort transfers shown in the stack in an intuitive order.
@@ -101,7 +125,7 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 		const stackStatus = this.getStackStatus(driveTransfers)
 
 		const sortedTransfers = allTransfers.toSorted(this.compareTransfers)
-		const transferSnackBars = sortedTransfers.map((transferState, index) => {
+		const transferSnackBars = sortedTransfers.map((transferState) => {
 			return m(ProgressSnackBar, {
 				key: transferState.id,
 				mainText: transferState.filename,
@@ -135,6 +159,10 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 								lang.getTranslationText(stackStatus.mainText),
 							),
 							stackStatus.infoText ? m(".small", { "data-testid": lang.getTestId(stackStatus.infoText) }, stackStatus.infoText.text) : null,
+							m(".flex.row.gap-8", [
+								stackStatus.speed ? m(".small", (stackStatus.speed / 1024 / 1024).toFixed(2).toString() + " MB/s") : null,
+								stackStatus.timeRemaining ? m(".small", this.remainingTimeFormation(stackStatus.timeRemaining)) : null,
+							]),
 						]),
 					]),
 					m(IconButton, {
