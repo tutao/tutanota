@@ -2419,3 +2419,4 @@ export type TranslationKeyType =
 	| "migrationConfigInfoGmail_msg"
 	| "migrationInProgressInfoGmail_msg"
 	| "emptyString_msg"
+	| "transferTimeRemaining_msg"
