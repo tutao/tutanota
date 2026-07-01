@@ -122,6 +122,14 @@ export function dateWithWeekdayWoMonth(date: Date): string {
 export function formatMonthShortWithFullYear(date: Date): string {
 	return lang.formats.monthShortWithFullYear.format(date)
 }
+// returns time in "1h 2m 3s" format
+export function formatDurationNarrow(totalSeconds: number): string {
+	const hours = Math.round(totalSeconds / 3600)
+	const minutes = Math.round((totalSeconds % 3600) / 60)
+	const seconds = Math.round(totalSeconds % 60)
+	const time = lang.formats.durationNarrow.format({ hours, minutes, seconds: minutes === 0 ? seconds : undefined })
+	return time
+}
 
 /**
  * Formats the given size in bytes to a better human readable string using B, KB, MB, GB, TB.

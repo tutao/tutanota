@@ -2321,6 +2321,7 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"transferTimeRemaining_msg": "Noch {time}"
 	}
 }
