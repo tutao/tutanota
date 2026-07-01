@@ -1,5 +1,6 @@
-import { Aes256Key, AesKey, InitializationVector } from "../encryption/symmetric/SymmetricCipherUtils.js"
+import { InitializationVector } from "../encryption/symmetric/SymmetricCipherUtils.js"
 import { SYMMETRIC_CIPHER_FACADE } from "./SymmetricCipherFacade"
+import { Aes256Key, AesKey } from "../encryption/symmetric/AesKey"
 
 /**
  * Encrypts bytes with AES128 or AES256 in CBC mode.

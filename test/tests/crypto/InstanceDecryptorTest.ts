@@ -62,18 +62,18 @@ o.spec("InstanceDecryptorTest", () => {
 	o.test("Aes sub-keys get cached", () => {
 		const cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
 		const differentAes256Key = aes256RandomKey()
-		when(symmetricKeyDeriver.deriveSubKeysAesCbcHmac(differentAes256Key)).thenReturn(aes256SubKeys)
+		when(symmetricKeyDeriver.deriveSubKeysAesCbc(differentAes256Key, cipherVersion)).thenReturn(aes256SubKeys)
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(differentAes256Key, null, instanceTypeId)
 		const ciphertext = new Uint8Array()
 		const versionedCiphertext = concat(Uint8Array.of(cipherVersion), initializationVector.bytes, ciphertext, macTag)
 		const firstValueDecryptor = instanceDecryptor.getValueDecryptor(versionedCiphertext, "") as ValueDecryptor
-		verify(symmetricKeyDeriver.deriveSubKeysAesCbcHmac(differentAes256Key), { times: 0 })
+		verify(symmetricKeyDeriver.deriveSubKeysAesCbc(differentAes256Key, matchers.anything()), { times: 0 })
 		firstValueDecryptor.getValue(differentAes256Key)
-		verify(symmetricKeyDeriver.deriveSubKeysAesCbcHmac(differentAes256Key), { times: 1 })
+		verify(symmetricKeyDeriver.deriveSubKeysAesCbc(differentAes256Key, cipherVersion), { times: 1 })
 		o.check(instanceDecryptor["instanceAesSubKeyCache"].get({ cipherVersion: cipherVersion, aesKey: differentAes256Key })).equals(aes256SubKeys)
 		const secondValueDecryptor = instanceDecryptor.getValueDecryptor(versionedCiphertext, "") as ValueDecryptor
 		secondValueDecryptor.getValue(differentAes256Key)
-		verify(symmetricKeyDeriver.deriveSubKeysAesCbcHmac(differentAes256Key), { times: 1 })
+		verify(symmetricKeyDeriver.deriveSubKeysAesCbc(differentAes256Key, cipherVersion), { times: 1 })
 	})
 
 	o.test("Aead sub-keys get cached", () => {

@@ -19,26 +19,20 @@ export enum InitializationVectorVariant {
 abstract class ParsedCiphertext {
 	public abstract readonly cipherVersion: SymmetricCipherVersion
 
-	constructor(
+	protected constructor(
 		public readonly initializationVector: InitializationVector,
 		public readonly ciphertext: Uint8Array,
 	) {}
 }
 
 export abstract class ParsedCiphertextAesCbc extends ParsedCiphertext {
-	constructor(
-		initializationVector: InitializationVector,
-		ciphertext: Uint8Array,
-		public readonly initializationVectorVariant: InitializationVectorVariant,
-	) {
+	protected constructor(initializationVector: InitializationVector, ciphertext: Uint8Array) {
 		super(initializationVector, ciphertext)
 	}
 }
 
 export abstract class ParsedCiphertextAead extends ParsedCiphertext {
-	cipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
-
-	constructor(
+	protected constructor(
 		initializationVector: InitializationVector,
 		ciphertext: Uint8Array,
 		public readonly macTag: MacTag,
@@ -48,27 +42,26 @@ export abstract class ParsedCiphertextAead extends ParsedCiphertext {
 }
 
 export class ParsedCiphertextUnusedReservedUnauthenticated extends ParsedCiphertextAesCbc {
-	cipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
+	public override readonly cipherVersion: typeof SymmetricCipherVersion.UnusedReservedUnauthenticated = SymmetricCipherVersion.UnusedReservedUnauthenticated
 
-	constructor(initializationVector: InitializationVector, ciphertext: Uint8Array, initializationVectorVariant: InitializationVectorVariant) {
-		super(initializationVector, ciphertext, initializationVectorVariant)
+	constructor(initializationVector: InitializationVector, ciphertext: Uint8Array) {
+		super(initializationVector, ciphertext)
 	}
 }
 
 export class ParsedCiphertextAesCbcThenHmac extends ParsedCiphertextAesCbc {
-	cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
+	public override readonly cipherVersion: typeof SymmetricCipherVersion.AesCbcThenHmac = SymmetricCipherVersion.AesCbcThenHmac
 	constructor(
 		initializationVector: InitializationVector,
 		ciphertext: Uint8Array,
 		public readonly macTag: MacTag,
-		initializationVectorVariant: InitializationVectorVariant,
 	) {
-		super(initializationVector, ciphertext, initializationVectorVariant)
+		super(initializationVector, ciphertext)
 	}
 }
 
 export class ParsedCiphertextAeadWithGroupKey extends ParsedCiphertextAead {
-	cipherVersion = SymmetricCipherVersion.AeadWithGroupKey
+	public override readonly cipherVersion: typeof SymmetricCipherVersion.AeadWithGroupKey = SymmetricCipherVersion.AeadWithGroupKey
 	constructor(
 		public readonly groupKeyVersion: KeyVersion,
 		initializationVector: InitializationVector,
@@ -80,7 +73,7 @@ export class ParsedCiphertextAeadWithGroupKey extends ParsedCiphertextAead {
 }
 
 export class ParsedCiphertextAeadWithSessionKey extends ParsedCiphertextAead {
-	cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
+	public override readonly cipherVersion: typeof SymmetricCipherVersion.AeadWithSessionKey = SymmetricCipherVersion.AeadWithSessionKey
 	constructor(initializationVector: InitializationVector, ciphertext: Uint8Array, macTag: MacTag) {
 		super(initializationVector, ciphertext, macTag)
 	}
@@ -147,7 +140,7 @@ export function parseVersionedCiphertext(
 
 	switch (cipherVersion) {
 		case SymmetricCipherVersion.AesCbcThenHmac:
-			return new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertext, macTag, initializationVectorVariant)
+			return new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertext, macTag)
 		case SymmetricCipherVersion.AeadWithGroupKey:
 			return new ParsedCiphertextAeadWithGroupKey(assertNotNull(groupKeyVersion), initializationVector, ciphertext, macTag)
 		case SymmetricCipherVersion.AeadWithSessionKey:
@@ -165,7 +158,7 @@ function parseVersionedCipherTextUnusedReservedUnauthenticated(
 	} else {
 		initializationVector = FIXED_INITIALIZATION_VECTOR
 	}
-	return new ParsedCiphertextUnusedReservedUnauthenticated(initializationVector, ciphertext, initializationVectorVariant)
+	return new ParsedCiphertextUnusedReservedUnauthenticated(initializationVector, ciphertext)
 }
 
 function extractInitializationVector(ciphertext: Uint8Array): {

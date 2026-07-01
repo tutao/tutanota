@@ -6,10 +6,9 @@ import {
 	InstanceTypeId,
 	KdfNonce,
 	random,
-	SubKeyInfoWithGroupKey,
-	SubKeyInfoWithSessionKey,
-	SubKeyInfoWithoutSessionKey,
-	SymmetricCipherVersion,
+	SubKeyInfoWithGroupKeyAead,
+	SubKeyInfoWithSessionKeyAead,
+	SubKeyInfoWithSessionKeyCbcThenHmac,
 	VersionedKey,
 } from "../../../src/platform-kit/crypto"
 import { matchers, object, replace, verify, when } from "testdouble"
@@ -184,7 +183,7 @@ o.spec("CryptoMapper", () => {
 			const valueType = createEncryptedValueType(ValueType.String, Cardinality.One)
 			const sk = aes256RandomKey()
 			const value = "this is a string value"
-			const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
+			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 			const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(subKeyInfo, object())
 			const encryptedValue = neverNull(cryptoMapper.encryptValue(valueType, value, subKeyProvider, ""))
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
@@ -194,7 +193,7 @@ o.spec("CryptoMapper", () => {
 			const valueType = createEncryptedValueType(ValueType.Boolean, Cardinality.One)
 			const sk = aes256RandomKey()
 			let value = false
-			const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
+			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 			const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(subKeyInfo, object())
 			let encryptedValue = neverNull(cryptoMapper.encryptValue(valueType, value, subKeyProvider, ""))
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
@@ -207,7 +206,7 @@ o.spec("CryptoMapper", () => {
 			const valueType = createEncryptedValueType(ValueType.Date, Cardinality.One)
 			const sk = aes256RandomKey()
 			const value = new Date()
-			const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
+			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 			const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(subKeyInfo, object())
 			const encryptedValue = neverNull(cryptoMapper.encryptValue(valueType, value, subKeyProvider, ""))
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
@@ -217,7 +216,7 @@ o.spec("CryptoMapper", () => {
 			const valueType = createEncryptedValueType(ValueType.Bytes, Cardinality.One)
 			const sk = aes256RandomKey()
 			const value = random.generateRandomData(5)
-			const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
+			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 			const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(subKeyInfo, object())
 			const encryptedValue = neverNull(cryptoMapper.encryptValue(valueType, value, subKeyProvider, ""))
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
@@ -226,7 +225,7 @@ o.spec("CryptoMapper", () => {
 		})
 		o.test("do not encrypt null values", () => {
 			const sk = aes256RandomKey()
-			const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
+			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 			const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(subKeyInfo, object())
 			o.check(cryptoMapper.encryptValue(createEncryptedValueType(ValueType.String, Cardinality.ZeroOrOne), null, subKeyProvider, "")).equals(null)
 			o.check(cryptoMapper.encryptValue(createEncryptedValueType(ValueType.Date, Cardinality.ZeroOrOne), null, subKeyProvider, "")).equals(null)
@@ -238,7 +237,7 @@ o.spec("CryptoMapper", () => {
 			const valueType = createEncryptedValueType(ValueType.Bytes, Cardinality.One)
 			const sessionKey = aes256RandomKey()
 			const value = random.generateRandomData(5)
-			const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AeadWithSessionKey, sessionKey)
+			const subKeyInfo = new SubKeyInfoWithSessionKeyAead(sessionKey)
 			const clientTypeModel: ClientTypeModel = object()
 			clientTypeModel.app = AppNameEnum.Tutanota
 			clientTypeModel.id = 17
@@ -259,7 +258,7 @@ o.spec("CryptoMapper", () => {
 			const value = random.generateRandomData(5)
 			const groupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
 			const kdfNonce: KdfNonce = generateKdfNonce()
-			const subKeyInfo = new SubKeyInfoWithGroupKey(SymmetricCipherVersion.AeadWithGroupKey, groupKey, kdfNonce)
+			const subKeyInfo = new SubKeyInfoWithGroupKeyAead(groupKey, kdfNonce)
 			const clientTypeModel: ClientTypeModel = object()
 			clientTypeModel.app = AppNameEnum.Tutanota
 			clientTypeModel.id = 29
@@ -310,7 +309,7 @@ o.spec("CryptoMapper", () => {
 			3: [{ 2: "123", 6: "aggregateId", 9: [], 10: [] }],
 			4: ["associatedElementId"],
 		} as unknown as ClientModelParsedInstance
-		const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
+		const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 		const encryptedInstance = await cryptoMapper.encryptParsedInstance(testTypeModel as ClientTypeModel, parsedInstance, subKeyInfo)
 
 		const encryptedBytes = base64ToUint8Array(encryptedInstance[1] as string)
@@ -345,8 +344,7 @@ o.spec("CryptoMapper", () => {
 			3: [{ 2: "123", 9: [], 10: [] }],
 			4: ["associatedElementId"],
 		} as unknown as ClientModelParsedInstance
-		const subKeyInfo = new SubKeyInfoWithoutSessionKey(SymmetricCipherVersion.AesCbcThenHmac)
-		await assertThrows(CryptoError, () => cryptoMapper.encryptParsedInstance(testTypeModel as ClientTypeModel, parsedInstance, subKeyInfo))
+		await assertThrows(CryptoError, () => cryptoMapper.encryptParsedInstance(testTypeModel as ClientTypeModel, parsedInstance, null))
 	})
 
 	o.test("decrypting default values works correctly", async () => {
@@ -472,7 +470,7 @@ o.spec("CryptoMapper", () => {
 			],
 			4: ["associatedElementId"],
 		} as unknown as ClientModelParsedInstance
-		const subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AeadWithSessionKey, sessionKey)
+		const subKeyInfo = new SubKeyInfoWithSessionKeyAead(sessionKey)
 		await cryptoMapper.encryptParsedInstance(testTypeModel as ClientTypeModel, parsedInstance, subKeyInfo)
 		o.check(
 			encryptBytesWithAead.invocations.some((invocationParameters) =>

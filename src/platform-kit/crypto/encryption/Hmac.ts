@@ -1,6 +1,7 @@
 import sjcl from "../internal/sjcl.js"
 import { CryptoError } from "@tutao/crypto/error"
-import { AesKey, bitArrayToUint8Array, keyToUint8Array, uint8ArrayToBitArray } from "./symmetric/SymmetricCipherUtils.js"
+import { bitArrayToUint8Array, keyToUint8Array, uint8ArrayToBitArray } from "./symmetric/SymmetricCipherUtils.js"
+import { AesKey } from "./symmetric/AesKey"
 
 export type MacTag = Uint8Array & { readonly __brand: "macTag" }
 
@@ -27,10 +28,13 @@ export function verifyHmacSha256(key: AesKey, data: Uint8Array, tag: MacTag) {
  * Create an HMAC-SHA-256 tag over the given data using the given key.
  */
 export async function hmacSha256Async(key: AesKey, data: Uint8Array): Promise<MacTag> {
-	const keyLength = key.keyLength
-	const subtleAuthenticationKey = await crypto.subtle.importKey("raw", keyToUint8Array(key), { name: "HMAC", hash: "SHA-256", length: keyLength }, false, [
-		"sign",
-	])
+	const subtleAuthenticationKey = await crypto.subtle.importKey(
+		"raw",
+		keyToUint8Array(key),
+		{ name: "HMAC", hash: "SHA-256", length: key.keyLength },
+		false,
+		["sign"],
+	)
 	return new Uint8Array(await crypto.subtle.sign("HMAC", subtleAuthenticationKey, data)) as MacTag
 }
 

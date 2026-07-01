@@ -4,7 +4,6 @@ import { base64ToHex, base64ToUint8Array, concat, hexToUint8Array, int8ArrayToBa
 import { RsaPrivateKey, RsaPublicKey } from "./RsaKeyPair.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { sha256Hash } from "../hashes/Sha256.js"
-import { KeyPairType } from "./AsymmetricKeyPair.js"
 
 const RSA_KEY_LENGTH_BITS = 2048
 const RSA_PUBLIC_EXPONENT = 65537
@@ -329,13 +328,7 @@ function _privateKeyToArray(privateKey: RsaPrivateKey): BigInteger[] {
 }
 
 function _arrayToPublicKey(publicKey: BigInteger[]): RsaPublicKey {
-	return {
-		keyPairType: KeyPairType.RSA,
-		version: 0,
-		keyLength: RSA_KEY_LENGTH_BITS,
-		modulus: int8ArrayToBase64(new Int8Array(publicKey[0].toByteArray())),
-		publicExponent: RSA_PUBLIC_EXPONENT,
-	}
+	return new RsaPublicKey(0, RSA_KEY_LENGTH_BITS, int8ArrayToBase64(new Int8Array(publicKey[0].toByteArray())), RSA_PUBLIC_EXPONENT)
 }
 
 function _arrayToPrivateKey(privateKey: BigInteger[]): RsaPrivateKey {

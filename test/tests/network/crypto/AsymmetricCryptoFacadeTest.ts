@@ -91,14 +91,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		o("should return TUTACRYPT_AUTHENTICATION_SUCCEEDED if the key matches", async function () {
 			const versionedRsaEccPublicKey: Versioned<RsaX25519PublicKey> = {
 				version: 0,
-				object: {
-					keyLength: 0,
-					modulus: "",
-					publicExponent: 0,
-					version: 0,
-					keyPairType: KeyPairType.RSA_AND_X25519,
-					publicEccKey: senderIdentityPubKey,
-				},
+				object: new RsaX25519PublicKey(RSA_TEST_KEYPAIR.publicKey, senderIdentityPubKey),
 			}
 			const loadedPublicKey: VerifiedPublicEncryptionKey = {
 				publicEncryptionKey: versionedRsaEccPublicKey,
@@ -124,13 +117,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		o("should return TUTACRYPT_AUTHENTICATION_FAILED if sender does not have an ecc identity key in the requested version", async function () {
 			const versionedRsaPublicKey: Versioned<RsaPublicKey> = {
 				version: 0,
-				object: {
-					keyPairType: KeyPairType.RSA,
-					keyLength: 0,
-					modulus: "",
-					publicExponent: 0,
-					version: 0,
-				},
+				object: RSA_TEST_KEYPAIR.publicKey,
 			}
 			const loadedPublicKey: VerifiedPublicEncryptionKey = {
 				publicEncryptionKey: versionedRsaPublicKey,
@@ -156,14 +143,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		o("should return TUTACRYPT_AUTHENTICATION_FAILED if the key does not match", async function () {
 			const versionedRsaEccPublicKey: Versioned<RsaX25519PublicKey> = {
 				version: 0,
-				object: {
-					keyLength: 0,
-					modulus: "",
-					publicExponent: 0,
-					version: 0,
-					keyPairType: KeyPairType.RSA_AND_X25519,
-					publicEccKey: new Uint8Array([4, 5, 6]),
-				},
+				object: new RsaX25519PublicKey(RSA_TEST_KEYPAIR.publicKey, new Uint8Array([4, 5, 6])),
 			}
 			const loadedPublicKey: VerifiedPublicEncryptionKey = {
 				publicEncryptionKey: versionedRsaEccPublicKey,
@@ -207,14 +187,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			})
 			const versionedRsaEccPublicKey: Versioned<RsaX25519PublicKey> = {
 				version: 0,
-				object: {
-					keyLength: 0,
-					modulus: "",
-					publicExponent: 0,
-					version: 0,
-					keyPairType: KeyPairType.RSA_AND_X25519,
-					publicEccKey: new Uint8Array([4, 5, 6]),
-				},
+				object: new RsaX25519PublicKey(RSA_TEST_KEYPAIR.publicKey, new Uint8Array([4, 5, 6])),
 			}
 			const loadedPublicKey: VerifiedPublicEncryptionKey = {
 				publicEncryptionKey: versionedRsaEccPublicKey,
@@ -330,7 +303,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			symKey = new Aes128Key([1, 2, 3, 4])
 			pubEncSymKeyBytes = object<Uint8Array>()
 			senderPqKeyPair = {
-				object: { keyPairType: KeyPairType.TUTA_CRYPT, x25519KeyPair: object(), kyberKeyPair: object() },
+				object: new PQKeyPairs(object(), object()),
 				version: senderKeyVersion,
 			}
 			ephemeralKeyPair = object()
@@ -407,7 +380,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		)
 
 		o("should encrypt the sym key with the recipient RSA public key", async function () {
-			const recipientPublicKeys: Versioned<RsaPublicKey> = { object: new RsaPublicKey(0, 0, "", 0), version: recipientKeyVersion }
+			const recipientPublicKeys: Versioned<RsaPublicKey> = { object: RSA_TEST_KEYPAIR.publicKey, version: recipientKeyVersion }
 
 			when(
 				rsa.encrypt(

@@ -4,9 +4,10 @@ import { random } from "../random/Randomizer.js"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
 import { sha256Hash } from "./Sha256.js"
-import { AesKey, uint8ArrayToKey } from "../encryption/symmetric/SymmetricCipherUtils.js"
+import { uint8ArrayToKey } from "../encryption/symmetric/SymmetricCipherUtils.js"
 
 import { KeyLength } from "../CryptoTypes"
+import { AesKey } from "../encryption/symmetric/AesKey"
 
 const logRounds = 8 // pbkdf2 number of iterations
 

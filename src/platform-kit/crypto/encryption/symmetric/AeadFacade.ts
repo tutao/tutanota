@@ -1,13 +1,12 @@
-import { AeadSubKeys, AeadWithGroupKeySubKeys, AeadWithSessionKeySubKeys } from "./SymmetricKeyDeriver.js"
+import { AeadSubKeys, AeadWithGroupKeySubKeys } from "./SymmetricKeyDeriver.js"
 import { concat } from "@tutao/utils"
-import { Aes256Key, bitArrayToUint8Array, generateInitializationVector, keyToUint8Array, uint8ArrayToBitArray } from "./SymmetricCipherUtils.js"
+import { bitArrayToUint8Array, generateInitializationVector, keyToUint8Array, uint8ArrayToBitArray } from "./SymmetricCipherUtils.js"
 import sjcl from "../../internal/sjcl.js"
 import { blake3Mac, blake3MacVerify } from "../../hashes/Blake3.js"
 import { CryptoError } from "../../error.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { ParsedCiphertextAead } from "./ParsedCiphertext"
-import { getVersionByte } from "./SymmetricCipherVersion"
-import { AesKeyLength } from "./AesKeyLength"
+import { SymmetricCipherVersion } from "./SymmetricCipherVersion"
 
 export const PADDING_BLOCK_SIZE: number = 4
 export const PADDING_BYTE: number = 0x80
@@ -63,8 +62,6 @@ export class AeadFacade {
 	 * @private
 	 */
 	encryptInternal(subKeys: AeadSubKeys, plaintext: Uint8Array, associatedData: Uint8Array): Uint8Array {
-		this.validateKeyLength(subKeys)
-
 		const initializationVector = generateInitializationVector()
 		const aesCtrCiphertext = bitArrayToUint8Array(
 			sjcl.mode.ctr.encrypt(
@@ -85,23 +82,24 @@ export class AeadFacade {
 	}
 
 	private ciphertextVersionPrefix(subKeys: AeadSubKeys): Uint8Array {
-		if (subKeys instanceof AeadWithGroupKeySubKeys) {
-			const keyVersionLengthByte = 0
-			if (subKeys.groupKeyVersion == null) {
-				throw new ProgrammingError("AEAD encryption with group key requires a group key version")
+		switch (subKeys.cipherVersion) {
+			case SymmetricCipherVersion.AeadWithGroupKey: {
+				const keyVersionLengthByte = 0
+				if (!(subKeys instanceof AeadWithGroupKeySubKeys)) {
+					throw new ProgrammingError("AEAD encryption with group key requires a group key version")
+				}
+				return Uint8Array.of(subKeys.cipherVersion.valueOf(), keyVersionLengthByte, subKeys.groupKeyVersion)
 			}
-			return Uint8Array.of(getVersionByte(subKeys.cipherVersion), keyVersionLengthByte, subKeys.groupKeyVersion)
-		} else if (subKeys instanceof AeadWithSessionKeySubKeys) {
-			return Uint8Array.of(getVersionByte(subKeys.cipherVersion))
+			case SymmetricCipherVersion.AeadWithSessionKey:
+				return Uint8Array.of(subKeys.cipherVersion.valueOf())
 		}
-		throw new ProgrammingError("invalid sub-keys")
+		throw new ProgrammingError("invalid cipher version")
 	}
 
 	/**
 	 * Decrypt with AEAD.
 	 */
 	decrypt(subKeys: AeadSubKeys, parsedCiphertext: ParsedCiphertextAead, associatedData: Uint8Array): Uint8Array {
-		this.validateKeyLength(subKeys)
 		if (subKeys.cipherVersion !== parsedCiphertext.cipherVersion) {
 			throw new CryptoError("AEAD sub-keys have the wrong cipher version for decryption")
 		}
@@ -121,14 +119,6 @@ export class AeadFacade {
 			),
 		)
 		return this.unpad(paddedPlaintext)
-	}
-
-	private validateKeyLength(key: AeadSubKeys) {
-		let authenticationKeyBitLength = key.authenticationKey.bits.length * 4 * 8
-		let encryptionKeyBitLength = key.encryptionKey.bits.length * 4 * 8
-		if (authenticationKeyBitLength !== AesKeyLength.Aes256 || encryptionKeyBitLength !== AesKeyLength.Aes256) {
-			throw new CryptoError("Illegal key length")
-		}
 	}
 
 	private getSigned32BitIntegerFromNumberAsUint8Array(integer: number): Uint8Array {

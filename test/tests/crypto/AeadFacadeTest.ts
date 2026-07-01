@@ -1,8 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
-import { AeadWithSessionKeySubKeys, Aes256Key, PADDING_BYTE, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
+import { AeadWithSessionKeySubKeys, PADDING_BYTE, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
 import { AeadSubKeys } from "@tutao/crypto/symmetric-key-deriver"
 import { aes256RandomKey, INITIALIZATION_VECTOR_LENGTH_BYTES, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES } from "@tutao/crypto/symmetric-cipher-utils"
-import { _aes128RandomKey } from "./AesTest.js"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
 import { concat } from "../../../src/platform-kit/utils"
 import { DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES } from "@tutao/crypto/blake3"
@@ -26,22 +25,6 @@ o.spec("AeadFacadeTest", function () {
 		const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextAead
 		const decrypted = aeadFacade.decrypt(keys, parsedCiphertext, associatedData)
 		o(plaintext).deepEquals(decrypted)
-	})
-
-	o("encrypt_wrong_key_length", async function () {
-		const subKeys = new AeadWithSessionKeySubKeys(_aes128RandomKey() as any as Aes256Key, keys.authenticationKey)
-		const e = await assertThrows(CryptoError, async () => aeadFacade.encrypt(subKeys, plaintext, associatedData))
-		console.log(">>>>>>>", e.message)
-		o(e.message).equals("Illegal key length")
-	})
-
-	o("decrypt_wrong_key_length", async function () {
-		const subKeys = new AeadWithSessionKeySubKeys(_aes128RandomKey() as any as Aes256Key, keys.authenticationKey)
-		const emptyAd = new Uint8Array()
-		const versionedCiphertext = aeadFacade.encrypt(keys, plaintext, emptyAd)
-		const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextAead
-		const e = await assertThrows(CryptoError, async () => aeadFacade.decrypt(subKeys, parsedCiphertext, associatedData))
-		o(e.message).equals("Illegal key length")
 	})
 
 	o("decrypt_canonicalization_safe", async function () {

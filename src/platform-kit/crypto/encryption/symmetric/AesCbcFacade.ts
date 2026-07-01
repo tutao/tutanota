@@ -1,11 +1,11 @@
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
-import { AesKey, bitArrayToUint8Array, FixedInitializationVector, InitializationVector, keyToUint8Array, uint8ArrayToBitArray } from "./SymmetricCipherUtils"
+import { bitArrayToUint8Array, InitializationVector, keyToUint8Array, uint8ArrayToBitArray } from "./SymmetricCipherUtils"
 import { CryptoError } from "@tutao/crypto/error"
-import { assertNotNull, concat, downcast } from "@tutao/utils"
+import { concat } from "@tutao/utils"
 import sjcl from "../../internal/sjcl"
 import { hmacSha256, verifyHmacSha256, verifyHmacSha256Async } from "../Hmac"
-import { AesCbcThenHmacSubKeys, SymmetricSubKeys, UnusedReservedUnauthenticatedSubKeys } from "./SymmetricKeyDeriver"
-import { AesKeyLength } from "./AesKeyLength"
+import { AesCbcSubKeys, AesCbcThenHmacSubKeys, UnusedReservedUnauthenticatedSubKeys } from "./SymmetricKeyDeriver"
+import { AesKey, AesKeyLength } from "./AesKey"
 import { ProgrammingError } from "@tutao/app-env"
 import { InitializationVectorVariant, ParsedCiphertextAesCbc, ParsedCiphertextAesCbcThenHmac } from "./ParsedCiphertext"
 import { MacTag } from "../../CryptoTypes"
@@ -32,7 +32,7 @@ export class AesCbcFacade {
 	 * This should not be called directly! Use SymmetricCipherFacade instead
 	 */
 	encrypt(
-		subKeys: SymmetricSubKeys,
+		subKeys: AesCbcSubKeys,
 		plainText: Uint8Array,
 		initializationVector: InitializationVector,
 		paddingStandard: PaddingStandard,
@@ -52,7 +52,7 @@ export class AesCbcFacade {
 		)
 
 		let unauthenticatedCiphertext
-		if (initializationVector instanceof FixedInitializationVector) {
+		if (initializationVector.variant === InitializationVectorVariant.Fixed) {
 			unauthenticatedCiphertext = ciphertext
 		} else {
 			//version byte is not included into authentication tag for legacy reasons
@@ -66,9 +66,12 @@ export class AesCbcFacade {
 					throw new CryptoError("unexpected subKey for " + cipherVersion + " " + subKeys.constructor.name)
 				}
 			case SymmetricCipherVersion.AesCbcThenHmac: {
-				const authenticationKey = assertNotNull(subKeys.authenticationKey)
-				const authenticationTag = hmacSha256(authenticationKey, unauthenticatedCiphertext)
-				return concat(symmetricCipherVersionToUint8Array(SymmetricCipherVersion.AesCbcThenHmac), unauthenticatedCiphertext, authenticationTag)
+				if (subKeys instanceof AesCbcThenHmacSubKeys) {
+					const authenticationTag = hmacSha256(subKeys.authenticationKey, unauthenticatedCiphertext)
+					return concat(symmetricCipherVersionToUint8Array(SymmetricCipherVersion.AesCbcThenHmac), unauthenticatedCiphertext, authenticationTag)
+				} else {
+					throw new CryptoError("unexpected subKey for " + cipherVersion + " " + subKeys.constructor.name)
+				}
 			}
 			default:
 				throw new CryptoError("unexpected cipher version " + cipherVersion)
@@ -79,7 +82,7 @@ export class AesCbcFacade {
 	 * This should not be called directly! Use SymmetricCipherFacade instead
 	 */
 	decrypt(
-		subKeys: SymmetricSubKeys,
+		subKeys: AesCbcSubKeys,
 		parsedCiphertext: ParsedCiphertextAesCbc,
 		paddingStandard: PaddingStandard,
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
@@ -102,7 +105,7 @@ export class AesCbcFacade {
 	}
 
 	async decryptAsync(
-		subKeys: SymmetricSubKeys,
+		subKeys: AesCbcSubKeys,
 		parsedCiphertext: ParsedCiphertextAesCbc,
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
 	): Promise<Uint8Array> {
@@ -118,19 +121,18 @@ export class AesCbcFacade {
 	}
 
 	private authenticate<T>(
-		subKeys: SymmetricSubKeys,
+		subKeys: AesCbcSubKeys,
 		parsedCiphertext: ParsedCiphertextAesCbc,
 		authenticationEnforcement: AuthenticationEnforcement,
 		verifyHmac: (key: AesKey, data: Uint8Array, tag: MacTag) => T,
 	): T | null {
 		this.tryToEnforceAuthentication(subKeys, parsedCiphertext.cipherVersion, authenticationEnforcement)
 		if (parsedCiphertext.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac && subKeys.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac) {
+			if (!(parsedCiphertext instanceof ParsedCiphertextAesCbcThenHmac) || !(subKeys instanceof AesCbcThenHmacSubKeys)) {
+				throw new ProgrammingError("mismatched sub-key and ciphertext cipher versions")
+			}
 			const verifiableCiphertext = this.assembleVerifiableCiphertext(parsedCiphertext)
-			return verifyHmac(
-				downcast<AesCbcThenHmacSubKeys>(subKeys).authenticationKey,
-				verifiableCiphertext,
-				downcast<ParsedCiphertextAesCbcThenHmac>(parsedCiphertext).macTag,
-			)
+			return verifyHmac(subKeys.authenticationKey, verifiableCiphertext, parsedCiphertext.macTag)
 		} else if (parsedCiphertext.cipherVersion !== subKeys.cipherVersion) {
 			throw new ProgrammingError("mismatched sub-key and ciphertext cipher versions")
 		}
@@ -138,14 +140,14 @@ export class AesCbcFacade {
 	}
 
 	private assembleVerifiableCiphertext(parsedCiphertext: ParsedCiphertextAesCbc): Uint8Array {
-		if (parsedCiphertext.initializationVectorVariant === InitializationVectorVariant.Random) {
+		if (parsedCiphertext.initializationVector.variant === InitializationVectorVariant.Random) {
 			return concat(parsedCiphertext.initializationVector.bytes, parsedCiphertext.ciphertext)
 		} else {
 			return parsedCiphertext.ciphertext
 		}
 	}
 
-	private tryToEnforceAuthentication(subKeys: SymmetricSubKeys, cipherVersion: SymmetricCipherVersion, authenticationEnforcement: AuthenticationEnforcement) {
+	private tryToEnforceAuthentication(subKeys: AesCbcSubKeys, cipherVersion: SymmetricCipherVersion, authenticationEnforcement: AuthenticationEnforcement) {
 		if (cipherVersion === SymmetricCipherVersion.UnusedReservedUnauthenticated) {
 			// this is an unauthenticated cipher version which we only accept for certain exceptions and legacy encryption versions which are only possible for 128-bit keys
 			if (authenticationEnforcement === AuthenticationEnforcement.Relaxed) {

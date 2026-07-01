@@ -50,11 +50,9 @@ import {
 	AesKey,
 	generateKdfNonce,
 	KdfNonce,
+	makeNullableSubKeyInfoWithSessionKeyCbcThenHmac,
 	SubKeyInfo,
-	SubKeyInfoWithGroupKey,
-	SubKeyInfoWithoutSessionKey,
-	SubKeyInfoWithSessionKey,
-	SymmetricCipherVersion,
+	SubKeyInfoWithGroupKeyAead,
 	SymmetricEncryptionScheme,
 	validateKdfNonceLength,
 	VersionedKey,
@@ -523,14 +521,10 @@ export class EntityRestClient implements EntityRestInterface {
 		ownerKey: VersionedKey | null,
 		instance: T,
 		clientTypeModel: ClientTypeModel,
-	): Promise<SubKeyInfo> {
+	): Promise<Nullable<SubKeyInfo>> {
 		if (this.authDataProvider.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.AesCbc) {
 			const sessionKey: Nullable<AesKey> = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance, ownerKey)
-			if (sessionKey) {
-				return new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sessionKey)
-			} else {
-				return new SubKeyInfoWithoutSessionKey(SymmetricCipherVersion.AesCbcThenHmac)
-			}
+			return makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(sessionKey)
 		} else {
 			if (ownerKey == null) {
 				if (instance._ownerGroup == null) {
@@ -545,21 +539,17 @@ export class EntityRestClient implements EntityRestInterface {
 
 			const kdfNonce: KdfNonce = generateKdfNonce()
 			instance._kdfNonce = kdfNonce
-			return new SubKeyInfoWithGroupKey(SymmetricCipherVersion.AeadWithGroupKey, ownerKey, kdfNonce)
+			return new SubKeyInfoWithGroupKeyAead(ownerKey, kdfNonce)
 		}
 	}
 
-	private async getSubKeyInfoOnUpdate<T extends SomeEntity>(ownerKey: VersionedKey | null, instance: T): Promise<SubKeyInfo> {
+	private async getSubKeyInfoOnUpdate<T extends SomeEntity>(ownerKey: VersionedKey | null, instance: T): Promise<Nullable<SubKeyInfo>> {
 		if (this.authDataProvider.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.AesCbc) {
 			const sessionKey: Nullable<AesKey> = await this.sessionKeyResolver().resolveSessionKeyWithOwnerKey(
 				ownerKey != null ? ownerKey.object : null,
 				instance,
 			)
-			if (sessionKey) {
-				return new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sessionKey)
-			} else {
-				return new SubKeyInfoWithoutSessionKey(SymmetricCipherVersion.AesCbcThenHmac)
-			}
+			return makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(sessionKey)
 		} else {
 			if (!ownerKey) {
 				if (instance._ownerGroup == null) {
@@ -588,7 +578,7 @@ export class EntityRestClient implements EntityRestInterface {
 			} else {
 				kdfNonce = validateKdfNonceLength(instance._kdfNonce)
 			}
-			return new SubKeyInfoWithGroupKey(SymmetricCipherVersion.AeadWithGroupKey, ownerKey, kdfNonce)
+			return new SubKeyInfoWithGroupKeyAead(ownerKey, kdfNonce)
 		}
 	}
 

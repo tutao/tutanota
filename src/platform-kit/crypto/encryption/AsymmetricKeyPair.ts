@@ -9,7 +9,7 @@ export enum KeyPairType {
 }
 
 export abstract class AsymmetricKeyPair {
-	protected constructor(public readonly keyPairType: KeyPairType) {}
+	abstract readonly keyPairType: KeyPairType
 }
 
 export abstract class PublicKey {
