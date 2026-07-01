@@ -175,6 +175,7 @@ export class DesktopAlarmStorage {
 			return []
 		}
 		const alarmNotificationTypeModel = await this.alarmStorageInstancePipeline.typeModelResolver.resolveServerTypeReference(AlarmNotificationTypeRef)
+		//FIXME parsing error on accounts with event alarms
 		const incomingJsons = IncomingServerJson.expectMultipleInstance(rawAlarms, alarmNotificationTypeModel)
 		return await Promise.all(incomingJsons.map((json) => this.alarmStorageInstancePipeline.typeMapper.parseServerJson(json)))
 	}
