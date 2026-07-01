@@ -12,6 +12,7 @@ import {
 import { EventTextTimeOption, ProgrammingError, RepeatPeriod } from "@tutao/app-env"
 import { isSameDay, isSameDayOfDate } from "@tutao/utils"
 import { formatDateTime, formatDateWithMonth, formatTime } from "../../../../ui/utils/Formatter"
+import { DateTime } from "luxon"
 
 export type TextFormatterTimezones = {
 	startTimeZone?: string
@@ -154,27 +155,26 @@ export function getTextFormatterTimeZones(event: Omit<CalendarEvent, "descriptio
 	return timeZones
 }
 
-export function getTimeZoneLongName(date: Date, timeZone: string) {
-	const dateTimeFormat = new Intl.DateTimeFormat(lang.languageTag, { timeZoneName: "long", timeZone })
+export function getTimeZoneOffsetString(dateTime: DateTime) {
+	let offsetInMinutes = dateTime.offset
 
-	let longName = ""
-	for (const part of dateTimeFormat.formatToParts(date)) {
-		if (part.type === "timeZoneName") {
-			longName = part.value
-		}
+	let result: string
+	if (offsetInMinutes < 0) {
+		offsetInMinutes = -offsetInMinutes
+		result = "-"
+	} else {
+		result = "+"
 	}
-	return longName
-}
 
-export function getTimeZoneOffset(date: Date, timeZone: string) {
-	const dateTimeFormat = new Intl.DateTimeFormat(lang.languageTag, { timeZoneName: "short", timeZone })
-	let offsetString = ""
-	for (const part of dateTimeFormat.formatToParts(date)) {
-		if (part.type === "timeZoneName") {
-			offsetString = part.value
-		}
+	const hours = Math.floor(offsetInMinutes / 60)
+	const minutes = offsetInMinutes % 60
+
+	result += hours.toString()
+	if (minutes) {
+		result += ":" + minutes.toString().padStart(2, "0")
 	}
-	return offsetString
+
+	return result
 }
 
 // Run `console.log(Intl.supportedValuesOf("timeZone").map(tz => `"${tz}"`).join(",\n"))` to regenerate
