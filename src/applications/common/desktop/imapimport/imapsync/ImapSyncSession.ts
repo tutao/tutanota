@@ -6,8 +6,8 @@ import { ProgrammingError } from "@tutao/app-env"
 import { ImapMailbox, imapMailboxFromImapFlowListTreeResponse } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
 import { ImapSyncConfig } from "./ImapSync.js"
 import { ImapError, ImapErrorCause } from "../../../api/common/error/ImapError"
-import type { ImapFlow } from "./imapflow-custom.js"
-import { ImapFlowOptions, ListTreeResponse } from "imapflow"
+import type { ImapFlow } from "imapflow"
+import type { ImapFlowOptions, ListTreeResponse } from "imapflow"
 import { IMAP_ERROR_POSTPONE_TIME, ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
 import { assertNotNull, first, isEmpty, isNotEmpty } from "@tutao/utils"
 
@@ -56,7 +56,9 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		private imapSyncEventListener: ImapSyncEventListener,
 		private imapSyncConfig: ImapSyncConfig,
 		private imapFlowFactory: ImapFlowFactory = async (config) => {
+			console.log("ImapFlowFactory", config)
 			const { ImapFlow } = await import("./imapflow-custom.js")
+			console.log("ImapFlowFactory", ImapFlow)
 			return new ImapFlow(config)
 		},
 	) {
@@ -172,17 +174,24 @@ export class ImapSyncSession implements SyncSessionEventListener {
 	}
 
 	public async getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ReadonlyArray<ImapMailbox>> {
-		const imapClient = await this.imapFlowFactory({
-			host: imapCredentials.host,
-			port: imapCredentials.port,
-			secure: imapCredentials.host !== "localhost",
-			auth: {
-				user: imapCredentials.username,
-				pass: imapCredentials.password,
-				accessToken: imapCredentials.tokenEndpointResponse?.access_token,
-			},
-		})
-		return await this.getImapMailboxes(imapClient)
+		console.log("getImapMailboxesFromServer", imapCredentials)
+		try {
+			const imapClient = await this.imapFlowFactory({
+				host: imapCredentials.host,
+				port: imapCredentials.port,
+				secure: imapCredentials.host !== "localhost",
+				auth: {
+					user: imapCredentials.username,
+					pass: imapCredentials.password,
+					accessToken: imapCredentials.tokenEndpointResponse?.access_token,
+				},
+			})
+			console.log("getImapMailboxesFromServer", imapClient)
+			return await this.getImapMailboxes(imapClient)
+		} catch (error) {
+			console.error("Error during sync", error, error?.serverResponseCode)
+			return []
+		}
 	}
 
 	/**
@@ -195,6 +204,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		try {
 			await imapClient.connect()
 			listTreeResponse = await imapClient.listTree()
+			console.log("listTreeResponse", listTreeResponse)
 		} finally {
 			await imapClient.logout()
 		}
@@ -208,6 +218,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			const remainingMailboxes = assertNotNull(first(imapMailboxes)).subFolders ?? []
 			return [inboxMailbox, ...remainingMailboxes]
 		}
+		console.log("imapMailboxes", imapMailboxes)
 		return imapMailboxes ?? []
 	}
 

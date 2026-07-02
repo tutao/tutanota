@@ -1,4 +1,4 @@
-import { bundleDependencyCheckPlugin, resolveLibs } from "./RollupConfig.js"
+import { resolveLibs } from "./RollupConfig.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import fs from "node:fs"
 import path, { dirname } from "node:path"
@@ -150,7 +150,12 @@ export async function buildDesktop({
 async function rollupDesktop(dirname, outDir, version, platform, architecture, disableMinify, networkDebugging) {
 	platform = getCanonicalPlatformName(platform)
 
-	const mainFiles = ["src/applications/common/desktop/DesktopMain.ts", "src/applications/common/desktop/sqlworker.ts"]
+	const mainFiles = [
+		"src/applications/common/desktop/DesktopMain.ts",
+		"src/applications/common/desktop/sqlworker.ts",
+		"src/applications/common/desktop/imapimport/imapsync/imapflow-custom.js",
+		"src/applications/common/desktop/imapimport/imapsync/imapmail/postalmime-custom.js",
+	]
 	const mainBundle = await rollup({
 		input: mainFiles,
 		// some transitive dep of a transitive dev-dep requires https://www.npmjs.com/package/url
