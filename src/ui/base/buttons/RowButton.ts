@@ -11,6 +11,7 @@ export interface RowButtonAttrs {
 	label: MaybeTranslation
 	/** visible text inside button */
 	text?: MaybeTranslation
+	secondaryText?: MaybeTranslation
 	icon?: AllIcons | "none"
 	selected?: boolean
 	onclick: ClickHandler

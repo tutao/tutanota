@@ -5,6 +5,7 @@ import { ease } from "../animation/Easing"
 import { component_size, px } from "../size"
 import { focusNext, focusPrevious, Shortcut } from "../utils/KeyManager"
 import type { ButtonAttrs } from "./Button.js"
+import { MultilineRowButton, MultilineRowButtonAttrs } from "./buttons/MultilineRowButton"
 import { lang, MaybeTranslation } from "../utils/LanguageViewModel"
 import { assertMainOrNode, Keys, TabIndex } from "../../platform-kit/app-env"
 import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../HtmlUtils"
@@ -44,16 +45,27 @@ export interface DropdownButtonAttrs {
 	selected?: boolean
 }
 
+export interface DropdownMultilineButtonAttrs extends DropdownButtonAttrs {
+	text: MaybeTranslation
+	secondaryText: MaybeTranslation
+	icon: AllIcons
+}
+
 /**
  * Renders small info message inside the dropdown.
  */
 const DropdownInfo = pureComponent<DropdownInfoAttrs>(({ center, bold, info }) => {
 	return m(".text-break.selectable.flex.button-height" + (center ? ".center.flex-center.items-center" : "") + (bold ? ".b" : ""), info)
 })
-export type DropdownChildAttrs = DropdownInfoAttrs | DropdownButtonAttrs
+export type DropdownChildAttrs = DropdownInfoAttrs | DropdownButtonAttrs | DropdownMultilineButtonAttrs
 
 function isDropDownInfo(dropdownChild: DropdownChildAttrs): dropdownChild is DropdownInfoAttrs {
 	return Object.hasOwn(dropdownChild, "info") && Object.hasOwn(dropdownChild, "center") && Object.hasOwn(dropdownChild, "bold")
+}
+
+function isDropDownMultiline(dropdownChild: DropdownChildAttrs): dropdownChild is DropdownMultilineButtonAttrs {
+	const maybeMultilineDropdown = dropdownChild as DropdownButtonAttrs
+	return Boolean(maybeMultilineDropdown.text && maybeMultilineDropdown.secondaryText)
 }
 
 // Some Android WebViews still don't support DOMRect so we polyfill that
@@ -160,6 +172,8 @@ export class Dropdown implements ModalComponent {
 			const visibleChildren = this.visibleChildren().map((child) => {
 				if (isDropDownInfo(child)) {
 					return m(DropdownInfo, child)
+				} else if (isDropDownMultiline(child)) {
+					return Dropdown.renderDropDownMultilineButton(child)
 				} else {
 					return Dropdown.renderDropDownButton(child, showingIcons)
 				}
@@ -276,6 +290,22 @@ export class Dropdown implements ModalComponent {
 			ondragover: child.dragover ? child.dragover : noOp,
 			ondragleave: child.dragleave ? child.dragleave : noOp,
 		} satisfies RowButtonAttrs)
+	}
+
+	private static renderDropDownMultilineButton(child: DropdownMultilineButtonAttrs) {
+		return m(MultilineRowButton, {
+			role: AriaRole.Option,
+			selected: child.selected,
+			label: child.label,
+			text: child.text,
+			secondaryText: child.secondaryText,
+			icon: child.icon,
+			class: "dropdown-button",
+			onclick: child.click ? child.click : noOp,
+			ondrop: child.drop ? child.drop : noOp,
+			ondragover: child.dragover ? child.dragover : noOp,
+			ondragleave: child.dragleave ? child.dragleave : noOp,
+		} satisfies MultilineRowButtonAttrs)
 	}
 
 	wrapClick(fn: (event: MouseEvent, dom: HTMLElement) => unknown): (event: MouseEvent, dom: HTMLElement) => unknown {
