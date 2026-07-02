@@ -29,7 +29,7 @@ pipeline {
 
 	options {
 		// as long as tests like node/browser/android are run sequentially the timeout needs to be higher than 10 minutes
-		timeout(time: 15, unit: 'MINUTES')
+		timeout(time: 20, unit: 'MINUTES')
 		// this prevents jenkins from running the "Check out from version control" step in every stage.
 		// we're running several stages in parallel on the same folder, which means git will run in parallel, which
 		// it can't because it places a lock file in .git
