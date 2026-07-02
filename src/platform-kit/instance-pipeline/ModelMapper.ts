@@ -197,7 +197,7 @@ export class ModelMapper {
 
 		for (const [assocIdStr, modelAssoc] of Object.entries(clientTypeModel.associations)) {
 			const assocId = parseInt(assocIdStr)
-			if (modelAssoc.type === AssociationType.Aggregation) {
+			if (modelAssoc.type === AssociationType.Aggregation || modelAssoc.type === AssociationType.DontUseMe) {
 				const appName = modelAssoc.dependency ?? clientTypeModel.app
 				const assocTypeRef = new TypeRef(appName, modelAssoc.refTypeId)
 				const associationValues = parsedInstance[assocId] as Array<ServerModelParsedInstance>
@@ -244,7 +244,7 @@ export class ModelMapper {
 			const assocId = parseInt(assocIdStr)
 			const appName = modelAssoc.dependency ?? clientTypeModel.app
 			const assocTypeRef = new TypeRef<any>(appName, modelAssoc.refTypeId)
-			if (modelAssoc.type === AssociationType.Aggregation) {
+			if (modelAssoc.type === AssociationType.Aggregation || modelAssoc.type === AssociationType.DontUseMe) {
 				if (modelAssoc.cardinality === Cardinality.Any) {
 					const associationValues = (instance as any)[modelAssoc.name] as Array<Entity>
 					const parsedAssociationValues: Array<ClientModelParsedInstance> = []

@@ -57,7 +57,7 @@ export class TypeMapper {
 			let attrId: number = parseInt(attrIdStr) // used to access parsedInstance which has number keys
 			let associationValues = instance[attrId] as UntypedAssociation
 
-			if (modelAssociation.type === AssociationType.Aggregation) {
+			if (modelAssociation.type === AssociationType.Aggregation || modelAssociation.type === AssociationType.DontUseMe) {
 				const appName = modelAssociation.dependency ?? serverTypeModel.app
 				const associationTypeModel = await this.serverTypeReferenceResolver(new TypeRef(appName, modelAssociation.refTypeId))
 
@@ -91,7 +91,7 @@ export class TypeMapper {
 				untypedInstance[attrIdUntypedInstance] = value
 			} else if (modelValue.encrypted) {
 				throw new ProgrammingError(
-					`received encrypted value that is not a string, should have been converted already. ${clientTypeModel.name}/${clientTypeModel.id}, ${modelValue.name}`,
+					`received encrypted value that is not a string, should have been converted already. ${clientTypeModel.name}/${clientTypeModel.id}, ${modelValue.name}, the value is ${value}`,
 				)
 			} else {
 				// unencrypted values don't have to be modified anymore before they're sent to the server
@@ -114,7 +114,7 @@ export class TypeMapper {
 			}
 
 			const values = instance[attrId] as EncryptedParsedAssociation
-			if (modelAssociation.type === AssociationType.Aggregation) {
+			if (modelAssociation.type === AssociationType.Aggregation || modelAssociation.type === AssociationType.DontUseMe) {
 				const appName = modelAssociation.dependency ?? clientTypeModel.app
 				const associationTypeModel = await this.clientTypeReferenceResolver(new TypeRef(appName, modelAssociation.refTypeId))
 

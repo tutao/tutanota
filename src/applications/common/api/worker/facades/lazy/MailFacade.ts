@@ -99,6 +99,8 @@ import {
 	createEncryptedMailAddress,
 	createExternalUserData,
 	createListUnsubscribeData,
+	createMail,
+	createMailAddress,
 	createManageLabelServiceDeleteIn,
 	createManageLabelServiceLabelData,
 	createManageLabelServicePostIn,
@@ -314,6 +316,48 @@ export class MailFacade {
 
 		const sk = aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
+
+		const firstRecipient = toRecipients.at(0) ?? ccRecipients.at(0) ?? bccRecipients.at(0) ?? null
+
+		const mail = createMail({
+			attachments: [],
+			authStatus: "",
+			bucketKey: null,
+			clientSpamClassifierResult: null,
+			confidential: false,
+			conversationEntry: ["", ""],
+			differentEnvelopeSender: null,
+			encryptionAuthStatus: null,
+			firstRecipient: firstRecipient
+				? createMailAddress({
+						address: firstRecipient.address,
+						contact: null,
+						name: firstRecipient.name ?? "",
+					})
+				: null,
+			listUnsubscribe: false,
+			mailDetails: null,
+			mailDetailsDraft: null,
+			method: "",
+			movedTime: null,
+			phishingStatus: "",
+			processNeeded: false,
+			processingState: "",
+			receivedDate: new Date(),
+			recipientCount: "",
+			replyType: "",
+			sendAt: null,
+			sender: createMailAddress({
+				address: senderMailAddress,
+				contact: null,
+				name: senderName,
+			}),
+			serverClassificationData: null,
+			sets: [],
+			state: "",
+			subject: "",
+			unread: false,
+		})
 		const service = createDraftCreateData({
 			previousMessageId: previousMessageId,
 			conversationType: conversationType,
@@ -333,6 +377,7 @@ export class MailFacade {
 				bodyText: "",
 				removedAttachments: [],
 			}),
+			mail: mail,
 			ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 		})
 		const createDraftReturn = await this.serviceExecutor.post(DraftService, service, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })

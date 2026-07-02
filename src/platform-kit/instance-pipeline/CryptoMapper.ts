@@ -9,7 +9,6 @@ import {
 	DomainSeparator,
 	InstanceDecryptor,
 	KdfNonce,
-	MissingSessionKey,
 	SubKeyInfo,
 	SubKeyProvider,
 	SymmetricCipherFacade,
@@ -150,7 +149,7 @@ export class CryptoMapper {
 		for (const associationId of Object.keys(serverTypeModel.associations).map(Number)) {
 			let associationType = serverTypeModel.associations[associationId]
 			const encryptedInstanceValue = encryptedInstance[associationId]
-			if (associationType.type === AssociationType.Aggregation) {
+			if (associationType.type === AssociationType.Aggregation || associationType.type === AssociationType.DontUseMe) {
 				const appName = associationType.dependency ?? serverTypeModel.app
 				const associationTypeModel = await this.serverTypeReferenceResolver(new TypeRef(appName, associationType.refTypeId))
 				const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${associationId}/`
@@ -247,7 +246,7 @@ export class CryptoMapper {
 
 		for (const associationId of Object.keys(clientTypeModel.associations).map(Number)) {
 			const associationType = clientTypeModel.associations[associationId]
-			if (associationType.type === AssociationType.Aggregation) {
+			if (associationType.type === AssociationType.Aggregation || associationType.type === AssociationType.DontUseMe) {
 				const appName = associationType.dependency ?? clientTypeModel.app
 				const aggregateTypeModel = await this.clientTypeReferenceResolver(new TypeRef(appName, associationType.refTypeId))
 				const aggregate = parsedInstance[associationId] as Array<ClientModelParsedInstance>
