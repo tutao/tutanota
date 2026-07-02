@@ -61,6 +61,8 @@ export const enum EventBusState {
 
 // EntityEventBatches expire after 45 days. keep a time diff security of one day.
 export const ENTITY_EVENT_BATCH_EXPIRE_MS = 44 * 24 * 60 * 60 * 1000
+export const MAX_EVENT_QUEUE_LENGTH_BEFORE_FLUSHING = 1000
+
 const RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS = 30000
 const NORMAL_SHUTDOWN_CLOSE_CODE = 1
 /**
@@ -320,6 +322,9 @@ export class EventBusClient {
 
 		switch (type) {
 			case MessageType.EntityUpdate: {
+				if (this.eventQueue.eventQueue.length >= MAX_EVENT_QUEUE_LENGTH_BEFORE_FLUSHING) {
+					await this.processAccumulatedEventBatches()
+				}
 				const entityUpdateData = await this.decodeEntityEventValue(WebsocketEntityDataTypeRef, JSON.parse(value))
 				this.typeModelResolver.setServerApplicationTypesModelHash(entityUpdateData.applicationTypesHash)
 
@@ -382,8 +387,7 @@ export class EventBusClient {
 				break
 			}
 			case MessageType.InitialSyncDone: {
-				const allMissedEventsFlat = this.eventQueue.eventQueue.flatMap((batch) => batch.events)
-				await this.cache.updateCacheWithMissedEntityUpdates(allMissedEventsFlat)
+				await this.processAccumulatedEventBatches()
 
 				console.log(TAG, "Reached final event, sync is done")
 
@@ -740,5 +744,12 @@ export class EventBusClient {
 	async waitForEmptyQueue(): Promise<void> {
 		this.eventQueue.resume()
 		await this.eventQueue.waitForEmptyQueue()
+	}
+
+	private async processAccumulatedEventBatches() {
+		const allMissedEventsFlat = this.eventQueue.eventQueue.flatMap((batch) => batch.events)
+		await this.cache.updateCacheWithMissedEntityUpdates(allMissedEventsFlat)
+		await this.waitForEmptyQueue()
+		this.eventQueue.pause()
 	}
 }
