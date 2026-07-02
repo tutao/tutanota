@@ -2551,5 +2551,7 @@ export default {
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		"confirmClearFolder_msg": "Do you really want to permanently delete all emails from the folder '{1}'? Depending on the number of emails this operation may take a long time and will be executed in the background.",
+		"inboxRuleManagement_label": "Inbox Rule Management",
+		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Order matters, as only the first matching rule will apply."
 	}
 }

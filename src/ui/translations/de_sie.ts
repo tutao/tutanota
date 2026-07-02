@@ -2551,5 +2551,7 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"confirmClearFolder_msg": "Möchten Sie wirklich alle E-Mails aus dem Ordner '{1}' endgültig löschen? Abhängig von der Anzahl E-Mails kann dies sehr lange dauern und wird daher im Hintergrund ausgeführt.",
+		"inboxRuleManagement_label": "Inbox RuleManagement",
+		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Only the first matching rule will apply."
 	}
 }
