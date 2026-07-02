@@ -2490,5 +2490,7 @@ export type TranslationKeyType =
 	| "orderProcessingAgreement_action"
 	| "openAgreement_action"
 	| "subscriptionSettingAppleWebsite_action"
+	| "inboxRuleManagement_label"
+	| "inboxRuleManagement_text"
 	| "paymentMethodOnAccountHowItWorks_msg"
 	| "emptyString_msg"
