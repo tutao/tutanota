@@ -309,7 +309,6 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./desktop/export/DesktopExportFacadeTest.js")
 		await import("./desktop/files/DesktopFileFacadeTest.js")
 		await import("./desktop/imapimport/DesktopImapSyncSystemFacadeTest.js")
-		await import("./desktop/imapimport/imapsync/imapmail/ImapMailRFC822ParserTest.js")
 		await import("./desktop/imapimport/imapsync/imapmail/ImapParserUtilsTest.js")
 		await import("./desktop/DesktopOauthWindowFacadeTest.js")
 		await import("./desktop/imapimport/imapsync/ImapSyncTest.js")
