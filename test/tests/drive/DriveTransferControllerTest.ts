@@ -51,7 +51,7 @@ o.spec("DriveTransferController", function () {
 			await transferController.upload(file, "uploadFile", ["listId", "folderElementId"])
 			verify(driveFacade.uploadFile(file, fileId, "uploadFile", ["listId", "folderElementId"]))
 			o.check(transferController.state.allTransfers).deepEquals([
-				{ id: fileId, type: "upload", filename: "uploadFile", state: "finished", transferredSize: 0, totalSize: 1024 },
+				{ id: fileId, type: "upload", filename: "uploadFile", state: "finished", transferredSize: 0, totalSize: 1024, speed: 0 },
 			])
 		})
 
@@ -89,6 +89,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: 1024,
 					filename: "uploadFile1",
 					transferredSize: 0,
+					speed: 0,
 				},
 				{
 					id: fileId2,
@@ -97,6 +98,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: 1024,
 					filename: "uploadFile2",
 					transferredSize: 0,
+					speed: 0,
 				},
 			])
 			uploadDeferred1.reject(new CancelledError("upload failed"))
@@ -109,6 +111,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: 1024,
 					filename: "uploadFile2",
 					transferredSize: 0,
+					speed: 0,
 				},
 			])
 			uploadDeferred2.resolve(createTestEntity(DriveFileTypeRef))
@@ -121,6 +124,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: 1024,
 					filename: "uploadFile2",
 					transferredSize: 0,
+					speed: 0,
 				},
 			])
 		})
@@ -157,6 +161,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: 1024,
 					filename: "uploadFile1",
 					transferredSize: 0,
+					speed: 0,
 				},
 				{
 					id: fileId2,
@@ -165,6 +170,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: 1024,
 					filename: "uploadFile2",
 					transferredSize: 0,
+					speed: 0,
 				},
 			])
 			uploadDeferred1.reject(new restError.ConnectionError("upload failed"))
@@ -177,6 +183,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: 1024,
 					filename: "uploadFile1",
 					transferredSize: 0,
+					speed: 0,
 				},
 				{
 					id: fileId2,
@@ -185,6 +192,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: 1024,
 					filename: "uploadFile2",
 					transferredSize: 0,
+					speed: 0,
 				},
 			])
 
@@ -198,6 +206,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: 1024,
 					filename: "uploadFile1",
 					transferredSize: 0,
+					speed: 0,
 				},
 				{
 					id: fileId2,
@@ -206,6 +215,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: 1024,
 					filename: "uploadFile2",
 					transferredSize: 0,
+					speed: 0,
 				},
 			])
 		})
@@ -244,6 +254,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: file1.file.size,
 					transferredSize: 0,
 					filename: "file1.txt",
+					speed: 0,
 				},
 				{
 					id: fileId2,
@@ -252,6 +263,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: file2.file.size,
 					transferredSize: 0,
 					filename: "file2.txt",
+					speed: 0,
 				},
 			])
 
@@ -266,6 +278,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: file1.file.size,
 					transferredSize: 0,
 					filename: "file1.txt",
+					speed: 0,
 				},
 				{
 					id: fileId2,
@@ -274,6 +287,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: file2.file.size,
 					transferredSize: 0,
 					filename: "file2.txt",
+					speed: 0,
 				},
 			])
 
@@ -289,6 +303,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: file1.file.size,
 					transferredSize: 0,
 					filename: "file1.txt",
+					speed: 0,
 				},
 				{
 					id: fileId2,
@@ -297,6 +312,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: file2.file.size,
 					transferredSize: 0,
 					filename: "file2.txt",
+					speed: 0,
 				},
 			])
 		})
@@ -354,6 +370,7 @@ o.spec("DriveTransferController", function () {
 					totalSize: file1.file.size,
 					transferredSize: 0,
 					filename: "file1.txt",
+					speed: 0,
 				},
 			])
 		})
@@ -380,6 +397,7 @@ o.spec("DriveTransferController", function () {
 				state: "finished",
 				transferredSize: 0,
 				totalSize: 1024,
+				speed: 0,
 			}
 			deferredDownload.resolve()
 			await waitForUiUpdate()
@@ -414,6 +432,7 @@ o.spec("DriveTransferController", function () {
 					state: "active",
 					transferredSize: 0,
 					totalSize: 1024,
+					speed: 0,
 				},
 			])
 			deferredDownload2.resolve()
@@ -426,6 +445,7 @@ o.spec("DriveTransferController", function () {
 					state: "finished",
 					transferredSize: 0,
 					totalSize: 1024,
+					speed: 0,
 				},
 			])
 		})
@@ -458,6 +478,7 @@ o.spec("DriveTransferController", function () {
 					state: "failed",
 					transferredSize: 0,
 					totalSize: 1024,
+					speed: 0,
 				},
 				{
 					id: transferId2,
@@ -466,6 +487,7 @@ o.spec("DriveTransferController", function () {
 					state: "active",
 					transferredSize: 0,
 					totalSize: 1024,
+					speed: 0,
 				},
 			])
 
@@ -479,6 +501,7 @@ o.spec("DriveTransferController", function () {
 					state: "failed",
 					transferredSize: 0,
 					totalSize: 1024,
+					speed: 0,
 				},
 				{
 					id: transferId2,
@@ -487,6 +510,7 @@ o.spec("DriveTransferController", function () {
 					state: "finished",
 					transferredSize: 0,
 					totalSize: 1024,
+					speed: 0,
 				},
 			])
 		})
@@ -518,6 +542,7 @@ o.spec("DriveTransferController", function () {
 					state: "active",
 					transferredSize: 0,
 					totalSize: 1024,
+					speed: 0,
 				},
 				{
 					id: transferId2,
@@ -526,6 +551,7 @@ o.spec("DriveTransferController", function () {
 					state: "waiting",
 					transferredSize: 0,
 					totalSize: 1024,
+					speed: 0,
 				},
 			])
 			deferredDownload1.resolve()
@@ -538,6 +564,7 @@ o.spec("DriveTransferController", function () {
 					state: "finished",
 					transferredSize: 0,
 					totalSize: 1024,
+					speed: 0,
 				},
 				{
 					id: transferId2,
@@ -546,6 +573,7 @@ o.spec("DriveTransferController", function () {
 					state: "active",
 					transferredSize: 0,
 					totalSize: 1024,
+					speed: 0,
 				},
 			])
 
@@ -559,6 +587,7 @@ o.spec("DriveTransferController", function () {
 					state: "finished",
 					transferredSize: 0,
 					totalSize: 1024,
+					speed: 0,
 				},
 				{
 					id: transferId2,
@@ -567,6 +596,7 @@ o.spec("DriveTransferController", function () {
 					state: "finished",
 					transferredSize: 0,
 					totalSize: 1024,
+					speed: 0,
 				},
 			])
 		})
@@ -624,6 +654,7 @@ o.spec("DriveTransferController", function () {
 					state: "active",
 					transferredSize: 0,
 					totalSize: 1024,
+					speed: 0,
 				},
 			])
 		})
