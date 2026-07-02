@@ -5,6 +5,7 @@ import { assertNotNull, defer, isEmpty, isNotEmpty, partition, promiseMap } from
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 import { getElementId } from "@tutao/meta"
 import { WebFile } from "../../../../entities/tutanota/Utils"
+import { DriveTransferState } from "./DriveTransferController"
 
 export function makeDuplicateFileName(fileName: string, indicator: string = "copy"): string {
 	const [basename, ext] = getFileBaseNameAndExtensions(fileName)
@@ -189,6 +190,12 @@ async function readAllFolderEntries(folder: FileSystemDirectoryEntry): Promise<F
 		}
 	}
 	return result
+}
+
+export function calculatePercentage(currentTransfers: readonly DriveTransferState[]): number {
+	const totalSize = currentTransfers.reduce((acc, cur) => BigInt(cur.totalSize) + acc, 0n)
+	const totalTransferredSize = currentTransfers.reduce((acc, cur) => BigInt(cur.transferredSize) + acc, 0n)
+	return totalSize === 0n ? 0 : Math.round(Number((totalTransferredSize * 10000n) / totalSize) / 100)
 }
 
 /**
