@@ -1263,6 +1263,7 @@ export default {
 		"noEntryFound_label": "Inga poster hittades",
 		"noEventSelect_msg": "Ingen händelse vald",
 		"noExtraAddress_msg": "Inga extra mejladresser",
+		"noImportableEvents_msg": "Inga händelser importerade.",
 		"noInputWasMade_msg": "Fältet är tomt!",
 		"noKeysForThisDomain_msg": "Du har inte konfigurerat några säkerhetsnycklar för den här domänen. Lägg till en i inloggningsinställningarna.",
 		"noMail_msg": "Inget mejl valt.",
