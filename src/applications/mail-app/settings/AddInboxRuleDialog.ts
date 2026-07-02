@@ -3,7 +3,6 @@ import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { assertMainOrNode, ProgrammingError, UpgradePromptType } from "../../../platform-kit/app-env"
 import { isDomainName, isMailAddress, isRegularExpression } from "../../../platform-kit/utils/FormatUtils"
-import { getInboxRuleResultTypeNameMapping, getInboxRuleTypeNameMapping } from "../mail/model/InboxRuleHandler"
 import { elementIdPart, isSameId } from "../../../platform-kit/meta"
 import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.js"
 import stream from "mithril/stream"
@@ -36,6 +35,7 @@ import { px, size } from "../../../ui/size"
 import { assertNotNull } from "@tutao/utils"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { ButtonType } from "../../../ui/base/Button"
+import { getInboxRuleConditionTypeNameMapping, getInboxRuleResultTypeNameMapping } from "../mail/model/InboxRuleHandler"
 
 assertMainOrNode()
 
@@ -94,7 +94,7 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 				m(".flex.items-center", [
 					m(`.smaller.no-wrap.mr-16 ${isFirstCondition ? ".capitalize" : ".lowercase"}`, lang.getTranslationText(conditionLabel)),
 					m(DropDownSelectorNew, {
-						items: getInboxRuleTypeNameMapping(),
+						items: getInboxRuleConditionTypeNameMapping(),
 						selectedValue: condition.type(),
 						selectionChangedHandler: condition.type,
 					}),

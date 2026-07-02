@@ -230,7 +230,7 @@ o.spec("ProcessInboxHandlerTest", function () {
 		verify(mailFacade.processNewMails(anything(), anything()), { times: 0 })
 	})
 
-	o("handleIncomingMail does NOT send move mail when called with sendServerRequest == false", async function () {
+	o("handleIncomingMail does NOT send move mail when called with isLeaderClient == false", async function () {
 		mail.sets = [inboxFolder._id]
 		const processInboxDatum: UnencryptedProcessInboxDatum = {
 			classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,

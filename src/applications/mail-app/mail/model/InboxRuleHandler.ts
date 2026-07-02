@@ -1,21 +1,90 @@
-import { assertNotNull, asyncFind, isDomainName, isRegularExpression, Nullable } from "../../../../platform-kit/utils"
-import { lang } from "../../../../ui/utils/LanguageViewModel"
-import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
-import type { SelectorItemList } from "../../../../ui/base/DropDownSelector.js"
-import { assertMainOrNode } from "../../../../platform-kit/app-env"
-import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-import { LoginController } from "../../../common/api/main/LoginController.js"
-import { getMailHeaders } from "./MailUtils.js"
-import { MailModel } from "./MailModel"
-import { UnencryptedProcessInboxDatum } from "./ProcessInboxHandler"
-import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
-import { InboxRule, Mail, MailSet } from "@tutao/entities/tutanota"
+import { ExpandedInboxRule, InboxRule, Mail, MailSet } from "@tutao/entities/tutanota"
+import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
+import { isDomainName, isRegularExpression } from "@tutao/utils"
+import type { SelectorItemList } from "../../../../ui/base/DropDownSelector"
 import { InboxRuleConditionType, InboxRuleResultType, MailSetKind, ProcessingState } from "../../../../entities/tutanota/Utils"
-import { elementIdPart } from "../../../../platform-kit/meta"
+import { lang } from "../../../../ui/utils/LanguageViewModel"
 
-assertMainOrNode()
+/**
+ * Refers to both a legacy and expanded inbox rule.
+ */
+export type SomeInboxRule = InboxRule | ExpandedInboxRule
 
-export function getInboxRuleTypeNameMapping(): SelectorItemList<string> {
+export interface InboxRuleHandler<T extends SomeInboxRule = SomeInboxRule> {
+	/**
+	 * Checks the mail for an existing inbox rule and returns matching rule
+	 * @returns The matching inbox rule
+	 */
+	findMatchingInboxRule(mail: Readonly<Mail>, sourceFolder: MailSet, ignoreProcessingState?: boolean): Promise<T | null>
+	/** Get the move target folder of the inbox rule, if any */
+	getMoveResultValue(inboxRule: T, mailboxDetail: MailboxDetail): Promise<MailSet | null>
+	/** Get the inbox rule's labels to be applied, if any */
+	getLabelResultValue(inboxRule: T, mailboxDetail: MailboxDetail): Promise<MailSet[]>
+	/** Apply labels (if any) from the inbox rule to the mail */
+	applyLabelResultAction(inboxRule: T, mailboxDetail: MailboxDetail, mail: Mail): Promise<void>
+	/** Get whether or not the inbox rule marks emails as read */
+	getReadResultValue(inboxRule: T): boolean
+	/** Mark the mail as read if the inbox rule has a READ result */
+	applyReadResultAction(inboxRule: T, mail: Mail): Promise<void>
+	/** Get whether or not the inbox rule excludes emails from spam */
+	getExcludeSpamResultValue(inboxRule: T): boolean
+}
+
+export function _shouldApplyRule(mail: Readonly<Mail>, sourceFolder: MailSet, ignoreProcessingState = false): boolean {
+	if (sourceFolder.folderType !== MailSetKind.INBOX && sourceFolder.folderType !== MailSetKind.SPAM) {
+		return false
+	}
+
+	const isUnprocessed =
+		(mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED ||
+			mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED_AND_DO_NOT_RUN_SPAM_PREDICTION) &&
+		mail.processNeeded
+
+	if (mail._errors || (!ignoreProcessingState && !isUnprocessed)) {
+		return false
+	}
+
+	return true
+}
+
+export function _checkContainsRule(value: string, conditionValue: string): boolean {
+	return (isRegularExpression(conditionValue) && _matchesRegularExpression(value, conditionValue)) || value.includes(conditionValue)
+}
+
+/** export for test. */
+export function _matchesRegularExpression(value: string, conditionValue: string): boolean {
+	if (isRegularExpression(conditionValue)) {
+		let flags = conditionValue.replace(/.*\/([gimsuy]*)$/, "$1")
+		let pattern = conditionValue.replace(new RegExp("^/(.*?)/" + flags + "$"), "$1")
+		let regExp = new RegExp(pattern, flags)
+		return regExp.test(value)
+	}
+
+	return false
+}
+
+export function _checkEmailAddresses(mailAddresses: string[], conditionValue: string): boolean {
+	const mailAddress = mailAddresses.find((mailAddress) => {
+		let cleanMailAddress = mailAddress.toLowerCase().trim()
+
+		if (isRegularExpression(conditionValue)) {
+			return _matchesRegularExpression(cleanMailAddress, conditionValue)
+		} else if (isDomainName(conditionValue)) {
+			let domain = cleanMailAddress.split("@")[1]
+			return domain === conditionValue
+		} else {
+			return cleanMailAddress === conditionValue
+		}
+	})
+	return mailAddress != null
+}
+
+export function getInboxRuleConditionTypeName(type: string): string {
+	let typeNameMapping = getInboxRuleConditionTypeNameMapping().find((t) => t.value === type)
+	return typeNameMapping != null ? typeNameMapping.name : ""
+}
+
+export function getInboxRuleConditionTypeNameMapping(): SelectorItemList<string> {
 	return [
 		{
 			value: InboxRuleConditionType.FROM_EQUALS,
@@ -56,161 +125,4 @@ export function getInboxRuleResultTypeNameMapping(): SelectorItemList<string> {
 			name: lang.getTranslationText("inboxRuleExcludedFromSpamFilter_msg"),
 		},
 	]
-}
-
-export function getInboxRuleTypeName(type: string): string {
-	let typeNameMapping = getInboxRuleTypeNameMapping().find((t) => t.value === type)
-	return typeNameMapping != null ? typeNameMapping.name : ""
-}
-
-export class InboxRuleHandler {
-	constructor(
-		private readonly mailFacade: MailFacade,
-		private readonly logins: LoginController,
-		private readonly mailModel: MailModel,
-	) {}
-
-	/**
-	 * Checks the mail for an existing inbox rule and returns matching data
-	 * @returns The target folder and UnencryptedProcessInboxDatum
-	 */
-	async findMatchingInboxRule(
-		mailboxDetail: MailboxDetail,
-		mail: Readonly<Mail>,
-		sourceFolder: MailSet,
-		ignoreProcessingState = false,
-	): Promise<Nullable<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum; excludeFromSpamFilter: boolean }>> {
-		if (sourceFolder.folderType !== MailSetKind.INBOX && sourceFolder.folderType !== MailSetKind.SPAM) {
-			return null
-		}
-
-		const shouldApply =
-			(mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED ||
-				mail.processingState === ProcessingState.INBOX_RULE_NOT_PROCESSED_AND_DO_NOT_RUN_SPAM_PREDICTION) &&
-			mail.processNeeded
-
-		if (mail._errors || !this.logins.getUserController().isPaidAccount() || (!ignoreProcessingState && !shouldApply)) {
-			return null
-		}
-
-		const inboxRule = await _findMatchingRule(this.mailFacade, mail, this.logins.getUserController().props.inboxRules)
-
-		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
-		if (inboxRule) {
-			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
-			const targetFolder = folders.getFolderById(elementIdPart(inboxRule.targetFolder))
-
-			if (targetFolder) {
-				const currentFolder = assertNotNull(folders.getFolderByMail(mail))
-				const { uploadableVectorLegacy, uploadableVector } = await this.mailFacade.createModelInputAndUploadableVectors(
-					mail,
-					mailDetails,
-					currentFolder,
-				)
-				const processInboxDatum: UnencryptedProcessInboxDatum = {
-					mailId: mail._id,
-					targetMoveFolder: targetFolder._id,
-					classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
-					vectorLegacy: uploadableVectorLegacy,
-					vectorWithServerClassifiers: uploadableVector,
-					ownerEncMailSessionKeys: [],
-				}
-				return { targetFolder, processInboxDatum, excludeFromSpamFilter: inboxRule.excludeFromSpamFilter ?? false }
-			} else {
-				// target folder of inbox rule was deleted
-				return null
-			}
-		} else {
-			// no inbox rule applies to the mail
-			return null
-		}
-	}
-}
-
-/**
- * Finds the first matching inbox rule for the mail and returns it.
- * export only for testing
- */
-export async function _findMatchingRule(mailFacade: MailFacade, mail: Mail, rules: InboxRule[]): Promise<InboxRule | null> {
-	return asyncFind(rules, (rule) => checkInboxRule(mailFacade, mail, rule)).then((v) => v ?? null)
-}
-
-export async function checkInboxRule(mailFacade: MailFacade, mail: Mail, inboxRule: InboxRule): Promise<boolean> {
-	const ruleType = inboxRule.type
-	try {
-		if (ruleType === InboxRuleConditionType.FROM_EQUALS) {
-			let mailAddresses = [mail.sender.address]
-
-			if (mail.differentEnvelopeSender) {
-				mailAddresses.push(mail.differentEnvelopeSender)
-			}
-
-			return _checkEmailAddresses(mailAddresses, inboxRule)
-		} else if (ruleType === InboxRuleConditionType.RECIPIENT_TO_EQUALS) {
-			const toRecipients = (await mailFacade.loadMailDetailsBlob(mail)).recipients.toRecipients
-			return _checkEmailAddresses(
-				toRecipients.map((m) => m.address),
-				inboxRule,
-			)
-		} else if (ruleType === InboxRuleConditionType.RECIPIENT_CC_EQUALS) {
-			const ccRecipients = (await mailFacade.loadMailDetailsBlob(mail)).recipients.ccRecipients
-			return _checkEmailAddresses(
-				ccRecipients.map((m) => m.address),
-				inboxRule,
-			)
-		} else if (ruleType === InboxRuleConditionType.RECIPIENT_BCC_EQUALS) {
-			const bccRecipients = (await mailFacade.loadMailDetailsBlob(mail)).recipients.bccRecipients
-			return _checkEmailAddresses(
-				bccRecipients.map((m) => m.address),
-				inboxRule,
-			)
-		} else if (ruleType === InboxRuleConditionType.SUBJECT_CONTAINS) {
-			return _checkContainsRule(mail.subject, inboxRule)
-		} else if (ruleType === InboxRuleConditionType.MAIL_HEADER_CONTAINS) {
-			const details = await mailFacade.loadMailDetailsBlob(mail)
-			if (details.headers != null) {
-				return _checkContainsRule(getMailHeaders(details.headers), inboxRule)
-			} else {
-				return false
-			}
-		} else {
-			console.warn("Unknown rule type: ", inboxRule.type)
-			return false
-		}
-	} catch (e) {
-		console.error("Error processing inbox rule:", e.message)
-		return false
-	}
-}
-
-function _checkContainsRule(value: string, inboxRule: InboxRule): boolean {
-	return (isRegularExpression(inboxRule.value) && _matchesRegularExpression(value, inboxRule)) || value.includes(inboxRule.value)
-}
-
-/** export for test. */
-export function _matchesRegularExpression(value: string, inboxRule: InboxRule): boolean {
-	if (isRegularExpression(inboxRule.value)) {
-		let flags = inboxRule.value.replace(/.*\/([gimsuy]*)$/, "$1")
-		let pattern = inboxRule.value.replace(new RegExp("^/(.*?)/" + flags + "$"), "$1")
-		let regExp = new RegExp(pattern, flags)
-		return regExp.test(value)
-	}
-
-	return false
-}
-
-function _checkEmailAddresses(mailAddresses: string[], inboxRule: InboxRule): boolean {
-	const mailAddress = mailAddresses.find((mailAddress) => {
-		let cleanMailAddress = mailAddress.toLowerCase().trim()
-
-		if (isRegularExpression(inboxRule.value)) {
-			return _matchesRegularExpression(cleanMailAddress, inboxRule)
-		} else if (isDomainName(inboxRule.value)) {
-			let domain = cleanMailAddress.split("@")[1]
-			return domain === inboxRule.value
-		} else {
-			return cleanMailAddress === inboxRule.value
-		}
-	})
-	return mailAddress != null
 }
