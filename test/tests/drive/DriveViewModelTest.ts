@@ -18,6 +18,7 @@ import { WebFile } from "../../../src/entities/tutanota/Utils"
 import { TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
 import { createDriveFolder, DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 import { GroupInfoTypeRef, PlanConfigurationTypeRef } from "@tutao/entities/sys"
+import { renderDuplicateFilesChoiceDialogue } from "../../../src/applications/drive-app/drive/view/DriveGuiUtils"
 
 o.spec("DriveViewModel", function () {
 	let driveViewModel: DriveViewModel
@@ -324,9 +325,8 @@ o.spec("DriveViewModel", function () {
 					} as File,
 				},
 			]
-
 			await driveViewModel.displayFolder(rootIds.root)
-			await driveViewModel.uploadFiles(webFiles)
+			await driveViewModel.uploadFiles(webFiles, renderDuplicateFilesChoiceDialogue)
 
 			verify(transferController.upload(webFiles[0], "meow", rootIds.root))
 		})
@@ -350,7 +350,9 @@ o.spec("DriveViewModel", function () {
 			]
 
 			await driveViewModel.displayFolder(rootIds.root)
-			await driveViewModel.uploadFiles(webFiles)
+			await driveViewModel.uploadFiles(webFiles, async () => {
+				return true
+			})
 
 			verify(transferController.upload(webFiles[0], "meow", rootIds.root))
 			verify(transferController.upload(webFiles[1], "meow (copy)", rootIds.root))
@@ -382,10 +384,13 @@ o.spec("DriveViewModel", function () {
 						name: `meow (copy)`,
 					}),
 				]
+
 				when(driveFacade.getFolderContents(rootFolders.root._id)).thenResolve({ files: [], folders: existingFolders })
 
 				await driveViewModel.displayFolder(rootIds.root)
-				await driveViewModel.uploadFiles(webFiles)
+				await driveViewModel.uploadFiles(webFiles, async () => {
+					return true
+				})
 
 				verify(transferController.upload(webFiles[0], "meow", rootIds.root))
 				verify(transferController.upload(webFiles[1], "meow (copy) (copy)", rootIds.root))
