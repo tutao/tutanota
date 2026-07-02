@@ -216,7 +216,11 @@ pub struct AeadKeyDerivationTestData {
 	#[serde(with = "const_hex")]
 	pub group_key256_hex: Vec<u8>,
 	#[serde(with = "const_hex")]
+	pub instance_key_from256_hex: Vec<u8>,
+	#[serde(with = "const_hex")]
 	pub group_key128_hex: Vec<u8>,
+	#[serde(with = "const_hex")]
+	pub instance_key_from128_hex: Vec<u8>,
 	#[serde(with = "const_hex")]
 	pub session_key_hex: Vec<u8>,
 	#[serde(with = "const_hex")]

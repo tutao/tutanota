@@ -13,7 +13,6 @@ import {
 	InstancePipeline,
 	LoggedInUserProvider,
 	OwnerEncSessionKeyProvider,
-	OwnerKeyProvider,
 	PatchGenerator,
 	SessionKeyResolver,
 	TypeModelResolver,
@@ -40,8 +39,9 @@ import {
 	generateKdfNonce,
 	KdfNonce,
 	makeNullableSubKeyInfoWithSessionKeyCbcThenHmac,
+	OwnerKeyProvider,
 	SubKeyInfo,
-	SubKeyInfoWithGroupKeyAead,
+	SubKeyInfoAeadWithInstanceKeyFromGroupKey,
 	SymmetricEncryptionScheme,
 	validateKdfNonceLength,
 	VersionedKey,
@@ -554,7 +554,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 			const kdfNonce: KdfNonce = generateKdfNonce()
 			instance._kdfNonce = kdfNonce
-			return new SubKeyInfoWithGroupKeyAead(ownerKey, kdfNonce)
+			return new SubKeyInfoAeadWithInstanceKeyFromGroupKey(ownerKey, kdfNonce)
 		}
 	}
 
@@ -593,7 +593,7 @@ export class EntityRestClient implements EntityRestInterface {
 			} else {
 				kdfNonce = validateKdfNonceLength(instance._kdfNonce)
 			}
-			return new SubKeyInfoWithGroupKeyAead(ownerKey, kdfNonce)
+			return new SubKeyInfoAeadWithInstanceKeyFromGroupKey(ownerKey, kdfNonce)
 		}
 	}
 
