@@ -2322,9 +2322,10 @@ export default {
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
-
 		"clearCache_action": "Clear cache",
 		"clearCache_msg": "Clear all downloaded data. Device data, such as stored credentials and verified contacts, won't be deleted.",
-		"clearCacheConfirm_msg": "Clearing cache will refresh the app."
+		"clearCacheConfirm_msg": "Clearing cache will refresh the app.",
+		"inboxRuleManagement_label": "Inbox Rule Management",
+		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Order matters, as only the first matching rule will apply."
 	}
 }

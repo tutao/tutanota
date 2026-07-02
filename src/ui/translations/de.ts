@@ -2322,9 +2322,10 @@ export default {
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-
 		"clearCache_action": "Clear cache",
 		"clearCache_msg": "Clear cache message",
-		"clearCacheConfirm_msg": "Are you sure you want to clear cache?"
+		"clearCacheConfirm_msg": "Are you sure you want to clear cache?",
+		"inboxRuleManagement_label": "Inbox RuleManagement",
+		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Only the first matching rule will apply."
 	}
 }
