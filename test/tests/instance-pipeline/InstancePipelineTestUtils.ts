@@ -262,6 +262,72 @@ export const testAggregateOnAggregateModel: TypeModel = {
 	targetTypeId: null,
 }
 
+export const testTransferAggregateModel: TypeModel = {
+	app: "tutanota",
+	encrypted: true,
+	id: 499,
+	name: "TestTransferAggregate",
+	rootId: "SoMeTransferId",
+	since: 41,
+	type: EntityTypeEnum.Aggregated,
+	isPublic: true,
+	values: {
+		"2": {
+			id: 2,
+			name: "testNumber",
+			type: ValueTypeEnum.Number,
+			cardinality: CardinalityEnum.One,
+			final: false,
+			encrypted: true,
+			transferredAttributeId: null,
+		},
+		"6": {
+			id: 6,
+			name: "_id",
+			type: ValueTypeEnum.CustomId,
+			cardinality: CardinalityEnum.One,
+			final: true,
+			encrypted: false,
+			transferredAttributeId: null,
+		},
+		"14": {
+			id: 14,
+			name: "_ownerEncSessionKey",
+			type: ValueTypeEnum.Bytes,
+			cardinality: CardinalityEnum.ZeroOrOne,
+			final: true,
+			encrypted: false,
+			transferredAttributeId: null,
+		},
+	},
+	associations: {
+		"9": {
+			id: 9,
+			name: "testSecondLevelAssociation",
+			type: AssociationTypeEnum.Aggregation,
+			cardinality: CardinalityEnum.Any,
+			refTypeId: 44,
+			final: false,
+			dependency: "tutanota",
+			transferredAttributeId: null,
+		},
+		"10": {
+			id: 10,
+			name: "testZeroOrOneAggregation",
+			type: AssociationTypeEnum.Aggregation,
+			cardinality: CardinalityEnum.ZeroOrOne,
+			refTypeId: 44,
+			final: false,
+			dependency: "tutanota",
+			transferredAttributeId: null,
+		},
+	},
+	version: 0,
+	dependsOnVersion: null,
+	versioned: false,
+	targetTypeId: 37,
+}
+
 export const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
 export const TestAggregateRef = new TypeRef<TestAggregate>("tutanota", 43)
 export const TestAggregateOnAggregateRef = new TypeRef<TestAggregateOnAggregate>("tutanota", 44)

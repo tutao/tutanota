@@ -1,6 +1,5 @@
 import { Nullable } from "@tutao/utils"
-import { AesKey, VersionedKey } from "@tutao/crypto"
-import { OwnerKeyProvider } from "./index"
+import { AesKey, OwnerKeyProvider, VersionedKey } from "@tutao/crypto"
 import { RestClientOptions, SuspensionBehavior } from "@tutao/rest-client/types"
 
 export interface EntityRestClientSetupOptions {
