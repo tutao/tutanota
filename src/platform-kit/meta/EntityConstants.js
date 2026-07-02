@@ -24,6 +24,7 @@ export const AssociationType = Object.freeze({
 	Aggregation: "AGGREGATION",
 	BlobElementAssociation: "BLOB_ELEMENT_ASSOCIATION",
 	ListElementAssociationCustom: "LIST_ELEMENT_ASSOCIATION_CUSTOM",
+	DontUseMe: "DONT_USE_ME",
 })
 
 export const ValueType = Object.freeze({

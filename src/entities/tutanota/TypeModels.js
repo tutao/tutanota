@@ -2910,6 +2910,15 @@ const typeModels = {
 				"cardinality": "One",
 				"refTypeId": 496,
 				"dependency": null
+			},
+			"1967": {
+				"final": false,
+				"name": "mail",
+				"id": 1967,
+				"type": "DONT_USE_ME",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 97,
+				"dependency": null
 			}
 		}
 	},

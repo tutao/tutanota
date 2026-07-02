@@ -1132,6 +1132,8 @@ pub struct DraftCreateData {
 	pub ownerKeyVersion: i64,
 	#[serde(rename = "515")]
 	pub draftData: DraftData,
+	#[serde(rename = "1967")]
+	pub mail: Option<GeneratedId>,
 
 	#[serde(default)]
 	pub _errors: Errors,
