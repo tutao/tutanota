@@ -19,10 +19,11 @@ export type MacTag = BrandedType<Uint8Array<ArrayBuffer>, MacTagBrand>
 
 export const UNIT_SEPARATOR_CHAR = "" as const
 export type DomainSeparator = `${string}${typeof UNIT_SEPARATOR_CHAR}`
-export const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN: DomainSeparator = `attributeEncGK${UNIT_SEPARATOR_CHAR}`
+export const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_INSTANCE_KEY_DOMAIN: DomainSeparator = `attributeEncIK${UNIT_SEPARATOR_CHAR}`
 export const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN: DomainSeparator = `attributeEncSK${UNIT_SEPARATOR_CHAR}`
-export const AEAD_GROUP_KEY_NONCE_DERIVATION: DomainSeparator = `GK and nonce instanceMessageKey${UNIT_SEPARATOR_CHAR}`
-export const AEAD_SESSION_KEY_DERIVATION: DomainSeparator = `SK instanceSessionKey${UNIT_SEPARATOR_CHAR}`
+export const AEAD_FROM_GROUP_KEY_AND_NONCE_DERIVATION_OF_INSTANCE_KEY: DomainSeparator = `GK and nonce instanceKey${UNIT_SEPARATOR_CHAR}`
+export const AEAD_FROM_SESSION_KEY_DERIVATION: DomainSeparator = `SK instanceSessionKey${UNIT_SEPARATOR_CHAR}`
+export const AEAD_FROM_INSTANCE_KEY_DERIVATION: DomainSeparator = `IK instanceInstanceKey${UNIT_SEPARATOR_CHAR}`
 export const enum EntropySource {
 	Mouse = "mouse",
 	Touch = "touch",

@@ -20,7 +20,6 @@ import { KeyVerificationMismatchError } from "../../../../../src/platform-kit/ne
 import { SpamClassifier } from "../../../../../src/applications/mail-app/workerUtils/spamClassification/SpamClassifier"
 
 import { CacheStorage } from "../../../../../src/app-kit/local-store/CacheStorage"
-import { OwnerEncSessionKeyProvider } from "../../../../../src/platform-kit/instance-pipeline"
 import {
 	FileTypeRef,
 	InternalRecipientKeyDataTypeRef,
@@ -51,6 +50,7 @@ import { MAX_NBR_OF_MAILS_SYNC_OPERATION, Recipient, ReportedMailFieldType } fro
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { DataFile } from "../../../../../src/entities/tutanota/MailBundle"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
+import { OwnerEncSessionKeyProvider } from "../../../../../src/platform-kit/instance-pipeline"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade

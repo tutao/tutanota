@@ -89,7 +89,9 @@ struct Blake3TestData: Decodable {
 
 struct AeadKeyDerivationTestData: Decodable {
 	@HexData var groupKey256: Data
+	@HexData var instanceKeyFrom256: Data
 	@HexData var groupKey128: Data
+	@HexData var instanceKeyFrom128: Data
 	@HexData var sessionKey: Data
 	@HexData var kdfNonce: Data
 	var globalInstanceTypeId: String
@@ -102,7 +104,9 @@ struct AeadKeyDerivationTestData: Decodable {
 
 	enum CodingKeys: String, CodingKey {
 		case groupKey256 = "groupKey256Hex"
+		case instanceKeyFrom256 = "instanceKeyFrom256Hex"
 		case groupKey128 = "groupKey128Hex"
+		case instanceKeyFrom128 = "instanceKeyFrom128Hex"
 		case sessionKey = "sessionKeyHex"
 		case kdfNonce = "kdfNonceHex"
 		case globalInstanceTypeId

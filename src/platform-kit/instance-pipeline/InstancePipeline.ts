@@ -1,12 +1,13 @@
 import { CryptoMapper, EncryptedParsedInstance, SymmetricGroupKeyLoader } from "./CryptoMapper"
 import { ModelMapper } from "./ModelMapper"
 import { lazy, Nullable } from "@tutao/utils"
-import { AesKey, makeNullableSubKeyInfoWithSessionKeyCbcThenHmac, SubKeyInfo, SymmetricCipherFacade, validateKdfNonceLength } from "@tutao/crypto"
+import { AesKey, makeNullableSubKeyInfoWithSessionKeyCbcThenHmac, SubKeyInfo, SymmetricCipherFacade, validateKdfNonceLength, VersionedKey } from "@tutao/crypto"
 import { assertWorkerOrNode } from "@tutao/app-env"
 import { EntityAdapter } from "./EntityAdapter"
 import { ClientOnlyTypeModelResolver, TypeModelResolver } from "./EntityFunctions"
 import { Entity, TypeRef } from "@tutao/meta"
 import { IncomingServerJson, OutgoingServerJson, TypeMapper } from "./TypeMapper"
+import { RootPath } from "./EncryptionContextPath"
 
 assertWorkerOrNode()
 
@@ -38,8 +39,13 @@ export class InstancePipeline {
 		return this.typeMapper.makeServerJson(encryptedInstance)
 	}
 
-	async mapAndEncryptWithSubKeyInfo<T extends Entity>(_typeRef: TypeRef<T>, instance: T, subKeyInfo: Nullable<SubKeyInfo>): Promise<OutgoingServerJson> {
-		const encryptedInstance = await this.mapAndEncryptToParsedInstanceWithSubKeyInfo(instance, subKeyInfo)
+	async mapAndEncryptWithSubKeyInfo<T extends Entity>(
+		_typeRef: TypeRef<T>,
+		instance: T,
+		subKeyInfo: Nullable<SubKeyInfo>,
+		ownerKey: Nullable<VersionedKey>,
+	): Promise<OutgoingServerJson> {
+		const encryptedInstance = await this.mapAndEncryptToParsedInstanceWithSubKeyInfo(instance, subKeyInfo, ownerKey)
 		return this.typeMapper.makeServerJson(encryptedInstance)
 	}
 
@@ -48,9 +54,13 @@ export class InstancePipeline {
 		return this.mapAndEncryptToParsedInstanceWithSubKeyInfo(instance, subKeyInfo)
 	}
 
-	async mapAndEncryptToParsedInstanceWithSubKeyInfo<T extends Entity>(instance: T, subKeyInfo: Nullable<SubKeyInfo>): Promise<EncryptedParsedInstance> {
+	async mapAndEncryptToParsedInstanceWithSubKeyInfo<T extends Entity>(
+		instance: T,
+		subKeyInfo: Nullable<SubKeyInfo>,
+		ownerKey: Nullable<VersionedKey> = null,
+	): Promise<EncryptedParsedInstance> {
 		const parsedInstance = await this.modelMapper.mapToDecryptedInstance(instance)
-		return await this.cryptoMapper.encryptParsedInstance(parsedInstance, subKeyInfo)
+		return await this.cryptoMapper.encryptParsedInstance(parsedInstance, subKeyInfo, new RootPath(), ownerKey)
 	}
 
 	/**

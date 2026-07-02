@@ -153,21 +153,21 @@ export class ServiceExecutor implements IServiceExecutor {
 
 			const sessionKey = params?.sessionKey ?? null
 			const ownerKey = params?.ownerKey ?? null
-			const subKeyInfo = this.getSubKeyInfo(sessionKey, ownerKey)
+			const subKeyInfo = this.getSubKeyInfo(sessionKey)
 
-			return await this.instancePipeline.mapAndEncryptWithSubKeyInfo(requestEntity._type, requestEntity, subKeyInfo)
+			return await this.instancePipeline.mapAndEncryptWithSubKeyInfo(requestEntity._type, requestEntity, subKeyInfo, ownerKey)
 		} else {
 			return null
 		}
 	}
 
-	private getSubKeyInfo(sessionKey: Nullable<AesKey>, ownerKey: Nullable<VersionedKey>): Nullable<SubKeyInfo> {
+	private getSubKeyInfo(sessionKey: Nullable<AesKey>): Nullable<SubKeyInfo> {
 		if (sessionKey == null) return null
 		switch (this.authDataProvider.getDefaultSymmetricEncryptionScheme()) {
 			case SymmetricEncryptionScheme.AesCbc:
-				return new SubKeyInfoWithSessionKeyCbcThenHmac(sessionKey, ownerKey)
+				return new SubKeyInfoWithSessionKeyCbcThenHmac(sessionKey)
 			case SymmetricEncryptionScheme.Aead:
-				return new SubKeyInfoWithSessionKeyAead(sessionKey, ownerKey)
+				return new SubKeyInfoWithSessionKeyAead(sessionKey)
 			default:
 				throw new CryptoError("missing or unknown symmetric encryption scheme")
 		}
