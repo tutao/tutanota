@@ -2493,6 +2493,8 @@ export default {
 		"openAgreement_action": "Vertrag öffnen",
 		"subscriptionSettingAppleWebsite_action": "Apple-Website",
 		"paymentMethodOnAccountHowItWorks_msg": "So funktioniert es\nSie erhalten eine Rechnung und bezahlen per Banküberweisung.\nDie Rechnung enthält IBAN und Bankverbindung.\nSie überweisen den Betrag von Ihrer Bank.",
-		"confirmDeleteLabelWithSublabels_msg": "Are you sure that you want to delete the label \"{1}\" and all its sublabels?"
+		"confirmDeleteLabelWithSublabels_msg": "Are you sure that you want to delete the label \"{1}\" and all its sublabels?",
+		"inboxRuleManagement_label": "Inbox RuleManagement",
+		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Only the first matching rule will apply."
 	}
 }

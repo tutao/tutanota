@@ -2490,7 +2490,6 @@ export type TranslationKeyType =
 	| "subscriptionStateCardResubscribe_action"
 	| "changePaymentInterval_action"
 	| "subscriptionSettingDowngrade_action"
-	| "appStoreConfirmationTimeout_msg"
 	| "subscriptionSettingManageSubscription_action"
 	| "subscriptionSettingSwitchPlan_action"
 	| "subscriptionSettingExpiredSubscriptionOnlyFeatures_msg"
@@ -2498,3 +2497,5 @@ export type TranslationKeyType =
 	| "openAgreement_action"
 	| "subscriptionSettingAppleWebsite_action"
 	| "confirmDeleteLabelWithSublabels_msg"
+	| "inboxRuleManagement_label"
+	| "inboxRuleManagement_text"
