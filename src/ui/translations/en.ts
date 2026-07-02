@@ -2422,5 +2422,8 @@ export default {
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		"migrationGmailAllMailsDisabledImapError_msg": "The \"All Mail\" label is disabled for IMAP in your Gmail settings.\nPlease make sure IMAP is enabled for the \"All Mail\" label.\nPlease check Settings -> See all Settings -> Labels in your Gmail account and try again.",
-		"migrationSyncStateGmailAllMailsDisabledImapError_msg": "Your migration is paused, because the \"All Mail\" label is disabled for IMAP in your Gmail settings.",	}
+		"migrationSyncStateGmailAllMailsDisabledImapError_msg": "Your migration is paused, because the \"All Mail\" label is disabled for IMAP in your Gmail settings.",
+		"inboxRuleManagement_label": "Inbox Rule Management",
+		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Order matters, as only the first matching rule will apply."
+	}
 }
