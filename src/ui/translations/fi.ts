@@ -1770,7 +1770,7 @@ export default {
 		"retry_action": "Yritä uudelleen",
 		"revealPassword_action": "Näytä salasana",
 		"revocation_action": "Hae tilauksen peruutusta",
-		"revocation_text": "Voitte hakea tilauksen peruutusta, mikäli tilinne käyttää maksullista henkilökohtaista tilausta ja siihen siirtymisestä on enintään 14 päivää. Syöttäkää sen tilin kirjautumistiedot, jonka tilauksen haluatte peruuttaa.",
+		"revocation_text": "Voitte hakea tilauksen peruutusta, mikäli tilinne on siirtynyt edellisen 14 päivän aikana maksulliseen henkilökohtaiseen tilausvaihtoehtoon. Syöttäkää sen tilin kirjautumistiedot, jonka tilauksen haluatte peruuttaa.",
 		"revocationAlreadySubmitted_msg": "Tälle tilille on jo tehty tilausperuutuspyyntö.",
 		"revocationForm_title": "Peruutuslomake",
 		"revocationOnlyPersonalPlans_msg": "Tilauksen voi peruuttaa vain, jos kyseessä on maksullinen henkilökohtainen tilaus. Jos tarvitsette apua, ottakaa yhteyttä tukeen.",

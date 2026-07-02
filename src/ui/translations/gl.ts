@@ -1263,6 +1263,7 @@ export default {
 		"noEntryFound_label": "Non se atopan entradas",
 		"noEventSelect_msg": "Sen evento seleccionado",
 		"noExtraAddress_msg": "Sen enderezos de correo extra",
+		"noImportableEvents_msg": "Non se importaron eventos.",
 		"noInputWasMade_msg": "A caixa de texto está baleira!",
 		"noKeysForThisDomain_msg": "Non tes chaves de seguridade configuradas para este dominio. Engade unha nos axustes do acceso.",
 		"noMail_msg": "Sen correo seleccionado.",
