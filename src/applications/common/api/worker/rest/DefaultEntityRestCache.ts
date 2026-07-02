@@ -28,7 +28,7 @@ import { DecryptedParsedInstance, OwnerEncSessionKeyProvider, PatchMerger, TypeM
 import { LastProcessedEventBatchProvider } from "../../../../../platform-kit/network/LastProcessedEventBatchProvider.js"
 import { CacheStorage } from "../../../../../app-kit/local-store/CacheStorage"
 import { EntityRestCache } from "../../../../../platform-kit/network/EntityRestCacheInterface"
-import { EntityRestClient} from "../../../../../platform-kit/network/EntityRestClient"
+import { EntityRestClient } from "../../../../../platform-kit/network/EntityRestClient"
 import {
 	CalendarEventUidIndexTypeRef,
 	ClientSpamTrainingDatumIndexEntryTypeRef,
@@ -760,7 +760,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		} else {
 			console.log("re-downloading instance from entity event, due to error : ", getTypeString(update.typeRef), update.instanceListId, update.instanceId)
 			const instanceFromServer = await this.entityRestClient.loadParsedInstance(update.typeRef, collapseId(update.instanceListId, update.instanceId))
-			if (!instanceFromServer.hasError()) {
+			if (instanceFromServer != null && !instanceFromServer.hasError()) {
 				// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
 				await this.storage.put(update.typeRef, instanceFromServer)
 				return update

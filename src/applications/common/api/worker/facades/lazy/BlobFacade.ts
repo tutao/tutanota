@@ -34,7 +34,16 @@ import { CryptoError } from "@tutao/crypto/error"
 import { TransferProgressDispatcher } from "../../../main/TransferProgressDispatcher"
 import { doBlobRequestWithRetry, tryServers } from "../../../../../../platform-kit/network/EntityRestClient"
 import { TransferId, UploadProgressInfo } from "../../../../../../entities/drive/Utils"
-import { BlobGetInTypeRef, BlobPostOut, BlobServerAccessInfo, BlobService, createBlobGetIn, createBlobId, storageTypeModels } from "@tutao/entities/storage"
+import {
+	BlobGetInTypeRef,
+	BlobPostOut,
+	BlobPostOutTypeRef,
+	BlobServerAccessInfo,
+	BlobService,
+	createBlobGetIn,
+	createBlobId,
+	storageTypeModels,
+} from "@tutao/entities/storage"
 import { FileReference } from "../../../../../../entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
 import { IncomingServerJson } from "../../../../../../platform-kit/instance-pipeline/TypeMapper"
@@ -734,7 +743,7 @@ export class BlobFacade {
 
 	// Visible for testing
 	public async parseBlobPostOutResponse(jsonData: string): Promise<BlobReferenceTokenWrapper> {
-		const typeModel = await this.instancePipeline.typeModelResolver.resolveServerTypeReference(BlobReferenceTokenWrapperTypeRef)
+		const typeModel = await this.instancePipeline.typeModelResolver.resolveServerTypeReference(BlobPostOutTypeRef)
 		const serverJson = IncomingServerJson.expectSingleInstance(jsonData, typeModel)
 		const { blobReferenceToken } = await this.instancePipeline.decryptAndMap<BlobPostOut>(serverJson, null)
 		// is null in case of post multiple to the BlobService, currently only supported in the rust-sdk

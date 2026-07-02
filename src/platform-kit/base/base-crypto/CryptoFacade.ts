@@ -38,14 +38,7 @@ import {
 import { RecipientNotResolvedError } from "../../network/error/RecipientNotResolvedError"
 import { IServiceExecutor } from "../../network/ServiceRequest"
 import { UserFacade } from "../facades/UserFacade"
-import {
-	EntityAdapter,
-	InstancePipeline,
-	OwnerKeyProvider,
-	PatchOperationType,
-	SessionKeyResolver,
-	SymmetricGroupKeyLoader,
-} from "@tutao/instance-pipeline"
+import { EntityAdapter, InstancePipeline, OwnerKeyProvider, PatchOperationType, SessionKeyResolver, SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
 import { AsymmetricCryptoFacade, AuthenticateSenderReturnType } from "./AsymmetricCryptoFacade.js"
 import PublicEncryptionKeyProvider from "./PublicEncryptionKeyProvider.js"
 import { KeyRotationFacade } from "./KeyRotationFacade.js"
@@ -421,6 +414,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		const isMailInstance = isSameTypeRef(MailTypeRef, instance._type)
 		if (isMailInstance) {
 			let mail: Mail = await this.getDecryptedMailFromAdapter(instance, resolvedSessionKeyForInstance)
+			console.log(mail)
 
 			if (!encryptionAuthStatus) {
 				if (!pqMessageSenderKey) {

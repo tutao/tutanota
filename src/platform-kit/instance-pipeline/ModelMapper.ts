@@ -118,7 +118,7 @@ export class ModelMapper {
 
 			const value = parsedInstance.getAttributeByIdOrNull(valueId) ?? ParsedValue.fromNull()
 			const valueToKeep = this.assertCorrectValueCardinality(typeRef, serverModelValue, clientModelValue, value)
-			clientInstance.setValue(clientModelValue.id, valueToKeep)
+			clientInstance.setValue(valueId, valueToKeep)
 		}
 
 		for (const associationModel of Object.values(clientTypeModel.associations)) {

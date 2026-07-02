@@ -12,16 +12,7 @@ import { AesApp } from "../../../../../src/app-kit/native-bridge/worker/AesApp.j
 import { Mode, ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { elementIdPart, getElementId, listIdPart } from "../../../../../src/platform-kit/meta"
 import { func, instance, matchers, object, verify, when } from "testdouble"
-import {
-	arrayEquals,
-	base64ExtToBase64,
-	base64ToUint8Array,
-	concat,
-	defer,
-	neverNull,
-	noOp,
-	stringToUtf8Uint8Array,
-} from "../../../../../src/platform-kit/utils"
+import { arrayEquals, base64ExtToBase64, base64ToUint8Array, concat, defer, neverNull, stringToUtf8Uint8Array } from "../../../../../src/platform-kit/utils"
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { BlobAccessTokenFacade } from "../../../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, withOverriddenEnv } from "../../../TestUtils.js"
@@ -30,6 +21,7 @@ import { TransferId } from "../../../../../src/entities/drive/Utils"
 import {
 	BlobGetIn,
 	BlobGetInTypeRef,
+	BlobIdTypeRef,
 	BlobPostOutTypeRef,
 	BlobServerAccessInfoTypeRef,
 	BlobServerUrlTypeRef,
@@ -68,6 +60,8 @@ o.spec("BlobFacade", function () {
 	let file: File
 	let anotherFile: File
 	let previousNetworkDebugging
+	let typeModelResolver
+	let realInstancePipeline
 
 	o.beforeEach(function () {
 		restClientMock = instance(RestClient)
@@ -77,6 +71,8 @@ o.spec("BlobFacade", function () {
 		instancePipelineMock = instance(InstancePipeline)
 		cryptoFacadeMock = object<CryptoFacade>()
 		blobAccessTokenFacade = instance(BlobAccessTokenFacade)
+		typeModelResolver = clientInitializedTypeModelResolver()
+		realInstancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 
 		const mimeType = "text/plain"
 		const name = "fileName"
@@ -104,8 +100,6 @@ o.spec("BlobFacade", function () {
 		o("parseBlobPostOutResponse should remove network debugging info", async function () {
 			env.networkDebugging = true
 
-			const typeModelResolver = clientInitializedTypeModelResolver()
-			const realInstancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 			const newBlobFacade = new BlobFacade(
 				restClientMock,
 				suspensionHandlerMock,
@@ -144,11 +138,12 @@ o.spec("BlobFacade", function () {
 			const blobServiceResponse = createTestEntity(BlobPostOutTypeRef, {
 				blobReferenceToken: expectedReferenceTokens[0].blobReferenceToken,
 			})
+			const blobServiceServerResponse = await realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, blobServiceResponse, sessionKey)
 
 			when(instancePipelineMock.decryptAndMap(anything(), anything()))
 				// todo: this should return DecryptedParsedInstance. maybe just use real instancePipeline?
 				.thenResolve(blobServiceResponse)
-			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything())).thenResolve(JSON.stringify(blobServiceResponse))
+			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything())).thenResolve(blobServiceServerResponse.getJsonRepresentation())
 
 			const referenceTokens = await blobFacade.encryptAndUpload(archiveDataType, blobData, ownerGroup, sessionKey, transferId)
 			o(referenceTokens).deepEquals(expectedReferenceTokens)
@@ -176,9 +171,12 @@ o.spec("BlobFacade", function () {
 				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "http://w1.api.tuta.com" })],
 			})
 			when(blobAccessTokenFacade.requestWriteToken(anything(), anything())).thenResolve(blobAccessInfo)
+
 			let blobServiceResponse = createTestEntity(BlobPostOutTypeRef, {
 				blobReferenceToken: expectedReferenceTokens[0].blobReferenceToken,
 			})
+
+			const blobServiceServerResponse = await realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, blobServiceResponse, sessionKey)
 			when(blobAccessTokenFacade.createQueryParams(blobAccessInfo, anything(), anything())).thenResolve({ test: "theseAreTheParamsIPromise" })
 
 			when(instancePipelineMock.decryptAndMap(anything(), anything()))
@@ -196,7 +194,7 @@ o.spec("BlobFacade", function () {
 			when(fileAppMock.hashFile(encryptedFileInfo.uri)).thenResolve(blobHash)
 			when(fileAppMock.upload(anything(), anything(), anything(), anything(), anything())).thenResolve({
 				statusCode: 201,
-				responseBody: stringToUtf8Uint8Array(JSON.stringify(blobServiceResponse)),
+				responseBody: stringToUtf8Uint8Array(blobServiceServerResponse.getJsonRepresentation()),
 			})
 			when(fileAppMock.getFilesMetaData([uploadedFileUri])).thenResolve([
 				{ size: 1024, location: uploadedFileUri, name: "file1", cid: "abc", _type: "FileReference", mimeType: "" },
@@ -223,7 +221,7 @@ o.spec("BlobFacade", function () {
 	})
 
 	o.spec("download", function () {
-		o("downloadAndDecrypt", async function () {
+		o("downloadAndDecrypt u", async function () {
 			const sessionKey = aes256RandomKey()
 			const transferId = "abcd" as TransferId
 
@@ -243,8 +241,12 @@ o.spec("BlobFacade", function () {
 				blobAccessToken: blobAccessInfo.blobAccessToken,
 			})
 			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
-			const requestBody = OutgoingServerJson.newFromRecord({ "request-body": "1" })
+			// const requestBody = OutgoingServerJson.newFromRecord({ "request-body": "1" })
+			const blobGetIn = createTestEntity(BlobGetInTypeRef, { archiveId: "archiveId", blobIds: [createTestEntity(BlobIdTypeRef, { blobId })] })
+			// for the mock
+			const requestBody = await realInstancePipeline.mapAndEncrypt(BlobGetInTypeRef, blobGetIn, sessionKey)
 			when(instancePipelineMock.mapAndEncrypt(anything(), anything(), anything())).thenResolve(requestBody)
+
 			// data size is 65 (16 data block, 16 initialization vector, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
 			const blobResponse = concat(
@@ -268,7 +270,7 @@ o.spec("BlobFacade", function () {
 			verify(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, optionsCaptor.capture()))
 			o(optionsCaptor.value.baseUrl).equals("someBaseUrl")
 			o(optionsCaptor.value.queryParams.blobAccessToken).deepEquals(blobAccessInfo.blobAccessToken)
-			o((optionsCaptor.value.body as RestTextBody).payload).deepEquals(JSON.stringify(requestBody))
+			o((optionsCaptor.value.body as RestTextBody).payload).deepEquals(requestBody.getJsonRepresentation())
 		})
 
 		o("downloadAndDecrypt multiple", async function () {

@@ -251,7 +251,7 @@ export class ServerModelInfo {
 			if (clientModelValue) {
 				const isEncrypted = this.asBoolean(clientModelValue.encrypted)
 				if (isEncrypted && !serverEncrypted) {
-					throw new ProgrammingError(
+					throw new InvalidModelError(
 						`Trying to parse encrypted value as unencrypted for: ${clientModelType?.app}:${clientModelType.id}:${clientModelValue.id}`,
 					)
 				}

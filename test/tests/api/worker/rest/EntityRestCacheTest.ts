@@ -503,6 +503,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			})
 
 			o("update is not in cache range", async function () {
+				// FIXME was failing before rebase
 				const batch = [
 					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null),
 					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null),

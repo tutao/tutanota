@@ -55,16 +55,7 @@ import { KeyRotationFacade } from "../../../../src/platform-kit/base/base-crypto
 import { EncryptedParsedInstance, EntityAdapter, InstancePipeline, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
 import { KeyVerificationMismatchError } from "../../../../src/platform-kit/network/error/KeyVerificationMismatchError"
 import { loadLibOQSWASM } from "../../crypto/WebAssemblyTestUtils"
-import {
-	createMail,
-	createMailAddress,
-	FileTypeRef,
-	InternalRecipientKeyData,
-	Mail,
-	MailAddressTypeRef,
-	MailDetailsBlobTypeRef,
-	MailTypeRef,
-} from "@tutao/entities/tutanota"
+import { createMail, createMailAddress, FileTypeRef, Mail, MailAddressTypeRef, MailDetailsBlobTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import {
 	BucketKey,
 	BucketKeyTypeRef,
@@ -98,7 +89,8 @@ import { InstanceSessionKeysCache } from "../../../../src/platform-kit/base/base
 import { ProcessingState } from "../../../../src/entities/tutanota/Utils"
 import { GroupType, PermissionType } from "../../../../src/entities/sys/Utils"
 import { CacheManager } from "../../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
-import { ParsedValue } from "../../../../src/platform-kit/instance-pipeline/ParsedValue"
+import { InstanceDirection, ParsedValue } from "../../../../src/platform-kit/instance-pipeline/ParsedValue"
+import { changeInstanceDirection } from "../../instance-pipeline/InstancePipelineTestUtils"
 
 const { anything, argThat } = matchers
 
@@ -1141,6 +1133,8 @@ o.spec("CryptoFacadeTest", function () {
 		const testData = await prepareConfidentialMailToExternalRecipient([file1SessionKey, file2SessionKey])
 
 		const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.entityAdapter))
+		console.log(mailSessionKey)
+		console.log(testData.sk)
 		o(mailSessionKey).deepEquals(testData.sk)
 
 		const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.entityAdapter))
@@ -1887,7 +1881,8 @@ o.spec("CryptoFacadeTest", function () {
 		})
 
 		const bucketKeyUntypedInstance = await instancePipeline.mapAndEncryptToParsedInstance(BucketKeyTypeRef, bucketKey, null)
-		enncryptedMailInstance.addAttributeByName("bucketKey", ParsedValue.fromNestedItem(bucketKeyUntypedInstance))
+		enncryptedMailInstance.addAttributeByName("bucketKey", ParsedValue.fromNestedItems([bucketKeyUntypedInstance]))
+		changeInstanceDirection(enncryptedMailInstance, InstanceDirection.IncomingFromServer)
 
 		return {
 			entityAdapter: await EntityAdapter.fromEncryptedParsedInstance(enncryptedMailInstance, instancePipeline.modelMapper, instancePipeline.cryptoMapper),
@@ -1975,7 +1970,8 @@ o.spec("CryptoFacadeTest", function () {
 		})
 
 		const encryptedBuckeyKeyInstance = await instancePipeline.mapAndEncryptToParsedInstance(BucketKeyTypeRef, bucketKey, null)
-		encryptedMailInstance.addAttributeByName("bucketKey", ParsedValue.fromNestedItem(encryptedBuckeyKeyInstance))
+		encryptedMailInstance.addAttributeByName("bucketKey", ParsedValue.fromNestedItems([encryptedBuckeyKeyInstance]))
+		changeInstanceDirection(encryptedMailInstance, InstanceDirection.IncomingFromServer)
 
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(
 			encryptedMailInstance,
@@ -2008,10 +2004,10 @@ o.spec("CryptoFacadeTest", function () {
 			_permissions: "permissionListId",
 			_id: ["mailListId", "mailId"],
 			receivedDate: new Date(1470039025474),
-			state: "",
+			state: "0",
 			unread: true,
 			subject: "any subject",
-			replyType: "",
+			replyType: "0",
 			confidential: confidential,
 			sender: createMailAddress({
 				address: senderAddress,
@@ -2021,7 +2017,7 @@ o.spec("CryptoFacadeTest", function () {
 			bucketKey: null,
 			authStatus: null,
 			listUnsubscribe: false,
-			method: "",
+			method: "0",
 			phishingStatus: "0",
 			recipientCount: "0",
 			differentEnvelopeSender: null,
