@@ -402,6 +402,7 @@ export class EventBusClient {
 			}
 			case MessageType.InitialSyncWorkEstimate: {
 				const newWorkEstimate = Number.parseInt(value)
+				console.log(TAG, "InitialSyncWorkEstimate: ", newWorkEstimate)
 				if (newWorkEstimate === 0) {
 					break
 				}
@@ -747,9 +748,11 @@ export class EventBusClient {
 	}
 
 	private async processAccumulatedEventBatches() {
+		console.log(TAG, `ws will process accumulated event batches, current event queue size: ${this.eventQueue.eventQueue.length}`)
 		const allMissedEventsFlat = this.eventQueue.eventQueue.flatMap((batch) => batch.events)
 		await this.cache.updateCacheWithMissedEntityUpdates(allMissedEventsFlat)
 		await this.waitForEmptyQueue()
 		this.eventQueue.pause()
+		console.log(TAG, `ws processed accumulated event batches, current event queue size: ${this.eventQueue.eventQueue.length}`)
 	}
 }
