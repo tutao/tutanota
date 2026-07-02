@@ -64,7 +64,7 @@ import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
 import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorViewModel.js"
 import { Router, ScopedThrottledRouter, ThrottledRouter } from "../../ui/ScopedThrottledRouter.js"
 import { DeviceConfig, deviceConfig } from "../common/misc/DeviceConfig.js"
-import { InboxRuleHandler } from "./mail/model/InboxRuleHandler.js"
+import { ExpandedInboxRuleHandler } from "./mail/model/ExpandedInboxRuleHandler.js"
 import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "./mail/view/MailViewModel.js"
@@ -304,7 +304,8 @@ class MailLocator implements CommonLocator {
 	})
 
 	readonly inboxRuleHandler = lazyMemoized(() => {
-		return new InboxRuleHandler(this.mailFacade, this.logins, this.mailModel)
+		// FIXME use appropriate InboxRuleHandler depending on whether migrated or not
+		return new ExpandedInboxRuleHandler(this.mailFacade, this.logins, this.mailModel)
 	})
 
 	readonly spamClassificationHandler = lazyMemoized(() => {
