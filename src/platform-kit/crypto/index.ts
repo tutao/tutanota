@@ -140,7 +140,7 @@ export * as cryptoUtils from "./CryptoUtils.js"
 export {
 	SymmetricSubKeys,
 	AeadSubKeys,
-	AeadWithGroupKeySubKeys,
+	AeadWithInstanceKeySubKeys,
 	AeadWithSessionKeySubKeys,
 	AesCbcSubKeys,
 	AesCbcThenHmacSubKeys,

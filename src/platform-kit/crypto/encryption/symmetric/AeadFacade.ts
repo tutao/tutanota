@@ -1,4 +1,4 @@
-import { AeadSubKeys, AeadWithGroupKeySubKeys } from "./SymmetricKeyDeriver.js"
+import { AeadSubKeys, AeadWithInstanceKeySubKeys } from "./SymmetricKeyDeriver.js"
 import { concat } from "@tutao/utils"
 import { bitArrayToUint8Array, generateInitializationVector, keyToUint8Array, uint8ArrayToBitArray } from "./SymmetricCipherUtils.js"
 import sjcl from "../../internal/sjcl.js"
@@ -83,10 +83,10 @@ export class AeadFacade {
 
 	private ciphertextVersionPrefix(subKeys: AeadSubKeys): Uint8Array {
 		switch (subKeys.cipherVersion) {
-			case SymmetricCipherVersion.AeadWithGroupKey: {
+			case SymmetricCipherVersion.AeadWithInstanceKey: {
 				const keyVersionLengthByte = 0
-				if (!(subKeys instanceof AeadWithGroupKeySubKeys)) {
-					throw new ProgrammingError("AEAD encryption with group key requires a group key version")
+				if (!(subKeys instanceof AeadWithInstanceKeySubKeys)) {
+					throw new ProgrammingError("AEAD encryption with instance key requires a group key version")
 				}
 				return Uint8Array.of(subKeys.cipherVersion.valueOf(), keyVersionLengthByte, subKeys.groupKeyVersion)
 			}
