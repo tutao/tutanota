@@ -10,7 +10,7 @@ import { MailModel } from "./MailModel"
 import { UnencryptedProcessInboxDatum } from "./ProcessInboxHandler"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
 import { InboxRule, Mail, MailSet } from "@tutao/entities/tutanota"
-import { InboxRuleType, MailSetKind, ProcessingState } from "../../../../entities/tutanota/Utils"
+import { InboxRuleResultType, InboxRuleType, MailSetKind, ProcessingState } from "../../../../entities/tutanota/Utils"
 import { elementIdPart } from "../../../../platform-kit/meta"
 
 assertMainOrNode()
@@ -19,27 +19,40 @@ export function getInboxRuleTypeNameMapping(): SelectorItemList<string> {
 	return [
 		{
 			value: InboxRuleType.FROM_EQUALS,
-			name: lang.get("inboxRuleSenderEquals_action"),
+			name: lang.getTranslationText("inboxRuleSenderEquals_action"),
 		},
 		{
 			value: InboxRuleType.RECIPIENT_TO_EQUALS,
-			name: lang.get("inboxRuleToRecipientEquals_action"),
+			name: lang.getTranslationText("inboxRuleToRecipientEquals_action"),
 		},
 		{
 			value: InboxRuleType.RECIPIENT_CC_EQUALS,
-			name: lang.get("inboxRuleCCRecipientEquals_action"),
+			name: lang.getTranslationText("inboxRuleCCRecipientEquals_action"),
 		},
 		{
 			value: InboxRuleType.RECIPIENT_BCC_EQUALS,
-			name: lang.get("inboxRuleBCCRecipientEquals_action"),
+			name: lang.getTranslationText("inboxRuleBCCRecipientEquals_action"),
 		},
 		{
 			value: InboxRuleType.SUBJECT_CONTAINS,
-			name: lang.get("inboxRuleSubjectContains_action"),
+			name: lang.getTranslationText("inboxRuleSubjectContains_action"),
 		},
 		{
 			value: InboxRuleType.MAIL_HEADER_CONTAINS,
-			name: lang.get("inboxRuleMailHeaderContains_action"),
+			name: lang.getTranslationText("inboxRuleMailHeaderContains_action"),
+		},
+	]
+}
+
+export function getInboxRuleResultTypeNameMapping(): SelectorItemList<string> {
+	return [
+		{
+			value: InboxRuleResultType.MOVE,
+			name: lang.getTranslationText("inboxRuleTargetFolder_label"),
+		},
+		{
+			value: InboxRuleResultType.EXCLUDE_SPAM,
+			name: lang.getTranslationText("inboxRuleExcludedFromSpamFilter_msg"),
 		},
 	]
 }

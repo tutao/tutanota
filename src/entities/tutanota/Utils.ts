@@ -142,6 +142,15 @@ export const enum InboxRuleType {
 	MAIL_HEADER_CONTAINS = "5",
 }
 
+export const enum InboxRuleResultType {
+	// Results that apply Mail Set - value will be a Mail Set
+	MOVE = "0",
+	LABEL = "1",
+	// Boolean Results - no value needed, existence is the positive
+	READ = "2",
+	EXCLUDE_SPAM = "3"
+}
+
 export enum SpamRuleType {
 	WHITELIST = "1",
 	BLACKLIST = "2",

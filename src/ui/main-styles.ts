@@ -2183,6 +2183,15 @@ export class MainStyles {
 					width: "full-width",
 					height: "fit-content",
 				},
+				// FIXME
+				".wrap-row": {
+					display: "flex",
+					"flex-flow": "row wrap",
+				},
+				".wrap-row > *": {
+					flex: "1 0 40%",
+					"min-width": px(200), // makes sure the row is wrapped with too large content
+				},
 				// contact
 				".wrapping-row": {
 					display: "flex",
