@@ -7,7 +7,7 @@ import { CryptoError } from "../../error.js"
 export enum SymmetricCipherVersion {
 	UnusedReservedUnauthenticated = 0, // Un(!)authenticated encryption. DO NOT USE THIS to write a version byte! In theory, this could be the original version (AES-128-CBC without MAC), but this version does not have a version byte nor a version explicitly declared.
 	AesCbcThenHmac = 1, // Authenticated encryption Aes-128/256 (depending on the key length) AES-CBC-then-HMAC
-	AeadWithGroupKey = 2, // Authenticated encryption with associated data using group key derived sub-keys based on AES-CTR-then-BLAKE3, where BLAKE3 is also computed over the associated data
+	AeadWithInstanceKey = 2, // Authenticated encryption with associated data using instance key (derived from group key) derived sub-keys based on AES-CTR-then-BLAKE3, where BLAKE3 is also computed over the associated data
 	AeadWithSessionKey = 3, // Authenticated encryption with associated data using session key derived sub-keys based on AES-CTR-then-BLAKE3, where BLAKE3 is also computed over the associated data
 }
 
@@ -22,8 +22,8 @@ export function getSymmetricCipherVersion(ciphertext: Uint8Array): SymmetricCiph
 		const versionByte = ciphertext[0]
 		if (versionByte === SymmetricCipherVersion.AesCbcThenHmac) {
 			return SymmetricCipherVersion.AesCbcThenHmac
-		} else if (versionByte === SymmetricCipherVersion.AeadWithGroupKey) {
-			return SymmetricCipherVersion.AeadWithGroupKey
+		} else if (versionByte === SymmetricCipherVersion.AeadWithInstanceKey) {
+			return SymmetricCipherVersion.AeadWithInstanceKey
 		} else if (versionByte === SymmetricCipherVersion.AeadWithSessionKey) {
 			return SymmetricCipherVersion.AeadWithSessionKey
 		} else if (versionByte === SymmetricCipherVersion.UnusedReservedUnauthenticated) {

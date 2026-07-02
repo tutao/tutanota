@@ -6,7 +6,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class AeadKeyDerivationTestData {
 	private String groupKey256Hex;
+	private String instanceKeyFrom256Hex;
 	private String groupKey128Hex;
+	private String instanceKeyFrom128Hex;
 	private String sessionKeyHex;
 	private String kdfNonceHex;
 	private String globalInstanceTypeId;
@@ -25,7 +27,9 @@ public class AeadKeyDerivationTestData {
 
 	@JsonIgnore
 	public AeadKeyDerivationTestData(String groupKey256Hex,
+									 String instanceKeyFrom256Hex,
 									 String groupKey128Hex,
+									 String instanceKeyFrom128Hex,
 									 String sessionKeyHex,
 									 String kdfNonceHex,
 									 String globalInstanceTypeId,
@@ -36,7 +40,9 @@ public class AeadKeyDerivationTestData {
 									 String encryptionKeyFromSessionKeyHex,
 									 String authenticationKeyFromSessionKeyHex) {
 		this.groupKey256Hex = groupKey256Hex;
+		this.instanceKeyFrom256Hex = instanceKeyFrom256Hex;
 		this.groupKey128Hex = groupKey128Hex;
+		this.instanceKeyFrom128Hex = instanceKeyFrom128Hex;
 		this.sessionKeyHex = sessionKeyHex;
 		this.kdfNonceHex = kdfNonceHex;
 		this.globalInstanceTypeId = globalInstanceTypeId;
@@ -134,5 +140,21 @@ public class AeadKeyDerivationTestData {
 
 	public void setAuthenticationKeyFromSessionKeyHex(String authenticationKeyFromSessionKeyHex) {
 		this.authenticationKeyFromSessionKeyHex = authenticationKeyFromSessionKeyHex;
+	}
+
+	public String getInstanceKeyFrom128Hex() {
+		return instanceKeyFrom128Hex;
+	}
+
+	public void setInstanceKeyFrom128Hex(String instanceKeyFrom128Hex) {
+		this.instanceKeyFrom128Hex = instanceKeyFrom128Hex;
+	}
+
+	public String getInstanceKeyFrom256Hex() {
+		return instanceKeyFrom256Hex;
+	}
+
+	public void setInstanceKeyFrom256Hex(String instanceKeyFrom256Hex) {
+		this.instanceKeyFrom256Hex = instanceKeyFrom256Hex;
 	}
 }
