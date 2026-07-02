@@ -5,7 +5,13 @@ import { sha256Hash } from "../../hashes/Sha256.js"
 import { sha512Hash } from "../../hashes/Sha512.js"
 import { blake3Kdf } from "../../hashes/Blake3.js"
 import { concat, KeyVersion } from "@tutao/utils"
-import { AEAD_GROUP_KEY_NONCE_DERIVATION, AEAD_SESSION_KEY_DERIVATION, VersionedKey } from "../../CryptoTypes"
+import {
+	AEAD_GROUP_KEY_NONCE_DERIVATION_FOR_INSTANCE_KEY,
+	AEAD_INSTANCE_KEY_DERIVATION,
+	AEAD_SESSION_KEY_DERIVATION,
+	VersionedAes256Key,
+	VersionedKey,
+} from "../../CryptoTypes"
 import { ProgrammingError } from "@tutao/app-env"
 import { CryptoError } from "@tutao/crypto/error"
 
@@ -54,8 +60,8 @@ export abstract class AeadSubKeys extends SymmetricSubKeys {
 	}
 }
 
-export class AeadWithGroupKeySubKeys extends AeadSubKeys {
-	public override readonly cipherVersion: typeof SymmetricCipherVersion.AeadWithGroupKey = SymmetricCipherVersion.AeadWithGroupKey
+export class AeadWithInstanceKeySubKeys extends AeadSubKeys {
+	public override readonly cipherVersion: typeof SymmetricCipherVersion.AeadWithInstanceKey = SymmetricCipherVersion.AeadWithInstanceKey
 
 	constructor(
 		public readonly groupKeyVersion: KeyVersion,
@@ -118,25 +124,43 @@ export class SymmetricKeyDeriver {
 	}
 
 	/**
-	 * Derive encryption and authentication keys for AEAD from groupKey in the correct version and kdfNonce for the instance type.
+	 * Derive instance key for AEAD from groupKey and Kdf nonce.
 	 */
-	deriveSubKeysAeadFromGroupKey(groupKey: VersionedKey, kdfNonce: KdfNonce, instanceTypeId: InstanceTypeId): AeadWithGroupKeySubKeys {
-		const context = `${AEAD_GROUP_KEY_NONCE_DERIVATION}${instanceTypeId.app}/${instanceTypeId.id}`
+	deriveInstanceKey(groupKey: VersionedKey, kdfNonce: KdfNonce): VersionedAes256Key {
+		const context = `${AEAD_GROUP_KEY_NONCE_DERIVATION_FOR_INSTANCE_KEY}$`
 		const inputKeyMaterial = concat(keyToUint8Array(groupKey.object), kdfNonce)
-		return this.deriveAeadSubKeys(inputKeyMaterial, context, groupKey.version)
+		const derivedBytes = blake3Kdf(inputKeyMaterial, context, DEFAULT_LENGTH_PER_KEY_BYTES)
+		return { object: uint8ArrayToKey(derivedBytes, AesKeyLength.Aes256), version: groupKey.version }
+	}
+
+	/**
+	 * Derive encryption and authentication keys for AEAD from instanceKey in the correct groupKey version for the instance type.
+	 */
+	deriveSubKeysAeadWithInstanceKeyFromInstanceKey(instanceKey: VersionedAes256Key, instanceTypeId: InstanceTypeId): AeadWithInstanceKeySubKeys {
+		const context = `${AEAD_INSTANCE_KEY_DERIVATION}${instanceTypeId.app}/${instanceTypeId.id}`
+		const inputKeyMaterial = keyToUint8Array(instanceKey.object)
+		return this.deriveAeadSubKeys(inputKeyMaterial, context, instanceKey.version)
+	}
+
+	/**
+	 * Derive encryption and authentication keys for AEAD with instanceKey from kdf nonce and groupKey in the correct groupKey version for the instance type.
+	 */
+	deriveSubKeysAeadWithInstanceKeyFromGroupKey(groupKey: VersionedKey, kdfNonce: KdfNonce, instanceTypeId: InstanceTypeId): AeadWithInstanceKeySubKeys {
+		const instanceKey = this.deriveInstanceKey(groupKey, kdfNonce)
+		return this.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(instanceKey, instanceTypeId)
 	}
 
 	/**
 	 * Derive encryption and authentication keys for AEAD from the session key for the instance type.
 	 */
-	deriveSubKeysAeadFromSessionKey(sessionKey: AesKey, instanceTypeId: InstanceTypeId): AeadWithSessionKeySubKeys {
+	deriveSubKeysAeadWithSessionKey(sessionKey: AesKey, instanceTypeId: InstanceTypeId): AeadWithSessionKeySubKeys {
 		const context = `${AEAD_SESSION_KEY_DERIVATION}${instanceTypeId.app}/${instanceTypeId.id}`
 		const inputKeyMaterial = keyToUint8Array(sessionKey)
 		return this.deriveAeadSubKeys(inputKeyMaterial, context)
 	}
 
 	private deriveAeadSubKeys(inputKeyMaterial: Uint8Array, context: string): AeadWithSessionKeySubKeys
-	private deriveAeadSubKeys(inputKeyMaterial: Uint8Array, context: string, groupKeyVersion: KeyVersion): AeadWithGroupKeySubKeys
+	private deriveAeadSubKeys(inputKeyMaterial: Uint8Array, context: string, groupKeyVersion: KeyVersion): AeadWithInstanceKeySubKeys
 	private deriveAeadSubKeys(inputKeyMaterial: Uint8Array, context: string, groupKeyVersion?: KeyVersion): AeadSubKeys {
 		const derivedBytes = blake3Kdf(inputKeyMaterial, context, DEFAULT_TOTAL_KEY_LENGTH_BYTES)
 
@@ -145,7 +169,7 @@ export class SymmetricKeyDeriver {
 		if (groupKeyVersion == null) {
 			return new AeadWithSessionKeySubKeys(encryptionKey, authenticationKey)
 		} else {
-			return new AeadWithGroupKeySubKeys(groupKeyVersion, encryptionKey, authenticationKey)
+			return new AeadWithInstanceKeySubKeys(groupKeyVersion, encryptionKey, authenticationKey)
 		}
 	}
 }

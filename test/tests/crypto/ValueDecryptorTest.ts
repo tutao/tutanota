@@ -94,14 +94,14 @@ o.spec("ValueDecryptorTest", () => {
 		}
 	})
 
-	o.test("AeadWithGroupKey", async () => {
+	o.test("AeadWithInstanceKey", async () => {
 		const kdfNonce = validateKdfNonceLength(new Uint8Array(KDF_NONCE_LENGTH_BYTES))
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(null, kdfNonce, instanceTypeId)
 		const keyVersionLengthByte = 0
 		const groupKeyVersion = 0
 		const ciphertext = new Uint8Array()
 		const versionedCiphertext = concat(
-			Uint8Array.of(SymmetricCipherVersion.AeadWithGroupKey, keyVersionLengthByte, groupKeyVersion),
+			Uint8Array.of(SymmetricCipherVersion.AeadWithInstanceKey, keyVersionLengthByte, groupKeyVersion),
 			initializationVector.bytes,
 			ciphertext,
 			macTag,
@@ -110,7 +110,7 @@ o.spec("ValueDecryptorTest", () => {
 		const valueDecryptor = instanceDecryptor.getValueDecryptor(versionedCiphertext, "") as ValueDecryptor
 		o.check(valueDecryptor.requiredGroupKeyVersion).equals(groupKeyVersion)
 		await assertThrows(CryptoError, async () => valueDecryptor.getValue(null))
-		const plaintext = stringToUtf8Uint8Array("AeadWithGroupKey plaintext")
+		const plaintext = stringToUtf8Uint8Array("AeadWithInstanceKey plaintext")
 		when(aeadFacade.decrypt(matchers.anything(), parsedCiphertext, matchers.anything())).thenReturn(plaintext)
 		o.check(valueDecryptor.getValue(aes256Key)).equals(plaintext)
 	})

@@ -492,32 +492,32 @@ o.spec("CompatibilityTest", function () {
 					id: filterInt(splitGlobalInstanceTypeId[1]),
 					name: "name",
 				}
-				const keysFrom256 = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(
+				const keysFrom256 = symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromGroupKey(
 					freshVersioned(uint8ArrayToKey(hexToUint8Array(td.groupKey256Hex))),
 					kdfNonce,
 					instanceTypeId,
 				)
 
 				o.check(keysFrom256).deepEquals({
-					cipherVersion: SymmetricCipherVersion.AeadWithGroupKey,
+					cipherVersion: SymmetricCipherVersion.AeadWithInstanceKey,
 					groupKeyVersion: 0,
 					encryptionKey: uint8ArrayToKey(hexToUint8Array(td.encryptionKeyFrom256Hex), AesKeyLength.Aes256),
 					authenticationKey: uint8ArrayToKey(hexToUint8Array(td.authenticationKeyFrom256Hex), AesKeyLength.Aes256),
 				})
 
-				const keysFrom128 = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(
+				const keysFrom128 = symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromGroupKey(
 					freshVersioned(uint8ArrayToKey(hexToUint8Array(td.groupKey128Hex))),
 					kdfNonce,
 					instanceTypeId,
 				)
 				o.check(keysFrom128).deepEquals({
-					cipherVersion: SymmetricCipherVersion.AeadWithGroupKey,
+					cipherVersion: SymmetricCipherVersion.AeadWithInstanceKey,
 					groupKeyVersion: 0,
 					encryptionKey: uint8ArrayToKey(hexToUint8Array(td.encryptionKeyFrom128Hex), AesKeyLength.Aes256),
 					authenticationKey: uint8ArrayToKey(hexToUint8Array(td.authenticationKeyFrom128Hex), AesKeyLength.Aes256),
 				})
 
-				const keysFromSessionKey = symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(
+				const keysFromSessionKey = symmetricKeyDeriver.deriveSubKeysAeadWithSessionKey(
 					uint8ArrayToKey(hexToUint8Array(td.sessionKeyHex)),
 					instanceTypeId,
 				)

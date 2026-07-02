@@ -14,10 +14,11 @@ export const enum HkdfKeyDerivationDomains {
 export type MacTag = Uint8Array & { readonly __brand: "macTag" }
 export const UNIT_SEPARATOR_CHAR = "" as const
 export type DomainSeparator = `${string}${typeof UNIT_SEPARATOR_CHAR}`
-export const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN: DomainSeparator = `attributeEncGK${UNIT_SEPARATOR_CHAR}`
+export const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_INSTANCE_KEY_DOMAIN: DomainSeparator = `attributeEncIK${UNIT_SEPARATOR_CHAR}`
 export const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN: DomainSeparator = `attributeEncSK${UNIT_SEPARATOR_CHAR}`
-export const AEAD_GROUP_KEY_NONCE_DERIVATION: DomainSeparator = `GK and nonce instanceMessageKey${UNIT_SEPARATOR_CHAR}`
+export const AEAD_GROUP_KEY_NONCE_DERIVATION_FOR_INSTANCE_KEY: DomainSeparator = `GK and nonce instanceKey${UNIT_SEPARATOR_CHAR}`
 export const AEAD_SESSION_KEY_DERIVATION: DomainSeparator = `SK instanceSessionKey${UNIT_SEPARATOR_CHAR}`
+export const AEAD_INSTANCE_KEY_DERIVATION: DomainSeparator = `IK instanceInstanceKey${UNIT_SEPARATOR_CHAR}`
 export const enum EntropySource {
 	Mouse = "mouse",
 	Touch = "touch",

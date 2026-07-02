@@ -3,7 +3,7 @@ import { KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { AesCbcFacade, PaddingStandard } from "../../encryption/symmetric/AesCbcFacade"
 import { AeadSubKeys, AesCbcSubKeys, InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { AeadFacade } from "../../encryption/symmetric/AeadFacade"
-import { ParsedCiphertextAeadWithGroupKey, ParsedCiphertextAeadWithSessionKey, ParsedCiphertextAesCbc } from "../../encryption/symmetric/ParsedCiphertext"
+import { ParsedCiphertextAeadWithInstanceKey, ParsedCiphertextAeadWithSessionKey, ParsedCiphertextAesCbc } from "../../encryption/symmetric/ParsedCiphertext"
 import { CryptoError } from "@tutao/crypto/error"
 import { InstanceSubKeyCache } from "./SubKeyCache"
 import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
@@ -41,10 +41,10 @@ export class AesCbcDecryptor implements ValueDecryptor {
 	}
 }
 
-export class AeadWithGroupKeyDecryptor implements ValueDecryptor {
+export class AeadWithInstanceKeyDecryptor implements ValueDecryptor {
 	requiredGroupKeyVersion: KeyVersion
 	constructor(
-		private readonly parsedCiphertext: ParsedCiphertextAeadWithGroupKey,
+		private readonly parsedCiphertext: ParsedCiphertextAeadWithInstanceKey,
 		private readonly aeadFacade: AeadFacade,
 		private readonly kdfNonce: KdfNonce,
 		private readonly instanceTypeId: InstanceTypeId,
@@ -60,12 +60,12 @@ export class AeadWithGroupKeyDecryptor implements ValueDecryptor {
 			throw new CryptoError("AEAD decryption of a value failed because of a missing group key.")
 		}
 		const instanceAeadSubKeyCacheKey = {
-			cipherVersion: SymmetricCipherVersion.AeadWithGroupKey,
+			cipherVersion: SymmetricCipherVersion.AeadWithInstanceKey,
 			aesKey: key,
 		}
 		let subKeys = this.instanceAeadSubKeyCache.get(instanceAeadSubKeyCacheKey)
 		if (subKeys == null) {
-			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(
+			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromGroupKey(
 				{ object: key, version: this.parsedCiphertext.groupKeyVersion },
 				this.kdfNonce,
 				this.instanceTypeId,
@@ -94,7 +94,7 @@ export class AeadWithSessionKeyDecryptor implements ValueDecryptor {
 		}
 		let subKeys = this.instanceAeadSubKeyCache.get(instanceAeadSubKeyCacheKey)
 		if (subKeys == null) {
-			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(this.sessionKey, this.instanceTypeId)
+			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadWithSessionKey(this.sessionKey, this.instanceTypeId)
 			this.instanceAeadSubKeyCache.set(instanceAeadSubKeyCacheKey, subKeys)
 		}
 		return this.aeadFacade.decrypt(subKeys, this.parsedCiphertext, this.associatedData)

@@ -4,14 +4,17 @@ import { AesCbcFacade } from "../../encryption/symmetric/AesCbcFacade"
 import { AeadFacade } from "../../encryption/symmetric/AeadFacade"
 import { AeadSubKeys, AesCbcSubKeys, InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { AeadWithGroupKeyDecryptor, AeadWithSessionKeyDecryptor, AesCbcDecryptor, ValueDecryptor } from "./ValueDecryptor"
+import { AeadWithInstanceKeyDecryptor, AeadWithSessionKeyDecryptor, AesCbcDecryptor, ValueDecryptor } from "./ValueDecryptor"
 import {
-	ParsedCiphertextAeadWithGroupKey,
+	ParsedCiphertextAeadWithInstanceKey,
 	ParsedCiphertextAeadWithSessionKey,
 	ParsedCiphertextAesCbc,
 	parseVersionedCiphertext,
 } from "../../encryption/symmetric/ParsedCiphertext"
-import { AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN, AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN } from "../../CryptoTypes"
+import {
+	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_INSTANCE_KEY_DOMAIN,
+	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN,
+} from "../../CryptoTypes"
 import { InstanceSubKeyCache } from "./SubKeyCache"
 import { AesKey } from "../../encryption/symmetric/AesKey"
 
@@ -35,12 +38,12 @@ export class InstanceDecryptor {
 				throw new SessionKeyNotFoundError("Missing session key")
 			}
 			return new AesCbcDecryptor(parsedCiphertext, this.aesCbcFacade, this.sessionKey, this.instanceAesSubKeyCache, this.symmetricKeyDeriver)
-		} else if (parsedCiphertext instanceof ParsedCiphertextAeadWithGroupKey) {
+		} else if (parsedCiphertext instanceof ParsedCiphertextAeadWithInstanceKey) {
 			if (this.kdfNonce == null) {
-				throw new CryptoError("no kdf nonce for group key encrypted value")
+				throw new CryptoError("no kdf nonce for Aead with instance key encrypted value")
 			}
-			const associatedData = stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN + fieldPath)
-			return new AeadWithGroupKeyDecryptor(
+			const associatedData = stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_INSTANCE_KEY_DOMAIN + fieldPath)
+			return new AeadWithInstanceKeyDecryptor(
 				parsedCiphertext,
 				this.aeadFacade,
 				this.kdfNonce,

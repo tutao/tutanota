@@ -2,7 +2,7 @@ import { lazyMemoized, Nullable } from "@tutao/utils"
 import { InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
 import { KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
-import { VersionedKey } from "../../CryptoTypes"
+import { VersionedAes256Key, VersionedKey } from "../../CryptoTypes"
 import { ProgrammingError } from "@tutao/app-env"
 import { AesKey } from "../../encryption/symmetric/AesKey"
 
@@ -24,6 +24,13 @@ abstract class SubKeyInfoWithSessionKey extends SubKeyInfo {
 	}
 }
 
+abstract class SubKeyInfoAeadWithInstanceKey extends SubKeyInfo {
+	public override readonly cipherVersion: typeof SymmetricCipherVersion.AeadWithInstanceKey = SymmetricCipherVersion.AeadWithInstanceKey
+	protected constructor() {
+		super()
+	}
+}
+
 export class SubKeyInfoWithSessionKeyCbcThenHmac extends SubKeyInfoWithSessionKey {
 	public override readonly cipherVersion: typeof SymmetricCipherVersion.AesCbcThenHmac = SymmetricCipherVersion.AesCbcThenHmac
 	constructor(sessionKey: AesKey) {
@@ -38,12 +45,17 @@ export class SubKeyInfoWithSessionKeyAead extends SubKeyInfoWithSessionKey {
 	}
 }
 
-export class SubKeyInfoWithGroupKeyAead extends SubKeyInfo {
-	public override readonly cipherVersion: typeof SymmetricCipherVersion.AeadWithGroupKey = SymmetricCipherVersion.AeadWithGroupKey
+export class SubKeyInfoAeadWithInstanceKeyFromGroupKey extends SubKeyInfoAeadWithInstanceKey {
 	constructor(
 		public readonly groupKey: VersionedKey,
 		public readonly kdfNonce: KdfNonce,
 	) {
+		super()
+	}
+}
+
+export class SubKeyInfoAeadWithInstanceKeyFromInstanceKey extends SubKeyInfoAeadWithInstanceKey {
+	constructor(public readonly instanceKey: VersionedAes256Key) {
 		super()
 	}
 }
@@ -65,15 +77,19 @@ export class SubKeyProvider extends SubKeyFactory {
 				}
 				break
 			}
-			case SymmetricCipherVersion.AeadWithGroupKey: {
-				if (this.subKeyInfo instanceof SubKeyInfoWithGroupKeyAead) {
-					return this.symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(this.subKeyInfo.groupKey, this.subKeyInfo.kdfNonce, this.instanceTypeId)
+			case SymmetricCipherVersion.AeadWithInstanceKey: {
+				if (this.subKeyInfo instanceof SubKeyInfoAeadWithInstanceKeyFromGroupKey) {
+					return this.symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromGroupKey(
+						this.subKeyInfo.groupKey,
+						this.subKeyInfo.kdfNonce,
+						this.instanceTypeId,
+					)
 				}
 				break
 			}
 			case SymmetricCipherVersion.AeadWithSessionKey: {
 				if (this.subKeyInfo instanceof SubKeyInfoWithSessionKeyAead) {
-					return this.symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(this.subKeyInfo.sessionKey, this.instanceTypeId)
+					return this.symmetricKeyDeriver.deriveSubKeysAeadWithSessionKey(this.subKeyInfo.sessionKey, this.instanceTypeId)
 				}
 				break
 			}

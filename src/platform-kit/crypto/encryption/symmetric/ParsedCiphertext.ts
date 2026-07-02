@@ -60,8 +60,8 @@ export class ParsedCiphertextAesCbcThenHmac extends ParsedCiphertextAesCbc {
 	}
 }
 
-export class ParsedCiphertextAeadWithGroupKey extends ParsedCiphertextAead {
-	public override readonly cipherVersion: typeof SymmetricCipherVersion.AeadWithGroupKey = SymmetricCipherVersion.AeadWithGroupKey
+export class ParsedCiphertextAeadWithInstanceKey extends ParsedCiphertextAead {
+	public override readonly cipherVersion: typeof SymmetricCipherVersion.AeadWithInstanceKey = SymmetricCipherVersion.AeadWithInstanceKey
 	constructor(
 		public readonly groupKeyVersion: KeyVersion,
 		initializationVector: InitializationVector,
@@ -117,7 +117,7 @@ export function parseVersionedCiphertext(
 	}
 
 	let groupKeyVersion: Nullable<KeyVersion> = null
-	if (cipherVersion === SymmetricCipherVersion.AeadWithGroupKey) {
+	if (cipherVersion === SymmetricCipherVersion.AeadWithInstanceKey) {
 		;({ groupKeyVersion, ciphertext } = extractGroupKeyVersion(ciphertext))
 	}
 
@@ -126,7 +126,7 @@ export function parseVersionedCiphertext(
 
 	if (
 		initializationVectorVariant === InitializationVectorVariant.Fixed &&
-		(cipherVersion === SymmetricCipherVersion.AeadWithGroupKey || cipherVersion === SymmetricCipherVersion.AeadWithSessionKey)
+		(cipherVersion === SymmetricCipherVersion.AeadWithInstanceKey || cipherVersion === SymmetricCipherVersion.AeadWithSessionKey)
 	) {
 		throw new CryptoError("AEAD requires a random initialization vector")
 	}
@@ -141,8 +141,8 @@ export function parseVersionedCiphertext(
 	switch (cipherVersion) {
 		case SymmetricCipherVersion.AesCbcThenHmac:
 			return new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertext, macTag)
-		case SymmetricCipherVersion.AeadWithGroupKey:
-			return new ParsedCiphertextAeadWithGroupKey(assertNotNull(groupKeyVersion), initializationVector, ciphertext, macTag)
+		case SymmetricCipherVersion.AeadWithInstanceKey:
+			return new ParsedCiphertextAeadWithInstanceKey(assertNotNull(groupKeyVersion), initializationVector, ciphertext, macTag)
 		case SymmetricCipherVersion.AeadWithSessionKey:
 			return new ParsedCiphertextAeadWithSessionKey(initializationVector, ciphertext, macTag)
 	}

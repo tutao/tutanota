@@ -6,7 +6,7 @@ import {
 	InstanceTypeId,
 	KdfNonce,
 	random,
-	SubKeyInfoWithGroupKeyAead,
+	SubKeyInfoAeadWithInstanceKeyFromGroupKey,
 	SubKeyInfoWithSessionKeyAead,
 	SubKeyInfoWithSessionKeyCbcThenHmac,
 	VersionedKey,
@@ -253,12 +253,12 @@ o.spec("CryptoMapper", () => {
 			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, null, fieldPath)
 			o.check(Array.from(decryptedValue as Uint8Array)).deepEquals(Array.from(value))
 		})
-		o.test("encrypt bytes with AEAD with group key roundtrip", async () => {
+		o.test("encrypt bytes with AEAD with instance key roundtrip", async () => {
 			const valueType = createEncryptedValueType(ValueType.Bytes, Cardinality.One)
 			const value = random.generateRandomData(5)
 			const groupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
 			const kdfNonce: KdfNonce = generateKdfNonce()
-			const subKeyInfo = new SubKeyInfoWithGroupKeyAead(groupKey, kdfNonce)
+			const subKeyInfo = new SubKeyInfoAeadWithInstanceKeyFromGroupKey(groupKey, kdfNonce)
 			const clientTypeModel: ClientTypeModel = object()
 			clientTypeModel.app = AppNameEnum.Tutanota
 			clientTypeModel.id = 29
