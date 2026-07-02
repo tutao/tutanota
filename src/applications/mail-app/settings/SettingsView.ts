@@ -84,6 +84,7 @@ import { createUserAreaGroupDeleteData, TemplateGroupService, UserSettingsGroupR
 import { ButtonType } from "../../../ui/base/Button"
 import { renderHeaderButtons } from "../../calendar-app/gui/HeaderButtons"
 import ImapImportSettingsViewer from "./imapimport/ImapImportSettingsViewer.js"
+import { InboxRuleSettingsViewer } from "./InboxRuleSettingsViewer"
 
 assertMainOrNode()
 
@@ -122,6 +123,13 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				() => Icons.MailFilled,
 				"mail",
 				() => new MailSettingsViewer(),
+				undefined,
+			),
+			new SettingsFolder(
+				() => "inboxRulesSettings_action",
+				() => Icons.FunnelFilled,
+				"inboxrules",
+				() => new InboxRuleSettingsViewer(),
 				undefined,
 			),
 			new SettingsFolder(

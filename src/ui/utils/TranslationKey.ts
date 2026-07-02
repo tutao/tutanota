@@ -2392,3 +2392,5 @@ export type TranslationKeyType =
 	| "clearCache_action"
 	| "clearCache_msg"
 	| "clearCacheConfirm_msg"
+	| "inboxRuleManagement_label"
+	| "inboxRuleManagement_text"
