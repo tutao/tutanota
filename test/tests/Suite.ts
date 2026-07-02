@@ -256,6 +256,7 @@ import "./crypto/InstanceDecryptorTest.js"
 import "./crypto/ParsedCiphertextTest.js"
 import "./crypto/ValueDecryptorTest.js"
 import "./drive/DriveFilePickerTests.js"
+import "./drive/DriveTransferStackTest.js"
 
 import * as td from "testdouble"
 import { EntropySource } from "../../src/platform-kit/crypto"
