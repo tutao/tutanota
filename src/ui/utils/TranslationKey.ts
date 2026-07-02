@@ -2405,3 +2405,5 @@ export type TranslationKeyType =
 	| "moreEmailsAvailable_msg"
 	| "sendDate_label"
 	| "emptyString_msg"
+	| "inboxRuleManagement_label"
+	| "inboxRuleManagement_text"
