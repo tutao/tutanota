@@ -12,6 +12,8 @@ import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFacade"
 import { LockedError } from "../../../../platform-kit/rest-client/error"
+import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
+import { MailModel } from "./MailModel"
 
 assertMainOrNode()
 
@@ -32,6 +34,7 @@ export class ProcessInboxHandler {
 		private readonly cryptoFacade: CryptoFacade,
 		private spamHandler: () => SpamClassificationHandler,
 		private readonly inboxRuleHandler: () => InboxRuleHandler,
+		private readonly mailModel: MailModel,
 		private processedMailsByMailGroup: Map<Id, UnencryptedProcessInboxDatum[]> = new Map(),
 		private readonly throttleTimeout: number = DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS,
 	) {
@@ -88,27 +91,36 @@ export class ProcessInboxHandler {
 		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
 
 		let finalProcessInboxDatum: Nullable<UnencryptedProcessInboxDatum> = null
-		let moveToFolder: MailSet = sourceFolder
 
-		const matchingInboxRule = await this.inboxRuleHandler()?.findMatchingInboxRule(mailboxDetail, mail, sourceFolder)
-		if (!matchingInboxRule || !matchingInboxRule.excludeFromSpamFilter) {
+		const inboxRuleHandler = this.inboxRuleHandler()
+		const matchingInboxRule = await inboxRuleHandler.findMatchingInboxRule(mail, sourceFolder)
+		const excludeFromSpamFilter = matchingInboxRule != null && inboxRuleHandler.doesExcludeFromSpam(matchingInboxRule)
+		let moveToFolder: MailSet = (matchingInboxRule && (await inboxRuleHandler.getTargetFolder(matchingInboxRule, mailboxDetail))) ?? sourceFolder
+
+		if (matchingInboxRule != null) {
+			const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
+			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
+			const currentFolder = assertNotNull(folders.getFolderByMail(mail))
+			const { uploadableVectorLegacy, uploadableVector } = await this.mailFacade.createModelInputAndUploadableVectors(mail, mailDetails, currentFolder)
+
+			finalProcessInboxDatum = {
+				mailId: mail._id,
+				targetMoveFolder: moveToFolder._id,
+				classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
+				vectorLegacy: uploadableVectorLegacy,
+				vectorWithServerClassifiers: uploadableVector,
+				ownerEncMailSessionKeys: [],
+			}
+		}
+
+		if (!excludeFromSpamFilter) {
 			// In this case there is no matching inbox rule or it is not excluded from the spam, so we to use the spam classifier
-
 			const { targetFolder, processInboxDatum } = await this.spamHandler().predictSpamForNewMail(mail, mailDetails, sourceFolder, folderSystem)
 
-			if (targetFolder.folderType === MailSetKind.INBOX && matchingInboxRule) {
-				// The mail has been classified as HAM and inbox rule (if there is one) should be applied
-				moveToFolder = matchingInboxRule.targetFolder
-				finalProcessInboxDatum = matchingInboxRule.processInboxDatum
-			} else {
-				moveToFolder = targetFolder
+			if (targetFolder.folderType !== MailSetKind.INBOX || matchingInboxRule == null) {
+				// The mail has been classified as SPAM (not HAM) or there is no inbox rule to apply
 				finalProcessInboxDatum = processInboxDatum
 			}
-		} else {
-			// In this case there is a matching inbox rule and it is excluded from the spam, so we take the inbox rule
-			const { targetFolder, processInboxDatum } = matchingInboxRule
-			finalProcessInboxDatum = processInboxDatum
-			moveToFolder = targetFolder
 		}
 
 		// set processInboxDatum if the spam classification is disabled and no inbox rule applies to the mail
@@ -150,15 +162,14 @@ export class ProcessInboxHandler {
 		if (mail.processNeeded) {
 			return sourceFolder
 		}
-		let moveToFolder: MailSet = sourceFolder
 
 		// process excluded rules first and then regular ones.
-		const result = await this.inboxRuleHandler()?.findMatchingInboxRule(mailboxDetail, mail, sourceFolder, true)
+		const inboxRuleHandler = this.inboxRuleHandler()
+		const result = await inboxRuleHandler.findMatchingInboxRule(mail, sourceFolder, true)
 		if (result) {
-			const { targetFolder, processInboxDatum: _ } = result
-			moveToFolder = targetFolder
+			return (await inboxRuleHandler.getTargetFolder(result, mailboxDetail)) ?? sourceFolder
 		}
 
-		return moveToFolder
+		return sourceFolder
 	}
 }

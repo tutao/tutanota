@@ -320,7 +320,7 @@ class MailLocator implements CommonLocator {
 	})
 
 	readonly processInboxHandler = lazyMemoized(() => {
-		return new ProcessInboxHandler(this.logins, this.mailFacade, this.cryptoFacade, this.spamClassificationHandler, this.inboxRuleHandler)
+		return new ProcessInboxHandler(this.logins, this.mailFacade, this.cryptoFacade, this.spamClassificationHandler, this.inboxRuleHandler, this.mailModel)
 	})
 
 	async searchViewModelFactory(): Promise<() => SearchViewModel> {
