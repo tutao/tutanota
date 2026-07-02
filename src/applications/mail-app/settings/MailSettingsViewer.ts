@@ -1,40 +1,22 @@
 import m, { Children } from "mithril"
-import {
-	assertMainOrNode,
-	Const,
-	FeatureType,
-	isApp,
-	isBrowser,
-	isOfflineStorageAvailable,
-	UNDO_SEND_TIMEOUT_SECONDS,
-	UpgradePromptType,
-} from "../../../platform-kit/app-env"
+import { assertMainOrNode, Const, FeatureType, isApp, isBrowser, isOfflineStorageAvailable, UNDO_SEND_TIMEOUT_SECONDS } from "../../../platform-kit/app-env"
 import { lang } from "../../../ui/utils/LanguageViewModel"
-import { elementIdPart, isSameId, OperationType } from "../../../platform-kit/meta"
-import { assertNotNull, isEmpty, LazyLoaded, noOp, ofClass, promiseMap, splitInChunks } from "../../../platform-kit/utils"
-import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
+import { OperationType } from "../../../platform-kit/meta"
+import { LazyLoaded, ofClass } from "../../../platform-kit/utils"
 import { MailAddressTable } from "../../common/settings/mailaddress/MailAddressTable.js"
 import { Dialog } from "../../../ui/base/Dialog"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
-import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { DropDownSelectorAttrs } from "../../../ui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
 import type { LegacyTextFieldAttrs } from "../../../ui/base/LegacyTextField.js"
 import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
-import type { TableAttrs, TableLineAttrs } from "../../../ui/base/Table.js"
-import { ColumnWidth, createRowActions, Table } from "../../../ui/base/Table.js"
-import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
-import { createInboxRuleTemplate } from "./AddInboxRuleDialog"
-import { ExpanderButton, ExpanderPanel } from "../../../ui/base/Expander"
 import { IndexingNotSupportedError } from "../../common/api/common/error/IndexingNotSupportedError"
-import { isOfflineError, LockedError } from "../../../platform-kit/rest-client/error"
 import { showEditOutOfOfficeNotificationDialog } from "./EditOutOfOfficeNotificationDialog"
 import { formatActivateState, loadOutOfOfficeNotification } from "../../common/misc/OutOfOfficeNotificationUtils"
 import { getSignatureType, show as showEditSignatureDialog } from "./EditSignatureDialog"
-import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
 import { deviceConfig, ListAutoSelectBehavior, MailListDisplayMode } from "../../common/misc/DeviceConfig"
 import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton.js"
 import { ButtonSize } from "../../../ui/base/ButtonSize.js"
@@ -45,27 +27,19 @@ import { formatStorageSize } from "../../../ui/utils/Formatter.js"
 import { getDefaultSenderFromUser, getMailAddressDisplayText } from "../../common/mailFunctionality/SharedMailUtils.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
-import { getFolderName } from "../mail/model/MailUtils.js"
-import { resolveMailSetEntries } from "../mail/model/MailSetListModel"
-import { MoveMode } from "../mail/model/MailModel"
 import { ProgressBar, ProgressBarType } from "../../../ui/base/ProgressBar"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import {
 	MailboxGroupRoot,
 	MailboxProperties,
 	MailboxPropertiesTypeRef,
-	MailSet,
-	MailSetEntryTypeRef,
-	MailSetTypeRef,
-	MailTypeRef,
 	OutOfOfficeNotification,
 	OutOfOfficeNotificationTypeRef,
 	TutanotaProperties,
 	TutanotaPropertiesTypeRef,
 } from "@tutao/entities/tutanota"
-import { InboxRuleConditionType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, ReportMovedMailsType } from "../../../entities/tutanota/Utils"
+import { ReportMovedMailsType } from "../../../entities/tutanota/Utils"
 import { CustomerInfo } from "@tutao/entities/sys"
-import { ButtonType } from "../../../ui/base/Button"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { windowFacade } from "../../common/misc/WindowFacade"
 
@@ -82,8 +56,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	_sendPlaintext: boolean | null
 	_noAutomaticContacts: boolean | null
 	_enableMailIndexing: boolean | null
-	_inboxRulesTableLines: Stream<Array<TableLineAttrs>>
-	_inboxRulesExpanded: Stream<boolean>
 	_indexStateWatch: Stream<any> | null
 	_outOfOfficeNotification: LazyLoaded<OutOfOfficeNotification | null>
 	_outOfOfficeStatus: Stream<string> // stores the status label, based on whether the notification is/ or will really be activated (checking start time/ end time)
@@ -100,9 +72,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._sendPlaintext = mailLocator.logins.getUserController().props.sendPlaintextOnly
 		this._noAutomaticContacts = mailLocator.logins.getUserController().props.noAutomaticContacts
 		this._enableMailIndexing = mailLocator.search.indexState().mailIndexEnabled
-		this._inboxRulesExpanded = stream<boolean>(false)
 		this.mailAddressTableExpanded = false
-		this._inboxRulesTableLines = stream<Array<TableLineAttrs>>([])
 		this._outOfOfficeStatus = stream(lang.get("deactivated_label"))
 		this._indexStateWatch = null
 		// normally we would maybe like to get it as an argument but these viewers are created in an odd way
@@ -111,8 +81,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			m.redraw()
 		})
 		m.redraw()
-
-		this._updateInboxRules(mailLocator.logins.getUserController().props)
 
 		this._mailboxProperties = new LazyLoaded(async () => {
 			const mailboxGroupRoot = await this.getMailboxGroupRoot()
@@ -299,20 +267,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			dropdownWidth: 250,
 		}
 		const reportMovedMailsAttrs = this.makeReportMovedMailsDropdownAttrs()
-		const templateRule = createInboxRuleTemplate(InboxRuleConditionType.RECIPIENT_TO_EQUALS, "")
-		const addInboxRuleButtonAttrs: IconButtonAttrs = {
-			label: "addInboxRule_action",
-			click: () => mailLocator.mailboxModel.getUserMailboxDetails().then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, templateRule)),
-			icon: Icons.Plus,
-			size: ButtonSize.Compact,
-		}
-		const inboxRulesTableAttrs: TableAttrs = {
-			columnHeading: ["inboxRuleField_label", "inboxRuleValue_label", "inboxRuleTargetFolder_label"],
-			columnWidths: [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small],
-			showActionButtonColumn: true,
-			addButtonAttrs: addInboxRuleButtonAttrs,
-			lines: this._inboxRulesTableLines(),
-		}
 		const conversationViewDropdownAttrs: DropDownSelectorAttrs<boolean> = {
 			label: "conversationViewPref_label",
 			// show all means "false" because the pref is to "disable" it, but
@@ -400,144 +354,9 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 								}),
 							)
 						: null,
-					mailLocator.logins.isEnabled(FeatureType.InternalCommunication)
-						? null
-						: [
-								m(".flex-space-between.items-center.mt-32.mb-8", [
-									m(".h4#inboxrules", lang.get("inboxRulesSettings_action")),
-									m(ExpanderButton, {
-										label: "showInboxRules_action",
-										expanded: this._inboxRulesExpanded(),
-										onExpandedChange: this._inboxRulesExpanded,
-									}),
-								]),
-								m(
-									ExpanderPanel,
-									{
-										expanded: this._inboxRulesExpanded(),
-									},
-									m(Table, inboxRulesTableAttrs),
-								),
-								m(
-									".small",
-									lang.get("nbrOfInboxRules_msg", {
-										"{1}": mailLocator.logins.getUserController().props.inboxRules.length,
-									}),
-								),
-								m(
-									".flex-start.mt-8",
-									m(
-										".flex",
-										m(PrimaryButton, {
-											label: "reapplyInboxRules_action",
-											onclick: async () => {
-												if (mailLocator.logins.getUserController().isFreeAccount()) {
-													// you need access to inbox rules first before you can even use them
-													await showNotAvailableForFreeDialog(UpgradePromptType.INBOX_RULES)
-													return
-												}
-
-												const progress = stream(0)
-												const abort = new AbortController()
-												const moved = await showProgressDialog("pleaseWait_msg", this.reapplyAllInboxRules(progress, abort), progress, {
-													middle: "reapplyInboxRules_action",
-													left: () => {
-														return [
-															{
-																label: "cancel_action",
-																click: () => {
-																	abort.abort()
-
-																	// set progress to 100 so it doesn't look "stuck" even if it might take a few seconds to finish
-																	progress(100)
-																},
-																type: ButtonType.Secondary,
-															} as const,
-														]
-													},
-												})
-												await Dialog.message(lang.getTranslation("moveItemsSuccess_msg", { "{count}": moved }))
-											},
-										}),
-									),
-								),
-							],
 				],
 			),
 		]
-	}
-
-	private async reapplyAllInboxRules(progress: Stream<number>, abort: AbortController): Promise<number> {
-		const userController = mailLocator.logins.getUserController()
-		const inboxRules = userController.props.inboxRules
-		if (isEmpty(inboxRules)) {
-			return 0
-		}
-
-		const folderSystem = assertNotNull(
-			mailLocator.mailModel.getFolderSystemByGroupId(userController.getUserMailGroupMembership().group),
-			"no folder system?",
-		)
-		const inbox = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX), "no inbox?")
-		const inboxRuleHandler = mailLocator.processInboxHandler()
-		const mailboxDetails = await mailLocator.mailboxModel.getUserMailboxDetails()
-
-		let totalProcessed = 0
-		let totalMoved = 0
-
-		try {
-			const allIds = (await mailLocator.entityClient.loadAll(MailSetEntryTypeRef, inbox.entries)).reverse()
-			const chunked = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, allIds)
-
-			for (const chunk of chunked) {
-				if (abort.signal.aborted) {
-					break
-				}
-
-				const mails = await resolveMailSetEntries(
-					chunk,
-					(list, elements) => mailLocator.entityClient.loadMultiple(MailTypeRef, list, elements),
-					mailLocator.mailModel,
-				)
-
-				const destinationsForMails = new Map<Id, IdTuple[]>()
-				const destinationFolders = new Map<Id, MailSet>()
-
-				await promiseMap(mails, async (mail) => {
-					if (mail.mail.mailDetails == null) {
-						// inbox rules do not work on drafts
-						return
-					}
-
-					const location = await inboxRuleHandler.processInboxRulesOnly(mail.mail, inbox, mailboxDetails)
-					if (isSameId(location._id, inbox._id)) {
-						// don't move from the inbox to the inbox
-						return
-					}
-
-					const locationId = elementIdPart(location._id)
-					destinationFolders.set(locationId, location)
-
-					const destinationList = destinationsForMails.get(locationId) ?? assertNotNull(destinationsForMails.set(locationId, []).get(locationId))
-					destinationList.push(mail.mail._id)
-				})
-
-				for (const [destinationId, mails] of destinationsForMails.entries()) {
-					const mailset = assertNotNull(destinationFolders.get(destinationId))
-					await mailLocator.mailModel.moveMails(mails, mailset, MoveMode.Mails)
-					totalMoved += mails.length
-				}
-
-				totalProcessed += chunk.length
-				progress((totalProcessed / allIds.length) * 100)
-			}
-		} catch (e) {
-			if (!isOfflineError(e)) {
-				throw e
-			}
-		}
-
-		return totalMoved
 	}
 
 	private renderLocalDataSection(): Children {
@@ -641,62 +460,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	_updateInboxRules(props: TutanotaProperties): void {
-		mailLocator.mailboxModel.getUserMailboxDetails().then(async (mailboxDetails) => {
-			const ruleLines = await promiseMap(props.inboxRules, async (rule, index) => {
-				return {
-					cells: [getInboxRuleTypeName(rule.type), rule.value, await this.getTextForTarget(mailboxDetails, rule.targetFolder)],
-					actionButtonAttrs: createRowActions(
-						{
-							getArray: () => props.inboxRules,
-							updateInstance: () => mailLocator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
-						},
-						rule,
-						index,
-						[
-							{
-								label: "edit_action",
-								click: () => AddInboxRuleDialog.show(mailboxDetails, rule),
-							},
-						],
-					),
-				}
-			})
-
-			// FIXME: showing both old and expanded rules to get this working, this will need to change more before finishing
-			const expandedRulesLines = await promiseMap(props.expandedInboxRules, async (rule, index) => {
-				return {
-					cells: [
-						rule.name,
-						getInboxRuleTypeName(rule.conditions[0].type),
-						await this.getTextForTarget(mailboxDetails, assertNotNull(rule.results[0].value)),
-					],
-					actionButtonAttrs: createRowActions(
-						{
-							getArray: () => props.expandedInboxRules,
-							updateInstance: () => mailLocator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
-						},
-						rule,
-						index,
-						[
-							{
-								label: "edit_action",
-								// TODO: adapt new inbox rule dialog to use ExpandedInboxRule
-								click: () => noOp(),
-							},
-						],
-					),
-				}
-			})
-
-			ruleLines.push(...expandedRulesLines)
-
-			this._inboxRulesTableLines(ruleLines)
-
-			m.redraw()
-		})
-	}
-
 	_updateOutOfOfficeNotification(): void {
 		const notification = this._outOfOfficeNotification.getLoaded()
 
@@ -705,26 +468,12 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		m.redraw()
 	}
 
-	private async getTextForTarget(mailboxDetail: MailboxDetail, targetFolderId: IdTuple): Promise<string> {
-		const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
-		let folder = folders.getFolderById(elementIdPart(targetFolderId))
-
-		if (folder) {
-			return getFolderName(folder)
-		} else {
-			return lang.get("deletedFolder_label")
-		}
-	}
-
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			const { operation } = update
 			if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
 				const props = await mailLocator.entityClient.load(TutanotaPropertiesTypeRef, mailLocator.logins.getUserController().props._id)
 				this._updateTutanotaPropertiesSettings(props)
-				this._updateInboxRules(props)
-			} else if (isUpdateForTypeRef(MailSetTypeRef, update)) {
-				this._updateInboxRules(mailLocator.logins.getUserController().props)
 			} else if (isUpdateForTypeRef(OutOfOfficeNotificationTypeRef, update)) {
 				this._outOfOfficeNotification.reload().then(() => this._updateOutOfOfficeNotification())
 			} else if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update)) {

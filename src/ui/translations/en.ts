@@ -2406,6 +2406,8 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"inboxRuleManagement_label": "Inbox Rule Management",
+		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Order matters, as only the first matching rule will apply."
 	}
 }
