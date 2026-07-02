@@ -2521,6 +2521,8 @@ export default {
 		"zoomOut_action": "Zoom Out",
 		"migrationGreetingTimeout_msg": "We could not establish a connection to the IMAP server due a timeout. Please verify that the provided IMAP server information is correct, and your network allows connections to this IMAP server. Please check if your connection uses SSL/TLS security, if so, make sure you've enabled the 'Use SSL/TLS' checkbox in the previous step.",
 		"migrationUseSSL_label": "Use SSL/TLS",
-		"labelNameInvalidExisting_msg": "A label with this name already exists."
+		"labelNameInvalidExisting_msg": "A label with this name already exists.",
+		"inboxRuleManagement_label": "Inbox Rule Management",
+		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Order matters, as only the first matching rule will apply."
 	}
 }

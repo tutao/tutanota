@@ -2521,6 +2521,8 @@ export default {
 		"zoomOut_action": "Herauszoomen",
 		"migrationGreetingTimeout_msg": "test",
 		"migrationUseSSL_label": "Connect securely to port(Use SSL)",
-		"labelNameInvalidExisting_msg": "Ein Label mit diesem Namen existiert bereits."
+		"labelNameInvalidExisting_msg": "Ein Label mit diesem Namen existiert bereits.",
+		"inboxRuleManagement_label": "Inbox RuleManagement",
+		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Only the first matching rule will apply."
 	}
 }
