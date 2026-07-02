@@ -24,6 +24,8 @@ import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { ExpanderButton, ExpanderPanel } from "../../../../ui/base/Expander"
 import { getTranslationForImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { ImapErrorCause } from "../../../common/api/common/error/ImapError"
+import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
 
 assertMainOrNode()
 
@@ -117,7 +119,19 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 						size: ButtonSize.Normal,
 						disabled: this.imapImportController().shouldDisableButtons(),
 						click: () => {
-							this.imapImportController().continueImport(accountSyncStateId, true)
+							if (session.imapAccountSyncStatus === ImapAccountSyncStatus.AUTH_ERROR) {
+								//We already know how to handle auth state errors so we prommpt the user for the update on a resync
+								this.imapImportController().promptUpdateImapCredentialsDialog(accountSyncStateId)
+							} else {
+								this.imapImportController()
+									.continueImport(accountSyncStateId, true)
+									.catch((e) => {
+										//Auth failing errors do not need to bubble up as programming errors.
+										if (e.data !== ImapErrorCause.AUTH_FAILED) {
+											throw e
+										}
+									})
+							}
 						},
 					}),
 				)
@@ -130,7 +144,14 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 						size: ButtonSize.Normal,
 						disabled: this.imapImportController().shouldDisableButtons(),
 						click: () => {
-							this.imapImportController().continueImport(accountSyncStateId)
+							this.imapImportController()
+								.continueImport(accountSyncStateId)
+								.catch((e) => {
+									//Auth failing errors do not need to bubble up as programming errors.
+									if (e.data !== ImapErrorCause.AUTH_FAILED) {
+										throw e
+									}
+								})
 						},
 					}),
 				)

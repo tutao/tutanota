@@ -3,8 +3,8 @@ import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/M
 import { ImapImporter, ImportResult, InitializeImapImportParams, MailSetMapping } from "../../workerUtils/imapimport/ImapImporter"
 import { MailModel } from "../../mail/model/MailModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
-import { assertNotNull, first, promiseMap } from "@tutao/utils"
-import { ImapAccountSyncStateTypeRef } from "@tutao/entities/tutanota"
+import { assertNotNull, first } from "@tutao/utils"
+import { ImapAccountSyncState, ImapAccountSyncStateTypeRef } from "@tutao/entities/tutanota"
 import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { collapseId, getElementId, OperationType } from "@tutao/meta"
 import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
@@ -66,21 +66,7 @@ export class ImapMailImportController {
 
 					const shouldDisplayCredentialsDialog = imapAccountSyncState.status === ImapAccountSyncStatus.AUTH_ERROR
 					if (shouldDisplayCredentialsDialog) {
-						showUpdateImapCredentialsDialog(
-							{ syncState: imapAccountSyncState, oauthHandlerFactory: (config, serviceExecutor) => new OAuthHandler(config, serviceExecutor) },
-							(dialog, updatedAccount) => {
-								if (updatedAccount) {
-									imapAccountSyncState.imapAccount = updatedAccount
-									imapAccountSyncState.status = ImapAccountSyncStatus.PAUSED
-									this.entityClient
-										.update(imapAccountSyncState)
-										.then(() => {
-											this.imapImporter.continueImport(imapAccountSyncStateId)
-										})
-										.finally(() => dialog.close())
-								}
-							},
-						)
+						this.displayUpdateImapCredentialsDialog(imapAccountSyncState, imapAccountSyncStateId)
 					}
 					const shouldDisplayErrorDialog = imapAccountSyncState.status === ImapAccountSyncStatus.ERROR
 					if (shouldDisplayErrorDialog) {
@@ -89,6 +75,32 @@ export class ImapMailImportController {
 				}
 			}
 		}
+	}
+
+	public async promptUpdateImapCredentialsDialog(imapAccountSyncStateId: IdTuple) {
+		const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId)
+		this.displayUpdateImapCredentialsDialog(imapAccountSyncState, imapAccountSyncStateId)
+	}
+
+	private displayUpdateImapCredentialsDialog(imapAccountSyncState: ImapAccountSyncState, imapAccountSyncStateId: IdTuple) {
+		showUpdateImapCredentialsDialog(
+			{
+				syncState: imapAccountSyncState,
+				oauthHandlerFactory: (config, serviceExecutor) => new OAuthHandler(config, serviceExecutor),
+			},
+			(dialog, updatedAccount) => {
+				if (updatedAccount) {
+					imapAccountSyncState.imapAccount = updatedAccount
+					imapAccountSyncState.status = ImapAccountSyncStatus.PAUSED
+					this.entityClient
+						.update(imapAccountSyncState)
+						.then(() => {
+							this.imapImporter.continueImport(imapAccountSyncStateId)
+						})
+						.finally(() => dialog.close())
+				}
+			},
+		)
 	}
 
 	async init(): Promise<void> {
@@ -152,7 +164,11 @@ export class ImapMailImportController {
 	}
 
 	shouldRenderResyncButton(session: ImapImportUiSession) {
-		return session.imapAccountSyncStatus === ImapAccountSyncStatus.FINISHED || session.imapAccountSyncStatus === ImapAccountSyncStatus.POSTPONED
+		return (
+			session.imapAccountSyncStatus === ImapAccountSyncStatus.FINISHED ||
+			session.imapAccountSyncStatus === ImapAccountSyncStatus.POSTPONED ||
+			session.imapAccountSyncStatus === ImapAccountSyncStatus.AUTH_ERROR
+		)
 	}
 
 	shouldRenderPlayButton(session: ImapImportUiSession) {

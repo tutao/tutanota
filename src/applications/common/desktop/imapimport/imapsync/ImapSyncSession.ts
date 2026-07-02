@@ -132,7 +132,6 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 			return await this.getSyncSessionMailboxes(knownMailboxes, fetchedRootMailboxes)
 		} catch (error) {
-			//await imapClient.logout()
 			console.error("Error during sync", error, error?.serverResponseCode)
 			if (error.authenticationFailed || error?.serverResponseCode === "AUTHENTICATIONFAILED") {
 				await this.shutDownSyncSession(ShutdownSyncAction.AUTH_FAIL)
@@ -183,12 +182,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 				accessToken: imapCredentials.tokenEndpointResponse?.access_token,
 			},
 		})
-		//try {
 		return await this.getImapMailboxes(imapClient)
-		// } catch (e) {
-		// 	await imapClient.logout()
-		// 	throw e
-		// }
 	}
 
 	/**
@@ -197,9 +191,9 @@ export class ImapSyncSession implements SyncSessionEventListener {
 	 * @private
 	 */
 	private async getImapMailboxes(imapClient: ImapFlow): Promise<Array<ImapMailbox>> {
-		await imapClient.connect()
 		let listTreeResponse
 		try {
+			await imapClient.connect()
 			listTreeResponse = await imapClient.listTree()
 		} finally {
 			await imapClient.logout()
