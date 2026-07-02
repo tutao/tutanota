@@ -131,14 +131,14 @@ export class RecoverCodeField {
 			showButtons
 				? m(".flex.flex-end.mt-12", [
 						m(IconButton, {
-							title: "copy_action",
+							label: "copy_action",
 							icon: Icons.ClipboardFilled,
 							click: () => copyToClipboard(splitRecoverCode),
 						}),
 						isApp() || typeof window.print !== "function"
 							? null
 							: m(IconButton, {
-									title: "print_action",
+									label: "print_action",
 									icon: Icons.PrinterFilled,
 									click: () => window.print(),
 								}),

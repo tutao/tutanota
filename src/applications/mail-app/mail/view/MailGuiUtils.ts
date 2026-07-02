@@ -187,7 +187,7 @@ export async function showUndoMailSnackbar(
 				isVisible: () => isVisible,
 			},
 			dismissButton: {
-				title: "close_alt",
+				label: "close_alt",
 				click: () => cancelSnackbar(),
 				icon: Icons.X,
 			},

@@ -459,7 +459,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				},
 				m(IconButton, {
 					icon: Icons.More,
-					title: "showText_action",
+					label: "showText_action",
 					size: ButtonSize.Normal,
 					colors: ButtonColor.MailTextEditor,
 					click: () => this.expandQuotedReply(quoteWrap),
@@ -520,13 +520,13 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		let sendAt: Date | null = model.getSendAtDate()
 
 		const attachFilesButtonAttrs: IconButtonAttrs = {
-			title: "attachFiles_action",
+			label: "attachFiles_action",
 			click: (ev, dom) => chooseAndAttachFile(model, dom.getBoundingClientRect()).then(() => m.redraw()),
 			icon: Icons.Paperclip,
 			size: ButtonSize.Compact,
 		}
 		const templatePopupButtonAttrs: IconButtonAttrs = {
-			title: "openTemplatePopup_msg",
+			label: "openTemplatePopup_msg",
 			click: () => {
 				this.openTemplates()
 			},
@@ -575,7 +575,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		if (locator.logins.getUserController().isGlobalAdmin()) {
 			editCustomNotificationMailAttrs = attachDropdown({
 				mainButtonAttrs: {
-					title: "more_label",
+					label: "more_label",
 					icon: Icons.More,
 					size: ButtonSize.Compact,
 				},
@@ -786,7 +786,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					showConfidentialButton ? m(ToggleButton, confidentialButtonAttrs) : null,
 					isDarkTheme()
 						? m(IconButton, {
-								title: "viewInLightMode_action",
+								label: "viewInLightMode_action",
 								click: (e) => {
 									this.forceLightMode = !forcedLightMode
 									// Stop the subject bar from being focused
@@ -1382,7 +1382,7 @@ async function createMailEditorDialog(
 				? m(
 						".ml-negative-8",
 						m(IconButton, {
-							title: "close_alt",
+							label: "close_alt",
 							click: () => minimize(),
 							icon: Icons.X,
 							colors: ButtonColor.Primary,
@@ -1398,7 +1398,7 @@ async function createMailEditorDialog(
 
 			return styles.isMobileLayout()
 				? m(IconButton, {
-						title: scheduledMail ? "sendLater_action" : "send_action",
+						label: scheduledMail ? "sendLater_action" : "send_action",
 						click: () => {
 							send()
 						},

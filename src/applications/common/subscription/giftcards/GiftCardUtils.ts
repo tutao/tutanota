@@ -98,7 +98,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 									DefaultAnimationTime,
 								)
 							},
-							title: "shareViaEmail_action",
+							label: "shareViaEmail_action",
 							icon: Icons.MailFilled,
 						}),
 						isAndroidApp()
@@ -111,7 +111,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 											lang.get("nativeShareGiftCard_label"),
 										)
 									},
-									title: "share_action",
+									label: "share_action",
 									icon: Icons.ShareFilled,
 								})
 							: m(IconButton, {
@@ -124,7 +124,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 												infoMessage = "copyLinkError_msg"
 											})
 									},
-									title: "copyToClipboard_action",
+									label: "copyToClipboard_action",
 									icon: Icons.ClipboardFilled,
 								}),
 						!isApp()
@@ -133,7 +133,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 										infoMessage = "emptyString_msg"
 										window.print()
 									},
-									title: "print_action",
+									label: "print_action",
 									icon: Icons.PrinterFilled,
 								})
 							: null,

@@ -48,7 +48,7 @@ export class PasswordInput implements ClassComponent<PasswordInputAttributes> {
 			}),
 			m(IconButton, {
 				size: ButtonSize.Compact,
-				title: this.showPassword ? "concealPassword_action" : "revealPassword_action",
+				label: this.showPassword ? "concealPassword_action" : "revealPassword_action",
 				icon: this.showPassword ? Icons.EyeCrossedFilled : Icons.EyeFilled,
 				click: () => (this.showPassword = !this.showPassword),
 			}),

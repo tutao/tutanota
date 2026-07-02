@@ -56,7 +56,7 @@ export class ContactAggregateEditor implements Component<AggregateEditorAttrs<an
 	_cancelButtonFor(attrs: AggregateEditorAttrs<unknown>): Children {
 		if (this._doesAllowCancel(attrs)) {
 			return m(IconButton, {
-				title: "remove_action",
+				label: "remove_action",
 				click: () => attrs.cancelAction(),
 				icon: Icons.X,
 			})
@@ -71,7 +71,7 @@ export class ContactAggregateEditor implements Component<AggregateEditorAttrs<an
 			IconButton,
 			attachDropdown({
 				mainButtonAttrs: {
-					title: "more_label",
+					label: "more_label",
 					icon: Icons.ArrowDown,
 					size: ButtonSize.Compact,
 				},

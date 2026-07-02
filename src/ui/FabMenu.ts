@@ -90,7 +90,7 @@ export class FabMenu implements Component<FabMenuAttrs> {
 								this.iconDom.style.transform = this.isMobileFabClicked ? " rotate(45deg)" : "rotate(0deg)"
 							}
 						},
-						title: this.isMobileFabClicked ? "close_alt" : title,
+						label: this.isMobileFabClicked ? "close_alt" : title,
 						size: ButtonSize.Large,
 						style: {
 							// cancel IconButton's border radius to match the outer button

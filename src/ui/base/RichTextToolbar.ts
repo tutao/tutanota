@@ -82,7 +82,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 			this.renderListToggleButton("ul", lang.get("formatTextUl_msg") + " (Ctrl + Shift + 8)", Icons.UnorderedList, editor),
 			imageButtonClickHandler
 				? m(IconButton, {
-						title: "insertImage_action",
+						label: "insertImage_action",
 						click: (ev) => imageButtonClickHandler(ev, editor),
 						icon: Icons.PictureFilled,
 						size: ButtonSize.Compact,
@@ -147,7 +147,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 
 		return m(IconButton, {
 			// label: () => "▼",
-			title: "formatTextAlignment_msg",
+			label: "formatTextAlignment_msg",
 			icon: this.alignIcon(attrs),
 			size: ButtonSize.Compact,
 			click: (e, dom) => {
@@ -183,7 +183,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 
 	private renderSizeButtons({ editor }: RichTextToolbarAttrs): Children {
 		return m(IconButton, {
-			title: "formatTextFontSize_msg",
+			label: "formatTextFontSize_msg",
 			icon: Icons.TextHeight,
 			size: ButtonSize.Compact,
 			click: (e, dom) => {
@@ -212,7 +212,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 		}
 
 		return m(IconButton, {
-			title: "removeFormatting_action",
+			label: "removeFormatting_action",
 			icon: Icons.FormatClear,
 			click: (e) => {
 				e.stopPropagation()

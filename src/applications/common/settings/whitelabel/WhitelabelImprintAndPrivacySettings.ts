@@ -29,7 +29,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 			injectionsRight: () =>
 				onPrivacyStatementUrlChanged
 					? m(IconButton, {
-							title: "edit_action",
+							label: "edit_action",
 							click: () => this.editPrivacyStatementUrl(privacyStatementUrl, onPrivacyStatementUrlChanged),
 							icon: Icons.PenFilled,
 							size: ButtonSize.Compact,
@@ -69,7 +69,7 @@ export class WhitelabelImprintAndPrivacySettings implements Component<Whitelabel
 			injectionsRight: () =>
 				onImprintUrlChanged
 					? m(IconButton, {
-							title: "edit_action",
+							label: "edit_action",
 							click: () => this.showEditImprintDialog(imprintUrl, onImprintUrlChanged),
 							icon: Icons.PenFilled,
 							size: ButtonSize.Compact,

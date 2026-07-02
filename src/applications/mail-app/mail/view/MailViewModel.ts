@@ -87,7 +87,7 @@ export class MailViewModel {
 
 	constructor(
 		private readonly mailboxModel: MailboxModel,
-		private readonly mailModel: MailModel,
+		readonly mailModel: MailModel,
 		private readonly entityClient: EntityClient,
 		private readonly eventController: EventController,
 		private readonly connectivityModel: WebsocketConnectivityModel,

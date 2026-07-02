@@ -18,7 +18,6 @@ export interface MobileMailActionBarAttrs {
 	setUnreadStateAction: ((unread: boolean) => void) | null
 	isUnread: boolean | null
 	editDraftAction: (() => void) | null
-	exportAction: (() => void) | null
 	replyAction: (() => void) | null
 	replyAllAction: (() => void) | null
 	forwardAction: (() => void) | null
@@ -63,7 +62,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return (
 			reportNotSpamAction &&
 			m(IconButton, {
-				title: "reportNotSpam_action",
+				label: "reportNotSpam_action",
 				click: reportNotSpamAction,
 				icon: Icons.BugCrossedFilled,
 			})
@@ -74,7 +73,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return (
 			moveMailsAction &&
 			m(IconButton, {
-				title: "move_action",
+				label: "move_action",
 				click: (e, dom) =>
 					moveMailsAction(dom.getBoundingClientRect(), {
 						width: this.dropdownWidth(),
@@ -89,16 +88,9 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return this.dom?.offsetWidth ? this.dom.offsetWidth - DROPDOWN_MARGIN * 2 : undefined
 	}
 
-	private moreButton({
-		exportAction,
-		applyLabelsAction,
-		setUnreadStateAction,
-		isUnread,
-		mailViewerMoreActions,
-		reportNotSpamAction,
-	}: MobileMailActionBarAttrs) {
+	private moreButton({ applyLabelsAction, setUnreadStateAction, isUnread, mailViewerMoreActions, reportNotSpamAction }: MobileMailActionBarAttrs) {
 		return m(IconButton, {
-			title: "more_label",
+			label: "more_label",
 			click: createDropdown({
 				lazyButtons: () => {
 					const moreButtons: DropdownButtonAttrs[] = []
@@ -139,7 +131,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 						}
 					}
 
-					return [...moreButtons, ...multipleMailViewerMoreActions(exportAction, mailViewerMoreActions)]
+					return [...moreButtons, ...multipleMailViewerMoreActions(mailViewerMoreActions)]
 				},
 				width: this.dropdownWidth(),
 				withBackground: true,
@@ -152,7 +144,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return (
 			deleteMailsAction &&
 			m(IconButton, {
-				title: "delete_action",
+				label: "delete_action",
 				click: deleteMailsAction,
 				icon: Icons.TrashCrossFilled,
 			})
@@ -163,7 +155,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return (
 			trashMailsAction &&
 			m(IconButton, {
-				title: "trash_action",
+				label: "trash_action",
 				click: trashMailsAction,
 				icon: Icons.TrashFilled,
 			})
@@ -174,7 +166,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return (
 			forwardAction &&
 			m(IconButton, {
-				title: "forward_action",
+				label: "forward_action",
 				click: forwardAction,
 				icon: Icons.ArrowForwardFilled,
 			})
@@ -185,7 +177,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return (
 			replyAction &&
 			m(IconButton, {
-				title: "reply_action",
+				label: "reply_action",
 				click:
 					replyAllAction != null
 						? (e, dom) => {
@@ -219,7 +211,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return (
 			editDraftAction &&
 			m(IconButton, {
-				title: "edit_action",
+				label: "edit_action",
 				icon: Icons.PenFilled,
 				click: editDraftAction,
 			})
@@ -230,7 +222,7 @@ export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> 
 		return (
 			unscheduleMailAction &&
 			m(IconButton, {
-				title: "cancelSend_action",
+				label: "cancelSend_action",
 				icon: Icons.X,
 				click: unscheduleMailAction,
 			})

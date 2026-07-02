@@ -46,7 +46,7 @@ export class GroupInvitationFolderRow implements Component<GroupInvitationFolder
 					],
 				),
 				m(IconButton, {
-					title: "show_action",
+					label: "show_action",
 					click: () => showGroupInvitationDialog(invitation),
 					icon: icon ?? Icons.EyeFilled,
 				}),

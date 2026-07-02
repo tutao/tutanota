@@ -72,7 +72,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 					? this.renderSearchNavigationButton()
 					: m(IconButton, {
 							icon: Icons.Plus,
-							title: "newEvent_action",
+							label: "newEvent_action",
 							click: attrs.onCreateEvent,
 						}),
 			],
@@ -133,7 +133,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 			attachDropdown({
 				mainButtonAttrs: {
 					icon: getIconForViewType(attrs.viewType),
-					title: "view_label",
+					label: "view_label",
 				},
 				childAttrs: async () => {
 					const calendarViewValues: Array<{ name: TranslationKey; value: CalendarViewType }> = [

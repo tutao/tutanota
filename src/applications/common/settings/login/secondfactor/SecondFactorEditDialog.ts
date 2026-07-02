@@ -137,7 +137,7 @@ export class SecondFactorEditDialog {
 
 	private renderOtpFields(): Children {
 		const copyButtonAttrs: IconButtonAttrs = {
-			title: "copy_action",
+			label: "copy_action",
 			click: () => copyToClipboard(this.model.totpKeys.readableKey),
 			icon: Icons.ClipboardFilled,
 			size: ButtonSize.Compact,

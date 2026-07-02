@@ -1,9 +1,8 @@
 import type { MaybeTranslation, TranslationKey } from "../utils/LanguageViewModel"
 import { ButtonColor } from "./Button.js"
 import { Icons } from "./icons/Icons"
-import { createAsyncDropdown, DomRectReadOnlyPolyfilled, DropdownChildAttrs } from "./Dropdown.js"
-import type { lazy } from "../../platform-kit/utils"
-import { assertNotNull } from "../../platform-kit/utils"
+import { createAsyncDropdown, DomRectReadOnlyPolyfilled, Dropdown, DropdownButtonAttrs, DropdownChildAttrs } from "./Dropdown.js"
+import { assertNotNull, isEmpty, lazy } from "../../platform-kit/utils"
 import { MaybeLazy, resolveMaybeLazy } from "./MaybeLazy"
 import { Dialog } from "./Dialog"
 import { ProgrammingError } from "../../platform-kit/app-env"
@@ -16,6 +15,7 @@ import { font_size, px, size } from "../size"
 import { PosRect } from "../utils/PosRect"
 import { Icon, IconSize } from "./Icon"
 import { theme } from "../theme"
+import { modal } from "./Modal"
 
 export const enum DropType {
 	ExternalFile = "ExternalFile",
@@ -56,7 +56,7 @@ export function createMoreActionButtonAttrs(
 	dropdownWidth?: number,
 ): IconButtonAttrs {
 	return {
-		title: "more_label",
+		label: "more_label",
 		colors: ButtonColor.Nav,
 		icon: Icons.More,
 		click: createAsyncDropdown({
@@ -467,4 +467,15 @@ export function renderDragElement(name: string, icon: Icons, count: number, subS
 		),
 	)
 	return el
+}
+
+export function contextDropdown(e: MouseEvent, dropdownAttrs: DropdownButtonAttrs[]): void {
+	if (isEmpty(dropdownAttrs)) {
+		return
+	}
+	e.preventDefault()
+	e.stopPropagation()
+	const dropdown = new Dropdown(() => dropdownAttrs, 300)
+	dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
+	modal.displayUniqueOverride(dropdown, false)
 }

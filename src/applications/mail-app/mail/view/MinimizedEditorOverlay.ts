@@ -85,18 +85,18 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 				m(".flex.items-center.justify-right", [
 					!styles.isSingleColumnLayout()
 						? m(IconButton, {
-								title: "edit_action",
+								label: "edit_action",
 								click: () => viewModel.reopenMinimizedEditor(minimizedEditor),
 								icon: Icons.PenFilled,
 							})
 						: null,
 					m(IconButton, {
-						title: "delete_action",
+						label: "delete_action",
 						click: () => this._onDeleteClicked(minimizedEditor, viewModel),
 						icon: Icons.TrashFilled,
 					}),
 					m(IconButton, {
-						title: "close_alt",
+						label: "close_alt",
 						click: () => viewModel.removeMinimizedEditor(minimizedEditor),
 						icon: Icons.X,
 					}),

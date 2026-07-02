@@ -128,7 +128,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 						? m(
 								".mr-negative-8",
 								m(IconButton, {
-									title: "addEntry_label",
+									label: "addEntry_label",
 									icon: Icons.Plus,
 									click: () => {
 										showKnowledgeBaseEditor(null, this.templateGroupRoot)

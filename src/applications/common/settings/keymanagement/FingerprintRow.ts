@@ -51,7 +51,7 @@ export class FingerprintRow implements Component<FingerprintRowAttrs> {
 				m(".flex-grow"),
 				action
 					? m(IconButton, {
-							title: action.tooltip,
+							label: action.tooltip,
 							click: async () => {
 								action.onClick(mailAddress)
 							},
