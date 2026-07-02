@@ -71,9 +71,9 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 				infoText = lang.getTranslation("transfersCompleted_msg", { "{done}": doneTransfers, "{total}": totalTransfers })
 			}
 		}
-		const percentagesSum = currentTransfers.reduce((acc, cur) => (cur.transferredSize / cur.totalSize) * 100 + acc, 0)
-		const percentage = Math.min(Math.round(percentagesSum / currentTransfers.length), 100)
-
+		const totalSize = currentTransfers.reduce((acc, cur) => cur.totalSize + acc, 0)
+		const totalTransferredSize = currentTransfers.reduce((acc, cur) => cur.transferredSize + acc, 0)
+		const percentage = Math.min(Math.round((totalTransferredSize / totalSize) * 100), 100)
 		return { progressState, percentage, mainText, infoText }
 	}
 
