@@ -27,10 +27,25 @@ tasks.register('clean', Delete) {
 	delete rootProject.layout.buildDirectory
 }
 
+def knownSubprojects = Set.of("app", "calendar", "drive", "tutashared")
+subprojects {
+	if (it.name !in knownSubprojects) {
+		throw Error("Unknown subproject: ${it.name}, please configure unittest and quicklint in build.gradle")
+	}
+}
 
 // For the device description see build-common/src/main/kotlin/AndroidTestConventionPlugin.kt
 // This task is necessary because it is ambiguous which app flavor to run tests with.
 tasks.register("itest") {
 	description = "Runs Android tests of all modules on a preconfigured virtual device"
 	subprojects { dependsOn("${it.name}:itest") }
+}
+
+tasks.register("unittest") {
+	description = "Runs Android unit tests of all modules"
+
+	dependsOn(":app:testFdroidDebugUnitTest")
+	dependsOn(":calendar:testFdroidDebugUnitTest")
+	dependsOn(":drive:testFdroidDebugUnitTest")
+	dependsOn(":tutashared:testDebugUnitTest")
 }
