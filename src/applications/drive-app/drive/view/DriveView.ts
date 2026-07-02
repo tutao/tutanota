@@ -21,7 +21,14 @@ import { AppType, CancelledError, isAndroidApp, Keys, OperationStatus, UpgradePr
 import { formatStorageSize } from "../../../../ui/utils/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
 import { modal } from "../../../../ui/base/Modal"
-import { driveFolderName, isMobileDriveLayout, newItemActions, showNewFolderDialog, showRenameDialog } from "./DriveGuiUtils"
+import {
+	driveFolderName,
+	isMobileDriveLayout,
+	newItemActions,
+	renderDuplicateFilesChoiceDialogue,
+	showNewFolderDialog,
+	showRenameDialog,
+} from "./DriveGuiUtils"
 import { getDetachedDropdownBounds } from "../../../../ui/base/GuiUtils"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
@@ -706,13 +713,13 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 
 	async onPickFilesForUpload(boundingRect: DOMRect): Promise<void> {
 		const files = await this.filePicker.pickFiles(boundingRect)
-		await this.driveViewModel.uploadFiles(files)
+		await this.driveViewModel.uploadFiles(files, renderDuplicateFilesChoiceDialogue)
 	}
 
 	private async onPickFoldersForUpload(boundingRect: DOMRect): Promise<void> {
 		try {
 			const folders = await this.filePicker.pickFolders(boundingRect)
-			await this.driveViewModel.uploadFiles([], folders)
+			await this.driveViewModel.uploadFiles([], renderDuplicateFilesChoiceDialogue, folders)
 		} catch (e) {
 			if (!(e instanceof CancelledError)) {
 				throw e

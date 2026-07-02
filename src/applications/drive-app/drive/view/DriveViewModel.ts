@@ -44,8 +44,7 @@ import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFol
 import { isWebFile } from "../../../../ui/utils/FileUtils"
 import { handleRestError, isOfflineError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { WebFileResolver } from "./WebFileResolver"
-import { Dialog } from "../../../../ui/base/Dialog"
-import { lang } from "../../../../ui/utils/LanguageViewModel"
+import { renderDuplicateFilesChoiceDialogue } from "./DriveGuiUtils"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -582,7 +581,12 @@ export class DriveViewModel {
 		}
 	}
 
-	async uploadFiles(files: (WebFile | FileReference)[], folders?: DiskFolder<WebFile | FileReference>[], customTargetFolderId?: IdTuple): Promise<void> {
+	async uploadFiles(
+		files: (WebFile | FileReference)[],
+		renderDuplicateFilesChoiceDialogue: (fileName: string) => Promise<boolean>,
+		folders?: DiskFolder<WebFile | FileReference>[],
+		customTargetFolderId?: IdTuple,
+	): Promise<void> {
 		if (this.roots == null) {
 			console.log("drive is not initialized")
 			return
@@ -599,20 +603,17 @@ export class DriveViewModel {
 
 		for (const file of files) {
 			let fileName = isWebFile(file) ? file.file.name : file.name
-			let keepBoth: boolean = false
+			let keepBoth: boolean = true
 			if (takenFileNames.has(fileName)) {
-				keepBoth = await Dialog.choice(lang.getTranslation("duplicateFileName_msg"), [
-					{ text: lang.getTranslation("keepBothFiles_action"), value: true },
-					{ text: lang.getTranslation("replaceFile_action"), value: false },
-				])
+				keepBoth = await renderDuplicateFilesChoiceDialogue(fileName)
 			}
 			if (keepBoth) {
 				fileName = pickNewFileName(fileName, takenFileNames)
-				takenFileNames.add(fileName)
 			} else {
 				const itemToReplace = folderItems.findLast((item) => folderItemEntity(item).name === fileName && item.type === "file")!
 				this.moveToTrash([{ type: itemToReplace.type, id: folderItemEntity(itemToReplace)._id }])
 			}
+			takenFileNames.add(fileName)
 			await this.transferController.upload(file, fileName, targetFolderId)
 		}
 
@@ -795,13 +796,14 @@ export class DriveViewModel {
 			}
 
 			const tree = await traverse<FileReference>(folderTransferItems, fileEntryToFileRef)
-			await this.uploadFiles(fileRefs, tree)
+			await this.uploadFiles(fileRefs, renderDuplicateFilesChoiceDialogue, tree)
 		} else {
 			const tree = await traverse(folderTransferItems, childFileFromEntry)
 			await this.uploadFiles(
 				files.map((f) => {
 					return { _type: "WebFile", file: f } satisfies WebFile
 				}),
+				renderDuplicateFilesChoiceDialogue,
 				tree,
 			)
 		}
