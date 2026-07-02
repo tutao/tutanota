@@ -2320,3 +2320,6 @@ export type TranslationKeyType =
 	| "revocation_text"
 	| "revocationOnlyPersonalPlans_msg"
 	| "emptyString_msg"
+	| "duplicateFileName_msg"
+	| "keepBothFiles_action"
+	| "replaceFile_action"

@@ -107,6 +107,12 @@ export async function showRenameDialog(item: FolderItem, rename: (newName: strin
 		},
 	)
 }
+export async function renderDuplicateFilesChoiceDialogue(fileName: string): Promise<boolean> {
+	return await Dialog.choice(lang.getTranslation("duplicateFileName_msg", { "{fileName}": fileName }), [
+		{ text: lang.getTranslation("keepBothFiles_action"), value: true },
+		{ text: lang.getTranslation("replaceFile_action"), value: false },
+	])
+}
 
 function isIdTuple(item: unknown): item is IdTuple {
 	return Array.isArray(item) && item.length === 2 && typeof item[0] === "string" && typeof item[1] === "string"

@@ -5,7 +5,7 @@ import { DriveViewModel } from "../view/DriveViewModel"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { getDetachedDropdownBounds } from "../../../../ui/base/GuiUtils"
 import { DriveFilePicker } from "../view/DriveFilePicker"
-import { showNewFolderDialog } from "../view/DriveGuiUtils"
+import { renderDuplicateFilesChoiceDialogue, showNewFolderDialog } from "../view/DriveGuiUtils"
 
 export async function quickDriveActions(router: Router, driveViewModel: DriveViewModel, driveFilePicker: DriveFilePicker): Promise<readonly QuickAction[]> {
 	const driveTabAction: QuickAction = {
@@ -28,7 +28,10 @@ export async function quickDriveActions(router: Router, driveViewModel: DriveVie
 			},
 			{
 				description: `${lang.getTranslationText("driveView_action")}: ${lang.getTranslationText("uploadFile_action")}`,
-				exec: () => driveFilePicker.pickFiles(getDetachedDropdownBounds()).then((files) => driveViewModel.uploadFiles(files)),
+				exec: () =>
+					driveFilePicker
+						.pickFiles(getDetachedDropdownBounds())
+						.then((files) => driveViewModel.uploadFiles(files, renderDuplicateFilesChoiceDialogue)),
 			},
 		]
 	}
