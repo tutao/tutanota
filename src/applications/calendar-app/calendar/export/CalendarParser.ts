@@ -8,7 +8,7 @@ import {
 } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../../entities/tutanota/Utils"
 import { CalendarAdvancedRepeatRule, createCalendarAdvancedRepeatRule, createDateWrapper, createRepeatRule, DateWrapper, RepeatRule } from "@tutao/entities/sys"
-import { filterInt, neverNull, utf8Uint8ArrayToString } from "../../../../platform-kit/utils"
+import { filterInt, isMailAddress, neverNull, utf8Uint8ArrayToString } from "@tutao/utils"
 import { DateTime, Duration, IANAZone } from "luxon"
 import type { Parser } from "../../../common/misc/parsing/ParserCombinator"
 import {
@@ -25,13 +25,14 @@ import {
 	StringIterator,
 } from "../../../common/misc/parsing/ParserCombinator"
 import WindowsZones from "./WindowsZones"
-import { isMailAddress } from "../../../../platform-kit/utils/FormatUtils"
-import { DAY_IN_MILLIS, EndType, RepeatPeriod, reverse } from "../../../../platform-kit/app-env"
+import { DAY_IN_MILLIS, EndType, RepeatPeriod, reverse } from "@tutao/app-env"
 import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { Stripped } from "@tutao/meta"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
+
+const TAG = "[CalendarParser]"
 
 type PropertyParamValue = string
 type Property = {
@@ -61,6 +62,8 @@ export type IcsCalendarEvent = {
 	repeatRule: StrippedRepeatRule | null
 	attendees: Array<StrippedCalendarEventAttendee> | null
 	organizer: Stripped<EncryptedMailAddress> | null
+	startTimeZone: string | null
+	endTimeZone: string | null
 }
 export type ParsedEventAlarmTuple = {
 	icsCalendarEvent: IcsCalendarEvent
@@ -376,7 +379,7 @@ export function triggerToAlarmInterval(eventStart: Date, triggerValue: string): 
 	if (triggerValue.endsWith("Z")) {
 		// For absolute time we just convert the trigger to minutes. There might be a bigger unit that can express it but we don't have to take care about time
 		// zones or daylight saving in this case and it's simpler this way.
-		const triggerTime = parseTime(triggerValue).date
+		const triggerTime = parseTime(triggerValue, null).date
 		const tillEvent = eventStart.getTime() - triggerTime.getTime()
 		const minutes = Duration.fromMillis(tillEvent).as("minutes")
 		return { unit: AlarmIntervalUnit.MINUTE, value: minutes }
@@ -484,10 +487,10 @@ export function parseExDates(excludedDatesProps: Property[]): DateWrapper[] {
 	// it's possible that we have duplicated entries since this data comes from whereever, this deduplicates it.
 	const allExDates: Map<number, DateWrapper> = new Map<number, DateWrapper>()
 	for (let excludedDatesProp of excludedDatesProps) {
-		const tzId = getTzId(excludedDatesProp)
+		const tzId: string | null = getTzId(excludedDatesProp)
 		const values = separatedByCommaParser(new StringIterator(excludedDatesProp.value))
 		for (let value of values) {
-			const { date: exDate } = parseTime(value, tzId ?? undefined)
+			const { date: exDate } = parseTime(value, tzId)
 			allExDates.set(exDate.getTime(), createDateWrapper({ date: exDate }))
 		}
 	}
@@ -535,18 +538,22 @@ function parseEventDuration(durationValue: string, startTime: Date): Date {
 }
 
 function getTzId(prop: Property): string | null {
-	let tzId: string | null = null
 	const tzIdValue = prop.params["TZID"]
 
-	if (tzIdValue) {
-		if (IANAZone.isValidZone(tzIdValue)) {
-			tzId = tzIdValue
-		} else if (tzIdValue in WindowsZones) {
-			tzId = WindowsZones[tzIdValue as keyof typeof WindowsZones]
-		}
+	if (!tzIdValue) {
+		return null
 	}
 
-	return tzId
+	if (IANAZone.isValidZone(tzIdValue)) {
+		return tzIdValue
+	}
+
+	if (tzIdValue in WindowsZones) {
+		return WindowsZones[tzIdValue as keyof typeof WindowsZones]
+	}
+
+	console.warn(`${TAG} Unknown timezone at property ${prop.name}: ${tzIdValue}.`)
+	return null
 }
 
 function oneDayDurationEnd(startTime: Date, allDay: boolean, tzId: string | null, zone: string): Date {
@@ -576,10 +583,9 @@ export const calendarAttendeeStatusToParstat: Record<CalendarAttendeeStatus, str
 }
 const parstatToCalendarAttendeeStatus: Record<string, CalendarAttendeeStatus> = reverse(calendarAttendeeStatusToParstat)
 
-/** importer internals exported for testing */
-export function parseCalendarStringData(value: string, zone: string): ParsedCalendarData {
+export function parseCalendarStringData(value: string, userCalendarTimeZone: string): ParsedCalendarData {
 	const tree = parseICalendar(value)
-	return parseCalendarEvents(tree, zone)
+	return parseCalendarEvents(tree, userCalendarTimeZone)
 }
 
 /** given an ical datafile, get the parsed calendar events with their alarms as well as the ical method */
@@ -596,11 +602,11 @@ export function parseCalendarFile(file: DataFile): ParsedCalendarData {
 	}
 }
 
-export function parseCalendarEvents(icalObject: ICalObject, zone: string): ParsedCalendarData {
+export function parseCalendarEvents(icalObject: ICalObject, userCalendarTimeZone: string): ParsedCalendarData {
 	const methodProp = getProp(icalObject, "METHOD", true)
 	const method = methodProp ? methodProp.value : CalendarMethod.PUBLISH
 	const eventObjects = icalObject.children.filter((obj) => obj.type === "VEVENT")
-	const contents = getContents(eventObjects, zone)
+	const contents = getContents(eventObjects, userCalendarTimeZone)
 
 	return {
 		method,
@@ -611,8 +617,8 @@ export function parseCalendarEvents(icalObject: ICalObject, zone: string): Parse
 function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEventAlarmTuple> {
 	return eventObjects.map((eventObj, index) => {
 		const startProp = getProp(eventObj, "DTSTART", false)
-		const tzId = getTzId(startProp)
-		const { date: startTime, allDay } = parseTime(startProp.value, tzId ?? undefined)
+		const startTzId: string | null = getTzId(startProp)
+		const { date: startTime, allDay } = parseTime(startProp.value, startTzId)
 
 		// start time and tzid is sorted, so we can worry about event identity now before proceeding...
 		let hasValidUid = false
@@ -634,10 +640,12 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 		if (recurrenceIdProp != null && hasValidUid) {
 			// if we generated the UID, we have no way of knowing which event series this recurrenceId refers to.
 			// in that case, we just don't add the recurrenceId and import the event as a standalone.
-			recurrenceId = parseRecurrenceId(recurrenceIdProp, tzId)
+			recurrenceId = parseRecurrenceId(recurrenceIdProp, startTzId)
 		}
 
-		const endTime = parseEndTime(eventObj, allDay, startTime, tzId, zone)
+		const endProp = getProp(eventObj, "DTEND", true)
+		const endTzId = endProp ? getTzId(endProp) : null
+		const endTime = parseEndTime(eventObj, allDay, startTime, startTzId, zone)
 
 		let summary: string = ""
 		const maybeSummary = parseICalText(eventObj, "SUMMARY")
@@ -652,7 +660,7 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 
 		let repeatRule: RepeatRule | null = null
 		if (rruleProp != null) {
-			repeatRule = parseRrule(rruleProp, tzId)
+			repeatRule = parseRrule(rruleProp, startTzId)
 			repeatRule.excludedDates = parseExDates(excludedDateProps)
 		}
 
@@ -700,6 +708,8 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 			repeatRule,
 			attendees,
 			organizer,
+			startTimeZone: allDay ? null : startTzId,
+			endTimeZone: allDay ? null : endTzId,
 		}
 
 		let alarms: AlarmInfoTemplate[] = []
@@ -753,9 +763,16 @@ function getAttendees(eventObj: ICalObject) {
 function getAlarms(eventObj: ICalObject, startTime: Date): AlarmInfoTemplate[] {
 	const alarms: AlarmInfoTemplate[] = []
 	for (const alarmChild of eventObj.children) {
-		if (alarmChild.type === "VALARM") {
-			const newAlarm = parseAlarm(alarmChild, startTime)
-			if (newAlarm) alarms.push(newAlarm)
+		if (alarmChild.type !== "VALARM") continue
+
+		const alarm = parseAlarm(alarmChild, startTime)
+		if (!alarm) continue
+
+		// Once we support other types of reminders, e.g via email, this has to be improved
+		const isDuplicate = alarms.some((existing) => existing.trigger === alarm.trigger)
+
+		if (!isDuplicate) {
+			alarms.push(alarm)
 		}
 	}
 	return alarms
@@ -778,15 +795,24 @@ function parseICalText(eventObj: ICalObject, tag: string) {
 	return text
 }
 
-function parseEndTime(eventObj: ICalObject, allDay: boolean, startTime: Date, tzId: string | null, zone: string): Date {
+function parseEndTime(eventObj: ICalObject, allDay: boolean, startTime: Date, startTzId: string | null, calendarTimeZone: string): Date {
 	const endProp = getProp(eventObj, "DTEND", true)
 
 	if (endProp) {
-		if (typeof endProp.value !== "string") throw new ParserError("DTEND value is not a string")
-		const endTzId = getTzId(endProp)
-		const parsedEndTime = parseTime(endProp.value, typeof endTzId === "string" ? endTzId : undefined)
+		if (typeof endProp.value !== "string") {
+			throw new ParserError("DTEND value is not a string")
+		}
+
+		let endTzId: string | null = getTzId(endProp)
+		if (!endTzId && !parseTimeIntoComponents(endProp.value).zone) {
+			endTzId = startTzId
+		}
+
+		const parsedEndTime = parseTime(endProp.value, endTzId)
 		const endTime = parsedEndTime.date
-		if (endTime > startTime) return endTime
+		if (endTime > startTime) {
+			return endTime
+		}
 
 		// as per RFC, these are _technically_ illegal: https://tools.ietf.org/html/rfc5545#section-3.8.2.2
 		if (allDay) {
@@ -811,7 +837,7 @@ function parseEndTime(eventObj: ICalObject, allDay: boolean, startTime: Date, tz
 			// "DURATION" property, the event's duration is taken to be one day.
 			//
 			// https://tools.ietf.org/html/rfc5545#section-3.6.1
-			return oneDayDurationEnd(startTime, allDay, tzId, zone)
+			return oneDayDurationEnd(startTime, allDay, startTzId, calendarTimeZone)
 		}
 	}
 }
@@ -900,23 +926,34 @@ export function parseUntilRruleTime(value: string, zone: string | null): Date {
  * parse a ical time string and return a JS Date object along with a flag that determines
  * whether the time should be considered part of an all-day event
  * @param value {string} the time string to be parsed
- * @param zone {string} the time zone to use
+ * @param eventTzid {string} the TZID used in this {@link value}
  */
 export function parseTime(
 	value: string,
-	zone?: string,
+	eventTzid: string | null,
 ): {
 	date: Date
 	allDay: boolean
 } {
 	const components = parseTimeIntoComponents(value)
+
 	// if minute is not provided it is an all day date YYYYMMDD
-	const allDay = !("minute" in components)
-	const effectiveZone = allDay ? "UTC" : (components.zone ?? zone)
+	const isAllDay = !("minute" in components)
+
+	if (!isAllDay && components.zone && eventTzid) {
+		throw new ParserError(`Failed to parse time from ${value}, due to conflicting time zone representation. Event has a TZID ${eventTzid} and UTC time.`)
+	}
+
+	const effectiveZone = isAllDay ? "UTC" : (eventTzid ?? components.zone)
+	if (effectiveZone === undefined) {
+		console.warn(TAG + ` effectiveZone is undefined.  Local timezone will be used.`)
+	}
+
 	delete components["zone"]
+
 	const filledComponents = Object.assign(
 		{},
-		allDay
+		isAllDay
 			? {
 					hour: 0,
 					minute: 0,
@@ -929,7 +966,7 @@ export function parseTime(
 
 	try {
 		const dateTime = DateTime.fromObject(filledComponents, { zone: effectiveZone })
-		return { date: toValidJSDate(dateTime, value, zone ?? null), allDay }
+		return { date: toValidJSDate(dateTime, value, eventTzid ?? null), allDay: isAllDay }
 	} catch (e) {
 		if (e instanceof ParserError) {
 			throw e

@@ -77,7 +77,7 @@ import {
 	incrementSequence,
 	parseAlarmInterval,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { arrayEqualsWithPredicate, assertNonNull, assertNotNull, cleanMailAddress, identity, lazy, Require } from "@tutao/utils"
+import { arrayEqualsWithPredicate, assertNotNull, cleanMailAddress, identity, lazy, Require } from "@tutao/utils"
 import { makeEmptyCalendarEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { assertEventValidity, CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
@@ -180,7 +180,7 @@ export async function makeCalendarEventModel(
 	entityClient: EntityClient,
 	responseTo: Mail | null,
 	calendarInviteHandler: CalendarInviteHandler,
-	zone: string = getTimeZone(),
+	calendarTimeZone: string = getTimeZone(),
 	showProgress: ShowProgressCallback = identity,
 	uiUpdateCallback: () => void = m.redraw,
 ): Promise<CalendarEventModel | null> {
@@ -211,7 +211,7 @@ export async function makeCalendarEventModel(
 	)
 
 	const makeEditModels = (initializationEvent: CalendarEvent) => ({
-		whenModel: new CalendarEventWhenModel(initializationEvent, zone, uiUpdateCallback),
+		whenModel: new CalendarEventWhenModel(initializationEvent, calendarTimeZone, uiUpdateCallback),
 		whoModel: new CalendarEventWhoModel(
 			initializationEvent,
 			eventType,
@@ -247,7 +247,7 @@ export async function makeCalendarEventModel(
 		makeEditModels,
 		fetchRecurrenceIds,
 		showProgress,
-		zone,
+		calendarTimeZone,
 		calendarInviteHandler,
 	)
 	const initialOrDefaultValues = Object.assign(makeEmptyCalendarEvent(), initialValues)
@@ -502,6 +502,8 @@ export function assembleCalendarEventEditResult(models: CalendarEventEditModels)
 			startTime: whenResult.startTime,
 			endTime: whenResult.endTime,
 			repeatRule: whenResult.repeatRule,
+			startTimeZone: whenResult.startTimeZone,
+			endTimeZone: whenResult.endTimeZone,
 			// what?
 			summary,
 			description,

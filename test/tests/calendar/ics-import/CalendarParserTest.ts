@@ -1,547 +1,463 @@
 import o from "@tutao/otest"
-import {
-	formatDateTimeUTC,
-	serializeCalendar,
-	serializeEvent,
-	serializeExcludedDates,
-	serializeRepeatRule,
-	serializeTrigger,
-} from "../../../../src/applications/calendar-app/calendar/export/CalendarExporter.js"
-
-import { DateTime } from "luxon"
+import { createTestEntity } from "../../TestUtils"
 import { EndType, RepeatPeriod } from "../../../../src/platform-kit/app-env"
-import { getAllDayDateUTC } from "../../../../src/applications/common/api/common/utils/CommonCalendarUtils.js"
-import { createTestEntity } from "../../TestUtils.js"
-import { getAllDayDateUTCFromZone } from "../../../../src/applications/common/calendar/date/CalendarUtils.js"
-import { makeCalendarEventFromIcsCalendarEvent } from "../../../../src/applications/common/calendar/import/ImportExportUtils.js"
-
-import { CalendarEvent, CalendarEventTypeRef, createCalendarEvent, createCalendarEventAttendee, createEncryptedMailAddress } from "@tutao/entities/tutanota"
-
-import { AlarmInfo, AlarmInfoTypeRef, createRepeatRule, DateWrapperTypeRef, RepeatRuleTypeRef, UserAlarmInfo, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
+import { DateTime } from "luxon"
+import {
+	parseCalendarEvents,
+	parseCalendarStringData,
+	ParsedCalendarData,
+	ParsedEventAlarmTuple,
+	parseDuration,
+	parseExDates,
+	parseICalendar,
+	parseProperty,
+	parsePropertyKeyValue,
+	parseRecurrenceId,
+	parseTime,
+	parseUntilRruleTime,
+	propertySequenceParser,
+	triggerToAlarmInterval,
+} from "../../../../src/applications/calendar-app/calendar/export/CalendarParser"
+import { AlarmInfo, AlarmInfoTypeRef, createDateWrapper, createRepeatRule, UserAlarmInfo, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
+import { serializeCalendar, serializeEvent } from "../../../../src/applications/calendar-app/calendar/export/CalendarExporter"
+import { CalendarEvent, createCalendarEvent, createCalendarEventAttendee, createEncryptedMailAddress } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus } from "../../../../src/entities/tutanota/Utils"
-import { parseCalendarStringData, ParsedCalendarData, ParsedEventAlarmTuple } from "../../../../src/applications/calendar-app/calendar/export/CalendarParser"
+import { AlarmIntervalUnit, getAllDayDateUTCFromZone } from "../../../../src/applications/common/calendar/date/CalendarUtils"
+import { makeCalendarEventFromIcsCalendarEvent } from "../../../../src/applications/common/calendar/import/ImportExportUtils"
+import { getAllDayDateUTC } from "../../../../src/applications/common/api/common/utils/CommonCalendarUtils"
+import { ParserError, StringIterator } from "../../../../src/applications/common/misc/parsing/ParserCombinator"
+import { getDateInUTC } from "../CalendarTestUtils"
 
-const zone = "Europe/Berlin"
-const now = new Date("2019-08-13T14:01:00.630Z")
+o.spec("CalendarParser", function () {
+	const zone = "Europe/Berlin"
+	const now = new Date("2019-08-13T14:01:00.630Z")
 
-function testParsedCalendarDataEquality(actual: ParsedCalendarData, expected: ParsedCalendarData, message?: string): void {
-	o.check(actual).deepEquals(expected)(message ?? "")
-}
+	o.spec("propertySequenceParser", function () {
+		o("simple value", function () {
+			o(propertySequenceParser(new StringIterator("DTSTART:20190531T083000Z"))).deepEquals(["DTSTART", null, ":", "20190531T083000Z"])
+		})
 
-function testParsedEventEquality(actual: ParsedEventAlarmTuple, expected: ParsedEventAlarmTuple, message?: string): void {
-	o.check(actual).deepEquals(expected)(message ?? "")
-}
-
-o.spec("CalendarExporter", function () {
-	o.spec("serializeEvent", function () {
-		o("simple one", function () {
-			o(
-				serializeEvent(
-					createTestEntity(CalendarEventTypeRef, {
-						_id: ["123", "456"],
-						_ownerGroup: "ownerId",
-						summary: "Word \\ ; \n",
-						startTime: DateTime.fromObject(
-							{
-								year: 2019,
-								month: 8,
-								day: 13,
-								hour: 5,
-								minute: 6,
-							},
-							{ zone },
-						).toJSDate(),
-						endTime: DateTime.fromObject(
-							{
-								year: 2019,
-								month: 9,
-								day: 13,
-								hour: 5,
-								minute: 6,
-							},
-							{ zone },
-						).toJSDate(),
-						description: "Descr \\ ;, \n",
-						uid: "test@tuta.com",
-						location: "Some location",
-					}),
-					[],
-					now,
-					zone,
-				),
-			).deepEquals([
-				"BEGIN:VEVENT",
-				"DTSTART:20190813T030600Z",
-				"DTEND:20190913T030600Z",
-				`DTSTAMP:20190813T140100Z`,
-				"UID:test@tuta.com",
-				"SEQUENCE:0",
-				"SUMMARY:Word \\\\ \\; \\n",
-				"DESCRIPTION:Descr \\\\ \\;\\, \\n",
-				"LOCATION:Some location",
-				"END:VEVENT",
+		o("simple value, property parameter", function () {
+			o(propertySequenceParser(new StringIterator("DTSTART;VALUE=DATE:20190607"))).deepEquals([
+				"DTSTART",
+				[";", [["VALUE", "=", "DATE"]]],
+				":",
+				"20190607",
 			])
 		})
-		o("all day", function () {
-			const zone = "utc"
-			o(
-				serializeEvent(
-					createTestEntity(CalendarEventTypeRef, {
-						_id: ["123", "456"],
-						_ownerGroup: "ownerId",
-						summary: "Word \\ ; \n",
-						startTime: DateTime.fromObject(
-							{
-								year: 2019,
-								month: 8,
-								day: 13,
-							},
-							{ zone },
-						).toJSDate(),
-						endTime: DateTime.fromObject(
-							{
-								year: 2019,
-								month: 9,
-								day: 14,
-							},
-							{ zone },
-						).toJSDate(),
-						description: "Descr \\ ; \n",
-					}),
-					[],
-					now,
-					zone,
-				),
-			).deepEquals([
-				"BEGIN:VEVENT",
-				`DTSTART;VALUE=DATE:20190813`,
-				`DTEND;VALUE=DATE:20190914`,
-				`DTSTAMP:20190813T140100Z`,
-				`UID:ownerId${now.getTime()}@tuta.com`,
-				"SEQUENCE:0",
-				"SUMMARY:Word \\\\ \\; \\n",
-				"DESCRIPTION:Descr \\\\ \\; \\n",
-				"END:VEVENT",
+
+		o("simple value, multiple property parameters", function () {
+			o(propertySequenceParser(new StringIterator('DTSTART;VALUE=DATE;ANOTHER=VALUE;QUOTED="IN ; QUOTES":20190607'))).deepEquals([
+				"DTSTART",
+				[
+					";",
+					[
+						["VALUE", "=", "DATE"],
+						["ANOTHER", "=", "VALUE"],
+						["QUOTED", "=", "IN ; QUOTES"],
+					],
+				],
+				":",
+				"20190607",
 			])
 		})
-		o("all day west of UTC", function () {
-			// Event though we try to set it to New York, it's not really possible to check without changing system time because of how
-			// js Date works.
-			const zone = "America/New_York"
-			o(
-				serializeEvent(
-					createTestEntity(CalendarEventTypeRef, {
-						_id: ["123", "456"],
-						_ownerGroup: "ownerId",
-						summary: "s",
-						startTime: getAllDayDateUTC(
-							DateTime.fromObject({
-								year: 2020,
-								month: 7,
-								day: 31,
-							}).toJSDate(),
-						),
-						endTime: getAllDayDateUTC(
-							DateTime.fromObject({
-								year: 2020,
-								month: 8,
-								day: 1,
-							}).toJSDate(),
-						),
-						description: "d",
-					}),
-					[],
-					now,
-					zone,
-				),
-			).deepEquals([
-				"BEGIN:VEVENT",
-				`DTSTART;VALUE=DATE:20200731`,
-				`DTEND;VALUE=DATE:20200801`,
-				`DTSTAMP:20190813T140100Z`,
-				`UID:ownerId${now.getTime()}@tuta.com`,
-				"SEQUENCE:0",
-				"SUMMARY:s",
-				"DESCRIPTION:d",
-				"END:VEVENT",
-			])
+
+		o("key-value value", function () {
+			o(propertySequenceParser(new StringIterator("RRULE:FREQ=WEEKLY;BYDAY=SA"))).deepEquals(["RRULE", null, ":", "FREQ=WEEKLY;BYDAY=SA"])
 		})
-		o("with alarms", function () {
-			const alarmOne = createTestEntity(UserAlarmInfoTypeRef, {
-				alarmInfo: createTestEntity(AlarmInfoTypeRef, {
-					alarmIdentifier: "123",
-					trigger: "1D",
-				}),
-			})
-			const alarmTwo = createTestEntity(UserAlarmInfoTypeRef, {
-				alarmInfo: createTestEntity(AlarmInfoTypeRef, {
-					alarmIdentifier: "102",
-					trigger: "30M",
-				}),
-			})
-			o(
-				serializeEvent(
-					createTestEntity(CalendarEventTypeRef, {
-						_id: ["123", "456"],
-						_ownerGroup: "ownerId",
-						summary: "Word \\ ; \n",
-						startTime: DateTime.fromObject(
-							{
-								year: 2019,
-								month: 8,
-								day: 13,
-								hour: 5,
-								minute: 6,
-							},
-							{ zone },
-						).toJSDate(),
-						endTime: DateTime.fromObject(
-							{
-								year: 2019,
-								month: 9,
-								day: 13,
-								hour: 5,
-								minute: 6,
-							},
-							{ zone },
-						).toJSDate(),
-						description: "Descr \\ ; \n",
-					}),
-					[alarmOne, alarmTwo],
-					now,
-					zone,
-				),
-			).deepEquals([
-				"BEGIN:VEVENT",
-				"DTSTART:20190813T030600Z",
-				"DTEND:20190913T030600Z",
-				`DTSTAMP:20190813T140100Z`,
-				`UID:ownerId${now.getTime()}@tuta.com`,
-				"SEQUENCE:0",
-				"SUMMARY:Word \\\\ \\; \\n",
-				"DESCRIPTION:Descr \\\\ \\; \\n",
-				"BEGIN:VALARM",
-				"ACTION:DISPLAY",
-				"DESCRIPTION:This is an event reminder",
-				"TRIGGER:-P1D",
-				"END:VALARM",
-				"BEGIN:VALARM",
-				"ACTION:DISPLAY",
-				"DESCRIPTION:This is an event reminder",
-				"TRIGGER:-PT30M",
-				"END:VALARM",
-				"END:VEVENT",
-			])
-		})
-		o.spec("Repeat rule", function () {
-			o("with repeat rule (never ends)", function () {
-				o(
-					serializeEvent(
-						createTestEntity(CalendarEventTypeRef, {
-							_id: ["123", "456"],
-							_ownerGroup: "ownerId",
-							summary: "Word \\ ; \n",
-							startTime: DateTime.fromObject(
-								{
-									year: 2019,
-									month: 8,
-									day: 13,
-									hour: 5,
-									minute: 6,
-								},
-								{ zone },
-							).toJSDate(),
-							endTime: DateTime.fromObject(
-								{
-									year: 2019,
-									month: 9,
-									day: 13,
-									hour: 5,
-									minute: 6,
-								},
-								{ zone },
-							).toJSDate(),
-							repeatRule: createTestEntity(RepeatRuleTypeRef, {
-								endType: EndType.Never,
-								interval: "3",
-								frequency: RepeatPeriod.WEEKLY,
-								timeZone: zone,
-								endValue: null,
-							}),
-						}),
-						[],
-						now,
-						zone,
-					),
-				).deepEquals([
-					"BEGIN:VEVENT",
-					`DTSTART;TZID=${zone}:20190813T050600`,
-					`DTEND;TZID=${zone}:20190913T050600`,
-					`DTSTAMP:20190813T140100Z`,
-					`UID:ownerId${now.getTime()}@tuta.com`,
-					"SEQUENCE:0",
-					"SUMMARY:Word \\\\ \\; \\n",
-					"RRULE:FREQ=WEEKLY;INTERVAL=3",
-					"END:VEVENT",
-				])
-			})
-			o("with repeat rule (ends after occurrences)", function () {
-				o(
-					serializeEvent(
-						createTestEntity(CalendarEventTypeRef, {
-							_id: ["123", "456"],
-							_ownerGroup: "ownerId",
-							summary: "Word \\ ; \n",
-							startTime: DateTime.fromObject(
-								{
-									year: 2019,
-									month: 8,
-									day: 13,
-									hour: 5,
-									minute: 6,
-								},
-								{ zone },
-							).toJSDate(),
-							endTime: DateTime.fromObject(
-								{
-									year: 2019,
-									month: 9,
-									day: 13,
-									hour: 5,
-									minute: 6,
-								},
-								{ zone },
-							).toJSDate(),
-							repeatRule: createTestEntity(RepeatRuleTypeRef, {
-								endType: EndType.Count,
-								interval: "3",
-								frequency: RepeatPeriod.DAILY,
-								endValue: "100",
-								timeZone: zone,
-							}),
-						}),
-						[],
-						now,
-						zone,
-					),
-				).deepEquals([
-					"BEGIN:VEVENT",
-					`DTSTART;TZID=${zone}:20190813T050600`,
-					`DTEND;TZID=${zone}:20190913T050600`,
-					`DTSTAMP:20190813T140100Z`,
-					`UID:ownerId${now.getTime()}@tuta.com`,
-					"SEQUENCE:0",
-					"SUMMARY:Word \\\\ \\; \\n",
-					"RRULE:FREQ=DAILY;INTERVAL=3;COUNT=100",
-					"END:VEVENT",
-				])
-			})
-			o("with repeat rule (ends on a date)", function () {
-				o(
-					serializeEvent(
-						createTestEntity(CalendarEventTypeRef, {
-							_id: ["123", "456"],
-							_ownerGroup: "ownerId",
-							summary: "Word \\ ; \n",
-							startTime: DateTime.fromObject(
-								{
-									year: 2019,
-									month: 8,
-									day: 13,
-									hour: 5,
-									minute: 6,
-								},
-								{ zone },
-							).toJSDate(),
-							endTime: DateTime.fromObject(
-								{
-									year: 2019,
-									month: 9,
-									day: 13,
-									hour: 5,
-									minute: 6,
-								},
-								{ zone },
-							).toJSDate(),
-							repeatRule: createTestEntity(RepeatRuleTypeRef, {
-								endType: EndType.UntilDate,
-								interval: "3",
-								frequency: RepeatPeriod.MONTHLY,
-								endValue: String(
-									DateTime.fromObject(
-										{
-											year: 2019,
-											month: 9,
-											day: 20,
-										},
-										{ zone },
-									).toMillis(),
-								),
-								timeZone: zone,
-							}),
-						}),
-						[],
-						now,
-						zone,
-					),
-				).deepEquals([
-					"BEGIN:VEVENT",
-					`DTSTART;TZID=${zone}:20190813T050600`,
-					`DTEND;TZID=${zone}:20190913T050600`,
-					`DTSTAMP:20190813T140100Z`,
-					`UID:ownerId${now.getTime()}@tuta.com`,
-					"SEQUENCE:0",
-					"SUMMARY:Word \\\\ \\; \\n",
-					"RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919T215959Z",
-					"END:VEVENT",
-				])
-			})
-			o("with repeat rule (ends on a date, all-day)", function () {
-				o(
-					serializeEvent(
-						createTestEntity(CalendarEventTypeRef, {
-							_id: ["123", "456"],
-							_ownerGroup: "ownerId",
-							summary: "Word \\ ; \n",
-							startTime: getAllDayDateUTC(
-								DateTime.fromObject({
-									year: 2019,
-									month: 8,
-									day: 13,
-								}).toJSDate(),
-							),
-							endTime: getAllDayDateUTC(
-								DateTime.fromObject({
-									year: 2019,
-									month: 8,
-									day: 15,
-								}).toJSDate(),
-							),
-							repeatRule: createTestEntity(RepeatRuleTypeRef, {
-								endType: EndType.UntilDate,
-								interval: "3",
-								frequency: RepeatPeriod.MONTHLY,
-								// Beginning of 20th will be displayed to the user as 19th
-								endValue: String(
-									getAllDayDateUTC(
-										DateTime.fromObject({
-											year: 2019,
-											month: 9,
-											day: 20,
-										}).toJSDate(),
-									).getTime(),
-								),
-								timeZone: zone,
-							}),
-						}),
-						[],
-						now,
-						zone,
-					),
-				).deepEquals([
-					"BEGIN:VEVENT",
-					`DTSTART;VALUE=DATE:20190813`,
-					`DTEND;VALUE=DATE:20190815`,
-					`DTSTAMP:20190813T140100Z`,
-					`UID:ownerId${now.getTime()}@tuta.com`,
-					"SEQUENCE:0",
-					"SUMMARY:Word \\\\ \\; \\n",
-					"RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919",
-					"END:VEVENT",
-				])
+	})
+
+	o.spec("parseProperty", function () {
+		o("simple value", function () {
+			o(parseProperty("DTSTART:20190531T083000Z")).deepEquals({
+				name: "DTSTART",
+				params: {},
+				value: "20190531T083000Z",
 			})
 		})
-		o.spec("Altered instance", function () {
-			o.test("Simple event", function () {
-				const originalStartTime = DateTime.fromObject(
-					{
-						year: 2019,
-						month: 8,
-						day: 13,
-						hour: 5,
-						minute: 6,
-					},
-					{ zone },
-				).toJSDate()
-				const alteredInstanceStartTime = DateTime.fromJSDate(originalStartTime).plus({ day: 1 }).toJSDate()
-				const alteredInstanceEndTime = DateTime.fromJSDate(originalStartTime).plus({ day: 2 }).toJSDate()
-				const serializedEvent = serializeEvent(
-					createTestEntity(CalendarEventTypeRef, {
-						_id: ["123", "456"],
-						_ownerGroup: "ownerId",
-						summary: "Word \\ ; \n",
-						startTime: alteredInstanceStartTime,
-						endTime: alteredInstanceEndTime,
-						description: "Descr \\ ;, \n",
-						uid: "test@tuta.com",
-						location: "Some location",
-						recurrenceId: originalStartTime,
-					}),
-					[],
-					now,
-					zone,
-				)
-
-				o.check(serializedEvent).deepEquals([
-					"BEGIN:VEVENT",
-					`DTSTART:${formatDateTimeUTC(alteredInstanceStartTime)}`,
-					`DTEND:${formatDateTimeUTC(alteredInstanceEndTime)}`,
-					`DTSTAMP:20190813T140100Z`,
-					"UID:test@tuta.com",
-					"SEQUENCE:0",
-					"SUMMARY:Word \\\\ \\; \\n",
-					`RECURRENCE-ID;VALUE=DATE-TIME:${formatDateTimeUTC(originalStartTime)}`,
-					"DESCRIPTION:Descr \\\\ \\;\\, \\n",
-					"LOCATION:Some location",
-					"END:VEVENT",
-				])
+		o("simple value, property parameter", function () {
+			o(parseProperty("DTSTART;VALUE=DATE:20190607")).deepEquals({
+				name: "DTSTART",
+				params: {
+					VALUE: "DATE",
+				},
+				value: "20190607",
 			})
-
-			o.test("All-day event", function () {
-				const originalAlldayStartTime = DateTime.fromObject(
-					{
-						year: 2019,
-						month: 8,
-						day: 13,
-						hour: 0,
-						minute: 0,
-						second: 0,
-					},
-					{ zone: "UTC" },
-				).toJSDate()
-				const alteredInstanceStartTime = DateTime.fromJSDate(originalAlldayStartTime).plus({ day: 1 }).toJSDate()
-				const alteredInstanceEndTime = DateTime.fromJSDate(originalAlldayStartTime).plus({ day: 2 }).toJSDate()
-				const calendarEvent = createTestEntity(CalendarEventTypeRef, {
-					_id: ["123", "456"],
-					_ownerGroup: "ownerId",
-					summary: "Word \\ ; \n",
-					startTime: alteredInstanceStartTime,
-					endTime: alteredInstanceEndTime,
-					description: "Descr \\ ;, \n",
-					uid: "test@tuta.com",
-					location: "Some location",
-					recurrenceId: originalAlldayStartTime,
-				})
-				const serializedEvent = serializeEvent(calendarEvent, [], now, zone)
-
-				o.check(serializedEvent).deepEquals([
-					"BEGIN:VEVENT",
-					"DTSTART;VALUE=DATE:20190814",
-					"DTEND;VALUE=DATE:20190815",
-					`DTSTAMP:20190813T140100Z`,
-					"UID:test@tuta.com",
-					"SEQUENCE:0",
-					"SUMMARY:Word \\\\ \\; \\n",
-					`RECURRENCE-ID;VALUE=DATE-TIME:${formatDateTimeUTC(originalAlldayStartTime)}`,
-					"DESCRIPTION:Descr \\\\ \\;\\, \\n",
-					"LOCATION:Some location",
-					"END:VEVENT",
-				])
+		})
+		o("value with colon", function () {
+			o(parseProperty("DTSTART:https://stuff")).deepEquals({
+				name: "DTSTART",
+				params: {},
+				value: "https://stuff",
+			})
+		})
+		o("value with semicolon", function () {
+			o(parseProperty("DTSTART:some\\;things")).deepEquals({
+				name: "DTSTART",
+				params: {},
+				value: "some;things",
+			})
+		})
+		o("accept malformed custom property", function () {
+			o(parseProperty("CUSTOM_PROP:some value")).deepEquals({
+				name: "CUSTOM_PROP",
+				params: {},
+				value: "some value",
 			})
 		})
 	})
 
-	o.spec("import", function () {
+	o("parsePropertyKeyValue", function () {
+		o(parsePropertyKeyValue("KEY=VALUE")).deepEquals({
+			KEY: "VALUE",
+		})
+		o(parsePropertyKeyValue("KEY=VALUE;ANOTHERKEY=ANOTHERVALUE")).deepEquals({
+			KEY: "VALUE",
+			ANOTHERKEY: "ANOTHERVALUE",
+		})
+	})
+
+	o("parseDuration", function () {
+		o(parseDuration("P")).deepEquals({
+			positive: true,
+			day: undefined,
+			hour: undefined,
+			minute: undefined,
+			week: undefined,
+		})
+		o(parseDuration("P8W")).deepEquals({
+			positive: true,
+			day: undefined,
+			hour: undefined,
+			minute: undefined,
+			week: 8,
+		})
+		o(parseDuration("-P11W6D")).deepEquals({
+			positive: false,
+			day: 6,
+			hour: undefined,
+			minute: undefined,
+			week: 11,
+		})
+		o(parseDuration("P36WT21H")).deepEquals({
+			positive: true,
+			day: undefined,
+			hour: 21,
+			minute: undefined,
+			week: 36,
+		})
+		o(parseDuration("P1WT1M")).deepEquals({
+			positive: true,
+			day: undefined,
+			hour: undefined,
+			minute: 1,
+			week: 1,
+		})
+		o(parseDuration("-P11W6DT15H")).deepEquals({
+			positive: false,
+			day: 6,
+			hour: 15,
+			minute: undefined,
+			week: 11,
+		})
+		o(parseDuration("P2W5DT30M")).deepEquals({
+			positive: true,
+			day: 5,
+			hour: undefined,
+			minute: 30,
+			week: 2,
+		})
+		o(parseDuration("-P11WT15H15M")).deepEquals({
+			positive: false,
+			day: undefined,
+			hour: 15,
+			minute: 15,
+			week: 11,
+		})
+		o(parseDuration("-P5W4DT3H18M")).deepEquals({
+			positive: false,
+			day: 4,
+			hour: 3,
+			minute: 18,
+			week: 5,
+		})
+		o(parseDuration("P3D")).deepEquals({
+			positive: true,
+			day: 3,
+			hour: undefined,
+			minute: undefined,
+			week: undefined,
+		})
+		o(parseDuration("P22DT60H")).deepEquals({
+			positive: true,
+			day: 22,
+			hour: 60,
+			minute: undefined,
+			week: undefined,
+		})
+		o(parseDuration("P4DT20M")).deepEquals({
+			positive: true,
+			day: 4,
+			hour: undefined,
+			minute: 20,
+			week: undefined,
+		})
+		o(parseDuration("P40DT60H120M")).deepEquals({
+			positive: true,
+			day: 40,
+			hour: 60,
+			minute: 120,
+			week: undefined,
+		})
+		o(parseDuration("-PT4H")).deepEquals({
+			positive: false,
+			day: undefined,
+			hour: 4,
+			minute: undefined,
+			week: undefined,
+		})
+		o(parseDuration("PT3H15M")).deepEquals({
+			positive: true,
+			day: undefined,
+			hour: 3,
+			minute: 15,
+			week: undefined,
+		})
+		o(parseDuration("PT18M")).deepEquals({
+			positive: true,
+			day: undefined,
+			hour: undefined,
+			minute: 18,
+			week: undefined,
+		})
+		o(parseDuration("P60DT15M05S")).deepEquals({
+			positive: true,
+			day: 60,
+			hour: undefined,
+			minute: 15,
+			week: undefined,
+		})
+		o(() => parseDuration("P8W15M")).throws(Error)
+	})
+
+	o("triggerToAlarmInterval", function () {
+		o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-PT5H30M")).deepEquals({
+			unit: AlarmIntervalUnit.MINUTE,
+			value: 5 * 60 + 30,
+		})
+		o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-PT5H30M20S")).deepEquals({
+			unit: AlarmIntervalUnit.MINUTE,
+			value: 5 * 60 + 30,
+		})
+		o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-PT5H0M")).deepEquals({
+			unit: AlarmIntervalUnit.HOUR,
+			value: 5,
+		})
+		o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-P1DT5H0M")).deepEquals({
+			unit: AlarmIntervalUnit.HOUR,
+			value: 29,
+		})
+	})
+
+	o.spec("parseTime", function () {
+		o.test("time with UTC indicator", function () {
+			o(parseTime("20180115T214000Z", null)).deepEquals({
+				date: new Date(Date.UTC(2018, 0, 15, 21, 40, 0)),
+				allDay: false,
+			})
+		})
+
+		o.test("time with timezone", function () {
+			o(parseTime("20180115T214000", zone)).deepEquals({
+				date: new Date(Date.UTC(2018, 0, 15, 21, 40, 0)),
+				allDay: false,
+			})
+		})
+
+		o.test("Edge-case, RFC non-compliant, time with UTC indicator and timezone throws ParserError", function () {
+			o.check(parseTime("20260617T214000Z", zone)).throws(ParserError)
+		})
+
+		o.test("All day event doens't care about timezones", function () {
+			o(parseTime("20180115T", zone)).deepEquals({
+				date: new Date(Date.UTC(2018, 0, 15, 0, 0, 0)),
+				allDay: true,
+			})
+		})
+
+		o.test("Invalid month throws error", function () {
+			o(() => parseTime("20180015T214000Z", "Europe/Berlin")).throws(ParserError)
+		})
+	})
+
+	o.spec("parseCalendarEvents: fix illegal end times", function () {
+		const makeEvent = ({ start, end }) =>
+			parseICalendar(
+				"BEGIN:VCALENDAR\n" +
+					"VERSION:2.0\n" +
+					"BEGIN:VEVENT\n" +
+					"UID:0c838926-f826-43c9-9f17-4836c565eece\n" +
+					"DTSTAMP:20220106T214416Z\n" +
+					"SUMMARY;LANGUAGE=de:Gelber Sack\n" +
+					`DTSTART:${start}\n` +
+					`DTEND:${end}\n` +
+					"DESCRIPTION:Gelber Sack\n" +
+					"LOCATION:test\n" +
+					"END:VEVENT\n" +
+					"END:VCALENDAR",
+			)
+
+		const testParseIllegalCalendarEvents = ({ start, end, expect }) => {
+			const event = makeEvent({ start, end })
+			const { icsCalendarEvent } = parseCalendarEvents(event, "Europe/Berlin").contents[0]
+			o(icsCalendarEvent.endTime.getTime()).equals(expect)
+		}
+
+		o("allday equal", function () {
+			testParseIllegalCalendarEvents({ start: "20220315T", end: "20220315T", expect: parseTime("20220316T", "Europe/Berlin").date.getTime() })
+		})
+		o("allday flipped", function () {
+			testParseIllegalCalendarEvents({ start: "20220315T", end: "20220314T", expect: parseTime("20220316T", "Europe/Berlin").date.getTime() })
+		})
+		o("allday with an endTime that has hours/minutes/seconds", function () {
+			testParseIllegalCalendarEvents({ start: "20220315T", end: "20220314T225915Z", expect: parseTime("20220316T", "Europe/Berlin").date.getTime() })
+		})
+
+		o("endTime equal", function () {
+			testParseIllegalCalendarEvents({ start: "20220315T225900Z", end: "20220315T225900Z", expect: new Date("2022-03-15T22:59:01.000Z").getTime() })
+		})
+		o("endTime flipped", function () {
+			testParseIllegalCalendarEvents({ start: "20220315T225900Z", end: "20220315T225800Z", expect: new Date("2022-03-15T22:59:01.000Z").getTime() })
+		})
+	})
+
+	o.spec("parseUntilRruleTime", function () {
+		o("when given full UTC date it gives the beginning of the next day", function () {
+			// will take start of the next date because that's how we do it internally: end range is "exclusive" while it's questionable how it for ical but
+			// mostly "inclusive"
+			const zone = "Asia/Krasnoyarsk"
+			o(parseUntilRruleTime("20190919T235959Z", zone)).deepEquals(DateTime.fromObject({ year: 2019, month: 9, day: 20 }, { zone: zone }).toJSDate())
+		})
+	})
+
+	o.spec("parseExcludedDates", function () {
+		o("are excluded dates deduplicated", function () {
+			const parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: "20230308T230000Z,20230308T230000Z,20230309T230000Z" }])
+			o(parsedDates).deepEquals([
+				createDateWrapper({ date: new Date("2023-03-08T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
+			])
+		})
+		o("are excluded dates sorted", function () {
+			const parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: "20230313T230000Z,20230309T230000Z" }])
+			o(parsedDates).deepEquals([
+				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-13T23:00:00Z") }),
+			])
+		})
+		o("multiple exdates in separate lines are parsed", function () {
+			const parsedDates = parseExDates([
+				{ name: "EXDATES", params: {}, value: "20230309T230000Z" },
+				{
+					name: "EXDATES",
+					params: {},
+					value: "20230203T230000Z",
+				},
+			])
+			o(parsedDates).deepEquals([
+				createDateWrapper({ date: new Date("2023-02-03T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
+			])
+		})
+		o("deduplication over multiple lines works", function () {
+			const parsedDates = parseExDates([
+				{ name: "EXDATES", params: {}, value: "20230309T230000Z,20230302T230000Z" },
+				{
+					name: "EXDATES",
+					params: {},
+					value: "20230309T230000Z,20230114T230000Z",
+				},
+			])
+			o(parsedDates).deepEquals([
+				createDateWrapper({ date: new Date("2023-01-14T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-02T23:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
+			])
+		})
+		o("is timezone parsed", function () {
+			const parsedDates = parseExDates([{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: "20230309T230000,20230302T230000" }])
+			o(parsedDates).deepEquals([
+				createDateWrapper({ date: new Date("2023-03-02T22:00:00Z") }),
+				createDateWrapper({ date: new Date("2023-03-09T22:00:00Z") }),
+			])
+		})
+		o(" deduplication over different timezones", function () {
+			const parsedDates = parseExDates([
+				{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: "20230309T230000" },
+				{ name: "EXDATES", params: { TZID: "Europe/Sofia" }, value: "20230310T000000" },
+			])
+			o(parsedDates).deepEquals([createDateWrapper({ date: new Date("2023-03-09T22:00:00Z") })])
+		})
+	})
+
+	o.spec("parseRecurrenceId", function () {
+		o("it uses UTC for absolute time", function () {
+			const parsedId = parseRecurrenceId({ name: "RECURRENCE-ID", params: { VALUE: "DATETIME" }, value: "20230809T060000Z" }, zone)
+			o(parsedId).deepEquals(getDateInUTC("2023-08-09T06:00"))
+		})
+
+		o("it uses TZID from param for relative time", function () {
+			const parsedId = parseRecurrenceId({ name: "RECURRENCE-ID", params: { VALUE: "DATETIME", TZID: "Europe/Sofia" }, value: "20230310T000000" }, zone)
+			o(parsedId).deepEquals(getDateInUTC("2023-03-09T22:00:00Z"))
+		})
+
+		o("it uses TZID from param when none are in the value", function () {
+			const parsedId = parseRecurrenceId({ name: "RECURRENCE-ID", params: { VALUE: "DATETIME" }, value: "20230310T000000" }, "Europe/Sofia")
+			o(parsedId).deepEquals(getDateInUTC("2023-03-09T22:00:00Z"))
+		})
+	})
+
+	o.spec("parseICalendar - line folding", function () {
+		o("handles empty lines between tags correctly", function () {
+			const calendar =
+				"BEGIN:VCALENDAR\n" +
+				"VERSION:2.0\n" +
+				"BEGIN:VEVENT\n" +
+				"UID:test-123\n" +
+				"DTSTART:20250110T100000Z\n" +
+				"DTEND:20250110T110000Z\n" +
+				"SUMMARY:Test Event\n" +
+				"END:VEVENT\n" +
+				"\n" + // Empty line before END:VCALENDAR
+				"END:VCALENDAR"
+
+			const result = parseICalendar(calendar)
+			o(result.type).equals("VCALENDAR")
+			o(result.children.length).equals(1)
+			o(result.children[0].type).equals("VEVENT")
+		})
+
+		o("handles properly folded lines", function () {
+			const calendar =
+				"BEGIN:VCALENDAR\n" +
+				"VERSION:2.0\n" +
+				"BEGIN:VEVENT\n" +
+				"UID:test-123\n" +
+				"DTSTART:20250110T100000Z\n" +
+				"DTEND:20250110T110000Z\n" +
+				"SUMMARY:This is a very long summary that is folded across multiple li\n" +
+				" nes according to RFC 5545\n" + // Space at beginning indicates continuation
+				"END:VEVENT\n" +
+				"END:VCALENDAR"
+
+			const result = parseICalendar(calendar)
+			o(result.type).equals("VCALENDAR")
+			const summary = result.children[0].properties.find((p) => p.name === "SUMMARY")
+			o(summary?.value).equals("This is a very long summary that is folded across multiple lines according to RFC 5545")
+		})
+	})
+
+	o.spec("parseCalendarStringData", function () {
 		let expectedParsedCalendarData: ParsedCalendarData
 
 		o.beforeEach(function () {
@@ -579,6 +495,8 @@ o.spec("CalendarExporter", function () {
 							repeatRule: null,
 							attendees: [],
 							organizer: null,
+							startTimeZone: null,
+							endTimeZone: null,
 						},
 						alarms: [],
 					},
@@ -618,9 +536,12 @@ o.spec("CalendarExporter", function () {
 				excludedDates: [],
 				endValue: null,
 			})
+			expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
+			expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
 
 			testParsedCalendarDataEquality(actual, expectedParsedCalendarData)
 		})
+
 		o("recurrence id on event without UID will be deleted", async function () {
 			const parsedEvent = parseCalendarStringData(
 				[
@@ -689,6 +610,9 @@ o.spec("CalendarExporter", function () {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 					}),
 				]
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
+
 				testParsedCalendarDataEquality(parsedEvent, expectedParsedCalendarData)
 			})
 			o("uppercase mailto", async function () {
@@ -727,6 +651,9 @@ o.spec("CalendarExporter", function () {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 					}),
 				]
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
+
 				testParsedCalendarDataEquality(parsedEvent, expectedParsedCalendarData)
 			})
 			o("without PARTSTAT", async function () {
@@ -767,6 +694,10 @@ o.spec("CalendarExporter", function () {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 					}),
 				]
+
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
+
 				testParsedCalendarDataEquality(parsedEvent, expectedParsedCalendarData)
 			})
 		})
@@ -867,6 +798,9 @@ o.spec("CalendarExporter", function () {
 						alarmIdentifier: "",
 					},
 				]
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
+
 				testParsedCalendarDataEquality(
 					parseCalendarStringData(
 						[
@@ -900,6 +834,9 @@ o.spec("CalendarExporter", function () {
 						alarmIdentifier: "",
 					},
 				]
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
+
 				testParsedCalendarDataEquality(
 					parseCalendarStringData(
 						[
@@ -986,6 +923,8 @@ o.spec("CalendarExporter", function () {
 									).toJSDate(),
 									uid: "test@tuta.com",
 									repeatRule: null,
+									startTimeZone: zone,
+									endTimeZone: zone,
 								},
 								alarms: [],
 							},
@@ -996,7 +935,7 @@ o.spec("CalendarExporter", function () {
 		})
 
 		o.spec("Interaction with export operations", function () {
-			o("import and re-export descriptions exported from outlook", async function () {
+			o("ics-import and re-export descriptions exported from outlook", async function () {
 				const text = `BEGIN:VCALENDAR
 VERSION:2.0
 CALSCALE:GREGORIAN
@@ -1030,7 +969,7 @@ END:VCALENDAR`
 					"\n________________________________________________________________________________\nMicrosoft Teams meeting\nJoin on your computer, mobile app or room device\nUnited States, Minneapolis\nPhone Conference ID: 000 000 000",
 				)
 			})
-			o("roundtrip export -> import", async function () {
+			o("roundtrip export -> ics-import", async function () {
 				const alarmOne = createTestEntity(UserAlarmInfoTypeRef, {
 					alarmInfo: createTestEntity(AlarmInfoTypeRef, {
 						trigger: "1D",
@@ -1082,6 +1021,8 @@ END:VCALENDAR`
 							uid: "test@tuta.com",
 							hashedUid: null,
 							sequence: "1",
+							startTimeZone: null,
+							endTimeZone: null,
 						}),
 						alarms: [],
 					},
@@ -1123,6 +1064,8 @@ END:VCALENDAR`
 							sequence: "2",
 							uid: "test@tuta.com",
 							hashedUid: null,
+							startTimeZone: null,
+							endTimeZone: null,
 						}),
 						alarms: [alarmOne, alarmTwo],
 					},
@@ -1181,6 +1124,8 @@ END:VCALENDAR`
 								excludedDates: [],
 								advancedRules: [],
 							}),
+							startTimeZone: zone,
+							endTimeZone: zone,
 						}),
 						alarms: [],
 					},
@@ -1236,6 +1181,8 @@ END:VCALENDAR`
 								timeZone: "",
 								excludedDates: [],
 							}),
+							startTimeZone: null,
+							endTimeZone: null,
 						}),
 						alarms: [],
 					},
@@ -1258,6 +1205,8 @@ END:VCALENDAR`
 							repeatRule: event.repeatRule,
 							attendees: event.attendees,
 							organizer: event.organizer,
+							startTimeZone: event.startTimeZone,
+							endTimeZone: event.endTimeZone,
 						},
 						alarms: alarms.map((a) => ({
 							trigger: a.alarmInfo.trigger,
@@ -1271,7 +1220,7 @@ END:VCALENDAR`
 					testParsedEventEquality(actualImportedEvents.contents[i], expectedImportedEvents[i], `event ${i}`)
 				}
 			})
-			o("roundtrip import -> export", async function () {
+			o("roundtrip ics-import -> export", async function () {
 				const text = `BEGIN:VCALENDAR
 PRODID:-//Tutao GmbH//Tutanota 3.57.6//EN
 VERSION:2.0
@@ -1350,50 +1299,12 @@ END:VCALENDAR`
 			})
 		})
 	})
-
-	o.spec("serializeRepeatRule", function () {
-		o("when RRULE is UNTIL and not all date the timestamp of the end of last day is written", function () {
-			const repeatRule = createTestEntity(RepeatRuleTypeRef, {
-				endType: EndType.UntilDate,
-				endValue: String(DateTime.fromObject({ year: 2019, month: 9, day: 20 }, { zone: "UTC" }).toMillis()),
-				frequency: RepeatPeriod.MONTHLY,
-				interval: "3",
-			})
-			o(serializeRepeatRule(repeatRule, false, "Asia/Krasnoyarsk")).deepEquals(["RRULE:FREQ=MONTHLY;INTERVAL=3;UNTIL=20190919T235959Z"])
-		})
-	})
-
-	o.spec("serializeExcludedDates", function () {
-		o("no excluded dates", function () {
-			o(serializeExcludedDates([], "Europe/Berlin")).deepEquals([])
-		})
-
-		o("one excluded date", function () {
-			o(serializeExcludedDates([createTestEntity(DateWrapperTypeRef, { date: new Date("2023-01-14T22:00:00Z") })], "Europe/Berlin")).deepEquals([
-				"EXDATE;TZID=Europe/Berlin:20230114T230000",
-			])
-		})
-
-		o("more than one excluded date", function () {
-			o(
-				serializeExcludedDates(
-					[
-						createTestEntity(DateWrapperTypeRef, { date: new Date("2023-01-14T22:00:00Z") }),
-						createTestEntity(DateWrapperTypeRef, { date: new Date("2023-01-21T22:00:00Z") }),
-					],
-					"Europe/Berlin",
-				),
-			).deepEquals(["EXDATE;TZID=Europe/Berlin:20230114T230000,20230121T230000"])
-		})
-	})
-
-	o("serializeTrigger", () => {
-		o(serializeTrigger("5M")).equals("-PT5M")
-		o(serializeTrigger("3H")).equals("-PT3H")
-		o(serializeTrigger("30H")).equals("-PT30H")
-		o(serializeTrigger("1D")).equals("-P1D")
-		o(serializeTrigger("10D")).equals("-P10D")
-		o(serializeTrigger("5W")).equals("-P5W")
-		o(serializeTrigger("50W")).equals("-P50W")
-	})
 })
+
+function testParsedCalendarDataEquality(actual: ParsedCalendarData, expected: ParsedCalendarData, message?: string): void {
+	o.check(actual).deepEquals(expected)(message ?? "")
+}
+
+function testParsedEventEquality(actual: ParsedEventAlarmTuple, expected: ParsedEventAlarmTuple, message?: string): void {
+	o.check(actual).deepEquals(expected)(message ?? "")
+}

@@ -1,4 +1,4 @@
-import { CalendarEvent, createFile } from "@tutao/entities/tutanota"
+import { CalendarEvent, CalendarRepeatRule, createFile } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../../entities/tutanota/Utils"
 import { CalendarAdvancedRepeatRule, DateWrapper, RepeatRule, UserAlarmInfo } from "@tutao/entities/sys"
 import { EndType, RepeatPeriod, reverse, SECOND_IN_MILLIS } from "../../../../platform-kit/app-env"
@@ -46,25 +46,34 @@ export function serializeCalendar(
 // end of the public interface for calendar invites/import/export, everything below this is exported for testing.
 //
 
+function serializeDTProperty(
+	propertyName: "DTSTART" | "DTEND",
+	isAllDay: boolean,
+	eventDateTime: Date,
+	eventDateTimeZone: string | null,
+	repeatRule: CalendarRepeatRule | null,
+	localZone: string,
+) {
+	if (isAllDay) {
+		return `${propertyName};VALUE=DATE:${formatDate(getAllDayDateLocal(eventDateTime), localZone)}`
+	}
+
+	const resolvedTimeZone = eventDateTimeZone ?? repeatRule?.timeZone
+	if (resolvedTimeZone) {
+		return `${propertyName};TZID=${resolvedTimeZone}:${formatDateTime(eventDateTime, resolvedTimeZone)}`
+	}
+
+	return `${propertyName}:${formatDateTimeUTC(eventDateTime)}`
+}
+
 /** importer internals exported for testing, should always be used through serializeCalendar */
 export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo>, now: Date, timeZone: string): Array<string> {
 	const repeatRule = event.repeatRule
 	const isAllDay = isAllDayEvent(event)
 	const localZone = getTimeZone()
-	let dateStart, dateEnd
 
-	if (isAllDay) {
-		// We use local zone because we convert UTC time to local first so to convert it back we need to use the right one.
-		// It will not affect times in case of all-day event anyway
-		dateStart = `DTSTART;VALUE=DATE:${formatDate(getAllDayDateLocal(event.startTime), localZone)}`
-		dateEnd = `DTEND;VALUE=DATE:${formatDate(getAllDayDateLocal(event.endTime), localZone)}`
-	} else if (repeatRule) {
-		dateStart = `DTSTART;TZID=${repeatRule.timeZone}:${formatDateTime(event.startTime, repeatRule.timeZone)}`
-		dateEnd = `DTEND;TZID=${repeatRule.timeZone}:${formatDateTime(event.endTime, repeatRule.timeZone)}`
-	} else {
-		dateStart = `DTSTART:${formatDateTimeUTC(event.startTime)}`
-		dateEnd = `DTEND:${formatDateTimeUTC(event.endTime)}`
-	}
+	const dateStart = serializeDTProperty("DTSTART", isAllDay, event.startTime, event.startTimeZone, repeatRule, localZone)
+	const dateEnd = serializeDTProperty("DTEND", isAllDay, event.endTime, event.endTimeZone, repeatRule, localZone)
 
 	return [
 		"BEGIN:VEVENT",

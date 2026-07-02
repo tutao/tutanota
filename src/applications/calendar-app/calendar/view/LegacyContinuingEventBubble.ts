@@ -1,13 +1,14 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { hasAlarmsForTheUser, isBirthdayCalendar } from "../../../common/calendar/date/CalendarUtils"
-import { listIdPart } from "../../../../platform-kit/meta"
-import type { EventTextTimeOption } from "../../../../platform-kit/app-env"
+import { getTimeZone, hasAlarmsForTheUser, isBirthdayCalendar } from "../../../common/calendar/date/CalendarUtils"
+import { listIdPart } from "@tutao/meta"
+import type { EventTextTimeOption } from "@tutao/app-env"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventWrapper } from "./CalendarViewModel"
-import { formatEventTime, getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
+import { getDisplayEventTitle } from "../gui/CalendarGuiUtils.js"
 import { LegacyCalendarEventBubble } from "./LegacyCalendarEventBubble"
 import { px } from "../../../../ui/size"
 import { normalizeColorHex } from "../../../../ui/base/GuiUtils"
 import { User } from "@tutao/entities/sys"
+import { formatEventTime } from "../gui/DateTimeTextFormatterUtils"
 
 export type LegacyContinuingCalendarEventBubbleAttrs = {
 	eventWrapper: EventWrapper
@@ -53,7 +54,10 @@ export class LegacyContinuingCalendarEventBubble implements Component<LegacyCont
 				m(LegacyCalendarEventBubble, {
 					color: attrs.color,
 					border: attrs.border,
-					text: (attrs.showTime != null ? formatEventTime(attrs.eventWrapper.event, attrs.showTime) + " " : "") + eventTitle,
+					text:
+						(attrs.showTime != null
+							? formatEventTime(attrs.eventWrapper.event, attrs.showTime, false, { calendarTimeZone: getTimeZone() }) + " "
+							: "") + eventTitle,
 					backgroundColor: normalizedBackgroundColor,
 					click: (e) => attrs.onEventClicked(attrs.eventWrapper.event, e),
 					keyDown: (e) => attrs.onEventKeyDown(attrs.eventWrapper.event, e),

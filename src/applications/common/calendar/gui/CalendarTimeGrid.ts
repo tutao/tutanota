@@ -42,6 +42,7 @@ export interface CalendarTimeGridAttributes {
 	 * When defined, renders a time indicator at the provided time for the current date
 	 */
 	time?: Time
+	showTimeZonesAtEventBubble: boolean
 }
 
 /**
@@ -177,6 +178,7 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 			cellActionHandlers,
 			eventBubbleHandlers,
 			layout: { rowCountForRange, gridRowHeight },
+			showTimeZonesAtEventBubble,
 		} = timeViewAttrs
 		const subRowAsMinutes = getSubRowAsMinutes(timeScale)
 		const startOfTomorrow = getStartOfNextDay(baseDate)
@@ -199,6 +201,7 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 				gridRowHeight,
 			},
 			time: timeViewAttrs.time,
+			showTimeZonesAtEventBubble,
 		} as CalendarDayColumnAttrs)
 	}
 
@@ -402,11 +405,14 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 		}
 
 		const diff = DateTime.fromJSDate(eventTimeRange.endTime).diff(DateTime.fromObject(dateParts).plus({ minutes: interval }), "minutes").minutes
-
 		const diffFromRangeStartToEventEnd = timeRange.start.diff(Time.fromDate(eventTimeRange.endTime))
+
 		const eventEndsAfterRange = eventTimeRange.endTime > getStartOfNextDay(baseDate) || diff > 0
+		const eventEndsAtMidnight = eventTimeRange.endTime.getTime() === getStartOfNextDay(baseDate).getTime()
+
 		const maxRows = (timeRange.end.asMinutes() + interval - timeRange.start.asMinutes()) / subRowAsMinutes + 1
-		let end = eventEndsAfterRange ? maxRows : Math.ceil(diffFromRangeStartToEventEnd / subRowAsMinutes) + 1
+
+		let end = eventEndsAfterRange || eventEndsAtMidnight ? maxRows : Math.ceil(diffFromRangeStartToEventEnd / subRowAsMinutes) + 1
 		if (!eventEndsAfterRange) {
 			end = Math.max(end, start + MIN_ROW_SPAN) // Assert events has at least row span of MIN_ROW_SPAN
 		}

@@ -1,6 +1,6 @@
 import { lang } from "./LanguageViewModel"
-import { cleanMailAddress, isSameDay, isSameDayOfDate, pad } from "../../platform-kit/utils"
-import { assertMainOrNodeBoot } from "../../platform-kit/app-env"
+import { cleanMailAddress, isSameDay, isSameDayOfDate, pad } from "@tutao/utils"
+import { assertMainOrNodeBoot } from "@tutao/app-env"
 
 assertMainOrNodeBoot()
 
@@ -75,16 +75,52 @@ export function formatTimeOrDateOrYesterday(date: Date): string {
 	}
 }
 
-export function formatTime(date: Date): string {
-	return lang.formats.time.format(date)
+/**
+ * Formats a string to represent the time information according to the user settings, optionally applying a timezone
+ * @param date
+ * @param timeZone - Timezone to apply
+ */
+export function formatTime(date: Date, timeZone?: Intl.DateTimeFormatOptions["timeZone"]): string {
+	const currentOptions = lang.formats.time.resolvedOptions()
+	const options: Intl.DateTimeFormatOptions = {
+		day: currentOptions.day,
+		month: currentOptions.month,
+		year: currentOptions.year,
+		hour: currentOptions.hour,
+		minute: currentOptions.minute,
+		hourCycle: currentOptions.hourCycle,
+		timeZone,
+	} as Intl.DateTimeFormatOptions
+
+	const timeFormat = new Intl.DateTimeFormat(lang.languageTag, options)
+
+	return timeFormat.format(date)
 }
 
 export function formatShortTime(date: Date): string {
 	return lang.formats.shortTime.format(date)
 }
 
-export function formatDateTime(date: Date): string {
-	return lang.formats.dateTime.format(date)
+/**
+ * Formats a string to represent the date and time information according to the user settings, optionally applying a timezone
+ * @param date
+ * @param timeZone - Timezone to apply
+ */
+export function formatDateTime(date: Date, timeZone?: Intl.DateTimeFormatOptions["timeZone"]): string {
+	const currentOptions = lang.formats.dateTime.resolvedOptions()
+	const options: Intl.DateTimeFormatOptions = {
+		day: currentOptions.day,
+		month: currentOptions.month,
+		year: currentOptions.year,
+		hour: currentOptions.hour,
+		minute: currentOptions.minute,
+		hourCycle: currentOptions.hourCycle,
+		timeZone,
+	} as Intl.DateTimeFormatOptions
+
+	const dateTimeFormat = new Intl.DateTimeFormat(lang.languageTag, options)
+
+	return dateTimeFormat.format(date)
 }
 
 export function formatDateTimeShort(date: Date): string {

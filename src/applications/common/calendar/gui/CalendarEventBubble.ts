@@ -11,11 +11,17 @@ import {
 	EventWrapper,
 	EventWrapperFlags,
 } from "../../../calendar-app/calendar/view/CalendarViewModel"
-import { formatEventTime, getDisplayEventTitle, TEMPORARY_EVENT_OPACITY } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
+import { getDisplayEventTitle, TEMPORARY_EVENT_OPACITY } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { EventTextTimeOption, TabIndex } from "@tutao/app-env"
 import { EventWrapperFlagKeys, FlagKeyToIcon, getDiffIn60mIntervals, getTimeTextFormatForLongEvent, getTimeZone } from "../date/CalendarUtils"
 import { Time } from "../date/Time"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
+import {
+	formatEventTime,
+	formatTimeWithZoneInfo,
+	getTextFormatterTimeZones,
+	shouldShowTimeZones,
+} from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
 
 export const MIN_ROW_SPAN = 3
 
@@ -44,21 +50,27 @@ export type CalendarEventBubbleAttrs = {
 	horizontalOverflowInfo: RangeOverflowData
 	canReceiveFocus: boolean
 	baseDate: Date
+	showTimeZones: boolean
 	height?: number
 }
 
 export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> {
 	view({ attrs }: Vnode<CalendarEventBubbleAttrs>): Children {
-		const { gridInfo, eventWrapper, interactions, canReceiveFocus, baseDate, horizontalOverflowInfo } = attrs
+		const { gridInfo, eventWrapper, interactions, canReceiveFocus, baseDate, horizontalOverflowInfo, showTimeZones } = attrs
 		const calendarEvent = eventWrapper.event
+		const calendarTimeZone = getTimeZone()
 
 		const isLongNormalEvent = !isAllDayEvent(calendarEvent) && getDiffIn60mIntervals(calendarEvent.startTime, calendarEvent.endTime) >= 24
 		const timeFormat = isLongNormalEvent
 			? EventTextTimeOption.START_END_TIME
-			: getTimeTextFormatForLongEvent(calendarEvent, baseDate, baseDate, getTimeZone())
+			: getTimeTextFormatForLongEvent(calendarEvent, baseDate, baseDate, calendarTimeZone)
 
-		const eventTime = timeFormat ? formatEventTime(calendarEvent, timeFormat) : ""
+		const eventTime = timeFormat ? formatEventTime(calendarEvent, timeFormat, false, { calendarTimeZone: calendarTimeZone }) : ""
 		const eventTitle = isLongNormalEvent ? `${eventTime} ${getDisplayEventTitle(calendarEvent.summary)}` : getDisplayEventTitle(calendarEvent.summary)
+		const timeZoneText =
+			!isLongNormalEvent && showTimeZones && shouldShowTimeZones(calendarTimeZone, calendarEvent.startTimeZone, calendarEvent.endTimeZone)
+				? formatTimeWithZoneInfo(calendarEvent, timeFormat!, getTextFormatterTimeZones(calendarEvent, calendarTimeZone))
+				: null
 
 		const resolvedStyles = this.resolveStyles(attrs)
 		const overflowIndicatorStyle = {
@@ -112,6 +124,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 								gridInfo.row,
 								isAllDayEvent(eventWrapper.event) || isLongNormalEvent ? "" : eventTime,
 								eventWrapper.flags,
+								timeZoneText,
 							),
 				),
 				horizontalOverflowInfo.end ? m(".event-continues-right-indicator.height-100p", { style: overflowIndicatorStyle }) : null,
@@ -186,9 +199,17 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 	 * styling to distinguish them from events unrelated to the event invite.
 	 * @private
 	 */
-	private renderNonFeaturedTexts(title: string, iconFillColor: string, rowBounds: RowBounds, eventTime: string, flags: EventWrapperFlags) {
+	private renderNonFeaturedTexts(
+		title: string,
+		iconFillColor: string,
+		rowBounds: RowBounds,
+		eventTime: string,
+		flags: EventWrapperFlags,
+		timeZoneText: string | null,
+	) {
 		const totalRowSpan = rowBounds.end - rowBounds.start
-		const showSecondLine = totalRowSpan >= MIN_ROW_SPAN * 2
+		const showTimeInSecondLine = totalRowSpan >= MIN_ROW_SPAN * 2
+		const showTimeZoneInThirdLine = totalRowSpan >= MIN_ROW_SPAN * 3 && timeZoneText
 		const maxLines = Math.floor((totalRowSpan - MIN_ROW_SPAN) / MIN_ROW_SPAN)
 
 		const hasEventTime = eventTime !== ""
@@ -209,18 +230,19 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 
 		return m(".flex", [
 			...flagIcons,
-			m(".flex.overflow-hidden", { class: showSecondLine ? "col" : "" }, [
+			m(".flex.overflow-hidden", { class: showTimeInSecondLine ? "col" : "" }, [
 				m(
 					"span",
 					{
-						class: showSecondLine ? "text-ellipsis-multi-line" : "text-no-wrap",
+						class: showTimeInSecondLine ? "text-ellipsis-multi-line" : "text-no-wrap",
 						style: {
 							"-webkit-line-clamp": maxLines,
 						},
 					},
 					title,
 				),
-				hasEventTime ? this.renderEventTime(eventTime, showSecondLine, iconFillColor) : null,
+				hasEventTime ? this.renderEventTime(eventTime, showTimeInSecondLine, iconFillColor) : null,
+				showTimeZoneInThirdLine ? timeZoneText : null,
 			]),
 		])
 	}

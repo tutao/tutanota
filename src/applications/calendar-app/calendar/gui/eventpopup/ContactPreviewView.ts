@@ -7,7 +7,6 @@ import { memoized, noOp } from "../../../../../platform-kit/utils"
 import { lang, TranslationKey } from "../../../../../ui/utils/LanguageViewModel.js"
 import { BannerButton, BannerButtonAttrs } from "../../../../../ui/base/buttons/BannerButton.js"
 import { pureComponent } from "../../../../../ui/base/PureComponent.js"
-import { formatEventDuration } from "../CalendarGuiUtils.js"
 import { getLocationUrl } from "./EventPreviewView.js"
 import { isoDateToBirthday } from "../../../../common/api/common/utils/BirthdayUtils.js"
 import { createDropdown } from "../../../../../ui/base/Dropdown.js"
@@ -15,6 +14,7 @@ import { writeMail } from "../../../../mail-app/contacts/view/ContactView.js"
 import { getContactTitle } from "../../../../common/contactsFunctionality/ContactUtils"
 import { CalendarEvent, Contact } from "@tutao/entities/tutanota"
 import { client } from "../../../../../platform-kit/app-env/boot/ClientDetector"
+import { formatEventDuration } from "../DateTimeTextFormatterUtils"
 
 export type ContactPreviewViewAttrs = {
 	event: CalendarEvent
@@ -39,7 +39,7 @@ export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
 
 		return m(".flex.col.smaller.scroll.visible-scrollbar", [
 			this.renderRow(Icons.CalendarFilled, [m("span.h3", eventTitle)]),
-			this.renderRow(Icons.ClockOutlines, [formatEventDuration(event, getTimeZone(), false)]),
+			this.renderRow(Icons.ClockOutlines, [formatEventDuration(event, { calendarTimeZone: getTimeZone() }, false)]),
 			age ? this.renderRow(Icons.GiftFilled, ageString) : null,
 			this.renderActions(contact),
 		])
