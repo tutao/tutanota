@@ -8,7 +8,7 @@ import {
 } from "@tutao/crypto/symmetric-cipher-utils"
 import {
 	InitializationVectorVariant,
-	ParsedCiphertextAeadWithGroupKey,
+	ParsedCiphertextAeadWithInstanceKey,
 	ParsedCiphertextAeadWithSessionKey,
 	ParsedCiphertextAesCbcThenHmac,
 	ParsedCiphertextUnusedReservedUnauthenticated,
@@ -99,8 +99,8 @@ o.spec("ParsedCiphertextTest", () => {
 			o.check(parsedCiphertext.macTag).deepEquals(macTag)
 		})
 
-		o.test("can parse AEAD with group key", async () => {
-			const symmetricCipherVersion = SymmetricCipherVersion.AeadWithGroupKey
+		o.test("can parse AEAD with instance key", async () => {
+			const symmetricCipherVersion = SymmetricCipherVersion.AeadWithInstanceKey
 			const groupKeyVersionLength = 0
 			const groupKeyVersion: KeyVersion = 42
 			const initializationVector = generateInitializationVector()
@@ -115,7 +115,7 @@ o.spec("ParsedCiphertextTest", () => {
 			)
 			const e = await assertThrows(CryptoError, async () => parseVersionedCiphertext(versionedCiphertext, InitializationVectorVariant.Fixed))
 			o.check(e.message).equals("AEAD requires a random initialization vector")
-			const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextAeadWithGroupKey
+			const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextAeadWithInstanceKey
 			o.check(parsedCiphertext.cipherVersion).equals(symmetricCipherVersion)
 			o.check(parsedCiphertext.groupKeyVersion).equals(groupKeyVersion)
 			o.check(parsedCiphertext.initializationVector).deepEquals(initializationVector)
@@ -145,7 +145,7 @@ o.spec("ParsedCiphertextTest", () => {
 		})
 
 		o.test("ensures there are enough bytes for the group key version", async () => {
-			const symmetricCipherVersion = SymmetricCipherVersion.AeadWithGroupKey
+			const symmetricCipherVersion = SymmetricCipherVersion.AeadWithInstanceKey
 			// empty initialization vector, ciphertext and mac tag
 			const versionedCiphertext = Uint8Array.of(symmetricCipherVersion)
 			const e = await assertThrows(CryptoError, async () => parseVersionedCiphertext(versionedCiphertext))
@@ -153,7 +153,7 @@ o.spec("ParsedCiphertextTest", () => {
 		})
 
 		o.test("only supports 0-byte for key version length", async () => {
-			const symmetricCipherVersion = SymmetricCipherVersion.AeadWithGroupKey
+			const symmetricCipherVersion = SymmetricCipherVersion.AeadWithInstanceKey
 			const groupKeyVersionLength = 1
 			const groupKeyVersion = 42
 			// empty initialization vector, ciphertext and mac tag

@@ -25,14 +25,14 @@ pub enum AeadEncryptError {
 
 // #[derive(Debug, Eq, PartialEq, Copy, Clone)]
 // pub enum AeadCipherVersion {
-// 	AeadWithGroupKey,
+// 	AeadWithInstanceKey,
 // 	AeadWithSessionKey,
 // }
 //
 // impl AeadCipherVersion {
 // 	fn version_byte(self: Self) -> u8 {
 // 		match self {
-// 			Self::AeadWithGroupKey => 2u8,
+// 			Self::AeadWithInstanceKey => 2u8,
 // 			Self::AeadWithSessionKey => 3u8,
 // 		}
 // 	}
@@ -45,7 +45,7 @@ pub enum AeadEncryptError {
 #[derive(Clone, PartialEq)]
 #[cfg_attr(any(test, feature = "test_utils"), derive(Debug))]
 pub enum AeadSubKeys {
-	AeadWithGroupKeySubKeys {
+	AeadWithInstanceKeySubKeys {
 		group_key_version: u64,
 		encryption_key: Aes256Key,
 		authentication_key: Aes256Key,
@@ -59,13 +59,13 @@ pub enum AeadSubKeys {
 impl AeadSubKeys {
 	pub fn encryption_key(&self) -> &Aes256Key {
 		match self {
-			AeadSubKeys::AeadWithGroupKeySubKeys { encryption_key, .. }
+			AeadSubKeys::AeadWithInstanceKeySubKeys { encryption_key, .. }
 			| AeadSubKeys::AeadWithSessionKeySubKeys { encryption_key, .. } => encryption_key,
 		}
 	}
 	pub fn authentication_key(&self) -> &Aes256Key {
 		match self {
-			AeadSubKeys::AeadWithGroupKeySubKeys {
+			AeadSubKeys::AeadWithInstanceKeySubKeys {
 				authentication_key, ..
 			}
 			| AeadSubKeys::AeadWithSessionKeySubKeys {
@@ -75,26 +75,44 @@ impl AeadSubKeys {
 	}
 
 	// '\u{001f}' is the unit separator
-	const AEAD_GROUP_KEY_NONCE_DERIVATION: &'static str =
-		concat!("GK and nonce instanceMessageKey", "\u{001f}");
-	const AEAD_SESSION_KEY_DERIVATION: &'static str = concat!("SK instanceSessionKey", "\u{001f}");
+	const AEAD_FROM_GROUP_KEY_AND_NONCE_DERIVATION_OF_INSTANCE_KEY: &'static str =
+		concat!("GK and nonce instanceKey", "\u{001f}");
+	const AEAD_FROM_SESSION_KEY_DERIVATION: &'static str =
+		concat!("SK instanceSessionKey", "\u{001f}");
+	const AEAD_FROM_INSTANCE_KEY_DERIVATION: &'static str =
+		concat!("IK instanceInstanceKey", "\u{001f}");
 
-	pub fn derive_from_group_key(
+	/// Derive instance key for AEAD from groupKey and Kdf nonce.
+	pub fn derive_instance_key(
 		group_key: &Versioned<GenericAesKey>,
 		kdf_nonce: &[u8],
-		instance_type_id: &str,
+	) -> Versioned<Aes256Key> {
+		let context = Self::AEAD_FROM_GROUP_KEY_AND_NONCE_DERIVATION_OF_INSTANCE_KEY;
+		let input_key_material = &[group_key.object.as_bytes(), kdf_nonce];
+		let derived_bytes = blake3::blake3_kdf(input_key_material, context, AES_256_KEY_SIZE);
+		Versioned {
+			object: Aes256Key::from_bytes(derived_bytes.as_slice())
+				.expect("should be a 256 bit key"),
+			version: group_key.version,
+		}
+	}
+
+	/// Derive encryption and authentication keys for AEAD from instance_key in the correct groupKey version for the instance type.
+	pub fn derive_sub_keys_aead_with_instance_key_from_instance_key(
+		instance_key: Versioned<Aes256Key>,
+		global_instance_type_id: &str,
 	) -> Self {
 		let key_bytes = blake3::blake3_kdf(
-			&[group_key.object.as_bytes(), kdf_nonce],
+			&[instance_key.object.as_bytes()],
 			&format!(
 				"{}{}",
-				Self::AEAD_GROUP_KEY_NONCE_DERIVATION,
-				instance_type_id
+				Self::AEAD_FROM_INSTANCE_KEY_DERIVATION,
+				global_instance_type_id
 			),
 			2 * AES_256_KEY_SIZE,
 		);
-		Self::AeadWithGroupKeySubKeys {
-			group_key_version: group_key.version,
+		Self::AeadWithInstanceKeySubKeys {
+			group_key_version: instance_key.version,
 			encryption_key: Aes256Key::from_bytes(&key_bytes[..AES_256_KEY_SIZE])
 				.expect("kdf should derive the correct number of bytes"),
 			authentication_key: Aes256Key::from_bytes(&key_bytes[AES_256_KEY_SIZE..])
@@ -102,10 +120,27 @@ impl AeadSubKeys {
 		}
 	}
 
+	/// Derive encryption and authentication keys for AEAD with instanceKey from kdf nonce and groupKey in the correct groupKey version for the instance type.
+	pub fn derive_sub_keys_aead_with_instance_key_from_group_key(
+		group_key: &Versioned<GenericAesKey>,
+		kdf_nonce: &[u8],
+		global_instance_type_id: &str,
+	) -> Self {
+		let instance_key = Self::derive_instance_key(group_key, kdf_nonce);
+		Self::derive_sub_keys_aead_with_instance_key_from_instance_key(
+			instance_key,
+			global_instance_type_id,
+		)
+	}
+
 	pub fn derive_from_session_key(session_key: &Aes256Key, instance_type_id: &str) -> Self {
 		let key_bytes = blake3::blake3_kdf(
 			&[session_key.as_bytes()],
-			&format!("{}{}", Self::AEAD_SESSION_KEY_DERIVATION, instance_type_id),
+			&format!(
+				"{}{}",
+				Self::AEAD_FROM_SESSION_KEY_DERIVATION,
+				instance_type_id
+			),
 			2 * AES_256_KEY_SIZE,
 		);
 		Self::AeadWithSessionKeySubKeys {
@@ -118,7 +153,7 @@ impl AeadSubKeys {
 
 	fn ciphertext_version_prefix(&self) -> Result<Vec<u8>, AeadEncryptError> {
 		match self {
-			AeadSubKeys::AeadWithGroupKeySubKeys {
+			AeadSubKeys::AeadWithInstanceKeySubKeys {
 				group_key_version, ..
 			} => Ok(vec![
 				2,
@@ -230,7 +265,7 @@ impl AeadFacade {
 		let tagged_ciphertext: &[u8];
 		match version_byte {
 			2 => {
-				if let AeadSubKeys::AeadWithGroupKeySubKeys {
+				if let AeadSubKeys::AeadWithInstanceKeySubKeys {
 					group_key_version, ..
 				} = sub_keys
 				{
@@ -314,7 +349,9 @@ mod tests {
 		let input_key = Versioned::new(input_key, 0);
 		let kdf_nonce: [u8; INITIALIZATION_VECTOR_BYTE_SIZE] =
 			randomizer_facade.generate_random_array();
-		let sub_keys = AeadSubKeys::derive_from_group_key(&input_key, &kdf_nonce, "test");
+		let sub_keys = AeadSubKeys::derive_sub_keys_aead_with_instance_key_from_group_key(
+			&input_key, &kdf_nonce, "test",
+		);
 		let ciphertext = aead_facade
 			.encrypt(&sub_keys, plaintext, encryption_associated_data)
 			.unwrap();
@@ -362,7 +399,9 @@ mod tests {
 		let input_key = Versioned::new(input_key, 0);
 		let kdf_nonce: [u8; INITIALIZATION_VECTOR_BYTE_SIZE] =
 			randomizer_facade.generate_random_array();
-		let sub_keys = AeadSubKeys::derive_from_group_key(&input_key, &kdf_nonce, "test");
+		let sub_keys = AeadSubKeys::derive_sub_keys_aead_with_instance_key_from_group_key(
+			&input_key, &kdf_nonce, "test",
+		);
 		let mut ciphertext = aead_facade
 			.encrypt(&sub_keys, plaintext, associated_data)
 			.unwrap();
@@ -380,7 +419,9 @@ mod tests {
 		let input_key = Versioned::new(input_key, 0);
 		let kdf_nonce: [u8; INITIALIZATION_VECTOR_BYTE_SIZE] =
 			randomizer_facade.generate_random_array();
-		let sub_keys = AeadSubKeys::derive_from_group_key(&input_key, &kdf_nonce, "test");
+		let sub_keys = AeadSubKeys::derive_sub_keys_aead_with_instance_key_from_group_key(
+			&input_key, &kdf_nonce, "test",
+		);
 		let associated_data = b"test";
 		aead_facade
 			.encrypt(&sub_keys, plaintext.to_vec(), associated_data)
@@ -407,7 +448,9 @@ mod tests {
 		let input_key = Versioned::new(input_key, 0);
 		let kdf_nonce: [u8; INITIALIZATION_VECTOR_BYTE_SIZE] =
 			randomizer_facade.generate_random_array();
-		let sub_keys = AeadSubKeys::derive_from_group_key(&input_key, &kdf_nonce, "test");
+		let sub_keys = AeadSubKeys::derive_sub_keys_aead_with_instance_key_from_group_key(
+			&input_key, &kdf_nonce, "test",
+		);
 		let associated_data = b"test";
 		let ciphertext = aead_facade
 			.encrypt_internal(&sub_keys, wrongly_padded_plaintext, associated_data)
@@ -501,32 +544,34 @@ mod tests {
 		#[test]
 		fn derive_from_group_key_and_nonce_is_reproducible() {
 			let (kdf_nonce, aes_256_key, _) = make_test_keys();
-			let derived_keys = AeadSubKeys::derive_from_group_key(
+			let derived_keys = AeadSubKeys::derive_sub_keys_aead_with_instance_key_from_group_key(
 				&Versioned::new(GenericAesKey::Aes256(aes_256_key.clone()), 0),
 				&kdf_nonce,
 				GLOBAL_MAIL_TYPE_ID,
 			);
-			let derived_keys_second = AeadSubKeys::derive_from_group_key(
-				&Versioned::new(GenericAesKey::Aes256(aes_256_key), 0),
-				&kdf_nonce,
-				GLOBAL_MAIL_TYPE_ID,
-			);
+			let derived_keys_second =
+				AeadSubKeys::derive_sub_keys_aead_with_instance_key_from_group_key(
+					&Versioned::new(GenericAesKey::Aes256(aes_256_key), 0),
+					&kdf_nonce,
+					GLOBAL_MAIL_TYPE_ID,
+				);
 			assert_eq!(derived_keys, derived_keys_second)
 		}
 
 		#[test]
 		fn derive_from_group_key_and_nonce_is_reproducible_for_legacy_128bit_group_key() {
 			let (kdf_nonce, _, aes_128_key) = make_test_keys();
-			let derived_keys = AeadSubKeys::derive_from_group_key(
+			let derived_keys = AeadSubKeys::derive_sub_keys_aead_with_instance_key_from_group_key(
 				&Versioned::new(GenericAesKey::Aes128(aes_128_key.clone()), 0),
 				&kdf_nonce,
 				GLOBAL_MAIL_TYPE_ID,
 			);
-			let derived_keys_second = AeadSubKeys::derive_from_group_key(
-				&Versioned::new(GenericAesKey::Aes128(aes_128_key), 0),
-				&kdf_nonce,
-				GLOBAL_MAIL_TYPE_ID,
-			);
+			let derived_keys_second =
+				AeadSubKeys::derive_sub_keys_aead_with_instance_key_from_group_key(
+					&Versioned::new(GenericAesKey::Aes128(aes_128_key), 0),
+					&kdf_nonce,
+					GLOBAL_MAIL_TYPE_ID,
+				);
 			assert_eq!(derived_keys, derived_keys_second)
 		}
 
@@ -543,11 +588,12 @@ mod tests {
 		#[test]
 		fn domain_separation_between_key_derivations() {
 			let (kdf_nonce, aes_256_key, _) = make_test_keys();
-			let derived_keys_group_key = AeadSubKeys::derive_from_group_key(
-				&Versioned::new(GenericAesKey::Aes256(aes_256_key.clone()), 0),
-				&kdf_nonce,
-				GLOBAL_MAIL_TYPE_ID,
-			);
+			let derived_keys_group_key =
+				AeadSubKeys::derive_sub_keys_aead_with_instance_key_from_group_key(
+					&Versioned::new(GenericAesKey::Aes256(aes_256_key.clone()), 0),
+					&kdf_nonce,
+					GLOBAL_MAIL_TYPE_ID,
+				);
 			let derived_keys_session_key =
 				AeadSubKeys::derive_from_session_key(&aes_256_key, GLOBAL_MAIL_TYPE_ID);
 			assert_ne!(
@@ -561,6 +607,29 @@ mod tests {
 		}
 
 		#[test]
+		fn derive_from_group_key_and_from_instance_key_yields_the_same_keys() {
+			let (kdf_nonce, aes_256_key, _) = make_test_keys();
+			let group_key = Versioned {
+				version: 1,
+				object: GenericAesKey::Aes256(aes_256_key.clone()),
+			};
+			let derived_keys_from_group_key =
+				AeadSubKeys::derive_sub_keys_aead_with_instance_key_from_group_key(
+					&group_key,
+					&kdf_nonce,
+					GLOBAL_MAIL_TYPE_ID,
+				);
+			let instance_key = AeadSubKeys::derive_instance_key(&group_key, &kdf_nonce);
+			assert_eq!(instance_key.version, group_key.version);
+			let derived_keys_from_instance_key =
+				AeadSubKeys::derive_sub_keys_aead_with_instance_key_from_instance_key(
+					instance_key,
+					GLOBAL_MAIL_TYPE_ID,
+				);
+			assert_eq!(derived_keys_from_group_key, derived_keys_from_instance_key);
+		}
+
+		#[test]
 		fn compatibility_test_aead_key_derivation() {
 			let test_data = get_compatibility_test_data();
 			for test in test_data.aead_key_derivation_tests {
@@ -570,19 +639,34 @@ mod tests {
 				let authentication_key_from_256 =
 					Aes256Key::from_bytes(&test.authentication_key_from256_hex).unwrap();
 
-				let keys_from_256 = AeadSubKeys::derive_from_group_key(
-					&Versioned::new(group_key_256, 0),
-					&test.kdf_nonce_hex,
-					&test.global_instance_type_id,
-				);
+				let versioned_group_key_256 = Versioned::new(group_key_256, 0);
+				let keys_from_256 =
+					AeadSubKeys::derive_sub_keys_aead_with_instance_key_from_group_key(
+						&versioned_group_key_256,
+						&test.kdf_nonce_hex,
+						&test.global_instance_type_id,
+					);
 				assert_eq!(
 					keys_from_256,
-					AeadSubKeys::AeadWithGroupKeySubKeys {
+					AeadSubKeys::AeadWithInstanceKeySubKeys {
 						group_key_version: 0,
 						encryption_key: encryption_key_from_256,
 						authentication_key: authentication_key_from_256
 					}
 				);
+
+				let instance_key_from_256 =
+					AeadSubKeys::derive_instance_key(&versioned_group_key_256, &test.kdf_nonce_hex);
+				assert_eq!(
+					instance_key_from_256.object,
+					Aes256Key::from_bytes(&test.instance_key_from256_hex).unwrap()
+				);
+				let keys_from_instance_key_256 =
+					AeadSubKeys::derive_sub_keys_aead_with_instance_key_from_instance_key(
+						instance_key_from_256,
+						&test.global_instance_type_id,
+					);
+				assert_eq!(keys_from_instance_key_256, keys_from_256);
 
 				let group_key_128 = GenericAesKey::from_bytes(&test.group_key128_hex).unwrap();
 				let encryption_key_from_128 =
@@ -590,19 +674,34 @@ mod tests {
 				let authentication_key_from_128 =
 					Aes256Key::from_bytes(&test.authentication_key_from128_hex).unwrap();
 
-				let keys_from_128 = AeadSubKeys::derive_from_group_key(
-					&Versioned::new(group_key_128, 0),
-					&test.kdf_nonce_hex,
-					&test.global_instance_type_id,
-				);
+				let versioned_group_key_128 = Versioned::new(group_key_128, 0);
+				let keys_from_128 =
+					AeadSubKeys::derive_sub_keys_aead_with_instance_key_from_group_key(
+						&versioned_group_key_128,
+						&test.kdf_nonce_hex,
+						&test.global_instance_type_id,
+					);
 				assert_eq!(
 					keys_from_128,
-					AeadSubKeys::AeadWithGroupKeySubKeys {
+					AeadSubKeys::AeadWithInstanceKeySubKeys {
 						group_key_version: 0,
 						encryption_key: encryption_key_from_128,
 						authentication_key: authentication_key_from_128
 					}
 				);
+
+				let instance_key_from_128 =
+					AeadSubKeys::derive_instance_key(&versioned_group_key_128, &test.kdf_nonce_hex);
+				assert_eq!(
+					instance_key_from_128.object,
+					Aes256Key::from_bytes(&test.instance_key_from128_hex).unwrap()
+				);
+				let keys_from_instance_key_128 =
+					AeadSubKeys::derive_sub_keys_aead_with_instance_key_from_instance_key(
+						instance_key_from_128,
+						&test.global_instance_type_id,
+					);
+				assert_eq!(keys_from_instance_key_128, keys_from_128);
 
 				let session_key = Aes256Key::from_bytes(&test.session_key_hex).unwrap();
 				let encryption_key_from_session_key =

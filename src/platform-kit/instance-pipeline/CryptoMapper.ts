@@ -34,7 +34,7 @@ import {
 } from "@tutao/utils"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
-	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN,
+	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_INSTANCE_KEY_DOMAIN,
 	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN,
 	AeadSubKeys,
 	AesKey,
@@ -44,6 +44,7 @@ import {
 	InstanceDecryptor,
 	InstanceTypeId,
 	KdfNonce,
+	OwnerKeyProvider,
 	SubKeyFactory,
 	SubKeyInfo,
 	SubKeyInfoWithSessionKeyAead,
@@ -56,7 +57,6 @@ import {
 } from "@tutao/crypto"
 import { EntityAdapter } from "./EntityAdapter.js"
 import { AlarmNotificationTypeRef, User, WebsocketLeaderStatus } from "@tutao/entities/sys"
-import { OwnerKeyProvider } from "./PatchMerger"
 import { ModelMapper } from "./ModelMapper"
 import { InstanceDirection, ParsedValue } from "./ParsedValue"
 import { EntityUtils } from "./EntityUtils"
@@ -104,16 +104,6 @@ export class CryptoMapper {
 		private readonly modelMapper: ModelMapper,
 	) {}
 
-	async getInputKey(requiredGroupKeyVersion: Nullable<KeyVersion>, ownerKeyProvider: Nullable<OwnerKeyProvider>): Promise<Nullable<AesKey>> {
-		if (requiredGroupKeyVersion === null) {
-			return null
-		}
-		if (ownerKeyProvider == null) {
-			throw new CryptoError("Cannot load group key. Missing owner key provider.")
-		}
-		return await ownerKeyProvider(requiredGroupKeyVersion)
-	}
-
 	makeOwnerKeyProvider(groupId: Nullable<Id>): Nullable<OwnerKeyProvider> {
 		if (isNotNull(groupId)) {
 			return (groupKeyVersion: KeyVersion): Promise<AesKey> => this.symGroupKeyLoader().loadSymGroupKey(groupId, groupKeyVersion, null)
@@ -128,14 +118,19 @@ export class CryptoMapper {
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		path: InstancePath = new RootPath(),
 	): Promise<DecryptedParsedInstance> {
-		const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(sessionKey, kdfNonce, encryptedInstance.getInstanceTypeId())
-		return this.decryptParsedInstanceInternal(encryptedInstance, instanceDecryptor, ownerKeyProvider, path)
+		const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(
+			encryptedInstance.getInstanceTypeId(),
+			sessionKey,
+			kdfNonce,
+			ownerKeyProvider,
+			null,
+		)
+		return this.decryptParsedInstanceInternal(encryptedInstance, instanceDecryptor, path)
 	}
 
 	private async decryptParsedInstanceInternal(
 		encryptedInstance: EncryptedParsedInstance,
 		instanceDecryptor: InstanceDecryptor,
-		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		path: InstancePath,
 	): Promise<DecryptedParsedInstance> {
 		const serverTypeModel = encryptedInstance.ensureIncoming()
@@ -152,7 +147,7 @@ export class CryptoMapper {
 
 			try {
 				const valuePath = path.addValueId(valueModel)
-				let decryptedValue = await this.decryptValue(valueModel, encryptedValue, instanceDecryptor, ownerKeyProvider, valuePath.getPath())
+				let decryptedValue = await this.decryptValue(valueModel, encryptedValue, instanceDecryptor, valuePath.getPath())
 				decryptedValue = CryptoMapper.rewriteEmptyEndValueInRepeatRuleToNull(decrypted.getTypeRef(), decryptedValue, valueModel)
 				decrypted.addAttributeById(valueId, decryptedValue)
 			} catch (e) {
@@ -182,7 +177,6 @@ export class CryptoMapper {
 					const decryptedAggregates = await this.decryptAggregateAssociation(
 						encryptedAggregates,
 						instanceDecryptor,
-						ownerKeyProvider,
 						path.addAssociationId(associationModel),
 					)
 					decrypted.addAttributeById(associationId, ParsedValue.fromNestedItems(decryptedAggregates))
@@ -228,7 +222,6 @@ export class CryptoMapper {
 	public async decryptAggregateAssociation(
 		encryptedInstanceValues: Array<EncryptedParsedInstance>,
 		instanceDecryptor: InstanceDecryptor,
-		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		associationPath: AssociationPath,
 	): Promise<Array<DecryptedParsedInstance>> {
 		const decryptedAggregates = new Array<DecryptedParsedInstance>()
@@ -237,7 +230,6 @@ export class CryptoMapper {
 			const decryptedAggregate = await this.decryptParsedInstanceInternal(
 				encryptedAggregate,
 				instanceDecryptor,
-				ownerKeyProvider,
 				associationPath.addAggregateId(elementIdToId(entityAdapter._id)),
 			)
 			decryptedAggregates.push(decryptedAggregate)
@@ -249,9 +241,10 @@ export class CryptoMapper {
 		parsedInstance: DecryptedParsedInstance,
 		subKeyFactory: Nullable<SubKeyFactory>,
 		path: InstancePath = new RootPath(),
+		ownerKey: Nullable<VersionedKey> = null,
 	): Promise<EncryptedParsedInstance> {
 		const clientTypeModel = parsedInstance.ensureOutgoing()
-		const subKeyProvider = this.makeNullableSubKeyProvider(subKeyFactory, clientTypeModel, path, parsedInstance)
+		const subKeyProvider = this.makeNullableSubKeyProvider(subKeyFactory, clientTypeModel, path, parsedInstance, ownerKey)
 
 		const encryptedInstance = EncryptedParsedInstance.outgoingToServer(clientTypeModel)
 
@@ -327,38 +320,11 @@ export class CryptoMapper {
 		clientTypeModel: ClientTypeModel,
 		path: InstancePath,
 		parsedInstance: DecryptedParsedInstance,
+		ownerKey: Nullable<VersionedKey>,
 	): Nullable<SubKeyProvider> {
 		if (subKeyFactory instanceof SubKeyProvider) {
 			if (clientTypeModel.targetTypeId != null && !path.hasBeenCutOff) {
-				const ownerEncSessionKey = parsedInstance.getAttributeByNameIfPresentOrNull("_ownerEncSessionKey")?.asByteArray() ?? null
-				let newSubKeyInfo: Nullable<SubKeyInfo> = null
-				if (ownerEncSessionKey != null) {
-					const ownerGroupKey = subKeyFactory.subKeyInfo.groupKey
-					if (ownerGroupKey == null) {
-						throw new ProgrammingError("The session key cannot be decrypted without the owner group key.")
-					}
-					const newSessionKey: AesKey = decryptKey(ownerGroupKey.object, ownerEncSessionKey)
-
-					switch (subKeyFactory.subKeyInfo.cipherVersion) {
-						case SymmetricCipherVersion.AeadWithSessionKey:
-							newSubKeyInfo = new SubKeyInfoWithSessionKeyAead(newSessionKey, ownerGroupKey)
-							break
-						case SymmetricCipherVersion.AesCbcThenHmac:
-							newSubKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(newSessionKey, ownerGroupKey)
-							break
-						default:
-							throw new ProgrammingError(
-								"Transfer aggregated types should only be encrypted for data transfer types using session keys. Unexpected cipher version: " +
-									subKeyFactory.subKeyInfo.cipherVersion,
-							)
-					}
-				}
-
-				return this.symmetricCipherFacade.getSubKeyProvider(newSubKeyInfo ?? subKeyFactory, {
-					app: clientTypeModel.app,
-					id: clientTypeModel.targetTypeId,
-					name: `[transfer aggregate of ${clientTypeModel.name}]`,
-				})
+				return this.makeSubKeyProviderForTransferAggregatedType(subKeyFactory, clientTypeModel, parsedInstance, ownerKey)
 			} else {
 				return subKeyFactory
 			}
@@ -369,6 +335,42 @@ export class CryptoMapper {
 		} else {
 			throw new ProgrammingError("unknown SubKeyFactory")
 		}
+	}
+
+	private makeSubKeyProviderForTransferAggregatedType(
+		subKeyProvider: SubKeyProvider,
+		clientTypeModel: ClientTypeModel,
+		parsedInstance: DecryptedParsedInstance,
+		ownerKey: Nullable<VersionedKey>,
+	): SubKeyProvider {
+		const ownerEncSessionKey = parsedInstance.getAttributeByNameIfPresentOrNull("_ownerEncSessionKey")?.asByteArray() ?? null
+		let newSubKeyInfo: Nullable<SubKeyInfo> = null
+		if (ownerEncSessionKey != null) {
+			if (ownerKey == null) {
+				throw new ProgrammingError("The session key cannot be decrypted without the owner group key.")
+			}
+			const newSessionKey: AesKey = decryptKey(ownerKey.object, ownerEncSessionKey)
+
+			switch (subKeyProvider.subKeyInfo.cipherVersion) {
+				case SymmetricCipherVersion.AeadWithSessionKey:
+					newSubKeyInfo = new SubKeyInfoWithSessionKeyAead(newSessionKey)
+					break
+				case SymmetricCipherVersion.AesCbcThenHmac:
+					newSubKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(newSessionKey)
+					break
+				default:
+					throw new ProgrammingError(
+						"Transfer aggregated types should only be encrypted for data transfer types using session keys. Unexpected cipher version: " +
+							subKeyProvider.subKeyInfo.cipherVersion,
+					)
+			}
+		}
+
+		return this.symmetricCipherFacade.getSubKeyProvider(newSubKeyInfo ?? subKeyProvider.subKeyInfo, {
+			app: clientTypeModel.app,
+			id: assertNotNull(clientTypeModel.targetTypeId),
+			name: `[transfer aggregate of ${clientTypeModel.name}]`,
+		})
 	}
 
 	private async encryptAggregateAssociation(
@@ -389,7 +391,6 @@ export class CryptoMapper {
 		valueType: ModelValue,
 		encParsedValue: EncryptedParsedValue,
 		instanceDecryptor: InstanceDecryptor,
-		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		valuePath: string,
 	): Promise<DecryptedParsedValue> {
 		if (encParsedValue.isNull()) {
@@ -409,9 +410,8 @@ export class CryptoMapper {
 			return EntityUtils.valueToDefault(valueType.type)
 		}
 		const ciphertext = base64ToUint8Array(value)
-		const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, valuePath)
-		const inputKey = await this.getInputKey(valueDecryptor.requiredGroupKeyVersion, ownerKeyProvider)
-		const decryptedBytes = valueDecryptor.getValue(inputKey)
+		const valueDecryptor = await instanceDecryptor.getValueDecryptor(ciphertext, valuePath)
+		const decryptedBytes = valueDecryptor.getValue()
 
 		switch (valueType.type) {
 			case ValueTypeEnum.String:
@@ -448,8 +448,8 @@ export class CryptoMapper {
 			encryptedBytes = this.symmetricCipherFacade.encryptBytes(subKeys, bytes)
 		} else {
 			let domainSpecifier: DomainSeparator
-			if (subKeys.cipherVersion === SymmetricCipherVersion.AeadWithGroupKey) {
-				domainSpecifier = AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN
+			if (subKeys.cipherVersion === SymmetricCipherVersion.AeadWithInstanceKey) {
+				domainSpecifier = AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_INSTANCE_KEY_DOMAIN
 			} else {
 				domainSpecifier = AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN
 			}

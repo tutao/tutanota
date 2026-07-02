@@ -6,7 +6,7 @@ import {
 } from "../../../src/platform-kit/crypto/encryption/symmetric/ParsedCiphertext"
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "@tutao/crypto/symmetric-cipher-version"
 import { AesCbcFacade, PaddingStandard } from "@tutao/crypto/aes-cbc-facade"
-import { matchers, object, when } from "testdouble"
+import { matchers, object, verify, when } from "testdouble"
 import {
 	aes256RandomKey,
 	InitializationVector,
@@ -15,17 +15,22 @@ import {
 	validateKdfNonceLength,
 } from "@tutao/crypto/symmetric-cipher-utils"
 import o, { assertThrows } from "@tutao/otest"
-import { InstanceTypeId, SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
+import {
+	AeadWithInstanceKeySubKeys,
+	AeadWithSessionKeySubKeys,
+	AesCbcThenHmacSubKeys,
+	InstanceTypeId,
+	SymmetricKeyDeriver,
+} from "@tutao/crypto/symmetric-key-deriver"
 import { SymmetricCipherFacade } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
-import { MacTag } from "../../../src/platform-kit/crypto"
+import { MacTag, OwnerKeyProvider, VersionedAes256Key, VersionedKey } from "../../../src/platform-kit/crypto"
 import { AppNameEnum } from "../../../src/platform-kit/meta"
 import { concat, stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
-import { ValueDecryptor } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/decryption/ValueDecryptor"
 import { CryptoError, SessionKeyNotFoundError } from "../../../src/platform-kit/crypto/error"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { Aes256Key } from "../../../src/platform-kit/crypto/encryption/symmetric/AesKey"
 
-o.spec("ValueDecryptorTest", () => {
+o.spec("ValueDecryptorTest", function () {
 	let symmetricCipherFacade: SymmetricCipherFacade
 	let aesCbcFacade: AesCbcFacade
 	let aeadFacade: AeadFacade
@@ -34,6 +39,7 @@ o.spec("ValueDecryptorTest", () => {
 	let macTag: MacTag
 	let initializationVector: InitializationVector
 	let instanceTypeId: InstanceTypeId
+	let ownerKeyProvider: OwnerKeyProvider
 
 	o.beforeEach(function () {
 		aesCbcFacade = object()
@@ -48,23 +54,23 @@ o.spec("ValueDecryptorTest", () => {
 			id: 0,
 			name: "name",
 		}
+		ownerKeyProvider = async () => aes256Key
 	})
 
-	o.test("UnusedReservedUnauthenticated, unauthenticated with session key present", () => {
-		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(aes256Key, null, instanceTypeId)
+	o.test("UnusedReservedUnauthenticated, unauthenticated with session key present", async function () {
+		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(instanceTypeId, aes256Key, null, null, null)
 		const parsedCiphertext = new ParsedCiphertextUnusedReservedUnauthenticated(initializationVector, new Uint8Array([1, 2]))
 		const ciphertext = concat(symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion), initializationVector.bytes, parsedCiphertext.ciphertext)
-		const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, "") as ValueDecryptor
-		o.check(valueDecryptor.requiredGroupKeyVersion).equals(null)
-		valueDecryptor.getValue(null)
+		const valueDecryptor = await instanceDecryptor.getValueDecryptor(ciphertext, "")
+		valueDecryptor.getValue()
 		const plaintext = stringToUtf8Uint8Array("AesCbc with session key present plaintext")
 
 		when(aesCbcFacade.decrypt(matchers.anything(), parsedCiphertext, PaddingStandard.Pkcs5)).thenReturn(plaintext)
-		o.check(valueDecryptor.getValue(aes256Key)).equals(plaintext)
+		o.check(valueDecryptor.getValue()).equals(plaintext)
 	})
 
-	o.test("AesCbcThenHmac, with session key present", () => {
-		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(aes256Key, null, instanceTypeId)
+	o.test("AesCbcThenHmac, with session key present", async function () {
+		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(instanceTypeId, aes256Key, null, null, null)
 		const ciphertextRaw = new Uint8Array([1, 2])
 		const parsedCiphertext = new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertextRaw, macTag)
 
@@ -74,67 +80,121 @@ o.spec("ValueDecryptorTest", () => {
 			parsedCiphertext.ciphertext,
 			macTag,
 		)
-		const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, "") as ValueDecryptor
-		o.check(valueDecryptor.requiredGroupKeyVersion).equals(null)
-		valueDecryptor.getValue(null)
+		const valueDecryptor = await instanceDecryptor.getValueDecryptor(ciphertext, "")
 		const plaintext = stringToUtf8Uint8Array("AesCbc with session key present plaintext")
 
 		when(aesCbcFacade.decrypt(matchers.anything(), parsedCiphertext, PaddingStandard.Pkcs5)).thenReturn(plaintext)
-		o.check(valueDecryptor.getValue(aes256Key)).equals(plaintext)
+		const subKeys: AesCbcThenHmacSubKeys = object()
+		when(symmetricKeyDeriver.deriveSubKeysAesCbc(aes256Key, parsedCiphertext.cipherVersion)).thenReturn(subKeys)
+		o.check(valueDecryptor.getValue()).equals(plaintext)
+		verify(symmetricKeyDeriver.deriveSubKeysAesCbc(aes256Key, parsedCiphertext.cipherVersion), { times: 1 })
+		o.check(valueDecryptor.getValue()).equals(plaintext)
+		verify(symmetricKeyDeriver.deriveSubKeysAesCbc(aes256Key, parsedCiphertext.cipherVersion), { times: 1 })
 	})
 
-	o.test("AesCbc with session key missing", async () => {
+	o.test("AesCbc with session key missing", async function () {
 		for (const cipherVersion of [SymmetricCipherVersion.UnusedReservedUnauthenticated, SymmetricCipherVersion.AesCbcThenHmac]) {
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(null, null, instanceTypeId)
+			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(instanceTypeId, null, null, null, null)
 			const ciphertext = concat(Uint8Array.of(cipherVersion), initializationVector.bytes, macTag)
 			const e = await assertThrows(SessionKeyNotFoundError, async () => {
-				instanceDecryptor.getValueDecryptor(ciphertext, "")
+				await instanceDecryptor.getValueDecryptor(ciphertext, "")
 			})
 			o.check(e.message).equals("Missing session key")
 		}
 	})
 
-	o.test("AeadWithGroupKey", async () => {
+	o.test("AeadWithInstanceKey from group key", async function () {
 		const kdfNonce = validateKdfNonceLength(new Uint8Array(KDF_NONCE_LENGTH_BYTES))
-		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(null, kdfNonce, instanceTypeId)
+		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(instanceTypeId, null, kdfNonce, ownerKeyProvider, null)
 		const keyVersionLengthByte = 0
 		const groupKeyVersion = 0
 		const ciphertext = new Uint8Array()
 		const versionedCiphertext = concat(
-			Uint8Array.of(SymmetricCipherVersion.AeadWithGroupKey, keyVersionLengthByte, groupKeyVersion),
+			Uint8Array.of(SymmetricCipherVersion.AeadWithInstanceKey, keyVersionLengthByte, groupKeyVersion),
 			initializationVector.bytes,
 			ciphertext,
 			macTag,
 		)
 		const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextAead
-		const valueDecryptor = instanceDecryptor.getValueDecryptor(versionedCiphertext, "") as ValueDecryptor
-		o.check(valueDecryptor.requiredGroupKeyVersion).equals(groupKeyVersion)
-		await assertThrows(CryptoError, async () => valueDecryptor.getValue(null))
-		const plaintext = stringToUtf8Uint8Array("AeadWithGroupKey plaintext")
+		const valueDecryptor = await instanceDecryptor.getValueDecryptor(versionedCiphertext, "")
+		const plaintext = stringToUtf8Uint8Array("AeadWithInstanceKey plaintext")
 		when(aeadFacade.decrypt(matchers.anything(), parsedCiphertext, matchers.anything())).thenReturn(plaintext)
-		o.check(valueDecryptor.getValue(aes256Key)).equals(plaintext)
+		const versionedGroupKey: VersionedKey = { object: aes256Key, version: groupKeyVersion }
+		const subKeys: AeadWithInstanceKeySubKeys = object()
+		when(symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromGroupKey(versionedGroupKey, kdfNonce, instanceTypeId)).thenReturn(subKeys)
+		o.check(valueDecryptor.getValue()).equals(plaintext)
+		verify(symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromGroupKey(versionedGroupKey, kdfNonce, instanceTypeId), {
+			times: 1,
+		})
+		o.check(valueDecryptor.getValue()).equals(plaintext)
+		verify(symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromGroupKey({ object: aes256Key, version: groupKeyVersion }, kdfNonce, instanceTypeId), {
+			times: 1,
+		})
 	})
 
-	o.test("AeadWithSessionKey with session key present", () => {
-		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(aes256Key, null, instanceTypeId)
+	o.test("AeadWithInstanceKey no ownerKeyProvider", async function () {
+		const kdfNonce = validateKdfNonceLength(new Uint8Array(KDF_NONCE_LENGTH_BYTES))
+		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(instanceTypeId, null, kdfNonce, null, null)
+		const keyVersionLengthByte = 0
+		const groupKeyVersion = 0
+		const ciphertext = new Uint8Array()
+		const versionedCiphertext = concat(
+			Uint8Array.of(SymmetricCipherVersion.AeadWithInstanceKey, keyVersionLengthByte, groupKeyVersion),
+			initializationVector.bytes,
+			ciphertext,
+			macTag,
+		)
+		await assertThrows(CryptoError, async () => await instanceDecryptor.getValueDecryptor(versionedCiphertext, ""))
+	})
+
+	o.test("AeadWithInstanceKey from instance key", async function () {
+		const groupKeyVersion = 0
+		const instanceKey: VersionedAes256Key = { object: aes256RandomKey(), version: groupKeyVersion }
+		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(instanceTypeId, null, null, null, instanceKey)
+		const keyVersionLengthByte = 0
+		const ciphertext = new Uint8Array()
+		const versionedCiphertext = concat(
+			Uint8Array.of(SymmetricCipherVersion.AeadWithInstanceKey, keyVersionLengthByte, groupKeyVersion),
+			initializationVector.bytes,
+			ciphertext,
+			macTag,
+		)
+		const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextAead
+		const valueDecryptor = await instanceDecryptor.getValueDecryptor(versionedCiphertext, "")
+		const plaintext = stringToUtf8Uint8Array("AeadWithInstanceKey plaintext")
+		when(aeadFacade.decrypt(matchers.anything(), parsedCiphertext, matchers.anything())).thenReturn(plaintext)
+		const subKeys: AeadWithInstanceKeySubKeys = object()
+		when(symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(instanceKey, instanceTypeId)).thenReturn(subKeys)
+		o.check(valueDecryptor.getValue()).equals(plaintext)
+		verify(symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(instanceKey, instanceTypeId), { times: 1 })
+		o.check(valueDecryptor.getValue()).equals(plaintext)
+		verify(symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(instanceKey, instanceTypeId), { times: 1 })
+	})
+
+	o.test("AeadWithSessionKey with session key present", async function () {
+		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(instanceTypeId, aes256Key, null, null, null)
 		const cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
 		const ciphertext = new Uint8Array()
 		const versionedCiphertext = concat(Uint8Array.of(cipherVersion), initializationVector.bytes, ciphertext, macTag)
 		const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextAead
-		const valueDecryptor = instanceDecryptor.getValueDecryptor(versionedCiphertext, "") as ValueDecryptor
-		o.check(valueDecryptor.requiredGroupKeyVersion).equals(null)
+		const valueDecryptor = await instanceDecryptor.getValueDecryptor(versionedCiphertext, "")
 		const plaintext = stringToUtf8Uint8Array("AeadWithSessionKey with session key present plaintext")
 		when(aeadFacade.decrypt(matchers.anything(), parsedCiphertext, matchers.anything())).thenReturn(plaintext)
-		o.check(valueDecryptor.getValue(null)).equals(plaintext)
+		const subKeys: AeadWithSessionKeySubKeys = object()
+		when(symmetricKeyDeriver.deriveSubKeysAeadWithSessionKey(aes256Key, instanceTypeId)).thenReturn(subKeys)
+		o.check(valueDecryptor.getValue()).equals(plaintext)
+		verify(symmetricKeyDeriver.deriveSubKeysAeadWithSessionKey(aes256Key, instanceTypeId), { times: 1 })
+		o.check(valueDecryptor.getValue()).equals(plaintext)
+		verify(symmetricKeyDeriver.deriveSubKeysAeadWithSessionKey(aes256Key, instanceTypeId), { times: 1 })
 	})
 
-	o.test("AeadWithSessionKey with session key missing", async () => {
-		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(null, null, instanceTypeId)
+	o.test("AeadWithSessionKey with session key missing", async function () {
+		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(instanceTypeId, null, null, null, null)
 		const cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
 		const ciphertext = new Uint8Array()
 		const versionedCiphertext = concat(Uint8Array.of(cipherVersion), initializationVector.bytes, ciphertext, macTag)
 		const e = await assertThrows(SessionKeyNotFoundError, async () => {
-			instanceDecryptor.getValueDecryptor(versionedCiphertext, "")
+			await instanceDecryptor.getValueDecryptor(versionedCiphertext, "")
 		})
 		o.check(e.message).equals("Missing session key")
 	})
