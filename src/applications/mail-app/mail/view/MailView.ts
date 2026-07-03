@@ -77,7 +77,7 @@ import { DropData, DropType, FileDropData, FolderDropData, getDetachedDropdownBo
 import { fileListToArray } from "../../../../ui/utils/FileUtils.js"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { LockedError } from "../../../../platform-kit/rest-client/error"
 import { MailViewerViewModel } from "./MailViewerViewModel"
 import { MoveMode } from "../model/MailModel"
 import { UndoModel } from "../../UndoModel"
@@ -88,7 +88,6 @@ import { getElementId, isSameId } from "../../../../platform-kit/meta"
 import { getMailFolderType, isFolder, isFolderReadOnly } from "../MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
-import { LockedError } from "../../../../platform-kit/rest-client/error"
 
 assertMainOrNode()
 
@@ -1111,6 +1110,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			{
 				minWidth: layout_size.first_col_min_width,
 				maxWidth: layout_size.first_col_max_width,
+				testId: "mailFolderColumn",
 				headerCenter: "folderTitle_label",
 			},
 		)
