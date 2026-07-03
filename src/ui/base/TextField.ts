@@ -124,7 +124,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 										"transition-duration": `${labelTransitionSpeed}ms`,
 										"transition-property": "transform, font-size, top, color",
 										top: labelBase ? "50%" : px(size.spacing_8),
-										left: a.leadingIcon ? px(size.icon_20 + size.spacing_16) : 0,
+										left: a.leadingIcon ? px(size.icon_24 + size.spacing_16) : 0,
 										"padding-left": px(size.spacing_16),
 										"padding-right": px(size.spacing_16),
 										color: !this.active && !a.isReadOnly ? "inherit" : theme.primary,
@@ -146,7 +146,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						[
 							a.leadingIcon &&
 								m(Icon, {
-									size: IconSize.PX20,
+									size: IconSize.PX24,
 									icon: a.leadingIcon.icon,
 									style: {
 										fill: a.leadingIcon.color,
