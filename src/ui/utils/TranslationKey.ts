@@ -2386,6 +2386,6 @@ export type TranslationKeyType =
 	| "migrationCannotMapSpamFolder_msg"
 	| "migrationRootMailFolderNameAlreadyExists_helpLabel"
 	| "migrationConfigLoading_msg"
-	| "emptyString_msg"
-	| "migrationNoMigrationOnWeb_label"
 	| "migrationMigrateSpamFolder_label"
+	| "migrationNoMigrationOnWeb_label"
+	| "emptyString_msg"

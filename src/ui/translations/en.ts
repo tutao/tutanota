@@ -1232,6 +1232,8 @@ export default {
 		"migrationIntroductionInfo_msg": "Please enter the account credentials of your {provider} account you want to migrate away from.",
 		"migrationLabelInput_helpLabel": "This label will be applied to every imported mail.",
 		"migrationMailboxDestination_label": "Destination mailbox",
+		"migrationMigrateSpamFolder_label": "Import Spam folder",
+		"migrationNoMigrationOnWeb_label": "Email migration is currently only available in our desktop client.",
 		"migrationNotImportedFolderName_msg": "Not imported",
 		"migrationOAuthWindowClosedFailure_msg": "It appears the login window was closed without success, please try again.",
 		"migrationPostponed_msg": "Download limit for {provider} reached, will continue on {postponedUntil}.",
@@ -2388,8 +2390,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"migrationNoMigrationOnWeb_label": "Email migration is currently only available in our desktop client.",
-		"migrationMigrateSpamFolder_label": "Import Spam folder",
+		"zoomOut_action": "Zoom Out"
 	}
 }
