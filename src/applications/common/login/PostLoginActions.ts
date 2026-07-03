@@ -81,13 +81,13 @@ export class PostLoginActions implements PostLoginAction {
 			this.connectivityModel.close(CloseEventBusOption.Pause)
 		})
 
-		// only show "Tuta Mail" after login if there is no custom title set
+		// only show "Tuta" after login if there is no custom title set
 		if (!this.logins.getUserController().isInternalUser()) {
 			if (document.title === LOGIN_TITLE) {
-				document.title = "Tuta Mail"
+				document.title = "Tuta"
 			}
 		} else {
-			let postLoginTitle = document.title === LOGIN_TITLE ? "Tuta Mail" : document.title
+			let postLoginTitle = document.title === LOGIN_TITLE ? "Tuta" : document.title
 			document.title = neverNull(this.logins.getUserController().userGroupInfo.mailAddress) + " - " + postLoginTitle
 		}
 		notifications.requestPermission()
