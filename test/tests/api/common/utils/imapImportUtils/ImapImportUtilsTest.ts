@@ -277,7 +277,7 @@ o.spec("ImapImportUtils", () => {
 			o.check(file.mimeType).equals("text/plain")
 		})
 
-		o.test("generates filename as unknown.txt when missing", () => {
+		o.test("generates filename using mimetype when missing", () => {
 			const attachmentMock: ImapMailAttachment = {
 				size: 1,
 				mimeType: "image/png",
@@ -287,7 +287,7 @@ o.spec("ImapImportUtils", () => {
 			imapMailMock.attachments = [attachmentMock]
 			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null)
 			const file = result.attachments![0] as ImapImportDataFile
-			o.check(file.name).equals("unknown.txt")
+			o.check(file.name).equals("image.png")
 		})
 	})
 })

@@ -110,7 +110,7 @@ function importAttachmentsFromImapMailAttachments(imapMailAttachments: ImapMailA
 	return imapMailAttachments.map((imapMailAttachment) => {
 		const imapImportDataFile: ImapImportDataFile = {
 			_type: "DataFile",
-			name: imapMailAttachment.filename ?? "unknown.txt",
+			name: imapMailAttachment.filename ?? guessFilenameBasedOnMimeType(imapMailAttachment.mimeType),
 			data: imapMailAttachment.content,
 			size: imapMailAttachment.size,
 			mimeType: imapMailAttachment.mimeType,
@@ -119,6 +119,23 @@ function importAttachmentsFromImapMailAttachments(imapMailAttachments: ImapMailA
 		}
 		return imapImportDataFile
 	})
+}
+
+function guessFilenameBasedOnMimeType(mimeType: string): string {
+	if (mimeType.startsWith("image/")) {
+		return "image.png"
+	} else if (mimeType.startsWith("audio/")) {
+		return "audio.mp3"
+	} else if (mimeType.startsWith("video/")) {
+		return "video.mp4"
+	} else if (mimeType.startsWith("application/pdf")) {
+		return "document.pdf"
+	} else if (mimeType.startsWith("application/zip")) {
+		return "archive.zip"
+	} else if (mimeType.startsWith(TEXT_CALENDAR_MIME_TYPE)) {
+		return "calendar.ics"
+	}
+	return "unknown.txt"
 }
 
 function mailStateFromImapMailbox(imapMailbox: ImapMailbox): MailState {
