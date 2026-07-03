@@ -1,10 +1,10 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { createDropdown } from "./Dropdown.js"
+import { createDropdown, DropdownMultilineButtonAttrs } from "./Dropdown.js"
 import type { AllIcons } from "./Icon"
-import { type lazy, noOp } from "../../platform-kit/utils"
+import { type lazy, noOp } from "@tutao/utils"
 import { lang, MaybeTranslation } from "../utils/LanguageViewModel"
 import { ClickHandler, getOperatingClasses } from "./GuiUtils"
-import { assertMainOrNode } from "../../platform-kit/app-env"
+import { assertMainOrNode } from "@tutao/app-env"
 import { IconButton } from "./IconButton"
 import { ButtonSize } from "./ButtonSize"
 import { TextField, TextFieldAttrs } from "./TextField"
@@ -13,6 +13,7 @@ import { Icons } from "./icons/Icons"
 assertMainOrNode()
 export type SelectorItem<T> = {
 	name: string
+	secondaryTextLine?: string
 	value: T
 	selectable?: boolean
 	icon?: AllIcons
@@ -78,6 +79,20 @@ export class DropDownSelectorNew<T> implements ClassComponent<DropDownSelectorNe
 				return a.items
 					.filter((item) => item.selectable !== false)
 					.map((item) => {
+						if (item.secondaryTextLine && item.icon) {
+							return {
+								label: lang.makeTranslation(item.name, item.name),
+								onclick: () => {
+									a.selectionChangedHandler?.(item.value)
+									m.redraw()
+								},
+								selected: a.selectedValue === item.value,
+								icon: item.icon,
+								text: lang.makeTranslation(item.name, item.name),
+								secondaryText: lang.makeTranslation(item.secondaryTextLine, item.secondaryTextLine),
+							} satisfies DropdownMultilineButtonAttrs
+						}
+
 						return {
 							label: lang.makeTranslation(item.name, item.name),
 							click: () => {
