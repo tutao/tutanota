@@ -159,6 +159,7 @@ export class CryptoMapper {
 					instanceDecryptor,
 					ownerKeyProvider,
 					fieldPathPrefixForThisAssociation,
+					associationType.type === AssociationType.DontUseMe,
 				)
 				decrypted[associationId] = decryptedAggregates
 				if (this.containErrors(decryptedAggregates)) {
@@ -197,11 +198,15 @@ export class CryptoMapper {
 		instanceDecryptor: InstanceDecryptor,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		fieldPathPrefix: string,
+		dont_use_me: boolean = false,
 	): Promise<Array<ServerModelParsedInstance>> {
 		const decryptedAggregates: Array<ServerModelParsedInstance> = []
 		for (const encryptedAggregate of encryptedInstanceValues) {
-			const entityAdapter = await EntityAdapter.from(associationServerTypeModel, encryptedAggregate, this.modelMapper)
-			const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${entityAdapter._id as Id}/`
+			let fieldPathPrefixForThisAssociation: string = ``
+			if (!dont_use_me) {
+				const entityAdapter = await EntityAdapter.from(associationServerTypeModel, encryptedAggregate, this.modelMapper)
+				fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${entityAdapter._id as Id}/`
+			}
 			const decryptedAggregate = await this.decryptParsedInstanceInternal(
 				associationServerTypeModel,
 				encryptedAggregate,
@@ -256,6 +261,7 @@ export class CryptoMapper {
 					aggregate,
 					subKeyProvider,
 					fieldPathPrefixForThisAssociation,
+					associationType.type === AssociationType.DontUseMe,
 				)
 			} else {
 				encrypted[associationId] = parsedInstance[associationId]
@@ -269,12 +275,16 @@ export class CryptoMapper {
 		aggregateValues: Array<ClientModelParsedInstance>,
 		subKeyProvider: SubKeyProvider,
 		fieldPathPrefix: string,
+		dont_use_me: boolean = false,
 	): Promise<Array<ClientModelEncryptedParsedInstance>> {
 		let encryptedAggregates: Array<ClientModelEncryptedParsedInstance> = []
 		for (const aggregate of aggregateValues) {
-			const entityAdapter = await EntityAdapter.from(associationClientTypeModel, aggregate, this.modelMapper)
-			fieldPathPrefix = `${fieldPathPrefix}${entityAdapter._id as Id}/`
-			encryptedAggregates.push(await this.encryptParsedInstance(associationClientTypeModel, aggregate, subKeyProvider, fieldPathPrefix))
+			let fieldPathPrefixForThisAssociation: string = ``
+			if (!dont_use_me) {
+				const entityAdapter = await EntityAdapter.from(associationClientTypeModel, aggregate, this.modelMapper)
+				fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${entityAdapter._id as Id}/`
+			}
+			encryptedAggregates.push(await this.encryptParsedInstance(associationClientTypeModel, aggregate, subKeyProvider, fieldPathPrefixForThisAssociation))
 		}
 
 		return encryptedAggregates
