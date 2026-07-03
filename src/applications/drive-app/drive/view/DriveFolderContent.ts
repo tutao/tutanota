@@ -39,6 +39,7 @@ export interface DriveFolderContentAttrs {
 	listState: ListState<FolderItem>
 	selectionEvents: DriveFolderSelectionEvents
 	onDropInto: (f: FolderItem, event: DragEvent) => unknown
+	onEntryContextMenu: (f: FolderItem, event: MouseEvent) => unknown
 	clipboard: DriveClipboard | null
 }
 
@@ -88,7 +89,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 	private focusedOnMoreActions: boolean = false
 
 	view({
-		attrs: { selection, sortOrder, onSort, fileActions, selectionEvents, listState, clipboard, onDropInto },
+		attrs: { selection, sortOrder, onSort, fileActions, selectionEvents, listState, clipboard, onDropInto, onEntryContextMenu },
 	}: Vnode<DriveFolderContentAttrs>): Children {
 		return m(
 			"div.flex.col.overflow-hidden.column-gap-12",
@@ -198,6 +199,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 										}
 									},
 									onDropInto,
+									onContextMenu: onEntryContextMenu,
 								} satisfies DriveFolderContentEntryAttrs & CommonAttributes<DriveFolderContentEntryAttrs, DriveFolderContentEntry>),
 							),
 						),

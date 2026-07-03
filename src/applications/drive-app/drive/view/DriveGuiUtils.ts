@@ -10,6 +10,8 @@ import { DriveFolder } from "@tutao/entities/drive"
 import { getFileBaseNameAndExtensions } from "../../../../ui/utils/FileUtils"
 import { isBrowser, isDesktop } from "@tutao/app-env"
 import { isNotNull } from "@tutao/utils"
+import { FileActions } from "./DriveFolderContentEntry"
+import { DriveSelectedItemsActions } from "./DriveFolderNav"
 
 export function newItemActions({
 	onUploadFiles,
@@ -143,17 +145,11 @@ export function driveFolderName(folder: DriveFolder): Translation {
 			return lang.makeTranslation(`${folder.name}`, folder.name)
 	}
 }
-export function getContextActions(
-	item: FileFolderItem | FolderFolderItem,
-	onRename: (f: FolderItem) => unknown,
-	onCopy: (f: FolderItem) => unknown,
-	onCut: (f: FolderItem) => unknown,
-	onRestore: (f: FolderItem) => unknown,
-	onTrash: (f: FolderItem) => unknown,
-	onStartMove: (f: FolderItem) => unknown,
-	onDelete: (f: FolderItem) => unknown,
-	onDownload: (f: FolderItem) => unknown,
-): DropdownChildAttrs[] {
+
+// NOTE: Keep the order roughly in sync with getSelectionContextActions.
+export function getFileContextActions(item: FileFolderItem | FolderFolderItem, fileActions: FileActions): DropdownChildAttrs[] {
+	const { onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete, onDownload } = fileActions
+
 	const itemInTrash = (item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)
 
 	// Caution: when adding actions, make sure they match the order in the action bar.
@@ -223,6 +219,85 @@ export function getContextActions(
 			},
 		)
 	}
+	return actions
+}
+
+// NOTE: Keep the order roughly in sync with getFileContextActions.
+export function getSelectionContextActions(selectionActions: DriveSelectedItemsActions): DropdownChildAttrs[] {
+	const { onCopy, onCut, onDelete, onDownload, onMove, onPaste, onRestore, onTrash } = selectionActions
+
+	const actions: DropdownChildAttrs[] = []
+
+	if (onDownload) {
+		actions.push({
+			label: "download_action",
+			icon: Icons.DownloadFilled,
+			click: () => {
+				onDownload()
+			},
+		})
+	}
+
+	if (onCopy) {
+		actions.push({
+			label: "copy_action",
+			icon: Icons.CopyFilled,
+			click: () => {
+				onCopy()
+			},
+		})
+	}
+
+	if (onCut) {
+		actions.push({
+			label: "cut_action",
+			icon: Icons.ScissorsFilled,
+			click: () => {
+				onCut()
+			},
+		})
+	}
+
+	if (onMove) {
+		actions.push({
+			label: "move_action",
+			icon: Icons.Move,
+			click: () => {
+				onMove()
+			},
+		})
+	}
+
+	if (onTrash) {
+		actions.push({
+			label: "trash_action",
+			icon: Icons.TrashFilled,
+			click: () => {
+				onTrash()
+			},
+		})
+	}
+
+	if (onRestore) {
+		actions.push({
+			label: "restoreFromTrash_action",
+			icon: Icons.ArrowBackFilled,
+			click: () => {
+				onRestore()
+			},
+		})
+	}
+
+	if (onDelete) {
+		actions.push({
+			label: "delete_action",
+			icon: Icons.TrashCrossFilled,
+			click: () => {
+				onDelete()
+			},
+		})
+	}
+
 	return actions
 }
 

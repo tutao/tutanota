@@ -11,8 +11,8 @@ import { theme } from "../../../../ui/theme"
 import { IconMessageBox } from "../../../../ui/base/ColumnEmptyMessageBox"
 import { LayerType } from "../../../../ui/base/RootView"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
-import { DomRectReadOnlyPolyfilled, Dropdown } from "../../../../ui/base/Dropdown"
-import { isMobileDriveLayout, newItemActions, parseDragItems } from "./DriveGuiUtils"
+import { DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs } from "../../../../ui/base/Dropdown"
+import { getFileContextActions, getSelectionContextActions, isMobileDriveLayout, newItemActions, parseDragItems } from "./DriveGuiUtils"
 import { modal } from "../../../../ui/base/Modal"
 import { DropType } from "../../../../ui/base/GuiUtils"
 import { FileActions } from "./DriveFolderContentEntry"
@@ -120,6 +120,8 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 						const dropdown = new Dropdown(() => newItemActions({ onUploadFiles, onCreateFolder, onUploadFolders, onPaste }), 300)
 						dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
 						modal.displayUnique(dropdown, false)
+
+						selectionEvents.onSelectNone()
 					}
 				},
 				onclick: (e: MouseEvent) => {
@@ -149,9 +151,37 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 						listState,
 						selectionEvents,
 						clipboard,
+						onEntryContextMenu: (f, e) =>
+							this.onEntryContextMenu(f, e, selection, selectionEvents, selectedItemsActions, fileActions, listState.selectedItems.has(f)),
 					} satisfies DriveFolderContentAttrs),
 		)
 	}
+
+	private onEntryContextMenu(
+		item: FolderItem,
+		e: MouseEvent,
+		selection: SelectionState,
+		selectionEvents: DriveFolderSelectionEvents,
+		selectedItemsActions: DriveSelectedItemsActions,
+		fileActions: FileActions,
+		isItemSelected: boolean,
+	) {
+		let contextActions: DropdownChildAttrs[]
+
+		if (isItemSelected && selection.type === "multiselect") {
+			contextActions = getSelectionContextActions(selectedItemsActions)
+		} else {
+			selectionEvents.onSingleSelection(item)
+
+			// Nothing is selected, open the context menu for the item that received the event.
+			contextActions = getFileContextActions(item, fileActions)
+		}
+
+		const dropdown = new Dropdown(() => contextActions, 300)
+		dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
+		modal.displayUnique(dropdown, false)
+	}
+
 	private renderEmptyView(folder: DriveFolder | null): Children {
 		return m(
 			"",
