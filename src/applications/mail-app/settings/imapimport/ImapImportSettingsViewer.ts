@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { showAddImapImportWizard } from "./AddImapImportWizard.js"
-import { assertMainOrNode } from "@tutao/app-env"
+import { assertMainOrNode, UpgradePromptType } from "@tutao/app-env"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces"
 import { ImapMailImportController } from "./ImapMailImportController.js"
 import { mailLocator } from "../../mailLocator.js"
@@ -26,6 +26,8 @@ import { ExpanderButton, ExpanderPanel } from "../../../../ui/base/Expander"
 import { getTranslationForImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { ImapErrorCause } from "../../../common/api/common/error/ImapError"
 import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
+import { AvailablePlanType, HighestTierPlans, isHighestTierPlan } from "../../../../entities/sys/Utils"
+import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../../common/misc/SubscriptionDialogs"
 
 assertMainOrNode()
 
@@ -325,8 +327,19 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 			m(PrimaryButton, {
 				width: "flex",
 				label: "migrationStart_action",
-				onclick: () => {
-					showAddImapImportWizard(initialImapImportData).then(() => this.imapImportController().updateActiveUiSessions())
+				onclick: async () => {
+					const userController = mailLocator.logins.getUserController()
+					const currentPlanType = await userController.getPlanType()
+					if (!isHighestTierPlan(currentPlanType)) {
+						await showUpgradeWizardOrSwitchSubscriptionDialog(
+							UpgradePromptType.IMPORT,
+							userController,
+							HighestTierPlans as readonly AvailablePlanType[],
+						)
+						return
+					} else {
+						showAddImapImportWizard(initialImapImportData).then(() => this.imapImportController().updateActiveUiSessions())
+					}
 				},
 			}),
 		)
