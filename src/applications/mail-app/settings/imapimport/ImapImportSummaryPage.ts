@@ -461,6 +461,7 @@ export class ImapImportSummaryPageAttrs implements WizardPageAttrs<ImapImportDat
 
 					matchImapMailboxesToTutaMailSets: false,
 					rootImportMailFolderName: this.data.rootImportMailFolderName,
+					spamFolderMigrationInformation: this.data.spamFolderMigrationInformation,
 				}
 
 		try {

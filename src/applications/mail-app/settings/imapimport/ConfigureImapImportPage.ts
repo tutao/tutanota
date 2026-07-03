@@ -31,6 +31,7 @@ import { MailSetMapping } from "../../workerUtils/imapimport/ImapImporter"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { getTranslationForImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
+import { Checkbox } from "../../../../ui/base/Checkbox"
 
 assertMainOrNode()
 
@@ -224,6 +225,24 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 					})
 				: null,
 			!this.shouldDisplayFolderTextField ? this.renderFolderMapping(data) : null,
+			this.shouldDisplayFolderTextField
+				? m(".tutaui-switch", [
+						m(Checkbox, {
+							label: () => lang.getTranslationText("migrationMigrateSpamFolder_label"),
+							checked: data.spamFolderMigrationInformation?.shouldMigrateSpamFolder ?? false,
+							onChecked: (value: boolean) =>
+								(data.spamFolderMigrationInformation = {
+									shouldMigrateSpamFolder: value,
+									spamMailbox: obj.imapMailboxes.find((imapMailbox) => imapMailbox.specialUse === ImapMailboxSpecialUse.JUNK) ?? null,
+								}),
+						}),
+						m(IconButton, {
+							icon: Icons.InfoFilled,
+							title: "migrationCannotMapSpamFolder_label",
+							click: this.updateHoverMessage("migrationCannotMapSpamFolder_msg"),
+						}),
+					])
+				: null,
 			m(
 				".flex-center.full-width.justify-end.pt-32.mb-32",
 				m(

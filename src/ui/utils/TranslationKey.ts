@@ -2388,3 +2388,4 @@ export type TranslationKeyType =
 	| "migrationConfigLoading_msg"
 	| "emptyString_msg"
 	| "migrationNoMigrationOnWeb_label"
+	| "migrationMigrateSpamFolder_label"

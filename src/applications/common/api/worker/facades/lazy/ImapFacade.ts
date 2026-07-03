@@ -25,14 +25,16 @@ import {
 	ImportedImapMailTypeRef,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
+	MailSetTypeRef,
 } from "@tutao/entities/tutanota"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
 import { ProgrammingError } from "@tutao/app-env"
-import { ImapAccountSyncStatus, ImapFolderSyncStatus } from "../../../../../../entities/tutanota/Utils"
+import { ImapAccountSyncStatus, ImapFolderSyncStatus, MailSetKind } from "../../../../../../entities/tutanota/Utils"
 import { ImapMailbox, ImapMailboxStatus } from "../../../common/utils/imapImportUtils/ImapMailbox"
 import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { getElementId } from "@tutao/meta"
 
 export class ImapFacade {
 	constructor(
@@ -84,6 +86,18 @@ export class ImapFacade {
 		let initialFolderSyncStates: ImapFolderSyncState[] = []
 		if (initializeParams.imapMailboxesToTutaMailSets) {
 			initialFolderSyncStates = await this.createInitialImportMailFolders(imapAccountSyncState, initializeParams.imapMailboxesToTutaMailSets)
+		} else if (
+			initializeParams.spamFolderMigrationInformation.shouldMigrateSpamFolder &&
+			initializeParams.spamFolderMigrationInformation.spamMailbox !== null
+		) {
+			const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, mailGroupId)
+			const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
+			const allMailSets = await this.entityClient.loadAll(MailSetTypeRef, mailbox.mailSets.mailSets)
+			const spamMailSet = assertNotNull(allMailSets.find((mailSet) => mailSet.folderType === MailSetKind.SPAM))
+			const mailSetMapping = new Map([
+				[initializeParams.spamFolderMigrationInformation.spamMailbox.path, { mailSetElementId: getElementId(spamMailSet), shouldSync: true }],
+			])
+			initialFolderSyncStates = await this.createInitialImportMailFolders(imapAccountSyncState, mailSetMapping)
 		}
 
 		return { imapAccountSyncState, initialFolderSyncStates }

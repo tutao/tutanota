@@ -90,6 +90,10 @@ o.spec("ImapFacade", () => {
 		const initializeParams: InitializeImapImportParams = {
 			mailGroupId,
 			rootImportMailFolderName: "IMAP Import",
+			spamFolderMigrationInformation: {
+				shouldMigrateSpamFolder: false,
+				spamMailbox: null,
+			},
 			matchImapMailboxesToTutaMailSets: false,
 			imapAccount: createTestEntity(ImapAccountTypeRef, {
 				host: "imap.test.com",
@@ -122,6 +126,10 @@ o.spec("ImapFacade", () => {
 			mailGroupId,
 			rootImportMailFolderName: "",
 			matchImapMailboxesToTutaMailSets: false,
+			spamFolderMigrationInformation: {
+				shouldMigrateSpamFolder: false,
+				spamMailbox: null,
+			},
 			imapAccount: {} as any,
 			maxQuota: "0",
 			imapSyncLabelData: null,

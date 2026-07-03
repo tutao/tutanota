@@ -250,6 +250,10 @@ export class ImapMailImportController {
 			imapAccountUsername: "",
 			imapAccountPassword: "",
 			rootImportMailFolderName: "",
+			spamFolderMigrationInformation: {
+				shouldMigrateSpamFolder: false,
+				spamMailbox: null,
+			},
 			imapAccountSyncStatus: ImapAccountSyncStatus.PAUSED,
 			matchImapMailboxesToTutaMailSets: false,
 			isImapServerSupportingOAuth: false,

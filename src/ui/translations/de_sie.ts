@@ -1204,7 +1204,7 @@ export default {
 		"migrationAuthFailed_msg": "Ihre Migration konnte leider nicht gestartet werden, da die eingegebenen Zugangsdaten ungültig sind. Bitte überprüfem Sie Ihre Zugangsdaten und versuchen Sie es erneut.",
 		"migrationCancelConfirm_msg": "Sind Sie sicher das Sie diese Migration abschließen möchten? Dieser Schritt kann nicht rückgängig gemacht werden!",
 		"migrationCannotMapSpamFolder_label": "Der Spam-Ordner kann nicht zugewiesen werden.",
-		"migrationCannotMapSpamFolder_msg": "Der Spam-Ordner kann nur dem Tuta Spam-Ordner zugewiesen werden, um die Qualität Ihres Spam-Filters zu gewährleisten.",
+		"migrationCannotMapSpamFolder_msg": "Der Spam-Ordner kann nur dem Tuta Spam-Ordner importiert werden, um die Qualität Ihres Spam-Filters zu gewährleisten.",
 		"migrationChooseFolder_msg": "Ordner auswählen",
 		"migrationChooseProvider_msg": "Bitte wählen Sie Ihren alten E-Mail Anbieter aus, von welchem Sie zu uns wechseln möchten.\n\nDie 1-Klick E-Mail Migration übernimmt kontinuierlich alle (auch neu eingehende) E-Mails von Ihren alten E-Mail Anbieter in Ihren Tuta-Account.\nSie können diese Migration so lange aktiv lassen bis Sie bereit sind Ihren alten Account zu löschen.",
 		"migrationConfig_title": "Konfiguration",
@@ -2389,6 +2389,7 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-		"migrationNoMigrationOnWeb_label": "E-Mail-Migration ist zur Zeit nur in unserem Desktop-Client verfügbar."
+		"migrationNoMigrationOnWeb_label": "E-Mail-Migration ist zur Zeit nur in unserem Desktop-Client verfügbar.",
+		"migrationMigrateSpamFolder_label": "Spam-Ordner importieren",
 	}
 }

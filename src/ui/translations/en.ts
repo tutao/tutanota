@@ -1204,7 +1204,7 @@ export default {
 		"migrationAuthFailed_msg": "We failed to start your migration because credentials are incorrect, please check your credentials.",
 		"migrationCancelConfirm_msg": "Are you sure you want to finish this migration? This action cannot be undone!",
 		"migrationCannotMapSpamFolder_label": "Cannot map spam folder",
-		"migrationCannotMapSpamFolder_msg": "The spam folder can only be mapped to the Tuta spam folder, in order to maintain the quality of your spam filter.",
+		"migrationCannotMapSpamFolder_msg": "The spam folder can only be imported to the Tuta spam folder, in order to maintain the quality of your spam filter.",
 		"migrationChooseFolder_msg": "Choose a folder",
 		"migrationChooseProvider_msg": "Please choose the email provider you would like to migrate away from.\n\nThis migration will continuously synchronize your mails from your selected provider to your Tuta account.\nYou can keep the migration running until you are ready to close your old account.",
 		"migrationConfig_title": "Configuration",
@@ -2389,6 +2389,7 @@ export default {
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
-		"migrationNoMigrationOnWeb_label": "Email migration is currently only available in our desktop client."
+		"migrationNoMigrationOnWeb_label": "Email migration is currently only available in our desktop client.",
+		"migrationMigrateSpamFolder_label": "Import Spam folder",
 	}
 }

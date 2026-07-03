@@ -52,10 +52,15 @@ export type InitializeImapImportParams =
 			matchImapMailboxesToTutaMailSets: true
 			imapMailboxesToTutaMailSets: Map<string, MailSetMapping>
 			rootImportMailFolderName?: never
+			spamFolderMigrationInformation?: never
 	  })
 	| (BaseInitializeImapImportParams & {
 			matchImapMailboxesToTutaMailSets: false
 			rootImportMailFolderName: string
+			spamFolderMigrationInformation: {
+				shouldMigrateSpamFolder: boolean
+				spamMailbox: ImapMailbox | null
+			}
 			imapMailboxesToTutaMailSets?: never
 	  })
 
