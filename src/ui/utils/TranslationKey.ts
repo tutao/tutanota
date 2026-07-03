@@ -2387,3 +2387,4 @@ export type TranslationKeyType =
 	| "migrationRootMailFolderNameAlreadyExists_helpLabel"
 	| "migrationConfigLoading_msg"
 	| "emptyString_msg"
+	| "migrationNoMigrationOnWeb_label"

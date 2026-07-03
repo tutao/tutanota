@@ -11,17 +11,21 @@ import { EntityUpdateData } from "../../../platform-kit/instance-pipeline/utils/
  * See {@link DesktopMailImportSettingsViewer} for the Desktop client.
  */
 export class WebMailImportSettingsViewer implements UpdatableSettingsViewer {
-	constructor() {}
+	constructor(private readonly isFileImport: boolean) {}
 
 	view(): Children {
-		return m(".fill-absolute.scroll.plr-24.pb-48", [m(".h4.mt-32", lang.get("mailImportSettings_label")), this.renderNoImportOnWebText()])
+		const title = this.isFileImport ? "mailImportSettings_label" : "migration_title"
+		return m(".fill-absolute.scroll.plr-24.pb-48", [m(".h4.mt-32", lang.getTranslationText(title)), this.renderNoImportOnWebText()])
 	}
 
 	private renderNoImportOnWebText() {
 		return [
 			m(
 				".flex-column.mt-16",
-				m(".p", lang.get("mailImportNoImportOnWeb_label")),
+				m(
+					".p",
+					this.isFileImport ? lang.getTranslationText("mailImportNoImportOnWeb_label") : lang.getTranslationText("migrationNoMigrationOnWeb_label"),
+				),
 				m(
 					".flex-start.mt-32",
 					m(PrimaryButton, {

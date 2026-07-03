@@ -2388,6 +2388,7 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"migrationNoMigrationOnWeb_label": "Email migration is currently only available in our desktop client."
 	}
 }

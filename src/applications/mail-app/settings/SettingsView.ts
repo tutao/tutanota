@@ -196,7 +196,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						if (isDesktop()) {
 							return new DesktopMailImportSettingsViewer(() => mailLocator.getMailImporter())
 						} else {
-							return new WebMailImportSettingsViewer()
+							return new WebMailImportSettingsViewer(true)
 						}
 					},
 					undefined,
@@ -210,12 +210,12 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					new SettingsFolder(
 						() => "migration_title",
 						() => Icons.DownloadFilled,
-						"imapImport",
+						"migration",
 						() => {
 							if (isDesktop()) {
 								return new ImapImportSettingsViewer(() => mailLocator.getImapImportController())
 							} else {
-								return new WebMailImportSettingsViewer()
+								return new WebMailImportSettingsViewer(false)
 							}
 						},
 						undefined,
