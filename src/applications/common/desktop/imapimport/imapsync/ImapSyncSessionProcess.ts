@@ -223,7 +223,11 @@ export class ImapSyncSessionProcess {
 
 	// Visible for testing
 	async logout(imapClient: ImapFlow, isMailboxFinished: boolean, lastFetchedMailSeq: number = 0) {
-		await imapClient.logout()
+		try {
+			await imapClient.logout()
+		} catch (e) {
+			// Ignore failures to logout, this just means we already have logged out.
+		}
 
 		if (isMailboxFinished) {
 			this.syncSessionEventListener.onMailboxFinish(this.syncSessionProcessMailbox)

@@ -195,7 +195,11 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			await imapClient.connect()
 			listTreeResponse = await imapClient.listTree()
 		} finally {
-			await imapClient.logout()
+			try {
+				await imapClient.logout()
+			} catch (e) {
+				// Ignore failures to logout, this just means we already have logged out.
+			}
 		}
 		const imapMailboxes = this.filterDisabledAndPromoteChildren(listTreeResponse.folders ?? []).map((listTreeResponse) => {
 			return imapMailboxFromImapFlowListTreeResponse(listTreeResponse, null)
