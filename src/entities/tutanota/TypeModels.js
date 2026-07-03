@@ -2919,6 +2919,15 @@ const typeModels = {
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 97,
 				"dependency": null
+			},
+			"1968": {
+				"final": false,
+				"name": "mailDetailsBlob",
+				"id": 1968,
+				"type": "DONT_USE_ME",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 1298,
+				"dependency": null
 			}
 		}
 	},

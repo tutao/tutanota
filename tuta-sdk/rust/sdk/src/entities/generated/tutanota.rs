@@ -1134,6 +1134,8 @@ pub struct DraftCreateData {
 	pub draftData: DraftData,
 	#[serde(rename = "1967")]
 	pub mail: Option<GeneratedId>,
+	#[serde(rename = "1968")]
+	pub mailDetailsBlob: Option<GeneratedId>,
 
 	#[serde(default)]
 	pub _errors: Errors,

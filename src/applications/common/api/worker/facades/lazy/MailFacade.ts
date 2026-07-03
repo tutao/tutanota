@@ -43,6 +43,7 @@ import {
 	isEmpty,
 	isNotNull,
 	noOp,
+	Nullable,
 	ofClass,
 	parseUrl,
 	promiseFilter,
@@ -87,6 +88,7 @@ import {
 	Contact,
 	createApplyLabelServicePostIn,
 	createAttachmentKeyData,
+	createBody,
 	createCreateExternalUserGroupData,
 	createCreateMailFolderData,
 	createDeleteMailData,
@@ -101,6 +103,8 @@ import {
 	createListUnsubscribeData,
 	createMail,
 	createMailAddress,
+	createMailDetails,
+	createMailDetailsBlob,
 	createManageLabelServiceDeleteIn,
 	createManageLabelServiceLabelData,
 	createManageLabelServicePostIn,
@@ -110,6 +114,7 @@ import {
 	createPopulateClientSpamTrainingDatum,
 	createProcessInboxDatum,
 	createProcessInboxPostIn,
+	createRecipients,
 	createReportMailPostData,
 	createResolveConversationsServiceGetIn,
 	createSecureExternalRecipientKeyData,
@@ -130,6 +135,7 @@ import {
 	InternalRecipientKeyDataTypeRef,
 	ListUnsubscribeService,
 	Mail,
+	MailAddress,
 	MailDetails,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
@@ -327,7 +333,7 @@ export class MailFacade {
 			authStatus: null,
 			bucketKey: null,
 			clientSpamClassifierResult: null,
-			confidential: false,
+			confidential,
 			conversationEntry: ["", ""],
 			differentEnvelopeSender: null,
 			encryptionAuthStatus: null,
@@ -341,7 +347,7 @@ export class MailFacade {
 			listUnsubscribe: false,
 			mailDetails: null,
 			mailDetailsDraft: null,
-			method: "",
+			method,
 			movedTime: null,
 			phishingStatus: MailPhishingStatus.UNKNOWN,
 			processNeeded: false,
@@ -358,9 +364,27 @@ export class MailFacade {
 			serverClassificationData: null,
 			sets: [],
 			state: MailState.DRAFT,
-			subject: "",
+			subject,
 			unread: false,
 		})
+		const mailDetailsBlob = createMailDetailsBlob({
+			details: createMailDetails({
+				authStatus: MailAuthenticationStatus.AUTHENTICATED,
+				body: createBody({
+					compressedText: bodyText,
+					text: "",
+				}),
+				headers: null,
+				recipients: createRecipients({
+					bccRecipients: bccRecipients.map(recipientToMailAddress),
+					ccRecipients: ccRecipients.map(recipientToMailAddress),
+					toRecipients: toRecipients.map(recipientToMailAddress),
+				}),
+				replyTos: replyTos.map(recipientToEncryptedMailAddress),
+				sentDate: new Date(),
+			}),
+		})
+		// addedAttachments: await this._createAddedAttachments(attachments, [], senderMailGroupId, mailGroupKey),
 		const service = createDraftCreateData({
 			previousMessageId: previousMessageId,
 			conversationType: conversationType,
@@ -380,7 +404,8 @@ export class MailFacade {
 				bodyText: "",
 				removedAttachments: [],
 			}),
-			mail: mail,
+			mail,
+			mailDetailsBlob,
 			ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 		})
 		const createDraftReturn = await this.serviceExecutor.post(DraftService, service, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
@@ -1516,6 +1541,24 @@ function recipientToEncryptedMailAddress(recipient: PartialRecipient): Encrypted
 	return createEncryptedMailAddress({
 		name: recipient.name ?? "",
 		address: recipient.address,
+	})
+}
+
+function recipientToMailAddress(recipient: PartialRecipient): MailAddress {
+	function contactToIdTuple(contact: IdTuple | Contact | None): Nullable<IdTuple> {
+		if (!contact) {
+			return null
+		}
+		if ("_id" in contact) {
+			return contact._id
+		}
+		return contact
+	}
+
+	return createMailAddress({
+		address: recipient.address,
+		contact: contactToIdTuple(recipient.contact),
+		name: recipient.name ?? "",
 	})
 }
 

@@ -712,6 +712,7 @@ export type DraftCreateData = {
 
 	draftData: DraftData;
 	mail: null | Mail;
+	mailDetailsBlob: null | MailDetailsBlob;
 }
 export const DraftCreateReturnTypeRef: TypeRef<DraftCreateReturn> = new TypeRef("tutanota", 516)
 
