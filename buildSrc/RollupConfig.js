@@ -14,6 +14,8 @@ export const dependencyMap = {
 	luxon: path.normalize("./libs/luxon.js"),
 	linkifyjs: path.normalize("./libs/linkify.js"),
 	"linkify-html": path.normalize("./libs/linkify-html.js"),
+	"./tensorflow-custom": path.normalize("./libs/tensorflow.js"),
+	"./openid-client-custom": path.normalize("./libs/openid-client.js"),
 	cborg: path.normalize("./libs/cborg.js"),
 	// below this, the modules are only running in the desktop main thread.
 	"electron-updater": path.normalize("./libs/electron-updater.mjs"),
@@ -21,10 +23,8 @@ export const dependencyMap = {
 	jsqr: path.normalize("./libs/jsQR.js"),
 	"@signalapp/sqlcipher": path.normalize("./libs/node-sqlcipher.mjs"),
 	"@fingerprintjs/botd": path.normalize("./libs/botd.mjs"),
-	"./tensorflow-custom": path.normalize("./libs/tensorflow.js"),
 	"./imapflow-custom": path.normalize("./libs/imapflow.js"),
-	"./postalmime-custom": path.normalize("./libs/postalmime.js"),
-	"./openid-client-custom": path.normalize("./libs/openid-client.js"),
+	"./postalmime-custom": path.normalize("./libs/postal-mime.js"),
 }
 
 export let tsImportAliases = {
