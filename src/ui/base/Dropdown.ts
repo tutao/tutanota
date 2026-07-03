@@ -5,10 +5,11 @@ import { ease } from "../animation/Easing"
 import { component_size, px } from "../size"
 import { focusNext, focusPrevious, Shortcut } from "../utils/KeyManager"
 import type { ButtonAttrs } from "./Button.js"
-import { lang, MaybeTranslation } from "../utils/LanguageViewModel"
-import { assertMainOrNode, Keys, TabIndex } from "../../platform-kit/app-env"
+import { MultilineRowButton, MultilineRowButtonAttrs } from "./buttons/MultilineRowButton"
+import { lang, MaybeTranslation, Translation } from "../utils/LanguageViewModel"
+import { assertMainOrNode, Keys, TabIndex } from "@tutao/app-env"
 import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../HtmlUtils"
-import { assertNotNull, delay, downcast, filterNull, lazy, lazyAsync, makeSingleUse, noOp, Thunk } from "../../platform-kit/utils"
+import { assertNotNull, delay, downcast, filterNull, lazy, lazyAsync, makeSingleUse, noOp, Thunk } from "@tutao/utils"
 import { pureComponent } from "./PureComponent"
 import type { ClickHandler } from "./GuiUtils"
 import { IconButtonAttrs } from "./IconButton.js"
@@ -21,6 +22,7 @@ import { InputAttrs, SingleLineTextField } from "./SingleLineTextField"
 import { LegacyTextFieldType } from "./LegacyTextField"
 
 import { PosRect } from "../utils/PosRect"
+import { Icons } from "./icons/Icons"
 
 assertMainOrNode()
 export type DropdownInfoAttrs = {
@@ -42,16 +44,31 @@ export interface DropdownButtonAttrs {
 	selected?: boolean
 }
 
+export interface DropdownMultilineButtonAttrs {
+	text: Translation
+	secondaryText: Translation
+	/** Aria label */
+	label: Translation
+	icon: Icons
+	onclick: ClickHandler
+	selected: boolean
+}
+
 /**
  * Renders small info message inside the dropdown.
  */
 const DropdownInfo = pureComponent<DropdownInfoAttrs>(({ center, bold, info }) => {
 	return m(".text-break.selectable.flex.button-height" + (center ? ".center.flex-center.items-center" : "") + (bold ? ".b" : ""), info)
 })
-export type DropdownChildAttrs = DropdownInfoAttrs | DropdownButtonAttrs
+export type DropdownChildAttrs = DropdownInfoAttrs | DropdownButtonAttrs | DropdownMultilineButtonAttrs
 
 function isDropDownInfo(dropdownChild: DropdownChildAttrs): dropdownChild is DropdownInfoAttrs {
 	return Object.hasOwn(dropdownChild, "info") && Object.hasOwn(dropdownChild, "center") && Object.hasOwn(dropdownChild, "bold")
+}
+
+function isDropDownMultiline(dropdownChild: DropdownChildAttrs): dropdownChild is DropdownMultilineButtonAttrs {
+	const maybeMultilineDropdown = dropdownChild as DropdownMultilineButtonAttrs
+	return Boolean(maybeMultilineDropdown.text && maybeMultilineDropdown.secondaryText)
 }
 
 // Some Android WebViews still don't support DOMRect so we polyfill that
@@ -119,6 +136,11 @@ export class Dropdown implements ModalComponent {
 					return child
 				}
 
+				if (isDropDownMultiline(child)) {
+					child.onclick = this.wrapClick(child.onclick)
+					return
+				}
+
 				const buttonChild: DropdownButtonAttrs = child
 				buttonChild.click = this.wrapClick(child.click ? child.click : () => null)
 
@@ -158,6 +180,8 @@ export class Dropdown implements ModalComponent {
 			const visibleChildren = this.visibleChildren().map((child) => {
 				if (isDropDownInfo(child)) {
 					return m(DropdownInfo, child)
+				} else if (isDropDownMultiline(child)) {
+					return Dropdown.renderDropDownMultilineButton(child)
 				} else {
 					return Dropdown.renderDropDownButton(child, showingIcons)
 				}
@@ -274,6 +298,18 @@ export class Dropdown implements ModalComponent {
 			ondragover: child.dragover ? child.dragover : noOp,
 			ondragleave: child.dragleave ? child.dragleave : noOp,
 		} satisfies RowButtonAttrs)
+	}
+
+	private static renderDropDownMultilineButton(child: DropdownMultilineButtonAttrs) {
+		return m(MultilineRowButton, {
+			selected: child.selected,
+			ariaLabel: child.label,
+			text: child.text,
+			secondaryText: child.secondaryText,
+			icon: child.icon,
+			onclick: child.onclick,
+			role: AriaRole.Option,
+		} satisfies MultilineRowButtonAttrs)
 	}
 
 	wrapClick(fn: (event: MouseEvent, dom: HTMLElement) => unknown): (event: MouseEvent, dom: HTMLElement) => unknown {
