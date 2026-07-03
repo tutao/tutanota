@@ -11,6 +11,7 @@ import {
 	isNotNull,
 	newPromise,
 	promiseMap,
+	splitInChunks,
 } from "../../../../platform-kit/utils"
 import {
 	deconstructMailSetEntryId,
@@ -570,10 +571,11 @@ export class MailIndexer {
 		// (CREATE + UPDATE = CREATE) which requires us to process CREATE events with imported mails)
 		if (operation === OperationType.CREATE || operation === OperationType.UPDATE) {
 			const mailIds: IdTuple[] = await this.loadImportedMailIdsInIndexDateRange(importStateId, importType)
-
-			const mailData = await this.preloadMails(mailIds)
-			for (const singleMailData of mailData) {
-				await this.backend.onMailCreated(singleMailData)
+			for (const mailIdChunk of splitInChunks(MAIL_INDEXER_CHUNK, mailIds)) {
+				const mailData = await this.preloadMails(mailIdChunk)
+				for (const singleMailData of mailData) {
+					await this.backend.onMailCreated(singleMailData)
+				}
 			}
 		}
 	}
