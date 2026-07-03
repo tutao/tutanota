@@ -73,9 +73,9 @@ o.spec("ImapSyncSessionProcess", () => {
 	o.test("startSyncSessionProcess - handles connection error with responseStatus NO", async () => {
 		const error = new Error("NO authentication failed") as any
 		error.responseStatus = "NO"
-		when(imapClientMock.connect()).thenReject(error)
+		when(imapClientMock.mailboxOpen(anything())).thenReject(error)
 		const result = await sessionProcess.startSyncSessionProcess(imapAccountMock, eventListenerMock)
-		o.check(result).equals(SyncSessionProcessState.CONNECTION_FAILED_REJECTED)
+		o.check(result).equals(SyncSessionProcessState.CONNECTION_FAILED_UNKNOWN)
 	})
 
 	o.test("startSyncSessionProcess - handles unknown error", async () => {

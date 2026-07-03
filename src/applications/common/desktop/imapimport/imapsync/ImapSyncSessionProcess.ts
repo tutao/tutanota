@@ -6,11 +6,11 @@ import { ImapMailbox, ImapMailboxStatus } from "../../../api/common/utils/imapIm
 import { ImapSyncConfig } from "./ImapSync.js"
 import { DifferentialUidLoader, MAIL_DOWNLOAD_BATCH_SIZE, UID_FETCH_REQUEST_WAIT_TIME, UidFetchRequestType } from "./DifferentialUidLoader.js"
 import { setTimeout } from "node:timers/promises"
-import { assertNotNull, isEmpty, isNotEmpty, splitInChunks } from "@tutao/utils"
+import { assertNotNull, isEmpty, isNotEmpty } from "@tutao/utils"
 import { imapMailFromImapFlowFetchMessageObject } from "./imapmail/ImapParserUtils"
 import type { ImapFlow } from "imapflow"
 import { ImapFlowFactory, SyncSessionEventListener } from "./ImapSyncSession"
-import { ImapFolderSyncStatus, ImapSyncEventType, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../../../entities/tutanota/Utils"
+import { ImapFolderSyncStatus, ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
 import { ImapError } from "../../../api/common/error/ImapError"
 
 export enum SyncSessionProcessState {
@@ -62,6 +62,12 @@ export class ImapSyncSessionProcess {
 
 		try {
 			await imapClient.connect()
+		} catch (e) {
+			this.state = SyncSessionProcessState.CONNECTION_FAILED_UNKNOWN
+			return this.state
+		}
+
+		try {
 			if (this.state === SyncSessionProcessState.NOT_STARTED) {
 				await this.runSyncSessionProcess(imapClient, imapSyncEventListener)
 				this.state = SyncSessionProcessState.RUNNING

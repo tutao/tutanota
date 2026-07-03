@@ -1,6 +1,6 @@
 import { ImapMailId } from "../../../api/common/utils/imapImportUtils/ImapSyncContext.js"
 import type { ImapFlow } from "./imapflow-custom.js"
-import { ImapSyncEventType, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../../../entities/tutanota/Utils"
+import { ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
 
 interface UidFetchSequence {
 	fromUid: number
@@ -17,7 +17,7 @@ export enum UidFetchRequestType {
 export const UID_FETCH_REQUEST_WAIT_TIME = 10 // in ms
 
 export const UID_DIFF_DOWNLOAD_BATCH_SIZE = 2500
-export const MAIL_DOWNLOAD_BATCH_SIZE = 250
+export const MAIL_DOWNLOAD_BATCH_SIZE = 125
 
 export interface UidFetchRequest {
 	uidFetchSequenceString: string
