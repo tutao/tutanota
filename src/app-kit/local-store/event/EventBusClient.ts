@@ -61,7 +61,7 @@ export const enum EventBusState {
 
 // EntityEventBatches expire after 45 days. keep a time diff security of one day.
 export const ENTITY_EVENT_BATCH_EXPIRE_MS = 44 * 24 * 60 * 60 * 1000
-export const MAX_EVENT_QUEUE_LENGTH_BEFORE_FLUSHING = 1000
+export const MAX_EVENT_QUEUE_LENGTH_BEFORE_FLUSHING = 500
 
 const RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS = 30000
 const NORMAL_SHUTDOWN_CLOSE_CODE = 1
@@ -387,11 +387,10 @@ export class EventBusClient {
 				break
 			}
 			case MessageType.InitialSyncDone: {
+				this.isInitialSyncDone = true
 				await this.processAccumulatedEventBatches()
 
 				console.log(TAG, "Reached final event, sync is done")
-
-				this.isInitialSyncDone = true
 				this.eventQueue.resume()
 				// if we received no missed batches and lastMissedBatchId remains null, we should call the syncDone listener directly
 				if (this.lastMissedBatchId === null) {
@@ -402,6 +401,7 @@ export class EventBusClient {
 			}
 			case MessageType.InitialSyncWorkEstimate: {
 				const newWorkEstimate = Number.parseInt(value)
+				console.log(TAG, "InitialSyncWorkEstimate: ", newWorkEstimate)
 				if (newWorkEstimate === 0) {
 					break
 				}
@@ -697,7 +697,7 @@ export class EventBusClient {
 			}
 
 			// call syncDone listener right after the last missed batch is processed
-			if (batch.batchId === this.lastMissedBatchId) {
+			if (batch.batchId === this.lastMissedBatchId && this.isInitialSyncDone) {
 				this.listener.onSyncDone()
 			}
 		} catch (e) {
