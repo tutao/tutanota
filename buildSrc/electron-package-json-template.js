@@ -37,7 +37,7 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 		electronVersion: await getElectronVersion(log),
 		icon: iconPath,
 		appId: appId,
-		productName: nameSuffix.length > 0 ? nameSuffix.slice(1) + " Tuta Mail" : "Tuta Mail",
+		productName: nameSuffix.length > 0 ? nameSuffix.slice(1) + " Tuta" : "Tuta",
 		// name of the appImage
 		artifactName: "${name}-${os}.${ext}",
 		asarUnpack: "desktop/*.node",
@@ -129,7 +129,7 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 			// defaults to productName if not specified
 			executableName: appName,
 			icon: path.join(path.dirname(iconPath), "icon/"),
-			synopsis: "Tuta Mail Desktop Client",
+			synopsis: "Tuta Desktop Client",
 			category: "Network",
 			target: [
 				{
@@ -145,7 +145,7 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 		main: "./desktop/DesktopMain.js",
 		version: version,
 		author: "Tutao GmbH",
-		description: "The desktop client for Tutanota, the secure e-mail service.",
+		description: "The desktop client for Tuta, the secure e-mail, calendar and drive service.",
 		type: "module",
 		scripts: {
 			start: "electron .",

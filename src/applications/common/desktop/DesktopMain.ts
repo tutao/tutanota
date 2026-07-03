@@ -532,7 +532,7 @@ async function unlockDeviceKeychain(keyStoreFacade: DesktopKeyStoreFacade, wm: W
 	await keyStoreFacade.getDeviceKey().catch(async () => {
 		const { response } = await electron.dialog.showMessageBox({
 			type: "error",
-			title: "Tuta Mail",
+			title: "Tuta",
 			message: lang.getTranslation("secretStorageError_msg", { "{url}": InfoLink.SecretStorage }).text,
 			buttons: [lang.getTranslation("continue_action").text, lang.getTranslation("clearLocalData_action").text, lang.getTranslation("quit_action").text],
 			defaultId: 2,

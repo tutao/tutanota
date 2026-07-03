@@ -173,10 +173,10 @@ export class DesktopIntegratorLinux implements DesktopIntegrator {
 
 	createDesktopEntry(prefix: string): Promise<void> {
 		const desktopEntry = `[Desktop Entry]
-Name=${prefix}Tuta Mail
-Comment=The desktop client for Tuta Mail, the secure e-mail service.
+Name=${prefix}Tuta
+Comment=The desktop client for Tuta, the secure e-mail, calendar and drive service.
 GenericName=Mail Client
-Keywords=Email;E-mail
+Keywords=Email;E-mail;Calendar;Contacts;Drive
 Exec="${this.packagePath}" %U
 Terminal=false
 Type=Application
