@@ -11,7 +11,7 @@ function unsupported(e) {
 	document.body.style.color = "black"
 
 	const h1 = document.createElement("h1")
-	h1.innerText = "Tuta Mail"
+	h1.innerText = "Tuta"
 	h1.style.fontFamily = "sans-serif"
 	h1.style.fontSize = "40px"
 	h1.style.textAlign = "center"

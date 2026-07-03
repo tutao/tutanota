@@ -12,10 +12,10 @@ import { object, verify, when } from "testdouble"
 import { RegistryHive, WindowsRegistryFacade, WindowsRegistryKey } from "../../../../src/applications/common/desktop/integration/WindowsRegistryFacade"
 
 const desktopEntry = `[Desktop Entry]
-Name=Tuta Mail
-Comment=The desktop client for Tuta Mail, the secure e-mail service.
+Name=Tuta
+Comment=The desktop client for Tuta, the secure e-mail, calendar and drive service.
 GenericName=Mail Client
-Keywords=Email;E-mail
+Keywords=Email;E-mail;Calendar;Contacts;Drive
 Exec="/appimage/path/file.appImage" %U
 Terminal=false
 Type=Application
