@@ -347,7 +347,10 @@ o.spec("EventBusClient", function () {
 			} as MessageEvent)
 			await ebc.messageQueue
 			verify(listenerMock.onSyncDone(), { times: 0 })
-
+			await socket.onmessage?.({
+				data: "initialSyncDone",
+			} as MessageEvent)
+			await ebc.messageQueue
 			await ebc.waitForEmptyQueue()
 			verify(listenerMock.onEntityEventsReceived(batchEvents, eventBatchId, mailGroupId, matchers.anything()))
 			verify(progressMonitor.workDone(1), { times: 1 })
@@ -372,7 +375,10 @@ o.spec("EventBusClient", function () {
 			} as MessageEvent)
 			await ebc.messageQueue
 			verify(listenerMock.onSyncDone(), { times: 0 })
-
+			await socket.onmessage?.({
+				data: "initialSyncDone",
+			} as MessageEvent)
+			await ebc.messageQueue
 			await ebc.waitForEmptyQueue()
 			verify(listenerMock.onEntityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 			verify(progressMonitor.workDone(1), { times: 1 })
@@ -402,7 +408,10 @@ o.spec("EventBusClient", function () {
 			} as MessageEvent)
 			await ebc.messageQueue
 			verify(listenerMock.onSyncDone(), { times: 0 })
-
+			await socket.onmessage?.({
+				data: "initialSyncDone",
+			} as MessageEvent)
+			await ebc.messageQueue
 			await ebc.waitForEmptyQueue()
 			verify(listenerMock.onEntityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 			verify(progressMonitor.workDone(1), { times: 1 })
