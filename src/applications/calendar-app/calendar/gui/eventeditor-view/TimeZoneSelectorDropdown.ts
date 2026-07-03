@@ -1,13 +1,13 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { Card } from "../../../../../ui/base/Card"
-import { px } from "../../../../../ui/size"
-import { Select, SelectAttributes, SelectOption } from "../../../../../ui/base/Select"
+import { SelectOption } from "../../../../../ui/base/Select"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import { getTimeZoneOffsetString, IANATimeZone, IANATimeZonesList } from "../DateTimeTextFormatterUtils"
-import { Icon, IconSize } from "../../../../../ui/base/Icon"
 import { Icons } from "../../../../../ui/base/icons/Icons"
 import { theme } from "../../../../../ui/theme"
 import { DateTime } from "luxon"
+import { DropDownSelectorNew, DropDownSelectorNewAttrs } from "../../../../../ui/base/DropDownSelectorNew"
+import { lang } from "../../../../../ui/utils/LanguageViewModel"
 
 export type TimeZoneSelectorDropdownAttrs = {
 	dateTime: DateTime
@@ -22,7 +22,8 @@ interface TimeZoneSelectOption extends SelectOption<IANATimeZone> {
 }
 
 export class TimeZoneSelectorDropdown implements Component<TimeZoneSelectorDropdownAttrs> {
-	private timeZoneOptionsList: TimeZoneSelectOption[] = []
+	private timeZoneOptionsList: ReadonlyArray<TimeZoneSelectOption> = []
+	private options: Stream<TimeZoneSelectOption[]> = stream()
 
 	oninit({ attrs }: Vnode<TimeZoneSelectorDropdownAttrs>) {
 		this.timeZoneOptionsList = IANATimeZonesList.map((timeZone) => {
@@ -37,38 +38,31 @@ export class TimeZoneSelectorDropdown implements Component<TimeZoneSelectorDropd
 				timeZoneGMTOffset: `GMT${getTimeZoneOffsetString(dateTimeInTimeZone)}`,
 			}
 		})
+
+		this.options = stream([...this.timeZoneOptionsList])
 	}
 
 	public view({ attrs }: Vnode<TimeZoneSelectorDropdownAttrs>): Children {
-		return m(
-			Card,
-			{ style: { padding: px(0) } },
-			m(Select<TimeZoneSelectOption, string>, {
-				onchange: (val) => {
-					attrs.onSelectionChanged(val.value)
-				},
-				options: stream(this.timeZoneOptionsList),
-				expanded: true,
-				selected: this.getSelected(attrs.selectedTimeZone),
-				renderOption: this.renderOption,
-				renderDisplay: this.renderOption,
-				ariaLabel: "Calendar",
-				classes: ["pr-8"],
-			} satisfies SelectAttributes<TimeZoneSelectOption, string>),
-		)
-	}
+		const selected = this.getSelected(attrs.selectedTimeZone)!
+		const selectedLabelText = `${selected.timeZoneLongName} (${selected.timeZoneGMTOffset})`
 
-	private renderOption(option: TimeZoneSelectOption) {
-		return m(".flex.items-center.gap-8.plr-12.pt-8.pb-8", [
-			m(Icon, {
+		return m(DropDownSelectorNew, {
+			label: lang.makeTranslation(selectedLabelText, selectedLabelText),
+			items: this.options().map((op) => ({
+				name: op.timeZoneName,
+				value: op,
 				icon: Icons.GlobeOutline,
-				size: IconSize.PX24,
-				style: {
-					fill: theme.on_surface_variant,
-				},
-			}),
-			m(".flex.col", [m("small.faded", `${option.timeZoneLongName} (${option.timeZoneGMTOffset})`), m("span", option.timeZoneName)]),
-		])
+				secondaryTextLine: `${op.timeZoneLongName} (${op.timeZoneGMTOffset})`,
+			})),
+			selectedValue: selected,
+			icon: {
+				icon: Icons.GlobeOutline,
+				color: theme.on_surface_variant,
+			},
+			selectionChangedHandler: (selectedOption) => {
+				attrs.onSelectionChanged(selectedOption.value)
+			},
+		} satisfies DropDownSelectorNewAttrs<TimeZoneSelectOption>)
 	}
 
 	private getSelected(startTimeZone: string) {
