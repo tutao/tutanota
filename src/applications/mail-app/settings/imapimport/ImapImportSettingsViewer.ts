@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import { showAddImapImportWizard } from "./AddImapImportWizard.js"
 import { assertMainOrNode, UpgradePromptType } from "@tutao/app-env"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces"
-import { ImapMailImportController } from "./ImapMailImportController.js"
+import { ImapImportUiSession, ImapMailImportController } from "./ImapMailImportController.js"
 import { mailLocator } from "../../mailLocator.js"
 import { theme } from "../../../../ui/theme"
 import { TitleSection } from "../../../../ui/TitleSection.js"
@@ -262,6 +262,12 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 	private renderImapImportHistory(mailboxDetail: MailboxDetail, isSingleMailbox: boolean) {
 		const mailboxLabel = isSingleMailbox ? "" : " · " + getMailboxName(mailLocator.logins, mailboxDetail)
 		const mailboxId = mailboxDetail.mailbox._id
+		const canceledImapImportUiSessionsForMailGroup = this.imapImportController().canceledImapImportUiSessions.filter(
+			(session) => session.mailGroupId === mailboxDetail.mailGroup._id,
+		)
+		if (canceledImapImportUiSessionsForMailGroup.length <= 0) {
+			return null
+		}
 		return [
 			m(".flex-space-between.items-center.mt-4.mb-4", [
 				m(".h5", lang.getTranslation("migrationHistory_label").text + mailboxLabel),
@@ -278,15 +284,12 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 				{
 					expanded: this.mailboxIdToImportHistoryExpanded.get(mailboxId) || false,
 				},
-				this.renderPastSyncSessionsForMailbox(mailboxDetail),
+				this.renderPastSyncSessionsForMailboxCancelledSessions(canceledImapImportUiSessionsForMailGroup),
 			),
 		]
 	}
 
-	private renderPastSyncSessionsForMailbox(mailboxDetail: MailboxDetail): Children {
-		const canceledImapImportUiSessionsForMailGroup = this.imapImportController().canceledImapImportUiSessions.filter(
-			(session) => session.mailGroupId === mailboxDetail.mailGroup._id,
-		)
+	private renderPastSyncSessionsForMailboxCancelledSessions(canceledImapImportUiSessionsForMailGroup: ImapImportUiSession[]): Children {
 		return canceledImapImportUiSessionsForMailGroup.map((session) => {
 			const statusIcon = Icons.Checkmark
 			const statusIconParameters: Partial<IconAttrs> = {
