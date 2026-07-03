@@ -29,6 +29,9 @@ declare global {
 		 * It's existence can be used to determine whether or not we are inside a web dialog
 		 * */
 		nativeAppWebDialog: NativeApp | undefined
+
+		// TODO: REMOVE!
+		checkTzLists: () => void
 	}
 
 	interface WorkerGlobalScope {
