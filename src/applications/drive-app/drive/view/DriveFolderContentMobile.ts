@@ -10,7 +10,7 @@ import { IconButton } from "../../../../ui/base/IconButton"
 import { attachDropdown } from "../../../../ui/base/Dropdown"
 import { formatDateTime, formatStorageSize } from "../../../../ui/utils/Formatter"
 import { FileActions } from "./DriveFolderContentEntry"
-import { getContextActions } from "./DriveGuiUtils"
+import { getFileContextActions } from "./DriveGuiUtils"
 import { DriveFolderSelectionEvents } from "./DriveFolderContent"
 import { getDisplayType, getFileIcon, getItemIconFill } from "../model/DriveMimeUtils"
 import { assertNotNull, filterInt } from "@tutao/utils"
@@ -121,9 +121,8 @@ class DriveFolderItemRow implements ViewHolder<FolderItem> {
 								title: "more_label",
 							},
 							childAttrs: async () => {
-								const { onCopy, onCut, onDelete, onDownload, onRename, onRestore, onStartMove, onTrash } = this.fileActions()
 								if (this.item) {
-									return getContextActions(this.item, onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete, onDownload)
+									return getFileContextActions(this.item, this.fileActions())
 								} else {
 									return []
 								}
