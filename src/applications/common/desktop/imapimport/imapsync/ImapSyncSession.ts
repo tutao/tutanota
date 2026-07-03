@@ -6,8 +6,7 @@ import { ProgrammingError } from "@tutao/app-env"
 import { ImapMailbox, imapMailboxFromImapFlowListTreeResponse } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
 import { ImapSyncConfig } from "./ImapSync.js"
 import { ImapError, ImapErrorCause } from "../../../api/common/error/ImapError"
-import type { ImapFlow } from "imapflow"
-import type { ImapFlowOptions, ListTreeResponse } from "imapflow"
+import type { ImapFlow, ImapFlowOptions, ListTreeResponse } from "imapflow"
 import { IMAP_ERROR_POSTPONE_TIME, ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
 import { assertNotNull, first, isEmpty, isNotEmpty } from "@tutao/utils"
 
@@ -57,7 +56,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		private imapSyncConfig: ImapSyncConfig,
 		private imapFlowFactory: ImapFlowFactory = async (config) => {
 			const { ImapFlow } = await import("./imapflow-custom")
-			return new ImapFlow(config)
+			return new ImapFlow({ ...config, logger: false })
 		},
 	) {
 		this.state = SyncSessionState.PAUSED
