@@ -37,9 +37,9 @@ export async function renderHtml(scripts, env) {
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 	${scripts.map(renderScriptImport).join("\n\t")}
 	<!-- TutanotaTags -->
-	<title>${env.mode === "App" || env.mode === "Desktop" ? "Tuta Mail" : "Tuta Mail: Login &amp; Sign up for free"}</title>
-	<meta name="description" content="Sign-up for Tuta Mail: Get a free email account with quantum-safe encryption and best privacy for all your emails, calendars and contacts.">
-	<meta name="application-name" content="Tuta Mail">
+	<title>${env.mode === "App" || env.mode === "Desktop" ? "Tuta" : "Tuta: Login &amp; Sign up for free"}</title>
+	<meta name="description" content="Sign-up for Tuta: Get a free email account with quantum-safe encryption and best privacy for all your emails, calendars and contacts.">
+	<meta name="application-name" content="Tuta">
 	<link rel="icon" type="image/svg+xml" href="/images/logo-favicon.svg">
 	<link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
 	<link rel="icon" type="image/png" sizes="192x192" href="/images/logo-favicon-192.png">
@@ -48,7 +48,7 @@ export async function renderHtml(scripts, env) {
     <meta name="twitter:domain" content="tuta.com">
     <meta name="twitter:image" content="https://tuta.com/resources/images/share-tutanota-twitter-thumbnail.png">
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Tuta Mail">
+    <meta property="og:site_name" content="Tuta">
     <meta property="og:title" content="Turn ON Privacy">
     <meta property="og:description"
           content="Get a free email account with quantum-safe encryption and best privacy on all your devices. Green, secure &amp; no ads!">
