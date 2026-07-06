@@ -3,6 +3,7 @@ import { CalendarEvent, CalendarEventAttendee } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus } from "../../../../../entities/tutanota/Utils"
 import {
 	addDaysForRecurringEvent,
+	AlarmInterval,
 	calendarEventHasMoreThanOneOccurrencesLeft,
 	CalendarTimeRange,
 	getStartOfDayWithZone,
@@ -70,6 +71,7 @@ export class CalendarEventPreviewViewModel {
 	 * @param lazyIndexEntry async function to resolve the progenitor of the shown event
 	 * @param eventModelFactory
 	 * @param calendarInviteHandler
+	 * @param alarms
 	 * @param highlightedStrings
 	 * @param uiUpdateCallback
 	 */
@@ -82,6 +84,7 @@ export class CalendarEventPreviewViewModel {
 		private readonly lazyIndexEntry: () => Promise<ResolvedUidIndexEntry | null>,
 		private readonly eventModelFactory: (mode: CalendarOperation, event: CalendarEvent) => Promise<CalendarEventModel | null>,
 		private readonly calendarInviteHandler: () => Promise<CalendarInviteHandler>,
+		public readonly alarms: AlarmInterval[] | Error,
 		private readonly highlightedStrings?: readonly SearchToken[],
 		private readonly uiUpdateCallback: () => void = m.redraw,
 	) {
@@ -419,5 +422,9 @@ export class CalendarEventPreviewViewModel {
 	getCalendarInfoBase(): CalendarInfoBase | null {
 		if (!this.calendarEvent._ownerGroup) return null
 		return this.calendar.getSync() ?? null
+	}
+
+	getEventAlarmsTriggers() {
+		this.calendarEvent.alarmInfos
 	}
 }

@@ -2398,6 +2398,7 @@ export default {
 		"startAndEndTimeZone_title": "Start- und Endzeitzone",
 		"endTimeZone_title": "Endzeitzone",
 		"confirm_action": "Bestätigen",
-		"removeTimeZone_action": "Zeitzone entfernen"
+		"removeTimeZone_action": "Zeitzone entfernen",
+		"failedToLoadAlarms_error": "Failed to load alarms"
 	}
 }
