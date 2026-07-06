@@ -35,7 +35,8 @@ import { FileTypeRef } from "@tutao/entities/sys"
 
 const DEFAULT_TUTA_SERVER_SUSPENSION_POSTPONE_TIME = 120 * 1000 // 120 seconds
 const IMAP_IMPORT_RESYNC_INTERVAL_MS = 15 * 60 * 1000 // 15 minutes
-const DEFAULT_TUTA_SERVER_ERROR_POSTPONE_TIME = 25 * 60 * 60 * 1000 // 25 hours
+const DEFAULT_TUTA_SERVER_STORAGE_ERROR_POSTPONE_TIME = 25 * 60 * 60 * 1000 // 25 hours
+const DEFAULT_TUTA_SERVER_ERROR_POSTPONE_TIME = 60 * 1000 // 60 seconds
 
 type BaseInitializeImapImportParams = {
 	mailGroupId: Id
@@ -438,6 +439,12 @@ export class ImapImporter implements ImapSyncFacade {
 						await this.postponeImport(
 							accountSyncStateId,
 							new Date(Date.now() + (error.data ? parseInt(error.data) : DEFAULT_TUTA_SERVER_SUSPENSION_POSTPONE_TIME)),
+						)
+					} else if (error.name === "InsufficientStorageError") {
+						console.error("There was a storage error while importing using imap importer, postponing for a day ... ", error)
+						await this.postponeImport(
+							accountSyncStateId,
+							new Date(Date.now() + (error.data ? parseInt(error.data) : DEFAULT_TUTA_SERVER_STORAGE_ERROR_POSTPONE_TIME)),
 						)
 					} else {
 						console.error("There was some unknown error while importing using imap importer ... ", error)
