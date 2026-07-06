@@ -3067,8 +3067,8 @@ export class MainStyles {
 				".tutaui-toggle-pill": {
 					position: "relative",
 					display: "block",
-					width: "45.5px",
-					height: "28px",
+					width: "52px",
+					height: "32px",
 					"background-color": theme.surface_container_high,
 					"border-radius": px(size.spacing_8 * 4),
 					border: `2px solid ${theme.outline}`,
@@ -3077,14 +3077,14 @@ export class MainStyles {
 				".tutaui-toggle-pill:after": {
 					position: "absolute",
 					content: "''",
-					width: "21px",
-					height: "21px",
+					width: "16px",
+					height: "16px",
 					top: "50%",
 					"-webkit-transform": "translateY(-50%)",
 					"-moz-transform": "translateY(-50%)",
 					"-ms-transform": "translateY(-50%)",
 					transform: "translateY(-50%)",
-					margin: "0 4px",
+					margin: "0 8px",
 					"background-color": theme.outline,
 					"border-radius": "50%",
 					left: 0,
@@ -3409,6 +3409,15 @@ export class MainStyles {
 					border: `2px solid ${theme.outline}`,
 					"max-width": "250px",
 					"z-index": 1,
+				},
+				".event-editor-section": {
+					height: "48px",
+				},
+				".ml-auto": {
+					"margin-left": "auto",
+				},
+				".mr-auto": {
+					"margin-left": "auto",
 				},
 			}
 		})
