@@ -3,13 +3,13 @@ import { CalendarInviteHandler, ReplyResult } from "../../../src/applications/ca
 import { createTestEntity } from "../TestUtils.js"
 
 import { findAttendeeInAddresses } from "../../../src/applications/common/api/common/utils/CommonCalendarUtils.js"
-import { instance, matchers, verify, when } from "testdouble"
+import { instance, matchers, object, verify, when } from "testdouble"
 import { CalendarInfo, CalendarModel } from "../../../src/applications/calendar-app/calendar/model/CalendarModel.js"
 import { LoginController } from "../../../src/applications/common/api/main/LoginController.js"
 import { makeCalendarInfo, makeUserController, ownCalendarId } from "./CalendarTestUtils.js"
 import { UserController } from "../../../src/applications/common/api/main/UserController.js"
 import { CalendarNotificationSender } from "../../../src/applications/calendar-app/calendar/view/CalendarNotificationSender.js"
-import { SendMailModel } from "../../../src/applications/common/mailFunctionality/SendMailModel.js"
+import { InitAsResponseArgs, SendMailModel } from "../../../src/applications/common/mailFunctionality/SendMailModel.js"
 import { MailboxDetail, MailboxModel } from "../../../src/applications/common/mailFunctionality/MailboxModel.js"
 import { CalendarEventProgenitor } from "../../../src/applications/common/api/worker/facades/lazy/CalendarFacade"
 import {
@@ -246,6 +246,78 @@ o.spec("CalendarInviteHandlerTest", function () {
 				)
 				verify(calendarModel.processUpdateToCalendarEventFromIcs(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 			})
+		})
+
+		o.test("Reply from eventPreview sends email with invited address", async function () {
+			const ownAlias = "own-alias@tuta.io"
+
+			event.attendees = [
+				createTestEntity(CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(EncryptedMailAddressTypeRef, {
+						address: SENDER_ADDRESS,
+					}),
+					status: CalendarAttendeeStatus.ACCEPTED,
+				}),
+				createTestEntity(CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(EncryptedMailAddressTypeRef, {
+						address: ownAlias,
+					}),
+					status: CalendarAttendeeStatus.NEEDS_ACTION,
+				}),
+			]
+			ownAttendee = findAttendeeInAddresses(event.attendees, [ownAlias])!
+
+			const replyResult = await calendarInviteHandler.replyToEventInvitation(event, ownAttendee, CalendarAttendeeStatus.ACCEPTED, null, mailboxDetails)
+			o.check(replyResult).equals(ReplyResult.ReplySent)
+
+			const notificationSenderCaptor = matchers.captor()
+			verify(calendarNotificationSender.sendResponse(matchers.anything(), notificationSenderCaptor.capture(), matchers.anything()), { times: 1 })
+
+			const responseModel: SendMailModel = notificationSenderCaptor.value
+			verify(responseModel.initWithTemplate({}, "", "", [], false, ownAlias), { times: 1 })
+		})
+
+		o.test("Reply from eventBanner sends email with invited address", async function () {
+			const ownAlias = "own-alias@tuta.io"
+
+			event.attendees = [
+				createTestEntity(CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(EncryptedMailAddressTypeRef, {
+						address: SENDER_ADDRESS,
+					}),
+					status: CalendarAttendeeStatus.ACCEPTED,
+				}),
+				createTestEntity(CalendarEventAttendeeTypeRef, {
+					address: createTestEntity(EncryptedMailAddressTypeRef, {
+						address: ownAlias,
+					}),
+					status: CalendarAttendeeStatus.NEEDS_ACTION,
+				}),
+			]
+			ownAttendee = findAttendeeInAddresses(event.attendees, [ownAlias])!
+
+			const mockPreviousMail: Mail = object()
+
+			const replyResult = await calendarInviteHandler.replyToEventInvitation(
+				event,
+				ownAttendee,
+				CalendarAttendeeStatus.ACCEPTED,
+				mockPreviousMail,
+				mailboxDetails,
+			)
+			o.check(replyResult).equals(ReplyResult.ReplySent)
+
+			const notificationSenderCaptor = matchers.captor()
+			verify(calendarNotificationSender.sendResponse(matchers.anything(), notificationSenderCaptor.capture(), matchers.anything()), { times: 1 })
+
+			const responseModel: SendMailModel = notificationSenderCaptor.value
+			verify(
+				responseModel.initAsResponse(
+					matchers.argThat((args: InitAsResponseArgs) => args.senderMailAddress === ownAlias),
+					matchers.anything(),
+				),
+				{ times: 1 },
+			)
 		})
 
 		o.test("Reply to a confidential email sends out a confidential reply", async function () {

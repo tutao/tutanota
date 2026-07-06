@@ -423,8 +423,4 @@ export class CalendarEventPreviewViewModel {
 		if (!this.calendarEvent._ownerGroup) return null
 		return this.calendar.getSync() ?? null
 	}
-
-	getEventAlarmsTriggers() {
-		this.calendarEvent.alarmInfos
-	}
 }

@@ -120,7 +120,6 @@ export class CalendarInviteHandler {
 			throw new Error("Replying to an event without an organizer")
 		}
 		const eventClone = clone(event)
-		eventClone.invitedConfidentially = previousMail ? previousMail.confidential : eventClone.invitedConfidentially
 		eventClone.pendingInvitation = false
 
 		const foundAttendee = assertNotNull(findAttendeeInAddresses(eventClone.attendees, [attendee.address.address]), "attendee was not found in event clone")
@@ -132,7 +131,11 @@ export class CalendarInviteHandler {
 		//  This function is only called by EventBanner from the mail app so this should be okay.
 		const resolvedMailboxDetails = mailboxDetails ?? (await this.mailboxModel.getUserMailboxDetails())
 		const sender = previousMail?.sender.address || event.sender || event.organizer.address
-		const responseModel = await this.getResponseModelForMail(previousMail, resolvedMailboxDetails, attendee.address.address, decision, sender)
+		const responseModel = await this.getResponseModelForMail(previousMail, resolvedMailboxDetails, foundAttendee.address.address, decision, sender)
+
+		eventClone.invitedConfidentially = previousMail
+			? previousMail.confidential
+			: Boolean(eventClone.invitedConfidentially || responseModel?.isConfidential())
 
 		try {
 			await notificationModel.send(
@@ -202,7 +205,7 @@ export class CalendarInviteHandler {
 		await model.addRecipient(RecipientField.TO, { address: sender })
 
 		if (!previousMail) {
-			await model.initWithTemplate({}, "", "")
+			await model.initWithTemplate({}, "", "", [], false, responder)
 			return model
 		}
 
