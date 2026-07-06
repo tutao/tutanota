@@ -1,6 +1,5 @@
 import { Range } from "../../../../../app-kit/local-store/OfflineStorage.js"
 import {
-	AttributeModel,
 	collapseId,
 	CUSTOM_MAX_ID,
 	CUSTOM_MIN_ID,
@@ -12,23 +11,21 @@ import {
 	get_IdValue,
 	getServerIdEncodingForType,
 	getTypeString,
-	hasError,
 	isCustomIdType,
 	isSameTypeRef,
 	ListElementEntity,
 	listIdPart,
 	OperationType,
 	parseTypeString,
-	ServerModelParsedInstance,
 	SomeEntity,
 	TypeModel,
 	TypeRef,
 	ValueType,
 } from "@tutao/meta"
-import { assertNotNull, downcast, getFirstOrThrow, groupBy, isNotEmpty, isNotNull, lastThrow, lazyAsync, Nullable } from "@tutao/utils"
+import { assertNotNull, getFirstOrThrow, groupBy, isNotEmpty, isNotNull, lastThrow, lazyAsync, Nullable } from "@tutao/utils"
 import { assertWorkerOrNode, isTest, ProgrammingError } from "@tutao/app-env"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../../../../../app-kit/local-store/event/EventBusClient.js"
-import { OwnerEncSessionKeyProvider, PatchMerger, TypeModelResolver } from "@tutao/instance-pipeline"
+import { DecryptedParsedInstance, OwnerEncSessionKeyProvider, PatchMerger, TypeModelResolver } from "@tutao/instance-pipeline"
 import { LastProcessedEventBatchProvider } from "../../../../../platform-kit/network/LastProcessedEventBatchProvider.js"
 import { CacheStorage } from "../../../../../app-kit/local-store/CacheStorage"
 import { EntityRestCache } from "../../../../../platform-kit/network/EntityRestCacheInterface"
@@ -154,7 +151,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 		if (cachedEntity == null) {
 			const parsedInstance = await this.entityRestClient.loadParsedInstance(typeRef, id, opts)
-			if (cachingBehavior.writesToCache && !hasError(parsedInstance)) {
+			if (cachingBehavior.writesToCache && !parsedInstance.hasError()) {
 				await this.storage.put(typeRef, parsedInstance)
 			}
 
@@ -250,19 +247,18 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<Array<T>> {
 		const cachingBehavior = getCacheModeBehavior(opts.cacheMode)
-		let entitiesInCache: ServerModelParsedInstance[] = []
+		let entitiesInCache = new Array<DecryptedParsedInstance>()
 
-		let idsToLoad: Id[]
+		let idsToLoad = new Array<Id>()
 		if (cachingBehavior.readsFromCache) {
-			const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 			const cached = await this.storage.provideMultipleParsed(typeRef, listId, ids)
 			entitiesInCache.push(...cached)
 			const loadedIds = new Set(
 				entitiesInCache.map((e) => {
 					if (listId) {
-						return elementIdPart(downcast<IdTuple>(AttributeModel.getAttribute(e, "_id", typeModel)))
+						return elementIdPart(e.getAttributeByName("_id").asIdTuple())
 					} else {
-						return downcast<Id>(AttributeModel.getAttribute(e, "_id", typeModel))
+						return e.getAttributeByName("_id").asId()
 					}
 				}),
 			)
@@ -478,7 +474,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		listId: Id,
 		countRequested: number,
 		wasReverseRequest: boolean,
-		receivedEntities: ServerModelParsedInstance[],
+		receivedEntities: DecryptedParsedInstance[],
 	) {
 		// Filter out parsed instances after the first instances with SessionKeyNotFoundErrors in _errors,
 		// because we should NEVER store instances in the storage that have a temporary decryption error
@@ -492,13 +488,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 
-		const ownerEncSessionKeyAttributeId = AttributeModel.getAttributeId(typeModel, "_ownerEncSessionKey")
-
 		// look for first instance with a SessionKeyNotFoundError. See CryptoMapper.decryptParsedInstance.
-		const errorRangeBound = allInstances.findIndex((instance) => hasError(instance, ownerEncSessionKeyAttributeId))
+		const errorRangeBound = allInstances.findIndex((instance) => instance.hasError("_ownerEncSessionKey"))
 
-		const instancesWithoutSessionKeyNotFoundErrors = errorRangeBound !== -1 ? allInstances.slice(0, errorRangeBound) : allInstances
-		const instancesWithoutErrors = instancesWithoutSessionKeyNotFoundErrors.filter((instance) => true)
+		const instancesWithoutErrors = errorRangeBound !== -1 ? allInstances.slice(0, errorRangeBound) : allInstances
 
 		await this.storage.putMultiple(typeRef, instancesWithoutErrors)
 
@@ -511,15 +504,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			if (isFinishedLoading) {
 				console.log("finished loading, setting min id")
 				await this.storage.setLowerRangeForList(typeRef, listId, isCustomId ? CUSTOM_MIN_ID : GENERATED_MIN_ID)
-			} else if (isNotEmpty(instancesWithoutSessionKeyNotFoundErrors)) {
+			} else if (isNotEmpty(instancesWithoutErrors)) {
 				// When all receivedEntities have SessionKeyNotFound errors, and therefore instancesWithoutSessionKeyNotFoundErrors is empty, do nothing
 
 				// After reversing the list the first element in the list is the lower range limit
-				await this.storage.setLowerRangeForList(
-					typeRef,
-					listId,
-					elementIdPart(AttributeModel.getAttribute(getFirstOrThrow(instancesWithoutSessionKeyNotFoundErrors), "_id", typeModel)),
-				)
+				const id = getFirstOrThrow(instancesWithoutErrors).getAttributeByName("_id").asIdTuple()
+				await this.storage.setLowerRangeForList(typeRef, listId, elementIdPart(id))
 			}
 		} else {
 			// When all receivedEntities have SessionKeyNotFound errors, and therefore instancesWithoutSessionKeyNotFoundErrors is empty, do nothing
@@ -529,12 +519,9 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				// all elements have been loaded, so the upper range must be set to MAX_ID
 				console.log("finished loading, setting max id")
 				await this.storage.setUpperRangeForList(typeRef, listId, isCustomId ? CUSTOM_MAX_ID : GENERATED_MAX_ID)
-			} else if (isNotEmpty(instancesWithoutSessionKeyNotFoundErrors)) {
-				await this.storage.setUpperRangeForList(
-					typeRef,
-					listId,
-					elementIdPart(AttributeModel.getAttribute(lastThrow(instancesWithoutSessionKeyNotFoundErrors), "_id", typeModel)),
-				)
+			} else if (isNotEmpty(instancesWithoutErrors)) {
+				const id = lastThrow(instancesWithoutErrors).getAttributeByName("_id").asIdTuple()
+				await this.storage.setUpperRangeForList(typeRef, listId, elementIdPart(id))
 			}
 		}
 	}
@@ -777,7 +764,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			await this.storage.deleteMultiple(typeRef, deleteEventIds)
 			deleteEvents.map((entityUpdate) => (entityUpdate.cachingStatus = CachingStatus.CacheUpdated))
 
-			const entityUpdatesWithValidInstances = entityUpdates.filter((entityUpdate) => entityUpdate.instance !== null && !hasError(entityUpdate.instance))
+			const entityUpdatesWithValidInstances = entityUpdates.filter((entityUpdate) => entityUpdate.instance !== null && !entityUpdate.instance.hasError())
 			const instances = entityUpdatesWithValidInstances.map((entityUpdate) => entityUpdate.instance).filter(isNotNull)
 			await this.storage.putMultiple(typeRef, instances)
 			if (isSameTypeRef(MailTypeRef, typeRef)) {
@@ -785,7 +772,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				// UPDATE events are valid already if they are in the entityUpdatesWithValidInstances list
 				const entityUpdatesWithValidMails = entityUpdatesWithValidInstances.filter(
 					(entityUpdate) =>
-						entityUpdate.operation === OperationType.UPDATE || (entityUpdate.blobInstance !== null && !hasError(entityUpdate.blobInstance)),
+						entityUpdate.operation === OperationType.UPDATE || (entityUpdate.blobInstance !== null && !entityUpdate.blobInstance.hasError()),
 				)
 				const blobInstances = entityUpdatesWithValidMails.map((entityUpdate) => entityUpdate.blobInstance).filter(isNotNull)
 				await this.storage.putMultiple(MailDetailsBlobTypeRef, blobInstances)
@@ -802,20 +789,20 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	 */
 	private async loadAndStoreInstanceFromUpdate(update: EntityUpdateData) {
 		const instanceOnUpdate = update.instance
-		if (instanceOnUpdate != null && !hasError(instanceOnUpdate)) {
+		if (instanceOnUpdate != null && !instanceOnUpdate.hasError()) {
 			// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
 			await this.storage.put(update.typeRef, instanceOnUpdate)
 
 			// save MailDetails blobs
 			const blobInstanceOnUpdate = update.blobInstance
-			if (blobInstanceOnUpdate != null && !hasError(blobInstanceOnUpdate) && isSameTypeRef(update.typeRef, MailTypeRef)) {
+			if (blobInstanceOnUpdate != null && !blobInstanceOnUpdate.hasError() && isSameTypeRef(update.typeRef, MailTypeRef)) {
 				await this.storage.put(MailDetailsBlobTypeRef, blobInstanceOnUpdate)
 			}
 			return update
 		} else {
 			console.log("re-downloading instance from entity event, due to error : ", getTypeString(update.typeRef), update.instanceListId, update.instanceId)
 			const instanceFromServer = await this.entityRestClient.loadParsedInstance(update.typeRef, collapseId(update.instanceListId, update.instanceId))
-			if (!hasError(instanceFromServer)) {
+			if (instanceFromServer != null && !instanceFromServer.hasError()) {
 				// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
 				await this.storage.put(update.typeRef, instanceFromServer)
 				return update

@@ -13,7 +13,7 @@ import {
 	ImportMailFacade,
 	ImportMailParams,
 } from "../../../../../src/applications/common/api/worker/facades/lazy/ImportMailFacade"
-import { createTestEntity } from "../../../TestUtils"
+import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils"
 import { ArchiveDataType } from "../../../../../src/entities/sys/Utils"
 import {
 	FileTypeRef,
@@ -31,6 +31,7 @@ import { IMPORT_MAIL_SERVICE_SIZE_LIMIT } from "../../../../../src/platform-kit/
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade"
 import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
+import { OutgoingServerJson } from "../../../../../src/platform-kit/instance-pipeline/TypeMapper"
 
 const { anything } = matchers
 
@@ -84,7 +85,7 @@ o.spec("ImportMailFacade", () => {
 		imapFolderSyncState: imapFolderSyncStateIdMock,
 	}
 
-	o.beforeEach(() => {
+	o.beforeEach(async () => {
 		mailFacadeMock = object<MailFacade>()
 		serviceExecutorMock = object<IServiceExecutor>()
 		entityClientMock = object<EntityClient>()
@@ -104,10 +105,13 @@ o.spec("ImportMailFacade", () => {
 			instancePipelineMock,
 			cryptoWrapperMock,
 		)
+		const typeModelResolver = clientInitializedTypeModelResolver()
+		const typeModel = await typeModelResolver.resolveClientTypeReference(ImportMailDataTypeRef)
+		const serverJson = OutgoingServerJson.newFromRecord({ subject: "encypted subject" }, typeModel)
 
 		when(keyLoaderMock.getCurrentSymGroupKey(mailGroupId)).thenResolve(mailGroupKeyMock)
 		when(cryptoWrapperMock.encryptKeyWithVersionedKey(anything(), anything())).thenReturn({ key: new Uint8Array([1, 2, 3]), encryptingKeyVersion: 0 })
-		when(instancePipelineMock.mapAndEncrypt(anything(), anything(), anything())).thenResolve({ some: "encrypted" })
+		when(instancePipelineMock.mapAndEncrypt(anything(), anything(), anything())).thenResolve(serverJson)
 	})
 
 	o.test("importMails - successfully imports a single mail without attachments", async () => {

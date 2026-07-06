@@ -9,9 +9,14 @@ import { DesktopAlarmStorage } from "../../../../src/applications/common/desktop
 import { DesktopNativeCryptoFacade } from "../../../../src/applications/common/desktop/DesktopNativeCryptoFacade.js"
 import { makeAlarmScheduler } from "../../calendar/CalendarTestUtils.js"
 import { matchers, object, verify, when } from "testdouble"
-import { ServerModelUntypedInstance } from "../../../../src/platform-kit/meta"
-import { AlarmScheduler } from "../../../../src/applications/common/calendar/date/AlarmScheduler.js"
-import { createTestEntity, makePopulatedClientModelInfo } from "../../TestUtils"
+import { AlarmScheduler, EventInfo } from "../../../../src/applications/common/calendar/date/AlarmScheduler.js"
+import {
+	clientInitializedTypeModelResolver,
+	createTestEntity,
+	instancePipelineFromTypeModelResolver,
+	remove_typeFromEntity,
+	removeOriginals,
+} from "../../TestUtils"
 import { EncryptedAlarmNotification } from "../../../../src/app-kit/native-bridge/common/EncryptedAlarmNotification"
 
 import { formatNotificationForDisplay } from "../../../../src/ui/utils/Formatter"
@@ -24,11 +29,16 @@ import {
 	NotificationSessionKeyTypeRef,
 	RepeatRuleTypeRef,
 } from "@tutao/entities/sys"
+import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
+import { aesEncrypt } from "../../../../src/platform-kit/crypto"
+import { changeInstanceDirection } from "../../instance-pipeline/InstancePipelineTestUtils"
+import { InstanceDirection } from "../../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 const oldTimezone = process.env.TZ
 const userId = "userId1"
+const sk = aes256RandomKey()
 
-o.spec("DesktopAlarmScheduler", function () {
+o.spec("DesktopAlarmSchedulerTest", function () {
 	o.before(function () {
 		process.env.TZ = "Europe/Berlin"
 	})
@@ -51,8 +61,6 @@ o.spec("DesktopAlarmScheduler", function () {
 			console.log("show notification!")
 		},
 	}
-
-	const typeModelResolver = makePopulatedClientModelInfo()
 	const standardMocks = () => {
 		// node modules
 		// our modules
@@ -64,17 +72,22 @@ o.spec("DesktopAlarmScheduler", function () {
 		const wmMock = n.mock<WindowManager>("__wm", wm).set()
 
 		const notifierMock = n.mock<DesktopNotifier>("__notifier", notifier).set()
+		const instancePipeline = instancePipelineFromTypeModelResolver(clientInitializedTypeModelResolver())
 
-		const alarmStorage = {
-			storeAlarm: spy(() => Promise.resolve()),
-			deleteAlarm: spy(() => Promise.resolve()),
-			getPushIdentifierSessionKey: () => Promise.resolve("piSk"),
-			getScheduledAlarms: () => [],
-			removePushIdentifierKey: () => {},
-			encryptAlarmNotification: (an) => Promise.resolve(an),
-			decryptAlarmNotification: (an) => Promise.resolve(an),
+		const alarmStorageMockBuilder = n.mock<DesktopAlarmStorage>("__alarmStorage", new DesktopAlarmStorage(null!, cryptoMock, null!, null!))
+		alarmStorageMockBuilder._mock.storeAlarm = spy(() => Promise.resolve())
+		alarmStorageMockBuilder._mock.deleteAlarm = spy(() => Promise.resolve())
+		alarmStorageMockBuilder._mock.getPushIdentifierSessionKey = () => Promise.resolve(aes256RandomKey())
+		alarmStorageMockBuilder._mock.getScheduledAlarms = () => Promise.resolve([])
+		alarmStorageMockBuilder._mock.removePushIdentifierKey = () => Promise.resolve()
+		alarmStorageMockBuilder._mock.encryptAlarmNotification = (an) => instancePipeline.mapAndEncryptToParsedInstance(AlarmNotificationTypeRef, an, sk)
+		alarmStorageMockBuilder._mock.decryptAlarmNotification = async (an) => {
+			const notif = await instancePipeline.decryptAndMapEncryptedInstance<AlarmNotification>(an.encryptedInstance, sk)
+			removeOriginals(notif)
+			remove_typeFromEntity(notif)
+			return notif
 		}
-		const alarmStorageMock = n.mock<DesktopAlarmStorage>("__alarmStorage", alarmStorage).set()
+		const alarmStorageMock = alarmStorageMockBuilder.set()
 
 		return {
 			langMock,
@@ -114,13 +127,11 @@ o.spec("DesktopAlarmScheduler", function () {
 				interval: "1",
 			})
 			// crypto is a stub which just returns things back
-			alarmStorageMock.getScheduledAlarms = async () =>
-				Promise.resolve([
-					await EncryptedAlarmNotification.from(
-						(await alarmStorageMock.encryptAlarmNotification(an, null)) as ServerModelUntypedInstance,
-						typeModelResolver,
-					),
-				])
+			alarmStorageMock.getScheduledAlarms = async () => {
+				const encryptedAlarm = await alarmStorageMock.encryptAlarmNotification(an, null)
+				changeInstanceDirection(encryptedAlarm, InstanceDirection.IncomingFromServer)
+				return Promise.resolve([new EncryptedAlarmNotification(encryptedAlarm)])
+			}
 
 			await scheduler.rescheduleAll()
 
@@ -133,7 +144,7 @@ o.spec("DesktopAlarmScheduler", function () {
 						startTime: an.eventStart,
 						endTime: an.eventEnd,
 						summary: an.summary,
-					},
+					} satisfies EventInfo,
 					an.alarmInfo,
 					an.repeatRule,
 					matchers.anything(),
@@ -274,7 +285,7 @@ function createAlarmNotification({ startTime, endTime, trigger, endType, endValu
 		notificationSessionKeys: [
 			createTestEntity(NotificationSessionKeyTypeRef, {
 				_id: `notificationSessionKeysId${alarmIdCounter}`,
-				pushIdentifierSessionEncSessionKey: stringToUtf8Uint8Array(`pushIdentifierSessionEncSessionKey${alarmIdCounter}`),
+				pushIdentifierSessionEncSessionKey: aesEncrypt(sk, stringToUtf8Uint8Array(`pushIdentifierSessionEncSessionKey${alarmIdCounter}`)),
 				pushIdentifier: [`pushIdentifier${alarmIdCounter}Part1`, `pushIdentifier${alarmIdCounter}Part2`],
 			}),
 		],

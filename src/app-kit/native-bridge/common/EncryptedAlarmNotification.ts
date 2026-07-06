@@ -1,71 +1,29 @@
-import { assertNotNull, base64ToUint8Array } from "../../../platform-kit/utils"
-import { AttributeModel, isSameId } from "../../../platform-kit/meta"
-import { ServerModelUntypedInstance, TypeModel, UntypedInstance } from "../../../platform-kit/meta/EntityTypes"
-import { ClientTypeModelResolver } from "../../../platform-kit/instance-pipeline/EntityFunctions"
-import {
-	AlarmInfoTypeRef,
-	AlarmNotificationTypeRef,
-	createNotificationSessionKey,
-	NotificationSessionKey,
-	NotificationSessionKeyTypeRef,
-} from "@tutao/entities/sys"
+import { createNotificationSessionKey, NotificationSessionKey } from "@tutao/entities/sys"
+
+import { EncryptedParsedInstance } from "@tutao/instance-pipeline"
 
 export class EncryptedAlarmNotification {
-	private constructor(
-		public readonly untypedInstance: ServerModelUntypedInstance,
-		private alarmNotificationTypeModel: TypeModel,
-		private notificationSessionKeyTypeModel: TypeModel,
-		private alarmInfoTypeModel: TypeModel,
-	) {}
-
-	public static async from(untypedInstance: ServerModelUntypedInstance, typeModelResolver: ClientTypeModelResolver): Promise<EncryptedAlarmNotification> {
-		const alarmNotificationTypeModel = await typeModelResolver.resolveClientTypeReference(AlarmNotificationTypeRef)
-		const notificationSessionKeyTypeModel = await typeModelResolver.resolveClientTypeReference(NotificationSessionKeyTypeRef)
-		const alarmInfoTypeModel = await typeModelResolver.resolveClientTypeReference(AlarmInfoTypeRef)
-
-		const sanitizedUntypedInstance = await AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(untypedInstance)
-		return new EncryptedAlarmNotification(sanitizedUntypedInstance, alarmNotificationTypeModel, notificationSessionKeyTypeModel, alarmInfoTypeModel)
-	}
+	public constructor(public readonly encryptedInstance: EncryptedParsedInstance) {}
 
 	getNotificationSessionKeys(): Array<NotificationSessionKey> {
-		const notificationSessionKeys = AttributeModel.getAttribute<UntypedInstance[]>(
-			this.untypedInstance,
-			"notificationSessionKeys",
-			this.alarmNotificationTypeModel,
-		)
+		const notificationSessionKeys = this.encryptedInstance.getAttributeByName("notificationSessionKeys").asNestedObjList()
 		return notificationSessionKeys.map((nsk) => {
 			return createNotificationSessionKey({
-				pushIdentifier: AttributeModel.getAttribute<IdTuple[]>(nsk, "pushIdentifier", this.notificationSessionKeyTypeModel)[0],
-				pushIdentifierSessionEncSessionKey: base64ToUint8Array(
-					AttributeModel.getAttribute<Base64>(nsk, "pushIdentifierSessionEncSessionKey", this.notificationSessionKeyTypeModel),
-				),
+				pushIdentifier: nsk.getAttributeByName("pushIdentifier").asIdTupleList()[0],
+				pushIdentifierSessionEncSessionKey: nsk.getAttributeByName("pushIdentifierSessionEncSessionKey").asByteArray(),
 			})
 		})
 	}
 
 	getAlarmId(): Id {
-		const alarmInfo = AttributeModel.getAttribute<UntypedInstance[]>(this.untypedInstance, "alarmInfo", this.alarmNotificationTypeModel)[0]
-		return AttributeModel.getAttribute(alarmInfo, "alarmIdentifier", this.alarmInfoTypeModel)
+		return this.encryptedInstance.getAttributeByName("alarmInfo").asNestedObjList()[0].getAttributeByName("alarmIdentifier").asId()
 	}
 
-	getOperation() {
-		return AttributeModel.getAttribute<NumberString[]>(this.untypedInstance, "operation", this.alarmNotificationTypeModel)[0]
+	getOperation(): NumberString {
+		return this.encryptedInstance.getAttributeByName("operation").asString()
 	}
 
 	getUser(): Id {
-		return AttributeModel.getAttribute<Id[]>(this.untypedInstance, "user", this.alarmNotificationTypeModel)[0]
-	}
-
-	discardOtherNotificationSessionKeys(pushId: IdTuple) {
-		const nskAttrId = assertNotNull(AttributeModel.getAttributeId(this.alarmNotificationTypeModel, "notificationSessionKeys"))
-		const notificationSessionKeys = AttributeModel.getAttribute<UntypedInstance[]>(
-			this.untypedInstance,
-			"notificationSessionKeys",
-			this.alarmNotificationTypeModel,
-		)
-		this.untypedInstance[nskAttrId] = notificationSessionKeys.filter((nsk) => {
-			const currentPushId = AttributeModel.getAttribute<IdTuple[]>(nsk, "pushIdentifier", this.notificationSessionKeyTypeModel)[0]
-			return isSameId(currentPushId, pushId)
-		})
+		return this.encryptedInstance.getAttributeByName("user").asIdList()[0]
 	}
 }

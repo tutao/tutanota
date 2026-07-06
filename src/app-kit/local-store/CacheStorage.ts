@@ -1,8 +1,8 @@
-import { Nullable } from "../../platform-kit/utils"
+import { Nullable } from "@tutao/utils"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler"
-import { GetOrPutInstance } from "../../platform-kit/instance-pipeline"
+import { DecryptedParsedInstance, GetOrPutInstance } from "../../platform-kit/instance-pipeline"
 import { Range } from "./OfflineStorage"
-import { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeRef } from "../../platform-kit/meta"
+import { Entity, ListElementEntity, SomeEntity, TypeRef } from "@tutao/meta"
 
 export type LastUpdateTime = { type: "recorded"; time: number } | { type: "never" } | { type: "uninitialized" }
 
@@ -75,7 +75,7 @@ export interface CacheStorage extends ExposedCacheStorage {
 	/**
 	 * Get a given entity from the cache, expects that you have already checked for existence
 	 */
-	getParsed(typeRef: TypeRef<unknown>, listId: Id | null, id: Id): Promise<ServerModelParsedInstance | null>
+	getParsed(typeRef: TypeRef<unknown>, listId: Id | null, id: Id): Promise<DecryptedParsedInstance | null>
 
 	/**
 	 * Load range of entities. Does not include {@param start}.
@@ -84,19 +84,19 @@ export interface CacheStorage extends ExposedCacheStorage {
 	 * If {@param reverse} is true then returns entities older than {@param start} in descending order sorted by
 	 * elementId.
 	 */
-	provideFromRangeParsed(typeRef: TypeRef<unknown>, listId: Id, start: Id, count: number, reverse: boolean): Promise<ServerModelParsedInstance[]>
+	provideFromRangeParsed(typeRef: TypeRef<unknown>, listId: Id, start: Id, count: number, reverse: boolean): Promise<DecryptedParsedInstance[]>
 
 	/**
 	 * Load a set of by id. Missing elements are not returned, no error is thrown.
 	 */
-	provideMultipleParsed(typeRef: TypeRef<unknown>, listId: Nullable<Id>, elementIds: Id[]): Promise<Array<ServerModelParsedInstance>>
+	provideMultipleParsed(typeRef: TypeRef<unknown>, listId: Nullable<Id>, elementIds: Id[]): Promise<Array<DecryptedParsedInstance>>
 
 	/**
 	 * retrieve all list elements that are in the cache
 	 * @param typeRef
 	 * @param listId
 	 */
-	getWholeListParsed(typeRef: TypeRef<unknown>, listId: Id): Promise<Array<ServerModelParsedInstance>>
+	getWholeListParsed(typeRef: TypeRef<unknown>, listId: Id): Promise<Array<DecryptedParsedInstance>>
 
 	/**
 	 * get a map with cache handlers for the customId types this storage implementation supports
@@ -106,9 +106,9 @@ export interface CacheStorage extends ExposedCacheStorage {
 
 	isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<boolean>
 
-	put(typeRef: TypeRef<unknown>, instance: ServerModelParsedInstance): Promise<void>
+	put(typeRef: TypeRef<unknown>, instance: DecryptedParsedInstance): Promise<void>
 
-	putMultiple(typeRef: TypeRef<unknown>, instances: ServerModelParsedInstance[]): Promise<void>
+	putMultiple(typeRef: TypeRef<unknown>, instances: DecryptedParsedInstance[]): Promise<void>
 
 	getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null>
 

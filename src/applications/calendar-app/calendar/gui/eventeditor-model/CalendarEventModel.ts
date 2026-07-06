@@ -193,7 +193,7 @@ export async function makeCalendarEventModel(
 	if (operation === CalendarOperation.DeleteAll || operation === CalendarOperation.EditAll) {
 		const initialValueUid = assertNotNull(initialValues.uid, "tried to edit/delete all with nonexistent uid")
 		const indexEntry = await calendarModel.getEventsByUid(initialValueUid, selectedCalendar.id)
-		if (indexEntry?.progenitor) {
+		if (indexEntry != null && indexEntry.progenitor) {
 			initialValues = indexEntry.progenitor
 		}
 	}

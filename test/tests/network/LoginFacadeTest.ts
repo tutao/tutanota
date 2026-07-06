@@ -101,13 +101,13 @@ async function makeUser(userId: Id, kdfVersion: KdfType = DEFAULT_KDF_TYPE, user
 	})
 }
 
-async function createSession(userId: string, accessKey: AesKey, instancePipeline: InstancePipeline) {
+async function createSessionJson(userId: string, accessKey: AesKey, instancePipeline: InstancePipeline) {
 	const session = createTestEntity(SessionTypeRef, {
 		user: userId,
 		accessKey: keyToUint8Array(accessKey),
 	})
-	const untypedSession = await instancePipeline.mapAndEncrypt(SessionTypeRef, session, aes256RandomKey())
-	return untypedSession
+	const encryptedInstance = await instancePipeline.mapAndEncrypt(SessionTypeRef, session, aes256RandomKey())
+	return encryptedInstance.getJsonRepresentation()
 }
 
 o.spec("LoginFacadeTest", function () {
@@ -210,8 +210,8 @@ o.spec("LoginFacadeTest", function () {
 						challenges: [],
 					}),
 				)
-				when(entityClientMock.load(UserTypeRef, userId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenResolve(
-					await makeUser(userId),
+				when(entityClientMock.load(UserTypeRef, userId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })).thenReturn(
+					makeUser(userId),
 				)
 			})
 
@@ -321,7 +321,7 @@ o.spec("LoginFacadeTest", function () {
 						HttpMethod.GET,
 						anything(),
 					),
-				).thenResolve(createSession(userId, accessKey, instancePipeline).then(JSON.stringify))
+				).thenResolve(createSessionJson(userId, accessKey, instancePipeline))
 			})
 
 			o.test("When resuming a session and there is a database key, it is passed to local-store storage initialization", async function () {
@@ -498,7 +498,7 @@ o.spec("LoginFacadeTest", function () {
 			async function testSuccessfulSyncLogin() {
 				when(restClientMock.request(anything(), HttpMethod.GET, anything())).thenDo(async () => {
 					calls.push("sessionService")
-					return JSON.stringify(await createSession(userId, accessKey, instancePipeline))
+					return await createSessionJson(userId, accessKey, instancePipeline)
 				})
 
 				await facade
@@ -540,7 +540,7 @@ o.spec("LoginFacadeTest", function () {
 			async function testSuccessfulAsyncLogin() {
 				when(restClientMock.request(anything(), HttpMethod.GET, anything())).thenDo(async () => {
 					calls.push("sessionService")
-					return JSON.stringify(await createSession(userId, accessKey, instancePipeline))
+					return createSessionJson(userId, accessKey, instancePipeline)
 				})
 
 				const deferred: DeferredObject<void> = defer()
@@ -648,7 +648,7 @@ o.spec("LoginFacadeTest", function () {
 				const groupInfo = createTestEntity(GroupInfoTypeRef)
 				when(entityClientMock.load(GroupInfoTypeRef, user.userGroup.groupInfo)).thenResolve(groupInfo)
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenResolve(
-					JSON.stringify(await createSession(userId, accessKey, instancePipeline)),
+					await createSessionJson(userId, accessKey, instancePipeline),
 				)
 
 				const result = await facade.resumeSession(
@@ -675,7 +675,7 @@ o.spec("LoginFacadeTest", function () {
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything()))
 					// @ts-ignore
 					// the type definitions for testdouble are lacking, but we can do this
-					.thenReturn(Promise.reject(connectionError), Promise.resolve(JSON.stringify(await createSession(userId, accessKey, instancePipeline))))
+					.thenReturn(Promise.reject(connectionError), Promise.resolve(createSessionJson(userId, accessKey, instancePipeline)))
 
 				const result = await facade.resumeSession(
 					credentials,
@@ -759,8 +759,8 @@ o.spec("LoginFacadeTest", function () {
 			o("When successfully logged in, userFacade is initialised", async function () {
 				const groupInfo = createTestEntity(GroupInfoTypeRef)
 				when(entityClientMock.load(GroupInfoTypeRef, user.userGroup.groupInfo)).thenResolve(groupInfo)
-				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenResolve(
-					JSON.stringify(await createSession(userId, accessKey, instancePipeline)),
+				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenReturn(
+					createSessionJson(userId, accessKey, instancePipeline),
 				)
 
 				await facade.resumeSession(credentials, null, dbKey)
@@ -806,8 +806,8 @@ o.spec("LoginFacadeTest", function () {
 					user,
 				)
 
-				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenResolve(
-					JSON.stringify(await createSession(userId, accessKey, instancePipeline)),
+				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenReturn(
+					createSessionJson(userId, accessKey, instancePipeline),
 				)
 			})
 
@@ -895,8 +895,8 @@ o.spec("LoginFacadeTest", function () {
 					user,
 				)
 
-				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenResolve(
-					JSON.stringify(await createSession(userId, accessKey, instancePipeline)),
+				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenReturn(
+					createSessionJson(userId, accessKey, instancePipeline),
 				)
 			})
 

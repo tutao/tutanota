@@ -70,6 +70,7 @@ import { createBaseLocator } from "../../../../platform-kit/base/BaseLocator"
 import { createRsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
 import { TutanotaEntityMigrator } from "../../../common/api/worker/TutanotaEntityMigrator.js"
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
+import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 
 assertWorkerOrNode()
 
@@ -143,12 +144,14 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 				ref: CalendarEventTypeRef,
 				handler: new CustomCalendarEventCacheHandler(locator.base.entityRestClient, locator.base.typeModelResolver),
 			})
+			const offlineMapper = new OfflineMapper(locator.base.typeModelResolver)
 			return new OfflineStorage(
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
 				new OfflineStorageMigrator(createOfflineStorageMigrations(locator.sqlCipherFacade, locator.base.applicationTypesFacade)),
 				locator.base.instancePipeline.modelMapper,
 				locator.base.typeModelResolver,
+				offlineMapper,
 				customCacheHandler,
 				KeyVerificationTableDefinitions,
 			)

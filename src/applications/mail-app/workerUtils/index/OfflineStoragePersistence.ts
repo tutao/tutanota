@@ -3,17 +3,7 @@ import { sql } from "../../../../app-kit/local-store/Sql"
 import { untagSqlObject, untagSqlValue } from "../../../../app-kit/local-store/SqlValue"
 import { NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
-import {
-	elementIdPart,
-	GENERATED_MAX_ID,
-	getTypeString,
-	ListElementEntity,
-	listIdPart,
-	ServerModelEncryptedParsedInstance,
-	ServerTypeModel,
-	Type,
-	TypeRef,
-} from "@tutao/meta"
+import { elementIdPart, GENERATED_MAX_ID, getTypeString, ListElementEntity, listIdPart, ServerTypeModel, Type, TypeRef } from "@tutao/meta"
 import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { customTypeDecoders, customTypeEncoders, OfflineStorageTable } from "../../../../app-kit/local-store/OfflineStorage"
@@ -22,6 +12,7 @@ import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "@tutao/
 import { SqlValue } from "../../../../app-kit/local-store/Types"
 import { assertNotNull } from "@tutao/utils"
 import { decode, encode } from "cborg"
+import { EncryptedParsedInstance } from "@tutao/instance-pipeline"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {
@@ -291,7 +282,7 @@ export class OfflineStoragePersistence {
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async storeEncryptedMailDetailsBlobs(serverTypeModel: ServerTypeModel, blobs: readonly ServerModelEncryptedParsedInstance[]): Promise<void> {
+	async storeEncryptedMailDetailsBlobs(serverTypeModel: ServerTypeModel, blobs: readonly EncryptedParsedInstance[]): Promise<void> {
 		const typeref = `${serverTypeModel.app}/${serverTypeModel.name}`
 		if (serverTypeModel.type !== Type.BlobElement) {
 			throw new ProgrammingError(`cannot use OfflineStoragePersistence#storeEncryptedBlobs with ${serverTypeModel.type} (${typeref})`)
@@ -300,7 +291,7 @@ export class OfflineStoragePersistence {
 		const idIndex = assertNotNull(Object.values(serverTypeModel.values).find((v) => v.name === "_id")).id
 
 		for (const blob of blobs) {
-			const [archiveId, blobId] = assertNotNull(blob[idIndex]) as IdTuple
+			const [archiveId, blobId] = blob.getAttributeById(idIndex).asIdTuple()
 			const encodedBlob = encode(blob, { typeEncoders: customTypeEncoders })
 			const { query, params } = sql`INSERT
 			OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (
@@ -314,7 +305,7 @@ export class OfflineStoragePersistence {
 		}
 	}
 
-	async retrieveEncryptedMailDetailsBlob(serverTypeModel: ServerTypeModel, blobId: Id): Promise<ServerModelEncryptedParsedInstance | null> {
+	async retrieveEncryptedMailDetailsBlob(serverTypeModel: ServerTypeModel, blobId: Id): Promise<EncryptedParsedInstance | null> {
 		const typeref = `${serverTypeModel.app}/${serverTypeModel.name}`
 		if (serverTypeModel.type !== Type.BlobElement) {
 			throw new ProgrammingError(`cannot use OfflineStoragePersistence#retrieveEncryptedBlob with ${serverTypeModel.type} (${typeref})`)

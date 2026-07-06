@@ -16,11 +16,9 @@ import {
 	createBlobWriteData,
 	createInstanceId,
 } from "@tutao/entities/storage"
-
 import { BlobTypeRef } from "@tutao/entities/sys"
 import { ArchiveDataType, BlobAccessTokenKind } from "../../../../src/entities/sys/Utils"
 import { BlobReferencingInstance } from "../../../../src/entities/storage/BlobUtils"
-
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../src/platform-kit/instance-pipeline/RestClientOptions"
 
 const { anything, captor } = matchers

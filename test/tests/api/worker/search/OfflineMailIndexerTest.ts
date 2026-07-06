@@ -5,7 +5,7 @@ import { OfflineMailIndexer } from "../../../../../src/applications/mail-app/wor
 import { OfflineStoragePersistence } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { BlobFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/BlobFacade"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock"
-import { CryptoMapper, EntityAdapter, ModelMapper, ServerTypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
+import { CryptoMapper, EncryptedParsedInstance, EntityAdapter, ModelMapper, ServerTypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import { InfoMessageHandler } from "../../../../../src/applications/common/gui/InfoMessageHandler"
 import { MailIndexerNewMailDownloader } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexer"
 import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
@@ -19,7 +19,6 @@ import {
 	getElementId,
 	getListId,
 	listIdPart,
-	ServerModelEncryptedParsedInstance,
 	ServerTypeModel,
 } from "../../../../../src/platform-kit/meta"
 import {
@@ -61,7 +60,7 @@ o.spec("OfflineMailIndexer", () => {
 	let newMailDownloader: MailIndexerNewMailDownloader
 	let cryptoMapper: CryptoMapper
 	let user: User
-	let entityAdapterFactory: (model: ServerTypeModel, blob: ServerModelEncryptedParsedInstance) => Promise<EntityAdapter>
+	let entityAdapterFactory: (model: ServerTypeModel, blob: EncryptedParsedInstance) => Promise<EntityAdapter>
 
 	const userId = "userId"
 	const mailGroupId = "I'm a mail group!"
@@ -137,7 +136,7 @@ o.spec("OfflineMailIndexer", () => {
 			return instance.entity
 		})
 
-		when(modelMapper.mapToInstance(matchers.anything(), matchers.anything())).thenDo(async (_, i) => i)
+		when(modelMapper.mapToInstance(matchers.anything())).thenDo(async (_, i) => i)
 		when(persistence.getImportQueueEntries()).thenResolve([])
 	})
 

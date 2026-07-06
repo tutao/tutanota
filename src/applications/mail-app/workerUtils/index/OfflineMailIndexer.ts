@@ -18,7 +18,7 @@ import {
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
-import { CryptoMapper, EntityAdapter, ModelMapper, ServerTypeModelResolver } from "@tutao/instance-pipeline"
+import { CryptoMapper, EncryptedParsedInstance, EntityAdapter, ModelMapper, ServerTypeModelResolver } from "@tutao/instance-pipeline"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
@@ -30,7 +30,6 @@ import {
 	GENERATED_MAX_ID,
 	getElementId,
 	listIdPart,
-	ServerModelEncryptedParsedInstance,
 	ServerTypeModel,
 } from "@tutao/meta"
 import {
@@ -71,7 +70,7 @@ export class OfflineMailIndexer implements MailIndexer {
 		private readonly infoMessageHandler: InfoMessageHandler,
 		private readonly newMailDownloader: MailIndexerNewMailDownloader,
 		private readonly cryptoMapper: CryptoMapper,
-		private readonly entityAdapterFactory: (model: ServerTypeModel, blob: ServerModelEncryptedParsedInstance) => Promise<EntityAdapter>,
+		private readonly entityAdapterFactory: (model: ServerTypeModel, blob: EncryptedParsedInstance) => Promise<EntityAdapter>,
 	) {}
 
 	private fullyIndexed: boolean = false
@@ -319,7 +318,7 @@ export class OfflineMailIndexer implements MailIndexer {
 			return this.offlineStoragePersistence.retrieveEncryptedMailDetailsBlob(mailDetailsBlobTypeModel, elementIdPart(mailDetailsBlobId))
 		}
 
-		let blob: ServerModelEncryptedParsedInstance | null
+		let blob: EncryptedParsedInstance | null
 
 		// Get the mail details blob cached from persistence, first
 		const internalBlob = await retrieveBlob()
@@ -354,14 +353,13 @@ export class OfflineMailIndexer implements MailIndexer {
 		const mailSessionKey = assertNotNull(await this.crypto.resolveSessionKey(mail))
 		const entityAdapter = await this.entityAdapterFactory(mailDetailsBlobTypeModel, blob)
 		const mailDetailsUnmapped = await this.cryptoMapper.decryptParsedInstance(
-			mailDetailsBlobTypeModel,
-			entityAdapter.encryptedParsedInstance as ServerModelEncryptedParsedInstance,
+			entityAdapter.getWrappedEncryptedInstance(),
 			mailSessionKey,
 			validateKdfNonceLength(entityAdapter._kdfNonce),
 			this.cryptoMapper.makeOwnerKeyProvider(entityAdapter._ownerGroup),
 		)
 
-		const mailDetails = await this.modelMapper.mapToInstance<MailDetailsBlob>(MailDetailsBlobTypeRef, mailDetailsUnmapped)
+		const mailDetails = await this.modelMapper.mapToInstance<MailDetailsBlob>(mailDetailsUnmapped)
 		const attachments = await this.mailFacade.loadAttachments(mail)
 
 		return {

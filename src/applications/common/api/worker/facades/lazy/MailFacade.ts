@@ -55,7 +55,7 @@ import { EntityClient } from "../../../../../../platform-kit/network/EntityClien
 import { getEnabledMailAddressesForGroupInfo, getUserGroupMemberships, isAliasEnabledForGroupInfo } from "../../../../../../platform-kit/network/GroupUtils.js"
 import { htmlToText } from "../../../common/utils/IndexUtils.js"
 import { MailBodyTooLargeError } from "../../../common/error/MailBodyTooLargeError.js"
-import { OwnerEncSessionKeyProvider, UNCOMPRESSED_MAX_SIZE } from "@tutao/instance-pipeline"
+import { OwnerEncSessionKeyProvider } from "@tutao/instance-pipeline"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
 import { NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
@@ -177,6 +177,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../../platform
 import { DataFile } from "../../../../../../entities/tutanota/MailBundle"
 import { aesEncrypt } from "../../../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { UNCOMPRESSED_MAX_SIZE } from "../../../../../../platform-kit/instance-pipeline/Compression"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<File | DataFile | FileReference>

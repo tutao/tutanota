@@ -1,7 +1,7 @@
 import { SseClient, SseEventHandler } from "./SseClient.js"
 import TutaNotificationHandler from "./TutaNotificationHandler.js"
 import { makeTaggedLogger } from "../DesktopLog.js"
-import { AttributeModel, elementIdPart, hasError, OperationType, ServerModelUntypedInstance } from "../../../../platform-kit/meta"
+import { elementIdPart, hasError, OperationType } from "@tutao/meta"
 import {
 	assertNotNull,
 	base64ToBase64Url,
@@ -12,26 +12,27 @@ import {
 	stringToUtf8Uint8Array,
 	throttleStart,
 	uint8ArrayToBase64,
-} from "../../../../platform-kit/utils"
+} from "@tutao/utils"
 import { SseStorage } from "./SseStorage.js"
 import { SseInfo } from "./SseInfo.js"
 import { FetchImpl } from "../net/NetAgent"
-import { ClientTypeModelResolver, InstancePipeline } from "../../../../platform-kit/instance-pipeline"
+import { InstancePipeline } from "../../../../platform-kit/instance-pipeline"
 import { DesktopAlarmStorage } from "./DesktopAlarmStorage"
 import { EncryptedMissedNotification } from "../../../../app-kit/native-bridge/common/EncryptedMissedNotification"
 import { EncryptedAlarmNotification } from "../../../../app-kit/native-bridge/common/EncryptedAlarmNotification"
 import { DesktopAlarmScheduler } from "./DesktopAlarmScheduler"
-import { CryptoError } from "../../../../platform-kit/crypto/error"
+import { CryptoError } from "@tutao/crypto/error"
 import { handleRestError } from "@tutao/rest-client/error"
 import {
-	AlarmNotificationTypeRef,
+	AlarmNotification,
 	createGeneratedIdWrapper,
 	createSseConnectData,
 	MissedNotificationTypeRef,
-	NotificationInfoTypeRef,
+	NotificationInfo,
 	SseConnectDataTypeRef,
 	sysTypeModels,
 } from "@tutao/entities/sys"
+import { IncomingServerJson, OutgoingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 
 const log = makeTaggedLogger("[SSEFacade]")
 
@@ -52,7 +53,6 @@ export class TutaSseFacade implements SseEventHandler {
 		private readonly fetch: FetchImpl,
 		private readonly date: DateProvider,
 		private readonly nativeInstancePipeline: InstancePipeline,
-		private readonly typeModelResolver: ClientTypeModelResolver,
 	) {
 		sseClient.setEventListener(this)
 	}
@@ -101,11 +101,11 @@ export class TutaSseFacade implements SseEventHandler {
 	private async getSseUrl(sseInfo: SseInfo, userId: string): Promise<URL> {
 		const url = new URL(sseInfo.sseOrigin)
 		url.pathname = "sse"
-		url.searchParams.append("_body", await this.requestJson(sseInfo.identifier, userId))
+		url.searchParams.append("_body", (await this.requestJson(sseInfo.identifier, userId)).getJsonRepresentation())
 		return url
 	}
 
-	private async requestJson(identifier: string, userId: string): Promise<string> {
+	private async requestJson(identifier: string, userId: string): Promise<OutgoingServerJson> {
 		const connectData = createSseConnectData({
 			identifier: identifier,
 			userIds: [
@@ -114,10 +114,8 @@ export class TutaSseFacade implements SseEventHandler {
 				}),
 			],
 		})
-		const untypedInstance = AttributeModel.removeNetworkDebuggingInfoIfNeeded(
-			await this.nativeInstancePipeline.mapAndEncrypt(SseConnectDataTypeRef, connectData, null),
-		)
-		return JSON.stringify(untypedInstance)
+		const encryptedConnectData = await this.nativeInstancePipeline.mapAndEncryptToParsedInstance(SseConnectDataTypeRef, connectData, null)
+		return this.nativeInstancePipeline.typeMapper.makeServerJson(encryptedConnectData)
 	}
 
 	/**
@@ -146,14 +144,17 @@ export class TutaSseFacade implements SseEventHandler {
 
 		await this.sseStorage.setLastProcessedNotificationId(assertNotNull(encryptedMissedNotification.lastProcessedNotificationId))
 		await this.sseStorage.recordMissedNotificationCheckTime()
+
 		const sseInfo = this.currentSseInfo
-		if (sseInfo == null) return
-		const notificationInfos = await Promise.all(
-			encryptedMissedNotification.notificationInfos.map(
-				async (notificationInfoUntyped) => await this.nativeInstancePipeline.decryptAndMap(NotificationInfoTypeRef, notificationInfoUntyped, null),
-			),
-		)
-		await this.notificationHandler.onMailNotification(sseInfo, notificationInfos)
+		if (sseInfo == null) {
+			return
+		}
+
+		const notificationInfos = encryptedMissedNotification.notificationInfos.map(async (notificationInfoUntyped) => {
+			return await this.nativeInstancePipeline.decryptAndMapEncryptedInstance<NotificationInfo>(notificationInfoUntyped, null)
+		})
+
+		await this.notificationHandler.onMailNotification(sseInfo, await Promise.all(notificationInfos))
 		await this.handleAlarmNotification(encryptedMissedNotification)
 	})
 
@@ -163,7 +164,7 @@ export class TutaSseFacade implements SseEventHandler {
 	// VisibleForTesting
 	async handleAlarmNotification(encryptedMissedNotification: EncryptedMissedNotification) {
 		for (const alarmNotificationUntyped of encryptedMissedNotification.alarmNotifications) {
-			const encryptedAlarmNotification = await EncryptedAlarmNotification.from(alarmNotificationUntyped, this.typeModelResolver)
+			const encryptedAlarmNotification = new EncryptedAlarmNotification(alarmNotificationUntyped)
 			const alarmIdentifier = encryptedAlarmNotification.getAlarmId()
 			const operation = downcast<OperationType>(encryptedAlarmNotification.getOperation())
 			if (operation === OperationType.CREATE) {
@@ -176,8 +177,7 @@ export class TutaSseFacade implements SseEventHandler {
 						// our pushEncSessionKeys.
 						throw new CryptoError("could not find session key to decrypt alarm notification")
 					}
-					const alarmNotification = await this.nativeInstancePipeline.decryptAndMap(
-						AlarmNotificationTypeRef,
+					const alarmNotification = await this.nativeInstancePipeline.decryptAndMapEncryptedInstance<AlarmNotification>(
 						alarmNotificationUntyped,
 						assertNotNull(sk).sessionKey,
 					)
@@ -218,9 +218,11 @@ export class TutaSseFacade implements SseEventHandler {
 		if (!res.ok) {
 			throw handleRestError(neverNull(res.status), url, res.headers.get("error-id") as string, null)
 		} else {
-			const untypedInstance = (await res.json()) as ServerModelUntypedInstance
+			const typeModel = await this.nativeInstancePipeline.typeModelResolver.resolveServerTypeReference(MissedNotificationTypeRef)
+			const incomingJson = IncomingServerJson.expectSingleInstance(await res.json(), typeModel)
+			const encryptedInstance = await this.nativeInstancePipeline.typeMapper.parseServerJson(incomingJson)
 			log.debug("downloaded missed notification")
-			return await EncryptedMissedNotification.from(untypedInstance, this.typeModelResolver)
+			return new EncryptedMissedNotification(encryptedInstance)
 		}
 	}
 

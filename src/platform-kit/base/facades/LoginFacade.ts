@@ -8,13 +8,14 @@ import {
 	defer,
 	DeferredObject,
 	hexToUint8Array,
+	isNotNull,
 	lazyAsync,
 	neverNull,
 	ofClass,
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
-import { AttributeModel, GENERATED_ID_BYTES_LENGTH, isSameId } from "../../meta"
+import { GENERATED_ID_BYTES_LENGTH, isSameId } from "../../meta"
 import { assertWorkerOrNode, CancelledError, Const, DeactivationReason, ProgrammingError, RolloutType, SessionType } from "@tutao/app-env"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "../../rest-client/types"
@@ -48,7 +49,7 @@ import { UserFacade } from "./UserFacade"
 import { EntropyFacade } from "./EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../../network/BlobAccessTokenFacade.js"
 import { DatabaseKeyFactory } from "../base-crypto/DatabaseKeyFactory.js"
-import { ApplicationTypesFacade, InstancePipeline, LoggedInUserProvider, typeModelToRestPath } from "@tutao/instance-pipeline"
+import { ApplicationTypesFacade, InstancePipeline, LoggedInUserProvider } from "@tutao/instance-pipeline"
 import { KeyRotationFacade, KeyRotationRolloutAction } from "../base-crypto/KeyRotationFacade.js"
 import { RolloutFacade } from "./RolloutFacade"
 import { Argon2idFacade } from "../base-crypto/WasmArgon2idFacade"
@@ -78,7 +79,6 @@ import {
 import { EntityMigrator, EntityRestClient } from "../../network/EntityRestClient"
 import { Credentials, CredentialType } from "../../network/types"
 import { asKdfType, DEFAULT_KDF_TYPE, ExternalUserKeyDeriver, KdfType } from "../base-crypto/Constants"
-import { ServerModelUntypedInstance } from "../../meta/EntityTypes"
 import { TypeModelResolver } from "../../instance-pipeline/EntityFunctions"
 import {
 	ChangeKdfService,
@@ -110,6 +110,8 @@ import {
 	DEFAULT_EXTRA_SERVICE_PARAMS,
 	DEFAULT_REST_CLIENT_OPTIONS,
 } from "../../instance-pipeline/RestClientOptions"
+import { EntityUtils } from "../../instance-pipeline/EntityUtils"
+import { IncomingServerJson } from "../../instance-pipeline/TypeMapper"
 
 assertWorkerOrNode()
 
@@ -597,7 +599,7 @@ export class LoginFacade implements SessionTypeProvider {
 	 */
 	async deleteSession(accessToken: Base64Url, pushIdentifier: string | null = null): Promise<void> {
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(SessionTypeRef)
-		let path = typeModelToRestPath(typeModel) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
+		let path = EntityUtils.typeModelToRestPath(typeModel) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
 		const sessionTypeModel = await this.typeModelResolver.resolveClientTypeReference(SessionTypeRef)
 
 		const headers = {
@@ -1192,7 +1194,7 @@ export class LoginFacade implements SessionTypeProvider {
 		accessKey: AesKey | null
 	}> {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(SessionTypeRef)
-		const path = typeModelToRestPath(typeModel) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
+		const path = EntityUtils.typeModelToRestPath(typeModel) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
 		const SessionTypeModel = await this.typeModelResolver.resolveClientTypeReference(SessionTypeRef)
 
 		let headers = {
@@ -1207,13 +1209,14 @@ export class LoginFacade implements SessionTypeProvider {
 				responseType: MediaType.Json,
 			})
 			.then(async (instance) => {
-				const untypedSession = AttributeModel.removeNetworkDebuggingInfoIfNeeded<ServerModelUntypedInstance>(JSON.parse(instance))
-				// Intentionally passing an UntypedInstance to AttributeModel to circumvent session key resolution during login.
-				const accessKey = AttributeModel.getAttributeorNull<Base64>(untypedSession, "accessKey", SessionTypeModel)
-				const userId = AttributeModel.getAttribute<Id[]>(untypedSession, "user", SessionTypeModel)[0]
+				const serverJson = IncomingServerJson.expectSingleInstance(instance, typeModel)
+				const parsedInstance = await this.instancePipeline.typeMapper.parseServerJson(serverJson)
+
+				const accessKey = parsedInstance.getAttributeByNameOrNull("accessKey")?.getNullWhenNull()?.asString() ?? null
+				const userId = parsedInstance.getAttributeByName("user").asIdList()[0]
 				return {
 					userId,
-					accessKey: accessKey ? base64ToKey(accessKey) : null,
+					accessKey: isNotNull(accessKey) ? base64ToKey(accessKey) : null,
 				}
 			})
 	}

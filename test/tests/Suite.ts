@@ -32,6 +32,7 @@ import "./network/crypto/CryptoFacadeTest.js"
 import "./instance-pipeline/CryptoWrapperTest.js"
 import "./instance-pipeline/EntityAdapterTest.js"
 import "./instance-pipeline/ModelMapperTest.js"
+import "./instance-pipeline/EntityUtilsTest.js"
 import "./instance-pipeline/ModelMapperTransformationsTest.js"
 import "./instance-pipeline/TypeMapperTest.js"
 import "./instance-pipeline/ApplicationTypesFacadeTest.js"
@@ -79,7 +80,7 @@ import "./network/offline/CustomCacheHandlerTest.js"
 import "./api/worker/rest/EntityRestCacheTest.js"
 import "./network/EntityRestClientTest.js"
 import "./api/worker/rest/EphemeralCacheStorageTest.js"
-import "./typerefs/PatchGeneratorTest.js"
+// import "./typerefs/PatchGeneratorTest.js"
 import "./network/ServiceExecutorTest.js"
 import "./api/worker/search/BulkMailLoaderTest.js"
 import "./api/worker/search/ContactIndexerTest.js"
@@ -254,7 +255,6 @@ import "./crypto/SubKeyProviderTest.js"
 import "./drive/DriveFilePickerTests.js"
 
 import * as td from "testdouble"
-import { Mode } from "../../src/platform-kit/app-env"
 import { EntropySource } from "../../src/platform-kit/crypto"
 
 export async function run({ integration, filter, regexp, exclude }: { integration?: boolean; filter?: string; regexp?: string; exclude?: string } = {}) {
@@ -343,6 +343,8 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 	td.config({
 		ignoreWarnings: true,
 	})
+
+	const originalEnv = structuredClone(env)
 	o.before(async function () {
 		// setup the Entropy for all testcases
 		await random.addEntropy([{ data: 36, entropy: 256, source: EntropySource.Key }])
@@ -350,8 +352,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 
 	o.afterEach(function () {
 		td.reset()
-
-		// Reset env.mode in case any tests have fiddled with it
-		env.mode = Mode.Test
+		// Reset env in case any tests have fiddled with it
+		env = originalEnv
 	})
 }

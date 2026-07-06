@@ -1,17 +1,8 @@
-import {
-	AppName,
-	BlobElementEntity,
-	getTypeString,
-	isSameId,
-	isSameTypeRef,
-	ListElementEntity,
-	OperationType,
-	ServerModelParsedInstance,
-	SomeEntity,
-	TypeRef,
-} from "@tutao/meta"
+import { AppName, BlobElementEntity, getTypeString, isSameId, isSameTypeRef, ListElementEntity, OperationType, SomeEntity, TypeRef } from "@tutao/meta"
 import { Nullable } from "@tutao/utils"
 import { EntityUpdate, Patch } from "@tutao/entities/sys"
+
+import { DecryptedParsedInstance } from "@tutao/instance-pipeline"
 
 /**
  * A type similar to {@link EntityUpdate} but mapped to make it easier to work with.
@@ -21,8 +12,8 @@ export type EntityUpdateData<T extends SomeEntity = SomeEntity> = {
 	instanceListId: T extends ListElementEntity | BlobElementEntity ? NonEmptyString : null
 	instanceId: string
 	operation: OperationType
-	instance: Nullable<ServerModelParsedInstance>
-	blobInstance: Nullable<ServerModelParsedInstance>
+	instance: Nullable<DecryptedParsedInstance>
+	blobInstance: Nullable<DecryptedParsedInstance>
 
 	// emptyList: when server did not send patchList, or empty re-write to the server database.
 	// length > 0: normal case for patch
@@ -39,8 +30,8 @@ export enum CachingStatus {
 
 export async function entityUpdateToUpdateData<T extends SomeEntity>(
 	update: EntityUpdate,
-	instance: Nullable<ServerModelParsedInstance> = null,
-	blobInstance: Nullable<ServerModelParsedInstance> = null,
+	instance: Nullable<DecryptedParsedInstance> = null,
+	blobInstance: Nullable<DecryptedParsedInstance> = null,
 ): Promise<EntityUpdateData<T>> {
 	const typeId = parseInt(update.typeId)
 	const typeRefOfEntityUpdateType = new TypeRef<T>(update.application as AppName, typeId)

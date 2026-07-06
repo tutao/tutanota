@@ -8,16 +8,7 @@ import {
 	PresentableKeyVerificationState,
 } from "../../../../src/platform-kit/app-env"
 import { asCryptoProtoocolVersion, BucketPermissionType } from "../../../../src/platform-kit/base/base-crypto/Constants.js"
-import {
-	AttributeModel,
-	elementIdPart,
-	getListId,
-	isSameId,
-	listIdPart,
-	ServerModelUntypedInstance,
-	TypeModel,
-	UntypedInstance,
-} from "../../../../src/platform-kit/meta"
+import { elementIdPart, getListId, isSameId, listIdPart, TypeModel } from "../../../../src/platform-kit/meta"
 import { RestClient, restError } from "../../../../src/platform-kit/rest-client"
 import { HttpMethod } from "../../../../src/platform-kit/rest-client/types"
 import { EntityClient } from "../../../../src/platform-kit/network/EntityClient.js"
@@ -37,6 +28,7 @@ import {
 	keyToUint8Array,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
+	PQKeyPairs,
 	pqKeyPairsToPublicKeys,
 	PQPublicKeys,
 	PublicKeyIdentifierType,
@@ -60,19 +52,10 @@ import { VerifiedPublicEncryptionKey } from "../../../../src/platform-kit/base/f
 import { KeyLoaderFacade } from "../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
 import PublicEncryptionKeyProvider from "../../../../src/platform-kit/base/base-crypto/PublicEncryptionKeyProvider.js"
 import { KeyRotationFacade } from "../../../../src/platform-kit/base/base-crypto/KeyRotationFacade.js"
-import { EntityAdapter, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
+import { EncryptedParsedInstance, EntityAdapter, InstancePipeline, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
 import { KeyVerificationMismatchError } from "../../../../src/platform-kit/network/error/KeyVerificationMismatchError"
 import { loadLibOQSWASM } from "../../crypto/WebAssemblyTestUtils"
-import {
-	createMail,
-	createMailAddress,
-	FileTypeRef,
-	InternalRecipientKeyData,
-	Mail,
-	MailAddressTypeRef,
-	MailDetailsBlobTypeRef,
-	MailTypeRef,
-} from "@tutao/entities/tutanota"
+import { createMail, createMailAddress, FileTypeRef, Mail, MailAddressTypeRef, MailDetailsBlobTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import {
 	BucketKey,
 	BucketKeyTypeRef,
@@ -102,11 +85,12 @@ import {
 	User,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { PQKeyPairs } from "../../../../src/platform-kit/crypto/encryption/PQKeyPairs.js"
 import { InstanceSessionKeysCache } from "../../../../src/platform-kit/base/base-crypto/persistence/InstanceSessionKeysCache.js"
 import { ProcessingState } from "../../../../src/entities/tutanota/Utils"
 import { GroupType, PermissionType } from "../../../../src/entities/sys/Utils"
 import { CacheManager } from "../../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
+import { InstanceDirection, ParsedValue } from "../../../../src/platform-kit/instance-pipeline/ParsedValue"
+import { changeInstanceDirection } from "../../instance-pipeline/InstancePipelineTestUtils"
 
 const { anything, argThat } = matchers
 
@@ -131,7 +115,7 @@ const senderAddress = "hello@tutao.de"
 o.spec("CryptoFacadeTest", function () {
 	let restClient: RestClient
 
-	let instancePipeline
+	let instancePipeline: InstancePipeline
 
 	let serviceExecutor: IServiceExecutor
 	let entityClient: EntityClient
@@ -1149,6 +1133,8 @@ o.spec("CryptoFacadeTest", function () {
 		const testData = await prepareConfidentialMailToExternalRecipient([file1SessionKey, file2SessionKey])
 
 		const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.entityAdapter))
+		console.log(mailSessionKey)
+		console.log(testData.sk)
 		o(mailSessionKey).deepEquals(testData.sk)
 
 		const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.entityAdapter))
@@ -1856,7 +1842,7 @@ o.spec("CryptoFacadeTest", function () {
 		let sk = aes256RandomKey()
 		let bk = aes256RandomKey()
 
-		const mailUntypedInstance = await createUntypedMailInstance(null, sk, confidential, externalUser.mailGroup._id)
+		const enncryptedMailInstance = await createEncryptedMailInstance(null, sk, confidential, externalUser.mailGroup._id)
 
 		const groupKeyToEncryptBucketKey = externalUserGroupEncBucketKey ? externalUser.userGroupKey : externalUser.mailGroupKey
 		const groupEncBucketKey = encryptKey(groupKeyToEncryptBucketKey, bk)
@@ -1894,13 +1880,12 @@ o.spec("CryptoFacadeTest", function () {
 			bucketEncSessionKeys: bucketEncSessionKeys,
 		})
 
-		const bucketKeyUntypedInstance: UntypedInstance = await instancePipeline.mapAndEncrypt(BucketKeyTypeRef, bucketKey, null)
-
-		mailUntypedInstance[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "bucketKey"))] = [bucketKeyUntypedInstance]
-		const mailEncryptedParsedInstance = await instancePipeline.typeMapper.applyJsTypes(MailTypeModel, mailUntypedInstance)
+		const bucketKeyUntypedInstance = await instancePipeline.mapAndEncryptToParsedInstance(BucketKeyTypeRef, bucketKey, null)
+		enncryptedMailInstance.addAttributeByName("bucketKey", ParsedValue.fromNestedItems([bucketKeyUntypedInstance]))
+		changeInstanceDirection(enncryptedMailInstance, InstanceDirection.IncomingFromServer)
 
 		return {
-			entityAdapter: await EntityAdapter.from(MailTypeModel, mailEncryptedParsedInstance, instancePipeline.modelMapper),
+			entityAdapter: await EntityAdapter.fromEncryptedParsedInstance(enncryptedMailInstance, instancePipeline.modelMapper, instancePipeline.cryptoMapper),
 			bucketKey,
 			sk,
 			bk,
@@ -1954,7 +1939,7 @@ o.spec("CryptoFacadeTest", function () {
 		let confidential = true
 		let sk = aes256RandomKey()
 		let bk = aes256RandomKey()
-		const untypedMailInstance = await createUntypedMailInstance(null, sk, confidential, internalUser.mailGroup._id)
+		const encryptedMailInstance = await createEncryptedMailInstance(null, sk, confidential, internalUser.mailGroup._id)
 
 		const keyGroup = externalUser.mailGroup._id
 		const groupEncBucketKey = encryptKey(externalUser.mailGroupKey, bk)
@@ -1984,12 +1969,15 @@ o.spec("CryptoFacadeTest", function () {
 			senderKeyVersion: null,
 		})
 
-		const bucketKeyUntypedInstance: UntypedInstance = await instancePipeline.mapAndEncrypt(BucketKeyTypeRef, bucketKey, null)
+		const encryptedBuckeyKeyInstance = await instancePipeline.mapAndEncryptToParsedInstance(BucketKeyTypeRef, bucketKey, null)
+		encryptedMailInstance.addAttributeByName("bucketKey", ParsedValue.fromNestedItems([encryptedBuckeyKeyInstance]))
+		changeInstanceDirection(encryptedMailInstance, InstanceDirection.IncomingFromServer)
 
-		untypedMailInstance[assertNotNull(AttributeModel.getAttributeId(MailTypeModel, "bucketKey"))] = [bucketKeyUntypedInstance]
-
-		const encryptedMailParsedInstance = await instancePipeline.typeMapper.applyJsTypes(MailTypeModel, untypedMailInstance)
-		const entityAdapter = await EntityAdapter.from(MailTypeModel, encryptedMailParsedInstance, instancePipeline.modelMapper)
+		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(
+			encryptedMailInstance,
+			instancePipeline.modelMapper,
+			instancePipeline.cryptoMapper,
+		)
 
 		return {
 			entityAdapter: entityAdapter,
@@ -2003,12 +1991,12 @@ o.spec("CryptoFacadeTest", function () {
 		}
 	}
 
-	async function createUntypedMailInstance(
+	async function createEncryptedMailInstance(
 		ownerGroupKey: AesKey | null,
 		sessionKey: AesKey,
 		confidential: boolean,
 		ownerGroupId: string,
-	): Promise<ServerModelUntypedInstance> {
+	): Promise<EncryptedParsedInstance> {
 		const mail = createMail({
 			_format: "0",
 			_ownerGroup: ownerGroupId,
@@ -2016,10 +2004,10 @@ o.spec("CryptoFacadeTest", function () {
 			_permissions: "permissionListId",
 			_id: ["mailListId", "mailId"],
 			receivedDate: new Date(1470039025474),
-			state: "",
+			state: "0",
 			unread: true,
 			subject: "any subject",
-			replyType: "",
+			replyType: "0",
 			confidential: confidential,
 			sender: createMailAddress({
 				address: senderAddress,
@@ -2029,7 +2017,7 @@ o.spec("CryptoFacadeTest", function () {
 			bucketKey: null,
 			authStatus: null,
 			listUnsubscribe: false,
-			method: "",
+			method: "0",
 			phishingStatus: "0",
 			recipientCount: "0",
 			differentEnvelopeSender: null,
@@ -2050,8 +2038,7 @@ o.spec("CryptoFacadeTest", function () {
 			serverClassificationData: "0,10",
 		})
 
-		// casting here is fine, since we just want to mimic server response data
-		return (await instancePipeline.mapAndEncrypt(MailTypeRef, mail, sessionKey)) as unknown as ServerModelUntypedInstance
+		return await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, sessionKey)
 	}
 })
 

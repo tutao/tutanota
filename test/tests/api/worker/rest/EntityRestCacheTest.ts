@@ -17,7 +17,6 @@ import {
 	isSameTypeRef,
 	listIdPart,
 	OperationType,
-	ServerModelParsedInstance,
 	SomeEntity,
 	TypeRef,
 } from "../../../../../src/platform-kit/meta"
@@ -30,9 +29,15 @@ import { OfflineStorageMigrator } from "../../../../../src/app-kit/local-store/O
 import { InterWindowEventFacadeSendDispatcher } from "../../../../../src/app-kit/native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
 import { func, instance, matchers, object, replace, when } from "testdouble"
 import { SqlCipherFacade } from "../../../../../src/app-kit/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
-import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
+import {
+	clientInitializedTypeModelResolver,
+	createTestEntity,
+	modelMapperFromTypeModelResolver,
+	offlineMapperFromTypeModelResolver,
+	removeOriginals,
+} from "../../../TestUtils.js"
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/app-kit/local-store/CustomCacheHandler"
-import { ModelMapper, PatchMerger, PatchOperationType, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
+import { DecryptedParsedInstance, ModelMapper, PatchMerger, PatchOperationType, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 
 import { CacheStorage } from "../../../../../src/app-kit/local-store/CacheStorage"
 import {
@@ -66,6 +71,8 @@ import { EntityRestClient } from "../../../../../src/platform-kit/network/Entity
 import { LastProcessedEventBatchProvider } from "../../../../../src/platform-kit/network/LastProcessedEventBatchProvider"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { OfflineStorageArgs } from "../../../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
+import { changeInstanceDirection } from "../../../instance-pipeline/InstancePipelineTestUtils"
+import { InstanceDirection } from "../../../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 const { anything } = matchers
 
@@ -98,6 +105,7 @@ async function getOfflineStorage(userId: Id, handlerMap: CustomCacheHandlerMap):
 		migratorMock,
 		modelMapperFromTypeModelResolver(typeModelResolver),
 		typeModelResolver,
+		offlineMapperFromTypeModelResolver(typeModelResolver),
 		handlerMap,
 		{},
 	)
@@ -132,10 +140,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		// You can mock it's attributes if you want to assert that a given method will be called
 		let entityRestClient: EntityRestClient
 		let userId: Id | null
-
-		async function toStorableInstance(entity: Entity): Promise<ServerModelParsedInstance> {
-			return downcast<ServerModelParsedInstance>(await modelMapper.mapToClientModelParsedInstance(entity._type, entity))
-		}
 
 		let makeUpdateData = async function <T extends SomeEntity>(
 			typeRef: TypeRef<T>,
@@ -236,14 +240,21 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const typeRefCaptor = matchers.captor()
 			const serverModelParsedInstanceCaptor = matchers.captor()
 			when(entityRestClient.mapInstanceToEntity(typeRefCaptor.capture(), serverModelParsedInstanceCaptor.capture())).thenDo(async () =>
-				downcast<any>(await modelMapper.mapToInstance(typeRefCaptor.value, serverModelParsedInstanceCaptor.value)),
+				downcast<any>(await modelMapper.mapToInstance(serverModelParsedInstanceCaptor.value)),
 			)
 			when(entityRestClient.mapInstancesToEntity(typeRefCaptor.capture(), serverModelParsedInstanceCaptor.capture())).thenDo(async () =>
-				downcast<any>(await modelMapper.mapToInstances(typeRefCaptor.value, serverModelParsedInstanceCaptor.value)),
+				downcast<any>(await modelMapper.mapToInstances(serverModelParsedInstanceCaptor.value)),
 			)
 			when(entityRestClient.entityEventsReceived(batchCaptor.capture(), matchers.anything(), matchers.anything())).thenResolve(batchCaptor.value)
 			when(entityRestClient.getRestClient()).thenReturn(restClient)
 			return entityRestClient
+		}
+
+		function toStorableInstance(entity: Entity): Promise<DecryptedParsedInstance> {
+			return modelMapper.mapToDecryptedInstance(entity).then((parsedInstance) => {
+				changeInstanceDirection(parsedInstance, InstanceDirection.IncomingFromServer)
+				return parsedInstance
+			})
 		}
 
 		o.beforeEach(async function () {
@@ -414,7 +425,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						blobInstance: null,
 					})
 					const contact1Parsed = await toStorableInstance(contact1)
-					contact1Parsed._errors = { 12: "some error for contact 1" }
+					contact1Parsed.addErrorByAttributeName("firstName", "some error for contact 1")
 					const contact1EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact1, contact1Parsed, null)
 
 					const contact2 = createTestEntity(ContactTypeRef, {
@@ -437,7 +448,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						blobInstance: null,
 					})
 					const contact3Parsed = await toStorableInstance(contact3)
-					contact3Parsed._errors = { 12: "some error for contact 3" }
+					contact3Parsed.addErrorByAttributeName("firstName", "some error for contact 3")
 					const contact3EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact3, contact3Parsed, null)
 
 					const batch: readonly EntityUpdateData[] = [
@@ -488,6 +499,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			})
 
 			o("update is not in cache range", async function () {
+				// FIXME was failing before rebase
 				const batch = [
 					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null),
 					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null),
@@ -644,7 +656,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						_ownerGroup: ownerGroupId,
 					}),
 				)
-				dummyContact._errors = { 12: "some error for dummy contact" }
+				dummyContact.addErrorByAttributeName("firstName", "some error for dummy contact")
 				when(entityRestClient.loadParsedInstance(anything(), anything())).thenResolve(dummyContact)
 
 				const batch: readonly EntityUpdateData[] = [
@@ -752,7 +764,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 				const contactTypeModel = await typeModelResolver.resolveClientTypeReference(ContactTypeRef)
 
-				const firstNamePatch = createPatch({
+				const patchFirstName = createPatch({
 					attributePath: assertNotNull(AttributeModel.getAttributeId(contactTypeModel, "firstName")).toString(),
 					patchOperation: PatchOperationType.REPLACE,
 					value: "CipherTextForGuenther",
@@ -764,8 +776,8 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				const batch = [
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, [firstNamePatch]),
-					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, [firstNamePatch]), // update for item not in cache should be skipped
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, [patchFirstName]),
+					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, [patchFirstName]), // update for item not in cache should be skipped
 				]
 
 				when(patchMergerMock.patchAndStoreInstance(batch[0])).thenDo(async () => {
@@ -1027,7 +1039,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					_ownerGroup: "contact",
 				})
 				const badContactStorable = await toStorableInstance(badContact)
-				badContactStorable._errors = { 12: "some error" }
+				badContactStorable.addErrorByAttributeId(12, "some error")
 
 				const goodUpdate = await updateDataForCreate(ContactTypeRef, getListId(goodContact), getElementId(goodContact), goodContact)
 				const badUpdate = await updateDataForCreate(ContactTypeRef, getListId(badContact), getElementId(badContact), badContact)
@@ -1114,7 +1126,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 				const badBlob = createMailDetailsBlobInstance(blobListId, blobId, "Test body")
 				const badBlobStorable = await toStorableInstance(badBlob)
-				badBlobStorable._errors = { 12: "error" }
+				badBlobStorable.addErrorByAttributeId(12, "error")
 
 				const mailUpdate = await updateDataForCreate(MailTypeRef, getListId(mail1), getElementId(mail1), mail1)
 				mailUpdate.blobInstance = badBlobStorable
@@ -2047,7 +2059,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			o(client.load.callCount).equals(2)("The permission was loaded both times from the server")
 		})
 
-		o.test("when loading single ET custom id entity it is cached", async function () {
+		o.test(`${name} when loading single ET custom id entity it is cached`, async function () {
 			const id = stringToBase64UrlCustomId("1")
 			const client: EntityRestClient = mockRestClient()
 			const entity = createTestEntity(MailAddressToGroupTypeRef, {

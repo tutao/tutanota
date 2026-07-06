@@ -1,6 +1,5 @@
 import o, { verify } from "@tutao/otest"
 import { EphemeralCacheStorage } from "../../../../../src/app-kit/local-store/EphemeralCacheStorage.js"
-import { ServerModelParsedInstance } from "../../../../../src/platform-kit/meta"
 import { clientInitializedTypeModelResolver, createTestEntity, modelMapperFromTypeModelResolver, removeOriginals } from "../../../TestUtils.js"
 import { ModelMapper, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../../src/app-kit/local-store/CustomCacheHandler"
@@ -20,6 +19,8 @@ import {
 } from "@tutao/entities/tutanota"
 
 import { User, UserTypeRef } from "@tutao/entities/sys"
+import { changeInstanceDirection } from "../../../instance-pipeline/InstancePipelineTestUtils"
+import { InstanceDirection } from "../../../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { EphemeralStorageArgs } from "../../../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
 
 o.spec("EphemeralCacheStorage", function () {
@@ -54,12 +55,10 @@ o.spec("EphemeralCacheStorage", function () {
 			let mailDetailsBlobFromDb = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
 			o(mailDetailsBlobFromDb).equals(null)
 
-			const mailDetailsBlobParsedInstance = (await modelMapper.mapToClientModelParsedInstance(
-				MailDetailsBlobTypeRef,
-				storableMailDetailsBlob,
-			)) as unknown as ServerModelParsedInstance
+			const mailDetailsBlobParsedInstance = await modelMapper.mapToDecryptedInstance(storableMailDetailsBlob)
+			changeInstanceDirection(mailDetailsBlobParsedInstance, InstanceDirection.IncomingFromServer)
 
-			await storage.put(MailDetailsBlobTypeRef, mailDetailsBlobParsedInstance as ServerModelParsedInstance)
+			await storage.put(MailDetailsBlobTypeRef, mailDetailsBlobParsedInstance)
 
 			mailDetailsBlobFromDb = await storage.get(MailDetailsBlobTypeRef, archiveId, blobElementId)
 			removeOriginals(mailDetailsBlobFromDb)
@@ -86,12 +85,10 @@ o.spec("EphemeralCacheStorage", function () {
 			let mailDetailsBlobFromDb = await storage.provideMultiple(MailDetailsBlobTypeRef, archiveId, [blobElementId])
 			o(mailDetailsBlobFromDb).deepEquals([])
 
-			const mailDetailsBlobParsedInstance = (await modelMapper.mapToClientModelParsedInstance(
-				MailDetailsBlobTypeRef,
-				storableMailDetailsBlob,
-			)) as unknown as ServerModelParsedInstance
+			const mailDetailsBlobParsedInstance = await modelMapper.mapToDecryptedInstance(storableMailDetailsBlob)
+			changeInstanceDirection(mailDetailsBlobParsedInstance, InstanceDirection.IncomingFromServer)
 
-			await storage.putMultiple(MailDetailsBlobTypeRef, [mailDetailsBlobParsedInstance as ServerModelParsedInstance])
+			await storage.putMultiple(MailDetailsBlobTypeRef, [mailDetailsBlobParsedInstance])
 
 			mailDetailsBlobFromDb = await storage.provideMultiple(MailDetailsBlobTypeRef, archiveId, [blobElementId])
 			removeOriginals(mailDetailsBlobFromDb[0])
@@ -117,10 +114,7 @@ o.spec("EphemeralCacheStorage", function () {
 				}),
 			})
 
-			const mailDetailsBlobParsedInstance = (await modelMapper.mapToClientModelParsedInstance(
-				MailDetailsBlobTypeRef,
-				storableMailDetailsBlob,
-			)) as unknown as ServerModelParsedInstance
+			const mailDetailsBlobParsedInstance = await modelMapper.mapToDecryptedInstance(storableMailDetailsBlob)
 
 			await storage.put(MailDetailsBlobTypeRef, mailDetailsBlobParsedInstance)
 
@@ -135,7 +129,7 @@ o.spec("EphemeralCacheStorage", function () {
 		const userId = "userId1"
 
 		o.beforeEach(async function () {
-			await storage.init(new EphemeralStorageArgs(userId))
+			storage.init(new EphemeralStorageArgs(userId))
 		})
 
 		o.test("put calls the cache handler", async function () {
@@ -147,7 +141,8 @@ o.spec("EphemeralCacheStorage", function () {
 				},
 				{ populateAggregates: true },
 			)
-			const storableUser = (await modelMapper.mapToClientModelParsedInstance(UserTypeRef, user)) as unknown as ServerModelParsedInstance
+			const storableUser = await modelMapper.mapToDecryptedInstance(user)
+			changeInstanceDirection(storableUser, InstanceDirection.IncomingFromServer)
 			user.userGroup._original = structuredClone(user.userGroup)
 			user._original = structuredClone(user)
 			const userCacheHandler: CustomCacheHandler<User> = object()
@@ -166,7 +161,8 @@ o.spec("EphemeralCacheStorage", function () {
 				},
 				{ populateAggregates: true },
 			)
-			const storableUser = (await modelMapper.mapToClientModelParsedInstance(UserTypeRef, user)) as unknown as ServerModelParsedInstance
+			const storableUser = await modelMapper.mapToDecryptedInstance(user)
+			changeInstanceDirection(storableUser, InstanceDirection.IncomingFromServer)
 
 			const userCacheHandler: CustomCacheHandler<User> = object()
 			when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
@@ -212,22 +208,16 @@ o.spec("EphemeralCacheStorage", function () {
 			let mailSetEntryFromDb = await storage.get(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryListElementIdOne)
 			o(mailSetEntryFromDb).equals(null)
 
-			const storableMailSetEntry = (await modelMapper.mapToClientModelParsedInstance(
-				MailSetEntryTypeRef,
-				mailSetEntryListOne,
-			)) as unknown as ServerModelParsedInstance
+			const storableMailSetEntry = await modelMapper.mapToDecryptedInstance(mailSetEntryListOne)
+			changeInstanceDirection(storableMailSetEntry, InstanceDirection.IncomingFromServer)
 			await storage.put(MailSetEntryTypeRef, storableMailSetEntry)
 
-			const storableMailSetEntryTwo = (await modelMapper.mapToClientModelParsedInstance(
-				MailSetEntryTypeRef,
-				mailSetEntryListTwo,
-			)) as unknown as ServerModelParsedInstance
+			const storableMailSetEntryTwo = await modelMapper.mapToDecryptedInstance(mailSetEntryListTwo)
+			changeInstanceDirection(storableMailSetEntryTwo, InstanceDirection.IncomingFromServer)
 			await storage.put(MailSetEntryTypeRef, storableMailSetEntryTwo)
 
-			const storableMailSetEntryOther = (await modelMapper.mapToClientModelParsedInstance(
-				MailSetEntryTypeRef,
-				mailSetEntryOther,
-			)) as unknown as ServerModelParsedInstance
+			const storableMailSetEntryOther = await modelMapper.mapToDecryptedInstance(mailSetEntryOther)
+			changeInstanceDirection(storableMailSetEntryOther, InstanceDirection.IncomingFromServer)
 			await storage.put(MailSetEntryTypeRef, storableMailSetEntryOther)
 
 			mailSetEntryFromDb = await storage.get(MailSetEntryTypeRef, mailSetEntryListId, mailSetEntryListElementIdOne)
@@ -264,7 +254,8 @@ o.spec("EphemeralCacheStorage", function () {
 					},
 					{ populateAggregates: true },
 				)
-				const storableUser = (await modelMapper.mapToClientModelParsedInstance(UserTypeRef, user)) as unknown as ServerModelParsedInstance
+				const storableUser = await modelMapper.mapToDecryptedInstance(user)
+				changeInstanceDirection(storableUser, InstanceDirection.IncomingFromServer)
 
 				const userCacheHandler: CustomCacheHandler<User> = object()
 				when(customCacheHandlerMap.get(UserTypeRef)).thenReturn(userCacheHandler)
@@ -286,10 +277,8 @@ o.spec("EphemeralCacheStorage", function () {
 						},
 						{ populateAggregates: true },
 					)
-					const storableEntity = (await modelMapper.mapToClientModelParsedInstance(
-						MailTypeRef,
-						entityToStore,
-					)) as unknown as ServerModelParsedInstance
+					const storableEntity = await modelMapper.mapToDecryptedInstance(entityToStore)
+					changeInstanceDirection(storableEntity, InstanceDirection.IncomingFromServer)
 
 					const customCacheHandler: CustomCacheHandler<Mail> = object()
 					when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
@@ -310,10 +299,8 @@ o.spec("EphemeralCacheStorage", function () {
 						},
 						{ populateAggregates: true },
 					)
-					const storableEntity = (await modelMapper.mapToClientModelParsedInstance(
-						ContactTypeRef,
-						entityToStore,
-					)) as unknown as ServerModelParsedInstance
+					const storableEntity = await modelMapper.mapToDecryptedInstance(entityToStore)
+					changeInstanceDirection(storableEntity, InstanceDirection.IncomingFromServer)
 
 					const customCacheHandler: CustomCacheHandler<Contact> = object()
 					when(customCacheHandlerMap.get(ContactTypeRef)).thenReturn(customCacheHandler)
@@ -335,14 +322,11 @@ o.spec("EphemeralCacheStorage", function () {
 					},
 					{ populateAggregates: true },
 				)
-				const storableEntity = (await modelMapper.mapToClientModelParsedInstance(
-					MailDetailsBlobTypeRef,
-					entityToStore,
-				)) as unknown as ServerModelParsedInstance
+				const storableEntity = await modelMapper.mapToDecryptedInstance(entityToStore)
+				changeInstanceDirection(storableEntity, InstanceDirection.IncomingFromServer)
 
 				const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = object()
 				when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
-
 				await storage.put(MailDetailsBlobTypeRef, storableEntity)
 
 				await storage.deleteAllOwnedBy(groupId)

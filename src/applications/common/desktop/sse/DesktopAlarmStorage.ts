@@ -1,15 +1,20 @@
 import type { DesktopConfig } from "../config/DesktopConfig"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
-import { AttributeModel, ClientModelUntypedInstance, elementIdPart, hasError, ServerModelUntypedInstance, UntypedInstance } from "../../../../platform-kit/meta"
-import { DesktopConfigKey } from "../../../../platform-kit/app-env"
+import { DesktopConfigKey } from "@tutao/app-env"
 import type { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
-import { assertNotNull, base64ToUint8Array, findAllAndRemove, uint8ArrayToBase64 } from "../../../../platform-kit/utils"
+import { assertNotNull, base64ToUint8Array, findAllAndRemove, Nullable, promiseMap, uint8ArrayToBase64 } from "../../../../platform-kit/utils"
 import { log } from "../DesktopLog"
-import { AesKey, base64ToKey, decryptKey, keyToBase64, uint8ArrayToKey } from "../../../../platform-kit/crypto"
-import { ClientTypeModelResolver, InstancePipeline } from "../../../../platform-kit/instance-pipeline"
-import { CryptoError } from "../../../../platform-kit/crypto/error"
+import { AesKey, base64ToKey, decryptKey, keyToBase64, uint8ArrayToKey } from "@tutao/crypto"
+import { EncryptedParsedInstance, InstancePipeline } from "../../../../platform-kit/instance-pipeline"
+import { CryptoError } from "@tutao/crypto/error"
 import { EncryptedAlarmNotification } from "../../../../app-kit/native-bridge/common/EncryptedAlarmNotification"
 import { AlarmNotification, AlarmNotificationTypeRef, NotificationSessionKey } from "@tutao/entities/sys"
+import { elementIdPart, hasError } from "@tutao/meta"
+import { IncomingServerJson, OutgoingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
+
+// This is the type that catually get saved to the file
+// see: DesktopAlarmStorage#_storeAlarms and DesktopAlarmStorage#_readAlarms
+type AlarmSavedType = ReturnType<typeof OutgoingServerJson.getJsonRepresentationOfMultiple>
 
 /**
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
@@ -23,7 +28,6 @@ export class DesktopAlarmStorage {
 		private readonly cryptoFacade: DesktopNativeCryptoFacade,
 		private readonly keyStoreFacade: DesktopKeyStoreFacade,
 		private readonly alarmStorageInstancePipeline: InstancePipeline,
-		private readonly typeModelResolver: ClientTypeModelResolver,
 	) {
 		this.unencryptedSessionKeys = {}
 	}
@@ -114,15 +118,15 @@ export class DesktopAlarmStorage {
 		findAllAndRemove(allAlarms, (an) => an.getAlarmId() === alarm.alarmInfo.alarmIdentifier)
 		const sessionKeyWrapper = await this.getNotificationSessionKey(alarm.notificationSessionKeys)
 		const encryptedAlarm = await this.encryptAlarmNotification(alarm, assertNotNull(sessionKeyWrapper).sessionKey)
-		allAlarms.push(await EncryptedAlarmNotification.from(encryptedAlarm as ServerModelUntypedInstance, this.typeModelResolver))
-		await this._saveAlarms(allAlarms.map((alarm) => alarm.untypedInstance))
+		allAlarms.push(new EncryptedAlarmNotification(encryptedAlarm))
+		await this._saveAlarms(allAlarms.map((alarm) => alarm.encryptedInstance))
 	}
 
 	async deleteAlarm(identifier: string): Promise<void> {
 		const allAlarms = await this.getScheduledAlarms()
 		findAllAndRemove(allAlarms, (an) => an.getAlarmId() === identifier)
 
-		await this._saveAlarms(allAlarms.map((an) => an.untypedInstance))
+		await this._saveAlarms(allAlarms.map((an) => an.encryptedInstance))
 	}
 
 	/**
@@ -134,46 +138,59 @@ export class DesktopAlarmStorage {
 		} else {
 			const allScheduledAlarms = await this.getScheduledAlarms()
 			findAllAndRemove(allScheduledAlarms, (alarm) => alarm.getUser() === userId)
-			const untypedAlarms = allScheduledAlarms.map((an) => an.untypedInstance)
+			const untypedAlarms = allScheduledAlarms.map((an) => an.encryptedInstance)
 			return this._saveAlarms(untypedAlarms)
 		}
 	}
 
 	async getScheduledAlarms(): Promise<Array<EncryptedAlarmNotification>> {
+		const alarms = await this._readAlarms()
+		// TODO: do we need this check?
+		// typeof ..["_format"] will always be string now since ParsedValue always store all values as string
+		// if (alarms.length > 0 && typeof alarms[0]["_format"] === "string") {
+		// 	// Legacy code path before migration to type and attribute ids
+		// 	// CalendarFacade.scheduleAlarmsForNewDevice is anyway invoked if SystemModel has changed.
+		// 	await this.deleteAllAlarms(null)
+		// 	return []
+		// } else {
+		// }
+
+		return Promise.all(alarms.map((alarm) => new EncryptedAlarmNotification(alarm)))
+	}
+
+	async _saveAlarms(alarms: ReadonlyArray<EncryptedParsedInstance>): Promise<void> {
+		const rawAlarms: Array<AlarmSavedType> = await promiseMap(alarms, (alarm) =>
+			this.alarmStorageInstancePipeline.typeMapper.makeServerJson(alarm).then((r) => r.getJsonRepresentation()),
+		)
+		return this.conf.setVar(DesktopConfigKey.scheduledAlarms, rawAlarms)
+	}
+
+	async _readAlarms(): Promise<Array<EncryptedParsedInstance>> {
 		// the model for alarm notifications changed, and we may have stored some that are missing the
 		// excludedDates field.
 		// to be able to decrypt & map these we need to at least add a plausible value there
 		// we'll unschedule, redownload and reschedule the fixed instances after login.
-		const alarms: Array<ClientModelUntypedInstance> = await this.conf.getVar(DesktopConfigKey.scheduledAlarms)
-		if (!alarms) {
+		const rawAlarms: Nullable<AlarmSavedType> = await this.conf.getVar(DesktopConfigKey.scheduledAlarms)
+		if (rawAlarms == null) {
 			return []
-		} else if (alarms.length > 0 && typeof alarms[0]["_format"] === "string") {
-			// Legacy code path before migration to type and attribute ids
-			// CalendarFacade.scheduleAlarmsForNewDevice is anyway invoked if SystemModel has changed.
-			await this.deleteAllAlarms(null)
-			return []
-		} else {
-			return Promise.all(alarms.map((alarm) => EncryptedAlarmNotification.from(alarm as unknown as ServerModelUntypedInstance, this.typeModelResolver)))
 		}
+		const alarmNotificationTypeModel = await this.alarmStorageInstancePipeline.typeModelResolver.resolveServerTypeReference(AlarmNotificationTypeRef)
+		//FIXME parsing error on accounts with event alarms
+		const incomingJsons = IncomingServerJson.expectMultipleInstance(rawAlarms, alarmNotificationTypeModel)
+		return await Promise.all(incomingJsons.map((json) => this.alarmStorageInstancePipeline.typeMapper.parseServerJson(json)))
 	}
 
-	_saveAlarms(alarms: ReadonlyArray<UntypedInstance>): Promise<void> {
-		return this.conf.setVar(DesktopConfigKey.scheduledAlarms, alarms)
-	}
-
-	async encryptAlarmNotification(an: AlarmNotification, newDeviceSessionKey: AesKey | null): Promise<UntypedInstance> {
+	async encryptAlarmNotification(an: AlarmNotification, newDeviceSessionKey: AesKey | null): Promise<EncryptedParsedInstance> {
 		let sk = newDeviceSessionKey
 		if (!newDeviceSessionKey) {
 			let notificationSessionKeyWrapper = await this.getNotificationSessionKey(an.notificationSessionKeys)
 			sk = assertNotNull(notificationSessionKeyWrapper).sessionKey
 		}
 
-		const untypedAlarmNotification = await this.alarmStorageInstancePipeline.mapAndEncrypt(AlarmNotificationTypeRef, an, sk)
-		return AttributeModel.removeNetworkDebuggingInfoIfNeeded(untypedAlarmNotification)
+		return await this.alarmStorageInstancePipeline.mapAndEncryptToParsedInstance(AlarmNotificationTypeRef, an, sk)
 	}
 
-	public async decryptAlarmNotification(an: ClientModelUntypedInstance): Promise<AlarmNotification> {
-		const encryptedAlarmNotification = await EncryptedAlarmNotification.from(an as unknown as ServerModelUntypedInstance, this.typeModelResolver)
+	public async decryptAlarmNotification(encryptedAlarmNotification: EncryptedAlarmNotification): Promise<AlarmNotification> {
 		for (const currentNotificationSessionKey of encryptedAlarmNotification.getNotificationSessionKeys()) {
 			const pushIdentifierSessionKey = await this.getPushIdentifierSessionKey(currentNotificationSessionKey.pushIdentifier)
 
@@ -185,9 +202,8 @@ export class DesktopAlarmStorage {
 			}
 
 			const sessionKey = decryptKey(pushIdentifierSessionKey, currentNotificationSessionKey.pushIdentifierSessionEncSessionKey)
-			const decryptedAlarmNotification: AlarmNotification = await this.alarmStorageInstancePipeline.decryptAndMap(
-				AlarmNotificationTypeRef,
-				an as unknown as ServerModelUntypedInstance,
+			const decryptedAlarmNotification = await this.alarmStorageInstancePipeline.decryptAndMapEncryptedInstance<AlarmNotification>(
+				encryptedAlarmNotification.encryptedInstance,
 				sessionKey,
 			)
 
