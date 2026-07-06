@@ -51,7 +51,7 @@ o.spec("DriveTransferController", function () {
 			await transferController.upload(file, "uploadFile", ["listId", "folderElementId"])
 			verify(driveFacade.uploadFile(file, fileId, "uploadFile", ["listId", "folderElementId"]))
 			o.check(transferController.state.allTransfers).deepEquals([
-				{ id: fileId, type: "upload", filename: "uploadFile", state: "finished", transferredBytes: 0, totalBytes: 1024, timeRemainingSec: 0 },
+				{ id: fileId, type: "upload", filename: "uploadFile", state: "finished", transferredBytes: 0, totalBytes: 1024, timeRemainingSec: undefined },
 			])
 		})
 
@@ -89,7 +89,7 @@ o.spec("DriveTransferController", function () {
 					totalBytes: 1024,
 					filename: "uploadFile1",
 					transferredBytes: 0,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 				{
 					id: fileId2,
@@ -98,7 +98,7 @@ o.spec("DriveTransferController", function () {
 					totalBytes: 1024,
 					filename: "uploadFile2",
 					transferredBytes: 0,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 			])
 			uploadDeferred1.reject(new CancelledError("upload failed"))
@@ -111,7 +111,7 @@ o.spec("DriveTransferController", function () {
 					totalBytes: 1024,
 					filename: "uploadFile2",
 					transferredBytes: 0,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 			])
 			uploadDeferred2.resolve(createTestEntity(DriveFileTypeRef))
@@ -124,7 +124,7 @@ o.spec("DriveTransferController", function () {
 					totalBytes: 1024,
 					filename: "uploadFile2",
 					transferredBytes: 0,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 			])
 		})
@@ -161,7 +161,7 @@ o.spec("DriveTransferController", function () {
 					totalBytes: 1024,
 					filename: "uploadFile1",
 					transferredBytes: 0,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 				{
 					id: fileId2,
@@ -170,7 +170,7 @@ o.spec("DriveTransferController", function () {
 					totalBytes: 1024,
 					filename: "uploadFile2",
 					transferredBytes: 0,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 			])
 			uploadDeferred1.reject(new restError.ConnectionError("upload failed"))
@@ -183,7 +183,7 @@ o.spec("DriveTransferController", function () {
 					totalBytes: 1024,
 					filename: "uploadFile1",
 					transferredBytes: 0,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 				{
 					id: fileId2,
@@ -192,7 +192,7 @@ o.spec("DriveTransferController", function () {
 					totalBytes: 1024,
 					filename: "uploadFile2",
 					transferredBytes: 0,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 			])
 
@@ -206,7 +206,7 @@ o.spec("DriveTransferController", function () {
 					totalBytes: 1024,
 					filename: "uploadFile1",
 					transferredBytes: 0,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 				{
 					id: fileId2,
@@ -215,7 +215,7 @@ o.spec("DriveTransferController", function () {
 					totalBytes: 1024,
 					filename: "uploadFile2",
 					transferredBytes: 0,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 			])
 		})
@@ -253,7 +253,7 @@ o.spec("DriveTransferController", function () {
 					state: "active",
 					totalBytes: file1.file.size,
 					transferredBytes: 0,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 					filename: "file1.txt",
 				},
 				{
@@ -263,7 +263,7 @@ o.spec("DriveTransferController", function () {
 					totalBytes: file2.file.size,
 					transferredBytes: 0,
 					filename: "file2.txt",
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 			])
 
@@ -278,7 +278,7 @@ o.spec("DriveTransferController", function () {
 					totalBytes: file1.file.size,
 					transferredBytes: 0,
 					filename: "file1.txt",
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 				{
 					id: fileId2,
@@ -287,7 +287,7 @@ o.spec("DriveTransferController", function () {
 					totalBytes: file2.file.size,
 					transferredBytes: 0,
 					filename: "file2.txt",
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 			])
 
@@ -303,7 +303,7 @@ o.spec("DriveTransferController", function () {
 					totalBytes: file1.file.size,
 					transferredBytes: 0,
 					filename: "file1.txt",
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 				{
 					id: fileId2,
@@ -312,7 +312,7 @@ o.spec("DriveTransferController", function () {
 					totalBytes: file2.file.size,
 					transferredBytes: 0,
 					filename: "file2.txt",
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 			])
 		})
@@ -370,7 +370,7 @@ o.spec("DriveTransferController", function () {
 					totalBytes: file1.file.size,
 					transferredBytes: 0,
 					filename: "file1.txt",
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 			])
 		})
@@ -397,7 +397,7 @@ o.spec("DriveTransferController", function () {
 				state: "finished",
 				transferredBytes: 0,
 				totalBytes: 1024,
-				timeRemainingSec: 0,
+				timeRemainingSec: undefined,
 			}
 			deferredDownload.resolve()
 			await waitForUiUpdate()
@@ -432,7 +432,7 @@ o.spec("DriveTransferController", function () {
 					state: "active",
 					transferredBytes: 0,
 					totalBytes: 1024,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 			])
 			deferredDownload2.resolve()
@@ -445,7 +445,7 @@ o.spec("DriveTransferController", function () {
 					state: "finished",
 					transferredBytes: 0,
 					totalBytes: 1024,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 			])
 		})
@@ -478,7 +478,7 @@ o.spec("DriveTransferController", function () {
 					state: "failed",
 					transferredBytes: 0,
 					totalBytes: 1024,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 				{
 					id: transferId2,
@@ -487,7 +487,7 @@ o.spec("DriveTransferController", function () {
 					state: "active",
 					transferredBytes: 0,
 					totalBytes: 1024,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 			])
 
@@ -501,7 +501,7 @@ o.spec("DriveTransferController", function () {
 					state: "failed",
 					transferredBytes: 0,
 					totalBytes: 1024,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 				{
 					id: transferId2,
@@ -510,7 +510,7 @@ o.spec("DriveTransferController", function () {
 					state: "finished",
 					transferredBytes: 0,
 					totalBytes: 1024,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 			])
 		})
@@ -542,7 +542,7 @@ o.spec("DriveTransferController", function () {
 					state: "active",
 					transferredBytes: 0,
 					totalBytes: 1024,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 				{
 					id: transferId2,
@@ -551,7 +551,7 @@ o.spec("DriveTransferController", function () {
 					state: "waiting",
 					transferredBytes: 0,
 					totalBytes: 1024,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 			])
 			deferredDownload1.resolve()
@@ -564,7 +564,7 @@ o.spec("DriveTransferController", function () {
 					state: "finished",
 					transferredBytes: 0,
 					totalBytes: 1024,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 				{
 					id: transferId2,
@@ -573,7 +573,7 @@ o.spec("DriveTransferController", function () {
 					state: "active",
 					transferredBytes: 0,
 					totalBytes: 1024,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 			])
 
@@ -587,7 +587,7 @@ o.spec("DriveTransferController", function () {
 					state: "finished",
 					transferredBytes: 0,
 					totalBytes: 1024,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 				{
 					id: transferId2,
@@ -596,7 +596,7 @@ o.spec("DriveTransferController", function () {
 					state: "finished",
 					transferredBytes: 0,
 					totalBytes: 1024,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 			])
 		})
@@ -654,7 +654,7 @@ o.spec("DriveTransferController", function () {
 					state: "active",
 					transferredBytes: 0,
 					totalBytes: 1024,
-					timeRemainingSec: 0,
+					timeRemainingSec: undefined,
 				},
 			])
 		})

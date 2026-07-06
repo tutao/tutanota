@@ -109,7 +109,7 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 				runningIcon: () => this.renderRunningIcon(transferState.type),
 				progressState: this.getProgressState(transferState.state),
 				percentage: Math.min(Math.round((transferState.transferredBytes / transferState.totalBytes) * 100), 100),
-				timeRemaining: transferState.timeRemainingSec,
+				timeRemaining: transferState.timeRemainingSec ?? null,
 				onCancel: () => cancelTransfer(transferState.id),
 			} satisfies ProgressSnackBarAttrs & { key: string })
 		})

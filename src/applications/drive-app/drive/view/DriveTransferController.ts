@@ -21,7 +21,7 @@ export interface DriveTransferState {
 	state: "finished" | "failed" | "active" | "waiting"
 	transferredBytes: number
 	totalBytes: number
-	timeRemainingSec: number
+	timeRemainingSec: number | undefined
 }
 
 type QueuedTransfer =
@@ -78,7 +78,10 @@ export class DriveTransferController {
 		for (const queuedTransfer of this.queue) {
 			if (queuedTransfer.state === "active") {
 				numberOfActiveTransfers++
-				totalTransferSpeed += averageTransferSpeed(queuedTransfer)
+			}
+			const avgSpeed = averageTransferSpeed(queuedTransfer)
+			if (avgSpeed) {
+				totalTransferSpeed += avgSpeed
 			}
 		}
 		const speed = totalTransferSpeed / numberOfActiveTransfers
@@ -304,14 +307,19 @@ function queuedTransferToState(transfer: QueuedTransfer): DriveTransferState {
 	}
 }
 
-function averageTransferSpeed(queuedTransfer: QueuedTransfer): number {
-	return (
-		queuedTransfer.transferredBytes /
-		((assertNotNull(queuedTransfer.lastChunkUpdateTime).getTime() - assertNotNull(queuedTransfer.startTime).getTime()) / 1000)
-	)
+function averageTransferSpeed(queuedTransfer: QueuedTransfer): number | undefined {
+	if (queuedTransfer.lastChunkUpdateTime == null) {
+		return undefined
+	} else {
+		return (
+			queuedTransfer.transferredBytes /
+			((assertNotNull(queuedTransfer.lastChunkUpdateTime).getTime() - assertNotNull(queuedTransfer.startTime).getTime()) / 1000)
+		)
+	}
 }
 
-function calculateRemainingTimeSec(queuedTransfer: QueuedTransfer): number {
+function calculateRemainingTimeSec(queuedTransfer: QueuedTransfer): number | undefined {
 	const speed = averageTransferSpeed(queuedTransfer)
-	return (transferSize(queuedTransfer) - queuedTransfer.transferredBytes) / speed
+
+	return speed ? (transferSize(queuedTransfer) - queuedTransfer.transferredBytes) / speed : undefined
 }
