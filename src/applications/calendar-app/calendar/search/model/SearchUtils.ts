@@ -10,10 +10,10 @@ import {
 	stringToBase64,
 } from "../../../../../platform-kit/utils"
 import { RouteSetFn, throttleRoute } from "../../../../../ui/utils/RouteChange"
-import type { SearchRestriction } from "../../../../common/api/worker/search/SearchTypes"
+import { SearchCategoryType, SearchRestriction } from "../../../../common/api/worker/search/SearchTypes"
 import { assertMainOrNode } from "../../../../../platform-kit/app-env"
 import { getElementId } from "../../../../../platform-kit/meta"
-import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
+import { CalendarEvent } from "@tutao/entities/tutanota"
 
 assertMainOrNode()
 
@@ -69,7 +69,7 @@ export function getSearchUrl(
  */
 export function createRestriction(start: number | null, end: number | null, folderIds: Array<string>, eventSeries: boolean): SearchRestriction {
 	return {
-		type: CalendarEventTypeRef,
+		type: SearchCategoryType.calendar,
 		start: start,
 		end: end,
 		field: null,

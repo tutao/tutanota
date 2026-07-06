@@ -119,7 +119,7 @@ export type MoreResultsIndexEntry = {
 	encId: Uint8Array
 }
 export type SearchRestriction = {
-	type: TypeRef<any>
+	type: SearchCategoryType
 	start: number | null
 	// timestamp
 	end: number | null
@@ -164,4 +164,10 @@ export type SearchIndexStateInfo = {
 	indexedMailCount: number
 	failedIndexingUpTo: number | null
 	error?: IndexingErrorReason | null
+}
+export const enum SearchCategoryType {
+	mail = "mail",
+	contact = "contact",
+	calendar = "calendar",
+	drive = "drive",
 }

@@ -15,7 +15,7 @@ import { debounce, downcast, memoized, mod, ofClass } from "../../../platform-ki
 import { BrowserType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { SearchBarOverlay } from "./SearchBarOverlay"
 import { IndexingNotSupportedError } from "../../common/api/common/error/IndexingNotSupportedError"
-import type { SearchRestriction, SearchResult } from "../../common/api/worker/search/SearchTypes"
+import { SearchCategoryType, SearchRestriction, SearchResult } from "../../common/api/worker/search/SearchTypes"
 import { compareContacts } from "../contacts/view/ContactGuiUtils"
 import { LayerType } from "../../../ui/base/RootView"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../ui/base/BaseSearchBar.js"
@@ -369,7 +369,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 		let restriction = this.getRestriction()
 
-		if (!mailLocator.search.indexState().mailIndexEnabled && restriction && isSameTypeRef(restriction.type, MailTypeRef) && !this.confirmDialogShown) {
+		if (!mailLocator.search.indexState().mailIndexEnabled && restriction && restriction.type === "mail" && !this.confirmDialogShown) {
 			this.focused = false
 			this.confirmDialogShown = true
 			Dialog.confirm("enableSearchMailbox_msg", "search_label")
@@ -391,7 +391,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 				.finally(() => (this.confirmDialogShown = false))
 		} else {
 			// Skip the search if the user is trying to bypass the search dialog
-			if (!mailLocator.search.indexState().mailIndexEnabled && isSameTypeRef(restriction.type, MailTypeRef)) {
+			if (!mailLocator.search.indexState().mailIndexEnabled && restriction.type === "mail") {
 				return
 			}
 
@@ -426,7 +426,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 		let useSuggestions = m.route.get().startsWith("/settings")
 		// We don't limit contacts because we need to download all of them to sort them. They should be cached anyway.
-		const limit = isSameTypeRef(MailTypeRef, restriction.type) ? (this.isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize) : null
+		const limit = restriction.type === "mail" ? (this.isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize) : null
 
 		mailLocator.search
 			.search(
@@ -491,15 +491,15 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 	private async showResultsInOverlay(result: SearchResult): Promise<void> {
 		let entries: Entry[]
-		if (isSameTypeRef(CalendarEventTypeRef, result.restriction.type)) {
+		if (result.restriction.type === SearchCategoryType.calendar) {
 			const serverEventIds = result.results.filter(([calendarId, eventId]) => !isBirthdayCalendar(calendarId))
 			const eventsRepository = await mailLocator.calendarEventsRepository()
 			entries = [
-				...(await loadMultipleFromLists(result.restriction.type, mailLocator.entityClient, serverEventIds)),
+				...(await loadMultipleFromLists(CalendarEventTypeRef, mailLocator.entityClient, serverEventIds)),
 				...(await retrieveBirthdayEventsForUser(mailLocator.logins, result.results, eventsRepository.getBirthdayEvents())),
 			]
 		} else {
-			entries = await loadMultipleFromLists(result.restriction.type, mailLocator.entityClient, result.results)
+			entries = await loadMultipleFromLists(CalendarEventTypeRef, mailLocator.entityClient, result.results)
 		}
 
 		// If there was no new search while we've been downloading the result
@@ -537,29 +537,35 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		filteredEntries: Entries
 		couldShowMore: boolean
 	} {
-		if (isSameTypeRef(restriction.type, ContactTypeRef)) {
-			// Sort contacts by name
-			return {
-				filteredEntries: instances
-					.slice() // we can't modify the given array
-					.sort((o1, o2) => compareContacts(o1 as any, o2 as any))
-					.slice(0, MAX_SEARCH_PREVIEW_RESULTS),
-				couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS,
+		switch (restriction.type) {
+			case SearchCategoryType.contact:
+				// Sort contacts by name
+				return {
+					filteredEntries: instances
+						.slice() // we can't modify the given array
+						.sort((o1, o2) => compareContacts(o1 as any, o2 as any))
+						.slice(0, MAX_SEARCH_PREVIEW_RESULTS),
+					couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS,
+				}
+			case SearchCategoryType.calendar: {
+				const range = { start: restriction.start ?? 0, end: restriction.end ?? 0 }
+				const generatedInstances = generateCalendarInstancesInRange(downcast(instances), range, MAX_SEARCH_PREVIEW_RESULTS + 1)
+				return {
+					filteredEntries: generatedInstances.slice(0, MAX_SEARCH_PREVIEW_RESULTS),
+					couldShowMore: generatedInstances.length > MAX_SEARCH_PREVIEW_RESULTS,
+				}
 			}
-		} else if (isSameTypeRef(restriction.type, CalendarEventTypeRef)) {
-			const range = { start: restriction.start ?? 0, end: restriction.end ?? 0 }
-			const generatedInstances = generateCalendarInstancesInRange(downcast(instances), range, MAX_SEARCH_PREVIEW_RESULTS + 1)
-			return {
-				filteredEntries: generatedInstances.slice(0, MAX_SEARCH_PREVIEW_RESULTS),
-				couldShowMore: generatedInstances.length > MAX_SEARCH_PREVIEW_RESULTS,
-			}
-		} else if (isSameTypeRef(restriction.type, MailTypeRef)) {
-			return {
-				filteredEntries: instances.slice().sort(compareMails).slice(0, MAX_SEARCH_PREVIEW_RESULTS),
-				couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS,
-			}
-		} else {
-			throw new ProgrammingError(`Unhandled restriction type: ${restriction.type.toString()}`)
+			case SearchCategoryType.mail:
+				return {
+					filteredEntries: instances.slice().sort(compareMails).slice(0, MAX_SEARCH_PREVIEW_RESULTS),
+					couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS,
+				}
+			case SearchCategoryType.drive:
+				return {
+					// FIXME
+					filteredEntries: instances,
+					couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS,
+				}
 		}
 	}
 

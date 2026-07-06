@@ -1,6 +1,6 @@
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { SearchResultListEntry } from "./SearchListView.js"
-import { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes.js"
+import { SearchCategoryType, SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import {
 	assertIsEntity,
@@ -38,9 +38,9 @@ import {
 	onceAsync,
 	stringToBase64,
 	YEAR_IN_MILLIS,
-} from "../../../../platform-kit/utils"
+} from "@tutao/utils"
 import { SearchModel } from "../model/SearchModel.js"
-import { NotFoundError } from "../../../../platform-kit/rest-client/error"
+import { NotFoundError } from "@tutao/rest-client/error"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils.js"
 import { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
 import {
@@ -53,8 +53,6 @@ import {
 	getSearchUrl,
 	hasMoreResults,
 	isSameSearchRestriction,
-	searchCategoryForRestriction,
-	SearchCategoryTypes,
 } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
@@ -87,6 +85,7 @@ import {
 	isUpdateForTypeRef,
 	OnEntityUpdateReceivedPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { DriveFileTypeRef, DriveFolderTypeRef } from "@tutao/entities/drive"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -137,7 +136,7 @@ export class SearchViewModel {
 	 * result might be nonexistent if there is no query or we're not done searching
 	 * yet.
 	 */
-	get searchedType(): TypeRef<Mail | Contact | CalendarEvent> {
+	get searchedType(): SearchCategoryType {
 		return (this.search.result()?.restriction ?? this.router.getRestriction()).type
 	}
 
@@ -156,7 +155,7 @@ export class SearchViewModel {
 		if (this._endDate) {
 			return this._endDate
 		} else {
-			if (this.getCategory() === SearchCategoryTypes.calendar) {
+			if (this.getCategory() === SearchCategoryType.calendar) {
 				let returnDate = incrementMonth(new Date(), 3)
 				returnDate.setDate(0)
 				return returnDate
@@ -267,14 +266,14 @@ export class SearchViewModel {
 	 * We only care about indexingState when searching mails because indexState only reflects mail indexing
 	 */
 	isIndexingMails(): boolean {
-		return isSameTypeRef(MailTypeRef, this.searchedType) && this.search.indexState().progress > 0
+		return this.searchedType === SearchCategoryType.mail && this.search.indexState().progress > 0
 	}
 
 	/**
 	 * We only care about indexingState when searching mails because indexState only reflects mail indexing
 	 */
 	isIndexingMailsFailed(): boolean {
-		return isSameTypeRef(MailTypeRef, this.searchedType) && this.search.indexState().failedIndexingUpTo != null
+		return this.searchedType === SearchCategoryType.mail && this.search.indexState().failedIndexingUpTo != null
 	}
 
 	private readonly entityEventsListener: EntityEventsListener = {
@@ -293,13 +292,13 @@ export class SearchViewModel {
 			restriction = getRestriction(requestedPath)
 		} catch (e) {
 			// if restriction is broken replace it with non-broken version
-			this.router.routeTo(query, createRestriction(SearchCategoryTypes.mail, null, null, null, [], null))
+			this.router.routeTo(query, createRestriction(SearchCategoryType.mail, null, null, null, [], null))
 			return
 		}
 
 		this.currentQuery = query
 		const lastQuery = this.search.lastQueryString()
-		const maxResults = isSameTypeRef(MailTypeRef, restriction.type) ? SEARCH_PAGE_SIZE : null
+		const maxResults = restriction.type === SearchCategoryType.mail ? SEARCH_PAGE_SIZE : null
 		const listModel = this._listModel
 
 		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
@@ -328,45 +327,57 @@ export class SearchViewModel {
 				.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
 		}
 
-		if (isSameTypeRef(restriction.type, ContactTypeRef)) {
-			this.loadAndSelectIfNeeded(args.id)
-		} else if (isSameTypeRef(restriction.type, MailTypeRef)) {
-			this._selectedMailField = restriction.field
-			this._startDate = restriction.end ? new Date(restriction.end) : null
-			this._endDate = restriction.start ? new Date(restriction.start) : null
-			this._selectedMailFolder = restriction.folderIds
-			this.loadAndSelectIfNeeded(args.id)
-			this.latestMailRestriction = restriction
-		} else if (isSameTypeRef(restriction.type, CalendarEventTypeRef)) {
-			this._startDate = restriction.start ? new Date(restriction.start) : null
-			this._endDate = restriction.end ? new Date(restriction.end) : null
-			this._includeRepeatingEvents = restriction.eventSeries ?? true
-			this.latestCalendarRestriction = restriction
-
-			// Check if user is trying to search in a birthday calendar while using a free account
-			const listIdsOrBirthdayCalendarId = this.extractCalendarListIds(restriction.folderIds)
-			if (!listIdsOrBirthdayCalendarId || Array.isArray(listIdsOrBirthdayCalendarId)) {
-				this._selectedCalendar = listIdsOrBirthdayCalendarId
-			} else if (isBirthdayCalendar(listIdsOrBirthdayCalendarId.toString())) {
-				const availableCalendars = this.getAvailableCalendars(true)
-				if (availableCalendars.some(isBirthdayCalendarInfo)) {
-					this._selectedCalendar = listIdsOrBirthdayCalendarId
-				}
-				this._selectedCalendar = null
-				return
+		switch (restriction.type) {
+			case SearchCategoryType.contact: {
+				this.loadAndSelectIfNeeded(args.id)
+				break
 			}
+			case SearchCategoryType.mail: {
+				this._selectedMailField = restriction.field
+				this._startDate = restriction.end ? new Date(restriction.end) : null
+				this._endDate = restriction.start ? new Date(restriction.start) : null
+				this._selectedMailFolder = restriction.folderIds
+				this.loadAndSelectIfNeeded(args.id)
+				this.latestMailRestriction = restriction
+				break
+			}
+			case SearchCategoryType.calendar: {
+				this._startDate = restriction.start ? new Date(restriction.start) : null
+				this._endDate = restriction.end ? new Date(restriction.end) : null
+				this._includeRepeatingEvents = restriction.eventSeries ?? true
+				this.latestCalendarRestriction = restriction
 
-			if (args.id != null) {
-				try {
-					const { start, id } = decodeCalendarSearchKey(args.id)
-					this.loadAndSelectIfNeeded(id, ({ entry }: SearchResultListEntry) => {
-						entry = entry as CalendarEvent
-						return id === getElementId(entry) && start === entry.startTime.getTime()
-					})
-				} catch (err) {
-					console.log("Invalid ID, selecting none")
-					this.listModel.selectNone()
+				// Check if user is trying to search in a birthday calendar while using a free account
+				const listIdsOrBirthdayCalendarId = this.extractCalendarListIds(restriction.folderIds)
+				if (!listIdsOrBirthdayCalendarId || Array.isArray(listIdsOrBirthdayCalendarId)) {
+					this._selectedCalendar = listIdsOrBirthdayCalendarId
+				} else if (isBirthdayCalendar(listIdsOrBirthdayCalendarId.toString())) {
+					const availableCalendars = this.getAvailableCalendars(true)
+					if (availableCalendars.some(isBirthdayCalendarInfo)) {
+						this._selectedCalendar = listIdsOrBirthdayCalendarId
+					}
+					this._selectedCalendar = null
+					return
 				}
+
+				if (args.id != null) {
+					try {
+						const { start, id } = decodeCalendarSearchKey(args.id)
+						this.loadAndSelectIfNeeded(id, ({ entry }: SearchResultListEntry) => {
+							entry = entry as CalendarEvent
+							return id === getElementId(entry) && start === entry.startTime.getTime()
+						})
+					} catch (err) {
+						console.log("Invalid ID, selecting none")
+						this.listModel.selectNone()
+					}
+				}
+				break
+			}
+			case SearchCategoryType.drive: {
+				this._startDate = restriction.start ? new Date(restriction.start) : null
+				this._endDate = restriction.end ? new Date(restriction.end) : null
+				this.loadAndSelectIfNeeded(args.id)
 			}
 		}
 	}
@@ -473,7 +484,7 @@ export class SearchViewModel {
 
 		// If start date is outside the indexed range, suggest to extend the index and only if confirmed change the selected date.
 		// Otherwise, keep the date as it was.
-		if (startDate && this.getCategory() === SearchCategoryTypes.mail && startDate.getTime() < this.search.indexState().currentMailIndexTimestamp) {
+		if (startDate && this.getCategory() === SearchCategoryType.mail && startDate.getTime() < this.search.indexState().currentMailIndexTimestamp) {
 			if (this.listModel.state.loadingStatus === ListLoadingState.Done) {
 				// set list state to Idle so an empty row at the end of the list is shown where the progress indicator will be rendered
 				this.listModel.updateLoadingStatus(ListLoadingState.Idle)
@@ -584,17 +595,17 @@ export class SearchViewModel {
 		this.updateUi()
 	}
 
-	getUrlFromSearchCategory(category: SearchCategoryTypes): string {
+	getUrlFromSearchCategory(category: SearchCategoryType): string {
 		if (this.currentQuery) {
 			let latestRestriction: SearchRestriction | null = null
 			switch (category) {
-				case SearchCategoryTypes.mail:
+				case SearchCategoryType.mail:
 					latestRestriction = this.latestMailRestriction
 					break
-				case SearchCategoryTypes.calendar:
+				case SearchCategoryType.calendar:
 					latestRestriction = this.latestCalendarRestriction
 					break
-				case SearchCategoryTypes.contact:
+				case SearchCategoryType.contact:
 					// contacts do not have restrictions at this time
 					break
 			}
@@ -619,7 +630,7 @@ export class SearchViewModel {
 	}
 
 	private applyMailFilterIfNeeded() {
-		if (isSameTypeRef(this.searchedType, MailTypeRef)) {
+		if (this.searchedType === SearchCategoryType.mail) {
 			const filters = Array.from(this.mailFilterType).map(getMailFilterForType)
 			const filterFunction = (item: Mail) => {
 				for (const filter of filters) {
@@ -637,32 +648,43 @@ export class SearchViewModel {
 	private updateSearchUrl() {
 		const selectedElement = this._listModel.state.selectedItems.size === 1 ? this._listModel.getSelectedAsArray().at(0) : null
 
-		if (isSameTypeRef(this.searchedType, MailTypeRef)) {
-			this.routeMail(
-				(selectedElement?.entry as Mail) ?? null,
-				createRestriction(
-					this.getCategory(),
-					this._endDate ? getEndOfDay(this._endDate).getTime() : null,
-					this._startDate ? getStartOfDay(this._startDate).getTime() : null,
-					this._selectedMailField,
-					this._selectedMailFolder,
-					null,
-				),
-			)
-		} else if (isSameTypeRef(this.searchedType, CalendarEventTypeRef)) {
-			this.routeCalendar(
-				(selectedElement?.entry as CalendarEvent) ?? null,
-				createRestriction(
-					this.getCategory(),
-					this._startDate ? getStartOfDay(this._startDate).getTime() : null,
-					this._endDate ? getEndOfDay(this._endDate).getTime() : null,
-					null,
-					this.getCalendarLists(),
-					this._includeRepeatingEvents,
-				),
-			)
-		} else if (isSameTypeRef(this.searchedType, ContactTypeRef)) {
-			this.routeContact((selectedElement?.entry as Contact) ?? null, createRestriction(this.getCategory(), null, null, null, [], null))
+		switch (this.searchedType) {
+			case SearchCategoryType.mail:
+				this.routeMail(
+					(selectedElement?.entry as Mail) ?? null,
+					createRestriction(
+						this.getCategory(),
+						this._endDate ? getEndOfDay(this._endDate).getTime() : null,
+						this._startDate ? getStartOfDay(this._startDate).getTime() : null,
+						this._selectedMailField,
+						this._selectedMailFolder,
+						null,
+					),
+				)
+				break
+			case SearchCategoryType.calendar:
+				this.routeCalendar(
+					(selectedElement?.entry as CalendarEvent) ?? null,
+					createRestriction(
+						this.getCategory(),
+						this._startDate ? getStartOfDay(this._startDate).getTime() : null,
+						this._endDate ? getEndOfDay(this._endDate).getTime() : null,
+						null,
+						this.getCalendarLists(),
+						this._includeRepeatingEvents,
+					),
+				)
+				break
+			case SearchCategoryType.contact:
+				this.routeContact((selectedElement?.entry as Contact) ?? null, createRestriction(this.getCategory(), null, null, null, [], null))
+				break
+			case SearchCategoryType.drive:
+				// FIXME: check these parameters
+				this.router.routeTo(
+					this.currentQuery,
+					createRestriction(this.getCategory(), this._startDate?.getTime() ?? null, this._endDate?.getTime() ?? null, null, [], null),
+					selectedElement ? this.generateSelectionKey(selectedElement.entry) : null,
+				)
 		}
 	}
 
@@ -700,9 +722,8 @@ export class SearchViewModel {
 		}
 	}
 
-	private getCategory(): SearchCategoryTypes {
-		const restriction = this.router.getRestriction()
-		return searchCategoryForRestriction(restriction)
+	private getCategory(): SearchCategoryType {
+		return this.router.getRestriction().type
 	}
 
 	private async onMailboxesChanged(mailboxes: MailboxDetail[]) {
@@ -722,7 +743,7 @@ export class SearchViewModel {
 	}
 
 	private isPossibleABirthdayContactUpdate(update: EntityUpdateData): update is EntityUpdateData {
-		if (isUpdateForTypeRef(ContactTypeRef, update) && isSameTypeRef(this.searchedType, CalendarEventTypeRef)) {
+		if (isUpdateForTypeRef(ContactTypeRef, update) && this.searchedType === SearchCategoryType.calendar) {
 			const { instanceListId, instanceId } = update
 			const encodedContactId = stringToBase64(`${instanceListId}/${instanceId}`)
 
@@ -733,7 +754,7 @@ export class SearchViewModel {
 	}
 
 	private isSelectedEventAnUpdatedBirthday(update: EntityUpdateData): boolean {
-		if (isUpdateForTypeRef(ContactTypeRef, update) && isSameTypeRef(this.searchedType, CalendarEventTypeRef)) {
+		if (isUpdateForTypeRef(ContactTypeRef, update) && this.searchedType === SearchCategoryType.calendar) {
 			const { instanceListId, instanceId } = update
 			const encodedContactId = stringToBase64(`${instanceListId}/${instanceId}`)
 
@@ -749,10 +770,17 @@ export class SearchViewModel {
 	}
 
 	private async entityEventReceived(update: EntityUpdateData): Promise<void> {
-		const lastType: TypeRef<Mail | CalendarEvent | Contact> = this.searchedType
+		const lastType = this.searchedType
 		const isPossibleABirthdayContactUpdate = this.isPossibleABirthdayContactUpdate(update)
 
-		if (!isUpdateForTypeRef(lastType, update) && !isPossibleABirthdayContactUpdate) {
+		if (
+			!isUpdateForTypeRef(CalendarEventTypeRef, update) &&
+			!isUpdateForTypeRef(MailTypeRef, update) &&
+			!isUpdateForTypeRef(ContactTypeRef, update) &&
+			!isUpdateForTypeRef(DriveFolderTypeRef, update) &&
+			!isUpdateForTypeRef(DriveFileTypeRef, update) &&
+			!isPossibleABirthdayContactUpdate
+		) {
 			return
 		}
 
@@ -764,7 +792,7 @@ export class SearchViewModel {
 			return
 		}
 
-		if ((isUpdateForTypeRef(CalendarEventTypeRef, update) && isSameTypeRef(lastType, CalendarEventTypeRef)) || isPossibleABirthdayContactUpdate) {
+		if ((isUpdateForTypeRef(CalendarEventTypeRef, update) && lastType === SearchCategoryType.calendar) || isPossibleABirthdayContactUpdate) {
 			// due to the way calendar event changes are sort of non-local, we throw away the whole list and re-render it if
 			// the contents are edited. we do the calculation on a new list and then swap the old list out once the new one is
 			// ready
@@ -841,7 +869,7 @@ export class SearchViewModel {
 	}
 
 	private onListStateChange(newState: ListState<SearchResultListEntry>) {
-		if (isSameTypeRef(this.searchedType, MailTypeRef) && !newState.inMultiselect && newState.selectedItems.size === 1) {
+		if (this.searchedType === SearchCategoryType.mail && !newState.inMultiselect && newState.selectedItems.size === 1) {
 			const mail = this.getSelectedMails()[0]
 
 			// Sometimes a stale state is passed through, resulting in no mail
@@ -1022,61 +1050,67 @@ export class SearchViewModel {
 		searchResult: SearchResult,
 		startId: Id,
 	): Promise<{ items: T[]; newSearchResult: SearchResult }> {
-		let items
-		if (isSameTypeRef(searchResult.restriction.type, MailTypeRef)) {
-			let startIndex = 0
+		let items: T[]
+		switch (searchResult.restriction.type) {
+			case SearchCategoryType.mail: {
+				let startIndex = 0
 
-			if (startId !== GENERATED_MAX_ID) {
+				if (startId !== GENERATED_MAX_ID) {
+					if (!isBrowser() && !isAdminClient()) {
+						// offline storage is always sorted correctly
+						startIndex = searchResult.results.findIndex((id) => id[1] === startId)
+					} else {
+						// this relies on the results being sorted from newest to oldest ID
+						startIndex = searchResult.results.findIndex((id) => id[1] <= startId)
+					}
+
+					if (elementIdPart(searchResult.results[startIndex]) === startId) {
+						// the start element is already loaded, so we exclude it from the next load
+						startIndex++
+					} else if (startIndex === -1) {
+						// there is nothing in our result that's not loaded yet, so we
+						// have nothing to do
+						startIndex = Math.max(searchResult.results.length - 1, 0)
+					}
+				}
+
+				// Ignore count when slicing here because we would have to modify SearchResult too
+				const toLoad = searchResult.results.slice(startIndex)
+				items = (await this.loadAndFilterInstances(MailTypeRef, toLoad, searchResult, startIndex)) as T[]
+
+				// Restore the original sorting order
 				if (!isBrowser() && !isAdminClient()) {
-					// offline storage is always sorted correctly
-					startIndex = searchResult.results.findIndex((id) => id[1] === startId)
-				} else {
-					// this relies on the results being sorted from newest to oldest ID
-					startIndex = searchResult.results.findIndex((id) => id[1] <= startId)
+					const itemsMapped = collectToMap(items, getElementId)
+					items = mapAndFilterNull(searchResult.results, (id) => itemsMapped.get(elementIdPart(id))) as T[]
 				}
-
-				if (elementIdPart(searchResult.results[startIndex]) === startId) {
-					// the start element is already loaded, so we exclude it from the next load
-					startIndex++
-				} else if (startIndex === -1) {
-					// there is nothing in our result that's not loaded yet, so we
-					// have nothing to do
-					startIndex = Math.max(searchResult.results.length - 1, 0)
+				break
+			}
+			case SearchCategoryType.contact:
+				try {
+					// load all contacts to sort them by name afterwards
+					items = (await this.loadAndFilterInstances(ContactTypeRef, searchResult.results, searchResult, 0)) as T[]
+				} finally {
+					this.updateUi()
 				}
-			}
-
-			// Ignore count when slicing here because we would have to modify SearchResult too
-			const toLoad = searchResult.results.slice(startIndex)
-			items = (await this.loadAndFilterInstances(searchResult.restriction.type, toLoad, searchResult, startIndex)) as Mail[]
-
-			// Restore the original sorting order
-			if (!isBrowser() && !isAdminClient()) {
-				const itemsMapped = collectToMap(items, getElementId)
-				items = mapAndFilterNull(searchResult.results, (id) => itemsMapped.get(elementIdPart(id)))
-			}
-		} else if (isSameTypeRef(searchResult.restriction.type, ContactTypeRef)) {
-			try {
-				// load all contacts to sort them by name afterwards
-				items = await this.loadAndFilterInstances(searchResult.restriction.type, searchResult.results, searchResult, 0)
-			} finally {
-				this.updateUi()
-			}
-		} else if (isSameTypeRef(searchResult.restriction.type, CalendarEventTypeRef)) {
-			try {
-				const { start, end } = searchResult.restriction
-				if (start == null || end == null) {
-					throw new ProgrammingError("invalid search time range for calendar")
+				break
+			case SearchCategoryType.calendar:
+				try {
+					const { start, end } = searchResult.restriction
+					if (start == null || end == null) {
+						throw new ProgrammingError("invalid search time range for calendar")
+					}
+					items = [
+						...(await this.calendarFacade.reifyCalendarSearchResult(start, end, searchResult.results)),
+						...(await this.getClientOnlyEventsSeries(start, end, searchResult.results)),
+					] as T[]
+				} finally {
+					this.updateUi()
 				}
-				items = [
-					...(await this.calendarFacade.reifyCalendarSearchResult(start, end, searchResult.results)),
-					...(await this.getClientOnlyEventsSeries(start, end, searchResult.results)),
-				]
-			} finally {
-				this.updateUi()
-			}
-		} else {
-			// this type is not shown in the search view, e.g. group info
-			items = []
+				break
+			case SearchCategoryType.drive:
+				// FIXME
+				items = []
+				break
 		}
 
 		return { items: items, newSearchResult: searchResult }

@@ -1,5 +1,5 @@
 import { CalendarSearchResultListEntry } from "./CalendarSearchListView.js"
-import { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes.js"
+import { SearchCategoryType, SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes.js"
 import { EventController } from "../../../../common/api/main/EventController.js"
 import { assertIsEntity2, elementIdPart, GENERATED_MAX_ID, getElementId, isSameId, isSameTypeRef, ListElement, TypeRef } from "../../../../../platform-kit/meta"
 import { ListLoadingState, ListState } from "../../../../../ui/base/List.js"
@@ -171,7 +171,7 @@ export class CalendarSearchViewModel {
 
 		this.currentQuery = args.query
 		const lastQuery = this.search.lastQueryString()
-		const maxResults = isSameTypeRef(MailTypeRef, restriction.type) ? SEARCH_PAGE_SIZE : null
+		const maxResults = restriction.type === SearchCategoryType.mail ? SEARCH_PAGE_SIZE : null
 		const listModel = this.listModel
 		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
 		if (Object.hasOwn(args, "query") && this.search.isNewSearch(args.query, restriction)) {
@@ -532,7 +532,7 @@ export class CalendarSearchViewModel {
 				const id = lastResult.results.find((resultId) => elementIdPart(resultId) === elementId)
 				if (id) {
 					return this.entityClient
-						.load(lastResult.restriction.type, id)
+						.load(CalendarEventTypeRef, id)
 						.then((entity) => new CalendarSearchResultListEntry(entity))
 						.catch(
 							ofClass(NotFoundError, (_) => {
@@ -552,7 +552,7 @@ export class CalendarSearchViewModel {
 	isInSearchResult(typeRef: TypeRef<unknown>, id: IdTuple): boolean {
 		const result = this.searchResult
 
-		if (result && isSameTypeRef(typeRef, result.restriction.type)) {
+		if (result && isSameTypeRef(CalendarEventTypeRef, typeRef)) {
 			// The list id must be null/empty, otherwise the user is filtering by list, and it shouldn't be ignored
 
 			const ignoreList = isSameTypeRef(typeRef, MailTypeRef) && result.restriction.folderIds.length === 0
@@ -577,7 +577,7 @@ export class CalendarSearchViewModel {
 		this.searchResult = updatedResult
 
 		let items: CalendarEvent[]
-		if (isSameTypeRef(currentResult.restriction.type, CalendarEventTypeRef)) {
+		if (currentResult.restriction.type === SearchCategoryType.calendar) {
 			try {
 				const { start, end } = currentResult.restriction
 				if (start == null || end == null) {

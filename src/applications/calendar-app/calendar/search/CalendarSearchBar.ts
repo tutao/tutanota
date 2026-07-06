@@ -1,4 +1,4 @@
-import { CalendarEvent } from "@tutao/entities/tutanota"
+import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
 import m, { Component, Vnode } from "mithril"
 import { component_size, px } from "../../../../ui/size"
 import stream from "mithril/stream"
@@ -430,7 +430,7 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 
 		const eventsRepository = await calendarLocator.calendarEventsRepository()
 		const entries = [
-			...(await loadMultipleFromLists(result.restriction.type, calendarLocator.entityClient, filteredEvents)),
+			...(await loadMultipleFromLists(CalendarEventTypeRef, calendarLocator.entityClient, filteredEvents)),
 			...(await retrieveBirthdayEventsForUser(calendarLocator.logins, result.results, eventsRepository.getBirthdayEvents())),
 		]
 

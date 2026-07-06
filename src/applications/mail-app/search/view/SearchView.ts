@@ -4,12 +4,12 @@ import { ColumnType, ViewColumn } from "../../../../ui/base/ViewColumn"
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { assertMainOrNode, FeatureType, isApp, isBrowser, Keys, ProgrammingError, UpgradePromptType } from "../../../../platform-kit/app-env"
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
-import { getElementId, getIds, isSameId, isSameTypeRef, TypeRef } from "../../../../platform-kit/meta"
+import { getElementId, getIds, isSameId, isSameTypeRef } from "../../../../platform-kit/meta"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import { MailReportType, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
 import { layout_size } from "../../../../ui/size"
-import { SEARCH_MAIL_FIELDS, SearchCategoryTypes } from "../model/SearchUtils"
+import { SEARCH_MAIL_FIELDS } from "../model/SearchUtils"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
@@ -120,6 +120,7 @@ import { PosRect } from "../../../../ui/utils/PosRect"
 import { SimpleMoveMailTarget } from "../../mail/MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
+import { SearchCategoryType } from "../../../common/api/worker/search/SearchTypes"
 
 assertMainOrNode()
 
@@ -202,7 +203,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						backgroundColor: theme.surface_container,
 						desktopToolbar: () =>
 							m(DesktopListToolbar, [
-								this.searchViewModel.listModel && getCurrentSearchMode() !== SearchCategoryTypes.calendar
+								this.searchViewModel.listModel && getCurrentSearchMode() !== SearchCategoryType.calendar
 									? [m(SelectAllCheckbox, selectionAttrsForList(this.searchViewModel.listModel))]
 									: m(".button-height"),
 							]),
@@ -288,7 +289,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					{
 						label: "emails_label",
 						click: () => {
-							const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryTypes.mail)
+							const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryType.mail)
 							m.route.set(href)
 						},
 						icon: Icons.MailFilled,
@@ -296,7 +297,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					{
 						label: "contacts_label",
 						click: () => {
-							const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryTypes.contact)
+							const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryType.contact)
 							m.route.set(href)
 						},
 						icon: Icons.PeopleFilled,
@@ -304,7 +305,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					{
 						label: "calendar_label",
 						click: () => {
-							const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryTypes.calendar)
+							const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryType.calendar)
 							m.route.set(href)
 						},
 						icon: Icons.CalendarFilled,
@@ -316,11 +317,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private renderFilterChips(): Children {
 		switch (getCurrentSearchMode()) {
-			case SearchCategoryTypes.mail:
+			case SearchCategoryType.mail:
 				return this.renderMailFilterChips()
-			case SearchCategoryTypes.contact:
+			case SearchCategoryType.contact:
 				return this.renderContactsFilterChips()
-			case SearchCategoryTypes.calendar:
+			case SearchCategoryType.calendar:
 				return this.renderCalendarFilterChips()
 		}
 	}
@@ -562,7 +563,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		return m(MultiselectMobileHeader, {
 			...selectionAttrsForList(this.searchViewModel.listModel),
 			message:
-				getCurrentSearchMode() === SearchCategoryTypes.mail
+				getCurrentSearchMode() === SearchCategoryType.mail
 					? getMailSelectionMessage(this.searchViewModel.getSelectedMails())
 					: getContactSelectionMessage(this.searchViewModel.getSelectedContacts().length),
 		})
@@ -577,7 +578,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			return null
 		}
 
-		if (getCurrentSearchMode() === SearchCategoryTypes.contact) {
+		if (getCurrentSearchMode() === SearchCategoryType.contact) {
 			const selectedContacts = this.searchViewModel.getSelectedContacts()
 
 			const actions = m(ContactViewerActions, {
@@ -617,7 +618,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 								}),
 					),
 			})
-		} else if (getCurrentSearchMode() === SearchCategoryTypes.mail) {
+		} else if (getCurrentSearchMode() === SearchCategoryType.mail) {
 			const selectedMails = this.searchViewModel.getSelectedMails()
 
 			const conversationViewModel = this.searchViewModel.conversationViewModel
@@ -753,7 +754,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					}),
 				})
 			}
-		} else if (getCurrentSearchMode() === SearchCategoryTypes.calendar) {
+		} else if (getCurrentSearchMode() === SearchCategoryType.calendar) {
 			const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
 			return m(BackgroundColumnLayout, {
 				backgroundColor: theme.surface_container,
@@ -911,7 +912,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private invalidateBirthdayPreview() {
-		if (getCurrentSearchMode() !== SearchCategoryTypes.calendar) {
+		if (getCurrentSearchMode() !== SearchCategoryType.calendar) {
 			return
 		}
 
@@ -1027,7 +1028,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				reportNotSpamAction: null,
 			})
 		} else if (!isInMultiselect && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
-			if (getCurrentSearchMode() === SearchCategoryTypes.contact) {
+			if (getCurrentSearchMode() === SearchCategoryType.contact) {
 				return m(MobileActionBar, {
 					actions: [
 						{
@@ -1042,7 +1043,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 						},
 					],
 				})
-			} else if (getCurrentSearchMode() === SearchCategoryTypes.calendar) {
+			} else if (getCurrentSearchMode() === SearchCategoryType.calendar) {
 				const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
 				if (!selectedEvent) {
 					this.viewSlider.focus(this.resultListColumn)
@@ -1078,7 +1079,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				return m(MobileActionBar, { actions })
 			}
 		} else if (isInMultiselect) {
-			if (getCurrentSearchMode() === SearchCategoryTypes.mail) {
+			if (getCurrentSearchMode() === SearchCategoryType.mail) {
 				const { deleteAction, trashAction } = this.getDeleteAndTrashActions()
 				return m(MobileMailMultiselectionActionBar, {
 					selectNone: () => this.searchViewModel.listModel.selectNone(),
@@ -1221,13 +1222,13 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				key: Keys.A,
 				exec: () => this.moveSelectedToSystemFolder(MailSetKind.ARCHIVE),
 				help: "archive_action",
-				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
+				enabled: () => getCurrentSearchMode() === SearchCategoryType.mail,
 			},
 			{
 				key: Keys.I,
 				exec: () => this.moveSelectedToSystemFolder(MailSetKind.INBOX),
 				help: "moveToInbox_action",
-				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
+				enabled: () => getCurrentSearchMode() === SearchCategoryType.mail,
 			},
 			{
 				key: Keys.V,
@@ -1235,7 +1236,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					this.move()
 				},
 				help: "move_action",
-				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
+				enabled: () => getCurrentSearchMode() === SearchCategoryType.mail,
 			},
 			{
 				key: Keys.Z,
@@ -1244,13 +1245,13 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					this.undoModel.performUndoAction()
 				},
 				help: "undo_action",
-				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
+				enabled: () => getCurrentSearchMode() === SearchCategoryType.mail,
 			},
 			{
 				key: Keys.U,
 				exec: () => this.toggleUnreadStatus(),
 				help: "toggleUnread_action",
-				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
+				enabled: () => getCurrentSearchMode() === SearchCategoryType.mail,
 			},
 		]
 	})
@@ -1274,39 +1275,54 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		m.redraw()
 	}
 
-	private getMainButton(typeRef: TypeRef<unknown>): {
+	private getMainButton(type: SearchCategoryType): {
 		label: TranslationKey
 		click: ClickHandler
 	} | null {
 		if (styles.isUsingBottomNavigation()) {
 			return null
-		} else if (isSameTypeRef(typeRef, MailTypeRef) && isNewMailActionAvailable()) {
-			return {
-				click: () => {
-					newMailEditor()
-						.then((editor) => editor?.show())
-						.catch(ofClass(PermissionError, noOp))
-				},
-				label: "newMail_action",
-			}
-		} else if (isSameTypeRef(typeRef, ContactTypeRef)) {
-			return {
-				click: () => {
-					locator.contactModel.getContactListId().then((contactListId) => {
-						new ContactEditor(locator.entityClient, null, assertNotNull(contactListId)).show()
-					})
-				},
-				label: "newContact_action",
-			}
-		} else if (isSameTypeRef(typeRef, CalendarEventTypeRef)) {
-			return {
-				click: () => {
-					this.createNewEventDialog()
-				},
-				label: "newEvent_action",
-			}
 		} else {
-			return null
+			switch (type) {
+				case SearchCategoryType.mail: {
+					if (isNewMailActionAvailable()) {
+						return {
+							click: () => {
+								newMailEditor()
+									.then((editor) => editor?.show())
+									.catch(ofClass(PermissionError, noOp))
+							},
+							label: "newMail_action",
+						}
+					} else {
+						return null
+					}
+				}
+				case SearchCategoryType.contact: {
+					return {
+						click: () => {
+							locator.contactModel.getContactListId().then((contactListId) => {
+								new ContactEditor(locator.entityClient, null, assertNotNull(contactListId)).show()
+							})
+						},
+						label: "newContact_action",
+					}
+				}
+				case SearchCategoryType.calendar: {
+					return {
+						click: () => {
+							this.createNewEventDialog()
+						},
+						label: "newEvent_action",
+					}
+				}
+				case SearchCategoryType.drive:
+					return {
+						click: () => {
+							// FIXME
+						},
+						label: "newDriveItem_action",
+					}
+			}
 		}
 	}
 
@@ -1490,14 +1506,14 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 }
 
-function getCurrentSearchMode(): SearchCategoryTypes {
+function getCurrentSearchMode(): SearchCategoryType {
 	const route = m.route.get()
 	if (route.startsWith("/search/contact")) {
-		return SearchCategoryTypes.contact
+		return SearchCategoryType.contact
 	} else if (route.startsWith("/search/calendar")) {
-		return SearchCategoryTypes.calendar
+		return SearchCategoryType.calendar
 	} else {
-		return SearchCategoryTypes.mail
+		return SearchCategoryType.mail
 	}
 }
 

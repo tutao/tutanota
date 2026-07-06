@@ -308,16 +308,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 						rightView: null,
 						...attrs.header,
 						buttons: renderHeaderButtons(),
-						searchBar: () =>
-							m(
-								"button",
-								{
-									onclick: () => {
-										this.driveViewModel.search()
-									},
-								},
-								"search!",
-							),
+						searchBar: () => attrs.lazySearchBar(),
 					}),
 					bottomNav:
 						styles.isUsingBottomNavigation() && isNotNull(attrs.bottomNav)

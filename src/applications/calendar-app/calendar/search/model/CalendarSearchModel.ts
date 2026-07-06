@@ -45,7 +45,7 @@ export class CalendarSearchModel {
 		this.lastQueryString(query)
 		let result = this.result()
 
-		if (result && !isSameTypeRef(restriction.type, result.restriction.type)) {
+		if (result && restriction.type !== result.restriction.type) {
 			// reset the result in case only the search type has changed
 			this.result(null)
 		}
@@ -271,7 +271,7 @@ function searchQueryEquals(a: SearchQuery, b: SearchQuery) {
 export function isSameSearchRestriction(a: SearchRestriction, b: SearchRestriction): boolean {
 	const isSameAttributeIds = a.attributeIds === b.attributeIds || (!!a.attributeIds && !!b.attributeIds && arrayEquals(a.attributeIds, b.attributeIds))
 	return (
-		isSameTypeRef(a.type, b.type) &&
+		a.type === b.type &&
 		a.start === b.start &&
 		a.end === b.end &&
 		isSameAttributeIds &&

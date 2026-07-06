@@ -699,7 +699,8 @@ import("../../ui/translations/en.js")
 								bottomNav: () => m(BottomNav),
 								lazySearchBar: () =>
 									m(lazySearchBar, {
-										placeholder: lang.get("searchCalendar_placeholder"),
+										// FIXME translate
+										placeholder: "Search Drive",
 									}),
 								filePicker,
 							},

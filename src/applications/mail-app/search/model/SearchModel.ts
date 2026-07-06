@@ -1,9 +1,9 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { isSameTypeRef, listIdPart } from "../../../../platform-kit/meta"
-import { assertMainOrNode, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../platform-kit/app-env"
+import { listIdPart } from "../../../../platform-kit/meta"
+import { assertMainOrNode, NOTHING_INDEXED_TIMESTAMP } from "../../../../platform-kit/app-env"
 import { DbError } from "../../../common/api/common/error/DbError"
-import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
+import { SearchCategoryType, SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { assertNonNull, assertNotNull, incrementMonth, lazyAsync, ofClass, tokenize } from "../../../../platform-kit/utils"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
@@ -11,7 +11,7 @@ import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, isSameSearchRestrictionWithRangeExtended, searchQueryEquals } from "./SearchUtils"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
 import { ProgressMonitorInterface } from "../../../../platform-kit/network/ProgressMonitorInterface"
-import { CalendarEvent, CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { CalendarEvent } from "@tutao/entities/tutanota"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -85,7 +85,7 @@ export class SearchModel {
 		this.lastQueryString(query)
 		let result = this.result()
 
-		if (result && !isSameTypeRef(restriction.type, result.restriction.type)) {
+		if (result && restriction.type !== result.restriction.type) {
 			// reset the result in case only the search type has changed
 			this.result(null)
 		}
@@ -106,229 +106,240 @@ export class SearchModel {
 			}
 			this.result(result)
 			this.lastSearchPromise = Promise.resolve(result)
-		} else if (isSameTypeRef(CalendarEventTypeRef, restriction.type)) {
-			// we interpret restriction.start as the start of the first day of the first month we want to search
-			// restriction.end is the end of the last day of the last month we want to search
-			let currentDate = new Date(assertNotNull(restriction.start))
-			const endDate = new Date(assertNotNull(restriction.end))
-			const calendarModel = await this.calendarModel()
-			const daysInMonths: Array<Date> = []
-			while (currentDate.getTime() <= endDate.getTime()) {
-				daysInMonths.push(currentDate)
-				currentDate = incrementMonth(currentDate, 1)
-			}
-
-			const tokens = tokenize(query.trim())
-
-			const calendarResult: SearchResult = {
-				// index related, keep empty
-				currentIndexTimestamp: 0,
-				moreResults: [],
-				moreResultsEntries: [],
-				lastReadSearchIndexRow: [],
-				// data that is relevant to calendar search
-				matchWordOrder: false,
-				restriction,
-				results: [],
-				query,
-				tokens: tokens.map((t) => {
-					return { token: t, exact: false }
-				}),
-			}
-
-			const monitorHandle = progressTracker.registerMonitorSync(daysInMonths.length)
-			const monitor: ProgressMonitorInterface = assertNotNull(progressTracker.getMonitor(monitorHandle))
-
-			if (this.cancelSignal()) {
-				this.result(calendarResult)
-				this.lastSearchPromise = Promise.resolve(calendarResult)
-				return this.lastSearchPromise
-			}
-
-			const hasNewPaidPlan = await calendarModel.canLoadBirthdaysCalendar()
-			const isNewSearchRange = lastQueryDates.start !== searchQuery.restriction.start || lastQueryDates.end !== searchQuery.restriction.end
-			if (hasNewPaidPlan && isNewSearchRange) {
-				await calendarModel.loadContactsBirthdays()
-			}
-
-			await calendarModel.loadMonthsIfNeeded(daysInMonths, this.cancelSignal, monitor)
-			monitor.completed()
-
-			const eventsForDays = calendarModel.getDaysToEvents()()
-
-			assertNonNull(restriction.start)
-			assertNonNull(restriction.end)
-
-			// we want event instances that occur on multiple days to only appear once, but want
-			// separate instances of event series to occur on their own.
-			const alreadyAdded: Set<string> = new Set()
-
-			if (this.cancelSignal()) {
-				this.result(calendarResult)
-				this.lastSearchPromise = Promise.resolve(calendarResult)
-				return this.lastSearchPromise
-			}
-
-			const followCommonRestrictions = (key: string, event: CalendarEvent) => {
-				if (alreadyAdded.has(key)) {
-					// we only need the first event in the series, the view will load & then generate
-					// the series for the searched time range.
-					return false
-				}
-
-				if (restriction.folderIds.length > 0 && !restriction.folderIds.includes(listIdPart(event._id))) {
-					// check that the event is in the searched calendar.
-					return false
-				}
-
-				if (restriction.eventSeries === false && event.repeatRule != null) {
-					// applied "repeating" search filter
-					return false
-				}
-
-				for (const token of tokens) {
-					if (event.summary.toLowerCase().includes(token)) {
-						alreadyAdded.add(key)
-						calendarResult.results.push(event._id)
-						return false
-					}
-				}
-
-				return true
-			}
-
-			if (tokens.length > 0) {
-				// we're iterating by event first to only have to sanitize the description once.
-				// that's a smaller savings than one might think because for the vast majority of
-				// events we're probably not matching and looking into the description anyway.
-				for (const [startOfDay, eventsOnDay] of eventsForDays) {
-					eventLoop: for (const wrapper of eventsOnDay) {
-						if (!(startOfDay >= restriction.start && startOfDay <= restriction.end)) {
-							continue
-						}
-
-						const key = idToKey(wrapper.event._id)
-
-						if (!followCommonRestrictions(key, wrapper.event)) {
-							continue
-						}
-
-						for (const token of tokens) {
-							if (wrapper.event.summary.toLowerCase().includes(token)) {
-								alreadyAdded.add(key)
-								calendarResult.results.push(wrapper.event._id)
-								continue eventLoop
-							}
-						}
-
-						// checking the summary was cheap, now we store the sanitized description to check it against
-						// all tokens.
-						const descriptionToSearch = wrapper.event.description.replaceAll(/(<[^>]+>)/gi, " ").toLowerCase()
-						for (const token of tokens) {
-							if (descriptionToSearch.includes(token)) {
-								alreadyAdded.add(key)
-								calendarResult.results.push(wrapper.event._id)
-								continue eventLoop
-							}
-						}
-
-						if (this.cancelSignal()) {
-							this.result(calendarResult)
-							this.lastSearchPromise = Promise.resolve(calendarResult)
-							return this.lastSearchPromise
-						}
-					}
-				}
-
-				const startDate = new Date(restriction.start)
-				const endDate = new Date(restriction.end)
-
-				if (hasNewPaidPlan) {
-					const birthdayEvents = Array.from(calendarModel.getBirthdayEvents().values()).flat()
-
-					eventLoop: for (const eventRegistry of birthdayEvents) {
-						// Birthdays should still appear on search even if the date itself doesn't comply to the whole restriction
-						// we only care about months
-						const month = eventRegistry.event.startTime.getMonth()
-						if (!(month >= startDate.getMonth() && month <= endDate.getMonth())) {
-							continue
-						}
-
-						const key = idToKey(eventRegistry.event._id)
-
-						if (!followCommonRestrictions(key, eventRegistry.event)) {
-							continue
-						}
-
-						for (const token of tokens) {
-							if (eventRegistry.event.summary.toLowerCase().includes(token)) {
-								alreadyAdded.add(key)
-								calendarResult.results.push(eventRegistry.event._id)
-								continue eventLoop
-							}
-						}
-
-						if (this.cancelSignal()) {
-							this.result(calendarResult)
-							this.lastSearchPromise = Promise.resolve(calendarResult)
-							return this.lastSearchPromise
-						}
-					}
-				}
-			}
-
-			this.result(calendarResult)
-			this.lastSearchPromise = Promise.resolve(calendarResult)
-		} else if (isSameTypeRef(MailTypeRef, restriction.type)) {
-			// we set search end when null to be able to tell when the same search is extended
-			const indexState = this.indexState()
-
-			const aimedTimestamp = indexState.aimedMailIndexTimestamp
-			const currentTimestamp = indexState.currentMailIndexTimestamp
-
-			if (restriction.end == null) {
-				restriction.end = getMailIndexTimestampForSearch(aimedTimestamp)
-			}
-
-			// We modify the query because we need SearchFacade to not give us mails older than the current
-			// timestamp, as the offline cleaner may not have purged all emails yet.
-			//
-			// We can only be certain about mails up to currentTimestamp.
-			const truncatedRestriction = { ...restriction, end: Math.max(currentTimestamp, restriction.end) }
-
-			this.lastSearchPromise = this._searchFacade
-				.search(query, truncatedRestriction, minSuggestionCount, maxResults ?? undefined)
-				.then((result) => {
-					// we put back in the original restriction as we want the user's query to be put in here, not the
-					// modified request
-					result.restriction = restriction
-					this.result(result)
-					return result
-				})
-				.catch(
-					ofClass(DbError, (e) => {
-						console.log("DBError while search", e)
-						throw e
-					}),
-				)
-		} else if (isSameTypeRef(ContactTypeRef, restriction.type)) {
-			// contacts are assumed to be fully indexed, thus restriction dates are meaningless here
-			this.lastSearchPromise = this._searchFacade
-				.search(query, restriction, minSuggestionCount, maxResults ?? undefined)
-				.then((result) => {
-					this.result(result)
-					return result
-				})
-				.catch(
-					ofClass(DbError, (e) => {
-						console.log("DBError while search", e)
-						throw e
-					}),
-				)
 		} else {
-			throw new ProgrammingError(`searching type ${restriction.type.app}/${restriction.type.typeId} is unimplemented`)
-		}
+			switch (restriction.type) {
+				case SearchCategoryType.calendar: {
+					// we interpret restriction.start as the start of the first day of the first month we want to search
+					// restriction.end is the end of the last day of the last month we want to search
+					let currentDate = new Date(assertNotNull(restriction.start))
+					const endDate = new Date(assertNotNull(restriction.end))
+					const calendarModel = await this.calendarModel()
+					const daysInMonths: Array<Date> = []
+					while (currentDate.getTime() <= endDate.getTime()) {
+						daysInMonths.push(currentDate)
+						currentDate = incrementMonth(currentDate, 1)
+					}
 
+					const tokens = tokenize(query.trim())
+
+					const calendarResult: SearchResult = {
+						// index related, keep empty
+						currentIndexTimestamp: 0,
+						moreResults: [],
+						moreResultsEntries: [],
+						lastReadSearchIndexRow: [],
+						// data that is relevant to calendar search
+						matchWordOrder: false,
+						restriction,
+						results: [],
+						query,
+						tokens: tokens.map((t) => {
+							return { token: t, exact: false }
+						}),
+					}
+
+					const monitorHandle = progressTracker.registerMonitorSync(daysInMonths.length)
+					const monitor: ProgressMonitorInterface = assertNotNull(progressTracker.getMonitor(monitorHandle))
+
+					if (this.cancelSignal()) {
+						this.result(calendarResult)
+						this.lastSearchPromise = Promise.resolve(calendarResult)
+						return this.lastSearchPromise
+					}
+
+					const hasNewPaidPlan = await calendarModel.canLoadBirthdaysCalendar()
+					const isNewSearchRange = lastQueryDates.start !== searchQuery.restriction.start || lastQueryDates.end !== searchQuery.restriction.end
+					if (hasNewPaidPlan && isNewSearchRange) {
+						await calendarModel.loadContactsBirthdays()
+					}
+
+					await calendarModel.loadMonthsIfNeeded(daysInMonths, this.cancelSignal, monitor)
+					monitor.completed()
+
+					const eventsForDays = calendarModel.getDaysToEvents()()
+
+					assertNonNull(restriction.start)
+					assertNonNull(restriction.end)
+
+					// we want event instances that occur on multiple days to only appear once, but want
+					// separate instances of event series to occur on their own.
+					const alreadyAdded: Set<string> = new Set()
+
+					if (this.cancelSignal()) {
+						this.result(calendarResult)
+						this.lastSearchPromise = Promise.resolve(calendarResult)
+						return this.lastSearchPromise
+					}
+
+					const followCommonRestrictions = (key: string, event: CalendarEvent) => {
+						if (alreadyAdded.has(key)) {
+							// we only need the first event in the series, the view will load & then generate
+							// the series for the searched time range.
+							return false
+						}
+
+						if (restriction.folderIds.length > 0 && !restriction.folderIds.includes(listIdPart(event._id))) {
+							// check that the event is in the searched calendar.
+							return false
+						}
+
+						if (restriction.eventSeries === false && event.repeatRule != null) {
+							// applied "repeating" search filter
+							return false
+						}
+
+						for (const token of tokens) {
+							if (event.summary.toLowerCase().includes(token)) {
+								alreadyAdded.add(key)
+								calendarResult.results.push(event._id)
+								return false
+							}
+						}
+
+						return true
+					}
+
+					if (tokens.length > 0) {
+						// we're iterating by event first to only have to sanitize the description once.
+						// that's a smaller savings than one might think because for the vast majority of
+						// events we're probably not matching and looking into the description anyway.
+						for (const [startOfDay, eventsOnDay] of eventsForDays) {
+							eventLoop: for (const wrapper of eventsOnDay) {
+								if (!(startOfDay >= restriction.start && startOfDay <= restriction.end)) {
+									continue
+								}
+
+								const key = idToKey(wrapper.event._id)
+
+								if (!followCommonRestrictions(key, wrapper.event)) {
+									continue
+								}
+
+								for (const token of tokens) {
+									if (wrapper.event.summary.toLowerCase().includes(token)) {
+										alreadyAdded.add(key)
+										calendarResult.results.push(wrapper.event._id)
+										continue eventLoop
+									}
+								}
+
+								// checking the summary was cheap, now we store the sanitized description to check it against
+								// all tokens.
+								const descriptionToSearch = wrapper.event.description.replaceAll(/(<[^>]+>)/gi, " ").toLowerCase()
+								for (const token of tokens) {
+									if (descriptionToSearch.includes(token)) {
+										alreadyAdded.add(key)
+										calendarResult.results.push(wrapper.event._id)
+										continue eventLoop
+									}
+								}
+
+								if (this.cancelSignal()) {
+									this.result(calendarResult)
+									this.lastSearchPromise = Promise.resolve(calendarResult)
+									return this.lastSearchPromise
+								}
+							}
+						}
+
+						const startDate = new Date(restriction.start)
+						const endDate = new Date(restriction.end)
+
+						if (hasNewPaidPlan) {
+							const birthdayEvents = Array.from(calendarModel.getBirthdayEvents().values()).flat()
+
+							eventLoop: for (const eventRegistry of birthdayEvents) {
+								// Birthdays should still appear on search even if the date itself doesn't comply to the whole restriction
+								// we only care about months
+								const month = eventRegistry.event.startTime.getMonth()
+								if (!(month >= startDate.getMonth() && month <= endDate.getMonth())) {
+									continue
+								}
+
+								const key = idToKey(eventRegistry.event._id)
+
+								if (!followCommonRestrictions(key, eventRegistry.event)) {
+									continue
+								}
+
+								for (const token of tokens) {
+									if (eventRegistry.event.summary.toLowerCase().includes(token)) {
+										alreadyAdded.add(key)
+										calendarResult.results.push(eventRegistry.event._id)
+										continue eventLoop
+									}
+								}
+
+								if (this.cancelSignal()) {
+									this.result(calendarResult)
+									this.lastSearchPromise = Promise.resolve(calendarResult)
+									return this.lastSearchPromise
+								}
+							}
+						}
+					}
+
+					this.result(calendarResult)
+					this.lastSearchPromise = Promise.resolve(calendarResult)
+					break
+				}
+				case SearchCategoryType.mail: {
+					// we set search end when null to be able to tell when the same search is extended
+					const indexState = this.indexState()
+
+					const aimedTimestamp = indexState.aimedMailIndexTimestamp
+					const currentTimestamp = indexState.currentMailIndexTimestamp
+
+					if (restriction.end == null) {
+						restriction.end = getMailIndexTimestampForSearch(aimedTimestamp)
+					}
+
+					// We modify the query because we need SearchFacade to not give us mails older than the current
+					// timestamp, as the offline cleaner may not have purged all emails yet.
+					//
+					// We can only be certain about mails up to currentTimestamp.
+					const truncatedRestriction = { ...restriction, end: Math.max(currentTimestamp, restriction.end) }
+
+					this.lastSearchPromise = this._searchFacade
+						.search(query, truncatedRestriction, minSuggestionCount, maxResults ?? undefined)
+						.then((result) => {
+							// we put back in the original restriction as we want the user's query to be put in here, not the
+							// modified request
+							result.restriction = restriction
+							this.result(result)
+							return result
+						})
+						.catch(
+							ofClass(DbError, (e) => {
+								console.log("DBError while search", e)
+								throw e
+							}),
+						)
+					break
+				}
+				case SearchCategoryType.contact: {
+					// contacts are assumed to be fully indexed, thus restriction dates are meaningless here
+					this.lastSearchPromise = this._searchFacade
+						.search(query, restriction, minSuggestionCount, maxResults ?? undefined)
+						.then((result) => {
+							this.result(result)
+							return result
+						})
+						.catch(
+							ofClass(DbError, (e) => {
+								console.log("DBError while search", e)
+								throw e
+							}),
+						)
+					break
+				}
+				case SearchCategoryType.drive:
+					this.lastSearchPromise = this._searchFacade.search(query, restriction, minSuggestionCount, maxResults ?? undefined).then((result) => {
+						this.result(result)
+						return result
+					})
+			}
+		}
 		return this.lastSearchPromise
 	}
 
@@ -383,8 +394,8 @@ export class SearchModel {
 			)
 	}
 
-	private isSearchResultExtendableForType(type: SearchRestriction["type"]): boolean {
-		return isSameTypeRef(MailTypeRef, type)
+	private isSearchResultExtendableForType(type: SearchCategoryType): boolean {
+		return type === SearchCategoryType.mail
 	}
 
 	isSameSearchWithExtendedRange(query: string, restriction: SearchRestriction): boolean {

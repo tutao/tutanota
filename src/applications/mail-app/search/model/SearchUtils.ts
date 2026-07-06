@@ -1,7 +1,6 @@
 import m from "mithril"
 import {
 	arrayEquals,
-	assertNotNull,
 	base64ToBase64Url,
 	base64UrlToBase64,
 	decodeBase64,
@@ -14,12 +13,12 @@ import {
 	stringToBase64,
 } from "../../../../platform-kit/utils"
 import { RouteSetFn, throttleRoute } from "../../../../ui/utils/RouteChange"
-import { SearchRestriction, type SearchResult } from "../../../common/api/worker/search/SearchTypes"
+import { SearchCategoryType, SearchRestriction, type SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { assertMainOrNode } from "../../../../platform-kit/app-env"
 import { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { SearchQuery } from "./SearchModel"
-import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef, tutanotaTypeModels } from "@tutao/entities/tutanota"
+import { CalendarEvent, ContactTypeRef, MailTypeRef, tutanotaTypeModels } from "@tutao/entities/tutanota"
 import {
 	ATTACHMENTS_ID,
 	getElementId,
@@ -30,39 +29,11 @@ import {
 	LEGACY_TO_RECIPIENTS_ID,
 	SENDER_ID,
 	SUBJECT_ID,
-	TypeRef,
 } from "../../../../platform-kit/meta"
 
 assertMainOrNode()
 
 const FIXED_FREE_SEARCH_DAYS = 28
-
-export const enum SearchCategoryTypes {
-	mail = "mail",
-	contact = "contact",
-	calendar = "calendar",
-	drive = "drive",
-}
-
-const SEARCH_CATEGORIES = [
-	{
-		name: SearchCategoryTypes.mail,
-		typeRef: MailTypeRef,
-	},
-	{
-		name: SearchCategoryTypes.contact,
-		typeRef: ContactTypeRef,
-	},
-	{
-		name: SearchCategoryTypes.calendar,
-		typeRef: CalendarEventTypeRef,
-	},
-] as const
-
-/** get the TypeRef that corresponds to the selected category (as taken from the URL: <host>/search/<category>?<query> */
-export function getSearchType(category: string): TypeRef<CalendarEvent> | TypeRef<Mail> | TypeRef<Contact> {
-	return assertNotNull(SEARCH_CATEGORIES.find((c) => c.name === category)).typeRef
-}
 
 interface SearchMailField {
 	readonly textId: TranslationKey
@@ -115,10 +86,6 @@ export function setSearchUrl(url: string) {
 	}
 }
 
-export function searchCategoryForRestriction(restriction: SearchRestriction): SearchCategoryTypes {
-	return assertNotNull(SEARCH_CATEGORIES.find((c) => isSameTypeRef(c.typeRef, restriction.type))).name
-}
-
 // Gets the resulting URL if the output of `getSearchParameters()` was routed to
 export function getSearchUrl(query: string | null, restriction: SearchRestriction, selectionKey: string | null = null): string {
 	const { path, params } = getSearchParameters(query, restriction, selectionKey)
@@ -133,10 +100,9 @@ export function getSearchParameters(
 	path: string
 	params: Record<string, string | number | Array<string>>
 } {
-	const category = searchCategoryForRestriction(restriction)
 	const params: Record<string, string | number | Array<string>> = {
 		query: query ?? "",
-		category,
+		category: restriction.type,
 	}
 	// a bit annoying but avoids putting unnecessary things into the url (if we would put undefined into it)
 	if (restriction.start) {
@@ -169,14 +135,14 @@ export function getFreeSearchStartDate(): Date {
  * Adjusts the restriction according to the account type if necessary
  */
 export function createRestriction(
-	searchCategory: SearchCategoryTypes,
+	searchCategory: SearchCategoryType,
 	start: number | null,
 	end: number | null,
 	field: string | null,
 	folderIds: Array<string>,
 	eventSeries: boolean | null,
 ): SearchRestriction {
-	if (locator.logins.getUserController().isFreeAccount() && searchCategory === SearchCategoryTypes.mail) {
+	if (locator.logins.getUserController().isFreeAccount() && searchCategory === SearchCategoryType.mail) {
 		start = null
 		end = getFreeSearchStartDate().getTime()
 		field = null
@@ -185,7 +151,7 @@ export function createRestriction(
 	}
 
 	let r: SearchRestriction = {
-		type: getSearchType(searchCategory),
+		type: searchCategory,
 		start: start,
 		end: end,
 		field: null,
@@ -198,27 +164,37 @@ export function createRestriction(
 		return r
 	}
 
-	if (searchCategory === SearchCategoryTypes.mail) {
-		let fieldData = SEARCH_MAIL_FIELDS.find((f) => f.field === field)
+	switch (searchCategory) {
+		case SearchCategoryType.mail:
+			{
+				let fieldData = SEARCH_MAIL_FIELDS.find((f) => f.field === field)
 
-		if (fieldData) {
-			r.field = field
-			r.attributeIds = fieldData.attributeIds
-		}
-	} else if (searchCategory === SearchCategoryTypes.contact) {
-		// nothing to do, the calendar restriction was completely set up already.
-	} else if (searchCategory === SearchCategoryTypes.calendar) {
-		if (field === "recipient") {
-			r.field = field
-			r.attributeIds = [
-				tutanotaTypeModels[ContactTypeRef.typeId].values["firstName"].id,
-				tutanotaTypeModels[ContactTypeRef.typeId].values["lastName"].id,
-				tutanotaTypeModels[ContactTypeRef.typeId].associations["mailAddresses"].id,
-			]
-		} else if (field === "mailAddress") {
-			r.field = field
-			r.attributeIds = [tutanotaTypeModels[ContactTypeRef.typeId].associations["mailAddresses"].id]
-		}
+				if (fieldData) {
+					r.field = field
+					r.attributeIds = fieldData.attributeIds
+				}
+			}
+			break
+		case SearchCategoryType.contact:
+			// nothing to do
+			break
+		case SearchCategoryType.calendar:
+			{
+				if (field === "recipient") {
+					r.field = field
+					r.attributeIds = [
+						tutanotaTypeModels[ContactTypeRef.typeId].values["firstName"].id,
+						tutanotaTypeModels[ContactTypeRef.typeId].values["lastName"].id,
+						tutanotaTypeModels[ContactTypeRef.typeId].associations["mailAddresses"].id,
+					]
+				} else if (field === "mailAddress") {
+					r.field = field
+					r.attributeIds = [tutanotaTypeModels[ContactTypeRef.typeId].associations["mailAddresses"].id]
+				}
+			}
+			break
+		case SearchCategoryType.drive:
+			break
 	}
 
 	return r
@@ -228,7 +204,7 @@ export function createRestriction(
  * Adjusts the restriction according to the account type if necessary
  */
 export function getRestriction(route: string): SearchRestriction {
-	let category: SearchCategoryTypes
+	let category: SearchCategoryType
 	let start: number | null = null
 	let end: number | null = null
 	let field: string | null = null
@@ -236,7 +212,7 @@ export function getRestriction(route: string): SearchRestriction {
 	let eventSeries: boolean | null = null
 
 	if (route.startsWith("/mail") || route.startsWith("/search/mail")) {
-		category = SearchCategoryTypes.mail
+		category = SearchCategoryType.mail
 
 		if (route.startsWith("/search/mail")) {
 			try {
@@ -263,7 +239,7 @@ export function getRestriction(route: string): SearchRestriction {
 			}
 		}
 	} else if (route.startsWith("/contact") || route.startsWith("/search/contact")) {
-		category = SearchCategoryTypes.contact
+		category = SearchCategoryType.contact
 	} else if (route.startsWith("/calendar") || route.startsWith("/search/calendar")) {
 		const { params } = m.parsePathname(route)
 		try {
@@ -299,7 +275,7 @@ export function getRestriction(route: string): SearchRestriction {
 			console.log("invalid query: " + route, e)
 		}
 
-		category = SearchCategoryTypes.calendar
+		category = SearchCategoryType.calendar
 		if (start == null || locator.logins.getUserController().isFreeAccount()) {
 			const now = new Date()
 			now.setDate(1)
@@ -312,7 +288,7 @@ export function getRestriction(route: string): SearchRestriction {
 			end = getEndOfDay(endDate).getTime()
 		}
 	} else if (route.startsWith("/drive") || route.startsWith("/search/drive")) {
-		category = SearchCategoryTypes.drive
+		category = SearchCategoryType.drive
 	} else {
 		throw new Error("invalid type " + route)
 	}
@@ -341,7 +317,7 @@ export function searchQueryEquals(a: SearchQuery, b: SearchQuery) {
 export function isSameSearchRestriction(a: SearchRestriction, b: SearchRestriction): boolean {
 	const isSameAttributeIds = a.attributeIds === b.attributeIds || (!!a.attributeIds && !!b.attributeIds && arrayEquals(a.attributeIds, b.attributeIds))
 	return (
-		isSameTypeRef(a.type, b.type) &&
+		a.type === b.type &&
 		a.start === b.start &&
 		a.end === b.end &&
 		a.field === b.field &&
@@ -362,7 +338,7 @@ export function isSameSearchRestrictionWithRangeExtended(a: SearchRestriction, b
 	const isRangeExtended = a.start === b.start && a.end != null && (b.end == null || b.end < a.end)
 
 	return (
-		isSameTypeRef(a.type, b.type) &&
+		a.type === b.type &&
 		isRangeExtended &&
 		a.field === b.field &&
 		isSameAttributeIds &&
