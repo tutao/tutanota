@@ -35,3 +35,9 @@ See [BUILDING.md](doc/BUILDING.md).
 
 See [HACKING.md](doc/HACKING.md).
 
+### Contribution policy
+
+This project does not accept contributions or bug reports produced, in part or in full, with assistance of large
+language models (LLMs)/generative AI. Maintainers will close issues or delete comments without further explanation if
+they suspect that any part of the issue is generated. Incomplete or automatically translated issue reports are still
+welcomed and encouraged over LLM-assisted ones.
