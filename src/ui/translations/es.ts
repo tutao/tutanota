@@ -1232,6 +1232,8 @@ export default {
 		"migrationIntroductionInfo_msg": "Introduce las credenciales de la cuenta de {provider} que quieres migrar.",
 		"migrationLabelInput_helpLabel": "Esta etiqueta se aplicará a cada correo importado.",
 		"migrationMailboxDestination_label": "Buzón de destino",
+		"migrationMigrateSpamFolder_label": "Importar spam",
+		"migrationNoMigrationOnWeb_label": "Migración de correo solo disponible en cliente de escritorio.",
 		"migrationNotImportedFolderName_msg": "No importada",
 		"migrationOAuthWindowClosedFailure_msg": "La ventana de inicio se cerró, inténtalo de nuevo.",
 		"migrationPostponed_msg": "Límite de {provider} alcanzado, continuará el {postponedUntil}.",

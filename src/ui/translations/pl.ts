@@ -1232,6 +1232,8 @@ export default {
 		"migrationIntroductionInfo_msg": "Wprowadź dane logowania do konta {provider}, z którego chcesz przeprowadzić migrację.",
 		"migrationLabelInput_helpLabel": "Ta etykieta zostanie umieszczona na każdej importowanej wiadomości e-mail.",
 		"migrationMailboxDestination_label": "Skrzynka docelowa",
+		"migrationMigrateSpamFolder_label": "Importuj katalog Spam",
+		"migrationNoMigrationOnWeb_label": "Migracja wiadomości e-mail jest obecnie dostępna wyłącznie w naszej aplikacji na komputery.",
 		"migrationNotImportedFolderName_msg": "Nie zaimportowano",
 		"migrationOAuthWindowClosedFailure_msg": "Wygląda na to, że okno logowania zostało zamknięte bez pomyślnego zakończenia operacji. Spróbuj ponownie.",
 		"migrationPostponed_msg": "Osiągnięto limit pobrań dla {provider}; kontynuacja nastąpi {postponedUntil}.",
