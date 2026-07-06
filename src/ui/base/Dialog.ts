@@ -3,7 +3,7 @@ import type { ModalComponent } from "./Modal"
 import { modal } from "./Modal"
 import { alpha, AlphaEnum, AnimationPromise, animations, DefaultAnimationTime, opacity, transform, TransformEnum } from "../animation/Animations"
 import { ease } from "../animation/Easing"
-import type { MaybeTranslation, TranslationKey } from "../utils/LanguageViewModel"
+import type { MaybeTranslation, Translation, TranslationKey } from "../utils/LanguageViewModel"
 import { lang } from "../utils/LanguageViewModel"
 import type { Shortcut } from "../utils/KeyManager"
 import { focusNext, focusPrevious, keyManager } from "../utils/KeyManager"
@@ -25,6 +25,7 @@ import { DialogInjectionRight } from "./DialogInjectionRight"
 import Stream from "mithril/stream"
 import { TextField } from "./TextField"
 import { isOfflineError } from "../../platform-kit/rest-client/error"
+import { Checkbox } from "./Checkbox"
 
 assertMainOrNode()
 export const INPUT = "input.text, input.tutaui-text-field, textarea, div[contenteditable='true']"
@@ -75,6 +76,11 @@ export interface TextInputDialogParams {
 
 	/** For pre-selecting a range of text when the input field is displayed */
 	selectionRange?: [number, number]
+}
+
+export interface ChoiceCancellableResult<T> {
+	value: T | null
+	options: boolean[]
 }
 
 export class Dialog implements ModalComponent {
@@ -580,9 +586,15 @@ export class Dialog implements ModalComponent {
 			text: MaybeTranslation
 			value: T
 		}>,
-	): Promise<T | null> {
+		options?: Array<{
+			text: Translation
+			value: boolean
+		}>,
+	): Promise<ChoiceCancellableResult<T>> {
 		return newPromise((resolve) => {
 			let selection: T | null = null
+			let selectionOptions: boolean[] = Array(options?.length ?? 0).fill(false)
+
 			const choose = (choice: T) => {
 				selection = choice
 				dialog.onClose()
@@ -595,7 +607,28 @@ export class Dialog implements ModalComponent {
 					type: ButtonType.Secondary,
 				}
 			})
-			const dialog = Dialog.confirmMultiple(message, buttonAttrs, () => resolve(selection))
+
+			const dialog = Dialog.confirmMultiple(
+				message,
+				buttonAttrs,
+				() => resolve({ value: selection, options: selectionOptions }),
+				() =>
+					options
+						? options.map((option, index) => {
+								return (
+									m(Checkbox, {
+										label: () => option.text.text,
+										class: "mt-16",
+										checked: option.value,
+										onChecked: (value) => {
+											option.value = value
+											selectionOptions[index] = option.value
+										},
+									}) ?? []
+								)
+							})
+						: null,
+			)
 		})
 	}
 

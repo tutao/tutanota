@@ -2322,6 +2322,10 @@ export default {
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
+		"duplicateFileName_msg": "{fileName} already exists. How would you like to proceed?",
+		"keepBothFiles_action": "Keep Both",
+		"replaceFile_action": "Replace",
+		"applyToAllFiles_label" : "Apply this choice to all items",
 		"transferTimeRemaining_msg": "{time} remaining"
 	}
 }

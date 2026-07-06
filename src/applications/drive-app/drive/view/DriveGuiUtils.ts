@@ -108,6 +108,33 @@ export async function showRenameDialog(item: FolderItem, rename: (newName: strin
 	)
 }
 
+export const DUPLICATE_FILES_KEEP_CHOICE = 0
+
+export interface DuplicateFilesDialogDecision {
+	choice: "cancel" | "keepBoth" | "replace"
+	applyToAll: boolean
+}
+export async function showDuplicateFilesChoiceDialog(fileName: string, fileCount: number): Promise<DuplicateFilesDialogDecision> {
+	const options = []
+	if (fileCount > 1) {
+		options[DUPLICATE_FILES_KEEP_CHOICE] = { text: lang.getTranslation("applyToAllFiles_label"), value: false }
+	}
+
+	const result = await Dialog.choiceCancellable<DuplicateFilesDialogDecision["choice"]>(
+		lang.getTranslation("duplicateFileName_msg", { "{fileName}": fileName }),
+		[
+			{ text: lang.getTranslation("cancel_action"), value: "cancel" },
+			{ text: lang.getTranslation("keepBothFiles_action"), value: "keepBoth" },
+			{ text: lang.getTranslation("replaceFile_action"), value: "replace" },
+		],
+		options,
+	)
+	return {
+		choice: result.value ?? "cancel",
+		applyToAll: result.options[0] ?? false,
+	}
+}
+
 function isIdTuple(item: unknown): item is IdTuple {
 	return Array.isArray(item) && item.length === 2 && typeof item[0] === "string" && typeof item[1] === "string"
 }

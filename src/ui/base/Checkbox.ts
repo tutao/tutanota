@@ -20,9 +20,9 @@ export class Checkbox implements Component<CheckboxAttrs> {
 	private labelLineHeight: number = 0
 
 	view(vnode: Vnode<CheckboxAttrs>): Children {
-		const a = vnode.attrs
-		const helpLabelText = lang.getTranslationText(a.helpLabel ? a.helpLabel : "emptyString_msg")
-		const helpLabel = a.helpLabel
+		const attrs = vnode.attrs
+		const helpLabelText = lang.getTranslationText(attrs.helpLabel ? attrs.helpLabel : "emptyString_msg")
+		const helpLabel = attrs.helpLabel
 			? m(
 					`small.block.content-fg${Checkbox.getBreakClass(helpLabelText)}`,
 					{
@@ -33,22 +33,22 @@ export class Checkbox implements Component<CheckboxAttrs> {
 					helpLabelText,
 				)
 			: []
-		const userClasses = a.class == null ? "" : " " + a.class
+		const userClasses = attrs.class == null ? "" : " " + attrs.class
 		return m(
 			"",
 			{
-				"aria-disabled": a.disabled != null ? String(a.disabled) : undefined,
-				class: getOperatingClasses(a.disabled, "click flash") + userClasses,
+				"aria-disabled": attrs.disabled != null ? String(attrs.disabled) : undefined,
+				class: getOperatingClasses(attrs.disabled, "click flash") + userClasses,
 				onclick: (e: MouseEvent) => {
 					if (e.target !== this._domInput) {
-						this.toggle(e, a) // event is bubbling in IE besides we invoke e.stopPropagation()
+						this.toggle(e, attrs) // event is bubbling in IE besides we invoke e.stopPropagation()
 					}
 				},
 			},
 			m(
-				`label.rel${Checkbox.getBreakClass(a.label())}`,
+				`label.rel${Checkbox.getBreakClass(attrs.label())}`,
 				{
-					class: `${this.focused ? "content-accent-fg" : "content-fg"} ${getOperatingClasses(a.disabled, "click")}`,
+					class: `${this.focused ? "content-accent-fg" : "content-fg"} ${getOperatingClasses(attrs.disabled, "click")}`,
 				},
 				[
 					m(".flex.gap-8", [
@@ -62,14 +62,14 @@ export class Checkbox implements Component<CheckboxAttrs> {
 								this.labelLineHeight = parseInt(getComputedStyle(vnode.dom as HTMLElement).lineHeight)
 								m.redraw()
 							},
-							onchange: (e: Event) => this.toggle(e, a),
-							checked: a.checked,
+							onchange: (e: Event) => this.toggle(e, attrs),
+							checked: attrs.checked,
 							onfocus: () => (this.focused = true),
 							onblur: () => (this.focused = false),
-							class: getOperatingClasses(a.disabled, "click"),
-							disabled: a.disabled,
+							class: getOperatingClasses(attrs.disabled, "click"),
+							disabled: attrs.disabled,
 						}),
-						a.label(),
+						attrs.label(),
 					]),
 					m(
 						"span",
