@@ -36,7 +36,7 @@ if (typeof CSS.registerProperty === "function") {
 interface TransferStackStatus {
 	progressState: ProgressState
 	percentage: number
-	timeRemaining: number | null
+	timeRemainingSec: number | null
 	mainText: Translation
 	infoText?: Translation
 }
@@ -75,7 +75,7 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 			}
 		}
 		const percentage = calculatePercentage(currentTransfers)
-		return { progressState, percentage, mainText, infoText, timeRemaining: driveTransfers.timeRemainingSec }
+		return { progressState, percentage, mainText, infoText, timeRemainingSec: driveTransfers.timeRemainingSec }
 	}
 
 	// Sort transfers shown in the stack in an intuitive order.
@@ -109,7 +109,7 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 				runningIcon: () => this.renderRunningIcon(transferState.type),
 				progressState: this.getProgressState(transferState.state),
 				percentage: Math.min(Math.round((transferState.transferredBytes / transferState.totalBytes) * 100), 100),
-				timeRemaining: transferState.timeRemainingSec ?? null,
+				timeRemainingSec: transferState.timeRemainingSec ?? null,
 				onCancel: () => cancelTransfer(transferState.id),
 			} satisfies ProgressSnackBarAttrs & { key: string })
 		})
@@ -138,10 +138,10 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 							),
 							stackStatus.infoText ? m(".small", { "data-testid": lang.getTestId(stackStatus.infoText) }, stackStatus.infoText.text) : null,
 							m(".flex.row.gap-8", [
-								!this.expanded && stackStatus.timeRemaining
+								!this.expanded && stackStatus.timeRemainingSec
 									? m(
 											".small",
-											lang.getTranslation("transferTimeRemaining_msg", { "{time}": formatDurationNarrow(stackStatus.timeRemaining) })
+											lang.getTranslation("transferTimeRemaining_msg", { "{time}": formatDurationNarrow(stackStatus.timeRemainingSec) })
 												.text,
 										)
 									: null,

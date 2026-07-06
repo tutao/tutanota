@@ -19,12 +19,12 @@ export interface ProgressSnackBarAttrs {
 	runningIcon?: () => Children
 	progressState: ProgressState
 	percentage: number
-	timeRemaining: number | null
+	timeRemainingSec: number | null
 	onCancel: () => unknown
 }
 
 export class ProgressSnackBar implements Component<ProgressSnackBarAttrs> {
-	view({ attrs: { mainText, onCancel, progressState, percentage, runningIcon, timeRemaining } }: Vnode<ProgressSnackBarAttrs>): Children {
+	view({ attrs: { mainText, onCancel, progressState, percentage, runningIcon, timeRemainingSec } }: Vnode<ProgressSnackBarAttrs>): Children {
 		return m(
 			".flex.col.border-radius.rel.clip",
 			{
@@ -39,7 +39,7 @@ export class ProgressSnackBar implements Component<ProgressSnackBarAttrs> {
 						this.renderIcon(progressState, runningIcon),
 						m(".flex.col.gap-8.flex-shrink.overflow-hidden", [m(".font-weight-500.text-ellipsis", mainText)]),
 					]),
-					progressState === ProgressState.running && timeRemaining != null ? m(".small.mr-8", formatDurationNarrow(timeRemaining)) : null,
+					progressState === ProgressState.running && timeRemainingSec != null ? m(".small.mr-8", formatDurationNarrow(timeRemainingSec)) : null,
 					this.renderCancelButton(progressState, onCancel),
 				]),
 				progressState === ProgressState.running

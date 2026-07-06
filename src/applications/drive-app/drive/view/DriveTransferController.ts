@@ -84,11 +84,14 @@ export class DriveTransferController {
 				totalTransferSpeed += avgSpeed
 			}
 		}
+		if (numberOfActiveTransfers === 0) {
+			return null
+		}
 		const speed = totalTransferSpeed / numberOfActiveTransfers
-		const currentBatchTotalSize = this.queue.reduce((acc, curr) => transferSize(curr) + acc, 0)
-		const currentBatchTransferredSize = this.queue.reduce((acc, curr) => curr.transferredBytes + acc, 0)
+		const currentBatchTotalSize = this.queue.reduce((acc, curr) => BigInt(transferSize(curr)) + acc, 0n)
+		const currentBatchTransferredSize = this.queue.reduce((acc, curr) => BigInt(curr.transferredBytes) + acc, 0n)
 
-		return speed !== 0 ? (currentBatchTotalSize - currentBatchTransferredSize) / speed : null
+		return speed !== 0 ? Number((currentBatchTotalSize - currentBatchTransferredSize) / BigInt(Math.round(speed))) : null
 	}
 
 	constructor(
