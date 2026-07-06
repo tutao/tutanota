@@ -8,7 +8,6 @@ import { Icons } from "../../../../../ui/base/icons/Icons.js"
 import { theme } from "../../../../../ui/theme.js"
 import { DatePicker } from "../pickers/DatePicker.js"
 import { TimePicker } from "../pickers/TimePicker.js"
-import { px, size } from "../../../../../ui/size.js"
 import { Divider } from "../../../../../ui/Divider.js"
 import { BaseButton, BaseButtonAttrs } from "../../../../../ui/base/buttons/BaseButton"
 import { AriaRole } from "../../../../../ui/AriaUtils"
@@ -38,31 +37,31 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 
 		const appClasses = isApp() ? ["smaller"] : []
 
-		return m(".flex", [
-			m(".flex.col.flex-grow.gap-8", [
-				m(".flex.gap-8.items-center.pr-8", [
-					m(Icon, {
-						icon: Icons.ClockOutlines,
-						style: {
-							fill: theme.on_surface,
-						},
-						title: lang.get("timeSection_label"),
-						size: IconSize.PX24,
-					}),
-					m(
-						Switch,
-						{
-							checked: editModel.isAllDay,
-							onclick: (value) => (editModel.isAllDay = value),
-							ariaLabel: lang.get("allDay_label"),
-							disabled: attrs.disabled,
-							variant: "expanded",
-						},
-						lang.get("allDay_label"),
-					),
-				]),
-				m(".flex.col.full-width.flex-grow.gap-8", { style: { paddingLeft: px(size.icon_24 + size.spacing_8) } }, [
-					m(Divider, { color: theme.outline_variant }),
+		return m(".flex.col.flex-grow.gap-12", [
+			m(".flex.gap-8.items-center.justify-between", [
+				m(Icon, {
+					icon: Icons.ClockFilled,
+					style: {
+						fill: theme.on_surface,
+					},
+					title: lang.get("timeSection_label"),
+					size: IconSize.PX24,
+				}),
+				m(
+					Switch,
+					{
+						checked: editModel.isAllDay,
+						onclick: (value) => (editModel.isAllDay = value),
+						ariaLabel: lang.get("allDay_label"),
+						disabled: attrs.disabled,
+						variant: "normal",
+					},
+					lang.get("allDay_label"),
+				),
+			]),
+			m(Divider, { color: theme.outline_variant }),
+			m(".flex.col.full-width.flex-grow.gap-12", [
+				m(".flex.col.gap-8", [
 					m(".time-selection-grid.pr-8", [
 						m("", lang.get("dateFrom_label")),
 						m(
@@ -96,6 +95,8 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 						),
 					]),
 					renderStartTimeZone && this.renderTimeZoneButton(attrs, editModel.getStartTimeZoneOrDefault()),
+				]),
+				m(".flex.col.gap-8", [
 					m(".time-selection-grid.pr-8", [
 						m("", lang.get("dateTo_label")),
 						m(
@@ -140,19 +141,19 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 		return m(
 			BaseButton,
 			{
-				class: `flash button-min-height flex items-center right text-ellipsis ${attrs.disabled || attrs.editModel.isAllDay ? "disabled" : ""}`,
+				class: `flash flex items-center text-ellipsis smaller  ml-auto ${attrs.disabled || attrs.editModel.isAllDay ? "disabled" : ""}`,
 				label: selectionButtonTextTranslation,
 				disabled: attrs.disabled || attrs.editModel.isAllDay,
 				role: AriaRole.Button,
 				onclick: attrs.onTimeZoneSelectionClick,
 			} satisfies BaseButtonAttrs,
 			[
-				m("span.flex-grow.full-width.white-space", selectionButtonTextTranslation.text),
+				selectionButtonTextTranslation.text,
 				m(Icon, {
 					icon: Icons.ChevronRight,
 					style: { fill: getColors(ButtonColor.Content).button },
 					title: lang.get("next_action"),
-					size: IconSize.PX24,
+					size: IconSize.PX20,
 				}),
 			],
 		)
