@@ -2494,4 +2494,8 @@ export type TranslationKeyType =
 	| "subscriptionSettingAppleWebsite_action"
 	| "paymentMethodOnAccountHowItWorks_msg"
 	| "emptyString_msg"
+	| "duplicateFileName_msg"
+	| "keepBothFiles_action"
+	| "replaceFile_action"
+	| "applyToAllFiles_label"
 	| "transferTimeRemaining_msg"
