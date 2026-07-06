@@ -29,6 +29,7 @@ import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorag
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 import {
 	ImapAccountSyncStateTypeRef,
+	ImapFolderSyncState,
 	ImapFolderSyncStateTypeRef,
 	ImportFileMailStateTypeRef,
 	Mail,
@@ -724,13 +725,8 @@ export class MailViewModel {
 				if (targetFolder) {
 					await this.deleteMailSetEntryRangeFolder(targetFolder)
 				}
-				const imapFolderSyncState = await this.entityClient.load(
-					ImapFolderSyncStateTypeRef,
-					collapseId(update.instanceListId, update.instanceId) as IdTuple,
-				)
-				const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapFolderSyncState.imapAccountSyncState)
-				if (imapAccountSyncState.imapSyncLabel) {
-					const imapSyncLabel = await this.entityClient.load(MailSetTypeRef, imapAccountSyncState.imapSyncLabel)
+				const imapSyncLabel = await this.getImapSyncLabel(update)
+				if (imapSyncLabel) {
 					await this.deleteMailSetEntryRangeFolder(imapSyncLabel)
 				}
 			} else if (update.operation === OperationType.UPDATE) {
@@ -751,10 +747,24 @@ export class MailViewModel {
 					if (targetFolder) {
 						await this.deleteMailSetEntryRangeFolder(targetFolder)
 					}
+					const imapSyncLabel = await this.getImapSyncLabel(update)
+					if (imapSyncLabel) {
+						await this.deleteMailSetEntryRangeFolder(imapSyncLabel)
+					}
 				}
 			}
 
 			await listModel.handleEntityUpdate(update)
+		}
+	}
+
+	private async getImapSyncLabel(update: EntityUpdateData): Promise<MailSet | null> {
+		const imapFolderSyncState = await this.entityClient.load(ImapFolderSyncStateTypeRef, collapseId(update.instanceListId, update.instanceId) as IdTuple)
+		const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapFolderSyncState.imapAccountSyncState)
+		if (imapAccountSyncState.imapSyncLabel) {
+			return await this.entityClient.load(MailSetTypeRef, imapAccountSyncState.imapSyncLabel)
+		} else {
+			return null
 		}
 	}
 
