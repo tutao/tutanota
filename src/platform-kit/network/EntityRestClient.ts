@@ -27,7 +27,7 @@ import {
 	ServerModelParsedInstance,
 	ServerModelUntypedInstance,
 	ServerTypeModel,
-	SomeEntity,
+	Entity,
 	UntypedInstance,
 } from "@tutao/meta"
 import { PersistenceResourcePostReturnTypeRef } from "@tutao/entities/base"
@@ -105,7 +105,7 @@ export class EntityRestClient implements EntityRestInterface {
 		private readonly entityMigrator: lazy<EntityMigrator>,
 	) {}
 
-	async loadParsedInstance<T extends SomeEntity>(
+	async loadParsedInstance<T extends Entity>(
 		typeRef: TypeRef<T>,
 		id: PropertyType<T, "_id">,
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
@@ -145,7 +145,7 @@ export class EntityRestClient implements EntityRestInterface {
 		return decrypted
 	}
 
-	async load<T extends SomeEntity>(
+	async load<T extends Entity>(
 		typeRef: TypeRef<T>,
 		id: PropertyType<T, "_id">,
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
@@ -154,11 +154,11 @@ export class EntityRestClient implements EntityRestInterface {
 		return await this.mapInstanceToEntity(typeRef, parsedInstance)
 	}
 
-	async mapInstanceToEntity<T extends SomeEntity>(typeRef: TypeRef<T>, parsedInstance: ServerModelParsedInstance): Promise<T> {
+	async mapInstanceToEntity<T extends Entity>(typeRef: TypeRef<T>, parsedInstance: ServerModelParsedInstance): Promise<T> {
 		return downcast<T>(await this.instancePipeline.modelMapper.mapToInstance(typeRef, parsedInstance))
 	}
 
-	async mapInstancesToEntity<T extends SomeEntity>(typeRef: TypeRef<T>, parsedInstances: Array<ServerModelParsedInstance>): Promise<T[]> {
+	async mapInstancesToEntity<T extends Entity>(typeRef: TypeRef<T>, parsedInstances: Array<ServerModelParsedInstance>): Promise<T[]> {
 		return await promiseMap(
 			parsedInstances,
 			async (parsedInstance) => {
@@ -217,7 +217,7 @@ export class EntityRestClient implements EntityRestInterface {
 		return this.mapInstancesToEntity(typeRef, parsedInstances)
 	}
 
-	async loadMultipleParsedInstances<T extends SomeEntity>(
+	async loadMultipleParsedInstances<T extends Entity>(
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		elementIds: Array<Id>,
@@ -252,7 +252,7 @@ export class EntityRestClient implements EntityRestInterface {
 		return loadedChunks.flat()
 	}
 
-	async loadMultiple<T extends SomeEntity>(
+	async loadMultiple<T extends Entity>(
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		elementIds: Array<Id>,
@@ -313,7 +313,7 @@ export class EntityRestClient implements EntityRestInterface {
 		return doBlobRequestWithRetry(doBlobRequest, doEvictToken)
 	}
 
-	async _handleLoadResult<T extends SomeEntity>(
+	async _handleLoadResult<T extends Entity>(
 		typeRef: TypeRef<T>,
 		loadedEntities: Array<ServerModelUntypedInstance>,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
@@ -375,7 +375,7 @@ export class EntityRestClient implements EntityRestInterface {
 		)
 	}
 
-	async setup<T extends SomeEntity>(
+	async setup<T extends Entity>(
 		listId: Id | null,
 		instance: T,
 		extraHeaders: Nullable<Dict>,
@@ -411,7 +411,7 @@ export class EntityRestClient implements EntityRestInterface {
 		return AttributeModel.getAttributeorNull<Id>(untypedPersistencePostReturn, "generatedId", postReturnTypeModel)
 	}
 
-	async setupMultiple<T extends SomeEntity>(listId: Id | null, instances: Array<T>): Promise<Array<Id>> {
+	async setupMultiple<T extends Entity>(listId: Id | null, instances: Array<T>): Promise<Array<Id>> {
 		const count = instances.length
 
 		if (count < 1) {
@@ -480,7 +480,7 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 	}
 
-	async update<T extends SomeEntity>(instance: T, options?: EntityRestClientUpdateOptions): Promise<void> {
+	async update<T extends Entity>(instance: T, options?: EntityRestClientUpdateOptions): Promise<void> {
 		if (!instance._id) throw new Error("Id must be defined")
 		const { listId, elementId } = expandId(instance._id)
 		const { path, queryParams, clientTypeModel, headers } = await this._validateAndPrepareRestRequest(
@@ -519,11 +519,7 @@ export class EntityRestClient implements EntityRestInterface {
 		})
 	}
 
-	private async getSubKeyInfoOnSetup<T extends SomeEntity>(
-		ownerKey: VersionedKey | null,
-		instance: T,
-		clientTypeModel: ClientTypeModel,
-	): Promise<SubKeyInfo> {
+	private async getSubKeyInfoOnSetup<T extends Entity>(ownerKey: VersionedKey | null, instance: T, clientTypeModel: ClientTypeModel): Promise<SubKeyInfo> {
 		if (this.authDataProvider.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.AesCbc) {
 			const sessionKey: Nullable<AesKey> = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance, ownerKey)
 			if (sessionKey) {
@@ -549,7 +545,7 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 	}
 
-	private async getSubKeyInfoOnUpdate<T extends SomeEntity>(ownerKey: VersionedKey | null, instance: T): Promise<SubKeyInfo> {
+	private async getSubKeyInfoOnUpdate<T extends Entity>(ownerKey: VersionedKey | null, instance: T): Promise<SubKeyInfo> {
 		if (this.authDataProvider.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.AesCbc) {
 			const sessionKey: Nullable<AesKey> = await this.sessionKeyResolver().resolveSessionKeyWithOwnerKey(
 				ownerKey != null ? ownerKey.object : null,
@@ -592,7 +588,7 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 	}
 
-	async erase<T extends SomeEntity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void> {
+	async erase<T extends Entity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void> {
 		const { listId, elementId } = expandId(instance._id)
 		const { path, queryParams, headers } = await this._validateAndPrepareRestRequest(
 			instance._type,
@@ -609,7 +605,7 @@ export class EntityRestClient implements EntityRestInterface {
 		})
 	}
 
-	async eraseMultiple<T extends SomeEntity>(listId: string, instances: T[], options?: EntityRestClientEraseOptions): Promise<void> {
+	async eraseMultiple<T extends Entity>(listId: string, instances: T[], options?: EntityRestClientEraseOptions): Promise<void> {
 		if (instances.length === 0) {
 			return
 		}

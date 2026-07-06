@@ -16,7 +16,7 @@ import {
 	listIdPart,
 	ServerModelParsedInstance,
 	serverToLocalIdEncoding,
-	SomeEntity,
+	Entity,
 	timestampToGeneratedId,
 	Type as TypeId,
 	TypeRef,
@@ -2253,7 +2253,7 @@ o.spec("OfflineStorageDb", function () {
 				spamFolder,
 			)
 
-			let everyEntity: Array<SomeEntity> = [
+			let everyEntity: Array<Entity> = [
 				userMailbox,
 				inboxFolder,
 				trashFolder,

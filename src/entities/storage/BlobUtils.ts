@@ -1,4 +1,4 @@
-import { elementIdPart, type ListElementEntity, listIdPart, type SomeEntity } from "../../platform-kit/meta"
+import { elementIdPart, type ListElementEntity, listIdPart, type Entity } from "../../platform-kit/meta"
 import { Blob } from "@tutao/entities/sys"
 
 /**
@@ -13,7 +13,7 @@ export type BlobReferencingInstance = {
 
 	blobs: readonly Blob[]
 
-	entity: SomeEntity
+	entity: Entity
 }
 
 /**

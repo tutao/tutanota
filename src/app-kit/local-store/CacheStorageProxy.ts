@@ -1,6 +1,6 @@
 import { OfflineStorage, Range } from "./OfflineStorage.js"
 import { ProgrammingError } from "../../platform-kit/app-env"
-import { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeRef } from "../../platform-kit/meta"
+import { Entity, ListElementEntity, ServerModelParsedInstance, Entity, TypeRef } from "../../platform-kit/meta"
 import { downcast, Nullable } from "../../platform-kit/utils"
 import { EphemeralCacheStorage } from "./EphemeralCacheStorage"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
@@ -114,7 +114,7 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		}
 	}
 
-	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void> {
+	deleteIfExists<T extends Entity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void> {
 		return this.inner.deleteIfExists(typeRef, listId, id)
 	}
 

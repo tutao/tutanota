@@ -2,7 +2,7 @@ import { Nullable } from "../../platform-kit/utils"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler"
 import { GetOrPutInstance } from "../../platform-kit/instance-pipeline"
 import { Range } from "./OfflineStorage"
-import { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeRef } from "../../platform-kit/meta"
+import { Entity, ListElementEntity, ServerModelParsedInstance, Entity, TypeRef } from "../../platform-kit/meta"
 
 export type LastUpdateTime = { type: "recorded"; time: number } | { type: "never" } | { type: "uninitialized" }
 
@@ -55,7 +55,7 @@ export interface ExposedCacheStorage extends GetOrPutInstance {
 	 * the exposed interface is intentionally more narrow than the internal cacheStorage because
 	 * we must maintain the integrity of our list ranges.
 	 * */
-	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
+	deleteIfExists<T extends Entity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
 
 	/**
 	 * remove a complete range for a ListElementEntity from the cache by typeRef and listId.
@@ -127,7 +127,7 @@ export interface CacheStorage extends ExposedCacheStorage {
 
 	getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>>
 
-	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
+	deleteIfExists<T extends Entity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
 
 	/**
 	 * remove a complete range for a ListElementEntity from the cache by typeRef and listId.

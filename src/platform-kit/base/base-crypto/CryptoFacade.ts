@@ -75,7 +75,7 @@ import {
 } from "@tutao/entities/sys"
 import { AccountType, GroupType, PermissionType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../entities/sys/Utils"
 import { TypeModelResolver } from "../../instance-pipeline/EntityFunctions"
-import { Entity, ServerModelEncryptedParsedInstance, SomeEntity } from "../../meta/EntityTypes"
+import { Entity, ServerModelEncryptedParsedInstance, Entity } from "../../meta/EntityTypes"
 import { asCryptoProtoocolVersion, BucketPermissionType } from "./Constants"
 import {
 	createInternalRecipientKeyData,
@@ -180,7 +180,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		} catch (e) {
 			if (e instanceof CryptoError) {
 				console.log("failed to resolve session key", e)
-				throw new SessionKeyNotFoundError("Crypto error while resolving session key for instance " + downcast<SomeEntity>(instance)._id)
+				throw new SessionKeyNotFoundError("Crypto error while resolving session key for instance " + downcast<Entity>(instance)._id)
 			} else {
 				throw e
 			}
@@ -367,7 +367,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	): Promise<ResolvedSessionKeys> {
 		const bucketKey = assertNotNull(instance.bucketKey)
 
-		const id = downcast<SomeEntity>(instance)._id
+		const id = downcast<Entity>(instance)._id
 		const elementId: Id = typeof id === "string" ? id : elementIdPart(id)
 
 		let resolvedSessionKeyForInstance: AesKey | null = null
@@ -403,7 +403,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		if (resolvedSessionKeyForInstance) {
 			return { resolvedSessionKeyForInstance, instanceSessionKeys }
 		} else {
-			throw new SessionKeyNotFoundError("no session key for instance " + downcast<SomeEntity>(instance)._id)
+			throw new SessionKeyNotFoundError("no session key for instance " + downcast<Entity>(instance)._id)
 		}
 	}
 
@@ -521,7 +521,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		if (pubOrExtPermission == null) {
 			const typeName = `${instance._type.app}/${instance._type.typeId}`
 			throw new SessionKeyNotFoundError(
-				`could not find permission for instance of type ${typeName} with id ${this.getIdAsStringFromInstance(instance as SomeEntity)}`,
+				`could not find permission for instance of type ${typeName} with id ${this.getIdAsStringFromInstance(instance as Entity)}`,
 			)
 		}
 
@@ -743,7 +743,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	 * @param instance
 	 * @param childInstances the files that belong to the mainInstance
 	 */
-	async enforceSessionKeyUpdateIfNeeded(instance: SomeEntity, childInstances: readonly File[]): Promise<File[]> {
+	async enforceSessionKeyUpdateIfNeeded(instance: Entity, childInstances: readonly File[]): Promise<File[]> {
 		if (!childInstances.some((f) => f._ownerEncSessionKey == null || f._errors !== undefined)) {
 			return childInstances.slice()
 		}
@@ -766,7 +766,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		)
 	}
 
-	private getIdAsStringFromInstance(instance: SomeEntity): string {
+	private getIdAsStringFromInstance(instance: Entity): string {
 		if (typeof instance._id === "string") {
 			return instance._id
 		} else {

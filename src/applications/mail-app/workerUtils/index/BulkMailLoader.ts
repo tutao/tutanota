@@ -19,7 +19,7 @@ import {
 	getElementId,
 	isSameId,
 	listIdPart,
-	SomeEntity,
+	Entity,
 	TypeRef,
 } from "../../../../platform-kit/meta"
 import { cryptoUtils } from "../../../../platform-kit/crypto"
@@ -149,7 +149,7 @@ export class BulkMailLoader {
 		return filesResults.flat()
 	}
 
-	public async loadInChunks<T extends SomeEntity>(
+	public async loadInChunks<T extends Entity>(
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		ids: Id[],

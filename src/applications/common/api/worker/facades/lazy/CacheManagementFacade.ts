@@ -1,4 +1,4 @@
-import { isSameId, SomeEntity, TypeRef } from "@tutao/meta"
+import { isSameId, Entity, TypeRef } from "@tutao/meta"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient.js"
 import { assertWorkerOrNode } from "@tutao/app-env"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
@@ -78,7 +78,7 @@ export class CacheManagementFacade implements CacheManager {
 	/**
 	 * Delete a cached entity. Sometimes this is necessary to do to ensure you always load the new version
 	 */
-	async deleteFromCacheIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void> {
+	async deleteFromCacheIfExists<T extends Entity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void> {
 		return this.entityRestCache.deleteFromCacheIfExists(typeRef, listId, elementId)
 	}
 }

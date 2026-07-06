@@ -7,7 +7,7 @@ import {
 	ListElementEntity,
 	OperationType,
 	ServerModelParsedInstance,
-	SomeEntity,
+	Entity,
 	TypeRef,
 } from "@tutao/meta"
 import { Nullable } from "@tutao/utils"
@@ -16,7 +16,7 @@ import { EntityUpdate, Patch } from "@tutao/entities/sys"
 /**
  * A type similar to {@link EntityUpdate} but mapped to make it easier to work with.
  */
-export type EntityUpdateData<T extends SomeEntity = SomeEntity> = {
+export type EntityUpdateData<T extends Entity = Entity> = {
 	typeRef: TypeRef<T>
 	instanceListId: T extends ListElementEntity | BlobElementEntity ? NonEmptyString : null
 	instanceId: string
@@ -29,7 +29,7 @@ export type EntityUpdateData<T extends SomeEntity = SomeEntity> = {
 	patches: Nullable<Array<Patch>>
 }
 
-export async function entityUpdateToUpdateData<T extends SomeEntity>(
+export async function entityUpdateToUpdateData<T extends Entity>(
 	update: EntityUpdate,
 	instance: Nullable<ServerModelParsedInstance> = null,
 	blobInstance: Nullable<ServerModelParsedInstance> = null,
@@ -47,11 +47,11 @@ export async function entityUpdateToUpdateData<T extends SomeEntity>(
 	}
 }
 
-export function isUpdateForTypeRef<T extends SomeEntity>(typeRef: TypeRef<T>, update: EntityUpdateData): update is EntityUpdateData<T> {
+export function isUpdateForTypeRef<T extends Entity>(typeRef: TypeRef<T>, update: EntityUpdateData): update is EntityUpdateData<T> {
 	return isSameTypeRef(typeRef, update.typeRef)
 }
 
-export function isUpdateFor<T extends SomeEntity>(entity: T, update: EntityUpdateData): boolean {
+export function isUpdateFor<T extends Entity>(entity: T, update: EntityUpdateData): boolean {
 	const typeRef = entity._type as TypeRef<T>
 	return (
 		isSameTypeRef(typeRef, update.typeRef) &&

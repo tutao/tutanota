@@ -16,7 +16,7 @@ import { downcast, groupByAndMap, last, Nullable, promiseMap } from "@tutao/util
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { ProgrammingError } from "@tutao/app-env"
 import { ClientTypeModelResolver, OwnerEncSessionKeyProvider } from "@tutao/instance-pipeline"
-import { ElementEntity, ListElementEntity, SomeEntity } from "@tutao/meta"
+import { ElementEntity, ListElementEntity, Entity } from "@tutao/meta"
 import { RootInstance, RootInstanceTypeRef } from "@tutao/entities/sys"
 import { EntityRestInterface } from "./EntityRestCacheInterface"
 import {
@@ -40,7 +40,7 @@ export class EntityClient {
 	/**
 	 * Important: we can't pass functions through the bridge, so we can't pass ownerKeyProvider from the page context.
 	 */
-	load<T extends SomeEntity>(
+	load<T extends Entity>(
 		typeRef: TypeRef<T>,
 		id: PropertyType<T, "_id">,
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
@@ -114,7 +114,7 @@ export class EntityClient {
 	/**
 	 * load multiple does not guarantee order or completeness of returned elements.
 	 */
-	loadMultiple<T extends SomeEntity>(
+	loadMultiple<T extends Entity>(
 		typeRef: TypeRef<T>,
 		listId: Nullable<Id>,
 		elementIds: Id[],
@@ -124,7 +124,7 @@ export class EntityClient {
 		return this._target.loadMultiple(typeRef, listId, elementIds, ownerEncSessionKeyProvider, opts)
 	}
 
-	setup<T extends SomeEntity>(
+	setup<T extends Entity>(
 		listId: Nullable<Id>,
 		instance: T,
 		extraHeaders: Nullable<Dict> = null,
@@ -133,19 +133,19 @@ export class EntityClient {
 		return this._target.setup(listId, instance, extraHeaders, options)
 	}
 
-	setupMultipleEntities<T extends SomeEntity>(listId: Nullable<Id>, instances: ReadonlyArray<T>): Promise<Array<Id>> {
+	setupMultipleEntities<T extends Entity>(listId: Nullable<Id>, instances: ReadonlyArray<T>): Promise<Array<Id>> {
 		return this._target.setupMultiple(listId, instances)
 	}
 
-	update<T extends SomeEntity>(instance: T, options?: EntityRestClientUpdateOptions): Promise<void> {
+	update<T extends Entity>(instance: T, options?: EntityRestClientUpdateOptions): Promise<void> {
 		return this._target.update(instance, options)
 	}
 
-	erase<T extends SomeEntity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void> {
+	erase<T extends Entity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void> {
 		return this._target.erase(instance, options)
 	}
 
-	eraseMultiple<T extends SomeEntity>(listId: Id, instances: Array<T>, options?: EntityRestClientEraseOptions): Promise<void> {
+	eraseMultiple<T extends Entity>(listId: Id, instances: Array<T>, options?: EntityRestClientEraseOptions): Promise<void> {
 		return this._target.eraseMultiple(listId, instances, options)
 	}
 

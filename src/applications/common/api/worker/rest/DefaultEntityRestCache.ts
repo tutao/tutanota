@@ -19,7 +19,7 @@ import {
 	listIdPart,
 	OperationType,
 	ServerModelParsedInstance,
-	SomeEntity,
+	Entity,
 	TypeModel,
 	TypeRef,
 	ValueType,
@@ -132,7 +132,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		private readonly lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider>,
 	) {}
 
-	async load<T extends SomeEntity>(
+	async load<T extends Entity>(
 		typeRef: TypeRef<T>,
 		id: PropertyType<T, "_id">,
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
@@ -158,7 +158,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		}
 	}
 
-	async loadMultiple<T extends SomeEntity>(
+	async loadMultiple<T extends Entity>(
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		ids: Array<Id>,
@@ -172,23 +172,23 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		return await this._loadMultiple(typeRef, listId, ids, ownerEncSessionKeyProvider, opts)
 	}
 
-	setup<T extends SomeEntity>(listId: Nullable<Id>, instance: T, extraHeaders: Dict, options: Nullable<EntityRestClientSetupOptions>): Promise<Id | null> {
+	setup<T extends Entity>(listId: Nullable<Id>, instance: T, extraHeaders: Dict, options: Nullable<EntityRestClientSetupOptions>): Promise<Id | null> {
 		return this.entityRestClient.setup(listId, instance, extraHeaders, options)
 	}
 
-	setupMultiple<T extends SomeEntity>(listId: Id | null, instances: Array<T>): Promise<Array<Id>> {
+	setupMultiple<T extends Entity>(listId: Id | null, instances: Array<T>): Promise<Array<Id>> {
 		return this.entityRestClient.setupMultiple(listId, instances)
 	}
 
-	update<T extends SomeEntity>(instance: T): Promise<void> {
+	update<T extends Entity>(instance: T): Promise<void> {
 		return this.entityRestClient.update(instance)
 	}
 
-	erase<T extends SomeEntity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void> {
+	erase<T extends Entity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void> {
 		return this.entityRestClient.erase(instance, options)
 	}
 
-	eraseMultiple<T extends SomeEntity>(listId: Id, instances: Array<T>, options?: EntityRestClientEraseOptions): Promise<void> {
+	eraseMultiple<T extends Entity>(listId: Id, instances: Array<T>, options?: EntityRestClientEraseOptions): Promise<void> {
 		return this.entityRestClient.eraseMultiple(listId, instances, options)
 	}
 
@@ -232,11 +232,11 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		return this.entityRestClient.getRestClient().getServerTimestampMs()
 	}
 
-	async deleteFromCacheIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void> {
+	async deleteFromCacheIfExists<T extends Entity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void> {
 		return this.storage.deleteIfExists(typeRef, listId, elementId)
 	}
 
-	private async _loadMultiple<T extends SomeEntity>(
+	private async _loadMultiple<T extends Entity>(
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		ids: Array<Id>,

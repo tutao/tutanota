@@ -23,7 +23,7 @@ import {
 	uint8ArrayToString,
 } from "@tutao/utils"
 import { assertWorkerOrNode, CancelledError, isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
-import { AttributeModel, ServerModelUntypedInstance, SomeEntity } from "@tutao/meta"
+import { AttributeModel, ServerModelUntypedInstance, Entity } from "@tutao/meta"
 import { _encryptBytes, AesKey, sha256Hash } from "@tutao/crypto"
 import type { FileUri, NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
 import type { AesApp } from "../../../../../../app-kit/native-bridge/worker/AesApp.js"
@@ -600,7 +600,7 @@ export class BlobFacade {
 		}
 	}
 
-	private async resolveSessionKey(entity: SomeEntity): Promise<AesKey> {
+	private async resolveSessionKey(entity: Entity): Promise<AesKey> {
 		return neverNull(await this.cryptoFacade.resolveSessionKey(entity))
 	}
 

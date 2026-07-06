@@ -18,7 +18,7 @@ import {
 	listIdPart,
 	OperationType,
 	ServerModelParsedInstance,
-	SomeEntity,
+	Entity,
 	TypeRef,
 } from "../../../../../src/platform-kit/meta"
 import { arrayOf, assertNotNull, deepEqual, downcast, last, Nullable, promiseMap, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
@@ -141,7 +141,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			return downcast<ServerModelParsedInstance>(await modelMapper.mapToClientModelParsedInstance(entity._type, entity))
 		}
 
-		let makeUpdateData = async function <T extends SomeEntity>(
+		let makeUpdateData = async function <T extends Entity>(
 			typeRef: TypeRef<T>,
 			listId: Id,
 			elementId: Id,
@@ -162,7 +162,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const instanceParsed = instance ? await toStorableInstance(instance) : null
 			return await entityUpdateToUpdateData(entityUpdate, instanceParsed, null)
 		}
-		let updateDataForCreate = function <T extends SomeEntity>(
+		let updateDataForCreate = function <T extends Entity>(
 			typeRef: TypeRef<T>,
 			listId: Id,
 			elementId: Id,
@@ -170,7 +170,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		): Promise<EntityUpdateData> {
 			return makeUpdateData(typeRef, listId, elementId, OperationType.CREATE, instance, [])
 		}
-		let updateDataForUpdate = async function <T extends SomeEntity>(
+		let updateDataForUpdate = async function <T extends Entity>(
 			typeRef: TypeRef<T>,
 			listId: Id,
 			elementId: Id,
@@ -178,7 +178,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		): Promise<EntityUpdateData> {
 			return makeUpdateData(typeRef, listId, elementId, OperationType.UPDATE, null, patches)
 		}
-		let updateDataForDelete = async function <T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id, elementId: Id): Promise<EntityUpdateData> {
+		let updateDataForDelete = async function <T extends Entity>(typeRef: TypeRef<T>, listId: Id, elementId: Id): Promise<EntityUpdateData> {
 			return makeUpdateData(typeRef, listId, elementId, OperationType.DELETE, null, [])
 		}
 

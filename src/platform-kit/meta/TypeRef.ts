@@ -40,11 +40,11 @@ export class TypeRef<T> {
 	}
 }
 
-export function getTypeString(typeRef: TypeRef<unknown>) {
+export function getTypeString(typeRef: TypeRef<any>) {
 	return typeRef.app + "/" + typeRef.typeId
 }
 
-export function parseTypeString(s: string): TypeRef<unknown> {
+export function parseTypeString(s: string): TypeRef<any> {
 	const parts = s.split("/")
 	const [app, versionString] = parts
 	if (app == null || versionString == null) {
@@ -53,14 +53,14 @@ export function parseTypeString(s: string): TypeRef<unknown> {
 	return new TypeRef(app as AppName, parseInt(parts[1], 10))
 }
 
-export function isSameTypeRefByAttr(typeRef: TypeRef<unknown>, app: string, typeId: number): boolean {
+export function isSameTypeRefByAttr(typeRef: TypeRef<any>, app: string, typeId: number): boolean {
 	return typeRef.app === app && typeRef.typeId === typeId
 }
 
-export function isSameTypeRef(typeRef1: TypeRef<unknown>, typeRef2: TypeRef<unknown>): boolean {
+export function isSameTypeRef(typeRef1: TypeRef<any>, typeRef2: TypeRef<any>): boolean {
 	return isSameTypeRefByAttr(typeRef1, typeRef2.app, typeRef2.typeId)
 }
 
-export function isSameTypeRefNullable(typeRef1: TypeRef<unknown> | null, typeRef2: TypeRef<unknown> | null): boolean {
+export function isSameTypeRefNullable(typeRef1: TypeRef<any> | null, typeRef2: TypeRef<any> | null): boolean {
 	return (typeRef1 == null && typeRef2 == null) || (typeRef1 != null && typeRef2 !== null && isSameTypeRef(typeRef1, typeRef2))
 }

@@ -1,7 +1,7 @@
 import { AssociationType, Cardinality, Type, ValueType } from "./EntityConstants.js"
 import { AppName, TypeRef } from "./TypeRef.js"
 import { Nullable } from "@tutao/utils"
-import type { BlobElement, Element, ListElement } from "./EntityUtils.js"
+import type { BlobElement, ListElement } from "./EntityUtils.js"
 
 /**
  * Tuta Metamodel Entity Types
@@ -268,38 +268,72 @@ export interface ITypeInfo {
  * this interface is the bare minimum, actual entities need more fields in order to be useful.
  * these are added by defining ModelValues and ModelAssociations on the TypeModel.
  */
-export interface Entity {
-	/** the address of the TypeModel this entity conforms to. */
-	_type: TypeRef<this>
-	_id?: Id | IdTuple
-	_original?: this
-	bucketKey?: null | IBucketKey
-	_ownerGroup?: null | Id
-	_ownerEncSessionKey?: null | Uint8Array
-	_ownerKeyVersion?: null | NumberString
-	_kdfNonce?: null | Uint8Array
-	ownerEncSessionKey?: null | Uint8Array
-	ownerEncSessionKeyVersion?: null | NumberString
-	_permissions?: null | Id
-	isAdapter?: boolean
+export abstract class Entity {
+	#brand: undefined
+
+	abstract get _type(): TypeRef<Entity>
+	_attrs: Record<AttributeId, any> = {}
+	_original?: Record<AttributeId, any> = {}
+	constructor() {}
+	// _id?: Id | IdTuple
+	// _original?: this
+	// bucketKey?: null | IBucketKey
+	// _ownerGroup?: null | Id
+	// _ownerEncSessionKey?: null | Uint8Array
+	// _ownerKeyVersion?: null | NumberString
+	// _kdfNonce?: null | Uint8Array
+	// ownerEncSessionKey?: null | Uint8Array
+	// ownerEncSessionKeyVersion?: null | NumberString
+	// _permissions?: null | Id
+	// isAdapter?: boolean
 }
 
 /**
  * Entity types with instances that stand on their own, not being part of a list
  */
-export type ElementEntity = Entity & Element
+export abstract class ElementEntity extends Entity {
+	constructor() {
+		super()
+	}
+
+	abstract get _id(): Id
+}
 
 /**
  * Entity types with instances that are part of a list
  */
-export type ListElementEntity = Entity & ListElement
+export abstract class ListElementEntity extends Entity {
+	constructor() {
+		super()
+	}
+
+	abstract get _id(): IdTuple
+}
 
 /**
  * Entity types that are stored in an immutable blob storage
  */
-export type BlobElementEntity = Entity & BlobElement
+export abstract class BlobElementEntity extends Entity {
+	constructor() {
+		super()
+	}
 
-export type SomeEntity = ElementEntity | ListElementEntity | BlobElementEntity
+	abstract get _id(): IdTuple
+}
+
+export abstract class AggregatedEntity extends Entity {
+	constructor() {
+		super()
+	}
+	abstract get _id(): Id
+}
+
+export abstract class DataTransferEntity extends Entity {
+	constructor() {
+		super()
+	}
+}
+
 export const enum OperationType {
 	CREATE = "0",
 	UPDATE = "1",

@@ -89,7 +89,7 @@ import {
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { AccountType, GroupType } from "../../../entities/sys/Utils"
-import { assertEnumValue, elementIdPart, getElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
+import { assertEnumValue, elementIdPart, getElementId, isSameId, isSameIdTuple, isSameTypeRef, listIdPart } from "@tutao/meta"
 import { asPublicKeyIdentifier, PublicKeySignatureType } from "./Constants"
 import { GroupInvitationPostData, InternalRecipientKeyData, InternalRecipientKeyDataTypeRef } from "@tutao/entities/tutanota"
 
@@ -701,7 +701,7 @@ export class KeyRotationFacade {
 				members.map((member) => elementIdPart(member.userGroupInfo)),
 			)
 			for (const member of members) {
-				const userGroupInfoForMember = userGroupInfos.find((ugi) => isSameId(ugi._id, member.userGroupInfo))
+				const userGroupInfoForMember = userGroupInfos.find((ugi) => isSameIdTuple(ugi._id, member.userGroupInfo))
 				if (userGroupInfoForMember?.deleted) {
 					membersToRemove.push(member)
 					continue

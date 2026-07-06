@@ -14,7 +14,7 @@ import {
 	isSameTypeRef,
 	ListElementEntity,
 	listIdPart,
-	SomeEntity,
+	Entity,
 	timestampToGeneratedId,
 	Type,
 	TypeRef,
@@ -46,8 +46,8 @@ export class EntityRestClientMock extends EntityRestClient {
 	_blobEntities: Record<Id, Record<Id, BlobElementEntity | Error>> = {}
 	_lastIdTimestamp: number
 	private _typeModelResolver: TypeModelResolver
-	private updatedInstances: SomeEntity[] = []
-	private createdInstances: SomeEntity[] = []
+	private updatedInstances: Entity[] = []
+	private createdInstances: Entity[] = []
 	private idGenerator = new IdGenerator(timestampToGeneratedId(1))
 
 	constructor() {
@@ -133,11 +133,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	async load<T extends SomeEntity>(
-		_typeRef: TypeRef<T>,
-		id: T["_id"],
-		_opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
-	): Promise<T> {
+	async load<T extends Entity>(_typeRef: TypeRef<T>, id: T["_id"], _opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS): Promise<T> {
 		if (id instanceof Array && id.length === 2) {
 			// list element request
 			const listId = id[0]
@@ -178,7 +174,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		return filteredIds.map((id) => this._handleMockElement(entriesForListId[id], id))
 	}
 
-	async loadMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null | undefined, elementIds: Array<Id>): Promise<Array<T>> {
+	async loadMultiple<T extends Entity>(typeRef: TypeRef<T>, listId: Id | null | undefined, elementIds: Array<Id>): Promise<Array<T>> {
 		const lid = listId
 
 		if (lid) {
@@ -213,7 +209,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	async erase<T extends SomeEntity>(instance: T): Promise<void> {
+	async erase<T extends Entity>(instance: T): Promise<void> {
 		const typeModel = await this._typeModelResolver.resolveClientTypeReference(instance._type)
 		_verifyType(typeModel)
 
@@ -223,7 +219,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		return Promise.resolve()
 	}
 
-	async eraseMultiple<T extends SomeEntity>(listId: Id, instances: Array<T>): Promise<void> {
+	async eraseMultiple<T extends Entity>(listId: Id, instances: Array<T>): Promise<void> {
 		if (instances.length === 0) {
 			return
 		}
@@ -238,7 +234,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		return Promise.resolve()
 	}
 
-	async setup<T extends SomeEntity>(listId: Nullable<Id>, instance: T, extraHeaders: Nullable<Dict>): Promise<Id> {
+	async setup<T extends Entity>(listId: Nullable<Id>, instance: T, extraHeaders: Nullable<Dict>): Promise<Id> {
 		const populatedInstance = clone(instance)
 		const elementId = this.idGenerator.getNext()
 		populatedInstance._id = listId == null ? elementId : [listId, elementId]
@@ -246,7 +242,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		return elementId
 	}
 
-	getCreatedInstance<T extends SomeEntity>(type: TypeRef<T>): T {
+	getCreatedInstance<T extends Entity>(type: TypeRef<T>): T {
 		const createdInstance = this.createdInstances.findLast((updated) => isSameTypeRef(type, updated._type))
 		if (createdInstance == null) {
 			throw new Error(`Did not find created instance for ${type}`)
@@ -254,15 +250,15 @@ export class EntityRestClientMock extends EntityRestClient {
 		return createdInstance as T
 	}
 
-	setupMultiple<T extends SomeEntity>(listId: Id | null | undefined, instances: Array<T>): Promise<Array<Id>> {
+	setupMultiple<T extends Entity>(listId: Id | null | undefined, instances: Array<T>): Promise<Array<Id>> {
 		return Promise.reject("Illegal method: setupMultiple")
 	}
 
-	async update<T extends SomeEntity>(instance: T): Promise<void> {
+	async update<T extends Entity>(instance: T): Promise<void> {
 		this.updatedInstances.push(clone(instance))
 	}
 
-	getUpdatedInstance<T extends SomeEntity>(instance: T): T {
+	getUpdatedInstance<T extends Entity>(instance: T): T {
 		const updatedInstance = this.updatedInstances.findLast((updated) => isSameTypeRef(instance._type, updated._type) && isSameId(instance._id, updated._id))
 		if (updatedInstance == null) {
 			throw new Error(`Did not find updated instance for ${instance._type} ${instance._id}`)

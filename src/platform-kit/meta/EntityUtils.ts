@@ -15,7 +15,7 @@ import {
 	uint8arrayToBase64UrlCustomId,
 } from "@tutao/utils"
 import { clone, isSameTypeRef, TypeRef } from "./index"
-import { ElementEntity, Entity, ModelValue, ParsedInstance, SomeEntity, TypeModel } from "./EntityTypes.js"
+import { ElementEntity, ModelValue, ParsedInstance, Entity, TypeModel } from "./EntityTypes.js"
 import { Cardinality, ValueType } from "./EntityConstants.js"
 import { ProgrammingError } from "@tutao/app-env"
 
@@ -59,7 +59,7 @@ export const DELETE_MULTIPLE_LIMIT = 100
 /**
  * an entity that only contains the actual user data and can not be used to refer to any existing entity.
  */
-export type Stripped<T extends Partial<SomeEntity>> = Omit<
+export type Stripped<T extends Partial<Entity>> = Omit<
 	T,
 	| "_id"
 	| "_area"
@@ -181,6 +181,29 @@ export function compareOldestFirst(id1: Id | IdTuple, id2: Id | IdTuple, encodin
 	}
 }
 
+/**
+ * Compares the ids of two elements.
+ * @pre Both entities are either ElementTypes or ListElementTypes
+ * @param id1
+ * @param id2
+ * @returns True if the ids are the same, false otherwise
+ */
+export function isSameId(id1: Id | null, id2: Id | null): boolean {
+	if (id1 === null || id2 === null) {
+		return false
+	} else {
+		return id1 === id2
+	}
+}
+
+export function isSameIdTuple(id1: IdTuple | null, id2: IdTuple | null): boolean {
+	if (id1 === null || id2 === null) {
+		return false
+	} else {
+		return id1[0] === id2[0] && id1[1] === id2[1]
+	}
+}
+
 export function sortCompareByReverseId<T extends ListElement>(entity1: T, entity2: T, encoding: EntityIdEncoding): number {
 	return compareNewestFirst(getElementId(entity1), getElementId(entity2), encoding)
 }
@@ -189,24 +212,7 @@ export function sortCompareById<T extends ListElement>(entity1: T, entity2: T, e
 	return compareOldestFirst(getElementId(entity1), getElementId(entity2), encoding)
 }
 
-/**
- * Compares the ids of two elements.
- * @pre Both entities are either ElementTypes or ListElementTypes
- * @param id1
- * @param id2
- * @returns True if the ids are the same, false otherwise
- */
-export function isSameId(id1: (Id | IdTuple) | null, id2: (Id | IdTuple) | null): boolean {
-	if (id1 === null || id2 === null) {
-		return false
-	} else if (id1 instanceof Array && id2 instanceof Array) {
-		return id1[0] === id2[0] && id1[1] === id2[1]
-	} else {
-		return id1 === id2
-	}
-}
-
-export function haveSameId(entity1: SomeEntity, entity2: SomeEntity): boolean {
+export function haveSameId(entity1: Entity, entity2: Entity): boolean {
 	return isSameId(entity1._id, entity2._id)
 }
 
@@ -258,7 +264,7 @@ export function elementIdPart(id: IdTuple): Id {
  * Takes an iterator of list element entities and returns their ids in an array.
  * @param entities
  */
-export function getIds<T extends SomeEntity>(entities: Iterable<T>): Array<T["_id"]> {
+export function getIds<T extends Entity>(entities: Iterable<T>): Array<T["_id"]> {
 	const ids: Array<T["_id"]> = []
 	for (const entity of entities) {
 		ids.push(entity._id)
@@ -388,11 +394,11 @@ export function isValidGeneratedId(id: Id | IdTuple): boolean {
 	return typeof id === "string" ? test(id) : id.every(test)
 }
 
-export function isElementEntity(e: SomeEntity): e is ElementEntity {
+export function isElementEntity(e: Entity): e is ElementEntity {
 	return typeof e._id === "string"
 }
 
-export function assertIsEntity<T extends SomeEntity>(entity: SomeEntity, type: TypeRef<T>): entity is T {
+export function assertIsEntity<T extends Entity>(entity: Entity, type: TypeRef<T>): entity is T {
 	if (isSameTypeRef(entity._type, type)) {
 		return true
 	} else {
@@ -400,7 +406,7 @@ export function assertIsEntity<T extends SomeEntity>(entity: SomeEntity, type: T
 	}
 }
 
-export function assertIsEntity2<T extends SomeEntity>(type: TypeRef<T>): (entity: SomeEntity) => entity is T {
+export function assertIsEntity2<T extends Entity>(type: TypeRef<T>): (entity: Entity) => entity is T {
 	return (e): e is T => assertIsEntity(e, type)
 }
 
@@ -409,7 +415,7 @@ export function assertIsEntity2<T extends SomeEntity>(type: TypeRef<T>): (entity
  *
  * Only use for new entities, the {@param entity} won't be usable for updates anymore after this.
  */
-export function removeTechnicalFields<E extends Partial<SomeEntity>>(entity: E) {
+export function removeTechnicalFields<E extends Partial<Entity>>(entity: E) {
 	// we want to restrict outer function to entity types, but internally we also want to handle aggregates
 	function _removeTechnicalFields(erased: Record<string, any>) {
 		for (const key of Object.keys(erased)) {
@@ -432,7 +438,7 @@ export function removeTechnicalFields<E extends Partial<SomeEntity>>(entity: E) 
  * get a clone of a (partial) entity that does not contain any fields that would indicate that it was ever persisted anywhere.
  * @param entity the entity to strip
  */
-export function getStrippedClone<E extends SomeEntity>(entity: StrippedEntity<E>): StrippedEntity<E> {
+export function getStrippedClone<E extends Entity>(entity: StrippedEntity<E>): StrippedEntity<E> {
 	const cloned = clone(entity)
 	removeTechnicalFields(cloned)
 	removeIdentityFields(cloned)
@@ -442,7 +448,7 @@ export function getStrippedClone<E extends SomeEntity>(entity: StrippedEntity<E>
 /**
  * remove fields that do not contain user defined data but are related to finding/accessing the entity on the server
  */
-function removeIdentityFields<E extends Partial<SomeEntity>>(entity: E) {
+function removeIdentityFields<E extends Partial<Entity>>(entity: E) {
 	function _removeIdentityFields(erased: Record<string, any>) {
 		for (const key of Object.keys(erased)) {
 			if (IDENTITY_FIELDS.includes(key)) {
