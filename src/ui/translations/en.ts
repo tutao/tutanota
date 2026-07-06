@@ -2397,5 +2397,6 @@ export default {
 		"endTimeZone_title": "End time zone",
 		"confirm_action": "Confirm",
 		"removeTimeZone_action": "Remove time zone",
+		"failedToLoadAlarms_error": "Failed to load alarms"
 	}
 }
