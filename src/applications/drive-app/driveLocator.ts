@@ -60,7 +60,7 @@ import { TransferProgressDispatcher } from "../common/api/main/TransferProgressD
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
 import { DriveSearchModelStub } from "./search/model/DriveSearchModelStub"
 import type { DriveViewModel } from "./drive/view/DriveViewModel"
-import type { CalendarEventModel, CalendarOperation } from "../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel"
+import { CalendarEventModel, CalendarOperation, resolveAlarmsForEvent } from "../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel"
 import type { CalendarInfo, CalendarModel } from "../calendar-app/calendar/model/CalendarModel"
 import type { CalendarInviteHandler } from "../calendar-app/calendar/view/CalendarInvites"
 import type { CalendarEventPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel"
@@ -122,6 +122,7 @@ import { KdfType } from "../../platform-kit/base/base-crypto/Constants"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
+import { AlarmInterval } from "../common/calendar/date/CalendarUtils"
 
 assertMainOrNode()
 
@@ -875,16 +876,20 @@ class DriveLocator implements CommonLocator {
 		calendars: ReadonlyMap<string, CalendarInfo>,
 		highlightedTokens: readonly SearchToken[],
 	): Promise<CalendarEventPreviewViewModel> {
-		const { findAttendeeInAddresses } = await import("../common/api/common/utils/CommonCalendarUtils.js")
-		const { getEventType } = await import("../calendar-app/calendar/gui/CalendarGuiUtils.js")
-		const { CalendarEventPreviewViewModel } = await import("../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js")
-
-		const mailboxDetails = await this.mailboxModel.getUserMailboxDetails()
-
-		const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
+		const [{ findAttendeeInAddresses }, { getEventType }, { CalendarEventPreviewViewModel }, mailboxDetails] = await Promise.all([
+			import("../common/api/common/utils/CommonCalendarUtils.js"),
+			import("../calendar-app/calendar/gui/CalendarGuiUtils.js"),
+			import("../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"),
+			this.mailboxModel.getUserMailboxDetails(),
+		])
 
 		const userController = this.logins.getUserController()
-		const customer = await userController.reloadCustomer()
+
+		const [mailboxProperties, customer] = await Promise.all([
+			this.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot),
+			userController.reloadCustomer(),
+		])
+
 		const ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userController.userGroupInfo)
 		const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(selectedEvent.attendees, ownMailAddresses)
 		const eventType = getEventType(selectedEvent, calendars, ownMailAddresses, userController)
@@ -893,15 +898,27 @@ class DriveLocator implements CommonLocator {
 			selectedEvent.uid != null && selectedEvent._ownerGroup != null
 				? this.calendarFacade.getEventsByUid(selectedEvent.uid, selectedEvent._ownerGroup)
 				: null
+
+		const calendarModel = await this.calendarModel()
+		const alarms: Array<AlarmInterval> | Error = await resolveAlarmsForEvent(
+			selectedEvent.alarmInfos,
+			calendarModel,
+			this.logins.getUserController().user,
+		).catch((e) => {
+			console.error(e)
+			return e
+		})
+
 		const popupModel = new CalendarEventPreviewViewModel(
 			selectedEvent,
-			await this.calendarModel(),
+			calendarModel,
 			eventType,
 			hasBusinessFeature,
 			ownAttendee,
 			lazyIndexEntry,
 			async (mode: CalendarOperation, event: CalendarEvent) => this.calendarEventModel(mode, event, mailboxDetails, mailboxProperties, null),
 			this.calendarInviteHandler,
+			alarms,
 			highlightedTokens,
 		)
 
