@@ -332,13 +332,9 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 				label: "migrationStart_action",
 				onclick: async () => {
 					const userController = mailLocator.logins.getUserController()
-					const currentPlanType = await userController.getPlanType()
-					if (!isHighestTierPlan(currentPlanType)) {
-						await showUpgradeWizardOrSwitchSubscriptionDialog(
-							UpgradePromptType.IMPORT,
-							userController,
-							HighestTierPlans as readonly AvailablePlanType[],
-						)
+					const isNewPaidPlan = await userController.isNewPaidPlan()
+					if (!isNewPaidPlan) {
+						await showUpgradeWizardOrSwitchSubscriptionDialog(UpgradePromptType.IMPORT, userController)
 						return
 					} else {
 						showAddImapImportWizard(initialImapImportData).then(() => this.imapImportController().updateActiveUiSessions())
