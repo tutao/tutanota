@@ -1226,7 +1226,7 @@ export default {
 		"migrationImapCredentials_title": "Favor inserir as credenciais IMAP para a conta que você quer emigrar.",
 		"migrationImapImap_title": "Credenciais IMAP",
 		"migrationImapProvider_label": "IMAP",
-		"migrationInfo_msg": "A migração 1-click Tuta trabalha continuamente com a maioria dos provedores.\nGarantimos uma migração segura e privada, onde todos seus dados são criptografados no seu dispositivo e correspondências importadas nunca poderão ser lidas. \nDê 1-click e acione Privacidade!",
+		"migrationInfo_msg": "A migração um clique Tuta trabalha continuamente com a maioria dos provedores.\nGarantimos uma migração segura e privada, onde todos seus dados são criptografados no seu dispositivo e correspondências importadas nunca poderão ser lidas. \nDê um clique e acione Privacidade!",
 		"migrationInProgressAccounts_msg": "{sourceAddress} para\n{tutaMailbox}",
 		"migrationInProgressInfo_msg": "Correspondências importadas {mailCount}pastas completadas{completed} / {total}.",
 		"migrationIntroductionInfo_msg": "Favor entrar com as credenciais de sua conta {provider} que você quer emigrar.",

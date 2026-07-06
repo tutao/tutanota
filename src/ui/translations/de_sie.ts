@@ -1226,7 +1226,7 @@ export default {
 		"migrationImapCredentials_title": "Bitte geben Sie die IMAP-Zugangsdaten für Ihren alten E-Mail Account ein, von welchem Sie zu uns wechseln möchten.",
 		"migrationImapImap_title": "IMAP-Zugangsdaten",
 		"migrationImapProvider_label": "IMAP",
-		"migrationInfo_msg": "Die Tuta 1-Klick Migration funktioniert nahtlos mit fast allen E-Mail Anbietern.\n\nWir garantieren eine komplett sichere und private Migration, bei welcher alle Ihre Daten auf Ihrem Gerät verschlüsselt werden und selbst wir als Tuta können importierte E-Mails niemals lesen.\n\nMachen Sie den (1-)Klick und schalten Sie Ihre Privatsphäre ein!",
+		"migrationInfo_msg": "Die Tuta Ein-Klick-Migration funktioniert nahtlos mit fast allen E-Mail Anbietern.\n\nWir garantieren eine komplett sichere und private Migration, bei welcher alle Ihre Daten auf Ihrem Gerät verschlüsselt werden und selbst wir als Tuta können importierte E-Mails niemals lesen.\n\nMachen Sie den Klick und schalten Sie Ihre Privatsphäre ein!",
 		"migrationInProgressAccounts_msg": "{sourceAddress} nach\n{tutaMailbox}",
 		"migrationInProgressInfo_msg": "{mailCount} E-Mails importiert ⋅ {completed} / {total} Ordner abgeschlossen.",
 		"migrationIntroductionInfo_msg": "Bitte geben Sie die Zugangsdaten für Ihren {provider} Account ein, von welchem Sie zu uns wechseln möchten.",
