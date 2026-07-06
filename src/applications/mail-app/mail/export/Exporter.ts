@@ -82,6 +82,7 @@ export async function exportMails(
 				try {
 					return await downloadMailBundle(mail, mailFacade, entityClient, fileController, htmlSanitizer, cryptoFacade)
 				} catch (e) {
+					console.error(`failed to export mail: ${mail._id.join("/")}`, e)
 					errorMails.push(mail)
 				} finally {
 					updateProgress()
