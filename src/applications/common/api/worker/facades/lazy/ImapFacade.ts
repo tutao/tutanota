@@ -103,30 +103,11 @@ export class ImapFacade {
 		return { imapAccountSyncState, initialFolderSyncStates }
 	}
 
-	async postponeImapImport(postponedUntil: Date, imapAccountSyncStateId: IdTuple): Promise<void> {
-		const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId)
-		imapAccountSyncState.postponedUntil = postponedUntil.getTime().toString()
-		imapAccountSyncState.status = ImapAccountSyncStatus.POSTPONED
-		await this.entityClient.update(imapAccountSyncState)
-		await this.pauseRunningImapImportFolderSyncStates(imapAccountSyncStateId)
-	}
-
-	async pauseRunningImapImportFolderSyncStates(imapAccountSyncStateId: IdTuple): Promise<void> {
-		const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId)
-		const imapFolderSyncStates = await this.getAllImapFolderSyncStates(imapAccountSyncState.imapFolderSyncStateList)
-		for (const imapFolderSyncState of imapFolderSyncStates) {
-			if (imapFolderSyncState.status === ImapFolderSyncStatus.RUNNING) {
-				imapFolderSyncState.status = ImapFolderSyncStatus.PAUSED
-				await this.entityClient.update(imapFolderSyncState)
-			}
-		}
-	}
-
 	async updateAllImapFolderSyncStates(imapAccountSyncStateId: IdTuple, status: ImapFolderSyncStatus): Promise<void> {
 		const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId)
 		const imapFolderSyncStates = await this.getAllImapFolderSyncStates(imapAccountSyncState.imapFolderSyncStateList)
 		for (const imapFolderSyncState of imapFolderSyncStates) {
-			if (imapFolderSyncState.status === ImapFolderSyncStatus.NO_SYNC) {
+			if (imapFolderSyncState.status === ImapFolderSyncStatus.NO_SYNC || imapFolderSyncState.status === ImapFolderSyncStatus.CANCELED) {
 				continue
 			}
 			if (imapFolderSyncState.status !== status) {
@@ -140,7 +121,10 @@ export class ImapFacade {
 		}
 	}
 
-	async updateImapAccountSyncStateStatus(imapAccountSyncState: ImapAccountSyncState, imapAccountSyncStatus: ImapAccountSyncStatus) {
+	async updateImapAccountSyncState(imapAccountSyncState: ImapAccountSyncState, imapAccountSyncStatus: ImapAccountSyncStatus) {
+		if (imapAccountSyncState.status === ImapAccountSyncStatus.CANCELED || imapAccountSyncState.status === ImapAccountSyncStatus.ERROR) {
+			return
+		}
 		if (imapAccountSyncState.status !== imapAccountSyncStatus) {
 			imapAccountSyncState.status = imapAccountSyncStatus
 			await this.entityClient.update(imapAccountSyncState)
