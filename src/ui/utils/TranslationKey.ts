@@ -2396,3 +2396,4 @@ export type TranslationKeyType =
 	| "endTimeZone_title"
 	| "confirm_action"
 	| "removeTimeZone_action"
+	| "failedToLoadAlarms_error"
