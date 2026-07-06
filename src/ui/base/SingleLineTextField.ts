@@ -79,33 +79,37 @@ export class SingleLineTextField<T extends LegacyTextFieldType> implements Class
 		}
 
 		const fontSizeString = attrs.style?.fontSize
-		const fontSizeNumber = fontSizeString ? filterInt(fontSizeString.replace("px", "")) : NaN
-		const fontSize = isNaN(fontSizeNumber) ? 16 : fontSizeNumber
-		let iconSize
-		let padding
+		const fontSizeNumber = fontSizeString ? filterInt(fontSizeString.replace("px", "")) : 16
 
-		if (fontSize > 16 && fontSize < 32) {
+		const iconLeftPadding = 12
+
+		let iconSize
+		let iconSizeValue
+		if (fontSizeNumber > 16 && fontSizeNumber < 32) {
 			iconSize = IconSize.PX20
-			padding = size.icon_24
-		} else if (fontSize > 32) {
+			iconSizeValue = size.icon_20
+		} else if (fontSizeNumber > 32) {
 			iconSize = IconSize.PX32
-			padding = size.icon_32
+			iconSizeValue = size.icon_32
 		} else {
 			iconSize = IconSize.PX24
-			padding = 20
+			iconSizeValue = size.icon_24
 		}
+
+		const iconLeftPaddingAndIconSize = iconLeftPadding + iconSizeValue
+		const spacingBetweenIconAndText = size.spacing_16
 
 		return m(".rel.flex.flex-grow", [
 			m(
-				".abs.pl-8.flex.items-center",
-				{ style: { top: 0, bottom: 0 } },
+				".abs.flex.items-center",
+				{ style: { top: 0, bottom: 0, paddingLeft: px(iconLeftPadding) } },
 				m(Icon, {
 					size: iconSize,
 					icon: attrs.leadingIcon.icon,
 					style: { fill: attrs.leadingIcon.color },
 				}),
 			),
-			this.renderInput(attrs, px(padding + size.spacing_16)),
+			this.renderInput(attrs, px(iconLeftPaddingAndIconSize + spacingBetweenIconAndText)),
 		])
 	}
 
@@ -134,8 +138,8 @@ export class SingleLineTextField<T extends LegacyTextFieldType> implements Class
 			placeholder: attrs.placeholder,
 			class: this.resolveClasses(attrs.classes, attrs.disabled),
 			style: {
-				...(inputPadding ? { paddingLeft: inputPadding } : {}),
 				...attrs.style,
+				...(inputPadding ? { paddingLeft: inputPadding } : {}),
 			},
 			type: attrs.inputMode === InputMode.NONE ? undefined : attrs.type,
 			inputMode: attrs.inputMode,

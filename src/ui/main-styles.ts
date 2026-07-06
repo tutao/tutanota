@@ -3043,7 +3043,7 @@ export class MainStyles {
 					"border-radius": px(size.radius_8),
 					color: theme.on_surface,
 					width: "100%",
-					padding: px(size.spacing_8),
+					padding: px(size.spacing_12),
 					transition: `background-color .1s ease-out`,
 					"caret-color": theme.primary,
 				},
@@ -3058,8 +3058,8 @@ export class MainStyles {
 				},
 				".text-editor-placeholder": {
 					position: "absolute",
-					top: px(size.spacing_8),
-					left: px(size.spacing_8),
+					top: px(size.spacing_12),
+					left: px(size.spacing_12),
 					color: theme.on_surface_variant,
 				},
 				".tutaui-switch": {
