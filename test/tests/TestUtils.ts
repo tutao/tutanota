@@ -291,17 +291,23 @@ export async function createTestEntityWithDummyResolver<T extends Entity>(typeRe
 	}
 }
 
-export function mockFetchRequest(mock: typeof undiciFetch, url: string, headers: Record<string, string>, status: number, jsonObject: unknown): Promise<void> {
+export function mockFetchRequest(
+	mockedFetch: typeof undiciFetch,
+	url: string,
+	headers: Record<string, string>,
+	status: number,
+	jsonObject: unknown,
+): Promise<void> {
 	const response = object<Writeable<Response>>()
 	response.ok = status >= 200 && status < 300
 	response.status = status
 	const jsonDefer = defer<void>()
-	when(response.json()).thenDo(() => {
+	when(response.text()).thenDo(() => {
 		jsonDefer.resolve()
 		return Promise.resolve(jsonObject)
 	})
 	when(
-		mock(
+		mockedFetch(
 			matchers.argThat((urlArg) => urlArg.toString() === url),
 			matchers.argThat((options) => {
 				return deepEqual(options.headers, headers)

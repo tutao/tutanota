@@ -219,7 +219,7 @@ export class TutaSseFacade implements SseEventHandler {
 			throw handleRestError(neverNull(res.status), url, res.headers.get("error-id") as string, null)
 		} else {
 			const typeModel = await this.nativeInstancePipeline.typeModelResolver.resolveServerTypeReference(MissedNotificationTypeRef)
-			const incomingJson = IncomingServerJson.expectSingleInstance(await res.json(), typeModel)
+			const incomingJson = IncomingServerJson.expectSingleInstance(await res.text(), typeModel)
 			const encryptedInstance = await this.nativeInstancePipeline.typeMapper.parseServerJson(incomingJson)
 			log.debug("downloaded missed notification")
 			return new EncryptedMissedNotification(encryptedInstance)

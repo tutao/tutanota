@@ -79,8 +79,7 @@ import {
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import {
 	arrayEqualsWithPredicate,
-	assertNotNull,
-	base64ExtToBase64,
+	assertNotNull, base64ExtToBase64,
 	base64ToBase64Ext,
 	base64ToUint8Array,
 	cleanMailAddress,

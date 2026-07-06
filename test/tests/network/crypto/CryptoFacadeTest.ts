@@ -54,7 +54,7 @@ import { KeyRotationFacade } from "../../../../src/platform-kit/base/base-crypto
 import { EncryptedParsedInstance, EntityAdapter, InstancePipeline, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
 import { KeyVerificationMismatchError } from "../../../../src/platform-kit/network/error/KeyVerificationMismatchError"
 import { loadLibOQSWASM } from "../../crypto/WebAssemblyTestUtils"
-import { createMailAddress, FileTypeRef, Mail, MailAddressTypeRef, MailDetailsBlobTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import {  createMailAddress, FileTypeRef, Mail, MailAddressTypeRef, MailDetailsBlobTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import {
 	BucketKey,
 	BucketKeyTypeRef,
