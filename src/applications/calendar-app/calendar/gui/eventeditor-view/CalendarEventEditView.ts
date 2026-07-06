@@ -70,6 +70,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	private readonly timeFormat: TimeFormat
 	private readonly startOfTheWeekOffset: number
 	private readonly defaultAlarms: Map<Id, AlarmInterval[]>
+	private readonly SECTION_HEIGHT = 48
 
 	private transitionPage: EditorPages | null = null
 	private hasAnimationEnded = true
@@ -200,11 +201,13 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		return m(
 			Card,
 			{
+				classes: ["event-editor-section"],
 				style: {
 					padding: "0",
 				},
 			},
 			m(SingleLineTextField, {
+				classes: ["full-height"],
 				value: model.editModels.summary.content,
 				oninput: (newValue: any) => {
 					model.editModels.summary.content = newValue
@@ -245,11 +248,10 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	}
 
 	private renderEventTimeEditor(attrs: CalendarEventEditViewAttrs): Children {
-		const padding = px(size.spacing_8)
 		const { whenModel } = attrs.model.editModels
 		return m(
 			Card,
-			{ style: { padding: `${padding} 0 ${padding} ${padding}` } },
+			{ style: { padding: `${px(size.spacing_8)} ${px(size.spacing_12)}` } },
 			m(EventTimeEditor, {
 				editModel: whenModel,
 				separateStartAndEndTimeZone: this.separateStartAndEndTimeZone,
