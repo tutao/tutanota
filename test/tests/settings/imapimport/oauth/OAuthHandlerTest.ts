@@ -1,12 +1,12 @@
 import o, { assertThrows } from "@tutao/otest"
-import { OAuthClient, OAuthHandler } from "../../../../src/applications/mail-app/settings/imapimport/oauth/OAuthHandler"
+import { OAuthClient, OAuthHandler } from "../../../../../src/applications/mail-app/settings/imapimport/oauth/OAuthHandler"
 import { matchers, object, verify, when } from "testdouble"
-import { ProgrammingError } from "../../../../src/platform-kit/app-env"
-import { noOp } from "../../../../src/platform-kit/utils"
-import { IServiceExecutor } from "../../../../src/platform-kit/network/ServiceRequest"
+import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
+import { noOp } from "../../../../../src/platform-kit/utils"
+import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
 import { createImapOauthConfigGetIn, createImapOauthConfigGetOut, ImapOauthConfigService } from "@tutao/entities/tutanota"
-import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../src/platform-kit/instance-pipeline/RestClientOptions"
-import { OauthConfigParams } from "../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
+import { OauthConfigParams } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 
 o.spec("OAuthHandler", () => {
 	let clientMock: OAuthClient

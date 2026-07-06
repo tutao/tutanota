@@ -213,7 +213,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						"migration",
 						() => {
 							if (isDesktop()) {
-								return new ImapImportSettingsViewer(() => mailLocator.getImapImportController())
+								return new ImapImportSettingsViewer(() => mailLocator.getImapMailImportController())
 							} else {
 								return new WebMailImportSettingsViewer(false)
 							}

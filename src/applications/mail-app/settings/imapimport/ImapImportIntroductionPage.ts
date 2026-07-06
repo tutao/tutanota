@@ -112,7 +112,7 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 								}
 								await oauthHandler.setupOauthLoginParams(extraParams)
 								const responseUrl = await mailLocator
-									.getImapImportController()
+									.getImapMailImportController()
 									.openOauthAuthenticationWindow(oauthHandler.buildAuthorizationUrl(), config.redirectUri)
 								if (responseUrl) {
 									try {
@@ -156,16 +156,16 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 	}
 
 	private renderMailboxSelectionControls() {
-		const mailboxDetails = mailLocator.getImapImportController().mailboxDetails
+		const mailboxDetails = mailLocator.getImapMailImportController().mailboxDetails
 		return mailboxDetails.length > 1
 			? m(DropDownSelectorNew, {
 					label: "migrationMailboxDestination_label",
 					items: mailboxDetails.map((mailboxDetail) => {
 						return { name: getMailboxName(mailLocator.logins, mailboxDetail), value: mailboxDetail }
 					}),
-					selectedValue: mailLocator.getImapImportController().selectedMailBoxDetail,
+					selectedValue: mailLocator.getImapMailImportController().selectedMailBoxDetail,
 					selectionChangedHandler: (selectedMailboxDetail) => {
-						mailLocator.getImapImportController().onNewMailboxSelected(selectedMailboxDetail)
+						mailLocator.getImapMailImportController().onNewMailboxSelected(selectedMailboxDetail)
 					},
 					dropdownWidth: 300,
 					helpLabel: () => null,

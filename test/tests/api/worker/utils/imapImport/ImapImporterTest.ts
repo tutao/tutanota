@@ -30,7 +30,6 @@ import { uint8ArrayToString } from "../../../../../../src/platform-kit/utils"
 import { sha256Hash } from "@tutao/crypto/sha256"
 import { ImapFacade } from "../../../../../../src/applications/common/api/worker/facades/lazy/ImapFacade"
 import { ImapImportUiSession } from "../../../../../../src/applications/mail-app/settings/imapimport/ImapMailImportController"
-import { OAuthErrorHandler } from "../../../../../../src/applications/mail-app/workerUtils/imapimport/OAuthErrorHandler"
 import { noPatchesAndInstance } from "../../EventBusClientTest"
 
 const { anything } = matchers
@@ -73,14 +72,12 @@ o.spec("ImapImporter", () => {
 	let accountSyncStateMock: ImapAccountSyncState
 	let folderSyncStateMock: ImapFolderSyncState
 	let importedMailMock: ImportedImapMail
-	let oAuthErrorHandlerMock: OAuthErrorHandler
 	o.beforeEach(async () => {
 		imapSyncSystemFacadeMock = object<ImapSyncSystemFacade>()
 		imapFacadeMock = object<ImapFacade>()
 		importMailFacadeMock = object<ImportMailFacade>()
-		oAuthErrorHandlerMock = object<OAuthErrorHandler>()
 
-		importer = new ImapImporter(imapSyncSystemFacadeMock, imapFacadeMock, importMailFacadeMock, oAuthErrorHandlerMock)
+		importer = new ImapImporter(imapSyncSystemFacadeMock, imapFacadeMock, importMailFacadeMock)
 
 		accountSyncStateMock = createTestEntity(ImapAccountSyncStateTypeRef, {
 			_id: accountSyncStateIdMock,
@@ -161,25 +158,6 @@ o.spec("ImapImporter", () => {
 		o.check(result.state.status).equals(ImapAccountSyncStatus.POSTPONED)
 		o.check(result.state.postponedUntil).deepEquals(futureDate)
 		verify(imapSyncSystemFacadeMock.startSync(accountSyncStateIdMock, anything()), { times: 0 })
-	})
-
-	o.test("continueImport - handles startSync error and pauses", async () => {
-		accountSyncStateMock.status = ImapAccountSyncStatus.PAUSED
-		const session = newImapImportSession(accountSyncStateMock, [folderSyncStateMock])
-		importer.imapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
-
-		const imapError = new ImapError("Connection failed", ImapErrorCause.UNKNOWN)
-		when(imapFacadeMock.getAllImapFolderSyncStates("folderSyncStateListId")).thenResolve([folderSyncStateMock])
-		when(imapFacadeMock.getImportedMails("importedMailsListId")).thenResolve([importedMailMock])
-		when(imapFacadeMock.getDeduplicatedImportedAttachments(mailGroupIdMock)).thenResolve([])
-		when(imapSyncSystemFacadeMock.startSync(accountSyncStateIdMock, anything())).thenReject(imapError)
-		when(imapFacadeMock.updateAllImapFolderSyncStates(accountSyncStateIdMock, ImapFolderSyncStatus.PAUSED)).thenResolve()
-
-		const e = await assertThrows(ImapError, async () => await importer.continueImport(accountSyncStateIdMock))
-
-		o.check(e).deepEquals(imapError)
-		o.check(session.imapAccountSyncState.status).equals(ImapAccountSyncStatus.PAUSED)
-		verify(imapFacadeMock.postponeImapImport(anything(), accountSyncStateIdMock), { times: 1 })
 	})
 
 	o.test("pauseImport - stops import and updates state", async () => {

@@ -88,7 +88,7 @@ import { createRsaImplementation } from "../../../../app-kit/native-bridge/worke
 import { TutanotaEntityMigrator } from "../../../common/api/worker/TutanotaEntityMigrator.js"
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { ImapImporter } from "../imapimport/ImapImporter"
-import { OAuthErrorHandler } from "../imapimport/OAuthErrorHandler"
+import { OAuthErrorHandler } from "../../settings/imapimport/oauth/OAuthErrorHandler"
 
 assertWorkerOrNode()
 
@@ -630,8 +630,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.base.cryptoWrapper,
 		)
 
-		const oauthErrorHandler = new OAuthErrorHandler(locator.base.cachingEntityClient, locator.base.serviceExecutor)
-		return new ImapImporter(new ImapSyncSystemFacadeSendDispatcher(worker), imapFacade, importMailFacade, oauthErrorHandler)
+		return new ImapImporter(new ImapSyncSystemFacadeSendDispatcher(worker), imapFacade, importMailFacade)
 	})
 
 	const eventBusCoordinator = new EventBusEventCoordinator(

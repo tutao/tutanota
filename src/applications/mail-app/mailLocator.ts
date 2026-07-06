@@ -168,11 +168,10 @@ import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../../pla
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
 import { ClientModelInfo } from "../../platform-kit/instance-pipeline/EntityFunctions"
-import { WebFileResolver } from "../drive-app/drive/view/WebFileResolver"
 import { ImapImporter } from "./workerUtils/imapimport/ImapImporter"
 
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
-import { ImapMailImportController } from "./settings/imapimport/ImapMailImportController"
+import type { ImapMailImportController } from "./settings/imapimport/ImapMailImportController"
 
 assertMainOrNode()
 
@@ -760,7 +759,7 @@ class MailLocator implements CommonLocator {
 		return this.fileMailImportController
 	}
 
-	public getImapImportController(): ImapMailImportController {
+	public getImapMailImportController(): ImapMailImportController {
 		if (this.imapMailImportController == null) {
 			throw new ProgrammingError(`Tried to use imapImportController in web or mobile`)
 		}
@@ -999,13 +998,15 @@ class MailLocator implements CommonLocator {
 					this.oauthFacade = desktopInterfaces.desktopOauthWindowFacade
 
 					const { ImapMailImportController } = await import("./settings/imapimport/ImapMailImportController.js")
+					const { OAuthErrorHandler } = await import("./settings/imapimport/oauth/OAuthErrorHandler.js")
 					this.imapMailImportController = new ImapMailImportController(
 						this.imapImporter,
 						this.mailModel,
 						this.mailboxModel,
 						this.entityClient,
-						this.oauthFacade,
 						this.eventController,
+						this.oauthFacade,
+						new OAuthErrorHandler(this.entityClient, this.serviceExecutor),
 					)
 				}
 			} else if (isAndroidApp() || isIOSApp()) {

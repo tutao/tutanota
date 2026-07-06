@@ -71,7 +71,7 @@ export function showUpdateImapCredentialsDialog(attrs: UpdateImapCredentialsDial
 											const extraParams = { login_hint: viewModel.imapAccountSyncState.imapAccount.username }
 											await oauthHandler.setupOauthLoginParams(extraParams)
 											const responseUrl = await mailLocator
-												.getImapImportController()
+												.getImapMailImportController()
 												.openOauthAuthenticationWindow(oauthHandler.buildAuthorizationUrl(), oauthConfig.redirectUri)
 											if (responseUrl) {
 												try {

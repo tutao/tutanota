@@ -484,3 +484,4 @@ export enum ImapSyncEventType {
 }
 
 export const IMAP_ERROR_POSTPONE_TIME: number = 60 * 1000 // 60 seconds
+export const IMAP_AUTH_ERROR_POSTPONE_TIME: number = 15 * 60 * 1000 // 15 minutes

@@ -11,13 +11,14 @@ import { filterMailMemberships } from "../../../common/api/common/utils/IndexUti
 import { MailBox, MailboxGroupRootTypeRef, MailBoxTypeRef } from "@tutao/entities/tutanota"
 import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
 import { ImapImporter } from "../../workerUtils/imapimport/ImapImporter"
+import { ImapMailImportController } from "../../settings/imapimport/ImapMailImportController"
 
 /**
  * continue an IMAP import tasks after login if there is one
  */
 export class ImapImportPostLoginAction implements PostLoginAction {
 	constructor(
-		private readonly imapImporter: ImapImporter,
+		private readonly imapMailImportController: ImapMailImportController,
 		private readonly customerFacade: CustomerFacade,
 		private readonly entityClient: EntityClient,
 		private readonly syncTracker: SyncTracker,
@@ -42,11 +43,11 @@ export class ImapImportPostLoginAction implements PostLoginAction {
 				mailboxesOfUser.push(mailbox)
 			}
 
-			await this.imapImporter.init(mailboxesOfUser)
+			await this.imapMailImportController.init(mailboxesOfUser)
 
 			this.syncTracker.addSyncDoneListener({
 				onSyncDone: async () => {
-					await this.imapImporter.continueAllImports()
+					await this.imapMailImportController.continueAllImportsAfterLogin()
 				},
 				priority: SyncDonePriority.LOW,
 			})

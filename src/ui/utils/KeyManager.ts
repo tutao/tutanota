@@ -212,7 +212,7 @@ class KeyManager {
 		// override for _shortcuts: If a modal is visible, only modal-shortcuts should be active
 		this.keyToModalShortcut = new Map([[helpId, helpShortcut]])
 		this.desktopShortcuts = []
-		if (window === undefined || !window.document.addEventListener) return
+		if (!window.document.addEventListener) return
 		window.document.addEventListener("keydown", (e) => this.handleKeydown(e), false)
 	}
 

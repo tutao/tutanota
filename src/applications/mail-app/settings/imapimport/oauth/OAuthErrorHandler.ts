@@ -1,30 +1,31 @@
-import { getImapConfigForProvider, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
-import { EntityClient } from "../../../../platform-kit/network/EntityClient"
-import { ImapAccountSyncState } from "@tutao/entities/tutanota"
-import { tokenEndpointResponseToOAuthTokenEndpointResponse } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
-import { ImapError, ImapErrorCause } from "../../../common/api/common/error/ImapError"
-import type { OAuthHandlerFactory } from "../../settings/imapimport/oauth/OAuthHandler"
-import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
+import { getImapConfigForProvider, ImapProvider } from "../../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { EntityClient } from "../../../../../platform-kit/network/EntityClient"
+import { ImapAccountSyncState, ImapAccountSyncStateTypeRef } from "@tutao/entities/tutanota"
+import { tokenEndpointResponseToOAuthTokenEndpointResponse } from "../../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
+import { ImapError, ImapErrorCause } from "../../../../common/api/common/error/ImapError"
+import { OAuthHandler, OAuthHandlerFactory } from "./OAuthHandler"
+import { ImapAccountSyncStatus } from "../../../../../entities/tutanota/Utils"
 import { ProgrammingError } from "@tutao/app-env"
-import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest"
+import { IServiceExecutor } from "../../../../../platform-kit/network/ServiceRequest"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, DEFAULT_REST_CLIENT_OPTIONS } from "../../../../../platform-kit/instance-pipeline/RestClientOptions"
 
 export class OAuthErrorHandler {
 	constructor(
 		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly oauthHandlerFactory: OAuthHandlerFactory = async (config) => {
-			const { OAuthHandler } = await import("../../settings/imapimport/oauth/OAuthHandler")
 			return new OAuthHandler(config, serviceExecutor)
 		},
 	) {}
 
 	/**
 	 *
-	 * @param imapAccountSyncState This has side effects that update the token.
+	 * @param imapAccountSyncStateId This has side effects that update the token.
 	 *
 	 * @return shouldRetry, a value indicating whether the error was handled and import can be continued.
 	 */
-	public async handleAuthError(imapAccountSyncState: ImapAccountSyncState) {
+	public async handleAuthError(imapAccountSyncStateId: IdTuple) {
+		const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId)
 		const provider = parseInt(imapAccountSyncState.provider) as ImapProvider
 		const isOAuth = provider !== ImapProvider.Other
 
@@ -47,6 +48,11 @@ export class OAuthErrorHandler {
 						}
 
 						await this.entityClient.update(imapAccountSyncState)
+
+						await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId, {
+							...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+							cacheMode: CacheMode.WriteOnly,
+						})
 						return true
 					} catch (e) {
 						// we need to get a new refreshToken

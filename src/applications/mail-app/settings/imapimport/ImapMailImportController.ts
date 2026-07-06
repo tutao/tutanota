@@ -4,10 +4,10 @@ import { ImapImporter, ImportResult, InitializeImapImportParams, MailSetMapping 
 import { MailModel } from "../../mail/model/MailModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { assertNotNull, first } from "@tutao/utils"
-import { ImapAccountSyncState, ImapAccountSyncStateTypeRef } from "@tutao/entities/tutanota"
+import { ImapAccountSyncState, ImapAccountSyncStateTypeRef, MailBox } from "@tutao/entities/tutanota"
 import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { collapseId, getElementId, OperationType } from "@tutao/meta"
-import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
+import { IMAP_AUTH_ERROR_POSTPONE_TIME, IMAP_ERROR_POSTPONE_TIME, ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
 import { ImapCredentials } from "../../../common/api/common/utils/imapImportUtils/ImapSyncContext"
 import { getSpecialUseAsSystemFolderType, ImapMailbox } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
 import { OauthFacade } from "@tutao/native-bridge/generatedIpc/types"
@@ -19,6 +19,7 @@ import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } 
 import { showUpdateImapCredentialsDialog } from "../../../common/gui/dialogs/UpdateImapCredentialsDialog"
 import { OAuthHandler } from "./oauth/OAuthHandler"
 import { Dialog } from "../../../../ui/base/Dialog"
+import { OAuthErrorHandler } from "./oauth/OAuthErrorHandler"
 
 assertMainOrNode()
 
@@ -36,20 +37,24 @@ export type ImapImportUiSession = {
 	importedMailCount: number
 }
 
+const IMAP_IMPORT_RESYNC_INTERVAL_MS = 15 * 60 * 1000 // 15 minutes
+
 export class ImapMailImportController {
 	private isInStateTransition = false
 	public mailboxDetails: MailboxDetail[] = []
 	public selectedMailBoxDetail: MailboxDetail | null = null
 	public activeImapImportUiSessions: ImapImportUiSession[] = []
 	public canceledImapImportUiSessions: ImapImportUiSession[] = []
+	private imapImportResyncIntervalId: TimeoutID | null = null
 
 	constructor(
 		private readonly imapImporter: ImapImporter,
 		private readonly mailModel: MailModel,
 		private readonly mailboxModel: MailboxModel,
 		private readonly entityClient: EntityClient,
-		private readonly oauthFacade: OauthFacade,
 		private readonly eventController: EventController,
+		private readonly oauthFacade: OauthFacade,
+		private readonly oAuthErrorHandler: OAuthErrorHandler,
 	) {
 		this.eventController.addEntityListener({
 			onEntityUpdatesReceived: (updates) => this.entityEventsReceived(updates),
@@ -103,10 +108,22 @@ export class ImapMailImportController {
 		)
 	}
 
-	async init(): Promise<void> {
+	async initUiSessions() {
 		this.mailboxDetails = await this.mailboxModel.getMailboxDetails()
 		this.selectedMailBoxDetail = first(this.mailboxDetails)
 		await this.updateActiveUiSessions()
+	}
+
+	async init(mailboxesOfUser: MailBox[]): Promise<void> {
+		await this.imapImporter.init(mailboxesOfUser)
+
+		if (this.imapImportResyncIntervalId != null) {
+			clearInterval(this.imapImportResyncIntervalId)
+		}
+
+		this.imapImportResyncIntervalId = setInterval(() => {
+			this.resyncAllImports()
+		}, IMAP_IMPORT_RESYNC_INTERVAL_MS)
 	}
 
 	async initializeImport(initializeImportParams: InitializeImapImportParams) {
@@ -117,16 +134,67 @@ export class ImapMailImportController {
 		return imapImportSession
 	}
 
-	async continueImport(imapAccountSyncStateId: IdTuple, isForceRetry: boolean = false): Promise<ImportResult> {
+	private async resyncAllImports() {
+		for (const session of await this.imapImporter.getImapImportSessions()) {
+			// we only resync in case we are done or postponed (e.g. when an error or rate limit occurs)
+			if (
+				session.imapAccountSyncState.status === ImapAccountSyncStatus.FINISHED ||
+				session.imapAccountSyncState.status === ImapAccountSyncStatus.POSTPONED
+			) {
+				const imapAccountSyncStateId = session.imapAccountSyncState._id
+				await this.continueImport(imapAccountSyncStateId)
+			}
+		}
+	}
+
+	async continueImport(imapAccountSyncStateId: IdTuple, isForceRetry: boolean = false, retryAttempts: number = 0): Promise<ImportResult> {
 		this.isInStateTransition = true
 
 		try {
-			return await this.imapImporter.continueImport(imapAccountSyncStateId, isForceRetry)
+			return await this.imapImporter.continueImport(imapAccountSyncStateId, isForceRetry, retryAttempts)
 		} catch (e) {
 			console.log(`failed to continue imap sync for imapAccountSyncState: ${imapAccountSyncStateId}`, e)
-			return Promise.reject(e)
+
+			if (this.oAuthErrorHandler.isAuthError(e) && retryAttempts < 1) {
+				await this.pauseImport(imapAccountSyncStateId)
+				const shouldRetry = await this.oAuthErrorHandler.handleAuthError(imapAccountSyncStateId)
+				if (shouldRetry) {
+					return await this.continueImport(imapAccountSyncStateId, false, 1)
+				} else {
+					const postponedUntilDate = new Date(Date.now() + IMAP_AUTH_ERROR_POSTPONE_TIME)
+					await this.imapImporter.postponeImport(imapAccountSyncStateId, postponedUntilDate)
+					return Promise.resolve({
+						state: { status: ImapAccountSyncStatus.POSTPONED, postponedUntil: postponedUntilDate },
+						remoteStateId: imapAccountSyncStateId,
+					})
+				}
+			} else {
+				const postponedUntilDate = new Date(Date.now() + IMAP_ERROR_POSTPONE_TIME)
+				await this.imapImporter.postponeImport(imapAccountSyncStateId, postponedUntilDate)
+				return Promise.resolve({
+					state: { status: ImapAccountSyncStatus.POSTPONED, postponedUntil: postponedUntilDate },
+					remoteStateId: imapAccountSyncStateId,
+				})
+			}
 		} finally {
 			this.isInStateTransition = false
+		}
+	}
+
+	async continueAllImportsAfterLogin() {
+		for (const session of await this.imapImporter.getImapImportSessions()) {
+			// in case a user manually paused or canceled a sync task we do not want to continue it after login nor if there are errors.
+			if (
+				session.imapAccountSyncState.status === ImapAccountSyncStatus.CANCELED ||
+				session.imapAccountSyncState.status === ImapAccountSyncStatus.PAUSED ||
+				session.imapAccountSyncState.status === ImapAccountSyncStatus.AUTH_ERROR ||
+				session.imapAccountSyncState.status === ImapAccountSyncStatus.ERROR
+			) {
+				continue
+			}
+
+			const imapAccountSyncStateId = session.imapAccountSyncState._id
+			await this.continueImport(imapAccountSyncStateId)
 		}
 	}
 

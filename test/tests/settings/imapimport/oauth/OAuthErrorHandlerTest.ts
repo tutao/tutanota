@@ -1,16 +1,16 @@
 import o, { assertThrows } from "@tutao/otest"
-import { OAuthHandler } from "../../../../../../src/applications/mail-app/settings/imapimport/oauth/OAuthHandler"
+import { OAuthHandler } from "../../../../../src/applications/mail-app/settings/imapimport/oauth/OAuthHandler"
 import { matchers, object, verify, when } from "testdouble"
-import { OAuthErrorHandler } from "../../../../../../src/applications/mail-app/workerUtils/imapimport/OAuthErrorHandler"
-import { EntityClient } from "../../../../../../src/platform-kit/network/EntityClient"
-import { createTestEntity } from "../../../../TestUtils"
+import { OAuthErrorHandler } from "../../../../../src/applications/mail-app/settings/imapimport/oauth/OAuthErrorHandler"
+import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
+import { createTestEntity } from "../../../TestUtils"
 import { ImapAccountSyncStateTypeRef, ImapAccountTypeRef, OAuthTokenEndpointResponseTypeRef } from "@tutao/entities/tutanota"
-import { ImapProvider } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
-import { ImapAccountSyncStatus } from "../../../../../../src/entities/tutanota/Utils"
+import { ImapProvider } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { ImapAccountSyncStatus } from "../../../../../src/entities/tutanota/Utils"
 import * as oauth from "oauth4webapi"
 import { TokenEndpointResponseHelpers } from "openid-client"
-import { ProgrammingError } from "../../../../../../src/platform-kit/app-env"
-import { IServiceExecutor } from "../../../../../../src/platform-kit/network/ServiceRequest"
+import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
+import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
 
 o.spec("OAuthErrorHandler", () => {
 	let oAuthHandlerMock: OAuthHandler
@@ -27,10 +27,12 @@ o.spec("OAuthErrorHandler", () => {
 
 	o.test("handleAuthError - returns false and updates to error if provider is other", async () => {
 		const state = createTestEntity(ImapAccountSyncStateTypeRef, {
+			_id: ["listId", "elementId"],
 			provider: ImapProvider.Other.toString(),
 			status: ImapAccountSyncStatus.RUNNING,
 		})
-		const shouldRetry = await oAuthErrorHandler.handleAuthError(state)
+		when(entityClientMock.load(ImapAccountSyncStateTypeRef, state._id)).thenResolve(state)
+		const shouldRetry = await oAuthErrorHandler.handleAuthError(state._id)
 
 		o.check(shouldRetry).equals(false)
 		verify(entityClientMock.update(state), { times: 1 })
@@ -46,6 +48,7 @@ o.spec("OAuthErrorHandler", () => {
 		)
 
 		const state = createTestEntity(ImapAccountSyncStateTypeRef, {
+			_id: ["listId", "elementId"],
 			provider: ImapProvider.Gmail.toString(),
 			status: ImapAccountSyncStatus.PAUSED,
 			imapAccount: createTestEntity(ImapAccountTypeRef, {
@@ -54,8 +57,8 @@ o.spec("OAuthErrorHandler", () => {
 				}),
 			}),
 		})
-
-		const shouldRetry = await oAuthErrorHandler.handleAuthError(state)
+		when(entityClientMock.load(ImapAccountSyncStateTypeRef, state._id)).thenResolve(state)
+		const shouldRetry = await oAuthErrorHandler.handleAuthError(state._id)
 
 		o.check(shouldRetry).equals(true)
 		verify(entityClientMock.update(state), { times: 1 })
@@ -67,6 +70,7 @@ o.spec("OAuthErrorHandler", () => {
 		when(oAuthHandlerMock.refreshTokens(matchers.anything())).thenReject({ message: "I am out of tokens" })
 
 		const state = createTestEntity(ImapAccountSyncStateTypeRef, {
+			_id: ["listId", "elementId"],
 			provider: ImapProvider.Gmail.toString(),
 			status: ImapAccountSyncStatus.RUNNING,
 			imapAccount: createTestEntity(ImapAccountTypeRef, {
@@ -75,8 +79,8 @@ o.spec("OAuthErrorHandler", () => {
 				}),
 			}),
 		})
-
-		const shouldRetry = await oAuthErrorHandler.handleAuthError(state)
+		when(entityClientMock.load(ImapAccountSyncStateTypeRef, state._id)).thenResolve(state)
+		const shouldRetry = await oAuthErrorHandler.handleAuthError(state._id)
 
 		o.check(shouldRetry).equals(false)
 		verify(entityClientMock.update(state), { times: 1 })
@@ -88,11 +92,12 @@ o.spec("OAuthErrorHandler", () => {
 		when(oAuthHandlerMock.refreshTokens(matchers.anything())).thenReject({ message: "I am out of tokens" })
 
 		const state = createTestEntity(ImapAccountSyncStateTypeRef, {
+			_id: ["listId", "elementId"],
 			provider: "999",
 			status: ImapAccountSyncStatus.RUNNING,
 		})
-
-		const e = await assertThrows(ProgrammingError, async () => await oAuthErrorHandler.handleAuthError(state))
+		when(entityClientMock.load(ImapAccountSyncStateTypeRef, state._id)).thenResolve(state)
+		const e = await assertThrows(ProgrammingError, async () => await oAuthErrorHandler.handleAuthError(state._id))
 		o(e.message).equals("imap sync found no Oauth config")
 
 		verify(entityClientMock.update(state), { times: 0 })

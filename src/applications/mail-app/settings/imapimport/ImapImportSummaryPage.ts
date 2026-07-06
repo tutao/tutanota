@@ -212,13 +212,13 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 						click: async () => {
 							let newFolderElementId: Id | null = null
 							await showEditFolderDialog(
-								assertNotNull(mailLocator.getImapImportController().selectedMailBoxDetail),
+								assertNotNull(mailLocator.getImapMailImportController().selectedMailBoxDetail),
 								null,
 								null,
 								mailboxToRow.imapMailbox.name,
 								async (folderId) => {
 									newFolderElementId = elementIdPart(folderId)
-									data.folderSystem = await assertNotNull(mailLocator.getImapImportController()).getFolderSystemForSelectedMailbox()
+									data.folderSystem = await assertNotNull(mailLocator.getImapMailImportController()).getFolderSystemForSelectedMailbox()
 									if (newFolderElementId !== null) {
 										data.imapMailboxesToTutaMailSets?.set(mailboxToRow.imapMailbox.path, {
 											mailSetElementId: newFolderElementId,
@@ -308,7 +308,7 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 	}
 
 	private renderImportInformation(data: ImapImportData) {
-		return mailLocator.getImapImportController().selectedMailBoxDetail
+		return mailLocator.getImapMailImportController().selectedMailBoxDetail
 			? m(Card, { classes: ["mt-16"] }, [
 					m(MenuTitle, { content: lang.getTranslationText("migrationSummaryImportInformation_label") }),
 
@@ -319,7 +319,7 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 			: null
 	}
 	private renderMailboxSummary() {
-		const selectedMailboxDetail = mailLocator.getImapImportController().selectedMailBoxDetail
+		const selectedMailboxDetail = mailLocator.getImapMailImportController().selectedMailBoxDetail
 		return selectedMailboxDetail
 			? m(TextField, {
 					label: "mailbox_label",
@@ -332,7 +332,7 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 	}
 
 	private renderParentFolderSummary(data: ImapImportData) {
-		return mailLocator.getImapImportController().selectedMailBoxDetail
+		return mailLocator.getImapMailImportController().selectedMailBoxDetail
 			? m(TextField, {
 					label: "migrationRootMailFolderName_label",
 					value: data.rootImportMailFolderName,
@@ -432,7 +432,7 @@ export class ImapImportSummaryPageAttrs implements WizardPageAttrs<ImapImportDat
 			Dialog.message("migrationRootMailFolderNameAlreadyExists_helpLabel")
 			return Promise.resolve(false)
 		}
-		const imapImportController = mailLocator.getImapImportController()
+		const imapImportController = mailLocator.getImapMailImportController()
 		const imapAccount = createImapAccount({
 			host: this.data.imapAccountHost,
 			port: this.data.imapAccountPort.toString(),

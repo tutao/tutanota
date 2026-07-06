@@ -29,12 +29,11 @@ import { collapseId, elementIdPart, isSameId, OperationType } from "@tutao/meta"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { ImapFacade } from "../../../common/api/worker/facades/lazy/ImapFacade"
 import { ImapSyncFacade, ImapSyncSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { OAuthErrorHandler } from "./OAuthErrorHandler"
+import { OAuthErrorHandler } from "../../settings/imapimport/oauth/OAuthErrorHandler"
 import { ImapImportUiSession } from "../../settings/imapimport/ImapMailImportController"
 import { FileTypeRef } from "@tutao/entities/sys"
 
 const DEFAULT_TUTA_SERVER_SUSPENSION_POSTPONE_TIME = 120 * 1000 // 120 seconds
-const IMAP_IMPORT_RESYNC_INTERVAL_MS = 15 * 60 * 1000 // 15 minutes
 const DEFAULT_TUTA_SERVER_STORAGE_ERROR_POSTPONE_TIME = 25 * 60 * 60 * 1000 // 25 hours
 const DEFAULT_TUTA_SERVER_ERROR_POSTPONE_TIME = 60 * 1000 // 60 seconds
 
@@ -78,13 +77,11 @@ export class ImapImporter implements ImapSyncFacade {
 	imapImportSessions: Map<string, ImapImportSession> = new Map()
 	deduplicatedImportedAttachmentHashToFileIdByMailGroup: Map<Id, Map<string, Promise<IdTuple | undefined>>> = new Map()
 	fileElementIdToAttachmentHashMap: Map<Id, string> = new Map()
-	private imapImportResyncIntervalId: TimeoutID | null = null
 
 	constructor(
 		private readonly imapSyncSystemFacade: ImapSyncSystemFacade,
 		private readonly imapFacade: ImapFacade,
 		private readonly importMailFacade: ImportMailFacade,
-		private readonly oAuthErrorHandler: OAuthErrorHandler,
 	) {}
 
 	async init(mailboxes: MailBox[]) {
@@ -98,66 +95,13 @@ export class ImapImporter implements ImapSyncFacade {
 				}
 			}
 		}
-
-		if (this.imapImportResyncIntervalId != null) {
-			clearInterval(this.imapImportResyncIntervalId)
-		}
-
-		this.imapImportResyncIntervalId = setInterval(() => {
-			this.resyncAllImports()
-		}, IMAP_IMPORT_RESYNC_INTERVAL_MS)
 	}
 
 	async initializeNewImport(initializeParams: InitializeImapImportParams): Promise<ImapImportSession> {
 		const { imapAccountSyncState, initialFolderSyncStates } = await this.imapFacade.initializeImapImport(initializeParams)
 		const newSession = newImapImportSession(imapAccountSyncState, initialFolderSyncStates)
 		this.imapImportSessions.set(this.getImapImportSessionsMapKey(imapAccountSyncState._id), newSession)
-
 		return newSession
-	}
-
-	async resyncAllImports() {
-		for (const session of await this.getImapImportSessions()) {
-			// we only resync in case we are done or postponed (e.g. when an error or rate limit occurs)
-			if (
-				session.imapAccountSyncState.status === ImapAccountSyncStatus.FINISHED ||
-				session.imapAccountSyncState.status === ImapAccountSyncStatus.POSTPONED
-			) {
-				const imapAccountSyncStateId = session.imapAccountSyncState._id
-				try {
-					await this.continueImport(imapAccountSyncStateId)
-				} catch (e) {
-					console.log(
-						`failed to resync imap sync for group: ${session.imapAccountSyncState._ownerGroup}, imapAccountSyncState: ${imapAccountSyncStateId}`,
-						e,
-					)
-				}
-			}
-		}
-	}
-
-	async continueAllImports() {
-		for (const session of await this.getImapImportSessions()) {
-			// in case a user manually paused or canceled a sync task we do not want to continue it after login nor if there are errors.
-			if (
-				session.imapAccountSyncState.status === ImapAccountSyncStatus.CANCELED ||
-				session.imapAccountSyncState.status === ImapAccountSyncStatus.PAUSED ||
-				session.imapAccountSyncState.status === ImapAccountSyncStatus.AUTH_ERROR ||
-				session.imapAccountSyncState.status === ImapAccountSyncStatus.ERROR
-			) {
-				continue
-			}
-
-			const imapAccountSyncStateId = session.imapAccountSyncState._id
-			try {
-				await this.continueImport(imapAccountSyncStateId)
-			} catch (e) {
-				console.log(
-					`failed to continue imap sync for group: ${session.imapAccountSyncState._ownerGroup}, imapAccountSyncState: ${imapAccountSyncStateId}`,
-					e,
-				)
-			}
-		}
 	}
 
 	/**
@@ -196,27 +140,14 @@ export class ImapImporter implements ImapSyncFacade {
 		const hashToIdMap = await this.getImportedImapAttachmentHashToIdMap(session)
 		this.deduplicatedImportedAttachmentHashToFileIdByMailGroup.set(mailGroupId, hashToIdMap)
 
-		try {
-			await this.imapSyncSystemFacade.startSync(imapAccountSyncStateId, imapSyncContext)
+		await this.imapSyncSystemFacade.startSync(imapAccountSyncStateId, imapSyncContext)
 
-			await this.imapFacade.updateImapAccountSyncStateStatus(session.imapAccountSyncState, ImapAccountSyncStatus.RUNNING)
-			await this.imapFacade.updateAllImapFolderSyncStates(session.imapAccountSyncState._id, ImapFolderSyncStatus.RUNNING)
-			return Promise.resolve({
-				state: { status: ImapAccountSyncStatus.RUNNING },
-				remoteStateId: session.imapAccountSyncState._id,
-			})
-		} catch (imapError) {
-			if (this.oAuthErrorHandler.isAuthError(imapError) && retryAttempts < 1) {
-				await this.pauseImport(imapAccountSyncStateId)
-				const shouldRetry = await this.oAuthErrorHandler.handleAuthError(session.imapAccountSyncState)
-				if (shouldRetry) {
-					return await this.continueImport(imapAccountSyncStateId, false, 1)
-				}
-			} else {
-				await this.imapFacade.postponeImapImport(new Date(Date.now() + IMAP_ERROR_POSTPONE_TIME), session.imapAccountSyncState._id)
-			}
-			return Promise.reject(imapError)
-		}
+		await this.imapFacade.updateImapAccountSyncStateStatus(session.imapAccountSyncState, ImapAccountSyncStatus.RUNNING)
+		await this.imapFacade.updateAllImapFolderSyncStates(session.imapAccountSyncState._id, ImapFolderSyncStatus.RUNNING)
+		return Promise.resolve({
+			state: { status: ImapAccountSyncStatus.RUNNING },
+			remoteStateId: session.imapAccountSyncState._id,
+		})
 	}
 
 	async pauseImport(accountSyncStateId: IdTuple): Promise<void> {
@@ -228,7 +159,7 @@ export class ImapImporter implements ImapSyncFacade {
 		}
 	}
 
-	private async postponeImport(accountSyncStateId: IdTuple, postponedUntil: Date): Promise<void> {
+	async postponeImport(accountSyncStateId: IdTuple, postponedUntil: Date): Promise<void> {
 		const session = this.getImapImportSessionOrNull(accountSyncStateId)
 		if (session !== null) {
 			await this.imapSyncSystemFacade.stopSync(session.imapAccountSyncState._id)
@@ -479,17 +410,6 @@ export class ImapImporter implements ImapSyncFacade {
 
 	async onError(accountSyncStateId: IdTuple, imapError: ImapError): Promise<void> {
 		console.error(`Error while synchronizing IMAP account with accountSyncState ${accountSyncStateId}, error`, imapError)
-
-		const session = this.getImapImportSessionOrNull(accountSyncStateId)
-		if (session) {
-			if (this.oAuthErrorHandler.isAuthError(imapError)) {
-				await this.pauseImport(accountSyncStateId)
-				const shouldRetry = await this.oAuthErrorHandler.handleAuthError(session.imapAccountSyncState)
-				if (shouldRetry) {
-					await this.continueImport(accountSyncStateId)
-				}
-			}
-		}
 		return Promise.resolve()
 	}
 

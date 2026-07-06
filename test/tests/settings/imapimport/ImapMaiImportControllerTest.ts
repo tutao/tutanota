@@ -21,7 +21,7 @@ import {
 	OAuthTokenEndpointResponseTypeRef,
 } from "@tutao/entities/tutanota"
 import { FolderSystem } from "../../../../src/applications/common/api/common/mail/FolderSystem"
-import { OAuthErrorHandler } from "../../../../src/applications/mail-app/workerUtils/imapimport/OAuthErrorHandler"
+import { OAuthErrorHandler } from "../../../../src/applications/mail-app/settings/imapimport/oauth/OAuthErrorHandler"
 import { EventController } from "../../../../src/applications/common/api/main/EventController"
 
 const { anything } = matchers
@@ -34,6 +34,7 @@ o.spec("ImapMailImportController", () => {
 	let oauthFacade: OauthFacade
 	let controller: ImapMailImportController
 	let eventController: EventController
+	let oAuthErrorHandler: OAuthErrorHandler
 
 	const mailboxDetail1Mock: MailboxDetail = {
 		mailGroupInfo: { group: "group1" },
@@ -62,7 +63,8 @@ o.spec("ImapMailImportController", () => {
 		entityClient = object<EntityClient>()
 		oauthFacade = object<OauthFacade>()
 		eventController = object<EventController>()
-		controller = new ImapMailImportController(imapImporter, mailModel, mailboxModel, entityClient, oauthFacade, eventController)
+		oAuthErrorHandler = object<OAuthErrorHandler>()
+		controller = new ImapMailImportController(imapImporter, mailModel, mailboxModel, entityClient, eventController, oauthFacade, oAuthErrorHandler)
 	})
 
 	o.test("init - loads mailbox details", async () => {
@@ -71,7 +73,7 @@ o.spec("ImapMailImportController", () => {
 		imapImportSession.imapFolderSyncStates = [{ ...folderSyncStateMock, status: ImapFolderSyncStatus.FINISHED }]
 		const activeSessions = [{ imapAccountSyncStateId: accountSyncStateMock._id } as ImapImportUiSession] as ImapImportUiSession[]
 		when(imapImporter.getImapImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
-		await controller.init()
+		await controller.initUiSessions()
 		o.check(controller.mailboxDetails).deepEquals([mailboxDetail1Mock, mailboxDetail2Mock])
 		o.check(controller.selectedMailBoxDetail).equals(mailboxDetail1Mock)
 	})
@@ -93,28 +95,23 @@ o.spec("ImapMailImportController", () => {
 			state: { status: accountSyncStateMock.status as ImapAccountSyncStatus },
 			remoteStateId: imapAccountSyncStateIdMock,
 		}
-		when(imapImporter.continueImport(imapAccountSyncStateIdMock, false)).thenResolve(successResult)
+		when(imapImporter.continueImport(imapAccountSyncStateIdMock, false, anything())).thenResolve(successResult)
 
 		const result = await controller.continueImport(imapAccountSyncStateIdMock)
 
 		o.check(result).equals(successResult)
-		verify(imapImporter.continueImport(imapAccountSyncStateIdMock, false), { times: 1 })
+		verify(imapImporter.continueImport(imapAccountSyncStateIdMock, false, anything()), { times: 1 })
 	})
 
-	o.test("continueImport - does not handle AUTH_FAILED", async () => {
+	o.test("continueImport - handles AUTH_FAILED", async () => {
 		const authError = new ImapError("authentication failed when starting IMAP sync", ImapErrorCause.AUTH_FAILED)
 		const successResult: ImportResult = {
 			state: { status: accountSyncStateMock.status as ImapAccountSyncStatus },
 			remoteStateId: imapAccountSyncStateIdMock,
 		}
 		let isBeforeTokenRefresh = true
-		when(imapImporter.continueImport(imapAccountSyncStateIdMock, false)).thenDo(() => {
-			if (isBeforeTokenRefresh) {
-				isBeforeTokenRefresh = false
-				throw authError
-			}
-			return successResult
-		})
+		when(imapImporter.continueImport(imapAccountSyncStateIdMock, false, 0)).thenReject(authError)
+		when(imapImporter.continueImport(imapAccountSyncStateIdMock, false, 1)).thenResolve(successResult)
 
 		accountSyncStateMock.provider = ImapProvider.Gmail.toString()
 		accountSyncStateMock.imapAccount = createTestEntity(ImapAccountTypeRef, {
@@ -126,19 +123,36 @@ o.spec("ImapMailImportController", () => {
 
 		const oAuthErrorHandlerMock = object<OAuthErrorHandler>()
 		when(oAuthErrorHandlerMock.isAuthError(anything())).thenReturn(true)
-		when(oAuthErrorHandlerMock.handleAuthError(accountSyncStateMock)).thenResolve(true)
+		when(oAuthErrorHandlerMock.handleAuthError(accountSyncStateMock._id)).thenResolve(true)
 
 		when(entityClient.update(accountSyncStateMock)).thenResolve()
 
-		controller = new ImapMailImportController(imapImporter, mailModel, mailboxModel, entityClient, oauthFacade, eventController)
+		controller = new ImapMailImportController(imapImporter, mailModel, mailboxModel, entityClient, eventController, oauthFacade, oAuthErrorHandlerMock)
+		when(imapImporter.getImapImportSessions()).thenResolve([newImapImportSession(accountSyncStateMock, [])])
+		when(imapImporter.getImapImportUiSessions()).thenResolve({
+			activeSessions: [{ imapAccountSyncStateId: imapAccountSyncStateIdMock } as ImapImportUiSession] as ImapImportUiSession[],
+		})
+		await controller.continueImport(imapAccountSyncStateIdMock)
 
-		const imapError = await assertThrows(ImapError, async () => await controller.continueImport(imapAccountSyncStateIdMock))
-		o(imapError.message).equals("authentication failed when starting IMAP sync")
-		o(imapError.data).equals(1)
+		verify(oAuthErrorHandlerMock.isAuthError(anything()), { times: 1 })
+		verify(oAuthErrorHandlerMock.handleAuthError(accountSyncStateMock._id), { times: 1 })
+		verify(imapImporter.continueImport(imapAccountSyncStateIdMock, false, 1), { times: 1 })
+	})
 
-		verify(oAuthErrorHandlerMock.isAuthError(anything()), { times: 0 })
-		verify(oAuthErrorHandlerMock.handleAuthError(accountSyncStateMock), { times: 0 })
-		verify(imapImporter.continueImport(imapAccountSyncStateIdMock, false), { times: 1 })
+	o.test("continueImport - handles startSync error and postpones", async () => {
+		accountSyncStateMock.status = ImapAccountSyncStatus.PAUSED
+		const session = newImapImportSession(accountSyncStateMock, [folderSyncStateMock])
+		when(imapImporter.getImapImportSessions()).thenResolve([newImapImportSession(accountSyncStateMock, [])])
+		when(imapImporter.getImapImportUiSessions()).thenResolve({
+			activeSessions: [{ imapAccountSyncStateId: imapAccountSyncStateIdMock } as ImapImportUiSession] as ImapImportUiSession[],
+		})
+
+		const imapError = new ImapError("Connection failed", ImapErrorCause.UNKNOWN)
+		when(imapImporter.continueImport(accountSyncStateMock._id, anything(), anything())).thenReject(imapError)
+		const importResult = await controller.continueImport(accountSyncStateMock._id)
+
+		o.check(importResult.state.status).deepEquals(ImapAccountSyncStatus.POSTPONED)
+		verify(imapImporter.postponeImport(accountSyncStateMock._id, anything()), { times: 1 })
 	})
 
 	o.test("continue import rejects when error happens", async () => {

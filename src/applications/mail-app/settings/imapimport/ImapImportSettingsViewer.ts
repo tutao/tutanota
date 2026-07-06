@@ -37,7 +37,8 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 	constructor(private readonly imapImportController: lazy<ImapMailImportController>) {}
 
 	async oninit() {
-		await this.imapImportController().init()
+		await this.imapImportController().initUiSessions()
+
 		const mailboxDetails = this.imapImportController().mailboxDetails
 		if (mailboxDetails) {
 			const isSingleMailbox = mailboxDetails.length === 1

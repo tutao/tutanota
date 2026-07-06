@@ -65,7 +65,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 		this.shouldDisplayFolderTextField = !vnode.attrs.data.matchImapMailboxesToTutaMailSets
 		this.shouldDisplayLabelField = vnode.attrs.data.addLabelToImportedMails
 
-		const imapImportController = mailLocator.getImapImportController()
+		const imapImportController = mailLocator.getImapMailImportController()
 		const imapGetMailboxResult = await imapImportController.getImapMailboxesFromServer(imapCredentials)
 
 		this.folderSystem = await imapImportController.getFolderSystemForSelectedMailbox()
@@ -396,13 +396,13 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 								click: async () => {
 									let newFolderElementId: Id | null = null
 									await showEditFolderDialog(
-										assertNotNull(mailLocator.getImapImportController().selectedMailBoxDetail),
+										assertNotNull(mailLocator.getImapMailImportController().selectedMailBoxDetail),
 										null,
 										null,
 										mailboxToRow.imapMailbox.name,
 										async (folderId) => {
 											newFolderElementId = elementIdPart(folderId)
-											obj.folderSystem = await mailLocator.getImapImportController().getFolderSystemForSelectedMailbox()
+											obj.folderSystem = await mailLocator.getImapMailImportController().getFolderSystemForSelectedMailbox()
 											if (newFolderElementId !== null) {
 												data.imapMailboxesToTutaMailSets?.set(mailboxToRow.imapMailbox.path, {
 													mailSetElementId: newFolderElementId,
@@ -462,7 +462,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 							const newFolderId = await mailLocator.mailFacade.createMailFolder(
 								imapMailbox.name ?? "",
 								null,
-								assertNotNull(mailLocator.getImapImportController().selectedMailBoxDetail).mailGroup._id,
+								assertNotNull(mailLocator.getImapMailImportController().selectedMailBoxDetail).mailGroup._id,
 							)
 							// loading here to populate the cache so that the folder system will have it
 							const newFolder = await mailLocator.entityClient.load(MailSetTypeRef, newFolderId)
@@ -472,7 +472,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 							})
 						}
 					}).then(async () => {
-						this.folderSystem = await mailLocator.getImapImportController().getFolderSystemForSelectedMailbox()
+						this.folderSystem = await mailLocator.getImapMailImportController().getFolderSystemForSelectedMailbox()
 						this.imapMailboxesToTutaFolders = data.imapMailboxesToTutaMailSets ?? null
 					}),
 				)
