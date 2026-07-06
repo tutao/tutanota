@@ -22,7 +22,7 @@ import {
 	getTimeZone,
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { EndType, RepeatPeriod, UpgradePromptType } from "@tutao/app-env"
-import { cleanMailAddress, downcast, memoized } from "@tutao/utils"
+import { cleanMailAddress, downcast, isEmpty, memoized } from "@tutao/utils"
 import { lang, TranslationKey } from "../../../../../ui/utils/LanguageViewModel.js"
 import { findAttendeeInAddresses, isAllDayEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { formatDateWithMonth } from "../../../../../ui/utils/Formatter.js"
@@ -32,7 +32,7 @@ import { CalendarEventPreviewViewModel } from "./CalendarEventPreviewViewModel.j
 import { UpgradeRequiredError } from "../../../../common/api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/SubscriptionDialogs.js"
 import { ExternalLink } from "../../../../../ui/base/ExternalLink.js"
-import { calendarAttendeeStatusSymbol, getDisplayEventTitle, repeatRuleOptions } from "../CalendarGuiUtils.js"
+import { calendarAttendeeStatusSymbol, getDisplayEventTitle, humanDescriptionForAlarmInterval, repeatRuleOptions } from "../CalendarGuiUtils.js"
 import { font_size, px, size } from "../../../../../ui/size.js"
 import { SearchToken } from "../../../../../ui/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../../ui/TextHighlightViewUtils"
@@ -104,7 +104,6 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 		const eventTitle = getDisplayEventTitle(event.summary)
 
 		const calendarInfo = calendarEventPreviewModel.getCalendarInfoBase()
-
 		return m(".flex.col.smaller", [
 			this.renderRow(
 				Icons.CalendarFilled,
@@ -125,10 +124,29 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 			),
 			this.renderTimeZoneSection(event),
 			this.renderLocation(event.location),
+			this.renderAlarmsSection(calendarEventPreviewModel),
 			this.renderAttendeesSection(attendees, participation),
 			this.renderAttendanceSection(event, attendees, participation, calendarEventPreviewModel),
 			this.renderDescription(sanitizedDescription, highlightedStrings),
 		])
+	}
+
+	private renderAlarmsSection(calendarEventPreviewModel: CalendarEventPreviewViewModel) {
+		if (calendarEventPreviewModel.alarms instanceof Error) {
+			return this.renderRow(Icons.AlarmFilled, m("", { style: { color: theme.error } }, lang.getTranslation("failedToLoadAlarms_error").text))
+		}
+
+		if (isEmpty(calendarEventPreviewModel.alarms)) {
+			return null
+		}
+
+		return this.renderRow(
+			Icons.AlarmFilled,
+			m(
+				".flex.col",
+				calendarEventPreviewModel.alarms.map((alarmTrigger) => m("span", humanDescriptionForAlarmInterval(alarmTrigger, lang.languageTag))),
+			),
+		)
 	}
 
 	private renderRow(headerIcon: AllIcons, children: Children, isAlignedLeft: boolean = false, isEventTitle: boolean = false): Children {
