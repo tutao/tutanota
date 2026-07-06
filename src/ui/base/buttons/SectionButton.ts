@@ -30,6 +30,14 @@ export interface SectionButtonAttrs {
 	isDisabled?: boolean
 	text: MaybeTranslation
 	onclick: ClickHandler
+	/**
+	 * Override outer button styling
+	 */
+	style?: Partial<Pick<CSSStyleDeclaration, "minHeight">>
+	/**
+	 * Override inner Card component styling
+	 */
+	cardStyle?: CardAttrs["style"]
 }
 
 /**
@@ -37,7 +45,7 @@ export interface SectionButtonAttrs {
  */
 export class SectionButton implements Component<SectionButtonAttrs> {
 	view(vnode: Vnode<SectionButtonAttrs>): Children {
-		const { leftIcon, injectionLeft, onclick, injectionRight, rightIcon, isDisabled, text } = vnode.attrs
+		const { leftIcon, injectionLeft, onclick, injectionRight, rightIcon, isDisabled, text, style, cardStyle } = vnode.attrs
 
 		const leftPart = m.fragment({}, [
 			leftIcon == null
@@ -76,6 +84,7 @@ export class SectionButton implements Component<SectionButtonAttrs> {
 				disabled: isDisabled,
 				style: {
 					minHeight: px(size.core_56),
+					...style,
 				},
 				role: AriaRole.MenuItem,
 				onclick,
@@ -86,10 +95,11 @@ export class SectionButton implements Component<SectionButtonAttrs> {
 					classes: ["flex", "justify-between", "flex-grow", "items-center", "stretch-height"],
 					style: {
 						padding: px(size.spacing_16),
+						...cardStyle,
 					},
 				} satisfies CardAttrs,
 				[
-					leftIcon || injectionLeft ? m(".flex.items-center.mr-8", [leftPart]) : null,
+					leftIcon || injectionLeft ? m(".flex.items-center.mr-16", [leftPart]) : null,
 					m("span.flex-grow.full-width.white-space", lang.getTranslationText(text)),
 					rightPart,
 				],
