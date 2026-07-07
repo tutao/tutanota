@@ -8,7 +8,7 @@ import type { Shortcut } from "../../../ui/utils/KeyManager"
 import { isKeyPressed, keyManager } from "../../../ui/utils/KeyManager"
 import { encodeCalendarSearchKey, getRestriction, hasMoreResults } from "./model/SearchUtils"
 import { Dialog } from "../../../ui/base/Dialog"
-import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, Keys, ProgrammingError } from "../../../platform-kit/app-env"
+import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, Keys } from "../../../platform-kit/app-env"
 import { styles } from "../../../ui/styles"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { debounce, downcast, memoized, mod, ofClass } from "../../../platform-kit/utils"
@@ -491,15 +491,27 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 	private async showResultsInOverlay(result: SearchResult): Promise<void> {
 		let entries: Entry[]
-		if (result.restriction.type === SearchCategoryType.calendar) {
-			const serverEventIds = result.results.filter(([calendarId, eventId]) => !isBirthdayCalendar(calendarId))
-			const eventsRepository = await mailLocator.calendarEventsRepository()
-			entries = [
-				...(await loadMultipleFromLists(CalendarEventTypeRef, mailLocator.entityClient, serverEventIds)),
-				...(await retrieveBirthdayEventsForUser(mailLocator.logins, result.results, eventsRepository.getBirthdayEvents())),
-			]
-		} else {
-			entries = await loadMultipleFromLists(CalendarEventTypeRef, mailLocator.entityClient, result.results)
+		switch (result.restriction.type) {
+			case SearchCategoryType.calendar:
+				{
+					const serverEventIds = result.results.filter(([calendarId, eventId]) => !isBirthdayCalendar(calendarId))
+					const eventsRepository = await mailLocator.calendarEventsRepository()
+					entries = [
+						...(await loadMultipleFromLists(CalendarEventTypeRef, mailLocator.entityClient, serverEventIds)),
+						...(await retrieveBirthdayEventsForUser(mailLocator.logins, result.results, eventsRepository.getBirthdayEvents())),
+					]
+				}
+				break
+			case SearchCategoryType.contact:
+				entries = await loadMultipleFromLists(ContactTypeRef, mailLocator.entityClient, result.results)
+				break
+			case SearchCategoryType.mail:
+				entries = await loadMultipleFromLists(MailTypeRef, mailLocator.entityClient, result.results)
+				break
+			case SearchCategoryType.drive:
+				//FIXME
+				entries = []
+				break
 		}
 
 		// If there was no new search while we've been downloading the result
