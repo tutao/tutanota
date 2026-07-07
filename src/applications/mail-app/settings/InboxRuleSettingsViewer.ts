@@ -107,12 +107,16 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 
 	updateInboxRules(props: TutanotaProperties): void {
 		mailLocator.mailboxModel.getUserMailboxDetails().then(async (mailboxDetails) => {
-			const ruleLines = await promiseMap(props.inboxRules, async (rule, index) => {
+			const ruleLines = await promiseMap(props.expandedInboxRules, async (rule, index) => {
 				return {
-					cells: [getInboxRuleTypeName(rule.type), rule.value, await this.getTextForTarget(mailboxDetails, rule.targetFolder)],
+					cells: [
+						rule.name,
+						getInboxRuleTypeName(rule.conditions[0].type),
+						rule.results[0].value ? await this.getTextForTarget(mailboxDetails, assertNotNull(rule.results[0].value)) : "None",
+					],
 					actionButtonAttrs: createRowActions(
 						{
-							getArray: () => props.inboxRules,
+							getArray: () => props.expandedInboxRules,
 							updateInstance: () => mailLocator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
 						},
 						rule,
@@ -126,34 +130,6 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 					),
 				}
 			})
-
-			// FIXME: showing both old and expanded rules to get this working, this will need to change more before finishing
-			const expandedRulesLines = await promiseMap(props.expandedInboxRules, async (rule, index) => {
-				return {
-					cells: [
-						rule.name,
-						getInboxRuleTypeName(rule.conditions[0].type),
-						await this.getTextForTarget(mailboxDetails, assertNotNull(rule.results[0].value)),
-					],
-					actionButtonAttrs: createRowActions(
-						{
-							getArray: () => props.expandedInboxRules,
-							updateInstance: () => mailLocator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
-						},
-						rule,
-						index,
-						[
-							{
-								label: "edit_action",
-								// TODO: adapt new inbox rule dialog to use ExpandedInboxRule
-								click: () => noOp(),
-							},
-						],
-					),
-				}
-			})
-
-			ruleLines.push(...expandedRulesLines)
 
 			this.inboxRulesTableLines(ruleLines)
 
