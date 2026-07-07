@@ -28,6 +28,7 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 import { CircleLoadingBar } from "../../../../ui/CircleLoadingBar.js"
 import { formatDate } from "../../../../ui/utils/Formatter"
+import { ListModel } from "../../../common/misc/ListModel"
 
 assertMainOrNode()
 
@@ -40,7 +41,7 @@ export class SearchResultListEntry {
 }
 
 export interface SearchListViewAttrs {
-	listModel: ListElementListModel<SearchResultListEntry>
+	listModel: ListModel<SearchResultListEntry, IdTuple>
 	onSingleSelection: (item: SearchResultListEntry) => unknown
 	currentType: SearchCategoryType
 	isFreeAccount: boolean
@@ -57,7 +58,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 	private attrs: SearchListViewAttrs
 	private indexStateStream: Stream<unknown> | null = null
 
-	private get listModel(): ListElementListModel<SearchResultListEntry> {
+	private get listModel(): ListModel<SearchResultListEntry, IdTuple> {
 		return this.attrs.listModel
 	}
 

@@ -1,17 +1,30 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { listIdPart } from "../../../../platform-kit/meta"
-import { assertMainOrNode, NOTHING_INDEXED_TIMESTAMP } from "../../../../platform-kit/app-env"
+import { elementIdPart, GENERATED_MAX_ID, getElementId, listIdPart, OperationType } from "../../../../platform-kit/meta"
+import { assertMainOrNode, isAdminClient, isBrowser, NOTHING_INDEXED_TIMESTAMP } from "../../../../platform-kit/app-env"
 import { DbError } from "../../../common/api/common/error/DbError"
 import { SearchCategoryType, SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { assertNonNull, assertNotNull, incrementMonth, lazyAsync, ofClass, tokenize } from "../../../../platform-kit/utils"
+import {
+	assertNonNull,
+	assertNotNull,
+	collectToMap,
+	incrementMonth,
+	lazyAsync,
+	mapAndFilterNull,
+	ofClass,
+	remove,
+	tokenize,
+} from "../../../../platform-kit/utils"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, isSameSearchRestrictionWithRangeExtended, searchQueryEquals } from "./SearchUtils"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
 import { ProgressMonitorInterface } from "../../../../platform-kit/network/ProgressMonitorInterface"
-import { CalendarEvent } from "@tutao/entities/tutanota"
+import { CalendarEvent, Mail, MailTypeRef } from "@tutao/entities/tutanota"
+import { EventController } from "../../../common/api/main/EventController"
+import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -19,6 +32,28 @@ export type SearchQuery = {
 	restriction: SearchRestriction
 	minSuggestionCount: number
 	maxResults: number | null
+}
+
+export type ResultUpdate<T> = { type: "reset" } | { type: "newitem"; item: T } | { type: "updateitem"; item: T } | { type: "deleteitem"; item: T }
+
+export interface LiveSearchResult<T> {
+	// query: string
+	// tokens: SearchToken []
+	// restriction: SearchRestriction
+	items: T[]
+	searchResult: SearchResult
+	// currentIndexTimestamp: number
+	// maxResults?: number
+	// moreResults: Array<MoreResultsIndexEntry>
+	// moreResultsEntries: IdTuple[]
+	// lastReadSearchIndexRow: Array<[string, number | null]>
+	// // array of pairs (token, lastReadSearchIndexRowOldestElementTimestamp) lastRowReadSearchIndexRow: null = no result read, 0 = no more search results????
+	// matchWordOrder: boolean
+	hasMoreResults: boolean
+	loadMoreResults: (max: number, startId: Id) => Promise<T[]>
+	updates: Stream<ResultUpdate<T>>
+	dispose: () => unknown
+	entityEventsReceived: (data: readonly EntityUpdateData[]) => Promise<unknown>
 }
 
 export class SearchModel {
@@ -34,8 +69,12 @@ export class SearchModel {
 	private lastSearchExtensionPromise: Promise<void>
 	cancelSignal: Stream<boolean>
 
+	private readonly liveResults: LiveSearchResult<unknown>[] = []
+
 	constructor(
 		searchFacade: SearchFacade,
+		private readonly eventController: EventController,
+		private readonly entityClient: EntityClient,
 		private readonly calendarModel: lazyAsync<CalendarEventsRepository>,
 	) {
 		this._searchFacade = searchFacade
@@ -55,19 +94,99 @@ export class SearchModel {
 		this.lastSearchPromise = Promise.resolve()
 		this.lastSearchExtensionPromise = Promise.resolve()
 		this.cancelSignal = stream(false)
+
+		this.eventController.addEntityListener({
+			onEntityUpdatesReceived: async (updates, eventOwnerGroupId, isInitialSyncDone) => {
+				for (const liveResult of this.liveResults) {
+					await liveResult.entityEventsReceived(updates)
+				}
+			},
+			priority: OnEntityUpdateReceivedPriority.NORMAL,
+		})
 	}
 
-	async getMoreSearchResults(count: number): Promise<SearchResult | null> {
-		const currentResult = this.result()
+	async coolNewSearchMails(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<LiveSearchResult<Mail>> {
+		const searchResult: SearchResult = await this._searchFacade.search(
+			searchQuery.query,
+			searchQuery.restriction,
+			searchQuery.minSuggestionCount,
+			searchQuery.maxResults ?? undefined,
+		)
+		const mails = await loadMultipleFromLists(MailTypeRef, this.entityClient, searchResult.results)
+		const result: LiveSearchResult<Mail> = {
+			searchResult,
+			items: mails,
+			loadMoreResults: async (count, startId) => {
+				if (hasMoreResults(result.searchResult)) {
+					result.searchResult = await this._searchFacade.getMoreSearchResults(result.searchResult, count)
+					let startIndex = 0
 
-		if (currentResult != null && hasMoreResults(currentResult)) {
-			const updatedResult = await this._searchFacade.getMoreSearchResults(currentResult, count)
+					if (startId !== GENERATED_MAX_ID) {
+						if (!isBrowser() && !isAdminClient()) {
+							// offline storage is always sorted correctly
+							startIndex = searchResult.results.findIndex((id) => id[1] === startId)
+						} else {
+							// this relies on the results being sorted from newest to oldest ID
+							startIndex = searchResult.results.findIndex((id) => id[1] <= startId)
+						}
 
-			this.result(updatedResult)
-			return updatedResult
-		} else {
-			return currentResult
+						if (elementIdPart(searchResult.results[startIndex]) === startId) {
+							// the start element is already loaded, so we exclude it from the next load
+							startIndex++
+						} else if (startIndex === -1) {
+							// there is nothing in our result that's not loaded yet, so we
+							// have nothing to do
+							startIndex = Math.max(searchResult.results.length - 1, 0)
+						}
+					}
+
+					// Ignore count when slicing here because we would have to modify SearchResult too
+					const toLoad = searchResult.results.slice(startIndex)
+					let items: Mail[] = await loadMultipleFromLists(MailTypeRef, this.entityClient, toLoad)
+
+					// Restore the original sorting order
+					if (!isBrowser() && !isAdminClient()) {
+						const itemsMapped = collectToMap(items, getElementId)
+						items = mapAndFilterNull<IdTuple, Mail>(searchResult.results, (id) => itemsMapped.get(elementIdPart(id)) ?? null)
+					}
+					result.items.push(...items)
+					return items
+				} else {
+					return []
+				}
+			},
+			get hasMoreResults() {
+				return hasMoreResults(result.searchResult)
+			},
+			updates: stream(),
+			dispose: () => {
+				remove(this.liveResults, result)
+				result.updates.end(true)
+			},
+			entityEventsReceived: async (updates) => {
+				for (const update of updates) {
+					if (isUpdateForTypeRef(MailTypeRef, update)) {
+						if (update.operation === OperationType.DELETE) {
+							const mailIndex = result.items.findIndex((mail) => getElementId(mail) === update.instanceId)
+							if (mailIndex !== -1) {
+								const [mail] = result.items.splice(mailIndex, 1)
+								result.updates({ type: "deleteitem", item: mail })
+							}
+						} else if (update.operation === OperationType.UPDATE) {
+							const mailIndex = result.items.findIndex((mail) => getElementId(mail) === update.instanceId)
+							const updatedMail = await this.entityClient.load(MailTypeRef, [update.instanceListId, update.instanceId])
+							if (mailIndex !== -1) {
+								const [mail] = result.items.splice(mailIndex, 1, updatedMail)
+								result.updates({ type: "updateitem", item: updatedMail })
+							}
+						}
+						// FIXME: the rest of updates
+					}
+				}
+			},
 		}
+		this.liveResults.push(result)
+		return result
 	}
 
 	async search(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<SearchResult | void> {
