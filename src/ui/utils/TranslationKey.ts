@@ -2388,5 +2388,5 @@ export type TranslationKeyType =
 	| "migrationConfigLoading_msg"
 	| "migrationMigrateSpamFolder_label"
 	| "migrationNoMigrationOnWeb_label"
-	| "emptyString_msg"
 	| "migrationProviderOther_label"
+	| "emptyString_msg"

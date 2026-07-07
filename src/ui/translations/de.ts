@@ -337,7 +337,7 @@ export default {
 		"confirmDeleteSecondFactor_msg": "Möchtest du diesen zweiten Faktor wirklich löschen?",
 		"confirmDeleteTemplateGroup_msg": "Bist du sicher, dass du diese Vorlagenliste löschen möchtest? Alle enthaltenen Vorlagen werden gelöscht und können nicht wiederhergestellt werden.",
 		"confirmFreeAccount_label": "Bestätigung Free-Account",
-		"confirmFreeLimits_msg": "Ich besitze keinen anderen Free-Account und ich werde diesen Account nicht geschäftlich nutzen.",
+		"confirmFreeLimits_msg": "Ich besitze keinen anderen Tuta Free-Account und ich werde diesen Account nicht geschäftlich nutzen.",
 		"confirmLeaveSharedGroup_msg": "Bist du sicher, dass du \"{groupName}\" nicht mehr verwenden möchtest? Der Inhaber der Kontaktliste müsste dich dann gegebenenfalls erneut einladen.",
 		"confirmNoOtherFreeAccount_msg": "Ich besitze keinen anderen Tuta Free-Account.",
 		"confirmOverwriteServerDraft_msg": "Möchtest du diesen Remote-Entwurf überschreiben?",
@@ -1206,7 +1206,7 @@ export default {
 		"migrationCannotMapSpamFolder_label": "Der Spam-Ordner kann nicht zugewiesen werden.",
 		"migrationCannotMapSpamFolder_msg": "Der Spam-Ordner kann nur dem Tuta Spam-Ordner importiert werden, um die Qualität deines Spam-Filters zu gewährleisten.",
 		"migrationChooseFolder_msg": "Ordner auswählen",
-		"migrationChooseProvider_msg": "Bitte wähle deinen alten E-Mail Anbieter aus, von welchem du zu uns wechseln möchtest.\n\nDie 1-Klick E-Mail Migration übernimmt kontinuierlich alle (auch neu eingehende) E-Mails von deinem alten E-Mail Anbieter in deinen Tuta-Account.\nDu kannst diese Migration so lange aktiv lassen bis du bereits bist deinen alten Account zu löschen.",
+		"migrationChooseProvider_msg": "Bitte wähle deinen alten E-Mail Anbieter aus, von welchem du zu uns wechseln möchtest.\n\nDie Ein-Klick E-Mail Migration übernimmt kontinuierlich alle (auch neu eingehende) E-Mails von deinem alten E-Mail Anbieter in deinen Tuta-Account.\nDu kannst diese Migration so lange aktiv lassen bis du bereits bist deinen alten Account zu löschen.",
 		"migrationConfig_title": "Konfiguration",
 		"migrationConfigInfo_msg": "Verbindung erfolgreich hergestellt! Nun kannst du deine Migration konfigurieren.\nBitte wähle, ob importierte E-Mails mit einem Label markiert werden sollen? Außerdem kannst du entscheiden, ob alle importierten E-Mails und Ordner unter einem Migrations-Ordner erscheinen sollen, oder du Ordner deines alten Accounts individuell Ordnern in deinem Tuta-Account zuordnen willst.",
 		"migrationConfigLoading_msg": "Verbindung zu {provider} wird hergestellt ...",
@@ -1238,6 +1238,7 @@ export default {
 		"migrationOAuthWindowClosedFailure_msg": "Das Login-Fenster wurde geschlossen, der Login war jedoch nicht erfolgreich. Bitte versuche es erneut.",
 		"migrationPostponed_msg": "Das Download-Limit für {provider} wurde erreicht - Import wird am {postponedUntil} fortgesetzt.",
 		"migrationProviderGmail_label": "Gmail",
+		"migrationProviderOther_label": "Andere",
 		"migrationProviderOutlook_label": "Outlook",
 		"migrationRootMailFolderName_helpLabel": "Bitte gib einen Namen für deinen Migrations-Ordner ein. Alle deine Ornder und E-Mails werden unterhalb dieses Ordner importiert.",
 		"migrationRootMailFolderName_label": "Migrations-Ordner-Name",
@@ -2390,7 +2391,6 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"migrationProviderOther_label": "Andere",
+		"zoomOut_action": "Herauszoomen"
 	}
 }

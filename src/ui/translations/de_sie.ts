@@ -1206,7 +1206,7 @@ export default {
 		"migrationCannotMapSpamFolder_label": "Der Spam-Ordner kann nicht zugewiesen werden.",
 		"migrationCannotMapSpamFolder_msg": "Der Spam-Ordner kann nur dem Tuta Spam-Ordner importiert werden, um die Qualität Ihres Spam-Filters zu gewährleisten.",
 		"migrationChooseFolder_msg": "Ordner auswählen",
-		"migrationChooseProvider_msg": "Bitte wählen Sie Ihren alten E-Mail Anbieter aus, von welchem Sie zu uns wechseln möchten.\n\nDie 1-Klick E-Mail Migration übernimmt kontinuierlich alle (auch neu eingehende) E-Mails von Ihren alten E-Mail Anbieter in Ihren Tuta-Account.\nSie können diese Migration so lange aktiv lassen bis Sie bereit sind Ihren alten Account zu löschen.",
+		"migrationChooseProvider_msg": "Bitte wählen Sie Ihren alten E-Mail Anbieter aus, von welchem Sie zu uns wechseln möchten.\n\nDie Ein-Klick E-Mail Migration übernimmt kontinuierlich alle (auch neu eingehende) E-Mails von Ihren alten E-Mail Anbieter in Ihren Tuta-Account.\nSie können diese Migration so lange aktiv lassen bis Sie bereit sind Ihren alten Account zu löschen.",
 		"migrationConfig_title": "Konfiguration",
 		"migrationConfigInfo_msg": "Verbindung erfolgreich hergestellt! Nun können Sie Ihre Migration konfigurieren.\nBitte wählen Sie, ob importierte E-Mails mit einem Label markiert werden sollen? Außerdem können Sie entscheiden, ob alle importierten E-Mails und Ordner unter einem Migrations-Ordner erscheinen sollen, oder Sie Ordner Ihres alten Accounts individuell Ordnern Ihres Tuta-Accounts zuordnen wollen.",
 		"migrationConfigLoading_msg": "Verbindung zu {provider} wird hergestellt ...",
@@ -1238,6 +1238,7 @@ export default {
 		"migrationOAuthWindowClosedFailure_msg": "Das Login-Fenster wurde geschlossen, der Login war jedoch nicht erfolgreich. Bitte versuchen Sie es erneut.",
 		"migrationPostponed_msg": "Das Download-Limit für {provider} wurde erreicht - Import wird am {postponedUntil} fortgesetzt.",
 		"migrationProviderGmail_label": "Gmail",
+		"migrationProviderOther_label": "Andere",
 		"migrationProviderOutlook_label": "Outlook",
 		"migrationRootMailFolderName_helpLabel": "Bitte geben Sie einen Namen für Ihren Migrations-Ordner ein. Alle Ihre Ornder und E-Mails werden unterhalb dieses Ordner importiert.",
 		"migrationRootMailFolderName_label": "Migrations-Ordner-Name",
@@ -2390,7 +2391,6 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"migrationProviderOther_label": "Andere",
+		"zoomOut_action": "Herauszoomen"
 	}
 }

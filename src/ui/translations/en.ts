@@ -337,7 +337,7 @@ export default {
 		"confirmDeleteSecondFactor_msg": "Would you really like to delete this second factor?",
 		"confirmDeleteTemplateGroup_msg": "Are you sure you want to delete this template list? All included templates will be lost and can't be restored.",
 		"confirmFreeAccount_label": "Free account confirmation",
-		"confirmFreeLimits_msg": "I do not own any other Free account and I will not use this account for business.",
+		"confirmFreeLimits_msg": "I do not own any other Free Tuta account and I will not use this account for business.",
 		"confirmLeaveSharedGroup_msg": "Are you sure you want to stop using \"{groupName}\"? The owner of the contact list would then have to re-invite you, if necessary.",
 		"confirmNoOtherFreeAccount_msg": "I do not own any other Free Tuta account.",
 		"confirmOverwriteServerDraft_msg": "Would you like to overwrite this remote draft?",
@@ -1238,6 +1238,7 @@ export default {
 		"migrationOAuthWindowClosedFailure_msg": "It appears the login window was closed without success, please try again.",
 		"migrationPostponed_msg": "Download limit for {provider} reached, will continue on {postponedUntil}.",
 		"migrationProviderGmail_label": "Gmail",
+		"migrationProviderOther_label": "Other",
 		"migrationProviderOutlook_label": "Outlook",
 		"migrationRootMailFolderName_helpLabel": "Please enter a name for your migration folder. All your folders and mails will be imported underneath this folder.",
 		"migrationRootMailFolderName_label": "Migration folder name",
@@ -2390,7 +2391,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"migrationProviderOther_label": "Other",
+		"zoomOut_action": "Zoom Out"
 	}
 }
