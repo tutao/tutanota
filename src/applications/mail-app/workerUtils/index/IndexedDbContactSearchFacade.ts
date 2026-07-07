@@ -1,7 +1,7 @@
 import { ContactSearchFacade } from "./ContactSearchFacade"
 import { IndexedDbSearchFacade } from "./IndexedDbSearchFacade"
 import { lazy, lazyMemoized, typedValues } from "../../../../platform-kit/utils"
-import type { SearchRestriction } from "../../../common/api/worker/search/SearchTypes"
+import { SearchCategoryType, SearchRestriction } from "../../../common/api/worker/search/SearchTypes"
 import { ProgrammingError } from "../../../../platform-kit/app-env"
 import { ClientTypeModelResolver } from "../../../../platform-kit/instance-pipeline"
 import { ContactTypeRef } from "@tutao/entities/tutanota"
@@ -37,7 +37,7 @@ export class IndexedDbContactSearchFacade implements ContactSearchFacade {
 
 		return {
 			default: Object.freeze({
-				type: ContactTypeRef,
+				type: SearchCategoryType.contact,
 				start: null,
 				end: null,
 				field: null,
@@ -46,7 +46,7 @@ export class IndexedDbContactSearchFacade implements ContactSearchFacade {
 				eventSeries: null,
 			}),
 			mailAddresses: Object.freeze({
-				type: ContactTypeRef,
+				type: SearchCategoryType.contact,
 				start: null,
 				end: null,
 				field: "mailAddresses",

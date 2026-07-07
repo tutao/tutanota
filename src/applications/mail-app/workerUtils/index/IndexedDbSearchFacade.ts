@@ -6,7 +6,6 @@ import {
 	EntityIdEncoding,
 	firstBiggerThanSecondBase64Ext,
 	getServerIdEncodingForType,
-	isSameTypeRef,
 	timestampToGeneratedId,
 	TypeModel,
 	TypeRef,
@@ -28,7 +27,7 @@ import {
 	tokenize,
 	uint8ArrayToBase64,
 } from "../../../../platform-kit/utils"
-import type {
+import {
 	DecryptedSearchIndexEntry,
 	ElementDataDbRow,
 	EncryptedSearchIndexEntry,
@@ -36,6 +35,7 @@ import type {
 	KeyToEncryptedIndexEntries,
 	KeyToIndexEntries,
 	MoreResultsIndexEntry,
+	SearchCategoryType,
 	SearchIndexEntry,
 	SearchIndexMetaDataDbRow,
 	SearchIndexMetadataEntry,
@@ -65,10 +65,10 @@ import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedD
 import { SearchFacade } from "./SearchFacade"
 import { SearchToken, splitQuery } from "../../../../ui/utils/QueryTokenUtils"
 import { decryptMetaData, decryptSearchIndexEntry, encryptIndexKeyBase64 } from "../../../common/api/worker/search/IndexEncryptionUtils"
-import { Contact, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { Contact, MailTypeRef } from "@tutao/entities/tutanota"
 import { ClientTypeModelResolver } from "../../../../platform-kit/instance-pipeline"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
-import { PromiseMapFn, promiseMapCompat } from "./IndexerPromiseUtils"
+import { promiseMapCompat, PromiseMapFn } from "./IndexerPromiseUtils"
 
 type RowsToReadForIndexKey = {
 	indexKey: string
@@ -120,39 +120,45 @@ export class IndexedDbSearchFacade implements SearchFacade {
 			const idEncoding = getServerIdEncodingForType(typeModel)
 			let searchPromise
 
-			if (minSuggestionCount > 0 && isFirstWordSearch && isSameTypeRef(ContactTypeRef, restriction.type)) {
-				let addSuggestionBefore = getPerformanceTimestamp()
-				searchPromise = this.addSuggestions(searchTokens[0], this.contactSuggestionFacade, minSuggestionCount, result).then(() => {
-					if (result.results.length < minSuggestionCount) {
-						// there may be fields that are not indexed with suggestions but which we can find with the normal search
-						// TODO: let suggestion facade and search facade know which fields are
-						// indexed with suggestions, so that we
-						// 1) know if we also have to search normally and
-						// 2) in which fields we have to search for second word suggestions because now we would also find words of non-suggestion fields as second words
-						let searchForTokensAfterSuggestionsBefore = getPerformanceTimestamp()
-						return this.startOrContinueSearch(result).then((result) => {
-							return result
+			if (restriction.type === SearchCategoryType.contact) {
+				if (minSuggestionCount) {
+					if (isFirstWordSearch) {
+						searchPromise = this.addSuggestions(searchTokens[0], this.contactSuggestionFacade, minSuggestionCount, result).then(() => {
+							if (result.results.length < minSuggestionCount) {
+								// there may be fields that are not indexed with suggestions but which we can find with the normal search
+								// TODO: let suggestion facade and search facade know which fields are
+								// indexed with suggestions, so that we
+								// 1) know if we also have to search normally and
+								// 2) in which fields we have to search for second word suggestions because now we would also find words of non-suggestion fields as second words
+								let searchForTokensAfterSuggestionsBefore = getPerformanceTimestamp()
+								return this.startOrContinueSearch(result).then((result) => {
+									return result
+								})
+							}
+						})
+					} else {
+						let suggestionToken = neverNull(result.lastReadSearchIndexRow.pop())[0]
+						searchPromise = this.startOrContinueSearch(result).then(() => {
+							// we now filter for the suggestion token manually because searching for suggestions for the last word and reducing the initial search result with them can lead to
+							// dozens of searches without any effect when the seach token is found in too many contacts, e.g. in the email address with the ending "de"
+							result.results.sort((a, b) => compareNewestFirst(a, b, idEncoding))
+							return this.loadAndReduce(restriction, result, suggestionToken, minSuggestionCount)
 						})
 					}
-				})
-			} else if (minSuggestionCount > 0 && !isFirstWordSearch && isSameTypeRef(ContactTypeRef, restriction.type)) {
-				let suggestionToken = neverNull(result.lastReadSearchIndexRow.pop())[0]
-				searchPromise = this.startOrContinueSearch(result).then(() => {
-					// we now filter for the suggestion token manually because searching for suggestions for the last word and reducing the initial search result with them can lead to
-					// dozens of searches without any effect when the seach token is found in too many contacts, e.g. in the email address with the ending "de"
-					result.results.sort((a, b) => compareNewestFirst(a, b, idEncoding))
-					return this.loadAndReduce(restriction, result, suggestionToken, minSuggestionCount)
+				} else {
+					searchPromise = this.startOrContinueSearch(result, maxResults)
+				}
+			} else if (restriction.type === SearchCategoryType.mail) {
+				searchPromise = this.startOrContinueSearch(result, maxResults)
+				return searchPromise.then(() => {
+					result.results.sort((a, b) => compareNewestFirst(a, b, EntityIdEncoding.Base64Ext))
+					return result
 				})
 			} else {
-				searchPromise = this.startOrContinueSearch(result, maxResults)
+				throw new Error(`Invalid search category for IndexedDb: ${restriction.type}`)
 			}
-
-			return searchPromise.then(() => {
-				result.results.sort((a, b) => compareNewestFirst(a, b, idEncoding))
-				return result
-			})
 		} else {
-			return Promise.resolve(result)
+			return result
 		}
 	}
 

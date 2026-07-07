@@ -5,7 +5,7 @@ import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageVie
 import { assertMainOrNode, FeatureType, isApp, isBrowser, Keys, ProgrammingError, UpgradePromptType } from "../../../../platform-kit/app-env"
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { getElementId, getIds, isSameId, isSameTypeRef } from "../../../../platform-kit/meta"
-import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
+import { CalendarEvent, Contact, Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import { MailReportType, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
 import { layout_size } from "../../../../ui/size"
@@ -515,7 +515,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private renderMobileListActionsHeader(header: AppHeaderAttrs): Children {
 		const rightActions: Children[] = []
 
-		if (!isSameTypeRef(this.searchViewModel.searchedType, CalendarEventTypeRef)) {
+		if (this.searchViewModel.searchedType !== SearchCategoryType.calendar) {
 			rightActions.push(
 				m(EnterMultiselectIconButton, {
 					clickAction: () => {
@@ -533,12 +533,18 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							title: "back_action",
 							icon: Icons.ChevronLeft,
 							click: () => {
-								if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
-									m.route.set(MAIL_PREFIX)
-								} else if (isSameTypeRef(this.searchViewModel.searchedType, ContactTypeRef)) {
-									m.route.set(CONTACTS_PREFIX)
-								} else if (isSameTypeRef(this.searchViewModel.searchedType, CalendarEventTypeRef)) {
-									m.route.set(CALENDAR_PREFIX)
+								switch (this.searchViewModel.searchedType) {
+									case SearchCategoryType.mail:
+										m.route.set(MAIL_PREFIX)
+										break
+									case SearchCategoryType.contact:
+										m.route.set(CONTACTS_PREFIX)
+										break
+									case SearchCategoryType.calendar:
+										m.route.set(CALENDAR_PREFIX)
+										break
+									case SearchCategoryType.drive:
+										throw new Error("FIXME")
 								}
 							},
 						}),
@@ -1179,15 +1185,19 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				exec: () => {
 					const type = this.searchViewModel.searchedType
 
-					if (isSameTypeRef(type, MailTypeRef)) {
-						newMailEditor()
-							.then((editor) => editor?.show())
-							.catch(ofClass(PermissionError, noOp))
-					} else if (isSameTypeRef(type, ContactTypeRef)) {
-						locator.contactModel.getContactListId().then((contactListId) => {
-							new ContactEditor(locator.entityClient, null, assertNotNull(contactListId)).show()
-						})
+					switch (type) {
+						case SearchCategoryType.mail:
+							newMailEditor()
+								.then((editor) => editor?.show())
+								.catch(ofClass(PermissionError, noOp))
+							break
+						case SearchCategoryType.contact:
+							locator.contactModel.getContactListId().then((contactListId) => {
+								new ContactEditor(locator.entityClient, null, assertNotNull(contactListId)).show()
+							})
+							break
 					}
+					// FIXME: more types
 				},
 				enabled: () => locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.ReplyOnly),
 				help: "newMail_action",
@@ -1262,7 +1272,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		await this.searchViewModel.init()
 		this.searchViewModel.onNewUrl(args, requestedPath)
 		if (
-			isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef) &&
+			this.searchViewModel.searchedType === SearchCategoryType.mail &&
 			styles.isSingleColumnLayout() &&
 			!args.id &&
 			this.viewSlider.focusedColumn === this.resultDetailsColumn
@@ -1389,37 +1399,41 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private getDeleteAndTrashActions(): { deleteAction: (() => unknown) | null; trashAction: (() => unknown) | null } {
-		if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
-			const selected = this.searchViewModel.getSelectedMails()
-			const deletable = this.searchViewModel.isPermanentDeleteAllowed()
+		switch (this.searchViewModel.searchedType) {
+			case SearchCategoryType.mail: {
+				const selected = this.searchViewModel.getSelectedMails()
+				const deletable = this.searchViewModel.isPermanentDeleteAllowed()
 
-			if (deletable && isNotEmpty(selected)) {
-				return {
-					deleteAction: () => {
-						promptAndDeleteMails(mailLocator.mailModel, getIds(selected), null, () => this.searchViewModel.listModel.selectNone())
-					},
-					trashAction: null,
-				}
-			} else {
-				return {
-					deleteAction: null,
-					trashAction: selected.some((mail) => isMailMovable(mail, mailLocator.mailModel))
-						? () => {
-								trashMails(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, selected)
-							}
-						: null,
+				if (deletable && isNotEmpty(selected)) {
+					return {
+						deleteAction: () => {
+							promptAndDeleteMails(mailLocator.mailModel, getIds(selected), null, () => this.searchViewModel.listModel.selectNone())
+						},
+						trashAction: null,
+					}
+				} else {
+					return {
+						deleteAction: null,
+						trashAction: selected.some((mail) => isMailMovable(mail, mailLocator.mailModel))
+							? () => {
+									trashMails(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, selected)
+								}
+							: null,
+					}
 				}
 			}
-		} else if (isSameTypeRef(this.searchViewModel.searchedType, ContactTypeRef)) {
-			const selectedContacts = this.searchViewModel.getSelectedContacts()
-			if (isNotEmpty(selectedContacts)) {
-				return { deleteAction: () => this.deleteContacts(selectedContacts), trashAction: null }
-			} else {
+			case SearchCategoryType.contact: {
+				const selectedContacts = this.searchViewModel.getSelectedContacts()
+				if (isNotEmpty(selectedContacts)) {
+					return { deleteAction: () => this.deleteContacts(selectedContacts), trashAction: null }
+				} else {
+					return { deleteAction: null, trashAction: null }
+				}
+			}
+			default:
+				// FIXME: drive
+				// Calendar toolbar doesn't have any actions
 				return { deleteAction: null, trashAction: null }
-			}
-		} else {
-			// Calendar toolbar doesn't have any actions
-			return { deleteAction: null, trashAction: null }
 		}
 	}
 

@@ -85,11 +85,11 @@ import {
 	isUpdateForTypeRef,
 	OnEntityUpdateReceivedPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { DriveFileTypeRef, DriveFolderTypeRef } from "@tutao/entities/drive"
+import { DriveFile, DriveFileTypeRef, DriveFolderTypeRef } from "@tutao/entities/drive"
 
 const SEARCH_PAGE_SIZE = 100
 
-export type SearchableTypes = Mail | Contact | CalendarEvent
+export type SearchableTypes = Mail | Contact | CalendarEvent | DriveFile
 
 export enum PaidFunctionResult {
 	Success,
@@ -111,7 +111,7 @@ export class SearchViewModel {
 		if (startDate && endDate) {
 			if (startDate.getTime() > endDate.getTime()) {
 				return "startafterend"
-			} else if (isSameTypeRef(this.searchedType, MailTypeRef)) {
+			} else if (this.searchedType === SearchCategoryType.mail) {
 				// extending index only applies to mails
 				const currentIndex = this.getAimedMailIndexDate()
 				if (currentIndex && startDate < currentIndex) {
@@ -936,10 +936,11 @@ export class SearchViewModel {
 				if (!lastResult) {
 					return null
 				}
+				const typeRef = searchCategoryTypeToTypeRef(lastResult.restriction.type)
 				const id = lastResult.results.find((resultId) => elementIdPart(resultId) === elementId)
 				if (id) {
 					return this.entityClient
-						.load(lastResult.restriction.type, id)
+						.load(typeRef, id)
 						.then((entity) => new SearchResultListEntry(entity))
 						.catch(
 							ofClass(NotFoundError, (_) => {
@@ -980,14 +981,14 @@ export class SearchViewModel {
 					throw new ProgrammingError(`cannot sort entries for type: ${o1.entry._type.app}/${o1.entry._type.typeId}`)
 				}
 			},
-			autoSelectBehavior: () => (isSameTypeRef(this.searchedType, MailTypeRef) ? this.selectionBehavior : ListAutoSelectBehavior.OLDER),
+			autoSelectBehavior: () => (this.searchedType === SearchCategoryType.mail ? this.selectionBehavior : ListAutoSelectBehavior.OLDER),
 		})
 	}
 
 	private isInSearchResult(typeRef: TypeRef<unknown>, id: IdTuple): boolean {
 		const result = this.search.result()
 
-		if (result && isSameTypeRef(typeRef, result.restriction.type)) {
+		if (result && isSameTypeRef(typeRef, searchCategoryTypeToTypeRef(result.restriction.type))) {
 			return result.results.some((r) => isSameId(r, id))
 		}
 
@@ -996,7 +997,7 @@ export class SearchViewModel {
 
 	private onMailIndexStateChanged(newState: SearchIndexStateInfo): void {
 		if (
-			isSameTypeRef(MailTypeRef, this.searchedType) &&
+			this.searchedType === SearchCategoryType.mail &&
 			newState.progress === 0 &&
 			newState.error == null &&
 			newState.currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
@@ -1018,7 +1019,7 @@ export class SearchViewModel {
 	}
 
 	private onSearchResultChanged(newResult: SearchResult | null): void {
-		if (newResult == null || !isSameTypeRef(MailTypeRef, newResult.restriction.type)) {
+		if (newResult == null || newResult.restriction.type !== SearchCategoryType.mail) {
 			this.mailFilterType = new Set()
 		}
 
@@ -1202,4 +1203,18 @@ function awaitSearchInitialized(searchModel: SearchModel): Promise<unknown> {
 		}
 	})
 	return deferred.promise
+}
+
+function searchCategoryTypeToTypeRef(searchType: SearchCategoryType): TypeRef<SearchableTypes> {
+	switch (searchType) {
+		case SearchCategoryType.mail:
+			return MailTypeRef
+		case SearchCategoryType.contact:
+			return ContactTypeRef
+		case SearchCategoryType.calendar:
+			return CalendarEventTypeRef
+		case SearchCategoryType.drive:
+			// FIXME: this won't work, need to remove all of it
+			return DriveFileTypeRef
+	}
 }

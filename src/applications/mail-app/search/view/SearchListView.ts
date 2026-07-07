@@ -17,13 +17,13 @@ import { shouldAlwaysShowMultiselectCheckbox } from "../../../../ui/SelectableRo
 import { ListColumnWrapper } from "../../../../ui/ListColumnWrapper"
 import { CalendarInfoBase } from "../../../calendar-app/calendar/model/CalendarModel"
 import { Icons } from "../../../../ui/base/icons/Icons"
-import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes"
+import { IndexingErrorReason, SearchCategoryType, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes"
 import Stream from "mithril/stream"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { Button, ButtonType } from "../../../../ui/base/Button"
 import { mailLocator } from "../../mailLocator"
-import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailSet, MailTypeRef } from "@tutao/entities/tutanota"
-import { isSameTypeRef, TypeRef } from "@tutao/meta"
+import { CalendarEventTypeRef, ContactTypeRef, Mail, MailSet } from "@tutao/entities/tutanota"
+import { isSameTypeRef } from "@tutao/meta"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 import { CircleLoadingBar } from "../../../../ui/CircleLoadingBar.js"
@@ -42,7 +42,7 @@ export class SearchResultListEntry {
 export interface SearchListViewAttrs {
 	listModel: ListElementListModel<SearchResultListEntry>
 	onSingleSelection: (item: SearchResultListEntry) => unknown
-	currentType: TypeRef<Mail | Contact | CalendarEvent>
+	currentType: SearchCategoryType
 	isFreeAccount: boolean
 	cancelCallback: () => unknown | null
 	getLabelsForMail: (mail: Mail) => MailSet[]
@@ -118,7 +118,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 	}
 
 	private endOfListRender(attrs: SearchListViewAttrs): Children {
-		if (!isSameTypeRef(attrs.currentType, MailTypeRef)) {
+		if (attrs.currentType !== SearchCategoryType.mail) {
 			// We only want to show these messages in mail search for now, though this may change in the future
 			return null
 		}
@@ -200,25 +200,28 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 		)
 	}
 
-	private getRenderItems(type: TypeRef<Mail | Contact | CalendarEvent>): {
+	private getRenderItems(type: SearchCategoryType): {
 		icon: Icons
 		renderConfig: RenderConfig<SearchResultListEntry, SearchResultListRow>
 	} {
-		if (isSameTypeRef(type, ContactTypeRef)) {
-			return {
-				icon: Icons.PeopleFilled,
-				renderConfig: this.contactRenderConfig,
-			}
-		} else if (isSameTypeRef(type, CalendarEventTypeRef)) {
-			return {
-				icon: Icons.CalendarFilled,
-				renderConfig: this.calendarRenderConfig,
-			}
-		} else {
-			return {
-				icon: Icons.MailFilled,
-				renderConfig: this.mailRenderConfig,
-			}
+		switch (type) {
+			case SearchCategoryType.mail:
+				return {
+					icon: Icons.MailFilled,
+					renderConfig: this.mailRenderConfig,
+				}
+			case SearchCategoryType.contact:
+				return {
+					icon: Icons.PeopleFilled,
+					renderConfig: this.contactRenderConfig,
+				}
+			case SearchCategoryType.calendar:
+				return {
+					icon: Icons.CalendarFilled,
+					renderConfig: this.calendarRenderConfig,
+				}
+			case SearchCategoryType.drive:
+				throw new Error("FIXME")
 		}
 	}
 
