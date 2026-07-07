@@ -2510,10 +2510,6 @@ function stringify$4 (obj, { EOL = '\n', finalEOL = true, replacer = null, space
   const EOF = finalEOL ? EOL : '';
   const str = JSON.stringify(obj, replacer, spaces);
 
-  if (str === undefined) {
-    throw new TypeError(`Converting ${typeof obj} value to JSON is not supported`)
-  }
-
   return str.replace(/\n/g, EOL) + EOF
 }
 
@@ -11985,46 +11981,55 @@ const coerce$1 = (version, options) => {
 };
 var coerce_1 = coerce$1;
 
-class LRUCache {
-  constructor () {
-    this.max = 1000;
-    this.map = new Map();
-  }
+var lrucache;
+var hasRequiredLrucache;
 
-  get (key) {
-    const value = this.map.get(key);
-    if (value === undefined) {
-      return undefined
-    } else {
-      // Remove the key from the map and add it to the end
-      this.map.delete(key);
-      this.map.set(key, value);
-      return value
-    }
-  }
+function requireLrucache () {
+	if (hasRequiredLrucache) return lrucache;
+	hasRequiredLrucache = 1;
 
-  delete (key) {
-    return this.map.delete(key)
-  }
+	class LRUCache {
+	  constructor () {
+	    this.max = 1000;
+	    this.map = new Map();
+	  }
 
-  set (key, value) {
-    const deleted = this.delete(key);
+	  get (key) {
+	    const value = this.map.get(key);
+	    if (value === undefined) {
+	      return undefined
+	    } else {
+	      // Remove the key from the map and add it to the end
+	      this.map.delete(key);
+	      this.map.set(key, value);
+	      return value
+	    }
+	  }
 
-    if (!deleted && value !== undefined) {
-      // If cache is full, delete the least recently used item
-      if (this.map.size >= this.max) {
-        const firstKey = this.map.keys().next().value;
-        this.delete(firstKey);
-      }
+	  delete (key) {
+	    return this.map.delete(key)
+	  }
 
-      this.map.set(key, value);
-    }
+	  set (key, value) {
+	    const deleted = this.delete(key);
 
-    return this
-  }
+	    if (!deleted && value !== undefined) {
+	      // If cache is full, delete the least recently used item
+	      if (this.map.size >= this.max) {
+	        const firstKey = this.map.keys().next().value;
+	        this.delete(firstKey);
+	      }
+
+	      this.map.set(key, value);
+	    }
+
+	    return this
+	  }
+	}
+
+	lrucache = LRUCache;
+	return lrucache;
 }
-
-var lrucache = LRUCache;
 
 var range;
 var hasRequiredRange;
@@ -12247,7 +12252,7 @@ function requireRange () {
 
 	range = Range;
 
-	const LRU = lrucache;
+	const LRU = requireLrucache();
 	const cache = new LRU();
 
 	const parseOptions = parseOptions_1;

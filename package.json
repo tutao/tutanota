@@ -63,7 +63,7 @@
 		"undici": "7.28.0"
 	},
 	"optionalDependencies": {
-		"dmg-license": "1.0.11"
+		"dmg-license": "^1.0.11"
 	},
 	"devDependencies": {
 		"@electron/notarize": "3.0.1",
@@ -74,15 +74,15 @@
 		"@rollup/plugin-commonjs": "26.0.1",
 		"@rollup/plugin-json": "6.1.0",
 		"@rollup/plugin-node-resolve": "15.3.1",
-		"@rollup/plugin-replace": "6.0.2",
+		"@rollup/plugin-replace": "^6.0.2",
 		"@rollup/plugin-terser": "0.4.4",
 		"@rollup/plugin-typescript": "12.1.2",
 		"@types/express": "5.0.3",
-		"@types/node": "24.1.0",
-		"@types/pako": "2.0.3",
+		"@types/node": "22.16.0",
+		"@types/pako": "^2.0.3",
 		"body-parser": "2.2.0",
 		"commander": "14.0.0",
-		"json5": "2.2.1",
+		"json5": "^2.2.1",
 		"electron-builder": "26.7.0",
 		"eslint": "9.29.0",
 		"eslint-plugin-unicorn": "59.0.1",
@@ -109,6 +109,6 @@
 	],
 	"engines": {
 		"npm": ">=10.0.0",
-		"node": ">=24.17.0"
+		"node": ">=22.16.0"
 	}
 }

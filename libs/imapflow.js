@@ -30371,27 +30371,12 @@ var ipv4 = {};
 
 var common$2 = {};
 
-var addressError = {};
-
-Object.defineProperty(addressError, "__esModule", { value: true });
-addressError.AddressError = void 0;
-class AddressError extends Error {
-    constructor(message, parseMessage) {
-        super(message);
-        this.name = 'AddressError';
-        this.parseMessage = parseMessage;
-    }
-}
-addressError.AddressError = AddressError;
-
 Object.defineProperty(common$2, "__esModule", { value: true });
 common$2.isInSubnet = isInSubnet;
 common$2.isCorrect = isCorrect;
-common$2.prefixLengthFromMask = prefixLengthFromMask;
 common$2.numberToPaddedHex = numberToPaddedHex;
 common$2.stringToPaddedHex = stringToPaddedHex;
 common$2.testBit = testBit;
-const address_error_1$2 = addressError;
 function isInSubnet(address) {
     if (this.subnetMask < address.subnetMask) {
         return false;
@@ -30411,25 +30396,6 @@ function isCorrect(defaultBits) {
         }
         return this.parsedSubnet === String(this.subnetMask);
     };
-}
-/**
- * Returns the prefix length (number of leading 1 bits) of a contiguous
- * subnet mask. Throws `AddressError` if the mask is non-contiguous (e.g.
- * `255.0.255.0`).
- */
-function prefixLengthFromMask(value, totalBits) {
-    const binary = value.toString(2).padStart(totalBits, '0');
-    if (binary.length > totalBits) {
-        throw new address_error_1$2.AddressError('Invalid subnet mask.');
-    }
-    const firstZero = binary.indexOf('0');
-    if (firstZero === -1) {
-        return totalBits;
-    }
-    if (binary.slice(firstZero).includes('1')) {
-        throw new address_error_1$2.AddressError('Invalid subnet mask.');
-    }
-    return firstZero;
 }
 function numberToPaddedHex(number) {
     return number.toString(16).padStart(2, '0');
@@ -30458,6 +30424,19 @@ constants$2.BITS = 32;
 constants$2.GROUPS = 4;
 constants$2.RE_ADDRESS = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/g;
 constants$2.RE_SUBNET_STRING = /\/\d{1,2}$/;
+
+var addressError = {};
+
+Object.defineProperty(addressError, "__esModule", { value: true });
+addressError.AddressError = void 0;
+class AddressError extends Error {
+    constructor(message, parseMessage) {
+        super(message);
+        this.name = 'AddressError';
+        this.parseMessage = parseMessage;
+    }
+}
+addressError.AddressError = AddressError;
 
 /* eslint-disable no-param-reassign */
 var __createBinding$2 = (commonjsGlobal && commonjsGlobal.__createBinding) || (Object.create ? (function(o, m, k, k2) {
@@ -30488,9 +30467,9 @@ ipv4.Address4 = void 0;
 const common$1 = __importStar$2(common$2);
 const constants$1 = __importStar$2(constants$2);
 const address_error_1$1 = addressError;
-const isCorrect4 = common$1.isCorrect(constants$1.BITS);
 /**
  * Represents an IPv4 address
+ * @class Address4
  * @param {string} address - An IPv4 address string
  */
 class Address4 {
@@ -30503,11 +30482,15 @@ class Address4 {
         this.v4 = true;
         /**
          * Returns true if the address is correct, false otherwise
+         * @memberof Address4
+         * @instance
          * @returns {Boolean}
          */
-        this.isCorrect = isCorrect4;
+        this.isCorrect = common$1.isCorrect(constants$1.BITS);
         /**
          * Returns true if the given address is in the subnet of the current address
+         * @memberof Address4
+         * @instance
          * @returns {boolean}
          */
         this.isInSubnet = common$1.isInSubnet;
@@ -30525,13 +30508,6 @@ class Address4 {
         this.addressMinusSuffix = address;
         this.parsedAddress = this.parse(address);
     }
-    /**
-     * Returns true if the given string is a valid IPv4 address (with optional
-     * CIDR subnet), false otherwise. Host bits in the subnet portion are
-     * allowed (e.g. `192.168.1.5/24` is valid); for strict network-address
-     * validation compare `correctForm()` to `startAddress().correctForm()`,
-     * or use `networkForm()`.
-     */
     static isValid(address) {
         try {
             // eslint-disable-next-line no-new
@@ -30542,11 +30518,8 @@ class Address4 {
             return false;
         }
     }
-    /**
-     * Parses an IPv4 address string into its four octet groups and stores the
-     * result on `this.parsedAddress`. Called automatically by the constructor;
-     * you typically don't need to call it directly. Throws `AddressError` if
-     * the input is not a valid IPv4 address.
+    /*
+     * Parses a v4 address
      */
     parse(address) {
         const groups = address.split('.');
@@ -30556,110 +30529,45 @@ class Address4 {
         return groups;
     }
     /**
-     * Returns the address in correct form: octets joined with `.` and any
-     * leading zeros stripped (e.g. `192.168.1.1`). For IPv4 this matches the
-     * canonical dotted-decimal representation.
+     * Returns the correct form of an address
+     * @memberof Address4
+     * @instance
+     * @returns {String}
      */
     correctForm() {
         return this.parsedAddress.map((part) => parseInt(part, 10)).join('.');
     }
     /**
-     * Construct an `Address4` from an address and a dotted-decimal subnet
-     * mask given as separate strings (e.g. as returned by Node's
-     * `os.networkInterfaces()`). Throws `AddressError` if the mask is
-     * non-contiguous (e.g. `255.0.255.0`).
-     * @example
-     * var address = Address4.fromAddressAndMask('192.168.1.1', '255.255.255.0');
-     * address.subnetMask; // 24
-     */
-    static fromAddressAndMask(address, mask) {
-        const bits = common$1.prefixLengthFromMask(new Address4(mask).bigInt(), constants$1.BITS);
-        return new Address4(`${address}/${bits}`);
-    }
-    /**
-     * Construct an `Address4` from an address and a Cisco-style wildcard mask
-     * given as separate strings (e.g. `0.0.0.255` for a `/24`). The wildcard
-     * mask is the bitwise inverse of the subnet mask. Throws `AddressError`
-     * if the mask is non-contiguous (e.g. `0.255.0.255`).
-     * @example
-     * var address = Address4.fromAddressAndWildcardMask('10.0.0.1', '0.0.0.255');
-     * address.subnetMask; // 24
-     */
-    static fromAddressAndWildcardMask(address, wildcardMask) {
-        const wildcard = new Address4(wildcardMask).bigInt();
-        const allOnes = (BigInt(1) << BigInt(constants$1.BITS)) - BigInt(1);
-        // eslint-disable-next-line no-bitwise
-        const mask = wildcard ^ allOnes;
-        const bits = common$1.prefixLengthFromMask(mask, constants$1.BITS);
-        return new Address4(`${address}/${bits}`);
-    }
-    /**
-     * Construct an `Address4` from a wildcard pattern with trailing `*`
-     * octets. The number of trailing wildcards determines the prefix
-     * length: each `*` represents 8 bits.
-     *
-     * Only trailing whole-octet wildcards are supported. Partial-octet
-     * wildcards (e.g. `192.168.0.1*`) and interior wildcards (e.g.
-     * `192.*.0.1`) throw `AddressError`.
-     * @example
-     * Address4.fromWildcard('192.168.0.*').subnet;   // '/24'
-     * Address4.fromWildcard('192.168.*.*').subnet;   // '/16'
-     * Address4.fromWildcard('*.*.*.*').subnet;       // '/0'
-     */
-    static fromWildcard(input) {
-        const groups = input.split('.');
-        if (groups.length !== constants$1.GROUPS) {
-            throw new address_error_1$1.AddressError('Wildcard pattern must have 4 octets');
-        }
-        let firstWildcard = -1;
-        for (let i = 0; i < groups.length; i++) {
-            if (groups[i] === '*') {
-                if (firstWildcard === -1) {
-                    firstWildcard = i;
-                }
-            }
-            else if (firstWildcard !== -1) {
-                throw new address_error_1$1.AddressError('Wildcard `*` must only appear in trailing octets (e.g. `192.168.0.*`)');
-            }
-        }
-        const trailing = firstWildcard === -1 ? 0 : groups.length - firstWildcard;
-        const replaced = groups.map((g) => (g === '*' ? '0' : g));
-        const subnetBits = constants$1.BITS - trailing * 8;
-        return new Address4(`${replaced.join('.')}/${subnetBits}`);
-    }
-    /**
-     * Converts a hex string to an IPv4 address object. Accepts 8 hex digits
-     * with optional `:` separators (e.g. `'7f000001'` or `'7f:00:00:01'`).
-     * Throws `AddressError` for any other length or for non-hex characters.
+     * Converts a hex string to an IPv4 address object
+     * @memberof Address4
+     * @static
      * @param {string} hex - a hex string to convert
      * @returns {Address4}
      */
     static fromHex(hex) {
-        const stripped = hex.replace(/:/g, '');
-        if (!/^[0-9a-fA-F]{8}$/.test(stripped)) {
-            throw new address_error_1$1.AddressError('IPv4 hex must be exactly 8 hex digits');
-        }
+        const padded = hex.replace(/:/g, '').padStart(8, '0');
         const groups = [];
-        for (let i = 0; i < 8; i += 2) {
-            groups.push(parseInt(stripped.slice(i, i + 2), 16));
+        let i;
+        for (i = 0; i < 8; i += 2) {
+            const h = padded.slice(i, i + 2);
+            groups.push(parseInt(h, 16));
         }
         return new Address4(groups.join('.'));
     }
     /**
-     * Converts an integer into a IPv4 address object. The integer must be a
-     * non-negative safe integer in the range `[0, 2**32 - 1]`; otherwise
-     * `AddressError` is thrown.
+     * Converts an integer into a IPv4 address object
+     * @memberof Address4
+     * @static
      * @param {integer} integer - a number to convert
      * @returns {Address4}
      */
     static fromInteger(integer) {
-        if (!Number.isInteger(integer) || integer < 0 || integer > 0xffffffff) {
-            throw new address_error_1$1.AddressError('IPv4 integer must be in the range 0 to 2**32 - 1');
-        }
-        return Address4.fromHex(integer.toString(16).padStart(8, '0'));
+        return Address4.fromHex(integer.toString(16));
     }
     /**
      * Return an address from in-addr.arpa form
+     * @memberof Address4
+     * @static
      * @param {string} arpaFormAddress - an 'in-addr.arpa' form ipv4 address
      * @returns {Adress4}
      * @example
@@ -30674,15 +30582,17 @@ class Address4 {
     }
     /**
      * Converts an IPv4 address object to a hex string
+     * @memberof Address4
+     * @instance
      * @returns {String}
      */
     toHex() {
         return this.parsedAddress.map((part) => common$1.stringToPaddedHex(part)).join(':');
     }
     /**
-     * Converts an IPv4 address object to an array of bytes.
-     *
-     * To get a Node.js `Buffer`, wrap the result: `Buffer.from(address.toArray())`.
+     * Converts an IPv4 address object to an array of bytes
+     * @memberof Address4
+     * @instance
      * @returns {Array}
      */
     toArray() {
@@ -30690,6 +30600,8 @@ class Address4 {
     }
     /**
      * Converts an IPv4 address object to an IPv6 address group
+     * @memberof Address4
+     * @instance
      * @returns {String}
      */
     toGroup6() {
@@ -30702,6 +30614,8 @@ class Address4 {
     }
     /**
      * Returns the address as a `bigint`
+     * @memberof Address4
+     * @instance
      * @returns {bigint}
      */
     bigInt() {
@@ -30709,6 +30623,8 @@ class Address4 {
     }
     /**
      * Helper function getting start address.
+     * @memberof Address4
+     * @instance
      * @returns {bigint}
      */
     _startAddress() {
@@ -30717,6 +30633,8 @@ class Address4 {
     /**
      * The first address in the range given by this address' subnet.
      * Often referred to as the Network Address.
+     * @memberof Address4
+     * @instance
      * @returns {Address4}
      */
     startAddress() {
@@ -30725,6 +30643,8 @@ class Address4 {
     /**
      * The first host address in the range given by this address's subnet ie
      * the first address after the Network Address
+     * @memberof Address4
+     * @instance
      * @returns {Address4}
      */
     startAddressExclusive() {
@@ -30733,6 +30653,8 @@ class Address4 {
     }
     /**
      * Helper function getting end address.
+     * @memberof Address4
+     * @instance
      * @returns {bigint}
      */
     _endAddress() {
@@ -30741,6 +30663,8 @@ class Address4 {
     /**
      * The last address in the range given by this address' subnet
      * Often referred to as the Broadcast
+     * @memberof Address4
+     * @instance
      * @returns {Address4}
      */
     endAddress() {
@@ -30749,6 +30673,8 @@ class Address4 {
     /**
      * The last host address in the range given by this address's subnet ie
      * the last address prior to the Broadcast Address
+     * @memberof Address4
+     * @instance
      * @returns {Address4}
      */
     endAddressExclusive() {
@@ -30756,47 +30682,19 @@ class Address4 {
         return Address4.fromBigInt(this._endAddress() - adjust);
     }
     /**
-     * The dotted-decimal form of the subnet mask, e.g. `255.255.240.0` for
-     * a `/20`. Returns an `Address4`; call `.correctForm()` for the string.
-     * @returns {Address4}
-     */
-    subnetMaskAddress() {
-        return Address4.fromBigInt(BigInt(`0b${'1'.repeat(this.subnetMask)}${'0'.repeat(constants$1.BITS - this.subnetMask)}`));
-    }
-    /**
-     * The Cisco-style wildcard mask, e.g. `0.0.0.255` for a `/24`. This is
-     * the bitwise inverse of `subnetMaskAddress()`. Returns an `Address4`;
-     * call `.correctForm()` for the string.
-     * @returns {Address4}
-     */
-    wildcardMask() {
-        return Address4.fromBigInt(BigInt(`0b${'0'.repeat(this.subnetMask)}${'1'.repeat(constants$1.BITS - this.subnetMask)}`));
-    }
-    /**
-     * The network address in CIDR string form, e.g. `192.168.1.0/24` for
-     * `192.168.1.5/24`. For an address with no explicit subnet the prefix is
-     * `/32`, e.g. `networkForm()` on `192.168.1.5` returns `192.168.1.5/32`.
-     * @returns {string}
-     */
-    networkForm() {
-        return `${this.startAddress().correctForm()}/${this.subnetMask}`;
-    }
-    /**
-     * Converts a BigInt to a v4 address object. The value must be in the
-     * range `[0, 2**32 - 1]`; otherwise `AddressError` is thrown.
+     * Converts a BigInt to a v4 address object
+     * @memberof Address4
+     * @static
      * @param {bigint} bigInt - a BigInt to convert
      * @returns {Address4}
      */
     static fromBigInt(bigInt) {
-        if (bigInt < 0n || bigInt > 0xffffffffn) {
-            throw new address_error_1$1.AddressError('IPv4 BigInt must be in the range 0 to 2**32 - 1');
-        }
-        return Address4.fromHex(bigInt.toString(16).padStart(8, '0'));
+        return Address4.fromHex(bigInt.toString(16));
     }
     /**
-     * Convert a byte array to an Address4 object.
-     *
-     * To convert from a Node.js `Buffer`, spread it: `Address4.fromByteArray([...buf])`.
+     * Convert a byte array to an Address4 object
+     * @memberof Address4
+     * @static
      * @param {Array<number>} bytes - an array of 4 bytes (0-255)
      * @returns {Address4}
      */
@@ -30814,6 +30712,8 @@ class Address4 {
     }
     /**
      * Convert an unsigned byte array to an Address4 object
+     * @memberof Address4
+     * @static
      * @param {Array<number>} bytes - an array of 4 unsigned bytes (0-255)
      * @returns {Address4}
      */
@@ -30827,6 +30727,8 @@ class Address4 {
     /**
      * Returns the first n bits of the address, defaulting to the
      * subnet mask
+     * @memberof Address4
+     * @instance
      * @returns {String}
      */
     mask(mask) {
@@ -30837,6 +30739,8 @@ class Address4 {
     }
     /**
      * Returns the bits in the given range as a base-2 string
+     * @memberof Address4
+     * @instance
      * @returns {string}
      */
     getBitsBase2(start, end) {
@@ -30844,8 +30748,10 @@ class Address4 {
     }
     /**
      * Return the reversed ip6.arpa form of the address
+     * @memberof Address4
      * @param {Object} options
      * @param {boolean} options.omitSuffix - omit the "in-addr.arpa" suffix
+     * @instance
      * @returns {String}
      */
     reverseForm(options) {
@@ -30860,62 +30766,21 @@ class Address4 {
     }
     /**
      * Returns true if the given address is a multicast address
+     * @memberof Address4
+     * @instance
      * @returns {boolean}
      */
     isMulticast() {
-        return this.isInSubnet(MULTICAST_V4);
-    }
-    /**
-     * Returns true if the address is in one of the [RFC 1918](https://datatracker.ietf.org/doc/html/rfc1918) private address ranges (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`).
-     * @returns {boolean}
-     */
-    isPrivate() {
-        return PRIVATE_V4.some((subnet) => this.isInSubnet(subnet));
-    }
-    /**
-     * Returns true if the address is in the loopback range `127.0.0.0/8` ([RFC 1122](https://datatracker.ietf.org/doc/html/rfc1122)).
-     * @returns {boolean}
-     */
-    isLoopback() {
-        return this.isInSubnet(LOOPBACK_V4);
-    }
-    /**
-     * Returns true if the address is in the link-local range `169.254.0.0/16` ([RFC 3927](https://datatracker.ietf.org/doc/html/rfc3927)).
-     * @returns {boolean}
-     */
-    isLinkLocal() {
-        return this.isInSubnet(LINK_LOCAL_V4);
-    }
-    /**
-     * Returns true if the address is the unspecified address `0.0.0.0`.
-     * @returns {boolean}
-     */
-    isUnspecified() {
-        return this.isInSubnet(UNSPECIFIED_V4);
-    }
-    /**
-     * Returns true if the address is the limited broadcast address `255.255.255.255` ([RFC 919](https://datatracker.ietf.org/doc/html/rfc919)).
-     * @returns {boolean}
-     */
-    isBroadcast() {
-        return this.isInSubnet(BROADCAST_V4);
-    }
-    /**
-     * Returns true if the address is in the carrier-grade NAT range `100.64.0.0/10` ([RFC 6598](https://datatracker.ietf.org/doc/html/rfc6598)).
-     * @returns {boolean}
-     */
-    isCGNAT() {
-        return this.isInSubnet(CGNAT_V4);
+        return this.isInSubnet(new Address4('224.0.0.0/4'));
     }
     /**
      * Returns a zero-padded base-2 string representation of the address
+     * @memberof Address4
+     * @instance
      * @returns {string}
      */
     binaryZeroPad() {
-        if (this._binaryZeroPad === undefined) {
-            this._binaryZeroPad = this.bigInt().toString(2).padStart(constants$1.BITS, '0');
-        }
-        return this._binaryZeroPad;
+        return this.bigInt().toString(2).padStart(constants$1.BITS, '0');
     }
     /**
      * Groups an IPv4 address for inclusion at the end of an IPv6 address
@@ -30931,17 +30796,6 @@ class Address4 {
     }
 }
 ipv4.Address4 = Address4;
-const MULTICAST_V4 = new Address4('224.0.0.0/4');
-const PRIVATE_V4 = [
-    new Address4('10.0.0.0/8'),
-    new Address4('172.16.0.0/12'),
-    new Address4('192.168.0.0/16'),
-];
-const LOOPBACK_V4 = new Address4('127.0.0.0/8');
-const LINK_LOCAL_V4 = new Address4('169.254.0.0/16');
-const UNSPECIFIED_V4 = new Address4('0.0.0.0/32');
-const BROADCAST_V4 = new Address4('255.255.255.255/32');
-const CGNAT_V4 = new Address4('100.64.0.0/10');
 
 var ipv6 = {};
 
@@ -30994,11 +30848,6 @@ constants.TYPES = {
     '::1/128': 'Loopback',
     'ff00::/8': 'Multicast',
     'fe80::/10': 'Link-local unicast',
-    'fc00::/7': 'Unique local',
-    '2002::/16': '6to4',
-    '2001:db8::/32': 'Documentation',
-    '64:ff9b::/96': 'NAT64 (well-known)',
-    '64:ff9b:1::/48': 'NAT64 (local-use)',
 };
 /**
  * A regular expression that matches bad characters in an IPv6 address
@@ -31030,24 +30879,15 @@ constants.RE_URL_WITH_PORT = /\[([0-9a-f:]+)\]:([0-9]{1,5})/;
 var helpers$1 = {};
 
 Object.defineProperty(helpers$1, "__esModule", { value: true });
-helpers$1.escapeHtml = escapeHtml;
 helpers$1.spanAllZeroes = spanAllZeroes;
 helpers$1.spanAll = spanAll;
 helpers$1.spanLeadingZeroes = spanLeadingZeroes;
 helpers$1.simpleGroup = simpleGroup;
-function escapeHtml(s) {
-    return s
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
 /**
  * @returns {String} the string with all zeroes contained in a <span>
  */
 function spanAllZeroes(s) {
-    return escapeHtml(s).replace(/(0+)/g, '<span class="zero">$1</span>');
+    return s.replace(/(0+)/g, '<span class="zero">$1</span>');
 }
 /**
  * @returns {String} the string with each character contained in a <span>
@@ -31055,11 +30895,11 @@ function spanAllZeroes(s) {
 function spanAll(s, offset = 0) {
     const letters = s.split('');
     return letters
-        .map((n, i) => `<span class="digit value-${escapeHtml(n)} position-${i + offset}">${spanAllZeroes(n)}</span>`)
+        .map((n, i) => `<span class="digit value-${n} position-${i + offset}">${spanAllZeroes(n)}</span>`)
         .join('');
 }
 function spanLeadingZeroesSimple(group) {
-    return escapeHtml(group).replace(/^(0+)/, '<span class="zero">$1</span>');
+    return group.replace(/^(0+)/, '<span class="zero">$1</span>');
 }
 /**
  * @returns {String} the string with leading zeroes contained in a <span>
@@ -31213,7 +31053,6 @@ const ipv4_1 = ipv4;
 const regular_expressions_1 = regularExpressions;
 const address_error_1 = addressError;
 const common_1 = common$2;
-const isCorrect6 = common.isCorrect(constants6.BITS);
 function assert(condition) {
     if (!condition) {
         throw new Error('Assertion failed.');
@@ -31257,6 +31096,7 @@ function unsignByte(b) {
 }
 /**
  * Represents an IPv6 address
+ * @class Address6
  * @param {string} address - An IPv6 address string
  * @param {number} [groups=8] - How many octets to parse
  * @example
@@ -31273,14 +31113,18 @@ class Address6 {
         // #region Attributes
         /**
          * Returns true if the given address is in the subnet of the current address
+         * @memberof Address6
+         * @instance
          * @returns {boolean}
          */
         this.isInSubnet = common.isInSubnet;
         /**
          * Returns true if the address is correct, false otherwise
+         * @memberof Address6
+         * @instance
          * @returns {boolean}
          */
-        this.isCorrect = isCorrect6;
+        this.isCorrect = common.isCorrect(constants6.BITS);
         if (optionalGroups === undefined) {
             this.groups = constants6.GROUPS;
         }
@@ -31311,13 +31155,6 @@ class Address6 {
         this.addressMinusSuffix = address;
         this.parsedAddress = this.parse(this.addressMinusSuffix);
     }
-    /**
-     * Returns true if the given string is a valid IPv6 address (with optional
-     * CIDR subnet and zone identifier), false otherwise. Host bits in the
-     * subnet portion are allowed (e.g. `2001:db8::1/32` is valid); for strict
-     * network-address validation compare `correctForm()` to
-     * `startAddress().correctForm()`, or use `networkForm()`.
-     */
     static isValid(address) {
         try {
             // eslint-disable-next-line no-new
@@ -31329,8 +31166,9 @@ class Address6 {
         }
     }
     /**
-     * Convert a BigInt to a v6 address object. The value must be in the
-     * range `[0, 2**128 - 1]`; otherwise `AddressError` is thrown.
+     * Convert a BigInt to a v6 address object
+     * @memberof Address6
+     * @static
      * @param {bigint} bigInt - a BigInt to convert
      * @returns {Address6}
      * @example
@@ -31339,21 +31177,19 @@ class Address6 {
      * address.correctForm(); // '::e8:d4a5:1000'
      */
     static fromBigInt(bigInt) {
-        if (bigInt < 0n || bigInt > (1n << BigInt(constants6.BITS)) - 1n) {
-            throw new address_error_1.AddressError('IPv6 BigInt must be in the range 0 to 2**128 - 1');
-        }
         const hex = bigInt.toString(16).padStart(32, '0');
         const groups = [];
-        for (let i = 0; i < constants6.GROUPS; i++) {
+        let i;
+        for (i = 0; i < constants6.GROUPS; i++) {
             groups.push(hex.slice(i * 4, (i + 1) * 4));
         }
         return new Address6(groups.join(':'));
     }
     /**
-     * Parse a URL (with optional bracketed host and port) into an address and
-     * port. Returns either `{ address, port }` on success or
-     * `{ error, address: null, port: null }` if the URL could not be parsed.
-     * Ports are returned as numbers (or `null` if absent or out of range).
+     * Convert a URL (with optional port number) to an address object
+     * @memberof Address6
+     * @static
+     * @param {string} url - a URL with optional port number
      * @example
      * var addressAndPort = Address6.fromURL('http://[ffff::]:8080/foo/');
      * addressAndPort.address.correctForm(); // 'ffff::'
@@ -31413,91 +31249,9 @@ class Address6 {
         };
     }
     /**
-     * Construct an `Address6` from an address and a hex subnet mask given as
-     * separate strings (e.g. as returned by Node's `os.networkInterfaces()`).
-     * Throws `AddressError` if the mask is non-contiguous (e.g.
-     * `ffff::ffff`).
-     * @example
-     * var address = Address6.fromAddressAndMask('fe80::1', 'ffff:ffff:ffff:ffff::');
-     * address.subnetMask; // 64
-     */
-    static fromAddressAndMask(address, mask) {
-        const bits = common.prefixLengthFromMask(new Address6(mask).bigInt(), constants6.BITS);
-        return new Address6(`${address}/${bits}`);
-    }
-    /**
-     * Construct an `Address6` from an address and a Cisco-style wildcard mask
-     * given as separate strings (e.g. `::ffff:ffff:ffff:ffff` for a `/64`).
-     * The wildcard mask is the bitwise inverse of the subnet mask. Throws
-     * `AddressError` if the mask is non-contiguous.
-     * @example
-     * var address = Address6.fromAddressAndWildcardMask('fe80::1', '::ffff:ffff:ffff:ffff');
-     * address.subnetMask; // 64
-     */
-    static fromAddressAndWildcardMask(address, wildcardMask) {
-        const wildcard = new Address6(wildcardMask).bigInt();
-        const allOnes = (BigInt(1) << BigInt(constants6.BITS)) - BigInt(1);
-        // eslint-disable-next-line no-bitwise
-        const mask = wildcard ^ allOnes;
-        const bits = common.prefixLengthFromMask(mask, constants6.BITS);
-        return new Address6(`${address}/${bits}`);
-    }
-    /**
-     * Construct an `Address6` from a wildcard pattern with trailing `*`
-     * groups. The number of trailing wildcards determines the prefix
-     * length: each `*` represents 16 bits. `::` is expanded to zero groups
-     * (not wildcards) before evaluating trailing wildcards.
-     *
-     * Only trailing whole-group wildcards are supported. Partial-group
-     * wildcards (e.g. `2001:db8::0*`) and interior wildcards (e.g.
-     * `*::1`) throw `AddressError`.
-     * @example
-     * Address6.fromWildcard('2001:db8:*:*:*:*:*:*').subnet;  // '/32'
-     * Address6.fromWildcard('2001:db8::*').subnet;           // '/112'
-     * Address6.fromWildcard('*:*:*:*:*:*:*:*').subnet;       // '/0'
-     */
-    static fromWildcard(input) {
-        if (input.includes('%') || input.includes('/')) {
-            throw new address_error_1.AddressError('Wildcard pattern must not include a zone or CIDR suffix');
-        }
-        const halves = input.split('::');
-        if (halves.length > 2) {
-            throw new address_error_1.AddressError("Wildcard pattern cannot contain more than one '::'");
-        }
-        let groups;
-        if (halves.length === 2) {
-            const left = halves[0] === '' ? [] : halves[0].split(':');
-            const right = halves[1] === '' ? [] : halves[1].split(':');
-            const remaining = constants6.GROUPS - left.length - right.length;
-            if (remaining < 1) {
-                throw new address_error_1.AddressError("Wildcard pattern with '::' has too many groups");
-            }
-            groups = [...left, ...new Array(remaining).fill('0'), ...right];
-        }
-        else {
-            groups = input.split(':');
-        }
-        if (groups.length !== constants6.GROUPS) {
-            throw new address_error_1.AddressError('Wildcard pattern must have 8 groups');
-        }
-        let firstWildcard = -1;
-        for (let i = 0; i < groups.length; i++) {
-            if (groups[i] === '*') {
-                if (firstWildcard === -1) {
-                    firstWildcard = i;
-                }
-            }
-            else if (firstWildcard !== -1) {
-                throw new address_error_1.AddressError('Wildcard `*` must only appear in trailing groups (e.g. `2001:db8:*:*:*:*:*:*`)');
-            }
-        }
-        const trailing = firstWildcard === -1 ? 0 : groups.length - firstWildcard;
-        const replaced = groups.map((g) => (g === '*' ? '0' : g));
-        const subnetBits = constants6.BITS - trailing * 16;
-        return new Address6(`${replaced.join(':')}/${subnetBits}`);
-    }
-    /**
      * Create an IPv6-mapped address given an IPv4 address
+     * @memberof Address6
+     * @static
      * @param {string} address - An IPv4 address string
      * @returns {Address6}
      * @example
@@ -31512,6 +31266,8 @@ class Address6 {
     }
     /**
      * Return an address from ip6.arpa form
+     * @memberof Address6
+     * @static
      * @param {string} arpaFormAddress - an 'ip6.arpa' form address
      * @returns {Adress6}
      * @example
@@ -31536,6 +31292,8 @@ class Address6 {
     }
     /**
      * Return the Microsoft UNC transcription of the address
+     * @memberof Address6
+     * @instance
      * @returns {String} the Microsoft UNC transcription of the address
      */
     microsoftTranscription() {
@@ -31543,6 +31301,8 @@ class Address6 {
     }
     /**
      * Return the first n bits of the address, defaulting to the subnet mask
+     * @memberof Address6
+     * @instance
      * @param {number} [mask=subnet] - the number of bits to mask
      * @returns {String} the first n bits of the address as a string
      */
@@ -31551,6 +31311,8 @@ class Address6 {
     }
     /**
      * Return the number of possible subnets of a given size in the address
+     * @memberof Address6
+     * @instance
      * @param {number} [subnetSize=128] - the subnet size
      * @returns {String}
      */
@@ -31566,6 +31328,8 @@ class Address6 {
     }
     /**
      * Helper function getting start address.
+     * @memberof Address6
+     * @instance
      * @returns {bigint}
      */
     _startAddress() {
@@ -31574,6 +31338,8 @@ class Address6 {
     /**
      * The first address in the range given by this address' subnet
      * Often referred to as the Network Address.
+     * @memberof Address6
+     * @instance
      * @returns {Address6}
      */
     startAddress() {
@@ -31582,6 +31348,8 @@ class Address6 {
     /**
      * The first host address in the range given by this address's subnet ie
      * the first address after the Network Address
+     * @memberof Address6
+     * @instance
      * @returns {Address6}
      */
     startAddressExclusive() {
@@ -31590,6 +31358,8 @@ class Address6 {
     }
     /**
      * Helper function getting end address.
+     * @memberof Address6
+     * @instance
      * @returns {bigint}
      */
     _endAddress() {
@@ -31598,6 +31368,8 @@ class Address6 {
     /**
      * The last address in the range given by this address' subnet
      * Often referred to as the Broadcast
+     * @memberof Address6
+     * @instance
      * @returns {Address6}
      */
     endAddress() {
@@ -31606,6 +31378,8 @@ class Address6 {
     /**
      * The last host address in the range given by this address's subnet ie
      * the last address prior to the Broadcast Address
+     * @memberof Address6
+     * @instance
      * @returns {Address6}
      */
     endAddressExclusive() {
@@ -31613,73 +31387,36 @@ class Address6 {
         return Address6.fromBigInt(this._endAddress() - adjust);
     }
     /**
-     * The hex form of the subnet mask, e.g. `ffff:ffff:ffff:ffff::` for a
-     * `/64`. Returns an `Address6`; call `.correctForm()` for the string.
-     * @returns {Address6}
-     */
-    subnetMaskAddress() {
-        return Address6.fromBigInt(BigInt(`0b${'1'.repeat(this.subnetMask)}${'0'.repeat(constants6.BITS - this.subnetMask)}`));
-    }
-    /**
-     * The Cisco-style wildcard mask, e.g. `::ffff:ffff:ffff:ffff` for a
-     * `/64`. This is the bitwise inverse of `subnetMaskAddress()`. Returns
-     * an `Address6`; call `.correctForm()` for the string.
-     * @returns {Address6}
-     */
-    wildcardMask() {
-        return Address6.fromBigInt(BigInt(`0b${'0'.repeat(this.subnetMask)}${'1'.repeat(constants6.BITS - this.subnetMask)}`));
-    }
-    /**
-     * The network address in CIDR string form, e.g. `2001:db8::/32` for
-     * `2001:db8::1/32`. For an address with no explicit subnet the prefix
-     * is `/128`, e.g. `networkForm()` on `2001:db8::1` returns
-     * `2001:db8::1/128`.
-     * @returns {string}
-     */
-    networkForm() {
-        return `${this.startAddress().correctForm()}/${this.subnetMask}`;
-    }
-    /**
-     * Return the scope of the address. The 4-bit scope field
-     * ([RFC 4291 §2.7](https://datatracker.ietf.org/doc/html/rfc4291#section-2.7))
-     * is only defined for multicast addresses; for unicast addresses the scope
-     * is derived from the address type per
-     * [RFC 4007 §6](https://datatracker.ietf.org/doc/html/rfc4007#section-6).
+     * Return the scope of the address
+     * @memberof Address6
+     * @instance
      * @returns {String}
      */
     getScope() {
-        const type = this.getType();
-        if (type === 'Multicast' || type.startsWith('Multicast ')) {
-            const scope = constants6.SCOPES[parseInt(this.getBits(12, 16).toString(10), 10)];
-            return scope || 'Unknown';
+        let scope = constants6.SCOPES[parseInt(this.getBits(12, 16).toString(10), 10)];
+        if (this.getType() === 'Global unicast' && scope !== 'Link local') {
+            scope = 'Global';
         }
-        // RFC 4291 §2.5.3: the loopback address is treated as having Link-Local
-        // scope. (Multicast scope 1, "Interface-Local", is a different concept
-        // used only for loopback transmission of multicast.)
-        if (type === 'Link-local unicast' || type === 'Loopback') {
-            return 'Link local';
-        }
-        // RFC 4007 §6: the unspecified address has no scope.
-        if (type === 'Unspecified') {
-            return 'Unknown';
-        }
-        return 'Global';
+        return scope || 'Unknown';
     }
     /**
      * Return the type of the address
+     * @memberof Address6
+     * @instance
      * @returns {String}
      */
     getType() {
-        for (let i = 0; i < TYPE_SUBNETS.length; i++) {
-            const entry = TYPE_SUBNETS[i];
-            if (this.isInSubnet(entry[0])) {
-                return entry[1];
+        for (const subnet of Object.keys(constants6.TYPES)) {
+            if (this.isInSubnet(new Address6(subnet))) {
+                return constants6.TYPES[subnet];
             }
         }
         return 'Global unicast';
     }
     /**
      * Return the bits in the given range as a BigInt
+     * @memberof Address6
+     * @instance
      * @returns {bigint}
      */
     getBits(start, end) {
@@ -31687,6 +31424,8 @@ class Address6 {
     }
     /**
      * Return the bits in the given range as a base-2 string
+     * @memberof Address6
+     * @instance
      * @returns {String}
      */
     getBitsBase2(start, end) {
@@ -31694,6 +31433,8 @@ class Address6 {
     }
     /**
      * Return the bits in the given range as a base-16 string
+     * @memberof Address6
+     * @instance
      * @returns {String}
      */
     getBitsBase16(start, end) {
@@ -31707,6 +31448,8 @@ class Address6 {
     }
     /**
      * Return the bits that are set past the subnet mask length
+     * @memberof Address6
+     * @instance
      * @returns {String}
      */
     getBitsPastSubnet() {
@@ -31714,8 +31457,10 @@ class Address6 {
     }
     /**
      * Return the reversed ip6.arpa form of the address
+     * @memberof Address6
      * @param {Object} options
      * @param {boolean} options.omitSuffix - omit the "ip6.arpa" suffix
+     * @instance
      * @returns {String}
      */
     reverseForm(options) {
@@ -31741,10 +31486,10 @@ class Address6 {
         return 'ip6.arpa.';
     }
     /**
-     * Returns the address in correct form, per
-     * [RFC 5952](https://datatracker.ietf.org/doc/html/rfc5952): leading zeros
-     * stripped, the longest run of zero groups collapsed to `::`, and hex digits
-     * lowercased (e.g. `2001:db8::1`). This is the recommended form for display.
+     * Return the correct form of the address
+     * @memberof Address6
+     * @instance
+     * @returns {String}
      */
     correctForm() {
         let i;
@@ -31788,6 +31533,8 @@ class Address6 {
     }
     /**
      * Return a zero-padded base-2 string representation of the address
+     * @memberof Address6
+     * @instance
      * @returns {String}
      * @example
      * var address = new Address6('2001:4860:4001:803::1011');
@@ -31796,22 +31543,10 @@ class Address6 {
      * //  0000000000000000000000000000000000000000000000000001000000010001'
      */
     binaryZeroPad() {
-        if (this._binaryZeroPad === undefined) {
-            this._binaryZeroPad = this.bigInt().toString(2).padStart(constants6.BITS, '0');
-        }
-        return this._binaryZeroPad;
+        return this.bigInt().toString(2).padStart(constants6.BITS, '0');
     }
-    /**
-     * Parses a v4-in-v6 string (e.g. `::ffff:192.168.0.1`) by extracting the
-     * trailing IPv4 address into `this.address4` / `this.parsedAddress4` and
-     * returning the address with the v4 portion converted to two v6 groups.
-     * Used internally by `parse()`.
-     */
     // TODO: Improve the semantics of this helper function
     parse4in6(address) {
-        if (address.indexOf('.') === -1) {
-            return address;
-        }
         const groups = address.split(':');
         const lastGroup = groups.slice(-1)[0];
         const address4 = lastGroup.match(constants4.RE_ADDRESS);
@@ -31820,12 +31555,7 @@ class Address6 {
             this.address4 = new ipv4_1.Address4(this.parsedAddress4);
             for (let i = 0; i < this.address4.groups; i++) {
                 if (/^0[0-9]+/.test(this.address4.parsedAddress[i])) {
-                    // The prefix groups haven't been through the bad-character check
-                    // yet, so escape them before including in the error HTML.
-                    const highlighted = this.address4.parsedAddress.map(spanLeadingZeroes4).join('.');
-                    const prefix = groups.slice(0, -1).map(helpers.escapeHtml).join(':');
-                    const separator = groups.length > 1 ? ':' : '';
-                    throw new address_error_1.AddressError("IPv4 addresses can't have leading zeroes.", `${prefix}${separator}${highlighted}`);
+                    throw new address_error_1.AddressError("IPv4 addresses can't have leading zeroes.", address.replace(constants4.RE_ADDRESS, this.address4.parsedAddress.map(spanLeadingZeroes4).join('.')));
                 }
             }
             this.v4 = true;
@@ -31834,13 +31564,6 @@ class Address6 {
         }
         return address;
     }
-    /**
-     * Parses an IPv6 address string into its 8 hexadecimal groups (expanding
-     * any `::` elision and any trailing v4-in-v6 portion) and stores the result
-     * on `this.parsedAddress`. Called automatically by the constructor; you
-     * typically don't need to call it directly. Throws `AddressError` if the
-     * input is malformed.
-     */
     // TODO: Make private?
     parse(address) {
         address = this.parse4in6(address);
@@ -31890,16 +31613,18 @@ class Address6 {
         return groups;
     }
     /**
-     * Returns the canonical (fully expanded) form of the address: all 8 groups,
-     * each padded to 4 hex digits, with no `::` collapsing
-     * (e.g. `2001:0db8:0000:0000:0000:0000:0000:0001`). Useful for sorting and
-     * byte-exact comparison.
+     * Return the canonical form of the address
+     * @memberof Address6
+     * @instance
+     * @returns {String}
      */
     canonicalForm() {
         return this.parsedAddress.map(paddedHex).join(':');
     }
     /**
      * Return the decimal form of the address
+     * @memberof Address6
+     * @instance
      * @returns {String}
      */
     decimal() {
@@ -31907,6 +31632,8 @@ class Address6 {
     }
     /**
      * Return the address as a BigInt
+     * @memberof Address6
+     * @instance
      * @returns {bigint}
      */
     bigInt() {
@@ -31914,6 +31641,8 @@ class Address6 {
     }
     /**
      * Return the last two groups of this address as an IPv4 address string
+     * @memberof Address6
+     * @instance
      * @returns {Address4}
      * @example
      * var address = new Address6('2001:4860:4001::1825:bf11');
@@ -31921,10 +31650,12 @@ class Address6 {
      */
     to4() {
         const binary = this.binaryZeroPad().split('');
-        return ipv4_1.Address4.fromHex(BigInt(`0b${binary.slice(96, 128).join('')}`).toString(16).padStart(8, '0'));
+        return ipv4_1.Address4.fromHex(BigInt(`0b${binary.slice(96, 128).join('')}`).toString(16));
     }
     /**
      * Return the v4-in-v6 form of the address
+     * @memberof Address6
+     * @instance
      * @returns {String}
      */
     to4in6() {
@@ -31938,10 +31669,10 @@ class Address6 {
         return correct + infix + address4.address;
     }
     /**
-     * Decodes the Teredo tunneling fields embedded in this address. Returns the
-     * Teredo prefix, server IPv4, client IPv4, raw flag bits, cone-NAT flag,
-     * UDP port, and Microsoft-format flag breakdown (reserved, universal/local,
-     * group/individual, nonce). Only meaningful for addresses in `2001::/32`.
+     * Return an object containing the Teredo properties of the address
+     * @memberof Address6
+     * @instance
+     * @returns {Object}
      */
     inspectTeredo() {
         /*
@@ -31972,7 +31703,7 @@ class Address6 {
         const server4 = ipv4_1.Address4.fromHex(this.getBitsBase16(32, 64));
         const bitsForClient4 = this.getBits(96, 128);
         // eslint-disable-next-line no-bitwise
-        const client4 = ipv4_1.Address4.fromHex((bitsForClient4 ^ BigInt('0xffffffff')).toString(16).padStart(8, '0'));
+        const client4 = ipv4_1.Address4.fromHex((bitsForClient4 ^ BigInt('0xffffffff')).toString(16));
         const flagsBase2 = this.getBitsBase2(64, 80);
         const coneNat = (0, common_1.testBit)(flagsBase2, 15);
         const reserved = (0, common_1.testBit)(flagsBase2, 14);
@@ -31995,9 +31726,10 @@ class Address6 {
         };
     }
     /**
-     * Decodes the 6to4 tunneling fields embedded in this address. Returns the
-     * 6to4 prefix and the embedded IPv4 gateway address. Only meaningful for
-     * addresses in `2002::/16`.
+     * Return an object containing the 6to4 properties of the address
+     * @memberof Address6
+     * @instance
+     * @returns {Object}
      */
     inspect6to4() {
         /*
@@ -32013,6 +31745,8 @@ class Address6 {
     }
     /**
      * Return a v6 6to4 address from a v6 v4inv6 address
+     * @memberof Address6
+     * @instance
      * @returns {Address6}
      */
     to6to4() {
@@ -32029,80 +31763,9 @@ class Address6 {
         return new Address6(addr6to4);
     }
     /**
-     * Embed an IPv4 address into a NAT64 IPv6 address using the encoding
-     * defined by [RFC 6052](https://datatracker.ietf.org/doc/html/rfc6052).
-     * The default prefix is the well-known prefix `64:ff9b::/96`. The prefix
-     * length must be one of 32, 40, 48, 56, 64, or 96; for prefixes shorter
-     * than /64 the IPv4 octets are split around the reserved bits 64–71.
-     * @example
-     * Address6.fromAddress4Nat64('192.0.2.33').correctForm(); // '64:ff9b::c000:221'
-     * Address6.fromAddress4Nat64('192.0.2.33', '2001:db8::/32').correctForm(); // '2001:db8:c000:221::'
-     */
-    static fromAddress4Nat64(address, prefix = '64:ff9b::/96') {
-        const v4 = new ipv4_1.Address4(address);
-        const prefix6 = new Address6(prefix);
-        const pl = prefix6.subnetMask;
-        if (pl !== 32 && pl !== 40 && pl !== 48 && pl !== 56 && pl !== 64 && pl !== 96) {
-            throw new address_error_1.AddressError('NAT64 prefix length must be 32, 40, 48, 56, 64, or 96');
-        }
-        const prefixBits = prefix6.binaryZeroPad();
-        const v4Bits = v4.binaryZeroPad();
-        let bits;
-        if (pl === 96) {
-            bits = prefixBits.slice(0, 96) + v4Bits;
-        }
-        else {
-            const beforeU = 64 - pl;
-            bits =
-                prefixBits.slice(0, pl) +
-                    v4Bits.slice(0, beforeU) +
-                    '00000000' +
-                    v4Bits.slice(beforeU) +
-                    '0'.repeat(128 - 72 - (32 - beforeU));
-        }
-        const hex = BigInt(`0b${bits}`).toString(16).padStart(32, '0');
-        const groups = [];
-        for (let i = 0; i < 8; i++) {
-            groups.push(hex.slice(i * 4, (i + 1) * 4));
-        }
-        return new Address6(groups.join(':'));
-    }
-    /**
-     * Extract the embedded IPv4 address from a NAT64 IPv6 address using the
-     * encoding defined by [RFC 6052](https://datatracker.ietf.org/doc/html/rfc6052).
-     * The default prefix is the well-known prefix `64:ff9b::/96`. Returns
-     * `null` if this address is not contained within the given prefix.
-     * @example
-     * new Address6('64:ff9b::c000:221').toAddress4Nat64()!.correctForm(); // '192.0.2.33'
-     */
-    toAddress4Nat64(prefix = '64:ff9b::/96') {
-        const prefix6 = new Address6(prefix);
-        const pl = prefix6.subnetMask;
-        if (pl !== 32 && pl !== 40 && pl !== 48 && pl !== 56 && pl !== 64 && pl !== 96) {
-            throw new address_error_1.AddressError('NAT64 prefix length must be 32, 40, 48, 56, 64, or 96');
-        }
-        if (!this.isInSubnet(prefix6)) {
-            return null;
-        }
-        const bits = this.binaryZeroPad();
-        let v4Bits;
-        if (pl === 96) {
-            v4Bits = bits.slice(96, 128);
-        }
-        else {
-            const beforeU = 64 - pl;
-            v4Bits = bits.slice(pl, pl + beforeU) + bits.slice(72, 72 + (32 - beforeU));
-        }
-        const octets = [];
-        for (let i = 0; i < 4; i++) {
-            octets.push(parseInt(v4Bits.slice(i * 8, (i + 1) * 8), 2).toString());
-        }
-        return new ipv4_1.Address4(octets.join('.'));
-    }
-    /**
-     * Return a byte array.
-     *
-     * To get a Node.js `Buffer`, wrap the result: `Buffer.from(address.toByteArray())`.
+     * Return a byte array
+     * @memberof Address6
+     * @instance
      * @returns {Array}
      */
     toByteArray() {
@@ -32116,27 +31779,27 @@ class Address6 {
         return bytes;
     }
     /**
-     * Return an unsigned byte array.
-     *
-     * To get a Node.js `Buffer`, wrap the result: `Buffer.from(address.toUnsignedByteArray())`.
+     * Return an unsigned byte array
+     * @memberof Address6
+     * @instance
      * @returns {Array}
      */
     toUnsignedByteArray() {
         return this.toByteArray().map(unsignByte);
     }
     /**
-     * Convert a byte array to an Address6 object.
-     *
-     * To convert from a Node.js `Buffer`, spread it: `Address6.fromByteArray([...buf])`.
+     * Convert a byte array to an Address6 object
+     * @memberof Address6
+     * @static
      * @returns {Address6}
      */
     static fromByteArray(bytes) {
         return this.fromUnsignedByteArray(bytes.map(unsignByte));
     }
     /**
-     * Convert an unsigned byte array to an Address6 object.
-     *
-     * To convert from a Node.js `Buffer`, spread it: `Address6.fromUnsignedByteArray([...buf])`.
+     * Convert an unsigned byte array to an Address6 object
+     * @memberof Address6
+     * @static
      * @returns {Address6}
      */
     static fromUnsignedByteArray(bytes) {
@@ -32151,6 +31814,8 @@ class Address6 {
     }
     /**
      * Returns true if the address is in the canonical form, false otherwise
+     * @memberof Address6
+     * @instance
      * @returns {boolean}
      */
     isCanonical() {
@@ -32158,6 +31823,8 @@ class Address6 {
     }
     /**
      * Returns true if the address is a link local address, false otherwise
+     * @memberof Address6
+     * @instance
      * @returns {boolean}
      */
     isLinkLocal() {
@@ -32170,81 +31837,53 @@ class Address6 {
     }
     /**
      * Returns true if the address is a multicast address, false otherwise
+     * @memberof Address6
+     * @instance
      * @returns {boolean}
      */
     isMulticast() {
-        const type = this.getType();
-        return type === 'Multicast' || type.startsWith('Multicast ');
+        return this.getType() === 'Multicast';
     }
     /**
-     * Returns true if the address was written in v4-in-v6 dotted-quad notation
-     * (e.g. `::ffff:127.0.0.1`), false otherwise. This is a notation-level flag
-     * and does not reflect whether the address bits lie in the IPv4-mapped
-     * (`::ffff:0:0/96`) subnet — for that, see {@link isMapped4}.
+     * Returns true if the address is a v4-in-v6 address, false otherwise
+     * @memberof Address6
+     * @instance
      * @returns {boolean}
      */
     is4() {
         return this.v4;
     }
     /**
-     * Returns true if the address is an IPv4-mapped IPv6 address in
-     * `::ffff:0:0/96` ([RFC 4291 §2.5.5.2](https://datatracker.ietf.org/doc/html/rfc4291#section-2.5.5.2)),
-     * false otherwise. Unlike {@link is4}, this checks the underlying address
-     * bits rather than the textual notation, so `::ffff:127.0.0.1` and
-     * `::ffff:7f00:1` both return true.
-     * @returns {boolean}
-     */
-    isMapped4() {
-        return this.isInSubnet(IPV4_MAPPED_SUBNET);
-    }
-    /**
      * Returns true if the address is a Teredo address, false otherwise
+     * @memberof Address6
+     * @instance
      * @returns {boolean}
      */
     isTeredo() {
-        return this.isInSubnet(TEREDO_SUBNET);
+        return this.isInSubnet(new Address6('2001::/32'));
     }
     /**
      * Returns true if the address is a 6to4 address, false otherwise
+     * @memberof Address6
+     * @instance
      * @returns {boolean}
      */
     is6to4() {
-        return this.isInSubnet(SIX_TO_FOUR_SUBNET);
+        return this.isInSubnet(new Address6('2002::/16'));
     }
     /**
      * Returns true if the address is a loopback address, false otherwise
+     * @memberof Address6
+     * @instance
      * @returns {boolean}
      */
     isLoopback() {
         return this.getType() === 'Loopback';
     }
-    /**
-     * Returns true if the address is a Unique Local Address in `fc00::/7` ([RFC 4193](https://datatracker.ietf.org/doc/html/rfc4193)). ULAs are the IPv6 equivalent of IPv4 [RFC 1918](https://datatracker.ietf.org/doc/html/rfc1918) private addresses.
-     * @returns {boolean}
-     */
-    isULA() {
-        return this.isInSubnet(ULA_SUBNET);
-    }
-    /**
-     * Returns true if the address is the unspecified address `::`.
-     * @returns {boolean}
-     */
-    isUnspecified() {
-        return this.getType() === 'Unspecified';
-    }
-    /**
-     * Returns true if the address is in the documentation prefix `2001:db8::/32` ([RFC 3849](https://datatracker.ietf.org/doc/html/rfc3849)).
-     * @returns {boolean}
-     */
-    isDocumentation() {
-        return this.isInSubnet(DOCUMENTATION_SUBNET);
-    }
     // #endregion
     // #region HTML
     /**
-     * Returns the address as an HTTP URL with the host bracketed, e.g.
-     * `http://[2001:db8::1]/`. If `optionalPort` is provided it is appended,
-     * e.g. `http://[2001:db8::1]:8080/`.
+     * @returns {String} the address in link form with a default port of 80
      */
     href(optionalPort) {
         if (optionalPort === undefined) {
@@ -32256,12 +31895,7 @@ class Address6 {
         return `http://[${this.correctForm()}]${optionalPort}/`;
     }
     /**
-     * Returns an HTML `<a>` element whose `href` encodes the address in a URL
-     * hash fragment (default prefix `/#address=`). Useful for linking between
-     * pages of an address-inspector UI.
-     * @param options.className - CSS class for the rendered `<a>` element
-     * @param options.prefix - hash prefix prepended to the address (default `/#address=`)
-     * @param options.v4 - when true, render the address in v4-in-v6 form
+     * @returns {String} a link suitable for conveying the address via a URL hash
      */
     link(options) {
         if (!options) {
@@ -32281,13 +31915,10 @@ class Address6 {
             formFunction = this.to4in6;
         }
         const form = formFunction.call(this);
-        const safeHref = helpers.escapeHtml(`${options.prefix}${form}`);
-        const safeForm = helpers.escapeHtml(form);
         if (options.className) {
-            const safeClass = helpers.escapeHtml(options.className);
-            return `<a href="${safeHref}" class="${safeClass}">${safeForm}</a>`;
+            return `<a href="${options.prefix}${form}" class="${options.className}">${form}</a>`;
         }
-        return `<a href="${safeHref}">${safeForm}</a>`;
+        return `<a href="${options.prefix}${form}">${form}</a>`;
     }
     /**
      * Groups an address
@@ -32296,13 +31927,13 @@ class Address6 {
     group() {
         if (this.elidedGroups === 0) {
             // The simple case
-            return helpers.simpleGroup(this.addressMinusSuffix).join(':');
+            return helpers.simpleGroup(this.address).join(':');
         }
         assert(typeof this.elidedGroups === 'number');
         assert(typeof this.elisionBegin === 'number');
         // The elided case
         const output = [];
-        const [left, right] = this.addressMinusSuffix.split('::');
+        const [left, right] = this.address.split('::');
         if (left.length) {
             output.push(...helpers.simpleGroup(left));
         }
@@ -32332,6 +31963,8 @@ class Address6 {
     /**
      * Generate a regular expression string that can be used to find or validate
      * all variations of this address
+     * @memberof Address6
+     * @instance
      * @param {boolean} substringSearch
      * @returns {string}
      */
@@ -32376,6 +32009,8 @@ class Address6 {
     /**
      * Generate a regular expression that can be used to find or validate all
      * variations of this address.
+     * @memberof Address6
+     * @instance
      * @param {boolean} substringSearch
      * @returns {RegExp}
      */
@@ -32384,15 +32019,6 @@ class Address6 {
     }
 }
 ipv6.Address6 = Address6;
-const TYPE_SUBNETS = Object.keys(constants6.TYPES).map((subnet) => [
-    new Address6(subnet),
-    constants6.TYPES[subnet],
-]);
-const TEREDO_SUBNET = new Address6('2001::/32');
-const SIX_TO_FOUR_SUBNET = new Address6('2002::/16');
-const ULA_SUBNET = new Address6('fc00::/7');
-const DOCUMENTATION_SUBNET = new Address6('2001:db8::/32');
-const IPV4_MAPPED_SUBNET = new Address6('::ffff:0:0/96');
 
 (function (exports$1) {
 	var __createBinding = (commonjsGlobal && commonjsGlobal.__createBinding) || (Object.create ? (function(o, m, k, k2) {
