@@ -17,7 +17,6 @@ import android.media.RingtoneManager
 import android.os.Build
 import android.service.notification.StatusBarNotification
 import android.util.Log
-import androidx.annotation.ColorInt
 import androidx.annotation.StringRes
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
@@ -30,11 +29,9 @@ import de.tutao.calendar.MainActivity
 import de.tutao.calendar.R
 import de.tutao.tutashared.file.FileNotificationSender
 import de.tutao.tutashared.file.getMimeType
-import de.tutao.tutashared.isSameDay
 import de.tutao.tutashared.push.LocalErrorNotificationsFacade
 import de.tutao.tutashared.push.SseStorage
 import java.io.File
-import java.util.Date
 import kotlin.math.abs
 
 const val NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed"
@@ -226,37 +223,7 @@ fun notificationDismissedIntent(
 	return deleteIntent
 }
 
-fun showAlarmNotification(context: Context, timestamp: Long, summary: String, isAllDayEvent: Boolean, intent: Intent) {
-	val contentText = when {
-		isAllDayEvent -> String.format("%1\$ta %1\$td %1\$tb %2\$s", timestamp, summary)
-
-		isSameDay(timestamp, Date().time) -> String.format(
-			"%tR %s",
-			timestamp,
-			summary
-		)
-
-		else -> String.format("%1\$ta %1\$td %1\$tb %1\$tR %2\$s", timestamp, summary) // e.g. Fri 25 Nov 12:31 summary
-	}
-
-	val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-	@ColorInt val red = context.resources.getColor(R.color.dark_blue, context.theme)
-	notificationManager.notify(
-		System.currentTimeMillis().toInt(),
-		NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
-			.setSmallIcon(R.drawable.ic_alarm)
-			.setContentTitle(context.getString(R.string.reminder_label))
-			.setContentText(contentText)
-			.setDefaults(NotificationCompat.DEFAULT_ALL)
-			.setColor(red)
-			.setContentIntent(openCalendarIntent(context, intent))
-			.setAutoCancel(true)
-			.build()
-	)
-}
-
-private fun openCalendarIntent(context: Context, alarmIntent: Intent): PendingIntent {
+fun makeOpenCalendarIntent(context: Context, alarmIntent: Intent): PendingIntent {
 	val userId = alarmIntent.getStringExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY)
 	val openCalendarEventIntent = Intent(context, MainActivity::class.java)
 	openCalendarEventIntent.action = MainActivity.OPEN_CALENDAR_ACTION
