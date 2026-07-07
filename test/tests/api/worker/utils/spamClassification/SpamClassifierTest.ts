@@ -464,7 +464,7 @@ authStatus`
 // They run in loop hence do take more time to finish and is not necessary to include in CI test suite
 //
 // To enable running this, change following constant to true
-const DO_RUN_PERFORMANCE_ANALYSIS = true
+const DO_RUN_PERFORMANCE_ANALYSIS = false
 if (DO_RUN_PERFORMANCE_ANALYSIS) {
 	async function filterForMisclassifiedClientSpamTrainingData(
 		classifier: SpamClassifier,
