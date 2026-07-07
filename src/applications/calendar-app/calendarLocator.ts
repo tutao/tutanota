@@ -11,7 +11,7 @@ import {
 	isIOSApp,
 	Mode,
 	ProgrammingError,
-} from "../../platform-kit/app-env"
+} from "@tutao/app-env"
 import { EventController } from "../common/api/main/EventController.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
@@ -80,7 +80,7 @@ import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
-import { CalendarEventModel, CalendarOperation, resolveAlarmsForEvent } from "./calendar/gui/eventeditor-model/CalendarEventModel.js"
+import type { CalendarEventModel, CalendarOperation } from "./calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { CalendarEventsRepository } from "../common/calendar/date/CalendarEventsRepository.js"
 import { showProgressDialog } from "../../ui/dialogs/ProgressDialog.js"
 import { ContactSuggestionProvider, RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
@@ -136,8 +136,8 @@ import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties 
 import { ClientModelInfo } from "@tutao/instance-pipeline"
 import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
 import { KdfType } from "../../platform-kit/base/base-crypto/Constants"
-import { ParsedEventAlarmTuple } from "./calendar/export/CalendarParser"
-import { AlarmInterval } from "../common/calendar/date/CalendarUtils"
+import type { ParsedEventAlarmTuple } from "./calendar/export/CalendarParser"
+import type { AlarmInterval } from "../common/calendar/date/CalendarUtils"
 
 assertMainOrNode()
 
@@ -954,12 +954,15 @@ class CalendarLocator implements CommonLocator {
 		calendars: ReadonlyMap<string, CalendarInfo>,
 		highlightedTokens: readonly SearchToken[],
 	): Promise<CalendarEventPreviewViewModel> {
-		const [{ findAttendeeInAddresses }, { getEventType }, { CalendarEventPreviewViewModel }, mailboxDetails] = await Promise.all([
-			import("../common/api/common/utils/CommonCalendarUtils.js"),
-			import("./calendar/gui/CalendarGuiUtils.js"),
-			import("./calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"),
-			this.mailboxModel.getUserMailboxDetails(),
-		])
+		const [{ findAttendeeInAddresses }, { getEventType }, { CalendarEventPreviewViewModel }, { resolveAlarmsForEvent }, mailboxDetails] = await Promise.all(
+			[
+				import("../common/api/common/utils/CommonCalendarUtils.js"),
+				import("./calendar/gui/CalendarGuiUtils.js"),
+				import("./calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"),
+				import("./calendar/gui/eventeditor-model/CalendarEventModel"),
+				this.mailboxModel.getUserMailboxDetails(),
+			],
+		)
 
 		const userController = this.logins.getUserController()
 
