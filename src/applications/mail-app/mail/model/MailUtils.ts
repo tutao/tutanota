@@ -2,7 +2,7 @@ import { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/Fo
 import { assertNotNull, first } from "../../../../platform-kit/utils"
 import { MailModel } from "./MailModel.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
-import { Header, InboxRule, Mail, MailDetails, MailSet, TutanotaProperties } from "@tutao/entities/tutanota"
+import { ExpandedInboxRule, Header, Mail, MailDetails, MailSet, TutanotaProperties } from "@tutao/entities/tutanota"
 import { MailSetKind, ReplyType, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { EntityIdEncoding, isSameId, sortCompareByReverseId } from "../../../../platform-kit/meta"
 import { isFolderReadOnly, MOVE_SYSTEM_FOLDERS } from "../MailUtils"
@@ -164,8 +164,8 @@ export function loadMailHeaders(mailDetails: MailDetails): string | null {
 	return mailDetails.headers != null ? getMailHeaders(mailDetails.headers) : null
 }
 
-export function getExistingRuleForType(props: TutanotaProperties, cleanValue: string, type: string): InboxRule | null {
-	return props.inboxRules.find((rule) => type === rule.type && cleanValue === rule.value) ?? null
+export function getExistingRuleForType(props: TutanotaProperties, cleanValue: string, type: string): ExpandedInboxRule | null {
+	return props.expandedInboxRules.find((rule) => rule.conditions.find((condition) => type === condition.type && cleanValue === condition.value)) ?? null
 }
 
 export function allInSameMailbox(mails: readonly Mail[]): boolean {

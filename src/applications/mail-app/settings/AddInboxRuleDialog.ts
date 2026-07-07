@@ -3,7 +3,7 @@ import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { assertMainOrNode, ProgrammingError, UpgradePromptType } from "../../../platform-kit/app-env"
 import { isDomainName, isMailAddress, isRegularExpression } from "../../../platform-kit/utils/FormatUtils"
-import { checkInboxRule, getInboxRuleResultTypeNameMapping, getInboxRuleTypeNameMapping } from "../mail/model/InboxRuleHandler"
+import { getInboxRuleResultTypeNameMapping, getInboxRuleTypeNameMapping } from "../mail/model/InboxRuleHandler"
 import { elementIdPart, isSameId } from "../../../platform-kit/meta"
 import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.js"
 import stream from "mithril/stream"
@@ -17,15 +17,14 @@ import { assertSystemFolderOfType, getExistingRuleForType, getFolderName, getInd
 import type { IndentedFolder } from "../../common/api/common/mail/FolderSystem.js"
 import {
 	createExpandedInboxRule,
-	createInboxRule,
 	createInboxRuleCondition,
 	createInboxRuleResult,
-	InboxRule,
+	ExpandedInboxRule,
+	InboxRuleCondition,
+	InboxRuleResult,
 	MailSet,
-	MailSetEntryTypeRef,
-	MailTypeRef,
 } from "@tutao/entities/tutanota"
-import { InboxRuleConditionType, InboxRuleResultType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../entities/tutanota/Utils"
+import { InboxRuleConditionType, InboxRuleResultType, MailSetKind } from "../../../entities/tutanota/Utils"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { Card } from "../../../ui/base/Card"
 import { Icon, IconSize } from "../../../ui/base/Icon"
@@ -34,18 +33,16 @@ import { DropDownSelectorNew } from "../../../ui/base/DropDownSelectorNew"
 import { TextField } from "../../../ui/base/TextField"
 import { theme } from "../../../ui/theme"
 import { px, size } from "../../../ui/size"
-import { assertNotNull, promiseMap, splitInChunks } from "@tutao/utils"
+import { assertNotNull } from "@tutao/utils"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { ButtonType } from "../../../ui/base/Button"
-import { resolveMailSetEntries } from "../mail/model/MailSetListModel"
-import { MoveMode } from "../mail/model/MailModel"
 
 assertMainOrNode()
 
-export type InboxRuleTemplate = Pick<InboxRule, "type" | "value"> & {
-	_id?: InboxRule["_id"]
-	targetFolder?: InboxRule["targetFolder"]
-	excludeFromSpamFilter?: InboxRule["excludeFromSpamFilter"]
+export type InboxRuleTemplate = Pick<ExpandedInboxRule, "conditions" | "results"> & {
+	_id?: ExpandedInboxRule["_id"]
+	conditions?: Pick<InboxRuleCondition, "type" | "value">[]
+	results?: Pick<InboxRuleResult, "type" | "value">[]
 }
 
 interface InboxRuleConditionField {
@@ -75,24 +72,19 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 			}
 		})
 
-		const inboxRuleType = stream(ruleOrTemplate.type as InboxRuleConditionType)
-		const inboxRuleValue = stream(ruleOrTemplate.value)
-		const inboxRuleConditions: InboxRuleConditionField[] = [
-			{
-				type: inboxRuleType,
-				value: inboxRuleValue,
-			},
-		]
+		const inboxRuleConditions: InboxRuleConditionField[] = ruleOrTemplate.conditions.map((condition) => {
+			return { type: stream(condition.type as InboxRuleConditionType), value: stream(condition.value) }
+		})
 
-		const selectedFolder = ruleOrTemplate.targetFolder == null ? null : folders.getFolderById(elementIdPart(ruleOrTemplate.targetFolder))
-		const inboxRuleResultValue = stream(selectedFolder ?? assertSystemFolderOfType(folders, MailSetKind.ARCHIVE))
-		const inboxRuleResultType = stream(InboxRuleResultType.MOVE)
-		const inboxRuleResults: InboxRuleResultField[] = [
-			{
-				type: inboxRuleResultType,
-				value: inboxRuleResultValue,
-			},
-		]
+		const inboxRuleResults: InboxRuleResultField[] = ruleOrTemplate.results.map((result) => {
+			let value = result.value == null ? null : folders.getFolderById(elementIdPart(result.value))
+			return { type: stream(result.type as InboxRuleResultType), value: stream(value) }
+		})
+
+		if (inboxRuleResults.length === 0) {
+			// If there are no results yet, add the default value of Move to Archive
+			inboxRuleResults.push({ type: stream(InboxRuleResultType.MOVE), value: stream(assertSystemFolderOfType(folders, MailSetKind.ARCHIVE)) })
+		}
 
 		const renderConditionRow = (condition: InboxRuleConditionField, conditionIndex: number) => {
 			const isFirstCondition = conditionIndex === 0
@@ -144,7 +136,15 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 						m(DropDownSelectorNew, {
 							items: getInboxRuleResultTypeNameMapping(),
 							selectedValue: ruleResult.type(),
-							selectionChangedHandler: ruleResult.type,
+							selectionChangedHandler: (newValue: InboxRuleResultType) => {
+								ruleResult.type(newValue)
+								if (newValue === InboxRuleResultType.MOVE) {
+									// set to default folder of Archive
+									ruleResult.value(assertSystemFolderOfType(folders, MailSetKind.ARCHIVE))
+								} else {
+									ruleResult.value(null)
+								}
+							},
 						}),
 					],
 				),
@@ -201,59 +201,62 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 			]
 		}
 
-		const applyRule = async (rule: InboxRule, progress: Stream<number>, abort: AbortController) => {
-			const inbox = assertSystemFolderOfType(folders, MailSetKind.INBOX)
-			const targetFolder = folders.getFolderById(elementIdPart(rule.targetFolder))
-			if (targetFolder == null || targetFolder.folderType === MailSetKind.INBOX) {
-				return
-			}
+		const applyRule = async (rule: ExpandedInboxRule, progress: Stream<number>, abort: AbortController) => {
+			// FIXME: Adapting this applyRule is the focus of another issue
+			throw new ProgrammingError("Not properly using ExpandedInboxRules!")
 
-			let totalProcessed = 0
-			let totalMoved = 0
-
-			try {
-				const allIds = (await mailLocator.entityClient.loadAll(MailSetEntryTypeRef, inbox.entries)).reverse()
-				const chunked = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, allIds)
-
-				for (const chunk of chunked) {
-					if (abort.signal.aborted) {
-						break
-					}
-
-					const loadedMails = await resolveMailSetEntries(
-						chunk,
-						(list, elements) => mailLocator.entityClient.loadMultiple(MailTypeRef, list, elements),
-						mailLocator.mailModel,
-					)
-
-					const mailsToMove: IdTuple[] = []
-
-					await promiseMap(loadedMails, async (loadedMail) => {
-						if (loadedMail.mail.mailDetails == null) {
-							// inbox rules do not work on drafts
-							return
-						}
-
-						const mailMatchesRule = await checkInboxRule(locator.mailFacade, loadedMail.mail, rule)
-						if (mailMatchesRule) {
-							mailsToMove.push(loadedMail.mail._id)
-						}
-					})
-
-					await mailLocator.mailModel.moveMails(mailsToMove, targetFolder, MoveMode.Mails)
-					totalMoved += mailsToMove.length
-
-					totalProcessed += chunk.length
-					progress((totalProcessed / allIds.length) * 100)
-				}
-			} catch (e) {
-				if (!isOfflineError(e)) {
-					throw e
-				}
-			}
+			// const inbox = assertSystemFolderOfType(folders, MailSetKind.INBOX)
+			// const targetFolder = folders.getFolderById(elementIdPart(rule.targetFolder))
+			// if (targetFolder == null || targetFolder.folderType === MailSetKind.INBOX) {
+			// 	return
+			// }
+			//
+			// let totalProcessed = 0
+			// let totalMoved = 0
+			//
+			// try {
+			// 	const allIds = (await mailLocator.entityClient.loadAll(MailSetEntryTypeRef, inbox.entries)).reverse()
+			// 	const chunked = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, allIds)
+			//
+			// 	for (const chunk of chunked) {
+			// 		if (abort.signal.aborted) {
+			// 			break
+			// 		}
+			//
+			// 		const loadedMails = await resolveMailSetEntries(
+			// 			chunk,
+			// 			(list, elements) => mailLocator.entityClient.loadMultiple(MailTypeRef, list, elements),
+			// 			mailLocator.mailModel,
+			// 		)
+			//
+			// 		const mailsToMove: IdTuple[] = []
+			//
+			// 		await promiseMap(loadedMails, async (loadedMail) => {
+			// 			if (loadedMail.mail.mailDetails == null) {
+			// 				// inbox rules do not work on drafts
+			// 				return
+			// 			}
+			//
+			// 			const mailMatchesRule = await checkInboxRule(locator.mailFacade, loadedMail.mail, rule)
+			// 			if (mailMatchesRule) {
+			// 				mailsToMove.push(loadedMail.mail._id)
+			// 			}
+			// 		})
+			//
+			// 		await mailLocator.mailModel.moveMails(mailsToMove, targetFolder, MoveMode.Mails)
+			// 		totalMoved += mailsToMove.length
+			//
+			// 		totalProcessed += chunk.length
+			// 		progress((totalProcessed / allIds.length) * 100)
+			// 	}
+			// } catch (e) {
+			// 	if (!isOfflineError(e)) {
+			// 		throw e
+			// 	}
+			// }
 		}
 
-		const applyRuleWithProgress = async (rule: InboxRule) => {
+		const applyRuleWithProgress = async (rule: ExpandedInboxRule) => {
 			const progress = stream(0)
 			const abort = new AbortController()
 			await showProgressDialog("pleaseWait_msg", applyRule(rule, progress, abort), progress, {
@@ -276,24 +279,31 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 		}
 
 		const inboxRuleOkAction = (dialog: Dialog, applyRule: boolean) => {
-			const invalidInboxRuleMsg = validateInboxRuleInput(inboxRuleType(), inboxRuleValue(), ruleOrTemplate._id)
-			if (invalidInboxRuleMsg !== null) {
-				Dialog.message(invalidInboxRuleMsg)
-				return
+			const ruleConditions = []
+
+			for (const condition of inboxRuleConditions) {
+				const invalidInboxRuleMsg = validateInboxRuleCondition(condition.type(), condition.value(), ruleOrTemplate._id)
+				if (invalidInboxRuleMsg !== null) {
+					Dialog.message(invalidInboxRuleMsg)
+					return
+				}
+				ruleConditions.push(createInboxRuleCondition({ type: condition.type(), value: condition.value() }))
 			}
 
-			const targetFolder =
-				inboxRuleResultType() === InboxRuleResultType.MOVE
-					? assertNotNull(inboxRuleResultValue())
-					: assertSystemFolderOfType(folders, MailSetKind.INBOX)
-			const excludeFromSpamFilter = inboxRuleResultType() === InboxRuleResultType.EXCLUDE_SPAM
+			const ruleResults = []
 
-			const rule = createInboxRule({
-				type: inboxRuleType(),
-				value: getCleanedValue(inboxRuleType(), inboxRuleValue()),
-				targetFolder: targetFolder._id,
-				excludeFromSpamFilter,
+			for (const result of inboxRuleResults) {
+				const value = validateInboxRuleResult(result.type(), result.value())
+
+				ruleResults.push(createInboxRuleResult({ type: result.type(), value }))
+			}
+
+			const rule = createExpandedInboxRule({
+				name: "FIXME: get me a name",
+				conditions: ruleConditions,
+				results: ruleResults,
 			})
+
 			const props = locator.logins.getUserController().props
 			const inboxRules = props.inboxRules
 			const ruleId = ruleOrTemplate._id
@@ -301,38 +311,10 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 				rule._id = ruleId
 			}
 
-			// When saving a rule that goes to spam, always set it to be excluded from the filter, so it always goes to spam
-			if (targetFolder.folderType === MailSetKind.SPAM) {
-				rule.excludeFromSpamFilter = true
-			}
-			props.inboxRules = ruleId == null ? [...inboxRules, rule] : inboxRules.map((inboxRule) => (isSameId(inboxRule._id, ruleId) ? rule : inboxRule))
-
-			// New Expanded Rule too
-			// FIXME: This is just a starting point to make sure it works
-			let ruleResults = [createInboxRuleResult({ type: InboxRuleResultType.MOVE, value: targetFolder._id })]
-
-			if (excludeFromSpamFilter) {
-				// in cases where the InboxRuleResultType is boolean, do not fill in value
-				ruleResults.push(createInboxRuleResult({ type: InboxRuleResultType.EXCLUDE_SPAM, value: null }))
-			}
-
-			let expandedRule = createExpandedInboxRule({
-				name: "FIXME: get me a name",
-				conditions: [
-					createInboxRuleCondition({
-						type: inboxRuleType(),
-						value: getCleanedValue(inboxRuleType(), inboxRuleValue()),
-					}),
-				],
-				results: ruleResults,
-			})
-
 			const expandedInboxRules = props.expandedInboxRules
 
 			props.expandedInboxRules =
-				ruleId == null
-					? [...expandedInboxRules, expandedRule]
-					: expandedInboxRules.map((inboxRule) => (isSameId(inboxRule._id, ruleId) ? expandedRule : inboxRule))
+				ruleId == null ? [...expandedInboxRules, rule] : expandedInboxRules.map((inboxRule) => (isSameId(inboxRule._id, ruleId) ? rule : inboxRule))
 
 			locator.entityClient
 				.update(props)
@@ -410,12 +392,17 @@ function getRuleResultValueInputByType(ruleResult: InboxRuleResultField) {
 export function createInboxRuleTemplate(ruleType: InboxRuleConditionType | null, value: string): InboxRuleTemplate {
 	const type = ruleType ?? InboxRuleConditionType.FROM_EQUALS
 	return {
-		type,
-		value: getCleanedValue(type, value),
+		conditions: [
+			createInboxRuleCondition({
+				type,
+				value: getCleanedValue(type, value),
+			}),
+		],
+		results: [],
 	}
 }
 
-function validateInboxRuleInput(type: string, value: string, ruleId: Id | undefined): TranslationKey | null {
+function validateInboxRuleCondition(type: InboxRuleConditionType, value: string, ruleId: Id | undefined): TranslationKey | null {
 	let currentCleanedValue = getCleanedValue(type, value)
 
 	if (currentCleanedValue === "") {
@@ -441,7 +428,23 @@ function validateInboxRuleInput(type: string, value: string, ruleId: Id | undefi
 	return null
 }
 
-function getCleanedValue(type: string, value: string) {
+function validateInboxRuleResult(type: InboxRuleResultType, value: MailSet | null): IdTuple | null {
+	if (type === InboxRuleResultType.EXCLUDE_SPAM || type === InboxRuleResultType.READ) {
+		if (value != null) {
+			// throw an error instead of informing user, as the user should not be able to choose a value here
+			// if a value is here something else has gone wrong
+			throw new ProgrammingError("Boolean InboxRuleResultType has value!")
+		}
+		return null
+	} else {
+		if (value == null) {
+			throw new ProgrammingError("When moving or labeling, a mail set must be there!")
+		}
+		return value._id
+	}
+}
+
+function getCleanedValue(type: string, value: string): string {
 	if (type === InboxRuleConditionType.SUBJECT_CONTAINS || type === InboxRuleConditionType.MAIL_HEADER_CONTAINS) {
 		return value
 	} else {
