@@ -1,6 +1,12 @@
 package de.tutao.tutashared.alarms
 
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.text.format.DateFormat
 import android.util.Log
+import androidx.annotation.ColorInt
+import androidx.core.app.NotificationCompat
 import de.tutao.tutasdk.ApiCallException
 import de.tutao.tutasdk.ByRule
 import de.tutao.tutashared.AndroidNativeCryptoFacade
@@ -10,6 +16,7 @@ import de.tutao.tutashared.OperationType
 import de.tutao.tutashared.R
 import de.tutao.tutashared.base64ToBytes
 import de.tutao.tutashared.isAllDayEventByTimes
+import de.tutao.tutashared.isSameDay
 import de.tutao.tutashared.push.LocalErrorNotificationsFacade
 import de.tutao.tutashared.push.SseStorage
 import java.security.KeyStoreException
@@ -306,7 +313,61 @@ class AlarmNotificationsManager(
 	companion object {
 		@JvmField
 		val TIME_IN_THE_FUTURE_LIMIT_MS = TimeUnit.DAYS.toMillis(14)
+		const val ALARM_NOTIFICATION_CHANNEL_ID = "alarms"
 		private const val TAG = "AlarmNotificationsMngr"
+
+		fun showAlarmNotification(
+			context: Context,
+			timestamp: Long,
+			summary: String,
+			isAllDayEvent: Boolean,
+			openCalendarIntent: PendingIntent,
+			resources: NotificationResources
+		) {
+			val formatter = DateFormat.getTimeFormat(context)
+			val timeText = formatter.format(Date(timestamp))
+
+			val contentText = when {
+				isAllDayEvent -> String.format("%1\$ta %1\$td %1\$tb %2\$s", timestamp, summary)
+
+				isSameDay(timestamp, Date().time) -> {
+					String.format(
+						"%s %s",
+						timeText,
+						summary
+					)
+				}
+
+				else -> String.format(
+					"%1\$ta %1\$td %1\$tb %2\$s %3\$s",
+					timestamp,
+					timeText,
+					summary
+				) // e.g. Fri 25 Nov 12:31 summary
+			}
+
+			val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+			@ColorInt val accentColor = context.resources.getColor(resources.accentColor, context.theme)
+			notificationManager.notify(
+				System.currentTimeMillis().toInt(),
+				NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
+					.setSmallIcon(resources.icon)
+					.setContentTitle(context.getString(resources.label))
+					.setContentText(contentText)
+					.setDefaults(NotificationCompat.DEFAULT_ALL)
+					.setColor(accentColor)
+					.setContentIntent(openCalendarIntent)
+					.setAutoCancel(true)
+					.build()
+			)
+		}
 	}
 }
+
+data class NotificationResources(
+	val accentColor: Int,
+	val icon: Int,
+	val label: Int,
+)
 
