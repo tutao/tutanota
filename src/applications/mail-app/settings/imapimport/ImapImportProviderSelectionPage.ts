@@ -14,15 +14,13 @@ import { Icon, IconSize } from "../../../../ui/base/Icon"
 
 assertMainOrNode()
 
-const initialTitleSectionParams = {
-	icon: Icons.MailFilled,
-	iconOptions: { color: theme.on_surface_variant },
-	subTitle: lang.getTranslationText("migrationChooseProvider_msg"),
-}
-
 export class ImapImportProviderSelectionPage implements WizardPageN<ImapImportData> {
 	private selectedProvider: ImapProvider = ImapProvider.Gmail
-	private titleSectionParams = initialTitleSectionParams
+	private titleSectionParams = {
+		icon: Icons.MailFilled,
+		iconOptions: { color: theme.on_surface_variant },
+		subTitle: lang.getTranslationText("migrationChooseProvider_msg"),
+	}
 
 	oninit(vnode: Vnode<WizardPageAttrs<ImapImportData>>) {
 		vnode.attrs.data.isImapServerSupportingOAuth = false
@@ -85,7 +83,6 @@ export class ImapImportProviderSelectionPage implements WizardPageN<ImapImportDa
 				m(Button, {
 					label: "migrationProviderGmail_label",
 					click: () => {
-						this.titleSectionParams = initialTitleSectionParams
 						this.selectedProvider = ImapProvider.Gmail
 						data.imapAccountUsername = ""
 					},
@@ -99,7 +96,6 @@ export class ImapImportProviderSelectionPage implements WizardPageN<ImapImportDa
 				m(Button, {
 					label: "migrationProviderOutlook_label",
 					click: () => {
-						this.titleSectionParams = initialTitleSectionParams
 						this.selectedProvider = ImapProvider.Outlook
 						data.imapAccountUsername = ""
 					},
@@ -110,9 +106,8 @@ export class ImapImportProviderSelectionPage implements WizardPageN<ImapImportDa
 			m(
 				`${this.selectedProvider === ImapProvider.Other ? selectedItemClasses : ""}.provider-selector.p-4`,
 				m(Button, {
-					label: "other_label",
+					label: "migrationProviderOther_label",
 					click: () => {
-						this.titleSectionParams = initialTitleSectionParams
 						this.selectedProvider = ImapProvider.Other
 						data.imapAccountUsername = ""
 					},
