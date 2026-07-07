@@ -11,7 +11,7 @@ import {
 	isIOSApp,
 	isTest,
 	ProgrammingError,
-} from "../../platform-kit/app-env"
+} from "@tutao/app-env"
 import { EventController } from "../common/api/main/EventController.js"
 import { SearchModel } from "./search/model/SearchModel.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
@@ -70,7 +70,7 @@ import { WebsocketConnectivityModel } from "../common/misc/WebsocketConnectivity
 import { OperationProgressTracker } from "../common/api/main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
 import { EntropyFacade } from "../../platform-kit/base/facades/EntropyFacade.js"
-import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "../../platform-kit/utils"
+import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../../platform-kit/utils/NoZoneDateProvider.js"
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
@@ -84,7 +84,7 @@ import { MailOpenedListener } from "./mail/view/MailViewModel.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
 import { ReceivedGroupInvitationsModel } from "../common/sharing/model/ReceivedGroupInvitationsModel.js"
 import { CalendarViewModel } from "../calendar-app/calendar/view/CalendarViewModel.js"
-import { CalendarEventModel, CalendarOperation, resolveAlarmsForEvent } from "../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
+import type { CalendarEventModel, CalendarOperation } from "../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { CalendarEventsRepository } from "../common/calendar/date/CalendarEventsRepository.js"
 import { showProgressDialog } from "../../ui/dialogs/ProgressDialog.js"
 import { ContactSuggestionProvider, RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
@@ -167,12 +167,12 @@ import { ExposedCacheStorage } from "../../app-kit/local-store/CacheStorage"
 import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../../platform-kit/utils/FileConstants"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
-import { ClientModelInfo } from "../../platform-kit/instance-pipeline/EntityFunctions"
+import { ClientModelInfo } from "@tutao/instance-pipeline"
 import { ImapImporter } from "./workerUtils/imapimport/ImapImporter"
 
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
 import type { ImapMailImportController } from "./settings/imapimport/ImapMailImportController"
-import { AlarmInterval } from "../common/calendar/date/CalendarUtils"
+import type { AlarmInterval } from "../common/calendar/date/CalendarUtils"
 
 assertMainOrNode()
 
@@ -1249,12 +1249,15 @@ class MailLocator implements CommonLocator {
 		calendars: ReadonlyMap<string, CalendarInfo>,
 		highlightedTokens: readonly SearchToken[],
 	): Promise<CalendarEventPreviewViewModel> {
-		const [{ findAttendeeInAddresses }, { getEventType }, { CalendarEventPreviewViewModel }, mailboxDetails] = await Promise.all([
-			import("../common/api/common/utils/CommonCalendarUtils.js"),
-			import("../calendar-app/calendar/gui/CalendarGuiUtils.js"),
-			import("../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"),
-			this.mailboxModel.getUserMailboxDetails(),
-		])
+		const [{ findAttendeeInAddresses }, { getEventType }, { CalendarEventPreviewViewModel }, { resolveAlarmsForEvent }, mailboxDetails] = await Promise.all(
+			[
+				import("../common/api/common/utils/CommonCalendarUtils.js"),
+				import("../calendar-app/calendar/gui/CalendarGuiUtils.js"),
+				import("../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"),
+				import("../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel"),
+				this.mailboxModel.getUserMailboxDetails(),
+			],
+		)
 
 		const userController = this.logins.getUserController()
 
