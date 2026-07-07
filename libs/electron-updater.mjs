@@ -2510,6 +2510,10 @@ function stringify$4 (obj, { EOL = '\n', finalEOL = true, replacer = null, space
   const EOF = finalEOL ? EOL : '';
   const str = JSON.stringify(obj, replacer, spaces);
 
+  if (str === undefined) {
+    throw new TypeError(`Converting ${typeof obj} value to JSON is not supported`)
+  }
+
   return str.replace(/\n/g, EOL) + EOF
 }
 
