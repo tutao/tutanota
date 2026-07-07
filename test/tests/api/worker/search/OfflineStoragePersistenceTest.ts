@@ -25,6 +25,7 @@ import {
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
+import { NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
@@ -427,6 +428,104 @@ o.spec("OfflineStoragePersistence", () => {
 		o.check(await sqlCipherFacade.get(indexSearch, [])).notEquals(null)
 		await persistence.deleteContactData(contact._id)
 		o.check(await sqlCipherFacade.get(indexSearch, [])).equals(null)
+	})
+
+	o.test("resetMailIndex", async () => {
+		const mailGroupData: IndexedGroupData = {
+			groupId: "mailGroup",
+			type: GroupType.Mail,
+			indexedTimestamp: 123456,
+			lastIndexedEntityElementId: "lastIndexedMailElementId",
+			lastIndexedEntityListId: "lastIndexedMailListId",
+		}
+		const contactGroupData: IndexedGroupData = {
+			groupId: "contactGroup",
+			type: GroupType.Contact,
+			indexedTimestamp: 123456,
+			lastIndexedEntityElementId: "lastIndexedContactElementId",
+			lastIndexedEntityListId: "lastIndexedContactListId",
+		}
+
+		{
+			const query = `INSERT INTO search_group_data
+				   VALUES ('${mailGroupData.groupId}', ${mailGroupData.type},
+						   ${mailGroupData.indexedTimestamp}, '${mailGroupData.lastIndexedEntityListId}',
+						   '${mailGroupData.lastIndexedEntityElementId}'),
+						  ('${contactGroupData.groupId}', ${contactGroupData.type},
+						   ${contactGroupData.indexedTimestamp}, '${contactGroupData.lastIndexedEntityListId}',
+						   '${contactGroupData.lastIndexedEntityElementId}')`
+			await sqlCipherFacade.run(query, [])
+		}
+		const indexedGroups = await getAllIndexedGroups(sqlCipherFacade)
+		o.check(indexedGroups).deepEquals([mailGroupData, contactGroupData])
+
+		{
+			const query = `INSERT INTO mail_index(rowid)
+						   VALUES (1),
+								  (2)`
+			await sqlCipherFacade.run(query, [])
+		}
+		const mails = (await sqlCipherFacade.all(`SELECT rowid FROM mail_index`, [])).map(untagSqlObject)
+		o.check(mails).deepEquals([{ rowid: 1 }, { rowid: 2 }])
+
+		{
+			const query = `INSERT INTO content_mail_index(rowid, sets, receivedDate)
+								  VALUES (1, 'myFavoriteSet', 123456),
+										 (2, 'myOtherSet', 123456)`
+			await sqlCipherFacade.run(query, [])
+		}
+		const contents = (
+			await sqlCipherFacade.all(
+				`SELECT rowid, receivedDate, sets
+				 FROM content_mail_index`,
+				[],
+			)
+		).map(untagSqlObject)
+		o.check(contents).deepEquals([
+			{ rowid: 1, receivedDate: 123456, sets: "myFavoriteSet" },
+			{ rowid: 2, receivedDate: 123456, sets: "myOtherSet" },
+		])
+
+		{
+			const query = `INSERT INTO contact_index(rowid)
+					 VALUES (1),
+							(2)`
+			await sqlCipherFacade.run(query, [])
+		}
+		const contacts = (
+			await sqlCipherFacade.all(
+				`SELECT rowid
+				 FROM contact_index`,
+				[],
+			)
+		).map(untagSqlObject)
+		o.check(contacts).deepEquals([{ rowid: 1 }, { rowid: 2 }])
+
+		await persistence.resetMailIndex()
+
+		const indexedGroupsAfterReset = await getAllIndexedGroups(sqlCipherFacade)
+		o.check(indexedGroupsAfterReset).deepEquals([
+			{
+				...mailGroupData,
+				indexedTimestamp: NOTHING_INDEXED_TIMESTAMP,
+				lastIndexedEntityElementId: GENERATED_MAX_ID,
+				lastIndexedEntityListId: GENERATED_MAX_ID,
+			},
+			contactGroupData,
+		])
+
+		const mailsAfterReset = await sqlCipherFacade.all(`SELECT rowid FROM mail_index`, [])
+		o.check(mailsAfterReset).deepEquals([])
+		const contentsAfterReset = await sqlCipherFacade.all(`SELECT rowid FROM content_mail_index`, [])
+		o.check(contentsAfterReset).deepEquals([])
+		const contactsAfterReset = (
+			await sqlCipherFacade.all(
+				`SELECT rowid
+				 FROM contact_index`,
+				[],
+			)
+		).map(untagSqlObject)
+		o.check(contactsAfterReset).deepEquals([{ rowid: 1 }, { rowid: 2 }])
 	})
 })
 
