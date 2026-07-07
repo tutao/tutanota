@@ -1768,7 +1768,6 @@ export default {
 		"register_label": "Sign up",
 		"registered_label": "Registered",
 		"registeredU2fDevice_msg": "Your security key has been recognized. You can save it now.",
-		"reIndexLocalData_msg": "Re-index all emails up to the selected date. This may be useful if you are missing emails in search.",
 		"reIndexRunInBackground_msg": "This will be done in the background and may take some time.",
 		"reject_action": "Reject",
 		"rejectedEmails_label": "Rejected emails",
@@ -2394,6 +2393,7 @@ export default {
 		"clearCache_action": "Clear cache",
 		"clearCache_msg": "Clear all downloaded data. Device data, such as stored credentials and verified contacts, won't be deleted.",
 		"clearCacheConfirm_msg": "Clearing cache will refresh the app.",
-		"notAllMailsSearchable_msg": "Not all emails are searchable"
+		"notAllMailsSearchable_msg": "Not all emails are searchable",
+		"reIndexLocalData_msg": "Re-index all emails. This may be useful if you are missing emails in search.",
 	}
 }

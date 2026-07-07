@@ -1768,7 +1768,6 @@ export default {
 		"register_label": "Registrieren",
 		"registered_label": "Registriert",
 		"registeredU2fDevice_msg": "Dein Sicherheitsschlüssel wurde erkannt. Du kannst ihn nun speichern.",
-		"reIndexLocalData_msg": "Suchindex ab dem ausgewählten Datum neu erstellen. Dies ist hilfreich, falls einige E-Mails beim Suchen nicht gefunden werden.",
 		"reIndexRunInBackground_msg": "Dies geschieht im Hintergrund und kann einige Zeit dauern.",
 		"reject_action": "Ablehnen",
 		"rejectedEmails_label": "Abgelehnte E-Mails",
@@ -2394,6 +2393,7 @@ export default {
 		"clearCache_action": "Clear cache",
 		"clearCache_msg": "Clear cache message",
 		"clearCacheConfirm_msg": "Are you sure you want to clear cache?",
-		"notAllMailsSearchable_msg": "Not all emails are searchable, but in German"
+		"notAllMailsSearchable_msg": "Not all emails are searchable, but in German",
+		"reIndexLocalData_msg": "Suchindex neu erstellen. Dies ist hilfreich, falls einige E-Mails beim Suchen nicht gefunden werden.",
 	}
 }
