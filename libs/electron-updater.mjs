@@ -11985,55 +11985,46 @@ const coerce$1 = (version, options) => {
 };
 var coerce_1 = coerce$1;
 
-var lrucache;
-var hasRequiredLrucache;
+class LRUCache {
+  constructor () {
+    this.max = 1000;
+    this.map = new Map();
+  }
 
-function requireLrucache () {
-	if (hasRequiredLrucache) return lrucache;
-	hasRequiredLrucache = 1;
+  get (key) {
+    const value = this.map.get(key);
+    if (value === undefined) {
+      return undefined
+    } else {
+      // Remove the key from the map and add it to the end
+      this.map.delete(key);
+      this.map.set(key, value);
+      return value
+    }
+  }
 
-	class LRUCache {
-	  constructor () {
-	    this.max = 1000;
-	    this.map = new Map();
-	  }
+  delete (key) {
+    return this.map.delete(key)
+  }
 
-	  get (key) {
-	    const value = this.map.get(key);
-	    if (value === undefined) {
-	      return undefined
-	    } else {
-	      // Remove the key from the map and add it to the end
-	      this.map.delete(key);
-	      this.map.set(key, value);
-	      return value
-	    }
-	  }
+  set (key, value) {
+    const deleted = this.delete(key);
 
-	  delete (key) {
-	    return this.map.delete(key)
-	  }
+    if (!deleted && value !== undefined) {
+      // If cache is full, delete the least recently used item
+      if (this.map.size >= this.max) {
+        const firstKey = this.map.keys().next().value;
+        this.delete(firstKey);
+      }
 
-	  set (key, value) {
-	    const deleted = this.delete(key);
+      this.map.set(key, value);
+    }
 
-	    if (!deleted && value !== undefined) {
-	      // If cache is full, delete the least recently used item
-	      if (this.map.size >= this.max) {
-	        const firstKey = this.map.keys().next().value;
-	        this.delete(firstKey);
-	      }
-
-	      this.map.set(key, value);
-	    }
-
-	    return this
-	  }
-	}
-
-	lrucache = LRUCache;
-	return lrucache;
+    return this
+  }
 }
+
+var lrucache = LRUCache;
 
 var range;
 var hasRequiredRange;
@@ -12256,7 +12247,7 @@ function requireRange () {
 
 	range = Range;
 
-	const LRU = requireLrucache();
+	const LRU = lrucache;
 	const cache = new LRU();
 
 	const parseOptions = parseOptions_1;
