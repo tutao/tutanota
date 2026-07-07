@@ -56,7 +56,7 @@ export async function getNativeLibModulePaths({ environment, platform, architect
 			log(`Using cached ${nodeModule} at`, libPath)
 		} else {
 			if (isCrossCompilation) {
-				throw new Error(`Cannot cross-compile for ${platform} from ${process.platform}`)
+				throw new Error(`Cannot cross-compile for ${platform} from ${process.platform}: missing file: ${libPath}`)
 			} else {
 				log(`Compiling ${nodeModule} for ${platform}...`)
 				const artifactPath = await buildNativeModule({
