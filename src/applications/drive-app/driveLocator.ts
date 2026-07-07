@@ -60,7 +60,7 @@ import { TransferProgressDispatcher } from "../common/api/main/TransferProgressD
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
 import { DriveSearchModelStub } from "./search/model/DriveSearchModelStub"
 import type { DriveViewModel } from "./drive/view/DriveViewModel"
-import { CalendarEventModel, CalendarOperation, resolveAlarmsForEvent } from "../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel"
+import type { CalendarEventModel, CalendarOperation } from "../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel"
 import type { CalendarInfo, CalendarModel } from "../calendar-app/calendar/model/CalendarModel"
 import type { CalendarInviteHandler } from "../calendar-app/calendar/view/CalendarInvites"
 import type { CalendarEventPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel"
@@ -121,8 +121,8 @@ import { SearchToken } from "../../ui/utils/QueryTokenUtils"
 import { KdfType } from "../../platform-kit/base/base-crypto/Constants"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 
-import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
-import { AlarmInterval } from "../common/calendar/date/CalendarUtils"
+import type { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
+import type { AlarmInterval } from "../common/calendar/date/CalendarUtils"
 
 assertMainOrNode()
 
@@ -876,12 +876,15 @@ class DriveLocator implements CommonLocator {
 		calendars: ReadonlyMap<string, CalendarInfo>,
 		highlightedTokens: readonly SearchToken[],
 	): Promise<CalendarEventPreviewViewModel> {
-		const [{ findAttendeeInAddresses }, { getEventType }, { CalendarEventPreviewViewModel }, mailboxDetails] = await Promise.all([
-			import("../common/api/common/utils/CommonCalendarUtils.js"),
-			import("../calendar-app/calendar/gui/CalendarGuiUtils.js"),
-			import("../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"),
-			this.mailboxModel.getUserMailboxDetails(),
-		])
+		const [{ findAttendeeInAddresses }, { getEventType }, { CalendarEventPreviewViewModel }, { resolveAlarmsForEvent }, mailboxDetails] = await Promise.all(
+			[
+				import("../common/api/common/utils/CommonCalendarUtils.js"),
+				import("../calendar-app/calendar/gui/CalendarGuiUtils.js"),
+				import("../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"),
+				import("../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel"),
+				this.mailboxModel.getUserMailboxDetails(),
+			],
+		)
 
 		const userController = this.logins.getUserController()
 
