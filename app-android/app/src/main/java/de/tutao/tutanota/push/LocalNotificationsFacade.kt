@@ -29,14 +29,13 @@ import androidx.core.net.toUri
 import de.tutao.tutanota.BuildConfig
 import de.tutao.tutanota.MainActivity
 import de.tutao.tutanota.R
+import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.file.FileNotificationSender
 import de.tutao.tutashared.file.getMimeType
 import de.tutao.tutashared.ipc.ExtendedNotificationMode
-import de.tutao.tutashared.isSameDay
 import de.tutao.tutashared.push.LocalErrorNotificationsFacade
 import de.tutao.tutashared.push.SseStorage
 import java.io.File
-import java.util.Date
 import kotlin.math.abs
 import kotlin.random.Random
 import kotlin.random.nextInt
@@ -48,7 +47,6 @@ private val VIBRATION_PATTERN = longArrayOf(100, 200, 100, 200)
 private const val NOTIFICATION_EMAIL_GROUP = "de.tutao.tutanota.email"
 private const val SUMMARY_NOTIFICATION_ID = 45
 private const val PERSISTENT_NOTIFICATION_CHANNEL_ID = "service_intent"
-private const val ALARM_NOTIFICATION_CHANNEL_ID = "alarms"
 private const val DOWNLOAD_NOTIFICATION_CHANNEL_ID = "downloads"
 private const val EMAIL_ADDRESS_EXTRA = "email_address"
 
@@ -259,7 +257,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 		}
 
 		val notification: Notification =
-			NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
+			NotificationCompat.Builder(context, AlarmNotificationsManager.ALARM_NOTIFICATION_CHANNEL_ID)
 				.setSmallIcon(R.drawable.ic_status)
 				.setContentTitle(context.getString(R.string.app_name))
 				.setContentText(context.getString(message))
@@ -293,7 +291,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 		notificationManager.createNotificationChannel(serviceNotificationChannel)
 
 		val alarmNotificationsChannel = NotificationChannel(
-			ALARM_NOTIFICATION_CHANNEL_ID,
+			AlarmNotificationsManager.ALARM_NOTIFICATION_CHANNEL_ID,
 			context.getString(R.string.reminder_label),
 			NotificationManager.IMPORTANCE_HIGH
 		).default()
@@ -405,37 +403,7 @@ fun notificationDismissedIntent(
 	return deleteIntent
 }
 
-fun showAlarmNotification(context: Context, timestamp: Long, summary: String, isAllDayEvent: Boolean, intent: Intent) {
-	val contentText = when {
-		isAllDayEvent -> String.format("%1\$ta %1\$td %1\$tb %2\$s", timestamp, summary)
-
-		isSameDay(timestamp, Date().time) -> String.format(
-			"%tR %s",
-			timestamp,
-			summary
-		)
-
-		else -> String.format("%1\$ta %1\$td %1\$tb %1\$tR %2\$s", timestamp, summary) // e.g. Fri 25 Nov 12:31 summary
-	}
-
-	val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-	@ColorInt val red = context.resources.getColor(R.color.red, context.theme)
-	notificationManager.notify(
-		System.currentTimeMillis().toInt(),
-		NotificationCompat.Builder(context, ALARM_NOTIFICATION_CHANNEL_ID)
-			.setSmallIcon(R.drawable.ic_alarm)
-			.setContentTitle(context.getString(R.string.reminder_label))
-			.setContentText(contentText)
-			.setDefaults(NotificationCompat.DEFAULT_ALL)
-			.setColor(red)
-			.setContentIntent(openCalendarIntent(context, intent))
-			.setAutoCancel(true)
-			.build()
-	)
-}
-
-private fun openCalendarIntent(context: Context, alarmIntent: Intent): PendingIntent {
+fun makeOpenCalendarIntent(context: Context, alarmIntent: Intent): PendingIntent {
 	val userId = alarmIntent.getStringExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY)
 	val openCalendarEventIntent = Intent(context, MainActivity::class.java)
 	openCalendarEventIntent.action = MainActivity.OPEN_CALENDAR_ACTION

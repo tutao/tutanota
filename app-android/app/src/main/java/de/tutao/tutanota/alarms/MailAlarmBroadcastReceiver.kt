@@ -4,7 +4,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import de.tutao.tutanota.push.showAlarmNotification
+import de.tutao.tutanota.R
+import de.tutao.tutanota.push.makeOpenCalendarIntent
+import de.tutao.tutashared.alarms.AlarmNotificationsManager.Companion.showAlarmNotification
+import de.tutao.tutashared.alarms.NotificationResources
+
 
 class MailAlarmBroadcastReceiver : BroadcastReceiver() {
 	override fun onReceive(context: Context, intent: Intent) {
@@ -12,7 +16,17 @@ class MailAlarmBroadcastReceiver : BroadcastReceiver() {
 		val timestamp = intent.getLongExtra(EVENT_DATE_EXTRA, System.currentTimeMillis())
 		val summary = intent.getStringExtra(SUMMARY_EXTRA)
 		val isAllDayEvent = intent.getBooleanExtra(IS_ALL_DAY_EVENT, false)
-		showAlarmNotification(context, timestamp, summary!!, isAllDayEvent, intent)
+
+		val resources = NotificationResources(R.color.red, R.drawable.ic_alarm, R.string.reminder_label)
+
+		showAlarmNotification(
+			context,
+			timestamp,
+			summary!!,
+			isAllDayEvent,
+			makeOpenCalendarIntent(context, intent),
+			resources
+		)
 	}
 
 	companion object {
