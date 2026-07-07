@@ -374,8 +374,10 @@ export class OfflineStoragePersistence {
 	async resetMailIndex() {
 		{
 			const { query, params } = sql`UPDATE search_group_data
-									SET indexedTimestamp = ${NOTHING_INDEXED_TIMESTAMP}
-                                    WHERE groupType = ${GroupType.Mail}`
+										  SET indexedTimestamp           = ${NOTHING_INDEXED_TIMESTAMP},
+											  lastIndexedEntityListId    = ${GENERATED_MAX_ID},
+											  lastIndexedEntityElementId = ${GENERATED_MAX_ID}
+										  WHERE groupType = ${GroupType.Mail}`
 			await this.sqlCipherFacade.run(query, params)
 		}
 		{
