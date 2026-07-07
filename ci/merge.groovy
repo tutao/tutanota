@@ -132,7 +132,7 @@ pipeline {
 							// must be done before we can load libraries
 							initWorkspace(changeset, params.SOURCE_BRANCH, params.TARGET_BRANCH, params.CLEAN_WORKSPACE)
 							def util = load "ci/jenkins-lib/util.groovy"
-							def NODE_MAC_PATH = util.findNodeMacPath("22")
+							def NODE_MAC_PATH = util.findNodeMacPath("24")
 							withEnv(["PATH+NODE_MAC_PATH=${NODE_MAC_PATH}"]) {
 								installNpmPackages()
 								prepareSwift()

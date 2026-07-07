@@ -162,7 +162,7 @@ pipeline {
 					steps {
 						script {
 							def util = load "ci/jenkins-lib/util.groovy"
-							env.NODE_MAC_PATH = util.findNodeMacPath("22")
+							env.NODE_MAC_PATH = util.findNodeMacPath("24")
 						} // script
 						withEnv(["PATH+NODE_MAC_PATH=${env.NODE_MAC_PATH}"]) {
 							initBuildArea()

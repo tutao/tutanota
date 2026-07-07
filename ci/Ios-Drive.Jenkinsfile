@@ -67,7 +67,7 @@ pipeline {
 						lock('ios-build-m1') {
 							script {
 								def util = load "ci/jenkins-lib/util.groovy"
-								def NODE_MAC_PATH = util.findNodeMacPath("22")
+								def NODE_MAC_PATH = util.findNodeMacPath("24")
 
 								withEnv(["PATH+NODE_MAC_PATH=${NODE_MAC_PATH}"]) {
 									buildWebapp("test")
@@ -96,7 +96,7 @@ pipeline {
 						lock('ios-build-m1') {
 							script {
 								def util = load "ci/jenkins-lib/util.groovy"
-								def NODE_MAC_PATH = util.findNodeMacPath("22")
+								def NODE_MAC_PATH = util.findNodeMacPath("24")
 
 								withEnv(["PATH+NODE_MAC_PATH=${NODE_MAC_PATH}"]) {
 									buildWebapp("prod")
