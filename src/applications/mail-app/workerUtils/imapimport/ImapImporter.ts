@@ -15,7 +15,7 @@ import {
 	imapAccountToImapCredentials,
 	imapMailToImportMailParams,
 } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
-import { IMAP_ERROR_POSTPONE_TIME, ImapAccountSyncStatus, ImapFolderSyncStatus, ImapSyncEventType } from "../../../../entities/tutanota/Utils"
+import { ImapAccountSyncStatus, ImapFolderSyncStatus, ImapSyncEventType } from "../../../../entities/tutanota/Utils"
 import {
 	DeduplicatedImportedAttachmentTypeRef,
 	ImapAccount,
@@ -29,7 +29,6 @@ import { collapseId, elementIdPart, isSameId, OperationType } from "@tutao/meta"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { ImapFacade } from "../../../common/api/worker/facades/lazy/ImapFacade"
 import { ImapSyncFacade, ImapSyncSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { OAuthErrorHandler } from "../../settings/imapimport/oauth/OAuthErrorHandler"
 import { ImapImportUiSession } from "../../settings/imapimport/ImapMailImportController"
 import { FileTypeRef } from "@tutao/entities/sys"
 
@@ -102,6 +101,26 @@ export class ImapImporter implements ImapSyncFacade {
 		const newSession = newImapImportSession(imapAccountSyncState, initialFolderSyncStates)
 		this.imapImportSessions.set(this.getImapImportSessionsMapKey(imapAccountSyncState._id), newSession)
 		return newSession
+	}
+
+	/**
+	 * Updates the internal status of the sync state, should only be used in cases
+	 * where we cannot wait for the entityUpdate.
+	 *
+	 * @param accountSyncStateId
+	 * @param status
+	 * @param imapAccount
+	 */
+	async updateImportState(accountSyncStateId: IdTuple, status: ImapAccountSyncStatus, imapAccount?: ImapAccount) {
+		const idKey = this.getImapImportSessionsMapKey(accountSyncStateId)
+		this.imapImportSessions.get(idKey)
+		const session = this.getImapImportSessionOrNull(accountSyncStateId)
+		if (session) {
+			session.imapAccountSyncState.status = status
+			if (imapAccount) {
+				session.imapAccountSyncState.imapAccount = imapAccount
+			}
+		}
 	}
 
 	/**
