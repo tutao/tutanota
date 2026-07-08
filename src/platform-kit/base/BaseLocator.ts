@@ -1,6 +1,7 @@
 import { LoginFacade, LoginListener } from "./facades/LoginFacade.js"
 import { UserFacade } from "./facades/UserFacade.js"
-import { CryptoWrapper, random, RsaImplementation, SYMMETRIC_CIPHER_FACADE } from "../crypto"
+import type { RsaImplementation } from "../crypto"
+import { CryptoWrapper, random, SYMMETRIC_CIPHER_FACADE } from "../crypto"
 import { EntropyFacade } from "./facades/EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../network/BlobAccessTokenFacade.js"
 import { IServiceExecutor } from "../network/ServiceRequest.js"
@@ -32,7 +33,6 @@ import {
 	ApplicationTypesFacade,
 	ClientModelInfo,
 	InstancePipeline,
-	NamedClientModel,
 	PatchMerger,
 	ServerModelInfo,
 	SimpleFileFacade,

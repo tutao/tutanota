@@ -133,7 +133,7 @@ export {
 	validateInitializationVectorLength,
 	validateKdfNonceLength,
 } from "./encryption/symmetric/SymmetricCipherUtils.js"
-export { AesKey, Aes256Key, Aes128Key, type BitArray, AesKeyLength, getKeyLengthInBytes, assert256BitKey } from "./encryption/symmetric/AesKey.js"
+export { AesKey, Aes256Key, Aes128Key, AesKeyLength, getKeyLengthInBytes, assert256BitKey } from "./encryption/symmetric/AesKey.js"
 export { blake3Hash, blake3Mac, blake3MacVerify, blake3Kdf } from "./hashes/Blake3.js"
 export { PADDING_BYTE } from "./encryption/symmetric/AeadFacade.js"
 export * as cryptoUtils from "./CryptoUtils.js"

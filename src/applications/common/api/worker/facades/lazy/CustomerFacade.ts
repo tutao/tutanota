@@ -61,7 +61,7 @@ import {
 } from "@tutao/entities/sys"
 import { AccountType, BookingItemFeatureType, GroupType } from "../../../../../../entities/sys/Utils"
 import { DataFile } from "../../../../../../entities/tutanota/MailBundle"
-import { RsaImplementation } from "../../../../../../platform-kit/crypto/encryption/RsaImplementation"
+import type { RsaImplementation } from "../../../../../../platform-kit/crypto/encryption/RsaImplementation"
 import {
 	CacheMode,
 	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
