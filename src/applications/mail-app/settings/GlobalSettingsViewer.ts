@@ -438,7 +438,6 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			}
 		})
 	}
-
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		this.accountMaintenanceUpdateNotifier?.(updates)
 
@@ -453,6 +452,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 				this.customerProperties.reset()
 				this.customerProperties.getAsync().then(m.redraw)
 			}
+			return Promise.resolve()
 		}).then(noOp)
 	}
 }

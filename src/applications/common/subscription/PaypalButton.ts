@@ -36,6 +36,7 @@ export class PaypalButton implements Component<PaypalButtonAttrs> {
 							m.redraw()
 						})
 					}
+					return Promise.resolve()
 				}).then(noOp)
 			},
 			priority: OnEntityUpdateReceivedPriority.NORMAL,

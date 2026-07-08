@@ -58,6 +58,7 @@ export class MobileGlobalSettingsViewer implements UpdatableSettingsViewer {
 			if (isUpdateForTypeRef(CustomerServerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
 				return this.updateCustomerServerProperties()
 			}
+			return Promise.resolve()
 		}).then(noOp)
 	}
 }

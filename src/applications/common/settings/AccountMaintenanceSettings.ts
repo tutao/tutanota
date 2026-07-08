@@ -400,6 +400,7 @@ export class AccountMaintenanceSettings implements Component<AccountMaintenanceS
 				this.customerProperties.reset()
 				this.customerProperties.getAsync().then(m.redraw)
 			}
+			return Promise.resolve()
 		}).then(noOp)
 	}
 }

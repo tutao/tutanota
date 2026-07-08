@@ -110,6 +110,7 @@ export class EntityRestClient implements EntityRestInterface {
 			opts.queryParams,
 			opts.extraHeaders,
 			opts.ownerKeyProvider,
+			null,
 		)
 		const json = await this.restClient.request(path, HttpMethod.GET, {
 			...DEFAULT_REST_CLIENT_OPTIONS,
@@ -184,6 +185,7 @@ export class EntityRestClient implements EntityRestInterface {
 			Object.assign(rangeRequestParams, opts.queryParams),
 			opts.extraHeaders,
 			opts.ownerKeyProvider,
+			null,
 		)
 		// This should never happen if type checking is not bypassed with any
 		if (clientTypeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
@@ -219,7 +221,15 @@ export class EntityRestClient implements EntityRestInterface {
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<Array<DecryptedParsedInstance>> {
-		const { path, headers } = await this._validateAndPrepareRestRequest(typeRef, listId, null, opts.queryParams, opts.extraHeaders, opts.ownerKeyProvider)
+		const { path, headers } = await this._validateAndPrepareRestRequest(
+			typeRef,
+			listId,
+			null,
+			opts.queryParams,
+			opts.extraHeaders,
+			opts.ownerKeyProvider,
+			null,
+		)
 		const idChunks = splitInChunks(LOAD_MULTIPLE_LIMIT, elementIds)
 		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
@@ -390,6 +400,7 @@ export class EntityRestClient implements EntityRestInterface {
 			null,
 			null,
 			extraHeaders,
+			null,
 			options?.ownerKey ?? null,
 		)
 
@@ -425,7 +436,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 		const instanceChunks = splitInChunks(POST_MULTIPLE_LIMIT, instances)
 		const typeRef = instances[0]._type
-		const { clientTypeModel, path, headers } = await this._validateAndPrepareRestRequest(typeRef, listId, null, null, null, null)
+		const { clientTypeModel, path, headers } = await this._validateAndPrepareRestRequest(typeRef, listId, null, null, null, null, null)
 		const persistencePostReturnTypeModel = await this.typeModelResolver.resolveServerTypeReference(PersistenceResourcePostReturnTypeRef)
 
 		if (clientTypeModel.type === Type.ListElement) {
@@ -494,6 +505,7 @@ export class EntityRestClient implements EntityRestInterface {
 			instance._type,
 			listId,
 			elementId,
+			null,
 			null,
 			null,
 			options?.ownerKey ?? null,
@@ -594,6 +606,7 @@ export class EntityRestClient implements EntityRestInterface {
 			null,
 			options?.extraHeaders ?? null,
 			null,
+			null,
 		)
 		await this.restClient.request(path, HttpMethod.DELETE, {
 			...DEFAULT_REST_CLIENT_OPTIONS,
@@ -617,6 +630,7 @@ export class EntityRestClient implements EntityRestInterface {
 			{ ids: instancesIdsString },
 			options?.extraHeaders ?? null,
 			null,
+			null,
 		)
 
 		await this.restClient.request(path, HttpMethod.DELETE, {
@@ -632,7 +646,8 @@ export class EntityRestClient implements EntityRestInterface {
 		elementId: Id | null,
 		queryParams: Nullable<Dict>,
 		extraHeaders: Nullable<Dict>,
-		ownerKey: OwnerKeyProvider | VersionedKey | null,
+		ownerKeyProvider: OwnerKeyProvider | null,
+		ownerKey: VersionedKey | null,
 	): Promise<{
 		path: string
 		queryParams: Nullable<Dict>
@@ -643,7 +658,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 		ensureIsPersistentType(clientTypeModel)
 
-		if (ownerKey == null && !this.authDataProvider.isFullyLoggedIn() && clientTypeModel.encrypted) {
+		if (ownerKeyProvider == null && ownerKey == null && !this.authDataProvider.isFullyLoggedIn() && clientTypeModel.encrypted) {
 			// Short-circuit before we do an actual request which we can't decrypt
 			throw new LoginIncompleteError(`Trying to do a network request with encrypted entity but is not fully logged in yet, type: ${clientTypeModel.name}`)
 		}

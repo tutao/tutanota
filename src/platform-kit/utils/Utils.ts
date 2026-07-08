@@ -50,7 +50,7 @@ export function freshVersioned<T>(object: T): Versioned<T> {
 export type Require<K extends keyof T, T> = T & { [P in K]-?: NonNullable<T[P]> }
 
 export type DeferredObject<T> = {
-	resolve: (arg0: T | PromiseLike<T>) => void
+	resolve: (arg0: T) => void
 	reject: (arg0: Error) => void
 	promise: Promise<T>
 }
@@ -589,7 +589,7 @@ export function mapNullable<T, U>(val: T | null, action: (arg0: NonNullable<T>) 
 /** Helper to take instead of `typeof setTimeout` which is hellish to reproduce */
 export type TimeoutSetter = (fn: () => unknown, arg1: number) => ReturnType<typeof setTimeout>
 
-export function mapObject<K extends string | number | symbol, V, R>(mapper: (arg0: V) => R, obj: Record<K, V>): Record<K, R> {
+export function mapObject<K extends string, V, R>(mapper: (arg0: V) => R, obj: Record<K, V>): Record<K, R> {
 	const newObj = {} as Record<K, R>
 
 	for (const key of Object.keys(obj)) {
@@ -656,8 +656,10 @@ export type Nullable<T> = T | null
 /**
  * Factory method to allow tracing unresolved promises.
  */
-export function newPromise<T>(executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void, tag?: string) {
-	const promise = new Promise(executor)
+export function newPromise<T>(executor: (resolve: (value: T) => void, reject: (reason?: any) => void) => void, tag?: string): Promise<T> {
+	const promise = new Promise<T>((resolve, reject) => {
+		executor(resolve, reject)
+	})
 
 	// only to be enabled for local debugging purposes
 	// traceUnresolvedPromises(promise, tag)

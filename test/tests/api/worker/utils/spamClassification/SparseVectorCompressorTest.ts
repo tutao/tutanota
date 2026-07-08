@@ -15,7 +15,7 @@ o.spec("SparseVectorCompressorTest", () => {
 		const spamData = spamHamData.spamData
 		const hamData = spamHamData.hamData
 		const dataSlice = spamData.concat(hamData)
-		const tokenizedMails = await promiseMap(dataSlice, (mail) => spamClassifierTokenizer(new SpamMailProcessor().preprocessMail(mail)))
+		const tokenizedMails = await promiseMap(dataSlice, async (mail) => spamClassifierTokenizer(new SpamMailProcessor().preprocessMail(mail)))
 		const vectorizer = new HashingVectorizer()
 		const compressor = new SparseVectorCompressor()
 		const vectors = (await vectorizer.transform(tokenizedMails)).slice(0, 1)

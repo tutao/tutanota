@@ -69,9 +69,8 @@ export class AttributeModel {
 	}
 }
 
-type KeyOfRecord = string | number
-export function deepMapKeys<K extends KeyOfRecord>(obj: Record<KeyOfRecord, any>, keyMapper: (rawKey: string) => K): Record<K, any> {
-	const mappedObject = {} as Record<K, any>
+export function deepMapKeys(obj: Record<string, any>, keyMapper: (rawKey: string) => number): Record<string, any> {
+	const mappedObject = {} as Record<string, any>
 
 	for (const [unmappedKey, value] of Object.entries(obj)) {
 		const mappedKey = keyMapper(unmappedKey)

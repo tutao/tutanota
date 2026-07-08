@@ -30,12 +30,7 @@ export class EntityUtils {
 		}
 	}
 
-	public static setValue<A extends DeepEquals, K extends string | number>(
-		modelValue: ModelValue,
-		key: K,
-		parsedValue: ParsedValue<A>,
-		entityRecord: Record<K, any>,
-	): void {
+	public static setValue<A extends DeepEquals>(modelValue: ModelValue, key: string, parsedValue: ParsedValue<A>, entityRecord: Record<string, any>): void {
 		assert(modelValue.name !== "_id", "Do not use this method for _id. Check if it's Id or IdTuple outside")
 		if (parsedValue.isNull()) {
 			if (modelValue.cardinality === Cardinality.One) {

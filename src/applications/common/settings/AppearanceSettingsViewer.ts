@@ -93,6 +93,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 					m.redraw()
 				})
 			}
+			return Promise.resolve()
 		}).then(noOp)
 	}
 }

@@ -18,7 +18,7 @@ export interface Options {
 	@param element - Iterated element.
 	@param index - Index of the element in the source array.
  */
-export type Mapper<Element, NewElement> = (element: Element, index: number) => Promise<NewElement> | NewElement
+export type Mapper<Element, NewElement> = (element: Element, index: number) => Promise<NewElement>
 
 /**
 	@param iterable - Iterated over concurrently in the `mapper` function.

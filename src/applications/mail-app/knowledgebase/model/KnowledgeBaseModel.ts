@@ -258,6 +258,7 @@ export class KnowledgeBaseModel {
 					this.filter(this._filterValue)
 				}
 			}
+			return Promise.resolve()
 		}).then(noOp)
 	}
 }

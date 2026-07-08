@@ -130,7 +130,7 @@ export class OfflineEntity implements DeepEquals {
 				}
 			}
 		} else {
-			EntityUtils.setValue(modelValue, key, value, this.entityRecord)
+			EntityUtils.setValue(modelValue, key.toString(), value, this.entityRecord)
 		}
 	}
 

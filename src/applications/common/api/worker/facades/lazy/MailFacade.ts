@@ -1002,6 +1002,7 @@ export class MailFacade {
 						}),
 					)
 			}
+			return Promise.resolve()
 		}).then(noOp)
 	}
 

@@ -11,7 +11,7 @@ import { SessionType } from "../../../src/platform-kit/app-env/SessionType.js"
 import { instance, matchers, object, replace, verify, when } from "testdouble"
 import * as restError from "../../../src/platform-kit/rest-client/error"
 import { DeviceConfig } from "../../../src/applications/common/misc/DeviceConfig"
-import { ResumeSessionErrorReason } from "../../../src/platform-kit/base/facades/LoginFacade"
+import { ResumeSessionState } from "../../../src/platform-kit/base/facades/LoginFacade"
 import { createTestEntity, domainConfigStub, textIncludes } from "../TestUtils.js"
 import { CredentialRemovalHandler } from "../../../src/applications/common/login/CredentialRemovalHandler.js"
 import { NativePushServiceApp } from "../../../src/applications/common/native/NativePushServiceApp.js"
@@ -280,7 +280,7 @@ o.spec("LoginViewModelTest", () => {
 		o("login should succeed with valid stored credentials", async function () {
 			await credentialsProviderMock.store(credentialsToUnencrypted(testCredentials, null))
 			when(loginControllerMock.resumeSession(credentialsToUnencrypted(testCredentials, null), null)).thenResolve({
-				type: "success",
+				state: ResumeSessionState.Success,
 			})
 			const viewModel = await getViewModel()
 
@@ -292,7 +292,7 @@ o.spec("LoginViewModelTest", () => {
 		o("login should succeed with valid stored credentials in DeleteCredentials display mode", async function () {
 			await credentialsProviderMock.store(credentialsToUnencrypted(testCredentials, null))
 			when(loginControllerMock.resumeSession(credentialsToUnencrypted(testCredentials, null), null)).thenResolve({
-				type: "success",
+				state: ResumeSessionState.Success,
 			})
 			const viewModel = await getViewModel()
 
@@ -342,8 +342,7 @@ o.spec("LoginViewModelTest", () => {
 		o("should handle error result", async function () {
 			await credentialsProviderMock.store(credentialsToUnencrypted(testCredentials, null))
 			when(loginControllerMock.resumeSession(credentialsToUnencrypted(testCredentials, null), null)).thenResolve({
-				type: "error",
-				reason: ResumeSessionErrorReason.OfflineNotAvailableForFree,
+				state: ResumeSessionState.OfflineNotAvailableForFree,
 			})
 			const viewModel = await getViewModel()
 

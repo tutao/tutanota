@@ -41,7 +41,7 @@ export class ReceivedGroupInvitationsModel<TypeOfGroup extends ShareableGroupTyp
 
 	private readonly entityEventsReceived: EntityEventsListener = {
 		onEntityUpdatesReceived: (updates: ReadonlyArray<EntityUpdateData>) => {
-			return promiseMap(updates, (update) => {
+			return promiseMap(updates, async (update) => {
 				if (isUpdateForTypeRef(ReceivedGroupInvitationTypeRef, update)) {
 					const updateId: IdTuple = [assertNotNull(update.instanceListId), update.instanceId]
 

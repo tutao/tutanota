@@ -1,17 +1,20 @@
 import type { lazyAsync } from "./Utils.js"
 
+enum LoadState {
+	NotLoaded,
+	Loading,
+	Loaded,
+}
+
 /**
  * A wrapper for an object that shall be lazy loaded asynchronously. If loading the object is triggered in parallel (getAsync()) the object is actually only loaded once but returned to all calls of getAsync().
  * If the object was loaded once it is not loaded again.
  */
+
 export class LazyLoaded<T> {
-	private state:
-		| { state: "not_loaded" }
-		| { state: "loading"; promise: Promise<T> }
-		| {
-				state: "loaded"
-				value: T
-		  } = { state: "not_loaded" }
+	private state = LoadState.NotLoaded
+	private promise: Promise<T> | null = null
+	private value: T | null = null
 
 	/**
 	 * @param loadFunction The function that actually loads the object as soon as getAsync() is called the first time.
@@ -27,7 +30,8 @@ export class LazyLoaded<T> {
 	 */
 	static newLoaded<T>(object: T): LazyLoaded<T> {
 		const loaded = new LazyLoaded(async () => object)
-		loaded.state = { state: "loaded", value: object }
+		loaded.state = LoadState.Loaded
+		loaded.value = object
 		return loaded
 	}
 
@@ -37,36 +41,38 @@ export class LazyLoaded<T> {
 	}
 
 	isLoaded(): boolean {
-		return this.state.state === "loaded"
+		return this.state === LoadState.Loaded
 	}
 
 	isLoadedOrLoading(): boolean {
-		return this.state.state === "loaded" || this.state.state === "loading"
+		return this.state === LoadState.Loaded || this.state === LoadState.Loading
 	}
 
 	/**
 	 * Loads the object if it is not loaded yet. May be called in parallel and takes care that the load function is only called once.
 	 */
 	getAsync(): Promise<T> {
-		switch (this.state.state) {
-			case "not_loaded": {
+		switch (this.state) {
+			case LoadState.NotLoaded: {
 				const loadingPromise = this.loadFunction().then(
 					(value) => {
-						this.state = { state: "loaded", value }
+						this.state = LoadState.Loaded
+						this.value = value
 						return value
 					},
 					(e) => {
-						this.state = { state: "not_loaded" }
+						this.state = LoadState.NotLoaded
 						throw e
 					},
 				)
-				this.state = { state: "loading", promise: loadingPromise }
+				this.state = LoadState.Loading
+				this.promise = loadingPromise
 				return loadingPromise
 			}
-			case "loading":
-				return this.state.promise
-			case "loaded":
-				return Promise.resolve(this.state.value)
+			case LoadState.Loading:
+				return this.promise!
+			case LoadState.Loaded:
+				return Promise.resolve(this.value!)
 		}
 	}
 
@@ -74,15 +80,15 @@ export class LazyLoaded<T> {
 	 * Returns null if the object is not loaded yet.
 	 */
 	getSync(): T | null {
-		return this.state.state === "loaded" ? this.state.value : this.defaultValue
+		return this.state === LoadState.Loaded ? this.value : this.defaultValue
 	}
 
 	/**
 	 * Only call this function if you know that the object is already loaded.
 	 */
 	getLoaded(): T {
-		if (this.state.state === "loaded") {
-			return this.state.value
+		if (this.state === LoadState.Loaded) {
+			return this.value!
 		} else {
 			throw new Error("Not loaded!")
 		}
@@ -92,7 +98,7 @@ export class LazyLoaded<T> {
 	 * Removes the currently loaded object, so it will be loaded again with the next getAsync() call. Does not set any default value.
 	 */
 	reset() {
-		this.state = { state: "not_loaded" }
+		this.state = LoadState.NotLoaded
 		this.defaultValue = null
 	}
 
@@ -100,7 +106,7 @@ export class LazyLoaded<T> {
 	 * Loads the object again and replaces the current one
 	 */
 	async reload(): Promise<T> {
-		this.state = { state: "not_loaded" }
+		this.state = LoadState.NotLoaded
 		return this.getAsync()
 	}
 }

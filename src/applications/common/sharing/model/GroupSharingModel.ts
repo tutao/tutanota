@@ -4,7 +4,7 @@ import { EventController } from "../../api/main/EventController"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { elementIdToId, getElementId, getEtId, idToElementId, isSameId, isSameSingleId, OperationType } from "../../../../platform-kit/meta"
 import { ProgrammingError, ShareCapability } from "../../../../platform-kit/app-env"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { assertNotNull, findAndRemove, lazy, noOp, ofClass, promiseMap } from "../../../../platform-kit/utils"
 import { loadGroupInfoForMember, loadGroupMembers } from "../GroupUtils"
 import type { LoginController } from "../../api/main/LoginController"
@@ -26,7 +26,6 @@ import { MailAddress } from "@tutao/entities/tutanota"
 import { Recipient, RecipientType } from "../../../../entities/tutanota/Utils"
 import { Group, GroupInfo, GroupMember, GroupMemberTypeRef, GroupTypeRef, SentGroupInvitation, SentGroupInvitationTypeRef } from "@tutao/entities/sys"
 import { GroupMemberInfo, hasCapabilityOnGroup, isSharedGroupOwner } from "../../../../entities/sys/Utils"
-import { NotFoundError } from "../../../../platform-kit/rest-client/error"
 
 export class GroupSharingModel {
 	readonly info: GroupInfo
@@ -208,7 +207,7 @@ export class GroupSharingModel {
 		return promiseMap(updates, (update) => {
 			if (!isSameSingleId(eventOwnerGroupId, getEtId(this.group))) {
 				// ignore events of different group here
-				return
+				return Promise.resolve()
 			}
 
 			if (isUpdateForTypeRef(SentGroupInvitationTypeRef, update)) {
@@ -251,6 +250,7 @@ export class GroupSharingModel {
 					this.onEntityUpdate()
 				}
 			}
+			return Promise.resolve()
 		}).then(noOp)
 	}
 }

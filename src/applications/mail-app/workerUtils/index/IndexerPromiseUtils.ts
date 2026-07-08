@@ -36,7 +36,7 @@ function _mapInCallContext<T, U>(values: T[], callback: PromiseMapCallback<T, U>
 }
 
 function mapNoFallback<T, U>(values: Array<T>, callback: PromiseMapCallback<T, U>, options?: PromiseMapOptions) {
-	return PromisableWrapper.from(promiseMap(values, callback, options))
+	return PromisableWrapper.from(promiseMap(values, (value, index) => Promise.resolve(callback(value, index)), options))
 }
 
 /** Factory function which gives you ack promiseMap implementation. {@see mapInCallContext} for what it means. */

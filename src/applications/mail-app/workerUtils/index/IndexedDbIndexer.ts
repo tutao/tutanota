@@ -352,7 +352,9 @@ export class IndexedDbIndexer implements Indexer {
 
 	private async updateIndexedGroups(): Promise<void> {
 		const t: DbTransaction = await this.db.dbFacade.createTransaction(true, [GroupDataOS])
-		const indexedGroupIds = await promiseMap(await t.getAll(GroupDataOS), (groupDataEntry: DatabaseEntry) => downcast<Id>(groupDataEntry.key))
+		const indexedGroupIds = await promiseMap(await t.getAll(GroupDataOS), (groupDataEntry: DatabaseEntry) =>
+			Promise.resolve(downcast<Id>(groupDataEntry.key)),
+		)
 
 		if (indexedGroupIds.length === 0) {
 			// tried to index twice, this is probably not our fault
@@ -519,7 +521,7 @@ export class IndexedDbIndexer implements Indexer {
 					}
 				} catch (e) {
 					if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {
-						continue
+						/* empty */
 					} else {
 						throw e
 					}

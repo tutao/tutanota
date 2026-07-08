@@ -15,24 +15,13 @@ import { KeyMac } from "@tutao/entities/sys"
 
 assertWorkerOrNode()
 
-type AuthenticationBindingData = {
-	userGroupId: Id
-	adminGroupId: Id
-}
-
-type BaseKeyAuthenticationParams = {
-	tagType: keyof typeof systemMap
-	sourceOfTrust: { [name: string]: AesKey }
-	// this can be a user group key, an admin group key, an admin group public key or a distribution public key
-	untrustedKey: { [name: string]: AesKey | PQPublicKeys | Ed25519PublicKey }
-	bindingData: AuthenticationBindingData
-}
-
-export type UserGroupKeyAuthenticationParams = BaseKeyAuthenticationParams & {
+export type UserGroupKeyAuthenticationParams = {
 	tagType: "USER_GROUP_KEY_TAG"
 	untrustedKey: { newUserGroupKey: Aes256Key }
 	sourceOfTrust: { currentUserGroupKey: AesKey }
-	bindingData: AuthenticationBindingData & {
+	bindingData: {
+		userGroupId: Id
+		adminGroupId: Id
 		currentUserGroupKeyVersion: KeyVersion
 		newUserGroupKeyVersion: KeyVersion
 		newAdminGroupKeyVersion: KeyVersion
@@ -77,11 +66,13 @@ const userGroupKeyAuthenticationSystem: KeyAuthenticationSystem<UserGroupKeyAuth
 	},
 }
 
-export type NewAdminPubKeyAuthenticationParams = BaseKeyAuthenticationParams & {
+export type NewAdminPubKeyAuthenticationParams = {
 	tagType: "NEW_ADMIN_PUB_KEY_TAG"
 	untrustedKey: { newAdminPubKey: PQPublicKeys }
 	sourceOfTrust: { receivingUserGroupKey: AesKey } // this receiving user is an admin receiving the new admin group pub keys
-	bindingData: AuthenticationBindingData & {
+	bindingData: {
+		userGroupId: Id
+		adminGroupId: Id
 		newAdminGroupKeyVersion: KeyVersion
 		currentReceivingUserGroupKeyVersion: KeyVersion
 	}
@@ -109,11 +100,13 @@ const newAdminPubKeyAuthenticationSystem: KeyAuthenticationSystem<NewAdminPubKey
 	},
 }
 
-export type PubDistKeyAuthenticationParams = BaseKeyAuthenticationParams & {
+export type PubDistKeyAuthenticationParams = {
 	tagType: "PUB_DIST_KEY_TAG"
 	untrustedKey: { distPubKey: PQPublicKeys }
 	sourceOfTrust: { currentAdminGroupKey: AesKey }
-	bindingData: AuthenticationBindingData & {
+	bindingData: {
+		userGroupId: Id
+		adminGroupId: Id
 		currentUserGroupKeyVersion: KeyVersion
 		currentAdminGroupKeyVersion: KeyVersion
 	}
@@ -141,11 +134,13 @@ const pubDistKeyAuthenticationSystem: KeyAuthenticationSystem<PubDistKeyAuthenti
 	},
 }
 
-export type AdminSymKeyAuthenticationParams = BaseKeyAuthenticationParams & {
+export type AdminSymKeyAuthenticationParams = {
 	tagType: "ADMIN_SYM_KEY_TAG"
 	untrustedKey: { newAdminGroupKey: Aes256Key }
 	sourceOfTrust: { currentReceivingUserGroupKey: AesKey } // this receiving user is an admin receiving the new admin group sym key
-	bindingData: AuthenticationBindingData & {
+	bindingData: {
+		userGroupId: Id
+		adminGroupId: Id
 		newAdminGroupKeyVersion: KeyVersion
 		currentReceivingUserGroupKeyVersion: KeyVersion
 	}
@@ -193,12 +188,9 @@ const identityPubKeyAuthenticationSystem: KeyAuthenticationSystem<IdentityPubKey
 	},
 }
 
-export type KeyAuthenticationParams =
-	| UserGroupKeyAuthenticationParams
-	| NewAdminPubKeyAuthenticationParams
-	| PubDistKeyAuthenticationParams
-	| AdminSymKeyAuthenticationParams
-	| IdentityPubKeyAuthenticationParams
+export interface KeyAuthenticationParams {
+	tagType: keyof typeof systemMap
+}
 
 const systemMap = {
 	USER_GROUP_KEY_TAG: userGroupKeyAuthenticationSystem,
@@ -218,8 +210,8 @@ export class KeyAuthenticationFacade {
 	 * Computes a MAC tag using an existing key authentication system.
 	 * @param keyAuthenticationParams Parameters for the chosen key authentication system, containing trusted key, key to be verified, and binding data
 	 */
-	public computeTag(keyAuthenticationParams: KeyAuthenticationParams): MacTag {
-		const keyAuthenticationSystem: KeyAuthenticationSystem<KeyAuthenticationParams> = systemMap[keyAuthenticationParams.tagType]
+	public computeTag<T extends KeyAuthenticationParams>(keyAuthenticationParams: T): MacTag {
+		const keyAuthenticationSystem = systemMap[keyAuthenticationParams.tagType] as unknown as KeyAuthenticationSystem<T>
 		const authKey = keyAuthenticationSystem.deriveKey(keyAuthenticationParams, this.cryptoWrapper)
 		const authData = keyAuthenticationSystem.generateAuthenticationData(keyAuthenticationParams)
 		return this.cryptoWrapper.hmacSha256(authKey, authData)
@@ -230,8 +222,8 @@ export class KeyAuthenticationFacade {
 	 * @param keyAuthenticationParams Parameters for the chosen key authentication system, containing trusted key, key to be verified, and binding data
 	 * @param tag The MAC tag to be verified. Must be a branded MacTag, which you can get with brandKeyMac() in most cases
 	 */
-	public verifyTag(keyAuthenticationParams: KeyAuthenticationParams, tag: MacTag): void {
-		const keyAuthenticationSystem: KeyAuthenticationSystem<KeyAuthenticationParams> = systemMap[keyAuthenticationParams.tagType]
+	public verifyTag<T extends KeyAuthenticationParams>(keyAuthenticationParams: T, tag: MacTag): void {
+		const keyAuthenticationSystem = systemMap[keyAuthenticationParams.tagType] as unknown as KeyAuthenticationSystem<T>
 		const authKey = keyAuthenticationSystem.deriveKey(keyAuthenticationParams, this.cryptoWrapper)
 		const authData = keyAuthenticationSystem.generateAuthenticationData(keyAuthenticationParams)
 		this.cryptoWrapper.verifyHmacSha256(authKey, authData, tag)

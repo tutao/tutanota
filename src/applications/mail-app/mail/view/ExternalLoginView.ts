@@ -15,7 +15,7 @@ import { getLoginErrorMessage, handleExpectedLoginError } from "../../../common/
 import type { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider.js"
 import { credentialsToUnencrypted } from "../../../common/misc/credentials/Credentials.js"
 import { SessionType } from "../../../../platform-kit/app-env/SessionType.js"
-import { ResumeSessionErrorReason } from "../../../../platform-kit/base/facades/LoginFacade.js"
+import { ResumeSessionState } from "../../../../platform-kit/base/facades/LoginFacade.js"
 import { TopLevelAttrs, TopLevelView } from "../../../../ui/base/TopLevelView.js"
 import { BaseTopLevelView } from "../../../../ui/BaseTopLevelView.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
@@ -99,11 +99,8 @@ export class ExternalLoginViewModel {
 			salt: this.urlData.salt,
 			kdfType: this.urlData.kdfType,
 		})
-		if (result.type === "error") {
-			switch (result.reason) {
-				case ResumeSessionErrorReason.OfflineNotAvailableForFree:
-					throw new Error("Cannot happen")
-			}
+		if (result.state === ResumeSessionState.Failure) {
+			throw new Error("Cannot happen")
 		}
 	}
 

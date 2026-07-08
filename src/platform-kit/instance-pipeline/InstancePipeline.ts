@@ -33,23 +33,13 @@ export class InstancePipeline {
 		return new InstancePipeline(typeModelResolver, symGroupKeyLoader, symmetricCipherFacade)
 	}
 
-	async mapAndEncrypt<T extends Entity>(
-		_typeRef: TypeRef<T>,
-		instance: T,
-		sessionKey: Promise<Nullable<AesKey>> | Nullable<AesKey>,
-	): Promise<OutgoingServerJson> {
+	async mapAndEncrypt<T extends Entity>(_typeRef: TypeRef<T>, instance: T, sessionKey: Nullable<AesKey>): Promise<OutgoingServerJson> {
 		const encryptedInstance = await this.mapAndEncryptToParsedInstance(_typeRef, instance, sessionKey)
 		return this.typeMapper.makeServerJson(encryptedInstance)
 	}
 
-	async mapAndEncryptToParsedInstance<T extends Entity>(
-		_typeRef: TypeRef<T>,
-		instance: T,
-		sessionKey: Promise<Nullable<AesKey>> | Nullable<AesKey>,
-	): Promise<EncryptedParsedInstance> {
-		const sk = await sessionKey
-		const subKeyInfo = makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(sk)
-
+	async mapAndEncryptToParsedInstance<T extends Entity>(_typeRef: TypeRef<T>, instance: T, sessionKey: Nullable<AesKey>): Promise<EncryptedParsedInstance> {
+		const subKeyInfo = makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(sessionKey)
 		return this.mapAndEncryptWithSubKeyInfo(instance, subKeyInfo)
 	}
 	async mapAndEncryptWithSubKeyInfo<T extends Entity>(instance: T, subKeyInfo: Nullable<SubKeyInfo>): Promise<EncryptedParsedInstance> {

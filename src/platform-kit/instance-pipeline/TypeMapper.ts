@@ -100,7 +100,7 @@ export class IncomingServerJson implements DeepEquals {
 		json: Record<string, any>,
 		public readonly typeModel: ServerTypeModel,
 	) {
-		this.json = deepMapKeys<AttributeId>(json, (key: string) => {
+		this.json = deepMapKeys(json, (key: string) => {
 			const [attributeIdStr, _attributeName] = key.split(":")
 			return assertNotNaN(parseInt(attributeIdStr))
 		})

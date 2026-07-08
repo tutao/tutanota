@@ -12,10 +12,10 @@ function mockDeferMapper() {
 o.spec("PromiseUtils", () => {
 	o.spec("promiseMap Array<T>", () => {
 		o.test("empty", async () => {
-			o.check(await promiseMap([], (n) => n + 1)).deepEquals([])
+			o.check(await promiseMap([], async (n) => n + 1)).deepEquals([])
 		})
 		o.test("non-empty", async () => {
-			o.check(await promiseMap([1, 2, 3], (n) => n + 1)).deepEquals([2, 3, 4])
+			o.check(await promiseMap([1, 2, 3], async (n) => n + 1)).deepEquals([2, 3, 4])
 		})
 
 		o.test("parallel", async () => {

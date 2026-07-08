@@ -1,16 +1,15 @@
-type StatePending<T> = {
-	status: "pending"
-	promise: Promise<T>
+export enum AsyncResultStateOptions {
+	Pending,
+	Complete,
+	Failure,
 }
-type StateComplete<T> = {
-	status: "complete"
-	result: T
+
+type AsyncResultState<T> = {
+	state: AsyncResultStateOptions
+	promise: Promise<T> | null
+	result: T | null
+	error: any | null
 }
-type StateFailure = {
-	status: "failure"
-	error: any
-}
-type AsyncResultState<T> = StatePending<T> | StateComplete<T> | StateFailure
 
 /**
  * Represents a resource that is either not ready, ready, or error
@@ -29,23 +28,29 @@ export class AsyncResult<T> {
 	}
 }
 
-function pending<T>(promise: Promise<T>): StatePending<T> {
+function pending<T>(promise: Promise<T>): AsyncResultState<T> {
 	return {
-		status: "pending",
+		state: AsyncResultStateOptions.Pending,
 		promise,
+		result: null,
+		error: null,
 	}
 }
 
-function complete<T>(result: T): StateComplete<T> {
+function complete<T>(result: T): AsyncResultState<T> {
 	return {
-		status: "complete",
+		state: AsyncResultStateOptions.Complete,
+		promise: null,
 		result,
+		error: null,
 	}
 }
 
-function failure(error: any): StateFailure {
+function failure<T>(error: any): AsyncResultState<T> {
 	return {
-		status: "failure",
+		state: AsyncResultStateOptions.Failure,
+		promise: null,
+		result: null,
 		error,
 	}
 }

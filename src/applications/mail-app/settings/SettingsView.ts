@@ -89,6 +89,7 @@ assertMainOrNode()
 
 export class SettingsView extends BaseTopLevelView implements TopLevelView<SettingsViewAttrs> {
 	viewSlider: ViewSlider
+
 	private readonly _settingsFoldersColumn: ViewColumn
 	private readonly _settingsColumn: ViewColumn
 	private readonly _settingsDetailsColumn: ViewColumn
@@ -936,7 +937,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	async _makeTemplateFolders(): Promise<Array<SettingsFolder<TemplateGroupInstance>>> {
 		const userController = this.logins.getUserController()
 		const templateMemberships = userController.getTemplateMemberships()
-		return promiseMap(await loadTemplateGroupInstances(templateMemberships, locator.entityClient), (groupInstance) => {
+		return promiseMap(await loadTemplateGroupInstances(templateMemberships, locator.entityClient), async (groupInstance) => {
 			const sharedGroupName = getNullableSharedGroupName(groupInstance.groupInfo, userController.userSettingsGroupRoot, true)
 			return new SettingsFolder(
 				() => (sharedGroupName ? lang.makeTranslation("templateGroupDefaultName_label", sharedGroupName) : "templateGroupDefaultName_label"),
@@ -964,7 +965,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 		if (isCustomizationEnabledForCustomer(customer, FeatureType.KnowledgeBase)) {
 			const templateMemberships = (this.logins.getUserController() && this.logins.getUserController().getTemplateMemberships()) || []
-			return promiseMap(await loadTemplateGroupInstances(templateMemberships, locator.entityClient), (groupInstance) => {
+			return promiseMap(await loadTemplateGroupInstances(templateMemberships, locator.entityClient), async (groupInstance) => {
 				const sharedGroupName = getNullableSharedGroupName(groupInstance.groupInfo, userController.userSettingsGroupRoot, true)
 				return new SettingsFolder(
 					() => (sharedGroupName ? lang.makeTranslation("templateGroupDefaultName_label", sharedGroupName) : "templateGroupDefaultName_label"),

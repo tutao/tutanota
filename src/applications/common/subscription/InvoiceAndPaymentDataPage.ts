@@ -431,6 +431,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 							m.redraw()
 						})
 					}
+					return Promise.resolve()
 				}).then(noOp)
 			},
 			priority: OnEntityUpdateReceivedPriority.NORMAL,

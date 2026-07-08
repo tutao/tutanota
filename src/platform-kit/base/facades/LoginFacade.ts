@@ -135,7 +135,9 @@ interface ResumeSessionResultData {
 	sessionId: IdTuple
 }
 
-export const enum ResumeSessionErrorReason {
+export const enum ResumeSessionState {
+	Success,
+	Failure,
 	OfflineNotAvailableForFree,
 }
 
@@ -145,26 +147,25 @@ export type InitCacheOptions = {
 	forceNewDatabase: boolean
 }
 
-type ResumeSessionSuccess = {
-	type: "success"
-	data: ResumeSessionResultData
+export type ResumeSessionResult = {
+	state: ResumeSessionState
 	asyncResumeCompleted: Promise<void> | null
+	data: ResumeSessionResultData | null
 }
-type ResumeSessionFailure = {
-	type: "error"
-	reason: ResumeSessionErrorReason
-	asyncResumeCompleted: Promise<void> | null
-}
-type ResumeSessionResult = ResumeSessionSuccess | ResumeSessionFailure
 
-type AsyncLoginState =
-	| { state: "idle" }
-	| { state: "running" }
-	| {
-			state: "failed"
-			credentials: Credentials
-			cacheInfo: CacheInfo
-	  }
+export enum AsyncLoginStateOptions {
+	Idle,
+	Running,
+	Failed,
+}
+
+type AsyncLoginState = {
+	state: AsyncLoginStateOptions
+	failure?: {
+		credentials: Credentials
+		cacheInfo: CacheInfo
+	}
+}
 
 /**
  * All attributes that are required to derive the passphrase key.
@@ -206,7 +207,7 @@ export interface LoginListener {
 
 export class LoginFacade implements SessionTypeProvider {
 	/** On platforms with offline cache we do the actual login asynchronously and we can retry it. This is the state of such async login. */
-	asyncLoginState: AsyncLoginState = { state: "idle" }
+	asyncLoginState: AsyncLoginState = { state: AsyncLoginStateOptions.Idle }
 	/**
 	 * Used for cancelling second factor and to not mix different attempts
 	 */
@@ -518,7 +519,7 @@ export class LoginFacade implements SessionTypeProvider {
 				`Trying to resume the session for user ${credentials.userId} while already logged in for ${this.userFacade.getUser()?._id}`,
 			)
 		}
-		if (this.asyncLoginState.state !== "idle") {
+		if (this.asyncLoginState.state !== AsyncLoginStateOptions.Idle) {
 			throw new ProgrammingError(`Trying to resume the session for user ${credentials.userId} while the asyncLoginState is ${this.asyncLoginState.state}`)
 		}
 		this.userFacade.setAccessToken(credentials.accessToken)
@@ -568,7 +569,7 @@ export class LoginFacade implements SessionTypeProvider {
 				}
 
 				await this.triggerPartialLoginSuccess(SessionType.Persistent, cacheInfo, credentials)
-				return { type: "success", data, asyncResumeCompleted: env.mode === "Test" ? asyncResumeSession : null }
+				return { state: ResumeSessionState.Success, data, asyncResumeCompleted: env.mode === "Test" ? asyncResumeSession : null }
 			} else {
 				return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
 			}
@@ -847,10 +848,10 @@ export class LoginFacade implements SessionTypeProvider {
 	}
 
 	async retryAsyncLogin(): Promise<void> {
-		if (this.asyncLoginState.state === "running") {
+		if (this.asyncLoginState.state === AsyncLoginStateOptions.Running) {
 			return
-		} else if (this.asyncLoginState.state === "failed") {
-			await this.asyncResumeSession(this.asyncLoginState.credentials, this.asyncLoginState.cacheInfo)
+		} else if (this.asyncLoginState.state === AsyncLoginStateOptions.Failed) {
+			await this.asyncResumeSession(this.asyncLoginState.failure!.credentials, this.asyncLoginState.failure!.cacheInfo)
 		} else {
 			throw new Error("credentials went missing")
 		}
@@ -967,19 +968,20 @@ export class LoginFacade implements SessionTypeProvider {
 	}
 
 	private async asyncResumeSession(credentials: Credentials, cacheInfo: CacheInfo): Promise<void> {
-		if (this.asyncLoginState.state === "running") {
+		if (this.asyncLoginState.state === AsyncLoginStateOptions.Running) {
 			throw new Error("finishLoginResume run in parallel")
 		}
-		this.asyncLoginState = { state: "running" }
+		this.asyncLoginState = { state: AsyncLoginStateOptions.Running }
 		try {
 			await this.finishResumeSession(credentials, null, cacheInfo)
 		} catch (e) {
 			if (e instanceof NotAuthenticatedError || e instanceof SessionExpiredError) {
 				// For this type of errors we cannot use credentials anymore.
-				this.asyncLoginState = { state: "idle" }
+				this.asyncLoginState = { state: AsyncLoginStateOptions.Idle }
 				await this.loginListener.onLoginFailure(LoginFailReason.SessionExpired)
 			} else {
-				this.asyncLoginState = { state: "failed", credentials, cacheInfo }
+				this.asyncLoginState = { state: AsyncLoginStateOptions.Failed }
+				this.asyncLoginState.failure = { credentials, cacheInfo }
 				if (!(e instanceof ConnectionError)) {
 					await this.applicationTypesFacade.invalidateApplicationTypes()
 					await this.sendError(e)
@@ -993,7 +995,7 @@ export class LoginFacade implements SessionTypeProvider {
 		credentials: Credentials,
 		externalUserKeyDeriver: ExternalUserKeyDeriver | null,
 		cacheInfo: CacheInfo,
-	): Promise<ResumeSessionSuccess> {
+	): Promise<ResumeSessionResult> {
 		const sessionId = this.getSessionId(credentials)
 		const sessionData = await this.loadSessionData(credentials.accessToken)
 
@@ -1032,7 +1034,7 @@ export class LoginFacade implements SessionTypeProvider {
 		}
 		partialLoginPromise.finally(() => this.triggerFullLoginSuccess(SessionType.Persistent, cacheInfo, credentialsWithPassphraseKey))
 
-		this.asyncLoginState = { state: "idle" }
+		this.asyncLoginState = { state: AsyncLoginStateOptions.Idle }
 
 		const data = {
 			user,
@@ -1049,7 +1051,7 @@ export class LoginFacade implements SessionTypeProvider {
 
 		await this.initializeKeyRotationRollouts(userPassphraseKey, modernKdfType, SessionType.Persistent)
 
-		return { type: "success", data, asyncResumeCompleted: null }
+		return { state: ResumeSessionState.Success, data, asyncResumeCompleted: null }
 	}
 
 	private async initSession(

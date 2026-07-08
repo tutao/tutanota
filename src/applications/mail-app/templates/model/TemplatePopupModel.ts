@@ -208,6 +208,7 @@ export class TemplatePopupModel {
 					return this.initialized.getAsync().then(() => this._rerunSearch())
 				}
 			}
+			return Promise.resolve()
 		})
 	}
 

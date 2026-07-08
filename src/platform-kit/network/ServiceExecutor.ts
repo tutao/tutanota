@@ -9,6 +9,7 @@ import {
 	PostService,
 	PutService,
 	ReturnTypeFromRef,
+	ServiceDefinition,
 	TypeRef,
 } from "@tutao/meta"
 import { RestClient } from "@tutao/rest-client"
@@ -22,8 +23,6 @@ import { DEFAULT_REST_CLIENT_OPTIONS, ExtraServiceParams } from "../instance-pip
 
 import { IncomingServerJson, OutgoingServerJson } from "../instance-pipeline/TypeMapper"
 assertWorkerOrNode()
-
-type AnyService = GetService | PostService | PutService | DeleteService
 
 export class ServiceExecutor implements IServiceExecutor {
 	constructor(
@@ -67,7 +66,7 @@ export class ServiceExecutor implements IServiceExecutor {
 	}
 
 	private async executeServiceRequest(
-		service: AnyService,
+		service: ServiceDefinition,
 		method: HttpMethod,
 		requestEntity: Nullable<Entity>,
 		params: Nullable<ExtraServiceParams> = null,
@@ -107,7 +106,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		}
 	}
 
-	private getMethodDefinition(service: AnyService, method: HttpMethod): MethodDefinition {
+	private getMethodDefinition(service: ServiceDefinition, method: HttpMethod): MethodDefinition {
 		switch (method) {
 			case HttpMethod.GET:
 				return (service as GetService)["get"]
@@ -135,7 +134,7 @@ export class ServiceExecutor implements IServiceExecutor {
 	private async encryptDataIfNeeded(
 		methodDefinition: MethodDefinition,
 		requestEntity: Entity | null,
-		service: AnyService,
+		service: ServiceDefinition,
 		method: HttpMethod,
 		params: ExtraServiceParams | null,
 	): Promise<Nullable<OutgoingServerJson>> {

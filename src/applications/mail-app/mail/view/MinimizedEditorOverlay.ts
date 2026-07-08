@@ -46,6 +46,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 							viewModel.removeMinimizedEditor(minimizedEditor)
 						}
 					}
+					return Promise.resolve()
 				})
 			},
 			priority: OnEntityUpdateReceivedPriority.NORMAL,

@@ -14,7 +14,7 @@ import {
 	sha256Hash,
 	uint8ArrayToKey,
 } from "../../../src/platform-kit/crypto"
-import { LoginFacade, LoginFailReason, LoginListener } from "../../../src/platform-kit/base/facades/LoginFacade"
+import { AsyncLoginStateOptions, LoginFacade, LoginFailReason, LoginListener, ResumeSessionState } from "../../../src/platform-kit/base/facades/LoginFacade"
 import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest"
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
 import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade"
@@ -349,7 +349,9 @@ o.spec("LoginFacadeTest", function () {
 
 				await facade.resumeSession(credentials, null, dbKey)
 
-				o(facade.asyncLoginState).deepEquals({ state: "idle" })("Synchronous login occured, so once resume returns we have already logged in")
+				o(facade.asyncLoginState).deepEquals({ state: AsyncLoginStateOptions.Idle })(
+					"Synchronous login occured, so once resume returns we have already logged in",
+				)
 				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
 
@@ -364,7 +366,7 @@ o.spec("LoginFacadeTest", function () {
 
 				await facade.resumeSession(credentials, null, dbKey)
 
-				o(facade.asyncLoginState).deepEquals({ state: "running" })("Async login occurred so it is still running")
+				o(facade.asyncLoginState).deepEquals({ state: AsyncLoginStateOptions.Running })("Async login occurred so it is still running")
 			})
 
 			o.test("when resuming a session and a notAuthenticatedError is thrown, the error is propagated to the main thread", async function () {
@@ -555,7 +557,7 @@ o.spec("LoginFacadeTest", function () {
 					dbKey,
 				)
 
-				o(result.type).equals("success")
+				o(result.state).equals(ResumeSessionState.Success)
 
 				await deferred.promise
 
@@ -589,7 +591,7 @@ o.spec("LoginFacadeTest", function () {
 
 				console.log("after resolve " + calls.toString())
 
-				o(result.type).equals("success")
+				o(result.state).equals(ResumeSessionState.Success)
 				o(calls).deepEquals(["setUser", "sessionService"])
 
 				// Did not finish login
@@ -821,7 +823,7 @@ o.spec("LoginFacadeTest", function () {
 					null,
 				)
 
-				o(result.type).equals("success")
+				o(result.state).equals(ResumeSessionState.Success)
 				verify(eventBusClientMock.connect(ConnectMode.Initial))
 			})
 
@@ -910,7 +912,7 @@ o.spec("LoginFacadeTest", function () {
 					null,
 				)
 
-				o(result.type).equals("success")
+				o(result.state).equals(ResumeSessionState.Success)
 			})
 		})
 	})
