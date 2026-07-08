@@ -87,8 +87,8 @@ export class RecipientsModel {
 					default:
 						throw new ProgrammingError("no mapping for key verification state: " + keyVerificationState)
 				}
-			} else if (isTutaMailAddress(mailAddress)) {
-				return [RecipientType.INTERNAL, PresentableKeyVerificationState.NONE]
+				//} else if (isTutaMailAddress(mailAddress)) {
+				//	return [RecipientType.INTERNAL, PresentableKeyVerificationState.NONE]
 			} else {
 				return [RecipientType.EXTERNAL, PresentableKeyVerificationState.NONE]
 			}
