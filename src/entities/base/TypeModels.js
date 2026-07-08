@@ -24,7 +24,8 @@ const typeModels = {
 				"id": 1,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"idForAssociatedData": null
 			},
 			"2": {
 				"final": false,
@@ -32,7 +33,8 @@ const typeModels = {
 				"id": 2,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
-				"encrypted": false
+				"encrypted": false,
+				"idForAssociatedData": null
 			},
 			"3": {
 				"final": false,
@@ -40,7 +42,8 @@ const typeModels = {
 				"id": 3,
 				"type": "GeneratedId",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"idForAssociatedData": null
 			}
 		},
 		"associations": {}
