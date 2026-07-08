@@ -59,6 +59,50 @@ export function getTimeZoneShortName(timeZone: string) {
 	return shortName
 }
 
+/**
+ * The full name for the time zone offset.
+ *
+ * For example, "Central European Standard Time" or "Central European Summer Time" (depending on daylight saving)
+ * will be returned for many central european time zones.
+ */
+export function getTimeZoneOffsetLongName(dateTime: DateTime, timeZone: string) {
+	assert(dateTime.isValid, "getTimeZoneOffsetLongName expects a valid date time!")
+
+	const dateTimeInTimeZone = dateTime.setZone(timeZone)
+	assert(dateTimeInTimeZone.isValid, `Invalid time zone = "${timeZone}" passed to getTimeZoneOffsetLongName!`)
+
+	return dateTimeInTimeZone.offsetNameLong ?? ""
+}
+
+/** Builds the offset string 'GMT+HH[:MM]' or 'GMT-HH[:MM]' for a datetime in a time zone. */
+export function getTimeZoneGmtOffset(dateTime: DateTime, timeZone: string) {
+	assert(dateTime.isValid, "getTimeZoneGmtOffset expects a valid date time!")
+
+	const dateTimeInTimeZone = dateTime.setZone(timeZone)
+	assert(dateTimeInTimeZone.isValid, `Invalid time zone = "${timeZone}" passed to getTimeZoneGmtOffset!`)
+
+	let offsetInMinutes = dateTimeInTimeZone.offset
+	assert(!Number.isNaN(offsetInMinutes), "Unexpected NaN date time offset!")
+
+	let result = "GMT"
+	if (offsetInMinutes < 0) {
+		offsetInMinutes = -offsetInMinutes
+		result += "-"
+	} else {
+		result += "+"
+	}
+
+	const hours = Math.floor(offsetInMinutes / 60)
+	const minutes = offsetInMinutes % 60
+
+	result += hours.toString()
+	if (minutes) {
+		result += ":" + minutes.toString().padStart(2, "0")
+	}
+
+	return result
+}
+
 export function formatEventDuration(event: CalendarEventTimes, formatterTimezones: TextFormatterTimezones, includeTimezone: boolean): string {
 	let result = ""
 	if (isAllDayEvent(event)) {
@@ -177,30 +221,4 @@ export function getTextFormatterTimeZones(event: Omit<CalendarEvent, "descriptio
 	}
 
 	return timeZones
-}
-
-/** Builds the string 'GMT+HH[:MM]' or 'GMT-HH[:MM]' based on the time zone of the luxon DateTime passed to the function. */
-export function buildGmtOffset(dateTime: DateTime) {
-	assert(dateTime.isValid, "buildGmtOffset expects a valid date time!")
-
-	let offsetInMinutes = dateTime.offset
-	assert(!Number.isNaN(offsetInMinutes), "Unexpected NaN date time offset!")
-
-	let result = "GMT"
-	if (offsetInMinutes < 0) {
-		offsetInMinutes = -offsetInMinutes
-		result += "-"
-	} else {
-		result += "+"
-	}
-
-	const hours = Math.floor(offsetInMinutes / 60)
-	const minutes = offsetInMinutes % 60
-
-	result += hours.toString()
-	if (minutes) {
-		result += ":" + minutes.toString().padStart(2, "0")
-	}
-
-	return result
 }
