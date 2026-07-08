@@ -2845,6 +2845,15 @@ const typeModels = {
 				"cardinality": "Any",
 				"refTypeId": 612,
 				"dependency": null
+			},
+			"1985": {
+				"final": false,
+				"name": "mail",
+				"id": 1985,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 1980,
+				"dependency": null
 			}
 		}
 	},
@@ -11154,6 +11163,94 @@ const typeModels = {
 			}
 		},
 		"associations": {}
+	},
+	"1976": {
+		"name": "MailAddressTransferAggregation",
+		"app": "tutanota",
+		"version": 111,
+		"since": 111,
+		"type": "AGGREGATED_TYPE",
+		"id": 1976,
+		"rootId": "CHR1dGFub3RhAAe4",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1977": {
+				"final": true,
+				"name": "_id",
+				"id": 1977,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1978": {
+				"final": true,
+				"name": "name",
+				"id": 1978,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"1979": {
+				"final": true,
+				"name": "address",
+				"id": 1979,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"1980": {
+		"name": "MailTransferAggregation",
+		"app": "tutanota",
+		"version": 111,
+		"since": 111,
+		"type": "AGGREGATED_TYPE",
+		"id": 1980,
+		"rootId": "CHR1dGFub3RhAAe8",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"1981": {
+				"final": true,
+				"name": "_id",
+				"id": 1981,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"1982": {
+				"final": true,
+				"name": "subject",
+				"id": 1982,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"1983": {
+				"final": true,
+				"name": "receivedDate",
+				"id": 1983,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"1984": {
+				"final": true,
+				"name": "sender",
+				"id": 1984,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 1976,
+				"dependency": null
+			}
+		}
 	}
 }
 export default typeModels

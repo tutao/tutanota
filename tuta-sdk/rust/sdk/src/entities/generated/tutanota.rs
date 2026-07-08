@@ -1102,6 +1102,8 @@ pub struct DraftData {
 	pub removedAttachments: Vec<IdTupleGenerated>,
 	#[serde(rename = "819")]
 	pub replyTos: Vec<EncryptedMailAddress>,
+    #[serde(rename = "1985")]
+    pub mail: Option<MailTransferAggregation>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -4784,4 +4786,52 @@ impl Entity for ImapOauthConfigGetOut {
 			type_id: TypeId::from(1972),
 		}
 	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct MailAddressTransferAggregation {
+    #[serde(rename = "1977")]
+    pub _id: Option<CustomId>,
+    #[serde(rename = "1978")]
+    pub name: String,
+    #[serde(rename = "1979")]
+    pub address: String,
+
+    #[serde(default)]
+    pub _errors: Errors,
+}
+
+impl Entity for MailAddressTransferAggregation {
+    fn type_ref() -> TypeRef {
+        TypeRef {
+            app: AppName::Tutanota,
+            type_id: TypeId::from(1976),
+        }
+    }
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct MailTransferAggregation {
+    #[serde(rename = "1981")]
+    pub _id: Option<CustomId>,
+    #[serde(rename = "1982")]
+    pub subject: String,
+    #[serde(rename = "1983")]
+    pub receivedDate: DateTime,
+    #[serde(rename = "1984")]
+    pub sender: MailAddressTransferAggregation,
+
+    #[serde(default)]
+    pub _errors: Errors,
+}
+
+impl Entity for MailTransferAggregation {
+    fn type_ref() -> TypeRef {
+        TypeRef {
+            app: AppName::Tutanota,
+            type_id: TypeId::from(1980),
+        }
+    }
 }

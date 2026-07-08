@@ -690,6 +690,7 @@ export type DraftData = {
 	addedAttachments: DraftAttachment[];
 	removedAttachments: IdTuple[];
 	replyTos: EncryptedMailAddress[];
+	mail: null | MailTransferAggregation;
 }
 export const DraftCreateDataTypeRef: TypeRef<DraftCreateData> = new TypeRef("tutanota", 508)
 
@@ -3067,4 +3068,34 @@ export type ImapOauthConfigGetOut = {
 
 	_format: NumberString;
 	clientSecret: string;
+}
+export const MailAddressTransferAggregationTypeRef: TypeRef<MailAddressTransferAggregation> = new TypeRef("tutanota", 1976)
+
+export function createMailAddressTransferAggregation(values: StrippedEntity<MailAddressTransferAggregation>): MailAddressTransferAggregation {
+    return Object.assign(create(typeModels[MailAddressTransferAggregationTypeRef.typeId], MailAddressTransferAggregationTypeRef), values)
+}
+
+export type MailAddressTransferAggregation = {
+	_type: TypeRef<MailAddressTransferAggregation>;
+	_original?: MailAddressTransferAggregation
+
+	_id: Id;
+	name: string;
+	address: string;
+}
+export const MailTransferAggregationTypeRef: TypeRef<MailTransferAggregation> = new TypeRef("tutanota", 1980)
+
+export function createMailTransferAggregation(values: StrippedEntity<MailTransferAggregation>): MailTransferAggregation {
+    return Object.assign(create(typeModels[MailTransferAggregationTypeRef.typeId], MailTransferAggregationTypeRef), values)
+}
+
+export type MailTransferAggregation = {
+	_type: TypeRef<MailTransferAggregation>;
+	_original?: MailTransferAggregation
+
+	_id: Id;
+	subject: string;
+	receivedDate: Date;
+
+	sender: MailAddressTransferAggregation;
 }
