@@ -12,6 +12,7 @@ import type { ImapFlow } from "imapflow"
 import { ImapFlowFactory, SyncSessionEventListener } from "./ImapSyncSession"
 import { ImapFolderSyncStatus, ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
 import { ImapError } from "../../../api/common/error/ImapError"
+import { optimizerClassNames } from "@tensorflow/tfjs-layers/dist/keras_format/optimizer_config"
 
 export enum SyncSessionProcessState {
 	NOT_STARTED,
@@ -94,8 +95,7 @@ export class ImapSyncSessionProcess {
 		let isMailboxFinished = false
 
 		try {
-			let imapQresyncImapMails: ImapMail[] = []
-			const highestModSeq = this.syncSessionProcessMailbox.mailboxState.highestModSeq
+			const previousHighestModSeq = this.syncSessionProcessMailbox.mailboxState.highestModSeq
 
 			// open mailbox readonly
 			const mailboxObject = await imapClient.mailboxOpen(this.syncSessionProcessMailbox.mailboxState.path, { readOnly: true })
@@ -106,18 +106,25 @@ export class ImapSyncSessionProcess {
 				uidValidity: mailboxObject.uidValidity,
 				uidNext: mailboxObject.uidNext,
 				messageCount: mailboxObject.exists,
-				highestModSeq: mailboxObject.highestModseq,
 				syncStatus: ImapFolderSyncStatus.RUNNING,
 			}
-			await imapSyncEventListener.onMailboxStatus(imapMailboxStatus)
 			this.updateSyncSessionMailbox(imapMailboxStatus)
-
+			await imapSyncEventListener.onMailboxStatus(imapMailboxStatus)
 			const openedImapMailbox = imapMailboxFromSyncSessionMailbox(this.syncSessionProcessMailbox)
-			const isEnableImapQresync = this.imapSyncConfig.isEnableImapQresync && highestModSeq != null
 
+			const newHighestModeSeq = this.syncSessionProcessMailbox.mailboxState.highestModSeq
+			const isEnableImapQresync = this.imapSyncConfig.isEnableImapQresync && newHighestModeSeq != null
 			if (isEnableImapQresync) {
-				this.setupImapFlowExpungeHandler(imapClient, openedImapMailbox, imapSyncEventListener)
+				if (previousHighestModSeq === this.syncSessionProcessMailbox.mailboxState.highestModSeq) {
+					// we have the latest state and can end this ImapSyncSessionProcess
+					await this.logout(imapClient, true)
+					return
+				} else {
+					this.setupImapFlowExpungeHandler(imapClient, openedImapMailbox, imapSyncEventListener)
+				}
 			}
+
+			let imapQresyncImapMails: ImapMail[] = []
 
 			// calculate UID differences
 			const differentialUidLoader = this.differentialUidLoaderFactory(
@@ -277,7 +284,6 @@ export class ImapSyncSessionProcess {
 		mailboxState.uidValidity = imapMailboxStatus.uidValidity
 		mailboxState.uidNext = imapMailboxStatus.uidNext
 		mailboxState.highestModSeq = imapMailboxStatus.highestModSeq
-
 		this.syncSessionProcessMailbox.mailCount = imapMailboxStatus.messageCount ?? null
 	}
 
