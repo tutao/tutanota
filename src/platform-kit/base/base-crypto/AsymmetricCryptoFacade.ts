@@ -39,7 +39,7 @@ import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
 import { KeyVerificationMismatchError } from "../../network/error/KeyVerificationMismatchError.js"
 import { asCryptoProtoocolVersion } from "./Constants"
 import { createPublicKeyPutIn, PubEncKeyData, PublicKeyService_PUT } from "@tutao/entities/sys"
-import { RsaImplementation } from "../../crypto"
+import type { RsaImplementation } from "../../crypto"
 import { TypeId } from "../../meta/EntityConstants"
 
 EnvProvider.assertWorkerOrNode()
