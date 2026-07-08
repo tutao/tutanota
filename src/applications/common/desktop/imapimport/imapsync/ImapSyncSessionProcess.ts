@@ -96,6 +96,7 @@ export class ImapSyncSessionProcess {
 		try {
 			let imapQresyncImapMails: ImapMail[] = []
 			const highestModSeq = this.syncSessionProcessMailbox.mailboxState.highestModSeq
+			console.log("Started sync with highestModSeq: ", highestModSeq)
 
 			// open mailbox readonly
 			const mailboxObject = await imapClient.mailboxOpen(this.syncSessionProcessMailbox.mailboxState.path, { readOnly: true })
@@ -111,8 +112,12 @@ export class ImapSyncSessionProcess {
 			}
 			await imapSyncEventListener.onMailboxStatus(imapMailboxStatus)
 			this.updateSyncSessionMailbox(imapMailboxStatus)
+			if (imapMailboxStatus.path === "Import-outlook") {
+				console.log("the mailbox status", imapMailboxStatus)
+			}
 
 			const openedImapMailbox = imapMailboxFromSyncSessionMailbox(this.syncSessionProcessMailbox)
+			//first time works because it is null.
 			const isEnableImapQresync = this.imapSyncConfig.isEnableImapQresync && highestModSeq != null
 
 			if (isEnableImapQresync) {
@@ -126,6 +131,11 @@ export class ImapSyncSessionProcess {
 				isEnableImapQresync,
 				this.imapSyncConfig.emitImapSyncEventTypes,
 			)
+			if (imapMailboxStatus.path === "Import-outlook") {
+				console.log("created a differential UID loader with... quick?", isEnableImapQresync)
+				console.log("this.syncSessionProcessMailbox.lastFetchedMailSeq", this.syncSessionProcessMailbox.lastFetchedMailSeq)
+				console.log("this.syncSessionProcessMailbox.mailCount", this.syncSessionProcessMailbox.mailCount)
+			}
 
 			differentialUidLoader
 				.calculateUidDiff(this.syncSessionProcessMailbox.lastFetchedMailSeq, this.syncSessionProcessMailbox.mailCount)
@@ -134,7 +144,13 @@ export class ImapSyncSessionProcess {
 				})
 
 			const fetchOptions = this.initFetchOptions(isEnableImapQresync)
+			if (imapMailboxStatus.path === "Import-outlook") {
+				console.log("fetch options?", fetchOptions)
+			}
 			let nextUidFetchRequest = await differentialUidLoader.getNextUidFetchRequest()
+			if (imapMailboxStatus.path === "Import-outlook") {
+				console.log("Had next UID? ", nextUidFetchRequest)
+			}
 
 			while (nextUidFetchRequest) {
 				// wait for the differentialUidLoader to calculate more IMAP UID differences
@@ -160,7 +176,11 @@ export class ImapSyncSessionProcess {
 
 				const imapMailsCreate: ImapMail[] = []
 				const imapMailsUpdate: ImapMail[] = []
+				let lastMailSeqMod = highestModSeq
+				let lastMailSeq = 0
 				for await (const mail of mails) {
+					lastMailSeqMod = mail.modseq
+					lastMailSeq = mail.seq
 					if (this.state === SyncSessionProcessState.STOPPED) {
 						await this.logout(imapClient, isMailboxFinished, mail.seq - 1)
 						return
@@ -198,6 +218,16 @@ export class ImapSyncSessionProcess {
 						await this.logout(imapClient, isMailboxFinished, mail.seq - 1)
 						return
 					}
+				}
+
+				if (imapMailboxStatus.path === "Import-outlook") {
+					console.log("Mail Modseq after the loop.", lastMailSeqMod)
+					console.log("Mail seq after the loop.", lastMailSeq)
+				}
+
+				if (imapMailboxStatus.path === "Import-outlook") {
+					console.log("Finished looping over mails ----------")
+					console.log("lens?", imapMailsCreate.length, imapMailsUpdate.length)
 				}
 
 				if (isNotEmpty(imapMailsCreate)) {
@@ -240,6 +270,7 @@ export class ImapSyncSessionProcess {
 	private initFetchOptions(isEnableImapQresync: boolean) {
 		let fetchOptions
 		if (isEnableImapQresync) {
+			//If we have quick resync, then we are
 			const highestModSeq = [...this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.values()].reduce<bigint>(
 				(acc, imapMailIds) => (imapMailIds.modSeq && imapMailIds.modSeq > acc ? imapMailIds.modSeq : acc),
 				BigInt(0),
@@ -277,6 +308,13 @@ export class ImapSyncSessionProcess {
 		mailboxState.uidValidity = imapMailboxStatus.uidValidity
 		mailboxState.uidNext = imapMailboxStatus.uidNext
 		mailboxState.highestModSeq = imapMailboxStatus.highestModSeq
+
+		if (mailboxState.path === "Import-outlook") {
+			console.log("Updating on sync session mailbox")
+			console.log("uidValidity", mailboxState.uidValidity)
+			console.log("uidNext", mailboxState.uidNext)
+			console.log("highestModSeq", mailboxState.highestModSeq)
+		}
 
 		this.syncSessionProcessMailbox.mailCount = imapMailboxStatus.messageCount ?? null
 	}

@@ -152,6 +152,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 					return a.failCount - b.failCount
 				}
 			})
+		//console.log("## my size of remaining mailboxes:", remainingMailboxes.length)
 
 		if (isEmpty(remainingMailboxes)) {
 			await this.onAllMailboxesFinish()
@@ -266,6 +267,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 	private async getSyncSessionMailboxes(knownMailboxes: ImapSyncSessionMailbox[], fetchedRootMailboxes: ImapMailbox[]): Promise<ImapSyncSessionMailbox[]> {
 		const resultMailboxes: ImapSyncSessionMailbox[] = []
+		console.log("Had fetched roots?", fetchedRootMailboxes.length, fetchedRootMailboxes)
 		for (const fetchedRootMailbox of fetchedRootMailboxes) {
 			resultMailboxes.push(...(await this.traverseImapMailboxes(knownMailboxes, fetchedRootMailbox)))
 		}
@@ -283,6 +285,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 			return false
 		})
+		console.log("had previous known?", knownMailboxes.length, knownMailboxes)
 
 		return resultMailboxes
 	}
@@ -316,6 +319,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 	}
 
 	startMailboxSync(syncSessionMailbox: ImapSyncSessionMailbox): void {
+		//console.log(`my state is... ${this.state === SyncSessionState.RUNNING ? "running" : this.state}`)
 		if (this.state === SyncSessionState.RUNNING) {
 			if (!this.imapSyncContext) {
 				throw new ProgrammingError("The imapSyncContext has not been set!")
@@ -325,6 +329,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 			this.runningSyncSessionProcess = syncSessionProcess
 
+			//console.log("starting the sync session...")
 			syncSessionProcess.startSyncSessionProcess(this.imapSyncContext.imapCredentials, this.imapSyncEventListener).then((state) => {
 				if (state === SyncSessionProcessState.CONNECTION_FAILED_REJECTED) {
 					this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, IMAP_RATE_LIMIT_POSTPONE_TIME)
