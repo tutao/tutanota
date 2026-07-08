@@ -9,8 +9,8 @@ import {
 	getEventStart,
 	incrementByRepeatPeriod,
 } from "../../../common/calendar/date/CalendarUtils"
-import { EventTextTimeOption, ProgrammingError, RepeatPeriod } from "@tutao/app-env"
-import { isSameDay, isSameDayOfDate } from "@tutao/utils"
+import { EventTextTimeOption, RepeatPeriod } from "@tutao/app-env"
+import { assert, isSameDay, isSameDayOfDate } from "@tutao/utils"
 import { formatDateTime, formatDateWithMonth, formatTime } from "../../../../ui/utils/Formatter"
 import { DateTime } from "luxon"
 
@@ -20,66 +20,94 @@ export type TextFormatterTimezones = {
 	calendarTimeZone: string
 }
 
-function formatAllDayDurationText(event: CalendarEventTimes, startTimeZone: string, endTimeZone: string) {
-	const startTime = getEventStart(event, startTimeZone)
-	const startString = formatDateWithMonth(startTime)
-	const endTime = incrementByRepeatPeriod(getEventEnd(event, endTimeZone), RepeatPeriod.DAILY, -1, endTimeZone)
+function includeStartTime(showTime: EventTextTimeOption) {
+	return showTime === EventTextTimeOption.START_TIME || showTime === EventTextTimeOption.START_END_TIME
+}
 
-	if (isSameDayOfDate(startTime, endTime)) {
-		return `${lang.get("allDay_label")}, ${startString}`
-	} else {
-		return `${lang.get("allDay_label")}, ${startString} - ${formatDateWithMonth(endTime)}`
+function includeEndTime(showTime: EventTextTimeOption) {
+	return showTime === EventTextTimeOption.END_TIME || showTime === EventTextTimeOption.START_END_TIME
+}
+
+function resolveStartAndEntTimeZone(timeZones: TextFormatterTimezones) {
+	const startTimeZone = timeZones.startTimeZone ?? timeZones.calendarTimeZone
+	const endTimeZone = timeZones.endTimeZone ?? startTimeZone
+	return [startTimeZone, endTimeZone]
+}
+
+export function getTimeZoneName(timeZone: string) {
+	return timeZone.replaceAll("_", " ")
+}
+
+export function getTimeZoneShortName(timeZone: string) {
+	const name = getTimeZoneName(timeZone)
+	const lastSlashPosition = name.lastIndexOf("/")
+	if (lastSlashPosition === -1) {
+		return name
 	}
+	let shortName = name.slice(lastSlashPosition + 1)
+	if (name.slice(0, lastSlashPosition) === "Etc" && shortName.slice(0, 3) === "GMT") {
+		// 'Etc/GMT[+-]<offset>' time zones are specified in an old POSIX standard.
+		// In this standard the sign of the offset is the inverse of what you'd expect,
+		// so we need to invert it
+		const sign = shortName[3]
+		if (sign === "+") {
+			shortName = "GMT-" + shortName.slice(4)
+		} else if (sign === "-") {
+			shortName = "GMT+" + shortName.slice(4)
+		}
+	}
+	return shortName
 }
 
-function formatNormalEventDurationText(event: CalendarEventTimes, includeTimezone: boolean, startTimeZone: string, endTimeZone: string) {
-	const startAndEndIsSameDay = isSameDay(event.startTime, event.endTime)
-
-	const startString = formatDateTime(event.startTime, startTimeZone)
-
-	let endString = startAndEndIsSameDay ? formatTime(event.endTime, endTimeZone) : formatDateTime(event.endTime, endTimeZone)
-
-	// IANA always has a / in it so we can use ! here
-	const startZoneFormatted = "(" + startTimeZone.split("/").at(-1)!.replace("_", " ") + ")"
-	const endZoneFormatted = "(" + endTimeZone.split("/").at(-1)!.replace("_", " ") + ")"
-
-	return `${startString} ${includeTimezone ? startZoneFormatted : ""} - ${endString} ${includeTimezone ? endZoneFormatted : ""}`
-}
-
-export function formatEventDuration(
-	event: CalendarEventTimes,
-	{ startTimeZone, endTimeZone, calendarTimeZone }: TextFormatterTimezones,
-	includeTimezone: boolean,
-): string {
+export function formatEventDuration(event: CalendarEventTimes, formatterTimezones: TextFormatterTimezones, includeTimezone: boolean): string {
+	let result = ""
 	if (isAllDayEvent(event)) {
-		return formatAllDayDurationText(event, calendarTimeZone, calendarTimeZone)
+		const calendarTimeZone = formatterTimezones.calendarTimeZone
+
+		const startTime = getEventStart(event, calendarTimeZone)
+		const endTime = incrementByRepeatPeriod(getEventEnd(event, calendarTimeZone), RepeatPeriod.DAILY, -1, calendarTimeZone)
+
+		result += lang.get("allDay_label") + ", " + formatDateWithMonth(startTime)
+		if (!isSameDayOfDate(startTime, endTime)) {
+			result += " - " + formatDateWithMonth(endTime)
+		}
 	} else {
-		return formatNormalEventDurationText(event, includeTimezone, startTimeZone ?? calendarTimeZone, endTimeZone ?? startTimeZone ?? calendarTimeZone)
+		const [startTimeZone, endTimeZone] = resolveStartAndEntTimeZone(formatterTimezones)
+
+		result += formatDateTime(event.startTime, startTimeZone)
+		if (includeTimezone) {
+			result += " (" + getTimeZoneShortName(startTimeZone) + ")"
+		}
+		result += " - "
+		if (isSameDay(event.startTime, event.endTime)) {
+			result += formatTime(event.endTime, endTimeZone)
+		} else {
+			result += formatDateTime(event.endTime, endTimeZone)
+		}
+		if (includeTimezone) {
+			result += " (" + getTimeZoneShortName(endTimeZone) + ")"
+		}
 	}
+	return result
 }
 
 export function formatTimeWithZoneInfo({ endTime, startTime }: CalendarEventTimes, showTime: EventTextTimeOption, formatterTimezones: TextFormatterTimezones) {
-	const startTimeZone = formatterTimezones.startTimeZone ?? formatterTimezones.calendarTimeZone
-	const startTimezoneCity = startTimeZone.split("/").at(-1)!.replaceAll("_", " ")
+	const [startTimeZone, endTimeZone] = resolveStartAndEntTimeZone(formatterTimezones)
 
-	const endTimeZone = formatterTimezones.endTimeZone ?? startTimeZone
-	const endTimezoneCity = endTimeZone.split("/").at(-1)!.replaceAll("_", " ")
-
-	const isSameTimeZone = startTimeZone === endTimeZone
-
-	const startTimeText = `${startTimezoneCity} ${formatTime(startTime, startTimeZone)}`
-	const endTimeText = `${isSameTimeZone && showTime !== EventTextTimeOption.END_TIME ? "" : ` ${endTimezoneCity}`} ${formatTime(endTime, endTimeZone)}`
-
-	switch (showTime) {
-		case EventTextTimeOption.START_TIME:
-			return startTimeText
-
-		case EventTextTimeOption.END_TIME:
-			return ` - ${endTimeText}`
-
-		case EventTextTimeOption.START_END_TIME:
-			return `${startTimeText} - ${endTimeText}`
+	let result = ""
+	let timeZoneIsInResult = false
+	if (includeStartTime(showTime)) {
+		result += getTimeZoneShortName(startTimeZone) + " " + formatTime(startTime, startTimeZone)
+		timeZoneIsInResult = true
 	}
+	if (includeEndTime(showTime)) {
+		result += " - "
+		if (!timeZoneIsInResult || startTimeZone !== endTimeZone) {
+			result += getTimeZoneShortName(endTimeZone) + " "
+		}
+		result += formatTime(endTime, endTimeZone)
+	}
+	return result
 }
 
 export function formatEventTime(
@@ -88,21 +116,17 @@ export function formatEventTime(
 	includeTimeZone: boolean,
 	formatterTimezones: TextFormatterTimezones,
 ): string {
-	const timeZoneInfo = includeTimeZone ? ` (${formatTimeWithZoneInfo({ endTime, startTime }, showTime, formatterTimezones)})` : ""
-
-	switch (showTime) {
-		case EventTextTimeOption.START_TIME:
-			return formatTime(startTime) + timeZoneInfo
-
-		case EventTextTimeOption.END_TIME:
-			return ` - ${formatTime(endTime)} ${timeZoneInfo}`
-
-		case EventTextTimeOption.START_END_TIME:
-			return `${formatTime(startTime)} - ${formatTime(endTime)}` + timeZoneInfo
-
-		default:
-			throw new ProgrammingError(`Unknown time option: ${showTime}`)
+	let result = ""
+	if (includeStartTime(showTime)) {
+		result += formatTime(startTime)
 	}
+	if (includeEndTime(showTime)) {
+		result += " - " + formatTime(endTime)
+	}
+	if (includeTimeZone) {
+		result += " (" + formatTimeWithZoneInfo({ endTime, startTime }, showTime, formatterTimezones) + ")"
+	}
+	return result
 }
 
 export function formatEventTimesAtDate(day: Date, event: CalendarEvent, includeTimeZone: boolean, formatterTimezones: TextFormatterTimezones): string {
@@ -155,8 +179,12 @@ export function getTextFormatterTimeZones(event: Omit<CalendarEvent, "descriptio
 	return timeZones
 }
 
+/** Builds the string 'GMT+HH[:MM]' or 'GMT-HH[:MM]' based on the time zone of the luxon DateTime passed to the function. */
 export function buildGmtOffset(dateTime: DateTime) {
+	assert(dateTime.isValid, "buildGmtOffset expects a valid date time!")
+
 	let offsetInMinutes = dateTime.offset
+	assert(!Number.isNaN(offsetInMinutes), "Unexpected NaN date time offset!")
 
 	let result = "GMT"
 	if (offsetInMinutes < 0) {

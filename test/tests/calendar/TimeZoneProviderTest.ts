@@ -47,6 +47,8 @@ o.spec("TimeZoneProvider", () => {
 			o(provider.resolveTimeZoneForImport("Argentina Standard Time")).equals("America/Buenos_Aires")
 		})
 		o.test("Handles UTC-<offset> Windows time zones", function () {
+			// Beware, 'Etc/GMT+<offset>' flip the sign of the GMT-offset because they were standardized
+			// in an old POSIX standard; i.e. Etc/GMT+1 != UTC+1 && Etc/GMT+1 == UTC-1!
 			o(provider.resolveTimeZoneForImport("UTC-02")).equals("Etc/GMT+2")
 		})
 		o.test("Handles null-return from DateTimeFormatterWrapper", function () {
