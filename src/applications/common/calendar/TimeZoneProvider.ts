@@ -1,7 +1,7 @@
 import { availableIANATimeZones, windowsToIANATimeZones } from "./TimeZoneData"
 import { DateTimeFormatterWrapper } from "./DateTimeFormatterWrapper"
 import { DateTime } from "luxon"
-import { buildGmtOffset } from "../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
+import { buildGmtOffset, getTimeZoneName } from "../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
 
 export type IANATimeZoneStrings = {
 	timeZone: string
@@ -39,10 +39,9 @@ export class TimeZoneProvider {
 		if (!dateTimeInTimeZone.isValid) {
 			throw new Error(`Unexpected invalid time zone = '${timeZone}'`)
 		}
-		const timeZoneName = timeZone.replaceAll("_", " ")
 		return {
 			timeZone: timeZone,
-			name: timeZoneName,
+			name: getTimeZoneName(timeZone),
 			offsetLongName: dateTimeInTimeZone.offsetNameLong ?? "",
 			gmtOffset: buildGmtOffset(dateTimeInTimeZone),
 		}
