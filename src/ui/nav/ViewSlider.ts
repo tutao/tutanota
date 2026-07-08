@@ -205,8 +205,8 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		const oldColumnType = firstColumn.columnType
 		firstColumn.columnType = isRenderFirstColumnAsBackgroundColumn ? ColumnType.Background : ColumnType.Foreground
 
-		// iOS might change the window size to a width of the device (even if the device is vertical) after the app is
-		// moved to the background, and this breaks the first column if it was open
+		// iOS might change the window size to the width or height of the device (regardless of device orientation) after
+		// the app is moved to the background, and this breaks the first column if it was of type Foreground and was open
 		if (oldColumnType !== firstColumn.columnType && oldColumnType === ColumnType.Background && firstColumn.isVisible) {
 			firstColumn.isVisible = false
 			if (firstColumn.domColumn != null) {
@@ -214,6 +214,14 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 				firstColumn.domColumn.style.transform = `translateX(${px(-firstColumn.width)})`
 			}
 			this.focus(this.viewColumns[1])
+		} else if (firstColumn.columnType === ColumnType.Background) {
+			// first column of type Background should always be visible, so we make sure it's shown again after the app
+			// is moved to the foreground
+			firstColumn.isVisible = true
+			if (firstColumn.domColumn != null && firstColumn.domColumn.style.visibility === "hidden") {
+				firstColumn.domColumn.style.visibility = "visible"
+				firstColumn.domColumn.style.transform = ""
+			}
 		}
 
 		this.focusedColumn = this.focusedColumn || this.mainColumn
