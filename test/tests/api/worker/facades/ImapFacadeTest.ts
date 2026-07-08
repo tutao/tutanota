@@ -234,7 +234,7 @@ o.spec("ImapFacade", () => {
 	})
 
 	o.test("getImapAccountSyncStateById - loads entity", async () => {
-		when(entityClientMock.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateIdMock)).thenResolve(imapAccountSyncStateMock)
+		when(entityClientMock.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateIdMock, anything())).thenResolve(imapAccountSyncStateMock)
 
 		const result = await imapFacade.getImapAccountSyncStateById(imapAccountSyncStateIdMock)
 

@@ -31,6 +31,7 @@ import { sha256Hash } from "@tutao/crypto/sha256"
 import { ImapFacade } from "../../../../../../src/applications/common/api/worker/facades/lazy/ImapFacade"
 import { ImapImportUiSession } from "../../../../../../src/applications/mail-app/settings/imapimport/ImapMailImportController"
 import { noPatchesAndInstance } from "../../EventBusClientTest"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
 
 const { anything } = matchers
 
@@ -141,6 +142,9 @@ o.spec("ImapImporter", () => {
 		when(
 			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateIdMock, ImapAccountSyncStatus.RUNNING, ImapFolderSyncStatus.RUNNING),
 		).thenResolve()
+		when(
+			imapFacadeMock.getImapAccountSyncStateById(accountSyncStateIdMock, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly }),
+		).thenResolve(session.imapAccountSyncState)
 		const result = await importer.continueImport(accountSyncStateIdMock)
 
 		o.check(result.state.status).equals(ImapAccountSyncStatus.RUNNING)
@@ -157,6 +161,9 @@ o.spec("ImapImporter", () => {
 		accountSyncStateMock.postponedUntil = futureDate.getTime().toString()
 		accountSyncStateMock.status = ImapAccountSyncStatus.POSTPONED
 		const session = newImapImportSession(accountSyncStateMock, [folderSyncStateMock])
+		when(
+			imapFacadeMock.getImapAccountSyncStateById(accountSyncStateIdMock, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly }),
+		).thenResolve(session.imapAccountSyncState)
 		importer.imapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
 		const result = await importer.continueImport(accountSyncStateIdMock)

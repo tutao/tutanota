@@ -34,7 +34,11 @@ import { ProgrammingError } from "@tutao/app-env"
 import { ImapAccountSyncStatus, ImapFolderSyncStatus, MailSetKind } from "../../../../../../entities/tutanota/Utils"
 import { ImapMailbox, ImapMailboxStatus } from "../../../common/utils/imapImportUtils/ImapMailbox"
 import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade"
-import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import {
+	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	DEFAULT_EXTRA_SERVICE_PARAMS,
+	EntityRestClientLoadOptions,
+} from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { getElementId } from "@tutao/meta"
 
 export class ImapFacade {
@@ -193,8 +197,11 @@ export class ImapFacade {
 		await this.serviceExecutor.delete(ImapFolderService, createImapFolderDeleteIn({ imapFolderSyncState: folderSyncStateId }), null)
 	}
 
-	async getImapAccountSyncStateById(imapAccountSyncStateId: IdTuple): Promise<ImapAccountSyncState> {
-		return await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId)
+	async getImapAccountSyncStateById(
+		imapAccountSyncStateId: IdTuple,
+		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	): Promise<ImapAccountSyncState> {
+		return await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId, opts)
 	}
 
 	async getImapFolderSyncStateById(imapFolderSyncStateId: IdTuple): Promise<ImapFolderSyncState> {

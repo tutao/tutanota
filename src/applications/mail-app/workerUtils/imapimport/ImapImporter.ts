@@ -15,7 +15,7 @@ import {
 	imapAccountToImapCredentials,
 	imapMailToImportMailParams,
 } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
-import { IMAP_ERROR_POSTPONE_TIME, ImapAccountSyncStatus, ImapFolderSyncStatus, ImapSyncEventType } from "../../../../entities/tutanota/Utils"
+import { ImapAccountSyncStatus, ImapFolderSyncStatus, ImapSyncEventType } from "../../../../entities/tutanota/Utils"
 import {
 	DeduplicatedImportedAttachmentTypeRef,
 	ImapAccount,
@@ -29,9 +29,10 @@ import { collapseId, elementIdPart, isSameId, OperationType } from "@tutao/meta"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { ImapFacade } from "../../../common/api/worker/facades/lazy/ImapFacade"
 import { ImapSyncFacade, ImapSyncSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { OAuthErrorHandler } from "../../settings/imapimport/oauth/OAuthErrorHandler"
 import { ImapImportUiSession } from "../../settings/imapimport/ImapMailImportController"
 import { FileTypeRef } from "@tutao/entities/sys"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 
 const DEFAULT_TUTA_SERVER_SUSPENSION_POSTPONE_TIME = 120 * 1000 // 120 seconds
 const DEFAULT_TUTA_SERVER_STORAGE_ERROR_POSTPONE_TIME = 25 * 60 * 60 * 1000 // 25 hours
@@ -105,10 +106,33 @@ export class ImapImporter implements ImapSyncFacade {
 	}
 
 	/**
+	 * Reloads imapAccountSyncState from the server and updates the corresponding ImapImportSession
+	 *
+	 * @param imapAccountSyncStateId
+	 */
+	private async reloadImapImportSession(imapAccountSyncStateId: IdTuple) {
+		const imapAccountSyncState = await this.imapFacade.getImapAccountSyncStateById(imapAccountSyncStateId, {
+			...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+			cacheMode: CacheMode.WriteOnly,
+		})
+		const idKey = this.getImapImportSessionsMapKey(imapAccountSyncStateId)
+		this.imapImportSessions.get(idKey)
+		let session = this.getImapImportSessionOrNull(imapAccountSyncStateId)
+		if (session) {
+			session.imapAccountSyncState = imapAccountSyncState
+		} else {
+			const imapFolderSyncStates = await this.imapFacade.getAllImapFolderSyncStates(imapAccountSyncState.imapFolderSyncStateList)
+			session = newImapImportSession(imapAccountSyncState, imapFolderSyncStates)
+			this.imapImportSessions.set(this.getImapImportSessionsMapKey(imapAccountSyncState._id), session)
+		}
+		return session
+	}
+
+	/**
 	 * Attempts to continue an import from an existing state, it may return errors in case of failure.
 	 */
 	async continueImport(imapAccountSyncStateId: IdTuple, isForceRetry: boolean = false, retryAttempts = 0): Promise<ImportResult> {
-		let session = assertNotNull(this.getImapImportSessionOrNull(imapAccountSyncStateId))
+		let session = await this.reloadImapImportSession(imapAccountSyncStateId)
 
 		if (session.imapAccountSyncState.status === ImapAccountSyncStatus.CANCELED) {
 			return Promise.resolve({

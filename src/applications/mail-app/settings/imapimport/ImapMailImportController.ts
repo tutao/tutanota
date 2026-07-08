@@ -20,6 +20,7 @@ import { showUpdateImapCredentialsDialog } from "../../../common/gui/dialogs/Upd
 import { OAuthHandler } from "./oauth/OAuthHandler"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { OAuthErrorHandler } from "./oauth/OAuthErrorHandler"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 
 assertMainOrNode()
 
@@ -93,16 +94,13 @@ export class ImapMailImportController {
 				syncState: imapAccountSyncState,
 				oauthHandlerFactory: (config, serviceExecutor) => new OAuthHandler(config, serviceExecutor),
 			},
-			(dialog, updatedAccount) => {
+			async (dialog, updatedAccount) => {
 				if (updatedAccount) {
 					imapAccountSyncState.imapAccount = updatedAccount
 					imapAccountSyncState.status = ImapAccountSyncStatus.PAUSED
-					this.entityClient
-						.update(imapAccountSyncState)
-						.then(() => {
-							this.imapImporter.continueImport(imapAccountSyncStateId)
-						})
-						.finally(() => dialog.close())
+					await this.entityClient.update(imapAccountSyncState)
+					await this.continueImport(imapAccountSyncStateId)
+					dialog.close()
 				}
 			},
 		)
