@@ -269,13 +269,13 @@ o.spec("CalendarParser", function () {
 
 		o.test("time with timezone", function () {
 			o(parseTime("20180115T214000", zone)).deepEquals({
-				date: new Date(Date.UTC(2018, 0, 15, 21, 40, 0)),
+				date: new Date(Date.UTC(2018, 0, 15, 20, 40, 0)),
 				allDay: false,
 			})
 		})
 
 		o.test("Edge-case, RFC non-compliant, time with UTC indicator and timezone throws ParserError", function () {
-			o.check(parseTime("20260617T214000Z", zone)).throws(ParserError)
+			o.check(() => parseTime("20260617T214000Z", zone)).throws(ParserError)
 		})
 
 		o.test("All day event doens't care about timezones", function () {
@@ -1297,6 +1297,55 @@ END:VCALENDAR`
 				)
 				o(serialized).equals(text)
 			})
+		})
+	})
+
+	o.spec("Handles TZID property parameter", () => {
+		o.test("Handles valid time zones", () => {
+			for (const [tzIdValue, expectedTimeZone] of [
+				// Valid IANA time zones and/or alias (so-called "Links" in the tzdb)
+				["Europe/Berlin", "Europe/Berlin"],
+				["Europe/Stockholm", "Europe/Stockholm"],
+				["America/Buenos_Aires", "America/Buenos_Aires"],
+				["America/Argentina/Buenos_Aires", "America/Buenos_Aires"],
+
+				// Windows time zones
+				["Argentina Standard Time", "America/Buenos_Aires"],
+				["Central Europe Standard Time", "Europe/Budapest"],
+
+				// Windows UTC[+-]<offset> time zones.
+				//
+				//    Beware, 'Etc/GMT+<offset>' flip the sign of the GMT-offset because they were standardized
+				//    in an old POSIX standard; i.e. Etc/GMT+1 != UTC+1 && Etc/GMT+1 == UTC-1!
+				["UTC-02", "Etc/GMT+2"],
+			]) {
+				const calendar =
+					"BEGIN:VCALENDAR\n" +
+					"VERSION:2.0\n" +
+					"BEGIN:VEVENT\n" +
+					"UID:test-123\n" +
+					`DTSTART;TZID=${tzIdValue}:20260101T120000\n` +
+					"DTEND:20260101T123000\n" +
+					"SUMMARY:Test TZID\n" +
+					"END:VEVENT\n" +
+					"END:VCALENDAR"
+				const result = parseCalendarStringData(calendar, zone)
+				const calendarEvent = result.contents[0].icsCalendarEvent
+				o(calendarEvent.startTimeZone).equals(expectedTimeZone)
+			}
+		})
+		o.test("Throw error on invalid time zone", () => {
+			const calendar =
+				"BEGIN:VCALENDAR\n" +
+				"VERSION:2.0\n" +
+				"BEGIN:VEVENT\n" +
+				"UID:test-123\n" +
+				"DTSTART;TZID=Bogus/Time_Zone:20260101T120000\n" +
+				"DTEND:20260101T123000\n" +
+				"SUMMARY:Test TZID\n" +
+				"END:VEVENT\n" +
+				"END:VCALENDAR"
+			o.check(() => parseCalendarStringData(calendar, zone)).throws(ParserError)
 		})
 	})
 })
