@@ -293,33 +293,70 @@ export class SearchViewModel {
 		const searchQuery = Object.hasOwn(args, "query") ? query : lastQuery
 		// FIXME do not assume it's new search
 		this.searchResult?.dispose()
-		this.search
-			.coolNewSearchMails(
-				{
-					query: searchQuery ?? "",
-					restriction,
-					minSuggestionCount: 0,
-					maxResults,
-				},
-				this.progressTracker,
-			)
-			.then((result) => {
-				this.searchResult = result
-				const listModel = this.createList(result)
-				this._listModel = listModel
-				listModel.stateStream.map((state) => this.onListStateChange(state))
-				result.updates.map((update) => {
-					switch (update.type) {
-						case "deleteitem":
-							listModel.deleteLoadedItem(update.item._id)
-							break
-						case "updateitem":
-							listModel.updateLoadedItem(new SearchResultListEntry(update.item))
-							break
-					}
+		if (restriction.type === SearchCategoryType.contact) {
+			this.search
+				.coolNewSearchContacts(
+					{
+						query: searchQuery ?? "",
+						restriction,
+						minSuggestionCount: 0,
+						maxResults,
+					},
+					this.progressTracker,
+				)
+				.then((result) => {
+					this.searchResult = result
+					const listModel = this.createList(result)
+					this._listModel = listModel
+					listModel.stateStream.map((state) => this.onListStateChange(state))
+					result.updates.map((update) => {
+						switch (update.type) {
+							case "newitem":
+								listModel.insertLoadedItem(new SearchResultListEntry(update.item))
+								break
+							case "deleteitem":
+								listModel.deleteLoadedItem(update.item._id)
+								break
+							case "updateitem":
+								listModel.updateLoadedItem(new SearchResultListEntry(update.item))
+								break
+						}
+					})
+					listModel.loadInitial()
 				})
-				listModel.loadInitial()
-			})
+		}
+		if (restriction.type === SearchCategoryType.mail) {
+			this.search
+				.coolNewSearchMails(
+					{
+						query: searchQuery ?? "",
+						restriction,
+						minSuggestionCount: 0,
+						maxResults,
+					},
+					this.progressTracker,
+				)
+				.then((result) => {
+					this.searchResult = result
+					const listModel = this.createList(result)
+					this._listModel = listModel
+					listModel.stateStream.map((state) => this.onListStateChange(state))
+					result.updates.map((update) => {
+						switch (update.type) {
+							case "newitem":
+								listModel.insertLoadedItem(new SearchResultListEntry(update.item))
+								break
+							case "deleteitem":
+								listModel.deleteLoadedItem(update.item._id)
+								break
+							case "updateitem":
+								listModel.updateLoadedItem(new SearchResultListEntry(update.item))
+								break
+						}
+					})
+					listModel.loadInitial()
+				})
+		}
 		// if (searchQuery == null) {
 		// 	// no search query at all yet
 		// 	listModel.updateLoadingStatus(ListLoadingState.Done)
@@ -950,7 +987,7 @@ export class SearchViewModel {
 				// const { items, newSearchResult } = await this.loadSearchResults(updatedResult, startId)
 				// const entries = items.map((instance) => new SearchResultListEntry(instance))
 				// FIXME: this might be unreliable if update come inbetween, we need to search for the right index
-				await result.loadMoreResults(count, lastFetchedEntity ? elementIdPart(lastFetchedEntity._id) : GENERATED_MAX_ID)
+				await result.loadMoreResults(count)
 				const indexOfStart = lastFetchedEntity == null ? -1 : result.items.findIndex((item) => isSameId(item._id, lastFetchedEntity._id))
 				const newItems = result.items.slice(indexOfStart === -1 ? undefined : indexOfStart + 1)
 				// FIXME: indexing state

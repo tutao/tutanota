@@ -1,6 +1,6 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { elementIdPart, GENERATED_MAX_ID, getElementId, listIdPart, OperationType } from "../../../../platform-kit/meta"
+import { elementIdPart, getElementId, listIdPart, OperationType } from "../../../../platform-kit/meta"
 import { assertMainOrNode, isAdminClient, isBrowser, NOTHING_INDEXED_TIMESTAMP } from "../../../../platform-kit/app-env"
 import { DbError } from "../../../common/api/common/error/DbError"
 import { SearchCategoryType, SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
@@ -21,7 +21,7 @@ import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, isSameSearchRestrictionWithRangeExtended, searchQueryEquals } from "./SearchUtils"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
 import { ProgressMonitorInterface } from "../../../../platform-kit/network/ProgressMonitorInterface"
-import { CalendarEvent, Mail, MailTypeRef } from "@tutao/entities/tutanota"
+import { CalendarEvent, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
@@ -50,7 +50,7 @@ export interface LiveSearchResult<T> {
 	// // array of pairs (token, lastReadSearchIndexRowOldestElementTimestamp) lastRowReadSearchIndexRow: null = no result read, 0 = no more search results????
 	// matchWordOrder: boolean
 	hasMoreResults: boolean
-	loadMoreResults: (max: number, startId: Id) => Promise<T[]>
+	loadMoreResults: (max: number) => Promise<T[]>
 	updates: Stream<ResultUpdate<T>>
 	dispose: () => unknown
 	entityEventsReceived: (data: readonly EntityUpdateData[]) => Promise<unknown>
@@ -105,6 +105,70 @@ export class SearchModel {
 		})
 	}
 
+	async coolNewSearchContacts(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<LiveSearchResult<Contact>> {
+		console.log("this is contact search")
+		const searchResult: SearchResult = await this._searchFacade.search(
+			searchQuery.query,
+			searchQuery.restriction,
+			searchQuery.minSuggestionCount,
+			searchQuery.maxResults ?? undefined,
+		)
+		const contacts = await loadMultipleFromLists(ContactTypeRef, this.entityClient, searchResult.results)
+		const result: LiveSearchResult<Contact> = {
+			searchResult,
+			items: contacts,
+			loadMoreResults: async (count) => {
+				if (hasMoreResults(result.searchResult)) {
+					const previousLength = result.searchResult.results.length
+					result.searchResult = await this._searchFacade.getMoreSearchResults(result.searchResult, count)
+					const toLoad = result.searchResult.results.slice(previousLength)
+					let items: Contact[] = await loadMultipleFromLists(ContactTypeRef, this.entityClient, toLoad)
+
+					// Restore the original sorting order
+					if (!isBrowser() && !isAdminClient()) {
+						const itemsMapped = collectToMap(items, getElementId)
+						items = mapAndFilterNull<IdTuple, Contact>(searchResult.results, (id) => itemsMapped.get(elementIdPart(id)) ?? null)
+					}
+					result.items.push(...items)
+					return items
+				} else {
+					return []
+				}
+			},
+			get hasMoreResults() {
+				return hasMoreResults(result.searchResult)
+			},
+			updates: stream(),
+			dispose: () => {
+				remove(this.liveResults, result)
+				result.updates.end(true)
+			},
+			entityEventsReceived: async (updates) => {
+				for (const update of updates) {
+					if (isUpdateForTypeRef(ContactTypeRef, update)) {
+						if (update.operation === OperationType.DELETE) {
+							const mailIndex = result.items.findIndex((mail) => getElementId(mail) === update.instanceId)
+							if (mailIndex !== -1) {
+								const [mail] = result.items.splice(mailIndex, 1)
+								result.updates({ type: "deleteitem", item: mail })
+							}
+						} else if (update.operation === OperationType.UPDATE) {
+							const mailIndex = result.items.findIndex((mail) => getElementId(mail) === update.instanceId)
+							const updatedContact = await this.entityClient.load(ContactTypeRef, [update.instanceListId, update.instanceId])
+							if (mailIndex !== -1) {
+								const [mail] = result.items.splice(mailIndex, 1, updatedContact)
+								result.updates({ type: "updateitem", item: updatedContact })
+							}
+						}
+						// FIXME: the rest of updates
+					}
+				}
+			},
+		}
+		this.liveResults.push(result)
+		return result
+	}
+
 	async coolNewSearchMails(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<LiveSearchResult<Mail>> {
 		const searchResult: SearchResult = await this._searchFacade.search(
 			searchQuery.query,
@@ -116,32 +180,11 @@ export class SearchModel {
 		const result: LiveSearchResult<Mail> = {
 			searchResult,
 			items: mails,
-			loadMoreResults: async (count, startId) => {
+			loadMoreResults: async (count) => {
 				if (hasMoreResults(result.searchResult)) {
 					result.searchResult = await this._searchFacade.getMoreSearchResults(result.searchResult, count)
-					let startIndex = 0
-
-					if (startId !== GENERATED_MAX_ID) {
-						if (!isBrowser() && !isAdminClient()) {
-							// offline storage is always sorted correctly
-							startIndex = searchResult.results.findIndex((id) => id[1] === startId)
-						} else {
-							// this relies on the results being sorted from newest to oldest ID
-							startIndex = searchResult.results.findIndex((id) => id[1] <= startId)
-						}
-
-						if (elementIdPart(searchResult.results[startIndex]) === startId) {
-							// the start element is already loaded, so we exclude it from the next load
-							startIndex++
-						} else if (startIndex === -1) {
-							// there is nothing in our result that's not loaded yet, so we
-							// have nothing to do
-							startIndex = Math.max(searchResult.results.length - 1, 0)
-						}
-					}
-
-					// Ignore count when slicing here because we would have to modify SearchResult too
-					const toLoad = searchResult.results.slice(startIndex)
+					const previousLength = result.searchResult.results.length
+					const toLoad = result.searchResult.results.slice(previousLength)
 					let items: Mail[] = await loadMultipleFromLists(MailTypeRef, this.entityClient, toLoad)
 
 					// Restore the original sorting order
