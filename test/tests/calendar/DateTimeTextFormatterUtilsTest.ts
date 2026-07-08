@@ -1,14 +1,70 @@
 import o from "@tutao/otest"
 import { DateTime } from "luxon"
 import {
-	buildGmtOffset,
 	formatEventDuration,
 	formatEventTime,
 	formatTimeWithZoneInfo,
+	getTimeZoneGmtOffset,
+	getTimeZoneOffsetLongName,
 } from "../../../src/applications/calendar-app/calendar/gui/DateTimeTextFormatterUtils"
 import { EventTextTimeOption } from "../../../src/platform-kit/app-env"
 
 o.spec("DateTimeTextFormatterUtils", () => {
+	o.test("getTimeZoneGmtOffset", () => {
+		const dateTime = DateTime.fromISO("2026-01-01T12:00:00")
+		for (const [timeZone, expectedReturnValue] of [
+			["Europe/London", "GMT+0"],
+			["Europe/Berlin", "GMT+1"],
+			["Europe/Kiev", "GMT+2"],
+			["Africa/Nairobi", "GMT+3"],
+			["Australia/Eucla", "GMT+8:45"],
+			["Australia/Darwin", "GMT+9:30"],
+			["Pacific/Auckland", "GMT+13"],
+			["America/Buenos_Aires", "GMT-3"],
+			["America/Argentina/Buenos_Aires", "GMT-3"],
+			["America/St_Johns", "GMT-3:30"],
+			["America/New_York", "GMT-5"],
+			["America/Los_Angeles", "GMT-8"],
+			["America/Adak", "GMT-10"],
+			["UTC", "GMT+0"],
+			// Beware, 'Etc/GMT+<offset>' flip the sign of the GMT-offset because they were standardized
+			// in an old POSIX standard; i.e. Etc/GMT+1 != UTC+1 && Etc/GMT+1 == UTC-1!
+			["Etc/GMT+1", "GMT-1"],
+		]) {
+			o(getTimeZoneGmtOffset(dateTime, timeZone)).equals(expectedReturnValue)
+		}
+	})
+	o.spec("getTimeZoneOffsetLongName", () => {
+		o.test("Returns correct offset names for standard time", () => {
+			const dateTime = DateTime.fromISO("2026-01-01T12:00:00")
+			for (const [timeZone, expectedReturnValue] of [
+				["Europe/Berlin", "Central European Standard Time"],
+				["America/Buenos_Aires", "Argentina Standard Time"],
+				["America/Argentina/Buenos_Aires", "Argentina Standard Time"],
+				["UTC", "UTC"],
+				// Beware, 'Etc/GMT+<offset>' flip the sign of the GMT-offset because they were standardized
+				// in an old POSIX standard; i.e. Etc/GMT+1 != UTC+1 && Etc/GMT+1 == UTC-1!
+				["Etc/GMT+1", "GMT-01:00"],
+			]) {
+				o(getTimeZoneOffsetLongName(dateTime, timeZone)).equals(expectedReturnValue)
+			}
+		})
+		o.test("Returns correct offset names for daylight saving time", () => {
+			const dateTime = DateTime.fromISO("2026-07-01T12:00:00")
+			for (const [timeZone, expectedReturnValue] of [
+				["Europe/Berlin", "Central European Summer Time"],
+
+				// The following should remain unaffected by daylight saving
+				["UTC", "UTC"],
+				// Beware, 'Etc/GMT+<offset>' flip the sign of the GMT-offset because they were standardized
+				// in an old POSIX standard; i.e. Etc/GMT+1 != UTC+1 && Etc/GMT+1 == UTC-1!
+				["Etc/GMT+1", "GMT-01:00"],
+			]) {
+				o(getTimeZoneOffsetLongName(dateTime, timeZone)).equals(expectedReturnValue)
+			}
+		})
+	})
+
 	const multiDayEventTimes = {
 		startTime: new Date("2026-01-01T12:00:00"),
 		endTime: new Date("2026-01-02T12:30:00"),
@@ -127,27 +183,5 @@ o.spec("DateTimeTextFormatterUtils", () => {
 				}),
 			).equals("12:00 PM - 12:30 PM")
 		})
-	})
-	o.test("buildGmtOffset", () => {
-		const dateTime = DateTime.fromISO("2026-01-01T12:00:00")
-		for (const [timeZone, expectedReturnValue] of [
-			["Europe/London", "GMT+0"],
-			["Europe/Berlin", "GMT+1"],
-			["Europe/Kiev", "GMT+2"],
-			["Africa/Nairobi", "GMT+3"],
-			["Australia/Eucla", "GMT+8:45"],
-			["Australia/Darwin", "GMT+9:30"],
-			["Pacific/Auckland", "GMT+13"],
-			["America/St_Johns", "GMT-3:30"],
-			["America/New_York", "GMT-5"],
-			["America/Los_Angeles", "GMT-8"],
-			["America/Adak", "GMT-10"],
-			["UTC", "GMT+0"],
-			// Beware, 'Etc/GMT+<offset>' flip the sign of the GMT-offset because they were standardized
-			// in an old POSIX standard; i.e. Etc/GMT+1 != UTC+1 && Etc/GMT+1 == UTC-1!
-			["Etc/GMT+1", "GMT-1"],
-		]) {
-			o(buildGmtOffset(dateTime.setZone(timeZone))).equals(expectedReturnValue)
-		}
 	})
 })

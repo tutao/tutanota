@@ -30,7 +30,8 @@ import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/Calen
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { Stripped } from "@tutao/meta"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
-import { timeZoneProvider } from "../../../common/calendar/TimeZoneProvider"
+import { availableIANATimeZones, windowsToIANATimeZones } from "../../../common/calendar/TimeZoneData"
+import { DateTimeFormatterWrapper } from "../../../common/calendar/DateTimeFormatterWrapper"
 
 const TAG = "[CalendarParser]"
 
@@ -543,13 +544,21 @@ function getTzId(prop: Property): string | null {
 		return null
 	}
 
-	const result = timeZoneProvider.resolveTimeZoneForImport(tzIdValue)
-	if (!result) {
-		console.warn(`${TAG} Unknown timezone at property ${prop.name}: ${tzIdValue}.`)
-		return null
+	if (availableIANATimeZones.includes(tzIdValue)) {
+		return tzIdValue
 	}
 
-	return result
+	const timeZoneFromWindowsMap = windowsToIANATimeZones[tzIdValue]
+	if (timeZoneFromWindowsMap) {
+		return timeZoneFromWindowsMap
+	}
+
+	const resolveTimeZone = new DateTimeFormatterWrapper().resolveTimeZone(tzIdValue)
+	if (resolveTimeZone) {
+		return resolveTimeZone
+	}
+
+	throw new ParserError(`${TAG} Invalid timezone in property ${prop.name}=${tzIdValue}.`)
 }
 
 function oneDayDurationEnd(startTime: Date, allDay: boolean, tzId: string | null, zone: string): Date {
