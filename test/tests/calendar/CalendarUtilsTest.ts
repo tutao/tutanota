@@ -260,10 +260,17 @@ o.spec("CalendarUtilsTest", function () {
 			o(result.toISOString()).equals(expected)(`${result.toISOString()} vs ${expected}`)
 		})
 
-		o("given a midnight date, it produces a date at the start of the previous day according to the time zone", function () {
+		o("given a midnight date, it produces a date at the start of the previous day when it has a negative time zone", function () {
 			const date = new Date("2023-01-29T00:00:00.000Z")
 			const expected = "2023-01-28T05:00:00.000Z"
 			const result = getStartOfDayWithZone(date, "America/New_York")
+			o(result.toISOString()).equals(expected)(`${result.toISOString()} vs ${expected}`)
+		})
+
+		o("given a date close to the en dof the day, it produces a date at the start of the next day when it has a positive time zone", function () {
+			const date = new Date("2023-01-29T20:00:00.000Z")
+			const expected = "2023-01-29T15:00:00.000Z"
+			const result = getStartOfDayWithZone(date, "Asia/Tokyo")
 			o(result.toISOString()).equals(expected)(`${result.toISOString()} vs ${expected}`)
 		})
 	})

@@ -45,7 +45,7 @@ export function serializeCalendar(
 //
 // end of the public interface for calendar invites/import/export, everything below this is exported for testing.
 //
-
+// FIXME: Write unit tests
 function serializeDTProperty(
 	propertyName: "DTSTART" | "DTEND",
 	isAllDay: boolean,

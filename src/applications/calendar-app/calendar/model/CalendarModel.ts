@@ -1393,6 +1393,7 @@ export class CalendarModel {
 		}
 	}
 
+	// FIXME: add unit tests
 	/**
 	 * Load a user's alarms for a given event.
 	 *

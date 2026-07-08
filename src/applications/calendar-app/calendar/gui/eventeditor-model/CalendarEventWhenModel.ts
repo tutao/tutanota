@@ -72,10 +72,10 @@ export class CalendarEventWhenModel {
 			startTime: initialValues.startTime ? normalizeTime(initialValues.startTime) : normalizeTime(defaultTimes.startTime),
 			endTime: initialValues.endTime ? normalizeTime(initialValues.endTime) : normalizeTime(defaultTimes.endTime),
 		}
-
+		// FIXME: Test this before release -- supporting old events that have time zone only defined in repeat rule
 		this.timeZones = {
-			startTimeZone: initialValues.startTimeZone ?? null,
-			endTimeZone: initialValues.endTimeZone ?? initialValues.startTimeZone ?? null,
+			startTimeZone: initialValues.startTimeZone ?? initialValues.repeatRule?.timeZone ?? null,
+			endTimeZone: initialValues.endTimeZone ?? initialValues.startTimeZone ?? initialValues.repeatRule?.timeZone ?? null,
 		}
 
 		this._isAllDay = isAllDayEvent(initialTimes)

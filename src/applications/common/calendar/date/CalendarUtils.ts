@@ -135,6 +135,8 @@ export function getDayRange(date: Date, zone: string): CalendarTimeRange {
 }
 
 /**
+ * This function is quite ambiguous, and we introduced two test case to expose that
+ *
  * @param date a date object representing a calendar date (like 1st of May 2023 15:15) in {@param zone}
  * @param zone the time zone to calculate which calendar date {@param date} represents.
  * @returns a date object representing the beginning of the given day in local time, like 1st of May 2023 00:00)

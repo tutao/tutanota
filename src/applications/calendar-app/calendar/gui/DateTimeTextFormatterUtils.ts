@@ -19,7 +19,7 @@ export type TextFormatterTimezones = {
 	endTimeZone?: string
 	calendarTimeZone: string
 }
-
+// FIXME: Add unit tests for these functions
 function formatAllDayDurationText(event: CalendarEventTimes, startTimeZone: string, endTimeZone: string) {
 	const startTime = getEventStart(event, startTimeZone)
 	const startString = formatDateWithMonth(startTime)
@@ -121,6 +121,7 @@ export function formatEventTimesAtDate(day: Date, event: CalendarEvent, includeT
 	}
 }
 
+// FIXME: Move elsewhere and try to simplify. maybe to eventpreviewview or calendarguiutils
 export function shouldShowTimeZones(calendarTimeZone: string, startTimeZone: string | null, endTimeZone: string | null) {
 	if (startTimeZone === null && endTimeZone === null) {
 		return false
