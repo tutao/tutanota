@@ -39,7 +39,7 @@ export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
 
 		return m(".flex.col.smaller.scroll.visible-scrollbar", [
 			this.renderRow(Icons.CalendarFilled, [m("span.h3", eventTitle)]),
-			this.renderRow(Icons.ClockOutlines, [formatEventDuration(event, { calendarTimeZone: getTimeZone() }, false)]),
+			this.renderRow(Icons.ClockOutlines, [formatEventDuration(event, getTimeZone(), false)]),
 			age ? this.renderRow(Icons.GiftFilled, ageString) : null,
 			this.renderActions(contact),
 		])
