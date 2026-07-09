@@ -99,6 +99,8 @@ import {
 	createEncryptedMailAddress,
 	createExternalUserData,
 	createListUnsubscribeData,
+	createMailAddressTransferAggregation,
+	createMailTransferAggregation,
 	createManageLabelServiceDeleteIn,
 	createManageLabelServiceLabelData,
 	createManageLabelServicePostIn,
@@ -333,6 +335,14 @@ export class MailFacade {
 				addedAttachments: await this._createAddedAttachments(attachments, [], senderMailGroupId, mailGroupKey),
 				bodyText: "",
 				removedAttachments: [],
+				mail: createMailTransferAggregation({
+					subject,
+					receivedDate: new Date(),
+					sender: createMailAddressTransferAggregation({
+						name: senderName,
+						address: senderMailAddress,
+					}),
+				}),
 			}),
 			ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 		})
@@ -398,6 +408,7 @@ export class MailFacade {
 				removedAttachments: this._getRemovedAttachments(attachments, currentAttachments),
 				addedAttachments: await this._createAddedAttachments(attachments, currentAttachments, senderMailGroupId, mailGroupKey),
 				bodyText: "",
+				mail: null,
 			}),
 		})
 		this.deferredDraftId = draft._id

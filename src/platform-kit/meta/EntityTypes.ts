@@ -58,6 +58,8 @@ export type ModelValue = {
 	final: boolean
 	/* whether the field should be encrypted with the containing types session key before being sent to the server. */
 	encrypted: boolean
+	/* the ID to use in the field path in associated data for AEAD, only present in transfer aggregations */
+	idForAssociatedData: Nullable<AttributeId>
 }
 
 /**
@@ -91,6 +93,8 @@ export type ModelAssociation = {
 	 * which can be imported across models.
 	 */
 	dependency?: AppName | null
+	/* the ID to use in the field path in associated data for AEAD, only present in transfer aggregations */
+	idForAssociatedData: Nullable<AttributeId>
 }
 
 export type ClientTypeModel = Distinct<TypeModel, ClientModelTypeSeparator>

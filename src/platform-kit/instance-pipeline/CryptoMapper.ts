@@ -231,7 +231,12 @@ export class CryptoMapper {
 
 			let encryptedValue
 			if (valueType.encrypted) {
-				const fieldPath = `${fieldPathPrefix}${valueId}`
+				const fieldPath = `${fieldPathPrefix}${valueType.idForAssociatedData ?? valueId}`
+
+				if (valueType.idForAssociatedData != null) {
+					console.log(fieldPath)
+				}
+
 				encryptedValue = this.encryptValue(valueType as EncryptedModelValue, value, subKeyProvider, fieldPath)
 			} else {
 				encryptedValue = value
@@ -246,7 +251,7 @@ export class CryptoMapper {
 				const appName = associationType.dependency ?? clientTypeModel.app
 				const aggregateTypeModel = await this.clientTypeReferenceResolver(new TypeRef(appName, associationType.refTypeId))
 				const aggregate = parsedInstance[associationId] as Array<ClientModelParsedInstance>
-				const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${associationId}/`
+				const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${associationType.idForAssociatedData ?? associationId}/`
 				encrypted[associationId] = await this.encryptAggregateAssociation(
 					aggregateTypeModel,
 					aggregate,
@@ -351,5 +356,43 @@ export class CryptoMapper {
 			}
 		}
 		return uint8ArrayToBase64(encryptedBytes)
+	}
+}
+
+class FieldPath {
+	fieldPathElements: FieldPathElement[] = []
+	valueId: Nullable<number> = null
+	hasBeenCutOff: boolean = false
+
+	addFieldPathElement(fieldPathElement: FieldPathElement) {
+		if (this.valueId != null) {
+			throw new ProgrammingError("no")
+		}
+		this.fieldPathElements.push(fieldPathElement)
+	}
+
+	setValueId(valueId: number) {
+		this.valueId = valueId
+	}
+
+	tryCutOff() {
+		if (this.hasBeenCutOff) return
+		this.fieldPathElements = []
+		this.hasBeenCutOff = true
+	}
+
+	asString(): string {
+		return this.fieldPathElements.map((fieldPathElement) => fieldPathElement.asString()).join() + this.valueId
+	}
+}
+
+class FieldPathElement {
+	constructor(
+		readonly associationId: number,
+		readonly aggregateId: string,
+	) {}
+
+	asString(): string {
+		return `${this.associationId}/${this.aggregateId}/`
 	}
 }
