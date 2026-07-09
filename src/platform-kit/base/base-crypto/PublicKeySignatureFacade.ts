@@ -171,7 +171,7 @@ export class PublicKeySignatureFacade {
 	 * @param encryptionKeyPair
 	 * @private
 	 */
-	private extractAndValidatePublicKey(encryptionKeyPair: AsymmetricKeyPair) {
+	private extractAndValidatePublicKey(encryptionKeyPair: AsymmetricKeyPair): PublicKey {
 		if (isPqKeyPairs(encryptionKeyPair)) {
 			const x25519PublicKey = this.cryptoWrapper.verifyPublicX25519Key(encryptionKeyPair.x25519KeyPair)
 			const kyberPublicKey = this.cryptoWrapper.verifyKyberPublicKey(encryptionKeyPair.kyberKeyPair)
