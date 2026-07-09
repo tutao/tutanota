@@ -305,24 +305,7 @@ export class SearchViewModel {
 					this.progressTracker,
 				)
 				.then((result) => {
-					this.searchResult = result
-					const listModel = this.createList(result)
-					this._listModel = listModel
-					listModel.stateStream.map((state) => this.onListStateChange(state))
-					result.updates.map((update) => {
-						switch (update.type) {
-							case "newitem":
-								listModel.insertLoadedItem(new SearchResultListEntry(update.item))
-								break
-							case "deleteitem":
-								listModel.deleteLoadedItem(update.item._id)
-								break
-							case "updateitem":
-								listModel.updateLoadedItem(new SearchResultListEntry(update.item))
-								break
-						}
-					})
-					listModel.loadInitial()
+					this.applyLiveSearchResults(result)
 				})
 		}
 		if (restriction.type === SearchCategoryType.mail) {
@@ -337,24 +320,7 @@ export class SearchViewModel {
 					this.progressTracker,
 				)
 				.then((result) => {
-					this.searchResult = result
-					const listModel = this.createList(result)
-					this._listModel = listModel
-					listModel.stateStream.map((state) => this.onListStateChange(state))
-					result.updates.map((update) => {
-						switch (update.type) {
-							case "newitem":
-								listModel.insertLoadedItem(new SearchResultListEntry(update.item))
-								break
-							case "deleteitem":
-								listModel.deleteLoadedItem(update.item._id)
-								break
-							case "updateitem":
-								listModel.updateLoadedItem(new SearchResultListEntry(update.item))
-								break
-						}
-					})
-					listModel.loadInitial()
+					this.applyLiveSearchResults(result)
 				})
 		}
 		// if (searchQuery == null) {
@@ -433,6 +399,27 @@ export class SearchViewModel {
 		// 		this.loadAndSelectIfNeeded(args.id)
 		// 	}
 		// }
+	}
+
+	private applyLiveSearchResults(result: LiveSearchResult<SearchableTypes>) {
+		this.searchResult = result
+		const listModel = this.createList(result)
+		this._listModel = listModel
+		listModel.stateStream.map((state) => this.onListStateChange(state))
+		result.updates.map((update) => {
+			switch (update.type) {
+				case "newitem":
+					listModel.insertLoadedItem(new SearchResultListEntry(update.item))
+					break
+				case "deleteitem":
+					listModel.deleteLoadedItem(update.item._id)
+					break
+				case "updateitem":
+					listModel.updateLoadedItem(new SearchResultListEntry(update.item))
+					break
+			}
+		})
+		listModel.loadInitial()
 	}
 
 	private extractCalendarListIds(listIds: string[]): readonly [string, string] | string | null {

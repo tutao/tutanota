@@ -1,6 +1,6 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { elementIdPart, getElementId, listIdPart, OperationType } from "../../../../platform-kit/meta"
+import { elementIdPart, getElementId, ListElementEntity, listIdPart, OperationType, TypeRef } from "../../../../platform-kit/meta"
 import { assertMainOrNode, isAdminClient, isBrowser, NOTHING_INDEXED_TIMESTAMP } from "../../../../platform-kit/app-env"
 import { DbError } from "../../../common/api/common/error/DbError"
 import { SearchCategoryType, SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
@@ -25,6 +25,7 @@ import { CalendarEvent, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tuta
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
+import { SearchableTypes } from "../view/SearchViewModel"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -117,24 +118,7 @@ export class SearchModel {
 		const result: LiveSearchResult<Contact> = {
 			searchResult,
 			items: contacts,
-			loadMoreResults: async (count) => {
-				if (hasMoreResults(result.searchResult)) {
-					const previousLength = result.searchResult.results.length
-					result.searchResult = await this._searchFacade.getMoreSearchResults(result.searchResult, count)
-					const toLoad = result.searchResult.results.slice(previousLength)
-					let items: Contact[] = await loadMultipleFromLists(ContactTypeRef, this.entityClient, toLoad)
-
-					// Restore the original sorting order
-					if (!isBrowser() && !isAdminClient()) {
-						const itemsMapped = collectToMap(items, getElementId)
-						items = mapAndFilterNull<IdTuple, Contact>(searchResult.results, (id) => itemsMapped.get(elementIdPart(id)) ?? null)
-					}
-					result.items.push(...items)
-					return items
-				} else {
-					return []
-				}
-			},
+			loadMoreResults: async () => [],
 			get hasMoreResults() {
 				return hasMoreResults(result.searchResult)
 			},
@@ -144,29 +128,39 @@ export class SearchModel {
 				result.updates.end(true)
 			},
 			entityEventsReceived: async (updates) => {
-				for (const update of updates) {
-					if (isUpdateForTypeRef(ContactTypeRef, update)) {
-						if (update.operation === OperationType.DELETE) {
-							const mailIndex = result.items.findIndex((mail) => getElementId(mail) === update.instanceId)
-							if (mailIndex !== -1) {
-								const [mail] = result.items.splice(mailIndex, 1)
-								result.updates({ type: "deleteitem", item: mail })
-							}
-						} else if (update.operation === OperationType.UPDATE) {
-							const mailIndex = result.items.findIndex((mail) => getElementId(mail) === update.instanceId)
-							const updatedContact = await this.entityClient.load(ContactTypeRef, [update.instanceListId, update.instanceId])
-							if (mailIndex !== -1) {
-								const [mail] = result.items.splice(mailIndex, 1, updatedContact)
-								result.updates({ type: "updateitem", item: updatedContact })
-							}
-						}
-						// FIXME: the rest of updates
-					}
-				}
+				await this.applyEntityUpdates(updates, result, ContactTypeRef)
 			},
 		}
 		this.liveResults.push(result)
 		return result
+	}
+
+	private async applyEntityUpdates<T extends SearchableTypes & ListElementEntity>(
+		updates: readonly EntityUpdateData[],
+		result: LiveSearchResult<T>,
+		typeRef: TypeRef<T>,
+	) {
+		for (const update of updates) {
+			if (isUpdateForTypeRef(typeRef, update)) {
+				if (update.operation === OperationType.DELETE) {
+					const contactIndex = result.items.findIndex((mail) => getElementId(mail) === update.instanceId)
+					if (contactIndex !== -1) {
+						const [mail] = result.items.splice(contactIndex, 1)
+						result.updates({ type: "deleteitem", item: mail })
+					}
+				} else if (update.operation === OperationType.UPDATE) {
+					const contactIndex = result.items.findIndex((mail) => getElementId(mail) === update.instanceId)
+					// surprisingly hard to convince ts that this is the correct id type
+					const instanceIdTuple = [update.instanceListId, update.instanceId] as unknown as PropertyType<T, "_id">
+					const updatedContact = await this.entityClient.load<T>(typeRef, instanceIdTuple)
+					if (contactIndex !== -1) {
+						result.items.splice(contactIndex, 1, updatedContact)
+						result.updates({ type: "updateitem", item: updatedContact })
+					}
+				}
+				// FIXME: the rest of updates
+			}
+		}
 	}
 
 	async coolNewSearchMails(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<LiveSearchResult<Mail>> {
@@ -207,25 +201,7 @@ export class SearchModel {
 				result.updates.end(true)
 			},
 			entityEventsReceived: async (updates) => {
-				for (const update of updates) {
-					if (isUpdateForTypeRef(MailTypeRef, update)) {
-						if (update.operation === OperationType.DELETE) {
-							const mailIndex = result.items.findIndex((mail) => getElementId(mail) === update.instanceId)
-							if (mailIndex !== -1) {
-								const [mail] = result.items.splice(mailIndex, 1)
-								result.updates({ type: "deleteitem", item: mail })
-							}
-						} else if (update.operation === OperationType.UPDATE) {
-							const mailIndex = result.items.findIndex((mail) => getElementId(mail) === update.instanceId)
-							const updatedMail = await this.entityClient.load(MailTypeRef, [update.instanceListId, update.instanceId])
-							if (mailIndex !== -1) {
-								const [mail] = result.items.splice(mailIndex, 1, updatedMail)
-								result.updates({ type: "updateitem", item: updatedMail })
-							}
-						}
-						// FIXME: the rest of updates
-					}
-				}
+				this.applyEntityUpdates(updates, result, MailTypeRef)
 			},
 		}
 		this.liveResults.push(result)
