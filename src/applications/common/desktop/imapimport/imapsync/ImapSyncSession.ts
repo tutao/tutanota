@@ -133,8 +133,10 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		} catch (error) {
 			console.error("Error during sync", error, error?.serverResponseCode)
 			if (error.authenticationFailed || error?.serverResponseCode === "AUTHENTICATIONFAILED") {
-				await this.shutDownSyncSession(ShutdownSyncAction.AUTH_FAIL)
-				return new ImapError(error.response, ImapErrorCause.AUTH_FAILED)
+				if (error.serverResponseCode !== "LIMIT") {
+					await this.shutDownSyncSession(ShutdownSyncAction.AUTH_FAIL)
+					return new ImapError(error.response, ImapErrorCause.AUTH_FAILED)
+				}
 			}
 
 			await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, IMAP_ERROR_POSTPONE_TIME)
