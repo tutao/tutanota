@@ -170,6 +170,7 @@ import { ClientModelInfo } from "@tutao/instance-pipeline"
 import { ImapImporter } from "./workerUtils/imapimport/ImapImporter"
 
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
+import { showWindowCloseConfirmation } from "../../ui/base/GuiUtils"
 import type { ImapMailImportController } from "./settings/imapimport/ImapMailImportController"
 import type { AlarmInterval } from "../common/calendar/date/CalendarUtils"
 
@@ -1441,7 +1442,9 @@ class MailLocator implements CommonLocator {
 			this.userManagementFacade,
 			driveUploadStackModel,
 			isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp, this.desktopSystemFacade) : null,
+			windowFacade,
 			redraw,
+			() => showWindowCloseConfirmation("closeWindowWithActiveTransfers_msg"),
 			this.connectivityModel,
 		)
 		await model.init()
