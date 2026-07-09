@@ -1,13 +1,14 @@
 import o from "@tutao/otest"
 import {
 	formatDateTimeUTC,
+	serializeDTProperty,
 	serializeEvent,
 	serializeExcludedDates,
 	serializeRepeatRule,
 	serializeTrigger,
 } from "../../../../src/applications/calendar-app/calendar/export/CalendarExporter.js"
 
-import { DateTime } from "luxon"
+import { DateObjectUnits, DateTime } from "luxon"
 import { EndType, RepeatPeriod } from "../../../../src/platform-kit/app-env"
 import { getAllDayDateUTC } from "../../../../src/applications/common/api/common/utils/CommonCalendarUtils.js"
 import { createTestEntity } from "../../TestUtils.js"
@@ -718,5 +719,93 @@ o.spec("CalendarExporter", function () {
 		o(serializeTrigger("10D")).equals("-P10D")
 		o(serializeTrigger("5W")).equals("-P5W")
 		o(serializeTrigger("50W")).equals("-P50W")
+	})
+
+	o.spec("serializeDTProperty", () => {
+		const testDateComponents: Pick<DateObjectUnits, "year" | "month" | "day"> = {
+			year: 2026,
+			month: 7,
+			day: 15,
+		}
+
+		o.test("All-day event serializes as VALUE=DATE", function () {
+			const eventStartDate = createDateInZone("UTC", 0, 0)
+
+			const expectedString = "DTSTART;VALUE=DATE:20260715"
+
+			const result = serializeDTProperty("DTSTART", true, eventStartDate, calendarTimeZone, null, calendarTimeZone)
+			o.check(result).equals(expectedString)
+		})
+
+		o.test("Timed event uses event timezone", function () {
+			const eventTimeZone = "America/Sao_Paulo"
+			const eventStartDate = createDateInZone(eventTimeZone, 13, 30)
+
+			const expectedString = `DTSTART;TZID=${eventTimeZone}:20260715T133000`
+
+			const result = serializeDTProperty("DTSTART", false, eventStartDate, eventTimeZone, null, calendarTimeZone)
+			o.check(result).equals(expectedString)
+		})
+
+		o.test("Timed event falls back to repeat rule timezone when event timezone is unavailable (incomplete calendar event state)", function () {
+			const eventTimeZone = null
+			const eventRepeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
+				frequency: RepeatPeriod.DAILY,
+				interval: "1",
+				timeZone: "America/Sao_Paulo",
+			})
+			const eventStartDate = createDateInZone(eventRepeatRule.timeZone, 13, 30)
+
+			const expectedString = `DTSTART;TZID=${eventRepeatRule.timeZone}:20260715T133000`
+
+			const result = serializeDTProperty("DTSTART", false, eventStartDate, eventTimeZone, eventRepeatRule, calendarTimeZone)
+			o.check(result).equals(expectedString)
+		})
+
+		o.test("Timed event serializes in UTC when no timezone is available", function () {
+			const eventStartDate = createDateInZone("UTC", 13, 30)
+
+			const expectedString = `DTSTART:20260715T133000Z`
+
+			const result = serializeDTProperty("DTSTART", false, eventStartDate, null, null, calendarTimeZone)
+
+			o.check(result).equals(expectedString)
+		})
+
+		o.test("Event timezone takes precedence over repeat rule timezone", function () {
+			const eventTimeZone = "America/Buenos_Aires"
+			const eventRepeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
+				frequency: RepeatPeriod.DAILY,
+				interval: "1",
+				timeZone: "America/Sao_Paulo",
+			})
+			const eventStartDate = createDateInZone(eventRepeatRule.timeZone, 13, 30)
+
+			const expectedString = `DTSTART;TZID=${eventTimeZone}:20260715T133000`
+
+			const result = serializeDTProperty("DTSTART", false, eventStartDate, eventTimeZone, eventRepeatRule, calendarTimeZone)
+			o.check(result).equals(expectedString)
+		})
+
+		o.test("Serializes DTEND property", function () {
+			const eventStartDate = createDateInZone("UTC", 13, 30)
+
+			const expectedString = `DTEND:20260715T133000Z`
+
+			const result = serializeDTProperty("DTEND", false, eventStartDate, null, null, calendarTimeZone)
+
+			o.check(result).equals(expectedString)
+		})
+
+		function createDateInZone(zone: string, hour?: number, minute?: number): Date {
+			return DateTime.fromObject(
+				{
+					...testDateComponents,
+					hour,
+					minute,
+				},
+				{ zone },
+			).toJSDate()
+		}
 	})
 })

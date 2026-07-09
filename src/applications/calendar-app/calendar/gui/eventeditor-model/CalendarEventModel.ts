@@ -573,7 +573,6 @@ export function assignEventIdentity(values: CalendarEventValues, identity: Requi
 	})
 }
 
-// FIXME: add unit tests
 export async function resolveAlarmsForEvent(alarms: CalendarEvent["alarmInfos"], calendarModel: CalendarModel, user: User): Promise<Array<AlarmInterval>> {
 	const alarmInfos = await calendarModel.loadAlarms(alarms, user)
 	return alarmInfos.map(({ alarmInfo }) => parseAlarmInterval(alarmInfo.trigger))

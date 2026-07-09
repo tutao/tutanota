@@ -55,6 +55,7 @@ import {
 	RepeatRuleTypeRef,
 	User,
 	UserAlarmInfoListType,
+	UserAlarmInfoListTypeTypeRef,
 	UserAlarmInfoTypeRef,
 } from "@tutao/entities/sys"
 import { clone, elementIdPart, getListId, listIdPart } from "../../../src/platform-kit/meta"
@@ -148,6 +149,10 @@ o.spec("CalendarModel", function () {
 		const userId = "user-id"
 		userMock = object<User>()
 		userMock._id = userId
+		userMock.alarmInfoList = createTestEntity(UserAlarmInfoListTypeTypeRef, {
+			alarms: "user-alarm-list-id",
+		})
+
 		userControllerMock.user = userMock
 
 		userControllerMock.getCalendarMemberships = () => {
@@ -793,6 +798,33 @@ o.spec("CalendarModel", function () {
 			o(updatedEvent.sequence).equals(sentEvent.sequence)
 			o(updatedEvent.pendingInvitation).equals(false)
 			o(oldEvent).deepEquals(baseExistingProgenitor)
+		})
+	})
+
+	o.spec("loadAlarms", function () {
+		o.test("Load only alarms owned by the user", async function () {
+			const otherUserAlarmListId = "not-owned-alarm-list"
+			const userOwnedAlarms: IdTuple[] = [
+				[userMock.alarmInfoList!.alarms, "alarm-1"],
+				[userMock.alarmInfoList!.alarms, "alarm-1"],
+			]
+			const eventAlarmInfosIds: IdTuple[] = [...userOwnedAlarms, [otherUserAlarmListId, "not-owned-alarm-1"], [otherUserAlarmListId, "not-owned-alarm-1"]]
+
+			await calendarModel.loadAlarms(eventAlarmInfosIds, userMock)
+
+			verify(entityClientMock.loadMultiple(UserAlarmInfoTypeRef, userMock.alarmInfoList!.alarms, userOwnedAlarms.map(elementIdPart)), { times: 1 })
+		})
+
+		o.test("Result in an empty list when user has no alarms assigned to the event", async function () {
+			const otherUserAlarmListId = "not-owned-alarm-list"
+			const eventAlarmInfosIds: IdTuple[] = [
+				[otherUserAlarmListId, "not-owned-alarm-1"],
+				[otherUserAlarmListId, "not-owned-alarm-1"],
+			]
+
+			await calendarModel.loadAlarms(eventAlarmInfosIds, userMock)
+
+			verify(entityClientMock.loadMultiple(UserAlarmInfoTypeRef, matchers.anything(), matchers.anything()), { times: 0 })
 		})
 	})
 })
