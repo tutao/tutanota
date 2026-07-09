@@ -10,6 +10,7 @@
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"13": {
 				"final": false,
@@ -61,6 +62,7 @@
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"17": {
 				"final": false,
@@ -105,6 +107,7 @@
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"50": {
 				"final": false,
@@ -165,6 +168,7 @@
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"223": {
 				"final": true,
@@ -254,6 +258,7 @@
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"301": {
 				"final": true,
@@ -296,6 +301,7 @@
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"306": {
 				"final": true,
@@ -338,6 +344,7 @@
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"317": {
 				"final": true,
@@ -443,6 +450,7 @@
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"336": {
 				"final": false,

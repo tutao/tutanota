@@ -17,6 +17,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"80": {
 				"final": true,
@@ -77,6 +78,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": true,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"87": {
 				"final": false,

@@ -17,6 +17,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"1": {
 				"final": false,

@@ -17,6 +17,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"9": {
 				"final": true,
@@ -59,6 +60,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"13": {
 				"final": true,
@@ -112,6 +114,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"18": {
 				"final": true,
@@ -154,6 +157,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"36": {
 				"final": true,
@@ -225,6 +229,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"54": {
 				"final": false,
@@ -258,6 +263,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"57": {
 				"final": true,
@@ -338,6 +344,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"64": {
 				"final": false,
@@ -382,6 +389,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"81": {
 				"final": false,
@@ -453,6 +461,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"91": {
 				"final": false,
@@ -495,6 +504,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"idForSubKeyContext": null,
 		"values": {
 			"95": {
 				"final": false,
