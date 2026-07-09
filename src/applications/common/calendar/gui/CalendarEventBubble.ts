@@ -16,12 +16,7 @@ import { EventTextTimeOption, TabIndex } from "@tutao/app-env"
 import { EventWrapperFlagKeys, FlagKeyToIcon, getDiffIn60mIntervals, getTimeTextFormatForLongEvent, getTimeZone } from "../date/CalendarUtils"
 import { Time } from "../date/Time"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
-import {
-	formatEventTime,
-	formatTimeWithZoneInfo,
-	getTextFormatterTimeZones,
-	shouldShowTimeZones,
-} from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
+import { formatEventTime, formatTimeWithZoneInfo, shouldShowTimeZones } from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
 
 export const MIN_ROW_SPAN = 3
 
@@ -65,11 +60,11 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 			? EventTextTimeOption.START_END_TIME
 			: getTimeTextFormatForLongEvent(calendarEvent, baseDate, baseDate, calendarTimeZone)
 
-		const eventTime = timeFormat ? formatEventTime(calendarEvent, timeFormat, false, { calendarTimeZone: calendarTimeZone }) : ""
+		const eventTime = timeFormat ? formatEventTime(calendarEvent, timeFormat, false, calendarTimeZone) : ""
 		const eventTitle = isLongNormalEvent ? `${eventTime} ${getDisplayEventTitle(calendarEvent.summary)}` : getDisplayEventTitle(calendarEvent.summary)
 		const timeZoneText =
-			!isLongNormalEvent && showTimeZones && shouldShowTimeZones(calendarTimeZone, calendarEvent.startTimeZone, calendarEvent.endTimeZone)
-				? formatTimeWithZoneInfo(calendarEvent, timeFormat!, getTextFormatterTimeZones(calendarEvent, calendarTimeZone))
+			!isLongNormalEvent && showTimeZones && shouldShowTimeZones(calendarEvent, calendarTimeZone)
+				? formatTimeWithZoneInfo(calendarEvent, timeFormat!, calendarTimeZone)
 				: null
 
 		const resolvedStyles = this.resolveStyles(attrs)

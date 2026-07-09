@@ -42,7 +42,7 @@ import { Keys, ProgrammingError, SECOND_IN_MILLIS, TabIndex } from "@tutao/app-e
 import { clone, GENERATED_MIN_ID } from "@tutao/meta"
 import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
 import { getTimeZone } from "../../../common/calendar/date/CalendarUtils"
-import { formatEventTimesAtDate, getTextFormatterTimeZones, shouldShowTimeZones } from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
+import { formatEventTimesAtDate } from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData
@@ -191,15 +191,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					event.organizer?.address
 						? m(".flex.items-center.small.mt-8", [
 								m("span.b", lang.getTranslation("when_label").text),
-								m(
-									"span.ml-4",
-									formatEventTimesAtDate(
-										getStartOfDay(event.startTime),
-										event,
-										shouldShowTimeZones(calendarTimeZone, icsCalendarEvent.startTimeZone, icsCalendarEvent.endTimeZone),
-										getTextFormatterTimeZones(event, calendarTimeZone),
-									),
-								),
+								m("span.ml-4", formatEventTimesAtDate(getStartOfDay(event.startTime), event, calendarTimeZone)),
 							])
 						: null,
 					replySection,
