@@ -11,7 +11,7 @@ export class RsaKeyPair extends AsymmetricKeyPair {
 	}
 }
 export class RsaX25519KeyPair extends RsaKeyPair {
-	override readonly keyPairType: typeof KeyPairType.RSA_AND_X25519 = KeyPairType.RSA_AND_X25519
+	override readonly keyPairType = KeyPairType.RSA_AND_X25519
 	constructor(
 		publicKey: RsaPublicKey,
 		privateKey: RsaPrivateKey,
@@ -51,7 +51,7 @@ export class RsaPublicKey extends PublicKey {
 }
 
 export class RsaX25519PublicKey extends RsaPublicKey {
-	public override readonly keyPairType: typeof KeyPairType.RSA_AND_X25519 = KeyPairType.RSA_AND_X25519
+	public override readonly keyPairType = KeyPairType.RSA_AND_X25519
 
 	constructor(
 		rsaPublicKey: RsaPublicKey,

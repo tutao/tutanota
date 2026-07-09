@@ -4,6 +4,7 @@ import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
 	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN,
 	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN,
+	AeadSubKeys,
 	AesKey,
 	AsymmetricKeyPair,
 	DomainSeparator,
@@ -343,7 +344,11 @@ export class CryptoMapper {
 				domainSpecifier = AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN
 			}
 			const associatedData = stringToUtf8Uint8Array(domainSpecifier + fieldPath)
-			encryptedBytes = this.symmetricCipherFacade.encryptBytesWithAead(subKeys, bytes, associatedData)
+			if (subKeys instanceof AeadSubKeys) {
+				encryptedBytes = this.symmetricCipherFacade.encryptBytesWithAead(subKeys, bytes, associatedData)
+			} else {
+				throw new ProgrammingError("invalid subkeys")
+			}
 		}
 		return uint8ArrayToBase64(encryptedBytes)
 	}
