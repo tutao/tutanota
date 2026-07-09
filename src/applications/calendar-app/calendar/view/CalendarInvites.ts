@@ -205,6 +205,7 @@ export class CalendarInviteHandler {
 		await model.addRecipient(RecipientField.TO, { address: sender })
 
 		if (!previousMail) {
+			// confidentiality is initialized as false but may be set to true later. this is just an initialization without prior context.
 			await model.initWithTemplate({}, "", "", [], false, responder)
 			return model
 		}
