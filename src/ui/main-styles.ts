@@ -495,11 +495,17 @@ export class MainStyles {
 				".mb-negative-12": {
 					"margin-bottom": px(-size.spacing_12),
 				},
+				".mr-negative-4": {
+					"margin-right": px(-size.spacing_4),
+				},
 				".mr-negative-8": {
 					"margin-right": px(-size.spacing_8),
 				},
 				".mr-negative-24": {
 					"margin-right": px(-size.spacing_24),
+				},
+				".ml-negative-4": {
+					"margin-left": px(-size.spacing_4),
 				},
 				".ml-negative-8": {
 					"margin-left": px(-size.spacing_8),
@@ -679,9 +685,6 @@ export class MainStyles {
 					position: "fixed",
 					bottom: px(size.spacing_12),
 					right: px(size.spacing_24),
-				},
-				".mr-negative-4": {
-					"margin-right": px(-size.base_4),
 				},
 				// common setting
 				".text-ellipsis": {

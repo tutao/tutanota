@@ -12,6 +12,7 @@ import { styles } from "../styles"
 export type RadioSelectorOption<T> = {
 	readonly name: MaybeTranslation
 	readonly value: T
+	readonly icon?: Children
 	readonly renderChild?: lazy<Children>
 }
 export interface RadioSelectorItemAttrs<T> {
@@ -74,6 +75,7 @@ export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>
 						id: optionId,
 						style: { cursor },
 					}),
+					option.icon ? option.icon : null,
 					m("label.left.pt-4.pb-4", { for: optionId, style: { cursor } }, lang.getTranslationText(option.name)),
 				],
 			),
