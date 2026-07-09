@@ -38,7 +38,7 @@ import { SearchToken } from "../../../../../ui/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../../ui/TextHighlightViewUtils"
 import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../../../ui/base/ExpandableTextArea.js"
 import { hasError } from "@tutao/meta"
-import { formatEventDuration, getTextFormatterTimeZones, shouldShowTimeZones } from "../DateTimeTextFormatterUtils"
+import { formatEventDuration, shouldShowTimeZones } from "../DateTimeTextFormatterUtils"
 
 export type EventPreviewViewAttrs = {
 	calendarEventPreviewModel: CalendarEventPreviewViewModel
@@ -116,10 +116,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 				: null,
 			this.renderRow(
 				Icons.ClockFilled,
-				[
-					formatEventDuration(event, { calendarTimeZone: getTimeZone() }, false),
-					m("small.text-fade", this.renderRepeatRule(event.repeatRule, isAllDayEvent(event))),
-				],
+				[formatEventDuration(event, getTimeZone(), false), m("small.text-fade", this.renderRepeatRule(event.repeatRule, isAllDayEvent(event)))],
 				true,
 			),
 			this.renderTimeZoneSection(event),
@@ -159,11 +156,11 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 	private renderTimeZoneSection(event: Omit<CalendarEvent, "description">) {
 		const calendarTimeZone = getTimeZone()
 
-		if (!shouldShowTimeZones(calendarTimeZone, event.startTimeZone, event.endTimeZone)) {
+		if (!shouldShowTimeZones(event, calendarTimeZone)) {
 			return null
 		}
 
-		return this.renderRow(Icons.GlobeOutline, formatEventDuration(event, getTextFormatterTimeZones(event, calendarTimeZone), true), true)
+		return this.renderRow(Icons.GlobeOutline, formatEventDuration(event, calendarTimeZone, true), true)
 	}
 
 	private renderSectionIndicator(icon: AllIcons, style: Record<string, any> = {}): Children {

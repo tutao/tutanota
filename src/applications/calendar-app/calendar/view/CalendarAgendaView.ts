@@ -32,7 +32,7 @@ import { TimeIndicator } from "../../../common/calendar/gui/TimeIndicator"
 import { TimeBadgeVarient } from "../../../common/calendar/gui/TimeBadge"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
-import { formatEventTimesAtDate, getTextFormatterTimeZones, shouldShowTimeZones } from "../gui/DateTimeTextFormatterUtils"
+import { formatEventTimesAtDate } from "../gui/DateTimeTextFormatterUtils"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
@@ -407,12 +407,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 					calendarTimeZone: calendarTimeZone,
 					day: day,
 					height: agendaItemHeight,
-					timeText: formatEventTimesAtDate(
-						day,
-						eventWrapper.event,
-						shouldShowTimeZones(calendarTimeZone, eventWrapper.event.startTimeZone, eventWrapper.event.endTimeZone),
-						getTextFormatterTimeZones(eventWrapper.event, calendarTimeZone),
-					),
+					timeText: formatEventTimesAtDate(day, eventWrapper.event, calendarTimeZone),
 				}),
 			)
 		}

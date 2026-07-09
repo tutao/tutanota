@@ -37,7 +37,14 @@ import {
 } from "@tutao/utils"
 import { BIRTHDAY_CALENDAR_BASE_ID, EndType, EventTextTimeOption, RepeatPeriod, WeekStart } from "@tutao/app-env"
 import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone, MonthNumbers, WeekdayNumbers } from "luxon"
-import { CalendarEventTimes, DAYS_SHIFTED_MS, generateEventElementId, isAllDayEvent, isAllDayEventByTimes } from "../../api/common/utils/CommonCalendarUtils"
+import {
+	CalendarEventDateTimeFields,
+	CalendarEventTimes,
+	DAYS_SHIFTED_MS,
+	generateEventElementId,
+	isAllDayEvent,
+	isAllDayEventByTimes,
+} from "../../api/common/utils/CommonCalendarUtils"
 import { Time } from "./Time.js"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
@@ -56,27 +63,27 @@ export type CalendarTimeRange = {
 	end: number
 }
 
-export function eventStartsBefore(currentDate: Date, zone: string, event: CalendarEvent): boolean {
+export function eventStartsBefore(currentDate: Date, zone: string, event: CalendarEventDateTimeFields): boolean {
 	return getEventStart(event, zone).getTime() < currentDate.getTime()
 }
 
-export function eventStartsBeforeDay(currentDate: Date, zone: string, event: CalendarEvent): boolean {
+export function eventStartsBeforeDay(currentDate: Date, zone: string, event: CalendarEventDateTimeFields): boolean {
 	return getEventStart(event, zone).getTime() < getStartOfDayWithZone(currentDate, zone).getTime()
 }
 
-export function eventEndsBefore(date: Date, zone: string, event: CalendarEvent): boolean {
+export function eventEndsBefore(date: Date, zone: string, event: CalendarEventDateTimeFields): boolean {
 	return getEventEnd(event, zone).getTime() < date.getTime()
 }
 
-export function eventStartsAfter(date: Date, zone: string, event: CalendarEvent): boolean {
+export function eventStartsAfter(date: Date, zone: string, event: CalendarEventDateTimeFields): boolean {
 	return getEventStart(event, zone).getTime() > date.getTime()
 }
 
-export function eventEndsAfterDay(currentDate: Date, zone: string, event: CalendarEvent): boolean {
+export function eventEndsAfterDay(currentDate: Date, zone: string, event: CalendarEventDateTimeFields): boolean {
 	return getEventEnd(event, zone).getTime() > getStartOfNextDayWithZone(currentDate, zone).getTime()
 }
 
-export function eventEndsAfterOrOn(currentDate: Date, zone: string, event: CalendarEvent): boolean {
+export function eventEndsAfterOrOn(currentDate: Date, zone: string, event: CalendarEventDateTimeFields): boolean {
 	return getEventEnd(event, zone).getTime() >= getStartOfNextDayWithZone(currentDate, zone).getTime()
 }
 

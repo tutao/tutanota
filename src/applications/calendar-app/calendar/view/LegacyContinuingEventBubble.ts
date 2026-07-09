@@ -54,10 +54,7 @@ export class LegacyContinuingCalendarEventBubble implements Component<LegacyCont
 				m(LegacyCalendarEventBubble, {
 					color: attrs.color,
 					border: attrs.border,
-					text:
-						(attrs.showTime != null
-							? formatEventTime(attrs.eventWrapper.event, attrs.showTime, false, { calendarTimeZone: getTimeZone() }) + " "
-							: "") + eventTitle,
+					text: (attrs.showTime != null ? formatEventTime(attrs.eventWrapper.event, attrs.showTime, false, getTimeZone()) + " " : "") + eventTitle,
 					backgroundColor: normalizedBackgroundColor,
 					click: (e) => attrs.onEventClicked(attrs.eventWrapper.event, e),
 					keyDown: (e) => attrs.onEventKeyDown(attrs.eventWrapper.event, e),

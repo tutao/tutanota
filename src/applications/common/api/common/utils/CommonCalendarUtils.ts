@@ -7,6 +7,7 @@ import { IcsCalendarEvent, StrippedCalendarEventAttendee } from "../../../../cal
 
 export type CalendarEventTimes = Pick<CalendarEvent, "startTime" | "endTime">
 export type CalendarEventTimeZones = Pick<CalendarEvent, "startTimeZone" | "endTimeZone">
+export type CalendarEventDateTimeFields = CalendarEventTimes & CalendarEventTimeZones
 
 /**
  * the time in ms that element ids for calendar events and alarms  get randomized by
