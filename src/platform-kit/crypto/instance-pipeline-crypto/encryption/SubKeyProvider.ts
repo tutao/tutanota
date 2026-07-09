@@ -1,5 +1,5 @@
 import { lazyMemoized, Nullable } from "@tutao/utils"
-import { InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
+import { InstanceTypeId, SymmetricKeyDeriver, SymmetricSubKeys } from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
 import { KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { VersionedKey } from "../../CryptoTypes"
@@ -57,7 +57,7 @@ export class SubKeyProvider extends SubKeyFactory {
 		super()
 	}
 
-	getSubKeys = lazyMemoized(() => {
+	getSubKeys = lazyMemoized((): SymmetricSubKeys => {
 		switch (this.subKeyInfo.cipherVersion) {
 			case SymmetricCipherVersion.AesCbcThenHmac: {
 				if (this.subKeyInfo instanceof SubKeyInfoWithSessionKeyCbcThenHmac) {
