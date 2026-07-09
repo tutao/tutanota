@@ -13,7 +13,7 @@ import { ImapAccountSyncStateTypeRef, ImapFolderSyncStateTypeRef } from "@tutao/
 import { Icon, IconAttrs, IconSize } from "../../../../ui/base/Icon"
 import { Card } from "../../../../ui/base/Card"
 import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtils"
-import { assertNotNull, lazy } from "@tutao/utils"
+import { lazy } from "@tutao/utils"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { ButtonSize } from "../../../../ui/base/ButtonSize"
@@ -197,8 +197,8 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 				syncMessage = lang.getTranslation("migrationSyncFailure_msg")
 			}
 
-			const mailboxDetail = assertNotNull(this.imapImportController().getDestinationMailboxDetailForSession(session))
-			const destinationTutaMailbox = getMailboxName(mailLocator.logins, mailboxDetail)
+			const mailboxDetail = this.imapImportController().getDestinationMailboxDetailForSession(session)
+			const destinationTutaMailbox = mailboxDetail ? getMailboxName(mailLocator.logins, mailboxDetail) : ""
 			const syncSourceAndDestinationMessage = lang.getTranslation("migrationInProgressAccounts_msg", {
 				"{sourceAddress}": session.sourceImapAddress,
 				"{tutaMailbox}": destinationTutaMailbox,
