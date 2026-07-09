@@ -6,7 +6,6 @@ export type ImapMailboxStatus = {
 	messageCount?: number
 	uidNext: number
 	uidValidity: bigint
-	highestModSeq?: bigint | null // null indicates that the CONDSTORE IMAP extension, and therefore highestModSeq, is not supported
 	syncStatus: ImapFolderSyncStatus
 }
 

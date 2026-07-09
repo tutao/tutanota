@@ -193,7 +193,6 @@ o.spec("ImapFacade", () => {
 		const imapMailboxStatusMock: ImapMailboxStatus = {
 			uidNext: 100,
 			uidValidity: BigInt(456),
-			highestModSeq: BigInt(789),
 			syncStatus: ImapFolderSyncStatus.FINISHED,
 		} as ImapMailboxStatus
 		imapFolderSyncStateMock.uidnext = "1"
@@ -207,21 +206,21 @@ o.spec("ImapFacade", () => {
 
 		o.check(imapFolderSyncStateMock.uidnext).equals("100")
 		o.check(imapFolderSyncStateMock.uidvalidity).equals("456")
-		o.check(imapFolderSyncStateMock.highestmodseq!).equals("789")
+		//We expect this field to not be updated here but on the server instead
+		o.check(imapFolderSyncStateMock.highestmodseq!).equals(null)
 		o.check(imapFolderSyncStateMock.status).equals(ImapFolderSyncStatus.FINISHED.toString())
 		verify(entityClientMock.update(imapFolderSyncStateMock), { times: 1 })
 	})
 
-	o.test("updateImapFolderSyncState - sets highestmodseq to null when not provided", async () => {
+	o.test("updateImapFolderSyncState - does not change highestmodseq", async () => {
 		const imapMailboxStatusMock: ImapMailboxStatus = {
 			uidNext: 200,
 			uidValidity: BigInt(789),
-			highestModSeq: null,
 			syncStatus: ImapFolderSyncStatus.RUNNING,
 		} as ImapMailboxStatus
 		imapFolderSyncStateMock.highestmodseq = "old"
 		await imapFacade.updateImapFolderSyncState(imapMailboxStatusMock, imapFolderSyncStateMock)
-		o.check(imapFolderSyncStateMock.highestmodseq).equals(null)
+		o.check(imapFolderSyncStateMock.highestmodseq).equals("old")
 	})
 
 	o.test("deleteImapFolderSyncState - calls service executor delete", async () => {

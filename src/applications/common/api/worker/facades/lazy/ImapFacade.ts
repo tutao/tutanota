@@ -187,8 +187,6 @@ export class ImapFacade {
 	async updateImapFolderSyncState(imapMailboxStatus: ImapMailboxStatus, folderSyncState: ImapFolderSyncState): Promise<void> {
 		folderSyncState.uidnext = imapMailboxStatus.uidNext.toString()
 		folderSyncState.uidvalidity = imapMailboxStatus.uidValidity.toString()
-		// value null for highestmodseq denotes that the mailbox doesn't support IMAP QRESYNC feature
-		folderSyncState.highestmodseq = imapMailboxStatus.highestModSeq?.toString() ?? null
 		folderSyncState.status = imapMailboxStatus.syncStatus.toString()
 		await this.entityClient.update(folderSyncState)
 	}

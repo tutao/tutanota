@@ -7,7 +7,7 @@ import { ImapCredentials, ImapSyncContext } from "../../../api/common/utils/imap
 
 const defaultImapSyncConfig: ImapSyncConfig = {
 	emitImapSyncEventTypes: new Set<ImapSyncEventType>([ImapSyncEventType.CREATE]),
-	isEnableImapQresync: true,
+	isEnableImapQresync: false,
 }
 
 export interface ImapSyncConfig {

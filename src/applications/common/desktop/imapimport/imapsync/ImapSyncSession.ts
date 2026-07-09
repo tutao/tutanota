@@ -33,8 +33,6 @@ export type ImapFlowFactory = (config: ImapFlowOptions) => Promise<ImapFlow>
 export interface SyncSessionEventListener {
 	startMailboxSync(syncSessionMailbox: ImapSyncSessionMailbox): void
 
-	stopMailboxSync(syncSessionMailbox: ImapSyncSessionMailbox): void
-
 	onMailboxFinish(syncSessionMailbox: ImapSyncSessionMailbox): void
 
 	onMailboxInterrupted(syncSessionMailbox: ImapSyncSessionMailbox): void
@@ -337,14 +335,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		}
 	}
 
-	stopMailboxSync(syncSessionMailbox: ImapSyncSessionMailbox): void {
-		this.runningSyncSessionProcess?.stopSyncSessionProcess()
-		this.runningSyncSessionProcess = null
-	}
-
 	onMailboxFinish(syncSessionMailbox: ImapSyncSessionMailbox): void {
-		this.stopMailboxSync(syncSessionMailbox)
-
 		const mailboxIndex = this.syncSessionMailboxes.findIndex((mailbox) => {
 			return mailbox.mailboxState.path === syncSessionMailbox.mailboxState.path
 		})
@@ -363,8 +354,6 @@ export class ImapSyncSession implements SyncSessionEventListener {
 	}
 
 	onMailboxInterrupted(syncSessionMailbox: ImapSyncSessionMailbox): void {
-		this.stopMailboxSync(syncSessionMailbox)
-
 		const mailboxIndex = this.syncSessionMailboxes.findIndex((mailbox) => {
 			return mailbox.mailboxState.path === syncSessionMailbox.mailboxState.path
 		})

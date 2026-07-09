@@ -654,12 +654,4 @@ o.spec("ImapSyncSession", () => {
 		const mailboxMock = object<ImapSyncSessionMailbox>()
 		session.startMailboxSync(mailboxMock)
 	})
-
-	o.test("onStopSyncSessionProcess - stops and removes process", async () => {
-		const processMock = { stopSyncSessionProcess: func() } as ImapSyncSessionProcess
-		const mailboxMock = object<ImapSyncSessionMailbox>()
-		session.runningSyncSessionProcess = processMock
-		session.stopMailboxSync(mailboxMock)
-		verify(processMock.stopSyncSessionProcess(), { times: 1 })
-	})
 })

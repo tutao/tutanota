@@ -94,9 +94,6 @@ export class ImapSyncSessionProcess {
 		let isMailboxFinished = false
 
 		try {
-			let imapQresyncImapMails: ImapMail[] = []
-			const highestModSeq = this.syncSessionProcessMailbox.mailboxState.highestModSeq
-
 			// open mailbox readonly
 			const mailboxObject = await imapClient.mailboxOpen(this.syncSessionProcessMailbox.mailboxState.path, { readOnly: true })
 
@@ -106,18 +103,20 @@ export class ImapSyncSessionProcess {
 				uidValidity: mailboxObject.uidValidity,
 				uidNext: mailboxObject.uidNext,
 				messageCount: mailboxObject.exists,
-				highestModSeq: mailboxObject.highestModseq,
 				syncStatus: ImapFolderSyncStatus.RUNNING,
 			}
 			await imapSyncEventListener.onMailboxStatus(imapMailboxStatus)
 			this.updateSyncSessionMailbox(imapMailboxStatus)
 
 			const openedImapMailbox = imapMailboxFromSyncSessionMailbox(this.syncSessionProcessMailbox)
-			const isEnableImapQresync = this.imapSyncConfig.isEnableImapQresync && highestModSeq != null
 
+			const imapServerHighestModeSeq = mailboxObject.highestModseq
+			const isEnableImapQresync = this.imapSyncConfig.isEnableImapQresync && imapServerHighestModeSeq != null
 			if (isEnableImapQresync) {
 				this.setupImapFlowExpungeHandler(imapClient, openedImapMailbox, imapSyncEventListener)
 			}
+
+			let imapQresyncImapMails: ImapMail[] = []
 
 			// calculate UID differences
 			const differentialUidLoader = this.differentialUidLoaderFactory(
@@ -237,16 +236,16 @@ export class ImapSyncSessionProcess {
 		}
 	}
 
-	private initFetchOptions(isEnableImapQresync: boolean) {
+	private initFetchOptions(isEnableImapQresync: boolean, imapServerHighestModSeq?: bigint | null) {
 		let fetchOptions
-		if (isEnableImapQresync) {
+		if (isEnableImapQresync && imapServerHighestModSeq) {
 			const highestModSeq = [...this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.values()].reduce<bigint>(
 				(acc, imapMailIds) => (imapMailIds.modSeq && imapMailIds.modSeq > acc ? imapMailIds.modSeq : acc),
 				BigInt(0),
 			)
 			fetchOptions = {
 				uid: true,
-				changedSince: highestModSeq,
+				changedSince: imapServerHighestModSeq < highestModSeq ? imapServerHighestModSeq : highestModSeq,
 			}
 		} else {
 			fetchOptions = {
@@ -266,7 +265,7 @@ export class ImapSyncSessionProcess {
 		const mailCreates = imapMails.filter((imapMail) => !this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.has(imapMail.uid))
 		if (!isEmpty(mailCreates) && this.imapSyncConfig.emitImapSyncEventTypes.has(ImapSyncEventType.CREATE)) {
 			for (const imapMail of imapMails) {
-				this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.set(imapMail.uid, { uid: imapMail.uid })
+				this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.set(imapMail.uid, { uid: imapMail.uid, modSeq: imapMail.modSeq })
 			}
 			await imapSyncEventListener.onMultipleMails(mailCreates, ImapSyncEventType.CREATE)
 		}
@@ -276,7 +275,6 @@ export class ImapSyncSessionProcess {
 		const mailboxState = this.syncSessionProcessMailbox.mailboxState
 		mailboxState.uidValidity = imapMailboxStatus.uidValidity
 		mailboxState.uidNext = imapMailboxStatus.uidNext
-		mailboxState.highestModSeq = imapMailboxStatus.highestModSeq
 
 		this.syncSessionProcessMailbox.mailCount = imapMailboxStatus.messageCount ?? null
 	}

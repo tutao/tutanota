@@ -146,7 +146,8 @@ o.spec("ImapSyncSessionProcess", () => {
 		sessionProcess["updateSyncSessionMailbox"](status as any)
 		o.check(syncSessionMailboxMock.mailboxState.uidValidity).equals(12345n)
 		o.check(syncSessionMailboxMock.mailboxState.uidNext).equals(100)
-		o.check(syncSessionMailboxMock.mailboxState.highestModSeq).equals(67890n)
+		//no longer update the highestModSeq as it's done in the server
+		o.check(syncSessionMailboxMock.mailboxState.highestModSeq).equals(undefined)
 		o.check(syncSessionMailboxMock.mailCount).equals(15)
 	})
 
