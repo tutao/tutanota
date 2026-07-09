@@ -14,7 +14,7 @@ import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtil
 import { getLocationUrl } from "../gui/eventpopup/EventPreviewView"
 import { ProgrammingError } from "@tutao/app-env"
 import { ofClassAsync } from "../../../../platform-kit/utils/PromiseUtils"
-import { formatEventDuration, getTextFormatterTimeZones } from "../gui/DateTimeTextFormatterUtils"
+import { formatEventDuration } from "../gui/DateTimeTextFormatterUtils"
 
 export class CalendarNotificationSender {
 	/** Used for knowing how many emails are in the process of being sent. */
@@ -271,7 +271,7 @@ export class CalendarNotificationSender {
 }
 
 function whenLine(event: CalendarEvent, highlightChange: boolean, theme: EmailTheme): string {
-	const duration = formatEventDuration(event, getTextFormatterTimeZones(event, getTimeZone()), true)
+	const duration = formatEventDuration(event, getTimeZone(), true)
 	return newLine(getLabel("when_label", highlightChange), duration, false)
 }
 
@@ -492,7 +492,7 @@ function isAttendanceUpdateNotification(eventInviteEmailType: EventInviteEmailTy
 
 function makePlainTextBody({ event, infoBannerMessage, eventInviteEmailType, comment }: EmailBodyIngredients) {
 	const organizer: CalendarEventAttendee | undefined = event.attendees.find((attendee) => attendee.address.address === event.organizer?.address)
-	const duration = formatEventDuration(event, getTextFormatterTimeZones(event, getTimeZone()), true)
+	const duration = formatEventDuration(event, getTimeZone(), true)
 	const eventLines: string[] = []
 
 	eventLines.push(`${infoBannerMessage}`)
