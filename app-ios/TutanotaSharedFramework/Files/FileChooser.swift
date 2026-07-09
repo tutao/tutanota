@@ -297,7 +297,8 @@ extension TUTFileChooser: PHPickerViewControllerDelegate {
 				}
 			}
 			func getFileCopy(result: PHPickerResult) async -> URL? {
-				for type in ["public.jpeg", "public.png", "public.movie"] {
+				// org.webmproject.webp is used to support .webp images
+				for type in ["public.jpeg", "public.png", "public.movie", "org.webmproject.webp"] {
 					if let resultUrl = await requestFileOfType(result: result, type: type) { return resultUrl }
 				}
 				return nil
