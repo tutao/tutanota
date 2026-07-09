@@ -181,12 +181,7 @@ export function formatEventTimesAtDate(day: Date, event: CalendarEventDateTimeFi
 		startTimeZone: startsBefore ? event.endTimeZone : event.startTimeZone,
 		endTimeZone: endsAfter ? event.startTimeZone : event.endTimeZone,
 	}
-	return formatEventTime(
-		eventBoundedWithinDay,
-		EventTextTimeOption.START_END_TIME,
-		shouldShowTimeZones(eventBoundedWithinDay, calendarTimeZone),
-		calendarTimeZone,
-	)
+	return formatEventTime(eventBoundedWithinDay, EventTextTimeOption.START_END_TIME, false, calendarTimeZone)
 }
 
 export function shouldShowTimeZones(event: CalendarEventTimeZones, calendarTimeZone: string) {
