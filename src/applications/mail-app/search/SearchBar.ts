@@ -424,16 +424,46 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			return cb()
 		}
 
-		let useSuggestions = m.route.get().startsWith("/settings")
+		switch (restriction.type) {
+			case SearchCategoryType.mail:
+				// FIXME: dispose of the old result
+				mailLocator.search
+					.coolNewSearchMails(
+						{
+							query,
+							restriction,
+							minSuggestionCount: 0,
+							maxResults: this.isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize,
+						},
+						mailLocator.progressTracker,
+					)
+					.then((liveResult) => {
+						const results: Entries = liveResult.items
+						const moreEntry: ShowMoreAction = {
+							resultCount: liveResult.items.length,
+							shownCount: liveResult.items.length,
+							indexTimestamp: liveResult.searchResult.currentIndexTimestamp,
+							allowShowMore: true,
+						}
+						results.push(moreEntry)
+						this.updateState({
+							searchResult: liveResult.searchResult,
+							entities: liveResult.items,
+							selected: liveResult.items[0],
+						})
+					})
+				return
+		}
+
 		// We don't limit contacts because we need to download all of them to sort them. They should be cached anyway.
-		const limit = restriction.type === "mail" ? (this.isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize) : null
+		const limit = null
 
 		mailLocator.search
 			.search(
 				{
 					query: query ?? "",
 					restriction,
-					minSuggestionCount: useSuggestions ? 10 : 0,
+					minSuggestionCount: 0,
 					maxResults: limit,
 				},
 				mailLocator.progressTracker,
