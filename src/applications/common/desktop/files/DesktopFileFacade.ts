@@ -426,9 +426,14 @@ export class DesktopFileFacade implements FileFacade {
 	 * public for testing
 	 */
 	private async pickSavePath(filename: string): Promise<URL> {
-		const defaultDownloadPath = await this.conf.getVar(DesktopConfigKey.defaultDownloadPath)
+		const defaultDownloadPathMaybeFileUrl = await this.conf.getVar(DesktopConfigKey.defaultDownloadPath)
 
-		if (defaultDownloadPath != null) {
+		if (defaultDownloadPathMaybeFileUrl != null) {
+			// the value saved to the config database changed from a file path to a file URL starting with the client version 353.260626.0
+			// (see revision ac6ba0a87f5c718649354a8f5a589dcfa570515e), so we need to check if the value is a file URL and if so, convert it to a file path
+			const defaultDownloadPath = defaultDownloadPathMaybeFileUrl.startsWith("file://")
+				? fileURLToPath(defaultDownloadPathMaybeFileUrl)
+				: defaultDownloadPathMaybeFileUrl
 			const fileName = path.basename(filename)
 			const destinationPath = path.join(defaultDownloadPath, nonClobberingFilename(await this.fs.promises.readdir(defaultDownloadPath), fileName))
 			return pathToFileURL(destinationPath)

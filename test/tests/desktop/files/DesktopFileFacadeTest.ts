@@ -447,7 +447,8 @@ o.spec("DesktopFileFacade", function () {
 			const src = "file:///path/random.pdf"
 			when(tfs.assertInTmpDir(src)).thenReturn(new URL(src))
 			const filename = "fileName.pdf"
-			const defaultDownloadPath = "/some/downloads"
+			// we save the default download path as the return value of FileFacade#openFolderChooser in DesktopSettingsViewer, which returns a fileURL
+			const defaultDownloadPath = "file:///some/downloads"
 			when(conf.getVar(DesktopConfigKey.defaultDownloadPath)).thenResolve(defaultDownloadPath)
 			when(fs.promises.readdir(matchers.anything())).thenResolve([])
 			const copiedFileUri = await ff.putFileIntoDownloadsFolder(src, filename)
