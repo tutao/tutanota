@@ -2390,3 +2390,4 @@ export type TranslationKeyType =
 	| "migrationNoMigrationOnWeb_label"
 	| "migrationProviderOther_label"
 	| "emptyString_msg"
+	| "migrationPausedProgressInfo_msg"

@@ -139,38 +139,10 @@ o.spec("ImapFacade", () => {
 		o.check(error.message).equals("Either rootImportMailFolderName or matchImapMailboxesToTutaMailSets must be set")
 	})
 
-	o.test("pauseRunningImapImportFolderSyncStates - sets running folders to Paused", async () => {
-		const runningStateMock = { ...imapFolderSyncStateMock, status: ImapFolderSyncStatus.RUNNING }
-		const pausedStateMock = {
-			...imapFolderSyncStateMock,
-			_id: ["folderSyncStateListId", "folderSyncStateElementId2"] as IdTuple,
-			status: ImapFolderSyncStatus.PAUSED,
-		}
-		when(entityClientMock.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateIdMock)).thenResolve(imapAccountSyncStateMock)
-		when(imapFacade.getAllImapFolderSyncStates("folderSyncStateListId")).thenResolve([runningStateMock, pausedStateMock])
-		when(entityClientMock.update(runningStateMock)).thenResolve()
-		when(entityClientMock.update(pausedStateMock)).thenResolve()
-
-		await imapFacade.updateAllImapFolderSyncStates(imapAccountSyncStateIdMock, ImapFolderSyncStatus.PAUSED)
-
-		o.check(runningStateMock.status).equals(ImapFolderSyncStatus.PAUSED)
-		verify(entityClientMock.update(runningStateMock), { times: 1 })
-		verify(entityClientMock.update(pausedStateMock), { times: 0 })
-	})
-
-	o.test("updateAllImapFolderSyncStates - updates all to given status except already matching", async () => {
-		const state1Mock = { ...imapFolderSyncStateMock, status: ImapFolderSyncStatus.RUNNING }
-		const state2Mock = { ...imapFolderSyncStateMock, status: ImapFolderSyncStatus.PAUSED, _id: ["folderSyncStateListId", "id2"] as IdTuple }
-		when(entityClientMock.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateIdMock)).thenResolve(imapAccountSyncStateMock)
-		when(imapFacade.getAllImapFolderSyncStates("folderSyncStateListId")).thenResolve([state1Mock, state2Mock])
-		when(entityClientMock.update(state1Mock)).thenResolve()
-
-		await imapFacade.updateAllImapFolderSyncStates(imapAccountSyncStateIdMock, ImapFolderSyncStatus.PAUSED)
-
-		o.check(state1Mock.status).equals(ImapFolderSyncStatus.PAUSED)
-		o.check(state2Mock.status).equals(ImapFolderSyncStatus.PAUSED) // already paused, no update
-		verify(entityClientMock.update(state1Mock), { times: 1 })
-		verify(entityClientMock.update(state2Mock), { times: 0 })
+	o.test("updateAccountSyncStateAndAllFolderSyncStates - calls service executor", async () => {
+		when(serviceExecutorMock.put(ImapService, anything(), anything())).thenDo(() => Promise.resolve())
+		await imapFacade.updateAccountSyncStateAndAllFolderSyncStates(imapAccountSyncStateIdMock, ImapAccountSyncStatus.FINISHED, ImapFolderSyncStatus.FINISHED)
+		verify(serviceExecutorMock.put(ImapService, anything(), anything()), { times: 1 })
 	})
 
 	o.test("deleteImapImport - calls service executor delete", async () => {

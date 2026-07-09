@@ -13,6 +13,7 @@ import {
 	createImapFolderDeleteIn,
 	createImapFolderPostIn,
 	createImapPostIn,
+	createImapPutIn,
 	DeduplicatedImportedAttachment,
 	DeduplicatedImportedAttachmentTypeRef,
 	ImapAccountSyncState,
@@ -103,32 +104,13 @@ export class ImapFacade {
 		return { imapAccountSyncState, initialFolderSyncStates }
 	}
 
-	async updateAllImapFolderSyncStates(imapAccountSyncStateId: IdTuple, status: ImapFolderSyncStatus): Promise<void> {
-		const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId)
-		const imapFolderSyncStates = await this.getAllImapFolderSyncStates(imapAccountSyncState.imapFolderSyncStateList)
-		for (const imapFolderSyncState of imapFolderSyncStates) {
-			if (imapFolderSyncState.status === ImapFolderSyncStatus.NO_SYNC || imapFolderSyncState.status === ImapFolderSyncStatus.CANCELED) {
-				continue
-			}
-			if (imapFolderSyncState.status !== status) {
-				imapFolderSyncState.status = status
-				try {
-					await this.entityClient.update(imapFolderSyncState)
-				} catch (e) {
-					console.log("Could not update imapFolderSyncState because", imapFolderSyncState._id, e)
-				}
-			}
-		}
-	}
-
-	async updateImapAccountSyncState(imapAccountSyncState: ImapAccountSyncState, imapAccountSyncStatus: ImapAccountSyncStatus) {
-		if (imapAccountSyncState.status === ImapAccountSyncStatus.CANCELED || imapAccountSyncState.status === ImapAccountSyncStatus.ERROR) {
-			return
-		}
-		if (imapAccountSyncState.status !== imapAccountSyncStatus) {
-			imapAccountSyncState.status = imapAccountSyncStatus
-			await this.entityClient.update(imapAccountSyncState)
-		}
+	async updateAccountSyncStateAndAllFolderSyncStates(
+		imapAccountSyncState: IdTuple,
+		newImapAccountSyncStatus: ImapAccountSyncStatus,
+		newImapFolderSyncStatus: ImapFolderSyncStatus,
+	) {
+		const imapPutIn = createImapPutIn({ imapAccountSyncState, newImapAccountSyncStatus, newImapFolderSyncStatus })
+		await this.serviceExecutor.put(ImapService, imapPutIn, null)
 	}
 
 	async deleteImapImport(imapAccountSyncStateId: IdTuple): Promise<void> {

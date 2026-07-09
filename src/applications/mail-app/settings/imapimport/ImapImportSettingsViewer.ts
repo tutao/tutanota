@@ -26,7 +26,6 @@ import { ExpanderButton, ExpanderPanel } from "../../../../ui/base/Expander"
 import { getTranslationForImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { ImapErrorCause } from "../../../common/api/common/error/ImapError"
 import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
-import { AvailablePlanType, HighestTierPlans, isHighestTierPlan } from "../../../../entities/sys/Utils"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../../common/misc/SubscriptionDialogs"
 
 assertMainOrNode()
@@ -180,7 +179,9 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 				"{total}": session.syncProgress?.total.toString() ?? "-",
 				"{mailCount}": session.importedMailCount,
 			})
-			if (this.imapImportController().shouldRenderClockIcon(session)) {
+			if (this.imapImportController().shouldRenderPlayButton(session)) {
+				syncMessage = lang.getTranslation("migrationPausedProgressInfo_msg", { "{mailCount}": session.importedMailCount })
+			} else if (this.imapImportController().shouldRenderClockIcon(session)) {
 				syncMessage = lang.getTranslation("migrationPostponed_msg", {
 					"{provider}": lang.getTranslationText(getTranslationForImapProvider(session.provider)),
 					"{postponedUntil}": session.postponedUntil.toLocaleString("en-GB", {
