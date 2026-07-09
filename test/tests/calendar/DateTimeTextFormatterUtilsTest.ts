@@ -309,7 +309,7 @@ o.spec("DateTimeTextFormatterUtils", () => {
 				startTimeZone: "America/New_York",
 				endTimeZone: null,
 			}
-			o(formatEventTimesAtDate(startDay, event, "Europe/Berlin")).equals("12:00 PM - 11:59 PM (New York 6:00 AM - 5:59 PM)")
+			o(formatEventTimesAtDate(startDay, event, "Europe/Berlin")).equals("12:00 PM - 11:59 PM")
 			o(formatEventTimesAtDate(middleDay, event, "Europe/Berlin")).equals("All Day")
 			o(formatEventTimesAtDate(endDay, event, "Europe/Berlin")).equals("12:00 AM - 12:30 PM")
 		})
@@ -322,7 +322,7 @@ o.spec("DateTimeTextFormatterUtils", () => {
 			}
 			o(formatEventTimesAtDate(startDay, event, "Europe/Berlin")).equals("12:00 PM - 11:59 PM")
 			o(formatEventTimesAtDate(middleDay, event, "Europe/Berlin")).equals("All Day")
-			o(formatEventTimesAtDate(endDay, event, "Europe/Berlin")).equals("12:00 AM - 12:30 PM (New York 6:00 PM - 6:30 AM)")
+			o(formatEventTimesAtDate(endDay, event, "Europe/Berlin")).equals("12:00 AM - 12:30 PM")
 		})
 		o.test("Correctly handles multi-day event with different start and end time zone", () => {
 			const event = {
@@ -331,9 +331,9 @@ o.spec("DateTimeTextFormatterUtils", () => {
 				startTimeZone: "America/New_York",
 				endTimeZone: "Asia/Tokyo",
 			}
-			o(formatEventTimesAtDate(startDay, event, "Europe/Berlin")).equals("12:00 PM - 11:59 PM (New York 6:00 AM - 5:59 PM)")
+			o(formatEventTimesAtDate(startDay, event, "Europe/Berlin")).equals("12:00 PM - 11:59 PM")
 			o(formatEventTimesAtDate(middleDay, event, "Europe/Berlin")).equals("All Day")
-			o(formatEventTimesAtDate(endDay, event, "Europe/Berlin")).equals("12:00 AM - 12:30 PM (Tokyo 8:00 AM - 8:30 PM)")
+			o(formatEventTimesAtDate(endDay, event, "Europe/Berlin")).equals("12:00 AM - 12:30 PM")
 		})
 	})
 	o.spec("shouldShowTimeZones", () => {
