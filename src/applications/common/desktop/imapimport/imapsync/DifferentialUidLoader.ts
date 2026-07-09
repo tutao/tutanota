@@ -109,8 +109,10 @@ export class DifferentialUidLoader {
 	}
 
 	async getNextUidFetchRequest(downloadBatchSize: number = MAIL_DOWNLOAD_BATCH_SIZE): Promise<UidFetchRequest | null> {
+		console.log("my queue?", JSON.stringify(this.uidFetchRequestQueue, null, 2))
 		const waitingUidFetchRequest = this.uidFetchRequestQueue.pop()
 		if (waitingUidFetchRequest) {
+			console.log("had waiting UID fetch.")
 			return waitingUidFetchRequest
 		}
 

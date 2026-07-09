@@ -112,7 +112,7 @@ export class ImapSyncSessionProcess {
 			}
 			await imapSyncEventListener.onMailboxStatus(imapMailboxStatus)
 			this.updateSyncSessionMailbox(imapMailboxStatus)
-			if (imapMailboxStatus.path === "Import-outlook") {
+			if (imapMailboxStatus.path) {
 				console.log("the mailbox status", imapMailboxStatus)
 			}
 
@@ -131,8 +131,9 @@ export class ImapSyncSessionProcess {
 				isEnableImapQresync,
 				this.imapSyncConfig.emitImapSyncEventTypes,
 			)
-			if (imapMailboxStatus.path === "Import-outlook") {
+			if (imapMailboxStatus.path) {
 				console.log("created a differential UID loader with... quick?", isEnableImapQresync)
+				//The last fetched apparently is not really updated on a second run for folder that was running?
 				console.log("this.syncSessionProcessMailbox.lastFetchedMailSeq", this.syncSessionProcessMailbox.lastFetchedMailSeq)
 				console.log("this.syncSessionProcessMailbox.mailCount", this.syncSessionProcessMailbox.mailCount)
 			}
@@ -144,11 +145,11 @@ export class ImapSyncSessionProcess {
 				})
 
 			const fetchOptions = this.initFetchOptions(isEnableImapQresync)
-			if (imapMailboxStatus.path === "Import-outlook") {
+			if (imapMailboxStatus.path) {
 				console.log("fetch options?", fetchOptions)
 			}
 			let nextUidFetchRequest = await differentialUidLoader.getNextUidFetchRequest()
-			if (imapMailboxStatus.path === "Import-outlook") {
+			if (imapMailboxStatus.path) {
 				console.log("Had next UID? ", nextUidFetchRequest)
 			}
 
@@ -159,6 +160,8 @@ export class ImapSyncSessionProcess {
 					nextUidFetchRequest = await differentialUidLoader.getNextUidFetchRequest()
 					continue
 				}
+				console.log("Fetching sequence?", nextUidFetchRequest.uidFetchSequenceString)
+				console.log("with options?", fetchOptions)
 
 				const mails = imapClient.fetch(
 					nextUidFetchRequest.uidFetchSequenceString,
@@ -206,9 +209,11 @@ export class ImapSyncSessionProcess {
 								}
 								break
 							case UidFetchRequestType.QRESYNC:
+								console.log("had a QRESYNC result...?")
 								imapQresyncImapMails.push(imapMail)
 
 								if (imapQresyncImapMails.length >= MAIL_DOWNLOAD_BATCH_SIZE) {
+									console.log("Quick resync was bigger than batch size, Handling && setting to empty!")
 									await this.handleQresyncFetchResult(imapQresyncImapMails, imapSyncEventListener)
 									imapQresyncImapMails = []
 								}
@@ -220,14 +225,14 @@ export class ImapSyncSessionProcess {
 					}
 				}
 
-				if (imapMailboxStatus.path === "Import-outlook") {
+				if (imapMailboxStatus.path) {
 					console.log("Mail Modseq after the loop.", lastMailSeqMod)
 					console.log("Mail seq after the loop.", lastMailSeq)
 				}
 
-				if (imapMailboxStatus.path === "Import-outlook") {
+				if (imapMailboxStatus.path) {
 					console.log("Finished looping over mails ----------")
-					console.log("lens?", imapMailsCreate.length, imapMailsUpdate.length)
+					console.log("lens?", imapMailsCreate.length, imapMailsUpdate.length, imapQresyncImapMails.length)
 				}
 
 				if (isNotEmpty(imapMailsCreate)) {
