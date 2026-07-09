@@ -126,7 +126,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 	private renderCalendarEventResult(event: CalendarEvent): Children {
 		return [
 			m(".top.flex-space-between", m(".name.text-ellipsis", { title: event.summary }, event.summary)),
-			m(".bottom.flex-space-between", m("small.mail-address", formatEventDuration(event, { calendarTimeZone: getTimeZone() }, false))),
+			m(".bottom.flex-space-between", m("small.mail-address", formatEventDuration(event, getTimeZone(), false))),
 		]
 	}
 

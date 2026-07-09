@@ -1,5 +1,4 @@
-import { CalendarEventTimes, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
-import { CalendarEvent } from "@tutao/entities/tutanota"
+import { CalendarEventDateTimeFields, CalendarEventTimeZones, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import {
 	eventEndsAfterDay,
@@ -14,12 +13,6 @@ import { assert, isSameDay, isSameDayOfDate } from "@tutao/utils"
 import { formatDateTime, formatDateWithMonth, formatTime } from "../../../../ui/utils/Formatter"
 import { DateTime } from "luxon"
 
-export type TextFormatterTimezones = {
-	startTimeZone?: string
-	endTimeZone?: string
-	calendarTimeZone: string
-}
-
 function includeStartTime(showTime: EventTextTimeOption) {
 	return showTime === EventTextTimeOption.START_TIME || showTime === EventTextTimeOption.START_END_TIME
 }
@@ -28,10 +21,12 @@ function includeEndTime(showTime: EventTextTimeOption) {
 	return showTime === EventTextTimeOption.END_TIME || showTime === EventTextTimeOption.START_END_TIME
 }
 
-function resolveStartAndEntTimeZone(timeZones: TextFormatterTimezones) {
-	const startTimeZone = timeZones.startTimeZone ?? timeZones.calendarTimeZone
-	const endTimeZone = timeZones.endTimeZone ?? startTimeZone
-	return [startTimeZone, endTimeZone]
+function resolveStartTimeZone(event: CalendarEventTimeZones, calendarTimeZone: string) {
+	return event.startTimeZone ?? calendarTimeZone
+}
+
+function resolveEndTimeZone(event: CalendarEventTimeZones, calendarTimeZone: string) {
+	return event.endTimeZone ?? event.startTimeZone ?? calendarTimeZone
 }
 
 export function getTimeZoneName(timeZone: string) {
@@ -103,11 +98,9 @@ export function getTimeZoneGmtOffset(dateTime: DateTime, timeZone: string) {
 	return result
 }
 
-export function formatEventDuration(event: CalendarEventTimes, formatterTimezones: TextFormatterTimezones, includeTimezone: boolean): string {
+export function formatEventDuration(event: CalendarEventDateTimeFields, calendarTimeZone: string, includeTimezone: boolean): string {
 	let result = ""
 	if (isAllDayEvent(event)) {
-		const calendarTimeZone = formatterTimezones.calendarTimeZone
-
 		const startTime = getEventStart(event, calendarTimeZone)
 		const endTime = incrementByRepeatPeriod(getEventEnd(event, calendarTimeZone), RepeatPeriod.DAILY, -1, calendarTimeZone)
 
@@ -116,7 +109,8 @@ export function formatEventDuration(event: CalendarEventTimes, formatterTimezone
 			result += " - " + formatDateWithMonth(endTime)
 		}
 	} else {
-		const [startTimeZone, endTimeZone] = resolveStartAndEntTimeZone(formatterTimezones)
+		const startTimeZone = resolveStartTimeZone(event, calendarTimeZone)
+		const endTimeZone = resolveEndTimeZone(event, calendarTimeZone)
 
 		result += formatDateTime(event.startTime, startTimeZone)
 		if (includeTimezone) {
@@ -135,90 +129,66 @@ export function formatEventDuration(event: CalendarEventTimes, formatterTimezone
 	return result
 }
 
-export function formatTimeWithZoneInfo({ endTime, startTime }: CalendarEventTimes, showTime: EventTextTimeOption, formatterTimezones: TextFormatterTimezones) {
-	const [startTimeZone, endTimeZone] = resolveStartAndEntTimeZone(formatterTimezones)
+export function formatTimeWithZoneInfo(event: CalendarEventDateTimeFields, showTime: EventTextTimeOption, calendarTimeZone: string) {
+	const startTimeZone = resolveStartTimeZone(event, calendarTimeZone)
 
 	let result = ""
 	let timeZoneIsInResult = false
 	if (includeStartTime(showTime)) {
-		result += getTimeZoneShortName(startTimeZone) + " " + formatTime(startTime, startTimeZone)
+		result += getTimeZoneShortName(startTimeZone) + " " + formatTime(event.startTime, startTimeZone)
 		timeZoneIsInResult = true
 	}
 	if (includeEndTime(showTime)) {
+		const endTimeZone = resolveEndTimeZone(event, calendarTimeZone)
+
 		result += " - "
 		if (!timeZoneIsInResult || startTimeZone !== endTimeZone) {
 			result += getTimeZoneShortName(endTimeZone) + " "
 		}
-		result += formatTime(endTime, endTimeZone)
+		result += formatTime(event.endTime, endTimeZone)
 	}
 	return result
 }
 
-export function formatEventTime(
-	{ endTime, startTime }: CalendarEventTimes,
-	showTime: EventTextTimeOption,
-	includeTimeZone: boolean,
-	formatterTimezones: TextFormatterTimezones,
-): string {
+export function formatEventTime(event: CalendarEventDateTimeFields, showTime: EventTextTimeOption, includeTimeZone: boolean, calendarTimeZone: string): string {
 	let result = ""
 	if (includeStartTime(showTime)) {
-		result += formatTime(startTime)
+		result += formatTime(event.startTime)
 	}
 	if (includeEndTime(showTime)) {
-		result += " - " + formatTime(endTime)
+		result += " - " + formatTime(event.endTime)
 	}
 	if (includeTimeZone) {
-		result += " (" + formatTimeWithZoneInfo({ endTime, startTime }, showTime, formatterTimezones) + ")"
+		result += " (" + formatTimeWithZoneInfo(event, showTime, calendarTimeZone) + ")"
 	}
 	return result
 }
 
-export function formatEventTimesAtDate(day: Date, event: CalendarEvent, includeTimeZone: boolean, formatterTimezones: TextFormatterTimezones): string {
+export function formatEventTimesAtDate(day: Date, event: CalendarEventDateTimeFields, calendarTimeZone: string): string {
 	if (isAllDayEvent(event)) {
 		return lang.get("allDay_label")
-	} else {
-		const startsBefore = eventStartsBefore(day, formatterTimezones.calendarTimeZone, event)
-		const endsAfter = eventEndsAfterDay(day, formatterTimezones.calendarTimeZone, event)
-		if (startsBefore && endsAfter) {
-			return lang.get("allDay_label")
-		} else {
-			const startTime: Date = startsBefore ? day : event.startTime
-			const endTime: Date = endsAfter ? getEndOfDayWithZone(day, formatterTimezones.calendarTimeZone) : event.endTime
-			return formatEventTime({ startTime, endTime }, EventTextTimeOption.START_END_TIME, includeTimeZone, formatterTimezones)
-		}
-	}
-}
-
-export function shouldShowTimeZones(calendarTimeZone: string, startTimeZone: string | null, endTimeZone: string | null) {
-	if (startTimeZone === null && endTimeZone === null) {
-		return false
 	}
 
-	if (startTimeZone !== null && startTimeZone === calendarTimeZone && endTimeZone === null) {
-		return false
+	const startsBefore = eventStartsBefore(day, calendarTimeZone, event)
+	const endsAfter = eventEndsAfterDay(day, calendarTimeZone, event)
+	if (startsBefore && endsAfter) {
+		return lang.get("allDay_label")
 	}
 
-	if (endTimeZone !== null && endTimeZone === calendarTimeZone && startTimeZone === null) {
-		return false
+	const eventBoundedWithinDay = {
+		startTime: startsBefore ? day : event.startTime,
+		endTime: endsAfter ? getEndOfDayWithZone(day, calendarTimeZone) : event.endTime,
+		startTimeZone: startsBefore ? event.endTimeZone : event.startTimeZone,
+		endTimeZone: endsAfter ? event.startTimeZone : event.endTimeZone,
 	}
-
-	if (startTimeZone === endTimeZone && startTimeZone === calendarTimeZone) {
-		return false
-	}
-
-	return true
-}
-
-export function getTextFormatterTimeZones(event: Omit<CalendarEvent, "description">, calendarTimeZone: string) {
-	const timeZones: TextFormatterTimezones = {
+	return formatEventTime(
+		eventBoundedWithinDay,
+		EventTextTimeOption.START_END_TIME,
+		shouldShowTimeZones(eventBoundedWithinDay, calendarTimeZone),
 		calendarTimeZone,
-	}
-	if (event.startTimeZone) {
-		timeZones.startTimeZone = event.startTimeZone
-	}
-	if (event.endTimeZone) {
-		timeZones.endTimeZone = event.endTimeZone
-	}
+	)
+}
 
-	return timeZones
+export function shouldShowTimeZones(event: CalendarEventTimeZones, calendarTimeZone: string) {
+	return resolveStartTimeZone(event, calendarTimeZone) !== calendarTimeZone || resolveEndTimeZone(event, calendarTimeZone) !== calendarTimeZone
 }
