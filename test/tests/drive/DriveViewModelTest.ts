@@ -7,9 +7,9 @@ import { EventController } from "../../../src/applications/common/api/main/Event
 import { LoginController } from "../../../src/applications/common/api/main/LoginController"
 import { UserManagementFacade } from "../../../src/applications/common/api/worker/facades/lazy/UserManagementFacade"
 import { DriveViewModel } from "../../../src/applications/drive-app/drive/view/DriveViewModel"
-import { matchers, object, when } from "testdouble"
+import { func, matchers, object, when } from "testdouble"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock"
-import { clientInitializedTypeModelResolver, createTestEntity } from "../TestUtils"
+import { clientInitializedTypeModelResolver, createTestEntity, withOverriddenEnv } from "../TestUtils"
 import { UserController } from "../../../src/applications/common/api/main/UserController"
 import { elementIdPart, getElementId } from "../../../src/platform-kit/meta"
 import { FolderItemId } from "../../../src/applications/drive-app/drive/view/DriveUtils"
@@ -19,6 +19,8 @@ import { TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
 import { createDriveFolder, DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 import { GroupInfoTypeRef, PlanConfigurationTypeRef } from "@tutao/entities/sys"
 import { DuplicateFilesDialogDecision } from "../../../src/applications/drive-app/drive/view/DriveGuiUtils"
+import { WindowFacade } from "../../../src/applications/common/misc/WindowFacade"
+import { Mode } from "../../../src/platform-kit/app-env"
 
 o.spec("DriveViewModel", function () {
 	let driveViewModel: DriveViewModel
@@ -33,6 +35,9 @@ o.spec("DriveViewModel", function () {
 	let userController: UserController
 	let userManagementFacade: UserManagementFacade
 	let transferController: DriveTransferController
+	let windowFacade: WindowFacade
+	let windowCloseConfirmation: () => Promise<boolean>
+	let allTransfersDoneNotification = func() as () => void
 
 	const rootIds: Readonly<DriveRootFolders> = {
 		root: ["RootListID", "RootElementID"],
@@ -70,6 +75,8 @@ o.spec("DriveViewModel", function () {
 		uploadProgressController = object()
 		eventController = object()
 		loginController = object()
+		windowFacade = object()
+		windowCloseConfirmation = func() as () => Promise<boolean>
 
 		const props = createTestEntity(TutanotaPropertiesTypeRef, {
 			defaultSender: "user@tuta.com",
@@ -87,9 +94,16 @@ o.spec("DriveViewModel", function () {
 		when(loginController.getUserController()).thenReturn(userController)
 		when(loginController.waitForFullLogin()).thenResolve()
 		when(driveFacade.loadRootFolders(matchers.anything())).thenResolve(rootIds)
+		when(windowCloseConfirmation()).thenResolve(true)
+
 		entityRestClientMock.addListInstances(rootFolders.root)
 
 		transferController = object()
+
+		when(transferController.setAllTransfersDoneListener(matchers.anything())).thenDo((listener: () => void) => {
+			allTransfersDoneNotification = listener
+		})
+
 		driveViewModel = new DriveViewModel(
 			entityClient,
 			driveFacade,
@@ -100,7 +114,9 @@ o.spec("DriveViewModel", function () {
 			userManagementFacade,
 			transferController,
 			null,
+			windowFacade,
 			() => {},
+			windowCloseConfirmation,
 		)
 		await driveViewModel.init()
 	})
@@ -398,6 +414,164 @@ o.spec("DriveViewModel", function () {
 				verify(transferController.upload(webFiles[1], "meow (copy) (copy)", rootIds.root))
 			},
 		)
+
+		o.test("should set up a close listener when uploading and remove it and close the window on user request", async function () {
+			const webFiles: WebFile[] = [
+				{
+					_type: "WebFile",
+					file: {
+						name: "meow",
+						size: 1024,
+					} as File,
+				},
+			]
+
+			const deleteListenerFunction = func() as () => void
+			let windowCloseRequest: () => void
+			when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
+				windowCloseRequest = listener
+				return deleteListenerFunction
+			})
+
+			const duplicateOptions: DuplicateFilesDialogDecision = { choice: "keepBoth", applyToAll: true }
+			await driveViewModel.displayFolder(rootIds.root)
+			await driveViewModel.uploadFiles(webFiles, async (fileName: "meow", fileCount: 1) => {
+				return duplicateOptions
+			})
+
+			verify(transferController.upload(webFiles[0], "meow", rootIds.root))
+			await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
+				await windowCloseRequest!()
+
+				verify(deleteListenerFunction())
+				verify(windowFacade.closeWindow())
+			})
+		})
+
+		o.test("should set up a close listener when uploading and remove it once all uploads are done", async function () {
+			const webFiles: WebFile[] = [
+				{
+					_type: "WebFile",
+					file: {
+						name: "meow",
+						size: 1024,
+					} as File,
+				},
+			]
+
+			const deleteListenerFunction = func() as () => void
+			let windowCloseRequest: () => void
+			when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
+				windowCloseRequest = listener
+				return deleteListenerFunction
+			})
+
+			const duplicateOptions: DuplicateFilesDialogDecision = { choice: "keepBoth", applyToAll: true }
+			await driveViewModel.displayFolder(rootIds.root)
+			await driveViewModel.uploadFiles(webFiles, async (fileName: "meow", fileCount: 1) => {
+				return duplicateOptions
+			})
+
+			allTransfersDoneNotification()
+
+			verify(transferController.upload(webFiles[0], "meow", rootIds.root))
+			verify(deleteListenerFunction())
+		})
+
+		o.test("should set up a close listener when uploading and do not remove it before the upload is done", async function () {
+			const webFiles: WebFile[] = [
+				{
+					_type: "WebFile",
+					file: {
+						name: "meow",
+						size: 1024,
+					} as File,
+				},
+			]
+
+			const deleteListenerFunction = func() as () => void
+			let windowCloseRequest: () => void
+			let windowCloseListenerRan = false
+			when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
+				windowCloseListenerRan = true
+				windowCloseRequest = listener
+				return deleteListenerFunction
+			})
+
+			const duplicateOptions: DuplicateFilesDialogDecision = { choice: "keepBoth", applyToAll: true }
+			await driveViewModel.displayFolder(rootIds.root)
+			await driveViewModel.uploadFiles(webFiles, async (fileName: "meow", fileCount: 1) => {
+				return duplicateOptions
+			})
+
+			verify(transferController.upload(webFiles[0], "meow", rootIds.root))
+			await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
+				o.check(windowCloseListenerRan).equals(true)
+				verify(deleteListenerFunction(), { times: 0 })
+			})
+		})
+	})
+
+	o.spec("download", function () {
+		o.test("should set up a close listener when downloading and remove it and close the window on user request", async function () {
+			const fileToDownload = createTestEntity(DriveFileTypeRef)
+
+			const deleteListenerFunction = func() as () => void
+			let windowCloseRequest: () => void
+			when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
+				windowCloseRequest = listener
+				return deleteListenerFunction
+			})
+
+			await driveViewModel.downloadFile(createTestEntity(DriveFileTypeRef))
+
+			verify(transferController.download(fileToDownload, "download"))
+			await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
+				await windowCloseRequest!()
+
+				verify(deleteListenerFunction())
+				verify(windowFacade.closeWindow())
+			})
+		})
+
+		o.test("should set up a close listener when downloading and remove it once all downloads are done", async function () {
+			const fileToDownload = createTestEntity(DriveFileTypeRef)
+
+			const deleteListenerFunction = func() as () => void
+			let windowCloseRequest: () => void
+			when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
+				windowCloseRequest = listener
+				return deleteListenerFunction
+			})
+
+			await driveViewModel.downloadFile(createTestEntity(DriveFileTypeRef))
+
+			allTransfersDoneNotification()
+
+			verify(transferController.download(fileToDownload, "download"))
+			verify(deleteListenerFunction())
+		})
+
+		o.test("should set up a close listener when downloading and do not remove it before the download is done", async function () {
+			const fileToDownload = createTestEntity(DriveFileTypeRef)
+
+			const deleteListenerFunction = func() as () => void
+			let windowCloseRequest: () => void
+			let windowCloseListenerRan = false
+			when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
+				windowCloseListenerRan = true
+				windowCloseRequest = listener
+				return deleteListenerFunction
+			})
+
+			await driveViewModel.downloadFile(createTestEntity(DriveFileTypeRef))
+
+			verify(transferController.download(fileToDownload, "download"))
+			await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
+				o.check(windowCloseListenerRan).equals(true)
+				verify(deleteListenerFunction(), { times: 0 })
+			})
+		})
 	})
 
 	o.spec("moveItems", function () {

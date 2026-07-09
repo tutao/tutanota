@@ -1,4 +1,4 @@
-import type { MaybeTranslation, TranslationKey } from "../utils/LanguageViewModel"
+import { MaybeTranslation, TranslationKey } from "../utils/LanguageViewModel"
 import { ButtonColor } from "./Button.js"
 import { Icons } from "./icons/Icons"
 import { createAsyncDropdown, DomRectReadOnlyPolyfilled, DropdownChildAttrs } from "./Dropdown.js"
@@ -381,4 +381,11 @@ export function transformTouchEvent(event: TouchEvent): MouseEvent | undefined {
 export function getDetachedDropdownBounds(): PosRect {
 	// just putting the move mail dropdown in the left side of the viewport with a bit of margin
 	return new DomRectReadOnlyPolyfilled(size.spacing_24, size.spacing_32, 0, 0)
+}
+
+export function showWindowCloseConfirmation(message: TranslationKey): Promise<boolean> {
+	return Dialog.choice(message, [
+		{ value: false, text: "dontQuit_action" },
+		{ value: true, text: "quit_action" },
+	])
 }

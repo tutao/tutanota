@@ -21,4 +21,6 @@ export interface IWindowFacade {
 	addWindowCloseListener(listener: () => unknown): (...args: Array<any>) => any
 
 	addKeyboardSizeListener(listener: KeyboardSizeListener): void
+
+	closeWindow(): void
 }

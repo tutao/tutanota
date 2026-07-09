@@ -45,6 +45,7 @@ import { isWebFile } from "../../../../ui/utils/FileUtils"
 import { handleRestError, isOfflineError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { WebFileResolver } from "./WebFileResolver"
 import { DuplicateFilesDialogDecision, showDuplicateFilesChoiceDialog } from "./DriveGuiUtils"
+import { WindowFacade } from "../../../common/misc/WindowFacade"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -186,11 +187,19 @@ export class DriveViewModel {
 		private readonly userManagementFacade: UserManagementFacade,
 		private readonly transferController: DriveTransferController,
 		private readonly webFileResolver: WebFileResolver | null,
+		private readonly windowFacade: WindowFacade,
 		public readonly updateUi: () => unknown,
+		private readonly showWindowCloseConfirmation: () => Promise<boolean>,
 	) {
 		this.userMailAddress = getDefaultSenderFromUser(this.loginController.getUserController())
 		this.initialized = new Promise((resolve, reject) => {
 			this.resolveInitialized = resolve
+		})
+		this.transferController.setAllTransfersDoneListener(() => {
+			if (this.deleteWindowCloseListener != null) {
+				this.deleteWindowCloseListener()
+				this.deleteWindowCloseListener = null
+			}
 		})
 	}
 
@@ -581,6 +590,23 @@ export class DriveViewModel {
 		}
 	}
 
+	private deleteWindowCloseListener: (() => unknown) | null = null
+
+	private ensureWindowCloseListener() {
+		if (this.deleteWindowCloseListener == null) {
+			this.deleteWindowCloseListener = this.windowFacade.addWindowCloseListener(async () => {
+				if (isDesktop()) {
+					const cancelAndClose: boolean = await this.showWindowCloseConfirmation()
+
+					if (cancelAndClose) {
+						this.deleteWindowCloseListener?.()
+						this.windowFacade.closeWindow()
+					}
+				}
+			})
+		}
+	}
+
 	async uploadFiles(
 		files: (WebFile | FileReference)[],
 		showDuplicateFilesChoiceDialog: (fileName: string, fileCount: number) => Promise<DuplicateFilesDialogDecision>,
@@ -602,6 +628,7 @@ export class DriveViewModel {
 		const takenFileNames: Set<string> = new Set(folderItems.map((item) => folderItemEntity(item).name))
 		let choice: DuplicateFilesDialogDecision["choice"] | null = "keepBoth"
 		let applyToAll: boolean = false
+
 		for (const file of files) {
 			let fileName = isWebFile(file) ? file.file.name : file.name
 			if (takenFileNames.has(fileName)) {
@@ -621,6 +648,8 @@ export class DriveViewModel {
 					await this.moveToTrash([{ type: itemToReplace.type, id: folderItemEntity(itemToReplace)._id }])
 				}
 				takenFileNames.add(fileName)
+
+				this.ensureWindowCloseListener()
 				await this.transferController.upload(file, fileName, targetFolderId)
 			}
 		}
@@ -631,6 +660,8 @@ export class DriveViewModel {
 				const createdFolder = await this.driveFacade.createFolder(currentFolder.name, parent)
 				for (const childFile of currentFolder.files) {
 					const fileName = isWebFile(childFile) ? childFile.file.name : childFile.name
+
+					this.ensureWindowCloseListener()
 					await this.transferController.upload(childFile, fileName, createdFolder._id)
 				}
 				return currentFolder.folders.map((f) => ({ folder: f, parent: createdFolder._id }))
@@ -667,10 +698,12 @@ export class DriveViewModel {
 	}
 
 	async openFile(file: DriveFile): Promise<void> {
+		this.ensureWindowCloseListener()
 		this.transferController.download(file, "open")
 	}
 
 	async downloadFile(file: DriveFile): Promise<void> {
+		this.ensureWindowCloseListener()
 		this.transferController.download(file, "download")
 	}
 

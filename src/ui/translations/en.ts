@@ -2326,6 +2326,8 @@ export default {
 		"keepBothFiles_action": "Keep Both",
 		"replaceFile_action": "Replace",
 		"applyToAllFiles_label" : "Apply this choice to all items",
-		"transferTimeRemaining_msg": "{time} remaining"
+		"transferTimeRemaining_msg": "{time} remaining",
+		"closeWindowWithActiveTransfers_msg": "There are still ongoing transfers. Closing the app will cancel them. Are you sure you want to proceed?",
+		"dontQuit_action": "Stay in app",
 	}
 }

@@ -170,6 +170,7 @@ import { ClientModelInfo } from "../../platform-kit/instance-pipeline/EntityFunc
 import { WebFileResolver } from "../drive-app/drive/view/WebFileResolver"
 
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
+import { showWindowCloseConfirmation } from "../../ui/base/GuiUtils"
 
 assertMainOrNode()
 
@@ -1397,7 +1398,9 @@ class MailLocator implements CommonLocator {
 			this.userManagementFacade,
 			driveUploadStackModel,
 			isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp, this.desktopSystemFacade) : null,
+			windowFacade,
 			redraw,
+			() => showWindowCloseConfirmation("closeWindowWithActiveTransfers_msg"),
 		)
 		await model.init()
 

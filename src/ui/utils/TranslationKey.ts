@@ -2325,3 +2325,5 @@ export type TranslationKeyType =
 	| "replaceFile_action"
 	| "applyToAllFiles_label"
 	| "transferTimeRemaining_msg"
+	| "closeWindowWithActiveTransfers_msg"
+	| "dontQuit_action"

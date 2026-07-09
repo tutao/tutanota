@@ -64,6 +64,8 @@ type FileId = TransferId
 export class DriveTransferController {
 	private queue: QueuedTransfer[] = []
 	private finishedTransfers: DriveTransferState[] = []
+	private allTransfersDoneListener: (() => unknown) | null = null
+
 	get state(): DriveTransfers {
 		const currentTransfers = this.queue.map(queuedTransferToState)
 		const allTransfers = [...this.finishedTransfers, ...currentTransfers]
@@ -100,6 +102,10 @@ export class DriveTransferController {
 		private readonly updateUi: () => unknown,
 		private readonly fileController: FileController,
 	) {}
+
+	setAllTransfersDoneListener(listener: () => unknown) {
+		this.allTransfersDoneListener = listener
+	}
 
 	async upload(file: WebFile | FileReference, filename: string, targetFolderId: IdTuple) {
 		const transferId = await this.blobFacade.generateTransferId()
@@ -270,6 +276,7 @@ export class DriveTransferController {
 		if (index !== -1) {
 			this.queue.splice(index, 1)
 		}
+		this.checkAllTransfersDone()
 		this.updateUi()
 	}
 
@@ -278,12 +285,21 @@ export class DriveTransferController {
 		if (stateForThisFile) {
 			stateForThisFile.state = newState
 			// once all transfers are done move them to the finished, which are not used for progress
-			const allTransfersDone: boolean = this.queue.every((transfer) => transfer.state === "finished" || transfer.state === "failed")
+			const allTransfersDone = this.checkAllTransfersDone()
 			if (allTransfersDone) {
 				this.finishedTransfers.push(...this.queue.splice(0).map(queuedTransferToState))
 			}
 			this.updateUi()
 		}
+	}
+
+	private checkAllTransfersDone(): boolean {
+		const done = this.queue.every((transfer) => transfer.state === "finished" || transfer.state === "failed")
+		if (done) {
+			this.allTransfersDoneListener?.()
+		}
+
+		return done
 	}
 }
 

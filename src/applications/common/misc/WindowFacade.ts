@@ -287,6 +287,10 @@ export class WindowFacade implements IWindowFacade {
 			}, 200)
 		}
 	}
+
+	closeWindow() {
+		window.close()
+	}
 }
 
 export const windowFacade: WindowFacade = new WindowFacade()
