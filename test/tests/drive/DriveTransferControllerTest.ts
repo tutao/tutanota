@@ -4,7 +4,7 @@ import { DriveFacade } from "../../../src/applications/common/api/worker/facades
 import { BlobFacade } from "../../../src/applications/common/api/worker/facades/lazy/BlobFacade"
 import { FileController } from "../../../src/applications/common/file/FileController"
 import { defer, DeferredObject } from "../../../src/platform-kit/utils"
-import { matchers, object, when } from "testdouble"
+import { func, matchers, object, when } from "testdouble"
 import { createTestEntity } from "../TestUtils"
 import { CancelledError } from "../../../src/platform-kit/app-env"
 import * as restError from "../../../src/platform-kit/rest-client/error"
@@ -657,6 +657,80 @@ o.spec("DriveTransferController", function () {
 					timeRemainingSec: undefined,
 				},
 			])
+		})
+	})
+	o.spec("listeners", function () {
+		o.test("allTransfersDoneListener is registered and called when all uploads finished", async function () {
+			const listener = func() as () => void
+			transferController.setAllTransfersDoneListener(listener)
+
+			const fileId1 = "fileId1" as TransferId
+			const file1 = {
+				_type: "WebFile",
+				file: {
+					name: "file1.jpg",
+					size: 1024,
+				},
+			} as WebFile
+
+			const fileId2 = "fileId2" as TransferId
+			const file2 = {
+				_type: "WebFile",
+				file: {
+					name: "file2.jpg",
+					size: 1024,
+				},
+			} as WebFile
+
+			when(blobFacade.generateTransferId()).thenResolve(fileId1, fileId2)
+
+			const deferredUpload1 = defer<DriveFile>()
+			when(driveFacade.uploadFile(file1, fileId1, matchers.anything(), matchers.anything())).thenReturn(deferredUpload1.promise)
+			const deferredUpload2 = defer<DriveFile>()
+			when(driveFacade.uploadFile(file2, fileId2, matchers.anything(), matchers.anything())).thenReturn(deferredUpload2.promise)
+
+			await transferController.upload(file1, "uploadFile", ["listId", "folderElementId"])
+			await transferController.upload(file2, "uploadFile", ["listId", "folderElementId"])
+
+			deferredUpload1.resolve(createTestEntity(DriveFileTypeRef))
+			deferredUpload2.resolve(createTestEntity(DriveFileTypeRef))
+			await waitForUiUpdate()
+			await waitForUiUpdate()
+
+			verify(listener(), { times: 1 })
+		})
+
+		o.test("allTransfersDoneListener is registered and called when all downloads finished", async function () {
+			const listener = func() as () => void
+			transferController.setAllTransfersDoneListener(listener)
+
+			const transferId1 = "transfer id 1" as TransferId
+			const transferId2 = "transfer id 2" as TransferId
+			when(blobFacade.generateTransferId()).thenResolve(transferId1, transferId2)
+
+			const file1 = createTestEntity(DriveFileTypeRef, { _id: ["folderId1", "elementId1"], name: "downloadFile1", size: "1024" })
+			const file2 = createTestEntity(DriveFileTypeRef, { _id: ["folderId2", "elementId2"], name: "downloadFile2", size: "1024" })
+			const deferredDownload1 = defer<void>()
+			when(fileController.open(file1, ArchiveDataType.DriveFile, transferId1)).thenResolve({
+				promise: deferredDownload1.promise,
+				transferIds: [transferId1],
+			})
+			const deferredDownload2 = defer<void>()
+			when(fileController.open(file2, ArchiveDataType.DriveFile, transferId2)).thenResolve({
+				promise: deferredDownload2.promise,
+				transferIds: [transferId2],
+			})
+
+			await transferController.download(file1, "open")
+			await transferController.download(file2, "open")
+
+			deferredDownload1.resolve()
+			await waitForUiUpdate()
+
+			deferredDownload2.resolve()
+			await waitForUiUpdate()
+
+			verify(listener(), { times: 1 })
 		})
 	})
 })
