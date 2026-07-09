@@ -70,7 +70,6 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	private readonly timeFormat: TimeFormat
 	private readonly startOfTheWeekOffset: number
 	private readonly defaultAlarms: Map<Id, AlarmInterval[]>
-	private readonly SECTION_HEIGHT = 48
 
 	private transitionPage: EditorPages | null = null
 	private hasAnimationEnded = true
