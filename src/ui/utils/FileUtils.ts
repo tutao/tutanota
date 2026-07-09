@@ -24,21 +24,22 @@ export function getFileBaseName(fileName: string): string {
 }
 
 /**
- * Returns both basename and extension of a filename.
- * If there is no basename, that part will be represented as empty string.
- * If there is no extension, that part will be represented as null.
+ * Returns both basename and extension of a filename, separating them with the last dot in the string.
+ * If the string starts with a dot, the whole string will be considered as the basename.
+ * If there is no extension, that part will be represented as null or a "." if the string ends with a dot.
  *
  * Examples:
  *   hello.txt -> ["hello", ".txt"]
- *   hello.txt.zip -> ["hello", ".txt.zip"]
- *   .htpasswd -> ["", ".htpasswd"]
+ *   hello.txt.zip -> ["hello.txt", ".zip"]
+ *   .htpasswd -> [".htpasswd", null]
  *   . -> [".", null]
  */
 export function getFileBaseNameAndExtensions(fileName: string): [string, string | null] {
-	const matches = assertNotNull(fileName.match(/^(.*?)(\..+)?$/))
-	const basename = matches[1] // always a string, at least an empty one
-	const ext = matches[2] ?? null // can be undefined
-	return [basename, ext]
+	const lastDot = fileName.lastIndexOf(".")
+	if (lastDot <= 0) {
+		return [fileName, null]
+	}
+	return [fileName.slice(0, lastDot), fileName.slice(lastDot)]
 }
 
 export function unreserveFileName(fileName: string): string {
