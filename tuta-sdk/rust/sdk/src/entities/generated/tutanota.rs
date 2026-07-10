@@ -1882,6 +1882,10 @@ pub struct CalendarEvent {
 	#[serde(rename = "1845")]
 	#[serde(with = "serde_bytes")]
 	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "1984")]
+	pub startTimeZone: Option<String>,
+	#[serde(rename = "1985")]
+	pub endTimeZone: Option<String>,
 	#[serde(rename = "945")]
 	pub repeatRule: Option<CalendarRepeatRule>,
 	#[serde(rename = "946")]
@@ -4529,14 +4533,14 @@ pub struct ImapFolderSyncState {
 	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "1904")]
 	pub path: String,
-	#[serde(rename = "1905")]
-	pub uidvalidity: Option<i64>,
-	#[serde(rename = "1906")]
-	pub uidnext: Option<i64>,
-	#[serde(rename = "1907")]
-	pub highestmodseq: Option<i64>,
 	#[serde(rename = "1908")]
 	pub status: i64,
+	#[serde(rename = "1976")]
+	pub uidvalidity: Option<i64>,
+	#[serde(rename = "1977")]
+	pub uidnext: Option<i64>,
+	#[serde(rename = "1978")]
+	pub highestmodseq: Option<i64>,
 	#[serde(rename = "1909")]
 	pub importedMails: GeneratedId,
 	#[serde(rename = "1910")]
@@ -4782,6 +4786,28 @@ impl Entity for ImapOauthConfigGetOut {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(1972),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImapPutIn {
+	#[serde(rename = "1980")]
+	pub _format: i64,
+	#[serde(rename = "1982")]
+	pub newImapAccountSyncStatus: i64,
+	#[serde(rename = "1983")]
+	pub newImapFolderSyncStatus: i64,
+	#[serde(rename = "1981")]
+	pub imapAccountSyncState: IdTupleGenerated,
+}
+
+impl Entity for ImapPutIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1979),
 		}
 	}
 }

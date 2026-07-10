@@ -452,6 +452,8 @@ export class CalendarEventsRepository {
 			repeatRule: createRepeatRuleWithValues(RepeatPeriod.ANNUALLY, 1),
 			uid,
 			pendingInvitation: null,
+			startTimeZone: null,
+			endTimeZone: null,
 		})
 
 		newEvent._id = [calendarId, `${generateLocalEventElementId(newEvent.startTime.getTime(), contact._id.join("/"))}#${encodedContactId}`]

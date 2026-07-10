@@ -45,7 +45,7 @@ export class CalendarEventApplyStrategies {
 		private readonly editModelsFactory: (i: StrippedEntity<CalendarEvent>) => CalendarEventEditModels,
 		private readonly lazyRecurrenceIds: (uid: string, groupId: Id) => Promise<Array<Date>>,
 		private readonly showProgress: ShowProgressCallback = identity,
-		private readonly zone: string,
+		private readonly calendarTimeZone: string,
 		private readonly calendarInviteHandler: CalendarInviteHandler,
 	) {}
 
@@ -62,7 +62,7 @@ export class CalendarEventApplyStrategies {
 		await this.showProgress(
 			(async () => {
 				await this.notificationModel.send(newEvent, [], sendModels)
-				await this.calendarModel.createEvent(newEvent, newAlarms, this.zone, groupRoot)
+				await this.calendarModel.createEvent(newEvent, newAlarms, this.calendarTimeZone, groupRoot)
 			})(),
 		)
 	}
@@ -88,7 +88,7 @@ export class CalendarEventApplyStrategies {
 				const recurrenceIds: Array<Date> = await this.lazyRecurrenceIds(uid, ownerGroup)
 
 				await this.notificationModel.send(newEvent, recurrenceIds, progenitorSendModels, existingEvent, editModelsForProgenitor.comment.content)
-				await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, existingEvent)
+				await this.calendarModel.updateEvent(newEvent, newAlarms, this.calendarTimeZone, groupRoot, existingEvent)
 				const invalidateAlteredInstances = newEvent.repeatRule && newEvent.repeatRule.excludedDates.length === 0
 
 				const newDuration = editModelsForProgenitor.whenModel.duration
@@ -195,7 +195,7 @@ export class CalendarEventApplyStrategies {
 							await this.notificationModel.send(upToDateAlteredInstance, [], sendModels, occurrence, editModelsForProgenitor.comment.content)
 						}
 
-						await this.calendarModel.updateEvent(upToDateAlteredInstance, newAlarms, this.zone, groupRoot, occurrence)
+						await this.calendarModel.updateEvent(upToDateAlteredInstance, newAlarms, this.calendarTimeZone, groupRoot, occurrence)
 					}
 				}
 			})(),
@@ -235,11 +235,11 @@ export class CalendarEventApplyStrategies {
 				const recurrenceIds = await this.lazyRecurrenceIds(progenitorUid, calendar.id)
 				recurrenceIds.push(existingInstance.startTime)
 				await this.notificationModel.send(newProgenitor, recurrenceIds, progenitorSendModels, progenitor)
-				await this.calendarModel.updateEvent(newProgenitor, progenitorAlarms, this.zone, calendar.groupRoot, progenitor)
+				await this.calendarModel.updateEvent(newProgenitor, progenitorAlarms, this.calendarTimeZone, calendar.groupRoot, progenitor)
 
 				// NEW
 				const { groupRoot } = calendar
-				await this.calendarModel.createEvent(newEvent, newAlarms, this.zone, groupRoot)
+				await this.calendarModel.createEvent(newEvent, newAlarms, this.calendarTimeZone, groupRoot)
 			})(),
 		)
 	}
@@ -250,7 +250,7 @@ export class CalendarEventApplyStrategies {
 		await this.showProgress(
 			(async () => {
 				await this.notificationModel.send(newEvent, [], sendModels, existingInstance)
-				await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, existingInstance)
+				await this.calendarModel.updateEvent(newEvent, newAlarms, this.calendarTimeZone, groupRoot, existingInstance)
 			})(),
 		)
 	}
@@ -308,7 +308,7 @@ export class CalendarEventApplyStrategies {
 
 				const recurrenceIds = await this.lazyRecurrenceIds(progenitorUid, ownerGroup)
 				await this.notificationModel.send(newEvent, recurrenceIds, sendModels, existingInstance)
-				await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, calendar.groupRoot, progenitor)
+				await this.calendarModel.updateEvent(newEvent, newAlarms, this.calendarTimeZone, calendar.groupRoot, progenitor)
 			})(),
 		)
 	}
@@ -376,7 +376,7 @@ export class CalendarEventApplyStrategies {
 		await this.showProgress(
 			(async () => {
 				await this.notificationModel.send(newEvent, [], sendModels, existingEvent)
-				await this.calendarModel.updateEvent(newEvent, newAlarms, this.zone, groupRoot, existingEvent)
+				await this.calendarModel.updateEvent(newEvent, newAlarms, this.calendarTimeZone, groupRoot, existingEvent)
 			})(),
 		)
 	}

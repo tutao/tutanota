@@ -24,6 +24,7 @@ import { ImapOauthConfigGetInTypeRef } from "./TypeRefs.js"
 import { ImapOauthConfigGetOutTypeRef } from "./TypeRefs.js"
 import { ImapPostInTypeRef } from "./TypeRefs.js"
 import { ImapPostOutTypeRef } from "./TypeRefs.js"
+import { ImapPutInTypeRef } from "./TypeRefs.js"
 import { ImapDeleteInTypeRef } from "./TypeRefs.js"
 import { ImportMailGetInTypeRef } from "./TypeRefs.js"
 import { ImportMailGetOutTypeRef } from "./TypeRefs.js"
@@ -185,7 +186,7 @@ export const ImapService = Object.freeze({
 	name: "ImapService",
 	get: null,
 	post: { data: ImapPostInTypeRef, return: ImapPostOutTypeRef },
-	put: null,
+	put: { data: ImapPutInTypeRef, return: null },
 	delete: { data: ImapDeleteInTypeRef, return: null },
 } as const)
 

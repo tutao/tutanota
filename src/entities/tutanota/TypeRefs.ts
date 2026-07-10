@@ -1166,6 +1166,8 @@ export type CalendarEvent = {
 	sender: null | string;
 	pendingInvitation: null | boolean;
 	_kdfNonce: null | Uint8Array;
+	startTimeZone: null | string;
+	endTimeZone: null | string;
 
 	repeatRule: null | CalendarRepeatRule;
 	alarmInfos: IdTuple[];
@@ -2905,10 +2907,10 @@ export type ImapFolderSyncState = {
 	_ownerKeyVersion: null | NumberString;
 	_kdfNonce: null | Uint8Array;
 	path: string;
+	status: NumberString;
 	uidvalidity: null | NumberString;
 	uidnext: null | NumberString;
 	highestmodseq: null | NumberString;
-	status: NumberString;
 
 	importedMails: Id;
 	mailFolder: null | IdTuple;
@@ -3067,4 +3069,20 @@ export type ImapOauthConfigGetOut = {
 
 	_format: NumberString;
 	clientSecret: string;
+}
+export const ImapPutInTypeRef: TypeRef<ImapPutIn> = new TypeRef("tutanota", 1979)
+
+export function createImapPutIn(values: StrippedEntity<ImapPutIn>): ImapPutIn {
+    return Object.assign(create(typeModels[ImapPutInTypeRef.typeId], ImapPutInTypeRef), values)
+}
+
+export type ImapPutIn = {
+	_type: TypeRef<ImapPutIn>;
+	_original?: ImapPutIn
+
+	_format: NumberString;
+	newImapAccountSyncStatus: NumberString;
+	newImapFolderSyncStatus: NumberString;
+
+	imapAccountSyncState: IdTuple;
 }
