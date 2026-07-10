@@ -460,7 +460,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				m(IconButton, {
 					icon: Icons.More,
 					title: "showText_action",
-					size: ButtonSize.Normal,
+					size: ButtonSize.Small,
 					colors: ButtonColor.MailTextEditor,
 					click: () => this.expandQuotedReply(quoteWrap),
 				}),

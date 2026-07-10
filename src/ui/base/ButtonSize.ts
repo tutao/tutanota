@@ -4,6 +4,7 @@
  * a compact size for that.
  */
 export const enum ButtonSize {
+	Small,
 	Normal,
 	Compact,
 	Large,

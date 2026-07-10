@@ -38,7 +38,7 @@ export class IconButton implements Component<IconButtonAttrs> {
 			}),
 			onclick: attrs.click,
 			onkeydown: attrs.onkeydown,
-			class: `icon-button ${attrs.disabled ? "disabled" : "state-bg"} ${IconButton.getSizeClass(attrs.size)}`,
+			class: `${attrs.size === ButtonSize.Small ? "icon-button-small" : "icon-button"}  ${attrs.disabled ? "disabled" : "state-bg"} ${IconButton.getSizeClass(attrs.size)}`,
 			disabled: attrs.hidden || attrs.disabled,
 			style: {
 				...attrs.style,
