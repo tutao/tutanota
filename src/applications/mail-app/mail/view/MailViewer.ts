@@ -220,7 +220,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					},
 				},
 				m(ToggleButton, {
-					icon: Icons.More,
+					icon: this.shouldDisplayCollapsedQuotes() ? Icons.ChevronUp : Icons.More,
 					title: "showText_action",
 					toggled: this.shouldDisplayCollapsedQuotes(),
 					onToggled: () => {
@@ -228,8 +228,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 						if (this.shadowDomRoot) this.updateCollapsedQuotes(this.shadowDomRoot, this.shouldDisplayCollapsedQuotes())
 					},
 					style: {
-						height: "24px",
-						width: px(component_size.button_height_compact),
+						height: px(component_size.button_height_sm),
+						width: px(component_size.button_height_sm),
 					},
 				}),
 			),
