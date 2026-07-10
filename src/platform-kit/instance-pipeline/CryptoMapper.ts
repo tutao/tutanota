@@ -34,6 +34,7 @@ import {
 } from "../meta/EntityTypes"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
 import { OwnerKeyProvider } from "./PatchMerger"
+import { AssociationFieldPathElement, AssociationPatchOrAssociationPathElement, RootFieldPathElement, RootOrAggregateFieldPathElement } from "./FieldPath"
 
 export interface SymmetricGroupKeyLoader {
 	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey>
@@ -102,11 +103,11 @@ export class CryptoMapper {
 		sessionKey: Nullable<AesKey>,
 		kdfNonce: Nullable<KdfNonce>,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
-		fieldPathPrefix: string = "",
+		fieldPath: RootOrAggregateFieldPathElement = new RootFieldPathElement(),
 	): Promise<ServerModelParsedInstance> {
 		const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(sessionKey, kdfNonce, serverTypeModel)
 
-		return this.decryptParsedInstanceInternal(serverTypeModel, encryptedInstance, instanceDecryptor, ownerKeyProvider, fieldPathPrefix)
+		return this.decryptParsedInstanceInternal(serverTypeModel, encryptedInstance, instanceDecryptor, ownerKeyProvider, fieldPath)
 	}
 
 	private async decryptParsedInstanceInternal(
@@ -114,7 +115,7 @@ export class CryptoMapper {
 		encryptedInstance: ServerModelEncryptedParsedInstance,
 		instanceDecryptor: InstanceDecryptor,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
-		fieldPathPrefix: string = "",
+		fieldPath: RootOrAggregateFieldPathElement = new RootFieldPathElement(),
 	): Promise<ServerModelParsedInstance> {
 		const decrypted: ServerModelParsedInstance = {} as ServerModelParsedInstance
 		for (const [valueIdStr, valueInfo] of Object.entries(serverTypeModel.values)) {
@@ -128,8 +129,14 @@ export class CryptoMapper {
 				} else {
 					const encryptedValueInfo = valueInfo as EncryptedModelValue
 					const encryptedString = encryptedValue as Base64
-					const fieldPath = `${fieldPathPrefix}${valueInfo.id}`
-					decrypted[valueId] = await this.decryptValue(encryptedValueInfo, encryptedString, instanceDecryptor, ownerKeyProvider, fieldPath)
+					const valueFieldPath = fieldPath.addValueId(valueInfo)
+					decrypted[valueId] = await this.decryptValue(
+						encryptedValueInfo,
+						encryptedString,
+						instanceDecryptor,
+						ownerKeyProvider,
+						valueFieldPath.getFieldPath(),
+					)
 				}
 			} catch (e) {
 				if (decrypted._errors == null) {
@@ -154,13 +161,12 @@ export class CryptoMapper {
 			if (associationType.type === AssociationType.Aggregation) {
 				const appName = associationType.dependency ?? serverTypeModel.app
 				const associationTypeModel = await this.serverTypeReferenceResolver(new TypeRef(appName, associationType.refTypeId))
-				const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${associationId}/`
 				const decryptedAggregates = await this.decryptAggregateAssociation(
 					associationTypeModel,
 					encryptedInstanceValue as Array<ServerModelEncryptedParsedInstance>,
 					instanceDecryptor,
 					ownerKeyProvider,
-					fieldPathPrefixForThisAssociation,
+					fieldPath.addAssociationId(associationType),
 				)
 				decrypted[associationId] = decryptedAggregates
 				if (this.containErrors(decryptedAggregates)) {
@@ -198,18 +204,17 @@ export class CryptoMapper {
 		encryptedInstanceValues: Array<ServerModelEncryptedParsedInstance>,
 		instanceDecryptor: InstanceDecryptor,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
-		fieldPathPrefix: string,
+		associationFieldPathElement: AssociationPatchOrAssociationPathElement,
 	): Promise<Array<ServerModelParsedInstance>> {
 		const decryptedAggregates: Array<ServerModelParsedInstance> = []
 		for (const encryptedAggregate of encryptedInstanceValues) {
 			const entityAdapter = await EntityAdapter.from(associationServerTypeModel, encryptedAggregate, this.modelMapper)
-			const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${entityAdapter._id as Id}/`
 			const decryptedAggregate = await this.decryptParsedInstanceInternal(
 				associationServerTypeModel,
 				encryptedAggregate,
 				instanceDecryptor,
 				ownerKeyProvider,
-				fieldPathPrefixForThisAssociation,
+				associationFieldPathElement.addAggregateId(entityAdapter._id as Id),
 			)
 			decryptedAggregates.push(decryptedAggregate)
 		}
@@ -220,7 +225,7 @@ export class CryptoMapper {
 		clientTypeModel: ClientTypeModel,
 		parsedInstance: ClientModelParsedInstance,
 		subKeyFactory: Nullable<SubKeyFactory>,
-		fieldPathPrefix: string = "",
+		fieldPath: RootOrAggregateFieldPathElement = new RootFieldPathElement(),
 	): Promise<ClientModelEncryptedParsedInstance> {
 		const encrypted: ClientModelEncryptedParsedInstance = {} as ClientModelEncryptedParsedInstance
 		let subKeyProvider = this.makeNullableSubKeyProvider(subKeyFactory, clientTypeModel)
@@ -231,13 +236,8 @@ export class CryptoMapper {
 
 			let encryptedValue
 			if (valueType.encrypted) {
-				const fieldPath = `${fieldPathPrefix}${valueType.idForAssociatedData ?? valueId}`
-
-				if (valueType.idForAssociatedData != null) {
-					console.log(fieldPath)
-				}
-
-				encryptedValue = this.encryptValue(valueType as EncryptedModelValue, value, subKeyProvider, fieldPath)
+				const valueFieldPath = fieldPath.addValueId(valueType)
+				encryptedValue = this.encryptValue(valueType as EncryptedModelValue, value, subKeyProvider, valueFieldPath.getFieldPath())
 			} else {
 				encryptedValue = value
 			}
@@ -251,13 +251,8 @@ export class CryptoMapper {
 				const appName = associationType.dependency ?? clientTypeModel.app
 				const aggregateTypeModel = await this.clientTypeReferenceResolver(new TypeRef(appName, associationType.refTypeId))
 				const aggregate = parsedInstance[associationId] as Array<ClientModelParsedInstance>
-				const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${associationType.idForAssociatedData ?? associationId}/`
-				encrypted[associationId] = await this.encryptAggregateAssociation(
-					aggregateTypeModel,
-					aggregate,
-					subKeyProvider,
-					fieldPathPrefixForThisAssociation,
-				)
+				const fieldPathForThisAssociation = fieldPath.addAssociationId(associationType)
+				encrypted[associationId] = await this.encryptAggregateAssociation(aggregateTypeModel, aggregate, subKeyProvider, fieldPathForThisAssociation)
 			} else {
 				encrypted[associationId] = parsedInstance[associationId]
 			}
@@ -281,13 +276,14 @@ export class CryptoMapper {
 		associationClientTypeModel: ClientTypeModel,
 		aggregateValues: Array<ClientModelParsedInstance>,
 		subKeyProvider: Nullable<SubKeyProvider>,
-		fieldPathPrefix: string,
+		fieldPath: AssociationFieldPathElement,
 	): Promise<Array<ClientModelEncryptedParsedInstance>> {
 		let encryptedAggregates: Array<ClientModelEncryptedParsedInstance> = []
 		for (const aggregate of aggregateValues) {
 			const entityAdapter = await EntityAdapter.from(associationClientTypeModel, aggregate, this.modelMapper)
-			fieldPathPrefix = `${fieldPathPrefix}${entityAdapter._id as Id}/`
-			encryptedAggregates.push(await this.encryptParsedInstance(associationClientTypeModel, aggregate, subKeyProvider, fieldPathPrefix))
+			encryptedAggregates.push(
+				await this.encryptParsedInstance(associationClientTypeModel, aggregate, subKeyProvider, fieldPath.addAggregateId(entityAdapter._id as Id)),
+			)
 		}
 
 		return encryptedAggregates
@@ -356,43 +352,5 @@ export class CryptoMapper {
 			}
 		}
 		return uint8ArrayToBase64(encryptedBytes)
-	}
-}
-
-class FieldPath {
-	fieldPathElements: FieldPathElement[] = []
-	valueId: Nullable<number> = null
-	hasBeenCutOff: boolean = false
-
-	addFieldPathElement(fieldPathElement: FieldPathElement) {
-		if (this.valueId != null) {
-			throw new ProgrammingError("no")
-		}
-		this.fieldPathElements.push(fieldPathElement)
-	}
-
-	setValueId(valueId: number) {
-		this.valueId = valueId
-	}
-
-	tryCutOff() {
-		if (this.hasBeenCutOff) return
-		this.fieldPathElements = []
-		this.hasBeenCutOff = true
-	}
-
-	asString(): string {
-		return this.fieldPathElements.map((fieldPathElement) => fieldPathElement.asString()).join() + this.valueId
-	}
-}
-
-class FieldPathElement {
-	constructor(
-		readonly associationId: number,
-		readonly aggregateId: string,
-	) {}
-
-	asString(): string {
-		return `${this.associationId}/${this.aggregateId}/`
 	}
 }

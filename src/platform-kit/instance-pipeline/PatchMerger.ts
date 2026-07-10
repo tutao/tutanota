@@ -25,6 +25,7 @@ import { PatchOperationType } from "./PatchGenerator.js"
 import { TypeModelResolver } from "./EntityFunctions"
 import { Patch, UserTypeRef } from "../../entities/sys/TypeRefs"
 import { EntityUpdateData } from "./utils/EntityUpdateUtils"
+import { AssociationPatchFieldPathElement } from "./FieldPath"
 
 export interface OwnerKeyProvider {
 	(ownerKeyVersion: KeyVersion): Promise<AesKey>
@@ -333,7 +334,7 @@ export class PatchMerger {
 				encryptedAggregatedEntities,
 				instanceDecryptor,
 				this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(ownerGroup),
-				`${fieldPath}/`,
+				new AssociationPatchFieldPathElement(fieldPath),
 			)
 			if (this.instancePipeline.cryptoMapper.containErrors(decryptedAggregates)) {
 				// we do not want to apply a patch that failed decryption
