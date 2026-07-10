@@ -63,7 +63,7 @@ export function showDateRangeSelectionDialog({
 									validateDates(startDate, endDate)
 								},
 								startOfTheWeekOffset,
-								label: "dateFrom_label",
+								label: lang.getTranslation("dateFrom_label"),
 								nullSelectionText: optionalStartDate ? "unlimited_label" : undefined,
 							}),
 						),
@@ -80,7 +80,7 @@ export function showDateRangeSelectionDialog({
 									validateDates(startDate, endDate)
 								},
 								startOfTheWeekOffset,
-								label: "dateTo_label",
+								label: lang.getTranslation("dateTo_label"),
 							}),
 						),
 					],

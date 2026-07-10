@@ -370,7 +370,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 						}
 					},
 					startOfTheWeekOffset: this.startOfTheWeekOffset,
-					label: "dateFrom_label",
+					label: lang.getTranslation("dateFrom_label"),
 					nullSelectionText: renderedHelpText,
 					rightAlignDropdown: true,
 				} satisfies DatePickerAttrs),
@@ -385,7 +385,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 						}
 					},
 					startOfTheWeekOffset: this.startOfTheWeekOffset,
-					label: "dateTo_label",
+					label: lang.getTranslation("dateTo_label"),
 					rightAlignDropdown: true,
 				} satisfies DatePickerAttrs),
 			),

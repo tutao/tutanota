@@ -359,9 +359,7 @@ export class AttendeeListEditor implements Component<AttendeeListEditorAttrs> {
 	}
 
 	private renderPasswordField(address: string, password: string, strength: number, whoModel: CalendarEventWhoModel): Children {
-		const label = lang.get("passwordFor_label", {
-			"{1}": address,
-		})
+		const label = lang.getTranslation("passwordFor_label", { "{1}": address })
 		return [
 			m(".flex.flex-grow.full-width.justify-between.items-end", [
 				m(

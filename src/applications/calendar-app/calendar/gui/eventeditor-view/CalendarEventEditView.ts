@@ -211,8 +211,8 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				oninput: (newValue: any) => {
 					model.editModels.summary.content = newValue
 				},
-				ariaLabel: lang.get("title_placeholder"),
-				placeholder: lang.get("title_placeholder"),
+				ariaLabel: lang.getTranslation("title_placeholder"),
+				placeholder: lang.getTranslation("title_placeholder").text,
 				disabled: !model.isFullyWritable(),
 				style: {
 					padding: `${px(size.spacing_8)} ${px(size.spacing_12)}`,
@@ -432,7 +432,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				style: {
 					padding: px(size.spacing_12),
 				},
-				ariaLabel: lang.get("location_label"),
+				ariaLabel: lang.getTranslation("location_label"),
 				placeholder: lang.get("location_label"),
 				disabled: !model.isFullyWritable(),
 				leadingIcon: {

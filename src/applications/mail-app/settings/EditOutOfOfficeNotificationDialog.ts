@@ -224,7 +224,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 			m(DatePicker, {
 				date: model.startDate(),
 				onDateSelected: model.startDate,
-				label: "dateFrom_label",
+				label: lang.getTranslation("dateFrom_label"),
 				nullSelectionText: "emptyString_msg",
 				startOfTheWeekOffset,
 			}),
@@ -237,7 +237,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 				? m(DatePicker, {
 						date: model.endDate(),
 						onDateSelected: model.endDate,
-						label: "dateTo_label",
+						label: lang.getTranslation("dateTo_label"),
 						nullSelectionText: "emptyString_msg",
 						startOfTheWeekOffset,
 					})

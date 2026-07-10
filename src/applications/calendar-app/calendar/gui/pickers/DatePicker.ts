@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { client } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear } from "../../../../../ui/utils/Formatter.js"
-import type { MaybeTranslation } from "../../../../../ui/utils/LanguageViewModel.js"
+import type { MaybeTranslation, Translation } from "../../../../../ui/utils/LanguageViewModel.js"
 import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
 import { px } from "../../../../../ui/size.js"
 import { theme } from "../../../../../ui/theme.js"
@@ -28,7 +28,7 @@ export interface DatePickerAttrs {
 	date: Nullable<Date>
 	onDateSelected: (date: Date) => unknown
 	startOfTheWeekOffset: number
-	label: MaybeTranslation
+	label: Translation
 	nullSelectionText?: MaybeTranslation
 	disabled?: boolean
 	rightAlignDropdown?: boolean
@@ -106,7 +106,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				: null,
 			m(InputButton, {
 				tabIndex: Number(isApp() ? TabIndex.Programmatic : TabIndex.Default),
-				ariaLabel: lang.getTranslationText(label),
+				ariaLabel: label,
 				inputValue: this.inputText,
 				oninput: (newValue: string) => (this.inputText = newValue),
 				display: date ? formatDateWithWeekdayAndYear(date) : nullSelectionText ? lang.getTranslationText(nullSelectionText) : NBSP,
