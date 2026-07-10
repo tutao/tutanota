@@ -440,6 +440,7 @@ export type TranslationKeyType =
 	| "sendingEvaluation_msg"
 	| "sender_label"
 	| "send_action"
+	| "sendDate_label"
 	| "sendUpdates_msg"
 	| "sendUpdates_label"
 	| "sendReport_label"

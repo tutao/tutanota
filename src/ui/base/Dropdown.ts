@@ -157,7 +157,7 @@ export class Dropdown implements ModalComponent {
 		const inputField = () => {
 			return this.isFilterable
 				? m(SingleLineTextField, {
-						placeholder: lang.get("typeToFilter_label"),
+						placeholder: lang.getTranslation("typeToFilter_label").text,
 						oncreate: (vnode: VnodeDOM<InputAttrs<LegacyTextFieldType.Text>>) => {
 							this.domInput = downcast<HTMLInputElement>(vnode.dom)
 							this.domInput.value = this.filterString
@@ -166,7 +166,7 @@ export class Dropdown implements ModalComponent {
 							this.filterString = newValue
 						},
 						value: this.filterString,
-						ariaLabel: "filter",
+						ariaLabel: lang.getTranslation("filter_label"),
 						type: LegacyTextFieldType.Text,
 					} satisfies InputAttrs<LegacyTextFieldType.Text>)
 				: null

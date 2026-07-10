@@ -217,7 +217,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 				date: attrs.model.repeatEndDateForDisplay,
 				disabled: attrs.model.repeatEndType !== EndType.UntilDate,
 				onDateSelected: (date) => date && (attrs.model.repeatEndDateForDisplay = date),
-				label: "endDate_label",
+				label: lang.getTranslation("endDate_label"),
 				useInputButton: true,
 				startOfTheWeekOffset: attrs.startOfTheWeekOffset,
 				position: PickerPosition.TOP,
@@ -366,7 +366,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 							this.repeatOccurrences = val === "" ? NaN : Number(val)
 							this.repeatOccurrences = val === "" ? NaN : Number(val)
 						},
-						ariaLabel: lang.get("occurrencesCount_label"),
+						ariaLabel: lang.getTranslation("occurrencesCount_label"),
 						style: {
 							textAlign: "center",
 						},
