@@ -1238,6 +1238,7 @@ export default {
 		"migrationOAuthWindowClosedFailure_msg": "Semella que se fechou a xanela antes de acceder, volve a intentalo.",
 		"migrationPostponed_msg": "Acadouse o límite de descarga en {provider}, continuaremos en {postponedUntil}.",
 		"migrationProviderGmail_label": "Gmail",
+		"migrationProviderOther_label": "Outro",
 		"migrationProviderOutlook_label": "Outlook",
 		"migrationRootMailFolderName_helpLabel": "Escribe o nome para o cartafol da migración. Vanse meter neste cartafol todos os teus correos e cartafoles importados.",
 		"migrationRootMailFolderName_label": "Nome do cartafol da migración",

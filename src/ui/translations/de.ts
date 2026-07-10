@@ -337,7 +337,7 @@ export default {
 		"confirmDeleteSecondFactor_msg": "Möchtest du diesen zweiten Faktor wirklich löschen?",
 		"confirmDeleteTemplateGroup_msg": "Bist du sicher, dass du diese Vorlagenliste löschen möchtest? Alle enthaltenen Vorlagen werden gelöscht und können nicht wiederhergestellt werden.",
 		"confirmFreeAccount_label": "Bestätigung Free-Account",
-		"confirmFreeLimits_msg": "Ich besitze keinen anderen Tuta Free-Account und ich werde diesen Account nicht geschäftlich nutzen.",
+		"confirmFreeLimits_msg": "Ich besitze keinen anderen Tuta Free-Account und ich werde diesen Account nicht für geschäftliche Zwecke nutzen.",
 		"confirmLeaveSharedGroup_msg": "Bist du sicher, dass du \"{groupName}\" nicht mehr verwenden möchtest? Der Inhaber der Kontaktliste müsste dich dann gegebenenfalls erneut einladen.",
 		"confirmNoOtherFreeAccount_msg": "Ich besitze keinen anderen Tuta Free-Account.",
 		"confirmOverwriteServerDraft_msg": "Möchtest du diesen Remote-Entwurf überschreiben?",
@@ -1204,7 +1204,7 @@ export default {
 		"migrationAuthFailed_msg": "Deine Migration konnte leider nicht gestartet werden, da die eingegebenen Zugangsdaten ungültig sind. Bitte überprüfe deine Zugangsdaten und versuche es erneut. ",
 		"migrationCancelConfirm_msg": "Bist du sicher das du diese Migration abschließen möchtest? Dieser Schritt kann nicht rückgängig gemacht werden!",
 		"migrationCannotMapSpamFolder_label": "Der Spam-Ordner kann nicht zugewiesen werden.",
-		"migrationCannotMapSpamFolder_msg": "Der Spam-Ordner kann nur dem Tuta Spam-Ordner importiert werden, um die Qualität deines Spam-Filters zu gewährleisten.",
+		"migrationCannotMapSpamFolder_msg": "Der Spam-Ordner kann nur in den Tuta Spam-Ordner importiert werden, um die Qualität deines Spam-Filters zu gewährleisten.",
 		"migrationChooseFolder_msg": "Ordner auswählen",
 		"migrationChooseProvider_msg": "Bitte wähle deinen alten E-Mail Anbieter aus, von welchem du zu uns wechseln möchtest.\n\nDie Ein-Klick E-Mail Migration übernimmt kontinuierlich alle (auch neu eingehende) E-Mails von deinem alten E-Mail Anbieter in deinen Tuta-Account.\nDu kannst diese Migration so lange aktiv lassen bis du bereits bist deinen alten Account zu löschen.",
 		"migrationConfig_title": "Konfiguration",
@@ -1226,7 +1226,7 @@ export default {
 		"migrationImapCredentials_title": "Bitte gib die IMAP-Zugangsdaten für deinen alten E-Mail Account ein, von welchem du zu uns wechseln möchtest.",
 		"migrationImapImap_title": "IMAP-Zugangsdaten",
 		"migrationImapProvider_label": "IMAP",
-		"migrationInfo_msg": "Die Tuta Ein-Klick-Migration funktioniert nahtlos mit fast allen E-Mail Anbietern.\n\nWir garantieren eine komplett sichere und private Migration, bei welcher alle deine Daten auf deinem Gerät verschlüsselt werden und selbst wir als Tuta können importierte E-Mails niemals lesen.\n\nMach den Klick und schalte deine Privatsphäre ein!",
+		"migrationInfo_msg": "Die Tuta Ein-Klick-Migration funktioniert nahtlos mit fast allen E-Mail Anbietern.\n\nWir garantieren eine komplett sichere und private Migration, bei welcher alle deine Daten auf deinem Gerät verschlüsselt werden und selbst wir bei Tuta können importierte E-Mails nicht lesen.\n\nMach den Klick und schalte deine Privatsphäre ein!",
 		"migrationInProgressAccounts_msg": "{sourceAddress} nach\n{tutaMailbox}",
 		"migrationInProgressInfo_msg": "{mailCount} E-Mails importiert ⋅ {completed} / {total} Ordner abgeschlossen.",
 		"migrationIntroductionInfo_msg": "Bitte gib die Zugangsdaten für deinen {provider} Account ein, von welchem du zu uns wechseln möchtest.",
@@ -1236,6 +1236,7 @@ export default {
 		"migrationNoMigrationOnWeb_label": "E-Mail-Migration ist zur Zeit nur in unserem Desktop-Client verfügbar.",
 		"migrationNotImportedFolderName_msg": "Wird nicht importiert",
 		"migrationOAuthWindowClosedFailure_msg": "Das Login-Fenster wurde geschlossen, der Login war jedoch nicht erfolgreich. Bitte versuche es erneut.",
+		"migrationPausedProgressInfo_msg": "{mailCount} E-Mails importiert ⋅ Synchronisierung pausiert",
 		"migrationPostponed_msg": "Das Download-Limit für {provider} wurde erreicht - Import wird am {postponedUntil} fortgesetzt.",
 		"migrationProviderGmail_label": "Gmail",
 		"migrationProviderOther_label": "Andere",
@@ -2391,7 +2392,6 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"migrationPausedProgressInfo_msg": "{mailCount} E-Mails importiert ⋅ Synchronisierung pausiert",
+		"zoomOut_action": "Herauszoomen"
 	}
 }

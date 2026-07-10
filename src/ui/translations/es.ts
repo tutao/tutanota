@@ -1238,6 +1238,7 @@ export default {
 		"migrationOAuthWindowClosedFailure_msg": "La ventana de inicio se cerró, inténtalo de nuevo.",
 		"migrationPostponed_msg": "Límite de {provider} alcanzado, continuará el {postponedUntil}.",
 		"migrationProviderGmail_label": "GMail",
+		"migrationProviderOther_label": "Otro",
 		"migrationProviderOutlook_label": "OutLook",
 		"migrationRootMailFolderName_helpLabel": "Escribe un nombre para la carpeta de migración. Todo se importará dentro de ella.",
 		"migrationRootMailFolderName_label": "Carpeta de migración",

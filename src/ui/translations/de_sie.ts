@@ -1236,6 +1236,7 @@ export default {
 		"migrationNoMigrationOnWeb_label": "E-Mail-Migration ist zur Zeit nur in unserem Desktop-Client verfügbar.",
 		"migrationNotImportedFolderName_msg": "Wird nicht importiert",
 		"migrationOAuthWindowClosedFailure_msg": "Das Login-Fenster wurde geschlossen, der Login war jedoch nicht erfolgreich. Bitte versuchen Sie es erneut.",
+		"migrationPausedProgressInfo_msg": "{mailCount} E-Mails importiert ⋅ Synchronisierung pausiert",
 		"migrationPostponed_msg": "Das Download-Limit für {provider} wurde erreicht - Import wird am {postponedUntil} fortgesetzt.",
 		"migrationProviderGmail_label": "Gmail",
 		"migrationProviderOther_label": "Andere",
@@ -2391,7 +2392,6 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"migrationPausedProgressInfo_msg": "{mailCount} E-Mails importiert ⋅ Synchronisierung pausiert",
+		"zoomOut_action": "Herauszoomen"
 	}
 }
