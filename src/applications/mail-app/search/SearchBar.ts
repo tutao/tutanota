@@ -3,15 +3,15 @@ import { layout_size, px, size } from "../../../ui/size"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { displayOverlay, overlayBottomMargin, PositionRect } from "../../../ui/base/Overlay"
-import { assertIsEntity, getElementId, isSameTypeRef, ListElementEntity, TypeRef } from "../../../platform-kit/meta"
+import { assertIsEntity, getElementId, isSameTypeRef, ListElementEntity, TypeRef } from "@tutao/meta"
 import type { Shortcut } from "../../../ui/utils/KeyManager"
 import { isKeyPressed, keyManager } from "../../../ui/utils/KeyManager"
 import { encodeCalendarSearchKey, getRestriction, hasMoreResults } from "./model/SearchUtils"
 import { Dialog } from "../../../ui/base/Dialog"
-import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, Keys } from "../../../platform-kit/app-env"
+import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, Keys } from "@tutao/app-env"
 import { styles } from "../../../ui/styles"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
-import { debounce, downcast, memoized, mod, ofClass } from "../../../platform-kit/utils"
+import { debounce, downcast, memoized, mod, ofClass } from "@tutao/utils"
 import { BrowserType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { SearchBarOverlay } from "./SearchBarOverlay"
 import { IndexingNotSupportedError } from "../../common/api/common/error/IndexingNotSupportedError"
@@ -26,9 +26,9 @@ import { loadMultipleFromLists } from "../../../platform-kit/network/EntityClien
 import { mailLocator } from "../mailLocator.js"
 import { compareMails } from "../mail/model/MailUtils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
-import { WhitelabelChild } from "@tutao/entities/sys"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
+import { LiveSearchResult } from "./model/SearchModel"
 
 assertMainOrNode()
 export type ShowMoreAction = {
@@ -48,8 +48,7 @@ export type Entry = Mail | Contact | CalendarEvent | DriveFile | DriveFolder | S
 type Entries = Array<Entry>
 export type SearchBarState = {
 	query: string
-	searchResult: SearchResult | null
-	entities: Entries
+	searchResult: LiveSearchResult<Entry> | null
 	selected: Entry | null
 }
 
@@ -62,7 +61,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	focused: boolean = false
 	private readonly state: Stream<SearchBarState>
 	busy: boolean = false
-	private lastSelectedWhitelabelChildrenInfoResult: Stream<WhitelabelChild> = stream()
 	private closeOverlayFunction: (() => void) | null = null
 	private readonly overlayContentComponent: Component
 	private confirmDialogShown: boolean = false
@@ -75,7 +73,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		this.state = stream<SearchBarState>({
 			query: "",
 			searchResult: null,
-			entities: [] as Entries,
 			selected: null,
 		})
 		this.overlayContentComponent = {
@@ -103,7 +100,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			this.updateState({
 				searchResult: null,
 				selected: null,
-				entities: [],
 			})
 		}
 	})
@@ -149,8 +145,8 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 
 	private readonly onkeydown = (e: KeyboardEvent) => {
-		const { selected, entities } = this.state()
-
+		const { selected, searchResult } = this.state()
+		const entities = searchResult?.items
 		const keyHandlers = [
 			{
 				key: Keys.F1,
@@ -175,7 +171,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			{
 				key: Keys.UP,
 				exec: () => {
-					if (entities.length > 0) {
+					if (entities && entities.length > 0) {
 						let oldSelected = selected || entities[0]
 
 						this.updateState({
@@ -187,7 +183,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			{
 				key: Keys.DOWN,
 				exec: () => {
-					if (entities.length > 0) {
+					if (entities && entities.length > 0) {
 						let newSelected = selected || entities[0]
 
 						this.updateState({
@@ -424,6 +420,8 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			return cb()
 		}
 
+		this.state().searchResult?.dispose()
+
 		switch (restriction.type) {
 			case SearchCategoryType.mail:
 				// FIXME: dispose of the old result
@@ -447,11 +445,11 @@ export class SearchBar implements Component<SearchBarAttrs> {
 						}
 						results.push(moreEntry)
 						this.updateState({
-							searchResult: liveResult.searchResult,
-							entities: liveResult.items,
+							searchResult: liveResult,
 							selected: liveResult.items[0],
 						})
 					})
+					.finally(() => cb())
 				return
 		}
 
@@ -477,9 +475,9 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		const safeResult = result,
 			safeLimit = limit
 
-		this.updateState({
-			searchResult: safeResult,
-		})
+		// this.updateState({
+		// 	searchResult: safeResult,
+		// })
 
 		if (!safeResult || mailLocator.search.isNewSearch(query, safeResult.restriction)) {
 			return
@@ -513,7 +511,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 		this.updateState({
 			query: "",
-			entities: [],
 			selected: null,
 			searchResult: null,
 		})
@@ -562,7 +559,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			}
 
 			this.updateState({
-				entities: filteredEntries,
 				selected: filteredEntries[0],
 			})
 		}

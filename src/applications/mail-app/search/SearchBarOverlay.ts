@@ -3,9 +3,9 @@ import type { Entry, SearchBarState, ShowMoreAction } from "./SearchBar"
 import { px, size } from "../../../ui/size"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { Icons } from "../../../ui/base/icons/Icons"
-import { downcast, isEmpty } from "../../../platform-kit/utils"
-import { isSameTypeRef, TypeRef } from "../../../platform-kit/meta"
-import { FULL_INDEXED_TIMESTAMP } from "../../../platform-kit/app-env"
+import { downcast, isEmpty } from "@tutao/utils"
+import { isSameTypeRef, TypeRef } from "@tutao/meta"
+import { FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { formatDate, formatTimeOrDateOrYesterday } from "../../../ui/utils/Formatter"
 import Badge from "../../../ui/base/Badge"
 import { Icon } from "../../../ui/base/Icon"
@@ -32,7 +32,9 @@ type SearchBarOverlayAttrs = {
 export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 	view({ attrs }: Vnode<SearchBarOverlayAttrs>): Children {
 		const { state } = attrs
-		return [state.entities && !isEmpty(state.entities) && attrs.isQuickSearch && attrs.isFocused ? this.renderResults(state, attrs) : null]
+		return [
+			state.searchResult?.items && !isEmpty(state.searchResult.items) && attrs.isQuickSearch && attrs.isFocused ? this.renderResults(state, attrs) : null,
+		]
 	}
 
 	renderResults(state: SearchBarState, attrs: SearchBarOverlayAttrs): Children {
@@ -40,7 +42,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 
 		return [
 			m("ul.list.click.mail-list", [
-				state.entities.map((result) => {
+				(state.searchResult?.items ?? []).map((result) => {
 					return m(
 						"li.plr-24.flex-v-center.",
 						{
