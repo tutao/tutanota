@@ -11,7 +11,7 @@ import {
 import { EventTextTimeOption, RepeatPeriod } from "@tutao/app-env"
 import { assert, isSameDay, isSameDayOfDate } from "@tutao/utils"
 import { formatDateTime, formatDateWithMonth, formatTime } from "../../../../ui/utils/Formatter"
-import { DateTime } from "luxon"
+import type { DateTime } from "luxon"
 
 function includeStartTime(showTime: EventTextTimeOption) {
 	return showTime === EventTextTimeOption.START_TIME || showTime === EventTextTimeOption.START_END_TIME
