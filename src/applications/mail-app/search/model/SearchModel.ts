@@ -26,6 +26,8 @@ import { EventController } from "../../../common/api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 import { SearchableTypes } from "../view/SearchViewModel"
+import { compareContacts } from "../../contacts/view/ContactGuiUtils"
+import { compareMails } from "../../mail/model/MailUtils"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -115,12 +117,14 @@ export class SearchModel {
 			searchQuery.maxResults ?? undefined,
 		)
 		const contacts = await loadMultipleFromLists(ContactTypeRef, this.entityClient, searchResult.results)
+		contacts.sort((a, b) => compareContacts(a, b))
+		const initialResults = contacts.slice(0, searchQuery.maxResults ?? contacts.length)
 		const result: LiveSearchResult<Contact> = {
 			searchResult,
-			items: contacts,
-			loadMoreResults: async () => [],
+			items: initialResults,
+			loadMoreResults: async () => contacts.slice(initialResults.length),
 			get hasMoreResults() {
-				return hasMoreResults(result.searchResult)
+				return initialResults.length === contacts.length
 			},
 			updates: stream(),
 			dispose: () => {
@@ -171,6 +175,8 @@ export class SearchModel {
 			searchQuery.maxResults ?? undefined,
 		)
 		const mails = await loadMultipleFromLists(MailTypeRef, this.entityClient, searchResult.results)
+		mails.sort(compareMails)
+
 		const result: LiveSearchResult<Mail> = {
 			searchResult,
 			items: mails,
@@ -180,6 +186,7 @@ export class SearchModel {
 					const previousLength = result.searchResult.results.length
 					const toLoad = result.searchResult.results.slice(previousLength)
 					let items: Mail[] = await loadMultipleFromLists(MailTypeRef, this.entityClient, toLoad)
+					items.sort(compareMails)
 
 					// Restore the original sorting order
 					if (!isBrowser() && !isAdminClient()) {

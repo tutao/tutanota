@@ -440,7 +440,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 					break
 				case SearchCategoryType.contact:
 					liveResult = await mailLocator.search.coolNewSearchContacts(
-						{ query, restriction, minSuggestionCount: 0, maxResults: null },
+						{ query, restriction, minSuggestionCount: 0, maxResults: MAX_SEARCH_PREVIEW_RESULTS },
 						mailLocator.progressTracker,
 					)
 					break
