@@ -145,7 +145,7 @@ export class GuestPicker implements ClassComponent<GuestPickerAttrs> {
 				this.doSearch(val, attrs)
 			},
 			disabled: attrs.disabled,
-			ariaLabel: attrs.ariaLabel,
+			ariaLabel: lang.getTranslation(attrs.ariaLabel),
 			onfocus: (event: FocusEvent) => {
 				this.isFocused = true
 			},

@@ -3,6 +3,7 @@ import { LegacyTextFieldType } from "./LegacyTextField.js"
 import { AllIcons, Icon, IconSize } from "./Icon.js"
 import { px, size } from "../size.js"
 import { filterInt } from "../../platform-kit/utils"
+import { lang, Translation } from "../utils/LanguageViewModel"
 
 export enum InputMode {
 	NONE = "none",
@@ -12,7 +13,7 @@ export enum InputMode {
 
 export interface SingleLineTextFieldAttrs<T extends LegacyTextFieldType> extends Pick<Component, "oncreate"> {
 	value: string | number
-	ariaLabel: string
+	ariaLabel: Translation
 	disabled?: boolean
 	/**
 	 * Callback fired whenever the input is interacted with.
@@ -115,7 +116,7 @@ export class SingleLineTextField<T extends LegacyTextFieldType> implements Class
 
 	private renderInput(attrs: InputAttrs<T>, inputPadding?: string) {
 		return m("input.tutaui-text-field", {
-			ariaLabel: attrs.ariaLabel,
+			ariaLabel: attrs.ariaLabel.text,
 			value: attrs.value,
 			disabled: attrs.disabled ? true : undefined,
 			onblur: attrs.onblur,
@@ -144,6 +145,7 @@ export class SingleLineTextField<T extends LegacyTextFieldType> implements Class
 			type: attrs.inputMode === InputMode.NONE ? undefined : attrs.type,
 			inputMode: attrs.inputMode,
 			readonly: attrs.readonly,
+			"data-testid": `sltfi:${attrs.ariaLabel ? lang.getTestId(attrs.ariaLabel) : null}`,
 			...this.getInputProperties(attrs),
 		})
 	}

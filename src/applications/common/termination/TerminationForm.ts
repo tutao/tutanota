@@ -113,7 +113,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 								date: a.date,
 								onDateSelected: a.onDateChanged,
 								startOfTheWeekOffset: 0,
-								label: "date_label",
+								label: lang.getTranslation("date_label"),
 								disabled: false,
 							})
 						: null,

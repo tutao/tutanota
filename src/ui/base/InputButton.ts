@@ -4,6 +4,7 @@ import { SingleLineTextField } from "./SingleLineTextField.js"
 import { font_size, px, size } from "../size.js"
 import { LegacyTextFieldType } from "./LegacyTextField.js"
 import { TabIndex } from "../../platform-kit/app-env"
+import { Translation } from "../utils/LanguageViewModel"
 
 export enum InputButtonVariant {
 	OUTLINE = "outline",
@@ -12,7 +13,7 @@ export enum InputButtonVariant {
 export interface InputButtonAttributes extends Pick<Component, "oncreate"> {
 	inputValue: string
 	display: string
-	ariaLabel: string
+	ariaLabel: Translation
 	disabled?: boolean
 	classes?: Array<string>
 	variant?: InputButtonVariant

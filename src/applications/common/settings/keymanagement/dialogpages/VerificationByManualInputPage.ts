@@ -43,7 +43,7 @@ export class VerificationByManualInputPage implements Component<VerificationByTe
 					style: { padding: "0" },
 				},
 				m(SingleLineTextField, {
-					ariaLabel: lang.get("mailAddress_label"),
+					ariaLabel: lang.getTranslation("mailAddress_label"),
 					placeholder: lang.get("mailAddress_label"),
 					disabled: false,
 					classes: ["flex", "gap-8", "items-center", "pl-8"],
