@@ -465,6 +465,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "main"
 	} else if (isIn("src/applications/common/calendar/import")) {
 		return "calendar-importer"
+	} else if (isIn("src/applications/common/calendar/")) {
+		return "common"
 	} else {
 		// Put all translations into "translation-code"
 		// Almost like in Rollup example: https://rollupjs.org/guide/en/#outputmanualchunks
