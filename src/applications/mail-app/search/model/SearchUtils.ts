@@ -305,7 +305,7 @@ export function encodeCalendarSearchKey(event: CalendarEvent): string {
 	return base64ToBase64Url(stringToBase64(JSON.stringify({ start: eventStartTime, id: getElementId(event) })))
 }
 
-export function searchQueryEquals(a: SearchQuery, b: SearchQuery) {
+export function searchQueryEquals(a: SearchQuery, b: SearchQuery): boolean {
 	return (
 		a.query === b.query &&
 		isSameSearchRestriction(a.restriction, b.restriction) &&

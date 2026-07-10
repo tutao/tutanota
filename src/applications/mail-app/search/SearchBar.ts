@@ -11,24 +11,20 @@ import { Dialog } from "../../../ui/base/Dialog"
 import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, Keys } from "@tutao/app-env"
 import { styles } from "../../../ui/styles"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
-import { debounce, downcast, memoized, mod, ofClass } from "@tutao/utils"
+import { debounce, isNotEmpty, mod, ofClass } from "@tutao/utils"
 import { BrowserType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { SearchBarOverlay } from "./SearchBarOverlay"
 import { IndexingNotSupportedError } from "../../common/api/common/error/IndexingNotSupportedError"
-import { SearchCategoryType, SearchRestriction, SearchResult } from "../../common/api/worker/search/SearchTypes"
-import { compareContacts } from "../contacts/view/ContactGuiUtils"
+import { SearchCategoryType, SearchRestriction } from "../../common/api/worker/search/SearchTypes"
 import { LayerType } from "../../../ui/base/RootView"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../ui/base/BaseSearchBar.js"
 import { SearchRouter } from "../../common/search/view/SearchRouter.js"
 import { PageSize } from "../../../ui/base/ListUtils.js"
-import { generateCalendarInstancesInRange, isBirthdayCalendar, retrieveBirthdayEventsForUser } from "../../common/calendar/date/CalendarUtils.js"
-import { loadMultipleFromLists } from "../../../platform-kit/network/EntityClient.js"
 import { mailLocator } from "../mailLocator.js"
-import { compareMails } from "../mail/model/MailUtils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
-import { LiveSearchResult } from "./model/SearchModel"
+import { LiveSearchResult, SearchQuery } from "./model/SearchModel"
 
 assertMainOrNode()
 export type ShowMoreAction = {
@@ -47,7 +43,7 @@ const MAX_SEARCH_PREVIEW_RESULTS = 10
 export type Entry = Mail | Contact | CalendarEvent | DriveFile | DriveFolder | ShowMoreAction
 type Entries = Array<Entry>
 export type SearchBarState = {
-	query: string
+	query: SearchQuery | null
 	searchResult: LiveSearchResult<Entry> | null
 	selected: Entry | null
 }
@@ -67,11 +63,10 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	private domWrapper!: HTMLElement
 	private domInput!: HTMLElement
 	private stateStream: Stream<unknown> | null = null
-	private lastQueryStream: Stream<unknown> | null = null
 
 	constructor() {
 		this.state = stream<SearchBarState>({
-			query: "",
+			query: null,
 			searchResult: null,
 			selected: null,
 		})
@@ -91,22 +86,23 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		this.onremove = this.onremove.bind(this)
 	}
 
-	/**
-	 * this reacts to URL changes by clearing the suggestions - the selected item may have changed (in the mail view maybe)
-	 * that shouldn't clear our current state, but if the URL changed in a way that makes the previous state outdated, we clear it.
-	 */
-	private readonly onPathChange = memoized((newPath: string) => {
-		if (mailLocator.search.isNewSearch(this.state().query, getRestriction(newPath))) {
-			this.updateState({
-				searchResult: null,
-				selected: null,
-			})
-		}
-	})
+	// /**
+	//  * this reacts to URL changes by clearing the suggestions - the selected item may have changed (in the mail view maybe)
+	//  * that shouldn't clear our current state, but if the URL changed in a way that makes the previous state outdated, we clear it.
+	//  */
+	// private readonly onPathChange = memoized((newPath: string) => {
+	// 	// if we assume quick search then we only care about query (and type)
+	// 	if (searchQueryEquals(this.state().query, ))
+	// 	// FIXME won't work
+	// 	if (mailLocator.search.isNewSearch(this.state().query, getRestriction(newPath))) {
+	// 		this.updateState({
+	// 			searchResult: null,
+	// 			selected: null,
+	// 		})
+	// 	}
+	// })
 
 	view(vnode: Vnode<SearchBarAttrs>) {
-		this.onPathChange(m.route.get())
-
 		return m(
 			// form wrapper to isolate the search input and prevent it from being autofilled when unrelated buttons are clicked on chrome
 			// this is done because chrome doesn't appear to respect `autocomplete="off"` and will autofill the field anyway
@@ -122,7 +118,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			},
 			m(BaseSearchBar, {
 				placeholder: vnode.attrs.placeholder,
-				text: this.state().query,
+				text: this.state().query?.query ?? "",
 				busy: this.busy,
 				disabled: vnode.attrs.disabled,
 				onInput: (text) => this.search(text),
@@ -213,14 +209,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		keyManager.registerShortcuts(this.shortcuts)
 
 		this.stateStream = this.state.map((state) => m.redraw())
-		this.lastQueryStream = mailLocator.search.lastQueryString.map((value) => {
-			// Set value from the model when it's set from the URL e.g. reloading the page on the search screen
-			if (value) {
-				this.updateState({
-					query: value,
-				})
-			}
-		})
 	}
 
 	onremove() {
@@ -229,8 +217,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		if (this.shortcuts) keyManager.unregisterShortcuts(this.shortcuts)
 
 		this.stateStream?.end(true)
-
-		this.lastQueryStream?.end(true)
 
 		this.closeOverlay()
 	}
@@ -311,23 +297,25 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 	private selectResult(result: (Mail | null) | Contact | CalendarEvent | ShowMoreAction | DriveFile | DriveFolder) {
 		const { query } = this.state()
+		const queryString = query?.query ?? ""
 
+		// FIXME: move this outside
 		if (result != null) {
 			let type: TypeRef<any> | null = "_type" in result ? result._type : null
 
 			if (!type) {
 				// click on SHOW MORE button
 				if ((result as ShowMoreAction).allowShowMore) {
-					this.updateSearchUrl(query)
+					this.updateSearchUrl(queryString)
 				}
 			} else if (isSameTypeRef(MailTypeRef, type)) {
-				this.updateSearchUrl(query, result as Mail)
+				this.updateSearchUrl(queryString, result as Mail)
 			} else if (isSameTypeRef(ContactTypeRef, type)) {
-				this.updateSearchUrl(query, result as Contact)
+				this.updateSearchUrl(queryString, result as Contact)
 			} else if (isSameTypeRef(CalendarEventTypeRef, type)) {
-				this.updateSearchUrl(query, result as CalendarEvent)
+				this.updateSearchUrl(queryString, result as CalendarEvent)
 			} else if (isSameTypeRef(DriveFolderTypeRef, type) || isSameTypeRef(DriveFileTypeRef, type)) {
-				this.updateSearchUrl(query, result as DriveFolder | DriveFile)
+				this.updateSearchUrl(queryString, result as DriveFolder | DriveFile)
 			}
 		}
 	}
@@ -354,18 +342,30 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 	private search(query?: string) {
 		let oldQuery = this.state().query
-
+		let restriction = this.getRestriction()
+		let searchQuery: SearchQuery
 		if (query != null) {
+			searchQuery = {
+				query: query ?? "",
+				restriction,
+				// FIXME: these 2 are wrong
+				maxResults: null,
+				minSuggestionCount: 0,
+			}
 			this.updateState({
-				query,
+				query: searchQuery,
 			})
 		} else {
-			query = oldQuery
+			searchQuery = oldQuery ?? {
+				query: query ?? "",
+				restriction,
+				// FIXME: these 2 are wrong
+				maxResults: null,
+				minSuggestionCount: 0,
+			}
 		}
 
-		let restriction = this.getRestriction()
-
-		if (!mailLocator.search.indexState().mailIndexEnabled && restriction && restriction.type === "mail" && !this.confirmDialogShown) {
+		if (!mailLocator.search.indexState().mailIndexEnabled && restriction && restriction.type === SearchCategoryType.mail && !this.confirmDialogShown) {
 			this.focused = false
 			this.confirmDialogShown = true
 			Dialog.confirm("enableSearchMailbox_msg", "search_label")
@@ -387,46 +387,48 @@ export class SearchBar implements Component<SearchBarAttrs> {
 				.finally(() => (this.confirmDialogShown = false))
 		} else {
 			// Skip the search if the user is trying to bypass the search dialog
-			if (!mailLocator.search.indexState().mailIndexEnabled && restriction.type === "mail") {
+			if (!mailLocator.search.indexState().mailIndexEnabled && restriction.type === SearchCategoryType.mail) {
 				return
 			}
 
-			if (!mailLocator.search.isNewSearch(query, restriction) && oldQuery === query) {
-				const result = mailLocator.search.result()
+			// FIXME: wtf we are doing here? Why are we in quick search with search result but without a loaded result?
+			// if (!mailLocator.search.isNewSearch(query, restriction)&& oldQuery === query) {
+			// 	const result = mailLocator.search.result()
+			//
+			// 	if (this.isQuickSearch() && result) {
+			// 		this.showResultsInOverlay(result)
+			// 	}
+			//
+			// 	this.busy = false
+			// } else {
 
-				if (this.isQuickSearch() && result) {
-					this.showResultsInOverlay(result)
-				}
-
-				this.busy = false
-			} else {
-				if (query.trim() !== "") {
-					this.busy = true
-				}
-
-				this.doSearch(query, restriction, () => {
-					this.busy = false
-					m.redraw()
-				})
+			if (searchQuery.query.trim() !== "") {
+				this.busy = true
 			}
+
+			this.doSearch(searchQuery.query, restriction, () => {
+				this.busy = false
+				m.redraw()
+			})
+			// }
 		}
 	}
 
 	private readonly doSearch = debounce(300, (query: string, restriction: SearchRestriction, cb: () => void) => {
-		if (!this.isQuickSearch()) {
-			// if we're already on the search view, we don't want to wait until there's a new result to update the
-			// UI. we can directly go to the URL and let the SearchViewModel do its thing from there.
-			searchRouter.routeTo(query, restriction)
-			return cb()
-		}
+		;(async () => {
+			if (!this.isQuickSearch()) {
+				// if we're already on the search view, we don't want to wait until there's a new result to update the
+				// UI. we can directly go to the URL and let the SearchViewModel do its thing from there.
+				searchRouter.routeTo(query, restriction)
+				return
+			}
 
-		this.state().searchResult?.dispose()
+			this.state().searchResult?.dispose()
 
-		switch (restriction.type) {
-			case SearchCategoryType.mail:
-				// FIXME: dispose of the old result
-				mailLocator.search
-					.coolNewSearchMails(
+			let liveResult: LiveSearchResult<Entry>
+			switch (restriction.type) {
+				case SearchCategoryType.mail:
+					liveResult = await mailLocator.search.coolNewSearchMails(
 						{
 							query,
 							restriction,
@@ -435,71 +437,43 @@ export class SearchBar implements Component<SearchBarAttrs> {
 						},
 						mailLocator.progressTracker,
 					)
-					.then((liveResult) => {
-						const results: Entries = liveResult.items
-						const moreEntry: ShowMoreAction = {
-							resultCount: liveResult.items.length,
-							shownCount: liveResult.items.length,
-							indexTimestamp: liveResult.searchResult.currentIndexTimestamp,
-							allowShowMore: true,
-						}
-						results.push(moreEntry)
-						this.updateState({
-							searchResult: liveResult,
-							selected: liveResult.items[0],
-						})
-					})
-					.finally(() => cb())
-				return
-		}
-
-		// We don't limit contacts because we need to download all of them to sort them. They should be cached anyway.
-		const limit = null
-
-		mailLocator.search
-			.search(
-				{
-					query: query ?? "",
-					restriction,
-					minSuggestionCount: 0,
-					maxResults: limit,
-				},
-				mailLocator.progressTracker,
-			)
-			.then((result) => this.loadAndDisplayResult(query, result ? result : null, limit))
-			.finally(() => cb())
-	})
-
-	/** Given the result from the search load additional results if needed and then display them or set URL. */
-	private loadAndDisplayResult(query: string, result: SearchResult | null, limit: number | null) {
-		const safeResult = result,
-			safeLimit = limit
-
-		// this.updateState({
-		// 	searchResult: safeResult,
-		// })
-
-		if (!safeResult || mailLocator.search.isNewSearch(query, safeResult.restriction)) {
-			return
-		}
-
-		if (this.isQuickSearch()) {
-			if (safeLimit && hasMoreResults(safeResult) && safeResult.results.length < safeLimit) {
-				mailLocator.searchFacade.getMoreSearchResults(safeResult, safeLimit - safeResult.results.length).then((moreResults) => {
-					if (mailLocator.search.isNewSearch(query, moreResults.restriction)) {
-						return
-					} else {
-						this.loadAndDisplayResult(query, moreResults, limit)
-					}
-				})
-			} else {
-				this.showResultsInOverlay(safeResult)
+					break
+				case SearchCategoryType.contact:
+					liveResult = await mailLocator.search.coolNewSearchContacts(
+						{ query, restriction, minSuggestionCount: 0, maxResults: null },
+						mailLocator.progressTracker,
+					)
+					break
+				case SearchCategoryType.calendar:
+				case SearchCategoryType.drive:
+					// FIXME: other search types
+					return
 			}
-		} else {
-			// instances will be displayed as part of the list of the search view, when the search view is displayed
-			searchRouter.routeTo(query, safeResult.restriction)
-		}
-	}
+			const results: Entries = liveResult.items
+			const { searchResult } = liveResult
+
+			if (
+				// FIXME: we changed the behavior for empty search result
+				isNotEmpty(searchResult.results) &&
+				(hasMoreResults(searchResult) ||
+					liveResult.items.length > MAX_SEARCH_PREVIEW_RESULTS ||
+					searchResult.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP)
+			) {
+				const moreEntry: ShowMoreAction = {
+					resultCount: liveResult.items.length,
+					shownCount: liveResult.items.length,
+					indexTimestamp: searchResult.currentIndexTimestamp,
+					allowShowMore: true,
+				}
+				results.push(moreEntry)
+			}
+
+			this.updateState({
+				searchResult: liveResult,
+				selected: liveResult.items[0],
+			})
+		})().finally(() => cb())
+	})
 
 	private clear() {
 		if (m.route.get().startsWith("/search")) {
@@ -510,101 +484,14 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		}
 
 		this.updateState({
-			query: "",
+			query: null,
 			selected: null,
 			searchResult: null,
 		})
 	}
 
-	private async showResultsInOverlay(result: SearchResult): Promise<void> {
-		let entries: Entry[]
-		switch (result.restriction.type) {
-			case SearchCategoryType.calendar:
-				{
-					const serverEventIds = result.results.filter(([calendarId, eventId]) => !isBirthdayCalendar(calendarId))
-					const eventsRepository = await mailLocator.calendarEventsRepository()
-					entries = [
-						...(await loadMultipleFromLists(CalendarEventTypeRef, mailLocator.entityClient, serverEventIds)),
-						...(await retrieveBirthdayEventsForUser(mailLocator.logins, result.results, eventsRepository.getBirthdayEvents())),
-					]
-				}
-				break
-			case SearchCategoryType.contact:
-				entries = await loadMultipleFromLists(ContactTypeRef, mailLocator.entityClient, result.results)
-				break
-			case SearchCategoryType.mail:
-				entries = await loadMultipleFromLists(MailTypeRef, mailLocator.entityClient, result.results)
-				break
-			case SearchCategoryType.drive:
-				//FIXME
-				entries = []
-				break
-		}
-
-		// If there was no new search while we've been downloading the result
-		if (!mailLocator.search.isNewSearch(result.query, result.restriction)) {
-			const { filteredEntries, couldShowMore } = this.filterResults(entries, result.restriction)
-
-			if (
-				result.query.trim() !== "" &&
-				(filteredEntries.length === 0 || hasMoreResults(result) || couldShowMore || result.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP)
-			) {
-				const moreEntry: ShowMoreAction = {
-					resultCount: result.results.length,
-					shownCount: filteredEntries.length,
-					indexTimestamp: result.currentIndexTimestamp,
-					allowShowMore: true,
-				}
-				filteredEntries.push(moreEntry)
-			}
-
-			this.updateState({
-				selected: filteredEntries[0],
-			})
-		}
-	}
-
 	private isQuickSearch(): boolean {
 		return !m.route.get().startsWith("/search")
-	}
-
-	private filterResults(
-		instances: Array<Entry>,
-		restriction: SearchRestriction,
-	): {
-		filteredEntries: Entries
-		couldShowMore: boolean
-	} {
-		switch (restriction.type) {
-			case SearchCategoryType.contact:
-				// Sort contacts by name
-				return {
-					filteredEntries: instances
-						.slice() // we can't modify the given array
-						.sort((o1, o2) => compareContacts(o1 as any, o2 as any))
-						.slice(0, MAX_SEARCH_PREVIEW_RESULTS),
-					couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS,
-				}
-			case SearchCategoryType.calendar: {
-				const range = { start: restriction.start ?? 0, end: restriction.end ?? 0 }
-				const generatedInstances = generateCalendarInstancesInRange(downcast(instances), range, MAX_SEARCH_PREVIEW_RESULTS + 1)
-				return {
-					filteredEntries: generatedInstances.slice(0, MAX_SEARCH_PREVIEW_RESULTS),
-					couldShowMore: generatedInstances.length > MAX_SEARCH_PREVIEW_RESULTS,
-				}
-			}
-			case SearchCategoryType.mail:
-				return {
-					filteredEntries: instances.slice().sort(compareMails).slice(0, MAX_SEARCH_PREVIEW_RESULTS),
-					couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS,
-				}
-			case SearchCategoryType.drive:
-				return {
-					// FIXME
-					filteredEntries: instances,
-					couldShowMore: instances.length > MAX_SEARCH_PREVIEW_RESULTS,
-				}
-		}
 	}
 
 	private onFocus() {
@@ -627,7 +514,8 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	private onBlur() {
 		this.focused = false
 
-		if (this.state().query === "") {
+		const query = this.state().query
+		if (query == null || query.query === "") {
 			if (m.route.get().startsWith("/search")) {
 				const restriction = searchRouter.getRestriction()
 				searchRouter.routeTo("", restriction)
