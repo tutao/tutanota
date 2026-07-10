@@ -6,8 +6,6 @@ import { IconSegmentControl } from "../../../../ui/base/IconSegmentControl.js"
 import { AllIcons } from "../../../../ui/base/Icon.js"
 import { TodayIconButton } from "./TodayIconButton.js"
 import { CalendarViewType } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { locator } from "../../../common/api/main/CommonLocator"
-import { deviceConfig } from "../../../common/misc/DeviceConfig"
 
 type CalendarDesktopToolbarAttrs = {
 	navConfig: CalendarNavConfiguration
@@ -20,12 +18,13 @@ export class CalendarDesktopToolbar implements Component<CalendarDesktopToolbarA
 	view({ attrs }: Vnode<CalendarDesktopToolbarAttrs>): Children {
 		const { navConfig } = attrs
 		return m(
-			".flex.row.items-center.content-bg.border-radius-12.mlr-24.rel.pr-12.pl-16",
+			"section.flex.row.items-center.content-bg.border-radius-12.mlr-24.rel.pr-12.pl-16",
 			{
 				style: {
 					marginLeft: `5px`,
 					marginBottom: px(size.spacing_16),
 				},
+				"data-testid": `section:calendarDesktopToolbar`,
 			},
 			[
 				m("h1", navConfig.title),
@@ -75,7 +74,7 @@ export class CalendarDesktopToolbar implements Component<CalendarDesktopToolbarA
 
 		// always center the segment control inside the toolbar
 		return m(
-			".abs.center-h",
+			"section.abs.center-h",
 			{
 				role: "tablist",
 				"aria-label": lang.get("periodOfTime_label"),
@@ -85,6 +84,7 @@ export class CalendarDesktopToolbar implements Component<CalendarDesktopToolbarA
 					// need explicit width to center the control
 					width: px(component_size.icon_segment_control_button_width * 4),
 				},
+				"data-testid": `section:viewSelector`,
 			},
 			m(IconSegmentControl, {
 				selectedValue: attrs.viewType,
