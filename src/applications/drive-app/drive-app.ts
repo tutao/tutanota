@@ -213,10 +213,7 @@ import("../../ui/translations/en.js")
 								drawerAttrsFactory,
 								header: await driveLocator.appHeaderAttrs(),
 								driveViewModel: await driveLocator.driveViewModel(),
-								lazySearchBar: () =>
-									m(lazyDriveSearchBarStub, {
-										placeholder: "stub",
-									}),
+								lazySearchBar: () => m(lazyDriveSearchBarStub),
 								filePicker,
 								bottomNav: () => null,
 							},

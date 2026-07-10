@@ -1,28 +1,49 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import type { SearchBarAttrs } from "../mail-app/search/SearchBar.js"
+import { SearchBar, SearchBarAttrs } from "../mail-app/search/SearchBar.js"
 import { LazyLoaded } from "../../platform-kit/utils"
 import { CalendarSearchBar } from "./calendar/search/CalendarSearchBar.js"
+import { CalendarEvent } from "@tutao/entities/tutanota"
+import { SearchModel } from "../mail-app/search/model/SearchModel"
+import { createRestriction } from "./calendar/search/model/SearchUtils"
+import { formatEventDuration } from "./calendar/gui/CalendarGuiUtils"
+import { getTimeZone } from "../common/calendar/date/CalendarUtils"
+import { lang } from "../../ui/utils/LanguageViewModel"
 
-/**
- * Lazy wrapper around SearchBar which unfortunately resides in the search chunk right now and cannot be imported from some files.
- *
- * Ideally this would be a generic component but it's not simple to implement.
- */
-export class LazyCalendarSearchBar implements ClassComponent<SearchBarAttrs> {
-	private static searchBar: LazyLoaded<CalendarSearchBar> = new LazyLoaded(async () => {
-		const { searchBar } = await import("./calendar/search/CalendarSearchBar.js")
+export interface CalendarSearchBarAttrs {
+	searchModel: SearchModel
+	selectResult: (entry: CalendarEvent) => unknown
+}
+
+// FIXME: rewrite with a LazyComponent
+export class LazyCalendarSearchBar implements ClassComponent<CalendarSearchBarAttrs> {
+	private static SearchBar: LazyLoaded<Class<SearchBar<CalendarEvent>>> = new LazyLoaded(async () => {
+		const { SearchBar } = await import("../mail-app/search/SearchBar.js")
 		m.redraw()
-		return searchBar
+		return SearchBar
 	})
 
-	oninit(vnode: Vnode<SearchBarAttrs, this>): any {
-		LazyCalendarSearchBar.searchBar.load()
+	oninit() {
+		LazyCalendarSearchBar.SearchBar.load()
 	}
 
-	view(vnode: Vnode<SearchBarAttrs, this>): Children | void | null {
-		const searchBar = LazyCalendarSearchBar.searchBar.getSync()
+	view({ attrs }: Vnode<CalendarSearchBarAttrs, this>): Children | null {
+		const searchBar = LazyCalendarSearchBar.SearchBar.getSync()
 		if (searchBar) {
-			return m(searchBar, vnode.attrs)
+			return m(searchBar, {
+				placeholder: lang.getTranslationText("searchCalendar_placeholder"),
+				loadResults: (query) =>
+					attrs.searchModel.coolNewSearchCalendar({
+						query,
+						maxResults: 10, // FIXME
+						restriction: createRestriction(null, null, [], false),
+						minSuggestionCount: 0,
+					}),
+				selectResult: attrs.selectResult,
+				renderResult: (entry) => [
+					m(".top.flex-space-between", m(".name.text-ellipsis", { title: entry.summary }, entry.summary)),
+					m(".bottom.flex-space-between", m("small.mail-address", formatEventDuration(entry, getTimeZone(), false))),
+				],
+			} satisfies SearchBarAttrs<CalendarEvent>)
 		} else {
 			return null
 		}

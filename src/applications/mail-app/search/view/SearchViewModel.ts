@@ -310,15 +310,12 @@ export class SearchViewModel {
 		}
 		if (restriction.type === SearchCategoryType.mail) {
 			this.search
-				.coolNewSearchMails(
-					{
-						query: searchQuery ?? "",
-						restriction,
-						minSuggestionCount: 0,
-						maxResults,
-					},
-					this.progressTracker,
-				)
+				.coolNewSearchMails({
+					query: searchQuery ?? "",
+					restriction,
+					minSuggestionCount: 0,
+					maxResults,
+				})
 				.then((result) => {
 					this.applyLiveSearchResults(result)
 				})

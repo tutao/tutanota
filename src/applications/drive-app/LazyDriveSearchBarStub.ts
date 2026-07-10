@@ -1,9 +1,9 @@
-import m, { Children, ClassComponent, Component, Vnode } from "mithril"
+import m, { Children, ClassComponent, Vnode } from "mithril"
 import type { SearchBarAttrs } from "../mail-app/search/SearchBar.js"
-import { LazyLoaded } from "../../platform-kit/utils"
+import { LazyLoaded } from "@tutao/utils"
 
-export class DriveSearchBarStub implements Component<SearchBarAttrs> {
-	view(vnode: m.Vnode<SearchBarAttrs, m._NoLifecycle<this & {}>>): m.Children | void | null {
+export class DriveSearchBarStub implements ClassComponent {
+	view(): m.Children | void | null {
 		return null
 	}
 }
@@ -13,17 +13,17 @@ export class DriveSearchBarStub implements Component<SearchBarAttrs> {
  *
  * Ideally this would be a generic component but it's not simple to implement.
  */
-export class LazyDriveSearchBar implements ClassComponent<SearchBarAttrs> {
+export class LazyDriveSearchBar implements ClassComponent {
 	private static searchBar: LazyLoaded<DriveSearchBarStub> = new LazyLoaded(async () => {
 		m.redraw()
 		return new DriveSearchBarStub()
 	})
 
-	oninit(vnode: Vnode<SearchBarAttrs, this>): any {
+	oninit(): any {
 		LazyDriveSearchBar.searchBar.load()
 	}
 
-	view(vnode: Vnode<SearchBarAttrs, this>): Children | void | null {
+	view(vnode: Vnode<SearchBarAttrs<unknown>, this>): Children | null {
 		const searchBar = LazyDriveSearchBar.searchBar.getSync()
 		if (searchBar) {
 			return m(searchBar, vnode.attrs)

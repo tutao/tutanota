@@ -43,6 +43,7 @@ import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accou
 import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
 import { RevocationView, RevocationViewAttrs } from "../common/revocation/RevocationView"
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
+import { CalendarSearchBarAttrs } from "./LazyCalendarSearchBar"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -315,7 +316,7 @@ import("../../ui/translations/en.js")
 					drawerAttrsFactory: () => DrawerMenuAttrs
 					header: AppHeaderAttrs
 					calendarViewModel: CalendarViewModel
-					lazySearchBar: () => Children
+					lazySearchBar: (calendarSearchBarAttrs: CalendarSearchBarAttrs) => Children
 				}
 			>(
 				{
@@ -329,10 +330,8 @@ import("../../ui/translations/en.js")
 								drawerAttrsFactory,
 								header: await calendarLocator.appHeaderAttrs(),
 								calendarViewModel: await calendarLocator.calendarViewModel(),
-								lazySearchBar: () => {
-									return m(lazyCalendarSearchBar, {
-										placeholder: lang.get("searchCalendar_placeholder"),
-									})
+								lazySearchBar: (attrs: CalendarSearchBarAttrs) => {
+									return m(lazyCalendarSearchBar, attrs)
 								},
 							},
 						}

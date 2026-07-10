@@ -42,7 +42,6 @@ import { ContactViewerActions } from "./ContactViewerActions.js"
 import { MobileBottomActionBar } from "../../../../ui/MobileBottomActionBar.js"
 import { exportAsVCard, importAsVCard } from "./ImportAsVCard.js"
 import { MobileHeader } from "../../../../ui/MobileHeader.js"
-import { LazySearchBar } from "../../LazySearchBar.js"
 import { MultiselectMobileHeader } from "../../../../ui/MultiselectMobileHeader.js"
 import { MultiselectMode } from "../../../../ui/base/List.js"
 import { EnterMultiselectIconButton } from "../../../../ui/EnterMultiselectIconButton.js"
@@ -304,9 +303,8 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 							searchBar: () =>
 								this.inContactListView()
 									? null
-									: m(LazySearchBar, {
-											placeholder: lang.get("searchContacts_placeholder"),
-										}),
+									: // FIXME
+										null,
 							...attrs.header,
 							buttons: renderHeaderButtons(),
 						}),

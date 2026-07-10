@@ -125,6 +125,7 @@ import { exportCalendar } from "../../../common/calendar/gui/CalendarImporterDia
 import { CalendarImporter } from "../../../common/calendar/import/CalendarImporter"
 import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInteractionHandler"
 import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
+import { CalendarSearchBarAttrs } from "../../LazyCalendarSearchBar"
 
 export type GroupColors = Map<Id, string>
 
@@ -133,7 +134,7 @@ export interface CalendarViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
 	calendarViewModel: CalendarViewModel
 	bottomNav?: () => Children
-	lazySearchBar: () => Children
+	lazySearchBar: (attrs: CalendarSearchBarAttrs) => Children
 }
 
 const CalendarViewTypeByValue = reverse(CalendarViewType)
@@ -1163,7 +1164,14 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			m(this.viewSlider, {
 				header: m(Header, {
 					firstColWidth: this.sidebarColumn.width,
-					searchBar: attrs.lazySearchBar,
+					searchBar: () =>
+						attrs.lazySearchBar({
+							// FIXME
+							searchModel: calendarLocator.search as any,
+							selectResult: () => {
+								// FIXME: update URL
+							},
+						}),
 					...attrs.header,
 					buttons: renderHeaderButtons(),
 				}),

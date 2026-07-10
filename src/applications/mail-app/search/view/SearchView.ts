@@ -51,7 +51,6 @@ import { ContactViewerActions } from "../../contacts/view/ContactViewerActions.j
 import { confirmMerge, deleteContacts, writeMail } from "../../contacts/view/ContactView.js"
 import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../../../ui/theme.js"
-import { searchBar } from "../SearchBar.js"
 import { MobileMailMultiselectionActionBar } from "../../mail/view/MobileMailMultiselectionActionBar.js"
 import { exportContacts } from "../../contacts/VCardExporter.js"
 import { BackgroundColumnLayout } from "../../../../ui/BackgroundColumnLayout.js"
@@ -556,10 +555,12 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				{
 					class: rightActions.length === 0 ? "mr-12" : "",
 				},
-				m(searchBar, {
-					placeholder: this.searchBarPlaceholder(),
-					returnListener: () => this.resultListColumn.focus(),
-				}),
+				// FIXME: reimplement searchBar for search view
+				null,
+				// m(searchBar, {
+				// 	placeholder: this.searchBarPlaceholder(),
+				// 	returnListener: () => this.resultListColumn.focus(),
+				// }),
 			),
 			injections: m(ProgressBar, { progress: header.offlineIndicatorModel.getProgress() }),
 		})
@@ -990,10 +991,12 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				header: m(Header, {
 					firstColWidth: this.folderColumn.width,
 					searchBar: () =>
-						m(searchBar, {
-							placeholder: this.searchBarPlaceholder(),
-							returnListener: () => this.resultListColumn.focus(),
-						}),
+						// FIXME: reimplement search bar for search view
+						null,
+					// m(searchBar, {
+					// 	placeholder: this.searchBarPlaceholder(),
+					// 	returnListener: () => this.resultListColumn.focus(),
+					// }),
 					...attrs.header,
 					buttons: renderHeaderButtons(),
 				}),

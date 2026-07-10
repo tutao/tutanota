@@ -68,6 +68,7 @@ import { initClientModels } from "../common/api/common/ClientModelInfoInitialize
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../platform-kit/instance-pipeline/RestClientOptions"
 import { RevocationView, RevocationViewAttrs } from "../common/revocation/RevocationView"
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
+import { CalendarSearchBarAttrs } from "../calendar-app/LazyCalendarSearchBar"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -640,13 +641,13 @@ import("../../ui/translations/en.js")
 					header: AppHeaderAttrs
 					calendarViewModel: CalendarViewModel
 					bottomNav: () => Children
-					lazySearchBar: () => Children
+					lazySearchBar: (attrs: CalendarSearchBarAttrs) => Children
 				}
 			>(
 				{
 					prepareRoute: async (cache) => {
 						const { CalendarView } = await import("../calendar-app/calendar/view/CalendarView.js")
-						const { lazySearchBar } = await import("./LazySearchBar.js")
+						const { LazyCalendarSearchBar } = await import("../calendar-app/LazyCalendarSearchBar.js")
 						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
 						return {
 							component: CalendarView,
@@ -655,10 +656,7 @@ import("../../ui/translations/en.js")
 								header: await mailLocator.appHeaderAttrs(),
 								calendarViewModel: await mailLocator.calendarViewModel(),
 								bottomNav: () => m(BottomNav),
-								lazySearchBar: () =>
-									m(lazySearchBar, {
-										placeholder: lang.get("searchCalendar_placeholder"),
-									}),
+								lazySearchBar: (attrs) => m(LazyCalendarSearchBar, attrs),
 							},
 						}
 					},
@@ -687,7 +685,6 @@ import("../../ui/translations/en.js")
 				{
 					prepareRoute: async (cache) => {
 						const { DriveView } = await import("../drive-app/drive/view/DriveView.js")
-						const { lazySearchBar } = await import("./LazySearchBar.js")
 						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
 						const filePicker = await mailLocator.driveFilePicker()
 						return {
@@ -698,10 +695,8 @@ import("../../ui/translations/en.js")
 								driveViewModel: await mailLocator.driveViewModel(),
 								bottomNav: () => m(BottomNav),
 								lazySearchBar: () =>
-									m(lazySearchBar, {
-										// FIXME translate
-										placeholder: "Search Drive",
-									}),
+									// FIXME
+									null,
 								filePicker,
 							},
 						}

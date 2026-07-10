@@ -1,10 +1,9 @@
-import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
-import type { Entry, ShowMoreAction } from "./SearchBar"
+import { CalendarEvent, Contact, Mail } from "@tutao/entities/tutanota"
+import type { ShowMoreAction } from "./SearchBar"
 import { px, size } from "../../../ui/size"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { Icons } from "../../../ui/base/icons/Icons"
-import { downcast, isEmpty } from "@tutao/utils"
-import { isSameTypeRef, TypeRef } from "@tutao/meta"
+import { isEmpty } from "@tutao/utils"
 import { FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { formatDate, formatTimeOrDateOrYesterday } from "../../../ui/utils/Formatter"
 import Badge from "../../../ui/base/Badge"
@@ -20,23 +19,22 @@ import { mailLocator } from "../mailLocator.js"
 import { renderSearchInOurApps } from "./view/SearchView"
 import { isTutaTeamMail } from "../../common/mailFunctionality/SharedMailUtils"
 import { companyTeamLabel } from "../../../platform-kit/app-env/boot/ClientConstants"
-import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 
-type SearchBarOverlayAttrs = {
-	items: readonly Entry[]
-	selected: Entry | null
-	isQuickSearch: boolean
+export interface SearchBarOverlayAttrs<T> {
+	items: readonly T[]
+	selected: T | null
 	isFocused: boolean
-	selectResult: (result: Entry | null) => void
+	renderResult: (entry: T, isSelected: boolean) => Children
+	selectResult: (result: T | null) => void
 }
 
-export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
-	view({ attrs }: Vnode<SearchBarOverlayAttrs>): Children {
-		const { items, selected } = attrs
-		return [!isEmpty(items) && attrs.isQuickSearch && attrs.isFocused ? this.renderResults(attrs) : null]
+export class SearchBarOverlay<T> implements Component<SearchBarOverlayAttrs<T>> {
+	view({ attrs }: Vnode<SearchBarOverlayAttrs<T>>): Children {
+		const { items } = attrs
+		return [!isEmpty(items) && attrs.isFocused ? this.renderResults(attrs) : null]
 	}
 
-	renderResults(attrs: SearchBarOverlayAttrs): Children {
+	renderResults(attrs: SearchBarOverlayAttrs<T>): Children {
 		const searchInOurAppsElement = renderSearchInOurApps()
 
 		return [
@@ -55,7 +53,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 							onclick: () => attrs.selectResult(entry),
 							class: isSelected ? "row-selected" : "",
 						},
-						this.renderResult(entry, isSelected),
+						attrs.renderResult(entry, isSelected),
 					)
 				}),
 			]),
@@ -69,26 +67,6 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 					searchInOurAppsElement,
 				),
 		]
-	}
-
-	renderResult(result: Entry, isSelected: boolean): Children {
-		let type: TypeRef<any> | null = "_type" in result ? result._type : null
-
-		if (!type) {
-			return this.renderShowMoreAction(downcast(result))
-		} else if (isSameTypeRef(MailTypeRef, type)) {
-			return this.renderMailResult(downcast(result), isSelected)
-		} else if (isSameTypeRef(ContactTypeRef, type)) {
-			return this.renderContactResult(downcast(result))
-		} else if (isSameTypeRef(CalendarEventTypeRef, type)) {
-			return this.renderCalendarEventResult(downcast(result))
-		} else if (isSameTypeRef(DriveFileTypeRef, type)) {
-			return `file! ${(result as DriveFile).name}`
-		} else if (isSameTypeRef(DriveFolderTypeRef, type)) {
-			return `folder! ${(result as DriveFolder).name}`
-		} else {
-			return []
-		}
 	}
 
 	private renderShowMoreAction(showMoreAction: ShowMoreAction): Children {
@@ -125,56 +103,6 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 				".bottom.flex-space-between",
 				m("small.mail-address", contact.mailAddresses && contact.mailAddresses.length > 0 ? contact.mailAddresses[0].address : ""),
 			),
-		]
-	}
-
-	private renderCalendarEventResult(event: CalendarEvent): Children {
-		return [
-			m(".top.flex-space-between", m(".name.text-ellipsis", { title: event.summary }, event.summary)),
-			m(".bottom.flex-space-between", m("small.mail-address", formatEventDuration(event, getTimeZone(), false))),
-		]
-	}
-
-	private renderMailResult(mail: Mail, isSelected: boolean): Children {
-		return [
-			m(".top.flex-space-between.badge-line-height", [
-				isTutaTeamMail(mail)
-					? m(
-							Badge,
-							{
-								classes: ".small.mr-8",
-							},
-							companyTeamLabel,
-						)
-					: null,
-				m("small.text-ellipsis", getSenderOrRecipientHeading(mail, true)),
-				m("small.text-ellipsis.flex-fixed", formatTimeOrDateOrYesterday(mail.receivedDate)),
-			]),
-			m(".bottom.flex-space-between", [
-				m(".text-ellipsis", mail.subject),
-				m(
-					".icons.flex-fixed",
-					{
-						style: {
-							"margin-right": "-3px",
-						},
-					},
-					[
-						// 3px to neutralize the svg icons internal border
-						m(Icon, {
-							icon: getMailFolderIcon(mailLocator.mailModel, mail),
-							class: isSelected ? "svg-content-accent-fg" : "svg-content-fg",
-						}),
-						m(Icon, {
-							icon: Icons.Paperclip,
-							class: isSelected ? "svg-content-accent-fg" : "svg-content-fg",
-							style: {
-								display: mail.attachments.length > 0 ? "" : "none",
-							},
-						}),
-					],
-				),
-			]),
 		]
 	}
 }

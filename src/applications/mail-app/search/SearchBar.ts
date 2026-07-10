@@ -1,7 +1,7 @@
-import m, { Component, Vnode } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { layout_size, px, size } from "../../../ui/size"
 import { displayOverlay, overlayBottomMargin, PositionRect } from "../../../ui/base/Overlay"
-import { assertIsEntity, getElementId, isSameTypeRef, ListElementEntity, TypeRef } from "@tutao/meta"
+import { assertIsEntity, getElementId, ListElementEntity } from "@tutao/meta"
 import type { Shortcut } from "../../../ui/utils/KeyManager"
 import { isKeyPressed, keyManager } from "../../../ui/utils/KeyManager"
 import { encodeCalendarSearchKey, getRestriction, hasMoreResults } from "./model/SearchUtils"
@@ -17,11 +17,10 @@ import { SearchCategoryType, SearchRestriction } from "../../common/api/worker/s
 import { LayerType } from "../../../ui/base/RootView"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../ui/base/BaseSearchBar.js"
 import { SearchRouter } from "../../common/search/view/SearchRouter.js"
-import { PageSize } from "../../../ui/base/ListUtils.js"
 import { mailLocator } from "../mailLocator.js"
-import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
+import { CalendarEvent, CalendarEventTypeRef, Contact, Mail } from "@tutao/entities/tutanota"
 import { windowFacade } from "../../common/misc/WindowFacade"
-import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
+import { DriveFile, DriveFolder } from "@tutao/entities/drive"
 import { LiveSearchResult, SearchQuery } from "./model/SearchModel"
 
 assertMainOrNode()
@@ -31,20 +30,24 @@ export type ShowMoreAction = {
 	indexTimestamp: number
 	allowShowMore: boolean
 }
-export type SearchBarAttrs = {
+type ResultLoader<T> = (query: string) => Promise<LiveSearchResult<T>>
+
+export type SearchBarAttrs<T> = {
 	placeholder?: string | null
 	returnListener?: (() => unknown) | null
 	disabled?: boolean
+	loadResults: ResultLoader<T>
+	renderResult: (entry: T, isSelected: boolean) => Children
+	selectResult: (entry: T) => unknown
 }
 
 const MAX_SEARCH_PREVIEW_RESULTS = 10
 export type Entry = Mail | Contact | CalendarEvent | DriveFile | DriveFolder | ShowMoreAction
-type Entries = Array<Entry>
 
-interface SearchBarState {
+interface SearchBarState<T> {
 	query: SearchQuery | null
-	searchResult: LiveSearchResult<Entry> | null
-	selected: Entry | null
+	searchResult: LiveSearchResult<T> | null
+	selected: T | null
 	busy: boolean
 }
 
@@ -53,56 +56,45 @@ interface SearchBarState {
 // once SearchBar is rewritten this should be removed
 const searchRouter = new SearchRouter(mailLocator.throttledRouter())
 
-export class SearchBar implements Component<SearchBarAttrs> {
+// by the age of 12, each SearchBar need to know:
+//  - how to get search results
+//  - how to display them
+//  - how to finally select a result
+export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 	private focused: boolean = false
-	private state: SearchBarState
+	private state: SearchBarState<T>
 	private closeOverlayFunction: (() => void) | null = null
 	private readonly overlayContentComponent: Component
 	private confirmDialogShown: boolean = false
 	private domWrapper!: HTMLElement
 	private domInput!: HTMLElement
+	private lastAttrs: SearchBarAttrs<T>
 
-	constructor() {
+	constructor({ attrs }: Vnode<SearchBarAttrs<T>>) {
 		this.state = {
 			query: null,
 			searchResult: null,
 			selected: null,
 			busy: false,
 		}
+		this.lastAttrs = attrs
+
 		this.overlayContentComponent = {
 			view: () => {
 				return m(SearchBarOverlay, {
 					items: this.state.searchResult?.items ?? [],
 					selected: this.state.selected,
-					isQuickSearch: this.isQuickSearch(),
 					isFocused: this.focused,
-					selectResult: (selected) => this.selectResult(selected),
+					renderResult: this.lastAttrs.renderResult,
+					selectResult: this.lastAttrs.selectResult,
 				})
 			},
 		}
-
-		this.view = this.view.bind(this)
-		this.oncreate = this.oncreate.bind(this)
-		this.onremove = this.onremove.bind(this)
 	}
 
-	// /**
-	//  * this reacts to URL changes by clearing the suggestions - the selected item may have changed (in the mail view maybe)
-	//  * that shouldn't clear our current state, but if the URL changed in a way that makes the previous state outdated, we clear it.
-	//  */
-	// private readonly onPathChange = memoized((newPath: string) => {
-	// 	// if we assume quick search then we only care about query (and type)
-	// 	if (searchQueryEquals(this.state().query, ))
-	// 	// FIXME won't work
-	// 	if (mailLocator.search.isNewSearch(this.state().query, getRestriction(newPath))) {
-	// 		this.updateState({
-	// 			searchResult: null,
-	// 			selected: null,
-	// 		})
-	// 	}
-	// })
+	view(vnode: Vnode<SearchBarAttrs<T>>) {
+		this.lastAttrs = vnode.attrs
 
-	view(vnode: Vnode<SearchBarAttrs>) {
 		return m(
 			// form wrapper to isolate the search input and prevent it from being autofilled when unrelated buttons are clicked on chrome
 			// this is done because chrome doesn't appear to respect `autocomplete="off"` and will autofill the field anyway
@@ -135,12 +127,12 @@ export class SearchBar implements Component<SearchBarAttrs> {
 				},
 				onFocus: () => (this.focused = true),
 				onBlur: () => this.onBlur(),
-				onKeyDown: (e) => this.onkeydown(e),
+				onKeyDown: (e) => this.onkeydown(e, vnode.attrs.loadResults),
 			} satisfies BaseSearchBarAttrs),
 		)
 	}
 
-	private readonly onkeydown = (e: KeyboardEvent) => {
+	private readonly onkeydown = (e: KeyboardEvent, loadResults: (query: string) => Promise<LiveSearchResult<T>>) => {
 		const { selected, searchResult } = this.state
 		const entities = searchResult?.items
 		const keyHandlers = [
@@ -291,31 +283,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		},
 	]
 
-	private selectResult(result: (Mail | null) | Contact | CalendarEvent | ShowMoreAction | DriveFile | DriveFolder) {
-		const { query } = this.state
-		const queryString = query?.query ?? ""
-
-		// FIXME: move this outside
-		if (result != null) {
-			let type: TypeRef<any> | null = "_type" in result ? result._type : null
-
-			if (!type) {
-				// click on SHOW MORE button
-				if ((result as ShowMoreAction).allowShowMore) {
-					this.updateSearchUrl(queryString)
-				}
-			} else if (isSameTypeRef(MailTypeRef, type)) {
-				this.updateSearchUrl(queryString, result as Mail)
-			} else if (isSameTypeRef(ContactTypeRef, type)) {
-				this.updateSearchUrl(queryString, result as Contact)
-			} else if (isSameTypeRef(CalendarEventTypeRef, type)) {
-				this.updateSearchUrl(queryString, result as CalendarEvent)
-			} else if (isSameTypeRef(DriveFolderTypeRef, type) || isSameTypeRef(DriveFileTypeRef, type)) {
-				this.updateSearchUrl(queryString, result as DriveFolder | DriveFile)
-			}
-		}
-	}
-
 	handleSearchClick() {
 		if (!this.focused) {
 			this.onFocus()
@@ -370,7 +337,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 						mailLocator.indexerFacade
 							.enableMailIndexing()
 							.then(() => {
-								this.search()
+								this.search(query)
 								this.onFocus()
 							})
 							.catch(
@@ -386,17 +353,6 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			if (!mailLocator.search.indexState().mailIndexEnabled && restriction.type === SearchCategoryType.mail) {
 				return
 			}
-
-			// FIXME: wtf we are doing here? Why are we in quick search with search result but without a loaded result?
-			// if (!mailLocator.search.isNewSearch(query, restriction)&& oldQuery === query) {
-			// 	const result = mailLocator.search.result()
-			//
-			// 	if (this.isQuickSearch() && result) {
-			// 		this.showResultsInOverlay(result)
-			// 	}
-			//
-			// 	this.busy = false
-			// } else {
 
 			if (searchQuery.query.trim() !== "") {
 				this.updateState({ busy: true })
@@ -420,31 +376,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 			this.state.searchResult?.dispose()
 
-			let liveResult: LiveSearchResult<Entry>
-			switch (restriction.type) {
-				case SearchCategoryType.mail:
-					liveResult = await mailLocator.search.coolNewSearchMails(
-						{
-							query,
-							restriction,
-							minSuggestionCount: 0,
-							maxResults: this.isQuickSearch() ? MAX_SEARCH_PREVIEW_RESULTS : PageSize,
-						},
-						mailLocator.progressTracker,
-					)
-					break
-				case SearchCategoryType.contact:
-					liveResult = await mailLocator.search.coolNewSearchContacts(
-						{ query, restriction, minSuggestionCount: 0, maxResults: MAX_SEARCH_PREVIEW_RESULTS },
-						mailLocator.progressTracker,
-					)
-					break
-				case SearchCategoryType.calendar:
-				case SearchCategoryType.drive:
-					// FIXME: other search types
-					return
-			}
-			const results: Entries = liveResult.items
+			const liveResult: LiveSearchResult<T> = await this.lastAttrs.loadResults(query)
 			const { searchResult } = liveResult
 
 			if (
@@ -454,13 +386,14 @@ export class SearchBar implements Component<SearchBarAttrs> {
 					liveResult.items.length > MAX_SEARCH_PREVIEW_RESULTS ||
 					searchResult.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP)
 			) {
-				const moreEntry: ShowMoreAction = {
-					resultCount: liveResult.items.length,
-					shownCount: liveResult.items.length,
-					indexTimestamp: searchResult.currentIndexTimestamp,
-					allowShowMore: true,
-				}
-				results.push(moreEntry)
+				// FIXME: show more action
+				// const moreEntry: ShowMoreAction = {
+				// 	resultCount: liveResult.items.length,
+				// 	shownCount: liveResult.items.length,
+				// 	indexTimestamp: searchResult.currentIndexTimestamp,
+				// 	allowShowMore: true,
+				// }
+				// results.push(moreEntry)
 			}
 
 			this.updateState({
@@ -519,12 +452,8 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		m.redraw()
 	}
 
-	private updateState(update: Partial<SearchBarState>) {
+	private updateState(update: Partial<SearchBarState<T>>) {
 		this.state = { ...this.state, ...update }
 		m.redraw()
 	}
 }
-
-// Should be changed to not be a singleton and be proper component (instantiated by mithril).
-// We need to extract some state of it into some kind of viewModel, pluggable depending on the current view but this requires complete rewrite of SearchBar.
-export const searchBar = new SearchBar()

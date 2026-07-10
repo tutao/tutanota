@@ -167,7 +167,7 @@ export class SearchModel {
 		}
 	}
 
-	async coolNewSearchMails(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<LiveSearchResult<Mail>> {
+	async coolNewSearchMails(searchQuery: SearchQuery): Promise<LiveSearchResult<Mail>> {
 		const searchResult: SearchResult = await this._searchFacade.search(
 			searchQuery.query,
 			searchQuery.restriction,
@@ -213,6 +213,10 @@ export class SearchModel {
 		}
 		this.liveResults.push(result)
 		return result
+	}
+
+	async coolNewSearchCalendar(searchQuery: SearchQuery): Promise<LiveSearchResult<CalendarEvent>> {
+		throw new Error("FIXME: Not implemented")
 	}
 
 	async search(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<SearchResult | void> {

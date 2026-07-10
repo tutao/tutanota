@@ -51,7 +51,7 @@ import { MobileMailMultiselectionActionBar } from "./MobileMailMultiselectionAct
 import { SelectAllCheckbox } from "../../../../ui/SelectAllCheckbox.js"
 import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../ui/DesktopToolbars.js"
 import { MobileHeader } from "../../../../ui/MobileHeader.js"
-import { LazySearchBar } from "../../LazySearchBar.js"
+import { LazyComponent, MailSearchBar, MailSearchBarAttrs } from "../../MailSearchBar.js"
 import { MultiselectMobileHeader } from "../../../../ui/MultiselectMobileHeader.js"
 import { MailViewModel } from "./MailViewModel.js"
 import { selectionAttrsForList } from "../../../common/misc/ListModel.js"
@@ -77,7 +77,7 @@ import { DropData, DropType, FileDropData, FolderDropData, getDetachedDropdownBo
 import { fileListToArray } from "../../../../ui/utils/FileUtils.js"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { LockedError } from "../../../../platform-kit/rest-client/error"
 import { MailViewerViewModel } from "./MailViewerViewModel"
 import { MoveMode } from "../model/MailModel"
 import { UndoModel } from "../../UndoModel"
@@ -88,7 +88,6 @@ import { getElementId, isSameId } from "../../../../platform-kit/meta"
 import { getMailFolderType, isFolder, isFolderReadOnly } from "../MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
-import { LockedError } from "../../../../platform-kit/rest-client/error"
 
 assertMainOrNode()
 
@@ -588,8 +587,15 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					searchBar: () =>
 						// not showing search for external users
 						locator.logins.isInternalUserLoggedIn()
-							? m(LazySearchBar, {
-									placeholder: lang.get("searchEmails_placeholder"),
+							? m(LazyComponent<MailSearchBarAttrs, MailSearchBar>, {
+									loader: async () => (await import("../../MailSearchBar.js")).MailSearchBar,
+									attrs: {
+										// FIXME
+										searchModel: mailLocator.search,
+										selectResult: (mail) => {
+											// FIXME
+										},
+									},
 								})
 							: null,
 					...attrs.header,
