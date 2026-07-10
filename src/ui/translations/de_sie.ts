@@ -2492,6 +2492,8 @@ export default {
 		"orderProcessingAgreement_action": "Vertrag zur Auftragsverarbeitung anzeigen",
 		"openAgreement_action": "Vertrag öffnen",
 		"subscriptionSettingAppleWebsite_action": "Apple-Website",
+		"paymentMethodOnAccountHowItWorks_msg": "So funktioniert es\nSie erhalten eine Rechnung und bezahlen per Banküberweisung.\nDie Rechnung enthält IBAN und Bankverbindung.\nSie überweisen den Betrag von Ihrer Bank.",
+		"subscriptionSettingAppleWebsite_action": "Apple-Website",
 		"confirmDeleteLabelWithSublabels_msg": "Are you sure that you want to delete the label \"{1}\" and all its sublabels?"
 	}
 }

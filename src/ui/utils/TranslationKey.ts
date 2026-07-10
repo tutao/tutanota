@@ -835,6 +835,7 @@ export type TranslationKeyType =
 	| "paymentMethod_label"
 	| "paymentMethodOnAccount_msg"
 	| "paymentMethodOnAccount_label"
+	| "paymentMethodOnAccountHowItWorks_msg"
 	| "paymentMethodNotAvailable_msg"
 	| "paymentMethodCreditCard_label"
 	| "paymentMethodAccountBalance_msg"
