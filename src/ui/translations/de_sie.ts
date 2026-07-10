@@ -2388,6 +2388,7 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"paymentMethodOnAccountHowItWorks_msg": "So funktioniert es\nSie erhalten eine Rechnung und bezahlen per Banküberweisung.\nDie Rechnung enthält IBAN und Bankverbindung.\nSie überweisen den Betrag von Ihrer Bank.",
 	}
 }

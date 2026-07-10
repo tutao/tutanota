@@ -1472,7 +1472,7 @@ export default {
 		"paymentMethodAccountBalance_msg": "You are paying for your account using account credit. You can top up your credit by using gift cards.",
 		"paymentMethodCreditCard_label": "Credit card",
 		"paymentMethodNotAvailable_msg": "This payment method is not available in your country.",
-		"paymentMethodOnAccount_label": "Purchase on account",
+		"paymentMethodOnAccount_label": "Bank Transfer",
 		"paymentMethodOnAccount_msg": "You have to pay the invoices by bank transfer and you have to take care about the payment yourself. The invoice amount will not be debited automatically.",
 		"paymentProcessingTime_msg": "It may take up to one week until payments via bank transfer will be shown in your account.",
 		"paymentProviderNotAvailableError_msg": "Sorry, the payment provider is currently not available. Please try again later.",
@@ -2391,6 +2391,7 @@ export default {
 		"zoomOut_action": "Zoom Out",
 		"alternativePaymentMethods_label": "Alternative payment methods",
 		"proxyStorePayment_msg": "You can upgrade with cash or cryptocurrencies with a gift card via our partner ProxyStore",
-		"openProxystore_action": "Open ProxyStore"
+		"openProxystore_action": "Open ProxyStore",
+		"paymentMethodOnAccountHowItWorks_msg": "How it works\nYou will receive an invoice and pay via bank transfer.\nThe invoice contains IBAN / bank details.\nYou make the transfer from your bank.",
 	}
 }

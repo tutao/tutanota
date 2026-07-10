@@ -13,6 +13,7 @@ import { WizardStepContext } from "../../../ui/base/wizard/WizardController"
 import { Country, ProgrammingError } from "@tutao/app-env"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { theme } from "../../../ui/theme"
+import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../ui/base/InfoBanner.js"
 import { CreditCardInput } from "../subscription/CreditCardInput"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { px, size } from "../../../ui/size"
@@ -315,6 +316,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 				label: "billingCountry_label",
 			}),
 			ctx.viewModel.options.businessUse() && this.renderBusinessAddressFields(ctx),
+			this.renderBankTransferInfo(),
 			m(
 				`.flex-shrink${styles.isMobileLayout() ? ".align-self-center" : ".align-self-end"}`,
 				m(PrimaryButton, {
@@ -328,6 +330,27 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 				}),
 			),
 		])
+	}
+
+	private renderBankTransferInfo(): Children {
+		const [title, ...steps] = lang.get("paymentMethodOnAccountHowItWorks_msg").split("\n")
+
+		return m(InfoBanner, {
+			message: () =>
+				m(".text-break.mb-4", [
+					m(".b.mb-8", title),
+					m(
+						"ol.mb-0",
+						{
+							style: { paddingLeft: px(size.spacing_16) },
+						},
+						steps.map((step, index) => m("li", { style: index < steps.length - 1 ? { marginBottom: px(size.spacing_8) } : undefined }, step)),
+					),
+				]),
+			icon: Icons.InfoFilled,
+			type: BannerType.Info,
+			buttons: [],
+		} satisfies InfoBannerAttrs)
 	}
 
 	private renderBusinessAddressFields(ctx: WizardStepContext<SignupViewModel>): Children {

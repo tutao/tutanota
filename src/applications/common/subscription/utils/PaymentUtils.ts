@@ -11,7 +11,7 @@ import { InvalidDataError, PreconditionFailedError } from "@tutao/rest-client/er
 import { assertNotNull, neverNull, newPromise, noOp, ofClass, promiseMap } from "@tutao/utils"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog"
 import { SignupViewModel } from "../../signup/SignupView"
-import { PaymentInterval } from "./PriceUtils"
+import { getPaymentMethodName, PaymentInterval } from "./PriceUtils"
 import { DefaultAnimationTime } from "../../../../ui/animation/Animations"
 import m from "mithril"
 import { Button, ButtonType } from "../../../../ui/base/Button"
@@ -289,7 +289,7 @@ export function getVisiblePaymentMethods({
 	// show bank transfer in case of business use, even if it is not available for the selected country
 	if ((isBusiness && isBankTransferAllowed) || accountingInfo?.paymentMethod === PaymentMethodType.Invoice) {
 		availablePaymentMethods.push({
-			name: lang.get("invoice_label"),
+			name: getPaymentMethodName(PaymentMethodType.Invoice),
 			value: PaymentMethodType.Invoice,
 		})
 	}
