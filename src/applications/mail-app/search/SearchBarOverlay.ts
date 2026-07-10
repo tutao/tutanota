@@ -1,5 +1,5 @@
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
-import type { Entry, SearchBarState, ShowMoreAction } from "./SearchBar"
+import type { Entry, ShowMoreAction } from "./SearchBar"
 import { px, size } from "../../../ui/size"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { Icons } from "../../../ui/base/icons/Icons"
@@ -23,7 +23,8 @@ import { companyTeamLabel } from "../../../platform-kit/app-env/boot/ClientConst
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 
 type SearchBarOverlayAttrs = {
-	state: SearchBarState
+	items: readonly Entry[]
+	selected: Entry | null
 	isQuickSearch: boolean
 	isFocused: boolean
 	selectResult: (result: Entry | null) => void
@@ -31,18 +32,17 @@ type SearchBarOverlayAttrs = {
 
 export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 	view({ attrs }: Vnode<SearchBarOverlayAttrs>): Children {
-		const { state } = attrs
-		return [
-			state.searchResult?.items && !isEmpty(state.searchResult.items) && attrs.isQuickSearch && attrs.isFocused ? this.renderResults(state, attrs) : null,
-		]
+		const { items, selected } = attrs
+		return [!isEmpty(items) && attrs.isQuickSearch && attrs.isFocused ? this.renderResults(attrs) : null]
 	}
 
-	renderResults(state: SearchBarState, attrs: SearchBarOverlayAttrs): Children {
+	renderResults(attrs: SearchBarOverlayAttrs): Children {
 		const searchInOurAppsElement = renderSearchInOurApps()
 
 		return [
 			m("ul.list.click.mail-list", [
-				(state.searchResult?.items ?? []).map((result) => {
+				(attrs.items ?? []).map((entry) => {
+					const isSelected = attrs.selected === entry
 					return m(
 						"li.plr-24.flex-v-center.",
 						{
@@ -52,10 +52,10 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 							},
 							// avoid closing overlay before the click event can be received
 							onmousedown: (e: MouseEvent) => e.preventDefault(),
-							onclick: () => attrs.selectResult(result),
-							class: state.selected === result ? "row-selected" : "",
+							onclick: () => attrs.selectResult(entry),
+							class: isSelected ? "row-selected" : "",
 						},
-						this.renderResult(state, result),
+						this.renderResult(entry, isSelected),
 					)
 				}),
 			]),
@@ -71,13 +71,13 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 		]
 	}
 
-	renderResult(state: SearchBarState, result: Entry): Children {
+	renderResult(result: Entry, isSelected: boolean): Children {
 		let type: TypeRef<any> | null = "_type" in result ? result._type : null
 
 		if (!type) {
 			return this.renderShowMoreAction(downcast(result))
 		} else if (isSameTypeRef(MailTypeRef, type)) {
-			return this.renderMailResult(downcast(result), state)
+			return this.renderMailResult(downcast(result), isSelected)
 		} else if (isSameTypeRef(ContactTypeRef, type)) {
 			return this.renderContactResult(downcast(result))
 		} else if (isSameTypeRef(CalendarEventTypeRef, type)) {
@@ -91,9 +91,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 		}
 	}
 
-	private renderShowMoreAction(result: ShowMoreAction): Children {
-		// show more action
-		let showMoreAction = result as any as ShowMoreAction
+	private renderShowMoreAction(showMoreAction: ShowMoreAction): Children {
 		let infoText
 		let indexInfo
 
@@ -137,7 +135,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 		]
 	}
 
-	private renderMailResult(mail: Mail, state: SearchBarState): Children {
+	private renderMailResult(mail: Mail, isSelected: boolean): Children {
 		return [
 			m(".top.flex-space-between.badge-line-height", [
 				isTutaTeamMail(mail)
@@ -165,11 +163,11 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 						// 3px to neutralize the svg icons internal border
 						m(Icon, {
 							icon: getMailFolderIcon(mailLocator.mailModel, mail),
-							class: state.selected === mail ? "svg-content-accent-fg" : "svg-content-fg",
+							class: isSelected ? "svg-content-accent-fg" : "svg-content-fg",
 						}),
 						m(Icon, {
 							icon: Icons.Paperclip,
-							class: state.selected === mail ? "svg-content-accent-fg" : "svg-content-fg",
+							class: isSelected ? "svg-content-accent-fg" : "svg-content-fg",
 							style: {
 								display: mail.attachments.length > 0 ? "" : "none",
 							},

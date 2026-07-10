@@ -1,7 +1,5 @@
 import m, { Component, Vnode } from "mithril"
 import { layout_size, px, size } from "../../../ui/size"
-import stream from "mithril/stream"
-import Stream from "mithril/stream"
 import { displayOverlay, overlayBottomMargin, PositionRect } from "../../../ui/base/Overlay"
 import { assertIsEntity, getElementId, isSameTypeRef, ListElementEntity, TypeRef } from "@tutao/meta"
 import type { Shortcut } from "../../../ui/utils/KeyManager"
@@ -42,10 +40,12 @@ export type SearchBarAttrs = {
 const MAX_SEARCH_PREVIEW_RESULTS = 10
 export type Entry = Mail | Contact | CalendarEvent | DriveFile | DriveFolder | ShowMoreAction
 type Entries = Array<Entry>
-export type SearchBarState = {
+
+interface SearchBarState {
 	query: SearchQuery | null
 	searchResult: LiveSearchResult<Entry> | null
 	selected: Entry | null
+	busy: boolean
 }
 
 // create our own copy which is not perfect because we don't benefit from the shared cache but currently there's no way to get async dependencies into
@@ -54,26 +54,26 @@ export type SearchBarState = {
 const searchRouter = new SearchRouter(mailLocator.throttledRouter())
 
 export class SearchBar implements Component<SearchBarAttrs> {
-	focused: boolean = false
-	private readonly state: Stream<SearchBarState>
-	busy: boolean = false
+	private focused: boolean = false
+	private state: SearchBarState
 	private closeOverlayFunction: (() => void) | null = null
 	private readonly overlayContentComponent: Component
 	private confirmDialogShown: boolean = false
 	private domWrapper!: HTMLElement
 	private domInput!: HTMLElement
-	private stateStream: Stream<unknown> | null = null
 
 	constructor() {
-		this.state = stream<SearchBarState>({
+		this.state = {
 			query: null,
 			searchResult: null,
 			selected: null,
-		})
+			busy: false,
+		}
 		this.overlayContentComponent = {
 			view: () => {
 				return m(SearchBarOverlay, {
-					state: this.state(),
+					items: this.state.searchResult?.items ?? [],
+					selected: this.state.selected,
 					isQuickSearch: this.isQuickSearch(),
 					isFocused: this.focused,
 					selectResult: (selected) => this.selectResult(selected),
@@ -118,8 +118,8 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			},
 			m(BaseSearchBar, {
 				placeholder: vnode.attrs.placeholder,
-				text: this.state().query?.query ?? "",
-				busy: this.busy,
+				text: this.state.query?.query ?? "",
+				busy: this.state.busy,
 				disabled: vnode.attrs.disabled,
 				onInput: (text) => this.search(text),
 				onSearchClick: () => this.handleSearchClick(),
@@ -141,7 +141,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 
 	private readonly onkeydown = (e: KeyboardEvent) => {
-		const { selected, searchResult } = this.state()
+		const { selected, searchResult } = this.state
 		const entities = searchResult?.items
 		const keyHandlers = [
 			{
@@ -207,16 +207,12 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			this.onFocus()
 		}
 		keyManager.registerShortcuts(this.shortcuts)
-
-		this.stateStream = this.state.map((state) => m.redraw())
 	}
 
 	onremove() {
 		this.focused = false
 
 		if (this.shortcuts) keyManager.unregisterShortcuts(this.shortcuts)
-
-		this.stateStream?.end(true)
 
 		this.closeOverlay()
 	}
@@ -296,7 +292,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	]
 
 	private selectResult(result: (Mail | null) | Contact | CalendarEvent | ShowMoreAction | DriveFile | DriveFolder) {
-		const { query } = this.state()
+		const { query } = this.state
 		const queryString = query?.query ?? ""
 
 		// FIXME: move this outside
@@ -341,7 +337,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 
 	private search(query?: string) {
-		let oldQuery = this.state().query
+		let oldQuery = this.state.query
 		let restriction = this.getRestriction()
 		let searchQuery: SearchQuery
 		if (query != null) {
@@ -403,12 +399,11 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			// } else {
 
 			if (searchQuery.query.trim() !== "") {
-				this.busy = true
+				this.updateState({ busy: true })
 			}
 
 			this.doSearch(searchQuery.query, restriction, () => {
-				this.busy = false
-				m.redraw()
+				this.updateState({ busy: false })
 			})
 			// }
 		}
@@ -423,7 +418,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 				return
 			}
 
-			this.state().searchResult?.dispose()
+			this.state.searchResult?.dispose()
 
 			let liveResult: LiveSearchResult<Entry>
 			switch (restriction.type) {
@@ -514,7 +509,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	private onBlur() {
 		this.focused = false
 
-		const query = this.state().query
+		const query = this.state.query
 		if (query == null || query.query === "") {
 			if (m.route.get().startsWith("/search")) {
 				const restriction = searchRouter.getRestriction()
@@ -524,12 +519,9 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		m.redraw()
 	}
 
-	private updateState(update: Partial<SearchBarState>): SearchBarState {
-		const newState = Object.assign({}, this.state(), update)
-
-		this.state(newState)
-
-		return newState
+	private updateState(update: Partial<SearchBarState>) {
+		this.state = { ...this.state, ...update }
+		m.redraw()
 	}
 }
 
