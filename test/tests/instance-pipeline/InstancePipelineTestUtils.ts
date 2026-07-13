@@ -136,6 +136,7 @@ export const testTypeModel: TypeModel = {
 	},
 	version: 0,
 	versioned: false,
+	idForSubKeyContext: null,
 }
 
 export const testAggregateModel: TypeModel = {
@@ -191,6 +192,7 @@ export const testAggregateModel: TypeModel = {
 	},
 	version: 0,
 	versioned: false,
+	idForSubKeyContext: null,
 }
 
 export const testAggregateOnAggregateModel: TypeModel = {
@@ -234,6 +236,7 @@ export const testAggregateOnAggregateModel: TypeModel = {
 	associations: {},
 	version: 0,
 	versioned: false,
+	idForSubKeyContext: null,
 }
 
 export const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)

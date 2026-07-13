@@ -22,7 +22,7 @@ abstract class FieldPathElement {
 
 	protected constructor(
 		parent: Nullable<FieldPathElement>,
-		protected readonly hasBeenCutOff: boolean,
+		readonly hasBeenCutOff: boolean,
 		fieldSubPath: string,
 	) {
 		if (parent != null) {

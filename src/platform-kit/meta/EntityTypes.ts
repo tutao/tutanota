@@ -142,6 +142,8 @@ export type TypeModel = {
 	associations: Record<AttributeId, ModelAssociation>
 	/** true in case the type is public and exposed to the clients */
 	isPublic: boolean
+	/** type ID to be used when deriving sub-keys, only present in transfer aggregations */
+	idForSubKeyContext: Nullable<TypeId>
 }
 
 /**

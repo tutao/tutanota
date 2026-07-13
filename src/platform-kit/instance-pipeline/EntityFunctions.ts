@@ -217,6 +217,7 @@ export class ServerModelInfo {
 			encrypted: this.asBoolean(typeInfoRecord.encrypted),
 			isPublic: this.asBoolean(typeInfoRecord.isPublic),
 			rootId: this.asString(typeInfoRecord.rootId),
+			idForSubKeyContext: this.asNullableNumber(typeInfoRecord.idForAssociatedData),
 			values: this.parseModelValues(valuesRecord, this.getClientModelType(app, String(typeId))),
 			associations: this.parseModelAssociations(associationsRecord),
 		} as ServerTypeModel

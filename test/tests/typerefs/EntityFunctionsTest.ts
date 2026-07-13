@@ -44,6 +44,7 @@ o.spec("EntityFunctionsTest", function () {
 				associations: {},
 				version: 1,
 				versioned: false,
+				idForSubKeyContext: null,
 			},
 		}
 		const partialServerModel: ServerModels = {
