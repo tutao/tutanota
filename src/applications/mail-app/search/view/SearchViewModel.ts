@@ -21,6 +21,7 @@ import { ListLoadingState, ListState } from "../../../../ui/base/List.js"
 import {
 	assertNotNull,
 	collectToMap,
+	debounce,
 	defer,
 	downcast,
 	getEndOfDay,
@@ -207,6 +208,11 @@ export class SearchViewModel {
 	loadingAllForSearchResult: SearchResult | null = null
 
 	private currentQuery: string = ""
+	#delayingSearch: boolean = false
+
+	get busy(): boolean {
+		return this.#delayingSearch
+	}
 
 	constructor(
 		readonly router: SearchRouter,
@@ -1222,6 +1228,21 @@ export class SearchViewModel {
 	getSearchIndexStateStream(): Stream<SearchIndexStateInfo> {
 		return this.search.indexState
 	}
+	getCurrenQuery(): string {
+		return this.currentQuery
+	}
+
+	onSearchQueryUpdated(query: string) {
+		this.currentQuery = query
+		this.#delayingSearch = true
+		this.debouncedUpdateSearchUrl(() => {
+			this.#delayingSearch = false
+		})
+	}
+	private readonly debouncedUpdateSearchUrl = debounce(100, (cb) => {
+		this.updateSearchUrl()
+		cb()
+	})
 }
 
 function awaitSearchInitialized(searchModel: SearchModel): Promise<unknown> {
