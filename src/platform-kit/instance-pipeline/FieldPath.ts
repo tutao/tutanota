@@ -1,6 +1,13 @@
 import { AttributeId, ModelAssociation, ModelValue } from "@tutao/meta"
 import { Nullable } from "@tutao/utils"
 
+/**
+ * When encrypting fields with AEAD, we need to pass the field path as part of the associated data. This is not trivial
+ * when the attribute is supposed to be moved from one instance type to another on the server side. For such cases, we
+ * build a field path that a) is mapped to the final intended location of the ciphertext and b) cuts out the outer part
+ * of the path, where the field is nested.
+ */
+
 interface ModelAttribute {
 	id: AttributeId
 	idForAssociatedData: Nullable<AttributeId>
@@ -14,17 +21,16 @@ abstract class FieldPathElement {
 	protected readonly fieldPath: string
 
 	protected constructor(
-		protected readonly parent: Nullable<FieldPathElement>,
+		parent: Nullable<FieldPathElement>,
 		protected readonly hasBeenCutOff: boolean,
+		fieldSubPath: string,
 	) {
 		if (parent != null) {
-			this.fieldPath = `${parent.fieldPathPrefix()}${this.asString()}`
+			this.fieldPath = `${parent.fieldPathPrefix()}${fieldSubPath}`
 		} else {
-			this.fieldPath = this.asString()
+			this.fieldPath = fieldSubPath
 		}
 	}
-
-	protected abstract asString(): string
 
 	protected fieldPathPrefix(): string {
 		return `${this.fieldPath}/`
@@ -55,11 +61,7 @@ export abstract class RootOrAggregateFieldPathElement extends FieldPathElement {
 
 export class RootFieldPathElement extends RootOrAggregateFieldPathElement {
 	constructor() {
-		super(null, false)
-	}
-
-	protected asString(): string {
-		return ""
+		super(null, false, "")
 	}
 
 	protected fieldPathPrefix(): string {
@@ -68,30 +70,14 @@ export class RootFieldPathElement extends RootOrAggregateFieldPathElement {
 }
 
 export class AggregateFieldPathElement extends RootOrAggregateFieldPathElement {
-	constructor(
-		parent: AssociationPatchOrAssociationPathElement,
-		hasBeenCutOff: boolean,
-		protected readonly aggregateId: Id,
-	) {
-		super(parent, hasBeenCutOff)
-	}
-
-	protected asString(): string {
-		return `${this.aggregateId}`
+	constructor(parent: AssociationPatchOrAssociationPathElement, hasBeenCutOff: boolean, aggregateId: Id) {
+		super(parent, hasBeenCutOff, `${aggregateId}`)
 	}
 }
 
 abstract class AttributeFieldPathElement extends FieldPathElement {
-	constructor(
-		parent: Nullable<RootOrAggregateFieldPathElement>,
-		hasBeenCutOff: boolean,
-		readonly attributeId: AttributeId,
-	) {
-		super(parent, hasBeenCutOff)
-	}
-
-	protected asString(): string {
-		return `${this.attributeId}`
+	constructor(parent: Nullable<RootOrAggregateFieldPathElement>, hasBeenCutOff: boolean, attributeId: AttributeId) {
+		super(parent, hasBeenCutOff, `${attributeId}`)
 	}
 }
 
@@ -100,16 +86,12 @@ export interface AssociationPatchOrAssociationPathElement extends FieldPathEleme
 }
 
 export class AssociationPatchFieldPathElement extends FieldPathElement implements AssociationPatchOrAssociationPathElement {
-	constructor(private readonly fieldPathString: string) {
-		super(null, false)
+	constructor(fieldPathString: string) {
+		super(null, false, fieldPathString)
 	}
 
 	addAggregateId(aggregateId: Id): AggregateFieldPathElement {
 		return new AggregateFieldPathElement(this, false, aggregateId)
-	}
-
-	protected asString(): string {
-		return this.fieldPathString
 	}
 }
 
