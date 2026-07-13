@@ -90,7 +90,7 @@ pipeline {
 			when {
 				expression {
 					params.target == "publishToProd" &&
-							(params.web || params.desktop || params.android_mail || params.ios_mail || params.android_calendar || params.ios_calendar)
+							(params.web || params.desktop || params.android_mail || params.ios_mail || params.android_calendar || params.ios_calendar || params.android_drive || params.ios_drive)
 				}
 			}
 			steps {
