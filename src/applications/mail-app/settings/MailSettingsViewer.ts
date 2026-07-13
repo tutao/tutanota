@@ -1,5 +1,14 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, Const, FeatureType, isApp, isBrowser, UNDO_SEND_TIMEOUT_SECONDS, UpgradePromptType } from "../../../platform-kit/app-env"
+import {
+	assertMainOrNode,
+	Const,
+	FeatureType,
+	isApp,
+	isBrowser,
+	isOfflineStorageAvailable,
+	UNDO_SEND_TIMEOUT_SECONDS,
+	UpgradePromptType,
+} from "../../../platform-kit/app-env"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { elementIdPart, isSameId, OperationType } from "../../../platform-kit/meta"
 import { assertNotNull, isEmpty, LazyLoaded, noOp, ofClass, promiseMap, splitInChunks } from "../../../platform-kit/utils"
@@ -532,7 +541,11 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderLocalDataSection(): Children {
-		return [m(".h4.mt-32#localdata", lang.get("localDataSection_label")), this.renderRebuildSearchIndex(), this.renderClearCacheButton()]
+		if (isOfflineStorageAvailable()) {
+			return [m(".h4.mt-32#localdata", lang.get("localDataSection_label")), this.renderRebuildSearchIndex(), this.renderClearCacheButton()]
+		} else {
+			return null
+		}
 	}
 
 	private renderRebuildSearchIndex() {
