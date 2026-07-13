@@ -1173,12 +1173,11 @@ export class CalendarModel {
 		uidIndexEntry: ResolvedUidIndexEntry,
 	): Promise<void> {
 		const calendarEvent = makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent)
-		const sentByOrganizer: boolean = resolvedPersistedCalendarEvent.organizer != null && resolvedPersistedCalendarEvent.organizer.address === sender
 		if (method === CalendarMethod.REPLY) {
 			return this.processCalendarReply(sender, resolvedPersistedCalendarEvent, calendarEvent) // TODO: why are alarms NOT passed in here
-		} else if (sentByOrganizer && method === CalendarMethod.REQUEST) {
+		} else if (method === CalendarMethod.REQUEST) {
 			return await this.processUpdateToCalendarEventFromIcs(uidIndexEntry, resolvedPersistedCalendarEvent, calendarEvent)
-		} else if (sentByOrganizer && method === CalendarMethod.CANCEL) {
+		} else if (method === CalendarMethod.CANCEL) {
 			return await this.processCalendarCancel(uidIndexEntry, resolvedPersistedCalendarEvent)
 		} else {
 			console.log(TAG, `${method} update sent not by organizer, ignoring.`)
