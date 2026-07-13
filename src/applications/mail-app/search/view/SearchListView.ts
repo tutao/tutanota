@@ -41,7 +41,7 @@ export class SearchResultListEntry {
 }
 
 export interface SearchListViewAttrs {
-	listModel: ListModel<SearchResultListEntry, IdTuple>
+	listModel: ListModel<SearchResultListEntry, Id>
 	onSingleSelection: (item: SearchResultListEntry) => unknown
 	currentType: SearchCategoryType
 	isFreeAccount: boolean
@@ -58,7 +58,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 	private attrs: SearchListViewAttrs
 	private indexStateStream: Stream<unknown> | null = null
 
-	private get listModel(): ListModel<SearchResultListEntry, IdTuple> {
+	private get listModel(): ListModel<SearchResultListEntry, Id> {
 		return this.attrs.listModel
 	}
 

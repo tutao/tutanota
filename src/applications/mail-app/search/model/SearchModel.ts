@@ -9,6 +9,7 @@ import {
 	assertNotNull,
 	collectToMap,
 	incrementMonth,
+	isNotEmpty,
 	lazyAsync,
 	mapAndFilterNull,
 	ofClass,
@@ -109,7 +110,6 @@ export class SearchModel {
 	}
 
 	async coolNewSearchContacts(searchQuery: SearchQuery): Promise<LiveSearchResult<Contact>> {
-		console.log("this is contact search")
 		const searchResult: SearchResult = await this._searchFacade.search(
 			searchQuery.query,
 			searchQuery.restriction,
@@ -124,7 +124,7 @@ export class SearchModel {
 			items: initialResults,
 			loadMoreResults: async () => contacts.slice(initialResults.length),
 			get hasMoreResults() {
-				return initialResults.length === contacts.length
+				return isNotEmpty(contacts) && initialResults.length === contacts.length
 			},
 			updates: stream(),
 			dispose: () => {
@@ -208,7 +208,7 @@ export class SearchModel {
 				result.updates.end(true)
 			},
 			entityEventsReceived: async (updates) => {
-				this.applyEntityUpdates(updates, result, MailTypeRef)
+				await this.applyEntityUpdates(updates, result, MailTypeRef)
 			},
 		}
 		this.liveResults.push(result)

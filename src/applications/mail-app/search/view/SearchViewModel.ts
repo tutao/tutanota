@@ -84,8 +84,8 @@ export enum PaidFunctionResult {
 }
 
 export class SearchViewModel {
-	private _listModel: ListModel<SearchResultListEntry, IdTuple>
-	get listModel(): ListModel<SearchResultListEntry, IdTuple> {
+	private _listModel: ListModel<SearchResultListEntry, Id>
+	get listModel(): ListModel<SearchResultListEntry, Id> {
 		return this._listModel
 	}
 
@@ -233,7 +233,7 @@ export class SearchViewModel {
 		private readonly offlineStorageSettings: OfflineStorageSettingsModel | null,
 	) {
 		this.currentQuery = this.search.result()?.query ?? ""
-		this._listModel = emptyListModel<SearchResultListEntry, IdTuple>()
+		this._listModel = emptyListModel<SearchResultListEntry, Id>()
 	}
 
 	readonly init = onceAsync(async () => {
@@ -299,29 +299,44 @@ export class SearchViewModel {
 		const searchQuery = Object.hasOwn(args, "query") ? query : lastQuery
 		// FIXME do not assume it's new search
 		this.searchResult?.dispose()
-		if (restriction.type === SearchCategoryType.contact) {
-			this.search
-				.coolNewSearchContacts({
-					query: searchQuery ?? "",
-					restriction,
-					minSuggestionCount: 0,
-					maxResults,
-				})
-				.then((result) => {
-					this.applyLiveSearchResults(result)
-				})
-		}
-		if (restriction.type === SearchCategoryType.mail) {
-			this.search
-				.coolNewSearchMails({
-					query: searchQuery ?? "",
-					restriction,
-					minSuggestionCount: 0,
-					maxResults,
-				})
-				.then((result) => {
-					this.applyLiveSearchResults(result)
-				})
+		switch (restriction.type) {
+			case SearchCategoryType.contact: {
+				const searchPromise = this.search
+					.coolNewSearchContacts({
+						query: searchQuery ?? "",
+						restriction,
+						minSuggestionCount: 0,
+						maxResults,
+					})
+					.then((result) => {
+						this.applyLiveSearchResults(result)
+						return result
+					})
+				const listModel = this.createList(searchPromise)
+				this._listModel = listModel
+				listModel.loadInitial()
+				this.loadAndSelectIfNeeded(args.id)
+				break
+			}
+			case SearchCategoryType.mail: {
+				const searchPromise = this.search
+					.coolNewSearchMails({
+						query: searchQuery ?? "",
+						restriction,
+						minSuggestionCount: 0,
+						maxResults,
+					})
+					.then((result) => {
+						this.applyLiveSearchResults(result)
+						return result
+					})
+
+				const listModel = this.createList(searchPromise)
+				this._listModel = listModel
+				listModel.loadInitial()
+				this.loadAndSelectIfNeeded(args.id)
+				break
+			}
 		}
 		// if (searchQuery == null) {
 		// 	// no search query at all yet
@@ -403,23 +418,20 @@ export class SearchViewModel {
 
 	private applyLiveSearchResults(result: LiveSearchResult<SearchableTypes>) {
 		this.searchResult = result
-		const listModel = this.createList(result)
-		this._listModel = listModel
-		listModel.stateStream.map((state) => this.onListStateChange(state))
+		this.listModel.stateStream.map((state) => this.onListStateChange(state))
 		result.updates.map((update) => {
 			switch (update.type) {
 				case "newitem":
-					listModel.insertLoadedItem(new SearchResultListEntry(update.item))
+					this.listModel.insertLoadedItem(new SearchResultListEntry(update.item))
 					break
 				case "deleteitem":
-					listModel.deleteLoadedItem(update.item._id)
+					this.listModel.deleteLoadedItem(getElementId(update.item))
 					break
 				case "updateitem":
-					listModel.updateLoadedItem(new SearchResultListEntry(update.item))
+					this.listModel.updateLoadedItem(new SearchResultListEntry(update.item))
 					break
 			}
 		})
-		listModel.loadInitial()
 	}
 
 	private extractCalendarListIds(listIds: string[]): readonly [string, string] | string | null {
@@ -429,41 +441,23 @@ export class SearchViewModel {
 		return [listIds[0], listIds[1]]
 	}
 
-	// private loadAndSelectIfNeeded(id: string | null, finder?: (a: ListElement) => boolean) {
-	// 	// nothing to select
-	// 	if (id == null) {
-	// 		return
-	// 	}
-	//
-	// 	if (!this._listModel.isItemSelected(id)) {
-	// 		if (!this._listModel.isItemSelected(id)) {
-	// 			this.handleLoadAndSelection(id, finder)
-	// 		}
-	// 	}
-	// }
-
-	private handleLoadAndSelection(id: string, finder: ((a: ListElement) => boolean) | undefined) {
-		if (this._listModel.isLoadedCompletely()) {
-			return this.selectItem(id, finder)
+	private loadAndSelectIfNeeded(id: string | null, finder?: (a: ListElement) => boolean) {
+		// nothing to select
+		if (id == null) {
+			return
 		}
 
-		const listStateStream = Stream.combine((a) => a(), [this._listModel.stateStream])
-		listStateStream.map((state) => {
-			if (state.loadingStatus === ListLoadingState.Done) {
-				this.selectItem(id, finder)
-				listStateStream.end(true)
+		if (!this._listModel.isItemSelected(id)) {
+			if (!this._listModel.isItemSelected(id)) {
+				this.handleLoadAndSelection(id, finder)
 			}
-		})
+		}
 	}
 
-	private selectItem(id: string, finder: ((a: SearchResultListEntry) => boolean) | undefined) {
+	private handleLoadAndSelection(id: string, finder: ((a: ListElement) => boolean) | undefined) {
 		const listModel = this._listModel
-		// this._listModel.loadAndSelect(id, () => !deepEqual(this._listModel, listModel), finder)
-		// FIXME
-		this._listModel.loadAndSelect(
-			(item) => isSameId(getElementId(item.entry), id),
-			() => false,
-		)
+		let iterations = 0
+		this._listModel.loadAndSelect(finder ?? ((item) => isSameId(getElementId(item), id)), () => listModel !== this._listModel || iterations++ > 10)
 	}
 
 	async loadAll() {
@@ -955,12 +949,12 @@ export class SearchViewModel {
 		return this.search.result()?.tokens ?? []
 	}
 
-	private createList(result: LiveSearchResult<SearchableTypes>): ListModel<SearchResultListEntry, IdTuple> {
+	private createList(deferredResult: Promise<LiveSearchResult<SearchableTypes>>): ListModel<SearchResultListEntry, Id> {
 		// the list is recreated every time a new search is performed, but not when the current result is extended
 		// note in case of refactor: the fact that the list updates the URL every time it changes
 		// its state is a major source of complexity and makes everything very order-dependent
 
-		return new ListModel<SearchResultListEntry, IdTuple>({
+		return new ListModel<SearchResultListEntry, Id>({
 			fetch: async (lastFetchedEntity: SearchResultListEntry | null, count: number) => {
 				// const startId = lastFetchedEntity == null ? GENERATED_MAX_ID : getElementId(lastFetchedEntity)
 				//
@@ -973,17 +967,17 @@ export class SearchViewModel {
 				//
 				// const { items, newSearchResult } = await this.loadSearchResults(updatedResult, startId)
 				// const entries = items.map((instance) => new SearchResultListEntry(instance))
+				const result = await deferredResult
 				// FIXME: this might be unreliable if update come inbetween, we need to search for the right index
 				await result.loadMoreResults(count)
 				const indexOfStart = lastFetchedEntity == null ? -1 : result.items.findIndex((item) => isSameId(item._id, lastFetchedEntity._id))
 				const newItems = result.items.slice(indexOfStart === -1 ? undefined : indexOfStart + 1)
-				// FIXME: indexing state
-				// const complete = !hasMoreResults(newSearchResult) && !this.isIndexingMails() && !this.isIndexingMailsFailed()
+				const complete = !result.hasMoreResults && !this.isIndexingMails() && !this.isIndexingMailsFailed()
 
-				return { items: newItems.map((entity) => new SearchResultListEntry(entity)), complete: !result.hasMoreResults }
+				return { items: newItems.map((entity) => new SearchResultListEntry(entity)), complete }
 			},
-			getItemId(item: SearchResultListEntry): IdTuple {
-				return item._id
+			getItemId(item: SearchResultListEntry): Id {
+				return getElementId(item)
 			},
 			isSameId(id1, id2): boolean {
 				return isSameId(id1, id2)
