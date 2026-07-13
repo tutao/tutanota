@@ -12,7 +12,7 @@ import { Nullable } from "@tutao/utils"
 import { Aes128Key, Aes256Key, AesKey, AesKeyLength, AesKeyOrSubKeys } from "../encryption/symmetric/AesKey"
 import { AEAD_FACADE, AeadFacade } from "../encryption/symmetric/AeadFacade.js"
 import { AeadSubKeys, AesCbcSubKeys, InstanceTypeId, SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver } from "../encryption/symmetric/SymmetricKeyDeriver.js"
-import { SubKeyInfo, SubKeyProvider } from "./encryption/SubKeyProvider"
+import { SubKeyFactory, SubKeyProvider } from "./encryption/SubKeyProvider"
 import { InstanceDecryptor } from "./decryption/InstanceDecryptor"
 import { InitializationVectorVariant, ParsedCiphertextAesCbc, parseVersionedCiphertext } from "../encryption/symmetric/ParsedCiphertext"
 import { ProgrammingError } from "@tutao/app-env"
@@ -287,12 +287,12 @@ export class SymmetricCipherFacade {
 	/**
 	 * Gets a sub-key provider to be used for encryption.
 	 *
-	 * @param subKeyInfo		Necessary information to derive the sub-keys.
+	 * @param subKeyFactory		Necessary information to derive the sub-keys.
 	 * @param instanceTypeId	The type ID of the instance to be encrypted using the sub-keys.
 	 * @return 					The sub-key provider.
 	 */
-	getSubKeyProvider(subKeyInfo: SubKeyInfo, instanceTypeId: InstanceTypeId) {
-		return new SubKeyProvider(subKeyInfo, this.symmetricKeyDeriver, instanceTypeId)
+	getSubKeyProvider(subKeyFactory: SubKeyFactory, instanceTypeId: InstanceTypeId) {
+		return new SubKeyProvider(subKeyFactory, this.symmetricKeyDeriver, instanceTypeId)
 	}
 }
 export const SYMMETRIC_CIPHER_FACADE = new SymmetricCipherFacade(AES_CBC_FACADE, AEAD_FACADE, SYMMETRIC_KEY_DERIVER)

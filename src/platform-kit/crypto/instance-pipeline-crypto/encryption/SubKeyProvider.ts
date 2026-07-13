@@ -49,12 +49,20 @@ export class SubKeyInfoWithGroupKeyAead extends SubKeyInfo {
 }
 
 export class SubKeyProvider extends SubKeyFactory {
+	private readonly subKeyInfo: SubKeyInfo
 	constructor(
-		private readonly subKeyInfo: SubKeyInfo,
+		subKeyFactory: SubKeyFactory,
 		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
 		private readonly instanceTypeId: InstanceTypeId,
 	) {
 		super()
+		if (subKeyFactory instanceof SubKeyInfo) {
+			this.subKeyInfo = subKeyFactory
+		} else if (subKeyFactory instanceof SubKeyProvider) {
+			this.subKeyInfo = subKeyFactory.subKeyInfo
+		} else {
+			throw new ProgrammingError("unexpected sub-key factory")
+		}
 	}
 
 	getSubKeys = lazyMemoized((): SymmetricSubKeys => {

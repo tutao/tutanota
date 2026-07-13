@@ -228,7 +228,7 @@ export class CryptoMapper {
 		fieldPath: RootOrAggregateFieldPathElement = new RootFieldPathElement(),
 	): Promise<ClientModelEncryptedParsedInstance> {
 		const encrypted: ClientModelEncryptedParsedInstance = {} as ClientModelEncryptedParsedInstance
-		let subKeyProvider = this.makeNullableSubKeyProvider(subKeyFactory, clientTypeModel)
+		let subKeyProvider = this.makeNullableSubKeyProvider(subKeyFactory, clientTypeModel, fieldPath)
 
 		for (let valueId of Object.keys(clientTypeModel.values).map(Number)) {
 			const valueType = clientTypeModel.values[valueId]
@@ -260,9 +260,21 @@ export class CryptoMapper {
 		return encrypted
 	}
 
-	private makeNullableSubKeyProvider(subKeyFactory: Nullable<SubKeyFactory>, clientTypeModel: ClientTypeModel): Nullable<SubKeyProvider> {
+	private makeNullableSubKeyProvider(
+		subKeyFactory: Nullable<SubKeyFactory>,
+		clientTypeModel: ClientTypeModel,
+		fieldPath: RootOrAggregateFieldPathElement,
+	): Nullable<SubKeyProvider> {
 		if (subKeyFactory instanceof SubKeyProvider) {
-			return subKeyFactory
+			if (clientTypeModel.idForSubKeyContext != null && !fieldPath.hasBeenCutOff) {
+				return this.symmetricCipherFacade.getSubKeyProvider(subKeyFactory, {
+					app: clientTypeModel.app,
+					id: clientTypeModel.idForSubKeyContext,
+					name: "[the name for transfer aggregates is currently not supported]",
+				})
+			} else {
+				return subKeyFactory
+			}
 		} else if (subKeyFactory instanceof SubKeyInfo) {
 			return this.symmetricCipherFacade.getSubKeyProvider(subKeyFactory, clientTypeModel)
 		} else if (subKeyFactory == null) {
