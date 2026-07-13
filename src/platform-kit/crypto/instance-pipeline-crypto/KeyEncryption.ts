@@ -12,6 +12,7 @@ import { SYMMETRIC_CIPHER_FACADE } from "./SymmetricCipherFacade.js"
 import { ProgrammingError } from "@tutao/app-env"
 
 export abstract class EncryptedKeyPairs {
+	#brand: undefined // make sure the type system understands that this is not the regular KeyPair type
 	constructor() {} // public readonly pubKyberKey: null | Uint8Array, // public readonly pubEccKey: null | Uint8Array,
 }
 

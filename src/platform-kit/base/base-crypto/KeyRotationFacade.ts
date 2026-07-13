@@ -56,7 +56,6 @@ import {
 	createKeyPair,
 	createMembershipPutIn,
 	createPubEncKeyData,
-	createPublicKeySignature,
 	createRecoverCodeData,
 	createUserGroupKeyRotationData,
 	createUserGroupKeyRotationPostIn,
@@ -90,8 +89,9 @@ import {
 } from "@tutao/entities/sys"
 import { AccountType, GroupType } from "../../../entities/sys/Utils"
 import { assertEnumValue, elementIdPart, getElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
-import { asPublicKeyIdentifier, PublicKeySignatureType } from "./Constants"
+import { asPublicKeyIdentifier } from "./Constants"
 import { GroupInvitationPostData, InternalRecipientKeyData, InternalRecipientKeyDataTypeRef } from "@tutao/entities/tutanota"
+import { toEncryptedKeyPair } from "./EncryptedKeyPair"
 
 assertWorkerOrNode()
 
@@ -1051,7 +1051,10 @@ export class KeyRotationFacade {
 		)
 
 		// decrypt his private distribution key
-		const adminGroupDistKeyPair = this.cryptoWrapper.decryptKeyPair(adminGroupKeyDistributionKeyPairKey, userGroupKeyRotation.adminDistKeyPair)
+		const adminGroupDistKeyPair = this.cryptoWrapper.decryptKeyPair(
+			adminGroupKeyDistributionKeyPairKey,
+			toEncryptedKeyPair(userGroupKeyRotation.adminDistKeyPair),
+		)
 		//decrypt new symmetric admin group key
 		const senderIdentifier = {
 			identifier: assertNotNull(distEncAdminGroupSymKey.senderIdentifier),

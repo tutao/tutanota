@@ -109,6 +109,7 @@ import { ServiceExecutor } from "../../../../../src/platform-kit/network/Service
 import { AccountType, GroupType } from "../../../../../src/entities/sys/Utils"
 import { EncryptedPqKeyPairs } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
+import { toEncryptedKeyPair } from "../../../../../src/platform-kit/base/base-crypto/EncryptedKeyPair"
 
 const { anything } = matchers
 const PQ_SAFE_BITARRAY_KEY_LENGTH = getKeyLengthInBytes(AesKeyLength.Aes256) / 4
@@ -410,7 +411,7 @@ function prepareMultiAdminUserKeyRotation(
 
 	when(mocks.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)).thenResolve(CURRENT_ADMIN_GROUP_KEY)
 
-	when(mocks.cryptoWrapper.decryptKeyPair(adminGroupDistributionKeyPairKey, encryptedAdminDistKeyPair as EncryptedPqKeyPairs)).thenReturn(adminDistPqKeyPair)
+	when(mocks.cryptoWrapper.decryptKeyPair(adminGroupDistributionKeyPairKey, toEncryptedKeyPair(encryptedAdminDistKeyPair))).thenReturn(adminDistPqKeyPair)
 	when(mocks.asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(adminDistPqKeyPair, distEncAdminGroupSymKey, anything())).thenResolve({
 		decryptedAesKey: NEW_ADMIN_GROUP_KEY.object,
 	})
