@@ -185,7 +185,7 @@ export enum FeatureType {
 	AffiliatePartner = "12",
 	KnowledgeBase = "13",
 	Newsletter = "14",
-	Unused15 = "15",
+	AllowUpgradeWithInvoice = "15", // allows the customer to do the upgrade to personal paid while having invoice payment method
 	Unused16 = "16",
 	MultipleUsers = "17", // Multi-user support for new personal plans.
 	KeyVerification = "18", // Enables key verification for internal testing and volunteers
