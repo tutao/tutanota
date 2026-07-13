@@ -1,4 +1,5 @@
 export abstract class EncryptedKeyPairs {
+	#brand: undefined // make sure the type system understands that this is not the regular KeyPair type
 	protected constructor(
 		public readonly signature: null | object, //type PublicKeySignature not available in crypto package
 	) {}
