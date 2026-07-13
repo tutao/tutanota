@@ -434,6 +434,7 @@ class MailLocator implements CommonLocator {
 			(...args) => this.calendarEventPreviewModel(...args),
 			(...args) => this.calendarContactPreviewModel(...args),
 			await this.calendarModel(),
+			this.search,
 			await this.calendarEventsRepository(),
 			this.entityClient,
 			this.eventController,

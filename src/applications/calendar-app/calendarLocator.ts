@@ -136,6 +136,7 @@ import { ClientModelInfo } from "@tutao/instance-pipeline"
 import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
 import { KdfType } from "../../platform-kit/base/base-crypto/Constants"
 import { ParsedEventAlarmTuple } from "./calendar/export/CalendarParser"
+import { SearchModel } from "../mail-app/search/model/SearchModel"
 
 assertMainOrNode()
 
@@ -292,6 +293,7 @@ class CalendarLocator implements CommonLocator {
 			(...args) => this.calendarEventPreviewModel(...args),
 			(...args) => this.calendarContactPreviewModel(...args),
 			await this.calendarModel(),
+			this.search as unknown as SearchModel, // FIXME
 			await this.calendarEventsRepository(),
 			this.entityClient,
 			this.eventController,

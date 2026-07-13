@@ -89,6 +89,8 @@ import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInt
 import { selectAndParseIcalFile } from "../../../common/calendar/gui/CalendarImporterDialog"
 import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
 import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
+import { SearchQuery } from "../search/model/CalendarSearchModel"
+import { LiveSearchResult, SearchModel } from "../../../mail-app/search/model/SearchModel"
 
 export interface EventWrapperFlags {
 	/**
@@ -237,6 +239,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		private readonly createCalendarEventPreviewModel: CalendarEventPreviewModelFactory,
 		private readonly createCalendarContactPreviewModel: CalendarContactPreviewModelFactory,
 		private readonly calendarModel: CalendarModel,
+		private readonly searchModel: SearchModel,
 		private readonly eventsRepository: CalendarEventsRepository,
 		private readonly entityClient: EntityClient,
 		eventController: EventController,
@@ -955,6 +958,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			this.timeZone,
 		)
 		await importer.import(groupRoot, calendarInfo, parsedEventAlarmTuples, CalendarImporter.classifyImportedEvents, calendarInfo.type)
+	}
+
+	getSearchResult(searchQuery: SearchQuery): Promise<LiveSearchResult<CalendarEvent>> {
+		return this.searchModel.coolNewSearchCalendar(searchQuery)
 	}
 }
 

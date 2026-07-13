@@ -22,7 +22,7 @@ import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, isSameSearchRestrictionWithRangeExtended, searchQueryEquals } from "./SearchUtils"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
 import { ProgressMonitorInterface } from "../../../../platform-kit/network/ProgressMonitorInterface"
-import { CalendarEvent, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
+import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
@@ -216,7 +216,72 @@ export class SearchModel {
 	}
 
 	async coolNewSearchCalendar(searchQuery: SearchQuery): Promise<LiveSearchResult<CalendarEvent>> {
-		throw new Error("FIXME: Not implemented")
+		const calendarModel = await this.calendarModel()
+
+		const query = searchQuery.query
+		const tokens = tokenize(query.trim())
+		const restriction = searchQuery.restriction
+
+		// we interpret restriction.start as the start of the first day of the first month we want to search
+		// restriction.end is the end of the last day of the last month we want to search
+		const startDate = new Date(assertNotNull(restriction.start))
+		const endDate = new Date(assertNotNull(restriction.end))
+		const daysInMonths: Date[] = []
+
+		let currentDate = startDate
+		while (currentDate.getTime() <= endDate.getTime()) {
+			daysInMonths.push(currentDate)
+			currentDate = incrementMonth(currentDate, 1)
+		}
+
+		const searchResult: SearchResult = {
+			// data that is relevant to calendar search
+			matchWordOrder: false,
+			restriction,
+			results: [],
+			query: query,
+			tokens: tokens.map((t) => {
+				return { token: t, exact: false }
+			}),
+			// index related, keep empty
+			currentIndexTimestamp: 0,
+			moreResults: [],
+			moreResultsEntries: [],
+			lastReadSearchIndexRow: [],
+		}
+
+		// FIXME: hook up ProgressTracker
+
+		if (this.cancelSignal()) {
+			// FIXME
+			return null as unknown as LiveSearchResult<CalendarEvent>
+		}
+
+		const items: CalendarEvent[] = []
+
+		const result: LiveSearchResult<CalendarEvent> = {
+			searchResult,
+			items,
+			loadMoreResults: async (count) => {
+				const items: CalendarEvent[] = []
+				// FIXME: not implemented
+
+				return items
+			},
+			get hasMoreResults() {
+				return false // FIXME: not implemented
+			},
+			updates: stream(),
+			dispose: () => {
+				remove(this.liveResults, result)
+				result.updates.end(true)
+			},
+			entityEventsReceived: async (updates) => {
+				this.applyEntityUpdates(updates, result, CalendarEventTypeRef)
+			},
+		}
+		this.liveResults.push(result)
+		return result
 	}
 
 	async search(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<SearchResult | void> {
