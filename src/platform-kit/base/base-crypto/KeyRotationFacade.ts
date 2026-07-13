@@ -27,7 +27,7 @@ import {
 	VersionedKey,
 	X25519KeyPair,
 } from "@tutao/crypto"
-import { isEncryptedPqKeyPairs, KeyLoaderFacade } from "./KeyLoaderFacade.js"
+import { isEncryptedPqKeyPairs, KeyLoaderFacade, toEncryptedKeyPairs } from "./KeyLoaderFacade.js"
 import { PQFacade } from "./PQFacade.js"
 import { IServiceExecutor } from "../../network/ServiceRequest.js"
 import { CryptoFacade } from "./CryptoFacade.js"
@@ -1050,7 +1050,10 @@ export class KeyRotationFacade {
 		)
 
 		// decrypt his private distribution key
-		const adminGroupDistKeyPair = this.cryptoWrapper.decryptKeyPair(adminGroupKeyDistributionKeyPairKey, userGroupKeyRotation.adminDistKeyPair)
+		const adminGroupDistKeyPair = this.cryptoWrapper.decryptKeyPair(
+			adminGroupKeyDistributionKeyPairKey,
+			toEncryptedKeyPairs(userGroupKeyRotation.adminDistKeyPair),
+		)
 		//decrypt new symmetric admin group key
 		const senderIdentifier = {
 			identifier: assertNotNull(distEncAdminGroupSymKey.senderIdentifier),

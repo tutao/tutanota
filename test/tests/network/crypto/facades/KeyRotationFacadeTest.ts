@@ -26,7 +26,7 @@ import {
 	VersionedEncryptedKey,
 	VersionedKey,
 } from "../../../../../src/platform-kit/crypto"
-import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
+import { KeyLoaderFacade, toEncryptedKeyPairs } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
 import type { PQFacade } from "../../../../../src/platform-kit/base/base-crypto/PQFacade.js"
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest.js"
 import {
@@ -402,7 +402,7 @@ function prepareMultiAdminUserKeyRotation(
 
 	when(mocks.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)).thenResolve(CURRENT_ADMIN_GROUP_KEY)
 
-	when(mocks.cryptoWrapper.decryptKeyPair(adminGroupDistributionKeyPairKey, encryptedAdminDistKeyPair as EncryptedPqKeyPairs)).thenReturn(adminDistPqKeyPair)
+	when(mocks.cryptoWrapper.decryptKeyPair(adminGroupDistributionKeyPairKey, toEncryptedKeyPairs(encryptedAdminDistKeyPair))).thenReturn(adminDistPqKeyPair)
 	when(mocks.asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(adminDistPqKeyPair, distEncAdminGroupSymKey, anything())).thenResolve({
 		decryptedAesKey: NEW_ADMIN_GROUP_KEY.object,
 	})
