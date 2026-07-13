@@ -1174,11 +1174,17 @@ export class CalendarModel {
 	): Promise<void> {
 		const calendarEvent = makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent)
 		const sentByOrganizer: boolean = resolvedPersistedCalendarEvent.organizer != null && resolvedPersistedCalendarEvent.organizer.address === sender
+
+		// When handling an existing calendar invite, we should already have a sender assigned to it.
+		// Therefore, even if the organizer is not the same as the sender, if the current invitation update was sent by
+		// the same email that invited the user in the first place, it is safe to assume that we want to process it.
+		const sentByOriginalSender = resolvedPersistedCalendarEvent.sender === sender
+
 		if (method === CalendarMethod.REPLY) {
 			return this.processCalendarReply(sender, resolvedPersistedCalendarEvent, calendarEvent) // TODO: why are alarms NOT passed in here
-		} else if (sentByOrganizer && method === CalendarMethod.REQUEST) {
+		} else if ((sentByOrganizer || sentByOriginalSender) && method === CalendarMethod.REQUEST) {
 			return await this.processUpdateToCalendarEventFromIcs(uidIndexEntry, resolvedPersistedCalendarEvent, calendarEvent)
-		} else if (sentByOrganizer && method === CalendarMethod.CANCEL) {
+		} else if ((sentByOrganizer || sentByOriginalSender) && method === CalendarMethod.CANCEL) {
 			return await this.processCalendarCancel(uidIndexEntry, resolvedPersistedCalendarEvent)
 		} else {
 			console.log(TAG, `${method} update sent not by organizer, ignoring.`)
