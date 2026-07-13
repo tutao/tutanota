@@ -17,6 +17,7 @@ export const testTypeModel: TypeModel = {
 			cardinality: Cardinality.One,
 			final: true,
 			encrypted: true,
+			idForAssociatedData: null,
 		},
 		"2": {
 			id: 2,
@@ -25,6 +26,7 @@ export const testTypeModel: TypeModel = {
 			cardinality: Cardinality.ZeroOrOne,
 			final: false,
 			encrypted: true,
+			idForAssociatedData: null,
 		},
 		"5": {
 			id: 5,
@@ -33,6 +35,7 @@ export const testTypeModel: TypeModel = {
 			cardinality: Cardinality.One,
 			final: false,
 			encrypted: false,
+			idForAssociatedData: null,
 		},
 		"7": {
 			id: 7,
@@ -41,6 +44,7 @@ export const testTypeModel: TypeModel = {
 			cardinality: Cardinality.ZeroOrOne,
 			final: false,
 			encrypted: true,
+			idForAssociatedData: null,
 		},
 		"12": {
 			id: 12,
@@ -49,6 +53,7 @@ export const testTypeModel: TypeModel = {
 			cardinality: Cardinality.One,
 			final: false,
 			encrypted: false,
+			idForAssociatedData: null,
 		},
 		"13": {
 			id: 12,
@@ -57,6 +62,7 @@ export const testTypeModel: TypeModel = {
 			cardinality: Cardinality.One,
 			final: false,
 			encrypted: false,
+			idForAssociatedData: null,
 		},
 		"14": {
 			id: 14,
@@ -65,6 +71,7 @@ export const testTypeModel: TypeModel = {
 			cardinality: Cardinality.ZeroOrOne,
 			final: true,
 			encrypted: false,
+			idForAssociatedData: null,
 		},
 		"15": {
 			id: 15,
@@ -73,6 +80,7 @@ export const testTypeModel: TypeModel = {
 			cardinality: Cardinality.One,
 			final: true,
 			encrypted: true,
+			idForAssociatedData: null,
 		},
 		"16": {
 			id: 16,
@@ -81,6 +89,7 @@ export const testTypeModel: TypeModel = {
 			cardinality: Cardinality.ZeroOrOne,
 			final: true,
 			encrypted: false,
+			idForAssociatedData: null,
 		},
 	},
 	associations: {
@@ -92,6 +101,7 @@ export const testTypeModel: TypeModel = {
 			refTypeId: 43,
 			final: false,
 			dependency: "tutanota",
+			idForAssociatedData: null,
 		},
 		"4": {
 			id: 4,
@@ -101,6 +111,7 @@ export const testTypeModel: TypeModel = {
 			refTypeId: 44,
 			final: false,
 			dependency: null,
+			idForAssociatedData: null,
 		},
 		"8": {
 			id: 8,
@@ -110,6 +121,7 @@ export const testTypeModel: TypeModel = {
 			refTypeId: 44,
 			final: false,
 			dependency: null,
+			idForAssociatedData: null,
 		},
 		"14": {
 			id: 14,
@@ -119,6 +131,7 @@ export const testTypeModel: TypeModel = {
 			refTypeId: 44,
 			final: false,
 			dependency: null,
+			idForAssociatedData: null,
 		},
 	},
 	version: 0,
@@ -142,6 +155,7 @@ export const testAggregateModel: TypeModel = {
 			cardinality: Cardinality.One,
 			final: false,
 			encrypted: false,
+			idForAssociatedData: null,
 		},
 		"6": {
 			id: 6,
@@ -150,6 +164,7 @@ export const testAggregateModel: TypeModel = {
 			cardinality: Cardinality.One,
 			final: true,
 			encrypted: false,
+			idForAssociatedData: null,
 		},
 	},
 	associations: {
@@ -161,6 +176,7 @@ export const testAggregateModel: TypeModel = {
 			refTypeId: 44,
 			final: false,
 			dependency: "tutanota",
+			idForAssociatedData: null,
 		},
 		"10": {
 			id: 10,
@@ -170,6 +186,7 @@ export const testAggregateModel: TypeModel = {
 			refTypeId: 44,
 			final: false,
 			dependency: "tutanota",
+			idForAssociatedData: null,
 		},
 	},
 	version: 0,
@@ -193,6 +210,7 @@ export const testAggregateOnAggregateModel: TypeModel = {
 			cardinality: Cardinality.ZeroOrOne,
 			final: false,
 			encrypted: false,
+			idForAssociatedData: null,
 		},
 		"11": {
 			id: 11,
@@ -201,6 +219,7 @@ export const testAggregateOnAggregateModel: TypeModel = {
 			cardinality: Cardinality.One,
 			final: true,
 			encrypted: false,
+			idForAssociatedData: null,
 		},
 		"17": {
 			id: 17,
@@ -209,6 +228,7 @@ export const testAggregateOnAggregateModel: TypeModel = {
 			cardinality: Cardinality.ZeroOrOne,
 			final: false,
 			encrypted: true,
+			idForAssociatedData: null,
 		},
 	},
 	associations: {},
@@ -270,5 +290,6 @@ export function createEncryptedValueType(
 		cardinality: cardinality,
 		final: true,
 		encrypted: true,
+		idForAssociatedData: null,
 	} satisfies ModelValue
 }

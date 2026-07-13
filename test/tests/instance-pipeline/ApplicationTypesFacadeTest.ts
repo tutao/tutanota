@@ -57,6 +57,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
+								idForAssociatedData: null,
 							} satisfies ModelAssociation,
 						},
 						version: 0,
