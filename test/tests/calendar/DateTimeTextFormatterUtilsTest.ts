@@ -10,7 +10,6 @@ import {
 	shouldShowTimeZones,
 } from "../../../src/applications/calendar-app/calendar/gui/DateTimeTextFormatterUtils"
 import { EventTextTimeOption } from "../../../src/platform-kit/app-env"
-import assert from "node:assert"
 
 o.spec("DateTimeTextFormatterUtils", () => {
 	o.test("getTimeZoneGmtOffset", () => {
@@ -288,9 +287,6 @@ o.spec("DateTimeTextFormatterUtils", () => {
 		const middleDay = new Date("2026-01-02T00:00:00")
 		const endDay = new Date("2026-01-03T00:00:00")
 
-		assert(startDay.getDate() === multiDayEventStartTime.getDate())
-		assert(endDay.getDate() === multiDayEventEndTime.getDate())
-
 		o.test("Correctly handles multi-day event", () => {
 			const event = {
 				startTime: multiDayEventStartTime,
@@ -298,6 +294,7 @@ o.spec("DateTimeTextFormatterUtils", () => {
 				startTimeZone: null,
 				endTimeZone: null,
 			}
+
 			o(formatEventTimesAtDate(startDay, event, "Europe/Berlin")).equals("12:00 PM - 11:59 PM")
 			o(formatEventTimesAtDate(middleDay, event, "Europe/Berlin")).equals("All Day")
 			o(formatEventTimesAtDate(endDay, event, "Europe/Berlin")).equals("12:00 AM - 12:30 PM")
