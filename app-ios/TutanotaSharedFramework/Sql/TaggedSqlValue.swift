@@ -23,7 +23,7 @@ public enum SqlType: String {
 		switch self {
 		case .null:
 			try container.encode(SqlType.null.rawValue, forKey: .type)
-			try container.encode(self, forKey: .value)
+			try container.encodeNil(forKey: .value)
 		case .number(let value):
 			try container.encode(SqlType.number.rawValue, forKey: .type)
 			try container.encode(value, forKey: .value)
