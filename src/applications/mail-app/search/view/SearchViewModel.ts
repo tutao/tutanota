@@ -295,15 +295,12 @@ export class SearchViewModel {
 		this.searchResult?.dispose()
 		if (restriction.type === SearchCategoryType.contact) {
 			this.search
-				.coolNewSearchContacts(
-					{
-						query: searchQuery ?? "",
-						restriction,
-						minSuggestionCount: 0,
-						maxResults,
-					},
-					this.progressTracker,
-				)
+				.coolNewSearchContacts({
+					query: searchQuery ?? "",
+					restriction,
+					minSuggestionCount: 0,
+					maxResults,
+				})
 				.then((result) => {
 					this.applyLiveSearchResults(result)
 				})

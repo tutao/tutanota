@@ -66,6 +66,8 @@ import { Contact, ContactTypeRef } from "../../../../entities/tutanota/TypeRefs"
 import { PartialRecipient } from "../../../../entities/tutanota/Utils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
+import { LazyComponent } from "../../MailSearchBar"
+import { ContactSearchBar, ContactSearchBarAttrs } from "./ContactSearchBar"
 
 assertMainOrNode()
 
@@ -303,8 +305,15 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 							searchBar: () =>
 								this.inContactListView()
 									? null
-									: // FIXME
-										null,
+									: m(LazyComponent<ContactSearchBarAttrs, ContactSearchBar>, {
+											loader: async () => (await import("./ContactSearchBar.js")).ContactSearchBar,
+											attrs: {
+												loadResults: (searchQuery) => this.contactViewModel.getSearchResults(searchQuery),
+												selectResult: (searchQuery, contact) => {
+													this.contactViewModel.selectSearchResult(searchQuery, contact)
+												},
+											},
+										}),
 							...attrs.header,
 							buttons: renderHeaderButtons(),
 						}),

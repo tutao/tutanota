@@ -590,10 +590,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 							? m(LazyComponent<MailSearchBarAttrs, MailSearchBar>, {
 									loader: async () => (await import("../../MailSearchBar.js")).MailSearchBar,
 									attrs: {
-										// FIXME
-										searchModel: mailLocator.search,
-										selectResult: (mail) => {
-											// FIXME
+										loadResults: (searchQuery) => this.mailViewModel.getSearchResult(searchQuery),
+										selectResult: (searchQuery, mail) => {
+											this.mailViewModel.selectSearchResult(searchQuery, mail)
 										},
 									},
 								})

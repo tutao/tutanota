@@ -38,7 +38,7 @@ export type SearchBarAttrs<T> = {
 	disabled?: boolean
 	loadResults: ResultLoader<T>
 	renderResult: (entry: T, isSelected: boolean) => Children
-	selectResult: (entry: T) => unknown
+	selectResult: (searchQuery: SearchQuery, entry: T) => unknown
 }
 
 const MAX_SEARCH_PREVIEW_RESULTS = 10
@@ -81,12 +81,12 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 
 		this.overlayContentComponent = {
 			view: () => {
-				return m(SearchBarOverlay, {
+				return m(SearchBarOverlay<T>, {
 					items: this.state.searchResult?.items ?? [],
 					selected: this.state.selected,
 					isFocused: this.focused,
 					renderResult: this.lastAttrs.renderResult,
-					selectResult: this.lastAttrs.selectResult,
+					selectResult: (entry) => entry && this.state.query && this.lastAttrs.selectResult(this.state.query, entry),
 				})
 			},
 		}
@@ -133,7 +133,7 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 	}
 
 	private readonly onkeydown = (e: KeyboardEvent, loadResults: (query: string) => Promise<LiveSearchResult<T>>) => {
-		const { selected, searchResult } = this.state
+		const { selected, searchResult, query } = this.state
 		const entities = searchResult?.items
 		const keyHandlers = [
 			{
@@ -147,8 +147,8 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 			{
 				key: Keys.RETURN,
 				exec: () => {
-					if (selected) {
-						this.selectResult(selected)
+					if (selected && query) {
+						this.lastAttrs.selectResult(query, selected)
 					} else {
 						this.search()
 					}
@@ -295,14 +295,6 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 		return getRestriction(m.route.get())
 	}
 
-	private updateSearchUrl(query: string, selected?: ListElementEntity) {
-		if (selected && assertIsEntity(selected, CalendarEventTypeRef)) {
-			searchRouter.routeTo(query, this.getRestriction(), selected && encodeCalendarSearchKey(selected))
-		} else {
-			searchRouter.routeTo(query, this.getRestriction(), selected && getElementId(selected))
-		}
-	}
-
 	private search(query?: string) {
 		let oldQuery = this.state.query
 		let restriction = this.getRestriction()
@@ -367,13 +359,6 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 
 	private readonly doSearch = debounce(300, (query: string, restriction: SearchRestriction, cb: () => void) => {
 		;(async () => {
-			if (!this.isQuickSearch()) {
-				// if we're already on the search view, we don't want to wait until there's a new result to update the
-				// UI. we can directly go to the URL and let the SearchViewModel do its thing from there.
-				searchRouter.routeTo(query, restriction)
-				return
-			}
-
 			this.state.searchResult?.dispose()
 
 			const liveResult: LiveSearchResult<T> = await this.lastAttrs.loadResults(query)
@@ -404,22 +389,11 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 	})
 
 	private clear() {
-		if (m.route.get().startsWith("/search")) {
-			// this needs to happen in this order, otherwise the list's result subscription will override our
-			// routing.
-			this.updateSearchUrl("")
-			mailLocator.search.result(null)
-		}
-
 		this.updateState({
 			query: null,
 			selected: null,
 			searchResult: null,
 		})
-	}
-
-	private isQuickSearch(): boolean {
-		return !m.route.get().startsWith("/search")
 	}
 
 	private onFocus() {
@@ -441,14 +415,6 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 
 	private onBlur() {
 		this.focused = false
-
-		const query = this.state.query
-		if (query == null || query.query === "") {
-			if (m.route.get().startsWith("/search")) {
-				const restriction = searchRouter.getRestriction()
-				searchRouter.routeTo("", restriction)
-			}
-		}
 		m.redraw()
 	}
 

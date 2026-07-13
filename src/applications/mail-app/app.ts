@@ -69,6 +69,7 @@ import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../platfor
 import { RevocationView, RevocationViewAttrs } from "../common/revocation/RevocationView"
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
 import { CalendarSearchBarAttrs } from "../calendar-app/LazyCalendarSearchBar"
+import { ContactSearchBarAttrs } from "./contacts/view/ContactSearchBar"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -355,11 +356,13 @@ import("../../ui/translations/en.js")
 				header: AppHeaderAttrs
 				contactViewModel: ContactViewModel
 				contactListViewModel: ContactListViewModel
+				lazySearchBar: (attrs: ContactSearchBarAttrs) => Children
 			}
 		>(
 			{
 				prepareRoute: async () => {
 					const { ContactView } = await import("./contacts/view/ContactView.js")
+					const { ContactSearchBar } = await import("../mail-app/contacts/view/ContactSearchBar.js")
 					const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
 					return {
 						component: ContactView,
@@ -368,6 +371,7 @@ import("../../ui/translations/en.js")
 							header: await mailLocator.appHeaderAttrs(),
 							contactViewModel: await mailLocator.contactViewModel(),
 							contactListViewModel: await mailLocator.contactListViewModel(),
+							lazySearchBar: (attrs: ContactSearchBarAttrs) => m(ContactSearchBar, attrs),
 						},
 					}
 				},

@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, CommonAttributes, Vnode } from "mithril"
 import { SearchBar } from "./search/SearchBar.js"
 import { LazyLoaded } from "../../platform-kit/utils"
-import { SearchModel } from "./search/model/SearchModel"
+import { LiveSearchResult, SearchModel, SearchQuery } from "./search/model/SearchModel"
 import { Mail } from "@tutao/entities/tutanota"
 import { lang } from "../../ui/utils/LanguageViewModel"
 import { isTutaTeamMail } from "../common/mailFunctionality/SharedMailUtils"
@@ -46,8 +46,8 @@ export class LazyComponent<A, C extends ClassComponent<A>> {
 }
 
 export interface MailSearchBarAttrs {
-	searchModel: SearchModel
-	selectResult: (entry: Mail) => unknown
+	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<Mail>>
+	selectResult: (searchQuery: SearchQuery, entry: Mail) => unknown
 }
 
 export class MailSearchBar implements ClassComponent<MailSearchBarAttrs> {
@@ -55,7 +55,7 @@ export class MailSearchBar implements ClassComponent<MailSearchBarAttrs> {
 		return m(SearchBar<Mail>, {
 			placeholder: lang.getTranslationText("searchEmails_placeholder"),
 			loadResults: (query) =>
-				attrs.searchModel.coolNewSearchMails({
+				attrs.loadResults({
 					query,
 					maxResults: 10, // FIXME
 					restriction: createRestriction(SearchCategoryType.mail, null, null, null, [], false),

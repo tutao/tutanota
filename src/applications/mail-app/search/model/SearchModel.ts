@@ -108,7 +108,7 @@ export class SearchModel {
 		})
 	}
 
-	async coolNewSearchContacts(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<LiveSearchResult<Contact>> {
+	async coolNewSearchContacts(searchQuery: SearchQuery): Promise<LiveSearchResult<Contact>> {
 		console.log("this is contact search")
 		const searchResult: SearchResult = await this._searchFacade.search(
 			searchQuery.query,

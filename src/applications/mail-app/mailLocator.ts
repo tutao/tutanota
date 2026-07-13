@@ -303,6 +303,8 @@ class MailLocator implements CommonLocator {
 			router,
 			await this.redraw(),
 			this.syncTracker,
+			await this.unscopedSearchRouter(),
+			this.search,
 		)
 	})
 
@@ -381,7 +383,15 @@ class MailLocator implements CommonLocator {
 	readonly contactViewModel = lazyMemoized(async () => {
 		const { ContactViewModel } = await import("./contacts/view/ContactViewModel.js")
 		const router = new ScopedThrottledRouter("/contact")
-		return new ContactViewModel(this.contactModel, this.entityClient, this.eventController, router, await this.redraw())
+		return new ContactViewModel(
+			this.contactModel,
+			this.entityClient,
+			this.eventController,
+			router,
+			await this.redraw(),
+			await this.unscopedSearchRouter(),
+			this.search,
+		)
 	})
 
 	readonly contactListViewModel = lazyMemoized(async () => {

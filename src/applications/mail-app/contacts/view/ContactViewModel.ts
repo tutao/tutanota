@@ -4,13 +4,15 @@ import { EventController } from "../../../common/api/main/EventController.js"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
 import { compareContacts } from "./ContactGuiUtils.js"
 import { ListState } from "../../../../ui/base/List.js"
-import { assertNotNull, lazyMemoized } from "../../../../platform-kit/utils"
+import { assertNotNull, lazyAsync, lazyMemoized } from "../../../../platform-kit/utils"
 import Stream from "mithril/stream"
 import { Router } from "../../../../ui/ScopedThrottledRouter.js"
 import { Contact, ContactTypeRef } from "@tutao/entities/tutanota"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { getElementId } from "../../../../platform-kit/meta"
 import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { SearchRouter } from "../../../common/search/view/SearchRouter"
+import { LiveSearchResult, SearchModel, SearchQuery } from "../../search/model/SearchModel"
 
 /** ViewModel for the overall contact view. */
 export class ContactViewModel {
@@ -26,6 +28,8 @@ export class ContactViewModel {
 		private readonly eventController: EventController,
 		private readonly router: Router,
 		private readonly updateUi: () => unknown,
+		private readonly searchRouter: SearchRouter,
+		private readonly searchModel: SearchModel,
 	) {}
 
 	readonly listModel: ListElementListModel<Contact> = new ListElementListModel<Contact>({
@@ -115,5 +119,11 @@ export class ContactViewModel {
 		this.eventController.removeEntityListener(this.entityListener)
 		this.listModelStateStream?.end(true)
 		this.listModelStateStream = null
+	}
+	selectSearchResult(searchQuery: SearchQuery, contact: Contact) {
+		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, getElementId(contact))
+	}
+	async getSearchResults(searchQuery: SearchQuery): Promise<LiveSearchResult<Contact>> {
+		return this.searchModel.coolNewSearchContacts(searchQuery)
 	}
 }

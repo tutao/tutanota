@@ -3,7 +3,7 @@ import { SearchBar, SearchBarAttrs } from "../mail-app/search/SearchBar.js"
 import { LazyLoaded } from "../../platform-kit/utils"
 import { CalendarSearchBar } from "./calendar/search/CalendarSearchBar.js"
 import { CalendarEvent } from "@tutao/entities/tutanota"
-import { SearchModel } from "../mail-app/search/model/SearchModel"
+import { SearchModel, SearchQuery } from "../mail-app/search/model/SearchModel"
 import { createRestriction } from "./calendar/search/model/SearchUtils"
 import { formatEventDuration } from "./calendar/gui/CalendarGuiUtils"
 import { getTimeZone } from "../common/calendar/date/CalendarUtils"
@@ -11,7 +11,7 @@ import { lang } from "../../ui/utils/LanguageViewModel"
 
 export interface CalendarSearchBarAttrs {
 	searchModel: SearchModel
-	selectResult: (entry: CalendarEvent) => unknown
+	selectResult: (searchQuery: SearchQuery, entry: CalendarEvent) => unknown
 }
 
 // FIXME: rewrite with a LazyComponent
