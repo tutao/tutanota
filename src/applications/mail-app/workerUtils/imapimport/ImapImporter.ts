@@ -32,7 +32,6 @@ import { ImapSyncFacade, ImapSyncSystemFacade } from "@tutao/native-bridge/gener
 import { ImapImportUiSession } from "../../settings/imapimport/ImapMailImportController"
 import { FileTypeRef } from "@tutao/entities/sys"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
-import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 
 const DEFAULT_TUTA_SERVER_SUSPENSION_POSTPONE_TIME = 120 * 1000 // 120 seconds
 const DEFAULT_TUTA_SERVER_STORAGE_ERROR_POSTPONE_TIME = 25 * 60 * 60 * 1000 // 25 hours
@@ -415,6 +414,12 @@ export class ImapImporter implements ImapSyncFacade {
 							accountSyncStateId,
 							new Date(Date.now() + (error.data ? parseInt(error.data) : DEFAULT_TUTA_SERVER_STORAGE_ERROR_POSTPONE_TIME)),
 						)
+					} else if (error.name === "LockedError") {
+						console.error(
+							"There was a locked error while importing using imap importer, caused by two clients importing simultaneously. Stopping sync on this client ... ",
+							error,
+						)
+						await this.imapSyncSystemFacade.stopSync(accountSyncStateId)
 					} else {
 						console.error("There was some unknown error while importing using imap importer ... ", error)
 						await this.postponeImport(
