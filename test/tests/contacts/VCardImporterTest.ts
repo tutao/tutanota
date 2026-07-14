@@ -155,8 +155,6 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		const vcardData = ["N:Public\\\\;John\\;Quinlan;Lange;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81\\nBasche\nNOTE:Hello World\\nHier ist ein Umbruch"]
 		const parsedContacts = vCardListToContacts(vcardData, "")
 		const expectedContact = createContact({
-			_id: ["dummyContactListId", "dummyContactElementId0"],
-			_ownerGroup: "",
 			firstName: "John;Quinlan",
 			lastName: "Public\\",
 			role: "",
@@ -191,14 +189,14 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 			messengerHandles: [],
 			pronouns: [],
 		})
+		expectedContact._id = ["dummyContactListId", "dummyContactElementId0"]
+		expectedContact._ownerGroup = ""
 		o(parsedContacts).deepEquals([expectedContact])
 	})
 	o("testEmptyAddressElements", function () {
 		const vcardData = ["N:Public\\\\;John\\;Quinlan;;Mr.;Esq.\nBDAY:2016-09-09\nADR:Die Heide 81;; ;;Basche"]
 		const parsedContacts = vCardListToContacts(vcardData, "")
 		const expectedContact = createContact({
-			_id: ["dummyContactListId", "dummyContactElementId0"],
-			_ownerGroup: "",
 			firstName: "John;Quinlan",
 			lastName: "Public\\",
 			role: "",
@@ -233,6 +231,8 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 			messengerHandles: [],
 			pronouns: [],
 		})
+		expectedContact._id = ["dummyContactListId", "dummyContactElementId0"]
+		expectedContact._ownerGroup = ""
 		o(parsedContacts).deepEquals([expectedContact])
 	})
 
@@ -240,8 +240,6 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		const vcardData = ["N:Public\\\\; John\\; Quinlan;;Mr.    ;Esq.\nBDAY: 2016-09-09\nADR: Die Heide 81;;;; Basche"]
 		const parsedContacts = vCardListToContacts(vcardData, "")
 		const expectedContact = createContact({
-			_id: ["dummyContactListId", "dummyContactElementId0"],
-			_ownerGroup: "",
 			firstName: "John; Quinlan",
 			lastName: "Public\\",
 			role: "",
@@ -276,7 +274,8 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 			messengerHandles: [],
 			pronouns: [],
 		})
-
+		expectedContact._id = ["dummyContactListId", "dummyContactElementId0"]
+		expectedContact._ownerGroup = ""
 		o(parsedContacts).deepEquals([expectedContact])
 	})
 
@@ -291,8 +290,6 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 		const vcardContent = ["EMAIL;TYPE=WORK:HOME@mvrht.net\nADR;TYPE=WORK:Street;HOME;;\nTEL;TYPE=WORK:HOME01923825434"]
 		const parsedContacts = vCardListToContacts(vcardContent, "")
 		const expectedContact = createContact({
-			_id: ["dummyContactListId", "dummyContactElementId0"],
-			_ownerGroup: "",
 			firstName: "",
 			lastName: "",
 			role: "",
@@ -339,6 +336,8 @@ ADR;TYPE=HOME,PREF:;;Humboldstrasse 5;\\nBerlin;;12345;Deutschland`,
 			messengerHandles: [],
 			pronouns: [],
 		})
+		expectedContact._id = ["dummyContactListId", "dummyContactElementId0"]
+		expectedContact._ownerGroup = ""
 		o(parsedContacts[0]).deepEquals(expectedContact)
 	})
 	o("test vcard 4.0 date format", function () {

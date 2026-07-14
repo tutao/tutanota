@@ -10,8 +10,10 @@ o.spec("TypeMapperTest", function () {
 	let jsonInstanceNetDebugged: string
 	let jsonInstance: string
 	let encryptedParsedInstance: EncryptedParsedInstance
+	let previousNetworkDebugging: boolean
 
 	o.beforeEach(() => {
+		previousNetworkDebugging = env.networkDebugging
 		typeMapper = new TypeMapper(new DummyTypeModelResolver() as TypeModelResolver)
 
 		jsonInstanceNetDebugged = `{
@@ -83,6 +85,10 @@ o.spec("TypeMapperTest", function () {
 			.addAttributeById(16, ParsedValue.fromNull())
 			.addAttributeById(15, ParsedValue.fromString("encryptedFinalBool"))
 			.addAttributeById(17, ParsedValue.fromIdTupleList([]))
+	})
+
+	o.afterEach(() => {
+		env.networkDebugging = previousNetworkDebugging
 	})
 
 	o("read incoming instances", async function () {

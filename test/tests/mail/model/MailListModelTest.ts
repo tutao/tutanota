@@ -33,7 +33,6 @@ import { noPatchesAndInstance } from "../../api/worker/EventBusClientTest"
 import { ExposedCacheStorage } from "../../../../src/app-kit/local-store/CacheStorage"
 import { MailSetKind } from "../../../../src/entities/tutanota/Utils"
 import {
-	createMailSetEntry,
 	Mail,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
@@ -142,7 +141,7 @@ o.spec("MailListModel", () => {
 			mailBags[mailBag].push(mail)
 
 			mailSetEntries.push(
-				createMailSetEntry({
+				createTestEntity(MailSetEntryTypeRef, {
 					_id: [mailSetEntriesListId, makeMailSetElementId(i)],
 					_ownerGroup,
 					_permissions: "1234",
@@ -439,7 +438,7 @@ o.spec("MailListModel", () => {
 				sets: [mailSet._id, labels[1]._id],
 			})
 
-			const newEntry = createMailSetEntry({
+			const newEntry = createTestEntity(MailSetEntryTypeRef, {
 				_id: [forEntries, CUSTOM_MAX_ID],
 				mail: newMail._id,
 			})

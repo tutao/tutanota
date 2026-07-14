@@ -96,8 +96,6 @@ export class ImportMailFacade {
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
 			const importMailData = createImportMailData({
-				ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-				ownerEncSessionKey: ownerEncSessionKey.key,
 				subject: importMailParams.subject,
 				compressedBodyText: importMailParams.bodyText,
 				date: importMailParams.receivedDate,
@@ -146,6 +144,8 @@ export class ImportMailFacade {
 				imapUid: importMailParams.imapUid.toString(),
 				imapModSeq: importMailParams.imapModSeq?.toString() ?? null,
 			})
+			importMailData.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
+			importMailData.ownerEncSessionKey = ownerEncSessionKey.key
 
 			const untypedInstance = await this.instancePipeline.mapAndEncrypt(ImportMailDataTypeRef, importMailData, sk)
 
@@ -270,12 +270,12 @@ export class ImportMailFacade {
 		importAttachment.newAttachment = createNewImportAttachment({
 			encFileHash: fileHash ? this.cryptoWrapper.encryptString(fileHashSessionKey, fileHash) : null,
 			ownerEncFileHashSessionKey: fileHash ? ownerEncFileHashSessionKey.key : null,
-			ownerKeyVersion: fileHash ? ownerEncFileHashSessionKey.encryptingKeyVersion.toString() : null,
 			encFileName: this.cryptoWrapper.encryptString(fileSessionKey, newFile.name),
 			encCid: newFile.cid == null ? null : this.cryptoWrapper.encryptString(fileSessionKey, newFile.cid),
 			encMimeType: this.cryptoWrapper.encryptString(fileSessionKey, newFile.mimeType),
 			referenceTokens: referenceTokens,
 		})
+		importAttachment.newAttachment.ownerKeyVersion = fileHash ? ownerEncFileHashSessionKey.encryptingKeyVersion.toString() : null
 
 		return importAttachment
 	}

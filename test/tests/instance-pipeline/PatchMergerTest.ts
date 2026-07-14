@@ -34,7 +34,6 @@ import {
 	CalendarEvent,
 	CalendarEventTypeRef,
 	CalendarRepeatRuleTypeRef,
-	createOutOfOfficeNotificationRecipientList,
 	Mail,
 	MailAddress,
 	MailAddressTypeRef,
@@ -388,7 +387,7 @@ o.spec("PatchMergerTest", () => {
 				_id: "elementId",
 				mailbox: "mailboxId",
 				serverProperties: "serverId",
-				outOfOfficeNotificationRecipientList: createOutOfOfficeNotificationRecipientList({
+				outOfOfficeNotificationRecipientList: createTestEntity(OutOfOfficeNotificationRecipientListTypeRef, {
 					_id: "aggId",
 					list: "oldListId",
 				}),

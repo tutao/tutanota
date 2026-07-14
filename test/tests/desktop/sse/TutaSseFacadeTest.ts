@@ -31,10 +31,9 @@ import {
 	createAlarmNotification,
 	createCalendarEventRef,
 	createIdTupleWrapper,
-	createMissedNotification,
-	createNotificationInfo,
 	createNotificationSessionKey,
 	MissedNotificationTypeRef,
+	NotificationInfoTypeRef,
 	NotificationSessionKeyTypeRef,
 	SseConnectData,
 	SseConnectDataTypeRef,
@@ -166,7 +165,7 @@ o.spec("TutaSseFacadeTest", () => {
 				],
 				user: "userId",
 			})
-			const notificationInfo = createNotificationInfo({
+			const notificationInfo = createTestEntity(NotificationInfoTypeRef, {
 				_id: "notificationInfoId",
 				userId: "userId",
 				mailId: createIdTupleWrapper({
@@ -175,7 +174,7 @@ o.spec("TutaSseFacadeTest", () => {
 				}),
 				mailAddress: "test@mail.address",
 			})
-			const missedNotification = createMissedNotification({
+			const missedNotification = createTestEntity(MissedNotificationTypeRef, {
 				_ownerEncSessionKey: null,
 				_ownerKeyVersion: null,
 				_kdfNonce: null,
@@ -363,7 +362,7 @@ o.spec("TutaSseFacadeTest", () => {
 			setupSseInfo()
 			when(sseStorage.getLastProcessedNotificationId()).thenResolve(previousLastProcessedNotificationId)
 
-			const missedNotification = createMissedNotification({
+			const missedNotification = createTestEntity(MissedNotificationTypeRef, {
 				_ownerEncSessionKey: null,
 				_ownerKeyVersion: null,
 				_kdfNonce: null,

@@ -212,7 +212,7 @@ export class GroupManagementFacade {
 		const adminEncGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(adminGroupKey, groupKey)
 		const ownerEncGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, groupInfoSessionKey)
 
-		return createInternalGroupData({
+		const internalGroupData = createInternalGroupData({
 			pubRsaKey: null,
 			groupEncPrivRsaKey: null,
 			pubEccKey: keyPair.x25519KeyPair.publicKey,
@@ -223,8 +223,9 @@ export class GroupManagementFacade {
 			adminEncGroupKey: adminEncGroupKey.key,
 			ownerEncGroupInfoSessionKey: ownerEncGroupInfoSessionKey.key,
 			adminKeyVersion: adminEncGroupKey.encryptingKeyVersion.toString(),
-			ownerKeyVersion: ownerEncGroupInfoSessionKey.encryptingKeyVersion.toString(),
 		})
+		internalGroupData.ownerKeyVersion = ownerEncGroupInfoSessionKey.encryptingKeyVersion.toString()
+		return internalGroupData
 	}
 
 	/**

@@ -1,13 +1,21 @@
 import {
-	AdvancedRepeatRule,
+	AdvancedRepeatRuleParams,
 	CalendarEventAttendee,
-	CalendarRepeatRule,
 	createCalendarEventAttendee,
 	createEncryptedMailAddress,
 	EncryptedMailAddress,
+	EncryptedMailAddressParams,
 } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../../entities/tutanota/Utils"
-import { CalendarAdvancedRepeatRule, createCalendarAdvancedRepeatRule, createDateWrapper, createRepeatRule, DateWrapper, RepeatRule } from "@tutao/entities/sys"
+import {
+	CalendarAdvancedRepeatRule,
+	createCalendarAdvancedRepeatRule,
+	createDateWrapper,
+	createRepeatRule,
+	DateWrapper,
+	DateWrapperParams,
+	RepeatRule,
+} from "@tutao/entities/sys"
 import { filterInt, isMailAddress, neverNull, utf8Uint8ArrayToString } from "@tutao/utils"
 import { DateTime, Duration } from "luxon"
 import type { Parser } from "../../../common/misc/parsing/ParserCombinator"
@@ -29,7 +37,6 @@ import { reverse } from "../../../common/misc/EnumUtils"
 import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { Stripped } from "@tutao/meta"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
 import { availableIANATimeZones, windowsToIANATimeZones } from "../../../common/calendar/TimeZoneData"
 import { DateTimeFormatterWrapper } from "../../../common/calendar/DateTimeFormatterWrapper"
@@ -63,7 +70,7 @@ export type IcsCalendarEvent = {
 	recurrenceId: null | Date
 	repeatRule: StrippedRepeatRule | null
 	attendees: Array<StrippedCalendarEventAttendee> | null
-	organizer: Stripped<EncryptedMailAddress> | null
+	organizer: EncryptedMailAddressParams | null
 	startTimeZone: string | null
 	endTimeZone: string | null
 }
@@ -75,17 +82,22 @@ export type ParsedCalendarData = {
 	method: string
 	contents: Array<ParsedEventAlarmTuple>
 }
-export type StrippedCalendarEventAttendee = Stripped<
-	Omit<CalendarEventAttendee, "address"> & {
-		address: Stripped<EncryptedMailAddress>
-	}
->
-export type StrippedRepeatRule = Stripped<
-	Omit<CalendarRepeatRule, "excludedDates" | "advancedRules"> & {
-		excludedDates: Stripped<DateWrapper>[]
-		advancedRules: Stripped<AdvancedRepeatRule>[]
-	}
->
+export type StrippedCalendarEventAttendee = {
+	status: NumberString
+	address: EncryptedMailAddressParams
+}
+
+export type StrippedRepeatRule = {
+	frequency: NumberString
+	endType: NumberString
+	endValue: null | NumberString
+	interval: NumberString
+	timeZone: string
+
+	excludedDates: DateWrapperParams[]
+	advancedRules: AdvancedRepeatRuleParams[]
+}
+
 type ICalDuration = {
 	positive: boolean
 	day?: number

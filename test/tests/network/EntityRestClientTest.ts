@@ -50,12 +50,12 @@ import {
 	BodyTypeRef,
 	CalendarEventTypeRef,
 	ContactTypeRef,
-	createSupportCategory,
 	FileTypeRef,
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
 	RecipientsTypeRef,
+	SupportCategoryTypeRef,
 	SupportDataTypeRef,
 	tutanotaModelInfo,
 } from "@tutao/entities/tutanota"
@@ -1247,7 +1247,7 @@ o.spec("EntityRestClient", function () {
 			})
 			newSupportData._original = structuredClone(newSupportData)
 			newSupportData.categories = [
-				createSupportCategory({
+				createTestEntity(SupportCategoryTypeRef, {
 					_id: "id",
 					nameEN: "",
 					nameDE: "",

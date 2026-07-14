@@ -74,9 +74,6 @@ export class ImapFacade {
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
 		const imapPostIn = createImapPostIn({
-			ownerEncSessionKey: ownerEncSessionKey.key,
-			ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-			ownerGroup: mailGroupId,
 			imapAccount: initializeParams.imapAccount,
 			maxQuota: initializeParams.maxQuota,
 			postponedUntil: Date.now().toString(),
@@ -84,6 +81,9 @@ export class ImapFacade {
 			syncLabel: syncLabelId,
 			provider: initializeParams.provider.toString(),
 		})
+		imapPostIn.ownerEncSessionKey = ownerEncSessionKey.key
+		imapPostIn.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
+		imapPostIn.ownerGroup = mailGroupId
 
 		const imapPostOut = await this.serviceExecutor.post(ImapService, imapPostIn, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
 		const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapPostOut.imapAccountSyncState)
@@ -136,13 +136,13 @@ export class ImapFacade {
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
 			const imapFolderPostIn = createImapFolderPostIn({
-				ownerEncSessionKey: ownerEncSessionKey.key,
-				ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-				ownerGroup: mailGroupId,
 				path: imapMailboxPath,
 				imapAccountSyncState: imapAccountSyncState._id,
 				mailFolder: shouldSync ? [mailbox.mailSets.mailSets, mailSetElementId] : null,
 			})
+			imapFolderPostIn.ownerEncSessionKey = ownerEncSessionKey.key
+			imapFolderPostIn.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
+			imapFolderPostIn.ownerGroup = mailGroupId
 			const imapFolderPostOut = await this.serviceExecutor.post(ImapFolderService, imapFolderPostIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				sessionKey: sk,
@@ -168,13 +168,13 @@ export class ImapFacade {
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
 			const imapFolderPostIn = createImapFolderPostIn({
-				ownerEncSessionKey: ownerEncSessionKey.key,
-				ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-				ownerGroup: mailGroupId,
 				path: imapMailbox.path,
 				imapAccountSyncState: imapAccountSyncState._id,
 				mailFolder: mailFolderId,
 			})
+			imapFolderPostIn.ownerEncSessionKey = ownerEncSessionKey.key
+			imapFolderPostIn.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
+			imapFolderPostIn.ownerGroup = mailGroupId
 
 			const imapFolderPostOut = await this.serviceExecutor.post(ImapFolderService, imapFolderPostIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,

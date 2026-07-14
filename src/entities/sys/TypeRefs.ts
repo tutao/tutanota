@@ -1,12 +1,25 @@
-import { create, StrippedEntity } from "../../platform-kit/meta/EntityUtils.js"
+import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
 import { default as typeModels } from "./TypeModels.js"
 
 
 export const KeyPairTypeRef: TypeRef<KeyPair> = new TypeRef("sys", 0)
 
-export function createKeyPair(values: StrippedEntity<KeyPair>): KeyPair {
+export function createKeyPair(values: KeyPairParams): KeyPair {
     return Object.assign(create(typeModels[KeyPairTypeRef.typeId], KeyPairTypeRef), values)
+}
+
+export type KeyPairParams = {
+
+
+	pubRsaKey: null | Uint8Array;
+	symEncPrivRsaKey: null | Uint8Array;
+	pubEccKey: null | Uint8Array;
+	symEncPrivEccKey: null | Uint8Array;
+	pubKyberKey: null | Uint8Array;
+	symEncPrivKyberKey: null | Uint8Array;
+
+	signature: null | PublicKeySignature;
 }
 
 export type KeyPair = {
@@ -25,8 +38,32 @@ export type KeyPair = {
 }
 export const GroupTypeRef: TypeRef<Group> = new TypeRef("sys", 5)
 
-export function createGroup(values: StrippedEntity<Group>): Group {
+export function createGroup(values: GroupParams): Group {
     return Object.assign(create(typeModels[GroupTypeRef.typeId], GroupTypeRef), values)
+}
+
+export type GroupParams = {
+
+
+	type: NumberString;
+	adminGroupEncGKey: null | Uint8Array;
+	enabled: boolean;
+	external: boolean;
+	adminGroupKeyVersion: null | NumberString;
+	groupKeyVersion: NumberString;
+
+	currentKeys: null | KeyPair;
+	admin: null | Id;
+	user: null | Id;
+	customer: null | Id;
+	groupInfo: IdTuple;
+	invitations: Id;
+	members: Id;
+	archives: ArchiveType[];
+	storageCounter: null | Id;
+	formerGroupKeys: GroupKeysRef;
+	pubAdminGroupEncGKey: null | PubEncKeyData;
+	identityKeyPair: null | IdentityKeyPair;
 }
 
 export type Group = {
@@ -59,8 +96,22 @@ export type Group = {
 }
 export const GroupInfoTypeRef: TypeRef<GroupInfo> = new TypeRef("sys", 14)
 
-export function createGroupInfo(values: StrippedEntity<GroupInfo>): GroupInfo {
+export function createGroupInfo(values: GroupInfoParams): GroupInfo {
     return Object.assign(create(typeModels[GroupInfoTypeRef.typeId], GroupInfoTypeRef), values)
+}
+
+export type GroupInfoParams = {
+
+
+	_listEncSessionKey: null | Uint8Array;
+	name: string;
+	mailAddress: null | string;
+	created: Date;
+	deleted: null | Date;
+	groupType: null | NumberString;
+
+	group: Id;
+	mailAddressAliases: MailAddressAlias[];
 }
 
 export type GroupInfo = {
@@ -87,8 +138,23 @@ export type GroupInfo = {
 }
 export const GroupMembershipTypeRef: TypeRef<GroupMembership> = new TypeRef("sys", 25)
 
-export function createGroupMembership(values: StrippedEntity<GroupMembership>): GroupMembership {
+export function createGroupMembership(values: GroupMembershipParams): GroupMembership {
     return Object.assign(create(typeModels[GroupMembershipTypeRef.typeId], GroupMembershipTypeRef), values)
+}
+
+export type GroupMembershipParams = {
+
+
+	symEncGKey: Uint8Array;
+	admin: boolean;
+	groupType: null | NumberString;
+	capability: null | NumberString;
+	groupKeyVersion: NumberString;
+	symKeyVersion: NumberString;
+
+	group: Id;
+	groupInfo: IdTuple;
+	groupMember: IdTuple;
 }
 
 export type GroupMembership = {
@@ -109,8 +175,35 @@ export type GroupMembership = {
 }
 export const CustomerTypeRef: TypeRef<Customer> = new TypeRef("sys", 31)
 
-export function createCustomer(values: StrippedEntity<Customer>): Customer {
+export function createCustomer(values: CustomerParams): Customer {
     return Object.assign(create(typeModels[CustomerTypeRef.typeId], CustomerTypeRef), values)
+}
+
+export type CustomerParams = {
+
+
+	type: NumberString;
+	approvalStatus: NumberString;
+	orderProcessingAgreementNeeded: boolean;
+	businessUse: boolean;
+
+	adminGroup: Id;
+	customerGroup: Id;
+	adminGroups: Id;
+	customerGroups: Id;
+	userGroups: Id;
+	teamGroups: Id;
+	customerInfo: IdTuple;
+	properties: null | Id;
+	serverProperties: null | Id;
+	userAreaGroups: null | UserAreaGroups;
+	auditLog: null | AuditLogRef;
+	customizations: Feature[];
+	whitelabelParent: null | WhitelabelParent;
+	whitelabelChildren: null | WhitelabelChildrenRef;
+	orderProcessingAgreement: null | IdTuple;
+	rejectedSenders: null | RejectedSendersRef;
+	referralCode: null | Id;
 }
 
 export type Customer = {
@@ -146,8 +239,16 @@ export type Customer = {
 }
 export const AuthenticatedDeviceTypeRef: TypeRef<AuthenticatedDevice> = new TypeRef("sys", 43)
 
-export function createAuthenticatedDevice(values: StrippedEntity<AuthenticatedDevice>): AuthenticatedDevice {
+export function createAuthenticatedDevice(values: AuthenticatedDeviceParams): AuthenticatedDevice {
     return Object.assign(create(typeModels[AuthenticatedDeviceTypeRef.typeId], AuthenticatedDeviceTypeRef), values)
+}
+
+export type AuthenticatedDeviceParams = {
+
+
+	authType: NumberString;
+	deviceToken: string;
+	deviceKey: Uint8Array;
 }
 
 export type AuthenticatedDevice = {
@@ -161,8 +262,14 @@ export type AuthenticatedDevice = {
 }
 export const LoginTypeRef: TypeRef<Login> = new TypeRef("sys", 48)
 
-export function createLogin(values: StrippedEntity<Login>): Login {
+export function createLogin(values: LoginParams): Login {
     return Object.assign(create(typeModels[LoginTypeRef.typeId], LoginTypeRef), values)
+}
+
+export type LoginParams = {
+
+
+	time: Date;
 }
 
 export type Login = {
@@ -177,8 +284,17 @@ export type Login = {
 }
 export const SecondFactorAuthenticationTypeRef: TypeRef<SecondFactorAuthentication> = new TypeRef("sys", 54)
 
-export function createSecondFactorAuthentication(values: StrippedEntity<SecondFactorAuthentication>): SecondFactorAuthentication {
+export function createSecondFactorAuthentication(values: SecondFactorAuthenticationParams): SecondFactorAuthentication {
     return Object.assign(create(typeModels[SecondFactorAuthenticationTypeRef.typeId], SecondFactorAuthenticationTypeRef), values)
+}
+
+export type SecondFactorAuthenticationParams = {
+
+
+	code: string;
+	verifyCount: NumberString;
+	finished: boolean;
+	service: string;
 }
 
 export type SecondFactorAuthentication = {
@@ -196,8 +312,19 @@ export type SecondFactorAuthentication = {
 }
 export const VariableExternalAuthInfoTypeRef: TypeRef<VariableExternalAuthInfo> = new TypeRef("sys", 66)
 
-export function createVariableExternalAuthInfo(values: StrippedEntity<VariableExternalAuthInfo>): VariableExternalAuthInfo {
+export function createVariableExternalAuthInfo(values: VariableExternalAuthInfoParams): VariableExternalAuthInfo {
     return Object.assign(create(typeModels[VariableExternalAuthInfoTypeRef.typeId], VariableExternalAuthInfoTypeRef), values)
+}
+
+export type VariableExternalAuthInfoParams = {
+
+
+	loggedInVerifier: null | Uint8Array;
+	loggedInTimestamp: null | Date;
+	loggedInIpAddressHash: null | Uint8Array;
+	sentCount: NumberString;
+	lastSentTimestamp: Date;
+	authUpdateCounter: NumberString;
 }
 
 export type VariableExternalAuthInfo = {
@@ -217,8 +344,19 @@ export type VariableExternalAuthInfo = {
 }
 export const UserExternalAuthInfoTypeRef: TypeRef<UserExternalAuthInfo> = new TypeRef("sys", 77)
 
-export function createUserExternalAuthInfo(values: StrippedEntity<UserExternalAuthInfo>): UserExternalAuthInfo {
+export function createUserExternalAuthInfo(values: UserExternalAuthInfoParams): UserExternalAuthInfo {
     return Object.assign(create(typeModels[UserExternalAuthInfoTypeRef.typeId], UserExternalAuthInfoTypeRef), values)
+}
+
+export type UserExternalAuthInfoParams = {
+
+
+	autoAuthenticationId: Id;
+	latestSaltHash: null | Uint8Array;
+	autoTransmitPassword: null | string;
+	authUpdateCounter: NumberString;
+
+	variableAuthInfo: Id;
 }
 
 export type UserExternalAuthInfo = {
@@ -235,8 +373,31 @@ export type UserExternalAuthInfo = {
 }
 export const UserTypeRef: TypeRef<User> = new TypeRef("sys", 84)
 
-export function createUser(values: StrippedEntity<User>): User {
+export function createUser(values: UserParams): User {
     return Object.assign(create(typeModels[UserTypeRef.typeId], UserTypeRef), values)
+}
+
+export type UserParams = {
+
+
+	salt: null | Uint8Array;
+	verifier: Uint8Array;
+	accountType: NumberString;
+	enabled: boolean;
+	requirePasswordUpdate: boolean;
+	kdfVersion: NumberString;
+
+	userGroup: GroupMembership;
+	memberships: GroupMembership[];
+	authenticatedDevices: AuthenticatedDevice[];
+	externalAuthInfo: null | UserExternalAuthInfo;
+	customer: null | Id;
+	successfulLogins: Id;
+	failedLogins: Id;
+	secondFactorAuthentications: Id;
+	pushIdentifierList: null | PushIdentifierList;
+	auth: null | UserAuthentication;
+	alarmInfoList: null | UserAlarmInfoListType;
 }
 
 export type User = {
@@ -268,8 +429,16 @@ export type User = {
 }
 export const ExternalUserReferenceTypeRef: TypeRef<ExternalUserReference> = new TypeRef("sys", 103)
 
-export function createExternalUserReference(values: StrippedEntity<ExternalUserReference>): ExternalUserReference {
+export function createExternalUserReference(values: ExternalUserReferenceParams): ExternalUserReference {
     return Object.assign(create(typeModels[ExternalUserReferenceTypeRef.typeId], ExternalUserReferenceTypeRef), values)
+}
+
+export type ExternalUserReferenceParams = {
+
+
+
+	user: Id;
+	userGroup: Id;
 }
 
 export type ExternalUserReference = {
@@ -286,8 +455,17 @@ export type ExternalUserReference = {
 }
 export const GroupRootTypeRef: TypeRef<GroupRoot> = new TypeRef("sys", 110)
 
-export function createGroupRoot(values: StrippedEntity<GroupRoot>): GroupRoot {
+export function createGroupRoot(values: GroupRootParams): GroupRoot {
     return Object.assign(create(typeModels[GroupRootTypeRef.typeId], GroupRootTypeRef), values)
+}
+
+export type GroupRootParams = {
+
+
+
+	externalGroupInfos: Id;
+	externalUserReferences: Id;
+	externalUserAreaGroupInfos: null | UserAreaGroups;
 }
 
 export type GroupRoot = {
@@ -305,8 +483,23 @@ export type GroupRoot = {
 }
 export const BucketPermissionTypeRef: TypeRef<BucketPermission> = new TypeRef("sys", 118)
 
-export function createBucketPermission(values: StrippedEntity<BucketPermission>): BucketPermission {
+export function createBucketPermission(values: BucketPermissionParams): BucketPermission {
     return Object.assign(create(typeModels[BucketPermissionTypeRef.typeId], BucketPermissionTypeRef), values)
+}
+
+export type BucketPermissionParams = {
+
+
+	type: NumberString;
+	symEncBucketKey: null | Uint8Array;
+	pubEncBucketKey: null | Uint8Array;
+	pubKeyVersion: null | NumberString;
+	ownerEncBucketKey: null | Uint8Array;
+	protocolVersion: NumberString;
+	symKeyVersion: null | NumberString;
+	senderKeyVersion: null | NumberString;
+
+	group: Id;
 }
 
 export type BucketPermission = {
@@ -331,8 +524,15 @@ export type BucketPermission = {
 }
 export const BucketTypeRef: TypeRef<Bucket> = new TypeRef("sys", 129)
 
-export function createBucket(values: StrippedEntity<Bucket>): Bucket {
+export function createBucket(values: BucketParams): Bucket {
     return Object.assign(create(typeModels[BucketTypeRef.typeId], BucketTypeRef), values)
+}
+
+export type BucketParams = {
+
+
+
+	bucketPermissions: Id;
 }
 
 export type Bucket = {
@@ -345,8 +545,23 @@ export type Bucket = {
 }
 export const PermissionTypeRef: TypeRef<Permission> = new TypeRef("sys", 132)
 
-export function createPermission(values: StrippedEntity<Permission>): Permission {
+export function createPermission(values: PermissionParams): Permission {
     return Object.assign(create(typeModels[PermissionTypeRef.typeId], PermissionTypeRef), values)
+}
+
+export type PermissionParams = {
+
+
+	type: NumberString;
+	symEncSessionKey: null | Uint8Array;
+	bucketEncSessionKey: null | Uint8Array;
+	ops: null | string;
+	listElementTypeId: null | NumberString;
+	listElementApplication: null | string;
+	symKeyVersion: null | NumberString;
+
+	group: null | Id;
+	bucket: null | Bucket;
 }
 
 export type Permission = {
@@ -372,8 +587,31 @@ export type Permission = {
 }
 export const AccountingInfoTypeRef: TypeRef<AccountingInfo> = new TypeRef("sys", 143)
 
-export function createAccountingInfo(values: StrippedEntity<AccountingInfo>): AccountingInfo {
+export function createAccountingInfo(values: AccountingInfoParams): AccountingInfo {
     return Object.assign(create(typeModels[AccountingInfoTypeRef.typeId], AccountingInfoTypeRef), values)
+}
+
+export type AccountingInfoParams = {
+
+
+	lastInvoiceTimestamp: null | Date;
+	lastInvoiceNbrOfSentSms: NumberString;
+	invoiceName: string;
+	invoiceAddress: string;
+	invoiceCountry: null | string;
+	secondCountryInfo: NumberString;
+	invoiceVatIdNo: string;
+	paymentMethod: null | NumberString;
+	paymentMethodInfo: null | string;
+	paymentInterval: NumberString;
+	paymentProviderCustomerId: null | string;
+	paymentAccountIdentifier: null | string;
+	paypalBillingAgreement: null | string;
+	_modified: Date;
+	lastUsedOffer: null | string;
+
+	invoiceInfo: null | Id;
+	appStoreSubscription: null | IdTuple;
 }
 
 export type AccountingInfo = {
@@ -409,8 +647,48 @@ export type AccountingInfo = {
 }
 export const CustomerInfoTypeRef: TypeRef<CustomerInfo> = new TypeRef("sys", 148)
 
-export function createCustomerInfo(values: StrippedEntity<CustomerInfo>): CustomerInfo {
+export function createCustomerInfo(values: CustomerInfoParams): CustomerInfo {
     return Object.assign(create(typeModels[CustomerInfoTypeRef.typeId], CustomerInfoTypeRef), values)
+}
+
+export type CustomerInfoParams = {
+
+
+	company: null | string;
+	domain: string;
+	creationTime: Date;
+	testEndTime: null | Date;
+	activationTime: null | Date;
+	registrationMailAddress: string;
+	deletionTime: null | Date;
+	deletionReason: null | string;
+	promotionStorageCapacity: NumberString;
+	source: string;
+	promotionEmailAliases: NumberString;
+	usedSharedEmailAliases: NumberString;
+	includedEmailAliases: NumberString;
+	includedStorageCapacity: NumberString;
+	erased: boolean;
+	perUserStorageCapacity: NumberString;
+	perUserAliasCount: NumberString;
+	plan: NumberString;
+	promotionId: null | string;
+	confirmedHuman: boolean;
+	adAttributionCampaignId: null | string;
+
+	customer: Id;
+	accountingInfo: Id;
+	domainInfos: DomainInfo[];
+	bookings: null | BookingsRef;
+	takeoverCustomer: null | Id;
+	giftCards: null | GiftCardsRef;
+	terminationRequest: null | IdTuple;
+	referredBy: null | Id;
+	customPlan: null | PlanConfiguration;
+	supportInfo: null | Id;
+	managedByPartner: null | Id;
+	partnerManagedCustomers: null | Id;
+	revocationRequest: null | IdTuple;
 }
 
 export type CustomerInfo = {
@@ -459,8 +737,18 @@ export type CustomerInfo = {
 }
 export const SentGroupInvitationTypeRef: TypeRef<SentGroupInvitation> = new TypeRef("sys", 195)
 
-export function createSentGroupInvitation(values: StrippedEntity<SentGroupInvitation>): SentGroupInvitation {
+export function createSentGroupInvitation(values: SentGroupInvitationParams): SentGroupInvitation {
     return Object.assign(create(typeModels[SentGroupInvitationTypeRef.typeId], SentGroupInvitationTypeRef), values)
+}
+
+export type SentGroupInvitationParams = {
+
+
+	inviteeMailAddress: string;
+	capability: NumberString;
+
+	sharedGroup: Id;
+	receivedInvitation: null | IdTuple;
 }
 
 export type SentGroupInvitation = {
@@ -479,8 +767,15 @@ export type SentGroupInvitation = {
 }
 export const MailAddressToGroupTypeRef: TypeRef<MailAddressToGroup> = new TypeRef("sys", 204)
 
-export function createMailAddressToGroup(values: StrippedEntity<MailAddressToGroup>): MailAddressToGroup {
+export function createMailAddressToGroup(values: MailAddressToGroupParams): MailAddressToGroup {
     return Object.assign(create(typeModels[MailAddressToGroupTypeRef.typeId], MailAddressToGroupTypeRef), values)
+}
+
+export type MailAddressToGroupParams = {
+
+
+
+	internalGroup: null | Id;
 }
 
 export type MailAddressToGroup = {
@@ -496,8 +791,18 @@ export type MailAddressToGroup = {
 }
 export const GroupMemberTypeRef: TypeRef<GroupMember> = new TypeRef("sys", 216)
 
-export function createGroupMember(values: StrippedEntity<GroupMember>): GroupMember {
+export function createGroupMember(values: GroupMemberParams): GroupMember {
     return Object.assign(create(typeModels[GroupMemberTypeRef.typeId], GroupMemberTypeRef), values)
+}
+
+export type GroupMemberParams = {
+
+
+	capability: null | NumberString;
+
+	userGroupInfo: IdTuple;
+	group: Id;
+	user: Id;
 }
 
 export type GroupMember = {
@@ -516,8 +821,14 @@ export type GroupMember = {
 }
 export const RootInstanceTypeRef: TypeRef<RootInstance> = new TypeRef("sys", 231)
 
-export function createRootInstance(values: StrippedEntity<RootInstance>): RootInstance {
+export function createRootInstance(values: RootInstanceParams): RootInstance {
     return Object.assign(create(typeModels[RootInstanceTypeRef.typeId], RootInstanceTypeRef), values)
+}
+
+export type RootInstanceParams = {
+
+
+	reference: Id;
 }
 
 export type RootInstance = {
@@ -532,8 +843,22 @@ export type RootInstance = {
 }
 export const VersionInfoTypeRef: TypeRef<VersionInfo> = new TypeRef("sys", 237)
 
-export function createVersionInfo(values: StrippedEntity<VersionInfo>): VersionInfo {
+export function createVersionInfo(values: VersionInfoParams): VersionInfo {
     return Object.assign(create(typeModels[VersionInfoTypeRef.typeId], VersionInfoTypeRef), values)
+}
+
+export type VersionInfoParams = {
+
+
+	app: string;
+	type: NumberString;
+	referenceList: null | Id;
+	timestamp: Date;
+	operation: string;
+	versionData: null | Uint8Array;
+
+	author: Id;
+	authorGroupInfo: IdTuple;
 }
 
 export type VersionInfo = {
@@ -556,8 +881,24 @@ export type VersionInfo = {
 }
 export const SystemKeysReturnTypeRef: TypeRef<SystemKeysReturn> = new TypeRef("sys", 301)
 
-export function createSystemKeysReturn(values: StrippedEntity<SystemKeysReturn>): SystemKeysReturn {
+export function createSystemKeysReturn(values: SystemKeysReturnParams): SystemKeysReturn {
     return Object.assign(create(typeModels[SystemKeysReturnTypeRef.typeId], SystemKeysReturnTypeRef), values)
+}
+
+export type SystemKeysReturnParams = {
+
+
+	systemAdminPubRsaKey: null | Uint8Array;
+	systemAdminPubKeyVersion: NumberString;
+	freeGroupKey: Uint8Array;
+	premiumGroupKey: Uint8Array;
+	systemAdminPubEccKey: null | Uint8Array;
+	systemAdminPubKyberKey: null | Uint8Array;
+	freeGroupKeyVersion: NumberString;
+	premiumGroupKeyVersion: NumberString;
+
+	freeGroup: null | Id;
+	premiumGroup: null | Id;
 }
 
 export type SystemKeysReturn = {
@@ -579,8 +920,15 @@ export type SystemKeysReturn = {
 }
 export const RegistrationServiceDataTypeRef: TypeRef<RegistrationServiceData> = new TypeRef("sys", 316)
 
-export function createRegistrationServiceData(values: StrippedEntity<RegistrationServiceData>): RegistrationServiceData {
+export function createRegistrationServiceData(values: RegistrationServiceDataParams): RegistrationServiceData {
     return Object.assign(create(typeModels[RegistrationServiceDataTypeRef.typeId], RegistrationServiceDataTypeRef), values)
+}
+
+export type RegistrationServiceDataParams = {
+
+
+	state: NumberString;
+	source: null | string;
 }
 
 export type RegistrationServiceData = {
@@ -593,8 +941,14 @@ export type RegistrationServiceData = {
 }
 export const RegistrationReturnTypeRef: TypeRef<RegistrationReturn> = new TypeRef("sys", 326)
 
-export function createRegistrationReturn(values: StrippedEntity<RegistrationReturn>): RegistrationReturn {
+export function createRegistrationReturn(values: RegistrationReturnParams): RegistrationReturn {
     return Object.assign(create(typeModels[RegistrationReturnTypeRef.typeId], RegistrationReturnTypeRef), values)
+}
+
+export type RegistrationReturnParams = {
+
+
+	authToken: string;
 }
 
 export type RegistrationReturn = {
@@ -606,8 +960,17 @@ export type RegistrationReturn = {
 }
 export const SendRegistrationCodeDataTypeRef: TypeRef<SendRegistrationCodeData> = new TypeRef("sys", 341)
 
-export function createSendRegistrationCodeData(values: StrippedEntity<SendRegistrationCodeData>): SendRegistrationCodeData {
+export function createSendRegistrationCodeData(values: SendRegistrationCodeDataParams): SendRegistrationCodeData {
     return Object.assign(create(typeModels[SendRegistrationCodeDataTypeRef.typeId], SendRegistrationCodeDataTypeRef), values)
+}
+
+export type SendRegistrationCodeDataParams = {
+
+
+	authToken: string;
+	language: string;
+	accountType: NumberString;
+	mobilePhoneNumber: string;
 }
 
 export type SendRegistrationCodeData = {
@@ -622,8 +985,14 @@ export type SendRegistrationCodeData = {
 }
 export const SendRegistrationCodeReturnTypeRef: TypeRef<SendRegistrationCodeReturn> = new TypeRef("sys", 347)
 
-export function createSendRegistrationCodeReturn(values: StrippedEntity<SendRegistrationCodeReturn>): SendRegistrationCodeReturn {
+export function createSendRegistrationCodeReturn(values: SendRegistrationCodeReturnParams): SendRegistrationCodeReturn {
     return Object.assign(create(typeModels[SendRegistrationCodeReturnTypeRef.typeId], SendRegistrationCodeReturnTypeRef), values)
+}
+
+export type SendRegistrationCodeReturnParams = {
+
+
+	authToken: string;
 }
 
 export type SendRegistrationCodeReturn = {
@@ -635,8 +1004,15 @@ export type SendRegistrationCodeReturn = {
 }
 export const VerifyRegistrationCodeDataTypeRef: TypeRef<VerifyRegistrationCodeData> = new TypeRef("sys", 351)
 
-export function createVerifyRegistrationCodeData(values: StrippedEntity<VerifyRegistrationCodeData>): VerifyRegistrationCodeData {
+export function createVerifyRegistrationCodeData(values: VerifyRegistrationCodeDataParams): VerifyRegistrationCodeData {
     return Object.assign(create(typeModels[VerifyRegistrationCodeDataTypeRef.typeId], VerifyRegistrationCodeDataTypeRef), values)
+}
+
+export type VerifyRegistrationCodeDataParams = {
+
+
+	authToken: string;
+	code: string;
 }
 
 export type VerifyRegistrationCodeData = {
@@ -649,8 +1025,17 @@ export type VerifyRegistrationCodeData = {
 }
 export const UserDataDeleteTypeRef: TypeRef<UserDataDelete> = new TypeRef("sys", 404)
 
-export function createUserDataDelete(values: StrippedEntity<UserDataDelete>): UserDataDelete {
+export function createUserDataDelete(values: UserDataDeleteParams): UserDataDelete {
     return Object.assign(create(typeModels[UserDataDeleteTypeRef.typeId], UserDataDeleteTypeRef), values)
+}
+
+export type UserDataDeleteParams = {
+
+
+	restore: boolean;
+	date: null | Date;
+
+	user: Id;
 }
 
 export type UserDataDelete = {
@@ -665,8 +1050,16 @@ export type UserDataDelete = {
 }
 export const PublicKeyGetInTypeRef: TypeRef<PublicKeyGetIn> = new TypeRef("sys", 409)
 
-export function createPublicKeyGetIn(values: StrippedEntity<PublicKeyGetIn>): PublicKeyGetIn {
+export function createPublicKeyGetIn(values: PublicKeyGetInParams): PublicKeyGetIn {
     return Object.assign(create(typeModels[PublicKeyGetInTypeRef.typeId], PublicKeyGetInTypeRef), values)
+}
+
+export type PublicKeyGetInParams = {
+
+
+	identifier: string;
+	version: null | NumberString;
+	identifierType: NumberString;
 }
 
 export type PublicKeyGetIn = {
@@ -680,8 +1073,19 @@ export type PublicKeyGetIn = {
 }
 export const PublicKeyGetOutTypeRef: TypeRef<PublicKeyGetOut> = new TypeRef("sys", 412)
 
-export function createPublicKeyGetOut(values: StrippedEntity<PublicKeyGetOut>): PublicKeyGetOut {
+export function createPublicKeyGetOut(values: PublicKeyGetOutParams): PublicKeyGetOut {
     return Object.assign(create(typeModels[PublicKeyGetOutTypeRef.typeId], PublicKeyGetOutTypeRef), values)
+}
+
+export type PublicKeyGetOutParams = {
+
+
+	pubRsaKey: null | Uint8Array;
+	pubKeyVersion: NumberString;
+	pubEccKey: null | Uint8Array;
+	pubKyberKey: null | Uint8Array;
+
+	signature: null | PublicKeySignature;
 }
 
 export type PublicKeyGetOut = {
@@ -698,8 +1102,14 @@ export type PublicKeyGetOut = {
 }
 export const SaltDataTypeRef: TypeRef<SaltData> = new TypeRef("sys", 417)
 
-export function createSaltData(values: StrippedEntity<SaltData>): SaltData {
+export function createSaltData(values: SaltDataParams): SaltData {
     return Object.assign(create(typeModels[SaltDataTypeRef.typeId], SaltDataTypeRef), values)
+}
+
+export type SaltDataParams = {
+
+
+	mailAddress: string;
 }
 
 export type SaltData = {
@@ -711,8 +1121,15 @@ export type SaltData = {
 }
 export const SaltReturnTypeRef: TypeRef<SaltReturn> = new TypeRef("sys", 420)
 
-export function createSaltReturn(values: StrippedEntity<SaltReturn>): SaltReturn {
+export function createSaltReturn(values: SaltReturnParams): SaltReturn {
     return Object.assign(create(typeModels[SaltReturnTypeRef.typeId], SaltReturnTypeRef), values)
+}
+
+export type SaltReturnParams = {
+
+
+	salt: Uint8Array;
+	kdfVersion: NumberString;
 }
 
 export type SaltReturn = {
@@ -725,8 +1142,16 @@ export type SaltReturn = {
 }
 export const AutoLoginDataGetTypeRef: TypeRef<AutoLoginDataGet> = new TypeRef("sys", 431)
 
-export function createAutoLoginDataGet(values: StrippedEntity<AutoLoginDataGet>): AutoLoginDataGet {
+export function createAutoLoginDataGet(values: AutoLoginDataGetParams): AutoLoginDataGet {
     return Object.assign(create(typeModels[AutoLoginDataGetTypeRef.typeId], AutoLoginDataGetTypeRef), values)
+}
+
+export type AutoLoginDataGetParams = {
+
+
+	deviceToken: string;
+
+	userId: Id;
 }
 
 export type AutoLoginDataGet = {
@@ -740,8 +1165,14 @@ export type AutoLoginDataGet = {
 }
 export const AutoLoginDataDeleteTypeRef: TypeRef<AutoLoginDataDelete> = new TypeRef("sys", 435)
 
-export function createAutoLoginDataDelete(values: StrippedEntity<AutoLoginDataDelete>): AutoLoginDataDelete {
+export function createAutoLoginDataDelete(values: AutoLoginDataDeleteParams): AutoLoginDataDelete {
     return Object.assign(create(typeModels[AutoLoginDataDeleteTypeRef.typeId], AutoLoginDataDeleteTypeRef), values)
+}
+
+export type AutoLoginDataDeleteParams = {
+
+
+	deviceToken: string;
 }
 
 export type AutoLoginDataDelete = {
@@ -753,8 +1184,14 @@ export type AutoLoginDataDelete = {
 }
 export const AutoLoginDataReturnTypeRef: TypeRef<AutoLoginDataReturn> = new TypeRef("sys", 438)
 
-export function createAutoLoginDataReturn(values: StrippedEntity<AutoLoginDataReturn>): AutoLoginDataReturn {
+export function createAutoLoginDataReturn(values: AutoLoginDataReturnParams): AutoLoginDataReturn {
     return Object.assign(create(typeModels[AutoLoginDataReturnTypeRef.typeId], AutoLoginDataReturnTypeRef), values)
+}
+
+export type AutoLoginDataReturnParams = {
+
+
+	deviceKey: Uint8Array;
 }
 
 export type AutoLoginDataReturn = {
@@ -766,8 +1203,14 @@ export type AutoLoginDataReturn = {
 }
 export const AutoLoginPostReturnTypeRef: TypeRef<AutoLoginPostReturn> = new TypeRef("sys", 441)
 
-export function createAutoLoginPostReturn(values: StrippedEntity<AutoLoginPostReturn>): AutoLoginPostReturn {
+export function createAutoLoginPostReturn(values: AutoLoginPostReturnParams): AutoLoginPostReturn {
     return Object.assign(create(typeModels[AutoLoginPostReturnTypeRef.typeId], AutoLoginPostReturnTypeRef), values)
+}
+
+export type AutoLoginPostReturnParams = {
+
+
+	deviceToken: string;
 }
 
 export type AutoLoginPostReturn = {
@@ -779,8 +1222,16 @@ export type AutoLoginPostReturn = {
 }
 export const UpdatePermissionKeyDataTypeRef: TypeRef<UpdatePermissionKeyData> = new TypeRef("sys", 445)
 
-export function createUpdatePermissionKeyData(values: StrippedEntity<UpdatePermissionKeyData>): UpdatePermissionKeyData {
+export function createUpdatePermissionKeyData(values: UpdatePermissionKeyDataParams): UpdatePermissionKeyData {
     return Object.assign(create(typeModels[UpdatePermissionKeyDataTypeRef.typeId], UpdatePermissionKeyDataTypeRef), values)
+}
+
+export type UpdatePermissionKeyDataParams = {
+
+
+
+	permission: IdTuple;
+	bucketPermission: IdTuple;
 }
 
 export type UpdatePermissionKeyData = {
@@ -796,8 +1247,22 @@ export type UpdatePermissionKeyData = {
 }
 export const EntityUpdateTypeRef: TypeRef<EntityUpdate> = new TypeRef("sys", 462)
 
-export function createEntityUpdate(values: StrippedEntity<EntityUpdate>): EntityUpdate {
+export function createEntityUpdate(values: EntityUpdateParams): EntityUpdate {
     return Object.assign(create(typeModels[EntityUpdateTypeRef.typeId], EntityUpdateTypeRef), values)
+}
+
+export type EntityUpdateParams = {
+
+
+	application: string;
+	instanceListId: string;
+	instanceId: string;
+	operation: NumberString;
+	typeId: NumberString;
+	instance: null | string;
+	blobInstance: null | string;
+
+	patch: null | PatchList;
 }
 
 export type EntityUpdate = {
@@ -817,8 +1282,19 @@ export type EntityUpdate = {
 }
 export const VersionTypeRef: TypeRef<Version> = new TypeRef("sys", 480)
 
-export function createVersion(values: StrippedEntity<Version>): Version {
+export function createVersion(values: VersionParams): Version {
     return Object.assign(create(typeModels[VersionTypeRef.typeId], VersionTypeRef), values)
+}
+
+export type VersionParams = {
+
+
+	version: Id;
+	timestamp: Date;
+	operation: string;
+
+	author: Id;
+	authorGroupInfo: IdTuple;
 }
 
 export type Version = {
@@ -835,8 +1311,17 @@ export type Version = {
 }
 export const VersionDataTypeRef: TypeRef<VersionData> = new TypeRef("sys", 487)
 
-export function createVersionData(values: StrippedEntity<VersionData>): VersionData {
+export function createVersionData(values: VersionDataParams): VersionData {
     return Object.assign(create(typeModels[VersionDataTypeRef.typeId], VersionDataTypeRef), values)
+}
+
+export type VersionDataParams = {
+
+
+	application: string;
+	typeId: NumberString;
+	id: Id;
+	listId: null | Id;
 }
 
 export type VersionData = {
@@ -851,8 +1336,15 @@ export type VersionData = {
 }
 export const VersionReturnTypeRef: TypeRef<VersionReturn> = new TypeRef("sys", 493)
 
-export function createVersionReturn(values: StrippedEntity<VersionReturn>): VersionReturn {
+export function createVersionReturn(values: VersionReturnParams): VersionReturn {
     return Object.assign(create(typeModels[VersionReturnTypeRef.typeId], VersionReturnTypeRef), values)
+}
+
+export type VersionReturnParams = {
+
+
+
+	versions: Version[];
 }
 
 export type VersionReturn = {
@@ -865,8 +1357,19 @@ export type VersionReturn = {
 }
 export const MembershipAddDataTypeRef: TypeRef<MembershipAddData> = new TypeRef("sys", 505)
 
-export function createMembershipAddData(values: StrippedEntity<MembershipAddData>): MembershipAddData {
+export function createMembershipAddData(values: MembershipAddDataParams): MembershipAddData {
     return Object.assign(create(typeModels[MembershipAddDataTypeRef.typeId], MembershipAddDataTypeRef), values)
+}
+
+export type MembershipAddDataParams = {
+
+
+	symEncGKey: Uint8Array;
+	symKeyVersion: NumberString;
+	groupKeyVersion: NumberString;
+
+	user: Id;
+	group: Id;
 }
 
 export type MembershipAddData = {
@@ -883,8 +1386,21 @@ export type MembershipAddData = {
 }
 export const ChangePasswordPostInTypeRef: TypeRef<ChangePasswordPostIn> = new TypeRef("sys", 534)
 
-export function createChangePasswordPostIn(values: StrippedEntity<ChangePasswordPostIn>): ChangePasswordPostIn {
+export function createChangePasswordPostIn(values: ChangePasswordPostInParams): ChangePasswordPostIn {
     return Object.assign(create(typeModels[ChangePasswordPostInTypeRef.typeId], ChangePasswordPostInTypeRef), values)
+}
+
+export type ChangePasswordPostInParams = {
+
+
+	verifier: Uint8Array;
+	salt: Uint8Array;
+	pwEncUserGroupKey: Uint8Array;
+	code: null | string;
+	oldVerifier: null | Uint8Array;
+	recoverCodeVerifier: null | Uint8Array;
+	kdfVersion: NumberString;
+	userGroupKeyVersion: NumberString;
 }
 
 export type ChangePasswordPostIn = {
@@ -903,8 +1419,19 @@ export type ChangePasswordPostIn = {
 }
 export const SecondFactorAuthDataTypeRef: TypeRef<SecondFactorAuthData> = new TypeRef("sys", 541)
 
-export function createSecondFactorAuthData(values: StrippedEntity<SecondFactorAuthData>): SecondFactorAuthData {
+export function createSecondFactorAuthData(values: SecondFactorAuthDataParams): SecondFactorAuthData {
     return Object.assign(create(typeModels[SecondFactorAuthDataTypeRef.typeId], SecondFactorAuthDataTypeRef), values)
+}
+
+export type SecondFactorAuthDataParams = {
+
+
+	type: null | NumberString;
+	otpCode: null | NumberString;
+
+	u2f: null | U2fResponseData;
+	session: null | IdTuple;
+	webauthn: null | WebauthnResponseData;
 }
 
 export type SecondFactorAuthData = {
@@ -921,8 +1448,14 @@ export type SecondFactorAuthData = {
 }
 export const SecondFactorAuthAllowedReturnTypeRef: TypeRef<SecondFactorAuthAllowedReturn> = new TypeRef("sys", 546)
 
-export function createSecondFactorAuthAllowedReturn(values: StrippedEntity<SecondFactorAuthAllowedReturn>): SecondFactorAuthAllowedReturn {
+export function createSecondFactorAuthAllowedReturn(values: SecondFactorAuthAllowedReturnParams): SecondFactorAuthAllowedReturn {
     return Object.assign(create(typeModels[SecondFactorAuthAllowedReturnTypeRef.typeId], SecondFactorAuthAllowedReturnTypeRef), values)
+}
+
+export type SecondFactorAuthAllowedReturnParams = {
+
+
+	allowed: boolean;
 }
 
 export type SecondFactorAuthAllowedReturn = {
@@ -934,8 +1467,20 @@ export type SecondFactorAuthAllowedReturn = {
 }
 export const ResetPasswordPostInTypeRef: TypeRef<ResetPasswordPostIn> = new TypeRef("sys", 584)
 
-export function createResetPasswordPostIn(values: StrippedEntity<ResetPasswordPostIn>): ResetPasswordPostIn {
+export function createResetPasswordPostIn(values: ResetPasswordPostInParams): ResetPasswordPostIn {
     return Object.assign(create(typeModels[ResetPasswordPostInTypeRef.typeId], ResetPasswordPostInTypeRef), values)
+}
+
+export type ResetPasswordPostInParams = {
+
+
+	verifier: Uint8Array;
+	salt: Uint8Array;
+	pwEncUserGroupKey: Uint8Array;
+	kdfVersion: NumberString;
+	userGroupKeyVersion: NumberString;
+
+	user: Id;
 }
 
 export type ResetPasswordPostIn = {
@@ -953,8 +1498,14 @@ export type ResetPasswordPostIn = {
 }
 export const DomainMailAddressAvailabilityDataTypeRef: TypeRef<DomainMailAddressAvailabilityData> = new TypeRef("sys", 599)
 
-export function createDomainMailAddressAvailabilityData(values: StrippedEntity<DomainMailAddressAvailabilityData>): DomainMailAddressAvailabilityData {
+export function createDomainMailAddressAvailabilityData(values: DomainMailAddressAvailabilityDataParams): DomainMailAddressAvailabilityData {
     return Object.assign(create(typeModels[DomainMailAddressAvailabilityDataTypeRef.typeId], DomainMailAddressAvailabilityDataTypeRef), values)
+}
+
+export type DomainMailAddressAvailabilityDataParams = {
+
+
+	mailAddress: string;
 }
 
 export type DomainMailAddressAvailabilityData = {
@@ -966,8 +1517,14 @@ export type DomainMailAddressAvailabilityData = {
 }
 export const DomainMailAddressAvailabilityReturnTypeRef: TypeRef<DomainMailAddressAvailabilityReturn> = new TypeRef("sys", 602)
 
-export function createDomainMailAddressAvailabilityReturn(values: StrippedEntity<DomainMailAddressAvailabilityReturn>): DomainMailAddressAvailabilityReturn {
+export function createDomainMailAddressAvailabilityReturn(values: DomainMailAddressAvailabilityReturnParams): DomainMailAddressAvailabilityReturn {
     return Object.assign(create(typeModels[DomainMailAddressAvailabilityReturnTypeRef.typeId], DomainMailAddressAvailabilityReturnTypeRef), values)
+}
+
+export type DomainMailAddressAvailabilityReturnParams = {
+
+
+	available: boolean;
 }
 
 export type DomainMailAddressAvailabilityReturn = {
@@ -979,8 +1536,21 @@ export type DomainMailAddressAvailabilityReturn = {
 }
 export const PushIdentifierTypeRef: TypeRef<PushIdentifier> = new TypeRef("sys", 625)
 
-export function createPushIdentifier(values: StrippedEntity<PushIdentifier>): PushIdentifier {
+export function createPushIdentifier(values: PushIdentifierParams): PushIdentifier {
     return Object.assign(create(typeModels[PushIdentifierTypeRef.typeId], PushIdentifierTypeRef), values)
+}
+
+export type PushIdentifierParams = {
+
+
+	pushServiceType: NumberString;
+	identifier: string;
+	language: string;
+	lastNotificationDate: null | Date;
+	disabled: boolean;
+	displayName: string;
+	lastUsageTime: Date;
+	app: NumberString;
 }
 
 export type PushIdentifier = {
@@ -1008,8 +1578,15 @@ export type PushIdentifier = {
 }
 export const PushIdentifierListTypeRef: TypeRef<PushIdentifierList> = new TypeRef("sys", 635)
 
-export function createPushIdentifierList(values: StrippedEntity<PushIdentifierList>): PushIdentifierList {
+export function createPushIdentifierList(values: PushIdentifierListParams): PushIdentifierList {
     return Object.assign(create(typeModels[PushIdentifierListTypeRef.typeId], PushIdentifierListTypeRef), values)
+}
+
+export type PushIdentifierListParams = {
+
+
+
+	list: Id;
 }
 
 export type PushIdentifierList = {
@@ -1022,8 +1599,22 @@ export type PushIdentifierList = {
 }
 export const DeleteCustomerDataTypeRef: TypeRef<DeleteCustomerData> = new TypeRef("sys", 641)
 
-export function createDeleteCustomerData(values: StrippedEntity<DeleteCustomerData>): DeleteCustomerData {
+export function createDeleteCustomerData(values: DeleteCustomerDataParams): DeleteCustomerData {
     return Object.assign(create(typeModels[DeleteCustomerDataTypeRef.typeId], DeleteCustomerDataTypeRef), values)
+}
+
+export type DeleteCustomerDataParams = {
+
+
+	undelete: boolean;
+	formattedReason: null | string;
+	takeoverMailAddress: null | string;
+	authVerifier: null | Uint8Array;
+	reason: null | NumberString;
+
+	customer: Id;
+	surveyData: null | SurveyData;
+	abuseDeactivationInfos: AbuseInfo[];
 }
 
 export type DeleteCustomerData = {
@@ -1043,8 +1634,21 @@ export type DeleteCustomerData = {
 }
 export const CustomerPropertiesTypeRef: TypeRef<CustomerProperties> = new TypeRef("sys", 656)
 
-export function createCustomerProperties(values: StrippedEntity<CustomerProperties>): CustomerProperties {
+export function createCustomerProperties(values: CustomerPropertiesParams): CustomerProperties {
     return Object.assign(create(typeModels[CustomerPropertiesTypeRef.typeId], CustomerPropertiesTypeRef), values)
+}
+
+export type CustomerPropertiesParams = {
+
+
+	externalUserWelcomeMessage: string;
+	lastUpgradeReminder: null | Date;
+	usageDataOptedOut: boolean;
+	requireTwoFactor: boolean;
+
+	smallLogo: null | File;
+	bigLogo: null | File;
+	notificationMailTemplates: NotificationMailTemplate[];
 }
 
 export type CustomerProperties = {
@@ -1066,8 +1670,18 @@ export type CustomerProperties = {
 }
 export const ExternalPropertiesReturnTypeRef: TypeRef<ExternalPropertiesReturn> = new TypeRef("sys", 663)
 
-export function createExternalPropertiesReturn(values: StrippedEntity<ExternalPropertiesReturn>): ExternalPropertiesReturn {
+export function createExternalPropertiesReturn(values: ExternalPropertiesReturnParams): ExternalPropertiesReturn {
     return Object.assign(create(typeModels[ExternalPropertiesReturnTypeRef.typeId], ExternalPropertiesReturnTypeRef), values)
+}
+
+export type ExternalPropertiesReturnParams = {
+
+
+	message: string;
+	accountType: NumberString;
+
+	smallLogo: null | File;
+	bigLogo: null | File;
 }
 
 export type ExternalPropertiesReturn = {
@@ -1083,8 +1697,16 @@ export type ExternalPropertiesReturn = {
 }
 export const RegistrationCaptchaServiceDataTypeRef: TypeRef<RegistrationCaptchaServiceData> = new TypeRef("sys", 674)
 
-export function createRegistrationCaptchaServiceData(values: StrippedEntity<RegistrationCaptchaServiceData>): RegistrationCaptchaServiceData {
+export function createRegistrationCaptchaServiceData(values: RegistrationCaptchaServiceDataParams): RegistrationCaptchaServiceData {
     return Object.assign(create(typeModels[RegistrationCaptchaServiceDataTypeRef.typeId], RegistrationCaptchaServiceDataTypeRef), values)
+}
+
+export type RegistrationCaptchaServiceDataParams = {
+
+
+	token: string;
+	visualChallengeResponse: null | string;
+	audioChallengeResponse: null | string;
 }
 
 export type RegistrationCaptchaServiceData = {
@@ -1098,8 +1720,18 @@ export type RegistrationCaptchaServiceData = {
 }
 export const RegistrationCaptchaServiceReturnTypeRef: TypeRef<RegistrationCaptchaServiceReturn> = new TypeRef("sys", 678)
 
-export function createRegistrationCaptchaServiceReturn(values: StrippedEntity<RegistrationCaptchaServiceReturn>): RegistrationCaptchaServiceReturn {
+export function createRegistrationCaptchaServiceReturn(values: RegistrationCaptchaServiceReturnParams): RegistrationCaptchaServiceReturn {
     return Object.assign(create(typeModels[RegistrationCaptchaServiceReturnTypeRef.typeId], RegistrationCaptchaServiceReturnTypeRef), values)
+}
+
+export type RegistrationCaptchaServiceReturnParams = {
+
+
+	token: string;
+	challenge: null | Uint8Array;
+
+	visualChallenge: null | CaptchaChallenge;
+	audioChallenge: null | CaptchaChallenge;
 }
 
 export type RegistrationCaptchaServiceReturn = {
@@ -1115,8 +1747,15 @@ export type RegistrationCaptchaServiceReturn = {
 }
 export const MailAddressAliasTypeRef: TypeRef<MailAddressAlias> = new TypeRef("sys", 684)
 
-export function createMailAddressAlias(values: StrippedEntity<MailAddressAlias>): MailAddressAlias {
+export function createMailAddressAlias(values: MailAddressAliasParams): MailAddressAlias {
     return Object.assign(create(typeModels[MailAddressAliasTypeRef.typeId], MailAddressAliasTypeRef), values)
+}
+
+export type MailAddressAliasParams = {
+
+
+	mailAddress: string;
+	enabled: boolean;
 }
 
 export type MailAddressAlias = {
@@ -1129,8 +1768,16 @@ export type MailAddressAlias = {
 }
 export const MailAddressAliasServiceDataTypeRef: TypeRef<MailAddressAliasServiceData> = new TypeRef("sys", 688)
 
-export function createMailAddressAliasServiceData(values: StrippedEntity<MailAddressAliasServiceData>): MailAddressAliasServiceData {
+export function createMailAddressAliasServiceData(values: MailAddressAliasServiceDataParams): MailAddressAliasServiceData {
     return Object.assign(create(typeModels[MailAddressAliasServiceDataTypeRef.typeId], MailAddressAliasServiceDataTypeRef), values)
+}
+
+export type MailAddressAliasServiceDataParams = {
+
+
+	mailAddress: string;
+
+	group: Id;
 }
 
 export type MailAddressAliasServiceData = {
@@ -1144,8 +1791,17 @@ export type MailAddressAliasServiceData = {
 }
 export const MailAddressAliasServiceReturnTypeRef: TypeRef<MailAddressAliasServiceReturn> = new TypeRef("sys", 692)
 
-export function createMailAddressAliasServiceReturn(values: StrippedEntity<MailAddressAliasServiceReturn>): MailAddressAliasServiceReturn {
+export function createMailAddressAliasServiceReturn(values: MailAddressAliasServiceReturnParams): MailAddressAliasServiceReturn {
     return Object.assign(create(typeModels[MailAddressAliasServiceReturnTypeRef.typeId], MailAddressAliasServiceReturnTypeRef), values)
+}
+
+export type MailAddressAliasServiceReturnParams = {
+
+
+	nbrOfFreeAliases: NumberString;
+	totalAliases: NumberString;
+	usedAliases: NumberString;
+	enabledAliases: NumberString;
 }
 
 export type MailAddressAliasServiceReturn = {
@@ -1160,8 +1816,17 @@ export type MailAddressAliasServiceReturn = {
 }
 export const DomainInfoTypeRef: TypeRef<DomainInfo> = new TypeRef("sys", 696)
 
-export function createDomainInfo(values: StrippedEntity<DomainInfo>): DomainInfo {
+export function createDomainInfo(values: DomainInfoParams): DomainInfo {
     return Object.assign(create(typeModels[DomainInfoTypeRef.typeId], DomainInfoTypeRef), values)
+}
+
+export type DomainInfoParams = {
+
+
+	domain: string;
+
+	catchAllMailGroup: null | Id;
+	whitelabelConfig: null | Id;
 }
 
 export type DomainInfo = {
@@ -1176,8 +1841,20 @@ export type DomainInfo = {
 }
 export const BookingItemTypeRef: TypeRef<BookingItem> = new TypeRef("sys", 700)
 
-export function createBookingItem(values: StrippedEntity<BookingItem>): BookingItem {
+export function createBookingItem(values: BookingItemParams): BookingItem {
     return Object.assign(create(typeModels[BookingItemTypeRef.typeId], BookingItemTypeRef), values)
+}
+
+export type BookingItemParams = {
+
+
+	featureType: NumberString;
+	currentCount: NumberString;
+	maxCount: NumberString;
+	totalInvoicedCount: NumberString;
+	currentInvoicedCount: NumberString;
+	price: NumberString;
+	priceType: NumberString;
 }
 
 export type BookingItem = {
@@ -1195,8 +1872,22 @@ export type BookingItem = {
 }
 export const BookingTypeRef: TypeRef<Booking> = new TypeRef("sys", 709)
 
-export function createBooking(values: StrippedEntity<Booking>): Booking {
+export function createBooking(values: BookingParams): Booking {
     return Object.assign(create(typeModels[BookingTypeRef.typeId], BookingTypeRef), values)
+}
+
+export type BookingParams = {
+
+
+	createDate: Date;
+	paymentMonths: NumberString;
+	endDate: null | Date;
+	paymentInterval: NumberString;
+	bonusMonth: NumberString;
+	renewalEnabled: boolean;
+
+	items: BookingItem[];
+	subscriptionReference: SubscriptionReference;
 }
 
 export type Booking = {
@@ -1221,8 +1912,15 @@ export type Booking = {
 }
 export const BookingsRefTypeRef: TypeRef<BookingsRef> = new TypeRef("sys", 722)
 
-export function createBookingsRef(values: StrippedEntity<BookingsRef>): BookingsRef {
+export function createBookingsRef(values: BookingsRefParams): BookingsRef {
     return Object.assign(create(typeModels[BookingsRefTypeRef.typeId], BookingsRefTypeRef), values)
+}
+
+export type BookingsRefParams = {
+
+
+
+	items: Id;
 }
 
 export type BookingsRef = {
@@ -1235,8 +1933,14 @@ export type BookingsRef = {
 }
 export const StringWrapperTypeRef: TypeRef<StringWrapper> = new TypeRef("sys", 728)
 
-export function createStringWrapper(values: StrippedEntity<StringWrapper>): StringWrapper {
+export function createStringWrapper(values: StringWrapperParams): StringWrapper {
     return Object.assign(create(typeModels[StringWrapperTypeRef.typeId], StringWrapperTypeRef), values)
+}
+
+export type StringWrapperParams = {
+
+
+	value: string;
 }
 
 export type StringWrapper = {
@@ -1248,8 +1952,16 @@ export type StringWrapper = {
 }
 export const CustomDomainReturnTypeRef: TypeRef<CustomDomainReturn> = new TypeRef("sys", 731)
 
-export function createCustomDomainReturn(values: StrippedEntity<CustomDomainReturn>): CustomDomainReturn {
+export function createCustomDomainReturn(values: CustomDomainReturnParams): CustomDomainReturn {
     return Object.assign(create(typeModels[CustomDomainReturnTypeRef.typeId], CustomDomainReturnTypeRef), values)
+}
+
+export type CustomDomainReturnParams = {
+
+
+	validationResult: NumberString;
+
+	invalidDnsRecords: StringWrapper[];
 }
 
 export type CustomDomainReturn = {
@@ -1263,8 +1975,16 @@ export type CustomDomainReturn = {
 }
 export const CustomDomainDataTypeRef: TypeRef<CustomDomainData> = new TypeRef("sys", 735)
 
-export function createCustomDomainData(values: StrippedEntity<CustomDomainData>): CustomDomainData {
+export function createCustomDomainData(values: CustomDomainDataParams): CustomDomainData {
     return Object.assign(create(typeModels[CustomDomainDataTypeRef.typeId], CustomDomainDataTypeRef), values)
+}
+
+export type CustomDomainDataParams = {
+
+
+	domain: string;
+
+	catchAllMailGroup: null | Id;
 }
 
 export type CustomDomainData = {
@@ -1278,8 +1998,27 @@ export type CustomDomainData = {
 }
 export const InvoiceInfoTypeRef: TypeRef<InvoiceInfo> = new TypeRef("sys", 752)
 
-export function createInvoiceInfo(values: StrippedEntity<InvoiceInfo>): InvoiceInfo {
+export function createInvoiceInfo(values: InvoiceInfoParams): InvoiceInfo {
     return Object.assign(create(typeModels[InvoiceInfoTypeRef.typeId], InvoiceInfoTypeRef), values)
+}
+
+export type InvoiceInfoParams = {
+
+
+	specialPriceUserTotal: null | NumberString;
+	specialPriceUserSingle: null | NumberString;
+	publishInvoices: boolean;
+	specialPriceBrandingPerUser: null | NumberString;
+	specialPriceSharedGroupSingle: null | NumberString;
+	specialPriceContactFormSingle: null | NumberString;
+	specialPriceSharingPerUser: null | NumberString;
+	reminderState: NumberString;
+	extendedPeriodOfPaymentDays: NumberString;
+	persistentPaymentPeriodExtension: boolean;
+	specialPriceBusinessPerUser: null | NumberString;
+	discountPercentage: null | NumberString;
+
+	paymentErrorInfo: null | PaymentErrorInfo;
 }
 
 export type InvoiceInfo = {
@@ -1307,8 +2046,22 @@ export type InvoiceInfo = {
 }
 export const SwitchAccountTypePostInTypeRef: TypeRef<SwitchAccountTypePostIn> = new TypeRef("sys", 772)
 
-export function createSwitchAccountTypePostIn(values: StrippedEntity<SwitchAccountTypePostIn>): SwitchAccountTypePostIn {
+export function createSwitchAccountTypePostIn(values: SwitchAccountTypePostInParams): SwitchAccountTypePostIn {
     return Object.assign(create(typeModels[SwitchAccountTypePostInTypeRef.typeId], SwitchAccountTypePostInTypeRef), values)
+}
+
+export type SwitchAccountTypePostInParams = {
+
+
+	accountType: NumberString;
+	date: null | Date;
+	plan: NumberString;
+	customer: null | Id;
+	specialPriceUserSingle: null | NumberString;
+	app: null | NumberString;
+
+	referralCode: null | Id;
+	surveyData: null | SurveyData;
 }
 
 export type SwitchAccountTypePostIn = {
@@ -1328,8 +2081,17 @@ export type SwitchAccountTypePostIn = {
 }
 export const MailAddressAliasServiceDataDeleteTypeRef: TypeRef<MailAddressAliasServiceDataDelete> = new TypeRef("sys", 785)
 
-export function createMailAddressAliasServiceDataDelete(values: StrippedEntity<MailAddressAliasServiceDataDelete>): MailAddressAliasServiceDataDelete {
+export function createMailAddressAliasServiceDataDelete(values: MailAddressAliasServiceDataDeleteParams): MailAddressAliasServiceDataDelete {
     return Object.assign(create(typeModels[MailAddressAliasServiceDataDeleteTypeRef.typeId], MailAddressAliasServiceDataDeleteTypeRef), values)
+}
+
+export type MailAddressAliasServiceDataDeleteParams = {
+
+
+	mailAddress: string;
+	restore: boolean;
+
+	group: Id;
 }
 
 export type MailAddressAliasServiceDataDelete = {
@@ -1344,8 +2106,14 @@ export type MailAddressAliasServiceDataDelete = {
 }
 export const PaymentDataServiceGetReturnTypeRef: TypeRef<PaymentDataServiceGetReturn> = new TypeRef("sys", 790)
 
-export function createPaymentDataServiceGetReturn(values: StrippedEntity<PaymentDataServiceGetReturn>): PaymentDataServiceGetReturn {
+export function createPaymentDataServiceGetReturn(values: PaymentDataServiceGetReturnParams): PaymentDataServiceGetReturn {
     return Object.assign(create(typeModels[PaymentDataServiceGetReturnTypeRef.typeId], PaymentDataServiceGetReturnTypeRef), values)
+}
+
+export type PaymentDataServiceGetReturnParams = {
+
+
+	loginUrl: string;
 }
 
 export type PaymentDataServiceGetReturn = {
@@ -1357,8 +2125,24 @@ export type PaymentDataServiceGetReturn = {
 }
 export const PaymentDataServicePutDataTypeRef: TypeRef<PaymentDataServicePutData> = new TypeRef("sys", 793)
 
-export function createPaymentDataServicePutData(values: StrippedEntity<PaymentDataServicePutData>): PaymentDataServicePutData {
+export function createPaymentDataServicePutData(values: PaymentDataServicePutDataParams): PaymentDataServicePutData {
     return Object.assign(create(typeModels[PaymentDataServicePutDataTypeRef.typeId], PaymentDataServicePutDataTypeRef), values)
+}
+
+export type PaymentDataServicePutDataParams = {
+
+
+	invoiceName: string;
+	invoiceAddress: string;
+	invoiceCountry: null | string;
+	invoiceVatIdNo: string;
+	paymentMethod: NumberString;
+	paymentMethodInfo: null | string;
+	paymentInterval: NumberString;
+	paymentToken: null | string;
+	confirmedCountry: null | string;
+
+	creditCard: null | CreditCard;
 }
 
 export type PaymentDataServicePutData = {
@@ -1381,8 +2165,16 @@ export type PaymentDataServicePutData = {
 }
 export const PaymentDataServicePutReturnTypeRef: TypeRef<PaymentDataServicePutReturn> = new TypeRef("sys", 805)
 
-export function createPaymentDataServicePutReturn(values: StrippedEntity<PaymentDataServicePutReturn>): PaymentDataServicePutReturn {
+export function createPaymentDataServicePutReturn(values: PaymentDataServicePutReturnParams): PaymentDataServicePutReturn {
     return Object.assign(create(typeModels[PaymentDataServicePutReturnTypeRef.typeId], PaymentDataServicePutReturnTypeRef), values)
+}
+
+export type PaymentDataServicePutReturnParams = {
+
+
+	result: NumberString;
+
+	braintree3dsRequest: null | Braintree3ds2Request;
 }
 
 export type PaymentDataServicePutReturn = {
@@ -1396,8 +2188,19 @@ export type PaymentDataServicePutReturn = {
 }
 export const PriceRequestDataTypeRef: TypeRef<PriceRequestData> = new TypeRef("sys", 836)
 
-export function createPriceRequestData(values: StrippedEntity<PriceRequestData>): PriceRequestData {
+export function createPriceRequestData(values: PriceRequestDataParams): PriceRequestData {
     return Object.assign(create(typeModels[PriceRequestDataTypeRef.typeId], PriceRequestDataTypeRef), values)
+}
+
+export type PriceRequestDataParams = {
+
+
+	featureType: NumberString;
+	count: NumberString;
+	business: null | boolean;
+	paymentInterval: null | NumberString;
+	accountType: null | NumberString;
+	reactivate: boolean;
 }
 
 export type PriceRequestData = {
@@ -1414,8 +2217,16 @@ export type PriceRequestData = {
 }
 export const PriceServiceDataTypeRef: TypeRef<PriceServiceData> = new TypeRef("sys", 843)
 
-export function createPriceServiceData(values: StrippedEntity<PriceServiceData>): PriceServiceData {
+export function createPriceServiceData(values: PriceServiceDataParams): PriceServiceData {
     return Object.assign(create(typeModels[PriceServiceDataTypeRef.typeId], PriceServiceDataTypeRef), values)
+}
+
+export type PriceServiceDataParams = {
+
+
+	date: null | Date;
+
+	priceRequest: null | PriceRequestData;
 }
 
 export type PriceServiceData = {
@@ -1429,8 +2240,17 @@ export type PriceServiceData = {
 }
 export const PriceItemDataTypeRef: TypeRef<PriceItemData> = new TypeRef("sys", 847)
 
-export function createPriceItemData(values: StrippedEntity<PriceItemData>): PriceItemData {
+export function createPriceItemData(values: PriceItemDataParams): PriceItemData {
     return Object.assign(create(typeModels[PriceItemDataTypeRef.typeId], PriceItemDataTypeRef), values)
+}
+
+export type PriceItemDataParams = {
+
+
+	featureType: NumberString;
+	count: NumberString;
+	price: NumberString;
+	singleType: boolean;
 }
 
 export type PriceItemData = {
@@ -1445,8 +2265,18 @@ export type PriceItemData = {
 }
 export const PriceDataTypeRef: TypeRef<PriceData> = new TypeRef("sys", 853)
 
-export function createPriceData(values: StrippedEntity<PriceData>): PriceData {
+export function createPriceData(values: PriceDataParams): PriceData {
     return Object.assign(create(typeModels[PriceDataTypeRef.typeId], PriceDataTypeRef), values)
+}
+
+export type PriceDataParams = {
+
+
+	price: NumberString;
+	taxIncluded: boolean;
+	paymentInterval: NumberString;
+
+	items: PriceItemData[];
 }
 
 export type PriceData = {
@@ -1462,8 +2292,20 @@ export type PriceData = {
 }
 export const PriceServiceReturnTypeRef: TypeRef<PriceServiceReturn> = new TypeRef("sys", 859)
 
-export function createPriceServiceReturn(values: StrippedEntity<PriceServiceReturn>): PriceServiceReturn {
+export function createPriceServiceReturn(values: PriceServiceReturnParams): PriceServiceReturn {
     return Object.assign(create(typeModels[PriceServiceReturnTypeRef.typeId], PriceServiceReturnTypeRef), values)
+}
+
+export type PriceServiceReturnParams = {
+
+
+	periodEndDate: Date;
+	currentPeriodAddedPrice: null | NumberString;
+
+	currentPriceThisPeriod: null | PriceData;
+	currentPriceNextPeriod: null | PriceData;
+	futurePriceNextPeriod: null | PriceData;
+	futurePriceThisPeriod: null | PriceData;
 }
 
 export type PriceServiceReturn = {
@@ -1481,8 +2323,16 @@ export type PriceServiceReturn = {
 }
 export const MembershipRemoveDataTypeRef: TypeRef<MembershipRemoveData> = new TypeRef("sys", 867)
 
-export function createMembershipRemoveData(values: StrippedEntity<MembershipRemoveData>): MembershipRemoveData {
+export function createMembershipRemoveData(values: MembershipRemoveDataParams): MembershipRemoveData {
     return Object.assign(create(typeModels[MembershipRemoveDataTypeRef.typeId], MembershipRemoveDataTypeRef), values)
+}
+
+export type MembershipRemoveDataParams = {
+
+
+
+	user: Id;
+	group: Id;
 }
 
 export type MembershipRemoveData = {
@@ -1496,8 +2346,16 @@ export type MembershipRemoveData = {
 }
 export const FileTypeRef: TypeRef<File> = new TypeRef("sys", 917)
 
-export function createFile(values: StrippedEntity<File>): File {
+export function createFile(values: FileParams): File {
     return Object.assign(create(typeModels[FileTypeRef.typeId], FileTypeRef), values)
+}
+
+export type FileParams = {
+
+
+	name: string;
+	mimeType: string;
+	data: Uint8Array;
 }
 
 export type File = {
@@ -1511,8 +2369,17 @@ export type File = {
 }
 export const EmailSenderListElementTypeRef: TypeRef<EmailSenderListElement> = new TypeRef("sys", 949)
 
-export function createEmailSenderListElement(values: StrippedEntity<EmailSenderListElement>): EmailSenderListElement {
+export function createEmailSenderListElement(values: EmailSenderListElementParams): EmailSenderListElement {
     return Object.assign(create(typeModels[EmailSenderListElementTypeRef.typeId], EmailSenderListElementTypeRef), values)
+}
+
+export type EmailSenderListElementParams = {
+
+
+	hashedValue: string;
+	value: string;
+	type: NumberString;
+	field: NumberString;
 }
 
 export type EmailSenderListElement = {
@@ -1527,8 +2394,17 @@ export type EmailSenderListElement = {
 }
 export const CustomerServerPropertiesTypeRef: TypeRef<CustomerServerProperties> = new TypeRef("sys", 954)
 
-export function createCustomerServerProperties(values: StrippedEntity<CustomerServerProperties>): CustomerServerProperties {
+export function createCustomerServerProperties(values: CustomerServerPropertiesParams): CustomerServerProperties {
     return Object.assign(create(typeModels[CustomerServerPropertiesTypeRef.typeId], CustomerServerPropertiesTypeRef), values)
+}
+
+export type CustomerServerPropertiesParams = {
+
+
+	requirePasswordUpdateAfterReset: boolean;
+	saveEncryptedIpAddressInSession: boolean;
+
+	emailSenderList: EmailSenderListElement[];
 }
 
 export type CustomerServerProperties = {
@@ -1550,8 +2426,15 @@ export type CustomerServerProperties = {
 }
 export const CreateCustomerServerPropertiesDataTypeRef: TypeRef<CreateCustomerServerPropertiesData> = new TypeRef("sys", 961)
 
-export function createCreateCustomerServerPropertiesData(values: StrippedEntity<CreateCustomerServerPropertiesData>): CreateCustomerServerPropertiesData {
+export function createCreateCustomerServerPropertiesData(values: CreateCustomerServerPropertiesDataParams): CreateCustomerServerPropertiesData {
     return Object.assign(create(typeModels[CreateCustomerServerPropertiesDataTypeRef.typeId], CreateCustomerServerPropertiesDataTypeRef), values)
+}
+
+export type CreateCustomerServerPropertiesDataParams = {
+
+
+	adminGroupEncSessionKey: Uint8Array;
+	adminGroupKeyVersion: NumberString;
 }
 
 export type CreateCustomerServerPropertiesData = {
@@ -1564,8 +2447,15 @@ export type CreateCustomerServerPropertiesData = {
 }
 export const CreateCustomerServerPropertiesReturnTypeRef: TypeRef<CreateCustomerServerPropertiesReturn> = new TypeRef("sys", 964)
 
-export function createCreateCustomerServerPropertiesReturn(values: StrippedEntity<CreateCustomerServerPropertiesReturn>): CreateCustomerServerPropertiesReturn {
+export function createCreateCustomerServerPropertiesReturn(values: CreateCustomerServerPropertiesReturnParams): CreateCustomerServerPropertiesReturn {
     return Object.assign(create(typeModels[CreateCustomerServerPropertiesReturnTypeRef.typeId], CreateCustomerServerPropertiesReturnTypeRef), values)
+}
+
+export type CreateCustomerServerPropertiesReturnParams = {
+
+
+
+	id: Id;
 }
 
 export type CreateCustomerServerPropertiesReturn = {
@@ -1578,8 +2468,15 @@ export type CreateCustomerServerPropertiesReturn = {
 }
 export const UserAreaGroupsTypeRef: TypeRef<UserAreaGroups> = new TypeRef("sys", 988)
 
-export function createUserAreaGroups(values: StrippedEntity<UserAreaGroups>): UserAreaGroups {
+export function createUserAreaGroups(values: UserAreaGroupsParams): UserAreaGroups {
     return Object.assign(create(typeModels[UserAreaGroupsTypeRef.typeId], UserAreaGroupsTypeRef), values)
+}
+
+export type UserAreaGroupsParams = {
+
+
+
+	list: Id;
 }
 
 export type UserAreaGroups = {
@@ -1592,8 +2489,13 @@ export type UserAreaGroups = {
 }
 export const DebitServicePutDataTypeRef: TypeRef<DebitServicePutData> = new TypeRef("sys", 1041)
 
-export function createDebitServicePutData(values: StrippedEntity<DebitServicePutData>): DebitServicePutData {
+export function createDebitServicePutData(values: DebitServicePutDataParams): DebitServicePutData {
     return Object.assign(create(typeModels[DebitServicePutDataTypeRef.typeId], DebitServicePutDataTypeRef), values)
+}
+
+export type DebitServicePutDataParams = {
+
+
 }
 
 export type DebitServicePutData = {
@@ -1604,8 +2506,15 @@ export type DebitServicePutData = {
 }
 export const EntityEventBatchTypeRef: TypeRef<EntityEventBatch> = new TypeRef("sys", 1079)
 
-export function createEntityEventBatch(values: StrippedEntity<EntityEventBatch>): EntityEventBatch {
+export function createEntityEventBatch(values: EntityEventBatchParams): EntityEventBatch {
     return Object.assign(create(typeModels[EntityEventBatchTypeRef.typeId], EntityEventBatchTypeRef), values)
+}
+
+export type EntityEventBatchParams = {
+
+
+
+	events: EntityUpdate[];
 }
 
 export type EntityEventBatch = {
@@ -1621,8 +2530,21 @@ export type EntityEventBatch = {
 }
 export const AuditLogEntryTypeRef: TypeRef<AuditLogEntry> = new TypeRef("sys", 1101)
 
-export function createAuditLogEntry(values: StrippedEntity<AuditLogEntry>): AuditLogEntry {
+export function createAuditLogEntry(values: AuditLogEntryParams): AuditLogEntry {
     return Object.assign(create(typeModels[AuditLogEntryTypeRef.typeId], AuditLogEntryTypeRef), values)
+}
+
+export type AuditLogEntryParams = {
+
+
+	actorMailAddress: string;
+	actorIpAddress: null | string;
+	action: string;
+	modifiedEntity: string;
+	date: Date;
+
+	groupInfo: null | IdTuple;
+	modifiedGroupInfo: null | IdTuple;
 }
 
 export type AuditLogEntry = {
@@ -1648,8 +2570,15 @@ export type AuditLogEntry = {
 }
 export const AuditLogRefTypeRef: TypeRef<AuditLogRef> = new TypeRef("sys", 1114)
 
-export function createAuditLogRef(values: StrippedEntity<AuditLogRef>): AuditLogRef {
+export function createAuditLogRef(values: AuditLogRefParams): AuditLogRef {
     return Object.assign(create(typeModels[AuditLogRefTypeRef.typeId], AuditLogRefTypeRef), values)
+}
+
+export type AuditLogRefParams = {
+
+
+
+	items: Id;
 }
 
 export type AuditLogRef = {
@@ -1662,8 +2591,22 @@ export type AuditLogRef = {
 }
 export const WhitelabelConfigTypeRef: TypeRef<WhitelabelConfig> = new TypeRef("sys", 1127)
 
-export function createWhitelabelConfig(values: StrippedEntity<WhitelabelConfig>): WhitelabelConfig {
+export function createWhitelabelConfig(values: WhitelabelConfigParams): WhitelabelConfig {
     return Object.assign(create(typeModels[WhitelabelConfigTypeRef.typeId], WhitelabelConfigTypeRef), values)
+}
+
+export type WhitelabelConfigParams = {
+
+
+	jsonTheme: string;
+	metaTags: string;
+	germanLanguageCode: null | string;
+	imprintUrl: null | string;
+	privacyStatementUrl: null | string;
+	whitelabelCode: string;
+
+	bootstrapCustomizations: BootstrapFeature[];
+	whitelabelRegistrationDomains: StringWrapper[];
 }
 
 export type WhitelabelConfig = {
@@ -1686,8 +2629,19 @@ export type WhitelabelConfig = {
 }
 export const BrandingDomainDataTypeRef: TypeRef<BrandingDomainData> = new TypeRef("sys", 1149)
 
-export function createBrandingDomainData(values: StrippedEntity<BrandingDomainData>): BrandingDomainData {
+export function createBrandingDomainData(values: BrandingDomainDataParams): BrandingDomainData {
     return Object.assign(create(typeModels[BrandingDomainDataTypeRef.typeId], BrandingDomainDataTypeRef), values)
+}
+
+export type BrandingDomainDataParams = {
+
+
+	domain: string;
+	sessionEncPemCertificateChain: null | Uint8Array;
+	sessionEncPemPrivateKey: null | Uint8Array;
+	systemAdminPubEncSessionKey: Uint8Array;
+	systemAdminPublicProtocolVersion: NumberString;
+	systemAdminPubKeyVersion: NumberString;
 }
 
 export type BrandingDomainData = {
@@ -1704,8 +2658,14 @@ export type BrandingDomainData = {
 }
 export const BrandingDomainDeleteDataTypeRef: TypeRef<BrandingDomainDeleteData> = new TypeRef("sys", 1155)
 
-export function createBrandingDomainDeleteData(values: StrippedEntity<BrandingDomainDeleteData>): BrandingDomainDeleteData {
+export function createBrandingDomainDeleteData(values: BrandingDomainDeleteDataParams): BrandingDomainDeleteData {
     return Object.assign(create(typeModels[BrandingDomainDeleteDataTypeRef.typeId], BrandingDomainDeleteDataTypeRef), values)
+}
+
+export type BrandingDomainDeleteDataParams = {
+
+
+	domain: string;
 }
 
 export type BrandingDomainDeleteData = {
@@ -1717,8 +2677,18 @@ export type BrandingDomainDeleteData = {
 }
 export const U2fRegisteredDeviceTypeRef: TypeRef<U2fRegisteredDevice> = new TypeRef("sys", 1162)
 
-export function createU2fRegisteredDevice(values: StrippedEntity<U2fRegisteredDevice>): U2fRegisteredDevice {
+export function createU2fRegisteredDevice(values: U2fRegisteredDeviceParams): U2fRegisteredDevice {
     return Object.assign(create(typeModels[U2fRegisteredDeviceTypeRef.typeId], U2fRegisteredDeviceTypeRef), values)
+}
+
+export type U2fRegisteredDeviceParams = {
+
+
+	keyHandle: Uint8Array;
+	appId: string;
+	publicKey: Uint8Array;
+	counter: NumberString;
+	compromised: boolean;
 }
 
 export type U2fRegisteredDevice = {
@@ -1734,8 +2704,18 @@ export type U2fRegisteredDevice = {
 }
 export const SecondFactorTypeRef: TypeRef<SecondFactor> = new TypeRef("sys", 1169)
 
-export function createSecondFactor(values: StrippedEntity<SecondFactor>): SecondFactor {
+export function createSecondFactor(values: SecondFactorParams): SecondFactor {
     return Object.assign(create(typeModels[SecondFactorTypeRef.typeId], SecondFactorTypeRef), values)
+}
+
+export type SecondFactorParams = {
+
+
+	type: NumberString;
+	name: string;
+	otpSecret: null | Uint8Array;
+
+	u2f: null | U2fRegisteredDevice;
 }
 
 export type SecondFactor = {
@@ -1754,8 +2734,17 @@ export type SecondFactor = {
 }
 export const U2fKeyTypeRef: TypeRef<U2fKey> = new TypeRef("sys", 1178)
 
-export function createU2fKey(values: StrippedEntity<U2fKey>): U2fKey {
+export function createU2fKey(values: U2fKeyParams): U2fKey {
     return Object.assign(create(typeModels[U2fKeyTypeRef.typeId], U2fKeyTypeRef), values)
+}
+
+export type U2fKeyParams = {
+
+
+	keyHandle: Uint8Array;
+	appId: string;
+
+	secondFactor: IdTuple;
 }
 
 export type U2fKey = {
@@ -1770,8 +2759,16 @@ export type U2fKey = {
 }
 export const U2fChallengeTypeRef: TypeRef<U2fChallenge> = new TypeRef("sys", 1183)
 
-export function createU2fChallenge(values: StrippedEntity<U2fChallenge>): U2fChallenge {
+export function createU2fChallenge(values: U2fChallengeParams): U2fChallenge {
     return Object.assign(create(typeModels[U2fChallengeTypeRef.typeId], U2fChallengeTypeRef), values)
+}
+
+export type U2fChallengeParams = {
+
+
+	challenge: Uint8Array;
+
+	keys: U2fKey[];
 }
 
 export type U2fChallenge = {
@@ -1785,8 +2782,17 @@ export type U2fChallenge = {
 }
 export const ChallengeTypeRef: TypeRef<Challenge> = new TypeRef("sys", 1187)
 
-export function createChallenge(values: StrippedEntity<Challenge>): Challenge {
+export function createChallenge(values: ChallengeParams): Challenge {
     return Object.assign(create(typeModels[ChallengeTypeRef.typeId], ChallengeTypeRef), values)
+}
+
+export type ChallengeParams = {
+
+
+	type: NumberString;
+
+	u2f: null | U2fChallenge;
+	otp: null | OtpChallenge;
 }
 
 export type Challenge = {
@@ -1801,8 +2807,22 @@ export type Challenge = {
 }
 export const SessionTypeRef: TypeRef<Session> = new TypeRef("sys", 1191)
 
-export function createSession(values: StrippedEntity<Session>): Session {
+export function createSession(values: SessionParams): Session {
     return Object.assign(create(typeModels[SessionTypeRef.typeId], SessionTypeRef), values)
+}
+
+export type SessionParams = {
+
+
+	clientIdentifier: string;
+	loginTime: Date;
+	loginIpAddress: null | string;
+	lastAccessTime: Date;
+	accessKey: null | Uint8Array;
+	state: NumberString;
+
+	challenges: Challenge[];
+	user: Id;
 }
 
 export type Session = {
@@ -1829,8 +2849,17 @@ export type Session = {
 }
 export const UserAuthenticationTypeRef: TypeRef<UserAuthentication> = new TypeRef("sys", 1206)
 
-export function createUserAuthentication(values: StrippedEntity<UserAuthentication>): UserAuthentication {
+export function createUserAuthentication(values: UserAuthenticationParams): UserAuthentication {
     return Object.assign(create(typeModels[UserAuthenticationTypeRef.typeId], UserAuthenticationTypeRef), values)
+}
+
+export type UserAuthenticationParams = {
+
+
+
+	sessions: Id;
+	secondFactors: Id;
+	recoverCode: null | Id;
 }
 
 export type UserAuthentication = {
@@ -1845,8 +2874,21 @@ export type UserAuthentication = {
 }
 export const CreateSessionDataTypeRef: TypeRef<CreateSessionData> = new TypeRef("sys", 1211)
 
-export function createCreateSessionData(values: StrippedEntity<CreateSessionData>): CreateSessionData {
+export function createCreateSessionData(values: CreateSessionDataParams): CreateSessionData {
     return Object.assign(create(typeModels[CreateSessionDataTypeRef.typeId], CreateSessionDataTypeRef), values)
+}
+
+export type CreateSessionDataParams = {
+
+
+	mailAddress: null | string;
+	authVerifier: null | string;
+	clientIdentifier: string;
+	accessKey: null | Uint8Array;
+	authToken: null | string;
+	recoverCodeVerifier: null | string;
+
+	user: null | Id;
 }
 
 export type CreateSessionData = {
@@ -1865,8 +2907,17 @@ export type CreateSessionData = {
 }
 export const CreateSessionReturnTypeRef: TypeRef<CreateSessionReturn> = new TypeRef("sys", 1219)
 
-export function createCreateSessionReturn(values: StrippedEntity<CreateSessionReturn>): CreateSessionReturn {
+export function createCreateSessionReturn(values: CreateSessionReturnParams): CreateSessionReturn {
     return Object.assign(create(typeModels[CreateSessionReturnTypeRef.typeId], CreateSessionReturnTypeRef), values)
+}
+
+export type CreateSessionReturnParams = {
+
+
+	accessToken: string;
+
+	challenges: Challenge[];
+	user: Id;
 }
 
 export type CreateSessionReturn = {
@@ -1881,8 +2932,16 @@ export type CreateSessionReturn = {
 }
 export const U2fResponseDataTypeRef: TypeRef<U2fResponseData> = new TypeRef("sys", 1225)
 
-export function createU2fResponseData(values: StrippedEntity<U2fResponseData>): U2fResponseData {
+export function createU2fResponseData(values: U2fResponseDataParams): U2fResponseData {
     return Object.assign(create(typeModels[U2fResponseDataTypeRef.typeId], U2fResponseDataTypeRef), values)
+}
+
+export type U2fResponseDataParams = {
+
+
+	keyHandle: string;
+	clientData: string;
+	signatureData: string;
 }
 
 export type U2fResponseData = {
@@ -1896,8 +2955,14 @@ export type U2fResponseData = {
 }
 export const SecondFactorAuthGetDataTypeRef: TypeRef<SecondFactorAuthGetData> = new TypeRef("sys", 1233)
 
-export function createSecondFactorAuthGetData(values: StrippedEntity<SecondFactorAuthGetData>): SecondFactorAuthGetData {
+export function createSecondFactorAuthGetData(values: SecondFactorAuthGetDataParams): SecondFactorAuthGetData {
     return Object.assign(create(typeModels[SecondFactorAuthGetDataTypeRef.typeId], SecondFactorAuthGetDataTypeRef), values)
+}
+
+export type SecondFactorAuthGetDataParams = {
+
+
+	accessToken: string;
 }
 
 export type SecondFactorAuthGetData = {
@@ -1909,8 +2974,14 @@ export type SecondFactorAuthGetData = {
 }
 export const SecondFactorAuthGetReturnTypeRef: TypeRef<SecondFactorAuthGetReturn> = new TypeRef("sys", 1236)
 
-export function createSecondFactorAuthGetReturn(values: StrippedEntity<SecondFactorAuthGetReturn>): SecondFactorAuthGetReturn {
+export function createSecondFactorAuthGetReturn(values: SecondFactorAuthGetReturnParams): SecondFactorAuthGetReturn {
     return Object.assign(create(typeModels[SecondFactorAuthGetReturnTypeRef.typeId], SecondFactorAuthGetReturnTypeRef), values)
+}
+
+export type SecondFactorAuthGetReturnParams = {
+
+
+	secondFactorPending: boolean;
 }
 
 export type SecondFactorAuthGetReturn = {
@@ -1922,8 +2993,15 @@ export type SecondFactorAuthGetReturn = {
 }
 export const OtpChallengeTypeRef: TypeRef<OtpChallenge> = new TypeRef("sys", 1244)
 
-export function createOtpChallenge(values: StrippedEntity<OtpChallenge>): OtpChallenge {
+export function createOtpChallenge(values: OtpChallengeParams): OtpChallenge {
     return Object.assign(create(typeModels[OtpChallengeTypeRef.typeId], OtpChallengeTypeRef), values)
+}
+
+export type OtpChallengeParams = {
+
+
+
+	secondFactors: IdTuple[];
 }
 
 export type OtpChallenge = {
@@ -1936,8 +3014,14 @@ export type OtpChallenge = {
 }
 export const BootstrapFeatureTypeRef: TypeRef<BootstrapFeature> = new TypeRef("sys", 1249)
 
-export function createBootstrapFeature(values: StrippedEntity<BootstrapFeature>): BootstrapFeature {
+export function createBootstrapFeature(values: BootstrapFeatureParams): BootstrapFeature {
     return Object.assign(create(typeModels[BootstrapFeatureTypeRef.typeId], BootstrapFeatureTypeRef), values)
+}
+
+export type BootstrapFeatureParams = {
+
+
+	feature: NumberString;
 }
 
 export type BootstrapFeature = {
@@ -1949,8 +3033,14 @@ export type BootstrapFeature = {
 }
 export const FeatureTypeRef: TypeRef<Feature> = new TypeRef("sys", 1253)
 
-export function createFeature(values: StrippedEntity<Feature>): Feature {
+export function createFeature(values: FeatureParams): Feature {
     return Object.assign(create(typeModels[FeatureTypeRef.typeId], FeatureTypeRef), values)
+}
+
+export type FeatureParams = {
+
+
+	feature: NumberString;
 }
 
 export type Feature = {
@@ -1962,8 +3052,19 @@ export type Feature = {
 }
 export const WhitelabelChildTypeRef: TypeRef<WhitelabelChild> = new TypeRef("sys", 1257)
 
-export function createWhitelabelChild(values: StrippedEntity<WhitelabelChild>): WhitelabelChild {
+export function createWhitelabelChild(values: WhitelabelChildParams): WhitelabelChild {
     return Object.assign(create(typeModels[WhitelabelChildTypeRef.typeId], WhitelabelChildTypeRef), values)
+}
+
+export type WhitelabelChildParams = {
+
+
+	mailAddress: string;
+	createdDate: Date;
+	deletedDate: null | Date;
+	comment: string;
+
+	customer: Id;
 }
 
 export type WhitelabelChild = {
@@ -1987,8 +3088,15 @@ export type WhitelabelChild = {
 }
 export const WhitelabelChildrenRefTypeRef: TypeRef<WhitelabelChildrenRef> = new TypeRef("sys", 1269)
 
-export function createWhitelabelChildrenRef(values: StrippedEntity<WhitelabelChildrenRef>): WhitelabelChildrenRef {
+export function createWhitelabelChildrenRef(values: WhitelabelChildrenRefParams): WhitelabelChildrenRef {
     return Object.assign(create(typeModels[WhitelabelChildrenRefTypeRef.typeId], WhitelabelChildrenRefTypeRef), values)
+}
+
+export type WhitelabelChildrenRefParams = {
+
+
+
+	items: Id;
 }
 
 export type WhitelabelChildrenRef = {
@@ -2001,8 +3109,16 @@ export type WhitelabelChildrenRef = {
 }
 export const WhitelabelParentTypeRef: TypeRef<WhitelabelParent> = new TypeRef("sys", 1272)
 
-export function createWhitelabelParent(values: StrippedEntity<WhitelabelParent>): WhitelabelParent {
+export function createWhitelabelParent(values: WhitelabelParentParams): WhitelabelParent {
     return Object.assign(create(typeModels[WhitelabelParentTypeRef.typeId], WhitelabelParentTypeRef), values)
+}
+
+export type WhitelabelParentParams = {
+
+
+
+	customer: Id;
+	whitelabelChildInParent: IdTuple;
 }
 
 export type WhitelabelParent = {
@@ -2016,8 +3132,18 @@ export type WhitelabelParent = {
 }
 export const CreditCardTypeRef: TypeRef<CreditCard> = new TypeRef("sys", 1313)
 
-export function createCreditCard(values: StrippedEntity<CreditCard>): CreditCard {
+export function createCreditCard(values: CreditCardParams): CreditCard {
     return Object.assign(create(typeModels[CreditCardTypeRef.typeId], CreditCardTypeRef), values)
+}
+
+export type CreditCardParams = {
+
+
+	cardHolderName: string;
+	number: string;
+	cvv: string;
+	expirationMonth: string;
+	expirationYear: string;
 }
 
 export type CreditCard = {
@@ -2033,8 +3159,14 @@ export type CreditCard = {
 }
 export const LocationServiceGetReturnTypeRef: TypeRef<LocationServiceGetReturn> = new TypeRef("sys", 1321)
 
-export function createLocationServiceGetReturn(values: StrippedEntity<LocationServiceGetReturn>): LocationServiceGetReturn {
+export function createLocationServiceGetReturn(values: LocationServiceGetReturnParams): LocationServiceGetReturn {
     return Object.assign(create(typeModels[LocationServiceGetReturnTypeRef.typeId], LocationServiceGetReturnTypeRef), values)
+}
+
+export type LocationServiceGetReturnParams = {
+
+
+	country: string;
 }
 
 export type LocationServiceGetReturn = {
@@ -2046,8 +3178,19 @@ export type LocationServiceGetReturn = {
 }
 export const OrderProcessingAgreementTypeRef: TypeRef<OrderProcessingAgreement> = new TypeRef("sys", 1326)
 
-export function createOrderProcessingAgreement(values: StrippedEntity<OrderProcessingAgreement>): OrderProcessingAgreement {
+export function createOrderProcessingAgreement(values: OrderProcessingAgreementParams): OrderProcessingAgreement {
     return Object.assign(create(typeModels[OrderProcessingAgreementTypeRef.typeId], OrderProcessingAgreementTypeRef), values)
+}
+
+export type OrderProcessingAgreementParams = {
+
+
+	version: string;
+	customerAddress: string;
+	signatureDate: Date;
+
+	signerUserGroupInfo: IdTuple;
+	customer: Id;
 }
 
 export type OrderProcessingAgreement = {
@@ -2071,8 +3214,15 @@ export type OrderProcessingAgreement = {
 }
 export const SignOrderProcessingAgreementDataTypeRef: TypeRef<SignOrderProcessingAgreementData> = new TypeRef("sys", 1342)
 
-export function createSignOrderProcessingAgreementData(values: StrippedEntity<SignOrderProcessingAgreementData>): SignOrderProcessingAgreementData {
+export function createSignOrderProcessingAgreementData(values: SignOrderProcessingAgreementDataParams): SignOrderProcessingAgreementData {
     return Object.assign(create(typeModels[SignOrderProcessingAgreementDataTypeRef.typeId], SignOrderProcessingAgreementDataTypeRef), values)
+}
+
+export type SignOrderProcessingAgreementDataParams = {
+
+
+	version: string;
+	customerAddress: string;
 }
 
 export type SignOrderProcessingAgreementData = {
@@ -2085,8 +3235,14 @@ export type SignOrderProcessingAgreementData = {
 }
 export const GeneratedIdWrapperTypeRef: TypeRef<GeneratedIdWrapper> = new TypeRef("sys", 1349)
 
-export function createGeneratedIdWrapper(values: StrippedEntity<GeneratedIdWrapper>): GeneratedIdWrapper {
+export function createGeneratedIdWrapper(values: GeneratedIdWrapperParams): GeneratedIdWrapper {
     return Object.assign(create(typeModels[GeneratedIdWrapperTypeRef.typeId], GeneratedIdWrapperTypeRef), values)
+}
+
+export type GeneratedIdWrapperParams = {
+
+
+	value: Id;
 }
 
 export type GeneratedIdWrapper = {
@@ -2098,8 +3254,16 @@ export type GeneratedIdWrapper = {
 }
 export const SseConnectDataTypeRef: TypeRef<SseConnectData> = new TypeRef("sys", 1352)
 
-export function createSseConnectData(values: StrippedEntity<SseConnectData>): SseConnectData {
+export function createSseConnectData(values: SseConnectDataParams): SseConnectData {
     return Object.assign(create(typeModels[SseConnectDataTypeRef.typeId], SseConnectDataTypeRef), values)
+}
+
+export type SseConnectDataParams = {
+
+
+	identifier: string;
+
+	userIds: GeneratedIdWrapper[];
 }
 
 export type SseConnectData = {
@@ -2113,8 +3277,17 @@ export type SseConnectData = {
 }
 export const NotificationInfoTypeRef: TypeRef<NotificationInfo> = new TypeRef("sys", 1364)
 
-export function createNotificationInfo(values: StrippedEntity<NotificationInfo>): NotificationInfo {
+export function createNotificationInfo(values: NotificationInfoParams): NotificationInfo {
     return Object.assign(create(typeModels[NotificationInfoTypeRef.typeId], NotificationInfoTypeRef), values)
+}
+
+export type NotificationInfoParams = {
+
+
+	mailAddress: string;
+	userId: Id;
+
+	mailId: null | IdTupleWrapper;
 }
 
 export type NotificationInfo = {
@@ -2129,8 +3302,17 @@ export type NotificationInfo = {
 }
 export const RecoverCodeTypeRef: TypeRef<RecoverCode> = new TypeRef("sys", 1407)
 
-export function createRecoverCode(values: StrippedEntity<RecoverCode>): RecoverCode {
+export function createRecoverCode(values: RecoverCodeParams): RecoverCode {
     return Object.assign(create(typeModels[RecoverCodeTypeRef.typeId], RecoverCodeTypeRef), values)
+}
+
+export type RecoverCodeParams = {
+
+
+	userEncRecoverCode: Uint8Array;
+	recoverCodeEncUserGroupKey: Uint8Array;
+	verifier: Uint8Array;
+	userKeyVersion: NumberString;
 }
 
 export type RecoverCode = {
@@ -2148,8 +3330,16 @@ export type RecoverCode = {
 }
 export const ResetFactorsDeleteDataTypeRef: TypeRef<ResetFactorsDeleteData> = new TypeRef("sys", 1419)
 
-export function createResetFactorsDeleteData(values: StrippedEntity<ResetFactorsDeleteData>): ResetFactorsDeleteData {
+export function createResetFactorsDeleteData(values: ResetFactorsDeleteDataParams): ResetFactorsDeleteData {
     return Object.assign(create(typeModels[ResetFactorsDeleteDataTypeRef.typeId], ResetFactorsDeleteDataTypeRef), values)
+}
+
+export type ResetFactorsDeleteDataParams = {
+
+
+	mailAddress: string;
+	authVerifier: string;
+	recoverCodeVerifier: string;
 }
 
 export type ResetFactorsDeleteData = {
@@ -2163,8 +3353,17 @@ export type ResetFactorsDeleteData = {
 }
 export const UpgradePriceServiceDataTypeRef: TypeRef<UpgradePriceServiceData> = new TypeRef("sys", 1456)
 
-export function createUpgradePriceServiceData(values: StrippedEntity<UpgradePriceServiceData>): UpgradePriceServiceData {
+export function createUpgradePriceServiceData(values: UpgradePriceServiceDataParams): UpgradePriceServiceData {
     return Object.assign(create(typeModels[UpgradePriceServiceDataTypeRef.typeId], UpgradePriceServiceDataTypeRef), values)
+}
+
+export type UpgradePriceServiceDataParams = {
+
+
+	date: null | Date;
+	campaign: null | string;
+
+	referralCode: null | Id;
 }
 
 export type UpgradePriceServiceData = {
@@ -2179,8 +3378,27 @@ export type UpgradePriceServiceData = {
 }
 export const PlanPricesTypeRef: TypeRef<PlanPrices> = new TypeRef("sys", 1460)
 
-export function createPlanPrices(values: StrippedEntity<PlanPrices>): PlanPrices {
+export function createPlanPrices(values: PlanPricesParams): PlanPrices {
     return Object.assign(create(typeModels[PlanPricesTypeRef.typeId], PlanPricesTypeRef), values)
+}
+
+export type PlanPricesParams = {
+
+
+	monthlyReferencePrice: NumberString;
+	monthlyPrice: NumberString;
+	firstYearDiscount: NumberString;
+	additionalUserPriceMonthly: NumberString;
+	includedAliases: NumberString;
+	includedStorage: NumberString;
+	sharing: boolean;
+	business: boolean;
+	whitelabel: boolean;
+	customDomains: NumberString;
+	planName: string;
+	businessPlan: boolean;
+
+	planConfiguration: PlanConfiguration;
 }
 
 export type PlanPrices = {
@@ -2205,8 +3423,32 @@ export type PlanPrices = {
 }
 export const UpgradePriceServiceReturnTypeRef: TypeRef<UpgradePriceServiceReturn> = new TypeRef("sys", 1469)
 
-export function createUpgradePriceServiceReturn(values: StrippedEntity<UpgradePriceServiceReturn>): UpgradePriceServiceReturn {
+export function createUpgradePriceServiceReturn(values: UpgradePriceServiceReturnParams): UpgradePriceServiceReturn {
     return Object.assign(create(typeModels[UpgradePriceServiceReturnTypeRef.typeId], UpgradePriceServiceReturnTypeRef), values)
+}
+
+export type UpgradePriceServiceReturnParams = {
+
+
+	messageTextId: null | string;
+	business: boolean;
+	bonusMonthsForYearlyPlan: NumberString;
+	firstMonthForFreeForYearlyPlan: boolean;
+	hasGlobalFirstYearDiscount: boolean;
+	globalCampaignName: null | string;
+
+	premiumPrices: PlanPrices;
+	proPrices: PlanPrices;
+	teamsPrices: PlanPrices;
+	premiumBusinessPrices: PlanPrices;
+	teamsBusinessPrices: PlanPrices;
+	freePrices: PlanPrices;
+	revolutionaryPrices: PlanPrices;
+	legendaryPrices: PlanPrices;
+	essentialPrices: PlanPrices;
+	advancedPrices: PlanPrices;
+	unlimitedPrices: PlanPrices;
+	plans: PlanPrices[];
 }
 
 export type UpgradePriceServiceReturn = {
@@ -2236,8 +3478,23 @@ export type UpgradePriceServiceReturn = {
 }
 export const RegistrationCaptchaServiceGetDataTypeRef: TypeRef<RegistrationCaptchaServiceGetData> = new TypeRef("sys", 1479)
 
-export function createRegistrationCaptchaServiceGetData(values: StrippedEntity<RegistrationCaptchaServiceGetData>): RegistrationCaptchaServiceGetData {
+export function createRegistrationCaptchaServiceGetData(values: RegistrationCaptchaServiceGetDataParams): RegistrationCaptchaServiceGetData {
     return Object.assign(create(typeModels[RegistrationCaptchaServiceGetDataTypeRef.typeId], RegistrationCaptchaServiceGetDataTypeRef), values)
+}
+
+export type RegistrationCaptchaServiceGetDataParams = {
+
+
+	campaignToken: null | string;
+	mailAddress: string;
+	signupToken: null | string;
+	paidSubscriptionSelected: boolean;
+	businessUseSelected: boolean;
+	timelockChallengeSolution: null | string;
+	language: string;
+	isAutomatedBrowser: boolean;
+
+	adAttribution: null | AdAttribution;
 }
 
 export type RegistrationCaptchaServiceGetData = {
@@ -2258,8 +3515,19 @@ export type RegistrationCaptchaServiceGetData = {
 }
 export const WebsocketEntityDataTypeRef: TypeRef<WebsocketEntityData> = new TypeRef("sys", 1483)
 
-export function createWebsocketEntityData(values: StrippedEntity<WebsocketEntityData>): WebsocketEntityData {
+export function createWebsocketEntityData(values: WebsocketEntityDataParams): WebsocketEntityData {
     return Object.assign(create(typeModels[WebsocketEntityDataTypeRef.typeId], WebsocketEntityDataTypeRef), values)
+}
+
+export type WebsocketEntityDataParams = {
+
+
+	eventBatchId: Id;
+	eventBatchOwner: Id;
+	applicationVersionSum: NumberString;
+	applicationTypesHash: string;
+
+	entityUpdates: EntityUpdate[];
 }
 
 export type WebsocketEntityData = {
@@ -2276,8 +3544,15 @@ export type WebsocketEntityData = {
 }
 export const WebsocketCounterValueTypeRef: TypeRef<WebsocketCounterValue> = new TypeRef("sys", 1488)
 
-export function createWebsocketCounterValue(values: StrippedEntity<WebsocketCounterValue>): WebsocketCounterValue {
+export function createWebsocketCounterValue(values: WebsocketCounterValueParams): WebsocketCounterValue {
     return Object.assign(create(typeModels[WebsocketCounterValueTypeRef.typeId], WebsocketCounterValueTypeRef), values)
+}
+
+export type WebsocketCounterValueParams = {
+
+
+	counterId: Id;
+	count: NumberString;
 }
 
 export type WebsocketCounterValue = {
@@ -2290,8 +3565,18 @@ export type WebsocketCounterValue = {
 }
 export const WebsocketCounterDataTypeRef: TypeRef<WebsocketCounterData> = new TypeRef("sys", 1492)
 
-export function createWebsocketCounterData(values: StrippedEntity<WebsocketCounterData>): WebsocketCounterData {
+export function createWebsocketCounterData(values: WebsocketCounterDataParams): WebsocketCounterData {
     return Object.assign(create(typeModels[WebsocketCounterDataTypeRef.typeId], WebsocketCounterDataTypeRef), values)
+}
+
+export type WebsocketCounterDataParams = {
+
+
+	mailGroup: Id;
+	applicationVersionSum: NumberString;
+	applicationTypesHash: string;
+
+	counterValues: WebsocketCounterValue[];
 }
 
 export type WebsocketCounterData = {
@@ -2307,8 +3592,18 @@ export type WebsocketCounterData = {
 }
 export const CertificateInfoTypeRef: TypeRef<CertificateInfo> = new TypeRef("sys", 1500)
 
-export function createCertificateInfo(values: StrippedEntity<CertificateInfo>): CertificateInfo {
+export function createCertificateInfo(values: CertificateInfoParams): CertificateInfo {
     return Object.assign(create(typeModels[CertificateInfoTypeRef.typeId], CertificateInfoTypeRef), values)
+}
+
+export type CertificateInfoParams = {
+
+
+	expiryDate: null | Date;
+	state: NumberString;
+	type: NumberString;
+
+	certificate: null | Id;
 }
 
 export type CertificateInfo = {
@@ -2324,8 +3619,16 @@ export type CertificateInfo = {
 }
 export const NotificationMailTemplateTypeRef: TypeRef<NotificationMailTemplate> = new TypeRef("sys", 1517)
 
-export function createNotificationMailTemplate(values: StrippedEntity<NotificationMailTemplate>): NotificationMailTemplate {
+export function createNotificationMailTemplate(values: NotificationMailTemplateParams): NotificationMailTemplate {
     return Object.assign(create(typeModels[NotificationMailTemplateTypeRef.typeId], NotificationMailTemplateTypeRef), values)
+}
+
+export type NotificationMailTemplateParams = {
+
+
+	language: string;
+	body: string;
+	subject: string;
 }
 
 export type NotificationMailTemplate = {
@@ -2339,8 +3642,15 @@ export type NotificationMailTemplate = {
 }
 export const CalendarEventRefTypeRef: TypeRef<CalendarEventRef> = new TypeRef("sys", 1532)
 
-export function createCalendarEventRef(values: StrippedEntity<CalendarEventRef>): CalendarEventRef {
+export function createCalendarEventRef(values: CalendarEventRefParams): CalendarEventRef {
     return Object.assign(create(typeModels[CalendarEventRefTypeRef.typeId], CalendarEventRefTypeRef), values)
+}
+
+export type CalendarEventRefParams = {
+
+
+	elementId: Id;
+	listId: Id;
 }
 
 export type CalendarEventRef = {
@@ -2353,8 +3663,17 @@ export type CalendarEventRef = {
 }
 export const AlarmInfoTypeRef: TypeRef<AlarmInfo> = new TypeRef("sys", 1536)
 
-export function createAlarmInfo(values: StrippedEntity<AlarmInfo>): AlarmInfo {
+export function createAlarmInfo(values: AlarmInfoParams): AlarmInfo {
     return Object.assign(create(typeModels[AlarmInfoTypeRef.typeId], AlarmInfoTypeRef), values)
+}
+
+export type AlarmInfoParams = {
+
+
+	trigger: string;
+	alarmIdentifier: string;
+
+	calendarRef: CalendarEventRef;
 }
 
 export type AlarmInfo = {
@@ -2369,8 +3688,15 @@ export type AlarmInfo = {
 }
 export const UserAlarmInfoTypeRef: TypeRef<UserAlarmInfo> = new TypeRef("sys", 1541)
 
-export function createUserAlarmInfo(values: StrippedEntity<UserAlarmInfo>): UserAlarmInfo {
+export function createUserAlarmInfo(values: UserAlarmInfoParams): UserAlarmInfo {
     return Object.assign(create(typeModels[UserAlarmInfoTypeRef.typeId], UserAlarmInfoTypeRef), values)
+}
+
+export type UserAlarmInfoParams = {
+
+
+
+	alarmInfo: AlarmInfo;
 }
 
 export type UserAlarmInfo = {
@@ -2390,8 +3716,15 @@ export type UserAlarmInfo = {
 }
 export const UserAlarmInfoListTypeTypeRef: TypeRef<UserAlarmInfoListType> = new TypeRef("sys", 1549)
 
-export function createUserAlarmInfoListType(values: StrippedEntity<UserAlarmInfoListType>): UserAlarmInfoListType {
+export function createUserAlarmInfoListType(values: UserAlarmInfoListTypeParams): UserAlarmInfoListType {
     return Object.assign(create(typeModels[UserAlarmInfoListTypeTypeRef.typeId], UserAlarmInfoListTypeTypeRef), values)
+}
+
+export type UserAlarmInfoListTypeParams = {
+
+
+
+	alarms: Id;
 }
 
 export type UserAlarmInfoListType = {
@@ -2404,8 +3737,16 @@ export type UserAlarmInfoListType = {
 }
 export const NotificationSessionKeyTypeRef: TypeRef<NotificationSessionKey> = new TypeRef("sys", 1553)
 
-export function createNotificationSessionKey(values: StrippedEntity<NotificationSessionKey>): NotificationSessionKey {
+export function createNotificationSessionKey(values: NotificationSessionKeyParams): NotificationSessionKey {
     return Object.assign(create(typeModels[NotificationSessionKeyTypeRef.typeId], NotificationSessionKeyTypeRef), values)
+}
+
+export type NotificationSessionKeyParams = {
+
+
+	pushIdentifierSessionEncSessionKey: Uint8Array;
+
+	pushIdentifier: IdTuple;
 }
 
 export type NotificationSessionKey = {
@@ -2419,8 +3760,21 @@ export type NotificationSessionKey = {
 }
 export const RepeatRuleTypeRef: TypeRef<RepeatRule> = new TypeRef("sys", 1557)
 
-export function createRepeatRule(values: StrippedEntity<RepeatRule>): RepeatRule {
+export function createRepeatRule(values: RepeatRuleParams): RepeatRule {
     return Object.assign(create(typeModels[RepeatRuleTypeRef.typeId], RepeatRuleTypeRef), values)
+}
+
+export type RepeatRuleParams = {
+
+
+	frequency: NumberString;
+	endType: NumberString;
+	endValue: null | NumberString;
+	interval: NumberString;
+	timeZone: string;
+
+	excludedDates: DateWrapper[];
+	advancedRules: CalendarAdvancedRepeatRule[];
 }
 
 export type RepeatRule = {
@@ -2439,8 +3793,22 @@ export type RepeatRule = {
 }
 export const AlarmNotificationTypeRef: TypeRef<AlarmNotification> = new TypeRef("sys", 1564)
 
-export function createAlarmNotification(values: StrippedEntity<AlarmNotification>): AlarmNotification {
+export function createAlarmNotification(values: AlarmNotificationParams): AlarmNotification {
     return Object.assign(create(typeModels[AlarmNotificationTypeRef.typeId], AlarmNotificationTypeRef), values)
+}
+
+export type AlarmNotificationParams = {
+
+
+	operation: NumberString;
+	summary: string;
+	eventStart: Date;
+	eventEnd: Date;
+
+	alarmInfo: AlarmInfo;
+	repeatRule: null | RepeatRule;
+	notificationSessionKeys: NotificationSessionKey[];
+	user: Id;
 }
 
 export type AlarmNotification = {
@@ -2460,8 +3828,16 @@ export type AlarmNotification = {
 }
 export const AlarmServicePostTypeRef: TypeRef<AlarmServicePost> = new TypeRef("sys", 1576)
 
-export function createAlarmServicePost(values: StrippedEntity<AlarmServicePost>): AlarmServicePost {
+export function createAlarmServicePost(values: AlarmServicePostParams): AlarmServicePost {
     return Object.assign(create(typeModels[AlarmServicePostTypeRef.typeId], AlarmServicePostTypeRef), values)
+}
+
+export type AlarmServicePostParams = {
+
+
+
+	alarmNotifications: AlarmNotification[];
+	userAlarmInfoData: UserAlarmInfoData[];
 }
 
 export type AlarmServicePost = {
@@ -2476,8 +3852,16 @@ export type AlarmServicePost = {
 }
 export const DnsRecordTypeRef: TypeRef<DnsRecord> = new TypeRef("sys", 1581)
 
-export function createDnsRecord(values: StrippedEntity<DnsRecord>): DnsRecord {
+export function createDnsRecord(values: DnsRecordParams): DnsRecord {
     return Object.assign(create(typeModels[DnsRecordTypeRef.typeId], DnsRecordTypeRef), values)
+}
+
+export type DnsRecordParams = {
+
+
+	subdomain: null | string;
+	type: NumberString;
+	value: string;
 }
 
 export type DnsRecord = {
@@ -2491,8 +3875,16 @@ export type DnsRecord = {
 }
 export const CustomDomainCheckGetInTypeRef: TypeRef<CustomDomainCheckGetIn> = new TypeRef("sys", 1586)
 
-export function createCustomDomainCheckGetIn(values: StrippedEntity<CustomDomainCheckGetIn>): CustomDomainCheckGetIn {
+export function createCustomDomainCheckGetIn(values: CustomDomainCheckGetInParams): CustomDomainCheckGetIn {
     return Object.assign(create(typeModels[CustomDomainCheckGetInTypeRef.typeId], CustomDomainCheckGetInTypeRef), values)
+}
+
+export type CustomDomainCheckGetInParams = {
+
+
+	domain: string;
+
+	customer: null | Id;
 }
 
 export type CustomDomainCheckGetIn = {
@@ -2506,8 +3898,18 @@ export type CustomDomainCheckGetIn = {
 }
 export const CustomDomainCheckGetOutTypeRef: TypeRef<CustomDomainCheckGetOut> = new TypeRef("sys", 1589)
 
-export function createCustomDomainCheckGetOut(values: StrippedEntity<CustomDomainCheckGetOut>): CustomDomainCheckGetOut {
+export function createCustomDomainCheckGetOut(values: CustomDomainCheckGetOutParams): CustomDomainCheckGetOut {
     return Object.assign(create(typeModels[CustomDomainCheckGetOutTypeRef.typeId], CustomDomainCheckGetOutTypeRef), values)
+}
+
+export type CustomDomainCheckGetOutParams = {
+
+
+	checkResult: NumberString;
+
+	missingRecords: DnsRecord[];
+	invalidRecords: DnsRecord[];
+	requiredRecords: DnsRecord[];
 }
 
 export type CustomDomainCheckGetOut = {
@@ -2523,8 +3925,16 @@ export type CustomDomainCheckGetOut = {
 }
 export const CloseSessionServicePostTypeRef: TypeRef<CloseSessionServicePost> = new TypeRef("sys", 1595)
 
-export function createCloseSessionServicePost(values: StrippedEntity<CloseSessionServicePost>): CloseSessionServicePost {
+export function createCloseSessionServicePost(values: CloseSessionServicePostParams): CloseSessionServicePost {
     return Object.assign(create(typeModels[CloseSessionServicePostTypeRef.typeId], CloseSessionServicePostTypeRef), values)
+}
+
+export type CloseSessionServicePostParams = {
+
+
+	accessToken: string;
+
+	sessionId: IdTuple;
 }
 
 export type CloseSessionServicePost = {
@@ -2538,8 +3948,24 @@ export type CloseSessionServicePost = {
 }
 export const ReceivedGroupInvitationTypeRef: TypeRef<ReceivedGroupInvitation> = new TypeRef("sys", 1602)
 
-export function createReceivedGroupInvitation(values: StrippedEntity<ReceivedGroupInvitation>): ReceivedGroupInvitation {
+export function createReceivedGroupInvitation(values: ReceivedGroupInvitationParams): ReceivedGroupInvitation {
     return Object.assign(create(typeModels[ReceivedGroupInvitationTypeRef.typeId], ReceivedGroupInvitationTypeRef), values)
+}
+
+export type ReceivedGroupInvitationParams = {
+
+
+	sharedGroupKey: Uint8Array;
+	sharedGroupName: string;
+	inviterMailAddress: string;
+	inviterName: string;
+	inviteeMailAddress: string;
+	capability: NumberString;
+	groupType: null | NumberString;
+	sharedGroupKeyVersion: NumberString;
+
+	sharedGroup: Id;
+	sentInvitation: IdTuple;
 }
 
 export type ReceivedGroupInvitation = {
@@ -2568,8 +3994,17 @@ export type ReceivedGroupInvitation = {
 }
 export const UserGroupRootTypeRef: TypeRef<UserGroupRoot> = new TypeRef("sys", 1618)
 
-export function createUserGroupRoot(values: StrippedEntity<UserGroupRoot>): UserGroupRoot {
+export function createUserGroupRoot(values: UserGroupRootParams): UserGroupRoot {
     return Object.assign(create(typeModels[UserGroupRootTypeRef.typeId], UserGroupRootTypeRef), values)
+}
+
+export type UserGroupRootParams = {
+
+
+
+	invitations: Id;
+	keyRotations: KeyRotationsRef;
+	groupKeyUpdates: null | GroupKeyUpdatesRef;
 }
 
 export type UserGroupRoot = {
@@ -2587,8 +4022,16 @@ export type UserGroupRoot = {
 }
 export const PaymentErrorInfoTypeRef: TypeRef<PaymentErrorInfo> = new TypeRef("sys", 1632)
 
-export function createPaymentErrorInfo(values: StrippedEntity<PaymentErrorInfo>): PaymentErrorInfo {
+export function createPaymentErrorInfo(values: PaymentErrorInfoParams): PaymentErrorInfo {
     return Object.assign(create(typeModels[PaymentErrorInfoTypeRef.typeId], PaymentErrorInfoTypeRef), values)
+}
+
+export type PaymentErrorInfoParams = {
+
+
+	errorTime: Date;
+	errorCode: string;
+	thirdPartyErrorId: string;
 }
 
 export type PaymentErrorInfo = {
@@ -2602,8 +4045,20 @@ export type PaymentErrorInfo = {
 }
 export const InvoiceItemTypeRef: TypeRef<InvoiceItem> = new TypeRef("sys", 1641)
 
-export function createInvoiceItem(values: StrippedEntity<InvoiceItem>): InvoiceItem {
+export function createInvoiceItem(values: InvoiceItemParams): InvoiceItem {
     return Object.assign(create(typeModels[InvoiceItemTypeRef.typeId], InvoiceItemTypeRef), values)
+}
+
+export type InvoiceItemParams = {
+
+
+	amount: NumberString;
+	type: NumberString;
+	singlePrice: null | NumberString;
+	totalPrice: NumberString;
+	startDate: null | Date;
+	endDate: null | Date;
+	singleType: boolean;
 }
 
 export type InvoiceItem = {
@@ -2621,8 +4076,30 @@ export type InvoiceItem = {
 }
 export const InvoiceTypeRef: TypeRef<Invoice> = new TypeRef("sys", 1650)
 
-export function createInvoice(values: StrippedEntity<Invoice>): Invoice {
+export function createInvoice(values: InvoiceParams): Invoice {
     return Object.assign(create(typeModels[InvoiceTypeRef.typeId], InvoiceTypeRef), values)
+}
+
+export type InvoiceParams = {
+
+
+	type: NumberString;
+	date: Date;
+	paymentMethod: NumberString;
+	country: string;
+	address: string;
+	business: boolean;
+	vatIdNumber: null | string;
+	vatRate: NumberString;
+	vat: NumberString;
+	subTotal: NumberString;
+	grandTotal: NumberString;
+	adminUser: null | string;
+	reason: null | string;
+
+	items: InvoiceItem[];
+	customer: Id;
+	bookings: IdTuple[];
 }
 
 export type Invoice = {
@@ -2657,8 +4134,17 @@ export type Invoice = {
 }
 export const MissedNotificationTypeRef: TypeRef<MissedNotification> = new TypeRef("sys", 1693)
 
-export function createMissedNotification(values: StrippedEntity<MissedNotification>): MissedNotification {
+export function createMissedNotification(values: MissedNotificationParams): MissedNotification {
     return Object.assign(create(typeModels[MissedNotificationTypeRef.typeId], MissedNotificationTypeRef), values)
+}
+
+export type MissedNotificationParams = {
+
+
+	lastProcessedNotificationId: null | Id;
+
+	notificationInfos: NotificationInfo[];
+	alarmNotifications: AlarmNotification[];
 }
 
 export type MissedNotification = {
@@ -2680,8 +4166,15 @@ export type MissedNotification = {
 }
 export const BrandingDomainGetReturnTypeRef: TypeRef<BrandingDomainGetReturn> = new TypeRef("sys", 1723)
 
-export function createBrandingDomainGetReturn(values: StrippedEntity<BrandingDomainGetReturn>): BrandingDomainGetReturn {
+export function createBrandingDomainGetReturn(values: BrandingDomainGetReturnParams): BrandingDomainGetReturn {
     return Object.assign(create(typeModels[BrandingDomainGetReturnTypeRef.typeId], BrandingDomainGetReturnTypeRef), values)
+}
+
+export type BrandingDomainGetReturnParams = {
+
+
+
+	certificateInfo: null | CertificateInfo;
 }
 
 export type BrandingDomainGetReturn = {
@@ -2694,8 +4187,18 @@ export type BrandingDomainGetReturn = {
 }
 export const RejectedSenderTypeRef: TypeRef<RejectedSender> = new TypeRef("sys", 1736)
 
-export function createRejectedSender(values: StrippedEntity<RejectedSender>): RejectedSender {
+export function createRejectedSender(values: RejectedSenderParams): RejectedSender {
     return Object.assign(create(typeModels[RejectedSenderTypeRef.typeId], RejectedSenderTypeRef), values)
+}
+
+export type RejectedSenderParams = {
+
+
+	senderMailAddress: string;
+	senderIp: string;
+	senderHostname: string;
+	recipientMailAddress: string;
+	reason: string;
 }
 
 export type RejectedSender = {
@@ -2714,8 +4217,15 @@ export type RejectedSender = {
 }
 export const RejectedSendersRefTypeRef: TypeRef<RejectedSendersRef> = new TypeRef("sys", 1747)
 
-export function createRejectedSendersRef(values: StrippedEntity<RejectedSendersRef>): RejectedSendersRef {
+export function createRejectedSendersRef(values: RejectedSendersRefParams): RejectedSendersRef {
     return Object.assign(create(typeModels[RejectedSendersRefTypeRef.typeId], RejectedSendersRefTypeRef), values)
+}
+
+export type RejectedSendersRefParams = {
+
+
+
+	items: Id;
 }
 
 export type RejectedSendersRef = {
@@ -2728,8 +4238,15 @@ export type RejectedSendersRef = {
 }
 export const SecondFactorAuthDeleteDataTypeRef: TypeRef<SecondFactorAuthDeleteData> = new TypeRef("sys", 1755)
 
-export function createSecondFactorAuthDeleteData(values: StrippedEntity<SecondFactorAuthDeleteData>): SecondFactorAuthDeleteData {
+export function createSecondFactorAuthDeleteData(values: SecondFactorAuthDeleteDataParams): SecondFactorAuthDeleteData {
     return Object.assign(create(typeModels[SecondFactorAuthDeleteDataTypeRef.typeId], SecondFactorAuthDeleteDataTypeRef), values)
+}
+
+export type SecondFactorAuthDeleteDataParams = {
+
+
+
+	session: IdTuple;
 }
 
 export type SecondFactorAuthDeleteData = {
@@ -2742,8 +4259,17 @@ export type SecondFactorAuthDeleteData = {
 }
 export const TakeOverDeletedAddressDataTypeRef: TypeRef<TakeOverDeletedAddressData> = new TypeRef("sys", 1759)
 
-export function createTakeOverDeletedAddressData(values: StrippedEntity<TakeOverDeletedAddressData>): TakeOverDeletedAddressData {
+export function createTakeOverDeletedAddressData(values: TakeOverDeletedAddressDataParams): TakeOverDeletedAddressData {
     return Object.assign(create(typeModels[TakeOverDeletedAddressDataTypeRef.typeId], TakeOverDeletedAddressDataTypeRef), values)
+}
+
+export type TakeOverDeletedAddressDataParams = {
+
+
+	mailAddress: string;
+	authVerifier: string;
+	recoverCodeVerifier: null | string;
+	targetAccountMailAddress: string;
 }
 
 export type TakeOverDeletedAddressData = {
@@ -2758,8 +4284,16 @@ export type TakeOverDeletedAddressData = {
 }
 export const WebsocketLeaderStatusTypeRef: TypeRef<WebsocketLeaderStatus> = new TypeRef("sys", 1766)
 
-export function createWebsocketLeaderStatus(values: StrippedEntity<WebsocketLeaderStatus>): WebsocketLeaderStatus {
+export function createWebsocketLeaderStatus(values: WebsocketLeaderStatusParams): WebsocketLeaderStatus {
     return Object.assign(create(typeModels[WebsocketLeaderStatusTypeRef.typeId], WebsocketLeaderStatusTypeRef), values)
+}
+
+export type WebsocketLeaderStatusParams = {
+
+
+	leaderStatus: boolean;
+	applicationVersionSum: null | NumberString;
+	applicationTypesHash: null | string;
 }
 
 export type WebsocketLeaderStatus = {
@@ -2773,8 +4307,18 @@ export type WebsocketLeaderStatus = {
 }
 export const GiftCardTypeRef: TypeRef<GiftCard> = new TypeRef("sys", 1769)
 
-export function createGiftCard(values: StrippedEntity<GiftCard>): GiftCard {
+export function createGiftCard(values: GiftCardParams): GiftCard {
     return Object.assign(create(typeModels[GiftCardTypeRef.typeId], GiftCardTypeRef), values)
+}
+
+export type GiftCardParams = {
+
+
+	status: NumberString;
+	value: NumberString;
+	message: string;
+	orderDate: Date;
+	migrated: boolean;
 }
 
 export type GiftCard = {
@@ -2797,8 +4341,15 @@ export type GiftCard = {
 }
 export const GiftCardsRefTypeRef: TypeRef<GiftCardsRef> = new TypeRef("sys", 1791)
 
-export function createGiftCardsRef(values: StrippedEntity<GiftCardsRef>): GiftCardsRef {
+export function createGiftCardsRef(values: GiftCardsRefParams): GiftCardsRef {
     return Object.assign(create(typeModels[GiftCardsRefTypeRef.typeId], GiftCardsRefTypeRef), values)
+}
+
+export type GiftCardsRefParams = {
+
+
+
+	items: Id;
 }
 
 export type GiftCardsRef = {
@@ -2811,8 +4362,14 @@ export type GiftCardsRef = {
 }
 export const GiftCardOptionTypeRef: TypeRef<GiftCardOption> = new TypeRef("sys", 1795)
 
-export function createGiftCardOption(values: StrippedEntity<GiftCardOption>): GiftCardOption {
+export function createGiftCardOption(values: GiftCardOptionParams): GiftCardOption {
     return Object.assign(create(typeModels[GiftCardOptionTypeRef.typeId], GiftCardOptionTypeRef), values)
+}
+
+export type GiftCardOptionParams = {
+
+
+	value: NumberString;
 }
 
 export type GiftCardOption = {
@@ -2824,8 +4381,17 @@ export type GiftCardOption = {
 }
 export const GiftCardGetReturnTypeRef: TypeRef<GiftCardGetReturn> = new TypeRef("sys", 1798)
 
-export function createGiftCardGetReturn(values: StrippedEntity<GiftCardGetReturn>): GiftCardGetReturn {
+export function createGiftCardGetReturn(values: GiftCardGetReturnParams): GiftCardGetReturn {
     return Object.assign(create(typeModels[GiftCardGetReturnTypeRef.typeId], GiftCardGetReturnTypeRef), values)
+}
+
+export type GiftCardGetReturnParams = {
+
+
+	maxPerPeriod: NumberString;
+	period: NumberString;
+
+	options: GiftCardOption[];
 }
 
 export type GiftCardGetReturn = {
@@ -2840,8 +4406,16 @@ export type GiftCardGetReturn = {
 }
 export const GiftCardCreateDataTypeRef: TypeRef<GiftCardCreateData> = new TypeRef("sys", 1803)
 
-export function createGiftCardCreateData(values: StrippedEntity<GiftCardCreateData>): GiftCardCreateData {
+export function createGiftCardCreateData(values: GiftCardCreateDataParams): GiftCardCreateData {
     return Object.assign(create(typeModels[GiftCardCreateDataTypeRef.typeId], GiftCardCreateDataTypeRef), values)
+}
+
+export type GiftCardCreateDataParams = {
+
+
+	message: string;
+	value: NumberString;
+	keyHash: Uint8Array;
 }
 
 export type GiftCardCreateData = {
@@ -2858,8 +4432,15 @@ export type GiftCardCreateData = {
 }
 export const GiftCardDeleteDataTypeRef: TypeRef<GiftCardDeleteData> = new TypeRef("sys", 1810)
 
-export function createGiftCardDeleteData(values: StrippedEntity<GiftCardDeleteData>): GiftCardDeleteData {
+export function createGiftCardDeleteData(values: GiftCardDeleteDataParams): GiftCardDeleteData {
     return Object.assign(create(typeModels[GiftCardDeleteDataTypeRef.typeId], GiftCardDeleteDataTypeRef), values)
+}
+
+export type GiftCardDeleteDataParams = {
+
+
+
+	giftCard: IdTuple;
 }
 
 export type GiftCardDeleteData = {
@@ -2872,8 +4453,15 @@ export type GiftCardDeleteData = {
 }
 export const GiftCardCreateReturnTypeRef: TypeRef<GiftCardCreateReturn> = new TypeRef("sys", 1813)
 
-export function createGiftCardCreateReturn(values: StrippedEntity<GiftCardCreateReturn>): GiftCardCreateReturn {
+export function createGiftCardCreateReturn(values: GiftCardCreateReturnParams): GiftCardCreateReturn {
     return Object.assign(create(typeModels[GiftCardCreateReturnTypeRef.typeId], GiftCardCreateReturnTypeRef), values)
+}
+
+export type GiftCardCreateReturnParams = {
+
+
+
+	giftCard: IdTuple;
 }
 
 export type GiftCardCreateReturn = {
@@ -2886,8 +4474,17 @@ export type GiftCardCreateReturn = {
 }
 export const GiftCardRedeemDataTypeRef: TypeRef<GiftCardRedeemData> = new TypeRef("sys", 1817)
 
-export function createGiftCardRedeemData(values: StrippedEntity<GiftCardRedeemData>): GiftCardRedeemData {
+export function createGiftCardRedeemData(values: GiftCardRedeemDataParams): GiftCardRedeemData {
     return Object.assign(create(typeModels[GiftCardRedeemDataTypeRef.typeId], GiftCardRedeemDataTypeRef), values)
+}
+
+export type GiftCardRedeemDataParams = {
+
+
+	keyHash: Uint8Array;
+	countryCode: string;
+
+	giftCardInfo: Id;
 }
 
 export type GiftCardRedeemData = {
@@ -2902,8 +4499,17 @@ export type GiftCardRedeemData = {
 }
 export const GiftCardRedeemGetReturnTypeRef: TypeRef<GiftCardRedeemGetReturn> = new TypeRef("sys", 1821)
 
-export function createGiftCardRedeemGetReturn(values: StrippedEntity<GiftCardRedeemGetReturn>): GiftCardRedeemGetReturn {
+export function createGiftCardRedeemGetReturn(values: GiftCardRedeemGetReturnParams): GiftCardRedeemGetReturn {
     return Object.assign(create(typeModels[GiftCardRedeemGetReturnTypeRef.typeId], GiftCardRedeemGetReturnTypeRef), values)
+}
+
+export type GiftCardRedeemGetReturnParams = {
+
+
+	message: string;
+	value: NumberString;
+
+	giftCard: IdTuple;
 }
 
 export type GiftCardRedeemGetReturn = {
@@ -2919,8 +4525,16 @@ export type GiftCardRedeemGetReturn = {
 }
 export const Braintree3ds2RequestTypeRef: TypeRef<Braintree3ds2Request> = new TypeRef("sys", 1828)
 
-export function createBraintree3ds2Request(values: StrippedEntity<Braintree3ds2Request>): Braintree3ds2Request {
+export function createBraintree3ds2Request(values: Braintree3ds2RequestParams): Braintree3ds2Request {
     return Object.assign(create(typeModels[Braintree3ds2RequestTypeRef.typeId], Braintree3ds2RequestTypeRef), values)
+}
+
+export type Braintree3ds2RequestParams = {
+
+
+	clientToken: string;
+	nonce: string;
+	bin: string;
 }
 
 export type Braintree3ds2Request = {
@@ -2934,8 +4548,15 @@ export type Braintree3ds2Request = {
 }
 export const Braintree3ds2ResponseTypeRef: TypeRef<Braintree3ds2Response> = new TypeRef("sys", 1833)
 
-export function createBraintree3ds2Response(values: StrippedEntity<Braintree3ds2Response>): Braintree3ds2Response {
+export function createBraintree3ds2Response(values: Braintree3ds2ResponseParams): Braintree3ds2Response {
     return Object.assign(create(typeModels[Braintree3ds2ResponseTypeRef.typeId], Braintree3ds2ResponseTypeRef), values)
+}
+
+export type Braintree3ds2ResponseParams = {
+
+
+	clientToken: string;
+	nonce: string;
 }
 
 export type Braintree3ds2Response = {
@@ -2948,8 +4569,15 @@ export type Braintree3ds2Response = {
 }
 export const PaymentDataServicePostDataTypeRef: TypeRef<PaymentDataServicePostData> = new TypeRef("sys", 1837)
 
-export function createPaymentDataServicePostData(values: StrippedEntity<PaymentDataServicePostData>): PaymentDataServicePostData {
+export function createPaymentDataServicePostData(values: PaymentDataServicePostDataParams): PaymentDataServicePostData {
     return Object.assign(create(typeModels[PaymentDataServicePostDataTypeRef.typeId], PaymentDataServicePostDataTypeRef), values)
+}
+
+export type PaymentDataServicePostDataParams = {
+
+
+
+	braintree3dsResponse: Braintree3ds2Response;
 }
 
 export type PaymentDataServicePostData = {
@@ -2962,8 +4590,15 @@ export type PaymentDataServicePostData = {
 }
 export const PaymentDataServiceGetDataTypeRef: TypeRef<PaymentDataServiceGetData> = new TypeRef("sys", 1861)
 
-export function createPaymentDataServiceGetData(values: StrippedEntity<PaymentDataServiceGetData>): PaymentDataServiceGetData {
+export function createPaymentDataServiceGetData(values: PaymentDataServiceGetDataParams): PaymentDataServiceGetData {
     return Object.assign(create(typeModels[PaymentDataServiceGetDataTypeRef.typeId], PaymentDataServiceGetDataTypeRef), values)
+}
+
+export type PaymentDataServiceGetDataParams = {
+
+
+	clientType: null | NumberString;
+	subscriptionApp: NumberString;
 }
 
 export type PaymentDataServiceGetData = {
@@ -2976,8 +4611,15 @@ export type PaymentDataServiceGetData = {
 }
 export const TypeInfoTypeRef: TypeRef<TypeInfo> = new TypeRef("sys", 1869)
 
-export function createTypeInfo(values: StrippedEntity<TypeInfo>): TypeInfo {
+export function createTypeInfo(values: TypeInfoParams): TypeInfo {
     return Object.assign(create(typeModels[TypeInfoTypeRef.typeId], TypeInfoTypeRef), values)
+}
+
+export type TypeInfoParams = {
+
+
+	application: string;
+	typeId: NumberString;
 }
 
 export type TypeInfo = {
@@ -2990,8 +4632,14 @@ export type TypeInfo = {
 }
 export const ArchiveRefTypeRef: TypeRef<ArchiveRef> = new TypeRef("sys", 1873)
 
-export function createArchiveRef(values: StrippedEntity<ArchiveRef>): ArchiveRef {
+export function createArchiveRef(values: ArchiveRefParams): ArchiveRef {
     return Object.assign(create(typeModels[ArchiveRefTypeRef.typeId], ArchiveRefTypeRef), values)
+}
+
+export type ArchiveRefParams = {
+
+
+	archiveId: Id;
 }
 
 export type ArchiveRef = {
@@ -3003,8 +4651,17 @@ export type ArchiveRef = {
 }
 export const ArchiveTypeTypeRef: TypeRef<ArchiveType> = new TypeRef("sys", 1876)
 
-export function createArchiveType(values: StrippedEntity<ArchiveType>): ArchiveType {
+export function createArchiveType(values: ArchiveTypeParams): ArchiveType {
     return Object.assign(create(typeModels[ArchiveTypeTypeRef.typeId], ArchiveTypeTypeRef), values)
+}
+
+export type ArchiveTypeParams = {
+
+
+
+	type: TypeInfo;
+	active: ArchiveRef;
+	inactive: ArchiveRef[];
 }
 
 export type ArchiveType = {
@@ -3019,8 +4676,16 @@ export type ArchiveType = {
 }
 export const BlobTypeRef: TypeRef<Blob> = new TypeRef("sys", 1882)
 
-export function createBlob(values: StrippedEntity<Blob>): Blob {
+export function createBlob(values: BlobParams): Blob {
     return Object.assign(create(typeModels[BlobTypeRef.typeId], BlobTypeRef), values)
+}
+
+export type BlobParams = {
+
+
+	archiveId: Id;
+	size: NumberString;
+	blobId: Id;
 }
 
 export type Blob = {
@@ -3034,8 +4699,17 @@ export type Blob = {
 }
 export const WebauthnResponseDataTypeRef: TypeRef<WebauthnResponseData> = new TypeRef("sys", 1899)
 
-export function createWebauthnResponseData(values: StrippedEntity<WebauthnResponseData>): WebauthnResponseData {
+export function createWebauthnResponseData(values: WebauthnResponseDataParams): WebauthnResponseData {
     return Object.assign(create(typeModels[WebauthnResponseDataTypeRef.typeId], WebauthnResponseDataTypeRef), values)
+}
+
+export type WebauthnResponseDataParams = {
+
+
+	keyHandle: Uint8Array;
+	clientData: Uint8Array;
+	authenticatorData: Uint8Array;
+	signature: Uint8Array;
 }
 
 export type WebauthnResponseData = {
@@ -3050,8 +4724,14 @@ export type WebauthnResponseData = {
 }
 export const BlobReferenceTokenWrapperTypeRef: TypeRef<BlobReferenceTokenWrapper> = new TypeRef("sys", 1990)
 
-export function createBlobReferenceTokenWrapper(values: StrippedEntity<BlobReferenceTokenWrapper>): BlobReferenceTokenWrapper {
+export function createBlobReferenceTokenWrapper(values: BlobReferenceTokenWrapperParams): BlobReferenceTokenWrapper {
     return Object.assign(create(typeModels[BlobReferenceTokenWrapperTypeRef.typeId], BlobReferenceTokenWrapperTypeRef), values)
+}
+
+export type BlobReferenceTokenWrapperParams = {
+
+
+	blobReferenceToken: string;
 }
 
 export type BlobReferenceTokenWrapper = {
@@ -3063,8 +4743,17 @@ export type BlobReferenceTokenWrapper = {
 }
 export const CustomerAccountTerminationRequestTypeRef: TypeRef<CustomerAccountTerminationRequest> = new TypeRef("sys", 2005)
 
-export function createCustomerAccountTerminationRequest(values: StrippedEntity<CustomerAccountTerminationRequest>): CustomerAccountTerminationRequest {
+export function createCustomerAccountTerminationRequest(values: CustomerAccountTerminationRequestParams): CustomerAccountTerminationRequest {
     return Object.assign(create(typeModels[CustomerAccountTerminationRequestTypeRef.typeId], CustomerAccountTerminationRequestTypeRef), values)
+}
+
+export type CustomerAccountTerminationRequestParams = {
+
+
+	terminationDate: Date;
+	terminationRequestDate: Date;
+
+	customer: Id;
 }
 
 export type CustomerAccountTerminationRequest = {
@@ -3082,8 +4771,16 @@ export type CustomerAccountTerminationRequest = {
 }
 export const CustomerAccountTerminationPostInTypeRef: TypeRef<CustomerAccountTerminationPostIn> = new TypeRef("sys", 2015)
 
-export function createCustomerAccountTerminationPostIn(values: StrippedEntity<CustomerAccountTerminationPostIn>): CustomerAccountTerminationPostIn {
+export function createCustomerAccountTerminationPostIn(values: CustomerAccountTerminationPostInParams): CustomerAccountTerminationPostIn {
     return Object.assign(create(typeModels[CustomerAccountTerminationPostInTypeRef.typeId], CustomerAccountTerminationPostInTypeRef), values)
+}
+
+export type CustomerAccountTerminationPostInParams = {
+
+
+	terminationDate: null | Date;
+
+	surveyData: null | SurveyData;
 }
 
 export type CustomerAccountTerminationPostIn = {
@@ -3097,8 +4794,15 @@ export type CustomerAccountTerminationPostIn = {
 }
 export const CustomerAccountTerminationPostOutTypeRef: TypeRef<CustomerAccountTerminationPostOut> = new TypeRef("sys", 2018)
 
-export function createCustomerAccountTerminationPostOut(values: StrippedEntity<CustomerAccountTerminationPostOut>): CustomerAccountTerminationPostOut {
+export function createCustomerAccountTerminationPostOut(values: CustomerAccountTerminationPostOutParams): CustomerAccountTerminationPostOut {
     return Object.assign(create(typeModels[CustomerAccountTerminationPostOutTypeRef.typeId], CustomerAccountTerminationPostOutTypeRef), values)
+}
+
+export type CustomerAccountTerminationPostOutParams = {
+
+
+
+	terminationRequest: IdTuple;
 }
 
 export type CustomerAccountTerminationPostOut = {
@@ -3111,8 +4815,15 @@ export type CustomerAccountTerminationPostOut = {
 }
 export const MailAddressAvailabilityTypeRef: TypeRef<MailAddressAvailability> = new TypeRef("sys", 2026)
 
-export function createMailAddressAvailability(values: StrippedEntity<MailAddressAvailability>): MailAddressAvailability {
+export function createMailAddressAvailability(values: MailAddressAvailabilityParams): MailAddressAvailability {
     return Object.assign(create(typeModels[MailAddressAvailabilityTypeRef.typeId], MailAddressAvailabilityTypeRef), values)
+}
+
+export type MailAddressAvailabilityParams = {
+
+
+	mailAddress: string;
+	available: boolean;
 }
 
 export type MailAddressAvailability = {
@@ -3125,8 +4836,16 @@ export type MailAddressAvailability = {
 }
 export const MultipleMailAddressAvailabilityDataTypeRef: TypeRef<MultipleMailAddressAvailabilityData> = new TypeRef("sys", 2030)
 
-export function createMultipleMailAddressAvailabilityData(values: StrippedEntity<MultipleMailAddressAvailabilityData>): MultipleMailAddressAvailabilityData {
+export function createMultipleMailAddressAvailabilityData(values: MultipleMailAddressAvailabilityDataParams): MultipleMailAddressAvailabilityData {
     return Object.assign(create(typeModels[MultipleMailAddressAvailabilityDataTypeRef.typeId], MultipleMailAddressAvailabilityDataTypeRef), values)
+}
+
+export type MultipleMailAddressAvailabilityDataParams = {
+
+
+	signupToken: null | string;
+
+	mailAddresses: StringWrapper[];
 }
 
 export type MultipleMailAddressAvailabilityData = {
@@ -3140,8 +4859,15 @@ export type MultipleMailAddressAvailabilityData = {
 }
 export const MultipleMailAddressAvailabilityReturnTypeRef: TypeRef<MultipleMailAddressAvailabilityReturn> = new TypeRef("sys", 2033)
 
-export function createMultipleMailAddressAvailabilityReturn(values: StrippedEntity<MultipleMailAddressAvailabilityReturn>): MultipleMailAddressAvailabilityReturn {
+export function createMultipleMailAddressAvailabilityReturn(values: MultipleMailAddressAvailabilityReturnParams): MultipleMailAddressAvailabilityReturn {
     return Object.assign(create(typeModels[MultipleMailAddressAvailabilityReturnTypeRef.typeId], MultipleMailAddressAvailabilityReturnTypeRef), values)
+}
+
+export type MultipleMailAddressAvailabilityReturnParams = {
+
+
+
+	availabilities: MailAddressAvailability[];
 }
 
 export type MultipleMailAddressAvailabilityReturn = {
@@ -3154,8 +4880,21 @@ export type MultipleMailAddressAvailabilityReturn = {
 }
 export const InstanceSessionKeyTypeRef: TypeRef<InstanceSessionKey> = new TypeRef("sys", 2037)
 
-export function createInstanceSessionKey(values: StrippedEntity<InstanceSessionKey>): InstanceSessionKey {
+export function createInstanceSessionKey(values: InstanceSessionKeyParams): InstanceSessionKey {
     return Object.assign(create(typeModels[InstanceSessionKeyTypeRef.typeId], InstanceSessionKeyTypeRef), values)
+}
+
+export type InstanceSessionKeyParams = {
+
+
+	instanceList: Id;
+	instanceId: Id;
+	symEncSessionKey: Uint8Array;
+	encryptionAuthStatus: null | Uint8Array;
+	symKeyVersion: NumberString;
+	keyVerificationState: null | Uint8Array;
+
+	typeInfo: TypeInfo;
 }
 
 export type InstanceSessionKey = {
@@ -3174,8 +4913,21 @@ export type InstanceSessionKey = {
 }
 export const BucketKeyTypeRef: TypeRef<BucketKey> = new TypeRef("sys", 2043)
 
-export function createBucketKey(values: StrippedEntity<BucketKey>): BucketKey {
+export function createBucketKey(values: BucketKeyParams): BucketKey {
     return Object.assign(create(typeModels[BucketKeyTypeRef.typeId], BucketKeyTypeRef), values)
+}
+
+export type BucketKeyParams = {
+
+
+	pubEncBucketKey: null | Uint8Array;
+	groupEncBucketKey: null | Uint8Array;
+	protocolVersion: NumberString;
+	recipientKeyVersion: NumberString;
+	senderKeyVersion: null | NumberString;
+
+	keyGroup: null | Id;
+	bucketEncSessionKeys: InstanceSessionKey[];
 }
 
 export type BucketKey = {
@@ -3194,8 +4946,15 @@ export type BucketKey = {
 }
 export const UpdateSessionKeysPostInTypeRef: TypeRef<UpdateSessionKeysPostIn> = new TypeRef("sys", 2049)
 
-export function createUpdateSessionKeysPostIn(values: StrippedEntity<UpdateSessionKeysPostIn>): UpdateSessionKeysPostIn {
+export function createUpdateSessionKeysPostIn(values: UpdateSessionKeysPostInParams): UpdateSessionKeysPostIn {
     return Object.assign(create(typeModels[UpdateSessionKeysPostInTypeRef.typeId], UpdateSessionKeysPostInTypeRef), values)
+}
+
+export type UpdateSessionKeysPostInParams = {
+
+
+
+	ownerEncSessionKeys: InstanceSessionKey[];
 }
 
 export type UpdateSessionKeysPostIn = {
@@ -3208,8 +4967,15 @@ export type UpdateSessionKeysPostIn = {
 }
 export const ReferralCodeGetInTypeRef: TypeRef<ReferralCodeGetIn> = new TypeRef("sys", 2062)
 
-export function createReferralCodeGetIn(values: StrippedEntity<ReferralCodeGetIn>): ReferralCodeGetIn {
+export function createReferralCodeGetIn(values: ReferralCodeGetInParams): ReferralCodeGetIn {
     return Object.assign(create(typeModels[ReferralCodeGetInTypeRef.typeId], ReferralCodeGetInTypeRef), values)
+}
+
+export type ReferralCodeGetInParams = {
+
+
+
+	referralCode: Id;
 }
 
 export type ReferralCodeGetIn = {
@@ -3222,8 +4988,13 @@ export type ReferralCodeGetIn = {
 }
 export const ReferralCodePostInTypeRef: TypeRef<ReferralCodePostIn> = new TypeRef("sys", 2065)
 
-export function createReferralCodePostIn(values: StrippedEntity<ReferralCodePostIn>): ReferralCodePostIn {
+export function createReferralCodePostIn(values: ReferralCodePostInParams): ReferralCodePostIn {
     return Object.assign(create(typeModels[ReferralCodePostInTypeRef.typeId], ReferralCodePostInTypeRef), values)
+}
+
+export type ReferralCodePostInParams = {
+
+
 }
 
 export type ReferralCodePostIn = {
@@ -3234,8 +5005,15 @@ export type ReferralCodePostIn = {
 }
 export const ReferralCodePostOutTypeRef: TypeRef<ReferralCodePostOut> = new TypeRef("sys", 2067)
 
-export function createReferralCodePostOut(values: StrippedEntity<ReferralCodePostOut>): ReferralCodePostOut {
+export function createReferralCodePostOut(values: ReferralCodePostOutParams): ReferralCodePostOut {
     return Object.assign(create(typeModels[ReferralCodePostOutTypeRef.typeId], ReferralCodePostOutTypeRef), values)
+}
+
+export type ReferralCodePostOutParams = {
+
+
+
+	referralCode: Id;
 }
 
 export type ReferralCodePostOut = {
@@ -3248,8 +5026,14 @@ export type ReferralCodePostOut = {
 }
 export const DateWrapperTypeRef: TypeRef<DateWrapper> = new TypeRef("sys", 2073)
 
-export function createDateWrapper(values: StrippedEntity<DateWrapper>): DateWrapper {
+export function createDateWrapper(values: DateWrapperParams): DateWrapper {
     return Object.assign(create(typeModels[DateWrapperTypeRef.typeId], DateWrapperTypeRef), values)
+}
+
+export type DateWrapperParams = {
+
+
+	date: Date;
 }
 
 export type DateWrapper = {
@@ -3261,8 +5045,15 @@ export type DateWrapper = {
 }
 export const MailAddressAliasGetInTypeRef: TypeRef<MailAddressAliasGetIn> = new TypeRef("sys", 2095)
 
-export function createMailAddressAliasGetIn(values: StrippedEntity<MailAddressAliasGetIn>): MailAddressAliasGetIn {
+export function createMailAddressAliasGetIn(values: MailAddressAliasGetInParams): MailAddressAliasGetIn {
     return Object.assign(create(typeModels[MailAddressAliasGetInTypeRef.typeId], MailAddressAliasGetInTypeRef), values)
+}
+
+export type MailAddressAliasGetInParams = {
+
+
+
+	targetGroup: Id;
 }
 
 export type MailAddressAliasGetIn = {
@@ -3275,8 +5066,26 @@ export type MailAddressAliasGetIn = {
 }
 export const PlanConfigurationTypeRef: TypeRef<PlanConfiguration> = new TypeRef("sys", 2104)
 
-export function createPlanConfiguration(values: StrippedEntity<PlanConfiguration>): PlanConfiguration {
+export function createPlanConfiguration(values: PlanConfigurationParams): PlanConfiguration {
     return Object.assign(create(typeModels[PlanConfigurationTypeRef.typeId], PlanConfigurationTypeRef), values)
+}
+
+export type PlanConfigurationParams = {
+
+
+	nbrOfAliases: NumberString;
+	storageGb: NumberString;
+	sharing: boolean;
+	eventInvites: boolean;
+	whitelabel: boolean;
+	customDomainType: NumberString;
+	multiUser: boolean;
+	templates: boolean;
+	autoResponder: boolean;
+	contactList: boolean;
+	maxLabels: NumberString;
+	scheduledMails: boolean;
+	drive: boolean;
 }
 
 export type PlanConfiguration = {
@@ -3300,8 +5109,15 @@ export type PlanConfiguration = {
 }
 export const PlanServiceGetOutTypeRef: TypeRef<PlanServiceGetOut> = new TypeRef("sys", 2115)
 
-export function createPlanServiceGetOut(values: StrippedEntity<PlanServiceGetOut>): PlanServiceGetOut {
+export function createPlanServiceGetOut(values: PlanServiceGetOutParams): PlanServiceGetOut {
     return Object.assign(create(typeModels[PlanServiceGetOutTypeRef.typeId], PlanServiceGetOutTypeRef), values)
+}
+
+export type PlanServiceGetOutParams = {
+
+
+
+	config: PlanConfiguration;
 }
 
 export type PlanServiceGetOut = {
@@ -3314,8 +5130,17 @@ export type PlanServiceGetOut = {
 }
 export const PublicKeyPutInTypeRef: TypeRef<PublicKeyPutIn> = new TypeRef("sys", 2150)
 
-export function createPublicKeyPutIn(values: StrippedEntity<PublicKeyPutIn>): PublicKeyPutIn {
+export function createPublicKeyPutIn(values: PublicKeyPutInParams): PublicKeyPutIn {
     return Object.assign(create(typeModels[PublicKeyPutInTypeRef.typeId], PublicKeyPutInTypeRef), values)
+}
+
+export type PublicKeyPutInParams = {
+
+
+	pubEccKey: Uint8Array;
+	symEncPrivEccKey: Uint8Array;
+
+	keyGroup: Id;
 }
 
 export type PublicKeyPutIn = {
@@ -3330,8 +5155,19 @@ export type PublicKeyPutIn = {
 }
 export const InvoiceDataItemTypeRef: TypeRef<InvoiceDataItem> = new TypeRef("sys", 2162)
 
-export function createInvoiceDataItem(values: StrippedEntity<InvoiceDataItem>): InvoiceDataItem {
+export function createInvoiceDataItem(values: InvoiceDataItemParams): InvoiceDataItem {
     return Object.assign(create(typeModels[InvoiceDataItemTypeRef.typeId], InvoiceDataItemTypeRef), values)
+}
+
+export type InvoiceDataItemParams = {
+
+
+	amount: NumberString;
+	itemType: NumberString;
+	singlePrice: null | NumberString;
+	totalPrice: NumberString;
+	startDate: null | Date;
+	endDate: null | Date;
 }
 
 export type InvoiceDataItem = {
@@ -3348,8 +5184,27 @@ export type InvoiceDataItem = {
 }
 export const InvoiceDataGetOutTypeRef: TypeRef<InvoiceDataGetOut> = new TypeRef("sys", 2170)
 
-export function createInvoiceDataGetOut(values: StrippedEntity<InvoiceDataGetOut>): InvoiceDataGetOut {
+export function createInvoiceDataGetOut(values: InvoiceDataGetOutParams): InvoiceDataGetOut {
     return Object.assign(create(typeModels[InvoiceDataGetOutTypeRef.typeId], InvoiceDataGetOutTypeRef), values)
+}
+
+export type InvoiceDataGetOutParams = {
+
+
+	invoiceId: Id;
+	invoiceType: NumberString;
+	date: Date;
+	paymentMethod: NumberString;
+	country: string;
+	address: string;
+	vatIdNumber: null | string;
+	vatRate: NumberString;
+	vat: NumberString;
+	subTotal: NumberString;
+	grandTotal: NumberString;
+	vatType: NumberString;
+
+	items: InvoiceDataItem[];
 }
 
 export type InvoiceDataGetOut = {
@@ -3374,8 +5229,14 @@ export type InvoiceDataGetOut = {
 }
 export const InvoiceDataGetInTypeRef: TypeRef<InvoiceDataGetIn> = new TypeRef("sys", 2185)
 
-export function createInvoiceDataGetIn(values: StrippedEntity<InvoiceDataGetIn>): InvoiceDataGetIn {
+export function createInvoiceDataGetIn(values: InvoiceDataGetInParams): InvoiceDataGetIn {
     return Object.assign(create(typeModels[InvoiceDataGetInTypeRef.typeId], InvoiceDataGetInTypeRef), values)
+}
+
+export type InvoiceDataGetInParams = {
+
+
+	invoiceNumber: string;
 }
 
 export type InvoiceDataGetIn = {
@@ -3387,8 +5248,19 @@ export type InvoiceDataGetIn = {
 }
 export const ChangeKdfPostInTypeRef: TypeRef<ChangeKdfPostIn> = new TypeRef("sys", 2198)
 
-export function createChangeKdfPostIn(values: StrippedEntity<ChangeKdfPostIn>): ChangeKdfPostIn {
+export function createChangeKdfPostIn(values: ChangeKdfPostInParams): ChangeKdfPostIn {
     return Object.assign(create(typeModels[ChangeKdfPostInTypeRef.typeId], ChangeKdfPostInTypeRef), values)
+}
+
+export type ChangeKdfPostInParams = {
+
+
+	verifier: Uint8Array;
+	salt: Uint8Array;
+	pwEncUserGroupKey: Uint8Array;
+	oldVerifier: Uint8Array;
+	kdfVersion: NumberString;
+	userGroupKeyVersion: NumberString;
 }
 
 export type ChangeKdfPostIn = {
@@ -3405,8 +5277,19 @@ export type ChangeKdfPostIn = {
 }
 export const GroupKeyTypeRef: TypeRef<GroupKey> = new TypeRef("sys", 2255)
 
-export function createGroupKey(values: StrippedEntity<GroupKey>): GroupKey {
+export function createGroupKey(values: GroupKeyParams): GroupKey {
     return Object.assign(create(typeModels[GroupKeyTypeRef.typeId], GroupKeyTypeRef), values)
+}
+
+export type GroupKeyParams = {
+
+
+	ownerEncGKey: Uint8Array;
+	adminGroupEncGKey: null | Uint8Array;
+	adminGroupKeyVersion: null | NumberString;
+
+	keyPair: null | KeyPair;
+	pubAdminGroupEncGKey: null | PubEncKeyData;
 }
 
 export type GroupKey = {
@@ -3427,8 +5310,15 @@ export type GroupKey = {
 }
 export const GroupKeysRefTypeRef: TypeRef<GroupKeysRef> = new TypeRef("sys", 2267)
 
-export function createGroupKeysRef(values: StrippedEntity<GroupKeysRef>): GroupKeysRef {
+export function createGroupKeysRef(values: GroupKeysRefParams): GroupKeysRef {
     return Object.assign(create(typeModels[GroupKeysRefTypeRef.typeId], GroupKeysRefTypeRef), values)
+}
+
+export type GroupKeysRefParams = {
+
+
+
+	list: Id;
 }
 
 export type GroupKeysRef = {
@@ -3441,8 +5331,20 @@ export type GroupKeysRef = {
 }
 export const KeyRotationTypeRef: TypeRef<KeyRotation> = new TypeRef("sys", 2283)
 
-export function createKeyRotation(values: StrippedEntity<KeyRotation>): KeyRotation {
+export function createKeyRotation(values: KeyRotationParams): KeyRotation {
     return Object.assign(create(typeModels[KeyRotationTypeRef.typeId], KeyRotationTypeRef), values)
+}
+
+export type KeyRotationParams = {
+
+
+	targetKeyVersion: NumberString;
+	groupKeyRotationType: NumberString;
+
+	adminPubKeyMac: null | KeyMac;
+	distEncAdminGroupSymKey: null | PubEncKeyData;
+	distKeyMac: null | KeyMac;
+	adminDistKeyPair: null | KeyPair;
 }
 
 export type KeyRotation = {
@@ -3463,8 +5365,15 @@ export type KeyRotation = {
 }
 export const KeyRotationsRefTypeRef: TypeRef<KeyRotationsRef> = new TypeRef("sys", 2291)
 
-export function createKeyRotationsRef(values: StrippedEntity<KeyRotationsRef>): KeyRotationsRef {
+export function createKeyRotationsRef(values: KeyRotationsRefParams): KeyRotationsRef {
     return Object.assign(create(typeModels[KeyRotationsRefTypeRef.typeId], KeyRotationsRefTypeRef), values)
+}
+
+export type KeyRotationsRefParams = {
+
+
+
+	list: Id;
 }
 
 export type KeyRotationsRef = {
@@ -3477,8 +5386,19 @@ export type KeyRotationsRef = {
 }
 export const SurveyDataTypeRef: TypeRef<SurveyData> = new TypeRef("sys", 2295)
 
-export function createSurveyData(values: StrippedEntity<SurveyData>): SurveyData {
+export function createSurveyData(values: SurveyDataParams): SurveyData {
     return Object.assign(create(typeModels[SurveyDataTypeRef.typeId], SurveyDataTypeRef), values)
+}
+
+export type SurveyDataParams = {
+
+
+	category: NumberString;
+	reason: NumberString;
+	details: null | string;
+	version: NumberString;
+	clientVersion: string;
+	clientPlatform: NumberString;
 }
 
 export type SurveyData = {
@@ -3495,8 +5415,15 @@ export type SurveyData = {
 }
 export const IdTupleWrapperTypeRef: TypeRef<IdTupleWrapper> = new TypeRef("sys", 2315)
 
-export function createIdTupleWrapper(values: StrippedEntity<IdTupleWrapper>): IdTupleWrapper {
+export function createIdTupleWrapper(values: IdTupleWrapperParams): IdTupleWrapper {
     return Object.assign(create(typeModels[IdTupleWrapperTypeRef.typeId], IdTupleWrapperTypeRef), values)
+}
+
+export type IdTupleWrapperParams = {
+
+
+	listId: Id;
+	listElementId: Id;
 }
 
 export type IdTupleWrapper = {
@@ -3509,8 +5436,15 @@ export type IdTupleWrapper = {
 }
 export const UserGroupKeyDistributionTypeRef: TypeRef<UserGroupKeyDistribution> = new TypeRef("sys", 2320)
 
-export function createUserGroupKeyDistribution(values: StrippedEntity<UserGroupKeyDistribution>): UserGroupKeyDistribution {
+export function createUserGroupKeyDistribution(values: UserGroupKeyDistributionParams): UserGroupKeyDistribution {
     return Object.assign(create(typeModels[UserGroupKeyDistributionTypeRef.typeId], UserGroupKeyDistributionTypeRef), values)
+}
+
+export type UserGroupKeyDistributionParams = {
+
+
+	distributionEncUserGroupKey: Uint8Array;
+	userGroupKeyVersion: NumberString;
 }
 
 export type UserGroupKeyDistribution = {
@@ -3526,8 +5460,22 @@ export type UserGroupKeyDistribution = {
 }
 export const GroupKeyRotationDataTypeRef: TypeRef<GroupKeyRotationData> = new TypeRef("sys", 2328)
 
-export function createGroupKeyRotationData(values: StrippedEntity<GroupKeyRotationData>): GroupKeyRotationData {
+export function createGroupKeyRotationData(values: GroupKeyRotationDataParams): GroupKeyRotationData {
     return Object.assign(create(typeModels[GroupKeyRotationDataTypeRef.typeId], GroupKeyRotationDataTypeRef), values)
+}
+
+export type GroupKeyRotationDataParams = {
+
+
+	groupKeyVersion: NumberString;
+	groupEncPreviousGroupKey: Uint8Array;
+	adminGroupEncGroupKey: null | Uint8Array;
+	adminGroupKeyVersion: null | NumberString;
+
+	group: Id;
+	keyPair: null | KeyPair;
+	groupKeyUpdatesForMembers: GroupKeyUpdateData[];
+	groupMembershipUpdateData: GroupMembershipUpdateData[];
 }
 
 export type GroupKeyRotationData = {
@@ -3547,8 +5495,15 @@ export type GroupKeyRotationData = {
 }
 export const GroupKeyRotationPostInTypeRef: TypeRef<GroupKeyRotationPostIn> = new TypeRef("sys", 2338)
 
-export function createGroupKeyRotationPostIn(values: StrippedEntity<GroupKeyRotationPostIn>): GroupKeyRotationPostIn {
+export function createGroupKeyRotationPostIn(values: GroupKeyRotationPostInParams): GroupKeyRotationPostIn {
     return Object.assign(create(typeModels[GroupKeyRotationPostInTypeRef.typeId], GroupKeyRotationPostInTypeRef), values)
+}
+
+export type GroupKeyRotationPostInParams = {
+
+
+
+	groupKeyUpdates: GroupKeyRotationData[];
 }
 
 export type GroupKeyRotationPostIn = {
@@ -3561,8 +5516,16 @@ export type GroupKeyRotationPostIn = {
 }
 export const GroupKeyRotationInfoGetOutTypeRef: TypeRef<GroupKeyRotationInfoGetOut> = new TypeRef("sys", 2342)
 
-export function createGroupKeyRotationInfoGetOut(values: StrippedEntity<GroupKeyRotationInfoGetOut>): GroupKeyRotationInfoGetOut {
+export function createGroupKeyRotationInfoGetOut(values: GroupKeyRotationInfoGetOutParams): GroupKeyRotationInfoGetOut {
     return Object.assign(create(typeModels[GroupKeyRotationInfoGetOutTypeRef.typeId], GroupKeyRotationInfoGetOutTypeRef), values)
+}
+
+export type GroupKeyRotationInfoGetOutParams = {
+
+
+	userOrAdminGroupKeyRotationScheduled: boolean;
+
+	groupKeyUpdates: IdTuple[];
 }
 
 export type GroupKeyRotationInfoGetOut = {
@@ -3576,8 +5539,17 @@ export type GroupKeyRotationInfoGetOut = {
 }
 export const RecoverCodeDataTypeRef: TypeRef<RecoverCodeData> = new TypeRef("sys", 2346)
 
-export function createRecoverCodeData(values: StrippedEntity<RecoverCodeData>): RecoverCodeData {
+export function createRecoverCodeData(values: RecoverCodeDataParams): RecoverCodeData {
     return Object.assign(create(typeModels[RecoverCodeDataTypeRef.typeId], RecoverCodeDataTypeRef), values)
+}
+
+export type RecoverCodeDataParams = {
+
+
+	userKeyVersion: NumberString;
+	recoveryCodeEncUserGroupKey: Uint8Array;
+	userEncRecoveryCode: Uint8Array;
+	recoveryCodeVerifier: Uint8Array;
 }
 
 export type RecoverCodeData = {
@@ -3592,8 +5564,26 @@ export type RecoverCodeData = {
 }
 export const UserGroupKeyRotationDataTypeRef: TypeRef<UserGroupKeyRotationData> = new TypeRef("sys", 2352)
 
-export function createUserGroupKeyRotationData(values: StrippedEntity<UserGroupKeyRotationData>): UserGroupKeyRotationData {
+export function createUserGroupKeyRotationData(values: UserGroupKeyRotationDataParams): UserGroupKeyRotationData {
     return Object.assign(create(typeModels[UserGroupKeyRotationDataTypeRef.typeId], UserGroupKeyRotationDataTypeRef), values)
+}
+
+export type UserGroupKeyRotationDataParams = {
+
+
+	passphraseEncUserGroupKey: Uint8Array;
+	distributionKeyEncUserGroupKey: Uint8Array;
+	userGroupKeyVersion: NumberString;
+	userGroupEncPreviousGroupKey: Uint8Array;
+	adminGroupEncUserGroupKey: null | Uint8Array;
+	adminGroupKeyVersion: NumberString;
+	authVerifier: Uint8Array;
+	userGroupEncAdminGroupKey: null | Uint8Array;
+
+	keyPair: KeyPair;
+	group: Id;
+	recoverCodeData: null | RecoverCodeData;
+	pubAdminGroupEncUserGroupKey: null | PubEncKeyData;
 }
 
 export type UserGroupKeyRotationData = {
@@ -3617,8 +5607,18 @@ export type UserGroupKeyRotationData = {
 }
 export const AdminGroupKeyRotationPostInTypeRef: TypeRef<AdminGroupKeyRotationPostIn> = new TypeRef("sys", 2364)
 
-export function createAdminGroupKeyRotationPostIn(values: StrippedEntity<AdminGroupKeyRotationPostIn>): AdminGroupKeyRotationPostIn {
+export function createAdminGroupKeyRotationPostIn(values: AdminGroupKeyRotationPostInParams): AdminGroupKeyRotationPostIn {
     return Object.assign(create(typeModels[AdminGroupKeyRotationPostInTypeRef.typeId], AdminGroupKeyRotationPostInTypeRef), values)
+}
+
+export type AdminGroupKeyRotationPostInParams = {
+
+
+
+	adminGroupKeyData: GroupKeyRotationData;
+	userGroupKeyData: UserGroupKeyRotationData;
+	adminPubKeyMacList: KeyMac[];
+	distribution: AdminGroupKeyDistributionElement[];
 }
 
 export type AdminGroupKeyRotationPostIn = {
@@ -3634,8 +5634,17 @@ export type AdminGroupKeyRotationPostIn = {
 }
 export const GroupKeyUpdateTypeRef: TypeRef<GroupKeyUpdate> = new TypeRef("sys", 2369)
 
-export function createGroupKeyUpdate(values: StrippedEntity<GroupKeyUpdate>): GroupKeyUpdate {
+export function createGroupKeyUpdate(values: GroupKeyUpdateParams): GroupKeyUpdate {
     return Object.assign(create(typeModels[GroupKeyUpdateTypeRef.typeId], GroupKeyUpdateTypeRef), values)
+}
+
+export type GroupKeyUpdateParams = {
+
+
+	groupKey: Uint8Array;
+	groupKeyVersion: NumberString;
+
+	bucketKey: BucketKey;
 }
 
 export type GroupKeyUpdate = {
@@ -3657,8 +5666,15 @@ export type GroupKeyUpdate = {
 }
 export const GroupKeyUpdatesRefTypeRef: TypeRef<GroupKeyUpdatesRef> = new TypeRef("sys", 2380)
 
-export function createGroupKeyUpdatesRef(values: StrippedEntity<GroupKeyUpdatesRef>): GroupKeyUpdatesRef {
+export function createGroupKeyUpdatesRef(values: GroupKeyUpdatesRefParams): GroupKeyUpdatesRef {
     return Object.assign(create(typeModels[GroupKeyUpdatesRefTypeRef.typeId], GroupKeyUpdatesRefTypeRef), values)
+}
+
+export type GroupKeyUpdatesRefParams = {
+
+
+
+	list: Id;
 }
 
 export type GroupKeyUpdatesRef = {
@@ -3671,8 +5687,23 @@ export type GroupKeyUpdatesRef = {
 }
 export const PubEncKeyDataTypeRef: TypeRef<PubEncKeyData> = new TypeRef("sys", 2384)
 
-export function createPubEncKeyData(values: StrippedEntity<PubEncKeyData>): PubEncKeyData {
+export function createPubEncKeyData(values: PubEncKeyDataParams): PubEncKeyData {
     return Object.assign(create(typeModels[PubEncKeyDataTypeRef.typeId], PubEncKeyDataTypeRef), values)
+}
+
+export type PubEncKeyDataParams = {
+
+
+	recipientIdentifier: string;
+	pubEncSymKey: Uint8Array;
+	recipientKeyVersion: NumberString;
+	senderKeyVersion: null | NumberString;
+	protocolVersion: NumberString;
+	recipientIdentifierType: NumberString;
+	senderIdentifier: null | string;
+	senderIdentifierType: null | NumberString;
+
+	symKeyMac: null | KeyMac;
 }
 
 export type PubEncKeyData = {
@@ -3693,8 +5724,18 @@ export type PubEncKeyData = {
 }
 export const GroupKeyUpdateDataTypeRef: TypeRef<GroupKeyUpdateData> = new TypeRef("sys", 2391)
 
-export function createGroupKeyUpdateData(values: StrippedEntity<GroupKeyUpdateData>): GroupKeyUpdateData {
+export function createGroupKeyUpdateData(values: GroupKeyUpdateDataParams): GroupKeyUpdateData {
     return Object.assign(create(typeModels[GroupKeyUpdateDataTypeRef.typeId], GroupKeyUpdateDataTypeRef), values)
+}
+
+export type GroupKeyUpdateDataParams = {
+
+
+	sessionKeyEncGroupKeyVersion: NumberString;
+	sessionKeyEncGroupKey: Uint8Array;
+	bucketKeyEncSessionKey: Uint8Array;
+
+	pubEncBucketKeyData: PubEncKeyData;
 }
 
 export type GroupKeyUpdateData = {
@@ -3710,8 +5751,18 @@ export type GroupKeyUpdateData = {
 }
 export const GroupMembershipKeyDataTypeRef: TypeRef<GroupMembershipKeyData> = new TypeRef("sys", 2398)
 
-export function createGroupMembershipKeyData(values: StrippedEntity<GroupMembershipKeyData>): GroupMembershipKeyData {
+export function createGroupMembershipKeyData(values: GroupMembershipKeyDataParams): GroupMembershipKeyData {
     return Object.assign(create(typeModels[GroupMembershipKeyDataTypeRef.typeId], GroupMembershipKeyDataTypeRef), values)
+}
+
+export type GroupMembershipKeyDataParams = {
+
+
+	groupKeyVersion: NumberString;
+	symKeyVersion: NumberString;
+	symEncGKey: Uint8Array;
+
+	group: Id;
 }
 
 export type GroupMembershipKeyData = {
@@ -3727,8 +5778,15 @@ export type GroupMembershipKeyData = {
 }
 export const MembershipPutInTypeRef: TypeRef<MembershipPutIn> = new TypeRef("sys", 2404)
 
-export function createMembershipPutIn(values: StrippedEntity<MembershipPutIn>): MembershipPutIn {
+export function createMembershipPutIn(values: MembershipPutInParams): MembershipPutIn {
     return Object.assign(create(typeModels[MembershipPutInTypeRef.typeId], MembershipPutInTypeRef), values)
+}
+
+export type MembershipPutInParams = {
+
+
+
+	groupKeyUpdates: GroupMembershipKeyData[];
 }
 
 export type MembershipPutIn = {
@@ -3741,8 +5799,17 @@ export type MembershipPutIn = {
 }
 export const GroupMembershipUpdateDataTypeRef: TypeRef<GroupMembershipUpdateData> = new TypeRef("sys", 2427)
 
-export function createGroupMembershipUpdateData(values: StrippedEntity<GroupMembershipUpdateData>): GroupMembershipUpdateData {
+export function createGroupMembershipUpdateData(values: GroupMembershipUpdateDataParams): GroupMembershipUpdateData {
     return Object.assign(create(typeModels[GroupMembershipUpdateDataTypeRef.typeId], GroupMembershipUpdateDataTypeRef), values)
+}
+
+export type GroupMembershipUpdateDataParams = {
+
+
+	userEncGroupKey: Uint8Array;
+	userKeyVersion: NumberString;
+
+	userId: Id;
 }
 
 export type GroupMembershipUpdateData = {
@@ -3757,8 +5824,19 @@ export type GroupMembershipUpdateData = {
 }
 export const AffiliatePartnerKpiMonthSummaryTypeRef: TypeRef<AffiliatePartnerKpiMonthSummary> = new TypeRef("sys", 2453)
 
-export function createAffiliatePartnerKpiMonthSummary(values: StrippedEntity<AffiliatePartnerKpiMonthSummary>): AffiliatePartnerKpiMonthSummary {
+export function createAffiliatePartnerKpiMonthSummary(values: AffiliatePartnerKpiMonthSummaryParams): AffiliatePartnerKpiMonthSummary {
     return Object.assign(create(typeModels[AffiliatePartnerKpiMonthSummaryTypeRef.typeId], AffiliatePartnerKpiMonthSummaryTypeRef), values)
+}
+
+export type AffiliatePartnerKpiMonthSummaryParams = {
+
+
+	monthTimestamp: NumberString;
+	newFree: NumberString;
+	newPaid: NumberString;
+	totalFree: NumberString;
+	totalPaid: NumberString;
+	commission: NumberString;
 }
 
 export type AffiliatePartnerKpiMonthSummary = {
@@ -3775,8 +5853,18 @@ export type AffiliatePartnerKpiMonthSummary = {
 }
 export const AffiliatePartnerKpiServiceGetOutTypeRef: TypeRef<AffiliatePartnerKpiServiceGetOut> = new TypeRef("sys", 2461)
 
-export function createAffiliatePartnerKpiServiceGetOut(values: StrippedEntity<AffiliatePartnerKpiServiceGetOut>): AffiliatePartnerKpiServiceGetOut {
+export function createAffiliatePartnerKpiServiceGetOut(values: AffiliatePartnerKpiServiceGetOutParams): AffiliatePartnerKpiServiceGetOut {
     return Object.assign(create(typeModels[AffiliatePartnerKpiServiceGetOutTypeRef.typeId], AffiliatePartnerKpiServiceGetOutTypeRef), values)
+}
+
+export type AffiliatePartnerKpiServiceGetOutParams = {
+
+
+	promotionId: string;
+	accumulatedCommission: NumberString;
+	creditedCommission: NumberString;
+
+	kpis: AffiliatePartnerKpiMonthSummary[];
 }
 
 export type AffiliatePartnerKpiServiceGetOut = {
@@ -3792,8 +5880,15 @@ export type AffiliatePartnerKpiServiceGetOut = {
 }
 export const UserGroupKeyRotationPostInTypeRef: TypeRef<UserGroupKeyRotationPostIn> = new TypeRef("sys", 2471)
 
-export function createUserGroupKeyRotationPostIn(values: StrippedEntity<UserGroupKeyRotationPostIn>): UserGroupKeyRotationPostIn {
+export function createUserGroupKeyRotationPostIn(values: UserGroupKeyRotationPostInParams): UserGroupKeyRotationPostIn {
     return Object.assign(create(typeModels[UserGroupKeyRotationPostInTypeRef.typeId], UserGroupKeyRotationPostInTypeRef), values)
+}
+
+export type UserGroupKeyRotationPostInParams = {
+
+
+
+	userGroupKeyData: UserGroupKeyRotationData;
 }
 
 export type UserGroupKeyRotationPostIn = {
@@ -3806,8 +5901,18 @@ export type UserGroupKeyRotationPostIn = {
 }
 export const KeyMacTypeRef: TypeRef<KeyMac> = new TypeRef("sys", 2477)
 
-export function createKeyMac(values: StrippedEntity<KeyMac>): KeyMac {
+export function createKeyMac(values: KeyMacParams): KeyMac {
     return Object.assign(create(typeModels[KeyMacTypeRef.typeId], KeyMacTypeRef), values)
+}
+
+export type KeyMacParams = {
+
+
+	taggedKeyVersion: NumberString;
+	tag: Uint8Array;
+	taggingKeyVersion: NumberString;
+
+	taggingGroup: Id;
 }
 
 export type KeyMac = {
@@ -3823,8 +5928,14 @@ export type KeyMac = {
 }
 export const AppStoreSubscriptionGetOutTypeRef: TypeRef<AppStoreSubscriptionGetOut> = new TypeRef("sys", 2497)
 
-export function createAppStoreSubscriptionGetOut(values: StrippedEntity<AppStoreSubscriptionGetOut>): AppStoreSubscriptionGetOut {
+export function createAppStoreSubscriptionGetOut(values: AppStoreSubscriptionGetOutParams): AppStoreSubscriptionGetOut {
     return Object.assign(create(typeModels[AppStoreSubscriptionGetOutTypeRef.typeId], AppStoreSubscriptionGetOutTypeRef), values)
+}
+
+export type AppStoreSubscriptionGetOutParams = {
+
+
+	app: NumberString;
 }
 
 export type AppStoreSubscriptionGetOut = {
@@ -3836,8 +5947,14 @@ export type AppStoreSubscriptionGetOut = {
 }
 export const AppStoreSubscriptionGetInTypeRef: TypeRef<AppStoreSubscriptionGetIn> = new TypeRef("sys", 2500)
 
-export function createAppStoreSubscriptionGetIn(values: StrippedEntity<AppStoreSubscriptionGetIn>): AppStoreSubscriptionGetIn {
+export function createAppStoreSubscriptionGetIn(values: AppStoreSubscriptionGetInParams): AppStoreSubscriptionGetIn {
     return Object.assign(create(typeModels[AppStoreSubscriptionGetInTypeRef.typeId], AppStoreSubscriptionGetInTypeRef), values)
+}
+
+export type AppStoreSubscriptionGetInParams = {
+
+
+	subscriptionId: string;
 }
 
 export type AppStoreSubscriptionGetIn = {
@@ -3849,8 +5966,14 @@ export type AppStoreSubscriptionGetIn = {
 }
 export const VerifierTokenServiceOutTypeRef: TypeRef<VerifierTokenServiceOut> = new TypeRef("sys", 2510)
 
-export function createVerifierTokenServiceOut(values: StrippedEntity<VerifierTokenServiceOut>): VerifierTokenServiceOut {
+export function createVerifierTokenServiceOut(values: VerifierTokenServiceOutParams): VerifierTokenServiceOut {
     return Object.assign(create(typeModels[VerifierTokenServiceOutTypeRef.typeId], VerifierTokenServiceOutTypeRef), values)
+}
+
+export type VerifierTokenServiceOutParams = {
+
+
+	token: string;
 }
 
 export type VerifierTokenServiceOut = {
@@ -3862,8 +5985,14 @@ export type VerifierTokenServiceOut = {
 }
 export const VerifierTokenServiceInTypeRef: TypeRef<VerifierTokenServiceIn> = new TypeRef("sys", 2517)
 
-export function createVerifierTokenServiceIn(values: StrippedEntity<VerifierTokenServiceIn>): VerifierTokenServiceIn {
+export function createVerifierTokenServiceIn(values: VerifierTokenServiceInParams): VerifierTokenServiceIn {
     return Object.assign(create(typeModels[VerifierTokenServiceInTypeRef.typeId], VerifierTokenServiceInTypeRef), values)
+}
+
+export type VerifierTokenServiceInParams = {
+
+
+	authVerifier: Uint8Array;
 }
 
 export type VerifierTokenServiceIn = {
@@ -3875,8 +6004,15 @@ export type VerifierTokenServiceIn = {
 }
 export const CalendarAdvancedRepeatRuleTypeRef: TypeRef<CalendarAdvancedRepeatRule> = new TypeRef("sys", 2521)
 
-export function createCalendarAdvancedRepeatRule(values: StrippedEntity<CalendarAdvancedRepeatRule>): CalendarAdvancedRepeatRule {
+export function createCalendarAdvancedRepeatRule(values: CalendarAdvancedRepeatRuleParams): CalendarAdvancedRepeatRule {
     return Object.assign(create(typeModels[CalendarAdvancedRepeatRuleTypeRef.typeId], CalendarAdvancedRepeatRuleTypeRef), values)
+}
+
+export type CalendarAdvancedRepeatRuleParams = {
+
+
+	ruleType: NumberString;
+	interval: string;
 }
 
 export type CalendarAdvancedRepeatRule = {
@@ -3889,8 +6025,16 @@ export type CalendarAdvancedRepeatRule = {
 }
 export const AdminGroupKeyDistributionElementTypeRef: TypeRef<AdminGroupKeyDistributionElement> = new TypeRef("sys", 2531)
 
-export function createAdminGroupKeyDistributionElement(values: StrippedEntity<AdminGroupKeyDistributionElement>): AdminGroupKeyDistributionElement {
+export function createAdminGroupKeyDistributionElement(values: AdminGroupKeyDistributionElementParams): AdminGroupKeyDistributionElement {
     return Object.assign(create(typeModels[AdminGroupKeyDistributionElementTypeRef.typeId], AdminGroupKeyDistributionElementTypeRef), values)
+}
+
+export type AdminGroupKeyDistributionElementParams = {
+
+
+
+	userGroupId: Id;
+	distEncAdminGroupKey: PubEncKeyData;
 }
 
 export type AdminGroupKeyDistributionElement = {
@@ -3904,8 +6048,16 @@ export type AdminGroupKeyDistributionElement = {
 }
 export const AdminGroupKeyRotationPutInTypeRef: TypeRef<AdminGroupKeyRotationPutIn> = new TypeRef("sys", 2536)
 
-export function createAdminGroupKeyRotationPutIn(values: StrippedEntity<AdminGroupKeyRotationPutIn>): AdminGroupKeyRotationPutIn {
+export function createAdminGroupKeyRotationPutIn(values: AdminGroupKeyRotationPutInParams): AdminGroupKeyRotationPutIn {
     return Object.assign(create(typeModels[AdminGroupKeyRotationPutInTypeRef.typeId], AdminGroupKeyRotationPutInTypeRef), values)
+}
+
+export type AdminGroupKeyRotationPutInParams = {
+
+
+
+	distKeyMac: KeyMac;
+	adminDistKeyPair: KeyPair;
 }
 
 export type AdminGroupKeyRotationPutIn = {
@@ -3919,8 +6071,18 @@ export type AdminGroupKeyRotationPutIn = {
 }
 export const PubDistributionKeyTypeRef: TypeRef<PubDistributionKey> = new TypeRef("sys", 2540)
 
-export function createPubDistributionKey(values: StrippedEntity<PubDistributionKey>): PubDistributionKey {
+export function createPubDistributionKey(values: PubDistributionKeyParams): PubDistributionKey {
     return Object.assign(create(typeModels[PubDistributionKeyTypeRef.typeId], PubDistributionKeyTypeRef), values)
+}
+
+export type PubDistributionKeyParams = {
+
+
+	pubEccKey: Uint8Array;
+	pubKyberKey: Uint8Array;
+
+	userGroupId: Id;
+	pubKeyMac: KeyMac;
 }
 
 export type PubDistributionKey = {
@@ -3936,8 +6098,16 @@ export type PubDistributionKey = {
 }
 export const AdminGroupKeyRotationGetOutTypeRef: TypeRef<AdminGroupKeyRotationGetOut> = new TypeRef("sys", 2546)
 
-export function createAdminGroupKeyRotationGetOut(values: StrippedEntity<AdminGroupKeyRotationGetOut>): AdminGroupKeyRotationGetOut {
+export function createAdminGroupKeyRotationGetOut(values: AdminGroupKeyRotationGetOutParams): AdminGroupKeyRotationGetOut {
     return Object.assign(create(typeModels[AdminGroupKeyRotationGetOutTypeRef.typeId], AdminGroupKeyRotationGetOutTypeRef), values)
+}
+
+export type AdminGroupKeyRotationGetOutParams = {
+
+
+
+	userGroupIdsMissingDistributionKeys: Id[];
+	distributionKeys: PubDistributionKey[];
 }
 
 export type AdminGroupKeyRotationGetOut = {
@@ -3951,8 +6121,15 @@ export type AdminGroupKeyRotationGetOut = {
 }
 export const SurveyDataPostInTypeRef: TypeRef<SurveyDataPostIn> = new TypeRef("sys", 2563)
 
-export function createSurveyDataPostIn(values: StrippedEntity<SurveyDataPostIn>): SurveyDataPostIn {
+export function createSurveyDataPostIn(values: SurveyDataPostInParams): SurveyDataPostIn {
     return Object.assign(create(typeModels[SurveyDataPostInTypeRef.typeId], SurveyDataPostInTypeRef), values)
+}
+
+export type SurveyDataPostInParams = {
+
+
+
+	surveyData: SurveyData;
 }
 
 export type SurveyDataPostIn = {
@@ -3965,8 +6142,16 @@ export type SurveyDataPostIn = {
 }
 export const PatchTypeRef: TypeRef<Patch> = new TypeRef("sys", 2567)
 
-export function createPatch(values: StrippedEntity<Patch>): Patch {
+export function createPatch(values: PatchParams): Patch {
     return Object.assign(create(typeModels[PatchTypeRef.typeId], PatchTypeRef), values)
+}
+
+export type PatchParams = {
+
+
+	patchOperation: NumberString;
+	attributePath: string;
+	value: null | string;
 }
 
 export type Patch = {
@@ -3980,8 +6165,19 @@ export type Patch = {
 }
 export const IdentityKeyPairTypeRef: TypeRef<IdentityKeyPair> = new TypeRef("sys", 2575)
 
-export function createIdentityKeyPair(values: StrippedEntity<IdentityKeyPair>): IdentityKeyPair {
+export function createIdentityKeyPair(values: IdentityKeyPairParams): IdentityKeyPair {
     return Object.assign(create(typeModels[IdentityKeyPairTypeRef.typeId], IdentityKeyPairTypeRef), values)
+}
+
+export type IdentityKeyPairParams = {
+
+
+	identityKeyVersion: NumberString;
+	encryptingKeyVersion: NumberString;
+	publicEd25519Key: Uint8Array;
+	privateEd25519Key: Uint8Array;
+
+	publicKeyMac: KeyMac;
 }
 
 export type IdentityKeyPair = {
@@ -3998,8 +6194,17 @@ export type IdentityKeyPair = {
 }
 export const PublicKeySignatureTypeRef: TypeRef<PublicKeySignature> = new TypeRef("sys", 2582)
 
-export function createPublicKeySignature(values: StrippedEntity<PublicKeySignature>): PublicKeySignature {
+export function createPublicKeySignature(values: PublicKeySignatureParams): PublicKeySignature {
     return Object.assign(create(typeModels[PublicKeySignatureTypeRef.typeId], PublicKeySignatureTypeRef), values)
+}
+
+export type PublicKeySignatureParams = {
+
+
+	signature: Uint8Array;
+	signingKeyVersion: NumberString;
+	signatureType: NumberString;
+	publicKeyVersion: NumberString;
 }
 
 export type PublicKeySignature = {
@@ -4014,8 +6219,16 @@ export type PublicKeySignature = {
 }
 export const IdentityKeyGetInTypeRef: TypeRef<IdentityKeyGetIn> = new TypeRef("sys", 2590)
 
-export function createIdentityKeyGetIn(values: StrippedEntity<IdentityKeyGetIn>): IdentityKeyGetIn {
+export function createIdentityKeyGetIn(values: IdentityKeyGetInParams): IdentityKeyGetIn {
     return Object.assign(create(typeModels[IdentityKeyGetInTypeRef.typeId], IdentityKeyGetInTypeRef), values)
+}
+
+export type IdentityKeyGetInParams = {
+
+
+	version: null | NumberString;
+	identifierType: NumberString;
+	identifier: string;
 }
 
 export type IdentityKeyGetIn = {
@@ -4029,8 +6242,15 @@ export type IdentityKeyGetIn = {
 }
 export const IdentityKeyGetOutTypeRef: TypeRef<IdentityKeyGetOut> = new TypeRef("sys", 2595)
 
-export function createIdentityKeyGetOut(values: StrippedEntity<IdentityKeyGetOut>): IdentityKeyGetOut {
+export function createIdentityKeyGetOut(values: IdentityKeyGetOutParams): IdentityKeyGetOut {
     return Object.assign(create(typeModels[IdentityKeyGetOutTypeRef.typeId], IdentityKeyGetOutTypeRef), values)
+}
+
+export type IdentityKeyGetOutParams = {
+
+
+	publicIdentityKey: Uint8Array;
+	publicIdentityKeyVersion: NumberString;
 }
 
 export type IdentityKeyGetOut = {
@@ -4043,8 +6263,16 @@ export type IdentityKeyGetOut = {
 }
 export const IdentityKeyPostInTypeRef: TypeRef<IdentityKeyPostIn> = new TypeRef("sys", 2599)
 
-export function createIdentityKeyPostIn(values: StrippedEntity<IdentityKeyPostIn>): IdentityKeyPostIn {
+export function createIdentityKeyPostIn(values: IdentityKeyPostInParams): IdentityKeyPostIn {
     return Object.assign(create(typeModels[IdentityKeyPostInTypeRef.typeId], IdentityKeyPostInTypeRef), values)
+}
+
+export type IdentityKeyPostInParams = {
+
+
+
+	identityKeyPair: IdentityKeyPair;
+	signatures: PublicKeySignature[];
 }
 
 export type IdentityKeyPostIn = {
@@ -4058,8 +6286,14 @@ export type IdentityKeyPostIn = {
 }
 export const RolloutTypeRef: TypeRef<Rollout> = new TypeRef("sys", 2604)
 
-export function createRollout(values: StrippedEntity<Rollout>): Rollout {
+export function createRollout(values: RolloutParams): Rollout {
     return Object.assign(create(typeModels[RolloutTypeRef.typeId], RolloutTypeRef), values)
+}
+
+export type RolloutParams = {
+
+
+	rolloutType: NumberString;
 }
 
 export type Rollout = {
@@ -4071,8 +6305,15 @@ export type Rollout = {
 }
 export const RolloutGetOutTypeRef: TypeRef<RolloutGetOut> = new TypeRef("sys", 2607)
 
-export function createRolloutGetOut(values: StrippedEntity<RolloutGetOut>): RolloutGetOut {
+export function createRolloutGetOut(values: RolloutGetOutParams): RolloutGetOut {
     return Object.assign(create(typeModels[RolloutGetOutTypeRef.typeId], RolloutGetOutTypeRef), values)
+}
+
+export type RolloutGetOutParams = {
+
+
+
+	rollouts: Rollout[];
 }
 
 export type RolloutGetOut = {
@@ -4085,8 +6326,15 @@ export type RolloutGetOut = {
 }
 export const PatchListTypeRef: TypeRef<PatchList> = new TypeRef("sys", 2614)
 
-export function createPatchList(values: StrippedEntity<PatchList>): PatchList {
+export function createPatchList(values: PatchListParams): PatchList {
     return Object.assign(create(typeModels[PatchListTypeRef.typeId], PatchListTypeRef), values)
+}
+
+export type PatchListParams = {
+
+
+
+	patches: Patch[];
 }
 
 export type PatchList = {
@@ -4099,8 +6347,15 @@ export type PatchList = {
 }
 export const CaptchaChallengeTypeRef: TypeRef<CaptchaChallenge> = new TypeRef("sys", 2619)
 
-export function createCaptchaChallenge(values: StrippedEntity<CaptchaChallenge>): CaptchaChallenge {
+export function createCaptchaChallenge(values: CaptchaChallengeParams): CaptchaChallenge {
     return Object.assign(create(typeModels[CaptchaChallengeTypeRef.typeId], CaptchaChallengeTypeRef), values)
+}
+
+export type CaptchaChallengeParams = {
+
+
+	challenge: Uint8Array;
+	description: string;
 }
 
 export type CaptchaChallenge = {
@@ -4113,8 +6368,17 @@ export type CaptchaChallenge = {
 }
 export const TimelockCaptchaGetInTypeRef: TypeRef<TimelockCaptchaGetIn> = new TypeRef("sys", 2629)
 
-export function createTimelockCaptchaGetIn(values: StrippedEntity<TimelockCaptchaGetIn>): TimelockCaptchaGetIn {
+export function createTimelockCaptchaGetIn(values: TimelockCaptchaGetInParams): TimelockCaptchaGetIn {
     return Object.assign(create(typeModels[TimelockCaptchaGetInTypeRef.typeId], TimelockCaptchaGetInTypeRef), values)
+}
+
+export type TimelockCaptchaGetInParams = {
+
+
+	signupToken: string;
+	timeToSolveCalibrationChallenge: null | NumberString;
+
+	deviceInfo: null | ClientPerformanceInfo;
 }
 
 export type TimelockCaptchaGetIn = {
@@ -4129,8 +6393,16 @@ export type TimelockCaptchaGetIn = {
 }
 export const TimelockCaptchaGetOutTypeRef: TypeRef<TimelockCaptchaGetOut> = new TypeRef("sys", 2632)
 
-export function createTimelockCaptchaGetOut(values: StrippedEntity<TimelockCaptchaGetOut>): TimelockCaptchaGetOut {
+export function createTimelockCaptchaGetOut(values: TimelockCaptchaGetOutParams): TimelockCaptchaGetOut {
     return Object.assign(create(typeModels[TimelockCaptchaGetOutTypeRef.typeId], TimelockCaptchaGetOutTypeRef), values)
+}
+
+export type TimelockCaptchaGetOutParams = {
+
+
+	difficulty: string;
+	modulus: string;
+	base: string;
 }
 
 export type TimelockCaptchaGetOut = {
@@ -4144,8 +6416,14 @@ export type TimelockCaptchaGetOut = {
 }
 export const ClientPerformanceInfoTypeRef: TypeRef<ClientPerformanceInfo> = new TypeRef("sys", 2641)
 
-export function createClientPerformanceInfo(values: StrippedEntity<ClientPerformanceInfo>): ClientPerformanceInfo {
+export function createClientPerformanceInfo(values: ClientPerformanceInfoParams): ClientPerformanceInfo {
     return Object.assign(create(typeModels[ClientPerformanceInfoTypeRef.typeId], ClientPerformanceInfoTypeRef), values)
+}
+
+export type ClientPerformanceInfoParams = {
+
+
+	isAutomatedBrowser: boolean;
 }
 
 export type ClientPerformanceInfo = {
@@ -4157,8 +6435,15 @@ export type ClientPerformanceInfo = {
 }
 export const AbuseInfoTypeRef: TypeRef<AbuseInfo> = new TypeRef("sys", 2650)
 
-export function createAbuseInfo(values: StrippedEntity<AbuseInfo>): AbuseInfo {
+export function createAbuseInfo(values: AbuseInfoParams): AbuseInfo {
     return Object.assign(create(typeModels[AbuseInfoTypeRef.typeId], AbuseInfoTypeRef), values)
+}
+
+export type AbuseInfoParams = {
+
+
+	criterion: string;
+	value: string;
 }
 
 export type AbuseInfo = {
@@ -4171,8 +6456,15 @@ export type AbuseInfo = {
 }
 export const PartnerManagedCustomerTypeRef: TypeRef<PartnerManagedCustomer> = new TypeRef("sys", 2672)
 
-export function createPartnerManagedCustomer(values: StrippedEntity<PartnerManagedCustomer>): PartnerManagedCustomer {
+export function createPartnerManagedCustomer(values: PartnerManagedCustomerParams): PartnerManagedCustomer {
     return Object.assign(create(typeModels[PartnerManagedCustomerTypeRef.typeId], PartnerManagedCustomerTypeRef), values)
+}
+
+export type PartnerManagedCustomerParams = {
+
+
+
+	customerInfo: IdTuple;
 }
 
 export type PartnerManagedCustomer = {
@@ -4192,8 +6484,15 @@ export type PartnerManagedCustomer = {
 }
 export const AdAttributionTypeRef: TypeRef<AdAttribution> = new TypeRef("sys", 2684)
 
-export function createAdAttribution(values: StrippedEntity<AdAttribution>): AdAttribution {
+export function createAdAttribution(values: AdAttributionParams): AdAttribution {
     return Object.assign(create(typeModels[AdAttributionTypeRef.typeId], AdAttributionTypeRef), values)
+}
+
+export type AdAttributionParams = {
+
+
+	attributionId: string;
+	attributionType: NumberString;
 }
 
 export type AdAttribution = {
@@ -4206,8 +6505,19 @@ export type AdAttribution = {
 }
 export const OperationStatusUpdateTypeRef: TypeRef<OperationStatusUpdate> = new TypeRef("sys", 2692)
 
-export function createOperationStatusUpdate(values: StrippedEntity<OperationStatusUpdate>): OperationStatusUpdate {
+export function createOperationStatusUpdate(values: OperationStatusUpdateParams): OperationStatusUpdate {
     return Object.assign(create(typeModels[OperationStatusUpdateTypeRef.typeId], OperationStatusUpdateTypeRef), values)
+}
+
+export type OperationStatusUpdateParams = {
+
+
+	applicationVersionSum: NumberString;
+	applicationTypesHash: string;
+	operationId: Id;
+	status: NumberString;
+	statusCode: null | NumberString;
+	reason: null | string;
 }
 
 export type OperationStatusUpdate = {
@@ -4224,8 +6534,18 @@ export type OperationStatusUpdate = {
 }
 export const UserAlarmInfoDataTypeRef: TypeRef<UserAlarmInfoData> = new TypeRef("sys", 2722)
 
-export function createUserAlarmInfoData(values: StrippedEntity<UserAlarmInfoData>): UserAlarmInfoData {
+export function createUserAlarmInfoData(values: UserAlarmInfoDataParams): UserAlarmInfoData {
     return Object.assign(create(typeModels[UserAlarmInfoDataTypeRef.typeId], UserAlarmInfoDataTypeRef), values)
+}
+
+export type UserAlarmInfoDataParams = {
+
+
+	encryptedTrigger: Uint8Array;
+	alarmIdentifier: string;
+
+	ownerGroup: Id;
+	calendarEventRef: CalendarEventRef;
 }
 
 export type UserAlarmInfoData = {
@@ -4243,8 +6563,16 @@ export type UserAlarmInfoData = {
 }
 export const SubscriptionReferenceTypeRef: TypeRef<SubscriptionReference> = new TypeRef("sys", 2733)
 
-export function createSubscriptionReference(values: StrippedEntity<SubscriptionReference>): SubscriptionReference {
+export function createSubscriptionReference(values: SubscriptionReferenceParams): SubscriptionReference {
     return Object.assign(create(typeModels[SubscriptionReferenceTypeRef.typeId], SubscriptionReferenceTypeRef), values)
+}
+
+export type SubscriptionReferenceParams = {
+
+
+	subscriptionProvider: NumberString;
+	foreignKey: null | string;
+	subscriptionApp: NumberString;
 }
 
 export type SubscriptionReference = {
@@ -4258,8 +6586,15 @@ export type SubscriptionReference = {
 }
 export const RenewalPreferenceServicePostInTypeRef: TypeRef<RenewalPreferenceServicePostIn> = new TypeRef("sys", 2740)
 
-export function createRenewalPreferenceServicePostIn(values: StrippedEntity<RenewalPreferenceServicePostIn>): RenewalPreferenceServicePostIn {
+export function createRenewalPreferenceServicePostIn(values: RenewalPreferenceServicePostInParams): RenewalPreferenceServicePostIn {
     return Object.assign(create(typeModels[RenewalPreferenceServicePostInTypeRef.typeId], RenewalPreferenceServicePostInTypeRef), values)
+}
+
+export type RenewalPreferenceServicePostInParams = {
+
+
+	isEnabled: boolean;
+	customerId: Id;
 }
 
 export type RenewalPreferenceServicePostIn = {
@@ -4272,8 +6607,18 @@ export type RenewalPreferenceServicePostIn = {
 }
 export const InstanceKdfNonceTypeRef: TypeRef<InstanceKdfNonce> = new TypeRef("sys", 2746)
 
-export function createInstanceKdfNonce(values: StrippedEntity<InstanceKdfNonce>): InstanceKdfNonce {
+export function createInstanceKdfNonce(values: InstanceKdfNonceParams): InstanceKdfNonce {
     return Object.assign(create(typeModels[InstanceKdfNonceTypeRef.typeId], InstanceKdfNonceTypeRef), values)
+}
+
+export type InstanceKdfNonceParams = {
+
+
+	instanceList: null | Id;
+	instanceId: Id;
+	kdfNonce: Uint8Array;
+
+	typeInfo: TypeInfo;
 }
 
 export type InstanceKdfNonce = {
@@ -4289,8 +6634,15 @@ export type InstanceKdfNonce = {
 }
 export const UpdateKdfNoncePostInTypeRef: TypeRef<UpdateKdfNoncePostIn> = new TypeRef("sys", 2752)
 
-export function createUpdateKdfNoncePostIn(values: StrippedEntity<UpdateKdfNoncePostIn>): UpdateKdfNoncePostIn {
+export function createUpdateKdfNoncePostIn(values: UpdateKdfNoncePostInParams): UpdateKdfNoncePostIn {
     return Object.assign(create(typeModels[UpdateKdfNoncePostInTypeRef.typeId], UpdateKdfNoncePostInTypeRef), values)
+}
+
+export type UpdateKdfNoncePostInParams = {
+
+
+
+	instanceKdfNonce: InstanceKdfNonce;
 }
 
 export type UpdateKdfNoncePostIn = {
@@ -4303,8 +6655,14 @@ export type UpdateKdfNoncePostIn = {
 }
 export const UpdateKdfNoncePostOutTypeRef: TypeRef<UpdateKdfNoncePostOut> = new TypeRef("sys", 2755)
 
-export function createUpdateKdfNoncePostOut(values: StrippedEntity<UpdateKdfNoncePostOut>): UpdateKdfNoncePostOut {
+export function createUpdateKdfNoncePostOut(values: UpdateKdfNoncePostOutParams): UpdateKdfNoncePostOut {
     return Object.assign(create(typeModels[UpdateKdfNoncePostOutTypeRef.typeId], UpdateKdfNoncePostOutTypeRef), values)
+}
+
+export type UpdateKdfNoncePostOutParams = {
+
+
+	kdfNonce: Uint8Array;
 }
 
 export type UpdateKdfNoncePostOut = {
@@ -4316,8 +6674,19 @@ export type UpdateKdfNoncePostOut = {
 }
 export const SubscriptionRevocationRequestTypeRef: TypeRef<SubscriptionRevocationRequest> = new TypeRef("sys", 2759)
 
-export function createSubscriptionRevocationRequest(values: StrippedEntity<SubscriptionRevocationRequest>): SubscriptionRevocationRequest {
+export function createSubscriptionRevocationRequest(values: SubscriptionRevocationRequestParams): SubscriptionRevocationRequest {
     return Object.assign(create(typeModels[SubscriptionRevocationRequestTypeRef.typeId], SubscriptionRevocationRequestTypeRef), values)
+}
+
+export type SubscriptionRevocationRequestParams = {
+
+
+	revocationRequestDate: Date;
+	isRefundProcessed: boolean;
+	latestDowngradeFailedNotification: null | Date;
+	downgradeGracePeriodEnd: null | Date;
+
+	customer: Id;
 }
 
 export type SubscriptionRevocationRequest = {
@@ -4337,8 +6706,15 @@ export type SubscriptionRevocationRequest = {
 }
 export const SubscriptionRevocationServicePostInTypeRef: TypeRef<SubscriptionRevocationServicePostIn> = new TypeRef("sys", 2771)
 
-export function createSubscriptionRevocationServicePostIn(values: StrippedEntity<SubscriptionRevocationServicePostIn>): SubscriptionRevocationServicePostIn {
+export function createSubscriptionRevocationServicePostIn(values: SubscriptionRevocationServicePostInParams): SubscriptionRevocationServicePostIn {
     return Object.assign(create(typeModels[SubscriptionRevocationServicePostInTypeRef.typeId], SubscriptionRevocationServicePostInTypeRef), values)
+}
+
+export type SubscriptionRevocationServicePostInParams = {
+
+
+
+	surveyData: null | SurveyData;
 }
 
 export type SubscriptionRevocationServicePostIn = {

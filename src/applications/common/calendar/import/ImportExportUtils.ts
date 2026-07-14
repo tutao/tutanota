@@ -3,16 +3,19 @@ import {
 	AdvancedRepeatRule,
 	CalendarEvent,
 	CalendarEventAttendee,
+	CalendarEventAttendeeParams,
+	CalendarEventParams,
 	CalendarRepeatRule,
+	CalendarRepeatRuleParams,
 	createAdvancedRepeatRule,
 	createCalendarEvent,
 	createCalendarEventAttendee,
 	createCalendarRepeatRule,
 	createEncryptedMailAddress,
 	EncryptedMailAddress,
+	EncryptedMailAddressParams,
 } from "@tutao/entities/tutanota"
-import { Stripped, StrippedEntity } from "@tutao/meta"
-import { createDateWrapper, DateWrapper } from "@tutao/entities/sys"
+import { createDateWrapper, DateWrapper, DateWrapperParams } from "@tutao/entities/sys"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { assertValidURL, deepEqual } from "@tutao/utils"
 import { IcsCalendarEvent, StrippedCalendarEventAttendee, StrippedRepeatRule } from "../../../calendar-app/calendar/export/CalendarParser"
@@ -39,11 +42,11 @@ export function makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent: Readonly
 		pendingInvitation: false,
 		alarmInfos: [],
 	}
-	const calendarEvent: StrippedEntity<CalendarEvent> = Object.assign({}, icsCalendarEvent, additionalValues, {
+	const calendarEvent: CalendarEventParams = Object.assign({}, icsCalendarEvent, additionalValues, {
 		repeatRule,
 		organizer,
 		attendees,
-	}) satisfies Stripped<CalendarEvent>
+	}) satisfies CalendarEventParams
 
 	return createCalendarEvent(calendarEvent)
 }
@@ -145,7 +148,7 @@ export function createStrippedAttendees(attendees: CalendarEventAttendee[]): Str
 	})
 }
 
-export function createStrippedMailAddress(mailAddress: EncryptedMailAddress | null): Stripped<EncryptedMailAddress> | null {
+export function createStrippedMailAddress(mailAddress: EncryptedMailAddress | null): EncryptedMailAddressParams | null {
 	if (!mailAddress) {
 		return null
 	}
@@ -156,14 +159,14 @@ export function createStrippedMailAddress(mailAddress: EncryptedMailAddress | nu
 	}
 }
 
-export function fromStrippedRepeatRule(repeatRule: StrippedRepeatRule): StrippedEntity<CalendarRepeatRule> {
+export function fromStrippedRepeatRule(repeatRule: StrippedRepeatRule): CalendarRepeatRuleParams {
 	return {
 		frequency: repeatRule.frequency,
 		endType: repeatRule.endType,
 		endValue: repeatRule.endValue,
 		interval: repeatRule.interval,
 		timeZone: repeatRule.timeZone,
-		excludedDates: repeatRule.excludedDates.map(function (values: StrippedEntity<DateWrapper>): DateWrapper {
+		excludedDates: repeatRule.excludedDates.map(function (values: DateWrapperParams): DateWrapper {
 			return createDateWrapper(values)
 		}),
 		advancedRules: repeatRule.advancedRules.map(function (values): AdvancedRepeatRule {
@@ -172,7 +175,7 @@ export function fromStrippedRepeatRule(repeatRule: StrippedRepeatRule): Stripped
 	}
 }
 
-export function fromStrippedCalendarEventAttendee(strippedCalendarEventAttendee: StrippedCalendarEventAttendee): StrippedEntity<CalendarEventAttendee> {
+export function fromStrippedCalendarEventAttendee(strippedCalendarEventAttendee: StrippedCalendarEventAttendee): CalendarEventAttendeeParams {
 	return {
 		address: createEncryptedMailAddress(strippedCalendarEventAttendee.address),
 		status: strippedCalendarEventAttendee.status,

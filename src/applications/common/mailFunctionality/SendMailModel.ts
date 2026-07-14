@@ -1283,13 +1283,13 @@ export class SendMailModel {
 	private sendApprovalMail(body: string): Promise<unknown> {
 		const listId = "---------c--"
 		const m = createApprovalMail({
-			_id: [listId, stringToBase64UrlCustomId(this.senderAddress)],
-			_ownerGroup: this.user().user.userGroup.group,
 			text: `Subject: ${this.getSubject()}<br>${body}`,
 			date: null,
 			range: null,
 			customer: null,
 		})
+		m._id = [listId, stringToBase64UrlCustomId(this.senderAddress)]
+		m._ownerGroup = this.user().user.userGroup.group
 		return this.entity.setup(listId, m).catch(ofClass(NotAuthorizedError, (e) => console.log("not authorized for approval message")))
 	}
 

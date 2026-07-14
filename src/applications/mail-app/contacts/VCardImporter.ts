@@ -388,8 +388,6 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 			}
 		}
 		contacts[i] = createContact({
-			_id: ["dummyContactListId", "dummyContactElementId" + i],
-			_ownerGroup: ownerGroupId,
 			lastName,
 			firstName,
 			title,
@@ -418,6 +416,8 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 			oldBirthdayDate: null,
 			oldBirthdayAggregate: null,
 		})
+		contacts[i]._id = ["dummyContactListId", "dummyContactElementId" + i]
+		contacts[i]._ownerGroup = ownerGroupId
 	}
 
 	function _addAddress(vCardAddressValue: string, addresses: Array<ContactAddress>, type: ContactAddressType) {

@@ -1,9 +1,9 @@
-import { Mail, MailSet, ProcessInboxDatum } from "@tutao/entities/tutanota"
+import { Mail, MailSet, ProcessInboxDatum, ProcessInboxDatumParams } from "@tutao/entities/tutanota"
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
 import { InstanceSessionKey } from "@tutao/entities/sys"
 import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { InboxRuleHandler } from "./InboxRuleHandler"
-import { isSameId, StrippedEntity } from "../../../../platform-kit/meta"
+import { isSameId } from "../../../../platform-kit/meta"
 import { assertMainOrNode } from "../../../../platform-kit/app-env"
 import { assertNotNull, isEmpty, Nullable, throttle } from "../../../../platform-kit/utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
@@ -15,10 +15,7 @@ import { LockedError } from "../../../../platform-kit/rest-client/error"
 
 assertMainOrNode()
 
-export type UnencryptedProcessInboxDatum = Omit<
-	StrippedEntity<ProcessInboxDatum>,
-	"encVectorLegacy" | "encVectorWithServerClassifiers" | "ownerEncVectorSessionKey"
-> & {
+export type UnencryptedProcessInboxDatum = Omit<ProcessInboxDatumParams, "encVectorLegacy" | "encVectorWithServerClassifiers" | "ownerEncVectorSessionKey"> & {
 	vectorLegacy: Uint8Array
 	vectorWithServerClassifiers: Uint8Array
 }

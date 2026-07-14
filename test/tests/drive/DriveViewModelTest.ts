@@ -16,7 +16,7 @@ import { FolderItemId } from "../../../src/applications/drive-app/drive/view/Dri
 import { DriveTransferController } from "../../../src/applications/drive-app/drive/view/DriveTransferController"
 import { WebFile } from "../../../src/entities/tutanota/Utils"
 import { TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
-import { createDriveFolder, DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
+import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 import { GroupInfoTypeRef, PlanConfigurationTypeRef } from "@tutao/entities/sys"
 
 o.spec("DriveViewModel", function () {
@@ -39,7 +39,7 @@ o.spec("DriveViewModel", function () {
 	}
 
 	const rootFolders = {
-		root: createDriveFolder({
+		root: createTestEntity(DriveFolderTypeRef, {
 			_id: rootIds.root,
 			type: DriveFolderType.Root,
 			name: "",
@@ -49,7 +49,7 @@ o.spec("DriveViewModel", function () {
 			createdDate: new Date(1),
 			originalParent: null,
 		}),
-		trash: createDriveFolder({
+		trash: createTestEntity(DriveFolderTypeRef, {
 			_id: rootIds.trash,
 			type: DriveFolderType.Trash,
 			name: "",

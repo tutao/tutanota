@@ -57,6 +57,7 @@
 import {
 	CalendarEvent,
 	CalendarEventAttendee,
+	CalendarEventParams,
 	createCalendarEvent,
 	createEncryptedMailAddress,
 	EncryptedMailAddress,
@@ -66,7 +67,6 @@ import {
 import { PartialRecipient } from "../../../../../entities/tutanota/Utils"
 import { User } from "@tutao/entities/sys"
 import { AccountType } from "../../../../../entities/sys/Utils"
-import { getStrippedClone, Stripped, StrippedEntity } from "@tutao/meta"
 import type { MailboxDetail } from "../../../../common/mailFunctionality/MailboxModel.js"
 import {
 	AlarmInterval,
@@ -77,7 +77,19 @@ import {
 	incrementSequence,
 	parseAlarmInterval,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { arrayEqualsWithPredicate, assertNotNull, cleanMailAddress, identity, lazy, Require } from "@tutao/utils"
+import {
+	arrayEqualsWithPredicate,
+	assertNotNull,
+	base64ExtToBase64,
+	base64ToBase64Ext,
+	base64ToUint8Array,
+	cleanMailAddress,
+	identity,
+	lazy,
+	Require,
+	uint8ArrayToBase64,
+	uint8arrayToBase64UrlCustomId,
+} from "@tutao/utils"
 import { makeEmptyCalendarEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { assertEventValidity, CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
@@ -102,6 +114,7 @@ import { getEventType } from "../CalendarGuiUtils.js"
 import { getDefaultSender } from "../../../../common/mailFunctionality/SharedMailUtils.js"
 import { CalendarInviteHandler } from "../../view/CalendarInvites"
 import { NotFoundError, PayloadTooLargeError } from "@tutao/rest-client/error"
+import { base64UrlIdToUint8array, clone, IDENTITY_FIELDS, MAIL_SET_ENTRY_ID_BYTE_LENGTH, SomeEntity, TECHNICAL_FIELDS } from "@tutao/meta"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {
@@ -137,12 +150,12 @@ export const enum ReadonlyReason {
  * when the excluded fields are added, this type can be used to set up a series, update a series or reschedule an instance of a series
  * hashedUid is excluded separately since it's not really relevant to the client's logic.
  */
-export type CalendarEventValues = Omit<Stripped<CalendarEvent>, EventIdentityFieldNames | "hashedUid">
+export type CalendarEventValues = Omit<CalendarEventParams, EventIdentityFieldNames | "hashedUid">
 
 /**
  * the parts of a calendar event that define the identity of the event instance.
  */
-export type CalendarEventIdentity = Pick<Stripped<CalendarEvent>, EventIdentityFieldNames>
+export type CalendarEventIdentity = Pick<CalendarEventParams, EventIdentityFieldNames>
 
 /**
  * which parts of a calendar event series to apply an edit operation to.
@@ -265,12 +278,12 @@ export async function makeCalendarEventModel(
 }
 
 async function selectStrategy(
-	makeEditModels: (i: StrippedEntity<CalendarEvent>) => CalendarEventEditModels,
+	makeEditModels: (i: CalendarEventParams) => CalendarEventEditModels,
 	applyStrategies: CalendarEventApplyStrategies,
 	operation: CalendarOperation,
 	resolveProgenitor: () => Promise<CalendarEvent | null>,
 	existingInstanceIdentity: CalendarEvent,
-	cleanInitialValues: StrippedEntity<CalendarEvent>,
+	cleanInitialValues: CalendarEventParams,
 ): Promise<CalendarEventModelStrategy | null> {
 	let editModels: CalendarEventEditModels
 	let apply: () => Promise<void>
@@ -578,9 +591,9 @@ export async function resolveAlarmsForEvent(alarms: CalendarEvent["alarmInfos"],
 	return alarmInfos.map(({ alarmInfo }) => parseAlarmInterval(alarmInfo.trigger))
 }
 
-function cleanupInitialValuesForEditing(initialValues: StrippedEntity<CalendarEvent>): CalendarEvent {
+function cleanupInitialValuesForEditing(initialValues: CalendarEventParams): CalendarEvent {
 	// the event we got passed may already have some technical fields assigned, so we remove them.
-	const stripped = getStrippedClone<CalendarEvent>(initialValues)
+	const stripped = getStrippedClone(initialValues)
 	const result = createCalendarEvent(stripped)
 
 	// remove the alarm infos from the result, they don't contain any useful information for the editing operation.
@@ -652,4 +665,59 @@ function getOwnMailAddressesWithDefaultSenderInFront(
 	}
 	const defaultEncryptedMailAddress = ownMailAddresses.splice(defaultIndex, 1)
 	return [...defaultEncryptedMailAddress, ...ownMailAddresses]
+}
+
+/**
+ * Remove some hidden technical fields from the entity.
+ *
+ * Only use for new entities, the {@param entity} won't be usable for updates anymore after this.
+ */
+export function removeTechnicalFields(entity: CalendarEventParams) {
+	// we want to restrict outer function to entity types, but internally we also want to handle aggregates
+	function _removeTechnicalFields(erased: Record<string, any>) {
+		for (const key of Object.keys(erased)) {
+			if (TECHNICAL_FIELDS.includes(key)) {
+				delete erased[key]
+			} else {
+				const value = erased[key]
+				if (value instanceof Object) {
+					_removeTechnicalFields(value)
+				}
+			}
+		}
+	}
+
+	_removeTechnicalFields(entity)
+	return entity
+}
+
+/**
+ * get a clone of a (partial) entity that does not contain any fields that would indicate that it was ever persisted anywhere.
+ * @param entity the entity to strip
+ */
+export function getStrippedClone(entity: CalendarEventParams): CalendarEventParams {
+	const cloned = clone(entity)
+	removeTechnicalFields(cloned)
+	removeIdentityFields(cloned)
+	return cloned
+}
+
+/**
+ * remove fields that do not contain user defined data but are related to finding/accessing the entity on the server
+ */
+function removeIdentityFields(entity: CalendarEventParams) {
+	function _removeIdentityFields(erased: Record<string, any>) {
+		for (const key of Object.keys(erased)) {
+			if (IDENTITY_FIELDS.includes(key)) {
+				delete erased[key]
+			} else {
+				const value = erased[key]
+				if (value instanceof Object) {
+					_removeIdentityFields(value)
+				}
+			}
+		}
+	}
+
+	_removeIdentityFields(entity)
 }

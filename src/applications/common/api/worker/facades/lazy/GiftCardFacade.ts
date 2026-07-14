@@ -53,17 +53,14 @@ export class GiftCardFacade {
 
 		const sessionKey = aes256RandomKey()
 		const ownerEncSessionKey = _encryptKeyWithVersionedKey(ownerKey, sessionKey)
-		const { giftCard } = await this.serviceExecutor.post(
-			GiftCardService,
-			createGiftCardCreateData({
-				message: message,
-				keyHash: sha256Hash(keyToUint8Array(sessionKey)),
-				value,
-				ownerEncSessionKey: ownerEncSessionKey.key,
-				ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-			}),
-			{ ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey },
-		)
+		const data = createGiftCardCreateData({
+			message: message,
+			keyHash: sha256Hash(keyToUint8Array(sessionKey)),
+			value,
+		})
+		data.ownerEncSessionKey = ownerEncSessionKey.key
+		data.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
+		const { giftCard } = await this.serviceExecutor.post(GiftCardService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
 
 		return giftCard
 	}

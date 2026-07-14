@@ -1,4 +1,4 @@
-import { AdvancedRepeatRule, CalendarEvent, CalendarRepeatRule, createAdvancedRepeatRule } from "@tutao/entities/tutanota"
+import { AdvancedRepeatRule, CalendarEvent, CalendarEventParams, CalendarRepeatRule, createAdvancedRepeatRule } from "@tutao/entities/tutanota"
 import { createDateWrapper, createRepeatRule, RepeatRule } from "@tutao/entities/sys"
 import {
 	CalendarEventTimes,
@@ -25,7 +25,7 @@ import {
 	incrementByRepeatPeriod,
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { assertNotNull, filterInt, incrementDate, noOp, TIMESTAMP_ZERO_YEAR } from "@tutao/utils"
-import { clone, Stripped } from "@tutao/meta"
+import { clone } from "@tutao/meta"
 import { EndType, RepeatPeriod, Weekday } from "@tutao/app-env"
 import { UserError } from "../../../../common/api/main/UserError.js"
 import m from "mithril"
@@ -62,7 +62,7 @@ export class CalendarEventWhenModel {
 	private timeZones: CalendarEventTimeZones
 
 	constructor(
-		private readonly initialValues: Partial<Stripped<CalendarEvent>>,
+		private readonly initialValues: CalendarEventParams,
 		public readonly calendarTimeZone: string,
 		private readonly uiUpdateCallback: () => void = noOp,
 	) {

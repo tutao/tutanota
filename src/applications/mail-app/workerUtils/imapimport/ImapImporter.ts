@@ -273,8 +273,9 @@ export class ImapImporter implements ImapSyncFacade {
 		return await promiseMap(imapMailAttachments, async (imapMailAttachment) => {
 			// calculate fileHash to perform IMAP import attachment de-duplication
 			const fileHash = uint8ArrayToString("utf-8", sha256Hash(imapMailAttachment.content))
-			if (groupMap.has(fileHash)) {
-				const attachmentId = await groupMap.get(fileHash)
+			const groupMapLocal = assertNotNull(groupMap)
+			if (groupMapLocal.has(fileHash)) {
+				const attachmentId = await groupMapLocal.get(fileHash)
 				if (attachmentId) {
 					return {
 						_type: "ImapImportTutaFileId",
@@ -292,11 +293,11 @@ export class ImapImporter implements ImapSyncFacade {
 				}
 				// replace the promise with the new promise that resolves directly to the attachmentId
 				// for future calls to prevent unnecessary server requests
-				groupMap.set(fileHash, Promise.resolve(attachmentId))
+				groupMapLocal.set(fileHash, Promise.resolve(attachmentId))
 				return attachmentId
 			})()
 
-			groupMap.set(fileHash, deferredPromise)
+			groupMapLocal.set(fileHash, deferredPromise)
 			const importDataFile: ImapImportDataFile = {
 				_type: "DataFile",
 				name: imapMailAttachment.filename ?? "unknown.txt",

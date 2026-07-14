@@ -145,7 +145,7 @@ o.spec("ConversationListModel", () => {
 			allMails.push(mail)
 
 			mailSetEntries.push(
-				createMailSetEntry({
+				createTestEntity(MailSetEntryTypeRef, {
 					_id: [mailSetEntriesListId, makeMailSetElementId(i)],
 					_ownerGroup,
 					_permissions: "1234",
@@ -520,9 +520,9 @@ o.spec("ConversationListModel", () => {
 			})
 
 			const newEntry = createMailSetEntry({
-				_id: mailSetEntryId,
 				mail: newMail._id,
 			})
+			newEntry._id = mailSetEntryId
 
 			const entityUpdateData: EntityUpdateData = {
 				typeRef: MailSetEntryTypeRef,

@@ -180,28 +180,24 @@ export class MailboxModel {
 
 	async loadOrCreateMailboxProperties(mailboxGroupRoot: MailboxGroupRoot): Promise<MailboxProperties> {
 		if (!mailboxGroupRoot.mailboxProperties) {
-			mailboxGroupRoot.mailboxProperties = await this.entityClient
-				.setup(
-					null,
-					createMailboxProperties({
-						_ownerGroup: mailboxGroupRoot._ownerGroup ?? "",
-						reportMovedMails: "0",
-						mailAddressProperties: [],
-					}),
-				)
-				.catch(
-					ofClass(PreconditionFailedError, (e) => {
-						// We try to prevent race conditions but they can still happen with multiple clients trying ot create mailboxProperties at the same time.
-						// We send special precondition from the server with an existing id.
-						if (e.data && e.data.startsWith("exists:")) {
-							const existingId = e.data.substring("exists:".length)
-							console.log("mailboxProperties already exists", existingId)
-							return existingId
-						} else {
-							throw new ProgrammingError(`Could not create mailboxProperties, precondition: ${e.data}`)
-						}
-					}),
-				)
+			const properties = createMailboxProperties({
+				reportMovedMails: "0",
+				mailAddressProperties: [],
+			})
+			properties._ownerGroup = mailboxGroupRoot._ownerGroup ?? ""
+			mailboxGroupRoot.mailboxProperties = await this.entityClient.setup(null, properties).catch(
+				ofClass(PreconditionFailedError, (e) => {
+					// We try to prevent race conditions but they can still happen with multiple clients trying ot create mailboxProperties at the same time.
+					// We send special precondition from the server with an existing id.
+					if (e.data && e.data.startsWith("exists:")) {
+						const existingId = e.data.substring("exists:".length)
+						console.log("mailboxProperties already exists", existingId)
+						return existingId
+					} else {
+						throw new ProgrammingError(`Could not create mailboxProperties, precondition: ${e.data}`)
+					}
+				}),
+			)
 		}
 		const mailboxProperties = await this.entityClient.load(MailboxPropertiesTypeRef, assertNotNull(mailboxGroupRoot.mailboxProperties))
 		if (mailboxProperties.mailAddressProperties.length === 0) {

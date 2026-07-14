@@ -106,9 +106,9 @@ export class RecoverCodeFacade {
 			userEncRecoverCode: userEncRecoverCode,
 			userKeyVersion: String(userKeyVersion),
 			recoverCodeEncUserGroupKey: recoverCodeEncUserGroupKey,
-			_ownerGroup: this.userFacade.getUserGroupId(),
 			verifier: recoveryCodeVerifier,
 		})
+		recoverPasswordEntity._ownerGroup = this.userFacade.getUserGroupId()
 		const passphraseKeyData = {
 			kdfType: asKdfType(user.kdfVersion),
 			passphrase,

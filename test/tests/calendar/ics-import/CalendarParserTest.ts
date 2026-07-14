@@ -20,7 +20,7 @@ import {
 } from "../../../../src/applications/calendar-app/calendar/export/CalendarParser"
 import { AlarmInfo, AlarmInfoTypeRef, createDateWrapper, createRepeatRule, UserAlarmInfo, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
 import { serializeCalendar, serializeEvent } from "../../../../src/applications/calendar-app/calendar/export/CalendarExporter"
-import { CalendarEvent, createCalendarEvent, createCalendarEventAttendee, createEncryptedMailAddress } from "@tutao/entities/tutanota"
+import { CalendarEvent, CalendarEventTypeRef, createCalendarEventAttendee, createEncryptedMailAddress } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus } from "../../../../src/entities/tutanota/Utils"
 import { AlarmIntervalUnit, getAllDayDateUTCFromZone } from "../../../../src/applications/common/calendar/date/CalendarUtils"
 import { makeCalendarEventFromIcsCalendarEvent } from "../../../../src/applications/common/calendar/import/ImportExportUtils"
@@ -985,7 +985,7 @@ END:VCALENDAR`
 					alarms: Array<UserAlarmInfo>
 				}> = [
 					{
-						event: createCalendarEvent({
+						event: createTestEntity(CalendarEventTypeRef, {
 							attendees: [],
 							organizer: null,
 							repeatRule: null,
@@ -1027,7 +1027,7 @@ END:VCALENDAR`
 						alarms: [],
 					},
 					{
-						event: createCalendarEvent({
+						event: createTestEntity(CalendarEventTypeRef, {
 							attendees: [],
 							organizer: null,
 							repeatRule: null,
@@ -1070,7 +1070,7 @@ END:VCALENDAR`
 						alarms: [alarmOne, alarmTwo],
 					},
 					{
-						event: createCalendarEvent({
+						event: createTestEntity(CalendarEventTypeRef, {
 							attendees: [],
 							organizer: null,
 							recurrenceId: null,
@@ -1130,7 +1130,7 @@ END:VCALENDAR`
 						alarms: [],
 					},
 					{
-						event: createCalendarEvent({
+						event: createTestEntity(CalendarEventTypeRef, {
 							attendees: [],
 							organizer: null,
 							recurrenceId: null,

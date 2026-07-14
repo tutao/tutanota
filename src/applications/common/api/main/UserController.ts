@@ -396,25 +396,23 @@ export async function initUserController({
 	loginUsername,
 }: UserControllerInitData): Promise<UserController> {
 	const entityClient = locator.entityClient
+	const groupRoot = createUserSettingsGroupRoot({
+		startOfTheWeek: "0",
+		timeFormat: "0",
+		groupSettings: [],
+		usageDataOptedIn: null,
+		birthdayCalendarColor: null,
+	})
+	groupRoot._ownerGroup = user.userGroup.group
 	const [props, userSettingsGroupRoot, customer] = await Promise.all([
 		entityClient.loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group),
-		entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group).catch(
-			ofClass(NotFoundError, () =>
-				entityClient
-					.setup(
-						null,
-						createUserSettingsGroupRoot({
-							_ownerGroup: user.userGroup.group,
-							startOfTheWeek: "0",
-							timeFormat: "0",
-							groupSettings: [],
-							usageDataOptedIn: null,
-							birthdayCalendarColor: null,
-						}),
-					)
-					.then(() => entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group)),
+		entityClient
+			.load(UserSettingsGroupRootTypeRef, user.userGroup.group)
+			.catch(
+				ofClass(NotFoundError, () =>
+					entityClient.setup(null, groupRoot).then(() => entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group)),
+				),
 			),
-		),
 		// External users is not allowed to load Customer
 		isInternalUser(user) ? entityClient.load(CustomerTypeRef, assertNotNull(user.customer)) : null,
 	])

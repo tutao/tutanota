@@ -6,6 +6,7 @@ import {
 	eventHasChanged,
 	EventSaveResult,
 	makeCalendarEventModel,
+	removeTechnicalFields,
 } from "../../../../src/applications/calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { CalendarNotificationSender } from "../../../../src/applications/calendar-app/calendar/view/CalendarNotificationSender.js"
 import { CalendarModel } from "../../../../src/applications/calendar-app/calendar/model/CalendarModel.js"
@@ -21,7 +22,9 @@ import { SendMailModel } from "../../../../src/applications/common/mailFunctiona
 import { MailboxDetail } from "../../../../src/applications/common/mailFunctionality/MailboxModel.js"
 import { CalendarInviteHandler } from "../../../../src/applications/calendar-app/calendar/view/CalendarInvites"
 import {
+	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
+	CalendarEventParams,
 	CalendarEventTypeRef,
 	createCalendarEventAttendee,
 	EncryptedMailAddressTypeRef,
@@ -31,7 +34,7 @@ import {
 	MailBoxTypeRef,
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
-import { clone } from "../../../../src/platform-kit/meta"
+import { clone, ElementEntity, Entity, TypeRef } from "../../../../src/platform-kit/meta"
 
 import {
 	AlarmInfoTypeRef,
@@ -316,6 +319,26 @@ o.spec("CalendarEventModel", function () {
 
 		o("equal if the dates are the same", function () {
 			o(areExcludedDatesEqual([dw("2023-03-06T13:56")], [dw("2023-03-06T13:56")])).equals(true)
+		})
+	})
+
+	o.spec("removeTechnicalFields", function () {
+		function makeEntity(): CalendarEvent {
+			return createTestEntity(CalendarEventTypeRef, {
+				_id: ["testList", "testElement"],
+				// so that we can compare it
+				_type: CalendarEventTypeRef,
+				_ownerGroup: null,
+				_ownerEncSessionKey: null,
+				_kdfNonce: null,
+			})
+		}
+
+		o("it doesn't do anything when there's nothing to remove", function () {
+			const originalEntity = makeEntity()
+			const entityCopy = clone(originalEntity)
+			removeTechnicalFields(entityCopy as CalendarEventParams)
+			o(entityCopy as unknown).deepEquals(originalEntity)
 		})
 	})
 })

@@ -186,9 +186,9 @@ export class ContactListViewModel {
 		for (const address of addresses) {
 			if (!listAddresses.includes(address)) {
 				const recipient = createContactListEntry({
-					_ownerGroup: contactListGroupRoot._id,
 					emailAddress: address,
 				})
+				recipient._ownerGroup = contactListGroupRoot._id
 
 				this.addEntryOnList(contactListGroupRoot.entries, recipient)
 			}

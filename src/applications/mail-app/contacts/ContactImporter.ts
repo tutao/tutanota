@@ -213,9 +213,7 @@ export class ContactImporter {
 	}
 
 	private contactFromStructuredContact(ownerGroupId: Id, contact: StructuredContact, index: number): Contact {
-		return createContact({
-			_id: ["dummyContactListId", "dummyContactElementId" + index],
-			_ownerGroup: ownerGroupId,
+		const newContact = createContact({
 			nickname: contact.nickname,
 			firstName: contact.firstName,
 			lastName: contact.lastName,
@@ -262,6 +260,9 @@ export class ContactImporter {
 			title: contact.title ?? "",
 			role: contact.role,
 		})
+		newContact._id = ["dummyContactListId", "dummyContactElementId" + index]
+		newContact._ownerGroup = ownerGroupId
+		return newContact
 	}
 
 	private validateBirthdayOfContact(contact: StructuredContact) {

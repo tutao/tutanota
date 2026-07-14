@@ -182,12 +182,12 @@ export class SecondFactorEditModel {
 		}
 
 		const sf = createSecondFactor({
-			_ownerGroup: this.user._ownerGroup!,
 			name: this.name,
 			type: this.selectedType,
 			otpSecret: null,
 			u2f: null,
 		})
+		sf._ownerGroup = this.user._ownerGroup!
 
 		if (this.selectedType === SecondFactorType.webauthn) {
 			if (this.verificationStatus !== VerificationStatus.Success) {

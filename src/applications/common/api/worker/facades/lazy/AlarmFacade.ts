@@ -99,13 +99,13 @@ export class AlarmFacade {
 			for (const alarmInfoTemplate of alarmInfoTemplates) {
 				const userAlarmInfoSessionKey = aes256RandomKey()
 				const userAlarmInfoData = createUserAlarmInfoData({
-					ownerEncSessionKey: this.cryptoWrapper.encryptKey(userGroupKey.object, userAlarmInfoSessionKey),
-					ownerKeyVersion: userGroupKey.version.toString(),
 					encryptedTrigger: this.cryptoWrapper.encryptString(userAlarmInfoSessionKey, alarmInfoTemplate.trigger),
 					alarmIdentifier: alarmInfoTemplate.alarmIdentifier,
 					ownerGroup: ownerGroup,
 					calendarEventRef: eventRef,
 				})
+				userAlarmInfoData.ownerEncSessionKey = this.cryptoWrapper.encryptKey(userGroupKey.object, userAlarmInfoSessionKey)
+				userAlarmInfoData.ownerKeyVersion = userGroupKey.version.toString()
 				alarmServicePost.userAlarmInfoData.push(userAlarmInfoData)
 
 				// one session key is used for all notifications of a single alarmInfo, but is encrypted separately for each device.

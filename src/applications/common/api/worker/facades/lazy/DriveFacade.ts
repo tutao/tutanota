@@ -221,10 +221,9 @@ export class DriveFacade {
 			referenceTokens: blobRefTokens,
 			fileName: fileName,
 			mimeType: getCleanedMimeType(isWebFile(file) ? file.file.type : file.mimeType),
-			ownerEncSessionKey: ownerEncSessionKey,
-			ownerKeyVersion: String(fileGroupKey.version),
-			_ownerGroup: assertNotNull(fileGroupId),
 		})
+		uploadedFile.ownerEncSessionKey = ownerEncSessionKey
+		uploadedFile.ownerKeyVersion = String(fileGroupKey.version)
 		const data = createDriveItemPostIn({ uploadedFile: uploadedFile, parent: to })
 		const response = await this.serviceExecutor.post(DriveItemService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
 
@@ -244,9 +243,9 @@ export class DriveFacade {
 		const newFolder = createDriveFolderServicePostIn({
 			folderName,
 			parent: parentFolder,
-			ownerEncSessionKey,
-			ownerKeyVersion: String(fileGroupKey.version),
 		})
+		newFolder.ownerEncSessionKey = ownerEncSessionKey
+		newFolder.ownerKeyVersion = String(fileGroupKey.version)
 		const response = await this.serviceExecutor.post(DriveFolderService, newFolder, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
 		return this.entityClient.load(DriveFolderTypeRef, response.folder)
 	}
@@ -365,16 +364,13 @@ export class DriveFacade {
 		const trashFolderSessionKey = aes256RandomKey()
 		const encRootFolderSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, rootFolderSessionKey)
 		const encTrashFolderSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, trashFolderSessionKey)
-		await this.serviceExecutor.post(
-			DriveService,
-			createDrivePostIn({
-				fileGroupId: fileGroupId,
-				ownerKeyVersion: String(fileGroupKey.version),
-				ownerEncRootFolderSessionKey: encRootFolderSessionKey,
-				ownerEncTrashFolderSessionKey: encTrashFolderSessionKey,
-			}),
-			null,
-		)
+		const data = createDrivePostIn({
+			fileGroupId: fileGroupId,
+			ownerEncRootFolderSessionKey: encRootFolderSessionKey,
+			ownerEncTrashFolderSessionKey: encTrashFolderSessionKey,
+		})
+		data.ownerKeyVersion = String(fileGroupKey.version)
+		await this.serviceExecutor.post(DriveService, data, null)
 		return this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
 	}
 }

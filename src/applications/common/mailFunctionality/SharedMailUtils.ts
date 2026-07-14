@@ -30,10 +30,6 @@ export function createNewContact(user: User, mailAddress: string, name: string):
 	// use the name or mail address to extract first and last name. first part is used as first name, all other parts as last name
 	let firstAndLastName = name.trim() !== "" ? fullNameToFirstAndLastName(name) : mailAddressToFirstAndLastName(mailAddress)
 	let contact = createContact({
-		_ownerGroup: assertNotNull(
-			user.memberships.find((m) => m.groupType === GroupType.Contact),
-			"called createNewContact as user without contact group mship",
-		).group,
 		firstName: firstAndLastName.firstName,
 		lastName: firstAndLastName.lastName,
 		mailAddresses: [
@@ -68,6 +64,10 @@ export function createNewContact(user: User, mailAddress: string, name: string):
 		relationships: [],
 		websites: [],
 	})
+	contact._ownerGroup = assertNotNull(
+		user.memberships.find((m) => m.groupType === GroupType.Contact),
+		"called createNewContact as user without contact group mship",
+	).group
 	return contact
 }
 

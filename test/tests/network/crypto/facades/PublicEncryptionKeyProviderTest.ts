@@ -23,13 +23,13 @@ import { createTestEntity } from "../../../TestUtils"
 import { PublicEncryptionKeyCache } from "../../../../../src/platform-kit/base/base-crypto/persistence/PublicEncryptionKeyCache"
 import {
 	createPublicKeyGetOut,
-	createSystemKeysReturn,
 	PubDistributionKey,
 	PublicKeyGetOut,
 	PublicKeyService,
 	PublicKeySignature,
 	PublicKeySignatureTypeRef,
 	SystemKeysReturn,
+	SystemKeysReturnTypeRef,
 } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../../../src/platform-kit/network/ServiceExecutor"
 import { KeyAuthenticationFacade } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
@@ -470,12 +470,11 @@ o.spec("PublicEncryptionKeyProvider - convert keys", function () {
 })
 
 function toSystemReturn(publicKeyGetOut: PublicKeyGetOut): SystemKeysReturn {
-	return createSystemKeysReturn({
+	return createTestEntity(SystemKeysReturnTypeRef, {
 		systemAdminPubKeyVersion: publicKeyGetOut.pubKeyVersion,
 		systemAdminPubRsaKey: publicKeyGetOut.pubRsaKey,
 		systemAdminPubKyberKey: publicKeyGetOut.pubKyberKey,
 		systemAdminPubEccKey: publicKeyGetOut.pubEccKey,
-		_type: object(),
 		_format: object(),
 		freeGroupKey: object(),
 		freeGroupKeyVersion: object(),

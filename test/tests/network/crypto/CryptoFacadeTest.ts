@@ -54,7 +54,7 @@ import { KeyRotationFacade } from "../../../../src/platform-kit/base/base-crypto
 import { EncryptedParsedInstance, EntityAdapter, InstancePipeline, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
 import { KeyVerificationMismatchError } from "../../../../src/platform-kit/network/error/KeyVerificationMismatchError"
 import { loadLibOQSWASM } from "../../crypto/WebAssemblyTestUtils"
-import { createMail, createMailAddress, FileTypeRef, Mail, MailAddressTypeRef, MailDetailsBlobTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { createMailAddress, FileTypeRef, Mail, MailAddressTypeRef, MailDetailsBlobTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import {
 	BucketKey,
 	BucketKeyTypeRef,
@@ -62,11 +62,7 @@ import {
 	BucketTypeRef,
 	createBucket,
 	createBucketKey,
-	createBucketPermission,
-	createGroup,
 	createInstanceSessionKey,
-	createKeyPair,
-	createPermission,
 	createTypeInfo,
 	CustomerAccountTerminationRequestTypeRef,
 	Group,
@@ -357,7 +353,7 @@ o.spec("CryptoFacadeTest", function () {
 		const bucket = createBucket({
 			bucketPermissions: "bucketPermissionListId",
 		})
-		const permission = createPermission({
+		const permission = createTestEntity(PermissionTypeRef, {
 			_format: "",
 			listElementApplication: null,
 			listElementTypeId: null,
@@ -381,7 +377,7 @@ o.spec("CryptoFacadeTest", function () {
 			keyToUint8Array(bk),
 		)
 		const protocolVersion = CryptoProtocolVersion.RSA
-		const bucketPermission = createBucketPermission({
+		const bucketPermission = createTestEntity(BucketPermissionTypeRef, {
 			_id: ["bucketPermissionListId", "bucketPermissionId"],
 			_format: "",
 			_permissions: "",
@@ -440,7 +436,7 @@ o.spec("CryptoFacadeTest", function () {
 		const bucket = createBucket({
 			bucketPermissions: "bucketPermissionListId",
 		})
-		const permission = createPermission({
+		const permission = createTestEntity(PermissionTypeRef, {
 			_format: "",
 			listElementApplication: null,
 			listElementTypeId: null,
@@ -464,7 +460,7 @@ o.spec("CryptoFacadeTest", function () {
 			keyToUint8Array(bk),
 		)
 		const protocolVersion = CryptoProtocolVersion.RSA
-		const bucketPermission = createBucketPermission({
+		const bucketPermission = createTestEntity(BucketPermissionTypeRef, {
 			_id: ["bucketPermissionListId", "bucketPermissionId"],
 			_format: "",
 			_permissions: "",
@@ -624,7 +620,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		const recipientKeyPairs = await pqFacade.generateKeyPairs()
 
-		const recipientKeyPair = createKeyPair({
+		const recipientKeyPair = createTestEntity(KeyPairTypeRef, {
 			_id: "recipientKeyPairId",
 			pubEccKey: recipientKeyPairs.x25519KeyPair.publicKey,
 			symEncPrivEccKey: null,
@@ -637,7 +633,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		const senderKeyPairs = await pqFacade.generateKeyPairs()
 
-		const senderKeyPair = createKeyPair({
+		const senderKeyPair = createTestEntity(KeyPairTypeRef, {
 			_id: "senderKeyPairId",
 			pubRsaKey: null,
 			symEncPrivRsaKey: null,
@@ -648,7 +644,7 @@ o.spec("CryptoFacadeTest", function () {
 			signature: null,
 		})
 
-		const senderUserGroup = createGroup({
+		const senderUserGroup = createTestEntity(GroupTypeRef, {
 			_format: "",
 			_ownerGroup: "",
 			_permissions: "",
@@ -735,7 +731,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		const senderKeyPair: KeyPair = object()
 
-		const senderUserGroup = createGroup({
+		const senderUserGroup = createTestEntity(GroupTypeRef, {
 			_id: "userGroupId",
 			currentKeys: senderKeyPair,
 			groupKeyVersion: "0",
@@ -1734,7 +1730,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		let pqKeyPairs = await pqFacade.generateKeyPairs()
 
-		const recipientKeyPair = createKeyPair({
+		const recipientKeyPair = createTestEntity(KeyPairTypeRef, {
 			_id: "keyPairId",
 			pubEccKey: pqKeyPairs.x25519KeyPair.publicKey,
 			symEncPrivEccKey: aesEncrypt(recipientUser.userGroupKey, pqKeyPairs.x25519KeyPair.privateKey),
@@ -1992,7 +1988,7 @@ o.spec("CryptoFacadeTest", function () {
 		confidential: boolean,
 		ownerGroupId: string,
 	): Promise<EncryptedParsedInstance> {
-		const mail = createMail({
+		const mail = createTestEntity(MailTypeRef, {
 			_format: "0",
 			_ownerGroup: ownerGroupId,
 			_ownerEncSessionKey: ownerGroupKey ? encryptKey(ownerGroupKey, sessionKey) : null,

@@ -9,7 +9,7 @@ import {
 } from "../../../../src/applications/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhenModel.js"
 import { Time } from "../../../../src/applications/common/calendar/date/Time.js"
 
-import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
+import { CalendarEvent, CalendarEventTypeRef, CalendarRepeatRule, CalendarRepeatRuleParams } from "@tutao/entities/tutanota"
 
 import { createDateWrapper, createRepeatRule, DateWrapperTypeRef, RepeatRuleTypeRef } from "@tutao/entities/sys"
 import { getTimeZone } from "../../../../src/applications/common/calendar/date/CalendarUtils"
@@ -20,10 +20,16 @@ o.spec(TEST_NAME, function () {
 		console.info(`Skipping time zone dependent test "${TEST_NAME}" for zone ${getTimeZone()}`)
 		return
 	}
+	type PartialCalendarEvent = {
+		startTime: Date
+		endTime: Date
+		repeatRule?: CalendarRepeatRule | null
+	}
+	const getModelBerlin = (initialValues: PartialCalendarEvent) =>
+		new CalendarEventWhenModel(createTestEntity(CalendarEventTypeRef, initialValues), "Europe/Berlin", noOp)
 
-	const getModelBerlin = (initialValues: Partial<CalendarEvent>) => new CalendarEventWhenModel(initialValues, "Europe/Berlin", noOp)
-
-	const getModelKrasnoyarsk = (initialValues: Partial<CalendarEvent>) => new CalendarEventWhenModel(initialValues, "Asia/Krasnoyarsk", noOp)
+	const getModelKrasnoyarsk = (initialValues: Partial<CalendarEvent>) =>
+		new CalendarEventWhenModel(createTestEntity(CalendarEventTypeRef, initialValues), "Asia/Krasnoyarsk", noOp)
 
 	o.spec("date modifications", function () {
 		o("if the start date is set to before 1970, it will be set to this year", function () {

@@ -1,8 +1,7 @@
 import { cleanMailAddress, stringToBase64UrlCustomId } from "@tutao/utils"
 import type { AlarmInterval } from "../../../calendar/date/CalendarUtils.js"
 import { DAY_IN_MILLIS } from "@tutao/app-env"
-import { CalendarEvent } from "@tutao/entities/tutanota"
-import { StrippedEntity } from "@tutao/meta"
+import { CalendarEvent, CalendarEventParams } from "@tutao/entities/tutanota"
 import { IcsCalendarEvent, StrippedCalendarEventAttendee } from "../../../../calendar-app/calendar/export/CalendarParser"
 
 export type CalendarEventTimes = Pick<CalendarEvent, "startTime" | "endTime">
@@ -262,7 +261,7 @@ export function isSameExternalEvent(calendarEvent: CalendarEvent, icsCalendarEve
 	return sameUid && sameRecurrenceId
 }
 
-export function makeEmptyCalendarEvent(): StrippedEntity<CalendarEvent> {
+export function makeEmptyCalendarEvent(): CalendarEventParams {
 	return {
 		alarmInfos: [],
 		invitedConfidentially: null,

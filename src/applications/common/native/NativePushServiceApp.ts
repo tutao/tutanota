@@ -136,9 +136,6 @@ export class NativePushServiceApp {
 	private async createPushIdentifierInstance(identifier: string, pushServiceType: PushServiceType): Promise<PushIdentifier> {
 		const list = assertNotNull(this.logins.getUserController().user.pushIdentifierList?.list)
 		const pushIdentifier = createPushIdentifier({
-			_area: "0",
-			_owner: this.logins.getUserController().userGroupInfo.group,
-			_ownerGroup: this.logins.getUserController().userGroupInfo.group,
 			displayName: client.getIdentifier(),
 			pushServiceType: pushServiceType,
 			identifier,
@@ -148,6 +145,9 @@ export class NativePushServiceApp {
 			lastNotificationDate: null,
 			app: this.app,
 		})
+		pushIdentifier._area = "0"
+		pushIdentifier._owner = this.logins.getUserController().userGroupInfo.group
+		pushIdentifier._ownerGroup = this.logins.getUserController().userGroupInfo.group
 		const id = assertNotNull(await this.entityClient.setup(list, pushIdentifier))
 		return this.entityClient.load(PushIdentifierTypeRef, [list, id])
 	}

@@ -28,17 +28,7 @@ import {
 } from "@tutao/app-env"
 import { EventController } from "../../../common/api/main/EventController"
 import Stream from "mithril/stream"
-import {
-	clone,
-	DELETE_MULTIPLE_LIMIT,
-	elementIdPart,
-	getElementId,
-	isSameId,
-	listIdPart,
-	OperationType,
-	POST_MULTIPLE_LIMIT,
-	removeTechnicalFields,
-} from "@tutao/meta"
+import { clone, DELETE_MULTIPLE_LIMIT, elementIdPart, getElementId, isSameId, listIdPart, OperationType, POST_MULTIPLE_LIMIT } from "@tutao/meta"
 import type { LoginController } from "../../../common/api/main/LoginController"
 import { LockedError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { ParserError } from "../../../common/misc/parsing/ParserCombinator"
@@ -138,6 +128,7 @@ import { IcsCalendarEvent, parseCalendarStringData, ParsedCalendarData, ParsedEv
 import { CalendarImporter, EventImportRejectionReason } from "../../../common/calendar/import/CalendarImporter"
 import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { removeTechnicalFields } from "../gui/eventeditor-model/CalendarEventModel"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3

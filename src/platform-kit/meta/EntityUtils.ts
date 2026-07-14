@@ -57,53 +57,10 @@ export const LOAD_MULTIPLE_LIMIT = 100
 export const POST_MULTIPLE_LIMIT = 100
 export const DELETE_MULTIPLE_LIMIT = 100
 
-/**
- * an entity that only contains the actual user data and can not be used to refer to any existing entity.
- */
-export type Stripped<T extends Partial<SomeEntity>> = Omit<
-	T,
-	| "_id"
-	| "_area"
-	| "_owner"
-	| "_ownerGroup"
-	| "_ownerEncSessionKey"
-	| "_kdfNonce"
-	| "_ownerKeyVersion"
-	| "ownerGroup"
-	| "ownerEncSessionKey"
-	| "ownerKeyVersion"
-	| "_permissions"
-	| "_errors"
-	| "_format"
-	| "_type"
-	| "_original"
->
-
 type OptionalEntity<T extends Entity> = T & {
 	_id?: Id | IdTuple
 	_ownerGroup?: Id
 }
-
-export type StrippedEntity<T extends Entity> =
-	| Omit<
-			T,
-			| "_id"
-			| "_ownerGroup"
-			| "_ownerEncSessionKey"
-			| "_ownerKeyVersion"
-			| "_kdfNonce"
-			| "ownerGroup"
-			| "ownerEncSessionKey"
-			| "ownerKeyVersion"
-			| "_permissions"
-			| "_errors"
-			| "_format"
-			| "_type"
-			| "_area"
-			| "_owner"
-			| "_original"
-	  >
-	| OptionalEntity<T>
 
 export const enum EntityIdEncoding {
 	Base64Ext,
@@ -409,61 +366,6 @@ export function assertIsEntity<T extends SomeEntity>(entity: SomeEntity, type: T
 
 export function assertIsEntity2<T extends SomeEntity>(type: TypeRef<T>): (entity: SomeEntity) => entity is T {
 	return (e): e is T => assertIsEntity(e, type)
-}
-
-/**
- * Remove some hidden technical fields from the entity.
- *
- * Only use for new entities, the {@param entity} won't be usable for updates anymore after this.
- */
-export function removeTechnicalFields<E extends Partial<SomeEntity>>(entity: E) {
-	// we want to restrict outer function to entity types, but internally we also want to handle aggregates
-	function _removeTechnicalFields(erased: Record<string, any>) {
-		for (const key of Object.keys(erased)) {
-			if (TECHNICAL_FIELDS.includes(key)) {
-				delete erased[key]
-			} else {
-				const value = erased[key]
-				if (value instanceof Object) {
-					_removeTechnicalFields(value)
-				}
-			}
-		}
-	}
-
-	_removeTechnicalFields(entity)
-	return entity
-}
-
-/**
- * get a clone of a (partial) entity that does not contain any fields that would indicate that it was ever persisted anywhere.
- * @param entity the entity to strip
- */
-export function getStrippedClone<E extends SomeEntity>(entity: StrippedEntity<E>): StrippedEntity<E> {
-	const cloned = clone(entity)
-	removeTechnicalFields(cloned)
-	removeIdentityFields(cloned)
-	return cloned
-}
-
-/**
- * remove fields that do not contain user defined data but are related to finding/accessing the entity on the server
- */
-function removeIdentityFields<E extends Partial<SomeEntity>>(entity: E) {
-	function _removeIdentityFields(erased: Record<string, any>) {
-		for (const key of Object.keys(erased)) {
-			if (IDENTITY_FIELDS.includes(key)) {
-				delete erased[key]
-			} else {
-				const value = erased[key]
-				if (value instanceof Object) {
-					_removeIdentityFields(value)
-				}
-			}
-		}
-	}
-
-	_removeIdentityFields(entity)
 }
 
 /**

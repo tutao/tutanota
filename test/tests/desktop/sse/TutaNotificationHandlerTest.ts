@@ -24,7 +24,7 @@ import { assertNotNull } from "../../../../src/platform-kit/utils"
 import { Mail, MailAddressTypeRef, MailTypeRef, tutanotaModelInfo } from "@tutao/entities/tutanota"
 import { CredentialType } from "../../../../src/platform-kit/network/types"
 
-import { createIdTupleWrapper, createNotificationInfo, NotificationInfo } from "@tutao/entities/sys"
+import { createIdTupleWrapper, NotificationInfo, NotificationInfoTypeRef } from "@tutao/entities/sys"
 import { OutgoingServerJson } from "../../../../src/platform-kit/instance-pipeline/TypeMapper"
 
 type UndiciFetch = typeof undiciFetch
@@ -78,9 +78,8 @@ o.spec("TutaNotificationHandlerTest", () => {
 				listId: "mailListId",
 				listElementId: "mailElementId",
 			})
-			const notificationInfo = createNotificationInfo({
+			const notificationInfo = createTestEntity(NotificationInfoTypeRef, {
 				_id: "id",
-				_ownerGroup: "ownerGroupId",
 				mailId,
 				mailAddress: "recipient@example.com",
 				userId: "user1",
@@ -111,9 +110,8 @@ o.spec("TutaNotificationHandlerTest", () => {
 				listId: "mailListId",
 				listElementId: "mailElementId",
 			})
-			const notificationInfo = createNotificationInfo({
+			const notificationInfo = createTestEntity(NotificationInfoTypeRef, {
 				_id: "id",
-				_ownerGroup: "ownerGroupId",
 				mailId,
 				mailAddress: "recipient@example.com",
 				userId: "user1",
@@ -132,9 +130,8 @@ o.spec("TutaNotificationHandlerTest", () => {
 				listId: "mailListId",
 				listElementId: "mailElementId",
 			})
-			const notificationInfo = createNotificationInfo({
+			const notificationInfo = createTestEntity(NotificationInfoTypeRef, {
 				_id: "id",
-				_ownerGroup: "ownerGroupId",
 				mailId,
 				mailAddress: "recipient@example.com",
 				userId: "user1",
@@ -172,9 +169,8 @@ o.spec("TutaNotificationHandlerTest", () => {
 				listId: "mailListId",
 				listElementId: "mailElementId",
 			})
-			const notificationInfo = createNotificationInfo({
+			const notificationInfo = createTestEntity(NotificationInfoTypeRef, {
 				_id: "id",
-				_ownerGroup: "ownerGroupId",
 				mailId: mailId,
 				mailAddress: "recipient@example.com",
 				userId: "user1",
@@ -268,9 +264,8 @@ o.spec("TutaNotificationHandlerTest", () => {
 					listId: "mailListId",
 					listElementId: `mailElementId${i}`,
 				})
-				const notificationInfo = createNotificationInfo({
+				const notificationInfo = createTestEntity(NotificationInfoTypeRef, {
 					_id: `id${i}`,
-					_ownerGroup: "ownerGroupId",
 					mailId: mailId,
 					mailAddress: "recipient@example.com",
 					userId: "user1",

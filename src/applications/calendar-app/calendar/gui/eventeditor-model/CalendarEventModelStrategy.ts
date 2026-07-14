@@ -3,7 +3,7 @@
  * the scenarios are mostly divided into deciding the type of operation (edit, delete, create)
  * and the scope of the operation (only the clicked instance or all instances)
  * */
-import { clone, getAsEnumValue, StrippedEntity } from "@tutao/meta"
+import { clone, getAsEnumValue } from "@tutao/meta"
 import { assertEventValidity, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationModel } from "./CalendarNotificationModel.js"
 import { assertNotNull, identity, isNotEmpty } from "@tutao/utils"
@@ -21,7 +21,7 @@ import { isAllDayEvent, isBefore } from "../../../../common/api/common/utils/Com
 import { Time } from "../../../../common/calendar/date/Time"
 import { CalendarInviteHandler } from "../../view/CalendarInvites"
 import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils"
-import { CalendarEvent, createEncryptedMailAddress } from "@tutao/entities/tutanota"
+import { CalendarEvent, CalendarEventParams, createEncryptedMailAddress } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, RecipientList } from "../../../../../entities/tutanota/Utils"
 
 /** when starting an edit or delete operation of an event, we
@@ -42,7 +42,7 @@ export class CalendarEventApplyStrategies {
 		private readonly calendarModel: CalendarModel,
 		private readonly logins: LoginController,
 		private readonly notificationModel: CalendarNotificationModel,
-		private readonly editModelsFactory: (i: StrippedEntity<CalendarEvent>) => CalendarEventEditModels,
+		private readonly editModelsFactory: (i: CalendarEventParams) => CalendarEventEditModels,
 		private readonly lazyRecurrenceIds: (uid: string, groupId: Id) => Promise<Array<Date>>,
 		private readonly showProgress: ShowProgressCallback = identity,
 		private readonly calendarTimeZone: string,

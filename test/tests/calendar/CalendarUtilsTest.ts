@@ -54,7 +54,6 @@ import { Time } from "../../../src/applications/common/calendar/date/Time.js"
 import type { UserController } from "../../../src/applications/common/api/main/UserController.js"
 import { EventWrapper } from "../../../src/applications/calendar-app/calendar/view/CalendarViewModel"
 import {
-	AdvancedRepeatRule,
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
 	CalendarEventTypeRef,
@@ -65,7 +64,7 @@ import {
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
 import { DateWrapperTypeRef, GroupMembershipTypeRef, GroupTypeRef, RepeatRule, UserTypeRef } from "@tutao/entities/sys"
-import { clone, StrippedEntity } from "../../../src/platform-kit/meta"
+import { clone } from "../../../src/platform-kit/meta"
 import { AccountType, GroupType, hasCapabilityOnGroup } from "../../../src/entities/sys/Utils"
 
 const zone = "Europe/Berlin"
@@ -1018,11 +1017,11 @@ o.spec("CalendarUtilsTest", function () {
 						createAdvancedRepeatRule({
 							interval: "TU",
 							ruleType: ByRule.BYDAY,
-						} as StrippedEntity<AdvancedRepeatRule>),
+						}),
 						createAdvancedRepeatRule({
 							interval: "MO",
 							ruleType: ByRule.BYDAY,
-						} as StrippedEntity<AdvancedRepeatRule>),
+						}),
 					],
 				}),
 			)
@@ -1121,11 +1120,11 @@ o.spec("CalendarUtilsTest", function () {
 						createAdvancedRepeatRule({
 							interval: "TU",
 							ruleType: ByRule.BYDAY,
-						} as StrippedEntity<AdvancedRepeatRule>),
+						}),
 						createAdvancedRepeatRule({
 							interval: "MO",
 							ruleType: ByRule.BYDAY,
-						} as StrippedEntity<AdvancedRepeatRule>),
+						}),
 					],
 				}),
 			)
@@ -1224,7 +1223,7 @@ o.spec("CalendarUtilsTest", function () {
 						createAdvancedRepeatRule({
 							interval: "1MO",
 							ruleType: ByRule.BYDAY,
-						} as StrippedEntity<AdvancedRepeatRule>),
+						}),
 					],
 				}),
 			)

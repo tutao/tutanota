@@ -1,8 +1,9 @@
-import { clone, isSameId, StrippedEntity } from "@tutao/meta"
+import { clone, isSameId } from "@tutao/meta"
 import {
 	AdvancedRepeatRule,
 	CalendarEvent,
 	CalendarEventAttendee,
+	CalendarEventParams,
 	CalendarEventTypeRef,
 	CalendarGroupRoot,
 	CalendarRepeatRule,
@@ -1481,7 +1482,7 @@ export function findNextAlarmOccurrence(
 				startTime: eventStart,
 				endTime: eventEnd,
 				repeatRule,
-			} as StrippedEntity<CalendarEvent>),
+			} as CalendarEventParams),
 			localTimeZone,
 			maxDate,
 		)

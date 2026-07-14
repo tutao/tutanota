@@ -1,15 +1,6 @@
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { assertNotNull, isEmpty, isNotNull, last, lazyAsync, promiseMap, splitInChunks } from "../../../../platform-kit/utils"
-import {
-	compareNewestFirst,
-	EntityIdEncoding,
-	GENERATED_MIN_ID,
-	getElementId,
-	hasError,
-	isSameId,
-	StrippedEntity,
-	timestampToGeneratedId,
-} from "../../../../platform-kit/meta"
+import { compareNewestFirst, EntityIdEncoding, GENERATED_MIN_ID, getElementId, hasError, isSameId, timestampToGeneratedId } from "../../../../platform-kit/meta"
 import { BulkMailLoader, MailWithMailDetails } from "../index/BulkMailLoader"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { getSpamConfidence } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
@@ -27,6 +18,7 @@ import {
 	MailSetTypeRef,
 	MailTypeRef,
 	PopulateClientSpamTrainingDatum,
+	PopulateClientSpamTrainingDatumParams,
 } from "@tutao/entities/tutanota"
 import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, SpamDecision } from "../../../../entities/tutanota/Utils"
 import { getMailSetKind, isFolder } from "../../mail/MailUtils"
@@ -44,7 +36,7 @@ export type TrainingDataset = {
 }
 
 export type UnencryptedPopulateClientSpamTrainingDatum = Omit<
-	StrippedEntity<PopulateClientSpamTrainingDatum>,
+	PopulateClientSpamTrainingDatumParams,
 	"encVectorLegacy" | "encVectorWithServerClassifiers" | "ownerEncVectorSessionKey"
 > & {
 	vector: Uint8Array

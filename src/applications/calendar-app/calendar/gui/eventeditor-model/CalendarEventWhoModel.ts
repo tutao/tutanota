@@ -16,13 +16,14 @@ import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
 import {
 	CalendarEvent,
 	CalendarEventAttendee,
+	CalendarEventParams,
 	createCalendarEventAttendee,
 	createEncryptedMailAddress,
 	EncryptedMailAddress,
 	Mail,
 } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, ConversationType, PartialRecipient, Recipient, RecipientType } from "../../../../../entities/tutanota/Utils"
-import { clone, haveSameId, Stripped } from "../../../../../platform-kit/meta"
+import { clone, haveSameId } from "../../../../../platform-kit/meta"
 
 import { getAttendeeStatus } from "../../../../common/calendar/date/CalendarUtils"
 import { hasCapabilityOnGroup } from "../../../../../entities/sys/Utils"
@@ -94,7 +95,7 @@ export class CalendarEventWhoModel {
 	 * @param uiUpdateCallback
 	 */
 	constructor(
-		initialValues: Partial<Stripped<CalendarEvent>>,
+		initialValues: CalendarEventParams,
 		private readonly eventType: EventType,
 		private readonly operation: CalendarOperation,
 		private readonly calendars: ReadonlyMap<Id, CalendarInfo>,
@@ -231,7 +232,7 @@ export class CalendarEventWhoModel {
 	/**
 	 * internally, we want to keep ourselves and the organizer separate from the other attendees
 	 */
-	private setupAttendees(initialValues: Partial<Stripped<CalendarEvent>>) {
+	private setupAttendees(initialValues: CalendarEventParams) {
 		const ownAddresses = this.ownMailAddresses.map((a) => cleanMailAddress(a.address))
 
 		// convert the list of attendees into a map for easier use.

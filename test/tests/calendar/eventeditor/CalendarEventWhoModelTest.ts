@@ -66,7 +66,7 @@ o.spec("CalendarEventWhoModel", function () {
 
 	const getNewModel = (initialValues: Partial<CalendarEvent>) =>
 		new CalendarEventWhoModel(
-			initialValues,
+			createTestEntity(CalendarEventTypeRef, initialValues),
 			EventType.OWN,
 			CalendarOperation.Create,
 			calendars,
@@ -81,7 +81,7 @@ o.spec("CalendarEventWhoModel", function () {
 		)
 	const getOldModel = (initialValues: Partial<CalendarEvent>, eventType = EventType.OWN) =>
 		new CalendarEventWhoModel(
-			initialValues,
+			createTestEntity(CalendarEventTypeRef, initialValues),
 			eventType,
 			CalendarOperation.EditAll,
 			calendars,
@@ -97,7 +97,7 @@ o.spec("CalendarEventWhoModel", function () {
 
 	const getOldSharedModel = (initialValues: Partial<CalendarEvent>, eventType = EventType.SHARED_RW) =>
 		new CalendarEventWhoModel(
-			initialValues,
+			createTestEntity(CalendarEventTypeRef, initialValues),
 			eventType,
 			CalendarOperation.EditAll,
 			calendars,
@@ -113,7 +113,7 @@ o.spec("CalendarEventWhoModel", function () {
 
 	const getOldModelWithSingleEdit = (initialValues: Partial<CalendarEvent>, eventType = EventType.OWN) =>
 		new CalendarEventWhoModel(
-			initialValues,
+			createTestEntity(CalendarEventTypeRef, initialValues),
 			eventType,
 			CalendarOperation.EditThis,
 			calendars,
@@ -129,29 +129,13 @@ o.spec("CalendarEventWhoModel", function () {
 
 	const getOldInviteModel = (initialValues: Partial<CalendarEvent>) =>
 		new CalendarEventWhoModel(
-			initialValues,
+			createTestEntity(CalendarEventTypeRef, initialValues),
 			EventType.INVITE,
 			CalendarOperation.EditAll,
 			calendars,
 			calendars.get("ownCalendar")!,
 			userController,
 			false,
-			ownAddresses,
-			recipients,
-			null,
-			passwordStrengthModel,
-			() => sendMailModel,
-		)
-
-	const getNewInviteModel = (initialValues: Partial<CalendarEvent>) =>
-		new CalendarEventWhoModel(
-			initialValues,
-			EventType.INVITE,
-			CalendarOperation.Create,
-			calendars,
-			calendars.get("ownCalendar")!,
-			userController,
-			true,
 			ownAddresses,
 			recipients,
 			null,

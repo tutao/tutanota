@@ -1,4 +1,4 @@
-import { create, StrippedEntity } from "../../platform-kit/meta/EntityUtils.js"
+import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
 import { default as typeModels } from "./TypeModels.js"
 import { Blob } from '../sys/TypeRefs.js'
@@ -6,8 +6,21 @@ import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
 
 export const DriveFolderTypeRef: TypeRef<DriveFolder> = new TypeRef("drive", 0)
 
-export function createDriveFolder(values: StrippedEntity<DriveFolder>): DriveFolder {
+export function createDriveFolder(values: DriveFolderParams): DriveFolder {
     return Object.assign(create(typeModels[DriveFolderTypeRef.typeId], DriveFolderTypeRef), values)
+}
+
+export type DriveFolderParams = {
+
+
+	type: NumberString;
+	name: string;
+	createdDate: Date;
+	updatedDate: Date;
+
+	parent: null | IdTuple;
+	originalParent: null | IdTuple;
+	files: Id;
 }
 
 export type DriveFolder = {
@@ -33,8 +46,22 @@ export type DriveFolder = {
 }
 export const DriveFileTypeRef: TypeRef<DriveFile> = new TypeRef("drive", 14)
 
-export function createDriveFile(values: StrippedEntity<DriveFile>): DriveFile {
+export function createDriveFile(values: DriveFileParams): DriveFile {
     return Object.assign(create(typeModels[DriveFileTypeRef.typeId], DriveFileTypeRef), values)
+}
+
+export type DriveFileParams = {
+
+
+	name: string;
+	size: NumberString;
+	mimeType: string;
+	createdDate: Date;
+	updatedDate: Date;
+
+	folder: IdTuple;
+	blobs: Blob[];
+	originalParent: null | IdTuple;
 }
 
 export type DriveFile = {
@@ -61,8 +88,16 @@ export type DriveFile = {
 }
 export const DriveFileRefTypeRef: TypeRef<DriveFileRef> = new TypeRef("drive", 30)
 
-export function createDriveFileRef(values: StrippedEntity<DriveFileRef>): DriveFileRef {
+export function createDriveFileRef(values: DriveFileRefParams): DriveFileRef {
     return Object.assign(create(typeModels[DriveFileRefTypeRef.typeId], DriveFileRefTypeRef), values)
+}
+
+export type DriveFileRefParams = {
+
+
+
+	file: null | IdTuple;
+	folder: null | IdTuple;
 }
 
 export type DriveFileRef = {
@@ -79,8 +114,15 @@ export type DriveFileRef = {
 }
 export const DriveFileBagTypeRef: TypeRef<DriveFileBag> = new TypeRef("drive", 39)
 
-export function createDriveFileBag(values: StrippedEntity<DriveFileBag>): DriveFileBag {
+export function createDriveFileBag(values: DriveFileBagParams): DriveFileBag {
     return Object.assign(create(typeModels[DriveFileBagTypeRef.typeId], DriveFileBagTypeRef), values)
+}
+
+export type DriveFileBagParams = {
+
+
+
+	files: Id;
 }
 
 export type DriveFileBag = {
@@ -93,8 +135,15 @@ export type DriveFileBag = {
 }
 export const DriveFolderBagTypeRef: TypeRef<DriveFolderBag> = new TypeRef("drive", 42)
 
-export function createDriveFolderBag(values: StrippedEntity<DriveFolderBag>): DriveFolderBag {
+export function createDriveFolderBag(values: DriveFolderBagParams): DriveFolderBag {
     return Object.assign(create(typeModels[DriveFolderBagTypeRef.typeId], DriveFolderBagTypeRef), values)
+}
+
+export type DriveFolderBagParams = {
+
+
+
+	folders: Id;
 }
 
 export type DriveFolderBag = {
@@ -107,8 +156,18 @@ export type DriveFolderBag = {
 }
 export const DriveGroupRootTypeRef: TypeRef<DriveGroupRoot> = new TypeRef("drive", 45)
 
-export function createDriveGroupRoot(values: StrippedEntity<DriveGroupRoot>): DriveGroupRoot {
+export function createDriveGroupRoot(values: DriveGroupRootParams): DriveGroupRoot {
     return Object.assign(create(typeModels[DriveGroupRootTypeRef.typeId], DriveGroupRootTypeRef), values)
+}
+
+export type DriveGroupRootParams = {
+
+
+
+	fileBags: DriveFileBag[];
+	folderBags: DriveFolderBag[];
+	root: IdTuple;
+	trash: IdTuple;
 }
 
 export type DriveGroupRoot = {
@@ -127,8 +186,17 @@ export type DriveGroupRoot = {
 }
 export const DriveUploadedFileTypeRef: TypeRef<DriveUploadedFile> = new TypeRef("drive", 55)
 
-export function createDriveUploadedFile(values: StrippedEntity<DriveUploadedFile>): DriveUploadedFile {
+export function createDriveUploadedFile(values: DriveUploadedFileParams): DriveUploadedFile {
     return Object.assign(create(typeModels[DriveUploadedFileTypeRef.typeId], DriveUploadedFileTypeRef), values)
+}
+
+export type DriveUploadedFileParams = {
+
+
+	fileName: string;
+	mimeType: string;
+
+	referenceTokens: BlobReferenceTokenWrapper[];
 }
 
 export type DriveUploadedFile = {
@@ -145,8 +213,17 @@ export type DriveUploadedFile = {
 }
 export const DrivePostInTypeRef: TypeRef<DrivePostIn> = new TypeRef("drive", 61)
 
-export function createDrivePostIn(values: StrippedEntity<DrivePostIn>): DrivePostIn {
+export function createDrivePostIn(values: DrivePostInParams): DrivePostIn {
     return Object.assign(create(typeModels[DrivePostInTypeRef.typeId], DrivePostInTypeRef), values)
+}
+
+export type DrivePostInParams = {
+
+
+	ownerEncRootFolderSessionKey: Uint8Array;
+	ownerEncTrashFolderSessionKey: Uint8Array;
+
+	fileGroupId: Id;
 }
 
 export type DrivePostIn = {
@@ -162,8 +239,16 @@ export type DrivePostIn = {
 }
 export const DriveItemPostInTypeRef: TypeRef<DriveItemPostIn> = new TypeRef("drive", 67)
 
-export function createDriveItemPostIn(values: StrippedEntity<DriveItemPostIn>): DriveItemPostIn {
+export function createDriveItemPostIn(values: DriveItemPostInParams): DriveItemPostIn {
     return Object.assign(create(typeModels[DriveItemPostInTypeRef.typeId], DriveItemPostInTypeRef), values)
+}
+
+export type DriveItemPostInParams = {
+
+
+
+	parent: IdTuple;
+	uploadedFile: DriveUploadedFile;
 }
 
 export type DriveItemPostIn = {
@@ -178,8 +263,15 @@ export type DriveItemPostIn = {
 }
 export const DriveItemPostOutTypeRef: TypeRef<DriveItemPostOut> = new TypeRef("drive", 71)
 
-export function createDriveItemPostOut(values: StrippedEntity<DriveItemPostOut>): DriveItemPostOut {
+export function createDriveItemPostOut(values: DriveItemPostOutParams): DriveItemPostOut {
     return Object.assign(create(typeModels[DriveItemPostOutTypeRef.typeId], DriveItemPostOutTypeRef), values)
+}
+
+export type DriveItemPostOutParams = {
+
+
+
+	createdFile: IdTuple;
 }
 
 export type DriveItemPostOut = {
@@ -192,8 +284,17 @@ export type DriveItemPostOut = {
 }
 export const DriveItemPutInTypeRef: TypeRef<DriveItemPutIn> = new TypeRef("drive", 74)
 
-export function createDriveItemPutIn(values: StrippedEntity<DriveItemPutIn>): DriveItemPutIn {
+export function createDriveItemPutIn(values: DriveItemPutInParams): DriveItemPutIn {
     return Object.assign(create(typeModels[DriveItemPutInTypeRef.typeId], DriveItemPutInTypeRef), values)
+}
+
+export type DriveItemPutInParams = {
+
+
+	newName: string;
+
+	file: null | IdTuple;
+	folder: null | IdTuple;
 }
 
 export type DriveItemPutIn = {
@@ -209,8 +310,16 @@ export type DriveItemPutIn = {
 }
 export const DriveItemDeleteInTypeRef: TypeRef<DriveItemDeleteIn> = new TypeRef("drive", 79)
 
-export function createDriveItemDeleteIn(values: StrippedEntity<DriveItemDeleteIn>): DriveItemDeleteIn {
+export function createDriveItemDeleteIn(values: DriveItemDeleteInParams): DriveItemDeleteIn {
     return Object.assign(create(typeModels[DriveItemDeleteInTypeRef.typeId], DriveItemDeleteInTypeRef), values)
+}
+
+export type DriveItemDeleteInParams = {
+
+
+
+	files: IdTuple[];
+	folders: IdTuple[];
 }
 
 export type DriveItemDeleteIn = {
@@ -224,8 +333,16 @@ export type DriveItemDeleteIn = {
 }
 export const DriveFolderServicePostInTypeRef: TypeRef<DriveFolderServicePostIn> = new TypeRef("drive", 84)
 
-export function createDriveFolderServicePostIn(values: StrippedEntity<DriveFolderServicePostIn>): DriveFolderServicePostIn {
+export function createDriveFolderServicePostIn(values: DriveFolderServicePostInParams): DriveFolderServicePostIn {
     return Object.assign(create(typeModels[DriveFolderServicePostInTypeRef.typeId], DriveFolderServicePostInTypeRef), values)
+}
+
+export type DriveFolderServicePostInParams = {
+
+
+	folderName: string;
+
+	parent: IdTuple;
 }
 
 export type DriveFolderServicePostIn = {
@@ -242,8 +359,15 @@ export type DriveFolderServicePostIn = {
 }
 export const DriveFolderServicePostOutTypeRef: TypeRef<DriveFolderServicePostOut> = new TypeRef("drive", 89)
 
-export function createDriveFolderServicePostOut(values: StrippedEntity<DriveFolderServicePostOut>): DriveFolderServicePostOut {
+export function createDriveFolderServicePostOut(values: DriveFolderServicePostOutParams): DriveFolderServicePostOut {
     return Object.assign(create(typeModels[DriveFolderServicePostOutTypeRef.typeId], DriveFolderServicePostOutTypeRef), values)
+}
+
+export type DriveFolderServicePostOutParams = {
+
+
+
+	folder: IdTuple;
 }
 
 export type DriveFolderServicePostOut = {
@@ -256,8 +380,17 @@ export type DriveFolderServicePostOut = {
 }
 export const DriveRenameDataTypeRef: TypeRef<DriveRenameData> = new TypeRef("drive", 92)
 
-export function createDriveRenameData(values: StrippedEntity<DriveRenameData>): DriveRenameData {
+export function createDriveRenameData(values: DriveRenameDataParams): DriveRenameData {
     return Object.assign(create(typeModels[DriveRenameDataTypeRef.typeId], DriveRenameDataTypeRef), values)
+}
+
+export type DriveRenameDataParams = {
+
+
+	encNewName: null | Uint8Array;
+
+	file: null | IdTuple;
+	folder: null | IdTuple;
 }
 
 export type DriveRenameData = {
@@ -272,8 +405,16 @@ export type DriveRenameData = {
 }
 export const DriveFolderServicePutInTypeRef: TypeRef<DriveFolderServicePutIn> = new TypeRef("drive", 97)
 
-export function createDriveFolderServicePutIn(values: StrippedEntity<DriveFolderServicePutIn>): DriveFolderServicePutIn {
+export function createDriveFolderServicePutIn(values: DriveFolderServicePutInParams): DriveFolderServicePutIn {
     return Object.assign(create(typeModels[DriveFolderServicePutInTypeRef.typeId], DriveFolderServicePutInTypeRef), values)
+}
+
+export type DriveFolderServicePutInParams = {
+
+
+
+	items: DriveRenameData[];
+	destination: IdTuple;
 }
 
 export type DriveFolderServicePutIn = {
@@ -287,8 +428,17 @@ export type DriveFolderServicePutIn = {
 }
 export const DriveFolderServiceDeleteInTypeRef: TypeRef<DriveFolderServiceDeleteIn> = new TypeRef("drive", 101)
 
-export function createDriveFolderServiceDeleteIn(values: StrippedEntity<DriveFolderServiceDeleteIn>): DriveFolderServiceDeleteIn {
+export function createDriveFolderServiceDeleteIn(values: DriveFolderServiceDeleteInParams): DriveFolderServiceDeleteIn {
     return Object.assign(create(typeModels[DriveFolderServiceDeleteInTypeRef.typeId], DriveFolderServiceDeleteInTypeRef), values)
+}
+
+export type DriveFolderServiceDeleteInParams = {
+
+
+	restore: boolean;
+
+	files: IdTuple[];
+	folders: IdTuple[];
 }
 
 export type DriveFolderServiceDeleteIn = {
@@ -303,8 +453,16 @@ export type DriveFolderServiceDeleteIn = {
 }
 export const DriveCopyServicePostInTypeRef: TypeRef<DriveCopyServicePostIn> = new TypeRef("drive", 107)
 
-export function createDriveCopyServicePostIn(values: StrippedEntity<DriveCopyServicePostIn>): DriveCopyServicePostIn {
+export function createDriveCopyServicePostIn(values: DriveCopyServicePostInParams): DriveCopyServicePostIn {
     return Object.assign(create(typeModels[DriveCopyServicePostInTypeRef.typeId], DriveCopyServicePostInTypeRef), values)
+}
+
+export type DriveCopyServicePostInParams = {
+
+
+
+	items: DriveRenameData[];
+	destination: IdTuple;
 }
 
 export type DriveCopyServicePostIn = {
@@ -318,8 +476,14 @@ export type DriveCopyServicePostIn = {
 }
 export const DriveCopyServicePostOutTypeRef: TypeRef<DriveCopyServicePostOut> = new TypeRef("drive", 115)
 
-export function createDriveCopyServicePostOut(values: StrippedEntity<DriveCopyServicePostOut>): DriveCopyServicePostOut {
+export function createDriveCopyServicePostOut(values: DriveCopyServicePostOutParams): DriveCopyServicePostOut {
     return Object.assign(create(typeModels[DriveCopyServicePostOutTypeRef.typeId], DriveCopyServicePostOutTypeRef), values)
+}
+
+export type DriveCopyServicePostOutParams = {
+
+
+	operationId: Id;
 }
 
 export type DriveCopyServicePostOut = {
@@ -331,8 +495,14 @@ export type DriveCopyServicePostOut = {
 }
 export const DriveItemServiceDeleteOutTypeRef: TypeRef<DriveItemServiceDeleteOut> = new TypeRef("drive", 118)
 
-export function createDriveItemServiceDeleteOut(values: StrippedEntity<DriveItemServiceDeleteOut>): DriveItemServiceDeleteOut {
+export function createDriveItemServiceDeleteOut(values: DriveItemServiceDeleteOutParams): DriveItemServiceDeleteOut {
     return Object.assign(create(typeModels[DriveItemServiceDeleteOutTypeRef.typeId], DriveItemServiceDeleteOutTypeRef), values)
+}
+
+export type DriveItemServiceDeleteOutParams = {
+
+
+	operationId: Id;
 }
 
 export type DriveItemServiceDeleteOut = {

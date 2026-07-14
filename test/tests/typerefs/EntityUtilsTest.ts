@@ -1,18 +1,14 @@
 import o from "@tutao/otest"
 import { MailTypeRef, tutanotaTypeModels } from "@tutao/entities/tutanota"
 import {
-	clone,
 	constructMailSetEntryId,
 	create,
 	deconstructMailSetEntryId,
-	ElementEntity,
 	GENERATED_MIN_ID,
 	generatedIdToTimestamp,
 	hasError,
-	removeTechnicalFields,
 	timestampToGeneratedId,
 	timestampToHexGeneratedId,
-	TypeRef,
 } from "../../../src/platform-kit/meta"
 
 o.spec("EntityUtils", function () {
@@ -60,27 +56,5 @@ o.spec("EntityUtils", function () {
 		o(mailEntity.subject).equals("") // value with default value
 		o(mailEntity.attachments).deepEquals([]) // association with Any cardinality
 		o(mailEntity.firstRecipient).equals(null) // association with ZeroOrOne cardinality
-	})
-
-	o.spec("removeTechnicalFields", function () {
-		const typeRef = { app: "sys", typeId: 9999999 } as TypeRef<unknown>
-
-		function makeEntity() {
-			return {
-				_id: "test",
-				// so that we can compare it
-				_type: typeRef,
-				_ownerGroup: null,
-				_ownerEncSessionKey: null,
-				_kdfNonce: null,
-			}
-		}
-
-		o("it doesn't do anything when there's nothing to remove", function () {
-			const originalEntity = makeEntity()
-			const entityCopy = clone(originalEntity)
-			removeTechnicalFields(entityCopy as ElementEntity)
-			o(entityCopy as unknown).deepEquals(originalEntity)
-		})
 	})
 })

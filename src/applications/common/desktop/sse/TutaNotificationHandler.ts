@@ -3,7 +3,7 @@ import { NativeCredentialsFacade, UnencryptedCredentials } from "@tutao/native-b
 import { ExtendedNotificationMode } from "@tutao/native-bridge/generatedIpc/enums"
 import { DesktopNotifier } from "../notifications/DesktopNotifier"
 import { LanguageViewModel } from "../../../../ui/utils/LanguageViewModel"
-import { elementIdPart, isSameId, StrippedEntity } from "@tutao/meta"
+import { elementIdPart, isSameId } from "@tutao/meta"
 import { CredentialEncryptionMode } from "@tutao/app-env"
 import { assert, assertNotNull, base64ToBase64Url, getFirstOrThrow, groupBy, neverNull, promiseMap } from "@tutao/utils"
 import { log } from "../DesktopLog"
@@ -14,7 +14,7 @@ import { SseStorage } from "./SseStorage.js"
 import { FetchImpl } from "../net/NetAgent"
 import { ClientOnlyTypeModelResolver, EncryptedParsedInstance, InstancePipeline } from "@tutao/instance-pipeline"
 import { handleRestError } from "@tutao/rest-client/error"
-import { IdTupleWrapper, NotificationInfo } from "@tutao/entities/sys"
+import { IdTupleWrapper, NotificationInfo, NotificationInfoParams } from "@tutao/entities/sys"
 import { MailTypeRef, tutanotaModelInfo } from "@tutao/entities/tutanota"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 
@@ -24,7 +24,7 @@ export type MailMetadata = {
 	senderAddress: string
 	firstRecipientAddress: string | null
 	id: IdTuple
-	notificationInfo: StrippedEntity<NotificationInfo>
+	notificationInfo: NotificationInfoParams
 }
 
 class TutaNotificationHandler {
@@ -46,7 +46,7 @@ class TutaNotificationHandler {
 		)
 	}
 
-	async onMailNotification(sseInfo: SseInfo, notificationInfos: Array<StrippedEntity<NotificationInfo>>) {
+	async onMailNotification(sseInfo: SseInfo, notificationInfos: Array<NotificationInfoParams>) {
 		const infosByListId = groupBy(notificationInfos, (ni) => assertNotNull(ni.mailId).listId)
 		for (const [listId, infos] of infosByListId.entries()) {
 			const firstNotificationInfo = getFirstOrThrow(infos)
@@ -90,7 +90,7 @@ class TutaNotificationHandler {
 		}
 	}
 
-	private onMailNotificationClick(notificationInfo: StrippedEntity<NotificationInfo>) {
+	private onMailNotificationClick(notificationInfo: NotificationInfoParams) {
 		let requestedPath: string | null
 		if (notificationInfo.mailId) {
 			const mailIdParam = encodeURIComponent(`${notificationInfo.mailId.listId},${notificationInfo.mailId.listElementId}`)
@@ -110,7 +110,7 @@ class TutaNotificationHandler {
 	private async downloadMailMetadata(
 		sseInfo: SseInfo,
 		listId: Id,
-		notificationInfos: Array<StrippedEntity<NotificationInfo>>,
+		notificationInfos: Array<NotificationInfoParams>,
 		credentials: UnencryptedCredentials,
 	): Promise<Array<MailMetadata>> {
 		const result: Array<MailMetadata> = []
@@ -161,7 +161,7 @@ class TutaNotificationHandler {
 		return result
 	}
 
-	private encryptedMailToMailMetaData(mailInstance: EncryptedParsedInstance, notificationInfo: StrippedEntity<NotificationInfo>): MailMetadata {
+	private encryptedMailToMailMetaData(mailInstance: EncryptedParsedInstance, notificationInfo: NotificationInfoParams): MailMetadata {
 		const mailId = mailInstance.getAttributeByName("_id").asIdTuple()
 
 		const sender = mailInstance.getAttributeByName("sender").asNestedObjList()[0]

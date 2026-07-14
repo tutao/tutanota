@@ -29,15 +29,18 @@ import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../src/app-k
 import { DecryptedParsedInstance, ModelMapper, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
 
 import { ApplicationTypesFacade } from "../../../../src/platform-kit/instance-pipeline/ApplicationTypesFacade"
-import { OfflineStorageLastProcessedEventBatchStorageFacade } from "../../../../src/applications/common/api/worker/LastProcessedEventBatchStorageFacade"
-import { InterWindowEventFacadeSendDispatcher } from "../../../../src/app-kit/native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
+import {
+	OfflineStorageLastProcessedEventBatchStorageFacade
+} from "../../../../src/applications/common/api/worker/LastProcessedEventBatchStorageFacade"
+import {
+	InterWindowEventFacadeSendDispatcher
+} from "../../../../src/app-kit/native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../../../src/app-kit/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
 import {
 	BodyTypeRef,
 	Contact,
 	ContactListTypeRef,
 	ContactTypeRef,
-	createContactList,
 	Mail,
 	MailAddressTypeRef,
 	MailDetailsBlob,
@@ -47,7 +50,7 @@ import {
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
-import { BlobArchiveRefTypeRef, createBlobArchiveRef } from "@tutao/entities/storage"
+import { BlobArchiveRefTypeRef } from "@tutao/entities/storage"
 import { SqlType } from "../../../../src/app-kit/local-store/Types.js"
 
 import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
@@ -619,7 +622,7 @@ o.spec("OfflineStorageDbTest", function () {
 					const id = "id1"
 					const ownerGroup = "ownerGroup1"
 
-					const entity = createContactList({
+					const entity = createTestEntity(ContactListTypeRef, {
 						_id: id,
 						_ownerGroup: ownerGroup,
 						_permissions: "permissions",
@@ -646,7 +649,7 @@ o.spec("OfflineStorageDbTest", function () {
 					const id: IdTuple = ["id1", "idPart2"]
 					const ownerGroup = "ownerGroup1"
 
-					const entity = createBlobArchiveRef({
+					const entity = createTestEntity(BlobArchiveRefTypeRef, {
 						_id: id,
 						_ownerGroup: ownerGroup,
 						_permissions: "permissions",
