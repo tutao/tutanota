@@ -1,39 +1,29 @@
 import { defer } from "@tutao/utils"
 import { assertMainOrNode, InvoiceData, isIOSApp, UpgradePromptType } from "@tutao/app-env"
 import stream from "mithril/stream"
-import { InfoLink, lang, MaybeTranslation, Translation, TranslationKey } from "../../../ui/utils/LanguageViewModel"
+import { Translation, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { createWizardDialog, wizardPageWrapper } from "../../../ui/base/WizardDialog.js"
 import { InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs } from "./InvoiceAndPaymentDataPage"
-import { UpgradeCongratulationsPage, UpgradeCongratulationsPageAttrs } from "./UpgradeCongratulationsPage.js"
-import { SignupPage, SignupPageAttrs } from "./SignupPage"
 import { locator } from "../api/main/CommonLocator"
-import { StorageBehavior } from "../misc/UsageTestModel"
 import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListProvider"
-import {
-	getDefaultPaymentMethod,
-	getPaymentMethodType,
-	PaymentData,
-	queryAppStoreSubscriptionOwnership,
-	UpgradePromptTypeByName,
-	UpgradeType,
-} from "./utils/SubscriptionUtils"
+import { getDefaultPaymentMethod, getPaymentMethodType, PaymentData, UpgradePromptTypeByName, UpgradeType } from "./utils/SubscriptionUtils"
 import { UpgradeConfirmSubscriptionPage, UpgradeConfirmSubscriptionPageAttrs } from "./UpgradeConfirmSubscriptionPage.js"
-import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider, SubscriptionPrice } from "./utils/PriceUtils"
+import { asPaymentInterval, PriceAndConfigProvider, SubscriptionPrice } from "./utils/PriceUtils"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginController } from "../api/main/LoginController.js"
-import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
-import { DialogType } from "../../../ui/base/Dialog.js"
+import { Dialog, DialogType } from "../../../ui/base/Dialog.js"
 import { SubscriptionPage, SubscriptionPageAttrs } from "./SubscriptionPage.js"
 import { styles } from "../../../ui/styles.js"
-import { stringToSubscriptionType } from "../misc/LoginUtils.js"
-import { ReferralType, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
+import { SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
 import { PowSolution } from "../api/common/pow-worker"
 import { windowFacade } from "../misc/WindowFacade"
 import type { UsageTest } from "@tutao/usagetests"
 import { AccountingInfo, Customer } from "@tutao/entities/sys"
-import { AvailablePlans, AvailablePlanType, NewPaidPlans, PlanType, SubscriptionType } from "../../../entities/sys/Utils"
+import { AvailablePlanType, NewPaidPlans, PlanType } from "../../../entities/sys/Utils"
 import { getByAbbreviation } from "../gui/CountryList"
+
+import { isFreeSignupOnly } from "../misc/LoginUtils"
 
 assertMainOrNode()
 export type SubscriptionParameters = {
@@ -95,6 +85,12 @@ export async function showUpgradeWizard({
 	acceptedPlans?: readonly AvailablePlanType[]
 	msg?: Translation
 }): Promise<void> {
+	/* Temporarely restricting to free only to get accepted by Google Play Store */
+	if (isFreeSignupOnly()) {
+		Dialog.message("notAvailableInApp_msg")
+		return
+	}
+
 	SignupFlowUsageTestController.invalidateUsageTest() // Invalidates the "signup.flow" usage test, because upgrades and signups should not be mixed in this usage test.
 
 	let upgradeUsageTest: UsageTest | null = null
@@ -181,123 +177,4 @@ export function getPlanSelectorTest() {
 	const test = locator.usageTestController.getTest(`signup.paywall.${styles.isMobileLayout() ? "mobile" : "desktop"}`)
 	test.recordTime = true
 	return test
-}
-
-export async function loadSignupWizard(
-	subscriptionParameters: SubscriptionParameters | null,
-	registrationDataId: string | null,
-	referralData: null | ReferralData,
-	acceptedPlans: readonly AvailablePlanType[] = AvailablePlans,
-): Promise<void> {
-	const usageTestModel = locator.usageTestModel
-
-	usageTestModel.setStorageBehavior(StorageBehavior.Ephemeral)
-	locator.usageTestController.setTests(await usageTestModel.loadActiveUsageTests())
-
-	const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(registrationDataId, locator.serviceExecutor, referralData?.code ?? null)
-	const prices = priceDataProvider.getRawPricingData()
-	const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
-	const featureListProvider = await FeatureListProvider.getInitializedInstance(domainConfig)
-
-	let message: MaybeTranslation | null
-	if (isIOSApp()) {
-		const appstoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
-		// if we are on iOS app we only show other plans if AppStore payments are enabled and there's no subscription for this Apple ID.
-		if (appstoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
-			acceptedPlans = acceptedPlans.filter((plan) => plan === PlanType.Free)
-		}
-		message =
-			appstoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription
-				? lang.getTranslation("storeMultiSubscriptionError_msg", { "{AppStorePayment}": InfoLink.AppStorePayment })
-				: null
-	} else {
-		message = null
-	}
-
-	const subscriptionType = stringToSubscriptionType(subscriptionParameters?.type ?? "private")
-	const paymentInterval = asPaymentInterval(subscriptionParameters?.interval ?? PaymentInterval.Yearly)
-
-	const signupData: UpgradeSubscriptionData = {
-		options: {
-			businessUse: stream(subscriptionType === SubscriptionType.Business),
-			paymentInterval: stream(paymentInterval),
-		},
-		invoiceData: {
-			invoiceAddress: "",
-			country: null,
-			vatNumber: "", // only for EU countries otherwise empty
-		},
-		paymentData: {
-			paymentMethod: await getDefaultPaymentMethod(),
-			creditCardData: null,
-		},
-		price: null,
-		nextYearPrice: null,
-		targetPlanType: PlanType.Free,
-		accountingInfo: null,
-		customer: null,
-		newAccountData: null,
-		registrationDataId,
-		priceInfoTextId: priceDataProvider.getPriceInfoMessage(),
-		upgradeType: UpgradeType.Signup,
-		planPrices: priceDataProvider,
-		currentPlan: null,
-		subscriptionParameters,
-		featureListProvider,
-		referralData,
-		multipleUsersAllowed: false,
-		acceptedPlans,
-		msg: message,
-		firstMonthForFreeOfferActive: prices.firstMonthForFreeForYearlyPlan,
-		isCalledBySatisfactionDialog: false,
-		upgradeUsageTest: null,
-		upgradePromptType: null,
-	}
-
-	const invoiceAttrs = new InvoiceAndPaymentDataPageAttrs(signupData)
-	const confirmSubscriptionAttrs = new UpgradeConfirmSubscriptionPageAttrs(signupData)
-	let referralConversion: ReferralType = "not_referred"
-	if (signupData.referralData && signupData.referralData.isCalledBySatisfactionDialog) referralConversion = "satisfactiondialog_referral"
-	else if (signupData.referralData && !signupData.referralData.isCalledBySatisfactionDialog) referralConversion = "organic_referral"
-	SignupFlowUsageTestController.initSignupFlowUsageTest(referralConversion)
-	const plansPage = { pageClass: SubscriptionPage, attrs: new SubscriptionPageAttrs(signupData) }
-	const loginViewModelFactory = await locator.loginViewModelFactory()
-	const wizardPages = [
-		wizardPageWrapper(plansPage.pageClass, plansPage.attrs),
-		wizardPageWrapper(SignupPage, new SignupPageAttrs(signupData)),
-		wizardPageWrapper(InvoiceAndPaymentDataPage, invoiceAttrs), // this page will login the user after signing up with newaccount data
-		wizardPageWrapper(UpgradeConfirmSubscriptionPage, confirmSubscriptionAttrs), // this page will login the user if they are not login for iOS payment through AppStore
-		wizardPageWrapper(UpgradeCongratulationsPage, new UpgradeCongratulationsPageAttrs(signupData, loginViewModelFactory)),
-	]
-
-	if (isIOSApp()) {
-		wizardPages.splice(2, 1) // do not show this page on AppStore payment since we are only able to show this single payment method on iOS
-	}
-
-	const wizardBuilder = createWizardDialog({
-		data: signupData,
-		pages: wizardPages,
-		closeAction: async () => {
-			if (locator.logins.isUserLoggedIn()) {
-				// this ensures that all created sessions during signup process are closed
-				// either by clicking on `cancel`, closing the window, or confirm on the UpgradeCongratulationsPage
-				await locator.logins.logout(true)
-			}
-
-			// ensure that we reload the client in order to reset any state of the client that has been set when creating a session during signup.
-			if (signupData.newAccountData) {
-				await windowFacade.reload({
-					noAutoLogin: false,
-				})
-			}
-		},
-		dialogType: DialogType.EditLarge,
-		windowFacade,
-	})
-
-	// for signup specifically, we only want the invoice and payment page as well as the confirmation page to show up if signing up for a paid account (and the user did not go back to the first page!)
-	invoiceAttrs.setEnabledFunction(() => signupData.targetPlanType !== PlanType.Free && wizardBuilder.attrs.currentPage !== wizardPages[0])
-	confirmSubscriptionAttrs.setEnabledFunction(() => signupData.targetPlanType !== PlanType.Free && wizardBuilder.attrs.currentPage !== wizardPages[0])
-
-	wizardBuilder.dialog.show()
 }
