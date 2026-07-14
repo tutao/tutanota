@@ -229,22 +229,6 @@ export class SearchModel {
 			currentDate = incrementMonth(currentDate, 1)
 		}
 
-		const searchResult: SearchResult = {
-			// data that is relevant to calendar search
-			matchWordOrder: false,
-			restriction,
-			results: [],
-			query: query,
-			tokens: tokens.map((t) => {
-				return { token: t, exact: false }
-			}),
-			// index related, keep empty
-			currentIndexTimestamp: 0,
-			moreResults: [],
-			moreResultsEntries: [],
-			lastReadSearchIndexRow: [],
-		}
-
 		// FIXME: hook up ProgressTracker
 
 		if (this.cancelSignal()) {
@@ -252,7 +236,8 @@ export class SearchModel {
 			return null as unknown as LiveSearchResult<CalendarEvent>
 		}
 
-		const items: CalendarEvent[] = []
+		const resultIds: IdTuple[] = []
+		const resultItems: CalendarEvent[] = []
 
 		// FIXME: birthdays and shit
 
@@ -288,8 +273,8 @@ export class SearchModel {
 					for (const token of tokens) {
 						if (wrapper.event.summary.toLowerCase().includes(token)) {
 							// FIXME alreadyAdded.add(key)
-							searchResult.results.push(wrapper.event._id)
-							items.push(wrapper.event)
+							resultIds.push(wrapper.event._id)
+							resultItems.push(wrapper.event)
 							continue eventLoop
 						}
 					}
@@ -300,8 +285,8 @@ export class SearchModel {
 					for (const token of tokens) {
 						if (descriptionToSearch.includes(token)) {
 							// FIXME alreadyAdded.add(key)
-							searchResult.results.push(wrapper.event._id)
-							items.push(wrapper.event)
+							resultIds.push(wrapper.event._id)
+							resultItems.push(wrapper.event)
 							continue eventLoop
 						}
 					}
@@ -316,9 +301,25 @@ export class SearchModel {
 			}
 		}
 
-		const result: LiveSearchResult<CalendarEvent> = {
+		const searchResult: SearchResult = {
+			// data that is relevant to calendar search
+			matchWordOrder: false,
+			restriction,
+			results: resultIds,
+			query: query,
+			tokens: tokens.map((t) => {
+				return { token: t, exact: false }
+			}),
+			// index related, keep empty
+			currentIndexTimestamp: 0,
+			moreResults: [],
+			moreResultsEntries: [],
+			lastReadSearchIndexRow: [],
+		}
+
+		const liveResult: LiveSearchResult<CalendarEvent> = {
 			searchResult,
-			items,
+			items: resultItems,
 			loadMoreResults: async (count) => {
 				const items: CalendarEvent[] = []
 				// FIXME: not implemented
@@ -330,15 +331,15 @@ export class SearchModel {
 			},
 			updates: stream(),
 			dispose: () => {
-				remove(this.liveResults, result)
-				result.updates.end(true)
+				remove(this.liveResults, liveResult)
+				liveResult.updates.end(true)
 			},
 			entityEventsReceived: async (updates) => {
-				this.applyEntityUpdates(updates, result, CalendarEventTypeRef)
+				this.applyEntityUpdates(updates, liveResult, CalendarEventTypeRef)
 			},
 		}
-		this.liveResults.push(result)
-		return result
+		this.liveResults.push(liveResult)
+		return liveResult
 	}
 
 	async search(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<SearchResult | void> {

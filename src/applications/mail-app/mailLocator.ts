@@ -446,6 +446,7 @@ class MailLocator implements CommonLocator {
 			this.contactModel,
 			this.groupSettingsModel,
 			this.operationProgressTracker,
+			await this.unscopedSearchRouter(),
 		)
 	})
 

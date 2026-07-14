@@ -93,6 +93,7 @@ import { EventSeriesResolver } from "../../../common/calendar/import/EventSeries
 import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
 import { SearchQuery } from "../search/model/CalendarSearchModel"
 import { LiveSearchResult, SearchModel } from "../../../mail-app/search/model/SearchModel"
+import { SearchRouter } from "../../../common/search/view/SearchRouter"
 
 export interface EventWrapperFlags {
 	/**
@@ -253,6 +254,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		private readonly contactModel: ContactModel,
 		private readonly groupSettingsModel: lazy<Promise<GroupSettingsModel>>,
 		private readonly operationProgressTracker: OperationProgressTracker,
+		private readonly searchRouter: SearchRouter,
 	) {
 		this.calendarColorsMap = memoized((availableCalendars: ReadonlyArray<CalendarInfoBase>) => {
 			const calendarColors = new Map()
@@ -960,6 +962,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			this.timeZone,
 		)
 		await importer.import(groupRoot, calendarInfo, parsedEventAlarmTuples, CalendarImporter.classifyImportedEvents, calendarInfo.type)
+	}
+
+	selectSearchResult(searchQuery: SearchQuery, calendarEvent: CalendarEvent) {
+		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, getElementId(calendarEvent))
 	}
 
 	getSearchResult(searchQuery: SearchQuery): Promise<LiveSearchResult<CalendarEvent>> {

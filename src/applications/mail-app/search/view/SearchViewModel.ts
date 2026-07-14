@@ -344,6 +344,23 @@ export class SearchViewModel {
 					listModel.loadInitial()
 					break
 				}
+				case SearchCategoryType.calendar: {
+					const searchPromise = this.search
+						.coolNewSearchCalendar({
+							query: searchQuery ?? "",
+							restriction,
+							maxResults,
+						})
+						.then((result) => {
+							this.applyLiveSearchResults(result)
+							return result
+						})
+
+					const listModel = this.createList(searchPromise)
+					this._listModel = listModel
+					listModel.loadInitial()
+					break
+				}
 			}
 		}
 		this.loadAndSelectIfNeeded(args.id)
