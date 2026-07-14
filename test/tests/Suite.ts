@@ -290,6 +290,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./api/worker/utils/spamClassification/SpamClassifierTest.js")
 		await import("./network/offline/OfflineStorageMigratorTest.js")
 		await import("./network/offline/migrations/offline-v14.js")
+		await import("./network/offline/migrations/offline-v15.js")
 		await import("./network/offline/OfflineStorageTest.js")
 		await import("./desktop/ApplicationWindowTest.js")
 		await import("./desktop/DesktopContextMenuTest.js")
