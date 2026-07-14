@@ -166,7 +166,7 @@ export class ImapImporter implements ImapSyncFacade {
 		await this.imapSyncSystemFacade.startSync(imapAccountSyncStateId, imapSyncContext)
 
 		await this.imapFacade.updateAccountSyncStateAndAllFolderSyncStates(
-			session.imapAccountSyncState._id,
+			session.imapAccountSyncState,
 			ImapAccountSyncStatus.RUNNING,
 			ImapFolderSyncStatus.RUNNING,
 		)
@@ -181,7 +181,7 @@ export class ImapImporter implements ImapSyncFacade {
 		if (session !== null) {
 			await this.imapSyncSystemFacade.stopSync(session.imapAccountSyncState._id)
 			await this.imapFacade.updateAccountSyncStateAndAllFolderSyncStates(
-				session.imapAccountSyncState._id,
+				session.imapAccountSyncState,
 				ImapAccountSyncStatus.PAUSED,
 				ImapFolderSyncStatus.PAUSED,
 			)
@@ -192,11 +192,11 @@ export class ImapImporter implements ImapSyncFacade {
 		const session = this.getImapImportSessionOrNull(accountSyncStateId)
 		if (session !== null) {
 			await this.imapSyncSystemFacade.stopSync(session.imapAccountSyncState._id)
-			session.imapAccountSyncState.postponedUntil = postponedUntil.getTime().toString()
 			await this.imapFacade.updateAccountSyncStateAndAllFolderSyncStates(
-				session.imapAccountSyncState._id,
+				session.imapAccountSyncState,
 				ImapAccountSyncStatus.POSTPONED,
 				ImapFolderSyncStatus.PAUSED,
+				postponedUntil.getTime().toString(),
 			)
 		}
 	}
@@ -364,9 +364,10 @@ export class ImapImporter implements ImapSyncFacade {
 			// This should usually never happen, only with bad IMAP server implementations.
 			if (folderSyncState.uidvalidity && !(folderSyncState.uidvalidity === imapMailboxStatus.uidValidity.toString())) {
 				await this.imapFacade.updateAccountSyncStateAndAllFolderSyncStates(
-					session.imapAccountSyncState._id,
+					session.imapAccountSyncState,
 					ImapAccountSyncStatus.ERROR,
 					ImapFolderSyncStatus.CANCELED,
+					undefined,
 				)
 				console.error(
 					`uidvalidity of a folder has changed for the account sync state ${accountSyncStateId} on mail group ${folderSyncState._ownerGroup}.`,
@@ -447,7 +448,7 @@ export class ImapImporter implements ImapSyncFacade {
 		const session = this.getImapImportSessionOrNull(accountSyncStateId)
 		if (session) {
 			await this.imapFacade.updateAccountSyncStateAndAllFolderSyncStates(
-				session.imapAccountSyncState._id,
+				session.imapAccountSyncState,
 				ImapAccountSyncStatus.FINISHED,
 				ImapFolderSyncStatus.FINISHED,
 			)

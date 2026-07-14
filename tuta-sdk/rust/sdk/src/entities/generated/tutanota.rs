@@ -4429,6 +4429,11 @@ pub struct ImapAccount {
 	pub username: String,
 	#[serde(rename = "1871")]
 	pub password: Option<String>,
+	#[serde(rename = "1987")]
+	pub ignoreCertificateErrors: bool,
+	#[serde(rename = "1988")]
+	#[serde(with = "serde_bytes")]
+	pub customCertificateData: Option<Vec<u8>>,
 	#[serde(rename = "1872")]
 	pub oAuthTokenEndpointResponse: Option<OAuthTokenEndpointResponse>,
 
@@ -4799,8 +4804,13 @@ pub struct ImapPutIn {
 	pub newImapAccountSyncStatus: i64,
 	#[serde(rename = "1983")]
 	pub newImapFolderSyncStatus: i64,
+	#[serde(rename = "1986")]
+	pub newPostponedUntil: Option<String>,
 	#[serde(rename = "1981")]
 	pub imapAccountSyncState: IdTupleGenerated,
+
+	#[serde(default)]
+	pub _errors: Errors,
 }
 
 impl Entity for ImapPutIn {

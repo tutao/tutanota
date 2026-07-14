@@ -51,7 +51,7 @@ export class ImapImportCredentialsPage implements WizardPageN<ImapImportData> {
 						".flex.row.gap-16.mt-16",
 						m(TextField, {
 							label: "migrationImapAccountPassword_label",
-							value: vnode.attrs.data.imapAccountPassword,
+							value: vnode.attrs.data.imapAccountPassword ?? "",
 							oninput: (value) => (vnode.attrs.data.imapAccountPassword = value),
 							type: vnode.attrs.data.revealImapAccountPassword ? LegacyTextFieldType.Text : LegacyTextFieldType.Password,
 							injectionsRight: () => this.renderRevealIcon(vnode.attrs.data),
@@ -107,6 +107,7 @@ export class ImapImportCredentialsPage implements WizardPageN<ImapImportData> {
 							(this.shouldDisplayServerConfigFields &&
 								!(
 									isMailAddress(vnode.attrs.data.imapAccountUsername, true) &&
+									vnode.attrs.data.imapAccountPassword &&
 									vnode.attrs.data.imapAccountPassword.length > 0 &&
 									vnode.attrs.data.imapAccountHost.length > 0 &&
 									!Number.isNaN(vnode.attrs.data.imapAccountPort) &&

@@ -19,8 +19,9 @@ import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } 
 import { showUpdateImapCredentialsDialog } from "../../../common/gui/dialogs/UpdateImapCredentialsDialog"
 import { OAuthHandler } from "./oauth/OAuthHandler"
 import { Dialog } from "../../../../ui/base/Dialog"
-import { OAuthErrorHandler } from "./oauth/OAuthErrorHandler"
-import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { ImapErrorHandler, ReadableImapError } from "./ImapErrorHandler"
+import { ImapErrorCause } from "../../../common/api/common/error/ImapError"
+import { lang } from "../../../../ui/utils/LanguageViewModel"
 
 assertMainOrNode()
 
@@ -36,6 +37,14 @@ export type ImapImportUiSession = {
 		total: number
 	}
 	importedMailCount: number
+}
+
+export type ImapImportUiGetMailboxResult = {
+	result?: {
+		imapMailboxes: ReadonlyArray<ImapMailbox>
+		imapCredentials: ImapCredentials
+	}
+	error?: ReadableImapError
 }
 
 const IMAP_IMPORT_RESYNC_INTERVAL_MS = 15 * 60 * 1000 // 15 minutes
@@ -55,7 +64,7 @@ export class ImapMailImportController {
 		private readonly entityClient: EntityClient,
 		private readonly eventController: EventController,
 		private readonly oauthFacade: OauthFacade,
-		private readonly oAuthErrorHandler: OAuthErrorHandler,
+		private readonly imapErrorHandler: ImapErrorHandler,
 	) {
 		this.eventController.addEntityListener({
 			onEntityUpdatesReceived: (updates) => this.entityEventsReceived(updates),
@@ -72,7 +81,7 @@ export class ImapMailImportController {
 
 					const shouldDisplayCredentialsDialog = imapAccountSyncState.status === ImapAccountSyncStatus.AUTH_ERROR
 					if (shouldDisplayCredentialsDialog) {
-						this.displayUpdateImapCredentialsDialog(imapAccountSyncState, imapAccountSyncStateId)
+						this.displayUpdateImapCredentialsDialog(imapAccountSyncState)
 					}
 					const shouldDisplayErrorDialog = imapAccountSyncState.status === ImapAccountSyncStatus.ERROR
 					if (shouldDisplayErrorDialog) {
@@ -85,10 +94,10 @@ export class ImapMailImportController {
 
 	public async promptUpdateImapCredentialsDialog(imapAccountSyncStateId: IdTuple) {
 		const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId)
-		this.displayUpdateImapCredentialsDialog(imapAccountSyncState, imapAccountSyncStateId)
+		this.displayUpdateImapCredentialsDialog(imapAccountSyncState)
 	}
 
-	private displayUpdateImapCredentialsDialog(imapAccountSyncState: ImapAccountSyncState, imapAccountSyncStateId: IdTuple) {
+	private displayUpdateImapCredentialsDialog(imapAccountSyncState: ImapAccountSyncState) {
 		showUpdateImapCredentialsDialog(
 			{
 				syncState: imapAccountSyncState,
@@ -99,7 +108,7 @@ export class ImapMailImportController {
 					imapAccountSyncState.imapAccount = updatedAccount
 					imapAccountSyncState.status = ImapAccountSyncStatus.PAUSED
 					await this.entityClient.update(imapAccountSyncState)
-					await this.continueImport(imapAccountSyncStateId)
+					await this.continueImport(imapAccountSyncState._id)
 					dialog.close()
 				}
 			},
@@ -153,9 +162,9 @@ export class ImapMailImportController {
 		} catch (e) {
 			console.log(`failed to continue imap sync for imapAccountSyncState: ${imapAccountSyncStateId}`, e)
 
-			if (this.oAuthErrorHandler.isAuthError(e) && retryAttempts < 1) {
+			if (this.imapErrorHandler.isAuthError(e) && retryAttempts < 1) {
 				await this.pauseImport(imapAccountSyncStateId)
-				const shouldRetry = await this.oAuthErrorHandler.handleAuthError(imapAccountSyncStateId)
+				const shouldRetry = await this.imapErrorHandler.handleImapError(e, undefined, imapAccountSyncStateId)
 				if (shouldRetry) {
 					return await this.continueImport(imapAccountSyncStateId, false, 1)
 				} else {
@@ -269,8 +278,28 @@ export class ImapMailImportController {
 		return this.mailboxDetails.find((mailboxDetail) => mailboxDetail.mailGroupInfo.group === session.mailGroupId)
 	}
 
-	async getImapMailboxesFromServer(imapCredentials: ImapCredentials) {
-		return await this.imapImporter.getImapMailboxesFromServer(imapCredentials)
+	async doInitialConnectAndGetImapMailboxes(imapCredentials: ImapCredentials): Promise<ImapImportUiGetMailboxResult> {
+		const imapImportUiGetMailboxResult: ImapImportUiGetMailboxResult = {}
+		const imapGetMailboxResult = await this.imapImporter.getImapMailboxesFromServer(imapCredentials)
+		if (imapGetMailboxResult.result) {
+			imapImportUiGetMailboxResult.result = {
+				imapMailboxes: imapGetMailboxResult.result,
+				imapCredentials: imapCredentials,
+			}
+		} else if (imapGetMailboxResult.error) {
+			const imapErrorHandlerResult = await this.imapErrorHandler.handleImapError(imapGetMailboxResult.error, imapCredentials)
+			if (imapErrorHandlerResult.shouldRetry) {
+				const updatedImapCredentials = imapErrorHandlerResult.updatedImapCredentials ?? imapCredentials
+				return await this.doInitialConnectAndGetImapMailboxes(updatedImapCredentials)
+			}
+			imapImportUiGetMailboxResult.error = imapErrorHandlerResult.readableImapError
+		} else {
+			imapImportUiGetMailboxResult.error = {
+				cause: ImapErrorCause.UNKNOWN,
+				errorMessage: lang.getTranslationText("migrationAccountConnectionFailure_msg"),
+			}
+		}
+		return imapImportUiGetMailboxResult
 	}
 
 	async getFolderSystemForSelectedMailbox() {
@@ -329,6 +358,8 @@ export class ImapMailImportController {
 			imapMailboxes: [],
 			folderSystem: new FolderSystem([]),
 			imapProvider: ImapProvider.Other,
+			customCertificateData: null,
+			ignoreCertificateErrors: false,
 		}
 
 		if (!env.dist) {

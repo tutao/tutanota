@@ -1,8 +1,9 @@
 import { ImapSync } from "./imapsync/ImapSync.js"
-import { ImapError, ImapErrorCause } from "../../api/common/error/ImapError.js"
+import { fromImapFlowError, ImapError, ImapErrorCause } from "../../api/common/error/ImapError.js"
 import { ImapGetMailboxResult } from "../../api/common/utils/imapImportUtils/ImapGetMailboxResult"
 import { ImapCredentials, ImapSyncSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { ImapSyncContext } from "../../api/common/utils/imapImportUtils/ImapSyncContext"
+import { first } from "@tutao/utils"
 
 export type ImapSyncFactory = (accountSyncId: IdTuple) => ImapSync
 export type ImapInitFolderSyncFactory = () => ImapSync
@@ -30,7 +31,14 @@ export class DesktopImapSyncSystemFacade implements ImapSyncSystemFacade {
 			const mailboxes = await this.imapInitFolderSyncFactory().getImapMailboxesFromServer(imapAccount)
 			return { result: mailboxes }
 		} catch (e) {
-			return { error: new ImapError(e.response, ImapErrorCause.LIST_MAILBOX_FAILED) }
+			//		console.log(JSON.stringify(e))
+			const errorList = e.errors ?? [e]
+			const firstError = first(errorList)
+			if (firstError) {
+				console.log(firstError)
+				return { error: fromImapFlowError(firstError) }
+			}
+			return { error: new ImapError("initial connection failed", ImapErrorCause.INITIAL_CONNECT_FAILED) }
 		}
 	}
 

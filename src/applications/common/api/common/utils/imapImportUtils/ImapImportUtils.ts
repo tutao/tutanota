@@ -26,7 +26,13 @@ const IMAP_FLAG_ANSWERED = "\\Answered"
 const IMAP_FLAG_FORWARDED = "$Forwarded"
 
 export function imapAccountToImapCredentials(imapAccount: ImapAccount): ImapCredentials {
-	const imapCredentials: ImapCredentials = { host: imapAccount.host, port: parseInt(imapAccount.port), username: imapAccount.username }
+	const imapCredentials: ImapCredentials = {
+		host: imapAccount.host,
+		port: parseInt(imapAccount.port),
+		username: imapAccount.username,
+		ignoreCertificateErrors: imapAccount.ignoreCertificateErrors,
+		customCertificateData: imapAccount.customCertificateData,
+	}
 	imapCredentials.password = imapAccount.password ?? undefined
 	const tokenEndpointResponse = imapAccount.oAuthTokenEndpointResponse
 	imapCredentials.tokenEndpointResponse =

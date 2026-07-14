@@ -15,7 +15,7 @@ export interface ImapSyncSystemFacade {
 	/**
 	 * Fetches the folders from the IMAP server, to be used for the folder mapping step
 	 */
-	getImapMailboxesFromServer(imapAccount: ImapCredentials): Promise<ImapGetMailboxResult>
+	getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ImapGetMailboxResult>
 
 	/**
 	 * Stop a specific running IMAP sync.

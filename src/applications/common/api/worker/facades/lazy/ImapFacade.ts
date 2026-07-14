@@ -40,6 +40,7 @@ import {
 	EntityRestClientLoadOptions,
 } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { getElementId } from "@tutao/meta"
+import { parseKeyVersion } from "../../../../../../platform-kit/crypto/CryptoUtils"
 
 export class ImapFacade {
 	constructor(
@@ -109,12 +110,24 @@ export class ImapFacade {
 	}
 
 	async updateAccountSyncStateAndAllFolderSyncStates(
-		imapAccountSyncState: IdTuple,
+		imapAccountSyncState: ImapAccountSyncState,
 		newImapAccountSyncStatus: ImapAccountSyncStatus,
 		newImapFolderSyncStatus: ImapFolderSyncStatus,
+		newPostponedUntil?: string,
 	) {
-		const imapPutIn = createImapPutIn({ imapAccountSyncState, newImapAccountSyncStatus, newImapFolderSyncStatus })
-		await this.serviceExecutor.put(ImapService, imapPutIn, null)
+		const ownerKeyVersion = parseKeyVersion(assertNotNull(imapAccountSyncState._ownerKeyVersion))
+		const mailGroupKey = await this.keyLoader.loadSymGroupKey(assertNotNull(imapAccountSyncState._ownerGroup), ownerKeyVersion)
+		const imapPutIn = createImapPutIn({
+			imapAccountSyncState: imapAccountSyncState._id,
+			newImapAccountSyncStatus,
+			newImapFolderSyncStatus,
+			newPostponedUntil: newPostponedUntil ?? null,
+		})
+		const sessionKey = this.cryptoWrapper.decryptKey(mailGroupKey, assertNotNull(imapAccountSyncState._ownerEncSessionKey))
+		await this.serviceExecutor.put(ImapService, imapPutIn, {
+			...DEFAULT_EXTRA_SERVICE_PARAMS,
+			sessionKey,
+		})
 	}
 
 	async deleteImapImport(imapAccountSyncStateId: IdTuple): Promise<void> {

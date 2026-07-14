@@ -2843,6 +2843,8 @@ export type ImapAccount = {
 	port: NumberString;
 	username: string;
 	password: null | string;
+	ignoreCertificateErrors: boolean;
+	customCertificateData: null | Uint8Array;
 
 	oAuthTokenEndpointResponse: null | OAuthTokenEndpointResponse;
 }
@@ -3083,6 +3085,7 @@ export type ImapPutIn = {
 	_format: NumberString;
 	newImapAccountSyncStatus: NumberString;
 	newImapFolderSyncStatus: NumberString;
+	newPostponedUntil: null | string;
 
 	imapAccountSyncState: IdTuple;
 }

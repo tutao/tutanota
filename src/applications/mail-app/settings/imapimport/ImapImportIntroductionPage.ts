@@ -41,34 +41,20 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 				this.titleSectionParams.iconOptions = undefined
 				this.titleSectionParams.customIcon = m.trust(OutlookLogo)
 				break
+			default:
+				this.titleSectionParams.customIcon = undefined
+				this.titleSectionParams.icon = Icons.MailFilled
+				this.titleSectionParams.iconOptions = { color: theme.on_surface_variant }
 		}
 	}
 	view(vnode: Vnode<WizardPageAttrs<ImapImportData>>): Children {
 		const imapProvider = vnode.attrs.data.imapProvider
-		let titleSectionParams: Partial<TitleSectionAttrs>
-		switch (imapProvider) {
-			case ImapProvider.Gmail:
-				titleSectionParams = {
-					customIcon: m.trust(GmailLogo),
-				}
-				break
-			case ImapProvider.Outlook:
-				titleSectionParams = {
-					customIcon: m.trust(OutlookLogo),
-				}
-				break
-			default:
-				titleSectionParams = {
-					icon: Icons.MailFilled,
-					iconOptions: { color: theme.on_surface_variant },
-				}
-		}
 		const providerTranslationText = lang.getTranslationText(getTranslationForImapProvider(imapProvider))
 		return m(".mt-24", [
 			m(TitleSection, {
-				...titleSectionParams,
-				title: "",
 				subTitle: lang.getTranslation("migrationIntroductionInfo_msg", { "{provider}": providerTranslationText }).text,
+				...this.titleSectionParams,
+				title: "",
 				style: {
 					marginTop: px(size.spacing_16),
 					borderRadius: px(size.radius_16),
@@ -110,10 +96,19 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 								const extraParams = {
 									login_hint: vnode.attrs.data.imapAccountUsername,
 								}
-								await oauthHandler.setupOauthLoginParams(extraParams)
+								try {
+									await oauthHandler.setupOauthLoginParams(extraParams)
+								} catch (e) {
+									const errorMessage = lang.getTranslation("migrationImapNetworkDiscoveryFailure", {
+										"{url}": config.server,
+									}).text
+									this.changeTitleSectionToErrorState(errorMessage)
+									m.redraw()
+									return
+								}
 								const responseUrl = await mailLocator
 									.getImapMailImportController()
-									.openOauthAuthenticationWindow(oauthHandler.buildAuthorizationUrl(), config.redirectUri)
+									.openOauthAuthenticationWindow(oauthHandler.buildAuthorizationUrl(), config!.redirectUri)
 								if (responseUrl) {
 									try {
 										vnode.attrs.data.imapAccountOAuthToken = await oauthHandler.getAuthTokens(responseUrl)
@@ -121,10 +116,10 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 										emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
 									} catch (e) {
 										// this happens when the user denies the permissions
-										this.changeTitleSectionToErrorState()
+										this.changeTitleSectionToErrorState(lang.getTranslationText("migrationOAuthWindowClosedFailure_msg"))
 									}
 								} else {
-									this.changeTitleSectionToErrorState()
+									this.changeTitleSectionToErrorState(lang.getTranslationText("migrationOAuthWindowClosedFailure_msg"))
 								}
 							} else {
 								if (vnode.attrs.data.imapProvider === ImapProvider.Other) {
@@ -146,12 +141,12 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 		])
 	}
 
-	private changeTitleSectionToErrorState() {
+	private changeTitleSectionToErrorState(errorStateText: string) {
 		this.shouldDisableNextButton = false
 		this.titleSectionParams = {
 			icon: Icons.FailureFilled,
 			iconOptions: { color: theme.error },
-			subTitle: lang.getTranslationText("migrationOAuthWindowClosedFailure_msg"),
+			subTitle: errorStateText,
 		}
 	}
 

@@ -3,20 +3,20 @@ import { ImapSyncSession } from "../../../../../src/applications/common/desktop/
 import { ImapSync } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSync"
 import { ImapCredentials, ImapSyncContext } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapSyncContext"
 import { ImapError, ImapErrorCause } from "../../../../../src/applications/common/api/common/error/ImapError"
-import { object, verify, when } from "testdouble"
+import { matchers, object, verify, when } from "testdouble"
 import { ImapMailbox } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMailbox"
 
 o.spec("ImapSync", () => {
 	let mockSyncSession: ImapSyncSession
 	let imapSync: ImapSync
 	let imapSyncContext: ImapSyncContext
-	let imapAccount: ImapCredentials
+	let imapCredentials: ImapCredentials
 
 	o.beforeEach(() => {
 		mockSyncSession = object<ImapSyncSession>()
 		imapSync = new ImapSync(mockSyncSession)
 		imapSyncContext = object<ImapSyncContext>()
-		imapAccount = object<ImapCredentials>()
+		imapCredentials = object<ImapCredentials>()
 	})
 
 	o.test("startImapSync - delegates to syncSession.startSyncSession and returns result", async () => {
@@ -45,11 +45,11 @@ o.spec("ImapSync", () => {
 
 	o.test("getImapMailboxesFromServer - delegates and returns result", async () => {
 		const expectedMailboxes: ReadonlyArray<ImapMailbox> = [{ path: "INBOX" }]
-		when(mockSyncSession.getImapMailboxesFromServer(imapAccount)).thenResolve(expectedMailboxes)
+		when(mockSyncSession.getImapMailboxesFromServer(imapCredentials)).thenResolve(expectedMailboxes)
 
-		const result = await imapSync.getImapMailboxesFromServer(imapAccount)
+		const result = await imapSync.getImapMailboxesFromServer(imapCredentials)
 
-		verify(mockSyncSession.getImapMailboxesFromServer(imapAccount), { times: 1 })
+		verify(mockSyncSession.getImapMailboxesFromServer(imapCredentials), { times: 1 })
 		o.check(result).equals(expectedMailboxes)
 	})
 })

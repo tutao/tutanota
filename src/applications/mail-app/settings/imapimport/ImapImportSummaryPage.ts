@@ -437,9 +437,11 @@ export class ImapImportSummaryPageAttrs implements WizardPageAttrs<ImapImportDat
 			host: this.data.imapAccountHost,
 			port: this.data.imapAccountPort.toString(),
 			username: this.data.imapAccountUsername,
-			password: this.data.imapAccountPassword,
+			password: this.data.imapAccountPassword ?? null,
 			oAuthTokenEndpointResponse:
 				this.data.imapAccountOAuthToken !== undefined ? tokenEndpointResponseToOAuthTokenEndpointResponse(this.data.imapAccountOAuthToken) : null,
+			customCertificateData: this.data.customCertificateData,
+			ignoreCertificateErrors: this.data.ignoreCertificateErrors,
 		})
 		const commonImapImportParams = {
 			maxQuota: DEFAULT_IMAP_IMPORT_MAX_QUOTA,

@@ -1,6 +1,6 @@
 import { imapMailboxFromSyncSessionMailbox, ImapSyncSessionMailbox } from "./ImapSyncSessionMailbox.js"
 import type { ImapSyncEventListener } from "./ImapSyncEventListener.js"
-import { ImapCredentials, ImapMailId } from "../../../api/common/utils/imapImportUtils/ImapSyncContext.js"
+import { ImapCredentials, ImapMailId, ImapSyncContext } from "../../../api/common/utils/imapImportUtils/ImapSyncContext.js"
 import { ImapMail } from "../../../api/common/utils/imapImportUtils/ImapMail.js"
 import { ImapMailbox, ImapMailboxStatus } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
 import { ImapSyncConfig } from "./ImapSync.js"
@@ -11,7 +11,7 @@ import { imapMailFromImapFlowFetchMessageObject } from "./imapmail/ImapParserUti
 import type { ImapFlow } from "imapflow"
 import { ImapFlowFactory, SyncSessionEventListener } from "./ImapSyncSession"
 import { ImapFolderSyncStatus, ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
-import { ImapError } from "../../../api/common/error/ImapError"
+import { fromImapFlowError } from "../../../api/common/error/ImapError"
 
 export enum SyncSessionProcessState {
 	NOT_STARTED,
@@ -45,18 +45,8 @@ export class ImapSyncSessionProcess {
 			new DifferentialUidLoader(client, map, qresync, eventTypes),
 	) {}
 
-	async startSyncSessionProcess(imapAccount: ImapCredentials, imapSyncEventListener: ImapSyncEventListener): Promise<SyncSessionProcessState> {
-		const imapClient = await this.imapFlowFactory({
-			host: imapAccount.host,
-			port: imapAccount.port,
-			secure: imapAccount.host !== "localhost",
-			auth: {
-				user: imapAccount.username,
-				pass: imapAccount.password,
-				accessToken: imapAccount.tokenEndpointResponse?.access_token,
-			},
-			qresync: this.imapSyncConfig.isEnableImapQresync,
-		})
+	async startSyncSessionProcess(imapCredentials: ImapCredentials, imapSyncEventListener: ImapSyncEventListener): Promise<SyncSessionProcessState> {
+		const imapClient = await this.imapFlowFactory(imapCredentials, this.imapSyncConfig)
 
 		this.setupImapFlowErrorHandler(imapClient, imapSyncEventListener)
 
@@ -287,8 +277,12 @@ export class ImapSyncSessionProcess {
 
 	// Visible for testing
 	setupImapFlowErrorHandler(imapClient: ImapFlow, imapSyncEventListener: ImapSyncEventListener) {
-		imapClient.on("error", (error) => {
-			imapSyncEventListener.onError(new ImapError(error.message))
+		imapClient.on("error", (error: any) => {
+			const imapError = fromImapFlowError(error)
+			if (error.code) {
+				console.error("imap error code", error.code, imapError)
+			}
+			imapSyncEventListener.onError(imapError)
 			this.logout(imapClient, false)
 		})
 	}

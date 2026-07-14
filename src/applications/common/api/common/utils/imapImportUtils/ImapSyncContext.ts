@@ -21,6 +21,8 @@ export type ImapCredentials = {
 	username: string
 	password?: string
 	tokenEndpointResponse?: TokenEndpointResponse
+	customCertificateData: Uint8Array | null
+	ignoreCertificateErrors: boolean
 }
 
 export type ImapSyncContext = {

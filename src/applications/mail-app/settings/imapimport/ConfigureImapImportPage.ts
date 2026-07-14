@@ -32,6 +32,7 @@ import { Dialog } from "../../../../ui/base/Dialog"
 import { getTranslationForImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { Checkbox } from "../../../../ui/base/Checkbox"
+import { ImapCredentials } from "../../../common/api/common/utils/imapImportUtils/ImapSyncContext"
 
 assertMainOrNode()
 
@@ -55,37 +56,56 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 		this.titleSectionParams.subTitle = lang.getTranslation("migrationConfigLoading_msg", {
 			"{provider}": lang.getTranslationText(getTranslationForImapProvider(vnode.attrs.data.imapProvider)),
 		}).text
-		const imapCredentials = {
-			host: vnode.attrs.data.imapAccountHost,
-			port: vnode.attrs.data.imapAccountPort,
-			username: vnode.attrs.data.imapAccountUsername,
-			password: vnode.attrs.data.imapAccountPassword,
-			tokenEndpointResponse: vnode.attrs.data.imapAccountOAuthToken,
-		}
+
 		this.shouldDisplayFolderTextField = !vnode.attrs.data.matchImapMailboxesToTutaMailSets
 		this.shouldDisplayLabelField = vnode.attrs.data.addLabelToImportedMails
 
 		const imapImportController = mailLocator.getImapMailImportController()
-		const imapGetMailboxResult = await imapImportController.getImapMailboxesFromServer(imapCredentials)
+		const imapImportData = vnode.attrs.data
+		const imapCredentials = this.getImapCredentials(imapImportData)
 
 		this.folderSystem = await imapImportController.getFolderSystemForSelectedMailbox()
+		const imapImportUiGetMailboxResult = await imapImportController.doInitialConnectAndGetImapMailboxes(imapCredentials)
 
-		if (imapGetMailboxResult.result) {
-			this.imapMailboxes.push(...imapGetMailboxResult.result)
-			this.imapMailboxesToTutaFolders = await imapImportController.constructImapMailboxesToTutaFoldersMap(imapGetMailboxResult.result)
+		if (imapImportUiGetMailboxResult.result) {
+			const imapMailboxes = imapImportUiGetMailboxResult.result.imapMailboxes
+			this.imapMailboxes.push(...imapMailboxes)
+			this.imapMailboxesToTutaFolders = await imapImportController.constructImapMailboxesToTutaFoldersMap(imapMailboxes)
+			this.updateImapCredentials(imapImportData, imapImportUiGetMailboxResult.result.imapCredentials)
 			this.successfullyLoadedMailboxes = true
 			this.titleSectionParams.iconOptions.class = ""
 			this.titleSectionParams.subTitle = lang.getTranslationText("migrationConfigInfo_msg")
-			m.redraw()
-		} else if (imapGetMailboxResult.error) {
+		} else if (imapImportUiGetMailboxResult.error) {
 			this.titleSectionParams = {
 				icon: Icons.FailureFilled,
 				iconOptions: { color: theme.error, class: "" },
-				subTitle: lang.getTranslation("migrationAccountConnectionFailure_msg", {
-					"{error}": imapGetMailboxResult.error.message,
-				}).text,
+				subTitle: imapImportUiGetMailboxResult.error.errorMessage,
 			}
 		}
+		m.redraw()
+	}
+
+	private updateImapCredentials(imapImportData: ImapImportData, imapCredentials: ImapCredentials) {
+		imapImportData.imapAccountHost = imapCredentials.host
+		imapImportData.imapAccountPort = imapCredentials.port
+		imapImportData.imapAccountUsername = imapCredentials.username
+		imapImportData.imapAccountPassword = imapCredentials.password
+		imapImportData.imapAccountOAuthToken = imapCredentials.tokenEndpointResponse
+		imapImportData.customCertificateData = imapCredentials.customCertificateData
+		imapImportData.ignoreCertificateErrors = imapCredentials.ignoreCertificateErrors
+	}
+
+	private getImapCredentials(imapImportData: ImapImportData) {
+		const imapCredentials: ImapCredentials = {
+			host: imapImportData.imapAccountHost,
+			port: imapImportData.imapAccountPort,
+			username: imapImportData.imapAccountUsername,
+			password: imapImportData.imapAccountPassword,
+			tokenEndpointResponse: imapImportData.imapAccountOAuthToken,
+			customCertificateData: imapImportData.customCertificateData,
+			ignoreCertificateErrors: imapImportData.ignoreCertificateErrors,
+		}
+		return imapCredentials
 	}
 
 	view(vnode: Vnode<WizardPageAttrs<ImapImportData>>): Children {

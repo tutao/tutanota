@@ -1204,7 +1204,7 @@ export default {
 		"microphoneUsageDescription_msg": "Used when recording a video as attachment.",
 		"middleName_placeholder": "Middle Name",
 		"migration_title": "Email migration (Beta)",
-		"migrationAccountConnectionFailure_msg": "An error occurred while setting up your account. Please restart this setup.\nTechnical error, {error}",
+		"migrationAccountConnectionFailure_msg": "An error occurred while setting up your account. Please restart this setup.\nTechnical error, {errorCode}",
 		"migrationAccountUsername_label": "Email address",
 		"migrationAddLabelToImportedMails_label": "Apply a label to imported mails",
 		"migrationAuthFailed_msg": "We failed to start your migration because credentials are incorrect, please check your credentials.",
@@ -2406,6 +2406,15 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"migrationImapNetworkDiscoveryFailure": "We have failed to fetch the imap configuration.\nPlease check if your network allows connections to {url}",
+		"migrationGenericError_msg": "An error occurred while running your one-click email migration. Error code: {errorCode}",
+		"migrationHostNotFoundError_msg": "We could not establish a connection to the IMAP server. Please check that the IMAP server is set correctly.",
+		"migrationCertError_msg": "We could not establish a connection to the IMAP server, because it uses a self-signed certificate. Please upload your certificate our contact your IMAP server admin.",
+		"migrationHostNotReachableError_msg": "We could not establish a connection to the IMAP server. Please check that the IMAP server is set correctly and no Firewall rules prevent the connection.",
+		"migrationCertificateSecurityWarning_title": "Security Warning",
+		"migrationCertificateError_msg": "The mail server’s identity could not be verified. This could be because the server uses a self-signed certificate, or an attacker is trying to intercept your connection. If you trust this server, you can connect anyway, or you can provide your own certificate file to verify its identity. How do you want to proceed?",
+		"migrationIgnoreCertificateErrors_action": "Connect anyway",
+		"migrationUploadCustomCertificate_action": "Select certificate file",
 	}
 }

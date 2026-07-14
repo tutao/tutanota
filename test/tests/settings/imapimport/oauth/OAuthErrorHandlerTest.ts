@@ -1,7 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
 import { OAuthHandler } from "../../../../../src/applications/mail-app/settings/imapimport/oauth/OAuthHandler"
 import { matchers, object, verify, when } from "testdouble"
-import { OAuthErrorHandler } from "../../../../../src/applications/mail-app/settings/imapimport/oauth/OAuthErrorHandler"
+import { ImapErrorHandler } from "../../../../../src/applications/mail-app/settings/imapimport/ImapErrorHandler"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
 import { createTestEntity } from "../../../TestUtils"
 import { ImapAccountSyncStateTypeRef, ImapAccountTypeRef, OAuthTokenEndpointResponseTypeRef } from "@tutao/entities/tutanota"
@@ -14,7 +14,7 @@ import { IServiceExecutor } from "../../../../../src/platform-kit/network/Servic
 
 o.spec("OAuthErrorHandler", () => {
 	let oAuthHandlerMock: OAuthHandler
-	let oAuthErrorHandler: OAuthErrorHandler
+	let oAuthErrorHandler: ImapErrorHandler
 	let entityClientMock: EntityClient
 	let serviceExecutorMock: IServiceExecutor
 
@@ -22,7 +22,7 @@ o.spec("OAuthErrorHandler", () => {
 		entityClientMock = object<EntityClient>()
 		oAuthHandlerMock = object<OAuthHandler>()
 		serviceExecutorMock = object<IServiceExecutor>()
-		oAuthErrorHandler = new OAuthErrorHandler(entityClientMock, serviceExecutorMock, () => oAuthHandlerMock)
+		oAuthErrorHandler = new ImapErrorHandler(entityClientMock, serviceExecutorMock, () => oAuthHandlerMock)
 	})
 
 	o.test("handleAuthError - returns false and updates to error if provider is other", async () => {
