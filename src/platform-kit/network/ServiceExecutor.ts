@@ -21,6 +21,8 @@ import { TypeModelResolver } from "../instance-pipeline/EntityFunctions"
 import { Entity, ServerModelUntypedInstance } from "../meta/EntityTypes"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { DEFAULT_REST_CLIENT_OPTIONS, ExtraServiceParams } from "../instance-pipeline/RestClientOptions"
+import { SubKeyInfo, SubKeyInfoWithSessionKeyAead, SubKeyInfoWithSessionKeyCbcThenHmac, SymmetricEncryptionScheme } from "@tutao/crypto"
+import { CryptoError } from "@tutao/crypto/error"
 
 assertWorkerOrNode()
 
@@ -150,7 +152,22 @@ export class ServiceExecutor implements IServiceExecutor {
 				throw new ProgrammingError("Must provide a session key for an encrypted data transfer type!: " + service)
 			}
 
-			const encryptedUntypedInstance = await this.instancePipeline.mapAndEncrypt(requestEntity._type, requestEntity, params?.sessionKey ?? null)
+			let subKeyInfo: Nullable<SubKeyInfo> = null
+			const sessionKey = params?.sessionKey
+			if (sessionKey) {
+				switch (this.authDataProvider.getDefaultSymmetricEncryptionScheme()) {
+					case SymmetricEncryptionScheme.AesCbc:
+						subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sessionKey)
+						break
+					case SymmetricEncryptionScheme.Aead:
+						subKeyInfo = new SubKeyInfoWithSessionKeyAead(sessionKey)
+						break
+					default:
+						throw new CryptoError("missing or unknown symmetric encryption scheme")
+				}
+			}
+
+			const encryptedUntypedInstance = await this.instancePipeline.mapAndEncryptWithSubKeyInfo(requestEntity._type, requestEntity, subKeyInfo)
 
 			return JSON.stringify(encryptedUntypedInstance)
 		} else {
