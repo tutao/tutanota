@@ -23,16 +23,6 @@ export class OfflineStorageIndexer implements Indexer {
 	async partialLoginInit() {
 		const user = assertNotNull(this.userFacade.getUser())
 		await this.mailIndexer.init(user)
-
-		await this.infoMessageHandler.onSearchIndexStateUpdate({
-			initializing: false,
-			mailIndexEnabled: this.mailIndexer.mailIndexingEnabled,
-			progress: 0,
-			currentMailIndexTimestamp: this.mailIndexer.currentIndexTimestamp,
-			aimedMailIndexTimestamp: this.mailIndexer.currentIndexTimestamp,
-			indexedMailCount: 0,
-			failedIndexingUpTo: null,
-		})
 	}
 
 	async fullLoginInit(): Promise<void> {
