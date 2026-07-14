@@ -76,7 +76,6 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 			this.successfullyLoadedMailboxes = true
 			this.titleSectionParams.iconOptions.class = ""
 			this.titleSectionParams.subTitle = lang.getTranslationText("migrationConfigInfo_msg")
-			m.redraw()
 		} else if (imapGetMailboxResult.error) {
 			this.titleSectionParams = {
 				icon: Icons.FailureFilled,
@@ -86,6 +85,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 				}).text,
 			}
 		}
+		m.redraw()
 	}
 
 	view(vnode: Vnode<WizardPageAttrs<ImapImportData>>): Children {
