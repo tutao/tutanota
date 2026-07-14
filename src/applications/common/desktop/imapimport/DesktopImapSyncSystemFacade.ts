@@ -30,7 +30,13 @@ export class DesktopImapSyncSystemFacade implements ImapSyncSystemFacade {
 			const mailboxes = await this.imapInitFolderSyncFactory().getImapMailboxesFromServer(imapAccount)
 			return { result: mailboxes }
 		} catch (e) {
-			return { error: new ImapError(e.response, ImapErrorCause.LIST_MAILBOX_FAILED) }
+			// Network errors sometimes have "errors" and no response and e.message due being aggregate errors
+			// This way we should properly handle any error, if it's unknown we just log the complete error.
+			let errorMessage = e.response ?? e.message
+			if (!errorMessage) {
+				errorMessage = JSON.stringify(e.errors ? e.errors : e, null, 2)
+			}
+			return { error: new ImapError(errorMessage, ImapErrorCause.LIST_MAILBOX_FAILED) }
 		}
 	}
 

@@ -111,20 +111,20 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		})
 
 		const imapAccount = this.imapSyncContext.imapCredentials
-		const imapClient = await this.imapFlowFactory({
-			host: imapAccount.host,
-			port: imapAccount.port,
-			secure: imapAccount.host !== "localhost",
-			auth: {
-				// We can safely pass password and accessToken because ImapFlow tests for token accessToken being truthy
-				// using it instead of password (https://github.com/postalsys/imapflow/blob/b7e57f0e540c789f3b1cb17112edbce2b2085880/lib/imap-flow.js#L1269)
-				user: imapAccount.username,
-				pass: imapAccount.password,
-				accessToken: imapAccount.tokenEndpointResponse?.access_token,
-			},
-		})
-
 		try {
+			const imapClient = await this.imapFlowFactory({
+				host: imapAccount.host,
+				port: imapAccount.port,
+				secure: imapAccount.host !== "localhost",
+				auth: {
+					// We can safely pass password and accessToken because ImapFlow tests for token accessToken being truthy
+					// using it instead of password (https://github.com/postalsys/imapflow/blob/b7e57f0e540c789f3b1cb17112edbce2b2085880/lib/imap-flow.js#L1269)
+					user: imapAccount.username,
+					pass: imapAccount.password,
+					accessToken: imapAccount.tokenEndpointResponse?.access_token,
+				},
+			})
+
 			const fetchedRootMailboxes = await this.getImapMailboxes(imapClient)
 
 			return await this.getSyncSessionMailboxes(knownMailboxes, fetchedRootMailboxes)
@@ -138,7 +138,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			}
 
 			await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, IMAP_ERROR_POSTPONE_TIME)
-			return new ImapError(error.response, ImapErrorCause.POSTPONE)
+			return new ImapError(error.response ?? error.message, ImapErrorCause.POSTPONE)
 		}
 	}
 
