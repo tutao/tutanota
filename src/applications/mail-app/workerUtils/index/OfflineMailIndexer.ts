@@ -100,7 +100,11 @@ export class OfflineMailIndexer implements MailIndexer {
 		}
 	}
 
-	async init(): Promise<void> {}
+	async init(): Promise<void> {
+		const mailIndexedGroups = (await this.offlineStoragePersistence.getIndexedGroups()).filter((indexedGroup) => indexedGroup.type === GroupType.Mail)
+		this.fullyIndexed = isNotEmpty(mailIndexedGroups) && mailIndexedGroups.every(({ indexedTimestamp }) => indexedTimestamp === FULL_INDEXED_TIMESTAMP)
+		await this.infoMessageHandler.onSearchIndexStateUpdate(this.createSearchIndexStateInfo(0))
+	}
 
 	async afterMailCreated(mailid: IdTuple): Promise<void> {
 		const mail = await this.newMailDownloader(mailid)
