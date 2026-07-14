@@ -771,6 +771,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const eventsByType = groupBy(entityUpdates, (entityUpdate) => getTypeString(entityUpdate.typeRef))
 		for (const [typeIdentifier, entityUpdates] of eventsByType) {
 			const typeRef = parseTypeString(typeIdentifier) as TypeRef<SomeEntity>
+
+			const deleteEvents = entityUpdates.filter((entityUpdate) => entityUpdate.operation === OperationType.DELETE)
+			const deleteEventIds = deleteEvents.map((entityUpdate) => collapseId(entityUpdate.instanceListId, entityUpdate.instanceId))
+			await this.storage.deleteMultiple(typeRef, deleteEventIds)
+			deleteEvents.map((entityUpdate) => (entityUpdate.cachingStatus = CachingStatus.CacheUpdated))
+
 			const entityUpdatesWithValidInstances = entityUpdates.filter((entityUpdate) => entityUpdate.instance !== null && !hasError(entityUpdate.instance))
 			const instances = entityUpdatesWithValidInstances.map((entityUpdate) => entityUpdate.instance).filter(isNotNull)
 			await this.storage.putMultiple(typeRef, instances)
@@ -787,10 +793,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			} else {
 				entityUpdatesWithValidInstances.map((entityUpdate) => (entityUpdate.cachingStatus = CachingStatus.CacheUpdated))
 			}
-			const deleteEvents = entityUpdates.filter((entityUpdate) => entityUpdate.operation === OperationType.DELETE)
-			const deleteEventIds = deleteEvents.map((entityUpdate) => collapseId(entityUpdate.instanceListId, entityUpdate.instanceId))
-			await this.storage.deleteMultiple(typeRef, deleteEventIds)
-			deleteEvents.map((entityUpdate) => (entityUpdate.cachingStatus = CachingStatus.CacheUpdated))
 		}
 	}
 

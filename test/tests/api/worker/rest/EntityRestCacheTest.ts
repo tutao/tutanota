@@ -971,6 +971,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const mailId = "mailId"
 			const blobListId = "archiveId"
 			const blobId = createId("blobId")
+			const mailSetEntriesListId = "mailSetEntriesListId"
 			o.test("groups instances by type and puts them to the storage", async () => {
 				const contact = createTestEntity(ContactTypeRef, {
 					_id: [contactListId, contactId],
@@ -1002,6 +1003,26 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o.check(await storage.get(MailDetailsBlobTypeRef, blobListId, createId(blobId))).notEquals(null)
 				o.check(contactUpdate.cachingStatus).equals(CachingStatus.CacheUpdated)
 				o.check(mailUpdate.cachingStatus).equals(CachingStatus.CacheUpdated)
+			})
+
+			o.test("handles create events coming for the same id coming after the delete event correctly", async () => {
+				const mailSetEntry = createTestEntity(MailSetEntryTypeRef, {
+					_id: [mailSetEntriesListId, "mailSetEntryId"],
+					_ownerGroup: "mail",
+					mail: [mailListId, mailId],
+				})
+				const mailSetEntryDelete = await updateDataForDelete(MailSetEntryTypeRef, getListId(mailSetEntry), getElementId(mailSetEntry))
+				const mailSetEntryCreate = await updateDataForCreate(MailSetEntryTypeRef, getListId(mailSetEntry), getElementId(mailSetEntry), mailSetEntry)
+
+				const updates = [mailSetEntryDelete, mailSetEntryCreate]
+
+				// the mail set entry should be put to the cache right after deletion
+				// this is the order of events in case a client syncs another client moving an e-mail out of and back to a given mail set
+				await cache.updateCacheWithMissedEntityUpdates(updates)
+
+				o.check(await storage.get(MailSetEntryTypeRef, mailSetEntriesListId, "mailSetEntryId")).notEquals(null)
+				o.check(mailSetEntryDelete.cachingStatus).equals(CachingStatus.CacheUpdated)
+				o.check(mailSetEntryCreate.cachingStatus).equals(CachingStatus.CacheUpdated)
 			})
 
 			o.test("filters out updates with null instance or errors", async () => {
