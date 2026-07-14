@@ -21,7 +21,7 @@
 			"doc": "Fetches the folders from the IMAP server, to be used for the folder mapping step",
 			"arg": [
 				{
-					"imapAccount": "ImapCredentials"
+					"imapCredentials": "ImapCredentials"
 				}
 			],
 			"ret": "ImapGetMailboxResult"

@@ -66,6 +66,8 @@ o.spec("ImapFacade", () => {
 		imapAccountSyncStateMock = createTestEntity(ImapAccountSyncStateTypeRef, {
 			_id: imapAccountSyncStateIdMock,
 			_ownerGroup: mailGroupId,
+			_ownerKeyVersion: "0",
+			_ownerEncSessionKey: new Uint8Array([1, 2, 3]),
 			rootImportMailFolder: null,
 			imapFolderSyncStateList: "folderSyncStateListId",
 		})
@@ -106,6 +108,8 @@ o.spec("ImapFacade", () => {
 			maxQuota: "1000",
 			imapSyncLabelData: null,
 			provider: 1,
+			ignoreCertificateErrors: false,
+			customCertificateData: null,
 		}
 
 		when(mailFacadeMock.createMailFolder("IMAP Import", null, mailGroupId)).thenResolve(rootImportMailFolderIdMock)
@@ -135,6 +139,8 @@ o.spec("ImapFacade", () => {
 			maxQuota: "0",
 			imapSyncLabelData: null,
 			provider: 1,
+			ignoreCertificateErrors: false,
+			customCertificateData: null,
 		}
 		const error = await assertThrows(ProgrammingError, () => imapFacade.initializeImapImport(initializeParams))
 		o.check(error.message).equals("Either rootImportMailFolderName or matchImapMailboxesToTutaMailSets must be set")
@@ -142,7 +148,12 @@ o.spec("ImapFacade", () => {
 
 	o.test("updateAccountSyncStateAndAllFolderSyncStates - calls service executor", async () => {
 		when(serviceExecutorMock.put(ImapService, anything(), anything())).thenDo(() => Promise.resolve())
-		await imapFacade.updateAccountSyncStateAndAllFolderSyncStates(imapAccountSyncStateIdMock, ImapAccountSyncStatus.FINISHED, ImapFolderSyncStatus.FINISHED)
+		await imapFacade.updateAccountSyncStateAndAllFolderSyncStates(
+			imapAccountSyncStateMock,
+			ImapAccountSyncStatus.FINISHED,
+			ImapFolderSyncStatus.FINISHED,
+			undefined,
+		)
 		verify(serviceExecutorMock.put(ImapService, anything(), anything()), { times: 1 })
 	})
 

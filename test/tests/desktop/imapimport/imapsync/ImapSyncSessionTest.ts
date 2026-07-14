@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { func, matchers, object, verify, when } from "testdouble"
+import { matchers, object, verify, when } from "testdouble"
 import { ImapSyncEventListener } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncEventListener"
 import type { ImapFlow, ListTreeResponse } from "imapflow"
 import { ImapFlowFactory, ImapSyncSession, SyncSessionState } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncSession"
@@ -7,16 +7,24 @@ import { ImapCredentials, ImapMailboxState, ImapSyncContext } from "../../../../
 import { ImapSyncConfig } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSync"
 import { ImapError, ImapErrorCause } from "../../../../../src/applications/common/api/common/error/ImapError"
 import { ImapSyncSessionMailbox } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncSessionMailbox"
-import { ImapSyncSessionProcess } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncSessionProcess"
+import { CertificateProvider } from "../../../../../src/applications/common/desktop/CertificateProvider"
 
 o.spec("ImapSyncSession", () => {
 	let eventListenerMock: ImapSyncEventListener
-	let ConfigMock: ImapSyncConfig
+	let configMock: ImapSyncConfig
 	let imapFlowFactory: ImapFlowFactory
 	let imapFlowMock: ImapFlow
 	let session: ImapSyncSession
+	let certificateProviderMock: CertificateProvider
 
-	const imapCredentials: ImapCredentials = { host: "localhost", port: 993, username: "user", password: "pass" }
+	const imapCredentials: ImapCredentials = {
+		host: "localhost",
+		port: 993,
+		username: "user",
+		password: "pass",
+		ignoreCertificateErrors: false,
+		customCertificateData: null,
+	}
 	const imapSyncContext: ImapSyncContext = {
 		imapCredentials: imapCredentials,
 		maxQuota: 100_000_000,
@@ -25,17 +33,18 @@ o.spec("ImapSyncSession", () => {
 
 	o.beforeEach(() => {
 		eventListenerMock = object<ImapSyncEventListener>()
-		ConfigMock = {
+		configMock = {
 			emitImapSyncEventTypes: new Set(),
 			isEnableImapQresync: true,
 		}
 		imapFlowMock = object<ImapFlow>()
+		certificateProviderMock = object<CertificateProvider>()
 		imapFlowFactory = () => Promise.resolve(imapFlowMock)
 		const listTreeResponse = { folders: [{ disabled: false, path: "INBOX" }] }
 		when(imapFlowMock.listTree()).thenResolve(listTreeResponse)
 		when(imapFlowMock.mailboxOpen(matchers.anything(), matchers.anything())).thenResolve({})
 		when(imapFlowMock.fetch(matchers.anything(), matchers.anything())).thenResolve((async function* () {})())
-		session = new ImapSyncSession(eventListenerMock, ConfigMock, imapFlowFactory)
+		session = new ImapSyncSession(eventListenerMock, certificateProviderMock, configMock, imapFlowFactory)
 	})
 
 	o.test("startSyncSession - when not running, sets up and starts sync", async () => {

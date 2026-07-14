@@ -13,6 +13,7 @@ import { ImapCredentials } from "../../../../../src/applications/common/api/comm
 import { DifferentialUidLoader } from "../../../../../src/applications/common/desktop/imapimport/imapsync/DifferentialUidLoader"
 import { ImapSyncEventType } from "../../../../../src/entities/tutanota/Utils"
 import { ImapSyncSessionMailbox } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncSessionMailbox"
+import { ImapSyncContext } from "../../../../../src/app-kit/native-bridge/common/generatedipc/types"
 
 const { anything } = matchers
 
@@ -27,6 +28,7 @@ o.spec("ImapSyncSessionProcess", () => {
 	let imapAccountMock: ImapCredentials
 	let syncSessionMailboxMock: ImapSyncSessionMailbox
 	let uidLoaderMock: DifferentialUidLoader
+	let imapSyncContextMock: ImapSyncContext
 
 	const mailboxPath = "INBOX"
 
@@ -41,12 +43,7 @@ o.spec("ImapSyncSessionProcess", () => {
 		imapSyncSessionMock = object<ImapSyncSession>()
 		differentialUidLoaderFactoryMock = () => uidLoaderMock
 		eventListenerMock = object<ImapSyncEventListener>()
-		imapAccountMock = {
-			host: "localhost",
-			port: 993,
-			username: "user",
-			password: "pass",
-		} as any
+		imapSyncContextMock = object<ImapSyncContext>()
 
 		syncSessionMailboxMock = new ImapSyncSessionMailbox({ path: mailboxPath, importedUidToMailIdsMap: new Map(), noSync: false })
 
@@ -65,7 +62,7 @@ o.spec("ImapSyncSessionProcess", () => {
 	o.test("startSyncSessionProcess - connects, starts sync, returns RUNNING", async () => {
 		when(imapClientMock.connect()).thenResolve()
 		when(imapClientMock.mailboxOpen(anything(), anything())).thenResolve({})
-		const result = await sessionProcess.startSyncSessionProcess(imapAccountMock, eventListenerMock)
+		const result = await sessionProcess.startSyncSessionProcess(imapSyncContextMock, eventListenerMock)
 		o.check(result).equals(SyncSessionProcessState.RUNNING)
 		verify(imapClientMock.connect(), { times: 1 })
 	})
@@ -74,14 +71,14 @@ o.spec("ImapSyncSessionProcess", () => {
 		const error = new Error("NO authentication failed") as any
 		error.responseStatus = "NO"
 		when(imapClientMock.mailboxOpen(anything())).thenReject(error)
-		const result = await sessionProcess.startSyncSessionProcess(imapAccountMock, eventListenerMock)
+		const result = await sessionProcess.startSyncSessionProcess(imapSyncContextMock, eventListenerMock)
 		o.check(result).equals(SyncSessionProcessState.CONNECTION_FAILED_UNKNOWN)
 	})
 
 	o.test("startSyncSessionProcess - handles unknown error", async () => {
 		const error = new Error("Network failure")
 		when(imapClientMock.connect()).thenReject(error)
-		const result = await sessionProcess.startSyncSessionProcess(imapAccountMock, eventListenerMock)
+		const result = await sessionProcess.startSyncSessionProcess(imapSyncContextMock, eventListenerMock)
 		o.check(result).equals(SyncSessionProcessState.CONNECTION_FAILED_UNKNOWN)
 	})
 
@@ -100,7 +97,7 @@ o.spec("ImapSyncSessionProcess", () => {
 			highestModseq: 67890n,
 			exists: 15,
 		})
-		const result = await sessionProcess.startSyncSessionProcess(imapAccountMock, eventListenerMock)
+		const result = await sessionProcess.startSyncSessionProcess(imapSyncContextMock, eventListenerMock)
 		o.check(result).equals(SyncSessionProcessState.RUNNING)
 	})
 
@@ -116,7 +113,7 @@ o.spec("ImapSyncSessionProcess", () => {
 			highestModseq: 67890n,
 			exists: 15,
 		})
-		const result = await sessionProcess.startSyncSessionProcess(imapAccountMock, eventListenerMock)
+		const result = await sessionProcess.startSyncSessionProcess(imapSyncContextMock, eventListenerMock)
 		o.check(result).equals(SyncSessionProcessState.RUNNING)
 	})
 

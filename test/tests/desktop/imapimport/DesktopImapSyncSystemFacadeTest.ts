@@ -19,13 +19,15 @@ o.spec("DesktopImapSyncSystemFacade", () => {
 	let facade: DesktopImapSyncSystemFacade
 
 	const accountSyncIdMock: IdTuple = ["listId", "elementId"]
-	const imapAccountMock: ImapCredentials = {
+	const imapCredentialsMock: ImapCredentials = {
 		host: "imap.test.com",
 		port: 993,
 		username: "user@test.com",
 		password: "pass",
+		ignoreCertificateErrors: false,
+		customCertificateData: null,
 	}
-	const imapSyncContextMock = { imapCredentials: imapAccountMock } as ImapSyncContext
+	const imapSyncContextMock = { imapCredentials: imapCredentialsMock } as ImapSyncContext
 	const imapErrorMock = new ImapError("Connection failed", ImapErrorCause.UNKNOWN)
 
 	o.beforeEach(() => {
@@ -57,23 +59,23 @@ o.spec("DesktopImapSyncSystemFacade", () => {
 
 	o.test("getImapMailboxesFromServer - returns success result with mailboxes", async () => {
 		const mailboxesMock = [{ path: "INBOX", name: "INBOX" }]
-		when(transientImapSyncMock.getImapMailboxesFromServer(imapAccountMock)).thenResolve(mailboxesMock)
+		when(transientImapSyncMock.getImapMailboxesFromServer(imapCredentialsMock)).thenResolve(mailboxesMock)
 
-		const result = await facade.getImapMailboxesFromServer(imapAccountMock)
+		const result = await facade.getImapMailboxesFromServer(imapCredentialsMock)
 
 		o.check(result.result).equals(mailboxesMock)
 		o.check(result.error).equals(undefined)
-		verify(transientImapSyncMock.getImapMailboxesFromServer(imapAccountMock), { times: 1 })
+		verify(transientImapSyncMock.getImapMailboxesFromServer(imapCredentialsMock), { times: 1 })
 	})
 
 	o.test("getImapMailboxesFromServer - returns error result on exception", async () => {
 		const testError = new Error("Network failure")
-		when(transientImapSyncMock.getImapMailboxesFromServer(imapAccountMock)).thenReject(testError)
+		when(transientImapSyncMock.getImapMailboxesFromServer(imapCredentialsMock)).thenReject(testError)
 
-		const result = await facade.getImapMailboxesFromServer(imapAccountMock)
+		const result = await facade.getImapMailboxesFromServer(imapCredentialsMock)
 
 		o.check(result.result).equals(undefined)
-		o.check(result.error!.data).equals(ImapErrorCause.LIST_MAILBOX_FAILED)
+		o.check(result.error!.data).equals(ImapErrorCause.UNKNOWN)
 	})
 
 	o.test("stopSync - stops and removes existing sync", async () => {

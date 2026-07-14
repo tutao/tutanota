@@ -1204,7 +1204,7 @@ export default {
 		"microphoneUsageDescription_msg": "Wird zum Aufnehmen von Videos benötigt.",
 		"middleName_placeholder": "Zweiter Vorname",
 		"migration_title": "E-Mail Migration (Beta)",
-		"migrationAccountConnectionFailure_msg": "Während der Einrichtung Ihres Accounts ist ein Fehler aufgetreten. Technischer Fehler, {error}",
+		"migrationAccountConnectionFailure_msg": "Während der intialisierung Ihres Accounts ist ein Fehler aufgetreten. Fehlercode: {errorCode}",
 		"migrationAccountUsername_label": "E-Mail-Adresse",
 		"migrationAddLabelToImportedMails_label": "Importierte E-Mails mit einem Label markieren",
 		"migrationAuthFailed_msg": "Ihre Migration konnte leider nicht gestartet werden, da die eingegebenen Zugangsdaten ungültig sind. Bitte überprüfem Sie Ihre Zugangsdaten und versuchen Sie es erneut.",
@@ -2406,6 +2406,15 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"migrationImapNetworkDiscoveryFailure": "We have failed to fetch the imap configuration.\nPlease check if your network allows connections to {url}",
+		"migrationGenericError_msg": "An error occurred while running your one-click email migration. Error code: {errorCode}",
+		"migrationHostNotFoundError_msg": "We could not establish a connection to the IMAP server. Please check that the IMAP server is set correctly.",
+		"migrationCertError_msg": "We could not establish a connection to the IMAP server, because it uses a self-signed certificate. Please upload your certificate our contact your IMAP server admin.",
+		"migrationHostNotReachableError_msg": "We could not establish a connection to the IMAP server. Please check that the IMAP server is set correctly and no Firewall rules prevent the connection.",
+		"migrationCertificateSecurityWarning_title": "Security Warning",
+		"migrationCertificateError_msg": "The mail server’s identity could not be verified. This could be because the server uses a self-signed certificate, or an attacker is trying to intercept your connection. If you trust this server, you can connect anyway, or you can provide your own certificate file to verify its identity. How do you want to proceed?",
+		"migrationIgnoreCertificateErrors_action": "Connect anyway",
+		"migrationUploadCustomCertificate_action": "Select certificate file",
 	}
 }

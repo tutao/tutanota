@@ -1,4 +1,4 @@
-import o, { assertThrows } from "@tutao/otest"
+import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
 import { ImapImporter, ImportResult, InitializeImapImportParams } from "../../../../src/applications/mail-app/workerUtils/imapimport/ImapImporter"
 import { newImapImportSession } from "../../../../src/applications/mail-app/workerUtils/imapimport/ImapImportSession"
@@ -21,7 +21,7 @@ import {
 	OAuthTokenEndpointResponseTypeRef,
 } from "@tutao/entities/tutanota"
 import { FolderSystem } from "../../../../src/applications/common/api/common/mail/FolderSystem"
-import { OAuthErrorHandler } from "../../../../src/applications/mail-app/settings/imapimport/oauth/OAuthErrorHandler"
+import { ImapErrorHandler } from "../../../../src/applications/mail-app/settings/imapimport/ImapErrorHandler"
 import { EventController } from "../../../../src/applications/common/api/main/EventController"
 
 const { anything } = matchers
@@ -34,7 +34,7 @@ o.spec("ImapMailImportController", () => {
 	let oauthFacade: OauthFacade
 	let controller: ImapMailImportController
 	let eventController: EventController
-	let oAuthErrorHandler: OAuthErrorHandler
+	let oAuthErrorHandler: ImapErrorHandler
 
 	const mailboxDetail1Mock: MailboxDetail = {
 		mailGroupInfo: { group: "group1" },
@@ -63,7 +63,7 @@ o.spec("ImapMailImportController", () => {
 		entityClient = object<EntityClient>()
 		oauthFacade = object<OauthFacade>()
 		eventController = object<EventController>()
-		oAuthErrorHandler = object<OAuthErrorHandler>()
+		oAuthErrorHandler = object<ImapErrorHandler>()
 		controller = new ImapMailImportController(imapImporter, mailModel, mailboxModel, entityClient, eventController, oauthFacade, oAuthErrorHandler)
 	})
 
@@ -121,7 +121,7 @@ o.spec("ImapMailImportController", () => {
 		})
 		when(entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateIdMock)).thenResolve(accountSyncStateMock)
 
-		const oAuthErrorHandlerMock = object<OAuthErrorHandler>()
+		const oAuthErrorHandlerMock = object<ImapErrorHandler>()
 		when(oAuthErrorHandlerMock.isAuthError(anything())).thenReturn(true)
 		when(oAuthErrorHandlerMock.handleAuthError(accountSyncStateMock._id)).thenResolve(true)
 
@@ -235,11 +235,11 @@ o.spec("ImapMailImportController", () => {
 	})
 
 	o.test("getImapMailboxesFromServer - delegates to imapImporter", async () => {
-		const imapAccount = {} as ImapCredentials
-		const expected = { result: [] }
-		when(imapImporter.getImapMailboxesFromServer(imapAccount)).thenResolve(expected)
-		const result = await controller.getImapMailboxesFromServer(imapAccount)
-		o.check(result).equals(expected)
+		const imapCredentials = {} as ImapCredentials
+		const expected = { result: { imapMailboxes: [], imapCredentials: imapCredentials } }
+		when(imapImporter.getImapMailboxesFromServer(imapCredentials)).thenResolve({ result: [] })
+		const result = await controller.doInitialConnectAndGetImapMailboxes(imapCredentials)
+		o.check(result).deepEquals(expected)
 	})
 
 	o.test("getFolderSystemForSelectedMailbox - returns folder system for selected mailbox", async () => {

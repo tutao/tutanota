@@ -14,8 +14,8 @@ export class ImapSyncSystemFacadeReceiveDispatcher {
 				return this.facade.startSync(accountSyncId, imapSyncContext)
 			}
 			case "getImapMailboxesFromServer": {
-				const imapAccount: ImapCredentials = arg[0]
-				return this.facade.getImapMailboxesFromServer(imapAccount)
+				const imapCredentials: ImapCredentials = arg[0]
+				return this.facade.getImapMailboxesFromServer(imapCredentials)
 			}
 			case "stopSync": {
 				const accountSyncId: IdTuple = arg[0]

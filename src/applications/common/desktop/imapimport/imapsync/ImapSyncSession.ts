@@ -5,10 +5,11 @@ import { ImapSyncSessionProcess, SyncSessionProcessState } from "./ImapSyncSessi
 import { ProgrammingError } from "@tutao/app-env"
 import { ImapMailbox, imapMailboxFromImapFlowListTreeResponse } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
 import { ImapSyncConfig } from "./ImapSync.js"
-import { ImapError, ImapErrorCause } from "../../../api/common/error/ImapError"
-import type { ImapFlow, ImapFlowOptions, ListTreeResponse } from "imapflow"
+import { fromImapFlowError, ImapError, ImapErrorCause } from "../../../api/common/error/ImapError"
+import type { ImapFlow, ListTreeResponse } from "imapflow"
 import { IMAP_ERROR_POSTPONE_TIME, ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
-import { assertNotNull, first, isEmpty, isNotEmpty } from "@tutao/utils"
+import { assertNotNull, first, isEmpty, isNotEmpty, noOp, utf8Uint8ArrayToString } from "@tutao/utils"
+import { CertificateProvider } from "../../CertificateProvider"
 
 const IMAP_RATE_LIMIT_POSTPONE_TIME: number = 25 * 60 * 60 * 1000 // 25 hours
 const MAX_MAILBOX_FAILURES_THRESHOLD = 2
@@ -28,7 +29,7 @@ export enum ShutdownSyncAction {
 	UNKNOWN,
 }
 
-export type ImapFlowFactory = (config: ImapFlowOptions) => Promise<ImapFlow>
+export type ImapFlowFactory = (imapCredentials: ImapCredentials, imapSyncConfig: ImapSyncConfig) => Promise<ImapFlow>
 
 export interface SyncSessionEventListener {
 	startMailboxSync(syncSessionMailbox: ImapSyncSessionMailbox): void
@@ -51,10 +52,36 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 	constructor(
 		private imapSyncEventListener: ImapSyncEventListener,
+		private certificateProvider: CertificateProvider,
 		private imapSyncConfig: ImapSyncConfig,
-		private imapFlowFactory: ImapFlowFactory = async (config) => {
+		private imapFlowFactory: ImapFlowFactory = async (imapCredentials, imapSyncConfig) => {
 			const { ImapFlow } = await import("./imapflow-custom")
-			return new ImapFlow({ ...config, logger: false })
+
+			const systemCertificates = await this.certificateProvider.getCertificates()
+			const customCertificateData = imapCredentials.customCertificateData
+			const customCertificate = customCertificateData !== null ? [utf8Uint8ArrayToString(customCertificateData)] : []
+			return new ImapFlow({
+				host: imapCredentials.host,
+				port: imapCredentials.port,
+				auth: {
+					// We can safely pass password and accessToken because ImapFlow tests for token accessToken being truthy
+					// using it instead of password (https://github.com/postalsys/imapflow/blob/b7e57f0e540c789f3b1cb17112edbce2b2085880/lib/imap-flow.js#L1269)
+					user: imapCredentials.username,
+					pass: imapCredentials.password,
+					accessToken: imapCredentials.tokenEndpointResponse?.access_token,
+				},
+				tls: {
+					rejectUnauthorized: !imapCredentials.ignoreCertificateErrors,
+					ca: [...systemCertificates, ...customCertificate],
+				},
+				qresync: imapSyncConfig.isEnableImapQresync,
+				logger: {
+					warn: console.warn,
+					error: console.error,
+					debug: noOp,
+					info: noOp,
+				},
+			})
 		},
 	) {
 		this.state = SyncSessionState.PAUSED
@@ -110,21 +137,10 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			return new ImapSyncSessionMailbox(mailboxState)
 		})
 
-		const imapAccount = this.imapSyncContext.imapCredentials
-		const imapClient = await this.imapFlowFactory({
-			host: imapAccount.host,
-			port: imapAccount.port,
-			secure: imapAccount.host !== "localhost",
-			auth: {
-				// We can safely pass password and accessToken because ImapFlow tests for token accessToken being truthy
-				// using it instead of password (https://github.com/postalsys/imapflow/blob/b7e57f0e540c789f3b1cb17112edbce2b2085880/lib/imap-flow.js#L1269)
-				user: imapAccount.username,
-				pass: imapAccount.password,
-				accessToken: imapAccount.tokenEndpointResponse?.access_token,
-			},
-		})
-
+		const imapCredentials = this.imapSyncContext.imapCredentials
 		try {
+			const imapClient = await this.imapFlowFactory(imapCredentials, this.imapSyncConfig)
+
 			const fetchedRootMailboxes = await this.getImapMailboxes(imapClient)
 
 			return await this.getSyncSessionMailboxes(knownMailboxes, fetchedRootMailboxes)
@@ -138,7 +154,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			}
 
 			await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, IMAP_ERROR_POSTPONE_TIME)
-			return new ImapError(error.response, ImapErrorCause.POSTPONE)
+			return fromImapFlowError(error)
 		}
 	}
 
@@ -171,17 +187,21 @@ export class ImapSyncSession implements SyncSessionEventListener {
 	}
 
 	public async getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ReadonlyArray<ImapMailbox>> {
-		const imapClient = await this.imapFlowFactory({
-			host: imapCredentials.host,
-			port: imapCredentials.port,
-			secure: imapCredentials.host !== "localhost",
-			auth: {
-				user: imapCredentials.username,
-				pass: imapCredentials.password,
-				accessToken: imapCredentials.tokenEndpointResponse?.access_token,
-			},
+		await this.verifyImapConnection(imapCredentials)
+
+		const imapClient = await this.imapFlowFactory(imapCredentials, this.imapSyncConfig)
+		imapClient.on("error", (entry) => {
+			console.log(`[${entry.name}] ${entry.message}, ${entry.cause}`)
 		})
 		return await this.getImapMailboxes(imapClient)
+	}
+
+	private async verifyImapConnection(imapCredentials: ImapCredentials) {
+		const connectionWorksImapClient = await this.imapFlowFactory(imapCredentials, this.imapSyncConfig)
+		connectionWorksImapClient.on("error", (entry) => {
+			console.log(`[${entry.name}] ${entry.message}, ${entry.cause}`)
+		})
+		await connectionWorksImapClient.connect()
 	}
 
 	/**
@@ -201,17 +221,21 @@ export class ImapSyncSession implements SyncSessionEventListener {
 				// Ignore failures to logout, this just means we already have logged out.
 			}
 		}
-		const imapMailboxes = this.filterDisabledAndPromoteChildren(listTreeResponse.folders ?? []).map((listTreeResponse) => {
-			return imapMailboxFromImapFlowListTreeResponse(listTreeResponse, null)
-		})
-		// Some providers, e.g. one.com, return a single folder (Inbox) with subfolders.
-		// We want to flatten this to a single folder so that the user can map these folders to their own Tuta folders.
-		if (imapMailboxes && imapMailboxes.length === 1 && isNotEmpty(assertNotNull(first(imapMailboxes)).subFolders ?? [])) {
-			const inboxMailbox = assertNotNull(first(imapMailboxes))
-			const remainingMailboxes = assertNotNull(first(imapMailboxes)).subFolders ?? []
-			return [inboxMailbox, ...remainingMailboxes]
+
+		if (listTreeResponse) {
+			const imapMailboxes = this.filterDisabledAndPromoteChildren(listTreeResponse.folders ?? []).map((listTreeResponse) => {
+				return imapMailboxFromImapFlowListTreeResponse(listTreeResponse, null)
+			})
+			// Some providers, e.g. one.com, return a single folder (Inbox) with subfolders.
+			// We want to flatten this to a single folder so that the user can map these folders to their own Tuta folders.
+			if (imapMailboxes && imapMailboxes.length === 1 && isNotEmpty(assertNotNull(first(imapMailboxes)).subFolders ?? [])) {
+				const inboxMailbox = assertNotNull(first(imapMailboxes))
+				const remainingMailboxes = assertNotNull(first(imapMailboxes)).subFolders ?? []
+				return [inboxMailbox, ...remainingMailboxes]
+			}
+			return imapMailboxes ?? []
 		}
-		return imapMailboxes ?? []
+		return []
 	}
 
 	/**

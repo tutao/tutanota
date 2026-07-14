@@ -92,6 +92,7 @@ import { DesktopOauthWindowFacade } from "./DesktopOauthWindowFacade"
 import { ImapSyncEventListener } from "./imapimport/imapsync/ImapSyncEventListener"
 import { createImapSync } from "./imapimport/imapsync/ImapSync"
 import { DesktopImapSyncSystemFacade, ImapInitFolderSyncFactory, ImapSyncFactory } from "./imapimport/DesktopImapSyncSystemFacade"
+import { CertificateProvider } from "./CertificateProvider"
 
 mp()
 
@@ -369,6 +370,7 @@ async function createComponents(): Promise<Components> {
 				await window.commonNativeFacade.uploadProgress(fileId, bytes)
 			},
 		}
+		const certificateProvider = new CertificateProvider(commandExecutor)
 		const imapSyncFactory: ImapSyncFactory = (accountSyncId: IdTuple) => {
 			const wrappedListener: ImapSyncEventListener = {
 				onMultipleMails: async (mails, type) => await window.imapSyncFacade.onMultipleMails(accountSyncId, mails, type),
@@ -378,7 +380,7 @@ async function createComponents(): Promise<Components> {
 				onFinish: async () => await window.imapSyncFacade.onFinish(accountSyncId),
 				onError: async (err) => await window.imapSyncFacade.onError(accountSyncId, err),
 			}
-			return createImapSync(wrappedListener)
+			return createImapSync(wrappedListener, certificateProvider)
 		}
 		const imapInitFolderSyncFactory: ImapInitFolderSyncFactory = () => {
 			const noopListener = {
@@ -389,7 +391,7 @@ async function createComponents(): Promise<Components> {
 				onFinish: async () => {},
 				onError: async () => {},
 			}
-			return createImapSync(noopListener)
+			return createImapSync(noopListener, certificateProvider)
 		}
 		const dispatcher = new DesktopGlobalDispatcher(
 			desktopCommonSystemFacade,

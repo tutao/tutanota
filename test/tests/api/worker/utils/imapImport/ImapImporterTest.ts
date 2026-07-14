@@ -53,7 +53,14 @@ o.spec("ImapImporter", () => {
 		password: "pass",
 		oAuthTokenEndpointResponse: null,
 	})
-	const imapAccountPlainMock: ImapCredentials = { host: "imap.test.com", port: 993, username: "user@test.com", password: "pass" }
+	const imapCredentials: ImapCredentials = {
+		host: "imap.test.com",
+		port: 993,
+		username: "user@test.com",
+		password: "pass",
+		ignoreCertificateErrors: false,
+		customCertificateData: null,
+	}
 	const imapMailboxMock: ImapMailbox = { path: "INBOX", name: "INBOX" }
 	const imapMailboxStatusMock: ImapMailboxStatus = {
 		path: "INBOX",
@@ -107,9 +114,11 @@ o.spec("ImapImporter", () => {
 			messageId: "msg123",
 		})
 		const statusArgumentCaptor = matchers.captor()
-		when(imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateIdMock, statusArgumentCaptor.capture(), anything())).thenDo(() => {
-			accountSyncStateMock.status = statusArgumentCaptor.value
-		})
+		when(imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateMock, statusArgumentCaptor.capture(), anything(), anything())).thenDo(
+			() => {
+				accountSyncStateMock.status = statusArgumentCaptor.value
+			},
+		)
 	})
 
 	o.test("initializeImport - creates new session when no existing sync state", async () => {
@@ -140,7 +149,8 @@ o.spec("ImapImporter", () => {
 		when(imapFacadeMock.getDeduplicatedImportedAttachments(mailGroupIdMock)).thenResolve([])
 		when(imapSyncSystemFacadeMock.startSync(accountSyncStateIdMock, anything())).thenResolve()
 		when(
-			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateIdMock, ImapAccountSyncStatus.RUNNING, ImapFolderSyncStatus.RUNNING),
+			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateMock, ImapAccountSyncStatus.RUNNING, ImapFolderSyncStatus.RUNNING),
+			anything(),
 		).thenResolve()
 		when(
 			imapFacadeMock.getImapAccountSyncStateById(accountSyncStateIdMock, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly }),
@@ -150,10 +160,9 @@ o.spec("ImapImporter", () => {
 		o.check(result.state.status).equals(ImapAccountSyncStatus.RUNNING)
 		o.check(session.imapAccountSyncState.status).equals(ImapAccountSyncStatus.RUNNING)
 		verify(imapSyncSystemFacadeMock.startSync(accountSyncStateIdMock, anything()), { times: 1 })
-		verify(
-			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateIdMock, ImapAccountSyncStatus.RUNNING, ImapFolderSyncStatus.RUNNING),
-			{ times: 1 },
-		)
+		verify(imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateMock, ImapAccountSyncStatus.RUNNING, ImapFolderSyncStatus.RUNNING), {
+			times: 1,
+		})
 	})
 
 	o.test("continueImport - returns postponed if postponedUntil in future", async () => {
@@ -181,7 +190,8 @@ o.spec("ImapImporter", () => {
 
 		when(imapSyncSystemFacadeMock.stopSync(accountSyncStateIdMock)).thenResolve()
 		when(
-			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateIdMock, ImapAccountSyncStatus.PAUSED, ImapFolderSyncStatus.PAUSED),
+			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateMock, ImapAccountSyncStatus.PAUSED, ImapFolderSyncStatus.PAUSED),
+			anything(),
 		).thenResolve()
 		when(imapFacadeMock.getAllImapFolderSyncStates("folderSyncStateListId")).thenResolve([folderSyncStateMock])
 
@@ -189,9 +199,17 @@ o.spec("ImapImporter", () => {
 
 		o.check(session.imapAccountSyncState.status).equals(ImapAccountSyncStatus.PAUSED)
 		verify(imapSyncSystemFacadeMock.stopSync(accountSyncStateIdMock), { times: 1 })
-		verify(imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateIdMock, ImapAccountSyncStatus.PAUSED, ImapFolderSyncStatus.PAUSED), {
-			times: 1,
-		})
+		verify(
+			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(
+				accountSyncStateMock,
+				ImapAccountSyncStatus.PAUSED,
+				ImapFolderSyncStatus.PAUSED,
+				anything(),
+			),
+			{
+				times: 1,
+			},
+		)
 	})
 
 	o.test("pauseImport - does nothing if session not found", async () => {
@@ -262,8 +280,15 @@ o.spec("ImapImporter", () => {
 		imapMailboxStatusMock.uidValidity = 123n
 		await importer.onMailboxStatus(accountSyncStateIdMock, imapMailboxStatusMock)
 		verify(
-			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateIdMock, ImapAccountSyncStatus.ERROR, ImapFolderSyncStatus.CANCELED),
-			{ times: 1 },
+			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(
+				accountSyncStateMock,
+				ImapAccountSyncStatus.ERROR,
+				ImapFolderSyncStatus.CANCELED,
+				anything(),
+			),
+			{
+				times: 1,
+			},
 		)
 	})
 
@@ -308,9 +333,10 @@ o.spec("ImapImporter", () => {
 		o.check(accountSyncStateMock.status).equals(ImapAccountSyncStatus.POSTPONED)
 		verify(
 			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(
-				session.imapAccountSyncState._id,
+				session.imapAccountSyncState,
 				ImapAccountSyncStatus.POSTPONED,
 				ImapFolderSyncStatus.PAUSED,
+				anything(),
 			),
 			{ times: 1 },
 		)
@@ -335,14 +361,24 @@ o.spec("ImapImporter", () => {
 		importer.imapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
 		when(
-			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateIdMock, ImapAccountSyncStatus.FINISHED, ImapFolderSyncStatus.FINISHED),
+			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(
+				accountSyncStateMock,
+				ImapAccountSyncStatus.FINISHED,
+				ImapFolderSyncStatus.FINISHED,
+				anything(),
+			),
 		).thenResolve()
 
 		await importer.onFinish(accountSyncStateIdMock)
 
 		o.check(session.imapAccountSyncState.status).equals(ImapAccountSyncStatus.FINISHED)
 		verify(
-			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateIdMock, ImapAccountSyncStatus.FINISHED, ImapFolderSyncStatus.FINISHED),
+			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(
+				accountSyncStateMock,
+				ImapAccountSyncStatus.FINISHED,
+				ImapFolderSyncStatus.FINISHED,
+				anything(),
+			),
 			{ times: 1 },
 		)
 	})
@@ -351,11 +387,11 @@ o.spec("ImapImporter", () => {
 		accountSyncStateMock.status = ImapAccountSyncStatus.RUNNING
 		const session = newImapImportSession(accountSyncStateMock, [])
 		importer.imapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
-		when(imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(session.imapAccountSyncState._id, ImapAccountSyncStatus.PAUSED, anything())).thenDo(
-			() => {
-				session.imapAccountSyncState.status = ImapAccountSyncStatus.PAUSED
-			},
-		)
+		when(
+			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(session.imapAccountSyncState, ImapAccountSyncStatus.PAUSED, anything(), anything()),
+		).thenDo(() => {
+			session.imapAccountSyncState.status = ImapAccountSyncStatus.PAUSED
+		})
 
 		const imapError = new ImapError("Some error", ImapErrorCause.AUTH_FAILED)
 		await importer.onError(accountSyncStateIdMock, imapError)
@@ -465,12 +501,12 @@ o.spec("ImapImporter", () => {
 
 	o.test("getImapMailboxesFromServer - delegates to system facade", async () => {
 		const resultMock: ImapGetMailboxResult = { result: [] }
-		when(imapSyncSystemFacadeMock.getImapMailboxesFromServer(imapAccountPlainMock)).thenResolve(resultMock)
+		when(imapSyncSystemFacadeMock.getImapMailboxesFromServer(imapCredentials)).thenResolve(resultMock)
 
-		const result = await importer.getImapMailboxesFromServer(imapAccountPlainMock)
+		const result = await importer.getImapMailboxesFromServer(imapCredentials)
 
 		o.check(result).equals(resultMock)
-		verify(imapSyncSystemFacadeMock.getImapMailboxesFromServer(imapAccountPlainMock), { times: 1 })
+		verify(imapSyncSystemFacadeMock.getImapMailboxesFromServer(imapCredentials), { times: 1 })
 	})
 
 	o.test("getActiveSessions - returns sessions map", async () => {
