@@ -578,7 +578,7 @@ export class CalendarModel {
 			const calendarTimeZone = getTimeZone()
 			try {
 				const externalCalendar = await this.fetchExternalCalendar(calendar.url)
-				parsedExternalEvents = parseCalendarStringData(externalCalendar, calendarTimeZone).contents
+				parsedExternalEvents = parseCalendarStringData(externalCalendar, calendarTimeZone, null).contents
 			} catch (error) {
 				let calendarName = calendar.name
 				console.log("failed to sync external calendar", error)
@@ -936,7 +936,7 @@ export class CalendarModel {
 		})
 	}
 
-	private async getCalendarDataForUpdate(fileId: IdTuple): Promise<ParsedCalendarData | null> {
+	private async getCalendarDataForUpdate(fileId: IdTuple, probableOrganizerAddress: string): Promise<ParsedCalendarData | null> {
 		try {
 			// We are not supposed to load files without the key provider, but we hope that the key
 			// was already resolved and the entity updated.
@@ -944,7 +944,7 @@ export class CalendarModel {
 			// const file = await this.entityClient.load(FileTypeRef, fileId)
 			const dataFile = await this.fileController.getAsDataFile(file)
 			const { parseCalendarFile } = await import("../../../calendar-app/calendar/export/CalendarParser")
-			return await parseCalendarFile(dataFile)
+			return parseCalendarFile(dataFile, probableOrganizerAddress)
 		} catch (e) {
 			if (e instanceof SessionKeyNotFoundError) {
 				// owner enc session key not updated yet - see NoOwnerEncSessionKeyForCalendarEventError's comment
@@ -968,7 +968,7 @@ export class CalendarModel {
 	public async handleCalendarEventUpdate(update: CalendarEventUpdate): Promise<void> {
 		// we want to delete the CalendarEventUpdate after we are done, even, in some cases, if something went wrong.
 		try {
-			const parsedCalendarData = await this.getCalendarDataForUpdate(update.file)
+			const parsedCalendarData = await this.getCalendarDataForUpdate(update.file, update.sender)
 			if (parsedCalendarData != null) {
 				await this.processParsedCalendarDataFromCalendarEventUpdate(update.sender, parsedCalendarData)
 			}

@@ -31,9 +31,9 @@ export interface ParsedIcalFileContentData {
 
 export type ParsedIcalFileContent = ParsedIcalFileContentData | None
 
-async function getParsedEvent(fileData: DataFile): Promise<ParsedIcalFileContent> {
+async function getParsedEvent(fileData: DataFile, probableOrganizerAddress: string): Promise<ParsedIcalFileContent> {
 	try {
-		const { contents, method } = await parseCalendarFile(fileData)
+		const { contents, method } = parseCalendarFile(fileData, probableOrganizerAddress)
 		const uid = contents[0].icsCalendarEvent.uid
 		if (uid == null) return null
 		assert(!contents.some((c) => c.icsCalendarEvent.uid !== uid), "received invite with multiple events, but mismatched UIDs")
@@ -48,9 +48,9 @@ async function getParsedEvent(fileData: DataFile): Promise<ParsedIcalFileContent
 	}
 }
 
-export async function getEventsFromFile(file: File): Promise<ParsedIcalFileContent> {
+export async function getEventsFromFile(file: File, probableOrganizerAddress: string): Promise<ParsedIcalFileContent> {
 	const dataFile = await locator.fileController.getAsDataFile(file)
-	return getParsedEvent(dataFile)
+	return getParsedEvent(dataFile, probableOrganizerAddress)
 }
 
 /**
