@@ -306,12 +306,7 @@ export function encodeCalendarSearchKey(event: CalendarEvent): string {
 }
 
 export function searchQueryEquals(a: SearchQuery, b: SearchQuery): boolean {
-	return (
-		a.query === b.query &&
-		isSameSearchRestriction(a.restriction, b.restriction) &&
-		a.minSuggestionCount === b.minSuggestionCount &&
-		a.maxResults === b.maxResults
-	)
+	return a.query === b.query && isSameSearchRestriction(a.restriction, b.restriction) && a.maxResults === b.maxResults
 }
 
 export function isSameSearchRestriction(a: SearchRestriction, b: SearchRestriction): boolean {

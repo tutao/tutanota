@@ -24,7 +24,7 @@ export class OfflineStorageContactSearchFacade implements ContactSearchFacade {
 				folderIds: [],
 				eventSeries: null,
 			},
-			minResults,
+			{ minSuggestionCount: minResults },
 		)
 		return results.results
 	}

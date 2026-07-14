@@ -61,7 +61,7 @@ export class IndexedDbContactSearchFacade implements ContactSearchFacade {
 		const restrictions = await this.restriction()
 		const restriction = restrictions[field ?? "default"]
 		// ensure match word order for email addresses mainly
-		const results = await this.search.search(`"${query}"`, restriction, minimumSuggestions)
+		const results = await this.search.search(`"${query}"`, restriction, { minSuggestionCount: minimumSuggestions })
 		return results.results
 	}
 }

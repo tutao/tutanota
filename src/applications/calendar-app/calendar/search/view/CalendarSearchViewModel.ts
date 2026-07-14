@@ -182,7 +182,6 @@ export class CalendarSearchViewModel {
 					{
 						query: args.query,
 						restriction,
-						minSuggestionCount: 0,
 						maxResults,
 					},
 					this.progressTracker,
@@ -200,7 +199,6 @@ export class CalendarSearchViewModel {
 					{
 						query: lastQuery,
 						restriction,
-						minSuggestionCount: 0,
 						maxResults,
 					},
 					this.progressTracker,

@@ -20,7 +20,6 @@ export class ContactSearchBar implements ClassComponent<ContactSearchBarAttrs> {
 					query,
 					maxResults: 10, // FIXME
 					restriction: createRestriction(SearchCategoryType.contact, null, null, null, [], false),
-					minSuggestionCount: 0,
 				}),
 			selectResult: attrs.selectResult,
 			renderResult: (entry, _isSelected) => this.renderContactResult(entry),

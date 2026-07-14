@@ -10,7 +10,5 @@ export interface CommonSearchModel {
 
 	search(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<SearchResult | void>
 
-	isNewSearch(query: string, restriction: SearchRestriction): boolean
-
 	sendCancelSignal(): void
 }

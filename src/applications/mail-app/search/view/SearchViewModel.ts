@@ -27,6 +27,7 @@ import {
 	getEndOfDay,
 	getStartOfDay,
 	incrementMonth,
+	isNotNull,
 	isSameDayOfDate,
 	mapAndFilterNull,
 	memoizedWithHiddenArgument,
@@ -35,10 +36,10 @@ import {
 	stringToBase64,
 	YEAR_IN_MILLIS,
 } from "@tutao/utils"
-import { LiveSearchResult, SearchModel } from "../model/SearchModel.js"
+import { LiveSearchResult, SearchModel, SearchQuery } from "../model/SearchModel.js"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils.js"
 import { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel.js"
-import { createRestriction, encodeCalendarSearchKey, getRestriction, getSearchUrl, isSameSearchRestriction } from "../model/SearchUtils.js"
+import { createRestriction, encodeCalendarSearchKey, getRestriction, getSearchUrl, isSameSearchRestriction, searchQueryEquals } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
@@ -297,47 +298,55 @@ export class SearchViewModel {
 		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
 		// If query is not set for some reason (e.g. switching search type), use the last query value
 		const searchQuery = Object.hasOwn(args, "query") ? query : lastQuery
-		// FIXME do not assume it's new search
-		this.searchResult?.dispose()
-		switch (restriction.type) {
-			case SearchCategoryType.contact: {
-				const searchPromise = this.search
-					.coolNewSearchContacts({
-						query: searchQuery ?? "",
-						restriction,
-						minSuggestionCount: 0,
-						maxResults,
-					})
-					.then((result) => {
-						this.applyLiveSearchResults(result)
-						return result
-					})
-				const listModel = this.createList(searchPromise)
-				this._listModel = listModel
-				listModel.loadInitial()
-				this.loadAndSelectIfNeeded(args.id)
-				break
-			}
-			case SearchCategoryType.mail: {
-				const searchPromise = this.search
-					.coolNewSearchMails({
-						query: searchQuery ?? "",
-						restriction,
-						minSuggestionCount: 0,
-						maxResults,
-					})
-					.then((result) => {
-						this.applyLiveSearchResults(result)
-						return result
-					})
 
-				const listModel = this.createList(searchPromise)
-				this._listModel = listModel
-				listModel.loadInitial()
-				this.loadAndSelectIfNeeded(args.id)
-				break
+		const currentQuery: SearchQuery | null = this.searchResult
+			? {
+					query: this.searchResult.searchResult.query,
+					restriction: this.searchResult.searchResult.restriction,
+					maxResults: this.searchResult.searchResult.maxResults ?? null,
+				}
+			: null
+		const newQuery: SearchQuery = { query: searchQuery ?? "", restriction, maxResults }
+		const isNewSearch = currentQuery ? !searchQueryEquals(currentQuery, newQuery) : true
+		if (isNewSearch) {
+			this.searchResult?.dispose()
+			switch (restriction.type) {
+				case SearchCategoryType.contact: {
+					const searchPromise = this.search
+						.coolNewSearchContacts({
+							query: searchQuery ?? "",
+							restriction,
+							maxResults,
+						})
+						.then((result) => {
+							this.applyLiveSearchResults(result)
+							return result
+						})
+					const listModel = this.createList(searchPromise)
+					this._listModel = listModel
+					listModel.loadInitial()
+					break
+				}
+				case SearchCategoryType.mail: {
+					const searchPromise = this.search
+						.coolNewSearchMails({
+							query: searchQuery ?? "",
+							restriction,
+							maxResults,
+						})
+						.then((result) => {
+							this.applyLiveSearchResults(result)
+							return result
+						})
+
+					const listModel = this.createList(searchPromise)
+					this._listModel = listModel
+					listModel.loadInitial()
+					break
+				}
 			}
 		}
+		this.loadAndSelectIfNeeded(args.id)
 		// if (searchQuery == null) {
 		// 	// no search query at all yet
 		// 	listModel.updateLoadingStatus(ListLoadingState.Done)
@@ -956,24 +965,14 @@ export class SearchViewModel {
 
 		return new ListModel<SearchResultListEntry, Id>({
 			fetch: async (lastFetchedEntity: SearchResultListEntry | null, count: number) => {
-				// const startId = lastFetchedEntity == null ? GENERATED_MAX_ID : getElementId(lastFetchedEntity)
-				//
-				// await awaitSearchInitialized(this.search)
-				//
-				// const updatedResult = await this.search.getMoreSearchResults(count)
-				// if (!updatedResult || (isEmpty(updatedResult.results) && !hasMoreResults(updatedResult))) {
-				// 	return { items: [], complete: !this.isIndexingMails() && !this.isIndexingMailsFailed() }
-				// }
-				//
-				// const { items, newSearchResult } = await this.loadSearchResults(updatedResult, startId)
-				// const entries = items.map((instance) => new SearchResultListEntry(instance))
 				const result = await deferredResult
-				// FIXME: this might be unreliable if update come inbetween, we need to search for the right index
-				await result.loadMoreResults(count)
-				const indexOfStart = lastFetchedEntity == null ? -1 : result.items.findIndex((item) => isSameId(item._id, lastFetchedEntity._id))
-				const newItems = result.items.slice(indexOfStart === -1 ? undefined : indexOfStart + 1)
+				let newItems
+				if (isNotNull(lastFetchedEntity)) {
+					newItems = await result.loadMoreResults(count)
+				} else {
+					newItems = result.items
+				}
 				const complete = !result.hasMoreResults && !this.isIndexingMails() && !this.isIndexingMailsFailed()
-
 				return { items: newItems.map((entity) => new SearchResultListEntry(entity)), complete }
 			},
 			getItemId(item: SearchResultListEntry): Id {
@@ -1233,7 +1232,7 @@ export class SearchViewModel {
 			this.#delayingSearch = false
 		})
 	}
-	private readonly debouncedUpdateSearchUrl = debounce(100, (cb) => {
+	private readonly debouncedUpdateSearchUrl = debounce(200, (cb) => {
 		this.updateSearchUrl()
 		cb()
 	})

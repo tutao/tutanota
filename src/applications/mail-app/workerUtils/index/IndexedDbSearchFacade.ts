@@ -101,7 +101,11 @@ export class IndexedDbSearchFacade implements SearchFacade {
 	 * @param minSuggestionCount If minSuggestionCount > 0 regards the last query token as suggestion token and includes suggestion results for that token, but not less than minSuggestionCount
 	 * @returns The result ids are sorted by id from newest to oldest
 	 */
-	async search(query: string, restriction: SearchRestriction, minSuggestionCount: number, maxResults?: number): Promise<SearchResult> {
+	async search(
+		query: string,
+		restriction: SearchRestriction,
+		{ minSuggestionCount, maxResults }: { minSuggestionCount?: number; maxResults?: number } = {},
+	): Promise<SearchResult> {
 		let searchTokens = tokenize(query)
 		let result: SearchResult = {
 			query,
@@ -124,7 +128,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 			const idEncoding = getServerIdEncodingForType(typeModel)
 			let searchPromise
 
-			if (minSuggestionCount > 0 && isFirstWordSearch && isSameTypeRef(ContactTypeRef, typeRef)) {
+			if (isNotNull(minSuggestionCount) && minSuggestionCount > 0 && isFirstWordSearch && isSameTypeRef(ContactTypeRef, typeRef)) {
 				let addSuggestionBefore = getPerformanceTimestamp()
 				searchPromise = this.addSuggestions(searchTokens[0], this.contactSuggestionFacade, minSuggestionCount, result).then(() => {
 					if (result.results.length < minSuggestionCount) {
@@ -139,7 +143,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 						})
 					}
 				})
-			} else if (minSuggestionCount > 0 && !isFirstWordSearch && isSameTypeRef(ContactTypeRef, typeRef)) {
+			} else if (isNotNull(minSuggestionCount) && minSuggestionCount > 0 && !isFirstWordSearch && isSameTypeRef(ContactTypeRef, typeRef)) {
 				let suggestionToken = neverNull(result.lastReadSearchIndexRow.pop())[0]
 				searchPromise = this.startOrContinueSearch(result).then(() => {
 					// we now filter for the suggestion token manually because searching for suggestions for the last word and reducing the initial search result with them can lead to

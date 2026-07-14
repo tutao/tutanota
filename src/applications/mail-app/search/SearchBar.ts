@@ -1,10 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { layout_size, px, size } from "../../../ui/size"
 import { displayOverlay, overlayBottomMargin, PositionRect } from "../../../ui/base/Overlay"
-import { assertIsEntity, getElementId, ListElementEntity } from "@tutao/meta"
 import type { Shortcut } from "../../../ui/utils/KeyManager"
 import { isKeyPressed, keyManager } from "../../../ui/utils/KeyManager"
-import { encodeCalendarSearchKey, getRestriction, hasMoreResults } from "./model/SearchUtils"
+import { getRestriction, hasMoreResults } from "./model/SearchUtils"
 import { Dialog } from "../../../ui/base/Dialog"
 import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, Keys } from "@tutao/app-env"
 import { styles } from "../../../ui/styles"
@@ -18,7 +17,7 @@ import { LayerType } from "../../../ui/base/RootView"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../ui/base/BaseSearchBar.js"
 import { SearchRouter } from "../../common/search/view/SearchRouter.js"
 import { mailLocator } from "../mailLocator.js"
-import { CalendarEvent, CalendarEventTypeRef, Contact, Mail } from "@tutao/entities/tutanota"
+import { CalendarEvent, Contact, Mail } from "@tutao/entities/tutanota"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { DriveFile, DriveFolder } from "@tutao/entities/drive"
 import { LiveSearchResult, SearchQuery } from "./model/SearchModel"
@@ -305,7 +304,6 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 				restriction,
 				// FIXME: these 2 are wrong
 				maxResults: null,
-				minSuggestionCount: 0,
 			}
 			this.updateState({
 				query: searchQuery,
@@ -316,7 +314,6 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 				restriction,
 				// FIXME: these 2 are wrong
 				maxResults: null,
-				minSuggestionCount: 0,
 			}
 		}
 

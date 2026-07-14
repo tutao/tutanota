@@ -19,7 +19,7 @@ import {
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
-import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, isSameSearchRestrictionWithRangeExtended, searchQueryEquals } from "./SearchUtils"
+import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestrictionWithRangeExtended, searchQueryEquals } from "./SearchUtils"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
 import { ProgressMonitorInterface } from "../../../../platform-kit/network/ProgressMonitorInterface"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
@@ -34,7 +34,6 @@ assertMainOrNode()
 export type SearchQuery = {
 	query: string
 	restriction: SearchRestriction
-	minSuggestionCount: number
 	maxResults: number | null
 }
 
@@ -110,12 +109,9 @@ export class SearchModel {
 	}
 
 	async coolNewSearchContacts(searchQuery: SearchQuery): Promise<LiveSearchResult<Contact>> {
-		const searchResult: SearchResult = await this._searchFacade.search(
-			searchQuery.query,
-			searchQuery.restriction,
-			searchQuery.minSuggestionCount,
-			searchQuery.maxResults ?? undefined,
-		)
+		const searchResult: SearchResult = await this._searchFacade.search(searchQuery.query, searchQuery.restriction, {
+			maxResults: searchQuery.maxResults ?? undefined,
+		})
 		const contacts = await loadMultipleFromLists(ContactTypeRef, this.entityClient, searchResult.results)
 		contacts.sort((a, b) => compareContacts(a, b))
 		const initialResults = contacts.slice(0, searchQuery.maxResults ?? contacts.length)
@@ -168,12 +164,9 @@ export class SearchModel {
 	}
 
 	async coolNewSearchMails(searchQuery: SearchQuery): Promise<LiveSearchResult<Mail>> {
-		const searchResult: SearchResult = await this._searchFacade.search(
-			searchQuery.query,
-			searchQuery.restriction,
-			searchQuery.minSuggestionCount,
-			searchQuery.maxResults ?? undefined,
-		)
+		const searchResult: SearchResult = await this._searchFacade.search(searchQuery.query, searchQuery.restriction, {
+			maxResults: searchQuery.maxResults ?? undefined,
+		})
 		const mails = await loadMultipleFromLists(MailTypeRef, this.entityClient, searchResult.results)
 		mails.sort(compareMails)
 
@@ -182,8 +175,10 @@ export class SearchModel {
 			items: mails,
 			loadMoreResults: async (count) => {
 				if (hasMoreResults(result.searchResult)) {
-					result.searchResult = await this._searchFacade.getMoreSearchResults(result.searchResult, count)
+					// we do not change searchResult itself in response to entity updates so even if some entity was
+					// deleted from the items list it doesn't affect index in searchResult
 					const previousLength = result.searchResult.results.length
+					result.searchResult = await this._searchFacade.getMoreSearchResults(result.searchResult, count)
 					const toLoad = result.searchResult.results.slice(previousLength)
 					let items: Mail[] = await loadMultipleFromLists(MailTypeRef, this.entityClient, toLoad)
 					items.sort(compareMails)
@@ -295,7 +290,7 @@ export class SearchModel {
 		}
 
 		this.lastQuery = searchQuery
-		const { query, restriction, minSuggestionCount, maxResults } = searchQuery
+		const { query, restriction, maxResults } = searchQuery
 		this.lastQueryString(query)
 		let result = this.result()
 
@@ -515,7 +510,7 @@ export class SearchModel {
 					const truncatedRestriction = { ...restriction, end: Math.max(currentTimestamp, restriction.end) }
 
 					this.lastSearchPromise = this._searchFacade
-						.search(query, truncatedRestriction, minSuggestionCount, maxResults ?? undefined)
+						.search(query, truncatedRestriction, { maxResults: maxResults ?? undefined })
 						.then((result) => {
 							// we put back in the original restriction as we want the user's query to be put in here, not the
 							// modified request
@@ -534,7 +529,7 @@ export class SearchModel {
 				case SearchCategoryType.contact: {
 					// contacts are assumed to be fully indexed, thus restriction dates are meaningless here
 					this.lastSearchPromise = this._searchFacade
-						.search(query, restriction, minSuggestionCount, maxResults ?? undefined)
+						.search(query, restriction, { maxResults: maxResults ?? undefined })
 						.then((result) => {
 							this.result(result)
 							return result
@@ -548,7 +543,7 @@ export class SearchModel {
 					break
 				}
 				case SearchCategoryType.drive:
-					this.lastSearchPromise = this._searchFacade.search(query, restriction, minSuggestionCount, maxResults ?? undefined).then((result) => {
+					this.lastSearchPromise = this._searchFacade.search(query, restriction, { maxResults: maxResults ?? undefined }).then((result) => {
 						this.result(result)
 						return result
 					})
@@ -623,22 +618,6 @@ export class SearchModel {
 		}
 
 		return lastQuery.query === query && isSameSearchRestrictionWithRangeExtended(lastQuery.restriction, restriction)
-	}
-
-	isNewSearch(query: string, restriction: SearchRestriction): boolean {
-		let isNew = false
-		let lastQuery = this.lastQuery
-		if (lastQuery == null) {
-			isNew = true
-		} else if (lastQuery.query !== query) {
-			isNew = true
-		} else if (lastQuery.restriction !== restriction) {
-			// both are the same instance
-			isNew = !isSameSearchRestriction(restriction, lastQuery.restriction)
-		}
-
-		if (isNew) this.sendCancelSignal()
-		return isNew
 	}
 
 	sendCancelSignal() {

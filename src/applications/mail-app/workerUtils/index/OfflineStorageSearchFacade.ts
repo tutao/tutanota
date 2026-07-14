@@ -5,7 +5,7 @@ import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { MailIndexer } from "./MailIndexer"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
 import { assertNotNull, first, isEmpty, last, splitArrayAt } from "../../../../platform-kit/utils"
-import { isSameId, isSameTypeRef } from "../../../../platform-kit/meta"
+import { isSameId } from "../../../../platform-kit/meta"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
 import { ContactIndexer } from "./ContactIndexer"
 import { untagSqlValue } from "../../../../app-kit/local-store/SqlValue"
@@ -21,7 +21,11 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 		private readonly contactIndexer: ContactIndexer,
 	) {}
 
-	async search(query: string, restriction: SearchRestriction, _minSuggestionCount: number, maxResults?: number): Promise<SearchResult> {
+	async search(
+		query: string,
+		restriction: SearchRestriction,
+		{ maxResults }: { minSuggestionCount?: number; maxResults?: number } = {},
+	): Promise<SearchResult> {
 		const tokens = await this.tokenize(query)
 
 		if (restriction.type === SearchCategoryType.mail) {
@@ -47,7 +51,7 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 			end: extensionEnd,
 		}
 
-		return this.search(result.query, extensionRestriction, 0).then((extensionResult) => {
+		return this.search(result.query, extensionRestriction).then((extensionResult) => {
 			let moreResultsEntries: IdTuple[]
 
 			if (isEmpty(extensionResult.results)) {

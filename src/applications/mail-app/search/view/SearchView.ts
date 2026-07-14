@@ -556,12 +556,32 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				{
 					class: rightActions.length === 0 ? "mr-12" : "",
 				},
-				// FIXME: reimplement searchBar for search view
-				null,
-				// m(searchBar, {
-				// 	placeholder: this.searchBarPlaceholder(),
-				// 	returnListener: () => this.resultListColumn.focus(),
-				// }),
+				m(
+					// form wrapper to isolate the search input and prevent it from being autofilled when unrelated buttons are clicked on chrome
+					// this is done because chrome doesn't appear to respect `autocomplete="off"` and will autofill the field anyway
+					"form.full-width",
+					{
+						style: {
+							maxWidth: styles.isUsingBottomNavigation() ? "" : px(layout_size.second_col_max_width + 50),
+						},
+						onsubmit: (e: SubmitEvent) => {
+							e.stopPropagation()
+							e.preventDefault()
+						},
+					},
+					m(BaseSearchBar, {
+						placeholder: this.searchBarPlaceholder(),
+						text: this.searchViewModel.getCurrenQuery(),
+						busy: this.searchViewModel.busy,
+						onInput: (text: string) => {
+							this.searchViewModel.onSearchQueryUpdated(text)
+						},
+						onKeyDown: (e) => {
+							e.stopPropagation()
+						},
+						onClear: () => this.searchViewModel.onSearchQueryUpdated(""),
+					} satisfies BaseSearchBarAttrs),
+				),
 			),
 			injections: m(ProgressBar, { progress: header.offlineIndicatorModel.getProgress() }),
 		})

@@ -14,7 +14,6 @@ assertMainOrNode()
 export type SearchQuery = {
 	query: string
 	restriction: SearchRestriction
-	minSuggestionCount: number
 	maxResults: number | null
 }
 
@@ -41,7 +40,7 @@ export class CalendarSearchModel {
 		}
 
 		this.lastQuery = searchQuery
-		const { query, restriction, minSuggestionCount, maxResults } = searchQuery
+		const { query, restriction, maxResults } = searchQuery
 		this.lastQueryString(query)
 		let result = this.result()
 
@@ -260,12 +259,7 @@ function idToKey(id: IdTuple): string {
 }
 
 function searchQueryEquals(a: SearchQuery, b: SearchQuery) {
-	return (
-		a.query === b.query &&
-		isSameSearchRestriction(a.restriction, b.restriction) &&
-		a.minSuggestionCount === b.minSuggestionCount &&
-		a.maxResults === b.maxResults
-	)
+	return a.query === b.query && isSameSearchRestriction(a.restriction, b.restriction) && a.maxResults === b.maxResults
 }
 
 export function isSameSearchRestriction(a: SearchRestriction, b: SearchRestriction): boolean {

@@ -368,7 +368,6 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 			return cb()
 		}
 
-		let useSuggestions = m.route.get().startsWith("/settings")
 		// This is a vestige of the searchbar for mail, keeping just in case
 		// we do not need to limit calendar events since they are local
 		const limit = null
@@ -378,7 +377,6 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 				{
 					query: query ?? "",
 					restriction,
-					minSuggestionCount: useSuggestions ? 10 : 0,
 					maxResults: limit,
 				},
 				calendarLocator.progressTracker,

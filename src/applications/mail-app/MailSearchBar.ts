@@ -59,7 +59,6 @@ export class MailSearchBar implements ClassComponent<MailSearchBarAttrs> {
 					query,
 					maxResults: 10, // FIXME
 					restriction: createRestriction(SearchCategoryType.mail, null, null, null, [], false),
-					minSuggestionCount: 0,
 				}),
 			selectResult: attrs.selectResult,
 			renderResult: (entry, isSelected) => this.renderMailResult(entry, isSelected),
