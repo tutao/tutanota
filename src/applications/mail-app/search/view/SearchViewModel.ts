@@ -52,6 +52,7 @@ import {
 	getRestriction,
 	getSearchUrl,
 	hasMoreResults,
+	isNonBlockingSearchAvailable,
 	isSameSearchRestriction,
 	searchCategoryForRestriction,
 	SearchCategoryTypes,
@@ -944,6 +945,7 @@ export class SearchViewModel {
 
 	private onMailIndexStateChanged(newState: SearchIndexStateInfo): void {
 		if (
+			isNonBlockingSearchAvailable() &&
 			isSameTypeRef(MailTypeRef, this.searchedType) &&
 			newState.progress === 0 &&
 			newState.error == null &&
