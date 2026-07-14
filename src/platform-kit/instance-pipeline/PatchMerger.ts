@@ -25,7 +25,7 @@ import { PatchOperationType } from "./PatchGenerator.js"
 import { TypeModelResolver } from "./EntityFunctions"
 import { Patch, UserTypeRef } from "../../entities/sys/TypeRefs"
 import { EntityUpdateData } from "./utils/EntityUpdateUtils"
-import { AssociationPatchFieldPathElement } from "./FieldPath"
+import { AssociationPatchPath } from "./EncryptionContextPath"
 
 export interface OwnerKeyProvider {
 	(ownerKeyVersion: KeyVersion): Promise<AesKey>
@@ -150,10 +150,10 @@ export class PatchMerger {
 				const encryptedParsedValue: Nullable<EncryptedParsedValue | EncryptedParsedAssociation> = await this.parseValueOnPatch(pathResult, patch.value)
 				const isAggregation = pathResultTypeModel.associations[attributeId]?.type === AssociationType.Aggregation
 				const isEncryptedValue = pathResultTypeModel.values[attributeId]?.encrypted
-				const fieldPath: string = this.removeNetworkDebuggingSymbolsIfNeeded(patch.attributePath)
+				const attributePath: string = this.removeNetworkDebuggingSymbolsIfNeeded(patch.attributePath)
 				const needsDecryption = ((isAggregation && typeModel.encrypted) || isEncryptedValue) && instanceDecryptor.canAttemptDecryption()
 				const value = needsDecryption
-					? await this.decryptValueOnPatch(pathResult, encryptedParsedValue, ownerGroup, instanceDecryptor, fieldPath)
+					? await this.decryptValueOnPatch(pathResult, encryptedParsedValue, ownerGroup, instanceDecryptor, attributePath)
 					: encryptedParsedValue
 				await this.applyPatchOperation(patch.patchOperation, pathResult, value)
 			} else {
@@ -166,11 +166,11 @@ export class PatchMerger {
 		}
 	}
 
-	private removeNetworkDebuggingSymbolsIfNeeded(fieldPath: string) {
+	private removeNetworkDebuggingSymbolsIfNeeded(path: string) {
 		if (!env.networkDebugging) {
-			return fieldPath
+			return path
 		}
-		return fieldPath
+		return path
 			.split("/")
 			.map((pathItem) => pathItem.split(":")[0])
 			.join("/")
@@ -310,7 +310,7 @@ export class PatchMerger {
 		value: Nullable<EncryptedParsedValue | EncryptedParsedAssociation>,
 		ownerGroup: Nullable<Id>,
 		instanceDecryptor: InstanceDecryptor,
-		fieldPath: string,
+		attributePatchPath: string,
 	): Promise<Nullable<ParsedValue> | Nullable<ParsedAssociation>> {
 		const { typeModel, attributeId } = pathResult
 		const isValue = typeModel.values[attributeId] !== undefined
@@ -322,7 +322,7 @@ export class PatchMerger {
 				value as Base64,
 				instanceDecryptor,
 				this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(ownerGroup),
-				fieldPath,
+				attributePatchPath,
 			)
 		} else if (isAggregation) {
 			const encryptedAggregatedEntities = value as Array<ServerModelEncryptedParsedInstance>
@@ -334,7 +334,7 @@ export class PatchMerger {
 				encryptedAggregatedEntities,
 				instanceDecryptor,
 				this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(ownerGroup),
-				new AssociationPatchFieldPathElement(fieldPath),
+				new AssociationPatchPath(attributePatchPath),
 			)
 			if (this.instancePipeline.cryptoMapper.containErrors(decryptedAggregates)) {
 				// we do not want to apply a patch that failed decryption

@@ -34,7 +34,7 @@ import {
 } from "../meta/EntityTypes"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
 import { OwnerKeyProvider } from "./PatchMerger"
-import { AssociationFieldPathElement, AssociationPatchOrAssociationPathElement, RootFieldPathElement, RootOrAggregateFieldPathElement } from "./FieldPath"
+import { AssociationPath, AssociationOrAssociationPatchPath, RootPath, RootOrAggregatePath } from "./EncryptionContextPath"
 
 export interface SymmetricGroupKeyLoader {
 	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey>
@@ -103,11 +103,11 @@ export class CryptoMapper {
 		sessionKey: Nullable<AesKey>,
 		kdfNonce: Nullable<KdfNonce>,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
-		fieldPath: RootOrAggregateFieldPathElement = new RootFieldPathElement(),
+		path: RootOrAggregatePath = new RootPath(),
 	): Promise<ServerModelParsedInstance> {
 		const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(sessionKey, kdfNonce, serverTypeModel)
 
-		return this.decryptParsedInstanceInternal(serverTypeModel, encryptedInstance, instanceDecryptor, ownerKeyProvider, fieldPath)
+		return this.decryptParsedInstanceInternal(serverTypeModel, encryptedInstance, instanceDecryptor, ownerKeyProvider, path)
 	}
 
 	private async decryptParsedInstanceInternal(
@@ -115,7 +115,7 @@ export class CryptoMapper {
 		encryptedInstance: ServerModelEncryptedParsedInstance,
 		instanceDecryptor: InstanceDecryptor,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
-		fieldPath: RootOrAggregateFieldPathElement = new RootFieldPathElement(),
+		path: RootOrAggregatePath = new RootPath(),
 	): Promise<ServerModelParsedInstance> {
 		const decrypted: ServerModelParsedInstance = {} as ServerModelParsedInstance
 		for (const [valueIdStr, valueInfo] of Object.entries(serverTypeModel.values)) {
@@ -129,14 +129,8 @@ export class CryptoMapper {
 				} else {
 					const encryptedValueInfo = valueInfo as EncryptedModelValue
 					const encryptedString = encryptedValue as Base64
-					const valueFieldPath = fieldPath.addValueId(valueInfo)
-					decrypted[valueId] = await this.decryptValue(
-						encryptedValueInfo,
-						encryptedString,
-						instanceDecryptor,
-						ownerKeyProvider,
-						valueFieldPath.getFieldPath(),
-					)
+					const valuePath = path.addValueId(valueInfo)
+					decrypted[valueId] = await this.decryptValue(encryptedValueInfo, encryptedString, instanceDecryptor, ownerKeyProvider, valuePath.getPath())
 				}
 			} catch (e) {
 				if (decrypted._errors == null) {
@@ -166,7 +160,7 @@ export class CryptoMapper {
 					encryptedInstanceValue as Array<ServerModelEncryptedParsedInstance>,
 					instanceDecryptor,
 					ownerKeyProvider,
-					fieldPath.addAssociationId(associationType),
+					path.addAssociationId(associationType),
 				)
 				decrypted[associationId] = decryptedAggregates
 				if (this.containErrors(decryptedAggregates)) {
@@ -204,7 +198,7 @@ export class CryptoMapper {
 		encryptedInstanceValues: Array<ServerModelEncryptedParsedInstance>,
 		instanceDecryptor: InstanceDecryptor,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
-		associationFieldPathElement: AssociationPatchOrAssociationPathElement,
+		associationOrAssociationPatchPath: AssociationOrAssociationPatchPath,
 	): Promise<Array<ServerModelParsedInstance>> {
 		const decryptedAggregates: Array<ServerModelParsedInstance> = []
 		for (const encryptedAggregate of encryptedInstanceValues) {
@@ -214,7 +208,7 @@ export class CryptoMapper {
 				encryptedAggregate,
 				instanceDecryptor,
 				ownerKeyProvider,
-				associationFieldPathElement.addAggregateId(entityAdapter._id as Id),
+				associationOrAssociationPatchPath.addAggregateId(entityAdapter._id as Id),
 			)
 			decryptedAggregates.push(decryptedAggregate)
 		}
@@ -225,10 +219,10 @@ export class CryptoMapper {
 		clientTypeModel: ClientTypeModel,
 		parsedInstance: ClientModelParsedInstance,
 		subKeyFactory: Nullable<SubKeyFactory>,
-		fieldPath: RootOrAggregateFieldPathElement = new RootFieldPathElement(),
+		path: RootOrAggregatePath = new RootPath(),
 	): Promise<ClientModelEncryptedParsedInstance> {
 		const encrypted: ClientModelEncryptedParsedInstance = {} as ClientModelEncryptedParsedInstance
-		let subKeyProvider = this.makeNullableSubKeyProvider(subKeyFactory, clientTypeModel, fieldPath)
+		let subKeyProvider = this.makeNullableSubKeyProvider(subKeyFactory, clientTypeModel, path)
 
 		for (let valueId of Object.keys(clientTypeModel.values).map(Number)) {
 			const valueType = clientTypeModel.values[valueId]
@@ -236,8 +230,8 @@ export class CryptoMapper {
 
 			let encryptedValue
 			if (valueType.encrypted) {
-				const valueFieldPath = fieldPath.addValueId(valueType)
-				encryptedValue = this.encryptValue(valueType as EncryptedModelValue, value, subKeyProvider, valueFieldPath.getFieldPath())
+				const valuePath = path.addValueId(valueType)
+				encryptedValue = this.encryptValue(valueType as EncryptedModelValue, value, subKeyProvider, valuePath.getPath())
 			} else {
 				encryptedValue = value
 			}
@@ -251,8 +245,8 @@ export class CryptoMapper {
 				const appName = associationType.dependency ?? clientTypeModel.app
 				const aggregateTypeModel = await this.clientTypeReferenceResolver(new TypeRef(appName, associationType.refTypeId))
 				const aggregate = parsedInstance[associationId] as Array<ClientModelParsedInstance>
-				const fieldPathForThisAssociation = fieldPath.addAssociationId(associationType)
-				encrypted[associationId] = await this.encryptAggregateAssociation(aggregateTypeModel, aggregate, subKeyProvider, fieldPathForThisAssociation)
+				const associationPath = path.addAssociationId(associationType)
+				encrypted[associationId] = await this.encryptAggregateAssociation(aggregateTypeModel, aggregate, subKeyProvider, associationPath)
 			} else {
 				encrypted[associationId] = parsedInstance[associationId]
 			}
@@ -263,10 +257,10 @@ export class CryptoMapper {
 	private makeNullableSubKeyProvider(
 		subKeyFactory: Nullable<SubKeyFactory>,
 		clientTypeModel: ClientTypeModel,
-		fieldPath: RootOrAggregateFieldPathElement,
+		path: RootOrAggregatePath,
 	): Nullable<SubKeyProvider> {
 		if (subKeyFactory instanceof SubKeyProvider) {
-			if (clientTypeModel.idForSubKeyContext != null && !fieldPath.hasBeenCutOff) {
+			if (clientTypeModel.idForSubKeyContext != null && !path.hasBeenCutOff) {
 				return this.symmetricCipherFacade.getSubKeyProvider(subKeyFactory, {
 					app: clientTypeModel.app,
 					id: clientTypeModel.idForSubKeyContext,
@@ -288,13 +282,18 @@ export class CryptoMapper {
 		associationClientTypeModel: ClientTypeModel,
 		aggregateValues: Array<ClientModelParsedInstance>,
 		subKeyProvider: Nullable<SubKeyProvider>,
-		fieldPath: AssociationFieldPathElement,
+		associationPath: AssociationPath,
 	): Promise<Array<ClientModelEncryptedParsedInstance>> {
 		let encryptedAggregates: Array<ClientModelEncryptedParsedInstance> = []
 		for (const aggregate of aggregateValues) {
 			const entityAdapter = await EntityAdapter.from(associationClientTypeModel, aggregate, this.modelMapper)
 			encryptedAggregates.push(
-				await this.encryptParsedInstance(associationClientTypeModel, aggregate, subKeyProvider, fieldPath.addAggregateId(entityAdapter._id as Id)),
+				await this.encryptParsedInstance(
+					associationClientTypeModel,
+					aggregate,
+					subKeyProvider,
+					associationPath.addAggregateId(entityAdapter._id as Id),
+				),
 			)
 		}
 
@@ -308,7 +307,7 @@ export class CryptoMapper {
 		value: Nullable<Base64>,
 		instanceDecryptor: InstanceDecryptor,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
-		fieldPath: string,
+		valuePath: string,
 	): Promise<Nullable<ParsedValue>> {
 		if (value == null) {
 			return null
@@ -321,7 +320,7 @@ export class CryptoMapper {
 			return valueToDefault(valueType.type)
 		}
 		const ciphertext = base64ToUint8Array(value)
-		const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, fieldPath)
+		const valueDecryptor = instanceDecryptor.getValueDecryptor(ciphertext, valuePath)
 		const inputKey = await this.getInputKey(valueDecryptor.requiredGroupKeyVersion, ownerKeyProvider)
 		const decryptedBytes = valueDecryptor.getValue(inputKey)
 
@@ -334,7 +333,7 @@ export class CryptoMapper {
 		}
 	}
 
-	encryptValue(valueType: EncryptedModelValue, value: Nullable<ParsedValue>, subKeyProvider: Nullable<SubKeyProvider>, fieldPath: string): Nullable<Base64> {
+	encryptValue(valueType: EncryptedModelValue, value: Nullable<ParsedValue>, subKeyProvider: Nullable<SubKeyProvider>, valuePath: string): Nullable<Base64> {
 		if (value == null) {
 			return null
 		}
@@ -356,7 +355,7 @@ export class CryptoMapper {
 			} else {
 				domainSpecifier = AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN
 			}
-			const associatedData = stringToUtf8Uint8Array(domainSpecifier + fieldPath)
+			const associatedData = stringToUtf8Uint8Array(domainSpecifier + valuePath)
 			if (subKeys instanceof AeadSubKeys) {
 				encryptedBytes = this.symmetricCipherFacade.encryptBytesWithAead(subKeys, bytes, associatedData)
 			} else {
