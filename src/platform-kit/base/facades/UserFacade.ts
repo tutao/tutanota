@@ -206,7 +206,7 @@ export class UserFacade extends LoggedInUserProvider {
 	}
 
 	getLoggedInUser(): User {
-		return assertNotNull(this.user)
+		return assertNotNull(this.user, "getLoggedInUser called for user not logged in")
 	}
 
 	setLeaderStatus(status: WebsocketLeaderStatus) {
