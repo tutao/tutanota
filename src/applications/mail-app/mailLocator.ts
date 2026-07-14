@@ -869,7 +869,7 @@ class MailLocator implements CommonLocator {
 		this.eventController = new EventController(mailLocator.logins)
 		this.syncTracker = new SyncTracker()
 		this.entityClient = new EntityClient(restInterface, this.clientModelInfo)
-		this.search = new SearchModel(this.searchFacade, this.eventController, this.entityClient, () => this.calendarEventsRepository())
+		this.search = new SearchModel(this.searchFacade, this.eventController, this.entityClient, () => this.calendarEventsRepository(), this.progressTracker)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
 		this.entropyFacade = entropyFacade

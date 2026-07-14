@@ -345,12 +345,18 @@ export class SearchViewModel {
 					break
 				}
 				case SearchCategoryType.calendar: {
+					// FIXME
+					const abortSignal = new AbortController().signal
+
 					const searchPromise = this.search
-						.coolNewSearchCalendar({
-							query: searchQuery ?? "",
-							restriction,
-							maxResults,
-						})
+						.coolNewSearchCalendar(
+							{
+								query: searchQuery ?? "",
+								restriction,
+								maxResults,
+							},
+							abortSignal,
+						)
 						.then((result) => {
 							this.applyLiveSearchResults(result)
 							return result

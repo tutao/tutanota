@@ -79,6 +79,7 @@ export class SearchModel {
 		private readonly eventController: EventController,
 		private readonly entityClient: EntityClient,
 		private readonly calendarModel: lazyAsync<CalendarEventsRepository>,
+		private readonly progressTracker: ProgressTracker,
 	) {
 		this._searchFacade = searchFacade
 		this.result = stream()
@@ -210,7 +211,7 @@ export class SearchModel {
 		return result
 	}
 
-	async coolNewSearchCalendar(searchQuery: SearchQuery): Promise<LiveSearchResult<CalendarEvent>> {
+	async coolNewSearchCalendar(searchQuery: SearchQuery, abortSignal: AbortSignal): Promise<LiveSearchResult<CalendarEvent>> {
 		const calendarModel = await this.calendarModel()
 
 		const query = searchQuery.query
@@ -229,11 +230,11 @@ export class SearchModel {
 			currentDate = incrementMonth(currentDate, 1)
 		}
 
-		// FIXME: hook up ProgressTracker
+		const monitorHandle = this.progressTracker.registerMonitorSync(daysInMonths.length)
+		const monitor: ProgressMonitorInterface = assertNotNull(this.progressTracker.getMonitor(monitorHandle))
 
-		if (this.cancelSignal()) {
-			// FIXME
-			return null as unknown as LiveSearchResult<CalendarEvent>
+		if (abortSignal.aborted) {
+			// FIXME: return empty result
 		}
 
 		const resultIds: IdTuple[] = []
@@ -241,7 +242,9 @@ export class SearchModel {
 
 		// FIXME: birthdays and shit
 
-		await calendarModel.loadMonthsIfNeeded(daysInMonths, stream(false), null)
+		await calendarModel.loadMonthsIfNeeded(daysInMonths, stream(false), monitor)
+		monitor.completed()
+
 		const daysToEvents = calendarModel.getDaysToEvents()()
 
 		// This is taken over from the previous implementation, but these should always
@@ -249,8 +252,40 @@ export class SearchModel {
 		assertNonNull(restriction.start)
 		assertNonNull(restriction.end)
 
-		// FIXME: implement followCommonRestrictions()
-		const followCommonRestrictions = (key: string, event: CalendarEvent) => {
+		// we want event instances that occur on multiple days to only appear once, but want
+		// separate instances of event series to occur on their own.
+		const alreadyAdded: Set<string> = new Set()
+
+		if (abortSignal.aborted) {
+			// FIXME: return empty result
+		}
+
+		const followCommonRestrictions = (key: string, event: CalendarEvent): boolean => {
+			if (alreadyAdded.has(key)) {
+				// we only need the first event in the series, the view will load & then generate
+				// the series for the searched time range.
+				return false
+			}
+
+			if (restriction.folderIds.length > 0 && !restriction.folderIds.includes(listIdPart(event._id))) {
+				// check that the event is in the searched calendar.
+				return false
+			}
+
+			if (restriction.eventSeries === false && event.repeatRule != null) {
+				// applied "repeating" search filter
+				return false
+			}
+
+			for (const token of tokens) {
+				if (event.summary.toLowerCase().includes(token)) {
+					alreadyAdded.add(key)
+					resultIds.push(event._id)
+					resultItems.push(event)
+					return false
+				}
+			}
+
 			return true
 		}
 
@@ -272,7 +307,7 @@ export class SearchModel {
 
 					for (const token of tokens) {
 						if (wrapper.event.summary.toLowerCase().includes(token)) {
-							// FIXME alreadyAdded.add(key)
+							alreadyAdded.add(key)
 							resultIds.push(wrapper.event._id)
 							resultItems.push(wrapper.event)
 							continue eventLoop
@@ -284,19 +319,49 @@ export class SearchModel {
 					const descriptionToSearch = wrapper.event.description.replaceAll(/(<[^>]+>)/gi, " ").toLowerCase()
 					for (const token of tokens) {
 						if (descriptionToSearch.includes(token)) {
-							// FIXME alreadyAdded.add(key)
+							alreadyAdded.add(key)
 							resultIds.push(wrapper.event._id)
 							resultItems.push(wrapper.event)
 							continue eventLoop
 						}
 					}
 
-					// FIXME
-					// if (this.cancelSignal()) {
-					// 	this.result(calendarResult)
-					// 	this.lastSearchPromise = Promise.resolve(calendarResult)
-					// 	return this.lastSearchPromise
-					// }
+					if (abortSignal.aborted) {
+						// FIXME: return empty result
+					}
+				}
+			}
+		}
+
+		const canLoadBirthdaysCalendar = await calendarModel.canLoadBirthdaysCalendar()
+		if (canLoadBirthdaysCalendar) {
+			const birthdayEvents = Array.from(calendarModel.getBirthdayEvents().values()).flat()
+
+			eventLoop: for (const eventRegistry of birthdayEvents) {
+				// Birthdays should still appear on search even if the date itself doesn't comply to the whole restriction
+				// we only care about months
+				const month = eventRegistry.event.startTime.getMonth()
+				if (!(month >= startDate.getMonth() && month <= endDate.getMonth())) {
+					continue
+				}
+
+				const key = idToKey(eventRegistry.event._id)
+
+				if (!followCommonRestrictions(key, eventRegistry.event)) {
+					continue
+				}
+
+				for (const token of tokens) {
+					if (eventRegistry.event.summary.toLowerCase().includes(token)) {
+						alreadyAdded.add(key)
+						resultIds.push(eventRegistry.event._id)
+						resultItems.push(eventRegistry.event)
+						continue eventLoop
+					}
+				}
+
+				if (abortSignal.aborted) {
+					// FIXME: return empty result
 				}
 			}
 		}

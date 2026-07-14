@@ -990,7 +990,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			searchQuery.restriction.end = getEndOfDay(endDate).getTime()
 		}
 
-		return this.searchModel.coolNewSearchCalendar(searchQuery)
+		// FIXME
+		const abortSignal = new AbortController().signal
+
+		return this.searchModel.coolNewSearchCalendar(searchQuery, abortSignal)
 	}
 }
 
