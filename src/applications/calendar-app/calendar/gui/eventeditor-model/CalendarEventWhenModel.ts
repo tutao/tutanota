@@ -17,14 +17,13 @@ import {
 	areRepeatRulesEqual,
 	ByRule,
 	getAllDayDateUTCFromZone,
-	getEventEnd,
 	getEventStart,
 	getRepeatEndTimeForDisplay,
 	getStartOfDayWithZone,
 	getStartOfNextDayWithZone,
 	incrementByRepeatPeriod,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { assertNotNull, filterInt, incrementDate, noOp, TIMESTAMP_ZERO_YEAR } from "@tutao/utils"
+import { assertNotNull, filterInt, noOp, TIMESTAMP_ZERO_YEAR } from "@tutao/utils"
 import { clone, Stripped } from "@tutao/meta"
 import { EndType, RepeatPeriod, Weekday } from "@tutao/app-env"
 import { UserError } from "../../../../common/api/main/UserError.js"
@@ -80,23 +79,21 @@ export class CalendarEventWhenModel {
 		this._isAllDay = isAllDayEvent(initialTimes)
 		this.repeatRule = clone(initialValues.repeatRule ?? null)
 
-		const eventStart = getEventStart(initialTimes, this.calendarTimeZone)
-		const eventEnd = getEventEnd(initialTimes, this.calendarTimeZone)
-
 		if (this._isAllDay) {
 			this._startTime = null
 			this._endTime = null
 
-			this._startDate = getStartOfDayWithZone(eventStart, calendarTimeZone)
-			this._endDate = incrementDate(eventEnd, -1)
+			this._startDate = new Date(initialTimes.startTime.getUTCFullYear(), initialTimes.startTime.getUTCMonth(), initialTimes.startTime.getUTCDate())
+			this._endDate = new Date(initialTimes.endTime.getUTCFullYear(), initialTimes.endTime.getUTCMonth(), initialTimes.endTime.getUTCDate() - 1)
 		} else {
-			const startDateTimeInZone = DateTime.fromJSDate(eventStart, { zone: this.getStartTimeZoneOrDefault() })
-			this._startTime = Time.fromDateTime(startDateTimeInZone)
-			this._startDate = this.createJsDateAtStartOfDayAtSystemTimeZone(startDateTimeInZone)
+			const startDateTimeInZone = DateTime.fromJSDate(initialTimes.startTime, { zone: this.getStartTimeZoneOrDefault() })
+			const endDateTimeInZone = DateTime.fromJSDate(initialTimes.endTime, { zone: this.getEndTimeZoneOrDefault() })
 
-			const endDateTimeInZone = DateTime.fromJSDate(eventEnd, { zone: this.getEndTimeZoneOrDefault() })
+			this._startDate = new Date(startDateTimeInZone.year, startDateTimeInZone.month - 1, startDateTimeInZone.day)
+			this._endDate = new Date(endDateTimeInZone.year, endDateTimeInZone.month - 1, endDateTimeInZone.day)
+
+			this._startTime = Time.fromDateTime(startDateTimeInZone)
 			this._endTime = Time.fromDateTime(endDateTimeInZone)
-			this._endDate = this.createJsDateAtStartOfDayAtSystemTimeZone(endDateTimeInZone)
 		}
 	}
 
@@ -287,14 +284,7 @@ export class CalendarEventWhenModel {
 			return
 		}
 
-		this._endDate = DateTime.fromJSDate(value, { zone: this.calendarTimeZone })
-			.set({
-				hour: 0,
-				minute: 0,
-				second: 0,
-				millisecond: 0,
-			})
-			.toJSDate()
+		this._endDate = new Date(value.getFullYear(), value.getMonth(), value.getDate())
 		this.uiUpdateCallback()
 	}
 
