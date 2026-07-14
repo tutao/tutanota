@@ -26,6 +26,8 @@ import { getWhitelabelRegistrationDomains } from "../../../../ui/utils/Whitelabe
 
 import { PlanType } from "../../../../entities/sys/Utils"
 
+import { isFreeSignupOnly } from "../../misc/LoginUtils"
+
 export type SignupFormAttrs = {
 	// will return an error message that needs to be displayed in case of recoverable errors.
 	onComplete: (
@@ -166,6 +168,12 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 					Dialog.confirm(lang.makeTranslation("confirm_msg", `${lang.get("paidEmailDomainSignup_msg")}\n${lang.get("changePaidPlan_msg")}`)).then(
 						(confirmed) => {
 							if (confirmed) {
+								/* Temporarely restricting to free only to get accepted by Google Play Store */
+								if (isFreeSignupOnly()) {
+									Dialog.message("notAvailableInApp_msg")
+									return
+								}
+
 								this.selectedDomain = domain
 								vnode.attrs.onChangePlan()
 							}
