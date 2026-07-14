@@ -15,7 +15,7 @@ import {
 } from "../../../../platform-kit/utils"
 import { RouteSetFn, throttleRoute } from "../../../../ui/utils/RouteChange"
 import { SearchRestriction, type SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { assertMainOrNode } from "../../../../platform-kit/app-env"
+import { assertMainOrNode, isBrowser, isOfflineStorageAvailable } from "../../../../platform-kit/app-env"
 import { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { SearchQuery } from "./SearchModel"
@@ -382,4 +382,11 @@ export function hasMoreResults(searchResult: SearchResult): boolean {
 		!isEmpty(searchResult.moreResultsEntries) ||
 		(!isEmpty(searchResult.lastReadSearchIndexRow) && searchResult.lastReadSearchIndexRow.every(([word, id]) => id !== 0))
 	)
+}
+
+/**
+ * @return true if non-blocking search is used on the current client
+ */
+export function isNonBlockingSearchAvailable(): boolean {
+	return isBrowser()
 }
