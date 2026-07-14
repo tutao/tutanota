@@ -53,6 +53,7 @@ import {
 	getRestriction,
 	getSearchUrl,
 	hasMoreResults,
+	isNonBlockingSearchAvailable,
 	isSameSearchRestriction,
 	searchCategoryForRestriction,
 	SearchCategoryTypes,
@@ -951,6 +952,7 @@ export class SearchViewModel {
 			: Math.max(newState.currentMailIndexTimestamp, getFreeSearchStartDate().getTime())
 
 		if (
+			isNonBlockingSearchAvailable() &&
 			isSameTypeRef(MailTypeRef, this.searchedType) &&
 			newState.progress === 0 &&
 			newState.error == null &&
