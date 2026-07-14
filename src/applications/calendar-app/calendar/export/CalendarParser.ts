@@ -588,16 +588,16 @@ export const calendarAttendeeStatusToParstat: Record<CalendarAttendeeStatus, str
 }
 const parstatToCalendarAttendeeStatus: Record<string, CalendarAttendeeStatus> = reverse(calendarAttendeeStatusToParstat)
 
-export function parseCalendarStringData(value: string, userCalendarTimeZone: string): ParsedCalendarData {
+export function parseCalendarStringData(value: string, userCalendarTimeZone: string, probableOrganizerAddress: string | null): ParsedCalendarData {
 	const tree = parseICalendar(value)
-	return parseCalendarEvents(tree, userCalendarTimeZone)
+	return parseCalendarEvents(tree, userCalendarTimeZone, probableOrganizerAddress)
 }
 
 /** given an ical datafile, get the parsed calendar events with their alarms as well as the ical method */
-export function parseCalendarFile(file: DataFile): ParsedCalendarData {
+export function parseCalendarFile(file: DataFile, probableOrganizerAddress: string | null): ParsedCalendarData {
 	try {
 		const stringData = utf8Uint8ArrayToString(file.data)
-		return parseCalendarStringData(stringData, getTimeZone())
+		return parseCalendarStringData(stringData, getTimeZone(), probableOrganizerAddress)
 	} catch (e) {
 		if (e instanceof ParserError) {
 			throw new ParserError(e.message, file.name)
@@ -607,11 +607,11 @@ export function parseCalendarFile(file: DataFile): ParsedCalendarData {
 	}
 }
 
-export function parseCalendarEvents(icalObject: ICalObject, userCalendarTimeZone: string): ParsedCalendarData {
+export function parseCalendarEvents(icalObject: ICalObject, userCalendarTimeZone: string, probableOrganizerAddress: string | null): ParsedCalendarData {
 	const methodProp = getProp(icalObject, "METHOD", true)
 	const method = methodProp ? methodProp.value : CalendarMethod.PUBLISH
 	const eventObjects = icalObject.children.filter((obj) => obj.type === "VEVENT")
-	const contents = getContents(eventObjects, userCalendarTimeZone)
+	const contents = getContents(eventObjects, userCalendarTimeZone, probableOrganizerAddress)
 
 	return {
 		method,
@@ -619,7 +619,7 @@ export function parseCalendarEvents(icalObject: ICalObject, userCalendarTimeZone
 	}
 }
 
-function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEventAlarmTuple> {
+function getContents(eventObjects: ICalObject[], zone: string, probableOrganizerAddress: string | null): Array<ParsedEventAlarmTuple> {
 	return eventObjects.map((eventObj, index) => {
 		const startProp = getProp(eventObj, "DTSTART", false)
 		const startTzId: string | null = getTzId(startProp)
@@ -689,13 +689,58 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 		const organizerProp = getProp(eventObj, "ORGANIZER", true)
 		let organizer: EncryptedMailAddress | null = null
 		if (organizerProp) {
-			const organizerAddress = parseMailtoValue(organizerProp.value)
+			let organizerAddress = parseMailtoValue(organizerProp.value)
 
 			if (organizerAddress && isMailAddress(organizerAddress, false)) {
-				organizer = createEncryptedMailAddress({
-					address: organizerAddress,
-					name: organizerProp.params["name"] || "",
-				})
+				//
+				// Deal with nonsense ORGANIZER mailto values from Google Calendar
+				//
+				const GOOGLE_CALENDAR_ID_ENDING = "@group.calendar.google.com"
+				if (organizerAddress.endsWith(GOOGLE_CALENDAR_ID_ENDING)) {
+					// If the prefix is a string of 64 lower-case hexidecimal digits, we're definitely dealing with a Google Calendar ID
+					// (at least at the time this code was written 2026-07-13).
+					const prefix = organizerAddress.slice(0, organizerAddress.length - GOOGLE_CALENDAR_ID_ENDING.length)
+					let definitelyGoogleCalendarID = prefix.length === 64
+					for (let i = 0; definitelyGoogleCalendarID && i < organizerAddress.length; ++i) {
+						const char = organizerAddress[i]
+						definitelyGoogleCalendarID = definitelyGoogleCalendarID && (("0" <= char && char <= "9") || ("a" <= char && char <= "f"))
+					}
+
+					let replaceNonsenseGoogleCalendarID: boolean
+					if (definitelyGoogleCalendarID) {
+						replaceNonsenseGoogleCalendarID = true
+					} else {
+						console.warn(
+							"Google Calendar changed how they generate their ORGANIZER property. " +
+								"Please confirm that the Tuta Client's special-case logic for handling it is still valid!",
+						)
+						// If the prefix is more than 32 characters long, then it's still probably a long random string of unintelligible nonsense.
+						// If not, it might be something intelligible, even a real email address
+						replaceNonsenseGoogleCalendarID = prefix.length >= 32
+					}
+
+					if (replaceNonsenseGoogleCalendarID) {
+						if (probableOrganizerAddress) {
+							organizerAddress = probableOrganizerAddress
+						} else {
+							console.error(
+								"Nonsense Google Calendar ID in ORGANIZER property could not be replaced " +
+									"because the email address of the person sending the invitation was not provided!",
+							)
+							organizerAddress = null
+						}
+					}
+				}
+
+				if (organizerAddress) {
+					//
+					// Default ORGANIZER handling
+					//
+					organizer = createEncryptedMailAddress({
+						address: organizerAddress,
+						name: organizerProp.params["name"] || "",
+					})
+				}
 			} else {
 				console.log("organizer has no address or address is invalid, ignoring: ", organizerAddress)
 			}

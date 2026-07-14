@@ -195,7 +195,7 @@ export async function selectAndParseIcalFile(): Promise<ParsedEventAlarmTuple[]>
 	try {
 		const allowedExtensions = ["ical", "ics", "ifb", "icalendar"]
 		const dataFiles = isApp() ? await showNativeFilePicker(allowedExtensions, true) : await showFileChooser(FileChooserMultiMode.Multi, allowedExtensions)
-		const contents = dataFiles.map((file) => parseCalendarFile(file).contents)
+		const contents = dataFiles.map((file) => parseCalendarFile(file, null).contents)
 		return contents.flat()
 	} catch (e) {
 		if (e instanceof ParserError) {

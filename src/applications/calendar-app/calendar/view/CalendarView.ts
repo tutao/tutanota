@@ -954,7 +954,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 			let events: ParsedEventAlarmTuple[] = []
 			try {
-				events = parseCalendarStringData(iCalStr, getTimeZone()).contents
+				events = parseCalendarStringData(iCalStr, getTimeZone(), null).contents
 			} catch (e) {
 				await Dialog.message("invalidICal_error", e.message)
 				this.viewModel.isCreatingExternalCalendar = false

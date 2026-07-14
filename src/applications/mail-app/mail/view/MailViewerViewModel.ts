@@ -1003,7 +1003,9 @@ export class MailViewerViewModel {
 
 		if (calendarFile && (mail.method === MailMethod.ICAL_REQUEST || mail.method === MailMethod.ICAL_REPLY) && mail.state === MailState.RECEIVED) {
 			Promise.all([
-				import("../../../calendar-app/calendar/view/CalendarInvites.js").then(({ getEventsFromFile }) => getEventsFromFile(calendarFile)),
+				import("../../../calendar-app/calendar/view/CalendarInvites.js").then(({ getEventsFromFile }) =>
+					getEventsFromFile(calendarFile, mail.sender.address),
+				),
 				this.getSenderOfResponseMail(),
 			]).then(([contents, recipient]) => {
 				this.calendarEventAttachment =
@@ -1343,7 +1345,7 @@ export class MailViewerViewModel {
 			])
 
 			const dataFile = await this.fileController.getAsDataFile(file)
-			const data = parseCalendarFile(dataFile)
+			const data = parseCalendarFile(dataFile, null)
 			const calendarModel = await mailLocator.calendarModel()
 			const defaultDateProvider = new DefaultDateProvider()
 			await importCalendarFile(

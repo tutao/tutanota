@@ -1206,7 +1206,7 @@ class MailLocator implements CommonLocator {
 				const dataFile = await this.fileApp.readDataFile(fileRef.location)
 				if (dataFile == null) continue
 
-				const data = parseCalendarFile(dataFile)
+				const data = parseCalendarFile(dataFile, null)
 				parsedEvents.push(...data.contents)
 			}
 
