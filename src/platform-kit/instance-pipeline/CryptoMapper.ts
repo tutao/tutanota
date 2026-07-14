@@ -34,7 +34,7 @@ import {
 } from "../meta/EntityTypes"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
 import { OwnerKeyProvider } from "./PatchMerger"
-import { AssociationPath, AssociationOrAssociationPatchPath, RootPath, RootOrAggregatePath } from "./EncryptionContextPath"
+import { AssociationPath, RootPath, InstancePath } from "./EncryptionContextPath"
 
 export interface SymmetricGroupKeyLoader {
 	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey>
@@ -103,7 +103,7 @@ export class CryptoMapper {
 		sessionKey: Nullable<AesKey>,
 		kdfNonce: Nullable<KdfNonce>,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
-		path: RootOrAggregatePath = new RootPath(),
+		path: InstancePath = new RootPath(),
 	): Promise<ServerModelParsedInstance> {
 		const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(sessionKey, kdfNonce, serverTypeModel)
 
@@ -115,7 +115,7 @@ export class CryptoMapper {
 		encryptedInstance: ServerModelEncryptedParsedInstance,
 		instanceDecryptor: InstanceDecryptor,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
-		path: RootOrAggregatePath = new RootPath(),
+		path: InstancePath = new RootPath(),
 	): Promise<ServerModelParsedInstance> {
 		const decrypted: ServerModelParsedInstance = {} as ServerModelParsedInstance
 		for (const [valueIdStr, valueInfo] of Object.entries(serverTypeModel.values)) {
@@ -198,7 +198,7 @@ export class CryptoMapper {
 		encryptedInstanceValues: Array<ServerModelEncryptedParsedInstance>,
 		instanceDecryptor: InstanceDecryptor,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
-		associationOrAssociationPatchPath: AssociationOrAssociationPatchPath,
+		associationPath: AssociationPath,
 	): Promise<Array<ServerModelParsedInstance>> {
 		const decryptedAggregates: Array<ServerModelParsedInstance> = []
 		for (const encryptedAggregate of encryptedInstanceValues) {
@@ -208,7 +208,7 @@ export class CryptoMapper {
 				encryptedAggregate,
 				instanceDecryptor,
 				ownerKeyProvider,
-				associationOrAssociationPatchPath.addAggregateId(entityAdapter._id as Id),
+				associationPath.addAggregateId(entityAdapter._id as Id),
 			)
 			decryptedAggregates.push(decryptedAggregate)
 		}
@@ -219,7 +219,7 @@ export class CryptoMapper {
 		clientTypeModel: ClientTypeModel,
 		parsedInstance: ClientModelParsedInstance,
 		subKeyFactory: Nullable<SubKeyFactory>,
-		path: RootOrAggregatePath = new RootPath(),
+		path: InstancePath = new RootPath(),
 	): Promise<ClientModelEncryptedParsedInstance> {
 		const encrypted: ClientModelEncryptedParsedInstance = {} as ClientModelEncryptedParsedInstance
 		let subKeyProvider = this.makeNullableSubKeyProvider(subKeyFactory, clientTypeModel, path)
@@ -254,11 +254,7 @@ export class CryptoMapper {
 		return encrypted
 	}
 
-	private makeNullableSubKeyProvider(
-		subKeyFactory: Nullable<SubKeyFactory>,
-		clientTypeModel: ClientTypeModel,
-		path: RootOrAggregatePath,
-	): Nullable<SubKeyProvider> {
+	private makeNullableSubKeyProvider(subKeyFactory: Nullable<SubKeyFactory>, clientTypeModel: ClientTypeModel, path: InstancePath): Nullable<SubKeyProvider> {
 		if (subKeyFactory instanceof SubKeyProvider) {
 			if (clientTypeModel.idForSubKeyContext != null && !path.hasBeenCutOff) {
 				return this.symmetricCipherFacade.getSubKeyProvider(subKeyFactory, {

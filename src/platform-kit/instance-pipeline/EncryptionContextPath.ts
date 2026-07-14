@@ -2,10 +2,10 @@ import { AttributeId, ModelAssociation, ModelValue } from "@tutao/meta"
 import { Nullable } from "@tutao/utils"
 
 /**
- * When encrypting fields with AEAD, we need to pass the field path as part of the associated data. This is not trivial
+ * When encrypting values with AEAD, we need to pass the attribute path as part of the associated data. This is not trivial
  * when the attribute is supposed to be moved from one instance type to another on the server side. For such cases, we
- * build a field path that a) is mapped to the final intended location of the ciphertext and b) cuts out the outer part
- * of the path, where the field is nested.
+ * build a path that a) is mapped to the final intended location of the ciphertext and b) cuts out the outer part of
+ * the path, where the value is nested.
  */
 
 interface ModelAttribute {
@@ -23,35 +23,31 @@ abstract class Path {
 	protected constructor(
 		parent: Nullable<Path>,
 		readonly hasBeenCutOff: boolean,
-		fieldSubPath: string,
+		pathElement: string,
 	) {
 		if (parent != null) {
-			this.path = `${parent.renderedPath()}${fieldSubPath}`
+			this.path = `${parent.path}${pathElement}`
 		} else {
-			this.path = fieldSubPath
+			this.path = pathElement
 		}
-	}
-
-	protected renderedPath(): string {
-		return `${this.path}/`
 	}
 }
 
-export abstract class RootOrAggregatePath extends Path {
+export abstract class InstancePath extends Path {
 	addAssociationId(modelAssociation: ModelAssociation): AssociationPath {
 		const isInDataTransferAggregation = modelAssociation.idForAssociatedData != null
 		const needsToGetCutOff = isInDataTransferAggregation && !this.hasBeenCutOff
-		let parent: Nullable<RootOrAggregatePath> = this
+		let parent: Nullable<InstancePath> = this
 		if (needsToGetCutOff) {
 			parent = null
 		}
-		return new AssociationPath(parent, isInDataTransferAggregation, getId(modelAssociation))
+		return AssociationPath.construct(parent, isInDataTransferAggregation, getId(modelAssociation))
 	}
 
 	addValueId(modelValue: ModelValue): ValuePath {
 		const isInDataTransferAggregation = modelValue.idForAssociatedData != null
 		const needsToGetCutOff = isInDataTransferAggregation && !this.hasBeenCutOff
-		let parent: Nullable<RootOrAggregatePath> = this
+		let parent: Nullable<InstancePath> = this
 		if (needsToGetCutOff) {
 			parent = null
 		}
@@ -59,49 +55,37 @@ export abstract class RootOrAggregatePath extends Path {
 	}
 }
 
-export class RootPath extends RootOrAggregatePath {
+export class RootPath extends InstancePath {
 	constructor() {
 		super(null, false, "")
 	}
+}
 
-	protected renderedPath(): string {
-		return ""
+export class AggregatePath extends InstancePath {
+	constructor(parent: AssociationPath, hasBeenCutOff: boolean, aggregateId: Id) {
+		super(parent, hasBeenCutOff, `${aggregateId}/`)
 	}
 }
 
-export class AggregatePath extends RootOrAggregatePath {
-	constructor(parent: AssociationOrAssociationPatchPath, hasBeenCutOff: boolean, aggregateId: Id) {
-		super(parent, hasBeenCutOff, `${aggregateId}`)
-	}
-}
-
-abstract class AttributePath extends Path {
-	constructor(parent: Nullable<RootOrAggregatePath>, hasBeenCutOff: boolean, attributeId: AttributeId) {
-		super(parent, hasBeenCutOff, `${attributeId}`)
-	}
-}
-
-export interface AssociationOrAssociationPatchPath extends Path {
-	addAggregateId(aggregateId: Id): AggregatePath
-}
-
-export class AssociationPatchPath extends Path implements AssociationOrAssociationPatchPath {
-	constructor(fieldPathString: string) {
-		super(null, false, fieldPathString)
+export class AssociationPath extends Path {
+	static construct(parent: Nullable<InstancePath>, hasBeenCutOff: boolean, attributeId: AttributeId): AssociationPath {
+		return new AssociationPath(parent, hasBeenCutOff, `${attributeId}/`)
 	}
 
-	addAggregateId(aggregateId: Id): AggregatePath {
-		return new AggregatePath(this, false, aggregateId)
+	static fromPatchPath(pathString: string): AssociationPath {
+		return new AssociationPath(null, false, pathString)
 	}
-}
 
-export class AssociationPath extends AttributePath implements AssociationOrAssociationPatchPath {
 	addAggregateId(aggregateId: Id): AggregatePath {
 		return new AggregatePath(this, this.hasBeenCutOff, aggregateId)
 	}
 }
 
-export class ValuePath extends AttributePath {
+export class ValuePath extends Path {
+	constructor(parent: Nullable<InstancePath>, hasBeenCutOff: boolean, attributeId: AttributeId) {
+		super(parent, hasBeenCutOff, `${attributeId}`)
+	}
+
 	getPath(): string {
 		return this.path
 	}
