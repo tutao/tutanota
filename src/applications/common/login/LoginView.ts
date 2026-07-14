@@ -23,6 +23,7 @@ import { renderInfoLinks } from "../gui/RenderLoginInfoLinks.js"
 import { showSnackBar } from "../../../ui/base/SnackBar.js"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { px } from "../../../ui/size"
+import { isFreeSignupOnly } from "../misc/LoginUtils"
 
 assertMainOrNode()
 
@@ -163,7 +164,14 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				? m(Button, {
 						label: "register_label",
 						type: ButtonType.Secondary,
-						click: () => m.route.set("/signup"),
+						click: () => {
+							/* Temporarely restricting to free only to get accepted by Google Play Store */
+							if (isFreeSignupOnly()) {
+								m.route.set("/signup", { subscription: "free", type: "freeonly" })
+							} else {
+								m.route.set("/signup")
+							}
+						},
 					})
 				: null,
 			this._switchThemeLinkVisible()

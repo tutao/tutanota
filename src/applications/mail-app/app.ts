@@ -47,13 +47,12 @@ import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import { UndoModel } from "./UndoModel"
 import { CommonLocator } from "../common/api/main/CommonLocator"
-import { SignupView, SignupViewAttrs, SignupViewModel } from "../common/signup/SignupView"
 import { DriveView, DriveViewAttrs } from "../drive-app/drive/view/DriveView"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { PartnerView, PartnerViewAttrs } from "../common/partner/PartnerView"
 import type { DriveFilePicker } from "../drive-app/drive/view/DriveFilePicker"
 import { client } from "../../platform-kit/app-env/boot/ClientDetector"
-import { initUiSingletons } from "../common/app-common"
+import { initUiSingletons, MakeViewResolverOptions } from "../common/app-common"
 import { AppNameEnum } from "@tutao/meta"
 import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
 import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
@@ -399,46 +398,7 @@ import("../../ui/translations/en.js")
 			mailLocator.logins,
 		)
 
-		/**
-		 * once the old signup dialog is removed, this proxy can be replaced by the resolver in the "new signup"
-		 * branch of its onmatch method.
-		 */
-		const makeSignupViewResolver = (): RouteResolver => {
-			let actualResolver: RouteResolver | null = null
-			return {
-				async onmatch(...args) {
-					if (actualResolver == null) {
-						// new signup
-						const { SignupView, SignupViewModel } = await import("../common/signup/SignupView")
-						actualResolver = makeViewResolver<SignupViewAttrs, SignupView, { viewModel: SignupViewModel }>(
-							{
-								prepareRoute: async () => {
-									const migrator = await mailLocator.credentialFormatMigrator()
-									await migrator.migrate()
-									return {
-										component: SignupView,
-										cache: {
-											viewModel: new SignupViewModel(),
-										},
-									}
-								},
-								prepareAttrs: (cache) => cache,
-								requireLogin: false,
-							},
-							mailLocator.logins,
-						)
-					}
-					return actualResolver.onmatch?.(...args)
-				},
-				render(...args) {
-					if (actualResolver == null) {
-						throw new ProgrammingError("render called before onmatch?")
-					}
-					return actualResolver.render?.(...args)
-				},
-			}
-		}
-
+		const { makeSignupViewResolver } = await import("../common/signup/SignupViewResolver.js")
 		const paths = applicationPaths({
 			login: makeViewResolver<LoginViewAttrs, LoginView, { makeViewModel: () => LoginViewModel }>(
 				{
@@ -770,7 +730,13 @@ import("../../ui/translations/en.js")
 			 * to the login page without having to deal with a ton of conditional logic in the LoginViewModel and to avoid some of the default
 			 * behaviour of resolvers created with createViewResolver(), e.g. caching.
 			 */
-			signup: makeSignupViewResolver(),
+			signup: makeSignupViewResolver(
+				makeViewResolver,
+				mailLocator.credentialFormatMigrator,
+				mailLocator.logins,
+				mailLocator.usageTestModel,
+				mailLocator.usageTestController,
+			),
 			giftcard: {
 				async onmatch() {
 					const { showGiftCardDialog } = await import("../common/misc/LoginUtils.js")
@@ -938,15 +904,7 @@ function setupExceptionHandling() {
  * @param logins logincontroller to ask about login state
  */
 function makeViewResolver<FullAttrs extends TopLevelAttrs = never, ComponentType extends TopLevelView<FullAttrs> = never, RouteCache = undefined>(
-	{
-		prepareRoute,
-		prepareAttrs,
-		requireLogin,
-	}: {
-		prepareRoute: (cache: RouteCache | null) => Promise<{ component: Class<ComponentType>; cache: RouteCache }>
-		prepareAttrs: (cache: RouteCache) => Omit<FullAttrs, keyof TopLevelAttrs>
-		requireLogin?: boolean
-	},
+	{ prepareRoute, prepareAttrs, requireLogin }: MakeViewResolverOptions<FullAttrs, ComponentType, RouteCache>,
 	logins: LoginController,
 ): RouteResolver {
 	requireLogin = requireLogin ?? true

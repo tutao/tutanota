@@ -27,9 +27,9 @@ import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/v
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import type { MobileSettingsView } from "../common/settings/MobileSettingsView.js"
-import { AppType, assertMainOrNodeBoot, bootFinished, isAdminClient, isApp, isBrowser, isDesktop, ProgrammingError } from "../../platform-kit/app-env"
+import { AppType, assertMainOrNodeBoot, bootFinished, isAdminClient, isApp, isBrowser, isDesktop, ProgrammingError } from "@tutao/app-env"
 import { CALENDAR_PREFIX } from "../../ui/utils/RouteChange"
-import { initUiSingletons } from "../common/app-common"
+import { initUiSingletons, MakeViewResolverOptions } from "../common/app-common"
 import { NamedClientModel } from "@tutao/instance-pipeline"
 import { AppNameEnum } from "@tutao/meta"
 import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
@@ -160,6 +160,8 @@ import("../../ui/translations/en.js")
 		}
 
 		styles.init(calendarLocator.themeController)
+
+		const { makeSignupViewResolver } = await import("../common/signup/SignupViewResolver.js")
 		const paths = applicationPaths({
 			login: makeViewResolver<LoginViewAttrs, LoginView, { makeViewModel: () => LoginViewModel }>(
 				{
@@ -351,25 +353,13 @@ import("../../ui/translations/en.js")
 			 * to the login page without having to deal with a ton of conditional logic in the LoginViewModel and to avoid some of the default
 			 * behaviour of resolvers created with createViewResolver(), e.g. caching.
 			 */
-			signup: {
-				async onmatch() {
-					const { showSignupDialog } = await import("../common/misc/LoginUtils.js")
-					// We have to manually parse it because mithril does not put hash into args of onmatch
-					const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
-					showSignupDialog(urlParams)
-					// when the user presses the browser back button, we would get a /login route without arguments
-					// in the popstate event, logging us out and reloading the page before we have a chance to (asynchronously) ask for confirmation
-					// onmatch of the login view is called after the popstate handler, but before any asynchronous operations went ahead.
-					// duplicating the history entry allows us to keep the arguments for a single back button press and run our own code to handle it
-					m.route.set("/login", {
-						keepSession: true,
-					})
-					m.route.set("/login", {
-						keepSession: true,
-					})
-					return null
-				},
-			},
+			signup: makeSignupViewResolver(
+				makeViewResolver,
+				calendarLocator.credentialFormatMigrator,
+				calendarLocator.logins,
+				calendarLocator.usageTestModel,
+				calendarLocator.usageTestController,
+			),
 			giftcard: {
 				async onmatch() {
 					const { showGiftCardDialog } = await import("../common/misc/LoginUtils.js")
@@ -438,6 +428,9 @@ import("../../ui/translations/en.js")
 				calendarLocator.logins,
 			),
 		})
+
+		// We set the prefix to empty string intentionally here. See (https://mithril.js.org/route.html?utm_source=chatgpt.com#routing-strategies)
+		m.route.prefix = ""
 
 		// keep in sync with RewriteAppResourceUrlHandler.java
 		const resolvers: RouteDefs = {
@@ -535,15 +528,7 @@ function setupExceptionHandling() {
  * @param logins logincontroller to ask about login state
  */
 function makeViewResolver<FullAttrs extends TopLevelAttrs = never, ComponentType extends TopLevelView<FullAttrs> = never, RouteCache = undefined>(
-	{
-		prepareRoute,
-		prepareAttrs,
-		requireLogin,
-	}: {
-		prepareRoute: (cache: RouteCache | null) => Promise<{ component: Class<ComponentType>; cache: RouteCache }>
-		prepareAttrs: (cache: RouteCache) => Omit<FullAttrs, keyof TopLevelAttrs>
-		requireLogin?: boolean
-	},
+	{ prepareRoute, prepareAttrs, requireLogin }: MakeViewResolverOptions<FullAttrs, ComponentType, RouteCache>,
 	logins: LoginController,
 ): RouteResolver {
 	requireLogin = requireLogin ?? true
