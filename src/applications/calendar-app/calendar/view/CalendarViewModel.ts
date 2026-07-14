@@ -13,10 +13,12 @@ import {
 	debounce,
 	deepEqual,
 	findAndRemove,
+	getEndOfDay,
 	getStartOfDay,
 	groupByAndMapUniquely,
 	identity,
 	incrementDate,
+	incrementMonth,
 	insertIntoSortedArray,
 	last,
 	lazy,
@@ -961,6 +963,27 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	getSearchResult(searchQuery: SearchQuery): Promise<LiveSearchResult<CalendarEvent>> {
+		const selectedDate = this.selectedDate()
+
+		if (searchQuery.restriction.start == null) {
+			let startDate: Date
+
+			if (this.logins.getUserController().isFreeAccount()) {
+				startDate = new Date()
+			} else {
+				startDate = new Date(selectedDate)
+			}
+			startDate.setDate(1)
+
+			searchQuery.restriction.start = getStartOfDay(startDate).getTime()
+		}
+
+		if (searchQuery.restriction.end == null) {
+			let endDate = incrementMonth(new Date(searchQuery.restriction.start), 3)
+			endDate.setDate(0)
+			searchQuery.restriction.end = getEndOfDay(endDate).getTime()
+		}
+
 		return this.searchModel.coolNewSearchCalendar(searchQuery)
 	}
 }

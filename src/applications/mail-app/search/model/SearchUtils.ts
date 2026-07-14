@@ -22,7 +22,6 @@ import { CalendarEvent, ContactTypeRef, MailTypeRef, tutanotaTypeModels } from "
 import {
 	ATTACHMENTS_ID,
 	getElementId,
-	isSameTypeRef,
 	LEGACY_BCC_RECIPIENTS_ID,
 	LEGACY_BODY_ID,
 	LEGACY_CC_RECIPIENTS_ID,
@@ -258,6 +257,7 @@ export function getRestriction(route: string): SearchRestriction {
 			// Special case for handling dates change on Calendar View. `date` is part of the path and `parsePathname()` returns query params only
 			// from the route string, forcing us to use m.route.param. We always call this function using m.route.get, so it's safe
 			// to use m.route.param to get the missing parameters.
+			// FIXME: Remove all this junk once it is handled in CalendarViewModel#getSearchResult.
 			if (!route.startsWith("/search/calendar") && m.route.param("date")) {
 				const parsedStart = new Date(m.route.param("date"))
 				parsedStart.setDate(1)

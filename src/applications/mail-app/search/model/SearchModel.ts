@@ -254,6 +254,68 @@ export class SearchModel {
 
 		const items: CalendarEvent[] = []
 
+		// FIXME: birthdays and shit
+
+		await calendarModel.loadMonthsIfNeeded(daysInMonths, stream(false), null)
+		const daysToEvents = calendarModel.getDaysToEvents()()
+
+		// This is taken over from the previous implementation, but these should always
+		// be non-null unless due to some weird side effects. Do we need to keep these checks?
+		assertNonNull(restriction.start)
+		assertNonNull(restriction.end)
+
+		// FIXME: implement followCommonRestrictions()
+		const followCommonRestrictions = (key: string, event: CalendarEvent) => {
+			return true
+		}
+
+		if (tokens.length > 0) {
+			// we're iterating by event first to only have to sanitize the description once.
+			// that's a smaller savings than one might think because for the vast majority of
+			// events we're probably not matching and looking into the description anyway.
+			for (const [startOfDay, eventsOnDay] of daysToEvents) {
+				eventLoop: for (const wrapper of eventsOnDay) {
+					if (!(startOfDay >= restriction.start && startOfDay <= restriction.end)) {
+						continue
+					}
+
+					const key = idToKey(wrapper.event._id)
+
+					if (!followCommonRestrictions(key, wrapper.event)) {
+						continue
+					}
+
+					for (const token of tokens) {
+						if (wrapper.event.summary.toLowerCase().includes(token)) {
+							// FIXME alreadyAdded.add(key)
+							searchResult.results.push(wrapper.event._id)
+							items.push(wrapper.event)
+							continue eventLoop
+						}
+					}
+
+					// checking the summary was cheap, now we store the sanitized description to check it against
+					// all tokens.
+					const descriptionToSearch = wrapper.event.description.replaceAll(/(<[^>]+>)/gi, " ").toLowerCase()
+					for (const token of tokens) {
+						if (descriptionToSearch.includes(token)) {
+							// FIXME alreadyAdded.add(key)
+							searchResult.results.push(wrapper.event._id)
+							items.push(wrapper.event)
+							continue eventLoop
+						}
+					}
+
+					// FIXME
+					// if (this.cancelSignal()) {
+					// 	this.result(calendarResult)
+					// 	this.lastSearchPromise = Promise.resolve(calendarResult)
+					// 	return this.lastSearchPromise
+					// }
+				}
+			}
+		}
+
 		const result: LiveSearchResult<CalendarEvent> = {
 			searchResult,
 			items,
