@@ -10,7 +10,7 @@ import { lang } from "../../ui/utils/LanguageViewModel"
 
 export interface CalendarSearchBarAttrs {
 	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<CalendarEvent>>
-	selectResult: (searchQuery: SearchQuery, entry: CalendarEvent) => unknown
+	selectResult: (searchQuery: SearchQuery, entry: CalendarEvent | null) => unknown
 }
 
 // FIXME: rewrite with a LazyComponent

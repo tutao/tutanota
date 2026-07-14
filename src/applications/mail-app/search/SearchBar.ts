@@ -8,7 +8,7 @@ import { Dialog } from "../../../ui/base/Dialog"
 import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, Keys } from "@tutao/app-env"
 import { styles } from "../../../ui/styles"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
-import { debounce, isNotEmpty, mod, ofClass } from "@tutao/utils"
+import { debounce, getFirstOrThrow, isNotEmpty, lastIndex, mod, ofClass } from "@tutao/utils"
 import { BrowserType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { SearchBarOverlay } from "./SearchBarOverlay"
 import { IndexingNotSupportedError } from "../../common/api/common/error/IndexingNotSupportedError"
@@ -24,10 +24,8 @@ import { LiveSearchResult, SearchQuery } from "./model/SearchModel"
 
 assertMainOrNode()
 export type ShowMoreAction = {
-	resultCount: number
-	shownCount: number
 	indexTimestamp: number
-	allowShowMore: boolean
+	shouldOfferUpgrade: boolean
 }
 type ResultLoader<T> = (query: string) => Promise<LiveSearchResult<T>>
 
@@ -37,7 +35,7 @@ export type SearchBarAttrs<T> = {
 	disabled?: boolean
 	loadResults: ResultLoader<T>
 	renderResult: (entry: T, isSelected: boolean) => Children
-	selectResult: (searchQuery: SearchQuery, entry: T) => unknown
+	selectResult: (searchQuery: SearchQuery, entry: T | null) => unknown
 }
 
 const MAX_SEARCH_PREVIEW_RESULTS = 10
@@ -46,7 +44,7 @@ export type Entry = Mail | Contact | CalendarEvent | DriveFile | DriveFolder | S
 interface SearchBarState<T> {
 	query: SearchQuery | null
 	searchResult: LiveSearchResult<T> | null
-	selected: T | null
+	selected: number | "showmore" | null
 	busy: boolean
 }
 
@@ -85,7 +83,12 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 					selected: this.state.selected,
 					isFocused: this.focused,
 					renderResult: this.lastAttrs.renderResult,
-					selectResult: (entry) => entry && this.state.query && this.lastAttrs.selectResult(this.state.query, entry),
+					selectResult: (entry) => this.state.query && this.lastAttrs.selectResult(this.state.query, entry),
+					showMoreAction: {
+						indexTimestamp: this.state.searchResult?.searchResult.currentIndexTimestamp ?? 0,
+						// FIXME
+						shouldOfferUpgrade: true,
+					},
 				})
 			},
 		}
@@ -134,6 +137,7 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 	private readonly onkeydown = (e: KeyboardEvent, loadResults: (query: string) => Promise<LiveSearchResult<T>>) => {
 		const { selected, searchResult, query } = this.state
 		const entities = searchResult?.items
+		const selectedEntity = typeof selected === "number" && entities?.[selected]
 		const keyHandlers = [
 			{
 				key: Keys.F1,
@@ -146,8 +150,10 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 			{
 				key: Keys.RETURN,
 				exec: () => {
-					if (selected && query) {
-						this.lastAttrs.selectResult(query, selected)
+					if (query && selected === "showmore") {
+						this.lastAttrs.selectResult(query, null)
+					} else if (selectedEntity && query) {
+						this.lastAttrs.selectResult(query, selectedEntity)
 					} else {
 						this.search()
 					}
@@ -159,11 +165,17 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 				key: Keys.UP,
 				exec: () => {
 					if (entities && entities.length > 0) {
-						let oldSelected = selected || entities[0]
+						const oldSelected = selectedEntity || getFirstOrThrow(entities)
 
-						this.updateState({
-							selected: entities[mod(entities.indexOf(oldSelected) - 1, entities.length)],
-						})
+						let newSelected: SearchBarState<T>["selected"]
+						if (selected === 0) {
+							newSelected = "showmore"
+						} else if (selected === "showmore") {
+							newSelected = lastIndex(entities)
+						} else {
+							newSelected = mod(entities.indexOf(oldSelected) - 1, entities.length)
+						}
+						this.updateState({ selected: newSelected })
 					}
 				},
 			},
@@ -171,11 +183,17 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 				key: Keys.DOWN,
 				exec: () => {
 					if (entities && entities.length > 0) {
-						let newSelected = selected || entities[0]
+						const oldSelected = selectedEntity || getFirstOrThrow(entities)
 
-						this.updateState({
-							selected: entities[mod(entities.indexOf(newSelected) + 1, entities.length)],
-						})
+						let newSelected: SearchBarState<T>["selected"]
+						if (selected === lastIndex(entities)) {
+							newSelected = "showmore"
+						} else if (selected === "showmore") {
+							newSelected = 0
+						} else {
+							newSelected = mod(entities.indexOf(oldSelected) + 1, entities.length)
+						}
+						this.updateState({ selected: newSelected })
 					}
 				},
 			},
@@ -361,26 +379,9 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 			const liveResult: LiveSearchResult<T> = await this.lastAttrs.loadResults(query)
 			const { searchResult } = liveResult
 
-			if (
-				// FIXME: we changed the behavior for empty search result
-				isNotEmpty(searchResult.results) &&
-				(hasMoreResults(searchResult) ||
-					liveResult.items.length > MAX_SEARCH_PREVIEW_RESULTS ||
-					searchResult.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP)
-			) {
-				// FIXME: show more action
-				// const moreEntry: ShowMoreAction = {
-				// 	resultCount: liveResult.items.length,
-				// 	shownCount: liveResult.items.length,
-				// 	indexTimestamp: searchResult.currentIndexTimestamp,
-				// 	allowShowMore: true,
-				// }
-				// results.push(moreEntry)
-			}
-
 			this.updateState({
 				searchResult: liveResult,
-				selected: liveResult.items[0],
+				selected: isNotEmpty(liveResult.items) ? 0 : null,
 			})
 		})().finally(() => cb())
 	})

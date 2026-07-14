@@ -3,7 +3,7 @@ import { ViewSlider } from "../../../../ui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../../ui/base/ViewColumn"
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { assertMainOrNode, FeatureType, isApp, isBrowser, Keys, ProgrammingError, UpgradePromptType } from "../../../../platform-kit/app-env"
-import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
+import { isKeyPressed, keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { getElementId, getIds, isSameId, isSameTypeRef } from "../../../../platform-kit/meta"
 import { CalendarEvent, Contact, Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import { MailReportType, MailSetKind } from "../../../../entities/tutanota/Utils"
@@ -556,32 +556,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				{
 					class: rightActions.length === 0 ? "mr-12" : "",
 				},
-				m(
-					// form wrapper to isolate the search input and prevent it from being autofilled when unrelated buttons are clicked on chrome
-					// this is done because chrome doesn't appear to respect `autocomplete="off"` and will autofill the field anyway
-					"form.full-width",
-					{
-						style: {
-							maxWidth: styles.isUsingBottomNavigation() ? "" : px(layout_size.second_col_max_width + 50),
-						},
-						onsubmit: (e: SubmitEvent) => {
-							e.stopPropagation()
-							e.preventDefault()
-						},
-					},
-					m(BaseSearchBar, {
-						placeholder: this.searchBarPlaceholder(),
-						text: this.searchViewModel.getCurrenQuery(),
-						busy: this.searchViewModel.busy,
-						onInput: (text: string) => {
-							this.searchViewModel.onSearchQueryUpdated(text)
-						},
-						onKeyDown: (e) => {
-							e.stopPropagation()
-						},
-						onClear: () => this.searchViewModel.onSearchQueryUpdated(""),
-					} satisfies BaseSearchBarAttrs),
-				),
+				this.renderSearchbar(),
 			),
 			injections: m(ProgressBar, { progress: header.offlineIndicatorModel.getProgress() }),
 		})
@@ -1011,38 +986,44 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			m(this.viewSlider, {
 				header: m(Header, {
 					firstColWidth: this.folderColumn.width,
-					searchBar: () =>
-						m(
-							// form wrapper to isolate the search input and prevent it from being autofilled when unrelated buttons are clicked on chrome
-							// this is done because chrome doesn't appear to respect `autocomplete="off"` and will autofill the field anyway
-							"form.full-width",
-							{
-								style: {
-									maxWidth: styles.isUsingBottomNavigation() ? "" : px(layout_size.second_col_max_width + 50),
-								},
-								onsubmit: (e: SubmitEvent) => {
-									e.stopPropagation()
-									e.preventDefault()
-								},
-							},
-							m(BaseSearchBar, {
-								placeholder: this.searchBarPlaceholder(),
-								text: this.searchViewModel.getCurrenQuery(),
-								busy: this.searchViewModel.busy,
-								onInput: (text: string) => {
-									this.searchViewModel.onSearchQueryUpdated(text)
-								},
-								onKeyDown: (e) => {
-									e.stopPropagation()
-								},
-								onClear: () => this.searchViewModel.onSearchQueryUpdated(""),
-							} satisfies BaseSearchBarAttrs),
-						),
+					searchBar: () => this.renderSearchbar(),
 					...attrs.header,
 					buttons: renderHeaderButtons(),
 				}),
 				bottomNav: this.renderBottomNav(),
 			}),
+		)
+	}
+
+	private renderSearchbar() {
+		return m(
+			// form wrapper to isolate the search input and prevent it from being autofilled when unrelated buttons are clicked on chrome
+			// this is done because chrome doesn't appear to respect `autocomplete="off"` and will autofill the field anyway
+			"form.full-width",
+			{
+				style: {
+					maxWidth: styles.isUsingBottomNavigation() ? "" : px(layout_size.second_col_max_width + 50),
+				},
+				onsubmit: (e: SubmitEvent) => {
+					e.stopPropagation()
+					e.preventDefault()
+				},
+			},
+			m(BaseSearchBar, {
+				placeholder: this.searchBarPlaceholder(),
+				text: this.searchViewModel.getCurrenQuery(),
+				busy: this.searchViewModel.busy,
+				onInput: (text: string) => {
+					this.searchViewModel.onSearchQueryUpdated(text)
+				},
+				onKeyDown: (e) => {
+					e.stopPropagation()
+					if (isKeyPressed(e.key, Keys.RETURN)) {
+						e.preventDefault()
+					}
+				},
+				onClear: () => this.searchViewModel.onSearchQueryUpdated(""),
+			} satisfies BaseSearchBarAttrs),
 		)
 	}
 

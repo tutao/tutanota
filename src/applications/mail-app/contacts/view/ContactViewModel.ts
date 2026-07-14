@@ -120,8 +120,8 @@ export class ContactViewModel {
 		this.listModelStateStream?.end(true)
 		this.listModelStateStream = null
 	}
-	selectSearchResult(searchQuery: SearchQuery, contact: Contact) {
-		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, getElementId(contact))
+	selectSearchResult(searchQuery: SearchQuery, contact: Contact | null) {
+		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, contact ? getElementId(contact) : null)
 	}
 	async getSearchResults(searchQuery: SearchQuery): Promise<LiveSearchResult<Contact>> {
 		return this.searchModel.coolNewSearchContacts(searchQuery)

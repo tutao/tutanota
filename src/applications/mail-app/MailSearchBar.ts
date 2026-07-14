@@ -47,7 +47,7 @@ export class LazyComponent<A, C extends ClassComponent<A>> {
 
 export interface MailSearchBarAttrs {
 	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<Mail>>
-	selectResult: (searchQuery: SearchQuery, entry: Mail) => unknown
+	selectResult: (searchQuery: SearchQuery, entry: Mail | null) => unknown
 }
 
 export class MailSearchBar implements ClassComponent<MailSearchBarAttrs> {

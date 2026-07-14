@@ -917,8 +917,8 @@ export class MailViewModel {
 	getMoveMode(folder: MailSet): MoveMode {
 		return this.groupMailsByConversation(folder) ? MoveMode.Conversation : MoveMode.Mails
 	}
-	selectSearchResult(searchQuery: SearchQuery, mail: Mail) {
-		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, getElementId(mail))
+	selectSearchResult(searchQuery: SearchQuery, mail: Mail | null) {
+		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, mail ? getElementId(mail) : null)
 	}
 	getSearchResult(searchQuery: SearchQuery) {
 		return this.searchModel.coolNewSearchMails(searchQuery)

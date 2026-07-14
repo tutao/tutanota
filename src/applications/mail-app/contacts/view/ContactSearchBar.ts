@@ -9,7 +9,7 @@ import { getContactListName } from "../../../common/contactsFunctionality/Contac
 
 export interface ContactSearchBarAttrs {
 	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<Contact>>
-	selectResult: (searchQuery: SearchQuery, entry: Contact) => unknown
+	selectResult: (searchQuery: SearchQuery, entry: Contact | null) => unknown
 }
 export class ContactSearchBar implements ClassComponent<ContactSearchBarAttrs> {
 	view({ attrs }: Vnode<ContactSearchBarAttrs, this>): Children | null {
