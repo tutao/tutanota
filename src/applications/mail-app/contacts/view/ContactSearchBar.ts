@@ -10,6 +10,7 @@ import { getContactListName } from "../../../common/contactsFunctionality/Contac
 export interface ContactSearchBarAttrs {
 	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<Contact>>
 	selectResult: (searchQuery: SearchQuery, entry: Contact | null) => unknown
+	shouldOfferUpgrade: boolean
 }
 export class ContactSearchBar implements ClassComponent<ContactSearchBarAttrs> {
 	view({ attrs }: Vnode<ContactSearchBarAttrs, this>): Children | null {
@@ -23,6 +24,7 @@ export class ContactSearchBar implements ClassComponent<ContactSearchBarAttrs> {
 				}),
 			selectResult: attrs.selectResult,
 			renderResult: (entry, _isSelected) => this.renderContactResult(entry),
+			shouldOfferUpgrade: attrs.shouldOfferUpgrade,
 		})
 	}
 

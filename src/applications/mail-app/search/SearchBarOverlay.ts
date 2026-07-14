@@ -1,12 +1,12 @@
 import type { ShowMoreAction } from "./SearchBar"
 import { px, size } from "../../../ui/size"
 import { lang } from "../../../ui/utils/LanguageViewModel"
-import { isEmpty } from "@tutao/utils"
 import { FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { formatDate } from "../../../ui/utils/Formatter"
 import m, { Children, Component, Vnode } from "mithril"
 import { renderSearchInOurApps } from "./view/SearchView"
 import { pureComponent } from "../../../ui/base/PureComponent"
+import { isNotEmpty } from "@tutao/utils"
 
 export interface SearchBarOverlayAttrs<T> {
 	items: readonly T[]
@@ -14,7 +14,7 @@ export interface SearchBarOverlayAttrs<T> {
 	isFocused: boolean
 	renderResult: (entry: T, isSelected: boolean) => Children
 	selectResult: (result: T | null) => void
-	showMoreAction: ShowMoreAction
+	showMoreAction: ShowMoreAction | null
 }
 
 const OverlayRow = pureComponent(({ isSelected, onclick }: { isSelected: boolean; onclick: () => unknown }, children) =>
@@ -36,8 +36,8 @@ const OverlayRow = pureComponent(({ isSelected, onclick }: { isSelected: boolean
 
 export class SearchBarOverlay<T> implements Component<SearchBarOverlayAttrs<T>> {
 	view({ attrs }: Vnode<SearchBarOverlayAttrs<T>>): Children {
-		const { items } = attrs
-		return [!isEmpty(items) && attrs.isFocused ? this.renderResults(attrs) : null]
+		const { items, showMoreAction } = attrs
+		return [(isNotEmpty(items) || showMoreAction) && attrs.isFocused ? this.renderResults(attrs) : null]
 	}
 
 	renderResults(attrs: SearchBarOverlayAttrs<T>): Children {
@@ -56,14 +56,16 @@ export class SearchBarOverlay<T> implements Component<SearchBarOverlayAttrs<T>> 
 						attrs.renderResult(entry, isSelected),
 					)
 				}),
-				m(
-					OverlayRow,
-					{
-						isSelected: attrs.selected === "showmore",
-						onclick: () => attrs.selectResult(null),
-					},
-					this.renderShowMoreAction(attrs.items.length, attrs.showMoreAction),
-				),
+				attrs.showMoreAction
+					? m(
+							OverlayRow,
+							{
+								isSelected: attrs.selected === "showmore",
+								onclick: () => attrs.selectResult(null),
+							},
+							this.renderShowMoreAction(attrs.items.length, attrs.showMoreAction),
+						)
+					: null,
 			]),
 			searchInOurAppsElement &&
 				m(

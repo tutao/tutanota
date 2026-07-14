@@ -3,9 +3,9 @@ import { layout_size, px, size } from "../../../ui/size"
 import { displayOverlay, overlayBottomMargin, PositionRect } from "../../../ui/base/Overlay"
 import type { Shortcut } from "../../../ui/utils/KeyManager"
 import { isKeyPressed, keyManager } from "../../../ui/utils/KeyManager"
-import { getRestriction, hasMoreResults } from "./model/SearchUtils"
+import { getRestriction } from "./model/SearchUtils"
 import { Dialog } from "../../../ui/base/Dialog"
-import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, Keys } from "@tutao/app-env"
+import { assertMainOrNode, isApp, Keys } from "@tutao/app-env"
 import { styles } from "../../../ui/styles"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { debounce, getFirstOrThrow, isNotEmpty, lastIndex, mod, ofClass } from "@tutao/utils"
@@ -36,13 +36,14 @@ export type SearchBarAttrs<T> = {
 	loadResults: ResultLoader<T>
 	renderResult: (entry: T, isSelected: boolean) => Children
 	selectResult: (searchQuery: SearchQuery, entry: T | null) => unknown
+	shouldOfferUpgrade: boolean
 }
 
 const MAX_SEARCH_PREVIEW_RESULTS = 10
 export type Entry = Mail | Contact | CalendarEvent | DriveFile | DriveFolder | ShowMoreAction
 
 interface SearchBarState<T> {
-	query: SearchQuery | null
+	query: string | null
 	searchResult: LiveSearchResult<T> | null
 	selected: number | "showmore" | null
 	busy: boolean
@@ -83,12 +84,16 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 					selected: this.state.selected,
 					isFocused: this.focused,
 					renderResult: this.lastAttrs.renderResult,
-					selectResult: (entry) => this.state.query && this.lastAttrs.selectResult(this.state.query, entry),
-					showMoreAction: {
-						indexTimestamp: this.state.searchResult?.searchResult.currentIndexTimestamp ?? 0,
-						// FIXME
-						shouldOfferUpgrade: true,
+					selectResult: (entry) => {
+						this.selectResult(entry)
 					},
+					showMoreAction:
+						this.state.query != null && this.state.searchResult != null
+							? {
+									indexTimestamp: this.state.searchResult?.searchResult.currentIndexTimestamp ?? 0,
+									shouldOfferUpgrade: attrs.shouldOfferUpgrade,
+								}
+							: null,
 				})
 			},
 		}
@@ -112,7 +117,7 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 			},
 			m(BaseSearchBar, {
 				placeholder: vnode.attrs.placeholder,
-				text: this.state.query?.query ?? "",
+				text: this.state.query ?? "",
 				busy: this.state.busy,
 				disabled: vnode.attrs.disabled,
 				onInput: (text) => this.search(text),
@@ -135,7 +140,7 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 	}
 
 	private readonly onkeydown = (e: KeyboardEvent, loadResults: (query: string) => Promise<LiveSearchResult<T>>) => {
-		const { selected, searchResult, query } = this.state
+		const { selected, searchResult } = this.state
 		const entities = searchResult?.items
 		const selectedEntity = typeof selected === "number" && entities?.[selected]
 		const keyHandlers = [
@@ -150,10 +155,10 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 			{
 				key: Keys.RETURN,
 				exec: () => {
-					if (query && selected === "showmore") {
-						this.lastAttrs.selectResult(query, null)
-					} else if (selectedEntity && query) {
-						this.lastAttrs.selectResult(query, selectedEntity)
+					if (selected === "showmore") {
+						this.selectResult(null)
+					} else if (selectedEntity) {
+						this.selectResult(selectedEntity)
 					} else {
 						this.search()
 					}
@@ -315,25 +320,10 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 	private search(query?: string) {
 		let oldQuery = this.state.query
 		let restriction = this.getRestriction()
-		let searchQuery: SearchQuery
-		if (query != null) {
-			searchQuery = {
-				query: query ?? "",
-				restriction,
-				// FIXME: these 2 are wrong
-				maxResults: null,
-			}
-			this.updateState({
-				query: searchQuery,
-			})
-		} else {
-			searchQuery = oldQuery ?? {
-				query: query ?? "",
-				restriction,
-				// FIXME: these 2 are wrong
-				maxResults: null,
-			}
-		}
+		const searchQuery: string = query ?? oldQuery ?? ""
+		this.updateState({
+			query: searchQuery,
+		})
 
 		if (!mailLocator.search.indexState().mailIndexEnabled && restriction && restriction.type === SearchCategoryType.mail && !this.confirmDialogShown) {
 			this.focused = false
@@ -361,28 +351,33 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 				return
 			}
 
-			if (searchQuery.query.trim() !== "") {
+			if (searchQuery.trim() !== "") {
 				this.updateState({ busy: true })
 			}
 
-			this.doSearch(searchQuery.query, restriction, () => {
+			this.doSearch(searchQuery, () => {
 				this.updateState({ busy: false })
 			})
 			// }
 		}
 	}
 
-	private readonly doSearch = debounce(300, (query: string, restriction: SearchRestriction, cb: () => void) => {
+	private readonly doSearch = debounce(300, (query: string, cb: () => void) => {
 		;(async () => {
 			this.state.searchResult?.dispose()
+			if (query === "") {
+				this.updateState({
+					searchResult: null,
+					selected: null,
+				})
+			} else {
+				const liveResult: LiveSearchResult<T> = await this.lastAttrs.loadResults(query)
 
-			const liveResult: LiveSearchResult<T> = await this.lastAttrs.loadResults(query)
-			const { searchResult } = liveResult
-
-			this.updateState({
-				searchResult: liveResult,
-				selected: isNotEmpty(liveResult.items) ? 0 : null,
-			})
+				this.updateState({
+					searchResult: liveResult,
+					selected: isNotEmpty(liveResult.items) ? 0 : "showmore",
+				})
+			}
 		})().finally(() => cb())
 	})
 
@@ -392,6 +387,15 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 			selected: null,
 			searchResult: null,
 		})
+	}
+
+	private selectResult(entry: T | null) {
+		if (this.state.searchResult) {
+			const {
+				searchResult: { query, restriction, maxResults },
+			} = this.state.searchResult
+			this.lastAttrs.selectResult({ query, restriction, maxResults: maxResults ?? null }, entry)
+		}
 	}
 
 	private onFocus() {

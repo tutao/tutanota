@@ -11,6 +11,7 @@ import { lang } from "../../ui/utils/LanguageViewModel"
 export interface CalendarSearchBarAttrs {
 	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<CalendarEvent>>
 	selectResult: (searchQuery: SearchQuery, entry: CalendarEvent | null) => unknown
+	shouldOfferUpgrade: boolean
 }
 
 // FIXME: rewrite with a LazyComponent
@@ -41,6 +42,7 @@ export class LazyCalendarSearchBar implements ClassComponent<CalendarSearchBarAt
 					m(".top.flex-space-between", m(".name.text-ellipsis", { title: entry.summary }, entry.summary)),
 					m(".bottom.flex-space-between", m("small.mail-address", formatEventDuration(entry, getTimeZone(), false))),
 				],
+				shouldOfferUpgrade: attrs.shouldOfferUpgrade,
 			} satisfies SearchBarAttrs<CalendarEvent>)
 		} else {
 			return null

@@ -1177,6 +1177,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							selectResult: (searchQuery, entry) => {
 								if (entry) this.viewModel.selectSearchResult(searchQuery, entry)
 							},
+							shouldOfferUpgrade: locator.logins.getUserController().isFreeAccount(),
 						}),
 					...attrs.header,
 					buttons: renderHeaderButtons(),

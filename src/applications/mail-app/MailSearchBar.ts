@@ -48,6 +48,7 @@ export class LazyComponent<A, C extends ClassComponent<A>> {
 export interface MailSearchBarAttrs {
 	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<Mail>>
 	selectResult: (searchQuery: SearchQuery, entry: Mail | null) => unknown
+	shouldOfferUpgrade: boolean
 }
 
 export class MailSearchBar implements ClassComponent<MailSearchBarAttrs> {
@@ -62,6 +63,7 @@ export class MailSearchBar implements ClassComponent<MailSearchBarAttrs> {
 				}),
 			selectResult: attrs.selectResult,
 			renderResult: (entry, isSelected) => this.renderMailResult(entry, isSelected),
+			shouldOfferUpgrade: attrs.shouldOfferUpgrade,
 		})
 	}
 

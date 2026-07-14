@@ -312,6 +312,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 												selectResult: (searchQuery, contact) => {
 													this.contactViewModel.selectSearchResult(searchQuery, contact)
 												},
+												shouldOfferUpgrade: locator.logins.getUserController().isFreeAccount(),
 											},
 										}),
 							...attrs.header,
