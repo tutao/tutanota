@@ -46,6 +46,8 @@ import {
 	OfflineStorageLastProcessedEventBatchStorageFacade,
 } from "../../../common/api/worker/LastProcessedEventBatchStorageFacade"
 import { OfflineStorage } from "../../../../app-kit/local-store/OfflineStorage"
+import { CachingOfflineStorage } from "../../../../app-kit/local-store/CachingOfflineStorage"
+
 import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
 import { AesApp } from "../../../../app-kit/native-bridge/worker/AesApp.js"
 import { CacheStorage } from "../../../../app-kit/local-store/CacheStorage"
@@ -65,7 +67,7 @@ import { EphemeralCacheStorage } from "../../../../app-kit/local-store/Ephemeral
 import { LocalTimeDateProvider } from "../../../common/api/worker/DateProvider.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { LastProcessedEventBatchProvider } from "../../../../platform-kit/network/LastProcessedEventBatchProvider"
-import { EntityAdapter, NamedClientModel } from "../../../../platform-kit/instance-pipeline"
+import { NamedClientModel } from "../../../../platform-kit/instance-pipeline"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { assertNotNull, DateProvider, lazyAsync, lazyMemoized } from "@tutao/utils"
@@ -277,14 +279,24 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 	}
 
+	const ephemeralStorageProvider = async () => {
+		const customCacheHandler = new CustomCacheHandlerMap({
+			ref: UserTypeRef,
+			handler: new CustomUserCacheHandler(locator.cacheStorage, await locator.spamClassifierStorageFacade()),
+		})
+		return new EphemeralCacheStorage(locator.base.instancePipeline.modelMapper, locator.base.typeModelResolver, customCacheHandler)
+	}
+
 	// offlineStorageProvider and ephemeralStorageProvider reference locator.base.* lazily — only called during login init
-	let offlineStorageProvider: () => Promise<OfflineStorage | null>
+	let offlineStorageProvider: () => Promise<CachingOfflineStorage | null>
 	if (isOfflineStorageAvailable()) {
 		offlineStorageProvider = async () => {
 			const { SearchTableDefinitions } = await import("../index/OfflineStoragePersistence.js")
 			const { AutosaveDraftsTableDefinitions } = await import("../../../common/api/worker/facades/lazy/OfflineStorageAutosaveFacade.js")
 			const { SpamClassificationTableDefinitions } = await import("../../../common/api/worker/facades/lazy/OfflineStorageSpamClassifierStorageFacade.js")
-
+			// fastCache does not need the CustomUserCacheHandler as the delegate on the CachingOfflineStorage already has it and will call the deleteAllOwnedBy
+			// on fastCache whenever the user is removed from a group
+			const fastCache = new EphemeralCacheStorage(locator.base.instancePipeline.modelMapper, locator.base.typeModelResolver, new CustomCacheHandlerMap())
 			const customCacheHandler = new CustomCacheHandlerMap(
 				{
 					ref: CalendarEventTypeRef,
@@ -308,7 +320,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 				},
 			)
 
-			return new OfflineStorage(
+			const offlineStorage = new OfflineStorage(
 				locator.sqlCipherFacade,
 				new InterWindowEventFacadeSendDispatcher(worker),
 				new OfflineStorageMigrator(createOfflineStorageMigrations(locator.sqlCipherFacade, locator.base.applicationTypesFacade)),
@@ -318,17 +330,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 				customCacheHandler,
 				Object.assign({}, KeyVerificationTableDefinitions, SearchTableDefinitions, AutosaveDraftsTableDefinitions, SpamClassificationTableDefinitions),
 			)
+			return new CachingOfflineStorage(offlineStorage, fastCache, locator.base.instancePipeline.modelMapper)
 		}
 	} else {
 		offlineStorageProvider = async () => null
-	}
-
-	const ephemeralStorageProvider = async () => {
-		const customCacheHandler = new CustomCacheHandlerMap({
-			ref: UserTypeRef,
-			handler: new CustomUserCacheHandler(locator.cacheStorage, await locator.spamClassifierStorageFacade()),
-		})
-		return new EphemeralCacheStorage(locator.base.instancePipeline.modelMapper, locator.base.typeModelResolver, customCacheHandler)
 	}
 
 	const maybeUninitializedStorage = new LateInitializedCacheStorageImpl(

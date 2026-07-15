@@ -1,7 +1,7 @@
 import { ListElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
 import { ProgrammingError } from "@tutao/app-env"
 import { EntityRestCache } from "../../../../../platform-kit/network/EntityRestCacheInterface"
-import { EntityUpdateData } from "../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CacheSyncStatus, EntityUpdateData } from "../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { Nullable } from "@tutao/utils"
 import { EntityRestClientLoadOptions } from "../../../../../platform-kit/instance-pipeline/RestClientOptions"
 
@@ -72,5 +72,9 @@ export class AdminClientDummyEntityRestCache implements EntityRestCache {
 
 	async isOutOfSync(): Promise<boolean> {
 		return false
+	}
+
+	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void> {
+		// no-op
 	}
 }

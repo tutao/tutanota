@@ -1,10 +1,12 @@
 import {
+	AnyEntityId,
 	AttributeName,
 	BlobElementEntity,
 	collapseId,
 	CUSTOM_MIN_ID,
 	ElementEntity,
 	elementIdPart,
+	elementIdToId,
 	Entity,
 	expandId,
 	firstBiggerThanSecond,
@@ -13,20 +15,18 @@ import {
 	getElementId,
 	getServerIdEncodingForType,
 	getTypeString,
+	idToElementId,
 	isCustomIdType,
 	ListElementEntity,
 	listIdPart,
 	localToServerIdEncoding,
 	parseTypeString,
+	PersistentEntity,
 	serverToLocalIdEncoding,
 	ServerTypeModel,
-	PersistentEntity,
 	Type as TypeId,
 	TypeModel,
 	TypeRef,
-	AnyEntityId,
-	elementIdToId,
-	idToElementId,
 } from "../../platform-kit/meta"
 import * as cborg from "cborg"
 import { EncodeOptions, Token, Type } from "cborg"
@@ -58,6 +58,8 @@ import type { SqlValue } from "./Types.ts"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { OfflineStorageArgs } from "../../platform-kit/base/facades/CacheStorageLateInitializer"
 import { OfflineEntity, OfflineMapper } from "../../platform-kit/instance-pipeline/OfflineMapper"
+
+import { CacheSyncStatus } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
@@ -227,7 +229,7 @@ export class OfflineStorage implements CacheStorage {
 		return await this.deserializeList(instanceBytes, typeRef)
 	}
 
-	async get<T extends Entity>(typeRef: TypeRef<T>, listId: string | null, id: string): Promise<T | null> {
+	async get<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: string | null, id: string): Promise<T | null> {
 		const parsedInstance = await this.getParsed(typeRef, listId, id)
 		if (parsedInstance == null) {
 			return null
@@ -870,14 +872,6 @@ export class OfflineStorage implements CacheStorage {
 		return encoded && cborg.decode(encoded.value.value as Uint8Array)
 	}
 
-	/**
-	 * Clear out unneeded data from the offline database (i.e. old data).
-	 * This will be called after login (CachePostLoginActions.ts) to ensure fast login time.
-	 */
-	async clearExcludedData(): Promise<void> {
-		// no-op for now
-	}
-
 	private async createTables() {
 		for (const { definition } of typedValues(this.allTables)) {
 			await this.sqlCipherFacade.run(definition, [])
@@ -966,6 +960,10 @@ export class OfflineStorage implements CacheStorage {
 
 		const fullIds: Array<AnyEntityId> = listId == null ? elementIds.map(idToElementId) : elementIds.map((id) => [listId, id])
 		await this.deleteMultiple(typeRef, fullIds)
+	}
+
+	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void> {
+		// no-op
 	}
 
 	async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, rawCutoffId: Id): Promise<void> {
