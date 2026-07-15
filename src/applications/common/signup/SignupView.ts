@@ -290,6 +290,19 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 					title: "Create Account",
 					content: SignupFormPage,
 					isBackButtonEnabled: () => true,
+					onNext: () => {
+						SignupFlowUsageTestController.completeStage(
+							SignupFlowStage.CREATE_ACCOUNT,
+							this.wizardViewModel.targetPlanType,
+							this.wizardViewModel.options.paymentInterval(),
+						)
+						SignupFlowUsageTestController.completeStage(
+							SignupFlowStage.SELECT_PAYMENT_METHOD,
+							this.wizardViewModel.targetPlanType,
+							this.wizardViewModel.options.paymentInterval(),
+							this.wizardViewModel.paymentData.paymentMethod,
+						)
+					},
 					onPrev: (ctx) => {
 						m.route.set("/")
 					},
