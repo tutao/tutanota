@@ -413,7 +413,10 @@ export class CalendarModel {
 				if (e instanceof NotFoundError) {
 					notFoundMemberships.push(membership)
 				} else {
-					throw e
+					console.error("Error loading calendar info for group: ", membership.group, e)
+					if (!(e instanceof NotAuthorizedError)) {
+						throw e
+					}
 				}
 			}
 			progressMonitor.workDone(3)

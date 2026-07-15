@@ -139,13 +139,27 @@ export class CalendarEventsRepository {
 		canceled: Stream<boolean>,
 		progressMonitor: ProgressMonitorInterface | null,
 		calendarToLoad?: string,
+		isForceReload: boolean = false,
 	): Promise<void> {
+		console.log("Loading events for months", daysInMonths, isForceReload)
+		if (isForceReload) {
+			this.pendingLoadRequest = Promise.resolve()
+		}
 		const promiseForThisLoadRequest = this.pendingLoadRequest.then(async () => {
 			for (const dayInMonth of daysInMonths) {
 				if (canceled()) return
 
 				const monthRange = getMonthRange(dayInMonth, this.zone)
-				if (!this.loadedMonths.has(monthRange.start) || (calendarToLoad != null && !this.isCalendarLoadedForRange(monthRange.start, calendarToLoad))) {
+				if (isForceReload) {
+					console.log("Force reloading events for month", dayInMonth)
+					let calendarInfos = await this.calendarModel.getCalendarInfos()
+					const eventsMap = await this.calendarFacade.updateEventMap(monthRange, calendarInfos, this.daysToEvents(), this.zone)
+					this.replaceEvents(eventsMap)
+					this.addBirthdaysEventsIfNeeded(dayInMonth, monthRange)
+				} else if (
+					!this.loadedMonths.has(monthRange.start) ||
+					(calendarToLoad != null && !this.isCalendarLoadedForRange(monthRange.start, calendarToLoad))
+				) {
 					try {
 						let calendarInfos = await this.calendarModel.getCalendarInfos()
 

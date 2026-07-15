@@ -90,3 +90,8 @@ export type EntityEventsListener = {
 	onEntityUpdatesReceived: (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id, isInitialSyncDone: boolean) => Promise<unknown>
 	priority: OnEntityUpdateReceivedPriority
 }
+export enum CacheSyncStatus {
+	Offline = "Offline",
+	OnlineSyncOngoing = "OnlineSyncOngoing",
+	OnlineSyncDone = "OnlineSyncDone",
+}

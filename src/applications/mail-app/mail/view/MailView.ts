@@ -283,7 +283,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		this.onremove = () => {
 			// cancel the loading if we are destroyed
 			this.mailViewModel.listModel?.cancelLoadAll()
-
+			this.mailViewModel.deinit()
 			this.countersStream?.end(true)
 			this.countersStream = null
 

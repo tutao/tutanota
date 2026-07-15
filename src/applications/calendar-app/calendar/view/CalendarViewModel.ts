@@ -89,6 +89,8 @@ import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInt
 import { selectAndParseIcalFile } from "../../../common/calendar/gui/CalendarImporterDialog"
 import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
 import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
+import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
+import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 
 export interface EventWrapperFlags {
 	/**
@@ -248,6 +250,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		private readonly contactModel: ContactModel,
 		private readonly groupSettingsModel: lazy<Promise<GroupSettingsModel>>,
 		private readonly operationProgressTracker: OperationProgressTracker,
+		private readonly connectivityModel: WebsocketConnectivityModel,
 	) {
 		this.calendarColorsMap = memoized((availableCalendars: ReadonlyArray<CalendarInfoBase>) => {
 			const calendarColors = new Map()
@@ -286,6 +289,12 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		eventController.addEntityListener({
 			onEntityUpdatesReceived: (updates) => this.entityEventReceived(updates),
 			priority: OnEntityUpdateReceivedPriority.NORMAL,
+		})
+		this.connectivityModel.addConnectionStateListener(async (connectionState) => {
+			console.log("CalendarViewModel connection state changed to", connectionState)
+			if (connectionState === WsConnectionState.connected) {
+				await this.preloadMonthsAroundSelectedDate(true)
+			}
 		})
 
 		calendarInvitationsModel.init()
@@ -380,7 +389,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	 * react to changes to the calendar data by making sure we have the current month + the two adjacent months
 	 * ready to be rendered
 	 */
-	private preloadMonthsAroundSelectedDate = debounce(200, async () => {
+	private preloadMonthsAroundSelectedDate = debounce(200, async (isForceReload: boolean = false) => {
 		// load all calendars. if there is no calendar yet, create one
 		// for each calendar we load short events for three months +3
 		const workPerCalendar = 3
@@ -400,7 +409,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			if (hasNewPaidPlan) {
 				await this.eventsRepository.loadContactsBirthdays()
 			}
-			await this.loadMonthsIfNeeded([new Date(thisMonthStart), nextMonthDate, previousMonthDate], progressMonitor, this.cancelSignal)
+			await this.loadMonthsIfNeeded([new Date(thisMonthStart), nextMonthDate, previousMonthDate], progressMonitor, this.cancelSignal, isForceReload)
 		} finally {
 			progressMonitor.completed()
 			this.doRedraw()
@@ -836,8 +845,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return this.calendarModel.getCalendarInfosCreateIfNeeded()
 	}
 
-	loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: ProgressMonitorInterface, canceled: Stream<boolean>): Promise<void> {
-		return this.eventsRepository.loadMonthsIfNeeded(daysInMonths, canceled, progressMonitor)
+	loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: ProgressMonitorInterface, canceled: Stream<boolean>, isForceReload: boolean): Promise<void> {
+		return this.eventsRepository.loadMonthsIfNeeded(daysInMonths, canceled, progressMonitor, undefined, isForceReload)
 	}
 
 	private doRedraw() {

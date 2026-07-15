@@ -57,6 +57,7 @@ import {
 	UserGroupRootTypeRef,
 } from "@tutao/entities/sys"
 import {
+	CacheSyncStatus,
 	CachingStatus,
 	EntityUpdateData,
 	getLogStringForEntityEvent,
@@ -70,6 +71,9 @@ import {
 	EntityRestClientSetupOptions,
 	getCacheModeBehavior,
 } from "../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { WebsocketConnectivityListener } from "../../../../../platform-kit/network/WebsocketConnectivityListener"
+import { SyncStatus } from "../../../calendar/import/ImportExportUtils"
+import Ca from "../../../../../ui/translations/ca"
 
 assertWorkerOrNode()
 
@@ -132,7 +136,7 @@ const CACHEABLE_CUSTOMID_TYPES = [MailSetEntryTypeRef, GroupKeyTypeRef] as const
 export class DefaultEntityRestCache implements EntityRestCache {
 	constructor(
 		private readonly entityRestClient: EntityRestClient,
-		private readonly storage: CacheStorage,
+		private readonly cacheStorage: CacheStorage, // use storage getter unless you're sure you need the (potentially persistent) cacheStorage instead
 		private readonly typeModelResolver: TypeModelResolver,
 		private readonly patchMerger: PatchMerger,
 		private readonly lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider>,
@@ -150,12 +154,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 		const { listId, elementId } = expandId(id)
 		const cachingBehavior = getCacheModeBehavior(opts.cacheMode)
-		const cachedEntity = cachingBehavior.readsFromCache ? await this.storage.getParsed(typeRef, listId, elementId) : null
+		const cachedEntity = cachingBehavior.readsFromCache ? await this.cacheStorage.getParsed(typeRef, listId, elementId) : null
 
 		if (cachedEntity == null) {
 			const parsedInstance = await this.entityRestClient.loadParsedInstance(typeRef, id, opts)
 			if (cachingBehavior.writesToCache && !hasError(parsedInstance)) {
-				await this.storage.put(typeRef, parsedInstance)
+				await this.cacheStorage.put(typeRef, parsedInstance)
 			}
 
 			return await this.entityRestClient.mapInstanceToEntity(typeRef, parsedInstance)
@@ -205,7 +209,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 	purgeStorage(): Promise<void> {
 		console.log("Purging the user's local-store database")
-		return this.storage.purgeStorage()
+		return this.cacheStorage.purgeStorage()
 	}
 
 	async isOutOfSync(): Promise<boolean> {
@@ -215,11 +219,11 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 	async recordSyncTime(): Promise<void> {
 		const timestamp = this.getServerTimestampMs()
-		await this.storage.putLastUpdateTime(timestamp)
+		await this.cacheStorage.putLastUpdateTime(timestamp)
 	}
 
 	async timeSinceLastSyncMs(): Promise<number | null> {
-		const lastUpdate = await this.storage.getLastUpdateTime()
+		const lastUpdate = await this.cacheStorage.getLastUpdateTime()
 		let lastUpdateTime: number
 		switch (lastUpdate.type) {
 			case "recorded":
@@ -239,7 +243,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	}
 
 	async deleteFromCacheIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void> {
-		return this.storage.deleteIfExists(typeRef, listId, elementId)
+		return this.cacheStorage.deleteIfExists(typeRef, listId, elementId)
 	}
 
 	private async _loadMultiple<T extends SomeEntity>(
@@ -255,7 +259,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		let idsToLoad: Id[]
 		if (cachingBehavior.readsFromCache) {
 			const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
-			const cached = await this.storage.provideMultipleParsed(typeRef, listId, ids)
+			const cached = await this.cacheStorage.provideMultipleParsed(typeRef, listId, ids)
 			entitiesInCache.push(...cached)
 			const loadedIds = new Set(
 				entitiesInCache.map((e) => {
@@ -274,7 +278,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		if (idsToLoad.length > 0) {
 			const entitiesFromServer = await this.entityRestClient.loadMultipleParsedInstances(typeRef, listId, idsToLoad, ownerEncSessionKeyProvider, opts)
 			if (cachingBehavior.writesToCache) {
-				await this.storage.putMultiple(typeRef, entitiesFromServer)
+				await this.cacheStorage.putMultiple(typeRef, entitiesFromServer)
 			}
 			entitiesInCache = entitiesFromServer.concat(entitiesInCache)
 		}
@@ -289,9 +293,9 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		reverse: boolean,
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<T[]> {
-		const customHandler = this.storage.getCustomCacheHandlerMap().get(typeRef)
+		const customHandler = this.cacheStorage.getCustomCacheHandlerMap().get(typeRef)
 		if (customHandler && customHandler.loadRange) {
-			return await customHandler.loadRange(this.storage, listId, start, count, reverse)
+			return await customHandler.loadRange(this.cacheStorage, listId, start, count, reverse)
 		}
 
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
@@ -300,13 +304,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		if (!useCache) {
 			return await this.entityRestClient.loadRange(typeRef, listId, start, count, reverse, opts)
 		}
-
 		const behavior = getCacheModeBehavior(opts.cacheMode)
 		if (!behavior.readsFromCache) {
 			throw new ProgrammingError("cannot write to cache without reading with range requests")
 		}
 
-		const range = await this.storage.getRangeForList(typeRef, listId)
+		const range = await this.cacheStorage.getRangeForList(typeRef, listId)
 
 		if (behavior.writesToCache) {
 			if (range == null) {
@@ -318,10 +321,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			} else {
 				await this.extendTowardsRange(typeRef, listId, start, count, reverse, opts)
 			}
-			return await this.storage.provideFromRange(typeRef, listId, start, count, reverse)
+			return await this.cacheStorage.provideFromRange(typeRef, listId, start, count, reverse)
 		} else {
 			if (range && isStartIdWithinRange(range, start, typeModel)) {
-				const provided = await this.storage.provideFromRange(typeRef, listId, start, count, reverse)
+				const provided = await this.cacheStorage.provideFromRange(typeRef, listId, start, count, reverse)
 				const { newStart, newCount } = await this.recalculateRangeRequest(typeRef, listId, start, count, reverse)
 				const newElements = newCount > 0 ? await this.entityRestClient.loadRange(typeRef, listId, newStart, newCount, reverse) : []
 				return provided.concat(newElements)
@@ -355,7 +358,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const parsedInstances = await this.entityRestClient.loadParsedInstancesRange(typeRef, listId, start, count, reverse, opts)
 
 		// Initialize a new range for this list
-		await this.storage.setNewRangeForList(typeRef, listId, start, start)
+		await this.cacheStorage.setNewRangeForList(typeRef, listId, start, start)
 
 		// The range bounds will be updated in here
 		await this.updateRangeInStorage(typeRef, listId, count, reverse, parsedInstances)
@@ -402,7 +405,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// Start is outside the range, and we are loading away from the range, so we grow until we are able to provide enough
 		// entities starting at startId
 		while (true) {
-			const range = assertNotNull(await this.storage.getRangeForList(typeRef, listId))
+			const range = assertNotNull(await this.cacheStorage.getRangeForList(typeRef, listId))
 
 			// Which end of the range to start loading from
 			const loadStartId = reverse ? range.lower : range.upper
@@ -419,7 +422,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			}
 
 			// Try to get enough entities from cache
-			const entitiesFromCache = await this.storage.provideFromRange(typeRef, listId, start, count, reverse)
+			const entitiesFromCache = await this.cacheStorage.provideFromRange(typeRef, listId, start, count, reverse)
 
 			// If cache is now capable of providing the whole request
 			if (entitiesFromCache.length === count) {
@@ -448,7 +451,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		opts: EntityRestClientLoadOptions,
 	) {
 		while (true) {
-			const range = assertNotNull(await this.storage.getRangeForList(typeRef, listId))
+			const range = assertNotNull(await this.cacheStorage.getRangeForList(typeRef, listId))
 
 			const loadStartId = reverse ? range.upper : range.lower
 
@@ -460,7 +463,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 			// The call to `updateRangeInStorage` will have set the range bounds to GENERATED_MIN_ID/GENERATED_MAX_ID
 			// in the case that we have exhausted all elements from the server, so if that happens, we will also end up breaking here
-			if (await this.storage.isElementIdInCacheRange(typeRef, listId, start)) {
+			if (await this.cacheStorage.isElementIdInCacheRange(typeRef, listId, start)) {
 				break
 			}
 		}
@@ -500,7 +503,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const instancesWithoutSessionKeyNotFoundErrors = errorRangeBound !== -1 ? allInstances.slice(0, errorRangeBound) : allInstances
 		const instancesWithoutErrors = instancesWithoutSessionKeyNotFoundErrors.filter((instance) => true)
 
-		await this.storage.putMultiple(typeRef, instancesWithoutErrors)
+		await this.cacheStorage.putMultiple(typeRef, instancesWithoutErrors)
 
 		const isCustomId = isCustomIdType(await this.typeModelResolver.resolveClientTypeReference(typeRef))
 
@@ -510,16 +513,13 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 			if (isFinishedLoading) {
 				console.log("finished loading, setting min id")
-				await this.storage.setLowerRangeForList(typeRef, listId, isCustomId ? CUSTOM_MIN_ID : GENERATED_MIN_ID)
+				await this.cacheStorage.setLowerRangeForList(typeRef, listId, isCustomId ? CUSTOM_MIN_ID : GENERATED_MIN_ID)
 			} else if (isNotEmpty(instancesWithoutSessionKeyNotFoundErrors)) {
 				// When all receivedEntities have SessionKeyNotFound errors, and therefore instancesWithoutSessionKeyNotFoundErrors is empty, do nothing
 
 				// After reversing the list the first element in the list is the lower range limit
-				await this.storage.setLowerRangeForList(
-					typeRef,
-					listId,
-					elementIdPart(AttributeModel.getAttribute(getFirstOrThrow(instancesWithoutSessionKeyNotFoundErrors), "_id", typeModel)),
-				)
+				const id = elementIdPart(AttributeModel.getAttribute(getFirstOrThrow(instancesWithoutSessionKeyNotFoundErrors), "_id", typeModel))
+				await this.cacheStorage.setLowerRangeForList(typeRef, listId, id)
 			}
 		} else {
 			// When all receivedEntities have SessionKeyNotFound errors, and therefore instancesWithoutSessionKeyNotFoundErrors is empty, do nothing
@@ -528,13 +528,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			if (isFinishedLoading) {
 				// all elements have been loaded, so the upper range must be set to MAX_ID
 				console.log("finished loading, setting max id")
-				await this.storage.setUpperRangeForList(typeRef, listId, isCustomId ? CUSTOM_MAX_ID : GENERATED_MAX_ID)
+				await this.cacheStorage.setUpperRangeForList(typeRef, listId, isCustomId ? CUSTOM_MAX_ID : GENERATED_MAX_ID)
 			} else if (isNotEmpty(instancesWithoutSessionKeyNotFoundErrors)) {
-				await this.storage.setUpperRangeForList(
-					typeRef,
-					listId,
-					elementIdPart(AttributeModel.getAttribute(lastThrow(instancesWithoutSessionKeyNotFoundErrors), "_id", typeModel)),
-				)
+				const id = elementIdPart(AttributeModel.getAttribute(lastThrow(instancesWithoutSessionKeyNotFoundErrors), "_id", typeModel))
+				await this.cacheStorage.setUpperRangeForList(typeRef, listId, id)
 			}
 		}
 	}
@@ -551,10 +548,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		count: number,
 		reverse: boolean,
 	): Promise<{ newStart: string; newCount: number }> {
-		let allRangeList = await this.storage.getIdsInRange(typeRef, listId)
+		let allRangeList = await this.cacheStorage.getIdsInRange(typeRef, listId)
 		let elementsToRead = count
 		let startElementId = start
-		const range = await this.storage.getRangeForList(typeRef, listId)
+		const range = await this.cacheStorage.getRangeForList(typeRef, listId)
 		if (range == null) {
 			return { newStart: start, newCount: count }
 		}
@@ -619,11 +616,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// we need an array of UpdateEntityData
 		const filteredUpdateEvents: EntityUpdateData[] = []
 		for (let update of regularUpdates) {
-			if (!this.shouldUseCache(update.typeRef)) {
+			const shouldUseCache = this.shouldUseCache(update.typeRef)
+			if (!shouldUseCache) {
 				filteredUpdateEvents.push(update)
 				continue
 			}
-			// for missed entity updates, we update the cache storage using putMultiple and deleteMultiple calls in updateCacheWithMissedEntityUpdates
+			// for missed entity updates, we update the storage using putMultiple and deleteMultiple calls in updateCacheWithMissedEntityUpdates
 			// after we log in or re-establish the ws connection to minimize the IPC overhead, so we can continue here and
 			// do singular processing only for events we receive when we're online
 			if (update.cachingStatus === CachingStatus.CacheUpdated) {
@@ -642,16 +640,16 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				case OperationType.DELETE: {
 					if (isUpdateForTypeRef(MailTypeRef, update)) {
 						// delete mailDetails if they are available (as we don't send an event for this type)
-						const mail = await this.storage.get(update.typeRef, update.instanceListId, update.instanceId)
+						const mail = await this.cacheStorage.get(update.typeRef, update.instanceListId, update.instanceId)
 						if (mail) {
 							let mailDetailsId = mail.mailDetails
-							await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
+							await this.cacheStorage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
 							if (mailDetailsId != null) {
-								await this.storage.deleteIfExists(MailDetailsBlobTypeRef, listIdPart(mailDetailsId), elementIdPart(mailDetailsId))
+								await this.cacheStorage.deleteIfExists(MailDetailsBlobTypeRef, listIdPart(mailDetailsId), elementIdPart(mailDetailsId))
 							}
 						}
 					} else {
-						await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
+						await this.cacheStorage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
 					}
 					filteredUpdateEvents.push(update)
 					break // do break instead of continue to avoid ide warnings
@@ -673,7 +671,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		for (const update of filteredUpdateEvents) {
 			const { operation, typeRef } = update
 
-			const handler = this.storage.getCustomCacheHandlerMap().get(typeRef)
+			const handler = this.cacheStorage.getCustomCacheHandlerMap().get(typeRef)
 			if (handler == null) {
 				continue
 			}
@@ -709,11 +707,11 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 	private async processCreateEvent(typeRef: TypeRef<any>, update: EntityUpdateData): Promise<EntityUpdateData | null> {
 		// if there is a custom handler we follow its decision
-		let shouldUpdateDb = this.storage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update)
+		let shouldUpdateDb = this.cacheStorage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update)
 		// otherwise, we do a range check to see if we need to keep the range up-to-date. No need to load anything out of range
 		// we put new instances into cache only when it's a new instance in the cached range which is only for the list instances
 		if (update.instanceListId != null) {
-			shouldUpdateDb = shouldUpdateDb ?? (await this.storage.isElementIdInCacheRange(typeRef, update.instanceListId, update.instanceId))
+			shouldUpdateDb = shouldUpdateDb ?? (await this.cacheStorage.isElementIdInCacheRange(typeRef, update.instanceListId, update.instanceId))
 		} else {
 			shouldUpdateDb = shouldUpdateDb ?? true
 		}
@@ -738,7 +736,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			console.log("DefaultEntityRestCache - processUpdateEvent of type Group:" + update.instanceId)
 		}
 
-		const cached = await this.storage.getParsed(update.typeRef, update.instanceListId, update.instanceId)
+		const cached = await this.cacheStorage.getParsed(update.typeRef, update.instanceListId, update.instanceId)
 		// if the entity is not in cache we don't want to patch or re-download it
 		if (cached) {
 			try {
@@ -755,7 +753,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				// Even for list elements this should be safe as the instance is not there anymore.
 				if (isExpectedErrorForSynchronization(e)) {
 					console.log(`instance not found when processing update for ${getLogStringForEntityEvent(update)}, deleting from the cache`)
-					await this.storage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
+					await this.cacheStorage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
 					return null
 				} else {
 					throw e
@@ -774,12 +772,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 			const deleteEvents = entityUpdates.filter((entityUpdate) => entityUpdate.operation === OperationType.DELETE)
 			const deleteEventIds = deleteEvents.map((entityUpdate) => collapseId(entityUpdate.instanceListId, entityUpdate.instanceId))
-			await this.storage.deleteMultiple(typeRef, deleteEventIds)
+			await this.cacheStorage.deleteMultiple(typeRef, deleteEventIds)
 			deleteEvents.map((entityUpdate) => (entityUpdate.cachingStatus = CachingStatus.CacheUpdated))
 
 			const entityUpdatesWithValidInstances = entityUpdates.filter((entityUpdate) => entityUpdate.instance !== null && !hasError(entityUpdate.instance))
 			const instances = entityUpdatesWithValidInstances.map((entityUpdate) => entityUpdate.instance).filter(isNotNull)
-			await this.storage.putMultiple(typeRef, instances)
+			await this.cacheStorage.putMultiple(typeRef, instances)
 			if (isSameTypeRef(MailTypeRef, typeRef)) {
 				// Only CREATE events have a corresponding mailDetails instance (that should be additionally checked for decryption errors),
 				// UPDATE events are valid already if they are in the entityUpdatesWithValidInstances list
@@ -788,12 +786,17 @@ export class DefaultEntityRestCache implements EntityRestCache {
 						entityUpdate.operation === OperationType.UPDATE || (entityUpdate.blobInstance !== null && !hasError(entityUpdate.blobInstance)),
 				)
 				const blobInstances = entityUpdatesWithValidMails.map((entityUpdate) => entityUpdate.blobInstance).filter(isNotNull)
-				await this.storage.putMultiple(MailDetailsBlobTypeRef, blobInstances)
+				await this.cacheStorage.putMultiple(MailDetailsBlobTypeRef, blobInstances)
 				entityUpdatesWithValidMails.map((entityUpdate) => (entityUpdate.cachingStatus = CachingStatus.CacheUpdated))
 			} else {
 				entityUpdatesWithValidInstances.map((entityUpdate) => (entityUpdate.cachingStatus = CachingStatus.CacheUpdated))
 			}
 		}
+	}
+
+	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void> {
+		console.log("cacheSyncStatus: (DefaultEntityRestCache)" + cacheSyncStatus)
+		await this.cacheStorage.setCacheSyncStatus(cacheSyncStatus)
 	}
 
 	/**
@@ -804,12 +807,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const instanceOnUpdate = update.instance
 		if (instanceOnUpdate != null && !hasError(instanceOnUpdate)) {
 			// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
-			await this.storage.put(update.typeRef, instanceOnUpdate)
+			await this.cacheStorage.put(update.typeRef, instanceOnUpdate)
 
 			// save MailDetails blobs
 			const blobInstanceOnUpdate = update.blobInstance
 			if (blobInstanceOnUpdate != null && !hasError(blobInstanceOnUpdate) && isSameTypeRef(update.typeRef, MailTypeRef)) {
-				await this.storage.put(MailDetailsBlobTypeRef, blobInstanceOnUpdate)
+				await this.cacheStorage.put(MailDetailsBlobTypeRef, blobInstanceOnUpdate)
 			}
 			return update
 		} else {
@@ -817,7 +820,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			const instanceFromServer = await this.entityRestClient.loadParsedInstance(update.typeRef, collapseId(update.instanceListId, update.instanceId))
 			if (!hasError(instanceFromServer)) {
 				// we do not want to put the instance in the offline storage if there are _errors (when decrypting)
-				await this.storage.put(update.typeRef, instanceFromServer)
+				await this.cacheStorage.put(update.typeRef, instanceFromServer)
 				return update
 			} else {
 				return null
@@ -834,7 +837,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	private shouldUseCache(typeRef: TypeRef<any>, opts?: EntityRestClientLoadOptions): boolean {
 		// if the cacheStorage for some reason is not (yet) initialized we can not use the cache,
 		// but still want to be able to use the client and do a login, etc.
-		if (!isTest() && !this.storage.isInitialized()) {
+		if (!isTest() && !this.cacheStorage.isInitialized()) {
 			return false
 		}
 

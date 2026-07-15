@@ -56,6 +56,8 @@ import type { SqlValue } from "./Types.ts"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { OfflineStorageInitArgs } from "../../platform-kit/base/facades/CacheStorageLateInitializer"
 
+import { CacheSyncStatus } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
  * it may change if the sqlite version is updated.
@@ -863,14 +865,6 @@ export class OfflineStorage implements CacheStorage {
 		return encoded && cborg.decode(encoded.value.value as Uint8Array)
 	}
 
-	/**
-	 * Clear out unneeded data from the offline database (i.e. old data).
-	 * This will be called after login (CachePostLoginActions.ts) to ensure fast login time.
-	 */
-	async clearExcludedData(): Promise<void> {
-		// no-op for now
-	}
-
 	private async createTables() {
 		for (const { definition } of typedValues(this.allTables)) {
 			await this.sqlCipherFacade.run(definition, [])
@@ -963,6 +957,10 @@ export class OfflineStorage implements CacheStorage {
 
 		const fullIds: T["_id"][] = listId == null ? elementIds : elementIds.map((id) => [listId, id])
 		await this.deleteMultiple(typeRef, fullIds)
+	}
+
+	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void> {
+		// no-op
 	}
 
 	async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, rawCutoffId: Id): Promise<void> {

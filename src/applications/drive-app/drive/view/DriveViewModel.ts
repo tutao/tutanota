@@ -44,6 +44,8 @@ import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFol
 import { isWebFile } from "../../../../ui/utils/FileUtils"
 import { isOfflineError, handleRestError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { WebFileResolver } from "./WebFileResolver"
+import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
+import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -186,6 +188,7 @@ export class DriveViewModel {
 		private readonly transferController: DriveTransferController,
 		private readonly webFileResolver: WebFileResolver | null,
 		public readonly updateUi: () => unknown,
+		private readonly connectivityModel: WebsocketConnectivityModel,
 	) {
 		this.userMailAddress = getDefaultSenderFromUser(this.loginController.getUserController())
 		this.initialized = new Promise((resolve, reject) => {
@@ -221,6 +224,12 @@ export class DriveViewModel {
 				await this.entityEventsReceived(events)
 			},
 			priority: OnEntityUpdateReceivedPriority.NORMAL,
+		})
+		this.connectivityModel.addConnectionStateListener(async (connectionState) => {
+			console.log("DriveViewModel connection state changed to", connectionState)
+			if (connectionState === WsConnectionState.connected) {
+				await this.listModel.reload()
+			}
 		})
 
 		this.uploadProgressListener.addUploadListener((info: UploadProgressInfo) => {

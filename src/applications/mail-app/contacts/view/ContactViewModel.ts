@@ -11,6 +11,8 @@ import { Contact, ContactTypeRef } from "@tutao/entities/tutanota"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { getElementId } from "../../../../platform-kit/meta"
 import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { ConnectionStateListener, WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
+import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 
 /** ViewModel for the overall contact view. */
 export class ContactViewModel {
@@ -26,6 +28,7 @@ export class ContactViewModel {
 		private readonly eventController: EventController,
 		private readonly router: Router,
 		private readonly updateUi: () => unknown,
+		private readonly connectivityModel: WebsocketConnectivityModel,
 	) {}
 
 	readonly listModel: ListElementListModel<Contact> = new ListElementListModel<Contact>({
@@ -60,11 +63,19 @@ export class ContactViewModel {
 
 	private readonly initOnce = lazyMemoized(() => {
 		this.eventController.addEntityListener(this.entityListener)
+		this.connectivityModel.addConnectionStateListener(this.connectivityListener)
 		this.listModelStateStream = this.listModel.stateStream.map(() => {
 			this.updateUi()
 			this.updateUrl()
 		})
 	})
+
+	private readonly connectivityListener: ConnectionStateListener = async (connectionState) => {
+		console.log("ContactListViewModel connection state changed to", connectionState)
+		if (connectionState === WsConnectionState.connected) {
+			await this.listModel?.reload()
+		}
+	}
 
 	private updateUrl() {
 		const contactId =
@@ -113,6 +124,7 @@ export class ContactViewModel {
 
 	dispose() {
 		this.eventController.removeEntityListener(this.entityListener)
+		this.connectivityModel.removeConnectionStateListener(this.connectivityListener)
 		this.listModelStateStream?.end(true)
 		this.listModelStateStream = null
 	}

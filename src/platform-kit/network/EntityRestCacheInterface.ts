@@ -1,6 +1,6 @@
 import { ListElementEntity, SomeEntity, TypeRef } from "@tutao/meta"
 import { OwnerEncSessionKeyProvider } from "@tutao/instance-pipeline"
-import { EntityUpdateData } from "../instance-pipeline/utils/EntityUpdateUtils"
+import { CacheSyncStatus, EntityUpdateData } from "../instance-pipeline/utils/EntityUpdateUtils"
 import { Nullable } from "@tutao/utils"
 import {
 	EntityRestClientEraseOptions,
@@ -120,4 +120,9 @@ export interface EntityRestCache extends EntityRestInterface {
 	 * This is used because IPC is slow on Desktop and Android, and syncing takes longer if putMultiple is not used and the items are put to cache one-by-one.
 	 */
 	updateCacheWithMissedEntityUpdates(entityUpdates: EntityUpdateData[]): Promise<void>
+
+	/**
+	 * set the new CacheSyncStatus
+	 */
+	setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void>
 }

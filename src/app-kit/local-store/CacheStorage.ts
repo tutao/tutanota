@@ -4,6 +4,8 @@ import { GetOrPutInstance } from "../../platform-kit/instance-pipeline"
 import { Range } from "./OfflineStorage"
 import { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeRef } from "../../platform-kit/meta"
 
+import { CacheSyncStatus } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+
 export type LastUpdateTime = { type: "recorded"; time: number } | { type: "never" } | { type: "uninitialized" }
 
 /**
@@ -47,8 +49,6 @@ export interface ExposedCacheStorage extends GetOrPutInstance {
 	 * Tables unrelated to cache will not be deleted.
 	 */
 	purgeStorage(): Promise<void>
-
-	clearExcludedData(timeRangeDate: Date): Promise<void>
 
 	/**
 	 * remove an ElementEntity from the cache by typeRef and Id.
@@ -150,4 +150,6 @@ export interface CacheStorage extends ExposedCacheStorage {
 	deleteAllOwnedBy(owner: Id): Promise<void>
 
 	isInitialized(): boolean
+
+	setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void>
 }

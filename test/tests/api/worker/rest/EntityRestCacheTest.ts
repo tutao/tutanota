@@ -65,6 +65,7 @@ import { CachingStatus, EntityUpdateData, entityUpdateToUpdateData } from "../..
 import { EntityRestClient } from "../../../../../src/platform-kit/network/EntityRestClient"
 import { LastProcessedEventBatchProvider } from "../../../../../src/platform-kit/network/LastProcessedEventBatchProvider"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
+import { WebsocketConnectivityListener } from "../../../../../src/platform-kit/network/WebsocketConnectivityListener"
 
 const { anything } = matchers
 
@@ -130,6 +131,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		let modelMapper: ModelMapper
 		let patchMergerMock: PatchMerger
 		let lastProcessedBatchIdStorageFacadeMock: LastProcessedEventBatchProvider
+		let connectivityListenerMock: WebsocketConnectivityListener
 
 		// The entity client will assert to throwing if an unexpected method is called
 		// You can mock it's attributes if you want to assert that a given method will be called
@@ -250,6 +252,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		}
 
 		o.beforeEach(async function () {
+			connectivityListenerMock = object<WebsocketConnectivityListener>()
 			userId = "userId"
 			customCacheHandlerMap = object()
 			lastProcessedBatchIdStorageFacadeMock = object<LastProcessedEventBatchProvider>()

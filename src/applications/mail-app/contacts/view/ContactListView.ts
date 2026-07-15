@@ -61,6 +61,10 @@ export class ContactListView implements ClassComponent<ContactListViewAttrs> {
 		)
 	}
 
+	onremove(vnode: Vnode<ContactListViewAttrs>): any {
+		vnode.attrs.contactViewModel.dispose()
+	}
+
 	private readonly renderConfig: RenderConfig<Contact, KindaContactRow> = {
 		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Enabled,

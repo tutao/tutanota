@@ -175,7 +175,15 @@ export async function runPlatformKitExample() {
 				crypto,
 			),
 		entityRestCache: (entityRestClient, patchMerger, typeModelResolver, lastProcessed) =>
-			new DefaultEntityRestCache(entityRestClient, maybeUninitializedStorage, typeModelResolver, patchMerger, lastProcessed),
+			new DefaultEntityRestCache(
+				entityRestClient,
+				maybeUninitializedStorage,
+				typeModelResolver,
+				patchMerger,
+				lastProcessed,
+				mainInterface.wsConnectivityListener,
+				ephemeralStorageProvider,
+			),
 	})
 
 	console.log("Logging in as map-free@tutanota.de...")

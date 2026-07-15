@@ -1,4 +1,4 @@
-import { OfflineStorage, Range } from "./OfflineStorage.js"
+import { Range } from "./OfflineStorage.js"
 import { ProgrammingError } from "../../platform-kit/app-env"
 import { Entity, ListElementEntity, ServerModelParsedInstance, SomeEntity, TypeRef } from "../../platform-kit/meta"
 import { Nullable } from "../../platform-kit/utils"
@@ -11,6 +11,8 @@ import {
 	EphemeralStorageArgs,
 	OfflineStorageArgs,
 } from "../../platform-kit/base/facades/CacheStorageLateInitializer"
+import { CachingOfflineStorage } from "./CachingOfflineStorage"
+import { CacheSyncStatus } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 /**
  * This is necessary so that we can release offline storage mode without having to rewrite the credentials handling system. Since it's possible that
@@ -24,18 +26,22 @@ import {
  * @param factory A factory function to get a CacheStorage implementation when initialize is called
  * @return {CacheStorageLateInitializer} The uninitialized proxy and a function to initialize it
  */
-export type SomeStorage = OfflineStorage | EphemeralCacheStorage
+export type SomeStorage = CachingOfflineStorage | EphemeralCacheStorage
 
 export class LateInitializedCacheStorageImpl implements CacheStorageLateInitializer, CacheStorage {
 	private _inner: SomeStorage | null = null
 	constructor(
 		private readonly sendError: (error: Error) => Promise<void>,
 		private readonly ephemeralStorageProvider: () => Promise<EphemeralCacheStorage>,
-		private readonly offlineStorageProvider: () => Promise<null | OfflineStorage>,
+		private readonly offlineStorageProvider: () => Promise<CachingOfflineStorage | null>,
 	) {}
 
 	isInitialized(): boolean {
 		return this._inner?.isInitialized() ?? false
+	}
+
+	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void> {
+		return await this.inner.setCacheSyncStatus(cacheSyncStatus)
 	}
 
 	async getParsed(typeRef: TypeRef<unknown>, listId: string | null, id: string): Promise<ServerModelParsedInstance | null> {
@@ -196,9 +202,5 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 
 	async deleteAllOwnedBy(owner: Id): Promise<void> {
 		return this.inner.deleteAllOwnedBy(owner)
-	}
-
-	clearExcludedData(timeRangeDate: Date): Promise<void> {
-		return this.inner.clearExcludedData(timeRangeDate)
 	}
 }

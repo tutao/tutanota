@@ -45,7 +45,7 @@ import {
 import { GroupType } from "../../../entities/sys/Utils"
 import { MailDetailsBlobTypeRef, MailTypeRef, PhishingMarkerWebsocketDataTypeRef, ReportedMailFieldMarker, tutanotaModelInfo } from "@tutao/entities/tutanota"
 import { EventQueue, QueuedBatch } from "./EventQueue.js"
-import { EntityUpdateData, entityUpdateToUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CacheSyncStatus, EntityUpdateData, entityUpdateToUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityMigrator } from "../../../platform-kit/network/EntityRestClient"
 import { validateKdfNonceLength } from "@tutao/crypto"
 
@@ -136,6 +136,7 @@ export class EventBusClient {
 	 */
 	private readonly artificialWorkEstimate = 25
 	private readonly initialWorkDone = 25
+	private flushCount = 0
 
 	/**
 	 * Represents a currently retried execution due to a ServiceUnavailableError
@@ -176,7 +177,7 @@ export class EventBusClient {
 
 	private reset() {
 		this.immediateReconnect = false
-
+		this.flushCount = 0
 		this.eventQueue.pause()
 		this.eventQueue.clear()
 
@@ -188,10 +189,12 @@ export class EventBusClient {
 	 * @param connectMode
 	 */
 	async connect(connectMode: ConnectMode) {
+		await this.cache.setCacheSyncStatus(CacheSyncStatus.OnlineSyncOngoing)
+
 		console.log(TAG, "ws connect reconnect:", connectMode === ConnectMode.Reconnect, "state:", this.state)
 		// make sure a retry will be cancelled by setting _serviceUnavailableRetry to null
 		this.serviceUnavailableRetry = null
-
+		this.flushCount = 0
 		this.connectivityListener.updateWebSocketState(WsConnectionState.connecting)
 
 		this.state = EventBusState.Automatic
@@ -234,6 +237,7 @@ export class EventBusClient {
 
 		if (groupsToLastEventBatchIds.size === 0) {
 			this.isInitialSyncDone = true
+			await this.cache.setCacheSyncStatus(CacheSyncStatus.OnlineSyncDone)
 		}
 
 		const path = "/event?" + authQuery + (groupsToLastEventBatchIds.size > 0 ? groupsToLastEventBatchIdsQuery : "")
@@ -256,8 +260,10 @@ export class EventBusClient {
 	 * Sends a close event to the server and finally closes the connection.
 	 * The state of this event bus client is reset and the client is terminated (does not automatically reconnect) except reconnect == true
 	 */
-	close(closeOption: CloseEventBusOption) {
+	async close(closeOption: CloseEventBusOption) {
 		console.log(TAG, "ws close closeOption: ", closeOption, "state:", this.state)
+
+		await this.cache.setCacheSyncStatus(CacheSyncStatus.Offline)
 
 		switch (closeOption) {
 			case CloseEventBusOption.Terminate:
@@ -322,7 +328,7 @@ export class EventBusClient {
 
 		switch (type) {
 			case MessageType.EntityUpdate: {
-				if (this.eventQueue.eventQueue.length >= MAX_EVENT_QUEUE_LENGTH_BEFORE_FLUSHING) {
+				if (this.eventQueue.eventQueue.length >= (this.flushCount + 1) * MAX_EVENT_QUEUE_LENGTH_BEFORE_FLUSHING) {
 					await this.processAccumulatedEventBatches()
 				}
 				const entityUpdateData = await this.decodeEntityEventValue(WebsocketEntityDataTypeRef, JSON.parse(value))
@@ -389,14 +395,15 @@ export class EventBusClient {
 			case MessageType.InitialSyncDone: {
 				this.isInitialSyncDone = true
 				await this.processAccumulatedEventBatches()
-
+				this.flushCount = 0
+				await this.cache.setCacheSyncStatus(CacheSyncStatus.OnlineSyncDone)
 				console.log(TAG, "Reached final event, sync is done")
-				this.eventQueue.resume()
+				await this.waitForEmptyQueue()
 				// if we received no missed batches and lastMissedBatchId remains null, we should call the syncDone listener directly
 				if (this.lastMissedBatchId === null) {
 					this.listener.onSyncDone()
 				}
-				setTimeout(() => this.progressMonitor?.workDone(this.artificialWorkEstimate), PROGRESS_SYNC_DONE_TIMEOUT_DEBOUNCE_MS)
+				setTimeout(() => this.progressMonitor?.completed(), PROGRESS_SYNC_DONE_TIMEOUT_DEBOUNCE_MS)
 				break
 			}
 			case MessageType.InitialSyncWorkEstimate: {
@@ -535,9 +542,9 @@ export class EventBusClient {
 	private async initEntityEvents(connectMode: ConnectMode): Promise<void> {
 		return this.initConnection()
 			.catch(
-				ofClass(ConnectionError, (e) => {
+				ofClass(ConnectionError, async (e) => {
 					console.log(TAG, "ws not connected in connect(), close websocket", e)
-					this.close(CloseEventBusOption.Reconnect)
+					await this.close(CloseEventBusOption.Reconnect)
 				}),
 			)
 			.catch(
@@ -749,7 +756,11 @@ export class EventBusClient {
 	private async processAccumulatedEventBatches() {
 		const allMissedEventsFlat = this.eventQueue.eventQueue.flatMap((batch) => batch.events)
 		await this.cache.updateCacheWithMissedEntityUpdates(allMissedEventsFlat)
-		await this.waitForEmptyQueue()
-		this.eventQueue.pause()
+		// we set the instance and blobInstance to null to make sure that the event queue does not take up too much memory
+		allMissedEventsFlat.map((entityUpdate) => {
+			entityUpdate.instance = null
+			entityUpdate.blobInstance = null
+		})
+		this.flushCount += 1
 	}
 }
