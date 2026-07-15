@@ -27,6 +27,7 @@ import {
 	isPqKeyPairs,
 	isVersionedPqPublicKey,
 	keyToUint8Array,
+	OwnerKeyProvider,
 	PublicKey,
 	PublicKeyIdentifierType,
 	sha256Hash,
@@ -38,15 +39,7 @@ import {
 import { RecipientNotResolvedError } from "../../network/error/RecipientNotResolvedError"
 import { IServiceExecutor } from "../../network/ServiceRequest"
 import { UserFacade } from "../facades/UserFacade"
-import {
-	EntityAdapter,
-	InstancePipeline,
-	OwnerKeyProvider,
-	PatchOperationType,
-	SessionKeyResolver,
-	SymmetricGroupKeyLoader,
-	typeModelToRestPath,
-} from "@tutao/instance-pipeline"
+import { EntityAdapter, InstancePipeline, PatchOperationType, SessionKeyResolver, SymmetricGroupKeyLoader, typeModelToRestPath } from "@tutao/instance-pipeline"
 import { AsymmetricCryptoFacade, AuthenticateSenderReturnType } from "./AsymmetricCryptoFacade.js"
 import PublicEncryptionKeyProvider from "./PublicEncryptionKeyProvider.js"
 import { KeyRotationFacade } from "./KeyRotationFacade.js"

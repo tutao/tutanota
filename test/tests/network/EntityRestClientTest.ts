@@ -37,7 +37,7 @@ import {
 	AesKey,
 	generateKdfNonce,
 	KdfNonce,
-	SubKeyInfoWithGroupKeyAead,
+	SubKeyInfoAeadWithInstanceKeyFromGroupKey,
 	SymmetricCipherVersion,
 	VersionedKey,
 } from "../../../src/platform-kit/crypto"
@@ -867,7 +867,7 @@ o.spec("EntityRestClient", function () {
 			o(result).equals(resultId)
 		})
 
-		o("Setup generates a random KDF nonce if encrypting with AeadWithGroupKey", async function () {
+		o("Setup generates a random KDF nonce if encrypting with AeadWithInstanceKey", async function () {
 			loggedInUserProvider.encryptionScheme = SymmetricEncryptionScheme.Aead
 			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
 			const newCalendar = createTestEntity(CalendarEventTypeRef, {
@@ -895,14 +895,14 @@ o.spec("EntityRestClient", function () {
 
 			o.check(instancePipeline.mapAndEncryptWithSubKeyInfo.invocations.length).equals(1)
 			const invocation = instancePipeline.mapAndEncryptWithSubKeyInfo.invocations[0]
-			const subKeyInfo: SubKeyInfoWithGroupKeyAead = invocation[2]
-			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
+			const subKeyInfo: SubKeyInfoAeadWithInstanceKeyFromGroupKey = invocation[2]
+			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithInstanceKey) {
 				throw new Error()
 			}
 			o.check(arrayEquals(subKeyInfo.kdfNonce!, newCalendar._kdfNonce!)).equals(true)
 		})
 
-		o("Setup overwrites KDF nonce with a random one if encrypting with AeadWithGroupKey", async function () {
+		o("Setup overwrites KDF nonce with a random one if encrypting with AeadWithInstanceKey", async function () {
 			loggedInUserProvider.encryptionScheme = SymmetricEncryptionScheme.Aead
 			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
 			const newCalendar = createTestEntity(CalendarEventTypeRef, {
@@ -933,8 +933,8 @@ o.spec("EntityRestClient", function () {
 
 			o.check(instancePipeline.mapAndEncryptWithSubKeyInfo.invocations.length).equals(1)
 			const invocation = instancePipeline.mapAndEncryptWithSubKeyInfo.invocations[0]
-			const subKeyInfo: SubKeyInfoWithGroupKeyAead = invocation[2]
-			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
+			const subKeyInfo: SubKeyInfoAeadWithInstanceKeyFromGroupKey = invocation[2]
+			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithInstanceKey) {
 				throw new Error()
 			}
 			o.check(arrayEquals(subKeyInfo.kdfNonce!, newCalendar._kdfNonce!)).equals(true)
@@ -1401,8 +1401,8 @@ o.spec("EntityRestClient", function () {
 			o.check(instancePipeline.cryptoMapper.encryptParsedInstance.invocations.length).equals(3)
 			const invocation = instancePipeline.cryptoMapper.encryptParsedInstance.invocations[0]
 			o.check(clientTypeModel).deepEquals(invocation[0])
-			const subKeyInfo: SubKeyInfoWithGroupKeyAead = invocation[2]
-			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
+			const subKeyInfo: SubKeyInfoAeadWithInstanceKeyFromGroupKey = invocation[2]
+			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithInstanceKey) {
 				throw new Error()
 			}
 			o.check(arrayEquals(subKeyInfo.kdfNonce!, calendarEvent._kdfNonce!)).equals(true)
@@ -1451,8 +1451,8 @@ o.spec("EntityRestClient", function () {
 			o.check(instancePipeline.cryptoMapper.encryptParsedInstance.invocations.length).equals(3)
 			const invocation = instancePipeline.cryptoMapper.encryptParsedInstance.invocations[0]
 			o.check(clientTypeModel).deepEquals(invocation[0])
-			const subKeyInfo: SubKeyInfoWithGroupKeyAead = invocation[2]
-			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
+			const subKeyInfo: SubKeyInfoAeadWithInstanceKeyFromGroupKey = invocation[2]
+			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithInstanceKey) {
 				throw new Error()
 			}
 			o.check(arrayEquals(subKeyInfo.kdfNonce!, calendarEvent._kdfNonce!)).equals(true)
@@ -1499,8 +1499,8 @@ o.spec("EntityRestClient", function () {
 			o.check(instancePipeline.cryptoMapper.encryptParsedInstance.invocations.length).equals(3)
 			const invocation = instancePipeline.cryptoMapper.encryptParsedInstance.invocations[0]
 			o.check(clientTypeModel).deepEquals(invocation[0])
-			const subKeyInfo: SubKeyInfoWithGroupKeyAead = invocation[2]
-			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
+			const subKeyInfo: SubKeyInfoAeadWithInstanceKeyFromGroupKey = invocation[2]
+			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithInstanceKey) {
 				throw new Error()
 			}
 			o.check(arrayEquals(subKeyInfo.kdfNonce!, calendarEvent._kdfNonce!)).equals(true)

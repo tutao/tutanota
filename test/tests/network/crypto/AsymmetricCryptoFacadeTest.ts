@@ -11,6 +11,7 @@ import {
 } from "../../../../src/platform-kit/app-env"
 import { CryptoError } from "../../../../src/platform-kit/crypto/error"
 import { RSA_TEST_KEYPAIR } from "../../api/worker/facades/RsaPqPerformanceTest.js"
+import type { RsaImplementation } from "../../../../src/platform-kit/crypto"
 import {
 	Aes128Key,
 	aes256RandomKey,
@@ -23,7 +24,6 @@ import {
 	PQPublicKeys,
 	PublicKeyIdentifier,
 	PublicKeyIdentifierType,
-	RsaImplementation,
 	RsaKeyPair,
 	RsaPublicKey,
 	RsaX25519PublicKey,

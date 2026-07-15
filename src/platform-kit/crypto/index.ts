@@ -131,14 +131,14 @@ export {
 	validateInitializationVectorLength,
 	validateKdfNonceLength,
 } from "./encryption/symmetric/SymmetricCipherUtils.js"
-export { AesKey, Aes256Key, Aes128Key, BitArray, AesKeyLength, getKeyLengthInBytes, assert256BitKey } from "./encryption/symmetric/AesKey.js"
+export { AesKey, Aes256Key, Aes128Key, AesKeyLength, getKeyLengthInBytes, assert256BitKey } from "./encryption/symmetric/AesKey.js"
 export { blake3Hash, blake3Mac, blake3MacVerify, blake3Kdf } from "./hashes/Blake3.js"
 export { PADDING_BYTE } from "./encryption/symmetric/AeadFacade.js"
 export * as cryptoUtils from "./CryptoUtils.js"
 export {
 	SymmetricSubKeys,
 	AeadSubKeys,
-	AeadWithGroupKeySubKeys,
+	AeadWithInstanceKeySubKeys,
 	AeadWithSessionKeySubKeys,
 	AesCbcSubKeys,
 	AesCbcThenHmacSubKeys,
@@ -155,5 +155,5 @@ export * from "./instance-pipeline-crypto/KeyEncryption.js"
 export * from "./instance-pipeline-crypto/SymmetricCipherFacade.js"
 export * from "./instance-pipeline-crypto/decryption/InstanceDecryptor.js"
 export * from "./instance-pipeline-crypto/encryption/SubKeyProvider.js"
-export { RsaImplementation } from "./encryption/RsaImplementation.js"
+export type { RsaImplementation } from "./encryption/RsaImplementation.js"
 export { EncryptedKeyPairs, EncryptedRsaX25519KeyPairs, EncryptedRsaKeyPairs, EncryptedPqKeyPairs } from "./encryption/EncryptedKeyPairs"

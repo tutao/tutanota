@@ -1,5 +1,4 @@
 import { ListElementEntity, SomeEntity, TypeRef } from "@tutao/meta"
-import { OwnerEncSessionKeyProvider } from "@tutao/instance-pipeline"
 import { EntityUpdateData } from "../instance-pipeline/utils/EntityUpdateUtils"
 import { Nullable } from "@tutao/utils"
 import {
@@ -8,6 +7,8 @@ import {
 	EntityRestClientSetupOptions,
 	EntityRestClientUpdateOptions,
 } from "../instance-pipeline/RestClientOptions"
+
+import { OwnerEncSessionKeyProvider } from "@tutao/instance-pipeline"
 
 /**
  * The EntityRestInterface provides a convenient interface for invoking server side REST services.

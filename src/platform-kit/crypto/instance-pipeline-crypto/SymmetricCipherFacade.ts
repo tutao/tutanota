@@ -13,9 +13,10 @@ import { Aes128Key, Aes256Key, AesKey, AesKeyLength, AesKeyOrSubKeys } from "../
 import { AEAD_FACADE, AeadFacade } from "../encryption/symmetric/AeadFacade.js"
 import { AeadSubKeys, AesCbcSubKeys, InstanceTypeId, SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver } from "../encryption/symmetric/SymmetricKeyDeriver.js"
 import { SubKeyInfo, SubKeyProvider } from "./encryption/SubKeyProvider"
-import { InstanceDecryptor } from "./decryption/InstanceDecryptor"
+import { InstanceDecryptor, OwnerKeyProvider } from "./decryption/InstanceDecryptor"
 import { InitializationVectorVariant, ParsedCiphertextAesCbc, parseVersionedCiphertext } from "../encryption/symmetric/ParsedCiphertext"
 import { ProgrammingError } from "@tutao/app-env"
+import { VersionedAes256Key } from "../CryptoTypes"
 
 export enum SymmetricEncryptionScheme {
 	AesCbc,
@@ -47,13 +48,30 @@ export class SymmetricCipherFacade {
 	/**
 	 * Gets an instance decryptor which provides value decryptors to decrypt the values of a given instance.
 	 *
+	 * @param instanceTypeId	The instance type ID of the instance being decrypted.
 	 * @param sessionKey		The session key of the instance. It can be null if no value is encrypted using it.
 	 * @param kdfNonce			The KDF nonce of the instance. It can be null if no value is encrypted using the group key.
-	 * @param instanceTypeId	The instance type ID of the instance being decrypted.
+	 * @param ownerKeyProvider	Must be set iff kdfNonce is set.
+	 * @param instanceKey		The instance key of the instance. It can be null if kdfNonce or sessionKey is set.
 	 * @return					The instance decryptor.
 	 */
-	getInstanceDecryptor(sessionKey: Nullable<AesKey>, kdfNonce: Nullable<KdfNonce>, instanceTypeId: InstanceTypeId): InstanceDecryptor {
-		return new InstanceDecryptor(sessionKey, kdfNonce, instanceTypeId, this.aesCbcFacade, this.aeadFacade, this.symmetricKeyDeriver)
+	getInstanceDecryptor(
+		instanceTypeId: InstanceTypeId,
+		sessionKey: Nullable<AesKey>,
+		kdfNonce: Nullable<KdfNonce>,
+		ownerKeyProvider: Nullable<OwnerKeyProvider>,
+		instanceKey: Nullable<VersionedAes256Key>,
+	): InstanceDecryptor {
+		return new InstanceDecryptor(
+			sessionKey,
+			kdfNonce,
+			instanceKey,
+			ownerKeyProvider,
+			instanceTypeId,
+			this.aesCbcFacade,
+			this.aeadFacade,
+			this.symmetricKeyDeriver,
+		)
 	}
 
 	/**
