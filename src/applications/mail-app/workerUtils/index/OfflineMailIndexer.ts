@@ -393,6 +393,7 @@ export class OfflineMailIndexer implements MailIndexer {
 				} else {
 					console.warn("Mail indexing failed: ", e)
 					update.error = e instanceof ConnectionError ? IndexingErrorReason.ConnectionLost : IndexingErrorReason.Unknown
+					update.failedIndexingUpTo = e instanceof ConnectionError ? this.currentIndexTimestamp : null
 				}
 				await this.infoMessageHandler.onSearchIndexStateUpdate(update)
 			} finally {
