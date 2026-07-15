@@ -498,7 +498,8 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			this.invoiceInfo = await locator.entityClient.load(InvoiceInfoTypeRef, idToElementId(instanceId))
 			m.redraw()
 		} else if (isUpdateForTypeRef(GiftCardTypeRef, update)) {
-			const giftCard = await locator.entityClient.load(GiftCardTypeRef, [update.instanceListId, update.instanceId])
+			const giftCardId = [assertNotNull(update.instanceListId), update.instanceId] as const
+			const giftCard = await locator.entityClient.load(GiftCardTypeRef, giftCardId)
 			this._giftCards.set(elementIdPart(giftCard._id), giftCard)
 			if (update.operation === OperationType.CREATE) this._giftCardsExpanded(true)
 		}
