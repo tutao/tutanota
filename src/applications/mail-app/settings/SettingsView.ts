@@ -8,7 +8,7 @@ import { UserListView } from "../../common/settings/UserListView.js"
 import { GroupListView } from "./groups/GroupListView.js"
 import { WhitelabelSettingsViewer } from "../../common/settings/whitelabel/WhitelabelSettingsViewer"
 import { locator } from "../../common/api/main/CommonLocator"
-import { SubscriptionViewer } from "../../common/subscription/SubscriptionViewer"
+import { SubscriptionSettingsViewer } from "../../common/settings/subscription/SubscriptionSettingsViewer"
 import { PaymentViewer } from "../../common/subscription/PaymentViewer"
 import { showUserImportDialog } from "../../common/settings/UserViewer.js"
 import { FolderColumnView } from "../../common/gui/FolderColumnView.js"
@@ -492,7 +492,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						() => "adminSubscription_action",
 						() => Icons.TrophyFilled,
 						"subscription",
-						() => new SubscriptionViewer(isIOSApp() ? locator.mobilePaymentsFacade : null),
+						() => new SubscriptionSettingsViewer(isIOSApp() ? locator.mobilePaymentsFacade : null),
 						undefined,
 					),
 				)

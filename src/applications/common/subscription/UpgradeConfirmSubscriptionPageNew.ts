@@ -36,16 +36,15 @@ import { AllIcons } from "../../../ui/base/Icon"
 import { layout_size, px } from "../../../ui/size"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils"
 
+export const PlanTypeToIcon: Record<AvailablePlanType, AllIcons> = {
+	[PlanType.Free]: Icons.Revolutionary,
+	[PlanType.Revolutionary]: Icons.Revolutionary,
+	[PlanType.Legend]: Icons.Legendary,
+	[PlanType.Essential]: Icons.HouseOutline,
+	[PlanType.Advanced]: Icons.StoreOutline,
+	[PlanType.Unlimited]: Icons.CityOutline,
+}
 export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
-	private iconByPlanType: Record<AvailablePlanType, AllIcons> = {
-		[PlanType.Free]: Icons.Revolutionary,
-		[PlanType.Revolutionary]: Icons.Revolutionary,
-		[PlanType.Legend]: Icons.Legendary,
-		[PlanType.Essential]: Icons.HouseOutline,
-		[PlanType.Advanced]: Icons.StoreOutline,
-		[PlanType.Unlimited]: Icons.CityOutline,
-	}
-
 	private _setStep(ctx: WizardStepContext<SignupViewModel>, index: number) {
 		ctx.controller.setStepUnreachable(ctx.controller.currentStep)
 		ctx.controller.setStep(index)
@@ -89,7 +88,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 								isReadOnly: true,
 								class: "",
 								leadingIcon: {
-									icon: this.iconByPlanType[data.targetPlanType as AvailablePlanType],
+									icon: PlanTypeToIcon[data.targetPlanType as AvailablePlanType],
 									color: theme.on_surface_variant,
 								},
 								injectionsRight: () => {

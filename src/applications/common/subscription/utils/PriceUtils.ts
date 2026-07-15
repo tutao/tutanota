@@ -109,6 +109,11 @@ export function formatPriceWithInfo(formattedPrice: string, paymentInterval: Pay
 	return `${formattedPrice} ${yearlyOrMonthly} (${netOrGross})`
 }
 
+export function formatPriceWithInfoWithoutMonths(priceData: PriceData): string {
+	const netOrGross = priceData.taxIncluded ? lang.get("gross_label") : lang.get("net_label")
+	return `${formatPrice(Number(priceData.price), true)} (${netOrGross})`
+}
+
 /**
  * Provides the price item from the given priceData for the given featureType. Returns null if no such item is available.
  */

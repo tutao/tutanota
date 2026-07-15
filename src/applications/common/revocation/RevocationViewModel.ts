@@ -9,6 +9,8 @@ import { PreconditionFailedError } from "@tutao/rest-client/error"
 import type { NewSessionData } from "../../../platform-kit/base/facades/LoginFacade"
 import { createSubscriptionRevocationServicePostIn, SubscriptionRevocationService, SurveyData } from "@tutao/entities/sys"
 
+export type RevocationRequestError = "alreadyRevoked" | "noActiveSubscription" | "hasAppStoreSubscription" | "olderThanTwoWeeks" | "noPersonalPlan"
+
 export class RevocationViewModel {
 	mailAddress: string
 	password: string

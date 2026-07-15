@@ -484,12 +484,7 @@ export async function tryDowngradePremiumToFree(customer: Customer, currentPlanT
 	}
 }
 
-async function cancelSubscription(
-	dialog: Dialog,
-	currentPlanInfo: CurrentPlanInfo,
-	customer: Customer,
-	surveyData: SurveyData | null = null,
-): Promise<PlanType> {
+export async function showConfirmDowngradingToFreeDialog(planType: PlanType, customer: Customer, surveyData: SurveyData | null) {
 	const confirmCancelSubscription = Dialog.confirm("unsubscribeConfirm_msg", "ok_action", () => {
 		return m(
 			".pt-16",
@@ -502,14 +497,19 @@ async function cancelSubscription(
 	})
 
 	if (!(await confirmCancelSubscription)) {
-		return currentPlanInfo.planType
+		return planType
 	}
 
-	try {
-		return await showProgressDialog("pleaseWait_msg", tryDowngradePremiumToFree(customer, currentPlanInfo.planType, surveyData))
-	} finally {
-		dialog.close()
-	}
+	return await showProgressDialog("pleaseWait_msg", tryDowngradePremiumToFree(customer, planType, surveyData))
+}
+
+async function cancelSubscription(
+	dialog: Dialog,
+	currentPlanInfo: CurrentPlanInfo,
+	customer: Customer,
+	surveyData: SurveyData | null = null,
+): Promise<PlanType> {
+	return await showConfirmDowngradingToFreeDialog(currentPlanInfo.planType, customer, surveyData).finally(dialog.close)
 }
 
 async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, currentPlanInfo: CurrentPlanInfo): Promise<void> {
