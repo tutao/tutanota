@@ -4,6 +4,7 @@ import { EventTextTimeOption } from "@tutao/app-env"
 import { assert, isSameDay, isSameDayOfDate } from "@tutao/utils"
 import { formatDateTime, formatDateWithMonth, formatTime } from "../../../../ui/utils/Formatter"
 import { DateTime } from "luxon"
+import { eventEndsAfterDay, eventStartsBefore, getEndOfDayWithZone } from "../../../common/calendar/date/CalendarUtils"
 
 function includeStartTime(showTime: EventTextTimeOption) {
 	return showTime === EventTextTimeOption.START_TIME || showTime === EventTextTimeOption.START_END_TIME
@@ -168,62 +169,26 @@ export function formatEventTime(event: CalendarEventDateTimeFields, showTime: Ev
 	return result
 }
 
-export function formatEventTimesAtDate(date: Date, event: CalendarEventDateTimeFields, calendarTimeZone: string): string {
+export function formatEventTimesAtDate(dayInLocalTime: Date, event: CalendarEventDateTimeFields, calendarTimeZone: string): string {
+	const dayInCalendarTimeZone = DateTime.fromJSDate(dayInLocalTime).setZone(calendarTimeZone, { keepLocalTime: true }).toJSDate()
+
 	if (isAllDayEvent(event)) {
 		return lang.get("allDay_label")
 	}
 
-	const year = date.getFullYear()
-	const month = date.getMonth() + 1
-	const day = date.getDate()
-
-	const startInCalendarTimeZone = DateTime.fromJSDate(event.startTime, { zone: calendarTimeZone })
-	const endInCalendarTimeZone = DateTime.fromJSDate(event.endTime, { zone: calendarTimeZone })
-
-	const startsBeforeComp = compYearMonthDay([startInCalendarTimeZone.year, startInCalendarTimeZone.month, startInCalendarTimeZone.day], [year, month, day])
-	const endsAfterComp = compYearMonthDay([endInCalendarTimeZone.year, endInCalendarTimeZone.month, endInCalendarTimeZone.day], [year, month, day])
-
-	if (startsBeforeComp === endsAfterComp && startsBeforeComp !== 0) {
-		throw new Error("Both event's start and end times are both before or both after date!")
-	}
-
-	const startsBeforeDate = startsBeforeComp < 0
-	const endsAfterDate = endsAfterComp > 0
-
-	if (startsBeforeDate && endsAfterDate) {
+	const startsBefore = eventStartsBefore(dayInCalendarTimeZone, calendarTimeZone, event)
+	const endsAfter = eventEndsAfterDay(dayInCalendarTimeZone, calendarTimeZone, event)
+	if (startsBefore && endsAfter) {
 		return lang.get("allDay_label")
 	}
 
-	let startBoundedWithinDay: Date
-	let endBoundedWithinDay: Date
-	let startBoundedWithinDayTimeZone: string
-	let endBoundedWithinDayTimeZone: string
-	if (startsBeforeDate) {
-		startBoundedWithinDay = DateTime.fromObject({ year, month, day }, { zone: calendarTimeZone }).toJSDate()
-		startBoundedWithinDayTimeZone = calendarTimeZone
-	} else {
-		startBoundedWithinDay = event.startTime
-		startBoundedWithinDayTimeZone = event.startTimeZone ?? calendarTimeZone
+	const eventBoundedWithinDay = {
+		startTime: startsBefore ? dayInCalendarTimeZone : event.startTime,
+		endTime: endsAfter ? getEndOfDayWithZone(dayInCalendarTimeZone, calendarTimeZone) : event.endTime,
+		startTimeZone: startsBefore ? event.endTimeZone : event.startTimeZone,
+		endTimeZone: endsAfter ? event.startTimeZone : event.endTimeZone,
 	}
-	if (endsAfterDate) {
-		endBoundedWithinDay = DateTime.fromObject({ year, month, day: day }, { zone: calendarTimeZone }).plus({ days: 1, minutes: -1 }).toJSDate()
-		endBoundedWithinDayTimeZone = calendarTimeZone
-	} else {
-		endBoundedWithinDay = event.endTime
-		endBoundedWithinDayTimeZone = event.endTimeZone ?? calendarTimeZone
-	}
-
-	return formatEventTime(
-		{
-			startTime: startBoundedWithinDay,
-			startTimeZone: startBoundedWithinDayTimeZone,
-			endTime: endBoundedWithinDay,
-			endTimeZone: endBoundedWithinDayTimeZone,
-		},
-		EventTextTimeOption.START_END_TIME,
-		false,
-		calendarTimeZone,
-	)
+	return formatEventTime(eventBoundedWithinDay, EventTextTimeOption.START_END_TIME, false, calendarTimeZone)
 }
 
 export function shouldShowTimeZones(event: CalendarEventTimeZones, calendarTimeZone: string) {
