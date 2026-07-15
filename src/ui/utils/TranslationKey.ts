@@ -2391,3 +2391,4 @@ export type TranslationKeyType =
 	| "migrationProviderOther_label"
 	| "migrationPausedProgressInfo_msg"
 	| "emptyString_msg"
+	| "migrationImapNetworkDiscoveryFailure"
