@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isOfflineStorageAvailable, UpgradePromptType } from "@tutao/app-env"
+import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isOfflineStorageAvailable } from "@tutao/app-env"
 import { downcast, YEAR_IN_MILLIS } from "@tutao/utils"
 import { MailRow } from "../../mail/view/MailRow"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
@@ -24,8 +24,6 @@ import { Button, ButtonType } from "../../../../ui/base/Button"
 import { mailLocator } from "../../mailLocator"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailSet, MailTypeRef } from "@tutao/entities/tutanota"
 import { isSameTypeRef, TypeRef } from "@tutao/meta"
-import { locator } from "../../../common/api/main/CommonLocator"
-import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 import { CircleLoadingBar } from "../../../../ui/CircleLoadingBar.js"
 import { formatDate } from "../../../../ui/utils/Formatter"
 
@@ -43,14 +41,13 @@ export interface SearchListViewAttrs {
 	listModel: ListElementListModel<SearchResultListEntry>
 	onSingleSelection: (item: SearchResultListEntry) => unknown
 	currentType: TypeRef<Mail | Contact | CalendarEvent>
-	isFreeAccount: boolean
 	cancelCallback: () => unknown | null
 	getLabelsForMail: (mail: Mail) => MailSet[]
 	highlightedStrings: readonly SearchToken[]
 	availableCalendars: ReadonlyArray<CalendarInfoBase>
 	indexStateStream: Stream<SearchIndexStateInfo>
 	currentStartDate: Date | null
-	extendSearchResult: (extendDate: Date) => unknown
+	extendSearchResult: (extendDate: Date | null) => unknown
 }
 
 export class SearchListView implements Component<SearchListViewAttrs> {
@@ -159,19 +156,17 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 				isOfflineStorageAvailable()) ||
 			(sixMonthsBeforeStartDate && sixMonthsBeforeStartDate.getTime() < attrs.indexStateStream().currentMailIndexTimestamp)
 		) {
+			const extendToDate = isOfflineStorageAvailable() ? null : sixMonthsBeforeStartDate
+
 			// If the list is in Loading or ConnectionLost, the list has a default message that should be displayed
 			innerChildren = m(
 				"",
 				{
 					onclick: () => {
-						if (locator.logins.getUserController().isFreeAccount()) {
-							showNotAvailableForFreeDialog(UpgradePromptType.EXTEND_MAIL_SEARCH_RANGE)
-						} else {
-							this.attrs.extendSearchResult(sixMonthsBeforeStartDate ?? new Date())
-						}
+						this.attrs.extendSearchResult(extendToDate)
 					},
 				},
-				this.renderShowMoreButton(isOfflineStorageAvailable() ? null : sixMonthsBeforeStartDate),
+				this.renderShowMoreButton(extendToDate),
 			)
 		} else {
 			return null
@@ -192,15 +187,15 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 		)
 	}
 
-	private renderShowMoreButton(sixMonthsBeforeStartDate: Date | null): Children {
+	private renderShowMoreButton(searchUntilDate: Date | null): Children {
 		return [
 			m(".flex-center.content-accent-fg.b", lang.getTranslationText("showMore_action")),
 			m(
 				".bottom.small",
-				sixMonthsBeforeStartDate == null
+				searchUntilDate == null
 					? lang.getTranslation("notAllMailsSearchable_msg").text
 					: lang.getTranslation("searchUntil_msg", {
-							"{1}": formatDate(sixMonthsBeforeStartDate),
+							"{1}": formatDate(searchUntilDate),
 						}).text,
 			),
 		]

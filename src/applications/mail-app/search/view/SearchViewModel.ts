@@ -49,6 +49,7 @@ import {
 	createRestriction,
 	decodeCalendarSearchKey,
 	encodeCalendarSearchKey,
+	getFreeSearchStartDate,
 	getRestriction,
 	getSearchUrl,
 	hasMoreResults,
@@ -458,43 +459,32 @@ export class SearchViewModel {
 		return getStartOfTheWeekOffsetForUser(this.logins.getUserController().userSettingsGroupRoot)
 	}
 
-	async selectStartDate(startDate: Date | null): Promise<PaidFunctionResult> {
-		if (isSameDayOfDate(this.startDate, startDate)) {
-			return PaidFunctionResult.Success
-		}
+	selectStartDate(startDate: Date | null): PaidFunctionResult {
+		const canSelectStartDate = this.canSelectTimePeriod()
 
-		if (!this.canSelectTimePeriod()) {
-			return PaidFunctionResult.PaidSubscriptionNeeded
-		}
+		const targetStartDate = canSelectStartDate ? startDate : getFreeSearchStartDate()
+		const isSameDay = isSameDayOfDate(this.startDate, targetStartDate)
+		this._startDate = targetStartDate
 
-		this._startDate = startDate
-
-		// If start date is outside the indexed range, suggest to extend the index and only if confirmed change the selected date.
-		// Otherwise, keep the date as it was.
-		if (startDate && this.getCategory() === SearchCategoryTypes.mail && startDate.getTime() < this.search.indexState().currentMailIndexTimestamp) {
+		// extend mail index when searching mails and start date is outside the indexed range
+		const indexState = this.search.indexState()
+		if (
+			this.getCategory() === SearchCategoryTypes.mail &&
+			indexState.currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
+			(targetStartDate == null || targetStartDate.getTime() < indexState.currentMailIndexTimestamp)
+		) {
 			if (this.listModel.state.loadingStatus === ListLoadingState.Done) {
 				// set list state to Idle so an empty row at the end of the list is shown where the progress indicator will be rendered
 				this.listModel.updateLoadingStatus(ListLoadingState.Idle)
 			}
 
 			// the current search result will be extended as the range extends
-			void this.indexerFacade.extendMailIndex(startDate.getTime())
-
-			let onIndexStateUpdate = (_: SearchIndexStateInfo) => {}
-			// separate subscription to indexState so offline range is updated even when the user navigates away from search
-			const dep = this.search.indexState.map((newState) => onIndexStateUpdate(newState))
-			// when subscribing to a mithril stream, the callback is invoked immediately with the stream's current value,
-			// but we only want this to be invoked once indexing starts
-			onIndexStateUpdate = (newState) => {
-				if (newState.progress === 0) {
-					dep.end(true)
-				}
-			}
-		} else {
+			void this.indexerFacade.extendMailIndex(targetStartDate?.getTime() ?? FULL_INDEXED_TIMESTAMP)
+		} else if (!isSameDay) {
 			this.searchAgain()
 		}
 
-		return PaidFunctionResult.Success
+		return canSelectStartDate ? PaidFunctionResult.Success : PaidFunctionResult.PaidSubscriptionNeeded
 	}
 
 	selectEndDate(endDate: Date): PaidFunctionResult {
