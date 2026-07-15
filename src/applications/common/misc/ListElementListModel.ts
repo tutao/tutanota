@@ -122,6 +122,10 @@ export class ListElementListModel<ElementType extends ListElement> implements Li
 		return this.listModel.loadAll()
 	}
 
+	async reload() {
+		return this.listModel.reload()
+	}
+
 	async retryLoading() {
 		return this.listModel.retryLoading()
 	}

@@ -8,6 +8,8 @@ import { WebsocketLeaderStatus } from "@tutao/entities/sys"
 const TAG = "[WebsocketConnectivityModel]"
 
 export type LeaderStatusListener = (newLeaderStatus: boolean) => Promise<void>
+
+export type ConnectionStateListener = (connectionState: WsConnectionState) => Promise<void>
 /**
  * A model that observes the websocket and leader status state for the main thread.
  * Whenever the state changes the model propagates the new state to its listeners.
@@ -17,11 +19,22 @@ export class WebsocketConnectivityModel implements WebsocketConnectivityListener
 	private readonly wsState = stream<WsConnectionState>(WsConnectionState.terminated)
 	private leaderStatus: boolean = false
 	private leaderStatusListeners = new Set<LeaderStatusListener>()
+	private connectionStateListeners = new Set<ConnectionStateListener>()
 
 	constructor(private readonly eventBus: ExposedEventBus) {}
 
 	async updateWebSocketState(wsConnectionState: WsConnectionState): Promise<void> {
+		const previousWsState = this.wsState()
 		this.wsState(wsConnectionState)
+		if (previousWsState !== wsConnectionState) {
+			await this.notifyConnectionStateListeners(wsConnectionState)
+		}
+	}
+
+	private async notifyConnectionStateListeners(wsConnectionState: WsConnectionState) {
+		for (const listener of this.connectionStateListeners) {
+			await listener(wsConnectionState)
+		}
 	}
 
 	/**
@@ -32,11 +45,11 @@ export class WebsocketConnectivityModel implements WebsocketConnectivityListener
 	async onLeaderStatusMessageReceived(wsLeaderStatus: WebsocketLeaderStatus): Promise<void> {
 		if (wsLeaderStatus.leaderStatus !== this.leaderStatus) {
 			this.leaderStatus = wsLeaderStatus.leaderStatus
-			await this.notifyListeners()
+			await this.notifyLeaderStatusListeners()
 		}
 	}
 
-	private async notifyListeners(): Promise<void> {
+	private async notifyLeaderStatusListeners(): Promise<void> {
 		for (const listener of this.leaderStatusListeners) {
 			await listener(this.leaderStatus)
 		}
@@ -44,6 +57,25 @@ export class WebsocketConnectivityModel implements WebsocketConnectivityListener
 
 	isLeader(): boolean {
 		return this.leaderStatus
+	}
+
+	async isConnected(): Promise<boolean> {
+		return this.wsState() === WsConnectionState.connected
+	}
+
+	addConnectionStateListener(listener: ConnectionStateListener) {
+		if (this.connectionStateListeners.has(listener)) {
+			console.warn(TAG, "Adding the same listener twice!")
+		} else {
+			this.connectionStateListeners.add(listener)
+		}
+	}
+
+	removeConnectionStateListener(listener: ConnectionStateListener) {
+		const wasRemoved = this.connectionStateListeners.delete(listener)
+		if (!wasRemoved) {
+			console.warn(TAG, "Could not remove listener, possible leak?", listener)
+		}
 	}
 
 	wsConnection(): stream<WsConnectionState> {

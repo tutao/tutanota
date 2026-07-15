@@ -10,6 +10,7 @@ import { LoggedInEvent, PostLoginAction } from "../../../app-kit/native-bridge/c
 import { ExposedCacheStorage } from "../../../app-kit/local-store/CacheStorage"
 import { NoopProgressMonitor } from "../../../platform-kit/network/ProgressMonitorInterface"
 import { CalendarEventTypeRef } from "@tutao/entities/tutanota"
+import { isExpectedErrorForSynchronization } from "@tutao/rest-client/error"
 
 export class CachePostLoginAction implements PostLoginAction {
 	constructor(

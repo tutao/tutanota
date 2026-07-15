@@ -1,7 +1,7 @@
 export const enum WsConnectionState {
-	connecting,
-	connected,
-	terminated,
+	connecting = "connecting",
+	connected = "connected",
+	terminated = "terminated",
 }
 export const enum ConnectMode {
 	Initial,
