@@ -48,6 +48,8 @@ export interface SearchListViewAttrs {
 	indexStateStream: Stream<SearchIndexStateInfo>
 	currentStartDate: Date | null
 	extendSearchResult: (extendDate: Date | null) => unknown
+	canReload: () => boolean
+	reloadList: () => unknown
 }
 
 export class SearchListView implements Component<SearchListViewAttrs> {
@@ -167,6 +169,20 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 					},
 				},
 				this.renderShowMoreButton(extendToDate),
+			)
+		} else if (
+			attrs.listModel.state.loadingStatus === ListLoadingState.Done &&
+			attrs.indexStateStream().currentMailIndexTimestamp === FULL_INDEXED_TIMESTAMP &&
+			attrs.canReload()
+		) {
+			innerChildren = m(
+				"",
+				{
+					onclick: () => {
+						attrs.reloadList()
+					},
+				},
+				m(".flex-center.content-accent-fg.b", "Reload List"),
 			)
 		} else {
 			return null
