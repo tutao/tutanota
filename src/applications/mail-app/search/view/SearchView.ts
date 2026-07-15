@@ -269,6 +269,10 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							void showNotAvailableForFreeDialog(UpgradePromptType.EXTEND_MAIL_SEARCH_RANGE)
 						}
 					},
+					isIncompleteMailList: this.searchViewModel.isIncompleteMailList(),
+					searchAndRecreateMailList: () => {
+						this.searchViewModel.searchAgainAndRecreateList()
+					},
 				} satisfies SearchListViewAttrs),
 			),
 		])

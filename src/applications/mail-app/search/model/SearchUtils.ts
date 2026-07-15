@@ -385,6 +385,21 @@ export function hasMoreResults(searchResult: SearchResult): boolean {
 }
 
 /**
+ * @return true for mail result where search range goes beyond indexed range, and indexed range was extended since
+ * the search result was created
+ */
+export function isIncompleteMailResult(searchResult: SearchResult, currentIndexTimestamp: number): boolean {
+	if (
+		!isSameTypeRef(MailTypeRef, searchResult.restriction.type) ||
+		(searchResult.restriction.end != null && searchResult.restriction.end >= searchResult.currentIndexTimestamp)
+	) {
+		return false
+	}
+
+	return searchResult.currentIndexTimestamp > currentIndexTimestamp
+}
+
+/**
  * @return true if non-blocking search is used on the current client
  */
 export function isNonBlockingSearchAvailable(): boolean {

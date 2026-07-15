@@ -2404,5 +2404,7 @@ export default {
 		"clearCacheConfirm_msg": "Clearing cache will refresh the app.",
 		"notAllMailsSearchable_msg": "Not all emails are searchable",
 		"reIndexLocalData_msg": "Re-index all emails. This may be useful if you are missing emails in search.",
+		"reloadList_action": "RELOAD LIST",
+		"moreEmailsAvailable_msg": "More emails available"
 	}
 }
