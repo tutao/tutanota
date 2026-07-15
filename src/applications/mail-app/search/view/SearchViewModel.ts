@@ -459,38 +459,27 @@ export class SearchViewModel {
 	}
 
 	async selectStartDate(startDate: Date | null): Promise<PaidFunctionResult> {
-		if (isSameDayOfDate(this.startDate, startDate)) {
-			return PaidFunctionResult.Success
-		}
-
 		if (!this.canSelectTimePeriod()) {
 			return PaidFunctionResult.PaidSubscriptionNeeded
 		}
 
 		this._startDate = startDate
+		const indexState = this.search.indexState()
 
-		// If start date is outside the indexed range, suggest to extend the index and only if confirmed change the selected date.
-		// Otherwise, keep the date as it was.
-		if (startDate && this.getCategory() === SearchCategoryTypes.mail && startDate.getTime() < this.search.indexState().currentMailIndexTimestamp) {
+		// extend mail index when searching mails and start date is outside the indexed range
+		if (
+			this.getCategory() === SearchCategoryTypes.mail &&
+			indexState.currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
+			(startDate == null || startDate.getTime() < indexState.currentMailIndexTimestamp)
+		) {
 			if (this.listModel.state.loadingStatus === ListLoadingState.Done) {
 				// set list state to Idle so an empty row at the end of the list is shown where the progress indicator will be rendered
 				this.listModel.updateLoadingStatus(ListLoadingState.Idle)
 			}
 
 			// the current search result will be extended as the range extends
-			void this.indexerFacade.extendMailIndex(startDate.getTime())
-
-			let onIndexStateUpdate = (_: SearchIndexStateInfo) => {}
-			// separate subscription to indexState so offline range is updated even when the user navigates away from search
-			const dep = this.search.indexState.map((newState) => onIndexStateUpdate(newState))
-			// when subscribing to a mithril stream, the callback is invoked immediately with the stream's current value,
-			// but we only want this to be invoked once indexing starts
-			onIndexStateUpdate = (newState) => {
-				if (newState.progress === 0) {
-					dep.end(true)
-				}
-			}
-		} else {
+			void this.indexerFacade.extendMailIndex(startDate?.getTime() ?? FULL_INDEXED_TIMESTAMP)
+		} else if (!isSameDayOfDate(this.startDate, startDate)) {
 			this.searchAgain()
 		}
 

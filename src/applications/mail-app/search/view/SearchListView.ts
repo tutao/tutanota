@@ -50,7 +50,7 @@ export interface SearchListViewAttrs {
 	availableCalendars: ReadonlyArray<CalendarInfoBase>
 	indexStateStream: Stream<SearchIndexStateInfo>
 	currentStartDate: Date | null
-	extendSearchResult: (extendDate: Date) => unknown
+	extendSearchResult: (extendDate: Date | null) => unknown
 }
 
 export class SearchListView implements Component<SearchListViewAttrs> {
@@ -159,19 +159,21 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 				isOfflineStorageAvailable()) ||
 			(sixMonthsBeforeStartDate && sixMonthsBeforeStartDate.getTime() < attrs.indexStateStream().currentMailIndexTimestamp)
 		) {
+			const extendToDate = isOfflineStorageAvailable() ? null : sixMonthsBeforeStartDate
+
 			// If the list is in Loading or ConnectionLost, the list has a default message that should be displayed
 			innerChildren = m(
 				"",
 				{
 					onclick: () => {
 						if (locator.logins.getUserController().isFreeAccount()) {
-							showNotAvailableForFreeDialog(UpgradePromptType.EXTEND_MAIL_SEARCH_RANGE)
+							void showNotAvailableForFreeDialog(UpgradePromptType.EXTEND_MAIL_SEARCH_RANGE)
 						} else {
-							this.attrs.extendSearchResult(sixMonthsBeforeStartDate ?? new Date())
+							this.attrs.extendSearchResult(extendToDate)
 						}
 					},
 				},
-				this.renderShowMoreButton(isOfflineStorageAvailable() ? null : sixMonthsBeforeStartDate),
+				this.renderShowMoreButton(extendToDate),
 			)
 		} else {
 			return null
@@ -192,15 +194,15 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 		)
 	}
 
-	private renderShowMoreButton(sixMonthsBeforeStartDate: Date | null): Children {
+	private renderShowMoreButton(searchUntilDate: Date | null): Children {
 		return [
 			m(".flex-center.content-accent-fg.b", lang.getTranslationText("showMore_action")),
 			m(
 				".bottom.small",
-				sixMonthsBeforeStartDate == null
+				searchUntilDate == null
 					? lang.getTranslation("notAllMailsSearchable_msg").text
 					: lang.getTranslation("searchUntil_msg", {
-							"{1}": formatDate(sixMonthsBeforeStartDate),
+							"{1}": formatDate(searchUntilDate),
 						}).text,
 			),
 		]

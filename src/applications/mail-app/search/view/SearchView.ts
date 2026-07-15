@@ -265,7 +265,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					availableCalendars: this.searchViewModel.getAvailableCalendars(true),
 					indexStateStream: this.searchViewModel.getSearchIndexStateStream(),
 					currentStartDate: this.searchViewModel.startDate,
-					extendSearchResult: (extendDate: Date) => {
+					extendSearchResult: (extendDate: Date | null) => {
 						void this.searchViewModel.selectStartDate(extendDate)
 					},
 				} satisfies SearchListViewAttrs),
