@@ -282,9 +282,9 @@ o.spec("DateTimeTextFormatterUtils", () => {
 		})
 	})
 	o.spec("formatEventTimesAtDate", () => {
-		const startDay = new Date("2026-01-01T00:00:00")
-		const middleDay = new Date("2026-01-02T00:00:00")
-		const endDay = new Date("2026-01-03T00:00:00")
+		const startDay = DateTime.fromISO("2026-01-01T00:00:00", { zone: "Europe/Berlin" }).toJSDate()
+		const middleDay = DateTime.fromISO("2026-01-02T00:00:00", { zone: "Europe/Berlin" }).toJSDate()
+		const endDay = DateTime.fromISO("2026-01-03T00:00:00", { zone: "Europe/Berlin" }).toJSDate()
 
 		o.test("Correctly handles multi-day event", () => {
 			const event = {
@@ -331,10 +331,10 @@ o.spec("DateTimeTextFormatterUtils", () => {
 			o(formatEventTimesAtDate(middleDay, event, "Europe/Berlin")).equals("All Day")
 			o(formatEventTimesAtDate(endDay, event, "Europe/Berlin")).equals("12:00 AM - 12:30 PM")
 		})
-		o.test("Correctly handles multi-day event with start time zone at end of month", () => {
-			const startDay = new Date("2026-01-31T00:00:00")
-			const middleDay = new Date("2026-02-01T00:00:00")
-			const endDay = new Date("2026-02-02T00:00:00")
+		o.test("Correctly handles multi-day event at end of month", () => {
+			const startDay = DateTime.fromISO("2026-01-31T00:00:00", { zone: "Europe/Berlin" }).toJSDate()
+			const middleDay = DateTime.fromISO("2026-02-01T00:00:00", { zone: "Europe/Berlin" }).toJSDate()
+			const endDay = DateTime.fromISO("2026-02-02T00:00:00", { zone: "Europe/Berlin" }).toJSDate()
 
 			const event = {
 				startTime: DateTime.fromISO("2026-01-31T12:00:00", { zone: "Europe/Berlin" }).toJSDate(),
@@ -346,10 +346,10 @@ o.spec("DateTimeTextFormatterUtils", () => {
 			o(formatEventTimesAtDate(middleDay, event, "Europe/Berlin")).equals("All Day")
 			o(formatEventTimesAtDate(endDay, event, "Europe/Berlin")).equals("12:00 AM - 12:30 PM")
 		})
-		o.test("Correctly handles multi-day event with start time zone at on leap-year", () => {
-			const startDay = new Date("2024-02-28T00:00:00")
-			const middleDay = new Date("2024-02-29T00:00:00")
-			const endDay = new Date("2024-03-01T00:00:00")
+		o.test("Correctly handles multi-day event on leap-year additional day in Feburary", () => {
+			const startDay = DateTime.fromISO("2024-02-28T00:00:00", { zone: "Europe/Berlin" }).toJSDate()
+			const middleDay = DateTime.fromISO("2024-02-29T00:00:00", { zone: "Europe/Berlin" }).toJSDate()
+			const endDay = DateTime.fromISO("2024-03-01T00:00:00", { zone: "Europe/Berlin" }).toJSDate()
 
 			const event = {
 				startTime: DateTime.fromISO("2024-02-28T12:00:00", { zone: "Europe/Berlin" }).toJSDate(),
@@ -361,10 +361,10 @@ o.spec("DateTimeTextFormatterUtils", () => {
 			o(formatEventTimesAtDate(middleDay, event, "Europe/Berlin")).equals("All Day")
 			o(formatEventTimesAtDate(endDay, event, "Europe/Berlin")).equals("12:00 AM - 12:30 PM")
 		})
-		o.test("Correctly handles multi-day event with start time zone when changing from standard time to daylight savings time", () => {
-			const startDay = new Date("2026-03-28T00:00:00")
-			const middleDay = new Date("2026-03-29T00:00:00")
-			const endDay = new Date("2026-03-30T00:00:00")
+		o.test("Correctly handles multi-day event when changing from standard time to daylight savings time", () => {
+			const startDay = DateTime.fromISO("2026-03-28T00:00:00", { zone: "Europe/Berlin" }).toJSDate()
+			const middleDay = DateTime.fromISO("2026-03-29T00:00:00", { zone: "Europe/Berlin" }).toJSDate()
+			const endDay = DateTime.fromISO("2026-03-30T00:00:00", { zone: "Europe/Berlin" }).toJSDate()
 
 			const event = {
 				startTime: DateTime.fromISO("2026-03-28T12:00:00", { zone: "Europe/Berlin" }).toJSDate(),
@@ -375,6 +375,21 @@ o.spec("DateTimeTextFormatterUtils", () => {
 			o(formatEventTimesAtDate(startDay, event, "Europe/Berlin")).equals("12:00 PM - 11:59 PM")
 			o(formatEventTimesAtDate(middleDay, event, "Europe/Berlin")).equals("All Day")
 			o(formatEventTimesAtDate(endDay, event, "Europe/Berlin")).equals("12:00 AM - 12:30 PM")
+		})
+		o.test("Correctly handles multi-day event that was set in a different time zone than the calendar time zone", () => {
+			const startDay = DateTime.fromISO("2026-01-01T00:00:00", { zone: "America/New_York" }).toJSDate()
+			const middleDay = DateTime.fromISO("2026-01-02T00:00:00", { zone: "America/New_York" }).toJSDate()
+			const endDay = DateTime.fromISO("2026-01-03T00:00:00", { zone: "America/New_York" }).toJSDate()
+
+			const event = {
+				startTime: DateTime.fromISO("2026-01-01T12:00:00", { zone: "Europe/Berlin" }).toJSDate(),
+				endTime: DateTime.fromISO("2026-01-03T12:30:00", { zone: "Europe/Berlin" }).toJSDate(),
+				startTimeZone: null,
+				endTimeZone: null,
+			}
+			o(formatEventTimesAtDate(startDay, event, "America/New_York")).equals("6:00 AM - 11:59 PM")
+			o(formatEventTimesAtDate(middleDay, event, "America/New_York")).equals("All Day")
+			o(formatEventTimesAtDate(endDay, event, "America/New_York")).equals("12:00 AM - 6:30 AM")
 		})
 	})
 	o.spec("shouldShowTimeZones", () => {

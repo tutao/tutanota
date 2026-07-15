@@ -169,22 +169,20 @@ export function formatEventTime(event: CalendarEventDateTimeFields, showTime: Ev
 	return result
 }
 
-export function formatEventTimesAtDate(dayInLocalTime: Date, event: CalendarEventDateTimeFields, calendarTimeZone: string): string {
-	const dayInCalendarTimeZone = DateTime.fromJSDate(dayInLocalTime).setZone(calendarTimeZone, { keepLocalTime: true }).toJSDate()
-
+export function formatEventTimesAtDate(day: Date, event: CalendarEventDateTimeFields, calendarTimeZone: string): string {
 	if (isAllDayEvent(event)) {
 		return lang.get("allDay_label")
 	}
 
-	const startsBefore = eventStartsBefore(dayInCalendarTimeZone, calendarTimeZone, event)
-	const endsAfter = eventEndsAfterDay(dayInCalendarTimeZone, calendarTimeZone, event)
+	const startsBefore = eventStartsBefore(day, calendarTimeZone, event)
+	const endsAfter = eventEndsAfterDay(day, calendarTimeZone, event)
 	if (startsBefore && endsAfter) {
 		return lang.get("allDay_label")
 	}
 
 	const eventBoundedWithinDay = {
-		startTime: startsBefore ? dayInCalendarTimeZone : event.startTime,
-		endTime: endsAfter ? getEndOfDayWithZone(dayInCalendarTimeZone, calendarTimeZone) : event.endTime,
+		startTime: startsBefore ? day : event.startTime,
+		endTime: endsAfter ? getEndOfDayWithZone(day, calendarTimeZone) : event.endTime,
 		startTimeZone: startsBefore ? event.endTimeZone : event.startTimeZone,
 		endTimeZone: endsAfter ? event.startTimeZone : event.endTimeZone,
 	}
