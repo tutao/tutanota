@@ -77,7 +77,7 @@ import { SelectAllCheckbox } from "../../../../ui/SelectAllCheckbox.js"
 import { selectionAttrsForList } from "../../../common/misc/ListModel.js"
 import { MultiselectMobileHeader } from "../../../../ui/MultiselectMobileHeader.js"
 import { MultiselectMode } from "../../../../ui/base/List.js"
-import { SearchViewModel } from "./SearchViewModel.js"
+import { PaidFunctionResult, SearchViewModel } from "./SearchViewModel.js"
 import { LockedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { listSelectionKeyboardShortcuts } from "../../../../ui/base/ListUtils.js"
@@ -259,14 +259,15 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					cancelCallback: () => {
 						this.searchViewModel.sendStopLoadingSignal()
 					},
-					isFreeAccount: locator.logins.getUserController().isFreeAccount(),
 					getLabelsForMail: (mail) => this.searchViewModel.getLabelsForMail(mail),
 					highlightedStrings: this.searchViewModel.getHighlightedStrings(),
 					availableCalendars: this.searchViewModel.getAvailableCalendars(true),
 					indexStateStream: this.searchViewModel.getSearchIndexStateStream(),
 					currentStartDate: this.searchViewModel.startDate,
-					extendSearchResult: (extendDate: Date) => {
-						void this.searchViewModel.selectStartDate(extendDate)
+					extendSearchResult: (extendDate: Date | null) => {
+						if (this.searchViewModel.selectStartDate(extendDate) === PaidFunctionResult.PaidSubscriptionNeeded) {
+							void showNotAvailableForFreeDialog(UpgradePromptType.EXTEND_MAIL_SEARCH_RANGE)
+						}
 					},
 				} satisfies SearchListViewAttrs),
 			),
