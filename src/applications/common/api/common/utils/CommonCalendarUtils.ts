@@ -168,15 +168,6 @@ export function getEventWithDefaultTimes(startDate: Date = getNextHalfHour()): C
 }
 
 /**
- * Sets seconds and milliseconds to zero
- * @param date
- * @returns {Date} A new normalized Date
- */
-export function normalizeTime(date: Date) {
-	return new Date(new Date(date).setSeconds(0, 0))
-}
-
-/**
  * Converts runtime representation of an alarm into a db one.
  */
 export function serializeAlarmInterval(interval: AlarmInterval): string {
