@@ -8,7 +8,14 @@ import { assertNonNull, assertNotNull, incrementMonth, lazyAsync, ofClass, token
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
-import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestriction, isSameSearchRestrictionWithRangeExtended, searchQueryEquals } from "./SearchUtils"
+import {
+	areResultsForTheSameQuery,
+	hasMoreResults,
+	isNonBlockingSearchAvailable,
+	isSameSearchRestriction,
+	isSameSearchRestrictionWithRangeExtended,
+	searchQueryEquals,
+} from "./SearchUtils"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
 import { ProgressMonitorInterface } from "../../../../platform-kit/network/ProgressMonitorInterface"
 import { CalendarEvent, CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
@@ -70,13 +77,13 @@ export class SearchModel {
 		}
 	}
 
-	async search(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<SearchResult | void> {
+	async search(searchQuery: SearchQuery, progressTracker: ProgressTracker, force: boolean = false): Promise<SearchResult | void> {
 		const lastQueryDates = {
 			start: this.lastQuery?.restriction?.start,
 			end: this.lastQuery?.restriction?.end,
 		}
 
-		if (this.lastQuery && searchQueryEquals(searchQuery, this.lastQuery)) {
+		if (this.lastQuery && searchQueryEquals(searchQuery, this.lastQuery) && !force) {
 			return this.lastSearchPromise
 		}
 
@@ -280,28 +287,15 @@ export class SearchModel {
 			this.result(calendarResult)
 			this.lastSearchPromise = Promise.resolve(calendarResult)
 		} else if (isSameTypeRef(MailTypeRef, restriction.type)) {
-			// we set search end when null to be able to tell when the same search is extended
-			const indexState = this.indexState()
-
-			const aimedTimestamp = indexState.aimedMailIndexTimestamp
-			const currentTimestamp = indexState.currentMailIndexTimestamp
-
-			if (restriction.end == null) {
-				restriction.end = getMailIndexTimestampForSearch(aimedTimestamp)
+			if (isNonBlockingSearchAvailable() && restriction.end == null) {
+				// we set search end when null to be able to tell when the same search is extended
+				const indexState = this.indexState()
+				restriction.end = getMailIndexTimestampForSearch(indexState.aimedMailIndexTimestamp)
 			}
 
-			// We modify the query because we need SearchFacade to not give us mails older than the current
-			// timestamp, as the offline cleaner may not have purged all emails yet.
-			//
-			// We can only be certain about mails up to currentTimestamp.
-			const truncatedRestriction = { ...restriction, end: Math.max(currentTimestamp, restriction.end) }
-
 			this.lastSearchPromise = this._searchFacade
-				.search(query, truncatedRestriction, minSuggestionCount, maxResults ?? undefined)
+				.search(query, restriction, minSuggestionCount, maxResults ?? undefined)
 				.then((result) => {
-					// we put back in the original restriction as we want the user's query to be put in here, not the
-					// modified request
-					result.restriction = restriction
 					this.result(result)
 					return result
 				})
@@ -338,6 +332,10 @@ export class SearchModel {
 	 * @param extensionEnd timestamp to which current result should be extended
 	 */
 	async extendCurrentResult(extensionEnd: number): Promise<void> {
+		if (!isNonBlockingSearchAvailable()) {
+			throw new ProgrammingError("Tried to extend search result but non-blocking search isn't available")
+		}
+
 		await this.lastSearchPromise
 		await this.lastSearchExtensionPromise
 
