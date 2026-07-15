@@ -5,7 +5,7 @@ import { AppearanceSettingsViewer } from "./AppearanceSettingsViewer"
 import { WhitelabelSettingsViewer } from "./whitelabel/WhitelabelSettingsViewer"
 import { FeatureType, isIOSApp } from "@tutao/app-env"
 import { shouldHideBusinessPlans } from "../subscription/utils/SubscriptionUtils"
-import { SubscriptionViewer } from "../subscription/SubscriptionViewer"
+import { SubscriptionSettingsViewer } from "./subscription/SubscriptionSettingsViewer"
 import { PaymentViewer } from "../subscription/PaymentViewer"
 import { ReferralSettingsViewer } from "./ReferralSettingsViewer"
 import { CredentialsProvider } from "../misc/credentials/CredentialsProvider"
@@ -78,7 +78,7 @@ export function subscriptionSettingsSection(logins: LoginController, mobilePayme
 				() => "adminSubscription_action",
 				() => Icons.TrophyFilled,
 				"subscription",
-				() => new SubscriptionViewer(isIOSApp() ? mobilePaymentsFacade : null),
+				() => new SubscriptionSettingsViewer(isIOSApp() ? mobilePaymentsFacade : null),
 				undefined,
 			).setIsVisibleHandler(() => shouldShowSubscriptionSetting()),
 			new SettingsFolder<void>(

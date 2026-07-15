@@ -3413,6 +3413,17 @@ export class MainStyles {
 					"max-width": "250px",
 					"z-index": 1,
 				},
+				".subscription-settings-card": {
+					"grid-template-columns": "auto auto",
+				},
+				"@media (max-width: 500px)": {
+					".subscription-settings-card": {
+						"grid-template-columns": "none",
+					},
+				},
+				".subscription-explanation li": {
+					"margin-bottom": px(8),
+				},
 			}
 		})
 	}
