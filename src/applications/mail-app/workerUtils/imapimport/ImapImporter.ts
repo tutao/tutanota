@@ -507,9 +507,7 @@ export class ImapImporter implements ImapSyncFacade {
 					const groupMap = this.deduplicatedImportedAttachmentHashToFileIdByMailGroup.get(mailGroupId) ?? new Map<string, Promise<IdTuple>>()
 					groupMap.set(deduplicatedImportedAttachment.attachmentHash, Promise.resolve(deduplicatedImportedAttachment.attachment))
 					this.deduplicatedImportedAttachmentHashToFileIdByMailGroup.set(mailGroupId, groupMap)
-				}
-			} else if (isUpdateForTypeRef(FileTypeRef, update)) {
-				if (update.operation === OperationType.DELETE) {
+				} else if (update.operation === OperationType.DELETE) {
 					const deduplicatedImportedAttachmentsListId = await this.imapFacade.getDeduplicatedImportedAttachmentListId(groupId)
 					if (deduplicatedImportedAttachmentsListId) {
 						const groupMap = this.deduplicatedImportedAttachmentHashToFileIdByMailGroup.get(groupId)
