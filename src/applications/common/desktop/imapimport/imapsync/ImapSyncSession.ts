@@ -115,7 +115,6 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			const imapClient = await this.imapFlowFactory({
 				host: imapAccount.host,
 				port: imapAccount.port,
-				secure: imapAccount.host !== "localhost",
 				auth: {
 					// We can safely pass password and accessToken because ImapFlow tests for token accessToken being truthy
 					// using it instead of password (https://github.com/postalsys/imapflow/blob/b7e57f0e540c789f3b1cb17112edbce2b2085880/lib/imap-flow.js#L1269)
@@ -123,6 +122,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 					pass: imapAccount.password,
 					accessToken: imapAccount.tokenEndpointResponse?.access_token,
 				},
+				emitLogs: true,
 			})
 
 			const fetchedRootMailboxes = await this.getImapMailboxes(imapClient)
@@ -171,15 +171,40 @@ export class ImapSyncSession implements SyncSessionEventListener {
 	}
 
 	public async getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ReadonlyArray<ImapMailbox>> {
-		const imapClient = await this.imapFlowFactory({
+		const connectionWorksImapClient = await this.imapFlowFactory({
 			host: imapCredentials.host,
 			port: imapCredentials.port,
-			secure: imapCredentials.host !== "localhost",
 			auth: {
 				user: imapCredentials.username,
 				pass: imapCredentials.password,
 				accessToken: imapCredentials.tokenEndpointResponse?.access_token,
 			},
+			verifyOnly: true,
+			emitLogs: true,
+			tls: {
+				rejectUnauthorized: false,
+			},
+		})
+		connectionWorksImapClient.on("log", (entry) => {
+			console.log(`[${entry.level}] ${entry.msg}`)
+		})
+		await connectionWorksImapClient.connect()
+
+		const imapClient = await this.imapFlowFactory({
+			host: imapCredentials.host,
+			port: imapCredentials.port,
+			auth: {
+				user: imapCredentials.username,
+				pass: imapCredentials.password,
+				accessToken: imapCredentials.tokenEndpointResponse?.access_token,
+			},
+			emitLogs: true,
+			tls: {
+				rejectUnauthorized: false,
+			},
+		})
+		imapClient.on("log", (entry) => {
+			console.log(`[${entry.level}] ${entry.msg}`)
 		})
 		return await this.getImapMailboxes(imapClient)
 	}
@@ -201,17 +226,21 @@ export class ImapSyncSession implements SyncSessionEventListener {
 				// Ignore failures to logout, this just means we already have logged out.
 			}
 		}
-		const imapMailboxes = this.filterDisabledAndPromoteChildren(listTreeResponse.folders ?? []).map((listTreeResponse) => {
-			return imapMailboxFromImapFlowListTreeResponse(listTreeResponse, null)
-		})
-		// Some providers, e.g. one.com, return a single folder (Inbox) with subfolders.
-		// We want to flatten this to a single folder so that the user can map these folders to their own Tuta folders.
-		if (imapMailboxes && imapMailboxes.length === 1 && isNotEmpty(assertNotNull(first(imapMailboxes)).subFolders ?? [])) {
-			const inboxMailbox = assertNotNull(first(imapMailboxes))
-			const remainingMailboxes = assertNotNull(first(imapMailboxes)).subFolders ?? []
-			return [inboxMailbox, ...remainingMailboxes]
+
+		if (listTreeResponse) {
+			const imapMailboxes = this.filterDisabledAndPromoteChildren(listTreeResponse.folders ?? []).map((listTreeResponse) => {
+				return imapMailboxFromImapFlowListTreeResponse(listTreeResponse, null)
+			})
+			// Some providers, e.g. one.com, return a single folder (Inbox) with subfolders.
+			// We want to flatten this to a single folder so that the user can map these folders to their own Tuta folders.
+			if (imapMailboxes && imapMailboxes.length === 1 && isNotEmpty(assertNotNull(first(imapMailboxes)).subFolders ?? [])) {
+				const inboxMailbox = assertNotNull(first(imapMailboxes))
+				const remainingMailboxes = assertNotNull(first(imapMailboxes)).subFolders ?? []
+				return [inboxMailbox, ...remainingMailboxes]
+			}
+			return imapMailboxes ?? []
 		}
-		return imapMailboxes ?? []
+		return []
 	}
 
 	/**

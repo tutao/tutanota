@@ -31,11 +31,12 @@ export class DesktopImapSyncSystemFacade implements ImapSyncSystemFacade {
 			return { result: mailboxes }
 		} catch (e) {
 			// Network errors sometimes have "errors" and no response and e.message due being aggregate errors
-			// This way we should properly handle any error, if it's unknown we just log the complete error.
+			// // This way we should properly handle any error, if it's unknown we just log the complete error.
 			let errorMessage = e.response ?? e.message
 			if (!errorMessage) {
 				errorMessage = JSON.stringify(e.errors ? e.errors : e, null, 2)
 			}
+			//const errorCode = e.errors[0].code
 			return { error: new ImapError(errorMessage, ImapErrorCause.LIST_MAILBOX_FAILED) }
 		}
 	}

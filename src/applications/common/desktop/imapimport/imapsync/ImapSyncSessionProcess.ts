@@ -49,13 +49,13 @@ export class ImapSyncSessionProcess {
 		const imapClient = await this.imapFlowFactory({
 			host: imapAccount.host,
 			port: imapAccount.port,
-			secure: imapAccount.host !== "localhost",
 			auth: {
 				user: imapAccount.username,
 				pass: imapAccount.password,
 				accessToken: imapAccount.tokenEndpointResponse?.access_token,
 			},
 			qresync: this.imapSyncConfig.isEnableImapQresync,
+			emitLogs: true,
 		})
 
 		this.setupImapFlowErrorHandler(imapClient, imapSyncEventListener)
