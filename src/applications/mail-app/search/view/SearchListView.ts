@@ -48,6 +48,8 @@ export interface SearchListViewAttrs {
 	indexStateStream: Stream<SearchIndexStateInfo>
 	currentStartDate: Date | null
 	extendSearchResult: (extendDate: Date | null) => unknown
+	isIncompleteMailList: boolean
+	searchAndRecreateMailList: () => unknown
 }
 
 export class SearchListView implements Component<SearchListViewAttrs> {
@@ -168,6 +170,20 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 				},
 				this.renderShowMoreButton(extendToDate),
 			)
+		} else if (
+			attrs.listModel.state.loadingStatus === ListLoadingState.Done &&
+			attrs.indexStateStream().currentMailIndexTimestamp === FULL_INDEXED_TIMESTAMP &&
+			attrs.isIncompleteMailList
+		) {
+			innerChildren = m(
+				"",
+				{
+					onclick: () => {
+						attrs.searchAndRecreateMailList()
+					},
+				},
+				this.renderReloadListButton(),
+			)
 		} else {
 			return null
 		}
@@ -185,6 +201,13 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 			},
 			innerChildren,
 		)
+	}
+
+	private renderReloadListButton(): Children {
+		return [
+			m(".flex-center.content-accent-fg.b", lang.getTranslationText("reloadList_action")),
+			m(".bottom.small", lang.getTranslationText("moreEmailsAvailable_msg")),
+		]
 	}
 
 	private renderShowMoreButton(searchUntilDate: Date | null): Children {

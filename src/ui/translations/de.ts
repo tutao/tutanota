@@ -2404,5 +2404,7 @@ export default {
 		"clearCacheConfirm_msg": "Are you sure you want to clear cache?",
 		"notAllMailsSearchable_msg": "Not all emails are searchable, but in German",
 		"reIndexLocalData_msg": "Suchindex neu erstellen. Dies ist hilfreich, falls einige E-Mails beim Suchen nicht gefunden werden.",
+		"reloadList_action": "RELOAD LIST",
+		"moreEmailsAvailable_msg": "More emails available"
 	}
 }

@@ -53,6 +53,7 @@ import {
 	getRestriction,
 	getSearchUrl,
 	hasMoreResults,
+	isIncompleteMailResult,
 	isNonBlockingSearchAvailable,
 	isSameSearchRestriction,
 	searchCategoryForRestriction,
@@ -307,24 +308,12 @@ export class SearchViewModel {
 		if (searchQuery == null) {
 			// no search query at all yet
 			listModel.updateLoadingStatus(ListLoadingState.Done)
-		} else if (this.search.isSameSearchWithExtendedRange(searchQuery, restriction)) {
+		} else if (isNonBlockingSearchAvailable() && this.search.isSameSearchWithExtendedRange(searchQuery, restriction)) {
 			if (restriction.end != null) {
 				this.search.extendCurrentResult(restriction.end).catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
 			}
 		} else if (this.search.isNewSearch(searchQuery, restriction)) {
-			listModel.updateLoadingStatus(ListLoadingState.Loading)
-			this.search
-				.search(
-					{
-						query: searchQuery,
-						restriction,
-						minSuggestionCount: 0,
-						maxResults,
-					},
-					this.progressTracker,
-				)
-				.then(() => listModel.updateLoadingStatus(ListLoadingState.Idle))
-				.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
+			this.performNewSearch(listModel, searchQuery, restriction, maxResults)
 		}
 
 		if (isSameTypeRef(restriction.type, ContactTypeRef)) {
@@ -368,6 +357,27 @@ export class SearchViewModel {
 				}
 			}
 		}
+	}
+
+	private performNewSearch(
+		listModel: ListElementListModel<SearchResultListEntry>,
+		searchQuery: string,
+		restriction: SearchRestriction,
+		maxResults: number | null,
+	) {
+		listModel.updateLoadingStatus(ListLoadingState.Loading)
+		this.search
+			.search(
+				{
+					query: searchQuery,
+					restriction,
+					minSuggestionCount: 0,
+					maxResults,
+				},
+				this.progressTracker,
+			)
+			.then(() => listModel.updateLoadingStatus(ListLoadingState.Idle))
+			.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
 	}
 
 	private extractCalendarListIds(listIds: string[]): readonly [string, string] | string | null {
@@ -478,7 +488,9 @@ export class SearchViewModel {
 				this.listModel.updateLoadingStatus(ListLoadingState.Idle)
 			}
 
-			// the current search result will be extended as the range extends
+			// for non-blocking search, the current search result will be extended as the range extends.
+			// for full-archive-download search, once indexing is done, the list will reload automatically if empty and
+			// by user action if not.
 			void this.indexerFacade.extendMailIndex(targetStartDate?.getTime() ?? FULL_INDEXED_TIMESTAMP)
 		} else if (!isSameDay) {
 			this.searchAgain()
@@ -934,31 +946,41 @@ export class SearchViewModel {
 	}
 
 	private onMailIndexStateChanged(newState: SearchIndexStateInfo): void {
-		// Free users are not permitted to search beyond a certain date; avoid searching beyond this date if the index
-		// extended beyond it
-		const dateLimit = this.canSelectTimePeriod()
-			? newState.currentMailIndexTimestamp
-			: Math.max(newState.currentMailIndexTimestamp, getFreeSearchStartDate().getTime())
-
-		if (
-			isNonBlockingSearchAvailable() &&
-			isSameTypeRef(MailTypeRef, this.searchedType) &&
-			newState.progress === 0 &&
-			newState.error == null &&
-			newState.currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
-			(this._startDate == null || this._startDate.getTime() < newState.currentMailIndexTimestamp)
-		) {
-			// Indexing was cancelled and _startDate is outside the index range
-			const newStartTimestamp = newState.currentMailIndexTimestamp === NOTHING_INDEXED_TIMESTAMP ? getEndOfDay(new Date()) : dateLimit
-			this._startDate = new Date(newStartTimestamp)
+		if (!isSameTypeRef(MailTypeRef, this.searchedType)) {
+			return
 		}
 
+		const isIndexingDoneOrCanceled = newState.progress === 0 && newState.error == null
 		const currentResult = this.search.result()
-		const isCurrentResultComplete = currentResult == null || (this._startDate != null && this._startDate.getTime() > currentResult.currentIndexTimestamp)
 
-		// only extend result when index is extended and result isn't already complete
-		if (!isCurrentResultComplete && currentResult.currentIndexTimestamp > dateLimit) {
-			void this.search.extendCurrentResult(dateLimit)
+		if (isNonBlockingSearchAvailable()) {
+			// Free users are not permitted to search beyond a certain date; avoid searching beyond this date if the index
+			// extended beyond it
+			const dateLimit = this.canSelectTimePeriod()
+				? newState.currentMailIndexTimestamp
+				: Math.max(newState.currentMailIndexTimestamp, getFreeSearchStartDate().getTime())
+
+			if (
+				isIndexingDoneOrCanceled &&
+				newState.currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
+				(this._startDate == null || this._startDate.getTime() < newState.currentMailIndexTimestamp)
+			) {
+				// Indexing was cancelled and _startDate is outside the index range
+				const newStartTimestamp =
+					newState.currentMailIndexTimestamp === NOTHING_INDEXED_TIMESTAMP ? getEndOfDay(new Date()) : dateLimit
+				this._startDate = new Date(newStartTimestamp)
+			}
+
+			const isCurrentResultComplete =
+				currentResult == null || (this._startDate != null && this._startDate.getTime() > currentResult.currentIndexTimestamp)
+
+			// only extend result when index is extended and result isn't already complete
+			if (!isCurrentResultComplete && currentResult.currentIndexTimestamp > dateLimit) {
+				void this.search.extendCurrentResult(dateLimit)
+			}
+		} else if (isIndexingDoneOrCanceled && currentResult && isEmpty(currentResult.results) && !hasMoreResults(currentResult)) {
+			// Indexing is done or cancelled and list is empty, list will not be recreated
+			this.performNewSearch(this.listModel, currentResult.query, currentResult.restriction, SEARCH_PAGE_SIZE)
 		}
 	}
 
@@ -989,6 +1011,20 @@ export class SearchViewModel {
 		}
 
 		this.previousResult = newResult
+	}
+
+	isIncompleteMailList(): boolean {
+		const currentResult = this.search.result()
+		return currentResult != null && isIncompleteMailResult(currentResult, this.search.indexState().currentMailIndexTimestamp)
+	}
+
+	searchAgainAndRecreateList(): void {
+		const restriction = this.getRestriction()
+		const maxResults = isSameTypeRef(MailTypeRef, restriction.type) ? SEARCH_PAGE_SIZE : null
+		this.performNewSearch(this.listModel, this.currentQuery, restriction, maxResults)
+
+		// new result is handled in onSearchResultChanged. We set previousResult to null so list gets recreated
+		this.previousResult = null
 	}
 
 	private async loadSearchResults<T extends SearchableTypes>(

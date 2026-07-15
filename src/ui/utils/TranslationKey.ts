@@ -2403,3 +2403,5 @@ export type TranslationKeyType =
 	| "clearCache_msg"
 	| "clearCacheConfirm_msg"
 	| "notAllMailsSearchable_msg"
+	| "reloadList_action"
+	| "moreEmailsAvailable_msg"
