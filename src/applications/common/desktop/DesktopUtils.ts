@@ -94,6 +94,7 @@ export class DesktopUtils {
 	 */
 	async makeSingleInstance(): Promise<boolean> {
 		const isOnlyInstance = await this.tfs.acquireSingleInstanceLock()
+		console.log("isOnlyInstance ", isOnlyInstance)
 		if (isOnlyInstance) {
 			return true
 		}

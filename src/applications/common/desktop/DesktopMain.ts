@@ -116,7 +116,9 @@ type Components = {
 	readonly credentialsEncryption: NativeCredentialsFacade
 }
 
+console.log("Registered windows registry facade:")
 const windowsRegistryFacade = new LazyLoaded(async () => {
+	console.log("Trying to load win registry facade.")
 	const { WindowsRegistryFacade } = await import("./integration/WindowsRegistryFacade.js")
 	return new WindowsRegistryFacade(commandExecutor)
 })
@@ -138,10 +140,12 @@ const opts = {
 // modifications. If we don't have admin rights, apparently the easiest way to get them is just to spin up a new instance of the app
 // with admin privileges, and then call DesktopUtils.[un]registerAsMailHandler from that instance.
 // Tutanota isn't a CLI app, so while this functionality is technically available to users, we don't publicise it as such
+console.log("Going through handler")
 if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 	console.log("Incompatible options '-r' and '-u'")
 	app.exit(1)
 } else if (opts.registerAsMailHandler) {
+	console.log("registering mail to.")
 	//register as mailto handler, then quit
 	desktopUtils
 		.doRegisterMailtoOnWin32WithCurrentUser()
@@ -151,6 +155,7 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 			app.exit(1)
 		})
 } else if (opts.unregisterAsMailHandler) {
+	console.log("unregistering mail to")
 	//unregister as mailto handler, then quit
 	desktopUtils
 		.doUnregisterMailtoOnWin32WithCurrentUser()
@@ -166,6 +171,7 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 const err: DesktopErrorHandler = new DesktopErrorHandler(desktopUtils)
 
 async function createComponents(): Promise<Components> {
+	console.log("Creating Components...")
 	const en = (await import("../../../ui/translations/en.js")).default
 	lang.init(en)
 	preselectGnomeLibsecret(electron)
@@ -226,6 +232,7 @@ async function createComponents(): Promise<Components> {
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, nativeInstancePipeline, clientModelInfo)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
+	console.log("creating credentials...")
 	const credentialsDb = new DesktopCredentialsStorage(makeDbPath("credentials"), app)
 	const appPassHandler = new AppPassHandler(desktopCrypto, conf, loadArgon2(), lang, async () => {
 		const last = await wm.getLastFocused(true)
@@ -427,6 +434,7 @@ async function createComponents(): Promise<Components> {
 	const contextMenu = new DesktopContextMenu(electron, wm)
 	wm.lateInit(contextMenu, themeFacade, remoteBridge)
 	log.debug("version:  ", app.getVersion())
+	/// W egot here
 	return {
 		wm,
 		tfs,
@@ -445,7 +453,10 @@ async function createComponents(): Promise<Components> {
 
 async function startupInstance(components: Components) {
 	const { wm, sse, tfs, notifier } = components
-	if (!(await desktopUtils.cleanupOldInstance())) return
+	console.log("I am on startup instance")
+	const isCleanupOldInstance = await desktopUtils.cleanupOldInstance()
+	console.log("#Is cleanup?", isCleanupOldInstance, "Will stop?", !isCleanupOldInstance)
+	if (!isCleanupOldInstance) return
 	sse.connect().catch((e) => log.warn("unable to start sse client", e))
 	// The second-instance event fires when we call app.requestSingleInstanceLock inside DesktopUtils.makeSingleInstance
 	app.on("second-instance", async (_ev, args) => {
@@ -462,6 +473,7 @@ async function startupInstance(components: Components) {
 	app.on("will-quit", () => tfs.clear())
 	await app.whenReady()
 	await onAppReady(components)
+	console.log("I have finished the startup instance")
 }
 
 async function onAppReady(components: Components) {
