@@ -1,17 +1,9 @@
-import { CalendarEventDateTimeFields, CalendarEventTimeZones, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
+import { CalendarEventDateTimeFields, CalendarEventTimeZones, getAllDayDateLocal, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import {
-	eventEndsAfterDay,
-	eventStartsBefore,
-	getEndOfDayWithZone,
-	getEventEnd,
-	getEventStart,
-	incrementByRepeatPeriod,
-} from "../../../common/calendar/date/CalendarUtils"
-import { EventTextTimeOption, RepeatPeriod } from "@tutao/app-env"
+import { EventTextTimeOption } from "@tutao/app-env"
 import { assert, isSameDay, isSameDayOfDate } from "@tutao/utils"
 import { formatDateTime, formatDateWithMonth, formatTime } from "../../../../ui/utils/Formatter"
-import type { DateTime } from "luxon"
+import { DateTime } from "luxon"
 
 function includeStartTime(showTime: EventTextTimeOption) {
 	return showTime === EventTextTimeOption.START_TIME || showTime === EventTextTimeOption.START_END_TIME
@@ -27,6 +19,16 @@ function resolveStartTimeZone(event: CalendarEventTimeZones, calendarTimeZone: s
 
 function resolveEndTimeZone(event: CalendarEventTimeZones, calendarTimeZone: string) {
 	return event.endTimeZone ?? event.startTimeZone ?? calendarTimeZone
+}
+
+function compYearMonthDay(a: [number, number, number], b: [number, number, number]) {
+	const yearDiff = a[0] - b[0]
+	if (yearDiff) return Math.sign(yearDiff)
+	const monthDiff = a[1] - b[1]
+	if (monthDiff) return Math.sign(monthDiff)
+	const dayDiff = a[2] - b[2]
+	if (dayDiff) return Math.sign(dayDiff)
+	return 0
 }
 
 export function getTimeZoneName(timeZone: string) {
@@ -101,8 +103,10 @@ export function getTimeZoneGmtOffset(dateTime: DateTime, timeZone: string) {
 export function formatEventDuration(event: CalendarEventDateTimeFields, calendarTimeZone: string, includeTimezone: boolean): string {
 	let result = ""
 	if (isAllDayEvent(event)) {
-		const startTime = getEventStart(event, calendarTimeZone)
-		const endTime = incrementByRepeatPeriod(getEventEnd(event, calendarTimeZone), RepeatPeriod.DAILY, -1, calendarTimeZone)
+		// To format the start and end date we need to convert to local time zone (and not the calendar timeZone)
+		// in order to use Intl.DateTimeFormat
+		const startTime = getAllDayDateLocal(event.startTime)
+		const endTime = new Date(event.endTime.getUTCFullYear(), event.endTime.getUTCMonth(), event.endTime.getUTCDate() - 1)
 
 		result += lang.get("allDay_label") + ", " + formatDateWithMonth(startTime)
 		if (!isSameDayOfDate(startTime, endTime)) {
@@ -153,10 +157,10 @@ export function formatTimeWithZoneInfo(event: CalendarEventDateTimeFields, showT
 export function formatEventTime(event: CalendarEventDateTimeFields, showTime: EventTextTimeOption, includeTimeZone: boolean, calendarTimeZone: string): string {
 	let result = ""
 	if (includeStartTime(showTime)) {
-		result += formatTime(event.startTime)
+		result += formatTime(event.startTime, calendarTimeZone)
 	}
 	if (includeEndTime(showTime)) {
-		result += " - " + formatTime(event.endTime)
+		result += " - " + formatTime(event.endTime, calendarTimeZone)
 	}
 	if (includeTimeZone) {
 		result += " (" + formatTimeWithZoneInfo(event, showTime, calendarTimeZone) + ")"
@@ -164,24 +168,62 @@ export function formatEventTime(event: CalendarEventDateTimeFields, showTime: Ev
 	return result
 }
 
-export function formatEventTimesAtDate(day: Date, event: CalendarEventDateTimeFields, calendarTimeZone: string): string {
+export function formatEventTimesAtDate(date: Date, event: CalendarEventDateTimeFields, calendarTimeZone: string): string {
 	if (isAllDayEvent(event)) {
 		return lang.get("allDay_label")
 	}
 
-	const startsBefore = eventStartsBefore(day, calendarTimeZone, event)
-	const endsAfter = eventEndsAfterDay(day, calendarTimeZone, event)
-	if (startsBefore && endsAfter) {
+	const year = date.getFullYear()
+	const month = date.getMonth() + 1
+	const day = date.getDate()
+
+	const startInCalendarTimeZone = DateTime.fromJSDate(event.startTime, { zone: calendarTimeZone })
+	const endInCalendarTimeZone = DateTime.fromJSDate(event.endTime, { zone: calendarTimeZone })
+
+	const startsBeforeComp = compYearMonthDay([startInCalendarTimeZone.year, startInCalendarTimeZone.month, startInCalendarTimeZone.day], [year, month, day])
+	const endsAfterComp = compYearMonthDay([endInCalendarTimeZone.year, endInCalendarTimeZone.month, endInCalendarTimeZone.day], [year, month, day])
+
+	if (startsBeforeComp === endsAfterComp && startsBeforeComp !== 0) {
+		throw new Error("Both event's start and end times are both before or both after date!")
+	}
+
+	const startsBeforeDate = startsBeforeComp < 0
+	const endsAfterDate = endsAfterComp > 0
+
+	if (startsBeforeDate && endsAfterDate) {
 		return lang.get("allDay_label")
 	}
 
-	const eventBoundedWithinDay = {
-		startTime: startsBefore ? day : event.startTime,
-		endTime: endsAfter ? getEndOfDayWithZone(day, calendarTimeZone) : event.endTime,
-		startTimeZone: startsBefore ? event.endTimeZone : event.startTimeZone,
-		endTimeZone: endsAfter ? event.startTimeZone : event.endTimeZone,
+	let startBoundedWithinDay: Date
+	let endBoundedWithinDay: Date
+	let startBoundedWithinDayTimeZone: string
+	let endBoundedWithinDayTimeZone: string
+	if (startsBeforeDate) {
+		startBoundedWithinDay = DateTime.fromObject({ year, month, day }, { zone: calendarTimeZone }).toJSDate()
+		startBoundedWithinDayTimeZone = calendarTimeZone
+	} else {
+		startBoundedWithinDay = event.startTime
+		startBoundedWithinDayTimeZone = event.startTimeZone ?? calendarTimeZone
 	}
-	return formatEventTime(eventBoundedWithinDay, EventTextTimeOption.START_END_TIME, false, calendarTimeZone)
+	if (endsAfterDate) {
+		endBoundedWithinDay = DateTime.fromObject({ year, month, day: day }, { zone: calendarTimeZone }).plus({ days: 1, minutes: -1 }).toJSDate()
+		endBoundedWithinDayTimeZone = calendarTimeZone
+	} else {
+		endBoundedWithinDay = event.endTime
+		endBoundedWithinDayTimeZone = event.endTimeZone ?? calendarTimeZone
+	}
+
+	return formatEventTime(
+		{
+			startTime: startBoundedWithinDay,
+			startTimeZone: startBoundedWithinDayTimeZone,
+			endTime: endBoundedWithinDay,
+			endTimeZone: endBoundedWithinDayTimeZone,
+		},
+		EventTextTimeOption.START_END_TIME,
+		false,
+		calendarTimeZone,
+	)
 }
 
 export function shouldShowTimeZones(event: CalendarEventTimeZones, calendarTimeZone: string) {
