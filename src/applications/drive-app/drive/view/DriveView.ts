@@ -50,6 +50,9 @@ import { DriveFolder } from "@tutao/entities/drive"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { DriveMobileSortButton } from "./DriveMobileSortButton"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
+import { LazyComponent } from "../../../common/gui/LazyComponent"
+import { locator } from "../../../common/api/main/CommonLocator"
+import { DriveSearchBar, DriveSearchBarAttrs } from "./DriveSearchBar"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -308,7 +311,18 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 						rightView: null,
 						...attrs.header,
 						buttons: renderHeaderButtons(),
-						searchBar: () => attrs.lazySearchBar(),
+						searchBar: () => {
+							return m(LazyComponent<DriveSearchBarAttrs, DriveSearchBar>, {
+								loader: async () => (await import("./DriveSearchBar.js")).DriveSearchBar,
+								attrs: {
+									loadResults: (searchQuery) => this.driveViewModel.getSearchResult(searchQuery),
+									selectResult: (searchQuery, driveItem) => {
+										this.driveViewModel.selectSearchResult(searchQuery, driveItem)
+									},
+									shouldOfferUpgrade: locator.logins.getUserController().isFreeAccount(),
+								},
+							})
+						},
 					}),
 					bottomNav:
 						styles.isUsingBottomNavigation() && isNotNull(attrs.bottomNav)

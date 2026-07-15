@@ -44,6 +44,8 @@ import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFol
 import { isWebFile } from "../../../../ui/utils/FileUtils"
 import { handleRestError, isOfflineError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { WebFileResolver } from "./WebFileResolver"
+import { SearchModel, SearchQuery } from "../../../mail-app/search/model/SearchModel"
+import { SearchRouter } from "../../../common/search/view/SearchRouter"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -186,6 +188,8 @@ export class DriveViewModel {
 		private readonly transferController: DriveTransferController,
 		private readonly webFileResolver: WebFileResolver | null,
 		public readonly updateUi: () => unknown,
+		private readonly searchModel: SearchModel,
+		private readonly searchRouter: SearchRouter,
 	) {
 		this.userMailAddress = getDefaultSenderFromUser(this.loginController.getUserController())
 		this.initialized = new Promise((resolve, reject) => {
@@ -794,6 +798,12 @@ export class DriveViewModel {
 
 	search() {
 		this.driveFacade.search("js")
+	}
+	selectSearchResult(searchQuery: SearchQuery, driveItem: DriveFolder | DriveFile | null) {
+		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, driveItem ? getElementId(driveItem) : null)
+	}
+	getSearchResult(searchQuery: SearchQuery) {
+		return this.searchModel.coolNewSearchDrive(searchQuery)
 	}
 }
 

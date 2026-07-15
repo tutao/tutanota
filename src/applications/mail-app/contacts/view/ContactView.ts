@@ -66,8 +66,8 @@ import { Contact, ContactTypeRef } from "../../../../entities/tutanota/TypeRefs"
 import { PartialRecipient } from "../../../../entities/tutanota/Utils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
-import { LazyComponent } from "../../MailSearchBar"
 import { ContactSearchBar, ContactSearchBarAttrs } from "./ContactSearchBar"
+import { LazyComponent } from "../../../common/gui/LazyComponent"
 
 assertMainOrNode()
 

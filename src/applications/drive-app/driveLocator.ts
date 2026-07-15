@@ -121,6 +121,8 @@ import { KdfType } from "../../platform-kit/base/base-crypto/Constants"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
+import { SearchRouter } from "../common/search/view/SearchRouter"
+import { SearchModel } from "../mail-app/search/model/SearchModel"
 
 assertMainOrNode()
 
@@ -182,6 +184,8 @@ class DriveLocator implements CommonLocator {
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 	driveFacade!: DriveFacade
 	transferProgressDispatcher!: TransferProgressDispatcher
+	searchRouter!: SearchRouter
+	searchModel!: SearchModel
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -246,6 +250,8 @@ class DriveLocator implements CommonLocator {
 			driveUploadStackModel,
 			isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp, this.desktopSystemFacade) : null,
 			redraw,
+			this.searchModel,
+			this.searchRouter,
 		)
 	})
 

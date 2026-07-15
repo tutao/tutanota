@@ -1410,6 +1410,8 @@ class MailLocator implements CommonLocator {
 			driveUploadStackModel,
 			isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp, this.desktopSystemFacade) : null,
 			redraw,
+			this.search,
+			await this.unscopedSearchRouter(),
 		)
 		await model.init()
 

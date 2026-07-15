@@ -2320,3 +2320,4 @@ export type TranslationKeyType =
 	| "revocation_text"
 	| "revocationOnlyPersonalPlans_msg"
 	| "emptyString_msg"
+	| "searchDrive_placeholder"

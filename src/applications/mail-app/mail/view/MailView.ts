@@ -51,7 +51,7 @@ import { MobileMailMultiselectionActionBar } from "./MobileMailMultiselectionAct
 import { SelectAllCheckbox } from "../../../../ui/SelectAllCheckbox.js"
 import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../ui/DesktopToolbars.js"
 import { MobileHeader } from "../../../../ui/MobileHeader.js"
-import { LazyComponent, MailSearchBar, MailSearchBarAttrs } from "../../MailSearchBar.js"
+import { MailSearchBar, MailSearchBarAttrs } from "../../MailSearchBar.js"
 import { MultiselectMobileHeader } from "../../../../ui/MultiselectMobileHeader.js"
 import { MailViewModel } from "./MailViewModel.js"
 import { selectionAttrsForList } from "../../../common/misc/ListModel.js"
@@ -88,6 +88,7 @@ import { getElementId, isSameId } from "../../../../platform-kit/meta"
 import { getMailFolderType, isFolder, isFolderReadOnly } from "../MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
+import { LazyComponent } from "../../../common/gui/LazyComponent"
 
 assertMainOrNode()
 

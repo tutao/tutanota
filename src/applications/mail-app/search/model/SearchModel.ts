@@ -29,6 +29,7 @@ import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/ne
 import { SearchableTypes } from "../view/SearchViewModel"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils"
 import { compareMails } from "../../mail/model/MailUtils"
+import { DriveFile, DriveFolder } from "@tutao/entities/drive"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -209,6 +210,10 @@ export class SearchModel {
 		}
 		this.liveResults.push(result)
 		return result
+	}
+
+	async coolNewSearchDrive(searchQuery: SearchQuery) {
+		//FIXME not implemented
 	}
 
 	async coolNewSearchCalendar(searchQuery: SearchQuery, abortSignal: AbortSignal): Promise<LiveSearchResult<CalendarEvent>> {
