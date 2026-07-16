@@ -25,11 +25,9 @@ import de.tutao.calendar.widget.widgetDataStore
 import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.LoginException
 import de.tutao.tutasdk.Sdk
-import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.IdTuple
 import de.tutao.tutashared.base64ToBase64Url
 import de.tutao.tutashared.ipc.CalendarOpenAction
-import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.ipc.UnencryptedCredentials
 import de.tutao.tutashared.isAllDayEventByTimes
 import de.tutao.tutashared.push.toSdkCredentials
@@ -44,18 +42,10 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.util.Calendar
 import java.util.Date
 
-class WidgetUIViewModel(
-	private val widgetId: Int,
-	private val credentialsFacade: NativeCredentialsFacade,
-	private val cryptoFacade: AndroidNativeCryptoFacade,
-	private val sdk: Sdk?,
-	private val calendar: Calendar,
-	private val birthdayStrings: BirthdayStrings
-) : ViewModel() {
-	private var TAG = "WidgetUIViewModel"
+object WidgetUIViewModel : ViewModel() {
+	private const val TAG = "WidgetUIViewModel"
 	private val _uiState = MutableStateFlow<WidgetUIData?>(null)
 	val uiState: StateFlow<WidgetUIData?> = _uiState.asStateFlow()
 
@@ -65,12 +55,12 @@ class WidgetUIViewModel(
 	suspend fun loadUIState(
 		widgetDataStore: DataStore<Preferences>,
 		widgetCacheDataStore: DataStore<Preferences>,
-		now: LocalDateTime
+		now: LocalDateTime,
+		calendarZoneId: ZoneId
 	): WidgetUIData? {
 		Log.i(TAG, "Init loadUIState")
 		val allDayEvents: HashMap<LocalDate, List<UIEvent>> = HashMap()
 		val normalEvents: HashMap<LocalDate, List<UIEvent>> = HashMap()
-		val zoneId = this.calendar.timeZone.toZoneId()
 
 		val (settings, calendars, credentials, lastSync) = this.getInitialUiState(widgetDataStore)
 			?: return WidgetUIData(
@@ -93,10 +83,10 @@ class WidgetUIViewModel(
 		normalEvents[startOfToday] = listOf() // The first day should always be included even if there are no events
 		allDayEvents[startOfToday] = listOf()
 
-		val todayMidnight = startOfToday.atStartOfDay(zoneId).toInstant()
+		val todayMidnight = startOfToday.atStartOfDay(calendarZoneId).toInstant()
 		val tomorrowMidnight = startOfToday
 			.plusDays(1)
-			.atStartOfDay(zoneId)
+			.atStartOfDay(calendarZoneId)
 			.toInstant()
 
 		calendarToEventsListMap.forEach { (calendarId, eventList) ->
@@ -109,7 +99,7 @@ class WidgetUIViewModel(
 					loadedEvent,
 					todayMidnight,
 					tomorrowMidnight,
-					zoneId,
+					calendarZoneId,
 					calendarId,
 					settings
 				)
@@ -118,7 +108,7 @@ class WidgetUIViewModel(
 				val eventStartDate = if (event.isDisplayedAsAllDay) {
 					eventStartAsInstant.atZone(ZoneId.of(ZoneOffset.UTC.id)).toLocalDate()
 				} else {
-					val eventLocalStartTime = LocalDateTime.ofInstant(eventStartAsInstant, zoneId)
+					val eventLocalStartTime = LocalDateTime.ofInstant(eventStartAsInstant, calendarZoneId)
 					eventLocalStartTime.toLocalDate()
 				}
 
@@ -147,9 +137,9 @@ class WidgetUIViewModel(
 			eventList.birthdayEvents.map {
 				val eventStartAsInstant = Instant.ofEpochMilli(it.eventDao.startTime.toLong())
 
-				val eventLocalStartTime = LocalDateTime.ofInstant(eventStartAsInstant, zoneId)
+				val eventLocalStartTime = LocalDateTime.ofInstant(eventStartAsInstant, calendarZoneId)
 				val eventLocalEndTime =
-					LocalDateTime.ofInstant(Instant.ofEpochMilli(it.eventDao.endTime.toLong()), zoneId)
+					LocalDateTime.ofInstant(Instant.ofEpochMilli(it.eventDao.endTime.toLong()), calendarZoneId)
 				val formatter = DateTimeFormatter.ofPattern("HH:mm")
 				val event = UIEvent(
 					calendarId,
@@ -287,7 +277,7 @@ class WidgetUIViewModel(
 				// to the user.
 				Log.e(
 					TAG,
-					"Missing credentials for user ${settings.userId} when trying to load widget content}", e
+					"Missing credentials for user ${settings.userId} when trying to load widget content", e
 				)
 				return WidgetDataRepository.loadEventsFromCache(
 					widgetCacheDataStore,

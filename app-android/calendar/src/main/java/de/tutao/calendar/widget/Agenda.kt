@@ -102,7 +102,10 @@ class Agenda : GlanceAppWidget() {
 				preferences[settingsPreferencesKey], preferences[lastSyncPreferencesKey]
 			) {
 				widgetUIViewModel.loadUIState(
-					context.widgetDataStore, context.widgetCacheDataStore, LocalDateTime.now()
+					context.widgetDataStore,
+					context.widgetCacheDataStore,
+					LocalDateTime.now(),
+					Calendar.getInstance().timeZone.toZoneId()
 				)
 			}
 
