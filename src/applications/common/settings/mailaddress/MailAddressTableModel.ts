@@ -93,6 +93,10 @@ export class MailAddressTableModel {
 		return this.mailAddressTableInfo.user != null
 	}
 
+	isGroupActive(): boolean {
+		return this.mailAddressTableInfo.groupInfo.deleted == null
+	}
+
 	aliasLimitIncludesCustomDomains(): boolean {
 		return this.onLegacyPlan
 	}
