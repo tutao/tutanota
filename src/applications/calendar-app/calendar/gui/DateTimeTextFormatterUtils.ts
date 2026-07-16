@@ -1,17 +1,10 @@
-import { CalendarEventDateTimeFields, CalendarEventTimeZones, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
+import { CalendarEventDateTimeFields, CalendarEventTimeZones, getAllDayDateLocal, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import {
-	eventEndsAfterDay,
-	eventStartsBefore,
-	getEndOfDayWithZone,
-	getEventEnd,
-	getEventStart,
-	incrementByRepeatPeriod,
-} from "../../../common/calendar/date/CalendarUtils"
-import { EventTextTimeOption, RepeatPeriod } from "@tutao/app-env"
+import { EventTextTimeOption } from "@tutao/app-env"
 import { assert, isSameDay, isSameDayOfDate } from "@tutao/utils"
 import { formatDateTime, formatDateWithMonth, formatTime } from "../../../../ui/utils/Formatter"
-import type { DateTime } from "luxon"
+import { DateTime } from "luxon"
+import { eventEndsAfterDay, eventStartsBefore, getEndOfDayWithZone } from "../../../common/calendar/date/CalendarUtils"
 
 function includeStartTime(showTime: EventTextTimeOption) {
 	return showTime === EventTextTimeOption.START_TIME || showTime === EventTextTimeOption.START_END_TIME
@@ -101,8 +94,10 @@ export function getTimeZoneGmtOffset(dateTime: DateTime, timeZone: string) {
 export function formatEventDuration(event: CalendarEventDateTimeFields, calendarTimeZone: string, includeTimezone: boolean): string {
 	let result = ""
 	if (isAllDayEvent(event)) {
-		const startTime = getEventStart(event, calendarTimeZone)
-		const endTime = incrementByRepeatPeriod(getEventEnd(event, calendarTimeZone), RepeatPeriod.DAILY, -1, calendarTimeZone)
+		// To format the start and end date we need to convert to local time zone (and not the calendar timeZone)
+		// in order to use Intl.DateTimeFormat
+		const startTime = getAllDayDateLocal(event.startTime)
+		const endTime = new Date(event.endTime.getUTCFullYear(), event.endTime.getUTCMonth(), event.endTime.getUTCDate() - 1)
 
 		result += lang.get("allDay_label") + ", " + formatDateWithMonth(startTime)
 		if (!isSameDayOfDate(startTime, endTime)) {
@@ -153,10 +148,10 @@ export function formatTimeWithZoneInfo(event: CalendarEventDateTimeFields, showT
 export function formatEventTime(event: CalendarEventDateTimeFields, showTime: EventTextTimeOption, includeTimeZone: boolean, calendarTimeZone: string): string {
 	let result = ""
 	if (includeStartTime(showTime)) {
-		result += formatTime(event.startTime)
+		result += formatTime(event.startTime, calendarTimeZone)
 	}
 	if (includeEndTime(showTime)) {
-		result += " - " + formatTime(event.endTime)
+		result += " - " + formatTime(event.endTime, calendarTimeZone)
 	}
 	if (includeTimeZone) {
 		result += " (" + formatTimeWithZoneInfo(event, showTime, calendarTimeZone) + ")"
