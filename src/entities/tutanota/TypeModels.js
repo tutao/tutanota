@@ -12367,7 +12367,7 @@ const typeModels = {
 		"associations": {}
 	},
 	"1976": {
-		"name": "MailAddressTransferAggregation",
+		"name": "MailAddressTransferAggregatedType",
 		"app": "tutanota",
 		"version": 111,
 		"since": 111,
@@ -12410,7 +12410,7 @@ const typeModels = {
 		"associations": {}
 	},
 	"1980": {
-		"name": "MailTransferAggregation",
+		"name": "MailTransferAggregatedType",
 		"app": "tutanota",
 		"version": 111,
 		"since": 111,
