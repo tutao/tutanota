@@ -94,6 +94,7 @@ import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseU
 import { SearchQuery } from "../search/model/CalendarSearchModel"
 import { LiveSearchResult, SearchModel } from "../../../mail-app/search/model/SearchModel"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
+import { encodeCalendarSearchKey } from "../search/model/SearchUtils"
 
 export interface EventWrapperFlags {
 	/**
@@ -964,7 +965,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	selectSearchResult(searchQuery: SearchQuery, calendarEvent: CalendarEvent | null) {
-		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, calendarEvent ? getElementId(calendarEvent) : null)
+		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, calendarEvent ? encodeCalendarSearchKey(calendarEvent) : null)
 	}
 
 	getSearchResult(searchQuery: SearchQuery): Promise<LiveSearchResult<CalendarEvent>> {

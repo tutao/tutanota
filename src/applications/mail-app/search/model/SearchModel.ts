@@ -10,6 +10,7 @@ import {
 	collectToMap,
 	incrementMonth,
 	isNotEmpty,
+	lastIndex,
 	lazyAsync,
 	mapAndFilterNull,
 	ofClass,
@@ -105,7 +106,8 @@ export class SearchModel {
 					await liveResult.entityEventsReceived(updates)
 				}
 			},
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+			// receive updates after models
+			priority: OnEntityUpdateReceivedPriority.LOW,
 		})
 	}
 
@@ -113,15 +115,21 @@ export class SearchModel {
 		const searchResult: SearchResult = await this._searchFacade.search(searchQuery.query, searchQuery.restriction, {
 			maxResults: searchQuery.maxResults ?? undefined,
 		})
-		const contacts = await loadMultipleFromLists(ContactTypeRef, this.entityClient, searchResult.results)
-		contacts.sort((a, b) => compareContacts(a, b))
-		const initialResults = contacts.slice(0, searchQuery.maxResults ?? contacts.length)
+		const resultItems = await loadMultipleFromLists(ContactTypeRef, this.entityClient, searchResult.results)
+		resultItems.sort((a, b) => compareContacts(a, b))
+		let loadedUntil = Math.min(searchQuery.maxResults ?? resultItems.length, resultItems.length)
 		const result: LiveSearchResult<Contact> = {
 			searchResult,
-			items: initialResults,
-			loadMoreResults: async () => contacts.slice(initialResults.length),
+			get items() {
+				return resultItems.slice(0, loadedUntil)
+			},
+			loadMoreResults: async (count) => {
+				const oldLoadedUntil = loadedUntil
+				loadedUntil = Math.min(loadedUntil + count, resultItems.length)
+				return resultItems.slice(oldLoadedUntil, loadedUntil)
+			},
 			get hasMoreResults() {
-				return isNotEmpty(contacts) && initialResults.length === contacts.length
+				return isNotEmpty(resultItems) && loadedUntil < lastIndex(resultItems)
 			},
 			updates: stream(),
 			dispose: () => {
@@ -129,7 +137,7 @@ export class SearchModel {
 				result.updates.end(true)
 			},
 			entityEventsReceived: async (updates) => {
-				await this.applyEntityUpdates(updates, result, ContactTypeRef)
+				await this.applyEntityUpdates(ContactTypeRef, resultItems, updates, result.updates)
 			},
 		}
 		this.liveResults.push(result)
@@ -137,26 +145,27 @@ export class SearchModel {
 	}
 
 	private async applyEntityUpdates<T extends SearchableTypes & ListElementEntity>(
-		updates: readonly EntityUpdateData[],
-		result: LiveSearchResult<T>,
 		typeRef: TypeRef<T>,
+		items: T[],
+		updates: readonly EntityUpdateData[],
+		sendUpdate: (update: ResultUpdate<T>) => unknown,
 	) {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(typeRef, update)) {
 				if (update.operation === OperationType.DELETE) {
-					const contactIndex = result.items.findIndex((mail) => getElementId(mail) === update.instanceId)
+					const contactIndex = items.findIndex((mail) => getElementId(mail) === update.instanceId)
 					if (contactIndex !== -1) {
-						const [mail] = result.items.splice(contactIndex, 1)
-						result.updates({ type: "deleteitem", item: mail })
+						const [mail] = items.splice(contactIndex, 1)
+						sendUpdate({ type: "deleteitem", item: mail })
 					}
 				} else if (update.operation === OperationType.UPDATE) {
-					const contactIndex = result.items.findIndex((mail) => getElementId(mail) === update.instanceId)
+					const contactIndex = items.findIndex((mail) => getElementId(mail) === update.instanceId)
 					// surprisingly hard to convince ts that this is the correct id type
 					const instanceIdTuple = [update.instanceListId, update.instanceId] as unknown as PropertyType<T, "_id">
 					const updatedContact = await this.entityClient.load<T>(typeRef, instanceIdTuple)
 					if (contactIndex !== -1) {
-						result.items.splice(contactIndex, 1, updatedContact)
-						result.updates({ type: "updateitem", item: updatedContact })
+						items.splice(contactIndex, 1, updatedContact)
+						sendUpdate({ type: "updateitem", item: updatedContact })
 					}
 				}
 				// FIXME: the rest of updates
@@ -204,7 +213,7 @@ export class SearchModel {
 				result.updates.end(true)
 			},
 			entityEventsReceived: async (updates) => {
-				await this.applyEntityUpdates(updates, result, MailTypeRef)
+				await this.applyEntityUpdates(MailTypeRef, result.items, updates, result.updates)
 			},
 		}
 		this.liveResults.push(result)
@@ -379,13 +388,20 @@ export class SearchModel {
 			moreResultsEntries: [],
 			lastReadSearchIndexRow: [],
 		}
-		const initialEvents = resultItems.slice(0, searchQuery.maxResults ?? resultItems.length)
+		let loadedUntil = Math.min(searchQuery.maxResults ?? resultItems.length, resultItems.length)
+		// const initialEvents = resultItems.slice(0, searchQuery.maxResults ?? resultItems.length)
 		const liveResult: LiveSearchResult<CalendarEvent> = {
 			searchResult,
-			loadMoreResults: async () => resultItems.slice(initialEvents.length),
-			items: initialEvents,
+			get items() {
+				return resultItems.slice(0, loadedUntil)
+			},
+			loadMoreResults: async (count) => {
+				const oldLoadedUntil = loadedUntil
+				loadedUntil = Math.min(loadedUntil + count, resultItems.length)
+				return resultItems.slice(oldLoadedUntil, loadedUntil)
+			},
 			get hasMoreResults() {
-				return isNotEmpty(resultItems) && initialEvents.length === resultItems.length
+				return isNotEmpty(resultItems) && loadedUntil < lastIndex(resultItems)
 			},
 			updates: stream(),
 			dispose: () => {
@@ -393,7 +409,7 @@ export class SearchModel {
 				liveResult.updates.end(true)
 			},
 			entityEventsReceived: async (updates) => {
-				this.applyEntityUpdates(updates, liveResult, CalendarEventTypeRef)
+				await this.applyEntityUpdates(CalendarEventTypeRef, resultItems, updates, liveResult.updates)
 			},
 		}
 		this.liveResults.push(liveResult)

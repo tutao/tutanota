@@ -10,7 +10,6 @@ import {
 	getElementId,
 	isSameId,
 	isSameTypeRef,
-	ListElement,
 	ListElementEntity,
 	listIdPart,
 	sortCompareByReverseId,
@@ -52,7 +51,7 @@ import { CalendarInfoBase, CalendarModel, isBirthdayCalendarInfo, isCalendarInfo
 import { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
-import { generateCalendarInstancesInRange, retrieveBirthdayEventsForUser } from "../../../common/calendar/date/CalendarUtils.js"
+import { generateCalendarInstancesInRange, isBirthdayCalendar, retrieveBirthdayEventsForUser } from "../../../common/calendar/date/CalendarUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
@@ -325,12 +324,19 @@ export class SearchViewModel {
 							this.applyLiveSearchResults(result)
 							return result
 						})
-					const listModel = this.createList(searchPromise, noOp)
+					const listModel = this.createList(searchPromise, noOp, getElementId)
 					this._listModel = listModel
 					listModel.loadInitial()
+					this.loadAndSelectIfNeeded(args.id)
 					break
 				}
 				case SearchCategoryType.mail: {
+					this._selectedMailField = restriction.field
+					this._startDate = restriction.end ? new Date(restriction.end) : null
+					this._endDate = restriction.start ? new Date(restriction.start) : null
+					this._selectedMailFolder = restriction.folderIds
+					this.latestMailRestriction = restriction
+
 					const searchPromise = this.search
 						.coolNewSearchMails({
 							query: searchQuery ?? "",
@@ -342,12 +348,31 @@ export class SearchViewModel {
 							return result
 						})
 
-					const listModel = this.createList(searchPromise, noOp)
+					const listModel = this.createList(searchPromise, noOp, getElementId)
 					this._listModel = listModel
 					listModel.loadInitial()
+					this.loadAndSelectIfNeeded(args.id)
 					break
 				}
 				case SearchCategoryType.calendar: {
+					this._startDate = restriction.start ? new Date(restriction.start) : null
+					this._endDate = restriction.end ? new Date(restriction.end) : null
+					this._includeRepeatingEvents = restriction.eventSeries ?? true
+					this.latestCalendarRestriction = restriction
+
+					// Check if user is trying to search in a birthday calendar while using a free account
+					const listIdsOrBirthdayCalendarId = this.extractCalendarListIds(restriction.folderIds)
+					if (!listIdsOrBirthdayCalendarId || Array.isArray(listIdsOrBirthdayCalendarId)) {
+						this._selectedCalendar = listIdsOrBirthdayCalendarId
+					} else if (isBirthdayCalendar(listIdsOrBirthdayCalendarId.toString())) {
+						const availableCalendars = this.getAvailableCalendars(true)
+						if (availableCalendars.some(isBirthdayCalendarInfo)) {
+							this._selectedCalendar = listIdsOrBirthdayCalendarId
+						}
+						this._selectedCalendar = null
+						return
+					}
+
 					const restartSearch = () => {
 						this.abortController = new AbortController()
 
@@ -364,10 +389,11 @@ export class SearchViewModel {
 								this.applyLiveSearchResults(result)
 								return result
 							})
-
-						const listModel = this.createList(searchPromise, restartSearch)
+						const listModel = this.createList(searchPromise, restartSearch, encodeCalendarSearchKey)
 						this._listModel = listModel
 						listModel.loadInitial()
+
+						this.loadAndSelectIfNeeded(args.id, (item) => encodeCalendarSearchKey(item.entry as CalendarEvent) === args.id)
 					}
 
 					restartSearch()
@@ -375,7 +401,7 @@ export class SearchViewModel {
 				}
 			}
 		}
-		this.loadAndSelectIfNeeded(args.id)
+
 		// if (searchQuery == null) {
 		// 	// no search query at all yet
 		// 	listModel.updateLoadingStatus(ListLoadingState.Done)
@@ -468,6 +494,8 @@ export class SearchViewModel {
 				case "updateitem":
 					this.listModel.updateLoadedItem(new SearchResultListEntry(update.item))
 					break
+				case "reset":
+					this.listModel.reload()
 			}
 		})
 	}
@@ -479,7 +507,7 @@ export class SearchViewModel {
 		return [listIds[0], listIds[1]]
 	}
 
-	private loadAndSelectIfNeeded(id: string | null, finder?: (a: ListElement) => boolean) {
+	private loadAndSelectIfNeeded(id: string | null, finder?: (a: SearchResultListEntry) => boolean) {
 		// nothing to select
 		if (id == null) {
 			return
@@ -492,7 +520,7 @@ export class SearchViewModel {
 		}
 	}
 
-	private handleLoadAndSelection(id: string, finder: ((a: ListElement) => boolean) | undefined) {
+	private handleLoadAndSelection(id: string, finder: ((a: SearchResultListEntry) => boolean) | undefined) {
 		const listModel = this._listModel
 		let iterations = 0
 		this._listModel.loadAndSelect(finder ?? ((item) => isSameId(getElementId(item), id)), () => listModel !== this._listModel || iterations++ > 10)
@@ -987,7 +1015,11 @@ export class SearchViewModel {
 		return this.search.result()?.tokens ?? []
 	}
 
-	private createList(deferredResult: Promise<LiveSearchResult<SearchableTypes>>, restartSearch: () => unknown): ListModel<SearchResultListEntry, Id> {
+	private createList<T extends SearchableTypes>(
+		deferredResult: Promise<LiveSearchResult<T>>,
+		restartSearch: () => unknown,
+		idExtractor: (entity: T) => Id,
+	): ListModel<SearchResultListEntry, Id> {
 		// the list is recreated every time a new search is performed, but not when the current result is extended
 		// note in case of refactor: the fact that the list updates the URL every time it changes
 		// its state is a major source of complexity and makes everything very order-dependent
@@ -998,6 +1030,7 @@ export class SearchViewModel {
 				let result
 				try {
 					result = await deferredResult
+					initialLoadAborted = false
 				} catch (e) {
 					if (e instanceof CancelledError) {
 						if (initialLoadAborted) {
@@ -1019,7 +1052,7 @@ export class SearchViewModel {
 				return { items: newItems.map((entity) => new SearchResultListEntry(entity)), complete }
 			},
 			getItemId(item: SearchResultListEntry): Id {
-				return getElementId(item)
+				return idExtractor(item.entry as T)
 			},
 			isSameId(id1, id2): boolean {
 				return isSameId(id1, id2)
