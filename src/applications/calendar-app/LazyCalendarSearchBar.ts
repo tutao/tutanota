@@ -35,7 +35,7 @@ export class LazyCalendarSearchBar implements ClassComponent<CalendarSearchBarAt
 					attrs.loadResults({
 						query,
 						maxResults: 10, // FIXME
-						restriction: createRestriction(null, null, [], false),
+						restriction: createRestriction(null, null, [], null),
 					}),
 				selectResult: attrs.selectResult,
 				renderResult: (entry) => [

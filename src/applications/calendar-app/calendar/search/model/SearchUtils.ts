@@ -67,7 +67,7 @@ export function getSearchUrl(
 /**
  * Adjusts the restriction according to the account type if necessary
  */
-export function createRestriction(start: number | null, end: number | null, folderIds: Array<string>, eventSeries: boolean): SearchRestriction {
+export function createRestriction(start: number | null, end: number | null, folderIds: Array<string>, eventSeries: boolean | null): SearchRestriction {
 	return {
 		type: SearchCategoryType.calendar,
 		start: start,

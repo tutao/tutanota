@@ -105,7 +105,7 @@ export class CalendarSearchModel {
 				await calendarModel.loadContactsBirthdays()
 			}
 
-			await calendarModel.loadMonthsIfNeeded(daysInMonths, this.cancelSignal, monitor)
+			await calendarModel.loadMonthsIfNeeded(daysInMonths, new AbortController().signal, monitor)
 			monitor.completed()
 
 			const eventsForDays: ReadonlyMap<number, ReadonlyArray<EventWrapper>> = calendarModel.getDaysToEvents()()

@@ -1,7 +1,7 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { elementIdPart, getElementId, ListElementEntity, listIdPart, OperationType, TypeRef } from "../../../../platform-kit/meta"
-import { assertMainOrNode, isAdminClient, isBrowser, NOTHING_INDEXED_TIMESTAMP } from "../../../../platform-kit/app-env"
+import { assertMainOrNode, CancelledError, isAdminClient, isBrowser, NOTHING_INDEXED_TIMESTAMP } from "../../../../platform-kit/app-env"
 import { DbError } from "../../../common/api/common/error/DbError"
 import { SearchCategoryType, SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import {
@@ -29,7 +29,6 @@ import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/ne
 import { SearchableTypes } from "../view/SearchViewModel"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils"
 import { compareMails } from "../../mail/model/MailUtils"
-import { DriveFile, DriveFolder } from "@tutao/entities/drive"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -239,15 +238,12 @@ export class SearchModel {
 		const monitor: ProgressMonitorInterface = assertNotNull(this.progressTracker.getMonitor(monitorHandle))
 
 		if (abortSignal.aborted) {
-			// FIXME: return empty result
+			throw new CancelledError("search cancelled")
 		}
 
-		const resultIds: IdTuple[] = []
 		const resultItems: CalendarEvent[] = []
 
-		// FIXME: birthdays and shit
-
-		await calendarModel.loadMonthsIfNeeded(daysInMonths, stream(false), monitor)
+		await calendarModel.loadMonthsIfNeeded(daysInMonths, abortSignal, monitor)
 		monitor.completed()
 
 		const daysToEvents = calendarModel.getDaysToEvents()()
@@ -262,7 +258,7 @@ export class SearchModel {
 		const alreadyAdded: Set<string> = new Set()
 
 		if (abortSignal.aborted) {
-			// FIXME: return empty result
+			throw new CancelledError("search cancelled")
 		}
 
 		const followCommonRestrictions = (key: string, event: CalendarEvent): boolean => {
@@ -285,7 +281,6 @@ export class SearchModel {
 			for (const token of tokens) {
 				if (event.summary.toLowerCase().includes(token)) {
 					alreadyAdded.add(key)
-					resultIds.push(event._id)
 					resultItems.push(event)
 					return false
 				}
@@ -313,7 +308,6 @@ export class SearchModel {
 					for (const token of tokens) {
 						if (wrapper.event.summary.toLowerCase().includes(token)) {
 							alreadyAdded.add(key)
-							resultIds.push(wrapper.event._id)
 							resultItems.push(wrapper.event)
 							continue eventLoop
 						}
@@ -325,14 +319,13 @@ export class SearchModel {
 					for (const token of tokens) {
 						if (descriptionToSearch.includes(token)) {
 							alreadyAdded.add(key)
-							resultIds.push(wrapper.event._id)
 							resultItems.push(wrapper.event)
 							continue eventLoop
 						}
 					}
 
 					if (abortSignal.aborted) {
-						// FIXME: return empty result
+						throw new CancelledError("search cancelled")
 					}
 				}
 			}
@@ -340,6 +333,7 @@ export class SearchModel {
 
 		const canLoadBirthdaysCalendar = await calendarModel.canLoadBirthdaysCalendar()
 		if (canLoadBirthdaysCalendar) {
+			await calendarModel.loadContactsBirthdays()
 			const birthdayEvents = Array.from(calendarModel.getBirthdayEvents().values()).flat()
 
 			eventLoop: for (const eventRegistry of birthdayEvents) {
@@ -359,14 +353,13 @@ export class SearchModel {
 				for (const token of tokens) {
 					if (eventRegistry.event.summary.toLowerCase().includes(token)) {
 						alreadyAdded.add(key)
-						resultIds.push(eventRegistry.event._id)
 						resultItems.push(eventRegistry.event)
 						continue eventLoop
 					}
 				}
 
 				if (abortSignal.aborted) {
-					// FIXME: return empty result
+					throw new CancelledError("search cancelled")
 				}
 			}
 		}
@@ -375,7 +368,7 @@ export class SearchModel {
 			// data that is relevant to calendar search
 			matchWordOrder: false,
 			restriction,
-			results: resultIds,
+			results: resultItems.map((item) => item._id),
 			query: query,
 			tokens: tokens.map((t) => {
 				return { token: t, exact: false }
@@ -386,18 +379,13 @@ export class SearchModel {
 			moreResultsEntries: [],
 			lastReadSearchIndexRow: [],
 		}
-
+		const initialEvents = resultItems.slice(0, searchQuery.maxResults ?? resultItems.length)
 		const liveResult: LiveSearchResult<CalendarEvent> = {
 			searchResult,
-			items: resultItems,
-			loadMoreResults: async (count) => {
-				const items: CalendarEvent[] = []
-				// FIXME: not implemented
-
-				return items
-			},
+			loadMoreResults: async () => resultItems.slice(initialEvents.length),
+			items: initialEvents,
 			get hasMoreResults() {
-				return false // FIXME: not implemented
+				return isNotEmpty(resultItems) && initialEvents.length === resultItems.length
 			},
 			updates: stream(),
 			dispose: () => {
@@ -495,7 +483,7 @@ export class SearchModel {
 						await calendarModel.loadContactsBirthdays()
 					}
 
-					await calendarModel.loadMonthsIfNeeded(daysInMonths, this.cancelSignal, monitor)
+					await calendarModel.loadMonthsIfNeeded(daysInMonths, new AbortController().signal, monitor)
 					monitor.completed()
 
 					const eventsForDays = calendarModel.getDaysToEvents()()
@@ -751,12 +739,6 @@ export class SearchModel {
 		}
 
 		return lastQuery.query === query && isSameSearchRestrictionWithRangeExtended(lastQuery.restriction, restriction)
-	}
-
-	sendCancelSignal() {
-		this.cancelSignal(true)
-		this.cancelSignal.end(true)
-		this.cancelSignal = stream(false)
 	}
 }
 

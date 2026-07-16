@@ -221,7 +221,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	private _isNewPaidPlan: boolean = false
 	isCreatingExternalCalendar: boolean = false
 
-	private cancelSignal: Stream<boolean> = stream(false)
+	private abortController: AbortController = new AbortController()
 
 	private calendarColorsMap: (availableCalendars: ReadonlyArray<CalendarInfoBase>) => Map<Id, string>
 
@@ -333,9 +333,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	private _sendCancelSignal() {
-		this.cancelSignal(true)
-		this.cancelSignal.end(true)
-		this.cancelSignal = stream(false)
+		this.abortController.abort()
+		this.abortController = new AbortController()
 	}
 
 	setPreviewedEventId(id: IdTuple | null) {
@@ -407,7 +406,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			if (hasNewPaidPlan) {
 				await this.eventsRepository.loadContactsBirthdays()
 			}
-			await this.loadMonthsIfNeeded([new Date(thisMonthStart), nextMonthDate, previousMonthDate], progressMonitor, this.cancelSignal)
+			await this.loadMonthsIfNeeded([new Date(thisMonthStart), nextMonthDate, previousMonthDate], progressMonitor, this.abortController.signal)
 		} finally {
 			progressMonitor.completed()
 			this.doRedraw()
@@ -843,7 +842,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return this.calendarModel.getCalendarInfosCreateIfNeeded()
 	}
 
-	loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: ProgressMonitorInterface, canceled: Stream<boolean>): Promise<void> {
+	loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: ProgressMonitorInterface, canceled: AbortSignal): Promise<void> {
 		return this.eventsRepository.loadMonthsIfNeeded(daysInMonths, canceled, progressMonitor)
 	}
 
@@ -964,8 +963,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		await importer.import(groupRoot, calendarInfo, parsedEventAlarmTuples, CalendarImporter.classifyImportedEvents, calendarInfo.type)
 	}
 
-	selectSearchResult(searchQuery: SearchQuery, calendarEvent: CalendarEvent) {
-		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, getElementId(calendarEvent))
+	selectSearchResult(searchQuery: SearchQuery, calendarEvent: CalendarEvent | null) {
+		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, calendarEvent ? getElementId(calendarEvent) : null)
 	}
 
 	getSearchResult(searchQuery: SearchQuery): Promise<LiveSearchResult<CalendarEvent>> {

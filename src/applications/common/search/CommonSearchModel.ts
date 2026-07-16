@@ -9,6 +9,4 @@ export interface CommonSearchModel {
 	cancelSignal: Stream<boolean>
 
 	search(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<SearchResult | void>
-
-	sendCancelSignal(): void
 }

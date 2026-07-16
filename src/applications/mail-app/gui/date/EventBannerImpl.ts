@@ -567,7 +567,7 @@ export async function loadEventsAroundInvite(
 	if (forceReload) {
 		await eventsRepository.forceLoadEventsAt(datesToLoad)
 	} else {
-		await eventsRepository.loadMonthsIfNeeded(datesToLoad, stream(false), null)
+		await eventsRepository.loadMonthsIfNeeded(datesToLoad, new AbortController().signal, null)
 	}
 	const events = eventsRepository.getDaysToEvents()() // Short and long events
 

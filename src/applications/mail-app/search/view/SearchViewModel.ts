@@ -16,7 +16,7 @@ import {
 	sortCompareByReverseId,
 	TypeRef,
 } from "../../../../platform-kit/meta"
-import { FULL_INDEXED_TIMESTAMP, isAdminClient, isBrowser, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../platform-kit/app-env"
+import { CancelledError, FULL_INDEXED_TIMESTAMP, isAdminClient, isBrowser, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../platform-kit/app-env"
 import { ListLoadingState, ListState } from "../../../../ui/base/List.js"
 import {
 	assertNotNull,
@@ -32,6 +32,7 @@ import {
 	mapAndFilterNull,
 	memoizedWithHiddenArgument,
 	neverNull,
+	noOp,
 	onceAsync,
 	stringToBase64,
 	YEAR_IN_MILLIS,
@@ -86,6 +87,7 @@ export enum PaidFunctionResult {
 
 export class SearchViewModel {
 	private _listModel: ListModel<SearchResultListEntry, Id>
+	private abortController: AbortController | null = null
 	get listModel(): ListModel<SearchResultListEntry, Id> {
 		return this._listModel
 	}
@@ -310,6 +312,7 @@ export class SearchViewModel {
 		const isNewSearch = currentQuery ? !searchQueryEquals(currentQuery, newQuery) : true
 		if (isNewSearch) {
 			this.searchResult?.dispose()
+			this.abortController?.abort()
 			switch (restriction.type) {
 				case SearchCategoryType.contact: {
 					const searchPromise = this.search
@@ -322,7 +325,7 @@ export class SearchViewModel {
 							this.applyLiveSearchResults(result)
 							return result
 						})
-					const listModel = this.createList(searchPromise)
+					const listModel = this.createList(searchPromise, noOp)
 					this._listModel = listModel
 					listModel.loadInitial()
 					break
@@ -339,32 +342,35 @@ export class SearchViewModel {
 							return result
 						})
 
-					const listModel = this.createList(searchPromise)
+					const listModel = this.createList(searchPromise, noOp)
 					this._listModel = listModel
 					listModel.loadInitial()
 					break
 				}
 				case SearchCategoryType.calendar: {
-					// FIXME
-					const abortSignal = new AbortController().signal
+					const restartSearch = () => {
+						this.abortController = new AbortController()
 
-					const searchPromise = this.search
-						.coolNewSearchCalendar(
-							{
-								query: searchQuery ?? "",
-								restriction,
-								maxResults,
-							},
-							abortSignal,
-						)
-						.then((result) => {
-							this.applyLiveSearchResults(result)
-							return result
-						})
+						const searchPromise = this.search
+							.coolNewSearchCalendar(
+								{
+									query: searchQuery ?? "",
+									restriction,
+									maxResults,
+								},
+								this.abortController.signal,
+							)
+							.then((result) => {
+								this.applyLiveSearchResults(result)
+								return result
+							})
 
-					const listModel = this.createList(searchPromise)
-					this._listModel = listModel
-					listModel.loadInitial()
+						const listModel = this.createList(searchPromise, restartSearch)
+						this._listModel = listModel
+						listModel.loadInitial()
+					}
+
+					restartSearch()
 					break
 				}
 			}
@@ -981,14 +987,28 @@ export class SearchViewModel {
 		return this.search.result()?.tokens ?? []
 	}
 
-	private createList(deferredResult: Promise<LiveSearchResult<SearchableTypes>>): ListModel<SearchResultListEntry, Id> {
+	private createList(deferredResult: Promise<LiveSearchResult<SearchableTypes>>, restartSearch: () => unknown): ListModel<SearchResultListEntry, Id> {
 		// the list is recreated every time a new search is performed, but not when the current result is extended
 		// note in case of refactor: the fact that the list updates the URL every time it changes
 		// its state is a major source of complexity and makes everything very order-dependent
 
+		let initialLoadAborted = false
 		return new ListModel<SearchResultListEntry, Id>({
 			fetch: async (lastFetchedEntity: SearchResultListEntry | null, count: number) => {
-				const result = await deferredResult
+				let result
+				try {
+					result = await deferredResult
+				} catch (e) {
+					if (e instanceof CancelledError) {
+						if (initialLoadAborted) {
+							restartSearch()
+						}
+						initialLoadAborted = true
+						return { items: [], complete: true }
+					} else {
+						throw e
+					}
+				}
 				let newItems
 				if (isNotNull(lastFetchedEntity)) {
 					newItems = await result.loadMoreResults(count)
@@ -1220,7 +1240,7 @@ export class SearchViewModel {
 	}
 
 	sendStopLoadingSignal() {
-		this.search.sendCancelSignal()
+		this.abortController?.abort()
 	}
 
 	dispose() {
@@ -1233,8 +1253,9 @@ export class SearchViewModel {
 		this.listStateSubscription = null
 		this.indexStateSubscription?.end(true)
 		this.indexStateSubscription = null
-		this.search.sendCancelSignal()
+		this.abortController?.abort()
 		this.eventController.removeEntityListener(this.entityEventsListener)
+		this.searchResult?.dispose()
 	}
 
 	getLabelsForMail(mail: Mail): MailSet[] {

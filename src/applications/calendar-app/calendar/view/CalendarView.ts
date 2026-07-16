@@ -1165,17 +1165,10 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				header: m(Header, {
 					firstColWidth: this.sidebarColumn.width,
 					searchBar: () =>
-						// attrs.lazySearchBar({
-						// 	// FIXME
-						// 	searchModel: calendarLocator.search as any,
-						// 	selectResult: () => {
-						// 		// FIXME: update URL
-						// 	},
-						// }),
 						m(LazyCalendarSearchBar, {
 							loadResults: (searchQuery) => this.viewModel.getSearchResult(searchQuery),
 							selectResult: (searchQuery, entry) => {
-								if (entry) this.viewModel.selectSearchResult(searchQuery, entry)
+								this.viewModel.selectSearchResult(searchQuery, entry)
 							},
 							shouldOfferUpgrade: locator.logins.getUserController().isFreeAccount(),
 						}),

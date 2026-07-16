@@ -136,13 +136,13 @@ export class CalendarEventsRepository {
 
 	async loadMonthsIfNeeded(
 		daysInMonths: Array<Date>,
-		canceled: Stream<boolean>,
+		canceled: AbortSignal,
 		progressMonitor: ProgressMonitorInterface | null,
 		calendarToLoad?: string,
 	): Promise<void> {
 		const promiseForThisLoadRequest = this.pendingLoadRequest.then(async () => {
 			for (const dayInMonth of daysInMonths) {
-				if (canceled()) return
+				if (canceled.aborted) return
 
 				const monthRange = getMonthRange(dayInMonth, this.zone)
 				if (!this.loadedMonths.has(monthRange.start) || (calendarToLoad != null && !this.isCalendarLoadedForRange(monthRange.start, calendarToLoad))) {
@@ -402,7 +402,7 @@ export class CalendarEventsRepository {
 			const removedCalendars = this.calendarMemberships.filter((membership) => !updatedMemberships.some((it) => it.group === membership))
 			const dates = Array.from(this.loadedMonths.keys()).map((it) => new Date(it))
 
-			await Promise.all(newCalendars.map((calendar) => this.loadMonthsIfNeeded(dates, stream(false), null, calendar.group)))
+			await Promise.all(newCalendars.map((calendar) => this.loadMonthsIfNeeded(dates, new AbortController().signal, null, calendar.group)))
 			for (const calendar of removedCalendars) {
 				this.removeEventForCalendar(calendar)
 			}
