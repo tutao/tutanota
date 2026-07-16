@@ -45,7 +45,7 @@ import { PublicIdentityKeyProvider } from "../../../../platform-kit/base/base-cr
 import { AutosaveFacade } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import { SpamClassifier } from "../spamClassification/SpamClassifier"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
-import { errorToObj } from "../../../../platform-kit/utils"
+import { assertNotNull, errorToObj } from "../../../../platform-kit/utils"
 import { objToError } from "../../../common/api/common/utils/ErrorUtils"
 import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
 import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorage"
@@ -55,6 +55,12 @@ import { NamedClientModel } from "@tutao/instance-pipeline"
 import { NotAuthenticatedError } from "@tutao/rest-client/error"
 import { RestBinaryBody, RestBodyType, RestTextBody } from "@tutao/rest-client/types"
 import { ImapImporter } from "../imapimport/ImapImporter"
+import { Entity } from "@tutao/meta"
+import { ArchiveDataType } from "../../../../entities/sys/Utils"
+import { UploadProgressInfo } from "../../../../entities/drive/Utils"
+import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
+import { Type } from "cborg"
+import undefined = Type.undefined
 
 assertWorkerOrNode()
 
@@ -103,6 +109,14 @@ export interface WorkerInterface {
 	readonly autosaveFacade: AutosaveFacade
 	readonly driveFacade: DriveFacade
 	readonly imapImporter: ImapImporter
+
+	encryptAndUploadBlobWithReferencingInstance(
+		mainInstance: Entity,
+		archiveDataType: ArchiveDataType,
+		blobData: Uint8Array,
+		ownerGroupId: Id,
+		onChunkUploaded?: (info: UploadProgressInfo) => void,
+	): Promise<BlobReferenceTokenWrapper[]>
 }
 
 type WorkerRequest = Request<WorkerRequestType>
@@ -161,6 +175,18 @@ export class WorkerImpl implements NativeInterface {
 
 	get exposedInterface(): DelayedImpls<WorkerInterface> {
 		return {
+			async encryptAndUploadBlobWithReferencingInstance(
+				mainInstance: Entity,
+				archiveDataType: ArchiveDataType,
+				blobData: Uint8Array,
+				ownerGroupId: Id,
+				onChunkUploaded?: (info: UploadProgressInfo) => void,
+			) {
+				const sessionKey = assertNotNull(await locator.base.crypto.resolveSessionKey(mainInstance))
+				const blobFacade = await locator.blob()
+				const transferId = await blobFacade.generateTransferId()
+				return await blobFacade.encryptAndUpload(archiveDataType, blobData, ownerGroupId, sessionKey, transferId, onChunkUploaded)
+			},
 			async loginFacade() {
 				return locator.base.login
 			},

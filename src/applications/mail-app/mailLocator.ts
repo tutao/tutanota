@@ -166,12 +166,16 @@ import { DriveFilePicker } from "../drive-app/drive/view/DriveFilePicker"
 import { ExposedCacheStorage } from "../../app-kit/local-store/CacheStorage"
 import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../../platform-kit/utils/FileConstants"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
-import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
+import { ArchiveDataType, GroupType, ShareableGroupType } from "../../entities/sys/Utils"
 import { ClientModelInfo } from "../../platform-kit/instance-pipeline/EntityFunctions"
 import { ImapImporter } from "./workerUtils/imapimport/ImapImporter"
 
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
 import type { ImapMailImportController } from "./settings/imapimport/ImapMailImportController"
+import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
+import { Entity } from "@tutao/meta"
+import { UploadProgressInfo } from "../../entities/drive/Utils"
+import { AesKey } from "@tutao/crypto"
 
 assertMainOrNode()
 
@@ -778,6 +782,13 @@ class MailLocator implements CommonLocator {
 	constructor() {
 		this._workerDeferred = defer()
 	}
+	async encryptAndUploadBlobWithReferencingInstance(
+		mainInstance: Entity,
+		archiveDataType: ArchiveDataType,
+		blobData: Uint8Array,
+		ownerGroupId: Id,
+		onChunkUploaded?: (info: UploadProgressInfo) => void,
+	): Promise<BlobReferenceTokenWrapper[]> {}
 
 	async init(clientModelInfo: ClientModelInfo): Promise<void> {
 		this.clientModelInfo = clientModelInfo

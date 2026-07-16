@@ -89,6 +89,10 @@ import { Header } from "../../../../ui/Header"
 import { Router } from "../../../../ui/ScopedThrottledRouter"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { ClientModelInfo } from "@tutao/instance-pipeline"
+import { ArchiveDataType } from "../../../../entities/sys/Utils"
+import { UploadProgressInfo } from "../../../../entities/drive/Utils"
+import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
+import { Entity } from "@tutao/meta"
 
 export interface CommonLocator {
 	clientModelInfo: ClientModelInfo
@@ -210,6 +214,14 @@ export interface CommonLocator {
 	deviceConfig: DeviceConfig
 
 	updateClients(): Promise<void>
+
+	encryptAndUploadBlobWithReferencingInstance(
+		referencingInstance: Entity,
+		archiveDataType: ArchiveDataType,
+		blobData: Uint8Array,
+		ownerGroupId: Id,
+		onChunkUploaded?: (info: UploadProgressInfo) => void,
+	): Promise<BlobReferenceTokenWrapper[]>
 }
 
 export let locator: CommonLocator = new Proxy<CommonLocator>({} as unknown as CommonLocator, {

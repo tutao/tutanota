@@ -134,9 +134,12 @@ import { ExposedCacheStorage } from "../../app-kit/local-store/CacheStorage"
 import { CALENDAR_MIME_TYPE } from "../../platform-kit/utils/FileConstants"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { ClientModelInfo } from "@tutao/instance-pipeline"
-import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
+import { ArchiveDataType, GroupType, ShareableGroupType } from "../../entities/sys/Utils"
 import { KdfType } from "../../platform-kit/base/base-crypto/Constants"
 import { ParsedEventAlarmTuple } from "./calendar/export/CalendarParser"
+import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
+import { Entity } from "@tutao/meta"
+import { UploadProgressInfo } from "../../entities/drive/Utils"
 
 assertMainOrNode()
 
@@ -560,6 +563,16 @@ class CalendarLocator implements CommonLocator {
 
 	constructor() {
 		this._workerDeferred = defer()
+	}
+
+	encryptAndUploadBlobWithReferencingInstance(
+		referencingInstance: Entity,
+		archiveDataType: ArchiveDataType,
+		blobData: Uint8Array,
+		ownerGroupId: Id,
+		onChunkUploaded?: (info: UploadProgressInfo) => void,
+	): Promise<BlobReferenceTokenWrapper[]> {
+		throw new Error("Method not implemented. Use encryptAndUpload on blobFacade directly.")
 	}
 
 	async init(clientModelInfo: ClientModelInfo): Promise<void> {

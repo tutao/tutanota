@@ -122,6 +122,10 @@ import { KdfType } from "../../platform-kit/base/base-crypto/Constants"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
+import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
+import { Entity } from "@tutao/meta"
+import { UploadProgressInfo } from "../../entities/drive/Utils.js"
+import { ArchiveDataType } from "../../entities/sys/Utils.js"
 
 assertMainOrNode()
 
@@ -481,6 +485,15 @@ class DriveLocator implements CommonLocator {
 
 	constructor() {
 		this._workerDeferred = defer()
+	}
+	encryptAndUploadBlobWithReferencingInstance(
+		referencingInstance: Entity,
+		archiveDataType: ArchiveDataType,
+		blobData: Uint8Array,
+		ownerGroupId: Id,
+		onChunkUploaded?: (info: UploadProgressInfo) => void,
+	): Promise<BlobReferenceTokenWrapper[]> {
+		throw new Error("Method not implemented. Use encryptAndUpload on blobFacade directly.")
 	}
 
 	async init(clientModelInfo: ClientModelInfo): Promise<void> {
