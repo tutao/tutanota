@@ -88,6 +88,10 @@ export class MailAddressTableModel {
 		return this.logins.getUserController().isGlobalAdmin()
 	}
 
+	isUserActive(): boolean {
+		return this.userInfo.userGroupInfo.deleted == null
+	}
+
 	aliasLimitIncludesCustomDomains(): boolean {
 		return this.onLegacyPlan
 	}
