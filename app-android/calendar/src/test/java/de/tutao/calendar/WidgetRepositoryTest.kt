@@ -80,8 +80,6 @@ class WidgetRepositoryTest {
 
 	@Before
 	fun setup() {
-		repository = WidgetDataRepository.getInstance()
-
 		mockedDataStore = mock()
 
 		val mockedDatabaseKey: DataWrapper = mock()
@@ -136,7 +134,7 @@ class WidgetRepositoryTest {
 			mockedSdk.login(any())
 		}.doReturn(mockedLoggedInSdk)
 
-		val loadedCalendars = repository.loadCalendars("dummyId", credentialsFacade, mockedSdk)
+		val loadedCalendars = WidgetDataRepository.loadCalendars("dummyId", credentialsFacade, mockedSdk)
 
 		assert(loadedCalendars.size == 2)
 		assert(loadedCalendars.entries.elementAt(0).key == PERSONAL_CALENDAR_ID)
@@ -170,7 +168,7 @@ class WidgetRepositoryTest {
 
 
 		// Act
-		val loadedEvents = repository.loadEvents(
+		val loadedEvents = WidgetDataRepository.loadEvents(
 			mockedDataStore,
 			1,
 			"a",
@@ -220,7 +218,7 @@ class WidgetRepositoryTest {
 
 
 		// Act
-		val loadedEvents = repository.loadEvents(
+		val loadedEvents = WidgetDataRepository.loadEvents(
 			mockedDataStore,
 			1,
 			"a",
@@ -305,7 +303,7 @@ class WidgetRepositoryTest {
 		)
 
 		// Act
-		val cachedCalendar = repository.loadEventsFromCache(
+		val cachedCalendar = WidgetDataRepository.loadEventsFromCache(
 			mockedDataStore,
 			WIDGET_ID,
 			listOf(WORK_CALENDAR_ID, PERSONAL_CALENDAR_ID),
@@ -351,7 +349,7 @@ class WidgetRepositoryTest {
 
 
 		// Act
-		val cachedCalendars = repository.loadEventsFromCache(
+		val cachedCalendars = WidgetDataRepository.loadEventsFromCache(
 			mockedDataStore, WIDGET_ID, listOf(PERSONAL_CALENDAR_ID), mockedUnencryptedCredentials, mockedCryptoFacade
 		)
 

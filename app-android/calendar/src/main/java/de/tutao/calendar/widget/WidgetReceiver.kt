@@ -10,7 +10,6 @@ import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import de.tutao.calendar.widget.data.WidgetDataRepository
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 
@@ -23,8 +22,6 @@ const val WIDGET_CACHE_DATASTORE_FILE = "tuta_calendar_widget_cache"
 
 val Context.widgetDataStore: DataStore<Preferences> by preferencesDataStore(WIDGET_SETTINGS_DATASTORE_FILE)
 val Context.widgetCacheDataStore: DataStore<Preferences> by preferencesDataStore(WIDGET_CACHE_DATASTORE_FILE)
-val Context.widgetDataRepository: WidgetDataRepository
-	get() = WidgetDataRepository.getInstance()
 
 enum class WidgetUpdateTrigger {
 	WORKER,

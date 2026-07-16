@@ -23,24 +23,8 @@ import java.util.Calendar
 import java.util.Date
 import java.util.TimeZone
 
-class WidgetDataRepository private constructor() : WidgetRepository() {
-	companion object {
-		private const val TAG = "WidgetDataRepository"
-
-		@Volatile
-		private var instance: WidgetDataRepository? = null
-
-		fun getInstance(): WidgetDataRepository {
-			if (instance == null) {
-				synchronized(this) {
-					if (instance == null) {
-						instance = WidgetDataRepository()
-					}
-				}
-			}
-			return instance!!
-		}
-	}
+object WidgetDataRepository : WidgetRepository() {
+	private const val TAG = "WidgetDataRepository"
 
 	private suspend fun updateCacheCreationDate(cacheDataStore: DataStore<Preferences>, widgetId: Int, now: Date) {
 		val nowTimestamp = now.time

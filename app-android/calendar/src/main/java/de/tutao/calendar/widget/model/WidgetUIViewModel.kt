@@ -17,7 +17,7 @@ import de.tutao.calendar.widget.data.CalendarEventListDao
 import de.tutao.calendar.widget.data.LastSyncDao
 import de.tutao.calendar.widget.data.SettingsDao
 import de.tutao.calendar.widget.data.UIEvent
-import de.tutao.calendar.widget.data.WidgetRepository
+import de.tutao.calendar.widget.data.WidgetDataRepository
 import de.tutao.calendar.widget.data.WidgetUIData
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorType
@@ -48,7 +48,6 @@ import java.util.Calendar
 import java.util.Date
 
 class WidgetUIViewModel(
-	private val repository: WidgetRepository,
 	private val widgetId: Int,
 	private val credentialsFacade: NativeCredentialsFacade,
 	private val cryptoFacade: AndroidNativeCryptoFacade,
@@ -56,15 +55,12 @@ class WidgetUIViewModel(
 	private val calendar: Calendar,
 	private val birthdayStrings: BirthdayStrings
 ) : ViewModel() {
+	private var TAG = "WidgetUIViewModel"
 	private val _uiState = MutableStateFlow<WidgetUIData?>(null)
 	val uiState: StateFlow<WidgetUIData?> = _uiState.asStateFlow()
 
 	private val _error = MutableStateFlow<WidgetError?>(null)
 	val error: StateFlow<WidgetError?> = _error.asStateFlow()
-
-	companion object {
-		private const val TAG = "WidgetUIViewModel"
-	}
 
 	suspend fun loadUIState(
 		widgetDataStore: DataStore<Preferences>,
@@ -197,13 +193,13 @@ class WidgetUIViewModel(
 		var calendars: List<String> = listOf()
 		var lastSync: LastSyncDao? = null
 		try {
-			settings = repository.loadSettings(widgetDataStore, widgetId) ?: return null
+			settings = WidgetDataRepository.loadSettings(widgetDataStore, widgetId) ?: return null
 			Log.i(TAG, "Widget settings has ${settings.calendars.values.size} calendars")
 
 			settings.calendars.entries.forEach { (calendarId, calendar) ->
 				Log.d(TAG, "$calendarId - ${calendar.name}")
 			}
-			lastSync = repository.loadLastSync(widgetDataStore, widgetId)
+			lastSync = WidgetDataRepository.loadLastSync(widgetDataStore, widgetId)
 			Log.i(TAG, "Widget last sync at $lastSync")
 
 			sdk?.let { sdk -> loadCalendars(widgetDataStore, sdk, settings) }
@@ -277,7 +273,7 @@ class WidgetUIViewModel(
 			try {
 				val loggedInSdk = sdk.login(credentials.toSdkCredentials())
 
-				return repository.loadEvents(
+				return WidgetDataRepository.loadEvents(
 					widgetCacheDataStore,
 					widgetId,
 					settings.userId,
@@ -293,7 +289,7 @@ class WidgetUIViewModel(
 					TAG,
 					"Missing credentials for user ${settings.userId} when trying to load widget content}", e
 				)
-				return repository.loadEventsFromCache(
+				return WidgetDataRepository.loadEventsFromCache(
 					widgetCacheDataStore,
 					widgetId,
 					calendars,
@@ -302,7 +298,7 @@ class WidgetUIViewModel(
 				)
 			} catch (e: Exception) {
 				Log.e(TAG, "Unknown exception occurred", e)
-				return repository.loadEventsFromCache(
+				return WidgetDataRepository.loadEventsFromCache(
 					widgetCacheDataStore,
 					widgetId,
 					calendars,
@@ -311,7 +307,7 @@ class WidgetUIViewModel(
 				)
 			}
 		} else {
-			return repository.loadEventsFromCache(
+			return WidgetDataRepository.loadEventsFromCache(
 				widgetCacheDataStore,
 				widgetId,
 				calendars,
@@ -331,12 +327,12 @@ class WidgetUIViewModel(
 	private suspend fun loadCalendars(widgetDataStore: DataStore<Preferences>, sdk: Sdk, settings: SettingsDao) {
 		try {
 			Log.i(TAG, "Fetching new calendar data from server")
-			val loadedCalendars = repository.loadCalendars(settings.userId, credentialsFacade, sdk)
+			val loadedCalendars = WidgetDataRepository.loadCalendars(settings.userId, credentialsFacade, sdk)
 			Log.i(TAG, "Successfully fetched ${loadedCalendars.size} calendars")
 			for (key in loadedCalendars.keys) {
 				settings.calendars[key]?.color = loadedCalendars[key]?.color ?: continue
 			}
-			repository.storeSettings(widgetDataStore, widgetId, settings)
+			WidgetDataRepository.storeSettings(widgetDataStore, widgetId, settings)
 			Log.i(TAG, "Cached calendar data updated successfully!")
 		} catch (e: LoginException.ApiCall) {
 			// Failed to login into SDK, probably because of connection issues
@@ -365,18 +361,16 @@ class WidgetUIViewModel(
 
 	suspend fun getLoggedInUser(context: Context): String? {
 		try {
-			return repository.loadSettings(context.widgetDataStore, widgetId)?.userId
+			return WidgetDataRepository.loadSettings(context.widgetDataStore, widgetId)?.userId
 		} catch (e: IOException) {
 			WidgetError(e.message ?: "", e.stackTraceToString(), WidgetErrorType.UNEXPECTED)
 			Log.e(
-				WidgetConfigViewModel.TAG,
-				"Error on Data Store while loading Widget Settings: ${e.stackTraceToString()}"
+				TAG, "Error on Data Store while loading Widget Settings: ${e.stackTraceToString()}"
 			)
 		} catch (e: Exception) {
 			_error.value = WidgetError(e.message ?: "", e.stackTraceToString(), WidgetErrorType.UNEXPECTED)
 			Log.e(
-				WidgetConfigViewModel.TAG,
-				"Unexpected error while loading Widget Settings: ${e.stackTraceToString()}"
+				TAG, "Unexpected error while loading Widget Settings: ${e.stackTraceToString()}"
 			)
 		}
 

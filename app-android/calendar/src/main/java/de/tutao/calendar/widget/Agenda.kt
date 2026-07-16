@@ -38,6 +38,7 @@ import de.tutao.calendar.widget.component.ErrorBody
 import de.tutao.calendar.widget.component.LoadingSpinner
 import de.tutao.calendar.widget.component.ScrollableDaysList
 import de.tutao.calendar.widget.data.UIEvent
+import de.tutao.calendar.widget.data.WidgetDataRepository
 import de.tutao.calendar.widget.data.WidgetStateDefinition
 import de.tutao.calendar.widget.data.WidgetUIData
 import de.tutao.calendar.widget.error.WidgetError
@@ -75,11 +76,8 @@ class Agenda : GlanceAppWidget() {
 	override suspend fun onDelete(context: Context, glanceId: GlanceId) {
 		super.onDelete(context, glanceId)
 
-		// We can't access the model from here, only the repository directly
-		val repository = context.widgetDataRepository
-
-		repository.eraseLastSyncForWidget(context, glanceId)
-		repository.eraseSettingsForWidget(context, glanceId)
+		WidgetDataRepository.eraseLastSyncForWidget(context, glanceId)
+		WidgetDataRepository.eraseSettingsForWidget(context, glanceId)
 	}
 
 	override suspend fun provideGlance(context: Context, id: GlanceId) {
@@ -149,7 +147,6 @@ class Agenda : GlanceAppWidget() {
 		)
 
 		val widgetUIViewModel = WidgetUIViewModel(
-			context.widgetDataRepository,
 			appWidgetId,
 			nativeCredentialsFacade,
 			crypto,
