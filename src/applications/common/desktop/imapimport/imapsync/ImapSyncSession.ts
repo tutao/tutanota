@@ -9,6 +9,7 @@ import { ImapError, ImapErrorCause } from "../../../api/common/error/ImapError"
 import type { ImapFlow, ImapFlowOptions, ListTreeResponse } from "imapflow"
 import { IMAP_ERROR_POSTPONE_TIME, ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
 import { assertNotNull, first, isEmpty, isNotEmpty } from "@tutao/utils"
+import { CertificateProvider } from "../../CertificateProvider"
 
 const IMAP_RATE_LIMIT_POSTPONE_TIME: number = 25 * 60 * 60 * 1000 // 25 hours
 const MAX_MAILBOX_FAILURES_THRESHOLD = 2
@@ -51,10 +52,21 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 	constructor(
 		private imapSyncEventListener: ImapSyncEventListener,
+		private certificateProvider: CertificateProvider,
 		private imapSyncConfig: ImapSyncConfig,
 		private imapFlowFactory: ImapFlowFactory = async (config) => {
 			const { ImapFlow } = await import("./imapflow-custom")
-			return new ImapFlow({ ...config, logger: false })
+
+			const certificates = await this.certificateProvider.getCertificates()
+			return new ImapFlow({
+				...config,
+				logger: false,
+				tls: {
+					...config.tls,
+					rejectUnauthorized: true,
+					ca: certificates,
+				},
+			})
 		},
 	) {
 		this.state = SyncSessionState.PAUSED
