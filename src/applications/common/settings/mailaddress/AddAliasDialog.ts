@@ -13,7 +13,7 @@ import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
 import { NewPaidPlans } from "../../../../entities/sys/Utils"
 
-const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
+export const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
 
 export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: boolean) {
 	model.getAvailableDomains().then((domains) => {
