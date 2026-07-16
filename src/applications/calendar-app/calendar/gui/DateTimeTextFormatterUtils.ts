@@ -109,8 +109,8 @@ export function formatEventDuration(event: CalendarEventDateTimeFields, calendar
 			result += " - " + formatDateWithMonth(endTime)
 		}
 	} else {
-		const startTimeZone = resolveStartTimeZone(event, calendarTimeZone)
-		const endTimeZone = resolveEndTimeZone(event, calendarTimeZone)
+		const startTimeZone = includeTimezone ? resolveStartTimeZone(event, calendarTimeZone) : calendarTimeZone
+		const endTimeZone = includeTimezone ? resolveEndTimeZone(event, calendarTimeZone) : calendarTimeZone
 
 		result += formatDateTime(event.startTime, startTimeZone)
 		if (includeTimezone) {
