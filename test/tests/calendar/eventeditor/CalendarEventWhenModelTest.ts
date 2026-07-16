@@ -133,13 +133,26 @@ o.spec("CalendarEventWhenModel", function () {
 				endTime: new Date("2023-04-28T08:57:45.523Z"),
 			})
 
-			o(model.startDate.toISOString()).equals("2023-04-26T22:00:00.000Z")("correct display start date")
-			o(model.endDate.toISOString()).equals("2023-04-27T22:00:00.000Z")("correct display end date")
+			o(model.startDate.getFullYear()).equals(2023)("the display start date did change")
+			o(model.startDate.getMonth()).equals(3)("the display start date did change")
+			o(model.startDate.getDate()).equals(27)("the display start date did change")
+
+			o(model.endDate.getFullYear()).equals(2023)("the display start date did change")
+			o(model.endDate.getMonth()).equals(3)("the display start date did change")
+			o(model.endDate.getDate()).equals(28)("the display start date did change")
+
 			model.shiftEvent({ days: -3, hours: 10 })
 			o(model.startTime.to24HourString()).equals("20:27")("start time updated")
 			o(model.endTime.to24HourString()).equals("20:57")("end time updated")
-			o(model.startDate.toISOString()).equals("2023-04-23T22:00:00.000Z")("the display start date did change")
-			o(model.endDate.toISOString()).equals("2023-04-24T22:00:00.000Z")("the display end date did change")
+
+			o(model.startDate.getFullYear()).equals(2023)("the display start date did change")
+			o(model.startDate.getMonth()).equals(3)("the display start date did change")
+			o(model.startDate.getDate()).equals(24)("the display start date did change")
+
+			o(model.endDate.getFullYear()).equals(2023)("the display start date did change")
+			o(model.endDate.getMonth()).equals(3)("the display start date did change")
+			o(model.endDate.getDate()).equals(25)("the display start date did change")
+
 			const result = model.result
 			o(result.startTime.toISOString()).equals("2023-04-24T18:27:00.000Z")("result start time is correct")
 			o(result.endTime.toISOString()).equals("2023-04-25T18:57:00.000Z")("result end time is correct")
