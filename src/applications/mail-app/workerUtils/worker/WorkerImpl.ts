@@ -60,7 +60,6 @@ import { ArchiveDataType } from "../../../../entities/sys/Utils"
 import { UploadProgressInfo } from "../../../../entities/drive/Utils"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { Type } from "cborg"
-import undefined = Type.undefined
 
 assertWorkerOrNode()
 
@@ -175,18 +174,20 @@ export class WorkerImpl implements NativeInterface {
 
 	get exposedInterface(): DelayedImpls<WorkerInterface> {
 		return {
-			async encryptAndUploadBlobWithReferencingInstance(
-				mainInstance: Entity,
-				archiveDataType: ArchiveDataType,
-				blobData: Uint8Array,
-				ownerGroupId: Id,
-				onChunkUploaded?: (info: UploadProgressInfo) => void,
-			) {
-				const sessionKey = assertNotNull(await locator.base.crypto.resolveSessionKey(mainInstance))
-				const blobFacade = await locator.blob()
-				const transferId = await blobFacade.generateTransferId()
-				return await blobFacade.encryptAndUpload(archiveDataType, blobData, ownerGroupId, sessionKey, transferId, onChunkUploaded)
-			},
+			encryptAndUploadBlobWithReferencingInstance:
+				async () =>
+				async (
+					mainInstance: Entity,
+					archiveDataType: ArchiveDataType,
+					blobData: Uint8Array,
+					ownerGroupId: Id,
+					onChunkUploaded?: (info: UploadProgressInfo) => void,
+				) => {
+					const sessionKey = assertNotNull(await locator.base.crypto.resolveSessionKey(mainInstance))
+					const blobFacade = await locator.blob()
+					const transferId = await blobFacade.generateTransferId()
+					return await blobFacade.encryptAndUpload(archiveDataType, blobData, ownerGroupId, sessionKey, transferId, onChunkUploaded)
+				},
 			async loginFacade() {
 				return locator.base.login
 			},
