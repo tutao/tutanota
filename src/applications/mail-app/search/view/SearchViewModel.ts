@@ -49,6 +49,7 @@ import {
 	createRestriction,
 	decodeCalendarSearchKey,
 	encodeCalendarSearchKey,
+	getFreeSearchStartDate,
 	getRestriction,
 	getSearchUrl,
 	hasMoreResults,
@@ -967,6 +968,12 @@ export class SearchViewModel {
 	}
 
 	private onMailIndexStateChanged(newState: SearchIndexStateInfo): void {
+		// Free users are not permitted to search beyond a certain date; avoid searching beyond this date if the index
+		// extended beyond it
+		const dateLimit = this.canSelectTimePeriod()
+			? newState.currentMailIndexTimestamp
+			: Math.max(newState.currentMailIndexTimestamp, getFreeSearchStartDate().getTime())
+
 		if (
 			isSameTypeRef(MailTypeRef, this.searchedType) &&
 			newState.progress === 0 &&
@@ -975,8 +982,7 @@ export class SearchViewModel {
 			(this._startDate == null || this._startDate.getTime() < newState.currentMailIndexTimestamp)
 		) {
 			// Indexing was cancelled and _startDate is outside the index range
-			const newStartTimestamp =
-				newState.currentMailIndexTimestamp === NOTHING_INDEXED_TIMESTAMP ? getEndOfDay(new Date()) : newState.currentMailIndexTimestamp
+			const newStartTimestamp = newState.currentMailIndexTimestamp === NOTHING_INDEXED_TIMESTAMP ? getEndOfDay(new Date()) : dateLimit
 			this._startDate = new Date(newStartTimestamp)
 		}
 
@@ -984,8 +990,8 @@ export class SearchViewModel {
 		const isCurrentResultComplete = currentResult == null || (this._startDate != null && this._startDate.getTime() > currentResult.currentIndexTimestamp)
 
 		// only extend result when index is extended and result isn't already complete
-		if (!isCurrentResultComplete && currentResult.currentIndexTimestamp > newState.currentMailIndexTimestamp) {
-			void this.search.extendCurrentResult(newState.currentMailIndexTimestamp)
+		if (!isCurrentResultComplete && currentResult.currentIndexTimestamp > dateLimit) {
+			void this.search.extendCurrentResult(dateLimit)
 		}
 	}
 
