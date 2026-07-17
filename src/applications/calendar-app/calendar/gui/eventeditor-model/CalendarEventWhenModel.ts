@@ -109,10 +109,19 @@ export class CalendarEventWhenModel {
 	set isAllDay(value: boolean) {
 		if (this._isAllDay === value) return
 
+		// set start & end times if needed
 		if ((!value && this._startTime == null) || this._endTime == null) {
 			const defaultTimes = getEventWithDefaultTimes()
 			this._startTime = Time.fromDateTime(DateTime.fromJSDate(defaultTimes.startTime, { zone: this.calendarTimeZone }))
 			this._endTime = Time.fromDateTime(DateTime.fromJSDate(defaultTimes.endTime, { zone: this.calendarTimeZone }))
+		}
+
+		// reset time zone if allDay is true (prevents bugs where timezone info is still shown for all day events)
+		if (value) {
+			this.timeZones = {
+				startTimeZone: null,
+				endTimeZone: null,
+			}
 		}
 
 		if (this.repeatRule == null) {
@@ -121,7 +130,6 @@ export class CalendarEventWhenModel {
 			const previousEndDate = this.repeatEndDateForDisplay
 			this._isAllDay = value
 			this.repeatEndDateForDisplay = previousEndDate
-
 			if (value) {
 				// we want to keep excluded dates if all we do is switching between all-day and normal event
 				this.repeatRule.excludedDates = this.repeatRule.excludedDates.map(({ date }) => createDateWrapper({ date: getAllDayDateUTC(date) }))
