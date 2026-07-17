@@ -277,7 +277,7 @@ export class SearchModel {
 						}
 					} else if (isUpdateForTypeRef(ContactTypeRef, update) && this.isPossibleBirthdayContactUpdate(resultItems, update)) {
 						const calendarModel = await this.calendarModel()
-						await calendarModel.handleContactEvent(OperationType.UPDATE, [update.instanceListId, update.instanceId])
+						await calendarModel.handleContactEvent(update.operation, [update.instanceListId, update.instanceId])
 
 						resultItems.splice(0, resultItems.length)
 						const { resultItems: newItems } = await this.runCalendarSearch(searchQuery, abortSignal)

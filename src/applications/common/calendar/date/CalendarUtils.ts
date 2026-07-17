@@ -1,4 +1,4 @@
-import { clone, isSameId, StrippedEntity } from "@tutao/meta"
+import { clone, elementIdPart, isSameId, StrippedEntity } from "@tutao/meta"
 import {
 	AdvancedRepeatRule,
 	CalendarEvent,
@@ -1832,6 +1832,23 @@ export function extractContactIdFromEvent(id: string | null | undefined): string
 	}
 
 	return decodeBase64("utf-8", id)
+}
+
+export function birthdayCalendarEventContactId(id: IdTuple): IdTuple | null {
+	const idParts = elementIdPart(id).split("#")
+	if (idParts.length !== 2) {
+		return null
+	}
+	const [_, encodedContactId] = idParts
+	const contactId = extractContactIdFromEvent(encodedContactId)
+	if (contactId == null) {
+		return null
+	}
+	const contactIdParts = contactId.split("/")
+	if (contactIdParts.length !== 2) {
+		return null
+	}
+	return [contactIdParts[0], contactIdParts[1]]
 }
 
 /**

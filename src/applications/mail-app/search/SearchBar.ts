@@ -228,6 +228,7 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 
 		if (this.shortcuts) keyManager.unregisterShortcuts(this.shortcuts)
 
+		this.clear()
 		this.closeOverlay()
 	}
 
@@ -382,6 +383,7 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 	})
 
 	private clear() {
+		this.state.searchResult?.dispose()
 		this.updateState({
 			query: null,
 			selected: null,

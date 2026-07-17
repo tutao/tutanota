@@ -51,7 +51,12 @@ import { CalendarInfoBase, CalendarModel, isBirthdayCalendarInfo, isCalendarInfo
 import { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
-import { generateCalendarInstancesInRange, isBirthdayCalendar, retrieveBirthdayEventsForUser } from "../../../common/calendar/date/CalendarUtils.js"
+import {
+	birthdayCalendarEventContactId,
+	generateCalendarInstancesInRange,
+	isBirthdayCalendar,
+	retrieveBirthdayEventsForUser,
+} from "../../../common/calendar/date/CalendarUtils.js"
 import { mailLocator } from "../../mailLocator.js"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
@@ -73,7 +78,8 @@ import {
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { DriveFile, DriveFileTypeRef, DriveFolderTypeRef } from "@tutao/entities/drive"
 import Id from "../../../../ui/translations/id"
-import { ListFetchResult } from "../../../../ui/base/ListUtils"
+import { ListFetchResult, onlySingleSelection } from "../../../../ui/base/ListUtils"
+import { isOfflineError, NotFoundError } from "@tutao/rest-client/error"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -94,6 +100,12 @@ export class SearchViewModel {
 	private _includeRepeatingEvents: boolean = true
 	get includeRepeatingEvents(): boolean {
 		return this._includeRepeatingEvents
+	}
+
+	#birthdayContactPreviewData: { id: Id; contact: Contact | null } | null = null
+
+	get birthdayContact(): Contact | null {
+		return this.#birthdayContactPreviewData?.contact ?? null
 	}
 
 	public checkDates(startDate: Date | null, endDate: Date | null): "long" | "extendIndex" | "startafterend" | null {
@@ -400,89 +412,13 @@ export class SearchViewModel {
 					break
 				}
 			}
-		}
 
-		// if (searchQuery == null) {
-		// 	// no search query at all yet
-		// 	listModel.updateLoadingStatus(ListLoadingState.Done)
-		// } else if (this.search.isSameSearchWithExtendedRange(searchQuery, restriction)) {
-		// 	if (restriction.end != null) {
-		// 		this.search.extendCurrentResult(restriction.end).catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
-		// 	}
-		// } else if (this.search.isNewSearch(searchQuery, restriction)) {
-		// 	listModel.updateLoadingStatus(ListLoadingState.Loading)
-		// 	this.search
-		// 		.search(
-		// 			{
-		// 				query: searchQuery,
-		// 				restriction,
-		// 				minSuggestionCount: 0,
-		// 				maxResults,
-		// 			},
-		// 			this.progressTracker,
-		// 		)
-		// 		.then(() => listModel.updateLoadingStatus(ListLoadingState.Idle))
-		// 		.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
-		// }
-		//
-		// switch (restriction.type) {
-		// 	case SearchCategoryType.contact: {
-		// 		this.loadAndSelectIfNeeded(args.id)
-		// 		break
-		// 	}
-		// 	case SearchCategoryType.mail: {
-		// 		this._selectedMailField = restriction.field
-		// 		this._startDate = restriction.end ? new Date(restriction.end) : null
-		// 		this._endDate = restriction.start ? new Date(restriction.start) : null
-		// 		this._selectedMailFolder = restriction.folderIds
-		// 		this.loadAndSelectIfNeeded(args.id)
-		// 		this.latestMailRestriction = restriction
-		// 		break
-		// 	}
-		// 	case SearchCategoryType.calendar: {
-		// 		this._startDate = restriction.start ? new Date(restriction.start) : null
-		// 		this._endDate = restriction.end ? new Date(restriction.end) : null
-		// 		this._includeRepeatingEvents = restriction.eventSeries ?? true
-		// 		this.latestCalendarRestriction = restriction
-		//
-		// 		// Check if user is trying to search in a birthday calendar while using a free account
-		// 		const listIdsOrBirthdayCalendarId = this.extractCalendarListIds(restriction.folderIds)
-		// 		if (!listIdsOrBirthdayCalendarId || Array.isArray(listIdsOrBirthdayCalendarId)) {
-		// 			this._selectedCalendar = listIdsOrBirthdayCalendarId
-		// 		} else if (isBirthdayCalendar(listIdsOrBirthdayCalendarId.toString())) {
-		// 			const availableCalendars = this.getAvailableCalendars(true)
-		// 			if (availableCalendars.some(isBirthdayCalendarInfo)) {
-		// 				this._selectedCalendar = listIdsOrBirthdayCalendarId
-		// 			}
-		// 			this._selectedCalendar = null
-		// 			return
-		// 		}
-		//
-		// 		if (args.id != null) {
-		// 			try {
-		// 				const { start, id } = decodeCalendarSearchKey(args.id)
-		// 				this.loadAndSelectIfNeeded(id, ({ entry }: SearchResultListEntry) => {
-		// 					entry = entry as CalendarEvent
-		// 					return id === getElementId(entry) && start === entry.startTime.getTime()
-		// 				})
-		// 			} catch (err) {
-		// 				console.log("Invalid ID, selecting none")
-		// 				this.listModel.selectNone()
-		// 			}
-		// 		}
-		// 		break
-		// 	}
-		// 	case SearchCategoryType.drive: {
-		// 		this._startDate = restriction.start ? new Date(restriction.start) : null
-		// 		this._endDate = restriction.end ? new Date(restriction.end) : null
-		// 		this.loadAndSelectIfNeeded(args.id)
-		// 	}
-		// }
+			this.listModel.stateStream.map((state) => this.onListStateChange(state))
+		}
 	}
 
 	private applyLiveSearchResults(result: LiveSearchResult<SearchableTypes>) {
 		this.searchResult = result
-		this.listModel.stateStream.map((state) => this.onListStateChange(state))
 		result.updates.map((update) => {
 			switch (update.type) {
 				case "newitem":
@@ -494,8 +430,13 @@ export class SearchViewModel {
 				case "updateitem":
 					this.listModel.updateLoadedItem(new SearchResultListEntry(update.item))
 					break
-				case "reset":
+				case "reset": {
+					const selectedItem = onlySingleSelection(this.listModel.state)
 					this.listModel.reload()
+					if (selectedItem) {
+						this.loadAndSelectIfNeeded(getElementId(selectedItem))
+					}
+				}
 			}
 		})
 	}
@@ -896,47 +837,13 @@ export class SearchViewModel {
 		if (!this.isInSearchResult(typeRef, id) && !isPossibleABirthdayContactUpdate) {
 			return
 		}
-
-		// FIXME
-		// if ((isUpdateForTypeRef(CalendarEventTypeRef, update) && lastType === SearchCategoryType.calendar) || isPossibleABirthdayContactUpdate) {
-		// 	// due to the way calendar event changes are sort of non-local, we throw away the whole list and re-render it if
-		// 	// the contents are edited. we do the calculation on a new list and then swap the old list out once the new one is
-		// 	// ready
-		// 	const selectedItem = this._listModel.getSelectedAsArray().at(0)
-		// 	const listModel = this.createList()
-		// 	this.setMailFilter(this.mailFilterType)
-		// 	this.applyMailFilterIfNeeded()
-		//
-		// 	if (isPossibleABirthdayContactUpdate && (await this.eventsRepository.canLoadBirthdaysCalendar())) {
-		// 		await this.eventsRepository.handleContactEvent(update.operation, [update.instanceListId!, update.instanceId])
-		// 	}
-		//
-		// 	await listModel.loadInitial()
-		// 	if (selectedItem != null) {
-		// 		if (isPossibleABirthdayContactUpdate && this.isSelectedEventAnUpdatedBirthday(update)) {
-		// 			// We must invalidate the selected item to refresh the contact preview
-		// 			this.listModel.selectNone()
-		// 		}
-		// 		await listModel.loadAndSelect(elementIdPart(selectedItem._id), () => false)
-		// 	}
-		// 	this._listModel = listModel
-		// 	this.listStateSubscription?.end(true)
-		// 	this.listStateSubscription = this._listModel.stateStream.map((state) => this.onListStateChange(state))
-		// 	this.updateSearchUrl()
-		// 	this.updateUi()
-		// 	return
-		// }
-		//
-		// await this._listModel.entityEventReceived(instanceListId!, instanceId, operation)
-		// // run the mail or contact update after the update on the list is finished to avoid parallel loading
-		// if (operation === OperationType.UPDATE && this._listModel?.isItemSelected(elementIdPart(id))) {
-		// 	try {
-		// 		await this.entityClient.load(typeRef, id)
-		// 		this.updateUi()
-		// 	} catch (e) {
-		// 		// ignore. might happen if a mail was just sent
-		// 	}
-		// }
+		if (isUpdateForTypeRef(ContactTypeRef, update) && this.#birthdayContactPreviewData?.id === update.instanceId) {
+			const updatedContact = await this.entityClient.load(ContactTypeRef, [update.instanceListId, update.instanceId])
+			if (getElementId(updatedContact) === this.#birthdayContactPreviewData.id) {
+				this.#birthdayContactPreviewData.contact = updatedContact
+				this.updateUi()
+			}
+		}
 	}
 
 	readonly getSelectedMails: () => readonly Mail[] = memoizedWithHiddenArgument(
@@ -976,6 +883,8 @@ export class SearchViewModel {
 
 	private onListStateChange(newState: ListState<SearchResultListEntry>) {
 		if (this.searchedType === SearchCategoryType.mail && !newState.inMultiselect && newState.selectedItems.size === 1) {
+			this.#birthdayContactPreviewData = null
+
 			const mail = this.getSelectedMails()[0]
 
 			// Sometimes a stale state is passed through, resulting in no mail
@@ -990,6 +899,37 @@ export class SearchViewModel {
 				}
 			} else {
 				this._conversationViewModel = null
+			}
+		} else if (this.searchedType === SearchCategoryType.calendar) {
+			this._conversationViewModel = null
+
+			const selectedEvent = onlySingleSelection(newState)
+			if (selectedEvent == null) {
+				this.#birthdayContactPreviewData = null
+			} else {
+				const contactId = birthdayCalendarEventContactId(selectedEvent._id)
+				if (contactId == null) {
+					this.#birthdayContactPreviewData = null
+				} else {
+					this.#birthdayContactPreviewData = { id: elementIdPart(contactId), contact: null }
+					this.entityClient
+						.load(ContactTypeRef, contactId)
+						.then((contact) => {
+							if (this.#birthdayContactPreviewData?.id === elementIdPart(contactId)) {
+								this.#birthdayContactPreviewData.contact = contact
+								this.updateUi()
+							}
+						})
+						.catch((e) => {
+							if (isOfflineError(e)) {
+								// no-op
+							} else if (e instanceof NotFoundError) {
+								this.#birthdayContactPreviewData = null
+							} else {
+								throw e
+							}
+						})
+				}
 			}
 		} else {
 			this._conversationViewModel = null

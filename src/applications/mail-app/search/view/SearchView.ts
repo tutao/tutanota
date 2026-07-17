@@ -152,15 +152,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}).load(),
 	)
 
-	private getContactPreviewData = memoized((id: string) =>
-		new LazyLoaded(async () => {
-			const idParts = id.split("/")
-			const contact = await this.contactModel.loadContactFromId([idParts[0], idParts[1]])
-			m.redraw()
-			return contact
-		}).load(),
-	)
-
 	constructor(vnode: Vnode<SearchViewAttrs>) {
 		super()
 		this.searchViewModel = vnode.attrs.makeViewModel()
@@ -914,40 +905,14 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			: null
 	}
 
-	private invalidateBirthdayPreview() {
-		if (getCurrentSearchMode() !== SearchCategoryType.calendar) {
-			return
-		}
-
-		const selectedEvent = this.searchViewModel.getSelectedEvents()[0]
-		if (!selectedEvent || !isBirthdayEvent(selectedEvent.uid)) {
-			return
-		}
-
-		const idParts = selectedEvent._id[1].split("#")
-		const contactId = extractContactIdFromEvent(last(idParts))
-		if (!contactId) {
-			return
-		}
-
-		this.getContactPreviewData(contactId).reload().then(m.redraw)
-	}
-
 	private renderEventPreview(event: CalendarEvent): Children {
-		if (isBirthdayEvent(event.uid)) {
-			const idParts = event._id[1].split("#")
-
-			const contactId = extractContactIdFromEvent(last(idParts))
-			if (contactId != null && this.getContactPreviewData(contactId).isLoaded()) {
-				return this.renderContactPreview(this.getContactPreviewData(contactId).getSync()!)
-			}
-
-			return null
+		if (this.searchViewModel.birthdayContact) {
+			return this.renderContactPreview(this.searchViewModel.birthdayContact)
 		} else if (this.getSanitizedPreviewData(event).isLoaded()) {
 			return this.renderEventDetails(event)
+		} else {
+			return null
 		}
-
-		return null
 	}
 
 	private renderContactPreview(contact: Contact): Children {
@@ -1304,8 +1269,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		) {
 			this.viewSlider.focusPreviousColumn()
 		}
-		this.invalidateBirthdayPreview()
-
 		// redraw because init() is async
 		m.redraw()
 	}
