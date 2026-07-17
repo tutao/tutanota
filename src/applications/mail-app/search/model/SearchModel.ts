@@ -1,6 +1,6 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { elementIdPart, getElementId, ListElementEntity, listIdPart, OperationType, TypeRef } from "../../../../platform-kit/meta"
+import { elementIdPart, getElementId, isSameId, ListElementEntity, listIdPart, OperationType, TypeRef } from "../../../../platform-kit/meta"
 import { assertMainOrNode, CancelledError, isAdminClient, isBrowser, NOTHING_INDEXED_TIMESTAMP } from "../../../../platform-kit/app-env"
 import { DbError } from "../../../common/api/common/error/DbError"
 import { SearchCategoryType, SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
@@ -153,19 +153,19 @@ export class SearchModel {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(typeRef, update)) {
 				if (update.operation === OperationType.DELETE) {
-					const contactIndex = items.findIndex((mail) => getElementId(mail) === update.instanceId)
-					if (contactIndex !== -1) {
-						const [mail] = items.splice(contactIndex, 1)
-						sendUpdate({ type: "deleteitem", item: mail })
+					const index = items.findIndex((mail) => getElementId(mail) === update.instanceId)
+					if (index !== -1) {
+						const [item] = items.splice(index, 1)
+						sendUpdate({ type: "deleteitem", item: item })
 					}
 				} else if (update.operation === OperationType.UPDATE) {
-					const contactIndex = items.findIndex((mail) => getElementId(mail) === update.instanceId)
+					const index = items.findIndex((mail) => getElementId(mail) === update.instanceId)
 					// surprisingly hard to convince ts that this is the correct id type
 					const instanceIdTuple = [update.instanceListId, update.instanceId] as unknown as PropertyType<T, "_id">
-					const updatedContact = await this.entityClient.load<T>(typeRef, instanceIdTuple)
-					if (contactIndex !== -1) {
-						items.splice(contactIndex, 1, updatedContact)
-						sendUpdate({ type: "updateitem", item: updatedContact })
+					const updatedItem = await this.entityClient.load<T>(typeRef, instanceIdTuple)
+					if (index !== -1) {
+						items.splice(index, 1, updatedItem)
+						sendUpdate({ type: "updateitem", item: updatedItem })
 					}
 				}
 				// FIXME: the rest of updates
@@ -225,6 +225,66 @@ export class SearchModel {
 	}
 
 	async coolNewSearchCalendar(searchQuery: SearchQuery, abortSignal: AbortSignal): Promise<LiveSearchResult<CalendarEvent>> {
+		const { tokens, resultItems } = await this.runCalendarSearch(searchQuery, abortSignal)
+
+		const searchResult: SearchResult = {
+			// data that is relevant to calendar search
+			matchWordOrder: false,
+			restriction: searchQuery.restriction,
+			results: resultItems.map((item) => item._id),
+			query: searchQuery.query,
+			tokens: tokens.map((t) => {
+				return { token: t, exact: false }
+			}),
+			// index related, keep empty
+			currentIndexTimestamp: 0,
+			moreResults: [],
+			moreResultsEntries: [],
+			lastReadSearchIndexRow: [],
+		}
+		let loadedUntil = Math.min(searchQuery.maxResults ?? resultItems.length, resultItems.length)
+		// const initialEvents = resultItems.slice(0, searchQuery.maxResults ?? resultItems.length)
+		const liveResult: LiveSearchResult<CalendarEvent> = {
+			searchResult,
+			get items() {
+				return resultItems.slice(0, loadedUntil)
+			},
+			loadMoreResults: async (count) => {
+				const oldLoadedUntil = loadedUntil
+				loadedUntil = Math.min(loadedUntil + count, resultItems.length)
+				return resultItems.slice(oldLoadedUntil, loadedUntil)
+			},
+			get hasMoreResults() {
+				return isNotEmpty(resultItems) && loadedUntil < lastIndex(resultItems)
+			},
+			updates: stream(),
+			dispose: () => {
+				remove(this.liveResults, liveResult)
+				liveResult.updates.end(true)
+			},
+			entityEventsReceived: async (updates) => {
+				for (const update of updates) {
+					if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
+						const updateId: IdTuple = [update.instanceListId, update.instanceId]
+						const isItemInList = resultItems.some((item) => isSameId(updateId, item._id))
+						if (isItemInList) {
+							resultItems.splice(0, resultItems.length)
+							const { resultItems: newItems } = await this.runCalendarSearch(searchQuery, abortSignal)
+							resultItems.push(...newItems)
+							searchResult.results = resultItems.map((item) => item._id)
+							liveResult.updates({ type: "reset" })
+						}
+					}
+				}
+
+				//await this.applyEntityUpdates(CalendarEventTypeRef, resultItems, updates, liveResult.updates)
+			},
+		}
+		this.liveResults.push(liveResult)
+		return liveResult
+	}
+
+	private async runCalendarSearch(searchQuery: SearchQuery, abortSignal: AbortSignal): Promise<{ tokens: string[]; resultItems: CalendarEvent[] }> {
 		const calendarModel = await this.calendarModel()
 
 		const query = searchQuery.query
@@ -372,48 +432,7 @@ export class SearchModel {
 				}
 			}
 		}
-
-		const searchResult: SearchResult = {
-			// data that is relevant to calendar search
-			matchWordOrder: false,
-			restriction,
-			results: resultItems.map((item) => item._id),
-			query: query,
-			tokens: tokens.map((t) => {
-				return { token: t, exact: false }
-			}),
-			// index related, keep empty
-			currentIndexTimestamp: 0,
-			moreResults: [],
-			moreResultsEntries: [],
-			lastReadSearchIndexRow: [],
-		}
-		let loadedUntil = Math.min(searchQuery.maxResults ?? resultItems.length, resultItems.length)
-		// const initialEvents = resultItems.slice(0, searchQuery.maxResults ?? resultItems.length)
-		const liveResult: LiveSearchResult<CalendarEvent> = {
-			searchResult,
-			get items() {
-				return resultItems.slice(0, loadedUntil)
-			},
-			loadMoreResults: async (count) => {
-				const oldLoadedUntil = loadedUntil
-				loadedUntil = Math.min(loadedUntil + count, resultItems.length)
-				return resultItems.slice(oldLoadedUntil, loadedUntil)
-			},
-			get hasMoreResults() {
-				return isNotEmpty(resultItems) && loadedUntil < lastIndex(resultItems)
-			},
-			updates: stream(),
-			dispose: () => {
-				remove(this.liveResults, liveResult)
-				liveResult.updates.end(true)
-			},
-			entityEventsReceived: async (updates) => {
-				await this.applyEntityUpdates(CalendarEventTypeRef, resultItems, updates, liveResult.updates)
-			},
-		}
-		this.liveResults.push(liveResult)
-		return liveResult
+		return { tokens, resultItems }
 	}
 
 	async search(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<SearchResult | void> {
