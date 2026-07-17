@@ -12,8 +12,15 @@ import { Time } from "../../../../src/applications/common/calendar/date/Time.js"
 import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
 
 import { createDateWrapper, createRepeatRule, DateWrapperTypeRef, RepeatRuleTypeRef } from "@tutao/entities/sys"
+import { getTimeZone } from "../../../../src/applications/common/calendar/date/CalendarUtils"
 
-o.spec("CalendarEventWhenModel", function () {
+const TEST_NAME = "CalendarEventWhenModel"
+o.spec(TEST_NAME, function () {
+	if (getTimeZone() !== "Europe/Berlin") {
+		console.info(`Skipping time zone dependent test "${TEST_NAME}" for zone ${getTimeZone()}`)
+		return
+	}
+
 	const getModelBerlin = (initialValues: Partial<CalendarEvent>) => new CalendarEventWhenModel(initialValues, "Europe/Berlin", noOp)
 
 	const getModelKrasnoyarsk = (initialValues: Partial<CalendarEvent>) => new CalendarEventWhenModel(initialValues, "Asia/Krasnoyarsk", noOp)
