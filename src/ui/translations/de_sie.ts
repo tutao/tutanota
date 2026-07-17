@@ -2416,5 +2416,6 @@ export default {
 		"migrationCertificateError_msg": "The mail server’s identity could not be verified. This could be because the server uses a self-signed certificate, or an attacker is trying to intercept your connection. If you trust this server, you can connect anyway, or you can provide your own certificate file to verify its identity. How do you want to proceed?",
 		"migrationIgnoreCertificateErrors_action": "Connect anyway",
 		"migrationUploadCustomCertificate_action": "Select certificate file",
+		"parentLabel_label": "parent label",
 	}
 }

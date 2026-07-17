@@ -16,7 +16,7 @@ import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxMod
 import { locator } from "../../../common/api/main/CommonLocator"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
 import { styles } from "../../../../ui/styles"
-import { layout_size, px, size } from "../../../../ui/size"
+import { layout_size, px } from "../../../../ui/size"
 import {
 	getConversationTitle,
 	LabelsPopupOpts,
@@ -66,13 +66,6 @@ import { showSnackBar } from "../../../../ui/base/SnackBar.js"
 import { getFolderName } from "../model/MailUtils.js"
 import { canDoDragAndDropExport, editDraft, getMailViewerMoreActions, MailFilterType, showReportPhishingMailDialog, startExport } from "./MailViewerUtils.js"
 import { isDraft, isMailMovable, isSpamOrTrashFolder } from "../model/MailChecks.js"
-import { showEditLabelDialog } from "./EditLabelDialog"
-import { SidebarSectionRow } from "../../../../ui/base/SidebarSectionRow"
-import { attachDropdown } from "../../../../ui/base/Dropdown"
-import { ButtonSize } from "../../../../ui/base/ButtonSize"
-import { RowButton } from "../../../../ui/base/buttons/RowButton"
-import { getLabelColor } from "../../../../ui/base/Label.js"
-import { MAIL_PREFIX } from "../../../../ui/utils/RouteChange"
 import { DropData, DropType, FileDropData, FolderDropData, getDetachedDropdownBounds, MailDropData } from "../../../../ui/base/GuiUtils"
 import { fileListToArray } from "../../../../ui/utils/FileUtils.js"
 import { UserError } from "../../../common/api/main/UserError"
@@ -82,13 +75,16 @@ import { MailViewerViewModel } from "./MailViewerViewModel"
 import { MoveMode } from "../model/MailModel"
 import { UndoModel } from "../../UndoModel"
 import { PosRect } from "../../../../ui/utils/PosRect"
-import { Mail, MailBox, MailSet } from "@tutao/entities/tutanota"
+import { Mail, MailSet } from "@tutao/entities/tutanota"
 import { MailReportType, MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { elementIdPart, elementIdToId, getElementId, isSameId, isSameSingleId } from "../../../../platform-kit/meta"
 import { getMailFolderType, isFolder, isFolderReadOnly } from "../MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { ExpanderPanel } from "../../../../ui/base/Expander"
+import { MailLabelsView } from "./MailLabelsView"
+import { showEditLabelDialog } from "./EditLabelDialog"
+import { ButtonSize } from "../../../../ui/base/ButtonSize"
 
 assertMainOrNode()
 
@@ -1145,7 +1141,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailGroupId))
 				}),
 				mailLocator.mailModel.canManageLabels()
-					? this.renderMailboxLabelItems(mailboxDetail, inEditMode, () => {
+					? this.createMailboxLabelFolderItems(mailboxDetail, inEditMode, () => {
 							EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailGroupId))
 						})
 					: null,
@@ -1204,6 +1200,55 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			inEditMode,
 			onEditMailbox,
 		})
+	}
+
+	private createMailboxLabelFolderItems(mailboxDetail: MailboxDetail, inEditMode: boolean, onEditMailbox: () => void): Children {
+		return m(MailLabelsView, {
+			mailModel: mailLocator.mailModel,
+			mailboxDetail,
+			expandedLabels: this.expandedMailSets,
+			mailLabelElementIdToSelectedMailId: this.mailViewModel.getMailFolderToSelectedMail(),
+			onLabelClick: () => {
+				if (!inEditMode) {
+					this.viewSlider.focus(this.listColumn)
+				}
+			},
+			onLabelExpanded: (folder, state) => this.setExpandedMailSetState(folder, state),
+			onShowLabelAddEditDialog: (...args) => this.showLabelFolderAddEditDialog(this.mailViewModel, ...args),
+			onDeleteCustomMailLabel: (folder) => this.showLabelDeleteDialog(folder),
+			onLabelDrop: (dropData: DropData, label) => {
+				if (dropData.dropType === DropType.Mail) {
+					this.handleLabelMailDrop(dropData, label)
+				} else if (dropData.dropType === DropType.Folder) {
+					this.handleLabelInLabelDrop(dropData, label)
+				}
+			},
+			inEditMode,
+			onEditMailbox,
+		})
+	}
+
+	private async handleLabelInLabelDrop(dropData: FolderDropData, targetLabel: MailSet) {
+		if (
+			// cannot set label as its own parent
+			isSameSingleId(dropData.folderId, getElementId(targetLabel))
+		) {
+			return
+		}
+
+		const labelFolderSystem = mailLocator.mailModel.getLabelFolderSystemByGroupId(assertNotNull(targetLabel._ownerGroup))
+		if (labelFolderSystem == null) return
+
+		const labelToMove = labelFolderSystem.getFolderById(dropData.folderId)
+		if (labelToMove == null) {
+			// label is likely in a different mailbox
+			return
+		}
+
+		const isTargetDescendent =
+			labelFolderSystem.getDescendantFoldersOfParent(labelToMove._id)?.find((descendant) => isSameId(targetLabel._id, descendant.folder._id)) != null
+		if (isTargetDescendent) return
+		await mailLocator.mailFacade.updateLabel(labelToMove, labelToMove.name, assertNotNull(labelToMove.color), targetLabel._id)
 	}
 
 	private setExpandedMailSetState(folder: MailSet, currentExpansionState: boolean) {
@@ -1493,12 +1538,9 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		await showEditFolderDialog(mailboxDetail, folder, parentFolder)
 	}
 
-	private async showLabelAddDialog(mailbox: MailBox) {
-		await showEditLabelDialog(mailbox, this.mailViewModel, null)
-	}
-
-	private async showLabelEditDialog(label: MailSet) {
-		await showEditLabelDialog(null, this.mailViewModel, label)
+	private async showLabelFolderAddEditDialog(mailViewModel: MailViewModel, mailGroupId: Id, label: MailSet | null, parentFolder: MailSet | null) {
+		const mailboxDetail = await locator.mailboxModel.getMailboxDetailsForMailGroup(mailGroupId)
+		await showEditLabelDialog(mailboxDetail, mailViewModel, label, parentFolder)
 	}
 
 	private async showLabelDeleteDialog(label: MailSet) {
@@ -1510,97 +1552,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		if (!confirmed) return
 		await this.mailViewModel.deleteLabel(label)
 	}
-
-	private renderMailboxLabelItems(mailboxDetail: MailboxDetail, inEditMode: boolean, onEditMailbox: () => void): Children {
-		return [
-			m(
-				SidebarSection,
-				{
-					name: "labels_label",
-					button: inEditMode ? this.renderAddLabelButton(mailboxDetail) : this.renderEditMailboxButton(onEditMailbox),
-				},
-				[
-					m(".flex.col", [
-						Array.from(mailLocator.mailModel.getLabelsByGroupId(elementIdToId(mailboxDetail.mailGroup._id)).values())
-							.sort((labelA, labelB) => labelA.name.localeCompare(labelB.name))
-							.map((label) => {
-								const path = `${MAIL_PREFIX}/${getElementId(label)}`
-
-								return m(SidebarSectionRow, {
-									icon: Icons.LabelFilled,
-									iconColor: getLabelColor(label.color),
-									label: lang.makeTranslation(`folder:${label.name}`, label.name),
-									path,
-									isSelectedPrefix: inEditMode ? false : path,
-									disabled: inEditMode,
-									onClick: () => {
-										if (!inEditMode) {
-											this.viewSlider.focus(this.listColumn)
-										}
-									},
-									dropHandler: (dropData: DropData) => {
-										if (dropData.dropType === DropType.Mail) {
-											this.handleLabelMailDrop(dropData, label)
-										}
-									},
-									alwaysShowMoreButton: inEditMode,
-									moreButton: attachDropdown({
-										mainButtonAttrs: {
-											icon: Icons.More,
-											title: "more_label",
-										},
-										childAttrs: async () => [
-											{
-												label: "edit_action",
-												icon: Icons.PenFilled,
-												click: () => {
-													this.showLabelEditDialog(label)
-												},
-											},
-											{
-												label: "delete_action",
-												icon: Icons.TrashFilled,
-												click: () => {
-													this.showLabelDeleteDialog(label)
-												},
-											},
-										],
-									}),
-								})
-							}),
-					]),
-				],
-			),
-			m(RowButton, {
-				label: "addLabel_action",
-				icon: Icons.Plus,
-				class: "folder-row mlr-8 border-radius-4",
-				style: {
-					width: `calc(100% - ${px(size.spacing_8 * 2)})`,
-				},
-				onclick: () => {
-					this.showLabelAddDialog(mailboxDetail.mailbox)
-				},
-			}),
-		]
-	}
-
 	private renderEditMailboxButton(onEditMailbox: () => unknown) {
 		return m(IconButton, {
 			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
 			title: "edit_action",
 			click: onEditMailbox,
-		})
-	}
-
-	private renderAddLabelButton(mailboxDetail: MailboxDetail) {
-		return m(IconButton, {
-			title: "addLabel_action",
-			icon: Icons.Plus,
-			click: () => {
-				this.showLabelAddDialog(mailboxDetail.mailbox)
-			},
 		})
 	}
 }

@@ -69,7 +69,7 @@ export function isPermanentDeleteAllowedForFolder(mailSet: MailSet) {
 }
 
 export function isNestableMailSet(mailSet: MailSet): boolean {
-	return mailSet.folderType === MailSetKind.CUSTOM
+	return mailSet.folderType === MailSetKind.CUSTOM || mailSet.folderType === MailSetKind.LABEL
 }
 
 export function isVisibleSystemMailSet(mailSet: MailSet): boolean {
