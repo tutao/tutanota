@@ -146,18 +146,24 @@ export class IncomingServerJson implements DeepEquals {
 		return this.getValueById(attributeId)
 	}
 
+	private getAssociation<A>(attrId: AttributeId): Array<A> {
+		const assoc = assertNotNull(this.typeModel.associations[attrId], `Attribute: ${attrId} is not an association of this type`)
+		return assertNotNull(
+			this.json[attrId],
+			`Association ${assoc.name} does not exists in type: ${this.typeModel.app}/${this.typeModel.name}.. \n. ${JSON.stringify(this.json)}`,
+		)
+	}
+
 	getAggregationList(attrId: AttributeId, aggregatedTypeModel: ServerTypeModel): Array<IncomingServerJson> {
-		const aggregationArray = this.json[attrId] as Array<Record<string, any>>
-		assertNotNull(aggregationArray, `Aggregation: ${attrId} is not present in JSON string`)
-		return aggregationArray.map((j) => new IncomingServerJson(j, aggregatedTypeModel))
+		return this.getAssociation<Record<string, any>>(attrId).map((j) => new IncomingServerJson(j, aggregatedTypeModel))
 	}
 
 	getIdList(attrId: AttributeId): Array<Id> {
-		return assertNotNull(this.json[attrId])
+		return this.getAssociation<Id>(attrId)
 	}
 
 	getIdTupleList(attrId: AttributeId): Array<IdTuple> {
-		return assertNotNull(this.json[attrId])
+		return this.getAssociation<IdTuple>(attrId)
 	}
 
 	getTypeRef(): TypeRef<Entity> {

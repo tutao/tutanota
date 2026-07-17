@@ -2,7 +2,7 @@ import type { DesktopConfig } from "../config/DesktopConfig"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
 import { DesktopConfigKey } from "@tutao/app-env"
 import type { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
-import { assertNotNull, base64ToUint8Array, findAllAndRemove, Nullable, promiseMap, uint8ArrayToBase64 } from "../../../../platform-kit/utils"
+import { assertNotNull, base64ToUint8Array, findAllAndRemove, isEmpty, Nullable, promiseMap, uint8ArrayToBase64 } from "../../../../platform-kit/utils"
 import { log } from "../DesktopLog"
 import { AesKey, base64ToKey, decryptKey, keyToBase64, uint8ArrayToKey } from "@tutao/crypto"
 import { EncryptedParsedInstance, InstancePipeline } from "../../../../platform-kit/instance-pipeline"
@@ -159,10 +159,12 @@ export class DesktopAlarmStorage {
 	}
 
 	async _saveAlarms(alarms: ReadonlyArray<EncryptedParsedInstance>): Promise<void> {
-		const rawAlarms: Array<StoredAlarm> = await promiseMap(alarms, (alarm) =>
-			this.alarmStorageInstancePipeline.typeMapper.makeServerJson(alarm).then((r) => r.getJsonRepresentation()),
+		const rawAlarms = await promiseMap(
+			alarms,
+			async (alarm) => await this.alarmStorageInstancePipeline.typeMapper.makeServerJson(alarm.changeDirectionForEncryptedAlarmNotification()),
 		)
-		return this.conf.setVar(DesktopConfigKey.scheduledAlarms, rawAlarms)
+		const rawAlarmsAsString: StoredAlarm = OutgoingServerJson.getJsonRepresentationOfMultiple(rawAlarms)
+		return this.conf.setVar(DesktopConfigKey.scheduledAlarms, rawAlarmsAsString)
 	}
 
 	async _readAlarms(): Promise<Array<EncryptedParsedInstance>> {
@@ -171,11 +173,11 @@ export class DesktopAlarmStorage {
 		// to be able to decrypt & map these we need to at least add a plausible value there
 		// we'll unschedule, redownload and reschedule the fixed instances after login.
 		const rawAlarms: Nullable<StoredAlarm> = await this.conf.getVar(DesktopConfigKey.scheduledAlarms)
-		if (rawAlarms == null || rawAlarms.length === 0) {
+		if (rawAlarms == null || (Array.isArray(rawAlarms) && isEmpty(rawAlarms))) {
 			return []
 		}
 		const alarmNotificationTypeModel = await this.alarmStorageInstancePipeline.typeModelResolver.resolveServerTypeReference(AlarmNotificationTypeRef)
-		const incomingJsons = IncomingServerJson.expectMultipleInstance(JSON.stringify(rawAlarms), alarmNotificationTypeModel)
+		const incomingJsons = IncomingServerJson.expectMultipleInstance(rawAlarms, alarmNotificationTypeModel)
 		return await Promise.all(incomingJsons.map((json) => this.alarmStorageInstancePipeline.typeMapper.parseServerJson(json)))
 	}
 

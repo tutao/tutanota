@@ -1,5 +1,6 @@
 import {
 	AssociationReprType,
+	AssociationType,
 	AttributeId,
 	AttributeModel,
 	AttributeName,
@@ -50,7 +51,7 @@ import {
 	VersionedKey,
 } from "@tutao/crypto"
 import { EntityAdapter } from "./EntityAdapter.js"
-import { User, WebsocketLeaderStatus } from "@tutao/entities/sys"
+import { AlarmNotificationTypeRef, User, WebsocketLeaderStatus } from "@tutao/entities/sys"
 import { OwnerKeyProvider } from "./PatchMerger"
 import { ModelMapper } from "./ModelMapper"
 import { InstanceDirection, ParsedValue } from "./ParsedValue"
@@ -402,11 +403,10 @@ export class CryptoMapper {
 export type EncryptedParsedValue = ParsedValue<EncryptedParsedInstance>
 
 export class EncryptedParsedInstance implements DeepEquals {
-	private readonly parsedInstance: Map<AttributeId, EncryptedParsedValue> = new Map()
-
 	private constructor(
 		private readonly typeModel: TypeModel,
 		private readonly direction: InstanceDirection,
+		private readonly parsedInstance: Map<AttributeId, EncryptedParsedValue> = new Map(),
 	) {}
 
 	public getTypeRef(): TypeRef<unknown> {
@@ -484,6 +484,34 @@ export class EncryptedParsedInstance implements DeepEquals {
 			case IdType.IdTuple:
 				return this.addAttributeByName("_id", ParsedValue.fromIdTuple(parsedValue.asIdTuple()))
 		}
+	}
+
+	/**
+	 * This method is needed to artificially change the InstanceDirection on for AlarmNotifications. Otherwise the
+	 * TypeMapper will throw expecting the wrong direction.
+	 */
+	public changeDirectionForEncryptedAlarmNotification(): EncryptedParsedInstance {
+		assert(
+			isSameTypeRef(new TypeRef(this.typeModel.app, this.typeModel.id), AlarmNotificationTypeRef),
+			"This method is intended to make DesktopAlarmNotification storage work",
+		)
+		return this._makeOutgoingEncryptedAlarmNotification()
+	}
+
+	private _makeOutgoingEncryptedAlarmNotification(): EncryptedParsedInstance {
+		// note: it is intentionally that we disregard this.instanceDirection and make it Incoming,
+		// so that typeMapper can convert it into serverJson
+		const alwaysOutgoing = new EncryptedParsedInstance(this.typeModel, InstanceDirection.OutgoingToServer, this.parsedInstance)
+		for (const assoc of Object.values(this.typeModel.associations)) {
+			if (assoc.type === AssociationType.Aggregation) {
+				const aggregations = alwaysOutgoing
+					.getAttributeById(assoc.id)
+					.asNestedObjList()
+					.map((agg) => agg._makeOutgoingEncryptedAlarmNotification())
+				alwaysOutgoing.addAttributeById(assoc.id, ParsedValue.fromNestedItems(aggregations))
+			}
+		}
+		return alwaysOutgoing
 	}
 
 	deepEquals(other: this): boolean {
