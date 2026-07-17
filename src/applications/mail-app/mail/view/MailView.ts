@@ -88,6 +88,8 @@ import { getElementId, isSameId } from "../../../../platform-kit/meta"
 import { getMailFolderType, isFolder, isFolderReadOnly } from "../MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
+import { MailLabelsView } from "./MailLabelsView"
+import { showEditLabelFolderDialog } from "./EditLabelFolderDialog"
 
 assertMainOrNode()
 
@@ -1140,8 +1142,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					this.createMailboxFolderItems(mailboxDetail, inEditMode, () => {
 						EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailboxDetail.mailGroup._id))
 					}),
+					//FIXME: Remove one of the label renders and the associated code.
 					mailLocator.mailModel.canManageLabels()
 						? this.renderMailboxLabelItems(mailboxDetail, inEditMode, () => {
+								EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailboxDetail.mailGroup._id))
+							})
+						: null,
+					mailLocator.mailModel.canManageLabels()
+						? this.createMailboxLabelFolderItems(mailboxDetail, inEditMode, () => {
 								EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailboxDetail.mailGroup._id))
 							})
 						: null,
@@ -1171,6 +1179,30 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					this.handleFolderMailDrop(dropData, folder)
 				} else if (dropData.dropType === DropType.ExternalFile) {
 					this.handeFolderFileDrop(dropData, mailboxDetail, folder)
+				}
+			},
+			inEditMode,
+			onEditMailbox,
+		})
+	}
+
+	private createMailboxLabelFolderItems(mailboxDetail: MailboxDetail, inEditMode: boolean, onEditMailbox: () => void): Children {
+		return m(MailLabelsView, {
+			mailModel: mailLocator.mailModel,
+			mailboxDetail,
+			expandedLabels: this.expandedState,
+			mailLabelElementIdToSelectedMailId: this.mailViewModel.getMailFolderToSelectedMail(),
+			onLabelClick: () => {
+				if (!inEditMode) {
+					this.viewSlider.focus(this.listColumn)
+				}
+			},
+			onLabelExpanded: (folder, state) => this.setExpandedState(folder, state),
+			onShowLabelAddEditDialog: (...args) => this.showLabelFolderAddEditDialog(this.mailViewModel, ...args),
+			onDeleteCustomMailLabel: (folder) => this.showLabelDeleteDialog(folder),
+			onLabelDrop: (dropData: DropData, label) => {
+				if (dropData.dropType === DropType.Mail) {
+					this.handleLabelMailDrop(dropData, label)
 				}
 			},
 			inEditMode,
@@ -1454,6 +1486,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private async showFolderAddEditDialog(mailGroupId: Id, folder: MailSet | null, parentFolder: MailSet | null) {
 		const mailboxDetail = await locator.mailboxModel.getMailboxDetailsForMailGroup(mailGroupId)
 		await showEditFolderDialog(mailboxDetail, folder, parentFolder)
+	}
+
+	private async showLabelFolderAddEditDialog(mailViewModel: MailViewModel, mailGroupId: Id, label: MailSet | null, parentFolder: MailSet | null) {
+		const mailboxDetail = await locator.mailboxModel.getMailboxDetailsForMailGroup(mailGroupId)
+		await showEditLabelFolderDialog(mailboxDetail, mailViewModel, label, parentFolder)
 	}
 
 	private async showLabelAddDialog(mailbox: MailBox) {

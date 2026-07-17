@@ -15,7 +15,7 @@ export class FolderSystem {
 	readonly customSubtrees: ReadonlyArray<FolderSubtree>
 	readonly importedMailSet: Readonly<MailSet | null>
 
-	constructor(mailSets: readonly MailSet[]) {
+	constructor(mailSets: readonly MailSet[], topLevelCustomFolderKind = MailSetKind.CUSTOM) {
 		const mailsetByParent = groupBy(mailSets, (mailSet) => (mailSet.parentFolder ? elementIdPart(mailSet.parentFolder) : null))
 		const systemMailSets: MailSet[] = []
 		const topLevelCustomFolders: MailSet[] = []
@@ -23,7 +23,7 @@ export class FolderSystem {
 		for (const mailSet of mailSets) {
 			if (isVisibleSystemMailSet(mailSet)) {
 				systemMailSets.push(mailSet)
-			} else if (mailSet.folderType === MailSetKind.CUSTOM && isTopLevelMailSet(mailSet)) {
+			} else if (mailSet.folderType === topLevelCustomFolderKind && isTopLevelMailSet(mailSet)) {
 				topLevelCustomFolders.push(mailSet)
 			}
 		}

@@ -2394,5 +2394,6 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"migrationImapNetworkDiscoveryFailure": "We have failed to fetch the imap configuration.\nPlease check if your network allows connections to {url}",
+		"parentLabel_label": "parent label",
 	}
 }

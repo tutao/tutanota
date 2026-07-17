@@ -1213,7 +1213,7 @@ export class MailFacade {
 	/**
 	 * Create a label (aka MailSet aka {@link MailSet} of kind {@link MailSetKind.LABEL}) for the group {@param mailGroupId}.
 	 */
-	async createLabel(mailGroupId: Id, labelData: { name: string; color: string }) {
+	async createLabel(mailGroupId: Id, labelData: { name: string; color: string; parentLabelId?: IdTuple }) {
 		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
 		const sk = aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
@@ -1227,6 +1227,7 @@ export class MailFacade {
 				data: createManageLabelServiceLabelData({
 					name: labelData.name,
 					color: labelData.color,
+					parentFolder: labelData.parentLabelId ? labelData.parentLabelId : null,
 				}),
 			}),
 			{
@@ -1243,10 +1244,11 @@ export class MailFacade {
 	 * @param name possible new name for label
 	 * @param color possible new color for label
 	 */
-	async updateLabel(label: MailSet, name: string, color: string) {
+	async updateLabel(label: MailSet, name: string, color: string, parentFolderId?: IdTuple) {
 		if (name !== label.name || color !== label.color) {
 			label.name = name
 			label.color = color
+			label.parentFolder = parentFolderId || null
 			await this.entityClient.update(label)
 		}
 	}
