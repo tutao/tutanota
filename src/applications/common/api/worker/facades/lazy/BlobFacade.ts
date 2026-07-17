@@ -23,7 +23,7 @@ import {
 	uint8ArrayToString,
 } from "@tutao/utils"
 import { assertWorkerOrNode, CancelledError, isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
-import { AttributeModel, ServerModelUntypedInstance, SomeEntity } from "@tutao/meta"
+import { AttributeModel, Entity, ServerModelUntypedInstance, SomeEntity } from "@tutao/meta"
 import { _encryptBytes, aesDecrypt, aesEncrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto"
 import type { FileUri, NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
 import type { AesApp } from "../../../../../../app-kit/native-bridge/worker/AesApp.js"
@@ -829,6 +829,20 @@ export class BlobFacade {
 		} else {
 			throw handleRestError(statusCode, ` | ${HttpMethod.POST} ${fullUrl.toString()} failed to natively upload blob`, errorId, precondition)
 		}
+	}
+
+	/**
+	 * Encrypt and upload a blob using the referencing instance to resolve the session key.
+	 *
+	 * @param mainInstance used to resolve session key
+	 * @param archiveDataType
+	 * @param blobData
+	 * @param ownerGroupId
+	 */
+	async encryptAndUploadBlobWithReferencingInstance(mainInstance: Entity, archiveDataType: ArchiveDataType, blobData: Uint8Array, ownerGroupId: Id) {
+		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(mainInstance))
+		const transferId = await this.generateTransferId()
+		return await this.encryptAndUpload(archiveDataType, blobData, ownerGroupId, sessionKey, transferId)
 	}
 
 	async abortUpload(transferId: TransferId) {
