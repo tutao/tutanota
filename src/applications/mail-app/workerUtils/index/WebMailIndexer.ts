@@ -14,8 +14,10 @@ import {
 import {
 	deconstructMailSetEntryId,
 	elementIdPart,
+	elementIdToId,
 	getElementId,
 	hasError,
+	idToElementId,
 	isSameId,
 	ListElementEntity,
 	OperationType,
@@ -31,15 +33,15 @@ import { isDraft } from "../../mail/model/MailChecks.js"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { ProgressMonitor } from "../../../../platform-kit/network/ProgressMonitorInterface"
-import { MailSetKind } from "../../../../entities/tutanota/Utils"
+import { FileImportStatus, ImapFolderSyncStatus, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { isFolder } from "../../mail/MailUtils"
 import { User } from "@tutao/entities/sys"
 import {
 	File,
+	ImapFolderSyncStateTypeRef,
 	ImportedFileMailTypeRef,
 	ImportedImapMailTypeRef,
 	ImportFileMailStateTypeRef,
-	ImapFolderSyncStateTypeRef,
 	Mail,
 	MailBox,
 	MailboxGroupRootTypeRef,
@@ -50,7 +52,6 @@ import {
 	MailSetTypeRef,
 	MailTypeRef,
 } from "@tutao/entities/tutanota"
-import { ImapFolderSyncStatus, FileImportStatus } from "../../../../entities/tutanota/Utils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { abortAware, MailIndexer, MailIndexerNewMailDownloader } from "./MailIndexer"
 
@@ -134,7 +135,7 @@ export class WebMailIndexer implements MailIndexer {
 	}
 
 	async init(user: User): Promise<void> {
-		this._backend = this.backendFactory(user._id)
+		this._backend = this.backendFactory(elementIdToId(user._id))
 		this._mailIndexingEnabled = await this.backend.isMailIndexingEnabled()
 		await this.updateCurrentIndexTimestamp(user)
 		this.initialized.resolve()
@@ -148,8 +149,8 @@ export class WebMailIndexer implements MailIndexer {
 			// group data is not available if group has been added. group will be indexed after login.
 			const groupTimestamp = timestamps.get(mailGroupId)
 			if (groupTimestamp) {
-				const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, mailGroupId)
-				const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
+				const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))
+				const mailbox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailboxGroupRoot.mailbox))
 				// if nothing was indexed set highest (read: later) end to be the beginning of tomorrow so that
 				// the entirety of today is included.
 				const newestTimestamp = groupTimestamp === NOTHING_INDEXED_TIMESTAMP ? this._dateProvider.getStartOfDayShiftedBy(1).getTime() : groupTimestamp
@@ -560,8 +561,8 @@ export class WebMailIndexer implements MailIndexer {
 			return []
 		}
 
-		const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, assertNotNull(importMailState._ownerGroup))
-		const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
+		const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, idToElementId(assertNotNull(importMailState._ownerGroup)))
+		const mailbox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailboxGroupRoot.mailbox))
 		const mailSets = await this.loadMailSets(mailbox)
 		const importedMailSet = assertNotNull(mailSets.find((mailSet) => mailSet.folderType === MailSetKind.IMPORTED))
 
@@ -584,9 +585,9 @@ export class WebMailIndexer implements MailIndexer {
 
 		for (const event of events) {
 			if (isUpdateForTypeRef(ImportFileMailStateTypeRef, event)) {
-				await this.processImportStateEntityEvents(event.operation, [event.instanceListId, event.instanceId], MailImportType.FileImport)
+				await this.processImportStateEntityEvents(event.operation, [assertNotNull(event.instanceListId), event.instanceId], MailImportType.FileImport)
 			} else if (isUpdateForTypeRef(ImapFolderSyncStateTypeRef, event)) {
-				await this.processImportStateEntityEvents(event.operation, [event.instanceListId, event.instanceId], MailImportType.ImapImport)
+				await this.processImportStateEntityEvents(event.operation, [assertNotNull(event.instanceListId), event.instanceId], MailImportType.ImapImport)
 			}
 		}
 	}

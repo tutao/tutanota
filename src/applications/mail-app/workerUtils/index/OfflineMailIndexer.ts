@@ -28,7 +28,7 @@ import {
 	EntityIdEncoding,
 	firstBiggerThanSecondBase64Ext,
 	GENERATED_MAX_ID,
-	getElementId,
+	getElementId, idToElementId,
 	listIdPart,
 	ServerTypeModel,
 } from "@tutao/meta"
@@ -192,8 +192,8 @@ export class OfflineMailIndexer implements MailIndexer {
 			let indexedMailboxes = 0
 			for (const group of mailGroupsToAdd) {
 				const baseProgress = indexedMailboxes / totalMailboxes
-				const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, group)
-				const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
+				const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, idToElementId(group))
+				const mailbox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailboxGroupRoot.mailbox))
 				const data = assertNotNull(mailGroupData.get(group))
 
 				await this.indexMailbox(data, mailbox, async (mailboxProgress, newMailsIndexed) => {

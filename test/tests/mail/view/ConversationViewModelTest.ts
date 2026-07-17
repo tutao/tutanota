@@ -265,8 +265,8 @@ o.spec("ConversationViewModel", function () {
 
 			const mailsDisplayed = viewModel.conversationItems().filter((i) => isSameTypeRef(i.type_ref, MailTypeRef))
 			o.check(sameAsConversation(mailsDisplayed)).equals(true)(
-				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => `[${ci.entryId[0]}, ${ci.entryId[1]}]`).join(", ")}, should be ${conversation
-					.map((ce) => `[${ce._id[0]}, ${ce._id[1]}]`)
+				`Wrong mails in conversation, got ${mailsDisplayed.map((ci) => stringifyId(ci.entryId)).join(", ")}, should be ${conversation
+					.map((ce) => stringifyId(ce._id))
 					.join(", ")}`,
 			)
 		})

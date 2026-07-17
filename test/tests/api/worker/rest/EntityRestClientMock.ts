@@ -8,9 +8,7 @@ import {
 	elementIdPart,
 	elementIdToId,
 	firstBiggerThanSecond,
-	getElementId,
 	getIdOfInstance,
-	getListId,
 	getServerIdEncodingForType,
 	idToElementId,
 	isSameId,
@@ -23,14 +21,15 @@ import {
 	Type,
 	TypeRef,
 } from "../../../../../src/platform-kit/meta"
-import { _verifyType, LoggedInUserProvider, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
+import { ensureIsPersistentType, LoggedInUserProvider, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
-import { downcast, isNotNull, Nullable } from "../../../../../src/platform-kit/utils"
+import { assertNotNull, downcast, isNotNull, Nullable } from "../../../../../src/platform-kit/utils"
 import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { EntityRestClient } from "../../../../../src/platform-kit/network/EntityRestClient"
 import { object } from "testdouble"
 import { SymmetricEncryptionScheme } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClientLoadOptions } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
+import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
 
 const authDataProvider: LoggedInUserProvider = downcast({
 	createAuthHeaders(): Dict {
@@ -44,10 +43,10 @@ const authDataProvider: LoggedInUserProvider = downcast({
 	},
 })
 
+type TypeRefString = string
 export class EntityRestClientMock extends EntityRestClient {
-	_entities: Record<Id, ElementEntity | Error> = {}
-	_listEntities: Record<Id, Record<Id, ListElementEntity | Error>> = {}
-	_blobEntities: Record<Id, Record<Id, BlobElementEntity | Error>> = {}
+	_entities: Record<TypeRefString, Record<Id, ElementEntity | Error>> = {}
+	_listEntities: Record<TypeRefString, Record<Id, Record<Id, ListElementEntity | BlobElementEntity | Error>>> = {}
 	_lastIdTimestamp: number
 	private _typeModelResolver: TypeModelResolver
 	private updatedInstances: PersistentEntity[] = []
@@ -76,58 +75,45 @@ export class EntityRestClientMock extends EntityRestClient {
 	}
 
 	addElementInstances(...instances: Array<ElementEntity>) {
-		for (const instance of instances) this._entities[elementIdToId(instance._id)] = instance
+		for (const instance of instances) {
+			const typeRefString = instance._type.toString()
+			if (this._entities[typeRefString] == null) this._entities[typeRefString] = {}
+			this._entities[typeRefString][elementIdToId(instance._id)] = instance
+		}
 	}
 
 	addListInstances(...instances: Array<ListElementEntity>) {
 		for (const instance of instances) {
-			if (!this._listEntities[getListId(instance)]) this._listEntities[getListId(instance)] = {}
-			this._listEntities[getListId(instance)][getElementId(instance)] = instance
+			const typeRefString = instance._type.toString()
+			const listId = listIdPart(instance._id)
+			if (!this._listEntities[typeRefString]) this._listEntities[typeRefString] = {}
+			if (!this._listEntities[typeRefString][listId]) this._listEntities[typeRefString][listId] = {}
+			this._listEntities[typeRefString][listId][elementIdPart(instance._id)] = instance
 		}
 	}
 
 	addBlobInstances(...instances: Array<BlobElementEntity>) {
-		for (const instance of instances) {
-			if (!this._blobEntities[getListId(instance)]) this._blobEntities[getListId(instance)] = {}
-			this._blobEntities[getListId(instance)][getElementId(instance)] = instance
-		}
+		return this.addListInstances(...instances)
 	}
 
-	setElementException(id: Id, error: Error) {
-		this._entities[id] = error
+	setListElementException(typeRef: TypeRef<ListElementEntity>, id: IdTuple, error: Error) {
+		const typeRefString = typeRef.toString()
+		if (!this._listEntities[typeRefString]) this._listEntities[typeRefString] = {}
+		if (!this._listEntities[typeRefString][listIdPart(id)]) this._listEntities[typeRefString][listIdPart(id)] = {}
+		this._listEntities[typeRefString][listIdPart(id)][elementIdPart(id)] = error
 	}
 
-	setListElementException(id: IdTuple, error: Error) {
-		if (!this._listEntities[listIdPart(id)]) this._listEntities[listIdPart(id)] = {}
-		this._listEntities[listIdPart(id)][elementIdPart(id)] = error
+	setBlobElementException(typeRef: TypeRef<BlobElementEntity>, id: IdTuple, error: Error) {
+		this.setListElementException(typeRef, id, error)
 	}
 
-	setBlobElementException(id: IdTuple, error: Error) {
-		if (!this._blobEntities[listIdPart(id)]) this._blobEntities[listIdPart(id)] = {}
-		this._blobEntities[listIdPart(id)][elementIdPart(id)] = error
-	}
-
-	_getListEntry(listId: Id, elementId: Id): ListElementEntity | null | undefined {
-		if (!this._listEntities[listId]) {
-			throw new restError.NotFoundError(`Not list ${listId}`)
+	_getListEntry(typeRef: TypeRef<ListElementEntity>, listId: Id, elementId: Id): ListElementEntity | null | undefined {
+		const typeRefString = typeRef.toString()
+		if (this._listEntities[typeRefString] == null || this._listEntities[typeRefString][listId] == null) {
+			throw new restError.NotFoundError(`Not list ${typeRefString}/${listId}`)
 		}
 		try {
-			return this._handleMockElement(this._listEntities[listId][elementId], [listId, elementId])
-		} catch (e) {
-			if (e instanceof restError.NotFoundError) {
-				return null
-			} else {
-				throw e
-			}
-		}
-	}
-
-	_getBlobEntry(listId: Id, elementId: Id): ListElementEntity | null | undefined {
-		if (!this._blobEntities[listId]) {
-			throw new restError.NotFoundError(`Not list ${listId}`)
-		}
-		try {
-			return this._handleMockElement(this._blobEntities[listId][elementId], [listId, elementId])
+			return this._handleMockElement(this._listEntities[typeRefString][listId][elementId], [listId, elementId])
 		} catch (e) {
 			if (e instanceof restError.NotFoundError) {
 				return null
@@ -138,13 +124,13 @@ export class EntityRestClientMock extends EntityRestClient {
 	}
 
 	async load<T extends PersistentEntity>(
-		_typeRef: TypeRef<T>,
+		typeRef: TypeRef<T>,
 		id: T["_id"],
 		_opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<T> {
 		const [listId, elementId] = id
 		if (isNotNull(listId)) {
-			const listElement = this._getListEntry(listId, elementId)
+			const listElement = this._getListEntry(typeRef as TypeRef<ListElementEntity>, listId, elementId)
 
 			if (listElement == null) {
 				throw new restError.NotFoundError(`List element ${listId} ${elementId} not found`)
@@ -152,14 +138,13 @@ export class EntityRestClientMock extends EntityRestClient {
 			return downcast<T>(listElement)
 		} else {
 			//element request
-			return this._handleMockElement(this._entities[elementIdToId(id)], id)
+			return this._handleMockElement(this._entities[typeRef.toString()][elementIdToId(id)], id)
 		}
 	}
 
 	async loadRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
-		let entriesForListId = this._listEntities[listId]
-		if (!entriesForListId) return []
-		let filteredIds
+		const entriesForListId = (this._listEntities[typeRef.toString()] ?? {})[listId] ?? {}
+		let filteredIds: Array<Id>
 
 		const typeModel = await this._typeModelResolver.resolveClientTypeReference(typeRef)
 		const idEncoding = getServerIdEncodingForType(typeModel)
@@ -174,51 +159,48 @@ export class EntityRestClientMock extends EntityRestClient {
 				.filter((id) => firstBiggerThanSecond(id, start, idEncoding))
 		}
 
-		return filteredIds.map((id) => this._handleMockElement(entriesForListId[id], id))
+		return filteredIds.map((id) => this._handleMockElement(entriesForListId[id], idToElementId(id)))
 	}
 
 	async loadMultiple<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null | undefined, elementIds: Array<Id>): Promise<Array<T>> {
 		const lid = listId
+		const typeModel = await this._typeModelResolver.resolveClientTypeReference(typeRef)
 
-		if (lid) {
-			const typeModel = await this._typeModelResolver.resolveClientTypeReference(typeRef)
-			if (typeModel.type === Type.ListElement.valueOf()) {
+		switch (typeModel.type) {
+			case Type.Element: {
+				const entities = this._entities[typeRef.toString()] ?? {}
 				return elementIds
 					.map((id) => {
-						return downcast(this._getListEntry(lid, id))
-					})
-					.filter(Boolean)
-			} else {
-				return elementIds
-					.map((id) => {
-						return downcast(this._getBlobEntry(lid, id))
-					})
-					.filter(Boolean)
-			}
-		} else {
-			return elementIds
-				.map((id) => {
-					try {
-						return this._handleMockElement(this._entities[id], idToElementId(id))
-					} catch (e) {
-						if (e instanceof restError.NotFoundError) {
-							return null
-						} else {
-							throw e
+						try {
+							return this._handleMockElement(entities[id], idToElementId(id))
+						} catch (e) {
+							if (e instanceof restError.NotFoundError) {
+								return null
+							} else {
+								throw e
+							}
 						}
-					}
-				})
-				.filter(Boolean)
+					})
+					.filter(isNotNull)
+			}
+			case Type.BlobElement:
+			case Type.ListElement: {
+				return elementIds.map((id) => downcast<T>(this._getListEntry(typeRef as TypeRef<ListElementEntity>, assertNotNull(lid), id))).filter(isNotNull)
+			}
+			case Type.Aggregated:
+			case Type.DataTransfer: {
+				throw new ProgrammingError("aggregated/dataTransfer are not to be requested")
+			}
 		}
 	}
 
 	async erase<T extends PersistentEntity>(instance: T): Promise<void> {
 		const typeModel = await this._typeModelResolver.resolveClientTypeReference(instance._type)
-		_verifyType(typeModel)
+		ensureIsPersistentType(typeModel)
 
 		const ids = getIdOfInstance(instance, typeModel)
 
-		this._handleDelete(ids.id, ids.listId)
+		this._handleDelete(instance._type, ids.id, ids.listId)
 		return Promise.resolve()
 	}
 
@@ -228,7 +210,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 
 		const typeModel = await this._typeModelResolver.resolveClientTypeReference(instances[0]._type)
-		_verifyType(typeModel)
+		ensureIsPersistentType(typeModel)
 
 		this._handleDeleteMultiple(
 			instances.map((it) => getIdOfInstance(it, typeModel).id),
@@ -275,19 +257,18 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	_handleDelete(id: Id | null | undefined, listId: Id | null | undefined) {
+	_handleDelete(typeRef: TypeRef<PersistentEntity>, id: Id | null | undefined, listId: Id | null | undefined) {
 		if (id && listId) {
-			if (this._getListEntry(listId, id)) {
-				delete this._listEntities[listId][id]
+			if (this._getListEntry(typeRef as TypeRef<ListElementEntity>, listId, id)) {
+				delete this._listEntities[typeRef.toString()][listId][id]
 			} else {
 				throw new restError.NotFoundError(`List element ${listId} ${id} not found`)
 			}
 		} else if (id) {
-			if (this._entities[id]) {
-				delete this._listEntities[id]
-			} else {
+			if (this._entities[typeRef.toString()] == null || this._entities[typeRef.toString()][id] == null) {
 				throw new restError.NotFoundError(`Element ${id} not found`)
 			}
+			delete this._entities[typeRef.toString()][id]
 		} else {
 			throw new Error("Illegal arguments for DELETE")
 		}

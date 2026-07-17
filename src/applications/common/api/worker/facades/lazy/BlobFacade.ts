@@ -23,7 +23,7 @@ import {
 	uint8ArrayToString,
 } from "@tutao/utils"
 import { assertWorkerOrNode, CancelledError, isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
-import { PersistentEntity } from "@tutao/meta"
+import { BlobElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
 import { _encryptBytes, aesDecrypt, aesEncrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto"
 import type { FileUri, NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
 import type { AesApp } from "../../../../../../app-kit/native-bridge/worker/AesApp.js"
@@ -890,7 +890,12 @@ export class BlobFacade {
 	 * @param blobData
 	 * @param ownerGroupId
 	 */
-	async encryptAndUploadBlobWithReferencingInstance(mainInstance: Entity, archiveDataType: ArchiveDataType, blobData: Uint8Array, ownerGroupId: Id) {
+	async encryptAndUploadBlobWithReferencingInstance(
+		mainInstance: PersistentEntity,
+		archiveDataType: ArchiveDataType,
+		blobData: Uint8Array,
+		ownerGroupId: Id,
+	) {
 		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(mainInstance))
 		const transferId = await this.generateTransferId()
 		return await this.encryptAndUpload(archiveDataType, blobData, ownerGroupId, sessionKey, transferId)

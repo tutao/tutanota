@@ -378,7 +378,7 @@ export class ServerModelInfo {
 	}
 }
 
-export function _verifyType(typeModel: ClientTypeModel) {
+export function ensureIsPersistentType(typeModel: ClientTypeModel) {
 	if (typeModel.type !== Type.Element && typeModel.type !== Type.ListElement && typeModel.type !== Type.BlobElement) {
 		throw new Error("only Element, ListElement and BlobElement types are permitted, was: " + typeModel.type)
 	}

@@ -18,6 +18,7 @@ import {
 	GENERATED_MIN_ID,
 	getElementId,
 	getListId,
+	idToElementId,
 	listIdPart,
 	ServerTypeModel,
 } from "../../../../../src/platform-kit/meta"
@@ -99,7 +100,7 @@ o.spec("OfflineMailIndexer", () => {
 			(model, blob) => entityAdapterFactory(model, blob),
 		)
 		user = createTestEntity(UserTypeRef, {
-			_id: userId,
+			_id: idToElementId(userId),
 		})
 		mail = createTestEntity(MailTypeRef, {
 			_id: ["---------z-z", "---------zzz"],
@@ -201,11 +202,11 @@ o.spec("OfflineMailIndexer", () => {
 
 		entityRestClientMock.addElementInstances(
 			createTestEntity(MailboxGroupRootTypeRef, {
-				_id: mailGroupId,
+				_id: idToElementId(mailGroupId),
 				mailbox: mailboxId,
 			}),
 			createTestEntity(MailBoxTypeRef, {
-				_id: mailboxId,
+				_id: idToElementId(mailboxId),
 				_ownerGroup: mailGroupId,
 				currentMailBag: createTestEntity(MailBagTypeRef, {
 					mails: listIdPart(mail._id),
@@ -306,11 +307,11 @@ o.spec("OfflineMailIndexer", () => {
 
 		entityRestClientMock.addElementInstances(
 			createTestEntity(MailboxGroupRootTypeRef, {
-				_id: mailGroupId,
+				_id: idToElementId(mailGroupId),
 				mailbox: mailboxId,
 			}),
 			createTestEntity(MailBoxTypeRef, {
-				_id: mailboxId,
+				_id: idToElementId(mailboxId),
 				_ownerGroup: mailGroupId,
 				currentMailBag: createTestEntity(MailBagTypeRef, {
 					mails: mailListId,

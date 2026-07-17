@@ -3,7 +3,7 @@ import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../../
 import { elementIdToId, idToElementId, isSameId, isSameTypeRef, OperationType, timestampToGeneratedId } from "../../../../platform-kit/meta"
 import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade.js"
-import { contains, DateProvider, defer, downcast, isNotNull, millisToDays, neverNull, promiseMap } from "../../../../platform-kit/utils"
+import { assertNotNull, contains, DateProvider, defer, downcast, isNotNull, millisToDays, neverNull, promiseMap } from "../../../../platform-kit/utils"
 import { filterIndexMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import type { GroupData } from "../../../common/api/worker/search/SearchTypes.js"
 import { IndexingErrorReason } from "../../../common/api/worker/search/SearchTypes.js"
@@ -538,7 +538,7 @@ export class IndexedDbIndexer implements Indexer {
 	private async processContactEntityEvents(events: Iterable<EntityUpdateData>) {
 		for (const event of events) {
 			if (isUpdateForTypeRef(ContactTypeRef, event)) {
-				const contactId: IdTuple = [event.instanceListId, event.instanceId]
+				const contactId: IdTuple = [assertNotNull(event.instanceListId), event.instanceId]
 				try {
 					switch (event.operation) {
 						case OperationType.DELETE:

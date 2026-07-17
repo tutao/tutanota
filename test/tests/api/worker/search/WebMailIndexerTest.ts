@@ -2,6 +2,7 @@ import o from "@tutao/otest"
 import { DAY_IN_MILLIS, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
 import {
 	constructMailSetEntryId,
+	idToElementId,
 	isSameId,
 	LEGACY_BCC_RECIPIENTS_ID,
 	LEGACY_BODY_ID,
@@ -98,7 +99,7 @@ o.spec("WebMailIndexer", () => {
 		dateProvider = new FixedDateProvider(now)
 		backend = object()
 		user = createTestEntity(UserTypeRef, {
-			_id: userId,
+			_id: idToElementId(userId),
 			memberships: [
 				createTestEntity(GroupMembershipTypeRef, {
 					group: mailGroup1,
@@ -184,7 +185,7 @@ o.spec("WebMailIndexer", () => {
 			// let transaction, core, indexer, db
 			o.beforeEach(() => {
 				user = createTestEntity(UserTypeRef, {
-					_id: userId,
+					_id: idToElementId(userId),
 					memberships: [
 						createTestEntity(GroupMembershipTypeRef, {
 							group: mailGroup,
@@ -193,12 +194,12 @@ o.spec("WebMailIndexer", () => {
 					],
 				})
 				const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
-					_id: mailGroup,
+					_id: idToElementId(mailGroup),
 					mailbox: "mailbox-id",
 				})
 				const mailBagMailListId = "mailBagMailListId"
 				mailbox = createTestEntity(MailBoxTypeRef, {
-					_id: "mailbox-id",
+					_id: idToElementId("mailbox-id"),
 					_ownerGroup: mailGroup,
 					currentMailBag: createTestEntity(MailBagTypeRef, { _id: "mailBagId", mails: mailBagMailListId }),
 				})
@@ -458,11 +459,11 @@ o.spec("WebMailIndexer", () => {
 				when(bulkMailLoader.loadAttachments(matchers.anything())).thenResolve([]) // doesn't matter for this test
 
 				const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
-					_id: mailGroup1,
+					_id: idToElementId(mailGroup1),
 					mailbox: "mailbox-id",
 				})
 				const mailbox = createTestEntity(MailBoxTypeRef, {
-					_id: "mailbox-id",
+					_id: idToElementId("mailbox-id"),
 					_ownerGroup: mailGroup1,
 					mailSets: createTestEntity(MailSetRefTypeRef, {
 						mailSets: "mailSets-id",
@@ -527,11 +528,11 @@ o.spec("WebMailIndexer", () => {
 			const indexingTimestampAim = now - 10_000
 			await initWithEnabled(true)
 			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
-				_id: mailGroup1,
+				_id: idToElementId(mailGroup1),
 				mailbox: "mailbox-id",
 			})
 			const mailbox = createTestEntity(MailBoxTypeRef, {
-				_id: "mailbox-id",
+				_id: idToElementId("mailbox-id"),
 				_ownerGroup: mailGroup1,
 				mailSets: createTestEntity(MailSetRefTypeRef, {
 					mailSets: "foldersId",
@@ -566,11 +567,11 @@ o.spec("WebMailIndexer", () => {
 			const initPromise = initWithEnabled(true).then()
 			await initPromise
 			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
-				_id: mailGroup1,
+				_id: idToElementId(mailGroup1),
 				mailbox: "mailbox-id",
 			})
 			const mailbox = createTestEntity(MailBoxTypeRef, {
-				_id: "mailbox-id",
+				_id: idToElementId("mailbox-id"),
 				_ownerGroup: mailGroup1,
 				mailSets: createTestEntity(MailSetRefTypeRef, {
 					mailSets: "foldersId",
@@ -667,7 +668,11 @@ o.spec("WebMailIndexer", () => {
 				const entities = addEntities(MailState.DRAFT)
 				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
-				entityMock.setListElementException(assertNotNull(entities.mail.mailDetailsDraft), new restError.NotAuthorizedError("blah"))
+				entityMock.setListElementException(
+					MailDetailsDraftTypeRef,
+					assertNotNull(entities.mail.mailDetailsDraft),
+					new restError.NotAuthorizedError("blah"),
+				)
 				await indexer.afterMailUpdated(mailIdTuple)
 				verify(backend.onMailCreated(matchers.anything()), { times: 0 })
 			})
@@ -675,7 +680,7 @@ o.spec("WebMailIndexer", () => {
 				const entities = addEntities(MailState.RECEIVED)
 				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
-				entityMock.setBlobElementException(assertNotNull(entities.mail.mailDetails), new restError.NotAuthorizedError("blah"))
+				entityMock.setBlobElementException(MailDetailsBlobTypeRef, assertNotNull(entities.mail.mailDetails), new restError.NotAuthorizedError("blah"))
 				await indexer.afterMailUpdated(mailIdTuple)
 				verify(backend.onMailCreated(matchers.anything()), { times: 0 })
 			})
@@ -716,7 +721,7 @@ o.spec("WebMailIndexer", () => {
 				const entities = addEntities(MailState.DRAFT)
 				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
-				entityMock.setListElementException(assertNotNull(entities.mail.mailDetailsDraft), new restError.NotAuthorizedError("blah"))
+				entityMock.setListElementException(MailDetailsDraftTypeRef,assertNotNull(entities.mail.mailDetailsDraft), new restError.NotAuthorizedError("blah"))
 				await indexer.afterMailUpdated(mailIdTuple)
 				verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
 				verify(backend.onPartialMailUpdated(matchers.anything()), { times: 0 })
@@ -1074,11 +1079,11 @@ o.spec("WebMailIndexer", () => {
 			const initPromise = initWithEnabled(true).then()
 			await initPromise
 			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
-				_id: mailGroup1,
+				_id: idToElementId(mailGroup1),
 				mailbox: "mailbox-id",
 			})
 			const mailbox = createTestEntity(MailBoxTypeRef, {
-				_id: "mailbox-id",
+				_id: idToElementId("mailbox-id"),
 				_ownerGroup: mailGroup1,
 				mailSets: createTestEntity(MailSetRefTypeRef, {
 					mailSets: "foldersId",
@@ -1119,11 +1124,11 @@ o.spec("WebMailIndexer", () => {
 			const initPromise = initWithEnabled(true).then()
 			await initPromise
 			const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
-				_id: mailGroup1,
+				_id: idToElementId(mailGroup1),
 				mailbox: "mailbox-id",
 			})
 			const mailbox = createTestEntity(MailBoxTypeRef, {
-				_id: "mailbox-id",
+				_id: idToElementId("mailbox-id"),
 				_ownerGroup: mailGroup1,
 				mailSets: createTestEntity(MailSetRefTypeRef, {
 					mailSets: "foldersId",

@@ -237,7 +237,7 @@ o.spec("MailModelTest", function () {
 			})
 
 			// mail not being there
-			restClient.setListElementException(mail._id, new restError.NotAuthorizedError("blah"))
+			restClient.setListElementException(MailTypeRef, mail._id, new restError.NotAuthorizedError("blah"))
 			await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
 			verify(processInboxHandler.handleIncomingMail(anything(), anything(), anything(), anything(), true), { times: 0 })
 		})

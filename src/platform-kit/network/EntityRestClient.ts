@@ -7,8 +7,8 @@ import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
 import { SetupMultipleError } from "./error/SetupMultipleError"
 import { BlobAccessTokenFacade } from "./BlobAccessTokenFacade.js"
 import {
-	_verifyType,
 	DecryptedParsedInstance,
+	ensureIsPersistentType,
 	EntityAdapter,
 	InstancePipeline,
 	LoggedInUserProvider,
@@ -643,7 +643,7 @@ export class EntityRestClient implements EntityRestInterface {
 	}> {
 		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 
-		_verifyType(clientTypeModel)
+		ensureIsPersistentType(clientTypeModel)
 
 		if (ownerKey == null && !this.authDataProvider.isFullyLoggedIn() && clientTypeModel.encrypted) {
 			// Short-circuit before we do an actual request which we can't decrypt
