@@ -107,6 +107,17 @@ o.spec("CalendarEventWhenModel", function () {
 			const result = model.result
 			o(result.endTime.toISOString()).equals("2023-04-27T08:57:00.000Z")("the not-all-day-result includes the time")
 		})
+		o("changing an event with timezones to an all-day event removes timezones from the event", function () {
+			const model = getModelKrasnoyarsk({ startTime: new Date("2023-04-27T08:27:45.523Z"), endTime: new Date("2023-04-27T08:57:45.523Z") })
+			model.setStartTimeZone("Europe/Berlin")
+			model.setEndTimeZone("Europe/Berlin")
+			o(model.isAllDay).equals(false)
+			model.isAllDay = true
+
+			const result = model.result
+			o(result.startTimeZone).equals(null)
+			o(result.endTimeZone).equals(null)
+		})
 
 		o("rescheduling the event by a few hours correctly updates start and end time", function () {
 			const model = getModelBerlin({
