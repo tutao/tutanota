@@ -2414,3 +2414,4 @@ export type TranslationKeyType =
 	| "migrationCertificateError_msg"
 	| "migrationIgnoreCertificateErrors_action"
 	| "migrationUploadCustomCertificate_action"
+	| "parentLabel_label"

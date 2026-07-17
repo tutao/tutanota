@@ -43,6 +43,7 @@ interface MailboxSets {
 	/** a map from element id to the mail set */
 	labels: ReadonlyMap<Id, MailSet>
 	scheduledFolder: MailSet | null
+	labelFolderSystem: FolderSystem
 }
 
 export const enum LabelState {
@@ -140,7 +141,9 @@ export class MailModel {
 
 				const scheduledFolder = mailSets.find((set) => set.folderType === MailSetKind.SCHEDULED) ?? null
 				const folderSystem = new FolderSystem(mailSets)
-				tempFolders.set(foldersRef._id, { folders: folderSystem, labels: labelsMap, scheduledFolder })
+				const labelFolderSystem = new FolderSystem(labels, MailSetKind.LABEL)
+
+				tempFolders.set(foldersRef._id, { folders: folderSystem, labels: labelsMap, scheduledFolder, labelFolderSystem: labelFolderSystem })
 			}
 		}
 
@@ -257,6 +260,15 @@ export class MailModel {
 		return folderSystem
 	}
 
+	async getMailboxLabelFoldersForId(foldersId: Id): Promise<FolderSystem> {
+		const folderStructures = await this.loadMailSets()
+		const folderSystem = folderStructures.get(foldersId)?.labelFolderSystem
+		if (folderSystem == null) {
+			throw new ProgrammingError(`no folder system for folder id ${foldersId}`)
+		}
+		return folderSystem
+	}
+
 	getMailFolderForMail(mail: Mail): MailSet | null {
 		const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
 		if (folderSystem == null) return null
@@ -266,6 +278,10 @@ export class MailModel {
 
 	getFolderSystemByGroupId(groupId: Id): FolderSystem | null {
 		return this.getMailSetsForGroup(groupId)?.folders ?? null
+	}
+
+	getLabelFolderSystemByGroupId(groupId: Id): FolderSystem | null {
+		return this.getMailSetsForGroup(groupId)?.labelFolderSystem ?? null
 	}
 
 	getLabelsByGroupId(groupId: Id): ReadonlyMap<Id, MailSet> {
@@ -569,12 +585,12 @@ export class MailModel {
 	/**
 	 * Create a label (aka MailSet aka {@link MailSet} of kind {@link MailSetKind.LABEL}) for the group {@param mailGroupId}.
 	 */
-	async createLabel(mailGroupId: Id, labelData: { name: string; color: string }) {
+	async createLabel(mailGroupId: Id, labelData: { name: string; color: string; parentLabelId?: IdTuple }) {
 		await this.mailFacade.createLabel(mailGroupId, labelData)
 	}
 
-	async updateLabel(label: MailSet, newData: { name: string; color: string }) {
-		await this.mailFacade.updateLabel(label, newData.name, newData.color)
+	async updateLabel(label: MailSet, newData: { name: string; color: string; parentFolderId?: IdTuple }) {
+		await this.mailFacade.updateLabel(label, newData.name, newData.color, newData.parentFolderId)
 	}
 
 	async deleteLabel(label: MailSet) {

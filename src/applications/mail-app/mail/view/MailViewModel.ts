@@ -930,11 +930,11 @@ export class MailViewModel {
 		this.listModel?.onSingleExclusiveSelection(mail)
 	}
 
-	async createLabel(mailbox: MailBox, labelData: { name: string; color: string }) {
+	async createLabel(mailbox: MailBox, labelData: { name: string; color: string; parentLabelId?: IdTuple }) {
 		await this.mailModel.createLabel(assertNotNull(mailbox._ownerGroup), labelData)
 	}
 
-	async editLabel(label: MailSet, newData: { name: string; color: string }) {
+	async editLabel(label: MailSet, newData: { name: string; color: string; parentFolderId?: IdTuple }) {
 		await this.mailModel.updateLabel(label, newData)
 	}
 
