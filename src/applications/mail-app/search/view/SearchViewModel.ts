@@ -344,8 +344,8 @@ export class SearchViewModel {
 				}
 				case SearchCategoryType.mail: {
 					this._selectedMailField = restriction.field
-					this._startDate = restriction.end ? new Date(restriction.end) : null
-					this._endDate = restriction.start ? new Date(restriction.start) : null
+					this._startDate = restriction.start ? new Date(restriction.start) : null
+					this._endDate = restriction.end ? new Date(restriction.end) : null
 					this._selectedMailFolder = restriction.folderIds
 					this.latestMailRestriction = restriction
 
@@ -362,6 +362,7 @@ export class SearchViewModel {
 
 					const listModel = this.createList(searchPromise, noOp, getElementId)
 					this._listModel = listModel
+					this.applyMailFilterIfNeeded()
 					listModel.loadInitial()
 					this.loadAndSelectIfNeeded(args.id)
 					break
