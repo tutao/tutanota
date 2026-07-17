@@ -262,8 +262,17 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			null,
 		)
 
+		const startInlineAttachmentCleanup = debounce(50, () => {
+			cleanupInlineAttachments(
+				[this.editor.getDOM(), this.collapsedReply],
+				model.getAttachments(),
+				model.getRemovedInlineImages(),
+				model.getNonInlineAttachmentsCids(),
+			)
+		})
+
 		const onEditorChanged = () => {
-			cleanupInlineAttachments(this.editor.getDOM(), model.getAttachments(), model.getRemovedInlineImages(), model.getNonInlineAttachmentsCids())
+			startInlineAttachmentCleanup()
 			model.markAsChangedIfNecessary(true)
 			m.redraw()
 		}
