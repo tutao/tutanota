@@ -6,7 +6,6 @@ import { ProgressTracker } from "../api/main/ProgressTracker.js"
 export interface CommonSearchModel {
 	result: Stream<SearchResult | null>
 	lastQueryString: Stream<string | null>
-	cancelSignal: Stream<boolean>
 
 	search(searchQuery: SearchQuery, progressTracker: ProgressTracker): Promise<SearchResult | void>
 }

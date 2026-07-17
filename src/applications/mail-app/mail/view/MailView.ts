@@ -89,6 +89,7 @@ import { getMailFolderType, isFolder, isFolderReadOnly } from "../MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { LazyComponent } from "../../../common/gui/LazyComponent"
+import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
 
 assertMainOrNode()
 
@@ -596,6 +597,17 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 											this.mailViewModel.selectSearchResult(searchQuery, mail)
 										},
 										shouldOfferUpgrade: locator.logins.getUserController().isFreeAccount(),
+										needsToEnableSearch: () => !mailLocator.search.indexState().mailIndexEnabled,
+										enableSearch: () =>
+											mailLocator.indexerFacade
+												.enableMailIndexing()
+												.then(() => true)
+												.catch(
+													ofClass(IndexingNotSupportedError, () => {
+														Dialog.message(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
+														return false
+													}),
+												),
 									},
 								})
 							: null,

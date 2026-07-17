@@ -6,7 +6,6 @@ import {
 	assertIsEntity2,
 	elementIdPart,
 	EntityIdEncoding,
-	GENERATED_MAX_ID,
 	getElementId,
 	isSameId,
 	isSameTypeRef,
@@ -19,7 +18,6 @@ import { CancelledError, FULL_INDEXED_TIMESTAMP, isAdminClient, isBrowser, NOTHI
 import { ListLoadingState, ListState } from "../../../../ui/base/List.js"
 import {
 	assertNotNull,
-	collectToMap,
 	debounce,
 	defer,
 	downcast,
@@ -28,9 +26,7 @@ import {
 	incrementMonth,
 	isNotNull,
 	isSameDayOfDate,
-	mapAndFilterNull,
 	memoizedWithHiddenArgument,
-	neverNull,
 	noOp,
 	onceAsync,
 	stringToBase64,
@@ -76,7 +72,7 @@ import {
 	isUpdateForTypeRef,
 	OnEntityUpdateReceivedPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { DriveFile, DriveFileTypeRef, DriveFolderTypeRef } from "@tutao/entities/drive"
+import { DriveFile, DriveFileTypeRef } from "@tutao/entities/drive"
 import Id from "../../../../ui/translations/id"
 import { ListFetchResult, onlySingleSelection } from "../../../../ui/base/ListUtils"
 import { isOfflineError, NotFoundError } from "@tutao/rest-client/error"
@@ -198,7 +194,6 @@ export class SearchViewModel {
 		return this._selectedMailField
 	}
 
-	private previousResult: SearchResult | null = null
 	private searchResultIdToIndex: Map<Id, number> | null = null
 
 	private updateSearchResultIdToIndex(searchResult: SearchResult | null) {
@@ -800,44 +795,7 @@ export class SearchViewModel {
 		}
 	}
 
-	private isSelectedEventAnUpdatedBirthday(update: EntityUpdateData): boolean {
-		if (isUpdateForTypeRef(ContactTypeRef, update) && this.searchedType === SearchCategoryType.calendar) {
-			const { instanceListId, instanceId } = update
-			const encodedContactId = stringToBase64(`${instanceListId}/${instanceId}`)
-
-			const selectedItem = this.listModel.getSelectedAsArray().at(0)
-			if (!selectedItem) {
-				return false
-			}
-
-			return selectedItem._id[1].endsWith(encodedContactId)
-		}
-
-		return false
-	}
-
 	private async entityEventReceived(update: EntityUpdateData): Promise<void> {
-		const lastType = this.searchedType
-		const isPossibleABirthdayContactUpdate = this.isPossibleABirthdayContactUpdate(update)
-
-		if (
-			!isUpdateForTypeRef(CalendarEventTypeRef, update) &&
-			!isUpdateForTypeRef(MailTypeRef, update) &&
-			!isUpdateForTypeRef(ContactTypeRef, update) &&
-			!isUpdateForTypeRef(DriveFolderTypeRef, update) &&
-			!isUpdateForTypeRef(DriveFileTypeRef, update) &&
-			!isPossibleABirthdayContactUpdate
-		) {
-			return
-		}
-
-		const { instanceListId, instanceId, operation } = update
-		const id = [neverNull(instanceListId), instanceId] as const
-		const typeRef = update.typeRef
-
-		if (!this.isInSearchResult(typeRef, id) && !isPossibleABirthdayContactUpdate) {
-			return
-		}
 		if (isUpdateForTypeRef(ContactTypeRef, update) && this.#birthdayContactPreviewData?.id === update.instanceId) {
 			const updatedContact = await this.entityClient.load(ContactTypeRef, [update.instanceListId, update.instanceId])
 			if (getElementId(updatedContact) === this.#birthdayContactPreviewData.id) {
@@ -1032,16 +990,6 @@ export class SearchViewModel {
 		})
 	}
 
-	private isInSearchResult(typeRef: TypeRef<unknown>, id: IdTuple): boolean {
-		const result = this.search.result()
-
-		if (result && isSameTypeRef(typeRef, searchCategoryTypeToTypeRef(result.restriction.type))) {
-			return result.results.some((r) => isSameId(r, id))
-		}
-
-		return false
-	}
-
 	private onMailIndexStateChanged(newState: SearchIndexStateInfo): void {
 		if (
 			this.searchedType === SearchCategoryType.mail &&
@@ -1072,102 +1020,6 @@ export class SearchViewModel {
 
 		this._listModel.cancelLoadAll()
 		this.updateSearchResultIdToIndex(newResult)
-
-		// FIXME
-		// if (
-		// 	this.previousResult != null &&
-		// 	newResult != null &&
-		// 	(areResultsForTheSameQuery(this.previousResult, newResult) || areResultsForTheSameQueryWithRangeExtended(this.previousResult, newResult))
-		// ) {
-		// 	if (this.listModel.state.loadingStatus === ListLoadingState.Done) {
-		// 		this.listModel.updateLoadingStatus(ListLoadingState.Idle)
-		// 	}
-		//
-		// 	this.applyMailFilterIfNeeded()
-		// } else {
-		// 	this._listModel = this.createList()
-		// 	this.applyMailFilterIfNeeded()
-		// 	this._listModel.loadInitial()
-		// 	this.listStateSubscription?.end(true)
-		// 	this.listStateSubscription = this._listModel.stateStream.map((state) => this.onListStateChange(state))
-		// }
-
-		this.previousResult = newResult
-	}
-
-	private async loadSearchResults<T extends SearchableTypes>(
-		searchResult: SearchResult,
-		startId: Id,
-	): Promise<{ items: T[]; newSearchResult: SearchResult }> {
-		let items: T[]
-		switch (searchResult.restriction.type) {
-			case SearchCategoryType.mail: {
-				let startIndex = 0
-
-				if (startId !== GENERATED_MAX_ID) {
-					if (!isBrowser() && !isAdminClient()) {
-						// offline storage is always sorted correctly
-						startIndex = searchResult.results.findIndex((id) => id[1] === startId)
-					} else {
-						// this relies on the results being sorted from newest to oldest ID
-						startIndex = searchResult.results.findIndex((id) => id[1] <= startId)
-					}
-
-					if (elementIdPart(searchResult.results[startIndex]) === startId) {
-						// the start element is already loaded, so we exclude it from the next load
-						startIndex++
-					} else if (startIndex === -1) {
-						// there is nothing in our result that's not loaded yet, so we
-						// have nothing to do
-						startIndex = Math.max(searchResult.results.length - 1, 0)
-					}
-				}
-
-				// Ignore count when slicing here because we would have to modify SearchResult too
-				const toLoad = searchResult.results.slice(startIndex)
-				items = (await this.loadAndFilterInstances(MailTypeRef, toLoad, searchResult, startIndex)) as T[]
-
-				// Restore the original sorting order
-				if (!isBrowser() && !isAdminClient()) {
-					const itemsMapped = collectToMap(items, getElementId)
-					items = mapAndFilterNull(searchResult.results, (id) => itemsMapped.get(elementIdPart(id))) as T[]
-				}
-				break
-			}
-			case SearchCategoryType.contact:
-				try {
-					// load all contacts to sort them by name afterwards
-					items = (await this.loadAndFilterInstances(ContactTypeRef, searchResult.results, searchResult, 0)) as T[]
-				} finally {
-					this.updateUi()
-				}
-				break
-			case SearchCategoryType.calendar:
-				try {
-					const { start, end } = searchResult.restriction
-					if (start == null || end == null) {
-						throw new ProgrammingError("invalid search time range for calendar")
-					}
-					items = [
-						...(await this.calendarFacade.reifyCalendarSearchResult(start, end, searchResult.results)),
-						...(await this.getClientOnlyEventsSeries(start, end, searchResult.results)),
-					] as T[]
-				} finally {
-					this.updateUi()
-				}
-				break
-			case SearchCategoryType.drive:
-				// FIXME
-				items = []
-				break
-		}
-
-		return { items: items, newSearchResult: searchResult }
-	}
-
-	private async getClientOnlyEventsSeries(start: number, end: number, events: IdTuple[]) {
-		const eventList = await retrieveBirthdayEventsForUser(this.logins, events, this.eventsRepository.getBirthdayEvents())
-		return generateCalendarInstancesInRange(eventList, { start, end })
 	}
 
 	getAvailableCalendars(includesBirthday: boolean): ReadonlyArray<CalendarInfoBase> {
@@ -1176,41 +1028,6 @@ export class SearchViewModel {
 
 	loadCalendarInfos() {
 		return this.calendarModel.getCalendarInfos()
-	}
-
-	/**
-	 * take a list of IDs and load them by list, filtering out the ones that could not be loaded.
-	 * updates the passed currentResult.result list to not include the failed IDs anymore
-	 */
-	private async loadAndFilterInstances<T extends ListElementEntity>(
-		type: TypeRef<T>,
-		toLoad: IdTuple[],
-		currentResult: SearchResult,
-		startIndex: number,
-	): Promise<T[]> {
-		const instances = await loadMultipleFromLists(type, this.entityClient, toLoad)
-		// Filter not found instances from the current result as well so we don’t loop trying to load them
-		if (instances.length < toLoad.length) {
-			const resultLength = currentResult.results.length
-			console.log(`Could not load some results: ${instances.length} out of ${toLoad.length}`)
-
-			// loop backwards to remove correct elements by index
-			for (let i = toLoad.length - 1; i >= 0; i--) {
-				const toLoadId = toLoad[i]
-
-				if (!instances.some((instance) => isSameId(instance._id, toLoadId))) {
-					currentResult.results.splice(startIndex + i, 1)
-
-					if (instances.length === toLoad.length) {
-						break
-					}
-				}
-			}
-
-			console.log(`Fixed results, before ${resultLength}, after: ${currentResult.results.length}`)
-		}
-
-		return instances
 	}
 
 	sendStopLoadingSignal() {

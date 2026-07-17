@@ -1,7 +1,6 @@
-import m, { Children, ClassComponent, CommonAttributes, Vnode } from "mithril"
+import m, { Children, ClassComponent, Vnode } from "mithril"
 import { SearchBar } from "./search/SearchBar.js"
-import { LazyLoaded } from "../../platform-kit/utils"
-import { LiveSearchResult, SearchModel, SearchQuery } from "./search/model/SearchModel"
+import { LiveSearchResult, SearchQuery } from "./search/model/SearchModel"
 import { Mail } from "@tutao/entities/tutanota"
 import { lang } from "../../ui/utils/LanguageViewModel"
 import { isTutaTeamMail } from "../common/mailFunctionality/SharedMailUtils"
@@ -15,11 +14,14 @@ import { mailLocator } from "./mailLocator"
 import { Icons } from "../../ui/base/icons/Icons"
 import { createRestriction } from "./search/model/SearchUtils"
 import { SearchCategoryType } from "../common/api/worker/search/SearchTypes"
+import { Dialog } from "../../ui/base/Dialog"
 
 export interface MailSearchBarAttrs {
 	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<Mail>>
 	selectResult: (searchQuery: SearchQuery, entry: Mail | null) => unknown
 	shouldOfferUpgrade: boolean
+	needsToEnableSearch: () => boolean
+	enableSearch: () => Promise<boolean>
 }
 
 export class MailSearchBar implements ClassComponent<MailSearchBarAttrs> {
@@ -35,6 +37,17 @@ export class MailSearchBar implements ClassComponent<MailSearchBarAttrs> {
 			selectResult: attrs.selectResult,
 			renderResult: (entry, isSelected) => this.renderMailResult(entry, isSelected),
 			shouldOfferUpgrade: attrs.shouldOfferUpgrade,
+			confirmSearch: async () => {
+				if (attrs.needsToEnableSearch()) {
+					const confirmed = await Dialog.confirm("enableSearchMailbox_msg", "search_label")
+					if (confirmed) {
+						return await attrs.enableSearch()
+					}
+					return false
+				} else {
+					return true
+				}
+			},
 		})
 	}
 

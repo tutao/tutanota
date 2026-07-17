@@ -8,14 +8,12 @@ import { Dialog } from "../../../ui/base/Dialog"
 import { assertMainOrNode, isApp, Keys } from "@tutao/app-env"
 import { styles } from "../../../ui/styles"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
-import { debounce, getFirstOrThrow, isNotEmpty, lastIndex, mod, ofClass } from "@tutao/utils"
+import { debounce, getFirstOrThrow, isNotEmpty, lastIndex, mod } from "@tutao/utils"
 import { BrowserType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { SearchBarOverlay } from "./SearchBarOverlay"
-import { IndexingNotSupportedError } from "../../common/api/common/error/IndexingNotSupportedError"
-import { SearchCategoryType, SearchRestriction } from "../../common/api/worker/search/SearchTypes"
+import { SearchRestriction } from "../../common/api/worker/search/SearchTypes"
 import { LayerType } from "../../../ui/base/RootView"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../ui/base/BaseSearchBar.js"
-import { SearchRouter } from "../../common/search/view/SearchRouter.js"
 import { mailLocator } from "../mailLocator.js"
 import { CalendarEvent, Contact, Mail } from "@tutao/entities/tutanota"
 import { windowFacade } from "../../common/misc/WindowFacade"
@@ -37,6 +35,7 @@ export type SearchBarAttrs<T> = {
 	renderResult: (entry: T, isSelected: boolean) => Children
 	selectResult: (searchQuery: SearchQuery, entry: T | null) => unknown
 	shouldOfferUpgrade: boolean
+	confirmSearch?: () => Promise<boolean>
 }
 
 const MAX_SEARCH_PREVIEW_RESULTS = 10
@@ -48,11 +47,6 @@ interface SearchBarState<T> {
 	selected: number | "showmore" | null
 	busy: boolean
 }
-
-// create our own copy which is not perfect because we don't benefit from the shared cache but currently there's no way to get async dependencies into
-// singletons like this (without top-level await at least)
-// once SearchBar is rewritten this should be removed
-const searchRouter = new SearchRouter(mailLocator.throttledRouter())
 
 // by the age of 12, each SearchBar need to know:
 //  - how to get search results
@@ -88,6 +82,7 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 						this.selectResult(entry)
 					},
 					showMoreAction:
+						// FIXME: this probably needs to be adjust to show that indexing is happening
 						this.state.query != null && this.state.searchResult != null
 							? {
 									indexTimestamp: this.state.searchResult?.searchResult.currentIndexTimestamp ?? 0,
@@ -318,7 +313,7 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 		return getRestriction(m.route.get())
 	}
 
-	private search(query?: string) {
+	private async search(query?: string) {
 		let oldQuery = this.state.query
 		let restriction = this.getRestriction()
 		const searchQuery: string = query ?? oldQuery ?? ""
@@ -326,41 +321,30 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 			query: searchQuery,
 		})
 
-		if (!mailLocator.search.indexState().mailIndexEnabled && restriction && restriction.type === SearchCategoryType.mail && !this.confirmDialogShown) {
-			this.focused = false
-			this.confirmDialogShown = true
-			Dialog.confirm("enableSearchMailbox_msg", "search_label")
-				.then((confirmed) => {
-					if (confirmed) {
-						mailLocator.indexerFacade
-							.enableMailIndexing()
-							.then(() => {
-								this.search(query)
-								this.onFocus()
-							})
-							.catch(
-								ofClass(IndexingNotSupportedError, () => {
-									Dialog.message(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
-								}),
-							)
-					}
-				})
-				.finally(() => (this.confirmDialogShown = false))
-		} else {
-			// Skip the search if the user is trying to bypass the search dialog
-			if (!mailLocator.search.indexState().mailIndexEnabled && restriction.type === SearchCategoryType.mail) {
+		if (this.confirmDialogShown) {
+			return
+		}
+		this.confirmDialogShown = true
+		this.focused = false
+		try {
+			if ((await this.lastAttrs.confirmSearch?.()) ?? true) {
+				this.focused = true
+				// setTimeout to fix bug in current Safari with losing focus
+				setTimeout(() => this.domInput.focus(), client.browser === BrowserType.SAFARI ? 200 : 0)
+			} else {
 				return
 			}
-
-			if (searchQuery.trim() !== "") {
-				this.updateState({ busy: true })
-			}
-
-			this.doSearch(searchQuery, () => {
-				this.updateState({ busy: false })
-			})
-			// }
+		} finally {
+			this.confirmDialogShown = false
 		}
+
+		if (searchQuery.trim() !== "") {
+			this.updateState({ busy: true })
+		}
+
+		this.doSearch(searchQuery, () => {
+			this.updateState({ busy: false })
+		})
 	}
 
 	private readonly doSearch = debounce(300, (query: string, cb: () => void) => {
@@ -401,6 +385,7 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 	}
 
 	private onFocus() {
+		// FIXME: move out of here
 		if (!mailLocator.search.indexingSupported) {
 			Dialog.message(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 		} else if (!this.focused) {
