@@ -15,12 +15,13 @@ import {
 	mapAndFilterNull,
 	ofClass,
 	remove,
+	stringToBase64,
 	tokenize,
 } from "../../../../platform-kit/utils"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
-import { areResultsForTheSameQuery, hasMoreResults, isSameSearchRestrictionWithRangeExtended, searchQueryEquals } from "./SearchUtils"
+import { areResultsForTheSameQuery, encodeCalendarSearchKey, hasMoreResults, isSameSearchRestrictionWithRangeExtended, searchQueryEquals } from "./SearchUtils"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
 import { ProgressMonitorInterface } from "../../../../platform-kit/network/ProgressMonitorInterface"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
@@ -274,14 +275,26 @@ export class SearchModel {
 							searchResult.results = resultItems.map((item) => item._id)
 							liveResult.updates({ type: "reset" })
 						}
+					} else if (isUpdateForTypeRef(ContactTypeRef, update) && this.isPossibleBirthdayContactUpdate(resultItems, update)) {
+						const calendarModel = await this.calendarModel()
+						await calendarModel.handleContactEvent(OperationType.UPDATE, [update.instanceListId, update.instanceId])
+
+						resultItems.splice(0, resultItems.length)
+						const { resultItems: newItems } = await this.runCalendarSearch(searchQuery, abortSignal)
+						resultItems.push(...newItems)
+						searchResult.results = resultItems.map((item) => item._id)
+						liveResult.updates({ type: "reset" })
 					}
 				}
-
-				//await this.applyEntityUpdates(CalendarEventTypeRef, resultItems, updates, liveResult.updates)
 			},
 		}
 		this.liveResults.push(liveResult)
 		return liveResult
+	}
+	private isPossibleBirthdayContactUpdate(items: readonly CalendarEvent[], update: EntityUpdateData<Contact>): boolean {
+		const { instanceListId, instanceId } = update
+		const encodedContactId = stringToBase64(`${instanceListId}/${instanceId}`)
+		return items.some((searchEntry) => getElementId(searchEntry).endsWith(encodedContactId))
 	}
 
 	private async runCalendarSearch(searchQuery: SearchQuery, abortSignal: AbortSignal): Promise<{ tokens: string[]; resultItems: CalendarEvent[] }> {
@@ -312,6 +325,11 @@ export class SearchModel {
 
 		const resultItems: CalendarEvent[] = []
 
+		const canLoadBirthdaysCalendar = await calendarModel.canLoadBirthdaysCalendar()
+		if (canLoadBirthdaysCalendar) {
+			await calendarModel.loadContactsBirthdays()
+		}
+
 		await calendarModel.loadMonthsIfNeeded(daysInMonths, abortSignal, monitor)
 		monitor.completed()
 
@@ -330,7 +348,7 @@ export class SearchModel {
 			throw new CancelledError("search cancelled")
 		}
 
-		const followCommonRestrictions = (key: string, event: CalendarEvent): boolean => {
+		const shouldIncludeEvent = (key: string, event: CalendarEvent) => {
 			if (alreadyAdded.has(key)) {
 				// we only need the first event in the series, the view will load & then generate
 				// the series for the searched time range.
@@ -349,13 +367,18 @@ export class SearchModel {
 
 			for (const token of tokens) {
 				if (event.summary.toLowerCase().includes(token)) {
-					alreadyAdded.add(key)
-					resultItems.push(event)
-					return false
+					return true
+				}
+			}
+			// check description last because it's a bit more expensive
+			const description = event.description.replaceAll(/(<[^>]+>)/gi, " ").toLowerCase()
+			for (const token of tokens) {
+				if (description.includes(token)) {
+					return true
 				}
 			}
 
-			return true
+			return false
 		}
 
 		if (tokens.length > 0) {
@@ -363,72 +386,21 @@ export class SearchModel {
 			// that's a smaller savings than one might think because for the vast majority of
 			// events we're probably not matching and looking into the description anyway.
 			for (const [startOfDay, eventsOnDay] of daysToEvents) {
-				eventLoop: for (const wrapper of eventsOnDay) {
+				for (const wrapper of eventsOnDay) {
 					if (!(startOfDay >= restriction.start && startOfDay <= restriction.end)) {
 						continue
 					}
 
-					const key = idToKey(wrapper.event._id)
+					const key = encodeCalendarSearchKey(wrapper.event)
 
-					if (!followCommonRestrictions(key, wrapper.event)) {
-						continue
-					}
-
-					for (const token of tokens) {
-						if (wrapper.event.summary.toLowerCase().includes(token)) {
-							alreadyAdded.add(key)
-							resultItems.push(wrapper.event)
-							continue eventLoop
-						}
-					}
-
-					// checking the summary was cheap, now we store the sanitized description to check it against
-					// all tokens.
-					const descriptionToSearch = wrapper.event.description.replaceAll(/(<[^>]+>)/gi, " ").toLowerCase()
-					for (const token of tokens) {
-						if (descriptionToSearch.includes(token)) {
-							alreadyAdded.add(key)
-							resultItems.push(wrapper.event)
-							continue eventLoop
-						}
+					if (shouldIncludeEvent(key, wrapper.event)) {
+						alreadyAdded.add(key)
+						resultItems.push(wrapper.event)
 					}
 
 					if (abortSignal.aborted) {
 						throw new CancelledError("search cancelled")
 					}
-				}
-			}
-		}
-
-		const canLoadBirthdaysCalendar = await calendarModel.canLoadBirthdaysCalendar()
-		if (canLoadBirthdaysCalendar) {
-			await calendarModel.loadContactsBirthdays()
-			const birthdayEvents = Array.from(calendarModel.getBirthdayEvents().values()).flat()
-
-			eventLoop: for (const eventRegistry of birthdayEvents) {
-				// Birthdays should still appear on search even if the date itself doesn't comply to the whole restriction
-				// we only care about months
-				const month = eventRegistry.event.startTime.getMonth()
-				if (!(month >= startDate.getMonth() && month <= endDate.getMonth())) {
-					continue
-				}
-
-				const key = idToKey(eventRegistry.event._id)
-
-				if (!followCommonRestrictions(key, eventRegistry.event)) {
-					continue
-				}
-
-				for (const token of tokens) {
-					if (eventRegistry.event.summary.toLowerCase().includes(token)) {
-						alreadyAdded.add(key)
-						resultItems.push(eventRegistry.event)
-						continue eventLoop
-					}
-				}
-
-				if (abortSignal.aborted) {
-					throw new CancelledError("search cancelled")
 				}
 			}
 		}

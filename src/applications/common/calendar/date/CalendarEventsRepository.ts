@@ -71,6 +71,7 @@ export class CalendarEventsRepository {
 	private readonly loadedMonths: Map<number, string[]> = new Map() // First day of the month at midnight -> CalendarID
 	private daysToEvents: Stream<DaysToEvents> = stream(new Map())
 	private pendingLoadRequest: Promise<void> = Promise.resolve()
+	/** number of the month (zero indexed) to birthday data */
 	private monthsToBirthdayEvents: Map<number, BirthdayEventRegistry[]> = new Map()
 	private calendarMemberships: string[]
 
