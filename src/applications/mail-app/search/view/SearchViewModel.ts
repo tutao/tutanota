@@ -6,10 +6,13 @@ import {
 	assertIsEntity,
 	assertIsEntity2,
 	elementIdPart,
+	elementIdToId,
 	EntityIdEncoding,
 	GENERATED_MAX_ID,
 	getElementId,
 	isSameId,
+	isSameIdTuple,
+	isSameSingleId,
 	isSameTypeRef,
 	ListElement,
 	ListElementEntity,
@@ -34,6 +37,7 @@ import {
 	mapAndFilterNull,
 	memoizedWithHiddenArgument,
 	neverNull,
+	Nullable,
 	ofClass,
 	onceAsync,
 	stringToBase64,
@@ -98,7 +102,10 @@ export enum PaidFunctionResult {
 	Success,
 	PaidSubscriptionNeeded,
 }
-
+export type SelectedCalendarId = {
+	birthdayCalendarId: Id | null
+	longListShortList: IdTuple | null
+}
 export class SearchViewModel {
 	private _listModel: ListElementListModel<SearchResultListEntry>
 	get listModel(): ListElementListModel<SearchResultListEntry> {
@@ -174,17 +181,19 @@ export class SearchViewModel {
 	}
 
 	// isn't an IdTuple because it is two list ids
-	private _selectedCalendar: readonly [Id, Id] | Id | null = null // [longListId, shorListId] || birthDay_calendar_id | null
+	private _selectedCalendar: Nullable<SelectedCalendarId> = null
 	get selectedCalendar(): CalendarInfoBase | null {
 		const calendars = this.getAvailableCalendars(true)
 		const selectedCalendar =
 			calendars.find((calendarInfo) => {
-				if (isBirthdayCalendarInfo(calendarInfo)) {
-					return calendarInfo.id === this._selectedCalendar
+				if (this._selectedCalendar == null) {
+					return false
 				}
-				if (isCalendarInfo(calendarInfo)) {
+				if (isBirthdayCalendarInfo(calendarInfo)) {
+					return calendarInfo.id === this._selectedCalendar.birthdayCalendarId
+				} else if (isCalendarInfo(calendarInfo)) {
 					const groupRoot = calendarInfo.groupRoot
-					return isSameId([groupRoot.longEvents, groupRoot.shortEvents], this._selectedCalendar)
+					return isSameIdTuple([groupRoot.longEvents, groupRoot.shortEvents], this._selectedCalendar.longListShortList)
 				}
 			}) ?? null
 		return selectedCalendar
@@ -333,7 +342,7 @@ export class SearchViewModel {
 
 			// Check if user is trying to search in a birthday calendar while using a free account
 			const listIdsOrBirthdayCalendarId = this.extractCalendarListIds(restriction.folderIds)
-			if (!listIdsOrBirthdayCalendarId || Array.isArray(listIdsOrBirthdayCalendarId)) {
+			if (listIdsOrBirthdayCalendarId == null || listIdsOrBirthdayCalendarId.longListShortList != null) {
 				this._selectedCalendar = listIdsOrBirthdayCalendarId
 			} else if (isBirthdayCalendar(listIdsOrBirthdayCalendarId.toString())) {
 				const availableCalendars = this.getAvailableCalendars(true)
@@ -380,11 +389,11 @@ export class SearchViewModel {
 			.catch(() => listModel.updateLoadingStatus(ListLoadingState.ConnectionLost))
 	}
 
-	private extractCalendarListIds(listIds: string[]): readonly [string, string] | string | null {
+	private extractCalendarListIds(listIds: string[]): Nullable<SelectedCalendarId> {
 		if (listIds.length < 1) return null
-		else if (listIds.length === 1) return listIds[0]
+		else if (listIds.length === 1) return { birthdayCalendarId: listIds[0], longListShortList: null }
 
-		return [listIds[0], listIds[1]]
+		return { birthdayCalendarId: null, longListShortList: [listIds[0], listIds[1]] }
 	}
 
 	private loadAndSelectIfNeeded(id: string | null, finder?: (a: ListElement) => boolean) {
@@ -519,9 +528,9 @@ export class SearchViewModel {
 		if (!calendarInfo) {
 			this._selectedCalendar = null
 		} else if (isBirthdayCalendarInfo(calendarInfo)) {
-			this._selectedCalendar = calendarInfo.id
+			this._selectedCalendar = { birthdayCalendarId: calendarInfo.id, longListShortList: null }
 		} else if (isCalendarInfo(calendarInfo)) {
-			this._selectedCalendar = [calendarInfo.groupRoot.longEvents, calendarInfo.groupRoot.shortEvents]
+			this._selectedCalendar = { birthdayCalendarId: null, longListShortList: [calendarInfo.groupRoot.longEvents, calendarInfo.groupRoot.shortEvents] }
 		}
 		this.searchAgain()
 	}
@@ -693,7 +702,7 @@ export class SearchViewModel {
 		if (selectedMailFolder[0]) {
 			const mailFolder = await mailLocator.mailModel.getMailSetById(selectedMailFolder[0])
 			if (!mailFolder) {
-				const folderSystem = assertNotNull(mailLocator.mailModel.getFolderSystemByGroupId(mailboxes[0].mailGroup._id))
+				const folderSystem = assertNotNull(mailLocator.mailModel.getFolderSystemByGroupId(elementIdToId(mailboxes[0].mailGroup._id)))
 				this._selectedMailFolder = [getElementId(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX)))]
 				this.updateUi()
 			}
@@ -828,8 +837,8 @@ export class SearchViewModel {
 				// displayed conversation has changed
 				if (
 					!this._conversationViewModel ||
-					!isSameId(listIdPart(this._conversationViewModel.primaryMail._id), listIdPart(mail._id)) ||
-					!isSameId(elementIdPart(this._conversationViewModel.primaryMail._id), elementIdPart(mail._id))
+					!isSameSingleId(listIdPart(this._conversationViewModel.primaryMail._id), listIdPart(mail._id)) ||
+					!isSameSingleId(elementIdPart(this._conversationViewModel.primaryMail._id), elementIdPart(mail._id))
 				) {
 					this.updateDisplayedConversation(mail)
 				}

@@ -3,7 +3,7 @@
  * the scenarios are mostly divided into deciding the type of operation (edit, delete, create)
  * and the scope of the operation (only the clicked instance or all instances)
  * */
-import { clone, getAsEnumValue } from "@tutao/meta"
+import { clone, elementIdToId, getAsEnumValue } from "@tutao/meta"
 import { assertEventValidity, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationModel } from "./CalendarNotificationModel.js"
 import { assertNotNull, identity, isNotEmpty } from "@tutao/utils"
@@ -54,7 +54,7 @@ export class CalendarEventApplyStrategies {
 	 */
 	async saveNewEvent(editModels: CalendarEventEditModels): Promise<void> {
 		const { eventValues, newAlarms, sendModels, calendar } = assembleCalendarEventEditResult(editModels)
-		const uid = generateUid(calendar.group._id, Date.now())
+		const uid = generateUid(elementIdToId(calendar.group._id), Date.now())
 		const newEvent = assignEventIdentity(eventValues, { uid })
 		assertEventValidity(newEvent)
 		const { groupRoot } = calendar

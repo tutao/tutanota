@@ -3,14 +3,14 @@ import { assertMainOrNode, UnsubscribeFailureReason } from "../../../platform-ki
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { formatDateWithMonth, formatStorageSize } from "../../../ui/utils/Formatter.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
-import { asyncFind, getFirstOrThrow, LazyLoaded, neverNull, ofClass, promiseMap } from "../../../platform-kit/utils"
+import { assertNotNull, asyncFind, getFirstOrThrow, LazyLoaded, neverNull, ofClass, promiseMap } from "../../../platform-kit/utils"
 import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "../../../platform-kit/rest-client/error"
 import { ColumnWidth, Table, TableAttrs } from "../../../ui/base/Table.js"
 import { getGroupTypeDisplayName } from "./groups/GroupDetailsView.js"
 import { Icons } from "../../../ui/base/icons/Icons.js"
 import { SecondFactorsEditForm } from "./login/secondfactor/SecondFactorsEditForm.js"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
-import { isSameId, OperationType } from "../../../platform-kit/meta"
+import { elementIdToId, idToElementId, isSameId, isSameSingleId, OperationType } from "../../../platform-kit/meta"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { Customer, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
 import { BookingItemFeatureType, GroupType } from "../../../entities/sys/Utils"
@@ -81,7 +81,11 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 
 		this.user.getAsync().then(async (user) => {
 			const mailMembership = await asyncFind(user.memberships, async (ship) => {
-				return ship.groupType === GroupType.Mail && (await locator.entityClient.load(GroupTypeRef, ship.group)).user === user._id
+				if (ship.groupType === GroupType.Mail) {
+					const membershipGroup = await locator.entityClient.load(GroupTypeRef, idToElementId(ship.group))
+					return isSameSingleId(membershipGroup.user, elementIdToId(user._id))
+				}
+				return false
 			})
 			if (mailMembership == null) {
 				console.error("User doesn't have a mailbox?", user._id)
@@ -89,7 +93,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			}
 			this.mailAddressTableModel = this.isItMe()
 				? await locator.mailAddressTableModelForOwnMailbox()
-				: await locator.mailAddressTableModelForAdmin(mailMembership.group, user._id, {
+				: await locator.mailAddressTableModelForAdmin(mailMembership.group, elementIdToId(user._id), {
 						user,
 						userGroupInfo: this.userGroupInfo,
 					})
@@ -282,7 +286,10 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 						actionButtonAttrs: {
 							title: "remove_action",
 							click: () => {
-								showProgressDialog("pleaseWait_msg", locator.groupManagementFacade.removeUserFromGroup(user._id, groupInfo.group)).catch(
+								showProgressDialog(
+									"pleaseWait_msg",
+									locator.groupManagementFacade.removeUserFromGroup(elementIdToId(user._id), groupInfo.group),
+								).catch(
 									ofClass(NotAuthorizedError, (e) => {
 										Dialog.message("removeUserFromGroupNotAdministratedUserError_msg")
 									}),
@@ -438,7 +445,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				isUpdateForTypeRef(UserTypeRef, update) &&
 				operation === OperationType.UPDATE &&
 				this.user.isLoaded() &&
-				isSameId(this.user.getLoaded()._id, instanceId)
+				isSameId(this.user.getLoaded()._id, idToElementId(instanceId))
 			) {
 				this.user.reset()
 				await this.updateUsedStorageAndAdminFlag()
@@ -450,8 +457,8 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	}
 
 	private loadUser(): Promise<User> {
-		return locator.entityClient.load(GroupTypeRef, this.userGroupInfo.group).then((userGroup) => {
-			return locator.entityClient.load(UserTypeRef, neverNull(userGroup.user))
+		return locator.entityClient.load(GroupTypeRef, idToElementId(this.userGroupInfo.group)).then((userGroup) => {
+			return locator.entityClient.load(UserTypeRef, idToElementId(neverNull(userGroup.user)))
 		})
 	}
 

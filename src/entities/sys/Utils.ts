@@ -1,7 +1,7 @@
 import { ShareCapability } from "../../platform-kit/app-env"
 import { Group, GroupInfo, GroupMember, GroupMembership, ReceivedGroupInvitation, User } from "./TypeRefs"
-import { downcast } from "../../platform-kit/utils"
-import { getEtId, isSameId } from "../../platform-kit/meta"
+import { downcast, isNotNull } from "../../platform-kit/utils"
+import { elementIdToId, idToElementId, isSameId, isSameSingleId } from "../../platform-kit/meta"
 
 export enum GroupType {
 	User = "0",
@@ -182,11 +182,11 @@ export function hasCapabilityOnGroup(user: User, group: Group, requiredCapabilit
 		return false
 	}
 
-	if (isSharedGroupOwner(group, user._id)) {
+	if (isSharedGroupOwner(group, elementIdToId(user._id))) {
 		return true
 	}
 
-	const membership = user.memberships.find((gm: GroupMembership) => isSameId(gm.group, group._id))
+	const membership = user.memberships.find((gm: GroupMembership) => isSameId(idToElementId(gm.group), group._id))
 
 	if (membership) {
 		return membership.capability != null && Number(requiredCapability) <= Number(membership.capability)
@@ -195,8 +195,8 @@ export function hasCapabilityOnGroup(user: User, group: Group, requiredCapabilit
 	return false
 }
 
-export function isSharedGroupOwner(sharedGroup: Group, user: Id | User): boolean {
-	return !!(sharedGroup.user && isSameId(sharedGroup.user, typeof user === "string" ? user : getEtId(user)))
+export function isSharedGroupOwner(sharedGroup: Group, user: Id): boolean {
+	return isNotNull(sharedGroup.user) && isSameSingleId(sharedGroup.user, user)
 }
 
 export type GroupMemberInfo = {

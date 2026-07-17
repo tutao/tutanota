@@ -7,6 +7,7 @@ import m, { Component } from "mithril"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { ButtonType } from "../../../ui/base/Button"
 import * as notificationOverlay from "../../../ui/base/NotificationOverlay.js"
+import { idToElementId } from "@tutao/meta"
 
 /**
  * Returns true if notifications are currently sent.
@@ -67,9 +68,9 @@ export function getDefaultNotificationLabel(organizationMessageEnabled: boolean)
  */
 export function loadOutOfOfficeNotification(): Promise<OutOfOfficeNotification | null> {
 	const mailMembership = locator.logins.getUserController().getUserMailGroupMembership()
-	return locator.entityClient.load(MailboxGroupRootTypeRef, mailMembership.group).then((grouproot) => {
+	return locator.entityClient.load(MailboxGroupRootTypeRef, idToElementId(mailMembership.group)).then((grouproot) => {
 		if (grouproot.outOfOfficeNotification) {
-			return locator.entityClient.load<OutOfOfficeNotification>(OutOfOfficeNotificationTypeRef, grouproot.outOfOfficeNotification)
+			return locator.entityClient.load<OutOfOfficeNotification>(OutOfOfficeNotificationTypeRef, idToElementId(grouproot.outOfOfficeNotification))
 		} else {
 			return null
 		}

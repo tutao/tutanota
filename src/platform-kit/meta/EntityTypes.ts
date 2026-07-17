@@ -1,6 +1,6 @@
 import { AssociationType, Cardinality, Type } from "./EntityConstants.js"
 import { AppName, TypeRef } from "./TypeRef.js"
-import { BlobElement, Element, ListElement } from "./EntityUtils.js"
+import { Nullable } from "@tutao/utils"
 
 /**
  * Tuta Metamodel Entity Types
@@ -195,10 +195,16 @@ export interface ITypeInfo {
  * this interface is the bare minimum, actual entities need more fields in order to be useful.
  * these are added by defining ModelValues and ModelAssociations on the TypeModel.
  */
+
+export type EntityId<L, E> = readonly [L, E]
+export type AnyEntityId = EntityId<Nullable<Id>, Id>
+export type ListElementId = EntityId<Id, Id>
+export type BlobElementId = EntityId<Id, Id>
+export type ElementId = EntityId<Nullable<never>, Id>
+
 export interface Entity {
 	/** the address of the TypeModel this entity conforms to. */
 	_type: TypeRef<this>
-	_id?: Id | IdTuple
 	_original?: this
 	bucketKey?: null | IBucketKey
 	_ownerGroup?: null | Id
@@ -214,19 +220,30 @@ export interface Entity {
 /**
  * Entity types with instances that stand on their own, not being part of a list
  */
-export type ElementEntity = Entity & Element
+export interface ElementEntity extends PersistentEntity {
+	_id: ElementId
+}
 
 /**
  * Entity types with instances that are part of a list
  */
-export type ListElementEntity = Entity & ListElement
-
+export interface ListElementEntity extends PersistentEntity {
+	_id: ListElementId
+}
 /**
  * Entity types that are stored in an immutable blob storage
  */
-export type BlobElementEntity = Entity & BlobElement
+export interface BlobElementEntity extends PersistentEntity {
+	_id: BlobElementId
+}
 
-export type SomeEntity = ElementEntity | ListElementEntity | BlobElementEntity
+export interface PersistentEntity extends Entity {
+	_id: AnyEntityId
+}
+
+export interface AggregatedEntity extends Entity {
+	_id: Id
+}
 
 export const enum OperationType {
 	CREATE = "0",

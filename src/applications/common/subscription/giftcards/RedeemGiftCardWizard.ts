@@ -35,7 +35,7 @@ import { MessageBanner } from "../../../../ui/base/MessageBanner"
 import { AccountingInfo, AccountingInfoTypeRef, CustomerInfoTypeRef, GiftCardRedeemGetReturn } from "@tutao/entities/sys"
 import { PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
 import { renderCountryDropdown } from "../../gui/CountryDropdown"
-import { elementIdPart, isSameId } from "@tutao/meta"
+import { elementIdPart, idToElementId, isSameId } from "@tutao/meta"
 import { getByAbbreviation } from "../../gui/CountryList"
 import { windowFacade } from "../../misc/WindowFacade"
 
@@ -104,7 +104,7 @@ class RedeemGiftCardModel {
 	}
 
 	async loginWithStoredCredentials(encryptedCredentials: CredentialsInfo) {
-		if (this.logins.isUserLoggedIn() && isSameId(this.logins.getUserController().user._id, encryptedCredentials.userId)) {
+		if (this.logins.isUserLoggedIn() && isSameId(this.logins.getUserController().user._id, idToElementId(encryptedCredentials.userId))) {
 			// If the user is logged in already (because they selected credentials and then went back) we dont have to do
 			// anything, so just move on
 			await this.postLogin()
@@ -171,7 +171,7 @@ class RedeemGiftCardModel {
 		await this.secondFactorHandler.closeWaitingForSecondFactorDialog()
 		const customer = await this.logins.getUserController().reloadCustomer()
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
-		this.accountingInfo = await this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+		this.accountingInfo = await this.entityClient.load(AccountingInfoTypeRef, idToElementId(customerInfo.accountingInfo))
 
 		if (PaymentMethodType.AppStore === this.accountingInfo.paymentMethod) {
 			throw new UserError("redeemGiftCardWithAppStoreSubscription_msg")

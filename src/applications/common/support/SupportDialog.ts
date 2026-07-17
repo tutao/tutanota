@@ -24,6 +24,7 @@ import { SupportCategory, SupportData, SupportDataTypeRef, SupportTopic } from "
 import { DataFile } from "../../../entities/tutanota/MailBundle"
 import { windowFacade } from "../misc/WindowFacade"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../platform-kit/instance-pipeline/RestClientOptions"
+import { idToElementId } from "@tutao/meta"
 
 assertMainOrNode()
 
@@ -80,7 +81,10 @@ export async function showSupportDialog(logins: LoginController) {
 
 	const supportData = await showProgressDialog(
 		"pleaseWait_msg",
-		locator.entityClient.load(SupportDataTypeRef, "--------1---", { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly }),
+		locator.entityClient.load(SupportDataTypeRef, idToElementId("--------1---"), {
+			...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+			cacheMode: CacheMode.WriteOnly,
+		}),
 	)
 	data.categories = filterCategories(supportData)
 

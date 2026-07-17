@@ -11,7 +11,7 @@ import { Group } from "@tutao/entities/sys"
 import { ArchiveDataType } from "../../../../../../entities/sys/Utils"
 import { File, Mail } from "@tutao/entities/tutanota"
 import { BlobServerUrl } from "@tutao/entities/storage"
-import { elementIdPart } from "@tutao/meta"
+import { elementIdPart, elementIdToId } from "@tutao/meta"
 import { convertToDataFile } from "../../utils/DataFile"
 import { DataFile } from "../../../../../../entities/tutanota/MailBundle"
 import { createReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
@@ -42,7 +42,7 @@ export class MailExportFacade {
 	 * Returns a list of servers that can be used to request data from.
 	 */
 	async getExportServers(group: Group): Promise<BlobServerUrl[]> {
-		const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(ArchiveDataType.Attachments, group._id)
+		const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(ArchiveDataType.Attachments, elementIdToId(group._id))
 		return blobServerAccessInfo.servers
 	}
 

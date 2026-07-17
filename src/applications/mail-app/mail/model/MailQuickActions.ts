@@ -4,7 +4,7 @@ import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtil
 import { LoginController } from "../../../common/api/main/LoginController"
 import { getPathToFolderString } from "./MailUtils"
 import { Router } from "../../../../ui/ScopedThrottledRouter"
-import { getElementId } from "../../../../platform-kit/meta"
+import { elementIdToId, getElementId } from "../../../../platform-kit/meta"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { MAIL_PREFIX } from "../../../../ui/utils/RouteChange"
 import { QuickAction } from "../../../common/misc/quickactions/QuickActionsModel"
@@ -34,7 +34,7 @@ export async function quickMailActions(
 			},
 		}
 
-		const fs = mailModel.getFolderSystemByGroupId(mailboxDetail.mailGroup._id)
+		const fs = mailModel.getFolderSystemByGroupId(elementIdToId(mailboxDetail.mailGroup._id))
 
 		let folderActions: readonly QuickAction[]
 		if (fs == null) {

@@ -8,7 +8,10 @@ import {
 	Entity,
 	GENERATED_MAX_ID,
 	getTypeString,
+	idToElementId,
 	listIdPart,
+	PersistentEntity,
+	serverToLocalIdEncoding,
 	timestampToGeneratedId,
 	Type as TypeId,
 	TypeRef,
@@ -280,7 +283,7 @@ o.spec("OfflineStorageDbTest", function () {
 				const user = createTestEntity(
 					UserTypeRef,
 					{
-						_id: userId,
+						_id: idToElementId(userId),
 						_ownerGroup: "ownerGroup",
 					},
 					{ populateAggregates: true },
@@ -300,7 +303,7 @@ o.spec("OfflineStorageDbTest", function () {
 				const user = createTestEntity(
 					UserTypeRef,
 					{
-						_id: userId,
+						_id: idToElementId(userId),
 						_ownerGroup: "ownerGroup",
 					},
 					{ populateAggregates: true },
@@ -320,7 +323,7 @@ o.spec("OfflineStorageDbTest", function () {
 				const user = createTestEntity(
 					UserTypeRef,
 					{
-						_id: userId,
+						_id: idToElementId(userId),
 						_ownerGroup: "ownerGroup",
 					},
 					{ populateAggregates: true },
@@ -333,7 +336,7 @@ o.spec("OfflineStorageDbTest", function () {
 				await storage.put(UserTypeRef, storableUser)
 
 				await storage.deleteIfExists(UserTypeRef, null, userId)
-				verify(userCacheHandler.onBeforeCacheDeletion?.(userId))
+				verify(userCacheHandler.onBeforeCacheDeletion?.(idToElementId(userId)))
 			})
 
 			o.spec("deleteAllOfType", function () {
@@ -341,7 +344,7 @@ o.spec("OfflineStorageDbTest", function () {
 					const user = createTestEntity(
 						UserTypeRef,
 						{
-							_id: userId,
+							_id: idToElementId(userId),
 							_ownerGroup: "ownerGroup",
 						},
 						{ populateAggregates: true },
@@ -356,7 +359,7 @@ o.spec("OfflineStorageDbTest", function () {
 					await storage.put(UserTypeRef, storableUser)
 
 					await storage.deleteAllOfType(UserTypeRef)
-					verify(userCacheHandler.onBeforeCacheDeletion?.(userId))
+					verify(userCacheHandler.onBeforeCacheDeletion?.(idToElementId(userId)))
 				})
 
 				o.spec("calls the cache handler for list element types", function () {
@@ -433,7 +436,7 @@ o.spec("OfflineStorageDbTest", function () {
 					const user = createTestEntity(
 						UserTypeRef,
 						{
-							_id: userId,
+							_id: idToElementId(userId),
 							_ownerGroup: groupId,
 						},
 						{ populateAggregates: true },
@@ -446,7 +449,7 @@ o.spec("OfflineStorageDbTest", function () {
 					await storage.put(UserTypeRef, storableUser)
 
 					await storage.deleteAllOwnedBy(groupId)
-					verify(userCacheHandler.onBeforeCacheDeletion?.(userId))
+					verify(userCacheHandler.onBeforeCacheDeletion?.(idToElementId(userId)))
 				})
 
 				o.spec("calls the cache handler for list element types", function () {
@@ -542,7 +545,7 @@ o.spec("OfflineStorageDbTest", function () {
 				o.test("deleteAllOfType", async function () {
 					const userId = "id1"
 					const user = createTestEntity(UserTypeRef, {
-						_id: userId,
+						_id: idToElementId(userId),
 						_ownerGroup: "ownerGroup",
 						_permissions: "permissions",
 						userGroup: createTestEntity(GroupMembershipTypeRef, {
@@ -564,7 +567,7 @@ o.spec("OfflineStorageDbTest", function () {
 					await storage.put(UserTypeRef, storableUser)
 
 					storedUser = await storage.get(UserTypeRef, null, userId)
-					o.check(storedUser!._id).equals(user._id)
+					o.check(storedUser!._id).deepEquals(user._id)
 
 					await storage.deleteAllOfType(UserTypeRef)
 
@@ -577,7 +580,7 @@ o.spec("OfflineStorageDbTest", function () {
 					const userId2 = "id2"
 					const storableUsers = [
 						createTestEntity(UserTypeRef, {
-							_id: userId1,
+							_id: idToElementId(userId1),
 							_ownerGroup: "ownerGroup",
 							_permissions: "permissions",
 							userGroup: createTestEntity(GroupMembershipTypeRef, {
@@ -590,7 +593,7 @@ o.spec("OfflineStorageDbTest", function () {
 							secondFactorAuthentications: "secondFactorAuthentications",
 						}),
 						createTestEntity(UserTypeRef, {
-							_id: userId2,
+							_id: idToElementId(userId2),
 							_ownerGroup: "ownerGroup",
 							_permissions: "permissions",
 							userGroup: createTestEntity(GroupMembershipTypeRef, {
@@ -623,7 +626,7 @@ o.spec("OfflineStorageDbTest", function () {
 					const ownerGroup = "ownerGroup1"
 
 					const entity = createTestEntity(ContactListTypeRef, {
-						_id: id,
+						_id: idToElementId(id),
 						_ownerGroup: ownerGroup,
 						_permissions: "permissions",
 						_ownerEncSessionKey: null,

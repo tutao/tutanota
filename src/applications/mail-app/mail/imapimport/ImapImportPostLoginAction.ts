@@ -9,9 +9,8 @@ import { CustomerTypeRef } from "@tutao/entities/sys"
 import { FeatureType } from "@tutao/app-env"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils"
 import { MailBox, MailboxGroupRootTypeRef, MailBoxTypeRef } from "@tutao/entities/tutanota"
-import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
-import { ImapImporter } from "../../workerUtils/imapimport/ImapImporter"
 import { ImapMailImportController } from "../../settings/imapimport/ImapMailImportController"
+import { idToElementId } from "@tutao/meta"
 
 /**
  * continue an IMAP import tasks after login if there is one
@@ -31,15 +30,15 @@ export class ImapImportPostLoginAction implements PostLoginAction {
 	async onFullLoginSuccess(_: LoggedInEvent): Promise<void> {
 		await this.customerFacade.loadCustomizations()
 		const user = assertNotNull(await this.customerFacade.getUser())
-		const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(user.customer))
+		const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(assertNotNull(user.customer)))
 
 		if (isInternalUser(user) && isCustomizationEnabledForCustomer(customer, FeatureType.ImapSyncMigration)) {
 			const mailMemberships = filterMailMemberships(user)
 
 			const mailboxesOfUser: MailBox[] = []
 			for (const mailMembership of mailMemberships) {
-				const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, mailMembership.group)
-				const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
+				const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, idToElementId(mailMembership.group))
+				const mailbox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailboxGroupRoot.mailbox))
 				mailboxesOfUser.push(mailbox)
 			}
 

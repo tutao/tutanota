@@ -1,6 +1,6 @@
 import type { LoginController } from "../api/main/LoginController"
 import { Dialog } from "../../../ui/base/Dialog"
-import { generatedIdToTimestamp } from "@tutao/meta"
+import { elementIdToId, generatedIdToTimestamp } from "@tutao/meta"
 import { lang, LanguageCode, languageCodeToTag, LanguageNames, MaybeTranslation } from "../../../ui/utils/LanguageViewModel"
 import {
 	AccessBlockedError,
@@ -31,7 +31,7 @@ import { CacheMode } from "../../../platform-kit/instance-pipeline/RestClientOpt
 import { client, ClientPlatform } from "../../../platform-kit/app-env/boot/ClientDetector"
 
 function getAccountAgeInMs(customer: Customer) {
-	return new Date().getTime() - generatedIdToTimestamp(customer._id)
+	return new Date().getTime() - generatedIdToTimestamp(elementIdToId(customer._id))
 }
 
 const TWO_DAYS_MS = 48 * 60 * 60 * 1000

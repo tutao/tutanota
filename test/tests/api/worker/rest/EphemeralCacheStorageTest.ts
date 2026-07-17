@@ -22,6 +22,7 @@ import { User, UserTypeRef } from "@tutao/entities/sys"
 import { changeInstanceDirection } from "../../../instance-pipeline/InstancePipelineTestUtils"
 import { InstanceDirection } from "../../../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { EphemeralStorageArgs } from "../../../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
+import { idToElementId } from "../../../../../src/platform-kit/meta"
 
 o.spec("EphemeralCacheStorage", function () {
 	const userId = "userId"
@@ -136,7 +137,7 @@ o.spec("EphemeralCacheStorage", function () {
 			const user = createTestEntity(
 				UserTypeRef,
 				{
-					_id: userId,
+					_id: idToElementId(userId),
 					_ownerGroup: "ownerGroup",
 				},
 				{ populateAggregates: true },
@@ -156,7 +157,7 @@ o.spec("EphemeralCacheStorage", function () {
 			const user = createTestEntity(
 				UserTypeRef,
 				{
-					_id: userId,
+					_id: idToElementId(userId),
 					_ownerGroup: "ownerGroup",
 				},
 				{ populateAggregates: true },
@@ -170,7 +171,7 @@ o.spec("EphemeralCacheStorage", function () {
 			await storage.put(UserTypeRef, storableUser)
 
 			await storage.deleteIfExists(UserTypeRef, null, userId)
-			verify(userCacheHandler.onBeforeCacheDeletion?.(userId))
+			verify(userCacheHandler.onBeforeCacheDeletion?.(idToElementId(userId)))
 		})
 
 		o.test("deleteRange deletes instances for the listId", async function () {
@@ -249,7 +250,7 @@ o.spec("EphemeralCacheStorage", function () {
 				const user = createTestEntity(
 					UserTypeRef,
 					{
-						_id: userId,
+						_id: idToElementId(userId),
 						_ownerGroup: groupId,
 					},
 					{ populateAggregates: true },
@@ -263,7 +264,7 @@ o.spec("EphemeralCacheStorage", function () {
 				await storage.put(UserTypeRef, storableUser)
 
 				await storage.deleteAllOwnedBy(groupId)
-				verify(userCacheHandler.onBeforeCacheDeletion?.(userId))
+				verify(userCacheHandler.onBeforeCacheDeletion?.(idToElementId(userId)))
 			})
 
 			o.spec("calls the cache handler for list element types", function () {

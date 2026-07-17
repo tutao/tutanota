@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import { NotFoundError } from "../../../platform-kit/rest-client/error"
 import { component_size } from "../../../ui/size.js"
 import { elementIdPart } from "../../../platform-kit/meta"
-import { contains, LazyLoaded, noOp } from "../../../platform-kit/utils"
+import { assertNotNull, contains, LazyLoaded, noOp } from "../../../platform-kit/utils"
 import { UserViewer } from "./UserViewer.js"
 import { assertMainOrNode, FeatureType } from "../../../platform-kit/app-env"
 import { Icon } from "../../../ui/base/Icon.js"
@@ -193,7 +193,7 @@ export class UserListView implements UpdatableSettingsViewer {
 	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this.listId.getSync() === update.instanceListId) {
-				await this.listModel.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
+				await this.listModel.entityEventReceived(assertNotNull(update.instanceListId), update.instanceId, update.operation)
 			} else if (isUpdateFor(locator.logins.getUserController().user, update)) {
 				await this.loadAdmins()
 				this.listModel.reapplyFilter()

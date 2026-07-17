@@ -15,7 +15,7 @@ import { CalendarInfoBase, CalendarModel } from "../../../../src/applications/ca
 import { OperationProgressTracker } from "../../../../src/applications/common/api/main/OperationProgressTracker"
 import { assignEventId, CalendarType } from "../../../../src/applications/common/calendar/date/CalendarUtils"
 import { DateTime } from "luxon"
-import { clone } from "../../../../src/platform-kit/meta"
+import { clone, elementIdToId } from "../../../../src/platform-kit/meta"
 import { first, incrementDate, noOp } from "../../../../src/platform-kit/utils"
 import { EventSeriesResolver } from "../../../../src/applications/common/calendar/import/EventSeriesResolver"
 import { RepeatRuleTypeRef } from "@tutao/entities/sys"
@@ -74,7 +74,7 @@ o.spec("CalendarImporter", function () {
 	o.spec("import", function () {
 		o.beforeEach(function () {
 			calendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef, { shortEvents: "shortEventsListId", longEvents: "longEventsListId" })
-			calendarInfoBase = { id: calendarGroupRoot._id, name: "Calendar Name", type: CalendarType.Private, color: "#ffffff" }
+			calendarInfoBase = { id: elementIdToId(calendarGroupRoot._id), name: "Calendar Name", type: CalendarType.Private, color: "#ffffff" }
 
 			mockImportInteractionHandler = object()
 			mockOperationProgressTracker = object()
@@ -127,7 +127,7 @@ o.spec("CalendarImporter", function () {
 				const icsCalendarEvent = makeIcsEvent()
 				const parsedEventAlarmTuples = [{ icsCalendarEvent, alarms: [] }]
 				const calendarEvent = makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent)
-				calendarEvent._ownerGroup = calendarGroupRoot._id
+				calendarEvent._ownerGroup = elementIdToId(calendarGroupRoot._id)
 				assignEventId(calendarEvent, timezone, calendarGroupRoot)
 
 				const eventAlarmInfoTemplatesTuple: EventAlarmInfoTemplatesTuple = {
@@ -208,12 +208,17 @@ o.spec("CalendarImporter", function () {
 
 				const result = await calendarImporter.import(calendarGroupRoot, calendarInfoBase, inputTuples, classifyEventsStub)
 
-				verify(mockEventSeriesResolver.updateExistingProgenitorForNewAlteredInstances([alteredInstanceCalendarEvent], calendarGroupRoot._id))
+				verify(
+					mockEventSeriesResolver.updateExistingProgenitorForNewAlteredInstances(
+						[alteredInstanceCalendarEvent],
+						elementIdToId(calendarGroupRoot._id),
+					),
+				)
 				verify(
 					mockEventSeriesResolver.resolveAllExcludedDatesForNewProgenitors(
 						[progenitorCalendarEvent],
 						[alteredInstanceCalendarEvent],
-						calendarGroupRoot._id,
+						elementIdToId(calendarGroupRoot._id),
 					),
 				)
 				o.check(result).deepEquals({
@@ -228,7 +233,7 @@ o.spec("CalendarImporter", function () {
 			o.test("partial imports can succeed when confirmed by user", async function () {
 				const icsCalendarEvent = makeIcsEvent()
 				const calendarEvent = makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent)
-				calendarEvent._ownerGroup = calendarGroupRoot._id
+				calendarEvent._ownerGroup = elementIdToId(calendarGroupRoot._id)
 				assignEventId(calendarEvent, timezone, calendarGroupRoot)
 
 				const eventAlarmInfoTemplatesTuple: EventAlarmInfoTemplatesTuple = {
@@ -381,7 +386,7 @@ o.spec("CalendarImporter", function () {
 			const expectedRejectedProgenitor = makeCalendarEventFromIcsCalendarEvent(duplicateProgenitor)
 
 			const expectedCreatedProgenitor = makeCalendarEventFromIcsCalendarEvent(newProgenitor)
-			expectedCreatedProgenitor._ownerGroup = calendarGroupRoot._id
+			expectedCreatedProgenitor._ownerGroup = elementIdToId(calendarGroupRoot._id)
 			expectedCreatedProgenitor._id = eventsForCreationTuples[0].event._id
 
 			o(eventsForCreationTuples[0].event).deepEquals(expectedCreatedProgenitor)
@@ -436,7 +441,7 @@ o.spec("CalendarImporter", function () {
 
 			const expectedCreatedProgenitor = makeCalendarEventFromIcsCalendarEvent(newProgenitorIcs)
 
-			expectedCreatedProgenitor._ownerGroup = calendarGroupRoot._id
+			expectedCreatedProgenitor._ownerGroup = elementIdToId(calendarGroupRoot._id)
 			expectedCreatedProgenitor._id = eventsForCreationTuples[0].event._id
 
 			o(eventsForCreationTuples[0].event).deepEquals(expectedCreatedProgenitor)

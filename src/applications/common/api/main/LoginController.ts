@@ -15,6 +15,7 @@ import { PostLoginAction } from "../../../../app-kit/native-bridge/common/PostLo
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
 
 import { CacheMode } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { elementIdToId } from "@tutao/meta"
 
 assertMainOrNodeBoot()
 
@@ -110,7 +111,7 @@ export class LoginController {
 			const handler = await lazyHandler()
 			await handler.onPartialLoginSuccess({
 				sessionType,
-				userId: initData.user._id,
+				userId: elementIdToId(initData.user._id),
 			})
 		}
 		this.atLeastPartiallyLoggedIn = true

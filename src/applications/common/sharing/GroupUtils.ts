@@ -14,9 +14,9 @@ import { enumKeyByValue, ShareCapability } from "@tutao/app-env"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { downcast, ofClass, promiseMap } from "@tutao/utils"
 import type { EntityClient } from "../../../platform-kit/network/EntityClient"
-import * as restError from "@tutao/rest-client/error"
-import { UserController } from "../api/main/UserController"
 import { NotFoundError } from "@tutao/rest-client/error"
+import { UserController } from "../api/main/UserController"
+import { idToElementId } from "@tutao/meta"
 
 export function getCapabilityText(capability: ShareCapability): string {
 	switch (capability) {
@@ -55,7 +55,7 @@ export function loadReceivedGroupInvitations(
 	type: GroupType,
 ): Promise<Array<ReceivedGroupInvitation>> {
 	return entityClient
-		.load(UserGroupRootTypeRef, userController.userGroupInfo.group)
+		.load(UserGroupRootTypeRef, idToElementId(userController.userGroupInfo.group))
 		.then((userGroupRoot) => entityClient.loadAll(ReceivedGroupInvitationTypeRef, userGroupRoot.invitations))
 		.then((invitations) => invitations.filter((invitation) => getInvitationGroupType(invitation) === type))
 		.catch(ofClass(NotFoundError, () => []))

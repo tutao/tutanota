@@ -1,8 +1,9 @@
-import { neverNull, promiseMap } from "../../../platform-kit/utils"
+import { assertNotNull, neverNull, promiseMap } from "../../../platform-kit/utils"
 import { getGroupInfoDisplayName, getUserGroupMemberships } from "../../../platform-kit/network/GroupUtils"
 import { locator } from "../../common/api/main/CommonLocator"
 import { Customer, GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
+import { idToElementId } from "@tutao/meta"
 
 /**
  * As users personal mail group infos do not contain name and mail address we use this wrapper to store group ids together with name and mail address.
@@ -19,11 +20,11 @@ export class GroupData {
 
 export function loadGroupDisplayName(groupId: Id): Promise<Id> {
 	return locator.entityClient
-		.load(GroupTypeRef, groupId)
+		.load(GroupTypeRef, idToElementId(groupId))
 		.then((group) => {
 			if (group.user && group.type !== GroupType.User) {
 				// the users personal mail group does not have a name, so show the user name
-				return locator.entityClient.load(UserTypeRef, group.user).then((user) => {
+				return locator.entityClient.load(UserTypeRef, idToElementId(group.user)).then((user) => {
 					return locator.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
 				})
 			} else {
@@ -42,7 +43,7 @@ export async function loadEnabledTeamMailGroups(customer: Customer): Promise<Gro
 			if (teamGroupInfo.deleted) {
 				return false
 			} else {
-				return locator.entityClient.load(GroupTypeRef, teamGroupInfo.group).then((teamGroup) => teamGroup.type === GroupType.Mail)
+				return locator.entityClient.load(GroupTypeRef, idToElementId(teamGroupInfo.group)).then((teamGroup) => teamGroup.type === GroupType.Mail)
 			}
 		})
 		.map((mailTeamGroupInfo) => new GroupData(mailTeamGroupInfo.group, getGroupInfoDisplayName(mailTeamGroupInfo)))
@@ -53,8 +54,8 @@ export async function loadEnabledUserMailGroups(customer: Customer): Promise<Gro
 	return promiseMap(
 		groupInfos.filter((g) => !g.deleted),
 		async (userGroupInfo) => {
-			const userGroup = await locator.entityClient.load(GroupTypeRef, userGroupInfo.group)
-			const user = await locator.entityClient.load(UserTypeRef, neverNull(userGroup.user))
+			const userGroup = await locator.entityClient.load(GroupTypeRef, idToElementId(userGroupInfo.group))
+			const user = await locator.entityClient.load(UserTypeRef, idToElementId(neverNull(userGroup.user)))
 			return new GroupData(getUserGroupMemberships(user, GroupType.Mail)[0].group, getGroupInfoDisplayName(userGroupInfo))
 		},
 	)

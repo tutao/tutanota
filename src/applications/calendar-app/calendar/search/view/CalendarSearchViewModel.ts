@@ -1,7 +1,18 @@
 import { CalendarSearchResultListEntry } from "./CalendarSearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes.js"
 import { EventController } from "../../../../common/api/main/EventController.js"
-import { assertIsEntity2, elementIdPart, GENERATED_MAX_ID, getElementId, isSameId, isSameTypeRef, ListElement, TypeRef } from "../../../../../platform-kit/meta"
+import {
+	assertIsEntity2,
+	elementIdPart,
+	GENERATED_MAX_ID,
+	getElementId,
+	isSameId,
+	isSameIdTuple,
+	isSameSingleId,
+	isSameTypeRef,
+	ListElement,
+	TypeRef,
+} from "../../../../../platform-kit/meta"
 import { ListLoadingState, ListState } from "../../../../../ui/base/List.js"
 import {
 	deepEqual,
@@ -12,6 +23,7 @@ import {
 	isSameDayOfDate,
 	lazyMemoized,
 	neverNull,
+	Nullable,
 	ofClass,
 	stringToBase64,
 	YEAR_IN_MILLIS,
@@ -41,6 +53,7 @@ import {
 	OnEntityUpdateReceivedPriority,
 } from "../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils.js"
 import { CalendarEvent, CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { SelectedCalendarId } from "../../../../mail-app/search/view/SearchViewModel"
 
 const SEARCH_PAGE_SIZE = 100
 
@@ -91,17 +104,20 @@ export class CalendarSearchViewModel {
 	}
 
 	// isn't an IdTuple because it is two list ids
-	private _selectedCalendar: readonly [Id, Id] | Id | null = null // [longListId, shorListId] || birthDay_calendar_id | null
+	private _selectedCalendar: Nullable<SelectedCalendarId> = null // [longListId, shorListId] || birthDay_calendar_id | null
 	get selectedCalendar(): CalendarInfoBase | null {
 		const calendars = this.getAvailableCalendars(true)
 		const selectedCalendar =
 			calendars.find((calendarInfo) => {
+				if (this._selectedCalendar == null) {
+					return false
+				}
 				if (isBirthdayCalendarInfo(calendarInfo)) {
-					return calendarInfo.id === this._selectedCalendar
+					return calendarInfo.id === this._selectedCalendar.birthdayCalendarId
 				}
 				if (isCalendarInfo(calendarInfo)) {
 					const groupRoot = calendarInfo.groupRoot
-					return isSameId([groupRoot.longEvents, groupRoot.shortEvents], this._selectedCalendar)
+					return isSameIdTuple([groupRoot.longEvents, groupRoot.shortEvents], this._selectedCalendar.longListShortList)
 				}
 			}) ?? null
 		return selectedCalendar
@@ -219,13 +235,9 @@ export class CalendarSearchViewModel {
 
 		// Check if user is trying to search in a birthday calendar while using a free account
 		const listIdsOrBirthdayCalendarId = this.extractCalendarListIds(restriction.folderIds)
-		if (!listIdsOrBirthdayCalendarId || Array.isArray(listIdsOrBirthdayCalendarId)) {
+		if (listIdsOrBirthdayCalendarId && listIdsOrBirthdayCalendarId.longListShortList) {
 			this._selectedCalendar = listIdsOrBirthdayCalendarId
-		} else if (isBirthdayCalendar(listIdsOrBirthdayCalendarId.toString())) {
-			const availableCalendars = this.getAvailableCalendars(true)
-			if (availableCalendars.some(isBirthdayCalendarInfo)) {
-				this._selectedCalendar = listIdsOrBirthdayCalendarId
-			}
+		} else {
 			this._selectedCalendar = null
 			return
 		}
@@ -244,11 +256,11 @@ export class CalendarSearchViewModel {
 		}
 	}
 
-	private extractCalendarListIds(listIds: string[]): readonly [string, string] | string | null {
+	private extractCalendarListIds(listIds: string[]): Nullable<SelectedCalendarId> {
 		if (listIds.length < 1) return null
-		else if (listIds.length === 1) return listIds[0]
+		else if (listIds.length === 1) return { birthdayCalendarId: listIds[0], longListShortList: null }
 
-		return [listIds[0], listIds[1]]
+		return { birthdayCalendarId: null, longListShortList: [listIds[0], listIds[1]] }
 	}
 
 	private loadAndSelectIfNeeded(id: string | null, finder?: (a: ListElement) => boolean) {
@@ -333,9 +345,9 @@ export class CalendarSearchViewModel {
 		if (!calendarInfo) {
 			this._selectedCalendar = null
 		} else if (isBirthdayCalendarInfo(calendarInfo)) {
-			this._selectedCalendar = calendarInfo.id
+			this._selectedCalendar = { birthdayCalendarId: calendarInfo.id, longListShortList: null }
 		} else if (isCalendarInfo(calendarInfo)) {
-			this._selectedCalendar = [calendarInfo.groupRoot.longEvents, calendarInfo.groupRoot.shortEvents]
+			this._selectedCalendar = { birthdayCalendarId: null, longListShortList: [calendarInfo.groupRoot.longEvents, calendarInfo.groupRoot.shortEvents] }
 		}
 		this.searchAgain()
 	}
@@ -564,7 +576,7 @@ export class CalendarSearchViewModel {
 	}
 
 	private compareItemId(id1: IdTuple, id2: IdTuple, ignoreList: boolean) {
-		return ignoreList ? isSameId(elementIdPart(id1), elementIdPart(id2)) : isSameId(id1, id2)
+		return ignoreList ? isSameSingleId(elementIdPart(id1), elementIdPart(id2)) : isSameId(id1, id2)
 	}
 
 	private async loadSearchResults(

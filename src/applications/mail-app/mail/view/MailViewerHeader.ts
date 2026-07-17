@@ -37,6 +37,7 @@ import { File } from "@tutao/entities/tutanota"
 import { InboxRuleType, NewsletterBannerRule } from "../../../../entities/tutanota/Utils"
 import { canSeeTutaLinks } from "../../../common/gui/base/TutaLinkUtils"
 import { DownloadPostProcessing } from "../../../common/file/FileController"
+import { elementIdToId } from "@tutao/meta"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -389,7 +390,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private renderEventBanner(viewModel: MailViewerViewModel): Children {
 		const eventAttachment = viewModel.getCalendarEventAttachment()
 		const groupColors: Map<Id, string> = getGroupColors(
-			viewModel.logins.getUserController().user._id,
+			elementIdToId(viewModel.logins.getUserController().user._id),
 			viewModel.logins.getUserController().userSettingsGroupRoot,
 		)
 

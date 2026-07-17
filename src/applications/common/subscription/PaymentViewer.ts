@@ -41,7 +41,7 @@ import {
 	InvoiceInfoTypeRef,
 } from "@tutao/entities/sys"
 import { AccountType, AvailablePlans, NewPaidPlans, PaymentMethodType } from "../../../entities/sys/Utils"
-import { GENERATED_MAX_ID } from "@tutao/meta"
+import { GENERATED_MAX_ID, idToElementId } from "@tutao/meta"
 import { getByAbbreviation } from "../gui/CountryList"
 import { CustomerAccountPosting } from "@tutao/entities/accounting"
 import { CustomerAccountService } from "../../../entities/accounting/Services"
@@ -91,9 +91,9 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		this.customer = await locator.logins.getUserController().reloadCustomer()
 		const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
 
-		const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+		const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, idToElementId(customerInfo.accountingInfo))
 		this.updateAccountingInfoData(accountingInfo)
-		this.invoiceInfo = await locator.entityClient.load(InvoiceInfoTypeRef, neverNull(accountingInfo.invoiceInfo))
+		this.invoiceInfo = await locator.entityClient.load(InvoiceInfoTypeRef, idToElementId(neverNull(accountingInfo.invoiceInfo)))
 		m.redraw()
 		await this.loadPostings()
 	}
@@ -439,13 +439,13 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		const { instanceId } = update
 
 		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
-			const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, instanceId)
+			const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, idToElementId(instanceId))
 			this.updateAccountingInfoData(accountingInfo)
 		} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
 			this.customer = await locator.logins.getUserController().reloadCustomer()
 			m.redraw()
 		} else if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
-			this.invoiceInfo = await locator.entityClient.load(InvoiceInfoTypeRef, instanceId)
+			this.invoiceInfo = await locator.entityClient.load(InvoiceInfoTypeRef, idToElementId(instanceId))
 			m.redraw()
 		}
 	}

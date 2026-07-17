@@ -2,12 +2,12 @@ import { ListFilter } from "../../../common/misc/ListModel"
 import { ListLoadingState, ListState } from "../../../../ui/base/List"
 import Stream from "mithril/stream"
 import { MailModel } from "./MailModel"
-import { groupByAndMap, isEmpty, promiseFilter } from "../../../../platform-kit/utils"
+import { assertNotNull, groupByAndMap, isEmpty, promiseFilter } from "../../../../platform-kit/utils"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { EntityUpdateData } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { Mail, MailSet, MailSetEntry } from "@tutao/entities/tutanota"
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
-import { elementIdPart, getElementId, listIdPart } from "../../../../platform-kit/meta"
+import { elementIdPart, elementIdToId, getElementId, listIdPart } from "../../../../platform-kit/meta"
 
 /**
  * Interface for retrieving and listing mails
@@ -298,7 +298,7 @@ export async function applyInboxRulesAndSpamPrediction(
 	if (!mailboxDetail) {
 		return entries
 	}
-	const folderSystem = mailModel.getFolderSystemByGroupId(mailboxDetail.mailGroup._id)
+	const folderSystem = mailModel.getFolderSystemByGroupId(elementIdToId(mailboxDetail.mailGroup._id))
 	if (!folderSystem) {
 		return entries
 	}

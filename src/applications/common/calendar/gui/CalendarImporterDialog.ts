@@ -1,4 +1,4 @@
-import { elementIdPart, isSameId, listIdPart } from "@tutao/meta"
+import { elementIdPart, isSameId, isSameSingleId, listIdPart } from "@tutao/meta"
 import { FileChooserMultiMode, showFileChooser, showNativeFilePicker } from "../../file/FileController.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
@@ -222,7 +222,7 @@ export async function exportCalendar(calendarName: string, groupRoot: CalendarGr
 		(async () => {
 			const allEvents = await loadAllEvents(groupRoot)
 			const eventsWithAlarms = await promiseMap(allEvents, async (event: CalendarEvent) => {
-				const thisUserAlarms = event.alarmInfos.filter((alarmInfoId) => isSameId(userAlarmInfos, listIdPart(alarmInfoId)))
+				const thisUserAlarms = event.alarmInfos.filter((alarmInfoId) => isSameSingleId(userAlarmInfos, listIdPart(alarmInfoId)))
 				if (thisUserAlarms.length === 0) return { event, alarms: [] }
 				const alarms = await locator.entityClient.loadMultiple(UserAlarmInfoTypeRef, userAlarmInfos, thisUserAlarms.map(elementIdPart))
 				return { event, alarms }

@@ -7,6 +7,7 @@ import { PasswordForm, PasswordModel } from "../PasswordForm.js"
 import { assertNonNull, assertNotNull, newPromise, ofClass } from "@tutao/utils"
 import { User } from "@tutao/entities/sys"
 import { asKdfType, DEFAULT_KDF_TYPE } from "../../../../platform-kit/base/base-crypto/Constants"
+import { elementIdToId } from "@tutao/meta"
 
 /**
  *The admin does not have to enter the old password in addition to the new password (twice). The password strength is not enforced.
@@ -47,7 +48,7 @@ async function storeNewPassword(
 	} | null,
 ) {
 	const credentialsProvider = locator.credentialsProvider
-	const storedCredentials = await credentialsProvider.getCredentialsInfoByUserId(currentUser._id)
+	const storedCredentials = await credentialsProvider.getCredentialsInfoByUserId(elementIdToId(currentUser._id))
 	if (storedCredentials != null) {
 		assertNonNull(newPasswordData, "encrypted password data is not provided")
 		await credentialsProvider.replacePassword(storedCredentials, newPasswordData.newEncryptedPassphrase, newPasswordData.newEncryptedPassphraseKey)

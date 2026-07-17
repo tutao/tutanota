@@ -18,7 +18,7 @@ import { Dialog } from "../../../../ui/base/Dialog"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { mailLocator } from "../../mailLocator"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { elementIdPart, GENERATED_MIN_ID, isSameId } from "../../../../platform-kit/meta"
+import { elementIdPart, elementIdToId, GENERATED_MIN_ID, isSameId, isSameSingleId } from "../../../../platform-kit/meta"
 
 // keep in sync with napi binding.d.cts
 export const enum ImportProgressAction {
@@ -76,7 +76,7 @@ export class FileMailImportController {
 
 		for (const mailboxDetail of this.mailboxDetails) {
 			const mailbox = mailboxDetail.mailbox
-			this.mailboxToFolders.set(mailbox._id, this.getFoldersForMailGroup(assertNotNull(mailbox._ownerGroup)))
+			this.mailboxToFolders.set(elementIdToId(mailbox._id), this.getFoldersForMailGroup(assertNotNull(mailbox._ownerGroup)))
 
 			if (!this.activeImport) {
 				await this.checkForResumableImport(mailbox)
@@ -85,7 +85,7 @@ export class FileMailImportController {
 			const importMailStatesCollection = await this.entityClient.loadAll(ImportFileMailStateTypeRef, mailbox.importFileMailStates)
 			for (const importMailState of importMailStatesCollection) {
 				if (this.isFinalisedImport(importMailState)) {
-					this.updateFinalisedImport(mailbox._id, elementIdPart(importMailState._id), importMailState)
+					this.updateFinalisedImport(elementIdToId(mailbox._id), elementIdPart(importMailState._id), importMailState)
 				}
 			}
 		}
@@ -94,7 +94,7 @@ export class FileMailImportController {
 			this.selectedMailBoxDetail = first(this.mailboxDetails)
 			const selectedMailboxId = this.selectedMailBoxDetail?.mailbox._id
 			if (selectedMailboxId) {
-				this.selectedTargetFolder = this.mailboxToFolders.get(selectedMailboxId)?.getSystemFolderByType(MailSetKind.ARCHIVE) ?? null
+				this.selectedTargetFolder = this.mailboxToFolders.get(elementIdToId(selectedMailboxId))?.getSystemFolderByType(MailSetKind.ARCHIVE) ?? null
 			}
 		}
 
@@ -112,13 +112,13 @@ export class FileMailImportController {
 			const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
 
 			try {
-				activeImportId = await importFacade.getResumableImport(mailbox._id, mailOwnerGroupId, unencryptedCredentials, apiUrl)
+				activeImportId = await importFacade.getResumableImport(elementIdToId(mailbox._id), mailOwnerGroupId, unencryptedCredentials, apiUrl)
 			} catch (e) {
 				if (e instanceof MailImportError) this.handleError(e).catch()
 				else throw e
 			}
 
-			this.listenForError(importFacade, mailbox._id).then()
+			this.listenForError(importFacade, elementIdToId(mailbox._id)).then()
 		}
 
 		if (activeImportId) {
@@ -145,7 +145,7 @@ export class FileMailImportController {
 					}
 
 					this.activeImport = {
-						mailboxId: mailbox._id,
+						mailboxId: elementIdToId(mailbox._id),
 						remoteStateId: activeImportId,
 						uiStatus: UiImportStatus.Paused,
 						progressMonitor,
@@ -159,7 +159,7 @@ export class FileMailImportController {
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(ImportFileMailStateTypeRef, update)) {
-				const updatedState = await this.entityClient.load(ImportFileMailStateTypeRef, [update.instanceListId, update.instanceId])
+				const updatedState = await this.entityClient.load(ImportFileMailStateTypeRef, [assertNotNull(update.instanceListId), update.instanceId])
 				await this.newImportStateFromServer(updatedState)
 			}
 		}
@@ -187,9 +187,9 @@ export class FileMailImportController {
 				}
 			}
 		} else {
-			const mailboxDetail = this.mailboxDetails.find((detail) => detail.mailGroup._id === serverState._ownerGroup)
+			const mailboxDetail = this.mailboxDetails.find((detail) => isSameSingleId(elementIdToId(detail.mailGroup._id), serverState._ownerGroup))
 			if (mailboxDetail) {
-				this.updateFinalisedImport(mailboxDetail.mailbox._id, elementIdPart(serverState._id), serverState)
+				this.updateFinalisedImport(elementIdToId(mailboxDetail.mailbox._id), elementIdPart(serverState._id), serverState)
 			}
 		}
 
@@ -268,7 +268,7 @@ export class FileMailImportController {
 
 		const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
 		const mailbox = assertNotNull(this.selectedMailBoxDetail).mailbox
-		const mailboxId = mailbox._id
+		const mailboxId = elementIdToId(mailbox._id)
 		const mailOwnerGroupId = assertNotNull(mailbox._ownerGroup)
 		const userId = this.loginController.getUserController().userId
 		const importFacade = assertNotNull(this.nativeMailImportFacade)
@@ -469,7 +469,7 @@ export class FileMailImportController {
 
 	onNewMailboxSelected(newMailboxDetail: MailboxDetail) {
 		this.selectedMailBoxDetail = newMailboxDetail
-		this.selectedTargetFolder = this.mailboxToFolders.get(newMailboxDetail.mailbox._id)?.getSystemFolderByType(MailSetKind.ARCHIVE) ?? null
+		this.selectedTargetFolder = this.mailboxToFolders.get(elementIdToId(newMailboxDetail.mailbox._id))?.getSystemFolderByType(MailSetKind.ARCHIVE) ?? null
 	}
 }
 

@@ -1,6 +1,6 @@
 import { assertMainOrNode, FeatureType, getApiBaseUrl, isDesktop, SessionType } from "@tutao/app-env"
 import { assertNotNull, downcast, first, mapAndFilterNull, newPromise, ofClass } from "@tutao/utils"
-import { elementIdPart, isSameId, listIdPart } from "@tutao/meta"
+import { elementIdPart, elementIdToId, idToElementId, isSameId, isSameSingleId, listIdPart } from "@tutao/meta"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { locator } from "./CommonLocator"
 import { getWhitelabelCustomizations } from "../../../../ui/utils/WhitelabelUtils"
@@ -68,7 +68,7 @@ export class UserController {
 	}
 
 	get userId(): Id {
-		return this.user._id
+		return elementIdToId(this.user._id)
 	}
 
 	get props(): TutanotaProperties {
@@ -116,7 +116,10 @@ export class UserController {
 	}
 
 	reloadCustomer(cacheMode: CacheMode = CacheMode.ReadAndWrite): Promise<Customer> {
-		return this.entityClient.load(CustomerTypeRef, assertNotNull(this.user.customer), { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode })
+		return this.entityClient.load(CustomerTypeRef, idToElementId(assertNotNull(this.user.customer)), {
+			...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+			cacheMode,
+		})
 	}
 
 	/**
@@ -134,7 +137,7 @@ export class UserController {
 
 	async loadCustomerProperties(): Promise<CustomerProperties> {
 		const customer = await this.reloadCustomer()
-		return await this.entityClient.load(CustomerPropertiesTypeRef, assertNotNull(customer.properties))
+		return await this.entityClient.load(CustomerPropertiesTypeRef, idToElementId(assertNotNull(customer.properties)))
 	}
 
 	async getPlanType(): Promise<PlanType> {
@@ -178,7 +181,7 @@ export class UserController {
 
 	async loadAccountingInfo(): Promise<AccountingInfo> {
 		const customerInfo = await this.loadCustomerInfo()
-		return await this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+		return await this.entityClient.load(AccountingInfoTypeRef, idToElementId(customerInfo.accountingInfo))
 	}
 
 	getMailGroupMemberships(): GroupMembership[] {
@@ -218,8 +221,8 @@ export class UserController {
 		return (
 			update.operation === OperationType.UPDATE &&
 			isUpdateForTypeRef(UserTypeRef, update) &&
-			isSameId(this.user._id, update.instanceId) &&
-			isSameId(this.user.userGroup.group, eventOwnerGroupId)
+			isSameId(this.user._id, idToElementId(update.instanceId)) &&
+			isSameSingleId(this.user.userGroup.group, eventOwnerGroupId)
 		) // only include updates for the user group here
 	}
 
@@ -231,17 +234,17 @@ export class UserController {
 			} else if (
 				operation === OperationType.UPDATE &&
 				isUpdateForTypeRef(GroupInfoTypeRef, update) &&
-				isSameId(this.userGroupInfo._id, [update.instanceListId, instanceId])
+				isSameId(this.userGroupInfo._id, [assertNotNull(update.instanceListId), instanceId])
 			) {
 				this._userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this._userGroupInfo._id)
 			} else if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
 				this._props = await this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.user.userGroup.group)
 			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
-				this._userSettingsGroupRoot = await this.entityClient.load(UserSettingsGroupRootTypeRef, this.user.userGroup.group)
+				this._userSettingsGroupRoot = await this.entityClient.load(UserSettingsGroupRootTypeRef, idToElementId(this.user.userGroup.group))
 			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
 				if (operation === OperationType.CREATE) {
 					// After premium upgrade customer info is deleted and created with new id. We want to make sure that it's cached for offline login.
-					await this.entityClient.load(CustomerInfoTypeRef, [update.instanceListId, update.instanceId])
+					await this.entityClient.load(CustomerInfoTypeRef, [assertNotNull(update.instanceListId), update.instanceId])
 				}
 				// cached plan config might be outdated now
 				this.planConfig = null
@@ -368,7 +371,7 @@ export class UserController {
 		)
 
 		if (domainInfoAndConfig) {
-			const whitelabelConfig = await locator.entityClient.load(WhitelabelConfigTypeRef, domainInfoAndConfig.whitelabelConfig)
+			const whitelabelConfig = await locator.entityClient.load(WhitelabelConfigTypeRef, idToElementId(domainInfoAndConfig.whitelabelConfig))
 			return {
 				domainInfo: domainInfoAndConfig.domainInfo,
 				whitelabelConfig,
@@ -407,14 +410,14 @@ export async function initUserController({
 	const [props, userSettingsGroupRoot, customer] = await Promise.all([
 		entityClient.loadRoot(TutanotaPropertiesTypeRef, user.userGroup.group),
 		entityClient
-			.load(UserSettingsGroupRootTypeRef, user.userGroup.group)
+			.load(UserSettingsGroupRootTypeRef, idToElementId(user.userGroup.group))
 			.catch(
 				ofClass(NotFoundError, () =>
-					entityClient.setup(null, groupRoot).then(() => entityClient.load(UserSettingsGroupRootTypeRef, user.userGroup.group)),
+					entityClient.setup(null, groupRoot).then(() => entityClient.load(UserSettingsGroupRootTypeRef, idToElementId(user.userGroup.group))),
 				),
 			),
 		// External users is not allowed to load Customer
-		isInternalUser(user) ? entityClient.load(CustomerTypeRef, assertNotNull(user.customer)) : null,
+		isInternalUser(user) ? entityClient.load(CustomerTypeRef, idToElementId(assertNotNull(user.customer))) : null,
 	])
 	return new UserController(
 		user,

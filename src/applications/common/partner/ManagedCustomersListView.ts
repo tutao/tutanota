@@ -152,7 +152,10 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(PartnerManagedCustomerTypeRef, update)) {
-				const partnerManagedCustomer = await locator.entityClient.load(PartnerManagedCustomerTypeRef, [update.instanceListId, update.instanceId])
+				const partnerManagedCustomer = await locator.entityClient.load(PartnerManagedCustomerTypeRef, [
+					assertNotNull(update.instanceListId),
+					update.instanceId,
+				])
 				const customerInfoId = partnerManagedCustomer.customerInfo
 				await this.listModel.entityEventReceived(listIdPart(customerInfoId), elementIdPart(customerInfoId), update.operation)
 			}

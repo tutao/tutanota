@@ -5,7 +5,7 @@ import { assertNotNull, newPromise, noOp, ofClass } from "@tutao/utils"
 import m, { Child, Children, Component, Vnode } from "mithril"
 import { assertMainOrNode, isApp } from "@tutao/app-env"
 import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils.js"
-import * as restError from "@tutao/rest-client/error"
+import { AccessBlockedError, NotAuthenticatedError } from "@tutao/rest-client/error"
 import { locator } from "../../api/main/CommonLocator.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
@@ -18,18 +18,17 @@ import { MonospaceTextDisplay } from "../../../../ui/base/MonospaceTextDisplay"
 import { getCleanedMailAddress } from "../../misc/parsing/MailAddressParser"
 import { RecoverCodeDisplay } from "../../subscription/RecoverCodeDisplay"
 import { getDefaultSenderFromUser } from "../../mailFunctionality/SharedMailUtils"
-import { getEtId, isSameId } from "@tutao/meta"
+import { getEtId, isSameSingleId } from "@tutao/meta"
 import { User } from "@tutao/entities/sys"
 import { GroupType } from "../../../../entities/sys/Utils"
 import { getHtmlSanitizer } from "../../misc/HtmlSanitizer"
-import { AccessBlockedError, NotAuthenticatedError } from "@tutao/rest-client/error"
 
 type Action = "get" | "create"
 assertMainOrNode()
 
 export function showRecoverCodeDialogAfterPasswordVerificationAndInfoDialog(user: User) {
 	// We only show the recovery code if it is for the current user and it is a global admin
-	if (!isSameId(getEtId(locator.logins.getUserController().user), getEtId(user)) || !user.memberships.some((gm) => gm.groupType === GroupType.Admin)) {
+	if (!isSameSingleId(getEtId(locator.logins.getUserController().user), getEtId(user)) || !user.memberships.some((gm) => gm.groupType === GroupType.Admin)) {
 		return
 	}
 

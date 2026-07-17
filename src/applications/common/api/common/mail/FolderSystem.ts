@@ -1,5 +1,5 @@
 import { assertNotNull, groupBy } from "@tutao/utils"
-import { elementIdPart, getElementId, isSameId } from "@tutao/meta"
+import { elementIdPart, getElementId, isSameId, isSameSingleId } from "@tutao/meta"
 import { Mail, MailSet } from "@tutao/entities/tutanota"
 import { MailSetKind, SystemFolderType } from "../../../../../entities/tutanota/Utils"
 import { isTopLevelMailSet, isVisibleSystemMailSet } from "../../../../mail-app/mail/MailUtils"
@@ -133,7 +133,7 @@ export class FolderSystem {
 	}
 
 	private getFolderByIdInSubtrees(systems: ReadonlyArray<FolderSubtree>, folderId: Id): FolderSubtree | null {
-		return this.getFolderBy(systems, (system) => isSameId(getElementId(system.folder), folderId))
+		return this.getFolderBy(systems, (system) => isSameSingleId(getElementId(system.folder), folderId))
 	}
 
 	getFolderByName(folderName: string): MailSet | null {

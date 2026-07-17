@@ -6,7 +6,7 @@ import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
 import { aes256RandomKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
 import { assertNotNull, first, groupBy, isEmpty, partition, promiseMap, Require } from "@tutao/utils"
-import { getElementId, getListId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
+import { getElementId, getListId, idToElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade"
@@ -143,7 +143,7 @@ export class DriveFacade {
 
 		if (cacheMode === "withNetwork") {
 			try {
-				driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
+				driveGroupRoot = await this.entityClient.load(DriveGroupRootTypeRef, idToElementId(fileGroupId))
 			} catch (e) {
 				if (e instanceof NotFoundError) {
 					driveGroupRoot = await this.createGroupRoot(fileGroupId)
@@ -371,7 +371,7 @@ export class DriveFacade {
 		})
 		data.ownerKeyVersion = String(fileGroupKey.version)
 		await this.serviceExecutor.post(DriveService, data, null)
-		return this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
+		return this.entityClient.load(DriveGroupRootTypeRef, idToElementId(fileGroupId))
 	}
 }
 

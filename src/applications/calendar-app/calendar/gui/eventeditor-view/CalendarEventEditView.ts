@@ -28,6 +28,7 @@ import { DefaultAnimationTime } from "../../../../../ui/animation/Animations.js"
 import { Icons } from "../../../../../ui/base/icons/Icons.js"
 import { SectionButton } from "../../../../../ui/base/buttons/SectionButton.js"
 import { CalendarRepeatRule } from "@tutao/entities/tutanota"
+import { elementIdToId } from "@tutao/meta"
 import { TimeZoneSelectionPage, TimeZoneSelectionPageAttrs } from "./TimeZoneSelectionPage"
 
 export type CalendarEventEditViewAttrs = {
@@ -87,7 +88,8 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		this.defaultAlarms = vnode.attrs.defaultAlarms
 
 		if (vnode.attrs.model.operation === CalendarOperation.Create) {
-			const initialAlarms = vnode.attrs.defaultAlarms.get(vnode.attrs.model.editModels.whoModel.selectedCalendar.group._id) ?? []
+			const selectedCalendarGroupId = vnode.attrs.model.editModels.whoModel.selectedCalendar.group._id
+			const initialAlarms = vnode.attrs.defaultAlarms.get(elementIdToId(selectedCalendarGroupId)) ?? []
 			vnode.attrs.model.editModels.alarmModel.addAll(initialAlarms)
 		}
 
@@ -316,9 +318,10 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 		const options: CalendarSelectItem[] = availableCalendars.map((calendarInfo) => {
 			const name = getSharedGroupName(calendarInfo.groupInfo, model.userController.userSettingsGroupRoot, calendarInfo.hasMultipleMembers)
+			const calendarGroupColor = groupColors.get(elementIdToId(calendarInfo.group._id))
 			return {
 				name,
-				color: "#" + (groupColors.get(calendarInfo.group._id) ?? DEFAULT_CALENDAR_COLOR),
+				color: "#" + (calendarGroupColor ?? DEFAULT_CALENDAR_COLOR),
 				value: calendarInfo,
 				ariaValue: name,
 			}
@@ -332,7 +335,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 		)
 		let selected: CalendarSelectItem = {
 			name: selectedCalendarName,
-			color: "#" + (groupColors.get(selectedCalendarInfo.group._id) ?? DEFAULT_CALENDAR_COLOR),
+			color: "#" + (groupColors.get(elementIdToId(selectedCalendarInfo.group._id)) ?? DEFAULT_CALENDAR_COLOR),
 			value: model.editModels.whoModel.selectedCalendar,
 			ariaValue: selectedCalendarName,
 		}
@@ -341,8 +344,9 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 			{ style: { padding: "0" } },
 			m(Select<CalendarSelectItem, CalendarInfo>, {
 				onchange: (val) => {
+					const defaultAlarms = this.defaultAlarms.get(elementIdToId(val.value.group._id)) ?? []
 					model.editModels.alarmModel.removeAll()
-					model.editModels.alarmModel.addAll(this.defaultAlarms.get(val.value.group._id) ?? [])
+					model.editModels.alarmModel.addAll(defaultAlarms)
 					model.editModels.whoModel.selectedCalendar = val.value
 				},
 				options: stream(options),

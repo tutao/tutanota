@@ -1,4 +1,4 @@
-import { elementIdPart, getElementId, isSameId, listIdPart, OperationType } from "@tutao/meta"
+import { elementIdPart, getElementId, isSameId, isSameSingleId, listIdPart, OperationType } from "@tutao/meta"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
@@ -286,7 +286,7 @@ export class DriveViewModel {
 			sortCompare: (item1: FolderItem, item2: FolderItem): number => {
 				return this.comparisonFunction()(item1, item2)
 			},
-			isSameId: isSameId,
+			isSameId: isSameSingleId,
 			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		})
 		this.listStateSubscription?.end(true)
@@ -340,7 +340,7 @@ export class DriveViewModel {
 				}
 				if (update.operation === OperationType.UPDATE || update.operation === OperationType.CREATE) {
 					const item = await this.loadItem(isUpdateForTypeRef(DriveFolderTypeRef, update) ? "folder" : "file", [
-						update.instanceListId,
+						assertNotNull(update.instanceListId),
 						update.instanceId,
 					])
 					this.listModel.updateLoadedItem(item)

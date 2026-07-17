@@ -28,10 +28,11 @@ import {
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
 
-import { GroupInfoTypeRef, GroupTypeRef, User } from "@tutao/entities/sys"
+import { GroupInfoTypeRef, GroupTypeRef, UserTypeRef } from "@tutao/entities/sys"
 import { CalendarAttendeeStatus } from "../../../src/entities/tutanota/Utils"
 import { AccountType } from "../../../src/entities/sys/Utils"
 import { CalendarType } from "../../../src/applications/common/calendar/date/CalendarUtils"
+import { idToElementId } from "../../../src/platform-kit/meta"
 
 o.spec("CalendarInviteHandlerTest", function () {
 	let maiboxModel: MailboxModel,
@@ -74,10 +75,10 @@ o.spec("CalendarInviteHandlerTest", function () {
 		ownAttendee = findAttendeeInAddresses(event.attendees, [ATTENDEE_ADDRESS])!
 
 		const customerId = "customerId"
-		const user = {
-			_id: "userId",
+		const user = createTestEntity(UserTypeRef, {
+			_id: idToElementId("userId"),
 			customer: customerId,
-		} as User
+		})
 		const userSettingsGroupRoot = createTestEntity(UserSettingsGroupRootTypeRef)
 		let userController: Partial<UserController> = makeUserController([], AccountType.FREE, undefined, false, false, user, userSettingsGroupRoot)
 

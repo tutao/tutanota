@@ -9,6 +9,7 @@ import { createIdentityKeyGetIn, GroupTypeRef, IdentityKeyService } from "@tutao
 import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../entities/sys/Utils"
 import { IdentityKeySourceOfTrust } from "@tutao/app-env"
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "./persistence/IdentityKeyTrustDatabase"
+import { ElementId, idToElementId } from "@tutao/meta"
 
 type IdentityKeyRawData = {
 	identityKeyVersion: NumberString
@@ -44,7 +45,7 @@ export class PublicIdentityKeyProvider {
 	 * @return the requested identity key, or null if it is not available.
 	 */
 	async loadPublicIdentityKeyFromGroup(groupId: Id): Promise<Versioned<SigningPublicKey> | null> {
-		const group = await this.entityClient.load(GroupTypeRef, groupId)
+		const group = await this.entityClient.load(GroupTypeRef, idToElementId(groupId))
 		const groupIdentityKeyPair = group.identityKeyPair
 
 		if (!groupIdentityKeyPair) {

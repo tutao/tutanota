@@ -9,11 +9,11 @@ import o from "@tutao/otest"
 import { UserController } from "../../../src/applications/common/api/main/UserController"
 
 import { createGroupSettings, UserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
-import { isSameId } from "../../../src/platform-kit/meta"
+import { idToElementId, isSameSingleId } from "../../../src/platform-kit/meta"
 
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef, GroupTypeRef, UserTypeRef } from "@tutao/entities/sys"
 
-o.spec("GroupSettingsModel", function () {
+o.spec("GroupSettingsModelTest", function () {
 	let groupSettingsModel: GroupSettingsModel
 	let entityRestClient: EntityRestClientMock
 	let entityClient: EntityClient
@@ -37,7 +37,7 @@ o.spec("GroupSettingsModel", function () {
 		loginController = object()
 		userController = object()
 		userSettingsGroupRoot = createTestEntity(UserSettingsGroupRootTypeRef)
-		group = createTestEntity(GroupTypeRef, { members: groupMembersListId, _id: groupId, user: ownerUserID })
+		group = createTestEntity(GroupTypeRef, { members: groupMembersListId, _id: idToElementId(groupId), user: ownerUserID })
 		groupInfo = createTestEntity(GroupInfoTypeRef, { name: groupName, group: groupId })
 		const ownerGroupMember = createTestEntity(GroupMemberTypeRef, {
 			_id: [groupMembersListId, "groupMemberId1"],
@@ -57,14 +57,14 @@ o.spec("GroupSettingsModel", function () {
 
 	o.spec("getNameData", function () {
 		o.test("only returns one name when group is not shared", async function () {
-			userController.user = createTestEntity(UserTypeRef, { _id: ownerUserID })
+			userController.user = createTestEntity(UserTypeRef, { _id: idToElementId(ownerUserID) })
 
 			const nameDataOutput = await groupSettingsModel.getGroupNameData(groupInfo)
 			o.check(nameDataOutput).deepEquals({ kind: "single", name: groupName })
 		})
 
 		o.test("only returns group name when the group is not shared and the custom name is empty", async function () {
-			userController.user = createTestEntity(UserTypeRef, { _id: ownerUserID })
+			userController.user = createTestEntity(UserTypeRef, { _id: idToElementId(ownerUserID) })
 			userSettingsGroupRoot.groupSettings.push(
 				createGroupSettings({
 					group: groupId,
@@ -82,7 +82,7 @@ o.spec("GroupSettingsModel", function () {
 		o.test("returns both names when the group is not shared but there is custom name", async function () {
 			const customName = "Custom Name"
 
-			userController.user = createTestEntity(UserTypeRef, { _id: ownerUserID })
+			userController.user = createTestEntity(UserTypeRef, { _id: idToElementId(ownerUserID) })
 			userSettingsGroupRoot.groupSettings.push(
 				createGroupSettings({
 					group: groupId,
@@ -103,7 +103,7 @@ o.spec("GroupSettingsModel", function () {
 		})
 
 		o.test("returns null custom name if there are no group settings", async function () {
-			userController.user = createTestEntity(UserTypeRef, { _id: ownerUserID })
+			userController.user = createTestEntity(UserTypeRef, { _id: idToElementId(ownerUserID) })
 
 			const participantGroupMember = createTestEntity(GroupMemberTypeRef, {
 				_id: [groupMembersListId, "groupMemberId"],
@@ -124,7 +124,7 @@ o.spec("GroupSettingsModel", function () {
 
 		o.test("returns custom name with shared group and editable if owner", async function () {
 			const groupSettingsName = "My Name"
-			userController.user = createTestEntity(UserTypeRef, { _id: ownerUserID })
+			userController.user = createTestEntity(UserTypeRef, { _id: idToElementId(ownerUserID) })
 
 			const participantGroupMember = createTestEntity(GroupMemberTypeRef, {
 				_id: [groupMembersListId, "groupMemberId"],
@@ -154,7 +154,7 @@ o.spec("GroupSettingsModel", function () {
 
 		o.test("returns custom name with shared group and not editable if not owner", async function () {
 			const groupSettingsName = "My Name"
-			userController.user = createTestEntity(UserTypeRef, { _id: participantUserID })
+			userController.user = createTestEntity(UserTypeRef, { _id: idToElementId(participantUserID) })
 
 			const participantGroupMember = createTestEntity(GroupMemberTypeRef, {
 				_id: [groupMembersListId, "groupMemberId"],
@@ -186,7 +186,7 @@ o.spec("GroupSettingsModel", function () {
 
 	o.spec("updateGroupNameData", function () {
 		o.test("When nameData is single, groupInfo is updated", async function () {
-			userController.user = createTestEntity(UserTypeRef, { _id: ownerUserID })
+			userController.user = createTestEntity(UserTypeRef, { _id: idToElementId(ownerUserID) })
 
 			const newName = "newName"
 			const updateData: GroupNameData = { kind: "single", name: newName }
@@ -200,7 +200,7 @@ o.spec("GroupSettingsModel", function () {
 		})
 
 		o.test("When nameData is shared, and owner changes name groupInfo is updated", async function () {
-			userController.user = createTestEntity(UserTypeRef, { _id: ownerUserID })
+			userController.user = createTestEntity(UserTypeRef, { _id: idToElementId(ownerUserID) })
 
 			const newName = "newName"
 			const updateData: GroupNameData = { kind: "shared", name: newName, editableName: true, customName: null }
@@ -214,7 +214,7 @@ o.spec("GroupSettingsModel", function () {
 		})
 
 		o.test("When nameData is shared, and owner can change groupInfo and groupSetting name at the same time", async function () {
-			userController.user = createTestEntity(UserTypeRef, { _id: ownerUserID })
+			userController.user = createTestEntity(UserTypeRef, { _id: idToElementId(ownerUserID) })
 
 			const newName = "newName"
 			const newCustomName = "newCustomName"
@@ -231,11 +231,11 @@ o.spec("GroupSettingsModel", function () {
 			o.check(updatedGroupInfo.name).equals(newName)
 
 			const updatedGroupSettings = entityRestClient.getUpdatedInstance(userSettingsGroupRoot)
-			o.check(updatedGroupSettings.groupSettings.find((setting) => isSameId(setting.group, groupId))?.name).equals(newCustomName)
+			o.check(updatedGroupSettings.groupSettings.find((setting) => isSameSingleId(setting.group, groupId))?.name).equals(newCustomName)
 		})
 
 		o.test("When nameData is shared, and owner changes name custom name groupSettings is updated", async function () {
-			userController.user = createTestEntity(UserTypeRef, { _id: ownerUserID })
+			userController.user = createTestEntity(UserTypeRef, { _id: idToElementId(ownerUserID) })
 
 			const newName = "Custom name"
 			const updateData: GroupNameData = {
@@ -249,14 +249,14 @@ o.spec("GroupSettingsModel", function () {
 
 			const updatedGroupSettings = entityRestClient.getUpdatedInstance(userSettingsGroupRoot)
 
-			o.check(updatedGroupSettings.groupSettings.find((setting) => isSameId(setting.group, groupId))?.name).equals(newName)
+			o.check(updatedGroupSettings.groupSettings.find((setting) => isSameSingleId(setting.group, groupId))?.name).equals(newName)
 
 			// We want to make sure that GroupInfo did NOT get updated (throws because there is nothing there)
 			o.check(() => entityRestClient.getUpdatedInstance(groupInfo)).throws(Error)
 		})
 
 		o.test("When nameData is shared, and participant changes name custom name groupSettings is updated", async function () {
-			userController.user = createTestEntity(UserTypeRef, { _id: participantUserID })
+			userController.user = createTestEntity(UserTypeRef, { _id: idToElementId(participantUserID) })
 
 			const newName = "Custom name"
 			const updateData: GroupNameData = {
@@ -270,14 +270,14 @@ o.spec("GroupSettingsModel", function () {
 
 			const updatedGroupSettings = entityRestClient.getUpdatedInstance(userSettingsGroupRoot)
 
-			o.check(updatedGroupSettings.groupSettings.find((setting) => isSameId(setting.group, groupId))?.name).equals(newName)
+			o.check(updatedGroupSettings.groupSettings.find((setting) => isSameSingleId(setting.group, groupId))?.name).equals(newName)
 
 			// We want to make sure that GroupInfo did NOT get updated (throws because there is nothing there)
 			o.check(() => entityRestClient.getUpdatedInstance(groupInfo)).throws(Error)
 		})
 
 		o.test("When nameData is shared, and participant changes name custom name existing groupSettings is updated", async function () {
-			userController.user = createTestEntity(UserTypeRef, { _id: participantUserID })
+			userController.user = createTestEntity(UserTypeRef, { _id: idToElementId(participantUserID) })
 
 			userSettingsGroupRoot.groupSettings.push(
 				createGroupSettings({
@@ -302,7 +302,7 @@ o.spec("GroupSettingsModel", function () {
 			const updatedSettingsGroupRoot = entityRestClient.getUpdatedInstance(userSettingsGroupRoot)
 
 			// check that we did not add two groupSettings for the same group
-			const updatedGroupSettingsList = updatedSettingsGroupRoot.groupSettings.filter((setting) => isSameId(setting.group, groupId))
+			const updatedGroupSettingsList = updatedSettingsGroupRoot.groupSettings.filter((setting) => isSameSingleId(setting.group, groupId))
 			o.check(updatedGroupSettingsList.length).equals(1)
 			o.check(updatedGroupSettingsList[0].name).equals(newName)
 

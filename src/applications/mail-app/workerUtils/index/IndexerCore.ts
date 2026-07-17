@@ -49,7 +49,7 @@ import {
 	tokenize,
 	uint8ArrayToBase64,
 } from "../../../../platform-kit/utils"
-import { elementIdPart, generatedIdToTimestamp, listIdPart, TypeRef } from "../../../../platform-kit/meta"
+import { elementIdPart, expandId, generatedIdToTimestamp, listIdPart, TypeRef } from "../../../../platform-kit/meta"
 import { compareMetaEntriesOldest, getIdFromEncSearchIndexEntry, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils.js"
 import type {
 	AttributeHandler,
@@ -171,7 +171,7 @@ export class IndexerCore {
 			for (const [index, token] of tokens.entries()) {
 				if (!tokenToEntry.has(token)) {
 					tokenToEntry.set(token, {
-						id: Array.isArray(instance._id) ? instance._id[1] : instance._id,
+						id: expandId(instance._id).elementId,
 						attribute: attributeHandler.id,
 						positions: [index],
 					})

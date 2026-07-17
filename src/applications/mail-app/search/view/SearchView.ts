@@ -4,7 +4,7 @@ import { ColumnType, ViewColumn } from "../../../../ui/base/ViewColumn"
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { assertMainOrNode, FeatureType, isApp, isBrowser, Keys, ProgrammingError, UpgradePromptType } from "../../../../platform-kit/app-env"
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
-import { getElementId, getIds, isSameId, isSameTypeRef, TypeRef } from "../../../../platform-kit/meta"
+import { elementIdToId, getElementId, getIds, isSameId, isSameSingleId, isSameTypeRef, TypeRef } from "../../../../platform-kit/meta"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import { MailReportType, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
@@ -1152,7 +1152,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 		for (const mailbox of mailboxes) {
 			const mailboxIndex = mailboxes.indexOf(mailbox)
-			const mailFolders = mailLocator.mailModel.getFolderSystemByGroupId(mailbox.mailGroup._id)?.getIndentedList() ?? []
+			const mailFolders = mailLocator.mailModel.getFolderSystemByGroupId(elementIdToId(mailbox.mailGroup._id))?.getIndentedList() ?? []
 			for (const folderInfo of mailFolders) {
 				const mailboxLabel = mailboxIndex === 0 ? "" : ` (${getGroupInfoDisplayName(mailbox.mailGroupInfo)})`
 				const folderId = getElementId(folderInfo.folder)
@@ -1457,7 +1457,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				label: selectedCalendar
 					? lang.makeTranslation(
 							"calendar_label",
-							availableCalendars.find((calendarInfo) => isSameId(calendarInfo.id, selectedCalendar?.id))?.name ?? "",
+							availableCalendars.find((calendarInfo) => isSameSingleId(calendarInfo.id, selectedCalendar?.id))?.name ?? "",
 						)
 					: lang.getTranslation("calendar_label"),
 				selected: selectedCalendar != null,

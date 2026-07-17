@@ -19,6 +19,7 @@ import { noOp, ofClass } from "../../../platform-kit/utils"
 import { PushIdentifier, PushIdentifierTypeRef, User } from "@tutao/entities/sys"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { NotFoundError } from "@tutao/rest-client/error"
+import { elementIdToId } from "@tutao/meta"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private extendedNotificationMode: ExtendedNotificationMode | null = null
@@ -62,7 +63,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 
 		if (!isBrowser() && identifier.identifier === this.model.getCurrentIdentifier()) {
 			if (identifier.disabled) {
-				locator.pushService.invalidateAlarmsForUser(this.user._id)
+				locator.pushService.invalidateAlarmsForUser(elementIdToId(this.user._id))
 			} else {
 				locator.pushService.reRegister()
 			}
@@ -142,7 +143,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 					if (value) {
 						await locator.pushService.reRegister()
 					} else {
-						await locator.pushService.invalidateAlarmsForUser(this.user._id)
+						await locator.pushService.invalidateAlarmsForUser(elementIdToId(this.user._id))
 					}
 				}
 			},

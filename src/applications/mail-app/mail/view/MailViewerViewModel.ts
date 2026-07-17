@@ -196,7 +196,7 @@ export class MailViewerViewModel {
 			for (const update of events) {
 				if (isUpdateForTypeRef(MailTypeRef, update)) {
 					const { instanceListId, instanceId, operation } = update
-					if (operation === OperationType.UPDATE && isSameId(this.mail._id, [instanceListId, instanceId])) {
+					if (operation === OperationType.UPDATE && isSameId(this.mail._id, [assertNotNull(instanceListId), instanceId])) {
 						try {
 							const updatedMail = await this.entityClient.load(MailTypeRef, this.mail._id)
 							this.updateMail({ mail: updatedMail })

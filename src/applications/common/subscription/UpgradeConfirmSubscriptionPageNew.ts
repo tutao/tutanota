@@ -35,6 +35,7 @@ import { WizardStepComponentAttrs } from "../../../ui/base/wizard/WizardStep"
 import { AllIcons } from "../../../ui/base/Icon"
 import { layout_size, px } from "../../../ui/size"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils"
+import { elementIdToId } from "@tutao/meta"
 
 export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private iconByPlanType: Record<AvailablePlanType, AllIcons> = {
@@ -244,7 +245,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			}
 			const receivedNotification = await showProgressDialog(
 				"waitingForAppStoreConfirmation_msg",
-				waitUntilCustomerInfoPlanTypeIsCorrect(ctx.viewModel.targetPlanType, assertNotNull(ctx.viewModel.customer?._id)),
+				waitUntilCustomerInfoPlanTypeIsCorrect(ctx.viewModel.targetPlanType, elementIdToId(assertNotNull(ctx.viewModel.customer?._id))),
 			)
 			if (receivedNotification) {
 				ctx.goNext()

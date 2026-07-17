@@ -88,9 +88,9 @@ import {
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { AccountType, GroupType } from "../../../entities/sys/Utils"
-import { assertEnumValue, elementIdPart, getElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
+import { assertEnumValue, elementIdPart, elementIdToId, getElementId, idToElementId, isSameId, isSameSingleId, listIdPart } from "@tutao/meta"
 import { asPublicKeyIdentifier } from "./Constants"
-import { GroupInvitationPostData, InternalRecipientKeyData, InternalRecipientKeyDataTypeRef } from "@tutao/entities/tutanota"
+import { GroupInvitationPostData } from "@tutao/entities/tutanota"
 
 assertWorkerOrNode()
 
@@ -202,7 +202,7 @@ export class KeyRotationFacade {
 	 * @VisibleForTesting
 	 */
 	async loadPendingKeyRotations(user: User): Promise<PendingKeyRotation> {
-		const userGroupRoot = await this.entityClient.load(UserGroupRootTypeRef, user.userGroup.group)
+		const userGroupRoot = await this.entityClient.load(UserGroupRootTypeRef, idToElementId(user.userGroup.group))
 		const pendingKeyRotations = await this.entityClient.loadAll(KeyRotationTypeRef, userGroupRoot.keyRotations.list)
 		const keyRotationsByType = groupBy(pendingKeyRotations, (keyRotation) => keyRotation.groupKeyRotationType)
 		let adminOrUserGroupKeyRotationArray: Array<KeyRotation> = [
@@ -363,8 +363,8 @@ export class KeyRotationFacade {
 		const userGroupId = userGroupMembership.group
 		console.log(`KeyRotationFacade: rotate key for group: ${adminGroupId}, groupKeyRotationType: ${keyRotation.groupKeyRotationType}`)
 
-		const adminGroup = await this.entityClient.load(GroupTypeRef, adminGroupId)
-		const userGroup = await this.entityClient.load(GroupTypeRef, userGroupId)
+		const adminGroup = await this.entityClient.load(GroupTypeRef, idToElementId(adminGroupId))
+		const userGroup = await this.entityClient.load(GroupTypeRef, idToElementId(userGroupId))
 
 		const newAdminGroupKeys = await this.generateGroupKeys(adminGroup)
 		const adminKeyPair = assertNotNull(newAdminGroupKeys.encryptedKeyPair)
@@ -387,12 +387,12 @@ export class KeyRotationFacade {
 			adminGroupKeyVersion: String(assertNotNull(encryptedAdminKeys.adminGroupKeyEncNewGroupKey).encryptingKeyVersion),
 			groupEncPreviousGroupKey: encryptedAdminKeys.newGroupKeyEncCurrentGroupKey.key,
 			groupKeyVersion: String(newAdminGroupKeys.symGroupKey.version),
-			group: adminGroup._id,
+			group: elementIdToId(adminGroup._id),
 			keyPair: makeKeyPair(encryptedAdminKeys.keyPair),
 			groupKeyUpdatesForMembers: [], // we only rotated for admin groups with only one member,
 			groupMembershipUpdateData: [
 				createGroupMembershipUpdateData({
-					userId: user._id,
+					userId: elementIdToId(user._id),
 					userEncGroupKey: membershipEncNewGroupKey.key,
 					userKeyVersion: String(membershipEncNewGroupKey.encryptingKeyVersion),
 				}),
@@ -403,7 +403,7 @@ export class KeyRotationFacade {
 			recoverCodeData: encryptedUserKeys.recoverCodeData,
 			distributionKeyEncUserGroupKey: encryptedUserKeys.distributionKeyEncNewUserGroupKey,
 			authVerifier: encryptedUserKeys.authVerifier,
-			group: userGroup._id,
+			group: elementIdToId(userGroup._id),
 			userGroupEncPreviousGroupKey: encryptedUserKeys.newUserGroupKeyEncCurrentGroupKey.key,
 			userGroupKeyVersion: String(newUserGroupKeys.symGroupKey.version),
 			keyPair: encryptedUserKeys.keyPair,
@@ -435,11 +435,11 @@ export class KeyRotationFacade {
 	): Promise<Array<KeyMac>> {
 		const keyTags: KeyMac[] = []
 
-		const customer = await this.entityClient.load(CustomerTypeRef, customerId)
+		const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(customerId))
 		const userGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
 
 		for (const userGroupInfo of userGroupInfos) {
-			if (isSameId(userGroupInfo.group, groupToExclude)) continue
+			if (isSameSingleId(userGroupInfo.group, groupToExclude)) continue
 
 			const currentUserGroupKey = await this.adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(userGroupInfo.group)
 			const tag = this.keyAuthenticationFacade.computeTag({
@@ -487,7 +487,7 @@ export class KeyRotationFacade {
 	): Promise<PreparedUserAreaGroupKeyRotation> {
 		const targetGroupId = this.getTargetGroupId(keyRotation)
 		console.log(`KeyRotationFacade: rotate key for group: ${targetGroupId}, groupKeyRotationType: ${keyRotation.groupKeyRotationType}`)
-		const targetGroup = await this.entityClient.load(GroupTypeRef, targetGroupId)
+		const targetGroup = await this.entityClient.load(GroupTypeRef, idToElementId(targetGroupId))
 		const currentGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(targetGroupId)
 
 		const newGroupKeys = await this.generateGroupKeys(targetGroup)
@@ -507,7 +507,7 @@ export class KeyRotationFacade {
 			groupKeyUpdatesForMembers,
 			groupMembershipUpdateData: [
 				createGroupMembershipUpdateData({
-					userId: user._id,
+					userId: elementIdToId(user._id),
 					userEncGroupKey: membershipSymEncNewGroupKey.key,
 					userKeyVersion: String(currentUserGroupKey.version),
 				}),
@@ -527,11 +527,11 @@ export class KeyRotationFacade {
 	) {
 		const targetGroupId = this.getTargetGroupId(keyRotation)
 		console.log(`KeyRotationFacade: rotate key for group: ${targetGroupId}, groupKeyRotationType: ${keyRotation.groupKeyRotationType}`)
-		const targetGroup = await this.entityClient.load(GroupTypeRef, targetGroupId)
+		const targetGroup = await this.entityClient.load(GroupTypeRef, idToElementId(targetGroupId))
 
 		const members = await this.entityClient.loadAll(GroupMemberTypeRef, targetGroup.members)
-		const ownMember = members.find((member) => member.user === user._id)
-		const otherMembers = members.filter((member) => member.user !== user._id)
+		const ownMember = members.find((member) => isSameId(idToElementId(member.user), user._id)) ?? null
+		const otherMembers = members.filter((member) => !isSameId(idToElementId(member.user), user._id))
 		let currentGroupKey = await this.getCurrentGroupKey(targetGroup)
 		const newGroupKeys = await this.generateGroupKeys(targetGroup)
 		const encryptedGroupKeys = await this.encryptGroupKeys(targetGroup, currentGroupKey, newGroupKeys, currentAdminGroupKey)
@@ -543,7 +543,7 @@ export class KeyRotationFacade {
 			const membershipSymEncNewGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(currentUserGroupKey, newGroupKeys.symGroupKey.object)
 			groupMembershipUpdateData.push(
 				createGroupMembershipUpdateData({
-					userId: user._id,
+					userId: elementIdToId(user._id),
 					userEncGroupKey: membershipSymEncNewGroupKey.key,
 					userKeyVersion: String(currentUserGroupKey.version),
 				}),
@@ -575,11 +575,11 @@ export class KeyRotationFacade {
 
 	private async getCurrentGroupKey(targetGroup: Group): Promise<VersionedKey> {
 		try {
-			return await this.keyLoaderFacade.getCurrentSymGroupKey(targetGroup._id)
+			return await this.keyLoaderFacade.getCurrentSymGroupKey(elementIdToId(targetGroup._id))
 		} catch (e) {
 			//if we cannot get/decrypt the group key via membership we try via adminEncGroupKey
 			const currentKey = await this.adminKeyLoaderFacade.getGroupKeyViaAdminEncGKey(
-				targetGroup._id,
+				elementIdToId(targetGroup._id),
 				cryptoUtils.parseKeyVersion(targetGroup.groupKeyVersion),
 			)
 			return { object: currentKey, version: cryptoUtils.parseKeyVersion(targetGroup.groupKeyVersion) }
@@ -637,7 +637,7 @@ export class KeyRotationFacade {
 			version: 0, // dummy
 		}
 		const membershipSymEncNewGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(versionedPassphraseKey, newUserGroupKeys.symGroupKey.object)
-		const userDistKey = this.userFacade.deriveUserDistKey(userGroup._id, newUserGroupKeys.symGroupKey.version, passphraseKey)
+		const userDistKey = this.userFacade.deriveUserDistKey(elementIdToId(userGroup._id), newUserGroupKeys.symGroupKey.version, passphraseKey)
 		const distributionKeyEncNewUserGroupKey = this.cryptoWrapper.encryptKey(userDistKey, newUserGroupKeys.symGroupKey.object)
 		const authVerifier = createAuthVerifier(passphraseKey)
 		const newGroupKeyEncCurrentGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(newUserGroupKeys.symGroupKey, currentGroupKey.object)
@@ -684,8 +684,9 @@ export class KeyRotationFacade {
 
 	private async createGroupKeyUpdatesForMembers(group: Group, newGroupKey: VersionedKey): Promise<Array<GroupKeyUpdateData>> {
 		const members = await this.entityClient.loadAll(GroupMemberTypeRef, group.members)
-		const otherMembers = members.filter((member) => member.user !== this.userFacade.getUser()?._id)
-		return await this.tryCreatingGroupKeyUpdatesForMembers(group._id, otherMembers, newGroupKey)
+		const userId = this.userFacade.getUser()?._id ?? null
+		const otherMembers = members.filter((member) => !isSameId(idToElementId(member.user), userId))
+		return await this.tryCreatingGroupKeyUpdatesForMembers(elementIdToId(group._id), otherMembers, newGroupKey)
 	}
 
 	private async tryCreatingGroupKeyUpdatesForMembers(groupId: Id, otherMembers: GroupMember[], newGroupKey: VersionedKey): Promise<GroupKeyUpdateData[]> {
@@ -791,7 +792,7 @@ export class KeyRotationFacade {
      to be the admin of the same customer that the uer with userId belongs to.
      */
 	private async encryptGroupKeyForOtherUsers(userId: Id, newGroupKey: VersionedKey): Promise<VersionedEncryptedKey> {
-		const user = await this.entityClient.load(UserTypeRef, userId)
+		const user = await this.entityClient.load(UserTypeRef, idToElementId(userId))
 		const userGroupKey = await this.adminKeyLoaderFacade.getGroupKeyViaAdminEncGKey(
 			user.userGroup.group,
 			cryptoUtils.parseKeyVersion(user.userGroup.groupKeyVersion),
@@ -900,7 +901,7 @@ export class KeyRotationFacade {
 		const currentUserGroupKey = this.keyLoaderFacade.getCurrentSymUserGroupKey()
 		console.log(`KeyRotationFacade: rotate key for group: ${userGroupId}, groupKeyRotationType: ${userGroupKeyRotation.groupKeyRotationType}`)
 
-		const userGroup: Group = await this.entityClient.load(GroupTypeRef, userGroupId)
+		const userGroup: Group = await this.entityClient.load(GroupTypeRef, idToElementId(userGroupId))
 
 		const adminGroupId = assertNotNull(userGroup.admin)
 
@@ -1236,7 +1237,7 @@ export class KeyRotationFacade {
 		// distribution for all other admins using their distribution keys
 		for (const distributionKey of distributionKeys) {
 			// we do not distribute for ourselves
-			if (isSameId(distributionKey.userGroupId, user.userGroup.group)) continue
+			if (isSameSingleId(distributionKey.userGroupId, user.userGroup.group)) continue
 			// verify authenticity of this distribution key
 			// reproduce hash
 
@@ -1333,8 +1334,8 @@ export class KeyRotationFacade {
 	): MultiAdminGroupKeyAdminActionPath {
 		const everyoneHasDistributionKeys = userGroupIdsMissingDistributionKeys.length === 0
 		const everyoneElseHasDistributionKeysButMe =
-			userGroupIdsMissingDistributionKeys.length === 1 && isSameId(userGroupIdsMissingDistributionKeys[0], adminUser.userGroup.group)
-		const iHaveDistributionKeys = distributionKeys.some((dk) => isSameId(dk.userGroupId, adminUser.userGroup.group))
+			userGroupIdsMissingDistributionKeys.length === 1 && isSameSingleId(userGroupIdsMissingDistributionKeys[0], adminUser.userGroup.group)
+		const iHaveDistributionKeys = distributionKeys.some((dk) => isSameSingleId(dk.userGroupId, adminUser.userGroup.group))
 
 		// check order is important
 		if (everyoneElseHasDistributionKeysButMe || everyoneHasDistributionKeys) {

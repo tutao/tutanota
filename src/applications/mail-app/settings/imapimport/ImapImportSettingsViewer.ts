@@ -27,6 +27,7 @@ import { getTranslationForImapProvider } from "../../../common/api/common/utils/
 import { ImapErrorCause } from "../../../common/api/common/error/ImapError"
 import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../../common/misc/SubscriptionDialogs"
+import { elementIdToId, isSameSingleId } from "@tutao/meta"
 
 assertMainOrNode()
 
@@ -42,7 +43,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 		if (mailboxDetails) {
 			const isSingleMailbox = mailboxDetails.length === 1
 			for (const detail of mailboxDetails) {
-				this.mailboxIdToImportHistoryExpanded.set(detail.mailbox._id, isSingleMailbox)
+				this.mailboxIdToImportHistoryExpanded.set(elementIdToId(detail.mailbox._id), isSingleMailbox)
 			}
 		}
 	}
@@ -263,9 +264,9 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 
 	private renderImapImportHistory(mailboxDetail: MailboxDetail, isSingleMailbox: boolean) {
 		const mailboxLabel = isSingleMailbox ? "" : " · " + getMailboxName(mailLocator.logins, mailboxDetail)
-		const mailboxId = mailboxDetail.mailbox._id
-		const canceledImapImportUiSessionsForMailGroup = this.imapImportController().canceledImapImportUiSessions.filter(
-			(session) => session.mailGroupId === mailboxDetail.mailGroup._id,
+		const mailboxId = elementIdToId(mailboxDetail.mailbox._id)
+		const canceledImapImportUiSessionsForMailGroup = this.imapImportController().canceledImapImportUiSessions.filter((session) =>
+			isSameSingleId(session.mailGroupId, elementIdToId(mailboxDetail.mailGroup._id)),
 		)
 		if (canceledImapImportUiSessionsForMailGroup.length <= 0) {
 			return null

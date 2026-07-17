@@ -1,6 +1,6 @@
 import { arrayEqualsWithPredicate, assert, assertNotNull, base64ToUint8Array, DeepEquals, isNotNull, Nullable, uint8ArrayToBase64 } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
-import { elementIdPart, listIdPart } from "@tutao/meta"
+import { AnyEntityId, elementIdPart, listIdPart } from "@tutao/meta"
 import { assertNotNaN } from "../utils/Utils"
 
 export const enum InstanceDirection {
@@ -49,17 +49,12 @@ export class ParsedValue<NestedObject extends DeepEquals> implements DeepEquals 
 		return this.asString()
 	}
 
-	public asIdOrIdTuple(): Id | IdTuple {
-		const id = this.stringValue
-		if (isNotNull(id)) {
-			return id
-		}
-		const idTuple = this.arrayValue
+	public asAnyEntityId(): AnyEntityId {
+		const idTuple = this.getIdTupleOrNull()
 		if (isNotNull(idTuple)) {
-			const [listId, elementId] = idTuple
-			if (isNotNull(listId) && isNotNull(elementId) && isNotNull(listId.stringValue) && isNotNull(elementId.stringValue)) {
-				return [listId.stringValue, elementId.stringValue] satisfies IdTuple
-			}
+			return idTuple
+		} else if (this.isString()) {
+			return [null, this.asString()]
 		}
 
 		throw new ProgrammingError("Expected either id or idTuple. found None")

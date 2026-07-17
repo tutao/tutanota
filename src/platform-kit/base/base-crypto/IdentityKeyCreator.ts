@@ -13,6 +13,7 @@ import { KeyAuthenticationFacade } from "../../network/KeyAuthenticationFacade"
 import { createIdentityKeyPair, createIdentityKeyPostIn, createKeyMac, GroupTypeRef, IdentityKeyService } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
 import { CacheManager } from "./persistence/CacheManager"
+import { idToElementId } from "@tutao/meta"
 
 assertWorkerOrNode()
 
@@ -98,7 +99,7 @@ export class IdentityKeyCreator {
 		}
 		// Do not try to re-create the key pair in case it already exists
 		// We check down here to make race conditions less likely.
-		const group = await this.entityClient.load(GroupTypeRef, groupId)
+		const group = await this.entityClient.load(GroupTypeRef, idToElementId(groupId))
 		if (group.identityKeyPair != null) {
 			console.log(`Identity key pair already exists. Did not create it again for group: ${groupId}`)
 			return
@@ -145,7 +146,7 @@ export class IdentityKeyCreator {
 		for (const groupId of teamGroupIds) {
 			try {
 				// it can be the case that some groups already have an identity key, so we check first
-				let group = await this.entityClient.load(GroupTypeRef, groupId)
+				let group = await this.entityClient.load(GroupTypeRef, idToElementId(groupId))
 				if (group.identityKeyPair) continue
 
 				// shared mailbox group members don't need access to identity keys, that's the responsibility of the admins

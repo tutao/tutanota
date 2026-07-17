@@ -84,7 +84,7 @@ import { UndoModel } from "../../UndoModel"
 import { PosRect } from "../../../../ui/utils/PosRect"
 import { Mail, MailBox, MailSet } from "@tutao/entities/tutanota"
 import { MailReportType, MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
-import { getElementId, isSameId } from "../../../../platform-kit/meta"
+import { elementIdPart, elementIdToId, getElementId, isSameId, isSameSingleId } from "../../../../platform-kit/meta"
 import { getMailFolderType, isFolder, isFolderReadOnly } from "../MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
@@ -388,7 +388,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 						"pleaseWait_msg",
 						this.mailViewModel.reapplyInboxRulesForMails(actionableMails, this.undoModel).then(async (movedMailIds) => {
 							const mailsToMoveToInbox = actionableMails
-								.filter((mail) => !movedMailIds?.some((movedMailId) => isSameId(mail._id, movedMailId)))
+								.filter((mail) => !movedMailIds?.some((movedMailId) => isSameSingleId(elementIdPart(mail._id), movedMailId)))
 								.map((mail) => mail._id)
 
 							await moveMailsToSystemFolder({
@@ -1126,7 +1126,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private renderFoldersAndLabelsForMailbox(mailboxDetail: MailboxDetail, editingFolderForMailGroup: string | null) {
-		const inEditMode = editingFolderForMailGroup === mailboxDetail.mailGroup._id
+		const inEditMode = isSameSingleId(editingFolderForMailGroup, elementIdToId(mailboxDetail.mailGroup._id))
 		// Only show mailSets for mailbox in which edit was selected
 		if (editingFolderForMailGroup && !inEditMode) {
 			return null
@@ -1138,11 +1138,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				},
 				[
 					this.createMailboxFolderItems(mailboxDetail, inEditMode, () => {
-						EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailboxDetail.mailGroup._id))
+						EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(elementIdToId(mailboxDetail.mailGroup._id)))
 					}),
 					mailLocator.mailModel.canManageLabels()
 						? this.renderMailboxLabelItems(mailboxDetail, inEditMode, () => {
-								EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailboxDetail.mailGroup._id))
+								EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(elementIdToId(mailboxDetail.mailGroup._id)))
 							})
 						: null,
 				],
@@ -1290,7 +1290,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			targetFolder.folderType === MailSetKind.TRASH ||
 			targetFolder.folderType === MailSetKind.SPAM ||
 			// cannot set folder as its own parent
-			isSameId(dropData.folderId, getElementId(targetFolder)) ||
+			isSameSingleId(dropData.folderId, getElementId(targetFolder)) ||
 			// cannot modify read-only folders
 			isFolderReadOnly(targetFolder)
 		) {
@@ -1484,7 +1484,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				},
 				[
 					m(".flex.col", [
-						Array.from(mailLocator.mailModel.getLabelsByGroupId(mailboxDetail.mailGroup._id).values())
+						Array.from(mailLocator.mailModel.getLabelsByGroupId(elementIdToId(mailboxDetail.mailGroup._id)).values())
 							.sort((labelA, labelB) => labelA.name.localeCompare(labelB.name))
 							.map((label) => {
 								const path = `${MAIL_PREFIX}/${getElementId(label)}`

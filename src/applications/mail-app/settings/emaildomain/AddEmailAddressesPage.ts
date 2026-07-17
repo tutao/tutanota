@@ -2,7 +2,7 @@ import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../../../comm
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { getAliasLineAttrs } from "../../../common/settings/mailaddress/MailAddressTable.js"
 import type { AddDomainData } from "./AddDomainWizard"
-import { neverNull } from "../../../../platform-kit/utils"
+import { assertNotNull, neverNull } from "../../../../platform-kit/utils"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
 import type { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
@@ -20,6 +20,7 @@ import { UpgradeRequiredError } from "../../../common/api/main/UpgradeRequiredEr
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { CustomerTypeRef, GroupInfoTypeRef } from "@tutao/entities/sys"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
+import { idToElementId } from "@tutao/meta"
 
 assertMainOrNode()
 
@@ -127,8 +128,9 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 			if (hasAliases) {
 				return true
 			} else {
+				const customerId = neverNull(locator.logins.getUserController().user.customer)
 				return locator.entityClient
-					.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
+					.load(CustomerTypeRef, idToElementId(customerId))
 					.then((customer) => locator.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups))
 					.then((allUserGroupInfos) => {
 						return allUserGroupInfos.some(

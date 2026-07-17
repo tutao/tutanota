@@ -34,6 +34,7 @@ import {
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { idToElementId } from "@tutao/meta"
 
 assertWorkerOrNode()
 
@@ -257,7 +258,7 @@ export class MailAddressFacade {
 
 	private async getOrCreateMailboxProperties(mailGroupId: Id, viaUser?: Id): Promise<MailboxProperties> {
 		// Using non-caching entityClient because we are not a member of the user's mail group, and we won't receive updates for it
-		const mailboxGroupRoot = await this.nonCachingEntityClient.load(MailboxGroupRootTypeRef, mailGroupId)
+		const mailboxGroupRoot = await this.nonCachingEntityClient.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))
 
 		if (mailboxGroupRoot.mailboxProperties == null) {
 			const currentGroupKey = viaUser
@@ -270,7 +271,7 @@ export class MailAddressFacade {
 			viaUser
 				? await this.adminKeyLoaderFacade.getGroupKeyViaUser(mailGroupId, version, viaUser)
 				: await this.adminKeyLoaderFacade.getGroupKeyViaAdminEncGKey(mailGroupId, version)
-		const mailboxProperties = await this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, mailboxGroupRoot.mailboxProperties, {
+		const mailboxProperties = await this.nonCachingEntityClient.load(MailboxPropertiesTypeRef, idToElementId(mailboxGroupRoot.mailboxProperties), {
 			...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 			ownerKeyProvider: groupKeyProvider,
 		})
@@ -298,12 +299,12 @@ export class MailAddressFacade {
 	}
 
 	private async loadUserGroupInfo(userId: Id): Promise<GroupInfo> {
-		const user = await this.nonCachingEntityClient.load(UserTypeRef, userId)
+		const user = await this.nonCachingEntityClient.load(UserTypeRef, idToElementId(userId))
 		return await this.nonCachingEntityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
 	}
 
 	private async loadMailGroupInfo(groupId: Id): Promise<GroupInfo> {
-		const group = await this.nonCachingEntityClient.load(GroupTypeRef, groupId)
+		const group = await this.nonCachingEntityClient.load(GroupTypeRef, idToElementId(groupId))
 		return await this.nonCachingEntityClient.load(GroupInfoTypeRef, group.groupInfo)
 	}
 

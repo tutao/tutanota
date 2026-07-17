@@ -435,7 +435,7 @@ o.spec("ImapImporter", () => {
 		o.check(result.length).equals(1)
 		const attachmentResult = result[0] as ImapImportTutaFileId
 		o.check(attachmentResult._type).equals("ImapImportTutaFileId")
-		o.check(attachmentResult._id).equals(existingFileIdMock)
+		o.check(attachmentResult._id).deepEquals(existingFileIdMock)
 	})
 
 	o.test("performAttachmentDeduplication - uploads new attachment if not deduplicated", async () => {

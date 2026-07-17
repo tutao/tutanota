@@ -1,4 +1,14 @@
-import { clone, getElementId, getListId, isSameId, listIdPart, OperationType } from "../../../../platform-kit/meta"
+import {
+	clone,
+	elementIdToId,
+	getElementId,
+	getListId,
+	idToElementId,
+	isSameId,
+	isSameSingleId,
+	listIdPart,
+	OperationType,
+} from "../../../../platform-kit/meta"
 import {
 	EntityUpdateData,
 	isUpdateFor,
@@ -259,7 +269,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 		this._transientEvents = []
 
-		const userId = logins.getUserController().user._id
+		const userId = elementIdToId(logins.getUserController().user._id)
 
 		this._hiddenCalendars = new Set(this.deviceConfig.getHiddenCalendars(userId))
 
@@ -276,7 +286,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				const groupRoots = Array.from(newInfos.values()).map((i) => i.groupRoot)
 				const lists = [...groupRoots.map((g) => g.longEvents), ...groupRoots.map((g) => g.shortEvents)]
 				const previewListId = getListId(event)
-				if (!lists.some((id) => isSameId(previewListId, id))) {
+				if (!lists.some((id) => isSameSingleId(previewListId, id))) {
 					this.updatePreviewedEvent(null)
 				}
 			}
@@ -451,9 +461,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	 */
 	private canFullyEditEvent(event: CalendarEvent): boolean {
 		const userController = this.logins.getUserController()
-		const userMailGroup = userController.getUserMailGroupMembership().group
+		const userMailGroup = idToElementId(userController.getUserMailGroupMembership().group)
 		const mailboxDetailsArray = this.mailboxModel.mailboxDetails()
-		const mailboxDetails = assertNotNull(mailboxDetailsArray.find((md) => md.mailGroup._id === userMailGroup))
+		const mailboxDetails = assertNotNull(mailboxDetailsArray.find((md) => isSameId(md.mailGroup._id, userMailGroup)))
 		const ownMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, userController.userGroupInfo)
 		const eventType = getEventType(event, this.calendarInfos, ownMailAddresses, userController)
 		return eventType === EventType.OWN || eventType === EventType.SHARED_RW
@@ -556,7 +566,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	setHiddenCalendars(newHiddenCalendars: Set<Id>) {
 		this._hiddenCalendars = newHiddenCalendars
 
-		this.deviceConfig.setHiddenCalendars(this.logins.getUserController().user._id, [...newHiddenCalendars])
+		const userId = this.logins.getUserController().user._id
+		this.deviceConfig.setHiddenCalendars(elementIdToId(userId), [...newHiddenCalendars])
 	}
 
 	/**
@@ -792,7 +803,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	private async entityEventReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
-				const eventId: IdTuple = [update.instanceListId, update.instanceId]
+				const eventId: IdTuple = [assertNotNull(update.instanceListId), update.instanceId]
 				const previewedEvent = this.previewedEvent()
 				if (previewedEvent != null && isUpdateFor(previewedEvent.event, update)) {
 					if (update.operation === OperationType.DELETE) {
@@ -821,7 +832,8 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 					this.doRedraw()
 				}
 			} else if (isUpdateForTypeRef(ContactTypeRef, update) && this.isNewPaidPlan) {
-				await this.eventsRepository.handleContactEvent(update.operation, [update.instanceListId, update.instanceId])
+				const contactId: IdTuple = [assertNotNull(update.instanceListId), update.instanceId]
+				await this.eventsRepository.handleContactEvent(update.operation, contactId)
 				this.doRedraw()
 			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
 				this.logins

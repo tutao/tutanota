@@ -1,5 +1,5 @@
 import { assertNotNull, Nullable } from "../../../utils"
-import { Entity } from "../../../meta/EntityTypes"
+import { Entity, PersistentEntity } from "../../../meta/EntityTypes"
 import { InstanceSessionKey } from "@tutao/entities/sys"
 
 /**
@@ -13,7 +13,7 @@ export class InstanceSessionKeysCache {
 	/**
 	 * Puts the InstanceSessionKeys into the cache and overrides existing entries
 	 */
-	put(mainInstance: Entity, instanceSessionKeys: Array<InstanceSessionKey>) {
+	put(mainInstance: PersistentEntity, instanceSessionKeys: Array<InstanceSessionKey>) {
 		const lookupKey = this.makeLookupKey(mainInstance)
 		this.cache.set(lookupKey, instanceSessionKeys)
 	}
@@ -21,17 +21,17 @@ export class InstanceSessionKeysCache {
 	/**
 	 * Return a cached InstanceSessionKeys or null if it is not cached.
 	 */
-	get(mainInstance: Entity): Nullable<Array<InstanceSessionKey>> {
+	get(mainInstance: PersistentEntity): Nullable<Array<InstanceSessionKey>> {
 		const lookupKey = this.makeLookupKey(mainInstance)
 		return this.cache.get(lookupKey) ?? null
 	}
 
-	delete(mainInstance: Entity) {
+	delete(mainInstance: PersistentEntity) {
 		const lookupKey = this.makeLookupKey(mainInstance)
 		this.cache.delete(lookupKey)
 	}
 
-	private makeLookupKey(mainInstance: Entity): string {
+	private makeLookupKey(mainInstance: PersistentEntity): string {
 		return assertNotNull(mainInstance["_id"]).toString()
 	}
 }

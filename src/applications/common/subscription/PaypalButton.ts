@@ -10,6 +10,7 @@ import stream from "mithril/stream"
 import { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { AccountingInfoTypeRef } from "@tutao/entities/sys"
+import { idToElementId } from "@tutao/meta"
 
 export interface PaypalButtonAttrs {
 	data: Pick<UpgradeSubscriptionData, "accountingInfo">
@@ -28,7 +29,7 @@ export class PaypalButton implements Component<PaypalButtonAttrs> {
 			onEntityUpdatesReceived: (updates) => {
 				return promiseMap(updates, (update) => {
 					if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
-						return locator.entityClient.load(AccountingInfoTypeRef, update.instanceId).then((newAccountingInfo) => {
+						return locator.entityClient.load(AccountingInfoTypeRef, idToElementId(update.instanceId)).then((newAccountingInfo) => {
 							attrs.data.accountingInfo = newAccountingInfo
 							this._isPaypalLinked(newAccountingInfo.paypalBillingAgreement != null)
 							if (this._isPaypalLinked()) attrs.oncomplete?.()

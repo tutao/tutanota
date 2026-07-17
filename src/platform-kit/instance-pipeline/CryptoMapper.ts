@@ -5,6 +5,7 @@ import {
 	AttributeName,
 	Cardinality,
 	ClientTypeModel,
+	elementIdToId,
 	getAssociationReprType,
 	getIdType,
 	IdType,
@@ -182,7 +183,7 @@ export class CryptoMapper {
 						// we must propagate up to the top level of the instance that there is an error somewhere in an aggregated type.
 						// this indicates to the caller whether decryption succeeded.
 						// e.g. in order to decide whether an instance should be cached or not.
-						decrypted.addErrorByAttributeName(associationModel.name, "Aggregated type decrypted with errors")
+						decrypted.addErrorByAttributeId(associationModel.id, "Aggregated type decrypted with errors")
 					}
 					break
 				}
@@ -226,7 +227,7 @@ export class CryptoMapper {
 
 		for (const encryptedAggregate of encryptedInstanceValues) {
 			const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(encryptedAggregate, this.modelMapper, this)
-			const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${entityAdapter._id as Id}/`
+			const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${elementIdToId(entityAdapter._id)}/`
 			const decryptedAggregate = await this.decryptParsedInstanceInternal(
 				encryptedAggregate,
 				instanceDecryptor,

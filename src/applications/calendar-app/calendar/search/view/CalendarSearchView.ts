@@ -4,7 +4,7 @@ import { CalendarSearchViewModel, PaidFunctionResult } from "./CalendarSearchVie
 import { BaseTopLevelView } from "../../../../../ui/BaseTopLevelView.js"
 import { ColumnType, ViewColumn } from "../../../../../ui/base/ViewColumn.js"
 import { ViewSlider } from "../../../../../ui/nav/ViewSlider.js"
-import { isSameId } from "../../../../../platform-kit/meta"
+import { isSameId, isSameSingleId } from "../../../../../platform-kit/meta"
 import { assertNotNull, isSameDayOfDate, last, LazyLoaded, lazyMemoized, memoized, stringToBase64 } from "../../../../../platform-kit/utils"
 import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import m, { Children, Vnode } from "mithril"
@@ -523,7 +523,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				label: selectedCalendar
 					? lang.makeTranslation(
 							"calendar_label",
-							availableCalendars.find((calendarInfo) => isSameId(calendarInfo.id, selectedCalendar.id))?.name ?? "",
+							availableCalendars.find((calendarInfo) => isSameSingleId(calendarInfo.id, selectedCalendar.id))?.name ?? "",
 						)
 					: lang.getTranslation("calendar_label"),
 				selected: selectedCalendar != null,

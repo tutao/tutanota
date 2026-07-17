@@ -68,6 +68,7 @@ import {
 	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	DEFAULT_EXTRA_SERVICE_PARAMS,
 } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { idToElementId } from "@tutao/meta"
 
 assertWorkerOrNode()
 
@@ -128,7 +129,7 @@ export class CustomerFacade {
 
 	async orderWhitelabelCertificate(domainName: string): Promise<void> {
 		const customerId = this.getCustomerId()
-		const customer = await this.entityClient.load(CustomerTypeRef, customerId)
+		const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(customerId))
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		let existingBrandingDomain = getWhitelabelDomainInfo(customerInfo, domainName)
 		let sessionKey = this.cryptoWrapper.aes256RandomKey()
@@ -180,7 +181,7 @@ export class CustomerFacade {
 	 * @return The amount of available storage capacity in byte.
 	 */
 	readAvailableCustomerStorage(customerId: Id): Promise<number> {
-		return this.entityClient.load(CustomerTypeRef, customerId).then((customer) => {
+		return this.entityClient.load(CustomerTypeRef, idToElementId(customerId)).then((customer) => {
 			return this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo).then((customerInfo) => {
 				let includedStorage = Number(customerInfo.includedStorageCapacity)
 				let promotionStorage = Number(customerInfo.promotionStorageCapacity)
@@ -206,7 +207,7 @@ export class CustomerFacade {
 	}
 
 	async loadCustomerServerProperties(): Promise<CustomerServerProperties> {
-		const customer = await this.entityClient.load(CustomerTypeRef, this.getCustomerId())
+		const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(this.getCustomerId()))
 		let cspId
 		if (customer.serverProperties) {
 			cspId = customer.serverProperties
@@ -224,7 +225,7 @@ export class CustomerFacade {
 			const returnData = await this.serviceExecutor.post(CreateCustomerServerProperties, data, null)
 			cspId = returnData.id
 		}
-		return this.entityClient.load(CustomerServerPropertiesTypeRef, cspId)
+		return this.entityClient.load(CustomerServerPropertiesTypeRef, idToElementId(cspId))
 	}
 
 	addSpamRule(field: SpamRuleFieldType, type: SpamRuleType, value: string): Promise<void> {
@@ -374,9 +375,9 @@ export class CustomerFacade {
 		paymentData: PaymentData | null,
 		confirmedInvoiceCountry: Country | null,
 	): Promise<PaymentDataServicePutReturn> {
-		let customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(this.userFacade.getLoggedInUser().customer))
+		let customer = await this.entityClient.load(CustomerTypeRef, idToElementId(assertNotNull(this.userFacade.getLoggedInUser().customer)))
 		let customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
-		let accountingInfo = await this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+		let accountingInfo = await this.entityClient.load(AccountingInfoTypeRef, idToElementId(customerInfo.accountingInfo))
 		let accountingInfoSessionKey = await this.cryptoFacade.resolveSessionKey(accountingInfo)
 		const service = createPaymentDataServicePutData({
 			paymentInterval: paymentInterval.toString(),
@@ -447,7 +448,7 @@ export class CustomerFacade {
 	}
 
 	async generateXRechnungInvoice(invoiceNumber: string): Promise<DataFile> {
-		const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(this.userFacade.getUser()?.customer))
+		const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(assertNotNull(this.userFacade.getUser()?.customer)))
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		const invoiceData = await this.serviceExecutor.get(InvoiceDataService, createInvoiceDataGetIn({ invoiceNumber }), null)
 		const { XRechnungInvoiceGenerator } = await import("../../invoicegen/XRechnungInvoiceGenerator.js")
@@ -464,9 +465,9 @@ export class CustomerFacade {
 	}
 
 	async loadAccountingInfo(): Promise<AccountingInfo> {
-		const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(this.userFacade.getUser()?.customer))
+		const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(assertNotNull(this.userFacade.getUser()?.customer)))
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
-		return this.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+		return this.entityClient.load(AccountingInfoTypeRef, idToElementId(customerInfo.accountingInfo))
 	}
 
 	// This also exists in LoginController. Look at the comment in LoginController for an explanation.
@@ -480,7 +481,7 @@ export class CustomerFacade {
 		} else {
 			const user = this.userFacade.getLoggedInUser()
 			if (isInternalUser(user)) {
-				const customer = await this.entityClient.load(CustomerTypeRef, assertNotNull(user.customer), {
+				const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(assertNotNull(user.customer)), {
 					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode,
 				})

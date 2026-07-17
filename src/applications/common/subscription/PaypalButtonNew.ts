@@ -9,6 +9,7 @@ import { SignupViewModel } from "../signup/SignupView"
 import { component_size, px } from "../../../ui/size"
 import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { AccountingInfoTypeRef } from "@tutao/entities/sys"
+import { idToElementId } from "@tutao/meta"
 
 export interface PaypalButtonNewAttrs {
 	data: Pick<SignupViewModel, "accountingInfo">
@@ -28,7 +29,7 @@ export class PaypalButtonNew implements Component<PaypalButtonNewAttrs> {
 			onEntityUpdatesReceived: (updates) => {
 				return promiseMap(updates, (update) => {
 					if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
-						return locator.entityClient.load(AccountingInfoTypeRef, update.instanceId).then((newAccountingInfo) => {
+						return locator.entityClient.load(AccountingInfoTypeRef, idToElementId(update.instanceId)).then((newAccountingInfo) => {
 							attrs.data.accountingInfo = newAccountingInfo
 							this.isPaypalLinked = newAccountingInfo.paypalBillingAgreement != null
 							if (this.isPaypalLinked) attrs.oncomplete?.()

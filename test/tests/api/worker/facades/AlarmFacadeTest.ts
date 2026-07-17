@@ -11,7 +11,7 @@ import { NativePushFacade } from "../../../../../src/app-kit/native-bridge/commo
 import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade"
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade"
-import { elementIdPart, listIdPart, OperationType } from "../../../../../src/platform-kit/meta"
+import { elementIdPart, elementIdToId, idToElementId, listIdPart, OperationType } from "../../../../../src/platform-kit/meta"
 import {
 	AlarmInfoTypeRef,
 	AlarmNotification,
@@ -65,7 +65,7 @@ o.spec("AlarmFacadeTest", function () {
 		userGroupMembership = createTestEntity(GroupMembershipTypeRef, {
 			group: "userGroupId",
 		})
-		user = createTestEntity(UserTypeRef, { _id: "userId", userGroup: userGroupMembership })
+		user = createTestEntity(UserTypeRef, { _id: idToElementId("userId"), userGroup: userGroupMembership })
 
 		when(userFacadeMock.getLoggedInUser()).thenReturn(user)
 
@@ -118,7 +118,7 @@ o.spec("AlarmFacadeTest", function () {
 					summary: personalCalendarEvent.summary,
 					eventStart: personalCalendarEvent.startTime,
 					eventEnd: personalCalendarEvent.endTime,
-					user: user._id,
+					user: elementIdToId(user._id),
 				}),
 			]
 			const userAlarmInfoData: UserAlarmInfoData[] = [

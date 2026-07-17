@@ -30,6 +30,7 @@ import { CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef } from "
 import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../platform-kit/instance-pipeline/RestClientOptions"
+import { idToElementId } from "@tutao/meta"
 
 const PRESELECTED_LIKERT_VALUE = null
 
@@ -212,8 +213,8 @@ export class UsageTestModel implements PingAdapter {
 	}
 
 	private async updateCustomerProperties() {
-		const customer = await this.entityClient.load(CustomerTypeRef, neverNull(this.loginController.getUserController().user.customer))
-		this.customerProperties = await this.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))
+		const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(neverNull(this.loginController.getUserController().user.customer)))
+		this.customerProperties = await this.entityClient.load(CustomerPropertiesTypeRef, idToElementId(neverNull(customer.properties)))
 	}
 
 	/**

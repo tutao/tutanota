@@ -8,16 +8,18 @@ import {
 	collapseId,
 	CUSTOM_MIN_ID,
 	elementIdPart,
+	elementIdToId,
 	Entity,
 	firstBiggerThanSecondBase64Ext,
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
 	getElementId,
 	getListId,
+	idToElementId,
 	isSameTypeRef,
 	listIdPart,
 	OperationType,
-	SomeEntity,
+	PersistentEntity,
 	TypeRef,
 } from "../../../../../src/platform-kit/meta"
 import { arrayOf, assertNotNull, deepEqual, downcast, last, Nullable, promiseMap, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
@@ -141,7 +143,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		let entityRestClient: EntityRestClient
 		let userId: Id | null
 
-		let makeUpdateData = async function <T extends SomeEntity>(
+		let makeUpdateData = async function <T extends PersistentEntity>(
 			typeRef: TypeRef<T>,
 			listId: Id,
 			elementId: Id,
@@ -162,7 +164,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const instanceParsed = instance ? await toStorableInstance(instance) : null
 			return await entityUpdateToUpdateData(entityUpdate, instanceParsed, null)
 		}
-		let updateDataForCreate = function <T extends SomeEntity>(
+		let updateDataForCreate = function <T extends PersistentEntity>(
 			typeRef: TypeRef<T>,
 			listId: Id,
 			elementId: Id,
@@ -170,7 +172,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		): Promise<EntityUpdateData> {
 			return makeUpdateData(typeRef, listId, elementId, OperationType.CREATE, instance, [])
 		}
-		let updateDataForUpdate = async function <T extends SomeEntity>(
+		let updateDataForUpdate = async function <T extends PersistentEntity>(
 			typeRef: TypeRef<T>,
 			listId: Id,
 			elementId: Id,
@@ -178,18 +180,18 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		): Promise<EntityUpdateData> {
 			return makeUpdateData(typeRef, listId, elementId, OperationType.UPDATE, null, patches)
 		}
-		let updateDataForDelete = async function <T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id, elementId: Id): Promise<EntityUpdateData> {
+		let updateDataForDelete = async function <T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id, elementId: Id): Promise<EntityUpdateData> {
 			return makeUpdateData(typeRef, listId, elementId, OperationType.DELETE, null, [])
 		}
 
-		let createId = function (idText) {
+		let createId = function (idText: string): string {
 			//return idText
 			return Array(13 - idText.length).join("-") + idText
 		}
 
-		let createCustomer = function (id): Customer {
-			let customer = createTestEntity(CustomerTypeRef, {
-				_id: createId(id),
+		const createCustomer = function (id: string): Customer {
+			return createTestEntity(CustomerTypeRef, {
+				_id: idToElementId(createId(id)),
 				_ownerGroup: "customer-owner",
 				adminGroup: "adminGroup",
 				customerGroup: "customerGroup",
@@ -199,7 +201,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				teamGroups: "teamGroups",
 				customerInfo: ["freeId", "customerInfo"],
 			})
-			return customer
 		}
 
 		let createMailDetailsBlobInstance = function (archiveId, id, bodyText): MailDetailsBlob {
@@ -305,7 +306,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			o.spec("post multiple cache range", function () {
 				o("create is not in cache range", async function () {
-					const contact = createTestEntity(ContactTypeRef, { _id: [firstContactListId, id1] })
 					const batch = [
 						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, null),
 						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, null),
@@ -758,7 +758,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					_ownerGroup: "owner-group",
 				})
 				const firstContact = Object.assign(structuredClone(sampleContact), { _id: [firstContactListId, id1] })
-				const secondContact = Object.assign(structuredClone(sampleContact), { _id: [firstContactListId, id2] })
 
 				await storage.put(ContactTypeRef, await toStorableInstance(firstContact))
 
@@ -1862,7 +1861,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			const notInCache = [createCustomer("customer3"), createCustomer("customer4")]
 			await Promise.all(inCache.map(async (i) => await storage.put(CustomerTypeRef, await toStorableInstance(i))))
-			const ids = inCache.concat(notInCache).map((c) => c._id)
+			const ids = inCache.concat(notInCache).map((c) => elementIdToId(c._id))
 
 			const loadMultipleParsedInstances = spy((...any) => Promise.all(notInCache.map(toStorableInstance)))
 			const mock = mockAttribute(entityRestClient, entityRestClient.loadMultipleParsedInstances, loadMultipleParsedInstances)
@@ -1874,12 +1873,12 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			o(loadMultipleParsedInstances.args).deepEquals([
 				CustomerTypeRef,
 				null,
-				notInCache.map((c) => c._id),
+				notInCache.map((c) => elementIdToId(c._id)),
 				undefined,
 				DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 			])("load multiple is called for customers not in cache")
 			for (const item of inCache.concat(notInCache)) {
-				o(await storage.get(CustomerTypeRef, null, item._id)).notEquals(null)("element is in cache " + item._id)
+				o(await storage.get(CustomerTypeRef, null, elementIdToId(item._id))).notEquals(null)("element is in cache " + item._id)
 			}
 			unmockAttribute(mock)
 		})
@@ -2060,7 +2059,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		})
 
 		o.test(`${name} when loading single ET custom id entity it is cached`, async function () {
-			const id = stringToBase64UrlCustomId("1")
+			const id = idToElementId(stringToBase64UrlCustomId("1"))
 			const client: EntityRestClient = mockRestClient()
 			const entity = createTestEntity(MailAddressToGroupTypeRef, {
 				_id: id,
@@ -2106,12 +2105,12 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const ids = [stringToBase64UrlCustomId("1"), stringToBase64UrlCustomId("2")]
 			const client: EntityRestClient = mockRestClient()
 			const firstEntity = createTestEntity(MailAddressToGroupTypeRef, {
-				_id: ids[0],
+				_id: idToElementId(ids[0]),
 				_permissions: "permid",
 				_ownerGroup: "owner-group1",
 			})
 			const secondEntity = createTestEntity(MailAddressToGroupTypeRef, {
-				_id: ids[1],
+				_id: idToElementId(ids[1]),
 				_permissions: "permid",
 				_ownerGroup: "owner-group1",
 			})

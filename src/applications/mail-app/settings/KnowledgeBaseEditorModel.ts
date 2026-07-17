@@ -13,7 +13,7 @@ import {
 	KnowledgeBaseEntryKeyword,
 	TemplateGroupRoot,
 } from "@tutao/entities/tutanota"
-import { clone } from "../../../platform-kit/meta"
+import { clone, elementIdToId } from "../../../platform-kit/meta"
 import { NotFoundError } from "../../../platform-kit/rest-client/error"
 
 export class KnowledgeBaseEditorModel {
@@ -56,7 +56,7 @@ export class KnowledgeBaseEditorModel {
 		if (this.entry._id) {
 			return this._entityClient.update(this.entry).catch(ofClass(NotFoundError, noOp))
 		} else {
-			this.entry._ownerGroup = this._templateGroupRoot._id
+			this.entry._ownerGroup = elementIdToId(this._templateGroupRoot._id)
 			return this._entityClient.setup(this._templateGroupRoot.knowledgeBase, this.entry, null)
 		}
 	}

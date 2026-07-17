@@ -68,7 +68,7 @@ import { decryptMetaData, decryptSearchIndexEntry, encryptIndexKeyBase64 } from 
 import { Contact, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { ClientTypeModelResolver } from "../../../../platform-kit/instance-pipeline"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
-import { PromiseMapFn, promiseMapCompat } from "./IndexerPromiseUtils"
+import { promiseMapCompat, PromiseMapFn } from "./IndexerPromiseUtils"
 
 type RowsToReadForIndexKey = {
 	indexKey: string
@@ -140,7 +140,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 				searchPromise = this.startOrContinueSearch(result).then(() => {
 					// we now filter for the suggestion token manually because searching for suggestions for the last word and reducing the initial search result with them can lead to
 					// dozens of searches without any effect when the seach token is found in too many contacts, e.g. in the email address with the ending "de"
-					result.results.sort((a, b) => compareNewestFirst(a, b, idEncoding))
+					result.results.sort((a, b) => compareNewestFirst(elementIdPart(a), elementIdPart(b), idEncoding))
 					return this.loadAndReduce(restriction, result, suggestionToken, minSuggestionCount)
 				})
 			} else {
@@ -148,7 +148,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 			}
 
 			return searchPromise.then(() => {
-				result.results.sort((a, b) => compareNewestFirst(a, b, idEncoding))
+				result.results.sort((a, b) => compareNewestFirst(elementIdPart(a), elementIdPart(b), idEncoding))
 				return result
 			})
 		} else {
@@ -169,7 +169,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 		result.currentIndexTimestamp = getMailIndexTimestampForSearch(this.mailIndexer.currentIndexTimestamp)
 
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(result.restriction.type)
-		result.results.sort((a, b) => compareNewestFirst(a, b, getServerIdEncodingForType(typeModel)))
+		result.results.sort((a, b) => compareNewestFirst(elementIdPart(a), elementIdPart(b), getServerIdEncodingForType(typeModel)))
 
 		return result
 	}

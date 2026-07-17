@@ -23,7 +23,7 @@ import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../../../../ui/Html
 import { theme } from "../../../../ui/theme.js"
 import { MailSet } from "@tutao/entities/tutanota"
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
-import { elementIdPart, getElementId } from "../../../../platform-kit/meta"
+import { elementIdPart, elementIdToId, getElementId } from "../../../../platform-kit/meta"
 import { canHaveDescendents, isEditableMailSet, isNestableMailSet } from "../MailUtils"
 
 export interface MailFolderViewAttrs {
@@ -55,8 +55,8 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 
 	view({ attrs }: Vnode<MailFolderViewAttrs>): Children {
 		const { mailboxDetail, mailModel } = attrs
-		const groupCounters = mailModel.mailboxCounters()[mailboxDetail.mailGroup._id] || {}
-		const folders = mailModel.getFolderSystemByGroupId(mailboxDetail.mailGroup._id)
+		const groupCounters = mailModel.mailboxCounters()[elementIdToId(mailboxDetail.mailGroup._id)] || {}
+		const folders = mailModel.getFolderSystemByGroupId(elementIdToId(mailboxDetail.mailGroup._id))
 		// Important: this array is keyed so each item must have a key and `null` cannot be in the array
 		// So instead we push or not push into array
 		const customSystems = folders?.customSubtrees ?? []
@@ -232,7 +232,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				width: `calc(100% - ${px(size.spacing_8 * 2)})`,
 			},
 			onclick: () => {
-				attrs.onShowFolderAddEditDialog(attrs.mailboxDetail.mailGroup._id, null, null)
+				attrs.onShowFolderAddEditDialog(elementIdToId(attrs.mailboxDetail.mailGroup._id), null, null)
 			},
 		})
 	}
@@ -305,7 +305,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			label: "addFolder_action",
 			icon: Icons.Plus,
 			click: () => {
-				attrs.onShowFolderAddEditDialog(attrs.mailboxDetail.mailGroup._id, null, folder)
+				attrs.onShowFolderAddEditDialog(elementIdToId(attrs.mailboxDetail.mailGroup._id), null, folder)
 			},
 		}
 	}
@@ -316,7 +316,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			icon: Icons.PenFilled,
 			click: () => {
 				attrs.onShowFolderAddEditDialog(
-					attrs.mailboxDetail.mailGroup._id,
+					elementIdToId(attrs.mailboxDetail.mailGroup._id),
 					folder,
 					folder.parentFolder ? folders.getFolderById(elementIdPart(folder.parentFolder)) : null,
 				)
@@ -328,7 +328,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		return m(IconButton, {
 			title: "addFolder_action",
 			click: () => {
-				return attrs.onShowFolderAddEditDialog(attrs.mailboxDetail.mailGroup._id, null, parentFolder)
+				return attrs.onShowFolderAddEditDialog(elementIdToId(attrs.mailboxDetail.mailGroup._id), null, parentFolder)
 			},
 			icon: Icons.Plus,
 			size: ButtonSize.Compact,

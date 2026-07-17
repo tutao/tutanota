@@ -1,4 +1,4 @@
-import { clone } from "../../../../../platform-kit/meta"
+import { clone, elementIdToId, idToElementId } from "../../../../../platform-kit/meta"
 import { CalendarEvent, CalendarEventAttendee } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus } from "../../../../../entities/tutanota/Utils"
 import {
@@ -58,7 +58,7 @@ export class CalendarEventPreviewViewModel {
 		if (!this.calendarEvent?._ownerGroup) {
 			return undefined
 		}
-		return this.calendarModel.getCalendarInfo(this.calendarEvent._ownerGroup)
+		return this.calendarModel.getCalendarInfo(idToElementId(this.calendarEvent._ownerGroup))
 	})
 
 	/**
@@ -335,7 +335,7 @@ export class CalendarEventPreviewViewModel {
 			newEventModel.editModels.whenModel.deleteExcludedDates()
 			newEventModel.editModels.whoModel.resetGuestsStatus()
 
-			const calendarId = newEventModel.editModels.whoModel.selectedCalendar.group._id
+			const calendarId = elementIdToId(newEventModel.editModels.whoModel.selectedCalendar.group._id)
 			await newEventModel.editModels.alarmModel.removeCalendarDefaultAlarms(calendarId, this.calendarModel.getGroupSettings())
 
 			const eventEditor = new EventEditorDialog()

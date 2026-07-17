@@ -22,7 +22,7 @@ import { DesktopAlarmStorage } from "../../../../src/applications/common/desktop
 import { DesktopAlarmScheduler } from "../../../../src/applications/common/desktop/sse/DesktopAlarmScheduler"
 import { EncryptedMissedNotification } from "../../../../src/app-kit/native-bridge/common/EncryptedMissedNotification"
 import { CryptoError } from "../../../../src/platform-kit/crypto/error"
-import { OperationType } from "../../../../src/platform-kit/meta"
+import { idToElementId, OperationType } from "../../../../src/platform-kit/meta"
 import {
 	AlarmInfoTypeRef,
 	AlarmNotificationTypeRef,
@@ -203,7 +203,7 @@ o.spec("TutaSseFacadeTest", () => {
 				notificationHandler.onMailNotification(
 					sseInfo,
 					matchers.argThat((actualNotificationInfos) => {
-						let actualNotificationInfo = actualNotificationInfos[0]
+						const actualNotificationInfo = actualNotificationInfos[0]
 						actualNotificationInfo.mailId._id = null
 						removeOriginals(actualNotificationInfo)
 						return deepEqual(actualNotificationInfo, notificationInfo)
@@ -224,7 +224,7 @@ o.spec("TutaSseFacadeTest", () => {
 
 		o("handles alarm delete notification", async function () {
 			const missedNotification = createTestEntity(MissedNotificationTypeRef, {
-				_id: "id",
+				_id: idToElementId("id"),
 				_permissions: "permissionsId",
 				alarmNotifications: [
 					createTestEntity(AlarmNotificationTypeRef, {
@@ -265,7 +265,7 @@ o.spec("TutaSseFacadeTest", () => {
 
 		o("alarmnotification with unavailable pushIdentifierSessionKey", async function () {
 			const missedNotification = createTestEntity(MissedNotificationTypeRef, {
-				_id: "id",
+				_id: idToElementId("id"),
 				_permissions: "permissionsId",
 				alarmNotifications: [
 					createTestEntity(AlarmNotificationTypeRef, {
@@ -299,7 +299,7 @@ o.spec("TutaSseFacadeTest", () => {
 
 		o("alarmnotification with corrupt fields", async function () {
 			const missedNotification = createTestEntity(MissedNotificationTypeRef, {
-				_id: "id",
+				_id: idToElementId("id"),
 				_permissions: "permissionsId",
 				alarmNotifications: [
 					createTestEntity(AlarmNotificationTypeRef, {

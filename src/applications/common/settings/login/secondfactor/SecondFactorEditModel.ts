@@ -9,6 +9,7 @@ import { UserError } from "../../../api/main/UserError.js"
 import { getHtmlSanitizer } from "../../../misc/HtmlSanitizer.js"
 import QRCode from "qrcode-svg"
 import { createSecondFactor, GroupInfoTypeRef, U2fRegisteredDevice, User } from "@tutao/entities/sys"
+import { elementIdToId } from "@tutao/meta"
 
 export const enum VerificationStatus {
 	Initial = "Initial",
@@ -165,7 +166,7 @@ export class SecondFactorEditModel {
 			}
 
 			try {
-				this.u2fRegistrationData = await this.webauthnClient.register(this.user._id, this.name)
+				this.u2fRegistrationData = await this.webauthnClient.register(elementIdToId(this.user._id), this.name)
 				this.verificationStatus = VerificationStatus.Success
 			} catch (e) {
 				console.log("Webauthn registration failed: ", e)

@@ -1,5 +1,5 @@
 import { assertMainOrNode, ShareCapability } from "@tutao/app-env"
-import { elementIdPart, EntityIdEncoding, getEtId, listIdPart, sortCompareById } from "@tutao/meta"
+import { elementIdPart, EntityIdEncoding, getEtId, idToElementId, listIdPart, sortCompareById } from "@tutao/meta"
 import { assertNotNull, cleanMailAddress, first, getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -187,8 +187,8 @@ export class ContactModel {
 	}
 
 	private async getContactListInfo(groupInfo: GroupInfo): Promise<ContactListInfo> {
-		const group = await this.entityClient.load(GroupTypeRef, groupInfo.group)
-		const groupRoot = await this.entityClient.load(ContactListGroupRootTypeRef, groupInfo.group)
+		const group = await this.entityClient.load(GroupTypeRef, idToElementId(groupInfo.group))
+		const groupRoot = await this.entityClient.load(ContactListGroupRootTypeRef, idToElementId(groupInfo.group))
 		const userController = this.loginController.getUserController()
 		const { getSharedGroupName } = await import("../sharing/GroupUtils.js")
 

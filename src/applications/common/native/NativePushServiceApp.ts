@@ -11,7 +11,7 @@ import { CalendarFacade } from "../api/worker/facades/lazy/CalendarFacade.js"
 import { CryptoFacade } from "../../../platform-kit/base/base-crypto/CryptoFacade"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { createPushIdentifier, PushIdentifier, PushIdentifierTypeRef, sysModelInfo } from "@tutao/entities/sys"
-import { getElementId } from "@tutao/meta"
+import { elementIdToId, getElementId } from "@tutao/meta"
 import { AlarmFacade } from "../api/worker/facades/lazy/AlarmFacade"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
 
@@ -124,7 +124,7 @@ export class NativePushServiceApp {
 		const userId = this.logins.getUserController().user._id
 		const origin = assertNotNull(env.staticUrl)
 		const sk = assertNotNull(await this.cryptoFacade.resolveSessionKeyForInstanceBinary(pushIdentifier))
-		await this.nativePushFacade.storePushIdentifierLocally(pushIdentifier.identifier, userId, origin, getElementId(pushIdentifier), sk)
+		await this.nativePushFacade.storePushIdentifierLocally(pushIdentifier.identifier, elementIdToId(userId), origin, getElementId(pushIdentifier), sk)
 	}
 
 	private async loadPushIdentifier(identifier: string): Promise<PushIdentifier | null> {
@@ -177,7 +177,7 @@ export class NativePushServiceApp {
 			return
 		}
 
-		const userId = this.logins.getUserController().user._id
+		const userId = elementIdToId(this.logins.getUserController().user._id)
 
 		// The native part might have alarms stored for the older model version and they might miss some new fields.
 		// We need to remove all of them, re-download and re-schedule all of them.

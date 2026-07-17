@@ -25,6 +25,7 @@ import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
 import { Group, GroupTypeRef, IdentityKeyGetIn, IdentityKeyGetOut, IdentityKeyPair, IdentityKeyService, KeyMacTypeRef } from "@tutao/entities/sys"
 import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../src/entities/sys/Utils"
 import { TrustDBEntry } from "../../../../../src/platform-kit/base/base-crypto/persistence/IdentityKeyTrustDatabase"
+import { elementIdToId, idToElementId, isSameId } from "../../../../../src/platform-kit/meta"
 
 o.spec("PublicIdentityKeyProviderTest", function () {
 	let serviceExecutor: ServiceExecutor
@@ -60,7 +61,7 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 	o.spec("loadPublicIdentityKeyFromGroup", function () {
 		o("success", async function () {
 			const userGroup: Group = object()
-			userGroup._id = "userGroup"
+			userGroup._id = idToElementId("userGroup")
 			const identityKeyPair: IdentityKeyPair = object()
 			identityKeyPair.publicEd25519Key = rawEd25519PublicKey
 			identityKeyPair.identityKeyVersion = "0"
@@ -68,7 +69,7 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 				createTestEntity(KeyMacTypeRef, {
 					taggedKeyVersion: "0",
 					taggingKeyVersion: "1",
-					taggingGroup: userGroup._id,
+					taggingGroup: elementIdToId(userGroup._id),
 					tag: object(),
 				}),
 			)
@@ -81,7 +82,7 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 			when(entityClient.load(GroupTypeRef, matchers.anything())).thenResolve(userGroup)
 			when(keyLoaderFacade.loadSymGroupKey(matchers.anything(), matchers.anything())).thenResolve(userGroupKey)
 
-			const actualPublicIdentityKey = await publicIdentityKeyProvider.loadPublicIdentityKeyFromGroup(userGroup._id)
+			const actualPublicIdentityKey = await publicIdentityKeyProvider.loadPublicIdentityKeyFromGroup(elementIdToId(userGroup._id))
 
 			o(actualPublicIdentityKey?.object).deepEquals({ key: ed25519PublicKey, type: SigningKeyPairType.Ed25519 })
 			verify(
@@ -91,7 +92,7 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 							params.tagType === "IDENTITY_PUB_KEY_TAG" &&
 							arrayEquals(params.untrustedKey.identityPubKey, ed25519PublicKey) &&
 							params.sourceOfTrust.symmetricGroupKey === userGroupKey &&
-							params.bindingData.groupId === userGroup._id &&
+							isSameId(idToElementId(params.bindingData.groupId), userGroup._id) &&
 							String(params.bindingData.groupKeyVersion) === identityPublicKeyMac.taggingKeyVersion &&
 							String(params.bindingData.publicIdentityKeyVersion) === identityPublicKeyMac.taggedKeyVersion
 						)
@@ -103,7 +104,7 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 
 		o("if the tag does not match, an error is thrown", async function () {
 			const userGroup: Group = object()
-			userGroup._id = "userGroup"
+			userGroup._id = idToElementId("userGroup")
 			const identityKeyPair: IdentityKeyPair = object()
 			identityKeyPair.publicEd25519Key = rawEd25519PublicKey
 			identityKeyPair.identityKeyVersion = "0"
@@ -111,7 +112,7 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 				createTestEntity(KeyMacTypeRef, {
 					taggedKeyVersion: "0",
 					taggingKeyVersion: "1",
-					taggingGroup: userGroup._id,
+					taggingGroup: elementIdToId(userGroup._id),
 					tag: object(),
 				}),
 			)
@@ -126,17 +127,17 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 
 			when(keyAuthenticationFacade.verifyTag(matchers.anything(), matchers.anything())).thenThrow(new CryptoError("invalid mac"))
 
-			await assertThrows(CryptoError, async () => publicIdentityKeyProvider.loadPublicIdentityKeyFromGroup(userGroup._id))
+			await assertThrows(CryptoError, async () => publicIdentityKeyProvider.loadPublicIdentityKeyFromGroup(elementIdToId(userGroup._id)))
 		})
 
 		o("if the user has no identity key, the method returns null", async function () {
 			const userGroup: Group = object()
-			userGroup._id = "userGroup"
+			userGroup._id = idToElementId("userGroup")
 			userGroup.identityKeyPair = null
 
 			when(entityClient.load(GroupTypeRef, matchers.anything())).thenResolve(userGroup)
 
-			const pk = await publicIdentityKeyProvider.loadPublicIdentityKeyFromGroup(userGroup._id)
+			const pk = await publicIdentityKeyProvider.loadPublicIdentityKeyFromGroup(elementIdToId(userGroup._id))
 			o(pk).equals(null)
 		})
 	})

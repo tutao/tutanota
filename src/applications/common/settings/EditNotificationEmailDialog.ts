@@ -9,7 +9,7 @@ import {
 	NotificationMailTemplate,
 } from "@tutao/entities/sys"
 import { PlanType } from "../../../entities/sys/Utils"
-import { GENERATED_MAX_ID } from "@tutao/meta"
+import { GENERATED_MAX_ID, idToElementId } from "@tutao/meta"
 import { HtmlEditor } from "../../../ui/editor/HtmlEditor.js"
 import { InfoLink, lang, languages } from "../../../ui/utils/LanguageViewModel.js"
 import stream from "mithril/stream"
@@ -38,7 +38,7 @@ export function showAddOrEditNotificationEmailDialog(userController: UserControl
 	let existingTemplate: NotificationMailTemplate | undefined = undefined
 	userController.reloadCustomer().then((customer) => {
 		if (customer.properties) {
-			const customerProperties = new LazyLoaded(() => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
+			const customerProperties = new LazyLoaded(() => locator.entityClient.load(CustomerPropertiesTypeRef, idToElementId(neverNull(customer.properties))))
 			return customerProperties
 				.getAsync()
 				.then((loadedCustomerProperties) => {

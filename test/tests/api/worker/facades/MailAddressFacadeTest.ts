@@ -12,6 +12,7 @@ import { MailAddressPropertiesTypeRef, MailboxGroupRootTypeRef, MailboxPropertie
 import { GroupInfoTypeRef, GroupMembershipTypeRef, MailAddressAliasTypeRef, UserTypeRef } from "@tutao/entities/sys"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClientLoadOptions } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { Aes128Key } from "../../../../../src/platform-kit/crypto/encryption/symmetric/AesKey"
+import { idToElementId } from "../../../../../src/platform-kit/meta"
 
 o.spec("MailAddressFacadeTest", function () {
 	let userFacade: UserFacade
@@ -56,11 +57,11 @@ o.spec("MailAddressFacadeTest", function () {
 			})
 
 			when(adminKeyLoaderFacade.getCurrentGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
-			when(nonCachingEntityClient.load(MailboxGroupRootTypeRef, mailGroupId)).thenResolve(mailboxGroupRoot)
+			when(nonCachingEntityClient.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))).thenResolve(mailboxGroupRoot)
 			when(
 				nonCachingEntityClient.load(
 					MailboxPropertiesTypeRef,
-					mailboxPropertiesId,
+					idToElementId(mailboxPropertiesId),
 					matchers.argThat(async (opts: EntityRestClientLoadOptions) => {
 						const providedMailGroupKey = await opts.ownerKeyProvider!(mailGroupKey.version)
 						return arrayEquals(mailGroupKey.object.bits, providedMailGroupKey.bits)
@@ -85,14 +86,14 @@ o.spec("MailAddressFacadeTest", function () {
 			})
 			const mailGroupKey = freshVersioned(new Aes128Key([1, 2, 3, 4]))
 			const mailboxProperties = createTestEntity(MailboxPropertiesTypeRef, {
-				_id: mailboxPropertiesId,
+				_id: idToElementId(mailboxPropertiesId),
 				_ownerGroup: mailGroupId,
 				reportMovedMails: "",
 				mailAddressProperties: [],
 			})
 			const userGroupInfoId: IdTuple = ["groupInfoListId", "groupInfoId"]
 			const user = createTestEntity(UserTypeRef, {
-				_id: viaUser,
+				_id: idToElementId(viaUser),
 				userGroup: createTestEntity(GroupMembershipTypeRef, {
 					groupInfo: userGroupInfoId,
 				}),
@@ -109,10 +110,10 @@ o.spec("MailAddressFacadeTest", function () {
 				],
 			})
 
-			when(nonCachingEntityClient.load(UserTypeRef, viaUser)).thenResolve(user)
+			when(nonCachingEntityClient.load(UserTypeRef, idToElementId(viaUser))).thenResolve(user)
 			when(nonCachingEntityClient.load(GroupInfoTypeRef, userGroupInfoId)).thenResolve(userGroupInfo)
 			when(adminKeyLoaderFacade.getCurrentGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
-			when(nonCachingEntityClient.load(MailboxGroupRootTypeRef, mailGroupId)).thenResolve(mailboxGroupRoot)
+			when(nonCachingEntityClient.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))).thenResolve(mailboxGroupRoot)
 			when(
 				nonCachingEntityClient.setup(null, matchers.anything(), matchers.anything(), {
 					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
@@ -122,7 +123,7 @@ o.spec("MailAddressFacadeTest", function () {
 			when(
 				nonCachingEntityClient.load(
 					MailboxPropertiesTypeRef,
-					mailboxPropertiesId,
+					idToElementId(mailboxPropertiesId),
 					matchers.argThat(async (opts: EntityRestClientLoadOptions) => {
 						const providedMailGroupKey = await opts.ownerKeyProvider!(mailGroupKey.version)
 						return arrayEquals(mailGroupKey.object.bits, providedMailGroupKey.bits)

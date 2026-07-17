@@ -8,13 +8,16 @@ import { Aes256Key, aes256RandomKey, FIXED_INITIALIZATION_VECTOR } from "../../s
 import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/applications/common/api/common/utils/Scheduler.js"
 import { matchers, object, when } from "testdouble"
 import {
+	AggregatedEntity,
 	Cardinality,
 	clone,
 	create,
 	Entity,
 	generatedIdToTimestamp,
+	idToElementId,
 	ModelValue,
 	timestampToGeneratedId,
+	Type,
 	TypeModel,
 	TypeRef,
 	ValueType,
@@ -44,6 +47,7 @@ import { KeyLoaderFacade } from "../../src/platform-kit/base/base-crypto/KeyLoad
 import { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants"
 import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { OfflineMapper } from "../../src/platform-kit/instance-pipeline/OfflineMapper"
+import { ProgrammingError } from "../../src/platform-kit/app-env"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -205,11 +209,21 @@ function resolveTypeReference(typeRef: TypeRef<any>): TypeModel {
 }
 
 // copy of the _getDefaultValue but with Date(0) being default date so that the tests are deterministic
-function getDefaultTestValue(valueName: string, value: ModelValue): any {
+function getDefaultTestValue(valueName: string, value: ModelValue, typeModel: TypeModel): any {
 	if (valueName === "_format") {
 		return "0"
 	} else if (valueName === "_id") {
-		return `${value.id}_id`
+		switch (typeModel.type) {
+			case Type.DataTransfer:
+				throw new ProgrammingError("No _id for dataTransfer")
+			case Type.Aggregated:
+				return `${value.id}_id`
+			case Type.Element:
+				return idToElementId(`${value.id}_id`)
+			case Type.ListElement:
+			case Type.BlobElement:
+				return [`${value.id}_listid`, `${value.id}_elementId`]
+		}
 	} else if (valueName === "_permissions") {
 		return `${value.id}_permissions`
 	} else if (value.cardinality === Cardinality.ZeroOrOne) {
@@ -253,7 +267,7 @@ export function createTestEntity<T extends Entity>(
 				const assocName = assocDef.name
 				switch (assocDef.type) {
 					case "AGGREGATION": {
-						const assocTypeRef = new TypeRef<Entity>(assocDef.dependency ?? typeRef.app, assocDef.refTypeId)
+						const assocTypeRef = new TypeRef<AggregatedEntity>(assocDef.dependency ?? typeRef.app, assocDef.refTypeId)
 						entity[assocName] = createTestEntity(assocTypeRef, undefined, opts)
 						break
 					}

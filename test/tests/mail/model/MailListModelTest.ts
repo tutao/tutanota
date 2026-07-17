@@ -20,7 +20,7 @@ import { PageSize } from "../../../../src/ui/base/ListUtils"
 import { createTestEntity } from "../../TestUtils"
 import { MailboxDetail } from "../../../../src/applications/common/mailFunctionality/MailboxModel"
 import * as restError from "../../../../src/platform-kit/rest-client/error"
-import { clamp, pad } from "../../../../src/platform-kit/utils"
+import { clamp, isNotNull, pad } from "../../../../src/platform-kit/utils"
 import { LoadedMail } from "../../../../src/applications/mail-app/mail/model/MailSetListModel"
 import { getMailFilterForType, MailFilterType } from "../../../../src/applications/mail-app/mail/view/MailViewerUtils"
 import { theme } from "../../../../src/ui/theme.js"
@@ -240,7 +240,7 @@ o.spec("MailListModel", () => {
 
 		when(
 			processInboxHandler.handleIncomingMail(
-				matchers.argThat((mail: Mail) => isSameId(mail._id, makeMailId(25))),
+				matchers.argThat((mail: Mail) => isNotNull(mail._id) && isSameId(mail._id, makeMailId(25))),
 				matchers.anything(),
 				matchers.anything(),
 				matchers.anything(),
@@ -250,7 +250,7 @@ o.spec("MailListModel", () => {
 
 		when(
 			processInboxHandler.handleIncomingMail(
-				matchers.argThat((mail: Mail) => !isSameId(mail._id, makeMailId(25))),
+				matchers.argThat((mail: Mail) => isNotNull(mail._id) && !isSameId(mail._id, makeMailId(25))),
 				matchers.anything(),
 				matchers.anything(),
 				matchers.anything(),

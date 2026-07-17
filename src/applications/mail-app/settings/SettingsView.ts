@@ -73,7 +73,7 @@ import {
 	OnEntityUpdateReceivedPriority,
 } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { NavButtonAttrs, NavButtonColor } from "../../../ui/base/NavButton"
-import { clone, getEtId } from "@tutao/meta"
+import { clone, elementIdToId, getEtId } from "@tutao/meta"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { CustomerInfoTypeRef, CustomerTypeRef, GroupInfoTypeRef, ReceivedGroupInvitation, User } from "@tutao/entities/sys"
 import { SETTINGS_PREFIX } from "../../../ui/utils/RouteChange"
@@ -279,8 +279,9 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					this._templateInvitations.dispose()
 				},
 				view: () => {
+					const loggedOnUserId = this.logins.getUserController().user._id
 					const [ownTemplates, sharedTemplates] = partition(this._templateFolders, (folder) =>
-						isSharedGroupOwner(folder.data.group, this.logins.getUserController().user),
+						isSharedGroupOwner(folder.data.group, elementIdToId(loggedOnUserId)),
 					)
 
 					const templateInvitations = this._templateInvitations.invitations()
@@ -754,11 +755,13 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	}
 
 	_getUserOwnedTemplateSettingsFolder(): SettingsFolder<unknown> {
-		return this._templateFolders.find((folder) => isSharedGroupOwner(folder.data.group, this.logins.getUserController().user)) || this._dummyTemplateFolder
+		const loggedInUserId = this.logins.getUserController().user._id
+		return this._templateFolders.find((folder) => isSharedGroupOwner(folder.data.group, elementIdToId(loggedInUserId))) || this._dummyTemplateFolder
 	}
 
 	_allSettingsFolders(): ReadonlyArray<SettingsFolder<unknown>> {
-		const hasOwnTemplates = this._templateFolders.some((folder) => isSharedGroupOwner(folder.data.group, this.logins.getUserController().user))
+		const loggedInUserId = this.logins.getUserController().user._id
+		const hasOwnTemplates = this._templateFolders.some((folder) => isSharedGroupOwner(folder.data.group, elementIdToId(loggedInUserId)))
 
 		return [
 			...this._userFolders,

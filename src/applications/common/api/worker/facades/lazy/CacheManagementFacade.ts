@@ -1,4 +1,4 @@
-import { isSameId, SomeEntity, TypeRef } from "@tutao/meta"
+import { elementIdToId, idToElementId, isSameSingleId, PersistentEntity, TypeRef } from "@tutao/meta"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient.js"
 import { assertWorkerOrNode } from "@tutao/app-env"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
@@ -26,7 +26,7 @@ export class CacheManagementFacade implements CacheManager {
 	async refreshKeyCache(groupId: Id): Promise<{ user: User; group: Group }> {
 		const group = await this.reloadGroup(groupId)
 		const user = await this.reloadUser()
-		if (isSameId(groupId, this.userFacade.getUserGroupId())) {
+		if (isSameSingleId(groupId, this.userFacade.getUserGroupId())) {
 			await this.tryUpdatingUserGroupKey()
 		}
 		return { user, group }
@@ -38,7 +38,7 @@ export class CacheManagementFacade implements CacheManager {
 	 */
 	async reloadGroup(groupId: Id): Promise<Group> {
 		await this.entityRestCache.deleteFromCacheIfExists(GroupTypeRef, null, groupId)
-		return await this.cachingEntityClient.load(GroupTypeRef, groupId)
+		return await this.cachingEntityClient.load(GroupTypeRef, idToElementId(groupId))
 	}
 
 	/*
@@ -49,7 +49,7 @@ export class CacheManagementFacade implements CacheManager {
 	async reloadUser(): Promise<User> {
 		const userId = this.userFacade.getLoggedInUser()._id
 
-		await this.entityRestCache.deleteFromCacheIfExists(UserTypeRef, null, userId)
+		await this.entityRestCache.deleteFromCacheIfExists(UserTypeRef, null, elementIdToId(userId))
 
 		const user = await this.cachingEntityClient.load(UserTypeRef, userId)
 		await this.userFacade.updateUser(user) // updates the key cache too
@@ -65,7 +65,10 @@ export class CacheManagementFacade implements CacheManager {
 		// we might not have access to the password to decrypt it, though. therefore we handle it here
 		try {
 			// Note that UserGroupKeyDistribution is never cached in the rest cache. no need to delete it
-			const userGroupKeyDistribution = await this.cachingEntityClient.load(UserGroupKeyDistributionTypeRef, this.userFacade.getUserGroupId())
+			const userGroupKeyDistribution = await this.cachingEntityClient.load(
+				UserGroupKeyDistributionTypeRef,
+				idToElementId(this.userFacade.getUserGroupId()),
+			)
 			this.userFacade.updateUserGroupKey(userGroupKeyDistribution)
 		} catch (e) {
 			// we do not want to fail here, as this update might be an outdated entity update
@@ -78,7 +81,7 @@ export class CacheManagementFacade implements CacheManager {
 	/**
 	 * Delete a cached entity. Sometimes this is necessary to do to ensure you always load the new version
 	 */
-	async deleteFromCacheIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void> {
+	async deleteFromCacheIfExists<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void> {
 		return this.entityRestCache.deleteFromCacheIfExists(typeRef, listId, elementId)
 	}
 }

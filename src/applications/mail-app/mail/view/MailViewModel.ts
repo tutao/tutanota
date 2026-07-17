@@ -24,12 +24,11 @@ import { mailLocator } from "../../mailLocator"
 import { moveMails } from "./MailGuiUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { UndoModel } from "../../UndoModel"
-import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker"
+import { SyncTracker } from "../../../common/api/main/SyncTracker"
 import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 import {
 	ImapAccountSyncStateTypeRef,
-	ImapFolderSyncState,
 	ImapFolderSyncStateTypeRef,
 	ImportFileMailStateTypeRef,
 	Mail,
@@ -40,7 +39,7 @@ import {
 	MailTypeRef,
 } from "@tutao/entities/tutanota"
 import { ImapFolderSyncStatus, MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
-import { collapseId, elementIdPart, getElementId, isSameId, OperationType } from "../../../../platform-kit/meta"
+import { collapseId, elementIdPart, getElementId, isSameId, isSameSingleId, OperationType } from "../../../../platform-kit/meta"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { getMailSetKind, isPermanentDeleteAllowedForFolder } from "../MailUtils"
 import { ProgrammingError } from "../../../../platform-kit/app-env"
@@ -140,15 +139,15 @@ export class MailViewModel {
 	}
 
 	async showStickyMail(fullMailId: IdTuple, onMissingExplicitMailTarget: () => unknown): Promise<void> {
-		const [listId, elementId] = fullMailId
 		// If we are already displaying the requested email, do nothing
-		if (this.conversationViewModel && isSameId(this.conversationViewModel.primaryMail._id, elementId)) {
+		if (this.conversationViewModel && isSameId(this.conversationViewModel.primaryMail._id, fullMailId)) {
 			return
 		}
 		if (isSameId(this.stickyMailId, fullMailId)) {
 			return
 		}
 
+		const [listId, elementId] = fullMailId
 		console.log(TAG, "Loading sticky mail", listId, elementId)
 		this.stickyMailId = fullMailId
 
@@ -186,7 +185,7 @@ export class MailViewModel {
 			this._folder &&
 			isSameId(folder._id, this._folder._id) &&
 			this.conversationViewModel &&
-			isSameId(elementIdPart(this.conversationViewModel.primaryMail._id), mailId)
+			isSameSingleId(elementIdPart(this.conversationViewModel.primaryMail._id), mailId)
 		) {
 			return
 		}
@@ -198,7 +197,7 @@ export class MailViewModel {
 			this._folder &&
 			this.loadingTargetId &&
 			isSameId(folder._id, this._folder._id) &&
-			isSameId(this.loadingTargetId, mailId)
+			isSameSingleId(this.loadingTargetId, mailId)
 		) {
 			return
 		}
@@ -553,7 +552,7 @@ export class MailViewModel {
 			const listHasAllUnreadMails = this.filterType.size === 0 || (this.filterType.size === 1 && this.filterType.has(MailFilterType.Unread))
 			if (
 				ourFolder == null ||
-				!isSameId(getElementId(ourFolder), getElementId(folder)) ||
+				!isSameSingleId(getElementId(ourFolder), getElementId(folder)) ||
 				this.connectivityModel.wsConnection()() !== WsConnectionState.connected ||
 				!listHasAllUnreadMails
 			) {
@@ -730,8 +729,8 @@ export class MailViewModel {
 					await this.deleteMailSetEntryRangeFolder(imapSyncLabel)
 				}
 			} else if (update.operation === OperationType.UPDATE) {
-				if (isUpdateForTypeRef(MailTypeRef, update) && isSameId(this.stickyMailId, [update.instanceListId, update.instanceId])) {
-					const mailId: IdTuple = [update.instanceListId, update.instanceId]
+				if (isUpdateForTypeRef(MailTypeRef, update) && isSameId(this.stickyMailId, [assertNotNull(update.instanceListId), update.instanceId])) {
+					const mailId: IdTuple = [assertNotNull(update.instanceListId), update.instanceId]
 					const mail = await this.entityClient.load(MailTypeRef, mailId)
 					const folderForMail = this.mailModel.getMailFolderForMail(mail)
 					if (folderForMail && !this.didStickyMailChange(mailId, "after loading mail from cache on entity update")) {

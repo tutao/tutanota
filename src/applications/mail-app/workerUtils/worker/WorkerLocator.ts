@@ -213,7 +213,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 				locator.bulkMailLoader,
 				locator.base.cachingEntityClient,
 				dateProvider,
-				(userId) => new IndexedDbMailIndexerBackend(core, userId, locator.base.typeModelResolver),
+				(userId: Id) => new IndexedDbMailIndexerBackend(core, userId, locator.base.typeModelResolver),
 				newMailDownloader,
 			)
 		}

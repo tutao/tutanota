@@ -35,7 +35,7 @@ import {
 	User,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { GENERATED_MAX_ID } from "../../../src/platform-kit/meta"
+import { GENERATED_MAX_ID, idToElementId } from "../../../src/platform-kit/meta"
 import { ContactAddressType, Recipient, RecipientType } from "../../../src/entities/tutanota/Utils"
 import { AccountType, GroupType } from "../../../src/entities/sys/Utils"
 
@@ -140,7 +140,7 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 			longEvents: new LazyLoaded(() => Promise.resolve([])),
 			groupInfo: createTestEntity(GroupInfoTypeRef, {}),
 			group: createTestEntity(GroupTypeRef, {
-				_id: ownCalendarId,
+				_id: idToElementId(ownCalendarId),
 				user: "ownerId",
 				type: GroupType.Calendar,
 			}),
@@ -160,7 +160,7 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 			longEvents: new LazyLoaded(() => Promise.resolve([])),
 			groupInfo: createTestEntity(GroupInfoTypeRef, {}),
 			group: createTestEntity(GroupTypeRef, {
-				_id: "ownSharedCalendar",
+				_id: idToElementId("ownSharedCalendar"),
 				user: "ownerId",
 				type: GroupType.Calendar,
 			}),
@@ -180,7 +180,7 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 			longEvents: new LazyLoaded(() => Promise.resolve([])),
 			groupInfo: createTestEntity(GroupInfoTypeRef, {}),
 			group: createTestEntity(GroupTypeRef, {
-				_id: "ownExternalCalendar",
+				_id: idToElementId("ownExternalCalendar"),
 				user: "ownerId",
 				type: GroupType.Calendar,
 			}),
@@ -200,7 +200,7 @@ export const calendars: ReadonlyMap<Id, CalendarInfo> = new Map([
 			longEvents: new LazyLoaded(() => Promise.resolve([])),
 			groupInfo: createTestEntity(GroupInfoTypeRef, {}),
 			group: createTestEntity(GroupTypeRef, {
-				_id: "sharedCalendar",
+				_id: idToElementId("sharedCalendar"),
 				user: "otherId",
 				type: GroupType.Calendar,
 			}),
@@ -236,7 +236,7 @@ export function makeUserController(
 
 	return downcast({
 		user: createTestEntity(UserTypeRef, {
-			_id: userId,
+			_id: idToElementId(userId),
 			memberships: [
 				createTestEntity(GroupMembershipTypeRef, {
 					groupType: GroupType.Mail,
@@ -304,7 +304,7 @@ export function makeCalendarInfo(id: string, isOwner: boolean, calendarType: Cal
 		}),
 		groupInfo: downcast({}),
 		group: createTestEntity(GroupTypeRef, {
-			_id: id,
+			_id: idToElementId(id),
 			type: GroupType.Calendar,
 			user: isOwner ? userId : "anotherUserId",
 		}),

@@ -5,7 +5,7 @@ import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval
 import { Const } from "@tutao/app-env"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
-import * as restError from "@tutao/rest-client/error"
+import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
 import {
 	appStorePlanName,
 	getPreconditionFailedPaymentMsg,
@@ -32,7 +32,7 @@ import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "./
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { createSwitchAccountTypePostIn, SwitchAccountTypeService } from "@tutao/entities/sys"
 import { AccountType, PaymentMethodType } from "../../../entities/sys/Utils"
-import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
+import { elementIdToId } from "@tutao/meta"
 
 export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	private dom!: HTMLElement
@@ -52,7 +52,8 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			if (!success) {
 				return
 			}
-			const receivedNotification = await waitUntilCustomerInfoPlanTypeIsCorrect(data.targetPlanType, assertNotNull(data.customer?._id))
+			const customerId = elementIdToId(assertNotNull(data.customer?._id ?? null))
+			const receivedNotification = await waitUntilCustomerInfoPlanTypeIsCorrect(data.targetPlanType, customerId)
 			if (receivedNotification) {
 				return this.close(data, this.dom)
 			}

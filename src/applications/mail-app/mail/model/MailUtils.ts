@@ -4,7 +4,7 @@ import { MailModel } from "./MailModel.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { Header, InboxRule, Mail, MailDetails, MailSet, TutanotaProperties } from "@tutao/entities/tutanota"
 import { MailSetKind, ReplyType, SystemFolderType } from "../../../../entities/tutanota/Utils"
-import { EntityIdEncoding, isSameId, sortCompareByReverseId } from "../../../../platform-kit/meta"
+import { EntityIdEncoding, isSameId, isSameSingleId, sortCompareByReverseId } from "../../../../platform-kit/meta"
 import { isFolderReadOnly, MOVE_SYSTEM_FOLDERS } from "../MailUtils"
 
 export type FolderInfo = { level: number; folder: MailSet }
@@ -95,7 +95,7 @@ export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails:
 		return regularMoveTargets([])
 	}
 
-	const areMailsInDifferentMailboxes = mails.length > 1 && mails.some((mail) => !isSameId(firstMail._ownerGroup, mail._ownerGroup))
+	const areMailsInDifferentMailboxes = mails.length > 1 && mails.some((mail) => !isSameSingleId(firstMail._ownerGroup, mail._ownerGroup))
 	if (areMailsInDifferentMailboxes) {
 		const areMailsInDifferentFolderTypes = mails.some((mail) => {
 			return folderOfFirstMail.folderType !== foldersModel.getMailFolderForMail(mail)?.folderType

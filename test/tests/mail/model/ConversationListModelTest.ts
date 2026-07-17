@@ -9,6 +9,7 @@ import {
 	getElementId,
 	getListId,
 	isSameId,
+	ListElementId,
 	listIdPart,
 	OperationType,
 } from "../../../../src/platform-kit/meta"
@@ -20,7 +21,7 @@ import { PageSize } from "../../../../src/ui/base/ListUtils"
 import { createTestEntity } from "../../TestUtils"
 import { MailboxDetail } from "../../../../src/applications/common/mailFunctionality/MailboxModel"
 import * as restError from "../../../../src/platform-kit/rest-client/error"
-import { assertNotNull, clamp, lastThrow, pad } from "../../../../src/platform-kit/utils"
+import { assertNotNull, clamp, isNotNull, lastThrow, pad } from "../../../../src/platform-kit/utils"
 import { LoadedMail } from "../../../../src/applications/mail-app/mail/model/MailSetListModel"
 import { ConversationListModel } from "../../../../src/applications/mail-app/mail/model/ConversationListModel"
 import { theme } from "../../../../src/ui/theme.js"
@@ -111,7 +112,7 @@ o.spec("ConversationListModel", () => {
 
 	// Care has to be ensured for generating mail set entry IDs as we depend on real mail set ID decoding, thus we have
 	// some helper methods for generating IDs for these tests.
-	function makeMailId(index: number): IdTuple {
+	function makeMailId(index: number): ListElementId {
 		const mailBag = index % 10
 		return [`${mailBag}`, pad(index, GENERATED_MAX_ID.length)]
 	}
@@ -132,7 +133,7 @@ o.spec("ConversationListModel", () => {
 
 		for (let i = 0; i < totalMails; i++) {
 			const mailBag = i % 10
-			const mailId: IdTuple = makeMailId(i)
+			const mailId: ListElementId = makeMailId(i)
 			const conversationId = "" + Math.floor(i / mailsPerConversation)
 
 			const mail = createTestEntity(MailTypeRef, {
@@ -271,7 +272,7 @@ o.spec("ConversationListModel", () => {
 		// make one item have a rule
 		when(
 			processInboxHandler.handleIncomingMail(
-				matchers.argThat((mail: Mail) => isSameId(mail._id, makeMailId(25))),
+				matchers.argThat((mail: Mail) => isNotNull(mail._id) && isSameId(mail._id, makeMailId(25))),
 				matchers.anything(),
 				matchers.anything(),
 				matchers.anything(),
@@ -281,7 +282,7 @@ o.spec("ConversationListModel", () => {
 
 		when(
 			processInboxHandler.handleIncomingMail(
-				matchers.argThat((mail: Mail) => !isSameId(mail._id, makeMailId(25))),
+				matchers.argThat((mail: Mail) => isNotNull(mail._id) && !isSameId(mail._id, makeMailId(25))),
 				matchers.anything(),
 				matchers.anything(),
 				matchers.anything(),

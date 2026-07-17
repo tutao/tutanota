@@ -1,5 +1,5 @@
 import { CustomCacheHandler } from "../../../../../app-kit/local-store/CustomCacheHandler"
-import { isSameId } from "@tutao/meta"
+import { elementIdToId, idToElementId, isSameId, isSameSingleId } from "@tutao/meta"
 import { difference } from "@tutao/utils"
 import { SpamClassifierStorageFacade } from "../facades/lazy/SpamClassifierStorageFacade"
 import { CacheStorage } from "../../../../../app-kit/local-store/CacheStorage"
@@ -16,9 +16,9 @@ export class CustomUserCacheHandler implements CustomCacheHandler<User> {
 	) {}
 
 	async onBeforeCacheUpdate(newUser: User) {
-		const id = newUser._id
+		const id = elementIdToId(newUser._id)
 		const currentId = this.storage.getUserId()
-		if (isSameId(currentId, id)) {
+		if (isSameSingleId(currentId, id)) {
 			const oldUser = await this.storage.get(UserTypeRef, null, id)
 			if (oldUser == null) {
 				return

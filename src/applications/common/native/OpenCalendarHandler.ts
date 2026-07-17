@@ -3,6 +3,7 @@ import { LoginController } from "../api/main/LoginController.js"
 import { CalendarOpenAction } from "@tutao/native-bridge/generatedIpc/enums"
 import { CalendarEventModel, CalendarOperation } from "../../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel.js"
 import { formatJSDate } from "../api/common/utils/CommonCalendarUtils.js"
+import { idToElementId, isSameId } from "@tutao/meta"
 
 /**
  * Handles requests for opening calendar paths from native.
@@ -28,8 +29,8 @@ export class OpenCalendarHandler {
 		}
 	}
 
-	private handleAgendaOpening(userId: string, parsedDate: string | null, eventId: string) {
-		if (this.logins.isUserLoggedIn() && this.logins.getUserController().user._id === userId) {
+	private handleAgendaOpening(userId: Id, parsedDate: string | null, eventId: string) {
+		if (this.logins.isUserLoggedIn() && isSameId(this.logins.getUserController().user._id, idToElementId(userId))) {
 			m.route.set(`/calendar/agenda/${parsedDate}/${eventId}`)
 		} else {
 			m.route.set(`/login?noAutoLogin=false&userId=${userId}&requestedPath=${encodeURIComponent(`/calendar/agenda/${parsedDate}/${eventId}`)}`)
@@ -37,7 +38,7 @@ export class OpenCalendarHandler {
 	}
 
 	private handleDefaultOpening(userId: string) {
-		if (this.logins.isUserLoggedIn() && this.logins.getUserController().user._id === userId) {
+		if (this.logins.isUserLoggedIn() && isSameId(this.logins.getUserController().user._id, idToElementId(userId))) {
 			m.route.set(`/calendar`)
 		} else {
 			m.route.set(`/login?noAutoLogin=false&userId=${userId}&requestedPath=${encodeURIComponent(`/calendar`)}`)

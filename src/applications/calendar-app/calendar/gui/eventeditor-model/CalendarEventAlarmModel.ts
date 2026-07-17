@@ -5,7 +5,7 @@ import { DateProvider } from "../../../../../platform-kit/utils/DateProvider.js"
 import { AlarmInterval, alarmIntervalToLuxonDurationLikeObject, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
 import { Duration } from "luxon"
 import { AlarmInfoTemplate } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
-import { isSameId } from "../../../../../platform-kit/meta"
+import { isSameSingleId } from "../../../../../platform-kit/meta"
 import { GroupSettings } from "@tutao/entities/tutanota"
 
 export type CalendarEventAlarmModelResult = {
@@ -111,7 +111,7 @@ export class CalendarEventAlarmModel {
 			return
 		}
 
-		const calendarGroupSettings = groupSettings.find((groupSettings) => isSameId(groupSettings.group, calendarId))
+		const calendarGroupSettings = groupSettings.find((groupSettings) => isSameSingleId(groupSettings.group, calendarId))
 
 		if (!calendarGroupSettings) {
 			return // If the calendar doenst have default reminders there is nothing to do

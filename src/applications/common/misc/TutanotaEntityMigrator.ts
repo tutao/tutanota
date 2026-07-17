@@ -1,5 +1,5 @@
 import { EntityMigrator } from "../../../platform-kit/network/EntityRestClient"
-import { AttributeModel, elementIdPart, Entity, isSameTypeRef, TypeRef } from "@tutao/meta"
+import { AttributeModel, elementIdPart, Entity, idToElementId, isSameTypeRef, TypeRef } from "@tutao/meta"
 import { EntityAdapter, InstancePipeline, LoggedInUserProvider, PatchOperationType, SymmetricGroupKeyLoader, TypeModelResolver } from "@tutao/instance-pipeline"
 import {
 	createPatch,
@@ -58,7 +58,7 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 		const customerGroupMembership = assertNotNull(
 			this.loggedInUserProvider.getLoggedInUser().memberships.find((g: GroupMembership) => g.groupType === GroupType.Customer),
 		)
-		const listPermissions = await this.entityClient.loadAll(PermissionTypeRef, data._id[0])
+		const listPermissions = await this.entityClient.loadAll(PermissionTypeRef, assertNotNull(data._id[0]))
 		const customerGroupPermission = listPermissions.find((p) => p.group === customerGroupMembership.group)
 
 		if (!customerGroupPermission) throw new SessionKeyNotFoundError("Permission not found, could not apply OwnerGroup migration")

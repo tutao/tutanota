@@ -19,7 +19,7 @@ import { LegacyColorPickerView } from "../../../../ui/base/colorPicker/LegacyCol
 import { LockedError } from "../../../../platform-kit/rest-client/error"
 import { ReceivedGroupInvitation } from "@tutao/entities/sys"
 import { getInvitationGroupType, GroupType, isTemplateGroup } from "../../../../entities/sys/Utils"
-import { isSameId } from "../../../../platform-kit/meta"
+import { isSameId, isSameSingleId } from "../../../../platform-kit/meta"
 import { createDefaultAlarmInfo, createGroupSettings } from "@tutao/entities/tutanota"
 import { UpgradePromptType } from "../../../../platform-kit/app-env"
 
@@ -38,7 +38,7 @@ export function showGroupInvitationDialog(invitation: ReceivedGroupInvitation) {
 	const isMember = locator.logins
 		.getUserController()
 		.getCalendarMemberships()
-		.some((ms) => isSameId(ms.group, invitation.sharedGroup))
+		.some((ms) => isSameSingleId(ms.group, invitation.sharedGroup))
 	let dialog: Dialog
 
 	const onAcceptClicked = () => {

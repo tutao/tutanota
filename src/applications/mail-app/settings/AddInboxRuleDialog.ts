@@ -4,7 +4,7 @@ import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { assertMainOrNode, UpgradePromptType } from "../../../platform-kit/app-env"
 import { isDomainName, isMailAddress, isRegularExpression } from "../../../platform-kit/utils/FormatUtils"
 import { getInboxRuleTypeNameMapping } from "../mail/model/InboxRuleHandler"
-import { elementIdPart, isSameId } from "../../../platform-kit/meta"
+import { elementIdPart, elementIdToId, isSameId, isSameSingleId } from "../../../platform-kit/meta"
 import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.js"
 import stream from "mithril/stream"
 import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
@@ -107,7 +107,8 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 			if (inboxRuleTarget().folderType === MailSetKind.SPAM) {
 				rule.excludeFromSpamFilter = true
 			}
-			props.inboxRules = ruleId == null ? [...inboxRules, rule] : inboxRules.map((inboxRule) => (isSameId(inboxRule._id, ruleId) ? rule : inboxRule))
+			props.inboxRules =
+				ruleId == null ? [...inboxRules, rule] : inboxRules.map((inboxRule) => (isSameSingleId(inboxRule._id, ruleId) ? rule : inboxRule))
 
 			locator.entityClient
 				.update(props)
@@ -165,7 +166,7 @@ function validateInboxRuleInput(type: string, value: string, ruleId: Id | undefi
 	} else {
 		let existingRule = getExistingRuleForType(locator.logins.getUserController().props, currentCleanedValue, type)
 
-		if (existingRule && (!ruleId || (ruleId && !isSameId(existingRule._id, ruleId)))) {
+		if (existingRule && (!ruleId || (ruleId && !isSameSingleId(existingRule._id, ruleId)))) {
 			return "inboxRuleAlreadyExists_msg"
 		}
 	}

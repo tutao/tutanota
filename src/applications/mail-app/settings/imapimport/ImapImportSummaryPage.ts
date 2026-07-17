@@ -20,7 +20,7 @@ import { DropDownSelectorNew, DropDownSelectorNewAttrs } from "../../../../ui/ba
 import { getFolderName } from "../../mail/model/MailUtils"
 import { getFolderIconByType } from "../../mail/view/MailGuiUtils"
 import { ImapAccountSyncStatus, MailSetKind } from "../../../../entities/tutanota/Utils"
-import { elementIdPart, GENERATED_MIN_ID, getElementId } from "@tutao/meta"
+import { elementIdPart, elementIdToId, GENERATED_MIN_ID, getElementId } from "@tutao/meta"
 import { showEditFolderDialog } from "../../mail/view/EditFolderDialog"
 import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtils"
 import { showImapEditLabelDialog } from "../../mail/view/EditLabelDialog"
@@ -443,7 +443,7 @@ export class ImapImportSummaryPageAttrs implements WizardPageAttrs<ImapImportDat
 		})
 		const commonImapImportParams = {
 			maxQuota: DEFAULT_IMAP_IMPORT_MAX_QUOTA,
-			mailGroupId: imapImportController.selectedMailBoxDetail!.mailGroup._id,
+			mailGroupId: elementIdToId(imapImportController.selectedMailBoxDetail!.mailGroup._id),
 			imapSyncLabelData: this.data.imapSyncLabelData,
 			provider: this.data.imapProvider,
 		}

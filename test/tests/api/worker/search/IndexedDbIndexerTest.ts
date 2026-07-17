@@ -1,4 +1,4 @@
-import { OperationType, timestampToGeneratedId } from "../../../../../src/platform-kit/meta"
+import { elementIdToId, OperationType, timestampToGeneratedId } from "../../../../../src/platform-kit/meta"
 import { DbFacade } from "../../../../../src/applications/common/api/worker/search/DbFacade.js"
 import { daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { IndexedDbIndexer, initSearchIndexObjectStores } from "../../../../../src/applications/mail-app/workerUtils/index/IndexedDbIndexer.js"
@@ -1077,7 +1077,7 @@ o.spec("IndexedDbIndexer", () => {
 				await indexer.disableMailIndexing()
 				verify(core.isStoppedProcessing())
 				verify(mailIndexer.cancelMailIndexing())
-				verify(dbWithStub.dbFacade.deleteDatabase(user._id))
+				verify(dbWithStub.dbFacade.deleteDatabase(elementIdToId(user._id)))
 
 				verify(mailIndexer.init(user), { times: 2 }) // +1 when disableMailIndexing was called
 			})

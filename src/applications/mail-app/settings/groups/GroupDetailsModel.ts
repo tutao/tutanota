@@ -11,7 +11,7 @@ import { toFeatureType } from "../../../common/subscription/utils/SubscriptionUt
 import { createGroupInfo, CustomerTypeRef, Group, GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef, GroupTypeRef, UserTypeRef } from "@tutao/entities/sys"
 import { BookingItemFeatureType, GroupType } from "../../../../entities/sys/Utils"
 import { MailboxPropertiesTypeRef } from "@tutao/entities/tutanota"
-import { GENERATED_MIN_ID, isSameId, OperationType } from "../../../../platform-kit/meta"
+import { GENERATED_MIN_ID, idToElementId, isSameId, OperationType } from "../../../../platform-kit/meta"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 export class GroupDetailsModel {
@@ -29,7 +29,7 @@ export class GroupDetailsModel {
 	) {
 		this.entityClient = entityClient
 		this.groupInfo = groupInfo
-		this.group = new LazyLoaded(() => this.entityClient.load(GroupTypeRef, this.groupInfo.group))
+		this.group = new LazyLoaded(() => this.entityClient.load(GroupTypeRef, idToElementId(this.groupInfo.group)))
 
 		this.group.getAsync().then(() => this.updateViewCallback())
 
@@ -99,7 +99,7 @@ export class GroupDetailsModel {
 	 */
 	async removeGroupMember(userGroupInfo: GroupInfo): Promise<void> {
 		try {
-			const userGroup = await this.entityClient.load(GroupTypeRef, userGroupInfo.group)
+			const userGroup = await this.entityClient.load(GroupTypeRef, idToElementId(userGroupInfo.group))
 			return locator.groupManagementFacade.removeUserFromGroup(assertNotNull(userGroup.user), this.groupInfo.group)
 		} catch (e) {
 			if (!(e instanceof NotAuthorizedError)) throw e
@@ -180,7 +180,7 @@ export class GroupDetailsModel {
 	}
 
 	async getPossibleMembers(): Promise<Array<{ name: string; value: Id }>> {
-		const customer = await this.entityClient.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
+		const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(neverNull(locator.logins.getUserController().user.customer)))
 		const userGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
 		// remove all users that are already member
 		let globalAdmin = locator.logins.isGlobalAdminUserLoggedIn()
@@ -200,8 +200,8 @@ export class GroupDetailsModel {
 	}
 
 	async addUserToGroup(group: Id): Promise<any> {
-		const userGroup = await this.entityClient.load(GroupTypeRef, group)
-		const user = await this.entityClient.load(UserTypeRef, neverNull(userGroup.user))
+		const userGroup = await this.entityClient.load(GroupTypeRef, idToElementId(group))
+		const user = await this.entityClient.load(UserTypeRef, idToElementId(neverNull(userGroup.user)))
 		return locator.groupManagementFacade.addUserToGroup(user, this.groupInfo.group)
 	}
 

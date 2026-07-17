@@ -10,11 +10,11 @@ import { CryptoError } from "@tutao/crypto/error"
 import { EncryptedAlarmNotification } from "../../../../app-kit/native-bridge/common/EncryptedAlarmNotification"
 import { AlarmNotification, AlarmNotificationTypeRef, NotificationSessionKey } from "@tutao/entities/sys"
 import { elementIdPart, hasError } from "@tutao/meta"
-import { IncomingServerJson, OutgoingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
+import { IncomingServerJson, OutgoingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper" // This is the type that catually get saved to the file
 
 // This is the type that catually get saved to the file
 // see: DesktopAlarmStorage#_storeAlarms and DesktopAlarmStorage#_readAlarms
-type AlarmSavedType = ReturnType<typeof OutgoingServerJson.getJsonRepresentationOfMultiple>
+type StoredAlarm = ReturnType<typeof OutgoingServerJson.getJsonRepresentationOfMultiple>
 
 /**
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
@@ -159,7 +159,7 @@ export class DesktopAlarmStorage {
 	}
 
 	async _saveAlarms(alarms: ReadonlyArray<EncryptedParsedInstance>): Promise<void> {
-		const rawAlarms: Array<AlarmSavedType> = await promiseMap(alarms, (alarm) =>
+		const rawAlarms: Array<StoredAlarm> = await promiseMap(alarms, (alarm) =>
 			this.alarmStorageInstancePipeline.typeMapper.makeServerJson(alarm).then((r) => r.getJsonRepresentation()),
 		)
 		return this.conf.setVar(DesktopConfigKey.scheduledAlarms, rawAlarms)
@@ -170,13 +170,12 @@ export class DesktopAlarmStorage {
 		// excludedDates field.
 		// to be able to decrypt & map these we need to at least add a plausible value there
 		// we'll unschedule, redownload and reschedule the fixed instances after login.
-		const rawAlarms: Nullable<AlarmSavedType> = await this.conf.getVar(DesktopConfigKey.scheduledAlarms)
-		if (rawAlarms == null) {
+		const rawAlarms: Nullable<StoredAlarm> = await this.conf.getVar(DesktopConfigKey.scheduledAlarms)
+		if (rawAlarms == null || rawAlarms.length === 0) {
 			return []
 		}
 		const alarmNotificationTypeModel = await this.alarmStorageInstancePipeline.typeModelResolver.resolveServerTypeReference(AlarmNotificationTypeRef)
-		//FIXME parsing error on accounts with event alarms
-		const incomingJsons = IncomingServerJson.expectMultipleInstance(rawAlarms, alarmNotificationTypeModel)
+		const incomingJsons = IncomingServerJson.expectMultipleInstance(JSON.stringify(rawAlarms), alarmNotificationTypeModel)
 		return await Promise.all(incomingJsons.map((json) => this.alarmStorageInstancePipeline.typeMapper.parseServerJson(json)))
 	}
 

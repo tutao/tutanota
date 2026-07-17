@@ -1,12 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import {
-	aes256RandomKey,
-	AesKey,
-	SubKeyInfoWithSessionKeyCbcThenHmac,
-	SymmetricCipherVersion,
-	VersionedEncryptedKey,
-	VersionedKey,
-} from "../../../src/platform-kit/crypto"
+import { aes256RandomKey, AesKey, SubKeyInfoWithSessionKeyCbcThenHmac, VersionedEncryptedKey, VersionedKey } from "../../../src/platform-kit/crypto"
 import { DecryptedParsedInstance, PatchMerger, PatchOperationError, PatchOperationType } from "../../../src/platform-kit/instance-pipeline"
 import { instance, object, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
@@ -47,7 +40,7 @@ import {
 	OutOfOfficeNotificationRecipientListTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
-import { AttributeModel, EncryptedModelValue, Entity } from "../../../src/platform-kit/meta"
+import { AttributeModel, EncryptedModelValue, Entity, idToElementId } from "../../../src/platform-kit/meta"
 import { createPatch, Customer, CustomerTypeRef, Patch } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
 import { CacheManager } from "../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
@@ -384,7 +377,7 @@ o.spec("PatchMergerTest", () => {
 	o.spec("replace on aggregations", () => {
 		o.test("apply_replace_on_One_ET_on_aggregation", async () => {
 			const mailboxGroupRoot = createTestEntity<MailboxGroupRoot>(MailboxGroupRootTypeRef, {
-				_id: "elementId",
+				_id: idToElementId("elementId"),
 				mailbox: "mailboxId",
 				serverProperties: "serverId",
 				outOfOfficeNotificationRecipientList: createTestEntity(OutOfOfficeNotificationRecipientListTypeRef, {
@@ -505,7 +498,7 @@ o.spec("PatchMergerTest", () => {
 			const patchedInstance = await instancePipeline.modelMapper.mapToInstance<CalendarEvent>(
 				assertNotNull(await patchMerger.getPatchedInstanceParsed(CalendarEventTypeRef, "listId", eventElementId, patches)),
 			)
-			o(patchedInstance.repeatRule?._id).equals("added-by-patch")
+			o(patchedInstance.repeatRule?._id).deepEquals("added-by-patch")
 		})
 
 		o.test("apply_replace_on_Any_aggregation_works", async () => {
@@ -1000,7 +993,7 @@ o.spec("PatchMergerTest", () => {
 	o.spec("Remove Item", () => {
 		o.test("apply_removeitem_on_ZeroOrOne_id_association", async () => {
 			const customer = createTestEntity(CustomerTypeRef, {
-				_id: "customerId",
+				_id: idToElementId("customerId"),
 				adminGroup: "adminGroupId",
 				adminGroups: "adminGroupsId",
 				customerGroup: "customerGroupId",

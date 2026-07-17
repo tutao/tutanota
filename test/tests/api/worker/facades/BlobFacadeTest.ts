@@ -55,7 +55,7 @@ import { InstanceDirection } from "../../../../../src/platform-kit/instance-pipe
 
 const { anything, captor } = matchers
 
-o.spec("BlobFacade", function () {
+o.spec("BlobFacadeTest", function () {
 	let blobFacade: BlobFacade
 	let blobAccessTokenFacade: BlobAccessTokenFacade
 	let restClientMock: RestClient
@@ -74,7 +74,6 @@ o.spec("BlobFacade", function () {
 	let cryptoFacadeMock: CryptoFacade
 	let file: File
 	let anotherFile: File
-	let previousNetworkDebugging: boolean
 	let typeModelResolver: TypeModelResolver
 	let realInstancePipeline: InstancePipeline
 
@@ -104,11 +103,6 @@ o.spec("BlobFacade", function () {
 			object(),
 			typeModelResolver,
 		)
-		previousNetworkDebugging = env.networkDebugging
-	})
-
-	o.afterEach(function () {
-		env.networkDebugging = previousNetworkDebugging
 	})
 
 	o.spec("upload", function () {
@@ -437,9 +431,9 @@ o.spec("BlobFacade", function () {
 			const capturedRequestBody = (optionsCaptor.value.body as RestTextBody).payload
 			const requestBodyParsedJson = JSON.parse(requestBody.getJsonRepresentation())
 			// 193 is blobIds aggregation, 145 is _id on each aggregate
-			requestBodyParsedJson["193"][0]["145"] = JSON.parse(capturedRequestBody)["193"][0]["145"]
+			requestBody.getInnerJsonForTest()["193"][0]["145"] = JSON.parse(capturedRequestBody)["193"][0]["145"]
 
-			o(capturedRequestBody).deepEquals(JSON.stringify(requestBodyParsedJson))
+			o(capturedRequestBody).deepEquals(requestBody.getJsonRepresentation())
 		})
 
 		o("downloadAndDecrypt multiple", async function () {

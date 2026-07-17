@@ -21,7 +21,7 @@ import {
 	UserTypeRef,
 	WebsocketCounterData,
 } from "@tutao/entities/sys"
-import { isSameId, OperationType } from "@tutao/meta"
+import { idToElementId, isSameId, isSameSingleId, OperationType } from "@tutao/meta"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { ImapImporter } from "../../../mail-app/workerUtils/imapimport/ImapImporter"
 
@@ -109,7 +109,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 			const processGroupKeyUpdates = {
 				execute: async () => {
 					try {
-						const userGroupRoot = await this.entityClient.load(UserGroupRootTypeRef, this.userFacade.getUserGroupId())
+						const userGroupRoot = await this.entityClient.load(UserGroupRootTypeRef, idToElementId(this.userFacade.getUserGroupId()))
 						const groupKeyUpdates = await this.entityClient.loadAll(GroupKeyUpdateTypeRef, assertNotNull(userGroupRoot.groupKeyUpdates).list)
 						await this.keyRotationFacade.updateGroupMemberships(groupKeyUpdates)
 					} catch (error) {
@@ -146,16 +146,16 @@ export class EventBusEventCoordinator implements EventBusListener {
 		const user = this.userFacade.getUser()
 		if (user == null) return
 		for (const update of data) {
-			if (update.operation === OperationType.UPDATE && isUpdateForTypeRef(UserTypeRef, update) && isSameId(user._id, update.instanceId)) {
+			if (update.operation === OperationType.UPDATE && isUpdateForTypeRef(UserTypeRef, update) && isSameId(user._id, idToElementId(update.instanceId))) {
 				await this.userFacade.updateUser(await this.entityClient.load(UserTypeRef, user._id))
 			} else if (
 				(update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) &&
 				isUpdateForTypeRef(UserGroupKeyDistributionTypeRef, update) &&
-				isSameId(user.userGroup.group, update.instanceId)
+				isSameSingleId(user.userGroup.group, update.instanceId)
 			) {
 				await (await this.cacheManagementFacade()).tryUpdatingUserGroupKey()
 			} else if (update.operation === OperationType.CREATE && isUpdateForTypeRef(GroupKeyUpdateTypeRef, update)) {
-				groupKeyUpdates.push([update.instanceListId, update.instanceId])
+				groupKeyUpdates.push([assertNotNull(update.instanceListId), update.instanceId])
 			}
 		}
 		await this.keyRotationFacade.updateGroupMembershipsInOneList(groupKeyUpdates)

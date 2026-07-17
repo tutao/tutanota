@@ -14,7 +14,8 @@ import { LoginFacade } from "../../../../../src/platform-kit/base/facades/LoginF
 import { SecondFactorType } from "../../../../../src/platform-kit/app-env"
 import { createTestEntity, domainConfigStub } from "../../../TestUtils.js"
 
-import { GroupInfoTypeRef, User } from "@tutao/entities/sys"
+import { GroupInfoTypeRef, User, UserAuthenticationTypeRef, UserTypeRef } from "@tutao/entities/sys"
+import { idToElementId } from "../../../../../src/platform-kit/meta"
 
 function createTotpKeys(): TotpSecret {
 	const key = new Uint8Array(16)
@@ -56,7 +57,14 @@ o.spec("SecondFactorEditModel", function () {
 				mailAddress: "testaddress@tutanota.de",
 			}),
 		)
-		userMock = object()
+		userMock = createTestEntity(
+			UserTypeRef,
+			{
+				_id: idToElementId("some-mocked-simple-user"),
+				auth: createTestEntity(UserAuthenticationTypeRef, {}),
+			},
+			{ populateAggregates: true },
+		)
 		webAuthnClientMock = object()
 		loginFacadeMock = object()
 	})

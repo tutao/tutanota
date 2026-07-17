@@ -29,6 +29,7 @@ import { ImapAccountSyncStatus, ImapFolderSyncStatus } from "../../../../../src/
 import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { ImapFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/ImapFacade"
 import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
+import { idToElementId } from "../../../../../src/platform-kit/meta"
 
 const { anything } = matchers
 
@@ -79,7 +80,7 @@ o.spec("ImapFacade", () => {
 
 		mailboxGroupRootMock = createTestEntity(MailboxGroupRootTypeRef, { mailbox: "mailboxId" })
 		mailBoxMock = createTestEntity(MailBoxTypeRef, {
-			_id: "mailboxId",
+			_id: idToElementId("mailboxId"),
 			mailSets: createTestEntity(MailSetRefTypeRef, { mailSets: "mailSetListId" }),
 			imapAccountSyncStates: "accountSyncStateListId",
 			deduplicatedImportedAttachments: "attachmentsListId",
@@ -158,8 +159,8 @@ o.spec("ImapFacade", () => {
 		const imapMailbox: ImapMailbox = { path: "INBOX", name: "INBOX" }
 		imapAccountSyncStateMock.rootImportMailFolder = null
 
-		when(entityClientMock.load(MailboxGroupRootTypeRef, mailGroupId)).thenResolve(mailboxGroupRootMock)
-		when(entityClientMock.load(MailBoxTypeRef, mailboxGroupRootMock.mailbox)).thenResolve(mailBoxMock)
+		when(entityClientMock.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))).thenResolve(mailboxGroupRootMock)
+		when(entityClientMock.load(MailBoxTypeRef, idToElementId(mailboxGroupRootMock.mailbox))).thenResolve(mailBoxMock)
 		const postOutMock = { imapFolderSyncState: imapFolderSyncStateIdMock }
 		when(serviceExecutorMock.post(ImapFolderService, anything(), anything())).thenResolve(postOutMock)
 		when(entityClientMock.load(ImapFolderSyncStateTypeRef, imapFolderSyncStateIdMock)).thenResolve(imapFolderSyncStateMock)
@@ -260,8 +261,8 @@ o.spec("ImapFacade", () => {
 	})
 
 	o.test("getDeduplicatedImportedAttachmentsList - loads all from mailbox", async () => {
-		when(entityClientMock.load(MailboxGroupRootTypeRef, mailGroupId)).thenResolve(mailboxGroupRootMock)
-		when(entityClientMock.load(MailBoxTypeRef, "mailboxId")).thenResolve(mailBoxMock)
+		when(entityClientMock.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))).thenResolve(mailboxGroupRootMock)
+		when(entityClientMock.load(MailBoxTypeRef, idToElementId("mailboxId"))).thenResolve(mailBoxMock)
 		const attachmentMock = createTestEntity(DeduplicatedImportedAttachmentTypeRef, { _id: ["attachmentsListId", "attachmentsElementId"] })
 		when(entityClientMock.loadAll(DeduplicatedImportedAttachmentTypeRef, "attachmentsListId")).thenResolve([attachmentMock])
 

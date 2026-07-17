@@ -24,6 +24,7 @@ import {
 	GENERATED_MAX_ID,
 	generatedIdToTimestamp,
 	getElementId,
+	idToElementId,
 	OperationType,
 	sortCompareByReverseId,
 	timestampToGeneratedId,
@@ -78,8 +79,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 	private readonly domainDnsStatus: Record<string, DomainDnsStatus> = {}
 	private readonly customerProperties = new LazyLoaded(() =>
 		locator.entityClient
-			.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
-			.then((customer) => locator.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))),
+			.load(CustomerTypeRef, idToElementId(neverNull(locator.logins.getUserController().user.customer)))
+			.then((customer) => locator.entityClient.load(CustomerPropertiesTypeRef, idToElementId(neverNull(customer.properties)))),
 	)
 
 	constructor() {
@@ -399,10 +400,10 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 		const allMailGroups = teamMailGroups.concat(userMailGroups)
 		let catchAllMailGroupId: Id | null = null
 		if (domainInfo.catchAllMailGroup) {
-			const catchAllGroup = await locator.entityClient.load(GroupTypeRef, domainInfo.catchAllMailGroup)
+			const catchAllGroup = await locator.entityClient.load(GroupTypeRef, idToElementId(domainInfo.catchAllMailGroup))
 			if (catchAllGroup.type === GroupType.User) {
 				// the catch all group may be a user group, so load the mail group in that case
-				const user = await locator.entityClient.load(UserTypeRef, neverNull(catchAllGroup.user))
+				const user = await locator.entityClient.load(UserTypeRef, idToElementId(neverNull(catchAllGroup.user)))
 				catchAllMailGroupId = getUserGroupMemberships(user, GroupType.Mail)[0].group // the first is the users personal mail group
 			} else {
 				catchAllMailGroupId = domainInfo.catchAllMailGroup

@@ -7,10 +7,6 @@ import {
 	InstanceTypeId,
 	KdfNonce,
 	random,
-	SubKeyInfoWithGroupKey,
-	SubKeyInfoWithoutSessionKey,
-	SubKeyInfoWithSessionKey,
-	SymmetricCipherVersion,
 	SubKeyInfoWithGroupKeyAead,
 	SubKeyInfoWithSessionKeyAead,
 	SubKeyInfoWithSessionKeyCbcThenHmac,
@@ -42,7 +38,6 @@ import { ValueDecryptor } from "../../../src/platform-kit/crypto/instance-pipeli
 import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { aesDecrypt, aesEncrypt } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
 import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
-import { base64Decode } from "../TestUtils"
 
 o.spec("CryptoMapperTest", () => {
 	const symmetricCipherFacade: SymmetricCipherFacade = SYMMETRIC_CIPHER_FACADE

@@ -18,7 +18,7 @@ import {
 	isUpdateForTypeRef,
 	OnEntityUpdateReceivedPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { OperationType } from "@tutao/meta"
+import { elementIdToId, OperationType } from "@tutao/meta"
 import { LimitReachedError } from "@tutao/rest-client/error"
 
 export enum AddressStatus {
@@ -156,7 +156,7 @@ export class MailAddressTableModel {
 
 	async setPrimaryAddress(address: string): Promise<void> {
 		const oldPrimaryAddress = assertNotNull(this.userInfo.userGroupInfo.mailAddress)
-		await this.mailAddressFacade.setPrimaryMailAddress(this.userInfo.user._id, address)
+		await this.mailAddressFacade.setPrimaryMailAddress(elementIdToId(this.userInfo.user._id), address)
 
 		const defaultSender = this.logins.getUserController().props.defaultSender
 		if (defaultSender && defaultSender === oldPrimaryAddress) {

@@ -23,7 +23,7 @@ import { lazy, Versioned } from "../../../../platform-kit/utils"
 import { showInfoSnackbar } from "../../../../ui/base/SnackBar"
 import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils"
 import { IdentityKeyCreator } from "../../../../platform-kit/base/base-crypto/IdentityKeyCreator"
-import { isSameId } from "../../../../platform-kit/meta"
+import { isSameId, isSameSingleId } from "../../../../platform-kit/meta"
 import { SigningPublicKey } from "../../../../platform-kit/crypto/encryption/Ed25519"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupTypeRef } from "@tutao/entities/sys"
@@ -94,7 +94,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		// we only need to listen for updates of new identity keys of the user group
 		// everything else is only stored locally
 		for (const update of updates) {
-			if (isUpdateForTypeRef(GroupTypeRef, update) && isSameId(this.userController.userGroupInfo.group, update.instanceId)) {
+			if (isUpdateForTypeRef(GroupTypeRef, update) && isSameSingleId(this.userController.userGroupInfo.group, update.instanceId)) {
 				await this.loadIdentityKey()
 				m.redraw()
 			}

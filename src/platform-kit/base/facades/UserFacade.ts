@@ -1,13 +1,13 @@
 import { Aes256Key, AesKey, cryptoUtils, CryptoWrapper, decryptKey, HkdfKeyDerivationDomains, SymmetricEncryptionScheme, VersionedKey } from "@tutao/crypto"
 import { assertNotNull, KeyVersion } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
-import { isSameId } from "../../meta"
 import { CryptoError } from "@tutao/crypto/error"
 import { LoggedInUserProvider } from "@tutao/instance-pipeline"
 import { createWebsocketLeaderStatus, GroupMembership, User, UserGroupKeyDistribution, WebsocketLeaderStatus } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { KeyCache } from "../base-crypto/persistence/KeyCache"
+import { isSameSingleId } from "@tutao/meta"
 
 /** Holder for the user and session-related data on the worker side. */
 export class UserFacade extends LoggedInUserProvider {
@@ -155,7 +155,7 @@ export class UserFacade extends LoggedInUserProvider {
 	}
 
 	getMembership(groupId: Id): GroupMembership {
-		let membership = this.getLoggedInUser().memberships.find((g: GroupMembership) => isSameId(g.group, groupId))
+		let membership = this.getLoggedInUser().memberships.find((g: GroupMembership) => isSameSingleId(g.group, groupId))
 
 		if (!membership) {
 			console.log(new Error().stack)

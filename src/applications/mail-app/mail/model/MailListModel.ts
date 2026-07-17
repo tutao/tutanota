@@ -22,6 +22,7 @@ import {
 	EntityIdEncoding,
 	getElementId,
 	isSameId,
+	isSameSingleId,
 	listIdPart,
 	OperationType,
 } from "../../../../platform-kit/meta"
@@ -126,7 +127,7 @@ export class MailListModel implements MailSetListModel {
 	}
 
 	async loadAndSelect(mailId: Id, shouldStop: () => boolean): Promise<Mail | null> {
-		const mailFinder = (loadedMail: LoadedMail) => isSameId(getElementId(loadedMail.mail), mailId)
+		const mailFinder = (loadedMail: LoadedMail) => isSameSingleId(getElementId(loadedMail.mail), mailId)
 		const mail = await this.listModel.loadAndSelect(mailFinder, shouldStop)
 		return mail?.mail ?? null
 	}
@@ -159,7 +160,7 @@ export class MailListModel implements MailSetListModel {
 			// we've retrieved from the database and just update that, but we want to avoid adding more maps that we
 			// have to maintain.
 			if (update.operation === OperationType.UPDATE) {
-				const mailSetId: IdTuple = [update.instanceListId, update.instanceId]
+				const mailSetId: IdTuple = [assertNotNull(update.instanceListId), update.instanceId]
 				for (const loadedMail of this.mailMap.values()) {
 					const hasMailSet = loadedMail.labels.some((label) => isSameId(mailSetId, label._id))
 					if (!hasMailSet) {
@@ -174,7 +175,7 @@ export class MailListModel implements MailSetListModel {
 					this._updateSingleMail(newMailEntry)
 				}
 			}
-		} else if (isUpdateForTypeRef(MailSetEntryTypeRef, update) && isSameId(this.mailSet.entries, update.instanceListId)) {
+		} else if (isUpdateForTypeRef(MailSetEntryTypeRef, update) && isSameSingleId(this.mailSet.entries, update.instanceListId)) {
 			// Adding/removing to this list (MailSetEntry doesn't have any fields to update, so we don't need to handle this)
 			if (update.operation === OperationType.DELETE) {
 				const mail = this.getLoadedMailByMailSetId(update.instanceId)
@@ -183,7 +184,7 @@ export class MailListModel implements MailSetListModel {
 					this.mailMap.delete(getElementId(mail.mail))
 				}
 			} else if (update.operation === OperationType.CREATE) {
-				const loadedMail = await this.loadSingleMail([update.instanceListId, update.instanceId])
+				const loadedMail = await this.loadSingleMail([assertNotNull(update.instanceListId), update.instanceId])
 				if (loadedMail) {
 					await this.listModel.waitLoad(async () => {
 						if (this.listModel.canInsertItem(loadedMail)) {
@@ -197,7 +198,7 @@ export class MailListModel implements MailSetListModel {
 			// Mail deletion will also be handled in MailSetEntry delete/create.
 			const mailItem = this.mailMap.get(update.instanceId)
 			if (mailItem != null && (update.operation === OperationType.UPDATE || update.operation === OperationType.CREATE)) {
-				const newMailData = await this.entityClient.load(MailTypeRef, [update.instanceListId, update.instanceId])
+				const newMailData = await this.entityClient.load(MailTypeRef, [assertNotNull(update.instanceListId), update.instanceId])
 				const labels = this.mailModel.getLabelsForMail(newMailData) // in case labels were added/removed
 				const newMailItem = {
 					...mailItem,

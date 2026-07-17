@@ -7,6 +7,7 @@ import { aes256RandomKey } from "../../../src/platform-kit/crypto"
 
 import { User, UserGroupKeyDistributionTypeRef } from "@tutao/entities/sys"
 import { encryptKey } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
+import { idToElementId } from "../../../src/platform-kit/meta"
 
 o.spec("UserFacadeTest", function () {
 	let keyCache: KeyCache
@@ -40,7 +41,7 @@ o.spec("UserFacadeTest", function () {
 		const newUserGroupKey = aes256RandomKey()
 		const distributionEncUserGroupKey = encryptKey(distributionKey, newUserGroupKey)
 		const distributionUpdate = createTestEntity(UserGroupKeyDistributionTypeRef, {
-			_id: "userGroupId",
+			_id: idToElementId("userGroupId"),
 			distributionEncUserGroupKey,
 			userGroupKeyVersion: "1",
 		})
@@ -54,7 +55,7 @@ o.spec("UserFacadeTest", function () {
 		const newUserGroupKey = aes256RandomKey()
 		const distributionEncUserGroupKey = encryptKey(distributionKey, newUserGroupKey)
 		const distributionUpdate = createTestEntity(UserGroupKeyDistributionTypeRef, {
-			_id: "userGroupId",
+			_id: idToElementId("userGroupId"),
 			distributionEncUserGroupKey,
 			userGroupKeyVersion: "1",
 		})
@@ -68,7 +69,7 @@ o.spec("UserFacadeTest", function () {
 		const newUserGroupKey = aes256RandomKey()
 		const distributionEncUserGroupKey = encryptKey(newUserGroupKey, newUserGroupKey)
 		const distributionUpdate = createTestEntity(UserGroupKeyDistributionTypeRef, {
-			_id: "userGroupId",
+			_id: idToElementId("userGroupId"),
 			distributionEncUserGroupKey,
 			userGroupKeyVersion: "1",
 		})
@@ -84,7 +85,7 @@ o.spec("UserFacadeTest", function () {
 
 		const legacyDistributionEncUserGroupKey = encryptKey(legacyDistributionKey, newUserGroupKey)
 		const distributionUpdate = createTestEntity(UserGroupKeyDistributionTypeRef, {
-			_id: "userGroupId",
+			_id: idToElementId("userGroupId"),
 			distributionEncUserGroupKey: legacyDistributionEncUserGroupKey,
 			userGroupKeyVersion: "1",
 		})
@@ -99,7 +100,7 @@ o.spec("UserFacadeTest", function () {
 
 		const distributionEncUserGroupKey = encryptKey(distributionKey, newUserGroupKey)
 		const distributionUpdate = createTestEntity(UserGroupKeyDistributionTypeRef, {
-			_id: "userGroupId",
+			_id: idToElementId("userGroupId"),
 			distributionEncUserGroupKey: distributionEncUserGroupKey,
 			userGroupKeyVersion: "1",
 		})

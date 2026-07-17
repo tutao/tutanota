@@ -12,6 +12,7 @@ import { calendarLocator } from "../../calendarLocator.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { PushIdentifier, PushIdentifierTypeRef, User } from "@tutao/entities/sys"
+import { elementIdToId } from "@tutao/meta"
 
 export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	private currentIdentifier: string | null = null
@@ -32,7 +33,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 
 		if (!isBrowser() && identifier.identifier === this.currentIdentifier) {
 			if (identifier.disabled) {
-				locator.pushService.invalidateAlarmsForUser(this.user._id)
+				locator.pushService.invalidateAlarmsForUser(elementIdToId(this.user._id))
 			} else {
 				locator.pushService.reRegister()
 			}

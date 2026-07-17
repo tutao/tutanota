@@ -17,7 +17,7 @@ import {
 import { base64UrlCustomIdToString, downcast, KeyVersion, lazyAsync, Nullable, promiseMap, stringToBase64UrlCustomId, Versioned } from "@tutao/utils"
 import { UserFacade } from "../facades/UserFacade.js"
 import { NotFoundError } from "@tutao/rest-client/error"
-import { getElementId, isSameId } from "../../meta"
+import { elementIdToId, getElementId, idToElementId, isSameId, isSameSingleId } from "../../meta"
 import { KeyCache } from "./persistence/KeyCache.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
@@ -75,7 +75,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 			return this.loadSymGroupKey(groupId, requestedVersion, refreshedGroupKey)
 		} else {
 			// we load a former key as the cached one is newer: groupKey.version > requestedVersion
-			const group = await this.entityClient.load(GroupTypeRef, groupId)
+			const group = await this.entityClient.load(GroupTypeRef, idToElementId(groupId))
 			const { symmetricGroupKey } = await this.findFormerGroupKey(group, groupKey, requestedVersion)
 			return symmetricGroupKey
 		}
@@ -83,7 +83,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 
 	async getCurrentSymGroupKey(groupId: Id): Promise<VersionedKey> {
 		// The current user group key should not be included in the map of current keys, because we only keep a copy in userFacade
-		if (isSameId(groupId, this.userFacade.getUserGroupId())) {
+		if (isSameSingleId(groupId, this.userFacade.getUserGroupId())) {
 			return this.getCurrentSymUserGroupKey()
 		}
 		return this.keyCache.getCurrentGroupKey(groupId, () => this.loadAndDecryptCurrentSymGroupKey(groupId))
@@ -105,7 +105,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 	}
 
 	async loadKeypair(keyPairGroupId: Id, requestedVersion: KeyVersion, forTypeId: TypeId = -1): Promise<AsymmetricKeyPair> {
-		let group = await this.entityClient.load(GroupTypeRef, keyPairGroupId)
+		let group = await this.entityClient.load(GroupTypeRef, idToElementId(keyPairGroupId))
 		let currentGroupKey = await this.getCurrentSymGroupKey(keyPairGroupId)
 
 		if (requestedVersion > currentGroupKey.version || requestedVersion > cryptoUtils.parseKeyVersion(group.groupKeyVersion)) {
@@ -116,7 +116,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 	}
 
 	async loadCurrentKeyPair(groupId: Id, currentGroupKey: Nullable<VersionedKey> = null): Promise<Versioned<AsymmetricKeyPair>> {
-		let group = await this.entityClient.load(GroupTypeRef, groupId)
+		let group = await this.entityClient.load(GroupTypeRef, idToElementId(groupId))
 		if (currentGroupKey == null) {
 			currentGroupKey = await this.getCurrentSymGroupKey(groupId)
 		}
@@ -138,7 +138,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 	}
 
 	private async loadKeyPairImpl(group: Group, requestedVersion: KeyVersion, currentGroupKey: VersionedKey, forTypeId: TypeId) {
-		const keyPairGroupId = group._id
+		const keyPairGroupId = elementIdToId(group._id)
 		let keyPair: KeyPair | null
 		let symGroupKey: VersionedKey
 		console.log(
@@ -177,9 +177,9 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 		if (group.identityKeyPair == null) {
 			throw new Error(`Group ${group._id} does not have identity key pair`)
 		}
-		let encryptingGroupId
+		let encryptingGroupId: Id
 		if (group.type === GroupType.User) {
-			encryptingGroupId = group._id
+			encryptingGroupId = elementIdToId(group._id)
 		} else if (group.type === GroupType.Mail && group.user == null) {
 			//shared mail group
 			if (group.admin == null) {
@@ -198,7 +198,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 	 * @param group The group's former keys must have a keypair otherwise an exception is thrown
 	 */
 	async loadAllFormerKeyPairs(group: Group, currentGroupKey?: VersionedKey): Promise<Versioned<AsymmetricKeyPair>[]> {
-		const currentKey = currentGroupKey ?? (await this.getCurrentSymGroupKey(group._id))
+		const currentKey = currentGroupKey ?? (await this.getCurrentSymGroupKey(elementIdToId(group._id)))
 		// this request makes sure everything is cached
 		// decryption and parsing will be inefficient if there are many former keys
 		const formerKeys = await this.entityClient.loadAll(GroupKeyTypeRef, group.formerGroupKeys.list)
@@ -222,7 +222,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 	 * @private
 	 */
 	private async loadAndDecryptCurrentSymGroupKey(groupId: Id) {
-		if (isSameId(groupId, this.userFacade.getUserGroupId())) {
+		if (isSameSingleId(groupId, this.userFacade.getUserGroupId())) {
 			throw new ProgrammingError("Must not add the user group to the regular group key cache")
 		}
 		const groupMembership = this.userFacade.getMembership(groupId)
@@ -291,7 +291,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 		const missingGroupKeyIds: Id[] = []
 		for (let i = 1; i <= amountOfKeysIncludingTarget; i++) {
 			const versionToCheck = convertKeyVersionToCustomId(cryptoUtils.checkKeyVersionConstraints(currentGroupKey.version - i))
-			if (!formerKeys.some((formerKey) => isSameId(getElementId(formerKey), versionToCheck))) {
+			if (!formerKeys.some((formerKey) => isSameSingleId(getElementId(formerKey), versionToCheck))) {
 				missingGroupKeyIds.push(versionToCheck)
 			}
 		}

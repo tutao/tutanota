@@ -1,4 +1,4 @@
-import { elementIdPart, type ListElementEntity, listIdPart, type SomeEntity } from "../../platform-kit/meta"
+import { elementIdPart, type ListElementEntity, listIdPart, PersistentEntity } from "../../platform-kit/meta"
 import { Blob } from "@tutao/entities/sys"
 
 /**
@@ -8,12 +8,9 @@ import { Blob } from "@tutao/entities/sys"
  */
 export type BlobReferencingInstance = {
 	elementId: Id
-
 	listId: Id | null
-
 	blobs: readonly Blob[]
-
-	entity: SomeEntity
+	entity: PersistentEntity
 }
 
 /**

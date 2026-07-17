@@ -5,7 +5,7 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { UserError } from "../../common/api/main/UserError"
-import { clone, getElementId, isSameId } from "../../../platform-kit/meta"
+import { clone, elementIdToId, getElementId, isSameId, isSameSingleId } from "../../../platform-kit/meta"
 import {
 	createEmailTemplate,
 	createEmailTemplateContent,
@@ -84,7 +84,7 @@ export class TemplateEditorModel {
 		if (this.template._id) {
 			// the current edited template should not be included in find()
 			return this._entityClient.loadAll(EmailTemplateTypeRef, this._templateGroupRoot.templates).then((allTemplates) => {
-				const filteredTemplates = allTemplates.filter((template) => !isSameId(getElementId(this.template), getElementId(template)))
+				const filteredTemplates = allTemplates.filter((template) => !isSameSingleId(getElementId(this.template), getElementId(template)))
 				return filteredTemplates.some((template) => template.tag.toLowerCase() === this.template.tag.toLowerCase())
 			})
 		} else {
@@ -112,7 +112,7 @@ export class TemplateEditorModel {
 			} else if (this.template._id) {
 				return this._entityClient.update(this.template)
 			} else {
-				this.template._ownerGroup = this._templateGroupRoot._id
+				this.template._ownerGroup = elementIdToId(this._templateGroupRoot._id)
 				return this._entityClient.setup(this._templateGroupRoot.templates, this.template, null)
 			}
 		})

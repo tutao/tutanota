@@ -13,7 +13,7 @@ import {
 	Versioned,
 } from "@tutao/utils"
 import { assertWorkerOrNode, CryptoProtocolVersion, EncryptionAuthStatus, PresentableKeyVerificationState } from "@tutao/app-env"
-import { assertEnumValue, AttributeModel, ClientTypeModel, elementIdPart, getElementId, getListId, isSameId, isSameTypeRef } from "../../meta"
+import { assertEnumValue, AttributeModel, ClientTypeModel, getElementId, getListId, idToElementId, isSameId, isSameTypeRef, stringifyId } from "../../meta"
 import { DEFAULT_REST_CLIENT_OPTIONS, RestClientInterface } from "@tutao/rest-client"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
@@ -67,7 +67,7 @@ import {
 } from "@tutao/entities/sys"
 import { AccountType, GroupType, PermissionType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../entities/sys/Utils"
 import { TypeModelResolver } from "../../instance-pipeline/EntityFunctions"
-import { Entity, SomeEntity } from "../../meta/EntityTypes"
+import { Entity, PersistentEntity } from "../../meta/EntityTypes"
 import { asCryptoProtoocolVersion, BucketPermissionType } from "./Constants"
 import {
 	createInternalRecipientKeyData,
@@ -123,12 +123,12 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		return decryptKey(ownerKey, ownerEncSessionKey)
 	}
 
-	async resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | null, migratedEntity: Entity): Promise<Nullable<AesKey>> {
+	async resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | null, migratedEntity: PersistentEntity): Promise<Nullable<AesKey>> {
 		const ownerKey = ownerKeyProvider != null ? await ownerKeyProvider(cryptoUtils.parseKeyVersion(migratedEntity._ownerKeyVersion ?? "0")) : null
 		return this.resolveSessionKeyWithOwnerKey(ownerKey, migratedEntity)
 	}
 
-	async resolveSessionKeyWithOwnerKey(ownerKey: AesKey | null, migratedEntity: Entity): Promise<Nullable<AesKey>> {
+	async resolveSessionKeyWithOwnerKey(ownerKey: AesKey | null, migratedEntity: PersistentEntity): Promise<Nullable<AesKey>> {
 		try {
 			if (ownerKey && migratedEntity._ownerEncSessionKey) {
 				return this.decryptSessionKeyWithOwnerKey(migratedEntity._ownerEncSessionKey, ownerKey)
@@ -145,7 +145,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		}
 	}
 
-	async resolveSessionKey(instance: Entity): Promise<Nullable<AesKey>> {
+	async resolveSessionKey(instance: PersistentEntity): Promise<Nullable<AesKey>> {
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(instance._type)
 		if (!serverTypeModel.encrypted) {
 			return null
@@ -173,7 +173,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		} catch (e) {
 			if (e instanceof CryptoError) {
 				console.log("failed to resolve session key", e)
-				throw new SessionKeyNotFoundError("Crypto error while resolving session key for instance " + downcast<SomeEntity>(instance)._id)
+				throw new SessionKeyNotFoundError("Crypto error while resolving session key for instance " + instance._id)
 			} else {
 				throw e
 			}
@@ -181,7 +181,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	}
 
 	/** Helper for the rare cases when we needed it on the client side. */
-	async resolveSessionKeyForInstanceBinary(instance: Entity): Promise<Uint8Array | null> {
+	async resolveSessionKeyForInstanceBinary(instance: PersistentEntity): Promise<Uint8Array | null> {
 		const key = await this.resolveSessionKey(instance)
 		return key == null ? null : keyToUint8Array(key)
 	}
@@ -191,10 +191,10 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	 * @param instance with a set bucketKey
 	 * @throws {Error} if `instance.bucketKey == null`
 	 */
-	public async resolveWithBucketKey(instance: Entity): Promise<ResolvedSessionKeys> {
+	public async resolveWithBucketKey(instance: PersistentEntity): Promise<ResolvedSessionKeys> {
 		const instanceSessionKeysFromCache = this.instanceSessionKeysCache.get(instance)
 		if (instanceSessionKeysFromCache) {
-			const instanceId = assertNotNull(instance._id)
+			const instanceId = instance._id
 			const encryptedSessionKeyForInstance = first(
 				instanceSessionKeysFromCache.filter((instanceSessionKey) =>
 					isSameId(instanceId, [instanceSessionKey.instanceList, instanceSessionKey.instanceId]),
@@ -295,14 +295,14 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			// internal user group key -> external user group key -> external mail group key -> bucket key
 			const externalMailGroupId = keyGroup
 			const externalMailGroupKeyVersion = groupKeyVersion
-			const externalMailGroup = await this.entityClient.load(GroupTypeRef, externalMailGroupId)
+			const externalMailGroup = await this.entityClient.load(GroupTypeRef, idToElementId(externalMailGroupId))
 
 			const externalUserGroupId = externalMailGroup.admin
 			if (!externalUserGroupId) {
 				throw new SessionKeyNotFoundError("no admin group on key group: " + externalMailGroupId)
 			}
 			const externalUserGroupKeyVersion = cryptoUtils.parseKeyVersion(externalMailGroup.adminGroupKeyVersion ?? "0")
-			const externalUserGroup = await this.entityClient.load(GroupTypeRef, externalUserGroupId)
+			const externalUserGroup = await this.entityClient.load(GroupTypeRef, idToElementId(externalUserGroupId))
 
 			const internalUserGroupId = externalUserGroup.admin
 			const internalUserGroupKeyVersion = cryptoUtils.parseKeyVersion(externalUserGroup.adminGroupKeyVersion ?? "0")
@@ -353,15 +353,14 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	 * session keys in order to update them.
 	 */
 	private async collectAllInstanceSessionKeysAndAuthenticate(
-		instance: Entity,
+		instance: PersistentEntity,
 		decBucketKey: AesKey,
 		encryptionAuthStatus: EncryptionAuthStatus | null,
 		pqMessageSenderKey: X25519PublicKey | null,
 	): Promise<ResolvedSessionKeys> {
 		const bucketKey = assertNotNull(instance.bucketKey)
 
-		const id = downcast<SomeEntity>(instance)._id
-		const elementId: Id = typeof id === "string" ? id : elementIdPart(id)
+		const elementId: Id = instance._id[1]
 
 		let resolvedSessionKeyForInstance: AesKey | null = null
 		const instanceSessionKeys = await promiseMap(bucketKey.bucketEncSessionKeys, async (instanceSessionKey) => {
@@ -396,7 +395,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		if (resolvedSessionKeyForInstance) {
 			return { resolvedSessionKeyForInstance, instanceSessionKeys }
 		} else {
-			throw new SessionKeyNotFoundError("no session key for instance " + downcast<SomeEntity>(instance)._id)
+			throw new SessionKeyNotFoundError("no session key for instance " + downcast<PersistentEntity>(instance)._id)
 		}
 	}
 
@@ -508,14 +507,12 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		}
 	}
 
-	private async resolveWithPublicOrExternalPermission(listPermissions: Permission[], instance: Entity): Promise<AesKey> {
+	private async resolveWithPublicOrExternalPermission(listPermissions: Permission[], instance: PersistentEntity): Promise<AesKey> {
 		const pubOrExtPermission = listPermissions.find((p) => p.type === PermissionType.Public || p.type === PermissionType.External) ?? null
 
 		if (pubOrExtPermission == null) {
 			const typeName = `${instance._type.app}/${instance._type.typeId}`
-			throw new SessionKeyNotFoundError(
-				`could not find permission for instance of type ${typeName} with id ${this.getIdAsStringFromInstance(instance as SomeEntity)}`,
-			)
+			throw new SessionKeyNotFoundError(`could not find permission for instance of type ${typeName} with id ${stringifyId(instance._id)}`)
 		}
 
 		const bucketPermissions = await this.entityClient.loadAll(BucketPermissionTypeRef, assertNotNull(pubOrExtPermission.bucket).bucketPermissions)
@@ -736,7 +733,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	 * @param instance
 	 * @param childInstances the files that belong to the mainInstance
 	 */
-	async enforceSessionKeyUpdateIfNeeded(instance: SomeEntity, childInstances: readonly File[]): Promise<File[]> {
+	async enforceSessionKeyUpdateIfNeeded(instance: PersistentEntity, childInstances: readonly File[]): Promise<File[]> {
 		if (!childInstances.some((f) => f._ownerEncSessionKey == null || f._errors !== undefined)) {
 			return childInstances.slice()
 		}
@@ -757,15 +754,6 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			getListId(childInstances[0]),
 			childInstances.map((childInstance) => getElementId(childInstance)),
 		)
-	}
-
-	private getIdAsStringFromInstance(instance: SomeEntity): string {
-		if (typeof instance._id === "string") {
-			return instance._id
-		} else {
-			const idTuple: IdTuple = instance._id
-			return idTuple.join("/")
-		}
 	}
 
 	async postUpdateSessionKeysService(instanceSessionKeys: Array<InstanceSessionKey>) {

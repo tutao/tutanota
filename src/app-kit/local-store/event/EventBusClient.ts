@@ -10,7 +10,7 @@ import {
 	SessionExpiredError,
 	TooManyRequestsError,
 } from "@tutao/rest-client/error"
-import { type AppName, isSameTypeRef, timestampToGeneratedId, TypeRef } from "@tutao/meta"
+import { type AppName, elementIdToId, isSameTypeRef, timestampToGeneratedId, TypeRef } from "@tutao/meta"
 import { assertNotNull, DateProvider, delay, identity, isNotEmpty, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval } from "@tutao/utils"
 import { DecryptedParsedInstance, EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
 import { CloseEventBusOption, ConnectMode, WsConnectionState } from "../../../platform-kit/network/Constants.js"
@@ -208,7 +208,7 @@ export class EventBusClient {
 			"&clientVersion=" +
 			env.versionNumber +
 			"&userId=" +
-			this.loggedInUserProvider.getLoggedInUser()._id +
+			elementIdToId(this.loggedInUserProvider.getLoggedInUser()._id) +
 			"&accessToken=" +
 			authHeaders.accessToken +
 			(this.lastAntiphishingMarkersId ? "&lastPhishingMarkersId=" + this.lastAntiphishingMarkersId : "") +

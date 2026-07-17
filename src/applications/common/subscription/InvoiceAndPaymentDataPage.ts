@@ -31,6 +31,7 @@ import { createAccount, getVisiblePaymentMethods, validateInvoiceData, validateP
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel"
 import { SimplifiedCreditCardInput } from "./SimplifiedCreditCardInput"
 import { PaypalButton } from "./PaypalButton"
+import { idToElementId } from "@tutao/meta"
 
 /**
  * Wizard page for editing invoice and payment data.
@@ -344,7 +345,7 @@ export async function updatePaymentData(
  * Displays a progress dialog that allows to cancel the verification and opens a new window to do the actual verification with the bank.
  */
 function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintree3ds2Request, price: string): Promise<boolean> {
-	return locator.entityClient.load(InvoiceInfoTypeRef, neverNull(accountingInfo.invoiceInfo)).then((invoiceInfo) => {
+	return locator.entityClient.load(InvoiceInfoTypeRef, idToElementId(neverNull(accountingInfo.invoiceInfo))).then((invoiceInfo) => {
 		let invoiceInfoWrapper = {
 			invoiceInfo,
 		}
@@ -388,7 +389,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 			onEntityUpdatesReceived: (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => {
 				return promiseMap(updates, (update) => {
 					if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
-						return locator.entityClient.load(InvoiceInfoTypeRef, update.instanceId).then((invoiceInfo) => {
+						return locator.entityClient.load(InvoiceInfoTypeRef, idToElementId(update.instanceId)).then((invoiceInfo) => {
 							invoiceInfoWrapper.invoiceInfo = invoiceInfo
 							if (!invoiceInfo.paymentErrorInfo) {
 								// user successfully verified the card

@@ -27,11 +27,13 @@ import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"
 
 import {
 	BodyTypeRef,
+	ClientSpamTrainingDatumTypeRef,
 	Contact,
 	ContactListTypeRef,
 	ContactTypeRef,
 	ConversationEntryTypeRef,
 	createContact,
+	ImportFileMailStateTypeRef,
 	Mail,
 	MailAddressTypeRef,
 	MailboxGroupRootTypeRef,
@@ -40,20 +42,11 @@ import {
 	MailDetailsDraftTypeRef,
 	MailDetailsTypeRef,
 	MailTypeRef,
-	NotificationMailTypeRef,
 	RecipientsTypeRef,
 	SendDraftReturnTypeRef,
 	TutanotaPropertiesTypeRef,
 } from "@tutao/entities/tutanota"
-import {
-	ChallengeTypeRef,
-	CustomerTypeRef,
-	GroupInfoTypeRef,
-	GroupMembershipTypeRef,
-	GroupTypeRef,
-	MailAddressAliasTypeRef,
-	UserTypeRef,
-} from "@tutao/entities/sys"
+import { CustomerTypeRef, GroupInfoTypeRef, GroupMembershipTypeRef, GroupTypeRef, MailAddressAliasTypeRef, UserTypeRef } from "@tutao/entities/sys"
 import { isSameId, isSameTypeRef, OperationType } from "../../../src/platform-kit/meta"
 import { GroupType } from "../../../src/entities/sys/Utils"
 import { ConversationType, MailMethod } from "../../../src/entities/tutanota/Utils"
@@ -809,14 +802,14 @@ o.spec("SendMailModel", () => {
 				...noPatchesAndInstance,
 			})
 			await model.handleEntityEvent({
-				typeRef: NotificationMailTypeRef,
+				typeRef: ImportFileMailStateTypeRef,
 				operation: OperationType.CREATE,
 				instanceListId: null,
 				instanceId: "",
 				...noPatchesAndInstance,
 			})
 			await model.handleEntityEvent({
-				typeRef: ChallengeTypeRef,
+				typeRef: ClientSpamTrainingDatumTypeRef,
 				operation: OperationType.CREATE,
 				instanceListId: null,
 				instanceId: "",

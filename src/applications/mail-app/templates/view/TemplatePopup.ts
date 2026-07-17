@@ -32,6 +32,7 @@ import { PosRect } from "../../../../ui/utils/PosRect"
 import { WindowSizeListener } from "../../../../ui/utils/WindowUtils"
 import { EmailTemplate, TemplateGroupRoot, TemplateGroupRootTypeRef } from "@tutao/entities/tutanota"
 import { hasCapabilityOnGroup } from "../../../../entities/sys/Utils"
+import { idToElementId } from "@tutao/meta"
 
 /**
  *    Creates a Modal/Popup that allows user to paste templates directly into the MailEditor.
@@ -358,7 +359,7 @@ export class TemplatePopup implements ModalComponent {
 							title: "editTemplate_action",
 							click: () =>
 								locator.entityClient
-									.load(TemplateGroupRootTypeRef, neverNull(selectedTemplate._ownerGroup))
+									.load(TemplateGroupRootTypeRef, idToElementId(neverNull(selectedTemplate._ownerGroup)))
 									.then((groupRoot) => this.showTemplateEditor(selectedTemplate, groupRoot)),
 							icon: Icons.PenFilled,
 							colors: ButtonColor.DrawerNav,

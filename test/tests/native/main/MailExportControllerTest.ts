@@ -25,7 +25,7 @@ import {
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
 import { BlobServerUrlTypeRef } from "@tutao/entities/storage"
-import { GENERATED_MAX_ID, getElementId } from "../../../../src/platform-kit/meta"
+import { elementIdToId, GENERATED_MAX_ID, getElementId, idToElementId } from "../../../../src/platform-kit/meta"
 import { createDataFile } from "../../../../src/applications/common/api/worker/utils/DataFile.js"
 
 import { GroupInfoTypeRef, GroupTypeRef } from "@tutao/entities/sys"
@@ -54,7 +54,7 @@ o.spec("MailExportController", function () {
 		userController = { userId: userId } as Partial<UserController> as UserController
 		mailboxDetail = {
 			mailbox: createTestEntity(MailBoxTypeRef, {
-				_id: "mailboxId",
+				_id: idToElementId("mailboxId"),
 				currentMailBag: createTestEntity(MailBagTypeRef, { _id: "currentMailBagId", mails: "currentMailList" }),
 				archivedMailBags: [
 					createTestEntity(MailBagTypeRef, { _id: "archivedMailBagId1", mails: "archivedMailList1" }),
@@ -62,7 +62,7 @@ o.spec("MailExportController", function () {
 				],
 			}),
 			mailGroup: createTestEntity(GroupTypeRef, {
-				_id: "mailGroupId",
+				_id: idToElementId("mailGroupId"),
 			}),
 			mailGroupInfo: createTestEntity(GroupInfoTypeRef),
 			mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
@@ -72,7 +72,7 @@ o.spec("MailExportController", function () {
 		logins = object()
 		when(logins.getUserController()).thenReturn(userController)
 		mailboxModel = object()
-		when(mailboxModel.getMailboxDetailByMailboxId(mailboxDetail.mailbox._id)).thenResolve(mailboxDetail)
+		when(mailboxModel.getMailboxDetailByMailboxId(elementIdToId(mailboxDetail.mailbox._id))).thenResolve(mailboxDetail)
 		scheduler = new SchedulerMock()
 		mailModel = object()
 
@@ -114,7 +114,12 @@ o.spec("MailExportController", function () {
 			when(mailExportFacade.loadFixedNumberOfMailsWithCache(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve([])
 			await controller.startExport(mailboxDetail)
 			verify(
-				exportFacade.startMailboxExport(userId, mailboxDetail.mailbox._id, assertNotNull(mailboxDetail.mailbox.currentMailBag)._id, GENERATED_MAX_ID),
+				exportFacade.startMailboxExport(
+					userId,
+					elementIdToId(mailboxDetail.mailbox._id),
+					assertNotNull(mailboxDetail.mailbox.currentMailBag)._id,
+					GENERATED_MAX_ID,
+				),
 			)
 		})
 
@@ -134,7 +139,12 @@ o.spec("MailExportController", function () {
 
 		o.test("it sets state to locked when a LockedForUser ExportError is thrown", async function () {
 			when(
-				exportFacade.startMailboxExport(userId, mailboxDetail.mailbox._id, assertNotNull(mailboxDetail.mailbox.currentMailBag)._id, GENERATED_MAX_ID),
+				exportFacade.startMailboxExport(
+					userId,
+					elementIdToId(mailboxDetail.mailbox._id),
+					assertNotNull(mailboxDetail.mailbox.currentMailBag)._id,
+					GENERATED_MAX_ID,
+				),
 			).thenReject(new ExportError("message", ExportErrorReason.LockedForUser))
 			await controller.startExport(mailboxDetail)
 			o(controller.state().type).equals("locked")
@@ -153,9 +163,9 @@ o.spec("MailExportController", function () {
 			const initialMailId = "initialMailId"
 			const mailBag = assertNotNull(mailboxDetail.mailbox.currentMailBag)
 			const { mail, mailBundle } = prepareMailData(mailBag, initialMailId, 1)
-			const persistedState: MailboxExportState = {
+			const persistedState = {
 				type: "running",
-				mailboxId: mailboxDetail.mailbox._id,
+				mailboxId: elementIdToId(mailboxDetail.mailbox._id),
 				userId,
 				mailId: initialMailId,
 				mailBagId: mailBag._id,
@@ -163,7 +173,7 @@ o.spec("MailExportController", function () {
 				exportDirectoryPath: "directory",
 				failedCount: 0,
 				failedMailIds: [],
-			}
+			} satisfies MailboxExportState
 			when(exportFacade.getMailboxExportState(userId)).thenResolve(persistedState)
 			when(mailExportFacade.getExportServers(mailboxDetail.mailGroup)).thenResolve([createTestEntity(BlobServerUrlTypeRef, { url: "baseUrl" })])
 			when(mailExportFacade.loadFixedNumberOfMailsWithCache(mailBag.mails, matchers.not(initialMailId), matchers.anything())).thenResolve([])

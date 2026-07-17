@@ -1,7 +1,7 @@
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { GENERATED_MAX_ID, getElementId, isSameId } from "../../../../platform-kit/meta"
+import { elementIdToId, GENERATED_MAX_ID, getElementId, isSameId } from "../../../../platform-kit/meta"
 import { assertNotNull, delay, filterInt, isNotNull, lastThrow } from "../../../../platform-kit/utils"
 import { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
 import { ExportFacade } from "@tutao/native-bridge/generatedIpc/types"
@@ -75,7 +75,7 @@ export class MailExportController {
 		const allMailBags = [assertNotNull(mailboxDetail.mailbox.currentMailBag), ...mailboxDetail.mailbox.archivedMailBags]
 
 		try {
-			await this.exportFacade.startMailboxExport(this.userId, mailboxDetail.mailbox._id, allMailBags[0]._id, GENERATED_MAX_ID)
+			await this.exportFacade.startMailboxExport(this.userId, elementIdToId(mailboxDetail.mailbox._id), allMailBags[0]._id, GENERATED_MAX_ID)
 		} catch (e) {
 			if (e instanceof CancelledError) {
 				console.log("Export start cancelled")

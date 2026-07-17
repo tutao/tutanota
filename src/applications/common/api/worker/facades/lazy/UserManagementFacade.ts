@@ -28,6 +28,7 @@ import { createResetPasswordPostIn, createUserDataDelete, ResetPasswordService, 
 import { GroupType } from "../../../../../../entities/sys/Utils"
 import { createUserAccountCreateData, createUserAccountUserData, UserAccountService, UserAccountUserData } from "@tutao/entities/tutanota"
 import { DEFAULT_KDF_TYPE } from "../../../../../../platform-kit/base/base-crypto/Constants"
+import { elementIdToId } from "@tutao/meta"
 
 assertWorkerOrNode()
 
@@ -54,7 +55,7 @@ export class UserManagementFacade {
 		const pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey.object)
 		const passwordVerifier = createAuthVerifier(passwordKey)
 		const data = createResetPasswordPostIn({
-			user: user._id,
+			user: elementIdToId(user._id),
 			salt,
 			verifier: passwordVerifier,
 			pwEncUserGroupKey,
@@ -70,7 +71,7 @@ export class UserManagementFacade {
 		if (admin) {
 			await this.groupManagement.addUserToGroup(user, adminGroupId)
 		} else {
-			await this.groupManagement.removeUserFromGroup(user._id, adminGroupId)
+			await this.groupManagement.removeUserFromGroup(elementIdToId(user._id), adminGroupId)
 		}
 	}
 
@@ -81,7 +82,7 @@ export class UserManagementFacade {
 
 	async deleteUser(user: User, restore: boolean): Promise<void> {
 		const data = createUserDataDelete({
-			user: user._id,
+			user: elementIdToId(user._id),
 			restore,
 			date: Const.CURRENT_DATE,
 		})

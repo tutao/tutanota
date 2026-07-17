@@ -1,5 +1,5 @@
 import { aes256RandomKey, AesKey, CryptoWrapper, keyToBase64, VersionedKey } from "@tutao/crypto"
-import { elementIdPart, listIdPart, OperationType } from "@tutao/meta"
+import { elementIdPart, elementIdToId, listIdPart, OperationType } from "@tutao/meta"
 import { TooManyRequestsError } from "@tutao/rest-client/error"
 import { EventWithUserAlarmInfos } from "./CalendarFacade"
 import { flatMap, isNotNull, promiseMap } from "@tutao/utils"
@@ -47,7 +47,7 @@ export class AlarmFacade {
 	public async createAlarms(loggedInUser: User, eventAlarmsTuples: EventAlarmInfoTemplatesTuple[], pushIdentifiers: PushIdentifier[]): Promise<void> {
 		const notificationSessionKey = aes256RandomKey()
 		const alarmServicePostRequestData = await this.prepareAlarmServicePostData(
-			loggedInUser._id,
+			elementIdToId(loggedInUser._id),
 			this.userFacade.getUserGroupId(),
 			this.userFacade.getCurrentUserGroupKey(),
 			eventAlarmsTuples,
@@ -61,7 +61,7 @@ export class AlarmFacade {
 		const user = this.userFacade.getLoggedInUser()
 
 		const alarmNotifications = flatMap(eventsWithAlarmInfos, ({ event, userAlarmInfos }) =>
-			userAlarmInfos.map((userAlarmInfo) => this.createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, user._id)),
+			userAlarmInfos.map((userAlarmInfo) => this.createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, elementIdToId(user._id))),
 		)
 
 		const sessionKey = aes256RandomKey()

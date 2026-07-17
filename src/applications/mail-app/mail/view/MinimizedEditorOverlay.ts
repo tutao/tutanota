@@ -8,7 +8,7 @@ import { px } from "../../../../ui/size"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { styles } from "../../../../ui/styles"
 import { trashMails } from "./MailGuiUtils"
-import { promiseMap } from "../../../../platform-kit/utils"
+import { assertNotNull, promiseMap } from "../../../../platform-kit/utils"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { mailLocator } from "../../mailLocator.js"
@@ -42,7 +42,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 					if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.DELETE) {
 						let draft = minimizedEditor.sendMailModel.getDraft()
 
-						if (draft && isSameId(draft._id, [update.instanceListId, update.instanceId])) {
+						if (draft && isSameId(draft._id, [assertNotNull(update.instanceListId), update.instanceId])) {
 							viewModel.removeMinimizedEditor(minimizedEditor)
 						}
 					}

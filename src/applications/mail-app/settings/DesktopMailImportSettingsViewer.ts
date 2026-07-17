@@ -22,7 +22,7 @@ import { MailboxDetail } from "../../common/mailFunctionality/MailboxModel"
 import { MailSet } from "@tutao/entities/tutanota"
 import { FileImportStatus, MailSetKind } from "../../../entities/tutanota/Utils"
 import { AvailablePlanType, HighestTierPlans, isHighestTierPlan } from "../../../entities/sys/Utils"
-import { elementIdPart, EntityIdEncoding, generatedIdToTimestamp, isSameId, sortCompareByReverseId } from "../../../platform-kit/meta"
+import { elementIdPart, elementIdToId, EntityIdEncoding, generatedIdToTimestamp, isSameId, sortCompareByReverseId } from "../../../platform-kit/meta"
 import { EntityUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
 
@@ -42,7 +42,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		if (mailboxDetails) {
 			const isSingleMailbox = mailboxDetails.length === 1
 			for (const detail of mailboxDetails) {
-				this.mailboxIdToImportHistoryExpanded.set(detail.mailbox._id, isSingleMailbox)
+				this.mailboxIdToImportHistoryExpanded.set(elementIdToId(detail.mailbox._id), isSingleMailbox)
 			}
 		}
 	}
@@ -94,13 +94,12 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 	}
 
 	private renderTargetFolderControls() {
-		let selectedMailboxDetail = this.fileMailImportController().selectedMailBoxDetail
+		const selectedMailboxDetail = this.fileMailImportController().selectedMailBoxDetail
 		if (!selectedMailboxDetail) {
 			return null
 		}
 
-		const mailboxId = selectedMailboxDetail?.mailbox._id
-		let folders = this.fileMailImportController().mailboxToFolders.get(mailboxId)
+		const folders = this.fileMailImportController().mailboxToFolders.get(elementIdToId(selectedMailboxDetail.mailbox._id))
 		if (!folders) {
 			return null
 		}
@@ -126,7 +125,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 			.getIndentedList()
 			.filter((folderInfo) => folderInfo.folder.folderType !== MailSetKind.INBOX && folderInfo.folder.folderType !== MailSetKind.SCHEDULED)
 
-		let targetFolders: SelectorItemList<MailSet | null> = selectableFolders.map((folderInfo: IndentedFolder) => {
+		const targetFolders: SelectorItemList<MailSet | null> = selectableFolders.map((folderInfo: IndentedFolder) => {
 			return {
 				name: getIndentedFolderNameForDropdown(folderInfo),
 				value: folderInfo.folder,
@@ -242,7 +241,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 
 	private renderImportHistory(mailboxDetail: MailboxDetail, isSingleMailbox: boolean) {
 		const mailboxLabel = isSingleMailbox ? "" : " · " + getMailboxName(mailLocator.logins, mailboxDetail)
-		const mailboxId = mailboxDetail.mailbox._id
+		const mailboxId = elementIdToId(mailboxDetail.mailbox._id)
 		return [
 			m(".flex-space-between.items-center.mt-4.mb-4", [
 				m(".h5", lang.getTranslation("mailImportHistory_label").text + mailboxLabel),

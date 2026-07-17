@@ -3,7 +3,7 @@
 // apply patch operations using a similar logic from the server
 // update the instance in the offline db
 
-import { AssociationReprType, getAssociationReprType, isSameId, isSameTypeRef, TypeRef } from "../meta"
+import { AssociationReprType, getAssociationReprType, isSameSingleId, isSameTypeRef, TypeRef } from "../meta"
 import { ParsedValue } from "./ParsedValue"
 import { assertNotNull, deepEqual, isEmpty, isNotNull, KeyVersion, lazy, Nullable } from "@tutao/utils"
 import {
@@ -230,7 +230,7 @@ export class PatchMerger {
 						const aggregateId = aggregate.asNestedObj().getAttributeByName("_id").asId()
 						return valuesToAdd.some((addedIem) => {
 							const addedItemId = addedIem.asNestedObj().getAttributeByName("_id").asId()
-							return isSameId(aggregateId, addedItemId) && !PatchMerger.isSameDecryptedParsedValue(addedIem, aggregate)
+							return isSameSingleId(aggregateId, addedItemId) && !PatchMerger.isSameDecryptedParsedValue(addedIem, aggregate)
 						})
 					})
 					if (hasAggregationsWithCommonIdsButDifferentValues) {
@@ -410,7 +410,7 @@ export class PatchMerger {
 			const aggregateArray = parsedInstance.getAttributeById(attributeId).asNestedObjList()
 			const aggregatedEntity = assertNotNull(
 				aggregateArray.find((entity) => {
-					return isSameId(maybeAggregateIdPathItem, entity.getAttributeByName("_id").asId())
+					return isSameSingleId(maybeAggregateIdPathItem, entity.getAttributeByName("_id").asId())
 				}),
 			)
 			return this.traversePath(aggregatedEntity, aggregationTypeModel, path)

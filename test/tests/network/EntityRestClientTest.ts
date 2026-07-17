@@ -2,35 +2,16 @@ import o, { assertThrows, spy } from "@tutao/otest"
 import { RestClient, restError } from "../../../src/platform-kit/rest-client"
 import { HttpMethod, MediaType, RestTextBody } from "../../../src/platform-kit/rest-client/types"
 import { SetupMultipleError } from "../../../src/platform-kit/network/error/SetupMultipleError.js"
-import { Entity, TypeRef } from "../../../src/platform-kit/meta"
+import { Entity, idToElementId, TypeRef } from "../../../src/platform-kit/meta"
 import { doBlobRequestWithRetry, EntityMigrator, EntityRestClient, tryServers } from "../../../src/platform-kit/network/EntityRestClient"
 import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { explain, func, instance, matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade.js"
-import {
-	arrayEquals,
-	assertNotNull,
-	deepEqual,
-	downcast,
-	KeyVersion,
-	Mapper,
-	noOp,
-	Nullable,
-	ofClass,
-	promiseMap,
-	uint8ArrayToBase64,
-} from "../../../src/platform-kit/utils"
+import { arrayEquals, deepEqual, downcast, KeyVersion, Mapper, noOp, Nullable, ofClass, promiseMap } from "../../../src/platform-kit/utils"
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
-import {
-	DecryptedParsedInstance,
-	EntityAdapter,
-	InstancePipeline,
-	LoggedInUserProvider,
-	PatchOperationType,
-	TypeModelResolver,
-} from "../../../src/platform-kit/instance-pipeline"
+import { DecryptedParsedInstance, EntityAdapter, InstancePipeline, LoggedInUserProvider, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
 import {
 	aes256RandomKey,
 	AesKey,
@@ -66,7 +47,6 @@ import {
 	createPatchList,
 	CustomerTypeRef,
 	GroupMemberTypeRef,
-	PatchList,
 	PatchListTypeRef,
 	sysModelInfo,
 	UpdateKdfNoncePostIn,
@@ -222,7 +202,7 @@ o.spec("EntityRestClient", function () {
 
 			const id1 = "id1"
 			const expectedInstance = createTestEntity(AccountingInfoTypeRef, {
-				_id: id1,
+				_id: idToElementId(id1),
 				_permissions: "permissionsId",
 				_ownerGroup: ownerGroupId,
 				_ownerEncSessionKey: encryptedSessionKey.key,
@@ -233,7 +213,7 @@ o.spec("EntityRestClient", function () {
 			// mapAndEncrypt is a convenient way to get an instance with network debugging info
 			const instanceWithDebuggingInfo = await instancePipeline.mapAndEncrypt(expectedInstance._type, expectedInstance, sk)
 			when(restClient.request(requestPath, HttpMethod.GET, anything())).thenResolve(instanceWithDebuggingInfo.getJsonRepresentation())
-			const loadResult = await entityRestClient.load(expectedInstance._type, id1)
+			const loadResult = await entityRestClient.load(expectedInstance._type, idToElementId(id1))
 			removeOriginals(loadResult)
 			o(expectedInstance as any).deepEquals(loadResult)
 		})
@@ -267,7 +247,7 @@ o.spec("EntityRestClient", function () {
 		o("loading an element", async function () {
 			const id1 = "id1"
 			const accountingInfo = createTestEntity(AccountingInfoTypeRef, {
-				_id: id1,
+				_id: idToElementId(id1),
 				_permissions: "permissionsId",
 				_ownerGroup: ownerGroupId,
 				_ownerEncSessionKey: encryptedSessionKey.key,
@@ -282,7 +262,7 @@ o.spec("EntityRestClient", function () {
 				}),
 			).thenResolve(untypedAccountingInfo.getJsonRepresentation())
 
-			const result = await entityRestClient.load(AccountingInfoTypeRef, id1)
+			const result = await entityRestClient.load(AccountingInfoTypeRef, idToElementId(id1))
 			removeOriginals(result)
 			o(result as any).deepEquals(accountingInfo)
 		})
@@ -459,11 +439,11 @@ o.spec("EntityRestClient", function () {
 
 			const ids = countFrom(0, 5)
 			const supportData1 = createTestEntity(SupportDataTypeRef, {
-				_id: "1",
+				_id: idToElementId("1"),
 				_permissions: "some id",
 			})
 			const supportData2 = createTestEntity(SupportDataTypeRef, {
-				_id: "2",
+				_id: idToElementId("2"),
 				_permissions: "another id",
 			})
 			const expectedLoadMultipleResult = [supportData1, supportData2]
@@ -486,11 +466,11 @@ o.spec("EntityRestClient", function () {
 		o("Less than 100 entities requested should result in a single rest request", async function () {
 			const ids = countFrom(0, 5)
 			const supportData1 = createTestEntity(SupportDataTypeRef, {
-				_id: "1",
+				_id: idToElementId("1"),
 				_permissions: "some id",
 			})
 			const supportData2 = createTestEntity(SupportDataTypeRef, {
-				_id: "2",
+				_id: idToElementId("2"),
 				_permissions: "another id",
 			})
 			const untypedSupportData1 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData1, null)
@@ -514,11 +494,11 @@ o.spec("EntityRestClient", function () {
 		o("Exactly 100 entities requested should result in a single rest request", async function () {
 			const ids = countFrom(0, 100)
 			const supportData1 = createTestEntity(SupportDataTypeRef, {
-				_id: "1",
+				_id: idToElementId("1"),
 				_permissions: "some id",
 			})
 			const supportData2 = createTestEntity(SupportDataTypeRef, {
-				_id: "2",
+				_id: idToElementId("2"),
 				_permissions: "another id",
 			})
 			const untypedSupportData1 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData1, null)
@@ -545,11 +525,11 @@ o.spec("EntityRestClient", function () {
 		o("More than 100 entities requested results in 2 rest requests", async function () {
 			const ids = countFrom(0, 101)
 			const supportData1 = createTestEntity(SupportDataTypeRef, {
-				_id: "1",
+				_id: idToElementId("1"),
 				_permissions: "some id",
 			})
 			const supportData2 = createTestEntity(SupportDataTypeRef, {
-				_id: "100",
+				_id: idToElementId("100"),
 				_permissions: "another id",
 			})
 			const untypedSupportData1 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData1, null)
@@ -583,17 +563,17 @@ o.spec("EntityRestClient", function () {
 			const ids = countFrom(0, 211)
 
 			const supportData1 = createTestEntity(SupportDataTypeRef, {
-				_id: "1",
+				_id: idToElementId("1"),
 				_permissions: "some id",
 			})
 
 			const supportData2 = createTestEntity(SupportDataTypeRef, {
-				_id: "100",
+				_id: idToElementId("100"),
 				_permissions: "another id",
 			})
 
 			const supportData3 = createTestEntity(SupportDataTypeRef, {
-				_id: "200",
+				_id: idToElementId("200"),
 				_permissions: "third id",
 			})
 			const untypedSupportData1 = await instancePipeline.mapAndEncrypt(SupportDataTypeRef, supportData1, null)
@@ -950,7 +930,7 @@ o.spec("EntityRestClient", function () {
 		o("Setup entity", async function () {
 			const v = (await typeModelResolver.resolveClientTypeReference(SupportDataTypeRef)).version
 			const newSupportData = createTestEntity(SupportDataTypeRef, {
-				_id: "1",
+				_id: idToElementId("1"),
 				_permissions: "another id",
 				_ownerGroup: "ownerGroupId",
 			})
@@ -1017,7 +997,7 @@ o.spec("EntityRestClient", function () {
 			const { version } = typeModel
 			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
 			const newAccountingInfo = createTestEntity(AccountingInfoTypeRef, {
-				_id: "id1",
+				_id: idToElementId("id1"),
 				_permissions: "permissionsId",
 				_ownerGroup: ownerGroupId,
 			})
@@ -1243,7 +1223,7 @@ o.spec("EntityRestClient", function () {
 		o("Update entity", async function () {
 			const { version } = await typeModelResolver.resolveClientTypeReference(SupportDataTypeRef)
 			const newSupportData = createTestEntity(SupportDataTypeRef, {
-				_id: "id",
+				_id: idToElementId("id"),
 			})
 			newSupportData._original = structuredClone(newSupportData)
 			newSupportData.categories = [
@@ -1477,7 +1457,7 @@ o.spec("EntityRestClient", function () {
 			const { version } = await typeModelResolver.resolveClientTypeReference(CustomerTypeRef)
 			const id = "id"
 			const newCustomer = createTestEntity(CustomerTypeRef, {
-				_id: id,
+				_id: idToElementId(id),
 			})
 
 			await entityRestClient.erase(newCustomer)

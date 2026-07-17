@@ -13,6 +13,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/inst
 import { CalendarViewType } from "../api/common/utils/CommonCalendarUtils"
 import { locator } from "../api/main/CommonLocator"
 import { UserController } from "../api/main/UserController"
+import { elementIdToId } from "@tutao/meta"
 
 export class CalendarSettingsViewer implements UpdatableSettingsViewer {
 	private scrollTimeOptions: Array<{ name: string; value: number }> = []
@@ -95,9 +96,9 @@ export class CalendarSettingsViewer implements UpdatableSettingsViewer {
 				{ name: lang.getTranslationText("week_label"), value: CalendarViewType.WEEK },
 				{ name: lang.getTranslationText("month_label"), value: CalendarViewType.MONTH },
 			],
-			selectedValue: deviceConfig.getDefaultCalenderViewSetting(locator.logins.getUserController().user._id),
+			selectedValue: deviceConfig.getDefaultCalenderViewSetting(elementIdToId(locator.logins.getUserController().user._id)),
 			selectionChangedHandler: (value: CalendarViewType | null) => {
-				deviceConfig.setDefaultCalendarViewSetting(locator.logins.getUserController().user._id, value)
+				deviceConfig.setDefaultCalendarViewSetting(elementIdToId(locator.logins.getUserController().user._id), value)
 			},
 		}
 	}

@@ -2,7 +2,7 @@ import { Nullable } from "@tutao/utils"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler"
 import { DecryptedParsedInstance, GetOrPutInstance } from "../../platform-kit/instance-pipeline"
 import { Range } from "./OfflineStorage"
-import { Entity, ListElementEntity, SomeEntity, TypeRef } from "@tutao/meta"
+import { Entity, ListElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
 
 export type LastUpdateTime = { type: "recorded"; time: number } | { type: "never" } | { type: "uninitialized" }
 
@@ -55,7 +55,7 @@ export interface ExposedCacheStorage extends GetOrPutInstance {
 	 * the exposed interface is intentionally more narrow than the internal cacheStorage because
 	 * we must maintain the integrity of our list ranges.
 	 * */
-	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
+	deleteIfExists<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
 
 	/**
 	 * remove a complete range for a ListElementEntity from the cache by typeRef and listId.
@@ -127,9 +127,9 @@ export interface CacheStorage extends ExposedCacheStorage {
 
 	getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>>
 
-	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
+	deleteIfExists<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
 
-	deleteMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, ids: T["_id"][]): Promise<void>
+	deleteMultiple<T extends PersistentEntity>(typeRef: TypeRef<T>, ids: T["_id"][]): Promise<void>
 
 	/**
 	 * remove a complete range for a ListElementEntity from the cache by typeRef and listId.

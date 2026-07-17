@@ -106,6 +106,7 @@ import { AccountType, GroupType } from "../../../../../src/entities/sys/Utils"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { EncryptedPqKeyPairs } from "../../../../../src/platform-kit/crypto/encryption/EncryptedKeyPairs"
 import { _aes128RandomKey } from "../../../crypto/AesTest"
+import { elementIdToId, idToElementId } from "../../../../../src/platform-kit/meta"
 
 const { anything } = matchers
 
@@ -368,7 +369,7 @@ function prepareMultiAdminUserKeyRotation(
 		recipientKeyVersion: "0",
 		protocolVersion: CryptoProtocolVersion.TUTA_CRYPT,
 		pubEncSymKey: pubEncNewAdminGroupKey,
-		senderIdentifier: userGroup._id,
+		senderIdentifier: elementIdToId(userGroup._id),
 		senderIdentifierType: PublicKeyIdentifierType.GROUP_ID,
 		senderKeyVersion: "1",
 		symKeyMac: userEncAdminSymKeyHash,
@@ -488,14 +489,14 @@ o.spec("KeyRotationFacade", function () {
 		)
 		user = await makeUser(userId, { key: userEncAdminKey, encryptingKeyVersion: 0 })
 		const customerId = "customerId"
-		customer = createTestEntity(CustomerTypeRef, { _id: customerId, userGroups: "userGroupsList" })
+		customer = createTestEntity(CustomerTypeRef, { _id: idToElementId(customerId), userGroups: "userGroupsList" })
 		const groupData = makeGroupWithMembership(groupId, user)
 		group = groupData.group
 		groupInfo = groupData.groupInfo
 
 		when(userFacade.getUser()).thenReturn(user)
 		when(userFacade.getUserGroupId()).thenReturn(userGroupId)
-		when(entityClientMock.load(GroupTypeRef, groupId)).thenResolve(group)
+		when(entityClientMock.load(GroupTypeRef, idToElementId(groupId))).thenResolve(group)
 		when(keyLoaderFacadeMock.getCurrentSymGroupKey(groupId)).thenResolve({ version: 0, object: groupKeyVersion0 })
 		when(entityClientMock.load(UserGroupRootTypeRef, anything())).thenResolve(
 			await makeUserGroupRoot(keyRotationsListId, invitationsListId, groupKeyUpdatesListId),
@@ -503,7 +504,7 @@ o.spec("KeyRotationFacade", function () {
 		when(keyLoaderFacadeMock.getCurrentSymUserGroupKey()).thenReturn(CURRENT_USER_GROUP_KEY)
 		when(keyLoaderFacadeMock.getCurrentSymGroupKey(adminGroupId)).thenResolve(CURRENT_ADMIN_GROUP_KEY)
 		when(keyLoaderFacadeMock.getCurrentSymGroupKey(groupId)).thenResolve(CURRENT_USER_AREA_GROUP_KEY)
-		when(entityClientMock.load(CustomerTypeRef, customerId)).thenResolve(customer)
+		when(entityClientMock.load(CustomerTypeRef, idToElementId(customerId))).thenResolve(customer)
 		when(entityClientMock.loadAll(GroupInfoTypeRef, customer.userGroups)).thenResolve([])
 	})
 
@@ -1995,13 +1996,13 @@ o.spec("KeyRotationFacade", function () {
 
 				const memberUserId = "memberUserId"
 				const memberUser = createTestEntity(UserTypeRef, {
-					_id: memberUserId,
+					_id: idToElementId(memberUserId),
 					userGroup: createTestEntity(GroupMembershipTypeRef, {
 						group: groupId,
 						groupKeyVersion: "0",
 					}),
 				})
-				when(entityClientMock.load(UserTypeRef, memberUserId)).thenResolve(memberUser)
+				when(entityClientMock.load(UserTypeRef, idToElementId(memberUserId))).thenResolve(memberUser)
 				when(entityClientMock.loadAll(GroupMemberTypeRef, group.members)).thenResolve([
 					createTestEntity(GroupMemberTypeRef, {
 						group: groupId,
@@ -2309,7 +2310,7 @@ o.spec("KeyRotationFacade", function () {
 
 	function makeGroupWithMembership(groupId: Id, user: User): { group: Group; groupInfo: GroupInfo } {
 		const group = createTestEntity(GroupTypeRef, {
-			_id: groupId,
+			_id: idToElementId(groupId),
 			adminGroupKeyVersion: "0",
 			groupInfo: ["listId", groupInfoElementId],
 			// we need this to be a non-empty byte array
@@ -2327,11 +2328,11 @@ o.spec("KeyRotationFacade", function () {
 
 		when(adminKeyLoader.hasAdminEncGKey(group)).thenReturn(true)
 		when(entityClientMock.load(GroupInfoTypeRef, group.groupInfo)).thenResolve(groupInfo)
-		when(entityClientMock.load(GroupTypeRef, groupId)).thenResolve(group)
+		when(entityClientMock.load(GroupTypeRef, idToElementId(groupId))).thenResolve(group)
 		when(entityClientMock.loadAll(SentGroupInvitationTypeRef, group.invitations)).thenResolve([])
 		const member = createTestEntity(GroupMemberTypeRef, {
 			group: groupId,
-			user: user._id,
+			user: elementIdToId(user._id),
 		})
 		user.memberships.push(
 			createTestEntity(GroupMembershipTypeRef, {
@@ -2346,7 +2347,7 @@ o.spec("KeyRotationFacade", function () {
 
 async function makeUser(userId: Id, userEncAdminKey: VersionedEncryptedKey): Promise<User> {
 	return createTestEntity(UserTypeRef, {
-		_id: userId,
+		_id: idToElementId(userId),
 		userGroup: createTestEntity(GroupMembershipTypeRef, {
 			groupKeyVersion: "0",
 			symKeyVersion: String(PW_ENC_CURRENT_USER_GROUP_KEY.encryptingKeyVersion),

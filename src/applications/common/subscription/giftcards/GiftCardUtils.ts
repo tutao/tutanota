@@ -16,6 +16,7 @@ import { getHtmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import { urlEncodeHtmlTags } from "../../../../ui/utils/Formatter.js"
 import QRCode from "qrcode-svg"
 import { CustomerInfo, CustomerInfoTypeRef, CustomerTypeRef, GiftCard, GiftCardTypeRef } from "@tutao/entities/sys"
+import { idToElementId } from "@tutao/meta"
 
 export const enum GiftCardStatus {
 	Deactivated = "0",
@@ -42,7 +43,7 @@ export async function getTokenFromUrl(url: string): Promise<{ id: Id; key: strin
 export function loadGiftCards(customerId: Id): Promise<GiftCard[]> {
 	const entityClient = locator.entityClient
 	return entityClient
-		.load(CustomerTypeRef, customerId)
+		.load(CustomerTypeRef, idToElementId(customerId))
 		.then((customer) => entityClient.load(CustomerInfoTypeRef, customer.customerInfo))
 		.then((customerInfo: CustomerInfo) => {
 			if (customerInfo.giftCards) {

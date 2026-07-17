@@ -58,7 +58,7 @@ import {
 	UserAlarmInfoListTypeTypeRef,
 	UserAlarmInfoTypeRef,
 } from "@tutao/entities/sys"
-import { clone, elementIdPart, getListId, listIdPart } from "../../../src/platform-kit/meta"
+import { clone, elementIdPart, elementIdToId, getListId, idToElementId, listIdPart } from "../../../src/platform-kit/meta"
 import { ProgressMonitorInterface } from "../../../src/platform-kit/network/ProgressMonitorInterface"
 import { EntityUpdateData } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupType } from "../../../src/entities/sys/Utils"
@@ -148,7 +148,7 @@ o.spec("CalendarModel", function () {
 		when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
 		const userId = "user-id"
 		userMock = object<User>()
-		userMock._id = userId
+		userMock._id = idToElementId(userId)
 		userMock.alarmInfoList = createTestEntity(UserAlarmInfoListTypeTypeRef, {
 			alarms: "user-alarm-list-id",
 		})
@@ -169,7 +169,7 @@ o.spec("CalendarModel", function () {
 		// when(userControllerMock.getCalendarMemberships()).thenReturn([calendarGroupMembership])
 
 		calendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef, {
-			_id: calendarGroupMembership.group,
+			_id: idToElementId(calendarGroupMembership.group),
 			longEvents: "longEvents",
 			shortEvents: "shortEvents",
 		})
@@ -182,13 +182,13 @@ o.spec("CalendarModel", function () {
 
 		groupMemberMock = createTestEntity(GroupMemberTypeRef, {
 			_id: ["group-member-list-id", "group-member-element-id"],
-			group: calendarGroupRoot._id,
-			user: userMock._id,
+			group: elementIdToId(calendarGroupRoot._id),
+			user: elementIdToId(userMock._id),
 			userGroupInfo: calendarGroupInfo._id,
 		})
 
 		const calendarGroup = createTestEntity(GroupTypeRef, {
-			_id: calendarGroupMembership.group,
+			_id: idToElementId(calendarGroupMembership.group),
 			members: "group-member-list-id",
 		})
 
@@ -232,7 +232,7 @@ o.spec("CalendarModel", function () {
 		baseExistingProgenitor = createTestEntity(CalendarEventTypeRef, {
 			_id: ["listId", "eventId"],
 			uid,
-			_ownerGroup: calendarGroupRoot._id,
+			_ownerGroup: elementIdToId(calendarGroupRoot._id),
 			summary: "v1",
 			organizer: createTestEntity(EncryptedMailAddressTypeRef, {
 				address: ORGANIZER,
@@ -257,7 +257,7 @@ o.spec("CalendarModel", function () {
 		})
 
 		baseCalendarEventUidIndexEntry = object()
-		baseCalendarEventUidIndexEntry.ownerGroup = calendarGroupRoot._id
+		baseCalendarEventUidIndexEntry.ownerGroup = elementIdToId(calendarGroupRoot._id)
 		baseCalendarEventUidIndexEntry.progenitor = baseExistingProgenitor as CalendarEventProgenitor
 		baseCalendarEventUidIndexEntry.alteredInstances = []
 	})

@@ -4,6 +4,7 @@ import { FeatureType, UpgradePromptType } from "../../../platform-kit/app-env"
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { isCustomizationEnabledForCustomer } from "../../common/api/common/utils/CustomerUtils.js"
 import { TemplateGroupRoot, TemplateGroupRootTypeRef } from "@tutao/entities/tutanota"
+import { idToElementId } from "@tutao/meta"
 
 /**
  * @return True if the group has been created.
@@ -23,7 +24,7 @@ export async function createInitialTemplateListIfAllowed(): Promise<TemplateGrou
 
 	if (allowed) {
 		const groupId = await locator.groupManagementFacade.createTemplateGroup("")
-		return locator.entityClient.load<TemplateGroupRoot>(TemplateGroupRootTypeRef, groupId)
+		return locator.entityClient.load<TemplateGroupRoot>(TemplateGroupRootTypeRef, idToElementId(groupId))
 	} else {
 		return null
 	}

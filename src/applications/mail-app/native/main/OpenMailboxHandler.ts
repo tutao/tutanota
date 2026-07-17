@@ -1,6 +1,6 @@
 import m from "mithril"
 import { assertSystemFolderOfType } from "../../mail/model/MailUtils.js"
-import { getElementId } from "../../../../platform-kit/meta"
+import { getElementId, idToElementId, isSameId } from "../../../../platform-kit/meta"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailModel } from "../../mail/model/MailModel.js"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
@@ -18,7 +18,7 @@ export class OpenMailboxHandler {
 	) {}
 
 	async openMailbox(userId: Id, mailAddress: string, requestedPath: string | null): Promise<void> {
-		if (this.logins.isUserLoggedIn() && this.logins.getUserController().user._id === userId) {
+		if (this.logins.isUserLoggedIn() && isSameId(this.logins.getUserController().user._id, idToElementId(userId))) {
 			if (!requestedPath) {
 				const [mailboxDetail] = await this.mailboxModel.getMailboxDetails()
 				const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)

@@ -6,11 +6,13 @@ import {
 	AttributeName,
 	Cardinality,
 	ClientTypeModel,
+	ElementId,
+	elementIdToId,
 	Entity,
 	getAssociationReprType,
-	getIdType,
-	IdType,
+	idToElementId,
 	isSameTypeRef,
+	ListElementId,
 	ModelAssociation,
 	ModelValue,
 	Type,
@@ -202,14 +204,22 @@ export class ClientEntity {
 		const modelValue = assertNotNull(this.typeModel.values[valueId])
 		const key = modelValue.name
 		if (modelValue.name === "_id") {
-			switch (getIdType(this.typeModel)) {
-				case IdType.IdTuple: {
-					this.entityRecord[key] = parsedValue.asIdTuple()
+			switch (this.typeModel.type) {
+				case Type.ListElement:
+				case Type.BlobElement: {
+					this.entityRecord[key] = parsedValue.asIdTuple() satisfies ListElementId
 					break
 				}
-				case IdType.SingleId: {
-					this.entityRecord[key] = parsedValue.asId()
+				case Type.Element: {
+					this.entityRecord[key] = idToElementId(parsedValue.asId()) satisfies ElementId
 					break
+				}
+				case Type.Aggregated: {
+					this.entityRecord[key] = parsedValue.asId() satisfies Id
+					break
+				}
+				case Type.DataTransfer: {
+					throw new ProgrammingError(`Did not expected _id in DataTransferType (${this.typeModel.app}/${this.typeModel.name})`)
 				}
 			}
 		} else {
@@ -285,11 +295,23 @@ export class OutgoingClientEntity {
 				return ParsedValue.fromNull()
 			}
 
-			switch (getIdType(this.typeModel)) {
-				case IdType.IdTuple:
-					return ParsedValue.fromIdTuple<NestedObj>(rawValue as IdTuple)
-				case IdType.SingleId:
-					return ParsedValue.fromId(rawValue as Id)
+			switch (this.typeModel.type) {
+				case Type.ListElement:
+				case Type.BlobElement: {
+					const idTuple: ListElementId = rawValue
+					return ParsedValue.fromIdTuple<NestedObj>(idTuple)
+				}
+				case Type.Element: {
+					const elementId: ElementId = rawValue
+					return ParsedValue.fromId(elementIdToId(elementId))
+				}
+				case Type.Aggregated: {
+					const aggregateId: Id = rawValue
+					return ParsedValue.fromId(aggregateId)
+				}
+				case Type.DataTransfer: {
+					throw new ProgrammingError(`DataTransfer Type (${this.typeModel.app}/${this.typeModel.name}) will not have _id.`)
+				}
 			}
 		} else {
 			return EntityUtils.getValue(modelValue, rawValue)

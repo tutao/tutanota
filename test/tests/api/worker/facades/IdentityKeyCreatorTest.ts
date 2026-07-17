@@ -29,6 +29,7 @@ import { Group, GroupMembershipTypeRef, GroupTypeRef, IdentityKeyPostIn, Identit
 import { KeyAuthenticationFacade } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
+import { elementIdToId, idToElementId } from "../../../../../src/platform-kit/meta"
 
 const { anything, argThat, captor } = matchers
 
@@ -103,7 +104,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 		o.beforeEach(function () {
 			userGroupKeyPair = { object: instance(RsaKeyPair), version: 0 }
 			userGroup = createTestEntity(GroupTypeRef, {
-				_id: userGroupId,
+				_id: idToElementId(userGroupId),
 				currentKeys: object(),
 				groupKeyVersion: currentUserGroupKeyVersion.toString(),
 				identityKeyPair: null,
@@ -131,7 +132,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 				}),
 			).thenReturn(tag)
 
-			when(entityClient.load(GroupTypeRef, userGroupId)).thenResolve(userGroup)
+			when(entityClient.load(GroupTypeRef, idToElementId(userGroupId))).thenResolve(userGroup)
 			when(
 				publicKeySignatureFacade.signPublicKey(userGroupKeyPair, {
 					object: identityKeyPair.private_key,
@@ -307,9 +308,9 @@ o.spec("IdentityKeyCreatorTest", function () {
 
 				teamGroupData = []
 				for (const groupId of groupIds) {
-					const group = createTestEntity(GroupTypeRef, { identityKeyPair: null, _id: groupId })
+					const group = createTestEntity(GroupTypeRef, { identityKeyPair: null, _id: idToElementId(groupId) })
 					group.currentKeys = object()
-					when(entityClient.load(GroupTypeRef, groupId)).thenResolve(group)
+					when(entityClient.load(GroupTypeRef, idToElementId(groupId))).thenResolve(group)
 					when(cacheManagementFacade.reloadGroup(groupId)).thenResolve(group)
 					const currentGroupKey: VersionedKey = object()
 					when(keyLoaderFacade.loadAllFormerKeyPairs(group, currentGroupKey)).thenResolve([])
@@ -344,7 +345,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 				const captor = matchers.captor()
 				verify(serviceExecutor.post(IdentityKeyService, captor.capture(), anything()))
 				for (const { group, signature, encPrivIdentityKey } of teamGroupData) {
-					verify(asymmetricCryptoFacade.getOrMakeSenderX25519KeyPair(anything(), group._id))
+					verify(asymmetricCryptoFacade.getOrMakeSenderX25519KeyPair(anything(), elementIdToId(group._id)))
 					o(captor.values?.length).equals(teamGroupData.length)
 					const expectedCalls = captor.values?.filter((requestData: IdentityKeyPostIn) => {
 						const identityKeyPairFromRequest = requestData.identityKeyPair
@@ -363,10 +364,10 @@ o.spec("IdentityKeyCreatorTest", function () {
 			})
 
 			o("skips shared mailboxes that already have identity key", async function () {
-				const group1 = createTestEntity(GroupTypeRef, { identityKeyPair: object(), _id: teamGroupId1 })
+				const group1 = createTestEntity(GroupTypeRef, { identityKeyPair: object(), _id: idToElementId(teamGroupId1) })
 				when(entityClient.load(GroupTypeRef, group1._id)).thenResolve(group1)
 
-				await identityKeyCreator.createIdentityKeyPairForExistingTeamGroups([group1._id])
+				await identityKeyCreator.createIdentityKeyPairForExistingTeamGroups([elementIdToId(group1._id)])
 
 				verify(serviceExecutor.post(IdentityKeyService, anything(), anything()), { times: 0 })
 			})

@@ -4,7 +4,15 @@ import {
 	SpamClassifierDataDealer,
 	UnencryptedPopulateClientSpamTrainingDatum,
 } from "../../../../../../src/applications/mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
-import { compareNewestFirst, EntityIdEncoding, GENERATED_MIN_ID, getElementId, isSameId } from "../../../../../../src/platform-kit/meta"
+import {
+	compareNewestFirst,
+	elementIdPart,
+	EntityIdEncoding,
+	GENERATED_MIN_ID,
+	getElementId,
+	idToElementId,
+	isSameId,
+} from "../../../../../../src/platform-kit/meta"
 import { matchers, object, verify, when } from "testdouble"
 import { EntityClient } from "../../../../../../src/platform-kit/network/EntityClient"
 import { BulkMailLoader } from "../../../../../../src/applications/mail-app/workerUtils/index/BulkMailLoader"
@@ -99,7 +107,7 @@ o.spec("SpamClassifierDataDealer", () => {
 			mailbox: "mailbox",
 		})
 		mailBox = createTestEntity(MailBoxTypeRef, {
-			_id: "mailbox",
+			_id: idToElementId("mailbox"),
 			_ownerGroup: "owner",
 			mailSets: createTestEntity(MailSetRefTypeRef, { mailSets: "folderListId" }),
 			currentMailBag: createTestEntity(MailBagTypeRef, { mails: "mailListId" }),
@@ -220,8 +228,8 @@ o.spec("SpamClassifierDataDealer", () => {
 
 	o.spec("fetchAllTrainingData", () => {
 		o("uploads training data when clientSpamTrainingData is empty", async () => {
-			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
-			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
+			when(entityClientMock.load(MailboxGroupRootTypeRef, idToElementId("owner"))).thenResolve(mailboxGroupRoot)
+			when(entityClientMock.load(MailBoxTypeRef, idToElementId("mailbox"))).thenResolve(mailBox)
 			const mails = Array.from({ length: 10 }, (_, index) =>
 				createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "inboxMailId" + index], inboxFolder._id, new Date(), mailDetails._id),
 			).concat(
@@ -287,8 +295,8 @@ o.spec("SpamClassifierDataDealer", () => {
 		})
 
 		o("uploads training data when clientSpamTrainingData does not include all relevant mails", async () => {
-			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
-			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
+			when(entityClientMock.load(MailboxGroupRootTypeRef, idToElementId("owner"))).thenResolve(mailboxGroupRoot)
+			when(entityClientMock.load(MailBoxTypeRef, idToElementId("mailbox"))).thenResolve(mailBox)
 
 			const relevantMails = Array.from({ length: 40 }, (_, index) =>
 				createMailByFolderAndReceivedDate(
@@ -390,8 +398,8 @@ o.spec("SpamClassifierDataDealer", () => {
 		})
 
 		o("uploads training data in multiple chunks", async () => {
-			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
-			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
+			when(entityClientMock.load(MailboxGroupRootTypeRef, idToElementId("owner"))).thenResolve(mailboxGroupRoot)
+			when(entityClientMock.load(MailBoxTypeRef, idToElementId("mailbox"))).thenResolve(mailBox)
 
 			const relevantMails = Array.from({ length: 80 }, (_, index) => {
 				return createMailByFolderAndReceivedDate(
@@ -503,7 +511,9 @@ o.spec("SpamClassifierDataDealer", () => {
 			verify(mailFacadeMock.populateClientSpamTrainingData("owner", secondUnencryptedPayload), { times: 1 })
 
 			o(trainingDataset).deepEquals({
-				trainingData: updatedSpamTrainingData.sort((l, r) => compareNewestFirst(l._id, r._id, EntityIdEncoding.Base64Ext)),
+				trainingData: updatedSpamTrainingData.sort((l, r) =>
+					compareNewestFirst(elementIdPart(l._id), elementIdPart(r._id), EntityIdEncoding.Base64Ext),
+				),
 				lastTrainingDataIndexId: getElementId(last(modifiedIndicesSinceStart)!),
 				hamCount: 80,
 				spamCount: 80,
@@ -511,8 +521,8 @@ o.spec("SpamClassifierDataDealer", () => {
 		})
 
 		o("successfully returns training data with mixed ham/spam data", async () => {
-			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
-			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
+			when(entityClientMock.load(MailboxGroupRootTypeRef, idToElementId("owner"))).thenResolve(mailboxGroupRoot)
+			when(entityClientMock.load(MailBoxTypeRef, idToElementId("mailbox"))).thenResolve(mailBox)
 			when(entityClientMock.loadAll(MailTypeRef, anything(), anything())).thenResolve([])
 
 			const spamTrainingData = Array.from({ length: 10 }, () =>
@@ -548,8 +558,8 @@ o.spec("SpamClassifierDataDealer", () => {
 			const zeroConfData = createSpamTrainingDatumByConfidenceAndDecision("0", SpamDecision.WHITELIST)
 			const validHamData = createSpamTrainingDatumByConfidenceAndDecision("1", SpamDecision.WHITELIST)
 			const validSpamData = createSpamTrainingDatumByConfidenceAndDecision("4", SpamDecision.BLACKLIST)
-			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
-			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
+			when(entityClientMock.load(MailboxGroupRootTypeRef, idToElementId("owner"))).thenResolve(mailboxGroupRoot)
+			when(entityClientMock.load(MailBoxTypeRef, idToElementId("mailbox"))).thenResolve(mailBox)
 			when(entityClientMock.loadAll(MailTypeRef, anything(), anything())).thenResolve([])
 
 			const spamTrainingData = [noneDecisionData, zeroConfData, validSpamData, validHamData]
@@ -575,8 +585,8 @@ o.spec("SpamClassifierDataDealer", () => {
 
 	o.spec("fetchPartialTrainingDataFromIndexStartId", () => {
 		o("returns empty training data when modifiedClientSpamTrainingDataIndicesSinceStart are null", async () => {
-			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
-			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
+			when(entityClientMock.load(MailboxGroupRootTypeRef, idToElementId("owner"))).thenResolve(mailboxGroupRoot)
+			when(entityClientMock.load(MailBoxTypeRef, idToElementId("mailbox"))).thenResolve(mailBox)
 			when(
 				entityClientMock.loadRange(
 					ClientSpamTrainingDatumIndexEntryTypeRef,
@@ -596,8 +606,8 @@ o.spec("SpamClassifierDataDealer", () => {
 		})
 
 		o("returns new training data when index or training data is there", async () => {
-			when(entityClientMock.load(MailboxGroupRootTypeRef, "owner")).thenResolve(mailboxGroupRoot)
-			when(entityClientMock.load(MailBoxTypeRef, "mailbox")).thenResolve(mailBox)
+			when(entityClientMock.load(MailboxGroupRootTypeRef, idToElementId("owner"))).thenResolve(mailboxGroupRoot)
+			when(entityClientMock.load(MailBoxTypeRef, idToElementId("mailbox"))).thenResolve(mailBox)
 
 			const oldSpamTrainingData = Array.from({ length: 50 }, () =>
 				createSpamTrainingDatumByConfidenceAndDecision(DEFAULT_IS_SPAM_CONFIDENCE, SpamDecision.WHITELIST),

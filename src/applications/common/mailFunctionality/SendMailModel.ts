@@ -1,5 +1,5 @@
 import { ApprovalStatus, assertMainOrNode, daysToMillis, minutesToMillis, ProgrammingError } from "@tutao/app-env"
-import { elementIdPart, getElementId, isSameId, OperationType } from "@tutao/meta"
+import { elementIdPart, elementIdToId, getElementId, idToElementId, isSameId, isSameSingleId, OperationType } from "@tutao/meta"
 import {
 	EntityEventsListener,
 	EntityUpdateData,
@@ -388,7 +388,7 @@ export class SendMailModel {
 				cc,
 				bcc,
 				confidential: isConfidential,
-				mailGroupId: this.mailboxDetails.mailGroup._id,
+				mailGroupId: elementIdToId(this.mailboxDetails.mailGroup._id),
 				senderAddress: this.senderAddress,
 				locallySavedTime: Date.now(),
 				editedTime: this.mailSavedAt,
@@ -1417,10 +1417,10 @@ export class SendMailModel {
 		} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
 			await this.updateAvailableNotificationTemplateLanguages()
 		} else if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
-			this.mailboxProperties = await this.entity.load(MailboxPropertiesTypeRef, update.instanceId)
+			this.mailboxProperties = await this.entity.load(MailboxPropertiesTypeRef, idToElementId(update.instanceId))
 		} else if (isUpdateForTypeRef(MailDetailsDraftTypeRef, update) && operation === OperationType.UPDATE && this.draft != null) {
 			const mailDetailsDraftId = assertNotNull(this.draft.mailDetailsDraft)
-			if (isSameId(update.instanceId, elementIdPart(mailDetailsDraftId))) {
+			if (isSameSingleId(update.instanceId, elementIdPart(mailDetailsDraftId))) {
 				if (this._draftSavedRecently) {
 					this._draftSavedRecently = false
 				} else {
@@ -1432,8 +1432,8 @@ export class SendMailModel {
 				}
 			}
 		} else if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE) {
-			if (isSameId(getElementId(this.user().userGroupInfo), update.instanceId)) {
-				const groupInfo = await this.entity.load(GroupInfoTypeRef, [update.instanceListId, update.instanceId])
+			if (isSameSingleId(getElementId(this.user().userGroupInfo), update.instanceId)) {
+				const groupInfo = await this.entity.load(GroupInfoTypeRef, [assertNotNull(update.instanceListId), update.instanceId])
 				if (!isAliasEnabledForGroupInfo(groupInfo, this.senderAddress)) {
 					this.senderAddress = this.getDefaultSender()
 				}

@@ -1,5 +1,5 @@
 import { assertWorkerOrNode, DAY_IN_MILLIS, ProgrammingError } from "@tutao/app-env"
-import { getLetId, getListId, isSameId, listIdPart } from "@tutao/meta"
+import { ElementId, elementIdToId, getLetId, getListId, idToElementId, isSameId, isSameSingleId, listIdPart } from "@tutao/meta"
 import {
 	assertNotNull,
 	getFromMap,
@@ -398,7 +398,7 @@ export class CalendarFacade {
 		// Remove all alarms which belongs to the current user.  This user's alarms will be added again by the alarmServiceCall.
 		// We need to be careful about other users' alarms.  Server takes care of the removed alarms..
 		// NOTE: This means that if the new alarms fail to be created, the event will no longer have any alarms attached.
-		event.alarmInfos = existingEvent.alarmInfos.filter((a) => !isSameId(listIdPart(a), userAlarmInfoListId))
+		event.alarmInfos = existingEvent.alarmInfos.filter((a) => !isSameSingleId(listIdPart(a), userAlarmInfoListId))
 		await this.cachingEntityClient.update(event)
 
 		if (newAlarms.length > 0) {
@@ -488,7 +488,7 @@ export class CalendarFacade {
 		let membership = assertNotNull(memberships.find((membership) => membership.groupType === GroupType.Calendar && membership.group === calendarGroupId))
 
 		try {
-			const groupRoot = await entityClient.load(CalendarGroupRootTypeRef, membership.group)
+			const groupRoot = await entityClient.load(CalendarGroupRootTypeRef, idToElementId(membership.group))
 			if (groupRoot.index == null) {
 				return null
 			}

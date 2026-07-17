@@ -39,7 +39,7 @@ import {
 	DEFAULT_EXTRA_SERVICE_PARAMS,
 	EntityRestClientLoadOptions,
 } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
-import { getElementId } from "@tutao/meta"
+import { getElementId, idToElementId } from "@tutao/meta"
 
 export class ImapFacade {
 	constructor(
@@ -95,8 +95,8 @@ export class ImapFacade {
 			initializeParams.spamFolderMigrationInformation.shouldMigrateSpamFolder &&
 			initializeParams.spamFolderMigrationInformation.spamMailbox !== null
 		) {
-			const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, mailGroupId)
-			const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
+			const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))
+			const mailbox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailboxGroupRoot.mailbox))
 			const allMailSets = await this.entityClient.loadAll(MailSetTypeRef, mailbox.mailSets.mailSets)
 			const spamMailSet = assertNotNull(allMailSets.find((mailSet) => mailSet.folderType === MailSetKind.SPAM))
 			const mailSetMapping = new Map([
@@ -127,8 +127,8 @@ export class ImapFacade {
 		imapMailboxesToTutaFolders: Map<string, MailSetMapping>,
 	): Promise<ImapFolderSyncState[]> {
 		const mailGroupId = assertNotNull(imapAccountSyncState._ownerGroup)
-		const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, mailGroupId)
-		const mailbox = await this.entityClient.load(MailBoxTypeRef, mailboxGroupRoot.mailbox)
+		const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))
+		const mailbox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailboxGroupRoot.mailbox))
 		const imapFolderSyncStates: ImapFolderSyncState[] = []
 		for (const [imapMailboxPath, { mailSetElementId, shouldSync }] of imapMailboxesToTutaFolders.entries()) {
 			const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
@@ -211,14 +211,14 @@ export class ImapFacade {
 	}
 
 	async getDeduplicatedImportedAttachments(mailGroupId: Id): Promise<DeduplicatedImportedAttachment[]> {
-		const mailBoxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, mailGroupId)
-		const mailBox = await this.entityClient.load(MailBoxTypeRef, mailBoxGroupRoot.mailbox)
+		const mailBoxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))
+		const mailBox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailBoxGroupRoot.mailbox))
 		return await this.entityClient.loadAll(DeduplicatedImportedAttachmentTypeRef, assertNotNull(mailBox.deduplicatedImportedAttachments))
 	}
 
 	async getDeduplicatedImportedAttachmentListId(mailGroupId: Id) {
-		const mailBoxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, mailGroupId)
-		const mailBox = await this.entityClient.load(MailBoxTypeRef, mailBoxGroupRoot.mailbox)
+		const mailBoxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))
+		const mailBox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailBoxGroupRoot.mailbox))
 		return mailBox.deduplicatedImportedAttachments
 	}
 

@@ -37,6 +37,7 @@ import {
 import { EntityUpdateData, isUpdateFor, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { reverse } from "../../misc/EnumUtils"
+import { idToElementId } from "@tutao/meta"
 
 export const enum UpgradeType {
 	/**
@@ -323,7 +324,7 @@ export async function queryAppStoreSubscriptionOwnership(userIdBytes: Uint8Array
 // ordered.
 export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanType, customerId: Id): Promise<boolean> {
 	const timeout_ms = 60_000
-	const customer = await locator.entityClient.load(CustomerTypeRef, customerId, {
+	const customer = await locator.entityClient.load(CustomerTypeRef, idToElementId(customerId), {
 		...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 		cacheMode: CacheMode.WriteOnly,
 	})
@@ -343,7 +344,7 @@ export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanT
 							if (isUpdateFor(customerInfo, update)) {
 								// since we're waiting for an account upgrade, the customerInfo moves between the free and the paid list.
 								// we need to load the customer to find the new location.
-								const customer = await locator.entityClient.load(CustomerTypeRef, customerId, {
+								const customer = await locator.entityClient.load(CustomerTypeRef, idToElementId(customerId), {
 									...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 									cacheMode: CacheMode.WriteOnly,
 								})

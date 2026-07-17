@@ -16,7 +16,7 @@ import {
 	isBirthdayEvent,
 	isLongEvent,
 } from "./CalendarUtils.js"
-import { elementIdPart, getElementId, getListId, isSameId, listIdPart, OperationType } from "@tutao/meta"
+import { elementIdPart, getElementId, getListId, idToElementId, isSameId, isSameSingleId, listIdPart, OperationType } from "@tutao/meta"
 import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
@@ -193,7 +193,8 @@ export class CalendarEventsRepository {
 
 		const eventListId = getListId(eventWrapper.event)
 		const shouldGoIntoLongEventsList =
-			isSameId(calendarInfo.groupRoot.longEvents, eventListId) || isLongEvent(eventWrapper.event, eventWrapper.event.repeatRule?.timeZone ?? this.zone)
+			isSameSingleId(calendarInfo.groupRoot.longEvents, eventListId) ||
+			isLongEvent(eventWrapper.event, eventWrapper.event.repeatRule?.timeZone ?? this.zone)
 		if (shouldGoIntoLongEventsList) {
 			this.removeExistingEvent(eventWrapper.event)
 
@@ -335,7 +336,7 @@ export class CalendarEventsRepository {
 	}
 
 	private async handleCalendarGroupSettingsUpdate(update: EntityUpdateData, calendarInfos: ReadonlyMap<Id, CalendarInfo>) {
-		const userSettingsGroupRoot = await this.entityClient.load(UserSettingsGroupRootTypeRef, update.instanceId)
+		const userSettingsGroupRoot = await this.entityClient.load(UserSettingsGroupRootTypeRef, idToElementId(update.instanceId))
 		//get all loaded events and update them with new event wrappers that have the new color passed in
 		const newDayToEventsMap = new Map<number, ReadonlyArray<EventWrapper>>()
 		const dayToEventsEntries = Array.from(this.daysToEvents().entries())

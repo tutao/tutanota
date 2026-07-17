@@ -20,10 +20,13 @@ import {
 	parseTypeString,
 	serverToLocalIdEncoding,
 	ServerTypeModel,
-	SomeEntity,
+	PersistentEntity,
 	Type as TypeId,
 	TypeModel,
 	TypeRef,
+	AnyEntityId,
+	elementIdToId,
+	idToElementId,
 } from "../../platform-kit/meta"
 import * as cborg from "cborg"
 import { EncodeOptions, Token, Type } from "cborg"
@@ -47,7 +50,7 @@ import { OfflineStorageMigrator } from "./OfflineStorageMigrator.js"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { isAdminClient, isBrowser, isDesktop, isTest, OutOfSyncError } from "@tutao/app-env"
 import { sql, SqlFragment } from "./Sql.js"
-import { DecryptedParsedInstance, ModelMapper, TypeModelResolver } from "../../platform-kit/instance-pipeline"
+import { DecryptedParsedInstance, ModelMapper, TypeModelResolver } from "@tutao/instance-pipeline"
 import { CacheStorage, LastUpdateTime } from "./CacheStorage"
 import { FormattedQuery, TaggedSqlValue } from "./Types"
 import { tagSqlValue, untagSqlObject, untagSqlValue } from "./SqlValue"
@@ -288,16 +291,12 @@ export class OfflineStorage implements CacheStorage {
 		await this.sqlCipherFacade.closeDb()
 	}
 
-	async deleteIfExists<T extends SomeEntity>(
-		typeRef: TypeRef<T>,
-		listId: T extends ListElementEntity | BlobElementEntity ? Id : null,
-		elementId: Id,
-	): Promise<void> {
-		const fullId: T["_id"] = listId == null ? elementId : [listId, elementId]
+	async deleteIfExists<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Nullable<Id>, elementId: Id): Promise<void> {
+		const fullId: AnyEntityId = listId == null ? idToElementId(elementId) : [listId, elementId]
 		await this.deleteMultiple(typeRef, [fullId])
 	}
 
-	async deleteAllOfType(typeRef: TypeRef<SomeEntity>): Promise<void> {
+	async deleteAllOfType(typeRef: TypeRef<PersistentEntity>): Promise<void> {
 		const type = getTypeString(typeRef)
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		let formattedQuery
@@ -330,7 +329,7 @@ export class OfflineStorage implements CacheStorage {
 	/**
 	 * Remove all ranges (and only ranges, without associated data) for the specified {@param typeRef}.
 	 */
-	async deleteAllRangesOfType(typeRef: TypeRef<SomeEntity>): Promise<void> {
+	async deleteAllRangesOfType(typeRef: TypeRef<PersistentEntity>): Promise<void> {
 		const type = getTypeString(typeRef)
 		await this.deleteAllRangesForType(type)
 	}
@@ -498,13 +497,13 @@ export class OfflineStorage implements CacheStorage {
 		return await this.modelMapper.mapToInstances(parsed)
 	}
 
-	async put(typeRef: TypeRef<SomeEntity>, instance: DecryptedParsedInstance): Promise<void> {
+	async put(typeRef: TypeRef<PersistentEntity>, instance: DecryptedParsedInstance): Promise<void> {
 		const tm = syncMetrics?.beginMeasurement(Category.PutDb)
 		await this.putMultiple(typeRef, [instance])
 		tm?.endMeasurement()
 	}
 
-	async putMultiple(typeRef: TypeRef<SomeEntity>, instances: DecryptedParsedInstance[]): Promise<void> {
+	async putMultiple(typeRef: TypeRef<PersistentEntity>, instances: DecryptedParsedInstance[]): Promise<void> {
 		const tm = instances.length > 1 ? syncMetrics?.beginMeasurement(Category.PutMultipleDb) : null
 		const handler = this.getCustomCacheHandlerMap().get(typeRef)
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
@@ -526,8 +525,8 @@ export class OfflineStorage implements CacheStorage {
 		for (const [listId, storableInstances] of groupedByListId) {
 			for (const storable of storableInstances) {
 				if (handler?.onBeforeCacheUpdate) {
-					const typedInstance = await this.modelMapper.mapToInstance(storable.instance)
-					await handler.onBeforeCacheUpdate(typedInstance as SomeEntity)
+					const typedInstance = await this.modelMapper.mapToInstance<PersistentEntity>(storable.instance)
+					await handler.onBeforeCacheUpdate(typedInstance)
 				}
 			}
 
@@ -597,7 +596,7 @@ export class OfflineStorage implements CacheStorage {
 	): Promise<Array<StorableInstance>> {
 		const storables = await Promise.all(
 			instances.map(async (instance): Promise<Nullable<StorableInstance>> => {
-				const { listId, elementId } = expandId(instance.getAttributeByName("_id").asIdOrIdTuple())
+				const { listId, elementId } = expandId(instance.getAttributeByName("_id").asAnyEntityId())
 				const ownerGroup = instance.getAttributeByName("_ownerGroup").asId()
 
 				const serializedInstance = this.serialize(instance)
@@ -839,7 +838,7 @@ export class OfflineStorage implements CacheStorage {
 		const groupedByType = groupByAndMap(
 			rows,
 			(row) => row.type,
-			(row) => row.elementId,
+			(row) => idToElementId(row.elementId),
 		)
 		for (const [type, ids] of groupedByType) {
 			const typeRef = parseTypeString(type) as TypeRef<ElementEntity>
@@ -900,7 +899,7 @@ export class OfflineStorage implements CacheStorage {
 	 * A neat helper which can delete types in any lists as long as they belong to the same type.
 	 * Will invoke {@link CustomCacheHandler#onBeforeCacheDeletion}.
 	 */
-	async deleteMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, ids: T["_id"][]) {
+	async deleteMultiple(typeRef: TypeRef<PersistentEntity>, ids: Array<AnyEntityId>) {
 		if (isEmpty(ids)) {
 			return
 		}
@@ -918,7 +917,7 @@ export class OfflineStorage implements CacheStorage {
 			case TypeId.Element:
 				await this.runChunked(
 					MAX_SAFE_SQL_VARS - 1,
-					(ids as Id[]).map((id) => serverToLocalIdEncoding(typeModel, id)),
+					ids.map((id) => serverToLocalIdEncoding(typeModel, elementIdToId(id))),
 					(c) => sql`DELETE
 							   FROM element_entities
 							   WHERE type = ${type}
@@ -927,7 +926,7 @@ export class OfflineStorage implements CacheStorage {
 				break
 			case TypeId.ListElement:
 				{
-					const byListId = groupByAndMap(ids as IdTuple[], listIdPart, (id) => serverToLocalIdEncoding(typeModel, elementIdPart(id)))
+					const byListId = groupByAndMap(ids, listIdPart, (id) => serverToLocalIdEncoding(typeModel, elementIdPart(id as IdTuple)))
 					for (const [listId, elementIds] of byListId) {
 						await this.runChunked(
 							MAX_SAFE_SQL_VARS - 2,
@@ -962,14 +961,10 @@ export class OfflineStorage implements CacheStorage {
 		}
 	}
 
-	async deleteIn<T extends SomeEntity>(
-		typeRef: TypeRef<T>,
-		listId: T extends ListElementEntity | BlobElementEntity ? Id : null,
-		elementIds: Id[],
-	): Promise<void> {
+	async deleteIn<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Nullable<Id>, elementIds: Id[]): Promise<void> {
 		if (isEmpty(elementIds)) return
 
-		const fullIds: T["_id"][] = listId == null ? elementIds : elementIds.map((id) => [listId, id])
+		const fullIds: Array<AnyEntityId> = listId == null ? elementIds.map(idToElementId) : elementIds.map((id) => [listId, id])
 		await this.deleteMultiple(typeRef, fullIds)
 	}
 

@@ -30,7 +30,7 @@ import { SpamClassificationModel } from "../../../../../mail-app/workerUtils/spa
 import { ExternalImageRule, NewsletterBannerRule } from "../../../../../../entities/tutanota/Utils"
 import { User, UserTypeRef } from "@tutao/entities/sys"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { OperationType } from "@tutao/meta"
+import { elementIdToId, OperationType } from "@tutao/meta"
 import {
 	aesDecrypt,
 	aesDecryptUnauthenticated,
@@ -308,7 +308,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	}
 
 	async loadConfigDb(user: User, keyLoaderFacade: KeyLoaderFacade): Promise<ConfigDb> {
-		const id = this.getDbId(user._id)
+		const id = this.getDbId(elementIdToId(user._id))
 		const db = new DbFacade(VERSION, async (event, db, dbFacade) => {
 			if (event.oldVersion === 0) {
 				db.createObjectStore(ConfigurationMetaDataOS)

@@ -1,6 +1,6 @@
 import { CancelledError, daysToMillis, ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
-import { isSameId, isSameTypeRef, OperationType, timestampToGeneratedId } from "../../../../platform-kit/meta"
+import { elementIdToId, idToElementId, isSameId, isSameTypeRef, OperationType, timestampToGeneratedId } from "../../../../platform-kit/meta"
 import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade.js"
 import { contains, DateProvider, defer, downcast, isNotNull, millisToDays, neverNull, promiseMap } from "../../../../platform-kit/utils"
@@ -208,7 +208,7 @@ export class IndexedDbIndexer implements Indexer {
 	}
 
 	private getDbId(user: User) {
-		return b64UserIdHash(user._id)
+		return b64UserIdHash(elementIdToId(user._id))
 	}
 
 	private async indexOrLoadContactListIfNeeded() {
@@ -239,7 +239,7 @@ export class IndexedDbIndexer implements Indexer {
 		await this.initDeferred.promise
 
 		if (!this.core.isStoppedProcessing()) {
-			await this.deleteIndex(this.initParams.user._id)
+			await this.deleteIndex(elementIdToId(this.initParams.user._id))
 			await this.fullLoginInit({
 				user: this.initParams.user,
 			})
@@ -312,7 +312,7 @@ export class IndexedDbIndexer implements Indexer {
 	private async reCreateIndex(): Promise<void> {
 		const mailIndexingWasEnabled = this.mailIndexer.mailIndexingEnabled
 		this.mailIndexer.cancelMailIndexing()
-		await this.deleteIndex(this.initParams.user._id)
+		await this.deleteIndex(elementIdToId(this.initParams.user._id))
 		// do not try to init again on error
 		await this.fullLoginInit({
 			user: this.initParams.user,
@@ -504,7 +504,7 @@ export class IndexedDbIndexer implements Indexer {
 	private async processMailEntityEvents(events: Iterable<EntityUpdateData>) {
 		for (const event of events) {
 			if (isUpdateForTypeRef(MailTypeRef, event)) {
-				const mailId: IdTuple = [event.instanceListId, event.instanceId]
+				const mailId: IdTuple = [neverNull(event.instanceListId), event.instanceId]
 				try {
 					switch (event.operation) {
 						case OperationType.DELETE:
@@ -568,11 +568,15 @@ export class IndexedDbIndexer implements Indexer {
 	async _processUserEntityEvents(events: readonly EntityUpdateData[]): Promise<void> {
 		for (const event of events) {
 			if (
-				!(event.operation === OperationType.UPDATE && isSameTypeRef(UserTypeRef, event.typeRef) && isSameId(this.initParams.user._id, event.instanceId))
+				!(
+					event.operation === OperationType.UPDATE &&
+					isSameTypeRef(UserTypeRef, event.typeRef) &&
+					isSameId(this.initParams.user._id, idToElementId(event.instanceId))
+				)
 			) {
 				continue
 			}
-			this.initParams.user = await this.entity.load(UserTypeRef, event.instanceId)
+			this.initParams.user = await this.entity.load(UserTypeRef, idToElementId(event.instanceId))
 			await updateEncryptionMetadata(this.db.dbFacade, this.keyLoaderFacade, MetaDataOS)
 		}
 	}

@@ -1,5 +1,17 @@
 import type { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
-import { containsId, elementIdPart, Entity, getElementId, getLetId, getListId, isSameId, listIdPart, OperationType } from "@tutao/meta"
+import {
+	containsId,
+	elementIdPart,
+	Entity,
+	getElementId,
+	getLetId,
+	getListId,
+	idToElementId,
+	isSameId,
+	isSameSingleId,
+	listIdPart,
+	OperationType,
+} from "@tutao/meta"
 import { assertWorkerOrNode, CryptoProtocolVersion, EncryptionAuthStatus, isApp, isDesktop, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
 import {
 	aes256RandomKey,
@@ -821,7 +833,7 @@ export class MailFacade {
 
 			// copy password information if this is an external contact
 			// otherwise load the key information from the server
-			const isSharedMailboxSender = !isSameId(this.userFacade.getGroupId(GroupType.Mail), senderMailGroupId)
+			const isSharedMailboxSender = !isSameSingleId(this.userFacade.getGroupId(GroupType.Mail), senderMailGroupId)
 
 			if (recipient.type === RecipientType.EXTERNAL) {
 				const passphrase = this.getContactPassword(recipient.contact)
@@ -925,15 +937,15 @@ export class MailFacade {
 			throw e
 		}
 
-		const externalUser = await this.entityClient.load(UserTypeRef, externalUserReference.user)
+		const externalUser = await this.entityClient.load(UserTypeRef, idToElementId(externalUserReference.user))
 		const externalUserGroupId = externalUserReference.userGroup
 		const externalMailGroupId = assertNotNull(
 			externalUser.memberships.find((m) => m.groupType === GroupType.Mail),
 			"no mail group membership on external user",
 		).group
 
-		const externalMailGroup = await this.entityClient.load(GroupTypeRef, externalMailGroupId)
-		const externalUserGroup = await this.entityClient.load(GroupTypeRef, externalUserGroupId)
+		const externalMailGroup = await this.entityClient.load(GroupTypeRef, idToElementId(externalMailGroupId))
+		const externalUserGroup = await this.entityClient.load(GroupTypeRef, idToElementId(externalUserGroupId))
 		const requiredInternalUserGroupKeyVersion = cryptoUtils.parseKeyVersion(externalUserGroup.adminGroupKeyVersion ?? "0")
 		const requiredExternalUserGroupKeyVersion = cryptoUtils.parseKeyVersion(externalMailGroup.adminGroupKeyVersion ?? "0")
 		const internalUserEncExternalUserKey = assertNotNull(externalUserGroup.adminGroupEncGKey, "no adminGroupEncGKey on external user group")
@@ -975,7 +987,7 @@ export class MailFacade {
 				this.deferredDraftId != null &&
 				update.operation === OperationType.UPDATE &&
 				isUpdateForTypeRef(MailTypeRef, update) &&
-				isSameId(this.deferredDraftId, [update.instanceListId, update.instanceId])
+				isSameId(this.deferredDraftId, [assertNotNull(update.instanceListId), update.instanceId])
 			) {
 				return this.entityClient
 					.load(MailTypeRef, this.deferredDraftId)
@@ -1071,12 +1083,12 @@ export class MailFacade {
 
 	_getMailGroupIdForMailAddress(user: User, mailAddress: string): Promise<Id> {
 		return promiseFilter(getUserGroupMemberships(user, GroupType.Mail), (groupMembership) => {
-			return this.entityClient.load(GroupTypeRef, groupMembership.group).then((mailGroup) => {
+			return this.entityClient.load(GroupTypeRef, idToElementId(groupMembership.group)).then((mailGroup) => {
 				if (mailGroup.user == null) {
 					return this.entityClient
 						.load(GroupInfoTypeRef, groupMembership.groupInfo)
 						.then((mailGroupInfo) => isAliasEnabledForGroupInfo(mailGroupInfo, mailAddress))
-				} else if (isSameId(mailGroup.user, user._id)) {
+				} else if (isSameId(idToElementId(mailGroup.user), user._id)) {
 					return this.entityClient
 						.load(GroupInfoTypeRef, user.userGroup.groupInfo)
 						.then((userGroupInfo) => isAliasEnabledForGroupInfo(userGroupInfo, mailAddress))

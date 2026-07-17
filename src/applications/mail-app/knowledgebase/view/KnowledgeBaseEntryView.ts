@@ -7,6 +7,7 @@ import { getConfirmation } from "../../../../ui/base/GuiUtils.js"
 import { NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { KnowledgeBaseEntry, TemplateGroupRootTypeRef } from "@tutao/entities/tutanota"
+import { idToElementId } from "@tutao/meta"
 
 type KnowledgeBaseEntryViewAttrs = {
 	entry: KnowledgeBaseEntry
@@ -81,7 +82,7 @@ export class KnowledgeBaseEntryView implements Component<KnowledgeBaseEntryViewA
 			icon: Icons.PenFilled,
 			click: () => {
 				import("../../settings/KnowledgeBaseEditor.js").then(({ showKnowledgeBaseEditor }) => {
-					locator.entityClient.load(TemplateGroupRootTypeRef, neverNull(entry._ownerGroup)).then((groupRoot) => {
+					locator.entityClient.load(TemplateGroupRootTypeRef, idToElementId(neverNull(entry._ownerGroup))).then((groupRoot) => {
 						showKnowledgeBaseEditor(entry, groupRoot)
 					})
 				})

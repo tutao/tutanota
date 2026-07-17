@@ -15,6 +15,7 @@ import { Contact, createContact, createContactMailAddress, Mail } from "@tutao/e
 import { Attachment, ContactAddressType, ConversationType, MailState, MAX_ATTACHMENT_SIZE } from "../../../entities/tutanota/Utils"
 import { GroupType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../entities/sys/Utils"
 import { DataFile } from "../../../entities/tutanota/MailBundle"
+import { elementIdToId, idToElementId } from "@tutao/meta"
 
 assertMainOrNode()
 export const LINE_BREAK = "<br>"
@@ -155,7 +156,7 @@ export function getTemplateLanguages(sortedLanguages: Array<Language>, entityCli
 	return loginController
 		.getUserController()
 		.reloadCustomer()
-		.then((customer) => entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties)))
+		.then((customer) => entityClient.load(CustomerPropertiesTypeRef, idToElementId(neverNull(customer.properties))))
 		.then((customerProperties) => {
 			return sortedLanguages.filter((sL) => customerProperties.notificationMailTemplates.find((nmt) => nmt.language === sL.code))
 		})

@@ -11,7 +11,7 @@ import { theme } from "../../../../ui/theme"
 import { Card } from "../../../../ui/base/Card"
 import { ContentWithOptionsDialog } from "../../../../ui/dialogs/ContentWithOptionsDialog"
 import { ListModel, selectionAttrsForList } from "../../../common/misc/ListModel"
-import { elementIdPart, EntityIdEncoding, isSameId, sortCompareById } from "../../../../platform-kit/meta"
+import { elementIdPart, EntityIdEncoding, isSameSingleId, sortCompareById } from "../../../../platform-kit/meta"
 import { noOp } from "../../../../platform-kit/utils"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import Stream from "mithril/stream"
@@ -174,7 +174,7 @@ class ContactSelectionDialogViewModel {
 
 			getItemId: (item) => elementIdPart(item._id),
 
-			isSameId: (id1, id2) => isSameId(id1, id2),
+			isSameId: (id1, id2) => isSameSingleId(id1, id2),
 
 			autoSelectBehavior: () => ListAutoSelectBehavior.NONE,
 		})

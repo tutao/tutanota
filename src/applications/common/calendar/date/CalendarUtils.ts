@@ -1,4 +1,4 @@
-import { clone, isSameId } from "@tutao/meta"
+import { clone, isSameId, isSameSingleId } from "@tutao/meta"
 import {
 	AdvancedRepeatRule,
 	CalendarEvent,
@@ -916,7 +916,7 @@ export function isSameEventInstance(left: EventWrapper, right: EventWrapper): bo
 
 export function hasAlarmsForTheUser(user: User, event: CalendarEvent): boolean {
 	const useAlarmList = neverNull(user.alarmInfoList).alarms
-	return event.alarmInfos.some(([listId]) => isSameId(listId, useAlarmList))
+	return event.alarmInfos.some(([listId]) => isSameSingleId(listId, useAlarmList))
 }
 
 export function eventComparator(l: EventWrapper, r: EventWrapper): number {

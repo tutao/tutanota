@@ -1,4 +1,4 @@
-import { AppName, BlobElementEntity, getTypeString, isSameId, isSameTypeRef, ListElementEntity, OperationType, SomeEntity, TypeRef } from "@tutao/meta"
+import { AppName, getTypeString, isSameId, isSameTypeRef, OperationType, PersistentEntity, TypeRef } from "@tutao/meta"
 import { Nullable } from "@tutao/utils"
 import { EntityUpdate, Patch } from "@tutao/entities/sys"
 
@@ -7,9 +7,9 @@ import { DecryptedParsedInstance } from "@tutao/instance-pipeline"
 /**
  * A type similar to {@link EntityUpdate} but mapped to make it easier to work with.
  */
-export type EntityUpdateData<T extends SomeEntity = SomeEntity> = {
+export type EntityUpdateData<T extends PersistentEntity = PersistentEntity> = {
 	typeRef: TypeRef<T>
-	instanceListId: T extends ListElementEntity | BlobElementEntity ? NonEmptyString : null
+	instanceListId: Id | null
 	instanceId: string
 	operation: OperationType
 	instance: Nullable<DecryptedParsedInstance>
@@ -28,7 +28,7 @@ export enum CachingStatus {
 	CacheUpdated = "CacheUpdated",
 }
 
-export async function entityUpdateToUpdateData<T extends SomeEntity>(
+export async function entityUpdateToUpdateData<T extends PersistentEntity>(
 	update: EntityUpdate,
 	instance: Nullable<DecryptedParsedInstance> = null,
 	blobInstance: Nullable<DecryptedParsedInstance> = null,
@@ -47,16 +47,13 @@ export async function entityUpdateToUpdateData<T extends SomeEntity>(
 	}
 }
 
-export function isUpdateForTypeRef<T extends SomeEntity>(typeRef: TypeRef<T>, update: EntityUpdateData): update is EntityUpdateData<T> {
+export function isUpdateForTypeRef<T extends PersistentEntity>(typeRef: TypeRef<T>, update: EntityUpdateData): update is EntityUpdateData<T> {
 	return isSameTypeRef(typeRef, update.typeRef)
 }
 
-export function isUpdateFor<T extends SomeEntity>(entity: T, update: EntityUpdateData): boolean {
+export function isUpdateFor<T extends PersistentEntity>(entity: T, update: EntityUpdateData): boolean {
 	const typeRef = entity._type as TypeRef<T>
-	return (
-		isSameTypeRef(typeRef, update.typeRef) &&
-		(update.instanceListId === null ? isSameId(update.instanceId, entity._id) : isSameId([update.instanceListId, update.instanceId], entity._id))
-	)
+	return isSameTypeRef(typeRef, update.typeRef) && isSameId([update.instanceListId, update.instanceId], entity._id)
 }
 
 export function getLogStringForEntityEvent(event: EntityUpdateData): string {

@@ -33,6 +33,7 @@ import { ServerModelsUnavailableError } from "../../../platform-kit/instance-pip
 import { Credentials } from "../../../platform-kit/network/types"
 import { locator } from "../api/main/CommonLocator"
 import { UserTypeRef } from "@tutao/entities/sys"
+import { elementIdToId } from "@tutao/meta"
 
 assertMainOrNode()
 
@@ -198,9 +199,9 @@ export async function reloginForExpiredSession() {
 	const userId = logins.getUserController().user._id
 	const mailAddress = assertNotNull(logins.getUserController().userGroupInfo.mailAddress, "could not get mailAddress from userGroupInfo")
 	// Fetch old credentials to preserve database key if it's there
-	const oldCredentials = await credentialsProvider.getDecryptedCredentialsByUserId(userId)
+	const oldCredentials = await credentialsProvider.getDecryptedCredentialsByUserId(elementIdToId(userId))
 	// we're deleting the outdated user here because before resetSession() the cache is still open and can be modified.
-	await cacheStorage?.deleteIfExists(UserTypeRef, null, userId)
+	await cacheStorage?.deleteIfExists(UserTypeRef, null, elementIdToId(userId))
 	const sessionReset = loginFacade.resetSession()
 	loginDialogActive = true
 
@@ -230,7 +231,7 @@ export async function reloginForExpiredSession() {
 				// Once login succeeds we need to manually close the dialog
 				secondFactorHandler.closeWaitingForSecondFactorDialog()
 			}
-			await credentialsProvider.deleteByUserId(userId, { deleteOfflineDb: false })
+			await credentialsProvider.deleteByUserId(elementIdToId(userId), { deleteOfflineDb: false })
 			if (oldSessionType === SessionType.Persistent) {
 				await credentialsProvider.store(credentialsToUnencrypted(credentials, databaseKey))
 			}

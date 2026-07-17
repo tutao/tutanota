@@ -25,6 +25,7 @@ import {
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { Country, getClientType, InvoiceData, Keys, PaymentDataResultType } from "@tutao/app-env"
 import { CountryType } from "../../gui/CountryList"
+import { elementIdToId, idToElementId } from "@tutao/meta"
 
 export function isOnAccountAllowed(country: Country | null, accountingInfo: AccountingInfo, isBusiness: boolean): boolean {
 	if (!country) {
@@ -40,7 +41,7 @@ export function isOnAccountAllowed(country: Country | null, accountingInfo: Acco
  * Displays a progress dialog that allows to cancel the verification and opens a new window to do the actual verification with the bank.
  */
 function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintree3ds2Request, price: string): Promise<boolean> {
-	return locator.entityClient.load(InvoiceInfoTypeRef, neverNull(accountingInfo.invoiceInfo)).then((invoiceInfo) => {
+	return locator.entityClient.load(InvoiceInfoTypeRef, idToElementId(neverNull(accountingInfo.invoiceInfo))).then((invoiceInfo) => {
 		let invoiceInfoWrapper = {
 			invoiceInfo,
 		}
@@ -84,7 +85,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 			onEntityUpdatesReceived: (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => {
 				return promiseMap(updates, (update) => {
 					if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
-						return locator.entityClient.load(InvoiceInfoTypeRef, update.instanceId).then((invoiceInfo) => {
+						return locator.entityClient.load(InvoiceInfoTypeRef, idToElementId(update.instanceId)).then((invoiceInfo) => {
 							invoiceInfoWrapper.invoiceInfo = invoiceInfo
 							if (!invoiceInfo.paymentErrorInfo) {
 								// user successfully verified the card
@@ -464,7 +465,7 @@ export async function createAccount(data: UpgradeSubscriptionData | SignupViewMo
 		const userController = locator.logins.getUserController()
 		data.customer = await userController.reloadCustomer()
 		const customerInfo = await userController.loadCustomerInfo()
-		data.accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+		data.accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, idToElementId(customerInfo.accountingInfo))
 	}
 
 	// If the user has selected a paid plan we want to prevent them from selecting a free plan at this point,

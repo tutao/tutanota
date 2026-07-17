@@ -4,19 +4,11 @@ import { EntityClient } from "../../network/EntityClient.js"
 import { UserFacade } from "../facades/UserFacade.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
-import {
-	AesKey,
-	assert256BitKey,
-	cryptoUtils,
-	CryptoWrapper,
-	PublicKeyIdentifierType,
-	VersionedAes256Key,
-	VersionedEncryptedKey,
-	VersionedKey,
-} from "@tutao/crypto"
+import { AesKey, cryptoUtils, CryptoWrapper, PublicKeyIdentifierType, VersionedAes256Key, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
 import { brandKeyMac, KeyAuthenticationFacade } from "../../network/KeyAuthenticationFacade.js"
 import { Group, PubEncKeyData, UserTypeRef } from "@tutao/entities/sys"
 import { CacheManager } from "./persistence/CacheManager"
+import { elementIdToId, idToElementId } from "@tutao/meta"
 
 assertWorkerOrNode()
 
@@ -43,7 +35,7 @@ export class AdminKeyLoaderFacade {
 	 * member and decrypting group key with that.
 	 */
 	async getCurrentGroupKeyViaUser(groupId: Id, viaUser: Id): Promise<VersionedKey> {
-		const user = await this.entityClient.load(UserTypeRef, viaUser)
+		const user = await this.entityClient.load(UserTypeRef, idToElementId(viaUser))
 		const membership = user.memberships.find((m) => m.group === groupId)
 		if (membership == null) {
 			throw new Error(`User doesn't have this group membership! User: ${viaUser} groupId: ${groupId}`)
@@ -130,7 +122,7 @@ export class AdminKeyLoaderFacade {
 		)
 		const decryptedUserGroupKey = (
 			await this.asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(requiredAdminGroupKeyPair, pubAdminEncUserKeyData, {
-				identifier: userGroup._id,
+				identifier: elementIdToId(userGroup._id),
 				identifierType: PublicKeyIdentifierType.GROUP_ID,
 			})
 		).decryptedAesKey
@@ -182,7 +174,7 @@ export class AdminKeyLoaderFacade {
 				sourceOfTrust: { currentUserGroupKey: previousUserGroupKey.object },
 				untrustedKey: { newUserGroupKey: receivedUserGroupKey.object },
 				bindingData: {
-					userGroupId: userGroup._id,
+					userGroupId: elementIdToId(userGroup._id),
 					adminGroupId: assertNotNull(userGroup.admin),
 					currentUserGroupKeyVersion: previousUserGroupKey.version,
 					newUserGroupKeyVersion: receivedUserGroupKey.version,

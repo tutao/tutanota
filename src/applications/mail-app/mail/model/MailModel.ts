@@ -15,7 +15,7 @@ import {
 	promiseMap,
 	splitInChunks,
 } from "../../../../platform-kit/utils"
-import { CUSTOM_MIN_ID, elementIdPart, getElementId, listIdPart, OperationType } from "../../../../platform-kit/meta"
+import { CUSTOM_MIN_ID, elementIdPart, elementIdToId, getElementId, idToElementId, isSameId, listIdPart, OperationType } from "../../../../platform-kit/meta"
 import { FeatureType, isBrowser, ProgrammingError, TutanotaError } from "../../../../platform-kit/app-env"
 
 import m from "mithril"
@@ -180,7 +180,7 @@ export class MailModel {
 				await this.init()
 				m.redraw()
 			} else if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.CREATE) {
-				const mailId: IdTuple = [update.instanceListId, update.instanceId]
+				const mailId: IdTuple = [assertNotNull(update.instanceListId), update.instanceId]
 				const mail = await this.loadMail(mailId)
 				if (mail == null) {
 					return
@@ -317,7 +317,7 @@ export class MailModel {
 
 	private getMailSetsForGroup(groupId: Id): MailboxSets | null {
 		const mailboxDetails = this.mailboxModel.mailboxDetails() || []
-		const detail = mailboxDetails.find((md) => groupId === md.mailGroup._id)
+		const detail = mailboxDetails.find((md) => isSameId(idToElementId(groupId), md.mailGroup._id))
 		const sets = detail?.mailbox?.mailSets._id
 		if (sets == null) {
 			return null
@@ -446,7 +446,7 @@ export class MailModel {
 				if (mailboxDetails == null) {
 					return null
 				} else {
-					const mailGroupCounter = this.mailboxCounters()[mailboxDetails.mailGroup._id]
+					const mailGroupCounter = this.mailboxCounters()[elementIdToId(mailboxDetails.mailGroup._id)]
 					if (mailGroupCounter) {
 						const counterId = getElementId(folder)
 						return mailGroupCounter[counterId]
@@ -547,7 +547,7 @@ export class MailModel {
 	async fixupCounterForFolder(folder: MailSet, unreadMails: number) {
 		const mailboxDetails = await this.getMailboxDetailsForMailFolder(folder)
 		if (mailboxDetails) {
-			await this.mailFacade.fixupCounterForFolder(mailboxDetails.mailGroup._id, folder, unreadMails)
+			await this.mailFacade.fixupCounterForFolder(elementIdToId(mailboxDetails.mailGroup._id), folder, unreadMails)
 		}
 	}
 

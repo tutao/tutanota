@@ -7,6 +7,7 @@ import { SpamClassifierStorageFacade } from "../../../../../src/applications/com
 import { CacheStorage } from "../../../../../src/app-kit/local-store/CacheStorage"
 import { GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
+import { idToElementId } from "../../../../../src/platform-kit/meta"
 
 o.spec("CustomUserCacheHandler", () => {
 	let storage: CacheStorage
@@ -23,7 +24,7 @@ o.spec("CustomUserCacheHandler", () => {
 		const userId = "userId"
 		const calendarGroupId = "calendarGroupId"
 		const initialUser = createTestEntity(UserTypeRef, {
-			_id: userId,
+			_id: idToElementId(userId),
 			memberships: [
 				createTestEntity(GroupMembershipTypeRef, {
 					_id: "mailShipId",
@@ -50,7 +51,7 @@ o.spec("CustomUserCacheHandler", () => {
 		const userId = "userId"
 		const calendarGroupId = "calendarGroupId"
 		const initialUser = createTestEntity(UserTypeRef, {
-			_id: userId,
+			_id: idToElementId(userId),
 			memberships: [
 				createTestEntity(GroupMembershipTypeRef, {
 					_id: "mailShipId",
@@ -65,7 +66,7 @@ o.spec("CustomUserCacheHandler", () => {
 		})
 
 		const updatedUser = createTestEntity(UserTypeRef, {
-			_id: userId,
+			_id: idToElementId(userId),
 			memberships: [
 				createTestEntity(GroupMembershipTypeRef, {
 					_id: "mailShipId",
@@ -87,7 +88,7 @@ o.spec("CustomUserCacheHandler", () => {
 		const userId = "userId"
 		const mailGroupId = "mailGroupId"
 		const initialUser = createTestEntity(UserTypeRef, {
-			_id: userId,
+			_id: idToElementId(userId),
 			memberships: [
 				createTestEntity(GroupMembershipTypeRef, {
 					_id: "mailShipId",
@@ -103,7 +104,7 @@ o.spec("CustomUserCacheHandler", () => {
 		})
 
 		const updatedUser = createTestEntity(UserTypeRef, {
-			_id: userId,
+			_id: idToElementId(userId),
 			memberships: [
 				createTestEntity(GroupMembershipTypeRef, {
 					_id: "calendarShipId",
@@ -126,7 +127,7 @@ o.spec("CustomUserCacheHandler", () => {
 		const userId = "userId"
 		const calendarGroupId = "calendarGroupId"
 		const initialUser = createTestEntity(UserTypeRef, {
-			_id: userId,
+			_id: idToElementId(userId),
 			memberships: [
 				createTestEntity(GroupMembershipTypeRef, {
 					_id: "mailShipId",
@@ -141,7 +142,7 @@ o.spec("CustomUserCacheHandler", () => {
 		})
 
 		const updatedUser = createTestEntity(UserTypeRef, {
-			_id: userId,
+			_id: idToElementId(userId),
 			memberships: [
 				createTestEntity(GroupMembershipTypeRef, {
 					_id: "mailShipId",

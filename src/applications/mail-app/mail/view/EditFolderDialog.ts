@@ -16,7 +16,7 @@ import { isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { Mail, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { MailReportType, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { isFolderReadOnly } from "../MailUtils"
-import { elementIdPart, isSameId, listIdPart } from "../../../../platform-kit/meta"
+import { elementIdPart, elementIdToId, idToElementId, isSameId, listIdPart } from "../../../../platform-kit/meta"
 
 /**
  * Dialog for Edit and Add folder are the same.
@@ -87,7 +87,11 @@ export async function showEditFolderDialog(
 		try {
 			// if folder is null, create new folder
 			if (editedFolder === null) {
-				const createdFolderId = await locator.mailFacade.createMailFolder(folderNameValue, selectedParentFolder?._id ?? null, mailGroupId)
+				const createdFolderId = await locator.mailFacade.createMailFolder(
+					folderNameValue,
+					selectedParentFolder?._id ?? null,
+					elementIdToId(mailGroupId),
+				)
 				onFolderCreated?.(createdFolderId)
 			} else {
 				// if it is being moved to trash (and not already in trash), ask about trashing

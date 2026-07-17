@@ -13,6 +13,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/inst
 import { getHourCycle } from "../../../entities/tutanota/Utils"
 import { UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
 import { deviceConfig } from "../misc/DeviceConfig"
+import { idToElementId } from "@tutao/meta"
 
 export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	private _customThemes: Array<ThemeId> | null = null
@@ -85,7 +86,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		return promiseMap(updates, (update) => {
 			if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
-				return locator.entityClient.load(UserSettingsGroupRootTypeRef, update.instanceId).then((settings) => {
+				return locator.entityClient.load(UserSettingsGroupRootTypeRef, idToElementId(update.instanceId)).then((settings) => {
 					lang.updateFormats({
 						hourCycle: getHourCycle(settings),
 					})

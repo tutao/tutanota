@@ -7,6 +7,7 @@ import { CounterFacade } from "../../../platform-kit/network/CounterFacade.js"
 import { CancelledError } from "../../../platform-kit/app-env"
 import { CounterType } from "../../../entities/monitor/Utils"
 import { createDataFile } from "../api/worker/utils/DataFile"
+import { elementIdToId, idToElementId, isSameId } from "@tutao/meta"
 
 const GROUP_DOWNLOAD_SIZE = 50
 
@@ -54,7 +55,7 @@ export async function loadUserExportData(
 ): Promise<UserExportData[]> {
 	const customer = await logins.getUserController().reloadCustomer()
 	const groupsAdministeredByUser = await entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
-	const usedCustomerStorageCounterValues = await counterFacade.readAllCustomerCounterValues(CounterType.UserStorageLegacy, customer._id)
+	const usedCustomerStorageCounterValues = await counterFacade.readAllCustomerCounterValues(CounterType.UserStorageLegacy, elementIdToId(customer._id))
 
 	let isCancelled = false
 	abortSignal?.addEventListener("abort", () => (isCancelled = true))
@@ -75,7 +76,7 @@ export async function loadUserExportData(
 		)
 
 		const mapped = groups.map((group) => {
-			const info = assertNotNull(groupsAdministeredByUser.find((groupInfo) => groupInfo.group === group._id))
+			const info = assertNotNull(groupsAdministeredByUser.find((groupInfo) => isSameId(idToElementId(groupInfo.group), group._id)))
 			const userStorageCounterValue = usedCustomerStorageCounterValues.find((counterValue) => counterValue.counterId === group.storageCounter)
 			const usedStorage = Number(userStorageCounterValue?.value ?? "0")
 			return {

@@ -1,6 +1,6 @@
 import { OfflineStorage, Range } from "./OfflineStorage.js"
 import { ProgrammingError } from "@tutao/app-env"
-import { Entity, ListElementEntity, SomeEntity, TypeRef } from "@tutao/meta"
+import { Entity, ListElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
 import { downcast, Nullable } from "@tutao/utils"
 import { EphemeralCacheStorage } from "./EphemeralCacheStorage"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
@@ -115,11 +115,11 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		}
 	}
 
-	deleteIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void> {
+	deleteIfExists<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void> {
 		return this.inner.deleteIfExists(typeRef, listId, id)
 	}
 
-	deleteMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, ids: T["_id"][]): Promise<void> {
+	deleteMultiple<T extends PersistentEntity>(typeRef: TypeRef<T>, ids: T["_id"][]): Promise<void> {
 		return this.inner.deleteMultiple(typeRef, ids)
 	}
 

@@ -8,18 +8,15 @@ import { CounterFacade } from "../../../src/platform-kit/network/CounterFacade.j
 import { createTestEntity } from "../TestUtils.js"
 
 import { CounterValueTypeRef } from "@tutao/entities/monitor"
-import { TypeRef } from "../../../src/platform-kit/meta"
+import { elementIdToId, idToElementId, TypeRef } from "../../../src/platform-kit/meta"
 
-import { CustomerTypeRef, Group, GroupInfo, GroupInfoTypeRef, GroupTypeRef, User } from "@tutao/entities/sys"
+import { CustomerTypeRef, Group, GroupInfo, GroupInfoTypeRef, GroupTypeRef, MailAddressAliasTypeRef } from "@tutao/entities/sys"
 import { CounterType } from "../../../src/entities/monitor/Utils"
+import { Nullable } from "../../../src/platform-kit/utils"
 
-o.spec("user data export", function () {
+o.spec("UserDataExportTest", function () {
 	const customerId = "customerId"
 	const userGroupsId = "userGroupsId"
-	const user = {
-		_id: "userId",
-		customer: customerId,
-	} as User
 
 	let allUserGroupInfos: GroupInfo[]
 
@@ -37,7 +34,7 @@ o.spec("user data export", function () {
 				Promise.resolve(
 					createTestEntity(CustomerTypeRef, {
 						userGroups: userGroupsId,
-						_id: customerId,
+						_id: idToElementId(customerId),
 					}),
 				),
 			// we only test the case where we are global admin for now
@@ -48,7 +45,8 @@ o.spec("user data export", function () {
 		when(entityClientMock.loadAll(GroupInfoTypeRef, userGroupsId)).thenResolve(allUserGroupInfos)
 		when(entityClientMock.loadMultiple(GroupTypeRef, null, matchers.anything())).thenDo(
 			(_typeref: TypeRef<Group>, _list: Id | null, groups: readonly Id[]) => {
-				return Promise.resolve(allGroups.filter((g) => groups.includes(g._id)))
+				console.log(allGroups)
+				return Promise.resolve(allGroups.filter((g) => groups.includes(elementIdToId(g._id))))
 			},
 		)
 
@@ -60,8 +58,8 @@ o.spec("user data export", function () {
 		const oneCreated = new Date(1655294400000) // 2022-06-15 12:00:00 GMT+0
 		const oneDeleted = new Date(1655469000000) // "2022-06-17 12:30:00 GMT +0"
 		const twoCreated = new Date(1657886400000) // "2022-07-15 12:00:00 GMT+0"
-		addUser("my name", "mail1@mail.com", oneCreated, oneDeleted, 100, ["alias1@alias.com", "alias2@alias.com"], "user1", "group1", "storage1")
-		addUser("eman ym", "mail2@mail.com", twoCreated, null, null, [], "user2", "group2", "storage2")
+		addUser("my name", "mail1@mail.com", oneCreated, oneDeleted, ["alias1@alias.com", "alias2@alias.com"], "group1", "storage1")
+		addUser("eman ym", "mail2@mail.com", twoCreated, null, [], "group2", "storage2")
 
 		when(counterFacadeMock.readAllCustomerCounterValues(CounterType.UserStorageLegacy, customerId)).thenResolve([
 			createTestEntity(CounterValueTypeRef, { counterId: "storage1", value: "100" }),
@@ -110,19 +108,18 @@ o.spec("user data export", function () {
 		o.check(onProgressCalledTimes).equals(2)
 	})
 
-	function addUser(name, mailAddress, created, deleted, usedStorage, aliases, userId, groupId, storageCounterId) {
+	function addUser(name: string, mailAddress: string, created: Date, deleted: Nullable<Date>, aliases: Array<string>, groupId: Id, storageCounterId: Id) {
 		allUserGroupInfos.push(
 			createTestEntity(GroupInfoTypeRef, {
 				name,
 				mailAddress,
 				created,
 				deleted,
-				mailAddressAliases: aliases.map((alias) => ({ mailAddress: alias })),
+				mailAddressAliases: aliases.map((alias) => createTestEntity(MailAddressAliasTypeRef, { mailAddress: alias })),
 				group: groupId,
 			}),
 		)
 
-		const group = createTestEntity(GroupTypeRef, { storageCounter: storageCounterId, _id: groupId })
-		allGroups.push(group)
+		allGroups.push(createTestEntity(GroupTypeRef, { storageCounter: storageCounterId, _id: idToElementId(groupId) }))
 	}
 })

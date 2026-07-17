@@ -1,5 +1,5 @@
 import { assertNotNull, isNotNull, Nullable } from "@tutao/utils"
-import { Entity, ServerTypeModel, TypeRef } from "@tutao/meta"
+import { AnyEntityId, Entity, ServerTypeModel, TypeRef } from "@tutao/meta"
 import { ModelMapper } from "./ModelMapper"
 import { BucketKey } from "@tutao/entities/sys"
 import { CryptoMapper, EncryptedParsedInstance } from "./CryptoMapper"
@@ -34,8 +34,8 @@ export class EntityAdapter implements Entity {
 		return this.encryptedParsedInstance
 	}
 
-	get _id(): Id | IdTuple {
-		return assertNotNull(this.encryptedParsedInstance.getAttributeByNameOrNull("_id")).asIdOrIdTuple()
+	get _id(): AnyEntityId {
+		return assertNotNull(this.encryptedParsedInstance.getAttributeByNameOrNull("_id")).asAnyEntityId()
 	}
 
 	get _type(): TypeRef<this> {

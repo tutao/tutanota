@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { ApprovalStatus, assertMainOrNode, Const, isIOSApp, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
-import { elementIdPart, GENERATED_MAX_ID, getEtId, OperationType } from "@tutao/meta"
+import { elementIdPart, elementIdToId, GENERATED_MAX_ID, getEtId, idToElementId, OperationType } from "@tutao/meta"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, incrementDate, neverNull, promiseMap, stringToBase64 } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { Icons } from "../../../ui/base/icons/Icons"
@@ -236,14 +236,14 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		}
 
 		locator.entityClient
-			.load(CustomerTypeRef, neverNull(locator.logins.getUserController().user.customer))
+			.load(CustomerTypeRef, idToElementId(neverNull(locator.logins.getUserController().user.customer)))
 			.then((customer) => {
 				void this.updateCustomerData(customer)
 				return locator.logins.getUserController().loadCustomerInfo()
 			})
 			.then((customerInfo) => {
 				this._customerInfo = customerInfo
-				return locator.entityClient.load(AccountingInfoTypeRef, customerInfo.accountingInfo)
+				return locator.entityClient.load(AccountingInfoTypeRef, idToElementId(customerInfo.accountingInfo))
 			})
 			.then((accountingInfo) => {
 				this.updateAccountInfoData(accountingInfo)
@@ -325,7 +325,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			return
 		}
 
-		const appStoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(base64ToUint8Array(base64ExtToBase64(customer._id)))
+		const appStoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(base64ToUint8Array(base64ExtToBase64(elementIdToId(customer._id))))
 		const isAppStorePayment = getPaymentMethodType(accountingInfo) === PaymentMethodType.AppStore
 		const userStatus = customer.approvalStatus
 		const hasAnActiveSubscription = isAppStorePayment && accountingInfo.appStoreSubscription != null
@@ -655,7 +655,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 	async processUpdate(update: EntityUpdateData): Promise<void> {
 		if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
-			const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, update.instanceId)
+			const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, idToElementId(update.instanceId))
 			this.updateAccountInfoData(accountingInfo)
 			return await this.updatePriceInfo()
 		} else if (isUpdateForTypeRef(UserTypeRef, update)) {
@@ -665,7 +665,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			await this.updateBookings()
 			return await this.updatePriceInfo()
 		} else if (isUpdateForTypeRef(CustomerTypeRef, update)) {
-			const customer = await locator.entityClient.load(CustomerTypeRef, update.instanceId)
+			const customer = await locator.entityClient.load(CustomerTypeRef, idToElementId(update.instanceId))
 			return await this.updateCustomerData(customer)
 		} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
 			// needed to update the displayed plan
@@ -673,7 +673,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			if (!this._shownSatisfactionDialog) await this.showSatisfactionDialog()
 			return await this.updatePriceInfo()
 		} else if (isUpdateForTypeRef(GiftCardTypeRef, update)) {
-			const giftCard = await locator.entityClient.load(GiftCardTypeRef, [update.instanceListId, update.instanceId])
+			const giftCard = await locator.entityClient.load(GiftCardTypeRef, [assertNotNull(update.instanceListId), update.instanceId])
 			this._giftCards.set(elementIdPart(giftCard._id), giftCard)
 			if (update.operation === OperationType.CREATE) this._giftCardsExpanded(true)
 		}

@@ -1,5 +1,6 @@
 import { Type } from "./EntityConstants.js"
-import { TypeModel } from "./EntityTypes.js"
+import { AnyEntityId, TypeModel } from "./EntityTypes.js"
+import { idToElementId } from "./EntityUtils"
 
 export function getIdOfInstance(
 	instance: any,
@@ -25,25 +26,17 @@ export function getIdOfInstance(
 	}
 }
 
-export function collapseId(listId: Id | null, elementId: Id): Id | IdTuple {
+export function collapseId(listId: Id | null, elementId: Id): AnyEntityId {
 	if (listId != null) {
 		return [listId, elementId]
 	} else {
-		return elementId
+		return idToElementId(elementId)
 	}
 }
 
-export function expandId(id: Id | IdTuple): { listId: Id | null; elementId: Id } {
-	if (typeof id === "string") {
-		return {
-			listId: null,
-			elementId: id,
-		}
-	} else {
-		const [listId, elementId] = id
-		return {
-			listId,
-			elementId,
-		}
+export function expandId(id: AnyEntityId): { listId: Id | null; elementId: Id } {
+	return {
+		listId: id[0],
+		elementId: id[1],
 	}
 }

@@ -3,7 +3,7 @@ import { NativeCredentialsFacade, UnencryptedCredentials } from "@tutao/native-b
 import { ExtendedNotificationMode } from "@tutao/native-bridge/generatedIpc/enums"
 import { DesktopNotifier } from "../notifications/DesktopNotifier"
 import { LanguageViewModel } from "../../../../ui/utils/LanguageViewModel"
-import { elementIdPart, isSameId } from "@tutao/meta"
+import { elementIdPart, isSameSingleId } from "@tutao/meta"
 import { CredentialEncryptionMode } from "@tutao/app-env"
 import { assert, assertNotNull, base64ToBase64Url, getFirstOrThrow, groupBy, neverNull, promiseMap } from "@tutao/utils"
 import { log } from "../DesktopLog"
@@ -14,7 +14,7 @@ import { SseStorage } from "./SseStorage.js"
 import { FetchImpl } from "../net/NetAgent"
 import { ClientOnlyTypeModelResolver, EncryptedParsedInstance, InstancePipeline } from "@tutao/instance-pipeline"
 import { handleRestError } from "@tutao/rest-client/error"
-import { IdTupleWrapper, NotificationInfo, NotificationInfoParams } from "@tutao/entities/sys"
+import { IdTupleWrapper, NotificationInfoParams } from "@tutao/entities/sys"
 import { MailTypeRef, tutanotaModelInfo } from "@tutao/entities/tutanota"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 
@@ -137,7 +137,7 @@ class TutaNotificationHandler {
 			}
 
 			const mailTypeModel = await this.nativeInstancePipeline.typeModelResolver.resolveServerTypeReference(MailTypeRef)
-			const mailResponses = IncomingServerJson.expectMultipleInstance(await response.json(), mailTypeModel)
+			const mailResponses = IncomingServerJson.expectMultipleInstance(await response.text(), mailTypeModel)
 			const notificationParsedInstances = await promiseMap(
 				mailResponses,
 				async (json) => await this.nativeInstancePipeline.typeMapper.parseServerJson(json),
@@ -149,7 +149,7 @@ class TutaNotificationHandler {
 						const notificationInfo = notificationInfos.filter((info) => {
 							const mailElementId = assertNotNull(info.mailId).listElementId
 							const alarmElementId = elementIdPart(encParsedInstance.getAttributeByName("_id").asIdTuple())
-							return isSameId(mailElementId, alarmElementId)
+							return isSameSingleId(mailElementId, alarmElementId)
 						})[0]
 						return this.encryptedMailToMailMetaData(encParsedInstance, notificationInfo)
 					}),

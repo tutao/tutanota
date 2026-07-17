@@ -1,27 +1,31 @@
 import {
+	AnyEntityId,
 	BlobElementEntity,
 	clone,
 	compareNewestFirst,
 	compareOldestFirst,
 	ElementEntity,
 	elementIdPart,
+	elementIdToId,
 	firstBiggerThanSecond,
 	getElementId,
 	getIdOfInstance,
 	getListId,
 	getServerIdEncodingForType,
+	idToElementId,
 	isSameId,
 	isSameTypeRef,
 	ListElementEntity,
 	listIdPart,
-	SomeEntity,
+	PersistentEntity,
+	stringifyId,
 	timestampToGeneratedId,
 	Type,
 	TypeRef,
 } from "../../../../../src/platform-kit/meta"
 import { _verifyType, LoggedInUserProvider, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
-import { downcast, Nullable } from "../../../../../src/platform-kit/utils"
+import { downcast, isNotNull, Nullable } from "../../../../../src/platform-kit/utils"
 import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { EntityRestClient } from "../../../../../src/platform-kit/network/EntityRestClient"
 import { object } from "testdouble"
@@ -46,8 +50,8 @@ export class EntityRestClientMock extends EntityRestClient {
 	_blobEntities: Record<Id, Record<Id, BlobElementEntity | Error>> = {}
 	_lastIdTimestamp: number
 	private _typeModelResolver: TypeModelResolver
-	private updatedInstances: SomeEntity[] = []
-	private createdInstances: SomeEntity[] = []
+	private updatedInstances: PersistentEntity[] = []
+	private createdInstances: PersistentEntity[] = []
 	private idGenerator = new IdGenerator(timestampToGeneratedId(1))
 
 	constructor() {
@@ -72,7 +76,7 @@ export class EntityRestClientMock extends EntityRestClient {
 	}
 
 	addElementInstances(...instances: Array<ElementEntity>) {
-		for (const instance of instances) this._entities[instance._id] = instance
+		for (const instance of instances) this._entities[elementIdToId(instance._id)] = instance
 	}
 
 	addListInstances(...instances: Array<ListElementEntity>) {
@@ -133,27 +137,22 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	async load<T extends SomeEntity>(
+	async load<T extends PersistentEntity>(
 		_typeRef: TypeRef<T>,
 		id: T["_id"],
 		_opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<T> {
-		if (id instanceof Array && id.length === 2) {
-			// list element request
-			const listId = id[0]
-			const elementId = id[1]
-
+		const [listId, elementId] = id
+		if (isNotNull(listId)) {
 			const listElement = this._getListEntry(listId, elementId)
 
 			if (listElement == null) {
 				throw new restError.NotFoundError(`List element ${listId} ${elementId} not found`)
 			}
-			return downcast(listElement)
-		} else if (typeof id === "string") {
-			//element request
-			return this._handleMockElement(this._entities[id], id)
+			return downcast<T>(listElement)
 		} else {
-			throw new Error("Illegal Id for ET: " + (id as any))
+			//element request
+			return this._handleMockElement(this._entities[elementIdToId(id)], id)
 		}
 	}
 
@@ -178,7 +177,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		return filteredIds.map((id) => this._handleMockElement(entriesForListId[id], id))
 	}
 
-	async loadMultiple<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null | undefined, elementIds: Array<Id>): Promise<Array<T>> {
+	async loadMultiple<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null | undefined, elementIds: Array<Id>): Promise<Array<T>> {
 		const lid = listId
 
 		if (lid) {
@@ -200,7 +199,7 @@ export class EntityRestClientMock extends EntityRestClient {
 			return elementIds
 				.map((id) => {
 					try {
-						return this._handleMockElement(this._entities[id], id)
+						return this._handleMockElement(this._entities[id], idToElementId(id))
 					} catch (e) {
 						if (e instanceof restError.NotFoundError) {
 							return null
@@ -213,7 +212,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	async erase<T extends SomeEntity>(instance: T): Promise<void> {
+	async erase<T extends PersistentEntity>(instance: T): Promise<void> {
 		const typeModel = await this._typeModelResolver.resolveClientTypeReference(instance._type)
 		_verifyType(typeModel)
 
@@ -223,7 +222,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		return Promise.resolve()
 	}
 
-	async eraseMultiple<T extends SomeEntity>(listId: Id, instances: Array<T>): Promise<void> {
+	async eraseMultiple<T extends PersistentEntity>(listId: Id, instances: Array<T>): Promise<void> {
 		if (instances.length === 0) {
 			return
 		}
@@ -238,15 +237,15 @@ export class EntityRestClientMock extends EntityRestClient {
 		return Promise.resolve()
 	}
 
-	async setup<T extends SomeEntity>(listId: Nullable<Id>, instance: T, extraHeaders: Nullable<Dict>): Promise<Id> {
+	async setup<T extends PersistentEntity>(listId: Nullable<Id>, instance: T, extraHeaders: Nullable<Dict>): Promise<Id> {
 		const populatedInstance = clone(instance)
 		const elementId = this.idGenerator.getNext()
-		populatedInstance._id = listId == null ? elementId : [listId, elementId]
+		populatedInstance._id = [listId, elementId]
 		this.createdInstances.push(populatedInstance)
 		return elementId
 	}
 
-	getCreatedInstance<T extends SomeEntity>(type: TypeRef<T>): T {
+	getCreatedInstance<T extends PersistentEntity>(type: TypeRef<T>): T {
 		const createdInstance = this.createdInstances.findLast((updated) => isSameTypeRef(type, updated._type))
 		if (createdInstance == null) {
 			throw new Error(`Did not find created instance for ${type}`)
@@ -254,15 +253,15 @@ export class EntityRestClientMock extends EntityRestClient {
 		return createdInstance as T
 	}
 
-	setupMultiple<T extends SomeEntity>(listId: Id | null | undefined, instances: Array<T>): Promise<Array<Id>> {
+	setupMultiple<T extends PersistentEntity>(listId: Id | null | undefined, instances: Array<T>): Promise<Array<Id>> {
 		return Promise.reject("Illegal method: setupMultiple")
 	}
 
-	async update<T extends SomeEntity>(instance: T): Promise<void> {
+	async update<T extends PersistentEntity>(instance: T): Promise<void> {
 		this.updatedInstances.push(clone(instance))
 	}
 
-	getUpdatedInstance<T extends SomeEntity>(instance: T): T {
+	getUpdatedInstance<T extends PersistentEntity>(instance: T): T {
 		const updatedInstance = this.updatedInstances.findLast((updated) => isSameTypeRef(instance._type, updated._type) && isSameId(instance._id, updated._id))
 		if (updatedInstance == null) {
 			throw new Error(`Did not find updated instance for ${instance._type} ${instance._id}`)
@@ -294,13 +293,13 @@ export class EntityRestClientMock extends EntityRestClient {
 		}
 	}
 
-	_handleMockElement(element: any, id: Id | IdTuple): any {
+	_handleMockElement(element: any, id: AnyEntityId): any {
 		if (element instanceof Error) {
 			throw element
 		} else if (element != null) {
 			return element
 		} else {
-			throw new restError.NotFoundError(`element with id ${id.toString()} does not exists`)
+			throw new restError.NotFoundError(`element with id ${stringifyId(id)} does not exists`)
 		}
 	}
 }

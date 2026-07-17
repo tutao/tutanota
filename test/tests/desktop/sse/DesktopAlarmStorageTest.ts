@@ -110,7 +110,7 @@ o.spec("DesktopAlarmStorageTest", function () {
 		verify(confMock.setVar(DesktopConfigKey.scheduledAlarms, expectedAlarmsCaptor.capture()))
 		const savedAlarm = IncomingServerJson.expectSingleInstance(expectedAlarmsCaptor.values![0][0], alarmNotificationModel)
 		let decryptedSavedAlarmNotification = await instancePipeline.decryptAndMap<AlarmNotification>(savedAlarm, notificationSessionKey)
-		o(alarmNotification._id).equals(decryptedSavedAlarmNotification._id)
+		o(alarmNotification._id).deepEquals(decryptedSavedAlarmNotification._id)
 		o(hasError(decryptedSavedAlarmNotification)).equals(false)
 
 		const newNotificationSessionKey = aes256RandomKey()
@@ -151,8 +151,8 @@ o.spec("DesktopAlarmStorageTest", function () {
 		// so we wont find the previously saved alarm and will only get `newAlarmNotification` and not `alarmNotification`
 		const newDecryptedSavedAlarmNotification = await instancePipeline.decryptAndMap<AlarmNotification>(secondAlarmJson, newNotificationSessionKey)
 
-		o(alarmNotification._id).equals(oldDecryptedSavedAlarmNotification._id)
-		o(newAlarmNotification._id).equals(newDecryptedSavedAlarmNotification._id)
+		o(alarmNotification._id).deepEquals(oldDecryptedSavedAlarmNotification._id)
+		o(newAlarmNotification._id).deepEquals(newDecryptedSavedAlarmNotification._id)
 
 		const oldAlarmHasErrors = hasError(oldDecryptedSavedAlarmNotification)
 		const newAlarmHasErrors = hasError(newDecryptedSavedAlarmNotification)

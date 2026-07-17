@@ -55,6 +55,7 @@ import { getUserGroupMemberships } from "../../../platform-kit/network/GroupUtil
 import { getByAbbreviation } from "../gui/CountryList"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { PreconditionFailedError, TooManyRequestsError } from "@tutao/rest-client/error"
+import { elementIdToId } from "@tutao/meta"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -201,7 +202,9 @@ export async function showSwitchDialog({
 async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInfo: CurrentPlanInfo) {
 	if (isIOSApp()) {
 		// We want the user to disable renewal in AppStore before they try to downgrade on our side
-		const ownership = await locator.mobilePaymentsFacade.queryAppStoreSubscriptionOwnership(base64ToUint8Array(base64ExtToBase64(customer._id)))
+		const ownership = await locator.mobilePaymentsFacade.queryAppStoreSubscriptionOwnership(
+			base64ToUint8Array(base64ExtToBase64(elementIdToId(customer._id))),
+		)
 		if (ownership === MobilePaymentSubscriptionOwnership.Owner && (await locator.mobilePaymentsFacade.isAppStoreRenewalEnabled())) {
 			await locator.mobilePaymentsFacade.showSubscriptionConfigView()
 
@@ -459,7 +462,7 @@ export async function tryDowngradePremiumToFree(customer: Customer, currentPlanT
 	const switchAccountTypeData = createSwitchAccountTypePostIn({
 		accountType: AccountType.FREE,
 		date: Const.CURRENT_DATE,
-		customer: customer._id,
+		customer: elementIdToId(customer._id),
 		specialPriceUserSingle: null,
 		referralCode: null,
 		plan: PlanType.Free,
@@ -538,7 +541,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 			plan: targetSubscription,
 			date: Const.CURRENT_DATE,
 			referralCode: null,
-			customer: customer._id,
+			customer: elementIdToId(customer._id),
 			specialPriceUserSingle: null,
 			surveyData: null,
 			app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,

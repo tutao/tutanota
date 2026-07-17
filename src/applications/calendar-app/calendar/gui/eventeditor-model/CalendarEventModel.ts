@@ -77,18 +77,7 @@ import {
 	incrementSequence,
 	parseAlarmInterval,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import {
-	arrayEqualsWithPredicate,
-	assertNotNull, base64ExtToBase64,
-	base64ToBase64Ext,
-	base64ToUint8Array,
-	cleanMailAddress,
-	identity,
-	lazy,
-	Require,
-	uint8ArrayToBase64,
-	uint8arrayToBase64UrlCustomId,
-} from "@tutao/utils"
+import { arrayEqualsWithPredicate, assertNotNull, cleanMailAddress, identity, lazy, Require } from "@tutao/utils"
 import { makeEmptyCalendarEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { assertEventValidity, CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
@@ -113,7 +102,7 @@ import { getEventType } from "../CalendarGuiUtils.js"
 import { getDefaultSender } from "../../../../common/mailFunctionality/SharedMailUtils.js"
 import { CalendarInviteHandler } from "../../view/CalendarInvites"
 import { NotFoundError, PayloadTooLargeError } from "@tutao/rest-client/error"
-import { base64UrlIdToUint8array, clone, IDENTITY_FIELDS, MAIL_SET_ENTRY_ID_BYTE_LENGTH, SomeEntity, TECHNICAL_FIELDS } from "@tutao/meta"
+import { clone, IDENTITY_FIELDS, TECHNICAL_FIELDS } from "@tutao/meta"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {

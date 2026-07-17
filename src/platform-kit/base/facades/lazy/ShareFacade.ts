@@ -1,4 +1,3 @@
-import { isSameTypeRef } from "@tutao/meta"
 import type { ShareCapability } from "@tutao/app-env"
 import { assertWorkerOrNode } from "@tutao/app-env"
 import { neverNull } from "@tutao/utils"
@@ -28,10 +27,6 @@ import {
 	GroupInvitationPostData,
 	GroupInvitationPostReturn,
 	GroupInvitationService,
-	InternalRecipientKeyData,
-	InternalRecipientKeyDataTypeRef,
-	UnreadMailStateService,
-	UserAccountService,
 } from "@tutao/entities/tutanota"
 import { GroupInfo, GroupInfoTypeRef, ReceivedGroupInvitation } from "@tutao/entities/sys"
 

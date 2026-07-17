@@ -17,7 +17,7 @@ import { CalendarEvent, CalendarGroupRoot } from "@tutao/entities/tutanota"
 import { EventSeriesResolver } from "./EventSeriesResolver"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { DateTime } from "luxon"
-import { clone } from "@tutao/meta"
+import { clone, elementIdToId } from "@tutao/meta"
 import { EndType } from "@tutao/app-env"
 import { errorsToString } from "../../../../platform-kit/utils/Utils"
 
@@ -136,7 +136,7 @@ export class CalendarImporter {
 				maxOperations: eventsForCreationTuples.length,
 			}
 
-			await this.prepareProgenitorsAndAlteredInstances(eventsForCreationTuples, operation, calendarGroupRoot._id, progressData)
+			await this.prepareProgenitorsAndAlteredInstances(eventsForCreationTuples, operation, elementIdToId(calendarGroupRoot._id), progressData)
 			const prioritizedEvents = this.prioritizeRelevantEventsForImport(eventsForCreationTuples)
 
 			const result = await this.calendarModel.createCalendarEvents(prioritizedEvents, operation.id)
@@ -288,9 +288,9 @@ function prepareEventForImport(
 		alarmIdentifier: generateEventElementId(Date.now()),
 	}))
 
-	const preparedEvent = {
+	const preparedEvent: CalendarEvent = {
 		...calendarEvent,
-		_ownerGroup: calendarGroupRoot._id,
+		_ownerGroup: elementIdToId(calendarGroupRoot._id),
 	}
 
 	assignEventId(preparedEvent, zone, calendarGroupRoot)

@@ -24,7 +24,7 @@ import { DropDownSelectorNew, DropDownSelectorNewAttrs } from "../../../../ui/ba
 import { getFolderName } from "../../mail/model/MailUtils"
 import { getFolderIconByType } from "../../mail/view/MailGuiUtils"
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
-import { elementIdPart, GENERATED_MIN_ID, getElementId } from "@tutao/meta"
+import { elementIdPart, elementIdToId, GENERATED_MIN_ID, getElementId } from "@tutao/meta"
 import { showEditFolderDialog } from "../../mail/view/EditFolderDialog"
 import { Card } from "../../../../ui/base/Card"
 import { MailSetMapping } from "../../workerUtils/imapimport/ImapImporter"
@@ -459,13 +459,10 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 					"migrationCreatingMissingFolders_msg",
 					promiseMap(data.imapMailboxes, async (imapMailbox) => {
 						if (!data.imapMailboxesToTutaMailSets?.has(imapMailbox.path)) {
-							const newFolderId = await mailLocator.mailFacade.createMailFolder(
-								imapMailbox.name ?? "",
-								null,
-								assertNotNull(mailLocator.getImapMailImportController().selectedMailBoxDetail).mailGroup._id,
-							)
+							const ownerGroupId = assertNotNull(mailLocator.getImapMailImportController().selectedMailBoxDetail).mailGroup._id
+							const newFolderId = await mailLocator.mailFacade.createMailFolder(imapMailbox.name ?? "", null, elementIdToId(ownerGroupId))
 							// loading here to populate the cache so that the folder system will have it
-							const newFolder = await mailLocator.entityClient.load(MailSetTypeRef, newFolderId)
+							const _newFolder = await mailLocator.entityClient.load(MailSetTypeRef, newFolderId)
 							data.imapMailboxesToTutaMailSets?.set(imapMailbox.path, {
 								mailSetElementId: elementIdPart(newFolderId),
 								shouldSync: true,

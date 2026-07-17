@@ -31,6 +31,7 @@ import {
 	EntityIdEncoding,
 	getElementId,
 	isSameId,
+	isSameSingleId,
 	listIdPart,
 	OperationType,
 } from "../../../../platform-kit/meta"
@@ -122,20 +123,20 @@ export class ConversationListModel implements MailSetListModel {
 	async handleEntityUpdate(update: EntityUpdateData) {
 		if (isUpdateForTypeRef(MailSetTypeRef, update)) {
 			if (update.operation === OperationType.UPDATE) {
-				this.handleMailFolderUpdate([update.instanceListId, update.instanceId])
+				this.handleMailFolderUpdate([assertNotNull(update.instanceListId), update.instanceId])
 			}
-		} else if (isUpdateForTypeRef(MailSetEntryTypeRef, update) && isSameId(this.mailSet.entries, update.instanceListId)) {
+		} else if (isUpdateForTypeRef(MailSetEntryTypeRef, update) && isSameSingleId(this.mailSet.entries, update.instanceListId)) {
 			if (update.operation === OperationType.DELETE) {
 				await this.handleMailSetEntryDeletion(update)
 			} else if (update.operation === OperationType.CREATE) {
-				await this.handleMailSetEntryCreation([update.instanceListId, update.instanceId])
+				await this.handleMailSetEntryCreation([assertNotNull(update.instanceListId), update.instanceId])
 			}
 		} else if (isUpdateForTypeRef(MailTypeRef, update)) {
 			// We only need to handle updates for Mail.
 			// Mail deletion will also be handled in MailSetEntry delete/create.
 			const mailItem = this._getLoadedMail(update.instanceId)
 			if (mailItem != null && (update.operation === OperationType.UPDATE || update.operation === OperationType.CREATE)) {
-				await this.handleMailUpdate([update.instanceListId, update.instanceId], mailItem)
+				await this.handleMailUpdate([assertNotNull(update.instanceListId), update.instanceId], mailItem)
 			}
 		}
 	}
@@ -316,7 +317,7 @@ export class ConversationListModel implements MailSetListModel {
 
 			// The mail is not the latest in the conversation. This is a problem. To fix this, we use this fun override
 			// variable so that the conversation can be selected, but then the mail we wanted is actually displayed.
-			if (!isSameId(conversation.getMainMailId(), selectedMailId)) {
+			if (!isSameSingleId(conversation.getMainMailId(), selectedMailId)) {
 				this.olderDisplayedSelectedMailOverride = selectedMailId
 			}
 

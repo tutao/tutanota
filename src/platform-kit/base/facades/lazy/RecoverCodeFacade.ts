@@ -20,6 +20,7 @@ import { KeyLoaderFacade } from "../../base-crypto/KeyLoaderFacade.js"
 import { createRecoverCode, RecoverCodeTypeRef, User } from "@tutao/entities/sys"
 import { asKdfType } from "../../base-crypto/Constants"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../instance-pipeline/RestClientOptions"
+import { idToElementId } from "@tutao/meta"
 
 assertWorkerOrNode()
 
@@ -78,7 +79,10 @@ export class RecoverCodeFacade {
 			authVerifier: createAuthVerifierAsBase64Url(passphraseKey),
 		}
 
-		const recoveryCodeEntity = await this.entityClient.load(RecoverCodeTypeRef, recoverCodeId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, extraHeaders })
+		const recoveryCodeEntity = await this.entityClient.load(RecoverCodeTypeRef, idToElementId(recoverCodeId), {
+			...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+			extraHeaders,
+		})
 		const userGroupKey = await this.keyLoaderFacade.loadSymUserGroupKey(cryptoUtils.parseKeyVersion(recoveryCodeEntity.userKeyVersion))
 		return decryptKey(userGroupKey, recoveryCodeEntity.userEncRecoverCode, AesKeyLength.Aes256)
 	}

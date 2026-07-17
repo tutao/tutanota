@@ -11,7 +11,7 @@ import { ContactSearchFacade } from "../../../src/applications/mail-app/workerUt
 import { UserController } from "../../../src/applications/common/api/main/UserController"
 
 import { DbError } from "../../../src/applications/common/api/common/error/DbError"
-import { timestampToGeneratedId } from "../../../src/platform-kit/meta"
+import { idToElementId, timestampToGeneratedId } from "../../../src/platform-kit/meta"
 import { ContactListTypeRef, ContactMailAddressTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
 import { TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
 
@@ -67,7 +67,7 @@ o.spec("ContactModel", () => {
 				}),
 			)
 			const contactList = createTestEntity(ContactListTypeRef, {
-				_id: contactListEntityId,
+				_id: idToElementId(contactListEntityId),
 				contacts: contactListId,
 			})
 			entityMock.addElementInstances(contactList)

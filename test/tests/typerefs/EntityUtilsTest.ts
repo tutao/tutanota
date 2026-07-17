@@ -7,6 +7,7 @@ import {
 	GENERATED_MIN_ID,
 	generatedIdToTimestamp,
 	hasError,
+	idToElementId,
 	timestampToGeneratedId,
 	timestampToHexGeneratedId,
 } from "../../../src/platform-kit/meta"

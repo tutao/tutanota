@@ -38,6 +38,7 @@ import {
 } from "@tutao/entities/tutanota"
 import { CacheManager } from "../../base-crypto/persistence/CacheManager"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../instance-pipeline/RestClientOptions"
+import { elementIdToId, idToElementId } from "@tutao/meta"
 
 assertWorkerOrNode()
 
@@ -56,7 +57,7 @@ export class GroupManagementFacade {
 	) {}
 
 	async readUsedSharedMailGroupStorage(group: Group): Promise<number> {
-		return this.counters.readCounterValue(CounterType.UserStorageLegacy, neverNull(group.customer), group._id)
+		return this.counters.readCounterValue(CounterType.UserStorageLegacy, neverNull(group.customer), elementIdToId(group._id))
 	}
 
 	async createSharedMailGroup(name: string, mailAddress: string): Promise<void> {
@@ -108,7 +109,7 @@ export class GroupManagementFacade {
 	async generateUserAreaGroupData(name: string): Promise<UserAreaGroupData> {
 		// adminGroup Is not set when generating new customer, then the admin group will be the admin of the customer
 		// adminGroupKey Is not set when generating calendar as normal user
-		const userGroup = await this.entityClient.load(GroupTypeRef, this.userFacade.getUserGroupId())
+		const userGroup = await this.entityClient.load(GroupTypeRef, idToElementId(this.userFacade.getUserGroupId()))
 		const adminGroupId = neverNull(userGroup.admin) // user group has always admin group
 
 		let adminGroupKey: VersionedKey | null = null
@@ -153,7 +154,7 @@ export class GroupManagementFacade {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
 			sessionKey: this.cryptoWrapper.aes256RandomKey(),
 		}) // we expect a session key to be defined as the entity is marked encrypted
-		const group = await this.entityClient.load(GroupTypeRef, postGroupData.group)
+		const group = await this.entityClient.load(GroupTypeRef, idToElementId(postGroupData.group))
 		const user = await this.cacheManagementFacade.reloadUser()
 
 		return { user, group }
@@ -184,7 +185,7 @@ export class GroupManagementFacade {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
 			sessionKey: this.cryptoWrapper.aes256RandomKey(),
 		}) // we expect a session key to be defined as the entity is marked encrypted
-		const group = await this.entityClient.load(GroupTypeRef, postGroupData.group)
+		const group = await this.entityClient.load(GroupTypeRef, idToElementId(postGroupData.group))
 		await this.cacheManagementFacade.reloadUser()
 
 		return group
@@ -192,7 +193,7 @@ export class GroupManagementFacade {
 
 	async deleteContactListGroup(groupRoot: ContactListGroupRoot) {
 		const serviceData = createUserAreaGroupDeleteData({
-			group: groupRoot._id,
+			group: elementIdToId(groupRoot._id),
 		})
 		await this.serviceExecutor.delete(ContactListGroupService, serviceData, null)
 	}
@@ -235,7 +236,7 @@ export class GroupManagementFacade {
 		const customerId = this.userFacade.getUser()?.customer
 		if (!customerId) return [] // external users have no team groups
 
-		const customer = await this.entityClient.load(CustomerTypeRef, customerId)
+		const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(customerId))
 		const teamGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.teamGroups)
 		return teamGroupInfos.map((groupInfo) => groupInfo.group)
 	}
@@ -245,7 +246,7 @@ export class GroupManagementFacade {
 		const groupKey = await this.adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(groupId)
 		const symEncGKey = _encryptKeyWithVersionedKey(userGroupKey, groupKey.object)
 		const data = createMembershipAddData({
-			user: user._id,
+			user: elementIdToId(user._id),
 			group: groupId,
 			symEncGKey: symEncGKey.key,
 			groupKeyVersion: String(groupKey.version),
@@ -264,7 +265,7 @@ export class GroupManagementFacade {
 
 	async deactivateGroup(group: Group, restore: boolean): Promise<void> {
 		const data = createDeleteGroupData({
-			group: group._id,
+			group: elementIdToId(group._id),
 			restore,
 		})
 

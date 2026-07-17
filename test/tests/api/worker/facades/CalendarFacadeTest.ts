@@ -12,7 +12,7 @@ import {
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import { DefaultEntityRestCache } from "../../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
 import { assertNotNull, downcast, first, stringToUtf8Uint8Array, uint8arrayToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
-import { clone, elementIdPart, getElementId, getLetId, getListId } from "../../../../../src/platform-kit/meta"
+import { clone, ElementId, elementIdPart, elementIdToId, getElementId, getLetId, getListId, idToElementId } from "../../../../../src/platform-kit/meta"
 import { SetupMultipleError } from "../../../../../src/platform-kit/network/error/SetupMultipleError.js"
 import { GroupManagementFacade } from "../../../../../src/platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import { matchers, object, verify, when } from "testdouble"
@@ -129,7 +129,7 @@ o.spec("CalendarFacadeTest", function () {
 			userGroup: downcast({
 				group: "Id",
 			}),
-			_id: "userList",
+			_id: idToElementId("userList"),
 			memberships: [
 				createTestEntity(GroupMembershipTypeRef, {
 					group: PRIVATE_CALENDAR_ID,
@@ -599,16 +599,16 @@ o.spec("CalendarFacadeTest", function () {
 			calendarFacade = new CalendarFacade(userFacade, object(), object(), noncachingEntityClient, object(), object(), object(), alarmFacadeMock)
 
 			privateCalendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef, {
-				_id: PRIVATE_CALENDAR_ID,
+				_id: idToElementId(PRIVATE_CALENDAR_ID),
 				index: createTestEntity(CalendarEventIndexRefTypeRef),
 			})
 
 			subscriptionGroupRoot = createTestEntity(CalendarGroupRootTypeRef, {
-				_id: SUBSCRIPTION_CALENDAR_ID,
+				_id: idToElementId(SUBSCRIPTION_CALENDAR_ID),
 			})
 
-			when(noncachingEntityClient.load(CalendarGroupRootTypeRef, PRIVATE_CALENDAR_ID)).thenResolve(privateCalendarGroupRoot)
-			when(noncachingEntityClient.load(CalendarGroupRootTypeRef, SUBSCRIPTION_CALENDAR_ID)).thenResolve(subscriptionGroupRoot)
+			when(noncachingEntityClient.load(CalendarGroupRootTypeRef, idToElementId(PRIVATE_CALENDAR_ID))).thenResolve(privateCalendarGroupRoot)
+			when(noncachingEntityClient.load(CalendarGroupRootTypeRef, idToElementId(SUBSCRIPTION_CALENDAR_ID))).thenResolve(subscriptionGroupRoot)
 			when(noncachingEntityClient.load(UserSettingsGroupRootTypeRef, matchers.anything())).thenResolve(
 				createTestEntity(UserSettingsGroupRootTypeRef, {
 					groupSettings: [
@@ -635,7 +635,7 @@ o.spec("CalendarFacadeTest", function () {
 				privateAlteredInstance.uid = privateCalendarEventSeriesProgenitor.uid
 
 				testUidIndex = createTestEntity(CalendarEventUidIndexTypeRef, {
-					_ownerGroup: privateCalendarGroupRoot._id,
+					_ownerGroup: elementIdToId(privateCalendarGroupRoot._id),
 					progenitor: privateCalendarEventSeriesProgenitor._id,
 					alteredInstances: [privateAlteredInstance._id],
 				})
@@ -679,7 +679,7 @@ o.spec("CalendarFacadeTest", function () {
 			o.test("should fetch and return all events with the given uid from the provided calendar", async function () {
 				// Arrange
 				const expectedUidIndexEntry: ResolvedUidIndexEntry = {
-					ownerGroup: privateCalendarGroupRoot._id,
+					ownerGroup: elementIdToId(privateCalendarGroupRoot._id),
 					progenitor: privateCalendarEventSeriesProgenitor as CalendarEventProgenitor,
 					alteredInstances: [privateAlteredInstance],
 				}
@@ -695,8 +695,8 @@ o.spec("CalendarFacadeTest", function () {
 				const groupsCaptor = matchers.captor()
 				verify(noncachingEntityClient.load(CalendarGroupRootTypeRef, groupsCaptor.capture()), { times: 1 })
 
-				const groupId: Id = groupsCaptor.value
-				o.check(groupId).equals(PRIVATE_CALENDAR_ID)
+				const groupId: ElementId = groupsCaptor.value
+				o.check(groupId).deepEquals(idToElementId(PRIVATE_CALENDAR_ID))
 
 				o.check(fetchedUidIndexEntry).deepEquals(expectedUidIndexEntry)
 			})

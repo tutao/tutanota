@@ -3,8 +3,8 @@ import {
 	Cardinality,
 	getAssociationReprType,
 	IDENTITY_FIELDS,
-	isSameId,
 	isSameIdTuple,
+	isSameSingleId,
 	isSameTypeRef,
 	ValueType,
 	ValueTypeEnum,
@@ -50,7 +50,7 @@ export class PatchGenerator {
 			case ValueType.CustomId:
 			case ValueType.GeneratedId:
 				if (originalParsedValue.isString()) {
-					return !isSameId(originalParsedValue.asId(), currentParsedValue.asId())
+					return !isSameSingleId(originalParsedValue.asId(), currentParsedValue.asId())
 				} else if (typeof originalParsedValue === "object") {
 					// FIXME: can value be an IdTuple?
 					throw new ProgrammingError("// ")
@@ -151,12 +151,13 @@ export class PatchGenerator {
 				const commonAggregateIds = commonItems.map((instance) => instance.getAttributeByName("_id").asId())
 				for (const commonAggregateId of commonAggregateIds) {
 					const commonItemOriginal =
-						originalAggregatedEntities.find((instance) => isSameId(instance.getAttributeByName("_id").asId(), commonAggregateId)) ?? null
+						originalAggregatedEntities.find((instance) => isSameSingleId(instance.getAttributeByName("_id").asId(), commonAggregateId)) ?? null
 					const commonItemModified =
-						modifiedAggregatedEntities.find((instance) => isSameId(instance.getAttributeByName("_id").asId(), commonAggregateId)) ?? null
+						modifiedAggregatedEntities.find((instance) => isSameSingleId(instance.getAttributeByName("_id").asId(), commonAggregateId)) ?? null
 
 					const commonItemModifiedEncrypted =
-						modifiedAggregatedEncryptedEntities.find((instance) => isSameId(instance.getAttributeByName("_id").asId(), commonAggregateId)) ?? null
+						modifiedAggregatedEncryptedEntities.find((instance) => isSameSingleId(instance.getAttributeByName("_id").asId(), commonAggregateId)) ??
+						null
 					const fullPath = `${attributeId.toString()}/${commonAggregateId}/`
 					const items = (
 						await this.computePatches(
@@ -213,8 +214,8 @@ export class PatchGenerator {
 				if (associationReprType === AssociationReprType.SingleId) {
 					const modifiedIds = modifiedInstance.getAttributeByIdOrNull(attributeId)?.asIdList() ?? []
 					const originalIds = originalInstance.getAttributeByIdOrNull(attributeId)?.asIdList() ?? []
-					const addedItems = modifiedIds.filter((modifiedId) => !originalIds.some((originalId) => isSameId(originalId, modifiedId)))
-					const removedItems = originalIds.filter((originalId) => !modifiedIds.some((modifiedId) => isSameId(originalId, modifiedId)))
+					const addedItems = modifiedIds.filter((modifiedId) => !originalIds.some((originalId) => isSameSingleId(originalId, modifiedId)))
+					const removedItems = originalIds.filter((originalId) => !modifiedIds.some((modifiedId) => isSameSingleId(originalId, modifiedId)))
 
 					if (modelAssociation.cardinality === Cardinality.Any) {
 						addedItemsJson = isNotEmpty(addedItems) ? OutgoingServerJson.stringifyIdList(addedItems) : null
@@ -262,7 +263,7 @@ export class PatchGenerator {
 			const modifiedAggregatedId = modifiedAggregatedEntity.getAttributeByName("_id").asId()
 			const existedInOriginalAggregate = originalAggregates.some((originalAggregatedEntity) => {
 				const originalAggregatedId = originalAggregatedEntity.getAttributeByName("_id").asId()
-				return isSameId(modifiedAggregatedId, originalAggregatedId)
+				return isSameSingleId(modifiedAggregatedId, originalAggregatedId)
 			})
 			return !existedInOriginalAggregate
 		})
@@ -271,7 +272,7 @@ export class PatchGenerator {
 			const originalAggregatedId = originalAggregatedEntity.getAttributeByName("_id").asId()
 			const existsInModifiedAggregate = modifiedEncryptedAggregates.some((modifiedAggregatedEntity) => {
 				const modifiedAggregatedId = modifiedAggregatedEntity.getAttributeByName("_id").asId()
-				return isSameId(modifiedAggregatedId, originalAggregatedId)
+				return isSameSingleId(modifiedAggregatedId, originalAggregatedId)
 			})
 			return !existsInModifiedAggregate
 		})
@@ -280,7 +281,7 @@ export class PatchGenerator {
 			const originalAggregatedId = originalAggregate.getAttributeByName("_id").asId()
 			const aggregateWasRemoved = removedItems.some((removedAggregate) => {
 				const removeAggregateId = removedAggregate.getAttributeByName("_id").asId()
-				return isSameId(removeAggregateId, originalAggregatedId)
+				return isSameSingleId(removeAggregateId, originalAggregatedId)
 			})
 			return !aggregateWasRemoved
 		})

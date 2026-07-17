@@ -1,4 +1,4 @@
-import { OperationType } from "@tutao/meta"
+import { idToElementId, OperationType } from "@tutao/meta"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { CustomerPropertiesTypeRef, CustomerServerProperties, CustomerServerPropertiesTypeRef, CustomerTypeRef } from "@tutao/entities/sys"
 import m, { Children } from "mithril"
@@ -19,8 +19,8 @@ export class MobileGlobalSettingsViewer implements UpdatableSettingsViewer {
 
 	private readonly customerProperties = new LazyLoaded(() =>
 		this.entityClient
-			.load(CustomerTypeRef, neverNull(this.logins.getUserController().user.customer))
-			.then((customer) => this.entityClient.load(CustomerPropertiesTypeRef, neverNull(customer.properties))),
+			.load(CustomerTypeRef, idToElementId(neverNull(this.logins.getUserController().user.customer)))
+			.then((customer) => this.entityClient.load(CustomerPropertiesTypeRef, idToElementId(neverNull(customer.properties)))),
 	)
 
 	constructor(

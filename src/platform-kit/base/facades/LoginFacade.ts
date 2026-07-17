@@ -15,7 +15,7 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
-import { GENERATED_ID_BYTES_LENGTH, isSameId } from "../../meta"
+import { elementIdToId, GENERATED_ID_BYTES_LENGTH, idToElementId, isSameId } from "../../meta"
 import { assertWorkerOrNode, CancelledError, Const, DeactivationReason, ProgrammingError, RolloutType, SessionType } from "@tutao/app-env"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "../../rest-client/types"
@@ -540,7 +540,7 @@ export class LoginFacade implements SessionTypeProvider {
 			// synchronous login in order to load all the necessary keys and such
 			// the next time they log in they will be able to do asynchronous login
 			if (cacheInfo?.isPersistent && !cacheInfo.isNewOfflineDb) {
-				const user = await this.entityClient.load(UserTypeRef, credentials.userId)
+				const user = await this.entityClient.load(UserTypeRef, idToElementId(credentials.userId))
 				this.userFacade.setUser(user)
 
 				// Before offline login was enabled (in 3.96.4) we didn't use cache for the login process, only afterward.
@@ -756,7 +756,7 @@ export class LoginFacade implements SessionTypeProvider {
 		const createSessionReturn = await this.serviceExecutor.post(SessionService, sessionData, null) // Don't pass email address to avoid proposing to reset second factor when we're resetting password
 
 		const { userId, accessToken } = await this.waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, null)
-		const user = await entityClient.load(UserTypeRef, userId, {
+		const user = await entityClient.load(UserTypeRef, idToElementId(userId), {
 			...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 			extraHeaders: {
 				accessToken,
@@ -770,7 +770,7 @@ export class LoginFacade implements SessionTypeProvider {
 			recoverCodeVerifier: recoverCodeVerifierBase64,
 		}
 
-		const recoverCodeData = await entityClient.load(RecoverCodeTypeRef, user.auth.recoverCode, {
+		const recoverCodeData = await entityClient.load(RecoverCodeTypeRef, idToElementId(user.auth.recoverCode), {
 			...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 			extraHeaders: recoverCodeExtraHeaders,
 		})
@@ -1062,7 +1062,7 @@ export class LoginFacade implements SessionTypeProvider {
 		// - if it's a partial login
 		const userIdFromFormerLogin = this.userFacade.getUser()?._id ?? null
 
-		if (userIdFromFormerLogin && userId !== userIdFromFormerLogin) {
+		if (userIdFromFormerLogin && userId !== elementIdToId(userIdFromFormerLogin)) {
 			throw new Error("different user is tried to login in existing other user's session")
 		}
 
@@ -1070,7 +1070,10 @@ export class LoginFacade implements SessionTypeProvider {
 
 		try {
 			// We need to use up-to-date user to make sure that we are not checking for outdated verified against cached user.
-			const user = await this.entityClient.load(UserTypeRef, userId, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })
+			const user = await this.entityClient.load(UserTypeRef, idToElementId(userId), {
+				...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+				cacheMode: CacheMode.WriteOnly,
+			})
 			await this.checkOutdatedVerifier(user, accessToken, userPassphraseKey)
 
 			// this may be the second time we set user in case we had a partial offline login before
@@ -1132,7 +1135,7 @@ export class LoginFacade implements SessionTypeProvider {
 		externalUserSalt: Uint8Array,
 	) {
 		this.userFacade.setAccessToken(credentials.accessToken)
-		const user = await this.entityClient.load(UserTypeRef, sessionData.userId)
+		const user = await this.entityClient.load(UserTypeRef, idToElementId(sessionData.userId))
 		const latestSaltHash = assertNotNull(user.externalAuthInfo!.latestSaltHash, "latestSaltHash is not set!")
 		if (!arrayEquals(latestSaltHash, sha256Hash(externalUserSalt))) {
 			// Do not delete session or credentials, we can still use them if the password

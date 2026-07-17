@@ -9,7 +9,7 @@ import { assertMainOrNode, ShareCapability } from "../../../platform-kit/app-env
 import type { LoginController } from "../../common/api/main/LoginController"
 import { ListColumnWrapper } from "../../../ui/ListColumnWrapper"
 import { KnowledgeBaseEntryView } from "../knowledgebase/view/KnowledgeBaseEntryView"
-import { memoized, NBSP, noOp } from "../../../platform-kit/utils"
+import { assertNotNull, memoized, NBSP, noOp } from "../../../platform-kit/utils"
 import { SelectableRowContainer, SelectableRowSelectedSetter } from "../../../ui/SelectableRowContainer.js"
 import { ListElementListModel } from "../../common/misc/ListElementListModel.js"
 import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from "../../../ui/base/ListUtils.js"
@@ -26,7 +26,7 @@ import { keyManager } from "../../../ui/utils/KeyManager.js"
 import { ListAutoSelectBehavior } from "../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { isSameId, listIdPart } from "../../../platform-kit/meta"
+import { isSameId, isSameSingleId, listIdPart } from "../../../platform-kit/meta"
 
 assertMainOrNode()
 
@@ -162,8 +162,8 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<any> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update) && isSameId(this.getListId(), update.instanceListId)) {
-				await this.listModel.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
+			if (isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update) && isSameSingleId(this.getListId(), update.instanceListId)) {
+				await this.listModel.entityEventReceived(assertNotNull(update.instanceListId), update.instanceId, update.operation)
 			}
 		}
 

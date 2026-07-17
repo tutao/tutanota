@@ -38,6 +38,7 @@ import {
 import { UserTypeRef } from "@tutao/entities/sys"
 import { CalendarAttendeeStatus, Recipient, RecipientType } from "../../../../src/entities/tutanota/Utils"
 import { AccountType } from "../../../../src/entities/sys/Utils"
+import { idToElementId } from "../../../../src/platform-kit/meta"
 
 o.spec("CalendarEventWhoModel", function () {
 	const passwordStrengthModel = () => 1
@@ -598,7 +599,7 @@ o.spec("CalendarEventWhoModel", function () {
 					}),
 				)
 				replace(userController, "userSettingsGroupRoot", Object.assign({}, userController.userSettingsGroupRoot, userSettingsGroupRoot))
-				replace(userController, "user", createTestEntity(UserTypeRef, { _id: "ownerId" }))
+				replace(userController, "user", createTestEntity(UserTypeRef, { _id: idToElementId("ownerId") }))
 				addCapability(userController.user, "ownExternalCalendar", ShareCapability.Read) // External calendars are actually normal user owned calendars handled as Read Only
 			})
 			o("it returns the owned calendars and shared calendars we have write access to when there are no attendees", function () {

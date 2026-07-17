@@ -1,6 +1,6 @@
 import { GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef } from "@tutao/entities/sys"
 import m, { Children } from "mithril"
-import { LazyLoaded, memoized, noOp } from "../../../../platform-kit/utils"
+import { assertNotNull, LazyLoaded, memoized, neverNull, noOp, Nullable } from "../../../../platform-kit/utils"
 import { GroupDetailsView } from "../../../common/settings/groups/GroupDetailsView.js"
 import * as AddGroupDialog from "./AddGroupDialog.js"
 import { Icon } from "../../../../ui/base/Icon.js"
@@ -142,7 +142,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this.listId.getSync() === update.instanceListId) {
-				await this.listModel.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
+				await this.listModel.entityEventReceived(assertNotNull(update.instanceListId), update.instanceId, update.operation)
 			} else if (isUpdateForTypeRef(GroupMemberTypeRef, update)) {
 				this.listModel.reapplyFilter()
 			}

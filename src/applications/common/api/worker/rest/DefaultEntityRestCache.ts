@@ -17,7 +17,7 @@ import {
 	listIdPart,
 	OperationType,
 	parseTypeString,
-	SomeEntity,
+	PersistentEntity,
 	TypeModel,
 	TypeRef,
 	ValueType,
@@ -135,9 +135,9 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		private readonly lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider>,
 	) {}
 
-	async load<T extends SomeEntity>(
+	async load<T extends PersistentEntity>(
 		typeRef: TypeRef<T>,
-		id: PropertyType<T, "_id">,
+		id: T["_id"],
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<T> {
 		const useCache = this.shouldUseCache(typeRef, opts)
@@ -161,7 +161,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		}
 	}
 
-	async loadMultiple<T extends SomeEntity>(
+	async loadMultiple<T extends PersistentEntity>(
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		ids: Array<Id>,
@@ -175,23 +175,28 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		return await this._loadMultiple(typeRef, listId, ids, ownerEncSessionKeyProvider, opts)
 	}
 
-	setup<T extends SomeEntity>(listId: Nullable<Id>, instance: T, extraHeaders: Dict, options: Nullable<EntityRestClientSetupOptions>): Promise<Id | null> {
+	setup<T extends PersistentEntity>(
+		listId: Nullable<Id>,
+		instance: T,
+		extraHeaders: Dict,
+		options: Nullable<EntityRestClientSetupOptions>,
+	): Promise<Id | null> {
 		return this.entityRestClient.setup(listId, instance, extraHeaders, options)
 	}
 
-	setupMultiple<T extends SomeEntity>(listId: Id | null, instances: Array<T>): Promise<Array<Id>> {
+	setupMultiple<T extends PersistentEntity>(listId: Id | null, instances: Array<T>): Promise<Array<Id>> {
 		return this.entityRestClient.setupMultiple(listId, instances)
 	}
 
-	update<T extends SomeEntity>(instance: T): Promise<void> {
+	update<T extends PersistentEntity>(instance: T): Promise<void> {
 		return this.entityRestClient.update(instance)
 	}
 
-	erase<T extends SomeEntity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void> {
+	erase<T extends PersistentEntity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void> {
 		return this.entityRestClient.erase(instance, options)
 	}
 
-	eraseMultiple<T extends SomeEntity>(listId: Id, instances: Array<T>, options?: EntityRestClientEraseOptions): Promise<void> {
+	eraseMultiple<T extends PersistentEntity>(listId: Id, instances: Array<T>, options?: EntityRestClientEraseOptions): Promise<void> {
 		return this.entityRestClient.eraseMultiple(listId, instances, options)
 	}
 
@@ -235,11 +240,11 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		return this.entityRestClient.getRestClient().getServerTimestampMs()
 	}
 
-	async deleteFromCacheIfExists<T extends SomeEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void> {
+	async deleteFromCacheIfExists<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void> {
 		return this.storage.deleteIfExists(typeRef, listId, elementId)
 	}
 
-	private async _loadMultiple<T extends SomeEntity>(
+	private async _loadMultiple<T extends PersistentEntity>(
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		ids: Array<Id>,
@@ -757,13 +762,12 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	async updateCacheWithMissedEntityUpdates(entityUpdates: EntityUpdateData[]): Promise<void> {
 		const eventsByType = groupBy(entityUpdates, (entityUpdate) => getTypeString(entityUpdate.typeRef))
 		for (const [typeIdentifier, entityUpdates] of eventsByType) {
-			const typeRef = parseTypeString(typeIdentifier) as TypeRef<SomeEntity>
+			const typeRef = parseTypeString(typeIdentifier) as TypeRef<PersistentEntity>
 
 			const deleteEvents = entityUpdates.filter((entityUpdate) => entityUpdate.operation === OperationType.DELETE)
 			const deleteEventIds = deleteEvents.map((entityUpdate) => collapseId(entityUpdate.instanceListId, entityUpdate.instanceId))
 			await this.storage.deleteMultiple(typeRef, deleteEventIds)
 			deleteEvents.map((entityUpdate) => (entityUpdate.cachingStatus = CachingStatus.CacheUpdated))
-
 			const entityUpdatesWithValidInstances = entityUpdates.filter((entityUpdate) => entityUpdate.instance !== null && !entityUpdate.instance.hasError())
 			const instances = entityUpdatesWithValidInstances.map((entityUpdate) => entityUpdate.instance).filter(isNotNull)
 			await this.storage.putMultiple(typeRef, instances)
