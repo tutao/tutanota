@@ -12,11 +12,25 @@ import { Time } from "../../../../src/applications/common/calendar/date/Time.js"
 import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
 
 import { createDateWrapper, createRepeatRule, DateWrapperTypeRef, RepeatRuleTypeRef } from "@tutao/entities/sys"
+import { DateTime } from "luxon"
 
 o.spec("CalendarEventWhenModel", function () {
 	const getModelBerlin = (initialValues: Partial<CalendarEvent>) => new CalendarEventWhenModel(initialValues, "Europe/Berlin", noOp)
 
 	const getModelKrasnoyarsk = (initialValues: Partial<CalendarEvent>) => new CalendarEventWhenModel(initialValues, "Asia/Krasnoyarsk", noOp)
+
+	const assertDisplayDate = (date: Date, year: number, month: number, day: number, calendarTimeZone: string, assertMessage: string) => {
+		const dt = displayDateInModelZone(date, calendarTimeZone)
+
+		o(dt.getFullYear()).equals(year)(assertMessage + " (year)")
+		o(dt.getMonth() + 1).equals(month)(assertMessage + " (month)")
+		o(dt.getDate()).equals(day)(assertMessage + " (day)")
+	}
+
+	const displayDateInModelZone = (date: Date, modelZone: string) => {
+		const result = DateTime.fromJSDate(date, { zone: modelZone })
+		return new Date(result.year, result.month - 1, result.day)
+	}
 
 	o.spec("date modifications", function () {
 		o("if the start date is set to before 1970, it will be set to this year", function () {
@@ -38,6 +52,7 @@ o.spec("CalendarEventWhenModel", function () {
 
 			o(model.startTime.to24HourString()).equals("10:30")
 			o(model.endTime.to24HourString()).equals("11:00")
+
 			const result = model.result
 			o(result.startTime.toISOString()).equals("2023-04-27T08:30:00.000Z")
 			o(result.endTime.toISOString()).equals("2023-04-27T09:00:00.000Z")
@@ -47,12 +62,14 @@ o.spec("CalendarEventWhenModel", function () {
 				startTime: new Date("2023-04-27T08:27:00.000Z"),
 				endTime: new Date("2023-04-27T08:57:00.000Z"),
 			})
-			const startDate = model.startDate
-			o(startDate.toISOString()).equals("2023-04-26T22:00:00.000Z")("start date is start of the day in utc")
+
+			assertDisplayDate(model.startDate, 2023, 4, 27, model.calendarTimeZone, "start date is start of the day in utc")
+
 			model.rescheduleEventToDate(new Date("2023-04-30T05:15:00.000Z"))
 
-			o(model.startDate.toISOString()).equals("2023-04-29T22:00:00.000Z")("start date was moved by three days")
-			o(model.endDate.toISOString()).equals("2023-04-29T22:00:00.000Z")("end date was moved by three days")
+			assertDisplayDate(model.startDate, 2023, 4, 30, model.calendarTimeZone, "start date was moved by three days")
+			assertDisplayDate(model.endDate, 2023, 4, 30, model.calendarTimeZone, "end date was moved by three days")
+
 			const result = model.result
 			o(result.startTime.toISOString()).equals("2023-04-30T08:27:00.000Z")("start time on result is correct and includes time")
 			o(result.endTime.toISOString()).equals("2023-04-30T08:57:00.000Z")("end time on result is correct and includes time")
@@ -63,13 +80,16 @@ o.spec("CalendarEventWhenModel", function () {
 				endTime: new Date("2023-04-27T08:57:00.000Z"),
 			})
 			model.isAllDay = true
-			o(model.startDate.toISOString()).equals("2023-04-26T22:00:00.000Z")("start date for display is start of day in local timezone, not UTC")
-			o(model.endDate.toISOString()).equals("2023-04-26T22:00:00.000Z")("end date for display is start of day in local timezone, not UTC")
+
+			assertDisplayDate(model.startDate, 2023, 4, 27, model.calendarTimeZone, "start date for display is start of day in local timezone, not UTC")
+			assertDisplayDate(model.endDate, 2023, 4, 27, model.calendarTimeZone, "end date for display is start of day in local timezone, not UTC")
+
 			// plus three days
 			model.rescheduleEventToDate(new Date("2023-04-30T08:27:00.000Z"))
 
-			o(model.startDate.toISOString()).equals("2023-04-29T22:00:00.000Z")("new start date is displayed as start of current day in local tz")
-			o(model.endDate.toISOString()).equals("2023-04-29T22:00:00.000Z")("new end date has also been changed")
+			assertDisplayDate(model.startDate, 2023, 4, 30, model.calendarTimeZone, "new start date is displayed as start of current day in local tz")
+			assertDisplayDate(model.endDate, 2023, 4, 30, model.calendarTimeZone, "new end date has also been changed")
+
 			const result = model.result
 			o(result.startTime.toISOString()).equals("2023-04-30T00:00:00.000Z")("start date on result is correct")
 			o(result.endTime.toISOString()).equals("2023-05-01T00:00:00.000Z")("end date on result is correct")
@@ -113,16 +133,17 @@ o.spec("CalendarEventWhenModel", function () {
 				startTime: new Date("2023-04-27T08:27:45.523Z"),
 				endTime: new Date("2023-04-28T08:57:45.523Z"),
 			})
-
-			o(model.startDate.toISOString()).equals("2023-04-26T22:00:00.000Z")("correct display start date")
-			o(model.endDate.toISOString()).equals("2023-04-27T22:00:00.000Z")("correct display end date")
+			assertDisplayDate(model.startDate, 2023, 4, 27, model.calendarTimeZone, "correct display start date")
+			assertDisplayDate(model.endDate, 2023, 4, 28, model.calendarTimeZone, "correct display end date")
 			o(model.startTime.to24HourString()).equals("10:27")("display start time correct")
 			o(model.endTime.to24HourString()).equals("10:57")("display end time correct")
+
 			model.shiftEvent({ hours: 10 })
 			o(model.startTime.to24HourString()).equals("20:27")("start time changed correct amount")
 			o(model.endTime.to24HourString()).equals("20:57")("end time changed correct amount")
-			o(model.startDate.toISOString()).equals("2023-04-26T22:00:00.000Z")("the display start date did not change")
-			o(model.endDate.toISOString()).equals("2023-04-27T22:00:00.000Z")("the display end date did not change")
+			assertDisplayDate(model.startDate, 2023, 4, 27, model.calendarTimeZone, "the display start date did not change")
+			assertDisplayDate(model.endDate, 2023, 4, 28, model.calendarTimeZone, "the display end date did not change")
+
 			const result = model.result
 			o(result.startTime.toISOString()).equals("2023-04-27T18:27:00.000Z")("result start time is correct")
 			o(result.endTime.toISOString()).equals("2023-04-28T18:57:00.000Z")("result end time is correct")
@@ -132,14 +153,15 @@ o.spec("CalendarEventWhenModel", function () {
 				startTime: new Date("2023-04-27T08:27:45.523Z"),
 				endTime: new Date("2023-04-28T08:57:45.523Z"),
 			})
+			assertDisplayDate(model.startDate, 2023, 4, 27, model.calendarTimeZone, "the display start date was initialized correctly")
+			assertDisplayDate(model.endDate, 2023, 4, 28, model.calendarTimeZone, "the display end date was initialized correctly")
 
-			o(model.startDate.toISOString()).equals("2023-04-26T22:00:00.000Z")("correct display start date")
-			o(model.endDate.toISOString()).equals("2023-04-27T22:00:00.000Z")("correct display end date")
 			model.shiftEvent({ days: -3, hours: 10 })
 			o(model.startTime.to24HourString()).equals("20:27")("start time updated")
 			o(model.endTime.to24HourString()).equals("20:57")("end time updated")
-			o(model.startDate.toISOString()).equals("2023-04-23T22:00:00.000Z")("the display start date did change")
-			o(model.endDate.toISOString()).equals("2023-04-24T22:00:00.000Z")("the display end date did change")
+			assertDisplayDate(model.startDate, 2023, 4, 24, model.calendarTimeZone, "the display start date did change")
+			assertDisplayDate(model.endDate, 2023, 4, 25, model.calendarTimeZone, "the display end date did change")
+
 			const result = model.result
 			o(result.startTime.toISOString()).equals("2023-04-24T18:27:00.000Z")("result start time is correct")
 			o(result.endTime.toISOString()).equals("2023-04-25T18:57:00.000Z")("result end time is correct")
@@ -149,14 +171,15 @@ o.spec("CalendarEventWhenModel", function () {
 				startTime: new Date("2023-04-27T00:00:00.000Z"),
 				endTime: new Date("2023-04-28T00:00:00.000Z"),
 			})
+			assertDisplayDate(model.startDate, 2023, 4, 27, model.calendarTimeZone, "correct display start date")
+			assertDisplayDate(model.endDate, 2023, 4, 27, model.calendarTimeZone, "correct display end date")
 
-			o(model.startDate.toISOString()).equals("2023-04-26T22:00:00.000Z")("correct display start date")
-			o(model.endDate.toISOString()).equals("2023-04-26T22:00:00.000Z")("correct display end date")
 			model.shiftEvent({ days: 3, hours: 10 })
 			o(model.startTime.to24HourString()).equals("00:00")("start time changed correct amount")
 			o(model.endTime.to24HourString()).equals("00:00")("end time changed correct amount")
-			o(model.startDate.toISOString()).equals("2023-04-29T22:00:00.000Z")("the display start date did not change")
-			o(model.endDate.toISOString()).equals("2023-04-29T22:00:00.000Z")("the display end date did not change")
+			assertDisplayDate(model.startDate, 2023, 4, 30, model.calendarTimeZone, "start date was shifted forward by 3 days")
+			assertDisplayDate(model.endDate, 2023, 4, 30, model.calendarTimeZone, "end date was shifted forward by 3 days")
+
 			const result = model.result
 			o(result.startTime.toISOString()).equals("2023-04-30T00:00:00.000Z")("result start time is correct")
 			o(result.endTime.toISOString()).equals("2023-05-01T00:00:00.000Z")("result end time is correct")
@@ -171,8 +194,9 @@ o.spec("CalendarEventWhenModel", function () {
 			model.rescheduleEventToDate(new Date("2023-04-28T04:00:00.000Z"))
 			o(model.startTime.to24HourString()).equals("10:27")("start time did not change")
 			o(model.endTime.to24HourString()).equals("10:57")("end time did not change")
-			o(model.startDate.toISOString()).equals("2023-04-27T22:00:00.000Z")("the display start date is shifted by one day")
-			o(model.endDate.toISOString()).equals("2023-04-28T22:00:00.000Z")("the display end date was also moved by one day")
+			assertDisplayDate(model.startDate, 2023, 4, 28, model.calendarTimeZone, "the display start date is shifted by one day")
+			assertDisplayDate(model.endDate, 2023, 4, 29, model.calendarTimeZone, "the display end date was also moved by one day")
+
 			const result = model.result
 			o(result.startTime.toISOString()).equals("2023-04-28T08:27:00.000Z")("result start time is correct")
 			o(result.endTime.toISOString()).equals("2023-04-29T08:57:00.000Z")("result end time is correct")
@@ -182,15 +206,14 @@ o.spec("CalendarEventWhenModel", function () {
 				startTime: new Date("2023-04-27T00:00:00.000Z"), // All-day event because start and end its at midnight UTC
 				endTime: new Date("2023-04-28T00:00:00.000Z"),
 			})
-
 			o(model.startDate.toISOString()).equals("2023-04-26T22:00:00.000Z")("correct display start date")
 			o(model.endDate.toISOString()).equals("2023-04-26T22:00:00.000Z")("correct display end date")
 
 			model.rescheduleEventToDate(new Date("2023-04-28T04:00:00.000Z"))
 			o(model.startTime.to24HourString()).equals("00:00")("start time did not change")
 			o(model.endTime.to24HourString()).equals("00:00")("end time did not change")
-			o(model.startDate.toISOString()).equals("2023-04-27T22:00:00.000Z")("the display start date is shifted by one day")
-			o(model.endDate.toISOString()).equals("2023-04-27T22:00:00.000Z")("the display end date was also moved by one day")
+			assertDisplayDate(model.startDate, 2023, 4, 28, model.calendarTimeZone, "the display start date is shifted by one day")
+			assertDisplayDate(model.endDate, 2023, 4, 28, model.calendarTimeZone, "the display end date was also moved by one day")
 
 			const result = model.result
 			o(result.startTime.toISOString()).equals("2023-04-28T00:00:00.000Z")("result start time is correct")
@@ -201,12 +224,14 @@ o.spec("CalendarEventWhenModel", function () {
 				startTime: new Date("2023-04-27T08:27:45.523Z"),
 				endTime: new Date("2023-04-28T08:57:45.523Z"),
 			})
-			o(model.endDate.toISOString()).equals("2023-04-27T22:00:00.000Z")("the initialization was correctly applied")
+			assertDisplayDate(model.startDate, 2023, 4, 27, model.calendarTimeZone, "the initialization was correctly applied")
+
 			model.endDate = new Date("2023-05-27T04:00:00.000Z")
 			o(model.startTime.to24HourString()).equals("10:27")("start time did not change")
 			o(model.endTime.to24HourString()).equals("10:57")("end time did not change")
-			o(model.startDate.toISOString()).equals("2023-04-26T22:00:00.000Z")("start date did not change")
-			o(model.endDate.toISOString()).equals("2023-05-26T22:00:00.000Z")("end date is correctly shifted")
+			assertDisplayDate(model.startDate, 2023, 4, 27, model.calendarTimeZone, "start date did not change")
+			assertDisplayDate(model.endDate, 2023, 5, 27, model.calendarTimeZone, "end date is correctly shifted")
+
 			const result = model.result
 			o(result.startTime.toISOString()).equals("2023-04-27T08:27:00.000Z")("result start time is correct")
 			o(result.endTime.toISOString()).equals("2023-05-27T08:57:00.000Z")("result end time is correct")
@@ -224,14 +249,14 @@ o.spec("CalendarEventWhenModel", function () {
 		o("all day is set correctly for an event that is not all-day by times", function () {
 			const model = getModelBerlin({
 				startTime: new Date("2023-04-27T01:00:00.000Z"),
-				endTime: new Date("2023-04-28T00:02:00.000Z"),
+				endTime: new Date("2023-04-28T02:00:00.000Z"),
 			})
 			o(model.isAllDay).equals(false)
 		})
 		o("setting all-day correctly sets utc times to midnight", function () {
 			const model = getModelBerlin({
 				startTime: new Date("2023-04-27T01:00:00.000Z"),
-				endTime: new Date("2023-04-28T00:02:00.000Z"),
+				endTime: new Date("2023-04-28T02:00:00.000Z"),
 			})
 			model.isAllDay = true
 			const result = model.result
@@ -242,7 +267,7 @@ o.spec("CalendarEventWhenModel", function () {
 		o("setting all-day correctly sets utc times to midnight on an event with same start and end date", function () {
 			const model = getModelBerlin({
 				startTime: new Date("2023-04-27T01:00:00.000Z"),
-				endTime: new Date("2023-04-27T00:02:00.000Z"),
+				endTime: new Date("2023-04-27T02:00:00.000Z"),
 			})
 			model.isAllDay = true
 			const result = model.result
@@ -275,7 +300,7 @@ o.spec("CalendarEventWhenModel", function () {
 		o("creating an all-day event in one time zone will be considered all-day in another time zone", function () {
 			const berlinModel = getModelBerlin({
 				startTime: new Date("2023-04-27T01:00:00.000Z"),
-				endTime: new Date("2023-04-27T00:02:00.000Z"),
+				endTime: new Date("2023-04-27T02:00:00.000Z"),
 			})
 			o(berlinModel.isAllDay).equals(false)
 			berlinModel.isAllDay = true
@@ -291,11 +316,12 @@ o.spec("CalendarEventWhenModel", function () {
 		o("events from another timezone correctly translate the displayed start and end times", function () {
 			const berlinModel = getModelBerlin({
 				startTime: new Date("2023-04-27T01:00:00.000Z"),
-				endTime: new Date("2023-04-27T00:02:00.000Z"),
+				endTime: new Date("2023-04-27T02:00:00.000Z"),
 			})
 			o(berlinModel.isAllDay).equals(false)
 			berlinModel.startTime = new Time(13, 0)
 			berlinModel.endTime = new Time(13, 30)
+
 			const berlinResult = berlinModel.result
 			o(berlinResult.startTime.toISOString()).equals("2023-04-27T11:00:00.000Z")
 			o(berlinResult.endTime.toISOString()).equals("2023-04-27T11:30:00.000Z")
@@ -309,7 +335,7 @@ o.spec("CalendarEventWhenModel", function () {
 		o("repeat rules from one time zone are updated for the current time zone", function () {
 			const berlinModel = getModelBerlin({
 				startTime: new Date("2023-04-27T01:00:00.000Z"),
-				endTime: new Date("2023-04-27T00:02:00.000Z"),
+				endTime: new Date("2023-04-27T02:00:00.000Z"),
 			})
 			berlinModel.repeatPeriod = RepeatPeriod.DAILY
 			const result = berlinModel.result

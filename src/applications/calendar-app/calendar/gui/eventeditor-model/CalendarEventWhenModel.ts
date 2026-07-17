@@ -80,6 +80,9 @@ export class CalendarEventWhenModel {
 		this._isAllDay = isAllDayEvent(initialTimes)
 		this.repeatRule = clone(initialValues.repeatRule ?? null)
 
+		// 1. Refactor year, month, day object
+		// 2. calendarTimeZone as source of truth
+		// 3. system time zone as source of truth
 		const eventStart = getEventStart(initialTimes, this.calendarTimeZone)
 		const eventEnd = getEventEnd(initialTimes, this.calendarTimeZone)
 
@@ -669,10 +672,16 @@ export class CalendarEventWhenModel {
 	 * @private
 	 */
 	private createZonedDateTime(date: Date, clockTime: Time, zone: string, keepClockTime: boolean) {
+		// Currently, for all day events, since we depend on checking its time at UTC, and we also support timezones,
+		// we normalize the date to be at the same timezone as the calendar.
+		// This is necessary due to startDate and endDate (year, month and day of the envent) being stored as JSDates
+		// which depending on the usage return a value in the system timezone.
+		const dateTimeInCalendarTimeZone = DateTime.fromJSDate(date, { zone: this.calendarTimeZone })
+
 		return DateTime.fromObject({
-			year: date.getFullYear(),
-			month: date.getMonth() + 1,
-			day: date.getDate(),
+			year: dateTimeInCalendarTimeZone.year,
+			month: dateTimeInCalendarTimeZone.month,
+			day: dateTimeInCalendarTimeZone.day,
 			hour: clockTime.hour,
 			minute: clockTime.minute,
 		}).setZone(zone, { keepLocalTime: keepClockTime })
