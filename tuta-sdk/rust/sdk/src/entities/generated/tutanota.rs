@@ -1102,8 +1102,12 @@ pub struct DraftData {
 	pub removedAttachments: Vec<IdTupleGenerated>,
 	#[serde(rename = "819")]
 	pub replyTos: Vec<EncryptedMailAddress>,
-	#[serde(rename = "1985")]
+	#[serde(rename = "2013")]
 	pub mail: Option<MailTransferAggregatedType>,
+	#[serde(rename = "2014")]
+	pub mailDetailsBlob: Option<MailDetailsBlobTransferAggregatedType>,
+	#[serde(rename = "2015")]
+	pub newAttachments: Vec<FileTransferAggregatedType>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -4790,19 +4794,21 @@ impl Entity for ImapOauthConfigGetOut {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct MailAddressTransferAggregatedType {
+pub struct FileTransferAggregatedType {
 	#[serde(rename = "1977")]
 	pub _id: Option<CustomId>,
 	#[serde(rename = "1978")]
 	pub name: String,
 	#[serde(rename = "1979")]
-	pub address: String,
+	pub mimeType: Option<String>,
+	#[serde(rename = "1980")]
+	pub cid: Option<String>,
 
 	#[serde(default)]
 	pub _errors: Errors,
 }
 
-impl Entity for MailAddressTransferAggregatedType {
+impl Entity for FileTransferAggregatedType {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
@@ -4813,14 +4819,149 @@ impl Entity for MailAddressTransferAggregatedType {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct MailTransferAggregatedType {
-	#[serde(rename = "1981")]
-	pub _id: Option<CustomId>,
+pub struct MailAddressTransferAggregatedType {
 	#[serde(rename = "1982")]
-	pub subject: String,
+	pub _id: Option<CustomId>,
 	#[serde(rename = "1983")]
-	pub receivedDate: DateTime,
+	pub name: String,
 	#[serde(rename = "1984")]
+	pub address: String,
+	#[serde(rename = "1985")]
+	pub contact: Option<IdTupleGenerated>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for MailAddressTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1981),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct EncryptedMailAddressTransferAggregatedType {
+	#[serde(rename = "1987")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1988")]
+	pub name: String,
+	#[serde(rename = "1989")]
+	pub address: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for EncryptedMailAddressTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1986),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct BodyTransferAggregatedType {
+	#[serde(rename = "1991")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1992")]
+	pub text: Option<String>,
+	#[serde(rename = "1993")]
+	pub compressedText: Option<String>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for BodyTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1990),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct RecipientsTransferAggregatedType {
+	#[serde(rename = "1995")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "1996")]
+	pub toRecipients: Vec<MailAddressTransferAggregatedType>,
+	#[serde(rename = "1997")]
+	pub ccRecipients: Vec<MailAddressTransferAggregatedType>,
+	#[serde(rename = "1998")]
+	pub bccRecipients: Vec<MailAddressTransferAggregatedType>,
+}
+
+impl Entity for RecipientsTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1994),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct MailDetailsTransferAggregatedType {
+	#[serde(rename = "2000")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2001")]
+	pub replyTos: Vec<EncryptedMailAddressTransferAggregatedType>,
+	#[serde(rename = "2002")]
+	pub recipients: RecipientsTransferAggregatedType,
+	#[serde(rename = "2003")]
+	pub body: BodyTransferAggregatedType,
+}
+
+impl Entity for MailDetailsTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1999),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct MailDetailsBlobTransferAggregatedType {
+	#[serde(rename = "2005")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2006")]
+	pub details: MailDetailsTransferAggregatedType,
+}
+
+impl Entity for MailDetailsBlobTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2004),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct MailTransferAggregatedType {
+	#[serde(rename = "2008")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2009")]
+	pub subject: String,
+	#[serde(rename = "2010")]
+	pub confidential: bool,
+	#[serde(rename = "2011")]
+	pub method: i64,
+	#[serde(rename = "2012")]
 	pub sender: MailAddressTransferAggregatedType,
 
 	#[serde(default)]
@@ -4831,7 +4972,7 @@ impl Entity for MailTransferAggregatedType {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(1980),
+			type_id: TypeId::from(2007),
 		}
 	}
 }

@@ -693,6 +693,8 @@ export type DraftData = {
 	removedAttachments: IdTuple[];
 	replyTos: EncryptedMailAddress[];
 	mail: null | MailTransferAggregatedType;
+	mailDetailsBlob: null | MailDetailsBlobTransferAggregatedType;
+	newAttachments: FileTransferAggregatedType[];
 }
 export const DraftCreateDataTypeRef: TypeRef<DraftCreateData> = new TypeRef("tutanota", 508)
 
@@ -3071,7 +3073,22 @@ export type ImapOauthConfigGetOut = {
 	_format: NumberString;
 	clientSecret: string;
 }
-export const MailAddressTransferAggregatedTypeTypeRef: TypeRef<MailAddressTransferAggregatedType> = new TypeRef("tutanota", 1976)
+export const FileTransferAggregatedTypeTypeRef: TypeRef<FileTransferAggregatedType> = new TypeRef("tutanota", 1976)
+
+export function createFileTransferAggregatedType(values: StrippedEntity<FileTransferAggregatedType>): FileTransferAggregatedType {
+    return Object.assign(create(typeModels[FileTransferAggregatedTypeTypeRef.typeId], FileTransferAggregatedTypeTypeRef), values)
+}
+
+export type FileTransferAggregatedType = {
+	_type: TypeRef<FileTransferAggregatedType>;
+	_original?: FileTransferAggregatedType
+
+	_id: Id;
+	name: string;
+	mimeType: null | string;
+	cid: null | string;
+}
+export const MailAddressTransferAggregatedTypeTypeRef: TypeRef<MailAddressTransferAggregatedType> = new TypeRef("tutanota", 1981)
 
 export function createMailAddressTransferAggregatedType(values: StrippedEntity<MailAddressTransferAggregatedType>): MailAddressTransferAggregatedType {
     return Object.assign(create(typeModels[MailAddressTransferAggregatedTypeTypeRef.typeId], MailAddressTransferAggregatedTypeTypeRef), values)
@@ -3084,8 +3101,84 @@ export type MailAddressTransferAggregatedType = {
 	_id: Id;
 	name: string;
 	address: string;
+
+	contact: null | IdTuple;
 }
-export const MailTransferAggregatedTypeTypeRef: TypeRef<MailTransferAggregatedType> = new TypeRef("tutanota", 1980)
+export const EncryptedMailAddressTransferAggregatedTypeTypeRef: TypeRef<EncryptedMailAddressTransferAggregatedType> = new TypeRef("tutanota", 1986)
+
+export function createEncryptedMailAddressTransferAggregatedType(values: StrippedEntity<EncryptedMailAddressTransferAggregatedType>): EncryptedMailAddressTransferAggregatedType {
+    return Object.assign(create(typeModels[EncryptedMailAddressTransferAggregatedTypeTypeRef.typeId], EncryptedMailAddressTransferAggregatedTypeTypeRef), values)
+}
+
+export type EncryptedMailAddressTransferAggregatedType = {
+	_type: TypeRef<EncryptedMailAddressTransferAggregatedType>;
+	_original?: EncryptedMailAddressTransferAggregatedType
+
+	_id: Id;
+	name: string;
+	address: string;
+}
+export const BodyTransferAggregatedTypeTypeRef: TypeRef<BodyTransferAggregatedType> = new TypeRef("tutanota", 1990)
+
+export function createBodyTransferAggregatedType(values: StrippedEntity<BodyTransferAggregatedType>): BodyTransferAggregatedType {
+    return Object.assign(create(typeModels[BodyTransferAggregatedTypeTypeRef.typeId], BodyTransferAggregatedTypeTypeRef), values)
+}
+
+export type BodyTransferAggregatedType = {
+	_type: TypeRef<BodyTransferAggregatedType>;
+	_original?: BodyTransferAggregatedType
+
+	_id: Id;
+	text: null | string;
+	compressedText: null | string;
+}
+export const RecipientsTransferAggregatedTypeTypeRef: TypeRef<RecipientsTransferAggregatedType> = new TypeRef("tutanota", 1994)
+
+export function createRecipientsTransferAggregatedType(values: StrippedEntity<RecipientsTransferAggregatedType>): RecipientsTransferAggregatedType {
+    return Object.assign(create(typeModels[RecipientsTransferAggregatedTypeTypeRef.typeId], RecipientsTransferAggregatedTypeTypeRef), values)
+}
+
+export type RecipientsTransferAggregatedType = {
+	_type: TypeRef<RecipientsTransferAggregatedType>;
+	_original?: RecipientsTransferAggregatedType
+
+	_id: Id;
+
+	toRecipients: MailAddressTransferAggregatedType[];
+	ccRecipients: MailAddressTransferAggregatedType[];
+	bccRecipients: MailAddressTransferAggregatedType[];
+}
+export const MailDetailsTransferAggregatedTypeTypeRef: TypeRef<MailDetailsTransferAggregatedType> = new TypeRef("tutanota", 1999)
+
+export function createMailDetailsTransferAggregatedType(values: StrippedEntity<MailDetailsTransferAggregatedType>): MailDetailsTransferAggregatedType {
+    return Object.assign(create(typeModels[MailDetailsTransferAggregatedTypeTypeRef.typeId], MailDetailsTransferAggregatedTypeTypeRef), values)
+}
+
+export type MailDetailsTransferAggregatedType = {
+	_type: TypeRef<MailDetailsTransferAggregatedType>;
+	_original?: MailDetailsTransferAggregatedType
+
+	_id: Id;
+
+	replyTos: EncryptedMailAddressTransferAggregatedType[];
+	recipients: RecipientsTransferAggregatedType;
+	body: BodyTransferAggregatedType;
+}
+export const MailDetailsBlobTransferAggregatedTypeTypeRef: TypeRef<MailDetailsBlobTransferAggregatedType> = new TypeRef("tutanota", 2004)
+
+export function createMailDetailsBlobTransferAggregatedType(values: StrippedEntity<MailDetailsBlobTransferAggregatedType>): MailDetailsBlobTransferAggregatedType {
+    return Object.assign(create(typeModels[MailDetailsBlobTransferAggregatedTypeTypeRef.typeId], MailDetailsBlobTransferAggregatedTypeTypeRef), values)
+}
+
+export type MailDetailsBlobTransferAggregatedType = {
+	_type: TypeRef<MailDetailsBlobTransferAggregatedType>;
+	_original?: MailDetailsBlobTransferAggregatedType
+
+	_id: Id;
+
+	details: MailDetailsTransferAggregatedType;
+}
+export const MailTransferAggregatedTypeTypeRef: TypeRef<MailTransferAggregatedType> = new TypeRef("tutanota", 2007)
 
 export function createMailTransferAggregatedType(values: StrippedEntity<MailTransferAggregatedType>): MailTransferAggregatedType {
     return Object.assign(create(typeModels[MailTransferAggregatedTypeTypeRef.typeId], MailTransferAggregatedTypeTypeRef), values)
@@ -3097,7 +3190,8 @@ export type MailTransferAggregatedType = {
 
 	_id: Id;
 	subject: string;
-	receivedDate: Date;
+	confidential: boolean;
+	method: NumberString;
 
 	sender: MailAddressTransferAggregatedType;
 }
