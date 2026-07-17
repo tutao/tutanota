@@ -257,8 +257,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 		let idsToLoad = new Array<Id>()
 		if (cachingBehavior.readsFromCache) {
-			const cached = await this.cacheStorage.provideMultipleParsed(typeRef, listId, ids)
-			entitiesInCache.push(...cached)
+			entitiesInCache = await this.cacheStorage.provideMultipleParsed(typeRef, listId, ids)
 			const loadedIds = new Set(
 				entitiesInCache.map((e) => {
 					if (listId) {
