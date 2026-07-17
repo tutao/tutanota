@@ -1,5 +1,6 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
+import { ListElementId, ElementId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 
 
@@ -94,7 +95,7 @@ export type ApprovalMail = {
 	_type: TypeRef<ApprovalMail>;
 	_original?: ApprovalMail
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;

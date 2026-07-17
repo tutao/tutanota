@@ -1,5 +1,6 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
+import { ListElementId, ElementId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
 import { Blob } from '../sys/TypeRefs.js'
@@ -188,7 +189,7 @@ export type BlobArchiveRef = {
 	_type: TypeRef<BlobArchiveRef>;
 	_original?: BlobArchiveRef
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;

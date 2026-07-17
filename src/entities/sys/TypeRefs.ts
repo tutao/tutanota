@@ -1,5 +1,6 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
+import { ListElementId, ElementId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 
 
@@ -70,7 +71,7 @@ export type Group = {
 	_type: TypeRef<Group>;
 	_original?: Group
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	type: NumberString;
@@ -119,7 +120,7 @@ export type GroupInfo = {
 	_errors: Object;
 	_original?: GroupInfo
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_listEncSessionKey: null | Uint8Array;
@@ -210,7 +211,7 @@ export type Customer = {
 	_type: TypeRef<Customer>;
 	_original?: Customer
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	type: NumberString;
@@ -276,7 +277,7 @@ export type Login = {
 	_type: TypeRef<Login>;
 	_original?: Login
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	time: Date;
@@ -301,7 +302,7 @@ export type SecondFactorAuthentication = {
 	_type: TypeRef<SecondFactorAuthentication>;
 	_original?: SecondFactorAuthentication
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	code: string;
@@ -331,7 +332,7 @@ export type VariableExternalAuthInfo = {
 	_type: TypeRef<VariableExternalAuthInfo>;
 	_original?: VariableExternalAuthInfo
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	loggedInVerifier: null | Uint8Array;
@@ -404,7 +405,7 @@ export type User = {
 	_type: TypeRef<User>;
 	_original?: User
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	salt: null | Uint8Array;
@@ -445,7 +446,7 @@ export type ExternalUserReference = {
 	_type: TypeRef<ExternalUserReference>;
 	_original?: ExternalUserReference
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -472,7 +473,7 @@ export type GroupRoot = {
 	_type: TypeRef<GroupRoot>;
 	_original?: GroupRoot
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -506,7 +507,7 @@ export type BucketPermission = {
 	_type: TypeRef<BucketPermission>;
 	_original?: BucketPermission
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	type: NumberString;
@@ -568,7 +569,7 @@ export type Permission = {
 	_type: TypeRef<Permission>;
 	_original?: Permission
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	type: NumberString;
@@ -619,7 +620,7 @@ export type AccountingInfo = {
 	_errors: Object;
 	_original?: AccountingInfo
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	lastInvoiceTimestamp: null | Date;
@@ -695,7 +696,7 @@ export type CustomerInfo = {
 	_type: TypeRef<CustomerInfo>;
 	_original?: CustomerInfo
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	company: null | string;
@@ -755,7 +756,7 @@ export type SentGroupInvitation = {
 	_type: TypeRef<SentGroupInvitation>;
 	_original?: SentGroupInvitation
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -782,7 +783,7 @@ export type MailAddressToGroup = {
 	_type: TypeRef<MailAddressToGroup>;
 	_original?: MailAddressToGroup
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -809,7 +810,7 @@ export type GroupMember = {
 	_type: TypeRef<GroupMember>;
 	_original?: GroupMember
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -835,7 +836,7 @@ export type RootInstance = {
 	_type: TypeRef<RootInstance>;
 	_original?: RootInstance
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	reference: Id;
@@ -865,7 +866,7 @@ export type VersionInfo = {
 	_type: TypeRef<VersionInfo>;
 	_original?: VersionInfo
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	app: string;
@@ -1558,7 +1559,7 @@ export type PushIdentifier = {
 	_errors: Object;
 	_original?: PushIdentifier
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_owner: Id;
@@ -1655,7 +1656,7 @@ export type CustomerProperties = {
 	_type: TypeRef<CustomerProperties>;
 	_original?: CustomerProperties
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	externalUserWelcomeMessage: string;
@@ -1894,7 +1895,7 @@ export type Booking = {
 	_type: TypeRef<Booking>;
 	_original?: Booking
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_owner: Id;
@@ -2025,7 +2026,7 @@ export type InvoiceInfo = {
 	_type: TypeRef<InvoiceInfo>;
 	_original?: InvoiceInfo
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	specialPriceUserTotal: null | NumberString;
@@ -2412,7 +2413,7 @@ export type CustomerServerProperties = {
 	_errors: Object;
 	_original?: CustomerServerProperties
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -2521,7 +2522,7 @@ export type EntityEventBatch = {
 	_type: TypeRef<EntityEventBatch>;
 	_original?: EntityEventBatch
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -2552,7 +2553,7 @@ export type AuditLogEntry = {
 	_errors: Object;
 	_original?: AuditLogEntry
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -2613,7 +2614,7 @@ export type WhitelabelConfig = {
 	_type: TypeRef<WhitelabelConfig>;
 	_original?: WhitelabelConfig
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -2722,7 +2723,7 @@ export type SecondFactor = {
 	_type: TypeRef<SecondFactor>;
 	_original?: SecondFactor
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -2830,7 +2831,7 @@ export type Session = {
 	_errors: Object;
 	_original?: Session
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -3072,7 +3073,7 @@ export type WhitelabelChild = {
 	_errors: Object;
 	_original?: WhitelabelChild
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -3198,7 +3199,7 @@ export type OrderProcessingAgreement = {
 	_errors: Object;
 	_original?: OrderProcessingAgreement
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -3319,7 +3320,7 @@ export type RecoverCode = {
 	_type: TypeRef<RecoverCode>;
 	_original?: RecoverCode
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -3704,7 +3705,7 @@ export type UserAlarmInfo = {
 	_errors: Object;
 	_original?: UserAlarmInfo
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -3973,7 +3974,7 @@ export type ReceivedGroupInvitation = {
 	_errors: Object;
 	_original?: ReceivedGroupInvitation
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -4011,7 +4012,7 @@ export type UserGroupRoot = {
 	_type: TypeRef<UserGroupRoot>;
 	_original?: UserGroupRoot
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -4107,7 +4108,7 @@ export type Invoice = {
 	_errors: Object;
 	_original?: Invoice
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -4152,7 +4153,7 @@ export type MissedNotification = {
 	_errors: Object;
 	_original?: MissedNotification
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -4205,7 +4206,7 @@ export type RejectedSender = {
 	_type: TypeRef<RejectedSender>;
 	_original?: RejectedSender
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -4326,7 +4327,7 @@ export type GiftCard = {
 	_errors: Object;
 	_original?: GiftCard
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -4760,7 +4761,7 @@ export type CustomerAccountTerminationRequest = {
 	_type: TypeRef<CustomerAccountTerminationRequest>;
 	_original?: CustomerAccountTerminationRequest
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -5296,7 +5297,7 @@ export type GroupKey = {
 	_type: TypeRef<GroupKey>;
 	_original?: GroupKey
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -5351,7 +5352,7 @@ export type KeyRotation = {
 	_type: TypeRef<KeyRotation>;
 	_original?: KeyRotation
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -5451,7 +5452,7 @@ export type UserGroupKeyDistribution = {
 	_type: TypeRef<UserGroupKeyDistribution>;
 	_original?: UserGroupKeyDistribution
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -5652,7 +5653,7 @@ export type GroupKeyUpdate = {
 	_errors: Object;
 	_original?: GroupKeyUpdate
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -6472,7 +6473,7 @@ export type PartnerManagedCustomer = {
 	_errors: Object;
 	_original?: PartnerManagedCustomer
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -6693,7 +6694,7 @@ export type SubscriptionRevocationRequest = {
 	_type: TypeRef<SubscriptionRevocationRequest>;
 	_original?: SubscriptionRevocationRequest
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;

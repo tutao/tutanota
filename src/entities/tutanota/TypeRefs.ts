@@ -1,17 +1,15 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
+import { ListElementId, ElementId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
-import {
-	Blob,
-	BlobReferenceTokenWrapper,
-	BucketKey,
-	DateWrapper,
-	GeneratedIdWrapper,
-	IdTupleWrapper,
-	InstanceSessionKey,
-	StringWrapper
-} from "../sys/TypeRefs.js"
-import { Entity } from "@tutao/meta"
+import { Blob } from '../sys/TypeRefs.js'
+import { BucketKey } from '../sys/TypeRefs.js'
+import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
+import { DateWrapper } from '../sys/TypeRefs.js'
+import { StringWrapper } from '../sys/TypeRefs.js'
+import { GeneratedIdWrapper } from '../sys/TypeRefs.js'
+import { IdTupleWrapper } from '../sys/TypeRefs.js'
+import { InstanceSessionKey } from '../sys/TypeRefs.js'
 
 export const SubfilesTypeRef: TypeRef<Subfiles> = new TypeRef("tutanota", 11)
 
@@ -58,7 +56,7 @@ export type File = {
 	_errors: Object;
 	_original?: File
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerEncSessionKey: null | Uint8Array;
@@ -92,7 +90,7 @@ export type FileSystem = {
 	_errors: Object;
 	_original?: FileSystem
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -238,7 +236,7 @@ export type Contact = {
 	_errors: Object;
 	_original?: Contact
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerEncSessionKey: null | Uint8Array;
@@ -294,7 +292,7 @@ export type ConversationEntry = {
 	_type: TypeRef<ConversationEntry>;
 	_original?: ConversationEntry
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	messageId: string;
@@ -368,12 +366,12 @@ export type MailParams = {
 	clientSpamClassifierResult: null | ClientSpamClassifierResult;
 }
 
-export type Mail =  {
+export type Mail = {
 	_type: TypeRef<Mail>;
 	_errors: Object;
 	_original?: Mail
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerEncSessionKey: null | Uint8Array;
@@ -441,7 +439,7 @@ export type MailBox = {
 	_errors: Object;
 	_original?: MailBox
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	lastInfoDate: Date;
@@ -552,7 +550,7 @@ export type ContactList = {
 	_errors: Object;
 	_original?: ContactList
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -581,7 +579,7 @@ export type RemoteImapSyncInfo = {
 	_type: TypeRef<RemoteImapSyncInfo>;
 	_original?: RemoteImapSyncInfo
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	seen: boolean;
@@ -633,7 +631,7 @@ export type ImapSyncState = {
 	_type: TypeRef<ImapSyncState>;
 	_original?: ImapSyncState
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -700,7 +698,7 @@ export type TutanotaProperties = {
 	_errors: Object;
 	_original?: TutanotaProperties
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	userEncEntropy: null | Uint8Array;
@@ -795,7 +793,7 @@ export type MailSet = {
 	_errors: Object;
 	_original?: MailSet
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerEncSessionKey: null | Uint8Array;
@@ -1592,7 +1590,7 @@ export type MailboxServerProperties = {
 	_type: TypeRef<MailboxServerProperties>;
 	_original?: MailboxServerProperties
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -1619,7 +1617,7 @@ export type MailboxGroupRoot = {
 	_type: TypeRef<MailboxGroupRoot>;
 	_original?: MailboxGroupRoot
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -1816,7 +1814,7 @@ export type CalendarEvent = {
 	_errors: Object;
 	_original?: CalendarEvent
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -1863,7 +1861,7 @@ export type CalendarGroupRoot = {
 	_errors: Object;
 	_original?: CalendarGroupRoot
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -1984,7 +1982,7 @@ export type UserSettingsGroupRoot = {
 	_errors: Object;
 	_original?: UserSettingsGroupRoot
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -2288,7 +2286,7 @@ export type CalendarEventUidIndex = {
 	_type: TypeRef<CalendarEventUidIndex>;
 	_original?: CalendarEventUidIndex
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -2336,7 +2334,7 @@ export type CalendarEventUpdate = {
 	_errors: Object;
 	_original?: CalendarEventUpdate
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -2432,7 +2430,7 @@ export type OutOfOfficeNotification = {
 	_type: TypeRef<OutOfOfficeNotification>;
 	_original?: OutOfOfficeNotification
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -2457,7 +2455,7 @@ export type OutOfOfficeNotificationRecipient = {
 	_type: TypeRef<OutOfOfficeNotificationRecipient>;
 	_original?: OutOfOfficeNotificationRecipient
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -2524,7 +2522,7 @@ export type EmailTemplate = {
 	_errors: Object;
 	_original?: EmailTemplate
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -2575,7 +2573,7 @@ export type KnowledgeBaseEntry = {
 	_errors: Object;
 	_original?: KnowledgeBaseEntry
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -2606,7 +2604,7 @@ export type TemplateGroupRoot = {
 	_errors: Object;
 	_original?: TemplateGroupRoot
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -2657,7 +2655,7 @@ export type MailboxProperties = {
 	_errors: Object;
 	_original?: MailboxProperties
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -2887,7 +2885,7 @@ export type MailDetailsDraft = {
 	_errors: Object;
 	_original?: MailDetailsDraft
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -2915,7 +2913,7 @@ export type MailDetailsBlob = {
 	_errors: Object;
 	_original?: MailDetailsBlob
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -2986,7 +2984,7 @@ export type ContactListEntry = {
 	_errors: Object;
 	_original?: ContactListEntry
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -3013,7 +3011,7 @@ export type ContactListGroupRoot = {
 	_errors: Object;
 	_original?: ContactListGroupRoot
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -3239,7 +3237,7 @@ export type MailSetEntry = {
 	_type: TypeRef<MailSetEntry>;
 	_original?: MailSetEntry
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -3585,7 +3583,7 @@ export type ImportedFileMail = {
 	_type: TypeRef<ImportedFileMail>;
 	_original?: ImportedFileMail
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -3614,7 +3612,7 @@ export type ImportFileMailState = {
 	_type: TypeRef<ImportFileMailState>;
 	_original?: ImportFileMailState
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -3855,7 +3853,7 @@ export type SupportData = {
 	_type: TypeRef<SupportData>;
 	_original?: SupportData
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -4098,7 +4096,7 @@ export type ClientSpamTrainingDatum = {
 	_errors: Object;
 	_original?: ClientSpamTrainingDatum
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -4126,7 +4124,7 @@ export type ClientSpamTrainingDatumIndexEntry = {
 	_type: TypeRef<ClientSpamTrainingDatumIndexEntry>;
 	_original?: ClientSpamTrainingDatumIndexEntry
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -4384,7 +4382,7 @@ export type ImportedImapMail = {
 	_type: TypeRef<ImportedImapMail>;
 	_original?: ImportedImapMail
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -4413,7 +4411,7 @@ export type DeduplicatedImportedAttachment = {
 	_errors: Object;
 	_original?: DeduplicatedImportedAttachment
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -4449,7 +4447,7 @@ export type ImapFolderSyncState = {
 	_errors: Object;
 	_original?: ImapFolderSyncState
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -4492,7 +4490,7 @@ export type ImapAccountSyncState = {
 	_errors: Object;
 	_original?: ImapAccountSyncState
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;

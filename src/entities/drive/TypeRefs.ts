@@ -1,5 +1,6 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
+import { ListElementId, ElementId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 import { Blob } from '../sys/TypeRefs.js'
 import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
@@ -28,7 +29,7 @@ export type DriveFolder = {
 	_errors: Object;
 	_original?: DriveFolder
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -69,7 +70,7 @@ export type DriveFile = {
 	_errors: Object;
 	_original?: DriveFile
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -104,7 +105,7 @@ export type DriveFileRef = {
 	_type: TypeRef<DriveFileRef>;
 	_original?: DriveFileRef
 
-	_id: IdTuple;
+	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
@@ -174,7 +175,7 @@ export type DriveGroupRoot = {
 	_type: TypeRef<DriveGroupRoot>;
 	_original?: DriveGroupRoot
 
-	_id: Id;
+	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
