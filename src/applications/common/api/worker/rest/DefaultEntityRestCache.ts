@@ -255,8 +255,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		let idsToLoad: Id[]
 		if (cachingBehavior.readsFromCache) {
 			const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
-			const cached = await this.storage.provideMultipleParsed(typeRef, listId, ids)
-			entitiesInCache.push(...cached)
+			entitiesInCache = await this.storage.provideMultipleParsed(typeRef, listId, ids)
 			const loadedIds = new Set(
 				entitiesInCache.map((e) => {
 					if (listId) {
