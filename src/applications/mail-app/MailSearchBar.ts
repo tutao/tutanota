@@ -41,7 +41,9 @@ export class MailSearchBar implements ClassComponent<MailSearchBarAttrs> {
 				if (attrs.needsToEnableSearch()) {
 					const confirmed = await Dialog.confirm("enableSearchMailbox_msg", "search_label")
 					if (confirmed) {
-						return await attrs.enableSearch()
+						// do not hold SearchBar for the whole indexing time
+						void attrs.enableSearch()
+						return true
 					}
 					return false
 				} else {
