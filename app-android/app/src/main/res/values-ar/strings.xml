@@ -10,5 +10,11 @@
     <string name="markRead_action">علِم كمقروء</string>
     <string name="archive_action">أرشيف</string>
     <string name="sendLogs_action">إرسال السجلات</string>
-    <string name="account_label">مستخدم</string>
+    <string name="account_label">المستخدم</string>
+    <string name="widgetNoCredentialsInfo_msg">لا تتوفر بيانات اعتماد</string>
+    <string name="widgetUnexpectedError_msg">عذراً! حدث خطأ ما.</string>
+    <string name="widgetCredentialsError_msg">يرجى تسجيل الدخول عبر تطبيق التقويم</string>
+    <string name="widgetOpenApp_action">افتح التطبيق</string>
+    <string name="widgetNoEvents_msg">لا توجد أحداث</string>
+    <string name="widgetDescription_msg">عرض الأحداث القادمة اليوم</string>
 </resources>
