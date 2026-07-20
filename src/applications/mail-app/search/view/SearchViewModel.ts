@@ -966,8 +966,7 @@ export class SearchViewModel {
 				(this._startDate == null || this._startDate.getTime() < newState.currentMailIndexTimestamp)
 			) {
 				// Indexing was cancelled and _startDate is outside the index range
-				const newStartTimestamp =
-					newState.currentMailIndexTimestamp === NOTHING_INDEXED_TIMESTAMP ? getEndOfDay(new Date()) : dateLimit
+				const newStartTimestamp = newState.currentMailIndexTimestamp === NOTHING_INDEXED_TIMESTAMP ? getEndOfDay(new Date()) : dateLimit
 				this._startDate = new Date(newStartTimestamp)
 			}
 
