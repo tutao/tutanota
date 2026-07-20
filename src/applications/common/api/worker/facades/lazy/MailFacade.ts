@@ -87,6 +87,7 @@ import {
 	Contact,
 	createApplyLabelServicePostIn,
 	createAttachmentKeyData,
+	createBodyTransferAggregatedType,
 	createCreateExternalUserGroupData,
 	createCreateMailFolderData,
 	createDeleteMailData,
@@ -100,7 +101,9 @@ import {
 	createExternalUserData,
 	createListUnsubscribeData,
 	createMailAddressTransferAggregation,
-	createMailTransferAggregation,
+	createMailDetailsBlobTransferAggregatedType,
+	createMailDetailsTransferAggregatedType,
+	createMailTransferAggregatedType,
 	createManageLabelServiceDeleteIn,
 	createManageLabelServiceLabelData,
 	createManageLabelServicePostIn,
@@ -110,6 +113,7 @@ import {
 	createPopulateClientSpamTrainingDatum,
 	createProcessInboxDatum,
 	createProcessInboxPostIn,
+	createRecipientsTransferAggregatedType,
 	createReportMailPostData,
 	createResolveConversationsServiceGetIn,
 	createSecureExternalRecipientKeyData,
@@ -179,6 +183,12 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../../platform
 import { DataFile } from "../../../../../../entities/tutanota/MailBundle"
 import { aesEncrypt } from "../../../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { Type } from "cborg"
+import undefined = Type.undefined
+import undefined = Type.undefined
+import undefined = Type.undefined
+import undefined = Type.undefined
+import undefined = Type.undefined
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<File | DataFile | FileReference>
@@ -335,14 +345,30 @@ export class MailFacade {
 				addedAttachments: await this._createAddedAttachments(attachments, [], senderMailGroupId, mailGroupKey),
 				bodyText: "",
 				removedAttachments: [],
-				mail: createMailTransferAggregation({
+				mail: createMailTransferAggregatedType({
 					subject,
-					receivedDate: new Date(),
 					sender: createMailAddressTransferAggregation({
 						name: senderName,
 						address: senderMailAddress,
 					}),
+					confidential,
+					method,
 				}),
+				mailDetailsBlob: createMailDetailsBlobTransferAggregatedType({
+					details: createMailDetailsTransferAggregatedType({
+						body: createBodyTransferAggregatedType({
+							compressedText: bodyText,
+							text: "",
+						}),
+						recipients: createRecipientsTransferAggregatedType({
+							bccRecipients,
+							ccRecipients,
+							toRecipients,
+						}),
+						replyTos: [],
+					}),
+				}),
+				newAttachments: [],
 			}),
 			ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 		})
