@@ -8030,7 +8030,17 @@
 				"encrypted": true
 			}
 		},
-		"associations": {}
+		"associations": {
+			"1989": {
+				"final": true,
+				"name": "parentFolder",
+				"id": 1989,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 429,
+				"dependency": null
+			}
+		}
 	},
 	"1484": {
 		"name": "ManageLabelServicePostIn",

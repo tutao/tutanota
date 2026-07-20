@@ -3430,6 +3430,8 @@ pub struct ManageLabelServiceLabelData {
 	pub name: String,
 	#[serde(rename = "1483")]
 	pub color: String,
+	#[serde(rename = "1989")]
+	pub parentFolder: Option<IdTupleGenerated>,
 
 	#[serde(default)]
 	pub _errors: Errors,

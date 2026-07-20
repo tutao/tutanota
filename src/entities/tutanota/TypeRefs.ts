@@ -2178,6 +2178,8 @@ export type ManageLabelServiceLabelData = {
 	_id: Id;
 	name: string;
 	color: string;
+
+	parentFolder: null | IdTuple;
 }
 export const ManageLabelServicePostInTypeRef: TypeRef<ManageLabelServicePostIn> = new TypeRef("tutanota", 1484)
 
