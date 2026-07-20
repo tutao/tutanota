@@ -481,7 +481,7 @@ export class SearchViewModel {
 		if (
 			this.getCategory() === SearchCategoryTypes.mail &&
 			indexState.currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
-			(targetStartDate == null || targetStartDate.getTime() < indexState.currentMailIndexTimestamp)
+			(targetStartDate == null || targetStartDate.getTime() < indexState.aimedMailIndexTimestamp)
 		) {
 			if (this.listModel.state.loadingStatus === ListLoadingState.Done) {
 				// set list state to Idle so an empty row at the end of the list is shown where the progress indicator will be rendered
