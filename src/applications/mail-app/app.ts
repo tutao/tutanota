@@ -70,6 +70,8 @@ import { RevocationView, RevocationViewAttrs } from "../common/revocation/Revoca
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
 import { CalendarSearchBarAttrs } from "../calendar-app/LazyCalendarSearchBar"
 import { ContactSearchBarAttrs } from "./contacts/view/ContactSearchBar"
+import { MailSearchView, MailSearchViewAttrs } from "./search/view/MailSearchView"
+import { MailSearchViewModel } from "./search/view/MailSearchViewModel"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -598,6 +600,39 @@ import("../../ui/translations/en.js")
 						header: cache.header,
 						logins: mailLocator.logins,
 					}),
+				},
+				mailLocator.logins,
+			),
+			mailSearch: makeViewResolver<
+				MailSearchViewAttrs,
+				MailSearchView,
+				{ undoModel: UndoModel; drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs; makeViewModel: () => MailSearchViewModel }
+			>(
+				{
+					prepareRoute: async () => {
+						const { MailSearchView } = await import("./search/view/MailSearchView.js")
+						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
+						const undoModel = await mailLocator.undoModel()
+						const makeViewModel = await mailLocator.mailSearchViewModelFactory()
+						return {
+							component: MailSearchView,
+							cache: {
+								undoModel,
+								drawerAttrsFactory,
+								header: await mailLocator.appHeaderAttrs(),
+								makeViewModel,
+							},
+						}
+					},
+					prepareAttrs: (cache) => {
+						return {
+							contactModel: mailLocator.contactModel,
+							undoModel: cache.undoModel,
+							header: cache.header,
+							drawerAttrs: cache.drawerAttrsFactory(),
+							makeViewModel: cache.makeViewModel,
+						}
+					},
 				},
 				mailLocator.logins,
 			),

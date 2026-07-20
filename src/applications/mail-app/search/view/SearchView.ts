@@ -19,7 +19,6 @@ import {
 	isEmpty,
 	isNotEmpty,
 	isSameDayOfDate,
-	last,
 	LazyLoaded,
 	lazyMemoized,
 	memoized,
@@ -96,7 +95,6 @@ import { BottomNav } from "../../gui/BottomNav.js"
 import { mailLocator } from "../../mailLocator.js"
 import { allInSameMailbox, getIndentedFolderNameForDropdown } from "../../mail/model/MailUtils.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
-import { extractContactIdFromEvent, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils.js"
 import { createDropdown } from "../../../../ui/base/Dropdown"
 import { editDraft, getMailViewerMoreActions, MailFilterType, showReportPhishingMailDialog, startExport } from "../../mail/view/MailViewerUtils"
 import { isDraft, isMailMovable } from "../../mail/model/MailChecks"

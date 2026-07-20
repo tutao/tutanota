@@ -165,6 +165,9 @@ export class SearchModel {
 		const searchResult: SearchResult = await this._searchFacade.search(searchQuery.query, searchQuery.restriction, {
 			maxResults: searchQuery.maxResults ?? undefined,
 		})
+		// FIXME: sort like in the returned result
+		// it is important to keep the order when using sqlite
+		// when it's indexeddb we need to sort manually here
 		const mails = await loadMultipleFromLists(MailTypeRef, this.entityClient, searchResult.results)
 		mails.sort(compareMails)
 
@@ -179,6 +182,7 @@ export class SearchModel {
 					result.searchResult = await this._searchFacade.getMoreSearchResults(result.searchResult, count)
 					const toLoad = result.searchResult.results.slice(previousLength)
 					let items: Mail[] = await loadMultipleFromLists(MailTypeRef, this.entityClient, toLoad)
+					// FIXME: same sorting comment as above
 					items.sort(compareMails)
 
 					// Restore the original sorting order

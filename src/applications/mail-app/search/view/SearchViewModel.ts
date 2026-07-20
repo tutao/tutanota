@@ -1099,8 +1099,8 @@ function searchCategoryTypeToTypeRef(searchType: SearchCategoryType): TypeRef<Se
 			return DriveFileTypeRef
 	}
 }
-
-function emptyListModel<ItemType, IdType>(): ListModel<ItemType, IdType> {
+//FIXME move to a common place
+export function emptyListModel<ItemType, IdType>(): ListModel<ItemType, IdType> {
 	return new ListModel({
 		async fetch(last: ItemType | null | undefined, count: number): Promise<ListFetchResult<ItemType>> {
 			return { items: [] as ItemType[], complete: true }
