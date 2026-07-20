@@ -37,6 +37,12 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 
 		const appClasses = isApp() ? ["smaller"] : []
 
+		const startDateComponents = attrs.editModel.getStartDate()
+		const startDate = new Date(startDateComponents.year, startDateComponents.month, startDateComponents.day)
+
+		const endDateComponents = attrs.editModel.getStartDate()
+		const endDate = new Date(endDateComponents.year, endDateComponents.month, endDateComponents.day)
+
 		return m(".flex.col.flex-grow.gap-12", [
 			m(".flex.gap-8.items-center.justify-between", [
 				m(Icon, {
@@ -68,7 +74,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							`${isApp() ? "" : ".pl-32"}`,
 							m(DatePicker, {
 								classes: appClasses,
-								date: attrs.editModel.startDate,
+								date: startDate,
 								onDateSelected: (date) => date && attrs.dateSelectionChanged(date),
 								startOfTheWeekOffset: attrs.startOfTheWeekOffset,
 								label: lang.getTranslation("dateFrom_label"),
@@ -85,8 +91,8 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							},
 							m(TimePicker, {
 								classes: appClasses,
-								time: editModel.startTime,
-								onTimeSelected: (time) => (editModel.startTime = time),
+								time: editModel.getStartTime(),
+								onTimeSelected: editModel.setStartTime.bind(editModel),
 								timeFormat: attrs.timeFormat,
 								disabled: attrs.disabled || attrs.editModel.isAllDay,
 								ariaLabel: lang.getTranslation("startTime_label"),
@@ -103,8 +109,8 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							`${isApp() ? "" : ".pl-32"}`,
 							m(DatePicker, {
 								classes: appClasses,
-								date: attrs.editModel.endDate,
-								onDateSelected: (date) => date && (attrs.editModel.endDate = date),
+								date: endDate,
+								onDateSelected: (date) => date && attrs.editModel.setEndDate(date),
 								startOfTheWeekOffset: attrs.startOfTheWeekOffset,
 								label: lang.getTranslation("dateTo_label"),
 								useInputButton: true,
@@ -120,8 +126,8 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							},
 							m(TimePicker, {
 								classes: appClasses,
-								time: editModel.endTime,
-								onTimeSelected: (time) => (editModel.endTime = time),
+								time: editModel.getEndTime(),
+								onTimeSelected: editModel.setEndTime.bind(editModel),
 								timeFormat: attrs.timeFormat,
 								disabled: attrs.disabled || editModel.isAllDay,
 								ariaLabel: lang.getTranslation("endTime_label"),

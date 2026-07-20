@@ -130,7 +130,7 @@ export class CalendarEventApplyStrategies {
 
 						// we need to use the time we had before, not the time of the progenitor (which did not change since we still have altered occurrences)
 						editModelsForProgenitor.whenModel.rescheduleEventToDate(occurrence.startTime)
-						editModelsForProgenitor.whenModel.startTime = Time.fromDate(occurrence.startTime)
+						editModelsForProgenitor.whenModel.setStartTime(Time.fromDate(occurrence.startTime))
 						editModelsForProgenitor.whenModel.isAllDay = isAllDayEvent(occurrence)
 						editModelsForProgenitor.whenModel.duration = newDuration
 

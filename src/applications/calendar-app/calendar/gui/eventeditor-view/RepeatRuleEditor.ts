@@ -28,7 +28,6 @@ import { isKeyPressed } from "../../../../../ui/utils/KeyManager.js"
 import { Divider } from "../../../../../ui/Divider.js"
 import { WeekdaySelector, WeekdayToTranslation } from "./WeekdaySelector.js"
 import { WeekRepetitionSelector } from "./WeekRepetitionSelector.js"
-import { DateTime } from "luxon"
 
 export type RepeatRuleEditorAttrs = {
 	model: CalendarEventWhenModel
@@ -198,7 +197,7 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 					? [
 							m(Divider, { color: theme.outline_variant }),
 							m(WeekRepetitionSelector, {
-								repetitionOptionsAndWeekday: createRepetitionValuesForWeekday(DateTime.fromJSDate(attrs.model.startDate).weekday),
+								repetitionOptionsAndWeekday: createRepetitionValuesForWeekday(attrs.model.getStartDateTime().weekday),
 								interval: this.byDayRules?.interval ?? 0,
 								gatherSelectedDay: attrs.writeWeekdaysToModel,
 							}),

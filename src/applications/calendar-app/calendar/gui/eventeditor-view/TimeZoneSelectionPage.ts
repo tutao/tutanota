@@ -6,7 +6,7 @@ import { PrimaryButton, PrimaryButtonAttrs, SecondaryButton } from "../../../../
 import { TimeZoneSelectorDropdown } from "./TimeZoneSelectorDropdown"
 import { Checkbox, CheckboxAttrs } from "../../../../../ui/base/Checkbox"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel"
-import { DateTime, IANAZone } from "luxon"
+import { DateTime } from "luxon"
 
 export type TimeZoneSelectionPageAttrs = {
 	width: number
