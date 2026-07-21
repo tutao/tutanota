@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import type { TableLineAttrs } from "../../../../ui/base/Table.js"
 import { ColumnWidth, Table } from "../../../../ui/base/Table.js"
-import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
+import { lang, Translation, TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
 import { LimitReachedError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { ofClass } from "@tutao/utils"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
@@ -14,7 +14,7 @@ import { assertMainOrNode, UnsubscribeFailureReason, UpgradePromptType } from "@
 import { IconButtonAttrs } from "../../../../ui/base/IconButton.js"
 import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
 import { AddressInfo, AddressStatus, MailAddressTableModel } from "./MailAddressTableModel.js"
-import { showAddAliasDialog } from "./AddAliasDialog.js"
+import { FAILURE_USER_DISABLED, showAddAliasDialog } from "./AddAliasDialog.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { NewPaidPlans } from "../../../../entities/sys/Utils"
@@ -39,7 +39,13 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 		const addAliasButtonAttrs: IconButtonAttrs | null = model.userCanModifyAliases()
 			? {
 					label: "addEmailAlias_label",
-					click: () => this.onAddAlias(attrs),
+					click: () => {
+						if (model.isUserActive()) {
+							this.onAddAlias(attrs)
+						} else {
+							Dialog.message("addAliasUserDisabled_msg")
+						}
+					},
 					icon: Icons.Plus,
 					size: ButtonSize.Compact,
 				}
@@ -107,6 +113,21 @@ function setNameDropdownButton(model: MailAddressTableModel, addressInfo: Addres
 }
 
 function addressDropdownButtons(attrs: MailAddressTableAttrs, addressInfo: AddressInfo): DropdownButtonAttrs[] {
+	if (!attrs.model.isUserActive()) {
+		if (addressInfo.status === AddressStatus.Alias && attrs.model.userCanModifyAliases()) {
+			// if the user is deactivated and the alias is somehow active, only give option to deactivate
+			return [
+				{
+					label: "deactivate_action",
+					click: () => {
+						switchAliasStatus(addressInfo, attrs)
+					},
+				},
+			]
+		} else {
+			return []
+		}
+	}
 	switch (addressInfo.status) {
 		case AddressStatus.Primary:
 			return [setNameDropdownButton(attrs.model, addressInfo)]
@@ -239,21 +260,24 @@ function handleSetAliasStatusPreconditionFailed(e: PreconditionFailedError): voi
 	if (reason == null) {
 		Dialog.message("unknownError_msg")
 	} else {
-		let detailMsg: string
+		let detailMsg: Translation
 
 		switch (reason) {
 			case UnsubscribeFailureReason.HAS_SCHEDULED_MAILS:
-				detailMsg = lang.getTranslationText("removeScheduledMails_msg")
+				detailMsg = lang.getTranslation("aliasDeactivationNotPossible_msg", {
+					"{detailMsg}": lang.getTranslationText("removeScheduledMails_msg"),
+				})
+
+				break
+
+			case FAILURE_USER_DISABLED:
+				detailMsg = lang.getTranslation("userAccountDeactivated_msg")
 				break
 
 			default:
 				throw e
 		}
 
-		Dialog.message(
-			lang.getTranslation("aliasDeactivationNotPossible_msg", {
-				"{detailMsg}": detailMsg,
-			}),
-		)
+		Dialog.message(detailMsg)
 	}
 }
