@@ -18,7 +18,6 @@ import { showCaptchaDialog } from "./CaptchaDialog.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { PowSolution } from "../../api/common/pow-worker"
 import { isIOSApp } from "@tutao/app-env"
-import { mailLocator } from "../../../mail-app/mailLocator"
 import { AdAttributionType } from "../utils/SubscriptionUtils"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
 
@@ -74,7 +73,7 @@ export async function runCaptchaFlow({
 		try {
 			let attributionToken: string | null = null
 			if (isIOSApp()) {
-				attributionToken = await mailLocator.systemFacade.getAppleAdsAttributionToken()
+				attributionToken = await locator.systemFacade.getAppleAdsAttributionToken()
 			}
 
 			captchaReturn = await locator.serviceExecutor.get(
