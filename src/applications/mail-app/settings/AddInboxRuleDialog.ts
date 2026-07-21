@@ -47,6 +47,7 @@ EnvProvider.assertMainOrNode()
 
 export type InboxRuleTemplate = Pick<ExpandedInboxRule, "conditions" | "results"> & {
 	_id?: ExpandedInboxRule["_id"]
+	name: string
 	conditions?: Pick<InboxRuleCondition, "type" | "value">[]
 	results?: Pick<InboxRuleResult, "type" | "value">[]
 }
@@ -78,6 +79,8 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 			}
 		})
 
+		const inboxRuleName: stream<string> = stream(ruleOrTemplate.name)
+
 		const inboxRuleConditions: InboxRuleConditionField[] = ruleOrTemplate.conditions.map((condition) => {
 			return { type: stream(condition.type as InboxRuleConditionType), value: stream(condition.value) }
 		})
@@ -90,6 +93,17 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 		if (inboxRuleResults.length === 0) {
 			// If there are no results yet, add the default value of Move to Archive
 			inboxRuleResults.push({ type: stream(InboxRuleResultType.MOVE), value: stream(assertSystemFolderOfType(folders, MailSetKind.ARCHIVE)) })
+		}
+
+		const renderName = () => {
+			return m(
+				".mt-16.max-width-m",
+				m(TextField, {
+					label: "name_label",
+					value: inboxRuleName(),
+					oninput: inboxRuleName,
+				}),
+			)
 		}
 
 		const renderConditionRow = (condition: InboxRuleConditionField, conditionIndex: number) => {
@@ -187,6 +201,7 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 					}),
 					m(".smaller.mt-16", lang.getTranslationText("inboxRuleExplainer_msg")),
 				]),
+				renderName(),
 				m(".uppercase.b.mt-32.content-fg", lang.getTranslationText("condition_label")),
 				inboxRuleConditions.map(renderConditionRow),
 				m(".uppercase.b.mt-32.content-fg", lang.getTranslationText("searchResult_label")),
@@ -285,6 +300,13 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 		}
 
 		const inboxRuleOkAction = (dialog: Dialog, applyRule: boolean) => {
+			const validatedName = inboxRuleName().trim()
+
+			if (validatedName === "") {
+				Dialog.message("enterName_msg")
+				return
+			}
+
 			const ruleConditions = []
 
 			for (const condition of inboxRuleConditions) {
@@ -305,7 +327,7 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 			}
 
 			const rule = createExpandedInboxRule({
-				name: "FIXME: get me a name",
+				name: validatedName,
 				conditions: ruleConditions,
 				results: ruleResults,
 			})
@@ -398,6 +420,7 @@ function getRuleResultValueInputByType(ruleResult: InboxRuleResultField) {
 export function createInboxRuleTemplate(ruleType: InboxRuleConditionType | null, value: string): InboxRuleTemplate {
 	const type = ruleType ?? InboxRuleConditionType.FROM_EQUALS
 	return {
+		name: "",
 		conditions: [
 			createInboxRuleCondition({
 				type,
