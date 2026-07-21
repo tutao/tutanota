@@ -98,9 +98,10 @@ import {
 	createDraftRecipient,
 	createDraftUpdateData,
 	createEncryptedMailAddress,
+	createEncryptedMailAddressTransferAggregatedType,
 	createExternalUserData,
 	createListUnsubscribeData,
-	createMailAddressTransferAggregation,
+	createMailAddressTransferAggregatedType,
 	createMailDetailsBlobTransferAggregatedType,
 	createMailDetailsTransferAggregatedType,
 	createMailTransferAggregatedType,
@@ -127,6 +128,7 @@ import {
 	DraftRecipient,
 	DraftService,
 	EncryptedMailAddress,
+	EncryptedMailAddressTransferAggregatedType,
 	ExternalUserService,
 	File,
 	FileTypeRef,
@@ -134,6 +136,7 @@ import {
 	InternalRecipientKeyDataTypeRef,
 	ListUnsubscribeService,
 	Mail,
+	MailAddressTransferAggregatedType,
 	MailDetails,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
@@ -183,12 +186,6 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../../platform
 import { DataFile } from "../../../../../../entities/tutanota/MailBundle"
 import { aesEncrypt } from "../../../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
-import { Type } from "cborg"
-import undefined = Type.undefined
-import undefined = Type.undefined
-import undefined = Type.undefined
-import undefined = Type.undefined
-import undefined = Type.undefined
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<File | DataFile | FileReference>
@@ -298,10 +295,19 @@ export class MailFacade {
 
 	/**
 	 * Creates a draft mail.
+	 * @param subject
 	 * @param bodyText The bodyText of the mail formatted as HTML.
+	 * @param senderMailAddress
+	 * @param senderName
+	 * @param toRecipients
+	 * @param ccRecipients
+	 * @param bccRecipients
+	 * @param conversationType
 	 * @param previousMessageId The id of the message that this mail is a reply or forward to. Null if this is a new mail.
 	 * @param attachments The files that shall be attached to this mail or null if no files shall be attached. TutanotaFiles are already exising on the server, DataFiles are files from the local file system. Attention: the DataFile class information is lost
 	 * @param confidential True if the mail shall be sent end-to-end encrypted, false otherwise.
+	 * @param replyTos
+	 * @param method
 	 */
 	async createDraft({
 		subject,
@@ -347,9 +353,10 @@ export class MailFacade {
 				removedAttachments: [],
 				mail: createMailTransferAggregatedType({
 					subject,
-					sender: createMailAddressTransferAggregation({
+					sender: createMailAddressTransferAggregatedType({
 						name: senderName,
 						address: senderMailAddress,
+						contact: null,
 					}),
 					confidential,
 					method,
@@ -361,11 +368,11 @@ export class MailFacade {
 							text: "",
 						}),
 						recipients: createRecipientsTransferAggregatedType({
-							bccRecipients,
-							ccRecipients,
-							toRecipients,
+							toRecipients: toRecipients.map(recipientToTransferMailAddress),
+							ccRecipients: ccRecipients.map(recipientToTransferMailAddress),
+							bccRecipients: bccRecipients.map(recipientToTransferMailAddress),
 						}),
-						replyTos: [],
+						replyTos: replyTos.map(recipientToTransferEncryptedMailAddress),
 					}),
 				}),
 				newAttachments: [],
@@ -434,7 +441,31 @@ export class MailFacade {
 				removedAttachments: this._getRemovedAttachments(attachments, currentAttachments),
 				addedAttachments: await this._createAddedAttachments(attachments, currentAttachments, senderMailGroupId, mailGroupKey),
 				bodyText: "",
-				mail: null,
+				mail: createMailTransferAggregatedType({
+					subject,
+					sender: createMailAddressTransferAggregatedType({
+						name: senderName,
+						address: senderMailAddress,
+						contact: null,
+					}),
+					confidential,
+					method: draft.method,
+				}),
+				mailDetailsBlob: createMailDetailsBlobTransferAggregatedType({
+					details: createMailDetailsTransferAggregatedType({
+						body: createBodyTransferAggregatedType({
+							compressedText: body,
+							text: "",
+						}),
+						recipients: createRecipientsTransferAggregatedType({
+							toRecipients: toRecipients.map(recipientToTransferMailAddress),
+							ccRecipients: ccRecipients.map(recipientToTransferMailAddress),
+							bccRecipients: bccRecipients.map(recipientToTransferMailAddress),
+						}),
+						replyTos: replyTos.map(recipientToTransferEncryptedMailAddress),
+					}),
+				}),
+				newAttachments: [],
 			}),
 		})
 		this.deferredDraftId = draft._id
@@ -1505,6 +1536,21 @@ function recipientToDraftRecipient(recipient: PartialRecipient): DraftRecipient 
 
 export function recipientToEncryptedMailAddress(recipient: PartialRecipient): EncryptedMailAddress {
 	return createEncryptedMailAddress({
+		name: recipient.name ?? "",
+		address: recipient.address,
+	})
+}
+
+export function recipientToTransferMailAddress(recipient: PartialRecipient): MailAddressTransferAggregatedType {
+	return createMailAddressTransferAggregatedType({
+		name: recipient.name ?? "",
+		address: recipient.address,
+		contact: null,
+	})
+}
+
+export function recipientToTransferEncryptedMailAddress(recipient: PartialRecipient): EncryptedMailAddressTransferAggregatedType {
+	return createEncryptedMailAddressTransferAggregatedType({
 		name: recipient.name ?? "",
 		address: recipient.address,
 	})
