@@ -19,7 +19,7 @@
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false,
-				"idForAssociatedData": null
+				"transferredAttributeId": null
 			},
 			"2": {
 				"final": false,
@@ -28,7 +28,7 @@
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
-				"idForAssociatedData": null
+				"transferredAttributeId": null
 			},
 			"3": {
 				"final": false,
@@ -37,7 +37,7 @@
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false,
-				"idForAssociatedData": null
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {}

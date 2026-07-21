@@ -26,7 +26,7 @@ const typeModels = {
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false,
-				"idForAssociatedData": null
+				"transferredAttributeId": null
 			},
 			"81": {
 				"final": true,
@@ -35,7 +35,7 @@ const typeModels = {
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": true,
-				"idForAssociatedData": null
+				"transferredAttributeId": null
 			},
 			"82": {
 				"final": true,
@@ -44,7 +44,7 @@ const typeModels = {
 				"type": "Date",
 				"cardinality": "One",
 				"encrypted": true,
-				"idForAssociatedData": null
+				"transferredAttributeId": null
 			},
 			"83": {
 				"final": true,
@@ -53,7 +53,7 @@ const typeModels = {
 				"type": "String",
 				"cardinality": "ZeroOrOne",
 				"encrypted": true,
-				"idForAssociatedData": null
+				"transferredAttributeId": null
 			},
 			"84": {
 				"final": true,
@@ -62,7 +62,7 @@ const typeModels = {
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": true,
-				"idForAssociatedData": null
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {}
@@ -87,7 +87,7 @@ const typeModels = {
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false,
-				"idForAssociatedData": null
+				"transferredAttributeId": null
 			},
 			"88": {
 				"final": true,
@@ -96,7 +96,7 @@ const typeModels = {
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
-				"idForAssociatedData": null
+				"transferredAttributeId": null
 			},
 			"89": {
 				"final": true,
@@ -105,7 +105,7 @@ const typeModels = {
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
-				"idForAssociatedData": null
+				"transferredAttributeId": null
 			},
 			"92": {
 				"final": false,
@@ -114,7 +114,7 @@ const typeModels = {
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false,
-				"idForAssociatedData": null
+				"transferredAttributeId": null
 			},
 			"94": {
 				"final": true,
@@ -123,7 +123,7 @@ const typeModels = {
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": true,
-				"idForAssociatedData": null
+				"transferredAttributeId": null
 			},
 			"96": {
 				"final": true,
@@ -132,7 +132,7 @@ const typeModels = {
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
-				"idForAssociatedData": null
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -144,7 +144,7 @@ const typeModels = {
 				"cardinality": "Any",
 				"refTypeId": 79,
 				"dependency": null,
-				"idForAssociatedData": null
+				"transferredAttributeId": null
 			}
 		}
 	}
