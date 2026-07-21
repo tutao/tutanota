@@ -308,7 +308,7 @@ export class ElectronUpdater {
 	private async showUpdateError(): Promise<void> {
 		await electron.dialog.showMessageBox({
 			type: "error",
-			title: "Tuta Mail",
+			title: "Tuta",
 			message: lang.getTranslation("manualUpdateNeeded_msg", { "{url}": InfoLink.Download }).text,
 			buttons: [lang.getTranslation("ok_action").text],
 		})
