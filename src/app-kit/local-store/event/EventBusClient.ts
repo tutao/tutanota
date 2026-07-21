@@ -750,6 +750,15 @@ export class EventBusClient {
 		const allMissedEventsFlat = this.eventQueue.eventQueue.flatMap((batch) => batch.events)
 		await this.cache.updateCacheWithMissedEntityUpdates(allMissedEventsFlat)
 		await this.waitForEmptyQueue()
-		this.eventQueue.pause()
+		if (!this.isInitialSyncDone) {
+			// We pause the event queue only if the initial sync is not done so that we continue accumulating events.
+			// If we were to pause the event queue always, it would lead to a situation where it is never resumed again.
+			// For example, the client reads more than MAX_EVENT_QUEUE_LENGTH_BEFORE_FLUSHING mails at once, and then we receive
+			// more than MAX_EVENT_QUEUE_LENGTH_BEFORE_FLUSHING websocket messages, and therefore handleMessage calls
+			// processAccumulatedEventBatches. If we were to pause here, then it would not be resumed again anywhere, since
+			// only the InitialSyncDone message resumes the event queue and the server has sent the InitialSyncDone message before
+			// and will not send it again.
+			this.eventQueue.pause()
+		}
 	}
 }
