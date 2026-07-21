@@ -1,16 +1,15 @@
 import o from "@tutao/otest"
-import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../../TestUtils"
 import { MailFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/MailFacade"
 import { OfflineMailIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineMailIndexer"
 import { OfflineStoragePersistence } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { BlobFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/BlobFacade"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock"
-import { CryptoMapper, EncryptedParsedInstance, EntityAdapter, ModelMapper, ServerTypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
+import { EncryptedParsedInstance, EntityAdapter, InstancePipeline, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import { InfoMessageHandler } from "../../../../../src/applications/common/gui/InfoMessageHandler"
 import { MailIndexerNewMailDownloader } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexer"
 import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
 import {
-	BlobElementEntity,
 	compareOldestFirst,
 	elementIdPart,
 	EntityIdEncoding,
@@ -19,8 +18,8 @@ import {
 	getElementId,
 	getListId,
 	idToElementId,
+	isSameTypeRef,
 	listIdPart,
-	ServerTypeModel,
 } from "../../../../../src/platform-kit/meta"
 import {
 	BodyTypeRef,
@@ -44,9 +43,11 @@ import { EntityClient } from "../../../../../src/platform-kit/network/EntityClie
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
 import { MailWithDetailsAndAttachments } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexerBackend"
-import { assertNotNull, collectToMap, deepEqual } from "../../../../../src/platform-kit/utils"
+import { assert, assertNotNull, collectToMap, deepEqual } from "../../../../../src/platform-kit/utils"
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade"
 import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
+import { changeInstanceDirection } from "../../../instance-pipeline/InstancePipelineTestUtils"
+import { InstanceDirection } from "../../../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 o.spec("OfflineMailIndexer", () => {
 	let mailIndexer: OfflineMailIndexer
@@ -54,14 +55,12 @@ o.spec("OfflineMailIndexer", () => {
 	let blobs: BlobFacade
 	let mailFacade: MailFacade
 	let entityRestClientMock: EntityRestClientMock
-	let serverTypeModelResolver: ServerTypeModelResolver
-	let modelMapper: ModelMapper
+	let typeModelResolver: TypeModelResolver
+	let realInstancePipeline: InstancePipeline
 	let infoMessageHandler: InfoMessageHandler
 	let crypto: CryptoFacade
 	let newMailDownloader: MailIndexerNewMailDownloader
-	let cryptoMapper: CryptoMapper
 	let user: User
-	let entityAdapterFactory: (model: ServerTypeModel, blob: EncryptedParsedInstance) => Promise<EntityAdapter>
 
 	const userId = "userId"
 	const mailGroupId = "I'm a mail group!"
@@ -70,21 +69,15 @@ o.spec("OfflineMailIndexer", () => {
 	let mailSetEntry: MailSetEntry
 
 	o.beforeEach(() => {
-		const typeModelResolver = clientInitializedTypeModelResolver()
-		modelMapper = object()
+		typeModelResolver = clientInitializedTypeModelResolver()
+		realInstancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 		persistence = object()
 		blobs = object()
 		entityRestClientMock = new EntityRestClientMock()
 		mailFacade = object()
 		crypto = object()
-		serverTypeModelResolver = object()
 		infoMessageHandler = object()
 		newMailDownloader = func<MailIndexerNewMailDownloader>()
-		cryptoMapper = object()
-
-		entityAdapterFactory = () => {
-			throw new Error("no entity adapter factory defined")
-		}
 
 		mailIndexer = new OfflineMailIndexer(
 			persistence,
@@ -92,20 +85,27 @@ o.spec("OfflineMailIndexer", () => {
 			new EntityClient(entityRestClientMock, typeModelResolver),
 			mailFacade,
 			crypto,
-			serverTypeModelResolver,
-			modelMapper,
+			typeModelResolver,
+			realInstancePipeline.modelMapper,
 			infoMessageHandler,
 			newMailDownloader,
-			cryptoMapper,
-			(model, blob) => entityAdapterFactory(model, blob),
+			realInstancePipeline.cryptoMapper,
+			async (model, blob) => {
+				changeInstanceDirection(blob, InstanceDirection.IncomingFromServer)
+				return await EntityAdapter.fromEncryptedParsedInstance(blob, realInstancePipeline.modelMapper, realInstancePipeline.cryptoMapper)
+			},
 		)
 		user = createTestEntity(UserTypeRef, {
 			_id: idToElementId(userId),
 		})
-		mail = createTestEntity(MailTypeRef, {
-			_id: ["---------z-z", "---------zzz"],
-			_ownerGroup: mailGroupId,
-		})
+		mail = createTestEntity(
+			MailTypeRef,
+			{
+				_id: ["---------z-z", "---------zzz"],
+				_ownerGroup: mailGroupId,
+			},
+			{ populateAggregates: true },
+		)
 
 		mailSetEntry = createTestEntity(MailSetEntryTypeRef, {
 			_id: ["mailSetEntryList", "mailSetEntryElement"],
@@ -113,31 +113,21 @@ o.spec("OfflineMailIndexer", () => {
 			_ownerGroup: mailGroupId,
 		})
 
-		const storedBlobs: Map<Id, FakeServerEntity<any>> = new Map()
+		const storedBlobs: Map<Id, EncryptedParsedInstance> = new Map()
 
 		when(persistence.retrieveEncryptedMailDetailsBlob(matchers.anything(), matchers.anything())).thenDo(
 			async (_, blobId) => storedBlobs.get(blobId) ?? null,
 		)
 
-		when(persistence.storeEncryptedMailDetailsBlobs(matchers.anything(), matchers.anything())).thenDo(async (_, blobs: readonly any[]) => {
-			for (const b of blobs) {
-				if (!(b instanceof FakeServerEntity)) {
-					throw new Error("wrong object passed into storeEncryptedMailDetailsBlobs")
+		when(persistence.storeEncryptedMailDetailsBlobs(matchers.anything(), matchers.anything())).thenDo(
+			async (_, blobs: readonly EncryptedParsedInstance[]) => {
+				for (const b of blobs) {
+					assert(isSameTypeRef(b.getTypeRef(), MailDetailsBlobTypeRef), "wrong object passed into storeEncryptedMailDetailsBlobs")
+					storedBlobs.set(elementIdPart(b.getAttributeByName("_id").asIdTuple()), b)
 				}
-				storedBlobs.set(elementIdPart(b.entity._id), b)
-			}
-		})
+			},
+		)
 
-		when(
-			cryptoMapper.decryptParsedInstance(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()),
-		).thenDo(async (_, instance: any) => {
-			if (!(instance instanceof FakeServerEntity)) {
-				throw new Error("wrong object passed into decryptParsedInstance")
-			}
-			return instance.entity
-		})
-
-		when(modelMapper.mapToInstance(matchers.anything())).thenDo(async (_, i) => i)
 		when(persistence.getImportQueueEntries()).thenResolve([])
 	})
 
@@ -185,16 +175,16 @@ o.spec("OfflineMailIndexer", () => {
 
 		const mailDetails = createTestEntity(MailDetailsBlobTypeRef, {
 			_id: mail.mailDetails,
-			details: createTestEntity(MailDetailsTypeRef),
+			details: createTestEntity(MailDetailsTypeRef, {}, { populateAggregates: true }),
 		})
 
+		const sk = aes256RandomKey()
 		when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails))).thenResolve([
-			new FakeServerEntity(mailDetails) as any,
+			changeInstanceDirection(
+				await realInstancePipeline.mapAndEncryptToParsedInstance(MailDetailsBlobTypeRef, mailDetails, sk),
+				InstanceDirection.IncomingFromServer,
+			),
 		])
-
-		entityAdapterFactory = (_, b) => {
-			return { encryptedParsedInstance: b as any as FakeServerEntity<BlobElementEntity>, _kdfNonce: null } as any
-		}
 
 		addTestMail()
 
@@ -239,15 +229,15 @@ o.spec("OfflineMailIndexer", () => {
 
 		await mailIndexer.extendMailIndex(user)
 
-		verify(
-			persistence.storeMailData([
-				{
-					mail,
-					mailDetails: mailDetails.details,
-					attachments,
-				},
-			]),
-		)
+		const storedMailData = matchers.captor()
+
+		verify(persistence.storeMailData(storedMailData.capture()))
+
+		const storedMails: Array<MailWithDetailsAndAttachments> = storedMailData.values![0]
+		o(storedMails.length).equals(1)
+		o(removeOriginals(storedMails[0].mail)).deepEquals(mail)
+		o(removeOriginals(storedMails[0].mailDetails)).deepEquals(removeOriginals(mailDetails.details))
+		o(storedMails[0].attachments.map(removeOriginals)).deepEquals(attachments)
 
 		verify(persistence.updateIndexingTimestamp(mailGroupId, FULL_INDEXED_TIMESTAMP))
 		verify(persistence.clearEncryptedMailDetailsBlobs())
@@ -258,35 +248,51 @@ o.spec("OfflineMailIndexer", () => {
 		const mailCount = 1000 * 2
 
 		const mails: MailWithDetailsAndAttachments[] = []
-		const detailBlobs: FakeServerEntity<MailDetailsBlob>[] = []
+		const detailBlobs: MailDetailsBlob[] = []
 
 		const archiveId = "WHOA, I store LOTS of cool stuff!"
 		const mailListId = getListId(mail)
 
 		for (let i = 0; i < mailCount; i++) {
-			const mailDetails = createTestEntity(MailDetailsBlobTypeRef, {
-				_id: [archiveId, `I am blob #${i}. FEAR ME!`],
-				details: createTestEntity(MailDetailsTypeRef, {
-					body: createTestEntity(BodyTypeRef, {
-						compressedText: `I am smol compressed text #${i}. You will INDEX me and you will LIKE it.`,
-					}),
-				}),
-			})
-			const mailMail = createTestEntity(MailTypeRef, {
-				_id: [mailListId, `${i}`.padStart(GENERATED_MIN_ID.length, "0")],
-				mailDetails: mailDetails._id,
-			})
+			const mailDetails = createTestEntity(
+				MailDetailsBlobTypeRef,
+				{
+					_id: [archiveId, `I am blob #${i}. FEAR ME!`],
+					details: createTestEntity(
+						MailDetailsTypeRef,
+						{
+							body: createTestEntity(BodyTypeRef, {
+								compressedText: `I am smol compressed text #${i}. You will INDEX me and you will LIKE it.`,
+							}),
+						},
+						{ populateAggregates: true },
+					),
+				},
+				{ populateAggregates: true },
+			)
+			const mailMail = createTestEntity(
+				MailTypeRef,
+				{
+					_id: [mailListId, `${i}`.padStart(GENERATED_MIN_ID.length, "0")],
+					mailDetails: mailDetails._id,
+				},
+				{ populateAggregates: true },
+			)
 			const mailAttachments = [
-				createTestEntity(FileTypeRef, {
-					name: `mail_${i}.jxl`,
-				}),
+				createTestEntity(
+					FileTypeRef,
+					{
+						name: `mail_${i}.jxl`,
+					},
+					{ populateAggregates: true },
+				),
 			]
 			mails.push({
 				mailDetails: mailDetails.details,
 				mail: mailMail,
 				attachments: mailAttachments,
 			})
-			detailBlobs.push(new FakeServerEntity(mailDetails))
+			detailBlobs.push(mailDetails)
 			entityRestClientMock.addListInstances(mailMail)
 		}
 
@@ -296,12 +302,11 @@ o.spec("OfflineMailIndexer", () => {
 			return Promise.resolve(assertNotNull(mailsMap.get(getElementId(mailToFind)), `no ${getElementId(mailToFind)}`).attachments)
 		})
 
-		when(crypto.resolveSessionKey(matchers.anything())).thenResolve(aes256RandomKey())
-		when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, archiveId)).thenResolve(detailBlobs as any)
-
-		entityAdapterFactory = (_, b) => {
-			return { encryptedParsedInstance: b as any as FakeServerEntity<BlobElementEntity>, _kdfNonce: null } as any
-		}
+		const sk = aes256RandomKey()
+		when(crypto.resolveSessionKey(matchers.anything())).thenResolve(sk)
+		when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, archiveId)).thenResolve(
+			await Promise.all(detailBlobs.map((db) => realInstancePipeline.mapAndEncryptToParsedInstance(MailDetailsBlobTypeRef, db, sk))),
+		)
 
 		const mailboxId = "I'm a mailbox!"
 
@@ -344,6 +349,14 @@ o.spec("OfflineMailIndexer", () => {
 			persistence.storeMailData(
 				matchers.argThat((arr: readonly MailWithDetailsAndAttachments[]) => {
 					const sorted = arr.toSorted((a, b) => compareOldestFirst(getElementId(a.mail), getElementId(b.mail), EntityIdEncoding.Base64Ext))
+					for (const m of mails) {
+						removeOriginals(m.mail)
+						removeOriginals(m.mailDetails)
+					}
+					for (const s of sorted) {
+						removeOriginals(s.mail)
+						removeOriginals(s.mailDetails)
+					}
 					return deepEqual(sorted, mails)
 				}),
 			),
@@ -361,45 +374,51 @@ o.spec("OfflineMailIndexer", () => {
 		o.beforeEach(async () => {
 			mail.mailDetails = ["whooooa", "i'm a blob :D"]
 
-			importedMail = createTestEntity(ImportedFileMailTypeRef, {
-				_id: ["imported mails list", "an imported mail"],
-				mailSetEntry: mailSetEntry._id,
-				_ownerGroup: mailGroupId,
-			})
+			importedMail = createTestEntity(
+				ImportedFileMailTypeRef,
+				{
+					_id: ["imported mails list", "an imported mail"],
+					mailSetEntry: mailSetEntry._id,
+					_ownerGroup: mailGroupId,
+				},
+				{ populateAggregates: true },
+			)
 
 			mailDetails = createTestEntity(MailDetailsBlobTypeRef, {
 				_id: mail.mailDetails,
-				details: createTestEntity(MailDetailsTypeRef),
+				details: createTestEntity(MailDetailsTypeRef, {}, { populateAggregates: true }),
 			})
 			attachments = []
 
 			when(mailFacade.loadAttachments(mail)).thenResolve(attachments)
 			entityRestClientMock.addListInstances(importedMail)
 
+			const sk = aes256RandomKey()
 			when(persistence.getImportQueueProgress(listIdPart(importedMail._id))).thenResolve(GENERATED_MAX_ID)
-			when(crypto.resolveSessionKey(matchers.anything())).thenResolve(aes256RandomKey())
+			when(crypto.resolveSessionKey(matchers.anything())).thenResolve(sk)
 
-			when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails))).thenResolve([
-				new FakeServerEntity(mailDetails) as any,
-			])
-
-			entityAdapterFactory = (_, b) => {
-				return { encryptedParsedInstance: b as any as FakeServerEntity<BlobElementEntity>, _kdfNonce: null } as any
-			}
+			when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails))).thenDo(async () => {
+				return [
+					changeInstanceDirection(
+						await realInstancePipeline.mapAndEncryptToParsedInstance(MailDetailsBlobTypeRef, mailDetails, sk),
+						InstanceDirection.IncomingFromServer,
+					),
+				]
+			})
 
 			addTestMail()
 		})
 
 		function do_verify() {
-			verify(
-				persistence.storeMailData([
-					{
-						mail,
-						mailDetails: mailDetails.details,
-						attachments,
-					},
-				]),
-			)
+			const storeMailData = matchers.captor()
+			verify(persistence.storeMailData(storeMailData.capture()))
+			const storedMails: Array<MailWithDetailsAndAttachments> = storeMailData.values![0]
+
+			o(storedMails.length).equals(1)
+			o(removeOriginals(storedMails[0].mail)).deepEquals(mail)
+			o(removeOriginals(storedMails[0].mailDetails)).deepEquals(removeOriginals(mailDetails.details))
+			o(storedMails[0].attachments.map(removeOriginals)).deepEquals(attachments)
+
 			verify(persistence.removeImportQueueEntry(listIdPart(importedMail._id)))
 			verify(persistence.clearEncryptedMailDetailsBlobs())
 			verify(persistence.updateImportQueueProgress(listIdPart(importedMail._id), elementIdPart(mail._id)))
@@ -421,7 +440,3 @@ o.spec("OfflineMailIndexer", () => {
 		})
 	})
 })
-
-class FakeServerEntity<T extends BlobElementEntity> {
-	constructor(readonly entity: T) {}
-}

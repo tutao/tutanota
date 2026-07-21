@@ -371,7 +371,10 @@ export class CryptoMapper {
 			return ParsedValue.fromNull()
 		}
 
-		const bytes = valueType.type === ValueTypeEnum.Bytes ? value.asByteArray() : stringToUtf8Uint8Array(value.asString())
+		let bytes = valueType.type === ValueTypeEnum.Bytes ? value.asByteArray() : stringToUtf8Uint8Array(value.asString())
+		if (valueType.type === ValueTypeEnum.CompressedString) {
+			bytes = EntityUtils.compressString(value.asString())
+		}
 		// we want to throw the error late in case we cannot derive the subkeys to handle types gracefully
 		// that do not have any actual encrypted values set
 		if (subKeyProvider == null) {

@@ -28,7 +28,8 @@ import {
 	EntityIdEncoding,
 	firstBiggerThanSecondBase64Ext,
 	GENERATED_MAX_ID,
-	getElementId, idToElementId,
+	getElementId,
+	idToElementId,
 	listIdPart,
 	ServerTypeModel,
 } from "@tutao/meta"

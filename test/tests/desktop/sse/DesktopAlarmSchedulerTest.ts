@@ -10,13 +10,7 @@ import { DesktopNativeCryptoFacade } from "../../../../src/applications/common/d
 import { makeAlarmScheduler } from "../../calendar/CalendarTestUtils.js"
 import { matchers, object, verify, when } from "testdouble"
 import { AlarmScheduler, EventInfo } from "../../../../src/applications/common/calendar/date/AlarmScheduler.js"
-import {
-	clientInitializedTypeModelResolver,
-	createTestEntity,
-	instancePipelineFromTypeModelResolver,
-	remove_typeFromEntity,
-	removeOriginals,
-} from "../../TestUtils"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../TestUtils"
 import { EncryptedAlarmNotification } from "../../../../src/app-kit/native-bridge/common/EncryptedAlarmNotification"
 
 import { formatNotificationForDisplay } from "../../../../src/ui/utils/Formatter"
@@ -84,7 +78,6 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 		alarmStorageMockBuilder._mock.decryptAlarmNotification = async (an) => {
 			const notif = await instancePipeline.decryptAndMapEncryptedInstance<AlarmNotification>(an.encryptedInstance, sk)
 			removeOriginals(notif)
-			remove_typeFromEntity(notif)
 			return notif
 		}
 		const alarmStorageMock = alarmStorageMockBuilder.set()

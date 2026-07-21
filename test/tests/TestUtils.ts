@@ -369,6 +369,7 @@ export function remove_typeFromEntity<T extends Entity>(instance: T | null): T |
 		delete instance["_type"]
 		for (const i of Object.values(instance).filter(isNotNull)) {
 			removeOriginals(i)
+			remove_typeFromEntity(i)
 		}
 	}
 	return instance
