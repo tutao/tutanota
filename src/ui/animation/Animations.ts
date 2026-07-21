@@ -365,3 +365,31 @@ export function get(element: HTMLElement | null): HTMLElement {
 	if (!element) throw new Error("tried to update a non existing element")
 	return element
 }
+
+export function animateHeight(domElement: HTMLElement, fadein: boolean): AnimationPromise {
+	const childHeight = domElement.offsetHeight
+	if (fadein) {
+		// if this height is not set to 0, there is sometimes a jitter as it will display at full height for a second before the animation
+		domElement.style.height = "0"
+	}
+	return animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0)).then(() => {
+		domElement.style.height = ""
+	})
+}
+
+export function oncreateExpandAnimation(dom: HTMLElement): Promise<void> {
+	// overflow needs to be hidden when the animation is running for it to look smooth
+	// but if that style stays the time picker drop-down is hidden
+	dom.style.overflow = "hidden"
+
+	return animateHeight(dom, true).then(() => {
+		dom.style.overflow = "visible"
+	})
+}
+
+export function onbeforeremoveColapseAnimation(dom: HTMLElement): AnimationPromise {
+	// overflow needs to be hidden for animateHeight to work as expected
+	dom.style.overflow = "hidden"
+
+	return animateHeight(dom, false)
+}

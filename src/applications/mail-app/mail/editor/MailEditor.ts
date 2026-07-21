@@ -55,7 +55,7 @@ import type { DialogHeaderBarAttrs } from "../../../../ui/base/DialogHeaderBar"
 import { Button, ButtonColor, ButtonType } from "../../../../ui/base/Button.js"
 import { attachDropdown, createDropdown, DropdownChildAttrs } from "../../../../ui/base/Dropdown.js"
 import { Icons } from "../../../../ui/base/icons/Icons"
-import { AnimationPromise, animations, height, opacity } from "../../../../ui/animation/Animations"
+import { animations, onbeforeremoveColapseAnimation, oncreateExpandAnimation, opacity } from "../../../../ui/animation/Animations"
 import type { LegacyTextFieldAttrs } from "../../../../ui/base/LegacyTextField.js"
 import { Autocomplete, LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
 import { chooseAndAttachFile, cleanupInlineAttachments, createAttachmentBubbleAttrs, getConfidentialStateMessage } from "./MailEditorViewModel"
@@ -713,23 +713,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					? m(
 							"",
 							{
-								oncreate: (vnode) => {
-									// overflow needs to be hidden when the animation is running for it to look smooth
-									// but if that style stays the time picker drop-down is hidden
-									const dom = vnode.dom as HTMLElement
-									dom.style.overflow = "hidden"
-
-									return this.animateHeight(dom, true).then(() => {
-										dom.style.overflow = "visible"
-									})
-								},
-								onbeforeremove: (vnode) => {
-									const dom = vnode.dom as HTMLElement
-									// overflow needs to be hidden for animateHeight to work as expected
-									dom.style.overflow = "hidden"
-
-									return this.animateHeight(dom, false)
-								},
+								oncreate: (vnode) => oncreateExpandAnimation(vnode.dom as HTMLElement),
+								onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
 							},
 							[
 								m(
@@ -968,8 +953,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		return m(
 			".external-recipients.overflow-hidden",
 			{
-				oncreate: (vnode) => this.animateHeight(vnode.dom as HTMLElement, true),
-				onbeforeremove: (vnode) => this.animateHeight(vnode.dom as HTMLElement, false),
+				oncreate: (vnode) => oncreateExpandAnimation(vnode.dom as HTMLElement),
+				onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
 			},
 			this.sendMailModel
 				.allRecipients()
@@ -978,8 +963,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					if (!this.recipientShowConfidential.has(recipient.address)) this.recipientShowConfidential.set(recipient.address, false)
 
 					return m(PasswordField, {
-						oncreate: (vnode) => this.animateHeight(vnode.dom as HTMLElement, true),
-						onbeforeremove: (vnode) => this.animateHeight(vnode.dom as HTMLElement, false),
+						oncreate: (vnode) => oncreateExpandAnimation(vnode.dom as HTMLElement),
+						onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
 						label: lang.getTranslation("passwordFor_label", { "{1}": recipient.address }),
 						value: this.sendMailModel.getPassword(recipient.address),
 						passwordStrength: this.sendMailModel.getPasswordStrength(recipient),
@@ -1111,17 +1096,6 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				showTemplatePopupInEditor(templateModel, this.editor, null, this.editor.getSelectedText())
 			})
 		}
-	}
-
-	private animateHeight(domElement: HTMLElement, fadein: boolean): AnimationPromise {
-		const childHeight = domElement.offsetHeight
-		if (fadein) {
-			// if this height is not set to 0, there is sometimes a jitter as it will display at full height for a second before the animation
-			domElement.style.height = "0"
-		}
-		return animations.add(domElement, fadein ? height(0, childHeight) : height(childHeight, 0)).then(() => {
-			domElement.style.height = ""
-		})
 	}
 }
 
