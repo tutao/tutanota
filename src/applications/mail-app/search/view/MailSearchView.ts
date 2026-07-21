@@ -196,7 +196,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 					isFreeAccount: locator.logins.getUserController().isFreeAccount(),
 					getLabelsForMail: (mail) => this.searchViewModel.getLabelsForMail(mail),
 					highlightedStrings: this.searchViewModel.getHighlightedStrings(),
-					availableCalendars: [],
+					availableCalendars: [], //FIXME
 					indexStateStream: this.searchViewModel.getSearchIndexStateStream(),
 					currentStartDate: this.searchViewModel.startDate,
 					extendSearchResult: (extendDate: Date) => {
@@ -421,7 +421,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 			},
 			m(BaseSearchBar, {
 				placeholder: lang.get("searchEmails_placeholder"),
-				text: this.searchViewModel.getCurrenQuery(),
+				text: this.searchViewModel.getCurrentQuery(),
 				busy: this.searchViewModel.busy,
 				onInput: (text: string) => {
 					this.searchViewModel.onSearchQueryUpdated(text)

@@ -109,7 +109,7 @@ export class MailSearchViewModel {
 		},
 	)
 
-	getCurrenQuery() {
+	getCurrentQuery() {
 		return this.currentQuery
 	}
 

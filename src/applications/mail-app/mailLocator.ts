@@ -171,6 +171,7 @@ import { WebFileResolver } from "../drive-app/drive/view/WebFileResolver"
 
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
 import { MailSearchViewModel } from "./search/view/MailSearchViewModel"
+import { ContactSearchViewModel } from "./search/view/ContactSearchViewModel"
 
 assertMainOrNode()
 
@@ -1432,6 +1433,13 @@ class MailLocator implements CommonLocator {
 			const { WebFilePicker } = await import("../drive-app/drive/view/DriveFilePicker.js")
 			return new WebFilePicker()
 		}
+	}
+	async contactSearchViewModelFactory(): Promise<() => ContactSearchViewModel> {
+		const { ContactSearchViewModel } = await import("./search/view/ContactSearchViewModel.js")
+		const redraw = await this.redraw
+		const router = await this.scopedSearchRouter()
+		const offlineStorageSettings = await this.offlineStorageSettingsModel()
+		return () => new ContactSearchViewModel(this.logins, router, this.search, offlineStorageSettings, redraw)
 	}
 
 	async mailSearchViewModelFactory(): Promise<() => MailSearchViewModel> {
