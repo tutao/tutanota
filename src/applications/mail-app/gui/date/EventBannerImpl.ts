@@ -1,9 +1,9 @@
 import { DateTime } from "luxon"
-import { findAttendeeInAddresses, formatJSDate, isAllDayEvent, isSameExternalEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
+import { findAttendeeInAddresses, formatJSDate, isAllDayEvent, isBefore, isSameExternalEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/CalendarInvites"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository"
 import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { base64ToBase64Url, filterNull, getStartOfDay, isNotNull, isSameDay, partition, stringToBase64 } from "@tutao/utils"
+import { base64ToBase64Url, filterNull, getStartOfDay, getStartOfNextDay, isNotNull, isSameDay, partition, stringToBase64 } from "@tutao/utils"
 import {
 	CalendarTimeGrid,
 	CalendarTimeGridAttributes,
@@ -14,7 +14,6 @@ import {
 	TimeScale,
 	TimeScaleTuple,
 } from "../../../common/calendar/gui/CalendarTimeGrid"
-import { Time } from "../../../common/calendar/date/Time"
 import { theme } from "../../../../ui/theme"
 import { styles } from "../../../../ui/styles"
 import { layout_size, px, size } from "../../../../ui/size"
@@ -43,6 +42,7 @@ import { clone, GENERATED_MIN_ID } from "@tutao/meta"
 import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
 import { getTimeZone } from "../../../common/calendar/date/CalendarUtils"
 import { formatEventTime } from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
+import { Time } from "../../../common/calendar/date/Time"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData
@@ -114,32 +114,11 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			console.warn(`Trying to render an EventBanner for an event but it doesn't have an agenda. Something really wrong happened.`)
 		}
 		const hasConflict = Boolean(agenda?.conflictCount! > 0)
-		const events = filterNull([agenda?.before, agenda?.main, agenda?.after])
-
-		let eventFocusBound = agenda?.main.event?.startTime!
-		let shortestTimeFrame: number = this.findShortestDuration(event, event) // In this case we just get the event duration and later reevaluate
-		if (agenda?.before) {
-			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.before.event)
-		}
-		if (!agenda?.before && agenda?.after) {
-			if (agenda?.after?.flags?.isConflict) {
-				eventFocusBound = agenda.after.event.startTime
-			}
-			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.after.event)
-		}
-
-		const timeScale = this.getTimeScaleAccordingToEventDuration(shortestTimeFrame)
-		const timeInterval = getIntervalAsMinutes(timeScale)
-		const timeRange: TimeRange = {
-			start: Time.fromDate(eventFocusBound).sub({ minutes: timeInterval }),
-			end: Time.fromDate(eventFocusBound).add({ minutes: timeInterval }),
-		}
-
-		const intervals = CalendarTimeColumn.createTimeColumnIntervals(timeScale, timeRange)
-		const rowCountForRange = SUBROWS_PER_INTERVAL * intervals.length
-
-		const timeColumnWidth = layout_size.calendar_hour_width_mobile + size.spacing_16
-
+		const eventWrappers = filterNull([agenda?.before, agenda?.main, agenda?.after])
+		const { eventFocusBound, timeScale, timeRange, timeInterval, intervals, timeColumnWidth, rowCountForRange } = this.getTimeOverviewParameters(
+			agenda,
+			event,
+		)
 		const calendarTimeZone = getTimeZone()
 
 		/* Event Banner */
@@ -289,7 +268,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 											m(
 												".full-width",
 												m(CalendarTimeGrid, {
-													events: this.filterOutOfRangeEvents(timeRange, events, eventFocusBound, timeInterval),
+													events: this.filterOutOfRangeEvents(timeRange, eventWrappers, eventFocusBound, timeInterval),
 													timeScale,
 													timeRange,
 													dates: [getStartOfDay(agenda.main.event.startTime)],
@@ -310,6 +289,31 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					: null,
 			],
 		)
+	}
+
+	private getTimeOverviewParameters(agenda: InviteAgenda | null, event: CalendarEvent) {
+		let eventFocusBound = agenda?.main.event?.startTime!
+		let shortestTimeFrame: number = this.findShortestDuration(event, event) // In this case we just get the event duration and later reevaluate
+		if (agenda?.before) {
+			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.before.event)
+		}
+		if (!agenda?.before && agenda?.after) {
+			if (agenda?.after?.flags?.isConflict) {
+				eventFocusBound = agenda.after.event.startTime
+			}
+			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.after.event)
+		}
+
+		const timeScale = this.getTimeScaleAccordingToEventDuration(shortestTimeFrame)
+		const timeInterval = getIntervalAsMinutes(timeScale)
+		const timeRange: TimeRange = this.getTimeRange(eventFocusBound, timeInterval)
+
+		const intervals = CalendarTimeColumn.createTimeColumnIntervals(timeScale, timeRange)
+		const rowCountForRange = SUBROWS_PER_INTERVAL * intervals.length
+
+		const timeColumnWidth = layout_size.calendar_hour_width_mobile + size.spacing_16
+
+		return { eventFocusBound, timeScale, timeInterval, timeRange, intervals, rowCountForRange, timeColumnWidth }
 	}
 
 	private toggleConflictingAgenda() {
@@ -508,7 +512,11 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 	private filterOutOfRangeEvents(range: TimeRange, events: Array<EventWrapper>, baseDate: Date, timeInterval: number): Array<EventWrapper> {
 		const rangeStartDate = range.start.toDate(baseDate)
-		const rangeEndDate = clone(range.end).add({ minutes: timeInterval }).toDate(baseDate)
+		let rangeEndDate = clone(range.end).add({ minutes: timeInterval }).toDate(baseDate)
+
+		if (rangeEndDate < rangeStartDate) {
+			rangeEndDate = getStartOfNextDay(baseDate)
+		}
 
 		return events.flatMap((eventWrapper) => {
 			if (
@@ -522,6 +530,35 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 			return []
 		})
+	}
+
+	/**
+	 * Creates a time range bounded to the day when the main event occurs
+	 *
+	 * @param eventFocusBound
+	 * @param timeInterval {number} - Interval in minutes used to create the time column
+	 * @private
+	 */
+	private getTimeRange(eventFocusBound: Date, timeInterval: number) {
+		let startDate = DateTime.fromJSDate(eventFocusBound).minus({ minutes: timeInterval }).toJSDate()
+		let endDate = DateTime.fromJSDate(eventFocusBound).plus({ minutes: timeInterval }).toJSDate()
+
+		if (isBefore(startDate, eventFocusBound, "date")) {
+			startDate = getStartOfDay(eventFocusBound)
+			endDate = DateTime.fromJSDate(startDate)
+				.plus({ minutes: timeInterval * 2 }) // E.g 00:00 -> 01:00 (in a 30 min interval this means 00:00, 00:30, 01:00)
+				.toJSDate()
+		} else if (isBefore(eventFocusBound, endDate, "date")) {
+			endDate = DateTime.fromJSDate(eventFocusBound).startOf("day").plus({ day: 1 }).minus({ minutes: timeInterval }).toJSDate()
+			startDate = DateTime.fromJSDate(endDate)
+				.minus({ minutes: timeInterval * 2 }) // E.g 21:30 -> 23:30 (in a 30 min interval this means 21:30, 23:00, 23:30)
+				.toJSDate()
+		}
+
+		return {
+			start: Time.fromDate(startDate),
+			end: Time.fromDate(endDate),
+		}
 	}
 
 	/**
