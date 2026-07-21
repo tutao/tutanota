@@ -23,11 +23,12 @@ export class WizardController {
 		if (initialLabels) this.initSteps(initialLabels)
 	}
 
-	public initSteps(initialLabels: string[]) {
+	public initSteps(initialLabels: string[], initialStepIndex: number = 0) {
+		this._currentStep = initialStepIndex >= 0 && initialStepIndex < initialLabels.length ? initialStepIndex : 0
 		this._steps = initialLabels.map((label, index) => ({
 			label,
 			isCompleted: false,
-			isReachable: index === 0,
+			isReachable: index === this._currentStep,
 		}))
 	}
 

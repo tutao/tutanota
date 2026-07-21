@@ -35,6 +35,7 @@ export interface WizardAttrs<TViewModel> {
  */
 export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>> {
 	let internalController: WizardController | undefined
+	let isFirstView = true
 
 	let transitionSeq = 0
 	let transitionFrom = 0
@@ -48,8 +49,9 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 
 	return {
 		oninit({ attrs }: Vnode<WizardAttrs<TViewModel>>) {
+			isFirstView = true
 			if (!attrs.controller) {
-				internalController = new WizardController(attrs.steps.map((s) => s.title ?? ""))
+				internalController = new WizardController(attrs.steps.map((step) => step.title ?? ""))
 			} else if (attrs.controller.stepCount === 0) {
 				attrs.controller.initSteps(attrs.steps.map((step) => step.title ?? ""))
 			}
@@ -57,8 +59,8 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 		view({ attrs }: Vnode<WizardAttrs<TViewModel>>) {
 			const { steps, viewModel, onComplete } = attrs
 			const controller = attrs.controller || internalController!
-			const currentIndex = controller.currentStep
-			const currentStep = steps[currentIndex]
+			let currentIndex = controller.currentStep
+			let currentStep = steps[currentIndex]
 
 			const findNextEnabledIndex = (startIndex: number, direction: "next" | "prev"): number | null => {
 				let i = startIndex
@@ -120,6 +122,20 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 				goNext: () => handleNavigation("next", currentStep.onNext),
 				goPrev: () => handleNavigation("prev", currentStep.onPrev),
 				lockAllPreviousSteps: () => controller.lockAllPreviousSteps(currentIndex),
+			}
+
+			if (isFirstView) {
+				isFirstView = false
+				const initialStepIndex = findNextEnabledIndex(-1, "next") ?? currentIndex
+				if (currentIndex === 0 && initialStepIndex !== currentIndex) {
+					controller.initSteps(
+						steps.map((step) => step.title ?? ""),
+						initialStepIndex,
+					)
+					currentIndex = controller.currentStep
+					currentStep = steps[currentIndex]
+					ctx.index = currentIndex
+				}
 			}
 
 			const rawProgress = controller.progressItems
