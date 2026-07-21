@@ -5,7 +5,7 @@ import { OfflineMailIndexer } from "../../../../../src/applications/mail-app/wor
 import { OfflineStoragePersistence } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { BlobFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/BlobFacade"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock"
-import { EncryptedParsedInstance, EntityAdapter, InstancePipeline, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
+import { InstancePipeline, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import { InfoMessageHandler } from "../../../../../src/applications/common/gui/InfoMessageHandler"
 import { MailIndexerNewMailDownloader } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexer"
 import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
@@ -20,6 +20,7 @@ import {
 	idToElementId,
 	isSameTypeRef,
 	listIdPart,
+	ServerTypeModel,
 } from "../../../../../src/platform-kit/meta"
 import {
 	BodyTypeRef,
@@ -46,8 +47,7 @@ import { MailWithDetailsAndAttachments } from "../../../../../src/applications/m
 import { assert, assertNotNull, collectToMap, deepEqual } from "../../../../../src/platform-kit/utils"
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade"
 import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
-import { changeInstanceDirection } from "../../../instance-pipeline/InstancePipelineTestUtils"
-import { InstanceDirection } from "../../../../../src/platform-kit/instance-pipeline/ParsedValue"
+import { IncomingServerJson } from "../../../../../src/platform-kit/instance-pipeline/TypeMapper"
 
 o.spec("OfflineMailIndexer", () => {
 	let mailIndexer: OfflineMailIndexer
@@ -67,8 +67,9 @@ o.spec("OfflineMailIndexer", () => {
 
 	let mail: Mail
 	let mailSetEntry: MailSetEntry
+	let mailDetailsBlobModel: ServerTypeModel
 
-	o.beforeEach(() => {
+	o.beforeEach(async () => {
 		typeModelResolver = clientInitializedTypeModelResolver()
 		realInstancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 		persistence = object()
@@ -78,6 +79,7 @@ o.spec("OfflineMailIndexer", () => {
 		crypto = object()
 		infoMessageHandler = object()
 		newMailDownloader = func<MailIndexerNewMailDownloader>()
+		mailDetailsBlobModel = await typeModelResolver.resolveServerTypeReference(MailDetailsBlobTypeRef)
 
 		mailIndexer = new OfflineMailIndexer(
 			persistence,
@@ -86,14 +88,9 @@ o.spec("OfflineMailIndexer", () => {
 			mailFacade,
 			crypto,
 			typeModelResolver,
-			realInstancePipeline.modelMapper,
 			infoMessageHandler,
 			newMailDownloader,
-			realInstancePipeline.cryptoMapper,
-			async (model, blob) => {
-				changeInstanceDirection(blob, InstanceDirection.IncomingFromServer)
-				return await EntityAdapter.fromEncryptedParsedInstance(blob, realInstancePipeline.modelMapper, realInstancePipeline.cryptoMapper)
-			},
+			realInstancePipeline,
 		)
 		user = createTestEntity(UserTypeRef, {
 			_id: idToElementId(userId),
@@ -113,20 +110,18 @@ o.spec("OfflineMailIndexer", () => {
 			_ownerGroup: mailGroupId,
 		})
 
-		const storedBlobs: Map<Id, EncryptedParsedInstance> = new Map()
+		const storedBlobs: Map<Id, IncomingServerJson> = new Map()
 
 		when(persistence.retrieveEncryptedMailDetailsBlob(matchers.anything(), matchers.anything())).thenDo(
 			async (_, blobId) => storedBlobs.get(blobId) ?? null,
 		)
 
-		when(persistence.storeEncryptedMailDetailsBlobs(matchers.anything(), matchers.anything())).thenDo(
-			async (_, blobs: readonly EncryptedParsedInstance[]) => {
-				for (const b of blobs) {
-					assert(isSameTypeRef(b.getTypeRef(), MailDetailsBlobTypeRef), "wrong object passed into storeEncryptedMailDetailsBlobs")
-					storedBlobs.set(elementIdPart(b.getAttributeByName("_id").asIdTuple()), b)
-				}
-			},
-		)
+		when(persistence.storeEncryptedMailDetailsBlobs(matchers.anything(), matchers.anything())).thenDo(async (_, blobs: readonly IncomingServerJson[]) => {
+			for (const b of blobs) {
+				assert(isSameTypeRef(b.getTypeRef(), MailDetailsBlobTypeRef), "wrong object passed into storeEncryptedMailDetailsBlobs")
+				storedBlobs.set(elementIdPart(b.getValueByName("_id").asIdTuple()), b)
+			}
+		})
 
 		when(persistence.getImportQueueEntries()).thenResolve([])
 	})
@@ -179,12 +174,14 @@ o.spec("OfflineMailIndexer", () => {
 		})
 
 		const sk = aes256RandomKey()
-		when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails))).thenResolve([
-			changeInstanceDirection(
-				await realInstancePipeline.mapAndEncryptToParsedInstance(MailDetailsBlobTypeRef, mailDetails, sk),
-				InstanceDirection.IncomingFromServer,
-			),
-		])
+		when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails))).thenDo(async () => {
+			return [
+				IncomingServerJson.expectSingleMailDetailsBlob(
+					(await realInstancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, mailDetails, sk)).getInnerJsonForTest(),
+					mailDetailsBlobModel,
+				),
+			]
+		})
 
 		addTestMail()
 
@@ -305,7 +302,14 @@ o.spec("OfflineMailIndexer", () => {
 		const sk = aes256RandomKey()
 		when(crypto.resolveSessionKey(matchers.anything())).thenResolve(sk)
 		when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, archiveId)).thenResolve(
-			await Promise.all(detailBlobs.map((db) => realInstancePipeline.mapAndEncryptToParsedInstance(MailDetailsBlobTypeRef, db, sk))),
+			await Promise.all(
+				detailBlobs.map(async (db) =>
+					IncomingServerJson.expectSingleMailDetailsBlob(
+						(await realInstancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, db, sk)).getInnerJsonForTest(),
+						mailDetailsBlobModel,
+					),
+				),
+			),
 		)
 
 		const mailboxId = "I'm a mailbox!"
@@ -399,9 +403,9 @@ o.spec("OfflineMailIndexer", () => {
 
 			when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails))).thenDo(async () => {
 				return [
-					changeInstanceDirection(
-						await realInstancePipeline.mapAndEncryptToParsedInstance(MailDetailsBlobTypeRef, mailDetails, sk),
-						InstanceDirection.IncomingFromServer,
+					IncomingServerJson.expectSingleMailDetailsBlob(
+						(await realInstancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, mailDetails, sk)).getInnerJsonForTest(),
+						mailDetailsBlobModel,
 					),
 				]
 			})

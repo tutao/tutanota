@@ -112,6 +112,11 @@ export class IncomingServerJson implements DeepEquals {
 		return new IncomingServerJson(parsedJson, typeModel)
 	}
 
+	public static expectSingleMailDetailsBlob(data: any, typeModel: ServerTypeModel): IncomingServerJson {
+		assert(typeof data === "object" && !Array.isArray(data), "Expected single instance. But response is an array")
+		return new IncomingServerJson(data, typeModel)
+	}
+
 	public static expectMultipleInstance(data: any, typeModel: ServerTypeModel): Array<IncomingServerJson> {
 		const parsedJson = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
 		assert(Array.isArray(parsedJson), "Expected multiple instances. But response is not an array")
@@ -174,8 +179,7 @@ export class IncomingServerJson implements DeepEquals {
 		return isSameTypeRef(this.getTypeRef(), other.getTypeRef()) && deepEqual(this.json, other.json)
 	}
 
-	getInnerJsonForTest(): Record<string, any> {
-		assert(isTest(), "Do not get rawJson for non-test environment")
+	getInnerJson(): Record<AttributeId, any> {
 		return this.json
 	}
 }

@@ -10,9 +10,8 @@ import { customTypeDecoders, customTypeEncoders, OfflineStorageTable } from "../
 import { GroupType } from "../../../../entities/sys/Utils"
 import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "@tutao/entities/tutanota"
 import { SqlValue } from "../../../../app-kit/local-store/Types"
-import { assertNotNull } from "@tutao/utils"
 import { decode, encode } from "cborg"
-import { EncryptedParsedInstance } from "@tutao/instance-pipeline"
+import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {
@@ -282,17 +281,17 @@ export class OfflineStoragePersistence {
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async storeEncryptedMailDetailsBlobs(serverTypeModel: ServerTypeModel, blobs: readonly EncryptedParsedInstance[]): Promise<void> {
+	async storeEncryptedMailDetailsBlobs(serverTypeModel: ServerTypeModel, blobs: Array<IncomingServerJson>): Promise<void> {
 		const typeref = `${serverTypeModel.app}/${serverTypeModel.name}`
 		if (serverTypeModel.type !== Type.BlobElement) {
 			throw new ProgrammingError(`cannot use OfflineStoragePersistence#storeEncryptedBlobs with ${serverTypeModel.type} (${typeref})`)
 		}
 
-		const idIndex = assertNotNull(Object.values(serverTypeModel.values).find((v) => v.name === "_id")).id
-
 		for (const blob of blobs) {
-			const [archiveId, blobId] = blob.getAttributeById(idIndex).asIdTuple()
-			const encodedBlob = encode(blob, { typeEncoders: customTypeEncoders })
+			const [archiveId, blobId] = blob.getValueByName("_id").asIdTuple()
+
+			const blobJson = blob.getInnerJson()
+			const encodedBlob = encode(blobJson, { typeEncoders: customTypeEncoders })
 			const { query, params } = sql`INSERT
 			OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (
 			${blobId},
@@ -305,7 +304,7 @@ export class OfflineStoragePersistence {
 		}
 	}
 
-	async retrieveEncryptedMailDetailsBlob(serverTypeModel: ServerTypeModel, blobId: Id): Promise<EncryptedParsedInstance | null> {
+	async retrieveEncryptedMailDetailsBlob(serverTypeModel: ServerTypeModel, blobId: Id): Promise<IncomingServerJson | null> {
 		const typeref = `${serverTypeModel.app}/${serverTypeModel.name}`
 		if (serverTypeModel.type !== Type.BlobElement) {
 			throw new ProgrammingError(`cannot use OfflineStoragePersistence#retrieveEncryptedBlob with ${serverTypeModel.type} (${typeref})`)
@@ -327,7 +326,8 @@ export class OfflineStoragePersistence {
 			return null
 		}
 
-		return decode(data, { tags: customTypeDecoders })
+		const blobJson = decode(data, { tags: customTypeDecoders })
+		return IncomingServerJson.expectSingleMailDetailsBlob(blobJson, serverTypeModel)
 	}
 
 	async deleteEncryptedMailDetailsBlob(blobId: Id): Promise<void> {

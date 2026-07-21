@@ -197,11 +197,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 				mailFacade,
 				locator.base.crypto,
 				locator.base.typeModelResolver,
-				modelMapper,
 				mainInterface.infoMessageHandler,
 				newMailDownloader,
-				locator.base.instancePipeline.cryptoMapper,
-				(model, blob) => EntityAdapter.fromEncryptedParsedInstance(blob, modelMapper, locator.base.instancePipeline.cryptoMapper),
+				locator.base.instancePipeline,
 			)
 		} else {
 			const dateProvider = new LocalTimeDateProvider()

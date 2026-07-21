@@ -50,8 +50,6 @@ import { aesDecrypt, aesEncrypt } from "../../../../../src/platform-kit/crypto"
 import { IncomingServerJson, OutgoingServerJson } from "../../../../../src/platform-kit/instance-pipeline/TypeMapper"
 import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
 import { InstancePipeline, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
-import { changeInstanceDirection } from "../../../instance-pipeline/InstancePipelineTestUtils"
-import { InstanceDirection } from "../../../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 const { anything, captor } = matchers
 
@@ -1415,9 +1413,12 @@ o.spec("BlobFacadeTest", function () {
 				),
 			).thenResolve(serverResponse)
 
-			const downloadedBlobs = await blobFacade.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, archiveId)
-			// we change the instance direction of the expected instances here because they were created artificially for comparison.
-			const expectedBlobs = encryptedBlobsJson.map((i) => changeInstanceDirection(i, InstanceDirection.IncomingFromServer))
+			const downloadedBlobs = (await blobFacade.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, archiveId)).map((j) =>
+				j.getInnerJson(),
+			)
+			const expectedBlobs = (await Promise.all(encryptedBlobsJson.map((e) => realInstancePipeline.typeMapper.makeServerJson(e)))).map((j) =>
+				j.getInnerJsonForTest(),
+			)
 			o.check(downloadedBlobs).deepEquals(expectedBlobs)
 		})
 	})

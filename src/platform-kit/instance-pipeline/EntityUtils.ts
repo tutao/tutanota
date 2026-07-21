@@ -1,5 +1,5 @@
 import { Cardinality, ModelValue, TypeModel, ValueTypeEnum } from "@tutao/meta"
-import { assert, decodeBase64, DeepEquals, Nullable, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
+import { assert, DeepEquals, Nullable, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
 import { compress, uncompress } from "./Compression"
 import { ProgrammingError } from "@tutao/app-env"
 import { ParsedValue } from "./ParsedValue"
@@ -49,7 +49,6 @@ export class EntityUtils {
 			case ValueTypeEnum.Bytes:
 				entityRecord[key] = parsedValue.asByteArray()
 				break
-
 			case ValueTypeEnum.Number:
 				entityRecord[key] = assertNotNaN(parseInt(parsedValue.asString()), `Non-numeric string for attribute: ${modelValue.name}`).toString()
 				break

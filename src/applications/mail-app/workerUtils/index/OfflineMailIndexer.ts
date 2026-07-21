@@ -18,7 +18,7 @@ import {
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
-import { CryptoMapper, EncryptedParsedInstance, EntityAdapter, ModelMapper, ServerTypeModelResolver } from "@tutao/instance-pipeline"
+import { EncryptedParsedInstance, EntityAdapter, InstancePipeline, ServerTypeModelResolver } from "@tutao/instance-pipeline"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
@@ -47,9 +47,9 @@ import {
 import { User } from "@tutao/entities/sys"
 import { GroupType } from "../../../../entities/sys/Utils"
 import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFacade"
-import { validateKdfNonceLength } from "@tutao/crypto"
 import { isDraft } from "../../mail/model/MailChecks"
 import { ConnectionError } from "@tutao/rest-client/error"
+import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 
 assertWorkerOrNode()
 
@@ -67,11 +67,9 @@ export class OfflineMailIndexer implements MailIndexer {
 		private readonly mailFacade: MailFacade,
 		private readonly crypto: CryptoFacade,
 		private readonly serverTypeModelResolver: ServerTypeModelResolver,
-		private readonly modelMapper: ModelMapper,
 		private readonly infoMessageHandler: InfoMessageHandler,
 		private readonly newMailDownloader: MailIndexerNewMailDownloader,
-		private readonly cryptoMapper: CryptoMapper,
-		private readonly entityAdapterFactory: (model: ServerTypeModel, blob: EncryptedParsedInstance) => Promise<EntityAdapter>,
+		private readonly instancePipeline: InstancePipeline,
 	) {}
 
 	private fullyIndexed: boolean = false
@@ -319,7 +317,7 @@ export class OfflineMailIndexer implements MailIndexer {
 			return this.offlineStoragePersistence.retrieveEncryptedMailDetailsBlob(mailDetailsBlobTypeModel, elementIdPart(mailDetailsBlobId))
 		}
 
-		let blob: EncryptedParsedInstance | null
+		let storedBlobJson: IncomingServerJson | null
 
 		// Get the mail details blob cached from persistence, first
 		const internalBlob = await retrieveBlob()
@@ -342,32 +340,23 @@ export class OfflineMailIndexer implements MailIndexer {
 				await storePromise
 			}
 
-			blob = await retrieveBlob()
+			storedBlobJson = await retrieveBlob()
 		} else {
-			blob = internalBlob
+			storedBlobJson = internalBlob
 		}
 
-		if (blob == null) {
+		if (storedBlobJson == null) {
 			return null
 		}
-
 		const mailSessionKey = assertNotNull(await this.crypto.resolveSessionKey(mail))
-		const entityAdapter = await this.entityAdapterFactory(mailDetailsBlobTypeModel, blob)
-		const mailDetailsUnmapped = await this.cryptoMapper.decryptParsedInstance(
-			entityAdapter.getWrappedEncryptedInstance(),
-			mailSessionKey,
-			validateKdfNonceLength(entityAdapter._kdfNonce),
-			this.cryptoMapper.makeOwnerKeyProvider(entityAdapter._ownerGroup),
-		)
-
-		const mailDetails = await this.modelMapper.mapToInstance<MailDetailsBlob>(mailDetailsUnmapped)
+		const mailDetails = await this.instancePipeline.decryptAndMap<MailDetailsBlob>(storedBlobJson, mailSessionKey)
 		const attachments = await this.mailFacade.loadAttachments(mail)
 
 		return {
 			mail,
 			mailDetails: mailDetails.details,
 			attachments,
-		}
+		} satisfies MailWithDetailsAndAttachments
 	}
 
 	private processIndexQueue() {

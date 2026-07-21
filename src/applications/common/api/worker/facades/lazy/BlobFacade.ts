@@ -589,7 +589,7 @@ export class BlobFacade {
 	 *
 	 * To decrypt the entities, you will have to call {@link CryptoMapper#decryptParsedInstance}.
 	 */
-	async downloadFullEncryptedBlobElementEntityArchive<T extends BlobElementEntity>(typeRef: TypeRef<T>, archiveId: Id): Promise<EncryptedParsedInstance[]> {
+	async downloadFullEncryptedBlobElementEntityArchive<T extends BlobElementEntity>(typeRef: TypeRef<T>, archiveId: Id): Promise<Array<IncomingServerJson>> {
 		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const headers: Dict = {
 			v: String(clientTypeModel.version),
@@ -626,10 +626,7 @@ export class BlobFacade {
 
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const doEvictToken = () => this.blobAccessTokenFacade.evictArchiveToken(archiveId)
-		const json = IncomingServerJson.expectMultipleInstance(await doBlobRequestWithRetry(t, doEvictToken), serverTypeModel)
-		return await promiseMap(json, async (instance) => {
-			return await this.instancePipeline.typeMapper.parseServerJson(instance)
-		})
+		return IncomingServerJson.expectMultipleInstance(await doBlobRequestWithRetry(t, doEvictToken), serverTypeModel)
 	}
 
 	/**
