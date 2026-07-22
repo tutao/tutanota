@@ -57,6 +57,7 @@ import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
 import { EventWrapper, type EventWrapperFlags } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
 import { AllIcons } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
+import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
 
 export type CalendarTimeRange = {
 	start: number
@@ -1928,4 +1929,8 @@ export function getWeekStart(userSettings: UserSettingsGroupRoot): WeekStart {
 
 export function getAttendeeStatus(attendee: CalendarEventAttendee): CalendarAttendeeStatus {
 	return downcast(attendee.status)
+}
+
+export function getCalendarEventDurationInMinutes(ev: CalendarEvent | IcsCalendarEvent) {
+	return DateTime.fromJSDate(ev.endTime).diff(DateTime.fromJSDate(ev.startTime), "minutes").minutes
 }
