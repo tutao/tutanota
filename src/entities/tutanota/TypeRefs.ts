@@ -1,14 +1,16 @@
 import { create, StrippedEntity } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
 import { default as typeModels } from "./TypeModels.js"
-import { Blob } from '../sys/TypeRefs.js'
-import { BucketKey } from '../sys/TypeRefs.js'
-import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
-import { DateWrapper } from '../sys/TypeRefs.js'
-import { StringWrapper } from '../sys/TypeRefs.js'
-import { GeneratedIdWrapper } from '../sys/TypeRefs.js'
-import { IdTupleWrapper } from '../sys/TypeRefs.js'
-import { InstanceSessionKey } from '../sys/TypeRefs.js'
+import {
+	Blob,
+	BlobReferenceTokenWrapper,
+	BucketKey,
+	DateWrapper,
+	GeneratedIdWrapper,
+	IdTupleWrapper,
+	InstanceSessionKey,
+	StringWrapper
+} from "../sys/TypeRefs.js"
 
 export const SubfilesTypeRef: TypeRef<Subfiles> = new TypeRef("tutanota", 11)
 
@@ -647,6 +649,7 @@ export type NewDraftAttachment = {
 	encCid: null | Uint8Array;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
+	file: null | FileTransferAggregatedType;
 }
 export const DraftAttachmentTypeRef: TypeRef<DraftAttachment> = new TypeRef("tutanota", 491)
 
@@ -692,7 +695,7 @@ export type DraftData = {
 	replyTos: EncryptedMailAddress[];
 	mail: null | MailTransferAggregatedType;
 	mailDetailsBlob: null | MailDetailsBlobTransferAggregatedType;
-	newAttachments: FileTransferAggregatedType[];
+	newAttachments: NewDraftAttachment[];
 }
 export const DraftCreateDataTypeRef: TypeRef<DraftCreateData> = new TypeRef("tutanota", 508)
 

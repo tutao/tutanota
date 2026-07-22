@@ -2946,6 +2946,16 @@ const typeModels = {
 				"refTypeId": 1990,
 				"dependency": "sys",
 				"transferredAttributeId": null
+			},
+			"2015": {
+				"final": true,
+				"name": "file",
+				"id": 2015,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 1976,
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -3160,33 +3170,33 @@ const typeModels = {
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2015": {
+			"2016": {
 				"final": false,
 				"name": "mail",
-				"id": 2015,
+				"id": 2016,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2009,
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2016": {
+			"2017": {
 				"final": false,
 				"name": "mailDetailsBlob",
-				"id": 2016,
+				"id": 2017,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2006,
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2017": {
+			"2018": {
 				"final": false,
 				"name": "newAttachments",
-				"id": 2017,
+				"id": 2018,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refTypeId": 1976,
+				"refTypeId": 486,
 				"dependency": null,
 				"transferredAttributeId": null
 			}
