@@ -459,3 +459,11 @@ export class IdGenerator {
 		return this.currentId
 	}
 }
+
+export async function measureAction(action: () => Promise<void>) {
+	const startTime = performance.now()
+	await action()
+	return {
+		time: performance.now() - startTime,
+	}
+}
