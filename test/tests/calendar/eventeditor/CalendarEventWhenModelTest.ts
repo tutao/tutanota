@@ -9,7 +9,7 @@ import {
 } from "../../../../src/applications/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhenModel.js"
 import { Time } from "../../../../src/applications/common/calendar/date/Time.js"
 
-import { CalendarEvent, CalendarEventTypeRef, CalendarRepeatRule, CalendarRepeatRuleParams } from "@tutao/entities/tutanota"
+import { CalendarEvent, CalendarEventTypeRef, CalendarRepeatRule } from "@tutao/entities/tutanota"
 
 import { createDateWrapper, createRepeatRule, DateWrapperTypeRef, RepeatRuleTypeRef } from "@tutao/entities/sys"
 import { getTimeZone } from "../../../../src/applications/common/calendar/date/CalendarUtils"
@@ -735,7 +735,7 @@ o.spec(TEST_NAME, function () {
 			model.excludeDate(exclusions[1])
 			model.excludeDate(exclusions[0])
 
-			o(model.result.repeatRule?.excludedDates).deepEquals(exclusions.map((date) => createDateWrapper({ date })))
+			o(model.getRepeatRuleOrNull()?.excludedDates).deepEquals(exclusions.map((date) => createDateWrapper({ date })))
 			o(model.excludedDates).deepEquals(exclusions)
 		})
 		o("adding two exclusions in order sorts them", async function () {

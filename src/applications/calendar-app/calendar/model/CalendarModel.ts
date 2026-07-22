@@ -177,20 +177,6 @@ type ExternalCalendarQueueItem = {
 	name: string | null
 }
 
-export function assertEventValidity(event: CalendarEvent) {
-	switch (checkEventValidity(event)) {
-		case CalendarEventValidity.InvalidContainsInvalidDate:
-			throw new UserError("invalidDate_msg")
-		case CalendarEventValidity.InvalidEndBeforeStart:
-			throw new UserError("startAfterEnd_label")
-		case CalendarEventValidity.InvalidPre1970:
-			// shouldn't happen while the check in setStartDate is still there, resetting the date each time
-			throw new UserError("pre1970Start_msg")
-		case CalendarEventValidity.Valid:
-		// event is valid, nothing to do
-	}
-}
-
 export class CalendarModel {
 	/**
 	 * Map from calendar event element id to the deferred object with a promise of getting CREATE event for this calendar event. We need to do that because
@@ -753,7 +739,19 @@ export class CalendarModel {
 			// Reset permissions because server will assign them
 			downcast(event)._permissions = null
 			event._ownerGroup = elementIdToId(currentCalendarGroupRoot._id)
-			assertEventValidity(event)
+
+			switch (checkEventValidity(event)) {
+				case CalendarEventValidity.InvalidDate:
+					throw new UserError("invalidDate_msg")
+				case CalendarEventValidity.InvalidEndBeforeStart:
+					throw new UserError("startAfterEnd_label")
+				case CalendarEventValidity.InvalidPre1970:
+					// shouldn't happen while the check in setStartDate is still there, resetting the date each time
+					throw new UserError("pre1970Start_msg")
+				case CalendarEventValidity.Valid:
+				// event is valid, nothing to do
+			}
+
 			operationsLog.created++
 		}
 		if (isNotEmpty(eventsForCreation)) {

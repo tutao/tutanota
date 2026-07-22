@@ -79,7 +79,7 @@ import {
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { arrayEqualsWithPredicate, assertNotNull, cleanMailAddress, identity, lazy, Require } from "@tutao/utils"
 import { makeEmptyCalendarEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { assertEventValidity, CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
+import { CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
 import { SendMailModel } from "../../../../common/mailFunctionality/SendMailModel.js"
 import { UserError } from "../../../../common/api/main/UserError.js"
@@ -93,11 +93,10 @@ import { CalendarEventWhoModel } from "./CalendarEventWhoModel.js"
 import { CalendarEventAlarmModel } from "./CalendarEventAlarmModel.js"
 import { SanitizedTextViewModel } from "../../../../common/misc/SanitizedTextViewModel.js"
 import { UserController } from "../../../../common/api/main/UserController.js"
-import { CalendarNotificationModel, CalendarNotificationSendModels } from "./CalendarNotificationModel.js"
+import { CalendarNotificationModel } from "./CalendarNotificationModel.js"
 import { CalendarEventApplyStrategies, CalendarEventModelStrategy } from "./CalendarEventModelStrategy.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { SimpleTextViewModel } from "../../../../common/misc/SimpleTextViewModel.js"
-import { AlarmInfoTemplate } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { getEventType } from "../CalendarGuiUtils.js"
 import { getDefaultSender } from "../../../../common/mailFunctionality/SharedMailUtils.js"
 import { CalendarInviteHandler } from "../../view/CalendarInvites"
@@ -479,51 +478,48 @@ export function eventHasChanged(now: CalendarEvent, previous: Partial<CalendarEv
 }
 
 /**
- * construct a usable calendar event from the result of one or more edit operations.
- * returns the new alarms separately so they can be set up
- * on the server before assigning the ids.
+ * Construct a usable calendar event from the result of one or more edit operations.
+ * Combine event values from the edit results with the fields required to identify a particular instance of the event.
  * @param models
+ * @param identity sequence (default "0") and recurrenceId (default null) are optional, but the uid must be specified.
+ * @throws UserError
  */
-export function assembleCalendarEventEditResult(models: CalendarEventEditModels): {
-	eventValues: CalendarEventValues
-	newAlarms: ReadonlyArray<AlarmInfoTemplate>
-	sendModels: CalendarNotificationSendModels
-	calendar: CalendarInfo
-} {
+export function createCalendarEventFromEditResult(models: CalendarEventEditModels, identity: Require<"uid", Partial<CalendarEventIdentity>>) {
+	if (models.whenModel.hasInvalidEndBeforeOrEqualStart()) {
+		throw new UserError("startAfterEnd_label")
+	}
 	const whenResult = models.whenModel.result
 	const whoResult = models.whoModel.result
-	const alarmResult = models.alarmModel.result
 	const summary = models.summary.content
 	const description = models.description.content
 	const location = models.location.content
 
-	return {
-		eventValues: {
-			// when?
-			startTime: whenResult.startTime,
-			endTime: whenResult.endTime,
-			repeatRule: whenResult.repeatRule,
-			startTimeZone: whenResult.startTimeZone,
-			endTimeZone: whenResult.endTimeZone,
-			// what?
-			summary,
-			description,
-			// where?
-			location,
-			// who?
-			invitedConfidentially: whoResult.isConfidential,
-			organizer: whoResult.organizer,
-			attendees: whoResult.attendees,
-			// fields related to the event instance's identity are excluded.
-			// reminders. will be set up separately.
-			alarmInfos: [],
-			pendingInvitation: null,
-			sender: null,
-		},
-		newAlarms: alarmResult.alarms,
-		sendModels: whoResult,
-		calendar: whoResult.calendar,
-	}
+	return createCalendarEvent({
+		sequence: "0",
+		recurrenceId: null,
+		hashedUid: null,
+
+		// when?
+		startTime: whenResult.startTime,
+		endTime: whenResult.endTime,
+		repeatRule: whenResult.repeatRule,
+		startTimeZone: whenResult.startTimeZone,
+		endTimeZone: whenResult.endTimeZone,
+		// what?
+		summary,
+		description,
+		// where?
+		location,
+		// who?
+		invitedConfidentially: whoResult.isConfidential,
+		organizer: whoResult.organizer,
+		attendees: whoResult.attendees,
+		alarmInfos: [],
+		pendingInvitation: null,
+		sender: null,
+
+		...identity,
+	})
 }
 
 /** assemble the edit result from an existing event edit operation and apply some fields from the original event
@@ -532,9 +528,8 @@ export function assembleCalendarEventEditResult(models: CalendarEventEditModels)
  * @param operation determines the source of the recurrenceId - in the case of EditThis it's the start time of the original event, otherwise existingEvents' recurrenceId is used.
  */
 export function assembleEditResultAndAssignFromExisting(existingEvent: CalendarEvent, editModels: CalendarEventEditModels, operation: CalendarOperation) {
-	const assembleResult = assembleCalendarEventEditResult(editModels)
 	const { uid: oldUid, sequence: oldSequence, recurrenceId } = existingEvent
-	const newEvent = assignEventIdentity(assembleResult.eventValues, {
+	const newEvent = createCalendarEventFromEditResult(editModels, {
 		uid: oldUid!,
 		sequence: incrementSequence(oldSequence),
 		recurrenceId: operation === CalendarOperation.EditThis && recurrenceId == null ? existingEvent.startTime : recurrenceId,
@@ -544,34 +539,19 @@ export function assembleEditResultAndAssignFromExisting(existingEvent: CalendarE
 		editModels.whoModel.resetGuestsStatus()
 	}
 
-	assertEventValidity(newEvent)
-
 	newEvent._id = existingEvent._id
 	newEvent._ownerGroup = existingEvent._ownerGroup
 	newEvent._permissions = existingEvent._permissions
 	newEvent._original = existingEvent._original
+
+	const whoResult = editModels.whoModel.result
 	return {
 		hasUpdateWorthyChanges: eventHasChanged(newEvent, existingEvent),
 		newEvent,
-		calendar: assembleResult.calendar,
-		newAlarms: assembleResult.newAlarms,
-		sendModels: assembleResult.sendModels,
+		calendar: whoResult.calendar,
+		newAlarms: editModels.alarmModel.result.alarms,
+		sendModels: whoResult,
 	}
-}
-
-/**
- * combine event values with the fields required to identify a particular instance of the event.
- * @param values
- * @param identity sequence (default "0") and recurrenceId (default null) are optional, but the uid must be specified.
- */
-export function assignEventIdentity(values: CalendarEventValues, identity: Require<"uid", Partial<CalendarEventIdentity>>): CalendarEvent {
-	return createCalendarEvent({
-		sequence: "0",
-		recurrenceId: null,
-		hashedUid: null,
-		...values,
-		...identity,
-	})
 }
 
 export async function resolveAlarmsForEvent(alarms: CalendarEvent["alarmInfos"], calendarModel: CalendarModel, user: User): Promise<Array<AlarmInterval>> {

@@ -1417,7 +1417,7 @@ o.spec("CalendarUtilsTest", function () {
 						endTime: new Date("1990"),
 					}),
 				),
-			).equals(CalendarEventValidity.InvalidContainsInvalidDate)
+			).equals(CalendarEventValidity.InvalidDate)
 			o(
 				checkEventValidity(
 					createTestEntity(CalendarEventTypeRef, {
@@ -1425,7 +1425,7 @@ o.spec("CalendarUtilsTest", function () {
 						endTime: new Date("nan"),
 					}),
 				),
-			).equals(CalendarEventValidity.InvalidContainsInvalidDate)
+			).equals(CalendarEventValidity.InvalidDate)
 			o(
 				checkEventValidity(
 					createTestEntity(CalendarEventTypeRef, {
@@ -1433,7 +1433,7 @@ o.spec("CalendarUtilsTest", function () {
 						endTime: new Date("nan"),
 					}),
 				),
-			).equals(CalendarEventValidity.InvalidContainsInvalidDate)
+			).equals(CalendarEventValidity.InvalidDate)
 		})
 		o("events with start date not before end date are detected", function () {
 			o(
@@ -1477,7 +1477,7 @@ o.spec("CalendarUtilsTest", function () {
 						endTime: new Date("1966"),
 					}),
 				),
-			).equals(CalendarEventValidity.InvalidEndBeforeStart)
+			).equals(CalendarEventValidity.InvalidPre1970)
 		})
 		o("valid events are detected", function () {
 			o(

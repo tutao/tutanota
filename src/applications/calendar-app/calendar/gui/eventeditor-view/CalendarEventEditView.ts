@@ -270,7 +270,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 	}
 
 	private renderRepeatRuleNavButton({ model, navigationCallback }: CalendarEventEditViewAttrs): Children {
-		const repeatRuleText = this.getTranslatedRepeatRule(model.editModels.whenModel.result.repeatRule, model.editModels.whenModel.isAllDay)
+		const repeatRuleText = this.getTranslatedRepeatRule(model.editModels.whenModel.getRepeatRuleOrNull(), model.editModels.whenModel.isAllDay)
 		return m(SectionButton, {
 			style: {
 				minHeight: px(size.core_48),
