@@ -45,7 +45,7 @@ export function getInboxRuleTypeNameMapping(): SelectorItemList<string> {
 	]
 }
 
-export function getInboxRuleResultTypeNameMapping(): SelectorItemList<string> {
+export function getInboxRuleResultTypeNameMapping(): SelectorItemList<InboxRuleResultType> {
 	return [
 		{
 			value: InboxRuleResultType.MOVE,
