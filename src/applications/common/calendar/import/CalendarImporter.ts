@@ -314,7 +314,7 @@ function determineRejectionReason(
 		throw new Error("Uid is not set for imported event")
 	}
 	switch (checkEventValidity(event)) {
-		case CalendarEventValidity.InvalidContainsInvalidDate:
+		case CalendarEventValidity.InvalidDate:
 			return EventImportRejectionReason.InvalidDate
 		case CalendarEventValidity.InvalidEndBeforeStart:
 			return EventImportRejectionReason.Inversed
