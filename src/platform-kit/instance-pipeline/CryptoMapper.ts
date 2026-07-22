@@ -5,13 +5,18 @@ import {
 	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN,
 	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN,
 	AeadSubKeys,
+	Aes256Key,
 	AesKey,
+	assert256BitKey,
 	AsymmetricKeyPair,
+	decryptKey,
 	DomainSeparator,
 	InstanceDecryptor,
 	KdfNonce,
 	SubKeyFactory,
 	SubKeyInfo,
+	SubKeyInfoWithSessionKeyAead,
+	SubKeyInfoWithSessionKeyCbcThenHmac,
 	SubKeyProvider,
 	SymmetricCipherFacade,
 	SymmetricCipherVersion,
@@ -34,7 +39,7 @@ import {
 } from "../meta/EntityTypes"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
 import { OwnerKeyProvider } from "./PatchMerger"
-import { AssociationPath, RootPath, InstancePath } from "./EncryptionContextPath"
+import { AssociationPath, InstancePath, RootPath } from "./EncryptionContextPath"
 
 export interface SymmetricGroupKeyLoader {
 	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey>
@@ -222,7 +227,7 @@ export class CryptoMapper {
 		path: InstancePath = new RootPath(),
 	): Promise<ClientModelEncryptedParsedInstance> {
 		const encrypted: ClientModelEncryptedParsedInstance = {} as ClientModelEncryptedParsedInstance
-		let subKeyProvider = this.makeNullableSubKeyProvider(subKeyFactory, clientTypeModel, path)
+		let subKeyProvider = await this.makeNullableSubKeyProvider(subKeyFactory, clientTypeModel, path, parsedInstance)
 
 		for (let valueId of Object.keys(clientTypeModel.values).map(Number)) {
 			const valueType = clientTypeModel.values[valueId]
@@ -254,10 +259,36 @@ export class CryptoMapper {
 		return encrypted
 	}
 
-	private makeNullableSubKeyProvider(subKeyFactory: Nullable<SubKeyFactory>, clientTypeModel: ClientTypeModel, path: InstancePath): Nullable<SubKeyProvider> {
+	private async makeNullableSubKeyProvider(
+		subKeyFactory: Nullable<SubKeyFactory>,
+		clientTypeModel: ClientTypeModel,
+		path: InstancePath,
+		parsedInstance: ClientModelParsedInstance,
+		ownerGroupKey: AesKey,
+	): Promise<Nullable<SubKeyProvider>> {
 		if (subKeyFactory instanceof SubKeyProvider) {
 			if (clientTypeModel.idForSubKeyContext != null && !path.hasBeenCutOff) {
-				return this.symmetricCipherFacade.getSubKeyProvider(subKeyFactory, {
+				const ownerEncSessionKey = (await EntityAdapter.from(clientTypeModel, parsedInstance, this.modelMapper))._ownerEncSessionKey
+				let newSubKeyInfo: Nullable<SubKeyInfo> = null
+				if (ownerEncSessionKey) {
+					const newSessionKey: Aes256Key = assert256BitKey(decryptKey(ownerGroupKey, ownerEncSessionKey))
+
+					switch (subKeyFactory["subKeyInfo"].cipherVersion) {
+						case SymmetricCipherVersion.AeadWithSessionKey:
+							newSubKeyInfo = new SubKeyInfoWithSessionKeyAead(newSessionKey)
+							break
+						case SymmetricCipherVersion.AesCbcThenHmac:
+							newSubKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(newSessionKey)
+							break
+						default:
+							throw new ProgrammingError(
+								"Transfer aggregated types should only be encrypted for data transfer types using session keys. Unexpected cipher version: " +
+									subKeyFactory["subKeyInfo"].cipherVersion,
+							)
+					}
+				}
+
+				return this.symmetricCipherFacade.getSubKeyProvider(newSubKeyInfo ?? subKeyFactory, {
 					app: clientTypeModel.app,
 					id: clientTypeModel.idForSubKeyContext,
 					name: "[the name for transfer aggregates is currently not supported]",
