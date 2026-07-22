@@ -4,16 +4,15 @@
  * and the scope of the operation (only the clicked instance or all instances)
  * */
 import { clone, elementIdToId, getAsEnumValue } from "@tutao/meta"
-import { assertEventValidity, CalendarModel } from "../../model/CalendarModel.js"
+import { CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationModel } from "./CalendarNotificationModel.js"
 import { assertNotNull, identity, isNotEmpty } from "@tutao/utils"
 import { generateUid } from "../../../../common/calendar/date/CalendarUtils.js"
 import {
-	assembleCalendarEventEditResult,
 	assembleEditResultAndAssignFromExisting,
-	assignEventIdentity,
 	CalendarEventEditModels,
 	CalendarOperation,
+	createCalendarEventFromEditResult,
 	ShowProgressCallback,
 } from "./CalendarEventModel.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
@@ -53,16 +52,15 @@ export class CalendarEventApplyStrategies {
 	 * save a new event to the selected calendar, invite all attendees except for the organizer and set up alarms.
 	 */
 	async saveNewEvent(editModels: CalendarEventEditModels): Promise<void> {
-		const { eventValues, newAlarms, sendModels, calendar } = assembleCalendarEventEditResult(editModels)
+		const whoResult = editModels.whoModel.result
+		const calendar = whoResult.calendar
 		const uid = generateUid(elementIdToId(calendar.group._id), Date.now())
-		const newEvent = assignEventIdentity(eventValues, { uid })
-		assertEventValidity(newEvent)
-		const { groupRoot } = calendar
+		const newEvent = createCalendarEventFromEditResult(editModels, { uid })
 
 		await this.showProgress(
 			(async () => {
-				await this.notificationModel.send(newEvent, [], sendModels)
-				await this.calendarModel.createEvent(newEvent, newAlarms, this.calendarTimeZone, groupRoot)
+				await this.notificationModel.send(newEvent, [], whoResult)
+				await this.calendarModel.createEvent(newEvent, editModels.alarmModel.result.alarms, this.calendarTimeZone, calendar.groupRoot)
 			})(),
 		)
 	}
@@ -261,7 +259,7 @@ export class CalendarEventApplyStrategies {
 		const ownerGroup = assertNotNull(existingEvent?._ownerGroup, "no ownerGroup to update existing event")
 
 		editModels.whoModel.shouldSendUpdates = true
-		const { sendModels } = assembleCalendarEventEditResult(editModels)
+		const sendModels = editModels.whoModel.result
 
 		await this.showProgress(
 			(async () => {
@@ -316,7 +314,7 @@ export class CalendarEventApplyStrategies {
 	/** only remove a single altered instance from the server & the uid index, and sends email Cancel notification. will not modify the progenitor. */
 	async handleDeleteAlteredInstance(editModels: CalendarEventEditModels, existingAlteredInstance: CalendarEvent): Promise<void> {
 		editModels.whoModel.shouldSendUpdates = true
-		const { sendModels } = assembleCalendarEventEditResult(editModels)
+		const sendModels = editModels.whoModel.result
 		sendModels.cancelModel = sendModels.updateModel
 		sendModels.updateModel = null
 		await this.showProgress(
