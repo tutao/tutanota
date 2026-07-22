@@ -8,6 +8,7 @@ export type ParsedImapRFC822 = {
 	parsedEnvelope?: ImapMailEnvelope
 	parsedBody?: ImapMailBody
 	parsedAttachments?: ImapMailAttachment[]
+	parsedHeaders?: string
 }
 
 export class ImapMailRFC822Parser {
@@ -23,6 +24,8 @@ export class ImapMailRFC822Parser {
 		parsedImapRFC822.parsedEnvelope = imapMailEnvelopeFromPostalMimeEmail(email)
 
 		parsedImapRFC822.parsedBody = { html: email.html ?? "", plaintext: email.text ?? "" }
+
+		parsedImapRFC822.parsedHeaders = email.headers.map((header) => `${header.originalKey}: ${header.value}`).join("\n")
 
 		parsedImapRFC822.parsedAttachments = await promiseMap(email.attachments, async (attachment) => {
 			// when parsing, the encoding is set to arrayBuffer, so this will always be an arrayBuffer

@@ -152,7 +152,6 @@ export class ImapSyncSessionProcess {
 						size: true,
 						flags: true,
 						internalDate: true,
-						headers: true,
 					},
 					fetchOptions,
 				)
@@ -166,11 +165,7 @@ export class ImapSyncSessionProcess {
 					}
 
 					if (mail.source) {
-						const imapMail = await imapMailFromImapFlowFetchMessageObject(
-							mail,
-							openedImapMailbox,
-							this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.get(mail.uid),
-						)
+						const imapMail = await imapMailFromImapFlowFetchMessageObject(mail, openedImapMailbox)
 
 						switch (nextUidFetchRequest.fetchRequestType) {
 							case UidFetchRequestType.CREATE:
