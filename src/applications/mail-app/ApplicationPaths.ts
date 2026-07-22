@@ -23,6 +23,7 @@ type ViewResolvers = {
 	webauthnmobile: RouteResolver
 	mailSearch: RouteResolver
 	contactSearch: RouteResolver
+	calendarSearch: RouteResolver
 }
 
 export function applicationPaths({
@@ -45,6 +46,7 @@ export function applicationPaths({
 	webauthnmobile,
 	mailSearch,
 	contactSearch,
+	calendarSearch,
 }: ViewResolvers): ApplicationPaths {
 	return {
 		"/login": login,
@@ -67,6 +69,8 @@ export function applicationPaths({
 		"/search/mail/:id": mailSearch,
 		"/search/contact": contactSearch,
 		"/search/contact/:id": contactSearch,
+		"/search/calendar": calendarSearch,
+		"/search/calendar/:id": calendarSearch,
 		// FIXME: other search routes
 		// "/search/:category": search,
 		// "/search/:category/:id": search,
