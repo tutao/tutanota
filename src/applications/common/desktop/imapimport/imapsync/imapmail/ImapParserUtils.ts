@@ -4,15 +4,13 @@ import { ImapMailRFC822Parser } from "./ImapMailRFC822Parser"
 import { ProgrammingError } from "@tutao/app-env"
 import type { Email } from "postal-mime"
 
-export async function imapMailFromImapFlowFetchMessageObject(mail: any, belongsToMailbox: ImapMailbox, externalMailId: any): Promise<ImapMail> {
+export async function imapMailFromImapFlowFetchMessageObject(mail: any, belongsToMailbox: ImapMailbox): Promise<ImapMail> {
 	if (mail.source === undefined) {
 		throw new ProgrammingError(`IMAP mail source not available.`)
 	}
 
 	const imapMailRFC822Parser = new ImapMailRFC822Parser()
 	const parsedMailRFC822 = await imapMailRFC822Parser.parseSource(mail.source)
-
-	const headersString = new TextDecoder().decode(mail.headers)
 
 	const imapMail: ImapMail = {
 		uid: mail.uid,
@@ -22,7 +20,7 @@ export async function imapMailFromImapFlowFetchMessageObject(mail: any, belongsT
 		internalDate: mail.internalDate,
 		flags: mail.flags,
 		labels: mail.labels,
-		headers: headersString,
+		headers: parsedMailRFC822.parsedHeaders,
 		rfc822Source: mail.source,
 	}
 
