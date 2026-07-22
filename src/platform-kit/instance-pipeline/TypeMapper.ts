@@ -126,6 +126,13 @@ export class IncomingServerJson implements DeepEquals {
 			return new IncomingServerJson(item as Record<string, any>, typeModel)
 		})
 	}
+	public static expectMultipleDesktopAlarms(data: any, typeModel: ServerTypeModel): Array<IncomingServerJson> {
+		assert(Array.isArray(data), "Expected multiple instances. But response is not an array")
+		return (data as Array<any>).map((item) => {
+			assert(!Array.isArray(item), "Expected array of instances. Found nested array")
+			return new IncomingServerJson(item as Record<string, any>, typeModel)
+		})
+	}
 
 	getValueById(attrId: AttributeId): EncryptedParsedValue {
 		const rawValue = this.json[attrId]
@@ -268,8 +275,7 @@ export class OutgoingServerJson implements DeepEquals {
 		return isSameTypeRef(this.getTypeRef(), other.getTypeRef()) && deepEqual(this.json, other.json)
 	}
 
-	getInnerJsonForTest(): Record<string, any> {
-		assert(isTest(), "Do not get rawJson for non-test environment")
+	getInnerJson(): Record<string, any> {
 		return this.json
 	}
 }

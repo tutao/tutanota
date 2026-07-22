@@ -108,7 +108,7 @@ o.spec("DesktopAlarmStorageTest", function () {
 		await desktopStorage.storeAlarm(alarmNotification)
 		const expectedAlarmsCaptor = matchers.captor()
 		verify(confMock.setVar(DesktopConfigKey.scheduledAlarms, expectedAlarmsCaptor.capture()))
-		const savedAlarm = IncomingServerJson.expectMultipleInstance(expectedAlarmsCaptor.values![0], alarmNotificationModel)
+		const savedAlarm = IncomingServerJson.expectMultipleDesktopAlarms(expectedAlarmsCaptor.values![0], alarmNotificationModel)
 		let decryptedSavedAlarmNotification = await instancePipeline.decryptAndMap<AlarmNotification>(savedAlarm[0], notificationSessionKey)
 		o(alarmNotification._id).deepEquals(decryptedSavedAlarmNotification._id)
 		o(hasError(decryptedSavedAlarmNotification)).equals(false)
@@ -143,9 +143,9 @@ o.spec("DesktopAlarmStorageTest", function () {
 		const newExpectedAlarmsCaptor = matchers.captor()
 		verify(confMock.setVar(DesktopConfigKey.scheduledAlarms, newExpectedAlarmsCaptor.capture()))
 		// assert that we can decrypt correctly and data alarm notifications match the previously stored ones
-		let firstAlarmJson = IncomingServerJson.expectMultipleInstance(newExpectedAlarmsCaptor.values![0], alarmNotificationModel)[0]
+		let firstAlarmJson = IncomingServerJson.expectMultipleDesktopAlarms(newExpectedAlarmsCaptor.values![0], alarmNotificationModel)[0]
 		const oldDecryptedSavedAlarmNotification = await instancePipeline.decryptAndMap<AlarmNotification>(firstAlarmJson, notificationSessionKey)
-		const secondAlarmJson = IncomingServerJson.expectMultipleInstance(newExpectedAlarmsCaptor.values![1], alarmNotificationModel)[0]
+		const secondAlarmJson = IncomingServerJson.expectMultipleDesktopAlarms(newExpectedAlarmsCaptor.values![1], alarmNotificationModel)[0]
 		const newDecryptedSavedAlarmNotification = await instancePipeline.decryptAndMap<AlarmNotification>(secondAlarmJson, newNotificationSessionKey)
 
 		o(alarmNotification._id).deepEquals(oldDecryptedSavedAlarmNotification._id)

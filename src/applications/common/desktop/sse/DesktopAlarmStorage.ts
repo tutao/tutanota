@@ -159,12 +159,13 @@ export class DesktopAlarmStorage {
 	}
 
 	async _saveAlarms(alarms: ReadonlyArray<EncryptedParsedInstance>): Promise<void> {
-		const rawAlarms = await promiseMap(
-			alarms,
-			async (alarm) => await this.alarmStorageInstancePipeline.typeMapper.makeServerJson(alarm.changeDirectionForEncryptedAlarmNotification()),
-		)
-		const rawAlarmsAsString: StoredAlarm = OutgoingServerJson.getJsonRepresentationOfMultiple(rawAlarms)
-		return this.conf.setVar(DesktopConfigKey.scheduledAlarms, rawAlarmsAsString)
+		const rawAlarms = (
+			await promiseMap(
+				alarms,
+				async (alarm) => await this.alarmStorageInstancePipeline.typeMapper.makeServerJson(alarm.changeDirectionForEncryptedAlarmNotification()),
+			)
+		).map((oj) => oj.getInnerJson())
+		return this.conf.setVar(DesktopConfigKey.scheduledAlarms, rawAlarms)
 	}
 
 	async _readAlarms(): Promise<Array<EncryptedParsedInstance>> {
@@ -177,7 +178,7 @@ export class DesktopAlarmStorage {
 			return []
 		}
 		const alarmNotificationTypeModel = await this.alarmStorageInstancePipeline.typeModelResolver.resolveServerTypeReference(AlarmNotificationTypeRef)
-		const incomingJsons = IncomingServerJson.expectMultipleInstance(rawAlarms, alarmNotificationTypeModel)
+		const incomingJsons = IncomingServerJson.expectMultipleDesktopAlarms(rawAlarms, alarmNotificationTypeModel)
 		return await Promise.all(incomingJsons.map((json) => this.alarmStorageInstancePipeline.typeMapper.parseServerJson(json)))
 	}
 

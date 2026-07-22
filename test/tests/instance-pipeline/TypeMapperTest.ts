@@ -108,7 +108,7 @@ o.spec("TypeMapperTest", function () {
 		o("jsonify outgoing instances", async function () {
 			const outgoingJson = await typeMapper.makeServerJson(encryptedParsedInstance)
 
-			const instanceAsRecord = outgoingJson.getInnerJsonForTest()
+			const instanceAsRecord = outgoingJson.getInnerJson()
 			o(instanceAsRecord["1"]).equals("test string")
 			o(instanceAsRecord["3"]![0]["2"]).equals("123")
 			o(instanceAsRecord["5"]).equals("1735736415000")
@@ -120,7 +120,7 @@ o.spec("TypeMapperTest", function () {
 			env.networkDebugging = true
 			const outgoingJsonNetDebugged = await typeMapper.makeServerJson(encryptedParsedInstance)
 
-			const instanceAsRecord = outgoingJsonNetDebugged.getInnerJsonForTest()
+			const instanceAsRecord = outgoingJsonNetDebugged.getInnerJson()
 			o(instanceAsRecord["1:testValue"]).equals("test string")
 			o(instanceAsRecord["3:testAssociation"]![0]["2:testNumber"]).equals("123")
 			o(instanceAsRecord["5:testDate"]).equals("1735736415000")

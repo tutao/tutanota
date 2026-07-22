@@ -177,7 +177,7 @@ o.spec("OfflineMailIndexer", () => {
 		when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails))).thenDo(async () => {
 			return [
 				IncomingServerJson.expectSingleMailDetailsBlob(
-					(await realInstancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, mailDetails, sk)).getInnerJsonForTest(),
+					(await realInstancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, mailDetails, sk)).getInnerJson(),
 					mailDetailsBlobModel,
 				),
 			]
@@ -305,7 +305,7 @@ o.spec("OfflineMailIndexer", () => {
 			await Promise.all(
 				detailBlobs.map(async (db) =>
 					IncomingServerJson.expectSingleMailDetailsBlob(
-						(await realInstancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, db, sk)).getInnerJsonForTest(),
+						(await realInstancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, db, sk)).getInnerJson(),
 						mailDetailsBlobModel,
 					),
 				),
@@ -404,7 +404,7 @@ o.spec("OfflineMailIndexer", () => {
 			when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails))).thenDo(async () => {
 				return [
 					IncomingServerJson.expectSingleMailDetailsBlob(
-						(await realInstancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, mailDetails, sk)).getInnerJsonForTest(),
+						(await realInstancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, mailDetails, sk)).getInnerJson(),
 						mailDetailsBlobModel,
 					),
 				]

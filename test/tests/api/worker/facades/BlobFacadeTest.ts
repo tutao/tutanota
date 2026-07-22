@@ -429,7 +429,7 @@ o.spec("BlobFacadeTest", function () {
 			const capturedRequestBody = (optionsCaptor.value.body as RestTextBody).payload
 			const requestBodyParsedJson = JSON.parse(requestBody.getJsonRepresentation())
 			// 193 is blobIds aggregation, 145 is _id on each aggregate
-			requestBody.getInnerJsonForTest()["193"][0]["145"] = JSON.parse(capturedRequestBody)["193"][0]["145"]
+			requestBody.getInnerJson()["193"][0]["145"] = JSON.parse(capturedRequestBody)["193"][0]["145"]
 
 			o(capturedRequestBody).deepEquals(requestBody.getJsonRepresentation())
 		})
@@ -1417,7 +1417,7 @@ o.spec("BlobFacadeTest", function () {
 				j.getInnerJson(),
 			)
 			const expectedBlobs = (await Promise.all(encryptedBlobsJson.map((e) => realInstancePipeline.typeMapper.makeServerJson(e)))).map((j) =>
-				j.getInnerJsonForTest(),
+				j.getInnerJson(),
 			)
 			o.check(downloadedBlobs).deepEquals(expectedBlobs)
 		})
