@@ -2414,6 +2414,7 @@ export default {
 		"saveAndApply_action": "Save & Apply",
 		"applyingInboxRules_label": "Applying Inbox Rule(s)",
 		"inboxRuleExplainer_msg": "This would be a short sentence that explains the configuration of Inbox Rules.",
-		"addCondition_label": "Add condition"
+		"addCondition_label": "Add condition",
+		"addResult_action": "Add result"
 	}
 }
