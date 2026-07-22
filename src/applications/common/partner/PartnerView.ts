@@ -23,7 +23,7 @@ import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsVie
 import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu"
 import { ManagedCustomerListView } from "./ManagedCustomersListView"
 import { Icons } from "../../../ui/base/icons/Icons"
-import { EntityEventsListener, EntityUpdateData, OnEntityUpdateReceivedPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdatesListener, EntityUpdateData, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { windowFacade } from "../misc/WindowFacade"
 import { renderHeaderButtons } from "../../calendar-app/gui/HeaderButtons"
 
@@ -168,18 +168,19 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 	}
 
 	oncreate(vnode: Vnode<SettingsViewAttrs>) {
-		locator.eventController.addEntityListener(this.entityListener)
+		locator.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 	}
 
 	onremove(vnode: VnodeDOM<SettingsViewAttrs>) {
-		locator.eventController.removeEntityListener(this.entityListener)
+		locator.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
 	}
 
-	private entityListener: EntityEventsListener = {
+	private entityUpdatesListener: EntityUpdatesListener = {
+		id: "PartnerView",
 		onEntityUpdatesReceived: (updates: EntityUpdateData[]) => {
-			return this.entityEventsReceived(updates)
+			return this.onEntityUpdatesReceived(updates)
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: ListenerPriority.NORMAL,
 	}
 
 	view({ attrs }: Vnode<SettingsViewAttrs>): Children {
@@ -236,7 +237,7 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 		void this.viewSlider.focus(this._settingsDetailsColumn)
 	}
 
-	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async onEntityUpdatesReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		await this._currentViewer?.entityEventsReceived(updates)
 
 		await this.detailsViewer?.entityEventsReceived(updates)

@@ -18,10 +18,10 @@ import { Button, ButtonType } from "../../../../ui/base/Button"
 import { AccountingInfo, AccountingInfoTypeRef, Braintree3ds2Request, InvoiceInfoTypeRef } from "@tutao/entities/sys"
 import { PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
 import {
-	EntityEventsListener,
+	EntityUpdatesListener,
 	EntityUpdateData,
 	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
+	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { Country, getClientType, InvoiceData, Keys, PaymentDataResultType } from "@tutao/app-env"
 import { CountryType } from "../../gui/CountryList"
@@ -81,7 +81,8 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 				exec: closeAction,
 				help: "close_alt",
 			})
-		let entityEventListener: EntityEventsListener = {
+		let entityUpdatesListener: EntityUpdatesListener = {
+			id: "PaymentUtils",
 			onEntityUpdatesReceived: (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => {
 				return promiseMap(updates, (update) => {
 					if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
@@ -130,10 +131,10 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 					return Promise.resolve()
 				}).then(noOp)
 			},
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+			priority: ListenerPriority.NORMAL,
 		}
 
-		locator.eventController.addEntityListener(entityEventListener)
+		locator.eventController.addEntityUpdatesListener(entityUpdatesListener)
 		const app = client.isCalendarApp() ? "calendar" : "mail"
 		let params = `clientToken=${encodeURIComponent(braintree3ds.clientToken)}&nonce=${encodeURIComponent(braintree3ds.nonce)}&bin=${encodeURIComponent(
 			braintree3ds.bin,
@@ -145,7 +146,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 			window.open(paymentUrl)
 			progressDialog.show()
 		})
-		return progressDialogPromise.finally(() => locator.eventController.removeEntityListener(entityEventListener))
+		return progressDialogPromise.finally(() => locator.eventController.removeEntityUpdatesListener(entityUpdatesListener))
 	})
 }
 

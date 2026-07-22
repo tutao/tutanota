@@ -1,4 +1,4 @@
-import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
+import { LeaderStatusListener, WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { CalendarModel, NoOwnerEncSessionKeyForCalendarEventError } from "./CalendarModel"
 import { EventController } from "../../../common/api/main/EventController"
 import { elementIdPart, OperationType } from "../../../../platform-kit/meta"
@@ -7,10 +7,10 @@ import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { SyncTracker } from "../../../common/api/main/SyncTracker"
 import { CalendarEventUpdate, CalendarEventUpdateTypeRef, FileTypeRef } from "@tutao/entities/tutanota"
 import {
-	EntityEventsListener,
+	EntityUpdatesListener,
 	EntityUpdateData,
 	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
+	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { NotFoundError } from "../../../../platform-kit/rest-client/error"
 
@@ -28,12 +28,22 @@ export class CalendarEventUpdateCoordinator {
 	private readonly fileIdToSkippedCalendarEventUpdates: Map<Id, CalendarEventUpdate> = new Map()
 
 	// create reference to the listener so it can be deleted from the event controller when the client stops being leader.
-	private readonly entityEventListener: EntityEventsListener = {
+	private readonly entityUpdatesListener: EntityUpdatesListener = {
+		id: "CalendarEventUpdateCoordinator",
 		onEntityUpdatesReceived: (updates, eventOwnerGroupId) => {
-			return this.entityEventsReceived(updates, eventOwnerGroupId)
+			return this.onEntityUpdatesReceived(updates, eventOwnerGroupId)
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: ListenerPriority.NORMAL,
 	}
+
+	private readonly leaderStatusListener: LeaderStatusListener = {
+		id: "CalendarEventUpdateCoordinator",
+		priority: ListenerPriority.NORMAL,
+		onLeaderStatusChanged: (newLeaderStatus) => {
+			return this.onLeaderStatusChanged(newLeaderStatus)
+		},
+	}
+
 	constructor(
 		private readonly wsConnectivityModel: WebsocketConnectivityModel,
 		private readonly calendarModel: CalendarModel,
@@ -49,26 +59,25 @@ export class CalendarEventUpdateCoordinator {
 	public async init() {
 		await this.syncTracker.waitSync() // await conclusion of global sync process
 
-		// Subscribe to leaders status changes so we can process calendar event updates when the client becomes leader
-		this.wsConnectivityModel.addLeaderStatusListener((newLeaderStatus) => {
-			return this.onLeaderStatusChanged(newLeaderStatus)
-		})
+		// subscribe to leaders status changes so we can process calendar event updates when the client becomes leader
+		this.wsConnectivityModel.addLeaderStatusListener(this.leaderStatusListener)
 
 		// initialize the model depending on leader status state.
 		await this.onLeaderStatusChanged(this.wsConnectivityModel.isLeader())
 	}
+
 	public async onLeaderStatusChanged(isLeader: boolean) {
 		if (isLeader) {
 			// Note that the order is important here. The initial loading of calendarEventUpdates must happen
 			// before registering event listener to prevent possible concurrency issues.
 			await this.loadAndProcessCalendarEventInvitesUpdates()
-			this.eventController.addEntityListener(this.entityEventListener)
+			this.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 		} else {
-			this.eventController.removeEntityListener(this.entityEventListener)
+			this.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
 		}
 	}
 
-	public async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) {
+	public async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) {
 		for (const entityEventData of updates) {
 			if (isUpdateForTypeRef(CalendarEventUpdateTypeRef, entityEventData) && entityEventData.operation === OperationType.CREATE) {
 				try {

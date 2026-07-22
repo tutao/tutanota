@@ -88,10 +88,10 @@ import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, Mai
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
 import { isPermanentDeleteAllowedForFolder } from "../../mail/MailUtils"
 import {
-	EntityEventsListener,
+	EntityUpdatesListener,
 	EntityUpdateData,
 	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
+	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 const SEARCH_PAGE_SIZE = 100
@@ -261,7 +261,7 @@ export class SearchViewModel {
 		this.mailboxSubscription = this.mailboxModel.mailboxDetails.map((mailboxes) => {
 			this.onMailboxesChanged(mailboxes)
 		})
-		this.eventController.addEntityListener(this.entityEventsListener)
+		this.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 	})
 
 	getRestriction(): SearchRestriction {
@@ -286,13 +286,14 @@ export class SearchViewModel {
 		return isSameTypeRef(MailTypeRef, this.searchedType) && this.search.indexState().failedIndexingUpTo != null
 	}
 
-	private readonly entityEventsListener: EntityEventsListener = {
+	private readonly entityUpdatesListener: EntityUpdatesListener = {
+		id: "SearchViewModel",
 		onEntityUpdatesReceived: async (updates) => {
 			for (const update of updates) {
-				await this.entityEventReceived(update)
+				await this.onEntityUpdatesReceived(update)
 			}
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: ListenerPriority.NORMAL,
 	}
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {
@@ -736,7 +737,7 @@ export class SearchViewModel {
 		return false
 	}
 
-	private async entityEventReceived(update: EntityUpdateData): Promise<void> {
+	private async onEntityUpdatesReceived(update: EntityUpdateData): Promise<void> {
 		const lastType: TypeRef<Mail | CalendarEvent | Contact> = this.searchedType
 		const isPossibleABirthdayContactUpdate = this.isPossibleABirthdayContactUpdate(update)
 
@@ -781,7 +782,7 @@ export class SearchViewModel {
 			return
 		}
 
-		await this._listModel.entityEventReceived(instanceListId!, instanceId, operation)
+		await this._listModel.onEntityUpdateReceived(instanceListId!, instanceId, operation)
 		// run the mail or contact update after the update on the list is finished to avoid parallel loading
 		if (operation === OperationType.UPDATE && this._listModel?.isItemSelected(elementIdPart(id))) {
 			try {
@@ -1162,7 +1163,7 @@ export class SearchViewModel {
 		this.indexStateSubscription?.end(true)
 		this.indexStateSubscription = null
 		this.search.sendCancelSignal()
-		this.eventController.removeEntityListener(this.entityEventsListener)
+		this.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
 	}
 
 	getLabelsForMail(mail: Mail): MailSet[] {

@@ -2,12 +2,13 @@ import { lazyAsync, noOp } from "@tutao/utils"
 import { CalendarModel } from "../model/CalendarModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { CalendarEventUpdateCoordinator } from "../model/CalendarEventUpdateCoordinator"
-import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker"
+import { SyncTracker } from "../../../common/api/main/SyncTracker"
 import { PostLoginAction } from "../../../../app-kit/native-bridge/common/PostLoginAction"
 import { remindActiveOutOfOfficeNotification } from "../../../common/misc/OutOfOfficeNotificationUtils"
 import { isApp, isDesktop } from "@tutao/app-env"
 import { showSnackBar } from "../../../../ui/base/SnackBar"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
+import { ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 export async function setupCalendarModels(
 	lazyCalendarModel: lazyAsync<CalendarModel>,
@@ -35,6 +36,7 @@ export async function setupCalendarModels(
 function handleExternalSync(calendarModel: CalendarModel, syncTracker: SyncTracker) {
 	if (isApp() || isDesktop()) {
 		syncTracker.addSyncDoneListener({
+			id: "SetupCalendarModel",
 			onSyncDone: async () => {
 				calendarModel.syncExternalCalendars().catch(async (e) => {
 					showSnackBar({
@@ -48,7 +50,7 @@ function handleExternalSync(calendarModel: CalendarModel, syncTracker: SyncTrack
 				})
 				calendarModel.scheduleExternalCalendarSync()
 			},
-			priority: SyncDonePriority.HIGH,
+			priority: ListenerPriority.HIGH,
 		})
 	}
 }
