@@ -1,22 +1,11 @@
-import { DateTime } from "luxon"
-import { findAttendeeInAddresses, formatJSDate, isAllDayEvent, isBefore, isSameExternalEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
+import { findAttendeeInAddresses, formatJSDate, isAllDayEvent, isSameExternalEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/CalendarInvites"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository"
 import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { base64ToBase64Url, filterNull, getStartOfDay, getStartOfNextDay, isNotNull, isSameDay, partition, stringToBase64 } from "@tutao/utils"
-import {
-	CalendarTimeGrid,
-	CalendarTimeGridAttributes,
-	getIntervalAsMinutes,
-	SUBROWS_PER_INTERVAL,
-	TIME_SCALE_BASE_VALUE,
-	TimeRange,
-	TimeScale,
-	TimeScaleTuple,
-} from "../../../common/calendar/gui/CalendarTimeGrid"
+import { base64ToBase64Url, getStartOfDay, isNotNull, partition, stringToBase64 } from "@tutao/utils"
 import { theme } from "../../../../ui/theme"
 import { styles } from "../../../../ui/styles"
-import { layout_size, px, size } from "../../../../ui/size"
+import { layout_size, px } from "../../../../ui/size"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
 import { collidesWith } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
@@ -28,21 +17,16 @@ import { isRepliedTo } from "../../mail/model/MailUtils"
 import { EventBannerSkeleton } from "../EventBannerSkeleton"
 import type { EventBannerAttrs } from "../../mail/view/EventBanner"
 import { ExpandableTextArea, ExpandableTextAreaAttrs } from "../../../../ui/base/ExpandableTextArea.js"
-import { ExpanderPanel } from "../../../../ui/base/Expander.js"
-import { formatDateTime, formatTime } from "../../../../ui/utils/Formatter.js"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
-import { CalendarTimeColumn, CalendarTimeColumnAttrs } from "../../../common/calendar/gui/CalendarTimeColumn"
-import { AriaRole } from "../../../../ui/AriaUtils"
-import { isKeyPressed } from "../../../../ui/utils/KeyManager"
 import { fromStrippedCalendarEventAttendee, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/import/ImportExportUtils"
 import { CalendarEvent, createCalendarEventAttendee, Mail } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../../entities/tutanota/Utils"
-import { EventTextTimeOption, Keys, ProgrammingError, SECOND_IN_MILLIS, TabIndex } from "@tutao/app-env"
-import { clone, GENERATED_MIN_ID } from "@tutao/meta"
+import { EventTextTimeOption, ProgrammingError, SECOND_IN_MILLIS } from "@tutao/app-env"
+import { GENERATED_MIN_ID } from "@tutao/meta"
 import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
-import { getTimeZone } from "../../../common/calendar/date/CalendarUtils"
+import { getCalendarEventDurationInMinutes, getTimeZone } from "../../../common/calendar/date/CalendarUtils"
 import { formatEventTime } from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
-import { Time } from "../../../common/calendar/date/Time"
+import { TimeOverview } from "./TimeOverview"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData
@@ -50,6 +34,9 @@ export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	usesAmPmTimeFormat: boolean
 }
 
+/**
+ * It represents a summary of day with calendar events around a main event
+ */
 export interface InviteAgenda {
 	before: EventWrapper | null
 	after: EventWrapper | null
@@ -63,8 +50,6 @@ export interface InviteAgenda {
 export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 	private agenda: Map<string, InviteAgenda> | null = null
 	private comment: string = ""
-	private displayConflictingAgenda: boolean = false
-	private readonly gridRowHeight = 4
 
 	async oncreate({ attrs }: VnodeDOM<EventBannerImplAttrs>) {
 		this.agenda = await loadEventsAroundInvite(attrs.eventsRepository, attrs.iCalContents, attrs.recipient)
@@ -98,10 +83,6 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			.filter(isNotNull)
 
 		return eventsReplySection.map(({ event, replySection }) => {
-			if (agenda.get(event.uid ?? "")?.conflictCount === 1) {
-				this.displayConflictingAgenda = true
-			}
-
 			return this.buildEventBanner(event, agenda.get(event.uid ?? "") ?? null, recipient, replySection, usesAmPmTimeFormat)
 		}) as Children
 	}
@@ -113,12 +94,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		if (!agenda) {
 			console.warn(`Trying to render an EventBanner for an event but it doesn't have an agenda. Something really wrong happened.`)
 		}
-		const hasConflict = Boolean(agenda?.conflictCount! > 0)
-		const eventWrappers = filterNull([agenda?.before, agenda?.main, agenda?.after])
-		const { eventFocusBound, timeScale, timeRange, timeInterval, intervals, timeColumnWidth, rowCountForRange } = this.getTimeOverviewParameters(
-			agenda,
-			event,
-		)
+
 		const calendarTimeZone = getTimeZone()
 
 		/* Event Banner */
@@ -176,236 +152,9 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					replySection,
 				]),
 				/* Time Overview */
-				!recipientIsOrganizer
-					? m(
-							".flex.flex-column.plr-16.pb-16.pt-16.justify-start",
-							{
-								class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
-								style: {
-									"border-color": theme.surface_container_high,
-									color: theme.on_surface,
-								},
-							},
-							[
-								m(".flex.flex-column.mb-8", [
-									m(".flex.items-center.gap-4", [
-										m(Icon, {
-											icon: Icons.ClockOutlines,
-											container: "div",
-											style: { fill: theme.on_surface },
-											size: IconSize.PX24,
-										}),
-										m("span.b.h5", lang.getTranslation("timeOverview_title").text),
-									]),
-									agenda
-										? m(".mb-8", [
-												m(
-													".flex.mt-4.fit-content",
-													agenda.conflictCount > 1
-														? {
-																class: "nav-button",
-																role: AriaRole.Button,
-																ariaExpanded: this.displayConflictingAgenda,
-																tabIndex: TabIndex.Default,
-																onclick: () => this.toggleConflictingAgenda(),
-																onkeydown: (e: KeyboardEvent) => {
-																	if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
-																		this.toggleConflictingAgenda()
-																		e.preventDefault()
-																	}
-																},
-															}
-														: {},
-													[
-														m(Icon, {
-															icon: hasConflict ? Icons.ExclamationFilled : Icons.SuccessFilled,
-															container: "div",
-															class: "mr-4",
-															style: {
-																fill: hasConflict ? theme.warning : theme.success,
-															},
-															size: IconSize.PX24,
-														}),
-														this.renderConflictInfoText(agenda.regularEvents.length, agenda.allDayEvents.length),
-													],
-												),
-												agenda.conflictCount > 0
-													? m(
-															"",
-															{
-																style: {
-																	"margin-left": px(size.icon_24 + size.spacing_4),
-																},
-															},
-															[
-																agenda.conflictCount > 1
-																	? m(
-																			ExpanderPanel,
-																			{
-																				expanded: this.displayConflictingAgenda,
-																			},
-																			this.conflictingAgenda(agenda, event),
-																		)
-																	: this.conflictingAgenda(agenda, event),
-															],
-														)
-													: null,
-											])
-										: null,
-								]),
-								agenda
-									? m(".flex.rel", [
-											m(CalendarTimeColumn, {
-												intervals,
-												layout: {
-													width: timeColumnWidth,
-													subColumnCount: 1,
-													rowCount: rowCountForRange,
-													gridRowHeight: this.gridRowHeight,
-												},
-												amPm,
-											} satisfies CalendarTimeColumnAttrs),
-											m(
-												".full-width",
-												m(CalendarTimeGrid, {
-													events: this.filterOutOfRangeEvents(timeRange, eventWrappers, eventFocusBound, timeInterval),
-													timeScale,
-													timeRange,
-													dates: [getStartOfDay(agenda.main.event.startTime)],
-													intervals,
-													layout: {
-														gridRowHeight: this.gridRowHeight,
-														rowCountForRange,
-														hideRightBorder: true,
-														showLeftBorderAtFirstColumn: false,
-													},
-													showTimeZonesAtEventBubble: false,
-												} satisfies CalendarTimeGridAttributes),
-											),
-										])
-									: m("", "ERROR: Could not load the agenda for this day."),
-							],
-						)
-					: null,
+				!recipientIsOrganizer ? m(TimeOverview, { agenda, amPm }) : null,
 			],
 		)
-	}
-
-	private getTimeOverviewParameters(agenda: InviteAgenda | null, event: CalendarEvent) {
-		let eventFocusBound = agenda?.main.event?.startTime!
-		let shortestTimeFrame: number = this.findShortestDuration(event, event) // In this case we just get the event duration and later reevaluate
-		if (agenda?.before) {
-			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.before.event)
-		}
-		if (!agenda?.before && agenda?.after) {
-			if (agenda?.after?.flags?.isConflict) {
-				eventFocusBound = agenda.after.event.startTime
-			}
-			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.after.event)
-		}
-
-		const timeScale = this.getTimeScaleAccordingToEventDuration(shortestTimeFrame)
-		const timeInterval = getIntervalAsMinutes(timeScale)
-		const timeRange: TimeRange = this.getTimeRange(eventFocusBound, timeInterval)
-
-		const intervals = CalendarTimeColumn.createTimeColumnIntervals(timeScale, timeRange)
-		const rowCountForRange = SUBROWS_PER_INTERVAL * intervals.length
-
-		const timeColumnWidth = layout_size.calendar_hour_width_mobile + size.spacing_16
-
-		return { eventFocusBound, timeScale, timeInterval, timeRange, intervals, rowCountForRange, timeColumnWidth }
-	}
-
-	private toggleConflictingAgenda() {
-		this.displayConflictingAgenda = !this.displayConflictingAgenda
-	}
-
-	private conflictingAgenda(agenda: InviteAgenda, event: CalendarEvent): m.Children {
-		return m(".selectable", [
-			agenda.regularEvents && agenda.regularEvents.length > 0
-				? this.renderNormalConflictingEvents(event.startTime, agenda.regularEvents, agenda.conflictCount > 1)
-				: null,
-			agenda.allDayEvents.length > 0 ? this.renderAllDayConflictingEvents(event.startTime, agenda.allDayEvents, agenda.conflictCount > 1) : null,
-		])
-	}
-
-	private renderConflictInfoText(normalEventsConflictCount: number, allDayEventsConflictCount: number) {
-		const totalConflicts = allDayEventsConflictCount + normalEventsConflictCount
-		const stringParts: Array<string> = []
-
-		if (totalConflicts === 0) {
-			stringParts.push(lang.getTranslation("noSimultaneousEvents_msg").text)
-		} else if (totalConflicts === 1) {
-			stringParts.push(lang.getTranslation("conflict_label").text)
-		} else {
-			stringParts.push(lang.getTranslation("conflicts_label", { "{count}": totalConflicts }).text)
-		}
-
-		return m(
-			".small.flex.gap-8.items-center.fit-content",
-			{
-				style: {
-					"line-height": px(19.5),
-				},
-			},
-			[
-				m("span", { class: totalConflicts > 0 ? "b" : "" }, stringParts.join(" ")),
-				totalConflicts > 1
-					? m(Icon, {
-							icon: Icons.ArrowDown,
-							container: "div",
-							class: `fit-content`,
-							size: IconSize.PX24,
-							style: {
-								fill: theme.on_surface,
-								rotate: this.displayConflictingAgenda ? "180deg" : "0deg",
-							},
-						})
-					: null,
-			],
-		)
-	}
-
-	private renderAllDayConflictingEvents(referenceDate: Date, conflictingAllDayEvents: Array<EventWrapper>, showLabel: boolean) {
-		return m("", [
-			showLabel ? m("strong.small.content-fg", lang.getTranslationText("allDayEvents_label")) : null,
-			conflictingAllDayEvents?.map((l) => this.buildConflictingEventInfoText(referenceDate, l, true)),
-		])
-	}
-
-	private renderNormalConflictingEvents(referenceDate: Date, conflictingRegularEvents: Array<EventWrapper>, showLabel: boolean) {
-		return m("", [
-			showLabel ? m("strong.small.content-fg", lang.getTranslationText("simultaneousEvents_msg")) : null,
-			conflictingRegularEvents?.map((l) => this.buildConflictingEventInfoText(referenceDate, l, false)),
-		])
-	}
-
-	private getTimeParts(referenceDate: Date, eventWrapper: EventWrapper): Array<string> {
-		if (isAllDayEvent(eventWrapper.event)) {
-			return [lang.getTranslationText("allDay_label")]
-		}
-
-		const timeParts: Array<string> = []
-
-		if (isSameDay(referenceDate, eventWrapper.event.startTime)) {
-			timeParts.push(formatTime(eventWrapper.event.startTime))
-		} else {
-			timeParts.push(formatDateTime(eventWrapper.event.startTime))
-		}
-
-		if (isSameDay(referenceDate, eventWrapper.event.endTime)) {
-			timeParts.push(formatTime(eventWrapper.event.endTime))
-		} else {
-			timeParts.push(formatDateTime(eventWrapper.event.endTime))
-		}
-
-		return timeParts
-	}
-
-	private buildConflictingEventInfoText(referenceDate: Date, eventWrapper: EventWrapper, isAllDay: boolean) {
-		const timeText = !isAllDay ? this.getTimeParts(referenceDate, eventWrapper).join(" - ") : ""
-		const eventTitle = eventWrapper.event.summary.trim() !== "" ? eventWrapper.event.summary : lang.getTranslationText("noTitle_label")
-		return m(".small.selectable", `• ${eventTitle} ${timeText}`)
 	}
 
 	private buildReplySection(
@@ -503,81 +252,6 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		const eventId = base64ToBase64Url(stringToBase64(event._id.join("/")))
 		m.route.set(`/calendar/agenda/${eventDate}/${eventId}`)
 	}
-
-	private findShortestDuration(a: CalendarEvent | IcsCalendarEvent, b: CalendarEvent | IcsCalendarEvent): number {
-		const durationA = getDurationInMinutes(a)
-		const durationB = getDurationInMinutes(b)
-		return durationA < durationB ? durationA : durationB
-	}
-
-	private filterOutOfRangeEvents(range: TimeRange, events: Array<EventWrapper>, baseDate: Date, timeInterval: number): Array<EventWrapper> {
-		const rangeStartDate = range.start.toDate(baseDate)
-		let rangeEndDate = clone(range.end).add({ minutes: timeInterval }).toDate(baseDate)
-
-		if (rangeEndDate < rangeStartDate) {
-			rangeEndDate = getStartOfNextDay(baseDate)
-		}
-
-		return events.flatMap((eventWrapper) => {
-			if (
-				(eventWrapper.event.endTime > rangeStartDate && eventWrapper.event.endTime <= rangeEndDate) || // Ends during event
-				(eventWrapper.event.startTime >= rangeStartDate && eventWrapper.event.startTime < rangeEndDate) || // Starts during event
-				(eventWrapper.event.startTime <= rangeStartDate && eventWrapper.event.endTime >= rangeEndDate)
-			) {
-				// Overlaps range
-				return [eventWrapper]
-			}
-
-			return []
-		})
-	}
-
-	/**
-	 * Creates a time range bounded to the day when the main event occurs
-	 *
-	 * @param eventFocusBound
-	 * @param timeInterval {number} - Interval in minutes used to create the time column
-	 * @private
-	 */
-	private getTimeRange(eventFocusBound: Date, timeInterval: number) {
-		let startDate = DateTime.fromJSDate(eventFocusBound).minus({ minutes: timeInterval }).toJSDate()
-		let endDate = DateTime.fromJSDate(eventFocusBound).plus({ minutes: timeInterval }).toJSDate()
-
-		if (isBefore(startDate, eventFocusBound, "date")) {
-			startDate = getStartOfDay(eventFocusBound)
-			endDate = DateTime.fromJSDate(startDate)
-				.plus({ minutes: timeInterval * 2 }) // E.g 00:00 -> 01:00 (in a 30 min interval this means 00:00, 00:30, 01:00)
-				.toJSDate()
-		} else if (isBefore(eventFocusBound, endDate, "date")) {
-			endDate = DateTime.fromJSDate(eventFocusBound).startOf("day").plus({ day: 1 }).minus({ minutes: timeInterval }).toJSDate()
-			startDate = DateTime.fromJSDate(endDate)
-				.minus({ minutes: timeInterval * 2 }) // E.g 21:30 -> 23:30 (in a 30 min interval this means 21:30, 23:00, 23:30)
-				.toJSDate()
-		}
-
-		return {
-			start: Time.fromDate(startDate),
-			end: Time.fromDate(endDate),
-		}
-	}
-
-	/**
-	 * @param eventDuration - Duration in minutes
-	 * @private
-	 */
-	private getTimeScaleAccordingToEventDuration(eventDuration: number): TimeScale {
-		const scalesInMinutes: Array<TimeScaleTuple> = [
-			[1, TIME_SCALE_BASE_VALUE],
-			[2, TIME_SCALE_BASE_VALUE / 2],
-			[4, TIME_SCALE_BASE_VALUE / 4],
-		]
-		const entry = scalesInMinutes.reduce((smallestScale, currentScale) => {
-			const [_, scaleInMinutes] = currentScale
-			if (eventDuration <= scaleInMinutes) return currentScale
-			return smallestScale
-		}, scalesInMinutes[0])
-		return (entry ? entry[0] : 1) as TimeScale
-	}
 }
 
 export async function loadEventsAroundInvite(
@@ -625,7 +299,7 @@ export async function loadEventsAroundInvite(
 		updateAttendeeStatusIfNeeded(iCalEvent, recipient, currentExistingEvent?.event)
 
 		const [allDayAndLongEvents, normalEvents] = partition(allExistingEvents, (ev) => {
-			const eventHas24HoursOrMore = getDurationInMinutes(ev.event) >= 60 * 24
+			const eventHas24HoursOrMore = getCalendarEventDurationInMinutes(ev.event) >= 60 * 24
 			return isAllDayEvent(ev.event) || eventHas24HoursOrMore
 		})
 
@@ -726,10 +400,6 @@ export async function loadEventsAroundInvite(
 	}
 
 	return eventToAgenda
-}
-
-function getDurationInMinutes(ev: CalendarEvent | IcsCalendarEvent) {
-	return DateTime.fromJSDate(ev.endTime).diff(DateTime.fromJSDate(ev.startTime), "minutes").minutes
 }
 
 function updateAttendeeStatusIfNeeded(inviteEvent: IcsCalendarEvent, ownAttendeeAddress: string, existingEvent?: CalendarEvent) {
