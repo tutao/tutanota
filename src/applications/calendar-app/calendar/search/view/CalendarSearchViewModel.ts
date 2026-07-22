@@ -1,7 +1,17 @@
 import { CalendarSearchResultListEntry } from "./CalendarSearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes.js"
 import { EventController } from "../../../../common/api/main/EventController.js"
-import { assertIsEntity2, elementIdPart, GENERATED_MAX_ID, getElementId, isSameId, isSameTypeRef, ListElement, TypeRef } from "../../../../../platform-kit/meta"
+import {
+	assertIsEntity2,
+	elementIdPart,
+	GENERATED_MAX_ID,
+	getElementId,
+	isSameId,
+	isSameTypeRef,
+	ListElement,
+	SomeEntity,
+	TypeRef,
+} from "../../../../../platform-kit/meta"
 import { ListLoadingState, ListState } from "../../../../../ui/base/List.js"
 import {
 	deepEqual,
@@ -35,10 +45,10 @@ import { CalendarEventsRepository } from "../../../../common/calendar/date/Calen
 import { ListElementListModel } from "../../../../common/misc/ListElementListModel"
 import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
 import {
-	EntityEventsListener,
+	EntityUpdatesListener,
 	EntityUpdateData,
 	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
+	ListenerPriority,
 } from "../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils.js"
 import { CalendarEvent, CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 
@@ -147,16 +157,15 @@ export class CalendarSearchViewModel {
 			}
 		})
 
-		this.eventController.addEntityListener(this.entityEventsListener)
+		this.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 	})
 
-	private readonly entityEventsListener: EntityEventsListener = {
+	private readonly entityUpdatesListener: EntityUpdatesListener = {
+		id: "CalendarSearchViewModel",
 		onEntityUpdatesReceived: async (updates) => {
-			for (const update of updates) {
-				await this.entityEventReceived(update)
-			}
+			await this.onEntityUpdatesReceived(updates)
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: ListenerPriority.NORMAL,
 	}
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {
@@ -444,46 +453,48 @@ export class CalendarSearchViewModel {
 		return false
 	}
 
-	private async entityEventReceived(update: EntityUpdateData): Promise<void> {
-		const isPossibleABirthdayContactUpdate = this.isPossibleABirthdayContactUpdate(update)
+	private async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		for (const update of updates) {
+			const isPossibleABirthdayContactUpdate = this.isPossibleABirthdayContactUpdate(update)
 
-		if (!isUpdateForTypeRef(CalendarEventTypeRef, update) && !isPossibleABirthdayContactUpdate) {
-			return
-		}
-
-		const { instanceListId, instanceId, operation } = update
-		const id = [neverNull(instanceListId), instanceId] as const
-
-		const typeRef = update.typeRef
-
-		if (!this.isInSearchResult(typeRef, id) && isPossibleABirthdayContactUpdate) {
-			return
-		}
-
-		// due to the way calendar event changes are sort of non-local, we throw away the whole list and re-render it if
-		// the contents are edited. we do the calculation on a new list and then swap the old list out once the new one is
-		// ready
-		const selectedItem = this.listModel.getSelectedAsArray().at(0)
-		const listModel = this.createList()
-
-		if (isPossibleABirthdayContactUpdate && (await this.eventsRepository.canLoadBirthdaysCalendar())) {
-			await this.eventsRepository.handleContactEvent(update.operation, [update.instanceListId!, update.instanceId])
-		}
-
-		await listModel.loadInitial()
-		if (selectedItem != null) {
-			if (isPossibleABirthdayContactUpdate && this.isSelectedEventAnUpdatedBirthday(update)) {
-				// We must invalidate the selected item to refresh the contact preview
-				this.listModel.selectNone()
+			if (!isUpdateForTypeRef(CalendarEventTypeRef, update) && !isPossibleABirthdayContactUpdate) {
+				return
 			}
 
-			await listModel.loadAndSelect(elementIdPart(selectedItem._id), () => false)
+			const { instanceListId, instanceId, operation } = update
+			const id = [neverNull(instanceListId), instanceId] as const
+
+			const typeRef = update.typeRef
+
+			if (!this.isInSearchResult(typeRef, id) && isPossibleABirthdayContactUpdate) {
+				return
+			}
+
+			// due to the way calendar event changes are sort of non-local, we throw away the whole list and re-render it if
+			// the contents are edited. we do the calculation on a new list and then swap the old list out once the new one is
+			// ready
+			const selectedItem = this.listModel.getSelectedAsArray().at(0)
+			const listModel = this.createList()
+
+			if (isPossibleABirthdayContactUpdate && (await this.eventsRepository.canLoadBirthdaysCalendar())) {
+				await this.eventsRepository.handleContactEvent(update.operation, [update.instanceListId!, update.instanceId])
+			}
+
+			await listModel.loadInitial()
+			if (selectedItem != null) {
+				if (isPossibleABirthdayContactUpdate && this.isSelectedEventAnUpdatedBirthday(update)) {
+					// We must invalidate the selected item to refresh the contact preview
+					this.listModel.selectNone()
+				}
+
+				await listModel.loadAndSelect(elementIdPart(selectedItem._id), () => false)
+			}
+			this._listModel = listModel
+			this.listStateSubscription?.end(true)
+			this.listStateSubscription = this.listModel.stateStream.map((state) => this.onListStateChange(state))
+			this.updateSearchUrl()
+			this.updateUi()
 		}
-		this._listModel = listModel
-		this.listStateSubscription?.end(true)
-		this.listStateSubscription = this.listModel.stateStream.map((state) => this.onListStateChange(state))
-		this.updateSearchUrl()
-		this.updateUi()
 	}
 
 	getSelectedEvents(): CalendarEvent[] {
@@ -622,6 +633,6 @@ export class CalendarSearchViewModel {
 		this.listStateSubscription?.end(true)
 		this.listStateSubscription = null
 		this.search.sendCancelSignal()
-		this.eventController.removeEntityListener(this.entityEventsListener)
+		this.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
 	}
 }

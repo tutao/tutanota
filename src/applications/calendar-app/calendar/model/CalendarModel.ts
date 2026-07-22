@@ -117,12 +117,7 @@ import {
 	UserAlarmInfoTypeRef,
 } from "@tutao/entities/sys"
 import { isSharedGroupOwner } from "../../../../entities/sys/Utils"
-import {
-	EntityUpdateData,
-	isUpdateFor,
-	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
-} from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { OperationId, OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { errorsToString } from "../../../../platform-kit/utils/Utils"
 import { formatNotificationForDisplay } from "../../../../ui/utils/Formatter"
@@ -252,9 +247,10 @@ export class CalendarModel {
 		private readonly lang: LanguageViewModel,
 	) {
 		this.readProgressMonitor = oneShotProgressMonitorGenerator(progressTracker, logins.getUserController())
-		eventController.addEntityListener({
-			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId),
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+		eventController.addEntityUpdatesListener({
+			id: "CalendarModel",
+			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => this.onEntityUpdatesReceived(updates, eventOwnerGroupId),
+			priority: ListenerPriority.NORMAL,
 		})
 
 		syncTracker.addSyncDoneListener({
@@ -1430,7 +1426,7 @@ export class CalendarModel {
 	}
 
 	// Visible for testing
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		const calendarInfos = await this.calendarInfos.getAsync()
 		// We iterate over the alarms twice: once to collect them and to set the counter correctly and the second time to actually process them.
 		const alarmEventsToProcess: UserAlarmInfo[] = []

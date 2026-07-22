@@ -41,7 +41,7 @@ import {
 	UserSettingsGroupRoot,
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
-import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 const LIMIT_PAST_EVENTS_YEARS = 100
 
@@ -83,9 +83,10 @@ export class CalendarEventsRepository {
 		private readonly contactModel: ContactModel,
 		private readonly logins: LoginController,
 	) {
-		eventController.addEntityListener({
-			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId),
-			priority: OnEntityUpdateReceivedPriority.HIGH,
+		eventController.addEntityUpdatesListener({
+			id: "CalendarEventsRepository",
+			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => this.onEntityUpdatesReceived(updates, eventOwnerGroupId),
+			priority: ListenerPriority.HIGH,
 		})
 		this.calendarMemberships = this.logins
 			.getUserController()
@@ -334,7 +335,7 @@ export class CalendarEventsRepository {
 		this.replaceEvents(newMap)
 	}
 
-	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: string) {
+	private async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: string) {
 		const calendarInfos = await this.calendarModel.getCalendarInfos()
 		for (const update of updates) {
 			if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {

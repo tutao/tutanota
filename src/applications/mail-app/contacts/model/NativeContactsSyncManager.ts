@@ -23,7 +23,7 @@ import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { assertMainOrNode, isApp, isIOSApp, ProgrammingError } from "../../../../platform-kit/app-env"
-import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import {
 	Contact,
 	ContactTypeRef,
@@ -52,13 +52,14 @@ export class NativeContactsSyncManager {
 		private readonly contactModel: ContactModel,
 		private readonly deviceConfig: DeviceConfig,
 	) {
-		this.eventController.addEntityListener({
-			onEntityUpdatesReceived: (updates) => this.nativeContactEntityEventsListener(updates),
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+		this.eventController.addEntityUpdatesListener({
+			id: "NativeContactsSyncManager",
+			onEntityUpdatesReceived: (updates) => this.onEntityUpdatesReceived(updates),
+			priority: ListenerPriority.NORMAL,
 		})
 	}
 
-	private async nativeContactEntityEventsListener(events: ReadonlyArray<EntityUpdateData>) {
+	private async onEntityUpdatesReceived(events: ReadonlyArray<EntityUpdateData>) {
 		await this.entityUpdateLock
 
 		await this.processContactEventUpdate(events)

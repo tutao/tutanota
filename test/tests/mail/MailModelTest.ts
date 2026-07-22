@@ -179,7 +179,7 @@ o.spec("MailModelTest", function () {
 				operation: OperationType.CREATE,
 			})
 
-			await modelWithSpamAndInboxRule.entityEventsReceived([alreadyClassifiedMailCreateEvent])
+			await modelWithSpamAndInboxRule.onEntityUpdatesReceived([alreadyClassifiedMailCreateEvent])
 
 			verify(processInboxHandler.handleIncomingMail(anything(), anything(), anything(), anything(), false), { times: 1 })
 		})
@@ -201,7 +201,7 @@ o.spec("MailModelTest", function () {
 				operation: OperationType.CREATE,
 			})
 
-			await modelWithSpamAndInboxRule.entityEventsReceived([alreadyClassifiedMailCreateEvent])
+			await modelWithSpamAndInboxRule.onEntityUpdatesReceived([alreadyClassifiedMailCreateEvent])
 
 			verify(processInboxHandler.handleIncomingMail(anything(), anything(), anything(), anything(), true), { times: 1 })
 		})
@@ -223,7 +223,7 @@ o.spec("MailModelTest", function () {
 				operation: OperationType.CREATE,
 			})
 
-			await modelWithSpamAndInboxRule.entityEventsReceived([alreadyClassifiedMailCreateEvent])
+			await modelWithSpamAndInboxRule.onEntityUpdatesReceived([alreadyClassifiedMailCreateEvent])
 
 			verify(processInboxHandler.handleIncomingMail(anything(), anything(), anything(), anything(), true), { times: 0 })
 		})
@@ -238,7 +238,7 @@ o.spec("MailModelTest", function () {
 
 			// mail not being there
 			restClient.setListElementException(mail._id, new restError.NotAuthorizedError("blah"))
-			await modelWithSpamAndInboxRule.entityEventsReceived([mailCreateEvent])
+			await modelWithSpamAndInboxRule.onEntityUpdatesReceived([mailCreateEvent])
 			verify(processInboxHandler.handleIncomingMail(anything(), anything(), anything(), anything(), true), { times: 0 })
 		})
 	})

@@ -9,10 +9,10 @@ import { promiseMap } from "@tutao/utils"
 import { ReceivedGroupInvitation, ReceivedGroupInvitationTypeRef } from "@tutao/entities/sys"
 import { getInvitationGroupType, ShareableGroupType } from "../../../../entities/sys/Utils"
 import {
-	EntityEventsListener,
+	EntityUpdatesListener,
 	EntityUpdateData,
 	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
+	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 export class ReceivedGroupInvitationsModel<TypeOfGroup extends ShareableGroupType> {
@@ -28,18 +28,19 @@ export class ReceivedGroupInvitationsModel<TypeOfGroup extends ShareableGroupTyp
 	}
 
 	init() {
-		this.eventController.addEntityListener(this.entityEventsReceived)
+		this.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 		loadReceivedGroupInvitations(this.logins.getUserController(), this.entityClient, this.groupType).then((invitations) =>
 			this.invitations(invitations.filter((invitation) => this.hasMatchingGroupType(invitation))),
 		)
 	}
 
 	dispose() {
-		this.eventController.removeEntityListener(this.entityEventsReceived)
+		this.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
 		this.invitations.end(true)
 	}
 
-	private readonly entityEventsReceived: EntityEventsListener = {
+	private readonly entityUpdatesListener: EntityUpdatesListener = {
+		id: "ReceivedGroupInvitationsModel",
 		onEntityUpdatesReceived: (updates: ReadonlyArray<EntityUpdateData>) => {
 			return promiseMap(updates, (update) => {
 				if (isUpdateForTypeRef(ReceivedGroupInvitationTypeRef, update)) {
@@ -57,7 +58,7 @@ export class ReceivedGroupInvitationsModel<TypeOfGroup extends ShareableGroupTyp
 				}
 			})
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: ListenerPriority.NORMAL,
 	}
 
 	private hasMatchingGroupType(invitation: ReceivedGroupInvitation): boolean {

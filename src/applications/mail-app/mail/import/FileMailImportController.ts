@@ -17,7 +17,7 @@ import { OpenSettingsHandler } from "../../../common/native/OpenSettingsHandler.
 import { Dialog } from "../../../../ui/base/Dialog"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { mailLocator } from "../../mailLocator"
-import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { elementIdPart, GENERATED_MIN_ID, isSameId } from "../../../../platform-kit/meta"
 
 // keep in sync with napi binding.d.cts
@@ -65,9 +65,10 @@ export class FileMailImportController {
 		private readonly nativeMailImportFacade: NativeMailImportFacade,
 		private readonly openSettingsHandler: OpenSettingsHandler,
 	) {
-		eventController.addEntityListener({
-			onEntityUpdatesReceived: (updates) => this.entityEventsReceived(updates),
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+		eventController.addEntityUpdatesListener({
+			id: "FileMailImportController",
+			onEntityUpdatesReceived: (updates) => this.onEntityUpdatesReceived(updates),
+			priority: ListenerPriority.NORMAL,
 		})
 	}
 
@@ -156,7 +157,7 @@ export class FileMailImportController {
 		}
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(ImportFileMailStateTypeRef, update)) {
 				const updatedState = await this.entityClient.load(ImportFileMailStateTypeRef, [update.instanceListId, update.instanceId])

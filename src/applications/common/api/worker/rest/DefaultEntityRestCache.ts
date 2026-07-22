@@ -795,7 +795,6 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	}
 
 	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void> {
-		console.log("cacheSyncStatus: (DefaultEntityRestCache)" + cacheSyncStatus)
 		await this.cacheStorage.setCacheSyncStatus(cacheSyncStatus)
 	}
 

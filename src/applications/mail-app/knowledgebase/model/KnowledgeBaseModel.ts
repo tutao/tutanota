@@ -12,10 +12,10 @@ import type { UserController } from "../../../common/api/main/UserController.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { EmailTemplate, EmailTemplateTypeRef, KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef } from "@tutao/entities/tutanota"
 import {
-	EntityEventsListener,
+	EntityUpdatesListener,
 	EntityUpdateData,
 	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
+	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { getElementId, getEtId, getLetId, isSameId, OperationType } from "../../../../platform-kit/meta"
 import { hasCapabilityOnGroup } from "../../../../entities/sys/Utils"
@@ -38,7 +38,7 @@ export class KnowledgeBaseModel {
 	_filterValue: string
 	readonly _eventController: EventController
 	readonly _entityClient: EntityClient
-	readonly _entityEventReceived: EntityEventsListener
+	readonly entityUpdatesListener: EntityUpdatesListener
 	_groupInstances: Array<TemplateGroupInstance>
 	_initialized: LazyLoaded<KnowledgeBaseModel>
 	readonly userController: UserController
@@ -54,14 +54,15 @@ export class KnowledgeBaseModel {
 		this.selectedEntry = stream<KnowledgeBaseEntry | null>(null)
 		this._filterValue = ""
 
-		this._entityEventReceived = {
+		this.entityUpdatesListener = {
+			id: "KnowledgeBaseModel",
 			onEntityUpdatesReceived: (updates) => {
-				return this._entityUpdate(updates)
+				return this.onEntityUpdatesReceived(updates)
 			},
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+			priority: ListenerPriority.NORMAL,
 		}
 
-		this._eventController.addEntityListener(this._entityEventReceived)
+		this._eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 
 		this._groupInstances = []
 		this._allKeywords = []
@@ -209,7 +210,7 @@ export class KnowledgeBaseModel {
 	}
 
 	dispose() {
-		this._eventController.removeEntityListener(this._entityEventReceived)
+		this._eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
 	}
 
 	loadTemplate(templateId: IdTuple): Promise<EmailTemplate> {
@@ -222,7 +223,7 @@ export class KnowledgeBaseModel {
 		return !instance || !hasCapabilityOnGroup(this.userController.user, instance.group, ShareCapability.Write)
 	}
 
-	_entityUpdate(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		return promiseMap(updates, (update) => {
 			if (isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update)) {
 				if (update.operation === OperationType.CREATE) {

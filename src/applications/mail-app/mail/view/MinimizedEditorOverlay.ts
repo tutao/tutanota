@@ -13,10 +13,10 @@ import { EventController } from "../../../common/api/main/EventController.js"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { mailLocator } from "../../mailLocator.js"
 import {
-	EntityEventsListener,
+	EntityUpdatesListener,
 	EntityUpdateData,
 	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
+	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { MailTypeRef } from "@tutao/entities/tutanota"
 import { isSameId, OperationType } from "../../../../platform-kit/meta"
@@ -29,14 +29,15 @@ export type MinimizedEditorOverlayAttrs = {
 }
 
 export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayAttrs> {
-	_listener: EntityEventsListener
-	_eventController: EventController
+	entityUpdatesListener: EntityUpdatesListener
+	eventController: EventController
 
 	constructor(vnode: Vnode<MinimizedEditorOverlayAttrs>) {
 		const { minimizedEditor, viewModel, eventController } = vnode.attrs
-		this._eventController = eventController
+		this.eventController = eventController
 
-		this._listener = {
+		this.entityUpdatesListener = {
+			id: "MinimizedEditorOverlay",
 			onEntityUpdatesReceived: (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<unknown> => {
 				return promiseMap(updates, (update) => {
 					if (isUpdateForTypeRef(MailTypeRef, update) && update.operation === OperationType.DELETE) {
@@ -48,14 +49,14 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 					}
 				})
 			},
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+			priority: ListenerPriority.NORMAL,
 		}
 
-		eventController.addEntityListener(this._listener)
+		eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 	}
 
 	onremove() {
-		this._eventController.removeEntityListener(this._listener)
+		this.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
 	}
 
 	view(vnode: Vnode<MinimizedEditorOverlayAttrs>): Children {

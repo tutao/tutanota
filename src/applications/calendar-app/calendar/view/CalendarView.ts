@@ -532,6 +532,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			for (let listener of streamListeners) {
 				listener.end(true)
 			}
+			this.viewModel.deinit()
 		}
 
 		deviceConfig.getLastSyncStream().map(redraw)

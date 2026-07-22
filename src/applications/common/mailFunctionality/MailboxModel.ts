@@ -7,7 +7,7 @@ import { assertNotNull, lazyMemoized, newPromise, ofClass } from "@tutao/utils"
 import { getEnabledMailAddressesWithUser } from "./SharedMailUtils.js"
 import { PreconditionFailedError } from "@tutao/rest-client/error"
 import { isSameId, OperationType } from "@tutao/meta"
-import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import {
 	createMailAddressProperties,
 	createMailboxProperties,
@@ -50,9 +50,10 @@ export class MailboxModel {
 
 	// only init listeners once
 	private readonly initListeners = lazyMemoized(() => {
-		this.eventController.addEntityListener({
-			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId),
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+		this.eventController.addEntityUpdatesListener({
+			id: "MailboxModel",
+			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => this.onEntityUpdatesReceived(updates, eventOwnerGroupId),
+			priority: ListenerPriority.NORMAL,
 		})
 	})
 
@@ -141,7 +142,7 @@ export class MailboxModel {
 		)
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update)) {
 				if (update.operation === OperationType.UPDATE) {

@@ -35,7 +35,7 @@ import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"
 import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
 import { makePopulatedClientModelInfo } from "../TestUtils.js"
 import { ProgressMonitor } from "../../../src/platform-kit/network/ProgressMonitorInterface"
-import { EntityEventsListener, EntityUpdateData } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdatesListener, EntityUpdateData } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupType } from "../../../src/entities/sys/Utils"
 
 let saveAndSendMock
@@ -397,7 +397,7 @@ o.spec("CalendarViewModel", function () {
 	})
 	o.spec("entityEventsReceived", function () {
 		o("transient event is removed on update", async function () {
-			const entityListeners: EntityEventsListener[] = []
+			const entityListeners: EntityUpdatesListener[] = []
 			const eventController: EventController = downcast({
 				addEntityListener(listener) {
 					entityListeners.push(listener)

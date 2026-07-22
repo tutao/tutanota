@@ -10,7 +10,7 @@ import { Router } from "../../../../ui/ScopedThrottledRouter.js"
 import { Contact, ContactTypeRef } from "@tutao/entities/tutanota"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { getElementId } from "../../../../platform-kit/meta"
-import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { ConnectionStateListener, WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 
@@ -62,7 +62,7 @@ export class ContactViewModel {
 	}
 
 	private readonly initOnce = lazyMemoized(() => {
-		this.eventController.addEntityListener(this.entityListener)
+		this.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 		this.connectivityModel.addConnectionStateListener(this.connectivityListener)
 		this.listModelStateStream = this.listModel.stateStream.map(() => {
 			this.updateUi()
@@ -70,11 +70,28 @@ export class ContactViewModel {
 		})
 	})
 
-	private readonly connectivityListener: ConnectionStateListener = async (connectionState) => {
-		console.log("ContactListViewModel connection state changed to", connectionState)
-		if (connectionState === WsConnectionState.connected) {
-			await this.listModel?.reload()
-		}
+	private readonly entityUpdatesListener: EntityUpdatesListener = {
+		id: "ContactViewModel",
+		onEntityUpdatesReceived: async (updates) => {
+			for (const update of updates) {
+				const { instanceListId, instanceId, operation } = update
+				if (isUpdateForTypeRef(ContactTypeRef, update) && instanceListId === this.contactListId) {
+					await this.listModel.onEntityUpdateReceived(instanceListId, instanceId, operation)
+				}
+			}
+		},
+		priority: ListenerPriority.NORMAL,
+	}
+
+	private readonly connectivityListener: ConnectionStateListener = {
+		id: "ContactViewModel",
+		priority: ListenerPriority.NORMAL,
+		onConnectionStateChanged: async (connectionState) => {
+			console.log("ContactListViewModel connection state changed to", connectionState)
+			if (connectionState === WsConnectionState.connected) {
+				await this.listModel?.reload()
+			}
+		},
 	}
 
 	private updateUrl() {
@@ -88,18 +105,6 @@ export class ContactViewModel {
 		} else {
 			this.router.routeTo(`/contact/:listId`, { listId: this.contactListId })
 		}
-	}
-
-	private readonly entityListener: EntityEventsListener = {
-		onEntityUpdatesReceived: async (updates) => {
-			for (const update of updates) {
-				const { instanceListId, instanceId, operation } = update
-				if (isUpdateForTypeRef(ContactTypeRef, update) && instanceListId === this.contactListId) {
-					await this.listModel.entityEventReceived(instanceListId, instanceId, operation)
-				}
-			}
-		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
 	}
 
 	async loadAndSelect(contactId: Id) {
@@ -123,7 +128,7 @@ export class ContactViewModel {
 	}
 
 	dispose() {
-		this.eventController.removeEntityListener(this.entityListener)
+		this.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
 		this.connectivityModel.removeConnectionStateListener(this.connectivityListener)
 		this.listModelStateStream?.end(true)
 		this.listModelStateStream = null

@@ -19,12 +19,7 @@ import { BackgroundColumnLayout } from "../../../ui/BackgroundColumnLayout"
 import { theme } from "../../../ui/theme"
 import { MobileHeader } from "../../../ui/MobileHeader"
 import { component_size, layout_size, px, size } from "../../../ui/size"
-import {
-	EntityEventsListener,
-	EntityUpdateData,
-	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
-} from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdatesListener, EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { NavButtonAttrs, NavButtonColor } from "../../../ui/base/NavButton"
 import { CustomerTypeRef } from "@tutao/entities/sys"
 import { windowFacade } from "../misc/WindowFacade"
@@ -166,20 +161,21 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 	}
 
 	oncreate({ attrs: { eventController } }: Vnode<MobileSettingsViewAttrs>) {
-		eventController.addEntityListener(this.entityListener)
+		eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 
 		this.onNewUrl({ folder: this.targetFolder }, this.targetRoute)
 	}
 
 	onremove({ attrs: { eventController } }: VnodeDOM<MobileSettingsViewAttrs>) {
-		eventController.removeEntityListener(this.entityListener)
+		eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
 	}
 
-	private entityListener: EntityEventsListener = {
+	private entityUpdatesListener: EntityUpdatesListener = {
+		id: "MobileSettingsView",
 		onEntityUpdatesReceived: (updates: EntityUpdateData[], eventOwnerGroupId: Id) => {
-			return this.entityEventsReceived(updates, eventOwnerGroupId)
+			return this.onEntityUpdatesReceived(updates, eventOwnerGroupId)
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: ListenerPriority.NORMAL,
 	}
 
 	view({ attrs: { settingSections, header, backUrl } }: Vnode<MobileSettingsViewAttrs>): Children {
@@ -253,7 +249,7 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 		m.route.set(url + location.hash)
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, _eventOwnerGroupId: Id): Promise<void> {
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>, _eventOwnerGroupId: Id): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(CustomerTypeRef, update)) {
 				m.redraw()

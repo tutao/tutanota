@@ -24,10 +24,10 @@ import {
 import { GroupInfo, ReceivedGroupInvitation } from "@tutao/entities/sys"
 import { GroupType } from "../../../../entities/sys/Utils"
 import {
-	EntityEventsListener,
+	EntityUpdatesListener,
 	EntityUpdateData,
 	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
+	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { getEtId, isSameId } from "../../../../platform-kit/meta"
 
@@ -71,7 +71,7 @@ export class ContactListViewModel {
 	}
 
 	readonly init = lazyMemoized(async () => {
-		this.eventController.addEntityListener(this.entityEventsReceived)
+		this.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 		this.sortedContactListInfos = this.contactModel.getOwnContactListInfos().map((infos) => {
 			this.updateUi()
 			return infos.slice().sort((a, b) => a.name.localeCompare(b.name))
@@ -199,12 +199,13 @@ export class ContactListViewModel {
 		this.entityClient.setup(recipientsId, recipient, null, null)
 	}
 
-	private readonly entityEventsReceived: EntityEventsListener = {
+	private readonly entityUpdatesListener: EntityUpdatesListener = {
+		id: "ContactListViewModel",
 		onEntityUpdatesReceived: async (updates: ReadonlyArray<EntityUpdateData>): Promise<void> => {
 			for (const update of updates) {
 				if (this.selectedContactList) {
 					if (isUpdateForTypeRef(ContactListEntryTypeRef, update) && isSameId(this.selectedContactList, update.instanceListId)) {
-						await this.listModel?.entityEventReceived(update.instanceListId, update.instanceId, update.operation)
+						await this.listModel?.onEntityUpdateReceived(update.instanceListId, update.instanceId, update.operation)
 					} else if (isUpdateForTypeRef(ContactTypeRef, update)) {
 						this.getContactsForSelectedContactListEntry()
 					}
@@ -213,7 +214,7 @@ export class ContactListViewModel {
 				this.updateUi()
 			}
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: ListenerPriority.NORMAL,
 	}
 
 	updateSelectedContactList(selected: Id): void {
@@ -270,7 +271,7 @@ export class ContactListViewModel {
 	}
 
 	dispose() {
-		this.eventController.removeEntityListener(this.entityEventsReceived)
+		this.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
 		this.sortedContactListInfos.end(true)
 		this.sortedSharedContactListInfos.end(true)
 		this.contactListInvitations.dispose()

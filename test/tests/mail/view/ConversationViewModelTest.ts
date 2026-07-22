@@ -23,7 +23,7 @@ import {
 	MailSetTypeRef,
 	MailTypeRef,
 } from "@tutao/entities/tutanota"
-import { EntityEventsListener } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdatesListener } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 o.spec("ConversationViewModel", function () {
 	let conversation: ConversationEntry[]
@@ -39,7 +39,7 @@ o.spec("ConversationViewModel", function () {
 	let prefProvider: ConversationPrefProvider
 	let redraw: () => unknown
 	let loadingDefer: DeferredObject<void>
-	let eventCallback: EntityEventsListener
+	let eventCallback: EntityUpdatesListener
 	let canUseConversationView: boolean
 
 	const listId = "listId"
@@ -61,10 +61,10 @@ o.spec("ConversationViewModel", function () {
 		const entityClient = new EntityClient(entityRestClientMock, makePopulatedClientModelInfo())
 
 		const eventController: EventController = {
-			addEntityListener: (listener) => {
+			addEntityUpdatesListener: (listener) => {
 				eventCallback = listener
 			},
-			removeEntityListener: noOp,
+			removeEntityUpdatesListener: noOp,
 		} as Partial<EventController> as EventController
 
 		const viewModelParams = {

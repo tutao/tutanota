@@ -19,12 +19,7 @@ import {
 	ContactTypeRef,
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
-import {
-	EntityEventsListener,
-	EntityUpdateData,
-	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
-} from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdatesListener, EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "@tutao/entities/sys"
 import { hasCapabilityOnGroup, isSharedGroupOwner } from "../../../entities/sys/Utils"
 
@@ -50,7 +45,7 @@ export class ContactModel {
 		private readonly contactSearchFacade: ContactSearchFacade | null,
 	) {
 		this.contactListId = lazyContactListId(loginController, this.entityClient)
-		this.eventController.addEntityListener(this.entityEventsReceived)
+		this.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 	}
 
 	async getLoadedContactListInfos(): Promise<ReadonlyArray<ContactListInfo>> {
@@ -202,7 +197,8 @@ export class ContactModel {
 		}
 	}
 
-	private readonly entityEventsReceived: EntityEventsListener = {
+	private readonly entityUpdatesListener: EntityUpdatesListener = {
+		id: "ContactModel",
 		onEntityUpdatesReceived: async (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> => {
 			for (const update of updates) {
 				if (
@@ -214,7 +210,7 @@ export class ContactModel {
 				}
 			}
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: ListenerPriority.NORMAL,
 	}
 }
 

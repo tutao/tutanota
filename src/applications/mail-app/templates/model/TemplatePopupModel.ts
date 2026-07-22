@@ -11,10 +11,10 @@ import { EventController } from "../../../common/api/main/EventController.js"
 import { EmailTemplate, EmailTemplateContent, EmailTemplateTypeRef, TemplateGroupRootTypeRef } from "@tutao/entities/tutanota"
 import { GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "@tutao/entities/sys"
 import {
-	EntityEventsListener,
+	EntityUpdatesListener,
 	EntityUpdateData,
 	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
+	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { getElementId, getEtId, isSameId, OperationType } from "../../../../platform-kit/meta"
 
@@ -39,7 +39,7 @@ export class TemplatePopupModel {
 	readonly selectedTemplate: Stream<EmailTemplate | null>
 	initialized: LazyLoaded<TemplatePopupModel>
 	readonly _eventController: EventController
-	readonly _entityEventReceived: EntityEventsListener
+	readonly entityUpdatesListener: EntityUpdatesListener
 	readonly _logins: LoginController
 	readonly _entityClient: EntityClient
 	_groupInstances: Array<TemplateGroupInstance>
@@ -57,11 +57,12 @@ export class TemplatePopupModel {
 		this._searchFilter = new TemplateSearchFilter()
 		this._groupInstances = []
 
-		this._entityEventReceived = {
+		this.entityUpdatesListener = {
+			id: "TemplatePopupModel",
 			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => {
-				return this._entityUpdate(updates, eventOwnerGroupId)
+				return this.onEntityUpdatesReceived(updates, eventOwnerGroupId)
 			},
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+			priority: ListenerPriority.NORMAL,
 		}
 
 		this.initialized = new LazyLoaded(() => {
@@ -82,7 +83,7 @@ export class TemplatePopupModel {
 				})
 		})
 
-		this._eventController.addEntityListener(this._entityEventReceived)
+		this._eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 	}
 
 	init(): Promise<TemplatePopupModel> {
@@ -94,7 +95,7 @@ export class TemplatePopupModel {
 	}
 
 	dispose() {
-		this._eventController.removeEntityListener(this._entityEventReceived)
+		this._eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
 	}
 
 	isSelectedTemplate(template: EmailTemplate): boolean {
@@ -169,7 +170,7 @@ export class TemplatePopupModel {
 		return this._allTemplates.array.find((template) => template.tag === tag) ?? null
 	}
 
-	_entityUpdate(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<any> {
+	onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<any> {
 		return promiseMap(updates, (update) => {
 			if (isUpdateForTypeRef(EmailTemplateTypeRef, update)) {
 				if (update.operation === OperationType.CREATE) {

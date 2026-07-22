@@ -7,7 +7,7 @@ import { noOp, promiseMap } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
 import { SignupViewModel } from "../signup/SignupView"
 import { component_size, px } from "../../../ui/size"
-import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { AccountingInfoTypeRef } from "@tutao/entities/sys"
 
 export interface PaypalButtonNewAttrs {
@@ -18,13 +18,14 @@ export interface PaypalButtonNewAttrs {
 }
 
 export class PaypalButtonNew implements Component<PaypalButtonNewAttrs> {
-	private entityEventListener: EntityEventsListener
+	private entityUpdatesListener: EntityUpdatesListener
 	private isPaypalLinked = false
 
 	constructor({ attrs }: Vnode<PaypalButtonNewAttrs>) {
 		const { accountingInfo } = attrs.data
 		this.isPaypalLinked = accountingInfo?.paypalBillingAgreement != null
-		this.entityEventListener = {
+		this.entityUpdatesListener = {
+			id: "PaypalButtonNew",
 			onEntityUpdatesReceived: (updates) => {
 				return promiseMap(updates, (update) => {
 					if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
@@ -37,16 +38,16 @@ export class PaypalButtonNew implements Component<PaypalButtonNewAttrs> {
 					}
 				}).then(noOp)
 			},
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+			priority: ListenerPriority.NORMAL,
 		}
 	}
 
 	onremove() {
-		locator.eventController.removeEntityListener(this.entityEventListener)
+		locator.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
 	}
 
 	oncreate() {
-		locator.eventController.addEntityListener(this.entityEventListener)
+		locator.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 	}
 
 	view({ attrs: { data, onclick, disabled } }: Vnode<PaypalButtonNewAttrs>): Children {

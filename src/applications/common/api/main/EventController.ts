@@ -3,7 +3,7 @@ import type { LoginController } from "./LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { assertMainOrNode } from "@tutao/app-env"
-import { EntityEventsListener, EntityUpdateData } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdatesListener, EntityUpdateData } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { OperationStatusUpdate, WebsocketCounterData } from "@tutao/entities/sys"
 
 assertMainOrNode()
@@ -16,23 +16,25 @@ export type OperationStatusUpdateListener = (update: OperationStatusUpdate) => P
 
 export class EventController {
 	private countersStream: Stream<WebsocketCounterData> = stream()
-	private entityListeners: Set<EntityEventsListener> = new Set()
+	private entityUpdatesListeners: Map<string, EntityUpdatesListener> = new Map()
 	private readonly operationListeners: Set<OperationStatusUpdateListener> = new Set()
 
 	constructor(private readonly logins: LoginController) {}
 
-	addEntityListener(listener: EntityEventsListener) {
-		if (this.entityListeners.has(listener)) {
-			console.warn(TAG, "Adding the same listener twice!")
+	addEntityUpdatesListener(listener: EntityUpdatesListener) {
+		console.log("Adding entityListener", listener.id)
+		if (this.entityUpdatesListeners.has(listener.id)) {
+			console.warn(TAG, `Adding entityListener with id ${listener.id} twice!`)
 		} else {
-			this.entityListeners.add(listener)
+			this.entityUpdatesListeners.set(listener.id, listener)
 		}
 	}
 
-	removeEntityListener(listener: EntityEventsListener) {
-		const wasRemoved = this.entityListeners.delete(listener)
+	removeEntityUpdatesListener(listener: EntityUpdatesListener) {
+		console.log("Removing entityListener", listener.id)
+		const wasRemoved = this.entityUpdatesListeners.delete(listener.id)
 		if (!wasRemoved) {
-			console.warn(TAG, "Could not remove listener, possible leak?", listener)
+			console.warn(TAG, `Could not remove entityListener with id ${listener.id}, possible leak?`)
 		}
 	}
 
@@ -54,7 +56,7 @@ export class EventController {
 			// the UserController must be notified first as other event receivers depend on it to be up-to-date
 			await this.logins.getUserController().entityEventsReceived(entityUpdates, eventOwnerGroupId)
 
-			const listenersByPriorities = Array.from(this.entityListeners).sort(
+			const listenersByPriorities = Array.from(this.entityUpdatesListeners.values()).sort(
 				(listenerA, listenerB) => listenerB.priority.valueOf() - listenerA.priority.valueOf(),
 			)
 

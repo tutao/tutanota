@@ -1,11 +1,6 @@
 import { ApprovalStatus, assertMainOrNode, daysToMillis, minutesToMillis, ProgrammingError } from "@tutao/app-env"
 import { elementIdPart, getElementId, isSameId, OperationType } from "@tutao/meta"
-import {
-	EntityEventsListener,
-	EntityUpdateData,
-	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
-} from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdatesListener, EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import {
 	ContactTypeRef,
 	ConversationEntry,
@@ -229,16 +224,15 @@ export class SendMailModel {
 		this.selectedNotificationLanguage = getAvailableLanguageCode(userProps.notificationMailLanguage || lang.code)
 		this.updateAvailableNotificationTemplateLanguages()
 
-		this.eventController.addEntityListener(this.entityEventReceived)
+		this.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 	}
 
-	private readonly entityEventReceived: EntityEventsListener = {
+	private readonly entityUpdatesListener: EntityUpdatesListener = {
+		id: "SendMailModel",
 		onEntityUpdatesReceived: async (updates: ReadonlyArray<EntityUpdateData>) => {
-			for (const update of updates) {
-				await this.handleEntityEvent(update)
-			}
+			await this.onEntityUpdatesReceived(updates)
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: ListenerPriority.NORMAL,
 	}
 
 	/**
@@ -804,7 +798,7 @@ export class SendMailModel {
 	}
 
 	dispose() {
-		this.eventController.removeEntityListener(this.entityEventReceived)
+		this.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
 
 		revokeInlineImages(this.loadedInlineImages)
 	}
@@ -1378,69 +1372,72 @@ export class SendMailModel {
 		)
 	}
 
-	async handleEntityEvent(update: EntityUpdateData): Promise<void> {
-		const { operation, instanceId, instanceListId } = update
-		let contactId: IdTuple = [neverNull(instanceListId), instanceId]
-		let changed = false
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		for (const update of updates) {
+			const { operation, instanceId, instanceListId } = update
+			let contactId: IdTuple = [neverNull(instanceListId), instanceId]
+			let changed = false
 
-		if (isUpdateForTypeRef(ContactTypeRef, update)) {
-			await this.recipientsResolved.getAsync()
+			if (isUpdateForTypeRef(ContactTypeRef, update)) {
+				await this.recipientsResolved.getAsync()
 
-			if (operation === OperationType.UPDATE) {
-				const contact = await this.entity.load(ContactTypeRef, contactId)
+				if (operation === OperationType.UPDATE) {
+					const contact = await this.entity.load(ContactTypeRef, contactId)
 
-				for (const fieldType of typedValues(RecipientField)) {
-					const matching = this.getRecipientList(fieldType).filter((recipient) => recipient.contact && isSameId(recipient.contact._id, contact._id))
-					for (const recipient of matching) {
-						// if the mail address no longer exists on the contact then delete the recipient
-						if (!contact.mailAddresses.some((ma) => cleanMatch(ma.address, recipient.address))) {
-							changed = changed || this.removeRecipient(recipient, fieldType, true)
-						} else {
-							// else just modify the recipient
-							recipient.setName(getContactDisplayName(contact))
-							recipient.setContact(contact)
-							changed = true
+					for (const fieldType of typedValues(RecipientField)) {
+						const matching = this.getRecipientList(fieldType).filter(
+							(recipient) => recipient.contact && isSameId(recipient.contact._id, contact._id),
+						)
+						for (const recipient of matching) {
+							// if the mail address no longer exists on the contact then delete the recipient
+							if (!contact.mailAddresses.some((ma) => cleanMatch(ma.address, recipient.address))) {
+								changed = changed || this.removeRecipient(recipient, fieldType, true)
+							} else {
+								// else just modify the recipient
+								recipient.setName(getContactDisplayName(contact))
+								recipient.setContact(contact)
+								changed = true
+							}
+						}
+					}
+				} else if (operation === OperationType.DELETE) {
+					for (const fieldType of typedValues(RecipientField)) {
+						const recipients = this.getRecipientList(fieldType)
+
+						const toDelete = recipients.filter((recipient) => (recipient.contact && isSameId(recipient.contact._id, contactId)) || false)
+
+						for (const r of toDelete) {
+							changed = changed || this.removeRecipient(r, fieldType, true)
 						}
 					}
 				}
-			} else if (operation === OperationType.DELETE) {
-				for (const fieldType of typedValues(RecipientField)) {
-					const recipients = this.getRecipientList(fieldType)
-
-					const toDelete = recipients.filter((recipient) => (recipient.contact && isSameId(recipient.contact._id, contactId)) || false)
-
-					for (const r of toDelete) {
-						changed = changed || this.removeRecipient(r, fieldType, true)
+			} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
+				await this.updateAvailableNotificationTemplateLanguages()
+			} else if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
+				this.mailboxProperties = await this.entity.load(MailboxPropertiesTypeRef, update.instanceId)
+			} else if (isUpdateForTypeRef(MailDetailsDraftTypeRef, update) && operation === OperationType.UPDATE && this.draft != null) {
+				const mailDetailsDraftId = assertNotNull(this.draft.mailDetailsDraft)
+				if (isSameId(update.instanceId, elementIdPart(mailDetailsDraftId))) {
+					if (this._draftSavedRecently) {
+						this._draftSavedRecently = false
+					} else {
+						this.mailRemotelyUpdatedAt = this.dateProvider.now()
+						if (this.mailRemotelyUpdatedAt < this.mailSavedAt) {
+							this.mailRemotelyUpdatedAt = this.mailSavedAt + 1
+						}
+						await this.makeLocalAutosave()
+					}
+				}
+			} else if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE) {
+				if (isSameId(getElementId(this.user().userGroupInfo), update.instanceId)) {
+					const groupInfo = await this.entity.load(GroupInfoTypeRef, [update.instanceListId, update.instanceId])
+					if (!isAliasEnabledForGroupInfo(groupInfo, this.senderAddress)) {
+						this.senderAddress = this.getDefaultSender()
 					}
 				}
 			}
-		} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update)) {
-			await this.updateAvailableNotificationTemplateLanguages()
-		} else if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
-			this.mailboxProperties = await this.entity.load(MailboxPropertiesTypeRef, update.instanceId)
-		} else if (isUpdateForTypeRef(MailDetailsDraftTypeRef, update) && operation === OperationType.UPDATE && this.draft != null) {
-			const mailDetailsDraftId = assertNotNull(this.draft.mailDetailsDraft)
-			if (isSameId(update.instanceId, elementIdPart(mailDetailsDraftId))) {
-				if (this._draftSavedRecently) {
-					this._draftSavedRecently = false
-				} else {
-					this.mailRemotelyUpdatedAt = this.dateProvider.now()
-					if (this.mailRemotelyUpdatedAt < this.mailSavedAt) {
-						this.mailRemotelyUpdatedAt = this.mailSavedAt + 1
-					}
-					await this.makeLocalAutosave()
-				}
-			}
-		} else if (isUpdateForTypeRef(GroupInfoTypeRef, update) && operation === OperationType.UPDATE) {
-			if (isSameId(getElementId(this.user().userGroupInfo), update.instanceId)) {
-				const groupInfo = await this.entity.load(GroupInfoTypeRef, [update.instanceListId, update.instanceId])
-				if (!isAliasEnabledForGroupInfo(groupInfo, this.senderAddress)) {
-					this.senderAddress = this.getDefaultSender()
-				}
-			}
+			this.markAsChangedIfNecessary(changed)
 		}
-		this.markAsChangedIfNecessary(changed)
-		return Promise.resolve()
 	}
 
 	setOnBeforeSendFunction(fun: () => unknown) {

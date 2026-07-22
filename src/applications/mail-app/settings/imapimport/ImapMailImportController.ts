@@ -15,7 +15,7 @@ import m from "mithril"
 import { ImapImportData } from "./AddImapImportWizard"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { EventController } from "../../../common/api/main/EventController"
-import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { showUpdateImapCredentialsDialog } from "../../../common/gui/dialogs/UpdateImapCredentialsDialog"
 import { OAuthHandler } from "./oauth/OAuthHandler"
 import { Dialog } from "../../../../ui/base/Dialog"
@@ -57,13 +57,14 @@ export class ImapMailImportController {
 		private readonly oauthFacade: OauthFacade,
 		private readonly oAuthErrorHandler: OAuthErrorHandler,
 	) {
-		this.eventController.addEntityListener({
-			onEntityUpdatesReceived: (updates) => this.entityEventsReceived(updates),
-			priority: OnEntityUpdateReceivedPriority.HIGH,
+		this.eventController.addEntityUpdatesListener({
+			id: "ImapMailImportController",
+			onEntityUpdatesReceived: (updates) => this.onEntityUpdatesReceived(updates),
+			priority: ListenerPriority.HIGH,
 		})
 	}
 
-	private async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
+	private async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>) {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(ImapAccountSyncStateTypeRef, update)) {
 				if (update.operation === OperationType.UPDATE) {

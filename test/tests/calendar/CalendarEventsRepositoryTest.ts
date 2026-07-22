@@ -19,7 +19,7 @@ import { CalendarEventTypeRef, CalendarGroupRootTypeRef, GroupSettings, UserSett
 import { OperationType } from "../../../src/platform-kit/meta"
 
 import { GroupMembership, UserTypeRef } from "@tutao/entities/sys"
-import { EntityEventsListener, EntityUpdateData } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdatesListener, EntityUpdateData } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 o.spec("CalendarEventRepositoryTest", function () {
 	o.spec("entityEventsReceived", function () {
@@ -32,7 +32,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 		/**
 		 * Holds the captured callback for handling entityUpdates
 		 */
-		let entityEventsListener: EntityEventsListener | null = null
+		let entityEventsListener: EntityUpdatesListener | null = null
 
 		let userControllerMock: UserController
 		let calendarFacade: CalendarFacade
@@ -54,7 +54,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 			calendarInfosStreamMock = object()
 
 			// Capturing the callback function passed as argument to addEntityListener at CalendarEventsRepository constructor
-			when(eventControllerMock.addEntityListener(matchers.anything())).thenDo((listener) => {
+			when(eventControllerMock.addEntityUpdatesListener(matchers.anything())).thenDo((listener) => {
 				entityEventsListener = listener
 			})
 

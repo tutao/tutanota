@@ -794,41 +794,43 @@ o.spec("SendMailModel", () => {
 		})
 
 		o.test("nonmatching event", async () => {
-			await model.handleEntityEvent({
-				typeRef: UserTypeRef,
-				operation: OperationType.CREATE,
-				instanceListId: null,
-				instanceId: "",
-				...noPatchesAndInstance,
-			})
-			await model.handleEntityEvent({
-				typeRef: CustomerTypeRef,
-				operation: OperationType.CREATE,
-				instanceListId: null,
-				instanceId: "",
-				...noPatchesAndInstance,
-			})
-			await model.handleEntityEvent({
-				typeRef: NotificationMailTypeRef,
-				operation: OperationType.CREATE,
-				instanceListId: null,
-				instanceId: "",
-				...noPatchesAndInstance,
-			})
-			await model.handleEntityEvent({
-				typeRef: ChallengeTypeRef,
-				operation: OperationType.CREATE,
-				instanceListId: null,
-				instanceId: "",
-				...noPatchesAndInstance,
-			})
-			await model.handleEntityEvent({
-				typeRef: MailTypeRef,
-				operation: OperationType.CREATE,
-				instanceListId: "mail-list-id",
-				instanceId: "",
-				...noPatchesAndInstance,
-			})
+			await model.onEntityUpdatesReceived([
+				{
+					typeRef: UserTypeRef,
+					operation: OperationType.CREATE,
+					instanceListId: null,
+					instanceId: "",
+					...noPatchesAndInstance,
+				},
+				{
+					typeRef: CustomerTypeRef,
+					operation: OperationType.CREATE,
+					instanceListId: null,
+					instanceId: "",
+					...noPatchesAndInstance,
+				},
+				{
+					typeRef: NotificationMailTypeRef,
+					operation: OperationType.CREATE,
+					instanceListId: null,
+					instanceId: "",
+					...noPatchesAndInstance,
+				},
+				{
+					typeRef: ChallengeTypeRef,
+					operation: OperationType.CREATE,
+					instanceListId: null,
+					instanceId: "",
+					...noPatchesAndInstance,
+				},
+				{
+					typeRef: MailTypeRef,
+					operation: OperationType.CREATE,
+					instanceListId: "mail-list-id",
+					instanceId: "",
+					...noPatchesAndInstance,
+				},
+			])
 			verify(entity.load(anything(), anything(), anything()), { times: 0 })
 		})
 
@@ -853,13 +855,15 @@ o.spec("SendMailModel", () => {
 				),
 			).thenResolve(createContact(Object.assign({ _id: existingContact._id } as Contact, contactForUpdate)))
 			await model.initWithTemplate({ to: recipients }, "somb", "", [], true, "a@b.c", false)
-			await model.handleEntityEvent({
-				typeRef: ContactTypeRef,
-				operation: OperationType.UPDATE,
-				instanceListId,
-				instanceId,
-				...noPatchesAndInstance,
-			})
+			await model.onEntityUpdatesReceived([
+				{
+					typeRef: ContactTypeRef,
+					operation: OperationType.UPDATE,
+					instanceListId,
+					instanceId,
+					...noPatchesAndInstance,
+				},
+			])
 			o.check(model.allRecipients().length).equals(2)
 			const updatedRecipient = model.allRecipients().find((r) => r.contact && isSameId(r.contact._id, existingContact._id))
 			o.check(updatedRecipient && updatedRecipient.name).equals(getContactDisplayName(downcast(contactForUpdate)))
@@ -887,13 +891,15 @@ o.spec("SendMailModel", () => {
 				),
 			)
 			await model.initWithTemplate({ to: recipients }, "b", "c", [], true, "", false)
-			await model.handleEntityEvent({
-				typeRef: ContactTypeRef,
-				operation: OperationType.UPDATE,
-				instanceListId,
-				instanceId,
-				...noPatchesAndInstance,
-			})
+			await model.onEntityUpdatesReceived([
+				{
+					typeRef: ContactTypeRef,
+					operation: OperationType.UPDATE,
+					instanceListId,
+					instanceId,
+					...noPatchesAndInstance,
+				},
+			])
 			o.check(model.allRecipients().length).equals(1)
 			const updatedContact = model.allRecipients().find((r) => r.contact && isSameId(r.contact._id, existingContact._id))
 			o.check(updatedContact ?? null).equals(null)
@@ -901,13 +907,15 @@ o.spec("SendMailModel", () => {
 		o.test("contact removed", async () => {
 			const [instanceListId, instanceId] = existingContact._id
 			await model.initWithTemplate({ to: recipients }, "subj", "", [], true, "a@b.c", false)
-			await model.handleEntityEvent({
-				typeRef: ContactTypeRef,
-				operation: OperationType.DELETE,
-				instanceListId,
-				instanceId,
-				...noPatchesAndInstance,
-			})
+			await model.onEntityUpdatesReceived([
+				{
+					typeRef: ContactTypeRef,
+					operation: OperationType.DELETE,
+					instanceListId,
+					instanceId,
+					...noPatchesAndInstance,
+				},
+			])
 			o.check(model.allRecipients().length).equals(1)
 			const updatedContact = model.allRecipients().find((r) => r.contact && isSameId(r.contact._id, existingContact._id))
 			o.check(updatedContact == null).equals(true)
@@ -1019,13 +1027,15 @@ o.spec("SendMailModel", () => {
 					model.setMailRemotelyUpdatedAt(1000)
 					now = 1234
 
-					await model.handleEntityEvent({
-						typeRef: MailDetailsDraftTypeRef,
-						operation: OperationType.UPDATE,
-						instanceListId: draftListId,
-						instanceId: `not ${draftElementId}`,
-						...noPatchesAndInstance,
-					})
+					await model.onEntityUpdatesReceived([
+						{
+							typeRef: MailDetailsDraftTypeRef,
+							operation: OperationType.UPDATE,
+							instanceListId: draftListId,
+							instanceId: `not ${draftElementId}`,
+							...noPatchesAndInstance,
+						},
+					])
 
 					o.check(model.getMailRemotelyUpdatedAt()).equals(1000)
 					o.check(model.hasDraftDataChangedOnServer()).equals(false)
@@ -1039,13 +1049,15 @@ o.spec("SendMailModel", () => {
 					model.setMailRemotelyUpdatedAt(0)
 					now = 1234
 
-					await model.handleEntityEvent({
-						typeRef: MailDetailsDraftTypeRef,
-						operation: OperationType.UPDATE,
-						instanceListId: draftListId,
-						instanceId: draftElementId,
-						...noPatchesAndInstance,
-					})
+					await model.onEntityUpdatesReceived([
+						{
+							typeRef: MailDetailsDraftTypeRef,
+							operation: OperationType.UPDATE,
+							instanceListId: draftListId,
+							instanceId: draftElementId,
+							...noPatchesAndInstance,
+						},
+					])
 
 					o.check(model.getMailRemotelyUpdatedAt()).equals(0)
 					o.check(model.hasDraftDataChangedOnServer()).equals(false)
@@ -1059,13 +1071,15 @@ o.spec("SendMailModel", () => {
 				model.setMailSavedAt(1000)
 				model.setMailRemotelyUpdatedAt(1000)
 				now = 1234
-				await model.handleEntityEvent({
-					typeRef: MailDetailsDraftTypeRef,
-					operation: OperationType.UPDATE,
-					instanceListId: draftListId,
-					instanceId: draftElementId,
-					...noPatchesAndInstance,
-				})
+				await model.onEntityUpdatesReceived([
+					{
+						typeRef: MailDetailsDraftTypeRef,
+						operation: OperationType.UPDATE,
+						instanceListId: draftListId,
+						instanceId: draftElementId,
+						...noPatchesAndInstance,
+					},
+				])
 				o.check(model._draftSavedRecently).equals(false)
 				o.check(model.getMailRemotelyUpdatedAt()).equals(1000)
 				o.check(model.hasDraftDataChangedOnServer()).equals(false)
@@ -1079,13 +1093,15 @@ o.spec("SendMailModel", () => {
 				model.setMailRemotelyUpdatedAt(1000)
 				model.setBody("we changed the body")
 				now = 1234
-				await model.handleEntityEvent({
-					typeRef: MailDetailsDraftTypeRef,
-					operation: OperationType.UPDATE,
-					instanceListId: draftListId,
-					instanceId: draftElementId,
-					...noPatchesAndInstance,
-				})
+				await model.onEntityUpdatesReceived([
+					{
+						typeRef: MailDetailsDraftTypeRef,
+						operation: OperationType.UPDATE,
+						instanceListId: draftListId,
+						instanceId: draftElementId,
+						...noPatchesAndInstance,
+					},
+				])
 				o.check(model.getMailRemotelyUpdatedAt()).equals(1234)
 				o.check(model.hasDraftDataChangedOnServer()).equals(true)
 

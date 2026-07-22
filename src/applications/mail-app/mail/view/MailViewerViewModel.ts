@@ -81,10 +81,10 @@ import {
 import { isPermanentDeleteAllowedMailSetKind } from "../MailUtils"
 import { haveSameId, isSameId, OperationType } from "@tutao/meta"
 import {
-	EntityEventsListener,
+	EntityUpdatesListener,
 	EntityUpdateData,
 	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
+	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EncryptionAuthStatus, FeatureType, isBrowser, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
@@ -191,17 +191,12 @@ export class MailViewerViewModel {
 		if (showFolder) {
 			this.showFolder()
 		}
-		this.eventController.addEntityListener(this.entityListener)
-		this.connectivityModel.addConnectionStateListener(async (connectionState) => {
-			console.log("MailViewerViewModel connection state changed to", connectionState)
-			if (connectionState === WsConnectionState.connected) {
-				const updatedMail = await this.entityClient.load(MailTypeRef, this.mail._id)
-				this.updateMail({ mail: updatedMail })
-			}
-		})
+		this.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
+		this.connectivityModel.addConnectionStateListener(this.connectionStateListener)
 	}
 
-	private readonly entityListener: EntityEventsListener = {
+	private readonly entityUpdatesListener: EntityUpdatesListener = {
+		id: "MailViewerViewModel",
 		onEntityUpdatesReceived: async (events: EntityUpdateData[]) => {
 			for (const update of events) {
 				if (isUpdateForTypeRef(MailTypeRef, update)) {
@@ -221,7 +216,19 @@ export class MailViewerViewModel {
 				}
 			}
 		},
-		priority: OnEntityUpdateReceivedPriority.HIGH,
+		priority: ListenerPriority.HIGH,
+	}
+
+	private readonly connectionStateListener = {
+		id: "MailViwerViewModel",
+		priority: ListenerPriority.NORMAL,
+		onConnectionStateChanged: async (connectionState: WsConnectionState) => {
+			console.log("MailViewerViewModel connection state changed to", connectionState)
+			if (connectionState === WsConnectionState.connected) {
+				const updatedMail = await this.entityClient.load(MailTypeRef, this.mail._id)
+				this.updateMail({ mail: updatedMail })
+			}
+		},
 	}
 
 	private async determineRelevantRecipient() {
@@ -268,7 +275,8 @@ export class MailViewerViewModel {
 		// (from the list selecting a different element) and because it disposes the mailViewerViewModel that got updated
 		// this silences the warning about leaking entity event listeners when the listener is removed twice.
 		this.dispose = () => console.log("disposed MailViewerViewModel a second time, ignoring")
-		this.eventController.removeEntityListener(this.entityListener)
+		this.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
+		this.connectivityModel.removeConnectionStateListener(this.connectionStateListener)
 		const inlineImages = this.getLoadedInlineImages()
 		revokeInlineImages(inlineImages)
 	}

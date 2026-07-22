@@ -61,7 +61,7 @@ o.spec("ListElementListModel", function () {
 			o("when the active item is deleted selectPrevious single will still select previous item relative to it", async function () {
 				await setItems(items)
 				listModel.onSingleInclusiveSelection(itemB)
-				await listModel.entityEventReceived(getListId(itemB), getElementId(itemB), OperationType.DELETE)
+				await listModel.onEntityUpdateReceived(getListId(itemB), getElementId(itemB), OperationType.DELETE)
 				// start state:
 				//
 				// A
@@ -83,7 +83,7 @@ o.spec("ListElementListModel", function () {
 			o("when the active item is deleted selectPrevious multiselect will still select previous item relative to it", async function () {
 				await setItems(items)
 				listModel.onSingleInclusiveSelection(itemB)
-				await listModel.entityEventReceived(getListId(itemB), getElementId(itemB), OperationType.DELETE)
+				await listModel.onEntityUpdateReceived(getListId(itemB), getElementId(itemB), OperationType.DELETE)
 				// start state:
 				//
 				// A
@@ -105,7 +105,7 @@ o.spec("ListElementListModel", function () {
 			o("when the active item is deleted selectNext single will still select next item relative to it", async function () {
 				await setItems(items)
 				listModel.onSingleInclusiveSelection(itemB)
-				await listModel.entityEventReceived(getListId(itemB), getElementId(itemB), OperationType.DELETE)
+				await listModel.onEntityUpdateReceived(getListId(itemB), getElementId(itemB), OperationType.DELETE)
 				// start state:
 				//
 				// A
@@ -127,7 +127,7 @@ o.spec("ListElementListModel", function () {
 			o("when the active item is deleted selectNext multiselect will still select next item relative to it", async function () {
 				await setItems(items)
 				listModel.onSingleInclusiveSelection(itemB)
-				await listModel.entityEventReceived(getListId(itemB), getElementId(itemB), OperationType.DELETE)
+				await listModel.onEntityUpdateReceived(getListId(itemB), getElementId(itemB), OperationType.DELETE)
 				// start state:
 				//
 				// A
@@ -152,7 +152,7 @@ o.spec("ListElementListModel", function () {
 		o("in single select, the active element is next entity when active element gets deleted", async function () {
 			await setItems(items)
 			listModel.onSingleSelection(itemB)
-			await listModel.entityEventReceived(getListId(itemB), getElementId(itemB), OperationType.DELETE)
+			await listModel.onEntityUpdateReceived(getListId(itemB), getElementId(itemB), OperationType.DELETE)
 
 			o(listModel.state.activeIndex).equals(1)
 		})
@@ -160,7 +160,7 @@ o.spec("ListElementListModel", function () {
 		o("in single select, the active element is not changed when a different entity is deleted", async function () {
 			await setItems(items)
 			listModel.onSingleSelection(itemC)
-			await listModel.entityEventReceived(getListId(itemA), getElementId(itemA), OperationType.DELETE)
+			await listModel.onEntityUpdateReceived(getListId(itemA), getElementId(itemA), OperationType.DELETE)
 
 			o(listModel.state.activeIndex).equals(1)
 		})
@@ -168,7 +168,7 @@ o.spec("ListElementListModel", function () {
 		o("in multiselect, next element is not selected when element is removed", async function () {
 			await setItems(items)
 			listModel.onSingleInclusiveSelection(itemB)
-			await listModel.entityEventReceived(getListId(itemB), getElementId(itemB), OperationType.DELETE)
+			await listModel.onEntityUpdateReceived(getListId(itemB), getElementId(itemB), OperationType.DELETE)
 
 			o(listModel.state.inMultiselect).equals(true)
 			o(listModel.state.activeIndex).equals(null)
@@ -197,7 +197,7 @@ o.spec("ListElementListModel", function () {
 			listModel = new ListElementListModel<KnowledgeBaseEntry>(newConfig)
 			await setItems(items)
 
-			await listModel.entityEventReceived(getListId(itemD), getElementId(itemD), OperationType.UPDATE)
+			await listModel.onEntityUpdateReceived(getListId(itemD), getElementId(itemD), OperationType.UPDATE)
 
 			o(listModel.state.items).deepEquals([itemA, itemB, itemC, updatedItemD])
 		})
@@ -216,7 +216,7 @@ o.spec("ListElementListModel", function () {
 			listModel = new ListElementListModel<KnowledgeBaseEntry>(newConfig)
 			await setItems(items)
 
-			await listModel.entityEventReceived(getListId(itemD), getElementId(itemD), OperationType.UPDATE)
+			await listModel.onEntityUpdateReceived(getListId(itemD), getElementId(itemD), OperationType.UPDATE)
 
 			o(listModel.state.items).deepEquals([itemA, updatedItemD, itemB, itemC])
 		})
@@ -241,7 +241,7 @@ o.spec("ListElementListModel", function () {
 
 			listModel.loadInitial()
 
-			const received = listModel.entityEventReceived(getListId(itemE), getElementId(itemE), OperationType.CREATE)
+			const received = listModel.onEntityUpdateReceived(getListId(itemE), getElementId(itemE), OperationType.CREATE)
 			somePromise.resolve({
 				items: [],
 				complete: true,
@@ -272,7 +272,7 @@ o.spec("ListElementListModel", function () {
 
 			listModel.loadInitial()
 
-			const received = listModel.entityEventReceived(getListId(itemE), getElementId(itemE), OperationType.CREATE)
+			const received = listModel.onEntityUpdateReceived(getListId(itemE), getElementId(itemE), OperationType.CREATE)
 			somePromise.resolve({
 				items: [],
 				complete: false,
@@ -303,7 +303,7 @@ o.spec("ListElementListModel", function () {
 
 			listModel.loadInitial()
 
-			const received = listModel.entityEventReceived(getListId(itemE), getElementId(itemE), OperationType.CREATE)
+			const received = listModel.onEntityUpdateReceived(getListId(itemE), getElementId(itemE), OperationType.CREATE)
 			somePromise.reject(new restError.ConnectionError("test"))
 
 			await received
@@ -331,7 +331,7 @@ o.spec("ListElementListModel", function () {
 
 			listModel.loadInitial()
 
-			const received = listModel.entityEventReceived(getListId(itemE), getElementId(itemE), OperationType.CREATE)
+			const received = listModel.onEntityUpdateReceived(getListId(itemE), getElementId(itemE), OperationType.CREATE)
 			somePromise.resolve({
 				items: [itemA, itemB, itemC, itemD],
 				complete: false,

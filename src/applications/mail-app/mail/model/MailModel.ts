@@ -34,7 +34,7 @@ import { BulkMailLoader, MailWithMailDetails } from "../../workerUtils/index/Bul
 import { Mail, MailboxGroupRoot, MailboxProperties, MailSet, MailSetEntryTypeRef, MailSetTypeRef, MailTypeRef, MovedMails } from "@tutao/entities/tutanota"
 import { MailReportType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, ReportMovedMailsType, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { isLabel, SimpleMoveMailTarget } from "../MailUtils"
-import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { WebsocketCounterData } from "@tutao/entities/sys"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClientLoadOptions } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 
@@ -80,9 +80,10 @@ export class MailModel {
 
 	// only init listeners once
 	private readonly initListeners = lazyMemoized(() => {
-		this.eventController.addEntityListener({
-			onEntityUpdatesReceived: (updates, _) => this.entityEventsReceived(updates),
-			priority: OnEntityUpdateReceivedPriority.HIGH,
+		this.eventController.addEntityUpdatesListener({
+			id: "MailModel",
+			onEntityUpdatesReceived: (updates, _) => this.onEntityUpdatesReceived(updates),
+			priority: ListenerPriority.HIGH,
 		})
 
 		this.eventController.getCountersStream().map((update) => {
@@ -174,7 +175,7 @@ export class MailModel {
 	}
 
 	// visibleForTesting
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailSetTypeRef, update)) {
 				await this.init()

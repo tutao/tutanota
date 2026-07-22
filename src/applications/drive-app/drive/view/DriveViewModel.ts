@@ -1,5 +1,5 @@
 import { elementIdPart, getElementId, isSameId, listIdPart, OperationType } from "@tutao/meta"
-import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { Router } from "../../../../ui/ScopedThrottledRouter"
@@ -42,7 +42,7 @@ import { FileReference, WebFile } from "../../../../entities/tutanota/Utils"
 import { DownloadProgressInfo, TransferId, UploadProgressInfo } from "../../../../entities/drive/Utils"
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 import { isWebFile } from "../../../../ui/utils/FileUtils"
-import { isOfflineError, handleRestError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
+import { handleRestError, isOfflineError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { WebFileResolver } from "./WebFileResolver"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
@@ -177,6 +177,17 @@ export class DriveViewModel {
 	public readonly initialized: Promise<void>
 	public resolveInitialized: (value: PromiseLike<void> | void) => void = (value: void) => {}
 
+	private readonly connectionStateListener = {
+		id: "DriveViewModel",
+		priority: ListenerPriority.NORMAL,
+		onConnectionStateChanged: async (connectionState: WsConnectionState) => {
+			console.log("DriveViewModel connection state changed to", connectionState)
+			if (connectionState === WsConnectionState.connected) {
+				await this.listModel.reload()
+			}
+		},
+	}
+
 	constructor(
 		private readonly entityClient: EntityClient,
 		private readonly driveFacade: DriveFacade,
@@ -219,18 +230,15 @@ export class DriveViewModel {
 			}
 		}
 
-		this.eventController.addEntityListener({
+		this.eventController.addEntityUpdatesListener({
+			id: "DriveViewModel",
 			onEntityUpdatesReceived: async (events) => {
-				await this.entityEventsReceived(events)
+				await this.onEntityUpdatesReceived(events)
 			},
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+			priority: ListenerPriority.NORMAL,
 		})
-		this.connectivityModel.addConnectionStateListener(async (connectionState) => {
-			console.log("DriveViewModel connection state changed to", connectionState)
-			if (connectionState === WsConnectionState.connected) {
-				await this.listModel.reload()
-			}
-		})
+
+		this.connectivityModel.addConnectionStateListener(this.connectionStateListener)
 
 		this.uploadProgressListener.addUploadListener((info: UploadProgressInfo) => {
 			this.transferController.onChunkUploaded(info.transferId, info.uploadedBytes)
@@ -328,7 +336,7 @@ export class DriveViewModel {
 		},
 	)
 
-	private async entityEventsReceived(events: ReadonlyArray<EntityUpdateData>) {
+	private async onEntityUpdatesReceived(events: ReadonlyArray<EntityUpdateData>) {
 		for (const update of events) {
 			if (isUpdateForTypeRef(DriveFileRefTypeRef, update) && update.instanceListId === this.currentFolder?.folder.files) {
 				if (update.operation === OperationType.DELETE) {

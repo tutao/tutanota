@@ -80,15 +80,16 @@ export function getLogStringForPatches(patches: Array<Patch>) {
 	return message
 }
 
-export enum OnEntityUpdateReceivedPriority {
+export enum ListenerPriority {
 	LOW = 1,
 	NORMAL = 2,
 	HIGH = 3,
 }
 
-export type EntityEventsListener = {
+export type EntityUpdatesListener = {
+	id: string
 	onEntityUpdatesReceived: (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id, isInitialSyncDone: boolean) => Promise<unknown>
-	priority: OnEntityUpdateReceivedPriority
+	priority: ListenerPriority
 }
 export enum CacheSyncStatus {
 	Offline = "Offline",
