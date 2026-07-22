@@ -112,7 +112,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 						? m(
 								"label.abs.text-ellipsis.noselect.z1.pr-4",
 								{
-									"aria-hidden": "true",
+									"aria-hidden": !a.isReadOnly,
 									class: this.active ? "" : "" + " " + getOperatingClasses(a.disabled),
 									oncreate: (vnode) => {
 										this._domLabel = vnode.dom as HTMLElement
