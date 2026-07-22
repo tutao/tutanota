@@ -194,21 +194,18 @@ export class CalendarEventWhenModel {
 	 * set the time portion of the events end time. the date portion will not be modified.
 	 *
 	 */
-	set endTime(v: Time | null) {
-		if (v == null || this._isAllDay) {
+	set endTime(newEndTime: Time | null) {
+		if (newEndTime == null || this._isAllDay || !this.isNewEndTimeAfterStartTime(newEndTime)) {
 			return
 		}
-
-		const startTime = this._startTime!
-		const currentStart = startTime.toDate(this._startDate)
-		const newEnd = v.toDate(this._endDate)
-
-		if (newEnd < currentStart) {
-			return
-		}
-
-		this._endTime = v
+		this._endTime = newEndTime
 		this.uiUpdateCallback()
+	}
+
+	private isNewEndTimeAfterStartTime(newEndTime: Time) {
+		const startDateTime = this.getStartDateTime()
+		const endDateTime = this.createZonedDateTime(this._endDate, newEndTime, this.getEndTimeZoneOrDefault(), true)
+		return startDateTime.diff(endDateTime).toMillis() < 0
 	}
 
 	/** return the duration of the event in minutes */
