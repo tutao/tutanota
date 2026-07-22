@@ -9,12 +9,7 @@ import {
 	listIdPart,
 	OperationType,
 } from "../../../../platform-kit/meta"
-import {
-	EntityUpdateData,
-	isUpdateFor,
-	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
-} from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { CalendarEvent, CalendarEventTypeRef, CalendarGroupRoot, Contact, ContactTypeRef, GroupSettings } from "@tutao/entities/tutanota"
 import { CustomerInfoTypeRef, GroupInfo, ReceivedGroupInvitation } from "@tutao/entities/sys"
 import { GroupType, NewPaidPlans } from "../../../../entities/sys/Utils"
@@ -243,6 +238,16 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	private scrollByListener: ScrollByListener = noOp
 
+	private readonly connectionStateListener = {
+		id: "CalendarViewModel",
+		priority: ListenerPriority.NORMAL,
+		onConnectionStateChanged: async (connectionState: WsConnectionState) => {
+			if (connectionState === WsConnectionState.connected) {
+				await this.preloadMonthsAroundSelectedDate(true)
+			}
+		},
+	}
+
 	constructor(
 		private readonly logins: LoginController,
 		private readonly createCalendarEventModel: CalendarEventModelFactory,
@@ -296,16 +301,12 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			this.preloadMonthsAroundSelectedDate()
 		})
 
-		eventController.addEntityListener({
-			onEntityUpdatesReceived: (updates) => this.entityEventReceived(updates),
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+		eventController.addEntityUpdatesListener({
+			id: "CalendarViewModel",
+			onEntityUpdatesReceived: (updates) => this.onEntityUpdatesReceived(updates),
+			priority: ListenerPriority.NORMAL,
 		})
-		this.connectivityModel.addConnectionStateListener(async (connectionState) => {
-			console.log("CalendarViewModel connection state changed to", connectionState)
-			if (connectionState === WsConnectionState.connected) {
-				await this.preloadMonthsAroundSelectedDate(true)
-			}
-		})
+		this.connectivityModel.addConnectionStateListener(this.connectionStateListener)
 
 		calendarInvitationsModel.init()
 
@@ -809,7 +810,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		}
 	}
 
-	private async entityEventReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	private async onEntityUpdatesReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
 				const eventId: IdTuple = [assertNotNull(update.instanceListId), update.instanceId]
@@ -976,6 +977,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			this.timeZone,
 		)
 		await importer.import(groupRoot, calendarInfo, parsedEventAlarmTuples, CalendarImporter.classifyImportedEvents, calendarInfo.type)
+	}
+
+	deinit() {
+		this.connectivityModel.removeConnectionStateListener(this.connectionStateListener)
 	}
 }
 

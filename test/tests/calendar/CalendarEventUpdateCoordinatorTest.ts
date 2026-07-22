@@ -67,7 +67,7 @@ o.spec("CalendarEventUpdateCoordinatorTest", function () {
 		when(wsConnectivityModelMock.isLeader()).thenReturn(true)
 		when(entityClientMock.load(CalendarEventUpdateTypeRef, calendarEventUpdate._id)).thenResolve(calendarEventUpdate)
 
-		await calendarEventUpdateCoordinator.entityEventsReceived([entityUpdateData], MAILGROUP_ID)
+		await calendarEventUpdateCoordinator.onEntityUpdatesReceived([entityUpdateData], MAILGROUP_ID)
 		verify(calendarModelMock.handleCalendarEventUpdate(calendarEventUpdate))
 	})
 
@@ -78,7 +78,7 @@ o.spec("CalendarEventUpdateCoordinatorTest", function () {
 
 		await calendarEventUpdateCoordinator.onLeaderStatusChanged(true)
 
-		verify(eventControllerMock.addEntityListener(matchers.anything()), { times: 1 })
+		verify(eventControllerMock.addEntityUpdatesListener(matchers.anything()), { times: 1 })
 		verify(calendarModelMock.handleCalendarEventUpdate(mockCalendarEventUpdateArray[0]))
 	})
 
@@ -87,7 +87,7 @@ o.spec("CalendarEventUpdateCoordinatorTest", function () {
 
 		await calendarEventUpdateCoordinator.onLeaderStatusChanged(false)
 
-		verify(eventControllerMock.removeEntityListener(matchers.anything()), { times: 1 })
+		verify(eventControllerMock.removeEntityUpdatesListener(matchers.anything()), { times: 1 })
 		verify(calendarModelMock.handleCalendarEventUpdate(matchers.anything()), { times: 0 })
 	})
 
@@ -100,7 +100,7 @@ o.spec("CalendarEventUpdateCoordinatorTest", function () {
 		await calendarEventUpdateCoordinator.init()
 
 		verify(wsConnectivityModelMock.addLeaderStatusListener(matchers.anything()), { times: 1 })
-		verify(eventControllerMock.addEntityListener(matchers.anything()))
+		verify(eventControllerMock.addEntityUpdatesListener(matchers.anything()))
 		verify(calendarModelMock.handleCalendarEventUpdate(mockCalendarEventUpdateArray[0]))
 	})
 
@@ -113,7 +113,7 @@ o.spec("CalendarEventUpdateCoordinatorTest", function () {
 		await calendarEventUpdateCoordinator.init()
 
 		verify(wsConnectivityModelMock.addLeaderStatusListener(matchers.anything()), { times: 1 })
-		verify(eventControllerMock.addEntityListener(matchers.anything()), { times: 0 })
+		verify(eventControllerMock.addEntityUpdatesListener(matchers.anything()), { times: 0 })
 		verify(calendarModelMock.handleCalendarEventUpdate(mockCalendarEventUpdateArray[0]), { times: 0 })
 	})
 
@@ -125,7 +125,7 @@ o.spec("CalendarEventUpdateCoordinatorTest", function () {
 		when(wsConnectivityModelMock.isLeader()).thenReturn(true)
 		when(entityClientMock.load(CalendarEventUpdateTypeRef, calendarEventUpdate._id)).thenResolve(calendarEventUpdate)
 
-		await calendarEventUpdateCoordinator.entityEventsReceived([entityUpdateData], MAILGROUP_ID)
+		await calendarEventUpdateCoordinator.onEntityUpdatesReceived([entityUpdateData], MAILGROUP_ID)
 		verify(calendarModelMock.handleCalendarEventUpdate(calendarEventUpdate))
 
 		o(calendarEventUpdateCoordinator.getFileIdToSkippedCalendarEventUpdates().get(elementIdPart(calendarEventUpdate.file))!).deepEquals(calendarEventUpdate)
@@ -141,7 +141,7 @@ o.spec("CalendarEventUpdateCoordinatorTest", function () {
 		entityUpdateData.instanceId = elementIdPart(calendarEventUpdate.file)
 		entityUpdateData.operation = OperationType.UPDATE
 
-		await calendarEventUpdateCoordinator.entityEventsReceived([entityUpdateData], MAILGROUP_ID)
+		await calendarEventUpdateCoordinator.onEntityUpdatesReceived([entityUpdateData], MAILGROUP_ID)
 
 		o(calendarEventUpdateCoordinator.getFileIdToSkippedCalendarEventUpdates().size).deepEquals(0)
 		verify(calendarModelMock.handleCalendarEventUpdate(calendarEventUpdate))

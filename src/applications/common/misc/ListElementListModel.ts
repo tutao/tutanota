@@ -54,7 +54,7 @@ export class ListElementListModel<ElementType extends ListElement> implements Li
 		this.config = theBestConfig
 	}
 
-	async entityEventReceived(listId: Id, elementId: Id, operation: OperationType): Promise<void> {
+	async onEntityUpdateReceived(listId: Id, elementId: Id, operation: OperationType): Promise<void> {
 		if (operation === OperationType.CREATE || operation === OperationType.UPDATE) {
 			// load the element without range checks for now
 			const entity = await this.config.loadSingle(listId, elementId)

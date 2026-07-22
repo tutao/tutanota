@@ -33,7 +33,7 @@ import { MailModel } from "../model/MailModel.js"
 
 import { isDraft, isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { compareMails } from "../model/MailUtils"
-import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 export type MailViewerViewModelFactory = (options: CreateMailViewerOptions) => MailViewerViewModel
 
@@ -72,7 +72,7 @@ export class ConversationViewModel {
 
 	readonly init = makeSingleUse((delayBodyRendering: Promise<unknown>) => {
 		this.loadingPromise = this.loadingState.trackPromise(this.loadConversation())
-		this.eventController.addEntityListener(this.onEntityEvent)
+		this.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 		this._primaryViewModel.expandMail(delayBodyRendering)
 
 		if (this.options.loadLatestMail) {
@@ -80,7 +80,8 @@ export class ConversationViewModel {
 		}
 	})
 
-	private readonly onEntityEvent: EntityEventsListener = {
+	private readonly entityUpdatesListener: EntityUpdatesListener = {
+		id: "ConversationViewModel",
 		onEntityUpdatesReceived: async (updates, eventOwnerGroupId) => {
 			// conversation entry can be created when new email arrives
 			// conversation entry can be updated when email is moved around or deleted
@@ -107,7 +108,7 @@ export class ConversationViewModel {
 				}
 			}
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: ListenerPriority.NORMAL,
 	}
 
 	private async processCreateConversationEntry(ceId: IdTuple) {
@@ -373,7 +374,7 @@ export class ConversationViewModel {
 	dispose() {
 		// hack: init has been called if loadingPromise is set
 		if (this.loadingPromise != null) {
-			this.eventController.removeEntityListener(this.onEntityEvent)
+			this.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
 
 			// we may still be in the middle of loading, though, such as if the user is changing views quickly
 			settledThen(this.loadingPromise, () => {

@@ -34,7 +34,7 @@ import {
 	PlanName,
 	PlanType,
 } from "../../../../entities/sys/Utils"
-import { EntityUpdateData, isUpdateFor, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdatesListener, EntityUpdateData, isUpdateFor, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { reverse } from "../../misc/EnumUtils"
 import { idToElementId } from "@tutao/meta"
@@ -338,7 +338,8 @@ export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanT
 	} else {
 		return new Promise<boolean>((resolve) => {
 			try {
-				const customerInfoUpdateListener = {
+				const entityUpdatesListener: EntityUpdatesListener = {
+					id: "SubscriptionUtils",
 					onEntityUpdatesReceived: async (updates: ReadonlyArray<EntityUpdateData>) => {
 						for (const update of updates) {
 							if (isUpdateFor(customerInfo, update)) {
@@ -356,16 +357,16 @@ export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanT
 									// plan is now correct!
 									console.log("app store upgrade listener succeeded for", customer.customerInfo)
 									resolve(true)
-									locator.eventController.removeEntityListener(customerInfoUpdateListener)
+									locator.eventController.removeEntityUpdatesListener(entityUpdatesListener)
 								}
 							}
 						}
 					},
-					priority: OnEntityUpdateReceivedPriority.NORMAL,
+					priority: ListenerPriority.NORMAL,
 				}
-				locator.eventController.addEntityListener(customerInfoUpdateListener)
+				locator.eventController.addEntityUpdatesListener(entityUpdatesListener)
 				setTimeout(() => {
-					locator.eventController.removeEntityListener(customerInfoUpdateListener)
+					locator.eventController.removeEntityUpdatesListener(entityUpdatesListener)
 					console.warn("app store upgrade listener timed out for", customer.customerInfo)
 					resolve(false)
 				}, timeout_ms)
