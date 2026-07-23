@@ -69,9 +69,9 @@ export const TemplateGroupPreconditionFailedReason = Object.freeze({
 export function getDefaultGroupName(groupType: GroupType): string {
 	switch (groupType) {
 		case GroupType.Calendar:
-			return lang.get("privateCalendar_label")
+			return lang.getTranslationText("privateCalendar_label")
 		case GroupType.Template:
-			return lang.get("templateGroupDefaultName_label")
+			return lang.getTranslationText("templateGroupDefaultName_label")
 		default:
 			return enumKeyByValue(GroupType, groupType)
 	}

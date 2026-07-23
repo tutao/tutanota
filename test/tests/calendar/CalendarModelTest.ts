@@ -23,7 +23,7 @@ import { MailboxModel } from "../../../src/applications/common/mailFunctionality
 import { ExternalCalendarFacade } from "../../../src/app-kit/native-bridge/common/generatedipc/types"
 import { DeviceConfig } from "../../../src/applications/common/misc/DeviceConfig.js"
 import { SyncTracker } from "../../../src/applications/common/api/main/SyncTracker.js"
-import { LanguageViewModel } from "../../../src/ui/utils/LanguageViewModel.js"
+import { lang, LanguageViewModel } from "../../../src/ui/utils/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../src/applications/common/native/NativePushServiceApp.js"
 import { AlarmScheduler } from "../../../src/applications/common/calendar/date/AlarmScheduler"
 import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest"
@@ -64,6 +64,7 @@ import { EntityUpdateData } from "../../../src/platform-kit/instance-pipeline/ut
 import { GroupType } from "../../../src/entities/sys/Utils"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../src/entities/tutanota/Utils"
 import { IcsCalendarEvent, ParsedCalendarData, ParsedEventAlarmTuple } from "../../../src/applications/calendar-app/calendar/export/CalendarParser"
+import en from "../../../src/ui/translations/en"
 
 o.spec("CalendarModel", function () {
 	const { anything } = matchers
@@ -124,6 +125,11 @@ o.spec("CalendarModel", function () {
 	let externalCalendarFacadeMock: ExternalCalendarFacade
 	let userGroupInfo: GroupInfo
 	let contactModelMock: ContactModel
+
+	o.before(() => {
+		// CalendarModel needs LanguageViewModel initialized
+		lang.init(en)
+	})
 
 	o.beforeEach(function () {
 		notificationsMock = object()
