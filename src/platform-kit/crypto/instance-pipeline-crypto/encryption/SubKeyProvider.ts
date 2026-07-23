@@ -1,79 +1,93 @@
-import { lazyMemoized } from "@tutao/utils"
-import { CryptoError } from "@tutao/crypto/error"
-import { AesCbcThenHmacSubKeys, InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
+import { lazyMemoized, Nullable } from "@tutao/utils"
+import { InstanceTypeId, SymmetricKeyDeriver, SymmetricSubKeys } from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
-import { ProgrammingError } from "@tutao/app-env"
-import { AesKey, KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
+import { KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { VersionedKey } from "../../CryptoTypes"
+import { ProgrammingError } from "@tutao/app-env"
+import { AesKey } from "../../encryption/symmetric/AesKey"
 
-export abstract class SubKeyInfo {
-	constructor(public readonly cipherVersion: SymmetricCipherVersion) {}
-}
+/**
+ * Dummy class that can either hold SubKeyInfo or SubKeyProvider. As both are suitable to get the actual subkeys.
+ */
+export abstract class SubKeyFactory {}
 
-export class SubKeyInfoWithSessionKey extends SubKeyInfo {
-	constructor(
-		cipherVersion: SymmetricCipherVersion,
-		public readonly sessionKey: AesKey,
-	) {
-		super(cipherVersion)
-		if (cipherVersion !== SymmetricCipherVersion.AesCbcThenHmac && cipherVersion !== SymmetricCipherVersion.AeadWithSessionKey) {
-			throw new ProgrammingError("non session key cipher version")
-		}
+export abstract class SubKeyInfo extends SubKeyFactory {
+	public abstract readonly cipherVersion: SymmetricCipherVersion
+	protected constructor() {
+		super()
 	}
 }
 
-export class SubKeyInfoWithoutSessionKey extends SubKeyInfo {
-	constructor(cipherVersion: SymmetricCipherVersion) {
-		super(cipherVersion)
-		if (cipherVersion !== SymmetricCipherVersion.AesCbcThenHmac && cipherVersion !== SymmetricCipherVersion.AeadWithSessionKey) {
-			throw new ProgrammingError("non session key cipher version")
-		}
+abstract class SubKeyInfoWithSessionKey extends SubKeyInfo {
+	protected constructor(public readonly sessionKey: AesKey) {
+		super()
 	}
 }
 
-export class SubKeyInfoWithGroupKey extends SubKeyInfo {
+export class SubKeyInfoWithSessionKeyCbcThenHmac extends SubKeyInfoWithSessionKey {
+	public override readonly cipherVersion: typeof SymmetricCipherVersion.AesCbcThenHmac = SymmetricCipherVersion.AesCbcThenHmac
+	constructor(sessionKey: AesKey) {
+		super(sessionKey)
+	}
+}
+
+export class SubKeyInfoWithSessionKeyAead extends SubKeyInfoWithSessionKey {
+	public override readonly cipherVersion: typeof SymmetricCipherVersion.AeadWithSessionKey = SymmetricCipherVersion.AeadWithSessionKey
+	constructor(sessionKey: AesKey) {
+		super(sessionKey)
+	}
+}
+
+export class SubKeyInfoWithGroupKeyAead extends SubKeyInfo {
+	public override readonly cipherVersion: typeof SymmetricCipherVersion.AeadWithGroupKey = SymmetricCipherVersion.AeadWithGroupKey
 	constructor(
-		cipherVersion: SymmetricCipherVersion,
 		public readonly groupKey: VersionedKey,
 		public readonly kdfNonce: KdfNonce,
 	) {
-		super(cipherVersion)
-		if (cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) throw new ProgrammingError("non GroupKey cipher version")
+		super()
 	}
 }
 
-export class SubKeyProvider {
+export class SubKeyProvider extends SubKeyFactory {
 	constructor(
 		private readonly subKeyInfo: SubKeyInfo,
 		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
 		private readonly instanceTypeId: InstanceTypeId,
-	) {}
+	) {
+		super()
+	}
 
-	getSubKeys = lazyMemoized(() => {
+	getSubKeys = lazyMemoized((): SymmetricSubKeys => {
 		switch (this.subKeyInfo.cipherVersion) {
-			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
-				throw new CryptoError(`Encrypting ${this.instanceTypeId.app}/${this.instanceTypeId.name} requires a session key!`)
 			case SymmetricCipherVersion.AesCbcThenHmac: {
-				if (this.subKeyInfo instanceof SubKeyInfoWithSessionKey) {
-					return this.symmetricKeyDeriver.deriveSubKeysAesCbcHmac(this.subKeyInfo.sessionKey) as AesCbcThenHmacSubKeys
-				} else {
-					throw new CryptoError(`Encrypting ${this.instanceTypeId.app}/${this.instanceTypeId.name} requires a session key!`)
+				if (this.subKeyInfo instanceof SubKeyInfoWithSessionKeyCbcThenHmac) {
+					return this.symmetricKeyDeriver.deriveSubKeysAesCbc(this.subKeyInfo.sessionKey, this.subKeyInfo.cipherVersion)
 				}
+				break
 			}
 			case SymmetricCipherVersion.AeadWithGroupKey: {
-				if (this.subKeyInfo instanceof SubKeyInfoWithGroupKey) {
+				if (this.subKeyInfo instanceof SubKeyInfoWithGroupKeyAead) {
 					return this.symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(this.subKeyInfo.groupKey, this.subKeyInfo.kdfNonce, this.instanceTypeId)
-				} else {
-					throw new CryptoError(`Encrypting ${this.instanceTypeId.app}/${this.instanceTypeId.name} requires a group key and KDF nonce!`)
 				}
+				break
 			}
 			case SymmetricCipherVersion.AeadWithSessionKey: {
-				if (this.subKeyInfo instanceof SubKeyInfoWithSessionKey) {
+				if (this.subKeyInfo instanceof SubKeyInfoWithSessionKeyAead) {
 					return this.symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(this.subKeyInfo.sessionKey, this.instanceTypeId)
-				} else {
-					throw new CryptoError(`Encrypting ${this.instanceTypeId.app}/${this.instanceTypeId.name} requires a session key!`)
 				}
+				break
 			}
 		}
+		throw new ProgrammingError(
+			`Encrypting ${this.instanceTypeId.app}/${this.instanceTypeId.name} with wrong subKeyInfo or with unsupported cipher version ${this.subKeyInfo.cipherVersion}`,
+		)
 	})
+}
+
+export function makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(sessionKey: AesKey | null): Nullable<SubKeyInfoWithSessionKeyCbcThenHmac> {
+	if (sessionKey != null) {
+		return new SubKeyInfoWithSessionKeyCbcThenHmac(sessionKey)
+	} else {
+		return null
+	}
 }

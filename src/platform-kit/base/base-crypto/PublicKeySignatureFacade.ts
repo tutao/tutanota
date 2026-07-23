@@ -14,10 +14,11 @@ import {
 	isRsaPublicKey,
 	isRsaX25519KeyPair,
 	isRsaX25519PublicKey,
-	KeyPairType,
 	kyberPublicKeyToBytes,
+	PQPublicKeys,
 	PublicKey,
 	rsaPublicKeyToBytes,
+	RsaX25519PublicKey,
 } from "@tutao/crypto"
 import { assertWorkerOrNode } from "@tutao/app-env"
 import { asPublicKeySignatureType, PublicKeySignatureType } from "./Constants"
@@ -170,11 +171,11 @@ export class PublicKeySignatureFacade {
 	 * @param encryptionKeyPair
 	 * @private
 	 */
-	private extractAndValidatePublicKey(encryptionKeyPair: AsymmetricKeyPair) {
+	private extractAndValidatePublicKey(encryptionKeyPair: AsymmetricKeyPair): PublicKey {
 		if (isPqKeyPairs(encryptionKeyPair)) {
 			const x25519PublicKey = this.cryptoWrapper.verifyPublicX25519Key(encryptionKeyPair.x25519KeyPair)
 			const kyberPublicKey = this.cryptoWrapper.verifyKyberPublicKey(encryptionKeyPair.kyberKeyPair)
-			return { kyberPublicKey, x25519PublicKey, keyPairType: KeyPairType.TUTA_CRYPT }
+			return new PQPublicKeys(x25519PublicKey, kyberPublicKey)
 		} else if (isRsaOrRsaX25519KeyPair(encryptionKeyPair)) {
 			const rsaPublicKey = this.cryptoWrapper.verifyRsaPublicKey(encryptionKeyPair)
 			if (isRsaX25519KeyPair(encryptionKeyPair)) {
@@ -182,13 +183,9 @@ export class PublicKeySignatureFacade {
 					publicKey: encryptionKeyPair.publicEccKey,
 					privateKey: encryptionKeyPair.privateEccKey,
 				})
-				return {
-					...rsaPublicKey,
-					publicEccKey: x25519PublicKey,
-					keyPairType: KeyPairType.RSA_AND_X25519,
-				}
+				return new RsaX25519PublicKey(rsaPublicKey, x25519PublicKey)
 			} else {
-				return { ...rsaPublicKey, keyPairType: KeyPairType.RSA }
+				return rsaPublicKey
 			}
 		} else {
 			throw new Error("invalid key pair type")

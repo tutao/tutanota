@@ -4,50 +4,12 @@ import { hexToRsaPrivateKey, hexToRsaPublicKey, rsaPrivateKeyToHex } from "../en
 import { RsaKeyPair, RsaPrivateKey, RsaX25519KeyPair } from "../encryption/RsaKeyPair.js"
 import { bytesToKyberPrivateKey, bytesToKyberPublicKey, KyberPrivateKey, kyberPrivateKeyToBytes } from "../encryption/Liboqs/KyberKeyPair.js"
 import { X25519PrivateKey } from "../encryption/X25519.js"
-import { AsymmetricKeyPair, KeyPairType } from "../encryption/AsymmetricKeyPair.js"
-import type { PQKeyPairs } from "../encryption/PQKeyPairs.js"
-import { Aes128Key, Aes256Key, AesKey } from "../encryption/symmetric/SymmetricCipherUtils.js"
-import { AesKeyLength, assert256BitKey, getKeyLengthInBytes } from "../encryption/symmetric/AesKeyLength.js"
+import { AsymmetricKeyPair } from "../encryption/AsymmetricKeyPair.js"
+import { Aes128Key, Aes256Key, AesKey, AesKeyLength, assert256BitKey, getKeyLengthInBytes } from "../encryption/symmetric/AesKey.js"
 import { SYMMETRIC_CIPHER_FACADE } from "./SymmetricCipherFacade.js"
 import { ProgrammingError } from "@tutao/app-env"
-
-export abstract class EncryptedKeyPairs {
-	constructor() {} // public readonly pubKyberKey: null | Uint8Array, // public readonly pubEccKey: null | Uint8Array,
-}
-
-export class EncryptedPqKeyPairs extends EncryptedKeyPairs {
-	constructor(
-		public readonly pubEccKey: Uint8Array,
-		public readonly pubKyberKey: Uint8Array,
-		public readonly symEncPrivEccKey: Uint8Array,
-		public readonly symEncPrivKyberKey: Uint8Array,
-		public signature: null | object, //type PublicKeySignature not available in crypto package
-	) {
-		super()
-	}
-}
-
-export class EncryptedRsaKeyPairs extends EncryptedKeyPairs {
-	constructor(
-		public readonly pubRsaKey: Uint8Array,
-		public readonly symEncPrivRsaKey: Uint8Array,
-		public readonly signature: null | object, //type PublicKeySignature not available in crypto package
-	) {
-		super()
-	}
-}
-
-export class EncryptedRsaX25519KeyPairs extends EncryptedRsaKeyPairs {
-	constructor(
-		public readonly pubEccKey: Uint8Array,
-		pubRsaKey: Uint8Array,
-		public readonly symEncPrivEccKey: Uint8Array,
-		symEncPrivRsaKey: Uint8Array,
-		signature: null | object, //type PublicKeySignature not available in crypto package
-	) {
-		super(pubRsaKey, symEncPrivRsaKey, signature)
-	}
-}
+import { EncryptedKeyPairs, EncryptedPqKeyPairs, EncryptedRsaKeyPairs, EncryptedRsaX25519KeyPairs } from "../encryption/EncryptedKeyPairs"
+import { PQKeyPairs } from "../encryption/PQKeyPairs"
 
 export function encryptKey(encryptionKey: AesKey, keyToBeEncrypted: AesKey): Uint8Array {
 	return SYMMETRIC_CIPHER_FACADE.encryptKey(encryptionKey, keyToBeEncrypted)
@@ -122,15 +84,14 @@ function decryptPQKeyPair(encryptionKey: Aes256Key, keyPair: EncryptedPqKeyPairs
 		aesDecrypt(encryptionKey, assertNotNull(keyPair.symEncPrivKyberKey, "expected enc priv kyber key for PQ keypair")),
 	)
 
-	return {
-		keyPairType: KeyPairType.TUTA_CRYPT,
-		x25519KeyPair: {
+	return new PQKeyPairs(
+		{
 			publicKey: eccPublicKey,
 			privateKey: eccPrivateKey,
 		},
-		kyberKeyPair: {
+		{
 			publicKey: kyberPublicKey,
 			privateKey: kyberPrivateKey,
 		},
-	}
+	)
 }

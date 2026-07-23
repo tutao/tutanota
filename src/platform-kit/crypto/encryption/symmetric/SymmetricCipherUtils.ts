@@ -3,44 +3,22 @@ import { CryptoError } from "@tutao/crypto/error"
 import { base64ToBase64Url, base64ToUint8Array, hexToUint8Array, Nullable, uint8ArrayToArrayBuffer, uint8ArrayToBase64 } from "@tutao/utils"
 import { sha256Hash } from "../../hashes/Sha256.js"
 import sjcl from "../../internal/sjcl.js"
-import { AesKeyLength, getKeyLengthInBytes, wrapKey } from "./AesKeyLength.js"
-import { KeyOrSubKey } from "./SymmetricKeyDeriver"
+import { Aes128Key, Aes256Key, AesKey, AesKeyLength, BitArray, getKeyLengthInBytes } from "./AesKey.js"
+import { InitializationVectorVariant } from "./ParsedCiphertext"
 
 export class InitializationVector {
-	constructor(public readonly bytes: Uint8Array) {}
+	constructor(
+		public readonly bytes: Uint8Array,
+		public readonly variant: InitializationVectorVariant,
+	) {}
 }
 
-export class FixedInitializationVector extends InitializationVector {
-	constructor() {
-		super(hexToUint8Array("88888888888888888888888888888888"))
-	}
-}
-
-export const FIXED_INITIALIZATION_VECTOR = new FixedInitializationVector()
+export const FIXED_INITIALIZATION_VECTOR = new InitializationVector(hexToUint8Array("88888888888888888888888888888888"), InitializationVectorVariant.Fixed)
 export const BLOCK_SIZE_BYTES = 16
 export const INITIALIZATION_VECTOR_LENGTH_BYTES = BLOCK_SIZE_BYTES
 export const KDF_NONCE_LENGTH_BYTES = 32
 export const SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES = 1
 export const SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES = 32
-
-export type BitArray = number[]
-export abstract class AesKey extends KeyOrSubKey {
-	abstract readonly bits: BitArray
-	abstract readonly keyLength: AesKeyLength
-}
-
-export class Aes256Key extends AesKey {
-	keyLength = AesKeyLength.Aes256
-	constructor(public readonly bits: BitArray) {
-		super()
-	}
-}
-export class Aes128Key extends AesKey {
-	keyLength = AesKeyLength.Aes128
-	constructor(public readonly bits: BitArray) {
-		super()
-	}
-}
 
 /**
  * Creates the auth verifier from the password key.
@@ -109,12 +87,23 @@ export function base64ToKey(base64: Base64, acceptedBitLength?: AesKeyLength): A
 }
 
 export function uint8ArrayToKey(array: Uint8Array): AesKey
-export function uint8ArrayToKey(array: Uint8Array, acceptedBitLengths: typeof AesKeyLength.Aes128): Aes128Key
-export function uint8ArrayToKey(array: Uint8Array, acceptedBitLengths: typeof AesKeyLength.Aes256): Aes256Key
+export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength: typeof AesKeyLength.Aes128): Aes128Key
+export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength: typeof AesKeyLength.Aes256): Aes256Key
 export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey
 export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey {
 	let key = uint8ArrayToBitArray(array)
-	return wrapKey(key, acceptedBitLength ? [acceptedBitLength] : undefined)
+	// AesKey is an array of 4 byte numbers. therefore converting the length to bits means 4*8
+	const keyLength: number = key.length * 4 * 8
+	if (acceptedBitLength != null && acceptedBitLength !== keyLength) {
+		throw new CryptoError(`Illegal key length: ${keyLength} (expected: ${acceptedBitLength})`)
+	}
+	switch (keyLength) {
+		case AesKeyLength.Aes128:
+			return new Aes128Key(key)
+		case AesKeyLength.Aes256:
+			return new Aes256Key(key)
+	}
+	throw new CryptoError(`Illegal key length: ${keyLength}`)
 }
 
 export function keyToUint8Array(key: AesKey): Uint8Array {
@@ -133,7 +122,7 @@ export function aes256RandomKey(): Aes256Key {
 export type KdfNonce = Uint8Array & { readonly __brand: "KdfNonce" }
 
 export function generateInitializationVector(): InitializationVector {
-	return new InitializationVector(random.generateRandomData(INITIALIZATION_VECTOR_LENGTH_BYTES))
+	return new InitializationVector(random.generateRandomData(INITIALIZATION_VECTOR_LENGTH_BYTES), InitializationVectorVariant.Random)
 }
 
 export function generateKdfNonce(): KdfNonce {
@@ -149,7 +138,7 @@ export function validateInitializationVectorLength(initializationVector: Nullabl
 	if (initializationVector.length !== INITIALIZATION_VECTOR_LENGTH_BYTES) {
 		throw new CryptoError(`invalid initialization vector length: ${initializationVector.length} bytes`)
 	}
-	return new InitializationVector(initializationVector)
+	return new InitializationVector(initializationVector, InitializationVectorVariant.Random)
 }
 
 export function validateKdfNonceLength(kdfNonce: Uint8Array): KdfNonce

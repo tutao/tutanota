@@ -4,12 +4,13 @@ import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
 	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN,
 	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN,
+	AeadSubKeys,
 	AesKey,
 	AsymmetricKeyPair,
 	DomainSeparator,
 	InstanceDecryptor,
 	KdfNonce,
-	MissingSessionKey,
+	SubKeyFactory,
 	SubKeyInfo,
 	SubKeyProvider,
 	SymmetricCipherFacade,
@@ -218,17 +219,11 @@ export class CryptoMapper {
 	public async encryptParsedInstance(
 		clientTypeModel: ClientTypeModel,
 		parsedInstance: ClientModelParsedInstance,
-		subKeyInfo: SubKeyInfo | SubKeyProvider,
+		subKeyFactory: Nullable<SubKeyFactory>,
 		fieldPathPrefix: string = "",
 	): Promise<ClientModelEncryptedParsedInstance> {
 		const encrypted: ClientModelEncryptedParsedInstance = {} as ClientModelEncryptedParsedInstance
-
-		let subKeyProvider: SubKeyProvider
-		if (subKeyInfo instanceof SubKeyProvider) {
-			subKeyProvider = subKeyInfo
-		} else {
-			subKeyProvider = this.symmetricCipherFacade.getSubKeyProvider(subKeyInfo, clientTypeModel)
-		}
+		let subKeyProvider = this.makeNullableSubKeyProvider(subKeyFactory, clientTypeModel)
 
 		for (let valueId of Object.keys(clientTypeModel.values).map(Number)) {
 			const valueType = clientTypeModel.values[valueId]
@@ -265,10 +260,22 @@ export class CryptoMapper {
 		return encrypted
 	}
 
+	private makeNullableSubKeyProvider(subKeyFactory: Nullable<SubKeyFactory>, clientTypeModel: ClientTypeModel): Nullable<SubKeyProvider> {
+		if (subKeyFactory instanceof SubKeyProvider) {
+			return subKeyFactory
+		} else if (subKeyFactory instanceof SubKeyInfo) {
+			return this.symmetricCipherFacade.getSubKeyProvider(subKeyFactory, clientTypeModel)
+		} else if (subKeyFactory == null) {
+			return null
+		} else {
+			throw new ProgrammingError("unknown SubKeyFactory")
+		}
+	}
+
 	private async encryptAggregateAssociation(
 		associationClientTypeModel: ClientTypeModel,
 		aggregateValues: Array<ClientModelParsedInstance>,
-		subKeyProvider: SubKeyProvider,
+		subKeyProvider: Nullable<SubKeyProvider>,
 		fieldPathPrefix: string,
 	): Promise<Array<ClientModelEncryptedParsedInstance>> {
 		let encryptedAggregates: Array<ClientModelEncryptedParsedInstance> = []
@@ -314,12 +321,17 @@ export class CryptoMapper {
 		}
 	}
 
-	encryptValue(valueType: EncryptedModelValue, value: Nullable<ParsedValue>, subKeyProvider: SubKeyProvider, fieldPath: string): Nullable<Base64> {
+	encryptValue(valueType: EncryptedModelValue, value: Nullable<ParsedValue>, subKeyProvider: Nullable<SubKeyProvider>, fieldPath: string): Nullable<Base64> {
 		if (value == null) {
 			return null
 		}
 		const dbValue = convertJsToDbType(valueType.type, value)!
 		const bytes = typeof dbValue === "string" ? stringToUtf8Uint8Array(dbValue) : dbValue
+		// we want to throw the error late in case we cannot derive the subkeys to handle types gracefully
+		// that do not have any actual encrypted values set
+		if (subKeyProvider == null) {
+			throw new CryptoError(`Encrypting ${valueType.name} requires keys!`)
+		}
 		const subKeys = subKeyProvider.getSubKeys()
 		let encryptedBytes
 		if (subKeys.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac) {
@@ -332,7 +344,11 @@ export class CryptoMapper {
 				domainSpecifier = AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN
 			}
 			const associatedData = stringToUtf8Uint8Array(domainSpecifier + fieldPath)
-			encryptedBytes = this.symmetricCipherFacade.encryptBytesWithAead(subKeys, bytes, associatedData)
+			if (subKeys instanceof AeadSubKeys) {
+				encryptedBytes = this.symmetricCipherFacade.encryptBytesWithAead(subKeys, bytes, associatedData)
+			} else {
+				throw new ProgrammingError("invalid subkeys")
+			}
 		}
 		return uint8ArrayToBase64(encryptedBytes)
 	}

@@ -7,7 +7,6 @@ import testData from "../../../api/worker/crypto/CompatibilityTestData.json"
 import {
 	bytesToKyberPublicKey,
 	hexToRsaPublicKey,
-	KeyPairType,
 	PQPublicKeys,
 	PublicKeyIdentifier,
 	PublicKeyIdentifierType,
@@ -34,8 +33,8 @@ import {
 } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../../../src/platform-kit/network/ServiceExecutor"
 import { KeyAuthenticationFacade } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
-import { EncryptedPqKeyPairs } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 import { MaybeSignedPublicKey } from "../../../../../src/platform-kit/base/base-crypto/MaybeSignedPublicKey"
+import { EncryptedPqKeyPairs } from "../../../../../src/platform-kit/crypto/encryption/EncryptedKeyPairs"
 
 const PUBLIC_KEY_IDENTIFIER_MAIL_ADDRESS = "alice@tuta.com"
 
@@ -84,11 +83,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 			})
 			const expectedPublicKey: Versioned<PQPublicKeys> = {
 				version: 2,
-				object: {
-					keyPairType: KeyPairType.TUTA_CRYPT,
-					x25519PublicKey: x25519PublicKey,
-					kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
-				},
+				object: new PQPublicKeys(x25519PublicKey, bytesToKyberPublicKey(kyberPublicKey)),
 			}
 			const expectedResult: VerifiedPublicEncryptionKey = {
 				verificationState: object(),
@@ -121,13 +116,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 			const decodedRsaPublicKey = hexToRsaPublicKey(uint8ArrayToHex(rsaPublicKey))
 			const expectedPublicKey: Versioned<RsaPublicKey> = {
 				version: 0,
-				object: {
-					keyPairType: KeyPairType.RSA,
-					version: 0,
-					keyLength: 2048,
-					modulus: decodedRsaPublicKey.modulus,
-					publicExponent: decodedRsaPublicKey.publicExponent,
-				},
+				object: new RsaPublicKey(0, 2048, decodedRsaPublicKey.modulus, decodedRsaPublicKey.publicExponent),
 			}
 			const expectedResult: VerifiedPublicEncryptionKey = {
 				verificationState: object(),
@@ -179,11 +168,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 			const expectedPublicKey: MaybeSignedPublicKey = {
 				publicKey: {
 					version: 1,
-					object: {
-						keyPairType: KeyPairType.TUTA_CRYPT,
-						x25519PublicKey: x25519PublicKey,
-						kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
-					} as unknown as PQPublicKeys,
+					object: new PQPublicKeys(x25519PublicKey, bytesToKyberPublicKey(kyberPublicKey)),
 				},
 				signature: publicKeyGetOut.signature,
 			}
@@ -209,11 +194,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 			const expectedPublicKey: MaybeSignedPublicKey = {
 				publicKey: {
 					version: 1,
-					object: {
-						keyPairType: KeyPairType.TUTA_CRYPT,
-						x25519PublicKey: x25519PublicKey,
-						kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
-					} as unknown as PQPublicKeys,
+					object: new PQPublicKeys(x25519PublicKey, bytesToKyberPublicKey(kyberPublicKey)),
 				},
 				signature: publicKeyGetOut.signature,
 			}
@@ -239,11 +220,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 			const expectedPublicKey: MaybeSignedPublicKey = {
 				publicKey: {
 					version: 1,
-					object: {
-						keyPairType: KeyPairType.TUTA_CRYPT,
-						x25519PublicKey: x25519PublicKey,
-						kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
-					} as unknown as PQPublicKeys,
+					object: new PQPublicKeys(x25519PublicKey, bytesToKyberPublicKey(kyberPublicKey)),
 				},
 				signature: publicKeyGetOut.signature,
 			}
@@ -367,11 +344,7 @@ o.spec("PublicEncryptionKeyProvider - convert keys", function () {
 		const expectedPublicKey: MaybeSignedPublicKey = {
 			publicKey: {
 				version: 1,
-				object: {
-					keyPairType: KeyPairType.TUTA_CRYPT,
-					kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
-					x25519PublicKey: x25519PublicKey,
-				} as unknown as PQPublicKeys,
+				object: new PQPublicKeys(x25519PublicKey, bytesToKyberPublicKey(kyberPublicKey)),
 			},
 			signature: publicKeyGetOut.signature,
 		}
@@ -393,13 +366,7 @@ o.spec("PublicEncryptionKeyProvider - convert keys", function () {
 		const expectedPublicKey: MaybeSignedPublicKey = {
 			publicKey: {
 				version: 1,
-				object: {
-					keyPairType: KeyPairType.RSA,
-					version: 0,
-					keyLength: 2048,
-					modulus: decodedRsaPublicKey.modulus,
-					publicExponent: decodedRsaPublicKey.publicExponent,
-				} as unknown as RsaPublicKey,
+				object: new RsaPublicKey(0, 2048, decodedRsaPublicKey.modulus, decodedRsaPublicKey.publicExponent),
 			},
 			signature: publicKeyGetOut.signature,
 		}
@@ -421,14 +388,7 @@ o.spec("PublicEncryptionKeyProvider - convert keys", function () {
 		const expectedPublicKey: MaybeSignedPublicKey = {
 			publicKey: {
 				version: 1,
-				object: {
-					keyPairType: KeyPairType.RSA_AND_X25519,
-					version: 0,
-					keyLength: 2048,
-					modulus: decodedRsaPublicKey.modulus,
-					publicExponent: decodedRsaPublicKey.publicExponent,
-					publicEccKey: x25519PublicKey,
-				} as unknown as RsaX25519PublicKey,
+				object: new RsaX25519PublicKey(new RsaPublicKey(0, 2048, decodedRsaPublicKey.modulus, decodedRsaPublicKey.publicExponent), x25519PublicKey),
 			},
 			signature: publicKeyGetOut.signature,
 		}
@@ -489,11 +449,7 @@ o.spec("PublicEncryptionKeyProvider - convert keys", function () {
 		const fromDistributionKey = publicKeyProvider.convertFromPubDistributionKey(pubDistributionKey)
 		const expectedPublicKey: Versioned<PQPublicKeys> = {
 			version: 0, // always 0 for distribution keys.
-			object: {
-				keyPairType: KeyPairType.TUTA_CRYPT,
-				x25519PublicKey: x25519PublicKey,
-				kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
-			},
+			object: new PQPublicKeys(x25519PublicKey, bytesToKyberPublicKey(kyberPublicKey)),
 		}
 		o(fromDistributionKey).deepEquals(expectedPublicKey)
 	})
@@ -507,11 +463,7 @@ o.spec("PublicEncryptionKeyProvider - convert keys", function () {
 		const fromEncryptedPqKeyPairs = publicKeyProvider.convertFromEncryptedPqKeyPairs(encryptedPqKeyPairs, 1)
 		const expectedPublicKey: Versioned<PQPublicKeys> = {
 			version: 1,
-			object: {
-				keyPairType: KeyPairType.TUTA_CRYPT,
-				x25519PublicKey: x25519PublicKey,
-				kyberPublicKey: bytesToKyberPublicKey(kyberPublicKey),
-			},
+			object: new PQPublicKeys(x25519PublicKey, bytesToKyberPublicKey(kyberPublicKey)),
 		}
 		o(fromEncryptedPqKeyPairs).deepEquals(expectedPublicKey)
 	})

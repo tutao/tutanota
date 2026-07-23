@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { base64ToUint8Array, concat, hexToUint8Array } from "../../../src/platform-kit/utils"
+import { base64ToUint8Array, concat } from "../../../src/platform-kit/utils"
 import {
 	Aes128Key,
 	Aes256Key,
@@ -10,8 +10,8 @@ import {
 	FIXED_INITIALIZATION_VECTOR,
 	hexToRsaPrivateKey,
 	keyToUint8Array,
+	SymmetricCipherVersion,
 	uint8ArrayToBitArray,
-	UnusedReservedUnauthenticatedSubKeys,
 } from "../../../src/platform-kit/crypto"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { _aes128RandomKey } from "./AesTest.js"
@@ -116,7 +116,7 @@ function legacyEncryptKeyWithDeviceKeyChain(keyChainKey: AesKey, keyToBeEncrypte
 //Do not use outside this test!!!
 //No padding, no mac, fixed initialization vector
 function legacyAes256EncryptWithRecoveryKey(key: Aes256Key, bytes: Uint8Array): Uint8Array {
-	const subKeys = new UnusedReservedUnauthenticatedSubKeys(key)
+	const subKeys = new SymmetricKeyDeriver().deriveSubKeysAesCbc(key, SymmetricCipherVersion.UnusedReservedUnauthenticated)
 	const encryptedBits = sjcl.mode.cbc.encrypt(
 		new sjcl.cipher.aes(subKeys.encryptionKey.bits),
 		uint8ArrayToBitArray(bytes),

@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { concat, hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex } from "../../../src/platform-kit/utils"
-import { extractRawPublicRsaKeyFromPrivateRsaKey, KeyPairType, random, RsaKeyPair } from "../../../src/platform-kit/crypto"
+import { extractRawPublicRsaKeyFromPrivateRsaKey, random, RsaKeyPair, RsaPrivateKey, RsaPublicKey } from "../../../src/platform-kit/crypto"
 import {
 	_getPSBlock,
 	_keyArrayToHex,
@@ -30,7 +30,7 @@ const publicKey = hexToRsaPublicKey(
 	"02008bb1bbcb2c6915c182b0c7cc93e1d8210181ffee4be4ae81f7a98fdba2d6e37cea72e2124ebb6b05d330ab1ddfbc6d85c9d1c90fc3b65bd9634c3b722fe77ab98f33cc28af975d51609e1c308324501d615cbb82836c33c2a240e00826ddf09460cee7a975c0607579d4f7b707e19287a1c754ba485e04aab664e44cae8fcab770b9bb5c95a271786aa79d6fa11dd21bdb3a08b679bd5f29fc95ab573a3dabcbd8e70aaec0cc2a817eefbc886d3eafea96abd0d5e364b83ccf74f4d18b3546b014fa24b90134179ed952209971211c623a2743da0c3236abd512499920a75651482b43b27c18d477e8735935425933d8f09a12fbf1950cf8a381ef5f2400fcf9",
 )
 
-const RSA_TEST_KEYPAIR: RsaKeyPair = { keyPairType: KeyPairType.RSA, privateKey, publicKey }
+const RSA_TEST_KEYPAIR = new RsaKeyPair(publicKey, privateKey)
 
 o.spec("RsaTest", function () {
 	o.afterEach(function () {
@@ -111,33 +111,25 @@ o.spec("RsaTest", function () {
 	})
 	o("rsa encrypt longer result", function () {
 		// This input makes JSBN produce leading zeroes in byte output and we need to take this into account
-		const keyPair = {
-			keyPairType: KeyPairType.RSA,
-			publicKey: {
-				keyPairType: KeyPairType.RSA,
-				version: 0,
-				keyLength: 2048,
-				modulus:
-					"ALQ63xzGe/+6bo2fowZAa1t9fpTfrQjJr5xxCfrUI30/pQTnbSosUfRfCrXMtVkgmSgm32AQ0Q0fuWTueKn4us89iL7VcKQ1/WRhetZCi03q+KlOBLp6QX80T41PzXb+xbjQ8AhNtTluVrjC2MoykzegHY/Ks3XAd62RGt0mfvDj7+tgLm2n2UXTL1WXYnVLIjINaOUPmspm8ve9ot1uSjQuLCq3pmy4bNz4WIxuJiegVWwCIbxCuueimjP3OfYp9afunnRZIxcHeASxYSnmlxT2RYOKHNbHdVlzhbVsp9FZs4a2DrJDUr9CRiuh4am/NPwXMkS7UQXazJ0RBDQmAqE=",
-				publicExponent: 65537,
-			},
-			privateKey: {
-				version: 0,
-				keyLength: 2048,
-				modulus:
-					"ALQ63xzGe/+6bo2fowZAa1t9fpTfrQjJr5xxCfrUI30/pQTnbSosUfRfCrXMtVkgmSgm32AQ0Q0fuWTueKn4us89iL7VcKQ1/WRhetZCi03q+KlOBLp6QX80T41PzXb+xbjQ8AhNtTluVrjC2MoykzegHY/Ks3XAd62RGt0mfvDj7+tgLm2n2UXTL1WXYnVLIjINaOUPmspm8ve9ot1uSjQuLCq3pmy4bNz4WIxuJiegVWwCIbxCuueimjP3OfYp9afunnRZIxcHeASxYSnmlxT2RYOKHNbHdVlzhbVsp9FZs4a2DrJDUr9CRiuh4am/NPwXMkS7UQXazJ0RBDQmAqE=",
-				privateExponent:
-					"Nr4S+qiHDVvRLI8qc0Gp2jY59noiEqNABeKHx3ob9XUZaG3qyH6BvhoIJMQy6Qlvu7Ri8Mjq1nOmWjPczrPP+haUrHIkLpx/hLffGalIqrgOI06hPQrZTgvThfaRT+1+nO5JmhwQSYtsJ952/qNx99lYYU6OR9vX/g4u/LEuqXfvluYLS+low9RizepoYnv+k5u8WLwekHFi9eyO6BK1f5RizSFbA5+qqOWl9cyI8jLtAfskLF6+v1fkHg6ZbxqbtiddRGSMAK4Z+HEKrsuUKqsxtkL+tYSxe2QvZm2mhsiJTrXrq+dBOAzy6FbrAdGR2l5Mwfqb+SuO+Tb+HO5lgQ==",
-				primeP: "AOcqBtOGECvIbtvcYApoS92KEXge28NhtNRa97356nY+j+ibn1gN4AyGJS8GufvOv7mFq9m+eQZpLHOgQ0xXlXU3UnJVLN2eYbwrNc6vVOii6xMEXXolImtYrD5YLkAmvsP8NNIJCU5ntakXuAm461xdpZOvgIDmlI+WIiLvobzJ",
-				primeQ: "AMeX8XCw2W/zE2z8GB1r4GpKfBUjNAfO9nEiRUdq1mXEd5MlRvZDi+4hlCKPHHrRgo7SZsQtl1rbBdWiTZdhkdD2UbEt1hNZ6NtgWZssrs+SIDtnOBg0wHHWUUlwkoaTzYcL984qlz2hn468FDBBvO7eR/Z+S3sQ5wSPTkL7dnsZ",
-				primeExponentP:
-					"LBRugs1QrhilUxV91t42gUM/u4ke3O33vnquPTK3y954MKHkS7UxoRG/a20779Fn6+eacoYIq/lIObA4xQj6fgSTmyu0x3nZJzmSJBx483eFnfW6IX2NR6z8A1NrVl5NCDBCnj6M4L+T+2+Db48sikttNHFF7s6JS6wUTFcnn0k=",
-				primeExponentQ:
-					"AMHOm4YWY3yeJq27+FqRRp9PZj9MKJiwcYKXiXf4mOjGpml+V/KG0lhPyLzqA/iKeeDfEyTJNF/nrzmrWPZ2qpWiqN6HqIiv1Dk4zKmt8KzjsmKcLs7qYjfnqJTMN6tv17GbgGtz1dnll76MiHn3S1MTCgOizP5aAkjeMls+O+T5",
-				crtCoefficient:
-					"KtVWWNvEmo0ZjSBsQBq9YhghylphP/88BIO0X2C3gH+07+U9laZEO7HiEvD15bbYwf2LKr0xeWiK5vuPdMGcvKmo3tmb4HPP5exddJ+Kpo1XVvOGV1NxiOQlDkhQqSo2be/EeHuNreKM8275drvdCcOuEg8QOMsrae2PCMbqE0w=",
-			},
-		}
+		const keyPair = new RsaKeyPair(
+			new RsaPublicKey(
+				0,
+				2048,
+				"ALQ63xzGe/+6bo2fowZAa1t9fpTfrQjJr5xxCfrUI30/pQTnbSosUfRfCrXMtVkgmSgm32AQ0Q0fuWTueKn4us89iL7VcKQ1/WRhetZCi03q+KlOBLp6QX80T41PzXb+xbjQ8AhNtTluVrjC2MoykzegHY/Ks3XAd62RGt0mfvDj7+tgLm2n2UXTL1WXYnVLIjINaOUPmspm8ve9ot1uSjQuLCq3pmy4bNz4WIxuJiegVWwCIbxCuueimjP3OfYp9afunnRZIxcHeASxYSnmlxT2RYOKHNbHdVlzhbVsp9FZs4a2DrJDUr9CRiuh4am/NPwXMkS7UQXazJ0RBDQmAqE=",
+				65537,
+			),
+			new RsaPrivateKey(
+				0,
+				2048,
+				"ALQ63xzGe/+6bo2fowZAa1t9fpTfrQjJr5xxCfrUI30/pQTnbSosUfRfCrXMtVkgmSgm32AQ0Q0fuWTueKn4us89iL7VcKQ1/WRhetZCi03q+KlOBLp6QX80T41PzXb+xbjQ8AhNtTluVrjC2MoykzegHY/Ks3XAd62RGt0mfvDj7+tgLm2n2UXTL1WXYnVLIjINaOUPmspm8ve9ot1uSjQuLCq3pmy4bNz4WIxuJiegVWwCIbxCuueimjP3OfYp9afunnRZIxcHeASxYSnmlxT2RYOKHNbHdVlzhbVsp9FZs4a2DrJDUr9CRiuh4am/NPwXMkS7UQXazJ0RBDQmAqE=",
+				"Nr4S+qiHDVvRLI8qc0Gp2jY59noiEqNABeKHx3ob9XUZaG3qyH6BvhoIJMQy6Qlvu7Ri8Mjq1nOmWjPczrPP+haUrHIkLpx/hLffGalIqrgOI06hPQrZTgvThfaRT+1+nO5JmhwQSYtsJ952/qNx99lYYU6OR9vX/g4u/LEuqXfvluYLS+low9RizepoYnv+k5u8WLwekHFi9eyO6BK1f5RizSFbA5+qqOWl9cyI8jLtAfskLF6+v1fkHg6ZbxqbtiddRGSMAK4Z+HEKrsuUKqsxtkL+tYSxe2QvZm2mhsiJTrXrq+dBOAzy6FbrAdGR2l5Mwfqb+SuO+Tb+HO5lgQ==",
+				"AOcqBtOGECvIbtvcYApoS92KEXge28NhtNRa97356nY+j+ibn1gN4AyGJS8GufvOv7mFq9m+eQZpLHOgQ0xXlXU3UnJVLN2eYbwrNc6vVOii6xMEXXolImtYrD5YLkAmvsP8NNIJCU5ntakXuAm461xdpZOvgIDmlI+WIiLvobzJ",
+				"AMeX8XCw2W/zE2z8GB1r4GpKfBUjNAfO9nEiRUdq1mXEd5MlRvZDi+4hlCKPHHrRgo7SZsQtl1rbBdWiTZdhkdD2UbEt1hNZ6NtgWZssrs+SIDtnOBg0wHHWUUlwkoaTzYcL984qlz2hn468FDBBvO7eR/Z+S3sQ5wSPTkL7dnsZ",
+				"LBRugs1QrhilUxV91t42gUM/u4ke3O33vnquPTK3y954MKHkS7UxoRG/a20779Fn6+eacoYIq/lIObA4xQj6fgSTmyu0x3nZJzmSJBx483eFnfW6IX2NR6z8A1NrVl5NCDBCnj6M4L+T+2+Db48sikttNHFF7s6JS6wUTFcnn0k=",
+				"AMHOm4YWY3yeJq27+FqRRp9PZj9MKJiwcYKXiXf4mOjGpml+V/KG0lhPyLzqA/iKeeDfEyTJNF/nrzmrWPZ2qpWiqN6HqIiv1Dk4zKmt8KzjsmKcLs7qYjfnqJTMN6tv17GbgGtz1dnll76MiHn3S1MTCgOizP5aAkjeMls+O+T5",
+				"KtVWWNvEmo0ZjSBsQBq9YhghylphP/88BIO0X2C3gH+07+U9laZEO7HiEvD15bbYwf2LKr0xeWiK5vuPdMGcvKmo3tmb4HPP5exddJ+Kpo1XVvOGV1NxiOQlDkhQqSo2be/EeHuNreKM8275drvdCcOuEg8QOMsrae2PCMbqE0w=",
+			),
+		)
 		const seed = new Uint8Array([
 			85, 187, 219, 138, 52, 2, 113, 97, 241, 224, 161, 107, 39, 121, 234, 31, 17, 93, 14, 185, 255, 173, 233, 244, 123, 159, 247, 166, 12, 49, 232, 214,
 		])
@@ -150,33 +142,25 @@ o.spec("RsaTest", function () {
 	o("rsa test shorter result", function () {
 		// This combination produces encrypted data with length of 254 and we pad have to pad it to 256
 		// We use fixed keypair and salt to reproduce this error each time
-		const keyPair = {
-			keyPairType: KeyPairType.RSA,
-			publicKey: {
-				keyPairType: KeyPairType.RSA,
-				version: 0,
-				keyLength: 2048,
-				modulus:
-					"AKhUZJKI9TvMx4CiO764vWiUVVzhm/SLQZlkDQ37WuJkiK3mEgy1wbHEsXtXeZZ+ctTheADpryegsOWl2R4PA+yQOzywh6Q5PlRSCQz2Wvy2IG+jnpPepw+va2vRPH+ePwYJoSgNYFu0Vw+/GP/W458doVzhTZYiqfFWhBJCfxBhzgFwuliyfR7wUvDjPzoKqoSVgcKjFQdmGGd9zADIITMCCHebXXfppUKhFtzdCFjQu2QHTIc+/U8w4bbXwqFrn9fo5OQu8jF3+V/WFdVEQFl6TyhoV0VoQB0T5zcsN3lGoUMCWWTe61cyibP7jRHw+2BbBU4CKCvrBHNxg/jfW6k=",
-				publicExponent: 65537,
-			},
-			privateKey: {
-				version: 0,
-				keyLength: 2048,
-				modulus:
-					"AKhUZJKI9TvMx4CiO764vWiUVVzhm/SLQZlkDQ37WuJkiK3mEgy1wbHEsXtXeZZ+ctTheADpryegsOWl2R4PA+yQOzywh6Q5PlRSCQz2Wvy2IG+jnpPepw+va2vRPH+ePwYJoSgNYFu0Vw+/GP/W458doVzhTZYiqfFWhBJCfxBhzgFwuliyfR7wUvDjPzoKqoSVgcKjFQdmGGd9zADIITMCCHebXXfppUKhFtzdCFjQu2QHTIc+/U8w4bbXwqFrn9fo5OQu8jF3+V/WFdVEQFl6TyhoV0VoQB0T5zcsN3lGoUMCWWTe61cyibP7jRHw+2BbBU4CKCvrBHNxg/jfW6k=",
-				privateExponent:
-					"Vmx99n466qkJBRJGenV/SeJesYFkAPo+g/LKgRM8ZmAXjLFDMyNef1btiNYwpwPlEUdxxYY1V7M5H682+ifba+nhgBdijP6W8dPssasKrBUWMjtff6whOfxmusSCu0MUOJVZGKdFgc/lo0AKJdC+rUMZRganPx4tAqvYw0dA1beKnboCbxy3V8IA2jSHQoq96lJ2rWuTGp+mWsQLqyqNB/jAzTiFXqxGca1qRWAUvCR+a0aV6vS3BSKaveyuJTGUkW2KKU5pJw+7K4onXgWuvkhMKg3OLqVW1zF6dUOf0ur1AC9dO03lrVSvKdOHiEUQsru6zB0KaLNyJKuTy9KxwQ==",
-				primeP: "AOucuvOtNk/tA3p5PaceGMfu1o2XgUeF3bloSLBU+y3Gf0Wsd1syKIvm5dCjIF9vwIDDi0Zd16gk3sPF9xfuUJiTI/nXPbVOjzaFREenp9eJKX2EhrUNVFfg3yScR3xNNwAxoZoDQsBFwtJ9OCWfurmjSf5xqX9fvjrxdFNbeaJj",
-				primeQ: "ALblOQAt3YMaXCnvJUdZCdzTN5TappttbRiOpiWotcJ4B/1M9OEbYSLecO12ZuJlZvFYvzXeVidRz2ECty+8uXKcw7wCptdxY3Lpn6kcGqs/pVel3/0OqZgpo8Qi4aYvRAjw9tyD+aZq85OuCf9l8WkeuMpsLC2P7zsFWp1iy6GD",
-				primeExponentP:
-					"KBp2S9G4w+PwyqDmWJKr3yQNCu61x4nGkq9oZ/MfCcyWjzJq4m/oLN/xUBDkCrqHxqMCCskgUvNro2EHzN/4ge/RmM4FJ94mTD5kv9mOnQYwtLehAiIxr/+Lm7yqAkNWUEciXYeejgGRxqgfrW/BpaVgi9mm4xJV28yLY0DXtEc=",
-				primeExponentQ:
-					"AKhxOCwIEcia0GL2kzjAsiqkhL4dGfBvuVgymKZ6WNu/vGv3Iljn5HA+uXaZ42uCxGpmt8Oe/227FOldnOTkRU9fPY28S3iEP3kn3RncfltVhKvSYxYnGN7BCsiq73MkeN5bPqAdFCHGwooycZa8hrevybT0J0PXGhcbeTcWNECN",
-				crtCoefficient:
-					"ahQsS+g8tOsUglzDmPeEtzXZz4Nm/4V14UZkLB8UoQsGwxPYorcH4TBpvtcS2Pm7i9VePeDR1SaaORf5mumuEskURg/7OW28H4GusMAk+kOigxmGrIMqJMpk6hy0nsgenSCX+iJ49ph2rUtm2kJovI+e64Ytkvajzteufb27XN0=",
-			},
-		}
+		const keyPair = new RsaKeyPair(
+			new RsaPublicKey(
+				0,
+				2048,
+				"AKhUZJKI9TvMx4CiO764vWiUVVzhm/SLQZlkDQ37WuJkiK3mEgy1wbHEsXtXeZZ+ctTheADpryegsOWl2R4PA+yQOzywh6Q5PlRSCQz2Wvy2IG+jnpPepw+va2vRPH+ePwYJoSgNYFu0Vw+/GP/W458doVzhTZYiqfFWhBJCfxBhzgFwuliyfR7wUvDjPzoKqoSVgcKjFQdmGGd9zADIITMCCHebXXfppUKhFtzdCFjQu2QHTIc+/U8w4bbXwqFrn9fo5OQu8jF3+V/WFdVEQFl6TyhoV0VoQB0T5zcsN3lGoUMCWWTe61cyibP7jRHw+2BbBU4CKCvrBHNxg/jfW6k=",
+				65537,
+			),
+			new RsaPrivateKey(
+				0,
+				2048,
+				"AKhUZJKI9TvMx4CiO764vWiUVVzhm/SLQZlkDQ37WuJkiK3mEgy1wbHEsXtXeZZ+ctTheADpryegsOWl2R4PA+yQOzywh6Q5PlRSCQz2Wvy2IG+jnpPepw+va2vRPH+ePwYJoSgNYFu0Vw+/GP/W458doVzhTZYiqfFWhBJCfxBhzgFwuliyfR7wUvDjPzoKqoSVgcKjFQdmGGd9zADIITMCCHebXXfppUKhFtzdCFjQu2QHTIc+/U8w4bbXwqFrn9fo5OQu8jF3+V/WFdVEQFl6TyhoV0VoQB0T5zcsN3lGoUMCWWTe61cyibP7jRHw+2BbBU4CKCvrBHNxg/jfW6k=",
+				"Vmx99n466qkJBRJGenV/SeJesYFkAPo+g/LKgRM8ZmAXjLFDMyNef1btiNYwpwPlEUdxxYY1V7M5H682+ifba+nhgBdijP6W8dPssasKrBUWMjtff6whOfxmusSCu0MUOJVZGKdFgc/lo0AKJdC+rUMZRganPx4tAqvYw0dA1beKnboCbxy3V8IA2jSHQoq96lJ2rWuTGp+mWsQLqyqNB/jAzTiFXqxGca1qRWAUvCR+a0aV6vS3BSKaveyuJTGUkW2KKU5pJw+7K4onXgWuvkhMKg3OLqVW1zF6dUOf0ur1AC9dO03lrVSvKdOHiEUQsru6zB0KaLNyJKuTy9KxwQ==",
+				"AOucuvOtNk/tA3p5PaceGMfu1o2XgUeF3bloSLBU+y3Gf0Wsd1syKIvm5dCjIF9vwIDDi0Zd16gk3sPF9xfuUJiTI/nXPbVOjzaFREenp9eJKX2EhrUNVFfg3yScR3xNNwAxoZoDQsBFwtJ9OCWfurmjSf5xqX9fvjrxdFNbeaJj",
+				"ALblOQAt3YMaXCnvJUdZCdzTN5TappttbRiOpiWotcJ4B/1M9OEbYSLecO12ZuJlZvFYvzXeVidRz2ECty+8uXKcw7wCptdxY3Lpn6kcGqs/pVel3/0OqZgpo8Qi4aYvRAjw9tyD+aZq85OuCf9l8WkeuMpsLC2P7zsFWp1iy6GD",
+				"KBp2S9G4w+PwyqDmWJKr3yQNCu61x4nGkq9oZ/MfCcyWjzJq4m/oLN/xUBDkCrqHxqMCCskgUvNro2EHzN/4ge/RmM4FJ94mTD5kv9mOnQYwtLehAiIxr/+Lm7yqAkNWUEciXYeejgGRxqgfrW/BpaVgi9mm4xJV28yLY0DXtEc=",
+				"AKhxOCwIEcia0GL2kzjAsiqkhL4dGfBvuVgymKZ6WNu/vGv3Iljn5HA+uXaZ42uCxGpmt8Oe/227FOldnOTkRU9fPY28S3iEP3kn3RncfltVhKvSYxYnGN7BCsiq73MkeN5bPqAdFCHGwooycZa8hrevybT0J0PXGhcbeTcWNECN",
+				"ahQsS+g8tOsUglzDmPeEtzXZz4Nm/4V14UZkLB8UoQsGwxPYorcH4TBpvtcS2Pm7i9VePeDR1SaaORf5mumuEskURg/7OW28H4GusMAk+kOigxmGrIMqJMpk6hy0nsgenSCX+iJ49ph2rUtm2kJovI+e64Ytkvajzteufb27XN0=",
+			),
+		)
 		const plain = hexToUint8Array("88888888888888888888888888888888") // = 16 byte sym key
 
 		const salt = new Uint8Array([

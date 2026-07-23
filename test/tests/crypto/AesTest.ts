@@ -1,4 +1,4 @@
-import o, { assertThrows, throwsErrorWithMessage } from "@tutao/otest"
+import o, { throwsErrorWithMessage } from "@tutao/otest"
 import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "../../../src/platform-kit/utils"
 import {
 	Aes128Key,
@@ -13,7 +13,7 @@ import {
 	random,
 	uint8ArrayToKey,
 } from "../../../src/platform-kit/crypto"
-import { BLOCK_SIZE_BYTES, validateInitializationVectorLength } from "@tutao/crypto/symmetric-cipher-utils"
+import { validateInitializationVectorLength } from "@tutao/crypto/symmetric-cipher-utils"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
 import {
 	aes256EncryptSearchIndexEntry,
@@ -79,19 +79,6 @@ o.spec("aes", function () {
 		o(keyToBase64(base64ToKey(key2Base64))).equals(key2Base64)
 		o(keyToBase64(base64ToKey(key3Base64))).equals(key3Base64)
 	}
-
-	o("encryptWithInvalidKey", async function () {
-		let key = new Aes128Key(new Array<number>(2))
-		const e = await assertThrows(CryptoError, async () => aesEncrypt(key, stringToUtf8Uint8Array("hello")))
-		o(e.message.startsWith("Illegal key length")).equals(true)
-	})
-
-	o("decryptWithInvalidKey", async function () {
-		let key = new Aes128Key(Array<number>(2).fill(0))
-		const e = await assertThrows(CryptoError, async () => aesDecrypt(key, new Uint8Array(BLOCK_SIZE_BYTES)))
-		console.log(">>>", e.message)
-		o(e.message.startsWith("Illegal key length")).equals(true)
-	})
 
 	o("decryptInvalidData 128", () => decryptInvalidData(_aes128RandomKey(), aesDecrypt, "aes decryption failed> initialization vector must be 128 bits"))
 	o("decryptInvalidData 256 without hmac", () =>

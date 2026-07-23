@@ -1,10 +1,8 @@
 import o from "@tutao/otest"
 import {
-	AeadSubKeys,
 	AeadWithSessionKeySubKeys,
 	AesKeyLength,
 	AsymmetricKeyPair,
-	bitArrayToUint8Array,
 	bytesToEd25519PrivateKey,
 	bytesToEd25519PublicKey,
 	bytesToEd25519Signature,
@@ -27,7 +25,6 @@ import {
 	INITIALIZATION_VECTOR_LENGTH_BYTES,
 	InstanceTypeId,
 	KeyLength,
-	KeyPairType,
 	keyToUint8Array,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
@@ -35,13 +32,13 @@ import {
 	pqKeyPairsToPublicKeys,
 	PQPublicKeys,
 	PublicKey,
-	RsaKeyPair,
-	RsaX25519KeyPair,
-	RsaX25519PublicKey,
 	random,
 	Randomizer,
 	rsaDecrypt,
 	rsaEncrypt,
+	RsaKeyPair,
+	RsaX25519KeyPair,
+	RsaX25519PublicKey,
 	SymmetricCipherVersion,
 	uint8ArrayToKey,
 	validateKdfNonceLength,
@@ -194,7 +191,6 @@ o.spec("CompatibilityTest", function () {
 			const encryptedKey256 = encryptKey(key, keyToEncrypt256)
 			o(uint8ArrayToBase64(encryptedKey256)).equals(td.encryptedKey256)
 			const decryptedKey256 = decryptKey(key, encryptedKey256)
-			console.log(decryptedKey256)
 			o(uint8ArrayToHex(keyToUint8Array(decryptedKey256))).equals(td.keyToEncrypt256)
 		}
 	})
@@ -375,12 +371,8 @@ o.spec("CompatibilityTest", function () {
 				privateKey: bytesToKyberPrivateKey(hexToUint8Array(td.privateKyberKey)),
 			}
 
-			const pqPublicKeys: PQPublicKeys = {
-				keyPairType: KeyPairType.TUTA_CRYPT,
-				x25519PublicKey: x25519KeyPair.publicKey,
-				kyberPublicKey: kyberKeyPair.publicKey,
-			}
-			const pqKeyPairs: PQKeyPairs = { keyPairType: KeyPairType.TUTA_CRYPT, x25519KeyPair, kyberKeyPair }
+			const pqPublicKeys = new PQPublicKeys(x25519KeyPair.publicKey, kyberKeyPair.publicKey)
+			const pqKeyPairs = new PQKeyPairs(x25519KeyPair, kyberKeyPair)
 			const pqFacade = new PQFacade(new WASMKyberFacade(libOQS))
 
 			const encapsulation = await pqFacade.encapsulateAndEncode(x25519KeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
@@ -423,13 +415,7 @@ o.spec("CompatibilityTest", function () {
 						publicEccKey,
 						hexToUint8Array(td.privateEccKey),
 					)
-					encryptionPublicKey = new RsaX25519PublicKey(
-						rsaPublicKey.version,
-						rsaPublicKey.keyLength,
-						rsaPublicKey.modulus,
-						rsaPublicKey.publicExponent,
-						publicEccKey,
-					)
+					encryptionPublicKey = new RsaX25519PublicKey(rsaPublicKey, publicEccKey)
 				} else {
 					encryptionKeyPair = new RsaKeyPair(rsaPublicKey, hexToRsaPrivateKey(td.privateRsaKey))
 					encryptionPublicKey = rsaPublicKey

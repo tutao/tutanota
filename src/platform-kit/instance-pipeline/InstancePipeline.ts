@@ -2,16 +2,8 @@ import { TypeMapper } from "./TypeMapper"
 import { CryptoMapper, SymmetricGroupKeyLoader } from "./CryptoMapper"
 import { TypeRef } from "../meta"
 import { ModelMapper } from "./ModelMapper"
-import { assertNotNull, downcast, lazy, Nullable } from "@tutao/utils"
-import {
-	AesKey,
-	SubKeyInfo,
-	SubKeyInfoWithoutSessionKey,
-	SubKeyInfoWithSessionKey,
-	SymmetricCipherFacade,
-	SymmetricCipherVersion,
-	validateKdfNonceLength,
-} from "@tutao/crypto"
+import { downcast, lazy, Nullable } from "@tutao/utils"
+import { AesKey, makeNullableSubKeyInfoWithSessionKeyCbcThenHmac, SubKeyInfo, SymmetricCipherFacade, validateKdfNonceLength } from "@tutao/crypto"
 import { assertWorkerOrNode, isWebClient, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter } from "./EntityAdapter"
 import { ClientTypeReferenceResolver, ServerTypeReferenceResolver } from "./EntityFunctions"
@@ -53,16 +45,16 @@ export class InstancePipeline {
 		sessionKey: Promise<Nullable<AesKey>> | Nullable<AesKey>,
 	): Promise<ClientModelUntypedInstance> {
 		const sk = await sessionKey
-		let subKeyInfo: SubKeyInfo
-		if (sk) {
-			subKeyInfo = new SubKeyInfoWithSessionKey(SymmetricCipherVersion.AesCbcThenHmac, sk)
-		} else {
-			subKeyInfo = new SubKeyInfoWithoutSessionKey(SymmetricCipherVersion.AesCbcThenHmac)
-		}
+		const subKeyInfo = makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(sk)
 
 		return this.mapAndEncryptWithSubKeyInfo(typeRef, instance, subKeyInfo)
 	}
-	async mapAndEncryptWithSubKeyInfo<T extends Entity>(typeRef: TypeRef<T>, instance: T, subKeyInfo: SubKeyInfo): Promise<ClientModelUntypedInstance> {
+
+	async mapAndEncryptWithSubKeyInfo<T extends Entity>(
+		typeRef: TypeRef<T>,
+		instance: T,
+		subKeyInfo: Nullable<SubKeyInfo>,
+	): Promise<ClientModelUntypedInstance> {
 		const typeModel = await this.clientTypeReferenceResolver(typeRef)
 		const parsedInstance: ClientModelParsedInstance = await this.modelMapper.mapToClientModelParsedInstance(downcast(typeRef), instance)
 
