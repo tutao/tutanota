@@ -88,6 +88,7 @@ import { getElementId, isSameId } from "../../../../platform-kit/meta"
 import { getMailFolderType, isFolder, isFolderReadOnly } from "../MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
+import { ExpanderPanel } from "../../../../ui/base/Expander"
 
 assertMainOrNode()
 
@@ -119,8 +120,10 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private countersStream: Stream<unknown> | null = null
 
-	private readonly expandedState: Set<Id>
+	private readonly collapsedMailGroups: Set<Id>
+	private readonly expandedMailSets: Set<Id>
 	private readonly mailViewModel: MailViewModel
+
 	private readonly undoModel: UndoModel
 
 	get conversationViewModel(): ConversationViewModel | null {
@@ -130,7 +133,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	constructor(vnode: Vnode<MailViewAttrs>) {
 		super()
 		const userId = locator.logins.getUserController().userId
-		this.expandedState = new Set(deviceConfig.getExpandedFolders(userId))
+		this.expandedMailSets = new Set(deviceConfig.getExpandedFolders(userId))
+		this.collapsedMailGroups = new Set(deviceConfig.getCollapsedMailGroups(userId))
 		this.cache = vnode.attrs.cache
 		this.folderColumn = this.createFolderColumn(null, vnode.attrs.drawerAttrs)
 		this.mailViewModel = vnode.attrs.mailViewModel
@@ -1118,34 +1122,58 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private renderFoldersAndLabels(editingFolderForMailGroup: Id | null) {
 		const details = locator.mailboxModel.mailboxDetails() ?? []
+		const userHasMultipleMailboxes = details.length > 1
 		return [
 			...details.map((mailboxDetail) => {
-				return this.renderFoldersAndLabelsForMailbox(mailboxDetail, editingFolderForMailGroup)
+				return this.renderFoldersAndLabelsForMailbox(mailboxDetail, editingFolderForMailGroup, userHasMultipleMailboxes)
 			}),
 		]
 	}
 
-	private renderFoldersAndLabelsForMailbox(mailboxDetail: MailboxDetail, editingFolderForMailGroup: string | null) {
-		const inEditMode = editingFolderForMailGroup === mailboxDetail.mailGroup._id
+	private renderFoldersAndLabelsForMailbox(mailboxDetail: MailboxDetail, editingFolderForMailGroup: string | null, userHasMultipleMailboxes: boolean) {
+		const mailGroupId = mailboxDetail.mailGroup._id
+
+		// do not display on Edit mode
+		const inEditMode = editingFolderForMailGroup === mailGroupId
 		// Only show mailSets for mailbox in which edit was selected
 		if (editingFolderForMailGroup && !inEditMode) {
 			return null
 		} else {
+			const isMailGroupCollapsed = this.collapsedMailGroups.has(mailGroupId)
+			const folderAndLabelChildren = [
+				this.createMailboxFolderItems(mailboxDetail, inEditMode, () => {
+					EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailGroupId))
+				}),
+				mailLocator.mailModel.canManageLabels()
+					? this.renderMailboxLabelItems(mailboxDetail, inEditMode, () => {
+							EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailGroupId))
+						})
+					: null,
+			]
 			return m(
 				SidebarSection,
 				{
 					name: lang.makeTranslation("mailbox_name", getMailboxName(locator.logins, mailboxDetail)),
-				},
-				[
-					this.createMailboxFolderItems(mailboxDetail, inEditMode, () => {
-						EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailboxDetail.mailGroup._id))
-					}),
-					mailLocator.mailModel.canManageLabels()
-						? this.renderMailboxLabelItems(mailboxDetail, inEditMode, () => {
-								EditFoldersDialog.showEdit(() => this.renderFoldersAndLabels(mailboxDetail.mailGroup._id))
+					button: userHasMultipleMailboxes
+						? m(IconButton, {
+								title: isMailGroupCollapsed ? "show_action" : "hide_action",
+								size: ButtonSize.Compact,
+								icon: isMailGroupCollapsed ? Icons.ChevronDown : Icons.ChevronUp,
+								click: () => {
+									this.setCollapsedMailGroups(mailGroupId, isMailGroupCollapsed)
+								},
 							})
 						: null,
-				],
+				},
+				userHasMultipleMailboxes
+					? m(
+							ExpanderPanel,
+							{
+								expanded: !isMailGroupCollapsed,
+							},
+							folderAndLabelChildren,
+						)
+					: folderAndLabelChildren,
 			)
 		}
 	}
@@ -1154,14 +1182,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		return m(MailFoldersView, {
 			mailModel: mailLocator.mailModel,
 			mailboxDetail,
-			expandedFolders: this.expandedState,
+			expandedFolders: this.expandedMailSets,
 			mailFolderElementIdToSelectedMailId: this.mailViewModel.getMailFolderToSelectedMail(),
 			onFolderClick: () => {
 				if (!inEditMode) {
 					this.viewSlider.focus(this.listColumn)
 				}
 			},
-			onFolderExpanded: (folder, state) => this.setExpandedState(folder, state),
+			onFolderExpanded: (folder, state) => this.setExpandedMailSetState(folder, state),
 			onShowFolderAddEditDialog: (...args) => this.showFolderAddEditDialog(...args),
 			onDeleteCustomMailFolder: (folder) => this.deleteCustomMailFolder(mailboxDetail, folder),
 			onFolderDrop: (dropData, folder) => {
@@ -1178,13 +1206,22 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		})
 	}
 
-	private setExpandedState(folder: MailSet, currentExpansionState: boolean) {
+	private setExpandedMailSetState(folder: MailSet, currentExpansionState: boolean) {
 		if (currentExpansionState) {
-			this.expandedState.delete(getElementId(folder))
+			this.expandedMailSets.delete(getElementId(folder))
 		} else {
-			this.expandedState.add(getElementId(folder))
+			this.expandedMailSets.add(getElementId(folder))
 		}
-		deviceConfig.setExpandedFolders(locator.logins.getUserController().userId, [...this.expandedState])
+		deviceConfig.setExpandedFolders(locator.logins.getUserController().userId, Array.from(this.expandedMailSets))
+	}
+
+	private setCollapsedMailGroups(mailGroupId: Id, currentCollapsedState: boolean) {
+		if (currentCollapsedState) {
+			this.collapsedMailGroups.delete(mailGroupId)
+		} else {
+			this.collapsedMailGroups.add(mailGroupId)
+		}
+		deviceConfig.setCollapsedMailGroups(locator.logins.getUserController().userId, Array.from(this.collapsedMailGroups))
 	}
 
 	protected onNewUrl(args: Record<string, any>, requestedPath: string) {
