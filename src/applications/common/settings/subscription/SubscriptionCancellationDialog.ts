@@ -10,7 +10,13 @@ import { CancelSubscriptionErrorPage } from "./dialogpages/CancelSubscriptionErr
 import { CancelSubscriptionSuccessPage } from "./dialogpages/CancelSubscriptionSuccessPage"
 import m from "mithril"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { Booking } from "@tutao/entities/sys"
+import { Booking, createSurveyData, createSurveyDataPostIn, SurveyService } from "@tutao/entities/sys"
+import { showLeavingUserSurveyWizard } from "../../subscription/LeavingUserSurveyWizard"
+import { locator } from "../../api/main/CommonLocator"
+import { SURVEY_VERSION_NUMBER } from "../../subscription/LeavingUserSurveyConstants"
+import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { SurveyDataType } from "../../ratings/pages/SuggestionPage"
+import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 
 export type CancelSubscriptionPages =
 	| "cancelSubscriptionOptionPage"
@@ -24,6 +30,24 @@ export interface CancelSubscriptionDialogState {
 	periodEndDate: Date | null
 	latestError?: RevocationRequestError
 }
+async function sendCancellationSurveyData(surveyType: SurveyDataType) {
+	const reason = await showLeavingUserSurveyWizard(true, true)
+	if (reason.submitted && reason.category && reason.reason) {
+		const data = createSurveyDataPostIn({
+			surveyType: surveyType.toString(),
+			surveyData: createSurveyData({
+				category: reason.category,
+				reason: reason.reason,
+				details: reason.details,
+				version: SURVEY_VERSION_NUMBER,
+				clientVersion: env.versionNumber,
+				clientPlatform: client.getClientPlatform().valueOf().toString(),
+			}),
+		})
+		await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SurveyService, data, null))
+	}
+}
+
 /*
  * Dialog for showing the cancellation of the current subscription
  * Has five pages that can be shown:
@@ -119,7 +143,6 @@ export async function showSubscriptionCancellationDialog(booking: Booking): Prom
 			cancelSubscriptionErrorPage: {
 				content: m(CancelSubscriptionErrorPage, {
 					data,
-					onClose: () => dialog.close(),
 				}),
 				title: lang.getTranslationText("subscriptionStateCardCancel_action"),
 				leftAction: {
@@ -134,12 +157,14 @@ export async function showSubscriptionCancellationDialog(booking: Booking): Prom
 			cancelSubscriptionSuccessPage: {
 				content: m(CancelSubscriptionSuccessPage, {
 					data,
-					onClose: () => dialog.close(),
 				}),
 				title: lang.getTranslationText("subscriptionStateCardCancel_action"),
 				leftAction: {
 					type: ButtonType.Secondary,
-					click: () => dialog.close(),
+					click: async () => {
+						dialog.close()
+						await sendCancellationSurveyData(data.sourcePage === "cancelSubscriptionPage" ? SurveyDataType.DOWNGRADE : SurveyDataType.REVOKE)
+					},
 					label: "close_alt",
 					title: "close_alt",
 				},

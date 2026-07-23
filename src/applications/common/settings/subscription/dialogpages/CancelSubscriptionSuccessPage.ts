@@ -7,7 +7,6 @@ import { theme } from "../../../../../ui/theme"
 import { CancelSubscriptionDialogState } from "../SubscriptionCancellationDialog"
 
 type CancelSubscriptionPageSuccessAttrs = {
-	onClose: Thunk
 	data: CancelSubscriptionDialogState
 }
 

@@ -6,13 +6,11 @@ import { createUserAreaGroupDeleteData, TemplateGroupService } from "@tutao/enti
 import {
 	AccountingInfo,
 	Booking,
-	createSurveyData,
 	createSwitchAccountTypePostIn,
 	Customer,
 	GroupInfo,
 	GroupInfoTypeRef,
 	GroupTypeRef,
-	SurveyData,
 	SwitchAccountTypeService,
 	UserTypeRef,
 } from "@tutao/entities/sys"
@@ -30,8 +28,6 @@ import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, delay, dow
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { PrimaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
-import { showLeavingUserSurveyWizard } from "./LeavingUserSurveyWizard.js"
-import { SURVEY_VERSION_NUMBER } from "./LeavingUserSurveyConstants.js"
 import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
 import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
 import {
@@ -215,19 +211,7 @@ async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInf
 		}
 	}
 
-	const reason = await showLeavingUserSurveyWizard(true, true)
-	const data =
-		reason.submitted && reason.category && reason.reason
-			? createSurveyData({
-					category: reason.category,
-					reason: reason.reason,
-					details: reason.details,
-					version: SURVEY_VERSION_NUMBER,
-					clientVersion: env.versionNumber,
-					clientPlatform: client.getClientPlatform().valueOf().toString(),
-				})
-			: null
-	const newPlanType = await cancelSubscription(dialog, currentPlanInfo, customer, data)
+	const newPlanType = await cancelSubscription(dialog, currentPlanInfo, customer)
 
 	if (newPlanType === PlanType.Free) {
 		if (mailLocator.mailModel) {
@@ -452,10 +436,9 @@ export async function handleSwitchAccountPreconditionFailed(customer: Customer, 
 /**
  * @param customer
  * @param currentPlanType
- * @param surveyData
  * @returns the new plan type after the attempt.
  */
-export async function tryDowngradePremiumToFree(customer: Customer, currentPlanType: PlanType, surveyData: SurveyData | null): Promise<PlanType> {
+export async function tryDowngradePremiumToFree(customer: Customer, currentPlanType: PlanType): Promise<PlanType> {
 	const switchAccountTypeData = createSwitchAccountTypePostIn({
 		accountType: AccountType.FREE,
 		date: Const.CURRENT_DATE,
@@ -463,7 +446,7 @@ export async function tryDowngradePremiumToFree(customer: Customer, currentPlanT
 		specialPriceUserSingle: null,
 		referralCode: null,
 		plan: PlanType.Free,
-		surveyData: surveyData,
+		surveyData: null,
 		app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 	})
 	try {
@@ -473,7 +456,7 @@ export async function tryDowngradePremiumToFree(customer: Customer, currentPlanT
 		if (e instanceof PreconditionFailedError) {
 			const shouldRetry = await handleSwitchAccountPreconditionFailed(customer, e)
 			if (shouldRetry) {
-				return tryDowngradePremiumToFree(customer, currentPlanType, surveyData)
+				return tryDowngradePremiumToFree(customer, currentPlanType)
 			}
 		} else if (e instanceof TooManyRequestsError) {
 			await Dialog.message("accountSwitchTooManyActiveUsers_msg")
@@ -484,7 +467,7 @@ export async function tryDowngradePremiumToFree(customer: Customer, currentPlanT
 	}
 }
 
-export async function showConfirmDowngradingToFreeDialog(planType: PlanType, customer: Customer, surveyData: SurveyData | null) {
+export async function showConfirmDowngradingToFreeDialog(planType: PlanType, customer: Customer) {
 	const confirmCancelSubscription = Dialog.confirm("unsubscribeConfirm_msg", "ok_action", () => {
 		return m(
 			".pt-16",
@@ -500,16 +483,11 @@ export async function showConfirmDowngradingToFreeDialog(planType: PlanType, cus
 		return planType
 	}
 
-	return await showProgressDialog("pleaseWait_msg", tryDowngradePremiumToFree(customer, planType, surveyData))
+	return await showProgressDialog("pleaseWait_msg", tryDowngradePremiumToFree(customer, planType))
 }
 
-async function cancelSubscription(
-	dialog: Dialog,
-	currentPlanInfo: CurrentPlanInfo,
-	customer: Customer,
-	surveyData: SurveyData | null = null,
-): Promise<PlanType> {
-	return await showConfirmDowngradingToFreeDialog(currentPlanInfo.planType, customer, surveyData).finally(dialog.close)
+async function cancelSubscription(dialog: Dialog, currentPlanInfo: CurrentPlanInfo, customer: Customer): Promise<PlanType> {
+	return await showConfirmDowngradingToFreeDialog(currentPlanInfo.planType, customer).finally(dialog.close)
 }
 
 async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, currentPlanInfo: CurrentPlanInfo): Promise<void> {

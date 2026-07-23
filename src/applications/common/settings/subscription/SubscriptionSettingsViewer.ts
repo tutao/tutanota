@@ -392,7 +392,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 				m(SecondaryButton, {
 					label: "subscriptionSettingDowngrade_action",
 					width: "flex",
-					onclick: () => showConfirmDowngradingToFreeDialog(assertNotNull(this.currentPlanType), assertNotNull(this._customer), null),
+					onclick: () => showConfirmDowngradingToFreeDialog(assertNotNull(this.currentPlanType), assertNotNull(this._customer)),
 				}),
 				m(PrimaryButton, {
 					label: "subscriptionStateCardResubscribe_action",
@@ -433,12 +433,8 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 				isEnabled: true,
 				customerId: customerId,
 			}
-			try {
-				const data = createRenewalPreferenceServicePostIn(inputData)
-				await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(RenewalPreferenceService, data, null))
-			} catch (e) {
-				throw e
-			}
+			const data = createRenewalPreferenceServicePostIn(inputData)
+			await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(RenewalPreferenceService, data, null))
 		}
 	}
 
