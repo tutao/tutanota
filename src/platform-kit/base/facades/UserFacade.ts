@@ -2,7 +2,6 @@ import { Aes256Key, AesKey, cryptoUtils, CryptoWrapper, decryptKey, HkdfKeyDeriv
 import { assertNotNull, KeyVersion } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { isSameId } from "../../meta"
-import { CryptoError } from "@tutao/crypto/error"
 import { LoggedInUserProvider } from "@tutao/instance-pipeline"
 import { createWebsocketLeaderStatus, GroupMembership, User, UserGroupKeyDistribution, WebsocketLeaderStatus } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
@@ -74,32 +73,8 @@ export class UserFacade extends LoggedInUserProvider {
 		// Why this magic + 1? Because we don't have access to the new version number when calling this function so we compute it from the current one
 		const newUserGroupKeyVersion = cryptoUtils.checkKeyVersionConstraints(currentUserGroupKeyVersion + 1)
 		const userGroupMembership = this.user.userGroup
-		const legacyUserDistKey = this.deriveLegacyUserDistKey(userGroupMembership.group, userPassphraseKey)
 		const userDistKey = this.deriveUserDistKey(userGroupMembership.group, newUserGroupKeyVersion, userPassphraseKey)
-		this.keyCache.setLegacyUserDistKey(legacyUserDistKey)
 		this.keyCache.setUserDistKey(userDistKey)
-	}
-
-	/**
-	 * Derives a distribution key from the password key to share the new user group key of the user to their other clients (apps, web etc.)
-	 * This is a fallback function that gets called when the output key of `deriveUserDistKey` fails to decrypt the new user group key
-	 * @deprecated
-	 * @param userGroupId user group id of the logged-in user
-	 * @param userPasswordKey current password key of the user
-	 */
-	deriveLegacyUserDistKey(userGroupId: Id, userPasswordKey: AesKey): Aes256Key {
-		// we prepare a key to encrypt potential user group key rotations with
-		// when passwords are changed clients are logged-out of other sessions
-		// this key is only needed by the logged-in clients, so it should be reliable enough to assume that userPassphraseKey is in sync
-
-		// we bind this to userGroupId and the domain separator userGroupKeyDistributionKey from crypto package
-		// the hkdf salt does not have to be secret but should be unique per user and carry some additional entropy which sha256 ensures
-
-		return this.cryptoWrapper.deriveKeyWithHkdf({
-			salt: userGroupId,
-			key: userPasswordKey,
-			context: HkdfKeyDerivationDomains.UserGroupKeyDistributionKey,
-		})
 	}
 
 	/**
@@ -238,22 +213,7 @@ export class UserFacade extends LoggedInUserProvider {
 		}
 		let newUserGroupKeyBytes
 		try {
-			try {
-				newUserGroupKeyBytes = decryptKey(userDistKey, userGroupKeyDistribution.distributionEncUserGroupKey)
-			} catch (e) {
-				if (e instanceof CryptoError) {
-					// this might be due to old encryption with the legacy derivation of the distribution key
-					// try with the legacy one instead
-					const legacyUserDistKey = this.keyCache.getLegacyUserDistKey()
-					if (legacyUserDistKey == null) {
-						console.log("could not update userGroupKey because old legacy distribution key is not available")
-						return
-					}
-					newUserGroupKeyBytes = decryptKey(legacyUserDistKey, userGroupKeyDistribution.distributionEncUserGroupKey)
-				} else {
-					throw e
-				}
-			}
+			newUserGroupKeyBytes = decryptKey(userDistKey, userGroupKeyDistribution.distributionEncUserGroupKey)
 		} catch (e) {
 			// this may happen during offline storage synchronisation when the event queue contains user group key rotation and a password change.
 			// We can ignore this error as we already have the latest user group key after connecting the offline client
