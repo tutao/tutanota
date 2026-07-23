@@ -1105,9 +1105,7 @@ export class LoginFacade implements SessionTypeProvider {
 	 */
 	private async initCache({ userId, databaseKey, forceNewDatabase }: InitCacheOptions): Promise<CacheInfo> {
 		if (databaseKey != null) {
-			const { isPersistent, isNewOfflineDb } = await this.cacheInitializer.initialize(
-				new OfflineStorageArgs(userId, databaseKey,  forceNewDatabase),
-			)
+			const { isPersistent, isNewOfflineDb } = await this.cacheInitializer.initialize(new OfflineStorageArgs(userId, databaseKey, forceNewDatabase))
 			return {
 				isPersistent,
 				isNewOfflineDb,

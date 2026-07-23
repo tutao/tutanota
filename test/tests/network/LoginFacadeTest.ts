@@ -332,7 +332,6 @@ o.spec("LoginFacadeTest", function () {
 				verify(cacheStorageInitializerMock.initialize(expectedStorageArgs))
 			})
 
-
 			o.test("When resuming a session and there is no database key, nothing is passed to local-store storage initialization", async function () {
 				usingOfflineStorage = true
 				await facade.resumeSession(credentials, null, null)

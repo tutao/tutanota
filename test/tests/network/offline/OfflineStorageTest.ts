@@ -32,12 +32,8 @@ import { CustomCacheHandler, CustomCacheHandlerMap } from "../../../../src/app-k
 import { DecryptedParsedInstance, ModelMapper, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
 
 import { ApplicationTypesFacade } from "../../../../src/platform-kit/instance-pipeline/ApplicationTypesFacade"
-import {
-	OfflineStorageLastProcessedEventBatchStorageFacade
-} from "../../../../src/applications/common/api/worker/LastProcessedEventBatchStorageFacade"
-import {
-	InterWindowEventFacadeSendDispatcher
-} from "../../../../src/app-kit/native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
+import { OfflineStorageLastProcessedEventBatchStorageFacade } from "../../../../src/applications/common/api/worker/LastProcessedEventBatchStorageFacade"
+import { InterWindowEventFacadeSendDispatcher } from "../../../../src/app-kit/native-bridge/common/generatedipc/dispatchers/InterWindowEventFacadeSendDispatcher.js"
 import { SqlCipherFacade } from "../../../../src/app-kit/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
 import {
 	BodyTypeRef,

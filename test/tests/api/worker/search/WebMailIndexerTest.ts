@@ -721,7 +721,11 @@ o.spec("WebMailIndexer", () => {
 				const entities = addEntities(MailState.DRAFT)
 				setCurrentIndexTimestamp(now)
 				await initWithEnabled(true)
-				entityMock.setListElementException(MailDetailsDraftTypeRef,assertNotNull(entities.mail.mailDetailsDraft), new restError.NotAuthorizedError("blah"))
+				entityMock.setListElementException(
+					MailDetailsDraftTypeRef,
+					assertNotNull(entities.mail.mailDetailsDraft),
+					new restError.NotAuthorizedError("blah"),
+				)
 				await indexer.afterMailUpdated(mailIdTuple)
 				verify(backend.onMailUpdated(matchers.anything()), { times: 0 })
 				verify(backend.onPartialMailUpdated(matchers.anything()), { times: 0 })
