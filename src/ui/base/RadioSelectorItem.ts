@@ -54,7 +54,7 @@ export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>
 						if (!isSelected) onOptionSelected(option.value)
 					}
 				},
-				role: "button",
+				role: isSelected ? "region" : "button",
 				tabindex: TabIndex.Default,
 				...(option.renderChild && { "aria-expanded": String(isSelected) }),
 			},
