@@ -89,6 +89,7 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 						clientVersion: env.versionNumber,
 						clientPlatform: client.getClientPlatform().valueOf().toString(),
 					}),
+					surveyType: SurveyDataType.SATISFACTION_EVALUATION.toString(),
 				}),
 				null,
 			)
@@ -130,5 +131,6 @@ export enum SurveyDataType {
 	DOWNGRADE = 0,
 	DELETE = 1,
 	TERMINATION = 2, // used when terminating from the website form.
-	SATISFACTION_EVALUATION = 3,
+	REVOKE = 3,
+	SATISFACTION_EVALUATION = 4,
 }
