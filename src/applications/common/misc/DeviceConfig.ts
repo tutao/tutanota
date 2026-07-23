@@ -93,13 +93,15 @@ interface ConfigObject {
 	 * Which time the three days or week view will scroll to when opened
 	 */
 	scrollTime: number
+	/** map from user id to a list of collapsed mailGroups (mailGroupId)*/
+	collapsedMailGroups: Record<Id, Id[]>
 }
 
 /**
  * Device config for internal user auto login. Only one config per device is stored.
  */
 export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeConfigurator {
-	public static readonly Version = 8
+	public static readonly Version = 9
 	public static readonly LocalStorageKey = "tutanotaConfig"
 
 	private config!: ConfigObject
@@ -161,6 +163,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 			scrollTime: loadedConfig.scrollTime ?? 8,
 			installationDate: loadedConfig.installationDate ?? getStartOfDay(new Date()).getTime().toString(),
 			isUndoSendEnabled: loadedConfig.isUndoSendEnabled ?? true,
+			collapsedMailGroups: loadedConfig.collapsedMailGroups ?? {},
 		}
 
 		this.lastSyncStream(new Map(Object.entries(this.config.lastExternalCalendarSync)))
@@ -379,9 +382,21 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 		return this.config.expandedMailFolders[user] ?? []
 	}
 
+	getCollapsedMailGroups(user: Id): Id[] {
+		return this.config.collapsedMailGroups[user] ?? []
+	}
+
 	setExpandedFolders(user: Id, folders: Id[]) {
 		if (this.config.expandedMailFolders[user] !== folders) {
 			this.config.expandedMailFolders[user] = folders
+
+			this.writeToStorage()
+		}
+	}
+
+	setCollapsedMailGroups(user: Id, collapsedMailGroups: Id[]) {
+		if (this.config.collapsedMailGroups[user] !== collapsedMailGroups) {
+			this.config.collapsedMailGroups[user] = collapsedMailGroups
 
 			this.writeToStorage()
 		}
