@@ -2412,3 +2412,5 @@ export type TranslationKeyType =
 	| "saveAndApply_action"
 	| "applyingInboxRules_label"
 	| "inboxRuleExplainer_msg"
+	| "addCondition_label"
+	| "addResult_action"
