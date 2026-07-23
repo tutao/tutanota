@@ -730,6 +730,8 @@ pub struct CustomerInfo {
 	pub confirmedHuman: bool,
 	#[serde(rename = "2732")]
 	pub adAttributionCampaignId: Option<String>,
+	#[serde(rename = "2781")]
+	pub renewalReminderSentForSubscriptionEnd: Option<DateTime>,
 	#[serde(rename = "158")]
 	pub customer: GeneratedId,
 	#[serde(rename = "159")]
@@ -5994,6 +5996,8 @@ impl Entity for AdminGroupKeyRotationGetOut {
 pub struct SurveyDataPostIn {
 	#[serde(rename = "2564")]
 	pub _format: i64,
+	#[serde(rename = "2782")]
+	pub surveyType: i64,
 	#[serde(rename = "2565")]
 	pub surveyData: SurveyData,
 }
