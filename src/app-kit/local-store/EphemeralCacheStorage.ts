@@ -31,6 +31,18 @@ import { CacheStorage, LastUpdateTime } from "./CacheStorage"
 import { EphemeralStorageInitArgs } from "../../platform-kit/base/facades/CacheStorageLateInitializer"
 import { CacheSyncStatus } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
+type MaxCacheElementsConfig = {
+	maxElementEntities: number
+	maxListElementEntitiesPerList: number
+	maxBlobElementEntitiesPerList: number
+}
+
+const DEFAULT_CACHE_MAX_ELEMENTS: MaxCacheElementsConfig = {
+	maxElementEntities: 100_000,
+	maxListElementEntitiesPerList: 100_000,
+	maxBlobElementEntitiesPerList: 100_000,
+}
+
 /** Cache for a single list. */
 type ListCache = {
 	/** All entities loaded inside the range. */
@@ -60,10 +72,12 @@ export class EphemeralCacheStorage implements CacheStorage {
 	private lastUpdateTime: number | null = null
 	private userId: Id | null = null
 	private lastBatchIdPerGroup = new Map<Id, Id>()
+
 	constructor(
 		private readonly modelMapper: ModelMapper,
 		private readonly typeModelResolver: ServerTypeModelResolver,
 		private readonly customCacheHandlerMap: CustomCacheHandlerMap,
+		private readonly maxElementsConfig: MaxCacheElementsConfig = DEFAULT_CACHE_MAX_ELEMENTS,
 	) {}
 
 	isInitialized(): boolean {
@@ -264,7 +278,14 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	private putElementEntity(typeRef: TypeRef<unknown>, id: Id, entity: ServerModelParsedInstance) {
-		getFromMap(this.elementEntities, getTypeString(typeRef), () => new Map()).set(id, entity)
+		const typeString = getTypeString(typeRef)
+		const elementEntitiesForType = getFromMap(this.elementEntities, typeString, () => new Map())
+		if (elementEntitiesForType.size > this.maxElementsConfig.maxElementEntities) {
+			// clear the list if it gets too big
+			console.log(`clearing ephemeralCacheStorage for element type ${typeString}`)
+			this.elementEntities.delete(typeString)
+		}
+		elementEntitiesForType.set(id, entity)
 	}
 
 	async isElementIdInCacheRange(typeRef: TypeRef<unknown>, listId: Id, elementId: Id): Promise<boolean> {
@@ -321,23 +342,33 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	private async putBlobElement(typeRef: TypeRef<unknown>, listId: Id, elementId: Id, entity: ServerModelParsedInstance) {
-		const cache = this.blobEntities.get(getTypeString(typeRef))?.get(listId)
+		const typeString = getTypeString(typeRef)
+		const cache = this.blobEntities.get(typeString)?.get(listId)
 		if (cache == null) {
 			// first element in this list
 			const newCache = {
 				elements: new Map([[elementId, entity]]),
 			}
-			getFromMap(this.blobEntities, getTypeString(typeRef), () => new Map()).set(listId, newCache)
+			getFromMap(this.blobEntities, typeString, () => new Map()).set(listId, newCache)
 		} else {
-			// if the element already exists in the cache, overwrite it
-			cache.elements.set(elementId, entity)
+			if (cache.elements.size > this.maxElementsConfig.maxBlobElementEntitiesPerList) {
+				// clear the list if it gets too big
+				console.log(`clearing ephemeralCacheStorage for blob element type ${typeString} and listId ${listId}`)
+				const newCache = {
+					elements: new Map([[elementId, entity]]),
+				}
+				getFromMap(this.blobEntities, typeString, () => new Map()).set(listId, newCache)
+			} else {
+				// if the element already exists in the cache, overwrite it
+				cache.elements.set(elementId, entity)
+			}
 		}
 	}
 
 	/** @pre: elementId is converted to base64ext if necessary */
 	private async putListElement(typeRef: TypeRef<unknown>, listId: Id, elementId: Id, entity: ServerModelParsedInstance) {
-		const typeId = getTypeString(typeRef)
-		const cache = this.listElementEntities.get(typeId)?.get(listId)
+		const typeString = getTypeString(typeRef)
+		const cache = this.listElementEntities.get(typeString)?.get(listId)
 		if (cache == null) {
 			// first element in this list
 			const newCache = {
@@ -346,14 +377,26 @@ export class EphemeralCacheStorage implements CacheStorage {
 				upperRangeId: elementId,
 				elements: new Map([[elementId, entity]]),
 			}
-			getFromMap(this.listElementEntities, typeId, () => new Map()).set(listId, newCache)
+			getFromMap(this.listElementEntities, typeString, () => new Map()).set(listId, newCache)
 		} else {
-			// if the element already exists in the cache, overwrite it
-			// add new element to existing list if necessary
-			cache.elements.set(elementId, entity)
-			// always put the item into allRange(backing array only used by ephemeralCache), even if it has not updated
-			// the range yet. It is a better option to have the item and range not updated yet than the opposite
-			this.insertIntoAllRange(cache.allRange, elementId)
+			if (cache.elements.size > this.maxElementsConfig.maxListElementEntitiesPerList) {
+				// clear the list if it gets too big
+				console.log(`clearing ephemeralCacheStorage for list element type ${typeString} and listId ${listId}`)
+				const newCache = {
+					allRange: [elementId],
+					lowerRangeId: elementId,
+					upperRangeId: elementId,
+					elements: new Map([[elementId, entity]]),
+				}
+				getFromMap(this.listElementEntities, typeString, () => new Map()).set(listId, newCache)
+			} else {
+				// if the element already exists in the cache, overwrite it
+				// add new element to existing list if necessary
+				cache.elements.set(elementId, entity)
+				// always put the item into allRange(backing array only used by ephemeralCache), even if it has not updated
+				// the range yet. It is a better option to have the item and range not updated yet than the opposite
+				this.insertIntoAllRange(cache.allRange, elementId)
+			}
 		}
 	}
 
