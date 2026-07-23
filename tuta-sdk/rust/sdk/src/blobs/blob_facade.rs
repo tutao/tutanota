@@ -258,7 +258,7 @@ impl BlobFacade {
 			.join(", ");
 
 		Err(ApiCallError::InternalSdkError {
-			error_message: format!("no servers to invoke: {}", formatted_servers_list),
+			error_message: format!("no servers to invoke: {formatted_servers_list}"),
 		})
 	}
 
@@ -380,7 +380,7 @@ impl BlobFacade {
 			.join(", ");
 
 		Err(ApiCallError::InternalSdkError {
-			error_message: format!("no servers to invoke: {}", formatted_servers_list),
+			error_message: format!("no servers to invoke: {formatted_servers_list}"),
 		})
 	}
 
