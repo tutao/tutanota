@@ -39,6 +39,7 @@ import { ButtonType } from "../../../ui/base/Button"
 import { onbeforeremoveColapseAnimation, oncreateExpandAnimation } from "../../../ui/animation/Animations"
 import { IconButton } from "../../../ui/base/IconButton"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
+import { SelectorItem } from "../../../ui/base/DropDownSelector"
 
 assertMainOrNode()
 
@@ -95,6 +96,10 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 			let value = result.value == null ? null : folders.getFolderById(elementIdPart(result.value))
 			return { type: stream(result.type as InboxRuleResultType), value: stream(value), key: currentRowKey++ }
 		})
+
+		// Only allow one result of each type
+		const allRuleResults = getInboxRuleResultTypeNameMapping()
+		let availableRuleResults: Set<SelectorItem<InboxRuleResultType>>
 
 		if (isEmpty(inboxRuleResults)) {
 			// If there are no results yet, add the default value of Move to Archive
@@ -190,16 +195,19 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 			}
 		}
 
+		const defaultResultOfType = (type: InboxRuleResultType): MailSet | null => {
+			if (type === InboxRuleResultType.MOVE) {
+				// set to default folder of Archive
+				return assertSystemFolderOfType(folders, MailSetKind.ARCHIVE)
+			} else {
+				return null
+			}
+		}
+
 		const renderResultRow = (ruleResult: InboxRuleResultField, resultIndex: number) => {
 			const isFirstResult = resultIndex === 0
 			const resultLabel: TranslationKey = isFirstResult ? "then_label" : "and_label"
 			const ruleValueInput = getRuleResultValueInputByType(ruleResult)
-
-			// We want to ensure that only one target folder can be specified (note that other result types do not have this constraint)
-			let availableRules = getInboxRuleResultTypeNameMapping()
-			if (ruleResult.type() !== InboxRuleResultType.MOVE && inboxRuleResults.some((result) => result.type() === InboxRuleResultType.MOVE)) {
-				availableRules = availableRules.filter((mapping) => mapping.value !== InboxRuleResultType.MOVE)
-			}
 
 			return m(
 				".inbox-rule-wrapping-row.items-center.row-gap-8.mt-16",
@@ -219,16 +227,11 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 						[
 							m(".smaller.lowercase.no-wrap.mr-16", lang.getTranslationText(resultLabel)),
 							m(DropDownSelectorNew, {
-								items: availableRules,
+								items: allRuleResults.filter((rule) => rule.value === ruleResult.type() || availableRuleResults.has(rule)),
 								selectedValue: ruleResult.type(),
 								selectionChangedHandler: (newValue: InboxRuleResultType) => {
 									ruleResult.type(newValue)
-									if (newValue === InboxRuleResultType.MOVE) {
-										// set to default folder of Archive
-										ruleResult.value(assertSystemFolderOfType(folders, MailSetKind.ARCHIVE))
-									} else {
-										ruleResult.value(null)
-									}
+									ruleResult.value(defaultResultOfType(newValue))
 								},
 							}),
 						],
@@ -257,26 +260,38 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 		}
 
 		const renderAddResultRow = (): Children => {
-			return m(".flex.items-center.row-gap-8.mt-16", [
-				m(".flex.items-center.mr-24.smaller", lang.getTranslationText("and_label")),
-				m(SecondaryButton, {
-					width: "flex",
-					icon: Icons.Plus,
-					label: "addResult_action",
-					onclick: () => {
-						// we can't just use the default one since we can only specify one target folder, so we should
-						// use some other result
-						inboxRuleResults.push({
-							type: stream(InboxRuleResultType.EXCLUDE_SPAM),
-							value: stream(null),
-							key: currentRowKey++,
-						})
-					},
-				}),
-			])
+			if (availableRuleResults.size === 0) {
+				return null
+			}
+			return m(
+				".flex.items-center.row-gap-8.mt-16",
+				{
+					oncreate: (vnode) => oncreateExpandAnimation(vnode.dom as HTMLElement),
+					onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
+				},
+				[
+					m(".flex.items-center.mr-24.smaller", lang.getTranslationText("and_label")),
+					m(SecondaryButton, {
+						width: "flex",
+						icon: Icons.Plus,
+						label: "addResult_action",
+						onclick: () => {
+							const firstAvailable: SelectorItem<InboxRuleResultType> = assertNotNull(availableRuleResults.values().next().value)
+
+							inboxRuleResults.push({
+								type: stream(firstAvailable.value),
+								value: stream(defaultResultOfType(firstAvailable.value)),
+								key: currentRowKey++,
+							})
+						},
+					}),
+				],
+			)
 		}
 
 		const form = () => {
+			availableRuleResults = new Set(allRuleResults.filter((rule) => !inboxRuleResults.some((result) => result.type() === rule.value)))
+
 			return [
 				m(Card, { classes: ["mt-16 center"], style: { padding: px(size.spacing_16) } }, [
 					m(Icon, {
