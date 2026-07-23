@@ -1194,13 +1194,13 @@ export class LoginFacade implements SessionTypeProvider {
 		userId: Id
 		accessKey: AesKey | null
 	}> {
-		const typeModel = await this.typeModelResolver.resolveClientTypeReference(SessionTypeRef)
-		const path = EntityUtils.typeModelToRestPath(typeModel) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
-		const SessionTypeModel = await this.typeModelResolver.resolveClientTypeReference(SessionTypeRef)
+		const sessionTypeModel = await this.typeModelResolver.resolveServerTypeReference(SessionTypeRef)
+		const clientSessionTypeVersion = (await this.typeModelResolver.resolveClientTypeReference(SessionTypeRef)).version
+		const path = EntityUtils.typeModelToRestPath(sessionTypeModel) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
 
 		let headers = {
 			accessToken: accessToken,
-			v: String(SessionTypeModel.version),
+			v: String(clientSessionTypeVersion),
 		}
 		// we cannot use the entity client yet because this type is encrypted and we don't have an owner key yet
 		return this.restClient
@@ -1210,7 +1210,7 @@ export class LoginFacade implements SessionTypeProvider {
 				responseType: MediaType.Json,
 			})
 			.then(async (instance) => {
-				const serverJson = IncomingServerJson.expectSingleInstance(instance, typeModel)
+				const serverJson = IncomingServerJson.expectSingleInstance(instance, sessionTypeModel)
 				const parsedInstance = await this.instancePipeline.typeMapper.parseServerJson(serverJson)
 
 				const accessKey = parsedInstance.getAttributeByNameOrNull("accessKey")?.getNullWhenNull()?.asString() ?? null
