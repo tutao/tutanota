@@ -1,4 +1,4 @@
-import { assertNotNull, isNotNull, lazyAsync } from "@tutao/utils"
+import { assertNotNull, downcast, isNotNull, lazyAsync } from "@tutao/utils"
 import {
 	type AppName,
 	AppNameEnum,
@@ -431,7 +431,8 @@ export class ClientOnlyTypeModelResolver extends TypeModelResolver {
 		super(clientModelInfo, ServerModelInfo.getPossiblyUninitializedInstance(clientModelInfo, throwingFetcher))
 	}
 
-	resolveServerTypeReference(typeRef: TypeRef<any>): Promise<ServerTypeModel> {
-		return this.resolveClientTypeReference(typeRef)
+	async resolveServerTypeReference(typeRef: TypeRef<any>): Promise<ServerTypeModel> {
+		const clientTypeModel = await this.resolveClientTypeReference(typeRef)
+		return downcast<ServerTypeModel>(clientTypeModel)
 	}
 }

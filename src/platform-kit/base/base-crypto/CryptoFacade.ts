@@ -412,8 +412,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		// we only authenticate mail instances
 		const isMailInstance = isSameTypeRef(MailTypeRef, instance._type)
 		if (isMailInstance) {
-			let mail: Mail = await this.getDecryptedMailFromAdapter(instance, resolvedSessionKeyForInstance)
-			console.log(mail)
+			const mail = await this.getDecryptedMailFromAdapter(instance, resolvedSessionKeyForInstance)
 
 			if (!encryptionAuthStatus) {
 				if (!pqMessageSenderKey) {

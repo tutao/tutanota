@@ -145,20 +145,18 @@ export class EntityRestClient implements EntityRestInterface {
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<T> {
 		const parsedInstance = await this.loadParsedInstance(typeRef, id, opts)
-		return await this.mapInstanceToEntity(typeRef, parsedInstance)
+		return await this.mapInstanceToEntity(parsedInstance)
 	}
 
-	async mapInstanceToEntity<T extends PersistentEntity>(typeRef: TypeRef<T>, parsedInstance: DecryptedParsedInstance): Promise<T> {
-		const res = await this.instancePipeline.modelMapper.mapToInstance(parsedInstance)
-		// FIXME: remove this downcast
-		return downcast<T>(res)
+	async mapInstanceToEntity<T extends PersistentEntity>(parsedInstance: DecryptedParsedInstance): Promise<T> {
+		return await this.instancePipeline.modelMapper.mapToInstance<T>(parsedInstance)
 	}
 
 	async mapInstancesToEntity<T extends PersistentEntity>(typeRef: TypeRef<T>, parsedInstances: Array<DecryptedParsedInstance>): Promise<T[]> {
 		return await promiseMap(
 			parsedInstances,
 			async (parsedInstance) => {
-				return this.mapInstanceToEntity(typeRef, parsedInstance)
+				return this.mapInstanceToEntity(parsedInstance)
 			},
 			{
 				concurrency: 5,

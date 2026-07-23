@@ -10,11 +10,7 @@ import { CryptoError } from "@tutao/crypto/error"
 import { EncryptedAlarmNotification } from "../../../../app-kit/native-bridge/common/EncryptedAlarmNotification"
 import { AlarmNotification, AlarmNotificationTypeRef, NotificationSessionKey } from "@tutao/entities/sys"
 import { elementIdPart, hasError } from "@tutao/meta"
-import { IncomingServerJson, OutgoingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper" // This is the type that catually get saved to the file
-
-// This is the type that catually get saved to the file
-// see: DesktopAlarmStorage#_storeAlarms and DesktopAlarmStorage#_readAlarms
-type StoredAlarm = ReturnType<typeof OutgoingServerJson.getJsonRepresentationOfMultiple>
+import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 
 /**
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
@@ -145,16 +141,6 @@ export class DesktopAlarmStorage {
 
 	async getScheduledAlarms(): Promise<Array<EncryptedAlarmNotification>> {
 		const alarms = await this._readAlarms()
-		// TODO: do we need this check?
-		// typeof ..["_format"] will always be string now since ParsedValue always store all values as string
-		// if (alarms.length > 0 && typeof alarms[0]["_format"] === "string") {
-		// 	// Legacy code path before migration to type and attribute ids
-		// 	// CalendarFacade.scheduleAlarmsForNewDevice is anyway invoked if SystemModel has changed.
-		// 	await this.deleteAllAlarms(null)
-		// 	return []
-		// } else {
-		// }
-
 		return Promise.all(alarms.map((alarm) => new EncryptedAlarmNotification(alarm)))
 	}
 
@@ -173,7 +159,7 @@ export class DesktopAlarmStorage {
 		// excludedDates field.
 		// to be able to decrypt & map these we need to at least add a plausible value there
 		// we'll unschedule, redownload and reschedule the fixed instances after login.
-		const rawAlarms: Nullable<StoredAlarm> = await this.conf.getVar(DesktopConfigKey.scheduledAlarms)
+		const rawAlarms: Nullable<any> = await this.conf.getVar(DesktopConfigKey.scheduledAlarms)
 		if (rawAlarms == null || (Array.isArray(rawAlarms) && isEmpty(rawAlarms))) {
 			return []
 		}

@@ -8,7 +8,6 @@ import { InstancePipeline } from "../../../../platform-kit/instance-pipeline"
 import { base64ToKey } from "../../../../platform-kit/crypto"
 import { log } from "../DesktopLog"
 import { AlarmNotificationTypeRef } from "@tutao/entities/sys"
-
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 
 export class DesktopNativePushFacade implements NativePushFacade {
@@ -17,7 +16,6 @@ export class DesktopNativePushFacade implements NativePushFacade {
 		private readonly alarmScheduler: DesktopAlarmScheduler,
 		private readonly alarmStorage: DesktopAlarmStorage,
 		private readonly sseStorage: SseStorage,
-		// fixme: should this be: InstancePipeline#newNativeOnly
 		private readonly alarmStorageInstancePipeline: InstancePipeline,
 	) {}
 

@@ -8,10 +8,9 @@ import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineF
 import { DesktopConfigKey } from "../../../../src/platform-kit/app-env"
 import { assertNotNull, uint8ArrayToBase64 } from "../../../../src/platform-kit/utils"
 import { InstancePipeline, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey, keyToUint8Array, uint8ArrayToKey } from "../../../../src/platform-kit/crypto"
+import { aes256RandomKey, encryptKey, keyToUint8Array, uint8ArrayToKey } from "../../../../src/platform-kit/crypto"
 import { hasError } from "../../../../src/platform-kit/meta"
 import { AlarmInfoTypeRef, AlarmNotification, AlarmNotificationTypeRef, CalendarEventRefTypeRef, NotificationSessionKeyTypeRef } from "@tutao/entities/sys"
-import { encryptKey } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 import { IncomingServerJson } from "../../../../src/platform-kit/instance-pipeline/TypeMapper"
 
 o.spec("DesktopAlarmStorageTest", function () {
@@ -74,7 +73,7 @@ o.spec("DesktopAlarmStorageTest", function () {
 	})
 
 	o("storing new alarm does not change unrelated alarm session keys", async function () {
-		const alarmNotificationModel = await typeModelResolver.resolveClientTypeReference(AlarmNotificationTypeRef)
+		const alarmNotificationModel = await typeModelResolver.resolveServerTypeReference(AlarmNotificationTypeRef)
 		const keyStoreFacade: DesktopKeyStoreFacade = makeKeyStoreFacade(key)
 		when(confMock.getVar(matchers.anything())).thenResolve(null)
 

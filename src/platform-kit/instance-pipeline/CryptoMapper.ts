@@ -7,7 +7,7 @@ import {
 	Cardinality,
 	ClientTypeModel,
 	elementIdToId,
-	getAssociationReprType,
+	getAssociationRepresentationType,
 	getIdType,
 	IdType,
 	isSameTypeRef,
@@ -56,7 +56,7 @@ import { OwnerKeyProvider } from "./PatchMerger"
 import { ModelMapper } from "./ModelMapper"
 import { InstanceDirection, ParsedValue } from "./ParsedValue"
 import { EntityUtils } from "./EntityUtils"
-import { ProgrammingError } from "@tutao/app-env"
+import { isTest, ProgrammingError } from "@tutao/app-env"
 
 export interface SymmetricGroupKeyLoader {
 	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey>
@@ -165,7 +165,7 @@ export class CryptoMapper {
 
 		for (const associationModel of Object.values(serverTypeModel.associations)) {
 			const associationId = associationModel.id
-			const associationType = getAssociationReprType(associationModel.type)
+			const associationType = getAssociationRepresentationType(associationModel.type)
 
 			switch (associationType) {
 				case AssociationReprType.Aggregation: {
@@ -245,8 +245,7 @@ export class CryptoMapper {
 		subKeyFactory: Nullable<SubKeyFactory>,
 		fieldPathPrefix: string = "",
 	): Promise<EncryptedParsedInstance> {
-		// todo: get rid of this casting by implementing ensureModel() function in DecryptedParsedInstance
-		const clientTypeModel = parsedInstance.typeModel as ClientTypeModel
+		const clientTypeModel = parsedInstance.ensureOutgoing()
 		const subKeyProvider = this.makeNullableSubKeyProvider(subKeyFactory, clientTypeModel)
 
 		const encryptedInstance = EncryptedParsedInstance.outgoingToServer(clientTypeModel)
@@ -270,7 +269,7 @@ export class CryptoMapper {
 
 		for (const associationModel of Object.values(clientTypeModel.associations)) {
 			const associationId = associationModel.id
-			switch (getAssociationReprType(associationModel.type)) {
+			switch (getAssociationRepresentationType(associationModel.type)) {
 				case AssociationReprType.Aggregation: {
 					const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${associationId}/`
 					const unencryptedAggregates = parsedInstance.getAttributeById(associationId).asNestedObjList()
@@ -594,8 +593,8 @@ export class DecryptedParsedInstance implements DeepEquals {
 		return this.getAttributeById(attributeId)
 	}
 
-	// FIXME: always use addErrorByAttributeId and remove this method
-	public addErrorByAttributeName(attributeName: AttributeName, errorValue: string): this {
+	public addErrorByAttributeNameForTesting(attributeName: AttributeName, errorValue: string): this {
+		assert(isTest(), "This method is intended for testing. Use addErrorByAttributeId instead.")
 		return this.addErrorByAttributeId(AttributeModel.getAttributeId(this.typeModel, attributeName)!, errorValue)
 	}
 	public addErrorByAttributeId(attributeId: AttributeId, errorValue: string): this {

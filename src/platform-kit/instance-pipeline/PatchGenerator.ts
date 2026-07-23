@@ -1,7 +1,7 @@
 import {
 	AssociationReprType,
 	Cardinality,
-	getAssociationReprType,
+	getAssociationRepresentationType,
 	IDENTITY_FIELDS,
 	isSameIdTuple,
 	isSameSingleId,
@@ -52,8 +52,7 @@ export class PatchGenerator {
 				if (originalParsedValue.isString()) {
 					return !isSameSingleId(originalParsedValue.asId(), currentParsedValue.asId())
 				} else if (typeof originalParsedValue === "object") {
-					// FIXME: can value be an IdTuple?
-					throw new ProgrammingError("// ")
+					throw new ProgrammingError(`Possibly patching IdTuple on _id ${originalParsedValue.asIdTuple()}`)
 				}
 		}
 
@@ -117,7 +116,7 @@ export class PatchGenerator {
 			}
 			const attributeId = modelAssociation.id
 			const networkDebuggedAttributeId = OutgoingServerJson.networkDebuggedKey(attributeId, clientTypeModel)
-			const associationReprType = getAssociationReprType(modelAssociation.type)
+			const associationReprType = getAssociationRepresentationType(modelAssociation.type)
 
 			if (associationReprType === AssociationReprType.Aggregation) {
 				const originalAggregatedEntities = originalInstance.getAttributeByIdOrNull(attributeId)?.asNestedObjList() ?? []

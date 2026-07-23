@@ -155,9 +155,9 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				await this.storage.put(typeRef, parsedInstance)
 			}
 
-			return await this.entityRestClient.mapInstanceToEntity(typeRef, parsedInstance)
+			return await this.entityRestClient.mapInstanceToEntity(parsedInstance)
 		} else {
-			return await this.entityRestClient.mapInstanceToEntity(typeRef, cachedEntity)
+			return await this.entityRestClient.mapInstanceToEntity(cachedEntity)
 		}
 	}
 

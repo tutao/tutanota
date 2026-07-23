@@ -240,7 +240,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			const batchCaptor = matchers.captor()
 			const typeRefCaptor = matchers.captor()
 			const serverModelParsedInstanceCaptor = matchers.captor()
-			when(entityRestClient.mapInstanceToEntity(typeRefCaptor.capture(), serverModelParsedInstanceCaptor.capture())).thenDo(async () =>
+			when(entityRestClient.mapInstanceToEntity(serverModelParsedInstanceCaptor.capture())).thenDo(async () =>
 				downcast<any>(await modelMapper.mapToInstance(serverModelParsedInstanceCaptor.value)),
 			)
 			when(entityRestClient.mapInstancesToEntity(typeRefCaptor.capture(), serverModelParsedInstanceCaptor.capture())).thenDo(async () =>
@@ -425,7 +425,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						blobInstance: null,
 					})
 					const contact1Parsed = await toStorableInstance(contact1)
-					contact1Parsed.addErrorByAttributeName("firstName", "some error for contact 1")
+					contact1Parsed.addErrorByAttributeNameForTesting("firstName", "some error for contact 1")
 					const contact1EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact1, contact1Parsed, null)
 
 					const contact2 = createTestEntity(ContactTypeRef, {
@@ -448,7 +448,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						blobInstance: null,
 					})
 					const contact3Parsed = await toStorableInstance(contact3)
-					contact3Parsed.addErrorByAttributeName("firstName", "some error for contact 3")
+					contact3Parsed.addErrorByAttributeNameForTesting("firstName", "some error for contact 3")
 					const contact3EntityUpdate = await entityUpdateToUpdateData(entityUpdateContact3, contact3Parsed, null)
 
 					const batch: readonly EntityUpdateData[] = [
@@ -499,7 +499,6 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			})
 
 			o("update is not in cache range", async function () {
-				// FIXME was failing before rebase
 				const batch = [
 					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null),
 					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null),
@@ -656,7 +655,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						_ownerGroup: ownerGroupId,
 					}),
 				)
-				dummyContact.addErrorByAttributeName("firstName", "some error for dummy contact")
+				dummyContact.addErrorByAttributeNameForTesting("firstName", "some error for dummy contact")
 				when(entityRestClient.loadParsedInstance(anything(), anything())).thenResolve(dummyContact)
 
 				const batch: readonly EntityUpdateData[] = [

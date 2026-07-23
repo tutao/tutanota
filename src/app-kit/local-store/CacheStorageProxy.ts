@@ -1,7 +1,7 @@
 import { OfflineStorage, Range } from "./OfflineStorage.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { Entity, ListElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
-import { downcast, Nullable } from "@tutao/utils"
+import { Nullable } from "@tutao/utils"
 import { EphemeralCacheStorage } from "./EphemeralCacheStorage"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { CacheStorage, LastUpdateTime } from "./CacheStorage.js"
@@ -86,6 +86,16 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		this._inner = null
 	}
 
+	private async getEphemerialStorage(args: EphemeralStorageArgs): Promise<{ storage: SomeStorage; isPersistent: boolean; isNewOfflineDb: boolean }> {
+		const storage = await this.ephemeralStorageProvider()
+		storage.init(args)
+		return {
+			storage,
+			isPersistent: false,
+			isNewOfflineDb: false,
+		}
+	}
+
 	private async getStorage(args: StorageArgs): Promise<{ storage: SomeStorage; isPersistent: boolean; isNewOfflineDb: boolean }> {
 		if (args instanceof OfflineStorageArgs) {
 			try {
@@ -97,22 +107,20 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 						isPersistent: true,
 						isNewOfflineDb,
 					}
+				} else {
+					return this.getEphemerialStorage(new EphemeralStorageArgs(args.userId))
 				}
 			} catch (e) {
 				// Precaution in case something bad happens to offline database. We want users to still be able to log in.
 				console.error("Error while initializing offline cache storage", e)
 				this.sendError(e)
-				args = new EphemeralStorageArgs(args.userId)
+				return this.getEphemerialStorage(new EphemeralStorageArgs(args.userId))
 			}
+		} else if (args instanceof EphemeralStorageArgs) {
+			return this.getEphemerialStorage(args)
 		}
-		// both "else" case and fallback for unavailable storage and error cases
-		const storage = await this.ephemeralStorageProvider()
-		storage.init(downcast<EphemeralStorageArgs>(args))
-		return {
-			storage,
-			isPersistent: false,
-			isNewOfflineDb: false,
-		}
+
+		throw new Error("Invalid OfflineStorage args")
 	}
 
 	deleteIfExists<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void> {

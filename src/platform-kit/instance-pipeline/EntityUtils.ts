@@ -69,8 +69,6 @@ export class EntityUtils {
 		}
 	}
 
-	// FIXME: there was a comment here? Put it somewhere
-
 	static compressString(uncompressed: string): Uint8Array {
 		return compress(stringToUtf8Uint8Array(uncompressed))
 	}

@@ -181,7 +181,7 @@ o.spec("AlarmFacadeTest", function () {
 
 			const sessionKey = base64ToKey(sessionKeyCaptor.value)
 			const allInstanceSentToFacade = instanceCaptor.value
-			const typeModel = await typeModelResolver.resolveClientTypeReference(AlarmNotificationTypeRef)
+			const typeModel = await typeModelResolver.resolveServerTypeReference(AlarmNotificationTypeRef)
 			const incoming = IncomingServerJson.expectMultipleInstance(allInstanceSentToFacade, typeModel)
 			// if we were able to decryptAndMap, it already verifies that no field has network debug info,
 			const instanceSentToFacade = await instancePipeline.decryptAndMap<AlarmNotification>(incoming[0], sessionKey)

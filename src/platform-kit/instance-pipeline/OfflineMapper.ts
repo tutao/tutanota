@@ -5,8 +5,7 @@ import {
 	AssociationReprType,
 	AttributeId,
 	AttributeName,
-	ClientTypeModel,
-	getAssociationReprType,
+	getAssociationRepresentationType,
 	getIdType,
 	IdType,
 	isSameTypeRef,
@@ -30,7 +29,7 @@ export class OfflineMapper {
 		}
 
 		for (const associationModel of Object.values(serverModel.associations)) {
-			switch (getAssociationReprType(associationModel.type)) {
+			switch (getAssociationRepresentationType(associationModel.type)) {
 				case AssociationReprType.Aggregation: {
 					const mappedAggregates = parsedInstance
 						.getAttributeById(associationModel.id)
@@ -62,7 +61,7 @@ export class OfflineMapper {
 		}
 
 		for (const associationModel of Object.values(serverModel.associations)) {
-			switch (getAssociationReprType(associationModel.type)) {
+			switch (getAssociationRepresentationType(associationModel.type)) {
 				case AssociationReprType.Aggregation: {
 					const aggregateTypeModel = await this.typeModelResolver.resolveServerTypeReference(
 						new TypeRef(associationModel.dependency ?? serverModel.app, associationModel.refTypeId),
@@ -158,7 +157,7 @@ export class OfflineEntity implements DeepEquals {
 	public getIdTupleList(associationModel: ModelAssociation): Array<IdTuple> {
 		return this.entityRecord[associationModel.id] as Array<IdTuple>
 	}
-	public getAggregationList(associationModel: ModelAssociation, aggregateTypeModel: ClientTypeModel): Array<OfflineEntity> {
+	public getAggregationList(associationModel: ModelAssociation, aggregateTypeModel: ServerTypeModel): Array<OfflineEntity> {
 		assert(associationModel.refTypeId === aggregateTypeModel.id, "Wrong aggregateTypeModel?")
 		if (isNotNull(associationModel.dependency)) {
 			assert(associationModel.dependency === aggregateTypeModel.app, "Wrong aggregateTypeModel?")

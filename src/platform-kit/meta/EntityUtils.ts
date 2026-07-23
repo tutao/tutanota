@@ -21,7 +21,6 @@ import {
 	AnyEntityId,
 	BlobElementEntity,
 	BlobElementId,
-	clone,
 	ElementEntity,
 	ElementId,
 	isSameTypeRef,
@@ -508,7 +507,6 @@ export function hasError<K>(instance: Nullable<Entity>, key?: K): boolean {
 	if (instance == null) {
 		return true
 	}
-	// FIXME: what is this downcasting to? any?
 	const downCastedInstance = downcast(instance)
 	const hasNonEmptyErrorObject = !!downCastedInstance._errors && !isErrorObjectEmpty(downCastedInstance._errors)
 

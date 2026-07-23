@@ -557,7 +557,6 @@ o.spec("computePatches", function () {
 		o(patchGenerator.areValuesDifferent(ValueTypeEnum.CustomId, ParsedValue.fromString("customId"), ParsedValue.fromString("differentCustomId"))).equals(
 			true,
 		)
-		// FIXME fromByteArray or String?
 		o(
 			patchGenerator.areValuesDifferent(
 				ValueTypeEnum.CompressedString,

@@ -39,7 +39,6 @@ export class AlarmFacade {
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly nativePushFacade: NativePushFacade,
-		// fixme: should this be InstancePipeline#newNativeOnly
 		private readonly instancePipeline: InstancePipeline,
 		private readonly infoMessageHandler: InfoMessageHandler,
 	) {}

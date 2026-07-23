@@ -296,11 +296,6 @@ o.spec("CryptoMapperTest", () => {
 			const encryptedValue = cryptoMapper.encryptValue(valueType, ParsedValue.fromByteArray(value), subKeyProvider, "")
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
 			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, null, "")
-			// FIXME: it's weird that we need to base64 decode it here.
-			// then .encryptValue gets an encryptedByteArray and base64 encode that again
-			// then .decryptValue gets an decryptedByte Array and puts back tht byteArray as base64 enocded again
-			// cuasing all encrypted Bytes type to be base64 encoded twice.
-			// FIXME: Ensure this is not causing error in prod
 			o.check(Array.from(decryptedValue.asByteArray())).deepEquals(Array.from(value))
 		})
 
@@ -390,7 +385,7 @@ o.spec("CryptoMapperTest", () => {
 		const encryptedAggregate = encryptedInstance.getAttributeById(3).asNestedObjList()[0]
 		o.check(encryptedAggregate.getAttributeById(2).asString()).equals("123")
 		o.check(encryptedAggregate.getAttributeById(6).asId()).equals("aggregateId")
-		o.check(encryptedAggregate.getAttributeById(2)) // fixme: o.check() does is accepts boolean or what is this line doing?
+		o.check(encryptedAggregate.getAttributeById(2))
 		o.check(encryptedInstance.getAttributeById(4).asIdList()[0]).equals("associatedElementId")
 	})
 

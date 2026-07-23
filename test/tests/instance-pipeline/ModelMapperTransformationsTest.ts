@@ -163,7 +163,7 @@ o.spec("ModelMapperTransformations", function () {
 			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
 				return clientModel[typeRef.typeId]
 			}
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
 				return serverModel[typeRef.typeId]
 			}
 
@@ -258,7 +258,7 @@ o.spec("ModelMapperTransformations", function () {
 			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
 				return clientModel[typeRef.typeId]
 			}
-			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
+			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
 				return serverModel[typeRef.typeId]
 			}
 			const serverTypeModel = await serverModelResolver(TestTypeRef)
@@ -574,24 +574,24 @@ o.spec("ModelMapperTransformations", function () {
 					versioned: false,
 				} as unknown as ServerTypeModel,
 			}
+			const clientModel: Record<string, ClientTypeModel> = {
+				"42": {
+					app: "tutanota",
+					encrypted: true,
+					id: 42,
+					name: "TestType",
+					rootId: "SoMeId",
+					since: 0,
+					type: Type.ListElement,
+					isPublic: true,
+					values: {},
+					associations: {},
+					version: 0,
+					versioned: false,
+				} as unknown as ClientTypeModel,
+			}
 
 			const clientModelResolver = async (typeRef: TypeRef<any>): Promise<ClientTypeModel> => {
-				const clientModel: Record<string, ClientTypeModel> = {
-					"42": {
-						app: "tutanota",
-						encrypted: true,
-						id: 42,
-						name: "TestType",
-						rootId: "SoMeId",
-						since: 0,
-						type: Type.ListElement,
-						isPublic: true,
-						values: {},
-						associations: {},
-						version: 0,
-						versioned: false,
-					} as unknown as ClientTypeModel,
-				}
 				return clientModel[typeRef.typeId]
 			}
 
@@ -608,7 +608,7 @@ o.spec("ModelMapperTransformations", function () {
 
 			// request is prepared with the client model and does not add One value
 			const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
-			const expectedOutgoingInstance = DecryptedParsedInstance.outgoingToServer(serverModel["42"])
+			const expectedOutgoingInstance = DecryptedParsedInstance.outgoingToServer(clientModel["42"])
 			o(newParsedInstance.deepEquals(expectedOutgoingInstance)).equals(true)
 		})
 		o("add One Value with default supplier on server should also supply default on client", async function () {

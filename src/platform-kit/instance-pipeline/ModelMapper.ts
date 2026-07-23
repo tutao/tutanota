@@ -9,7 +9,7 @@ import {
 	ElementId,
 	elementIdToId,
 	Entity,
-	getAssociationReprType,
+	getAssociationRepresentationType,
 	idToElementId,
 	isSameTypeRef,
 	ListElementId,
@@ -73,7 +73,7 @@ export class ModelMapper {
 		for (const modelAssociation of Object.values(clientTypeModel.associations)) {
 			const associationId = modelAssociation.id
 
-			switch (getAssociationReprType(modelAssociation.type)) {
+			switch (getAssociationRepresentationType(modelAssociation.type)) {
 				case AssociationReprType.Aggregation: {
 					const aggregateTypeRef = new TypeRef(modelAssociation.dependency ?? clientTypeModel.app, modelAssociation.refTypeId)
 					const aggregateTypeModel = await this.typeModelResolver.resolveClientTypeReference(aggregateTypeRef)
@@ -125,7 +125,7 @@ export class ModelMapper {
 
 		for (const associationModel of Object.values(clientTypeModel.associations)) {
 			const association = parsedInstance.getAttributeByIdOrNull(associationModel.id) ?? ParsedValue.emptyAssociation()
-			switch (getAssociationReprType(associationModel.type)) {
+			switch (getAssociationRepresentationType(associationModel.type)) {
 				case AssociationReprType.Aggregation: {
 					const aggregates = association.asNestedObjList().map((agg) => this._mapToInstance(agg))
 					clientInstance.setAggregations(associationModel.id, await Promise.all(aggregates))
@@ -244,9 +244,6 @@ export class ClientEntity {
 				this.entityRecord[associationModel.name] = associationList[0]
 				break
 			case Cardinality.Any:
-				// TODO: https://github.com/tutao/tutanota/blob/dff7ab50e6b0a6b26c2bca2e9e434121158a1f55/src/platform-kit/instance-pipeline/ModelMapper.ts#L70
-				// what was this condition doing?
-				// was it just verifying that we have only one idTuple?
 				this.entityRecord[associationModel.name] = associationList
 		}
 	}
@@ -266,7 +263,6 @@ export class ClientEntity {
 	}
 
 	setErrors(errors: Record<AttributeId, string>) {
-		// fixme:
 		this.entityRecord["_errors"] = errors
 	}
 
@@ -342,7 +338,7 @@ export class OutgoingClientEntity {
 		const value = this.entityRecord[associationModel.name] ?? null
 		// IdTuple looks like an array, but we should treat it as single value of IdTuple
 		const isIdTuple =
-			getAssociationReprType(associationModel.type) === AssociationReprType.IdTuple &&
+			getAssociationRepresentationType(associationModel.type) === AssociationReprType.IdTuple &&
 			isNotNull(value) &&
 			Array.isArray(value) &&
 			value.length === 2 &&

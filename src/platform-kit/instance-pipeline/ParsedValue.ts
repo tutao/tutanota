@@ -57,17 +57,17 @@ export class ParsedValue<NestedObject extends DeepEquals> implements DeepEquals 
 			return [null, this.asString()]
 		}
 
-		throw new ProgrammingError("Expected either id or idTuple. found None")
+		throw new ProgrammingError("Expected either Id or IdTuple. Found neither")
 	}
 
 	public asArray(): Array<ParsedValue<NestedObject>> {
-		assert(this.nestedObj == null && this.stringValue == null, "Expected a array")
-		return assertNotNull(this.arrayValue, "Expected array")
+		assert(this.nestedObj == null && this.stringValue == null, "Expected an array")
+		return assertNotNull(this.arrayValue, "Expected an array")
 	}
 
 	public asNestedObj(): NestedObject {
-		assert(this.arrayValue == null && this.stringValue == null, "Expected Object")
-		return assertNotNull(this.nestedObj, "Expected  Object")
+		assert(this.arrayValue == null && this.stringValue == null, "Expected an Object")
+		return assertNotNull(this.nestedObj, "Expected an Object")
 	}
 
 	public static fromNull<NestedObject extends DeepEquals>(): ParsedValue<NestedObject> {
@@ -138,7 +138,7 @@ export class ParsedValue<NestedObject extends DeepEquals> implements DeepEquals 
 	}
 
 	asIdTuple(): IdTuple {
-		return assertNotNull(this.getIdTupleOrNull(), "Expected to be an idTuple")
+		return assertNotNull(this.getIdTupleOrNull(), "Expected ParsedValue to be an IdTuple")
 	}
 
 	public getIdTupleOrNull(): Nullable<IdTuple> {

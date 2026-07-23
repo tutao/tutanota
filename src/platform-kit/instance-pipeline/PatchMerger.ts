@@ -3,7 +3,7 @@
 // apply patch operations using a similar logic from the server
 // update the instance in the offline db
 
-import { AssociationReprType, getAssociationReprType, isSameSingleId, isSameTypeRef, TypeRef } from "../meta"
+import { AssociationReprType, getAssociationRepresentationType, isSameSingleId, isSameTypeRef, TypeRef } from "../meta"
 import { ParsedValue } from "./ParsedValue"
 import { assertNotNull, deepEqual, isEmpty, isNotNull, KeyVersion, lazy, Nullable } from "@tutao/utils"
 import {
@@ -146,10 +146,10 @@ export class PatchMerger {
 			}
 
 			switch (patch.patchOperation) {
-				// - For REMOVE_ITEM ( which is only allowed in associations ), patch value will always be Array<Id> or Array<IdTuple> which will not need decryption
+				// REMOVE_ITEM is only allowed in associations. Patch value will always be Array<Id> or Array<IdTuple> which will not need decryption
 				case PatchOperationType.REMOVE_ITEM: {
 					const association = assertNotNull(pathResult.typeModel.associations[pathResult.attributeId], "Remove Item is only allowed in associations")
-					switch (getAssociationReprType(association.type)) {
+					switch (getAssociationRepresentationType(association.type)) {
 						case AssociationReprType.IdTuple: {
 							await this.applyPatchOperation(
 								patch.patchOperation,
@@ -167,7 +167,7 @@ export class PatchMerger {
 					break
 				}
 
-				// - For ADD_ITEM, REMOVED_ITEM, patch value can be anything and might need decryption
+				// In ADD_ITEM and REPLACE patch value can be anything and might need decryption
 				case PatchOperationType.REPLACE:
 				case PatchOperationType.ADD_ITEM: {
 					const encryptedParsedValue = await this.parseValueOnPatch(pathResult, patch.value)
@@ -197,7 +197,7 @@ export class PatchMerger {
 		const { attributeId, instanceToChange, typeModel } = pathResult
 		const isValue = isNotNull(typeModel.values[attributeId])
 		const isAssociation = isNotNull(typeModel.associations[attributeId])
-		const associationReprType = isAssociation ? getAssociationReprType(typeModel.associations[attributeId].type) : null
+		const associationReprType = isAssociation ? getAssociationRepresentationType(typeModel.associations[attributeId].type) : null
 
 		switch (patchOperation) {
 			case PatchOperationType.ADD_ITEM: {
@@ -206,7 +206,6 @@ export class PatchMerger {
 						"AddItem operation is supported for associations only, but the operation was called on value with id " + attributeId,
 					)
 				}
-				// todo: do ADD operation always have a list of item
 				const associationArray = instanceToChange.getAttributeById(attributeId).asArray()
 				const valuesToAdd = valueInPatchPayload.asArray()
 				const commonAssociationItems = instanceToChange
@@ -298,7 +297,7 @@ export class PatchMerger {
 		}
 
 		const associationValue = assertNotNull(value, "Patch for association will not be null")
-		switch (getAssociationReprType(typeModel.associations[attributeId].type)) {
+		switch (getAssociationRepresentationType(typeModel.associations[attributeId].type)) {
 			case AssociationReprType.Aggregation: {
 				const assocModel = typeModel.associations[attributeId]
 				const aggregateTypeRef = new TypeRef<any>(assocModel.dependency ?? typeModel.app, assocModel.refTypeId)
@@ -340,7 +339,7 @@ export class PatchMerger {
 			)
 		}
 
-		const associationReprType = getAssociationReprType(typeModel.associations[attributeId].type)
+		const associationReprType = getAssociationRepresentationType(typeModel.associations[attributeId].type)
 		switch (associationReprType) {
 			case AssociationReprType.Aggregation: {
 				const decryptedAggregates = await this.instancePipeline.cryptoMapper.decryptAggregateAssociation(
@@ -398,7 +397,7 @@ export class PatchMerger {
 			}
 
 			const modelAssociation = serverTypeModel.associations[attributeId]
-			const associationReprTime = getAssociationReprType(modelAssociation.type)
+			const associationReprTime = getAssociationRepresentationType(modelAssociation.type)
 			if (associationReprTime !== AssociationReprType.Aggregation) {
 				throw new PatchOperationError("Expected the attribute id " + attributeId + " to be an aggregate on the type: " + serverTypeModel.name)
 			}

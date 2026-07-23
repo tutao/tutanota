@@ -7,7 +7,7 @@ import {
 	ClientTypeModel,
 	deepMapKeys,
 	Entity,
-	getAssociationReprType,
+	getAssociationRepresentationType,
 	getIdType,
 	IdType,
 	isSameTypeRef,
@@ -36,7 +36,7 @@ export class TypeMapper {
 
 		for (const associationModel of Object.values(typeModel.associations)) {
 			const associationId = associationModel.id
-			switch (getAssociationReprType(associationModel.type)) {
+			switch (getAssociationRepresentationType(associationModel.type)) {
 				case AssociationReprType.Aggregation: {
 					const aggregationTypeRef = new TypeRef(associationModel.dependency ?? typeModel.app, associationModel.refTypeId)
 					const aggregatedTypeModel = await this.typeModelResolver.resolveServerTypeReference(aggregationTypeRef)
@@ -74,7 +74,7 @@ export class TypeMapper {
 			const attrId = modelAssociation.id
 			const associationValue = encryptedInstance.getAttributeById(attrId)
 
-			switch (getAssociationReprType(modelAssociation.type)) {
+			switch (getAssociationRepresentationType(modelAssociation.type)) {
 				case AssociationReprType.Aggregation: {
 					const mappedAggregations = associationValue.asNestedObjList().map((agg) => this.makeServerJson(agg))
 					serverJson.addAggregationList(attrId, await Promise.all(mappedAggregations))

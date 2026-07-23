@@ -93,7 +93,7 @@ export type ModelAssociation = {
 }
 
 /** simple separator to distinguish between client model types and server model types */
-export type ClientModelTypeSeparator = "ServerModel"
+export type ClientModelTypeSeparator = "ClientModel"
 /** simple separator to distinguish between server model types and client model types */
 export type ServerModelTypeSeparator = "ServerModel"
 
@@ -286,7 +286,7 @@ export function getIdType(typeModel: TypeModel) {
 	}
 }
 
-export function getAssociationReprType(associationType: Values<typeof AssociationType>) {
+export function getAssociationRepresentationType(associationType: Values<typeof AssociationType>) {
 	switch (associationType) {
 		case AssociationType.Aggregation:
 			return AssociationReprType.Aggregation
