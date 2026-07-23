@@ -676,6 +676,7 @@ export type CustomerInfoParams = {
 	promotionId: null | string;
 	confirmedHuman: boolean;
 	adAttributionCampaignId: null | string;
+	renewalReminderSentForSubscriptionEnd: null | Date;
 
 	customer: Id;
 	accountingInfo: Id;
@@ -721,6 +722,7 @@ export type CustomerInfo = {
 	promotionId: null | string;
 	confirmedHuman: boolean;
 	adAttributionCampaignId: null | string;
+	renewalReminderSentForSubscriptionEnd: null | Date;
 
 	customer: Id;
 	accountingInfo: Id;
@@ -6129,6 +6131,7 @@ export function createSurveyDataPostIn(values: SurveyDataPostInParams): SurveyDa
 export type SurveyDataPostInParams = {
 
 
+	surveyType: NumberString;
 
 	surveyData: SurveyData;
 }
@@ -6138,6 +6141,7 @@ export type SurveyDataPostIn = {
 	_original?: SurveyDataPostIn
 
 	_format: NumberString;
+	surveyType: NumberString;
 
 	surveyData: SurveyData;
 }
