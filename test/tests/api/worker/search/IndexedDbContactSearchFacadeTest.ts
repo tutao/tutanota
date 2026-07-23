@@ -5,7 +5,7 @@ import { IndexedDbContactSearchFacade } from "../../../../../src/applications/ma
 import { IndexedDbSearchFacade } from "../../../../../src/applications/mail-app/workerUtils/index/IndexedDbSearchFacade"
 import { clientInitializedTypeModelResolver } from "../../../TestUtils"
 
-import { SearchRestriction, SearchResult } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
+import { SearchCategoryType, SearchRestriction, SearchResult } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
 import { typedValues } from "../../../../../src/platform-kit/utils"
 import { ContactTypeRef } from "@tutao/entities/tutanota"
 import { TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
@@ -26,7 +26,7 @@ o.spec("IndexedDbContactSearchFacade", () => {
 			const mailType = await typeModelResolver.resolveClientTypeReference(ContactTypeRef)
 
 			const expectedRestriction: SearchRestriction = {
-				type: ContactTypeRef,
+				type: SearchCategoryType.contact,
 				start: null,
 				end: null,
 				field: "mailAddresses",
@@ -35,7 +35,7 @@ o.spec("IndexedDbContactSearchFacade", () => {
 				eventSeries: null,
 			}
 
-			when(offline.search('"my contact"', expectedRestriction, 1234)).thenResolve({
+			when(offline.search('"my contact"', expectedRestriction, { maxResults: 1234 })).thenResolve({
 				results: [["it's me", "a contact"] as IdTuple],
 			} as SearchResult)
 
@@ -47,7 +47,7 @@ o.spec("IndexedDbContactSearchFacade", () => {
 			const mailType = await typeModelResolver.resolveClientTypeReference(ContactTypeRef)
 
 			const expectedRestriction: SearchRestriction = {
-				type: ContactTypeRef,
+				type: SearchCategoryType.contact,
 				start: null,
 				end: null,
 				field: null,
@@ -56,7 +56,7 @@ o.spec("IndexedDbContactSearchFacade", () => {
 				eventSeries: null,
 			}
 
-			when(offline.search('"my contact"', expectedRestriction, 1234)).thenResolve({
+			when(offline.search('"my contact"', expectedRestriction, { maxResults: 1234 })).thenResolve({
 				results: [["it's me", "a contact"] as IdTuple],
 			} as SearchResult)
 

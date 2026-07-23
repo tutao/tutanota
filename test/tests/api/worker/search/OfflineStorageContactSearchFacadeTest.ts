@@ -3,8 +3,7 @@ import { OfflineStorageContactSearchFacade } from "../../../../../src/applicatio
 import { OfflineStorageSearchFacade } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStorageSearchFacade"
 import { object, when } from "testdouble"
 
-import { SearchRestriction, SearchResult } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
-import { ContactTypeRef } from "@tutao/entities/tutanota"
+import { SearchCategoryType, SearchRestriction, SearchResult } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
 
 o.spec("OfflineStorageContactSearchFacade", () => {
 	let facade: OfflineStorageContactSearchFacade
@@ -17,7 +16,7 @@ o.spec("OfflineStorageContactSearchFacade", () => {
 
 	o.test("findContacts with restriction", async () => {
 		const expectedRestriction: SearchRestriction = {
-			type: ContactTypeRef,
+			type: SearchCategoryType.contact,
 			field: "mailAddresses",
 			attributeIds: null,
 			start: null,
@@ -26,7 +25,7 @@ o.spec("OfflineStorageContactSearchFacade", () => {
 			eventSeries: null,
 		}
 
-		when(offline.search("my contact", expectedRestriction, 1234)).thenResolve({
+		when(offline.search("my contact", expectedRestriction, { maxResults: 1234 })).thenResolve({
 			results: [["it's me", "a contact"] as IdTuple],
 		} as SearchResult)
 
@@ -37,7 +36,7 @@ o.spec("OfflineStorageContactSearchFacade", () => {
 
 	o.test("findContacts without restriction", async () => {
 		const expectedRestriction: SearchRestriction = {
-			type: ContactTypeRef,
+			type: SearchCategoryType.contact,
 			field: null,
 			attributeIds: null,
 			start: null,
@@ -46,7 +45,7 @@ o.spec("OfflineStorageContactSearchFacade", () => {
 			eventSeries: null,
 		}
 
-		when(offline.search("my contact", expectedRestriction, 1234)).thenResolve({
+		when(offline.search("my contact", expectedRestriction, { maxResults: 1234 })).thenResolve({
 			results: [["it's me", "a contact"] as IdTuple],
 		} as SearchResult)
 

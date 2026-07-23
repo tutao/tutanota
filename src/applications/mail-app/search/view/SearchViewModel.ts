@@ -1086,7 +1086,7 @@ function awaitSearchInitialized(searchModel: SearchModel): Promise<unknown> {
 	return deferred.promise
 }
 
-function searchCategoryTypeToTypeRef(searchType: SearchCategoryType): TypeRef<SearchableTypes> {
+export function searchCategoryTypeToTypeRef(searchType: SearchCategoryType): TypeRef<SearchableTypes> {
 	switch (searchType) {
 		case SearchCategoryType.mail:
 			return MailTypeRef

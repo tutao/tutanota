@@ -288,7 +288,7 @@ export class SearchModel {
 		return items.some((searchEntry) => getElementId(searchEntry).endsWith(encodedContactId))
 	}
 
-	private async runCalendarSearch(searchQuery: SearchQuery, abortSignal: AbortSignal): Promise<{ tokens: string[]; resultItems: CalendarEvent[] }> {
+	async runCalendarSearch(searchQuery: SearchQuery, abortSignal: AbortSignal): Promise<{ tokens: string[]; resultItems: CalendarEvent[] }> {
 		const calendarModel = await this.calendarModel()
 
 		const query = searchQuery.query

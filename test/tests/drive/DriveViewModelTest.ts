@@ -100,6 +100,8 @@ o.spec("DriveViewModel", function () {
 			transferController,
 			null,
 			() => {},
+			object(),
+			object(),
 		)
 		await driveViewModel.init()
 	})

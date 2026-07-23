@@ -11,7 +11,7 @@ import { assertNotNull, typedValues } from "../../../../../src/platform-kit/util
 import { getElementId, getListId, getTypeString } from "../../../../../src/platform-kit/meta"
 import { MailWithDetailsAndAttachments } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexerBackend"
 import { createTestEntity } from "../../../TestUtils"
-import { SearchRestriction, SearchResult } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
+import { SearchCategoryType, SearchRestriction, SearchResult } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
 
 import { CacheStorage } from "../../../../../src/app-kit/local-store/CacheStorage"
 import {
@@ -193,19 +193,15 @@ o.spec("OfflineStorageSearchFacade", () => {
 
 		o.test("all mailSets", async () => {
 			await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
-			const result = await offlineStorageSearchFacade.search(
-				"common",
-				{
-					type: MailTypeRef,
-					start: null,
-					end: null,
-					field: null,
-					attributeIds: null,
-					folderIds: [],
-					eventSeries: null,
-				},
-				0,
-			)
+			const result = await offlineStorageSearchFacade.search("common", {
+				type: SearchCategoryType.mail,
+				start: null,
+				end: null,
+				field: null,
+				attributeIds: null,
+				folderIds: [],
+				eventSeries: null,
+			})
 			o.check(result.results).deepEquals([testMail3.mail._id, spamMail.mail._id, testMail2.mail._id, testMail1.mail._id])
 		})
 
@@ -214,7 +210,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			const result = await offlineStorageSearchFacade.search(
 				"common",
 				{
-					type: MailTypeRef,
+					type: SearchCategoryType.mail,
 					start: null,
 					end: null,
 					field: null,
@@ -222,8 +218,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 					folderIds: [],
 					eventSeries: null,
 				},
-				0,
-				2,
+				{ minSuggestionCount: 0, maxResults: 2 },
 			)
 			o.check(result.results).deepEquals([testMail3.mail._id, spamMail.mail._id])
 			o.check(result.moreResultsEntries).deepEquals([testMail2.mail._id, testMail1.mail._id])
@@ -248,163 +243,127 @@ o.spec("OfflineStorageSearchFacade", () => {
 		o.spec("matching mails in set", () => {
 			o.test("single mail", async () => {
 				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
-				const resultSpam = await offlineStorageSearchFacade.search(
-					"common",
-					{
-						type: MailTypeRef,
-						start: null,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: ["spamFolder"],
-						eventSeries: null,
-					},
-					0,
-				)
+				const resultSpam = await offlineStorageSearchFacade.search("common", {
+					type: SearchCategoryType.mail,
+					start: null,
+					end: null,
+					field: null,
+					attributeIds: null,
+					folderIds: ["spamFolder"],
+					eventSeries: null,
+				})
 				o.check(resultSpam.results).deepEquals([spamMail.mail._id])
 			})
 			o.test("multiple mails", async () => {
 				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
-				const resultMyFavoriteSet = await offlineStorageSearchFacade.search(
-					"common",
-					{
-						type: MailTypeRef,
-						start: null,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: ["myFavoriteSet"],
-						eventSeries: null,
-					},
-					0,
-				)
+				const resultMyFavoriteSet = await offlineStorageSearchFacade.search("common", {
+					type: SearchCategoryType.mail,
+					start: null,
+					end: null,
+					field: null,
+					attributeIds: null,
+					folderIds: ["myFavoriteSet"],
+					eventSeries: null,
+				})
 				o.check(resultMyFavoriteSet.results).deepEquals([testMail3.mail._id, testMail2.mail._id, testMail1.mail._id])
 			})
 			o.test("secondary set", async () => {
+				const resultYourFavoriteSet = await offlineStorageSearchFacade.search("common", {
+					type: SearchCategoryType.mail,
+					start: null,
+					end: null,
+					field: null,
+					attributeIds: null,
+					folderIds: ["yourFavoriteSet"],
+					eventSeries: null,
+				})
 				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
-				const resultYourFavoriteSet = await offlineStorageSearchFacade.search(
-					"common",
-					{
-						type: MailTypeRef,
-						start: null,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: ["yourFavoriteSet"],
-						eventSeries: null,
-					},
-					0,
-				)
 				o.check(resultYourFavoriteSet.results).deepEquals([testMail2.mail._id])
 			})
 			o.test("is case sensitive", async () => {
 				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
 
-				const resultMyFavoriteSetUppercase = await offlineStorageSearchFacade.search(
-					"common",
-					{
-						type: MailTypeRef,
-						start: null,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: ["MyFavoriteSet"],
-						eventSeries: null,
-					},
-					0,
-				)
+				const resultMyFavoriteSetUppercase = await offlineStorageSearchFacade.search("common", {
+					type: SearchCategoryType.mail,
+					start: null,
+					end: null,
+					field: null,
+					attributeIds: null,
+					folderIds: ["MyFavoriteSet"],
+					eventSeries: null,
+				})
 				o.check(resultMyFavoriteSetUppercase.results).deepEquals([])
 			})
 		})
 
 		o.test("body token prefix", async () => {
 			await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
-			const result = await offlineStorageSearchFacade.search(
-				"worr",
-				{
-					type: MailTypeRef,
-					start: null,
-					end: null,
-					field: null,
-					attributeIds: null,
-					folderIds: [],
-					eventSeries: null,
-				},
-				0,
-			)
+			const result = await offlineStorageSearchFacade.search("worr", {
+				type: SearchCategoryType.mail,
+				start: null,
+				end: null,
+				field: null,
+				attributeIds: null,
+				folderIds: [],
+				eventSeries: null,
+			})
 			o.check(result.results).deepEquals([testMail2.mail._id])
 		})
 
 		o.test("sender token prefix", async () => {
 			await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
-			const result = await offlineStorageSearchFacade.search(
-				"spamme",
-				{
-					type: MailTypeRef,
-					start: null,
-					end: null,
-					field: null,
-					attributeIds: null,
-					folderIds: [],
-					eventSeries: null,
-				},
-				0,
-			)
+			const result = await offlineStorageSearchFacade.search("spamme", {
+				type: SearchCategoryType.mail,
+				start: null,
+				end: null,
+				field: null,
+				attributeIds: null,
+				folderIds: [],
+				eventSeries: null,
+			})
 			o.check(result.results).deepEquals([spamMail.mail._id])
 		})
 
 		o.spec("date", () => {
 			o.test("end only", async () => {
 				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
-				const result = await offlineStorageSearchFacade.search(
-					"common",
-					{
-						type: MailTypeRef,
-						start: null,
-						end: 1235,
-						field: null,
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const result = await offlineStorageSearchFacade.search("common", {
+					type: SearchCategoryType.mail,
+					start: null,
+					end: 1235,
+					field: null,
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(result.results).deepEquals([testMail3.mail._id, spamMail.mail._id, testMail2.mail._id])
 			})
 
 			o.test("start only", async () => {
 				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
-				const result = await offlineStorageSearchFacade.search(
-					"common",
-					{
-						type: MailTypeRef,
-						start: 1235,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const result = await offlineStorageSearchFacade.search("common", {
+					type: SearchCategoryType.mail,
+					start: 1235,
+					end: null,
+					field: null,
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(result.results).deepEquals([testMail2.mail._id, testMail1.mail._id])
 			})
 
 			o.test("start and end", async () => {
 				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
-				const result = await offlineStorageSearchFacade.search(
-					"common",
-					{
-						type: MailTypeRef,
-						start: 1235,
-						end: 1235,
-						field: null,
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const result = await offlineStorageSearchFacade.search("common", {
+					type: SearchCategoryType.mail,
+					start: 1235,
+					end: 1235,
+					field: null,
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(result.results).deepEquals([testMail2.mail._id])
 			})
 		})
@@ -412,114 +371,86 @@ o.spec("OfflineStorageSearchFacade", () => {
 		o.spec("search by field", () => {
 			o.test("sender", async () => {
 				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
-				const result = await offlineStorageSearchFacade.search(
-					"important",
-					{
-						type: MailTypeRef,
-						start: null,
-						end: null,
-						field: "from",
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const result = await offlineStorageSearchFacade.search("important", {
+					type: SearchCategoryType.mail,
+					start: null,
+					end: null,
+					field: "from",
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(result.results).deepEquals([spamMail.mail._id])
 			})
 			o.test("recipient", async () => {
 				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
-				const result = await offlineStorageSearchFacade.search(
-					"important",
-					{
-						type: MailTypeRef,
-						start: null,
-						end: null,
-						field: "to",
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const result = await offlineStorageSearchFacade.search("important", {
+					type: SearchCategoryType.mail,
+					start: null,
+					end: null,
+					field: "to",
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(result.results).deepEquals([testMail3.mail._id, testMail2.mail._id, testMail1.mail._id])
 			})
 			o.test("exact match", async () => {
 				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
 
-				const resultFound = await offlineStorageSearchFacade.search(
-					`"important spam sender"`,
-					{
-						type: MailTypeRef,
-						start: null,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const resultFound = await offlineStorageSearchFacade.search(`"important spam sender"`, {
+					type: SearchCategoryType.mail,
+					start: null,
+					end: null,
+					field: null,
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(resultFound.results).deepEquals([spamMail.mail._id])
 
-				const resultNotFound = await offlineStorageSearchFacade.search(
-					`"important sender"`,
-					{
-						type: MailTypeRef,
-						start: null,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const resultNotFound = await offlineStorageSearchFacade.search(`"important sender"`, {
+					type: SearchCategoryType.mail,
+					start: null,
+					end: null,
+					field: null,
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(resultNotFound.results).deepEquals([])
 
-				const resultWithQuotesAndWords = await offlineStorageSearchFacade.search(
-					`"THIS IMPORTANT EMAIL" AMAZING`,
-					{
-						type: MailTypeRef,
-						start: null,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const resultWithQuotesAndWords = await offlineStorageSearchFacade.search(`"THIS IMPORTANT EMAIL" AMAZING`, {
+					type: SearchCategoryType.mail,
+					start: null,
+					end: null,
+					field: null,
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(resultWithQuotesAndWords.results).deepEquals([testMail3.mail._id])
 
-				const resultWithOpenQuote = await offlineStorageSearchFacade.search(
-					`"`,
-					{
-						type: MailTypeRef,
-						start: null,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const resultWithOpenQuote = await offlineStorageSearchFacade.search(`"`, {
+					type: SearchCategoryType.mail,
+					start: null,
+					end: null,
+					field: null,
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(resultWithOpenQuote.results).deepEquals([])
 
-				const resultWithEmptyQuotes = await offlineStorageSearchFacade.search(
-					`""`,
-					{
-						type: MailTypeRef,
-						start: null,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const resultWithEmptyQuotes = await offlineStorageSearchFacade.search(`""`, {
+					type: SearchCategoryType.mail,
+					start: null,
+					end: null,
+					field: null,
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(resultWithEmptyQuotes.results).deepEquals([])
 			})
 			o.test("when looking for Japanese text it will find any kanji", async () => {
@@ -554,70 +485,54 @@ o.spec("OfflineStorageSearchFacade", () => {
 				}
 				await storeAndIndexMail([testMail1])
 
-				const result = await offlineStorageSearchFacade.search(
-					`発`,
-					{
-						type: MailTypeRef,
-						start: null,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const result = await offlineStorageSearchFacade.search(`発`, {
+					type: SearchCategoryType.mail,
+					start: null,
+					end: null,
+					field: null,
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(result.results).deepEquals([testMail1.mail._id])
 			})
 			o.test("subject", async () => {
 				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
-				const result = await offlineStorageSearchFacade.search(
-					"important",
-					{
-						type: MailTypeRef,
-						start: null,
-						end: null,
-						field: "subject",
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const result = await offlineStorageSearchFacade.search("important", {
+					type: SearchCategoryType.mail,
+					start: null,
+					end: null,
+					field: "subject",
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(result.results).deepEquals([testMail1.mail._id])
 			})
 			o.test("body", async () => {
 				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
-				const result = await offlineStorageSearchFacade.search(
-					"important",
-					{
-						type: MailTypeRef,
-						start: null,
-						end: null,
-						field: "body",
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const result = await offlineStorageSearchFacade.search("important", {
+					type: SearchCategoryType.mail,
+					start: null,
+					end: null,
+					field: "body",
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(result.results).deepEquals([testMail3.mail._id])
 			})
 			o.test("attachment", async () => {
 				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
-				const result = await offlineStorageSearchFacade.search(
-					"common",
-					{
-						type: MailTypeRef,
-						start: null,
-						end: null,
-						field: "attachment",
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const result = await offlineStorageSearchFacade.search("common", {
+					type: SearchCategoryType.mail,
+					start: null,
+					end: null,
+					field: "attachment",
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(result.results).deepEquals([testMail3.mail._id])
 			})
 		})
@@ -637,7 +552,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 					query,
 					tokens,
 					restriction: {
-						type: MailTypeRef,
+						type: SearchCategoryType.mail,
 						start,
 						end,
 						field: null,
@@ -855,7 +770,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			await storeAndIndexContact([drStrange])
 
 			const anyFieldRestriction = {
-				type: ContactTypeRef,
+				type: SearchCategoryType.contact,
 				start: null,
 				end: null,
 				field: null,
@@ -865,7 +780,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 			}
 
 			const mailAddressRestriction = {
-				type: ContactTypeRef,
+				type: SearchCategoryType.contact,
 				start: null,
 				end: null,
 				field: "mailAddresses",
@@ -875,87 +790,71 @@ o.spec("OfflineStorageSearchFacade", () => {
 			}
 
 			// This, without a field, finds Dr. Strange
-			const stephenVincentNoField = await offlineStorageSearchFacade.search("stephen vincent strange", anyFieldRestriction, 0)
+			const stephenVincentNoField = await offlineStorageSearchFacade.search("stephen vincent strange", anyFieldRestriction)
 			o.check(stephenVincentNoField.results).deepEquals([drStrange._id])
 
 			// But if we search by just mail address, now it won't be found!
-			const stephenVincentMailAddressOnly = await offlineStorageSearchFacade.search("stephen vincent strange", mailAddressRestriction, 0)
+			const stephenVincentMailAddressOnly = await offlineStorageSearchFacade.search("stephen vincent strange", mailAddressRestriction)
 			o.check(stephenVincentMailAddressOnly.results).deepEquals([])
 
 			// So, we need to search for "dr.strange" as that is actually in the email address
-			const drStrangeMailAddressOnly = await offlineStorageSearchFacade.search("dr.strange", mailAddressRestriction, 0)
+			const drStrangeMailAddressOnly = await offlineStorageSearchFacade.search("dr.strange", mailAddressRestriction)
 			o.check(drStrangeMailAddressOnly.results).deepEquals([drStrange._id])
 		})
 
 		o.test("search by mail address domain", async () => {
 			await storeAndIndexContact([alice, bob, carter])
-			const result = await offlineStorageSearchFacade.search(
-				"tutanota",
-				{
-					type: ContactTypeRef,
-					start: null,
-					end: null,
-					field: null,
-					attributeIds: null,
-					folderIds: [],
-					eventSeries: null,
-				},
-				0,
-			)
+			const result = await offlineStorageSearchFacade.search("tutanota", {
+				type: SearchCategoryType.contact,
+				start: null,
+				end: null,
+				field: null,
+				attributeIds: null,
+				folderIds: [],
+				eventSeries: null,
+			})
 			o.check(result.results).deepEquals([alice._id, bob._id])
 		})
 
 		o.test("search by mail address local part", async () => {
 			await storeAndIndexContact([alice, bob, carter])
-			const result = await offlineStorageSearchFacade.search(
-				"bobpremium",
-				{
-					type: ContactTypeRef,
-					start: null,
-					end: null,
-					field: null,
-					attributeIds: null,
-					folderIds: [],
-					eventSeries: null,
-				},
-				0,
-			)
+			const result = await offlineStorageSearchFacade.search("bobpremium", {
+				type: SearchCategoryType.contact,
+				start: null,
+				end: null,
+				field: null,
+				attributeIds: null,
+				folderIds: [],
+				eventSeries: null,
+			})
 			o.check(result.results).deepEquals([bob._id])
 		})
 
 		o.test("search by first name", async () => {
 			await storeAndIndexContact([alice, bob, carter])
-			const result = await offlineStorageSearchFacade.search(
-				"alice",
-				{
-					type: ContactTypeRef,
-					start: null,
-					end: null,
-					field: null,
-					attributeIds: null,
-					folderIds: [],
-					eventSeries: null,
-				},
-				0,
-			)
+			const result = await offlineStorageSearchFacade.search("alice", {
+				type: SearchCategoryType.contact,
+				start: null,
+				end: null,
+				field: null,
+				attributeIds: null,
+				folderIds: [],
+				eventSeries: null,
+			})
 			o.check(result.results).deepEquals([alice._id])
 		})
 
 		o.test("search by last name", async () => {
 			await storeAndIndexContact([alice, bob, carter])
-			const result = await offlineStorageSearchFacade.search(
-				"robinson",
-				{
-					type: ContactTypeRef,
-					start: null,
-					end: null,
-					field: null,
-					attributeIds: null,
-					folderIds: [],
-					eventSeries: null,
-				},
-				0,
-			)
+			const result = await offlineStorageSearchFacade.search("robinson", {
+				type: SearchCategoryType.contact,
+				start: null,
+				end: null,
+				field: null,
+				attributeIds: null,
+				folderIds: [],
+				eventSeries: null,
+			})
 			o.check(result.results).deepEquals([alice._id, carter._id])
 		})
 
@@ -984,147 +883,111 @@ o.spec("OfflineStorageSearchFacade", () => {
 			})
 
 			await storeAndIndexContact([alice, bob, carter, noFirstName, noLastName])
-			const result = await offlineStorageSearchFacade.search(
-				"com",
-				{
-					type: ContactTypeRef,
+			const result = await offlineStorageSearchFacade.search("com", {
+				type: SearchCategoryType.contact,
+				start: null,
+				end: null,
+				field: null,
+				attributeIds: null,
+				folderIds: [],
+				eventSeries: null,
+			})
+			o.check(result.results).deepEquals([noFirstName._id, alice._id, bob._id, carter._id, noLastName._id])
+		})
+		o.spec("exact match", () => {
+			o.test("empty quotes", async () => {
+				const resultWithOpenQuote = await offlineStorageSearchFacade.search(`"`, {
+					type: SearchCategoryType.contact,
 					start: null,
 					end: null,
 					field: null,
 					attributeIds: null,
 					folderIds: [],
 					eventSeries: null,
-				},
-				0,
-			)
-			o.check(result.results).deepEquals([noFirstName._id, alice._id, bob._id, carter._id, noLastName._id])
-		})
-		o.spec("exact match", () => {
-			o.test("empty quotes", async () => {
-				const resultWithOpenQuote = await offlineStorageSearchFacade.search(
-					`"`,
-					{
-						type: ContactTypeRef,
-						start: null,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				})
 				o.check(resultWithOpenQuote.results).deepEquals([])
 
-				const resultWithEmptyQuotes = await offlineStorageSearchFacade.search(
-					`""`,
-					{
-						type: ContactTypeRef,
-						start: null,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const resultWithEmptyQuotes = await offlineStorageSearchFacade.search(`""`, {
+					type: SearchCategoryType.contact,
+					start: null,
+					end: null,
+					field: null,
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(resultWithEmptyQuotes.results).deepEquals([])
 			})
 			o.test("name", async () => {
 				await storeAndIndexContact([alice, bob, carter, drStrange])
 
-				const resultFound = await offlineStorageSearchFacade.search(
-					`"stephen vincent"`,
-					{
-						type: ContactTypeRef,
-						start: null,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const resultFound = await offlineStorageSearchFacade.search(`"stephen vincent"`, {
+					type: SearchCategoryType.contact,
+					start: null,
+					end: null,
+					field: null,
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(resultFound.results).deepEquals([drStrange._id])
 
-				const resultNotFound = await offlineStorageSearchFacade.search(
-					`"stephen strange"`,
-					{
-						type: ContactTypeRef,
-						start: null,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const resultNotFound = await offlineStorageSearchFacade.search(`"stephen strange"`, {
+					type: SearchCategoryType.contact,
+					start: null,
+					end: null,
+					field: null,
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(resultNotFound.results).deepEquals([])
 
-				const resultWithQuotesAndWords = await offlineStorageSearchFacade.search(
-					`"stephen vincent" strange`,
-					{
-						type: ContactTypeRef,
-						start: null,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const resultWithQuotesAndWords = await offlineStorageSearchFacade.search(`"stephen vincent" strange`, {
+					type: SearchCategoryType.contact,
+					start: null,
+					end: null,
+					field: null,
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(resultWithQuotesAndWords.results).deepEquals([drStrange._id])
 			})
 			o.test("email", async () => {
 				await storeAndIndexContact([alice, bob, carter, drStrange])
 
-				const resultFound = await offlineStorageSearchFacade.search(
-					`"dr.strange@alsonottutanota.com"`,
-					{
-						type: ContactTypeRef,
-						start: null,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const resultFound = await offlineStorageSearchFacade.search(`"dr.strange@alsonottutanota.com"`, {
+					type: SearchCategoryType.contact,
+					start: null,
+					end: null,
+					field: null,
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(resultFound.results).deepEquals([drStrange._id])
 
-				const resultNotFound = await offlineStorageSearchFacade.search(
-					`"dr.strange@alsonottutanota.co"`,
-					{
-						type: ContactTypeRef,
-						start: null,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const resultNotFound = await offlineStorageSearchFacade.search(`"dr.strange@alsonottutanota.co"`, {
+					type: SearchCategoryType.contact,
+					start: null,
+					end: null,
+					field: null,
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(resultNotFound.results).deepEquals([])
 
-				const resultWithQuotesAndWords = await offlineStorageSearchFacade.search(
-					`"dr.strange" "alsonottutanota.com"`,
-					{
-						type: ContactTypeRef,
-						start: null,
-						end: null,
-						field: null,
-						attributeIds: null,
-						folderIds: [],
-						eventSeries: null,
-					},
-					0,
-				)
+				const resultWithQuotesAndWords = await offlineStorageSearchFacade.search(`"dr.strange" "alsonottutanota.com"`, {
+					type: SearchCategoryType.contact,
+					start: null,
+					end: null,
+					field: null,
+					attributeIds: null,
+					folderIds: [],
+					eventSeries: null,
+				})
 				o.check(resultWithQuotesAndWords.results).deepEquals([drStrange._id])
 			})
 		})

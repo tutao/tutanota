@@ -242,6 +242,7 @@ import "./crypto/ValueDecryptorTest.js"
 import "./crypto/SubKeyProviderTest.js"
 import "./drive/DriveFilePickerTests.js"
 import "./drive/DriveTransferStackTest.js"
+import "./calendar/SearchModelTest"
 
 import * as td from "testdouble"
 import { Mode } from "../../src/platform-kit/app-env"

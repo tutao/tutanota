@@ -103,7 +103,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 					daysToEventsMock,
 				)
 				// Making sure EventRepository.daysToEvents and EventRepository.loadedMonths is initialized
-				await calendarEventsRepository.loadMonthsIfNeeded([dateFarFromEvent], stream(false), null)
+				await calendarEventsRepository.loadMonthsIfNeeded([dateFarFromEvent], object(), null)
 
 				// Act
 				const calendarEventUpdate: EntityUpdateData = object()
@@ -140,7 +140,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 					daysToEventsMock,
 				)
 				// Making sure EventRepository.daysToEvents and EventRepository.loadedMonths is initialized
-				await calendarEventsRepository.loadMonthsIfNeeded([eventStartDate], stream(false), null)
+				await calendarEventsRepository.loadMonthsIfNeeded([eventStartDate], object(), null)
 
 				// Act
 				const calendarEventUpdate: EntityUpdateData = object()
@@ -167,7 +167,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 					daysToEventsMock, // Provide a initialized Map with an empty day
 				)
 				// Making sure EventRepository.daysToEvents and EventRepository.loadedMonths is initialized
-				await calendarEventsRepository.loadMonthsIfNeeded([eventStartDate], stream(false), null)
+				await calendarEventsRepository.loadMonthsIfNeeded([eventStartDate], object(), null)
 
 				const newCalendarGroupId = "newCalendarGroupId"
 				const newCalendarInfo: CalendarInfo = object()

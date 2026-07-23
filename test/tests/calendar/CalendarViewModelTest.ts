@@ -37,6 +37,8 @@ import { makePopulatedClientModelInfo } from "../TestUtils.js"
 import { ProgressMonitor } from "../../../src/platform-kit/network/ProgressMonitorInterface"
 import { EntityEventsListener, EntityUpdateData } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupType } from "../../../src/entities/sys/Utils"
+import { SearchRouter } from "../../../src/applications/common/search/view/SearchRouter"
+import { SearchModel } from "../../../src/applications/mail-app/search/model/SearchModel"
 
 let saveAndSendMock
 let rescheduleEventMock
@@ -87,12 +89,15 @@ o.spec("CalendarViewModel", function () {
 		const mailboxModel: MailboxModel = object()
 		const previewModelFactory: CalendarEventPreviewModelFactory = async () => object()
 		const contactPreviewModelFactory: CalendarContactPreviewModelFactory = async () => object()
+		const searchRouter: SearchRouter = object()
+		const searchModel: SearchModel = object()
 		const viewModel = new CalendarViewModel(
 			loginController,
 			makeViewModelCallback,
 			previewModelFactory,
 			contactPreviewModelFactory,
 			calendarModel,
+			searchModel,
 			eventsRepository,
 			new EntityClient(entityClientMock, makePopulatedClientModelInfo()),
 			eventController,
@@ -104,6 +109,7 @@ o.spec("CalendarViewModel", function () {
 			contactModel,
 			object(),
 			object(),
+			searchRouter,
 		)
 		viewModel.allowDrag = () => true
 		return { viewModel, calendarModel, eventsRepository }
