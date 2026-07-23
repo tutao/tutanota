@@ -44,9 +44,7 @@ export class InstancePipeline {
 		instance: T,
 		sessionKey: Promise<Nullable<AesKey>> | Nullable<AesKey>,
 	): Promise<ClientModelUntypedInstance> {
-		const sk = await sessionKey
-		const subKeyInfo = makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(sk)
-
+		const subKeyInfo = makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(await sessionKey)
 		return this.mapAndEncryptWithSubKeyInfo(typeRef, instance, subKeyInfo)
 	}
 

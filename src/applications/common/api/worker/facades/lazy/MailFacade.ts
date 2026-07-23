@@ -383,7 +383,11 @@ export class MailFacade {
 			}),
 			ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 		})
-		const createDraftReturn = await this.serviceExecutor.post(DraftService, service, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
+		const createDraftReturn = await this.serviceExecutor.post(DraftService, service, {
+			...DEFAULT_EXTRA_SERVICE_PARAMS,
+			sessionKey: sk,
+			ownerKey: mailGroupKey,
+		})
 		return this.entityClient.load(MailTypeRef, createDraftReturn.draft)
 	}
 
@@ -550,7 +554,7 @@ export class MailFacade {
 		this.deferredDraftUpdate = defer()
 		// use a local reference here because this._deferredDraftUpdate is set to null when the event is received async
 		const deferredUpdatePromiseWrapper = this.deferredDraftUpdate
-		await this.serviceExecutor.put(DraftService, service, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
+		await this.serviceExecutor.put(DraftService, service, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk, ownerKey: mailGroupKey })
 		return deferredUpdatePromiseWrapper.promise
 	}
 

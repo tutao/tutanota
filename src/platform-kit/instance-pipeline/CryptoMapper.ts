@@ -264,26 +264,29 @@ export class CryptoMapper {
 		clientTypeModel: ClientTypeModel,
 		path: InstancePath,
 		parsedInstance: ClientModelParsedInstance,
-		ownerGroupKey: AesKey,
 	): Promise<Nullable<SubKeyProvider>> {
 		if (subKeyFactory instanceof SubKeyProvider) {
 			if (clientTypeModel.idForSubKeyContext != null && !path.hasBeenCutOff) {
 				const ownerEncSessionKey = (await EntityAdapter.from(clientTypeModel, parsedInstance, this.modelMapper))._ownerEncSessionKey
 				let newSubKeyInfo: Nullable<SubKeyInfo> = null
 				if (ownerEncSessionKey) {
-					const newSessionKey: Aes256Key = assert256BitKey(decryptKey(ownerGroupKey, ownerEncSessionKey))
+					const ownerGroupKey = subKeyFactory.subKeyInfo.groupKey
+					if (ownerGroupKey == null) {
+						throw new ProgrammingError("The session key cannot be decrypted without the owner group key.")
+					}
+					const newSessionKey: Aes256Key = assert256BitKey(decryptKey(ownerGroupKey.object, ownerEncSessionKey))
 
-					switch (subKeyFactory["subKeyInfo"].cipherVersion) {
+					switch (subKeyFactory.subKeyInfo.cipherVersion) {
 						case SymmetricCipherVersion.AeadWithSessionKey:
-							newSubKeyInfo = new SubKeyInfoWithSessionKeyAead(newSessionKey)
+							newSubKeyInfo = new SubKeyInfoWithSessionKeyAead(newSessionKey, ownerGroupKey)
 							break
 						case SymmetricCipherVersion.AesCbcThenHmac:
-							newSubKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(newSessionKey)
+							newSubKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(newSessionKey, ownerGroupKey)
 							break
 						default:
 							throw new ProgrammingError(
 								"Transfer aggregated types should only be encrypted for data transfer types using session keys. Unexpected cipher version: " +
-									subKeyFactory["subKeyInfo"].cipherVersion,
+									subKeyFactory.subKeyInfo.cipherVersion,
 							)
 					}
 				}

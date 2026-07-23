@@ -157,10 +157,10 @@ export class ServiceExecutor implements IServiceExecutor {
 			if (sessionKey) {
 				switch (this.authDataProvider.getDefaultSymmetricEncryptionScheme()) {
 					case SymmetricEncryptionScheme.AesCbc:
-						subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sessionKey)
+						subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sessionKey, params?.ownerKey)
 						break
 					case SymmetricEncryptionScheme.Aead:
-						subKeyInfo = new SubKeyInfoWithSessionKeyAead(sessionKey)
+						subKeyInfo = new SubKeyInfoWithSessionKeyAead(sessionKey, params?.ownerKey)
 						break
 					default:
 						throw new CryptoError("missing or unknown symmetric encryption scheme")
