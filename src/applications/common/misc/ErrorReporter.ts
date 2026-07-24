@@ -19,7 +19,7 @@ import { getTimeZone } from "../calendar/date/CalendarUtils.js"
 import { ConversationType, MailMethod, RecipientType } from "../../../entities/tutanota/Utils"
 import { AccountType } from "../../../entities/sys/Utils"
 import { createErrorReportData, createErrorReportFile, createReportErrorIn, ReportErrorService } from "@tutao/entities/monitor"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { ErrorReportClientType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { DataFile } from "../../../entities/tutanota/MailBundle"
 
@@ -365,7 +365,7 @@ async function sendToServer(error: ErrorInfo, userMessage: string | null, logs: 
 			errorMessage: error.message,
 			userMessage: userMessage,
 			stackTrace: error.stack ?? "",
-			additionalInfo: client.userAgent,
+			additionalInfo: ClientDetector.get().userAgent,
 			time: new Date(),
 		}),
 		files: logs.map((log) => {

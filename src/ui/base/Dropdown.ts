@@ -17,7 +17,7 @@ import { AllIcons } from "./Icon.js"
 import { RowButton, RowButtonAttrs } from "./buttons/RowButton.js"
 import { AriaRole } from "../AriaUtils.js"
 import { BaseButton } from "./buttons/BaseButton"
-import { client } from "../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector"
 import { InputAttrs, SingleLineTextField } from "./SingleLineTextField"
 import { LegacyTextFieldType } from "./LegacyTextField"
 
@@ -229,7 +229,7 @@ export class Dropdown implements ModalComponent {
 									this._renderDirection = renderDirection
 									const buttons = (vnode.dom as HTMLElement).getElementsByTagName("button")
 									const firstButton = buttons.item(0)
-									if (this.domInput && !client.isMobileDevice()) {
+									if (this.domInput && !ClientDetector.get().isMobileDevice()) {
 										this.domInput.focus()
 									} else if (firstButton !== null) {
 										firstButton.focus()

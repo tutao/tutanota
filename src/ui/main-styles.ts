@@ -9,7 +9,7 @@ import { goEuropeanBlue } from "./builtinThemes"
 import { DefaultAnimationTime } from "./animation/Animations"
 import { FontIcons } from "./base/icons/FontIcons"
 import type { IWindowFacade } from "./IWindowFacade.js"
-import { client } from "../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../platform-kit/app-env/boot/ClientDetector"
 
 assertMainOrNode()
 
@@ -959,7 +959,7 @@ export class MainStyles {
 					"max-width": px(200),
 				},
 				".scroll": {
-					"overflow-y": client.overflowAuto,
+					"overflow-y": ClientDetector.get().overflowAuto,
 					"-webkit-overflow-scrolling": "touch",
 				},
 				".scroll-no-overlay": {
@@ -972,16 +972,16 @@ export class MainStyles {
 				},
 				"*": {
 					"scrollbar-color": `${theme.on_surface_variant} transparent`,
-					"scrollbar-width": !client.isMobileDevice() ? "thin" : "none",
+					"scrollbar-width": !ClientDetector.get().isMobileDevice() ? "thin" : "none",
 				},
-				"::-webkit-scrollbar": !client.isMobileDevice()
+				"::-webkit-scrollbar": !ClientDetector.get().isMobileDevice()
 					? {
 							background: "transparent",
 							width: scrollbarWidthHeight, // width of vertical scrollbar
 							height: scrollbarWidthHeight, // width of horizontal scrollbar
 						}
 					: {},
-				"::-webkit-scrollbar-thumb": !client.isMobileDevice()
+				"::-webkit-scrollbar-thumb": !ClientDetector.get().isMobileDevice()
 					? {
 							background: theme.on_surface_variant,
 							// reduce the background
@@ -1080,7 +1080,7 @@ export class MainStyles {
 				},
 				// Stretch editor a little bit more than parent so that the content is visible
 				".full-height": {
-					"min-height": client.isIos() ? "101%" : "100%",
+					"min-height": ClientDetector.get().isIos() ? "101%" : "100%",
 				},
 				".full-width": {
 					width: "100%",
@@ -2058,13 +2058,13 @@ export class MainStyles {
 							// opacity: 0.7,
 						}
 					: {},
-				".nav-button:focus": client.isDesktopDevice()
+				".nav-button:focus": ClientDetector.get().isDesktopDevice()
 					? {
 							// "text-decoration": "underline",
 							// opacity: 0.7,
 						}
 					: {},
-				"button:focus, button:hover": client.isDesktopDevice()
+				"button:focus, button:hover": ClientDetector.get().isDesktopDevice()
 					? {
 							opacity: 0.7,
 						}
@@ -2718,7 +2718,7 @@ export class MainStyles {
 					padding: "35%",
 					margin: "-35% -35%",
 				},
-				".color-option:not(.selected):focus-within, .color-option:not(.selected):hover": client.isDesktopDevice()
+				".color-option:not(.selected):focus-within, .color-option:not(.selected):hover": ClientDetector.get().isDesktopDevice()
 					? {
 							opacity: 0.7,
 						}
