@@ -23,9 +23,13 @@ export type EventBannerAttrs = {
 }
 
 /**
- * displayed above a mail that contains a calendar invite.
- * Its main function is to make it possible to inspect the event with the CalendarEventPopup, to quick respond
- * your attendance with Accept/Decline/Tentative while adding the event to your personal calendar
+ * Banner with Calendar Invitation information and reply actions
+ *
+ * Displayed above a mail that contains a calendar invite.
+ * Its main function is to make it possible to inspect the event and the users agenda for the day, to quick respond with
+ * your attendance (Accept/Decline/Tentative) while adding the event to your personal calendar
+ *
+ * @See TimeOverview
  */
 export class EventBanner implements Component<EventBannerAttrs> {
 	private impl: LazyLoaded<{
