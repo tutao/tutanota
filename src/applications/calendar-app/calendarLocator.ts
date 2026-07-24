@@ -137,6 +137,8 @@ import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
 import { KdfType } from "../../platform-kit/base/base-crypto/Constants"
 import { ParsedEventAlarmTuple } from "./calendar/export/CalendarParser"
 import { SearchModel } from "../mail-app/search/model/SearchModel"
+import { OfflineStorageSettingsModel } from "../common/offline/OfflineStorageSettingsModel"
+import { NewCalendarSearchViewModel } from "./calendar/search/view/NewCalendarSearchViewModel"
 
 assertMainOrNode()
 
@@ -144,6 +146,7 @@ class CalendarLocator implements CommonLocator {
 	clientModelInfo!: ClientModelInfo
 	eventController!: EventController
 	search!: CalendarSearchModel
+	searchModel!: SearchModel
 	mailboxModel!: MailboxModel
 	contactModel!: ContactModel
 	entityClient!: EntityClient
@@ -1075,6 +1078,31 @@ class CalendarLocator implements CommonLocator {
 		const { GroupSettingsModel } = await import("../common/sharing/model/GroupSettingsModel.js")
 		return new GroupSettingsModel(this.entityClient, this.logins)
 	})
+	async calendarSearchViewModelFactory(): Promise<() => NewCalendarSearchViewModel> {
+		const { NewCalendarSearchViewModel } = await import("./calendar/search/view/NewCalendarSearchViewModel.js")
+		const calendarModel = await this.calendarModel()
+		const redraw = await this.redraw
+		const router = await this.scopedSearchRouter()
+		const offlineStorageSettings = await this.offlineStorageSettingsModel()
+		return () =>
+			new NewCalendarSearchViewModel(
+				calendarModel,
+				this.logins,
+				this.searchModel,
+				router,
+				this.eventController,
+				this.entityClient,
+				redraw,
+				offlineStorageSettings,
+			)
+	}
+	async offlineStorageSettingsModel(): Promise<OfflineStorageSettingsModel | null> {
+		if (!isBrowser() && !isAdminClient()) {
+			return new OfflineStorageSettingsModel(this.logins.getUserController(), deviceConfig)
+		} else {
+			return null
+		}
+	}
 }
 
 export type ICalendarLocator = Readonly<CalendarLocator>

@@ -74,6 +74,10 @@ import { MailSearchView, MailSearchViewAttrs } from "./search/view/MailSearchVie
 import { MailSearchViewModel } from "./search/view/MailSearchViewModel"
 import { ContactSearchView, ContactSearchViewAttrs } from "./search/view/ContactSearchView"
 import { ContactSearchViewModel } from "./search/view/ContactSearchViewModel"
+import { NewCalendarSearchView, NewCalendarSearchViewAttrs } from "../calendar-app/calendar/search/view/NewCalendarSearchView"
+import { NewCalendarSearchViewModel } from "../calendar-app/calendar/search/view/NewCalendarSearchViewModel"
+import { calendarLocator } from "../calendar-app/calendarLocator"
+import Interceptors from "undici/types/interceptors"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -670,6 +674,35 @@ import("../../ui/translations/en.js")
 					},
 				},
 				mailLocator.logins,
+			),
+			calendarSearch: makeViewResolver<
+				NewCalendarSearchViewAttrs,
+				NewCalendarSearchView,
+				{ header: AppHeaderAttrs; drawerAttrsFactory: () => DrawerMenuAttrs; makeViewModel: () => NewCalendarSearchViewModel }
+			>(
+				{
+					prepareRoute: async () => {
+						const { NewCalendarSearchView } = await import("../calendar-app/calendar/search/view/NewCalendarSearchView.js")
+						const drawerAttrsFactory = await calendarLocator.drawerAttrsFactory()
+						const makeViewModel = await calendarLocator.calendarSearchViewModelFactory()
+						return {
+							component: NewCalendarSearchView,
+							cache: {
+								header: await calendarLocator.appHeaderAttrs(),
+								drawerAttrsFactory,
+								makeViewModel,
+							},
+						}
+					},
+					prepareAttrs: (cache) => {
+						return {
+							header: cache.header,
+							drawerAttrs: cache.drawerAttrsFactory(),
+							makeViewModel: cache.makeViewModel,
+						}
+					},
+				},
+				calendarLocator.logins,
 			),
 			search: makeViewResolver<
 				SearchViewAttrs,

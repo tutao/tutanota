@@ -15,6 +15,7 @@ type ViewResolvers = {
 	recover: RouteResolver
 	webauthn: RouteResolver
 	webauthnmobile: RouteResolver
+	calendarSearch: RouteResolver
 }
 
 export function applicationPaths({
@@ -29,6 +30,7 @@ export function applicationPaths({
 	recover,
 	webauthn,
 	webauthnmobile,
+	calendarSearch,
 }: ViewResolvers): ApplicationPaths {
 	return {
 		"/login": login,
@@ -36,8 +38,8 @@ export function applicationPaths({
 		"/revocation": revocation,
 		"/signup": signup,
 		"/recover": recover,
-		"/search/:category": search,
-		"/search/:category/:id": search,
+		"/search/calendar": calendarSearch,
+		"/search/calendar/:id": calendarSearch,
 		"/settings": settings,
 		"/settings/:folder": settings,
 		"/settings/:folder/:id": settings,

@@ -44,6 +44,9 @@ import { initClientModels } from "../common/api/common/ClientModelInfoInitialize
 import { RevocationView, RevocationViewAttrs } from "../common/revocation/RevocationView"
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
 import { CalendarSearchBarAttrs } from "./LazyCalendarSearchBar"
+import { NewCalendarSearchView, NewCalendarSearchViewAttrs } from "./calendar/search/view/NewCalendarSearchView"
+import { NewCalendarSearchViewModel } from "./calendar/search/view/NewCalendarSearchViewModel"
+import { calendarLocator } from "./calendarLocator"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -277,6 +280,35 @@ import("../../ui/translations/en.js")
 						settingSections: cache.settingSections,
 						backUrl: CALENDAR_PREFIX,
 					}),
+				},
+				calendarLocator.logins,
+			),
+			calendarSearch: makeViewResolver<
+				NewCalendarSearchViewAttrs,
+				NewCalendarSearchView,
+				{ header: AppHeaderAttrs; drawerAttrsFactory: () => DrawerMenuAttrs; makeViewModel: () => NewCalendarSearchViewModel }
+			>(
+				{
+					prepareRoute: async () => {
+						const { NewCalendarSearchView } = await import("./calendar/search/view/NewCalendarSearchView.js")
+						const drawerAttrsFactory = await calendarLocator.drawerAttrsFactory()
+						const makeViewModel = await calendarLocator.calendarSearchViewModelFactory()
+						return {
+							component: NewCalendarSearchView,
+							cache: {
+								header: await calendarLocator.appHeaderAttrs(),
+								drawerAttrsFactory,
+								makeViewModel,
+							},
+						}
+					},
+					prepareAttrs: (cache) => {
+						return {
+							header: cache.header,
+							drawerAttrs: cache.drawerAttrsFactory(),
+							makeViewModel: cache.makeViewModel,
+						}
+					},
 				},
 				calendarLocator.logins,
 			),
