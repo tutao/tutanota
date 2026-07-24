@@ -674,7 +674,7 @@ export class MailViewModel {
 		await mailLocator.bulkMailLoader.loadMailDetails(actionableMails)
 
 		for (const mail of actionableMails) {
-			const folder = await inboxRuleHandler.processInboxRulesOnly(mail, currentFolder, mailboxDetails)
+			const folder = await inboxRuleHandler.getInboxRuleMoveTarget(mail, currentFolder, mailboxDetails)
 			const folderId = getElementId(folder)
 			if (!targetFolderIdToFolderMailMap.has(folderId)) {
 				targetFolderIdToFolderMailMap.set(folderId, { folder, mails: [] })

@@ -1382,10 +1382,12 @@ export class MailFacade {
 		)
 	}
 
+	// FIXME this exact function is also in SpamClassifier#createModelInputAndUploadVector
 	async createModelInputAndUploadableVectors(mail: Mail, mailDetails: MailDetails, sourceFolder: MailSet) {
 		const datum = createSpamMailDatum(mail, mailDetails)
 		const modelInput = await this.spamMailProcessor.processSpamMailDatum(datum)
 		const { uploadableVectorLegacy, uploadableVector } = await this.spamMailProcessor.makeUploadableVectors(datum)
+
 		return { modelInput, uploadableVectorLegacy, uploadableVector }
 	}
 
