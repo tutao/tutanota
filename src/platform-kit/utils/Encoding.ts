@@ -1,4 +1,6 @@
 // TODO rename methods according to their JAVA counterparts (e.g. Uint8Array == bytes, Utf8Uint8Array == bytes...)
+import { isFunction } from "@tensorflow/tfjs-core/dist/util_base"
+
 export function uint8ArrayToArrayBuffer(uint8Array: Uint8Array): ArrayBuffer {
 	if (uint8Array.byteLength === uint8Array.buffer.byteLength) {
 		return uint8Array.buffer
@@ -197,18 +199,16 @@ export function _replaceLoneSurrogates(s: string | null): string {
 	return result.join("")
 }
 
-const encoder =
-	typeof TextEncoder === "function"
-		? new TextEncoder()
-		: {
-				encode: _stringToUtf8Uint8ArrayLegacy,
-			}
-const decoder =
-	typeof TextDecoder === "function"
-		? new TextDecoder()
-		: {
-				decode: _utf8Uint8ArrayToStringLegacy,
-			}
+const encoder = isFunction(TextEncoder)
+	? new TextEncoder()
+	: {
+			encode: _stringToUtf8Uint8ArrayLegacy,
+		}
+const decoder = isFunction(TextDecoder)
+	? new TextDecoder()
+	: {
+			decode: _utf8Uint8ArrayToStringLegacy,
+		}
 
 /**
  * Converts a string to a Uint8Array containing a UTF-8 string data.

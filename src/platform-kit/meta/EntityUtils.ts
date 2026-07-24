@@ -33,6 +33,7 @@ import { Entity, ModelValue, PersistentEntity, TypeModel } from "./EntityTypes.j
 import { Cardinality, ValueType } from "./EntityConstants.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { assertNull, isNull } from "../utils/Utils"
+import { isUndefined } from "../app-env/boot/TypeChecks"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -223,8 +224,8 @@ export function getEtId(entity: Element): Id {
 }
 
 export function getLetId(entity: ListElement): IdTuple {
-	if (typeof entity._id === "undefined" || entity._id === null) {
-		throw new Error("listId is not defined for " + (typeof (entity as any)._type === "undefined" ? JSON.stringify(entity) : (entity as any)))
+	if (isUndefined(entity._id) || entity._id === null) {
+		throw new Error("listId is not defined for " + (isUndefined((entity as any)._type) ? JSON.stringify(entity) : (entity as any)))
 	}
 
 	return entity._id
