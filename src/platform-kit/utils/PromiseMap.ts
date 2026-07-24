@@ -1,3 +1,5 @@
+import { getTypeOf, isFunction } from "../app-env/boot/TypeChecks"
+
 /**
  * @file Vendored version of p-map: https://github.com/sindresorhus/p-map/
  * Vendored to avoid having dependency on AggregateError.
@@ -50,12 +52,12 @@ export async function pMap<Element, NewElement>(
 ): Promise<Array<NewElement>> {
 	const { concurrency = 1 } = options
 	return new Promise((resolve, reject) => {
-		if (typeof mapper !== "function") {
+		if (!isFunction(mapper)) {
 			throw new TypeError("Mapper function is required")
 		}
 
 		if (!((Number.isSafeInteger(concurrency) || concurrency === Number.POSITIVE_INFINITY) && concurrency >= 1)) {
-			throw new TypeError(`Expected \`concurrency\` to be an integer from 1 and up or \`Infinity\`, got \`${concurrency}\` (${typeof concurrency})`)
+			throw new TypeError(`Expected \`concurrency\` to be an integer from 1 and up or \`Infinity\`, got \`${concurrency}\` (${getTypeOf(concurrency)})`)
 		}
 
 		const result: NewElement[] = []
