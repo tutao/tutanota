@@ -7,6 +7,7 @@ import {
 	collectToMap,
 	difference,
 	getFirstOrThrow,
+	groupBy,
 	groupByAndMap,
 	isEmpty,
 	isNotEmpty,
@@ -43,7 +44,9 @@ import {
 	MailBoxTypeRef,
 	MailDetailsBlob,
 	MailDetailsBlobTypeRef,
+	MailSetEntry,
 	MailSetEntryTypeRef,
+	MailSetTypeRef,
 	MailTypeRef,
 } from "@tutao/entities/tutanota"
 import { User } from "@tutao/entities/sys"
@@ -53,7 +56,7 @@ import { isDraft } from "../../mail/model/MailChecks"
 import { ConnectionError } from "@tutao/rest-client/error"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 import { CommonImportedMail } from "./WebMailIndexer"
-import { MailImportType } from "../../../../entities/tutanota/Utils"
+import { MailImportType, MailSetKind } from "../../../../entities/tutanota/Utils"
 
 assertWorkerOrNode()
 
@@ -406,11 +409,23 @@ export class OfflineMailIndexer implements MailIndexer {
 		}
 		const typeRef = (mailImportType === MailImportType.FileImport ? ImportedFileMailTypeRef : ImportedImapMailTypeRef) as TypeRef<CommonImportedMail>
 		const importedMails = await this.entityClient.loadAll(typeRef, importList)
-		const importedMailEntryIds = importedMails.map((importedMail) => importedMail.mailSetEntry)
+		if (isEmpty(importedMails)) {
+			return
+		}
 
-		// This must all be in the same list
-		const listId = listIdPart(getFirstOrThrow(importedMailEntryIds))
-		const entries = await this.entityClient.loadMultiple(MailSetEntryTypeRef, listId, importedMailEntryIds.map(elementIdPart))
+		const importedMailSetEntryElementIds = importedMails.map((importedMail) => elementIdPart(importedMail.mailSetEntry))
+
+		const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, idToElementId(assertNotNull(getFirstOrThrow(importedMails)._ownerGroup)))
+		const mailbox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailboxGroupRoot.mailbox))
+		const mailSets = await this.entityClient.loadAll(MailSetTypeRef, mailbox.mailSets.mailSets)
+		const importedMailSet = assertNotNull(mailSets.find((mailSet) => mailSet.folderType === MailSetKind.IMPORTED))
+
+		// fixme this code change is probably not necessary if we do not change the ImportMailService code (which MSE is referenced from ImportedMail), as we planned to
+		// Only mailSetEntry guaranteed to be there as long as the mail is there is the one on the entries list of the IMPORTED mail set, the mailSetEntry referenced
+		// by the ImportedMail could already be deleted from our database if the user already moved the mail.
+		// Interesting design choice to not write the mailSetEntry that will be there as long as the mail is there to the ImportedMail...
+		const importedMailSetEntryListId = importedMailSet.entries
+		const entries = await this.entityClient.loadMultiple(MailSetEntryTypeRef, importedMailSetEntryListId, importedMailSetEntryElementIds)
 
 		let mailIds = entries
 			.map((entries) => entries.mail)

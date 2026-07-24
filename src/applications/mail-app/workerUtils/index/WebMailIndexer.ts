@@ -75,6 +75,7 @@ type CommonImportStateFields = {
 
 type CommonImportedMailFields = {
 	mailSetEntry: IdTuple
+	_ownerGroup: null | Id
 }
 
 type CommonImportState = ListElementEntity & CommonImportStateFields
