@@ -44,16 +44,9 @@ export class EntityUtils {
 			case ValueTypeEnum.Bytes:
 				entityRecord[key] = parsedValue.asByteArray()
 				break
-			case ValueTypeEnum.Number: {
-				// encrypted values default to empty string
-				const stringValue = parsedValue.asString()
-				if (modelValue.encrypted && stringValue === "") {
-					entityRecord[key] = stringValue
-				} else {
-					entityRecord[key] = assertNotNaN(parseInt(stringValue), `Non-numeric string for attribute: ${modelValue.name}`).toString()
-				}
+			case ValueTypeEnum.Number:
+				entityRecord[key] = assertNotNaN(parseInt(parsedValue.asString()), `Non-numeric string for attribute: ${modelValue.name}`).toString()
 				break
-			}
 			case ValueTypeEnum.String:
 			case ValueTypeEnum.CompressedString:
 				entityRecord[key] = parsedValue.asString()
