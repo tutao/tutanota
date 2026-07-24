@@ -15,6 +15,7 @@ import {
 } from "./types"
 import { once } from "../utils/memoized"
 import { isUndefined } from "../app-env/boot/TypeChecks"
+import { client } from "../app-env/boot/ClientDetector"
 
 assertWorkerOrNode()
 
@@ -94,8 +95,8 @@ export class RestClient implements RestClientInterface {
 				}
 
 				if (options.noCORS) {
-					queryParams["cv"] = env.versionNumber
-					if (env.networkDebugging) {
+					queryParams["cv"] = client.env.versionNumber
+					if (client.env.networkDebugging) {
 						queryParams["network-debugging"] = "enable-network-debugging"
 					}
 				}
@@ -126,7 +127,7 @@ export class RestClient implements RestClientInterface {
 						clearTimeout(requestTimeoutTimeoutID)
 					}
 					const isBlobRequest = options.body instanceof RestBinaryBody
-					requestTimeoutTimeoutID = setTimeout(abortOnTimeout, isBlobRequest ? BLOB_REQUEST_TIMEOUT_MS : env.timeout)
+					requestTimeoutTimeoutID = setTimeout(abortOnTimeout, isBlobRequest ? BLOB_REQUEST_TIMEOUT_MS : client.env.timeout)
 				}
 				const cancelTimeoutTimer = () => {
 					if (requestTimeoutTimeoutID != null) clearTimeout(requestTimeoutTimeoutID)
@@ -145,7 +146,7 @@ export class RestClient implements RestClientInterface {
 				}
 
 				if (verbose) {
-					console.log(TAG, `${id}: set initial timeout ${String(requestTimeoutTimeoutID)} of ${env.timeout}`)
+					console.log(TAG, `${id}: set initial timeout ${String(requestTimeoutTimeoutID)} of ${client.env.timeout}`)
 				}
 
 				xhr.onload = async () => {
@@ -225,7 +226,7 @@ export class RestClient implements RestClientInterface {
 						restartTimeoutTimer()
 
 						if (verbose) {
-							console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${env.timeout}`)
+							console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${client.env.timeout}`)
 						}
 
 						if (options.progressListener != null && pe.lengthComputable) {
@@ -256,7 +257,7 @@ export class RestClient implements RestClientInterface {
 							if (verbose) {
 								console.log(TAG, `${id}: ${String(new Date())} upload aborted. calling error handler.`, e)
 							}
-							reject(new ConnectionError(`Reached timeout of ${env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
+							reject(new ConnectionError(`Reached timeout of ${client.env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
 						}
 					}
 				}
@@ -269,7 +270,7 @@ export class RestClient implements RestClientInterface {
 					restartTimeoutTimer()
 
 					if (verbose) {
-						console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${env.timeout}`)
+						console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${client.env.timeout}`)
 					}
 
 					if (options.progressListener != null && pe.lengthComputable) {
@@ -283,7 +284,7 @@ export class RestClient implements RestClientInterface {
 					if (options.abortSignal?.aborted) {
 						reject(new CancelledError(`Request canceled | ${method} ${path}`))
 					} else {
-						reject(new ConnectionError(`Reached timeout of ${env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
+						reject(new ConnectionError(`Reached timeout of ${client.env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
 					}
 				}
 
@@ -354,7 +355,7 @@ export class RestClient implements RestClientInterface {
 
 		// don't add custom and content-type headers for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
 		if (!options.noCORS) {
-			headers["cv"] = env.versionNumber
+			headers["cv"] = client.env.versionNumber
 			headers["cp"] = this.clientPlatform
 			if (body instanceof RestBinaryBody) {
 				headers["Content-Type"] = MediaType.Binary
@@ -365,13 +366,13 @@ export class RestClient implements RestClientInterface {
 			// add networkDebugging header iff network debugging is activated
 			// network debugging can be activated by building with --network-debugging,
 			// and essentially activates both attributeNames and attributeIds in the request/response payload
-			if (env.networkDebugging) {
+			if (client.env.networkDebugging) {
 				headers["Network-Debugging"] = "enable-network-debugging"
 			}
 		}
 
-		if (env.clientName != null) {
-			headers["Client-Name"] = env.clientName
+		if (client.env.clientName != null) {
+			headers["Client-Name"] = client.env.clientName
 		}
 
 		if (responseType) {

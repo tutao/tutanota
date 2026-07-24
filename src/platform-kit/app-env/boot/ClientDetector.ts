@@ -16,7 +16,7 @@ export class ClientDetector {
 	appType!: AppType
 	isAutomatedBrowser: boolean = false
 
-	constructor() {}
+	constructor(public readonly env: Env) {}
 
 	init(userAgent: string, platform: string, appType: AppType = AppType.Integrated) {
 		this.userAgent = userAgent
@@ -56,7 +56,7 @@ export class ClientDetector {
 
 			async function testAsync() {}
 
-			function testDefaultArgs(a = 2) {}
+			function testDefaultArgs(_a = 2) {}
 
 			testGenerator()
 			testAsync()
@@ -364,17 +364,17 @@ export class ClientDetector {
 	}
 
 	getIdentifier(): string {
-		if (env.mode === Mode.App) {
+		if (this.env.mode === Mode.App) {
 			if (this.appType === AppType.Integrated) throw new Error("AppType.Integrated is not allowed for mobile apps")
 			const appType = this.appType === AppType.Mail ? "Mail" : "Calendar"
 			return `${client.device} ${appType} App`
 		} else if (isBrowser()) {
 			return client.browser + " Browser"
-		} else if (env.platformId === "linux") {
+		} else if (this.env.platformId === "linux") {
 			return "Linux Desktop"
-		} else if (env.platformId === "darwin") {
+		} else if (this.env.platformId === "darwin") {
 			return "Mac Desktop"
-		} else if (env.platformId === "win32") {
+		} else if (this.env.platformId === "win32") {
 			return "Windows Desktop"
 		}
 
@@ -436,9 +436,9 @@ export class ClientDetector {
 
 	getClientPlatform(): ClientPlatform {
 		if (isDesktop()) {
-			if (env.platformId === "darwin") return ClientPlatform.DESKTOP_MAC
-			if (env.platformId === "linux") return ClientPlatform.DESKTOP_LINUX
-			if (env.platformId === "win32") return ClientPlatform.DESKTOP_WINDOWS
+			if (this.env.platformId === "darwin") return ClientPlatform.DESKTOP_MAC
+			if (this.env.platformId === "linux") return ClientPlatform.DESKTOP_LINUX
+			if (this.env.platformId === "win32") return ClientPlatform.DESKTOP_WINDOWS
 			return ClientPlatform.DESKTOP_UNKNOWN
 		}
 		if (!isApp()) return ClientPlatform.WEB
@@ -471,4 +471,4 @@ export enum ClientPlatform {
 	DESKTOP_WINDOWS,
 }
 
-export const client: ClientDetector = new ClientDetector()
+export const client: ClientDetector = new ClientDetector(env)

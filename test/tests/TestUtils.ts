@@ -42,7 +42,7 @@ import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
 import { tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
 import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
 import { EncryptedDbWrapper } from "../../src/applications/common/api/worker/search/EncryptedDbWrapper"
-import { ClientPlatform } from "../../src/platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector, ClientPlatform } from "../../src/platform-kit/app-env/boot/ClientDetector"
 import { KeyLoaderFacade } from "../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants"
 import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
@@ -437,12 +437,14 @@ export async function withOverriddenEnv<F extends (...args: any[]) => any>(overr
 	for (const [key, value] of Object.entries(override)) {
 		env[key] = value
 	}
+	;(ClientDetector.get() as any).env = env
 	try {
 		return await action()
 	} finally {
 		for (const key of Object.keys(override)) {
 			env[key] = previousEnv[key]
 		}
+		;(ClientDetector.get() as any).env = env
 	}
 }
 
