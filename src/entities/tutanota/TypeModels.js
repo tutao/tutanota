@@ -2947,10 +2947,10 @@ const typeModels = {
 				"dependency": "sys",
 				"transferredAttributeId": null
 			},
-			"2015": {
+			"2016": {
 				"final": true,
 				"name": "file",
-				"id": 2015,
+				"id": 2016,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 1976,
@@ -3170,30 +3170,30 @@ const typeModels = {
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2016": {
+			"2017": {
 				"final": false,
 				"name": "mail",
-				"id": 2016,
+				"id": 2017,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2009,
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2017": {
+			"2018": {
 				"final": false,
 				"name": "mailDetailsBlob",
-				"id": 2017,
+				"id": 2018,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2006,
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2018": {
+			"2019": {
 				"final": false,
 				"name": "newAttachments",
-				"id": 2018,
+				"id": 2019,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 486,
@@ -12814,6 +12814,16 @@ const typeModels = {
 				"refTypeId": 1983,
 				"dependency": null,
 				"transferredAttributeId": 111
+			},
+			"2015": {
+				"final": true,
+				"name": "firstRecipient",
+				"id": 2015,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 1983,
+				"dependency": null,
+				"transferredAttributeId": 1306
 			}
 		}
 	}

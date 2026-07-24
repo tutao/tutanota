@@ -3197,4 +3197,5 @@ export type MailTransferAggregatedType = {
 	method: NumberString;
 
 	sender: MailAddressTransferAggregatedType;
+	firstRecipient: null | MailAddressTransferAggregatedType;
 }

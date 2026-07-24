@@ -1035,7 +1035,7 @@ pub struct NewDraftAttachment {
 	pub encCid: Option<Vec<u8>>,
 	#[serde(rename = "1226")]
 	pub referenceTokens: Vec<super::sys::BlobReferenceTokenWrapper>,
-	#[serde(rename = "2015")]
+	#[serde(rename = "2016")]
 	pub file: Option<FileTransferAggregatedType>,
 }
 
@@ -1104,11 +1104,11 @@ pub struct DraftData {
 	pub removedAttachments: Vec<IdTupleGenerated>,
 	#[serde(rename = "819")]
 	pub replyTos: Vec<EncryptedMailAddress>,
-	#[serde(rename = "2016")]
-	pub mail: Option<MailTransferAggregatedType>,
 	#[serde(rename = "2017")]
-	pub mailDetailsBlob: Option<MailDetailsBlobTransferAggregatedType>,
+	pub mail: Option<MailTransferAggregatedType>,
 	#[serde(rename = "2018")]
+	pub mailDetailsBlob: Option<MailDetailsBlobTransferAggregatedType>,
+	#[serde(rename = "2019")]
 	pub newAttachments: Vec<NewDraftAttachment>,
 
 	#[serde(default)]
@@ -4970,6 +4970,8 @@ pub struct MailTransferAggregatedType {
 	pub method: i64,
 	#[serde(rename = "2014")]
 	pub sender: MailAddressTransferAggregatedType,
+	#[serde(rename = "2015")]
+	pub firstRecipient: Option<MailAddressTransferAggregatedType>,
 
 	#[serde(default)]
 	pub _errors: Errors,
