@@ -1,5 +1,6 @@
 import { ProgrammingError } from "./ProgrammingError"
 import { isObject, isUndefined } from "./boot/TypeChecks"
+import { client } from "./boot/ClientDetector"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -31,37 +32,37 @@ export function getApiBaseUrl(domainConfig: DomainConfig): string {
 }
 
 export function isIOSApp(): boolean {
-	if (isApp() && env.platformId == null) {
+	if (isApp() && client.env.platformId == null) {
 		throw new ProgrammingError("PlatformId is not set!")
 	}
-	return isApp() && env.platformId === "ios"
+	return isApp() && client.env.platformId === "ios"
 }
 
 /**
  * Return true if an Apple device; used for checking if CTRL or CMD/Meta should be used as the primary modifier
  */
 export function isAppleDevice(): boolean {
-	return env.platformId === "darwin" || isIOSApp()
+	return client.env.platformId === "darwin" || isIOSApp()
 }
 
 export function isAndroidApp(): boolean {
-	if (isApp() && env.platformId == null) {
+	if (isApp() && client.env.platformId == null) {
 		throw new ProgrammingError("PlatformId is not set!")
 	}
 
-	return isApp() && env.platformId === "android"
+	return isApp() && client.env.platformId === "android"
 }
 
 export function isApp(): boolean {
-	return env.mode === Mode.App
+	return client.env.mode === Mode.App
 }
 
 export function isDesktop(): boolean {
-	return env.mode === Mode.Desktop
+	return client.env.mode === Mode.Desktop
 }
 
 export function isBrowser(): boolean {
-	return env.mode === Mode.Browser
+	return client.env.mode === Mode.Browser
 }
 
 export function ifDesktop<T>(obj: T | null): T | null {
@@ -76,11 +77,11 @@ export function isMain(): boolean {
 }
 
 export function isWebClient() {
-	return env.mode === Mode.Browser
+	return client.env.mode === Mode.Browser
 }
 
 export function isAdminClient(): boolean {
-	return env.mode === Mode.Admin
+	return client.env.mode === Mode.Admin
 }
 
 export function isElectronClient(): boolean {
@@ -100,11 +101,11 @@ export function isWorker(): boolean {
 }
 
 export function isTest(): boolean {
-	return env.mode === Mode.Test
+	return client.env.mode === Mode.Test
 }
 
 export function isDesktopMainThread(): boolean {
-	return node && !isUndefined(env) && (isDesktop() || isAdminClient())
+	return node && !isUndefined(client.env) && (isDesktop() || isAdminClient())
 }
 
 let boot = !isDesktopMainThread() && !isWorker()
