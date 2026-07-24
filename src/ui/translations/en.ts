@@ -2456,6 +2456,7 @@ export default {
 		"subscriptionSettingStorageFeature_msg": "If you are above the limit of 1GB with your storage please free some space",
 		"subscriptionStateCardResubscribe_action": "Resubscribe",
 		"changePaymentInterval_action": "Change payment interval",
-		"subscriptionSettingDowngrade_action": "Downgrade"
+		"subscriptionSettingDowngrade_action": "Downgrade",
+		"subscriptionSettingManageSubscription_action": "Manage subscription"
 	}
 }

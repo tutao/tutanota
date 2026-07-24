@@ -727,6 +727,10 @@ export async function showManageThroughAppStoreDialog(): Promise<void> {
 		}),
 	)
 	if (confirmed) {
-		window.open("https://apps.apple.com/account/subscriptions", "_blank", "noopener,noreferrer")
+		openAppleSubscriptionPage()
 	}
+}
+
+export function openAppleSubscriptionPage() {
+	window.open("https://apps.apple.com/account/subscriptions", "_blank", "noopener,noreferrer")
 }
