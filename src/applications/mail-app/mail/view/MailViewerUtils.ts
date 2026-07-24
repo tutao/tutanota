@@ -12,7 +12,7 @@ import { showUserError } from "../../../common/misc/ErrorHandlerImpl.js"
 import { ContentBlockingStatus, MailViewerViewModel, UnsubscribeAction, UnsubscribeType } from "./MailViewerViewModel.js"
 import { DropdownButtonAttrs } from "../../../../ui/base/Dropdown.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
 import { LockedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { ExternalLink } from "../../../../ui/base/ExternalLink.js"
@@ -296,7 +296,7 @@ export function multipleMailViewerMoreActions(exportAction: (() => void) | null,
 
 export function singleMailViewerMoreActions(viewModel: MailViewerViewModel, moreActions: MailViewerMoreActions): Array<DropdownButtonAttrs> {
 	const moreButtons: Array<DropdownButtonAttrs> = []
-	if (!client.isMobileDevice() && viewModel.canExport()) {
+	if (!ClientDetector.get().isMobileDevice() && viewModel.canExport()) {
 		moreButtons.push({
 			label: "export_action",
 			click: () => showProgressDialog("pleaseWait_msg", viewModel.exportMail()),

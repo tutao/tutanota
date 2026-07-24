@@ -11,7 +11,7 @@ import { CustomerFacade } from "../worker/facades/lazy/CustomerFacade"
 import { Credentials } from "../../../../platform-kit/network/types"
 import { ExternalUserKeyDeriver, KdfType } from "../../../../platform-kit/base/base-crypto/Constants"
 import { PostLoginAction } from "../../../../app-kit/native-bridge/common/PostLoginAction"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 
 import { CacheMode } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { elementIdToId } from "@tutao/meta"
@@ -56,11 +56,11 @@ export class LoginController {
 	 * @param password
 	 */
 	async createPostSignupSession(username: string, password: string) {
-		return await this.loginFacade.createSession(username, password, client.getIdentifier(), SessionType.Persistent, null, true)
+		return await this.loginFacade.createSession(username, password, ClientDetector.get().getIdentifier(), SessionType.Persistent, null, true)
 	}
 
 	async createTemporarySessionOnly(username: string, password: string) {
-		return await this.loginFacade.createSession(username, password, client.getIdentifier(), SessionType.Temporary, null, true)
+		return await this.loginFacade.createSession(username, password, ClientDetector.get().getIdentifier(), SessionType.Temporary, null, true)
 	}
 
 	async deleteSession(accessToken: Base64Url): Promise<void> {
@@ -75,7 +75,7 @@ export class LoginController {
 	 * @param databaseKey if given, will use this key for the offline database. if not, will force a new database to be created and generate a key.
 	 */
 	async createSession(username: string, password: string, sessionType: SessionType, databaseKey: Uint8Array | null = null): Promise<NewSessionData> {
-		const newSessionData = await this.loginFacade.createSession(username, password, client.getIdentifier(), sessionType, databaseKey)
+		const newSessionData = await this.loginFacade.createSession(username, password, ClientDetector.get().getIdentifier(), sessionType, databaseKey)
 		const { user, credentials, sessionId, userGroupInfo } = newSessionData
 		await this.onPartialLoginSuccess(
 			{

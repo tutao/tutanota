@@ -18,9 +18,8 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { NavButton } from "../../../../ui/base/NavButton.js"
 import { CalendarViewType, formatJSDate } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { isApp } from "../../../../platform-kit/app-env"
-import { deviceConfig } from "../../../common/misc/DeviceConfig"
 
 export interface CalendarMobileHeaderAttrs extends AppHeaderAttrs {
 	viewType: CalendarViewType
@@ -68,7 +67,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 					click: attrs.onToday,
 				}),
 				this.renderViewSelector(attrs),
-				client.isCalendarApp()
+				ClientDetector.get().isCalendarApp()
 					? this.renderSearchNavigationButton()
 					: m(IconButton, {
 							icon: Icons.Plus,

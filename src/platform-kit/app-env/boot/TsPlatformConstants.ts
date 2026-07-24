@@ -101,7 +101,9 @@ export function _expectedJsSyntaxes(): boolean {
 /**
  * @see https://github.com/Modernizr/Modernizr/blob/5e3f359bfc9aa511543ece60bd8a6ea8aa7defd3/feature-detects/websockets.js
  */
-export const _haveWebsocket = "WebSocket" in window && window.WebSocket.CLOSING === 2
+export function _haveWebsocket() {
+	return "WebSocket" in window && window.WebSocket.CLOSING === 2
+}
 
 export function _isSupportedBrowserVersion(browser: BrowserType, browserVersion: number): boolean {
 	return notOldFirefox(browser, browserVersion) && notOldChrome(browser, browserVersion)

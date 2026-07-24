@@ -53,7 +53,7 @@ import { getDiscountDetails } from "./utils/PlanSelectorUtils"
 import { px } from "../../../ui/size"
 import { getUserGroupMemberships } from "../../../platform-kit/network/GroupUtils"
 import { getByAbbreviation } from "../gui/CountryList"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { PreconditionFailedError, TooManyRequestsError } from "@tutao/rest-client/error"
 import { elementIdToId } from "@tutao/meta"
 
@@ -227,7 +227,7 @@ async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInf
 					details: reason.details,
 					version: SURVEY_VERSION_NUMBER,
 					clientVersion: env.versionNumber,
-					clientPlatform: client.getClientPlatform().valueOf().toString(),
+					clientPlatform: ClientDetector.get().getClientPlatform().valueOf().toString(),
 				})
 			: null
 	const newPlanType = await cancelSubscription(dialog, currentPlanInfo, customer, data)
@@ -467,7 +467,7 @@ export async function tryDowngradePremiumToFree(customer: Customer, currentPlanT
 		referralCode: null,
 		plan: PlanType.Free,
 		surveyData: surveyData,
-		app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
+		app: ClientDetector.get().isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 	})
 	try {
 		await locator.serviceExecutor.post(SwitchAccountTypeService, switchAccountTypeData, null)
@@ -544,7 +544,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 			customer: elementIdToId(customer._id),
 			specialPriceUserSingle: null,
 			surveyData: null,
-			app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
+			app: ClientDetector.get().isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 		})
 
 		try {

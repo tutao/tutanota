@@ -11,7 +11,7 @@ import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
 import { ButtonAttrs, ButtonType } from "../../../../../ui/base/Button.js"
 import { Keys, ProgrammingError, UpgradePromptType } from "../../../../../platform-kit/app-env"
 import { AlarmInterval, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
-import { client } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { assertNotNull, newPromise, noOp, Thunk } from "../../../../../platform-kit/utils"
 import type { HtmlEditor } from "../../../../../ui/editor/HtmlEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
@@ -160,7 +160,7 @@ export class EventEditorDialog {
 				help: "save_action",
 			})
 
-		if (client.isMobileDevice()) {
+		if (ClientDetector.get().isMobileDevice()) {
 			// Prevent focusing text field automatically on mobile. It opens keyboard and you don't see all details.
 			dialog.setFocusOnLoadFunction(noOp)
 		}
