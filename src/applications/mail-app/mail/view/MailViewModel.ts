@@ -467,10 +467,10 @@ export class MailViewModel {
 		}
 	}
 
-	private readonly onceInit = lazyMemoized(() => {
+	private readonly onceInit = () => {
 		this.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 		this.connectivityModel.addConnectionStateListener(this.connectionStateListener)
-	})
+	}
 
 	get listModel(): MailSetListModel | null {
 		return this._listModel
