@@ -151,7 +151,7 @@ o.spec("ImportMailFacade", () => {
 		let callCount = 0
 		when(instancePipelineMock.mapAndEncrypt(ImportMailDataTypeRef, anything(), anything())).thenDo(async () => {
 			callCount++
-			return { data: "x".repeat(IMPORT_MAIL_SERVICE_SIZE_LIMIT / 2) }
+			return OutgoingServerJson.newFromRecord({ data: "x".repeat(IMPORT_MAIL_SERVICE_SIZE_LIMIT / 2) })
 		})
 
 		let postCalls: any[] = []
@@ -191,7 +191,7 @@ o.spec("ImportMailFacade", () => {
 		let capturedImportMailData: any = null
 		when(instancePipelineMock.mapAndEncrypt(ImportMailDataTypeRef, anything(), anything())).thenDo(async (_, data) => {
 			capturedImportMailData = data
-			return { enc: "data" }
+			return OutgoingServerJson.newFromRecord({ enc: "data" })
 		})
 
 		await facade.importMails(paramsList, mailGroupId)
