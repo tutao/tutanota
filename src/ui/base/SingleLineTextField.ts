@@ -2,7 +2,7 @@ import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril
 import { LegacyTextFieldType } from "./LegacyTextField.js"
 import { AllIcons, Icon, IconSize } from "./Icon.js"
 import { px, size } from "../size.js"
-import { filterInt } from "../../platform-kit/utils"
+import { filterInt } from "@tutao/utils"
 import { lang, Translation } from "../utils/LanguageViewModel"
 
 export enum InputMode {
@@ -15,6 +15,22 @@ export interface SingleLineTextFieldAttrs<T extends LegacyTextFieldType> extends
 	value: string | number
 	ariaLabel: Translation
 	disabled?: boolean
+	/**
+	 * If false, use error colors to indicate that the input in invalid;
+	 * also calls setCustomValidity, to set a custom error message on the DOM Input Element,
+	 * and add the :invalid CSS pseudo-class.
+	 */
+	valid?: boolean
+	/**
+	 * When valid=false, this value is passed as the argument to setCustomValidity,
+	 * to set a custom error message on the DOM Input Element.
+	 *
+	 * If no message is provided, a default translation of the message, "Invalid input." will be used.
+	 *
+	 * Some browsers display this message as a tooltip, so you should provide a message where possible,
+	 * if `valid` may be false.
+	 */
+	invalidMessage?: Translation
 	/**
 	 * Callback fired whenever the input is interacted with.
 	 * This property is mandatory if the input is interactive (disabled = false).
@@ -68,6 +84,8 @@ export type InputAttrs<T extends LegacyTextFieldType> = T extends LegacyTextFiel
  * }),
  */
 export class SingleLineTextField<T extends LegacyTextFieldType> implements ClassComponent<InputAttrs<T>> {
+	static readonly DEFAULT_INVALID_MESSAGE = lang.getTranslation("invalidInput_msg")
+
 	domInput!: HTMLInputElement
 
 	view({ attrs }: Vnode<InputAttrs<T>, this>): Children | void | null {
@@ -114,6 +132,24 @@ export class SingleLineTextField<T extends LegacyTextFieldType> implements Class
 		])
 	}
 
+	private updateDomInputValidity(attrs: InputAttrs<T>) {
+		let message: string
+		if (attrs.valid === true) {
+			message = "" // Passing an empty string to setCustomValidity sets the input to valid
+		} else if (attrs.valid === false) {
+			message = (attrs.invalidMessage ?? SingleLineTextField.DEFAULT_INVALID_MESSAGE).text
+		} else {
+			return // if `valid` attribute was not passed to component, use the default DOM Input Element's validation
+		}
+
+		if (attrs.valid === this.domInput.validity.valid && message === this.domInput.validationMessage) {
+			return // The DOM Input Element already has the correct validity: exit early
+		}
+
+		this.domInput.setCustomValidity(message)
+		this.domInput.reportValidity()
+	}
+
 	private renderInput(attrs: InputAttrs<T>, inputPadding?: string) {
 		return m("input.tutaui-text-field", {
 			ariaLabel: attrs.ariaLabel.text,
@@ -124,17 +160,23 @@ export class SingleLineTextField<T extends LegacyTextFieldType> implements Class
 			onkeydown: attrs.onkeydown,
 			onclick: attrs.onclick,
 			oninput: () => {
-				if (!attrs.oninput) {
+				if (attrs.oninput) {
+					attrs.oninput(this.domInput.value)
+				} else {
 					console.error("oninput fired without a handler function")
-					return
 				}
-				attrs.oninput(this.domInput.value)
+				this.updateDomInputValidity(attrs)
 			},
 			oncreate: (vnode: VnodeDOM<InputAttrs<T>>) => {
 				this.domInput = vnode.dom as HTMLInputElement
 				if (attrs.oncreate) {
 					attrs.oncreate(vnode)
 				}
+				this.updateDomInputValidity(attrs)
+			},
+			onupdate: (vnode: VnodeDOM<InputAttrs<T>>) => {
+				this.domInput = vnode.dom as HTMLInputElement
+				this.updateDomInputValidity(attrs)
 			},
 			placeholder: attrs.placeholder,
 			class: this.resolveClasses(attrs.classes, attrs.disabled),

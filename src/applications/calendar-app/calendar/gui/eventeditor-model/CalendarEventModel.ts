@@ -485,7 +485,7 @@ export function eventHasChanged(now: CalendarEvent, previous: Partial<CalendarEv
  * @throws UserError
  */
 export function createCalendarEventFromEditResult(models: CalendarEventEditModels, identity: Require<"uid", Partial<CalendarEventIdentity>>) {
-	if (models.whenModel.hasInvalidEndBeforeOrEqualStart()) {
+	if (!models.whenModel.hasValidStartBeforeEnd()) {
 		throw new UserError("startAfterEnd_label")
 	}
 	const whenResult = models.whenModel.result
