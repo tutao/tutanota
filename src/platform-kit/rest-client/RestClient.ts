@@ -1,5 +1,5 @@
 import { assertWorkerOrNode, CancelledError, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "@tutao/app-env"
-import { assertNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
+import { assertNotNull, isNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
 import * as restSuspension from "./SuspensionHandler.js"
 import { ConnectionError, handleRestError, PayloadTooLargeError, SuspensionError } from "./error.js"
 import {
@@ -15,7 +15,7 @@ import {
 } from "./types"
 import { once } from "../utils/memoized"
 import { isUndefined } from "../app-env/boot/TypeChecks"
-import { client } from "../app-env/boot/ClientDetector"
+import { ClientDetector } from "../app-env/boot/ClientDetector"
 
 assertWorkerOrNode()
 
@@ -95,8 +95,8 @@ export class RestClient implements RestClientInterface {
 				}
 
 				if (options.noCORS) {
-					queryParams["cv"] = client.env.versionNumber
-					if (client.env.networkDebugging) {
+					queryParams["cv"] = ClientDetector.get().env.versionNumber
+					if (ClientDetector.get().env.networkDebugging) {
 						queryParams["network-debugging"] = "enable-network-debugging"
 					}
 				}
@@ -127,7 +127,7 @@ export class RestClient implements RestClientInterface {
 						clearTimeout(requestTimeoutTimeoutID)
 					}
 					const isBlobRequest = options.body instanceof RestBinaryBody
-					requestTimeoutTimeoutID = setTimeout(abortOnTimeout, isBlobRequest ? BLOB_REQUEST_TIMEOUT_MS : client.env.timeout)
+					requestTimeoutTimeoutID = setTimeout(abortOnTimeout, isBlobRequest ? BLOB_REQUEST_TIMEOUT_MS : ClientDetector.get().env.timeout)
 				}
 				const cancelTimeoutTimer = () => {
 					if (requestTimeoutTimeoutID != null) clearTimeout(requestTimeoutTimeoutID)
@@ -146,7 +146,7 @@ export class RestClient implements RestClientInterface {
 				}
 
 				if (verbose) {
-					console.log(TAG, `${id}: set initial timeout ${String(requestTimeoutTimeoutID)} of ${client.env.timeout}`)
+					console.log(TAG, `${id}: set initial timeout ${String(requestTimeoutTimeoutID)} of ${ClientDetector.get().env.timeout}`)
 				}
 
 				xhr.onload = async () => {
@@ -226,7 +226,7 @@ export class RestClient implements RestClientInterface {
 						restartTimeoutTimer()
 
 						if (verbose) {
-							console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${client.env.timeout}`)
+							console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${ClientDetector.get().env.timeout}`)
 						}
 
 						if (options.progressListener != null && pe.lengthComputable) {
@@ -257,7 +257,7 @@ export class RestClient implements RestClientInterface {
 							if (verbose) {
 								console.log(TAG, `${id}: ${String(new Date())} upload aborted. calling error handler.`, e)
 							}
-							reject(new ConnectionError(`Reached timeout of ${client.env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
+							reject(new ConnectionError(`Reached timeout of ${ClientDetector.get().env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
 						}
 					}
 				}
@@ -270,7 +270,7 @@ export class RestClient implements RestClientInterface {
 					restartTimeoutTimer()
 
 					if (verbose) {
-						console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${client.env.timeout}`)
+						console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${ClientDetector.get().env.timeout}`)
 					}
 
 					if (options.progressListener != null && pe.lengthComputable) {
@@ -284,7 +284,7 @@ export class RestClient implements RestClientInterface {
 					if (options.abortSignal?.aborted) {
 						reject(new CancelledError(`Request canceled | ${method} ${path}`))
 					} else {
-						reject(new ConnectionError(`Reached timeout of ${client.env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
+						reject(new ConnectionError(`Reached timeout of ${ClientDetector.get().env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
 					}
 				}
 
@@ -355,7 +355,7 @@ export class RestClient implements RestClientInterface {
 
 		// don't add custom and content-type headers for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
 		if (!options.noCORS) {
-			headers["cv"] = client.env.versionNumber
+			headers["cv"] = ClientDetector.get().env.versionNumber
 			headers["cp"] = this.clientPlatform
 			if (body instanceof RestBinaryBody) {
 				headers["Content-Type"] = MediaType.Binary
@@ -366,13 +366,14 @@ export class RestClient implements RestClientInterface {
 			// add networkDebugging header iff network debugging is activated
 			// network debugging can be activated by building with --network-debugging,
 			// and essentially activates both attributeNames and attributeIds in the request/response payload
-			if (client.env.networkDebugging) {
+			if (ClientDetector.get().env.networkDebugging) {
 				headers["Network-Debugging"] = "enable-network-debugging"
 			}
 		}
 
-		if (client.env.clientName != null) {
-			headers["Client-Name"] = client.env.clientName
+		const clientName = ClientDetector.get().env.clientName ?? null
+		if (isNotNull(clientName)) {
+			headers["Client-Name"] = clientName
 		}
 
 		if (responseType) {

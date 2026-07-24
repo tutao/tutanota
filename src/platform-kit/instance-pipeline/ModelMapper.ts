@@ -240,7 +240,9 @@ export class ClientEntity {
 			}
 			case Cardinality.One:
 				if (associationList.length !== 1) {
-					throw new InvalidModelError(`Cardinality One should have exactly one item. Found: ${associationList.length}`)
+					throw new InvalidModelError(
+						`Cardinality One should have exactly one item. Found: ${associationList.length}. In ${this.typeModel.app}/${this.typeModel.name}::${associationModel.name}`,
+					)
 				}
 				this.entityRecord[associationModel.name] = associationList[0]
 				break

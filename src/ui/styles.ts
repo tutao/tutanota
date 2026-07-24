@@ -4,7 +4,7 @@ import { assertMainOrNodeBoot, isAdminClient, isTest } from "../platform-kit/app
 import { theme } from "./theme"
 import { assertNotNull, neverNull } from "../platform-kit/utils"
 import { ThemeController } from "./ThemeController.js"
-import { client } from "../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../platform-kit/app-env/boot/ClientDetector"
 
 assertMainOrNodeBoot()
 export type StyleSheetId = "main" | "outline"
@@ -86,15 +86,15 @@ class Styles {
 	}
 
 	isUsingBottomNavigation(): boolean {
-		return !isAdminClient() && (client.isMobileDevice() || !this.isDesktopLayout())
+		return !isAdminClient() && (ClientDetector.get().isMobileDevice() || !this.isDesktopLayout())
 	}
 
 	isAppUsingBottomNav(): boolean {
-		return client.isMailApp()
+		return ClientDetector.get().isMailApp()
 	}
 
 	isAppNotUsingBottomNav(): boolean {
-		return client.isCalendarApp() || client.isDriveApp()
+		return ClientDetector.get().isCalendarApp() || ClientDetector.get().isDriveApp()
 	}
 
 	registerStyle(id: StyleSheetId, styleCreator: (...args: Array<any>) => Record<string, Partial<CSSStyleDeclaration> | object>) {

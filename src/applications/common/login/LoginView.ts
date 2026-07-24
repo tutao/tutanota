@@ -1,5 +1,5 @@
 import m, { Children, Vnode } from "mithril"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { assertMainOrNode, isAndroidApp, isApp, isDesktop } from "@tutao/app-env"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { defer, DeferredObject } from "@tutao/utils"
@@ -210,11 +210,11 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 						click: () => locator.themeController.setThemePreference("dark"),
 					},
 					{
-						label: client.isCalendarApp() ? "light_red_label" : "light_blue_label",
+						label: ClientDetector.get().isCalendarApp() ? "light_red_label" : "light_blue_label",
 						click: () => locator.themeController.setThemePreference("light_secondary"),
 					},
 					{
-						label: client.isCalendarApp() ? "dark_red_label" : "dark_blue_label",
+						label: ClientDetector.get().isCalendarApp() ? "dark_red_label" : "dark_blue_label",
 						click: () => locator.themeController.setThemePreference("dark_secondary"),
 					},
 				]
@@ -329,7 +329,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 
 	_renderAppButtons(): Children {
 		return m(".flex-center.pt-32.ml-between-4", [
-			client.isDesktopDevice() || client.device === DeviceType.ANDROID
+			ClientDetector.get().isDesktopDevice() || ClientDetector.get().device === DeviceType.ANDROID
 				? m(IconButton, {
 						title: "appInfoAndroidImageAlt_alt",
 						click: (e) => {
@@ -340,7 +340,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 						icon: Icons.LogoAndroid,
 					})
 				: null,
-			client.isDesktopDevice() || client.device === DeviceType.IPAD || client.device === DeviceType.IPHONE
+			ClientDetector.get().isDesktopDevice() || ClientDetector.get().device === DeviceType.IPAD || ClientDetector.get().device === DeviceType.IPHONE
 				? m(IconButton, {
 						title: "appInfoIosImageAlt_alt",
 						click: (e) => {
@@ -351,7 +351,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 						icon: Icons.LogoApple,
 					})
 				: null,
-			client.isDesktopDevice() || client.device === DeviceType.ANDROID
+			ClientDetector.get().isDesktopDevice() || ClientDetector.get().device === DeviceType.ANDROID
 				? m(IconButton, {
 						title: "appInfoFDroidImageAlt_alt",
 						click: (e) => {

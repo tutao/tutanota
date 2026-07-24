@@ -9,7 +9,7 @@ import { styles } from "../styles.js"
 import { AriaLandmarks } from "../AriaUtils.js"
 import { LayerType } from "../base/RootView.js"
 import { assertMainOrNode } from "../../platform-kit/app-env"
-import { client } from "../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector.js"
 import { WindowSizeListener } from "../utils/WindowUtils"
 import { IWindowFacade } from "../IWindowFacade"
 
@@ -140,7 +140,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 									}),
 								),
 							),
-							styles.isUsingBottomNavigation() && !client.isCalendarApp() ? attrs.bottomNav : null,
+							styles.isUsingBottomNavigation() && !ClientDetector.get().isCalendarApp() ? attrs.bottomNav : null,
 						],
 					),
 					this.getColumnsForOverlay().map((c) => m(c, { onResize: noOp })),
