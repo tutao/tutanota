@@ -44,6 +44,7 @@ import {
 	isEmpty,
 	isNotNull,
 	noOp,
+	Nullable,
 	ofClass,
 	parseUrl,
 	promiseFilter,
@@ -364,6 +365,7 @@ export class MailFacade {
 					}),
 					confidential,
 					method,
+					firstRecipient: recipientToTransferMailAddress(toRecipients.at(0) ?? ccRecipients.at(0) ?? bccRecipients.at(0) ?? null),
 				}),
 				mailDetailsBlob: createMailDetailsBlobTransferAggregatedType({
 					details: createMailDetailsTransferAggregatedType({
@@ -372,9 +374,9 @@ export class MailFacade {
 							text: "",
 						}),
 						recipients: createRecipientsTransferAggregatedType({
-							toRecipients: toRecipients.map(recipientToTransferMailAddress),
-							ccRecipients: ccRecipients.map(recipientToTransferMailAddress),
-							bccRecipients: bccRecipients.map(recipientToTransferMailAddress),
+							toRecipients: toRecipients.map(recipientToTransferMailAddress) as MailAddressTransferAggregatedType[],
+							ccRecipients: ccRecipients.map(recipientToTransferMailAddress) as MailAddressTransferAggregatedType[],
+							bccRecipients: bccRecipients.map(recipientToTransferMailAddress) as MailAddressTransferAggregatedType[],
 						}),
 						replyTos: replyTos.map(recipientToTransferEncryptedMailAddress),
 					}),
@@ -531,6 +533,7 @@ export class MailFacade {
 					}),
 					confidential,
 					method: draft.method,
+					firstRecipient: recipientToTransferMailAddress(toRecipients.at(0) ?? ccRecipients.at(0) ?? bccRecipients.at(0) ?? null),
 				}),
 				mailDetailsBlob: createMailDetailsBlobTransferAggregatedType({
 					details: createMailDetailsTransferAggregatedType({
@@ -539,9 +542,9 @@ export class MailFacade {
 							text: "",
 						}),
 						recipients: createRecipientsTransferAggregatedType({
-							toRecipients: toRecipients.map(recipientToTransferMailAddress),
-							ccRecipients: ccRecipients.map(recipientToTransferMailAddress),
-							bccRecipients: bccRecipients.map(recipientToTransferMailAddress),
+							toRecipients: toRecipients.map(recipientToTransferMailAddress) as MailAddressTransferAggregatedType[],
+							ccRecipients: ccRecipients.map(recipientToTransferMailAddress) as MailAddressTransferAggregatedType[],
+							bccRecipients: bccRecipients.map(recipientToTransferMailAddress) as MailAddressTransferAggregatedType[],
 						}),
 						replyTos: replyTos.map(recipientToTransferEncryptedMailAddress),
 					}),
@@ -1566,7 +1569,10 @@ export function recipientToEncryptedMailAddress(recipient: PartialRecipient): En
 	})
 }
 
-export function recipientToTransferMailAddress(recipient: PartialRecipient): MailAddressTransferAggregatedType {
+export function recipientToTransferMailAddress(recipient: PartialRecipient): MailAddressTransferAggregatedType
+export function recipientToTransferMailAddress(recipient: Nullable<PartialRecipient>): Nullable<MailAddressTransferAggregatedType>
+export function recipientToTransferMailAddress(recipient: Nullable<PartialRecipient>): Nullable<MailAddressTransferAggregatedType> {
+	if (recipient == null) return null
 	return createMailAddressTransferAggregatedType({
 		name: recipient.name ?? "",
 		address: recipient.address,
