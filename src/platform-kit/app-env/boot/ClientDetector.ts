@@ -3,6 +3,13 @@ import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
 import { AppType } from "../AppType"
 import { isFunction, isObject, isUndefined } from "./TypeChecks"
+import {
+	_cssQuerySelectorIsSupported,
+	_expectedBuiltInsArePresent,
+	_expectedJsSyntaxes,
+	_haveWebsocket,
+	_isSupportedBrowserVersion,
+} from "./TsPlatformConstants"
 
 assertMainOrNodeBoot()
 
@@ -41,103 +48,17 @@ export class ClientDetector {
 	}
 
 	/**
-	 * This function uses syntax constructs which we want to make sure are supported. If they are not then this file cannot be imported.
-	 */
-	syntaxChecks() {
-		// By default rollup disables tree-shaking inside the try-catch.
-		try {
-			const arrowFunction = () => {
-				return 1
-			}
-
-			let aLet = 2
-
-			function* testGenerator() {}
-
-			async function testAsync() {}
-
-			function testDefaultArgs(_a = 2) {}
-
-			testGenerator()
-			testAsync()
-			testDefaultArgs()
-			const anArray = [1, 2, 3]
-			const spreadArray = [...anArray]
-			const dynamicString = ""
-			const impossibleCondition = arrowFunction() === aLet
-
-			if (impossibleCondition) {
-				import(dynamicString)
-			}
-
-			const objectSyntax = {
-				[dynamicString]: true,
-
-				testFn() {},
-
-				get accessor() {
-					return null
-				},
-
-				set accessor(newValue) {},
-			}
-			const templateString = `test ${dynamicString}`
-			const x = 1
-			const y = 2
-			const propertyShorthand = {
-				x,
-				y,
-			}
-			const { x: x2, y: y2 } = propertyShorthand
-			const [a1, a2, ...arest] = anArray
-
-			class WithStatisMember {
-				static aFuncton() {}
-			}
-
-			for (const item of testGenerator()) {
-				/* empty */
-			}
-		} catch (e) {
-			/* empty */
-		}
-	}
-
-	testBuiltins(): boolean {
-		return (
-			!isUndefined(Set) &&
-			!isUndefined(Map) &&
-			isFunction(Array.prototype.includes) &&
-			isFunction(Object.entries) &&
-			isFunction(Object.values) &&
-			isFunction(Object.fromEntries) &&
-			!isUndefined(Symbol) &&
-			!isUndefined(Uint8Array) &&
-			!isUndefined(Proxy) &&
-			!isUndefined(Reflect) &&
-			!isUndefined(Promise.prototype.finally) &&
-			isFunction(String.prototype.replaceAll) &&
-			!isUndefined(BigInt) &&
-			isFunction(structuredClone)
-		)
-	}
-
-	testCss(): boolean {
-		try {
-			document.querySelector("blockquote:not(blockquote blockquote)")
-			document.querySelectorAll(":where(.mouse-nav)")
-			return true
-		} catch (e) {
-			return false
-		}
-	}
-
-	/**
 	 * Browsers which support these features are supported
 	 */
 	isSupported(): boolean {
-		this.syntaxChecks()
-		return this.isSupportedBrowserVersion() && this.testBuiltins() && this.websockets() && this.testCss() && this.lookBehindRegex()
+		return (
+			_expectedJsSyntaxes() &&
+			_isSupportedBrowserVersion(this.browser, this.browserVersion) &&
+			_expectedBuiltInsArePresent &&
+			_haveWebsocket &&
+			_cssQuerySelectorIsSupported() &&
+			this.lookBehindRegex()
+		)
 	}
 
 	isMobileDevice(): boolean {
@@ -146,13 +67,6 @@ export class ClientDetector {
 
 	isDesktopDevice(): boolean {
 		return this.device === DeviceType.DESKTOP
-	}
-
-	/**
-	 * @see https://github.com/Modernizr/Modernizr/blob/5e3f359bfc9aa511543ece60bd8a6ea8aa7defd3/feature-detects/websockets.js
-	 */
-	websockets(): boolean {
-		return "WebSocket" in window && window.WebSocket.CLOSING === 2
 	}
 
 	localStorage(): boolean {
@@ -379,21 +293,6 @@ export class ClientDetector {
 		}
 
 		return "Unknown"
-	}
-
-	isSupportedBrowserVersion(): boolean {
-		return this.notOldFirefox() && this.notOldChrome()
-	}
-
-	notOldFirefox(): boolean {
-		// issue only occurs for old Firefox browsers
-		// Object.hasOwn() is only supported starting in 92
-		return this.browser !== BrowserType.FIREFOX || this.browserVersion > 92
-	}
-
-	notOldChrome(): boolean {
-		// Object.hasOwn() is only supported starting in 93
-		return this.browser !== BrowserType.CHROME || this.browserVersion > 93
 	}
 
 	needsMicrotaskHack(): boolean {
