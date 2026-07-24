@@ -22,6 +22,7 @@ import { TypeModelResolver } from "./EntityFunctions"
 import { Patch, UserTypeRef } from "@tutao/entities/sys"
 import { EntityUpdateData } from "./utils/EntityUpdateUtils"
 import { IncomingServerJson } from "./TypeMapper"
+import { client } from "../app-env/boot/ClientDetector"
 
 export interface OwnerKeyProvider {
 	(ownerKeyVersion: KeyVersion): Promise<AesKey>
@@ -184,7 +185,7 @@ export class PatchMerger {
 	}
 
 	private removeNetworkDebuggingSymbolsIfNeeded(fieldPath: string): string {
-		if (!env.networkDebugging) {
+		if (!client.env.networkDebugging) {
 			return fieldPath
 		}
 		return fieldPath
@@ -377,7 +378,7 @@ export class PatchMerger {
 		try {
 			let attributeId: number
 			const attributeIdsInServerTypeModel = Object.keys(serverTypeModel.values).concat(Object.keys(serverTypeModel.associations))
-			if (env.networkDebugging) {
+			if (client.env.networkDebugging) {
 				attributeId = parseInt(pathItem.split(":")[0])
 			} else {
 				attributeId = parseInt(pathItem)

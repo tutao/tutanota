@@ -87,6 +87,7 @@ import { InstanceSessionKeysCache } from "./persistence/InstanceSessionKeysCache
 import { EntityUtils } from "../../instance-pipeline/EntityUtils"
 import { OutgoingServerJson } from "../../instance-pipeline/TypeMapper"
 import { isNull } from "../../utils/Utils"
+import { client } from "../../app-env/boot/ClientDetector"
 
 assertWorkerOrNode()
 
@@ -820,7 +821,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 
 		let ownerEncSessionKeyAttributeIdStr = assertNotNull(AttributeModel.getAttributeId(typeModel, "_ownerEncSessionKey")).toString()
 		let ownerKeyVersionAttributeIdStr = assertNotNull(AttributeModel.getAttributeId(typeModel, "_ownerKeyVersion")).toString()
-		if (env.networkDebugging) {
+		if (client.env.networkDebugging) {
 			ownerEncSessionKeyAttributeIdStr += ":_ownerEncSessionKey"
 			ownerKeyVersionAttributeIdStr += ":_ownerKeyVersion"
 		}

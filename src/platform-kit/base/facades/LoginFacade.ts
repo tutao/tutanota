@@ -16,7 +16,7 @@ import {
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
 import { elementIdToId, GENERATED_ID_BYTES_LENGTH, idToElementId, isSameId } from "../../meta"
-import { assertWorkerOrNode, CancelledError, Const, DeactivationReason, ProgrammingError, RolloutType, SessionType } from "@tutao/app-env"
+import { assertWorkerOrNode, CancelledError, Const, DeactivationReason, isTest, ProgrammingError, RolloutType, SessionType } from "@tutao/app-env"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "../../rest-client/types"
 import { EntityClient } from "../../network/EntityClient"
@@ -569,7 +569,7 @@ export class LoginFacade implements SessionTypeProvider {
 				}
 
 				await this.triggerPartialLoginSuccess(SessionType.Persistent, cacheInfo, credentials)
-				return { state: ResumeSessionState.Success, data, asyncResumeCompleted: env.mode === "Test" ? asyncResumeSession : null }
+				return { state: ResumeSessionState.Success, data, asyncResumeCompleted: isTest() ? asyncResumeSession : null }
 			} else {
 				return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
 			}
