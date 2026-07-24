@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { LegacyTextField, LegacyTextFieldType as TextFieldType } from "../../../../../ui/base/LegacyTextField.js"
 import { theme } from "../../../../../ui/theme.js"
-import { EnvProvider, TabIndex, TimeFormat } from "../../../../../platform-kit/app-env"
+import { EnvProvider, TabIndex, TimeFormat } from "@tutao/app-env"
 import { timeStringFromParts } from "../../../../../ui/utils/Formatter.js"
 import { Time } from "../../../../common/calendar/date/Time.js"
 import { Select, SelectAttributes } from "../../../../../ui/base/Select.js"
@@ -19,6 +19,8 @@ export type TimePickerAttrs = {
 	onTimeSelected: (arg0: Time | null) => unknown
 	timeFormat: TimeFormat
 	disabled?: boolean
+	valid?: boolean
+	invalidMessage?: Translation
 	ariaLabel: Translation
 	classes?: Array<string>
 	renderAsTextField: boolean
@@ -210,6 +212,8 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				this.value = val
 			},
 			disabled: attrs.disabled,
+			valid: attrs.valid,
+			invalidMessage: attrs.invalidMessage,
 			ariaLabel: attrs.ariaLabel,
 			style: {
 				textAlign: "center",
