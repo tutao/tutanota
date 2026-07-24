@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { assertMainOrNode, isIOSApp, PostingType, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
-import { assertNotNull, last, neverNull, newPromise, ofClass } from "@tutao/utils"
+import { assertNotNull, neverNull, newPromise, ofClass } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { HtmlEditor, HtmlEditorMode } from "../../../ui/editor/HtmlEditor"
 import { formatPrice, getPaymentMethodInfoText, getPaymentMethodName } from "./utils/PriceUtils"
@@ -27,12 +27,11 @@ import { client } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { DeviceType } from "../../../platform-kit/app-env/boot/ClientConstants.js"
 import { PrimaryButton, SecondaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
-import { showSwitchDialog } from "./SwitchSubscriptionDialog.js"
+import { showConfirmDowngradingToFreeDialog } from "./SwitchSubscriptionDialog.js"
 import { attachDropdown, createDropdown } from "../../../ui/base/Dropdown.js"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
-	BookingTypeRef,
 	createDebitServicePutData,
 	Customer,
 	CustomerTypeRef,
@@ -42,8 +41,6 @@ import {
 	InvoiceInfo,
 	InvoiceInfoTypeRef,
 } from "@tutao/entities/sys"
-import { AccountType, AvailablePlans, NewPaidPlans, PaymentMethodType } from "../../../entities/sys/Utils"
-import { elementIdPart, GENERATED_MAX_ID, OperationType, idToElementId } from "@tutao/meta"
 import { getByAbbreviation } from "../gui/CountryList"
 import { CustomerAccountPosting, CustomerAccountService } from "@tutao/entities/accounting"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
@@ -57,6 +54,8 @@ import Stream from "mithril/stream"
 import { GiftCardMessageEditorField } from "./giftcards/GiftCardMessageEditorField"
 import { CURRENT_GIFT_CARD_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
 import { SettingsExpander } from "../settings/SettingsExpander"
+import { elementIdPart, idToElementId, OperationType } from "@tutao/meta"
+import { AccountType, NewPaidPlans, PaymentMethodType } from "../../../entities/sys/Utils"
 
 assertMainOrNode()
 
@@ -195,7 +194,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				lang.getTranslation("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLink.AppStoreDowngrade }),
 				[
 					{
-						text: "changePlan_action",
+						text: "subscriptionSettingDowngrade_action",
 						value: false,
 					},
 					{
@@ -207,20 +206,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			if (isResubscribe) {
 				return showManageThroughAppStoreDialog()
 			} else {
-				const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
-				const bookings = await locator.entityClient.loadRange(BookingTypeRef, assertNotNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
-				const lastBooking = last(bookings)
-				if (lastBooking == null) {
-					console.warn("No booking but payment method is AppStore?")
-					return
-				}
-				return showSwitchDialog({
-					customer: this.customer,
-					accountingInfo: this.accountingInfo,
-					lastBooking,
-					acceptedPlans: AvailablePlans,
-					reason: null,
-				})
+				return showConfirmDowngradingToFreeDialog()
 			}
 		} else {
 			const showPaymentMethodDialog = createNotAvailableForFreeClickHandler(
@@ -728,6 +714,10 @@ export async function showManageThroughAppStoreDialog(): Promise<void> {
 		}),
 	)
 	if (confirmed) {
-		window.open("https://apps.apple.com/account/subscriptions", "_blank", "noopener,noreferrer")
+		openAppleSubscriptionPage()
 	}
+}
+
+export function openAppleSubscriptionPage() {
+	window.open("https://apps.apple.com/account/subscriptions", "_blank", "noopener,noreferrer")
 }
