@@ -173,6 +173,10 @@ export function isNotNull<T>(t: T | null): t is NonNullable<T> {
 	return t != null
 }
 
+export function isNull<T>(t: T | null): t is Nullable<T> {
+	return t == null
+}
+
 export function assert(assertion: boolean, message: string) {
 	if (!assertion) {
 		throw new Error(`Assertion failed: ${message}`)
@@ -221,7 +225,7 @@ export function debounce<F extends (...args: any) => void>(timeout: number, toTh
 	let timeoutId: TimeoutID
 	let toInvoke: (...args: any) => void
 	return downcast((...args: any[]) => {
-		if (timeoutId) {
+		if (isNotNull(timeoutId)) {
 			clearTimeout(timeoutId)
 		}
 		toInvoke = toThrottle.bind(null, ...args)
@@ -272,8 +276,12 @@ export function throttle<F extends (...args: any) => void>(periodMs: number, toT
 	return ((...args: any) => {
 		lastArgs = args
 
-		if (timeoutId == null) {
-			if (timeoutId) clearTimeout(timeoutId)
+		if (isNull(timeoutId)) {
+			// TODO: we check nullOrUndefined first and check not-null here?
+			// if it was null, we would not be here
+			if (isNotNull(timeoutId)) {
+				clearTimeout(timeoutId)
+			}
 			timeoutId = setTimeout(() => {
 				try {
 					toThrottle.apply(null, lastArgs)
@@ -359,13 +367,13 @@ export function randomIntFromInterval(min: number, max: number): number {
 }
 
 export function errorToString(error: ErrorInfo): string {
-	let errorString = error.name ? error.name : "?"
+	let errorString = error.name ?? "?"
 
-	if (error.message) {
+	if (isNotNull(error.message)) {
 		errorString += `\n Error message: ${error.message}`
 	}
 
-	if (error.stack) {
+	if (isNotNull(error.stack)) {
 		// the error id is included in the stacktrace
 		errorString += `\nStacktrace: \n${error.stack}`
 	}

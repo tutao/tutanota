@@ -1,15 +1,16 @@
 import { GroupInfo, GroupMembership, User } from "@tutao/entities/sys"
 import { GroupType } from "../../entities/sys/Utils"
+import { isNotNull } from "@tutao/utils"
 
 export function getEnabledMailAddressesForGroupInfo(groupInfo: GroupInfo): string[] {
 	let aliases = groupInfo.mailAddressAliases.filter((alias) => alias.enabled).map((alias) => alias.mailAddress)
-	if (groupInfo.mailAddress) aliases.unshift(groupInfo.mailAddress)
+	if (isNotNull(groupInfo.mailAddress)) aliases.unshift(groupInfo.mailAddress)
 	return aliases
 }
 
 export function isAliasEnabledForGroupInfo(groupInfo: GroupInfo, aliasAddress: string): boolean {
 	return (
-		(groupInfo.mailAddress && groupInfo.mailAddress === aliasAddress) ||
+		(isNotNull(groupInfo.mailAddress) && groupInfo.mailAddress === aliasAddress) ||
 		(groupInfo.mailAddressAliases.find((alias) => alias.mailAddress === aliasAddress)?.enabled ?? false)
 	)
 }
@@ -31,7 +32,7 @@ export function getUserGroupMemberships(user: User, groupType: GroupType): Group
 export function getGroupInfoDisplayName(groupInfo: GroupInfo): string {
 	if (groupInfo.name) {
 		return groupInfo.name
-	} else if (groupInfo.mailAddress) {
+	} else if (isNotNull(groupInfo.mailAddress)) {
 		return groupInfo.mailAddress
 	} else {
 		return ""

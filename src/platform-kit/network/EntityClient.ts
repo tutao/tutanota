@@ -14,7 +14,7 @@ import {
 	TypeRef,
 	ValueType,
 } from "../meta"
-import { groupByAndMap, last, Nullable, promiseMap } from "@tutao/utils"
+import { groupByAndMap, isNotNull, last, Nullable, promiseMap } from "@tutao/utils"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { ProgrammingError } from "@tutao/app-env"
 import { ClientTypeModelResolver, OwnerEncSessionKeyProvider } from "@tutao/instance-pipeline"
@@ -28,6 +28,7 @@ import {
 	EntityRestClientSetupOptions,
 	EntityRestClientUpdateOptions,
 } from "../instance-pipeline/RestClientOptions"
+import { isNull } from "../utils/Utils"
 
 export class EntityClient {
 	_target: EntityRestInterface
@@ -53,9 +54,9 @@ export class EntityClient {
 	async loadAll<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start?: Id): Promise<T[]> {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 
-		if (!start) {
-			const _idValueId = Object.values(typeModel.values).find((valueType) => valueType.name === "_id")?.id
-			if (_idValueId) {
+		if (isNull(start)) {
+			const _idValueId = Object.values(typeModel.values).find((valueType) => valueType.name === "_id")?.id ?? null
+			if (isNotNull(_idValueId)) {
 				start = typeModel.values[_idValueId].type === ValueType.GeneratedId ? GENERATED_MIN_ID : CUSTOM_MIN_ID
 			} else {
 				throw new ProgrammingError(`could not load, _id field not set for ${typeModel.name}`)

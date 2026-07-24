@@ -1,3 +1,5 @@
+import { isNotNull } from "./Utils"
+
 /**
  * @file Vendored version of p-map: https://github.com/sindresorhus/p-map/
  * Vendored to avoid having dependency on AggregateError.
@@ -75,7 +77,7 @@ export async function pMap<Element, NewElement>(
 			const index = currentIndex
 			currentIndex++
 
-			if (nextItem.done) {
+			if (isNotNull(nextItem.done)) {
 				isIterableDone = true
 
 				if (resolvingCount === 0) {

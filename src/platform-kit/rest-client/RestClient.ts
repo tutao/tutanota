@@ -1,5 +1,5 @@
 import { assertWorkerOrNode, CancelledError, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "@tutao/app-env"
-import { assertNotNull, newPromise, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
+import { assertNotNull, isNotNull, newPromise, Nullable, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
 import * as restSuspension from "./SuspensionHandler.js"
 import { ConnectionError, handleRestError, PayloadTooLargeError, SuspensionError } from "./error.js"
 import {
@@ -14,6 +14,7 @@ import {
 	SuspensionBehavior,
 } from "./types"
 import { once } from "../utils/memoized"
+import { isNull } from "../utils/Utils"
 
 assertWorkerOrNode()
 
@@ -72,7 +73,7 @@ export class RestClient implements RestClientInterface {
 
 	request(path: string, method: HttpMethod, options: RestClientOptions): Promise<any | null> {
 		// @ts-ignore
-		const debug = typeof self !== "undefined" && self.debug
+		const debug: boolean = typeof self !== "undefined" && self.debug
 		const verbose = isWorker() && debug
 
 		this.checkRequestSizeLimit(path, method, options.body ?? null)
@@ -92,7 +93,7 @@ export class RestClient implements RestClientInterface {
 					queryParams["_body"] = options.body.payload // get requests are not allowed to send a body. Therefore, we convert our body to a parameter
 				}
 
-				if (options.noCORS) {
+				if (isNotNull(options.noCORS)) {
 					queryParams["cv"] = env.versionNumber
 					if (env.networkDebugging) {
 						queryParams["network-debugging"] = "enable-network-debugging"
@@ -169,14 +170,14 @@ export class RestClient implements RestClientInterface {
 								resolve(null)
 							}
 						} else {
-							const suspensionTime = xhr.getResponseHeader("Retry-After") || xhr.getResponseHeader("Suspension-Time")
+							const suspensionTime = xhr.getResponseHeader("Retry-After") ?? xhr.getResponseHeader("Suspension-Time")
 							const isSuspensionResp = restSuspension.isSuspensionResponse(xhr.status, suspensionTime)
 
 							if (isSuspensionResp && options.suspensionBehavior === SuspensionBehavior.Throw) {
 								reject(
 									new SuspensionError(
 										`blocked for ${suspensionTime}, not suspending (${xhr.status})`,
-										suspensionTime && (parseInt(suspensionTime) * 1000).toString(),
+										(parseInt(suspensionTime ?? "0") * 1000).toString(),
 									),
 								)
 							} else if (isSuspensionResp) {
@@ -215,7 +216,7 @@ export class RestClient implements RestClientInterface {
 				}
 
 				// don't add an EventListener for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
-				if (!options.noCORS) {
+				if (isNull(options.noCORS)) {
 					xhr.upload.onprogress = (pe: ProgressEvent) => {
 						if (verbose) {
 							console.log(TAG, `${id}: ${String(new Date())} upload progress. Clearing Timeout ${String(requestTimeoutTimeoutID)}`, pe)
@@ -249,7 +250,8 @@ export class RestClient implements RestClientInterface {
 
 					xhr.upload.onabort = (e) => {
 						cancelTimeoutTimer()
-						if (options.abortSignal?.aborted) {
+						const aborted = isNotNull(options.abortSignal?.aborted ?? null)
+						if (aborted) {
 							reject(new CancelledError(`upload has been aborted ${method} ${path}`))
 						} else {
 							if (verbose) {
@@ -279,7 +281,8 @@ export class RestClient implements RestClientInterface {
 
 				xhr.onabort = () => {
 					cancelTimeoutTimer()
-					if (options.abortSignal?.aborted) {
+					const aborted = isNotNull(options.abortSignal?.aborted ?? null)
+					if (aborted) {
 						reject(new CancelledError(`Request canceled | ${method} ${path}`))
 					} else {
 						reject(new ConnectionError(`Reached timeout of ${env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
@@ -352,7 +355,7 @@ export class RestClient implements RestClientInterface {
 		const { headers, body, responseType } = options
 
 		// don't add custom and content-type headers for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
-		if (!options.noCORS) {
+		if (isNull(options.noCORS)) {
 			headers["cv"] = env.versionNumber
 			headers["cp"] = this.clientPlatform
 			if (body instanceof RestBinaryBody) {
@@ -373,7 +376,7 @@ export class RestClient implements RestClientInterface {
 			headers["Client-Name"] = env.clientName
 		}
 
-		if (responseType) {
+		if (isNotNull(responseType)) {
 			headers["Accept"] = responseType
 		}
 		for (const i in headers) {
@@ -382,8 +385,8 @@ export class RestClient implements RestClientInterface {
 	}
 }
 
-export function addParamsToUrl(url: URL, urlParams: Dict): URL {
-	if (urlParams) {
+export function addParamsToUrl(url: URL, urlParams: Nullable<Dict>): URL {
+	if (isNotNull(urlParams)) {
 		for (const [key, value] of typedEntries(urlParams)) {
 			if (value !== undefined) {
 				url.searchParams.set(key, value)

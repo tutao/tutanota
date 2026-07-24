@@ -824,7 +824,7 @@ export class LoginFacade implements SessionTypeProvider {
 			const authVerifier = createAuthVerifierAsBase64Url(passphraseReturn.userPassphraseKey)
 			let recoverCodeVerifier: Base64 | null = null
 
-			if (recoverCode) {
+			if (isNotNull(recoverCode)) {
 				const recoverCodeKey = uint8ArrayToKey(hexToUint8Array(recoverCode))
 				recoverCodeVerifier = createAuthVerifierAsBase64Url(recoverCodeKey)
 			}
@@ -1007,7 +1007,7 @@ export class LoginFacade implements SessionTypeProvider {
 
 		// Previously only the encryptedPassword was stored, now we prefer to use the key if it's already there
 		// and keep passphrase for migrating KDF for now.
-		if (credentials.encryptedPassword) {
+		if (isNotNull(credentials.encryptedPassword)) {
 			const passphrase = utf8Uint8ArrayToString(aesDecrypt(accessKey, base64ToUint8Array(credentials.encryptedPassword)))
 			if (isExternalUser) {
 				await this.checkOutdatedExternalSalt(credentials, sessionData, externalUserKeyDeriver.salt)

@@ -1,4 +1,4 @@
-import { downcast, identity, neverNull } from "./Utils.js"
+import { downcast, identity, neverNull, Nullable } from "./Utils.js"
 import { getFromMap } from "./MapUtils.js"
 
 export function concat(...arrays: Uint8Array[]): Uint8Array {
@@ -230,11 +230,11 @@ export function getFirstOrThrow<T>(array: ReadonlyArray<T>): T {
 	return array[0]
 }
 
-export function first<T>(array: ReadonlyArray<T>): T | null {
-	return array[0] || null
+export function first<T>(array: ReadonlyArray<T>): Nullable<T> {
+	return array.at(0) ?? null
 }
 
-export function findLast<T>(array: ReadonlyArray<T>, predicate: (arg0: T) => boolean): T | null {
+export function findLast<T>(array: ReadonlyArray<T>, predicate: (arg0: T) => boolean): Nullable<T> {
 	const index = findLastIndex(array, predicate)
 
 	if (index !== -1) {
@@ -551,13 +551,14 @@ export function symmetricDifference<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T
  *
  * @return a tuple of partitioned elements. The first array has all the matching elements and the second one has the rest.
  */
+// this is an implementation signature and is not visible from the outside
 export function partition<Generic, Specific extends Generic>(
 	array: ReadonlyArray<Generic>,
 	predicate: (item: Generic) => item is Specific,
 ): [Array<Specific>, Array<Exclude<Generic, Specific>>]
 export function partition<TL>(array: ReadonlyArray<TL>, predicate: (item: TL) => boolean): [Array<TL>, Array<TL>]
-// this is an implementation signature and is not visible from the outside
-export function partition<T>(array: ReadonlyArray<T>, predicate: any): [Array<T>, Array<T>] {
+
+export function partition<T>(array: ReadonlyArray<T>, predicate: (item: T) => boolean): [Array<T>, Array<T>] {
 	const left: Array<T> = []
 	const right: Array<T> = []
 

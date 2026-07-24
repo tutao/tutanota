@@ -46,7 +46,7 @@ export function clone<T>(instance: T): T {
 		return instance
 	} else if (instance instanceof Object) {
 		// Can only pass null or Object, cannot pass undefined
-		const copy = Object.create(Object.getPrototypeOf(instance) || null)
+		const copy = Object.create(Object.getPrototypeOf(instance) ?? null)
 		Object.assign(copy, instance)
 
 		for (let key of Object.keys(copy)) {

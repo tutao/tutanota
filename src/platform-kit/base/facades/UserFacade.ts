@@ -1,5 +1,5 @@
 import { Aes256Key, AesKey, cryptoUtils, CryptoWrapper, decryptKey, HkdfKeyDerivationDomains, SymmetricEncryptionScheme, VersionedKey } from "@tutao/crypto"
-import { assertNotNull, KeyVersion } from "@tutao/utils"
+import { assertNotNull, isNotNull, KeyVersion } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { CryptoError } from "@tutao/crypto/error"
 import { LoggedInUserProvider } from "@tutao/instance-pipeline"
@@ -133,7 +133,7 @@ export class UserFacade extends LoggedInUserProvider {
 	 * @return The map which contains authentication data for the logged-in user.
 	 */
 	createAuthHeaders(): Dict {
-		return this.accessToken
+		return isNotNull(this.accessToken)
 			? {
 					accessToken: this.accessToken,
 				}
