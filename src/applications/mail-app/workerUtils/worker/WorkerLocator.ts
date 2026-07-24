@@ -6,8 +6,16 @@ import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import { EventBusClient } from "../../../../app-kit/local-store/event/EventBusClient.js"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate.js"
-import { assertWorkerOrNode, Const, getWebsocketBaseUrl, isAdminClient, isBrowser, isOfflineStorageAvailable, ProgrammingError } from "@tutao/app-env"
-import { CalendarEventTypeRef, ContactTypeRef, ImportFileMailStateTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import {
+	assertWorkerOrNode,
+	Const,
+	getWebsocketBaseUrl,
+	isAdminClient,
+	isBrowser,
+	isOfflineStorageAvailable,
+	ProgrammingError,
+} from "../../../../platform-kit/app-env"
+import { CalendarEventTypeRef, ContactTypeRef, ImapFolderSyncStateTypeRef, ImportFileMailStateTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { UserTypeRef } from "@tutao/entities/sys"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
@@ -68,7 +76,7 @@ import { LastProcessedEventBatchProvider } from "../../../../platform-kit/networ
 import { EntityAdapter, NamedClientModel } from "../../../../platform-kit/instance-pipeline"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
-import { assertNotNull, DateProvider, lazyAsync, lazyMemoized } from "@tutao/utils"
+import { assertNotNull, DateProvider, lazyAsync, lazyMemoized } from "../../../../platform-kit/utils"
 import { MailLoginListener } from "./MailLoginListener"
 import { BaseLocator } from "../../../../platform-kit/base/BaseLocator.js"
 import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEventCoordinator.js"
@@ -82,6 +90,7 @@ import { CustomContactEventCacheHandler } from "./CustomContactEventCacheHandler
 import { WebMailIndexer } from "../index/WebMailIndexer"
 import { CustomImportMailStateCacheHandler } from "./CustomImportMailStateCacheHandler"
 import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
+import { CustomImapFolderSyncStateCacheHandler } from "./CustomImapFolderSyncStateCacheHandler"
 
 assertWorkerOrNode()
 
@@ -305,6 +314,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 				{
 					ref: ImportFileMailStateTypeRef,
 					handler: new CustomImportMailStateCacheHandler(mailIndexer, locator.base.cachingEntityClient),
+				},
+				{
+					ref: ImapFolderSyncStateTypeRef,
+					handler: new CustomImapFolderSyncStateCacheHandler(mailIndexer, locator.base.cachingEntityClient),
 				},
 			)
 

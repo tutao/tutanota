@@ -33,7 +33,7 @@ import { isDraft } from "../../mail/model/MailChecks.js"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { ProgressMonitor } from "../../../../platform-kit/network/ProgressMonitorInterface"
-import { FileImportStatus, ImapFolderSyncStatus, MailSetKind } from "../../../../entities/tutanota/Utils"
+import { FileImportStatus, ImapFolderSyncStatus, MailImportType, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { isFolder } from "../../mail/MailUtils"
 import { User } from "@tutao/entities/sys"
 import {
@@ -78,12 +78,7 @@ type CommonImportedMailFields = {
 }
 
 type CommonImportState = ListElementEntity & CommonImportStateFields
-type CommonImportedMail = ListElementEntity & CommonImportedMailFields
-
-enum MailImportType {
-	FileImport,
-	ImapImport,
-}
+export type CommonImportedMail = ListElementEntity & CommonImportedMailFields
 
 export class WebMailIndexer implements MailIndexer {
 	// {@link currentIndexTimestamp}: the **oldest** timestamp that has been indexed for all mail lists
@@ -646,7 +641,7 @@ export class WebMailIndexer implements MailIndexer {
 		}
 	}
 
-	async beforeImportedMailFinished(importedMailsList: Id): Promise<void> {
+	async beforeImportedMailFinished(importedMailsList: Id, mailImportType: MailImportType): Promise<void> {
 		// no-op
 	}
 

@@ -18,7 +18,7 @@ import {
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
-import { EncryptedParsedInstance, EntityAdapter, InstancePipeline, ServerTypeModelResolver } from "@tutao/instance-pipeline"
+import { InstancePipeline, ServerTypeModelResolver } from "@tutao/instance-pipeline"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
@@ -32,9 +32,11 @@ import {
 	idToElementId,
 	listIdPart,
 	ServerTypeModel,
+	TypeRef,
 } from "@tutao/meta"
 import {
 	ImportedFileMailTypeRef,
+	ImportedImapMailTypeRef,
 	Mail,
 	MailBox,
 	MailboxGroupRootTypeRef,
@@ -50,6 +52,8 @@ import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFa
 import { isDraft } from "../../mail/model/MailChecks"
 import { ConnectionError } from "@tutao/rest-client/error"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
+import { CommonImportedMail } from "./WebMailIndexer"
+import { MailImportType } from "../../../../entities/tutanota/Utils"
 
 assertWorkerOrNode()
 
@@ -138,7 +142,7 @@ export class OfflineMailIndexer implements MailIndexer {
 
 			const entries = await this.offlineStoragePersistence.getImportQueueEntries()
 			for (const entry of entries) {
-				this.indexTasks.push(() => this.processImport(entry))
+				this.indexTasks.push(() => this.processImport(entry.listId, entry.mailImportType))
 			}
 
 			this.processIndexQueue()
@@ -394,14 +398,14 @@ export class OfflineMailIndexer implements MailIndexer {
 		await this.currentlyIndexingPromise
 	}
 
-	private async processImport(importList: Id) {
+	private async processImport(importList: Id, mailImportType: MailImportType) {
 		// First get the queue...
 		let latestId: Id | null = await this.offlineStoragePersistence.getImportQueueProgress(importList)
 		if (latestId == null) {
 			return
 		}
-
-		const importedMails = await this.entityClient.loadAll(ImportedFileMailTypeRef, importList)
+		const typeRef = (mailImportType === MailImportType.FileImport ? ImportedFileMailTypeRef : ImportedImapMailTypeRef) as TypeRef<CommonImportedMail>
+		const importedMails = await this.entityClient.loadAll(typeRef, importList)
 		const importedMailEntryIds = importedMails.map((importedMail) => importedMail.mailSetEntry)
 
 		// This must all be in the same list
@@ -435,7 +439,7 @@ export class OfflineMailIndexer implements MailIndexer {
 			})
 
 			const latestMail = elementIdPart(lastThrow(chunk))
-			await this.offlineStoragePersistence.updateImportQueueProgress(importList, latestMail)
+			await this.offlineStoragePersistence.updateImportQueueProgress(importList, latestMail, mailImportType)
 		}
 
 		await this.offlineStoragePersistence.removeImportQueueEntry(importList)
@@ -452,13 +456,13 @@ export class OfflineMailIndexer implements MailIndexer {
 		// no-op
 	}
 
-	async beforeImportedMailFinished(importedMailsList: Id): Promise<void> {
+	async beforeImportedMailFinished(importedMailsList: Id, mailImportType: MailImportType): Promise<void> {
 		// in case we never get around to importing, persist our queue
-		await this.offlineStoragePersistence.enqueueImport(importedMailsList)
+		await this.offlineStoragePersistence.enqueueImport(importedMailsList, mailImportType)
 
 		// append to current index queue (unless the user cancelled indexing)
 		if (!this.abortController.signal.aborted) {
-			this.indexTasks.push(() => this.processImport(importedMailsList))
+			this.indexTasks.push(() => this.processImport(importedMailsList, mailImportType))
 			this.processIndexQueue()
 		}
 	}

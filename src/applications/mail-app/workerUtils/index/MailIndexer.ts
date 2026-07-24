@@ -11,6 +11,7 @@ import { elementIdPart, listIdPart } from "@tutao/meta"
 import { cryptoUtils } from "@tutao/crypto"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { CancelledError } from "@tutao/app-env"
+import { MailImportType } from "../../../../entities/tutanota/Utils"
 
 export const enum MailIndexingAbortReason {
 	Cancelled = "MailIndexingCancelled",
@@ -30,7 +31,7 @@ export interface MailIndexer {
 	afterMailDeleted(mailid: IdTuple): Promise<void>
 	afterMailCreated(mailid: IdTuple): Promise<void>
 	afterMailUpdated(mailid: IdTuple): Promise<void>
-	beforeImportedMailFinished(importedMailsList: Id): Promise<void>
+	beforeImportedMailFinished(importedMailsList: Id, mailImportType: MailImportType): Promise<void>
 	rebuildIndex(user: User): Promise<void>
 	extendMailIndex(user: User): Promise<void>
 	cancelMailIndexing(): void

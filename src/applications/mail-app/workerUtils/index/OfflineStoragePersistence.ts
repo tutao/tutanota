@@ -12,6 +12,7 @@ import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "@tutao/
 import { SqlValue } from "../../../../app-kit/local-store/Types"
 import { decode, encode } from "cborg"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
+import { MailImportType } from "../../../../entities/tutanota/Utils"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {
@@ -45,7 +46,7 @@ export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Objec
 
 	// Used for handling imported emails.
 	import_mail_queue: {
-		definition: "CREATE TABLE IF NOT EXISTS import_mail_queue (listId TEXT NOT NULL PRIMARY KEY, elementId TEXT NOT NULL)",
+		definition: "CREATE TABLE IF NOT EXISTS import_mail_queue (listId TEXT NOT NULL PRIMARY KEY, elementId TEXT NOT NULL, mailImportType TEXT NOT NULL)",
 		purgedWithCache: true,
 	},
 
@@ -390,18 +391,19 @@ export class OfflineStoragePersistence {
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async updateImportQueueProgress(importedMails: Id, latestMail: Id) {
+	async updateImportQueueProgress(importedMails: Id, latestMail: Id, mailImportType: MailImportType) {
 		const { query, params } = sql`INSERT
 		OR REPLACE INTO import_mail_queue VALUES (
 		${importedMails},
-		${latestMail}
+		${latestMail},
+		${mailImportType}
 		)`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async enqueueImport(importedMails: Id) {
+	async enqueueImport(importedMails: Id, mailImportType: MailImportType) {
 		// GENERATED_MAX_ID starts it from the beginning (since this is loaded in reverse order)
-		return await this.updateImportQueueProgress(importedMails, GENERATED_MAX_ID)
+		return await this.updateImportQueueProgress(importedMails, GENERATED_MAX_ID, mailImportType)
 	}
 
 	async getImportQueueProgress(importedMails: Id): Promise<Id | null> {
@@ -410,9 +412,11 @@ export class OfflineStoragePersistence {
 		return value && (untagSqlValue(value.elementId) as Id)
 	}
 
-	async getImportQueueEntries(): Promise<Id[]> {
-		const value = await this.sqlCipherFacade.all(`SELECT listId FROM import_mail_queue`, [])
-		return value.map((v) => untagSqlValue(v.listId) as Id)
+	async getImportQueueEntries(): Promise<{ listId: Id; mailImportType: MailImportType }[]> {
+		const resultRows = await this.sqlCipherFacade.all(`SELECT listId, mailImportType FROM import_mail_queue`, [])
+		return resultRows.map(({ listId, mailImportType }) => {
+			return { listId: untagSqlValue(listId) as Id, mailImportType: untagSqlValue(mailImportType) as MailImportType }
+		})
 	}
 }
 

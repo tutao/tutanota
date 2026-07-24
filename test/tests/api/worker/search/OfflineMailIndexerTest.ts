@@ -48,6 +48,7 @@ import { assert, assertNotNull, collectToMap, deepEqual } from "../../../../../s
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade"
 import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
 import { IncomingServerJson } from "../../../../../src/platform-kit/instance-pipeline/TypeMapper"
+import { MailImportType } from "../../../../../src/entities/tutanota/Utils"
 
 o.spec("OfflineMailIndexer", () => {
 	let mailIndexer: OfflineMailIndexer
@@ -425,18 +426,18 @@ o.spec("OfflineMailIndexer", () => {
 
 			verify(persistence.removeImportQueueEntry(listIdPart(importedMail._id)))
 			verify(persistence.clearEncryptedMailDetailsBlobs())
-			verify(persistence.updateImportQueueProgress(listIdPart(importedMail._id), elementIdPart(mail._id)))
+			verify(persistence.updateImportQueueProgress(listIdPart(importedMail._id), elementIdPart(mail._id), MailImportType.FileImport))
 		}
 
 		o.test("beforeImportedMailFinished", async () => {
-			await mailIndexer.beforeImportedMailFinished(listIdPart(importedMail._id))
+			await mailIndexer.beforeImportedMailFinished(listIdPart(importedMail._id), MailImportType.FileImport)
 			await mailIndexer.waitForIndex()
 			do_verify()
 		})
 
 		o.test("resume", async () => {
 			when(persistence.getIndexedGroups()).thenResolve([])
-			when(persistence.getImportQueueEntries()).thenResolve([listIdPart(importedMail._id)])
+			when(persistence.getImportQueueEntries()).thenResolve([{ listId: listIdPart(importedMail._id), mailImportType: MailImportType.FileImport }])
 
 			await mailIndexer.extendMailIndex(user)
 			await mailIndexer.waitForIndex()

@@ -2,7 +2,7 @@ import { ImportFileMailState, ImportFileMailStateTypeRef } from "@tutao/entities
 import { CustomCacheHandler } from "../../../../app-kit/local-store/CustomCacheHandler"
 import { filterInt, lazyAsync } from "@tutao/utils"
 import { MailIndexer } from "../index/MailIndexer"
-import { FileImportStatus } from "../../../../entities/tutanota/Utils"
+import { FileImportStatus, MailImportType } from "../../../../entities/tutanota/Utils"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 
 /**
@@ -29,7 +29,7 @@ export class CustomImportMailStateCacheHandler implements CustomCacheHandler<Imp
 		const status = filterInt(importMailState.status) as FileImportStatus
 		if (status === FileImportStatus.Finished || status === FileImportStatus.Canceled) {
 			const indexer = await this.indexer()
-			return await indexer.beforeImportedMailFinished(importMailState.importedMails)
+			return await indexer.beforeImportedMailFinished(importMailState.importedMails, MailImportType.FileImport)
 		}
 	}
 }
