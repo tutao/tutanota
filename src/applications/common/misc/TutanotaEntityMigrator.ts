@@ -1,5 +1,5 @@
 import { EntityMigrator } from "../../../platform-kit/network/EntityRestClient"
-import { AttributeModel, elementIdPart, Entity, idToElementId, isSameTypeRef, TypeRef } from "@tutao/meta"
+import { AttributeModel, elementIdPart, Entity, isSameTypeRef, stringifyId, TypeRef } from "@tutao/meta"
 import { EntityAdapter, InstancePipeline, LoggedInUserProvider, PatchOperationType, SymmetricGroupKeyLoader, TypeModelResolver } from "@tutao/instance-pipeline"
 import {
 	createPatch,
@@ -105,7 +105,7 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 
 		const id = instance._id
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
-		const path = EntityUtils.typeModelToRestPath(typeModel) + "/" + (id instanceof Array ? id.join("/") : id)
+		const path = EntityUtils.typeModelToRestPath(typeModel) + "/" + stringifyId(id)
 		const headers = this.loggedInUserProvider.createAuthHeaders()
 		headers.v = String(instance.typeModel.version)
 
