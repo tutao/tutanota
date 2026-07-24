@@ -14,14 +14,23 @@ import {
 assertMainOrNodeBoot()
 
 export class ClientDetector {
-	userAgent!: string
-	browser!: BrowserType
-	browserVersion!: number
-	device!: DeviceType
-	overflowAuto!: string
-	isMacOS!: boolean
-	appType!: AppType
+	userAgent: string | null = null
+	overflowAuto: string | null = null
+	isMacOS: boolean | null = null
+	appType: AppType | null = null
 	isAutomatedBrowser: boolean = false
+	browserVersion: number = 0
+	browser: BrowserType = BrowserType.OTHER
+	device: DeviceType = DeviceType.DESKTOP
+
+	private static singeleton: ClientDetector | null = null
+	public static get(): ClientDetector {
+		if (ClientDetector.singeleton != null) {
+			return ClientDetector.singeleton
+		}
+		this.singeleton = new ClientDetector(env)
+		return this.singeleton
+	}
 
 	private static singeleton: ClientDetector | null = null
 	public static get(): ClientDetector {
