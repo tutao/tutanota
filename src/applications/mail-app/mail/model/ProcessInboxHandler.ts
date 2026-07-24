@@ -106,10 +106,10 @@ export class ProcessInboxHandler {
 
 		if (skipPredictionReason === SkipClientSpamClassificationReason.None) {
 			const isSpam = await this.spamHandler().predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup))
-			if (isSpam && sourceFolder.folderType === MailSetKind.INBOX) {
+			if (isSpam && targetFolder.folderType === MailSetKind.INBOX) {
 				// The mail has been classified as SPAM
 				targetFolder = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SPAM))
-			} else if (!isSpam && sourceFolder.folderType === MailSetKind.SPAM) {
+			} else if (!isSpam && targetFolder.folderType === MailSetKind.SPAM) {
 				// The mail has been classified as HAM (not SPAM)
 				targetFolder = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX))
 			}
@@ -125,7 +125,7 @@ export class ProcessInboxHandler {
 		if (targetFolder.folderType === MailSetKind.INBOX || skipPredictionReason === SkipClientSpamClassificationReason.None) {
 			// mail landed in Inbox or might have been moved to Spam folder by client side classification
 			const inboxRuleHandler = this.inboxRuleHandler()
-			const matchingInboxRule = await inboxRuleHandler.findMatchingInboxRule(mail, sourceFolder)
+			const matchingInboxRule = await inboxRuleHandler.findMatchingInboxRule(mail, targetFolder)
 
 			if (matchingInboxRule != null) {
 				const excludeFromSpam = inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule)
