@@ -1,6 +1,7 @@
 import { ProgrammingError } from "./ProgrammingError"
-import { isObject, isUndefined } from "./boot/TypeChecks"
+import { isUndefined } from "./boot/TypeChecks"
 import { client } from "./boot/ClientDetector"
+import { _isNode, _isWorker } from "./boot/TsPlatformConstants"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -69,11 +70,8 @@ export function ifDesktop<T>(obj: T | null): T | null {
 	return isDesktop() ? obj : null
 }
 
-let worker = !isUndefined(WorkerGlobalScope) && self instanceof WorkerGlobalScope
-let node = isObject(process) && isObject(process.versions) && !isUndefined(process.versions.node)
-
 export function isMain(): boolean {
-	return !worker && !node
+	return !_isWorker && !_isNode
 }
 
 export function isWebClient() {
@@ -89,15 +87,15 @@ export function isElectronClient(): boolean {
 }
 
 export function isMainOrNode(): boolean {
-	return !worker || node || isTest()
+	return !_isWorker || _isNode || isTest()
 }
 
 export function isWorkerOrNode(): boolean {
-	return worker || node || isTest()
+	return _isWorker || _isNode || isTest()
 }
 
 export function isWorker(): boolean {
-	return worker
+	return _isWorker
 }
 
 export function isTest(): boolean {
@@ -105,7 +103,7 @@ export function isTest(): boolean {
 }
 
 export function isDesktopMainThread(): boolean {
-	return node && !isUndefined(client.env) && (isDesktop() || isAdminClient())
+	return _isNode && !isUndefined(client.env) && (isDesktop() || isAdminClient())
 }
 
 let boot = !isDesktopMainThread() && !isWorker()
