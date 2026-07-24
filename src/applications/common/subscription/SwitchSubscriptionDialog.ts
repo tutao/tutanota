@@ -6,11 +6,14 @@ import { createUserAreaGroupDeleteData, TemplateGroupService } from "@tutao/enti
 import {
 	AccountingInfo,
 	Booking,
+	BookingTypeRef,
+	createRenewalPreferenceServicePostIn,
 	createSwitchAccountTypePostIn,
 	Customer,
 	GroupInfo,
 	GroupInfoTypeRef,
 	GroupTypeRef,
+	RenewalPreferenceService,
 	SwitchAccountTypeService,
 	UserTypeRef,
 } from "@tutao/entities/sys"
@@ -24,7 +27,7 @@ import type { CurrentPlanInfo } from "./SwitchSubscriptionDialogModel"
 import { SwitchSubscriptionDialogModel } from "./SwitchSubscriptionDialogModel"
 import { locator } from "../api/main/CommonLocator"
 import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
-import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, delay, downcast, lazy } from "@tutao/utils"
+import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, delay, downcast, last, lazy } from "@tutao/utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { PrimaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
@@ -51,6 +54,7 @@ import { getUserGroupMemberships } from "../../../platform-kit/network/GroupUtil
 import { getByAbbreviation } from "../gui/CountryList"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { PreconditionFailedError, TooManyRequestsError } from "@tutao/rest-client/error"
+import { GENERATED_MAX_ID } from "@tutao/meta"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -211,7 +215,7 @@ async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInf
 		}
 	}
 
-	const newPlanType = await cancelSubscription(dialog, currentPlanInfo, customer)
+	const newPlanType = await downgradeSubscription(dialog)
 
 	if (newPlanType === PlanType.Free) {
 		if (mailLocator.mailModel) {
@@ -467,7 +471,16 @@ export async function tryDowngradePremiumToFree(customer: Customer, currentPlanT
 	}
 }
 
-export async function showConfirmDowngradingToFreeDialog(planType: PlanType, customer: Customer) {
+export async function showConfirmDowngradingToFreeDialog(): Promise<PlanType> {
+	const planType = await locator.logins.getUserController().getPlanType()
+	const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
+	const customer = locator.logins.getUserController().getCustomer()
+	const bookings = await locator.entityClient.loadRange(BookingTypeRef, assertNotNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+	const lastBooking = last(bookings)
+	if (lastBooking == null) {
+		console.warn("No booking")
+		return planType
+	}
 	const confirmCancelSubscription = Dialog.confirm("unsubscribeConfirm_msg", "ok_action", () => {
 		return m(
 			".pt-16",
@@ -483,11 +496,24 @@ export async function showConfirmDowngradingToFreeDialog(planType: PlanType, cus
 		return planType
 	}
 
-	return await showProgressDialog("pleaseWait_msg", tryDowngradePremiumToFree(customer, planType))
+	return await showProgressDialog("pleaseWait_msg", cancelSubscription(assertNotNull(customer)))
 }
 
-async function cancelSubscription(dialog: Dialog, currentPlanInfo: CurrentPlanInfo, customer: Customer): Promise<PlanType> {
-	return await showConfirmDowngradingToFreeDialog(currentPlanInfo.planType, customer).finally(dialog.close)
+async function downgradeSubscription(dialog: Dialog): Promise<PlanType> {
+	const plan = await showConfirmDowngradingToFreeDialog()
+	dialog.close()
+	return plan
+}
+
+//Calls renewal preference service and sets renewal to false. Does not downgrade the plan
+async function cancelSubscription(customer: Customer): Promise<PlanType> {
+	const inputData = {
+		isEnabled: false,
+		customerId: customer._id,
+	}
+	const data = createRenewalPreferenceServicePostIn(inputData)
+	await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(RenewalPreferenceService, data, null))
+	return PlanType.Free
 }
 
 async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, currentPlanInfo: CurrentPlanInfo): Promise<void> {

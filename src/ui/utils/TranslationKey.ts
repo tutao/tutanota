@@ -2460,3 +2460,5 @@ export type TranslationKeyType =
 	| "changePaymentInterval_action"
 	| "subscriptionSettingDowngrade_action"
 	| "appStoreConfirmationTimeout_msg"
+	| "subscriptionSettingManageSubscription_action"
+	| "subscriptionSettingSwitchPlan_action"
