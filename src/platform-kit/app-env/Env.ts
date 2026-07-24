@@ -1,4 +1,5 @@
 import { ProgrammingError } from "./ProgrammingError"
+import { isObject, isUndefined } from "./boot/TypeChecks"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -68,7 +69,7 @@ export function ifDesktop<T>(obj: T | null): T | null {
 }
 
 let worker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope
-let node = typeof process === "object" && typeof process.versions === "object" && typeof process.versions.node !== "undefined"
+let node = isObject(process) && isObject(process.versions) && !isUndefined(process.versions.node)
 
 export function isMain(): boolean {
 	return !worker && !node
@@ -103,7 +104,7 @@ export function isTest(): boolean {
 }
 
 export function isDesktopMainThread(): boolean {
-	return node && typeof env !== "undefined" && (isDesktop() || isAdminClient())
+	return node && !isUndefined(env) && (isDesktop() || isAdminClient())
 }
 
 let boot = !isDesktopMainThread() && !isWorker()
