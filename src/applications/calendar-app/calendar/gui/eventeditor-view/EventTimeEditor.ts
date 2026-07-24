@@ -89,6 +89,8 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 								onTimeSelected: (time) => (editModel.startTime = time),
 								timeFormat: attrs.timeFormat,
 								disabled: attrs.disabled || attrs.editModel.isAllDay,
+								valid: editModel.hasValidStartBeforeEnd(),
+								invalidMessage: lang.getTranslation("startAfterEnd_label"),
 								ariaLabel: lang.getTranslation("startTime_label"),
 								renderAsTextField: false,
 							}),
@@ -120,10 +122,13 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							},
 							m(TimePicker, {
 								classes: appClasses,
+								// FIXME: Component is not displaying the time from the attribute
 								time: editModel.endTime,
 								onTimeSelected: (time) => (editModel.endTime = time),
 								timeFormat: attrs.timeFormat,
 								disabled: attrs.disabled || editModel.isAllDay,
+								valid: editModel.hasValidStartBeforeEnd(),
+								invalidMessage: lang.getTranslation("startAfterEnd_label"),
 								ariaLabel: lang.getTranslation("endTime_label"),
 								renderAsTextField: false,
 							}),

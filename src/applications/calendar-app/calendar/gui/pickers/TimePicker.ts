@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { LegacyTextField, LegacyTextFieldType as TextFieldType } from "../../../../../ui/base/LegacyTextField.js"
 import { theme } from "../../../../../ui/theme.js"
-import { isApp, Keys, TabIndex, TimeFormat } from "../../../../../platform-kit/app-env"
+import { isApp, Keys, TabIndex, TimeFormat } from "@tutao/app-env"
 import { timeStringFromParts } from "../../../../../ui/utils/Formatter.js"
 import { Time } from "../../../../common/calendar/date/Time.js"
 import { Select, SelectAttributes } from "../../../../../ui/base/Select.js"
@@ -11,13 +11,15 @@ import stream from "mithril/stream"
 import { isKeyPressed } from "../../../../../ui/utils/KeyManager.js"
 import { getNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { DateTime } from "luxon"
-import { lang, Translation, TranslationKey } from "../../../../../ui/utils/LanguageViewModel"
+import { lang, Translation } from "../../../../../ui/utils/LanguageViewModel"
 
 export type TimePickerAttrs = {
 	time: Time | null
 	onTimeSelected: (arg0: Time | null) => unknown
 	timeFormat: TimeFormat
 	disabled?: boolean
+	valid?: boolean
+	invalidMessage?: Translation
 	ariaLabel: Translation
 	classes?: Array<string>
 	renderAsTextField: boolean
@@ -209,6 +211,8 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				this.value = val
 			},
 			disabled: attrs.disabled,
+			valid: attrs.valid,
+			invalidMessage: attrs.invalidMessage,
 			ariaLabel: attrs.ariaLabel,
 			style: {
 				textAlign: "center",

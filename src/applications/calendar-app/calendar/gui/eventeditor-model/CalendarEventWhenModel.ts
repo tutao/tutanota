@@ -163,6 +163,13 @@ export class CalendarEventWhenModel {
 			return
 		}
 
+		if (!this.hasValidStartBeforeEnd()) {
+			// Allow the user to correct the invalid state by only changing the start time,
+			// decoupled from the end time
+			this._startTime = v
+			return
+		}
+
 		const startTime = this._startTime!
 		const delta = ((v.hour - startTime.hour) * 60 + (v.minute - startTime.minute)) * 60000
 
@@ -678,8 +685,8 @@ export class CalendarEventWhenModel {
 		}
 	}
 
-	hasInvalidEndBeforeOrEqualStart(): boolean {
-		return this.getEventEndDateTime().diff(this.getStartDateTime()).as("minutes") <= 0
+	hasValidStartBeforeEnd(): boolean {
+		return this.getStartDateTime().diff(this.getEventEndDateTime()).as("minutes") < 0
 	}
 
 	get result() {

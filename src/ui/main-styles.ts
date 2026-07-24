@@ -1,6 +1,6 @@
 import { styles } from "./styles"
 import { component_size, font_size, layout_size, px, size } from "./size"
-import { assertMainOrNode, isAdminClient, isAndroidApp, isApp, isDesktop } from "../platform-kit/app-env"
+import { assertMainOrNode, isAdminClient, isAndroidApp, isApp, isDesktop } from "@tutao/app-env"
 import { lang } from "./utils/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
 import { BaseThemeProvider, getElevatedBackground, getNavigationMenuBg, isLightTheme, theme } from "./theme"
@@ -3052,6 +3052,11 @@ export class MainStyles {
 				},
 				".tutaui-text-field:focus, .child-text-editor [role='textbox']:focus": {
 					"background-color": theme.surface_container_high,
+				},
+				".tutaui-text-field:invalid": {
+					color: theme.on_error_container,
+					"background-color": theme.error_container,
+					"border-color": theme.on_error_container,
 				},
 				".tutaui-text-field::placeholder": {
 					color: theme.on_surface_variant,

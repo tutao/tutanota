@@ -917,6 +917,7 @@ export default {
 		"invalidGiftCardPaymentMethod_msg": "Your payment method does not support the purchasing of gift cards.",
 		"invalidICal_error": "Invalid iCal.",
 		"invalidInputFormat_msg": "Invalid format.",
+		"invalidInput_msg": "Invalid input.",
 		"invalidLink_msg": "Sorry, this link is not valid.",
 		"invalidMailAddress_msg": "The following email addresses could not be invited because they are invalid:",
 		"invalidPassword_msg": "Invalid password. Please check it again.",
