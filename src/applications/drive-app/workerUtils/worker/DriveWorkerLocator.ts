@@ -136,7 +136,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 				customCacheHandler,
 				KeyVerificationTableDefinitions,
 			)
-			return new CachingOfflineStorage(offlineStorage, fastCache)
+			return new CachingOfflineStorage(offlineStorage, fastCache, locator.base.instancePipeline.modelMapper)
 		}
 	} else {
 		offlineStorageProvider = async () => null

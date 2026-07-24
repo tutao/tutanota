@@ -338,7 +338,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 				customCacheHandler,
 				Object.assign({}, KeyVerificationTableDefinitions, SearchTableDefinitions, AutosaveDraftsTableDefinitions, SpamClassificationTableDefinitions),
 			)
-			return new CachingOfflineStorage(offlineStorage, fastCache)
+			return new CachingOfflineStorage(offlineStorage, fastCache, locator.base.instancePipeline.modelMapper)
 		}
 	} else {
 		offlineStorageProvider = async () => null

@@ -25,6 +25,7 @@ const { anything } = matchers
 o.spec("CachingOfflineStorageTest", function () {
 	let delegateMock: OfflineStorage
 	let fastCacheMock: EphemeralCacheStorage
+	let modelMapperMock: ModelMapper
 	let cachingOfflineStorage: CachingOfflineStorage
 	let dummyInstance: TestEntity
 	let dummyServerModelParsedInstance: ServerModelParsedInstance
@@ -42,11 +43,12 @@ o.spec("CachingOfflineStorageTest", function () {
 		SYMMETRIC_CIPHER_FACADE,
 	)
 	let typeModelResolver: TypeModelResolver
-	let modelMapper: ModelMapper
+	let testModelMapper: ModelMapper
 
 	o.beforeEach(async function () {
 		delegateMock = object<OfflineStorage>()
 		fastCacheMock = object<EphemeralCacheStorage>()
+		modelMapperMock = object<ModelMapper>()
 		dummyInstance = await createTestEntityWithDummyResolver(dummyTypeRef, { _id: [dummyListId, dummyElementId] })
 		dummyInstance2 = await createTestEntityWithDummyResolver(dummyTypeRef, { _id: [dummyListId, dummyElementId2] })
 		dummyServerModelParsedInstance = (await dummyInstancePipeline.modelMapper.mapToClientModelParsedInstance(
@@ -57,9 +59,9 @@ o.spec("CachingOfflineStorageTest", function () {
 			dummyTypeRef,
 			dummyInstance2,
 		)) as unknown as ServerModelParsedInstance
-		cachingOfflineStorage = new CachingOfflineStorage(delegateMock, fastCacheMock)
+		cachingOfflineStorage = new CachingOfflineStorage(delegateMock, fastCacheMock, modelMapperMock)
 		typeModelResolver = clientInitializedTypeModelResolver()
-		modelMapper = modelMapperFromTypeModelResolver(typeModelResolver)
+		testModelMapper = modelMapperFromTypeModelResolver(typeModelResolver)
 	})
 
 	o.test("init - calls init on both storages and returns delegate init result", async () => {
@@ -116,7 +118,7 @@ o.spec("CachingOfflineStorageTest", function () {
 		verify(delegateMock.putLastUpdateTime(123), { times: 1 })
 	})
 
-	o.test("put - delegates to both storages", async () => {
+	o.test("put - delegates to both storages - when", async () => {
 		await cachingOfflineStorage.put(dummyTypeRef, dummyServerModelParsedInstance)
 		verify(delegateMock.put(dummyTypeRef, dummyServerModelParsedInstance), { times: 1 })
 		verify(fastCacheMock.put(dummyTypeRef, dummyServerModelParsedInstance), { times: 1 })
@@ -198,6 +200,21 @@ o.spec("CachingOfflineStorageTest", function () {
 			verify(fastCacheMock.put(dummyTypeRef, dummyServerModelParsedInstance), { times: 1 })
 			verify(fastCacheMock.get(dummyTypeRef, dummyListId, dummyElementId), { times: 2 })
 		})
+
+		o.test("offline: fast cache miss fetches from delegate and does NOT cache", async () => {
+			await cachingOfflineStorage.setCacheSyncStatus(CacheSyncStatus.Offline)
+			when(fastCacheMock.get(dummyTypeRef, dummyListId, dummyElementId)).thenResolve(null)
+
+			when(delegateMock.getParsed(dummyTypeRef, dummyListId, dummyElementId)).thenResolve(dummyServerModelParsedInstance)
+			when(fastCacheMock.put(dummyTypeRef, dummyServerModelParsedInstance)).thenResolve(undefined)
+			when(fastCacheMock.get(dummyTypeRef, dummyListId, dummyElementId)).thenResolve(null, dummyInstance)
+			when(modelMapperMock.mapToInstance(dummyTypeRef, dummyServerModelParsedInstance)).thenResolve(dummyInstance)
+
+			const result = await cachingOfflineStorage.get(dummyTypeRef, dummyListId, dummyElementId)
+			o.check(result).notEquals(null)
+			verify(fastCacheMock.put(dummyTypeRef, dummyServerModelParsedInstance), { times: 0 })
+			verify(fastCacheMock.get(dummyTypeRef, dummyListId, dummyElementId), { times: 1 })
+		})
 	})
 
 	o.spec("getParsed", () => {
@@ -222,12 +239,25 @@ o.spec("CachingOfflineStorageTest", function () {
 		o.test("non-sync: fast cache miss fetches from delegate and caches", async () => {
 			await cachingOfflineStorage.setCacheSyncStatus(CacheSyncStatus.OnlineSyncDone)
 			when(fastCacheMock.getParsed(dummyTypeRef, dummyListId, dummyElementId)).thenResolve(null)
+
 			const delegateParsed = {} as ServerModelParsedInstance
 			when(delegateMock.getParsed(dummyTypeRef, dummyListId, dummyElementId)).thenResolve(delegateParsed)
 
 			const result = await cachingOfflineStorage.getParsed(dummyTypeRef, dummyListId, dummyElementId)
 			o.check(result).equals(delegateParsed)
 			verify(fastCacheMock.put(anything(), anything()), { times: 1 })
+		})
+
+		o.test("offline: fast cache miss fetches from delegate and does NOT cache", async () => {
+			await cachingOfflineStorage.setCacheSyncStatus(CacheSyncStatus.Offline)
+			when(fastCacheMock.getParsed(dummyTypeRef, dummyListId, dummyElementId)).thenResolve(null)
+
+			const delegateParsed = {} as ServerModelParsedInstance
+			when(delegateMock.getParsed(dummyTypeRef, dummyListId, dummyElementId)).thenResolve(delegateParsed)
+
+			const result = await cachingOfflineStorage.getParsed(dummyTypeRef, dummyListId, dummyElementId)
+			o.check(result).equals(delegateParsed)
+			verify(fastCacheMock.put(anything(), anything()), { times: 0 })
 		})
 	})
 
@@ -322,6 +352,24 @@ o.spec("CachingOfflineStorageTest", function () {
 			verify(fastCacheMock.putMultiple(dummyTypeRef, delegateParsed), { times: 1 })
 			verify(fastCacheMock.provideMultiple(dummyTypeRef, dummyListId, ids), { times: 2 })
 		})
+
+		o.test("offline: fast cache incomplete, fetches from delegate and does NOT cache", async () => {
+			await cachingOfflineStorage.setCacheSyncStatus(CacheSyncStatus.Offline)
+			const ids = [getElementId(dummyInstance), getElementId(dummyInstance2)]
+			const fastPartial = [dummyInstance]
+			const delegateParsed = [dummyServerModelParsedInstance, dummyServerModelParsedInstance2]
+			const delegateInstances = [dummyInstance, dummyInstance2]
+			when(fastCacheMock.provideMultiple(dummyTypeRef, dummyListId, ids)).thenResolve(fastPartial)
+
+			when(delegateMock.provideMultipleParsed(dummyTypeRef, dummyListId, ids)).thenResolve(delegateParsed)
+			when(fastCacheMock.putMultiple(dummyTypeRef, delegateParsed)).thenResolve(undefined)
+			when(modelMapperMock.mapToInstances(dummyTypeRef, delegateParsed)).thenResolve(delegateInstances)
+
+			const result = await cachingOfflineStorage.provideMultiple(dummyTypeRef, dummyListId, ids)
+			o.check(result).deepEquals(delegateInstances)
+			verify(fastCacheMock.putMultiple(dummyTypeRef, delegateParsed), { times: 0 })
+			verify(fastCacheMock.provideMultiple(dummyTypeRef, dummyListId, ids), { times: 1 })
+		})
 	})
 
 	o.spec("provideMultipleParsed", () => {
@@ -358,6 +406,21 @@ o.spec("CachingOfflineStorageTest", function () {
 			const result = await cachingOfflineStorage.provideMultipleParsed(dummyTypeRef, dummyListId, ids)
 			o.check(result).deepEquals(delegateParsed)
 			verify(fastCacheMock.putMultiple(dummyTypeRef, delegateParsed), { times: 1 })
+		})
+
+		o.test("offline: incomplete fast cache, fetches delegate, does NOT cache, returns delegate", async () => {
+			await cachingOfflineStorage.setCacheSyncStatus(CacheSyncStatus.Offline)
+			const ids = [dummyElementId, dummyElementId2]
+			const fastPartial = [dummyServerModelParsedInstance]
+			const delegateParsed = [dummyServerModelParsedInstance, dummyServerModelParsedInstance2]
+
+			when(fastCacheMock.provideMultipleParsed(dummyTypeRef, dummyListId, ids)).thenResolve(fastPartial)
+			when(delegateMock.provideMultipleParsed(dummyTypeRef, dummyListId, ids)).thenResolve(delegateParsed)
+			when(fastCacheMock.putMultiple(dummyTypeRef, delegateParsed)).thenResolve(undefined)
+
+			const result = await cachingOfflineStorage.provideMultipleParsed(dummyTypeRef, dummyListId, ids)
+			o.check(result).deepEquals(delegateParsed)
+			verify(fastCacheMock.putMultiple(dummyTypeRef, delegateParsed), { times: 0 })
 		})
 	})
 
@@ -766,6 +829,6 @@ o.spec("CachingOfflineStorageTest", function () {
 	})
 
 	async function toStorableInstance(entity: Entity): Promise<ServerModelParsedInstance> {
-		return downcast<ServerModelParsedInstance>(await modelMapper.mapToClientModelParsedInstance(entity._type, entity))
+		return downcast<ServerModelParsedInstance>(await testModelMapper.mapToClientModelParsedInstance(entity._type, entity))
 	}
 })

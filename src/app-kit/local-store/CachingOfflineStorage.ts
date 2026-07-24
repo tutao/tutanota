@@ -6,6 +6,7 @@ import { CustomCacheHandlerMap } from "./CustomCacheHandler"
 import { OfflineStorageArgs } from "../../platform-kit/base/facades/CacheStorageLateInitializer"
 import { CacheSyncStatus } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { isNotEmpty } from "@tutao/utils"
+import { ModelMapper } from "@tutao/instance-pipeline"
 
 export class CachingOfflineStorage implements CacheStorage {
 	private cacheSyncStatus: CacheSyncStatus = CacheSyncStatus.Offline
@@ -13,10 +14,15 @@ export class CachingOfflineStorage implements CacheStorage {
 	constructor(
 		private readonly delegate: OfflineStorage,
 		private readonly fastCache: EphemeralCacheStorage,
+		private readonly modelMapper: ModelMapper,
 	) {}
 
-	private shouldOnlyFromFastCache(): boolean {
+	private shouldOnlyUseFastCache(): boolean {
 		return this.cacheSyncStatus === CacheSyncStatus.OnlineSyncOngoing
+	}
+
+	private shouldWriteToFastCacheWhenReadingDelegate(): boolean {
+		return this.cacheSyncStatus !== CacheSyncStatus.Offline
 	}
 
 	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void> {
@@ -66,7 +72,7 @@ export class CachingOfflineStorage implements CacheStorage {
 
 	async get<T extends Entity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null> {
 		const fastResult = await this.fastCache.get(typeRef, listId, id)
-		const shouldLoadOnlyFromFastCache = this.shouldOnlyFromFastCache()
+		const shouldLoadOnlyFromFastCache = this.shouldOnlyUseFastCache()
 		if (shouldLoadOnlyFromFastCache) {
 			console.log(`${this.cacheSyncStatus}: returning from fastCache ${getTypeString(typeRef)} ${listId} ${id}`)
 			return fastResult
@@ -77,10 +83,11 @@ export class CachingOfflineStorage implements CacheStorage {
 			return fastResult
 		} else {
 			const parsedInstance = await this.delegate.getParsed(typeRef, listId, id)
-			if (parsedInstance) {
+			if (parsedInstance && this.shouldWriteToFastCacheWhenReadingDelegate()) {
 				await this.fastCache.put(typeRef, parsedInstance)
+				return await this.fastCache.get(typeRef, listId, id)
 			}
-			return await this.fastCache.get(typeRef, listId, id)
+			return parsedInstance ? this.modelMapper.mapToInstance<T>(typeRef, parsedInstance) : null
 		}
 	}
 
@@ -90,7 +97,7 @@ export class CachingOfflineStorage implements CacheStorage {
 
 	async getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>> {
 		const fastResult = await this.fastCache.getIdsInRange(typeRef, listId)
-		const shouldLoadOnlyFromFastCache = this.shouldOnlyFromFastCache()
+		const shouldLoadOnlyFromFastCache = this.shouldOnlyUseFastCache()
 		if (shouldLoadOnlyFromFastCache) {
 			return fastResult
 		}
@@ -106,7 +113,7 @@ export class CachingOfflineStorage implements CacheStorage {
 
 	async getParsed(typeRef: TypeRef<unknown>, listId: Id | null, id: Id): Promise<ServerModelParsedInstance | null> {
 		const fastResult = await this.fastCache.getParsed(typeRef, listId, id)
-		const shouldLoadOnlyFromFastCache = this.shouldOnlyFromFastCache()
+		const shouldLoadOnlyFromFastCache = this.shouldOnlyUseFastCache()
 		if (shouldLoadOnlyFromFastCache) {
 			console.log(`${this.cacheSyncStatus}: returning from fastCache ${getTypeString(typeRef)} ${listId} ${id}`)
 			return fastResult
@@ -116,7 +123,7 @@ export class CachingOfflineStorage implements CacheStorage {
 			return fastResult
 		} else {
 			const parsedInstance = await this.delegate.getParsed(typeRef, listId, id)
-			if (parsedInstance) {
+			if (parsedInstance && this.shouldWriteToFastCacheWhenReadingDelegate()) {
 				await this.fastCache.put(typeRef, parsedInstance)
 			}
 			return parsedInstance
@@ -125,7 +132,7 @@ export class CachingOfflineStorage implements CacheStorage {
 
 	async getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null> {
 		const fastResult = await this.fastCache.getRangeForList(typeRef, listId)
-		const shouldOnlyUseFastCache = this.shouldOnlyFromFastCache()
+		const shouldOnlyUseFastCache = this.shouldOnlyUseFastCache()
 		if (shouldOnlyUseFastCache) {
 			return fastResult
 		}
@@ -138,7 +145,7 @@ export class CachingOfflineStorage implements CacheStorage {
 
 	async getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {
 		const fastResult = await this.fastCache.getWholeList(typeRef, listId)
-		const shouldOnlyUseFastCache = this.shouldOnlyFromFastCache()
+		const shouldOnlyUseFastCache = this.shouldOnlyUseFastCache()
 		if (shouldOnlyUseFastCache) {
 			return fastResult
 		}
@@ -147,7 +154,7 @@ export class CachingOfflineStorage implements CacheStorage {
 
 	async getWholeListParsed(typeRef: TypeRef<ListElementEntity>, listId: Id): Promise<Array<ServerModelParsedInstance>> {
 		const fastResult = await this.fastCache.getWholeListParsed(typeRef, listId)
-		const shouldOnlyUseFastCache = this.shouldOnlyFromFastCache()
+		const shouldOnlyUseFastCache = this.shouldOnlyUseFastCache()
 		if (shouldOnlyUseFastCache) {
 			return fastResult
 		}
@@ -156,7 +163,7 @@ export class CachingOfflineStorage implements CacheStorage {
 
 	async isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<boolean> {
 		const fastResult = await this.fastCache.isElementIdInCacheRange(typeRef, listId, id)
-		const shouldOnlyUseFastCache = this.shouldOnlyFromFastCache()
+		const shouldOnlyUseFastCache = this.shouldOnlyUseFastCache()
 		if (shouldOnlyUseFastCache) {
 			return fastResult
 		}
@@ -169,7 +176,7 @@ export class CachingOfflineStorage implements CacheStorage {
 
 	async provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
 		const fastResult = await this.fastCache.provideFromRange(typeRef, listId, start, count, reverse)
-		const shouldOnlyUseFastCache = this.shouldOnlyFromFastCache()
+		const shouldOnlyUseFastCache = this.shouldOnlyUseFastCache()
 		if (shouldOnlyUseFastCache) {
 			return fastResult
 		}
@@ -184,7 +191,7 @@ export class CachingOfflineStorage implements CacheStorage {
 		reverse: boolean,
 	): Promise<ServerModelParsedInstance[]> {
 		const fastResult = await this.fastCache.provideFromRangeParsed(typeRef, listId, start, count, reverse)
-		const shouldOnlyUseFastCache = this.shouldOnlyFromFastCache()
+		const shouldOnlyUseFastCache = this.shouldOnlyUseFastCache()
 		if (shouldOnlyUseFastCache) {
 			return fastResult
 		}
@@ -193,7 +200,7 @@ export class CachingOfflineStorage implements CacheStorage {
 
 	async provideMultiple<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[]): Promise<Array<T>> {
 		const fastResult = await this.fastCache.provideMultiple(typeRef, listId, elementIds)
-		const shouldOnlyUseFastCache = this.shouldOnlyFromFastCache()
+		const shouldOnlyUseFastCache = this.shouldOnlyUseFastCache()
 		if (shouldOnlyUseFastCache) {
 			return fastResult
 		}
@@ -201,14 +208,17 @@ export class CachingOfflineStorage implements CacheStorage {
 			return fastResult
 		} else {
 			const parsedInstances = await this.delegate.provideMultipleParsed(typeRef, listId, elementIds)
-			await this.fastCache.putMultiple(typeRef, parsedInstances)
-			return await this.fastCache.provideMultiple(typeRef, listId, elementIds)
+			if (this.shouldWriteToFastCacheWhenReadingDelegate()) {
+				await this.fastCache.putMultiple(typeRef, parsedInstances)
+				return await this.fastCache.provideMultiple(typeRef, listId, elementIds)
+			}
+			return this.modelMapper.mapToInstances(typeRef, parsedInstances)
 		}
 	}
 
 	async provideMultipleParsed<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[]): Promise<Array<ServerModelParsedInstance>> {
 		const fastResult = await this.fastCache.provideMultipleParsed(typeRef, listId, elementIds)
-		const shouldOnlyUseFastCache = this.shouldOnlyFromFastCache()
+		const shouldOnlyUseFastCache = this.shouldOnlyUseFastCache()
 		if (shouldOnlyUseFastCache) {
 			return fastResult
 		}
@@ -216,7 +226,9 @@ export class CachingOfflineStorage implements CacheStorage {
 			return fastResult
 		} else {
 			const parsedInstances = await this.delegate.provideMultipleParsed(typeRef, listId, elementIds)
-			await this.fastCache.putMultiple(typeRef, parsedInstances)
+			if (this.shouldWriteToFastCacheWhenReadingDelegate()) {
+				await this.fastCache.putMultiple(typeRef, parsedInstances)
+			}
 			return parsedInstances
 		}
 	}
@@ -228,7 +240,7 @@ export class CachingOfflineStorage implements CacheStorage {
 
 	async put(typeRef: TypeRef<SomeEntity>, instance: ServerModelParsedInstance): Promise<void> {
 		await this.delegate.put(typeRef, instance)
-		return await this.fastCache.put(typeRef, instance)
+		await this.fastCache.put(typeRef, instance)
 	}
 
 	putLastUpdateTime(value: number): Promise<void> {
@@ -237,11 +249,11 @@ export class CachingOfflineStorage implements CacheStorage {
 
 	async putMultiple(typeRef: TypeRef<SomeEntity>, instances: ServerModelParsedInstance[]): Promise<void> {
 		await this.delegate.putMultiple(typeRef, instances)
-		return await this.fastCache.putMultiple(typeRef, instances)
+		await this.fastCache.putMultiple(typeRef, instances)
 	}
 
 	async setLowerRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void> {
-		const shouldOnlyUseFastCache = this.shouldOnlyFromFastCache()
+		const shouldOnlyUseFastCache = this.shouldOnlyUseFastCache()
 		if (shouldOnlyUseFastCache) {
 			return await this.fastCache.setLowerRangeForList(typeRef, listId, id)
 		}
@@ -249,7 +261,7 @@ export class CachingOfflineStorage implements CacheStorage {
 	}
 
 	async setNewRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lower: Id, upper: Id): Promise<void> {
-		const shouldOnlyUseFastCache = this.shouldOnlyFromFastCache()
+		const shouldOnlyUseFastCache = this.shouldOnlyUseFastCache()
 		if (shouldOnlyUseFastCache) {
 			return await this.fastCache.setNewRangeForList(typeRef, listId, lower, upper)
 		}
@@ -257,7 +269,7 @@ export class CachingOfflineStorage implements CacheStorage {
 	}
 
 	async setUpperRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void> {
-		const shouldOnlyUseFastCache = this.shouldOnlyFromFastCache()
+		const shouldOnlyUseFastCache = this.shouldOnlyUseFastCache()
 		if (shouldOnlyUseFastCache) {
 			return await this.fastCache.setUpperRangeForList(typeRef, listId, id)
 		}

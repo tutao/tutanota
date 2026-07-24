@@ -154,7 +154,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 				customCacheHandler,
 				KeyVerificationTableDefinitions,
 			)
-			return new CachingOfflineStorage(offlineStorage, fastCache)
+			return new CachingOfflineStorage(offlineStorage, fastCache, locator.base.instancePipeline.modelMapper)
 		}
 	} else {
 		offlineStorageProvider = async () => null
