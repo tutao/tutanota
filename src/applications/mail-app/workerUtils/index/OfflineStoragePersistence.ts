@@ -3,7 +3,18 @@ import { sql } from "../../../../app-kit/local-store/Sql"
 import { untagSqlObject, untagSqlValue } from "../../../../app-kit/local-store/SqlValue"
 import { NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
-import { elementIdPart, GENERATED_MAX_ID, getTypeString, ListElementEntity, listIdPart, ServerTypeModel, Type, TypeRef } from "@tutao/meta"
+import {
+	CUSTOM_MIN_ID,
+	elementIdPart,
+	GENERATED_MAX_ID,
+	GENERATED_MIN_ID,
+	getTypeString,
+	ListElementEntity,
+	listIdPart,
+	ServerTypeModel,
+	Type,
+	TypeRef,
+} from "@tutao/meta"
 import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { customTypeDecoders, customTypeEncoders, OfflineStorageTable } from "../../../../app-kit/local-store/OfflineStorage"
@@ -12,6 +23,7 @@ import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "@tutao/
 import { SqlValue } from "../../../../app-kit/local-store/Types"
 import { decode, encode } from "cborg"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
+import { MailImportType } from "../../../../entities/tutanota/Utils"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {
@@ -29,23 +41,23 @@ export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Objec
 	// list_entities.rowid = mail_index.rowid = content_mail_index = rowid
 	mail_index: {
 		definition: `CREATE VIRTUAL TABLE IF NOT EXISTS mail_index USING fts5(
-		          subject,
-		          toRecipients,
-		          ccRecipients,
-		          bccRecipients,
-		          sender,
-		          body,
-		          attachments,
-		          content='',
-		          contentless_delete=1,
-                  tokenize='signal_tokenizer'
-              )`,
+subject,
+toRecipients,
+ccRecipients,
+bccRecipients,
+sender,
+body,
+attachments,
+content='',
+contentless_delete=1,
+tokenize='signal_tokenizer'
+)`,
 		purgedWithCache: true,
 	},
 
 	// Used for handling imported emails.
 	import_mail_queue: {
-		definition: "CREATE TABLE IF NOT EXISTS import_mail_queue (listId TEXT NOT NULL PRIMARY KEY, elementId TEXT NOT NULL)",
+		definition: "CREATE TABLE IF NOT EXISTS import_mail_queue (listId TEXT NOT NULL PRIMARY KEY, elementId TEXT NOT NULL, mailImportType TEXT NOT NULL)",
 		purgedWithCache: true,
 	},
 
@@ -64,10 +76,10 @@ export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Objec
 	// the contact in this case.
 	contact_index: {
 		definition: `CREATE VIRTUAL TABLE IF NOT EXISTS contact_index USING fts5(
-                  firstName,
-                  lastName,
-                  mailAddresses
-              )`,
+firstName,
+lastName,
+mailAddresses
+)`,
 		purgedWithCache: true,
 	},
 
@@ -111,8 +123,8 @@ export class OfflineStoragePersistence {
 
 	async addIndexedGroup(id: Id, groupType: GroupType, indexedTimestamp: number, lastIndexedEntity: IdTuple): Promise<void> {
 		const { query, params } = sql`INSERT
-                                    INTO search_group_data
-                                    VALUES (${id}, ${groupType}, ${indexedTimestamp}, ${listIdPart(lastIndexedEntity)}, ${elementIdPart(lastIndexedEntity)})`
+									  INTO search_group_data
+									  VALUES (${id}, ${groupType}, ${indexedTimestamp}, ${listIdPart(lastIndexedEntity)}, ${elementIdPart(lastIndexedEntity)})`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
@@ -133,25 +145,25 @@ export class OfflineStoragePersistence {
 
 	async removeIndexedGroup(id: Id): Promise<void> {
 		const { query, params } = sql`DELETE
-                                    FROM search_group_data
-                                    WHERE groupId =
-                                          ${id}`
+									  FROM search_group_data
+									  WHERE groupId =
+											${id}`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async setMailIndexingEnabled(enabled: boolean): Promise<void> {
 		const { query, params } = sql`INSERT
-        OR REPLACE INTO search_metadata VALUES (
-        ${OfflineStoragePersistence.MAIL_INDEXING_ENABLED},
-        ${enabled ? 1 : 0}
-        )`
+		OR REPLACE INTO search_metadata VALUES (
+		${OfflineStoragePersistence.MAIL_INDEXING_ENABLED},
+		${enabled ? 1 : 0}
+		)`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async isMailIndexingEnabled(): Promise<boolean> {
 		const { query, params } = sql`SELECT CAST(value as NUMBER) as value
-                                    FROM search_metadata
-                                    WHERE key = ${OfflineStoragePersistence.MAIL_INDEXING_ENABLED}`
+									  FROM search_metadata
+									  WHERE key = ${OfflineStoragePersistence.MAIL_INDEXING_ENABLED}`
 		const row = await this.sqlCipherFacade.get(query, params)
 		return row != null && untagSqlValue(row.value) === 1
 	}
@@ -168,30 +180,30 @@ export class OfflineStoragePersistence {
 			}
 
 			const { query, params } = sql`
-                INSERT
-                OR REPLACE INTO mail_index(rowid, subject, toRecipients, ccRecipients, bccRecipients, sender,
-                                       body, attachments)
-                VALUES (
-                ${rowid},
-                ${mail.subject},
-                ${serializeMailAddresses(recipients.toRecipients)},
-                ${serializeMailAddresses(recipients.ccRecipients)},
-                ${serializeMailAddresses(recipients.bccRecipients)},
-                ${serializeMailAddresses([mail.sender])},
-                ${htmlToText(getMailBodyText(body))},
-                ${attachments.map((f) => f.name).join(" ")}
-                )`
+				INSERT
+				OR REPLACE INTO mail_index(rowid, subject, toRecipients, ccRecipients, bccRecipients, sender,
+body, attachments)
+VALUES (
+				${rowid},
+				${mail.subject},
+				${serializeMailAddresses(recipients.toRecipients)},
+				${serializeMailAddresses(recipients.ccRecipients)},
+				${serializeMailAddresses(recipients.bccRecipients)},
+				${serializeMailAddresses([mail.sender])},
+				${htmlToText(getMailBodyText(body))},
+				${attachments.map((f) => f.name).join(" ")}
+				)`
 			await this.sqlCipherFacade.run(query, params)
 
 			// Sets are element IDs surrounded with spaces
 			const serializedSets = this.formatSetsValue(mail)
 
 			const contentQuery = sql`INSERT
-            OR REPLACE INTO content_mail_index(rowid, sets, receivedDate) VALUES (
-            ${rowid},
-            ${serializedSets},
-            ${mail.receivedDate.getTime()}
-            )`
+			OR REPLACE INTO content_mail_index(rowid, sets, receivedDate) VALUES (
+			${rowid},
+			${serializedSets},
+			${mail.receivedDate.getTime()}
+			)`
 			await this.sqlCipherFacade.run(contentQuery.query, contentQuery.params)
 		}
 	}
@@ -202,8 +214,8 @@ export class OfflineStoragePersistence {
 			return
 		}
 		const { query, params } = sql`UPDATE content_mail_index
-                                    SET sets = ${this.formatSetsValue(mail)}
-                                    WHERE rowid = ${rowid}`
+									  SET sets = ${this.formatSetsValue(mail)}
+									  WHERE rowid = ${rowid}`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
@@ -215,14 +227,14 @@ export class OfflineStoragePersistence {
 		const rowid = await this.getRowid(MailTypeRef, mailId)
 		{
 			const { query, params } = sql`DELETE
-                                        FROM mail_index
-                                        WHERE rowId = ${rowid}`
+										  FROM mail_index
+										  WHERE rowId = ${rowid}`
 			await this.sqlCipherFacade.run(query, params)
 		}
 		{
 			const { query, params } = sql`DELETE
-                                        FROM content_mail_index
-                                        WHERE rowId = ${rowid}`
+										  FROM content_mail_index
+										  WHERE rowId = ${rowid}`
 			await this.sqlCipherFacade.run(query, params)
 		}
 	}
@@ -235,14 +247,14 @@ export class OfflineStoragePersistence {
 			}
 
 			const { query, params } = sql`
-                INSERT
-                OR REPLACE INTO contact_index(rowid, firstName, lastName, mailAddresses)
-                VALUES (
-                ${rowid},
-                ${contact.firstName},
-                ${contact.lastName},
-                ${contact.mailAddresses.map((a) => a.address).join(" ")}
-                )`
+				INSERT
+				OR REPLACE INTO contact_index(rowid, firstName, lastName, mailAddresses)
+VALUES (
+				${rowid},
+				${contact.firstName},
+				${contact.lastName},
+				${contact.mailAddresses.map((a) => a.address).join(" ")}
+				)`
 
 			await this.sqlCipherFacade.run(query, params)
 		}
@@ -250,34 +262,34 @@ export class OfflineStoragePersistence {
 
 	async deleteContactData(contactId: IdTuple): Promise<void> {
 		const { query, params } = sql`DELETE
-                                    FROM contact_index
-                                    WHERE rowId = (SELECT rowId
-                                                   FROM list_entities
-                                                   WHERE type =
-                                                         ${getTypeString(ContactTypeRef)}
-                                                     AND listId
-                                                       =
-                                                         ${listIdPart(contactId)}
-                                                     AND elementId
-                                                       =
-                                                         ${elementIdPart(contactId)} LIMIT 1)`
+									  FROM contact_index
+									  WHERE rowId = (SELECT rowId
+													 FROM list_entities
+													 WHERE type =
+														   ${getTypeString(ContactTypeRef)}
+													   AND listId
+														 =
+														   ${listIdPart(contactId)}
+													   AND elementId
+														 =
+														   ${elementIdPart(contactId)} LIMIT 1)`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
 	async areContactsIndexed(): Promise<boolean> {
 		const { query, params } = sql`SELECT CAST(value as NUMBER) as value
-                                    FROM search_metadata
-                                    WHERE key = ${OfflineStoragePersistence.CONTACTS_INDEXED}`
+									  FROM search_metadata
+									  WHERE key = ${OfflineStoragePersistence.CONTACTS_INDEXED}`
 		const value = await this.sqlCipherFacade.get(query, params)
 		return value != null && untagSqlObject(value).value === 1
 	}
 
 	async setContactsIndexed(indexed: boolean): Promise<void> {
 		const { query, params } = sql`INSERT
-        OR REPLACE INTO search_metadata (key, value) VALUES (
-        ${OfflineStoragePersistence.CONTACTS_INDEXED},
-        ${indexed ? 1 : 0}
-        )`
+		OR REPLACE INTO search_metadata (key, value) VALUES (
+		${OfflineStoragePersistence.CONTACTS_INDEXED},
+		${indexed ? 1 : 0}
+		)`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
@@ -350,10 +362,10 @@ export class OfflineStoragePersistence {
 		// Find rowid from the offline storage.
 		// We could have done it in a single query but we need to insert into two tables.
 		const rowIdQuery = sql`SELECT rowid
-                               FROM list_entities
-                               WHERE type = ${getTypeString(typeRef)}
-                                 AND listId = ${listIdPart(id)}
-                                 AND elementId = ${elementIdPart(id)}`
+							   FROM list_entities
+							   WHERE type = ${getTypeString(typeRef)}
+								 AND listId = ${listIdPart(id)}
+								 AND elementId = ${elementIdPart(id)}`
 		const rowIdResult = await this.sqlCipherFacade.get(rowIdQuery.query, rowIdQuery.params)
 		if (rowIdResult == null) {
 			console.warn(`Did not find row id for ${typeRef.typeId} ${id.join(",")}`)
@@ -390,18 +402,20 @@ export class OfflineStoragePersistence {
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async updateImportQueueProgress(importedMails: Id, latestMail: Id) {
+	async updateImportQueueProgress(importedMails: Id, latestMail: Id, mailImportType: MailImportType) {
 		const { query, params } = sql`INSERT
 		OR REPLACE INTO import_mail_queue VALUES (
 		${importedMails},
-		${latestMail}
+		${latestMail},
+		${mailImportType}
 		)`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async enqueueImport(importedMails: Id) {
-		// GENERATED_MAX_ID starts it from the beginning (since this is loaded in reverse order)
-		return await this.updateImportQueueProgress(importedMails, GENERATED_MAX_ID)
+	async enqueueImport(importedMails: Id, mailImportType: MailImportType) {
+		const minimumImportedMailElementId = mailImportType === MailImportType.ImapImport ? CUSTOM_MIN_ID : GENERATED_MIN_ID
+		const lastElementId = (await this.getImportQueueProgress(importedMails)) ?? minimumImportedMailElementId
+		return await this.updateImportQueueProgress(importedMails, lastElementId, mailImportType)
 	}
 
 	async getImportQueueProgress(importedMails: Id): Promise<Id | null> {
@@ -410,9 +424,11 @@ export class OfflineStoragePersistence {
 		return value && (untagSqlValue(value.elementId) as Id)
 	}
 
-	async getImportQueueEntries(): Promise<Id[]> {
-		const value = await this.sqlCipherFacade.all(`SELECT listId FROM import_mail_queue`, [])
-		return value.map((v) => untagSqlValue(v.listId) as Id)
+	async getImportQueueEntries(): Promise<{ listId: Id; mailImportType: MailImportType }[]> {
+		const resultRows = await this.sqlCipherFacade.all(`SELECT listId, mailImportType FROM import_mail_queue`, [])
+		return resultRows.map(({ listId, mailImportType }) => {
+			return { listId: untagSqlValue(listId) as Id, mailImportType: untagSqlValue(mailImportType) as MailImportType }
+		})
 	}
 }
 
