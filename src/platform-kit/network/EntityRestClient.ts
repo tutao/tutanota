@@ -574,14 +574,7 @@ export class EntityRestClient implements EntityRestInterface {
 			}
 			let kdfNonce: KdfNonce
 			if (instance._kdfNonce == null) {
-				let instanceList: Nullable<Id> = null
-				let instanceId: Id
-				if (instance._id instanceof Array) {
-					instanceList = instance._id[0]
-					instanceId = instance._id[1]
-				} else {
-					instanceId = instance._id
-				}
+				const [instanceList, instanceId] = instance._id
 				const application = instance._type.app
 				const typeId = instance._type.typeId.toString()
 				const typeInfo = createTypeInfo({ application, typeId })
