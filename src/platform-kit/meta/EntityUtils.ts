@@ -247,7 +247,7 @@ export function elementIdPart(id: IdTuple): Id {
 }
 
 export function elementIdToId(id: AnyEntityId): Id {
-	assertNull(id[0], `Expected to be ElementId but got: ${id}`)
+	assertNull(id[0], `Expected to be ElementId but got: ${stringifyId(id)}`)
 	return id[1]
 }
 

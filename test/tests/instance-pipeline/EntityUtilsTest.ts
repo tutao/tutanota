@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { Cardinality, ValueTypeEnum } from "../../../src/platform-kit/meta"
+import { AnyEntityId, BlobElementId, Cardinality, ElementId, elementIdToId, idToElementId, ListElementId, ValueTypeEnum } from "../../../src/platform-kit/meta"
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { EntityUtils } from "../../../src/platform-kit/instance-pipeline/EntityUtils"
 import { createEncryptedValueType } from "./InstancePipelineTestUtils"
@@ -102,6 +102,29 @@ o.spec("EntityUtilsTest", () => {
 
 			const dbNumber = EntityUtils.getValue(modelValue, "565")
 			o(dbNumber.asString()).deepEquals("565")
+		})
+
+		o("AnyEntity Ids are compatible for transpilation", async () => {
+			const listElementId: ListElementId = ["first", "second"]
+			const elementId: ElementId = [null, "single"]
+
+			// - both listElementId and elementId should be able to assign to elementId
+			const _1: AnyEntityId = listElementId
+			const _2: AnyEntityId = elementId
+
+			// - list elementId and blobElementId should be compatible
+			const _3: BlobElementId = listElementId
+		})
+
+		o("elementId from/to Id conversion", async () => {
+			const validElementId: ElementId = [null, "some-id"]
+			const invalidElementId: ElementId = ["nono", "some-id"] as unknown as ElementId
+
+			o(elementIdToId(validElementId)).equals("some-id")
+			const err = await assertThrows(Error, async () => elementIdToId(invalidElementId))
+			o(err.message).equals(`AssertNull failed : Expected to be ElementId but got: nono/some-id`)
+
+			o(idToElementId("some-id")).deepEquals(validElementId)
 		})
 	})
 })
