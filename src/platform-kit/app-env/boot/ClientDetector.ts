@@ -45,13 +45,8 @@ export class ClientDetector {
 
 	init(userAgent: string, platform: string, appType: AppType = AppType.Integrated) {
 		this.userAgent = userAgent
-		this.browser = BrowserType.OTHER
-		this.browserVersion = 0
-		this.device = DeviceType.DESKTOP
 		this.appType = appType
-
 		this._setBrowserAndVersion()
-
 		this._setDeviceInfo()
 
 		load({ monitoring: false })
