@@ -2,14 +2,14 @@ import { ProgrammingError } from "./ProgrammingError"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
-export const Mode: Record<EnvMode, EnvMode> = Object.freeze({
-	Browser: "Browser",
-	App: "App",
-	Test: "Test",
-	Playground: "Playground",
-	Desktop: "Desktop",
-	Admin: "Admin",
-})
+export const enum Mode {
+	Browser = "Browser",
+	App = "App",
+	Test = "Test",
+	Playground = "Playground",
+	Desktop = "Desktop",
+	Admin = "Admin",
+}
 
 export function getWebsocketBaseUrl(domainConfig: DomainConfig): string {
 	return (
