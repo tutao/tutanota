@@ -25,21 +25,21 @@ abstract class SubKeyInfoWithSessionKey extends SubKeyInfo {
 }
 
 export class SubKeyInfoWithSessionKeyCbcThenHmac extends SubKeyInfoWithSessionKey {
-	public override readonly cipherVersion: typeof SymmetricCipherVersion.AesCbcThenHmac = SymmetricCipherVersion.AesCbcThenHmac
+	public override readonly cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
 	constructor(sessionKey: AesKey) {
 		super(sessionKey)
 	}
 }
 
 export class SubKeyInfoWithSessionKeyAead extends SubKeyInfoWithSessionKey {
-	public override readonly cipherVersion: typeof SymmetricCipherVersion.AeadWithSessionKey = SymmetricCipherVersion.AeadWithSessionKey
+	public override readonly cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
 	constructor(sessionKey: AesKey) {
 		super(sessionKey)
 	}
 }
 
 export class SubKeyInfoWithGroupKeyAead extends SubKeyInfo {
-	public override readonly cipherVersion: typeof SymmetricCipherVersion.AeadWithGroupKey = SymmetricCipherVersion.AeadWithGroupKey
+	public override readonly cipherVersion = SymmetricCipherVersion.AeadWithGroupKey
 	constructor(
 		public readonly groupKey: VersionedKey,
 		public readonly kdfNonce: KdfNonce,

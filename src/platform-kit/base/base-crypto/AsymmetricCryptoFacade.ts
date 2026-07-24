@@ -40,7 +40,7 @@ import { KeyVerificationMismatchError } from "../../network/error/KeyVerificatio
 import { asCryptoProtoocolVersion } from "./Constants"
 import { createPublicKeyPutIn, PubEncKeyData, PublicKeyService } from "@tutao/entities/sys"
 import { TypeId } from "../../meta/EntityTypes"
-import { PQKeyPairs, RsaImplementation } from "../../crypto"
+import { RsaImplementation } from "../../crypto"
 
 assertWorkerOrNode()
 
@@ -186,13 +186,13 @@ export class AsymmetricCryptoFacade {
 		recipientKeyPair: AsymmetricKeyPair,
 		cryptoProtocolVersion: CryptoProtocolVersion,
 		pubEncSymKey: Uint8Array,
-		acceptedBitLength: typeof AesKeyLength.Aes256,
+		acceptedBitLength: AesKeyLength.Aes256,
 	): Promise<Decapsulated<Aes256Key>>
 	async decryptSymKeyWithKeyPair(
 		recipientKeyPair: AsymmetricKeyPair,
 		cryptoProtocolVersion: CryptoProtocolVersion,
 		pubEncSymKey: Uint8Array,
-		acceptedBitLength?: typeof AesKeyLength.Aes256,
+		acceptedBitLength?: AesKeyLength.Aes256,
 	): Promise<Decapsulated<AesKey>> {
 		switch (cryptoProtocolVersion) {
 			case CryptoProtocolVersion.RSA: {
