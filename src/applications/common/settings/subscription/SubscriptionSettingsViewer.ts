@@ -611,13 +611,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 			}
 		} else {
 			if (this._customerInfo && this._lastBooking) {
-				return showSwitchDialog({
-					customer,
-					accountingInfo,
-					lastBooking: this._lastBooking,
-					acceptedPlans: AvailablePlans,
-					reason: null,
-				})
+				return locator.mobilePaymentsFacade.showSubscriptionConfigView()
 			}
 		}
 	}
