@@ -812,7 +812,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 
 		const id = instance._id
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
-		const path = EntityUtils.typeModelToRestPath(typeModel) + "/" + (id instanceof Array ? id.join("/") : id)
+		const path = EntityUtils.typeModelToRestPath(typeModel) + "/" + stringifyId(id)
 		const headers = this.userFacade.createAuthHeaders()
 		headers.v = String(instance.typeModel.version)
 
