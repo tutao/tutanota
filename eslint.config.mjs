@@ -160,6 +160,10 @@ export default defineConfig([
 					message:
 						"Do not use `typeof` check directly. Use helper functions in src/platform-kit/app-env/boot/TypeChecks.ts instead",
 				},
+				{
+					selector: "TSTypeQuery",
+					message: "Do not use TypeScript `typeof` queries directly. Use explicit types instead",
+				},
 			],
 		},
 	},
