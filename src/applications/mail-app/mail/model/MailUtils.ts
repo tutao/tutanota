@@ -145,7 +145,7 @@ export async function getMoveTargetFolderSystemsForMailsInFolder(foldersModel: M
  * Use with caution.
  */
 export function assertSystemFolderOfType(system: FolderSystem, type: SystemFolderType): MailSet {
-	return assertNotNull(system.getSystemFolderByType(type), "System folder of type does not exist!")
+	return assertNotNull(system.getSystemFolderByType(type), `System folder of type ${type} does not exist!`)
 }
 
 export function getPathToFolderString(folderSystem: FolderSystem, folder: MailSet, omitLast = false) {

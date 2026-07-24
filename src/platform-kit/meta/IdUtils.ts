@@ -1,6 +1,7 @@
 import { Type } from "./EntityConstants.js"
 import { AnyEntityId, TypeModel } from "./EntityTypes.js"
 import { idToElementId } from "./EntityUtils"
+import { isNull } from "../utils/Utils"
 
 export function getIdOfInstance(
 	instance: any,
@@ -9,7 +10,7 @@ export function getIdOfInstance(
 	listId: string | null
 	id: string
 } {
-	if (!instance._id) throw new Error("Id must be defined")
+	if (isNull(instance._id)) throw new Error("Id must be defined")
 	let listId = null
 	let id
 

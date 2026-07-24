@@ -176,7 +176,7 @@ export class ClientDetector {
 	 * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/history.js
 	 */
 	history(): boolean {
-		return window.history && "pushState" in window.history
+		return window.history != null && "pushState" in window.history
 	}
 
 	/**
@@ -330,7 +330,7 @@ export class ClientDetector {
 		if (
 			this.userAgent.match(/iPad.*AppleWebKit/) != null || // iPadOS does not differ in UserAgent from Safari on macOS. Use hack with TouchEvent to detect iPad
 			// Desktop Chrome has TouchEvent but it also has Chrome in it. Mobile iOS has CriOS in it and not Chrome.
-			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(this.userAgent) && window.TouchEvent && /.*Chrome.*/.test(this.userAgent) === false)
+			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(this.userAgent) && window.TouchEvent != null && /.*Chrome.*/.test(this.userAgent) === false)
 		) {
 			this.device = DeviceType.IPAD
 		} else if (this.userAgent.match(/iPhone.*AppleWebKit/) != null) {

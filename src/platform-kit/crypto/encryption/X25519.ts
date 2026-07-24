@@ -82,7 +82,7 @@ export function x25519Decapsulate(
  * Diffie-Hellman key exchange; works by combining one party's private key and the other party's public key to form a shared secret between both parties
  */
 function generateSharedSecret(localPrivateKey: X25519PrivateKey, remotePublicKey: X25519PublicKey): Uint8Array {
-	const sharedSecret = x25519.getSharedSecret(localPrivateKey, remotePublicKey)
+	const sharedSecret: Uint8Array = x25519.getSharedSecret(localPrivateKey, remotePublicKey)
 
 	// if every byte somehow happens to be 0, we can't use this as a secret; this is astronomically unlikely to happen by chance
 	if (sharedSecret.every((val: number) => val === 0)) {

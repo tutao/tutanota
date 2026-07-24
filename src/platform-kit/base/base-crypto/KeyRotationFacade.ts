@@ -216,7 +216,7 @@ export class KeyRotationFacade {
 		let customerGroupKeyRotationArray = keyRotationsByType.get(GroupKeyRotationType.Customer) || []
 		const adminOrUserGroupKeyRotation = adminOrUserGroupKeyRotationArray[0]
 		return {
-			adminOrUserGroupKeyRotation: adminOrUserGroupKeyRotation ? adminOrUserGroupKeyRotation : null,
+			adminOrUserGroupKeyRotation: adminOrUserGroupKeyRotation ?? null,
 			teamOrCustomerGroupKeyRotations: customerGroupKeyRotationArray.concat(keyRotationsByType.get(GroupKeyRotationType.Team) || []),
 			userAreaGroupsKeyRotations: keyRotationsByType.get(GroupKeyRotationType.UserArea) || [],
 		}

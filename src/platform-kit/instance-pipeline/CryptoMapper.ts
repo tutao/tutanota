@@ -110,7 +110,10 @@ export class CryptoMapper {
 	}
 
 	makeOwnerKeyProvider(groupId: Nullable<Id>): Nullable<OwnerKeyProvider> {
-		return groupId ? (groupKeyVersion: KeyVersion) => this.symGroupKeyLoader().loadSymGroupKey(groupId, groupKeyVersion) : null
+		if (isNotNull(groupId)) {
+			return (groupKeyVersion: KeyVersion) => this.symGroupKeyLoader().loadSymGroupKey(groupId, groupKeyVersion)
+		}
+		return null
 	}
 
 	public async decryptParsedInstance(

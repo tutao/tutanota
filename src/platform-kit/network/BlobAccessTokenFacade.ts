@@ -1,6 +1,6 @@
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
 import { IServiceExecutor } from "./ServiceRequest"
-import { DateProvider, deduplicate, first, isEmpty, lazyMemoized, Nullable } from "@tutao/utils"
+import { DateProvider, deduplicate, first, isEmpty, isNotNull, lazyMemoized, Nullable } from "@tutao/utils"
 import { SuspensionBehavior } from "../rest-client/types"
 import { LoggedInUserProvider } from "@tutao/instance-pipeline"
 import { TypeModelResolver } from "../instance-pipeline/EntityFunctions"
@@ -289,7 +289,7 @@ class BlobAccessTokenCache {
 		instanceIds: readonly Id[],
 		loader: () => Promise<BlobServerAccessInfo>,
 	): Promise<BlobServerAccessInfo> {
-		const archiveToken = archiveOrGroupKey ? this.archiveMap.get(archiveOrGroupKey) : null
+		const archiveToken = isNotNull(archiveOrGroupKey) ? (this.archiveMap.get(archiveOrGroupKey) ?? null) : null
 		if (archiveToken != null && canBeUsedForAnotherRequest(archiveToken, this.dateProvider)) {
 			return archiveToken
 		}

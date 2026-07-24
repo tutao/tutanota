@@ -32,7 +32,7 @@ import {
 import { Entity, ModelValue, PersistentEntity, TypeModel } from "./EntityTypes.js"
 import { Cardinality, ValueType } from "./EntityConstants.js"
 import { ProgrammingError } from "@tutao/app-env"
-import { assertNull } from "../utils/Utils"
+import { assertNull, isNull } from "../utils/Utils"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -511,6 +511,10 @@ export function hasError<K>(instance: Nullable<Entity>, key?: K): boolean {
 	const hasNonEmptyErrorObject = !!downCastedInstance._errors && !isErrorObjectEmpty(downCastedInstance._errors)
 
 	return hasNonEmptyErrorObject && (!key || !!downCastedInstance._errors.key)
+	// const downCastedInstance = downcast(instance)
+	// const hasNonEmptyErrorObject = isNotNull(downCastedInstance._errors) && !isErrorObjectEmpty(downCastedInstance._errors)
+	// const errorOfKeyExists = isNull(key) || isNotNull(downCastedInstance._errors.key)
+	// return hasNonEmptyErrorObject && errorOfKeyExists
 }
 
 function isErrorObjectEmpty(obj: Record<string, unknown>): boolean {

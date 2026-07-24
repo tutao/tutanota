@@ -1,7 +1,7 @@
 //@bundleInto:common-min
 
 import { TutanotaError } from "@tutao/app-env"
-import { filterInt } from "@tutao/utils"
+import { filterInt, isNotNull } from "@tutao/utils"
 
 export class ConnectionError extends TutanotaError {
 	static CODE: number = 0
@@ -193,7 +193,7 @@ export class PayloadTooLargeError extends TutanotaError {
  * Attention: When adding an Error also add it in WorkerProtocol.ErrorNameToType.
  */
 export function handleRestError(errorCode: number, path?: string, errorId?: string | null, precondition?: string | null): TutanotaError {
-	let message = `${errorCode}: ${errorId ? errorId + " " : ""}${precondition ? precondition + " " : ""}${path}`
+	let message = `${errorCode}: ${isNotNull(errorId) ? errorId + " " : ""}${isNotNull(precondition) ? precondition + " " : ""}${path}`
 
 	switch (errorCode) {
 		case ConnectionError.CODE:

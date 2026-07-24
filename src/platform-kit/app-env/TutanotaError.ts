@@ -35,7 +35,7 @@ export class TutanotaError extends ExtendableError {
 		} else {
 			let error = new Error()
 
-			if (!error.stack) {
+			if (error.stack == null) {
 				// fill the stack trace on ios devices
 				try {
 					throw error
@@ -46,7 +46,7 @@ export class TutanotaError extends ExtendableError {
 
 			this.stack = this.name + ". " + this.message
 
-			if (error.stack) {
+			if (error.stack != null) {
 				// not existing in IE9
 				let stackLines = error.stack.split("\n")
 
