@@ -2273,7 +2273,7 @@ export default {
 		"unregistered_label": "Not registered",
 		"unsubscribe_action": "Unsubscribe",
 		"unsubscribeAutomatically_label": "Unsubscribe automatically",
-		"unsubscribeConfirm_msg": "Do you really want to stop your subscription? Your account will be reset to Free now and you will immediately lose your paid features. Please also note that Free accounts are deleted if they have not been used for more than six months.",
+		"unsubscribeConfirm_msg": "Do you really want to cancel your subscription? Your account will be downgraded to Free by the end of your subscription period and you will lose your paid features. Please also note that Free accounts are deleted if they have not been used for more than six months.",
 		"unsubscribeFailed_msg": "Could not cancel newsletter or mailing list.",
 		"unsubscribeFailed_title": "Unsubscribe failed",
 		"unsubscribeHttpGet_action": "Open link in browser",
@@ -2484,6 +2484,8 @@ export default {
 		"subscriptionSettingStorageFeature_msg": "If you are above the limit of 1GB with your storage please free some space",
 		"subscriptionStateCardResubscribe_action": "Resubscribe",
 		"changePaymentInterval_action": "Change payment interval",
-		"subscriptionSettingDowngrade_action": "Downgrade"
+		"subscriptionSettingDowngrade_action": "Downgrade",
+		"subscriptionSettingManageSubscription_action": "Manage subscription",
+		"subscriptionSettingSwitchPlan_action": "Switch plan"
 	}
 }
