@@ -549,7 +549,7 @@ export class MailFacade {
 						replyTos: replyTos.map(recipientToTransferEncryptedMailAddress),
 					}),
 				}),
-				newAttachments: [],
+				newAttachments: await this.getNewAttachments(attachments, senderMailGroupId, mailGroupKey),
 			}),
 		})
 		this.deferredDraftId = draft._id
