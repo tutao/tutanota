@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Weekday } from "../../../../../platform-kit/app-env"
-import { client } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { px } from "../../../../../ui/size.js"
 
 export interface WeekdayToTranslation {
@@ -21,7 +21,7 @@ const WEEKDAY_BUTTON_MOBILE_DIMENSIONS: string = px(36)
  * Displays each Weekday in a circle containing the first letter of the day.
  */
 export class WeekdaySelector implements Component<WeekdaySelectorAttrs> {
-	private isMobile: boolean = client.isMobileDevice()
+	private isMobile: boolean = ClientDetector.get().isMobileDevice()
 	private selectedDays: Weekday[] = []
 
 	constructor(vnode: Vnode<WeekdaySelectorAttrs>) {

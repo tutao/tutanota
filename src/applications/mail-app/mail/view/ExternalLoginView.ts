@@ -4,7 +4,7 @@ import { assertNotNull, base64ToUint8Array, base64UrlToBase64, noOp } from "../.
 import type { MaybeTranslation } from "../../../../ui/utils/LanguageViewModel.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager.js"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
 import { progressIcon } from "../../../../ui/base/Icon.js"
 import { Autocomplete } from "../../../../ui/base/LegacyTextField.js"
@@ -57,7 +57,7 @@ export class ExternalLoginViewModel {
 
 	private async doFormLogin() {
 		const password = this.password
-		const clientIdentifier = client.browser + " " + client.device
+		const clientIdentifier = ClientDetector.get().browser + " " + ClientDetector.get().device
 		const persistentSession = this.doSavePassword
 
 		const sessionType = persistentSession ? SessionType.Persistent : SessionType.Login

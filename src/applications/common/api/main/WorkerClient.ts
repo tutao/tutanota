@@ -11,7 +11,7 @@ import { objToError } from "../common/utils/ErrorUtils.js"
 import { CommonLocator } from "./CommonLocator.js"
 import { CommonWorkerInterface, MainInterface } from "../worker/workerInterfaces.js"
 import { MessageDispatcher } from "../../../../app-kit/native-bridge/shared/MessageDispatcher.js"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { EntropyDataChunk } from "../../../../platform-kit/crypto/random/EntropyDataChunk"
 
 assertMainOrNode()
@@ -48,7 +48,7 @@ export class WorkerClient {
 			}
 			this._dispatcher = new MessageDispatcher(new WebWorkerTransport(worker), this.queueCommands(locator), "main-worker", objToError)
 			await this._dispatcher.postRequest(
-				new Request("setup", [window.env, this.getInitialEntropy(), client.browserData(), locator.clientModelInfo.getApps()]),
+				new Request("setup", [window.env, this.getInitialEntropy(), ClientDetector.get().browserData(), locator.clientModelInfo.getApps()]),
 			)
 		} else {
 			// node: we do not use workers but connect the client and the worker queues directly with each other
@@ -56,7 +56,7 @@ export class WorkerClient {
 			// @ts-ignore
 			const WorkerImpl = globalThis.testWorker
 			const workerImpl = new WorkerImpl(this, true)
-			await workerImpl.init(client.browserData())
+			await workerImpl.init(ClientDetector.get().browserData())
 			workerImpl._queue._transport = {
 				postMessage: (msg: any) => this._dispatcher.handleMessage(msg),
 			}

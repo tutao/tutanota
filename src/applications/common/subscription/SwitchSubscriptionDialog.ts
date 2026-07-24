@@ -52,7 +52,7 @@ import { getDiscountDetails } from "./utils/PlanSelectorUtils"
 import { px } from "../../../ui/size"
 import { getUserGroupMemberships } from "../../../platform-kit/network/GroupUtils"
 import { getByAbbreviation } from "../gui/CountryList"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { InvalidDataError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { elementIdToId, GENERATED_MAX_ID } from "@tutao/meta"
 
@@ -453,7 +453,7 @@ export async function tryDowngradePremiumToFree(customer: Customer, currentPlanT
 		referralCode: null,
 		plan: PlanType.Free,
 		surveyData: null,
-		app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
+		app: ClientDetector.get().isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 	})
 	try {
 		await locator.serviceExecutor.post(SwitchAccountTypeService, switchAccountTypeData, null)
@@ -547,7 +547,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 			customer: elementIdToId(customer._id),
 			specialPriceUserSingle: null,
 			surveyData: null,
-			app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
+			app: ClientDetector.get().isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 		})
 
 		try {

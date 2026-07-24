@@ -30,7 +30,7 @@ import { MailListModel } from "../model/MailListModel"
 import { MailSetListModel } from "../model/MailSetListModel"
 import { ConversationListModel } from "../model/ConversationListModel"
 import { MailListDisplayMode } from "../../../common/misc/DeviceConfig"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { ProcessInboxHandler } from "../model/ProcessInboxHandler"
 import { mailLocator } from "../../mailLocator"
 import { getLabelsWithParentLabelNamesPrepended, moveMails } from "./MailGuiUtils"
@@ -443,7 +443,7 @@ export class MailViewModel {
 	}
 
 	isExportingMailsAllowed(): boolean {
-		return this.mailModel.isExportingMailsAllowed() && !client.isMobileDevice()
+		return this.mailModel.isExportingMailsAllowed() && !ClientDetector.get().isMobileDevice()
 	}
 
 	private async getFolderForUserInbox(): Promise<MailSet> {

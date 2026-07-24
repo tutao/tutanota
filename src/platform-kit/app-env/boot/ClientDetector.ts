@@ -14,26 +14,30 @@ import {
 assertMainOrNodeBoot()
 
 export class ClientDetector {
-	userAgent!: string
-	browser!: BrowserType
-	browserVersion!: number
-	device!: DeviceType
-	overflowAuto!: string
-	isMacOS!: boolean
-	appType!: AppType
+	userAgent: string | null = null
+	overflowAuto: string | null = null
+	isMacOS: boolean | null = null
+	appType: AppType | null = null
 	isAutomatedBrowser: boolean = false
+	browserVersion: number = 0
+	browser: BrowserType = BrowserType.OTHER
+	device: DeviceType = DeviceType.DESKTOP
+
+	private static singeleton: ClientDetector | null = null
+	public static get(): ClientDetector {
+		if (ClientDetector.singeleton != null) {
+			return ClientDetector.singeleton
+		}
+		this.singeleton = new ClientDetector(env)
+		return this.singeleton
+	}
 
 	constructor(public readonly env: Env) {}
 
 	init(userAgent: string, platform: string, appType: AppType = AppType.Integrated) {
 		this.userAgent = userAgent
-		this.browser = BrowserType.OTHER
-		this.browserVersion = 0
-		this.device = DeviceType.DESKTOP
 		this.appType = appType
-
 		this._setBrowserAndVersion()
-
 		this._setDeviceInfo()
 
 		load({ monitoring: false })
@@ -53,12 +57,15 @@ export class ClientDetector {
 	isSupported(): boolean {
 		return (
 			_expectedJsSyntaxes() &&
-			_isSupportedBrowserVersion(this.browser, this.browserVersion) &&
+			this.isSupportedBrowserVersion() &&
 			_expectedBuiltInsArePresent &&
-			_haveWebsocket &&
+			_haveWebsocket() &&
 			_cssQuerySelectorIsSupported() &&
 			this.lookBehindRegex()
 		)
+	}
+	isSupportedBrowserVersion(): boolean {
+		return _isSupportedBrowserVersion(this.browser, this.browserVersion)
 	}
 
 	isMobileDevice(): boolean {
@@ -281,9 +288,9 @@ export class ClientDetector {
 		if (this.env.mode === Mode.App) {
 			if (this.appType === AppType.Integrated) throw new Error("AppType.Integrated is not allowed for mobile apps")
 			const appType = this.appType === AppType.Mail ? "Mail" : "Calendar"
-			return `${client.device} ${appType} App`
+			return `${ClientDetector.get().device} ${appType} App`
 		} else if (isBrowser()) {
-			return client.browser + " Browser"
+			return ClientDetector.get().browser + " Browser"
 		} else if (this.env.platformId === "linux") {
 			return "Linux Desktop"
 		} else if (this.env.platformId === "darwin") {
@@ -369,5 +376,3 @@ export enum ClientPlatform {
 	DESKTOP_LINUX,
 	DESKTOP_WINDOWS,
 }
-
-export const client: ClientDetector = new ClientDetector(env)
