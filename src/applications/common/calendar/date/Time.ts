@@ -1,5 +1,6 @@
 import { pad } from "@tutao/utils"
 import { DateTime } from "luxon"
+import { ProgrammingError } from "@tutao/app-env"
 
 /**
  * A wrapper around time handling for the calendar stuff, mostly for the CalendarEventWhenModel
@@ -48,56 +49,38 @@ export class Time {
 	 * Accepts 2, 2:30, 2:5, 02:05, 02:30, 24:30, 2430, 12:30pm, 12:30 p.m.
 	 */
 	static parseFromString(timeString: string): Time | null {
-		let suffix // am/pm indicator or undefined
+		// Parse timeString using regex
+		const regex = /^(?:(\d\d?):(\d\d?)|(\d\d?)(\d\d)?)\s*(?:([ap])(?:m|\.m\.))?$/i
+		let matches = timeString.match(regex)
+		if (!matches) {
+			return null
+		}
+		const hoursMatch: string | undefined = matches[1] ?? matches[3]
+		const minutesMatch: string | undefined = matches[2] ?? matches[4]
+		const isAM = matches[5] === "a" || matches[5] === "A"
+		const isPM = matches[5] === "p" || matches[5] === "P"
+		const is12HourClock = isAM || isPM
 
-		let hours // numeric hours
+		// Convert hours and minutes to integers
+		let hours = parseInt(hoursMatch, 10)
+		let minutes = minutesMatch ? parseInt(minutesMatch, 10) : 0
+		if (!Number.isSafeInteger(hours) || !Number.isSafeInteger(minutes) || hours < 0 || minutes < 0) {
+			throw new ProgrammingError(`Got unexpected hours match "${hoursMatch}" and/or minute match "${minutesMatch}" from regex = ${regex}!`)
+		}
 
-		let minutes // numeric minutes
+		// Return null if hours or minutes are invalid
+		if (hours > 23 || (is12HourClock && hours > 12) || minutes > 59) {
+			return null
+		}
 
-		// See if the time includes a colon separating hh:mm
-		let mt = timeString.match(/^(\d{1,2}):(\d{1,2})\s*(am|pm|a\.m\.|p\.m\.)?$/i)
-
-		if (mt != null) {
-			suffix = mt[3]
-			hours = parseInt(mt[1], 10)
-			minutes = parseInt(mt[2], 10)
-		} else {
-			// Interpret 127am as 1:27am or 2311 as 11:11pm, e.g.
-			mt = timeString.match(/^(\d{1,4})\s*(am|pm|a\.m\.|p\.m\.)?$/i)
-
-			if (mt != null) {
-				suffix = mt[2]
-				const digits = mt[1]
-
-				// Hours only?
-				if (digits.length <= 2) {
-					hours = parseInt(digits, 10)
-					minutes = 0
-				} else {
-					hours = parseInt(digits.substring(0, digits.length - 2), 10)
-					minutes = parseInt(digits.slice(-2), 10)
-				}
-			} else {
-				return null
+		// Convert 12-hour clock hours value to 24-hour clock value
+		if (is12HourClock) {
+			if (hours === 12) {
+				hours = 0
 			}
-		}
-
-		if (isNaN(hours) || isNaN(minutes) || minutes > 59) {
-			return null
-		}
-
-		if (suffix) {
-			suffix = suffix.toUpperCase()
-		}
-
-		if (suffix === "PM" || suffix === "P.M.") {
-			if (hours > 12) return null
-			if (hours !== 12) hours = hours + 12
-		} else if (suffix === "AM" || suffix === "A.M.") {
-			if (hours > 12) return null
-			if (hours === 12) hours = 0
-		} else if (hours > 23) {
-			return null
+			if (isPM) {
+				hours += 12
+			}
 		}
 
 		return new Time(hours, minutes)
