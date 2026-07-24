@@ -158,6 +158,20 @@ export default defineConfig([
 			],
 		},
 	},
+	{
+		files: ["src/platform-kit/**/*.ts"],
+		ignores: ["src/platform-kit/app-env/boot/TypeChecks.ts"],
+		rules: {
+			"no-restricted-syntax": [
+				"error",
+				{
+					selector: "UnaryExpression[operator='typeof']",
+					message:
+						"Do not use `typeof` check directly. Use helper functions in src/platform-kit/app-env/boot/TypeChecks.ts instead",
+				},
+			],
+		},
+	},
 	[
 		globalIgnores([
 			"buildSrc/",

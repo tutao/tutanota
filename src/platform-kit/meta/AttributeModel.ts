@@ -2,6 +2,7 @@ import { assertNotNull } from "@tutao/utils"
 import { AttributeId, AttributeName, ModelValue, TypeId, TypeModel } from "./EntityTypes"
 import { AppName } from "./TypeRef.js"
 import { ProgrammingError } from "@tutao/app-env"
+import { isObject, isString } from "../app-env/boot/TypeChecks"
 
 export class AttributeModel {
 	private static readonly typeIdToAttributeNameMap: Record<AppName, Map<TypeId, Map<AttributeName, AttributeId>>> = {
@@ -79,13 +80,13 @@ export function deepMapKeys(obj: Record<string, any>, keyMapper: (rawKey: string
 			mappedObject[mappedKey] = null
 		} else if (Array.isArray(value)) {
 			mappedObject[mappedKey] = value.map((item) => {
-				if (typeof item === "string") {
+				if (isString(item)) {
 					return item
 				} else {
 					return deepMapKeys(item, keyMapper)
 				}
 			})
-		} else if (typeof value === "object") {
+		} else if (isObject(value)) {
 			mappedObject[mappedKey] = deepMapKeys(value, keyMapper)
 		} else {
 			mappedObject[mappedKey] = value
