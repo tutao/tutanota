@@ -49,6 +49,7 @@ use crate::entities::generated::tutanota::DeleteGroupData;
 use crate::entities::generated::tutanota::DeleteMailData;
 use crate::entities::generated::tutanota::ManageLabelServicePostIn;
 use crate::entities::generated::tutanota::ManageLabelServicePostOut;
+use crate::entities::generated::tutanota::ManageLabelServicePutIn;
 use crate::entities::generated::tutanota::ManageLabelServiceDeleteIn;
 use crate::entities::generated::tutanota::MoveMailData;
 use crate::entities::generated::tutanota::MoveMailPostOut;
@@ -206,6 +207,7 @@ pub struct ManageLabelService;
 
 crate::service_impl!(declare, ManageLabelService, "tutanota/managelabelservice", 113);
 crate::service_impl!(POST, ManageLabelService, ManageLabelServicePostIn, ManageLabelServicePostOut);
+crate::service_impl!(PUT, ManageLabelService, ManageLabelServicePutIn, ());
 crate::service_impl!(DELETE, ManageLabelService, ManageLabelServiceDeleteIn, ());
 
 

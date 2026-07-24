@@ -3431,7 +3431,7 @@ pub struct ManageLabelServiceLabelData {
 	#[serde(rename = "1483")]
 	pub color: String,
 	#[serde(rename = "1989")]
-	pub parentFolder: Option<IdTupleGenerated>,
+	pub parentLabel: Option<IdTupleGenerated>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -3488,6 +3488,29 @@ impl Entity for ManageLabelServicePostOut {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(1490),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ManageLabelServicePutIn {
+	#[serde(rename = "1494")]
+	pub _format: i64,
+	#[serde(rename = "1498")]
+	pub label: IdTupleGenerated,
+	#[serde(rename = "1499")]
+	pub data: ManageLabelServiceLabelData,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for ManageLabelServicePutIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1493),
 		}
 	}
 }

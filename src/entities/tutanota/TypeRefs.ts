@@ -2179,7 +2179,7 @@ export type ManageLabelServiceLabelData = {
 	name: string;
 	color: string;
 
-	parentFolder: null | IdTuple;
+	parentLabel: null | IdTuple;
 }
 export const ManageLabelServicePostInTypeRef: TypeRef<ManageLabelServicePostIn> = new TypeRef("tutanota", 1484)
 
@@ -2212,6 +2212,22 @@ export type ManageLabelServicePostOut = {
 	_format: NumberString;
 
 	label: IdTuple;
+}
+export const ManageLabelServicePutInTypeRef: TypeRef<ManageLabelServicePutIn> = new TypeRef("tutanota", 1493)
+
+export function createManageLabelServicePutIn(values: StrippedEntity<ManageLabelServicePutIn>): ManageLabelServicePutIn {
+    return Object.assign(create(typeModels[ManageLabelServicePutInTypeRef.typeId], ManageLabelServicePutInTypeRef), values)
+}
+
+export type ManageLabelServicePutIn = {
+	_type: TypeRef<ManageLabelServicePutIn>;
+	_errors: Object;
+	_original?: ManageLabelServicePutIn
+
+	_format: NumberString;
+
+	label: IdTuple;
+	data: ManageLabelServiceLabelData;
 }
 export const ManageLabelServiceDeleteInTypeRef: TypeRef<ManageLabelServiceDeleteIn> = new TypeRef("tutanota", 1500)
 

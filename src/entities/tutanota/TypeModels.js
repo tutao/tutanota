@@ -8039,8 +8039,8 @@ const typeModels = {
 		},
 		"associations": {
 			"1989": {
-				"final": true,
-				"name": "parentFolder",
+				"final": false,
+				"name": "parentLabel",
 				"id": 1989,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
@@ -8135,6 +8135,48 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 429,
+				"dependency": null
+			}
+		}
+	},
+	"1493": {
+		"name": "ManageLabelServicePutIn",
+		"app": "tutanota",
+		"version": 113,
+		"since": 77,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 1493,
+		"rootId": "CHR1dGFub3RhAAXV",
+		"versioned": false,
+		"encrypted": true,
+		"isPublic": true,
+		"values": {
+			"1494": {
+				"final": false,
+				"name": "_format",
+				"id": 1494,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"1498": {
+				"final": false,
+				"name": "label",
+				"id": 1498,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 429,
+				"dependency": null
+			},
+			"1499": {
+				"final": false,
+				"name": "data",
+				"id": 1499,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 1480,
 				"dependency": null
 			}
 		}

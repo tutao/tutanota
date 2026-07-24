@@ -383,7 +383,7 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 						icon: Icons.PenFilled,
 						click: () => {
 							if (!data.imapSyncLabelData) {
-								data.imapSyncLabelData = createManageLabelServiceLabelData({ name: "", color: "", parentFolder: null })
+								data.imapSyncLabelData = createManageLabelServiceLabelData({ name: "", color: "", parentLabel: null })
 								data.addLabelToImportedMails = true
 							}
 							const labelData = data.imapSyncLabelData
@@ -396,7 +396,7 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 										data.imapSyncLabelData = createManageLabelServiceLabelData({
 											name: value,
 											color: "",
-											parentFolder: null,
+											parentLabel: null,
 										})
 									}
 								},

@@ -162,7 +162,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 							if (data.imapSyncLabelData) {
 								data.imapSyncLabelData.name = value
 							} else {
-								data.imapSyncLabelData = createManageLabelServiceLabelData({ name: value, color: theme.primary, parentFolder: null })
+								data.imapSyncLabelData = createManageLabelServiceLabelData({ name: value, color: theme.primary, parentLabel: null })
 								m.redraw() //possibly doing nothing
 							}
 						},
@@ -175,7 +175,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 								color: data.imapSyncLabelData?.color ?? "",
 								onClick: () => {
 									if (!data.imapSyncLabelData) {
-										data.imapSyncLabelData = createManageLabelServiceLabelData({ name: "", color: "", parentFolder: null })
+										data.imapSyncLabelData = createManageLabelServiceLabelData({ name: "", color: "", parentLabel: null })
 									}
 									const labelData = data.imapSyncLabelData
 									showImapEditLabelDialog(
@@ -187,7 +187,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 												data.imapSyncLabelData = createManageLabelServiceLabelData({
 													name: value,
 													color: "",
-													parentFolder: null,
+													parentLabel: null,
 												})
 											}
 										},
