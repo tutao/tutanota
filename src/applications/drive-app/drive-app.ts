@@ -22,7 +22,7 @@ import { styles } from "../../ui/styles"
 import { AppHeaderAttrs } from "../../ui/Header"
 import { DRIVE_PREFIX } from "../../ui/utils/RouteChange"
 import { TopLevelAttrs, TopLevelView } from "../../ui/base/TopLevelView"
-import { client } from "../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector"
 import { initUiSingletons, MakeViewResolverOptions } from "../common/app-common"
 import { NamedClientModel } from "@tutao/instance-pipeline"
 import { AppNameEnum } from "@tutao/meta"
@@ -46,7 +46,7 @@ replaceNativeLogger(window, new Logger())
 
 let currentView: Component<unknown> | null = null
 window.tutao = {
-	client,
+	client: ClientDetector.get(),
 	m,
 	lang,
 	root,
@@ -54,9 +54,9 @@ window.tutao = {
 	locator: null,
 }
 
-client.init(navigator.userAgent, navigator.platform, AppType.Drive)
+ClientDetector.get().init(navigator.userAgent, navigator.platform, AppType.Drive)
 
-if (!client.isSupported()) {
+if (!ClientDetector.get().isSupported()) {
 	throw new Error("Unsupported")
 }
 

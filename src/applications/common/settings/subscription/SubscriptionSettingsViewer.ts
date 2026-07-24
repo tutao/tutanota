@@ -63,6 +63,12 @@ import { IconButtonAttrs } from "../../../../ui/base/IconButton.js"
 import { getDisplayNameOfPlanType } from "../../subscription/FeatureListProvider"
 import { MobilePaymentsFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
+import { MobilePaymentError } from "../api/common/error/MobilePaymentError"
+import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
+import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
+import { showUserSatisfactionDialogAfterUpgrade } from "../ratings/UserSatisfactionUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { ClientDetector, ClientPlatform } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { openAppleSubscriptionPage } from "../../subscription/PaymentViewer.js"
 import { theme } from "../../../../ui/theme"
@@ -662,9 +668,9 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 
 		const isMailSubscription = appStoreSubscriptionData.app === SubscriptionApp.Mail
 
-		if (client.isCalendarApp() && isMailSubscription) {
+		if (ClientDetector.get().isCalendarApp() && isMailSubscription) {
 			return await this.handleAppOpen(SubscriptionApp.Mail)
-		} else if (!client.isCalendarApp() && !isMailSubscription) {
+		} else if (!ClientDetector.get().isCalendarApp() && !isMailSubscription) {
 			return await this.handleAppOpen(SubscriptionApp.Calendar)
 		}
 

@@ -1,4 +1,4 @@
-import { client } from "../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector.js"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "../../ui/utils/LanguageViewModel.js"
@@ -54,7 +54,7 @@ replaceNativeLogger(window, new Logger())
 
 let currentView: Component<unknown> | null = null
 window.tutao = {
-	client,
+	client: ClientDetector.get(),
 	m,
 	lang,
 	root,
@@ -62,9 +62,9 @@ window.tutao = {
 	locator: null,
 }
 
-client.init(navigator.userAgent, navigator.platform, AppType.Calendar)
+ClientDetector.get().init(navigator.userAgent, navigator.platform, AppType.Calendar)
 
-if (!client.isSupported()) {
+if (!ClientDetector.get().isSupported()) {
 	throw new Error("Unsupported")
 }
 

@@ -8,7 +8,7 @@ import { getCleanedMailAddress } from "../misc/parsing/MailAddressParser"
 import { locator } from "../api/main/CommonLocator"
 import { getEtId } from "@tutao/meta"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { SurveyData } from "@tutao/entities/sys"
 import { isIOSApp } from "@tutao/app-env"
 import { CloseEventBusOption } from "../../../platform-kit/network/Constants"
@@ -23,7 +23,7 @@ export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
 		child: {
 			view: () =>
 				m("#delete-account-dialog", [
-					!(isIOSApp() && client.isCalendarApp())
+					!(isIOSApp() && ClientDetector.get().isCalendarApp())
 						? m(LegacyTextField, {
 								label: "targetAddress_label",
 								value: takeover,

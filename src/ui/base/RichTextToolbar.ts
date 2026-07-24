@@ -7,7 +7,7 @@ import { font_size, px } from "../size"
 import { createDropdown, DropdownButtonAttrs } from "./Dropdown.js"
 import { lang, MaybeTranslation, TranslationKey } from "../utils/LanguageViewModel"
 import { animations, height, opacity } from "../animation/Animations"
-import { client } from "../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector"
 import { BrowserType } from "../../platform-kit/app-env/boot/ClientConstants"
 import { ToggleButton } from "./buttons/ToggleButton.js"
 import { IconButton, IconButtonAttrs } from "./IconButton.js"
@@ -49,8 +49,8 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 				style: {
 					top: "0px",
 					position:
-						client.browser === BrowserType.SAFARI
-							? client.isMacOS
+						ClientDetector.get().browser === BrowserType.SAFARI
+							? ClientDetector.get().isMacOS
 								? "-webkit-sticky" // safari on macos
 								: "inherit" // sticky changes the rendering order on iOS
 							: "sticky", // normal browsers

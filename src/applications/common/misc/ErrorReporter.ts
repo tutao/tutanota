@@ -7,7 +7,7 @@ import m from "mithril"
 import { Checkbox } from "../../../ui/base/Checkbox.js"
 import { Button, ButtonType } from "../../../ui/base/Button.js"
 import { ExpanderButton, ExpanderPanel } from "../../../ui/base/Expander"
-import { convertTextToHtml, downcast, ErrorInfo, errorToString, neverNull, newPromise, typedKeys, uint8ArrayToString } from "@tutao/utils"
+import { convertTextToHtml, assertNotNull, downcast, ErrorInfo, errorToString, neverNull, newPromise, typedKeys, uint8ArrayToString } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
 import { isApp, isBrowser, isDesktop, Keys, Mode, PresentableKeyVerificationState } from "@tutao/app-env"
 import { copyToClipboard } from "../../../ui/utils/ClipboardUtils"
@@ -18,7 +18,7 @@ import { getTimeZone } from "../calendar/date/CalendarUtils.js"
 import { ConversationType, MailMethod, RecipientType } from "../../../entities/tutanota/Utils"
 import { AccountType } from "../../../entities/sys/Utils"
 import { createErrorReportData, createErrorReportFile, createReportErrorIn, ReportErrorService } from "@tutao/entities/monitor"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { ErrorReportClientType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { DataFile } from "../../../entities/tutanota/MailBundle"
 
@@ -364,7 +364,7 @@ async function sendToServer(error: ErrorInfo, userMessage: string | null, logs: 
 			errorMessage: error.message,
 			userMessage: userMessage,
 			stackTrace: error.stack ?? "",
-			additionalInfo: client.userAgent,
+			additionalInfo: ClientDetector.get().userAgent,
 			time: new Date(),
 		}),
 		files: logs.map((log) => {

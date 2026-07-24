@@ -13,7 +13,7 @@ import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { createPushIdentifier, PushIdentifier, PushIdentifierTypeRef, sysModelInfo } from "@tutao/entities/sys"
 import { elementIdToId, getElementId } from "@tutao/meta"
 import { AlarmFacade } from "../api/worker/facades/lazy/AlarmFacade"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 
 // keep in sync with SYS_MODEL_VERSION in app-android/app/build.gradle
 // keep in sync with SYS_MODEL_VERSION in app-android/calendar/build.gradle.kts
@@ -136,7 +136,7 @@ export class NativePushServiceApp {
 	private async createPushIdentifierInstance(identifier: string, pushServiceType: PushServiceType): Promise<PushIdentifier> {
 		const list = assertNotNull(this.logins.getUserController().user.pushIdentifierList?.list)
 		const pushIdentifier = createPushIdentifier({
-			displayName: client.getIdentifier(),
+			displayName: ClientDetector.get().getIdentifier(),
 			pushServiceType: pushServiceType,
 			identifier,
 			language: lang.code,
