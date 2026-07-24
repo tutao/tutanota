@@ -1,4 +1,4 @@
-import { ImapAccountSyncState, ImapFolderSyncState } from "@tutao/entities/tutanota"
+import { ImapAccountSyncState, ImapFolderSyncState, MailSet } from "@tutao/entities/tutanota"
 
 export type ImapImportSession = {
 	imapAccountSyncState: ImapAccountSyncState

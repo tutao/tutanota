@@ -1,5 +1,5 @@
 import { ImapMail, ImapMailAddress, ImapMailAttachment } from "./ImapMail.js"
-import { ImapMailbox, ImapMailboxSpecialUse } from "./ImapMailbox.js"
+import { ImapMailboxSpecialUse } from "./ImapMailbox.js"
 import { plainTextToHtml } from "./PlainTextToHtmlConverter"
 import { getImapConfigWithPasswordAuthForDomain, ServerImapImportParams } from "./ImapKnownConfigs"
 
@@ -71,6 +71,7 @@ export function imapMailToImportMailParams(
 	imapMail: ImapMail,
 	folderSyncStateId: IdTuple,
 	deduplicatedAttachments: ImapImportAttachments | null,
+	imapFolderSyncStates: ImapFolderSyncState[],
 ): ImportMailParams {
 	const fromMailAddress = imapMail.envelope?.from?.at(0)?.address ?? ""
 	const fromName = imapMail.envelope?.from?.at(0)?.name ?? ""
@@ -90,7 +91,7 @@ export function imapMailToImportMailParams(
 		bodyText: bodyText,
 		sentDate: imapMail.envelope?.date ?? new Date(Date.now()),
 		receivedDate: imapMail.internalDate ?? new Date(Date.now()),
-		state: mailStateFromImapMailbox(imapMail.belongsToMailbox),
+		state: mailStateFromImapMailbox(imapMail),
 		unread: unreadFromImapMail(imapMail),
 		messageId: imapMail.envelope?.messageId ?? null,
 		senderMailAddress: fromMailAddress,
@@ -109,7 +110,33 @@ export function imapMailToImportMailParams(
 		imapUid: imapMail.uid,
 		imapModSeq: imapMail.modSeq ?? null,
 		imapFolderSyncState: folderSyncStateId,
+		labels: imapMail.labels ? labelsFromImapLabels(imapMail.labels, imapFolderSyncStates) : [],
 	}
+}
+
+function labelsFromImapLabels(imapLabels: Set<string>, imapFolderSyncStates: ImapFolderSyncState[]): IdTuple[] {
+	let result: Set<IdTuple> = new Set()
+
+	for (const imapLabel of imapLabels) {
+		let folderSyncState: ImapFolderSyncState | null
+		folderSyncState = imapFolderSyncStates.find((imapFolderSyncState) => imapFolderSyncState.imapSpecialUse === imapLabel) ?? null
+		// Gmail announces the folder's special use as DRAFTS, but the label on the mail is DRAFT...
+		if (imapLabel === ImapMailboxSpecialUse.DRAFT || imapLabel === ImapMailboxSpecialUse.DRAFTS) {
+			folderSyncState =
+				imapFolderSyncStates.find(
+					(imapFolderSyncState) =>
+						imapFolderSyncState.imapSpecialUse === ImapMailboxSpecialUse.DRAFTS ||
+						imapFolderSyncState.imapSpecialUse === ImapMailboxSpecialUse.DRAFT,
+				) ?? null
+		}
+		if (!folderSyncState) {
+			folderSyncState = getFolderSyncStateForMailboxPath(imapLabel, imapFolderSyncStates)
+		}
+		if (folderSyncState?.mailSet) {
+			result.add(folderSyncState.mailSet)
+		}
+	}
+	return Array.from(result)
 }
 
 function importAttachmentsFromImapMailAttachments(imapMailAttachments: ImapMailAttachment[]): ImapImportDataFile[] {
@@ -144,17 +171,22 @@ function guessFilenameBasedOnMimeType(mimeType: string): string {
 	return "unknown.txt"
 }
 
-function mailStateFromImapMailbox(imapMailbox: ImapMailbox): MailState {
+function mailStateFromImapMailbox(imapMail: ImapMail): MailState {
 	let mailState: MailState
-	switch (imapMailbox.specialUse) {
-		case ImapMailboxSpecialUse.SENT:
-			mailState = MailState.SENT
-			break
-		case ImapMailboxSpecialUse.DRAFTS:
-			mailState = MailState.DRAFT
-			break
-		default:
-			mailState = MailState.RECEIVED
+	const specialUse = imapMail.belongsToMailbox.specialUse
+	// in case of Gmail we do only fetch the ALL folder, so we need to check for the labels
+	const isSent = specialUse === ImapMailboxSpecialUse.SENT || (imapMail.labels?.has(ImapMailboxSpecialUse.SENT) ?? false)
+	const isDraft =
+		specialUse === ImapMailboxSpecialUse.DRAFTS ||
+		specialUse === ImapMailboxSpecialUse.DRAFT ||
+		(imapMail.labels?.has(ImapMailboxSpecialUse.DRAFT) ?? false) ||
+		(imapMail.labels?.has(ImapMailboxSpecialUse.DRAFTS) ?? false)
+	if (isSent) {
+		mailState = MailState.SENT
+	} else if (isDraft) {
+		mailState = MailState.DRAFT
+	} else {
+		mailState = MailState.RECEIVED
 	}
 	return mailState
 }
@@ -207,4 +239,13 @@ export function guessServerImapConfigFromEmail(username: string): ServerImapImpo
 	}
 
 	return getImapConfigWithPasswordAuthForDomain(domain)
+}
+
+export function randomHexColor() {
+	return (
+		"#" +
+		Math.floor(Math.random() * 0x1000000)
+			.toString(16)
+			.padStart(6, "0")
+	)
 }

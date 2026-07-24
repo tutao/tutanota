@@ -1,7 +1,7 @@
 import m, { Children, Vnode } from "mithril"
 import { ImapImportData } from "./AddImapImportWizard.js"
 import { assertMainOrNode } from "@tutao/app-env"
-import { GmailLogo, Icons, IconsSvg, OutlookLogo } from "../../../../ui/base/icons/Icons"
+import { GmailLogo, Icons, OutlookLogo } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog.js"

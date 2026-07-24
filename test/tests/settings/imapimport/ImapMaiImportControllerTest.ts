@@ -121,21 +121,20 @@ o.spec("ImapMailImportController", () => {
 		})
 		when(entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateIdMock)).thenResolve(accountSyncStateMock)
 
-		const oAuthErrorHandlerMock = object<ImapErrorHandler>()
-		when(oAuthErrorHandlerMock.isAuthError(anything())).thenReturn(true)
-		when(oAuthErrorHandlerMock.handleAuthError(accountSyncStateMock._id)).thenResolve(true)
-
+		const imapErrorHandler = object<ImapErrorHandler>()
+		when(imapErrorHandler.isAuthError(authError)).thenReturn(true)
+		when(imapErrorHandler.handleImapError(authError, undefined, imapAccountSyncStateIdMock)).thenResolve({ shouldRetry: true })
 		when(entityClient.update(accountSyncStateMock)).thenResolve()
 
-		controller = new ImapMailImportController(imapImporter, mailModel, mailboxModel, entityClient, eventController, oauthFacade, oAuthErrorHandlerMock)
+		controller = new ImapMailImportController(imapImporter, mailModel, mailboxModel, entityClient, eventController, oauthFacade, imapErrorHandler)
 		when(imapImporter.getImapImportSessions()).thenResolve([newImapImportSession(accountSyncStateMock, [])])
 		when(imapImporter.getImapImportUiSessions()).thenResolve({
 			activeSessions: [{ imapAccountSyncStateId: imapAccountSyncStateIdMock } as ImapImportUiSession] as ImapImportUiSession[],
 		})
 		await controller.continueImport(imapAccountSyncStateIdMock)
 
-		verify(oAuthErrorHandlerMock.isAuthError(anything()), { times: 1 })
-		verify(oAuthErrorHandlerMock.handleAuthError(accountSyncStateMock._id), { times: 1 })
+		verify(imapErrorHandler.handleImapError(authError, undefined, imapAccountSyncStateIdMock), { times: 1 })
+		verify(imapImporter.continueImport(imapAccountSyncStateIdMock, false, 0), { times: 1 })
 		verify(imapImporter.continueImport(imapAccountSyncStateIdMock, false, 1), { times: 1 })
 	})
 

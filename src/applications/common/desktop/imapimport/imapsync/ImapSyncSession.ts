@@ -3,7 +3,7 @@ import { ImapCredentials, ImapSyncContext } from "../../../api/common/utils/imap
 import type { ImapSyncEventListener } from "./ImapSyncEventListener.js"
 import { ImapSyncSessionProcess, SyncSessionProcessState } from "./ImapSyncSessionProcess.js"
 import { ProgrammingError } from "@tutao/app-env"
-import { ImapMailbox, imapMailboxFromImapFlowListTreeResponse } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
+import { ImapMailbox, imapMailboxFromImapFlowListTreeResponse, ImapMailboxSpecialUse } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
 import { ImapSyncConfig } from "./ImapSync.js"
 import { fromImapFlowError, ImapError, ImapErrorCause } from "../../../api/common/error/ImapError"
 import type { ImapFlow, ListTreeResponse } from "imapflow"
@@ -29,7 +29,7 @@ export enum ShutdownSyncAction {
 	UNKNOWN,
 }
 
-export type ImapFlowFactory = (imapCredentials: ImapCredentials, imapSyncConfig: ImapSyncConfig) => Promise<ImapFlow>
+export type ImapFlowFactory = (imapCredentials: ImapCredentials, imapSyncConfig: ImapSyncConfig, verifyOnly?: boolean) => Promise<ImapFlow>
 
 export interface SyncSessionEventListener {
 	startMailboxSync(syncSessionMailbox: ImapSyncSessionMailbox): void
@@ -54,7 +54,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		private imapSyncEventListener: ImapSyncEventListener,
 		private certificateProvider: CertificateProvider,
 		private imapSyncConfig: ImapSyncConfig,
-		private imapFlowFactory: ImapFlowFactory = async (imapCredentials, imapSyncConfig) => {
+		private imapFlowFactory: ImapFlowFactory = async (imapCredentials, imapSyncConfig, verifyOnly?: boolean) => {
 			const { ImapFlow } = await import("./imapflow-custom")
 
 			const systemCertificates = await this.certificateProvider.getCertificates()
@@ -81,6 +81,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 					debug: noOp,
 					info: noOp,
 				},
+				verifyOnly: verifyOnly ?? false,
 			})
 		},
 	) {
@@ -121,7 +122,12 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		if (setupResult instanceof ImapError) {
 			throw setupResult
 		}
-		this.syncSessionMailboxes = setupResult as ImapSyncSessionMailbox[]
+
+		if (this.imapSyncContext?.isGmail) {
+			this.syncSessionMailboxes = setupResult.filter((mailbox) => mailbox.specialUse === ImapMailboxSpecialUse.ALL)
+		} else {
+			this.syncSessionMailboxes = setupResult
+		}
 
 		if (this.syncSessionMailboxes != null) {
 			this.startNextMailboxSync()
@@ -197,7 +203,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 	}
 
 	private async verifyImapConnection(imapCredentials: ImapCredentials) {
-		const connectionWorksImapClient = await this.imapFlowFactory(imapCredentials, this.imapSyncConfig)
+		const connectionWorksImapClient = await this.imapFlowFactory(imapCredentials, this.imapSyncConfig, true)
 		connectionWorksImapClient.on("error", (entry) => {
 			console.log(`[${entry.name}] ${entry.message}, ${entry.cause}`)
 		})
@@ -224,6 +230,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 		if (listTreeResponse) {
 			const imapMailboxes = this.filterDisabledAndPromoteChildren(listTreeResponse.folders ?? []).map((listTreeResponse) => {
+				console.log(listTreeResponse)
 				return imapMailboxFromImapFlowListTreeResponse(listTreeResponse, null)
 			})
 			// Some providers, e.g. one.com, return a single folder (Inbox) with subfolders.
@@ -321,7 +328,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			const noSync = parentMailbox?.importance === SyncSessionMailboxImportance.NO_SYNC
 			syncSessionMailbox = new ImapSyncSessionMailbox({ path: imapMailbox.path, importedUidToMailIdsMap: new Map(), noSync })
 		}
-
+		console.log(imapMailbox.path, imapMailbox.specialUse)
 		if (imapMailbox.specialUse) {
 			syncSessionMailbox.specialUse = imapMailbox.specialUse
 		}

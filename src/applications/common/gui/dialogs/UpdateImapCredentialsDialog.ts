@@ -27,8 +27,13 @@ export interface UpdateImapCredentialsDialogAttrs {
  * Show a dialog with a preview of a given list of contacts
  * @param attrs the UpdateImapCredentialsDialogAttrs to configure the dialog texts
  * @param okAction The action to be executed when the user presses the confirm button with at least one contact selected
+ * @param onCloseDialog called when simply closing the dialog or returning the OK action.
  */
-export function showUpdateImapCredentialsDialog(attrs: UpdateImapCredentialsDialogAttrs, okAction: (dialog: Dialog, updatedAccount?: ImapAccount) => unknown) {
+export function showUpdateImapCredentialsDialog(
+	attrs: UpdateImapCredentialsDialogAttrs,
+	okAction: (dialog: Dialog, updatedAccount?: ImapAccount) => unknown,
+	onCloseDialog: () => void,
+) {
 	const viewModel: UpdateImapCredentialsDialogViewModel = new UpdateImapCredentialsDialogViewModel(m.redraw, attrs.syncState)
 	const dialogHeaderBarAttrs: DialogHeaderBarAttrs = {
 		left: [
@@ -36,6 +41,7 @@ export function showUpdateImapCredentialsDialog(attrs: UpdateImapCredentialsDial
 				type: ButtonType.Secondary,
 				label: "close_alt",
 				click: () => {
+					onCloseDialog()
 					dialog.close()
 				},
 			},
@@ -62,6 +68,7 @@ export function showUpdateImapCredentialsDialog(attrs: UpdateImapCredentialsDial
 							{
 								mainActionText: "resolveProblem_action",
 								mainActionClick: async () => {
+									viewModel.disableUpdateButton = true
 									const provider = parseInt(viewModel.imapAccountSyncState.provider) as ImapProvider
 									const isOAuth = provider !== ImapProvider.Other
 									if (isOAuth) {
@@ -84,10 +91,14 @@ export function showUpdateImapCredentialsDialog(attrs: UpdateImapCredentialsDial
 												}
 											}
 										}
+										viewModel.disableUpdateButton = false
 									} else {
+										onCloseDialog()
 										okAction(dialog, viewModel.imapAccountSyncState.imapAccount)
 									}
+									dialog.close()
 								},
+								disableMainActionButton: viewModel.disableUpdateButton,
 								subActionText: null,
 								subActionClick: () => {},
 							},
@@ -200,6 +211,7 @@ function renderImapCredentials(viewModel: UpdateImapCredentialsDialogViewModel) 
 
 class UpdateImapCredentialsDialogViewModel {
 	public renderPasswordVisibly: boolean = false
+	public disableUpdateButton: boolean = false
 	constructor(
 		readonly updateUi: () => void,
 		readonly imapAccountSyncState: ImapAccountSyncState,

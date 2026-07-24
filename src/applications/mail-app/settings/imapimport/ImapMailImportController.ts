@@ -56,6 +56,7 @@ export class ImapMailImportController {
 	public activeImapImportUiSessions: ImapImportUiSession[] = []
 	public canceledImapImportUiSessions: ImapImportUiSession[] = []
 	private imapImportResyncIntervalId: TimeoutID | null = null
+	private isDisplayingOauthCredentialPopup = false
 
 	constructor(
 		private readonly imapImporter: ImapImporter,
@@ -99,21 +100,29 @@ export class ImapMailImportController {
 	}
 
 	private displayUpdateImapCredentialsDialog(imapAccountSyncState: ImapAccountSyncState) {
-		showUpdateImapCredentialsDialog(
-			{
-				syncState: imapAccountSyncState,
-				oauthHandlerFactory: (config, serviceExecutor) => new OAuthHandler(config, serviceExecutor),
-			},
-			async (dialog, updatedAccount) => {
-				if (updatedAccount) {
-					imapAccountSyncState.imapAccount = updatedAccount
-					imapAccountSyncState.status = ImapAccountSyncStatus.PAUSED
-					await this.entityClient.update(imapAccountSyncState)
-					await this.continueImport(imapAccountSyncState._id)
-					dialog.close()
-				}
-			},
-		)
+		if (!this.isDisplayingOauthCredentialPopup) {
+			this.isDisplayingOauthCredentialPopup = true
+			showUpdateImapCredentialsDialog(
+				{
+					syncState: imapAccountSyncState,
+					oauthHandlerFactory: (config, serviceExecutor) => new OAuthHandler(config, serviceExecutor),
+				},
+				async (dialog, updatedAccount) => {
+					if (updatedAccount) {
+						imapAccountSyncState.imapAccount = updatedAccount
+						imapAccountSyncState.status = ImapAccountSyncStatus.PAUSED
+						await this.entityClient.update(imapAccountSyncState)
+						await this.continueImport(imapAccountSyncState._id)
+						dialog.close()
+					} else {
+						// Think of case we don't have the updated account sucessfully?
+					}
+				},
+				() => {
+					this.isDisplayingOauthCredentialPopup = false
+				},
+			)
+		}
 	}
 
 	async initUiSessions() {
@@ -318,13 +327,17 @@ export class ImapMailImportController {
 				const systemFolderType = getSpecialUseAsSystemFolderType(imapMailbox)
 				if (systemFolderType !== null) {
 					const systemFolder = assertNotNull(folderSystem.getSystemFolderByType(systemFolderType))
-					imapMailboxesToTutaFolders.set(imapMailbox.path, { mailSetElementId: getElementId(systemFolder), shouldSync: true })
+					imapMailboxesToTutaFolders.set(imapMailbox.path, {
+						mailSetElementId: getElementId(systemFolder),
+						shouldSync: true,
+						specialUse: imapMailbox.specialUse,
+					})
 				}
 			} else {
 				const customFolders = folderSystem.getCustomFoldersOfParent(null)
 				const matchingFolder = customFolders.find((customFolder) => imapMailbox.name && customFolder.name === imapMailbox.name)
 				if (imapMailbox.name && matchingFolder) {
-					imapMailboxesToTutaFolders.set(imapMailbox.path, { mailSetElementId: getElementId(matchingFolder), shouldSync: true })
+					imapMailboxesToTutaFolders.set(imapMailbox.path, { mailSetElementId: getElementId(matchingFolder), shouldSync: true, specialUse: null })
 				}
 			}
 		}
@@ -345,16 +358,16 @@ export class ImapMailImportController {
 			imapAccountPort: 993,
 			imapAccountUsername: "",
 			imapAccountPassword: "",
-			rootImportMailFolderName: "",
+			rootImportMailSetName: "",
 			spamFolderMigrationInformation: {
 				shouldMigrateSpamFolder: false,
 				spamMailbox: null,
 			},
 			imapAccountSyncStatus: ImapAccountSyncStatus.PAUSED,
-			matchImapMailboxesToTutaMailSets: false,
+			matchImapMailboxesToTutaMailSets: true,
 			isImapServerSupportingOAuth: false,
 			revealImapAccountPassword: false,
-			addLabelToImportedMails: false,
+			addLabelToImportedMails: true,
 			imapSyncLabelData: null,
 			imapMailboxes: [],
 			folderSystem: new FolderSystem([]),
@@ -365,11 +378,11 @@ export class ImapMailImportController {
 
 		if (!env.dist) {
 			// for test, we initialize with default values
-			imapImportData.imapAccountHost = "localhost"
-			imapImportData.imapAccountPort = 143
-			imapImportData.imapAccountUsername = "user@test.com"
-			imapImportData.imapAccountPassword = "password"
-			imapImportData.rootImportMailFolderName = "root"
+			// imapImportData.imapAccountHost = "localhost"
+			// imapImportData.imapAccountPort = 143
+			// imapImportData.imapAccountUsername = "infraimaptest@gmail.com"
+			// imapImportData.imapAccountPassword = "password"
+			// imapImportData.rootImportMailSetName = "root"
 		}
 
 		return imapImportData

@@ -17,6 +17,7 @@ import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtil
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { isMailAddress } from "@tutao/utils"
 import { OAuthHandler } from "./oauth/OAuthHandler"
+import { createManageLabelServiceLabelData } from "@tutao/entities/tutanota"
 
 assertMainOrNode()
 
@@ -29,12 +30,15 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 	}
 
 	oninit(vnode: Vnode<WizardPageAttrs<ImapImportData>>) {
-		const provider = vnode.attrs.data.imapProvider
+		const imapImportData = vnode.attrs.data
+		const provider = imapImportData.imapProvider
 		switch (provider) {
 			case ImapProvider.Gmail:
 				this.titleSectionParams.icon = undefined
 				this.titleSectionParams.iconOptions = undefined
 				this.titleSectionParams.customIcon = m.trust(GmailLogo)
+				imapImportData.matchImapMailboxesToTutaMailSets = false
+				imapImportData.addLabelToImportedMails = false
 				break
 			case ImapProvider.Outlook:
 				this.titleSectionParams.icon = undefined
@@ -65,7 +69,17 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 					label: "migrationAccountUsername_label",
 					class: "",
 					value: vnode.attrs.data.imapAccountUsername,
-					oninput: (value) => (vnode.attrs.data.imapAccountUsername = value),
+					oninput: (value) => {
+						vnode.attrs.data.imapAccountUsername = value
+						vnode.attrs.data.rootImportMailSetName = value
+						if (imapProvider !== ImapProvider.Gmail) {
+							vnode.attrs.data.imapSyncLabelData = createManageLabelServiceLabelData({
+								name: value,
+								color: theme.primary,
+								parentLabel: null,
+							})
+						}
+					},
 					leadingIcon: {
 						icon: Icons.MailFilled,
 						color: theme.on_surface_variant,
@@ -99,7 +113,7 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 								try {
 									await oauthHandler.setupOauthLoginParams(extraParams)
 								} catch (e) {
-									const errorMessage = lang.getTranslation("migrationImapNetworkDiscoveryFailure", {
+									const errorMessage = lang.getTranslation("migrationOauthNetworkDiscoveryFailure_msg", {
 										"{url}": config.server,
 									}).text
 									this.changeTitleSectionToErrorState(errorMessage)

@@ -23,7 +23,7 @@ import { BannerType, InfoBanner } from "../../../../ui/base/InfoBanner"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { ExpanderButton, ExpanderPanel } from "../../../../ui/base/Expander"
-import { getTranslationForImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { getTranslationForImapProvider, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { ImapErrorCause } from "../../../common/api/common/error/ImapError"
 import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../../common/misc/SubscriptionDialogs"
@@ -175,11 +175,15 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 				}),
 			)
 
-			let syncMessage = lang.getTranslation("migrationInProgressInfo_msg", {
-				"{completed}": session.syncProgress?.completed.toString() ?? "-",
-				"{total}": session.syncProgress?.total.toString() ?? "-",
-				"{mailCount}": session.importedMailCount,
-			})
+			let syncMessage = lang.getTranslation(
+				session.provider === ImapProvider.Gmail ? "migrationInProgressInfoGmail_msg" : "migrationInProgressInfo_msg",
+				{
+					"{completed}": session.syncProgress?.completed.toString() ?? "-",
+					"{total}": session.syncProgress?.total.toString() ?? "-",
+					"{mailCount}": session.importedMailCount,
+				},
+			)
+
 			if (this.imapImportController().shouldRenderPlayButton(session)) {
 				syncMessage = lang.getTranslation("migrationPausedProgressInfo_msg", { "{mailCount}": session.importedMailCount })
 			} else if (this.imapImportController().shouldRenderClockIcon(session)) {

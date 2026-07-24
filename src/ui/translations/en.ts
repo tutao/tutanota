@@ -2407,7 +2407,7 @@ export default {
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
-		"migrationImapNetworkDiscoveryFailure": "We have failed to fetch the imap configuration.\nPlease check if your network allows connections to {url}",
+		"migrationOAuthNetworkDiscoveryFailure_msg": "We failed to fetch the OAuth configuration.\nPlease check if your network allows connections to the following url: {url}.",
 		"migrationGenericError_msg": "An error occurred while running your one-click email migration. Error code: {errorCode}",
 		"migrationHostNotFoundError_msg": "We could not establish a connection to the IMAP server. Please check that the IMAP server is set correctly.",
 		"migrationCertError_msg": "We could not establish a connection to the IMAP server, because it uses a self-signed certificate. Please upload your certificate our contact your IMAP server admin.",
@@ -2416,6 +2416,9 @@ export default {
 		"migrationCertificateError_msg": "The mail server’s identity could not be verified. This could be because the server uses a self-signed certificate, or an attacker is trying to intercept your connection. If you trust this server, you can connect anyway, or you can provide your own certificate file to verify its identity. How do you want to proceed?",
 		"migrationIgnoreCertificateErrors_action": "Connect anyway",
 		"migrationUploadCustomCertificate_action": "Select certificate file",
-		"parentLabel_label": "parent label",
+		"parentLabel_label": "Parent label",
+		"migrationMailFolderNameGmail_helpLabel": "You can pick a name for your migration folder. All your Gmail mails will be imported to this folder.",
+		"migrationConfigInfoGmail_msg": "Connection successful!\nWe're now ready to import your Gmail mails. Your Gmail label structure will be preserved and mapped to new Tuta labels.Trash and Spam folders will not be imported.",
+		"migrationInProgressInfoGmail_msg": "Imported {mailCount} mails.",
 	}
 }

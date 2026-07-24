@@ -417,6 +417,9 @@ export function getFolderIconByType(folderType: MailSetKind): AllIcons {
 		case MailSetKind.CUSTOM:
 			return Icons.FolderFilled
 
+		case MailSetKind.LABEL:
+			return Icons.LabelFilled
+
 		case MailSetKind.INBOX:
 			return Icons.InboxFilled
 

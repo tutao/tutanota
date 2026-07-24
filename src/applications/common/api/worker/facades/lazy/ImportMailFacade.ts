@@ -63,6 +63,7 @@ export interface ImportMailParams {
 	imapUid: number
 	imapModSeq: bigint | null
 	imapFolderSyncState: IdTuple
+	labels: IdTuple[]
 }
 
 /**
@@ -143,6 +144,7 @@ export class ImportMailFacade {
 				importedAttachments: imapUidsToImportAttachments.get(importMailParams.imapUid) ?? [],
 				imapUid: importMailParams.imapUid.toString(),
 				imapModSeq: importMailParams.imapModSeq?.toString() ?? null,
+				labels: importMailParams.labels,
 			})
 			importMailData.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
 			importMailData.ownerEncSessionKey = ownerEncSessionKey.key

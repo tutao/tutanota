@@ -31,7 +31,6 @@ export class DesktopImapSyncSystemFacade implements ImapSyncSystemFacade {
 			const mailboxes = await this.imapInitFolderSyncFactory().getImapMailboxesFromServer(imapAccount)
 			return { result: mailboxes }
 		} catch (e) {
-			//		console.log(JSON.stringify(e))
 			const errorList = e.errors ?? [e]
 			const firstError = first(errorList)
 			if (firstError) {
