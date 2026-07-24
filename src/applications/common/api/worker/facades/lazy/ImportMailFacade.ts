@@ -150,7 +150,7 @@ export class ImportMailFacade {
 			const untypedInstance = await this.instancePipeline.mapAndEncrypt(ImportMailDataTypeRef, importMailData, sk)
 
 			const encImport = createStringWrapper({
-				value: JSON.stringify(untypedInstance),
+				value: JSON.stringify(untypedInstance.getInnerJson()),
 			})
 			currentEstimatedCallSize += encImport.value.length
 			if (currentEstimatedCallSize >= IMPORT_MAIL_SERVICE_SIZE_LIMIT) {
