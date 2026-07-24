@@ -131,7 +131,7 @@ import { showInfoSnackbar } from "../../../../ui/base/SnackBar"
 import { loadMailDetails } from "../view/MailViewerUtils"
 import { canSeeTutaLinks } from "../../../common/gui/base/TutaLinkUtils"
 import { createDataFile } from "../../../common/api/worker/utils/DataFile"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
 
 // Interval where we save drafts locally.
@@ -1367,7 +1367,7 @@ async function createMailEditorDialog(
 			saveStatus = stream<SaveStatus>({ status: SaveStatusEnum.Saved })
 		}
 
-		if (client.isCalendarApp()) {
+		if (ClientDetector.get().isCalendarApp()) {
 			return dialog.close()
 		}
 

@@ -35,7 +35,7 @@ import {
 } from "../gui/CalendarGuiUtils.js"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays, EventWrapper } from "./CalendarViewModel"
 import { Time } from "../../../common/calendar/date/Time.js"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { PageView } from "../../../../ui/base/PageView.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
@@ -150,7 +150,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 			weekdayDaysClasses = "content-bg border-radius-top-12"
 		} else {
 			containerStyle = {
-				paddingBottom: isIOSApp() && client.isCalendarApp() ? px(getSafeAreaInsetBottom()) : null,
+				paddingBottom: isIOSApp() && ClientDetector.get().isCalendarApp() ? px(getSafeAreaInsetBottom()) : null,
 			}
 			weekdayDaysClasses = "nav-bg"
 		}
@@ -174,7 +174,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					".flex.col.rel.flex-grow.overflow-hidden",
 					{
 						class:
-							(!styles.isUsingBottomNavigation() || (isIOSApp() && client.isCalendarApp()) ? "content-bg" : "") +
+							(!styles.isUsingBottomNavigation() || (isIOSApp() && ClientDetector.get().isCalendarApp()) ? "content-bg" : "") +
 							(!isDesktopLayout ? " border-radius-top-12" : ""),
 						style: containerStyle,
 					},
@@ -310,7 +310,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				},
 				key: day.date.getTime(),
 				onclick: (e: MouseEvent) => {
-					if (client.isDesktopDevice()) {
+					if (ClientDetector.get().isDesktopDevice()) {
 						const newDate = setNextHalfHour(new Date(day.date))
 
 						attrs.onDateSelected(new Date(day.date), CalendarViewType.MONTH)
@@ -357,7 +357,10 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 			{
 				"aria-label": date.toLocaleDateString(),
 				onclick: (e: MouseEvent) => {
-					onDateSelected(new Date(date), client.isDesktopDevice() || styles.isDesktopLayout() ? CalendarViewType.DAY : CalendarViewType.AGENDA)
+					onDateSelected(
+						new Date(date),
+						ClientDetector.get().isDesktopDevice() || styles.isDesktopLayout() ? CalendarViewType.DAY : CalendarViewType.AGENDA,
+					)
 					e.stopPropagation()
 				},
 			},
@@ -529,7 +532,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				},
 				fadeIn: !this.eventDragHandler.isDragging,
 				opacity: isTemporary ? TEMPORARY_EVENT_OPACITY : 1,
-				enablePointerEvents: !this.eventDragHandler.isDragging && !isTemporary && client.isDesktopDevice() && !isDisabled,
+				enablePointerEvents: !this.eventDragHandler.isDragging && !isTemporary && ClientDetector.get().isDesktopDevice() && !isDisabled,
 			} satisfies LegacyContinuingCalendarEventBubbleAttrs),
 		)
 	}

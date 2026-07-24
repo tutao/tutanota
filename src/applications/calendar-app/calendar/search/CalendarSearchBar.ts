@@ -22,7 +22,7 @@ import { loadMultipleFromLists } from "../../../../platform-kit/network/EntityCl
 import { SearchRouter } from "../../../common/search/view/SearchRouter.js"
 import { calendarLocator } from "../../calendarLocator.js"
 import { CalendarSearchBarOverlay } from "./CalendarSearchBarOverlay.js"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { BrowserType } from "../../../../platform-kit/app-env/boot/ClientConstants"
 
 assertMainOrNode()
@@ -487,7 +487,7 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 
 					this.search()
 				},
-				client.browser === BrowserType.SAFARI ? 200 : 0,
+				ClientDetector.get().browser === BrowserType.SAFARI ? 200 : 0,
 			)
 		}
 	}

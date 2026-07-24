@@ -20,7 +20,7 @@ import { PowSolution } from "../../api/common/pow-worker"
 import { isIOSApp } from "@tutao/app-env"
 import { mailLocator } from "../../../mail-app/mailLocator"
 import { AdAttributionType } from "../utils/SubscriptionUtils"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 
 function trackPromiseResolved<T>(promise: Promise<T>) {
 	const resolved = { state: false }
@@ -87,7 +87,7 @@ export async function runCaptchaFlow({
 					paidSubscriptionSelected: isPaidSubscription,
 					timelockChallengeSolution: solution.toString(),
 					language: lang.languageTag,
-					isAutomatedBrowser: client.isAutomatedBrowser,
+					isAutomatedBrowser: ClientDetector.get().isAutomatedBrowser,
 					adAttribution: attributionToken
 						? createAdAttribution({
 								attributionId: attributionToken,
@@ -179,7 +179,7 @@ export async function runPowChallenge(signupToken: string): Promise<PowSolution>
 
 	const data = createTimelockCaptchaGetIn({
 		signupToken,
-		deviceInfo: createClientPerformanceInfo({ isAutomatedBrowser: client.isAutomatedBrowser }),
+		deviceInfo: createClientPerformanceInfo({ isAutomatedBrowser: ClientDetector.get().isAutomatedBrowser }),
 		timeToSolveCalibrationChallenge: powWorker.timeToSolveCalibrationChallenge.toString(),
 	})
 	const ret = await locator.serviceExecutor.get(TimelockCaptchaService, data, null)

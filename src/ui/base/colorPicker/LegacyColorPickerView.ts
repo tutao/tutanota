@@ -5,7 +5,7 @@ import { LegacyTextField } from "../LegacyTextField.js"
 import { lang } from "../../utils/LanguageViewModel.js"
 import { hexToHSL, hslToHex, isValidCSSHexColor, MAX_HUE_ANGLE, normalizeHueAngle } from "../Color.js"
 import { ColorPickerModel } from "./ColorPickerModel.js"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { isDarkTheme, theme } from "../../theme.js"
 import { assertNotNull, clamp, filterInt } from "../../../platform-kit/utils"
 import { Keys, TabIndex } from "../../../platform-kit/app-env"
@@ -346,13 +346,17 @@ export class LegacyColorPickerView implements Component<ColorPickerViewAttrs> {
 								this.postionSliderOnHue(hueImgDom, this.hueSliderDom)
 							}
 						},
-						[client.isTouchSupported() ? "ontouchstart" : "onpointerdown"]: (e: PointerEvent | TouchEvent) => {
+						[ClientDetector.get().isTouchSupported() ? "ontouchstart" : "onpointerdown"]: (e: PointerEvent | TouchEvent) => {
 							const abortController = new AbortController()
 							const hueImgDom = e.target as HTMLElement
 
-							hueImgDom.addEventListener(client.isTouchSupported() ? "touchmove" : "pointermove", (e) => this.handleHueChange(e, hueImgDom), {
-								signal: abortController.signal,
-							})
+							hueImgDom.addEventListener(
+								ClientDetector.get().isTouchSupported() ? "touchmove" : "pointermove",
+								(e) => this.handleHueChange(e, hueImgDom),
+								{
+									signal: abortController.signal,
+								},
+							)
 
 							const endListener = () => {
 								abortController.abort()
@@ -365,10 +369,12 @@ export class LegacyColorPickerView implements Component<ColorPickerViewAttrs> {
 								m.redraw()
 							}
 
-							hueImgDom.addEventListener(client.isTouchSupported() ? "touchcancel" : "pointercancel", endListener, {
+							hueImgDom.addEventListener(ClientDetector.get().isTouchSupported() ? "touchcancel" : "pointercancel", endListener, {
 								signal: abortController.signal,
 							})
-							document.addEventListener(client.isTouchSupported() ? "touchend" : "pointerup", endListener, { signal: abortController.signal })
+							document.addEventListener(ClientDetector.get().isTouchSupported() ? "touchend" : "pointerup", endListener, {
+								signal: abortController.signal,
+							})
 
 							this.handleHueChange(e, hueImgDom)
 							this.toggleHueWindow(true)

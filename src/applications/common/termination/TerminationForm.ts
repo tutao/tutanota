@@ -1,6 +1,6 @@
 import m, { ChildArray, Children, Component, Vnode } from "mithril"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { assertNotNull } from "../../../platform-kit/utils"
 import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "../../../ui/base/LegacyTextField.js"
 import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
@@ -67,7 +67,7 @@ export class TerminationForm implements Component<TerminationFormAttrs> {
 						},
 						type: LegacyTextFieldType.Email,
 						onDomInputCreated: (dom) => {
-							if (!client.isMobileDevice()) {
+							if (!ClientDetector.get().isMobileDevice()) {
 								dom.focus() // have email address auto-focus so the user can immediately type their username (unless on mobile)
 							}
 						},

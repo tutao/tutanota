@@ -11,7 +11,7 @@ import { keyManager } from "../../../../ui/utils/KeyManager"
 import { Icon, progressIcon } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { isDarkTheme, theme } from "../../../../ui/theme"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { styles } from "../../../../ui/styles"
 import { DropdownButtonAttrs, DropdownChildAttrs, showDropdownAtPosition } from "../../../../ui/base/Dropdown.js"
 import { applyDarkThemeFix, replaceCidsWithInlineImages } from "./MailGuiUtils"
@@ -313,7 +313,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				this.setDomBody(dom)
 				this.updateLineHeight(dom)
 				this.renderShadowMailBody(sanitizedMailBody, attrs, vnode.dom as HTMLElement)
-				if (client.isMobileDevice()) {
+				if (ClientDetector.get().isMobileDevice()) {
 					this.resizeObserverViewport?.disconnect()
 					this.resizeObserverViewport = createResizeObserver(() => {
 						if (this.pinchZoomable) {
@@ -343,7 +343,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				}
 				this.currentQuoteBehavior = attrs.defaultQuoteBehavior
 
-				if (client.isMobileDevice() && !this.pinchZoomable && this.shadowDomMailContent) {
+				if (ClientDetector.get().isMobileDevice() && !this.pinchZoomable && this.shadowDomMailContent) {
 					this.createPinchZoom(this.shadowDomMailContent, vnode.dom as HTMLElement)
 				}
 			},
@@ -411,7 +411,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		}
 		const wrapNode = document.createElement("div")
 		wrapNode.id = "shadow-mail-body"
-		wrapNode.className = "drag selectable touch-callout break-word-links" + (client.isMobileDevice() ? " break-pre" : "")
+		wrapNode.className = "drag selectable touch-callout break-word-links" + (ClientDetector.get().isMobileDevice() ? " break-pre" : "")
 		wrapNode.setAttribute("data-testid", "mailBody_label")
 		wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : font_size.line_height)
 		wrapNode.style.transformOrigin = "0px 0px"
@@ -440,7 +440,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		this.shadowDomRoot.appendChild(styles.getStyleSheetElement("main"))
 		this.shadowDomRoot.appendChild(wrapNode)
 
-		if (client.isMobileDevice()) {
+		if (ClientDetector.get().isMobileDevice()) {
 			this.pinchZoomable = null
 			this.resizeObserverZoomable?.disconnect()
 			this.resizeObserverZoomable = createResizeObserver(() => {

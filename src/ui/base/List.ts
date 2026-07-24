@@ -3,7 +3,7 @@ import { createResizeObserver, debounce, memoized, numberRange } from "../../pla
 import { component_size, px, size } from "../size.js"
 import { isKeyPressed } from "../utils/KeyManager.js"
 import { Keys, ProgrammingError, TabIndex } from "../../platform-kit/app-env"
-import { client } from "../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector.js"
 import { progressIcon } from "./Icon.js"
 import { Button, ButtonType } from "./Button.js"
 import { ListSwipeHandler } from "./ListSwipeHandler.js"
@@ -372,7 +372,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		// shift click selects a lot of things and enabled multiselect
 		// (there are also key press handlers but they are invoked from another place)
 		let changeType: Parameters<typeof this.changeSelection>[1]
-		if ((client.isMobileDevice() && this.lastAttrs.state.inMultiselect) || event.ctrlKey || (client.isMacOS && event.metaKey)) {
+		if ((ClientDetector.get().isMobileDevice() && this.lastAttrs.state.inMultiselect) || event.ctrlKey || (ClientDetector.get().isMacOS && event.metaKey)) {
 			changeType = "togglingIncludingSingle"
 		} else if (event.shiftKey) {
 			changeType = "range"
@@ -615,7 +615,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		this.width = containerDom.clientWidth
 		this.height = containerDom.clientHeight
 
-		if (this.swipeHandler && client.isMobileDevice()) {
+		if (this.swipeHandler && ClientDetector.get().isMobileDevice()) {
 			// with different zoom levels Blink does weird things and shows parts of elements that it shouldn't so we shift them around by a pixel
 			const translateX = this.width + 1
 			this.domSwipeSpacerLeft.style.width = px(this.width)

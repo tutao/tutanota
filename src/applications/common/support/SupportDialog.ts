@@ -2,7 +2,7 @@ import { assertMainOrNode, isWebClient, Keys } from "@tutao/app-env"
 import { LoginController } from "../api/main/LoginController.js"
 import Stream from "mithril/stream"
 import { locator } from "../api/main/CommonLocator.js"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { isSupportVisibilityEnabled, SupportVisibilityMask } from "./SupportVisibilityMask"
 import { MultiPageDialog } from "../../../ui/dialogs/MultiPageDialog"
 import m from "mithril"
@@ -329,9 +329,9 @@ function filterCategories(supportData: SupportData) {
 			const visibility = Number(topic.visibility)
 
 			const meetsPlatform =
-				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.TutaCalendarMobile) && client.isCalendarApp()) ||
-				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.TutaMailMobile) && client.isMailApp()) ||
-				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.DesktopOrWebApp) && (client.isDesktopDevice() || isWebClient()))
+				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.TutaCalendarMobile) && ClientDetector.get().isCalendarApp()) ||
+				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.TutaMailMobile) && ClientDetector.get().isMailApp()) ||
+				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.DesktopOrWebApp) && (ClientDetector.get().isDesktopDevice() || isWebClient()))
 
 			const isFreeAccount = !locator.logins.getUserController().isPaidAccount()
 			const meetsCustomerStatus =

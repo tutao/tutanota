@@ -23,6 +23,15 @@ export class ClientDetector {
 	appType!: AppType
 	isAutomatedBrowser: boolean = false
 
+	private static singeleton: ClientDetector | null = null
+	public static get(): ClientDetector {
+		if (this.singeleton != null) {
+			return this.singeleton
+		}
+		this.singeleton = new ClientDetector(env)
+		return this.singeleton
+	}
+
 	constructor(public readonly env: Env) {}
 
 	init(userAgent: string, platform: string, appType: AppType = AppType.Integrated) {
@@ -53,12 +62,15 @@ export class ClientDetector {
 	isSupported(): boolean {
 		return (
 			_expectedJsSyntaxes() &&
-			_isSupportedBrowserVersion(this.browser, this.browserVersion) &&
+			this.isSupportedBrowserVersion() &&
 			_expectedBuiltInsArePresent &&
-			_haveWebsocket &&
+			_haveWebsocket() &&
 			_cssQuerySelectorIsSupported() &&
 			this.lookBehindRegex()
 		)
+	}
+	isSupportedBrowserVersion(): boolean {
+		return _isSupportedBrowserVersion(this.browser, this.browserVersion)
 	}
 
 	isMobileDevice(): boolean {
@@ -281,9 +293,9 @@ export class ClientDetector {
 		if (this.env.mode === Mode.App) {
 			if (this.appType === AppType.Integrated) throw new Error("AppType.Integrated is not allowed for mobile apps")
 			const appType = this.appType === AppType.Mail ? "Mail" : "Calendar"
-			return `${client.device} ${appType} App`
+			return `${ClientDetector.get().device} ${appType} App`
 		} else if (isBrowser()) {
-			return client.browser + " Browser"
+			return ClientDetector.get().browser + " Browser"
 		} else if (this.env.platformId === "linux") {
 			return "Linux Desktop"
 		} else if (this.env.platformId === "darwin") {
@@ -369,5 +381,3 @@ export enum ClientPlatform {
 	DESKTOP_LINUX,
 	DESKTOP_WINDOWS,
 }
-
-export const client: ClientDetector = new ClientDetector(env)

@@ -4,7 +4,7 @@ import { isNavButtonSelected, NavButton, NavButtonAttrs } from "./NavButton"
 import { ClickHandler, DropData } from "./GuiUtils"
 import type { MaybeTranslation } from "../utils/LanguageViewModel"
 import { assertNotNull } from "../../platform-kit/utils"
-import { client } from "../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector"
 import { IconButton, IconButtonAttrs } from "./IconButton"
 import { theme } from "../theme"
 
@@ -78,7 +78,7 @@ export class SidebarSectionRow implements Component<SidebarSectionRowAttrs> {
 					}),
 				),
 				m(NavButton, navButtonAttrs),
-				attrs.alwaysShowMoreButton || (!client.isMobileDevice() && this.hovered)
+				attrs.alwaysShowMoreButton || (!ClientDetector.get().isMobileDevice() && this.hovered)
 					? m(IconButton, {
 							...attrs.moreButton,
 							click: (event, dom) => {

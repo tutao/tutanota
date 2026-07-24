@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { client } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear } from "../../../../../ui/utils/Formatter.js"
 import type { MaybeTranslation, Translation } from "../../../../../ui/utils/LanguageViewModel.js"
 import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
@@ -79,7 +79,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 			this.showingDropdown ? this.renderDropdown(attrs) : null,
 			// For mobile devices we render a native date picker, it's easier to use and more accessible.
 			// We render invisible input which opens native picker on interaction.
-			client.isMobileDevice() && !attrs.useInputButton ? this.renderMobileDateInput(attrs) : null,
+			ClientDetector.get().isMobileDevice() && !attrs.useInputButton ? this.renderMobileDateInput(attrs) : null,
 		])
 	}
 

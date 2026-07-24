@@ -10,7 +10,7 @@ import { encodeCalendarSearchKey, getRestriction, hasMoreResults } from "./model
 import { Dialog } from "../../../ui/base/Dialog"
 import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, Keys, ProgrammingError } from "../../../platform-kit/app-env"
 import { styles } from "../../../ui/styles"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { debounce, downcast, memoized, mod, ofClass } from "../../../platform-kit/utils"
 import { BrowserType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { SearchBarOverlay } from "./SearchBarOverlay"
@@ -572,7 +572,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 					this.search()
 				},
-				client.browser === BrowserType.SAFARI ? 200 : 0,
+				ClientDetector.get().browser === BrowserType.SAFARI ? 200 : 0,
 			)
 		}
 	}

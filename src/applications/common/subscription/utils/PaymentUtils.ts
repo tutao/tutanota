@@ -3,7 +3,7 @@ import { PowSolution } from "../../api/common/pow-worker"
 import { NewAccountData, type UpgradeSubscriptionData } from "../UpgradeSubscriptionWizard"
 import { locator } from "../../api/main/CommonLocator"
 import { runCaptchaFlow } from "../captcha/Captcha"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { getPreconditionFailedPaymentMsg, PaymentData, PaymentErrorCode, SubscriptionApp } from "./SubscriptionUtils"
 import { SessionType } from "../../../../platform-kit/app-env/SessionType"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
@@ -25,7 +25,7 @@ import {
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { Country, getClientType, InvoiceData, Keys, PaymentDataResultType } from "@tutao/app-env"
 import { CountryType } from "../../gui/CountryList"
-import { elementIdToId, idToElementId } from "@tutao/meta"
+import { idToElementId } from "@tutao/meta"
 
 export function isOnAccountAllowed(country: Country | null, accountingInfo: AccountingInfo, isBusiness: boolean): boolean {
 	if (!country) {
@@ -134,7 +134,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 		}
 
 		locator.eventController.addEntityListener(entityEventListener)
-		const app = client.isCalendarApp() ? "calendar" : "mail"
+		const app = ClientDetector.get().isCalendarApp() ? "calendar" : "mail"
 		let params = `clientToken=${encodeURIComponent(braintree3ds.clientToken)}&nonce=${encodeURIComponent(braintree3ds.nonce)}&bin=${encodeURIComponent(
 			braintree3ds.bin,
 		)}&price=${encodeURIComponent(price)}&message=${encodeURIComponent(lang.get("creditCardVerification_msg"))}&clientType=${getClientType()}&app=${app}`
@@ -371,7 +371,7 @@ export async function signup(
 			powChallengeSolution,
 		})
 		if (regDataId) {
-			const app = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
+			const app = ClientDetector.get().isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
 			const recoverCode = await customerFacade.signup(keyPairs, regDataId, mailAddress, password, registrationCode, lang.code, app)
 			let userGroupId
 			if (!logins.isUserLoggedIn()) {

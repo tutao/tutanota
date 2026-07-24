@@ -24,7 +24,7 @@ import { FileImportStatus, MailSetKind } from "../../../entities/tutanota/Utils"
 import { AvailablePlanType, HighestTierPlans, isHighestTierPlan } from "../../../entities/sys/Utils"
 import { elementIdPart, elementIdToId, EntityIdEncoding, generatedIdToTimestamp, isSameId, sortCompareByReverseId } from "../../../platform-kit/meta"
 import { EntityUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 
 /**
  * Settings viewer for mail import rendered only in the Desktop client.
@@ -67,7 +67,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		}
 
 		const allowedExtensions = ["eml", "mbox"]
-		const fileUris = client.isMacOS
+		const fileUris = ClientDetector.get().isMacOS
 			? await mailLocator.fileApp.openMacImportFileChooser()
 			: await mailLocator.fileApp.openFileChooser(dom.getBoundingClientRect(), allowedExtensions, true)
 		await this.fileMailImportController().onStartBtnClick(fileUris.map((fp) => fp.location))

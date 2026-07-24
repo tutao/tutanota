@@ -25,7 +25,7 @@ import { DefaultAnimationTime } from "../../../ui/animation/Animations"
 import { locator } from "../api/main/CommonLocator"
 import { PaymentInterval } from "./utils/PriceUtils.js"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { createAccount, getVisiblePaymentMethods, validateInvoiceData, validatePaymentData } from "./utils/PaymentUtils"
 import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel"
@@ -438,7 +438,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 		}
 
 		locator.eventController.addEntityListener(entityEventListener)
-		const app = client.isCalendarApp() ? "calendar" : "mail"
+		const app = ClientDetector.get().isCalendarApp() ? "calendar" : "mail"
 		let params = `clientToken=${encodeURIComponent(braintree3ds.clientToken)}&nonce=${encodeURIComponent(braintree3ds.nonce)}&bin=${encodeURIComponent(
 			braintree3ds.bin,
 		)}&price=${encodeURIComponent(price)}&message=${encodeURIComponent(lang.get("creditCardVerification_msg"))}&clientType=${getClientType()}&app=${app}`

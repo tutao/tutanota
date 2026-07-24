@@ -25,7 +25,7 @@ import { theme } from "../../../../ui/theme"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { getFolderName } from "../model/MailUtils"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
 import { isEditableDraft } from "../model/MailChecks"
 import { Mail, MailSet } from "@tutao/entities/tutanota"
@@ -140,7 +140,7 @@ export class MailRow implements VirtualRow<Mail> {
 			// and it NEEDS to have aria-label or it won't read it at all.
 			// Some other readers e.g. TalkBack need aria-description instead
 			// (at least if it's a child of <li>).
-			if (!client.isIos()) {
+			if (!ClientDetector.get().isIos()) {
 				// @ts-ignore
 				this.domElement.ariaDescription = description
 			}

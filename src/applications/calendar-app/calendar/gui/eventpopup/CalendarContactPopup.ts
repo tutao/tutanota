@@ -9,7 +9,7 @@ import { Keys } from "../../../../../platform-kit/app-env"
 import { IconButton } from "../../../../../ui/base/IconButton.js"
 import { CalendarContactPreviewViewModel } from "./CalendarContactPreviewViewModel.js"
 import { ContactPreviewView } from "./ContactPreviewView.js"
-import { client } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { ContactEditor } from "../../../../mail-app/contacts/ContactEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { listIdPart } from "../../../../../platform-kit/meta"
@@ -40,7 +40,7 @@ export class ContactEventPopup implements ModalComponent {
 	}
 
 	private readonly handleEditButtonClick: (ev: MouseEvent, receiver: HTMLElement) => void = async (ev: MouseEvent, receiver: HTMLElement) => {
-		if (client.isCalendarApp()) {
+		if (ClientDetector.get().isCalendarApp()) {
 			if (!(await Dialog.confirm("openMailApp_msg", "yes_label"))) return
 
 			const query = `contactId=${stringToBase64(this.model.contact._id.join("/"))}`

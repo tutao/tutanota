@@ -13,7 +13,7 @@ import { isIOSApp, Keys } from "@tutao/app-env"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
 import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { GiftCardMessageEditorField } from "./GiftCardMessageEditorField"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { count, filterInt, noOp, ofClass } from "@tutao/utils"
 import { formatPrice, PaymentInterval, PriceAndConfigProvider } from "../utils/PriceUtils"
 import { UpgradePriceType } from "../FeatureListProvider"
@@ -253,7 +253,7 @@ export async function showPurchaseGiftCardDialog() {
 		exec: () => dialog.close(),
 		help: "close_alt",
 	})
-	if (client.isMobileDevice()) {
+	if (ClientDetector.get().isMobileDevice()) {
 		// Prevent focusing text field automatically on mobile. It opens keyboard and you don't see all details.
 		dialog.setFocusOnLoadFunction(noOp)
 	}

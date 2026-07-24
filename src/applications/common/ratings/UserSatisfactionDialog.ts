@@ -20,7 +20,7 @@ import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import Stream from "mithril/stream"
 import { SupportDialogState } from "../support/SupportDialog.js"
 import { showSnackBar } from "../../../ui/base/SnackBar.js"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { isApp, isIOSApp, TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
 import { isEmpty, noOp } from "@tutao/utils"
@@ -156,7 +156,7 @@ function onSupportRequestSend(dialog: Dialog) {
 
 	void showSnackBar({
 		message: "ratingSupportContactedSnackbar_msg",
-		button: client.isCalendarApp()
+		button: ClientDetector.get().isCalendarApp()
 			? {
 					label: lang.makeTranslation("", "Get Tuta Mail"),
 					click: () => windowFacade.openLink(isIOSApp() ? TUTA_MAIL_APP_STORE_URL : TUTA_MAIL_GOOGLE_PLAY_URL),

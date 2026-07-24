@@ -8,7 +8,7 @@ import { px } from "../../../../ui/size.js"
 import { showSnackBar } from "../../../../ui/base/SnackBar.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { noOp } from "@tutao/utils"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { SURVEY_VERSION_NUMBER } from "../../subscription/LeavingUserSurveyConstants"
 import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg.js"
 import { createSurveyData, createSurveyDataPostIn, SurveyService } from "@tutao/entities/sys"
@@ -87,7 +87,7 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 						details: this.textFieldInput,
 						reason: "33", // 33 == "Provide details"
 						clientVersion: env.versionNumber,
-						clientPlatform: client.getClientPlatform().valueOf().toString(),
+						clientPlatform: ClientDetector.get().getClientPlatform().valueOf().toString(),
 					}),
 				}),
 				null,

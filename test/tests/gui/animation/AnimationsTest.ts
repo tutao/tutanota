@@ -2,11 +2,11 @@ import o, { spy } from "@tutao/otest"
 import type { DomMutation } from "../../../../src/ui/animation/Animations.js"
 import { alpha, AlphaEnum, Animation, animations, DefaultAnimationTime, transform, TransformEnum } from "../../../../src/ui/animation/Animations.js"
 import { ease } from "../../../../src/ui/animation/Easing.js"
-import { client } from "../../../../src/platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../../src/platform-kit/app-env/boot/ClientDetector.js"
 import { DeviceType } from "../../../../src/platform-kit/app-env/boot/ClientConstants.js"
 import { assertNotNull, downcast } from "../../../../src/platform-kit/utils"
 
-client.device = DeviceType.DESKTOP
+ClientDetector.get().device = DeviceType.DESKTOP
 
 globalThis.HTMLElement =
 	window.HTMLElement ||
@@ -242,7 +242,7 @@ o.spec("Animations", function () {
 
 			let m = transform(TransformEnum.TranslateX, 0, 120).chain(TransformEnum.TranslateY, 8, 8)
 
-			client.device = DeviceType.DESKTOP
+			ClientDetector.get().device = DeviceType.DESKTOP
 			m.updateDom(target, 0 / 200, ease.linear)
 			o(target.style.transform).equals("translateX(0px) translateY(8px)")
 
@@ -255,7 +255,7 @@ o.spec("Animations", function () {
 			m.updateDom(target, 200 / 200, ease.linear)
 			o(target.style.transform).equals("translateX(120px) translateY(8px)")
 
-			client.device = DeviceType.OTHER_MOBILE
+			ClientDetector.get().device = DeviceType.OTHER_MOBILE
 			m.updateDom(target, 20 / 200, ease.linear)
 			o(target.style.transform).equals("translateX(12px) translateY(8px)")
 		})
@@ -265,7 +265,7 @@ o.spec("Animations", function () {
 
 			let m = transform(TransformEnum.TranslateY, 0, 120)
 
-			client.device = DeviceType.DESKTOP
+			ClientDetector.get().device = DeviceType.DESKTOP
 			m.updateDom(target, 0 / 200, ease.linear)
 			o(target.style.transform).equals("translateY(0px)")
 
@@ -278,11 +278,11 @@ o.spec("Animations", function () {
 
 			let m = transform(TransformEnum.TranslateX, 0, 120)
 
-			client.device = DeviceType.DESKTOP
+			ClientDetector.get().device = DeviceType.DESKTOP
 			m.updateDom(target, 0 / 200, ease.linear)
 			o(target.style.transform).equals("translateX(0px)")
 
-			client.device = DeviceType.OTHER_MOBILE
+			ClientDetector.get().device = DeviceType.OTHER_MOBILE
 			m.updateDom(target, 0 / 200, ease.linear)
 			o(target.style.transform).equals("translateX(0px)")
 		})
@@ -292,7 +292,7 @@ o.spec("Animations", function () {
 
 			let m = transform(TransformEnum.RotateY, 0, 120)
 
-			client.device = DeviceType.DESKTOP
+			ClientDetector.get().device = DeviceType.DESKTOP
 			m.updateDom(target, 0 / 200, ease.linear)
 			o(target.style.transform).equals("rotateY(0deg)")
 
@@ -307,7 +307,7 @@ o.spec("Animations", function () {
 
 			let m = alpha(AlphaEnum.BackgroundColor, "#000000", 0, 1)
 
-			client.device = DeviceType.DESKTOP
+			ClientDetector.get().device = DeviceType.DESKTOP
 			m.updateDom(target, 0 / 200, ease.linear)
 			o(target.style.backgroundColor).equals("rgba(0, 0, 0, 0)")
 
@@ -329,7 +329,7 @@ o.spec("Animations", function () {
 
 			let m = alpha(AlphaEnum.Color, "#ffffff", 0, 1)
 
-			client.device = DeviceType.DESKTOP
+			ClientDetector.get().device = DeviceType.DESKTOP
 			m.updateDom(target, 0 / 200, ease.linear)
 			o(target.style.color).equals("rgba(255, 255, 255, 0)")
 

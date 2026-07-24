@@ -51,7 +51,7 @@ import { DriveView, DriveViewAttrs } from "../drive-app/drive/view/DriveView"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { PartnerView, PartnerViewAttrs } from "../common/partner/PartnerView"
 import type { DriveFilePicker } from "../drive-app/drive/view/DriveFilePicker"
-import { client } from "../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector"
 import { initUiSingletons, MakeViewResolverOptions } from "../common/app-common"
 import { AppNameEnum } from "@tutao/meta"
 import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
@@ -101,7 +101,7 @@ replaceNativeLogger(window, new Logger())
 
 let currentView: Component<unknown> | null = null
 window.tutao = {
-	client,
+	client: ClientDetector.get(),
 	m,
 	lang,
 	root,
@@ -109,15 +109,15 @@ window.tutao = {
 	locator: null,
 }
 
-client.init(navigator.userAgent, navigator.platform, AppType.Mail)
+ClientDetector.get().init(navigator.userAgent, navigator.platform, AppType.Mail)
 
-if (isBrowser() && !client.webassembly()) {
+if (isBrowser() && !ClientDetector.get().webassembly()) {
 	const webAssemblyError = new Error()
 	webAssemblyError.name = "NoWASMSupport"
 	throw webAssemblyError
 }
 
-if (!client.isSupported()) {
+if (!ClientDetector.get().isSupported()) {
 	throw new Error("Unsupported")
 }
 

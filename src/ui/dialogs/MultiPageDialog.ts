@@ -4,7 +4,7 @@ import { ButtonAttrs } from "../base/Button.js"
 import stream from "mithril/stream"
 import { theme } from "../theme.js"
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { client } from "../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector.js"
 import { px, size } from "../size.js"
 import { ProgrammingError } from "../../platform-kit/app-env"
 import { DialogHeaderBarAttrs } from "../base/DialogHeaderBar.js"
@@ -140,7 +140,7 @@ export class MultiPageDialog<PageKey extends string> {
 			},
 		)
 
-		if (client.isMobileDevice()) {
+		if (ClientDetector.get().isMobileDevice()) {
 			// Prevent focusing text field automatically on mobile. It opens keyboard, and you don't see all details.
 			this.dialog.setFocusOnLoadFunction(noOp)
 		}

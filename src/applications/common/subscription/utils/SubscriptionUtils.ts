@@ -4,7 +4,7 @@ import { locator } from "../../api/main/CommonLocator"
 import { ApprovalStatus, CertificateType, getClientType, isIOSApp, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest.js"
 import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils.js"
 import { ReplacementKey, UpgradePriceType } from "../FeatureListProvider.js"
 import {
@@ -181,7 +181,7 @@ export enum SubscriptionApp {
 export function getLazyLoadedPayPalUrl(): LazyLoaded<string> {
 	return new LazyLoaded(async () => {
 		const clientType = getClientType()
-		const subscriptionApp = client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
+		const subscriptionApp = ClientDetector.get().isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
 		const result = await locator.serviceExecutor.get(
 			PaymentDataService,
 			createPaymentDataServiceGetData({

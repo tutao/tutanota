@@ -79,7 +79,7 @@ import { mailLocator } from "../../mailLocator.js"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 import { ListFilter } from "../../../common/misc/ListModel"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { Indexer } from "../../workerUtils/index/Indexer"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
@@ -269,7 +269,7 @@ export class SearchViewModel {
 	}
 
 	isExportingMailsAllowed(): boolean {
-		return mailLocator.mailModel.isExportingMailsAllowed() && !client.isMobileDevice()
+		return mailLocator.mailModel.isExportingMailsAllowed() && !ClientDetector.get().isMobileDevice()
 	}
 
 	/**

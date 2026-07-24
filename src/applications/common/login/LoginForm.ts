@@ -5,7 +5,7 @@ import { liveDataAttrs } from "../../../ui/AriaUtils"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "../../../ui/base/LegacyTextField.js"
 import { Checkbox } from "../../../ui/base/Checkbox.js"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
 import { isAdminClient, isApp, isBrowser, isDesktop, Keys } from "@tutao/app-env"
@@ -53,7 +53,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 
 	view(vnode: Vnode<LoginFormAttrs>): Children {
 		const a = vnode.attrs
-		const canSaveCredentials = client.localStorage()
+		const canSaveCredentials = ClientDetector.get().localStorage()
 		if (a.savePassword && (isApp() || isDesktop())) {
 			a.savePassword(true)
 		}
@@ -76,7 +76,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 						autocompleteAs: Autocomplete.email,
 						onDomInputCreated: (dom) => {
 							this.mailAddressTextField = dom
-							if (!client.isMobileDevice()) {
+							if (!ClientDetector.get().isMobileDevice()) {
 								dom.focus() // have email address auto-focus so the user can immediately type their username (unless on mobile)
 							}
 						},

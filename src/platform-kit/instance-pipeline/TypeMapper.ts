@@ -21,7 +21,7 @@ import { EncryptedParsedInstance, EncryptedParsedValue } from "./CryptoMapper"
 import { assertNotNaN } from "../utils/Utils"
 import { isTest } from "@tutao/app-env"
 import { isObject } from "../app-env/boot/TypeChecks"
-import { client } from "../app-env/boot/ClientDetector"
+import { ClientDetector } from "../app-env/boot/ClientDetector"
 
 export class TypeMapper {
 	constructor(private readonly typeModelResolver: TypeModelResolver) {}
@@ -228,7 +228,7 @@ export class OutgoingServerJson implements DeepEquals {
 	}
 
 	public static networkDebuggedKey(attrId: AttributeId, typeModel: TypeModel): string {
-		if (client.env.networkDebugging) {
+		if (ClientDetector.get().env.networkDebugging) {
 			return attrId.toString() + ":" + AttributeModel.getAttributeName(typeModel, attrId)
 		}
 		return attrId.toString()

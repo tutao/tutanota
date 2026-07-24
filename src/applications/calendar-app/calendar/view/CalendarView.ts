@@ -115,7 +115,7 @@ import {
 } from "@tutao/entities/tutanota"
 import { PartialRecipient } from "../../../../entities/tutanota/Utils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { renderHeaderButtons } from "../../gui/HeaderButtons"
 
 import { parseCalendarStringData, ParsedEventAlarmTuple } from "../export/CalendarParser"
@@ -675,7 +675,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private renderFab(): Children {
-		if (client.isCalendarApp()) {
+		if (ClientDetector.get().isCalendarApp()) {
 			return m(FloatingActionButton, {
 				icon: Icons.Plus,
 				title: "newEvent_action",
@@ -1108,7 +1108,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		}
 		const handleUpdateBirthdayCalendar = (dialog: Dialog, newColor: string) => {
 			this.viewModel.handleBirthdayCalendarUpdate(newColor)
-			if (client.isCalendarApp()) {
+			if (ClientDetector.get().isCalendarApp()) {
 				calendarLocator.systemFacade.requestWidgetRefresh()
 			}
 			dialog.close()
@@ -1151,7 +1151,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			})
 			.catch(ofClass(LockedError, noOp))
 
-		if (client.isCalendarApp()) {
+		if (ClientDetector.get().isCalendarApp()) {
 			calendarLocator.systemFacade.requestWidgetRefresh()
 		}
 

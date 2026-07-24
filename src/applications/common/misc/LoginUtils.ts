@@ -28,7 +28,7 @@ import { Customer } from "@tutao/entities/sys"
 import { AvailablePlans, AvailablePlanType, NewBusinessPlans, PlanType, SubscriptionType } from "../../../entities/sys/Utils"
 
 import { CacheMode } from "../../../platform-kit/instance-pipeline/RestClientOptions"
-import { client, ClientPlatform } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector, ClientPlatform } from "../../../platform-kit/app-env/boot/ClientDetector"
 
 function getAccountAgeInMs(customer: Customer) {
 	return new Date().getTime() - generatedIdToTimestamp(elementIdToId(customer._id))
@@ -284,5 +284,5 @@ export async function showRecoverDialog(mailAddress: string, resetAction: ResetA
 	dialog.show(mailAddress, resetAction)
 }
 export function isFreeSignupOnly() {
-	return client.getClientPlatform() === ClientPlatform.ANDROID_CALENDAR_APP
+	return ClientDetector.get().getClientPlatform() === ClientPlatform.ANDROID_CALENDAR_APP
 }

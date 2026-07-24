@@ -4,7 +4,7 @@ import { CalendarSearchViewModel, PaidFunctionResult } from "./CalendarSearchVie
 import { BaseTopLevelView } from "../../../../../ui/BaseTopLevelView.js"
 import { ColumnType, ViewColumn } from "../../../../../ui/base/ViewColumn.js"
 import { ViewSlider } from "../../../../../ui/nav/ViewSlider.js"
-import { isSameId, isSameSingleId } from "../../../../../platform-kit/meta"
+import { isSameSingleId } from "../../../../../platform-kit/meta"
 import { assertNotNull, isSameDayOfDate, last, LazyLoaded, lazyMemoized, memoized, stringToBase64 } from "../../../../../platform-kit/utils"
 import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import m, { Children, Vnode } from "mithril"
@@ -42,7 +42,7 @@ import { CalendarOperation } from "../../gui/eventeditor-model/CalendarEventMode
 import { getEventWithDefaultTimes, setNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { MobileActionAttrs, MobileActionBar } from "../../../../../ui/MobileActionBar.js"
 import { calendarLocator } from "../../../calendarLocator.js"
-import { client } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { CALENDAR_PREFIX } from "../../../../../ui/utils/RouteChange.js"
 import { Dialog } from "../../../../../ui/base/Dialog.js"
 import { extractContactIdFromEvent, isBirthdayEvent } from "../../../../common/calendar/date/CalendarUtils.js"
@@ -338,13 +338,13 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	}
 
 	private renderHeaderRightView(): Children {
-		if (styles.isUsingBottomNavigation() && !client.isCalendarApp()) {
+		if (styles.isUsingBottomNavigation() && !ClientDetector.get().isCalendarApp()) {
 			return m(IconButton, {
 				click: () => this.createNewEventDialog(),
 				title: "newEvent_action",
 				icon: Icons.Plus,
 			})
-		} else if (client.isCalendarApp()) {
+		} else if (ClientDetector.get().isCalendarApp()) {
 			return m.fragment({}, [this.renderSearchResultActions()])
 		}
 	}

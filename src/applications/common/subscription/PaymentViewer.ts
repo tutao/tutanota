@@ -23,7 +23,7 @@ import { TranslationKeyType } from "../../../ui/utils/TranslationKey"
 import { IconButton } from "../../../ui/base/IconButton.js"
 import { ButtonSize } from "../../../ui/base/ButtonSize.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { DeviceType } from "../../../platform-kit/app-env/boot/ClientConstants.js"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
@@ -356,12 +356,12 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	private async doPdfInvoiceDownload(posting: CustomerAccountPosting): Promise<unknown> {
-		if (client.compressionStreamSupported()) {
+		if (ClientDetector.get().compressionStreamSupported()) {
 			return showProgressDialog("pleaseWait_msg", locator.customerFacade.generatePdfInvoice(neverNull(posting.invoiceNumber))).then((pdfInvoice) =>
 				locator.fileController.saveDataFile(pdfInvoice),
 			)
 		} else {
-			if (client.device === DeviceType.ANDROID) {
+			if (ClientDetector.get().device === DeviceType.ANDROID) {
 				return Dialog.message("invoiceFailedWebview_msg", () =>
 					m(
 						"div",
@@ -375,7 +375,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						),
 					),
 				)
-			} else if (client.isIos()) {
+			} else if (ClientDetector.get().isIos()) {
 				return Dialog.message("invoiceFailedIOS_msg")
 			} else {
 				return Dialog.message("invoiceFailedBrowser_msg")

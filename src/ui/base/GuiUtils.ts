@@ -9,7 +9,7 @@ import { Dialog } from "./Dialog"
 import { ProgrammingError } from "../../platform-kit/app-env"
 import m, { Children } from "mithril"
 import { IconButtonAttrs } from "./IconButton.js"
-import { client } from "../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector.js"
 import { isColorLight, isValidCSSHexColor } from "./Color.js"
 import { font_size, px, size } from "../size"
 
@@ -180,7 +180,7 @@ export function getPosAndBoundsFromMouseEvent({ currentTarget, x, y }: MouseEven
 
 /** render two children either next to each other (on desktop devices) or above each other (mobile) */
 export function renderTwoColumnsIfFits(left: Children, right: Children): Children {
-	if (client.isMobileDevice()) {
+	if (ClientDetector.get().isMobileDevice()) {
 		return m(".flex.col", [m(".flex", left), m(".flex", right)])
 	} else {
 		return m(".flex", [m(".flex.flex-half.pr-4", left), m(".flex.flex-half.pl-4", right)])

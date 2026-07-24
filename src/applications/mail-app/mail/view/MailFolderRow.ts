@@ -10,7 +10,7 @@ import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { getFolderIcon } from "./MailGuiUtils"
 import { MailSet } from "@tutao/entities/tutanota"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 
 export type MailFolderRowAttrs = {
 	count: number
@@ -120,7 +120,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 					disableSelectedBackground: true,
 				}),
 				// show the edit button in either edit mode or on hover (excluding hover on mobile)
-				rightButton && (editMode || (!client.isMobileDevice() && this.hovered))
+				rightButton && (editMode || (!ClientDetector.get().isMobileDevice() && this.hovered))
 					? m(IconButton, {
 							...rightButton,
 							click: (event, dom) => {

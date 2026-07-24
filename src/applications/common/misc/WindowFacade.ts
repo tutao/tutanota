@@ -6,7 +6,7 @@ import type { KeyboardSizeListener, WindowSizeListener } from "../../../ui/utils
 import type { IWindowFacade } from "../../../ui/IWindowFacade"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { assertMainOrNodeBoot, isAdminClient, isApp, isDesktop, isIOSApp } from "@tutao/app-env"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 
 assertMainOrNodeBoot()
 
@@ -40,7 +40,7 @@ export class WindowFacade implements IWindowFacade {
 
 				// On mobile devices there's usually no resize but when changing orientation it's to early to
 				// measure the size in requestAnimationFrame (it's usually incorrect size at this point)
-				this.resizeTimeout = client.isMobileDevice() ? setTimeout(cb, 66) : requestAnimationFrame(cb)
+				this.resizeTimeout = ClientDetector.get().isMobileDevice() ? setTimeout(cb, 66) : requestAnimationFrame(cb)
 			}
 		}
 		window.onresize = onresize
@@ -109,7 +109,7 @@ export class WindowFacade implements IWindowFacade {
 
 		// needed to help the MacOs desktop client to distinguish between Cmd+Arrow to navigate the history
 		// and Cmd+Arrow to navigate a text editor
-		if (isDesktop() && client.isMacOS && window.addEventListener) {
+		if (isDesktop() && ClientDetector.get().isMacOS && window.addEventListener) {
 			window.addEventListener("keydown", (e) => {
 				if (!e.metaKey || e.key === "Meta") return
 

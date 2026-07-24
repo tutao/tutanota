@@ -5,7 +5,7 @@ import { RadioSelector, RadioSelectorAttrs } from "../../../../../ui/base/RadioS
 import { themeOptions, ThemePreference } from "../../../../../ui/theme.js"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { locator } from "../../../api/main/CommonLocator.js"
-import { client } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { type RadioSelectorOption } from "../../../../../ui/base/RadioSelectorItem"
 
 export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
@@ -37,7 +37,7 @@ export class SetupThemePage implements WizardPageN<SetupThemePageAttrs> {
 					? null
 					: m(RadioSelector, {
 							groupName: "theme_label",
-							options: [...themeOptions(client.isCalendarApp()), ...this.customThemes],
+							options: [...themeOptions(ClientDetector.get().isCalendarApp()), ...this.customThemes],
 							selectedOption: locator.themeController.themePreference,
 							onOptionSelected: (option) => {
 								locator.themeController.setThemePreference(option, true)
