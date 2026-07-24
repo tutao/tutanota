@@ -1,4 +1,5 @@
 import { ProgrammingError } from "@tutao/app-env"
+import { isFunction, isObject, isUndefined } from "../app-env/boot/TypeChecks"
 
 export interface ErrorInfo {
 	readonly name: string | null
@@ -397,7 +398,7 @@ export function deepEqual(a: any, b: any): boolean {
 	if (a === b) return true
 	if (xor(a === null, b === null) || xor(a === undefined, b === undefined)) return false
 
-	if (typeof a === "object" && typeof b === "object") {
+	if (isObject(a) && isObject(b)) {
 		const aIsArgs = isArguments(a),
 			bIsArgs = isArguments(b)
 
@@ -438,7 +439,7 @@ export function deepEqual(a: any, b: any): boolean {
 		}
 
 		// See: DeepEquals interface
-		if (typeof (a as DeepEquals).deepEquals === "function" && typeof (b as DeepEquals).deepEquals === "function") {
+		if (isFunction((a as DeepEquals).deepEquals) && isFunction((b as DeepEquals).deepEquals)) {
 			return a.deepEquals(b)
 		}
 
@@ -455,7 +456,7 @@ export function deepEqual(a: any, b: any): boolean {
 		}
 
 		// @ts-ignore: we would need to include all @types/node for this to work or import it explicitly. Should probably be rewritten for all typed arrays.
-		if (typeof Buffer === "function" && a instanceof Buffer && b instanceof Buffer) {
+		if (isFunction(Buffer) && a instanceof Buffer && b instanceof Buffer) {
 			for (let i = 0; i < a.length; i++) {
 				if (a[i] !== b[i]) return false
 			}
@@ -693,7 +694,7 @@ function traceUnresolvedPromises<T>(promise: Promise<T>, tag?: string) {
 
 export function isSessionStorageAvailable(): boolean {
 	try {
-		return typeof sessionStorage !== "undefined"
+		return !isUndefined(sessionStorage)
 	} catch (e) {
 		return false
 	}

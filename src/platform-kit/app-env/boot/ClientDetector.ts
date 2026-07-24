@@ -2,6 +2,7 @@ import { assertMainOrNodeBoot, isAndroidApp, isApp, isBrowser, isDesktop, isIOSA
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
 import { AppType } from "../AppType"
+import { isFunction, isObject, isUndefined } from "./TypeChecks"
 
 assertMainOrNodeBoot()
 
@@ -104,20 +105,20 @@ export class ClientDetector {
 
 	testBuiltins(): boolean {
 		return (
-			typeof Set !== "undefined" &&
-			typeof Map !== "undefined" &&
-			typeof Array.prototype.includes === "function" &&
-			typeof Object.entries === "function" &&
-			typeof Object.values === "function" &&
-			typeof Object.fromEntries === "function" &&
-			typeof Symbol !== "undefined" &&
-			typeof Uint8Array !== "undefined" &&
-			typeof Proxy !== "undefined" &&
-			typeof Reflect !== "undefined" &&
-			typeof Promise.prototype.finally !== "undefined" &&
-			typeof String.prototype.replaceAll === "function" &&
-			typeof BigInt !== "undefined" &&
-			typeof structuredClone === "function"
+			!isUndefined(Set) &&
+			!isUndefined(Map) &&
+			isFunction(Array.prototype.includes) &&
+			isFunction(Object.entries) &&
+			isFunction(Object.values) &&
+			isFunction(Object.fromEntries) &&
+			!isUndefined(Symbol) &&
+			!isUndefined(Uint8Array) &&
+			!isUndefined(Proxy) &&
+			!isUndefined(Reflect) &&
+			!isUndefined(Promise.prototype.finally) &&
+			isFunction(String.prototype.replaceAll) &&
+			!isUndefined(BigInt) &&
+			isFunction(structuredClone)
 		)
 	}
 
@@ -169,7 +170,7 @@ export class ClientDetector {
 	 * @returns true if webassembly is supported
 	 */
 	webassembly(): boolean {
-		return typeof WebAssembly === "object" && typeof WebAssembly.instantiate === "function"
+		return isObject(WebAssembly) && isFunction(WebAssembly.instantiate)
 	}
 
 	/**
@@ -418,7 +419,7 @@ export class ClientDetector {
 	}
 
 	compressionStreamSupported(): boolean {
-		return typeof CompressionStream !== "undefined"
+		return !isUndefined(CompressionStream)
 	}
 
 	isCalendarApp(): boolean {
