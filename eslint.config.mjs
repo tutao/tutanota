@@ -139,8 +139,15 @@ export default defineConfig([
 	{
 		files: ["src/platform-kit/**/*.ts"],
 		plugins: { local: { rules: { noUnionExceptNullable } } },
+		extends: [],
+		languageOptions: {
+			parserOptions: {
+				projectService: true,
+			},
+		},
 		rules: {
 			"local/noUnionExceptNullable": "error",
+			"@typescript-eslint/strict-boolean-expressions": "error",
 			"no-restricted-syntax": [
 				"error",
 				{
