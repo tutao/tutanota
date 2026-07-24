@@ -65,7 +65,7 @@ import { getDisplayNameOfPlanType } from "../../subscription/FeatureListProvider
 import { MobilePaymentsFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
 import { MobilePaymentError } from "../../api/common/error/MobilePaymentError"
-import { showManageThroughAppStoreDialog } from "../../subscription/PaymentViewer.js"
+import { openAppleSubscriptionPage } from "../../subscription/PaymentViewer.js"
 import type { UpdatableSettingsViewer } from "../Interfaces.js"
 import { showUserSatisfactionDialogAfterUpgrade } from "../../ratings/UserSatisfactionUtils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -250,6 +250,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		//Accounting interval can be changed by customer
 		const paymentInterval = Number(asPaymentInterval(accountingInfo.paymentInterval))
 		const isNewPlan = NewPaidPlans.includes(planType as AvailablePlanType)
+		const isAppleSubscription = accountingInfo.paymentMethod === PaymentMethodType.AppStore || isIOSApp()
 		//Make copy of booking end date to alter it
 		const nextEndDate = new Date(assertNotNull(booking.endDate))
 		nextEndDate.setMonth(nextEndDate.getMonth() + paymentInterval)
@@ -268,6 +269,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 						cells: [
 							this.getPlanCellAttrs(
 								planType,
+								//Show button to change plan for premium customers in first card
 								!isNewPlan
 									? {
 											icon: Icons.PenFilled,
@@ -280,7 +282,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 									: undefined,
 							),
 							this.getStatusCellAttrs(currentStateSubscription),
-							isNewPlan ? this.getPriceCellAttrs(this._currentPriceFieldValue()) : null,
+							isNewPlan && !isAppleSubscription ? this.getPriceCellAttrs(this._currentPriceFieldValue()) : null,
 							isNewPlan ? this.getEndDateAttrs(currentStateSubscription, booking.endDate) : null,
 						],
 					} satisfies SubscriptionStateCardAttrs),
@@ -293,46 +295,53 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 						m(SubscriptionStateCard, {
 							title: "subscriptionSettingNewSubscription_label",
 							cells: [
-								this.getPlanCellAttrs(planType, {
-									icon: Icons.PenFilled,
-									title: "changePlan_action",
-									click: () => {
-										this.onSubscriptionClick()
-										m.redraw()
-									},
-								}),
-								this.getPriceCellAttrs(this._nextPriceFieldValue(), {
-									icon: Icons.Swap,
-									title: "changePaymentInterval_action",
-									click: async () => {
-										const message = lang.getTranslation("subscriptionChangeInterval_msg", {
-											"{period}":
-												paymentInterval === PaymentInterval.Yearly
-													? lang.getTranslationText("pricing.monthly_label")
-													: lang.getTranslationText("pricing.yearly_label"),
-										})
-										Dialog.confirm(message).then(async (confirmed) => {
-											if (this._accountingInfo == null) {
-												return
+								this.getPlanCellAttrs(
+									planType,
+									!isAppleSubscription
+										? {
+												icon: Icons.PenFilled,
+												title: "changePlan_action",
+												click: () => {
+													this.onSubscriptionClick()
+													m.redraw()
+												},
 											}
-											if (confirmed) {
-												if (paymentInterval === PaymentInterval.Yearly) {
-													await locator.customerFacade.changePaymentInterval(this._accountingInfo, PaymentInterval.Monthly)
-												} else {
-													await locator.customerFacade.changePaymentInterval(this._accountingInfo, PaymentInterval.Yearly)
-												}
-											}
-											m.redraw()
+										: undefined,
+								),
+								!isAppleSubscription
+									? this.getPriceCellAttrs(this._nextPriceFieldValue(), {
+											icon: Icons.Swap,
+											title: "changePaymentInterval_action",
+											click: async () => {
+												const message = lang.getTranslation("subscriptionChangeInterval_msg", {
+													"{period}":
+														paymentInterval === PaymentInterval.Yearly
+															? lang.getTranslationText("pricing.monthly_label")
+															: lang.getTranslationText("pricing.yearly_label"),
+												})
+												Dialog.confirm(message).then(async (confirmed) => {
+													if (this._accountingInfo == null) {
+														return
+													}
+													if (confirmed) {
+														if (paymentInterval === PaymentInterval.Yearly) {
+															await locator.customerFacade.changePaymentInterval(this._accountingInfo, PaymentInterval.Monthly)
+														} else {
+															await locator.customerFacade.changePaymentInterval(this._accountingInfo, PaymentInterval.Yearly)
+														}
+													}
+													m.redraw()
+												})
+											},
 										})
-									},
-								}),
+									: null,
 								this.getEndDateAttrs("planned", booking.endDate),
 							],
 						} satisfies SubscriptionStateCardAttrs),
 					),
 			),
 			//Render Buttons
-			isNewPlan && this.renderButtons(booking, currentStateSubscription),
+			isNewPlan && this.renderButtons(booking, currentStateSubscription, isAppleSubscription),
 			currentStateSubscription !== "active" &&
 				currentStateSubscription !== "planned" &&
 				m(SubscriptionPaidFeaturesCard, {
@@ -380,12 +389,26 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		])
 	}
 
-	private renderButtons(booking: Booking, currentSubscriptionState: SubscriptionStatus): Children {
+	private renderButtons(booking: Booking, currentSubscriptionState: SubscriptionStatus, isAppleSubscription: boolean): Children {
 		//Show no buttons if subscription is in revocation process
 		const isRevoked = this._customerInfo?.revocationRequest != null
 		if (isRevoked) {
 			return undefined
 		}
+		if (isAppleSubscription) {
+			return m(
+				".flex.justify-end.gap-8",
+				m(PrimaryButton, {
+					label: "subscriptionSettingManageSubscription_action",
+					width: "flex",
+					icon: Icons.OpenOutline,
+					onclick: () => {
+						this.onSubscriptionClick()
+					},
+				}),
+			)
+		}
+		//Show downgrade and resubscribe button if expired
 		if (currentSubscriptionState === "expired") {
 			return m(
 				".flex.justify-end.gap-8",
@@ -401,6 +424,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 				}),
 			)
 		}
+
 		//Show cancel button if renewal is enabled
 		if (booking.renewalEnabled) {
 			return m(
@@ -412,6 +436,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 				}),
 			)
 		}
+
 		//Show keep subscription if renewal is not enabled
 		else if (!booking.renewalEnabled) {
 			return m(
@@ -459,13 +484,13 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		if (isIOSApp() && (paymentMethod == null || paymentMethod === PaymentMethodType.AppStore)) {
 			// case 1: we are in iOS app and we either are not paying or are already on AppStore
 			void this.handleAppStoreSubscriptionChange()
-		} else if (paymentMethod === PaymentMethodType.AppStore && this._accountingInfo?.appStoreSubscription) {
+		} else if (paymentMethod === PaymentMethodType.AppStore /*&& this._accountingInfo?.appStoreSubscription*/) {
 			// case 2: we have a running AppStore subscription but this is not an iOS app
 
 			// If there's a running App Store subscription it must be managed through Apple.
 			// This includes the case where renewal is already disabled, but it's not expired yet.
 			// Running subscription cannot be changed from other client, but it can still be managed through iOS app or when subscription expires.
-			void showManageThroughAppStoreDialog()
+			void openAppleSubscriptionPage()
 		} else {
 			// other cases (not iOS app, not app store payment method, no running AppStore subscription, iOS but another payment method)
 			if (this._accountingInfo && this._customer && this._customerInfo && this._lastBooking) {
