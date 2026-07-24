@@ -332,7 +332,7 @@ export class ServerModelInfo {
 		return associations
 	}
 
-	private ensureVariantOf<T extends string>(obj: Record<any, T>, inputStr: string): Values<typeof obj> {
+	private ensureVariantOf<T extends string>(obj: Record<any, T>, inputStr: string): T {
 		const knownVariants = Object.values(obj)
 		return assertNotNull(
 			knownVariants.find((a) => a === inputStr),

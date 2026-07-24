@@ -594,8 +594,8 @@ export function mapNullable<T, U>(val: T | null, action: (arg0: NonNullable<T>) 
 
 	return null
 }
-
 /** Helper to take instead of `typeof setTimeout` which is hellish to reproduce */
+// eslint-disable-next-line no-restricted-syntax
 export type TimeoutSetter = (fn: () => unknown, arg1: number) => ReturnType<typeof setTimeout>
 
 export function mapObject<K extends string, V, R>(mapper: (arg0: V) => R, obj: Record<K, V>): Record<K, R> {
