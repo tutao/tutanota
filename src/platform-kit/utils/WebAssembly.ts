@@ -10,6 +10,7 @@ import {
 	Uint8ArrayArgument,
 	WebAssemblyArgument,
 } from "./WebAssemblyArgument"
+import { getTypeOf } from "../app-env/boot/TypeChecks"
 
 /**
  * General interface for WASM exports, whether from native WASM or a fallback.
@@ -114,7 +115,7 @@ export function callWebAssemblyFunctionWithArguments<T>(func: (...args: number[]
 				const arrayInWASM = allocateArrayCopy(arg.uint8ArrayInput, exports, toFree)
 				argsToPass.push(arrayInWASM.byteOffset)
 			} else {
-				throw new Error(`passed an unhandled argument type ${typeof arg}`)
+				throw new Error(`passed an unhandled argument type ${getTypeOf(arg)}`)
 			}
 		}
 		return func(...argsToPass)

@@ -14,6 +14,7 @@ import {
 	SuspensionBehavior,
 } from "./types"
 import { once } from "../utils/memoized"
+import { isUndefined } from "../app-env/boot/TypeChecks"
 
 assertWorkerOrNode()
 
@@ -72,7 +73,7 @@ export class RestClient implements RestClientInterface {
 
 	request(path: string, method: HttpMethod, options: RestClientOptions): Promise<any | null> {
 		// @ts-ignore
-		const debug = typeof self !== "undefined" && self.debug
+		const debug = !isUndefined(self) && self.debug
 		const verbose = isWorker() && debug
 
 		this.checkRequestSizeLimit(path, method, options.body ?? null)
