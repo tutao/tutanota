@@ -7,7 +7,7 @@ import { defineConfig, globalIgnores } from "eslint/config"
 const noUnionExceptNullable = {
 	meta: {
 		type: "problem",
-		docs: {description: "Disallow union types except T | null (Nullable<T>)"},
+		docs: { description: "Disallow union types except T | null (Nullable<T>)" },
 		messages: {
 			noUnion: "Union types are not allowed except 'T | null'. Use classes instead.",
 		},
@@ -18,7 +18,7 @@ const noUnionExceptNullable = {
 			TSUnionType(node) {
 				const isNullable = node.types.length === 2 && node.types.some((t) => t.type === "TSNullKeyword")
 				if (!isNullable) {
-					context.report({node, messageId: "noUnion"})
+					context.report({ node, messageId: "noUnion" })
 				}
 			},
 		}
@@ -138,8 +138,14 @@ export default defineConfig([
 	},
 	{
 		files: ["src/platform-kit/**/*.ts"],
-		plugins: {"local": {rules: {noUnionExceptNullable}}},
-		rules: {"local/noUnionExceptNullable": "error"},
+		plugins: { local: { rules: { noUnionExceptNullable } } },
+		extends: [],
+		languageOptions: {
+			parserOptions: {
+				projectService: true,
+			},
+		},
+		rules: { "local/noUnionExceptNullable": "error", "@typescript-eslint/strict-boolean-expressions": "error" },
 	},
 	[
 		globalIgnores([
