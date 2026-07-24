@@ -102,6 +102,7 @@ import {
 	createManageLabelServiceDeleteIn,
 	createManageLabelServiceLabelData,
 	createManageLabelServicePostIn,
+	createManageLabelServicePutIn,
 	createMoveMailData,
 	createNewDraftAttachment,
 	createPopulateClientSpamTrainingDataPostIn,
@@ -177,6 +178,7 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../../platform
 import { DataFile } from "../../../../../../entities/tutanota/MailBundle"
 import { aesEncrypt } from "../../../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { parseKeyVersion } from "../../../../../../platform-kit/crypto/CryptoUtils"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<File | DataFile | FileReference>
@@ -254,13 +256,6 @@ export class MailFacade {
 		if (newName !== folder.name) {
 			folder.name = newName
 			await this.entityClient.update(folder)
-		}
-	}
-
-	async updateListUnsubscribe(mail: Mail): Promise<void> {
-		if (mail.listUnsubscribe !== null) {
-			mail.listUnsubscribe = false
-			await this.entityClient.update(mail)
 		}
 	}
 
@@ -1227,7 +1222,7 @@ export class MailFacade {
 				data: createManageLabelServiceLabelData({
 					name: labelData.name,
 					color: labelData.color,
-					parentFolder: labelData.parentLabelId ? labelData.parentLabelId : null,
+					parentLabel: labelData.parentLabelId ? labelData.parentLabelId : null,
 				}),
 			}),
 			{
@@ -1244,12 +1239,31 @@ export class MailFacade {
 	 * @param name possible new name for label
 	 * @param color possible new color for label
 	 */
-	async updateLabel(label: MailSet, name: string, color: string, parentFolderId?: IdTuple) {
-		if (name !== label.name || color !== label.color) {
-			label.name = name
-			label.color = color
-			label.parentFolder = parentFolderId || null
-			await this.entityClient.update(label)
+	async updateLabel(label: MailSet, name: string, color: string, parentLabelId?: IdTuple) {
+		const isOwnParent = isSameId(label._id, parentLabelId ?? null)
+		const isDifferentParent = label.parentFolder != null && parentLabelId != null && !isSameId(label.parentFolder, parentLabelId)
+		const isNewParent = label.parentFolder == null && parentLabelId != null
+		const isUnsettingParent = label.parentFolder != null && parentLabelId == null
+		const isColorChange = label.color !== color
+		const isNameChange = label.name !== name
+
+		if (!isOwnParent && (isDifferentParent || isNewParent || isUnsettingParent || isColorChange || isNameChange)) {
+			const updateFolder = createManageLabelServiceLabelData({
+				color: assertNotNull(color),
+				name: name,
+				parentLabel: parentLabelId ?? null,
+			})
+			const manageLabelServicePutIn = createManageLabelServicePutIn({
+				data: updateFolder,
+				label: label._id,
+			})
+			const ownerKeyVersion = parseKeyVersion(assertNotNull(label._ownerKeyVersion))
+			const mailGroupKey = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(label._ownerGroup), ownerKeyVersion)
+			const sessionKey = this.cryptoWrapper.decryptKey(mailGroupKey, assertNotNull(label._ownerEncSessionKey))
+			await this.serviceExecutor.put(ManageLabelService, manageLabelServicePutIn, {
+				...DEFAULT_EXTRA_SERVICE_PARAMS,
+				sessionKey,
+			})
 		}
 	}
 

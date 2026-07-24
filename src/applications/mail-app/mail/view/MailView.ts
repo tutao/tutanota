@@ -66,7 +66,6 @@ import { showSnackBar } from "../../../../ui/base/SnackBar.js"
 import { getFolderName } from "../model/MailUtils.js"
 import { canDoDragAndDropExport, editDraft, getMailViewerMoreActions, MailFilterType, showReportPhishingMailDialog, startExport } from "./MailViewerUtils.js"
 import { isDraft, isMailMovable, isSpamOrTrashFolder } from "../model/MailChecks.js"
-import { showEditLabelDialog } from "./EditLabelDialog"
 import { DropData, DropType, FileDropData, FolderDropData, getDetachedDropdownBounds, MailDropData } from "../../../../ui/base/GuiUtils"
 import { fileListToArray } from "../../../../ui/utils/FileUtils.js"
 import { UserError } from "../../../common/api/main/UserError"
@@ -83,7 +82,7 @@ import { getMailFolderType, isFolder, isFolderReadOnly } from "../MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { MailLabelsView } from "./MailLabelsView"
-import { showEditLabelWithParentFolderDialog } from "./EditLabelFolderDialog"
+import { showEditLabelDialog } from "./EditLabelDialog"
 import { ButtonSize } from "../../../../ui/base/ButtonSize"
 
 assertMainOrNode()
@@ -1227,14 +1226,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 		const labelToMove = labelFolderSystem.getFolderById(dropData.folderId)
 		if (labelToMove == null) {
-			// folder is likely in a different mailbox
+			// label is likely in a different mailbox
 			return
 		}
 
 		const isTargetDescendent =
 			labelFolderSystem.getDescendantFoldersOfParent(labelToMove._id)?.find((descendant) => isSameId(targetLabel._id, descendant.folder._id)) != null
 		if (isTargetDescendent) return
-		await mailLocator.mailModel.setParentForFolder(labelToMove, targetLabel._id)
+		await mailLocator.mailFacade.updateLabel(labelToMove, labelToMove.name, assertNotNull(labelToMove.color), targetLabel._id)
 	}
 
 	private setExpandedState(folder: MailSet, currentExpansionState: boolean) {
@@ -1517,15 +1516,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private async showLabelFolderAddEditDialog(mailViewModel: MailViewModel, mailGroupId: Id, label: MailSet | null, parentFolder: MailSet | null) {
 		const mailboxDetail = await locator.mailboxModel.getMailboxDetailsForMailGroup(mailGroupId)
-		await showEditLabelWithParentFolderDialog(mailboxDetail, mailViewModel, label, parentFolder)
-	}
-
-	private async showLabelAddDialog(mailbox: MailBox) {
-		await showEditLabelDialog(mailbox, this.mailViewModel, null)
-	}
-
-	private async showLabelEditDialog(label: MailSet) {
-		await showEditLabelDialog(null, this.mailViewModel, label)
+		await showEditLabelDialog(mailboxDetail, mailViewModel, label, parentFolder)
 	}
 
 	private async showLabelDeleteDialog(label: MailSet) {
