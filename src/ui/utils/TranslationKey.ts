@@ -1295,6 +1295,7 @@ export type TranslationKeyType =
 	| "invitation_label"
 	| "invitationNote_msg"
 	| "invitationMailBody_msg"
+	| "invalidInput_msg"
 	| "invalidVatIdValidationFailed_msg"
 	| "invalidVatIdNumber_msg"
 	| "invalidURL_msg"
