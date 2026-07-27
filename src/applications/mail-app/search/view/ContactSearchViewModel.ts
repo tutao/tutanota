@@ -235,6 +235,4 @@ export class ContactSearchViewModel {
 			selectedElement ? getElementId(selectedElement) : null,
 		)
 	}
-	//FIXME
-	sendStopLoadingSignal() {}
 }

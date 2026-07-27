@@ -417,7 +417,7 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 					listModel: this.searchViewModel.listModel,
 					currentType: SearchCategoryType.contact,
 					onSingleSelection: (item) => this.viewSlider.focus(this.resultDetailsColumn),
-					cancelCallback: () => this.searchViewModel.sendStopLoadingSignal(), //FIXME we may not need many of the things below for contacts
+					cancelCallback: () => {}, //FIXME we may not need many of the things below for contacts
 					isFreeAccount: locator.logins.getUserController().isFreeAccount(),
 					getLabelsForMail: (mail) => [],
 					highlightedStrings: this.searchViewModel.getHighlightedStrings(),

@@ -415,12 +415,6 @@ export class NewCalendarSearchViewModel {
 		result.updates.map((update) => {
 			switch (update.type) {
 				//FIXME Do we only need reset for calendar?
-				case "deleteitem":
-					this.listModel.deleteLoadedItem(getElementId(update.item))
-					break
-				case "updateitem":
-					this.listModel.updateLoadedItem(new SearchResultListEntry(update.item))
-					break
 				case "reset": {
 					const selectedItem = onlySingleSelection(this.listModel.state)
 					this.listModel.reload()
