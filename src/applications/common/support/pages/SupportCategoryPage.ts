@@ -7,6 +7,9 @@ import { NoSolutionSectionButton } from "../NoSolutionSectionButton.js"
 import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
 import { TitleSection } from "../../../../ui/TitleSection"
 import { AllIcons } from "../../../../ui/base/Icon"
+import { isFreeSignupOnly } from "../../misc/LoginUtils"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import { windowFacade } from "../../misc/WindowFacade"
 
 type Props = {
 	data: SupportDialogState
@@ -17,7 +20,7 @@ type Props = {
 export class SupportCategoryPage implements Component<Props> {
 	view({
 		attrs: {
-			data: { selectedCategory, selectedTopic },
+			data: { selectedCategory, selectedTopic, canHaveEmailSupport },
 			goToTopicDetailPage,
 			goToContactSupport,
 		},
@@ -41,16 +44,25 @@ export class SupportCategoryPage implements Component<Props> {
 						},
 					}),
 				),
-				m(NoSolutionSectionButton, {
-					onClick: () => {
-						if (currentlySelectedCategory) {
-							const topicStage = getSupportUsageTestStage(1)
-							topicStage.setMetric({ name: "Topic", value: `${currentlySelectedCategory.nameEN.replaceAll(" ", "")}_other` })
-							void topicStage.complete()
-						}
-						goToContactSupport()
-					},
-				}),
+				isFreeSignupOnly() && !canHaveEmailSupport
+					? m(SectionButton, {
+							text: { text: "Tuta FAQ", testId: "" },
+							leftIcon: { icon: Icons.TutaFavicon, title: "supportMenu_label" },
+							rightIcon: { icon: Icons.OpenOutline, title: "open_action" },
+							onclick: () => {
+								windowFacade.openLink("https://tuta.com/support")
+							},
+						})
+					: m(NoSolutionSectionButton, {
+							onClick: () => {
+								if (currentlySelectedCategory) {
+									const topicStage = getSupportUsageTestStage(1)
+									topicStage.setMetric({ name: "Topic", value: `${currentlySelectedCategory.nameEN.replaceAll(" ", "")}_other` })
+									void topicStage.complete()
+								}
+								goToContactSupport()
+							},
+						}),
 			]),
 		])
 	}
