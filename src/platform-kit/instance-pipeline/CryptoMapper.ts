@@ -51,7 +51,7 @@ import {
 	VersionedKey,
 } from "@tutao/crypto"
 import { EntityAdapter } from "./EntityAdapter.js"
-import { AlarmNotificationTypeRef, User, WebsocketLeaderStatus } from "@tutao/entities/sys"
+import { AlarmNotificationTypeRef, RepeatRuleTypeRef, User, WebsocketLeaderStatus } from "@tutao/entities/sys"
 import { OwnerKeyProvider } from "./PatchMerger"
 import { ModelMapper } from "./ModelMapper"
 import { InstanceDirection, ParsedValue } from "./ParsedValue"
@@ -144,7 +144,19 @@ export class CryptoMapper {
 
 			try {
 				const fieldPath = `${fieldPathPrefix}${valueModel.id}`
-				const decryptedValue = await this.decryptValue(valueModel, encryptedValue, instanceDecryptor, ownerKeyProvider, fieldPath)
+				let decryptedValue = await this.decryptValue(valueModel, encryptedValue, instanceDecryptor, ownerKeyProvider, fieldPath)
+				if (
+					isSameTypeRef(RepeatRuleTypeRef, decrypted.getTypeRef()) &&
+					decryptedValue.asString() === "" &&
+					valueModel.id === 1561 // .endValue field
+				) {
+					// Before a7b986e30a51fdd07f7d465d122721431fe81e6f
+					// number fields were set to empty string which does not satisfy valid ValueType.Number,
+					// since this field is encrypted, we have reset it to correct value on client side and make
+					// update request to server
+					// Until then, we just fallback to null.
+					decryptedValue = ParsedValue.fromNull()
+				}
 				decrypted.addAttributeById(valueId, decryptedValue)
 			} catch (e) {
 				const defaultValue = EntityUtils.valueToDefault(valueModel.type).asString()
