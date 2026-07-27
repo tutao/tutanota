@@ -97,7 +97,6 @@ import {
 	createDraftAttachment,
 	createDraftCreateData,
 	createDraftData,
-	createDraftRecipient,
 	createDraftUpdateData,
 	createEncryptedMailAddress,
 	createEncryptedMailAddressTransferAggregatedType,
@@ -128,7 +127,6 @@ import {
 	createUnreadMailStatePostIn,
 	createUpdateMailFolderData,
 	DraftAttachment,
-	DraftRecipient,
 	DraftService,
 	EncryptedMailAddress,
 	EncryptedMailAddressTransferAggregatedType,
@@ -632,11 +630,9 @@ export class MailFacade {
 	/**
 	 * Returns all ids of the files that have been removed, i.e. that are contained in the existingFileIds but not in the provided files
 	 */
-	_getRemovedAttachments(providedFiles: Attachments | null, existingFileIds: IdTuple[]): IdTuple[] {
+	_getRemovedAttachments(attachments: Attachments | null, existingFileIds: IdTuple[]): IdTuple[] {
 		const removedAttachmentIds: IdTuple[] = []
-
-		if (providedFiles != null) {
-			const attachments = providedFiles
+		if (attachments != null) {
 			// check which attachments have been removed
 			for (const fileId of existingFileIds) {
 				if (
@@ -679,7 +675,7 @@ export class MailFacade {
 			} else if (!containsId(existingFileIds, getLetId(providedFile))) {
 				// forwarded attachment which was not in the draft before
 				return this.crypto.resolveSessionKey(providedFile).then((fileSessionKey) => {
-					const sessionKey = assertNotNull(fileSessionKey, "filesessionkey was not resolved")
+					const sessionKey = assertNotNull(fileSessionKey, "file session key was not resolved")
 					const ownerEncFileSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
 					const attachment = createDraftAttachment({
 						existingFile: getLetId(providedFile),
@@ -745,8 +741,8 @@ export class MailFacade {
 			this.entityClient.loadRoot(TutanotaPropertiesTypeRef, this.userFacade.getUserGroupId()).then((tutanotaProperties) => {
 				parameters.plaintext = tutanotaProperties.sendPlaintextOnly
 			}),
-			this.crypto.resolveSessionKey(draft).then(async (mailSessionkey) => {
-				const sk = assertNotNull(mailSessionkey, "mailSessionKey was null")
+			this.crypto.resolveSessionKey(draft).then(async (mailSessionKey) => {
+				const sk = assertNotNull(mailSessionKey, "mailSessionKey was null")
 				parameters.calendarMethod = draft.method !== MailMethod.NONE
 
 				if (draft.confidential) {
@@ -987,7 +983,7 @@ export class MailFacade {
 	 * @param sendDraftParameters The send draft parameters for the mail that should be sent
 	 */
 	isTutaCryptMail(sendDraftParameters: SendDraftParametersParams) {
-		// if an secure external recipient is involved in the conversation we do not use asymmetric encryption
+		// if a secure external recipient is involved in the conversation we do not use asymmetric encryption
 		if (sendDraftParameters.symEncInternalRecipientKeyData.length > 0 || sendDraftParameters.secureExternalRecipientKeyData.length) {
 			return false
 		}
@@ -1002,7 +998,7 @@ export class MailFacade {
 	}
 
 	/**
-	 * Checks that an external user instance with a mail box exists for the given recipient. If it does not exist, it is created.
+	 * Checks that an external user instance with a mailbox exists for the given recipient. If it does not exist, it is created.
 	 * Returns the user group key and the user mail group key of the external recipient.
 	 * @param recipientMailAddress
 	 * @param externalUserKdfType the kdf type used to derive externalUserPwKey
@@ -1470,7 +1466,14 @@ export class MailFacade {
 		)
 	}
 
-	async createModelInputAndUploadableVectors(mail: Mail, mailDetails: MailDetails, sourceFolder: MailSet) {
+	async createModelInputAndUploadableVectors(
+		mail: Mail,
+		mailDetails: MailDetails,
+	): Promise<{
+		modelInput: number[]
+		uploadableVectorLegacy: Uint8Array<ArrayBufferLike>
+		uploadableVector: Uint8Array<ArrayBufferLike>
+	}> {
 		const datum = createSpamMailDatum(mail, mailDetails)
 		const modelInput = await this.spamMailProcessor.processSpamMailDatum(datum)
 		const { uploadableVectorLegacy, uploadableVector } = await this.spamMailProcessor.makeUploadableVectors(datum)
@@ -1545,13 +1548,6 @@ export class MailFacade {
 
 export function phishingMarkerValue(type: ReportedMailFieldType, value: string): string {
 	return type + murmurHash(value.replace(/\s/g, ""))
-}
-
-function recipientToDraftRecipient(recipient: PartialRecipient): DraftRecipient {
-	return createDraftRecipient({
-		name: recipient.name ?? "",
-		mailAddress: recipient.address,
-	})
 }
 
 export function recipientToEncryptedMailAddress(recipient: PartialRecipient): EncryptedMailAddress {
