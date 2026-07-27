@@ -82,6 +82,49 @@ o.spec("CalendarSearch", function () {
 			o(resultItems).deepEquals([event1, event2])
 		})
 
+		o.test("a series of events with the same ID and start time should only yield one search result", async function () {
+			const eventStartDate = new Date(2026, 7, 27)
+			const eventEndDate = new Date(2026, 7, 28)
+			const event1 = createTestEntity(CalendarEventTypeRef, {
+				summary: "serial event 1",
+				description: "",
+				startTime: eventStartDate,
+				endTime: eventEndDate,
+			})
+			event1._id = ["ListID", "EventID"]
+			const event2 = createTestEntity(CalendarEventTypeRef, {
+				summary: "serial event 2",
+				description: "",
+				startTime: eventStartDate,
+				endTime: eventEndDate,
+			})
+			event2._id = ["ListID", "EventID"]
+
+			const rangeStart = new Date(2026, 7, 20)
+			const rangeEnd = new Date(2026, 8, 1)
+
+			const restriction: SearchRestriction = {
+				start: rangeStart.getTime(),
+				end: rangeEnd.getTime(),
+				folderIds: [],
+				attributeIds: null,
+				eventSeries: null,
+				field: null,
+				type: SearchCategoryType.calendar,
+			}
+
+			const query: SearchQuery = {
+				query: "event",
+				restriction,
+				maxResults: null,
+			}
+
+			when(calendarEventsRepository.getDaysToEvents()).thenReturn(makeDaysToEvents(event1, event2))
+
+			const { resultItems } = await search.runCalendarSearch(query, abort.signal)
+			o(resultItems).deepEquals([event1])
+		})
+
 		o.test("a query that does not match description or summary of any event should return an empty array in the search result", async function () {
 			const eventStartDate = new Date(2026, 7, 27)
 			const eventEndDate = new Date(2026, 7, 28)
@@ -124,7 +167,49 @@ o.spec("CalendarSearch", function () {
 			const { resultItems } = await search.runCalendarSearch(query, abort.signal)
 			o(resultItems).deepEquals([])
 		})
-		o.test("", async function () {})
+
+		o.test("a query whose search range does not match any event should return an empty array in the search result", async function () {
+			const eventStartDate = new Date(2026, 7, 27)
+			const eventEndDate = new Date(2026, 7, 28)
+			const event1 = createTestEntity(CalendarEventTypeRef, {
+				summary: "test event",
+				description: "",
+				startTime: eventStartDate,
+				endTime: eventEndDate,
+			})
+			event1._id = ["ListID", "Event1ID"]
+			const event2 = createTestEntity(CalendarEventTypeRef, {
+				summary: "no summary",
+				description: "test event",
+				startTime: eventStartDate,
+				endTime: eventEndDate,
+			})
+			event2._id = ["ListID", "Event2ID"]
+
+			const rangeStart = new Date(2026, 8, 1)
+			const rangeEnd = new Date(2026, 8, 10)
+
+			const restriction: SearchRestriction = {
+				start: rangeStart.getTime(),
+				end: rangeEnd.getTime(),
+				folderIds: [],
+				attributeIds: null,
+				eventSeries: null,
+				field: null,
+				type: SearchCategoryType.calendar,
+			}
+
+			const query: SearchQuery = {
+				query: "event",
+				restriction,
+				maxResults: null,
+			}
+
+			when(calendarEventsRepository.getDaysToEvents()).thenReturn(makeDaysToEvents(event1, event2))
+
+			const { resultItems } = await search.runCalendarSearch(query, abort.signal)
+			o(resultItems).deepEquals([])
+		})
 	})
 })
 
