@@ -97,7 +97,6 @@ export async function checkApprovalStatus(logins: LoginController, includeInvoic
 			import("../subscription/UpgradeSubscriptionWizard").then((module) =>
 				module.showUpgradeWizard({
 					logins,
-
 					// this user started a paid signup but never completed it, so we don't count
 					// it as an upgrade
 					upgradePromptType: null,
