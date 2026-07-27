@@ -35,6 +35,7 @@ import {
 } from "@tutao/entities/sys"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { idToElementId } from "@tutao/meta"
+import { ReportMovedMailsType } from "../../../../../../entities/tutanota/Utils"
 
 assertWorkerOrNode()
 
@@ -312,7 +313,7 @@ export class MailAddressFacade {
 		const _ownerGroup = mailboxGroupRoot._ownerGroup
 		const mailboxProperties = createMailboxProperties({
 			...(_ownerGroup != null ? { _ownerGroup } : null), // only set it if it is not null
-			reportMovedMails: "",
+			reportMovedMails: ReportMovedMailsType.ALWAYS_ASK,
 			mailAddressProperties: [],
 		})
 		// Using non-caching entityClient because we are not a member of the user's mail group and we won't receive updates for it
