@@ -225,7 +225,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									hideIfEmpty: true,
 								},
 								this.renderCalendars(CalendarType.Private),
-								this.renderBirthdayCalendar(),
+								(!isFreeSignupOnly() || !locator.logins.getUserController().isFreeAccount()) && this.renderBirthdayCalendar(),
 							),
 							m(
 								SidebarSection,
