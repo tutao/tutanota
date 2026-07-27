@@ -125,6 +125,7 @@ import { CalendarImporter } from "../../../common/calendar/import/CalendarImport
 import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInteractionHandler"
 import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
 import { reverse } from "../../../common/misc/EnumUtils"
+import { isFreeSignupOnly } from "../../../common/misc/LoginUtils"
 
 export type GroupColors = Map<Id, string>
 
@@ -192,32 +193,35 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								SidebarSection,
 								{
 									name: "yourCalendars_label",
-									button: m(IconButton, {
-										title: "addCalendar_action",
-										colors: ButtonColor.Nav,
-										click:
-											(isApp() || isDesktop()) && findFirstPrivateCalendar(attrs.calendarViewModel.calendarInfos)
-												? createDropdown({
-														lazyButtons: () => [
-															{
-																label: "addCalendar_action",
-																colors: ButtonColor.Nav,
-																click: () => this.onPressedAddCalendar(CalendarType.Private),
-																icon: Icons.Plus,
-																size: ButtonSize.Compact,
-															},
-															{
-																label: "addCalendarFromURL_action",
-																icon: Icons.Chainlink,
-																size: ButtonSize.Compact,
-																click: () => this.onPressedAddCalendar(CalendarType.External),
-															},
-														],
-													})
-												: () => this.onPressedAddCalendar(CalendarType.Private),
-										icon: Icons.Plus,
-										size: ButtonSize.Compact,
-									}),
+									button:
+										isFreeSignupOnly() && locator.logins.getUserController().isFreeAccount()
+											? null
+											: m(IconButton, {
+													title: "addCalendar_action",
+													colors: ButtonColor.Nav,
+													click:
+														(isApp() || isDesktop()) && findFirstPrivateCalendar(attrs.calendarViewModel.calendarInfos)
+															? createDropdown({
+																	lazyButtons: () => [
+																		{
+																			label: "addCalendar_action",
+																			colors: ButtonColor.Nav,
+																			click: () => this.onPressedAddCalendar(CalendarType.Private),
+																			icon: Icons.Plus,
+																			size: ButtonSize.Compact,
+																		},
+																		{
+																			label: "addCalendarFromURL_action",
+																			icon: Icons.Chainlink,
+																			size: ButtonSize.Compact,
+																			click: () => this.onPressedAddCalendar(CalendarType.External),
+																		},
+																	],
+																})
+															: () => this.onPressedAddCalendar(CalendarType.Private),
+													icon: Icons.Plus,
+													size: ButtonSize.Compact,
+												}),
 									hideIfEmpty: true,
 								},
 								this.renderCalendars(CalendarType.Private),
