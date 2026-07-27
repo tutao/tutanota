@@ -13,6 +13,7 @@ import { GroupInfoTypeRef, GroupMembershipTypeRef, MailAddressAliasTypeRef, User
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClientLoadOptions } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { Aes128Key } from "../../../../../src/platform-kit/crypto/encryption/symmetric/AesKey"
 import { idToElementId } from "../../../../../src/platform-kit/meta"
+import { ReportMovedMailsType } from "../../../../../src/entities/tutanota/Utils"
 
 o.spec("MailAddressFacadeTest", function () {
 	let userFacade: UserFacade
@@ -88,7 +89,7 @@ o.spec("MailAddressFacadeTest", function () {
 			const mailboxProperties = createTestEntity(MailboxPropertiesTypeRef, {
 				_id: idToElementId(mailboxPropertiesId),
 				_ownerGroup: mailGroupId,
-				reportMovedMails: "",
+				reportMovedMails: ReportMovedMailsType.ALWAYS_ASK,
 				mailAddressProperties: [],
 			})
 			const userGroupInfoId: IdTuple = ["groupInfoListId", "groupInfoId"]

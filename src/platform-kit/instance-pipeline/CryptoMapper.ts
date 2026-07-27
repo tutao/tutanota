@@ -147,6 +147,7 @@ export class CryptoMapper {
 				let decryptedValue = await this.decryptValue(valueModel, encryptedValue, instanceDecryptor, ownerKeyProvider, fieldPath)
 				if (
 					isSameTypeRef(RepeatRuleTypeRef, decrypted.getTypeRef()) &&
+					decryptedValue.isString() &&
 					decryptedValue.asString() === "" &&
 					valueModel.id === 1561 // .endValue field
 				) {
