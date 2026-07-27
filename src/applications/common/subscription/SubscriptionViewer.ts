@@ -84,6 +84,7 @@ import { showUserSatisfactionDialogAfterUpgrade } from "../ratings/UserSatisfact
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { NotFoundError } from "@tutao/rest-client/error"
+import { isFreeSignupOnly } from "../misc/LoginUtils"
 
 assertMainOrNode()
 const DAY = 1000 * 60 * 60 * 24
@@ -809,17 +810,19 @@ function showChangeSubscriptionIntervalDialog(accountingInfo: AccountingInfo, pa
 }
 
 function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => boolean): Children {
-	const addButtonAttrs: IconButtonAttrs = {
-		title: "buyGiftCard_label",
-		click: createNotAvailableForFreeClickHandler(
-			UpgradePromptType.PURCHASE_GIFT_CARDS,
-			NewPaidPlans,
-			() => showPurchaseGiftCardDialog(),
-			isPremiumPredicate,
-		),
-		icon: Icons.Plus,
-		size: ButtonSize.Compact,
-	}
+	const addButtonAttrs: IconButtonAttrs | null = isFreeSignupOnly()
+		? null
+		: {
+				title: "buyGiftCard_label",
+				click: createNotAvailableForFreeClickHandler(
+					UpgradePromptType.PURCHASE_GIFT_CARDS,
+					NewPaidPlans,
+					() => showPurchaseGiftCardDialog(),
+					isPremiumPredicate,
+				),
+				icon: Icons.Plus,
+				size: ButtonSize.Compact,
+			}
 	const columnHeading: [TranslationKey, TranslationKey] = ["purchaseDate_label", "value_label"]
 	const columnWidths = [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small]
 	const lines = giftCards
