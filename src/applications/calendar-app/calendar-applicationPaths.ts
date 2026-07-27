@@ -7,7 +7,7 @@ type ViewResolvers = {
 	login: RouteResolver
 	termination: RouteResolver
 	revocation: RouteResolver
-	search: RouteResolver
+	//search: RouteResolver
 	settings: RouteResolver
 	calendar: RouteResolver
 	signup: RouteResolver
@@ -22,7 +22,7 @@ export function applicationPaths({
 	login,
 	termination,
 	revocation,
-	search,
+	//search,
 	settings,
 	calendar,
 	signup,

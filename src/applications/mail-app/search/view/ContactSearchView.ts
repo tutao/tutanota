@@ -2,8 +2,6 @@ import { TopLevelAttrs, TopLevelView } from "../../../../ui/base/TopLevelView"
 import { BaseTopLevelView } from "../../../../ui/BaseTopLevelView"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
 import { ColumnType, ViewColumn } from "../../../../ui/base/ViewColumn"
-import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
-import { UndoModel } from "../../UndoModel"
 import m, { Children, Vnode } from "mithril"
 import { ContactSearchViewModel } from "./ContactSearchViewModel"
 import { AppHeaderAttrs, Header } from "../../../../ui/Header"
@@ -12,7 +10,7 @@ import { SidebarSection } from "../../../../ui/SidebarSection"
 import { layout_size, px } from "../../../../ui/size"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { ContactEditor } from "../../contacts/ContactEditor"
-import { assertNotNull, getFirstOrThrow } from "@tutao/utils"
+import { assertNotNull, getFirstOrThrow, isNotEmpty, lazyMemoized, ofClass } from "@tutao/utils"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { ClickHandler } from "../../../../ui/base/GuiUtils"
 import { styles } from "../../../../ui/styles"
@@ -37,8 +35,8 @@ import { IconButton } from "../../../../ui/base/IconButton"
 import { CONTACTS_PREFIX } from "../../../../ui/utils/RouteChange"
 import { ProgressBar } from "../../../../ui/base/ProgressBar"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../../ui/base/BaseSearchBar"
-import { isKeyPressed } from "../../../../ui/utils/KeyManager"
-import { Keys } from "@tutao/app-env"
+import { isKeyPressed, keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
+import { FeatureType, Keys } from "@tutao/app-env"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
 import { ViewSlider } from "../../../../ui/nav/ViewSlider"
 import { windowFacade } from "../../../common/misc/WindowFacade"
@@ -52,13 +50,15 @@ import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { BottomNav } from "../../gui/BottomNav"
 import { MobileActionBar } from "../../../../ui/MobileActionBar"
 import { MobileBottomActionBar } from "../../../../ui/MobileBottomActionBar"
+import { listSelectionKeyboardShortcuts } from "../../../../ui/base/ListUtils"
+import { MultiselectMode } from "../../../../ui/base/List"
+import { Dialog } from "../../../../ui/base/Dialog"
+import { NotFoundError } from "@tutao/rest-client/error"
 
 export interface ContactSearchViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
 	makeViewModel: () => ContactSearchViewModel
-	contactModel: ContactModel
-	undoModel: UndoModel
 }
 export class ContactSearchView extends BaseTopLevelView implements TopLevelView<ContactSearchViewAttrs> {
 	private readonly resultListColumn: ViewColumn
@@ -66,14 +66,10 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 	private readonly folderColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
 	private readonly searchViewModel: ContactSearchViewModel
-	private readonly contactModel: ContactModel
-	private readonly undoModel: UndoModel
 
 	constructor(vnode: Vnode<ContactSearchViewAttrs>) {
 		super()
 		this.searchViewModel = vnode.attrs.makeViewModel()
-		this.contactModel = vnode.attrs.contactModel
-		this.undoModel = vnode.attrs.undoModel
 
 		this.folderColumn = new ViewColumn(
 			{
@@ -154,11 +150,68 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 			}),
 		)
 	}
+	private deleteContacts(selected: Contact[]): void {
+		Dialog.confirm("deleteContacts_msg").then((confirmed) => {
+			if (confirmed) {
+				if (selected.length > 1) {
+					// is needed for correct selection behavior on mobile
+					this.searchViewModel.listModel.selectNone()
+				}
+
+				for (const contact of selected) {
+					locator.entityClient.erase(contact).catch(
+						ofClass(NotFoundError, (_) => {
+							// ignore because the delete key shortcut may be executed again while the contact is already deleted
+						}),
+					)
+				}
+			}
+		})
+	}
+	getDeleteAndTrashActions(): { deleteAction: (() => unknown) | null; trashAction: (() => unknown) | null } {
+		const selectedContacts = this.searchViewModel.getSelectedContacts()
+		if (isNotEmpty(selectedContacts)) {
+			return { deleteAction: () => this.deleteContacts(selectedContacts), trashAction: null }
+		} else {
+			return { deleteAction: null, trashAction: null }
+		}
+	}
+
+	private readonly shortcuts = lazyMemoized<ReadonlyArray<Shortcut>>(() => {
+		const deleteOrTrashAction = () => {
+			const deleteTrashActions = this.getDeleteAndTrashActions()
+			const action = deleteTrashActions.deleteAction ?? deleteTrashActions.trashAction
+			action?.()
+		}
+		return [
+			...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.searchViewModel.listModel),
+			{
+				key: Keys.N,
+				exec: () => {
+					locator.contactModel.getContactListId().then((contactListId) => {
+						new ContactEditor(locator.entityClient, null, assertNotNull(contactListId)).show()
+					})
+				},
+				enabled: () => locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.ReplyOnly),
+				help: "newMail_action",
+			},
+			{
+				key: Keys.DELETE,
+				exec: () => {
+					deleteOrTrashAction()
+				},
+				help: "delete_action",
+			},
+		]
+	})
+
 	oncreate() {
 		this.searchViewModel.init()
+		keyManager.registerShortcuts(this.shortcuts())
 	}
 	onremove() {
 		this.searchViewModel.dispose()
+		keyManager.unregisterShortcuts(this.shortcuts())
 	}
 	protected async onNewUrl(args: Record<string, any>, requestedPath: string) {
 		await this.searchViewModel.init()

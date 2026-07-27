@@ -77,7 +77,6 @@ import { ContactSearchViewModel } from "./search/view/ContactSearchViewModel"
 import { NewCalendarSearchView, NewCalendarSearchViewAttrs } from "../calendar-app/calendar/search/view/NewCalendarSearchView"
 import { NewCalendarSearchViewModel } from "../calendar-app/calendar/search/view/NewCalendarSearchViewModel"
 import { calendarLocator } from "../calendar-app/calendarLocator"
-import Interceptors from "undici/types/interceptors"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -645,18 +644,16 @@ import("../../ui/translations/en.js")
 			contactSearch: makeViewResolver<
 				ContactSearchViewAttrs,
 				ContactSearchView,
-				{ undoModel: UndoModel; drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs; makeViewModel: () => ContactSearchViewModel }
+				{ drawerAttrsFactory: () => DrawerMenuAttrs; header: AppHeaderAttrs; makeViewModel: () => ContactSearchViewModel }
 			>(
 				{
 					prepareRoute: async () => {
 						const { ContactSearchView } = await import("./search/view/ContactSearchView.js")
 						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
-						const undoModel = await mailLocator.undoModel()
 						const makeViewModel = await mailLocator.contactSearchViewModelFactory()
 						return {
 							component: ContactSearchView,
 							cache: {
-								undoModel,
 								drawerAttrsFactory,
 								header: await mailLocator.appHeaderAttrs(),
 								makeViewModel: makeViewModel,
@@ -665,8 +662,6 @@ import("../../ui/translations/en.js")
 					},
 					prepareAttrs: (cache) => {
 						return {
-							contactModel: mailLocator.contactModel,
-							undoModel: cache.undoModel,
 							makeViewModel: cache.makeViewModel,
 							header: cache.header,
 							drawerAttrs: cache.drawerAttrsFactory(),
@@ -683,12 +678,12 @@ import("../../ui/translations/en.js")
 				{
 					prepareRoute: async () => {
 						const { NewCalendarSearchView } = await import("../calendar-app/calendar/search/view/NewCalendarSearchView.js")
-						const drawerAttrsFactory = await calendarLocator.drawerAttrsFactory()
-						const makeViewModel = await calendarLocator.calendarSearchViewModelFactory()
+						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
+						const makeViewModel = await mailLocator.calendarSearchViewModelFactory()
 						return {
 							component: NewCalendarSearchView,
 							cache: {
-								header: await calendarLocator.appHeaderAttrs(),
+								header: await mailLocator.appHeaderAttrs(),
 								drawerAttrsFactory,
 								makeViewModel,
 							},
@@ -702,7 +697,7 @@ import("../../ui/translations/en.js")
 						}
 					},
 				},
-				calendarLocator.logins,
+				mailLocator.logins,
 			),
 			search: makeViewResolver<
 				SearchViewAttrs,

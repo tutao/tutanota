@@ -172,6 +172,7 @@ import { WebFileResolver } from "../drive-app/drive/view/WebFileResolver"
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
 import { MailSearchViewModel } from "./search/view/MailSearchViewModel"
 import { ContactSearchViewModel } from "./search/view/ContactSearchViewModel"
+import { NewCalendarSearchViewModel } from "../calendar-app/calendar/search/view/NewCalendarSearchViewModel"
 
 assertMainOrNode()
 
@@ -1436,7 +1437,7 @@ class MailLocator implements CommonLocator {
 	}
 	async contactSearchViewModelFactory(): Promise<() => ContactSearchViewModel> {
 		const { ContactSearchViewModel } = await import("./search/view/ContactSearchViewModel.js")
-		const redraw = await this.redraw
+		const redraw = await this.redraw()
 		const router = await this.scopedSearchRouter()
 		const offlineStorageSettings = await this.offlineStorageSettingsModel()
 		return () => new ContactSearchViewModel(this.logins, router, this.search, offlineStorageSettings, redraw)
@@ -1462,6 +1463,24 @@ class MailLocator implements CommonLocator {
 				conversationViewModelFactory,
 				this.mailOpenedListener,
 				redraw,
+			)
+	}
+	async calendarSearchViewModelFactory(): Promise<() => NewCalendarSearchViewModel> {
+		const { NewCalendarSearchViewModel } = await import("../calendar-app/calendar/search/view/NewCalendarSearchViewModel.js")
+		const calendarModel = await this.calendarModel()
+		const redraw = await this.redraw
+		const router = await this.scopedSearchRouter()
+		const offlineStorageSettings = await this.offlineStorageSettingsModel()
+		return () =>
+			new NewCalendarSearchViewModel(
+				calendarModel,
+				this.logins,
+				this.search,
+				router,
+				this.eventController,
+				this.entityClient,
+				redraw,
+				offlineStorageSettings,
 			)
 	}
 }

@@ -1,12 +1,12 @@
 import { CalendarInfoBase, CalendarModel, isBirthdayCalendarInfo, isCalendarInfo } from "../../model/CalendarModel"
 import Id from "../../../../../ui/translations/id"
-import { elementIdPart, getElementId, isSameId, isSameTypeRef } from "@tutao/meta"
+import { assertIsEntity2, elementIdPart, getElementId, isSameId, isSameTypeRef } from "@tutao/meta"
 import { SearchCategoryType, SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes"
 import { createRestriction, encodeCalendarSearchKey, getSearchUrl, searchQueryEquals } from "../../../../mail-app/search/model/SearchUtils"
-import { debounce, downcast, getEndOfDay, getStartOfDay, incrementMonth, isNotNull, onceAsync } from "@tutao/utils"
+import { debounce, downcast, getEndOfDay, getStartOfDay, incrementMonth, isNotNull, isSameDayOfDate, onceAsync, YEAR_IN_MILLIS } from "@tutao/utils"
 import { ListModel } from "../../../../common/misc/ListModel"
 import { SearchResultListEntry } from "../../../../mail-app/search/view/SearchListView"
-import { emptyListModel, SearchableTypes } from "../../../../mail-app/search/view/SearchViewModel"
+import { emptyListModel, PaidFunctionResult, SearchableTypes } from "../../../../mail-app/search/view/SearchViewModel"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef } from "@tutao/entities/tutanota"
 import { LoginController } from "../../../../common/api/main/LoginController"
 import { SearchToken } from "../../../../../ui/utils/QueryTokenUtils"
@@ -27,6 +27,7 @@ import { getRestriction } from "../model/SearchUtils"
 import { isBirthdayCalendar } from "../../../../common/calendar/date/CalendarUtils"
 import { onlySingleSelection } from "../../../../../ui/base/ListUtils"
 import { ListAutoSelectBehavior } from "../../../../common/misc/DeviceConfig"
+import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
 
 export class NewCalendarSearchViewModel {
 	#listModel: ListModel<SearchResultListEntry, Id> = emptyListModel()
@@ -90,8 +91,8 @@ export class NewCalendarSearchViewModel {
 			return returnDate
 		}
 	}
-	getStartofTheWeekOffSet() {
-		return 0
+	getStartOfTheWeekOffset(): number {
+		return getStartOfTheWeekOffsetForUser(this.logins.getUserController().userSettingsGroupRoot)
 	}
 	getAvailableCalendars(includesBirthday: boolean): ReadonlyArray<CalendarInfoBase> {
 		return this.calendarModel.getAvailableCalendars(includesBirthday)
@@ -106,23 +107,78 @@ export class NewCalendarSearchViewModel {
 	}
 
 	canSelectTimePeriod() {
-		return false
+		return !this.logins.getUserController().isFreeAccount()
 	}
 
 	checkDates(startDate: Date | null, endDate: Date | null): "long" | "extendIndex" | "startafterend" | null {
-		return "long"
+		if (startDate && endDate) {
+			if (startDate.getTime() > endDate.getTime()) {
+				return "startafterend"
+			} else {
+				if (startDate && endDate.getTime() - startDate.getTime() > YEAR_IN_MILLIS) {
+					return "long"
+				}
+			}
+		}
+		return null
 	}
 
-	selectStartDate(start: Date | null) {}
+	selectStartDate(startDate: Date | null) {
+		if (isSameDayOfDate(this.startDate, startDate)) {
+			return PaidFunctionResult.Success
+		}
 
-	selectEndDate(end: Date) {}
+		if (!this.canSelectTimePeriod()) {
+			return PaidFunctionResult.PaidSubscriptionNeeded
+		}
 
-	selectCalendar(calendarInfo: CalendarInfoBase | null) {}
+		this.#startDate = startDate
+		this.searchAgain()
+		return PaidFunctionResult.Success
+	}
 
-	selectIncludeRepeatingEvents(b: boolean) {}
+	selectEndDate(endDate: Date) {
+		if (isSameDayOfDate(this.endDate, endDate)) {
+			return PaidFunctionResult.Success
+		}
+
+		if (!this.canSelectTimePeriod()) {
+			return PaidFunctionResult.PaidSubscriptionNeeded
+		}
+
+		this.#endDate = endDate
+
+		this.searchAgain()
+
+		return PaidFunctionResult.Success
+	}
+
+	private searchAgain() {
+		this.updateSearchUrl()
+		this.updateUi()
+	}
+
+	selectCalendar(calendarInfo: CalendarInfoBase | null) {
+		if (!calendarInfo) {
+			this.#selectedCalendar = null
+		} else if (isBirthdayCalendarInfo(calendarInfo)) {
+			this.#selectedCalendar = calendarInfo.id
+		} else if (isCalendarInfo(calendarInfo)) {
+			this.#selectedCalendar = [calendarInfo.groupRoot.longEvents, calendarInfo.groupRoot.shortEvents]
+		}
+		this.searchAgain()
+	}
+
+	selectIncludeRepeatingEvents(include: boolean) {
+		this.#includeRepeatingEvents = include
+		this.searchAgain()
+	}
 
 	getSelectedEvents(): CalendarEvent[] {
-		return []
+		return this.#listModel
+			.getSelectedAsArray()
+			.map((e) => e.entry)
+			.filter(assertIsEntity2(CalendarEventTypeRef))
 	}
 
 	getUserId() {
@@ -391,5 +447,17 @@ export class NewCalendarSearchViewModel {
 		const listModel = this.#listModel
 		let iterations = 0
 		this.#listModel.loadAndSelect(finder ?? ((item) => isSameId(getElementId(item), id)), () => listModel !== this.#listModel || iterations++ > 10)
+	}
+	stopLoadAll() {
+		this.#listModel.cancelLoadAll()
+	}
+
+	dispose() {
+		this.searchResult?.dispose()
+		this.abortController?.abort()
+		this.eventController.removeEntityListener(this.entityEventsListener)
+		this.stopLoadAll()
+		this.resultSubscription?.end(true)
+		this.resultSubscription = null
 	}
 }

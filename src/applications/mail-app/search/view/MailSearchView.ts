@@ -9,14 +9,14 @@ import { layout_size, px } from "../../../../ui/size"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
 import { styles } from "../../../../ui/styles"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
-import { assertNotNull, first, isEmpty, isNotEmpty, isSameDayOfDate, noOp, ofClass, setDifference } from "@tutao/utils"
+import { assertNotNull, first, isEmpty, isNotEmpty, isSameDayOfDate, lazyMemoized, noOp, ofClass, setDifference } from "@tutao/utils"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { isApp, isBrowser, Keys, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { FeatureType, isApp, isBrowser, Keys, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { Card } from "../../../../ui/base/Card"
-import { ClickHandler } from "../../../../ui/base/GuiUtils"
+import { ClickHandler, getDetachedDropdownBounds } from "../../../../ui/base/GuiUtils"
 import { BackgroundColumnLayout } from "../../../../ui/BackgroundColumnLayout"
 import { theme } from "../../../../ui/theme"
 import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../ui/DesktopToolbars"
@@ -33,7 +33,7 @@ import { Icons } from "../../../../ui/base/icons/Icons"
 import { MAIL_PREFIX } from "../../../../ui/utils/RouteChange"
 import { ProgressBar } from "../../../../ui/base/ProgressBar"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../../ui/base/BaseSearchBar"
-import { isKeyPressed } from "../../../../ui/utils/KeyManager"
+import { isKeyPressed, keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
 import { getElementId, getIds, isSameId, isSameTypeRef } from "@tutao/meta"
 import { Mail, MailTypeRef } from "@tutao/entities/tutanota"
@@ -80,6 +80,9 @@ import { getGroupInfoDisplayName } from "../../../../platform-kit/network/GroupU
 import { AllIcons } from "../../../../ui/base/Icon"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 import { showDateRangeSelectionDialog } from "../../../calendar-app/calendar/gui/pickers/DatePickerDialog"
+import { listSelectionKeyboardShortcuts } from "../../../../ui/base/ListUtils"
+import { MultiselectMode } from "../../../../ui/base/List"
+import { SimpleMoveMailTarget } from "../../mail/MailUtils"
 
 export interface MailSearchViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -449,6 +452,115 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 		this.searchViewModel.onNewUrl(args, requestedPath)
 		m.redraw()
 	}
+
+	private readonly shortcuts = lazyMemoized<ReadonlyArray<Shortcut>>(() => {
+		const deleteOrTrashAction = () => {
+			const deleteTrashActions = this.getDeleteAndTrashActions()
+			const action = deleteTrashActions.deleteAction ?? deleteTrashActions.trashAction
+			action?.()
+		}
+
+		return [
+			...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.searchViewModel.listModel),
+			{
+				key: Keys.N,
+				exec: () => {
+					newMailEditor()
+						.then((editor) => editor?.show())
+						.catch(ofClass(PermissionError, noOp))
+				},
+				enabled: () => locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.ReplyOnly),
+				help: "newMail_action",
+			},
+			{
+				key: Keys.DELETE,
+				exec: () => {
+					deleteOrTrashAction()
+				},
+				help: "delete_action",
+			},
+			{
+				key: Keys.BACKSPACE,
+				exec: () => {
+					deleteOrTrashAction()
+				},
+				help: "delete_action",
+			},
+			{
+				key: Keys.A,
+				exec: () => this.moveSelectedToSystemFolder(MailSetKind.ARCHIVE),
+				help: "archive_action",
+			},
+			{
+				key: Keys.I,
+				exec: () => this.moveSelectedToSystemFolder(MailSetKind.INBOX),
+				help: "moveToInbox_action",
+			},
+			{
+				key: Keys.V,
+				exec: () => {
+					this.move()
+				},
+				help: "move_action",
+			},
+			{
+				key: Keys.Z,
+				ctrlOrCmd: true,
+				exec: () => {
+					this.undoModel.performUndoAction()
+				},
+				help: "undo_action",
+			},
+			{
+				key: Keys.U,
+				exec: () => this.toggleUnreadStatus(),
+				help: "toggleUnread_action",
+			},
+		]
+	})
+
+	private moveSelectedToSystemFolder(targetFolder: SimpleMoveMailTarget): void {
+		const selectedMails = this.searchViewModel.getSelectedMails()
+
+		if (selectedMails.length > 0) {
+			if (selectedMails.length > 1) {
+				this.searchViewModel.listModel.selectNone()
+			}
+
+			simpleMoveToSystemFolder(mailLocator.mailboxModel, mailLocator.mailModel, this.undoModel, targetFolder, selectedMails, mailLocator.contactModel)
+		}
+	}
+
+	private async move() {
+		const selectedMails = this.searchViewModel.getSelectedMails()
+
+		if (selectedMails.length > 0) {
+			showMoveMailsDropdown(
+				mailLocator.mailboxModel,
+				mailLocator.mailModel,
+				this.undoModel,
+				getDetachedDropdownBounds(),
+				selectedMails,
+				MoveMode.Mails,
+				mailLocator.contactModel,
+			)
+		}
+	}
+
+	private toggleUnreadStatus(): void {
+		let selectedMails = this.searchViewModel.getSelectedMails()
+
+		if (selectedMails.length > 0) {
+			const unreadValue = !selectedMails[0].unread
+			selectedMails.map((mail) => {
+				mail.unread = unreadValue
+			})
+			mailLocator.mailModel.markMails(
+				selectedMails.map((m) => m._id),
+				unreadValue,
+			)
+		}
+	}
 	view({ attrs }: Vnode<MailSearchViewAttrs>): Children {
 		return m(
 			"#search.main-view",
@@ -465,9 +577,11 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 	}
 	oncreate() {
 		this.searchViewModel.init()
+		keyManager.registerShortcuts(this.shortcuts())
 	}
 	onremove() {
 		this.searchViewModel.dispose()
+		keyManager.unregisterShortcuts(this.shortcuts())
 	}
 	private renderDetailsView(header: AppHeaderAttrs) {
 		const selectedMails = this.searchViewModel.getSelectedMails()

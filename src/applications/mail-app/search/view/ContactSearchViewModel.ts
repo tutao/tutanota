@@ -142,6 +142,9 @@ export class ContactSearchViewModel {
 			listModel.loadInitial()
 			this.loadAndSelectIfNeeded(args.id)
 		}
+		this.listModel.stateStream.map(() => {
+			this.updateUi()
+		})
 	}
 	private loadAndSelectIfNeeded(id: string | null, finder?: (a: SearchResultListEntry) => boolean) {
 		// nothing to select

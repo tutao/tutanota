@@ -4,11 +4,9 @@ import { BaseTopLevelView } from "../../../../../ui/BaseTopLevelView"
 import { ColumnType, ViewColumn } from "../../../../../ui/base/ViewColumn"
 import { ViewSlider } from "../../../../../ui/nav/ViewSlider"
 import { NewCalendarSearchViewModel } from "./NewCalendarSearchViewModel"
-import { ContactModel } from "../../../../common/contactsFunctionality/ContactModel"
-import { UndoModel } from "../../../../mail-app/UndoModel"
 import m, { Children, Vnode } from "mithril"
 import { SidebarSection } from "../../../../../ui/SidebarSection"
-import { layout_size, px, size } from "../../../../../ui/size"
+import { layout_size, px } from "../../../../../ui/size"
 import { DrawerMenuAttrs } from "../../../../common/gui/nav/DrawerMenu"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils"
 import { showProgressDialog } from "../../../../../ui/dialogs/ProgressDialog"
@@ -19,13 +17,13 @@ import { Icons } from "../../../../../ui/base/icons/Icons"
 import { FilterChip } from "../../../../../ui/base/FilterChip"
 import { lang, TranslationKey } from "../../../../../ui/utils/LanguageViewModel"
 import { formatDate } from "../../../../../ui/utils/Formatter"
-import { assertNotNull, isSameDayOfDate, LazyLoaded, memoized } from "@tutao/utils"
-import { isSameId, isSameTypeRef } from "@tutao/meta"
+import { assertNotNull, isSameDayOfDate, LazyLoaded, lazyMemoized, memoized } from "@tutao/utils"
+import { isSameId } from "@tutao/meta"
 import { createDropdown } from "../../../../../ui/base/Dropdown"
 import { AllIcons } from "../../../../../ui/base/Icon"
-import { SearchCategoryType, SearchRestriction } from "../../../../common/api/worker/search/SearchTypes"
+import { SearchCategoryType } from "../../../../common/api/worker/search/SearchTypes"
 import { showNotAvailableForFreeDialog } from "../../../../common/misc/SubscriptionDialogs"
-import { Keys, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { FeatureType, Keys, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { showDateRangeSelectionDialog } from "../../gui/pickers/DatePickerDialog"
 import { Card } from "../../../../../ui/base/Card"
 import { renderSearchInOurApps } from "../../../../mail-app/search/view/SearchView"
@@ -49,10 +47,9 @@ import {
 	handleEventEditButtonClick,
 	handleSendUpdatesClick,
 } from "../../view/EventDetailsView"
-import { CalendarEvent, Contact, MailTypeRef } from "@tutao/entities/tutanota"
+import { CalendarEvent, Contact } from "@tutao/entities/tutanota"
 import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel"
 import { CalendarInfo } from "../../model/CalendarModel"
-import { calendarLocator } from "../../../calendarLocator"
 import { SearchListView, SearchListViewAttrs } from "../../../../mail-app/search/view/SearchListView"
 import { MobileHeader } from "../../../../../ui/MobileHeader"
 import ColumnEmptyMessageBox from "../../../../../ui/base/ColumnEmptyMessageBox"
@@ -60,14 +57,15 @@ import { ContactCardViewer } from "../../../../mail-app/contacts/view/ContactCar
 import { ContactEditor } from "../../../../mail-app/contacts/ContactEditor"
 import { writeMail } from "../../../../mail-app/contacts/view/ContactView"
 import { windowFacade } from "../../../../common/misc/WindowFacade"
-import { Type } from "cborg"
-import undefined = Type.undefined
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../../../ui/base/BaseSearchBar"
-import { isKeyPressed } from "../../../../../ui/utils/KeyManager"
+import { isKeyPressed, keyManager, Shortcut } from "../../../../../ui/utils/KeyManager"
 import { renderHeaderButtons } from "../../../gui/HeaderButtons"
 import { BottomNav } from "../../../../mail-app/gui/BottomNav"
 import { FolderColumnView } from "../../../../common/gui/FolderColumnView"
 import { ClickHandler } from "../../../../../ui/base/GuiUtils"
+import { listSelectionKeyboardShortcuts } from "../../../../../ui/base/ListUtils"
+import { MultiselectMode } from "../../../../../ui/base/List"
+import { calendarLocator } from "../../../calendarLocator"
 
 export interface NewCalendarSearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
@@ -85,7 +83,7 @@ export class NewCalendarSearchView extends BaseTopLevelView implements TopLevelV
 	constructor(vnode: Vnode<NewCalendarSearchViewAttrs>) {
 		super()
 		this.searchViewModel = vnode.attrs.makeViewModel()
-		this.startOfTheWeekOffset = this.searchViewModel.getStartofTheWeekOffSet()
+		this.startOfTheWeekOffset = this.searchViewModel.getStartOfTheWeekOffset()
 
 		this.resultListColumn = new ViewColumn(
 			{
@@ -393,7 +391,7 @@ export class NewCalendarSearchView extends BaseTopLevelView implements TopLevelV
 		new LazyLoaded(async () => {
 			const calendars = await this.searchViewModel.getAvailableCalendars(false)
 			const calendarInfosMap = new Map(calendars.map((calendarInfo) => [calendarInfo.id, calendarInfo as CalendarInfo]))
-			const eventPreviewModel = await calendarLocator.calendarEventPreviewModel(event, calendarInfosMap, [])
+			const eventPreviewModel = await locator.calendarEventPreviewModel(event, calendarInfosMap, [])
 			eventPreviewModel.sanitizeDescription().then(() => m.redraw())
 			return eventPreviewModel
 		}).load(),
@@ -516,6 +514,28 @@ export class NewCalendarSearchView extends BaseTopLevelView implements TopLevelV
 			}),
 		)
 	}
+
+	private readonly shortcuts = lazyMemoized<ReadonlyArray<Shortcut>>(() => [
+		...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.searchViewModel.listModel),
+		{
+			key: Keys.N,
+			exec: () => {
+				this.createNewEventDialog()
+			},
+			enabled: () => locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.ReplyOnly),
+			help: "newMail_action",
+		},
+	])
+
+	oncreate() {
+		this.searchViewModel.init()
+		keyManager.registerShortcuts(this.shortcuts())
+	}
+	onremove() {
+		this.searchViewModel.dispose()
+		keyManager.unregisterShortcuts(this.shortcuts())
+	}
+
 	private renderSearchbar() {
 		return m(
 			// form wrapper to isolate the search input and prevent it from being autofilled when unrelated buttons are clicked on chrome

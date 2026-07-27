@@ -312,35 +312,35 @@ import("../../ui/translations/en.js")
 				},
 				calendarLocator.logins,
 			),
-			search: makeViewResolver<
-				CalendarSearchViewAttrs,
-				CalendarSearchView,
-				{
-					header: AppHeaderAttrs
-					searchViewModelFactory: () => CalendarSearchViewModel
-					contactModel: ContactModel
-				}
-			>(
-				{
-					prepareRoute: async () => {
-						const { CalendarSearchView } = await import("./calendar/search/view/CalendarSearchView.js")
-						return {
-							component: CalendarSearchView,
-							cache: {
-								header: await calendarLocator.appHeaderAttrs(),
-								searchViewModelFactory: await calendarLocator.searchViewModelFactory(),
-								contactModel: calendarLocator.contactModel,
-							},
-						}
-					},
-					prepareAttrs: (cache) => ({
-						header: cache.header,
-						makeViewModel: cache.searchViewModelFactory,
-						contactModel: cache.contactModel,
-					}),
-				},
-				calendarLocator.logins,
-			),
+			// search: makeViewResolver<
+			// 	CalendarSearchViewAttrs,
+			// 	CalendarSearchView,
+			// 	{
+			// 		header: AppHeaderAttrs
+			// 		searchViewModelFactory: () => CalendarSearchViewModel
+			// 		contactModel: ContactModel
+			// 	}
+			// >(
+			// 	{
+			// 		prepareRoute: async () => {
+			// 			const { CalendarSearchView } = await import("./calendar/search/view/CalendarSearchView.js")
+			// 			return {
+			// 				component: CalendarSearchView,
+			// 				cache: {
+			// 					header: await calendarLocator.appHeaderAttrs(),
+			// 					searchViewModelFactory: await calendarLocator.searchViewModelFactory(),
+			// 					contactModel: calendarLocator.contactModel,
+			// 				},
+			// 			}
+			// 		},
+			// 		prepareAttrs: (cache) => ({
+			// 			header: cache.header,
+			// 			makeViewModel: cache.searchViewModelFactory,
+			// 			contactModel: cache.contactModel,
+			// 		}),
+			// 	},
+			// 	calendarLocator.logins,
+			// ),
 			calendar: makeViewResolver<
 				CalendarViewAttrs,
 				CalendarView,
