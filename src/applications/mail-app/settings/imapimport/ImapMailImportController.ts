@@ -100,6 +100,7 @@ export class ImapMailImportController {
 
 	private displayUpdateImapCredentialsDialog(imapAccountSyncState: ImapAccountSyncState) {
 		if (!this.isDisplayingOauthCredentialPopup) {
+			this.isDisplayingOauthCredentialPopup = true
 			showUpdateImapCredentialsDialog(
 				{
 					syncState: imapAccountSyncState,
