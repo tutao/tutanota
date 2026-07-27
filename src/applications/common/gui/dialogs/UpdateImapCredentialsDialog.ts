@@ -68,6 +68,7 @@ export function showUpdateImapCredentialsDialog(
 							{
 								mainActionText: "resolveProblem_action",
 								mainActionClick: async () => {
+									viewModel.disableUpdateButton = true
 									const provider = parseInt(viewModel.imapAccountSyncState.provider) as ImapProvider
 									const isOAuth = provider !== ImapProvider.Other
 									if (isOAuth) {
@@ -90,11 +91,14 @@ export function showUpdateImapCredentialsDialog(
 												}
 											}
 										}
+										viewModel.disableUpdateButton = false
 									} else {
 										onCloseDialog()
 										okAction(dialog, viewModel.imapAccountSyncState.imapAccount)
 									}
+									dialog.close()
 								},
+								disableMainActionButton: viewModel.disableUpdateButton,
 								subActionText: null,
 								subActionClick: () => {},
 							},
@@ -207,6 +211,7 @@ function renderImapCredentials(viewModel: UpdateImapCredentialsDialogViewModel) 
 
 class UpdateImapCredentialsDialogViewModel {
 	public renderPasswordVisibly: boolean = false
+	public disableUpdateButton: boolean = false
 	constructor(
 		readonly updateUi: () => void,
 		readonly imapAccountSyncState: ImapAccountSyncState,
