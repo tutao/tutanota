@@ -16,7 +16,7 @@ import { NewsModel } from "../../misc/news/NewsModel.js"
 import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { styles } from "../../../../ui/styles.js"
 import { IconButton } from "../../../../ui/base/IconButton.js"
-import { FeatureType, isBrowser, isIOSApp, UpgradePromptType } from "@tutao/app-env"
+import { FeatureType, isAndroidApp, isBrowser, isIOSApp, UpgradePromptType } from "@tutao/app-env"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
@@ -90,7 +90,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 							colors: ButtonColor.DrawerNav,
 						})
 					: null,
-				!isIOSApp() && isLoggedIn && userController.isFreeAccount()
+				!isIOSApp() && !isAndroidApp() && isLoggedIn && userController.isFreeAccount()
 					? m(IconButton, {
 							icon: Icons.TrophyFilled,
 							title: "upgradePremium_label",
