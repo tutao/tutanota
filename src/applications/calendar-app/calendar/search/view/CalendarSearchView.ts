@@ -58,6 +58,8 @@ import { showDateRangeSelectionDialog } from "../../gui/pickers/DatePickerDialog
 import { CalendarInfo } from "../../model/CalendarModel"
 import { windowFacade } from "../../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../gui/HeaderButtons"
+import { isFreeSignupOnly } from "../../../../common/misc/LoginUtils"
+import { locator } from "../../../../common/api/main/CommonLocator"
 
 assertMainOrNode()
 
@@ -517,7 +519,12 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				),
 				selected: true,
 				chevron: false,
-				onClick: (_) => this.onCalendarDateRangeSelect(),
+				onClick: (_) => {
+					if (isFreeSignupOnly() && locator.logins.getUserController().isFreeAccount()) {
+						return
+					}
+					this.onCalendarDateRangeSelect()
+				},
 			}),
 			m(FilterChip, {
 				label: selectedCalendar
