@@ -1417,7 +1417,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 		]
 
-		if (this.canShare(isExternal)) {
+		if (this.canShare(isExternal) && (!isFreeSignupOnly() || !locator.logins.getUserController().isFreeAccount())) {
 			actions.push({
 				label: "sharing_label",
 				icon: Icons.PersonAddFilled,
