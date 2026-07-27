@@ -56,6 +56,7 @@ export class ImapMailImportController {
 	public activeImapImportUiSessions: ImapImportUiSession[] = []
 	public canceledImapImportUiSessions: ImapImportUiSession[] = []
 	private imapImportResyncIntervalId: TimeoutID | null = null
+	private isDisplayingOauthCredentialPopup = false
 
 	constructor(
 		private readonly imapImporter: ImapImporter,
@@ -98,21 +99,28 @@ export class ImapMailImportController {
 	}
 
 	private displayUpdateImapCredentialsDialog(imapAccountSyncState: ImapAccountSyncState) {
-		showUpdateImapCredentialsDialog(
-			{
-				syncState: imapAccountSyncState,
-				oauthHandlerFactory: (config, serviceExecutor) => new OAuthHandler(config, serviceExecutor),
-			},
-			async (dialog, updatedAccount) => {
-				if (updatedAccount) {
-					imapAccountSyncState.imapAccount = updatedAccount
-					imapAccountSyncState.status = ImapAccountSyncStatus.PAUSED
-					await this.entityClient.update(imapAccountSyncState)
-					await this.continueImport(imapAccountSyncState._id)
-					dialog.close()
-				}
-			},
-		)
+		if (!this.isDisplayingOauthCredentialPopup) {
+			showUpdateImapCredentialsDialog(
+				{
+					syncState: imapAccountSyncState,
+					oauthHandlerFactory: (config, serviceExecutor) => new OAuthHandler(config, serviceExecutor),
+				},
+				async (dialog, updatedAccount) => {
+					if (updatedAccount) {
+						imapAccountSyncState.imapAccount = updatedAccount
+						imapAccountSyncState.status = ImapAccountSyncStatus.PAUSED
+						await this.entityClient.update(imapAccountSyncState)
+						await this.continueImport(imapAccountSyncState._id)
+						dialog.close()
+					} else {
+						// Think of case we don't have the updated account sucessfully?
+					}
+				},
+				() => {
+					this.isDisplayingOauthCredentialPopup = false
+				},
+			)
+		}
 	}
 
 	async initUiSessions() {
