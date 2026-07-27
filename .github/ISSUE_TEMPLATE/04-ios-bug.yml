@@ -1,5 +1,5 @@
 name: Bug Report (iOS app)
-description: File a bug report for the issue with the desktop app
+description: File a bug report for the issue with the iOS app
 labels: ["bug", "ios"]
 type: bug
 body:
