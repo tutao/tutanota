@@ -1,5 +1,5 @@
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
-import { assertNotNull, groupByAndMap, isEmpty, last, lazyAsync, neverNull, promiseMap, splitInChunks } from "../../../../platform-kit/utils"
+import { assertNotNull, groupByAndMap, isEmpty, last, lazyAsync, promiseMap, splitInChunks } from "../../../../platform-kit/utils"
 import {
 	compareNewestFirst,
 	constructMailSetEntryId,
@@ -277,7 +277,7 @@ export class SpamClassifierDataDealer {
 				const mailFolderId = assertNotNull(mail.sets.find((setId) => allMailFolders.find((folderId) => isSameId(setId, folderId))) ?? null)
 				const mailFolder = assertNotNull(mailSets.find((set) => isSameId(set._id, mailFolderId)) ?? null)
 				const isSpam = getMailSetKind(mailFolder) === MailSetKind.SPAM
-				const { uploadableVectorLegacy, uploadableVector } = await mailFacade.createModelInputAndUploadableVectors(mail, mailDetails, mailFolder)
+				const { uploadableVectorLegacy, uploadableVector } = await mailFacade.createModelInputAndUploadableVectors(mail, mailDetails)
 				const unencryptedPopulateClientSpamTrainingData: UnencryptedPopulateClientSpamTrainingDatum = {
 					mailId: mail._id,
 					isSpam,

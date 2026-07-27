@@ -1,4 +1,4 @@
-import { assertNotNull, asyncFind, isDomainName, isRegularExpression, Nullable } from "../../../../platform-kit/utils"
+import { asyncFind, isDomainName, isRegularExpression, Nullable } from "../../../../platform-kit/utils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import type { SelectorItemList } from "../../../../ui/base/DropDownSelector.js"
@@ -87,12 +87,7 @@ export class InboxRuleHandler {
 			const targetFolder = folders.getFolderById(elementIdPart(inboxRule.targetFolder))
 
 			if (targetFolder) {
-				const currentFolder = assertNotNull(folders.getFolderByMail(mail))
-				const { uploadableVectorLegacy, uploadableVector } = await this.mailFacade.createModelInputAndUploadableVectors(
-					mail,
-					mailDetails,
-					currentFolder,
-				)
+				const { uploadableVectorLegacy, uploadableVector } = await this.mailFacade.createModelInputAndUploadableVectors(mail, mailDetails)
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
 					mailId: mail._id,
 					targetMoveFolder: targetFolder._id,
