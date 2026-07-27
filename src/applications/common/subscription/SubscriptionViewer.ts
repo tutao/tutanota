@@ -82,7 +82,7 @@ import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { showUserSatisfactionDialogAfterUpgrade } from "../ratings/UserSatisfactionUtils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { client, ClientPlatform } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { isFreeSignupOnly } from "../misc/LoginUtils"
 
@@ -113,7 +113,6 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private _lastBooking: Booking | null = null
 	private _orderAgreement: OrderProcessingAgreement | null = null
 	private currentPlanType: PlanType | null = null
-	private _isCancelled: boolean | null = null
 	private _giftCards: Map<Id, GiftCard>
 	private _shownSatisfactionDialog = false
 
@@ -137,6 +136,25 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		this._giftCardsExpanded = stream<boolean>(false)
 
 		this.view = (): Children => {
+			const renderEditSubscriptionButton = () => {
+				if (client.getClientPlatform() === ClientPlatform.ANDROID_CALENDAR_APP) {
+					return null
+				} else if (locator.logins.getUserController().isFreeAccount()) {
+					return m(IconButton, {
+						title: "upgrade_action",
+						click: () => showProgressDialog("pleaseWait_msg", this.handleUpgradeSubscription()),
+						icon: Icons.PenFilled,
+						size: ButtonSize.Compact,
+					})
+				} else {
+					return m(IconButton, {
+						title: "subscription_label",
+						click: () => this.onSubscriptionClick(),
+						icon: Icons.PenFilled,
+						size: ButtonSize.Compact,
+					})
+				}
+			}
 			return m("#subscription-settings.fill-absolute.scroll.plr-24.pb-48", [
 				m(".h4.mt-32", lang.get("currentlyBooked_label")),
 				m(LegacyTextField, {
@@ -144,22 +162,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					value: this._subscriptionFieldValue(),
 					oninput: this._subscriptionFieldValue,
 					isReadOnly: true,
-					injectionsRight: () =>
-						locator.logins.getUserController().isFreeAccount()
-							? m(IconButton, {
-									title: "upgrade_action",
-									click: () => showProgressDialog("pleaseWait_msg", this.handleUpgradeSubscription()),
-									icon: Icons.PenFilled,
-									size: ButtonSize.Compact,
-								})
-							: !this._isCancelled
-								? m(IconButton, {
-										title: "subscription_label",
-										click: () => this.onSubscriptionClick(),
-										icon: Icons.PenFilled,
-										size: ButtonSize.Compact,
-									})
-								: null,
+					injectionsRight: renderEditSubscriptionButton,
 				}),
 				this.showOrderAgreement() ? this.renderAgreement() : null,
 				this.showPriceData() ? this.renderIntervals() : null,
