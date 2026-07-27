@@ -88,7 +88,7 @@ export function subscriptionSettingsSection(logins: LoginController, mobilePayme
 				"invoice",
 				() => new PaymentViewer(),
 				undefined,
-			).setIsVisibleHandler(() => shouldShowSubscriptionSetting()),
+			).setIsVisibleHandler(() => shouldShowSubscriptionSetting() && !logins.getUserController().isFreeAccount()),
 			new SettingsFolder(
 				() => "referralSettings_label",
 				() => Icons.ShareFilled,
