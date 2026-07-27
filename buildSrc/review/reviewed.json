@@ -6260,9 +6260,9 @@
 		"hash": "a733c6296d6a80ce9a59a01b39e0bf4e611f609723b09f37d8c6bb1fffe7aec1"
 	},
 	"node_modules/app-builder-lib/out/index.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "c2247910e791c634f668924bf665e5d567298d2eba4e046976c6530848d90c91"
+		"who": "ivk",
+		"when": "2026-07-30",
+		"hash": "4e0e1049e5018fae804b082318cd4546d600b0b6a09f191537f6bb0f9ad774be"
 	},
 	"node_modules/app-builder-lib/out/util/pathManager.js": {
 		"who": "ivk",
@@ -6376,7 +6376,7 @@
 	},
 	"node_modules/app-builder-lib/out/node-module-collector/packageManager.js": {
 		"who": "ivk",
-		"when": "2026-02-25",
+		"when": "2026-07-27",
 		"hash": "ff348915c27c3625f856a2d81b33374361fe5f3871aa5c9a26cfd6ee424b93d2"
 	},
 	"node_modules/y18n/build/index.cjs": {
@@ -7491,8 +7491,8 @@
 	},
 	"node_modules/app-builder-lib/out/targets/differentialUpdateInfoBuilder.js": {
 		"who": "ivk",
-		"when": "2026-03-24",
-		"hash": "8dbd1cd0f4bc5fa6885e83579eea67b4f4cfcf402d9baad49e25de831565a5b3"
+		"when": "2026-07-28",
+		"hash": "d9ae97504feb6a3bcf2232fb1fa3e2d206f9c7d319f2ae1e1f5d2a27e3c5471d"
 	},
 	"node_modules/app-builder-lib/out/targets/ArchiveTarget.js": {
 		"who": "ivk",
@@ -7696,8 +7696,8 @@
 	},
 	"node_modules/app-builder-lib/out/util/config/config.js": {
 		"who": "ivk",
-		"when": "2026-03-24",
-		"hash": "feeb87687125744eaeadcac5c748afb693a15a88b68b631598e0e32627a5b554"
+		"when": "2026-07-28",
+		"hash": "d2edce3e690c3bee805a8431d8256770d4f8c6dd7a3ea88ee28303101c4fe79f"
 	},
 	"node_modules/app-builder-lib/out/util/packageDependencies.js": {
 		"who": "ivk",
@@ -8410,9 +8410,9 @@
 		"hash": "75c1464933e20f393b3e65c8f1df599558f96a7b72a76986ac411878dab59d88"
 	},
 	"node_modules/app-builder-lib/out/targets/LinuxTargetHelper.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "db745ee178b3360e7a8d3f70cbe7f58b69cab52f8e5d37026a5130cf40cbb017"
+		"who": "ivk",
+		"when": "2026-07-30",
+		"hash": "726a6d4b848ccedebc38f7d010bfe6cb14f07a7b12d0bd333e488a5c2f8b6400"
 	},
 	"node_modules/app-builder-lib/out/targets/AppImageTarget.js": {
 		"who": "ivk, mab",
@@ -8420,9 +8420,9 @@
 		"hash": "9d8d05c5d96d3da97463b62e68bb605fc69daec683795be11d3fe39b7da49521"
 	},
 	"node_modules/app-builder-lib/out/linuxPackager.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "bbb1bf42b971abcea3eef0b645ec0ddebe0afe660f39b69729c9347fdcf56788"
+		"who": "ivk",
+		"when": "2026-07-30",
+		"hash": "2c18a374d051b3908da987ca297e55de5513611ea59c55bcdeac8d0bfc3db991"
 	},
 	"node_modules/app-builder-lib/out/util/flags.js": {
 		"who": "ivk, mab",
@@ -8460,9 +8460,9 @@
 		"hash": "c2b81e4110922817ca7906507aef5079dfd514dba25c2105fc528e3dcff1a271"
 	},
 	"node_modules/app-builder-lib/out/macPackager.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "1abd4845496861d97934540252aa0f6fa00d02c1b72230fc5b5604c6899d6fe5"
+		"who": "ivk",
+		"when": "2026-07-30",
+		"hash": "67df3d520ce09a0f73e5c8e0eacb28fdd83e007b23ab893917ec2d035103bb67"
 	},
 	"node_modules/app-builder-lib/out/codeSign/windowsCodeSign.js": {
 		"who": "ivk, mab",
@@ -8500,9 +8500,9 @@
 		"hash": "ad46bb586e8a78707327330917373f2ca22a46a5932313df08976d43c17471ed"
 	},
 	"node_modules/app-builder-lib/out/codeSign/windowsSignToolManager.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "bdff3d2f54e19008b07313e119da47646aee1d053a747d2b600aa56779f368d9"
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "4b956727cd23830550c56315e8debe73f4bbc120b57dc3302952390d7ce09e8d"
 	},
 	"node_modules/app-builder-lib/out/options/CommonWindowsInstallerConfiguration.js": {
 		"who": "ivk, mab",
@@ -8540,9 +8540,9 @@
 		"hash": "182183bda283c734d8541ec2aefae98f5cf371b8092b3ab745752eb7c2617648"
 	},
 	"node_modules/app-builder-lib/out/targets/nsis/NsisTarget.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "ae42d47b34ca010e74a37c79133378bd937d4627eb992abbe4d30de1519d7236"
+		"who": "ivk",
+		"when": "2026-07-30",
+		"hash": "43a6cb5c64b0f0f889bc9dd9d66fa351e5294cd6a7baedfa834c0067fd123372"
 	},
 	"node_modules/app-builder-lib/out/targets/nsis/WebInstallerTarget.js": {
 		"who": "ivk, mab",
@@ -8555,9 +8555,9 @@
 		"hash": "7448b522a14e8e27bd60b8bbe0fab31b88621bfca88ebba81a25a1fc0880d8ab"
 	},
 	"node_modules/app-builder-lib/out/winPackager.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "c44c69d21294f2943debef63f9aa437c6aa5a87fd640a5c397663bddac478a6e"
+		"who": "ivk",
+		"when": "2026-07-30",
+		"hash": "ac4ae48193db71cc50be3eeb6017d4e35f934637eac0ae7ef4e0c62fbd9db552"
 	},
 	"node_modules/electron-builder/out/builder.js": {
 		"who": "ivk, mab",
@@ -8573,5 +8573,1530 @@
 		"who": "ivk, mab",
 		"when": "2026-03-27",
 		"hash": "88bdbc15527e0345b44c9a92a6e2ae53f18ba182f383ef0b26a51befdda5e18e"
+	},
+	"node_modules/app-builder-lib/node_modules/ci-info/vendors.json": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "0328633dd00a573777cc47c1d5790ad494becc9f3436ed723bd1a66f6515e003"
+	},
+	"node_modules/app-builder-lib/node_modules/ci-info/index.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "94772d86a718ebeefa1273918175b3816fa051a4d544ce565bcc53c58d5fc74f"
+	},
+	"node_modules/brace-expansion/dist/commonjs/index.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "994eb761eca1c861f586ce6ab31bc2e7a6bc020dc4d6636d5e8b778c366d133f"
+	},
+	"node_modules/@electron/fuses/node_modules/fs-extra/lib/fs/index.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "6fc38ce67d60cc5dc9b52a6385ff133007fb1bc446bfc6ccc5971a4b418eec27"
+	},
+	"node_modules/at-least-node/index.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "b71333cd05a553a7f4a9451d942d0f8ced014909ef2a268baef6f411f31cc6e4"
+	},
+	"node_modules/@electron/fuses/node_modules/fs-extra/lib/mkdirs/make-dir.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "58755be7dd1c7a78a7c137c7eea18c2e6ccfe221a720ae1da2a0fff3dc3114d4"
+	},
+	"node_modules/@electron/fuses/node_modules/fs-extra/lib/empty/index.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "e32d83a6fd73dd1399e5a755f34d070788a68b0f215a679945b226c1b3f00a8b"
+	},
+	"node_modules/@electron/fuses/node_modules/fs-extra/lib/util/stat.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "c92fca3e541916d2138c18bcd887a6e4fa46bb2e9746cc05d63ba2edc522cf5d"
+	},
+	"node_modules/@electron/fuses/node_modules/fs-extra/lib/copy-sync/copy-sync.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "c9e73ad9492a4a1e2242f1e941302d01f21f3978fa30119db2b3eaad17feb87d"
+	},
+	"node_modules/@electron/fuses/node_modules/fs-extra/lib/copy-sync/index.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "43d2fc28f9a6071056f3055cca70d810555a7229c93c70810881c048bf3dce73"
+	},
+	"node_modules/@electron/fuses/node_modules/fs-extra/lib/copy/copy.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "3c0bb54aa431fac2a9b0a1c26562e465e4b540d20cb40e5400d9c2d01f0d9dfd"
+	},
+	"node_modules/@electron/fuses/node_modules/fs-extra/lib/copy/index.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "06f95d3bdf12008047c254fdd977e43ca451c1470ab7ef0fefbb48b7dbb39008"
+	},
+	"node_modules/@electron/fuses/node_modules/fs-extra/lib/json/output-json.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "1f58fdf60cdbc9d34cd7a4e2688be218572bc8beb4ce3ce377dca515a06e3b50"
+	},
+	"node_modules/@electron/fuses/node_modules/fs-extra/lib/json/output-json-sync.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "7e84f5c478c02d8507238dc355ed5fe649fe61959bdc100da7c2a29599bcb714"
+	},
+	"node_modules/@electron/fuses/node_modules/fs-extra/lib/json/index.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "c5ac6a8005308e5bb36619fed225c987872300d356fa95d0d56878029ebbdc45"
+	},
+	"node_modules/@electron/fuses/node_modules/fs-extra/lib/index.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "24ca8c7fb0666041f080415bf1bcfb4ae4815a21073557d9a85c01173f8947c8"
+	},
+	"node_modules/@electron/fuses/dist/config.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "7c54c68eb5844736ab5f4b0949ff48c3512aed6e6b6d7c4d5138c21730fb76b0"
+	},
+	"node_modules/@electron/fuses/dist/constants.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "ff339b9cc7c8a5d67ce848d59945b3c36018e3cc6975a7b41ccd5ce4f996ad2f"
+	},
+	"node_modules/@electron/fuses/dist/index.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "c752d0204e8abd08d029c20de6245029cf6e5e9f8cc019d337be1755c1e33484"
+	},
+	"node_modules/@electron/asar/node_modules/brace-expansion/index.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "28659473c69e1ea346e5c594964409508a186a353135df811e6cb9841f2844e5"
+	},
+	"node_modules/@electron/asar/node_modules/minimatch/minimatch.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "746849f267c4868a53729225bd85c7dccd387712136fb305fcc0a3eadd4a3d9d"
+	},
+	"node_modules/@electron/asar/lib/wrapped-fs.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "601c3c2151986f62de3b7297e3630873a6924230852c7f36c0b172cdabf0a4de"
+	},
+	"node_modules/@electron/asar/lib/integrity.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "107c43e596dd644d9896899e2be60465983b42e18ead2e3c7993fdcbee0c8764"
+	},
+	"node_modules/@electron/asar/lib/filesystem.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "4ed3f336af7d7906c374222c0a5d085ba91471eba9e2b55e700190fe3cfcc24b"
+	},
+	"node_modules/@electron/asar/lib/pickle.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "771c59cf05e42ee55f5bf03cbabc84f86fd623dee1bd725f0602812637fa0867"
+	},
+	"node_modules/@electron/asar/lib/disk.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "849ea3eebaf945978a48ae1f08d429d235430f4f8cc94486d124755a7fa379bb"
+	},
+	"node_modules/fs.realpath/old.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "07245a82717f9bfa2a63b9784284a1b7fc43ff5fcb4af2a94bce5f83611d4a2f"
+	},
+	"node_modules/fs.realpath/index.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "2e334ba43cd4852f7a3ed68159029167c05d7fa6af536e6ef177eb868ccd1bb8"
+	},
+	"node_modules/inherits/inherits.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "bb380f32bef5feb18678f0f45f88073fed5d7a0069a309132cb2080cd553d5c7"
+	},
+	"node_modules/path-is-absolute/index.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "4eb1119c3eeccc4d8e8841b77d062abaf4572b332801f5b16175bc3311b5d8f1"
+	},
+	"node_modules/@electron/asar/node_modules/glob/glob.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "b8f35657ca927593d0f9e1aae3a8cfe9c33c697bf3c5733c2f6727f25ae25be1"
+	},
+	"node_modules/@electron/asar/node_modules/glob/common.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "c31f29d45bfd958dc91f3bf2c3b06fe9424cff586822934d525be0a613c0bf57"
+	},
+	"node_modules/@electron/asar/node_modules/glob/sync.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "0f61227f4b55297f1ad16798c53e6a6dd55d633856f153133716413b7c5f61ad"
+	},
+	"node_modules/inflight/inflight.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "e33ea098a91d2c41be886fbbcecacb9799fe183d8a446f138a4786cb3d809802"
+	},
+	"node_modules/@electron/asar/lib/crawlfs.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "d12dc17a359baebd2f35a7057e1af4dbc15779a478aa6a767afee77027f2aa5e"
+	},
+	"node_modules/@electron/asar/lib/asar.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "91e89e96324626b140f3e897dffaca6e3cbb1135c4192ce6ceaa0e84af4ba152"
+	},
+	"node_modules/isexe/dist/commonjs/index.min.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "abf1fa35f4710b8f74351b63e61945b59994cdbceaf78cb9e309fb8b582a3a35"
+	},
+	"node_modules/which/lib/index.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "d9d32d45a01826692a1a0c70d40c6182aa0405713166ecd4a3bd3df68d3b90bf"
+	},
+	"node_modules/builder-util/node_modules/builder-util-runtime/out/httpExecutor.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "4d3b1247b0e7f620e6cdb88628e4c4c3eef2bccbd2805962edbffd6017c4dcca"
+	},
+	"node_modules/builder-util/node_modules/builder-util-runtime/out/objects.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "48c8df97f69197a400714a0bdbd3674485a511b8606cf3dc84448a576babcd10"
+	},
+	"node_modules/builder-util/node_modules/builder-util-runtime/out/index.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "140b927a94d361c3298a019ba7cf64f355b8ebf40e04b748be3c5b30ceb1e0c6"
+	},
+	"node_modules/builder-util/out/stringUtil.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "70a9c2b91da55fb393f4c8c8fc1ce2e7ef90abbfcb640d604cea432e556ac222"
+	},
+	"node_modules/builder-util/out/envUtil.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "7f4dd15ec3bc26593f5e419d763b5e8077767a414e6ac1ca07c048fc958bd88b"
+	},
+	"node_modules/builder-util/out/ksuid.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "68116a225a887046b917acc158ea7259da563d2bcc2b04714cf732cb432b1d8f"
+	},
+	"node_modules/builder-util/out/cscLink.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "851fee9fb2f7b6ae484180e13823c262346bdeefe1d87ce8d8b0a960bd40ddc9"
+	},
+	"node_modules/electron-builder/node_modules/builder-util-runtime/out/httpExecutor.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "13050c5e047556326a2a17bc991dcf1e0f58b20409e0476486a6fd0ed6c577f6"
+	},
+	"node_modules/electron-builder/node_modules/builder-util-runtime/out/objects.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "48c8df97f69197a400714a0bdbd3674485a511b8606cf3dc84448a576babcd10"
+	},
+	"node_modules/electron-builder/node_modules/builder-util-runtime/out/index.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "140b927a94d361c3298a019ba7cf64f355b8ebf40e04b748be3c5b30ceb1e0c6"
+	},
+	"node_modules/app-builder-lib/node_modules/builder-util-runtime/out/httpExecutor.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "13050c5e047556326a2a17bc991dcf1e0f58b20409e0476486a6fd0ed6c577f6"
+	},
+	"node_modules/app-builder-lib/node_modules/builder-util-runtime/out/objects.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "48c8df97f69197a400714a0bdbd3674485a511b8606cf3dc84448a576babcd10"
+	},
+	"node_modules/app-builder-lib/node_modules/builder-util-runtime/out/index.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "140b927a94d361c3298a019ba7cf64f355b8ebf40e04b748be3c5b30ceb1e0c6"
+	},
+	"node_modules/app-builder-lib/out/util/electronGet.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "3452ca5b9a2f29dd6460f0cc9937be2dc1bbbf36809f410649a015b35a607b48"
+	},
+	"node_modules/app-builder-lib/out/toolsets/7zip.js": {
+		"who": "ivk",
+		"when": "2026-07-27",
+		"hash": "8cb05fdfef799fa7553191f3651da10a2e8532590b05d1782e2c46c445d92272"
+	},
+	"node_modules/tar/dist/commonjs/index.min.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "a683d71878842f94426739c79dbdfbeb63b67de3a87183237bccd11505f6d3ff"
+	},
+	"node_modules/unzipper/lib/PullStream.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "d1d2cd0ae31e0b306ca3aad1e40c27fa940e142c4784182d6149e4826837692b"
+	},
+	"node_modules/unzipper/lib/NoopStream.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "2cdff27c0081f6f069d6f95d61820aee575d8d9eadc01a5d03a3fc27420f2246"
+	},
+	"node_modules/unzipper/lib/BufferStream.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "f01dc346966200d0dd48f7f36d6da983dd9b8f2f6412e11310bdc40434081b9c"
+	},
+	"node_modules/unzipper/lib/parseBuffer.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "3e8d4b0ef3488f29315ebbfb3580929f0935d12650e7e5bd09a511d5a1480c65"
+	},
+	"node_modules/unzipper/lib/parseExtraField.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "a3143f1fccd98b956d40bdcb78c5d5b422f52fa6bb105ddc9f97aa581768a4c1"
+	},
+	"node_modules/unzipper/lib/parseDateTime.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "566d7d51054a62db83a422298c5f4c198b6ae4cab91dc70f97c9e00ab15cfb89"
+	},
+	"node_modules/unzipper/lib/parse.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "e216439288d7133d9081956ec5f4556e4d12753c45c2910a98a3b4ed635950ab"
+	},
+	"node_modules/process-nextick-args/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "90ba524851f721e8aced79870d6d6a733cd3939b293a83e2d04417812a8ba330"
+	},
+	"node_modules/isarray/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "9b8c691372802da788c9c5f4e1ca2f1ed0b88ab8722176c2aea15e38ec86d249"
+	},
+	"node_modules/readable-stream/lib/internal/streams/stream.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "1e7903927df33aadb3659ecce55266c9c851da65ce6c8b723a60a305c1c5422c"
+	},
+	"node_modules/safe-buffer/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "d58af21cb0518864d0c505742d1af71e5b5e1f142f4c0f27353aa0f431a616d4"
+	},
+	"node_modules/core-util-is/lib/util.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "7427f16d9bd9185e409baff3e4b1ed6e3d8dfca84d367f4b8b351eb921618652"
+	},
+	"node_modules/readable-stream/lib/internal/streams/BufferList.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "387991bfee34bbb7938e0c0a3f345c3e5e4c37d5b0cb600e6d432c9995321fa7"
+	},
+	"node_modules/readable-stream/lib/internal/streams/destroy.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "a59f90daec030125875a6028b32f93e2e2bc9fafd703991dbc36244f5cb21176"
+	},
+	"node_modules/readable-stream/lib/_stream_readable.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "216e051224eff89a5d5eec76bef25addac078d9ebd2e88bd0a3d73a0e605091d"
+	},
+	"node_modules/util-deprecate/node.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "9a86a29fa34a99b861e707345fb1d1e2e55a6c23edb8f992bed57cc607f42d8e"
+	},
+	"node_modules/readable-stream/lib/_stream_writable.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "e6359ac652ed97f5f328c586c7a6b8f163782a9ca13da476e609a981c75e0469"
+	},
+	"node_modules/readable-stream/lib/_stream_duplex.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "fd17d6a92dd9ba004c85f8e364b2771af10d012a83766437447dbae63879fa6b"
+	},
+	"node_modules/readable-stream/lib/_stream_transform.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "56220d9dd58b976f1739bfc85948b267d79772ba23672ff402d13b6b3fcf4e40"
+	},
+	"node_modules/readable-stream/lib/_stream_passthrough.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "bf61450b1ff5f94fea9d46665e931119642034c903e63cc224b4c96472eed4d4"
+	},
+	"node_modules/readable-stream/readable.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "a1efa3fa06393aff652f3529ea1b1bc32134d49eb794b23272fb0ba13d214550"
+	},
+	"node_modules/duplexer2/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "cd2fd870d088bd543de42fcfc5fed1c9b896409ef4b734a9495b3fe84c0d6421"
+	},
+	"node_modules/unzipper/lib/parseOne.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "374d36a72d6827268871addbc381ea5cd0145cef24a8cbe32fda7d91049fcbdb"
+	},
+	"node_modules/unzipper/node_modules/fs-extra/lib/fs/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "62ceb1a4526cf820140c4d7fbf86ca0a330108a1d7929daa3db69e565fd58367"
+	},
+	"node_modules/unzipper/node_modules/fs-extra/lib/util/utimes.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "0a9ffc68208394202e5ef3d37a687968b224df07facdbc0b31c1e0679e005979"
+	},
+	"node_modules/unzipper/node_modules/fs-extra/lib/util/stat.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "7c85bd418d9fe3e2dc8a6925772726ce7538092baf01cade518c7f65aca94a61"
+	},
+	"node_modules/unzipper/node_modules/fs-extra/lib/copy/copy.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "39b3aafebce52106e8e6ec35d401edd6043cf5758045072f317eb0337bcdae73"
+	},
+	"node_modules/unzipper/node_modules/fs-extra/lib/copy/copy-sync.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "c842776451f6a4562d0f5867335090e509dbf4fd1dcf8adc13306a64278510c1"
+	},
+	"node_modules/unzipper/node_modules/fs-extra/lib/copy/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "d935e170aa9a282a5fcf796cf2d21306cbeb8822c92c8e7ef73182b9e32b3f82"
+	},
+	"node_modules/unzipper/node_modules/fs-extra/lib/remove/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "0ac7807ffba679e0d8fee03d3879da7f3d99bc16e8db6c6494c8eaf9ec5608b6"
+	},
+	"node_modules/unzipper/node_modules/fs-extra/lib/move/move.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "81fca78408ac2a838f6c7f75c871b5b5b9649b7260addf0c21464eb9d8b32a9b"
+	},
+	"node_modules/unzipper/node_modules/fs-extra/lib/move/move-sync.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "639191af40bebf2a1dc76ee0c5317282d352461ece1d165537bc7096b80818c5"
+	},
+	"node_modules/unzipper/node_modules/fs-extra/lib/move/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "ee7ac772c9ed6ca64adf993498c1199fb72bc9a05b49b7b4b8185ac71dacf930"
+	},
+	"node_modules/unzipper/node_modules/fs-extra/lib/output-file/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "5226ff89a2c66941f0aa322d81c68e199b5d554a99fe71cbd7a740663e541722"
+	},
+	"node_modules/unzipper/node_modules/fs-extra/lib/ensure/file.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "f97c89606abb7c256eefd7acf35fc37a60a002768696125905df3944ac792d07"
+	},
+	"node_modules/unzipper/node_modules/fs-extra/lib/ensure/link.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "5da74de6915fee9da90b8c53628f7fad95547d140a6506ee84fe7aa586345549"
+	},
+	"node_modules/unzipper/node_modules/fs-extra/lib/ensure/symlink-paths.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "25cdbbe6724088ddd28fe8ac10dfab9f18a93cf6fdb14e7be41fdc29e13767d5"
+	},
+	"node_modules/unzipper/node_modules/fs-extra/lib/ensure/symlink-type.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "ef80c7221f923205bd4472d166d79d4f75f683dd1f32d342f2fef5ee64fb2796"
+	},
+	"node_modules/unzipper/node_modules/fs-extra/lib/ensure/symlink.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "1e41eab4a4a111d3e9a77db76e66aedbb0a68d681d66e98ca4a1a65cdd5e93cd"
+	},
+	"node_modules/unzipper/node_modules/fs-extra/lib/ensure/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "77ccb9b4d1eab607ce7ba8d3d5bed59b0cb9cc4748d02aa896a2413b71dbfe60"
+	},
+	"node_modules/unzipper/node_modules/fs-extra/lib/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "4967e903b3dc290f2b401b81bfcad8b2d94fd68c1bf4563df63ac082af0e1dae"
+	},
+	"node_modules/unzipper/lib/extract.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "45894edaa4fb188ed5696501f4618f7187fa3cd4d35ffc79a0987c5132954a02"
+	},
+	"node_modules/node-int64/Int64.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "2fa1049844b05abdc7bf43803089afe9886f8f1f4ce413922ea2ddcede5b51fb"
+	},
+	"node_modules/unzipper/lib/Decrypt.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "f4c0dd7dd7e21071546ce68f9d162516d3c0db2d11910cb24b92f89bd5d1171f"
+	},
+	"node_modules/unzipper/lib/Open/unzip.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "ff4e158c81ceecfa1c52f93afd9e6c4d257340bda14c51b8ae54e5eb029106ec"
+	},
+	"node_modules/bluebird/js/release/es5.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "c510d8dab4de97c1f460d54ea79014c283841625148dc50073981300005dd42d"
+	},
+	"node_modules/bluebird/js/release/util.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "dfd00225b097b2731d9091749be37c18c418e2da59045e54e11d4df80b3ccae5"
+	},
+	"node_modules/bluebird/js/release/schedule.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "a3eb3623c5859a27ccf24706b5210c1107dc65aab572a202513bba9a1ebec906"
+	},
+	"node_modules/bluebird/js/release/queue.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "683aab2037414e069b2a5f48d39fb4ee5e1ab808c97b2b218ec12c2520b10c82"
+	},
+	"node_modules/bluebird/js/release/async.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "2bd6c88aec3118d1803e85d2df99de5a7218a96a01f094d52c988265422fcf4f"
+	},
+	"node_modules/bluebird/js/release/errors.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "f1537f1b41673a75a0b9c60a0647c628561eaed4f2fae3d8188bb24abf333edc"
+	},
+	"node_modules/bluebird/js/release/thenables.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "dbe1c7d0731e45596e20684a0e0ab0309c3cb29f57089169f3a375079affda6d"
+	},
+	"node_modules/bluebird/js/release/promise_array.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "e7440944ec46fb2efcea9fe0a7d7e11d1fc1612e56d5169aebe8d5aa6e77d858"
+	},
+	"node_modules/bluebird/js/release/context.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "5d8d6bc5941153a0756f61a807e84b1ddf60eb2b9d57227263d12fbca1b70a5e"
+	},
+	"node_modules/bluebird/js/release/debuggability.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "4702ca8443b7989aec697e104c7c8be4a36388d443505e33e24ad5199b9a403c"
+	},
+	"node_modules/bluebird/js/release/catch_filter.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "11da610579c2289aa0b5e59fd772ac8b30d24d748a0092a20753db6d703bb9e0"
+	},
+	"node_modules/bluebird/js/release/finally.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "0e4fc9127e68b0b9d942bef674a0352f73f0874c6f66f3402d05a7a11db67b98"
+	},
+	"node_modules/bluebird/js/release/nodeback.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "4888e4fe1fd7d1e1eeb7552e5158bec0f7b7ec538180780941289a55aa1172b5"
+	},
+	"node_modules/bluebird/js/release/method.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "f115e74eac654538838eb7fb971bf39d2548b28ae90e25b758c67f16450484f6"
+	},
+	"node_modules/bluebird/js/release/bind.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "027add87d1c0065356c6342a2d13b16379fedc72c8a6c418681be3a6a8b46638"
+	},
+	"node_modules/bluebird/js/release/cancel.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "ec055832b95e24e25411386a789a4c0f93e7623a118e451e30d1ee5843c689b2"
+	},
+	"node_modules/bluebird/js/release/direct_resolve.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "7dd03025ad5580294f5b8f062f7141ca60fd84817ffa58367ddca53aad185afb"
+	},
+	"node_modules/bluebird/js/release/synchronous_inspection.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "b26a61e1dfe74d2118dbd230071fcd7877b63f987639e00daea43c8a5fdfc50a"
+	},
+	"node_modules/bluebird/js/release/join.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "4052ccd7ee41d565b3a8944f5f95f0f473c866e649a981804c1cb7f3055b4980"
+	},
+	"node_modules/bluebird/js/release/call_get.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "4235f9f702503faf32903d2fa0d454279ab01c27497e4d7469720e33df6990a9"
+	},
+	"node_modules/bluebird/js/release/generators.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "ec685635bd9420319eac3959b8f44657f66545fb350d1be402c48c955a57032f"
+	},
+	"node_modules/bluebird/js/release/map.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "9e332673acc9c81d82e75147b8c2f90134c9e59b3dc4d1bb538249751c087ea5"
+	},
+	"node_modules/bluebird/js/release/nodeify.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "045087125fdb791c743850f717a2f64091577cdd658cf89d169921c65fcb1f82"
+	},
+	"node_modules/bluebird/js/release/promisify.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "26e51d82eb41aaaafef54ca34b350bd00a4e2bd6648417371386e7bc0614895e"
+	},
+	"node_modules/bluebird/js/release/props.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "041f70b6ea4793666240c3e1943e698280ae14bf4ee4145929f426897e2aa1e5"
+	},
+	"node_modules/bluebird/js/release/race.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "524ac44ed8e2f7f767d7ab197296dbb99e99c0497e99b22a296e36e881563168"
+	},
+	"node_modules/bluebird/js/release/reduce.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "ea786fef0636a22d8936bdde491befb2bcedc61c233ca5c5cde765a44336e24e"
+	},
+	"node_modules/bluebird/js/release/settle.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "dd417954d705db69eac3045f6dfb55e26af071d8dbe5392a7f36cee86f2404d9"
+	},
+	"node_modules/bluebird/js/release/some.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "b098cf5e52f0351dae1c99f60a40c601dee9e28bfde356af1b5454e1f2c36c7d"
+	},
+	"node_modules/bluebird/js/release/timers.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "d75e79fa2a4be7887178ee21462a37bc609ee40105ab2150f48436ece4c2d8af"
+	},
+	"node_modules/bluebird/js/release/using.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "f36839cef0b9fd56d9a1a2908b475511c4c821e33fff7937ab5704a83f2632eb"
+	},
+	"node_modules/bluebird/js/release/any.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "bbfe88f1a68351302da229bf667fbee8b264c0fd034ac4990507d4482e713161"
+	},
+	"node_modules/bluebird/js/release/each.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "e5a9bf63cf9e9a81525ee2ae015bed8d66e081c4fceceb60d1791fdcf38a1b14"
+	},
+	"node_modules/bluebird/js/release/filter.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "5b52d1f2e402abca8e1e203687a3157f4b2c2a2ed1a9bee69b6c51c1b44e4992"
+	},
+	"node_modules/bluebird/js/release/promise.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "22641fab9aa4c7f2962f21aa652b685ded8a9ec88b0f0915b524948bfa644415"
+	},
+	"node_modules/bluebird/js/release/bluebird.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "f1bd09cb349c59ace5126a4997b35d4e67785cf35886fe6a7112ac7142e526c4"
+	},
+	"node_modules/unzipper/lib/Open/directory.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "47c63bcd159d1facc02375aec9916bfee1a3ebfd3ae5338e10f6db2846a16645"
+	},
+	"node_modules/unzipper/lib/Open/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "96efb25d42199c632d31901560b003d32c49d2c209bb39ba4073a381ef6b5c38"
+	},
+	"node_modules/unzipper/unzip.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "3fd698ea80132b19fdbe6bbac61f52fd4d82412e2e279428c696d11458cffc1c"
+	},
+	"node_modules/app-builder-lib/out/util/cacheState.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "9f23c3b056220c328f3d8acdd120491c570af9d16e48693c29650474e45cdc32"
+	},
+	"node_modules/app-builder-lib/out/util/dynamicImport.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "03c0006422d69fc7d9fb578d1d4b94e255491dcba78128c7fe643a93d1bf9e1e"
+	},
+	"node_modules/app-builder-lib/out/toolsets/icons.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "fc6e3ba1b8a6e0e2b12c60dbc841e4597883ebe2200cc9fa444ff6cebbb3b86e"
+	},
+	"node_modules/app-builder-lib/out/util/iconConverter.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "ea059b08989a0fd4231ad57326113ab4d4ead894a85836d3a62c2908cf172e77"
+	},
+	"node_modules/app-builder-lib/node_modules/@xmldom/xmldom/lib/dom.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "158effa6032e9ae3d030926c3ca4781bb8f3828bc25c85e4a885bdf843be0c19"
+	},
+	"node_modules/app-builder-lib/node_modules/@xmldom/xmldom/lib/sax.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "b12589c4f672a9ae1e03de837f574d6cdf6b41f270b7efb85cec89c31e157f0b"
+	},
+	"node_modules/app-builder-lib/node_modules/@xmldom/xmldom/lib/dom-parser.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "03915c54c4bf44cfee38807af253abaabb022c27652918e8a233fae2d92fe1d2"
+	},
+	"node_modules/app-builder-lib/node_modules/@xmldom/xmldom/lib/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "9deb4e9d6d730a51c1c2b05238f8684d01e87f72b9861ba2adcad537ffc56586"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/compile/codegen/code.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "1287153722f1fc3c5342647de7ae1d7b6fb68bdb3378a0776a937d273fc97e0d"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/compile/codegen/scope.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "d2a0a97af2faa2cad88702314fe421e235ab17f11e0d62883d58d8d4dc734286"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/compile/codegen/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "f03b2b72597ef86878d1d4030580c2d0964046efad4867f3d05aa91065ba034c"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/compile/util.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "fa911f5631f29d4d6420adfe086cb693b94b08de2719475c78c54bcb82f831a5"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/compile/names.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "3cab37a2240b996b9bed92fe7a041d91689cfe3ad2e9ae4c0ab99e4146408493"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/compile/errors.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "53990f8f2cc05922bba410ae68231d3f869de4f8343277ede5b4834fa564c6c2"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/compile/validate/boolSchema.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "c08abdbdbd3d8b1dcc0552a20fbc7d837ed44f4ca6abb2e464985590ac94377f"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/compile/rules.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "ec1d86500f497aa8e20f9f0c1695951159d9a909669d00a261ce1bb22b3cf0a9"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/compile/validate/applicability.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "50c5cba5894a7fb9874b3432355b46ec71b73c9368dafb1323ded8567cca8fc0"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/compile/validate/dataType.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "697bd7005361ec7066a23c18830a10b0ef28aec1a33138b4e3098bf78c4fae52"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/compile/validate/defaults.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "05721971df94faa57b09c8cfd60c2eef81b6d14910a7dea5f539d693a029c428"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/code.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "9212ddf8bd0a4c3b1c4b44cdadd141183b2b36f561b91d13df53c83911e3bf63"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/compile/validate/keyword.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "ab8f070c75c25eee9be5c837f364748909b58f5db66149a2beccbd2f66afeb76"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/compile/validate/subschema.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "ca783d6052af91e65ebb59a5b48b47fb459a2241d37ca6a042f767d4ce451bdc"
+	},
+	"node_modules/app-builder-lib/node_modules/json-schema-traverse/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "024191b747afac01b28ff11d744e9f82720bbad5f716163ba5c962eb62aa2350"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/compile/resolve.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "df75af0e0cf03fa1c6452e8dc61019f5aec645a8a5f6f494dc4e13cb5502d2d9"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/compile/validate/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "cb2103e5f890e04592c10d24b45857dad91155bae9f9460138a2459bdaaea2cd"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/runtime/validation_error.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "11bf5b4affc8114e5e7cdf65b93006c2d997ab60ada1152c22e136f9b828b815"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/compile/ref_error.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "81c98fdf34c3037c91bfcc02277ec32156c71e34048f36cfe4e084416e916cb7"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/compile/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "05b34da22814f3787bfa3ac68dad59c9047f56e55a607e0a20719ebf5afe69ac"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/refs/data.json": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "d24ab8a97c18b3f5afdde7d7024a0e0ac1df0614a16a41cb88f81379edcc2db3"
+	},
+	"node_modules/fast-uri/lib/utils.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "3394986f9670b821493943faafe5d83ccc15109aba908f1b5dd017e27b0d0ea7"
+	},
+	"node_modules/fast-uri/lib/schemes.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "0f9497f8e43c9b002d79c8a916709daa4ae8a6462735b1b5dc6ad587a28a5064"
+	},
+	"node_modules/fast-uri/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "9d6fdc3569a8fef29d6d30c36e16de1753ebd76895aa6e72a3b1c226eb24cc33"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/runtime/uri.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "d1d61baf97ed87d7310df847a78ed73d19c8cc003207bf5aaec977500bdb1578"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/core.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "51be29c7ed7288622f755c0f1bebd3da4a9907d77aa2c33b0f2a0a5b6b339603"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/core/id.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "49c8eff694ce4371450c1f9986e934fcbf4bd143311caef5332113f29175bc11"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/core/ref.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "1422c1454b3621d890066042048f37746fe1cf213088307099816199889bbfd1"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/core/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "f420e1011b95e27b54c58323a7ed4ffbd0a88cdb4496f771bb6782c2aa22d23e"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/validation/limitNumber.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "3dd4bd41dbfc76c522078ff54b6479683485c4e97faa04cfcfaf2d8cb0fb8e65"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/validation/multipleOf.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "df128c2a6ca74ae57c65fbfe3aea8a101447a3ae8c41fd53cfc5693fa23cc8bd"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/runtime/ucs2length.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "422b75e772987840edcd2040918f8314653b8619b73c02564edd30359df22811"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/validation/limitLength.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "2cd7e4b635cc3274d0c3211985e8ff1862c62b29f0374bbb96ed7d48c6e55c43"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/validation/pattern.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "86e84206bfc6a66ef18bf1fe43fbc56ebe7f7f4d57841197b6d044c529e0c195"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/validation/limitProperties.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "8523a3f7b36c34882ca32b0ec71a2157d7930907cb86b778a97c1514fa6258ac"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/validation/required.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "b953bc18d94274bd73374dd5b4282d7a21159cec8c0e7a357e1eaf3f326b9054"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/validation/limitItems.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "49f0427d29b38aef2fa8aead26e68bda12deb9a2da22f7a7804ba0fed44e1fec"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/runtime/equal.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "c94467da09ee94e5d194483a7ab821b9bb3bf1c04397270f2ab53dea9de59274"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "666d1a2aa25c0dfe3cf41312d0f9d40e9f99eb2c19be7469134ad89005aadd52"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/validation/const.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "ace994e9ab97a70899a9484794794f4be5ee03bfb3cf32242d3f091d77f0329a"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/validation/enum.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "61062b318a40eb52fc5a8283e7f4781db98349841744961ef4fe04a4722ebf22"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/validation/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "4a1839832de5f10ff423c1c0c6cb232b5b6e1b34980a28862cf56b2763136de4"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "7beb0fbda5e349907067c8398bb8cc3260a6267b6e5dff9793a5ab2171934099"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/applicator/items.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "fa87f74adc3aac1f1b5e3e7dddf73294e6850e1dd49ed131fca4352e9645c54e"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "16264f7b3233a6dcb98b48700643efbd3ebc4d11e27b3eacffc83ccb5f44fb23"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/applicator/items2020.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "c449ef64aec16263c7935293ed450cfc2da3ba66f6df5f99c3198c05f169838f"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/applicator/contains.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "56165dc93cd8b0b4611db50a97f1e7d7f9af6c5ffe95a7a5b054d6eeaa7f6a8c"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/applicator/dependencies.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "c1a83bf484b6fde4d268935f079ddba5e74a2f589dfc6d15ca2e20ba4d06ee5b"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "b3411cfeaff8efd5e6de12971bb5dc339e64b61fbe62d3b950794c077315c2e7"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "e237cb180cd2e3f2e676feb714d7dcc6a42116640f9db2ad830cd20d9dfc540a"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/applicator/properties.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "c896873ae7251093a2c8880545b69b6e8cb55c44817a53ec830a49818d74104f"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "0d43da49a82452c439ba990de7372ad5cedb663717918a5f6dae07025abff655"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/applicator/not.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "ab2f2758d4ea97ac8763fe5540dd0f4d877859676fe5d6c750a18deca387f718"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/applicator/anyOf.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "8d7368d4aebad0514b713191b934993b4f0bf570e1bab93b07dc69712db2cec5"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/applicator/oneOf.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "e2aeb6c22d49fd5f348bedcf7f5c4d7b31f5a05dd7ff1a0c531374c6968792a2"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/applicator/allOf.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "98f46a6434ebe5f851b406480e18b776dd7f1bcc275e28c16a13bfef3cc067c7"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/applicator/if.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "42374ee5dc681433579cc689b0c4ae5343f5bf78d4d6a561722b9277c5335ec4"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/applicator/thenElse.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "9bc42eb8699d57188a7ec2a710d3f38052f92bd78c5d4d0442cf98cf2ebbe22d"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/applicator/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "5a61978f6d81bbabfa8b9ccb71d7de816ed6dd1fd7de5c72657439a76c2a7cb3"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/format/format.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "6fae0d5124fd821b1a9959492f7d6d7b528bee8830d49a7a4759fc9a9ab81d5f"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/format/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "d5dad5f95c9c5f48f8ca956cdbb927aafc7b56baabfca8c0b0403d92c5ebeb67"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/metadata.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "45c178744a7ec57e20c85ceeaea8d9f36b5663636ab7e495ea2c3c1bf4a58609"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/draft7.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "8c62022c6c3aa302c3ea6f6709a697fc9eb6385d243fa7c2156dbe9f02228170"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/discriminator/types.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "2365341d1f30dc72cece7703e908e47aacb8f904b9f66ec4019fe889ae1e57fa"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/discriminator/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "b58b58025d2dbe5a6967376faec9295b860a338664c47037e9a1035c1e8fb88e"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/refs/json-schema-draft-07.json": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "f7e8b13cad4fecff9771f3626fef33e20e59027b90938a28fd9d2f6c17cd0773"
+	},
+	"node_modules/app-builder-lib/node_modules/ajv/dist/ajv.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "edaed56fc546f5551b0d6dc2ff2a9cc25c2d6c83318a086eaa8c3ad0b2479297"
+	},
+	"node_modules/app-builder-lib/out/util/config/schemaValidator.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "58fc0c45d832eac0928ebd4e6b7089935fd2be52873f4dfd912c72b47c70f3cd"
+	},
+	"node_modules/app-builder-lib/out/toolsets/linux.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "43c9c90f3016f4624ef7b83462453691e2a0e54eaff6e8d4be9fc63bb1f4e4bc"
+	},
+	"node_modules/@noble/hashes/utils.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "e2adfc13c846487feff0410bd5508a1d66f5ebadc3188f3a40a6b55449981e2f"
+	},
+	"node_modules/@noble/hashes/_blake.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "d25543ec4f84723fa4aec60d2d55a90b51bb7eeb9f70c747f2f55503e67ee75b"
+	},
+	"node_modules/@noble/hashes/_md.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "8227b9b5cabf078a9d7f7317f7a1ace6e46627539aa9364667aec724e1636f14"
+	},
+	"node_modules/@noble/hashes/_u64.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "766b91a693a798f9d3cde97b25db4a6d0cef66b2ca21153d3d42424d37878870"
+	},
+	"node_modules/@noble/hashes/blake2.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "0349c61ff467cb14d413421b212616c0343f4dd4e36a0b1d626e1847dcabafd5"
+	},
+	"node_modules/app-builder-lib/out/targets/blockmap/blockmap.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "3681fc85bae69106c98d39c299242311a3e4f33b4b1a7786d1c0033fb4b1c0e5"
+	},
+	"node_modules/electron-publish/out/util.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "efdf30ad7fd8055694fb7ebcc0ae03bc4799301038dd150336222423aa813dfc"
+	},
+	"node_modules/electron-publish/out/s3/awsCredentials.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "75a0e7bfce8ec5b0820a80f5d3dfe91035b217661858a73e6fb49b32fea25a08"
+	},
+	"node_modules/electron-publish/out/s3/bucketLocation.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "3e0c3fde87f2e54720cbbfaf1703e1b82775fd6db628b4750e88815275a56444"
+	},
+	"node_modules/aws4/lru.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "8af8cf6660af90da71d04f2e0e4b34a0363f8aff5b9505d52034b92e4b9abfa6"
+	},
+	"node_modules/aws4/aws4.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "6fe3d3295e99292b9625ce2f0c7e400962c1ad516d1257ab7fb6058247eff4cf"
+	},
+	"node_modules/electron-publish/out/s3/s3UploadHelper.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "b9c003e02a5963a7ba7f8078e06aa910f1c801536ab91f844d876e5de897d5d0"
+	},
+	"node_modules/app-builder-lib/out/toolsets/windows.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "a6e3009ca9680aec48646793289224a8df26cfb9c8dafba1e3b08323f09a331b"
+	},
+	"node_modules/pvtsutils/build/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "8cf4300225298c7811fd72840f84ebd12dda5359f29fffdba09cb67a63a5943f"
+	},
+	"node_modules/pvutils/build/utils.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "df04e5483b66af19b163561164de1e66b71a68a09e94d60880b92ae01b7b07fd"
+	},
+	"node_modules/asn1js/build/index.js": {
+		"who": "ivk",
+		"when": "2026-07-28",
+		"hash": "ae77a1f15ac462acbf37546b8667addf6b2b455b32baa0b52d551baf2e68a8d3"
+	},
+	"node_modules/bytestreamjs/build/cjs/byte_stream.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "6aabcd4fcf8e386ce719429e64bdc1cf0abdfbc032a2b090054a39bd527e6f38"
+	},
+	"node_modules/bytestreamjs/build/cjs/seq_stream.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "e6bb1205eb43e15de0e8c1f2118cb60b87055894948b32bd9abdb39625411e99"
+	},
+	"node_modules/bytestreamjs/build/cjs/helpers.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "89a282beb15d8179e9406e93d55a82106c788d27714831f2fbb43c3ef8c92e36"
+	},
+	"node_modules/bytestreamjs/build/cjs/bit.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "0bbe861c72ea1f4c7b9b1b35fb2d89b9101e973e2f7d2bcc3f1e2a122286d664"
+	},
+	"node_modules/bytestreamjs/build/cjs/bit_stream.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "a3462d2a335c5b6026cbc4a120356fbdfbf90b620986b371d738cde088aabf05"
+	},
+	"node_modules/bytestreamjs/build/cjs/seq_bit_stream.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "b97380d381f1c7e0ae8edd8a218fe834b5cde6cad185ff58c6dec0c6c7566079"
+	},
+	"node_modules/bytestreamjs/build/cjs/index.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "440eeac3b5d5deee0ea1f057f5e987736de802f6b3d5987684ef2ee50efe98eb"
+	},
+	"node_modules/pkijs/node_modules/@noble/hashes/_assert.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "9294c3e7c30a6f3d7cc1246e07752ec72dcec860081862710e66465545a09304"
+	},
+	"node_modules/pkijs/node_modules/@noble/hashes/cryptoNode.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "423a864b2d18b2189e5a834f84990095a498e88731a7c25878170e6d09fe4e8d"
+	},
+	"node_modules/pkijs/node_modules/@noble/hashes/utils.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "90d781505d8429dcb94e739a62140dbb9faad6ffd6f0018165ea605837db537d"
+	},
+	"node_modules/pkijs/node_modules/@noble/hashes/_md.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "7629bed07ffcb3e21ab26f422d21007c32b1029f1a87b5bc2a53a4636e8aad38"
+	},
+	"node_modules/pkijs/node_modules/@noble/hashes/sha1.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "6245634c7bec7c3073ec2df4157f67fc234653230fd0979a073464a1d2edb83a"
+	},
+	"node_modules/pkijs/node_modules/@noble/hashes/sha256.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "cf0ee15faa2643984691f6d24c5f939a811d45df0e8230da403955e890fe4ff9"
+	},
+	"node_modules/pkijs/node_modules/@noble/hashes/_u64.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "4e8b58371f1dc83b9fa378285af8d8750d21ec22f837b23df3a35f7ab2abfba4"
+	},
+	"node_modules/pkijs/node_modules/@noble/hashes/sha512.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "00e1b1b7ff8d0c8a17e44097909648fe457075207d911338685e9406505f8b03"
+	},
+	"node_modules/pkijs/node_modules/@noble/hashes/sha2.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "3e3a8bb9a4b2c6a4eba5de2a7cf2bd6639385cc459fc534b9c601e572442590c"
+	},
+	"node_modules/pkijs/build/index.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "c8c70f540607322bea161078bbf06719aec0be29234383035fcc0a71029c64b4"
+	},
+	"node_modules/@peculiar/utils/build/cjs/bytes/buffer-source.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "a19473102bd801c9e3b42e55f9c09ce2cc771c8aceb9c2204d7ef5c38f23f555"
+	},
+	"node_modules/@peculiar/utils/build/cjs/bytes/concat.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "5f6c56e1b5df030e44968e5612328e4a27d6db0d837731a9226fd7f88aafb0d8"
+	},
+	"node_modules/@peculiar/utils/build/cjs/bytes/equal.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "986741aee5763da348b9c7006782b4e574d62298a20e116c4e133909e23d3959"
+	},
+	"node_modules/@peculiar/utils/build/cjs/bytes/sequence.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "3d82b3a920ccdd8c46c4ba47204abeb12030641126fbf2f4cf04420345a55f9f"
+	},
+	"node_modules/@peculiar/utils/build/cjs/bytes/index.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "c97de766501d545408d6975fa4422539c2aa9b2108b79266ebfce54a057e9d52"
+	},
+	"node_modules/tslib/tslib.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "8855865a058bc0a6df8f5db45347be041a2d6bbe1654216c51a805648c1b6e8a"
+	},
+	"node_modules/@peculiar/utils/build/cjs/encoding/binary.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "8762bb9149d93ba939f205955f381397b30c92e2bb2cf296e991caed7ae0ed25"
+	},
+	"node_modules/@peculiar/utils/build/cjs/encoding/hex.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "a19bdd0a830f9cb155c8006e3ae8dd36547a6474f7f5347834e10df56c26b682"
+	},
+	"node_modules/@peculiar/utils/build/cjs/encoding/utf8.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "d1418268e005343c376032e00b2a7e1f08ec51be2133273935241d7c8ea158e1"
+	},
+	"node_modules/@peculiar/utils/build/cjs/encoding/utf16.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "c3f5e23141e3e3ac9fcbbbf4eb4554103f5a3cfa39bde6860dfca49ffee3138d"
+	},
+	"node_modules/@peculiar/utils/build/cjs/encoding/base64.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "c66b7453823e85fc12fded6085f4793d65b7d3012cb7db574293d7f37b766b8a"
+	},
+	"node_modules/@peculiar/utils/build/cjs/encoding/base64url.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "28e1268a44a3c3241c14cebbff03b449c4d52f9dcf7662a1abeb965d44edb1c7"
+	},
+	"node_modules/@peculiar/utils/build/cjs/encoding/index.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "ab41addab74b7f09addfbb048392ddb5b9a53b45d465db7fa99e2927a1cc8625"
+	},
+	"node_modules/@peculiar/asn1-schema/build/cjs/enums.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "674225bfad835712c8f39c28663b7f791a2350caba4a4886187762892263b06e"
+	},
+	"node_modules/@peculiar/asn1-schema/build/cjs/types/bit_string.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "e69d0a0ccc5de493c27d9dd543d63ba0cb9d3bcac07bd173ea864244427c7c4b"
+	},
+	"node_modules/@peculiar/asn1-schema/build/cjs/types/octet_string.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "6002cfa6aad4f1bfbd86169b58f9d1db4b8f0953c09f900d7e2eb6614917a850"
+	},
+	"node_modules/@peculiar/asn1-schema/build/cjs/types/index.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "a7f3a122c284eabd74ab1c9f7438181531350fb63433af65cec30f999b1a25e6"
+	},
+	"node_modules/@peculiar/asn1-schema/build/cjs/converters.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "cc1a80e9705f08875e77a2f7315f1efacf60acabe871b159cd1d920120e662a8"
+	},
+	"node_modules/@peculiar/asn1-schema/build/cjs/helper.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "5eb8e1264ddec03bbe2d03ca469e90c05d1c7a414ec86a8fb72ee88b8b5cd991"
+	},
+	"node_modules/@peculiar/asn1-schema/build/cjs/schema.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "0ff6bf148163c86cec973192010191d134a40d28517595746dc9f51c1b9b850d"
+	},
+	"node_modules/@peculiar/asn1-schema/build/cjs/storage.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "f3b86032ef8a7b45500eb9d0be2dbd3009491923fbffecd55056af6a1c158681"
+	},
+	"node_modules/@peculiar/asn1-schema/build/cjs/decorators.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "e815649acf380451e21bd2e8490f0067748f950ac7b4c8ffba8c113394c5e940"
+	},
+	"node_modules/@peculiar/asn1-schema/build/cjs/errors/schema_validation.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "0b93de2d7360467e66ff701b27a2f1e12d13a4061160d3e297d1e7f31d69f891"
+	},
+	"node_modules/@peculiar/asn1-schema/build/cjs/errors/index.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "d116f67c5b852acc586fcdbb6926e05929445235372f28fec67e4668a8e17598"
+	},
+	"node_modules/@peculiar/asn1-schema/build/cjs/parser.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "0d57e370e4ee4fa5cb72b85dfa581861a13e642757769ed3f9fc2b5c7363a5de"
+	},
+	"node_modules/@peculiar/asn1-schema/build/cjs/serializer.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "a1b84d90aa13b35af691283dda3a3a29781e4b67292e2cb9960261065a0fcdff"
+	},
+	"node_modules/@peculiar/asn1-schema/build/cjs/objects.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "43bf6f3dc762f4764883cb523833c3aae105094462a6274400fc29dc5ee7540e"
+	},
+	"node_modules/@peculiar/asn1-schema/build/cjs/convert.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "46daf95adf0fb3a18a959eb5f3db1aab37cbd3dddd37be24204a360402fd2e72"
+	},
+	"node_modules/@peculiar/asn1-schema/build/cjs/index.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "17368fa20e19c361ed85b88bbf768186a9b7776cbdfe2d5fd809ed9b8df02bd0"
+	},
+	"node_modules/@peculiar/json-schema/build/index.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "e7db8d70b1b72bfdd4546c487de9bc991c67ba687f384befb86fa8791c22def2"
+	},
+	"node_modules/@peculiar/utils/build/cjs/legacy/buffer-source-converter.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "c04c3518582d3373a205e141d061236fbf7c337cea6fbc67290f8af29a7f0eb4"
+	},
+	"node_modules/@peculiar/utils/build/cjs/converters/registry.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "0e66afab91660d9fc191ae248e24f4d771622bb80f3db0dd008ecaefcf58ae6c"
+	},
+	"node_modules/@peculiar/utils/build/cjs/pem/pem.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "2b7ffa6c029c2932c2ec8defb92a9e3ffd2ff9a1bc901d8441ccb320c94b34ca"
+	},
+	"node_modules/@peculiar/utils/build/cjs/pem/index.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "bbe588d148224eb7373eae014261eed457ce0f880c64066af79e17bbafc62883"
+	},
+	"node_modules/@peculiar/utils/build/cjs/converters/defaults.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "e1403f56228e6170736ffb50b0e77eb6f9dad780ddc95d302aa3d1576e25c8e8"
+	},
+	"node_modules/@peculiar/utils/build/cjs/converters/convert.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "cf0365b90ec92fdd42badafd8ba4aff456349a00efc703d65e0e23e53cea2f71"
+	},
+	"node_modules/@peculiar/utils/build/cjs/converters/index.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "a5c7cb117ead693b71e48f77e34f46eb86eff2dddc1f3bce1593ba2127339cfc"
+	},
+	"node_modules/@peculiar/utils/build/cjs/legacy/convert.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "b6d9b0aa35e9f6088db11d098f2721067d27687105593b47576ec71f6026e873"
+	},
+	"node_modules/@peculiar/utils/build/cjs/legacy/functions.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "79b6a9543b39d69634cf33c51e2ab09d8bda8262ba3add83fde51e21e7c00ef7"
+	},
+	"node_modules/@peculiar/utils/build/cjs/legacy/index.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "beef26ec3e617659b0ce6bb132714abb0f800fe745306fcf3d3db94b9b084dae"
+	},
+	"node_modules/webcrypto-core/build/webcrypto-core.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "714ecf676a7c847cee40da3eaec77be0a5fc41c05dded544ee7bde5d50bac4dc"
+	},
+	"node_modules/@peculiar/utils/build/cjs/index.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "c94806167c886ee3a5f6741f3b2aab0c6564d9f48d42b93055f0af517ae77cf3"
+	},
+	"node_modules/@peculiar/webcrypto/build/webcrypto.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "d07b85b24e5b53878b4d16ea3ece4d450e2b3409de552f8ab2d53f7e47ad709c"
+	},
+	"node_modules/app-builder-lib/out/codeSign/certInfo.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "63e8f820dc4cc42e83a6edaeda26edf4b809fac8e067e847c3eec76ae7dab3be"
+	},
+	"node_modules/app-builder-lib/out/targets/appimage/appLauncher.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "5bc55e682b41a2714c9d7d8d12b9e000b6429af744a63945bb59b9dadca43373"
+	},
+	"node_modules/app-builder-lib/out/targets/appimage/AppImageTarget.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "e681ec08f713e76e84c8001a2e3ba8cb8c5d67ea72fe2a66b6eb32be79446fea"
+	},
+	"node_modules/app-builder-lib/out/targets/appimage/appImageUtil.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "4d3b63afc9939ace718e0b3537e2b1508c15fde7fd030206cbe207bcb6a8f030"
+	},
+	"node_modules/app-builder-lib/out/targets/snap/SnapTarget.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "719de9d6f2f839c1f170ea34a824d5db118eef303a40ff3f9040be2df7e6d321"
+	},
+	"node_modules/app-builder-lib/out/targets/snap/snapcraftBuilder.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "d39f2868427388caba21c90776dc31866cf9e686a974b123db6ad9390a5ba330"
+	},
+	"node_modules/app-builder-lib/out/targets/snap/core24.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "47dc6a4de12b7650a9096d77b537a5f025f7c4b036a503cc65d0ec83f5110ed2"
+	},
+	"node_modules/app-builder-lib/out/targets/snap/coreCustom.js": {
+		"who": "ivk",
+		"when": "2026-07-29",
+		"hash": "33bf73584227b7f5db9618127b07b2cb56620365a88d6dbde91c9d7e67f2a368"
+	},
+	"node_modules/app-builder-lib/out/targets/snap/coreLegacy.js": {
+		"who": "ivk",
+		"when": "2026-07-30",
+		"hash": "b6aecbd32427c0d827846a6b4973bdfd44a0686d88e524ab7c9f139db7a639d1"
+	},
+	"node_modules/app-builder-lib/out/mac/MacTargetHelper.js": {
+		"who": "ivk",
+		"when": "2026-07-30",
+		"hash": "9001588db528cf418b56440f9ff374e1fb90691adb01cd74db9bc9554617bdaf"
+	},
+	"node_modules/app-builder-lib/out/util/resEdit.js": {
+		"who": "ivk",
+		"when": "2026-07-30",
+		"hash": "02ddb3dee119c3f8aaf6a427e7fea8b2765a61778e5db6f5e02df1cbb5b16cde"
+	},
+	"node_modules/app-builder-lib/out/targets/nsis/nsisValidation.js": {
+		"who": "ivk",
+		"when": "2026-07-30",
+		"hash": "419bca4f6965e60ae41c6184cc77f42cc0f6bb91daa64c73f4ae55524c84e682"
+	},
+	"node_modules/app-builder-lib/out/toolsets/wine.js": {
+		"who": "ivk",
+		"when": "2026-07-30",
+		"hash": "93ea247190272bbe3b5909afc7e693990162b04d395ada0c5f4a4e9871c79446"
+	},
+	"node_modules/app-builder-lib/out/vm/WineVm.js": {
+		"who": "ivk",
+		"when": "2026-07-30",
+		"hash": "dce471a598e059f2d1289e5363cb7cbb9049da990ef9a9bf3c9ff0823edf6e24"
 	}
 }

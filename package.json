@@ -82,7 +82,7 @@
 		"@types/pako": "2.0.3",
 		"body-parser": "2.2.0",
 		"commander": "14.0.0",
-		"electron-builder": "26.7.0",
+		"electron-builder": "26.15.3",
 		"eslint": "9.29.0",
 		"eslint-plugin-unicorn": "59.0.1",
 		"express": "5.1.0",
