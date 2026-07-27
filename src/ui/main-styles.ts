@@ -2938,6 +2938,12 @@ export class MainStyles {
 					".folder-column": {
 						display: "none",
 					},
+					".search-highlight": {
+						// this removes word highlight when printing from search view
+						"font-weight": "initial !important",
+						"background-color": "transparent !important",
+						color: `${lightTheme.on_surface} !important`,
+					},
 					pre: {
 						"word-break": "normal",
 						"overflow-wrap": "anywhere",
