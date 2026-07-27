@@ -95,7 +95,7 @@ export class PdfInvoiceGenerator {
 			.changeFont(PDF_FONTS.BOLD, 12)
 			.addText(`${InvoiceTexts[this.languageCode].invoiceNumber} ${this.invoiceNumber}`, [MARGIN_LEFT, MARGIN_TOP + 100])
 			.changeFont(PDF_FONTS.REGULAR, 11)
-		if (this.invoice.invoiceType === InvoiceType.INVOICE) {
+		if (this.invoice.invoiceType === InvoiceType.INVOICE && parseFloat(this.invoice.grandTotal) > 0) {
 			this.doc.addText(InvoiceTexts[this.languageCode].asAgreedBlock, [MARGIN_LEFT, MARGIN_TOP + 110])
 		}
 	}
@@ -227,7 +227,7 @@ export class PdfInvoiceGenerator {
 		this.doc.addLineBreak()
 
 		// Payment info
-		if (this.invoice.invoiceType === InvoiceType.INVOICE) {
+		if (this.invoice.invoiceType === InvoiceType.INVOICE && parseFloat(this.invoice.grandTotal) > 0) {
 			switch (this.invoice.paymentMethod) {
 				case PaymentMethod.INVOICE:
 					this.doc
@@ -261,6 +261,10 @@ export class PdfInvoiceGenerator {
 					this.doc.addText(InvoiceTexts[this.languageCode].paymentAccountBalance)
 					break
 			}
+		} else if (this.invoice.invoiceType === InvoiceType.INVOICE) {
+			this.doc.addText(InvoiceTexts[this.languageCode].noPaymentRequiredCredit)
+		}
+		if (this.invoice.invoiceType === InvoiceType.INVOICE) {
 			this.doc.addLineBreak().addLineBreak().addText(InvoiceTexts[this.languageCode].thankYou)
 		}
 	}
