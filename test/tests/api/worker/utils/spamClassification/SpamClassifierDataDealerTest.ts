@@ -116,7 +116,7 @@ o.spec("SpamClassifierDataDealer", () => {
 			modifiedClientSpamTrainingDataIndex: "modifiedClientSpamTrainingDataIndex",
 		})
 		mailDetails = createTestEntity(MailDetailsTypeRef, { _id: "mailDetail" })
-		when(mailFacadeMock.createModelInputAndUploadableVectors(anything(), anything(), anything())).thenResolve({
+		when(mailFacadeMock.createModelInputAndUploadableVectors(anything(), anything())).thenResolve({
 			modelInput: new Array(1),
 			uploadableVectorLegacy: new Uint8Array(1),
 			uploadableVector: new Uint8Array(1),

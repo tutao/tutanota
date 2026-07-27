@@ -6,7 +6,7 @@ const DOMAIN_OR_TLD_REGEXP = new RegExp(`^(${DOMAIN_PART_REGEX}.)*${DOMAIN_PART_
 const STRICT_USERNAME_MAIL_ADDR_REGEXP = new RegExp(
 	`^\\s*${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\@${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`,
 )
-export const EMAIL_ADDR_REGEXP = new RegExp(`^[^\\s\\@]+\\@${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`)
+export const EMAIL_ADDR_REGEXP = new RegExp(`^[^\\s@]+\\@${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`)
 
 /**
  * Checks if the given string is a valid email address format.
@@ -98,7 +98,7 @@ export function isRegularExpression(value: string): boolean {
 /**
  * Determine whether an input string is a valid credit card number
  * https://en.wikipedia.org/wiki/Luhn_algorithm
- * @param input: a string between 6 and 20 chars long that should contain only digits or spaces
+ * @param input a string between 6 and 20 chars long that should contain only digits or spaces
  * @returns {boolean}
  */
 export function isValidCreditCardNumber(input: string): boolean {
