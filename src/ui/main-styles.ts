@@ -2883,7 +2883,7 @@ export class MainStyles {
 						"background-color": "white",
 					},
 					"html, body": {
-						position: "initial",
+						position: "initial !important",
 						overflow: "visible !important",
 						color: lightTheme.on_surface,
 						"background-color": `${lightTheme.surface} !important`,
@@ -2913,15 +2913,15 @@ export class MainStyles {
 						display: "none",
 					},
 					".mail-viewer": {
-						overflow: "visible",
-						display: "block",
+						overflow: "visible !important",
+						display: "block !important",
 					},
 					'.mail-viewer, [data-testid="collapsed-mail-view"]': {
 						color: `${lightTheme.on_surface} !important`,
 						"background-color": `${lightTheme.surface}`,
 					},
 					"#mail-body": {
-						overflow: "visible",
+						overflow: "visible !important",
 					},
 					"#login-view": {
 						display: "none",
@@ -2930,7 +2930,7 @@ export class MainStyles {
 						display: "none",
 					},
 					".dialog-container": {
-						overflow: "visible",
+						overflow: "visible !important",
 						position: "static !important",
 					},
 					"#wizard-paging": {
@@ -2950,7 +2950,7 @@ export class MainStyles {
 					},
 					".search-highlight": {
 						// this removes word highlight when printing from search view
-						"font-weight": "initial !important",
+						"font-weight": "inherit !important",
 						"background-color": "transparent !important",
 						color: `${lightTheme.on_surface} !important`,
 					},
