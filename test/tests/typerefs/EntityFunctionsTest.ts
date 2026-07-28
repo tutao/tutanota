@@ -39,6 +39,7 @@ o.spec("EntityFunctionsTest", function () {
 						cardinality: CardinalityEnum.One,
 						final: true,
 						encrypted: true,
+						transferredAttributeId: null,
 					},
 				},
 				associations: {
@@ -50,10 +51,12 @@ o.spec("EntityFunctionsTest", function () {
 						refTypeId: 3,
 						dependency: null,
 						final: false,
+						transferredAttributeId: null,
 					},
 				},
 				version: 1,
 				versioned: false,
+				targetTypeId: null,
 			},
 		}
 		const partialServerModel: ServerModels = {
