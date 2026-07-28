@@ -13,6 +13,7 @@ import { assertMainOrNode, isDesktop, Keys } from "../../platform-kit/app-env"
 import { isKeyPressed } from "../utils/KeyManager"
 import { DragEnterHandler, DragStartHandler, DropData, DropHandler, DropType } from "./GuiUtils"
 import { fileListToArray } from "../utils/FileUtils.js"
+import { throttleRoute } from "../utils/RouteChange"
 
 assertMainOrNode()
 export type NavButtonAttrs = {
@@ -45,6 +46,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 	private _domButton!: HTMLElement
 	private _draggedOver: boolean
 	private _dropCounter: number // we also get drag enter/leave events from subelements, so we need to count to know when the drag leaves this button
+	private readonly routeTo = throttleRoute()
 
 	constructor() {
 		this._draggedOver = false
@@ -203,7 +205,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 
 	click(event: Event, a: NavButtonAttrs, dom: HTMLElement) {
 		if (!this._isExternalUrl(a.href)) {
-			m.route.set(this._getUrl(a.href))
+			this.routeTo(this._getUrl(a.href))
 
 			if (a.click != null) {
 				a.click(event, dom)
