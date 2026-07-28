@@ -110,7 +110,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					width: getContinueButtonWidth(),
 					onclick: temp,
 					style: { order: 0 },
-					disabled: !this.isMatchingPlanSelected(options, currentPlan),
+					disabled: !this.isMatchingPlanSelected(options),
 				}),
 			)
 		}
@@ -205,10 +205,8 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			],
 		)
 	}
-	private isMatchingPlanSelected(options: SelectedSubscriptionOptions, currentPlan?: PlanType): boolean {
-		if (currentPlan != null && this.selectedPlan() === currentPlan) {
-			return false
-		} else if (options.businessUse() && NewBusinessPlans.includes(this.selectedPlan() as AvailablePlanType)) {
+	private isMatchingPlanSelected(options: SelectedSubscriptionOptions): boolean {
+		if (options.businessUse() && NewBusinessPlans.includes(this.selectedPlan() as AvailablePlanType)) {
 			return true
 		} else if (!options.businessUse() && NewPersonalPlans.includes(this.selectedPlan() as AvailablePlanType)) {
 			return true
