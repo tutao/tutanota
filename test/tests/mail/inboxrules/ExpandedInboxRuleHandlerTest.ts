@@ -14,12 +14,11 @@ import {
 	MailSetTypeRef,
 	MailTypeRef,
 	RecipientsTypeRef,
-	TutanotaPropertiesTypeRef,
 } from "@tutao/entities/tutanota"
 import { InboxRuleConditionType, InboxRuleResultType, MailSetKind } from "../../../../src/entities/tutanota/Utils"
 import { createTestEntity } from "../../TestUtils"
 import { _findMatchingRule, ExpandedInboxRuleHandler } from "../../../../src/applications/mail-app/mail/model/ExpandedInboxRuleHandler"
-import { matchers, object, replace, when } from "testdouble"
+import { matchers, object, when } from "testdouble"
 import { MailFacade } from "../../../../src/applications/common/api/worker/facades/lazy/MailFacade"
 import { LoginController } from "../../../../src/applications/common/api/main/LoginController"
 import { MailModel } from "../../../../src/applications/mail-app/mail/model/MailModel"
@@ -27,6 +26,7 @@ import { MailboxDetail } from "../../../../src/applications/common/mailFunctiona
 import { FolderSystem } from "../../../../src/applications/common/api/common/mail/FolderSystem"
 import { getElementId } from "../../../../src/platform-kit/meta"
 import { UserController } from "../../../../src/applications/common/api/main/UserController"
+import { InboxRuleModel } from "../../../../src/applications/mail-app/mail/model/InboxRuleModel"
 
 const { anything } = matchers
 
@@ -35,13 +35,15 @@ o.spec("ExpandedInboxRuleHandler", () => {
 	let mailFacade: MailFacade
 	let logins: LoginController
 	let mailModel: MailModel
+	let inboxRuleModel: InboxRuleModel
 
 	o.beforeEach(() => {
 		mailFacade = object()
 		logins = object()
 		mailModel = object()
+		inboxRuleModel = object()
 
-		ruleHandler = new ExpandedInboxRuleHandler(mailFacade, logins, mailModel)
+		ruleHandler = new ExpandedInboxRuleHandler(mailFacade, logins, mailModel, inboxRuleModel)
 	})
 
 	o.spec("findMatchingInboxRule", () => {
@@ -58,18 +60,16 @@ o.spec("ExpandedInboxRuleHandler", () => {
 
 		o.test("return matching rule when there is one", async () => {
 			const rule = _createRule([_createRuleCondition(InboxRuleConditionType.SUBJECT_CONTAINS, "test")], [])
-			const expandedInboxRules = [
+			const mail = _createMailWithDifferentEnvelopeSender({ subject: "test subject", sets: [inboxFolder._id] })
+
+			const rules = [
 				_createRule([_createRuleCondition(InboxRuleConditionType.FROM_EQUALS, "someone@tuta.com")], []),
 				rule,
 				_createRule([_createRuleCondition(InboxRuleConditionType.RECIPIENT_CC_EQUALS, "someonecc@tuta.com")], []),
 			]
-			const mail = _createMailWithDifferentEnvelopeSender({ subject: "test subject", sets: [inboxFolder._id] })
 
-			const tutanotaProperties = createTestEntity(TutanotaPropertiesTypeRef, {
-				expandedInboxRules,
-			})
-			replace(userController, "props", tutanotaProperties)
 			when(userController.isPaidAccount()).thenReturn(true)
+			when(inboxRuleModel.getOrderedInboxRules()).thenResolve(rules)
 
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).deepEquals(rule)

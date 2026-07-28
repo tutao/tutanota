@@ -662,7 +662,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				// Shared mailboxes currently do not support inbox rules
 				if (defaultInboxRuleField && !locator.logins.isEnabled(FeatureType.InternalCommunication)) {
 					const rule = getExistingRuleForType(
-						locator.logins.getUserController().props,
+						await this.viewModel.inboxRuleModel.getOrderedInboxRules(),
 						mailAddress.address.trim().toLowerCase(),
 						defaultInboxRuleField,
 					)
@@ -673,10 +673,9 @@ export class MailViewer implements Component<MailViewerAttrs> {
 							if (mailboxDetails == null) {
 								return
 							}
-							const { show, createInboxRuleTemplate } = await import("../../settings/AddInboxRuleDialog")
-							const newRule = rule ?? createInboxRuleTemplate(defaultInboxRuleField, mailAddress.address)
+							const { show } = await import("../../settings/AddInboxRuleDialog")
 
-							show(mailboxDetails, newRule)
+							show(mailboxDetails, this.viewModel.inboxRuleModel, rule, [{ type: defaultInboxRuleField, value: mailAddress.address }])
 						},
 					})
 				}
