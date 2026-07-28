@@ -39,7 +39,7 @@ o.spec("CalendarSearch", function () {
 		search = new SearchModel(searchFacade, eventController, entityClient, async () => calendarEventsRepository, progressTracker)
 	})
 	o.spec("Event Search", function () {
-		o.test("searching an event should return all the events that contain query in summary or description", async function () {
+		o.test("searching an event should return all the events that contain the single-word query in summary or description", async function () {
 			const eventStartDate = new Date(2026, 7, 27)
 			const eventEndDate = new Date(2026, 7, 28)
 			const event1 = createTestEntity(CalendarEventTypeRef, {
@@ -82,7 +82,45 @@ o.spec("CalendarSearch", function () {
 			o(resultItems).deepEquals([event1, event2])
 		})
 
-		o.test("a series of events with the same ID and start time should only yield one search result", async function () {
+		o.test("searching an event should return all the events that contain a multi-word query in summary or description", async function () {
+			const eventStartDate = new Date(2026, 7, 27)
+			const eventEndDate = new Date(2026, 7, 28)
+			const event1 = createTestEntity(CalendarEventTypeRef, {
+				summary: "Storytime with Stanley",
+				description:
+					"Stanley worked for a company in a big building where he was employee number 427. " +
+					"Employee Number 427's job was simple: he sat at his desk in room 427, and he pushed buttons on a keyboard.",
+				startTime: eventStartDate,
+				endTime: eventEndDate,
+			})
+			event1._id = ["ListID", "Event1ID"]
+
+			const rangeStart = new Date(2026, 7, 20)
+			const rangeEnd = new Date(2026, 8, 1)
+
+			const restriction: SearchRestriction = {
+				start: rangeStart.getTime(),
+				end: rangeEnd.getTime(),
+				folderIds: [],
+				attributeIds: null,
+				eventSeries: null,
+				field: null,
+				type: SearchCategoryType.calendar,
+			}
+
+			const query: SearchQuery = {
+				query: "stanley desk",
+				restriction,
+				maxResults: null,
+			}
+
+			when(calendarEventsRepository.getDaysToEvents()).thenReturn(makeDaysToEvents(event1))
+
+			const { resultItems } = await search.runCalendarSearch(query, abort.signal)
+			o(resultItems).deepEquals([event1])
+		})
+
+		o.test("a series of events with the same ID and start time should only yield one search result if eventSeries is not set", async function () {
 			const eventStartDate = new Date(2026, 7, 27)
 			const eventEndDate = new Date(2026, 7, 28)
 			const event1 = createTestEntity(CalendarEventTypeRef, {
