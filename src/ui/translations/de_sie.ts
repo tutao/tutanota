@@ -936,6 +936,7 @@ export default {
 		"invalidURLProtocol_msg": "Ungültiges Protokoll. Bitte geben Sie eine URL mit https ein.",
 		"invalidVatIdNumber_msg": "Die angegebene Umsatzsteuer-Identifikationsnummer (USt-IdNr.) ist ungültig.",
 		"invalidVatIdValidationFailed_msg": "Fehler bei der Prüfung der Umsatzsteuer-Identifikationsnummer. Bitte versuchen Sie es später erneut.",
+		"invalidInput_msg": "Ungültige Eingabe.",
 		"invitation_label": "Einladung",
 		"invitationMailBody_msg": "Hi,<br><br>ich bin vor Kurzem zu Tuta Mail gewechselt, damit Big Tech meine Kommunikation nicht mehr scannen kann. Es ist privat und sicher, Open Source, werbefrei und einfach zu bedienen.<br><br>Hier mein persönlicher Einladungslink:<br>{registrationLink}<br><br>Sie erhalten einen zusätzlichen Gratismonat für jedes Jahresabo, wenn Sie sich über diesen Link anmelden.<br><br>Es gibt auch ein kostenloses Abo, das Sie einfach mal ausprobieren können, ohne sich gleich festzulegen.<br><br>Liebe Grüße,<br>{username}",
 		"invitationNote_msg": "Sicher gesendet mit <strong>Tuta Calendar:</strong>\n<br>\n{1}",
