@@ -9,7 +9,6 @@ import { MailSet, MailSetEntryTypeRef, MailSetTypeRef, MailTypeRef, TutanotaProp
 import { elementIdPart, isSameId, OperationType } from "@tutao/meta"
 import m, { Children } from "mithril"
 import { assertNotNull, isEmpty, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/utils"
-import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
 import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel"
 import { getFolderName } from "../mail/model/MailUtils"
 import { lang } from "../../../ui/utils/LanguageViewModel"
@@ -29,6 +28,7 @@ import { theme } from "../../../ui/theme"
 import { TitleSection } from "../../../ui/TitleSection"
 import { MenuTitle } from "../../../ui/titles/MenuTitle"
 import { Card } from "../../../ui/base/Card"
+import { getInboxRuleConditionTypeName } from "../mail/model/InboxRuleHandler"
 
 assertMainOrNode()
 
@@ -111,7 +111,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 				return {
 					cells: [
 						rule.name,
-						getInboxRuleTypeName(rule.conditions[0].type),
+						getInboxRuleConditionTypeName(rule.conditions[0].type),
 						rule.results[0].value ? await this.getTextForTarget(mailboxDetails, assertNotNull(rule.results[0].value)) : "None",
 					],
 					actionButtonAttrs: createRowActions(
@@ -190,7 +190,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 						return
 					}
 
-					const location = await inboxRuleHandler.processInboxRulesOnly(mail.mail, inbox, mailboxDetails)
+					const location = await inboxRuleHandler.getInboxRuleMoveTarget(mail.mail, inbox, mailboxDetails)
 					if (isSameId(location._id, inbox._id)) {
 						// don't move from the inbox to the inbox
 						return

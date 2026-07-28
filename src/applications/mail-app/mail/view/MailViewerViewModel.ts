@@ -664,7 +664,7 @@ export class MailViewerViewModel {
 			return false
 		}
 
-		const targetFolder = await inboxRuleHandler.processInboxRulesOnly(mail, currentFolder, mailboxDetail)
+		const targetFolder = await inboxRuleHandler.getInboxRuleMoveTarget(mail, currentFolder, mailboxDetail)
 
 		if (isSameId(currentFolder._id, targetFolder._id)) {
 			return false
