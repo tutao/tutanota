@@ -7,6 +7,7 @@ import {
 	Cardinality,
 	ClientTypeModel,
 	elementIdToId,
+	Entity,
 	getAssociationRepresentationType,
 	getIdType,
 	IdType,
@@ -51,7 +52,7 @@ import {
 	VersionedKey,
 } from "@tutao/crypto"
 import { EntityAdapter } from "./EntityAdapter.js"
-import { AlarmNotificationTypeRef, RepeatRuleTypeRef, User, WebsocketLeaderStatus } from "@tutao/entities/sys"
+import { AlarmNotificationTypeRef, User, WebsocketLeaderStatus } from "@tutao/entities/sys"
 import { OwnerKeyProvider } from "./PatchMerger"
 import { ModelMapper } from "./ModelMapper"
 import { InstanceDirection, ParsedValue } from "./ParsedValue"
@@ -145,19 +146,7 @@ export class CryptoMapper {
 			try {
 				const fieldPath = `${fieldPathPrefix}${valueModel.id}`
 				let decryptedValue = await this.decryptValue(valueModel, encryptedValue, instanceDecryptor, ownerKeyProvider, fieldPath)
-				if (
-					isSameTypeRef(RepeatRuleTypeRef, decrypted.getTypeRef()) &&
-					decryptedValue.isString() &&
-					decryptedValue.asString() === "" &&
-					valueModel.id === 1561 // .endValue field
-				) {
-					// Before a7b986e30a51fdd07f7d465d122721431fe81e6f
-					// number fields were set to empty string which does not satisfy valid ValueType.Number,
-					// since this field is encrypted, we have reset it to correct value on client side and make
-					// update request to server
-					// Until then, we just fallback to null.
-					decryptedValue = ParsedValue.fromNull()
-				}
+				decryptedValue = CryptoMapper.rewriteEmptyEndValueInRepeatRuleToNull(decrypted.getTypeRef(), decryptedValue, valueModel)
 				decrypted.addAttributeById(valueId, decryptedValue)
 			} catch (e) {
 				const defaultValue = EntityUtils.valueToDefault(valueModel.type).asString()
@@ -306,6 +295,27 @@ export class CryptoMapper {
 		}
 
 		return encryptedInstance
+	}
+
+	public static rewriteEmptyEndValueInRepeatRuleToNull(
+		typeRef: TypeRef<Entity>,
+		decryptedValue: DecryptedParsedValue,
+		valueModel: ModelValue,
+	): DecryptedParsedValue {
+		// tutanota::CalendarRepeatRule::endValue
+		const isEndValueOnCalendarRepeatRule = isSameTypeRef(new TypeRef("tutanota", 926), typeRef) && valueModel.id === 930
+		// sys::RepeatRule::endValue
+		const isEndValueOnSysRepeatRule = isSameTypeRef(new TypeRef("sys", 1557), typeRef) && valueModel.id === 1561
+
+		if ((isEndValueOnCalendarRepeatRule || isEndValueOnSysRepeatRule) && decryptedValue.isString() && decryptedValue.asString() === "") {
+			// Before a7b986e30a51fdd07f7d465d122721431fe81e6f
+			// number fields were set to empty string which does not satisfy valid ValueType.Number,
+			// since this field is encrypted, we have reset it to correct value on client side and make
+			// update request to server
+			// Until then, we just fallback to null.
+			return ParsedValue.fromNull()
+		}
+		return decryptedValue
 	}
 
 	private makeNullableSubKeyProvider(subKeyFactory: Nullable<SubKeyFactory>, clientTypeModel: ClientTypeModel): Nullable<SubKeyProvider> {
@@ -547,8 +557,8 @@ export class DecryptedParsedInstance implements DeepEquals {
 		private readonly _errors: Record<AttributeId, string> = {},
 	) {}
 
-	public getTypeRef(): TypeRef<unknown> {
-		return new TypeRef(this.typeModel.app, this.typeModel.id)
+	public getTypeRef(): TypeRef<Entity> {
+		return new TypeRef<Entity>(this.typeModel.app, this.typeModel.id)
 	}
 
 	public static incomingFromServer(typeModel: ServerTypeModel): DecryptedParsedInstance {

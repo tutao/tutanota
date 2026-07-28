@@ -14,7 +14,7 @@ import {
 	ServerTypeModel,
 	TypeRef,
 } from "@tutao/meta"
-import { DecryptedParsedInstance } from "./CryptoMapper"
+import { CryptoMapper, DecryptedParsedInstance } from "./CryptoMapper"
 import { EntityUtils } from "./EntityUtils"
 
 export class OfflineMapper {
@@ -57,7 +57,8 @@ export class OfflineMapper {
 		const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel)
 
 		for (const valueModel of Object.values(serverModel.values)) {
-			parsedInstance.addAttributeById(valueModel.id, storedEntity.getValue(valueModel))
+			const value = CryptoMapper.rewriteEmptyEndValueInRepeatRuleToNull(parsedInstance.getTypeRef(), storedEntity.getValue(valueModel), valueModel)
+			parsedInstance.addAttributeById(valueModel.id, value)
 		}
 
 		for (const associationModel of Object.values(serverModel.associations)) {
