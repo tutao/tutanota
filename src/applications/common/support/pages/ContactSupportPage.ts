@@ -34,6 +34,7 @@ type Props = {
 export class ContactSupportPage implements Component<Props> {
 	private sendMailModel: SendMailModel | undefined
 	private readonly htmlSanitizer: HtmlSanitizer = getHtmlSanitizer()
+	private sendButtonClicked: boolean = false
 
 	private htmlEditor: HtmlEditor | null = null
 
@@ -182,6 +183,9 @@ export class ContactSupportPage implements Component<Props> {
 					this.sendMailModel.setBody(sanitisedBody)
 					this.sendMailModel.setSubject(await this.getSubject(data, isRating))
 
+					//Set to not include logs into attachment file list
+					this.sendButtonClicked = data.shouldIncludeLogs()
+
 					if (data.shouldIncludeLogs()) {
 						this.sendMailModel.attachFiles(data.logs())
 					}
@@ -210,31 +214,34 @@ export class ContactSupportPage implements Component<Props> {
 						m.redraw()
 					},
 				}),
-				(this.sendMailModel?.getAttachments() ?? []).map((attachment) =>
-					m(
-						".flex.center-vertically.flex-space-between.pb-8.pt-8",
-						{ style: { paddingInline: px(size.spacing_8) } },
-						m("span.smaller", attachment.name),
+				//Exclude last two files if send button was clicked because these
+				//are the log files which should not be displayed
+				(this.sendButtonClicked ? (this.sendMailModel?.getAttachments() ?? []).slice(0, -2) : (this.sendMailModel?.getAttachments() ?? [])).map(
+					(attachment) =>
 						m(
-							BaseButton,
-							{
-								label: "remove_action",
-								onclick: () => {
-									this.sendMailModel?.removeAttachment(attachment)
-									m.redraw()
+							".flex.center-vertically.flex-space-between.pb-8.pt-8",
+							{ style: { paddingInline: px(size.spacing_8) } },
+							m("span.smaller", attachment.name),
+							m(
+								BaseButton,
+								{
+									label: "remove_action",
+									onclick: () => {
+										this.sendMailModel?.removeAttachment(attachment)
+										m.redraw()
+									},
+									class: "flex justify-between flash",
 								},
-								class: "flex justify-between flash",
-							},
-							m(Icon, {
-								icon: Icons.TrashFilled,
-								style: {
-									fill: getColors(ButtonColor.Content).button,
-									paddingInline: px((size.icon_24 - size.icon_16) / 2),
-								},
-								title: lang.get("remove_action"),
-							}),
+								m(Icon, {
+									icon: Icons.TrashFilled,
+									style: {
+										fill: getColors(ButtonColor.Content).button,
+										paddingInline: px((size.icon_24 - size.icon_16) / 2),
+									},
+									title: lang.get("remove_action"),
+								}),
+							),
 						),
-					),
 				),
 			],
 		)
