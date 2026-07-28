@@ -1,6 +1,6 @@
 import { asyncFind, isEmpty } from "@tutao/utils"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
-import { assertMainOrNode, ProgrammingError } from "@tutao/app-env"
+import { assertMainOrNode } from "@tutao/app-env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailModel } from "./MailModel"
@@ -9,6 +9,7 @@ import { InboxRuleConditionType, InboxRuleResultType } from "../../../../entitie
 import { elementIdPart } from "@tutao/meta"
 import { getMailHeaders } from "./MailUtils"
 import { _checkContainsRuleCondition, _checkEmailAddresses, _shouldApplyRule, InboxRuleHandler } from "./InboxRuleHandler"
+import { InboxRuleModel } from "./InboxRuleModel"
 
 assertMainOrNode()
 
@@ -22,13 +23,14 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 		private readonly mailFacade: MailFacade,
 		private readonly logins: LoginController,
 		private readonly mailModel: MailModel,
+		private readonly inboxRuleModel: InboxRuleModel,
 	) {}
 
 	async findMatchingInboxRule(mail: Readonly<Mail>, sourceFolder: MailSet, ignoreProcessingState = false): Promise<ExpandedInboxRule | null> {
 		if (!this.logins.getUserController().isPaidAccount() || !_shouldApplyRule(mail, sourceFolder, ignoreProcessingState)) {
 			return null
 		}
-		return await _findMatchingRule(this.mailFacade, mail, this.logins.getUserController().props.expandedInboxRules)
+		return await _findMatchingRule(this.mailFacade, mail, await this.inboxRuleModel.getOrderedInboxRules())
 	}
 
 	async getMoveResultValue(inboxRule: ExpandedInboxRule, mailboxDetail: MailboxDetail): Promise<MailSet | null> {

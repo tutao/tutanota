@@ -315,6 +315,7 @@ export class MailAddressFacade {
 			...(_ownerGroup != null ? { _ownerGroup } : null), // only set it if it is not null
 			reportMovedMails: ReportMovedMailsType.ALWAYS_ASK,
 			mailAddressProperties: [],
+			inboxRuleOrder: [],
 		})
 		// Using non-caching entityClient because we are not a member of the user's mail group and we won't receive updates for it
 		return assertNotNull(

@@ -6,9 +6,9 @@ import { Blob } from '../sys/TypeRefs.js'
 import { BucketKey } from '../sys/TypeRefs.js'
 import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
 import { DateWrapper } from '../sys/TypeRefs.js'
+import { IdTupleWrapper } from '../sys/TypeRefs.js'
 import { StringWrapper } from '../sys/TypeRefs.js'
 import { GeneratedIdWrapper } from '../sys/TypeRefs.js'
-import { IdTupleWrapper } from '../sys/TypeRefs.js'
 import { InstanceSessionKey } from '../sys/TypeRefs.js'
 
 export const SubfilesTypeRef: TypeRef<Subfiles> = new TypeRef("tutanota", 11)
@@ -691,7 +691,6 @@ export type TutanotaPropertiesParams = {
 	lastPushedMail: null | IdTuple;
 	imapSyncConfig: ImapSyncConfiguration[];
 	inboxRules: InboxRule[];
-	expandedInboxRules: ExpandedInboxRule[];
 }
 
 export type TutanotaProperties = {
@@ -721,7 +720,6 @@ export type TutanotaProperties = {
 	lastPushedMail: null | IdTuple;
 	imapSyncConfig: ImapSyncConfiguration[];
 	inboxRules: InboxRule[];
-	expandedInboxRules: ExpandedInboxRule[];
 }
 export const NotificationMailTypeRef: TypeRef<NotificationMail> = new TypeRef("tutanota", 223)
 
@@ -1613,6 +1611,7 @@ export type MailboxGroupRootParams = {
 	outOfOfficeNotification: null | Id;
 	outOfOfficeNotificationRecipientList: null | OutOfOfficeNotificationRecipientList;
 	mailboxProperties: null | Id;
+	inboxRules: null | ExpandedInboxRuleList;
 }
 
 export type MailboxGroupRoot = {
@@ -1630,6 +1629,7 @@ export type MailboxGroupRoot = {
 	outOfOfficeNotification: null | Id;
 	outOfOfficeNotificationRecipientList: null | OutOfOfficeNotificationRecipientList;
 	mailboxProperties: null | Id;
+	inboxRules: null | ExpandedInboxRuleList;
 }
 export const CreateMailGroupDataTypeRef: TypeRef<CreateMailGroupData> = new TypeRef("tutanota", 707)
 
@@ -2650,6 +2650,7 @@ export type MailboxPropertiesParams = {
 	reportMovedMails: NumberString;
 
 	mailAddressProperties: MailAddressProperties[];
+	inboxRuleOrder: IdTupleWrapper[];
 }
 
 export type MailboxProperties = {
@@ -2667,6 +2668,7 @@ export type MailboxProperties = {
 	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	mailAddressProperties: MailAddressProperties[];
+	inboxRuleOrder: IdTupleWrapper[];
 }
 export const SpamResultsTypeRef: TypeRef<SpamResults> = new TypeRef("tutanota", 1217)
 
@@ -4379,7 +4381,7 @@ export type ImapAccountParams = {
 	username: string;
 	password: null | string;
 	ignoreCertificateErrors: boolean;
-	customCertificateData: null | Uint8Array;
+	customCertificateData: null | Uint8Array<ArrayBuffer>;
 
 	oAuthTokenEndpointResponse: null | OAuthTokenEndpointResponse;
 }
@@ -4824,11 +4826,39 @@ export type ExpandedInboxRuleParams = {
 
 export type ExpandedInboxRule = {
 	_type: TypeRef<ExpandedInboxRule>;
+	_errors: Object;
 	_original?: ExpandedInboxRule
 
-	_id: Id;
+	_id: ListElementId;
+	_permissions: Id;
+	_format: NumberString;
+	_ownerGroup: null | Id;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 	name: string;
 
 	conditions: InboxRuleCondition[];
 	results: InboxRuleResult[];
+}
+export const ExpandedInboxRuleListTypeRef: TypeRef<ExpandedInboxRuleList> = new TypeRef("tutanota", 2014)
+
+export function createExpandedInboxRuleList(values: ExpandedInboxRuleListParams): ExpandedInboxRuleList {
+    return Object.assign(create(typeModels[ExpandedInboxRuleListTypeRef.typeId], ExpandedInboxRuleListTypeRef), values)
+}
+
+export type ExpandedInboxRuleListParams = {
+
+
+
+	list: Id;
+}
+
+export type ExpandedInboxRuleList = {
+	_type: TypeRef<ExpandedInboxRuleList>;
+	_original?: ExpandedInboxRuleList
+
+	_id: Id;
+
+	list: Id;
 }
