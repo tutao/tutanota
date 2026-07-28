@@ -34,7 +34,6 @@ import { MAIL_PREFIX } from "../../../../ui/utils/RouteChange"
 import { ProgressBar } from "../../../../ui/base/ProgressBar"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../../ui/base/BaseSearchBar"
 import { isKeyPressed, keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
-import { SearchListView, SearchListViewAttrs } from "./SearchListView"
 import { getElementId, getIds, isSameId, isSameTypeRef } from "@tutao/meta"
 import { Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import { SearchCategoryType } from "../../../common/api/worker/search/SearchTypes"
@@ -83,6 +82,7 @@ import { showDateRangeSelectionDialog } from "../../../calendar-app/calendar/gui
 import { listSelectionKeyboardShortcuts } from "../../../../ui/base/ListUtils"
 import { MultiselectMode } from "../../../../ui/base/List"
 import { SimpleMoveMailTarget } from "../../mail/MailUtils"
+import { MailSearchListView, MailSearchListViewAttrs } from "./MailSearchListView"
 
 export interface MailSearchViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -176,9 +176,8 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 			styles.isDesktopLayout() ? null : this.renderFilterBar(),
 			m(
 				".rel.flex-grow",
-				m(SearchListView, {
+				m(MailSearchListView, {
 					listModel: this.searchViewModel.listModel,
-					currentType: SearchCategoryType.mail,
 					onSingleSelection: (item) => {
 						this.viewSlider.focus(this.resultDetailsColumn)
 						if (isSameTypeRef(item.entry._type, MailTypeRef)) {
@@ -193,19 +192,15 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 							})
 						}
 					},
-					cancelCallback: () => {
-						this.searchViewModel.sendStopLoadingSignal()
-					},
 					isFreeAccount: locator.logins.getUserController().isFreeAccount(),
-					getLabelsForMail: (mail) => this.searchViewModel.getLabelsForMail(mail),
 					highlightedStrings: this.searchViewModel.getHighlightedStrings(),
-					availableCalendars: [], //FIXME
+					getLabelsForMail: (mail: Mail) => this.searchViewModel.getLabelsForMail(mail),
 					indexStateStream: this.searchViewModel.getSearchIndexStateStream(),
 					currentStartDate: this.searchViewModel.startDate,
 					extendSearchResult: (extendDate: Date) => {
 						void this.searchViewModel.selectStartDate(extendDate)
 					},
-				} satisfies SearchListViewAttrs),
+				} satisfies MailSearchListViewAttrs),
 			),
 		])
 	}

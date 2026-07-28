@@ -37,7 +37,7 @@ import { ProgressBar } from "../../../../ui/base/ProgressBar"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../../ui/base/BaseSearchBar"
 import { isKeyPressed, keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { FeatureType, Keys } from "@tutao/app-env"
-import { SearchListView, SearchListViewAttrs } from "./SearchListView"
+import { CommonSearchListViewAttrs } from "./SearchListView"
 import { ViewSlider } from "../../../../ui/nav/ViewSlider"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { ContactViewerActions } from "../../contacts/view/ContactViewerActions"
@@ -54,6 +54,7 @@ import { listSelectionKeyboardShortcuts } from "../../../../ui/base/ListUtils"
 import { MultiselectMode } from "../../../../ui/base/List"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { NotFoundError } from "@tutao/rest-client/error"
+import { ContactSearchListView } from "./ContactSearchListView"
 
 export interface ContactSearchViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -413,19 +414,12 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 			styles.isDesktopLayout() ? null : this.renderFilterBar(),
 			m(
 				".rel.flex-grow",
-				m(SearchListView, {
+				m(ContactSearchListView, {
 					listModel: this.searchViewModel.listModel,
-					currentType: SearchCategoryType.contact,
 					onSingleSelection: (item) => this.viewSlider.focus(this.resultDetailsColumn),
-					cancelCallback: () => {}, //FIXME we may not need many of the things below for contacts
 					isFreeAccount: locator.logins.getUserController().isFreeAccount(),
-					getLabelsForMail: (mail) => [],
 					highlightedStrings: this.searchViewModel.getHighlightedStrings(),
-					availableCalendars: [],
-					indexStateStream: this.searchViewModel.getSearchIndexStateStream(),
-					currentStartDate: new Date(),
-					extendSearchResult: (extendDate: Date) => {},
-				} satisfies SearchListViewAttrs),
+				} satisfies CommonSearchListViewAttrs),
 			),
 		])
 	}

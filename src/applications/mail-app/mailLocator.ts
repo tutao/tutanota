@@ -77,7 +77,6 @@ import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorVi
 import { Router, ScopedThrottledRouter, ThrottledRouter } from "../../ui/ScopedThrottledRouter.js"
 import { DeviceConfig, deviceConfig } from "../common/misc/DeviceConfig.js"
 import { InboxRuleHandler } from "./mail/model/InboxRuleHandler.js"
-import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { MailOpenedListener } from "./mail/view/MailViewModel.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
@@ -172,7 +171,7 @@ import { WebFileResolver } from "../drive-app/drive/view/WebFileResolver"
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
 import { MailSearchViewModel } from "./search/view/MailSearchViewModel"
 import { ContactSearchViewModel } from "./search/view/ContactSearchViewModel"
-import { NewCalendarSearchViewModel } from "../calendar-app/calendar/search/view/NewCalendarSearchViewModel"
+import { CalendarSearchViewModel } from "../calendar-app/calendar/search/view/CalendarSearchViewModel"
 
 assertMainOrNode()
 
@@ -327,36 +326,6 @@ class MailLocator implements CommonLocator {
 	readonly processInboxHandler = lazyMemoized(() => {
 		return new ProcessInboxHandler(this.logins, this.mailFacade, this.cryptoFacade, this.spamClassificationHandler, this.inboxRuleHandler)
 	})
-
-	async searchViewModelFactory(): Promise<() => SearchViewModel> {
-		const { SearchViewModel } = await import("./search/view/SearchViewModel.js")
-		const conversationViewModelFactory = await this.conversationViewModelFactory()
-		const redraw = await this.redraw()
-		const searchRouter = await this.scopedSearchRouter()
-		const calendarEventsRepository = await this.calendarEventsRepository()
-		const offlineStorageSettings = await this.offlineStorageSettingsModel()
-		const calendarModel = await this.calendarModel()
-		return () => {
-			return new SearchViewModel(
-				searchRouter,
-				this.search,
-				this.mailboxModel,
-				this.logins,
-				this.indexerFacade,
-				this.entityClient,
-				this.eventController,
-				this.mailOpenedListener,
-				this.calendarFacade,
-				this.progressTracker,
-				conversationViewModelFactory,
-				calendarEventsRepository,
-				calendarModel,
-				redraw,
-				deviceConfig.getMailAutoSelectBehavior(),
-				offlineStorageSettings,
-			)
-		}
-	}
 
 	readonly throttledRouter: lazy<Router> = lazyMemoized(() => new ThrottledRouter())
 
@@ -1447,6 +1416,7 @@ class MailLocator implements CommonLocator {
 		const { MailSearchViewModel } = await import("./search/view/MailSearchViewModel.js")
 		const redraw = await this.redraw()
 		const router = await this.scopedSearchRouter()
+		const dateProvider = await this.noZoneDateProvider()
 		const offlineStorageSettings = await this.offlineStorageSettingsModel()
 		const conversationViewModelFactory = await this.conversationViewModelFactory()
 		return () =>
@@ -1454,7 +1424,6 @@ class MailLocator implements CommonLocator {
 				router,
 				this.search,
 				this.mailboxModel,
-				this.eventController,
 				offlineStorageSettings,
 				this.mailModel,
 				this.logins,
@@ -1462,17 +1431,18 @@ class MailLocator implements CommonLocator {
 				deviceConfig.getMailAutoSelectBehavior(),
 				conversationViewModelFactory,
 				this.mailOpenedListener,
+				dateProvider,
 				redraw,
 			)
 	}
-	async calendarSearchViewModelFactory(): Promise<() => NewCalendarSearchViewModel> {
-		const { NewCalendarSearchViewModel } = await import("../calendar-app/calendar/search/view/NewCalendarSearchViewModel.js")
+	async calendarSearchViewModelFactory(): Promise<() => CalendarSearchViewModel> {
+		const { CalendarSearchViewModel } = await import("../calendar-app/calendar/search/view/CalendarSearchViewModel.js")
 		const calendarModel = await this.calendarModel()
 		const redraw = await this.redraw
 		const router = await this.scopedSearchRouter()
 		const offlineStorageSettings = await this.offlineStorageSettingsModel()
 		return () =>
-			new NewCalendarSearchViewModel(
+			new CalendarSearchViewModel(
 				calendarModel,
 				this.logins,
 				this.search,

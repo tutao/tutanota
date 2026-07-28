@@ -170,7 +170,6 @@ export class SearchModel {
 		// when it's indexeddb we need to sort manually here
 		const mails = await loadMultipleFromLists(MailTypeRef, this.entityClient, searchResult.results)
 		mails.sort(compareMails)
-
 		const result: LiveSearchResult<Mail> = {
 			searchResult,
 			items: mails,

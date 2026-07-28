@@ -32,14 +32,12 @@ import { DrawerMenuAttrs } from "../common/gui/nav/DrawerMenu.js"
 import { MailView, MailViewAttrs, MailViewCache } from "./mail/view/MailView.js"
 import { ContactView, ContactViewAttrs } from "./contacts/view/ContactView.js"
 import { SettingsView } from "./settings/SettingsView.js"
-import { SearchView, SearchViewAttrs } from "./search/view/SearchView.js"
 import { TopLevelAttrs, TopLevelView } from "../../ui/base/TopLevelView.js"
 import { AppHeaderAttrs } from "../../ui/Header.js"
 import { CalendarViewModel } from "../calendar-app/calendar/view/CalendarViewModel.js"
 import { ExternalLoginView, ExternalLoginViewAttrs, ExternalLoginViewModel } from "./mail/view/ExternalLoginView.js"
 import { LoginController } from "../common/api/main/LoginController.js"
 import { MailViewModel } from "./mail/view/MailViewModel.js"
-import { SearchViewModel } from "./search/view/SearchViewModel.js"
 import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
 import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
@@ -74,8 +72,8 @@ import { MailSearchView, MailSearchViewAttrs } from "./search/view/MailSearchVie
 import { MailSearchViewModel } from "./search/view/MailSearchViewModel"
 import { ContactSearchView, ContactSearchViewAttrs } from "./search/view/ContactSearchView"
 import { ContactSearchViewModel } from "./search/view/ContactSearchViewModel"
-import { NewCalendarSearchView, NewCalendarSearchViewAttrs } from "../calendar-app/calendar/search/view/NewCalendarSearchView"
-import { NewCalendarSearchViewModel } from "../calendar-app/calendar/search/view/NewCalendarSearchViewModel"
+import { CalendarSearchView, NewCalendarSearchViewAttrs } from "../calendar-app/calendar/search/view/CalendarSearchView"
+import { CalendarSearchViewModel } from "../calendar-app/calendar/search/view/CalendarSearchViewModel"
 import { calendarLocator } from "../calendar-app/calendarLocator"
 
 assertMainOrNodeBoot()
@@ -672,16 +670,16 @@ import("../../ui/translations/en.js")
 			),
 			calendarSearch: makeViewResolver<
 				NewCalendarSearchViewAttrs,
-				NewCalendarSearchView,
-				{ header: AppHeaderAttrs; drawerAttrsFactory: () => DrawerMenuAttrs; makeViewModel: () => NewCalendarSearchViewModel }
+				CalendarSearchView,
+				{ header: AppHeaderAttrs; drawerAttrsFactory: () => DrawerMenuAttrs; makeViewModel: () => CalendarSearchViewModel }
 			>(
 				{
 					prepareRoute: async () => {
-						const { NewCalendarSearchView } = await import("../calendar-app/calendar/search/view/NewCalendarSearchView.js")
+						const { CalendarSearchView } = await import("../calendar-app/calendar/search/view/CalendarSearchView.js")
 						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
 						const makeViewModel = await mailLocator.calendarSearchViewModelFactory()
 						return {
-							component: NewCalendarSearchView,
+							component: CalendarSearchView,
 							cache: {
 								header: await mailLocator.appHeaderAttrs(),
 								drawerAttrsFactory,
@@ -696,42 +694,6 @@ import("../../ui/translations/en.js")
 							makeViewModel: cache.makeViewModel,
 						}
 					},
-				},
-				mailLocator.logins,
-			),
-			search: makeViewResolver<
-				SearchViewAttrs,
-				SearchView,
-				{
-					drawerAttrsFactory: () => DrawerMenuAttrs
-					header: AppHeaderAttrs
-					searchViewModelFactory: () => SearchViewModel
-					contactModel: ContactModel
-					undoModel: UndoModel
-				}
-			>(
-				{
-					prepareRoute: async () => {
-						const { SearchView } = await import("./search/view/SearchView.js")
-						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
-						return {
-							component: SearchView,
-							cache: {
-								drawerAttrsFactory,
-								header: await mailLocator.appHeaderAttrs(),
-								searchViewModelFactory: await mailLocator.searchViewModelFactory(),
-								contactModel: mailLocator.contactModel,
-								undoModel: await mailLocator.undoModel(),
-							},
-						}
-					},
-					prepareAttrs: (cache) => ({
-						drawerAttrs: cache.drawerAttrsFactory(),
-						header: cache.header,
-						makeViewModel: cache.searchViewModelFactory,
-						contactModel: cache.contactModel,
-						undoModel: cache.undoModel,
-					}),
 				},
 				mailLocator.logins,
 			),

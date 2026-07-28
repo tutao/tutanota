@@ -23,9 +23,6 @@ import { AppHeaderAttrs } from "../../ui/Header.js"
 import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
 import { LoginController } from "../common/api/main/LoginController.js"
 import { MobileSettingsViewAttrs, SettingsViewSection } from "../common/settings/Interfaces.js"
-import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView.js"
-import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
-import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import type { MobileSettingsView } from "../common/settings/MobileSettingsView.js"
 import { AppType, assertMainOrNodeBoot, bootFinished, isAdminClient, isApp, isBrowser, isDesktop, ProgrammingError } from "../../platform-kit/app-env"
 import { CALENDAR_PREFIX } from "../../ui/utils/RouteChange"
@@ -44,8 +41,8 @@ import { initClientModels } from "../common/api/common/ClientModelInfoInitialize
 import { RevocationView, RevocationViewAttrs } from "../common/revocation/RevocationView"
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
 import { CalendarSearchBarAttrs } from "./LazyCalendarSearchBar"
-import { NewCalendarSearchView, NewCalendarSearchViewAttrs } from "./calendar/search/view/NewCalendarSearchView"
-import { NewCalendarSearchViewModel } from "./calendar/search/view/NewCalendarSearchViewModel"
+import { CalendarSearchView, NewCalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView"
+import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel"
 import { calendarLocator } from "./calendarLocator"
 
 assertMainOrNodeBoot()
@@ -285,16 +282,16 @@ import("../../ui/translations/en.js")
 			),
 			calendarSearch: makeViewResolver<
 				NewCalendarSearchViewAttrs,
-				NewCalendarSearchView,
-				{ header: AppHeaderAttrs; drawerAttrsFactory: () => DrawerMenuAttrs; makeViewModel: () => NewCalendarSearchViewModel }
+				CalendarSearchView,
+				{ header: AppHeaderAttrs; drawerAttrsFactory: () => DrawerMenuAttrs; makeViewModel: () => CalendarSearchViewModel }
 			>(
 				{
 					prepareRoute: async () => {
-						const { NewCalendarSearchView } = await import("./calendar/search/view/NewCalendarSearchView.js")
+						const { CalendarSearchView } = await import("./calendar/search/view/CalendarSearchView.js")
 						const drawerAttrsFactory = await calendarLocator.drawerAttrsFactory()
 						const makeViewModel = await calendarLocator.calendarSearchViewModelFactory()
 						return {
-							component: NewCalendarSearchView,
+							component: CalendarSearchView,
 							cache: {
 								header: await calendarLocator.appHeaderAttrs(),
 								drawerAttrsFactory,

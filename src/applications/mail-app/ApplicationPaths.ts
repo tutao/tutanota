@@ -11,7 +11,6 @@ type ViewResolvers = {
 	externalLogin: RouteResolver
 	contact: RouteResolver
 	contactList: RouteResolver
-	search: RouteResolver
 	settings: RouteResolver
 	calendar: RouteResolver
 	drive: RouteResolver
@@ -34,7 +33,6 @@ export function applicationPaths({
 	externalLogin,
 	contact,
 	contactList,
-	search,
 	settings,
 	calendar,
 	drive,

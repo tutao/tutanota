@@ -8,7 +8,18 @@ import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import Stream from "mithril/stream"
 import { SearchCategoryType, SearchIndexStateInfo, SearchRestriction } from "../../../common/api/worker/search/SearchTypes"
 import { LiveSearchResult, SearchModel, SearchQuery } from "../model/SearchModel"
-import { assertNotNull, debounce, getEndOfDay, getStartOfDay, isNotNull, isSameDayOfDate, memoizedWithHiddenArgument, noOp, onceAsync } from "@tutao/utils"
+import {
+	assertNotNull,
+	DateProvider,
+	debounce,
+	getEndOfDay,
+	getStartOfDay,
+	isNotNull,
+	isSameDayOfDate,
+	memoizedWithHiddenArgument,
+	noOp,
+	onceAsync,
+} from "@tutao/utils"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { EventController } from "../../../common/api/main/EventController"
 import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
@@ -28,6 +39,7 @@ import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils"
 import { MailOpenedListener } from "../../mail/view/MailViewModel"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
+import { compareMails } from "../../mail/model/MailUtils"
 
 const SEARCH_PAGE_SIZE = 100
 export class MailSearchViewModel {
@@ -59,8 +71,7 @@ export class MailSearchViewModel {
 		if (this._endDate) {
 			return this._endDate
 		} else {
-			// FIXME: date provider?
-			return new Date()
+			return new Date(this.dateProvider.now())
 		}
 	}
 	loadingAllForSearchResult: LiveSearchResult<Mail> | null = null
@@ -83,7 +94,6 @@ export class MailSearchViewModel {
 		readonly router: SearchRouter,
 		private readonly search: SearchModel,
 		private readonly mailboxModel: MailboxModel,
-		private readonly eventController: EventController,
 		private readonly offlineStorageSettings: OfflineStorageSettingsModel | null = null,
 		private readonly mailModel: MailModel,
 		private readonly logins: LoginController,
@@ -91,6 +101,7 @@ export class MailSearchViewModel {
 		private readonly selectionBehavior: ListAutoSelectBehavior,
 		private readonly conversationViewModelFactory: ConversationViewModelFactory | null,
 		private readonly mailOpenedListener: MailOpenedListener | null,
+		private readonly dateProvider: DateProvider,
 		private readonly updateUi: () => unknown,
 	) {}
 
@@ -187,7 +198,7 @@ export class MailSearchViewModel {
 					return result
 				})
 
-			const listModel = this.createList(searchPromise, noOp, getElementId)
+			const listModel = this.createList(searchPromise, getElementId)
 			this.#listModel = listModel
 			this.applyMailFilterIfNeeded()
 			listModel.loadInitial()
@@ -232,7 +243,6 @@ export class MailSearchViewModel {
 
 	private createList<T extends SearchableTypes>(
 		deferredResult: Promise<LiveSearchResult<T>>,
-		restartSearch: () => unknown,
 		idExtractor: (entity: T) => Id,
 	): ListModel<SearchResultListEntry, Id> {
 		// the list is recreated every time a new search is performed, but not when the current result is extended
@@ -267,8 +277,7 @@ export class MailSearchViewModel {
 				return isSameId(id1, id2)
 			},
 			sortCompare: (o1: SearchResultListEntry, o2: SearchResultListEntry) => {
-				// FIXME maybe we actually need it when we insert new item
-				return 0
+				return compareMails(o1.entry as any, o2.entry as any)
 			},
 			autoSelectBehavior: () => this.selectionBehavior,
 		})
@@ -310,10 +319,6 @@ export class MailSearchViewModel {
 			this.mailOpenedListener.onEmailOpened(mail)
 		}
 	}
-
-	//FIXME DO WE NEED THIS?
-	sendStopLoadingSignal() {}
-
 	getLabelsForMail(mail: Mail): MailSet[] {
 		return this.mailModel.getLabelsForMail(mail)
 	}
