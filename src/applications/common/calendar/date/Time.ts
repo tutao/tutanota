@@ -55,35 +55,29 @@ export class Time {
 		if (!matches) {
 			return null
 		}
-		const hoursMatch: string | undefined = matches[1] ?? matches[3]
-		const minutesMatch: string | undefined = matches[2] ?? matches[4]
-		const isAM = matches[5] === "a" || matches[5] === "A"
-		const isPM = matches[5] === "p" || matches[5] === "P"
-		const is12HourClock = isAM || isPM
+		const hourMatch: string | undefined = matches[1] ?? matches[3]
+		const minuteMatch: string | undefined = matches[2] ?? matches[4]
+		const isAm = matches[5] === "a" || matches[5] === "A"
+		const isPm = matches[5] === "p" || matches[5] === "P"
+		const is12HourClock = isAm || isPm
 
 		// Convert hours and minutes to integers
-		let hours = parseInt(hoursMatch, 10)
-		let minutes = minutesMatch ? parseInt(minutesMatch, 10) : 0
-		if (!Number.isSafeInteger(hours) || !Number.isSafeInteger(minutes) || hours < 0 || minutes < 0) {
-			throw new ProgrammingError(`Got unexpected hours match "${hoursMatch}" and/or minute match "${minutesMatch}" from regex = ${regex}!`)
+		let hour = parseInt(hourMatch, 10)
+		let minute = minuteMatch ? parseInt(minuteMatch, 10) : 0
+		if (!Number.isSafeInteger(hour) || !Number.isSafeInteger(minute) || hour < 0 || minute < 0) {
+			throw new ProgrammingError(`Got unexpected hours match "${hourMatch}" and/or minute match "${minuteMatch}" from regex = ${regex}!`)
 		}
 
 		// Return null if hours or minutes are invalid
-		if (hours > 23 || (is12HourClock && hours > 12) || minutes > 59) {
+		if (hour > 23 || (is12HourClock && hour > 12) || minute > 59) {
 			return null
 		}
 
-		// Convert 12-hour clock hours value to 24-hour clock value
 		if (is12HourClock) {
-			if (hours === 12) {
-				hours = 0
-			}
-			if (isPM) {
-				hours += 12
-			}
+			hour = Time.convert12HourClockHourTo24HourClock(hour, isPm)
 		}
 
-		return new Time(hours, minutes)
+		return new Time(hour, minute)
 	}
 
 	/**
@@ -107,28 +101,16 @@ export class Time {
 		return this._hour === otherTime._hour && this._minute === otherTime._minute
 	}
 
-	toString(amPmFormat?: { withAmPmSuffix: boolean }): string {
-		return amPmFormat ? this.to12HourString(amPmFormat.withAmPmSuffix) : this.to24HourString()
-	}
-
 	to12HourString(withAmPmSuffix: boolean): string {
-		const minutesString = pad(this._minute, 2)
-
-		if (this._hour === 0) {
-			return `12:${minutesString}${withAmPmSuffix ? " am" : ""}`
-		} else if (this._hour === 12) {
-			return `12:${minutesString}${withAmPmSuffix ? " pm" : ""}`
-		} else if (this._hour > 12) {
-			return `${this._hour - 12}:${minutesString}${withAmPmSuffix ? " pm" : ""}`
-		} else {
-			return `${this._hour}:${minutesString}${withAmPmSuffix ? " am" : ""}`
+		let result = `${this.hourTo12HourClock().toString()}:${pad(this._minute, 2)}`
+		if (withAmPmSuffix) {
+			result += this.isHourPm() ? " pm" : " am"
 		}
+		return result
 	}
 
 	to24HourString(): string {
-		const hours = pad(this._hour, 2)
-		const minutes = pad(this._minute, 2)
-		return `${hours}:${minutes}`
+		return `${pad(this._hour, 2)}:${pad(this._minute, 2)}`
 	}
 
 	toObject(): {
@@ -226,5 +208,30 @@ export class Time {
 		const hour = minutes / 60
 		const restMinutes = minutes % 60
 		return new Time(hour, restMinutes)
+	}
+
+	private isHourPm() {
+		return this._hour >= 12
+	}
+
+	private hourTo12HourClock(): number {
+		let hour = this._hour
+		if (this.isHourPm()) {
+			hour -= 12
+		}
+		if (hour === 0) {
+			hour = 12
+		}
+		return hour
+	}
+
+	private static convert12HourClockHourTo24HourClock(hour: number, isPm: boolean) {
+		if (hour === 12) {
+			hour = 0
+		}
+		if (isPm) {
+			hour += 12
+		}
+		return hour
 	}
 }
