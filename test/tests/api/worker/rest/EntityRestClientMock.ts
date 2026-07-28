@@ -7,8 +7,8 @@ import {
 	ElementEntity,
 	elementIdPart,
 	elementIdToId,
+	expandId,
 	firstBiggerThanSecond,
-	getIdOfInstance,
 	getServerIdEncodingForType,
 	idToElementId,
 	isSameId,
@@ -198,9 +198,9 @@ export class EntityRestClientMock extends EntityRestClient {
 		const typeModel = await this._typeModelResolver.resolveClientTypeReference(instance._type)
 		ensureIsPersistentType(typeModel)
 
-		const ids = getIdOfInstance(instance, typeModel)
+		const { listId, elementId } = expandId(instance._id)
 
-		this._handleDelete(instance._type, ids.id, ids.listId)
+		this._handleDelete(instance._type, elementId, listId)
 		return Promise.resolve()
 	}
 
@@ -213,7 +213,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		ensureIsPersistentType(typeModel)
 
 		this._handleDeleteMultiple(
-			instances.map((it) => getIdOfInstance(it, typeModel).id),
+			instances.map((it) => expandId(it._id).elementId),
 			listId,
 		)
 		return Promise.resolve()

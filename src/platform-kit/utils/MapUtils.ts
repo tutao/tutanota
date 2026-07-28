@@ -1,4 +1,4 @@
-import { neverNull } from "./Utils.js"
+import { isNull, neverNull, Nullable } from "./Utils.js"
 
 /**
  * Merges multiple maps into a single map with lists of values.
@@ -25,9 +25,9 @@ export function mergeMaps<T>(maps: Map<string, T>[]): Map<string, T[]> {
  * {@link byDefault} will be called, and its return value will be inserted into the map and returned.
  */
 export function getFromMap<K, V>(map: Map<K, V>, key: K, byDefault: () => V): V {
-	let value = map.get(key)
+	let value: Nullable<V> = map.get(key) ?? null
 
-	if (!value) {
+	if (isNull(value)) {
 		value = byDefault()
 		map.set(key, value)
 	}

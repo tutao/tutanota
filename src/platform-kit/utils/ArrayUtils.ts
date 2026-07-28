@@ -231,7 +231,7 @@ export function getFirstOrThrow<T>(array: ReadonlyArray<T>): T {
 }
 
 export function first<T>(array: ReadonlyArray<T>): T | null {
-	return array[0] || null
+	return array[0] ?? null
 }
 
 export function findLast<T>(array: ReadonlyArray<T>, predicate: (arg0: T) => boolean): T | null {
@@ -557,7 +557,7 @@ export function partition<Generic, Specific extends Generic>(
 ): [Array<Specific>, Array<Exclude<Generic, Specific>>]
 export function partition<TL>(array: ReadonlyArray<TL>, predicate: (item: TL) => boolean): [Array<TL>, Array<TL>]
 // this is an implementation signature and is not visible from the outside
-export function partition<T>(array: ReadonlyArray<T>, predicate: any): [Array<T>, Array<T>] {
+export function partition<T>(array: ReadonlyArray<T>, predicate: (item: T) => boolean): [Array<T>, Array<T>] {
 	const left: Array<T> = []
 	const right: Array<T> = []
 
