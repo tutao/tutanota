@@ -2066,15 +2066,6 @@ const typeModels = {
 				"cardinality": "Any",
 				"refTypeId": 573,
 				"dependency": null
-			},
-			"2007": {
-				"final": false,
-				"name": "expandedInboxRules",
-				"id": 2007,
-				"type": "AGGREGATION",
-				"cardinality": "Any",
-				"refTypeId": 2002,
-				"dependency": null
 			}
 		}
 	},
@@ -4252,6 +4243,15 @@ const typeModels = {
 				"type": "ELEMENT_ASSOCIATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 1195,
+				"dependency": null
+			},
+			"2017": {
+				"final": true,
+				"name": "inboxRules",
+				"id": 2017,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2014,
 				"dependency": null
 			}
 		}
@@ -6664,6 +6664,15 @@ const typeModels = {
 				"cardinality": "Any",
 				"refTypeId": 1263,
 				"dependency": null
+			},
+			"2018": {
+				"final": false,
+				"name": "inboxRuleOrder",
+				"id": 2018,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2315,
+				"dependency": "sys"
 			}
 		}
 	},
@@ -11423,47 +11432,128 @@ const typeModels = {
 		"app": "tutanota",
 		"version": 114,
 		"since": 114,
-		"type": "AGGREGATED_TYPE",
+		"type": "LIST_ELEMENT_TYPE",
 		"id": 2002,
 		"rootId": "CHR1dGFub3RhAAfS",
 		"versioned": false,
-		"encrypted": false,
+		"encrypted": true,
 		"isPublic": true,
 		"values": {
-			"2003": {
+			"2004": {
 				"final": true,
 				"name": "_id",
-				"id": 2003,
-				"type": "CustomId",
+				"id": 2004,
+				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"2004": {
+			"2005": {
+				"final": true,
+				"name": "_permissions",
+				"id": 2005,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2006": {
+				"final": false,
+				"name": "_format",
+				"id": 2006,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2007": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 2007,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"2008": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 2008,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"2009": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 2009,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"2010": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 2010,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
+			},
+			"2011": {
 				"final": false,
 				"name": "name",
-				"id": 2004,
+				"id": 2011,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": true
 			}
 		},
 		"associations": {
-			"2005": {
+			"2012": {
 				"final": false,
 				"name": "conditions",
-				"id": 2005,
+				"id": 2012,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 1994,
 				"dependency": null
 			},
-			"2006": {
+			"2013": {
 				"final": false,
 				"name": "results",
-				"id": 2006,
+				"id": 2013,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 1998,
+				"dependency": null
+			}
+		}
+	},
+	"2014": {
+		"name": "ExpandedInboxRuleList",
+		"app": "tutanota",
+		"version": 114,
+		"since": 114,
+		"type": "AGGREGATED_TYPE",
+		"id": 2014,
+		"rootId": "CHR1dGFub3RhAAfe",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"2015": {
+				"final": true,
+				"name": "_id",
+				"id": 2015,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"2016": {
+				"final": true,
+				"name": "list",
+				"id": 2016,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 2002,
 				"dependency": null
 			}
 		}

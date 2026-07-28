@@ -1,8 +1,8 @@
 import { FolderSystem, IndentedMailSet } from "../../../common/api/common/mail/FolderSystem.js"
-import { assertNotNull, first } from "../../../../platform-kit/utils"
+import { assertNotNull, first, getFirstOrThrow } from "../../../../platform-kit/utils"
 import { MailModel } from "./MailModel.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
-import { ExpandedInboxRule, Header, Mail, MailDetails, MailSet, TutanotaProperties } from "@tutao/entities/tutanota"
+import { ExpandedInboxRule, Header, Mail, MailDetails, MailSet } from "@tutao/entities/tutanota"
 import { MailSetKind, ReplyType, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { EntityIdEncoding, isSameId, isSameSingleId, sortCompareByReverseId } from "../../../../platform-kit/meta"
 import { isFolderReadOnly, MOVE_SYSTEM_FOLDERS } from "../MailUtils"
@@ -165,8 +165,19 @@ export function loadMailHeaders(mailDetails: MailDetails): string | null {
 	return mailDetails.headers != null ? getMailHeaders(mailDetails.headers) : null
 }
 
-export function getExistingRuleForType(props: TutanotaProperties, cleanValue: string, type: string): ExpandedInboxRule | null {
-	return props.expandedInboxRules.find((rule) => rule.conditions.find((condition) => type === condition.type && cleanValue === condition.value)) ?? null
+export function getExistingRuleForType(inboxRules: ExpandedInboxRule[], cleanValue: string, type: string): ExpandedInboxRule | null {
+	// FIXME: should also work with legacy inbox rules
+	return (
+		inboxRules.find((rule) => {
+			// FIXME we need to figure out what to do in the case of multiple conditions
+			if (rule.conditions.length !== 1) {
+				return false
+			}
+
+			const condition = getFirstOrThrow(rule.conditions)
+			return type === condition.type && cleanValue === condition.value
+		}) ?? null
+	)
 }
 
 export function allInSameMailbox(mails: readonly Mail[]): boolean {

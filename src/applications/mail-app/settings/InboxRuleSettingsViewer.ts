@@ -4,16 +4,15 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { ColumnWidth, createRowActions, Table, type TableAttrs, TableLineAttrs } from "../../../ui/base/Table"
 import { mailLocator } from "../mailLocator"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { MailSet, MailSetEntryTypeRef, MailSetTypeRef, MailTypeRef, TutanotaProperties, TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
-import { elementIdPart, isSameId, OperationType } from "@tutao/meta"
+import { EntityUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { elementIdPart, isSameId } from "@tutao/meta"
 import m, { Children } from "mithril"
-import { assertNotNull, isEmpty, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/utils"
-import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel"
+import { assertNotNull, isEmpty, promiseMap, splitInChunks } from "@tutao/utils"
+import type { MailboxDetail, MailboxModel } from "../../common/mailFunctionality/MailboxModel"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
-import { createInboxRuleTemplate } from "./AddInboxRuleDialog"
-import { InboxRuleConditionType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../entities/tutanota/Utils"
+import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../entities/tutanota/Utils"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { PrimaryButton, SecondaryButton } from "../../../ui/base/buttons/VariantButtons"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
@@ -22,45 +21,42 @@ import { ButtonType } from "../../../ui/base/Button"
 import { Dialog } from "../../../ui/base/Dialog"
 import { resolveMailSetEntries } from "../mail/model/MailSetListModel"
 import { MoveMode } from "../mail/model/MailModel"
-import { isOfflineError, LockedError } from "@tutao/rest-client/error"
+import { isOfflineError } from "@tutao/rest-client/error"
 import { theme } from "../../../ui/theme"
 import { TitleSection } from "../../../ui/TitleSection"
 import { MenuTitle } from "../../../ui/titles/MenuTitle"
 import { Card } from "../../../ui/base/Card"
 import { getMailSetName } from "../mail/model/MailUtils"
 import { getInboxRuleConditionTypeName } from "../mail/model/InboxRuleHandler"
+import { EntityClient } from "../../../platform-kit/network/EntityClient"
+import { InboxRulesSettingsViewerModel } from "./InboxRulesSettingsViewerModel"
+import { InboxRuleModel } from "../mail/model/InboxRuleModel"
 
 assertMainOrNode()
 
 export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
-	private inboxRulesTableLines: Stream<Array<TableLineAttrs>>
+	private model: InboxRulesSettingsViewerModel
 
-	constructor() {
-		this.inboxRulesTableLines = stream<Array<TableLineAttrs>>([])
-
-		this.updateInboxRules(mailLocator.logins.getUserController().props)
+	constructor(
+		readonly mailboxModel: MailboxModel,
+		readonly entityClient: EntityClient,
+		readonly inboxRuleModel: InboxRuleModel,
+	) {
+		this.model = new InboxRulesSettingsViewerModel(entityClient, inboxRuleModel)
 	}
 
 	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		for (const update of updates) {
-			const { operation } = update
-			if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && operation === OperationType.UPDATE) {
-				const props = await mailLocator.entityClient.load(TutanotaPropertiesTypeRef, mailLocator.logins.getUserController().props._id)
-				this.updateInboxRules(props)
-			} else if (isUpdateForTypeRef(MailSetTypeRef, update)) {
-				this.updateInboxRules(mailLocator.logins.getUserController().props)
-			}
-		}
+		await this.model.onEntityEventsReceived(updates)
 		m.redraw()
 	}
 
 	view(): Children {
-		const templateRule = createInboxRuleTemplate(InboxRuleConditionType.RECIPIENT_TO_EQUALS, "")
+		const tableLines = this.renderInboxRuleTableLines()
 		const inboxRulesTableAttrs: TableAttrs = {
 			columnHeading: ["inboxRuleField_label", "inboxRuleValue_label", "inboxRuleTargetFolder_label"],
 			columnWidths: [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small],
 			showActionButtonColumn: true,
-			lines: this.inboxRulesTableLines(),
+			lines: tableLines,
 		}
 
 		return m("", [
@@ -84,7 +80,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 					m(Card, m(Table, inboxRulesTableAttrs)),
 					m(
 						".mt-8.flex-end.gap-8",
-						this.inboxRulesTableLines().length > 0
+						tableLines.length > 0
 							? m(SecondaryButton, {
 									label: "reapplyInboxRules_action",
 									width: "flex",
@@ -97,7 +93,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 							onclick: () =>
 								mailLocator.mailboxModel
 									.getUserMailboxDetails()
-									.then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, templateRule)),
+									.then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, this.inboxRuleModel, null)),
 						}),
 					),
 				],
@@ -105,35 +101,37 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		])
 	}
 
-	updateInboxRules(props: TutanotaProperties): void {
-		mailLocator.mailboxModel.getUserMailboxDetails().then(async (mailboxDetails) => {
-			const ruleLines = await promiseMap(props.expandedInboxRules, async (rule, index) => {
-				return {
-					cells: [
-						rule.name,
-						getInboxRuleConditionTypeName(rule.conditions[0].type),
-						rule.results[0].value ? await this.getTextForTarget(mailboxDetails, assertNotNull(rule.results[0].value)) : "None",
-					],
-					actionButtonAttrs: createRowActions(
-						{
-							getArray: () => props.expandedInboxRules,
-							updateInstance: () => mailLocator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
+	renderInboxRuleTableLines(): TableLineAttrs[] {
+		return this.model.orderedInboxRules.map((rule, index) => {
+			// rule should never be null as we check that all rules in the order list are in the map, but get can still theoretically return undefined
+			return {
+				cells: [rule.name, getInboxRuleConditionTypeName(rule.conditions[0].type), "None"],
+				actionButtonAttrs: createRowActions(
+					{
+						getArray: () => this.model.orderedInboxRules,
+						updateInstance: async () => {
+							await this.model.saveInboxRuleOrder()
 						},
-						rule,
-						index,
-						[
-							{
-								label: "edit_action",
-								click: () => AddInboxRuleDialog.show(mailboxDetails, rule),
+					},
+					rule,
+					index,
+					[
+						{
+							label: "edit_action",
+							click: () =>
+								this.mailboxModel
+									.getUserMailboxDetails()
+									.then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, this.inboxRuleModel, rule)),
+						},
+						{
+							label: "delete_action",
+							click: () => {
+								this.model.deleteInboxRule(rule)
 							},
-						],
-					),
-				}
-			})
-
-			this.inboxRulesTableLines(ruleLines)
-
-			m.redraw()
+						},
+					],
+				),
+			}
 		})
 	}
 

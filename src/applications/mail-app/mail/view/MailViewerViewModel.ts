@@ -95,6 +95,7 @@ import { OperationProgressTracker } from "../../../common/api/main/OperationProg
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 import { PosRect } from "../../../../ui/utils/PosRect"
+import { InboxRuleModel } from "../model/InboxRuleModel"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -193,6 +194,7 @@ export class MailViewerViewModel {
 		private readonly transferProgressDispatcher: TransferProgressDispatcher,
 		private readonly operationProgressTracker: OperationProgressTracker,
 		private readonly connectivityModel: WebsocketConnectivityModel,
+		readonly inboxRuleModel: InboxRuleModel,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {
