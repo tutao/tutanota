@@ -1124,8 +1124,6 @@ o.spec("CryptoFacadeTest", function () {
 		const testData = await prepareConfidentialMailToExternalRecipient([file1SessionKey, file2SessionKey])
 
 		const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.entityAdapter))
-		console.log(mailSessionKey)
-		console.log(testData.sk)
 		o(mailSessionKey).deepEquals(testData.sk)
 
 		const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.entityAdapter))
@@ -1141,7 +1139,7 @@ o.spec("CryptoFacadeTest", function () {
 	})
 
 	o("authenticateSender | no authentication needed for secure external sender", async function () {
-		//o.timeout(500) // in CI or with debugging it can take a while
+		//o.timeout(500) // in CI or with debugging, it can take a while
 		const testData = await prepareConfidentialReplyFromExternalUser()
 		const externalUser = testData.externalUser
 

@@ -1043,7 +1043,7 @@ o.spec("ModelMapperTransformations", function () {
 
 			// can't convert an empty array to one
 			const err = await assertThrows(InvalidModelError, async () => modelMapper.mapToInstance(parsedInstance))
-			o(err.message).equals("Cardinality One should have exactly one item. Found: 0")
+			o(err.message).equals("Cardinality One should have exactly one item. Found: 0. In tutanota/TestType::testAggregation")
 		})
 		o("change aggregation from ZeroOrOne to Any null value", async function () {
 			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
@@ -1668,7 +1668,7 @@ o.spec("ModelMapperTransformations", function () {
 
 			// can't convert an empty array to one
 			const err = await assertThrows(InvalidModelError, async () => modelMapper.mapToInstance(parsedInstance))
-			o(err.message).equals("Cardinality One should have exactly one item. Found: 0")
+			o(err.message).equals("Cardinality One should have exactly one item. Found: 0. In tutanota/TestType::testListElementAssociation")
 		})
 		o("change list element association from ZeroOrOne to Any null value", async function () {
 			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
