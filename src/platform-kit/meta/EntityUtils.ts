@@ -32,7 +32,7 @@ import {
 import { Entity, ModelValue, PersistentEntity, TypeModel } from "./EntityTypes.js"
 import { Cardinality, ValueType } from "./EntityConstants.js"
 import { ProgrammingError } from "@tutao/app-env"
-import { assertNull } from "../utils/Utils"
+import { assertNull, isNull } from "../utils/Utils"
 import { isUndefined } from "../app-env/boot/TypeChecks"
 
 /**
@@ -509,9 +509,9 @@ export function hasError<K>(instance: Nullable<Entity>, key?: K): boolean {
 		return true
 	}
 	const downCastedInstance = downcast(instance)
-	const hasNonEmptyErrorObject = !!downCastedInstance._errors && !isErrorObjectEmpty(downCastedInstance._errors)
+	const hasNonEmptyErrorObject = isNotNull(downCastedInstance._errors) && !isErrorObjectEmpty(downCastedInstance._errors)
 
-	return hasNonEmptyErrorObject && (!key || !!downCastedInstance._errors.key)
+	return hasNonEmptyErrorObject && (isNull(key) || isNotNull(downCastedInstance._errors[key] ?? null))
 }
 
 function isErrorObjectEmpty(obj: Record<string, unknown>): boolean {

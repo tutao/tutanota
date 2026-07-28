@@ -368,12 +368,9 @@ export class ServerModelInfo {
 	}
 
 	private getClientModelType(appName: AppName, typeId: string): ClientTypeModel | null {
-		const clientApp = this.clientModelInfo.typeModels[appName]
-		if (clientApp) {
-			const clientType = clientApp[typeId]
-			if (clientType) {
-				return clientType
-			}
+		const clientApp = this.clientModelInfo.typeModels[appName] ?? null
+		if (isNotNull(clientApp)) {
+			return clientApp[typeId] ?? null
 		}
 		return null
 	}

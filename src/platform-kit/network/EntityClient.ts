@@ -1,4 +1,5 @@
 import {
+	AttributeModel,
 	CUSTOM_MIN_ID,
 	elementIdPart,
 	firstBiggerThanSecond,
@@ -14,9 +15,8 @@ import {
 	TypeRef,
 	ValueType,
 } from "../meta"
-import { groupByAndMap, last, Nullable, promiseMap } from "@tutao/utils"
+import { assertNotNull, groupByAndMap, last, Nullable, promiseMap } from "@tutao/utils"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
-import { ProgrammingError } from "@tutao/app-env"
 import { ClientTypeModelResolver, OwnerEncSessionKeyProvider } from "@tutao/instance-pipeline"
 import { ElementEntity, ListElementEntity, PersistentEntity } from "@tutao/meta"
 import { RootInstance, RootInstanceTypeRef } from "@tutao/entities/sys"
@@ -28,6 +28,7 @@ import {
 	EntityRestClientSetupOptions,
 	EntityRestClientUpdateOptions,
 } from "../instance-pipeline/RestClientOptions"
+import { isNull } from "../utils/Utils"
 
 export class EntityClient {
 	_target: EntityRestInterface
@@ -53,13 +54,12 @@ export class EntityClient {
 	async loadAll<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start?: Id): Promise<T[]> {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 
-		if (!start) {
-			const _idValueId = Object.values(typeModel.values).find((valueType) => valueType.name === "_id")?.id
-			if (_idValueId) {
-				start = typeModel.values[_idValueId].type === ValueType.GeneratedId ? GENERATED_MIN_ID : CUSTOM_MIN_ID
-			} else {
-				throw new ProgrammingError(`could not load, _id field not set for ${typeModel.name}`)
-			}
+		if (isNull(start)) {
+			const attributeIdFor_id = assertNotNull(
+				AttributeModel.getAttributeId(typeModel, "_id"),
+				`_id attribute not defined in ${typeModel.app}/${typeModel.name}`,
+			)
+			start = typeModel.values[attributeIdFor_id].type === ValueType.GeneratedId ? GENERATED_MIN_ID : CUSTOM_MIN_ID
 		}
 
 		const elements = await this.loadRange<T>(typeRef, listId, start, RANGE_ITEM_LIMIT, false)
