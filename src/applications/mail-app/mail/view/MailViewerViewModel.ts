@@ -96,6 +96,7 @@ import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { PosRect } from "../../../../ui/utils/PosRect"
 import { PluginDataFile } from "../../../../plugin-kit/sdk/AttachmentButtonExtensionPoint"
 import { PluginManager } from "../../../../plugin-kit/plugin-manager/PluginManager"
+import { InboxRuleModel } from "../model/InboxRuleModel"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -194,6 +195,7 @@ export class MailViewerViewModel {
 		private readonly operationProgressTracker: OperationProgressTracker,
 		private readonly syncTracker: SyncTracker,
 		public readonly pluginManager: PluginManager,
+		readonly inboxRuleModel: InboxRuleModel,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {

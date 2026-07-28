@@ -176,6 +176,8 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			const fieldToName = getSpamRuleFieldToName()
 
 			this.spamRuleLines = props.emailSenderList.map((rule, index) => {
+				const updateInstance = () => locator.entityClient.update(props).catch(ofClass(LockedError, noOp))
+
 				return {
 					cells: () => [
 						{
@@ -189,7 +191,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 					actionButtonAttrs: createRowActions(
 						{
 							getArray: () => props.emailSenderList,
-							updateInstance: () => locator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
+							updateInstance,
 						},
 						rule,
 						index,
@@ -197,6 +199,13 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 							{
 								label: "edit_action",
 								click: () => showAddSpamRuleDialog(rule),
+							},
+							{
+								label: "delete_action",
+								click: () => {
+									props.emailSenderList.splice(index, 1)
+									void updateInstance()
+								},
 							},
 						],
 					),

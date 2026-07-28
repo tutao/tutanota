@@ -174,6 +174,7 @@ import { ContactViewModel } from "./contacts/view/ContactViewModel"
 import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
 import { MailPluginIntegrationAdapter } from "./plugin/MailPluginIntegrationAdapter"
+import { InboxRuleModel } from "./mail/model/InboxRuleModel"
 
 EnvProvider.assertMainOrNode()
 
@@ -181,6 +182,7 @@ class MailLocator implements CommonLocator {
 	clientModelInfo!: ClientModelInfo
 	eventController!: EventController
 	mailboxModel!: MailboxModel
+	inboxRuleModel!: InboxRuleModel
 	mailModel!: MailModel
 	minimizedMailModel!: MinimizedMailEditorViewModel
 	contactModel!: ContactModel
@@ -329,7 +331,7 @@ class MailLocator implements CommonLocator {
 
 	readonly inboxRuleHandler = lazyMemoized(() => {
 		// FIXME use appropriate InboxRuleHandler depending on whether migrated or not
-		return new ExpandedInboxRuleHandler(this.mailFacade, this.logins, this.mailModel)
+		return new ExpandedInboxRuleHandler(this.mailFacade, this.logins, this.mailModel, this.inboxRuleModel)
 	})
 
 	readonly spamClassificationHandler = lazyMemoized(() => {
@@ -607,6 +609,7 @@ class MailLocator implements CommonLocator {
 				this.operationProgressTracker,
 				this.syncTracker,
 				this.pluginManager,
+				this.inboxRuleModel,
 			)
 	}
 
@@ -909,6 +912,7 @@ class MailLocator implements CommonLocator {
 		this.mailExportFacade = mailExportFacade
 		this.connectivityModel = new WebsocketConnectivityModel(eventBus)
 		this.mailboxModel = new MailboxModel(this.eventController, this.entityClient, this.logins)
+		this.inboxRuleModel = new InboxRuleModel(this.entityClient, this.mailboxModel)
 		this.mailModel = new MailModel(
 			notifications,
 			this.mailboxModel,

@@ -3,7 +3,7 @@ import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { EnvProvider, ProgrammingError, UpgradePromptType } from "../../../platform-kit/app-env"
 import { isDomainName, isMailAddress, isRegularExpression } from "../../../platform-kit/utils/FormatUtils"
-import { elementIdPart, isSameSingleId } from "../../../platform-kit/meta"
+import { clone, elementIdPart } from "../../../platform-kit/meta"
 import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
@@ -46,15 +46,9 @@ import { IconButton } from "../../../ui/base/IconButton"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
 import { SelectorItem } from "../../../ui/base/DropDownSelector"
 import { getInboxRuleConditionTypeNameMapping, getInboxRuleResultTypeNameMapping } from "../mail/model/InboxRuleHandler"
+import { InboxRuleModel } from "../mail/model/InboxRuleModel"
 
 EnvProvider.assertMainOrNode()
-
-export type InboxRuleTemplate = Pick<ExpandedInboxRule, "conditions" | "results"> & {
-	_id?: ExpandedInboxRule["_id"]
-	name: string
-	conditions?: Pick<InboxRuleCondition, "type" | "value">[]
-	results?: Pick<InboxRuleResult, "type" | "value">[]
-}
 
 interface InboxRuleConditionField {
 	type: Stream<InboxRuleConditionType>
@@ -77,7 +71,12 @@ interface MoveTargetFolder {
 	value: MailSet
 }
 
-export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRuleTemplate) {
+export async function show(
+	mailBoxDetail: MailboxDetail,
+	inboxRuleModel: InboxRuleModel,
+	originalInboxRule: ExpandedInboxRule | null,
+	defaultConditions?: Pick<InboxRuleCondition, "type" | "value">[],
+) {
 	if (locator.logins.getUserController().isFreeAccount()) {
 		showNotAvailableForFreeDialog(UpgradePromptType.INBOX_RULES)
 	} else if (mailBoxDetail) {
@@ -89,19 +88,24 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 			}
 		})
 
-		const inboxRuleName: stream<string> = stream(ruleOrTemplate.name)
+		const inboxRuleName: stream<string> = stream(originalInboxRule?.name ?? "")
 
 		// Make onbeforeremove row removal animate the correct row (otherwise it will just think it's the last row)
 		let currentRowKey = 0
 
-		const inboxRuleConditions: InboxRuleConditionField[] = ruleOrTemplate.conditions.map((condition) => {
+		const inboxRuleConditions: InboxRuleConditionField[] = (
+			originalInboxRule?.conditions ??
+			defaultConditions ?? [{ type: InboxRuleConditionType.FROM_EQUALS, value: "" }]
+		).map((condition) => {
 			return { type: stream(condition.type as InboxRuleConditionType), value: stream(condition.value), key: currentRowKey++ }
 		})
 
-		const inboxRuleResults: InboxRuleResultField[] = ruleOrTemplate.results.map((result) => {
-			let value = result.value == null ? null : folders.getFolderById(elementIdPart(result.value))
-			return { type: stream(result.type as InboxRuleResultType), value: stream(value), key: currentRowKey++ }
-		})
+		const inboxRuleResults: InboxRuleResultField[] = originalInboxRule
+			? originalInboxRule.results.map((result) => {
+					let value = result.value == null ? null : folders.getFolderById(elementIdPart(result.value))
+					return { type: stream(result.type as InboxRuleResultType), value: stream(value), key: currentRowKey++ }
+				})
+			: []
 
 		// Only allow one result of each type
 		const allRuleResults = getInboxRuleResultTypeNameMapping()
@@ -409,6 +413,22 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 			})
 		}
 
+		const prepareRule = (validatedName: string, ruleConditions: InboxRuleCondition[], ruleResults: InboxRuleResult[]): ExpandedInboxRule => {
+			if (originalInboxRule) {
+				const rule = clone(originalInboxRule)
+				rule.name = validatedName
+				rule.conditions = ruleConditions
+				rule.results = ruleResults
+				return rule
+			} else {
+				return createExpandedInboxRule({
+					name: validatedName,
+					conditions: ruleConditions,
+					results: ruleResults,
+				})
+			}
+		}
+
 		const inboxRuleOkAction = (dialog: Dialog, applyRule: boolean) => {
 			const validatedName = inboxRuleName().trim()
 
@@ -417,7 +437,7 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 				return
 			}
 
-			const ruleConditions = []
+			const ruleConditions: InboxRuleCondition[] = []
 
 			for (const condition of inboxRuleConditions) {
 				const invalidInboxRuleMsg = validateInboxRuleCondition(condition)
@@ -428,7 +448,7 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 				ruleConditions.push(createInboxRuleCondition({ type: condition.type(), value: condition.value() }))
 			}
 
-			const ruleResults = []
+			const ruleResults: InboxRuleResult[] = []
 
 			for (const result of inboxRuleResults) {
 				const value = validateInboxRuleResult(result)
@@ -436,28 +456,10 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 				ruleResults.push(createInboxRuleResult({ type: result.type(), value }))
 			}
 
-			const rule = createExpandedInboxRule({
-				name: validatedName,
-				conditions: ruleConditions,
-				results: ruleResults,
-			})
+			const rule = prepareRule(validatedName, ruleConditions, ruleResults)
+			const savePromise = isNewInboxRule ? inboxRuleModel.createInboxRule(rule) : inboxRuleModel.updateInboxRule(rule)
 
-			const props = locator.logins.getUserController().props
-			const inboxRules = props.inboxRules
-			const ruleId = ruleOrTemplate._id
-			if (ruleId) {
-				rule._id = ruleId
-			}
-
-			const expandedInboxRules = props.expandedInboxRules
-
-			props.expandedInboxRules =
-				ruleId == null
-					? [...expandedInboxRules, rule]
-					: expandedInboxRules.map((inboxRule) => (isSameSingleId(inboxRule._id, ruleId) ? rule : inboxRule))
-
-			locator.entityClient
-				.update(props)
+			savePromise
 				.then(() => {
 					if (applyRule) {
 						return applyRuleWithProgress(rule)
@@ -468,20 +470,22 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 				})
 				.catch((error) => {
 					if (isOfflineError(error)) {
-						props.inboxRules = inboxRules
+						//FIXME: do we need to add a fallback like this back in?
+						//props.inboxRules = inboxRules
 						//do not close
 						throw error
 					} else if (error instanceof LockedError) {
 						dialog.close()
 					} else {
-						props.inboxRules = inboxRules
+						//FIXME: do we need to add a fallback like this back in?
+						//props.inboxRules = inboxRules
 						dialog.close()
 						throw error
 					}
 				})
 		}
 
-		const isNewInboxRule = ruleOrTemplate._id == null
+		const isNewInboxRule = originalInboxRule == null
 		const dialog = Dialog.showActionDialog({
 			type: DialogType.InboxRule,
 			title: isNewInboxRule ? "addInboxRule_action" : "editInboxRule_action",
@@ -527,20 +531,6 @@ function getRuleResultValueInputByType(ruleResult: InboxRuleResultField) {
 			return null
 		default:
 			throw new ProgrammingError(`No Input specified for rule result of type: ${ruleResult.type()}`)
-	}
-}
-
-export function createInboxRuleTemplate(ruleType: InboxRuleConditionType | null, value: string): InboxRuleTemplate {
-	const type = ruleType ?? InboxRuleConditionType.FROM_EQUALS
-	return {
-		name: "",
-		conditions: [
-			createInboxRuleCondition({
-				type,
-				value: getCleanedValue(type, value),
-			}),
-		],
-		results: [],
 	}
 }
 
