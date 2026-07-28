@@ -161,7 +161,7 @@ o.spec("MailModelTest", function () {
 			)
 		})
 
-		o("invokes ProcessInboxHandler with sendServerRequest == false when the client is not leader", async function () {
+		o("invokes ProcessInboxHandler with isLeaderClient == false when the client is not leader", async function () {
 			const notProcessedMail = createTestEntity(MailTypeRef, {
 				_id: ["mailListId", "notProcessedMailId"],
 				_ownerGroup: "mailGroup",
