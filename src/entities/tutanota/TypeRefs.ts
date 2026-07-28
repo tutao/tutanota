@@ -2344,6 +2344,7 @@ export type ImportMailData = {
 	replyTos: EncryptedMailAddress[];
 	recipients: Recipients;
 	importedAttachments: ImportAttachment[];
+	labels: IdTuple[];
 }
 export const ImportedFileMailTypeRef: TypeRef<ImportedFileMail> = new TypeRef("tutanota", 1552)
 
@@ -2962,7 +2963,7 @@ export type ImapAccountSyncState = {
 
 	imapFolderSyncStateList: Id;
 	imapAccount: ImapAccount;
-	rootImportMailFolder: null | IdTuple;
+	rootImportMailSet: null | IdTuple;
 	imapSyncLabel: null | IdTuple;
 }
 export const ImapFolderPostInTypeRef: TypeRef<ImapFolderPostIn> = new TypeRef("tutanota", 1929)
@@ -3033,7 +3034,7 @@ export type ImapPostIn = {
 	provider: NumberString;
 
 	imapAccount: ImapAccount;
-	rootImportMailFolder: null | IdTuple;
+	rootImportMailSet: null | IdTuple;
 	syncLabel: null | IdTuple;
 }
 export const ImapPostOutTypeRef: TypeRef<ImapPostOut> = new TypeRef("tutanota", 1955)

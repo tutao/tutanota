@@ -2417,5 +2417,7 @@ export default {
 		"migrationIgnoreCertificateErrors_action": "Connect anyway",
 		"migrationUploadCustomCertificate_action": "Select certificate file",
 		"parentLabel_label": "parent label",
+		"matchMigrationFoldersToTutaSystemFoldersGmail_label": "Map system folders",
+		"migrationGmailFolderMapping_title": "Map Gmail system folders to Tuta system folders. This will import Gmail mails in from the inbox, sent, draft, and trash folder to the corresponding Tuta folders.",
 	}
 }

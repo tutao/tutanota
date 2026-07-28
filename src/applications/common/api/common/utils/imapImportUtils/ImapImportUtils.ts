@@ -5,17 +5,21 @@ import { getImapConfigWithPasswordAuthForDomain, ServerImapImportParams } from "
 
 import { ImapCredentials } from "./ImapSyncContext"
 import type { TokenEndpointResponse } from "oauth4webapi"
-import { createOAuthTokenEndpointResponse, ImapAccount, ImapFolderSyncState, OAuthTokenEndpointResponse } from "@tutao/entities/tutanota"
+import { createOAuthTokenEndpointResponse, ImapAccount, ImapFolderSyncState, MailSet, OAuthTokenEndpointResponse } from "@tutao/entities/tutanota"
 import { ImapImportAttachments, ImapImportDataFile, ImportMailParams } from "../../../worker/facades/lazy/ImportMailFacade"
 import {
 	CalendarMethod,
 	calendarMethodToMailMethod,
 	MailMethod,
+	MailSetKind,
 	MailState,
 	PartialRecipient,
 	RecipientList,
 	ReplyType,
 } from "../../../../../../entities/tutanota/Utils"
+import { assertNotNull } from "@tutao/utils"
+import { FolderSystem } from "../../mail/FolderSystem"
+import { isLabel } from "../../../../../mail-app/mail/MailUtils"
 
 export const DEFAULT_IMAP_IMPORT_MAX_QUOTA = "2500000000"
 
@@ -71,10 +75,14 @@ export function imapMailToImportMailParams(
 	imapMail: ImapMail,
 	folderSyncStateId: IdTuple,
 	deduplicatedAttachments: ImapImportAttachments | null,
+	allMailSets: MailSet[],
 ): ImportMailParams {
 	const fromMailAddress = imapMail.envelope?.from?.at(0)?.address ?? ""
 	const fromName = imapMail.envelope?.from?.at(0)?.name ?? ""
 	const senderMailAddress = imapMail.envelope?.sender?.at(0)?.address ?? null
+	const folderSystem = new FolderSystem(allMailSets)
+	const labels = allMailSets.filter(isLabel)
+	const labelFolderSystem = new FolderSystem(labels, MailSetKind.LABEL)
 
 	const differentEnvelopeSender = senderMailAddress !== fromMailAddress ? senderMailAddress : null
 
@@ -109,7 +117,43 @@ export function imapMailToImportMailParams(
 		imapUid: imapMail.uid,
 		imapModSeq: imapMail.modSeq ?? null,
 		imapFolderSyncState: folderSyncStateId,
+		labels: imapMail.labels ? labelsFromImapLabels(imapMail.labels, folderSystem, labelFolderSystem) : [],
 	}
+}
+
+function labelsFromImapLabels(imapLabels: Set<string>, folderSystem: FolderSystem, labelFolderSystem: FolderSystem): IdTuple[] {
+	let result = []
+	for (const imapLabel of imapLabels) {
+		switch (imapLabel) {
+			case "INBOX": {
+				result.push(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX))._id)
+				break
+			}
+			case "[Gmail]/Sent Mail": {
+				result.push(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SENT))._id)
+				break
+			}
+			case "[Gmail]/Trash": {
+				result.push(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.TRASH))._id)
+				break
+			}
+			case "[Gmail]/Spam": {
+				result.push(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SPAM))._id)
+				break
+			}
+			case "[Gmail]/Drafts": {
+				result.push(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.DRAFT))._id)
+				break
+			}
+			default: {
+				const label = labelFolderSystem.getFolderByName(imapLabel)
+				if (label) {
+					result.push(label._id)
+				}
+			}
+		}
+	}
+	return result
 }
 
 function importAttachmentsFromImapMailAttachments(imapMailAttachments: ImapMailAttachment[]): ImapImportDataFile[] {
@@ -207,4 +251,13 @@ export function guessServerImapConfigFromEmail(username: string): ServerImapImpo
 	}
 
 	return getImapConfigWithPasswordAuthForDomain(domain)
+}
+
+export function randomHexColor() {
+	return (
+		"#" +
+		Math.floor(Math.random() * 0x1000000)
+			.toString(16)
+			.padStart(6, "0")
+	)
 }

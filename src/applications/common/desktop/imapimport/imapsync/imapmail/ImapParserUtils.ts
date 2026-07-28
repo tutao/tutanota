@@ -3,8 +3,9 @@ import { ImapMail, ImapMailEnvelope } from "../../../../api/common/utils/imapImp
 import { ImapMailRFC822Parser } from "./ImapMailRFC822Parser"
 import { ProgrammingError } from "@tutao/app-env"
 import type { Email } from "postal-mime"
+import { FetchMessageObject } from "imapflow"
 
-export async function imapMailFromImapFlowFetchMessageObject(mail: any, belongsToMailbox: ImapMailbox): Promise<ImapMail> {
+export async function imapMailFromImapFlowFetchMessageObject(mail: FetchMessageObject, belongsToMailbox: ImapMailbox): Promise<ImapMail> {
 	if (mail.source === undefined) {
 		throw new ProgrammingError(`IMAP mail source not available.`)
 	}
@@ -17,7 +18,7 @@ export async function imapMailFromImapFlowFetchMessageObject(mail: any, belongsT
 		belongsToMailbox,
 		modSeq: mail.modseq,
 		size: mail.size,
-		internalDate: mail.internalDate,
+		internalDate: typeof mail.internalDate === "string" ? new Date(Date.parse(mail.internalDate)) : mail.internalDate,
 		flags: mail.flags,
 		labels: mail.labels,
 		headers: parsedMailRFC822.parsedHeaders,

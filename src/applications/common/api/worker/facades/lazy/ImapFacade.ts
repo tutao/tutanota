@@ -26,6 +26,7 @@ import {
 	ImportedImapMailTypeRef,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
+	MailSet,
 	MailSetTypeRef,
 } from "@tutao/entities/tutanota"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient"
@@ -41,6 +42,8 @@ import {
 } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { getElementId } from "@tutao/meta"
 import { parseKeyVersion } from "../../../../../../platform-kit/crypto/CryptoUtils"
+import { randomHexColor } from "../../../common/utils/imapImportUtils/ImapImportUtils"
+import { ImapProvider } from "../../../common/utils/imapImportUtils/ImapKnownConfigs"
 
 export class ImapFacade {
 	constructor(
@@ -56,13 +59,20 @@ export class ImapFacade {
 	): Promise<{ imapAccountSyncState: ImapAccountSyncState; initialFolderSyncStates: ImapFolderSyncState[] }> {
 		const mailGroupId = initializeParams.mailGroupId
 
-		if (initializeParams.rootImportMailFolderName === "" && !initializeParams.matchImapMailboxesToTutaMailSets) {
+		if (initializeParams.rootImportMailSetName === "" && !initializeParams.matchImapMailboxesToTutaMailSets) {
 			throw new ProgrammingError("Either rootImportMailFolderName or matchImapMailboxesToTutaMailSets must be set")
 		}
 
-		let rootImportMailFolderId: IdTuple | null = null
-		if (initializeParams.rootImportMailFolderName) {
-			rootImportMailFolderId = await this.mailFacade.createMailFolder(initializeParams.rootImportMailFolderName, null, mailGroupId)
+		let rootImportMailSetId: IdTuple | null = null
+		if (initializeParams.rootImportMailSetName) {
+			if (initializeParams.provider === ImapProvider.Gmail) {
+				rootImportMailSetId = await this.mailFacade.createLabel(mailGroupId, {
+					name: initializeParams.rootImportMailSetName,
+					color: randomHexColor(),
+				})
+			} else {
+				rootImportMailSetId = await this.mailFacade.createMailFolder(initializeParams.rootImportMailSetName, null, mailGroupId)
+			}
 		}
 
 		let syncLabelId: IdTuple | null = null
@@ -81,7 +91,7 @@ export class ImapFacade {
 			imapAccount: initializeParams.imapAccount,
 			maxQuota: initializeParams.maxQuota,
 			postponedUntil: Date.now().toString(),
-			rootImportMailFolder: rootImportMailFolderId,
+			rootImportMailSet: rootImportMailSetId,
 			syncLabel: syncLabelId,
 			provider: initializeParams.provider.toString(),
 		})
@@ -166,34 +176,44 @@ export class ImapFacade {
 		return imapFolderSyncStates
 	}
 
-	async initializeImapMailFolder(
+	async initializeImapMailSet(
 		imapMailbox: ImapMailbox,
 		imapAccountSyncState: ImapAccountSyncState,
-		parentFolderId: IdTuple | null,
+		parentMailSetId: IdTuple | null,
 		shouldSync: boolean,
+		shouldCreateImapFolderSyncState: boolean,
 	): Promise<ImapFolderSyncState | undefined> {
 		if (imapMailbox.name) {
 			const mailGroupId = assertNotNull(imapAccountSyncState._ownerGroup)
-			const mailFolderId = shouldSync ? await this.mailFacade.createMailFolder(imapMailbox.name, parentFolderId, mailGroupId) : null
 
-			const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
-			const sk = this.cryptoWrapper.aes256RandomKey()
-			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
+			if (shouldCreateImapFolderSyncState) {
+				const mailFolderId = shouldSync ? await this.mailFacade.createMailFolder(imapMailbox.name, parentMailSetId, mailGroupId) : null
+				const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
+				const sk = this.cryptoWrapper.aes256RandomKey()
+				const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
-			const imapFolderPostIn = createImapFolderPostIn({
-				ownerEncSessionKey: ownerEncSessionKey.key,
-				ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-				ownerGroup: mailGroupId,
-				path: imapMailbox.path,
-				imapAccountSyncState: imapAccountSyncState._id,
-				mailFolder: mailFolderId,
-			})
+				const imapFolderPostIn = createImapFolderPostIn({
+					ownerEncSessionKey: ownerEncSessionKey.key,
+					ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
+					ownerGroup: mailGroupId,
+					path: imapMailbox.path,
+					imapAccountSyncState: imapAccountSyncState._id,
+					mailFolder: mailFolderId,
+				})
 
-			const imapFolderPostOut = await this.serviceExecutor.post(ImapFolderService, imapFolderPostIn, {
-				...DEFAULT_EXTRA_SERVICE_PARAMS,
-				sessionKey: sk,
-			})
-			return this.entityClient.load(ImapFolderSyncStateTypeRef, imapFolderPostOut.imapFolderSyncState)
+				const imapFolderPostOut = await this.serviceExecutor.post(ImapFolderService, imapFolderPostIn, {
+					...DEFAULT_EXTRA_SERVICE_PARAMS,
+					sessionKey: sk,
+				})
+				return this.entityClient.load(ImapFolderSyncStateTypeRef, imapFolderPostOut.imapFolderSyncState)
+			} else {
+				const labelId = await this.mailFacade.createLabel(mailGroupId, {
+					name: imapMailbox.name,
+					color: randomHexColor(),
+					parentLabelId: parentMailSetId ?? undefined,
+				})
+				await this.entityClient.load(MailSetTypeRef, labelId)
+			}
 		}
 	}
 
@@ -227,6 +247,12 @@ export class ImapFacade {
 		const mailBoxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, mailGroupId)
 		const mailBox = await this.entityClient.load(MailBoxTypeRef, mailBoxGroupRoot.mailbox)
 		return await this.entityClient.loadAll(DeduplicatedImportedAttachmentTypeRef, assertNotNull(mailBox.deduplicatedImportedAttachments))
+	}
+
+	async getAllMailSets(mailGroupId: Id): Promise<MailSet[]> {
+		const mailBoxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, mailGroupId)
+		const mailBox = await this.entityClient.load(MailBoxTypeRef, mailBoxGroupRoot.mailbox)
+		return await this.entityClient.loadAll(MailSetTypeRef, assertNotNull(mailBox.mailSets.mailSets))
 	}
 
 	async getDeduplicatedImportedAttachmentListId(mailGroupId: Id) {

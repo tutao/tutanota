@@ -353,7 +353,7 @@ export class ImapMailImportController {
 			imapAccountPort: 993,
 			imapAccountUsername: "",
 			imapAccountPassword: "",
-			rootImportMailFolderName: "",
+			rootImportMailSetName: "",
 			spamFolderMigrationInformation: {
 				shouldMigrateSpamFolder: false,
 				spamMailbox: null,
@@ -375,9 +375,9 @@ export class ImapMailImportController {
 			// for test, we initialize with default values
 			imapImportData.imapAccountHost = "localhost"
 			imapImportData.imapAccountPort = 143
-			imapImportData.imapAccountUsername = "user@test.com"
+			imapImportData.imapAccountUsername = "infraimaptest@gmail.com"
 			imapImportData.imapAccountPassword = "password"
-			imapImportData.rootImportMailFolderName = "root"
+			imapImportData.rootImportMailSetName = "root"
 		}
 
 		return imapImportData

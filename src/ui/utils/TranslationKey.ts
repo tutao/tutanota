@@ -2415,3 +2415,5 @@ export type TranslationKeyType =
 	| "migrationIgnoreCertificateErrors_action"
 	| "migrationUploadCustomCertificate_action"
 	| "parentLabel_label"
+	| "matchMigrationFoldersToTutaSystemFoldersGmail_label"
+	| "migrationGmailFolderMapping_title"

@@ -235,9 +235,9 @@ o.spec("ImapImporter", () => {
 		const session = newImapImportSession(accountSyncStateMock, [])
 		importer.imapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
-		when(imapFacadeMock.initializeImapMailFolder(imapMailboxMock, session.imapAccountSyncState, null, true)).thenResolve(folderSyncStateMock)
+		when(imapFacadeMock.initializeImapMailSet(imapMailboxMock, session.imapAccountSyncState, null, true, false)).thenResolve(folderSyncStateMock)
 
-		await importer.onMailbox(accountSyncStateIdMock, imapMailboxMock, ImapSyncEventType.CREATE)
+		await importer.onMailbox(accountSyncStateIdMock, imapMailboxMock, ImapSyncEventType.CREATE, false)
 
 		o.check(session.imapFolderSyncStates.includes(folderSyncStateMock)).equals(true)
 	})
@@ -253,7 +253,7 @@ o.spec("ImapImporter", () => {
 			}
 		})
 
-		await importer.onMailbox(accountSyncStateIdMock, imapMailboxMock, ImapSyncEventType.DELETE)
+		await importer.onMailbox(accountSyncStateIdMock, imapMailboxMock, ImapSyncEventType.DELETE, false)
 
 		o.check(session.imapFolderSyncStates.length).equals(0)
 		verify(imapFacadeMock.deleteImapFolderSyncState(folderSyncStateIdMock), { times: 1 })
@@ -298,7 +298,7 @@ o.spec("ImapImporter", () => {
 		importer.imapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
 
 		const imapMails = [imapMailMock]
-		const importMailParams = imapMailToImportMailParams(imapMails[0], folderSyncStateIdMock, [])
+		const importMailParams = imapMailToImportMailParams(imapMails[0], folderSyncStateIdMock, [], [])
 		when(importMailFacadeMock.importMails([importMailParams], mailGroupIdMock)).thenResolve()
 		when(imapFacadeMock.getDeduplicatedImportedAttachments(mailGroupIdMock)).thenResolve([])
 		await importer.onMultipleMails(accountSyncStateIdMock, imapMails, ImapSyncEventType.CREATE)

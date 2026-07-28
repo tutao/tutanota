@@ -58,7 +58,7 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 		const isLabelCorrectlySet =
 			!data.addLabelToImportedMails ||
 			(data.imapSyncLabelData !== null && data.imapSyncLabelData.name !== "" && isValidCSSHexColor(data.imapSyncLabelData.color))
-		const isParentFolderCorrectlySet = data.rootImportMailFolderName !== "" || data.matchImapMailboxesToTutaMailSets
+		const isParentFolderCorrectlySet = data.rootImportMailSetName !== "" || data.matchImapMailboxesToTutaMailSets
 		const isInEditMode = this.enableParentFolderEdit || this.enableFolderMappingEdit
 		const shouldAllowContinuing = isLabelCorrectlySet && isParentFolderCorrectlySet && !isInEditMode
 
@@ -335,9 +335,9 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 		return mailLocator.getImapMailImportController().selectedMailBoxDetail
 			? m(TextField, {
 					label: "migrationRootMailFolderName_label",
-					value: data.rootImportMailFolderName,
+					value: data.rootImportMailSetName,
 					isReadOnly: !this.enableParentFolderEdit,
-					oninput: (value) => (data.rootImportMailFolderName = value),
+					oninput: (value) => (data.rootImportMailSetName = value),
 					class: this.enableParentFolderEdit ? "" : "surface-background",
 					leadingIcon: { icon: Icons.FolderFilled, color: theme.on_surface_variant },
 					injectionsRight: () => {
@@ -429,7 +429,7 @@ export class ImapImportSummaryPageAttrs implements WizardPageAttrs<ImapImportDat
 	hidePagingButtonForPage = true
 
 	async nextAction(showErrorDialog: boolean = true): Promise<boolean> {
-		if (this.data.folderSystem.getFolderByName(this.data.rootImportMailFolderName) !== null) {
+		if (this.data.folderSystem.getFolderByName(this.data.rootImportMailSetName) !== null) {
 			Dialog.message("migrationRootMailFolderNameAlreadyExists_helpLabel")
 			return Promise.resolve(false)
 		}
@@ -463,7 +463,7 @@ export class ImapImportSummaryPageAttrs implements WizardPageAttrs<ImapImportDat
 					...commonImapImportParams,
 
 					matchImapMailboxesToTutaMailSets: false,
-					rootImportMailFolderName: this.data.rootImportMailFolderName,
+					rootImportMailSetName: this.data.rootImportMailSetName,
 					spamFolderMigrationInformation: this.data.spamFolderMigrationInformation,
 				}
 

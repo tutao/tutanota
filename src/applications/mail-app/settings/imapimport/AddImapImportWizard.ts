@@ -25,7 +25,7 @@ export type ImapImportData = {
 	imapAccountPort: number
 	imapAccountUsername: string
 	imapAccountPassword: string | undefined
-	rootImportMailFolderName: string
+	rootImportMailSetName: string
 	spamFolderMigrationInformation: {
 		shouldMigrateSpamFolder: boolean // flag to migrate spam folder to Tuta spam folder in case a root folder is provided for the account
 		spamMailbox: ImapMailbox | null // the spam mailbox if it exists, null otherwise

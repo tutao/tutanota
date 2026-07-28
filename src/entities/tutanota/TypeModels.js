@@ -8637,6 +8637,15 @@ const typeModels = {
 				"cardinality": "Any",
 				"refTypeId": 1524,
 				"dependency": null
+			},
+			"1990": {
+				"final": false,
+				"name": "labels",
+				"id": 1990,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refTypeId": 429,
+				"dependency": null
 			}
 		}
 	},
@@ -10854,7 +10863,7 @@ const typeModels = {
 			},
 			"1926": {
 				"final": true,
-				"name": "rootImportMailFolder",
+				"name": "rootImportMailSet",
 				"id": 1926,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
@@ -11093,7 +11102,7 @@ const typeModels = {
 			},
 			"1954": {
 				"final": true,
-				"name": "rootImportMailFolder",
+				"name": "rootImportMailSet",
 				"id": 1954,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",

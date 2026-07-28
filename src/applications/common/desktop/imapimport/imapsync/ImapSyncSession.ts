@@ -3,7 +3,7 @@ import { ImapCredentials, ImapSyncContext } from "../../../api/common/utils/imap
 import type { ImapSyncEventListener } from "./ImapSyncEventListener.js"
 import { ImapSyncSessionProcess, SyncSessionProcessState } from "./ImapSyncSessionProcess.js"
 import { ProgrammingError } from "@tutao/app-env"
-import { ImapMailbox, imapMailboxFromImapFlowListTreeResponse } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
+import { ImapMailbox, imapMailboxFromImapFlowListTreeResponse, ImapMailboxSpecialUse } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
 import { ImapSyncConfig } from "./ImapSync.js"
 import { fromImapFlowError, ImapError, ImapErrorCause } from "../../../api/common/error/ImapError"
 import type { ImapFlow, ListTreeResponse } from "imapflow"
@@ -121,7 +121,12 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		if (setupResult instanceof ImapError) {
 			throw setupResult
 		}
-		this.syncSessionMailboxes = setupResult as ImapSyncSessionMailbox[]
+
+		if (this.imapSyncContext?.shouldOnlyFetchAllMailsImapMailbox) {
+			this.syncSessionMailboxes = setupResult.filter((mailbox) => mailbox.specialUse === ImapMailboxSpecialUse.ALL)
+		} else {
+			this.syncSessionMailboxes = setupResult
+		}
 
 		if (this.syncSessionMailboxes != null) {
 			this.startNextMailboxSync()
@@ -301,7 +306,11 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 			if (index === -1) {
 				const deletedImapMailbox = imapMailboxFromSyncSessionMailbox(knownMailbox)
-				await this.imapSyncEventListener.onMailbox(deletedImapMailbox, ImapSyncEventType.DELETE)
+				await this.imapSyncEventListener.onMailbox(
+					deletedImapMailbox,
+					ImapSyncEventType.DELETE,
+					this.imapSyncContext?.shouldOnlyFetchAllMailsImapMailbox ?? false,
+				)
 				return true
 			}
 
@@ -316,7 +325,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 		let syncSessionMailbox = knownMailboxes.find((value) => value.mailboxState.path === imapMailbox.path)
 		if (syncSessionMailbox === undefined) {
-			await this.imapSyncEventListener.onMailbox(imapMailbox, ImapSyncEventType.CREATE)
+			await this.imapSyncEventListener.onMailbox(imapMailbox, ImapSyncEventType.CREATE, this.imapSyncContext?.shouldOnlyFetchAllMailsImapMailbox ?? false)
 			const parentMailbox = knownMailboxes.find((mailbox) => mailbox.mailboxState.path === imapMailbox.parentFolder?.path)
 			const noSync = parentMailbox?.importance === SyncSessionMailboxImportance.NO_SYNC
 			syncSessionMailbox = new ImapSyncSessionMailbox({ path: imapMailbox.path, importedUidToMailIdsMap: new Map(), noSync })

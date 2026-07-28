@@ -63,6 +63,7 @@ export interface ImportMailParams {
 	imapUid: number
 	imapModSeq: bigint | null
 	imapFolderSyncState: IdTuple
+	labels: IdTuple[]
 }
 
 /**
@@ -145,6 +146,7 @@ export class ImportMailFacade {
 				importedAttachments: imapUidsToImportAttachments.get(importMailParams.imapUid) ?? [],
 				imapUid: importMailParams.imapUid.toString(),
 				imapModSeq: importMailParams.imapModSeq?.toString() ?? null,
+				labels: importMailParams.labels,
 			})
 
 			const untypedInstance = await this.instancePipeline.mapAndEncrypt(ImportMailDataTypeRef, importMailData, sk)

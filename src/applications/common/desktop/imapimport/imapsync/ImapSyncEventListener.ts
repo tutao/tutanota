@@ -4,7 +4,7 @@ import { ImapError } from "../../../api/common/error/ImapError.js"
 import { ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
 
 export interface ImapSyncEventListener {
-	onMailbox(imapMailbox: ImapMailbox, eventType: ImapSyncEventType): Promise<void>
+	onMailbox(imapMailbox: ImapMailbox, eventType: ImapSyncEventType, shouldOnlyFetchAllMailsImapMailbox: boolean): Promise<void>
 
 	onMailboxStatus(imapMailboxStatus: ImapMailboxStatus): Promise<void>
 

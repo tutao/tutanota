@@ -16,6 +16,9 @@
 				},
 				{
 					"eventType": "ImapSyncEventType"
+				},
+				{
+					"shouldOnlyFetchAllMailsImapMailbox": "boolean"
 				}
 			],
 			"ret": "void"

@@ -17,6 +17,7 @@ import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtil
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { isMailAddress } from "@tutao/utils"
 import { OAuthHandler } from "./oauth/OAuthHandler"
+import { createManageLabelServiceLabelData } from "@tutao/entities/tutanota"
 
 assertMainOrNode()
 
@@ -65,7 +66,15 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 					label: "migrationAccountUsername_label",
 					class: "",
 					value: vnode.attrs.data.imapAccountUsername,
-					oninput: (value) => (vnode.attrs.data.imapAccountUsername = value),
+					oninput: (value) => {
+						vnode.attrs.data.imapAccountUsername = value
+						vnode.attrs.data.rootImportMailSetName = value
+						vnode.attrs.data.imapSyncLabelData = createManageLabelServiceLabelData({
+							name: value,
+							color: theme.primary,
+							parentLabel: null,
+						})
+					},
 					leadingIcon: {
 						icon: Icons.MailFilled,
 						color: theme.on_surface_variant,
