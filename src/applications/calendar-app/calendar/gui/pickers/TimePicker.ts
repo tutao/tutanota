@@ -2,7 +2,6 @@ import m, { Children, Component, Vnode } from "mithril"
 import { LegacyTextField, LegacyTextFieldType as TextFieldType } from "../../../../../ui/base/LegacyTextField.js"
 import { theme } from "../../../../../ui/theme.js"
 import { EnvProvider, TabIndex, TimeFormat } from "@tutao/app-env"
-import { timeStringFromParts } from "../../../../../ui/utils/Formatter.js"
 import { Time } from "../../../../common/calendar/date/Time.js"
 import { Select, SelectAttributes } from "../../../../../ui/base/Select.js"
 import { SingleLineTextField, SingleLineTextFieldAttrs } from "../../../../../ui/base/SingleLineTextField.js"
@@ -38,30 +37,24 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	private isExpanded: boolean = false
 	private oldValue: string
 	private value: string
-	private readonly amPm: boolean
 
 	constructor({ attrs }: Vnode<TimePickerAttrs>) {
 		this.focused = false
 		this.value = ""
-		this.amPm = attrs.timeFormat === TimeFormat.TWELVE_HOURS
 		const times: string[] = []
 
 		for (let hour = 0; hour < 24; hour++) {
 			for (let minute = 0; minute < 60; minute += 30) {
-				times.push(timeStringFromParts(hour, minute, this.amPm))
+				times.push(this.getTimeStringInFormatFromAttrs(new Time(hour, minute), attrs))
 			}
 		}
-		this.oldValue = attrs.time?.toString() ?? "--"
+		this.oldValue = attrs.time?.to24HourString() ?? "--"
 		this.values = times
 	}
 
 	view({ attrs }: Vnode<TimePickerAttrs>): Children {
-		if (attrs.time) {
-			const timeAsString = attrs.time?.toString(this.amPm ? { withAmPmSuffix: true } : undefined) ?? ""
-
-			if (!this.focused) {
-				this.value = timeAsString
-			}
+		if (attrs.time && !this.focused) {
+			this.value = this.getTimeStringInFormatFromAttrs(attrs.time, attrs)
 		}
 
 		if (EnvProvider.get().isApp()) {
@@ -72,16 +65,19 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	}
 
 	private renderNativeTimePicker(attrs: TimePickerAttrs): Children {
-		if (this.oldValue !== attrs.time?.toString()) {
+		if (this.oldValue !== attrs.time?.to24HourString()) {
 			this.onSelected(attrs)
 		}
 
 		// input[type=time] wants time in 24h format, no matter what is actually displayed. Otherwise it will be empty.
-		const timeAsString = attrs.time?.toString() ?? ""
+		const timeAsString = attrs.time?.to24HourString() ?? ""
 		this.oldValue = timeAsString
 		this.value = timeAsString
 
-		const displayTime = attrs.time?.toString(this.amPm ? { withAmPmSuffix: true } : undefined)
+		let displayTime: string | undefined
+		if (attrs.time) {
+			displayTime = this.getTimeStringInFormatFromAttrs(attrs.time, attrs)
+		}
 
 		if (attrs.renderAsTextField) {
 			return this.renderTextFieldNativeTimePicker(displayTime, attrs)
@@ -193,22 +189,20 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	}
 
 	private getTargetHour(currentTime: string): string {
-		const time = Time.parseFromString(currentTime)?.toObject()
-
-		if (!time) {
-			return Time.fromDate(getNextHalfHour()).toString()
+		let time = Time.parseFromString(currentTime)
+		if (time) {
+			time = Time.fromDateTime({ hour: time.hour, minute: time.minute === 30 ? 30 : 0 } as DateTime)
+		} else {
+			time = Time.fromDate(getNextHalfHour())
 		}
-		return Time.fromDateTime({ hour: time.hours, minute: time.minutes === 30 ? 30 : 0 } as DateTime).toString()
+		return time.to24HourString()
 	}
+
 	private renderTimeSelectInput(attrs: TimePickerAttrs) {
 		return m(SingleLineTextField, {
 			classes: [...(attrs.classes ?? []), "tutaui-button-outline", "text-center", "border-content-message-bg"],
 			value: this.value,
 			oninput: (val: string) => {
-				if (this.value === val) {
-					return
-				}
-
 				this.value = val
 			},
 			disabled: attrs.disabled,
@@ -226,9 +220,6 @@ export class TimePicker implements Component<TimePickerAttrs> {
 					this.isExpanded = true
 				}
 			},
-			onfocus: () => {
-				this.focused = true
-			},
 			onkeydown: (e: KeyboardEvent) => {
 				if (isKeyPressed(e.key, Keys.RETURN) && !this.isExpanded) {
 					this.focused = true
@@ -237,9 +228,13 @@ export class TimePicker implements Component<TimePickerAttrs> {
 					m.redraw.sync()
 				}
 			},
+			onfocus: () => {
+				this.focused = true
+			},
 			onblur: (e: any) => {
 				if (this.focused) {
 					this.onSelected(attrs)
+					this.focused = false
 				}
 
 				e.redraw = false
@@ -256,13 +251,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			},
 			label: attrs.ariaLabel,
 			value: this.value,
-			oninput: (val: string) => {
-				if (this.value === val) {
-					return
-				}
-
-				this.value = val
-			},
+			oninput: (val: string) => (this.value = val),
 			onclick: (e: MouseEvent) => {
 				e.stopImmediatePropagation()
 				if (!this.isExpanded) {
@@ -278,6 +267,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			onblur: (e) => {
 				if (this.focused) {
 					this.onSelected(attrs)
+					this.focused = false
 				}
 
 				e.redraw = false
@@ -298,5 +288,13 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		this.focused = true
 
 		attrs.onTimeSelected(Time.parseFromString(this.value))
+	}
+
+	private getTimeStringInFormatFromAttrs(time: Time, attrs: TimePickerAttrs) {
+		if (attrs.timeFormat === TimeFormat.TWELVE_HOURS) {
+			return time.to12HourString(true)
+		} else {
+			return time.to24HourString()
+		}
 	}
 }

@@ -122,7 +122,6 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							},
 							m(TimePicker, {
 								classes: appClasses,
-								// FIXME: Component is not displaying the time from the attribute
 								time: editModel.endTime,
 								onTimeSelected: (time) => (editModel.endTime = time),
 								timeFormat: attrs.timeFormat,
