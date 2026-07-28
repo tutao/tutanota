@@ -164,7 +164,8 @@ export class ImapFacade {
 				ownerGroup: mailGroupId,
 				path: imapMailboxPath,
 				imapAccountSyncState: imapAccountSyncState._id,
-				mailFolder: shouldSync ? [mailbox.mailSets.mailSets, mailSetElementId] : null,
+				mailSet: shouldSync ? [mailbox.mailSets.mailSets, mailSetElementId] : null,
+				shouldSync,
 			})
 			const imapFolderPostOut = await this.serviceExecutor.post(ImapFolderService, imapFolderPostIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
@@ -181,39 +182,39 @@ export class ImapFacade {
 		imapAccountSyncState: ImapAccountSyncState,
 		parentMailSetId: IdTuple | null,
 		shouldSync: boolean,
-		shouldCreateImapFolderSyncState: boolean,
-	): Promise<ImapFolderSyncState | MailSet | undefined> {
+		shouldCreateLabels: boolean,
+	): Promise<ImapFolderSyncState | undefined> {
 		if (imapMailbox.name) {
 			const mailGroupId = assertNotNull(imapAccountSyncState._ownerGroup)
-
-			if (shouldCreateImapFolderSyncState) {
-				const mailFolderId = shouldSync ? await this.mailFacade.createMailFolder(imapMailbox.name, parentMailSetId, mailGroupId) : null
-				const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
-				const sk = this.cryptoWrapper.aes256RandomKey()
-				const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
-
-				const imapFolderPostIn = createImapFolderPostIn({
-					ownerEncSessionKey: ownerEncSessionKey.key,
-					ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-					ownerGroup: mailGroupId,
-					path: imapMailbox.path,
-					imapAccountSyncState: imapAccountSyncState._id,
-					mailFolder: mailFolderId,
-				})
-
-				const imapFolderPostOut = await this.serviceExecutor.post(ImapFolderService, imapFolderPostIn, {
-					...DEFAULT_EXTRA_SERVICE_PARAMS,
-					sessionKey: sk,
-				})
-				return this.entityClient.load(ImapFolderSyncStateTypeRef, imapFolderPostOut.imapFolderSyncState)
-			} else {
-				const labelId = await this.mailFacade.createLabel(mailGroupId, {
+			let mailSetId: IdTuple | null
+			if (shouldCreateLabels) {
+				mailSetId = await this.mailFacade.createLabel(mailGroupId, {
 					name: imapMailbox.name,
 					color: randomHexColor(),
 					parentLabelId: parentMailSetId ?? undefined,
 				})
-				return await this.entityClient.load(MailSetTypeRef, labelId)
+			} else {
+				mailSetId = shouldSync ? await this.mailFacade.createMailFolder(imapMailbox.name, parentMailSetId, mailGroupId) : null
 			}
+			const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
+			const sk = this.cryptoWrapper.aes256RandomKey()
+			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
+
+			const imapFolderPostIn = createImapFolderPostIn({
+				ownerEncSessionKey: ownerEncSessionKey.key,
+				ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
+				ownerGroup: mailGroupId,
+				path: imapMailbox.path,
+				imapAccountSyncState: imapAccountSyncState._id,
+				mailSet: mailSetId,
+				shouldSync: mailSetId !== null && !shouldCreateLabels,
+			})
+
+			const imapFolderPostOut = await this.serviceExecutor.post(ImapFolderService, imapFolderPostIn, {
+				...DEFAULT_EXTRA_SERVICE_PARAMS,
+				sessionKey: sk,
+			})
+			return this.entityClient.load(ImapFolderSyncStateTypeRef, imapFolderPostOut.imapFolderSyncState)
 		}
 	}
 

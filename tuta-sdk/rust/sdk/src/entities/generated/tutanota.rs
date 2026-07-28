@@ -3683,7 +3683,7 @@ pub struct ImportMailData {
 	pub recipients: Recipients,
 	#[serde(rename = "1551")]
 	pub importedAttachments: Vec<ImportAttachment>,
-	#[serde(rename = "1990")]
+	#[serde(rename = "1991")]
 	pub labels: Vec<IdTupleGenerated>,
 
 	#[serde(default)]
@@ -4576,7 +4576,7 @@ pub struct ImapFolderSyncState {
 	#[serde(rename = "1909")]
 	pub importedMails: GeneratedId,
 	#[serde(rename = "1910")]
-	pub mailFolder: Option<IdTupleGenerated>,
+	pub mailSet: Option<IdTupleGenerated>,
 	#[serde(rename = "1928")]
 	pub imapAccountSyncState: IdTupleGenerated,
 
@@ -4658,10 +4658,12 @@ pub struct ImapFolderPostIn {
 	pub ownerGroup: GeneratedId,
 	#[serde(rename = "1934")]
 	pub path: String,
+	#[serde(rename = "1990")]
+	pub shouldSync: bool,
 	#[serde(rename = "1935")]
 	pub imapAccountSyncState: IdTupleGenerated,
 	#[serde(rename = "1936")]
-	pub mailFolder: Option<IdTupleGenerated>,
+	pub mailSet: Option<IdTupleGenerated>,
 
 	#[serde(default)]
 	pub _errors: Errors,

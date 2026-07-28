@@ -69,7 +69,7 @@ o.spec("ImapMailImportController", () => {
 
 	o.test("init - loads mailbox details", async () => {
 		when(mailboxModel.getMailboxDetails()).thenResolve([mailboxDetail1Mock, mailboxDetail2Mock])
-		const imapImportSession = newImapImportSession(accountSyncStateMock, [], [])
+		const imapImportSession = newImapImportSession(accountSyncStateMock, [])
 		imapImportSession.imapFolderSyncStates = [{ ...folderSyncStateMock, status: ImapFolderSyncStatus.FINISHED }]
 		const activeSessions = [{ imapAccountSyncStateId: accountSyncStateMock._id } as ImapImportUiSession] as ImapImportUiSession[]
 		when(imapImporter.getImapImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
@@ -80,7 +80,7 @@ o.spec("ImapMailImportController", () => {
 
 	o.test("initializeImport - delegates to imapImporter", async () => {
 		const params = {} as InitializeImapImportParams
-		const expectedSession = newImapImportSession(accountSyncStateMock, [], [])
+		const expectedSession = newImapImportSession(accountSyncStateMock, [])
 		when(imapImporter.initializeNewImport(params)).thenResolve(expectedSession)
 		const activeSessions = [{ imapAccountSyncStateId: expectedSession.imapAccountSyncState._id } as ImapImportUiSession] as ImapImportUiSession[]
 		when(imapImporter.getImapImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
@@ -128,7 +128,7 @@ o.spec("ImapMailImportController", () => {
 		when(entityClient.update(accountSyncStateMock)).thenResolve()
 
 		controller = new ImapMailImportController(imapImporter, mailModel, mailboxModel, entityClient, eventController, oauthFacade, oAuthErrorHandlerMock)
-		when(imapImporter.getImapImportSessions()).thenResolve([newImapImportSession(accountSyncStateMock, [], [])])
+		when(imapImporter.getImapImportSessions()).thenResolve([newImapImportSession(accountSyncStateMock, [])])
 		when(imapImporter.getImapImportUiSessions()).thenResolve({
 			activeSessions: [{ imapAccountSyncStateId: imapAccountSyncStateIdMock } as ImapImportUiSession] as ImapImportUiSession[],
 		})
@@ -141,8 +141,8 @@ o.spec("ImapMailImportController", () => {
 
 	o.test("continueImport - handles startSync error and postpones", async () => {
 		accountSyncStateMock.status = ImapAccountSyncStatus.PAUSED
-		const session = newImapImportSession(accountSyncStateMock, [folderSyncStateMock], [])
-		when(imapImporter.getImapImportSessions()).thenResolve([newImapImportSession(accountSyncStateMock, [], [])])
+		const session = newImapImportSession(accountSyncStateMock, [folderSyncStateMock])
+		when(imapImporter.getImapImportSessions()).thenResolve([newImapImportSession(accountSyncStateMock, [])])
 		when(imapImporter.getImapImportUiSessions()).thenResolve({
 			activeSessions: [{ imapAccountSyncStateId: imapAccountSyncStateIdMock } as ImapImportUiSession] as ImapImportUiSession[],
 		})

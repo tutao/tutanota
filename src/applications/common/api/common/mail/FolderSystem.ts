@@ -137,7 +137,16 @@ export class FolderSystem {
 	}
 
 	getFolderByName(folderName: string): MailSet | null {
-		return this.getCustomFoldersOfParent(null).find((f) => folderName === f.name) ?? null
+		const customFolders = this.getCustomFoldersOfParent(null)
+		console.log(
+			"customFolders",
+			customFolders.map((f) => f.name),
+			"folderName",
+			folderName,
+			"result",
+			customFolders.find((f) => folderName === f.name),
+		)
+		return customFolders.find((f) => folderName === f.name) ?? null
 	}
 
 	private getFolderBy(systems: ReadonlyArray<FolderSubtree>, predicate: (subtree: FolderSubtree) => boolean): FolderSubtree | null {

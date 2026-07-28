@@ -792,8 +792,8 @@ export class MailViewModel {
 
 	private async getImapImportTargetFolder(update: EntityUpdateData) {
 		const imapFolderSyncState = await this.entityClient.load(ImapFolderSyncStateTypeRef, [update.instanceListId!, update.instanceId])
-		if (imapFolderSyncState.mailFolder && imapFolderSyncState.status !== ImapFolderSyncStatus.RUNNING) {
-			return await this.mailModel.getMailSetById(elementIdPart(imapFolderSyncState.mailFolder))
+		if (imapFolderSyncState.mailSet && imapFolderSyncState.status !== ImapFolderSyncStatus.RUNNING) {
+			return await this.mailModel.getMailSetById(elementIdPart(imapFolderSyncState.mailSet))
 		} else {
 			return null
 		}
