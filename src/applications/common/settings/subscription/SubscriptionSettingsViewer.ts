@@ -401,17 +401,36 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 			return undefined
 		}
 		if (isAppleSubscription) {
-			return m(
-				".flex.justify-end.gap-8",
-				m(PrimaryButton, {
-					label: "subscriptionSettingManageSubscription_action",
-					width: "flex",
-					icon: Icons.OpenOutline,
-					onclick: () => {
-						this.onSubscriptionClick()
-					},
-				}),
-			)
+			return isIOSApp()
+				? m(
+						".flex.justify-end.gap-8",
+
+						m(SecondaryButton, {
+							label: "subscriptionSettingManageSubscription_action",
+							width: "flex",
+							icon: Icons.OpenOutline,
+							onclick: async () => {
+								await locator.mobilePaymentsFacade.showSubscriptionConfigView()
+							},
+						}),
+						m(PrimaryButton, {
+							label: "subscriptionSettingSwitchPlan_action",
+							width: "flex",
+							onclick: () => {
+								this.onSubscriptionClick()
+							},
+						}),
+					)
+				: m(
+						".flex.justify-end.gap-8",
+						m(PrimaryButton, {
+							label: "subscriptionSettingManageSubscription_action",
+							width: "flex",
+							onclick: () => {
+								this.onSubscriptionClick()
+							},
+						}),
+					)
 		}
 		//Show downgrade and resubscribe button if expired
 		if (currentSubscriptionState === "expired") {

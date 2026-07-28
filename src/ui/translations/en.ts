@@ -2457,6 +2457,7 @@ export default {
 		"subscriptionStateCardResubscribe_action": "Resubscribe",
 		"changePaymentInterval_action": "Change payment interval",
 		"subscriptionSettingDowngrade_action": "Downgrade",
-		"subscriptionSettingManageSubscription_action": "Manage subscription"
+		"subscriptionSettingManageSubscription_action": "Manage subscription",
+		"subscriptionSettingSwitchPlan_action": "Switch plan"
 	}
 }
