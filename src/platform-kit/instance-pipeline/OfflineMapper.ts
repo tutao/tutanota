@@ -151,11 +151,15 @@ export class OfflineEntity implements DeepEquals {
 		return this.entityRecord
 	}
 
+	private getAssociationValue<AV>(associtionId: AttributeId): Array<AV> {
+		return (this.entityRecord[associtionId] ?? []) as Array<AV>
+	}
+
 	public getIdList(associationModel: ModelAssociation): Array<Id> {
-		return this.entityRecord[associationModel.id] as Array<Id>
+		return this.getAssociationValue<Id>(associationModel.id)
 	}
 	public getIdTupleList(associationModel: ModelAssociation): Array<IdTuple> {
-		return this.entityRecord[associationModel.id] as Array<IdTuple>
+		return this.getAssociationValue<IdTuple>(associationModel.id)
 	}
 	public getAggregationList(associationModel: ModelAssociation, aggregateTypeModel: ServerTypeModel): Array<OfflineEntity> {
 		assert(associationModel.refTypeId === aggregateTypeModel.id, "Wrong aggregateTypeModel?")
@@ -163,7 +167,7 @@ export class OfflineEntity implements DeepEquals {
 			assert(associationModel.dependency === aggregateTypeModel.app, "Wrong aggregateTypeModel?")
 		}
 
-		return (this.entityRecord[associationModel.id] as Array<Record<AttributeName, unknown>>).map((agg) => {
+		return this.getAssociationValue<Record<AttributeName, unknown>>(associationModel.id).map((agg) => {
 			return OfflineEntity.readingFromStorage(aggregateTypeModel, agg)
 		})
 	}
