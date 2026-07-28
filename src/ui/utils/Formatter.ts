@@ -1,5 +1,5 @@
 import { lang } from "./LanguageViewModel"
-import { cleanMailAddress, isSameDay, isSameDayOfDate, pad } from "@tutao/utils"
+import { cleanMailAddress, isSameDay, isSameDayOfDate } from "@tutao/utils"
 import { assertMainOrNodeBoot } from "@tutao/app-env"
 
 assertMainOrNodeBoot()
@@ -179,28 +179,10 @@ export function formatStorageSize(sizeInBytes: number): string {
 	return sizeInBytes + narrowNoBreakSpace + units[unitIndex]
 }
 
-export function timeStringFromParts(hours: number, minutes: number, amPm: boolean): string {
-	let minutesString = pad(minutes, 2)
-
-	if (amPm) {
-		if (hours === 0) {
-			return `12:${minutesString} am`
-		} else if (hours === 12) {
-			return `12:${minutesString} pm`
-		} else if (hours > 12) {
-			return `${hours - 12}:${minutesString} pm`
-		} else {
-			return `${hours}:${minutesString} am`
-		}
-	} else {
-		let hoursString = pad(hours, 2)
-		return hoursString + ":" + minutesString
-	}
-}
-
 export function formatMailAddressFromParts(name: string, domain: string): string {
 	return cleanMailAddress(`${name}@${domain}`)
 }
+
 export function formatNotificationForDisplay(eventStartTime: Date, summary: string, isAllDay: boolean): { title: string; body: string } {
 	let dateString: string
 

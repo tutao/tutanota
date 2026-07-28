@@ -84,8 +84,6 @@ export type InputAttrs<T extends LegacyTextFieldType> = T extends LegacyTextFiel
  * }),
  */
 export class SingleLineTextField<T extends LegacyTextFieldType> implements ClassComponent<InputAttrs<T>> {
-	static readonly DEFAULT_INVALID_MESSAGE = lang.getTranslation("invalidInput_msg")
-
 	domInput!: HTMLInputElement
 
 	view({ attrs }: Vnode<InputAttrs<T>, this>): Children | void | null {
@@ -137,7 +135,7 @@ export class SingleLineTextField<T extends LegacyTextFieldType> implements Class
 		if (attrs.valid === true) {
 			message = "" // Passing an empty string to setCustomValidity sets the input to valid
 		} else if (attrs.valid === false) {
-			message = (attrs.invalidMessage ?? SingleLineTextField.DEFAULT_INVALID_MESSAGE).text
+			message = (attrs.invalidMessage ?? lang.getTranslation("invalidInput_msg")).text
 		} else {
 			return // if `valid` attribute was not passed to component, use the default DOM Input Element's validation
 		}
