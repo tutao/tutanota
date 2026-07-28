@@ -20,7 +20,6 @@ import { FilterChip } from "../../../../ui/base/FilterChip"
 import { createDropdown } from "../../../../ui/base/Dropdown"
 import { SearchCategoryType } from "../../../common/api/worker/search/SearchTypes"
 import { Card } from "../../../../ui/base/Card"
-import { renderSearchInOurApps } from "./SearchView"
 import { BackgroundColumnLayout } from "../../../../ui/BackgroundColumnLayout"
 import { theme } from "../../../../ui/theme"
 import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../ui/DesktopToolbars"
@@ -55,6 +54,7 @@ import { MultiselectMode } from "../../../../ui/base/List"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { ContactSearchListView } from "./ContactSearchListView"
+import { renderSearchInOurApps } from "../../../common/search/SearchUtils"
 
 export interface ContactSearchViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs

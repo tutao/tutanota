@@ -27,9 +27,9 @@ import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, Mai
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
-import { SearchableTypes } from "../view/SearchViewModel"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils"
 import { compareMails } from "../../mail/model/MailUtils"
+import { SearchableTypes } from "../../../common/search/SearchUtils"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -211,7 +211,7 @@ export class SearchModel {
 		return result
 	}
 
-	async coolNewSearchDrive(searchQuery: SearchQuery) {
+	async coolNewSearchDrive(searchQuery: SearchQuery): Promise<void> {
 		//FIXME not implemented
 	}
 

@@ -4,9 +4,9 @@ import { lang } from "../../../ui/utils/LanguageViewModel"
 import { FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { formatDate } from "../../../ui/utils/Formatter"
 import m, { Children, Component, Vnode } from "mithril"
-import { renderSearchInOurApps } from "./view/SearchView"
 import { pureComponent } from "../../../ui/base/PureComponent"
 import { isNotEmpty } from "@tutao/utils"
+import { renderSearchInOurApps } from "../../common/search/SearchUtils"
 
 export interface SearchBarOverlayAttrs<T> {
 	items: readonly T[]

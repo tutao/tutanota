@@ -3,11 +3,11 @@ import { assertMainOrNode } from "@tutao/app-env"
 import { downcast } from "@tutao/utils"
 import { MailRow } from "../../mail/view/MailRow"
 import { KindaContactRow } from "../../contacts/view/ContactListView.js"
-import { SearchableTypes } from "./SearchViewModel.js"
 import { VirtualRow } from "../../../../ui/base/ListUtils.js"
 import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow.js"
 import type { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { ListModel } from "../../../common/misc/ListModel"
+import { SearchableTypes } from "../../../common/search/SearchUtils"
 
 assertMainOrNode()
 

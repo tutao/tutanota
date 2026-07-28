@@ -1,12 +1,11 @@
 import { CalendarInfoBase, CalendarModel, isBirthdayCalendarInfo, isCalendarInfo } from "../../model/CalendarModel"
 import Id from "../../../../../ui/translations/id"
 import { assertIsEntity2, elementIdPart, getElementId, isSameId, isSameTypeRef } from "@tutao/meta"
-import { SearchCategoryType, SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes"
+import { SearchCategoryType, SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes"
 import { createRestriction, encodeCalendarSearchKey, getSearchUrl, searchQueryEquals } from "../../../../mail-app/search/model/SearchUtils"
 import { debounce, downcast, getEndOfDay, getStartOfDay, incrementMonth, isNotNull, isSameDayOfDate, onceAsync, YEAR_IN_MILLIS } from "@tutao/utils"
 import { ListModel } from "../../../../common/misc/ListModel"
 import { SearchResultListEntry } from "../../../../mail-app/search/view/SearchListView"
-import { emptyListModel, PaidFunctionResult, SearchableTypes } from "../../../../mail-app/search/view/SearchViewModel"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef } from "@tutao/entities/tutanota"
 import { LoginController } from "../../../../common/api/main/LoginController"
 import { SearchToken } from "../../../../../ui/utils/QueryTokenUtils"
@@ -28,6 +27,7 @@ import { isBirthdayCalendar } from "../../../../common/calendar/date/CalendarUti
 import { onlySingleSelection } from "../../../../../ui/base/ListUtils"
 import { ListAutoSelectBehavior } from "../../../../common/misc/DeviceConfig"
 import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
+import { emptyListModel, PaidFunctionResult, SearchableTypes } from "../../../../common/search/SearchUtils"
 
 export class CalendarSearchViewModel {
 	#listModel: ListModel<SearchResultListEntry, Id> = emptyListModel()
@@ -191,10 +191,6 @@ export class CalendarSearchViewModel {
 	getHighlightedStrings(): readonly SearchToken[] {
 		return this.search.result()?.tokens ?? []
 	}
-	getSearchIndexStateStream(): Stream<SearchIndexStateInfo> {
-		return this.search.indexState
-	}
-
 	getCurrentQuery(): string {
 		return this.currentQuery
 	}

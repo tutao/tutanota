@@ -26,7 +26,6 @@ import { showNotAvailableForFreeDialog } from "../../../../common/misc/Subscript
 import { FeatureType, Keys, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { showDateRangeSelectionDialog } from "../../gui/pickers/DatePickerDialog"
 import { Card } from "../../../../../ui/base/Card"
-import { renderSearchInOurApps } from "../../../../mail-app/search/view/SearchView"
 import { BackgroundColumnLayout } from "../../../../../ui/BackgroundColumnLayout"
 import { theme } from "../../../../../ui/theme"
 import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../../ui/DesktopToolbars"
@@ -65,6 +64,7 @@ import { ClickHandler } from "../../../../../ui/base/GuiUtils"
 import { listSelectionKeyboardShortcuts } from "../../../../../ui/base/ListUtils"
 import { MultiselectMode } from "../../../../../ui/base/List"
 import { CalendarSearchListView, CalendarSearchListViewAttrs } from "./CalendarSearchListView"
+import { renderSearchInOurApps } from "../../../../common/search/SearchUtils"
 
 export interface NewCalendarSearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs

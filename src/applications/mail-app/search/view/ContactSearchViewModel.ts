@@ -1,7 +1,6 @@
 import { ListModel } from "../../../common/misc/ListModel"
 import { SearchResultListEntry } from "./SearchListView"
 import Id from "../../../../ui/translations/id"
-import { emptyListModel, SearchableTypes } from "./SearchViewModel"
 import { createRestriction, getRestriction, getSearchUrl, searchQueryEquals } from "../model/SearchUtils"
 import { SearchCategoryType, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { Contact, ContactTypeRef } from "@tutao/entities/tutanota"
@@ -16,6 +15,7 @@ import { assertIsEntity2, elementIdPart, getElementId, isSameId } from "@tutao/m
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
+import { emptyListModel, SearchableTypes } from "../../../common/search/SearchUtils"
 
 export class ContactSearchViewModel {
 	#listModel: ListModel<SearchResultListEntry, Id> = emptyListModel()

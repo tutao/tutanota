@@ -1,10 +1,13 @@
-import { SearchCategoryType } from "../../../common/api/worker/search/SearchTypes.js"
-import { TypeRef } from "../../../../platform-kit/meta"
-import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
-import { ListModel } from "../../../common/misc/ListModel"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import { DriveFile, DriveFileTypeRef } from "@tutao/entities/drive"
-import { ListFetchResult } from "../../../../ui/base/ListUtils"
+import { SearchCategoryType } from "../api/worker/search/SearchTypes"
+import { TypeRef } from "@tutao/meta"
+import { ListModel } from "../misc/ListModel"
+import { ListFetchResult } from "../../../ui/base/ListUtils"
+import { ListAutoSelectBehavior } from "../misc/DeviceConfig"
+import m, { Children } from "mithril"
+import { isBrowser } from "@tutao/app-env"
+import { InfoLink, lang } from "../../../ui/utils/LanguageViewModel"
 
 export type SearchableTypes = Mail | Contact | CalendarEvent | DriveFile
 
@@ -26,7 +29,6 @@ export function searchCategoryTypeToTypeRef(searchType: SearchCategoryType): Typ
 			return DriveFileTypeRef
 	}
 }
-//FIXME move to a common place
 export function emptyListModel<ItemType, IdType>(): ListModel<ItemType, IdType> {
 	return new ListModel({
 		async fetch(last: ItemType | null | undefined, count: number): Promise<ListFetchResult<ItemType>> {
@@ -43,4 +45,15 @@ export function emptyListModel<ItemType, IdType>(): ListModel<ItemType, IdType> 
 		},
 		autoSelectBehavior: () => ListAutoSelectBehavior.NEWER,
 	})
+}
+export function renderSearchInOurApps(): Children | null {
+	if (!isBrowser()) {
+		return null
+	} else {
+		return m.trust(
+			lang.get("searchInOurApps_msg", {
+				"{link}": `<a href="${InfoLink.Download}" target="_blank">${lang.get("searchInOurAppsLinkText_msg")}</a>`,
+			}),
+		)
+	}
 }

@@ -83,7 +83,7 @@ import { listSelectionKeyboardShortcuts } from "../../../../ui/base/ListUtils"
 import { MultiselectMode } from "../../../../ui/base/List"
 import { SimpleMoveMailTarget } from "../../mail/MailUtils"
 import { MailSearchListView, MailSearchListViewAttrs } from "./MailSearchListView"
-
+import { renderSearchInOurApps } from "../../../common/search/SearchUtils"
 export interface MailSearchViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
@@ -993,16 +993,4 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 async function newMailEditor(): Promise<Dialog | null> {
 	const [mailboxDetails, { newMailEditor }] = await Promise.all([locator.mailboxModel.getUserMailboxDetails(), import("../../mail/editor/MailEditor")])
 	return newMailEditor(mailboxDetails)
-}
-
-export function renderSearchInOurApps(): Children | null {
-	if (!isBrowser()) {
-		return null
-	} else {
-		return m.trust(
-			lang.get("searchInOurApps_msg", {
-				"{link}": `<a href="${InfoLink.Download}" target="_blank">${lang.get("searchInOurAppsLinkText_msg")}</a>`,
-			}),
-		)
-	}
 }

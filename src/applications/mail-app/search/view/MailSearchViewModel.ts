@@ -1,7 +1,6 @@
 import { ListFilter, ListModel } from "../../../common/misc/ListModel"
 import { SearchResultListEntry } from "./SearchListView"
 import Id from "../../../../ui/translations/id"
-import { emptyListModel, PaidFunctionResult, SearchableTypes } from "./SearchViewModel"
 import { Mail, MailSet, MailTypeRef } from "@tutao/entities/tutanota"
 import { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
@@ -40,6 +39,7 @@ import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewer
 import { MailOpenedListener } from "../../mail/view/MailViewModel"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { compareMails } from "../../mail/model/MailUtils"
+import { emptyListModel, PaidFunctionResult, SearchableTypes } from "../../../common/search/SearchUtils"
 
 const SEARCH_PAGE_SIZE = 100
 export class MailSearchViewModel {

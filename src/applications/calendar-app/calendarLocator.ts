@@ -242,6 +242,28 @@ class CalendarLocator implements CommonLocator {
 		}
 	}
 
+	// async searchViewModelFactory(): Promise<() => CalendarSearchViewModel> {
+	// 	const { CalendarSearchViewModel } = await import("./calendar/search/view/CalendarSearchViewModel.js")
+	// 	const redraw = await this.redraw()
+	// 	const searchRouter = await this.scopedSearchRouter()
+	// 	const calendarEventsRepository = await this.calendarEventsRepository()
+	// 	const calendarModel = await this.calendarModel()
+	// 	return () => {
+	// 		return new CalendarSearchViewModel(
+	// 			searchRouter,
+	// 			this.search,
+	// 			calendarModel,
+	// 			this.logins,
+	// 			this.entityClient,
+	// 			this.eventController,
+	// 			this.calendarFacade,
+	// 			this.progressTracker,
+	// 			calendarEventsRepository,
+	// 			redraw,
+	// 		)
+	// 	}
+	// }
+
 	readonly throttledRouter: lazy<Router> = lazyMemoized(() => new ThrottledRouter())
 
 	readonly scopedSearchRouter: lazyAsync<SearchRouter> = lazyMemoized(async () => {
