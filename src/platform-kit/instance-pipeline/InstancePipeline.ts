@@ -38,11 +38,17 @@ export class InstancePipeline {
 		return this.typeMapper.makeServerJson(encryptedInstance)
 	}
 
+	async mapAndEncryptWithSubKeyInfo<T extends Entity>(_typeRef: TypeRef<T>, instance: T, subKeyInfo: Nullable<SubKeyInfo>): Promise<OutgoingServerJson> {
+		const encryptedInstance = await this.mapAndEncryptToParsedInstanceWithSubKeyInfo(instance, subKeyInfo)
+		return this.typeMapper.makeServerJson(encryptedInstance)
+	}
+
 	async mapAndEncryptToParsedInstance<T extends Entity>(_typeRef: TypeRef<T>, instance: T, sessionKey: Nullable<AesKey>): Promise<EncryptedParsedInstance> {
 		const subKeyInfo = makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(sessionKey)
-		return this.mapAndEncryptWithSubKeyInfo(instance, subKeyInfo)
+		return this.mapAndEncryptToParsedInstanceWithSubKeyInfo(instance, subKeyInfo)
 	}
-	async mapAndEncryptWithSubKeyInfo<T extends Entity>(instance: T, subKeyInfo: Nullable<SubKeyInfo>): Promise<EncryptedParsedInstance> {
+
+	async mapAndEncryptToParsedInstanceWithSubKeyInfo<T extends Entity>(instance: T, subKeyInfo: Nullable<SubKeyInfo>): Promise<EncryptedParsedInstance> {
 		const parsedInstance = await this.modelMapper.mapToDecryptedInstance(instance)
 		return await this.cryptoMapper.encryptParsedInstance(parsedInstance, subKeyInfo)
 	}

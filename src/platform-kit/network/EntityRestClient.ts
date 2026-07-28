@@ -410,7 +410,7 @@ export class EntityRestClient implements EntityRestInterface {
 			if (listId) throw new Error("List id must not be defined for ETs")
 		}
 		const subKeyInfo = await this.getSubKeyInfoOnSetup(options?.ownerKey ?? null, instance, clientTypeModel)
-		const encryptedParsedInstance = await this.instancePipeline.mapAndEncryptWithSubKeyInfo(instance, subKeyInfo)
+		const encryptedParsedInstance = await this.instancePipeline.mapAndEncryptToParsedInstanceWithSubKeyInfo(instance, subKeyInfo)
 		const outgoingJson = await this.instancePipeline.typeMapper.makeServerJson(encryptedParsedInstance)
 		const persistencePostReturn: string = await this.restClient.request(path, HttpMethod.POST, {
 			...DEFAULT_REST_CLIENT_OPTIONS,

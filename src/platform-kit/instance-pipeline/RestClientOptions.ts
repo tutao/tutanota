@@ -93,6 +93,7 @@ export interface ExtraServiceParams {
 	suspensionBehavior: Nullable<SuspensionBehavior>
 	/** override origin for the request */
 	baseUrl: Nullable<string>
+	ownerKey: Nullable<VersionedKey>
 }
 
 export const DEFAULT_EXTRA_SERVICE_PARAMS: ExtraServiceParams = {
@@ -101,4 +102,5 @@ export const DEFAULT_EXTRA_SERVICE_PARAMS: ExtraServiceParams = {
 	extraHeaders: null,
 	suspensionBehavior: null,
 	baseUrl: null,
+	ownerKey: null,
 }

@@ -14,6 +14,7 @@ import {
 } from "@tutao/meta"
 import { assertWorkerOrNode, CryptoProtocolVersion, EncryptionAuthStatus, isApp, isDesktop, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
 import {
+	Aes256Key,
 	aes256RandomKey,
 	AesKey,
 	createAuthVerifier,
@@ -43,6 +44,7 @@ import {
 	isEmpty,
 	isNotNull,
 	noOp,
+	Nullable,
 	ofClass,
 	parseUrl,
 	promiseFilter,
@@ -87,6 +89,7 @@ import {
 	Contact,
 	createApplyLabelServicePostIn,
 	createAttachmentKeyData,
+	createBodyTransferAggregatedType,
 	createCreateExternalUserGroupData,
 	createCreateMailFolderData,
 	createDeleteMailData,
@@ -97,8 +100,14 @@ import {
 	createDraftRecipient,
 	createDraftUpdateData,
 	createEncryptedMailAddress,
+	createEncryptedMailAddressTransferAggregatedType,
 	createExternalUserData,
+	createFileTransferAggregatedType,
 	createListUnsubscribeData,
+	createMailAddressTransferAggregatedType,
+	createMailDetailsBlobTransferAggregatedType,
+	createMailDetailsTransferAggregatedType,
+	createMailTransferAggregatedType,
 	createManageLabelServiceDeleteIn,
 	createManageLabelServiceLabelData,
 	createManageLabelServicePostIn,
@@ -108,6 +117,7 @@ import {
 	createPopulateClientSpamTrainingDatum,
 	createProcessInboxDatum,
 	createProcessInboxPostIn,
+	createRecipientsTransferAggregatedType,
 	createReportMailPostData,
 	createResolveConversationsServiceGetIn,
 	createSecureExternalRecipientKeyData,
@@ -121,11 +131,13 @@ import {
 	DraftRecipient,
 	DraftService,
 	EncryptedMailAddress,
+	EncryptedMailAddressTransferAggregatedType,
 	ExternalUserService,
 	File,
 	FileTypeRef,
 	ListUnsubscribeService,
 	Mail,
+	MailAddressTransferAggregatedType,
 	MailDetails,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
@@ -136,6 +148,7 @@ import {
 	ManageLabelService,
 	MovedMails,
 	MoveMailService,
+	NewDraftAttachment,
 	PopulateClientSpamTrainingDataService,
 	PopulateClientSpamTrainingDatum,
 	ProcessInboxDatum,
@@ -143,7 +156,6 @@ import {
 	ReportedMailFieldMarker,
 	ReportMailService,
 	ResolveConversationsService,
-	SendDraftParameters,
 	SendDraftParametersParams,
 	SendDraftReturn,
 	SendDraftService,
@@ -156,6 +168,7 @@ import {
 	FileReference,
 	isDataFile,
 	isFileReference,
+	isTutanotaFile,
 	MailMethod,
 	MailReportType,
 	MailSetKind,
@@ -284,10 +297,19 @@ export class MailFacade {
 
 	/**
 	 * Creates a draft mail.
+	 * @param subject
 	 * @param bodyText The bodyText of the mail formatted as HTML.
+	 * @param senderMailAddress
+	 * @param senderName
+	 * @param toRecipients
+	 * @param ccRecipients
+	 * @param bccRecipients
+	 * @param conversationType
 	 * @param previousMessageId The id of the message that this mail is a reply or forward to. Null if this is a new mail.
 	 * @param attachments The files that shall be attached to this mail or null if no files shall be attached. TutanotaFiles are already exising on the server, DataFiles are files from the local file system. Attention: the DataFile class information is lost
 	 * @param confidential True if the mail shall be sent end-to-end encrypted, false otherwise.
+	 * @param replyTos
+	 * @param method
 	 */
 	async createDraft({
 		subject,
@@ -317,25 +339,117 @@ export class MailFacade {
 			previousMessageId: previousMessageId,
 			conversationType: conversationType,
 			draftData: createDraftData({
-				subject,
-				compressedBodyText: bodyText,
-				senderMailAddress,
-				senderName,
+				// deprecated attributes, use mail and mailDetailsBlob instead
+				subject: "",
+				compressedBodyText: null,
+				senderMailAddress: "",
+				senderName: "",
 				confidential,
 				method,
-				toRecipients: toRecipients.map(recipientToDraftRecipient),
-				ccRecipients: ccRecipients.map(recipientToDraftRecipient),
-				bccRecipients: bccRecipients.map(recipientToDraftRecipient),
-				replyTos: replyTos.map(recipientToEncryptedMailAddress),
-				addedAttachments: await this._createAddedAttachments(attachments, [], senderMailGroupId, mailGroupKey),
+				toRecipients: [],
+				ccRecipients: [],
+				bccRecipients: [],
+				replyTos: [],
 				bodyText: "",
+				// end of deprecated attributes
+				addedAttachments: await this._createAddedAttachments(attachments, [], senderMailGroupId, mailGroupKey),
 				removedAttachments: [],
+				mail: createMailTransferAggregatedType({
+					subject,
+					sender: createMailAddressTransferAggregatedType({
+						name: senderName,
+						address: senderMailAddress,
+						contact: null,
+					}),
+					confidential,
+					method,
+					firstRecipient: recipientToTransferMailAddress(toRecipients.at(0) ?? ccRecipients.at(0) ?? bccRecipients.at(0) ?? null),
+				}),
+				mailDetailsBlob: createMailDetailsBlobTransferAggregatedType({
+					details: createMailDetailsTransferAggregatedType({
+						body: createBodyTransferAggregatedType({
+							compressedText: bodyText,
+							text: "",
+						}),
+						recipients: createRecipientsTransferAggregatedType({
+							toRecipients: toRecipients.map((partialRecipient) => recipientToTransferMailAddress(partialRecipient)),
+							ccRecipients: ccRecipients.map((partialRecipient) => recipientToTransferMailAddress(partialRecipient)),
+							bccRecipients: bccRecipients.map((partialRecipient) => recipientToTransferMailAddress(partialRecipient)),
+						}),
+						replyTos: replyTos.map(recipientToTransferEncryptedMailAddress),
+					}),
+				}),
 			}),
 		})
 		service.ownerEncSessionKey = ownerEncSessionKey.key
 		service.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
-		const createDraftReturn = await this.serviceExecutor.post(DraftService, service, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
+		const createDraftReturn = await this.serviceExecutor.post(DraftService, service, {
+			...DEFAULT_EXTRA_SERVICE_PARAMS,
+			sessionKey: sk,
+			ownerKey: mailGroupKey,
+		})
 		return this.entityClient.load(MailTypeRef, createDraftReturn.draft)
+	}
+
+	async uploadAttachments(providedFile: DataFile | FileReference, senderMailGroupId: Id, mailGroupKey: VersionedKey): Promise<NewDraftAttachment> {
+		const fileSessionKey = aes256RandomKey()
+		const transferId = await this.blobFacade.generateTransferId()
+		let referenceTokens: Array<BlobReferenceTokenWrapper>
+		if (isFileReference(providedFile)) {
+			referenceTokens = await this.blobFacade.encryptAndUploadNative(
+				ArchiveDataType.Attachments,
+				providedFile.location,
+				senderMailGroupId,
+				fileSessionKey,
+				transferId,
+			)
+		} else {
+			// user added attachment
+			if (isApp() || isDesktop()) {
+				const { location } = await this.fileApp.writeDataFile(providedFile)
+				referenceTokens = await this.blobFacade.encryptAndUploadNative(
+					ArchiveDataType.Attachments,
+					location,
+					senderMailGroupId,
+					fileSessionKey,
+					transferId,
+				)
+			} else {
+				referenceTokens = await this.blobFacade.encryptAndUpload(
+					ArchiveDataType.Attachments,
+					providedFile.data,
+					senderMailGroupId,
+					fileSessionKey,
+					transferId,
+				)
+			}
+		}
+		return this.createNewDraftAttachmentWithFile(referenceTokens, fileSessionKey, providedFile, mailGroupKey)
+	}
+
+	createNewDraftAttachmentWithFile(
+		referenceTokens: BlobReferenceTokenWrapper[],
+		fileSessionKey: Aes256Key,
+		providedFile: DataFile | FileReference,
+		mailGroupKey: VersionedKey,
+	): NewDraftAttachment {
+		const transferFile = createFileTransferAggregatedType({
+			name: providedFile.name,
+			mimeType: providedFile.mimeType,
+			cid: providedFile.cid ?? null,
+		})
+		transferFile._ownerEncSessionKey = encryptKey(mailGroupKey.object, fileSessionKey)
+		transferFile._ownerKeyVersion = mailGroupKey.version.toString()
+
+		return createNewDraftAttachment({
+			// deprecated attributes, use file instead
+			encCid: null,
+			encFileName: new Uint8Array(0),
+			encMimeType: new Uint8Array(0),
+			// end of deprecated attributes
+			file: transferFile,
+			referenceTokens,
+		})
 	}
 
 	/**
@@ -383,19 +497,46 @@ export class MailFacade {
 		const service = createDraftUpdateData({
 			draft: draft._id,
 			draftData: createDraftData({
-				subject: subject,
-				compressedBodyText: body,
-				senderMailAddress: senderMailAddress,
-				senderName: senderName,
-				confidential: confidential,
+				// deprecated attributes, use mail and mailDetailsBlob instead
+				subject: "",
+				compressedBodyText: null,
+				senderMailAddress: "",
+				senderName: "",
+				confidential,
 				method: draft.method,
-				toRecipients: toRecipients.map(recipientToDraftRecipient),
-				ccRecipients: ccRecipients.map(recipientToDraftRecipient),
-				bccRecipients: bccRecipients.map(recipientToDraftRecipient),
-				replyTos: replyTos,
+				toRecipients: [],
+				ccRecipients: [],
+				bccRecipients: [],
+				replyTos: [],
+				bodyText: "",
+				// end of deprecated attributes
 				removedAttachments: this._getRemovedAttachments(attachments, currentAttachments),
 				addedAttachments: await this._createAddedAttachments(attachments, currentAttachments, senderMailGroupId, mailGroupKey),
-				bodyText: "",
+				mail: createMailTransferAggregatedType({
+					subject,
+					sender: createMailAddressTransferAggregatedType({
+						name: senderName,
+						address: senderMailAddress,
+						contact: null,
+					}),
+					confidential,
+					method: draft.method,
+					firstRecipient: recipientToTransferMailAddress(toRecipients.at(0) ?? ccRecipients.at(0) ?? bccRecipients.at(0) ?? null),
+				}),
+				mailDetailsBlob: createMailDetailsBlobTransferAggregatedType({
+					details: createMailDetailsTransferAggregatedType({
+						body: createBodyTransferAggregatedType({
+							compressedText: body,
+							text: "",
+						}),
+						recipients: createRecipientsTransferAggregatedType({
+							toRecipients: toRecipients.map((partialRecipient) => recipientToTransferMailAddress(partialRecipient)),
+							ccRecipients: ccRecipients.map((partialRecipient) => recipientToTransferMailAddress(partialRecipient)),
+							bccRecipients: bccRecipients.map((partialRecipient) => recipientToTransferMailAddress(partialRecipient)),
+						}),
+						replyTos: replyTos.map(recipientToTransferEncryptedMailAddress),
+					}),
+				}),
 			}),
 		})
 		this.deferredDraftId = draft._id
@@ -403,7 +544,7 @@ export class MailFacade {
 		this.deferredDraftUpdate = defer()
 		// use a local reference here because this._deferredDraftUpdate is set to null when the event is received async
 		const deferredUpdatePromiseWrapper = this.deferredDraftUpdate
-		await this.serviceExecutor.put(DraftService, service, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
+		await this.serviceExecutor.put(DraftService, service, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk, ownerKey: mailGroupKey })
 		return deferredUpdatePromiseWrapper.promise
 	}
 
@@ -527,41 +668,14 @@ export class MailFacade {
 
 		return promiseMap(providedFiles, async (providedFile) => {
 			// check if this is a new attachment or an existing one
-			if (isDataFile(providedFile)) {
-				// user added attachment
-				const fileSessionKey = aes256RandomKey()
-				let referenceTokens: Array<BlobReferenceTokenWrapper>
-				const transferId = await this.blobFacade.generateTransferId()
-				if (isApp() || isDesktop()) {
-					const { location } = await this.fileApp.writeDataFile(providedFile)
-					referenceTokens = await this.blobFacade.encryptAndUploadNative(
-						ArchiveDataType.Attachments,
-						location,
-						senderMailGroupId,
-						fileSessionKey,
-						transferId,
-					)
-				} else {
-					referenceTokens = await this.blobFacade.encryptAndUpload(
-						ArchiveDataType.Attachments,
-						providedFile.data,
-						senderMailGroupId,
-						fileSessionKey,
-						transferId,
-					)
-				}
-				return this.createAndEncryptDraftAttachment(referenceTokens, fileSessionKey, providedFile, mailGroupKey)
-			} else if (isFileReference(providedFile)) {
-				const fileSessionKey = aes256RandomKey()
-				const transferId = await this.blobFacade.generateTransferId()
-				const referenceTokens = await this.blobFacade.encryptAndUploadNative(
-					ArchiveDataType.Attachments,
-					providedFile.location,
-					senderMailGroupId,
-					fileSessionKey,
-					transferId,
-				)
-				return this.createAndEncryptDraftAttachment(referenceTokens, fileSessionKey, providedFile, mailGroupKey)
+			if (!isTutanotaFile(providedFile)) {
+				const draftAttachment = createDraftAttachment({
+					existingFile: null,
+					ownerEncFileSessionKey: null, // this is now set in the newFile, but still needed for the case of existingFile
+					newFile: await this.uploadAttachments(providedFile, senderMailGroupId, mailGroupKey),
+				})
+				draftAttachment.ownerKeyVersion = null // this is now set in the newFile, but still needed for the case of existingFile
+				return draftAttachment
 			} else if (!containsId(existingFileIds, getLetId(providedFile))) {
 				// forwarded attachment which was not in the draft before
 				return this.crypto.resolveSessionKey(providedFile).then((fileSessionKey) => {
@@ -578,7 +692,7 @@ export class MailFacade {
 			} else {
 				return null
 			}
-		}) // disable concurrent file upload to avoid timeout because of missing progress events on Firefox.
+		})
 			.then((attachments) => attachments.filter(isNotNull))
 			.then((it) => {
 				// only delete the temporary files after all attachments have been uploaded
@@ -588,27 +702,6 @@ export class MailFacade {
 
 				return it
 			})
-	}
-
-	private createAndEncryptDraftAttachment(
-		referenceTokens: BlobReferenceTokenWrapper[],
-		fileSessionKey: AesKey,
-		providedFile: DataFile | FileReference,
-		mailGroupKey: VersionedKey,
-	): DraftAttachment {
-		const ownerEncFileSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, fileSessionKey)
-		const draftAttachment = createDraftAttachment({
-			newFile: createNewDraftAttachment({
-				encFileName: this.cryptoWrapper.encryptString(fileSessionKey, providedFile.name),
-				encMimeType: this.cryptoWrapper.encryptString(fileSessionKey, providedFile.mimeType),
-				referenceTokens: referenceTokens,
-				encCid: providedFile.cid == null ? null : this.cryptoWrapper.encryptString(fileSessionKey, providedFile.cid),
-			}),
-			ownerEncFileSessionKey: ownerEncFileSessionKey.key,
-			existingFile: null,
-		})
-		draftAttachment.ownerKeyVersion = ownerEncFileSessionKey.encryptingKeyVersion.toString()
-		return draftAttachment
 	}
 
 	async sendDraft(draft: Mail, recipients: Array<Recipient>, language: string, sendAt: Date | null, allowUndo: boolean = false): Promise<SendDraftReturn> {
@@ -1463,6 +1556,24 @@ function recipientToDraftRecipient(recipient: PartialRecipient): DraftRecipient 
 
 export function recipientToEncryptedMailAddress(recipient: PartialRecipient): EncryptedMailAddress {
 	return createEncryptedMailAddress({
+		name: recipient.name ?? "",
+		address: recipient.address,
+	})
+}
+
+export function recipientToTransferMailAddress(recipient: PartialRecipient): MailAddressTransferAggregatedType
+export function recipientToTransferMailAddress(recipient: Nullable<PartialRecipient>): Nullable<MailAddressTransferAggregatedType>
+export function recipientToTransferMailAddress(recipient: Nullable<PartialRecipient>): Nullable<MailAddressTransferAggregatedType> {
+	if (recipient == null) return null
+	return createMailAddressTransferAggregatedType({
+		name: recipient.name ?? "",
+		address: recipient.address,
+		contact: null,
+	})
+}
+
+export function recipientToTransferEncryptedMailAddress(recipient: PartialRecipient): EncryptedMailAddressTransferAggregatedType {
+	return createEncryptedMailAddressTransferAggregatedType({
 		name: recipient.name ?? "",
 		address: recipient.address,
 	})

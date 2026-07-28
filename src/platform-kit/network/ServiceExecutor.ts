@@ -20,8 +20,11 @@ import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { DEFAULT_REST_CLIENT_OPTIONS, ExtraServiceParams } from "../instance-pipeline/RestClientOptions"
+import { AesKey, SubKeyInfo, SubKeyInfoWithSessionKeyAead, SubKeyInfoWithSessionKeyCbcThenHmac, SymmetricEncryptionScheme, VersionedKey } from "@tutao/crypto"
+import { CryptoError } from "@tutao/crypto/error"
 
 import { IncomingServerJson, OutgoingServerJson } from "../instance-pipeline/TypeMapper"
+
 assertWorkerOrNode()
 
 export class ServiceExecutor implements IServiceExecutor {
@@ -148,9 +151,25 @@ export class ServiceExecutor implements IServiceExecutor {
 				throw new ProgrammingError(`Must provide a session key for an encrypted data transfer type!: ${service.app}/${service.name}`)
 			}
 
-			return await this.instancePipeline.mapAndEncrypt(requestEntity._type, requestEntity, params?.sessionKey ?? null)
+			const sessionKey = params?.sessionKey ?? null
+			const ownerKey = params?.ownerKey ?? null
+			const subKeyInfo = this.getSubKeyInfo(sessionKey, ownerKey)
+
+			return await this.instancePipeline.mapAndEncryptWithSubKeyInfo(requestEntity._type, requestEntity, subKeyInfo)
 		} else {
 			return null
+		}
+	}
+
+	private getSubKeyInfo(sessionKey: Nullable<AesKey>, ownerKey: Nullable<VersionedKey>): Nullable<SubKeyInfo> {
+		if (sessionKey == null) return null
+		switch (this.authDataProvider.getDefaultSymmetricEncryptionScheme()) {
+			case SymmetricEncryptionScheme.AesCbc:
+				return new SubKeyInfoWithSessionKeyCbcThenHmac(sessionKey, ownerKey)
+			case SymmetricEncryptionScheme.Aead:
+				return new SubKeyInfoWithSessionKeyAead(sessionKey, ownerKey)
+			default:
+				throw new CryptoError("missing or unknown symmetric encryption scheme")
 		}
 	}
 
