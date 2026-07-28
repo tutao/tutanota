@@ -54,21 +54,10 @@ import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFa
 import { AttachmentType, getAttachmentType } from "../../../../ui/AttachmentBubble.js"
 import type { ContactImporter } from "../../contacts/ContactImporter.js"
 import { InlineImages, revokeInlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
-import {
-	getDefaultSender,
-	getEnabledMailAddressesWithUser,
-	getMailboxName,
-	isTutaTeamMail
-} from "../../../common/mailFunctionality/SharedMailUtils.js"
+import { getDefaultSender, getEnabledMailAddressesWithUser, getMailboxName, isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
-import {
-	editDraft,
-	isNoReplyTeamAddress,
-	isSystemNotification,
-	loadMailDetails,
-	MailViewerToolbarActions
-} from "./MailViewerUtils.js"
+import { editDraft, isNoReplyTeamAddress, isSystemNotification, loadMailDetails, MailViewerToolbarActions } from "./MailViewerUtils.js"
 import { getMailSetName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
 import { isDraft, isEditableDraft, isMailDeletable, isMailMovable, isMailScheduled } from "../model/MailChecks"
 import type { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
@@ -81,15 +70,7 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import { CALENDAR_MIME_TYPE } from "../../../../platform-kit/utils/FileConstants"
 import { SanitizedFragment } from "../../../../ui/utils/HtmlSanitizerInterface"
 import { ArchiveDataType } from "../../../../entities/sys/Utils"
-import {
-	createMailAddress,
-	EncryptedMailAddress,
-	File,
-	Mail,
-	MailAddress,
-	MailDetails,
-	MailTypeRef
-} from "@tutao/entities/tutanota"
+import { createMailAddress, EncryptedMailAddress, File, Mail, MailAddress, MailDetails, MailTypeRef } from "@tutao/entities/tutanota"
 import {
 	ConversationType,
 	ExternalImageRule,
@@ -108,17 +89,12 @@ import {
 	isUpdateForTypeRef,
 	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import {
-	EncryptionAuthStatus,
-	FeatureType,
-	isBrowser,
-	MailAuthenticationStatus,
-	ProgrammingError
-} from "@tutao/app-env"
+import { EncryptionAuthStatus, FeatureType, isBrowser, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 import { PosRect } from "../../../../ui/utils/PosRect"
+import { InboxRuleModel } from "../model/InboxRuleModel"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -217,6 +193,7 @@ export class MailViewerViewModel {
 		private readonly transferProgressDispatcher: TransferProgressDispatcher,
 		private readonly operationProgressTracker: OperationProgressTracker,
 		private readonly connectivityModel: WebsocketConnectivityModel,
+		readonly inboxRuleModel: InboxRuleModel,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {
