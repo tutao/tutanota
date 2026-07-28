@@ -174,7 +174,7 @@ export class ProcessInboxHandler {
 	 * Get move target folder of matching inbox rule for mail
 	 * @returns {sourceFolder} if: mail.processNeeded, no matching rule is found, or matching rule doesn't move the mail
 	 */
-	public async processInboxRulesOnly(mail: Mail, sourceFolder: MailSet, mailboxDetail: MailboxDetail): Promise<MailSet> {
+	public async getInboxRuleMoveTarget(mail: Mail, sourceFolder: MailSet, mailboxDetail: MailboxDetail): Promise<MailSet> {
 		let moveToFolder = sourceFolder
 
 		// when processNeeded, the mail should be in process by the regular handler and be eventually processed

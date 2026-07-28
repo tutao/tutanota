@@ -3,7 +3,6 @@ import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { EnvProvider, ProgrammingError, UpgradePromptType } from "../../../platform-kit/app-env"
 import { isDomainName, isMailAddress, isRegularExpression } from "../../../platform-kit/utils/FormatUtils"
-import { getInboxRuleResultTypeNameMapping, getInboxRuleTypeNameMapping } from "../mail/model/InboxRuleHandler"
 import { elementIdPart, isSameSingleId } from "../../../platform-kit/meta"
 import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.js"
 import stream from "mithril/stream"
@@ -46,6 +45,7 @@ import { onbeforeremoveColapseAnimation, oncreateExpandAnimation } from "../../.
 import { IconButton } from "../../../ui/base/IconButton"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
 import { SelectorItem } from "../../../ui/base/DropDownSelector"
+import { getInboxRuleResultTypeNameMapping, getInboxRuleConditionTypeNameMapping } from "../mail/model/InboxRuleHandler"
 
 EnvProvider.assertMainOrNode()
 
@@ -142,7 +142,7 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 					m(".flex.items-center", [
 						m(`.smaller.no-wrap.mr-16 ${isFirstCondition ? ".capitalize" : ".lowercase"}`, lang.getTranslationText(conditionLabel)),
 						m(DropDownSelectorNew, {
-							items: getInboxRuleTypeNameMapping(),
+							items: getInboxRuleConditionTypeNameMapping(),
 							selectedValue: condition.type(),
 							selectionChangedHandler: condition.type,
 						}),
