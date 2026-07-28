@@ -34,6 +34,11 @@ export type MoveItems = (items: readonly FolderItemId[], destinationFolder: Driv
  * It also enables the user to create a new destination folder.
  */
 export async function showMoveDialog(entityClient: EntityClient, driveFacade: DriveFacade, itemsToMove: FolderItem[], moveItems: MoveItems) {
+	// Move dialog can be opened via shortcut. It can lead to this case.
+	if (itemsToMove.length === 0) {
+		return
+	}
+
 	const firstItem = assertNotNull(itemsToMove.at(0))
 	const parentFolderId = firstItem.type === "file" ? firstItem.file.folder : assertNotNull(firstItem.folder.parent)
 	// TODO: show a progress here?
