@@ -107,7 +107,7 @@ import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { MoveMode } from "../../mail/model/MailModel"
 import { MailViewerViewModel } from "../../mail/view/MailViewerViewModel"
 import { Card } from "../../../../ui/base/Card"
-import { CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX } from "../../../../ui/utils/RouteChange"
+import { CALENDAR_PREFIX, CONTACTS_PREFIX, MAIL_PREFIX, throttleRoute } from "../../../../ui/utils/RouteChange"
 import { FilterChip } from "../../../../ui/base/FilterChip"
 import { formatDate } from "../../../../ui/utils/Formatter"
 import { AllIcons } from "../../../../ui/base/Icon"
@@ -140,6 +140,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	private readonly contactModel: ContactModel
 	private readonly startOfTheWeekOffset: number
 	private readonly undoModel: UndoModel
+	private readonly routeTo = throttleRoute()
 
 	private getSanitizedPreviewData: (event: CalendarEvent) => LazyLoaded<CalendarEventPreviewViewModel> = memoized((event: CalendarEvent) =>
 		new LazyLoaded(async () => {
@@ -538,11 +539,11 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 							icon: Icons.ChevronLeft,
 							click: () => {
 								if (isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)) {
-									m.route.set(MAIL_PREFIX)
+									this.routeTo(MAIL_PREFIX)
 								} else if (isSameTypeRef(this.searchViewModel.searchedType, ContactTypeRef)) {
-									m.route.set(CONTACTS_PREFIX)
+									this.routeTo(CONTACTS_PREFIX)
 								} else if (isSameTypeRef(this.searchViewModel.searchedType, CalendarEventTypeRef)) {
-									m.route.set(CALENDAR_PREFIX)
+									this.routeTo(CALENDAR_PREFIX)
 								}
 							},
 						}),
