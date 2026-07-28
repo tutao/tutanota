@@ -616,7 +616,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 			}
 		} else {
 			if (this._customerInfo && this._lastBooking) {
-				return locator.mobilePaymentsFacade.showSubscriptionConfigView()
+				await showUpgradeWizard({ upgradePromptType: UpgradePromptType.SUBSCRIPTION_VIEWER, logins: locator.logins })
 			}
 		}
 	}
