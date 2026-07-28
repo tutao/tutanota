@@ -361,7 +361,7 @@ o.spec("CryptoMapperTest", () => {
 		const sk = new Aes256Key([4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205])
 		const encryptedParsedInstance = sampleEncryptedParsedInstance(sk)
 		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => aes256RandomKey()
-		const decryptedInstance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider, "")
+		const decryptedInstance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider)
 
 		o.check(decryptedInstance.getAttributeById(1).asString()).equals("encrypted string")
 		o.check(decryptedInstance.getAttributeById(5).asDate().toISOString()).equals("2025-01-01T13:00:00.000Z")
@@ -397,7 +397,7 @@ o.spec("CryptoMapperTest", () => {
 			ParsedValue.fromString("AV1kmZZfCms1pNvUtGrdhOlnDAr3zb2JWpmlpWEhgG5zqYK3g7PfRsi0vQAKLxXmrNRGp16SBKBa0gqXeFw9F6l7nbGs3U8uNLvs6Fi+9IWj"),
 		)
 
-		const instance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, null, null, ownerKeyProvider, "")
+		const instance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, null, null, ownerKeyProvider)
 		o.check(instance.getAttributeById(1).asString()).equals("") // default value is assigned in case of crypto errors
 		o.check(instance.getErrors()[14]).equals("Probably temporary SessionKeyNotFound")
 	})
@@ -414,7 +414,7 @@ o.spec("CryptoMapperTest", () => {
 			.addAttributeById(2, ParsedValue.fromString(""))
 
 		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => aes256RandomKey()
-		const decryptedInstance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider, "")
+		const decryptedInstance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider)
 
 		o.check(decryptedInstance.getAttributeById(1).asString()).equals("")
 		o.check(decryptedInstance.getAttributeById(2).getNullWhenNull()).equals(null)
@@ -429,7 +429,7 @@ o.spec("CryptoMapperTest", () => {
 		)
 
 		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => aes256RandomKey()
-		const instanceWithErrors = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider, "")
+		const instanceWithErrors = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider)
 		o.check(typeof instanceWithErrors.getErrors()[1]).equals("string")
 	})
 
@@ -495,7 +495,7 @@ o.spec("CryptoMapperTest", () => {
 			const encryptedInstance = sampleEncryptedParsedInstance(sessionKey)
 			const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => aes256RandomKey()
 			try {
-				await cryptoMapper.decryptParsedInstance(encryptedInstance, sessionKey, null, ownerKeyProvider, "")
+				await cryptoMapper.decryptParsedInstance(encryptedInstance, sessionKey, null, ownerKeyProvider)
 			} catch (_) {
 				/* empty */
 			}

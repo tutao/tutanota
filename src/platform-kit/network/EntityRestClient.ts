@@ -456,7 +456,7 @@ export class EntityRestClient implements EntityRestInterface {
 			assert(false, `EntityRestClient should only be used for Elements or ListElements. Got: ${clientTypeModel.type}`)
 		}
 		const subKeyInfo = await this.getSubKeyInfoOnSetup(options?.ownerKey ?? null, instance, clientTypeModel)
-		const encryptedParsedInstance = await this.instancePipeline.mapAndEncryptWithSubKeyInfo(instance, subKeyInfo)
+		const encryptedParsedInstance = await this.instancePipeline.mapAndEncryptToParsedInstanceWithSubKeyInfo(instance, subKeyInfo)
 		const outgoingJson = await this.instancePipeline.typeMapper.makeServerJson(encryptedParsedInstance)
 		const persistencePostReturn: string = await this.restClient.request(path, HttpMethod.POST, {
 			...DEFAULT_REST_CLIENT_OPTIONS,
