@@ -94,6 +94,7 @@ import { EncryptionAuthStatus, EnvProvider, FeatureType, MailAuthenticationStatu
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { PosRect } from "../../../../ui/utils/PosRect"
+import { InboxRuleModel } from "../model/InboxRuleModel"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -191,6 +192,7 @@ export class MailViewerViewModel {
 		private readonly transferProgressDispatcher: TransferProgressDispatcher,
 		private readonly operationProgressTracker: OperationProgressTracker,
 		private readonly syncTracker: SyncTracker,
+		readonly inboxRuleModel: InboxRuleModel,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {

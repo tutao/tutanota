@@ -44,8 +44,8 @@ export class SpamClassificationHandler {
 		mailDetails: MailDetails,
 	): Promise<{
 		modelInput: number[]
-		uploadableVectorLegacy: Uint8Array
-		uploadableVector: Uint8Array
+		uploadableVectorLegacy: Uint8Array<ArrayBuffer>
+		uploadableVector: Uint8Array<ArrayBuffer>
 		skipPredictionReason: SkipClientSpamClassificationReason
 	}> {
 		const skipPredictionReason = await this.getSkipClientClassificationReason(mail, mailDetails)

@@ -184,6 +184,7 @@ export class MailboxModel {
 			const properties = createMailboxProperties({
 				reportMovedMails: "0",
 				mailAddressProperties: [],
+				inboxRuleOrder: [],
 			})
 			properties._ownerGroup = mailboxGroupRoot._ownerGroup ?? ""
 			mailboxGroupRoot.mailboxProperties = await this.entityClient.setup(null, properties).catch(

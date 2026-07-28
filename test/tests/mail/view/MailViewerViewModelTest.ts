@@ -43,6 +43,7 @@ import {
 import { GroupInfoTypeRef } from "@tutao/entities/sys"
 import { ExternalImageRule, MailPhishingStatus, MailState } from "../../../../src/entities/tutanota/Utils"
 import { AttachmentDownloader } from "../../../../src/applications/mail-app/mail/view/MailGuiUtils"
+import { InboxRuleModel } from "../../../../src/applications/mail-app/mail/model/InboxRuleModel"
 
 o.spec("MailViewerViewModel", function () {
 	let mail: Mail
@@ -67,6 +68,7 @@ o.spec("MailViewerViewModel", function () {
 	let eventsRepository: CalendarEventsRepository
 	let undoModel: UndoModel
 	let transferProgressDispatcher: TransferProgressDispatcher
+	let inboxRuleModel: InboxRuleModel
 
 	function makeViewModelWithHeaders(headers: string) {
 		entityClient = object()
@@ -88,6 +90,7 @@ o.spec("MailViewerViewModel", function () {
 		prepareMailWithHeaders(mailFacade, headers)
 		undoModel = object()
 		transferProgressDispatcher = object()
+		inboxRuleModel = object()
 
 		return new MailViewerViewModel(
 			mail,
@@ -112,6 +115,7 @@ o.spec("MailViewerViewModel", function () {
 			transferProgressDispatcher,
 			object(),
 			object(),
+			inboxRuleModel,
 		)
 	}
 
