@@ -41,7 +41,7 @@ export function _shouldApplyRule(mail: Readonly<Mail>, sourceFolder: MailSet, ig
 	return true
 }
 
-export function getInboxRuleTypeNameMapping(): SelectorItemList<string> {
+export function getInboxRuleConditionTypeNameMapping(): SelectorItemList<string> {
 	return [
 		{
 			value: InboxRuleConditionType.FROM_EQUALS,
@@ -84,12 +84,12 @@ export function getInboxRuleResultTypeNameMapping(): SelectorItemList<InboxRuleR
 	]
 }
 
-export function getInboxRuleTypeName(type: string): string {
-	let typeNameMapping = getInboxRuleTypeNameMapping().find((t) => t.value === type)
+export function getInboxRuleConditionTypeName(type: string): string {
+	let typeNameMapping = getInboxRuleConditionTypeNameMapping().find((t) => t.value === type)
 	return typeNameMapping != null ? typeNameMapping.name : ""
 }
 
-export function _checkContainsRule(value: string, conditionValue: string): boolean {
+export function _checkContainsRuleCondition(value: string, conditionValue: string): boolean {
 	return (isRegularExpression(conditionValue) && _matchesRegularExpression(value, conditionValue)) || value.includes(conditionValue)
 }
 

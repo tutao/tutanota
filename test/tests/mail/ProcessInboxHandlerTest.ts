@@ -402,37 +402,37 @@ o.spec("ProcessInboxHandlerTest", function () {
 		verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [expectedProcessInboxDatum]))
 	})
 
-	o("processInboxRulesOnly does nothing if mail needs processing", async function () {
+	o("getInboxRuleMoveTarget does nothing if mail needs processing", async function () {
 		mail.sets = [inboxFolder._id]
 		mail.processNeeded = true
 		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true)).thenResolve(null)
-		const targetFolder = await processInboxHandler.processInboxRulesOnly(mail, inboxFolder, mailboxDetail)
+		const targetFolder = await processInboxHandler.getInboxRuleMoveTarget(mail, inboxFolder, mailboxDetail)
 
 		o(targetFolder).deepEquals(inboxFolder)
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
 		verify(inboxRuleHandler.findMatchingInboxRule(anything(), anything(), anything(), anything()), { times: 0 })
 	})
 
-	o("processInboxRulesOnly applies only inbox rules, does not interact with classifier", async function () {
+	o("getInboxRuleMoveTarget applies only inbox rules, does not interact with classifier", async function () {
 		mail.sets = [inboxFolder._id]
 		mail.processNeeded = false
 		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true)).thenResolve({
 			targetFolder: trashFolder,
 		})
-		const targetFolder = await processInboxHandler.processInboxRulesOnly(mail, inboxFolder, mailboxDetail)
+		const targetFolder = await processInboxHandler.getInboxRuleMoveTarget(mail, inboxFolder, mailboxDetail)
 
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
 		verify(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true), { times: 1 })
 		o(targetFolder).deepEquals(trashFolder)
 	})
 
-	o("processInboxRulesOnly applies rules excluded from spamFilter, does not interact with classifier", async function () {
+	o("getInboxRuleMoveTarget applies rules excluded from spamFilter, does not interact with classifier", async function () {
 		mail.sets = [inboxFolder._id]
 		mail.processNeeded = false
 		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true)).thenResolve({
 			targetFolder: trashFolder,
 		})
-		const targetFolder = await processInboxHandler.processInboxRulesOnly(mail, inboxFolder, mailboxDetail)
+		const targetFolder = await processInboxHandler.getInboxRuleMoveTarget(mail, inboxFolder, mailboxDetail)
 
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
 		verify(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true), {
@@ -441,11 +441,11 @@ o.spec("ProcessInboxHandlerTest", function () {
 		o(targetFolder).deepEquals(trashFolder)
 	})
 
-	o("processInboxRulesOnly returns inbox if no rule matches", async function () {
+	o("getInboxRuleMoveTarget returns inbox if no rule matches", async function () {
 		mail.sets = [inboxFolder._id]
 		mail.processNeeded = false
 		when(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true)).thenResolve(null)
-		const targetFolder = await processInboxHandler.processInboxRulesOnly(mail, inboxFolder, mailboxDetail)
+		const targetFolder = await processInboxHandler.getInboxRuleMoveTarget(mail, inboxFolder, mailboxDetail)
 
 		verify(spamHandler.predictSpamForNewMail(anything(), anything(), anything(), anything()), { times: 0 })
 		verify(inboxRuleHandler.findMatchingInboxRule(mailboxDetail, mail, inboxFolder, true), {
