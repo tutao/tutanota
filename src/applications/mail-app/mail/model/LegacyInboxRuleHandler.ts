@@ -8,7 +8,7 @@ import { MailModel } from "./MailModel"
 import { InboxRule, Mail, MailSet } from "@tutao/entities/tutanota"
 import { InboxRuleConditionType } from "../../../../entities/tutanota/Utils"
 import { elementIdPart } from "../../../../platform-kit/meta"
-import { _checkContainsRule, _checkEmailAddresses, _shouldApplyRule, InboxRuleHandler } from "./InboxRuleHandler"
+import { _checkContainsRuleCondition, _checkEmailAddresses, _shouldApplyRule, InboxRuleHandler } from "./InboxRuleHandler"
 
 assertMainOrNode()
 
@@ -84,11 +84,11 @@ async function checkInboxRule(mailFacade: MailFacade, mail: Mail, inboxRule: Inb
 				ruleValue,
 			)
 		} else if (ruleType === InboxRuleConditionType.SUBJECT_CONTAINS) {
-			return _checkContainsRule(mail.subject, ruleValue)
+			return _checkContainsRuleCondition(mail.subject, ruleValue)
 		} else if (ruleType === InboxRuleConditionType.MAIL_HEADER_CONTAINS) {
 			const details = await mailFacade.loadMailDetailsBlob(mail)
 			if (details.headers != null) {
-				return _checkContainsRule(getMailHeaders(details.headers), ruleValue)
+				return _checkContainsRuleCondition(getMailHeaders(details.headers), ruleValue)
 			} else {
 				return false
 			}
