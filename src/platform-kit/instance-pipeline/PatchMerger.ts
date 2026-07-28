@@ -22,6 +22,7 @@ import { TypeModelResolver } from "./EntityFunctions"
 import { Patch, UserTypeRef } from "@tutao/entities/sys"
 import { EntityUpdateData } from "./utils/EntityUpdateUtils"
 import { IncomingServerJson } from "./TypeMapper"
+import { AssociationPath } from "./EncryptionContextPath"
 
 export interface OwnerKeyProvider {
 	(ownerKeyVersion: KeyVersion): Promise<AesKey>
@@ -171,8 +172,8 @@ export class PatchMerger {
 				case PatchOperationType.REPLACE:
 				case PatchOperationType.ADD_ITEM: {
 					const encryptedParsedValue = await this.parseValueOnPatch(pathResult, patch.value)
-					const fieldPath: string = this.removeNetworkDebuggingSymbolsIfNeeded(patch.attributePath)
-					const value = await this.decryptValueOnPatch(pathResult, encryptedParsedValue, ownerGroup, instanceDecryptor, fieldPath)
+					const attributePath: string = this.removeNetworkDebuggingSymbolsIfNeeded(patch.attributePath)
+					const value = await this.decryptValueOnPatch(pathResult, encryptedParsedValue, ownerGroup, instanceDecryptor, attributePath)
 					await this.applyPatchOperation(patch.patchOperation, pathResult, value)
 					break
 				}
@@ -183,11 +184,11 @@ export class PatchMerger {
 		}
 	}
 
-	private removeNetworkDebuggingSymbolsIfNeeded(fieldPath: string): string {
+	private removeNetworkDebuggingSymbolsIfNeeded(path: string): string {
 		if (!env.networkDebugging) {
-			return fieldPath
+			return path
 		}
-		return fieldPath
+		return path
 			.split("/")
 			.map((pathItem) => pathItem.split(":")[0])
 			.join("/")
@@ -327,7 +328,7 @@ export class PatchMerger {
 		valueInPatchPayload: EncryptedParsedValue,
 		ownerGroup: Nullable<Id>,
 		instanceDecryptor: InstanceDecryptor,
-		fieldPath: string,
+		attributePatchPath: string,
 	): Promise<DecryptedParsedValue> {
 		const { typeModel, attributeId } = pathResult
 		const isValue = isNotNull(typeModel.values[attributeId])
@@ -339,7 +340,7 @@ export class PatchMerger {
 				valueInPatchPayload,
 				instanceDecryptor,
 				this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(ownerGroup),
-				fieldPath,
+				attributePatchPath,
 			)
 		}
 
@@ -350,7 +351,7 @@ export class PatchMerger {
 					valueInPatchPayload.asNestedObjList(),
 					instanceDecryptor,
 					this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(ownerGroup),
-					`${fieldPath}/`,
+					AssociationPath.fromPatchPath(attributePatchPath),
 				)
 				if (this.instancePipeline.cryptoMapper.containErrors(decryptedAggregates)) {
 					// we do not want to apply a patch that failed decryption

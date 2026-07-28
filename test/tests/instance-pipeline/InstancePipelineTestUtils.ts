@@ -37,6 +37,7 @@ export const testTypeModel: TypeModel = {
 			cardinality: Cardinality.One,
 			final: true,
 			encrypted: true,
+			transferredAttributeId: null,
 		},
 		"2": {
 			id: 2,
@@ -45,6 +46,7 @@ export const testTypeModel: TypeModel = {
 			cardinality: Cardinality.ZeroOrOne,
 			final: false,
 			encrypted: true,
+			transferredAttributeId: null,
 		},
 		"5": {
 			id: 5,
@@ -53,6 +55,7 @@ export const testTypeModel: TypeModel = {
 			cardinality: Cardinality.One,
 			final: false,
 			encrypted: false,
+			transferredAttributeId: null,
 		},
 		"7": {
 			id: 7,
@@ -61,6 +64,7 @@ export const testTypeModel: TypeModel = {
 			cardinality: Cardinality.ZeroOrOne,
 			final: false,
 			encrypted: true,
+			transferredAttributeId: null,
 		},
 		"12": {
 			id: 12,
@@ -69,6 +73,7 @@ export const testTypeModel: TypeModel = {
 			cardinality: Cardinality.One,
 			final: false,
 			encrypted: false,
+			transferredAttributeId: null,
 		},
 		"13": {
 			id: 13,
@@ -77,6 +82,7 @@ export const testTypeModel: TypeModel = {
 			cardinality: Cardinality.One,
 			final: false,
 			encrypted: false,
+			transferredAttributeId: null,
 		},
 		"14": {
 			id: 14,
@@ -85,6 +91,7 @@ export const testTypeModel: TypeModel = {
 			cardinality: Cardinality.ZeroOrOne,
 			final: true,
 			encrypted: false,
+			transferredAttributeId: null,
 		},
 		"15": {
 			id: 15,
@@ -93,6 +100,7 @@ export const testTypeModel: TypeModel = {
 			cardinality: Cardinality.One,
 			final: true,
 			encrypted: true,
+			transferredAttributeId: null,
 		},
 		"16": {
 			id: 16,
@@ -101,6 +109,7 @@ export const testTypeModel: TypeModel = {
 			cardinality: Cardinality.ZeroOrOne,
 			final: true,
 			encrypted: false,
+			transferredAttributeId: null,
 		},
 	},
 	associations: {
@@ -112,6 +121,7 @@ export const testTypeModel: TypeModel = {
 			refTypeId: 43,
 			final: false,
 			dependency: "tutanota",
+			transferredAttributeId: null,
 		},
 		"4": {
 			id: 4,
@@ -121,6 +131,7 @@ export const testTypeModel: TypeModel = {
 			refTypeId: 44,
 			final: false,
 			dependency: null,
+			transferredAttributeId: null,
 		},
 		"8": {
 			id: 8,
@@ -130,6 +141,7 @@ export const testTypeModel: TypeModel = {
 			refTypeId: 44,
 			final: false,
 			dependency: null,
+			transferredAttributeId: null,
 		},
 		"17": {
 			id: 17,
@@ -139,10 +151,12 @@ export const testTypeModel: TypeModel = {
 			refTypeId: 44,
 			final: false,
 			dependency: null,
+			transferredAttributeId: null,
 		},
 	},
 	version: 0,
 	versioned: false,
+	targetTypeId: null,
 }
 
 export const testAggregateModel: TypeModel = {
@@ -162,6 +176,7 @@ export const testAggregateModel: TypeModel = {
 			cardinality: Cardinality.One,
 			final: false,
 			encrypted: false,
+			transferredAttributeId: null,
 		},
 		"6": {
 			id: 6,
@@ -170,6 +185,7 @@ export const testAggregateModel: TypeModel = {
 			cardinality: Cardinality.One,
 			final: true,
 			encrypted: false,
+			transferredAttributeId: null,
 		},
 	},
 	associations: {
@@ -181,6 +197,7 @@ export const testAggregateModel: TypeModel = {
 			refTypeId: 44,
 			final: false,
 			dependency: "tutanota",
+			transferredAttributeId: null,
 		},
 		"10": {
 			id: 10,
@@ -190,10 +207,12 @@ export const testAggregateModel: TypeModel = {
 			refTypeId: 44,
 			final: false,
 			dependency: "tutanota",
+			transferredAttributeId: null,
 		},
 	},
 	version: 0,
 	versioned: false,
+	targetTypeId: null,
 }
 
 export const testAggregateOnAggregateModel: TypeModel = {
@@ -213,6 +232,7 @@ export const testAggregateOnAggregateModel: TypeModel = {
 			cardinality: Cardinality.ZeroOrOne,
 			final: false,
 			encrypted: false,
+			transferredAttributeId: null,
 		},
 		"11": {
 			id: 11,
@@ -221,6 +241,7 @@ export const testAggregateOnAggregateModel: TypeModel = {
 			cardinality: Cardinality.One,
 			final: true,
 			encrypted: false,
+			transferredAttributeId: null,
 		},
 		"17": {
 			id: 17,
@@ -229,11 +250,13 @@ export const testAggregateOnAggregateModel: TypeModel = {
 			cardinality: Cardinality.ZeroOrOne,
 			final: false,
 			encrypted: true,
+			transferredAttributeId: null,
 		},
 	},
 	associations: {},
 	version: 0,
 	versioned: false,
+	targetTypeId: null,
 }
 
 export const TestTypeRef = new TypeRef<TestEntity>("tutanota", 42)
@@ -316,6 +339,7 @@ export function createEncryptedValueType(
 		cardinality: cardinality,
 		final: true,
 		encrypted: true,
+		transferredAttributeId: null,
 	} satisfies ModelValue
 }
 

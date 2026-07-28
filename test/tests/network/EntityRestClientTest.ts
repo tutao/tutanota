@@ -868,14 +868,14 @@ o.spec("EntityRestClient", function () {
 				untypedPersistentPostReturn.getJsonRepresentation(),
 			)
 
-			instancePipeline.mapAndEncryptWithSubKeyInfo = spy(instancePipeline.mapAndEncryptWithSubKeyInfo)
+			instancePipeline.mapAndEncryptToParsedInstanceWithSubKeyInfo = spy(instancePipeline.mapAndEncryptToParsedInstanceWithSubKeyInfo)
 
 			o.check(newCalendar._kdfNonce).equals(null)
 			await entityRestClient.setup("listId", newCalendar, null, { baseUrl: null, ownerKey: ownerGroupKey })
 			o.check(newCalendar._kdfNonce).notEquals(null)
 
-			o.check(instancePipeline.mapAndEncryptWithSubKeyInfo.invocations.length).equals(1)
-			const invocation = instancePipeline.mapAndEncryptWithSubKeyInfo.invocations[0]
+			o.check(instancePipeline.mapAndEncryptToParsedInstanceWithSubKeyInfo.invocations.length).equals(1)
+			const invocation = instancePipeline.mapAndEncryptToParsedInstanceWithSubKeyInfo.invocations[0]
 			const subKeyInfo: SubKeyInfoWithGroupKeyAead = invocation[1]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
@@ -903,7 +903,7 @@ o.spec("EntityRestClient", function () {
 				untypedPersistentPostReturn.getJsonRepresentation(),
 			)
 
-			instancePipeline.mapAndEncryptWithSubKeyInfo = spy(instancePipeline.mapAndEncryptWithSubKeyInfo)
+			instancePipeline.mapAndEncryptToParsedInstanceWithSubKeyInfo = spy(instancePipeline.mapAndEncryptToParsedInstanceWithSubKeyInfo)
 
 			const originalKdfNonce = new Uint8Array(33) as KdfNonce // not length 32 so that it's not equal to the randomly generated one
 			newCalendar._kdfNonce = originalKdfNonce
@@ -912,8 +912,8 @@ o.spec("EntityRestClient", function () {
 
 			o.check(arrayEquals(newCalendar._kdfNonce, originalKdfNonce)).equals(false)
 
-			o.check(instancePipeline.mapAndEncryptWithSubKeyInfo.invocations.length).equals(1)
-			const invocation = instancePipeline.mapAndEncryptWithSubKeyInfo.invocations[0]
+			o.check(instancePipeline.mapAndEncryptToParsedInstanceWithSubKeyInfo.invocations.length).equals(1)
+			const invocation = instancePipeline.mapAndEncryptToParsedInstanceWithSubKeyInfo.invocations[0]
 			const subKeyInfo: SubKeyInfoWithGroupKeyAead = invocation[1]
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()

@@ -57,6 +57,8 @@ export type ModelValue = {
 	final: boolean
 	/* whether the field should be encrypted with the containing types session key before being sent to the server. */
 	encrypted: boolean
+	/* the ID of the corresponding attribute on the target type, only present in transfer aggregated types */
+	transferredAttributeId: Nullable<AttributeId>
 }
 
 /**
@@ -90,6 +92,8 @@ export type ModelAssociation = {
 	 * which can be imported across models.
 	 */
 	dependency?: AppName | null
+	/* the ID of the corresponding attribute on the target type, only present in transfer aggregated types */
+	transferredAttributeId: Nullable<AttributeId>
 }
 
 /** simple separator to distinguish between client model types and server model types */
@@ -143,6 +147,8 @@ export type TypeModel = {
 	associations: Record<AttributeId, ModelAssociation>
 	/** true in case the type is public and exposed to the clients */
 	isPublic: boolean
+	/** type ID of the type the transfer aggregated type is based on, only present in this case */
+	targetTypeId: Nullable<TypeId>
 }
 
 // // //

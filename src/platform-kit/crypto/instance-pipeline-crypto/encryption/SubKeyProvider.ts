@@ -13,28 +13,31 @@ export abstract class SubKeyFactory {}
 
 export abstract class SubKeyInfo extends SubKeyFactory {
 	public abstract readonly cipherVersion: SymmetricCipherVersion
-	protected constructor() {
+	protected constructor(public readonly groupKey: Nullable<VersionedKey>) {
 		super()
 	}
 }
 
 abstract class SubKeyInfoWithSessionKey extends SubKeyInfo {
-	protected constructor(public readonly sessionKey: AesKey) {
-		super()
+	protected constructor(
+		public readonly sessionKey: AesKey,
+		groupKey: Nullable<VersionedKey>,
+	) {
+		super(groupKey)
 	}
 }
 
 export class SubKeyInfoWithSessionKeyCbcThenHmac extends SubKeyInfoWithSessionKey {
 	public override readonly cipherVersion: typeof SymmetricCipherVersion.AesCbcThenHmac = SymmetricCipherVersion.AesCbcThenHmac
-	constructor(sessionKey: AesKey) {
-		super(sessionKey)
+	constructor(sessionKey: AesKey, groupKey?: Nullable<VersionedKey>) {
+		super(sessionKey, groupKey ?? null)
 	}
 }
 
 export class SubKeyInfoWithSessionKeyAead extends SubKeyInfoWithSessionKey {
 	public override readonly cipherVersion: typeof SymmetricCipherVersion.AeadWithSessionKey = SymmetricCipherVersion.AeadWithSessionKey
-	constructor(sessionKey: AesKey) {
-		super(sessionKey)
+	constructor(sessionKey: AesKey, groupKey?: Nullable<VersionedKey>) {
+		super(sessionKey, groupKey ?? null)
 	}
 }
 
@@ -44,17 +47,25 @@ export class SubKeyInfoWithGroupKeyAead extends SubKeyInfo {
 		public readonly groupKey: VersionedKey,
 		public readonly kdfNonce: KdfNonce,
 	) {
-		super()
+		super(groupKey)
 	}
 }
 
 export class SubKeyProvider extends SubKeyFactory {
+	public readonly subKeyInfo: SubKeyInfo
 	constructor(
-		private readonly subKeyInfo: SubKeyInfo,
+		subKeyFactory: SubKeyFactory,
 		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
 		private readonly instanceTypeId: InstanceTypeId,
 	) {
 		super()
+		if (subKeyFactory instanceof SubKeyInfo) {
+			this.subKeyInfo = subKeyFactory
+		} else if (subKeyFactory instanceof SubKeyProvider) {
+			this.subKeyInfo = subKeyFactory.subKeyInfo
+		} else {
+			throw new ProgrammingError("unexpected sub-key factory")
+		}
 	}
 
 	getSubKeys = lazyMemoized((): SymmetricSubKeys => {
@@ -84,10 +95,12 @@ export class SubKeyProvider extends SubKeyFactory {
 	})
 }
 
-export function makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(sessionKey: AesKey | null): Nullable<SubKeyInfoWithSessionKeyCbcThenHmac> {
-	if (sessionKey != null) {
-		return new SubKeyInfoWithSessionKeyCbcThenHmac(sessionKey)
-	} else {
+export function makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(
+	sessionKey: Nullable<AesKey>,
+	groupKey?: VersionedKey,
+): Nullable<SubKeyInfoWithSessionKeyCbcThenHmac> {
+	if (sessionKey == null) {
 		return null
 	}
+	return new SubKeyInfoWithSessionKeyCbcThenHmac(sessionKey, groupKey)
 }
