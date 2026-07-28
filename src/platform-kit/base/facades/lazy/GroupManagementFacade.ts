@@ -39,6 +39,7 @@ import {
 import { CacheManager } from "../../base-crypto/persistence/CacheManager"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../instance-pipeline/RestClientOptions"
 import { elementIdToId, idToElementId } from "@tutao/meta"
+import { isNull } from "../../../utils/Utils"
 
 assertWorkerOrNode()
 
@@ -233,8 +234,8 @@ export class GroupManagementFacade {
 	 * Load a list of group IDs with all team groups, e.g., shared mailbox groups.
 	 */
 	async loadTeamGroupIds(): Promise<Array<Id>> {
-		const customerId = this.userFacade.getUser()?.customer
-		if (!customerId) return [] // external users have no team groups
+		const customerId = this.userFacade.getUser()?.customer ?? null
+		if (isNull(customerId)) return [] // external users have no team groups
 
 		const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(customerId))
 		const teamGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.teamGroups)

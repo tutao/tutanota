@@ -77,7 +77,7 @@ export async function pMap<Element, NewElement>(
 			const index = currentIndex
 			currentIndex++
 
-			if (nextItem.done) {
+			if (nextItem.done === true) {
 				isIterableDone = true
 
 				if (resolvingCount === 0) {

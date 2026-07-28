@@ -27,7 +27,8 @@ export function blake3Mac(keyBytes: Uint8Array, data: Uint8Array): MacTag {
  */
 export function blake3MacVerify(keyBytes: Uint8Array, data: Uint8Array, tag: MacTag) {
 	const computedTag = blake3Mac(keyBytes, data)
-	if (!sjcl.bitArray.equal(computedTag, tag)) {
+	const tagMatches: boolean = sjcl.bitArray.equal(computedTag, tag)
+	if (!tagMatches) {
 		throw new CryptoError("invalid mac")
 	}
 }

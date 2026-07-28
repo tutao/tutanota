@@ -1,5 +1,5 @@
 import { Aes256Key, AesKey, cryptoUtils, CryptoWrapper, decryptKey, HkdfKeyDerivationDomains, SymmetricEncryptionScheme, VersionedKey } from "@tutao/crypto"
-import { assertNotNull, KeyVersion } from "@tutao/utils"
+import { assertNotNull, isNotNull, KeyVersion } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { CryptoError } from "@tutao/crypto/error"
 import { LoggedInUserProvider } from "@tutao/instance-pipeline"
@@ -8,6 +8,7 @@ import { GroupType } from "../../../entities/sys/Utils"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { KeyCache } from "../base-crypto/persistence/KeyCache"
 import { isSameSingleId } from "@tutao/meta"
+import { isNull } from "../../utils/Utils"
 
 /** Holder for the user and session-related data on the worker side. */
 export class UserFacade extends LoggedInUserProvider {
@@ -133,7 +134,7 @@ export class UserFacade extends LoggedInUserProvider {
 	 * @return The map which contains authentication data for the logged-in user.
 	 */
 	createAuthHeaders(): Dict {
-		return this.accessToken
+		return isNotNull(this.accessToken)
 			? {
 					accessToken: this.accessToken,
 				}
@@ -169,11 +170,10 @@ export class UserFacade extends LoggedInUserProvider {
 	}
 
 	hasGroup(groupId: Id): boolean {
-		if (!this.user) {
-			return false
-		} else {
-			return groupId === this.user.userGroup.group || this.user.memberships.some((m) => m.group === groupId)
+		if (isNotNull(this.user)) {
+			return isSameSingleId(groupId, this.user.userGroup.group) || this.user.memberships.some((m) => isSameSingleId(m.group, groupId))
 		}
+		return false
 	}
 
 	getGroupId(groupType: GroupType): Id {

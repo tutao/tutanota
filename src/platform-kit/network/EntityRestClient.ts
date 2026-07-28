@@ -2,7 +2,21 @@ import { DEFAULT_REST_CLIENT_OPTIONS, type RestClient } from "@tutao/rest-client
 import { HttpMethod, MediaType, RestTextBody } from "../rest-client/types"
 import { ClientTypeModel, expandId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT, Type, TypeRef } from "../meta"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { assertNotNull, Category, downcast, isNotEmpty, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, syncMetrics } from "@tutao/utils"
+import {
+	assert,
+	assertNotNull,
+	Category,
+	downcast,
+	isNotEmpty,
+	isNotNull,
+	lazy,
+	Mapper,
+	Nullable,
+	ofClass,
+	promiseMap,
+	splitInChunks,
+	syncMetrics,
+} from "@tutao/utils"
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
 import { SetupMultipleError } from "./error/SetupMultipleError"
 import { BlobAccessTokenFacade } from "./BlobAccessTokenFacade.js"
@@ -55,6 +69,7 @@ import {
 	EntityRestClientSetupOptions,
 	EntityRestClientUpdateOptions,
 } from "../instance-pipeline/RestClientOptions"
+import { isNull } from "../utils/Utils"
 
 assertWorkerOrNode()
 
@@ -295,7 +310,7 @@ export class EntityRestClient implements EntityRestInterface {
 			const allParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, additionalRequestParams, typeRef)
 
 			let serversToTry = blobServerAccessInfo.servers
-			if (opts.baseUrl) {
+			if (isNotNull(opts.baseUrl)) {
 				const preferredServer = blobServerAccessInfo.servers.find((server) => server.url === opts.baseUrl)
 
 				if (preferredServer) {
@@ -405,9 +420,11 @@ export class EntityRestClient implements EntityRestInterface {
 		)
 
 		if (clientTypeModel.type === Type.ListElement) {
-			if (!listId) throw new Error("List id must be defined for LETs")
+			assert(isNotNull(listId), "List Id must be defined for LETs")
+		} else if (clientTypeModel.type === Type.Element) {
+			assert(isNull(listId), "List Id must not be defined for ETs")
 		} else {
-			if (listId) throw new Error("List id must not be defined for ETs")
+			assert(false, `EntityRestClient should only be used for Elements or ListElements. Got: ${clientTypeModel.type}`)
 		}
 		const subKeyInfo = await this.getSubKeyInfoOnSetup(options?.ownerKey ?? null, instance, clientTypeModel)
 		const encryptedParsedInstance = await this.instancePipeline.mapAndEncryptWithSubKeyInfo(instance, subKeyInfo)
@@ -440,9 +457,11 @@ export class EntityRestClient implements EntityRestInterface {
 		const persistencePostReturnTypeModel = await this.typeModelResolver.resolveServerTypeReference(PersistenceResourcePostReturnTypeRef)
 
 		if (clientTypeModel.type === Type.ListElement) {
-			if (!listId) throw new Error("List id must be defined for LETs")
+			assert(isNotNull(listId), "List Id must be defined for LETs")
+		} else if (clientTypeModel.type === Type.Element) {
+			assert(isNull(listId), "List Id must not be defined for ETs")
 		} else {
-			if (listId) throw new Error("List id must not be defined for ETs")
+			assert(false, `EntityRestClient should only be used for Elements or ListElements. Got: ${clientTypeModel.type}`)
 		}
 
 		const errors: Error[] = []
@@ -499,8 +518,7 @@ export class EntityRestClient implements EntityRestInterface {
 	}
 
 	async update<T extends PersistentEntity>(instance: T, options?: EntityRestClientUpdateOptions): Promise<void> {
-		if (!instance._id) throw new Error("Id must be defined")
-		const { listId, elementId } = expandId(instance._id)
+		const { listId, elementId } = expandId(assertNotNull(instance._id, "Id must be defined while updating an instance"))
 		const { path, queryParams, clientTypeModel, headers } = await this._validateAndPrepareRestRequest(
 			instance._type,
 			listId,
@@ -658,11 +676,10 @@ export class EntityRestClient implements EntityRestInterface {
 
 		let path = EntityUtils.typeModelToRestPath(clientTypeModel)
 
-		if (listId) {
+		if (isNotNull(listId)) {
 			path += "/" + listId
 		}
-
-		if (elementId) {
+		if (isNotNull(elementId)) {
 			path += "/" + elementId
 		}
 
@@ -673,7 +690,7 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 
 		headers.v = String(clientTypeModel.version)
-		if (clientTypeModel.dependsOnVersion) {
+		if (isNotNull(clientTypeModel.dependsOnVersion)) {
 			headers.dv = String(clientTypeModel.dependsOnVersion)
 		}
 
