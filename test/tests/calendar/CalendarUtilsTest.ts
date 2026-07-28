@@ -32,7 +32,6 @@ import {
 import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
 
 import { EndType, RepeatPeriod, ShareCapability } from "../../../src/platform-kit/app-env"
-import { timeStringFromParts } from "../../../src/ui/utils/Formatter.js"
 import { DateTime } from "luxon"
 import {
 	generateEventElementId,
@@ -594,16 +593,6 @@ o.spec("CalendarUtilsTest", function () {
 				})
 			})
 		})
-		o.spec("timeStringFromParts", function () {
-			o("works", function () {
-				o(timeStringFromParts(0, 0, true)).equals("12:00 am")
-				o(timeStringFromParts(12, 0, true)).equals("12:00 pm")
-				o(timeStringFromParts(10, 55, true)).equals("10:55 am")
-				o(timeStringFromParts(10, 55, false)).equals("10:55")
-				o(timeStringFromParts(22, 55, true)).equals("10:55 pm")
-				o(timeStringFromParts(22, 55, false)).equals("22:55")
-			})
-		})
 		o.spec("timeDiff", function () {
 			o("A minor than B, with 15 min diff", function () {
 				const timeA = new Time(8, 35)
@@ -756,25 +745,26 @@ o.spec("CalendarUtilsTest", function () {
 			})
 		})
 
-		o.spec("toString", function () {
-			const time = new Time(15, 25)
+		o.test("to24HourString", function () {
+			o(new Time(15, 25).to24HourString()).equals("15:25")
+			o(new Time(0, 0).to24HourString()).equals("00:00")
+			o(new Time(10, 55).to24HourString()).equals("10:55")
+			o(new Time(22, 55).to24HourString()).equals("22:55")
+		})
 
-			o.test("24hrs", function () {
-				const timeAsStr = time.toString()
-
-				o.check(timeAsStr).equals("15:25")
+		o.spec("to12HourString", function () {
+			o.test("with AM/PM suffix", function () {
+				o(new Time(15, 25).to12HourString(true)).equals("3:25 pm")
+				o(new Time(0, 0).to12HourString(true)).equals("12:00 am")
+				o(new Time(10, 55).to12HourString(true)).equals("10:55 am")
+				o(new Time(22, 55).to12HourString(true)).equals("10:55 pm")
 			})
 
-			o.test("amPm", function () {
-				const timeAsStr = time.toString({ withAmPmSuffix: true })
-
-				o.check(timeAsStr).equals("3:25 pm")
-			})
-
-			o.test("amPm without suffix", function () {
-				const timeAsStr = time.toString({ withAmPmSuffix: false })
-
-				o.check(timeAsStr).equals("3:25")
+			o.test("without AM/PM suffix", function () {
+				o(new Time(15, 25).to12HourString(false)).equals("3:25")
+				o(new Time(0, 0).to12HourString(false)).equals("12:00")
+				o(new Time(10, 55).to12HourString(false)).equals("10:55")
+				o(new Time(22, 55).to12HourString(false)).equals("10:55")
 			})
 		})
 	})
