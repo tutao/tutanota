@@ -28,7 +28,7 @@ import { getContactSelectionMessage, MultiContactViewer } from "../../contacts/v
 import { EnterMultiselectIconButton } from "../../../../ui/EnterMultiselectIconButton"
 import { BaseMobileHeader } from "../../../../ui/BaseMobileHeader"
 import { IconButton } from "../../../../ui/base/IconButton"
-import { CONTACTS_PREFIX } from "../../../../ui/utils/RouteChange"
+import { MAIL_PREFIX, throttleRoute } from "../../../../ui/utils/RouteChange"
 import { ProgressBar } from "../../../../ui/base/ProgressBar"
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { FeatureType } from "@tutao/app-env"
@@ -66,6 +66,7 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 	private readonly folderColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
 	private readonly searchViewModel: ContactSearchViewModel
+	private readonly routeTo = throttleRoute()
 
 	constructor(vnode: Vnode<ContactSearchViewAttrs>) {
 		super()
@@ -349,7 +350,7 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 						m(IconButton, {
 							label: "back_action",
 							icon: Icons.ChevronLeft,
-							click: () => m.route.set(CONTACTS_PREFIX),
+							click: () => this.routeTo(MAIL_PREFIX),
 						}),
 					)
 				: m(".ml-8"),

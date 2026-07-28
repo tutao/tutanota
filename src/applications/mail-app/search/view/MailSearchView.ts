@@ -28,7 +28,7 @@ import { EnterMultiselectIconButton } from "../../../../ui/EnterMultiselectIconB
 import { BaseMobileHeader } from "../../../../ui/BaseMobileHeader"
 import { IconButton } from "../../../../ui/base/IconButton"
 import { Icons } from "../../../../ui/base/icons/Icons"
-import { MAIL_PREFIX } from "../../../../ui/utils/RouteChange"
+import { MAIL_PREFIX, throttleRoute } from "../../../../ui/utils/RouteChange"
 import { ProgressBar } from "../../../../ui/base/ProgressBar"
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { elementIdToId, getElementId, getIds, isSameId } from "@tutao/meta"
@@ -103,6 +103,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 	private readonly searchViewModel: MailSearchViewModel
 	private readonly contactModel: ContactModel
 	private readonly undoModel: UndoModel
+	private readonly routeTo = throttleRoute()
 	private startOfTheWeekOffset: number
 
 	constructor(vnode: Vnode<MailSearchViewAttrs>) {
@@ -395,9 +396,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 						m(IconButton, {
 							label: "back_action",
 							icon: Icons.ChevronLeft,
-							click: () => {
-								m.route.set(MAIL_PREFIX)
-							},
+							click: () => this.routeTo(MAIL_PREFIX),
 						}),
 					)
 				: m(".ml-8"),
