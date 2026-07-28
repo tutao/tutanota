@@ -4,7 +4,7 @@ import { lazyMemoized } from "../../platform-kit/utils"
 
 EnvProvider.assertMainOrNodeBoot()
 
-export type RouteSetFn = (path: string, args: Record<string, any>) => void
+export type RouteSetFn = (path: string, args?: Record<string, any>) => void
 
 /** return a replacement for m.route.set that replaces the last history
  * state for reroutes that happen quickly enough instead of adding a
@@ -13,7 +13,7 @@ export type RouteSetFn = (path: string, args: Record<string, any>) => void
 export const throttleRoute = lazyMemoized((): RouteSetFn => {
 	const limit = 200
 	let lastCall = 0
-	return function (url: string, args: Record<string, any>) {
+	return function (url: string, args: Record<string, any> = {}) {
 		// someone might have called m.route.set() without us, so if the route changed, we need to
 		// call m.route.set() in any case.
 
