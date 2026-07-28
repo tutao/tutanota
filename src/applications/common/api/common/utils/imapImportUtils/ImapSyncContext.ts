@@ -29,5 +29,5 @@ export type ImapSyncContext = {
 	imapCredentials: ImapCredentials
 	maxQuota: number
 	imapMailboxStates: ImapMailboxState[]
-	shouldOnlyFetchAllMailsImapMailbox: boolean
+	isGmail: boolean
 }

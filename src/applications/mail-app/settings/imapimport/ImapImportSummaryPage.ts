@@ -35,7 +35,7 @@ import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { isValidCSSHexColor } from "../../../../ui/base/Color"
 import { ColorOptionButton } from "../../../../ui/base/colorPicker/ColorOptionButton"
 import { ImapMailboxSpecialUse } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
-import { getTranslationForImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { getTranslationForImapProvider, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 
 assertMainOrNode()
 
@@ -45,11 +45,12 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 
 	view(vnode: Vnode<WizardPageAttrs<ImapImportData>>): Children {
 		const data = vnode.attrs.data
+		const isGmail = data.imapProvider === ImapProvider.Gmail
 
 		return m(".mt-24", { style: { maxHeight: "65vh" } }, [
 			this.renderExportInformation(data),
 			this.renderImportInformation(data),
-			data.matchImapMailboxesToTutaMailSets ? this.renderFolderMapping(data) : null,
+			!isGmail && data.matchImapMailboxesToTutaMailSets ? this.renderFolderMapping(data) : null,
 			this.renderContinueButton(data),
 		])
 	}

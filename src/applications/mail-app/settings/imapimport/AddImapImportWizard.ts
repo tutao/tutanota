@@ -33,7 +33,7 @@ export type ImapImportData = {
 	revealImapAccountPassword: boolean
 	imapAccountSyncStatus: ImapAccountSyncStatus
 	matchImapMailboxesToTutaMailSets: boolean
-	imapMailboxes: ImapMailbox[]
+	imapMailboxes: ReadonlyArray<ImapMailbox>
 	folderSystem: FolderSystem
 	imapMailboxesToTutaMailSets?: Map<string, MailSetMapping>
 	addLabelToImportedMails: boolean

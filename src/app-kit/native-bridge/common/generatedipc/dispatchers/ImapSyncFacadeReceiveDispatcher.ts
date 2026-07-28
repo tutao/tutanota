@@ -15,8 +15,7 @@ export class ImapSyncFacadeReceiveDispatcher {
 				const accountSyncId: IdTuple = arg[0]
 				const imapMailbox: ImapMailbox = arg[1]
 				const eventType: ImapSyncEventType = arg[2]
-				const shouldOnlyFetchAllMailsImapMailbox: boolean = arg[3]
-				return this.facade.onMailbox(accountSyncId, imapMailbox, eventType, shouldOnlyFetchAllMailsImapMailbox)
+				return this.facade.onMailbox(accountSyncId, imapMailbox, eventType)
 			}
 			case "onMailboxStatus": {
 				const accountSyncId: IdTuple = arg[0]

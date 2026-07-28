@@ -12,7 +12,7 @@ export interface ImapSyncFacade {
 	/**
 	 * onMailbox IMAP sync event.
 	 */
-	onMailbox(accountSyncId: IdTuple, imapMailbox: ImapMailbox, eventType: ImapSyncEventType, shouldOnlyFetchAllMailsImapMailbox: boolean): Promise<void>
+	onMailbox(accountSyncId: IdTuple, imapMailbox: ImapMailbox, eventType: ImapSyncEventType): Promise<void>
 
 	/**
 	 * onMailboxStatus IMAP sync event.

@@ -2,8 +2,7 @@ import { assertMainOrNode } from "@tutao/app-env"
 import m, { Children, Vnode } from "mithril"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog"
 import { ImapImportData } from "./AddImapImportWizard"
-import { ImapMailbox, ImapMailboxSpecialUse } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
-import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
+import { ImapMailboxSpecialUse } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
@@ -27,7 +26,6 @@ import { MailSetKind } from "../../../../entities/tutanota/Utils"
 import { elementIdPart, GENERATED_MIN_ID, getElementId } from "@tutao/meta"
 import { showEditFolderDialog } from "../../mail/view/EditFolderDialog"
 import { Card } from "../../../../ui/base/Card"
-import { MailSetMapping } from "../../workerUtils/imapimport/ImapImporter"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { getTranslationForImapProvider, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
@@ -37,47 +35,47 @@ import { ImapCredentials } from "../../../common/api/common/utils/imapImportUtil
 assertMainOrNode()
 
 class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
-	private shouldDisplayFolderTextField: boolean = true
-	private shouldDisplayLabelField: boolean = false
-	private imapMailboxes: ImapMailbox[] = []
 	private isGmail: boolean = false
-	private shouldDisplayMatchSystemFoldersGmailSwitch: boolean = false
-	private imapMailboxesToTutaFolders: Map<string, MailSetMapping> | null = null
-	private folderSystem: FolderSystem = new FolderSystem([])
+
+	private shouldDisplayRootImportFolderTextField: boolean = false
+	private shouldDisplayLabelField: boolean = false
+	private shouldDisplayMatchSystemFoldersGmailSwitch: boolean = true
+	private shouldDisplayInfoHover: boolean = false
+	private hoverPosition: { left: number; top: number } = { left: 0, top: 0 }
+	private hoverInfo: TranslationKey = "migrationConfigurationLinkFoldersInfo_msg"
+
 	private titleSectionParams = {
 		icon: Icons.GearWheelFilled,
 		iconOptions: { color: theme.on_surface_variant, class: "icon-progress" },
 		subTitle: lang.getTranslationText("migrationConfigInfo_msg"),
 	}
-	private shouldDisplayHover: boolean = false
 	private successfullyLoadedMailboxes: boolean = false
-	private hoverPosition: { left: number; top: number } = { left: 0, top: 0 }
-	private hoverInfo: TranslationKey = "migrationConfigurationLinkFoldersInfo_msg"
 
 	async oninit(vnode: Vnode<WizardPageAttrs<ImapImportData>>) {
+		const imapImportData = vnode.attrs.data
+
+		this.isGmail = imapImportData.imapProvider === ImapProvider.Gmail
 		this.titleSectionParams.subTitle = lang.getTranslation("migrationConfigLoading_msg", {
 			"{provider}": lang.getTranslationText(getTranslationForImapProvider(vnode.attrs.data.imapProvider)),
 		}).text
-
-		this.shouldDisplayFolderTextField = !vnode.attrs.data.matchImapMailboxesToTutaMailSets
+		this.shouldDisplayRootImportFolderTextField = !vnode.attrs.data.matchImapMailboxesToTutaMailSets
 		this.shouldDisplayLabelField = vnode.attrs.data.addLabelToImportedMails
 
 		const imapImportController = mailLocator.getImapMailImportController()
-		const imapImportData = vnode.attrs.data
-		this.isGmail = imapImportData.imapProvider === ImapProvider.Gmail
 		const imapCredentials = this.getImapCredentials(imapImportData)
 
-		this.folderSystem = await imapImportController.getFolderSystemForSelectedMailbox()
+		imapImportData.folderSystem = await imapImportController.getFolderSystemForSelectedMailbox()
 		const imapImportUiGetMailboxResult = await imapImportController.doInitialConnectAndGetImapMailboxes(imapCredentials)
 
 		if (imapImportUiGetMailboxResult.result) {
-			const imapMailboxes = imapImportUiGetMailboxResult.result.imapMailboxes
-			this.imapMailboxes.push(...imapMailboxes)
-			this.imapMailboxesToTutaFolders = await imapImportController.constructImapMailboxesToTutaFoldersMap(imapMailboxes)
-			this.updateImapCredentials(imapImportData, imapImportUiGetMailboxResult.result.imapCredentials)
 			this.successfullyLoadedMailboxes = true
 			this.titleSectionParams.iconOptions.class = ""
 			this.titleSectionParams.subTitle = lang.getTranslationText("migrationConfigInfo_msg")
+
+			const imapMailboxes = imapImportUiGetMailboxResult.result.imapMailboxes
+			imapImportData.imapMailboxes = imapMailboxes
+			imapImportData.imapMailboxesToTutaMailSets = await imapImportController.constructImapMailboxesToTutaFoldersMap(imapMailboxes)
+			this.updateImapCredentials(imapImportData, imapImportUiGetMailboxResult.result.imapCredentials)
 		} else if (imapImportUiGetMailboxResult.error) {
 			this.titleSectionParams = {
 				icon: Icons.FailureFilled,
@@ -112,21 +110,12 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 	}
 
 	view(vnode: Vnode<WizardPageAttrs<ImapImportData>>): Children {
-		const obj = this
-		const data = vnode.attrs.data
-		data.imapMailboxesToTutaMailSets = this.imapMailboxesToTutaFolders ?? undefined
-		data.imapMailboxes = this.imapMailboxes
-		data.folderSystem = this.folderSystem
-
-		const isFolderMappingCompleted =
-			data.rootImportMailSetName !== "" || (data.matchImapMailboxesToTutaMailSets && obj.imapMailboxes.length === data.imapMailboxesToTutaMailSets?.size)
-		const isLabelCorrectlySet =
-			!data.addLabelToImportedMails ||
-			(data.imapSyncLabelData !== null && data.imapSyncLabelData.name !== "" && isValidCSSHexColor(data.imapSyncLabelData.color))
-		const shouldAllowContinuing = (this.isGmail || isFolderMappingCompleted) && isLabelCorrectlySet && this.successfullyLoadedMailboxes
+		const imapImportData = vnode.attrs.data
 
 		return m(".mt-24", { style: { maxHeight: "65vh" } }, [
-			this.shouldDisplayHover ? this.renderHoverInfo(this.hoverPosition.left, this.hoverPosition.top, lang.getTranslation(this.hoverInfo).text) : null,
+			this.shouldDisplayInfoHover
+				? this.renderHoverInfo(this.hoverPosition.left, this.hoverPosition.top, lang.getTranslation(this.hoverInfo).text)
+				: null,
 			m(
 				".mt-16",
 				m(TitleSection, {
@@ -137,6 +126,54 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 					},
 				}),
 			),
+			this.renderLabelSection(imapImportData),
+			this.isGmail ? this.renderGmailConfigureContent(imapImportData) : this.renderNonGmailConfigureContent(imapImportData),
+			this.renderContinueButton(imapImportData),
+		])
+	}
+
+	private renderContinueButton(data: ImapImportData) {
+		return m(
+			".flex-center.full-width.justify-end.pt-32.mb-32",
+			m(
+				"",
+				{
+					style: {
+						width: "260px",
+					},
+				},
+				m(PrimaryButton, {
+					label: "continue_action",
+					class: "wizard-next-button",
+					onclick: (_, dom) => {
+						emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
+					},
+					disabled: !this.shouldAllowContinuing(data),
+				}),
+			),
+		)
+	}
+
+	private isFolderMappingCompleted(data: ImapImportData) {
+		return (
+			data.rootImportMailSetName !== "" || (data.matchImapMailboxesToTutaMailSets && data.imapMailboxes.length === data.imapMailboxesToTutaMailSets?.size)
+		)
+	}
+
+	private isLabelCorrectlySet(data: ImapImportData) {
+		return (
+			!data.addLabelToImportedMails ||
+			(data.imapSyncLabelData !== null && data.imapSyncLabelData.name !== "" && isValidCSSHexColor(data.imapSyncLabelData.color))
+		)
+	}
+
+	private shouldAllowContinuing(data: ImapImportData) {
+		return (this.isGmail || this.isFolderMappingCompleted(data)) && this.isLabelCorrectlySet(data) && this.successfullyLoadedMailboxes
+	}
+
+	private renderLabelSection(data: ImapImportData) {
+		const obj = this
+		return [
 			m(".tutaui-switch.mt-16", [
 				m(Switch, {
 					ariaLabel: "migrationAddLabelToImportedMails_label",
@@ -203,41 +240,70 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 						helpLabel: () => lang.getTranslationText("migrationLabelInput_helpLabel"),
 					})
 				: null,
-			!this.isGmail
-				? m(".tutaui-switch.mt-16", [
-						m(Switch, {
-							ariaLabel: "matchMigrationFoldersToTutaMailSets_label",
-							checked: data.matchImapMailboxesToTutaMailSets,
-							onclick: (checked: boolean) => {
-								obj.shouldDisplayFolderTextField = !checked
-								data.matchImapMailboxesToTutaMailSets = checked
-								if (checked) {
-									data.rootImportMailSetName = ""
-								}
-								m.redraw()
+		]
+	}
+
+	private renderGmailConfigureContent(data: ImapImportData) {
+		const obj = this
+		return m(".tutaui-switch.mt-16", [
+			m(Switch, {
+				ariaLabel: "matchMigrationFoldersToTutaSystemFoldersGmail_label",
+				checked: this.shouldDisplayMatchSystemFoldersGmailSwitch,
+				onclick(checked: boolean) {
+					data.matchImapMailboxesToTutaMailSets = checked
+					if (!checked) {
+						data.rootImportMailSetName = data.imapAccountUsername
+					} else {
+						data.rootImportMailSetName = ""
+					}
+					obj.shouldDisplayMatchSystemFoldersGmailSwitch = checked
+				},
+			}),
+			m("", lang.getTranslationText("matchMigrationFoldersToTutaSystemFoldersGmail_label")),
+			m(IconButton, {
+				icon: Icons.QuestionmarkFilled,
+				title: "matchMigrationFoldersToTutaSystemFoldersGmail_label",
+				click: this.updateHoverMessage("migrationGmailFolderMapping_title"),
+			}),
+		])
+	}
+
+	private renderNonGmailConfigureContent(data: ImapImportData) {
+		const obj = this
+		return [
+			m(".tutaui-switch.mt-16", [
+				m(Switch, {
+					ariaLabel: "matchMigrationFoldersToTutaMailSets_label",
+					checked: data.matchImapMailboxesToTutaMailSets,
+					onclick: (checked: boolean) => {
+						obj.shouldDisplayRootImportFolderTextField = !checked
+						data.matchImapMailboxesToTutaMailSets = checked
+						if (checked) {
+							data.rootImportMailSetName = ""
+						}
+						m.redraw()
+					},
+				}),
+				m("", lang.getTranslationText("matchMigrationFoldersToTutaMailSets_label")),
+				m(IconButton, {
+					icon: Icons.QuestionmarkFilled,
+					title: "migrationFolderMapping_title",
+					click: this.updateHoverMessage("migrationConfigurationLinkFoldersInfo_msg"),
+				}),
+				!this.shouldDisplayRootImportFolderTextField && this.successfullyLoadedMailboxes && !this.isFolderMappingCompleted(data)
+					? m(
+							"",
+							{
+								style: {
+									minWidth: "100px",
+									marginLeft: "auto",
+								},
 							},
-						}),
-						m("", lang.getTranslationText("matchMigrationFoldersToTutaMailSets_label")),
-						m(IconButton, {
-							icon: Icons.QuestionmarkFilled,
-							title: "migrationFolderMapping_title",
-							click: this.updateHoverMessage("migrationConfigurationLinkFoldersInfo_msg"),
-						}),
-						!this.shouldDisplayFolderTextField && this.successfullyLoadedMailboxes && !isFolderMappingCompleted
-							? m(
-									"",
-									{
-										style: {
-											minWidth: "100px",
-											marginLeft: "auto",
-										},
-									},
-									this.renderCreateAllMissingFoldersButton(data),
-								)
-							: null,
-					])
-				: null,
-			!this.isGmail && this.shouldDisplayFolderTextField
+							this.renderCreateAllMissingFoldersButton(data),
+						)
+					: null,
+			]),
+			this.shouldDisplayRootImportFolderTextField
 				? m(TextField, {
 						label: "migrationRootMailFolderName_label",
 						value: data.rootImportMailSetName,
@@ -249,31 +315,8 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 						},
 					})
 				: null,
-			!this.shouldDisplayFolderTextField ? this.renderFolderMapping(data) : null,
-			this.isGmail
-				? m(".tutaui-switch.mt-16", [
-						m(Switch, {
-							ariaLabel: "matchMigrationFoldersToTutaSystemFoldersGmail_label",
-							checked: this.shouldDisplayMatchSystemFoldersGmailSwitch,
-							onclick(checked: boolean) {
-								data.matchImapMailboxesToTutaMailSets = checked
-								if (!checked) {
-									data.rootImportMailSetName = data.imapAccountUsername
-								} else {
-									data.rootImportMailSetName = ""
-								}
-								obj.shouldDisplayMatchSystemFoldersGmailSwitch = checked
-							},
-						}),
-						m("", lang.getTranslationText("matchMigrationFoldersToTutaSystemFoldersGmail_label")),
-						m(IconButton, {
-							icon: Icons.QuestionmarkFilled,
-							title: "matchMigrationFoldersToTutaSystemFoldersGmail_label",
-							click: this.updateHoverMessage("migrationGmailFolderMapping_title"),
-						}),
-					])
-				: null,
-			!this.isGmail && this.shouldDisplayFolderTextField
+			!this.shouldDisplayRootImportFolderTextField ? this.renderFolderMapping(data) : null,
+			this.shouldDisplayRootImportFolderTextField
 				? m(".tutaui-switch", [
 						m(Checkbox, {
 							label: () => lang.getTranslationText("migrationMigrateSpamFolder_label"),
@@ -281,7 +324,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 							onChecked: (value: boolean) =>
 								(data.spamFolderMigrationInformation = {
 									shouldMigrateSpamFolder: value,
-									spamMailbox: obj.imapMailboxes.find((imapMailbox) => imapMailbox.specialUse === ImapMailboxSpecialUse.JUNK) ?? null,
+									spamMailbox: data.imapMailboxes.find((imapMailbox) => imapMailbox.specialUse === ImapMailboxSpecialUse.JUNK) ?? null,
 								}),
 						}),
 						m(IconButton, {
@@ -291,69 +334,18 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 						}),
 					])
 				: null,
-			m(
-				".flex-center.full-width.justify-end.pt-32.mb-32",
-				m(
-					"",
-					{
-						style: {
-							width: "260px",
-						},
-					},
-					m(PrimaryButton, {
-						label: "continue_action",
-						class: "wizard-next-button",
-						onclick: (_, dom) => {
-							emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
-						},
-						disabled: !shouldAllowContinuing,
-					}),
-				),
-			),
-		])
-	}
-
-	private updateHoverMessage(textMessage: TranslationKey) {
-		return (event: MouseEvent) => {
-			const isDisplayingHoverForPressedButton = this.shouldDisplayHover && this.hoverInfo === textMessage
-			if (isDisplayingHoverForPressedButton) {
-				this.shouldDisplayHover = false
-				return
-			}
-			const target = event.target as Element
-			const button = target.closest(".icon-button")
-			const dialogWindow = target.closest('[role="dialog"]')
-
-			if (button && dialogWindow) {
-				const targetRect = button.getBoundingClientRect()
-				const dialogRect = dialogWindow.getBoundingClientRect()
-
-				const shiftDistance = 45
-				// When calculating the left distance, it is being considered against the actual left side of screen
-				const hoverWindowLeft = targetRect.left + shiftDistance
-				//This top, however, is considering the dialog rect as it's start, then we need to do the calculation
-				const hoverWindowTop = targetRect.top - dialogRect.top - shiftDistance
-				this.hoverInfo = textMessage
-				this.hoverPosition = {
-					left: hoverWindowLeft,
-					top: hoverWindowTop,
-				}
-
-				this.shouldDisplayHover = true
-			}
-		}
+		]
 	}
 
 	private renderFolderMapping(data: ImapImportData) {
-		const imapMailboxToTutaFolderRows = this.imapMailboxes.map((imapMailbox) => {
+		const imapMailboxToTutaFolderRows = data.imapMailboxes.map((imapMailbox) => {
 			const mailSetMapping = data.imapMailboxesToTutaMailSets?.get(imapMailbox.path)
 			let tutaMailSet: MailSet | null = null
 			if (mailSetMapping?.mailSetElementId) {
-				tutaMailSet = this.folderSystem.getFolderById(mailSetMapping.mailSetElementId)
+				tutaMailSet = data.folderSystem.getFolderById(mailSetMapping.mailSetElementId)
 			}
 			return { imapMailbox, tutaMailSet, shouldSync: mailSetMapping?.shouldSync ?? true }
 		})
-		const obj = this
 		return m(
 			"",
 			imapMailboxToTutaFolderRows.map((mailboxToRow) => {
@@ -411,7 +403,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 								? getFolderName(mailboxToRow.tutaMailSet)
 								: lang.getTranslationText("migrationChooseFolder_msg")
 							: lang.getTranslationText("migrationNotImportedFolderName_msg"),
-						items: obj.folderSystem
+						items: data.folderSystem
 							.getIndentedList(null)
 							.map((indentedFolder) => ({ name: getFolderName(indentedFolder.folder), value: indentedFolder.folder })),
 						style:
@@ -450,7 +442,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 										mailboxToRow.imapMailbox.name,
 										async (folderId) => {
 											newFolderElementId = elementIdPart(folderId)
-											obj.folderSystem = await mailLocator.getImapMailImportController().getFolderSystemForSelectedMailbox()
+											data.folderSystem = await mailLocator.getImapMailImportController().getFolderSystemForSelectedMailbox()
 											if (newFolderElementId !== null) {
 												data.imapMailboxesToTutaMailSets?.set(mailboxToRow.imapMailbox.path, {
 													mailSetElementId: newFolderElementId,
@@ -470,6 +462,37 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 				])
 			}),
 		)
+	}
+
+	private updateHoverMessage(textMessage: TranslationKey) {
+		return (event: MouseEvent) => {
+			const isDisplayingHoverForPressedButton = this.shouldDisplayInfoHover && this.hoverInfo === textMessage
+			if (isDisplayingHoverForPressedButton) {
+				this.shouldDisplayInfoHover = false
+				return
+			}
+			const target = event.target as Element
+			const button = target.closest(".icon-button")
+			const dialogWindow = target.closest('[role="dialog"]')
+
+			if (button && dialogWindow) {
+				const targetRect = button.getBoundingClientRect()
+				const dialogRect = dialogWindow.getBoundingClientRect()
+
+				const shiftDistance = 45
+				// When calculating the left distance, it is being considered against the actual left side of screen
+				const hoverWindowLeft = targetRect.left + shiftDistance
+				//This top, however, is considering the dialog rect as it's start, then we need to do the calculation
+				const hoverWindowTop = targetRect.top - dialogRect.top - shiftDistance
+				this.hoverInfo = textMessage
+				this.hoverPosition = {
+					left: hoverWindowLeft,
+					top: hoverWindowTop,
+				}
+
+				this.shouldDisplayInfoHover = true
+			}
+		}
 	}
 
 	private renderHoverInfo(left: number, top: number, message: string): Children {
@@ -515,13 +538,12 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 							// loading here to populate the cache so that the folder system will have it
 							const newFolder = await mailLocator.entityClient.load(MailSetTypeRef, newFolderId)
 							data.imapMailboxesToTutaMailSets?.set(imapMailbox.path, {
-								mailSetElementId: elementIdPart(newFolderId),
+								mailSetElementId: elementIdPart(newFolder._id),
 								shouldSync: true,
 							})
 						}
 					}).then(async () => {
-						this.folderSystem = await mailLocator.getImapMailImportController().getFolderSystemForSelectedMailbox()
-						this.imapMailboxesToTutaFolders = data.imapMailboxesToTutaMailSets ?? null
+						data.folderSystem = await mailLocator.getImapMailImportController().getFolderSystemForSelectedMailbox()
 					}),
 				)
 			},

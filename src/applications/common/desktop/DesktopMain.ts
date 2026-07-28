@@ -377,7 +377,7 @@ async function createComponents(): Promise<Components> {
 		const imapSyncFactory: ImapSyncFactory = (accountSyncId: IdTuple) => {
 			const wrappedListener: ImapSyncEventListener = {
 				onMultipleMails: async (mails, type) => await window.imapSyncFacade.onMultipleMails(accountSyncId, mails, type),
-				onMailbox: async (mb, type, onlyAllMails) => await window.imapSyncFacade.onMailbox(accountSyncId, mb, type, onlyAllMails),
+				onMailbox: async (mb, type) => await window.imapSyncFacade.onMailbox(accountSyncId, mb, type),
 				onMailboxStatus: async (stat) => await window.imapSyncFacade.onMailboxStatus(accountSyncId, stat),
 				onPostpone: async (until) => await window.imapSyncFacade.onPostpone(accountSyncId, until),
 				onFinish: async () => await window.imapSyncFacade.onFinish(accountSyncId),

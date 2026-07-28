@@ -182,7 +182,7 @@ export class ImapFacade {
 		parentMailSetId: IdTuple | null,
 		shouldSync: boolean,
 		shouldCreateImapFolderSyncState: boolean,
-	): Promise<ImapFolderSyncState | undefined> {
+	): Promise<ImapFolderSyncState | MailSet | undefined> {
 		if (imapMailbox.name) {
 			const mailGroupId = assertNotNull(imapAccountSyncState._ownerGroup)
 
@@ -212,7 +212,7 @@ export class ImapFacade {
 					color: randomHexColor(),
 					parentLabelId: parentMailSetId ?? undefined,
 				})
-				await this.entityClient.load(MailSetTypeRef, labelId)
+				return await this.entityClient.load(MailSetTypeRef, labelId)
 			}
 		}
 	}

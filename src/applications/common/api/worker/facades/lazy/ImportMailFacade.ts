@@ -96,6 +96,8 @@ export class ImportMailFacade {
 
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
+			console.log(importMailParams.labels)
+
 			const importMailData = createImportMailData({
 				ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 				ownerEncSessionKey: ownerEncSessionKey.key,

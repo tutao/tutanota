@@ -137,7 +137,7 @@ export class FolderSystem {
 	}
 
 	getFolderByName(folderName: string): MailSet | null {
-		return this.getCustomFoldersOfParent(null).find((f) => folderName.localeCompare(f.name) === 0) ?? null
+		return this.getCustomFoldersOfParent(null).find((f) => folderName === f.name) ?? null
 	}
 
 	private getFolderBy(systems: ReadonlyArray<FolderSubtree>, predicate: (subtree: FolderSubtree) => boolean): FolderSubtree | null {

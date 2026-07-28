@@ -75,14 +75,13 @@ export function imapMailToImportMailParams(
 	imapMail: ImapMail,
 	folderSyncStateId: IdTuple,
 	deduplicatedAttachments: ImapImportAttachments | null,
-	allMailSets: MailSet[],
+	folderSystem: FolderSystem,
+	labelFolderSystem: FolderSystem,
+	isGmailSystemFolderMappingActive: boolean,
 ): ImportMailParams {
 	const fromMailAddress = imapMail.envelope?.from?.at(0)?.address ?? ""
 	const fromName = imapMail.envelope?.from?.at(0)?.name ?? ""
 	const senderMailAddress = imapMail.envelope?.sender?.at(0)?.address ?? null
-	const folderSystem = new FolderSystem(allMailSets)
-	const labels = allMailSets.filter(isLabel)
-	const labelFolderSystem = new FolderSystem(labels, MailSetKind.LABEL)
 
 	const differentEnvelopeSender = senderMailAddress !== fromMailAddress ? senderMailAddress : null
 
@@ -117,39 +116,57 @@ export function imapMailToImportMailParams(
 		imapUid: imapMail.uid,
 		imapModSeq: imapMail.modSeq ?? null,
 		imapFolderSyncState: folderSyncStateId,
-		labels: imapMail.labels ? labelsFromImapLabels(imapMail.labels, folderSystem, labelFolderSystem) : [],
+		labels: imapMail.labels ? labelsFromImapLabels(imapMail.labels, folderSystem, labelFolderSystem, isGmailSystemFolderMappingActive) : [],
 	}
 }
 
-function labelsFromImapLabels(imapLabels: Set<string>, folderSystem: FolderSystem, labelFolderSystem: FolderSystem): IdTuple[] {
+function labelsFromImapLabels(
+	imapLabels: Set<string>,
+	folderSystem: FolderSystem,
+	labelFolderSystem: FolderSystem,
+	isGmailSystemFolderMappingActive: boolean,
+): IdTuple[] {
 	let result = []
 	for (const imapLabel of imapLabels) {
-		switch (imapLabel) {
-			case "INBOX": {
-				result.push(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX))._id)
-				break
-			}
-			case "[Gmail]/Sent Mail": {
-				result.push(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SENT))._id)
-				break
-			}
-			case "[Gmail]/Trash": {
-				result.push(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.TRASH))._id)
-				break
-			}
-			case "[Gmail]/Spam": {
-				result.push(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SPAM))._id)
-				break
-			}
-			case "[Gmail]/Drafts": {
-				result.push(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.DRAFT))._id)
-				break
-			}
-			default: {
-				const label = labelFolderSystem.getFolderByName(imapLabel)
-				if (label) {
-					result.push(label._id)
+		console.log(imapLabel)
+		if (isGmailSystemFolderMappingActive) {
+			switch (imapLabel) {
+				case ImapMailboxSpecialUse.INBOX: {
+					result.push(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX))._id)
+					break
 				}
+				case ImapMailboxSpecialUse.SENT: {
+					result.push(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SENT))._id)
+					break
+				}
+				case ImapMailboxSpecialUse.TRASH: {
+					result.push(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.TRASH))._id)
+					break
+				}
+				case ImapMailboxSpecialUse.JUNK: {
+					result.push(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SPAM))._id)
+					break
+				}
+				case ImapMailboxSpecialUse.DRAFTS: {
+					result.push(assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.DRAFT))._id)
+					break
+				}
+				case ImapMailboxSpecialUse.ALL: {
+					break
+				}
+				default: {
+					const label = labelFolderSystem.getFolderByName(imapLabel)
+					console.log(label)
+					if (label) {
+						result.push(label._id)
+					}
+				}
+			}
+		} else {
+			const label = labelFolderSystem.getFolderByName(imapLabel)
+			console.log(label)
+			if (label) {
+				result.push(label._id)
 			}
 		}
 	}

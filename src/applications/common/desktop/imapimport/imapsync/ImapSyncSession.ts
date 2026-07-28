@@ -122,7 +122,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			throw setupResult
 		}
 
-		if (this.imapSyncContext?.shouldOnlyFetchAllMailsImapMailbox) {
+		if (this.imapSyncContext?.isGmail) {
 			this.syncSessionMailboxes = setupResult.filter((mailbox) => mailbox.specialUse === ImapMailboxSpecialUse.ALL)
 		} else {
 			this.syncSessionMailboxes = setupResult
@@ -306,11 +306,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 			if (index === -1) {
 				const deletedImapMailbox = imapMailboxFromSyncSessionMailbox(knownMailbox)
-				await this.imapSyncEventListener.onMailbox(
-					deletedImapMailbox,
-					ImapSyncEventType.DELETE,
-					this.imapSyncContext?.shouldOnlyFetchAllMailsImapMailbox ?? false,
-				)
+				await this.imapSyncEventListener.onMailbox(deletedImapMailbox, ImapSyncEventType.DELETE)
 				return true
 			}
 
@@ -325,7 +321,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 		let syncSessionMailbox = knownMailboxes.find((value) => value.mailboxState.path === imapMailbox.path)
 		if (syncSessionMailbox === undefined) {
-			await this.imapSyncEventListener.onMailbox(imapMailbox, ImapSyncEventType.CREATE, this.imapSyncContext?.shouldOnlyFetchAllMailsImapMailbox ?? false)
+			await this.imapSyncEventListener.onMailbox(imapMailbox, ImapSyncEventType.CREATE)
 			const parentMailbox = knownMailboxes.find((mailbox) => mailbox.mailboxState.path === imapMailbox.parentFolder?.path)
 			const noSync = parentMailbox?.importance === SyncSessionMailboxImportance.NO_SYNC
 			syncSessionMailbox = new ImapSyncSessionMailbox({ path: imapMailbox.path, importedUidToMailIdsMap: new Map(), noSync })
