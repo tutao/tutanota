@@ -213,12 +213,12 @@ export class KeyRotationFacade {
 		]
 			.flat()
 			.filter(isNotNull)
-		let customerGroupKeyRotationArray = keyRotationsByType.get(GroupKeyRotationType.Customer) || []
-		const adminOrUserGroupKeyRotation = adminOrUserGroupKeyRotationArray[0]
+		const customerGroupKeyRotationArray = keyRotationsByType.get(GroupKeyRotationType.Customer) || []
+		const adminOrUserGroupKeyRotation = adminOrUserGroupKeyRotationArray.at(0) ?? null
 		return {
-			adminOrUserGroupKeyRotation: adminOrUserGroupKeyRotation ? adminOrUserGroupKeyRotation : null,
-			teamOrCustomerGroupKeyRotations: customerGroupKeyRotationArray.concat(keyRotationsByType.get(GroupKeyRotationType.Team) || []),
-			userAreaGroupsKeyRotations: keyRotationsByType.get(GroupKeyRotationType.UserArea) || [],
+			adminOrUserGroupKeyRotation,
+			teamOrCustomerGroupKeyRotations: customerGroupKeyRotationArray.concat(keyRotationsByType.get(GroupKeyRotationType.Team) ?? []),
+			userAreaGroupsKeyRotations: keyRotationsByType.get(GroupKeyRotationType.UserArea) ?? [],
 		}
 	}
 

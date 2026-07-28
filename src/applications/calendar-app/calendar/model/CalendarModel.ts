@@ -1535,7 +1535,7 @@ export class CalendarModel {
 	}
 
 	private getPendingAlarmRequest(elementId: string) {
-		return getFromMap(this.pendingAlarmRequests, elementId, () => ({ pendingAlarmCounter: 0, deferred: defer() }))
+		return getFromMap(this.pendingAlarmRequests, elementId, () => ({ pendingAlarmCounter: 0, deferred: defer<void>() }))
 	}
 
 	private localAlarmsEnabled(): boolean {

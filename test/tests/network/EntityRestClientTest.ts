@@ -924,7 +924,7 @@ o.spec("EntityRestClient", function () {
 		o("Setup list entity throws when no listid is passed", async function () {
 			const newContact = createTestEntity(ContactTypeRef)
 			const result = await assertThrows(Error, async () => await entityRestClient.setup(null, newContact, null, null))
-			o(result.message).equals("List id must be defined for LETs")
+			o(result.message).equals("Assertion failed: List Id must be defined for LETs")
 		})
 
 		o("Setup entity", async function () {
@@ -960,7 +960,7 @@ o.spec("EntityRestClient", function () {
 		o("Setup entity throws when listid is passed", async function () {
 			const newCustomer = createTestEntity(CustomerTypeRef)
 			const result = await assertThrows(Error, async () => await entityRestClient.setup("listId", newCustomer, null, null))
-			o(result.message).equals("List id must not be defined for ETs")
+			o(result.message).equals("Assertion failed: List Id must not be defined for ETs")
 		})
 
 		o("Base URL option is passed to the rest client", async function () {
@@ -1302,7 +1302,7 @@ o.spec("EntityRestClient", function () {
 		o("Update entity throws if entity does not have an id", async function () {
 			const newCustomer = createTestEntity(CustomerTypeRef, { _id: undefined })
 			const result = await assertThrows(Error, async () => await entityRestClient.update(newCustomer))
-			o(result.message).equals("Id must be defined")
+			o(result.message).equals("AssertNotNull failed: Id must be defined while updating an instance")
 		})
 
 		o("Update creates new KDF nonce when it is missing and required", async function () {
