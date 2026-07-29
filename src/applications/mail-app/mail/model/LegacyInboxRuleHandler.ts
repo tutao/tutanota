@@ -1,6 +1,6 @@
 import { asyncFind } from "../../../../platform-kit/utils"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
-import { assertMainOrNode } from "../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../platform-kit/app-env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { getMailHeaders } from "./MailUtils.js"
@@ -10,7 +10,7 @@ import { InboxRuleConditionType } from "../../../../entities/tutanota/Utils"
 import { elementIdPart } from "../../../../platform-kit/meta"
 import { _checkContainsRuleCondition, _checkEmailAddresses, _shouldApplyRule, InboxRuleHandler } from "./InboxRuleHandler"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class LegacyInboxRuleHandler implements InboxRuleHandler<InboxRule> {
 	constructor(

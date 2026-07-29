@@ -1183,6 +1183,7 @@ export class Dialog implements ModalComponent {
 		child: Class<Component<T>>,
 		childAttrs: T,
 		dialogStyle?: Partial<CSSStyleDeclaration> | object,
+		dialogBodyStyle?: Partial<CSSStyleDeclaration> | object,
 	): Dialog {
 		return new Dialog(DialogType.EditMedium, {
 			view: () =>
@@ -1193,7 +1194,7 @@ export class Dialog implements ModalComponent {
 					m(
 						".scroll.hide-outline.plr-24.flex-grow",
 						{
-							style: { "overflow-x": "hidden" },
+							style: { "overflow-x": "hidden", ...dialogBodyStyle },
 						},
 						m(child, {
 							...childAttrs,

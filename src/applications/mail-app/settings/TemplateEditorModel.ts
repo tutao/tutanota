@@ -5,7 +5,7 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { UserError } from "../../common/api/main/UserError"
-import { clone, elementIdToId, getElementId, isSameId, isSameSingleId } from "../../../platform-kit/meta"
+import { clone, elementIdToId, getElementId, isSameSingleId } from "../../../platform-kit/meta"
 import {
 	createEmailTemplate,
 	createEmailTemplateContent,

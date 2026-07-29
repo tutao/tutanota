@@ -127,7 +127,8 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				() => "inboxRulesSettings_action",
 				() => Icons.FunnelFilled,
 				"inboxrules",
-				() => new InboxRuleSettingsViewer(),
+				() =>
+					new InboxRuleSettingsViewer(mailLocator.mailboxModel, mailLocator.entityClient, mailLocator.inboxRuleModel, mailLocator.inboxRuleHandler()),
 				undefined,
 			),
 			new SettingsFolder(
@@ -605,6 +606,12 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 		return m(
 			"#settings.main-view",
+			{
+				// this ondragover is for dragging InboxRules
+				ondragover: (ev: DragEvent) => {
+					ev.preventDefault()
+				},
+			},
 			m(this.viewSlider, {
 				header: m(Header, {
 					...attrs.header,
