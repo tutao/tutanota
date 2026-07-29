@@ -200,11 +200,42 @@ export class SearchModel {
 				result.updates.end(true)
 			},
 			extendResults: async (extendEnd) => {
-				const newSearchResult = await this._searchFacade.extendSearchResult(result.searchResult, extendEnd)
-				const newItems = await Promise.all(newSearchResult.results.map(async (id) => await this.entityClient.load(MailTypeRef, id)))
-				result.searchResult = newSearchResult
-				result.items.push(...newItems)
-				this.result(newSearchResult)
+				await this.lastSearchPromise
+				await this.lastSearchExtensionPromise
+
+				const currentResult = this.result()
+				if (currentResult == null || currentResult.query.trim() === "" || !this.isSearchResultExtendableForType(currentResult.restriction.type)) {
+					return
+				}
+
+				const currentResultEndCutoff = Math.max(
+					// when searching, we set end restriction to aimedMailIndexTimestamp when null, so it should never be null when extending
+					assertNotNull(currentResult.restriction.end, "null end restriction when extending search"),
+					currentResult.currentIndexTimestamp,
+				)
+				// search result already complete, no need to extend
+				if (currentResultEndCutoff <= extendEnd) {
+					return
+				}
+
+				this.lastSearchExtensionPromise = this._searchFacade
+					.extendSearchResult(currentResult, extendEnd)
+					.then(async (extendedResult) => {
+						const currentResultAgain = this.result()
+						if (currentResultAgain == null || !areResultsForTheSameQuery(currentResult, currentResultAgain)) {
+							return
+						}
+						const newItems = await Promise.all(extendedResult.results.map(async (id) => await this.entityClient.load(MailTypeRef, id)))
+						result.searchResult = extendedResult
+						result.items.push(...newItems)
+						this.result(extendedResult)
+					})
+					.catch(
+						ofClass(DbError, (e) => {
+							console.log("DbError while extending search result", e)
+							throw e
+						}),
+					)
 			},
 			entityEventsReceived: async (updates) => {
 				await this.applyEntityUpdates(MailTypeRef, result.items, updates, result.updates)
@@ -411,52 +442,6 @@ export class SearchModel {
 	 *
 	 * @param extensionEnd timestamp to which current result should be extended
 	 */
-	async extendCurrentResult(extensionEnd: number): Promise<void> {
-		// FIXME: rewrite for LiveSearchResult
-		await this.lastSearchPromise
-		await this.lastSearchExtensionPromise
-
-		const currentResult = this.result()
-		if (currentResult == null || currentResult.query.trim() === "" || !this.isSearchResultExtendableForType(currentResult.restriction.type)) {
-			return
-		}
-
-		const currentResultEndCutoff = Math.max(
-			// when searching, we set end restriction to aimedMailIndexTimestamp when null, so it should never be null when extending
-			assertNotNull(currentResult.restriction.end, "null end restriction when extending search"),
-			currentResult.currentIndexTimestamp,
-		)
-		// search result already complete, no need to extend
-		if (currentResultEndCutoff <= extensionEnd) {
-			return
-		}
-
-		this.lastSearchExtensionPromise = this._searchFacade
-			.extendSearchResult(currentResult, extensionEnd)
-			.then((extendedResult) => {
-				const currentResultAgain = this.result()
-				if (currentResultAgain == null || !areResultsForTheSameQuery(currentResult, currentResultAgain)) {
-					return
-				}
-
-				if (this.lastQuery != null) {
-					// SearchResult share the same instance of SearchRestriction with its SearchQuery, but when extending
-					// we create a shallow copy of restriction.
-					//
-					// So we make sure result and query share the same restriction instance (from initial search) again.
-					Object.assign(this.lastQuery.restriction, extendedResult.restriction)
-					extendedResult.restriction = this.lastQuery.restriction
-				}
-
-				this.result(extendedResult)
-			})
-			.catch(
-				ofClass(DbError, (e) => {
-					console.log("DbError while extending search result", e)
-					throw e
-				}),
-			)
-	}
 
 	private isSearchResultExtendableForType(type: SearchCategoryType): boolean {
 		return type === SearchCategoryType.mail
