@@ -5,13 +5,6 @@ import type { SelectorItemList } from "../../../../ui/base/DropDownSelector"
 import { InboxRuleConditionType, InboxRuleResultType, MailSetKind, ProcessingState } from "../../../../entities/tutanota/Utils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { EnvProvider } from "../../../../platform-kit/app-env"
-import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-import { LoginController } from "../../../common/api/main/LoginController.js"
-import { getMailHeaders } from "./MailUtils.js"
-import { MailModel } from "./MailModel"
-import { UnencryptedProcessInboxDatum } from "./ProcessInboxHandler"
-import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
-import { elementIdPart } from "../../../../platform-kit/meta"
 
 EnvProvider.assertMainOrNode()
 
@@ -70,6 +63,10 @@ export function getInboxRuleConditionTypeNameMapping(): SelectorItemList<string>
 			name: lang.getTranslationText("inboxRuleBCCRecipientEquals_action"),
 		},
 		{
+			value: InboxRuleConditionType.RECIPIENT_ANY_EQUALS,
+			name: lang.getTranslationText("inboxRuleAnyRecipientEquals_action"),
+		},
+		{
 			value: InboxRuleConditionType.SUBJECT_CONTAINS,
 			name: lang.getTranslationText("inboxRuleSubjectContains_action"),
 		},
@@ -77,7 +74,14 @@ export function getInboxRuleConditionTypeNameMapping(): SelectorItemList<string>
 			value: InboxRuleConditionType.MAIL_HEADER_CONTAINS,
 			name: lang.getTranslationText("inboxRuleMailHeaderContains_action"),
 		},
-		// TODO: need to add HAS_ATTACHMENT
+		{
+			value: InboxRuleConditionType.HAS_ATTACHMENT,
+			name: lang.getTranslationText("inboxRuleHasAttachment_label"),
+		},
+		{
+			value: InboxRuleConditionType.HAS_NO_ATTACHMENT,
+			name: lang.getTranslationText("inboxRuleHasNoAttachment_label"),
+		},
 	]
 }
 
@@ -90,6 +94,14 @@ export function getInboxRuleResultTypeNameMapping(): SelectorItemList<InboxRuleR
 		{
 			value: InboxRuleResultType.EXCLUDE_SPAM,
 			name: lang.getTranslationText("inboxRuleExcludedFromSpamFilter_msg"),
+		},
+		{
+			value: InboxRuleResultType.READ,
+			name: lang.getTranslationText("markRead_action"),
+		},
+		{
+			value: InboxRuleResultType.LABEL,
+			name: lang.getTranslationText("assignLabel_action"),
 		},
 	]
 }

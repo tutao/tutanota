@@ -1,24 +1,18 @@
 import m, { Children } from "mithril"
 import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
-import { EnvProvider, ProgrammingError, UpgradePromptType } from "../../../platform-kit/app-env"
-import { isDomainName, isMailAddress, isRegularExpression } from "../../../platform-kit/utils/FormatUtils"
-import { elementIdPart, isSameSingleId } from "../../../platform-kit/meta"
+import { EnvProvider, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { assertNotNull, isDomainName, isEmpty, isMailAddress, isRegularExpression } from "@tutao/utils"
+import { clone, elementIdPart, isSameId, isSameIdTuple } from "@tutao/meta"
 import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.js"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { Autocapitalize } from "../../../ui/base/LegacyTextField.js"
-import { isOfflineError, LockedError } from "../../../platform-kit/rest-client/error"
+import { isOfflineError, LockedError } from "@tutao/rest-client/error"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
 import { locator } from "../../common/api/main/CommonLocator"
 import { mailLocator } from "../mailLocator.js"
-import {
-	assertSystemFolderOfType,
-	getExistingRuleForType,
-	getIndentedFolderNameForDropdown,
-	getMailSetName,
-	getPathToFolderString,
-} from "../mail/model/MailUtils.js"
+import { assertSystemFolderOfType, getIndentedFolderNameForDropdown, getMailSetName } from "../mail/model/MailUtils.js"
 import type { IndentedMailSet } from "../../common/api/common/mail/FolderSystem.js"
 import {
 	createExpandedInboxRule,
@@ -38,23 +32,18 @@ import { DropDownSelectorNew } from "../../../ui/base/DropDownSelectorNew"
 import { TextField } from "../../../ui/base/TextField"
 import { theme } from "../../../ui/theme"
 import { px, size } from "../../../ui/size"
-import { assertNotNull, isEmpty, last } from "@tutao/utils"
-import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
-import { ButtonType } from "../../../ui/base/Button"
 import { onbeforeremoveColapseAnimation, oncreateExpandAnimation } from "../../../ui/animation/Animations"
 import { IconButton } from "../../../ui/base/IconButton"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
 import { SelectorItem } from "../../../ui/base/DropDownSelector"
-import { getInboxRuleResultTypeNameMapping, getInboxRuleConditionTypeNameMapping } from "../mail/model/InboxRuleHandler"
+import { getInboxRuleConditionTypeNameMapping, getInboxRuleResultTypeNameMapping } from "../mail/model/InboxRuleHandler"
+import { InboxRuleModel } from "../mail/model/InboxRuleModel"
+import { applyRuleWithProgress } from "./InboxRuleSettingsViewer"
+import { LabelsDropDownSelector } from "../mail/view/LabelsDropDownSelector"
+import { Label } from "../../../ui/base/Label"
+import { prependParentLabelNamesToLabel } from "../mail/view/MailSetTreeUtils"
 
 EnvProvider.assertMainOrNode()
-
-export type InboxRuleTemplate = Pick<ExpandedInboxRule, "conditions" | "results"> & {
-	_id?: ExpandedInboxRule["_id"]
-	name: string
-	conditions?: Pick<InboxRuleCondition, "type" | "value">[]
-	results?: Pick<InboxRuleResult, "type" | "value">[]
-}
 
 interface InboxRuleConditionField {
 	type: Stream<InboxRuleConditionType>
@@ -62,24 +51,32 @@ interface InboxRuleConditionField {
 
 	// for keeping track in the dialog (not persisted on db)
 	key: number
+	valid: boolean | null
 }
 
 interface InboxRuleResultField {
 	type: Stream<InboxRuleResultType>
-	value: Stream<MailSet | null>
+	valueFolder: Stream<MailSet | null>
+	valueLabels: Stream<MailSet[]>
 
 	// for keeping track in the dialog (not persisted on db)
 	key: number
+	valid: boolean | null
 }
 
-interface MoveTargetFolder {
+interface TargetMailSet {
 	name: string
 	value: MailSet
 }
 
-export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRuleTemplate) {
+export async function show(
+	mailBoxDetail: MailboxDetail,
+	inboxRuleModel: InboxRuleModel,
+	originalInboxRule: ExpandedInboxRule | null,
+	defaultConditions?: Pick<InboxRuleCondition, "type" | "value">[],
+) {
 	if (locator.logins.getUserController().isFreeAccount()) {
-		showNotAvailableForFreeDialog(UpgradePromptType.INBOX_RULES)
+		void showNotAvailableForFreeDialog(UpgradePromptType.INBOX_RULES)
 	} else if (mailBoxDetail) {
 		const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailBoxDetail.mailbox.mailSets._id)
 		let targetFolders = folders.getIndentedList().map((folderInfo: IndentedMailSet) => {
@@ -89,19 +86,83 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 			}
 		})
 
-		const inboxRuleName: stream<string> = stream(ruleOrTemplate.name)
+		const labels = mailLocator.mailModel.getLabelsByGroupId(assertNotNull(mailBoxDetail.mailbox._ownerGroup))
+		const targetLabels =
+			mailLocator.mailModel
+				.getLabelFolderSystemByGroupId(assertNotNull(mailBoxDetail.mailbox._ownerGroup))
+				?.getIndentedList()
+				.map((label) => ({
+					name: getIndentedFolderNameForDropdown(label),
+					value: label.mailSet,
+				})) ?? []
+
+		const inboxRuleName: stream<string> = stream(originalInboxRule?.name ?? "")
 
 		// Make onbeforeremove row removal animate the correct row (otherwise it will just think it's the last row)
 		let currentRowKey = 0
 
-		const inboxRuleConditions: InboxRuleConditionField[] = ruleOrTemplate.conditions.map((condition) => {
-			return { type: stream(condition.type as InboxRuleConditionType), value: stream(condition.value), key: currentRowKey++ }
+		const inboxRuleConditions: InboxRuleConditionField[] = (
+			originalInboxRule?.conditions ??
+			defaultConditions ?? [{ type: InboxRuleConditionType.FROM_EQUALS, value: "" }]
+		).map((condition) => {
+			return { type: stream(condition.type as InboxRuleConditionType), value: stream(condition.value), key: currentRowKey++, valid: null }
 		})
 
-		const inboxRuleResults: InboxRuleResultField[] = ruleOrTemplate.results.map((result) => {
-			let value = result.value == null ? null : folders.getFolderById(elementIdPart(result.value))
-			return { type: stream(result.type as InboxRuleResultType), value: stream(value), key: currentRowKey++ }
-		})
+		const inboxRuleResults: InboxRuleResultField[] = originalInboxRule
+			? originalInboxRule.results
+					.map((result): InboxRuleResultField => {
+						const value =
+							result.value == null
+								? null
+								: result.type === InboxRuleResultType.LABEL
+									? (labels.get(elementIdPart(result.value)) ?? null)
+									: folders.getFolderById(elementIdPart(result.value))
+						return {
+							type: stream(result.type as InboxRuleResultType),
+							valueFolder: stream(value),
+							valueLabels: stream([]),
+							key: currentRowKey++,
+							valid: null,
+						}
+					})
+					.reduce((results, result) => {
+						// merge label results so there's only one dropdown
+						if (result.type() === InboxRuleResultType.LABEL) {
+							const otherLabelResult = results.find((r) => r.type() === InboxRuleResultType.LABEL)
+
+							const assignedLabel = result.valueFolder()
+							if (assignedLabel != null) {
+								if (otherLabelResult != null) {
+									otherLabelResult.valueLabels([...otherLabelResult.valueLabels(), assignedLabel])
+								} else {
+									// first label result clause, make it an array!
+									results.push({
+										type: stream(InboxRuleResultType.LABEL),
+										valueLabels: stream([assignedLabel]),
+										valueFolder: stream(null),
+										key: result.key,
+										valid: null,
+									})
+								}
+							}
+						} else {
+							// non-labels stay as they are
+							results.push(result)
+						}
+						return results
+					}, [] as InboxRuleResultField[])
+			: []
+
+		// HAS and HAS_NO Attachment are mutually exclusive and should only be selected once per inbox rule
+		// when HAS_(NO_)ATTACHMENT is selected, show both options in that dropdown and do not display them in other dropdowns
+		const selectableInboxRuleConditions = (currentConditionType: InboxRuleConditionType) => {
+			const attachmentConditions = [InboxRuleConditionType.HAS_ATTACHMENT, InboxRuleConditionType.HAS_NO_ATTACHMENT]
+			let selectableConditions = getInboxRuleConditionTypeNameMapping()
+			if (!attachmentConditions.includes(currentConditionType) && inboxRuleConditions.some(({ type }) => attachmentConditions.includes(type()))) {
+				selectableConditions = selectableConditions.filter(({ value }) => !attachmentConditions.includes(value as InboxRuleConditionType))
+			}
+			return selectableConditions
+		}
 
 		// Only allow one result of each type
 		const allRuleResults = getInboxRuleResultTypeNameMapping()
@@ -111,25 +172,40 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 			// If there are no results yet, add the default value of Move to Archive
 			inboxRuleResults.push({
 				type: stream(InboxRuleResultType.MOVE),
-				value: stream(assertSystemFolderOfType(folders, MailSetKind.ARCHIVE)),
+				valueFolder: stream(assertSystemFolderOfType(folders, MailSetKind.ARCHIVE)),
+				valueLabels: stream([]),
 				key: currentRowKey++,
+				valid: null,
 			})
 		}
 
+		let nameValid = true
 		const renderName = () => {
 			return m(
 				".mt-16.max-width-m",
 				m(TextField, {
 					label: "name_label",
 					value: inboxRuleName(),
-					oninput: inboxRuleName,
+					oninput: (val: string) => {
+						inboxRuleName(val)
+						nameValid = true
+					},
+					onblur: () => {
+						if (!nameValid) {
+							nameValid = !!inboxRuleName()
+						}
+					},
+					doShowBorder: nameValid,
+					class: nameValid ? "" : "error-text-field",
+					helpLabel: nameValid ? null : () => lang.getTranslationText("enterName_msg"),
 				}),
 			)
 		}
 
-		const renderConditionRow = (condition: InboxRuleConditionField, conditionIndex: number) => {
+		const renderConditionRow = (condition: InboxRuleConditionField, conditionIndex: number, allConditions: InboxRuleConditionField[]) => {
 			const isFirstCondition = conditionIndex === 0
-			const conditionLabel: TranslationKey = isFirstCondition ? "when_label" : "and_label"
+			const conditionLabel: TranslationKey = isFirstCondition ? "whenCondition_label" : "and_label"
+			const conditionInput = getRuleConditionValueInputByType(condition)
 
 			return m(
 				".inbox-rule-wrapping-row.items-center.row-gap-8.mt-16",
@@ -142,19 +218,18 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 					m(".flex.items-center", [
 						m(`.smaller.no-wrap.mr-16 ${isFirstCondition ? ".capitalize" : ".lowercase"}`, lang.getTranslationText(conditionLabel)),
 						m(DropDownSelectorNew, {
-							items: getInboxRuleConditionTypeNameMapping(),
+							items: selectableInboxRuleConditions(condition.type()),
 							selectedValue: condition.type(),
 							selectionChangedHandler: condition.type,
 						}),
 					]),
-					m(".flex.items-center", [
-						m(".mlr-16", "="),
-						getRuleConditionValueInputByType(condition),
-						!isFirstCondition
+					m(".flex", [
+						conditionInput,
+						allConditions.length > 1
 							? m(
 									".ml-4",
 									m(IconButton, {
-										icon: Icons.TrashFilled,
+										icon: Icons.X,
 										size: ButtonSize.Large,
 										style: {
 											fill: theme.on_surface_variant,
@@ -172,33 +247,29 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 		}
 
 		const renderAddConditionRow = (): Children => {
-			const lastCondition = last(inboxRuleConditions)
-			if (lastCondition != null && validateInboxRuleCondition(lastCondition) == null) {
-				return m(
-					".flex.items-center.row-gap-8.mt-16",
-					{
-						oncreate: (vnode) => oncreateExpandAnimation(vnode.dom as HTMLElement),
-						onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
-					},
-					[
-						m(".flex.items-center.mr-24", lang.getTranslationText("and_label")),
-						m(SecondaryButton, {
-							width: "flex",
-							icon: Icons.Plus,
-							label: "addCondition_label",
-							onclick: () => {
-								inboxRuleConditions.push({
-									type: stream(InboxRuleConditionType.FROM_EQUALS),
-									value: stream(""),
-									key: currentRowKey++,
-								})
-							},
-						}),
-					],
-				)
-			} else {
-				return null
-			}
+			return m(
+				".flex.items-center.row-gap-8.mt-16",
+				{
+					oncreate: (vnode) => oncreateExpandAnimation(vnode.dom as HTMLElement),
+					onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
+				},
+				[
+					m(".flex.items-center.mr-16.smaller", lang.getTranslationText("and_label")),
+					m(SecondaryButton, {
+						width: "flex",
+						icon: Icons.Plus,
+						label: "addCondition_label",
+						onclick: () => {
+							inboxRuleConditions.push({
+								type: stream(InboxRuleConditionType.FROM_EQUALS),
+								value: stream(""),
+								key: currentRowKey++,
+								valid: null,
+							})
+						},
+					}),
+				],
+			)
 		}
 
 		const defaultResultOfType = (type: InboxRuleResultType): MailSet | null => {
@@ -210,57 +281,76 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 			}
 		}
 
-		const renderResultRow = (ruleResult: InboxRuleResultField, resultIndex: number) => {
-			const isFirstResult = resultIndex === 0
-			const resultLabel: TranslationKey = isFirstResult ? "then_label" : "and_label"
+		const renderResultRow = (ruleResult: InboxRuleResultField, resultIndex: number, allResults: InboxRuleResultField[]) => {
+			const resultLabel: TranslationKey = resultIndex === 0 ? "then_label" : "and_label"
 			const ruleValueInput = getRuleResultValueInputByType(ruleResult)
 
 			return m(
-				".inbox-rule-wrapping-row.items-center.row-gap-8.mt-16",
+				"",
 				{
 					oncreate: (vnode) => oncreateExpandAnimation(vnode.dom as HTMLElement),
 					onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
 					key: ruleResult.key,
 				},
 				[
-					m(
-						".flex.items-center",
-						{
-							style: {
-								maxWidth: ruleValueInput == null ? "35%" : undefined,
-							},
-						},
-						[
-							m(".smaller.lowercase.no-wrap.mr-16", lang.getTranslationText(resultLabel)),
-							m(DropDownSelectorNew, {
-								items: allRuleResults.filter((rule) => rule.value === ruleResult.type() || availableRuleResults.has(rule)),
-								selectedValue: ruleResult.type(),
-								selectionChangedHandler: (newValue: InboxRuleResultType) => {
-									ruleResult.type(newValue)
-									ruleResult.value(defaultResultOfType(newValue))
+					m(".inbox-rule-wrapping-row.items-center.row-gap-8.mt-16", [
+						m(
+							".flex.items-center",
+							{
+								style: {
+									maxWidth: ruleValueInput == null ? "35%" : undefined,
 								},
-							}),
-						],
-					),
-					m(".flex.items-center.justify-end", [
-						ruleValueInput !== null ? [m(".mlr-16", "="), ruleValueInput(targetFolders)] : null,
-						!isFirstResult
-							? m(
-									".ml-4",
-									m(IconButton, {
-										icon: Icons.TrashFilled,
-										size: ButtonSize.Large,
-										style: {
-											fill: theme.on_surface_variant,
-										},
-										label: "delete_action",
-										click: () => {
-											inboxRuleResults.splice(resultIndex, 1)
+							},
+							[
+								m(".smaller.lowercase.no-wrap.mr-16", lang.getTranslationText(resultLabel)),
+								m(DropDownSelectorNew, {
+									items: allRuleResults.filter((rule) => rule.value === ruleResult.type() || availableRuleResults.has(rule)),
+									selectedValue: ruleResult.type(),
+									selectionChangedHandler: (newValue: InboxRuleResultType) => {
+										ruleResult.type(newValue)
+										ruleResult.valueFolder(defaultResultOfType(newValue))
+									},
+								}),
+							],
+						),
+						m(".flex", [
+							ruleValueInput !== null
+								? [m(".mlr-16.mt-16", "="), ruleValueInput(ruleResult.type() === InboxRuleResultType.LABEL ? targetLabels : targetFolders)]
+								: null,
+							allResults.length > 1
+								? m(
+										".ml-4",
+										m(IconButton, {
+											icon: Icons.X,
+											size: ButtonSize.Large,
+											style: {
+												fill: theme.on_surface_variant,
+											},
+											label: "delete_action",
+											click: () => {
+												inboxRuleResults.splice(resultIndex, 1)
+											},
+										}),
+									)
+								: null,
+						]),
+					]),
+					ruleResult.type() === InboxRuleResultType.LABEL && ruleResult.valueLabels().length
+						? m(
+								".flex.wrap.ml-32.mt-16.mr-between-8.row-gap-8",
+								ruleResult.valueLabels().map((value) =>
+									m(Label, {
+										text: prependParentLabelNamesToLabel(value, labels),
+										color: value.color ?? theme.primary,
+										cancelable: true,
+										cancelAction: () => {
+											const newValue = ruleResult.valueLabels().filter((label) => !isSameIdTuple(label._id, value._id))
+											ruleResult.valueLabels(newValue)
 										},
 									}),
-								)
-							: null,
-					]),
+								),
+							)
+						: null,
 				],
 			)
 		}
@@ -276,7 +366,7 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 					onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
 				},
 				[
-					m(".flex.items-center.mr-24.smaller", lang.getTranslationText("and_label")),
+					m(".flex.items-center.mr-16.smaller", lang.getTranslationText("and_label")),
 					m(SecondaryButton, {
 						width: "flex",
 						icon: Icons.Plus,
@@ -286,8 +376,10 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 
 							inboxRuleResults.push({
 								type: stream(firstAvailable.value),
-								value: stream(defaultResultOfType(firstAvailable.value)),
+								valueFolder: stream(defaultResultOfType(firstAvailable.value)),
+								valueLabels: stream([]),
 								key: currentRowKey++,
+								valid: null,
 							})
 						},
 					}),
@@ -310,157 +402,103 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 					m(".smaller.mt-16", lang.getTranslationText("inboxRuleExplainer_msg")),
 				]),
 				renderName(),
-				m(".uppercase.b.mt-32.content-fg", lang.getTranslationText("condition_label")),
+				m(".uppercase.b.mt-32.content-fg", lang.getTranslationText("inboxRuleConditions_label")),
 				inboxRuleConditions.map(renderConditionRow),
 				renderAddConditionRow(),
-				m(".uppercase.b.mt-32.content-fg", lang.getTranslationText("searchResult_label")),
+				m(".uppercase.b.mt-32.content-fg", lang.getTranslationText("inboxRuleResults_label")),
 				inboxRuleResults.map(renderResultRow),
 				renderAddResultRow(),
 				m(
 					".flex-end.wrap.mt-24.gap-16",
 					m(SecondaryButton, {
 						width: "flex",
-						label: "save_action",
-						onclick: () => inboxRuleOkAction(dialog, false),
+						label: "saveAndApply_action",
+						onclick: () => inboxRuleOkAction(dialog, true),
 					}),
 					m(PrimaryButton, {
 						width: "flex",
-						label: "saveAndApply_action",
-						onclick: () => inboxRuleOkAction(dialog, true),
+						label: "save_action",
+						onclick: () => inboxRuleOkAction(dialog, false),
 					}),
 				),
 			]
 		}
 
-		const applyRule = async (rule: ExpandedInboxRule, progress: Stream<number>, abort: AbortController) => {
-			// FIXME: Adapting this applyRule is the focus of another issue
-			throw new ProgrammingError("Not properly using ExpandedInboxRules!")
-
-			// const inbox = assertSystemFolderOfType(folders, MailSetKind.INBOX)
-			// const targetFolder = folders.getFolderById(elementIdPart(rule.targetFolder))
-			// if (targetFolder == null || targetFolder.folderType === MailSetKind.INBOX) {
-			// 	return
-			// }
-			//
-			// let totalProcessed = 0
-			// let totalMoved = 0
-			//
-			// try {
-			// 	const allIds = (await mailLocator.entityClient.loadAll(MailSetEntryTypeRef, inbox.entries)).reverse()
-			// 	const chunked = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, allIds)
-			//
-			// 	for (const chunk of chunked) {
-			// 		if (abort.signal.aborted) {
-			// 			break
-			// 		}
-			//
-			// 		const loadedMails = await resolveMailSetEntries(
-			// 			chunk,
-			// 			(list, elements) => mailLocator.entityClient.loadMultiple(MailTypeRef, list, elements),
-			// 			mailLocator.mailModel,
-			// 		)
-			//
-			// 		const mailsToMove: IdTuple[] = []
-			//
-			// 		await promiseMap(loadedMails, async (loadedMail) => {
-			// 			if (loadedMail.mail.mailDetails == null) {
-			// 				// inbox rules do not work on drafts
-			// 				return
-			// 			}
-			//
-			// 			const mailMatchesRule = await checkInboxRule(locator.mailFacade, loadedMail.mail, rule)
-			// 			if (mailMatchesRule) {
-			// 				mailsToMove.push(loadedMail.mail._id)
-			// 			}
-			// 		})
-			//
-			// 		await mailLocator.mailModel.moveMails(mailsToMove, targetFolder, MoveMode.Mails)
-			// 		totalMoved += mailsToMove.length
-			//
-			// 		totalProcessed += chunk.length
-			// 		progress((totalProcessed / allIds.length) * 100)
-			// 	}
-			// } catch (e) {
-			// 	if (!isOfflineError(e)) {
-			// 		throw e
-			// 	}
-			// }
-		}
-
-		const applyRuleWithProgress = async (rule: ExpandedInboxRule) => {
-			const progress = stream(0)
-			const abort = new AbortController()
-			await showProgressDialog("pleaseWait_msg", applyRule(rule, progress, abort), progress, {
-				middle: "applyingInboxRules_label",
-				left: () => {
-					return [
-						{
-							label: "cancel_action",
-							click: () => {
-								abort.abort()
-
-								// set progress to 100 so it doesn't look "stuck" even if it might take a few seconds to finish
-								progress(100)
-							},
-							type: ButtonType.Secondary,
-						} as const,
-					]
-				},
-			})
+		const prepareRule = (validatedName: string, ruleConditions: InboxRuleCondition[], ruleResults: InboxRuleResult[]): ExpandedInboxRule => {
+			if (originalInboxRule) {
+				const rule = clone(originalInboxRule)
+				rule.name = validatedName
+				rule.conditions = ruleConditions
+				rule.results = ruleResults
+				return rule
+			} else {
+				return createExpandedInboxRule({
+					name: validatedName,
+					conditions: ruleConditions,
+					results: ruleResults,
+					enabled: true,
+				})
+			}
 		}
 
 		const inboxRuleOkAction = (dialog: Dialog, applyRule: boolean) => {
+			// did we already send a dialogue about an invalid field?
+			let alreadyMessaged = false
 			const validatedName = inboxRuleName().trim()
 
 			if (validatedName === "") {
+				nameValid = false
 				Dialog.message("enterName_msg")
-				return
+				alreadyMessaged = true
 			}
 
-			const ruleConditions = []
+			const ruleConditions: InboxRuleCondition[] = []
 
 			for (const condition of inboxRuleConditions) {
 				const invalidInboxRuleMsg = validateInboxRuleCondition(condition)
 				if (invalidInboxRuleMsg !== null) {
-					Dialog.message(invalidInboxRuleMsg)
-					return
+					condition.valid = false
+					if (!alreadyMessaged) {
+						Dialog.message(invalidInboxRuleMsg)
+						alreadyMessaged = true
+					}
 				}
 				ruleConditions.push(createInboxRuleCondition({ type: condition.type(), value: condition.value() }))
 			}
 
-			const ruleResults = []
+			const ruleResults: InboxRuleResult[] = []
 
 			for (const result of inboxRuleResults) {
-				const value = validateInboxRuleResult(result)
-
-				ruleResults.push(createInboxRuleResult({ type: result.type(), value }))
+				if (result.type() === InboxRuleResultType.LABEL) {
+					if (result.valueLabels().length === 0) {
+						result.valid = false
+						if (!alreadyMessaged) {
+							Dialog.message("labelMustBeSelected_msg")
+							alreadyMessaged = true
+						}
+					}
+					for (const label of result.valueLabels()) {
+						const labelId = validateInboxRuleResult(result.type(), label)
+						ruleResults.push(createInboxRuleResult({ type: result.type(), value: labelId }))
+					}
+				} else {
+					const valueId = validateInboxRuleResult(result.type(), result.valueFolder())
+					ruleResults.push(createInboxRuleResult({ type: result.type(), value: valueId }))
+				}
 			}
 
-			const rule = createExpandedInboxRule({
-				name: validatedName,
-				conditions: ruleConditions,
-				results: ruleResults,
-			})
-
-			const props = locator.logins.getUserController().props
-			const inboxRules = props.inboxRules
-			const ruleId = ruleOrTemplate._id
-			if (ruleId) {
-				rule._id = ruleId
+			if (alreadyMessaged) {
+				// only return here to give user all the feedback before exiting
+				return
 			}
 
-			const expandedInboxRules = props.expandedInboxRules
+			const rule = prepareRule(validatedName, ruleConditions, ruleResults)
+			const savePromise = isNewInboxRule ? inboxRuleModel.createInboxRule(rule) : inboxRuleModel.updateInboxRule(rule)
 
-			props.expandedInboxRules =
-				ruleId == null
-					? [...expandedInboxRules, rule]
-					: expandedInboxRules.map((inboxRule) => (isSameSingleId(inboxRule._id, ruleId) ? rule : inboxRule))
-
-			locator.entityClient
-				.update(props)
+			savePromise
 				.then(() => {
 					if (applyRule) {
-						return applyRuleWithProgress(rule)
+						return applyRuleWithProgress([rule], mailLocator.inboxRuleHandler())
 					}
 				})
 				.then(() => {
@@ -468,20 +506,18 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 				})
 				.catch((error) => {
 					if (isOfflineError(error)) {
-						props.inboxRules = inboxRules
 						//do not close
 						throw error
 					} else if (error instanceof LockedError) {
 						dialog.close()
 					} else {
-						props.inboxRules = inboxRules
 						dialog.close()
 						throw error
 					}
 				})
 		}
 
-		const isNewInboxRule = ruleOrTemplate._id == null
+		const isNewInboxRule = originalInboxRule == null
 		const dialog = Dialog.showActionDialog({
 			type: DialogType.InboxRule,
 			title: isNewInboxRule ? "addInboxRule_action" : "editInboxRule_action",
@@ -491,21 +527,61 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 	}
 }
 
-function getRuleConditionValueInputByType(ruleCondition: InboxRuleConditionField) {
+function getRuleConditionValueInputByType(ruleCondition: InboxRuleConditionField): Children {
+	const clearValidation = (val: string) => {
+		ruleCondition.value(val)
+
+		// don't be annoying!
+		if (ruleCondition.valid === false) {
+			const valid = validateInboxRuleCondition(ruleCondition) === null
+			if (valid) {
+				ruleCondition.valid = valid
+			}
+		}
+	}
+	const validate = () => {
+		if (ruleCondition.valid === false) {
+			ruleCondition.valid = validateInboxRuleCondition(ruleCondition) === null
+		}
+	}
+	const validatedTextFieldProps = {
+		oninput: clearValidation,
+		onblur: validate,
+		doShowBorder: ruleCondition.valid !== false,
+		class: ruleCondition.valid === false ? "error-text-field" : "",
+		helpLabel: ruleCondition.valid === false ? () => lang.getTranslationText(validateInboxRuleCondition(ruleCondition)!) : null,
+	}
+
 	switch (ruleCondition.type()) {
 		case InboxRuleConditionType.FROM_EQUALS:
 		case InboxRuleConditionType.RECIPIENT_TO_EQUALS:
 		case InboxRuleConditionType.RECIPIENT_CC_EQUALS:
 		case InboxRuleConditionType.RECIPIENT_BCC_EQUALS:
+		case InboxRuleConditionType.RECIPIENT_ANY_EQUALS:
+			return [
+				m(".mlr-16.mt-16", "="),
+				m(TextField, {
+					label: "emailSenderPlaceholder_label",
+					autocapitalize: Autocapitalize.none,
+					value: ruleCondition.value(),
+					...validatedTextFieldProps,
+				}),
+			]
 		case InboxRuleConditionType.SUBJECT_CONTAINS:
 		case InboxRuleConditionType.MAIL_HEADER_CONTAINS:
-			return m(TextField, {
-				label: "value_label",
-				autocapitalize: Autocapitalize.none,
-				value: ruleCondition.value(),
-				oninput: ruleCondition.value,
-				class: "",
-			})
+			return [
+				m(".mlr-8", ""),
+				m(TextField, {
+					label: "value_label",
+					autocapitalize: Autocapitalize.none,
+					value: ruleCondition.value(),
+					...validatedTextFieldProps,
+				}),
+			]
+		case InboxRuleConditionType.HAS_ATTACHMENT:
+		case InboxRuleConditionType.HAS_NO_ATTACHMENT:
+			ruleCondition.value("")
+			return null
 		default:
 			throw new ProgrammingError(`No Input specified for rule condition of type: ${ruleCondition.type()}`)
 	}
@@ -514,32 +590,47 @@ function getRuleConditionValueInputByType(ruleCondition: InboxRuleConditionField
 function getRuleResultValueInputByType(ruleResult: InboxRuleResultField) {
 	switch (ruleResult.type()) {
 		case InboxRuleResultType.MOVE:
-			return (targetFolders: MoveTargetFolder[]) =>
+			return (targetFolders: TargetMailSet[]) =>
 				m(DropDownSelectorNew, {
+					// icon: {
+					// 	icon: ruleResult.valueFolder()?.folderType
+					// 		? getFolderIconByType(assertNotNull(ruleResult.valueFolder()).folderType as MailSetKind)
+					// 		: Icons.FolderFilled,
+					// 	color: theme.on_surface_variant,
+					// },
 					items: targetFolders,
-					selectedValue: ruleResult.value(),
-					selectedValueDisplay: getMailSetName(assertNotNull(ruleResult.value())),
-					selectionChangedHandler: ruleResult.value,
+					selectedValue: ruleResult.valueFolder(),
+					selectedValueDisplay: getMailSetName(assertNotNull(ruleResult.valueFolder())),
+					selectionChangedHandler: ruleResult.valueFolder,
 					class: "",
 				})
+		case InboxRuleResultType.LABEL:
+			return (labels: TargetMailSet[]) =>
+				m(LabelsDropDownSelector, {
+					label: "selectLabel_action",
+					items: labels.map((label) => ({
+						...label,
+						applied: ruleResult.valueLabels().some((l) => isSameId(l._id, label.value._id)),
+					})),
+					icon: {
+						icon: Icons.LabelFilled,
+						color: theme.on_surface_variant,
+					},
+					onLabelsApplied: ruleResult.valueLabels,
+					onModalClosed: () => {
+						if (ruleResult.valid === false) {
+							ruleResult.valid = !!ruleResult.valueLabels().length
+						}
+					},
+					class: ruleResult.valid === false ? "error-text-field" : undefined,
+					helpLabel: ruleResult.valid === false ? () => lang.getTranslationText("labelMustBeSelected_msg") : undefined,
+				})
+
 		case InboxRuleResultType.EXCLUDE_SPAM:
+		case InboxRuleResultType.READ:
 			return null
 		default:
 			throw new ProgrammingError(`No Input specified for rule result of type: ${ruleResult.type()}`)
-	}
-}
-
-export function createInboxRuleTemplate(ruleType: InboxRuleConditionType | null, value: string): InboxRuleTemplate {
-	const type = ruleType ?? InboxRuleConditionType.FROM_EQUALS
-	return {
-		name: "",
-		conditions: [
-			createInboxRuleCondition({
-				type,
-				value: getCleanedValue(type, value),
-			}),
-		],
-		results: [],
 	}
 }
 
@@ -548,13 +639,15 @@ function validateInboxRuleCondition(condition: InboxRuleConditionField): Transla
 	const value = condition.value()
 	const currentCleanedValue = getCleanedValue(type, value)
 
-	if (currentCleanedValue === "") {
+	if (type !== InboxRuleConditionType.HAS_ATTACHMENT && type !== InboxRuleConditionType.HAS_NO_ATTACHMENT && currentCleanedValue === "") {
 		return "inboxRuleEnterValue_msg"
 	} else if (isInvalidRegex(currentCleanedValue)) {
 		return "invalidRegexSyntax_msg"
 	} else if (
 		type !== InboxRuleConditionType.SUBJECT_CONTAINS &&
 		type !== InboxRuleConditionType.MAIL_HEADER_CONTAINS &&
+		type !== InboxRuleConditionType.HAS_ATTACHMENT &&
+		type !== InboxRuleConditionType.HAS_NO_ATTACHMENT &&
 		!isRegularExpression(currentCleanedValue) &&
 		!isDomainName(currentCleanedValue) &&
 		!isMailAddress(currentCleanedValue, false)
@@ -565,10 +658,7 @@ function validateInboxRuleCondition(condition: InboxRuleConditionField): Transla
 	}
 }
 
-function validateInboxRuleResult(result: InboxRuleResultField): IdTuple | null {
-	const type = result.type()
-	const value = result.value()
-
+function validateInboxRuleResult(type: InboxRuleResultType, value: MailSet | null): IdTuple | null {
 	if (type === InboxRuleResultType.EXCLUDE_SPAM || type === InboxRuleResultType.READ) {
 		if (value != null) {
 			// throw an error instead of informing user, as the user should not be able to choose a value here
