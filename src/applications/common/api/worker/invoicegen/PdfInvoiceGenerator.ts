@@ -262,7 +262,9 @@ export class PdfInvoiceGenerator {
 					break
 			}
 		} else if (this.invoice.invoiceType === InvoiceType.INVOICE) {
-			this.doc.addText(InvoiceTexts[this.languageCode].noPaymentRequiredCredit)
+			this.doc.addText(InvoiceTexts[this.languageCode].noPaymentRequiredAccountCredit)
+		} else if (this.invoice.invoiceType === InvoiceType.CREDIT) {
+			this.doc.addText(InvoiceTexts[this.languageCode].noPaymentRequired)
 		}
 		if (this.invoice.invoiceType === InvoiceType.INVOICE) {
 			this.doc.addLineBreak().addLineBreak().addText(InvoiceTexts[this.languageCode].thankYou)
