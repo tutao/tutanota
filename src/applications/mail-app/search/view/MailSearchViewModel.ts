@@ -16,11 +16,9 @@ import {
 	isNotNull,
 	isSameDayOfDate,
 	memoizedWithHiddenArgument,
-	noOp,
 	onceAsync,
 } from "@tutao/utils"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
-import { EventController } from "../../../common/api/main/EventController"
 import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
 import { CancelledError, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { assertIsEntity2, elementIdPart, getElementId, isSameId, listIdPart } from "@tutao/meta"
@@ -38,8 +36,7 @@ import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils"
 import { MailOpenedListener } from "../../mail/view/MailViewModel"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
-import { compareMails } from "../../mail/model/MailUtils"
-import { emptyListModel, PaidFunctionResult, SearchableTypes } from "../../../common/search/SearchUtils"
+import { emptyListModel, mailSearchComparator, PaidFunctionResult, SearchableTypes } from "../../../common/search/SearchUtils"
 
 const SEARCH_PAGE_SIZE = 100
 export class MailSearchViewModel {
@@ -141,8 +138,8 @@ export class MailSearchViewModel {
 			this.currentQuery,
 			createRestriction(
 				SearchCategoryType.mail,
-				this._endDate ? getEndOfDay(this._endDate).getTime() : null,
-				this._startDate ? getStartOfDay(this._startDate).getTime() : null,
+				this.endDate ? getEndOfDay(this.endDate).getTime() : null,
+				this.startDate ? getStartOfDay(this.startDate).getTime() : null,
 				this.#selectedMailField,
 				this.#selectedMailFolder,
 				null,
@@ -182,8 +179,8 @@ export class MailSearchViewModel {
 		if (isNewSearch) {
 			this.searchResult?.dispose()
 			this.#selectedMailField = restriction.field
-			this._startDate = restriction.start ? new Date(restriction.start) : null
-			this._endDate = restriction.end ? new Date(restriction.end) : null
+			this._startDate = restriction.end ? new Date(restriction.end) : null
+			this._endDate = restriction.start ? new Date(restriction.start) : null
 			this.#selectedMailFolder = restriction.folderIds
 			this.latestMailRestriction = restriction
 
@@ -277,7 +274,7 @@ export class MailSearchViewModel {
 				return isSameId(id1, id2)
 			},
 			sortCompare: (o1: SearchResultListEntry, o2: SearchResultListEntry) => {
-				return compareMails(o1.entry as any, o2.entry as any)
+				return mailSearchComparator(o1.entry as Mail, o2.entry as Mail)
 			},
 			autoSelectBehavior: () => this.selectionBehavior,
 		})
@@ -486,7 +483,7 @@ export class MailSearchViewModel {
 
 		// only extend result when index is extended and result isn't already complete
 		if (!isCurrentResultComplete && currentResult.currentIndexTimestamp > newState.currentMailIndexTimestamp) {
-			void this.search.extendCurrentResult(newState.currentMailIndexTimestamp)
+			this.searchResult?.extendResults(newState.currentMailIndexTimestamp)
 		}
 	}
 

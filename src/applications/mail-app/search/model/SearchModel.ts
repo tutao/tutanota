@@ -28,8 +28,7 @@ import { EventController } from "../../../common/api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils"
-import { compareMails } from "../../mail/model/MailUtils"
-import { SearchableTypes } from "../../../common/search/SearchUtils"
+import { mailSearchComparator, SearchableTypes } from "../../../common/search/SearchUtils"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -47,6 +46,7 @@ export interface LiveSearchResult<T> {
 	loadMoreResults: (max: number) => Promise<T[]>
 	updates: Stream<ResultUpdate<T>>
 	dispose: () => unknown
+	extendResults: (extendEnd: number) => unknown
 	entityEventsReceived: (data: readonly EntityUpdateData[]) => Promise<unknown>
 }
 
@@ -124,6 +124,7 @@ export class SearchModel {
 				remove(this.liveResults, result)
 				result.updates.end(true)
 			},
+			extendResults: (extendEnd) => {},
 			entityEventsReceived: async (updates) => {
 				await this.applyEntityUpdates(ContactTypeRef, resultItems, updates, result.updates)
 			},
@@ -161,15 +162,11 @@ export class SearchModel {
 	}
 
 	async coolNewSearchMails(searchQuery: SearchQuery): Promise<LiveSearchResult<Mail>> {
-		// FIXME: wait for index to be initialized
 		const searchResult: SearchResult = await this._searchFacade.search(searchQuery.query, searchQuery.restriction, {
 			maxResults: searchQuery.maxResults ?? undefined,
 		})
-		// FIXME: sort like in the returned result
-		// it is important to keep the order when using sqlite
-		// when it's indexeddb we need to sort manually here
 		const mails = await loadMultipleFromLists(MailTypeRef, this.entityClient, searchResult.results)
-		mails.sort(compareMails)
+		mails.sort(mailSearchComparator)
 		const result: LiveSearchResult<Mail> = {
 			searchResult,
 			items: mails,
@@ -181,8 +178,7 @@ export class SearchModel {
 					result.searchResult = await this._searchFacade.getMoreSearchResults(result.searchResult, count)
 					const toLoad = result.searchResult.results.slice(previousLength)
 					let items: Mail[] = await loadMultipleFromLists(MailTypeRef, this.entityClient, toLoad)
-					// FIXME: same sorting comment as above
-					items.sort(compareMails)
+					items.sort(mailSearchComparator)
 
 					// Restore the original sorting order
 					if (!isBrowser() && !isAdminClient()) {
@@ -202,6 +198,13 @@ export class SearchModel {
 			dispose: () => {
 				remove(this.liveResults, result)
 				result.updates.end(true)
+			},
+			extendResults: async (extendEnd) => {
+				const newSearchResult = await this._searchFacade.extendSearchResult(result.searchResult, extendEnd)
+				const newItems = await Promise.all(newSearchResult.results.map(async (id) => await this.entityClient.load(MailTypeRef, id)))
+				result.searchResult = newSearchResult
+				result.items.push(...newItems)
+				this.result(newSearchResult)
 			},
 			entityEventsReceived: async (updates) => {
 				await this.applyEntityUpdates(MailTypeRef, result.items, updates, result.updates)
@@ -253,6 +256,7 @@ export class SearchModel {
 				remove(this.liveResults, liveResult)
 				liveResult.updates.end(true)
 			},
+			extendResults: (extendEnd) => {},
 			entityEventsReceived: async (updates) => {
 				for (const update of updates) {
 					if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
@@ -394,6 +398,7 @@ export class SearchModel {
 				}
 			}
 		}
+
 		return { tokens, resultItems }
 	}
 
