@@ -69,11 +69,13 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 					oninput: (value) => {
 						vnode.attrs.data.imapAccountUsername = value
 						vnode.attrs.data.rootImportMailSetName = value
-						vnode.attrs.data.imapSyncLabelData = createManageLabelServiceLabelData({
-							name: value,
-							color: theme.primary,
-							parentLabel: null,
-						})
+						if (imapProvider !== ImapProvider.Gmail) {
+							vnode.attrs.data.imapSyncLabelData = createManageLabelServiceLabelData({
+								name: value,
+								color: theme.primary,
+								parentLabel: null,
+							})
+						}
 					},
 					leadingIcon: {
 						icon: Icons.MailFilled,

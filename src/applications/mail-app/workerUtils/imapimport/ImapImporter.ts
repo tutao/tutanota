@@ -53,7 +53,7 @@ export type InitializeImapImportParams =
 	| (BaseInitializeImapImportParams & {
 			matchImapMailboxesToTutaMailSets: true
 			imapMailboxesToTutaMailSets: Map<string, MailSetMapping>
-			rootImportMailSetName?: never
+			rootImportMailSetName: string
 			spamFolderMigrationInformation?: never
 	  })
 	| (BaseInitializeImapImportParams & {

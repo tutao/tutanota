@@ -61,7 +61,8 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 			(data.imapSyncLabelData !== null && data.imapSyncLabelData.name !== "" && isValidCSSHexColor(data.imapSyncLabelData.color))
 		const isParentFolderCorrectlySet = data.rootImportMailSetName !== "" || data.matchImapMailboxesToTutaMailSets
 		const isInEditMode = this.enableParentFolderEdit || this.enableFolderMappingEdit
-		const shouldAllowContinuing = isLabelCorrectlySet && isParentFolderCorrectlySet && !isInEditMode
+		const isGmail = data.imapProvider === ImapProvider.Gmail
+		const shouldAllowContinuing = (isGmail || isLabelCorrectlySet) && isParentFolderCorrectlySet && !isInEditMode
 
 		return m(
 			".flex-end.full-width.pt-32.mb-32",
@@ -355,61 +356,63 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 	}
 
 	private renderLabel(data: ImapImportData) {
-		return m(TextField, {
-			label: "label_label",
-			value: data.imapSyncLabelData?.name ?? "-",
-			isReadOnly: true,
-			class: "surface-background",
-			leadingIcon: { icon: Icons.LabelFilled, color: theme.on_surface_variant },
-			injectionsRight: () => {
-				return m(".flex.items-center", [
-					data.imapSyncLabelData
-						? m(ColorOptionButton, {
-								color: data.imapSyncLabelData.color,
-								onClick: noOp,
-							})
-						: null,
-					data.imapSyncLabelData
-						? m(IconButton, {
-								title: "delete_action",
-								icon: Icons.TrashFilled,
+		return data.imapProvider !== ImapProvider.Gmail
+			? m(TextField, {
+					label: "label_label",
+					value: data.imapSyncLabelData?.name ?? "-",
+					isReadOnly: true,
+					class: "surface-background",
+					leadingIcon: { icon: Icons.LabelFilled, color: theme.on_surface_variant },
+					injectionsRight: () => {
+						return m(".flex.items-center", [
+							data.imapSyncLabelData
+								? m(ColorOptionButton, {
+										color: data.imapSyncLabelData.color,
+										onClick: noOp,
+									})
+								: null,
+							data.imapSyncLabelData
+								? m(IconButton, {
+										title: "delete_action",
+										icon: Icons.TrashFilled,
+										click: () => {
+											data.imapSyncLabelData = null
+											data.addLabelToImportedMails = false
+										},
+									})
+								: null,
+							m(IconButton, {
+								title: "editLabel_action",
+								icon: Icons.PenFilled,
 								click: () => {
-									data.imapSyncLabelData = null
-									data.addLabelToImportedMails = false
-								},
-							})
-						: null,
-					m(IconButton, {
-						title: "editLabel_action",
-						icon: Icons.PenFilled,
-						click: () => {
-							if (!data.imapSyncLabelData) {
-								data.imapSyncLabelData = createManageLabelServiceLabelData({ name: "", color: "", parentLabel: null })
-								data.addLabelToImportedMails = true
-							}
-							const labelData = data.imapSyncLabelData
-							showImapEditLabelDialog(
-								labelData,
-								(value) => {
-									if (labelData) {
-										labelData.name = value
-									} else {
-										data.imapSyncLabelData = createManageLabelServiceLabelData({
-											name: value,
-											color: "",
-											parentLabel: null,
-										})
+									if (!data.imapSyncLabelData) {
+										data.imapSyncLabelData = createManageLabelServiceLabelData({ name: "", color: "", parentLabel: null })
+										data.addLabelToImportedMails = true
 									}
+									const labelData = data.imapSyncLabelData
+									showImapEditLabelDialog(
+										labelData,
+										(value) => {
+											if (labelData) {
+												labelData.name = value
+											} else {
+												data.imapSyncLabelData = createManageLabelServiceLabelData({
+													name: value,
+													color: "",
+													parentLabel: null,
+												})
+											}
+										},
+										(newColor: string) => {
+											labelData.color = newColor
+										},
+									)
 								},
-								(newColor: string) => {
-									labelData.color = newColor
-								},
-							)
-						},
-					}),
-				])
-			},
-		})
+							}),
+						])
+					},
+				})
+			: null
 	}
 }
 
@@ -458,6 +461,7 @@ export class ImapImportSummaryPageAttrs implements WizardPageAttrs<ImapImportDat
 
 					matchImapMailboxesToTutaMailSets: true,
 					imapMailboxesToTutaMailSets: assertNotNull(this.data.imapMailboxesToTutaMailSets),
+					rootImportMailSetName: this.data.rootImportMailSetName,
 				}
 			: {
 					imapAccount,

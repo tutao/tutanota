@@ -7,9 +7,9 @@ import { assertNotNull, first } from "@tutao/utils"
 import { ImapAccountSyncState, ImapAccountSyncStateTypeRef, MailBox } from "@tutao/entities/tutanota"
 import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { collapseId, getElementId, OperationType } from "@tutao/meta"
-import { IMAP_AUTH_ERROR_POSTPONE_TIME, IMAP_ERROR_POSTPONE_TIME, ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
+import { IMAP_AUTH_ERROR_POSTPONE_TIME, IMAP_ERROR_POSTPONE_TIME, ImapAccountSyncStatus, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { ImapCredentials } from "../../../common/api/common/utils/imapImportUtils/ImapSyncContext"
-import { getSpecialUseAsSystemFolderType, ImapMailbox } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
+import { getSpecialUseAsSystemFolderType, ImapMailbox, ImapMailboxSpecialUse } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
 import { OauthFacade } from "@tutao/native-bridge/generatedIpc/types"
 import m from "mithril"
 import { ImapImportData } from "./AddImapImportWizard"
@@ -339,6 +339,31 @@ export class ImapMailImportController {
 		return imapMailboxesToTutaFolders
 	}
 
+	constructImapMailboxesToTutaFoldersMapForGmail(imapMailboxes: ReadonlyArray<ImapMailbox>, folderSystem: FolderSystem): Map<string, MailSetMapping> {
+		const imapMailboxesToTutaFolders = new Map<string, MailSetMapping>()
+		const inboxMailbox = imapMailboxes.find((mailbox) => mailbox.specialUse === ImapMailboxSpecialUse.INBOX)
+		const sentMailbox = imapMailboxes.find((mailbox) => mailbox.specialUse === ImapMailboxSpecialUse.SENT)
+		const draftsMailbox = imapMailboxes.find((mailbox) => mailbox.specialUse === ImapMailboxSpecialUse.DRAFTS)
+		const trashMailbox = imapMailboxes.find((mailbox) => mailbox.specialUse === ImapMailboxSpecialUse.TRASH)
+		const inboxMailSet = folderSystem.getSystemFolderByType(MailSetKind.INBOX)
+		const sentMailSet = folderSystem.getSystemFolderByType(MailSetKind.SENT)
+		const draftsMailSet = folderSystem.getSystemFolderByType(MailSetKind.DRAFT)
+		const trashMailSet = folderSystem.getSystemFolderByType(MailSetKind.TRASH)
+		if (inboxMailbox && inboxMailSet) {
+			imapMailboxesToTutaFolders.set(inboxMailbox.path, { mailSetElementId: getElementId(inboxMailSet), shouldSync: false })
+		}
+		if (sentMailbox && sentMailSet) {
+			imapMailboxesToTutaFolders.set(sentMailbox.path, { mailSetElementId: getElementId(sentMailSet), shouldSync: false })
+		}
+		if (draftsMailbox && draftsMailSet) {
+			imapMailboxesToTutaFolders.set(draftsMailbox.path, { mailSetElementId: getElementId(draftsMailSet), shouldSync: false })
+		}
+		if (trashMailbox && trashMailSet) {
+			imapMailboxesToTutaFolders.set(trashMailbox.path, { mailSetElementId: getElementId(trashMailSet), shouldSync: false })
+		}
+		return imapMailboxesToTutaFolders
+	}
+
 	onNewMailboxSelected(newMailboxDetail: MailboxDetail) {
 		this.selectedMailBoxDetail = newMailboxDetail
 	}
@@ -373,11 +398,11 @@ export class ImapMailImportController {
 
 		if (!env.dist) {
 			// for test, we initialize with default values
-			imapImportData.imapAccountHost = "localhost"
-			imapImportData.imapAccountPort = 143
-			imapImportData.imapAccountUsername = "infraimaptest@gmail.com"
-			imapImportData.imapAccountPassword = "password"
-			imapImportData.rootImportMailSetName = "root"
+			// imapImportData.imapAccountHost = "localhost"
+			// imapImportData.imapAccountPort = 143
+			// imapImportData.imapAccountUsername = "infraimaptest@gmail.com"
+			// imapImportData.imapAccountPassword = "password"
+			// imapImportData.rootImportMailSetName = "root"
 		}
 
 		return imapImportData
