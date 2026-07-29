@@ -920,7 +920,7 @@ export default {
 		"inboxRuleSenderEquals_action": "From/Sender",
 		"inboxRulesSettings_action": "Inbox rules",
 		"inboxRuleSubjectContains_action": "Subject contains",
-		"inboxRuleTargetFolder_label": "Target folder",
+		"inboxRuleTargetFolder_label": "Move to folder",
 		"inboxRuleToRecipientEquals_action": "To recipient",
 		"inboxRuleValue_label": "Value",
 		"includeRepeatingEvents_action": "Show event series",
@@ -2564,12 +2564,21 @@ export default {
 		"confirmClearFolder_msg": "Do you really want to permanently delete all emails from the folder '{1}'? Depending on the number of emails this operation may take a long time and will be executed in the background.",
 		"inboxRuleManagement_label": "Inbox Rule Management",
 		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Order matters, as only the first matching rule will apply.",
-		"condition_label": "Condition",
+		"inboxRuleConditions_label": "Conditions",
+		"inboxRuleResults_label": "Results",
 		"then_label": "Then",
 		"saveAndApply_action": "Save & Apply",
 		"applyingInboxRules_label": "Applying Inbox Rule(s)",
 		"inboxRuleExplainer_msg": "This would be a short sentence that explains the configuration of Inbox Rules.",
 		"addCondition_label": "Add condition",
-		"addResult_action": "Add result"
+		"addResult_action": "Add result",
+		"inboxRulesAppliedSuccessfully_msg": "Inbox Rules applied successfully",
+		"noMatchingInboxRulesFound_msg": "No emails were affected",
+		"inboxRuleAnyRecipientEquals_action": "Any recipient",
+		"inboxRuleHasAttachment_label": "Has attachment",
+		"inboxRuleHasNoAttachment_label": "Has no attachment",
+		"whenCondition_label": "When",
+		"selectLabel_action": "Select label(s)",
+		"labelMustBeSelected_msg": "At least one label must be selected."
 	}
 }

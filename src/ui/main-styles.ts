@@ -257,6 +257,13 @@ export class MainStyles {
 					"overflow-y": "scroll",
 					"webkit-overflow-scrolling": "touch",
 				},
+				".overflow-y-scroll-inbox-rules": {
+					// The scrollbar is always there with "overflow-y": "scroll",
+					// but displays little scrollbar arrows even when there is no scroll bar, which is not visually appealing
+					// this differs from ".scroll" as there is no hyphen in front of webkit
+					"overflow-y": ClientDetector.get().overflowAuto,
+					"webkit-overflow-scrolling": "touch",
+				},
 				".overflow-visible": {
 					overflow: "visible",
 				},
@@ -282,6 +289,10 @@ export class MainStyles {
 				".border-sm": {
 					"border-style": "solid",
 					"border-width": "2px",
+				},
+				".border-md": {
+					"border-style": "solid",
+					"border-width": "4px",
 				},
 				".border-bottom-none": {
 					"border-bottom": "none",
@@ -733,6 +744,9 @@ export class MainStyles {
 				},
 				".min-width-0": {
 					"min-width": 0,
+				},
+				".min-width-fit": {
+					"min-width": "fit-content",
 				},
 				".min-width-full": {
 					"min-width": "100%",
@@ -1560,6 +1574,13 @@ export class MainStyles {
 					"max-width": px(component_size.button_height_sm),
 					"max-height": px(component_size.button_height_sm),
 				},
+				".icon-button-extra-small": {
+					"border-radius": "25%",
+					width: px(component_size.button_height_xs),
+					height: px(component_size.button_height_xs),
+					"max-width": px(component_size.button_height_xs),
+					"max-height": px(component_size.button_height_xs),
+				},
 				".center-h": {
 					margin: "0 auto",
 				},
@@ -2026,8 +2047,14 @@ export class MainStyles {
 				".ml-between-4 > :not(:first-child)": {
 					"margin-left": px(size.spacing_4),
 				},
+				".ml-between-8 > :not(:first-child)": {
+					"margin-left": px(size.spacing_8),
+				},
 				".mt-between-4 > :not(:first-child)": {
 					"margin-top": px(size.spacing_4),
+				},
+				".mr-between-8 > :not(:last-child)": {
+					"margin-right": px(size.spacing_8),
 				},
 				// dropdown
 				".dropdown-panel": {
@@ -2875,6 +2902,12 @@ export class MainStyles {
 				".cursor-grabbing *": {
 					cursor: "grabbing !important",
 				},
+				".cursor-grab": {
+					cursor: "grab",
+				},
+				".cursor-grab:active": {
+					cursor: "grabbing",
+				},
 				// This is applied to elements that should indicate they will be draggable when some key is pressed.
 				// Ideally we would use cursor: grab here, but it doesn't seem to be supported in electron
 				".drag-mod-key *": {
@@ -3040,6 +3073,13 @@ export class MainStyles {
 				},
 				".svg-text-content-bg text": {
 					fill: theme.surface,
+				},
+				// IconButton only accepts ButtonColors, so we need to override it like this for black/white on labels
+				".icon-button-wrapper-black-icon .icon": {
+					fill: "black !important",
+				},
+				".icon-button-wrapper-white-icon .icon": {
+					fill: "white !important",
 				},
 				".overflow-auto": {
 					overflow: "auto",
@@ -3479,6 +3519,7 @@ export class MainStyles {
 				".inbox-rule-wrapping-row": {
 					display: "flex",
 					"flex-flow": "row wrap",
+					"align-items": "flex-start",
 				},
 				".inbox-rule-wrapping-row > *": {
 					"min-width": px(200),
@@ -3488,6 +3529,16 @@ export class MainStyles {
 				},
 				".inbox-rule-wrapping-row > *:last-child": {
 					flex: "1 0 65%",
+				},
+				".error-text-field": {
+					"border-bottom": `3px solid ${theme.error}`,
+					"border-radius": `${px(size.radius_8)} ${px(size.radius_8)} 0 0 !important`,
+					color: theme.error,
+					"box-sizing": "border-box",
+				},
+				// helpLabel of textfield
+				".error-text-field + small": {
+					color: theme.error,
 				},
 			}
 		})
