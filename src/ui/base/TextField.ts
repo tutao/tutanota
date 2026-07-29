@@ -27,7 +27,9 @@ export type TextFieldAttrs = {
 	// only used by the BubbleTextField (-> uses old TextField) to display bubbles and out of office notification
 	injectionsRight?: lazy<Children>
 	keyHandler?: keyHandler
+	// does not fire for readonly textfields
 	onDomInputCreated?: (dom: HTMLInputElement) => void
+	onDomWrapperCreated?: (dom: HTMLElement) => void
 	// interceptor used by the BubbleTextField to react on certain keys
 	onfocus?: (dom: HTMLElement, input: HTMLInputElement) => unknown
 	onblur?: (...args: Array<any>) => any
@@ -95,7 +97,10 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				`.login-textfield.rel.overflow-hidden`,
 				{
 					id: vnode.attrs.id,
-					oncreate: (vnode) => (this._domWrapper = vnode.dom as HTMLElement),
+					oncreate: (vnode) => {
+						this._domWrapper = vnode.dom as HTMLElement
+						a.onDomWrapperCreated?.(this._domWrapper)
+					},
 					onclick: (e: MouseEvent) => (a.onclick ? a.onclick(e, this._domInputWrapper) : this.focus(e, a)),
 					"aria-haspopup": a.hasPopup,
 					"data-testid": `tf:${a.label ? lang.getTestId(a.label) : a.value}`,

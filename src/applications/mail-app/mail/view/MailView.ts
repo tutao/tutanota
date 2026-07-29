@@ -64,16 +64,7 @@ import { BottomNav } from "../../gui/BottomNav.js"
 import { mailLocator } from "../../mailLocator.js"
 import { showSnackBar } from "../../../../ui/base/SnackBar.js"
 import { getMailSetName } from "../model/MailUtils.js"
-import {
-	canDoDragAndDropExport,
-	editDraft,
-	getMailActionAttrs,
-	getMailViewerMoreActions,
-	MailFilterType,
-	MailViewerToolbarActions,
-	showReportPhishingMailDialog,
-	startExport,
-} from "./MailViewerUtils.js"
+import { canDoDragAndDropExport, editDraft, getMailActionAttrs, MailFilterType, MailViewerToolbarActions, startExport } from "./MailViewerUtils.js"
 import { isDraft, isMailDeletable, isMailMovable, isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { DropData, DropType, FileDropData, FolderDropData, getDetachedDropdownBounds, MailDropData } from "../../../../ui/base/GuiUtils"
 import { fileListToArray } from "../../../../ui/utils/FileUtils.js"
@@ -84,8 +75,8 @@ import { MoveMode } from "../model/MailModel"
 import { UndoModel } from "../../UndoModel"
 import { PosRect } from "../../../../ui/utils/PosRect"
 import { Mail, MailSet } from "@tutao/entities/tutanota"
-import { MailReportType, MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
-import { elementIdPart, elementIdToId, getElementId, isSameId, isSameSingleId } from "../../../../platform-kit/meta"
+import { MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
+import { elementIdToId, getElementId, isSameId, isSameSingleId } from "../../../../platform-kit/meta"
 import { getMailFolderType, isFolder, isFolderReadOnly, isPermanentDeleteAllowedForFolder } from "../MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
@@ -403,58 +394,22 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				trash: this.getTrashMailsAction(),
 				move: this.getMoveMailsAction(),
 				label: this.getLabelsAction(),
-				markSpam: this.getSingleMailReportSpamAction(viewModel.primaryViewModel()),
-				markNotSpam: this.getSingleMailReportNotSpamAction(viewModel.primaryViewModel()),
+				markSpam: viewModel.primaryViewModel().getReportSpamAction(),
+				markNotSpam: viewModel.primaryViewModel().getReportNotSpamAction(),
 				edit: this.getEditDraftAction(viewModel),
 				cancelScheduled: this.getUnscheduleMailAction(viewModel),
 				reply: this.getReplyAction(viewModel, false),
 				replyAll: this.getReplyAction(viewModel, true),
 				forward: this.getForwardAction(viewModel),
 			},
-			mailViewerMoreActions: getMailViewerMoreActions({
+			mailViewerMoreActions: {
+				...viewModel.primaryViewModel().getMailViewerMoreActions(),
 				exportAction: this.getExportAction(),
-				viewModel: viewModel.primaryViewModel(),
-				print: this.getPrintAction(),
-				reapplyInboxRules: this.getSingleMailReapplyInboxRulesAction(viewModel.primaryViewModel()),
-				reportSpam: null,
-				reportNotSpam: null,
-				reportPhishing: this.getSingleMailPhishingAction(viewModel.primaryViewModel()),
-			}),
+				// note: Spam actions are explicitly empty here since they are in the mailViewerActions
+				reportSpamAction: undefined,
+				reportNotSpamAction: undefined,
+			},
 		})
-	}
-
-	private getPrintAction(): (() => unknown) | null {
-		if (EnvProvider.get().isApp()) {
-			return () => locator.systemFacade.print()
-		} else if (typeof window.print === "function") {
-			return () => window.print()
-		} else {
-			return null
-		}
-	}
-
-	private reportSingleMail(viewModel: MailViewerViewModel, reportType: MailReportType): void {
-		this.mailViewModel.clearStickyMail()
-		viewModel
-			.reportSpamForMail(reportType)
-			.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
-			.finally(m.redraw)
-	}
-
-	private getSingleMailReportSpamAction(viewModel: MailViewerViewModel): (() => void) | null {
-		return viewModel.canReportSpam() ? () => this.reportSingleMail(viewModel, MailReportType.SPAM) : null
-	}
-
-	private getSingleMailPhishingAction(viewModel: MailViewerViewModel): (() => void) | null {
-		return viewModel.canReportPhishing() ? () => showReportPhishingMailDialog(async () => this.reportSingleMail(viewModel, MailReportType.PHISHING)) : null
-	}
-
-	private getSingleMailReportNotSpamAction(viewModel: MailViewerViewModel): (() => void) | null {
-		return viewModel.canReportNotSpam() ? () => viewModel.reportNotSpamForMail() : null
-	}
-
-	private getSingleMailReapplyInboxRulesAction(viewModel: MailViewerViewModel): (() => void) | null {
-		return viewModel.canReapplyInboxRules() ? () => viewModel.reapplyInboxRuleForMail() : null
 	}
 
 	private getReportMailsAsSpamAction(): (() => void) | null {
@@ -487,7 +442,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				try {
 					await showProgressDialog(
 						"pleaseWait_msg",
-						this.mailViewModel.reapplyInboxRulesForMails(actionableMails, this.undoModel).then(async (movedMailIds) => {
+						this.mailViewModel.reapplyInboxRulesForMails(actionableMails, this.undoModel) /*.then(async (movedMailIds) => {
+							FIXME old inbox rule stuff that did some weird things we don't understand (moving mails again?)
 							const mailsToMoveToInbox = actionableMails
 								.filter((mail) => !movedMailIds?.some((movedMailId) => isSameSingleId(elementIdPart(mail._id), movedMailId)))
 								.map((mail) => mail._id)
@@ -502,7 +458,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								undoModel: this.undoModel,
 								contactModel: mailLocator.contactModel,
 							})
-						}),
+						})*/,
 					)
 				} catch (e) {
 					// handle the user cancelling the dialog
@@ -518,6 +474,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getReapplyInboxRulesAction(): (() => void) | null {
+		// FIXME need to check if using expandedInboxRules and if so use ExpandedInboxRuleHandler applyRulesToGivenMails
 		const currentFolder = this.mailViewModel.getMailSet()
 		//Inbox reapply rules should only be visible for paying users currently on the inbox folder.
 		if (!mailLocator.logins.getUserController().isPaidAccount() || currentFolder?.folderType !== MailSetKind.INBOX) {
@@ -581,15 +538,10 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					}
 				},
 				moreActions: (mailViewerModel: MailViewerViewModel) => {
-					return getMailViewerMoreActions({
-						viewModel: mailViewerModel,
+					return {
+						...mailViewerModel.getMailViewerMoreActions(),
 						exportAction: this.getExportAction(),
-						print: this.getPrintAction(),
-						reapplyInboxRules: this.getSingleMailReapplyInboxRulesAction(mailViewerModel),
-						reportSpam: this.getSingleMailReportSpamAction(mailViewerModel),
-						reportNotSpam: this.getSingleMailReportNotSpamAction(mailViewerModel),
-						reportPhishing: this.getSingleMailPhishingAction(mailViewerModel),
-					})
+					}
 				},
 			}),
 		})
@@ -721,16 +673,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								replyAction: this.getReplyAction(this.conversationViewModel, false),
 								replyAllAction: this.getReplyAction(this.conversationViewModel, true),
 								forwardAction: this.getForwardAction(this.conversationViewModel),
-								mailViewerMoreActions: getMailViewerMoreActions({
-									viewModel: this.conversationViewModel.primaryViewModel(),
+								mailViewerMoreActions: {
+									...this.conversationViewModel.primaryViewModel().getMailViewerMoreActions(),
 									exportAction: this.getExportAction(),
-									print: this.getPrintAction(),
-									reapplyInboxRules: this.getSingleMailReapplyInboxRulesAction(this.conversationViewModel.primaryViewModel()),
-									reportSpam: this.getSingleMailReportSpamAction(this.conversationViewModel.primaryViewModel()),
-									reportNotSpam: null,
-									reportPhishing: this.getSingleMailPhishingAction(this.conversationViewModel.primaryViewModel()),
-								}),
-								reportNotSpamAction: this.getSingleMailReportNotSpamAction(this.conversationViewModel.primaryViewModel()),
+									// note: Not spam action is explicitly empty here since it is in main actions
+									reportNotSpamAction: undefined,
+								},
+								reportNotSpamAction: this.conversationViewModel.primaryViewModel().getReportNotSpamAction(),
 							})
 						: Styles.get().isSingleColumnLayout() && this.mailViewModel.listModel?.isInMultiselect()
 							? m(MobileMailMultiselectionActionBar, {

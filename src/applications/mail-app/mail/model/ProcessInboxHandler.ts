@@ -1,8 +1,8 @@
-import { Mail, MailSet, ProcessInboxDatumParams } from "@tutao/entities/tutanota"
+import { ExpandedInboxRule, Mail, MailSet, ProcessInboxDatumParams } from "@tutao/entities/tutanota"
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
 import { InstanceSessionKey } from "@tutao/entities/sys"
 import { SkipClientSpamClassificationReason, SpamClassificationHandler } from "./SpamClassificationHandler"
-import { isSameId } from "../../../../platform-kit/meta"
+import { getElementId, isSameId } from "../../../../platform-kit/meta"
 import { EnvProvider } from "../../../../platform-kit/app-env"
 import { assertNotNull, isEmpty, throttle } from "../../../../platform-kit/utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
@@ -12,8 +12,9 @@ import { LoginController } from "../../../common/api/main/LoginController"
 import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFacade"
 import { LockedError } from "../../../../platform-kit/rest-client/error"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
-import { InboxRuleHandler } from "./InboxRuleHandler"
+import { InboxRuleHandler, SomeInboxRule } from "./InboxRuleHandler"
 import { extractServerClassifiers } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
+import { mailLocator } from "../../mailLocator"
 
 EnvProvider.assertMainOrNode()
 
@@ -35,6 +36,7 @@ export class ProcessInboxHandler {
 		private spamHandler: () => SpamClassificationHandler,
 		private readonly inboxRuleHandler: () => InboxRuleHandler,
 		private processedMailsByMailGroup: Map<Id, UnencryptedProcessInboxDatum[]> = new Map(),
+		private processedMailsAndInboxRules: Map<Id, { list: Array<{ mail: Mail; inboxRule: ExpandedInboxRule }>; mailboxDetail: MailboxDetail }> = new Map(),
 		private readonly throttleTimeout: number = DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS,
 	) {
 		this.sendProcessInboxServiceRequest = throttle(this.throttleTimeout, async (mailFacade: MailFacade) => {
@@ -59,6 +61,15 @@ export class ProcessInboxHandler {
 							}
 						}
 					}
+				}
+			}
+
+			if (processedMailsAndInboxRules.size > 0) {
+				const listAndDetails = this.processedMailsAndInboxRules.values()
+				this.processedMailsAndInboxRules = new Map()
+				for (const { list, mailboxDetail } of listAndDetails) {
+					//FIXME getting inboxRuleHandler from locator because we only have generic inboxHandler
+					await mailLocator.inboxRuleHandler().applyRules(list, mailboxDetail, true)
 				}
 			}
 		})
@@ -95,6 +106,7 @@ export class ProcessInboxHandler {
 
 		let targetFolder = sourceFolder
 		let applyInboxRuleResultActions = false
+		let matchingInboxRule: SomeInboxRule | null = null
 		const processInboxDatum: UnencryptedProcessInboxDatum = {
 			mailId: mail._id,
 			targetMoveFolder: sourceFolder._id,
@@ -125,7 +137,7 @@ export class ProcessInboxHandler {
 		if (targetFolder.folderType === MailSetKind.INBOX || skipPredictionReason === SkipClientSpamClassificationReason.None) {
 			// mail landed in Inbox or was moved to Spam folder by client side classification
 			const inboxRuleHandler = this.inboxRuleHandler()
-			const matchingInboxRule = await inboxRuleHandler.findMatchingInboxRule(mail, targetFolder)
+			matchingInboxRule = await inboxRuleHandler.findMatchingInboxRule(mail, targetFolder)
 
 			if (matchingInboxRule != null) {
 				const excludeFromSpam = inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule)
@@ -135,9 +147,16 @@ export class ProcessInboxHandler {
 
 				// We only apply result actions if: excludedFromSpam, marked as HAM, or marked as SPAM but inbox rule also moves to Spam
 				applyInboxRuleResultActions = excludeFromSpam || targetFolder.folderType === MailSetKind.INBOX || ruleMoveTarget.folderType === MailSetKind.SPAM
-				if (applyInboxRuleResultActions && ruleMoveTarget.folderType !== targetFolder.folderType) {
+				if (applyInboxRuleResultActions) {
 					targetFolder = ruleMoveTarget
 					processInboxDatum.classifierType = ClientClassifierType.CUSTOMER_INBOX_RULES
+					const id = getElementId(mailboxDetail.mailGroupInfo)
+					if (this.processedMailsAndInboxRules.has(id)) {
+						// FIXME need to add check for using ExpandedInboxRule before doing this cast
+						this.processedMailsAndInboxRules.get(id)!.list.push({ mail, inboxRule: matchingInboxRule as ExpandedInboxRule })
+					} else {
+						this.processedMailsAndInboxRules.set(id, { list: [{ mail, inboxRule: matchingInboxRule as ExpandedInboxRule }], mailboxDetail })
+					}
 				}
 			}
 		}
@@ -165,10 +184,6 @@ export class ProcessInboxHandler {
 		}
 
 		void this.sendProcessInboxServiceRequest(this.mailFacade)
-		/* FIXME: apply the rest of the actions if applyInboxRuleResultActions is true
-		 * Note: the move result action is applied through ProcessInboxService, so we only apply the rest of the actions
-		 * once the move is done because both move and label update the sets field on the mail.
-		 */
 
 		return targetFolder
 	}

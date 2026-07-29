@@ -82,6 +82,7 @@ import { DriveModel } from "../../../drive-app/drive/model/DriveModel"
 import { PickedDestinationAction } from "../../../drive-app/drive/view/DriveItemPicker"
 import { DialogHeaderBarAttrs } from "../../../../ui/base/DialogHeaderBar"
 import { ButtonType } from "../../../../ui/base/Button"
+import { prependParentLabelNamesToLabel } from "./MailSetTreeUtils"
 
 const UNDO_SNACKBAR_SHOW_TIME = TimeConstants.secondsToMillis(10)
 
@@ -907,27 +908,10 @@ export function showLabelsPopup(
 export function getLabelsWithParentLabelNamesPrepended(mailModel: MailModel, mail: Mail): ReadonlyArray<{ name: string; color: string | null }> {
 	const mailLabels = mailModel.getLabelsForMail(mail)
 	const allLabels = mailModel.getLabelsByGroupId(assertNotNull(mail._ownerGroup))
-	const labelsWithParentNamesPrepended: { name: string; color: string | null }[] = mailLabels.map((label) => {
-		const nameParts: string[] = []
-		let current = label
-
-		while (current) {
-			nameParts.push(current.name)
-			if (!current.parentFolder) {
-				break
-			}
-			const parentId = elementIdPart(current.parentFolder)
-			const parent = allLabels.get(parentId)
-			if (!parent) {
-				break
-			}
-			current = parent
-		}
-
-		const fullName = nameParts.reverse().join("/")
-		return { name: fullName, color: label.color }
-	})
-
+	const labelsWithParentNamesPrepended: { name: string; color: string | null }[] = mailLabels.map((label) => ({
+		name: prependParentLabelNamesToLabel(label, allLabels),
+		color: label.color,
+	}))
 	return labelsWithParentNamesPrepended.sort((labelA, labelB) => labelA.name.localeCompare(labelB.name))
 }
 
