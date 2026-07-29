@@ -3324,6 +3324,8 @@ export type ManageLabelServiceLabelDataParams = {
 
 	name: string;
 	color: string;
+
+	parentLabel: null | IdTuple;
 }
 
 export type ManageLabelServiceLabelData = {
@@ -3333,6 +3335,8 @@ export type ManageLabelServiceLabelData = {
 	_id: Id;
 	name: string;
 	color: string;
+
+	parentLabel: null | IdTuple;
 }
 export const ManageLabelServicePostInTypeRef: TypeRef<ManageLabelServicePostIn> = new TypeRef("tutanota", 1484)
 
@@ -3379,6 +3383,30 @@ export type ManageLabelServicePostOut = {
 	_format: NumberString;
 
 	label: IdTuple;
+}
+export const ManageLabelServicePutInTypeRef: TypeRef<ManageLabelServicePutIn> = new TypeRef("tutanota", 1493)
+
+export function createManageLabelServicePutIn(values: ManageLabelServicePutInParams): ManageLabelServicePutIn {
+    return Object.assign(create(typeModels[ManageLabelServicePutInTypeRef.typeId], ManageLabelServicePutInTypeRef), values)
+}
+
+export type ManageLabelServicePutInParams = {
+
+
+
+	label: IdTuple;
+	data: ManageLabelServiceLabelData;
+}
+
+export type ManageLabelServicePutIn = {
+	_type: TypeRef<ManageLabelServicePutIn>;
+	_errors: Object;
+	_original?: ManageLabelServicePutIn
+
+	_format: NumberString;
+
+	label: IdTuple;
+	data: ManageLabelServiceLabelData;
 }
 export const ManageLabelServiceDeleteInTypeRef: TypeRef<ManageLabelServiceDeleteIn> = new TypeRef("tutanota", 1500)
 
@@ -3534,6 +3562,7 @@ export type ImportMailDataParams = {
 	replyTos: EncryptedMailAddress[];
 	recipients: Recipients;
 	importedAttachments: ImportAttachment[];
+	labels: IdTuple[];
 }
 
 export type ImportMailData = {
@@ -3565,6 +3594,7 @@ export type ImportMailData = {
 	replyTos: EncryptedMailAddress[];
 	recipients: Recipients;
 	importedAttachments: ImportAttachment[];
+	labels: IdTuple[];
 }
 export const ImportedFileMailTypeRef: TypeRef<ImportedFileMail> = new TypeRef("tutanota", 1552)
 
@@ -4346,6 +4376,8 @@ export type ImapAccountParams = {
 	port: NumberString;
 	username: string;
 	password: null | string;
+	ignoreCertificateErrors: boolean;
+	customCertificateData: null | Uint8Array;
 
 	oAuthTokenEndpointResponse: null | OAuthTokenEndpointResponse;
 }
@@ -4359,6 +4391,8 @@ export type ImapAccount = {
 	port: NumberString;
 	username: string;
 	password: null | string;
+	ignoreCertificateErrors: boolean;
+	customCertificateData: null | Uint8Array;
 
 	oAuthTokenEndpointResponse: null | OAuthTokenEndpointResponse;
 }
@@ -4436,9 +4470,10 @@ export type ImapFolderSyncStateParams = {
 	uidvalidity: null | NumberString;
 	uidnext: null | NumberString;
 	highestmodseq: null | NumberString;
+	imapSpecialUse: null | string;
 
 	importedMails: Id;
-	mailFolder: null | IdTuple;
+	mailSet: null | IdTuple;
 	imapAccountSyncState: IdTuple;
 }
 
@@ -4459,9 +4494,10 @@ export type ImapFolderSyncState = {
 	uidvalidity: null | NumberString;
 	uidnext: null | NumberString;
 	highestmodseq: null | NumberString;
+	imapSpecialUse: null | string;
 
 	importedMails: Id;
-	mailFolder: null | IdTuple;
+	mailSet: null | IdTuple;
 	imapAccountSyncState: IdTuple;
 }
 export const ImapAccountSyncStateTypeRef: TypeRef<ImapAccountSyncState> = new TypeRef("tutanota", 1911)
@@ -4481,7 +4517,7 @@ export type ImapAccountSyncStateParams = {
 
 	imapFolderSyncStateList: Id;
 	imapAccount: ImapAccount;
-	rootImportMailFolder: null | IdTuple;
+	rootImportMailSet: null | IdTuple;
 	imapSyncLabel: null | IdTuple;
 }
 
@@ -4505,7 +4541,7 @@ export type ImapAccountSyncState = {
 
 	imapFolderSyncStateList: Id;
 	imapAccount: ImapAccount;
-	rootImportMailFolder: null | IdTuple;
+	rootImportMailSet: null | IdTuple;
 	imapSyncLabel: null | IdTuple;
 }
 export const ImapFolderPostInTypeRef: TypeRef<ImapFolderPostIn> = new TypeRef("tutanota", 1929)
@@ -4518,9 +4554,11 @@ export type ImapFolderPostInParams = {
 
 
 	path: string;
+	shouldSync: boolean;
+	imapSpecialUse: null | string;
 
 	imapAccountSyncState: IdTuple;
-	mailFolder: null | IdTuple;
+	mailSet: null | IdTuple;
 }
 
 export type ImapFolderPostIn = {
@@ -4533,9 +4571,11 @@ export type ImapFolderPostIn = {
 	ownerKeyVersion: NumberString;
 	ownerGroup: Id;
 	path: string;
+	shouldSync: boolean;
+	imapSpecialUse: null | string;
 
 	imapAccountSyncState: IdTuple;
-	mailFolder: null | IdTuple;
+	mailSet: null | IdTuple;
 }
 export const ImapFolderPostOutTypeRef: TypeRef<ImapFolderPostOut> = new TypeRef("tutanota", 1937)
 
@@ -4593,7 +4633,7 @@ export type ImapPostInParams = {
 	provider: NumberString;
 
 	imapAccount: ImapAccount;
-	rootImportMailFolder: null | IdTuple;
+	rootImportMailSet: null | IdTuple;
 	syncLabel: null | IdTuple;
 }
 
@@ -4611,7 +4651,7 @@ export type ImapPostIn = {
 	provider: NumberString;
 
 	imapAccount: ImapAccount;
-	rootImportMailFolder: null | IdTuple;
+	rootImportMailSet: null | IdTuple;
 	syncLabel: null | IdTuple;
 }
 export const ImapPostOutTypeRef: TypeRef<ImapPostOut> = new TypeRef("tutanota", 1955)
@@ -4705,6 +4745,7 @@ export type ImapPutInParams = {
 
 	newImapAccountSyncStatus: NumberString;
 	newImapFolderSyncStatus: NumberString;
+	newPostponedUntil: null | string;
 
 	imapAccountSyncState: IdTuple;
 }
@@ -4716,6 +4757,7 @@ export type ImapPutIn = {
 	_format: NumberString;
 	newImapAccountSyncStatus: NumberString;
 	newImapFolderSyncStatus: NumberString;
+	newPostponedUntil: null | string;
 
 	imapAccountSyncState: IdTuple;
 }

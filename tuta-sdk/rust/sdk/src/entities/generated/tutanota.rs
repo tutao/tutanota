@@ -3430,6 +3430,8 @@ pub struct ManageLabelServiceLabelData {
 	pub name: String,
 	#[serde(rename = "1483")]
 	pub color: String,
+	#[serde(rename = "1989")]
+	pub parentLabel: Option<IdTupleGenerated>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -3486,6 +3488,29 @@ impl Entity for ManageLabelServicePostOut {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(1490),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ManageLabelServicePutIn {
+	#[serde(rename = "1494")]
+	pub _format: i64,
+	#[serde(rename = "1498")]
+	pub label: IdTupleGenerated,
+	#[serde(rename = "1499")]
+	pub data: ManageLabelServiceLabelData,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for ManageLabelServicePutIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(1493),
 		}
 	}
 }
@@ -3658,6 +3683,8 @@ pub struct ImportMailData {
 	pub recipients: Recipients,
 	#[serde(rename = "1551")]
 	pub importedAttachments: Vec<ImportAttachment>,
+	#[serde(rename = "1993")]
+	pub labels: Vec<IdTupleGenerated>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -4429,6 +4456,11 @@ pub struct ImapAccount {
 	pub username: String,
 	#[serde(rename = "1871")]
 	pub password: Option<String>,
+	#[serde(rename = "1987")]
+	pub ignoreCertificateErrors: bool,
+	#[serde(rename = "1988")]
+	#[serde(with = "serde_bytes")]
+	pub customCertificateData: Option<Vec<u8>>,
 	#[serde(rename = "1872")]
 	pub oAuthTokenEndpointResponse: Option<OAuthTokenEndpointResponse>,
 
@@ -4541,10 +4573,12 @@ pub struct ImapFolderSyncState {
 	pub uidnext: Option<i64>,
 	#[serde(rename = "1978")]
 	pub highestmodseq: Option<i64>,
+	#[serde(rename = "1990")]
+	pub imapSpecialUse: Option<String>,
 	#[serde(rename = "1909")]
 	pub importedMails: GeneratedId,
 	#[serde(rename = "1910")]
-	pub mailFolder: Option<IdTupleGenerated>,
+	pub mailSet: Option<IdTupleGenerated>,
 	#[serde(rename = "1928")]
 	pub imapAccountSyncState: IdTupleGenerated,
 
@@ -4595,7 +4629,7 @@ pub struct ImapAccountSyncState {
 	#[serde(rename = "1925")]
 	pub imapAccount: ImapAccount,
 	#[serde(rename = "1926")]
-	pub rootImportMailFolder: Option<IdTupleGenerated>,
+	pub rootImportMailSet: Option<IdTupleGenerated>,
 	#[serde(rename = "1927")]
 	pub imapSyncLabel: Option<IdTupleGenerated>,
 
@@ -4626,10 +4660,14 @@ pub struct ImapFolderPostIn {
 	pub ownerGroup: GeneratedId,
 	#[serde(rename = "1934")]
 	pub path: String,
+	#[serde(rename = "1991")]
+	pub shouldSync: bool,
+	#[serde(rename = "1992")]
+	pub imapSpecialUse: Option<String>,
 	#[serde(rename = "1935")]
 	pub imapAccountSyncState: IdTupleGenerated,
 	#[serde(rename = "1936")]
-	pub mailFolder: Option<IdTupleGenerated>,
+	pub mailSet: Option<IdTupleGenerated>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -4701,7 +4739,7 @@ pub struct ImapPostIn {
 	#[serde(rename = "1952")]
 	pub imapAccount: ImapAccount,
 	#[serde(rename = "1954")]
-	pub rootImportMailFolder: Option<IdTupleGenerated>,
+	pub rootImportMailSet: Option<IdTupleGenerated>,
 	#[serde(rename = "1967")]
 	pub syncLabel: Option<IdTupleGenerated>,
 
@@ -4799,8 +4837,13 @@ pub struct ImapPutIn {
 	pub newImapAccountSyncStatus: i64,
 	#[serde(rename = "1983")]
 	pub newImapFolderSyncStatus: i64,
+	#[serde(rename = "1986")]
+	pub newPostponedUntil: Option<String>,
 	#[serde(rename = "1981")]
 	pub imapAccountSyncState: IdTupleGenerated,
+
+	#[serde(default)]
+	pub _errors: Errors,
 }
 
 impl Entity for ImapPutIn {
