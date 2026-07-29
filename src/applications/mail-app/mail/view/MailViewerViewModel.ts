@@ -12,6 +12,7 @@ import {
 	filterInt,
 	first,
 	isEmpty,
+	isNotNull,
 	lazyAsync,
 	noOp,
 	Nullable,
@@ -54,10 +55,26 @@ import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFa
 import { AttachmentType, getAttachmentType } from "../../../../ui/AttachmentBubble.js"
 import type { ContactImporter } from "../../contacts/ContactImporter.js"
 import { InlineImages, revokeInlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
-import { getDefaultSender, getEnabledMailAddressesWithUser, getMailboxName, isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import {
+	getDefaultSender,
+	getEnabledMailAddressesWithUser,
+	getMailboxName,
+	isSharedMailbox,
+	isTutaTeamMail,
+} from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
-import { editDraft, isNoReplyTeamAddress, isSystemNotification, loadMailDetails, MailViewerToolbarActions } from "./MailViewerUtils.js"
+import {
+	editDraft,
+	getPrintMailAction,
+	isNoReplyTeamAddress,
+	isSystemNotification,
+	loadMailDetails,
+	MailViewerMoreActions,
+	MailViewerToolbarActions,
+	showReportPhishingMailDialog,
+	unsubscribe,
+} from "./MailViewerUtils.js"
 import { getMailSetName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
 import { isDraft, isEditableDraft, isMailDeletable, isMailMovable, isMailScheduled } from "../model/MailChecks"
 import type { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
@@ -74,6 +91,7 @@ import { createMailAddress, EncryptedMailAddress, File, Mail, MailAddress, MailD
 import {
 	ConversationType,
 	ExternalImageRule,
+	InboxRuleConditionType,
 	MailMethod,
 	MailPhishingStatus,
 	MailReportType,
@@ -97,6 +115,7 @@ import { PosRect } from "../../../../ui/utils/PosRect"
 import { isDriveEnabled } from "../../../common/misc/DriveUtils"
 import { PluginDataFile } from "../../../../plugin-kit/sdk/AttachmentButtonExtensionPoint"
 import { PluginManager } from "../../../../plugin-kit/plugin-manager/PluginManager"
+import { InboxRuleModel } from "../model/InboxRuleModel"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -170,6 +189,7 @@ export class MailViewerViewModel {
 	}
 
 	private mailDetails: MailDetails | null = null
+	private mailboxDetails: MailboxDetail | null = null
 
 	constructor(
 		private _mail: Mail,
@@ -195,6 +215,7 @@ export class MailViewerViewModel {
 		private readonly operationProgressTracker: OperationProgressTracker,
 		private readonly syncTracker: SyncTracker,
 		public readonly pluginManager: PluginManager,
+		readonly inboxRuleModel: InboxRuleModel,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {
@@ -681,34 +702,35 @@ export class MailViewerViewModel {
 	}
 
 	async reapplyInboxRuleForMail() {
-		const inboxRuleHandler = mailLocator.processInboxHandler()
-
 		const mail = this.mail
 		if (!mail._ownerGroup) {
 			return false
 		}
 		const mailboxDetail = await this.mailboxModel.getMailboxDetailsForMailGroup(mail._ownerGroup)
 
-		const currentFolder = this.mailModel.getMailFolderForMail(mail)
-		if (!currentFolder) {
-			return false
-		}
+		await mailLocator.inboxRuleHandler().applyRulesToGivenMails([mail], mailboxDetail)
 
-		const targetFolder = await inboxRuleHandler.getInboxRuleMoveTarget(mail, currentFolder, mailboxDetail)
-
-		if (isSameId(currentFolder._id, targetFolder._id)) {
-			return false
-		}
-
-		await moveMails({
-			targetFolder,
-			mailboxModel: locator.mailboxModel,
-			mailModel: mailLocator.mailModel,
-			mailIds: [mail._id],
-			moveMode: MoveMode.Mails,
-			undoModel: this.undoModel,
-			contactModel: mailLocator.contactModel,
-		})
+		// FIXME: old code for handling old inbox rules
+		// const inboxRuleHandler = mailLocator.processInboxHandler()
+		// const currentFolder = this.mailModel.getMailFolderForMail(mail)
+		// if (!currentFolder) {
+		// 	return false
+		// }
+		// const targetFolder = await inboxRuleHandler.getInboxRuleMoveTarget(mail, currentFolder, mailboxDetail)
+		//
+		// if (isSameId(currentFolder._id, targetFolder._id)) {
+		// 	return false
+		// }
+		//
+		// await moveMails({
+		// 	targetFolder,
+		// 	mailboxModel: locator.mailboxModel,
+		// 	mailModel: mailLocator.mailModel,
+		// 	mailIds: [mail._id],
+		// 	moveMode: MoveMode.Mails,
+		// 	undoModel: this.undoModel,
+		// 	contactModel: mailLocator.contactModel,
+		// })
 
 		return true
 	}
@@ -736,7 +758,16 @@ export class MailViewerViewModel {
 	}
 
 	canReapplyInboxRules(): boolean {
-		return this.logins.isInternalUserLoggedIn() && this.getFolderInfo()?.folderType === MailSetKind.INBOX
+		return (
+			this.logins.isInternalUserLoggedIn() &&
+			isNotNull(this.mailboxDetails) &&
+			!isSharedMailbox(this.mailboxDetails) &&
+			this.getFolderInfo()?.folderType === MailSetKind.INBOX
+		)
+	}
+
+	canCreateInboxRule(): boolean {
+		return this.logins.isInternalUserLoggedIn() && isNotNull(this.mailboxDetails) && !isSharedMailbox(this.mailboxDetails)
 	}
 
 	canShowHeaders(): boolean {
@@ -926,6 +957,7 @@ export class MailViewerViewModel {
 
 		try {
 			this.mailDetails = await loadMailDetails(this.mailFacade, this.mail)
+			this.mailboxDetails = await this.getMailboxDetails()
 			this.errorOccurredWhileLoadingMailDetails = typeof downcast(this.mailDetails)._errors !== "undefined"
 		} catch (e) {
 			if (e instanceof NotFoundError) {
@@ -1525,6 +1557,72 @@ export class MailViewerViewModel {
 			actions.read = () => this.setUnread(false)
 		} else {
 			actions.unread = () => this.setUnread(true)
+		}
+
+		return actions
+	}
+
+	public getReportSpamAction() {
+		if (this.canReportSpam()) {
+			return () =>
+				this.reportSpamForMail(MailReportType.SPAM)
+					.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
+					.finally(m.redraw)
+		}
+	}
+
+	public getReportNotSpamAction() {
+		if (this.canReportNotSpam()) {
+			return () => this.reportNotSpamForMail()
+		}
+	}
+
+	public getMailViewerMoreActions(): MailViewerMoreActions {
+		const actions: MailViewerMoreActions = {}
+
+		if (this.canPersistBlockingStatus() && this.isShowingExternalContent()) {
+			actions.disallowExternalContentAction = () => this.setContentBlockingStatus(ContentBlockingStatus.Block)
+		}
+
+		if (this.canPersistBlockingStatus() && this.isBlockingExternalImages()) {
+			actions.showImagesAction = () => this.setContentBlockingStatus(ContentBlockingStatus.Show)
+		}
+
+		if (this.isListUnsubscribe()) {
+			actions.unsubscribeAction = () => unsubscribe(this)
+		}
+
+		if (this.canPrint()) {
+			actions.printAction = getPrintMailAction()
+		}
+
+		actions.reportSpamAction = this.getReportSpamAction()
+		actions.reportNotSpamAction = this.getReportNotSpamAction()
+
+		if (this.canReportPhishing()) {
+			actions.reportPhishingAction = () =>
+				showReportPhishingMailDialog(async () => {
+					this.reportSpamForMail(MailReportType.PHISHING)
+						.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
+						.finally(m.redraw)
+				})
+		}
+
+		if (this.canReapplyInboxRules()) {
+			actions.reapplyInboxRulesAction = () => this.reapplyInboxRuleForMail()
+		}
+
+		if (this.canCreateInboxRule()) {
+			actions.addInboxRuleAction = async () => {
+				const { show } = await import("../../settings/AddInboxRuleDialog")
+
+				if (this.mailboxDetails) {
+					show(this.mailboxDetails, this.inboxRuleModel, null, [
+						{ type: InboxRuleConditionType.FROM_EQUALS, value: this.mail.sender.address },
+						{ type: InboxRuleConditionType.SUBJECT_CONTAINS, value: this.mail.subject },
+					])
+				}
+			}
 		}
 
 		return actions
