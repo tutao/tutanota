@@ -14,7 +14,7 @@ import {
 	SuspensionBehavior,
 } from "./types"
 import { once } from "../utils/memoized"
-import { isUndefined } from "../app-env/boot/TypeChecks"
+import { TypeChecks } from "../app-env/boot/TsTypeChecks"
 import { ClientDetector } from "../app-env/boot/ClientDetector"
 import { isNull } from "../utils/Utils"
 
@@ -75,7 +75,7 @@ export class RestClient implements RestClientInterface {
 
 	request(path: string, method: HttpMethod, options: RestClientOptions): Promise<any | null> {
 		// @ts-ignore
-		const debug: boolean = !isUndefined(self) && self.debug
+		const debug: boolean = !TypeChecks.hasProperty("self") && self.debug
 		const verbose: boolean = isWorker() && debug
 
 		this.checkRequestSizeLimit(path, method, options.body ?? null)

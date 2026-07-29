@@ -16,24 +16,11 @@ import {
 	uint8ArrayToBase64,
 	uint8arrayToBase64UrlCustomId,
 } from "@tutao/utils"
-import {
-	AggregatedEntity,
-	AnyEntityId,
-	BlobElementEntity,
-	BlobElementId,
-	ElementEntity,
-	ElementId,
-	isSameTypeRef,
-	ListElementEntity,
-	ListElementId,
-	TypeRef,
-	ValueTypeEnum,
-} from "./index"
-import { Entity, ModelValue, PersistentEntity, TypeModel } from "./EntityTypes.js"
+import { AnyEntityId, BlobElementId, ElementId, Entity, ListElementId, ModelValue, PersistentEntity, TypeModel, ValueTypeEnum } from "./EntityTypes.js"
 import { Cardinality, ValueType } from "./EntityConstants.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { assertNull, isNull } from "../utils/Utils"
-import { isUndefined } from "../app-env/boot/TypeChecks"
+import { isSameTypeRef, TypeRef } from "./TypeRef"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -71,19 +58,6 @@ export const RANGE_ITEM_LIMIT = 1000
 export const LOAD_MULTIPLE_LIMIT = 100
 export const POST_MULTIPLE_LIMIT = 100
 export const DELETE_MULTIPLE_LIMIT = 100
-
-type OptionalEntity<T extends Entity> = T & {
-	_id?: T extends AggregatedEntity
-		? Id
-		: T extends ElementEntity
-			? ElementId
-			: T extends ListElementEntity
-				? ListElementId
-				: T extends BlobElementEntity
-					? ListElementId
-					: never
-	_ownerGroup?: Id
-}
 
 export const enum EntityIdEncoding {
 	Base64Ext,
@@ -224,11 +198,7 @@ export function getEtId(entity: Element): Id {
 }
 
 export function getLetId(entity: ListElement): IdTuple {
-	if (isUndefined(entity._id) || entity._id === null) {
-		throw new Error("listId is not defined for " + (isUndefined((entity as any)._type) ? JSON.stringify(entity) : (entity as any)))
-	}
-
-	return entity._id
+	return assertNotNull(entity._id, `listId is not defined for entity of type: ${JSON.stringify((entity as any)._type) ?? entity}`)
 }
 
 export function getElementId<T extends ListElement>(entity: T): Id {

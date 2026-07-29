@@ -155,15 +155,6 @@ export default defineConfig([
 					message:
 						"If you are extending TsBrand, make sure __brand is always protected. Else two brand with public __brand field will be same from type level",
 				},
-			],
-		},
-	},
-	{
-		files: ["src/platform-kit/**/*.ts"],
-		ignores: ["src/platform-kit/app-env/boot/TypeChecks.ts"],
-		rules: {
-			"no-restricted-syntax": [
-				"error",
 				{
 					selector: "UnaryExpression[operator='typeof']",
 					message:
