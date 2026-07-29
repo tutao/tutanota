@@ -2,7 +2,7 @@ import { assertMainOrNodeBoot, isAndroidApp, isApp, isBrowser, isDesktop, isIOSA
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
 import { AppType } from "../AppType"
-import { isFunction, isObject, isUndefined } from "./TypeChecks"
+import { TypeChecks } from "./TsTypeChecks"
 import {
 	_cssQuerySelectorIsSupported,
 	_expectedBuiltInsArePresent,
@@ -96,7 +96,7 @@ export class ClientDetector {
 	 * @returns true if webassembly is supported
 	 */
 	webassembly(): boolean {
-		return isObject(WebAssembly) && isFunction(WebAssembly.instantiate)
+		return TypeChecks.isObject(WebAssembly) && TypeChecks.isFunction(WebAssembly.instantiate)
 	}
 
 	/**
@@ -330,7 +330,7 @@ export class ClientDetector {
 	}
 
 	compressionStreamSupported(): boolean {
-		return !isUndefined(CompressionStream)
+		return !TypeChecks.hasProperty("CompressionStream")
 	}
 
 	isCalendarApp(): boolean {

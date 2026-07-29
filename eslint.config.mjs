@@ -145,12 +145,9 @@ export default defineConfig([
 				projectService: true,
 			},
 		},
-		rules: { "local/noUnionExceptNullable": "error", "@typescript-eslint/strict-boolean-expressions": "error" },
-	},
-	{
-		files: ["src/platform-kit/**/*.ts"],
-		ignores: ["src/platform-kit/app-env/boot/TypeChecks.ts"],
 		rules: {
+			"@typescript-eslint/strict-boolean-expressions": "error",
+			"local/noUnionExceptNullable": "error",
 			"no-restricted-syntax": [
 				"error",
 				{

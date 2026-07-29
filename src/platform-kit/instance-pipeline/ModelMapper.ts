@@ -23,7 +23,7 @@ import { random } from "@tutao/crypto"
 import { EntityUtils } from "./EntityUtils"
 import { ParsedValue } from "./ParsedValue"
 import { DecryptedParsedInstance, DecryptedParsedValue } from "./CryptoMapper"
-import { isString } from "../app-env/boot/TypeChecks"
+import { TypeChecks } from "../app-env/boot/TsTypeChecks"
 
 assertWorkerOrNode()
 
@@ -345,8 +345,8 @@ export class OutgoingClientEntity {
 			isNotNull(value) &&
 			Array.isArray(value) &&
 			value.length === 2 &&
-			isString(value[0]) &&
-			isString(value[1])
+			TypeChecks.isString(value[0]) &&
+			TypeChecks.isString(value[1])
 
 		switch (associationModel.cardinality) {
 			case Cardinality.One: {
