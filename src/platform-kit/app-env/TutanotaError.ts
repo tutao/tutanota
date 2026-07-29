@@ -1,4 +1,4 @@
-import { isFunction } from "./boot/TypeChecks"
+import { TypeChecks } from "./boot/TsTypeChecks"
 
 /**
  * Base class for all errors in Tutanota. Provides the handling of error stacks for chrome (captureStackTrace) and others.
@@ -32,7 +32,7 @@ export class TutanotaError extends ExtendableError {
 		this.name = name
 		this.message = message
 
-		if (isFunction(Error.captureStackTrace)) {
+		if (TypeChecks.isFunction(Error.captureStackTrace)) {
 			Error.captureStackTrace(this, this.constructor)
 		} else {
 			let error = new Error()

@@ -16,7 +16,7 @@ import { ProgrammingError } from "@tutao/app-env"
 import { InstancePipeline } from "./InstancePipeline"
 import { OutgoingServerJson } from "./TypeMapper"
 import { DecryptedParsedInstance, DecryptedParsedValue, EncryptedParsedInstance } from "./CryptoMapper"
-import { isObject } from "../app-env/boot/TypeChecks"
+import { TypeChecks } from "../app-env/boot/TsTypeChecks"
 
 export const enum PatchOperationType {
 	ADD_ITEM = "0",
@@ -52,7 +52,7 @@ export class PatchGenerator {
 			case ValueType.GeneratedId:
 				if (originalParsedValue.isString()) {
 					return !isSameSingleId(originalParsedValue.asId(), currentParsedValue.asId())
-				} else if (isObject(originalParsedValue)) {
+				} else if (TypeChecks.isObject(originalParsedValue)) {
 					throw new ProgrammingError(`Possibly patching IdTuple on _id ${originalParsedValue.asIdTuple()}`)
 				}
 		}

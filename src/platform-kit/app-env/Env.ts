@@ -1,5 +1,5 @@
 import { ProgrammingError } from "./ProgrammingError"
-import { isUndefined } from "./boot/TypeChecks"
+import { TypeChecks } from "./boot/TsTypeChecks"
 import { ClientDetector } from "./boot/ClientDetector"
 import { _isNode, _isWorker } from "./boot/TsPlatformConstants"
 
@@ -103,7 +103,7 @@ export function isTest(): boolean {
 }
 
 export function isDesktopMainThread(): boolean {
-	return _isNode && !isUndefined(ClientDetector.get().env) && (isDesktop() || isAdminClient())
+	return _isNode && !TypeChecks.hasProperty("env", ClientDetector.get()) && (isDesktop() || isAdminClient())
 }
 
 let boot = !isDesktopMainThread() && !isWorker()
