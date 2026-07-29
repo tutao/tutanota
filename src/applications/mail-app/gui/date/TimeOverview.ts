@@ -325,6 +325,7 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.before.event)
 		} else if (!agenda.before && agenda.after) {
 			if (agenda.after?.flags?.isConflict) {
+				// focuses on the start of the conflicting event, to show that it conflicts with the end of the main event.
 				eventFocusBound = agenda.after.event.startTime
 			}
 			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.after.event)
@@ -358,26 +359,40 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 	}
 
 	/**
-	 * Creates a time range bounded to the day when the main event occurs
+	 * Creates the time range displayed in the TimeOverview around the focused event.
 	 *
-	 * @param eventFocusBound
-	 * @param timeInterval {number} - Interval in minutes used to create the time column
-
+	 * The preferred range consists of three time slots:
+	 * - one interval before the event,
+	 * - the interval containing the event,
+	 * - one interval after the event.
+	 *
+	 * If that range would extend beyond the current day, it is clamped so that it stays within the day's boundaries
+	 * while still spanning three time slots.
+	 *
+	 * @param eventFocusBound The point in time that should be centered in the TimeOverview.
+	 * @param timeInterval The duration of a single time slot, in minutes.
+	 *
 	 * @VisibleForTesting
 	 */
 	static getTimeRange(eventFocusBound: Date, timeInterval: number): TimeRange {
 		let startDate = DateTime.fromJSDate(eventFocusBound).minus({ minutes: timeInterval }).toJSDate()
 		let endDate = DateTime.fromJSDate(eventFocusBound).plus({ minutes: timeInterval }).toJSDate()
 
+		// If the start date falls on the previous day, clamp the range to the start of the focused day while keeping
+		// the total span at three intervals.
 		if (isBefore(startDate, eventFocusBound, "date")) {
 			startDate = getStartOfDay(eventFocusBound)
 			endDate = DateTime.fromJSDate(startDate)
-				.plus({ minutes: timeInterval * 2 }) // E.g 00:00 -> 01:00 (in a 30 min interval this means 00:00, 00:30, 01:00)
+				.plus({ minutes: timeInterval * 2 }) // e.g. 00:00, 00:30, 01:00 (30-minute interval)
 				.toJSDate()
-		} else if (isBefore(eventFocusBound, endDate, "date")) {
+		}
+		// If the end date falls on the following day, clamp the range to the end of the focused day while keeping
+		// the total span at three intervals.
+		else if (isBefore(eventFocusBound, endDate, "date")) {
 			endDate = DateTime.fromJSDate(eventFocusBound).startOf("day").plus({ day: 1 }).minus({ minutes: timeInterval }).toJSDate()
+
 			startDate = DateTime.fromJSDate(endDate)
-				.minus({ minutes: timeInterval * 2 }) // E.g 21:30 -> 23:30 (in a 30 min interval this means 21:30, 23:00, 23:30)
+				.minus({ minutes: timeInterval * 2 }) // e.g. 22:30, 23:00, 23:30 (30-minute interval)
 				.toJSDate()
 		}
 
