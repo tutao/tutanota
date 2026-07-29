@@ -1,5 +1,5 @@
 import { ProgrammingError } from "@tutao/app-env"
-import { isFunction, isObject, isUndefined } from "../app-env/boot/TypeChecks"
+import { TypeChecks } from "../app-env/boot/TsTypeChecks"
 
 export interface ErrorInfo {
 	readonly name: string | null
@@ -134,7 +134,7 @@ export function neverNull<T>(object: T): NonNullable<T> {
  */
 export function assertNotNull<T>(value: T | null, message: string = "null"): NonNullable<T> {
 	if (value == null) {
-		throw new Error("AssertNotNull failed : " + message)
+		throw new Error("AssertNotNull failed: " + message)
 	}
 
 	return value
@@ -393,7 +393,7 @@ export function deepEqual(a: any, b: any): boolean {
 	if (a === b) return true
 	if (xor(a === null, b === null) || xor(a === undefined, b === undefined)) return false
 
-	if (isObject(a) && isObject(b)) {
+	if (TypeChecks.isObject(a) && TypeChecks.isObject(b)) {
 		const aIsArgs = isArguments(a),
 			bIsArgs = isArguments(b)
 
@@ -434,7 +434,7 @@ export function deepEqual(a: any, b: any): boolean {
 		}
 
 		// See: DeepEquals interface
-		if (isFunction((a as DeepEquals).deepEquals) && isFunction((b as DeepEquals).deepEquals)) {
+		if (TypeChecks.isFunction((a as DeepEquals).deepEquals) && TypeChecks.isFunction((b as DeepEquals).deepEquals)) {
 			return a.deepEquals(b)
 		}
 
@@ -451,7 +451,7 @@ export function deepEqual(a: any, b: any): boolean {
 		}
 
 		// @ts-ignore: we would need to include all @types/node for this to work or import it explicitly. Should probably be rewritten for all typed arrays.
-		if (isFunction(Buffer) && a instanceof Buffer && b instanceof Buffer) {
+		if (TypeChecks.isFunction(Buffer) && a instanceof Buffer && b instanceof Buffer) {
 			for (let i = 0; i < a.length; i++) {
 				if (a[i] !== b[i]) return false
 			}
@@ -689,7 +689,7 @@ function traceUnresolvedPromises<T>(promise: Promise<T>, tag?: string) {
 
 export function isSessionStorageAvailable(): boolean {
 	try {
-		return !isUndefined(sessionStorage)
+		return TypeChecks.hasProperty("sessionStorage")
 	} catch (e) {
 		return false
 	}

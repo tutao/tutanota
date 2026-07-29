@@ -1,4 +1,4 @@
-import { getTypeOf, isFunction } from "../app-env/boot/TypeChecks"
+import { TypeChecks } from "../app-env/boot/TsTypeChecks"
 
 /**
  * @file Vendored version of p-map: https://github.com/sindresorhus/p-map/
@@ -52,12 +52,14 @@ export async function pMap<Element, NewElement>(
 ): Promise<Array<NewElement>> {
 	const { concurrency = 1 } = options
 	return new Promise((resolve, reject) => {
-		if (!isFunction(mapper)) {
+		if (!TypeChecks.isFunction(mapper)) {
 			throw new TypeError("Mapper function is required")
 		}
 
 		if (!((Number.isSafeInteger(concurrency) || concurrency === Number.POSITIVE_INFINITY) && concurrency >= 1)) {
-			throw new TypeError(`Expected \`concurrency\` to be an integer from 1 and up or \`Infinity\`, got \`${concurrency}\` (${getTypeOf(concurrency)})`)
+			throw new TypeError(
+				`Expected \`concurrency\` to be an integer from 1 and up or \`Infinity\`, got \`${concurrency}\` (${TypeChecks.getTypeOf(concurrency)})`,
+			)
 		}
 
 		const result: NewElement[] = []

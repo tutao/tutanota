@@ -16,7 +16,7 @@ import {
 } from "@tutao/meta"
 import { InvalidModelError, isTest, ProgrammingError } from "@tutao/app-env"
 import { ApplicationTypesGetOut } from "./ApplicationTypesFacade"
-import { isBoolean, isNumber, isObject, isString } from "../app-env/boot/TypeChecks"
+import { TypeChecks } from "../app-env/boot/TsTypeChecks"
 
 export type ApplicationTypesHash = string
 export type ApplicationVersionSum = number
@@ -308,7 +308,9 @@ export class ServerModelInfo {
 
 			// dependency can be null, so assign it after above `verifyNoNullValueInRecord` check. and check here instead
 			Object.assign(modelAssociation, {
-				dependency: isString(associationInfoRecord.dependency) ? this.ensureVariantOf(AppNameEnum, associationInfoRecord.dependency as string) : null,
+				dependency: TypeChecks.isString(associationInfoRecord.dependency)
+					? this.ensureVariantOf(AppNameEnum, associationInfoRecord.dependency as string)
+					: null,
 			})
 
 			Object.assign(associations, { [modelAssociation.id]: modelAssociation })
@@ -352,18 +354,18 @@ export class ServerModelInfo {
 	}
 
 	private asString(value: any): string {
-		if (value != null && !isObject(value)) return value.toString()
+		if (value != null && !TypeChecks.isObject(value)) return value.toString()
 		else throw new Error(`value ${value} is not string compatible`)
 	}
 
 	private asNumber(value: any): number {
-		if (value != null && (isString(value) || isNumber(value))) return parseInt(value.toString())
+		if (value != null && (TypeChecks.isString(value) || TypeChecks.isNumber(value))) return parseInt(value.toString())
 		else throw new Error(`value ${value} is not number compatible`)
 	}
 
 	private asBoolean(value: any): boolean {
-		if (isBoolean(value)) return value
-		else if (isString(value)) return value === "true"
+		if (TypeChecks.isBoolean(value)) return value
+		else if (TypeChecks.isString(value)) return value === "true"
 		else throw new Error(`value: ${value} is not boolean compatible`)
 	}
 
