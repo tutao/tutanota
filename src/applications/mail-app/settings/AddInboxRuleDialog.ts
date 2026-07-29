@@ -39,7 +39,7 @@ import { onbeforeremoveColapseAnimation, oncreateExpandAnimation } from "../../.
 import { IconButton } from "../../../ui/base/IconButton"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
 import { SelectorItem } from "../../../ui/base/DropDownSelector"
-import { getInboxRuleResultTypeNameMapping, getInboxRuleConditionTypeNameMapping } from "../mail/model/InboxRuleHandler"
+import { getInboxRuleConditionTypeNameMapping, getInboxRuleResultTypeNameMapping } from "../mail/model/InboxRuleHandler"
 
 assertMainOrNode()
 
@@ -517,6 +517,7 @@ function getRuleResultValueInputByType(ruleResult: InboxRuleResultField) {
 					class: "",
 				})
 		case InboxRuleResultType.EXCLUDE_SPAM:
+		case InboxRuleResultType.READ:
 			return null
 		default:
 			throw new ProgrammingError(`No Input specified for rule result of type: ${ruleResult.type()}`)

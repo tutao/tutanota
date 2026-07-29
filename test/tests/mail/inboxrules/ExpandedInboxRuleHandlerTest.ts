@@ -112,6 +112,17 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		// FIXME
 	})
 
+	o.spec("getReadResultValue", () => {
+		o.test("return true when rule has a READ result", () => {
+			const rule = _createRule([], [_createRuleResult(InboxRuleResultType.READ, null)])
+			o.check(ruleHandler.getReadResultValue(rule)).equals(true)
+		})
+		o.test("return false when rule does not have a READ result", () => {
+			const rule = _createRule([], [_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])])
+			o.check(ruleHandler.getReadResultValue(rule)).equals(false)
+		})
+	})
+
 	o.spec("getExcludeSpamResultValue", () => {
 		o.test("return true when inbox rule has an EXCLUDE_SPAM result", () => {
 			const rule = _createRule([], [_createRuleResult(InboxRuleResultType.EXCLUDE_SPAM, null)])
