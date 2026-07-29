@@ -2,14 +2,14 @@
 /* eslint-disable  no-restricted-syntax */
 
 export class TypeChecks {
-	public static isString(s: any): boolean {
+	public static isString(s: any): s is string {
 		return typeof s === "string"
 	}
-	public static isNumber(n: any): boolean {
+	public static isNumber(n: any): n is number {
 		return typeof n === "number"
 	}
 
-	public static isBoolean(b: any): boolean {
+	public static isBoolean(b: any): b is boolean {
 		return typeof b === "boolean"
 	}
 
@@ -22,7 +22,7 @@ export class TypeChecks {
 	}
 
 	public static hasProperty(propertyName: string, parentObj: any = globalThis): boolean {
-		return typeof parentObj[propertyName] === "undefined"
+		return typeof parentObj[propertyName] !== "undefined"
 	}
 
 	public static getTypeOf(a: any): string {
