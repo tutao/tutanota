@@ -120,7 +120,6 @@ export class ListModel<ItemType, IdType> {
 	)
 
 	private updateState(newStatePart: Partial<PrivateListState<ItemType>>) {
-		console.log("ListModel: updateState: ", newStatePart)
 		this.rawStateStream({ ...this.rawState, ...newStatePart })
 	}
 

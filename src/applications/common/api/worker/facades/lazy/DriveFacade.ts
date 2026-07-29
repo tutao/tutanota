@@ -352,6 +352,9 @@ export class DriveFacade {
 		} while (currentParent.parent != null)
 		return result
 	}
+	async getFileGroupId(): Promise<string> {
+		return this.userFacade.getGroupId(GroupType.File)
+	}
 
 	async search(query: string): Promise<void> {
 		const { fileGroupId } = await this.getCryptoInfo()

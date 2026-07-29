@@ -44,7 +44,7 @@ import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFol
 import { isWebFile } from "../../../../ui/utils/FileUtils"
 import { handleRestError, isOfflineError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { WebFileResolver } from "./WebFileResolver"
-import { SearchModel, SearchQuery } from "../../../mail-app/search/model/SearchModel"
+import { LiveSearchResult, SearchModel, SearchQuery } from "../../../mail-app/search/model/SearchModel"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 
 export interface RegularFolder {
@@ -802,8 +802,9 @@ export class DriveViewModel {
 	selectSearchResult(searchQuery: SearchQuery, driveItem: DriveFolder | DriveFile | null) {
 		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, driveItem ? getElementId(driveItem) : null)
 	}
-	getSearchResult(searchQuery: SearchQuery) {
-		return this.searchModel.coolNewSearchDrive(searchQuery)
+	async getSearchResult(searchQuery: SearchQuery): Promise<LiveSearchResult<DriveFile | DriveFolder>> {
+		const fileGroupId = await this.driveFacade.getFileGroupId()
+		return await this.searchModel.coolNewSearchDrive(searchQuery, fileGroupId)
 	}
 }
 

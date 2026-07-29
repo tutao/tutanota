@@ -315,7 +315,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 							return m(LazyComponent<DriveSearchBarAttrs, DriveSearchBar>, {
 								loader: async () => (await import("./DriveSearchBar.js")).DriveSearchBar,
 								attrs: {
-									loadResults: (searchQuery) => this.driveViewModel.getSearchResult(searchQuery),
+									loadResults: async (searchQuery) => await this.driveViewModel.getSearchResult(searchQuery),
 									selectResult: (searchQuery, driveItem) => {
 										this.driveViewModel.selectSearchResult(searchQuery, driveItem)
 									},

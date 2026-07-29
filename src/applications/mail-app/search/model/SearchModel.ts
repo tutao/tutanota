@@ -1,6 +1,6 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { elementIdPart, getElementId, isSameId, ListElementEntity, listIdPart, OperationType, TypeRef } from "../../../../platform-kit/meta"
+import { elementIdPart, GENERATED_MAX_ID, getElementId, isSameId, ListElementEntity, listIdPart, OperationType, TypeRef } from "../../../../platform-kit/meta"
 import { assertMainOrNode, CancelledError, isAdminClient, isBrowser, NOTHING_INDEXED_TIMESTAMP } from "../../../../platform-kit/app-env"
 import { DbError } from "../../../common/api/common/error/DbError"
 import { SearchCategoryType, SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
@@ -9,8 +9,10 @@ import {
 	assertNotNull,
 	collectToMap,
 	incrementMonth,
+	isEmpty,
 	isNotEmpty,
 	lastIndex,
+	lastThrow,
 	lazyAsync,
 	mapAndFilterNull,
 	ofClass,
@@ -29,6 +31,7 @@ import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } 
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils"
 import { mailSearchComparator, SearchableTypes } from "../../../common/search/SearchUtils"
+import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef, DriveGroupRootTypeRef } from "@tutao/entities/drive"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -58,7 +61,6 @@ export class SearchModel {
 	lastQueryString: Stream<string | null>
 	indexingSupported: boolean
 	_searchFacade: SearchFacade
-	private lastQuery: SearchQuery | null
 	private lastSearchPromise: Promise<SearchResult | void>
 	private lastSearchExtensionPromise: Promise<void>
 
@@ -84,7 +86,6 @@ export class SearchModel {
 			indexedMailCount: 0,
 			failedIndexingUpTo: null,
 		})
-		this.lastQuery = null
 		this.lastSearchPromise = Promise.resolve()
 		this.lastSearchExtensionPromise = Promise.resolve()
 
@@ -244,9 +245,84 @@ export class SearchModel {
 		this.liveResults.push(result)
 		return result
 	}
+	async coolNewSearchDrive(searchQuery: SearchQuery, fileGroupId: string): Promise<LiveSearchResult<DriveFile | DriveFolder>> {
+		const groupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
+		const resultItems: (DriveFolder | DriveFile)[] = []
+		for (const fileBagId of groupRoot.fileBags) {
+			let currentId = GENERATED_MAX_ID
+			while (true) {
+				const chunk = await this.entityClient.loadRange(DriveFileTypeRef, fileBagId.files, currentId, 100, true)
+				if (isEmpty(chunk)) {
+					break
+				}
+				//FIXME search with tokens
+				for (const item of chunk) {
+					if (item.name.toLowerCase().includes(searchQuery.query)) {
+						resultItems.push(item)
+					}
+				}
 
-	async coolNewSearchDrive(searchQuery: SearchQuery): Promise<void> {
-		//FIXME not implemented
+				currentId = getElementId(lastThrow(chunk))
+			}
+		}
+		for (const folderBagId of groupRoot.folderBags) {
+			let currentId = GENERATED_MAX_ID
+			while (true) {
+				const chunk = await this.entityClient.loadRange(DriveFolderTypeRef, folderBagId.folders, currentId, 100, true)
+				if (isEmpty(chunk)) {
+					break
+				}
+				//FIXME search with tokens
+				for (const item of chunk) {
+					if (item.name.toLowerCase().includes(searchQuery.query)) {
+						resultItems.push(item)
+					}
+				}
+				currentId = getElementId(lastThrow(chunk))
+			}
+		}
+		const searchResult: SearchResult = {
+			matchWordOrder: false,
+			restriction: searchQuery.restriction,
+			results: resultItems.map((item) => item._id),
+			query: searchQuery.query,
+			tokens: [], //FIXME
+			// index related, keep empty
+			currentIndexTimestamp: 0,
+			moreResults: [],
+			moreResultsEntries: [],
+			lastReadSearchIndexRow: [],
+		}
+		const liveResult: LiveSearchResult<DriveFolder | DriveFile> = {
+			searchResult,
+			items: resultItems,
+			loadMoreResults: async (count) => {
+				//FIXME
+				let moreResults: (DriveFolder | DriveFile)[] = []
+				return moreResults
+			},
+			extendResults: (extendEnd) => {},
+			updates: stream(),
+			dispose: () => {
+				remove(this.liveResults, liveResult)
+				liveResult.updates.end(true)
+			},
+			get hasMoreResults() {
+				return hasMoreResults(liveResult.searchResult)
+			},
+			entityEventsReceived: async (updates) => {
+				const fileItems: DriveFile[] = liveResult.items.filter((item): item is DriveFile => item._type === DriveFileTypeRef)
+				const folderItems: DriveFolder[] = liveResult.items.filter((item): item is DriveFolder => item._type === DriveFileTypeRef)
+				const fileUpdates = updates.filter((update) => update.typeRef === DriveFileTypeRef)
+				const folderUpdates = updates.filter((update) => update.typeRef === DriveFolderTypeRef)
+				await this.applyEntityUpdates(DriveFileTypeRef, fileItems, fileUpdates, liveResult.updates)
+				//FIXME folder updates
+				//await this.applyEntityUpdates(DriveFolderTypeRef, folderItems, folderUpdates, liveResult.updates)
+			},
+		}
+		this.liveResults.push(liveResult)
+		console.log(liveResult.items)
+		return liveResult
 	}
 
 	async coolNewSearchCalendar(searchQuery: SearchQuery, abortSignal: AbortSignal): Promise<LiveSearchResult<CalendarEvent>> {
