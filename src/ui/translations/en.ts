@@ -18,7 +18,7 @@ export default {
 		"accountSwitchAliases_msg": "Please deactivate all extra email addresses of your user.",
 		"accountSwitchCustomMailAddress_msg": "Please disable all custom domain email addresses.",
 		"accountSwitchMultipleCalendars_msg": "Please delete all additional calendars.",
-		"accountSwitchNotPossible_msg": "Downgrading is currently not possible. {detailMsg}",
+		"accountSwitchNotPossible_msg": "Switching plan is currently not possible. {detailMsg}",
 		"accountSwitchSharedCalendar_msg": "Please remove all calendars shared with you.",
 		"accountSwitchTooManyActiveUsers_msg": "Please deactivate all additional users before switching the plan.",
 		"accountWasStillCreated_msg": "Your account has already been created as a Free account. You may also cancel the payment now, login into your account and upgrade there later.",

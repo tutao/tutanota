@@ -413,21 +413,28 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 								await locator.mobilePaymentsFacade.showSubscriptionConfigView()
 							},
 						}),
-						currentSubscriptionState !== "cancelled" &&
-							m(PrimaryButton, {
-								label: "subscriptionSettingSwitchPlan_action",
-								width: "flex",
-								icon: Icons.OpenOutline,
-								onclick: () => {
-									this.onSubscriptionClick()
-								},
-							}),
+						currentSubscriptionState !== "cancelled"
+							? m(PrimaryButton, {
+									label: "subscriptionSettingSwitchPlan_action",
+									width: "flex",
+									onclick: () => {
+										this.onSubscriptionClick()
+									},
+								})
+							: m(PrimaryButton, {
+									label: "subscriptionSettingsKeep_action",
+									width: "flex",
+									onclick: () => {
+										this.handleKeepSubscriptionClick()
+									},
+								}),
 					)
 				: m(
 						".flex.justify-end.gap-8",
 						m(PrimaryButton, {
 							label: "subscriptionSettingManageSubscription_action",
 							width: "flex",
+							icon: Icons.OpenOutline,
 							onclick: () => {
 								this.onSubscriptionClick()
 							},
@@ -477,6 +484,31 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async handleKeepSubscriptionClick() {
+		if (isIOSApp() && getPaymentMethodType(assertNotNull(this._accountingInfo)) === PaymentMethodType.AppStore) {
+			const booking = this._lastBooking
+			const planType = this.currentPlanType
+			const customerInfo = this._customerInfo
+
+			if (booking == null || customerInfo == null || planType == null) {
+				return
+			}
+			const customerIdBytes = base64ToUint8Array(base64ExtToBase64(assertNotNull(locator.logins.getUserController().user.customer)))
+			try {
+				await locator.mobilePaymentsFacade.requestSubscriptionToPlan(
+					appStorePlanName(customerInfo.plan as PlanType),
+					asPaymentInterval(booking.paymentInterval),
+					customerIdBytes,
+				)
+			} catch (e) {
+				if (e instanceof MobilePaymentError) {
+					console.error("AppStore subscription failed", e)
+					void Dialog.message("appStoreSubscriptionError_msg", e.message)
+				} else {
+					throw e
+				}
+			}
+			return
+		}
 		const confirm = await Dialog.confirm("subscriptionSettingsKeep_msg")
 		if (confirm) {
 			const customerId = assertNotNull(locator.logins.getUserController().user.customer)
