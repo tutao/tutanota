@@ -460,6 +460,7 @@ o.spec("ProcessInboxHandler", function () {
 				verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
 				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
 				verify(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail), { times: 1 })
+				verify(inboxRuleHandler.getReadResultValue(matchingInboxRule), { times: 1 })
 				//FIXME check other inbox rule actions are applied
 
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
@@ -485,6 +486,7 @@ o.spec("ProcessInboxHandler", function () {
 				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
 				verify(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail), { times: 1 })
 				verify(inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule), { times: 1 })
+				verify(inboxRuleHandler.getReadResultValue(matchingInboxRule), { times: 0 })
 				//FIXME check other inbox rule actions are NOT applied
 
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
@@ -510,6 +512,7 @@ o.spec("ProcessInboxHandler", function () {
 				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
 				verify(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail), { times: 1 })
 				verify(inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule), { times: 1 })
+				verify(inboxRuleHandler.getReadResultValue(matchingInboxRule), { times: 0 })
 				//FIXME check other inbox rule actions are NOT applied
 
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
@@ -535,6 +538,7 @@ o.spec("ProcessInboxHandler", function () {
 				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
 				verify(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail), { times: 1 })
 				verify(inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule), { times: 1 })
+				verify(inboxRuleHandler.getReadResultValue(matchingInboxRule), { times: 1 })
 				//FIXME check other inbox rule actions are applied
 
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
@@ -560,6 +564,7 @@ o.spec("ProcessInboxHandler", function () {
 				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
 				verify(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail), { times: 1 })
 				verify(inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule), { times: 1 })
+				verify(inboxRuleHandler.getReadResultValue(matchingInboxRule), { times: 1 })
 				//FIXME check other inbox rule actions are applied
 
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
