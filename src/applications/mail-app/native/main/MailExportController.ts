@@ -244,6 +244,7 @@ export class MailExportController {
 									failures: currentState.failures + 1,
 								})
 							}
+							console.error(`Failure while exporting mail: ${mail._id.join("/")}`, e)
 							await this.exportFacade.saveMailboxExportFailure(this.userId, mailBag._id, mail._id)
 						}
 					}
