@@ -91,6 +91,10 @@ export function getInboxRuleResultTypeNameMapping(): SelectorItemList<InboxRuleR
 			value: InboxRuleResultType.EXCLUDE_SPAM,
 			name: lang.getTranslationText("inboxRuleExcludedFromSpamFilter_msg"),
 		},
+		{
+			value: InboxRuleResultType.READ,
+			name: lang.getTranslationText("markRead_action"),
+		},
 	]
 }
 

@@ -47,7 +47,7 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 	}
 
 	getReadResultValue(inboxRule: ExpandedInboxRule): boolean {
-		throw new ProgrammingError("not implemented.")
+		return inboxRule.results.some((result) => result.type === InboxRuleResultType.READ)
 	}
 
 	getExcludeSpamResultValue(inboxRule: ExpandedInboxRule): boolean {

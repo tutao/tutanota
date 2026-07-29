@@ -12,7 +12,7 @@ import { LoginController } from "../../../common/api/main/LoginController"
 import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFacade"
 import { LockedError } from "../../../../platform-kit/rest-client/error"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
-import { InboxRuleHandler } from "./InboxRuleHandler"
+import { InboxRuleHandler, SomeInboxRule } from "./InboxRuleHandler"
 import { extractServerClassifiers } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 
 EnvProvider.assertMainOrNode()
@@ -92,6 +92,7 @@ export class ProcessInboxHandler {
 
 		let targetFolder = sourceFolder
 		let applyInboxRuleResultActions = false
+		let matchingInboxRule: SomeInboxRule | null = null
 		const processInboxDatum: UnencryptedProcessInboxDatum = {
 			mailId: mail._id,
 			targetMoveFolder: sourceFolder._id,
@@ -122,7 +123,7 @@ export class ProcessInboxHandler {
 		if (targetFolder.folderType === MailSetKind.INBOX || skipPredictionReason === SkipClientSpamClassificationReason.None) {
 			// mail landed in Inbox or was moved to Spam folder by client side classification
 			const inboxRuleHandler = this.inboxRuleHandler()
-			const matchingInboxRule = await inboxRuleHandler.findMatchingInboxRule(mail, targetFolder)
+			matchingInboxRule = await inboxRuleHandler.findMatchingInboxRule(mail, targetFolder)
 
 			if (matchingInboxRule != null) {
 				const excludeFromSpam = inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule)
@@ -162,6 +163,10 @@ export class ProcessInboxHandler {
 		}
 
 		void this.sendProcessInboxServiceRequest(this.mailFacade)
+		//fixme: move applying result into ruleHandler, group mails and apply them
+		if (applyInboxRuleResultActions && matchingInboxRule && this.inboxRuleHandler().getReadResultValue(matchingInboxRule)) {
+			await this.mailFacade.markMails([mail._id], false)
+		}
 		/* FIXME: apply the rest of the actions if applyInboxRuleResultActions is true
 		 * Note: the move result action is applied through ProcessInboxService, so we only apply the rest of the actions
 		 * once the move is done because both move and label update the sets field on the mail.
