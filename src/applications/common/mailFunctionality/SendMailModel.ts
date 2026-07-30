@@ -940,9 +940,12 @@ export class SendMailModel {
 		}
 	}
 
-	setSendAtTime(sendAt: Time): void {
-		this.sendAt?.setHours(sendAt.hour)
-		this.sendAt?.setMinutes(sendAt.minute)
+	setSendAtTimeFromString(sendAt: string): void {
+		const time = Time.parseFromString(sendAt)
+		if (time) {
+			this.sendAt?.setHours(time.hour)
+			this.sendAt?.setMinutes(time.minute)
+		}
 	}
 
 	getSendAtStatus(): SendAtStatus {
