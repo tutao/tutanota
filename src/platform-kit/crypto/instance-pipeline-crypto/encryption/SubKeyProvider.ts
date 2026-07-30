@@ -1,10 +1,11 @@
 import { lazyMemoized, Nullable } from "@tutao/utils"
-import { InstanceTypeId, SymmetricKeyDeriver, SymmetricSubKeys } from "../../encryption/symmetric/SymmetricKeyDeriver"
+import { SymmetricKeyDeriver, SymmetricSubKeys } from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
 import { KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { VersionedAes256Key, VersionedKey } from "../../CryptoTypes"
 import { ProgrammingError } from "@tutao/app-env"
 import { AesKey } from "../../encryption/symmetric/AesKey"
+import { KeyDerivationContext } from "../../encryption/symmetric/AssociatedData"
 
 /**
  * Dummy class that can either hold SubKeyInfo or SubKeyProvider. As both are suitable to get the actual subkeys.
@@ -64,7 +65,7 @@ export class SubKeyProvider extends SubKeyFactory {
 	constructor(
 		public readonly subKeyInfo: SubKeyInfo,
 		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
-		private readonly instanceTypeId: InstanceTypeId,
+		private readonly keyDerivationContext: KeyDerivationContext,
 	) {
 		super()
 	}
@@ -82,22 +83,22 @@ export class SubKeyProvider extends SubKeyFactory {
 					return this.symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromGroupKey(
 						this.subKeyInfo.groupKey,
 						this.subKeyInfo.kdfNonce,
-						this.instanceTypeId,
+						this.keyDerivationContext,
 					)
 				} else if (this.subKeyInfo instanceof SubKeyInfoAeadWithInstanceKeyFromInstanceKey) {
-					return this.symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(this.subKeyInfo.instanceKey, this.instanceTypeId)
+					return this.symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(this.subKeyInfo.instanceKey, this.keyDerivationContext)
 				}
 				break
 			}
 			case SymmetricCipherVersion.AeadWithSessionKey: {
 				if (this.subKeyInfo instanceof SubKeyInfoWithSessionKeyAead) {
-					return this.symmetricKeyDeriver.deriveSubKeysAeadWithSessionKey(this.subKeyInfo.sessionKey, this.instanceTypeId)
+					return this.symmetricKeyDeriver.deriveSubKeysAeadWithSessionKey(this.subKeyInfo.sessionKey, this.keyDerivationContext)
 				}
 				break
 			}
 		}
 		throw new ProgrammingError(
-			`Encrypting ${this.instanceTypeId.app}/${this.instanceTypeId.name} with wrong subKeyInfo or with unsupported cipher version ${this.subKeyInfo.cipherVersion}`,
+			`Encrypting ${this.keyDerivationContext} with wrong subKeyInfo or with unsupported cipher version ${this.subKeyInfo.cipherVersion}`,
 		)
 	})
 }

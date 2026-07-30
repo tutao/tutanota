@@ -187,8 +187,8 @@ export interface ITypeInfo {
 	typeId: NumberString
 }
 
-//	pubEncBucketKey: null | Uint8Array
-// 	groupEncBucketKey: null | Uint8Array
+//	pubEncBucketKey: null | Uint8Array<ArrayBuffer>
+// 	groupEncBucketKey: null | Uint8Array<ArrayBuffer>
 // 	protocolVersion: NumberString
 // 	recipientKeyVersion: NumberString
 // 	senderKeyVersion: null | NumberString
