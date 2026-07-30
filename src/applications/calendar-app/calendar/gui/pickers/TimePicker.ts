@@ -64,11 +64,6 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	}
 
 	private renderNativeTimePicker(attrs: TimePickerAttrs): Children {
-		if (this.oldValue !== attrs.time?.to24HourString()) {
-			this.focused = true
-			attrs.onTimeSelected(Time.parseFromString(this.value))
-		}
-
 		// input[type=time] wants time in 24h format, no matter what is actually displayed. Otherwise it will be empty.
 		const timeAsString = attrs.time?.to24HourString() ?? ""
 		this.oldValue = timeAsString
