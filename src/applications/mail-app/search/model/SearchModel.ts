@@ -260,6 +260,9 @@ export class SearchModel {
 					const name = item.name.toLowerCase()
 
 					if (tokens.every((token) => name.includes(token)) && !resultItems.includes(item)) {
+						console.log(item.size)
+						console.log(item.mimeType)
+						console.log(item.updatedDate)
 						resultItems.push(item)
 					}
 				}
@@ -321,12 +324,10 @@ export class SearchModel {
 				const fileUpdates = updates.filter((update) => update.typeRef === DriveFileTypeRef)
 				const folderUpdates = updates.filter((update) => update.typeRef === DriveFolderTypeRef)
 				await this.applyEntityUpdates(DriveFileTypeRef, fileItems, fileUpdates, liveResult.updates)
-				//FIXME folder updates
-				//await this.applyEntityUpdates(DriveFolderTypeRef, folderItems, folderUpdates, liveResult.updates)
+				await this.applyEntityUpdates(DriveFolderTypeRef, folderItems, folderUpdates, liveResult.updates)
 			},
 		}
 		this.liveResults.push(liveResult)
-		console.log(liveResult.items)
 		return liveResult
 	}
 

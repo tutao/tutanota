@@ -1,5 +1,5 @@
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
-import { DriveFile, DriveFileTypeRef } from "@tutao/entities/drive"
+import { DriveFile, DriveFileTypeRef, DriveFolder } from "@tutao/entities/drive"
 import { SearchCategoryType } from "../api/worker/search/SearchTypes"
 import { EntityIdEncoding, sortCompareByReverseId, TypeRef } from "@tutao/meta"
 import { ListModel } from "../misc/ListModel"
@@ -10,7 +10,7 @@ import { isBrowser, isOfflineStorageAvailable } from "@tutao/app-env"
 import { InfoLink, lang } from "../../../ui/utils/LanguageViewModel"
 import { compareMails } from "../../mail-app/mail/model/MailUtils"
 
-export type SearchableTypes = Mail | Contact | CalendarEvent | DriveFile
+export type SearchableTypes = Mail | Contact | CalendarEvent | DriveFile | DriveFolder
 
 export enum PaidFunctionResult {
 	Success,
