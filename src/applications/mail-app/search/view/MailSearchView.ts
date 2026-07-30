@@ -957,6 +957,14 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 						},
 						icon: Icons.CalendarFilled,
 					},
+					{
+						label: "driveHome_label",
+						click: () => {
+							const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryType.drive)
+							m.route.set(href)
+						},
+						icon: Icons.DriveFilled,
+					},
 				],
 			}),
 		})

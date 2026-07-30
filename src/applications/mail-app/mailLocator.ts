@@ -172,6 +172,7 @@ import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarP
 import { MailSearchViewModel } from "./search/view/MailSearchViewModel"
 import { ContactSearchViewModel } from "./search/view/ContactSearchViewModel"
 import { CalendarSearchViewModel } from "../calendar-app/calendar/search/view/CalendarSearchViewModel"
+import { DriveSearchViewModel } from "../drive-app/search/view/DriveSearchViewModel"
 
 assertMainOrNode()
 
@@ -1452,6 +1453,12 @@ class MailLocator implements CommonLocator {
 				redraw,
 				offlineStorageSettings,
 			)
+	}
+	async driveSearchViewModelFactory(): Promise<() => DriveSearchViewModel> {
+		const { DriveSearchViewModel } = await import("../drive-app/search/view/DriveSearchViewModel.js")
+		const router = await this.scopedSearchRouter()
+		const dateProvider = await this.noZoneDateProvider()
+		return () => new DriveSearchViewModel(router, dateProvider)
 	}
 }
 

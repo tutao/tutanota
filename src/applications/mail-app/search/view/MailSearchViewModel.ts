@@ -59,14 +59,14 @@ export class MailSearchViewModel {
 	get conversationViewModel(): ConversationViewModel | null {
 		return this.#conversationViewModel
 	}
-	private _startDate: Date | null = null // null = aimed mail index date. this allows us to start the search (and the url) without end date set
+	#startDate: Date | null = null // null = aimed mail index date. this allows us to start the search (and the url) without end date set
 	get startDate(): Date | null {
-		return this._startDate ?? this.getAimedMailIndexDate()
+		return this.#startDate ?? this.getAimedMailIndexDate()
 	}
-	private _endDate: Date | null = null
+	#endDate: Date | null = null
 	get endDate(): Date {
-		if (this._endDate) {
-			return this._endDate
+		if (this.#endDate) {
+			return this.#endDate
 		} else {
 			return new Date(this.dateProvider.now())
 		}
@@ -179,8 +179,8 @@ export class MailSearchViewModel {
 		if (isNewSearch) {
 			this.searchResult?.dispose()
 			this.#selectedMailField = restriction.field
-			this._startDate = restriction.end ? new Date(restriction.end) : null
-			this._endDate = restriction.start ? new Date(restriction.start) : null
+			this.#startDate = restriction.end ? new Date(restriction.end) : null
+			this.#endDate = restriction.start ? new Date(restriction.start) : null
 			this.#selectedMailFolder = restriction.folderIds
 			this.latestMailRestriction = restriction
 
@@ -344,7 +344,7 @@ export class MailSearchViewModel {
 			return PaidFunctionResult.PaidSubscriptionNeeded
 		}
 
-		this._startDate = startDate
+		this.#startDate = startDate
 
 		// If start date is outside the indexed range, suggest to extend the index and only if confirmed change the selected date.
 		// Otherwise, keep the date as it was.
@@ -470,16 +470,16 @@ export class MailSearchViewModel {
 			newState.progress === 0 &&
 			newState.error == null &&
 			newState.currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
-			(this._startDate == null || this._startDate.getTime() < newState.currentMailIndexTimestamp)
+			(this.#startDate == null || this.#startDate.getTime() < newState.currentMailIndexTimestamp)
 		) {
 			// Indexing was cancelled and _startDate is outside the index range
 			const newStartTimestamp =
 				newState.currentMailIndexTimestamp === NOTHING_INDEXED_TIMESTAMP ? getEndOfDay(new Date()) : newState.currentMailIndexTimestamp
-			this._startDate = new Date(newStartTimestamp)
+			this.#startDate = new Date(newStartTimestamp)
 		}
 
 		const currentResult = this.search.result()
-		const isCurrentResultComplete = currentResult == null || (this._startDate != null && this._startDate.getTime() > currentResult.currentIndexTimestamp)
+		const isCurrentResultComplete = currentResult == null || (this.#startDate != null && this.#startDate.getTime() > currentResult.currentIndexTimestamp)
 
 		// only extend result when index is extended and result isn't already complete
 		if (!isCurrentResultComplete && currentResult.currentIndexTimestamp > newState.currentMailIndexTimestamp) {
@@ -570,7 +570,7 @@ export class MailSearchViewModel {
 			return PaidFunctionResult.PaidSubscriptionNeeded
 		}
 
-		this._endDate = endDate
+		this.#endDate = endDate
 
 		this.searchAgain()
 

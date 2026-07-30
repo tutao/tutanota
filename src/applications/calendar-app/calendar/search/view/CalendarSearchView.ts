@@ -66,12 +66,12 @@ import { MultiselectMode } from "../../../../../ui/base/List"
 import { CalendarSearchListView, CalendarSearchListViewAttrs } from "./CalendarSearchListView"
 import { renderSearchInOurApps } from "../../../../common/search/SearchUtils"
 
-export interface NewCalendarSearchViewAttrs extends TopLevelAttrs {
+export interface CalendarSearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
 	makeViewModel: () => CalendarSearchViewModel
 	drawerAttrs: DrawerMenuAttrs
 }
-export class CalendarSearchView extends BaseTopLevelView implements TopLevelView<NewCalendarSearchViewAttrs> {
+export class CalendarSearchView extends BaseTopLevelView implements TopLevelView<CalendarSearchViewAttrs> {
 	private readonly resultListColumn: ViewColumn
 	private readonly resultDetailsColumn: ViewColumn
 	private readonly folderColumn: ViewColumn
@@ -79,7 +79,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	private readonly searchViewModel: CalendarSearchViewModel
 	private readonly startOfTheWeekOffset: number
 
-	constructor(vnode: Vnode<NewCalendarSearchViewAttrs>) {
+	constructor(vnode: Vnode<CalendarSearchViewAttrs>) {
 		super()
 		this.searchViewModel = vnode.attrs.makeViewModel()
 		this.startOfTheWeekOffset = this.searchViewModel.getStartOfTheWeekOffset()
@@ -496,7 +496,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		m.redraw()
 	}
 
-	view({ attrs }: Vnode<NewCalendarSearchViewAttrs>): Children {
+	view({ attrs }: Vnode<CalendarSearchViewAttrs>): Children {
 		return m(
 			"#search.main-view",
 			m(this.viewSlider, {

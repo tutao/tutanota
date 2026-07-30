@@ -23,6 +23,7 @@ type ViewResolvers = {
 	mailSearch: RouteResolver
 	contactSearch: RouteResolver
 	calendarSearch: RouteResolver
+	driveSearch: RouteResolver
 }
 
 export function applicationPaths({
@@ -45,6 +46,7 @@ export function applicationPaths({
 	mailSearch,
 	contactSearch,
 	calendarSearch,
+	driveSearch,
 }: ViewResolvers): ApplicationPaths {
 	return {
 		"/login": login,
@@ -69,9 +71,8 @@ export function applicationPaths({
 		"/search/contact/:id": contactSearch,
 		"/search/calendar": calendarSearch,
 		"/search/calendar/:id": calendarSearch,
-		// FIXME: other search routes
-		// "/search/:category": search,
-		// "/search/:category/:id": search,
+		"/search/drive/": driveSearch,
+		"/search/drive/:id": driveSearch,
 		"/settings": settings,
 		"/settings/:folder": settings,
 		"/settings/:folder/:id": settings,

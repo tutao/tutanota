@@ -42,7 +42,6 @@ import { ContactViewModel } from "./contacts/view/ContactViewModel.js"
 import { ContactListViewModel } from "./contacts/view/ContactListViewModel.js"
 import { SettingsViewAttrs } from "../common/settings/Interfaces.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import { UndoModel } from "./UndoModel"
 import { CommonLocator } from "../common/api/main/CommonLocator"
 import { SignupView, SignupViewAttrs, SignupViewModel } from "../common/signup/SignupView"
@@ -72,9 +71,10 @@ import { MailSearchView, MailSearchViewAttrs } from "./search/view/MailSearchVie
 import { MailSearchViewModel } from "./search/view/MailSearchViewModel"
 import { ContactSearchView, ContactSearchViewAttrs } from "./search/view/ContactSearchView"
 import { ContactSearchViewModel } from "./search/view/ContactSearchViewModel"
-import { CalendarSearchView, NewCalendarSearchViewAttrs } from "../calendar-app/calendar/search/view/CalendarSearchView"
+import { CalendarSearchView, CalendarSearchViewAttrs } from "../calendar-app/calendar/search/view/CalendarSearchView"
 import { CalendarSearchViewModel } from "../calendar-app/calendar/search/view/CalendarSearchViewModel"
-import { calendarLocator } from "../calendar-app/calendarLocator"
+import { DriveSearchView, DriveSearchViewAttrs } from "../drive-app/search/view/DriveSearchView"
+import { DriveSearchViewModel } from "../drive-app/search/view/DriveSearchViewModel"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -669,7 +669,7 @@ import("../../ui/translations/en.js")
 				mailLocator.logins,
 			),
 			calendarSearch: makeViewResolver<
-				NewCalendarSearchViewAttrs,
+				CalendarSearchViewAttrs,
 				CalendarSearchView,
 				{ header: AppHeaderAttrs; drawerAttrsFactory: () => DrawerMenuAttrs; makeViewModel: () => CalendarSearchViewModel }
 			>(
@@ -680,6 +680,39 @@ import("../../ui/translations/en.js")
 						const makeViewModel = await mailLocator.calendarSearchViewModelFactory()
 						return {
 							component: CalendarSearchView,
+							cache: {
+								header: await mailLocator.appHeaderAttrs(),
+								drawerAttrsFactory,
+								makeViewModel,
+							},
+						}
+					},
+					prepareAttrs: (cache) => {
+						return {
+							header: cache.header,
+							drawerAttrs: cache.drawerAttrsFactory(),
+							makeViewModel: cache.makeViewModel,
+						}
+					},
+				},
+				mailLocator.logins,
+			),
+			driveSearch: makeViewResolver<
+				DriveSearchViewAttrs,
+				DriveSearchView,
+				{
+					drawerAttrsFactory: () => DrawerMenuAttrs
+					header: AppHeaderAttrs
+					makeViewModel: () => DriveSearchViewModel
+				}
+			>(
+				{
+					prepareRoute: async () => {
+						const { DriveSearchView } = await import("../drive-app/search/view/DriveSearchView.js")
+						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
+						const makeViewModel = await mailLocator.driveSearchViewModelFactory()
+						return {
+							component: DriveSearchView,
 							cache: {
 								header: await mailLocator.appHeaderAttrs(),
 								drawerAttrsFactory,

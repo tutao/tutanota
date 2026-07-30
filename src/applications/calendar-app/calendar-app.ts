@@ -41,7 +41,7 @@ import { initClientModels } from "../common/api/common/ClientModelInfoInitialize
 import { RevocationView, RevocationViewAttrs } from "../common/revocation/RevocationView"
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
 import { CalendarSearchBarAttrs } from "./LazyCalendarSearchBar"
-import { CalendarSearchView, NewCalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView"
+import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel"
 import { calendarLocator } from "./calendarLocator"
 
@@ -281,7 +281,7 @@ import("../../ui/translations/en.js")
 				calendarLocator.logins,
 			),
 			calendarSearch: makeViewResolver<
-				NewCalendarSearchViewAttrs,
+				CalendarSearchViewAttrs,
 				CalendarSearchView,
 				{ header: AppHeaderAttrs; drawerAttrsFactory: () => DrawerMenuAttrs; makeViewModel: () => CalendarSearchViewModel }
 			>(
