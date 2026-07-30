@@ -207,7 +207,7 @@ export class CalendarEventWhenModel {
 
 	/** return the duration of the event in minutes */
 	get duration(): { minutes: number } {
-		const duration = this.getStartDateTime().diff(this.getEventEndDateTime())
+		const duration = this.getStartDateTime().diff(this.getEndDateTime())
 		return { minutes: duration.as("minutes") }
 	}
 
@@ -468,7 +468,6 @@ export class CalendarEventWhenModel {
 		}
 
 		const repeatEndDate = incrementByRepeatPeriod(newRepeatEndDate, RepeatPeriod.DAILY, 1, this.getEndTimeZoneOrDefault())
-		// We pass this.calendarTimeZone because we use it to convert an all-day to local timezone.
 		if (repeatEndDate < this.getStartDateTime().toJSDate()) {
 			throw new UserError("startAfterEnd_label")
 		}
@@ -673,11 +672,7 @@ export class CalendarEventWhenModel {
 	}
 
 	getEndDateTime() {
-		return this.createDateTime(this._endDate, this._endTime, this.getEndTimeZoneOrDefault())
-	}
-
-	private getEventEndDateTime() {
-		const displayedEndDateTime = this.getEndDateTime()
+		const displayedEndDateTime = this.createDateTime(this._endDate, this._endTime, this.getEndTimeZoneOrDefault())
 		if (this._isAllDay) {
 			return displayedEndDateTime.plus({ day: 1 })
 		} else {
@@ -686,13 +681,13 @@ export class CalendarEventWhenModel {
 	}
 
 	hasValidStartBeforeEnd(): boolean {
-		return this.getStartDateTime().diff(this.getEventEndDateTime()).as("minutes") < 0
+		return this.getStartDateTime().diff(this.getEndDateTime()).as("minutes") < 0
 	}
 
 	get result() {
 		return {
 			startTime: this.getStartDateTime().toJSDate(),
-			endTime: this.getEventEndDateTime().toJSDate(),
+			endTime: this.getEndDateTime().toJSDate(),
 			repeatRule: this.getRepeatRuleOrNull(),
 			startTimeZone: this.timeZones.startTimeZone,
 			endTimeZone: this.timeZones.endTimeZone,
