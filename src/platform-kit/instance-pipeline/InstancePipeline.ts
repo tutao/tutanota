@@ -60,7 +60,7 @@ export class InstancePipeline {
 		ownerKey: Nullable<VersionedKey> = null,
 	): Promise<EncryptedParsedInstance> {
 		const parsedInstance = await this.modelMapper.mapToDecryptedInstance(instance)
-		return await this.cryptoMapper.encryptParsedInstance(parsedInstance, subKeyInfo, new RootPath(), ownerKey)
+		return await this.cryptoMapper.encryptParsedInstance(parsedInstance, subKeyInfo, new RootPath(parsedInstance.typeModel.app), ownerKey)
 	}
 
 	/**

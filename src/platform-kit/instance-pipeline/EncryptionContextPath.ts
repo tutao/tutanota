@@ -1,4 +1,4 @@
-import { AttributeId, ModelAssociation, ModelValue } from "@tutao/meta"
+import { AppName, AttributeId, ModelAssociation, ModelValue } from "@tutao/meta"
 import { Nullable } from "@tutao/utils"
 
 /**
@@ -21,6 +21,7 @@ abstract class Path {
 	protected readonly path: string
 
 	protected constructor(
+		readonly app: AppName,
 		parent: Nullable<Path>,
 		readonly hasBeenCutOff: boolean,
 		pathElement: string,
@@ -38,36 +39,36 @@ export abstract class InstancePath extends Path {
 		const isInDataTransferAggregation = modelAssociation.transferredAttributeId != null
 		const needsToGetCutOff = isInDataTransferAggregation && !this.hasBeenCutOff
 		const parent: Nullable<InstancePath> = needsToGetCutOff ? null : this
-		return AssociationPath.construct(parent, isInDataTransferAggregation, getId(modelAssociation))
+		return AssociationPath.construct(this.app, parent, isInDataTransferAggregation, getId(modelAssociation))
 	}
 
 	addValueId(modelValue: ModelValue): ValuePath {
 		const isInDataTransferAggregation = modelValue.transferredAttributeId != null
 		const needsToGetCutOff = isInDataTransferAggregation && !this.hasBeenCutOff
 		const parent: Nullable<InstancePath> = needsToGetCutOff ? null : this
-		return new ValuePath(parent, isInDataTransferAggregation, getId(modelValue))
+		return ValuePath.fromAttributeId(this.app, parent, isInDataTransferAggregation, getId(modelValue))
 	}
 }
 
 export class RootPath extends InstancePath {
-	constructor() {
-		super(null, false, "")
+	constructor(app: AppName) {
+		super(app, null, false, "")
 	}
 }
 
 export class AggregatePath extends InstancePath {
 	constructor(parent: AssociationPath, hasBeenCutOff: boolean, aggregateId: Id) {
-		super(parent, hasBeenCutOff, `${aggregateId}/`)
+		super(parent.app, parent, hasBeenCutOff, `${aggregateId}/`)
 	}
 }
 
 export class AssociationPath extends Path {
-	static construct(parent: Nullable<InstancePath>, hasBeenCutOff: boolean, attributeId: AttributeId): AssociationPath {
-		return new AssociationPath(parent, hasBeenCutOff, `${attributeId}/`)
+	static construct(app: AppName, parent: Nullable<InstancePath>, hasBeenCutOff: boolean, attributeId: AttributeId): AssociationPath {
+		return new AssociationPath(app, parent, hasBeenCutOff, `${attributeId}/`)
 	}
 
-	static fromPatchPath(pathString: string): AssociationPath {
-		return new AssociationPath(null, false, pathString)
+	static fromPatchPath(app: AppName, pathString: string): AssociationPath {
+		return new AssociationPath(app, null, false, pathString)
 	}
 
 	addAggregateId(aggregateId: Id): AggregatePath {
@@ -76,10 +77,13 @@ export class AssociationPath extends Path {
 }
 
 export class ValuePath extends Path {
-	constructor(parent: Nullable<InstancePath>, hasBeenCutOff: boolean, attributeId: AttributeId) {
-		super(parent, hasBeenCutOff, `${attributeId}`)
+	static fromAttributeId(app: AppName, parent: Nullable<InstancePath>, hasBeenCutOff: boolean, attributeId: AttributeId): ValuePath {
+		return new ValuePath(app, parent, hasBeenCutOff, `${attributeId}`)
 	}
 
+	static fromPatchPath(app: AppName, pathString: string) {
+		return new ValuePath(app, null, false, pathString)
+	}
 	getPath(): string {
 		return this.path
 	}

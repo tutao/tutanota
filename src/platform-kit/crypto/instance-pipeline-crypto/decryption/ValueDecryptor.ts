@@ -1,6 +1,6 @@
 import { KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { AesCbcFacade, PaddingStandard } from "../../encryption/symmetric/AesCbcFacade"
-import { AeadSubKeys, AesCbcSubKeys, InstanceTypeId, SymmetricKeyDeriver, SymmetricSubKeys } from "../../encryption/symmetric/SymmetricKeyDeriver"
+import { AeadSubKeys, AesCbcSubKeys, SymmetricKeyDeriver, SymmetricSubKeys } from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { AeadFacade } from "../../encryption/symmetric/AeadFacade"
 import {
 	ParsedCiphertext,
@@ -11,15 +11,9 @@ import {
 } from "../../encryption/symmetric/ParsedCiphertext"
 import { InstanceSubKeyCache } from "./SubKeyCache"
 import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
-import {
-	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_INSTANCE_KEY_DOMAIN,
-	AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN,
-	AesKey,
-	VersionedAes256Key,
-	VersionedKey,
-} from "@tutao/crypto"
+import { AesKey, KeyDerivationContext, VersionedAes256Key, VersionedKey } from "@tutao/crypto"
 import { ProgrammingError } from "@tutao/app-env"
-import { stringToUtf8Uint8Array } from "@tutao/utils"
+import { AssociatedData } from "../../encryption/symmetric/AssociatedData"
 
 /**`
  * Decrypts one attribute of one given instance.
@@ -40,8 +34,8 @@ export abstract class AeadValueDecryptor extends ValueDecryptor {
 		symmetricKeyDeriver: SymmetricKeyDeriver,
 		protected override readonly instanceSubKeyCache: InstanceSubKeyCache<AeadSubKeys>,
 		protected readonly aeadFacade: AeadFacade,
-		protected readonly instanceTypeId: InstanceTypeId,
-		protected readonly associatedData: Uint8Array<ArrayBuffer>,
+		protected readonly keyDerivationContext: KeyDerivationContext,
+		protected readonly associatedData: AssociatedData,
 	) {
 		super(parsedCiphertext, symmetricKeyDeriver, instanceSubKeyCache)
 	}
@@ -79,16 +73,15 @@ export class AeadWithInstanceKeyFromGroupKeyDecryptor extends AeadValueDecryptor
 		symmetricKeyDeriver: SymmetricKeyDeriver,
 		instanceSubKeyCache: InstanceSubKeyCache<AeadSubKeys>,
 		aeadFacade: AeadFacade,
-		instanceTypeId: InstanceTypeId,
-		fieldPath: string,
+		keyDerivationContext: KeyDerivationContext,
+		associatedData: AssociatedData,
 		private readonly kdfNonce: KdfNonce,
 		private readonly groupKey: VersionedKey,
 	) {
 		if (parsedCiphertext.groupKeyVersion !== groupKey.version) {
 			throw new ProgrammingError("Provided group key doesn't match the required version.")
 		}
-		const associatedData = stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_INSTANCE_KEY_DOMAIN + fieldPath)
-		super(parsedCiphertext, symmetricKeyDeriver, instanceSubKeyCache, aeadFacade, instanceTypeId, associatedData)
+		super(parsedCiphertext, symmetricKeyDeriver, instanceSubKeyCache, aeadFacade, keyDerivationContext, associatedData)
 	}
 
 	getValue(): Uint8Array<ArrayBuffer> {
@@ -98,7 +91,7 @@ export class AeadWithInstanceKeyFromGroupKeyDecryptor extends AeadValueDecryptor
 		}
 		let subKeys = this.instanceSubKeyCache.get(instanceAeadSubKeyCacheKey)
 		if (subKeys == null) {
-			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromGroupKey(this.groupKey, this.kdfNonce, this.instanceTypeId)
+			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromGroupKey(this.groupKey, this.kdfNonce, this.keyDerivationContext)
 			this.instanceSubKeyCache.set(instanceAeadSubKeyCacheKey, subKeys)
 		}
 		return this.aeadFacade.decrypt(subKeys, this.parsedCiphertext, this.associatedData)
@@ -111,12 +104,11 @@ export class AeadWithInstanceKeyFromInstanceKeyDecryptor extends AeadValueDecryp
 		symmetricKeyDeriver: SymmetricKeyDeriver,
 		instanceSubKeyCache: InstanceSubKeyCache<AeadSubKeys>,
 		aeadFacade: AeadFacade,
-		instanceTypeId: InstanceTypeId,
-		fieldPath: string,
+		keyDerivationContext: KeyDerivationContext,
+		associatedData: AssociatedData,
 		private readonly instanceKey: VersionedAes256Key,
 	) {
-		const associatedData = stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_INSTANCE_KEY_DOMAIN + fieldPath)
-		super(parsedCiphertext, symmetricKeyDeriver, instanceSubKeyCache, aeadFacade, instanceTypeId, associatedData)
+		super(parsedCiphertext, symmetricKeyDeriver, instanceSubKeyCache, aeadFacade, keyDerivationContext, associatedData)
 	}
 
 	getValue(): Uint8Array<ArrayBuffer> {
@@ -126,7 +118,7 @@ export class AeadWithInstanceKeyFromInstanceKeyDecryptor extends AeadValueDecryp
 		}
 		let subKeys = this.instanceSubKeyCache.get(instanceAeadSubKeyCacheKey)
 		if (subKeys == null) {
-			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(this.instanceKey, this.instanceTypeId)
+			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(this.instanceKey, this.keyDerivationContext)
 			this.instanceSubKeyCache.set(instanceAeadSubKeyCacheKey, subKeys)
 		}
 		return this.aeadFacade.decrypt(subKeys, this.parsedCiphertext, this.associatedData)
@@ -139,12 +131,11 @@ export class AeadWithSessionKeyDecryptor extends AeadValueDecryptor {
 		symmetricKeyDeriver: SymmetricKeyDeriver,
 		instanceSubKeyCache: InstanceSubKeyCache<AeadSubKeys>,
 		aeadFacade: AeadFacade,
-		instanceTypeId: InstanceTypeId,
-		fieldPath: string,
+		keyDerivationContext: KeyDerivationContext,
+		associatedData: AssociatedData,
 		private readonly sessionKey: AesKey,
 	) {
-		const associatedData = stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN + fieldPath)
-		super(parsedCiphertext, symmetricKeyDeriver, instanceSubKeyCache, aeadFacade, instanceTypeId, associatedData)
+		super(parsedCiphertext, symmetricKeyDeriver, instanceSubKeyCache, aeadFacade, keyDerivationContext, associatedData)
 	}
 	getValue(): Uint8Array<ArrayBuffer> {
 		const instanceAeadSubKeyCacheKey = {
@@ -153,7 +144,7 @@ export class AeadWithSessionKeyDecryptor extends AeadValueDecryptor {
 		}
 		let subKeys = this.instanceSubKeyCache.get(instanceAeadSubKeyCacheKey)
 		if (subKeys == null) {
-			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadWithSessionKey(this.sessionKey, this.instanceTypeId)
+			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadWithSessionKey(this.sessionKey, this.keyDerivationContext)
 			this.instanceSubKeyCache.set(instanceAeadSubKeyCacheKey, subKeys)
 		}
 		return this.aeadFacade.decrypt(subKeys, this.parsedCiphertext, this.associatedData)

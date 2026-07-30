@@ -145,8 +145,8 @@ export {
 	AesCbcSubKeys,
 	AesCbcThenHmacSubKeys,
 	UnusedReservedUnauthenticatedSubKeys,
-	type InstanceTypeId,
 } from "./encryption/symmetric/SymmetricKeyDeriver.js"
+export { type AssociatedData, type KeyDerivationContext } from "./encryption/symmetric/AssociatedData.js"
 export { SymmetricCipherVersion, getSymmetricCipherVersion } from "./encryption/symmetric/SymmetricCipherVersion.js"
 export { AesCbcFacade } from "./encryption/symmetric/AesCbcFacade.js"
 export * from "./CryptoTypes.js"

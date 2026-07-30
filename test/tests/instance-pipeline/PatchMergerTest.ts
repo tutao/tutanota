@@ -40,7 +40,7 @@ import {
 	OutOfOfficeNotificationRecipientListTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
-import { AttributeModel, EncryptedModelValue, Entity, idToElementId } from "../../../src/platform-kit/meta"
+import { AppName, AttributeModel, EncryptedModelValue, Entity, idToElementId } from "../../../src/platform-kit/meta"
 import { createPatch, Customer, CustomerTypeRef, Patch } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
 import { CacheManager } from "../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
@@ -50,6 +50,7 @@ import { InstanceSessionKeysCache } from "../../../src/platform-kit/base/base-cr
 import { InstanceDirection, ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { changeInstanceDirection } from "./InstancePipelineTestUtils"
 import { OutgoingServerJson } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
+import { ValuePath } from "../../../src/platform-kit/instance-pipeline/EncryptionContextPath"
 
 o.spec("PatchMergerTest", () => {
 	let sk: AesKey
@@ -64,6 +65,7 @@ o.spec("PatchMergerTest", () => {
 	let storage: CacheStorage
 	let customCacheHandlerMap: CustomCacheHandlerMap
 	let cryptoWrapper: CryptoWrapper
+	let app: AppName
 
 	o.beforeEach(async () => {
 		cryptoWrapper = new CryptoWrapper()
@@ -98,6 +100,8 @@ o.spec("PatchMergerTest", () => {
 		encryptedSessionKey = cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, sk)
 		when(keyLoaderFacadeMock.loadSymGroupKey(ownerGroupId, ownerGroupKey.version)).thenResolve(ownerGroupKey.object)
 		patchMerger = new PatchMerger(storage, instancePipeline, typeModelResolver, () => cryptoFacadePartialStub, SYMMETRIC_CIPHER_FACADE)
+
+		app = "testApplication"
 	})
 
 	async function toStorableInstance(entity: Entity): Promise<DecryptedParsedInstance> {
@@ -203,7 +207,7 @@ o.spec("PatchMergerTest", () => {
 			let plaintext: ParsedValue<DecryptedParsedInstance> = ParsedValue.fromString("new subject")
 			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
-			let ciphertext = patchMerger.instancePipeline.cryptoMapper.encryptValue(valueType, plaintext, subKeyProvider, "")
+			let ciphertext = patchMerger.instancePipeline.cryptoMapper.encryptValue(valueType, plaintext, subKeyProvider, ValuePath.fromPatchPath(app, ""))
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: subjectAttributeId.toString(),
@@ -234,7 +238,7 @@ o.spec("PatchMergerTest", () => {
 			const plaintext: ParsedValue<DecryptedParsedInstance> = ParsedValue.fromString(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
 			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
-			const ciphertext = patchMerger.instancePipeline.cryptoMapper.encryptValue(valueType, plaintext, subKeyProvider, "")
+			const ciphertext = patchMerger.instancePipeline.cryptoMapper.encryptValue(valueType, plaintext, subKeyProvider, ValuePath.fromPatchPath(app, ""))
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: encryptionAuthStatusAttributeId.toString(),
@@ -360,7 +364,12 @@ o.spec("PatchMergerTest", () => {
 			let plaintextParsedValue: ParsedValue<DecryptedParsedInstance> = ParsedValue.fromString("new name")
 			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
-			const ciphertext = patchMerger.instancePipeline.cryptoMapper.encryptValue(valueType, plaintextParsedValue, subKeyProvider, pathString)
+			const ciphertext = patchMerger.instancePipeline.cryptoMapper.encryptValue(
+				valueType,
+				plaintextParsedValue,
+				subKeyProvider,
+				ValuePath.fromPatchPath(app, pathString),
+			)
 			const patches: Array<Patch> = [
 				createPatch({
 					attributePath: pathString,

@@ -2,7 +2,7 @@ import { KeyVersion, Nullable } from "@tutao/utils"
 import { KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { AesCbcFacade } from "../../encryption/symmetric/AesCbcFacade"
 import { AeadFacade } from "../../encryption/symmetric/AeadFacade"
-import { AeadSubKeys, AesCbcSubKeys, InstanceTypeId, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
+import { AeadSubKeys, AesCbcSubKeys, SymmetricKeyDeriver } from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
 	AeadWithInstanceKeyFromGroupKeyDecryptor,
@@ -20,6 +20,7 @@ import {
 import { VersionedAes256Key, VersionedKey } from "../../CryptoTypes"
 import { InstanceSubKeyCache } from "./SubKeyCache"
 import { AesKey } from "../../encryption/symmetric/AesKey"
+import { AssociatedData, KeyDerivationContext } from "../../encryption/symmetric/AssociatedData"
 
 export interface OwnerKeyProvider {
 	(ownerKeyVersion: KeyVersion): Promise<AesKey>
@@ -34,13 +35,13 @@ export class InstanceDecryptor {
 		private readonly kdfNonce: Nullable<KdfNonce>,
 		private readonly instanceKey: Nullable<VersionedAes256Key>,
 		private readonly ownerKeyProvider: Nullable<OwnerKeyProvider>,
-		private readonly instanceTypeId: InstanceTypeId,
+		private readonly keyDerivationContext: KeyDerivationContext,
 		private readonly aesCbcFacade: AesCbcFacade,
 		private readonly aeadFacade: AeadFacade,
 		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
 	) {}
 
-	async getValueDecryptor(versionedCiphertext: Uint8Array<ArrayBuffer>, fieldPath: string): Promise<ValueDecryptor> {
+	async getValueDecryptor(versionedCiphertext: Uint8Array<ArrayBuffer>, associatedData: AssociatedData): Promise<ValueDecryptor> {
 		const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext)
 		if (parsedCiphertext instanceof ParsedCiphertextAesCbc) {
 			if (this.sessionKey == null) {
@@ -54,8 +55,8 @@ export class InstanceDecryptor {
 					this.symmetricKeyDeriver,
 					this.instanceAeadSubKeyCache,
 					this.aeadFacade,
-					this.instanceTypeId,
-					fieldPath,
+					this.keyDerivationContext,
+					associatedData,
 					this.instanceKey,
 				)
 			} else if (this.kdfNonce != null) {
@@ -65,8 +66,8 @@ export class InstanceDecryptor {
 					this.symmetricKeyDeriver,
 					this.instanceAeadSubKeyCache,
 					this.aeadFacade,
-					this.instanceTypeId,
-					fieldPath,
+					this.keyDerivationContext,
+					associatedData,
 					this.kdfNonce,
 					groupKey,
 				)
@@ -82,8 +83,8 @@ export class InstanceDecryptor {
 				this.symmetricKeyDeriver,
 				this.instanceAeadSubKeyCache,
 				this.aeadFacade,
-				this.instanceTypeId,
-				fieldPath,
+				this.keyDerivationContext,
+				associatedData,
 				this.sessionKey,
 			)
 		}
