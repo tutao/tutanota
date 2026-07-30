@@ -65,10 +65,6 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	}
 
 	private renderNativeTimePicker(attrs: TimePickerAttrs): Children {
-		if (this.oldValue !== attrs.time?.to24HourString()) {
-			this.onSelected(attrs)
-		}
-
 		// input[type=time] wants time in 24h format, no matter what is actually displayed. Otherwise it will be empty.
 		const timeAsString = attrs.time?.to24HourString() ?? ""
 		this.oldValue = timeAsString
@@ -89,7 +85,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				type: TextFieldType.Time,
 				style: {
 					zIndex: 1,
-					border: `2px solid ${theme.outline}`,
+					border: `2px solid ${attrs.valid ? theme.outline : theme.on_error_container}`,
 					width: "auto",
 					height: "auto",
 					appearance: "none",
@@ -170,7 +166,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				}
 
 				this.value = newValue.value
-				this.onSelected(attrs)
+				attrs.onTimeSelected(Time.parseFromString(this.value))
 				m.redraw.sync()
 			},
 			onclose: () => {
@@ -221,11 +217,15 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				}
 			},
 			onkeydown: (e: KeyboardEvent) => {
-				if (isKeyPressed(e.key, Keys.RETURN) && !this.isExpanded) {
-					this.focused = true
-					;(e.target as HTMLElement).parentElement?.click()
-					this.isExpanded = true
-					m.redraw.sync()
+				if (isKeyPressed(e.key, Keys.RETURN)) {
+					const active = document.activeElement as HTMLElement | null
+					active?.blur()
+
+					this.focused = false
+					attrs.onTimeSelected(Time.parseFromString(this.value))
+
+					e.preventDefault()
+					e.stopPropagation()
 				}
 			},
 			onfocus: () => {
@@ -233,8 +233,8 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			},
 			onblur: (e: any) => {
 				if (this.focused) {
-					this.onSelected(attrs)
 					this.focused = false
+					attrs.onTimeSelected(Time.parseFromString(this.value))
 				}
 
 				e.redraw = false
@@ -251,7 +251,9 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			},
 			label: attrs.ariaLabel,
 			value: this.value,
-			oninput: (val: string) => (this.value = val),
+			oninput: (val: string) => {
+				this.value = val
+			},
 			onclick: (e: MouseEvent) => {
 				e.stopImmediatePropagation()
 				if (!this.isExpanded) {
@@ -266,28 +268,24 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			},
 			onblur: (e) => {
 				if (this.focused) {
-					this.onSelected(attrs)
 					this.focused = false
+					attrs.onTimeSelected(Time.parseFromString(this.value))
 				}
 
 				e.redraw = false
 			},
 			keyHandler: (key) => {
 				if (isKeyPressed(key.key, Keys.RETURN)) {
-					this.onSelected(attrs)
 					const active = document.activeElement as HTMLElement | null
 					active?.blur()
+
+					this.focused = false
+					attrs.onTimeSelected(Time.parseFromString(this.value))
 				}
 
 				return true
 			},
 		})
-	}
-
-	private onSelected(attrs: TimePickerAttrs) {
-		this.focused = true
-
-		attrs.onTimeSelected(Time.parseFromString(this.value))
 	}
 
 	private getTimeStringInFormatFromAttrs(time: Time, attrs: TimePickerAttrs) {
