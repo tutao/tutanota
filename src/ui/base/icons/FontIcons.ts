@@ -19,4 +19,5 @@ export const FontIcons = Object.freeze({
 	ShieldFilled: `\uea11`,
 	BrokenShieldFilled: `\uea12`,
 	ScheduleMail: `\uea13`,
+	HouseFilled: `\uea14`,
 } as const)

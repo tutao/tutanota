@@ -55,7 +55,10 @@ export class PromotionRibbon implements Component<PromotionRibbonAttrs> {
 				},
 				campaignName === CAMPAIGN_NAME.DIGITAL_SOVEREIGNTY_2026_CAMPAIGN &&
 					m(Icon, {
-						icon: Icons.EuMinimal,
+						// NOTE (martin): this was Icons.EuMinimal which didn't exist in the icon specification (anymore?)
+						// so it was missing after running update-icons with recent master.
+						// This section can be probably discarded when rebasing.
+						icon: Icons.HouseFilled,
 						size: IconSize.PX20,
 					}),
 				translation.text,
