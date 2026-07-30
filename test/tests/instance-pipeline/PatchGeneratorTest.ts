@@ -1,4 +1,4 @@
-import o from "@tutao/otest"
+import o, { assertThrows } from "@tutao/otest"
 import {
 	dummyResolver,
 	TestAggregate,
@@ -16,7 +16,7 @@ import {
 	TypeModelResolver,
 } from "../../../src/platform-kit/instance-pipeline"
 import { aes256RandomKey, SubKeyInfoWithSessionKeyCbcThenHmac } from "../../../src/platform-kit/crypto"
-import { assertNotNull, base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "../../../src/platform-kit/utils"
+import { assertNotNull, base64ToUint8Array, stringToBase64, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "../../../src/platform-kit/utils"
 import { GENERATED_MAX_ID, GENERATED_MIN_ID, ValueTypeEnum } from "../../../src/platform-kit/meta"
 import { createTestEntityWithDummyResolver } from "../TestUtils"
 
@@ -25,6 +25,8 @@ import { object } from "testdouble"
 import { createPatch } from "@tutao/entities/sys"
 import { SYMMETRIC_CIPHER_FACADE } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
+import { OutgoingServerJson } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
+import { ProgrammingError } from "../../../src/platform-kit/app-env"
 
 o.spec("computePatches", function () {
 	const typeModelResolver: TypeModelResolver = object()
@@ -189,8 +191,8 @@ o.spec("computePatches", function () {
 		let sk = aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
-		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
-		let objectDiff = await patchGenerator.computePatches(originalParsedInstance, currentParsedInstance, currentUntypedInstance)
+		const currentEncryptedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
+		let objectDiff = await patchGenerator.computePatches(originalParsedInstance, currentParsedInstance, currentEncryptedInstance)
 		o(objectDiff).deepEquals([
 			createPatch({
 				attributePath: "4",
@@ -211,7 +213,7 @@ o.spec("computePatches", function () {
 		let objectDiff = await patchGenerator.computePatches(originalParsedInstance, currentParsedInstance, currentUntypedInstance)
 		o(objectDiff).deepEquals([
 			createPatch({
-				attributePath: "14",
+				attributePath: "17",
 				value: '[["listId","elementId"]]',
 				patchOperation: PatchOperationType.REPLACE,
 			}),
@@ -257,13 +259,15 @@ o.spec("computePatches", function () {
 		const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(currentParsedInstance, subKeyInfo)
 
-		const firstTestAssociationEncryptedInstance = currentEncryptedParsedInstance.getAttributeByName("testAssociation")[1]
-		const secondTestAssociationEncryptedInstance = currentEncryptedParsedInstance.getAttributeByName("testAssociation")[2]
-		let objectDiff = await patchGenerator.computePatches(originalParsedInstance, currentParsedInstance, currentEncryptedParsedInstance)
+		const changedAssociations = currentEncryptedParsedInstance
+			.getAttributeByName("testAssociation")
+			.asNestedObjList()
+			.map(async (assoc) => dummyInstancePipeline.typeMapper.makeServerJson(assoc))
+		const objectDiff = await patchGenerator.computePatches(originalParsedInstance, currentParsedInstance, currentEncryptedParsedInstance)
 		o(objectDiff).deepEquals([
 			createPatch({
 				attributePath: "3",
-				value: JSON.stringify([firstTestAssociationEncryptedInstance, secondTestAssociationEncryptedInstance]),
+				value: OutgoingServerJson.getJsonRepresentationOfMultiple((await Promise.all(changedAssociations)).slice(1)),
 				patchOperation: PatchOperationType.ADD_ITEM,
 			}),
 		])
@@ -294,19 +298,13 @@ o.spec("computePatches", function () {
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(currentParsedInstance, subKeyInfo)
-		const encryptedAssociationArray = currentEncryptedParsedInstance.getAttributeByName("testAssociation")
-		const testAssociationFirstEncryptedInstance = encryptedAssociationArray[0]
-		const testAssociationSecondEncryptedInstance = encryptedAssociationArray[1]
-		const testAssociationOriginalEncryptedInstance = encryptedAssociationArray[2]
+		const encryptedAssociationArray = currentEncryptedParsedInstance.getAttributeByName("testAssociation").asNestedObjList()
+		const serverJson = encryptedAssociationArray.map(async (agg) => dummyInstancePipeline.typeMapper.makeServerJson(agg))
 		let objectDiff = await patchGenerator.computePatches(originalParsedInstance, currentParsedInstance, currentEncryptedParsedInstance)
 		o(objectDiff).deepEquals([
 			createPatch({
 				attributePath: "3",
-				value: JSON.stringify([
-					testAssociationFirstEncryptedInstance,
-					testAssociationSecondEncryptedInstance,
-					testAssociationOriginalEncryptedInstance,
-				]),
+				value: OutgoingServerJson.getJsonRepresentationOfMultiple(await Promise.all(serverJson)),
 				patchOperation: PatchOperationType.REPLACE,
 			}),
 		])
@@ -381,13 +379,14 @@ o.spec("computePatches", function () {
 		const currentEncryptedParsedInstance = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(currentParsedInstance, subKeyInfo)
 
 		const testAggregateEncrypted = currentEncryptedParsedInstance.getAttributeByName("testAssociation").asNestedObjList()[0]
-		const addedTestAggregateOnAggregateEncrypted = testAggregateEncrypted.getAttributeByName("testZeroOrOneAggregation")[0]
+		const addedTestAggregateOnAggregateEncrypted = testAggregateEncrypted.getAttributeByName("testZeroOrOneAggregation").asNestedObjList()[0]
+		const serverJson = await dummyInstancePipeline.typeMapper.makeServerJson(addedTestAggregateOnAggregateEncrypted)
 
 		let objectDiff = await patchGenerator.computePatches(originalParsedInstance, currentParsedInstance, currentEncryptedParsedInstance)
 		o(objectDiff).deepEquals([
 			createPatch({
 				attributePath: "3/aggId/10",
-				value: JSON.stringify([addedTestAggregateOnAggregateEncrypted]),
+				value: OutgoingServerJson.getJsonRepresentationOfMultiple([serverJson]),
 				patchOperation: PatchOperationType.REPLACE,
 			}),
 		])
@@ -405,12 +404,13 @@ o.spec("computePatches", function () {
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
 		const testAssociationEncrypted = currentEncryptedParsedInstance.getAttributeByName("testAssociation").asNestedObjList()[0]
 
-		const addedTestAggregateOnAggregateEncrypted = testAssociationEncrypted[0].getAttributeByName("testZeroOrOneAggregation")[0]
+		const addedTestAggregateOnAggregateEncrypted = testAssociationEncrypted.getAttributeByName("testZeroOrOneAggregation").asNestedObjList()[0]
+		const serverJson = await dummyInstancePipeline.typeMapper.makeServerJson(addedTestAggregateOnAggregateEncrypted)
 		let objectDiff = await patchGenerator.computePatches(originalParsedInstance, currentParsedInstance, currentUntypedInstance)
 		o(objectDiff).deepEquals([
 			createPatch({
 				attributePath: "3/aggId/10",
-				value: JSON.stringify([addedTestAggregateOnAggregateEncrypted]),
+				value: OutgoingServerJson.getJsonRepresentationOfMultiple([serverJson]),
 				patchOperation: PatchOperationType.REPLACE,
 			}),
 		])
@@ -430,18 +430,19 @@ o.spec("computePatches", function () {
 
 		const testAggregateEncrypted = currentEncryptedParsedInstance.getAttributeByName("testAssociation").asNestedObjList()[0]
 		const addedTestAggregateOnAggregateEncrypted = testAggregateEncrypted.getAttributeByName("testSecondLevelAssociation").asNestedObjList()[1]
+		const serverJson = await dummyInstancePipeline.typeMapper.makeServerJson(addedTestAggregateOnAggregateEncrypted)
 
 		let objectDiff = await patchGenerator.computePatches(originalParsedInstance, currentParsedInstance, currentEncryptedParsedInstance)
 		o(objectDiff).deepEquals([
 			createPatch({
 				attributePath: "3/aggId/9",
-				value: JSON.stringify([addedTestAggregateOnAggregateEncrypted]),
+				value: OutgoingServerJson.getJsonRepresentationOfMultiple([serverJson]),
 				patchOperation: PatchOperationType.ADD_ITEM,
 			}),
 		])
 	})
 
-	o("computePatches works on aggregates on aggregations and removeitem operation", async function () {
+	o("computePatches works on aggregates on aggregations and removei" + "tem operation", async function () {
 		const testEntity = await createFilledTestEntity()
 
 		testEntity.testAssociation[0].testSecondLevelAssociation.pop()
@@ -500,7 +501,7 @@ o.spec("computePatches", function () {
 			testFinalBoolean: true,
 		})
 	}
-	o("areValuesDifferent works as expected", function () {
+	o("areValuesDifferent works as expected", async function () {
 		o(patchGenerator.areValuesDifferent(ValueTypeEnum.String, ParsedValue.fromString("example"), ParsedValue.fromString("example"))).equals(false)
 		o(patchGenerator.areValuesDifferent(ValueTypeEnum.String, ParsedValue.fromString("example"), ParsedValue.fromString("different"))).equals(true)
 		o(patchGenerator.areValuesDifferent(ValueTypeEnum.Number, ParsedValue.fromString("123"), ParsedValue.fromString("123"))).equals(false)
@@ -508,29 +509,29 @@ o.spec("computePatches", function () {
 		o(
 			patchGenerator.areValuesDifferent(
 				ValueTypeEnum.Bytes,
-				ParsedValue.fromByteArray(base64ToUint8Array("byte")),
-				ParsedValue.fromByteArray(base64ToUint8Array("byte")),
+				ParsedValue.fromByteArray(base64ToUint8Array(stringToBase64("byte"))),
+				ParsedValue.fromByteArray(base64ToUint8Array(stringToBase64("byte"))),
 			),
 		).equals(false)
 		o(
 			patchGenerator.areValuesDifferent(
 				ValueTypeEnum.Bytes,
-				ParsedValue.fromByteArray(base64ToUint8Array("byte")),
-				ParsedValue.fromByteArray(base64ToUint8Array("different")),
+				ParsedValue.fromByteArray(base64ToUint8Array(stringToBase64("byte"))),
+				ParsedValue.fromByteArray(base64ToUint8Array(stringToBase64("different"))),
 			),
 		).equals(true)
 		o(
 			patchGenerator.areValuesDifferent(
 				ValueTypeEnum.Date,
-				ParsedValue.fromString(new Date(2025, 6, 6).toString()),
-				ParsedValue.fromString(new Date(2025, 6, 6).toString()),
+				ParsedValue.fromString(new Date(2025, 6, 6).getTime().toString()),
+				ParsedValue.fromString(new Date(2025, 6, 6).getTime().toString()),
 			),
 		).equals(false)
 		o(
 			patchGenerator.areValuesDifferent(
 				ValueTypeEnum.Date,
-				ParsedValue.fromString(new Date(2025, 6, 6).toString()),
-				ParsedValue.fromString(new Date(2025, 6, 5).toString()),
+				ParsedValue.fromString(new Date(2025, 6, 6).getTime().toString()),
+				ParsedValue.fromString(new Date(2025, 6, 5).getTime().toString()),
 			),
 		).equals(true)
 		o(patchGenerator.areValuesDifferent(ValueTypeEnum.Boolean, ParsedValue.fromBoolean(true), ParsedValue.fromBoolean(true))).equals(false)
@@ -538,21 +539,16 @@ o.spec("computePatches", function () {
 		o(
 			patchGenerator.areValuesDifferent(ValueTypeEnum.GeneratedId, ParsedValue.fromString(GENERATED_MIN_ID), ParsedValue.fromString(GENERATED_MIN_ID)),
 		).equals(false)
-		o(patchGenerator.areValuesDifferent(ValueTypeEnum.GeneratedId, ParsedValue.fromId(GENERATED_MIN_ID), ParsedValue.fromId(GENERATED_MIN_ID))).equals(true)
-		o(
+		o(patchGenerator.areValuesDifferent(ValueTypeEnum.GeneratedId, ParsedValue.fromId(GENERATED_MIN_ID), ParsedValue.fromId(GENERATED_MAX_ID))).equals(true)
+		const programmingError = await assertThrows(ProgrammingError, async () =>
 			patchGenerator.areValuesDifferent(
 				ValueTypeEnum.GeneratedId,
 				ParsedValue.fromIdTuple([GENERATED_MIN_ID, GENERATED_MIN_ID]),
 				ParsedValue.fromIdTuple([GENERATED_MIN_ID, GENERATED_MIN_ID]),
 			),
-		).equals(false)
-		o(
-			patchGenerator.areValuesDifferent(
-				ValueTypeEnum.GeneratedId,
-				ParsedValue.fromIdTuple([GENERATED_MIN_ID, GENERATED_MIN_ID]),
-				ParsedValue.fromIdTuple([GENERATED_MIN_ID, GENERATED_MAX_ID]),
-			),
-		).equals(true)
+		)
+		o(programmingError.message).equals("Possibly patching IdTuple on _id ------------,------------")
+
 		o(patchGenerator.areValuesDifferent(ValueTypeEnum.CustomId, ParsedValue.fromString("customId"), ParsedValue.fromString("customId"))).equals(false)
 		o(patchGenerator.areValuesDifferent(ValueTypeEnum.CustomId, ParsedValue.fromString("customId"), ParsedValue.fromString("differentCustomId"))).equals(
 			true,

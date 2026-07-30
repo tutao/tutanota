@@ -9,9 +9,9 @@ o.spec("ParsedValueTest", () => {
 		o(ParsedValue.fromByteArray(bytes)).deepEquals(ParsedValue.fromString(uint8ArrayToBase64(bytes)))
 	})
 
-	o("gettingAs byte array base64 decodes the string", async () => {
+	o("asByteArray base64 decodes the string", async () => {
 		const bytes = random.generateRandomData(10)
-		o(ParsedValue.fromByteArray(bytes).asByteArray()).equals(bytes)
+		o(ParsedValue.fromByteArray(bytes).asByteArray()).deepEquals(bytes)
 
 		const err = await assertThrows(Error, async () => ParsedValue.fromString("non-base64-encoded").asByteArray())
 		o(err.message.startsWith("invalid base64 length")).equals(true)
