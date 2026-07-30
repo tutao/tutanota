@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { AeadWithSessionKeySubKeys, PADDING_BYTE, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
+import { AeadWithSessionKeySubKeys, PADDING_BYTE } from "../../../src/platform-kit/crypto"
 import { AeadSubKeys } from "@tutao/crypto/symmetric-key-deriver"
 import { aes256RandomKey, INITIALIZATION_VECTOR_LENGTH_BYTES, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES } from "@tutao/crypto/symmetric-cipher-utils"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
@@ -7,13 +7,17 @@ import { concat } from "../../../src/platform-kit/utils"
 import { DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES } from "@tutao/crypto/blake3"
 import { ParsedCiphertextAead, parseVersionedCiphertext } from "../../../src/platform-kit/crypto/encryption/symmetric/ParsedCiphertext"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { AssociatedData } from "../../../src/platform-kit/crypto/encryption/symmetric/AssociatedData"
 
 o.spec("AeadFacadeTest", function () {
 	let aeadFacade: AeadFacade
 	let keys: AeadSubKeys
-	const associatedData = Uint8Array.from([9, 8, 7, 6])
+	const associatedData: AssociatedData = {
+		asBytes() {
+			return Uint8Array.from([9, 8, 7, 6])
+		},
+	}
 	const plaintext = Uint8Array.from([15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0])
-	const cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
 	o.beforeEach(function () {
 		aeadFacade = new AeadFacade()
 		const encryptionKey = aes256RandomKey()
@@ -31,18 +35,28 @@ o.spec("AeadFacadeTest", function () {
 		// we make sure that data is treated differently depending on whether it is part of the associated data or the ciphertext. this ensures a canonical form.
 		const versionedCiphertext = aeadFacade.encrypt(keys, plaintext, associatedData)
 		const wrongVersionedCiphertext = versionedCiphertext.subarray(0, versionedCiphertext.length - 4)
-		const wrongAssociatedData = concat(versionedCiphertext.subarray(versionedCiphertext.length - 4), associatedData)
-		o(concat(versionedCiphertext, associatedData)).deepEquals(concat(wrongVersionedCiphertext, wrongAssociatedData))
+		const wrongAssociatedData: AssociatedData = {
+			asBytes() {
+				return concat(versionedCiphertext.subarray(versionedCiphertext.length - 4), associatedData.asBytes(keys.cipherVersion))
+			},
+		}
+		o(concat(versionedCiphertext, associatedData.asBytes(keys.cipherVersion))).deepEquals(
+			concat(wrongVersionedCiphertext, wrongAssociatedData.asBytes(keys.cipherVersion)),
+		)
 		const parsedWrongCiphertext = parseVersionedCiphertext(wrongVersionedCiphertext) as ParsedCiphertextAead
 		const e = await assertThrows(CryptoError, async () => aeadFacade.decrypt(keys, parsedWrongCiphertext, wrongAssociatedData))
 		o(e.message).equals("invalid mac")
 	})
 
 	o("encrypt_empty_associated_data", async function () {
-		const emptyAd = new Uint8Array()
-		const versionedCiphertext = aeadFacade.encrypt(keys, plaintext, emptyAd)
+		const emptyAssociatedData: AssociatedData = {
+			asBytes() {
+				return new Uint8Array()
+			},
+		}
+		const versionedCiphertext = aeadFacade.encrypt(keys, plaintext, emptyAssociatedData)
 		const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextAead
-		const decrypted = aeadFacade.decrypt(keys, parsedCiphertext, emptyAd)
+		const decrypted = aeadFacade.decrypt(keys, parsedCiphertext, emptyAssociatedData)
 		o(plaintext).deepEquals(decrypted)
 	})
 
@@ -55,7 +69,11 @@ o.spec("AeadFacadeTest", function () {
 	})
 
 	o("decrypt_with_invalid_associated_data", async function () {
-		const wrongAd = Uint8Array.from([2, 3, 4])
+		const wrongAd: AssociatedData = {
+			asBytes() {
+				return Uint8Array.from([2, 3, 4])
+			},
+		}
 		const versionedCiphertext = aeadFacade.encrypt(keys, plaintext, associatedData)
 		const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextAead
 		const e = await assertThrows(CryptoError, async () => aeadFacade.decrypt(keys, parsedCiphertext, wrongAd))

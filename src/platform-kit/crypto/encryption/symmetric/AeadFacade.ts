@@ -7,6 +7,7 @@ import { CryptoError } from "../../error.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { ParsedCiphertextAead } from "./ParsedCiphertext"
 import { SymmetricCipherVersion } from "./SymmetricCipherVersion"
+import { AssociatedData } from "./AssociatedData"
 
 export const PADDING_BLOCK_SIZE: number = 4
 export const PADDING_BYTE: number = 0x80
@@ -52,7 +53,7 @@ export class AeadFacade {
 	/**
 	 * Encrypt with AEAD.
 	 */
-	encrypt(subKeys: AeadSubKeys, plaintext: Uint8Array, associatedData: Uint8Array): Uint8Array {
+	encrypt(subKeys: AeadSubKeys, plaintext: Uint8Array, associatedData: AssociatedData): Uint8Array {
 		const paddedPlaintext = this.pad(plaintext)
 		return this.encryptInternal(subKeys, paddedPlaintext, associatedData)
 	}
@@ -61,7 +62,7 @@ export class AeadFacade {
 	 * Encrypt the plaintext with AEAD. It must already be padded.
 	 * @private
 	 */
-	encryptInternal(subKeys: AeadSubKeys, plaintext: Uint8Array, associatedData: Uint8Array): Uint8Array {
+	encryptInternal(subKeys: AeadSubKeys, plaintext: Uint8Array, associatedData: AssociatedData): Uint8Array {
 		const initializationVector = generateInitializationVector()
 		const aesCtrCiphertext = bitArrayToUint8Array(
 			sjcl.mode.ctr.encrypt(
@@ -76,7 +77,10 @@ export class AeadFacade {
 		const initializationVectorAndCiphertextLength = this.getSigned32BitIntegerFromNumberAsUint8Array(initializationVectorAndCiphertext.length)
 
 		const authenticationKey = keyToUint8Array(subKeys.authenticationKey)
-		const tag = blake3Mac(authenticationKey, concat(initializationVectorAndCiphertextLength, initializationVectorAndCiphertext, associatedData))
+		const tag = blake3Mac(
+			authenticationKey,
+			concat(initializationVectorAndCiphertextLength, initializationVectorAndCiphertext, associatedData.asBytes(subKeys.cipherVersion)),
+		)
 
 		return concat(this.ciphertextVersionPrefix(subKeys), initializationVectorAndCiphertext, tag)
 	}
@@ -99,14 +103,18 @@ export class AeadFacade {
 	/**
 	 * Decrypt with AEAD.
 	 */
-	decrypt(subKeys: AeadSubKeys, parsedCiphertext: ParsedCiphertextAead, associatedData: Uint8Array): Uint8Array {
+	decrypt(subKeys: AeadSubKeys, parsedCiphertext: ParsedCiphertextAead, associatedData: AssociatedData): Uint8Array {
 		if (subKeys.cipherVersion !== parsedCiphertext.cipherVersion) {
 			throw new CryptoError("AEAD sub-keys have the wrong cipher version for decryption")
 		}
 
 		const initializationVectorAndCiphertext = concat(parsedCiphertext.initializationVector.bytes, parsedCiphertext.ciphertext)
 		const initializationVectorAndCiphertextLength = this.getSigned32BitIntegerFromNumberAsUint8Array(initializationVectorAndCiphertext.length)
-		const authenticatedData = concat(initializationVectorAndCiphertextLength, initializationVectorAndCiphertext, associatedData)
+		const authenticatedData = concat(
+			initializationVectorAndCiphertextLength,
+			initializationVectorAndCiphertext,
+			associatedData.asBytes(parsedCiphertext.cipherVersion),
+		)
 		const authenticationKey = keyToUint8Array(subKeys.authenticationKey)
 		blake3MacVerify(authenticationKey, authenticatedData, parsedCiphertext.macTag)
 

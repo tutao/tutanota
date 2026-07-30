@@ -17,7 +17,6 @@ import {
 import {
 	AesKey,
 	InstanceDecryptor,
-	InstanceTypeId,
 	OwnerKeyProvider,
 	SymmetricCipherFacade,
 	validateKdfNonceLength,
@@ -30,7 +29,8 @@ import { TypeModelResolver } from "./EntityFunctions"
 import { Patch, UserTypeRef } from "@tutao/entities/sys"
 import { EntityUpdateData } from "./utils/EntityUpdateUtils"
 import { IncomingServerJson } from "./TypeMapper"
-import { AssociationPath } from "./EncryptionContextPath"
+import { AssociationPath, ValuePath } from "./EncryptionContextPath"
+import { InstanceTypeId, makeKeyDerivationContext } from "./InstanceTypeContext"
 
 export interface OwnerEncSessionKeyProvider {
 	(instanceElementId: Id, entity: Entity): Promise<VersionedEncryptedKey>
@@ -109,7 +109,8 @@ export class PatchMerger {
 				name: instanceType.typeId.toString(),
 			}
 			const ownerKeyProvider = this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(ownerGroup)
-			const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(instanceTypeId, sk, kdfNonce, ownerKeyProvider, null)
+			const keyDerivationContext = makeKeyDerivationContext(instanceTypeId)
+			const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, sk, kdfNonce, ownerKeyProvider, null)
 			// We need to preserve the order of patches, so no promiseMap here
 			for (const patch of patches) {
 				const appliedSuccessfully = await this.applySinglePatch(parsedInstance, typeModel, patch, instanceDecryptor)
@@ -335,7 +336,7 @@ export class PatchMerger {
 
 		if (isValue) {
 			const encryptedValueInfo = typeModel.values[attributeId]
-			return this.instancePipeline.cryptoMapper.decryptValue(encryptedValueInfo, valueInPatchPayload, instanceDecryptor, attributePatchPath)
+			return this.instancePipeline.cryptoMapper.decryptValue(encryptedValueInfo, valueInPatchPayload, instanceDecryptor, ValuePath.fromPatchPath(typeModel.app, attributePatchPath))
 		}
 
 		const associationReprType = getAssociationRepresentationType(typeModel.associations[attributeId].type)
@@ -344,7 +345,7 @@ export class PatchMerger {
 				const decryptedAggregates = await this.instancePipeline.cryptoMapper.decryptAggregateAssociation(
 					valueInPatchPayload.asNestedObjList(),
 					instanceDecryptor,
-					AssociationPath.fromPatchPath(attributePatchPath),
+					AssociationPath.fromPatchPath(typeModel.app, attributePatchPath),
 				)
 				if (this.instancePipeline.cryptoMapper.containErrors(decryptedAggregates)) {
 					// we do not want to apply a patch that failed decryption

@@ -23,7 +23,6 @@ import {
 	hmacSha256,
 	hmacSha256Async,
 	INITIALIZATION_VECTOR_LENGTH_BYTES,
-	InstanceTypeId,
 	KeyLength,
 	keyToUint8Array,
 	kyberPrivateKeyToBytes,
@@ -77,6 +76,8 @@ import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-p
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { uncompress } from "../../../../../src/platform-kit/instance-pipeline/Compression"
+import { AssociatedData } from "../../../../../src/platform-kit/crypto/encryption/symmetric/AssociatedData"
+import { InstanceTypeId, makeKeyDerivationContext } from "../../../../../src/platform-kit/instance-pipeline/InstanceTypeContext"
 
 const originalRandom = random.generateRandomData
 
@@ -224,7 +225,11 @@ o.spec("CompatibilityTest", function () {
 			const authenticationKey = uint8ArrayToKey(hexToUint8Array(td.authenticationKey), AesKeyLength.Aes256)
 			const subKeys = new AeadWithSessionKeySubKeys(encryptionKey, authenticationKey)
 			const plaintext = base64ToUint8Array(td.plaintextBase64)
-			const associatedData = base64ToUint8Array(td.associatedData)
+			const associatedData: AssociatedData = {
+				asBytes() {
+					return base64ToUint8Array(td.associatedData)
+				},
+			}
 			const versionedCiphertext = base64ToUint8Array(td.ciphertextBase64)
 			const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextAead
 			const plaintextKey = hexToUint8Array(td.plaintextKey)
@@ -491,8 +496,9 @@ o.spec("CompatibilityTest", function () {
 					id: filterInt(splitGlobalInstanceTypeId[1]),
 					name: "name",
 				}
+				const keyDerivationContext = makeKeyDerivationContext(instanceTypeId)
 				const groupKey256 = freshVersioned(uint8ArrayToKey(hexToUint8Array(td.groupKey256Hex)))
-				const keysFrom256 = symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromGroupKey(groupKey256, kdfNonce, instanceTypeId)
+				const keysFrom256 = symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromGroupKey(groupKey256, kdfNonce, keyDerivationContext)
 				o.check(keysFrom256).deepEquals({
 					cipherVersion: SymmetricCipherVersion.AeadWithInstanceKey,
 					groupKeyVersion: 0,
@@ -502,11 +508,11 @@ o.spec("CompatibilityTest", function () {
 
 				const instanceKeyFrom256 = symmetricKeyDeriver.deriveInstanceKey(groupKey256, kdfNonce)
 				o.check(instanceKeyFrom256).deepEquals(freshVersioned(uint8ArrayToKey(hexToUint8Array(td.instanceKeyFrom256Hex), AesKeyLength.Aes256)))
-				const keysFromInstanceKey256 = symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(instanceKeyFrom256, instanceTypeId)
+				const keysFromInstanceKey256 = symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(instanceKeyFrom256, keyDerivationContext)
 				o.check(keysFromInstanceKey256).deepEquals(keysFrom256)
 
 				const groupKey128 = freshVersioned(uint8ArrayToKey(hexToUint8Array(td.groupKey128Hex)))
-				const keysFrom128 = symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromGroupKey(groupKey128, kdfNonce, instanceTypeId)
+				const keysFrom128 = symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromGroupKey(groupKey128, kdfNonce, keyDerivationContext)
 				o.check(keysFrom128).deepEquals({
 					cipherVersion: SymmetricCipherVersion.AeadWithInstanceKey,
 					groupKeyVersion: 0,
@@ -516,12 +522,12 @@ o.spec("CompatibilityTest", function () {
 
 				const instanceKeyFrom128 = symmetricKeyDeriver.deriveInstanceKey(groupKey128, kdfNonce)
 				o.check(instanceKeyFrom128).deepEquals(freshVersioned(uint8ArrayToKey(hexToUint8Array(td.instanceKeyFrom128Hex), AesKeyLength.Aes256)))
-				const keysFromInstanceKey128 = symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(instanceKeyFrom128, instanceTypeId)
+				const keysFromInstanceKey128 = symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(instanceKeyFrom128, keyDerivationContext)
 				o.check(keysFromInstanceKey128).deepEquals(keysFrom128)
 
 				const keysFromSessionKey = symmetricKeyDeriver.deriveSubKeysAeadWithSessionKey(
 					uint8ArrayToKey(hexToUint8Array(td.sessionKeyHex)),
-					instanceTypeId,
+					keyDerivationContext,
 				)
 				o.check(keysFromSessionKey).deepEquals({
 					cipherVersion: SymmetricCipherVersion.AeadWithSessionKey,

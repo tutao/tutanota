@@ -11,12 +11,13 @@ import { SymmetricCipherVersion } from "../encryption/symmetric/SymmetricCipherV
 import { Nullable } from "@tutao/utils"
 import { Aes128Key, Aes256Key, AesKey, AesKeyLength, AesKeyOrSubKeys } from "../encryption/symmetric/AesKey"
 import { AEAD_FACADE, AeadFacade } from "../encryption/symmetric/AeadFacade.js"
-import { AeadSubKeys, AesCbcSubKeys, InstanceTypeId, SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver } from "../encryption/symmetric/SymmetricKeyDeriver.js"
+import { AeadSubKeys, AesCbcSubKeys, SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver } from "../encryption/symmetric/SymmetricKeyDeriver.js"
 import { SubKeyFactory, SubKeyInfo, SubKeyProvider } from "./encryption/SubKeyProvider"
 import { InstanceDecryptor, OwnerKeyProvider } from "./decryption/InstanceDecryptor"
 import { InitializationVectorVariant, ParsedCiphertextAesCbc, parseVersionedCiphertext } from "../encryption/symmetric/ParsedCiphertext"
 import { ProgrammingError } from "@tutao/app-env"
 import { VersionedAes256Key } from "../CryptoTypes"
+import { AssociatedData, KeyDerivationContext } from "../encryption/symmetric/AssociatedData"
 
 export enum SymmetricEncryptionScheme {
 	AesCbc,
@@ -48,15 +49,14 @@ export class SymmetricCipherFacade {
 	/**
 	 * Gets an instance decryptor which provides value decryptors to decrypt the values of a given instance.
 	 *
-	 * @param instanceTypeId	The instance type ID of the instance being decrypted.
-	 * @param sessionKey		The session key of the instance. It can be null if no value is encrypted using it.
-	 * @param kdfNonce			The KDF nonce of the instance. It can be null if no value is encrypted using the group key.
-	 * @param ownerKeyProvider	Must be set iff kdfNonce is set.
-	 * @param instanceKey		The instance key of the instance. It can be null if kdfNonce or sessionKey is set.
-	 * @return					The instance decryptor.
+	 * @param keyDerivationContext	The context of the instance being decrypted used to derive sub-keys.	 * @param sessionKey		The session key of the instance. It can be null if no value is encrypted using it.
+	 * @param kdfNonce				The KDF nonce of the instance. It can be null if no value is encrypted using the group key.
+	 * @param ownerKeyProvider		Must be set iff kdfNonce is set.
+	 * @param instanceKey			The instance key of the instance. It can be null if kdfNonce or sessionKey is set.
+	 * @return						The instance decryptor.
 	 */
 	getInstanceDecryptor(
-		instanceTypeId: InstanceTypeId,
+		keyDerivationContext: KeyDerivationContext,
 		sessionKey: Nullable<AesKey>,
 		kdfNonce: Nullable<KdfNonce>,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
@@ -67,7 +67,7 @@ export class SymmetricCipherFacade {
 			kdfNonce,
 			instanceKey,
 			ownerKeyProvider,
-			instanceTypeId,
+			keyDerivationContext,
 			this.aesCbcFacade,
 			this.aeadFacade,
 			this.symmetricKeyDeriver,
@@ -93,7 +93,7 @@ export class SymmetricCipherFacade {
 	 * @param associatedData	The associated data to include in the authentication tag computation, to bind the ciphertext to its context.
 	 * @return					The encrypted bytes.
 	 */
-	encryptBytesWithAead(subKeys: AeadSubKeys, bytes: Uint8Array, associatedData: Uint8Array): Uint8Array {
+	encryptBytesWithAead(subKeys: AeadSubKeys, bytes: Uint8Array, associatedData: AssociatedData): Uint8Array {
 		return this.encryptWithAead(subKeys, bytes, associatedData)
 	}
 
@@ -267,7 +267,7 @@ export class SymmetricCipherFacade {
 		return this.aesCbcFacade.encrypt(subKeys, plaintext, initializationVector, paddingStandard, cipherVersion, authenticationEnforcement)
 	}
 
-	encryptWithAead(subKeys: AeadSubKeys, plaintext: Uint8Array, associatedData: Uint8Array): Uint8Array {
+	encryptWithAead(subKeys: AeadSubKeys, plaintext: Uint8Array, associatedData: AssociatedData): Uint8Array {
 		return this.aeadFacade.encrypt(subKeys, plaintext, associatedData)
 	}
 
@@ -305,12 +305,12 @@ export class SymmetricCipherFacade {
 	/**
 	 * Gets a sub-key provider to be used for encryption.
 	 *
-	 * @param subKeyInfo		Necessary information to derive the sub-keys.
-	 * @param instanceTypeId	The type ID of the instance to be encrypted using the sub-keys.
-	 * @return 					The sub-key provider.
+	 * @param subKeyInfo			Necessary information to derive the sub-keys.
+	 * @param keyDerivationContext	The context of the instance to be encrypted to derive sub-keys.
+	 * @return 						The sub-key provider.
 	 */
-	getSubKeyProvider(subKeyInfo: SubKeyInfo, instanceTypeId: InstanceTypeId): SubKeyProvider {
-		return new SubKeyProvider(subKeyInfo, this.symmetricKeyDeriver, instanceTypeId)
+	getSubKeyProvider(subKeyInfo: SubKeyInfo, keyDerivationContext: KeyDerivationContext): SubKeyProvider {
+		return new SubKeyProvider(subKeyInfo, this.symmetricKeyDeriver, keyDerivationContext)
 	}
 }
 export const SYMMETRIC_CIPHER_FACADE = new SymmetricCipherFacade(AES_CBC_FACADE, AEAD_FACADE, SYMMETRIC_KEY_DERIVER)
