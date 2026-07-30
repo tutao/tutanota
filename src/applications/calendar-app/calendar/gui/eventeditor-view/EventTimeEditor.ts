@@ -86,7 +86,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							m(TimePicker, {
 								classes: appClasses,
 								time: editModel.startTime,
-								onTimeSelected: (time) => (editModel.startTime = time),
+								onTimeSelected: (timeString) => editModel.setStartTimeFromString(timeString),
 								timeFormat: attrs.timeFormat,
 								disabled: attrs.disabled || attrs.editModel.isAllDay,
 								valid: editModel.hasValidStartBeforeEnd(),
@@ -123,7 +123,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 							m(TimePicker, {
 								classes: appClasses,
 								time: editModel.endTime,
-								onTimeSelected: (time) => (editModel.endTime = time),
+								onTimeSelected: (timeString) => editModel.setEndTimeFromString(timeString),
 								timeFormat: attrs.timeFormat,
 								disabled: attrs.disabled || editModel.isAllDay,
 								valid: editModel.hasValidStartBeforeEnd(),

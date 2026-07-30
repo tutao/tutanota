@@ -14,7 +14,7 @@ import { lang, Translation } from "../../../../../ui/utils/LanguageViewModel"
 
 export type TimePickerAttrs = {
 	time: Time | null
-	onTimeSelected: (arg0: Time | null) => unknown
+	onTimeSelected: (timeString: string | null) => unknown
 	timeFormat: TimeFormat
 	disabled?: boolean
 	valid?: boolean
@@ -92,12 +92,13 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				},
 				value: this.value,
 				oninput: (event: InputEvent) => {
+					this.focused = true
 					const inputValue = (event.target as HTMLInputElement).value
 					if (this.value === inputValue) {
 						return
 					}
 					this.value = inputValue
-					attrs.onTimeSelected(Time.parseFromString(inputValue))
+					attrs.onTimeSelected(inputValue)
 				},
 			}),
 			m(
@@ -130,7 +131,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 						return
 					}
 					this.value = value
-					attrs.onTimeSelected(Time.parseFromString(value))
+					attrs.onTimeSelected(value)
 				},
 				disabled: attrs.disabled,
 			}),
@@ -165,7 +166,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				}
 
 				this.value = newValue.value
-				attrs.onTimeSelected(Time.parseFromString(this.value))
+				attrs.onTimeSelected(this.value)
 				m.redraw.sync()
 			},
 			onclose: () => {
@@ -221,7 +222,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 					active?.blur()
 
 					this.focused = false
-					attrs.onTimeSelected(Time.parseFromString(this.value))
+					attrs.onTimeSelected(this.value)
 
 					e.preventDefault()
 					e.stopPropagation()
@@ -233,9 +234,8 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			onblur: (e: any) => {
 				if (this.focused) {
 					this.focused = false
-					attrs.onTimeSelected(Time.parseFromString(this.value))
+					attrs.onTimeSelected(this.value)
 				}
-
 				e.redraw = false
 			},
 			type: TextFieldType.Text,
@@ -268,7 +268,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			onblur: (e) => {
 				if (this.focused) {
 					this.focused = false
-					attrs.onTimeSelected(Time.parseFromString(this.value))
+					attrs.onTimeSelected(this.value)
 				}
 
 				e.redraw = false
@@ -279,7 +279,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 					active?.blur()
 
 					this.focused = false
-					attrs.onTimeSelected(Time.parseFromString(this.value))
+					attrs.onTimeSelected(this.value)
 				}
 
 				return true
