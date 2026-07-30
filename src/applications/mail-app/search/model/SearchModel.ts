@@ -248,6 +248,7 @@ export class SearchModel {
 	async coolNewSearchDrive(searchQuery: SearchQuery, fileGroupId: string): Promise<LiveSearchResult<DriveFile | DriveFolder>> {
 		const groupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
 		const resultItems: (DriveFolder | DriveFile)[] = []
+		const tokens = tokenize(searchQuery.query.trim())
 		for (const fileBagId of groupRoot.fileBags) {
 			let currentId = GENERATED_MAX_ID
 			while (true) {
@@ -255,9 +256,10 @@ export class SearchModel {
 				if (isEmpty(chunk)) {
 					break
 				}
-				//FIXME search with tokens
 				for (const item of chunk) {
-					if (item.name.toLowerCase().includes(searchQuery.query)) {
+					const name = item.name.toLowerCase()
+
+					if (tokens.every((token) => name.includes(token)) && !resultItems.includes(item)) {
 						resultItems.push(item)
 					}
 				}
@@ -272,9 +274,10 @@ export class SearchModel {
 				if (isEmpty(chunk)) {
 					break
 				}
-				//FIXME search with tokens
 				for (const item of chunk) {
-					if (item.name.toLowerCase().includes(searchQuery.query)) {
+					const name = item.name.toLowerCase()
+
+					if (tokens.every((token) => name.includes(token)) && !resultItems.includes(item)) {
 						resultItems.push(item)
 					}
 				}
@@ -286,7 +289,9 @@ export class SearchModel {
 			restriction: searchQuery.restriction,
 			results: resultItems.map((item) => item._id),
 			query: searchQuery.query,
-			tokens: [], //FIXME
+			tokens: tokens.map((t) => {
+				return { token: t, exact: false }
+			}),
 			// index related, keep empty
 			currentIndexTimestamp: 0,
 			moreResults: [],
