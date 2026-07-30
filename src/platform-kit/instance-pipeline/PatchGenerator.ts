@@ -247,9 +247,7 @@ export class PatchGenerator {
 					)
 				}
 				if (isNotNull(modifiedIdsJson)) {
-					patches.push(
-						createPatch({ attributePath: networkDebuggedAttributeId, value: modifiedIdsJson, patchOperation: PatchOperationType.REMOVE_ITEM }),
-					)
+					patches.push(createPatch({ attributePath: networkDebuggedAttributeId, value: modifiedIdsJson, patchOperation: PatchOperationType.REPLACE }))
 				}
 			}
 		}
