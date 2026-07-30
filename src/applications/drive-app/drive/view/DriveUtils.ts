@@ -6,6 +6,7 @@ import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@t
 import { getElementId } from "@tutao/meta"
 import { WebFile } from "../../../../entities/tutanota/Utils"
 import { DriveTransferState } from "./DriveTransferController"
+import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 
 export function makeDuplicateFileName(fileName: string, indicator: string = "copy"): string {
 	const [basename, ext] = getFileBaseNameAndExtensions(fileName)
@@ -34,6 +35,14 @@ export function toFolderItems(folderContents: FolderContents): FolderItem[] {
 		...folderContents.folders.map((folder) => ({ type: "folder", folder }) satisfies FolderFolderItem),
 		...folderContents.files.map((file) => ({ type: "file", file }) satisfies FileFolderItem),
 	]
+}
+
+export function toFolderItem(item: DriveFile | DriveFolder): FolderItem {
+	if (isDriveFile(item)) {
+		return { type: "file", file: item }
+	} else {
+		return { type: "folder", folder: item }
+	}
 }
 
 function isFolderFolderItem(item: FolderItem): item is FolderFolderItem {

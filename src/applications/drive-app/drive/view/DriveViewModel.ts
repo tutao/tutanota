@@ -46,6 +46,7 @@ import { handleRestError, isOfflineError, NotAuthorizedError, NotFoundError } fr
 import { WebFileResolver } from "./WebFileResolver"
 import { LiveSearchResult, SearchModel, SearchQuery } from "../../../mail-app/search/model/SearchModel"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
+import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -517,6 +518,11 @@ export class DriveViewModel {
 		const operationId = await this.driveFacade.deleteFromTrash(items.map(folderItemEntity))
 		this.runningOperations.set(operationId, { type: DriveOperationType.Delete, count: items.length })
 		this.selectNone()
+	}
+
+	async getDirectParent(item: DriveFile | DriveFolder): Promise<DriveFolder | null> {
+		const parentFolderId = isDriveFile(item) ? item.folder : item.parent
+		return parentFolderId ? await this.entityClient.load(DriveFolderTypeRef, parentFolderId) : null
 	}
 
 	private async loadParents(folder: DriveFolder) {

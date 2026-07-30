@@ -45,6 +45,7 @@ import { TransferId } from "../../../../../../entities/drive/Utils"
 import { getCleanedMimeType } from "../../utils/DataFile"
 import { ExposedCacheStorage } from "../../../../../../app-kit/local-store/CacheStorage"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { isDriveFile } from "../../../common/drive/DriveUtils"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -59,10 +60,6 @@ export type DriveCryptoInfo = {
 export interface FolderContents {
 	files: DriveFile[]
 	folders: DriveFolder[]
-}
-
-function isDriveFile(source: DriveFile | DriveFolder): source is DriveFile {
-	return isSameTypeRef(source._type, DriveFileTypeRef)
 }
 
 export interface DriveRootFolders {
