@@ -223,6 +223,14 @@ export class CalendarEventWhenModel {
 		}
 	}
 
+	setStartTimeFromString(timeString: string | null) {
+		this.startTime = Time.parseFromString(timeString ?? "")
+	}
+
+	setEndTimeFromString(timeString: string | null) {
+		this.endTime = Time.parseFromString(timeString ?? "")
+	}
+
 	private validateAndCorrectInputDate(date: Date) {
 		const validity = checkEventDateValidity(date)
 		if (validity === CalendarEventValidity.InvalidDate) {
