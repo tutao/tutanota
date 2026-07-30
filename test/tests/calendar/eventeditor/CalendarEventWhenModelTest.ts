@@ -779,4 +779,87 @@ o.spec(TEST_NAME, function () {
 			o(model.excludedDates).deepEquals([exclusion])
 		})
 	})
+
+	o.spec("setting times from string", function () {
+		let model: CalendarEventWhenModel
+		let event: CalendarEvent
+
+		o.beforeEach(function () {
+			event = createTestEntity(CalendarEventTypeRef, {
+				startTime: new Date("2023-01-13T01:15:00Z"),
+				endTime: new Date("2023-01-13T01:30:00Z"),
+				repeatRule: null,
+			})
+			model = getModelBerlin(event)
+		})
+
+		o.spec("getStartTimeFromString", function () {
+			o("invalid input values are ignored", function () {
+				o(model.startTime.to24HourString()).equals("02:15") // confirm initial value
+
+				model.setStartTimeFromString("") // confirm empty string behavior
+				o(model.startTime.to24HourString()).equals("02:15")
+
+				model.setStartTimeFromString("  ") // confirm whitespace behavior
+				o(model.startTime.to24HourString()).equals("02:15")
+
+				model.setStartTimeFromString("--:--") // confirm filler value behavior
+				o(model.startTime.to24HourString()).equals("02:15")
+
+				model.setStartTimeFromString("25:00") // confirm invalid hour behavior
+				o(model.startTime.to24HourString()).equals("02:15")
+
+				model.setStartTimeFromString("23:60") // confirm invalid minute behavior
+				o(model.startTime.to24HourString()).equals("02:15")
+
+				model.setStartTimeFromString("13:00 PM") // check invalid PM behavior
+				o(model.startTime.to24HourString()).equals("02:15")
+
+				model.setStartTimeFromString("13:00 AM") // check invalid AM behavior
+				o(model.startTime.to24HourString()).equals("02:15")
+			})
+			o("valid VALID 24hr string values are accepted and applied to the model", function () {
+				model.setStartTimeFromString("23:00")
+				o(model.startTime.to24HourString()).equals("23:00")
+			})
+			o("valid 12hr string values are accepted and applied to the model", function () {
+				model.setStartTimeFromString("1:00PM")
+				o(model.startTime.to24HourString()).equals("13:00")
+			})
+		})
+		o.spec("getEndTimeFromString", function () {
+			o("invalid input values are ignored", function () {
+				o(model.endTime.to24HourString()).equals("02:30") // confirm initial value
+
+				model.setEndTimeFromString("") // confirm empty string behavior
+				o(model.endTime.to24HourString()).equals("02:30")
+
+				model.setEndTimeFromString("  ") // confirm whitespace behavior
+				o(model.endTime.to24HourString()).equals("02:30")
+
+				model.setEndTimeFromString("--:--") // confirm filler value behavior
+				o(model.endTime.to24HourString()).equals("02:30")
+
+				model.setEndTimeFromString("25:00") // confirm invalid hour behavior
+				o(model.endTime.to24HourString()).equals("02:30")
+
+				model.setEndTimeFromString("23:60") // confirm invalid minute behavior
+				o(model.endTime.to24HourString()).equals("02:30")
+
+				model.setEndTimeFromString("13:00 PM") // check invalid PM behavior
+				o(model.endTime.to24HourString()).equals("02:30")
+
+				model.setEndTimeFromString("13:00 AM") // check invalid AM behavior
+				o(model.endTime.to24HourString()).equals("02:30")
+			})
+			o("valid VALID 24hr string values are accepted and applied to the model", function () {
+				model.setEndTimeFromString("23:00")
+				o(model.endTime.to24HourString()).equals("23:00")
+			})
+			o("valid 12hr string values are accepted and applied to the model", function () {
+				model.setEndTimeFromString("1:00PM")
+				o(model.endTime.to24HourString()).equals("13:00")
+			})
+		})
+	})
 })
