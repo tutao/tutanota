@@ -1,4 +1,4 @@
-import { assertMainOrNodeBoot, envProvider, Mode, PlatformId } from "../Env"
+import { assertMainOrNodeBoot, envProvider, EnvType, Mode, PlatformId } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
 import { AppType } from "../AppType"
@@ -32,16 +32,7 @@ export class ClientDetector {
 		return this.singeleton
 	}
 
-	private static singeleton: ClientDetector | null = null
-	public static get(): ClientDetector {
-		if (this.singeleton != null) {
-			return this.singeleton
-		}
-		this.singeleton = new ClientDetector(env)
-		return this.singeleton
-	}
-
-	constructor(public readonly env: Env) {}
+	constructor(public readonly env: EnvType) {}
 
 	init(userAgent: string, platform: string, appType: AppType = AppType.Integrated) {
 		this.userAgent = userAgent

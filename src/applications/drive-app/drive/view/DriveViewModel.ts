@@ -1,4 +1,4 @@
-import { elementIdPart, getElementId, isSameId, isSameSingleId, listIdPart, OperationType } from "@tutao/meta"
+import { elementIdPart, getElementId, isSameSingleId, listIdPart, OperationType } from "@tutao/meta"
 import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
@@ -254,7 +254,7 @@ export class DriveViewModel {
 			if (op != null) {
 				let error: Error | null
 				if (update.status === OperationStatus.FAILURE) {
-					error = handleRestError(filterInt(assertNotNull(update.statusCode)), undefined, undefined, update.reason)
+					error = handleRestError(filterInt(assertNotNull(update.statusCode)), undefined, null, update.reason)
 				} else {
 					error = null
 				}
