@@ -6,7 +6,7 @@ import { HtmlEditor, HtmlEditorMode } from "../../../ui/editor/HtmlEditor.js"
 import { theme } from "../../../ui/theme.js"
 import { CATEGORY_TO_IMAGE, CATEGORY_TO_REASON, getCategoryType } from "./LeavingUserSurveyConstants.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
-import { styles } from "../../../ui/styles.js"
+import { Styles } from "../../../ui/styles.js"
 import { SetupLeavingUserSurveyPage } from "./SetupLeavingUserSurveyPage.js"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
 
@@ -16,7 +16,7 @@ export class LeavingUserSurveyReasonPage implements WizardPageN<LeavingUserSurve
 	private readonly customReasonEditor: HtmlEditor
 
 	constructor() {
-		let NUMBER_OF_EDITOR_LINES = styles.isDesktopLayout() ? 5 : 1
+		let NUMBER_OF_EDITOR_LINES = Styles.get().isDesktopLayout() ? 5 : 1
 		this.customReasonEditor = new HtmlEditor(getHtmlSanitizer())
 			.setStaticNumberOfLines(NUMBER_OF_EDITOR_LINES)
 			.showBorders()

@@ -10,7 +10,7 @@ import { SearchableTypes } from "./SearchViewModel.js"
 import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../../../ui/theme.js"
 import { VirtualRow } from "../../../../ui/base/ListUtils.js"
-import { styles } from "../../../../ui/styles.js"
+import { Styles } from "../../../../ui/styles.js"
 import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow.js"
 import type { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { shouldAlwaysShowMultiselectCheckbox } from "../../../../ui/SelectableRowContainer"
@@ -78,7 +78,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 
 		return m(
 			ListColumnWrapper,
-			{ headerContent: null, class: styles.isSingleColumnLayout() ? undefined : "column-resize-margin" },
+			{ headerContent: null, class: Styles.get().isSingleColumnLayout() ? undefined : "column-resize-margin" },
 			attrs.listModel.isEmptyAndDone() && attrs.indexStateStream().currentMailIndexTimestamp === FULL_INDEXED_TIMESTAMP
 				? m(ColumnEmptyMessageBox, {
 						icon,
@@ -99,7 +99,7 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 							attrs.onSingleSelection(item)
 						},
 						onSingleTogglingMultiselection: (item: SearchResultListEntry) => {
-							this.listModel.onSingleInclusiveSelection(item, styles.isSingleColumnLayout())
+							this.listModel.onSingleInclusiveSelection(item, Styles.get().isSingleColumnLayout())
 						},
 						onRangeSelectionTowards: (item: SearchResultListEntry) => {
 							this.listModel.selectRangeTowards(item)

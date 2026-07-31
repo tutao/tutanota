@@ -5,7 +5,7 @@ import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFa
 import { FileFolderItem, FolderFolderItem, FolderItem, FolderItemId } from "./DriveUtils"
 import { DropType } from "../../../../ui/base/GuiUtils"
 import { Icons } from "../../../../ui/base/icons/Icons"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { DriveFolder } from "@tutao/entities/drive"
 import { getFileBaseNameAndExtensions } from "../../../../ui/utils/FileUtils"
 import { isBrowser, isDesktop } from "@tutao/app-env"
@@ -227,5 +227,5 @@ export function getContextActions(
 }
 
 export function isMobileDriveLayout(): boolean {
-	return styles.isUsingBottomNavigation()
+	return Styles.get().isUsingBottomNavigation()
 }

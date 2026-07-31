@@ -13,7 +13,7 @@ import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { Dialog, DialogType } from "../../../ui/base/Dialog.js"
 import { SubscriptionPage, SubscriptionPageAttrs } from "./SubscriptionPage.js"
-import { styles } from "../../../ui/styles.js"
+import { Styles } from "../../../ui/styles.js"
 import { SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { isPersonalPlanAvailable } from "./utils/PlanSelectorUtils"
 import { PowSolution } from "../api/common/pow-worker"
@@ -174,7 +174,7 @@ export async function showUpgradeWizard({
 }
 
 export function getPlanSelectorTest() {
-	const test = locator.usageTestController.getTest(`signup.paywall.${styles.isMobileLayout() ? "mobile" : "desktop"}`)
+	const test = locator.usageTestController.getTest(`signup.paywall.${Styles.get().isMobileLayout() ? "mobile" : "desktop"}`)
 	test.recordTime = true
 	return test
 }

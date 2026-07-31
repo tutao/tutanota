@@ -6,7 +6,7 @@ import { SignupFormNew } from "./components/SignupFormNew"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { theme } from "../../../ui/theme"
 import { layout_size, px, size } from "../../../ui/size"
-import { styles } from "../../../ui/styles"
+import { Styles } from "../../../ui/styles"
 
 import { PlanType } from "../../../entities/sys/Utils"
 
@@ -18,9 +18,9 @@ export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<S
 		let mailAddress: undefined | string = undefined
 		if (newAccountData) mailAddress = newAccountData.mailAddress
 
-		return m(`.flex.flex-column.full-width${styles.isMobileLayout() ? ".pt-16" : ""}`, [
+		return m(`.flex.flex-column.full-width${Styles.get().isMobileLayout() ? ".pt-16" : ""}`, [
 			m(
-				`h1.font-mdio${styles.isMobileLayout() ? ".h2" : ".h1"}`,
+				`h1.font-mdio${Styles.get().isMobileLayout() ? ".h2" : ".h1"}`,
 				{
 					style: {
 						// This aligns the font to the top edge of the layout box.
@@ -32,7 +32,7 @@ export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<S
 				},
 				lang.get("signup_page_title"),
 			),
-			m(`p.${styles.isMobileLayout() ? ".mb-32" : ""}`, { style: { color: theme.on_surface_variant } }, lang.get("signup_page_subtitle")),
+			m(`p.${Styles.get().isMobileLayout() ? ".mb-32" : ""}`, { style: { color: theme.on_surface_variant } }, lang.get("signup_page_subtitle")),
 			m("div.flex.items-start.gap-64", [
 				m(
 					".flex-grow",
@@ -68,7 +68,7 @@ export class SignupFormPage implements ClassComponent<WizardStepComponentAttrs<S
 						},
 						onNext: () => ctx.goNext(),
 						onChangePlan: () => {
-							if (styles.bodyWidth >= layout_size.wizard_show_illustration_min_width && !data.options.businessUse()) {
+							if (Styles.get().bodyWidth >= layout_size.wizard_show_illustration_min_width && !data.options.businessUse()) {
 								if (data.targetPlanType === PlanType.Free) {
 									data.targetPlanType = PlanType.Revolutionary
 									data.updatePrice()

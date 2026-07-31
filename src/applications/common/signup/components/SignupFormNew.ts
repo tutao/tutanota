@@ -20,7 +20,7 @@ import { CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } f
 import { TextField } from "../../../../ui/base/TextField"
 import { SelectMailAddressFormAttrs, SelectMailAddressFormNew } from "./SelectMailAddressFormNew"
 import { PasswordFormNew, PasswordModel } from "./PasswordFormNew.js"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { SignupViewModel } from "../SignupView"
 import { getWhitelabelRegistrationDomains } from "../../../../ui/utils/WhitelabelUtils"
 
@@ -243,7 +243,7 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 
 		return m(
 			"#signup-account-dialog.flex-start",
-			m(`.flex.flex-column.max-width-l.pb-16.full-width${styles.isMobileLayout() ? ".gap-8" : ".gap-16"}`, [
+			m(`.flex.flex-column.max-width-l.pb-16.full-width${Styles.get().isMobileLayout() ? ".gap-8" : ".gap-16"}`, [
 				this.readonly
 					? m(TextField, {
 							class: "",
@@ -271,14 +271,14 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 							]),
 						],
 				m(
-					`.flex.flex-end${styles.isMobileLayout() ? ".mt-24.mb-24" : ".mt-32.mb-32"}`,
+					`.flex.flex-end${Styles.get().isMobileLayout() ? ".mt-24.mb-24" : ".mt-32.mb-32"}`,
 					m(PrimaryButton, {
 						label: this.readonly ? "continue_action" : "create_new_account_label",
 						onclick: submit,
 						disabled:
 							!this.readonly &&
 							(!this._confirmTerms() || (a.signupViewModel.targetPlanType === PlanType.Free && !this._confirmPersonalAccountLimit)),
-						width: styles.isMobileLayout() ? "full" : "flex",
+						width: Styles.get().isMobileLayout() ? "full" : "flex",
 					}),
 				),
 			]),

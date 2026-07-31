@@ -3,7 +3,7 @@ import { SettingsNavButton, SettingsNavButtonAttrs } from "../../calendar-app/gu
 import { lazyStringValue } from "../../../ui/base/MaybeLazy"
 import { lang, Translation } from "../../../ui/utils/LanguageViewModel"
 import { NavButtonAttrs } from "../../../ui/base/NavButton"
-import { styles } from "../../../ui/styles"
+import { Styles } from "../../../ui/styles"
 import { theme } from "../../../ui/theme"
 
 export interface SettingsListSection {
@@ -26,7 +26,7 @@ export class SettingsList implements Component<SettingsListAttrs> {
 				return m(
 					".flex.col.pl-16.pt-8.pb-8",
 					{
-						class: styles.isSingleColumnLayout() ? "pr-16" : "pr-8",
+						class: Styles.get().isSingleColumnLayout() ? "pr-16" : "pr-8",
 					},
 					[
 						m("small.uppercase.pb-8.b.text-ellipsis", { style: { color: theme.on_surface_variant } }, lang.getTranslationText(sectionName)),

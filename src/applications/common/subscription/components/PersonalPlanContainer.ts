@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { px, size } from "../../../../ui/size"
 import { PersonalPaidPlanBox } from "./PersonalPaidPlanBox"
 import { getApplePriceStr, getPriceStr } from "../utils/SubscriptionUtils"
@@ -111,7 +111,7 @@ export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 				"data-testid": "dialog:select-subscription",
 				style: {
 					position: "relative",
-					...(styles.isMobileLayout()
+					...(Styles.get().isMobileLayout()
 						? {
 								// Ignore the horizontal paddings to use full width of the dialog for mobile
 								width: `calc(100% + 2 * ${px(size.spacing_24)})`,

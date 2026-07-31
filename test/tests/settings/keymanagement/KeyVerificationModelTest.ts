@@ -10,6 +10,7 @@ import { PermissionType } from "../../../../src/app-kit/native-bridge/common/gen
 import { QRCode } from "jsqr"
 import { PublicIdentityKeyProvider } from "../../../../src/platform-kit/base/base-crypto/PublicIdentityKeyProvider"
 import {
+	EnvType,
 	IdentityKeyQrVerificationResult,
 	IdentityKeySourceOfTrust,
 	IdentityKeyVerificationMethod,
@@ -169,7 +170,7 @@ o.spec("KeyVerificationModelTest", function () {
 	})
 
 	o.spec("test requestCameraPermission() on desktop macOS", function () {
-		const desktopEnv: Partial<typeof env> = { mode: Mode.Desktop, platformId: "darwin" }
+		const desktopEnv: EnvType = { ...env, mode: Mode.Desktop, platformId: "darwin" }
 
 		o("permission already given", async function () {
 			when(desktopSystemFacade.requestVideoPermission()).thenResolve(true)

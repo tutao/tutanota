@@ -18,7 +18,7 @@ import { lang, languageCodeToTag, languages } from "../../ui/utils/LanguageViewM
 import { root } from "../../ui/base/RootView.js"
 import { assertNotNull, isSessionStorageAvailable } from "../../platform-kit/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
-import { styles } from "../../ui/styles.js"
+import { Styles } from "../../ui/styles.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
 import { Logger, replaceNativeLogger } from "../common/api/common/Logger.js"
 import { applicationPaths } from "./ApplicationPaths.js"
@@ -362,7 +362,7 @@ import("../../ui/translations/en.js")
 			})
 		}
 
-		styles.init(mailLocator.themeController)
+		Styles.get().init(mailLocator.themeController)
 
 		const contactViewResolver = makeViewResolver<
 			ContactViewAttrs,

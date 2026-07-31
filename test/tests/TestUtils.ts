@@ -43,15 +43,14 @@ import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
 import { tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
 import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
 import { EncryptedDbWrapper } from "../../src/applications/common/api/worker/search/EncryptedDbWrapper"
-import { ClientPlatform } from "../../src/platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector, ClientPlatform } from "../../src/platform-kit/app-env/boot/ClientDetector"
 import { KeyLoaderFacade } from "../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants"
 import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { OfflineMapper } from "../../src/platform-kit/instance-pipeline/OfflineMapper"
 import { DomainConfig, EnvProvider, EnvType, ProgrammingError } from "../../src/platform-kit/app-env"
 import { TypeChecks } from "../../src/platform-kit/app-env/boot/TsTypeChecks"
-import { Type } from "cborg"
-import undefined = Type.undefined
+import { Styles } from "../../src/ui/styles"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -440,18 +439,13 @@ export function offlineMapperFromTypeModelResolver(typeModelResolver: TypeModelR
 }
 
 export async function withOverriddenEnv<F extends (...args: any[]) => any>(override: Partial<EnvType>, action: () => ReturnType<F>) {
-	const previousEnv: typeof env = clone(env)
-	for (const [key, value] of Object.entries(override)) {
-		env[key] = value
-	}
-	EnvProvider.get().overrideEnvForTest(env)
+	const previousEnv = structuredClone(env)
+	const newEnv = { ...previousEnv, ...override }
+	reIntializeEnv(newEnv)
 	try {
 		return await action()
 	} finally {
-		for (const key of Object.keys(override)) {
-			env[key] = previousEnv[key]
-		}
-		EnvProvider.get().overrideEnvForTest(env)
+		reIntializeEnv(previousEnv)
 	}
 }
 
@@ -475,4 +469,10 @@ export async function measureAction(action: () => Promise<void>) {
 	return {
 		time: performance.now() - startTime,
 	}
+}
+
+export function reIntializeEnv(newEnv: EnvType) {
+	EnvProvider.overrideEnvForTesting(newEnv)
+	ClientDetector.removeSingletonForTesting()
+	Styles.removeSingletonForTesting()
 }

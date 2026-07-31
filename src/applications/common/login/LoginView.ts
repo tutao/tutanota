@@ -17,7 +17,7 @@ import { IconButton } from "../../../ui/base/IconButton.js"
 import { BaseTopLevelView } from "../../../ui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView.js"
 import { LoginScreenHeader } from "../../../ui/LoginScreenHeader.js"
-import { styles } from "../../../ui/styles.js"
+import { Styles } from "../../../ui/styles.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { renderInfoLinks } from "../gui/RenderLoginInfoLinks.js"
 import { showSnackBar } from "../../../ui/base/SnackBar.js"
@@ -99,7 +99,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				m(
 					".flex-grow.flex-center.scroll",
 					m(
-						".flex.col.flex-grow-shrink-auto.max-width-m.plr-24." + (styles.isSingleColumnLayout() ? "pt-16" : "pt-32"),
+						".flex.col.flex-grow-shrink-auto.max-width-m.plr-24." + (Styles.get().isSingleColumnLayout() ? "pt-16" : "pt-32"),
 						{
 							...landmarkAttrs(AriaLandmarks.Main, isApp() || isDesktop() ? lang.get("addAccount_action") : lang.get("login_label")),
 							oncreate: (vnode) => {
@@ -110,7 +110,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 							m(
 								".content-bg.border-radius-12.pb-16",
 								{
-									class: styles.isSingleColumnLayout() ? "plr-24" : "plr-48",
+									class: Styles.get().isSingleColumnLayout() ? "plr-24" : "plr-48",
 								},
 								this._renderFormForDisplayMode(),
 								this.renderMoreOptions(),
@@ -296,7 +296,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				".small.center.statusTextColor",
 				{
 					...liveDataAttrs(),
-					class: styles.isSingleColumnLayout() ? "" : "pt-4",
+					class: Styles.get().isSingleColumnLayout() ? "" : "pt-4",
 				},
 				lang.getTranslationText(this.viewModel.helpText),
 			),

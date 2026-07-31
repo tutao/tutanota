@@ -10,7 +10,7 @@ import { ElectronResult } from "@tutao/native-bridge/generatedIpc/types"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager.js"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { ToggleButton } from "../../../../ui/base/buttons/ToggleButton.js"
-import { styles } from "../../../../ui/styles.js"
+import { Styles } from "../../../../ui/styles.js"
 import { getSafeAreaInsetBottom } from "../../../../ui/HtmlUtils.js"
 import { Keys } from "../../../../ui/KeyboardKeys"
 
@@ -64,7 +64,7 @@ export class SearchInPageOverlay {
 		return {
 			height: px(component_size.navbar_height_mobile),
 			// Place the search overlay on top of the bottom nav bar
-			bottom: px(styles.isUsingBottomNavigation() ? -bottomNavHeight : 0),
+			bottom: px(Styles.get().isUsingBottomNavigation() ? -bottomNavHeight : 0),
 			right: px(0),
 			left: px(0),
 		}

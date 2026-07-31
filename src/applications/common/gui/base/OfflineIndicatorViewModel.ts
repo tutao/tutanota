@@ -5,7 +5,7 @@ import { LoginController } from "../../api/main/LoginController.js"
 import { OfflineIndicatorAttrs, OfflineIndicatorState } from "../../../../ui/base/OfflineIndicator.js"
 import { WebsocketConnectivityModel } from "../../misc/WebsocketConnectivityModel.js"
 import { ProgressTracker } from "../../api/main/ProgressTracker.js"
-import { styles } from "../../../../ui/styles.js"
+import { Styles } from "../../../../ui/styles.js"
 import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 
@@ -89,7 +89,7 @@ export class OfflineIndicatorViewModel implements IOfflineIndicatorViewModel {
 	}
 
 	getCurrentAttrs(): OfflineIndicatorAttrs {
-		const isSingleColumn = styles.isUsingBottomNavigation()
+		const isSingleColumn = Styles.get().isUsingBottomNavigation()
 		if (this.logins.isFullyLoggedIn() && this.wsWasConnectedBefore) {
 			if (this.lastWsState === WsConnectionState.connected) {
 				// normal, full login with a connected websocket

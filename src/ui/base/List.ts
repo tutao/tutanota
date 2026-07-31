@@ -10,7 +10,7 @@ import { ListSwipeHandler } from "./ListSwipeHandler.js"
 import { applySafeAreaInsetMarginLR } from "../HtmlUtils.js"
 import { theme, ThemeId } from "../theme.js"
 import { Coordinate2D } from "./SwipeHandler.js"
-import { styles } from "../styles.js"
+import { Styles } from "../styles.js"
 import { Keys } from "../KeyboardKeys"
 
 export type ListState<T> = Readonly<{
@@ -164,7 +164,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 					this.updateDomElements(attrs)
 					this.state = attrs.state
 					this.lastThemeId = theme.themeId
-					if (styles.isSingleColumnLayout()) this.innerDom.focus()
+					if (Styles.get().isSingleColumnLayout()) this.innerDom.focus()
 				},
 				onupdate: ({ dom }) => {
 					if (oldRenderConfig !== attrs.renderConfig) {

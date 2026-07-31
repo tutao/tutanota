@@ -19,7 +19,7 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import { ContactMergeView } from "./ContactMergeView"
 import { getMergeableContacts, mergeContacts } from "../ContactMergeUtils"
 import { exportContacts } from "../VCardExporter"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { layout_size } from "../../../../ui/size"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { getGroupInfoDisplayName } from "../../../../platform-kit/network/GroupUtils"
@@ -102,7 +102,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				view: () =>
 					m(FolderColumnView, {
 						drawer: vnode.attrs.drawerAttrs,
-						button: styles.isUsingBottomNavigation()
+						button: Styles.get().isUsingBottomNavigation()
 							? null
 							: {
 									label: "newContact_action",
@@ -298,7 +298,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 		return m(
 			"#contact.main-view",
 			m(this.viewSlider, {
-				header: styles.isSingleColumnLayout()
+				header: Styles.get().isSingleColumnLayout()
 					? null
 					: m(Header, {
 							firstColWidth: this.folderColumn.width,
@@ -312,7 +312,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 							buttons: renderHeaderButtons(),
 						}),
 				bottomNav:
-					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.detailsColumn && !this.showingListView()
+					Styles.get().isSingleColumnLayout() && this.viewSlider.focusedColumn === this.detailsColumn && !this.showingListView()
 						? this.inContactListView()
 							? m(MobileActionBar, {
 									actions: this.canEditSelectedContactList()
@@ -339,7 +339,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 										},
 									],
 								})
-						: (styles.isSingleColumnLayout() &&
+						: (Styles.get().isSingleColumnLayout() &&
 									this.viewSlider.focusedColumn === this.listColumn &&
 									this.contactViewModel.listModel.state.inMultiselect) ||
 							  this.contactListViewModel.listModel?.state.inMultiselect

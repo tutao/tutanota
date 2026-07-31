@@ -10,7 +10,7 @@ import type { Shortcut } from "../../../../ui/utils/KeyManager"
 import { isKeyPressed, keyManager } from "../../../../ui/utils/KeyManager"
 import { encodeCalendarSearchKey, getRestriction } from "./model/SearchUtils"
 import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp } from "../../../../platform-kit/app-env"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { debounce, downcast, memoized, mod } from "../../../../platform-kit/utils"
 import { hasMoreResults } from "./model/CalendarSearchModel.js"
 import type { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
@@ -257,7 +257,7 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 
 		const domRect = this.domWrapper.getBoundingClientRect()
 
-		if (styles.isDesktopLayout()) {
+		if (Styles.get().isDesktopLayout()) {
 			overlayRect = {
 				top: px(domRect.bottom + 5),
 				right: px(window.innerWidth - domRect.right),

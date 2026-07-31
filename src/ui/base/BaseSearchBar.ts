@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { AriaLandmarks, landmarkAttrs } from "../AriaUtils.js"
 import { font_size, px, size } from "../size.js"
-import { styles } from "../styles.js"
+import { Styles } from "../styles.js"
 import { TabIndex } from "../../platform-kit/app-env"
 import { DefaultAnimationTime } from "../animation/Animations.js"
 import { Icons } from "./icons/Icons.js"
@@ -53,7 +53,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 				},
 			},
 			[
-				styles.isDesktopLayout()
+				Styles.get().isDesktopLayout()
 					? m(Icon, {
 							icon: Icons.Search,
 							size: IconSize.PX24,
@@ -68,7 +68,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 						style: {
 							width: "100%",
 							transition: `width ${DefaultAnimationTime}ms`,
-							"padding-left": styles.isDesktopLayout() ? px(10) : px(6),
+							"padding-left": Styles.get().isDesktopLayout() ? px(10) : px(6),
 							"padding-top": "3px",
 							"padding-bottom": "3px",
 							"overflow-x": "hidden",

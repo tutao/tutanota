@@ -10,7 +10,7 @@ import { ReplacementKey } from "../FeatureListProvider.js"
 import { Icon, IconSize } from "../../../../ui/base/Icon.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { TranslationKeyType } from "../../../../ui/utils/TranslationKey.js"
-import { styles } from "../../../../ui/styles.js"
+import { Styles } from "../../../../ui/styles.js"
 import { getFeaturePlaceholderReplacement, PlanTypeToName } from "../utils/SubscriptionUtils.js"
 import { PlanBadge } from "./PlanBadge.js"
 import { PlanConfig } from "./BusinessPlanContainer"
@@ -97,9 +97,9 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 
 		const transformOrigin = () => {
 			if (position === "right") {
-				return styles.isMobileLayout() ? "center right" : "center left"
+				return Styles.get().isMobileLayout() ? "center right" : "center left"
 			} else {
-				return styles.isMobileLayout() ? "center left" : "center right"
+				return Styles.get().isMobileLayout() ? "center left" : "center right"
 			}
 		}
 
@@ -138,7 +138,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 						"border-radius": getBorderRadius(hasCampaign, position, freePlanVisible),
 						"box-shadow": isSelected ? boxShadowHigh : "none",
 						overflow: "hidden",
-						padding: `${px(20)} ${px(styles.isMobileLayout() ? 16 : 20)}`,
+						padding: `${px(20)} ${px(Styles.get().isMobileLayout() ? 16 : 20)}`,
 					},
 				},
 
@@ -147,7 +147,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 					{
 						style: {
 							gap: "8px",
-							...(styles.isMobileLayout()
+							...(Styles.get().isMobileLayout()
 								? {
 										"align-items": position === "left" ? "flex-end" : "flex-start",
 										"flex-direction": "column",
@@ -188,7 +188,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 								fill: localTheme.on_surface_variant,
 							},
 						},
-						styles.bodyWidth <= 420
+						Styles.get().bodyWidth <= 420
 							? null
 							: m(Icon, {
 									icon: planConfig.icon,
@@ -291,7 +291,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 			".text-center.flex.col.center-horizontally.m-0.font-mdio",
 			{
 				style: {
-					"font-size": px(styles.isMobileLayout() ? 18 : 20),
+					"font-size": px(Styles.get().isMobileLayout() ? 18 : 20),
 					color,
 				},
 			},

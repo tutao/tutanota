@@ -83,13 +83,13 @@ const assertionsEnabled = false
 export class EnvProvider {
 	private boot: boolean
 
-	private static singeleton: EnvProvider | null = null
+	private static singleton: EnvProvider | null = null
 
 	public static get(): EnvProvider {
-		if (this.singeleton == null) {
-			this.singeleton = new EnvProvider(env)
+		if (EnvProvider.singleton == null) {
+			EnvProvider.singleton = new EnvProvider(env)
 		}
-		return this.singeleton
+		return EnvProvider.singleton
 	}
 
 	constructor(public readonly env: EnvType) {
@@ -225,11 +225,8 @@ export class EnvProvider {
 		}
 	}
 
-	public overrideEnvForTest(env: EnvType): void {
-		if (!this.isTest()) {
-			throw new ProgrammingError("only meant for test")
-		}
-		;(this.env satisfies EnvType) = env
+	public static overrideEnvForTesting(env: EnvType): void {
+		;(EnvProvider.get().env satisfies EnvType) = env
 	}
 }
 

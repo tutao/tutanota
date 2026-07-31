@@ -6,7 +6,7 @@ import { component_size } from "../../../../../ui/size.js"
 import ColumnEmptyMessageBox from "../../../../../ui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../../../../ui/theme.js"
 import { VirtualRow } from "../../../../../ui/base/ListUtils.js"
-import { styles } from "../../../../../ui/styles.js"
+import { Styles } from "../../../../../ui/styles.js"
 import { KindaCalendarRow } from "../../gui/CalendarRow.js"
 import { ListElementListModel } from "../../../../common/misc/ListElementListModel"
 import { CalendarInfoBase } from "../../model/CalendarModel"
@@ -62,7 +62,7 @@ export class CalendarSearchListView implements Component<CalendarSearchListViewA
 						attrs.onSingleSelection(item)
 					},
 					onSingleTogglingMultiselection: (item: CalendarSearchResultListEntry) => {
-						attrs.listModel.onSingleInclusiveSelection(item, styles.isSingleColumnLayout())
+						attrs.listModel.onSingleInclusiveSelection(item, Styles.get().isSingleColumnLayout())
 					},
 					onRangeSelectionTowards: (item: CalendarSearchResultListEntry) => {
 						attrs.listModel.selectRangeTowards(item)

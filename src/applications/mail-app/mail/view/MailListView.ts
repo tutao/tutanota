@@ -5,7 +5,7 @@ import { MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Uti
 import { assertMainOrNode } from "../../../../platform-kit/app-env"
 import { getElementId, getLetId, haveSameId } from "../../../../platform-kit/meta"
 import { component_size } from "../../../../ui/size"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { Icon } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import type { ButtonAttrs } from "../../../../ui/base/Button.js"
@@ -137,7 +137,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 			const draggedMails = selected.has(mailUnderCursor) ? [...selected] : [mailUnderCursor]
 
 			this._doExportDrag(draggedMails)
-		} else if (styles.isDesktopLayout()) {
+		} else if (Styles.get().isDesktopLayout()) {
 			// provide the element that will be displayed as a dragged item
 			// it has to be in the DOM
 
@@ -170,7 +170,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 			const draggedMails = selected.some((mail) => haveSameId(mail, mailUnderCursor)) ? selected.slice() : [mailUnderCursor]
 
 			this._doExportDrag(draggedMails)
-		} else if (styles.isDesktopLayout()) {
+		} else if (Styles.get().isDesktopLayout()) {
 			// Desktop layout only because it doesn't make sense to drag mails to mailSets when the folder list and mail list aren't visible at the same time
 			event.dataTransfer?.setData(DropType.Mail, getElementId(mailUnderCursor))
 		} else {
@@ -351,7 +351,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 				ListColumnWrapper,
 				{
 					headerContent: this.renderListHeader(purgeButtonAttrs),
-					class: styles.isSingleColumnLayout() ? undefined : "column-resize-margin",
+					class: Styles.get().isSingleColumnLayout() ? undefined : "column-resize-margin",
 				},
 				listModel == null || listModel.isEmptyAndDone()
 					? m(ColumnEmptyMessageBox, {
@@ -372,7 +372,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 								vnode.attrs.onSingleSelection(item)
 							},
 							onSingleTogglingMultiselection: (item: Mail) => {
-								vnode.attrs.onSingleInclusiveSelection(item, styles.isSingleColumnLayout())
+								vnode.attrs.onSingleInclusiveSelection(item, Styles.get().isSingleColumnLayout())
 							},
 							onRangeSelectionTowards: (item: Mail) => {
 								vnode.attrs.onRangeSelectionTowards(item)

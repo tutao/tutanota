@@ -13,7 +13,7 @@ import { SETTINGS_PREFIX } from "../../../ui/utils/RouteChange"
 import { BaseTopLevelView } from "../../../ui/BaseTopLevelView"
 import { TopLevelView } from "../../../ui/base/TopLevelView"
 import { ColumnType, ViewColumn } from "../../../ui/base/ViewColumn"
-import { styles } from "../../../ui/styles"
+import { Styles } from "../../../ui/styles"
 import { AppHeaderAttrs, Header } from "../../../ui/Header"
 import { BackgroundColumnLayout } from "../../../ui/BackgroundColumnLayout"
 import { theme } from "../../../ui/theme"
@@ -56,7 +56,7 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 	}
 
 	private isTabletView(): boolean {
-		return (styles.isSingleColumnLayout() && this.viewSlider && this.viewSlider.allColumnsVisible()) || !styles.isSingleColumnLayout()
+		return (Styles.get().isSingleColumnLayout() && this.viewSlider && this.viewSlider.allColumnsVisible()) || !Styles.get().isSingleColumnLayout()
 	}
 
 	private makeSettingsCategoriesColumn(

@@ -79,7 +79,7 @@ import { registerTemplateShortcutListener } from "../../templates/view/TemplateS
 import { TemplatePopupModel } from "../../templates/model/TemplatePopupModel"
 import { createKnowledgeBaseDialogInjection } from "../../knowledgebase/view/KnowledgeBaseDialog"
 import { KnowledgeBaseModel } from "../../knowledgebase/model/KnowledgeBaseModel"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { showMinimizedMailEditor } from "../view/MinimizedMailEditorOverlay"
 import { MinimizedMailEditorViewModel, SaveErrorReason, SaveStatus, SaveStatusEnum } from "../model/MinimizedMailEditorViewModel"
 import { fileListToArray } from "../../../../ui/utils/FileUtils"
@@ -1377,7 +1377,7 @@ async function createMailEditorDialog(
 
 	const headerBarAttrs: DialogHeaderBarAttrs = {
 		leftChildren: () =>
-			styles.isMobileLayout()
+			Styles.get().isMobileLayout()
 				? m(
 						".ml-negative-8",
 						m(IconButton, {
@@ -1395,7 +1395,7 @@ async function createMailEditorDialog(
 		rightChildren: () => {
 			const scheduledMail = model.getSendAtDate() != null
 
-			return styles.isMobileLayout()
+			return Styles.get().isMobileLayout()
 				? m(IconButton, {
 						title: scheduledMail ? "sendLater_action" : "send_action",
 						click: () => {
@@ -1437,7 +1437,7 @@ async function createMailEditorDialog(
 			const customer = await locator.logins.getUserController().reloadCustomer()
 			// only create knowledgebase button for internal users with valid template group and enabled KnowledgebaseFeature
 			if (
-				styles.isDesktopLayout() &&
+				Styles.get().isDesktopLayout() &&
 				templatePopupModel &&
 				locator.logins.getUserController().getTemplateMemberships().length > 0 &&
 				isCustomizationEnabledForCustomer(customer, FeatureType.KnowledgeBase)

@@ -19,7 +19,7 @@ import {
 } from "../../../../ui/SelectableRowContainer.js"
 import { component_size, px } from "../../../../ui/size.js"
 import { shiftByForCheckbox, translateXHide, translateXShow } from "./ContactRow.js"
-import { styles } from "../../../../ui/styles.js"
+import { Styles } from "../../../../ui/styles.js"
 
 import { ContactListEntry } from "@tutao/entities/tutanota"
 
@@ -59,7 +59,7 @@ export class ContactListRecipientView implements Component<ContactListViewAttrs>
 							focusDetailsViewer()
 						},
 						onSingleTogglingMultiselection: (item: ContactListEntry) => {
-							listModel.onSingleInclusiveSelection(item, styles.isSingleColumnLayout())
+							listModel.onSingleInclusiveSelection(item, Styles.get().isSingleColumnLayout())
 						},
 						onRangeSelectionTowards: (item: ContactListEntry) => {
 							listModel.selectRangeTowards(item)

@@ -1,6 +1,6 @@
 import { pureComponent } from "../../../ui/base/PureComponent"
 import m from "mithril"
-import { styles } from "../../../ui/styles"
+import { Styles } from "../../../ui/styles"
 import { layout_size, px } from "../../../ui/size"
 import { Skeleton } from "../../../ui/base/Skeleton"
 import { theme } from "../../../ui/theme.js"
@@ -9,8 +9,8 @@ export const EventBannerSkeleton = pureComponent(() =>
 	m(
 		".border-sm.skeleton-border-1.border-radius-8.grid.clip",
 		{
-			class: styles.isSingleColumnLayout() ? "" : "fit-content",
-			style: styles.isSingleColumnLayout()
+			class: Styles.get().isSingleColumnLayout() ? "" : "fit-content",
+			style: Styles.get().isSingleColumnLayout()
 				? {
 						"grid-template-columns": "min-content 1fr",
 						"grid-template-rows": "1fr 1fr",
@@ -62,7 +62,7 @@ export const EventBannerSkeleton = pureComponent(() =>
 				}),
 				m(Skeleton, {
 					style: {
-						width: styles.isSingleColumnLayout() ? "70%" : "100%",
+						width: Styles.get().isSingleColumnLayout() ? "70%" : "100%",
 						height: "40px",
 					},
 				}),
@@ -70,7 +70,7 @@ export const EventBannerSkeleton = pureComponent(() =>
 			m(
 				".flex.flex-column.pr-32.pl-32.pb-16.pt-16.skeleton-bg-2.gap-4.skeleton-border-1",
 				{
-					class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
+					class: Styles.get().isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
 				},
 				[
 					m(Skeleton, {
@@ -87,8 +87,8 @@ export const EventBannerSkeleton = pureComponent(() =>
 					}),
 					m(Skeleton, {
 						style: {
-							width: styles.isSingleColumnLayout() ? "100%" : "100%",
-							height: styles.isSingleColumnLayout() ? "100%" : "120px",
+							width: Styles.get().isSingleColumnLayout() ? "100%" : "100%",
+							height: Styles.get().isSingleColumnLayout() ? "100%" : "120px",
 						},
 					}),
 				],

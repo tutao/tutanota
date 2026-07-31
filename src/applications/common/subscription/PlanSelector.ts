@@ -15,7 +15,7 @@ import { PersonalPlanContainer } from "./components/PersonalPlanContainer.js"
 import { BusinessPlanContainer } from "./components/BusinessPlanContainer.js"
 import { getSafeAreaInsetBottom } from "../../../ui/HtmlUtils.js"
 import { DiscountDetails, hasRelevantGlobalFirstYearCampaign, isPersonalPlanAvailable, shouldFixButtonPosition } from "./utils/PlanSelectorUtils.js"
-import { styles } from "../../../ui/styles"
+import { Styles } from "../../../ui/styles"
 import { isIOSApp } from "@tutao/app-env"
 import { AvailablePlanType, NewBusinessPlans, NewPersonalPlans, PlanType, SubscriptionType } from "../../../entities/sys/Utils"
 
@@ -81,7 +81,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 		}
 
 		const getContinueButtonWidth = () => {
-			if (!newSignupFlow || styles.isMobileLayout() || this.shouldFixButtonPos) return "full"
+			if (!newSignupFlow || Styles.get().isMobileLayout() || this.shouldFixButtonPos) return "full"
 			return "flex"
 		}
 
@@ -96,11 +96,11 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					style: {
 						"padding-inline": this.shouldFixButtonPos ? px(size.spacing_16) : 0,
 						display: "inline-grid",
-						"grid-auto-flow": styles.isMobileLayout() || !newSignupFlow ? "row" : "column",
+						"grid-auto-flow": Styles.get().isMobileLayout() || !newSignupFlow ? "row" : "column",
 						"grid-auto-columns": "1fr",
 						"margin-left": newSignupFlow ? "auto" : "initial",
 						"max-width": newSignupFlow ? "initial" : px(400),
-						width: styles.isMobileLayout() || !newSignupFlow ? "100%" : "fit-content",
+						width: Styles.get().isMobileLayout() || !newSignupFlow ? "100%" : "fit-content",
 					},
 				},
 				!this.shouldFixButtonPos && personalPlansAvailable && this.renderAdditionalButton(newSignupFlow, options),
@@ -224,7 +224,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 				width: "flex",
 				onclick: () => windowFacade.openLink(InfoLink.Sales),
 				style: {
-					order: styles.isMobileLayout() ? 1 : -1,
+					order: Styles.get().isMobileLayout() ? 1 : -1,
 				},
 			} satisfies TertiaryButtonAttrs)
 		} else {
@@ -233,7 +233,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 				width: "flex",
 				onclick: () => options.businessUse(true),
 				style: {
-					order: styles.isMobileLayout() ? 1 : -1,
+					order: Styles.get().isMobileLayout() ? 1 : -1,
 				},
 			} satisfies TertiaryButtonAttrs)
 		}

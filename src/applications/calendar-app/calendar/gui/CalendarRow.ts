@@ -4,7 +4,7 @@ import { SelectableRowContainer, SelectableRowContainerAttrs, SelectableRowSelec
 import { setHTMLElementTextWithHighlighting, VirtualRow } from "../../../../ui/base/ListUtils.js"
 import { getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { ViewHolder } from "../../../../ui/base/List.js"
-import { styles } from "../../../../ui/styles.js"
+import { Styles } from "../../../../ui/styles.js"
 import { DefaultAnimationTime } from "../../../../ui/animation/Animations.js"
 import { getEventColor } from "./CalendarGuiUtils.js"
 import { GroupColors } from "../view/CalendarView.js"
@@ -68,7 +68,7 @@ export class CalendarRow implements VirtualRow<CalendarEvent> {
 			m(
 				".flex.items-center.gap-16.click.border-radius",
 				{
-					class: (styles.isDesktopLayout() ? "" : "state-bg") + "limit-width full-width",
+					class: (Styles.get().isDesktopLayout() ? "" : "state-bg") + "limit-width full-width",
 					style: {
 						transition: `background ${DefaultAnimationTime}ms`,
 					},

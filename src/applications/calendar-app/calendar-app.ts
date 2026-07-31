@@ -6,7 +6,7 @@ import { root } from "../../ui/base/RootView.js"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
 import { assertNotNull } from "../../platform-kit/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
-import { styles } from "../../ui/styles.js"
+import { Styles } from "../../ui/styles.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
 import { Logger, replaceNativeLogger } from "../common/api/common/Logger.js"
 import { applicationPaths } from "./calendar-applicationPaths.js"
@@ -158,7 +158,7 @@ import("../../ui/translations/en.js")
 			})
 		}
 
-		styles.init(calendarLocator.themeController)
+		Styles.get().init(calendarLocator.themeController)
 
 		const { makeSignupViewResolver } = await import("../common/signup/SignupViewResolver.js")
 		const paths = applicationPaths({
