@@ -5,7 +5,7 @@ import { alpha, AlphaEnum, animations, transform, TransformEnum } from "../anima
 import { ease } from "../animation/Easing.js"
 import { theme } from "../theme.js"
 import { assertNotNull, noOp } from "../../platform-kit/utils"
-import { styles } from "../styles.js"
+import { Styles } from "../styles.js"
 import { AriaLandmarks } from "../AriaUtils.js"
 import { LayerType } from "../base/RootView.js"
 import { assertMainOrNode } from "../../platform-kit/app-env"
@@ -120,7 +120,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 							inert: this.isModalBackgroundVisible,
 						},
 						[
-							styles.isUsingBottomNavigation() ? null : attrs.header,
+							Styles.get().isUsingBottomNavigation() ? null : attrs.header,
 							m(
 								".view-columns.flex-grow.rel",
 								{
@@ -140,7 +140,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 									}),
 								),
 							),
-							styles.isUsingBottomNavigation() && !ClientDetector.get().isCalendarApp() ? attrs.bottomNav : null,
+							Styles.get().isUsingBottomNavigation() && !ClientDetector.get().isCalendarApp() ? attrs.bottomNav : null,
 						],
 					),
 					this.getColumnsForOverlay().map((c) => m(c, { onResize: noOp })),
@@ -199,7 +199,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		// as a Background column instead of, as by default, as a Foreground column,
 		// we update the columnType on every redraw (orientation change, resize, etc.)
 		// to allow the styles.mobileDesktopLayout() to work properly on all screens.
-		const isRenderFirstColumnAsBackgroundColumn = styles.isMobileDesktopLayout() || !this.enableDrawer
+		const isRenderFirstColumnAsBackgroundColumn = Styles.get().isMobileDesktopLayout() || !this.enableDrawer
 
 		const firstColumn = this.viewColumns[0]
 		const oldColumnType = firstColumn.columnType

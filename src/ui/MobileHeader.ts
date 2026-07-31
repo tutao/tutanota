@@ -4,7 +4,7 @@ import { NBSP } from "../platform-kit/utils"
 import { AppHeaderAttrs } from "./Header.js"
 import { BaseMobileHeader } from "./BaseMobileHeader.js"
 import { IconButton } from "./base/IconButton.js"
-import { styles } from "./styles.js"
+import { Styles } from "./styles.js"
 import { OfflineIndicator } from "./base/OfflineIndicator.js"
 import { ProgressBar } from "./base/ProgressBar.js"
 import { CounterBadge } from "./base/CounterBadge.js"
@@ -40,7 +40,7 @@ export interface MobileHeaderAttrs extends AppHeaderAttrs {
  */
 export class MobileHeader implements Component<MobileHeaderAttrs> {
 	view({ attrs }: Vnode<MobileHeaderAttrs>): Children {
-		const firstVisibleColumn = attrs.columnType === "first" || styles.isSingleColumnLayout()
+		const firstVisibleColumn = attrs.columnType === "first" || Styles.get().isSingleColumnLayout()
 		return m(BaseMobileHeader, {
 			left: this.renderLeftAction(attrs),
 			center: firstVisibleColumn
@@ -50,16 +50,16 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 					})
 				: null,
 			right: [
-				styles.isSingleColumnLayout() ? null : attrs.multicolumnActions?.(),
+				Styles.get().isSingleColumnLayout() ? null : attrs.multicolumnActions?.(),
 				attrs.actions,
-				styles.isSingleColumnLayout() || attrs.columnType === "other" ? attrs.primaryAction() : null,
+				Styles.get().isSingleColumnLayout() || attrs.columnType === "other" ? attrs.primaryAction() : null,
 			],
 			injections: firstVisibleColumn ? m(ProgressBar, { progress: attrs.offlineIndicatorModel.getProgress() }) : null,
 		})
 	}
 
 	private renderLeftAction(attrs: MobileHeaderAttrs) {
-		if (styles.isMobileDesktopLayout() && !ClientDetector.get().isCalendarApp()) {
+		if (Styles.get().isMobileDesktopLayout() && !ClientDetector.get().isCalendarApp()) {
 			if (attrs.useBackButton) {
 				return m(MobileHeaderBackButton, { backAction: attrs.backAction })
 			} else {
@@ -67,7 +67,7 @@ export class MobileHeader implements Component<MobileHeaderAttrs> {
 			}
 		} else if (attrs.columnType === "first" && !attrs.useBackButton) {
 			return m(MobileHeaderMenuButton, attrs)
-		} else if (styles.isSingleColumnLayout() || attrs.useBackButton) {
+		} else if (Styles.get().isSingleColumnLayout() || attrs.useBackButton) {
 			return m(MobileHeaderBackButton, { backAction: attrs.backAction })
 		} else {
 			return null

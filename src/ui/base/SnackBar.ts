@@ -5,7 +5,7 @@ import { displayOverlay, PositionRect } from "./Overlay"
 import type { ButtonAttrs } from "./Button.js"
 import { Button, ButtonType } from "./Button.js"
 import { lang, MaybeTranslation, TranslationKey } from "../utils/LanguageViewModel"
-import { styles } from "../styles"
+import { Styles } from "../styles"
 import { LayerType } from "./RootView"
 import type { ClickHandler } from "./GuiUtils"
 import { assertMainOrNode, TimeConstants } from "../../platform-kit/app-env"
@@ -201,8 +201,8 @@ export function showSnackBar(args: {
 
 function getSnackBarPosition() {
 	// The snackbar will be moved up from off the bottom of the viewport by the transformation animation.
-	const snackBarMargin = styles.isUsingBottomNavigation() ? size.spacing_12 : size.spacing_24
-	const leftOffset = styles.isDesktopLayout() ? layout_size.drawer_menu_width : 0
+	const snackBarMargin = Styles.get().isUsingBottomNavigation() ? size.spacing_12 : size.spacing_24
+	const leftOffset = Styles.get().isDesktopLayout() ? layout_size.drawer_menu_width : 0
 	const snackBarWidth = Math.min(window.innerWidth - leftOffset - 2 * snackBarMargin, MAX_SNACKBAR_WIDTH)
 	let result: PositionRect = {
 		bottom: px(snackBarMargin + fabBottomSpacing()),
@@ -211,7 +211,7 @@ function getSnackBarPosition() {
 	}
 
 	// The SnackBar is only shown at the right in single column layout
-	if (styles.isSingleColumnLayout()) {
+	if (Styles.get().isSingleColumnLayout()) {
 		result.right = px(leftOffset + snackBarMargin)
 	} else {
 		result.left = px(leftOffset + snackBarMargin)

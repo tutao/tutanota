@@ -16,7 +16,7 @@ import { ButtonType } from "../../../../ui/base/Button"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { driveFolderName } from "./DriveGuiUtils"
 import { TextField } from "../../../../ui/base/TextField"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { component_size, size } from "../../../../ui/size"
 import { DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 
@@ -213,7 +213,7 @@ export class DriveFolderBrowserNewFolderEntry implements Component<DriveFolderBr
 			".flex.row.items-center.gap-12",
 			{
 				style: {
-					flexDirection: styles.isDesktopLayout() ? "row" : "column",
+					flexDirection: Styles.get().isDesktopLayout() ? "row" : "column",
 				},
 			},
 			[
@@ -232,7 +232,7 @@ export class DriveFolderBrowserNewFolderEntry implements Component<DriveFolderBr
 				m(PrimaryButton, {
 					size: "md",
 					label: "createFolder_action",
-					width: styles.isDesktopLayout() ? "flex" : "full",
+					width: Styles.get().isDesktopLayout() ? "flex" : "full",
 					onclick: onCreateFolder,
 				}),
 			],

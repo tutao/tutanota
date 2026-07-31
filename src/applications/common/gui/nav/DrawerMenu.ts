@@ -14,7 +14,7 @@ import { showNewsDialog } from "../../misc/news/NewsDialog.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { NewsModel } from "../../misc/news/NewsModel.js"
 import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { styles } from "../../../../ui/styles.js"
+import { Styles } from "../../../../ui/styles.js"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { FeatureType, isAndroidApp, isBrowser, isIOSApp, UpgradePromptType } from "@tutao/app-env"
 
@@ -41,7 +41,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 				...landmarkAttrs(AriaLandmarks.Contentinfo, "drawer menu"),
 				style: {
 					"padding-left": getSafeAreaInsetLeft(),
-					"border-top-right-radius": styles.isDesktopLayout() ? px(size.radius_12) : "",
+					"border-top-right-radius": Styles.get().isDesktopLayout() ? px(size.radius_12) : "",
 				},
 			},
 			[

@@ -1,7 +1,7 @@
 import m, { ChildArray, Children, Component, Vnode } from "mithril"
 import { InfoLink, lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { theme } from "../../../../ui/theme.js"
-import { styles } from "../../../../ui/styles.js"
+import { Styles } from "../../../../ui/styles.js"
 import { ExpanderButton, ExpanderPanel } from "../../../../ui/base/Expander.js"
 import { BannerButtonAttrs, BannerType, InfoBanner } from "../../../../ui/base/InfoBanner.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
@@ -220,7 +220,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			m(
 				".flex.flex-grow.align-self-start.items-start.overflow-hidden",
 				{
-					class: styles.isSingleColumnLayout() ? "mt-12" : "mt-16",
+					class: Styles.get().isSingleColumnLayout() ? "mt-12" : "mt-16",
 					role: "button",
 					"mail-expander": "true",
 					// "aria-expanded" is always true because this component is only used in expanded view
@@ -262,10 +262,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			m(
 				".flex-end.items-start.ml-between-4",
 				{
-					class: styles.isSingleColumnLayout() ? "" : "mt-4",
+					class: Styles.get().isSingleColumnLayout() ? "" : "mt-4",
 					style: {
 						// align "more" button with the datetime text
-						marginRight: styles.isSingleColumnLayout() ? "-3px" : "6px",
+						marginRight: Styles.get().isSingleColumnLayout() ? "-3px" : "6px",
 					},
 					onclick: (e: MouseEvent) => e.stopPropagation(),
 				},
@@ -289,7 +289,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private makeSubjectActionsLineClasses() {
 		let classes = ".flex.click"
-		if (styles.isSingleColumnLayout()) {
+		if (Styles.get().isSingleColumnLayout()) {
 			classes += ".ml-12"
 		} else {
 			classes += ".pl-24"
@@ -809,7 +809,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 			: []
 		// on narrow screens the buttons will end up on 2 lines if there are too many, this looks bad.
 		const maybeDropdownButtons: ReadonlyArray<BannerButtonAttrs> =
-			styles.isSingleColumnLayout() && alwaysOrNeverAllowButtons.length > 1
+			Styles.get().isSingleColumnLayout() && alwaysOrNeverAllowButtons.length > 1
 				? [
 						{
 							label: "more_label",
@@ -878,7 +878,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 								const popup = new LabelsPopup(
 									dom,
 									dom.getBoundingClientRect(),
-									styles.isDesktopLayout() ? 300 : 200,
+									Styles.get().isDesktopLayout() ? 300 : 200,
 									new LabelsPopupViewModel(
 										viewModel.mailModel.getLabelsForMails([viewModel.mail]),
 										viewModel.mailModel.getLabelStatesForMails([viewModel.mail]),

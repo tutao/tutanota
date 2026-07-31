@@ -362,6 +362,10 @@ export class ClientDetector {
 			return ClientPlatform.UNKNOWN
 		}
 	}
+
+	static removeSingletonForTesting() {
+		ClientDetector.singeleton = null
+	}
 }
 
 export enum ClientPlatform {

@@ -13,7 +13,7 @@ import {
 	getWeekNumber,
 } from "../../../common/calendar/date/CalendarUtils"
 import { deepEqual, incrementDate, incrementMonth, isToday, lastThrow, neverNull, ofClass } from "../../../../platform-kit/utils"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { CalendarViewType, isAllDayEvent, isAllDayEventByTimes, isBefore, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import type { GroupColors } from "./CalendarView"
@@ -70,9 +70,9 @@ type SimplePosRect = {
 }
 
 /** height of the day number indicator at the top of the day square */
-const dayHeight = () => (styles.isDesktopLayout() ? 32 : 24)
+const dayHeight = () => (Styles.get().isDesktopLayout() ? 32 : 24)
 
-const SPACE_BETWEEN_EVENTS = styles.isDesktopLayout() ? 2 : 1
+const SPACE_BETWEEN_EVENTS = Styles.get().isDesktopLayout() ? 2 : 1
 
 const EVENT_BUBBLE_VERTICAL_OFFSET = 5
 
@@ -133,13 +133,13 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 
 	view({ attrs }: Vnode<CalendarMonthAttrs>): Children {
 		const startOfTheWeekOffset = getStartOfTheWeekOffset(attrs.startOfTheWeek)
-		const thisMonth = getCalendarMonth(attrs.selectedDate, startOfTheWeekOffset, styles.isSingleColumnLayout())
+		const thisMonth = getCalendarMonth(attrs.selectedDate, startOfTheWeekOffset, Styles.get().isSingleColumnLayout())
 		const lastMonthDate = incrementMonth(attrs.selectedDate, -1)
 		const nextMonthDate = incrementMonth(attrs.selectedDate, 1)
-		const previousMonth = getCalendarMonth(lastMonthDate, startOfTheWeekOffset, styles.isSingleColumnLayout())
-		const nextMonth = getCalendarMonth(nextMonthDate, startOfTheWeekOffset, styles.isSingleColumnLayout())
+		const previousMonth = getCalendarMonth(lastMonthDate, startOfTheWeekOffset, Styles.get().isSingleColumnLayout())
+		const nextMonth = getCalendarMonth(nextMonthDate, startOfTheWeekOffset, Styles.get().isSingleColumnLayout())
 
-		const isDesktopLayout = styles.isDesktopLayout()
+		const isDesktopLayout = Styles.get().isDesktopLayout()
 
 		let containerStyle
 		let weekdayDaysClasses = ""
@@ -175,7 +175,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					".flex.col.rel.flex-grow.overflow-hidden",
 					{
 						class:
-							(!styles.isUsingBottomNavigation() || (isIOSApp() && ClientDetector.get().isCalendarApp()) ? "content-bg" : "") +
+							(!Styles.get().isUsingBottomNavigation() || (isIOSApp() && ClientDetector.get().isCalendarApp()) ? "content-bg" : "") +
 							(!isDesktopLayout ? " border-radius-top-12" : ""),
 						style: containerStyle,
 					},
@@ -307,7 +307,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 			".calendar-day.calendar-column-border.flex-grow.rel.overflow-hidden.fill-absolute.cursor-pointer",
 			{
 				style: {
-					...(firstWeek && !styles.isDesktopLayout() ? { borderTop: "none" } : {}),
+					...(firstWeek && !Styles.get().isDesktopLayout() ? { borderTop: "none" } : {}),
 				},
 				key: day.date.getTime(),
 				onclick: (e: MouseEvent) => {
@@ -317,7 +317,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 						attrs.onDateSelected(new Date(day.date), CalendarViewType.MONTH)
 						attrs.onNewEvent(newDate)
 					} else {
-						attrs.onDateSelected(new Date(day.date), styles.isDesktopLayout() ? CalendarViewType.DAY : CalendarViewType.AGENDA)
+						attrs.onDateSelected(new Date(day.date), Styles.get().isDesktopLayout() ? CalendarViewType.DAY : CalendarViewType.AGENDA)
 					}
 
 					e.preventDefault()
@@ -352,7 +352,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		{ date, day, isPaddingDay }: CalendarDay,
 		onDateSelected: (date: Date, calendarViewTypeToShow: CalendarViewType) => unknown,
 	): Children {
-		const size = styles.isDesktopLayout() ? px(22) : px(20)
+		const size = Styles.get().isDesktopLayout() ? px(22) : px(20)
 		return m(
 			".rel.click.flex.items-center.justify-center.rel.ml-4",
 			{
@@ -360,7 +360,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				onclick: (e: MouseEvent) => {
 					onDateSelected(
 						new Date(date),
-						ClientDetector.get().isDesktopDevice() || styles.isDesktopLayout() ? CalendarViewType.DAY : CalendarViewType.AGENDA,
+						ClientDetector.get().isDesktopDevice() || Styles.get().isDesktopLayout() ? CalendarViewType.DAY : CalendarViewType.AGENDA,
 					)
 					e.stopPropagation()
 				},
@@ -380,7 +380,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 						style: {
 							opacity: isPaddingDay ? 0.4 : 1,
 							fontWeight: isPaddingDay ? "500" : null,
-							fontSize: styles.isDesktopLayout() ? "14px" : "12px",
+							fontSize: Styles.get().isDesktopLayout() ? "14px" : "12px",
 							lineHeight: size,
 						},
 					},
@@ -408,7 +408,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 
 		/** initially, we have 0 extra, non-rendered events on each day of the week */
 		const moreEventsForDay = [0, 0, 0, 0, 0, 0, 0]
-		const eventMargin = styles.isDesktopLayout() ? layout_size.calendar_event_margin : layout_size.calendar_event_margin_mobile
+		const eventMargin = Styles.get().isDesktopLayout() ? layout_size.calendar_event_margin : layout_size.calendar_event_margin_mobile
 		const firstDayOfNextWeek = getStartOfNextDayWithZone(lastDayOfWeek.date, zone)
 		return layOutEvents(
 			Array.from(events),
@@ -504,7 +504,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					height: px(CALENDAR_EVENT_HEIGHT),
 					left: px(position.left),
 					right: px(position.right),
-					pointerEvents: !styles.isUsingBottomNavigation() ? "auto" : "none",
+					pointerEvents: !Styles.get().isUsingBottomNavigation() ? "auto" : "none",
 				},
 				onmousedown: () => {
 					let dayUnderMouse = this.dayUnderMouse
@@ -522,8 +522,8 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				backgroundColor: eventWrapper.flags.isGhost ? theme.surface_container_high : normalizedColor,
 				color: eventWrapper.flags.isGhost ? theme.on_surface_variant : colorForBg(normalizedColor),
 				border: eventWrapper.flags.isGhost ? `1px dashed ${theme.outline}` : `1px solid ${normalizedColor}`,
-				height: styles.isDesktopLayout() ? CALENDAR_EVENT_HEIGHT : 19, // Honestly we are not sure why, but for mobile the inner component has a decimal sized border, around 0.6 and ends up rounding the size to 19px
-				showTime: styles.isDesktopLayout() && !isAllDayEvent(eventWrapper.event) ? EventTextTimeOption.START_TIME : null,
+				height: Styles.get().isDesktopLayout() ? CALENDAR_EVENT_HEIGHT : 19, // Honestly we are not sure why, but for mobile the inner component has a decimal sized border, around 0.6 and ends up rounding the size to 19px
+				showTime: Styles.get().isDesktopLayout() && !isAllDayEvent(eventWrapper.event) ? EventTextTimeOption.START_TIME : null,
 				user: locator.logins.getUserController().user,
 				onEventClicked: (e, domEvent) => {
 					attrs.onEventClicked(eventWrapper.event, domEvent)
@@ -550,7 +550,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		const top = (CALENDAR_EVENT_HEIGHT + SPACE_BETWEEN_EVENTS) * columnIndex + calendarDayHeight + EVENT_BUBBLE_VERTICAL_OFFSET
 		const dayOfStartDateInWeek = getDiffIn24IntervalsFast(eventStart, firstDayOfWeek)
 		const dayOfEndDateInWeek = getDiffIn24IntervalsFast(eventEnd, firstDayOfWeek)
-		const calendarEventMargin = styles.isDesktopLayout() ? layout_size.calendar_event_margin : layout_size.calendar_event_margin_mobile
+		const calendarEventMargin = Styles.get().isDesktopLayout() ? layout_size.calendar_event_margin : layout_size.calendar_event_margin_mobile
 		const left = (eventStart < firstDayOfWeek ? 0 : dayOfStartDateInWeek * calendarDayWidth) + calendarEventMargin
 		const right = (eventEnd >= firstDayOfNextWeek ? 0 : (6 - dayOfEndDateInWeek) * calendarDayWidth) + calendarEventMargin
 		return {

@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { WeekStart } from "../../../../platform-kit/app-env"
 import { calendarWeek, extractCalendarEventModifierKey } from "../gui/CalendarGuiUtils"
 import { WeekDaysComponent, WeekDaysComponentAttrs } from "./WeekDaysComponent"
@@ -154,7 +154,7 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 
 	view({ attrs }: Vnode<CalendarTimeBasedViewComponentAttrs>) {
 		const resolveClasses = (): string => {
-			const classes = styles.isDesktopLayout() ? ["content-bg", "mr-24", "border-radius-12"] : ["mlr-safe-inset"]
+			const classes = Styles.get().isDesktopLayout() ? ["content-bg", "mr-24", "border-radius-12"] : ["mlr-safe-inset"]
 			return classes.join(" ")
 		}
 
@@ -176,7 +176,7 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 		return m(
 			".grid.pt-8.pb-8",
 			{
-				class: styles.isDesktopLayout() ? "content-bg" : "nav-bg",
+				class: Styles.get().isDesktopLayout() ? "content-bg" : "nav-bg",
 				style: {
 					gridTemplateColumns: `${px(getTimeColumnWidth())} 1fr`,
 				} satisfies Partial<CSSStyleDeclaration>,
@@ -191,9 +191,9 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 				m(
 					".b.text-center.calendar-day-indicator",
 					{
-						class: styles.isDesktopLayout() ? undefined : "text-fade",
+						class: Styles.get().isDesktopLayout() ? undefined : "text-fade",
 					},
-					styles.isDesktopLayout()
+					Styles.get().isDesktopLayout()
 						? calendarWeek(weekDaysComponentAttrs.selectedDate, weekStart, false)
 						: calendarWeek(weekDaysComponentAttrs.selectedDate, weekStart, true),
 				),
@@ -221,7 +221,7 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 			 */
 			".grid.scroll.z1",
 			{
-				class: styles.isDesktopLayout() ? "border-top" : "",
+				class: Styles.get().isDesktopLayout() ? "border-top" : "",
 				style: {
 					gridTemplateColumns: `${px(getTimeColumnWidth())} 1fr`,
 				} satisfies Partial<CSSStyleDeclaration>,

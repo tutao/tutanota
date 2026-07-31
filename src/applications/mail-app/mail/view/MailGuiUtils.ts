@@ -21,7 +21,6 @@ import {
 import {
 	CancelledError,
 	EncryptionAuthStatus,
-	isAndroidApp,
 	isApp,
 	isDesktop,
 	isIOSApp,
@@ -53,7 +52,7 @@ import {
 import { FontIcons } from "../../../../ui/base/icons/FontIcons.js"
 import { isOfTypeOrSubfolderOf } from "../model/MailChecks.js"
 import { LabelsPopup } from "./LabelsPopup"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { showSnackBar } from "../../../../ui/base/SnackBar"
 import { UndoModel } from "../../UndoModel"
 import { FolderSystem, IndentedMailSet } from "../../../common/api/common/mail/FolderSystem"
@@ -891,7 +890,7 @@ export function showLabelsPopup(
 	const popup = new LabelsPopup(
 		dom ?? (document.activeElement as HTMLElement),
 		opts?.origin ?? dom?.getBoundingClientRect() ?? getDetachedDropdownBounds(),
-		opts?.width ?? (styles.isDesktopLayout() ? 300 : 200),
+		opts?.width ?? (Styles.get().isDesktopLayout() ? 300 : 200),
 		new LabelsPopupViewModel(mailModel.getLabelsForMails(selectedMails), labels, labelSystem),
 		async (addedLabels, removedLabels) => mailModel.applyLabels(await getActionableMails(selectedMails), addedLabels, removedLabels),
 	)

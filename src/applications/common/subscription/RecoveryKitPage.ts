@@ -9,7 +9,7 @@ import { px } from "../../../ui/size"
 import { theme } from "../../../ui/theme"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { Checkbox } from "../../../ui/base/Checkbox"
-import { styles } from "../../../ui/styles"
+import { Styles } from "../../../ui/styles"
 import { WizardStepComponentAttrs } from "../../../ui/base/wizard/WizardStep"
 import { assertNotNull } from "@tutao/utils"
 import { RecoverCodeDisplay } from "./RecoverCodeDisplay"
@@ -28,10 +28,10 @@ export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<
 		const { newAccountData } = attrs.ctx.viewModel
 		assertNotNull(newAccountData)
 
-		const column = styles.bodyWidth < 770
-		return m(`.flex.flex-column.full-width${styles.isMobileLayout() ? ".pt-16" : ""}`, [
+		const column = Styles.get().bodyWidth < 770
+		return m(`.flex.flex-column.full-width${Styles.get().isMobileLayout() ? ".pt-16" : ""}`, [
 			m(
-				`h1.font-mdio${styles.isMobileLayout() ? ".h2" : ".h1"}`,
+				`h1.font-mdio${Styles.get().isMobileLayout() ? ".h2" : ".h1"}`,
 				{
 					style: {
 						position: "relative",
@@ -40,7 +40,7 @@ export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<
 				},
 				lang.get("recovery_kit_page_title"),
 			),
-			m(`p${styles.isMobileLayout() ? ".mb-32" : ""}`, { style: { color: theme.on_surface_variant } }, lang.get("recovery_kit_page_subtitle")),
+			m(`p${Styles.get().isMobileLayout() ? ".mb-32" : ""}`, { style: { color: theme.on_surface_variant } }, lang.get("recovery_kit_page_subtitle")),
 
 			m(
 				".flex.gap-16",
@@ -69,7 +69,7 @@ export class RecoveryKitPage implements ClassComponent<WizardStepComponentAttrs<
 					]),
 					m(".flex.justify-end", [
 						m(PrimaryButton, {
-							width: styles.isMobileLayout() ? "full" : "flex",
+							width: Styles.get().isMobileLayout() ? "full" : "flex",
 							label: "recovery_kit_page_continue_label",
 							onclick: async () => {
 								attrs.ctx.goNext()

@@ -6,7 +6,7 @@ import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { TextField, TextFieldAttrs } from "../../../ui/base/TextField"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { theme } from "../../../ui/theme"
-import { styles } from "../../../ui/styles"
+import { Styles } from "../../../ui/styles"
 
 export type SimplifiedCreditCardAttrs = {
 	viewModel: SimplifiedCreditCardViewModel
@@ -41,7 +41,7 @@ export class CreditCardInput implements Component<SimplifiedCreditCardAttrs> {
 
 	view(vnode: Vnode<SimplifiedCreditCardAttrs>): Children {
 		let { viewModel } = vnode.attrs
-		const formGap = styles.isMobileLayout() ? ".gap-16" : ".gap-24"
+		const formGap = Styles.get().isMobileLayout() ? ".gap-16" : ".gap-24"
 
 		return m(`.flex.col.mtb-16${formGap}`, [
 			m(TextField, {

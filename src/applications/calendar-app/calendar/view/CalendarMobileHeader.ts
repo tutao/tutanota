@@ -9,7 +9,7 @@ import { MobileHeaderBackButton, MobileHeaderMenuButton, MobileHeaderTitle } fro
 import { AppHeaderAttrs } from "../../../../ui/Header.js"
 import { attachDropdown } from "../../../../ui/base/Dropdown.js"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
-import { styles } from "../../../../ui/styles.js"
+import { Styles } from "../../../../ui/styles.js"
 import { theme } from "../../../../ui/theme.js"
 import { ClickHandler } from "../../../../ui/base/GuiUtils.js"
 import { TodayIconButton } from "./TodayIconButton.js"
@@ -90,7 +90,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 					})
 				},
 			})
-		} else if (styles.isMobileDesktopLayout()) {
+		} else if (Styles.get().isMobileDesktopLayout()) {
 			return null
 		}
 
@@ -119,7 +119,7 @@ export class CalendarMobileHeader implements Component<CalendarMobileHeaderAttrs
 	}
 
 	private renderDateNavigation(attrs: CalendarMobileHeaderAttrs) {
-		if (isApp() || !(styles.isSingleColumnLayout() || styles.isTwoColumnLayout())) {
+		if (isApp() || !(Styles.get().isSingleColumnLayout() || Styles.get().isTwoColumnLayout())) {
 			return null
 		}
 

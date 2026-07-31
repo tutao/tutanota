@@ -63,7 +63,7 @@ import { theme } from "../../../ui/theme"
 import { MobileHeader } from "../../../ui/MobileHeader"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { getNullableSharedGroupName, getSharedGroupName } from "../../common/sharing/GroupUtils"
-import { styles } from "../../../ui/styles"
+import { Styles } from "../../../ui/styles"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { Header } from "../../../ui/Header"
 import { EntityUpdatesListener, EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -351,7 +351,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						columnLayout: m(
 							".mlr-safe-inset.fill-absolute.content-bg",
 							{
-								class: styles.isUsingBottomNavigation() ? "" : "border-radius-top-left-12",
+								class: Styles.get().isUsingBottomNavigation() ? "" : "border-radius-top-left-12",
 							},
 							m(this._getCurrentViewer()!),
 						),

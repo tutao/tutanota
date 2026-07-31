@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { px, size } from "../../../../ui/size"
 import { ReplacementKey } from "../FeatureListProvider"
 import { getPriceStr } from "../utils/SubscriptionUtils"
@@ -142,7 +142,7 @@ export class BusinessPlanContainer implements Component<PlanBoxContainerAttrs> {
 			(getHasCampaign(discountDetails[PlanType.Essential], isYearly) ||
 				getHasCampaign(discountDetails[PlanType.Advanced], isYearly) ||
 				getHasCampaign(discountDetails[PlanType.Unlimited], isYearly))
-		const container = styles.isMobileLayout()
+		const container = Styles.get().isMobileLayout()
 			? {
 					width: `calc(90% + 2 * ${px(size.spacing_24)})`,
 					left: "50%",
@@ -154,7 +154,7 @@ export class BusinessPlanContainer implements Component<PlanBoxContainerAttrs> {
 				}
 
 		return m(
-			`#plan-selector${styles.isMobileLayout() ? ".flex.flex-column.gap-16" : ".flex.gap-16"}`,
+			`#plan-selector${Styles.get().isMobileLayout() ? ".flex.flex-column.gap-16" : ".flex.gap-16"}`,
 			{
 				"data-testid": "dialog:select-subscription-business",
 				style: { position: "relative", "margin-top": anyPaidPlanHasCampaign ? px(20) : "initial", ...container },

@@ -16,7 +16,7 @@ import {
 } from "../../../common/calendar/gui/CalendarTimeGrid"
 import { Time } from "../../../common/calendar/date/Time"
 import { theme } from "../../../../ui/theme"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { layout_size, px, size } from "../../../../ui/size"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
@@ -147,7 +147,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		return m(
 			".border-radius-8.border-sm.grid.full-width.mb-8",
 			{
-				style: styles.isSingleColumnLayout()
+				style: Styles.get().isSingleColumnLayout()
 					? {
 							"grid-template-columns": "min-content 1fr",
 							"grid-template-rows": "auto 1fr",
@@ -165,7 +165,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 				m(
 					".flex.flex-column.center.items-center.pb-16.pt-16.justify-center.fill-grid-column",
 					{
-						class: styles.isSingleColumnLayout() ? "plr-16" : "pr-32 pl-32",
+						class: Styles.get().isSingleColumnLayout() ? "plr-16" : "pr-32 pl-32",
 						style: {
 							"background-color": theme.surface_container_high,
 							color: theme.on_surface,
@@ -202,7 +202,9 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					? m(
 							".flex.flex-column.plr-16.pb-16.pt-16.justify-start",
 							{
-								class: styles.isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
+								class: Styles.get().isSingleColumnLayout()
+									? "border-sm border-left-none border-right-none border-bottom-none"
+									: "border-left-sm",
 								style: {
 									"border-color": theme.surface_container_high,
 									color: theme.on_surface,

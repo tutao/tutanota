@@ -9,7 +9,7 @@ import { isKeyPressed, keyManager } from "../../../ui/utils/KeyManager"
 import { encodeCalendarSearchKey, getRestriction, hasMoreResults } from "./model/SearchUtils"
 import { Dialog } from "../../../ui/base/Dialog"
 import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, ProgrammingError } from "../../../platform-kit/app-env"
-import { styles } from "../../../ui/styles"
+import { Styles } from "../../../ui/styles"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { debounce, downcast, memoized, mod, ofClass } from "../../../platform-kit/utils"
 import { BrowserType } from "../../../platform-kit/app-env/boot/ClientConstants"
@@ -117,7 +117,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 			"form.full-width",
 			{
 				style: {
-					maxWidth: styles.isUsingBottomNavigation() ? "" : px(layout_size.second_col_max_width + 50),
+					maxWidth: Styles.get().isUsingBottomNavigation() ? "" : px(layout_size.second_col_max_width + 50),
 				},
 				onsubmit: (e: SubmitEvent) => {
 					e.stopPropagation()
@@ -275,7 +275,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 		// need if the keyboard is open.
 		const overlayMargin = overlayBottomMargin() ?? 0
 		const bottom = windowFacade.keyboardSize() === 0 ? px(size.spacing_16) : px(windowFacade.keyboardSize() - overlayMargin + size.spacing_16)
-		if (styles.isDesktopLayout()) {
+		if (Styles.get().isDesktopLayout()) {
 			overlayRect = {
 				top: px(domRect.bottom + 5),
 				right: px(window.innerWidth - domRect.right),

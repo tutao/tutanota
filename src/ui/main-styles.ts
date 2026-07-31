@@ -1,4 +1,4 @@
-import { styles } from "./styles"
+import { Styles } from "./styles"
 import { component_size, font_size, layout_size, px, size } from "./size"
 import { assertMainOrNode, isAdminClient, isAndroidApp, isApp, isDesktop } from "../platform-kit/app-env"
 import { lang } from "./utils/LanguageViewModel"
@@ -45,11 +45,11 @@ export class MainStyles {
 	) {}
 	public init() {
 		this.windowFacade.addResizeListener((width: number, height: number) => {
-			styles.bodyWidth = width
-			styles.bodyHeight = height
+			Styles.get().bodyWidth = width
+			Styles.get().bodyHeight = height
 		})
 
-		styles.registerStyle("main", () => {
+		Styles.get().registerStyle("main", () => {
 			const lightTheme = this.baseThemeProvider.getBaseTheme("light")
 			return {
 				"#link-tt":

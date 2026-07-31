@@ -2,7 +2,7 @@ import { PlanConfig } from "../components/BusinessPlanContainer"
 import { PaymentInterval, PriceAndConfigProvider } from "./PriceUtils"
 import { SelectedSubscriptionOptions } from "../FeatureListProvider"
 import { component_size, px, size } from "../../../../ui/size"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { lang, Translation, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { isDarkTheme, Theme, theme } from "../../../../ui/theme"
 import { getRawApplePrice, hasAppleIntroOffer } from "./SubscriptionUtils"
@@ -44,7 +44,7 @@ export function shouldFixButtonPosition() {
 	const planSelectorEl = document.querySelector("#plan-selector")
 	if (planSelectorEl) {
 		const planSelectorBottom = planSelectorEl.getBoundingClientRect().bottom
-		return styles.isMobileLayout() && planSelectorBottom + size.spacing_32 + component_size.button_floating_size > window.innerHeight
+		return Styles.get().isMobileLayout() && planSelectorBottom + size.spacing_32 + component_size.button_floating_size > window.innerHeight
 	}
 	return false
 }
@@ -91,7 +91,7 @@ export function filterPlanConfigsAndGetSelectedPlan(
 
 export function getBorderWidth(isSelected: boolean, position: PlanBoxPosition) {
 	if (isSelected) {
-		if (!styles.isMobileLayout()) return px(2)
+		if (!Styles.get().isMobileLayout()) return px(2)
 
 		if (position === "left") {
 			return `${px(2)} ${px(2)} ${px(2)} 0`
@@ -102,9 +102,9 @@ export function getBorderWidth(isSelected: boolean, position: PlanBoxPosition) {
 		}
 	}
 
-	if (styles.isMobileLayout() && position === "bottom") {
+	if (Styles.get().isMobileLayout() && position === "bottom") {
 		return `${px(1)} 0 ${px(2)} 0`
-	} else if (styles.isMobileLayout() && position !== "bottom") {
+	} else if (Styles.get().isMobileLayout() && position !== "bottom") {
 		return position === "left" ? `${px(2)} ${px(1)} ${px(1)} 0` : `${px(2)} 0 ${px(1)} ${px(1)}`
 	} else if (position === "bottom") {
 		return `${px(1)} ${px(2)} ${px(2)} ${px(2)}`
@@ -123,7 +123,7 @@ export function getBorderColor(isSelected: boolean, hasCampaign: boolean, localT
 
 export function getBorderRadius(hasBanner: boolean, position: PlanBoxPosition) {
 	const topOuterRadius = hasBanner ? "0" : px(size.radius_8)
-	if (styles.isMobileLayout()) {
+	if (Styles.get().isMobileLayout()) {
 		return `0 0 0 0`
 	} else if (position === "bottom") {
 		return `0 0 ${px(size.radius_8)} ${px(size.radius_8)}`

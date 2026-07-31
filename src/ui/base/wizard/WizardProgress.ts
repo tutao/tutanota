@@ -4,7 +4,7 @@ import { Icon, IconSize } from "../Icon"
 import { Icons } from "../icons/Icons"
 import { theme } from "../../theme"
 import { component_size, layout_size, px, size } from "../../size"
-import { styles } from "../../styles"
+import { Styles } from "../../styles"
 
 export interface WizardProgressAttrs {
 	progressState: WizardProgressViewItem[]
@@ -22,7 +22,7 @@ const truncateLabel = (label: string, maxLength?: number): string => {
 
 export class WizardProgress implements Component<WizardProgressAttrs> {
 	view({ attrs: { progressState, onClick, labelMaxLength } }: Vnode<WizardProgressAttrs>) {
-		const showLabels = !styles.isSingleColumnLayout()
+		const showLabels = !Styles.get().isSingleColumnLayout()
 		const progressWidth = showLabels ? layout_size.wizard_progress_width : component_size.button_icon_bg_size
 
 		return m(

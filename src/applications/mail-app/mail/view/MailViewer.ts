@@ -12,7 +12,7 @@ import { Icon, progressIcon } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { isDarkTheme, theme } from "../../../../ui/theme"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { DropdownButtonAttrs, DropdownChildAttrs, showDropdownAtPosition } from "../../../../ui/base/Dropdown.js"
 import { applyDarkThemeFix, replaceCidsWithInlineImages } from "./MailGuiUtils"
 import { getCoordsOfMouseOrTouchEvent } from "../../../../ui/base/GuiUtils"
@@ -438,7 +438,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			this.createCollapsedBlockQuote(quote, this.shouldDisplayCollapsedQuotes())
 		}
 
-		this.shadowDomRoot.appendChild(styles.getStyleSheetElement("main"))
+		this.shadowDomRoot.appendChild(Styles.get().getStyleSheetElement("main"))
 		this.shadowDomRoot.appendChild(wrapNode)
 
 		if (ClientDetector.get().isMobileDevice()) {

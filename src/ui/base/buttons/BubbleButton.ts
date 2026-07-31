@@ -3,7 +3,7 @@ import { BaseButton, BaseButtonAttrs } from "./BaseButton.js"
 import { lang, MaybeTranslation } from "../../utils/LanguageViewModel.js"
 import { AllIcons, Icon } from "../Icon.js"
 import { theme } from "../../theme.js"
-import { styles } from "../../styles.js"
+import { Styles } from "../../styles.js"
 import { component_size, px } from "../../size.js"
 
 export interface BubbleButtonAttrs {
@@ -18,7 +18,7 @@ export function bubbleButtonHeight(): number {
 }
 
 export function usingMobileBubbleButton() {
-	return styles.isUsingBottomNavigation()
+	return Styles.get().isUsingBottomNavigation()
 }
 
 export function bubbleButtonPadding(): string {

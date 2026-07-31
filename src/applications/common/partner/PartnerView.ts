@@ -17,7 +17,7 @@ import { BaseTopLevelView } from "../../../ui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { BackgroundColumnLayout } from "../../../ui/BackgroundColumnLayout.js"
-import { styles } from "../../../ui/styles.js"
+import { Styles } from "../../../ui/styles.js"
 import { MobileHeader } from "../../../ui/MobileHeader.js"
 import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu"
@@ -109,7 +109,7 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 						columnLayout: m(
 							".mlr-safe-inset.fill-absolute.content-bg",
 							{
-								class: styles.isUsingBottomNavigation() ? "" : "border-radius-top-left-12",
+								class: Styles.get().isUsingBottomNavigation() ? "" : "border-radius-top-left-12",
 							},
 							m(this._getCurrentViewer()!),
 						),
