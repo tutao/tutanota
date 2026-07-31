@@ -1,4 +1,4 @@
-import { assertMainOrNode, MailAuthenticationStatus } from "../../../../platform-kit/app-env"
+import { EnvProvider, MailAuthenticationStatus } from "../../../../platform-kit/app-env"
 import { SpamClassifier } from "../../workerUtils/spamClassification/SpamClassifier"
 import { assertNotNull } from "../../../../platform-kit/utils"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
@@ -12,7 +12,7 @@ import { LoginController } from "../../../common/api/main/LoginController"
 import { Mail, MailDetails, MailSet } from "@tutao/entities/tutanota"
 import { MailPhishingStatus, MailSetKind } from "../../../../entities/tutanota/Utils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /// tutadb ClassifierType
 /// If this classifier decided something in serverSide already, we can trust the decision

@@ -1,11 +1,11 @@
 import { assertNotNull } from "@tutao/utils"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { asPaymentInterval, getPriceItem, PaymentInterval } from "./utils/PriceUtils.js"
 import { PriceData, PriceItemData, PriceServiceReturn } from "@tutao/entities/sys"
 import { BookingItemFeatureType } from "../../../entities/sys/Utils"
 import { TranslationKey } from "../../../ui/utils/LanguageViewModel"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class PriceChangeModel {
 	readonly currentItem: PriceItemData | null

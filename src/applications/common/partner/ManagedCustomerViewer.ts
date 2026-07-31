@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode } from "../../../platform-kit/app-env"
+import { EnvProvider } from "../../../platform-kit/app-env"
 import { formatDateWithMonth } from "../../../ui/utils/Formatter.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
@@ -10,7 +10,7 @@ import { CustomerInfo } from "@tutao/entities/sys"
 import { PlanType } from "../../../entities/sys/Utils"
 import { EntityUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class ManagedCustomerViewer implements UpdatableSettingsDetailsViewer {
 	constructor(public customerInfo: CustomerInfo) {

@@ -39,7 +39,7 @@ import {
 	getWeekNumber,
 	StandardAlarmInterval,
 } from "../../../common/calendar/date/CalendarUtils.js"
-import { DEFAULT_CALENDAR_COLOR, EndType, isAppleDevice, RepeatPeriod, ShareCapability, TimeConstants, Weekday, WeekStart } from "@tutao/app-env"
+import { DEFAULT_CALENDAR_COLOR, EndType, EnvProvider, RepeatPeriod, ShareCapability, TimeConstants, Weekday, WeekStart } from "@tutao/app-env"
 import { AllIcons } from "../../../../ui/base/Icon.js"
 import { SelectorItemList } from "../../../../ui/base/DropDownSelector.js"
 import { Duration } from "luxon"
@@ -1002,7 +1002,7 @@ export function extractCalendarEventModifierKey<T extends MouseEvent | KeyboardE
 	},
 ): Key | undefined {
 	let key
-	if (event.metaKey && isAppleDevice()) {
+	if (event.metaKey && EnvProvider.get().isAppleDevice()) {
 		key = Keys.META
 	} else if (event.ctrlKey) {
 		key = Keys.CTRL

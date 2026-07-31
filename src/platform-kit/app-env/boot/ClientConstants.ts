@@ -1,7 +1,4 @@
-import { assertMainOrNodeBoot } from "../Env"
 import { ClientPlatform } from "./ClientDetector"
-
-assertMainOrNodeBoot()
 
 export enum ErrorReportClientType {
 	Browser = "0",

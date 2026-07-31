@@ -6,7 +6,7 @@ import { mapNullable } from "@tutao/utils"
 import { getWhitelabelCustomizations } from "../../../ui/utils/WhitelabelUtils.js"
 import { prepareLogContent, showLogsDialog } from "./LogDialogUtils.js"
 import { LanguageDropdown } from "./LanguageDropdown"
-import { isApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { deviceConfig } from "../misc/DeviceConfig"
 
 export function renderInfoLinks(): Children {
@@ -17,7 +17,7 @@ export function renderInfoLinks(): Children {
 		".flex.col.mt-32",
 		m(
 			".flex.wrap.justify-center.gap-16",
-			!isApp() && privacyPolicyLink
+			!EnvProvider.get().isApp() && privacyPolicyLink
 				? m(ExternalLink, {
 						href: privacyPolicyLink,
 						text: lang.get("privacyLink_label"),
@@ -25,7 +25,7 @@ export function renderInfoLinks(): Children {
 						specialType: "privacy-policy",
 					})
 				: null,
-			!isApp() && imprintLink
+			!EnvProvider.get().isApp() && imprintLink
 				? m(ExternalLink, {
 						href: imprintLink,
 						text: lang.get("imprint_label"),

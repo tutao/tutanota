@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, FeatureType } from "@tutao/app-env"
+import { EnvProvider, FeatureType } from "@tutao/app-env"
 import { clear, downcast, LazyLoaded, neverNull, noOp, promiseMap } from "@tutao/utils"
 import { InfoLink, lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { progressIcon } from "../../../../ui/base/Icon.js"
@@ -47,7 +47,7 @@ import type { WhitelabelThemeGenerator } from "../../../../ui/WhitelabelThemeGen
 import type { ThemeController } from "../../../../ui/ThemeController"
 import { ThemeCustomizations } from "../../../../ui/WhitelabelCustomizations"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	private _whitelabelConfig: WhitelabelConfig | null = null

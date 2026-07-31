@@ -5,10 +5,10 @@ import type { Shortcut } from "../utils/KeyManager"
 import { keyManager } from "../utils/KeyManager"
 import { insideRect, lastIndex, remove } from "../../platform-kit/utils"
 import { LayerType } from "./RootView"
-import { assertMainOrNodeBoot, ProgrammingError } from "../../platform-kit/app-env"
+import { EnvProvider, ProgrammingError } from "../../platform-kit/app-env"
 import { IWindowFacade } from "../IWindowFacade"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 
 type ModalComponentWrapper = {
 	key: number

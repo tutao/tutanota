@@ -1,8 +1,8 @@
 import { lang, MaybeTranslation } from "../../../../ui/utils/LanguageViewModel"
 import { MaybeLazy, resolveMaybeLazy } from "../../../../ui/base/MaybeLazy"
-import { assertMainOrNode, TutanotaError } from "@tutao/app-env"
+import { EnvProvider, TutanotaError } from "@tutao/app-env"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class UserError extends TutanotaError {
 	public readonly data: string

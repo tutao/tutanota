@@ -1,4 +1,4 @@
-import { assertMainOrNode, CustomDomainValidationResult, UpgradePromptType } from "../../../../platform-kit/app-env"
+import { CustomDomainValidationResult, EnvProvider, UpgradePromptType } from "../../../../platform-kit/app-env"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import type { AddDomainData } from "./AddDomainWizard"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
@@ -8,7 +8,7 @@ import type { WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDia
 import { emitWizardEvent, WizardEventType } from "../../../../ui/base/WizardDialog.js"
 import { PreconditionFailedError } from "../../../../platform-kit/rest-client/error"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
-import { isEmpty, ofClass } from "../../../../platform-kit/utils"
+import { isEmpty } from "../../../../platform-kit/utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { createDnsRecordTable } from "./DnsRecordTable.js"
 import { getAvailableMatchingPlans } from "../../../common/subscription/utils/SubscriptionUtils.js"
@@ -18,7 +18,7 @@ import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 import { CustomDomainType, CustomDomainTypeCount } from "../../../../entities/sys/Utils"
 import { ofClassAsync } from "../../../../platform-kit/utils/PromiseUtils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export enum CustomDomainFailureReasons {
 	LIMIT_REACHED = "customdomainservice.limit_reached",

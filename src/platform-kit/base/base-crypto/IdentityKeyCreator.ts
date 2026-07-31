@@ -1,6 +1,6 @@
 import { assertNotNull, Nullable, Versioned } from "@tutao/utils"
 import { EntityClient } from "../../network/EntityClient.js"
-import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
+import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { IServiceExecutor } from "../../network/ServiceRequest.js"
 import { UserFacade } from "../facades/UserFacade.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
@@ -15,7 +15,7 @@ import { GroupType } from "../../../entities/sys/Utils"
 import { CacheManager } from "./persistence/CacheManager"
 import { idToElementId } from "@tutao/meta"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export class IdentityKeyCreator {
 	constructor(

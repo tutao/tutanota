@@ -1,8 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { assertMainOrNode } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 import { IconButton, IconButtonAttrs } from "./IconButton.js"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 export type ActionBarAttrs = {
 	buttons: IconButtonAttrs[]
 }

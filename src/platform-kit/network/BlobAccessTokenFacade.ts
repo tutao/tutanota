@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
+import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { IServiceExecutor } from "./ServiceRequest"
 import { DateProvider, deduplicate, first, isEmpty, isNotNull, lazyMemoized, Nullable } from "@tutao/utils"
 import { SuspensionBehavior } from "../rest-client/types"
@@ -11,7 +11,7 @@ import { BlobReferencingInstance } from "../../entities/storage/BlobUtils"
 import { TypeRef } from "@tutao/meta"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../instance-pipeline/RestClientOptions"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export interface BlobLoadOptions {
 	extraHeaders: Nullable<Dict>

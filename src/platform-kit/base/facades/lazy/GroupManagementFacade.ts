@@ -1,4 +1,4 @@
-import { assertWorkerOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { freshVersioned, getFirstOrThrow, neverNull } from "@tutao/utils"
 import { CounterFacade } from "../../../network/CounterFacade.js"
 import { EntityClient } from "../../../network/EntityClient.js"
@@ -44,7 +44,7 @@ import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../instance-pipeline/RestCli
 import { elementIdToId, idToElementId } from "@tutao/meta"
 import { isNull } from "../../../utils/Utils"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export class GroupManagementFacade {
 	constructor(

@@ -2,9 +2,9 @@ import type { EasingFunction } from "./Easing"
 import { ease } from "./Easing"
 import { downcast, newPromise } from "../../platform-kit/utils"
 import { hexToRgb } from "../base/Color"
-import { assertMainOrNodeBoot } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 
 export interface DomMutation {
 	updateDom(target: HTMLElement, percent: number, easing: EasingFunction): void

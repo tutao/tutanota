@@ -1,6 +1,6 @@
 import { IndexedGroupData, OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { abortAware, MailIndexer, MailIndexerNewMailDownloader, MailIndexingAbortReason } from "./MailIndexer"
-import { assertWorkerOrNode, CancelledError, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
 import {
 	assertNotNull,
@@ -59,7 +59,7 @@ import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/T
 import { CommonImportedMail } from "./WebMailIndexer"
 import { MailImportType, MailSetKind } from "../../../../entities/tutanota/Utils"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 const TAG = "[OfflineMailIndexer]"
 const INDEX_CHUNK_SIZE = 1000

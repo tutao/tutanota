@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
+import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient.js"
@@ -39,7 +39,7 @@ import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../../platfo
 import { idToElementId } from "@tutao/meta"
 import { ReportMovedMailsType } from "../../../../../../entities/tutanota/Utils"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 /**
  * utility to rate limit requests while keeping them as responsive as possible in normal usage.

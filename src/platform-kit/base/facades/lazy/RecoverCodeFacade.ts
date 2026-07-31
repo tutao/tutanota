@@ -1,16 +1,14 @@
 import { assertNotNull, KeyVersion, uint8ArrayToHex } from "@tutao/utils"
 import { LoginFacade } from "../LoginFacade.js"
-import { assertWorkerOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import {
 	Aes256Key,
 	aes256RandomKey,
 	AesKey,
-	AesKeyLength,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
 	cryptoUtils,
 	decrypt256Key,
-	decryptKey,
 	encryptKey,
 	keyToUint8Array,
 	VersionedKey,
@@ -23,7 +21,7 @@ import { asKdfType } from "../../base-crypto/Constants"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../instance-pipeline/RestClientOptions"
 import { idToElementId } from "@tutao/meta"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export type RecoverData = {
 	userEncRecoverCode: Uint8Array<ArrayBuffer>

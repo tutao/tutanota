@@ -1,5 +1,5 @@
 import m, { Children, Vnode } from "mithril"
-import { assertMainOrNode } from "../../../platform-kit/app-env"
+import { EnvProvider } from "../../../platform-kit/app-env"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { AriaLandmarks, landmarkAttrs } from "../../../ui/AriaUtils.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
@@ -15,7 +15,7 @@ import { SURVEY_VERSION_NUMBER } from "../subscription/LeavingUserSurveyConstant
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { createSurveyData } from "@tutao/entities/sys"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export interface RevocationViewAttrs extends TopLevelAttrs {
 	makeViewModel: () => RevocationViewModel

@@ -2,10 +2,10 @@
  * @file Handler for all the uncaught errors.
  * ErrorHandler is decoupled from ErrorHandlerImpl to reduce boot bundle size.
  */
-import { assertMainOrNodeBoot, isTest } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { delay } from "@tutao/utils"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 
 /** Produced async function which will not try to run more often than @param ms. Does not cache the result. */
 function produceThrottledFunction<R>(ms: number, fn: () => Promise<R>): () => Promise<R> {
@@ -41,7 +41,7 @@ function produceThrottledFunction<R>(ms: number, fn: () => Promise<R>): () => Pr
 const importErrorHandler = produceThrottledFunction(200, () => import("./ErrorHandlerImpl.js"))
 
 export async function handleUncaughtError(e: Error) {
-	if (isTest()) {
+	if (EnvProvider.isTest()) {
 		throw e
 	}
 

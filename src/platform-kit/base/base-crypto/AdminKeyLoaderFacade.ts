@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, ProgrammingError, TutanotaError } from "@tutao/app-env"
+import { EnvProvider, ProgrammingError, TutanotaError } from "@tutao/app-env"
 import { assertNotNull, KeyVersion, lazyAsync } from "@tutao/utils"
 import { EntityClient } from "../../network/EntityClient.js"
 import { UserFacade } from "../facades/UserFacade.js"
@@ -11,7 +11,7 @@ import { CacheManager } from "./persistence/CacheManager"
 import { elementIdToId, idToElementId } from "@tutao/meta"
 import { isNull } from "../../utils/Utils"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export class AdminKeyLoaderFacade {
 	constructor(

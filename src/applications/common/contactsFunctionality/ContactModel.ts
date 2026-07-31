@@ -1,4 +1,4 @@
-import { assertMainOrNode, ShareCapability } from "@tutao/app-env"
+import { EnvProvider, ShareCapability } from "@tutao/app-env"
 import { elementIdPart, EntityIdEncoding, getEtId, idToElementId, listIdPart, sortCompareById } from "@tutao/meta"
 import { assertNotNull, cleanMailAddress, first, getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/utils"
 import Stream from "mithril/stream"
@@ -19,11 +19,11 @@ import {
 	ContactTypeRef,
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
-import { EntityUpdatesListener, EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "@tutao/entities/sys"
 import { hasCapabilityOnGroup, isSharedGroupOwner } from "../../../entities/sys/Utils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export type ContactListInfo = {
 	name: string

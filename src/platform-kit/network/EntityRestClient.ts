@@ -17,7 +17,7 @@ import {
 	splitInChunks,
 	syncMetrics,
 } from "@tutao/utils"
-import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
+import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { SetupMultipleError } from "./error/SetupMultipleError"
 import { BlobAccessTokenFacade } from "./BlobAccessTokenFacade.js"
 import {
@@ -73,7 +73,7 @@ import {
 } from "../instance-pipeline/RestClientOptions"
 import { isNull } from "../utils/Utils"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export interface EntityMigrator {
 	/**

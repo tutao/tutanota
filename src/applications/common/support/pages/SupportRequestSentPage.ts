@@ -6,7 +6,7 @@ import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDete
 import { SectionButton } from "../../../../ui/base/buttons/SectionButton.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
-import { isIOSApp, TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
+import { EnvProvider, TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
 import { SupportDialogState } from "../SupportDialog.js"
 import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
 import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg.js"
@@ -57,7 +57,7 @@ export class SupportRequestSentPage implements Component<SupportRequestSentPageA
 						m(SectionButton, {
 							text: "getTutaMail_action",
 							onclick: () => {
-								windowFacade.openLink(isIOSApp() ? TUTA_MAIL_APP_STORE_URL : TUTA_MAIL_GOOGLE_PLAY_URL)
+								windowFacade.openLink(EnvProvider.get().isIOSApp() ? TUTA_MAIL_APP_STORE_URL : TUTA_MAIL_GOOGLE_PLAY_URL)
 							},
 							rightIcon: { icon: Icons.DownloadFilled, title: "download_action" },
 						}),

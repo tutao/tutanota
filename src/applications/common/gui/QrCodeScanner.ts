@@ -2,11 +2,11 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import jsQR, { QRCode } from "jsqr"
 import { assertNotNull } from "@tutao/utils"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
-import { assertMainOrNode, isApp, isAppleDevice, isDesktop } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { locator } from "../api/main/CommonLocator.js"
 import { PermissionType } from "@tutao/native-bridge/generatedIpc/enums"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export type QrCodeScannerErrorType = "camera_permission_denied" | "camera_not_found" | "video_source_error" | "unknown"
 
@@ -170,7 +170,7 @@ export class QrCodeScanner implements Component<QrCodeScannerAttrs> {
 
 	private async requestDefaultCameraPermission(): Promise<boolean> {
 		let hasPermission = true
-		if (isApp()) {
+		if (EnvProvider.get().isApp()) {
 			hasPermission = await locator.systemFacade.hasPermission(PermissionType.Camera)
 			if (!hasPermission) {
 				try {
@@ -180,7 +180,7 @@ export class QrCodeScanner implements Component<QrCodeScannerAttrs> {
 					hasPermission = false
 				}
 			}
-		} else if (isDesktop() && isAppleDevice()) {
+		} else if (EnvProvider.get().isDesktop() && EnvProvider.get().isAppleDevice()) {
 			hasPermission = await locator.desktopSystemFacade.requestVideoPermission()
 		}
 

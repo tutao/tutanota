@@ -1,11 +1,11 @@
 import type { MailboxDetail } from "../../mailFunctionality/MailboxModel.js"
 import type { LoginController } from "../../api/main/LoginController"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { getEnabledMailAddressesWithUser, getMailboxName } from "../../mailFunctionality/SharedMailUtils.js"
 import { theme } from "../../../../ui/theme"
 import { PartialRecipient } from "../../../../entities/tutanota/Utils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 /** password strength resulting in a full bar */
 export const PASSWORD_MAX_VALUE = 80
 export const PASSWORD_MIN_VALUE = 0

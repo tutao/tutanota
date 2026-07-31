@@ -1,12 +1,12 @@
 import { elementIdToId, idToElementId, isSameSingleId, PersistentEntity, TypeRef } from "@tutao/meta"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient.js"
-import { assertWorkerOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
 import { DefaultEntityRestCache } from "../../rest/DefaultEntityRestCache.js"
 import { Group, GroupTypeRef, User, UserGroupKeyDistributionTypeRef, UserTypeRef } from "@tutao/entities/sys"
 import { CacheManager } from "../../../../../../platform-kit/base/base-crypto/persistence/CacheManager"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 /**
  * This facade is responsible for handling cases where we need to manually update an entity in the rest cache.

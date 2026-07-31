@@ -1,7 +1,7 @@
 import { Commands, Request } from "../../../../app-kit/native-bridge/shared/MessageTypes"
 import { MessageDispatcher } from "../../../../app-kit/native-bridge/shared/MessageDispatcher.js"
 import { NotAuthenticatedError } from "@tutao/rest-client/error"
-import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "../../../../platform-kit/app-env"
+import { EnvProvider, ProgrammingError } from "../../../../platform-kit/app-env"
 import { initLocator, locator, resetLocator } from "../index/CalendarWorkerLocator.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
 import { random } from "../../../../platform-kit/crypto"
@@ -14,7 +14,7 @@ import { objToError } from "../../../common/api/common/utils/ErrorUtils"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { NamedClientModel } from "@tutao/instance-pipeline"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 type WorkerRequest = Request<WorkerRequestType>
 
@@ -33,7 +33,7 @@ export class CalendarWorkerImpl implements NativeInterface {
 
 		// only register oncaught error handler if we are in the *real* worker scope
 		// Otherwise uncaught error handler might end up in an infinite loop for test cases.
-		if (workerScope && !isMainOrNode()) {
+		if (workerScope && !EnvProvider.get().isMainOrNode()) {
 			workerScope.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => {
 				this.sendError(event.reason)
 			})

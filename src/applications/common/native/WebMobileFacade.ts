@@ -1,5 +1,5 @@
 import m from "mithril"
-import { assertMainOrNode, CancelledError, TimeConstants, UpgradePromptType } from "@tutao/app-env"
+import { CancelledError, EnvProvider, TimeConstants, UpgradePromptType } from "@tutao/app-env"
 import { locator } from "../api/main/CommonLocator.js"
 import { modal } from "../../../ui/base/Modal"
 import { showUpgradeDialog } from "../gui/nav/NavFunctions.js"
@@ -12,7 +12,7 @@ import { TopLevelView } from "../../../ui/base/TopLevelView.js"
 import stream from "mithril/stream"
 import { CloseEventBusOption } from "../../../platform-kit/network/Constants"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class WebMobileFacade implements MobileFacade {
 	private disconnectTimeoutId: TimeoutID | null

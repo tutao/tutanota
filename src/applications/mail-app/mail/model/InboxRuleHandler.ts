@@ -2,7 +2,7 @@ import { assertNotNull, asyncFind, isDomainName, isRegularExpression, Nullable }
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import type { SelectorItemList } from "../../../../ui/base/DropDownSelector.js"
-import { assertMainOrNode } from "../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../platform-kit/app-env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { getMailHeaders } from "./MailUtils.js"
@@ -13,7 +13,7 @@ import { InboxRule, Mail, MailSet } from "@tutao/entities/tutanota"
 import { InboxRuleType, MailSetKind, ProcessingState } from "../../../../entities/tutanota/Utils"
 import { elementIdPart } from "../../../../platform-kit/meta"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export function getInboxRuleTypeNameMapping(): SelectorItemList<string> {
 	return [

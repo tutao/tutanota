@@ -1,4 +1,4 @@
-import { assertMainOrNodeBoot, EnvProvider, PlatformId } from "../Env"
+import { EnvProvider, PlatformId } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
 import { AppType } from "../AppType"
@@ -11,7 +11,7 @@ import {
 	_isSupportedBrowserVersion,
 } from "./TsPlatformConstants"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 
 export class ClientDetector {
 	private userAgent: string | null = null
@@ -28,11 +28,11 @@ export class ClientDetector {
 		if (ClientDetector.singeleton != null) {
 			return ClientDetector.singeleton
 		}
-		this.singeleton = new ClientDetector(EnvProvider.get())
+		this.singeleton = new ClientDetector()
 		return this.singeleton
 	}
 
-	constructor(public readonly envProvider: EnvProvider) {}
+	constructor() {}
 
 	init(userAgent: string, platform: string, appType: AppType = AppType.Integrated) {
 		this.userAgent = userAgent
@@ -296,7 +296,7 @@ export class ClientDetector {
 	}
 
 	getIdentifier(): string {
-		const platformId = this.envProvider.getPlatformId()
+		const platformId = EnvProvider.get().getPlatformId()
 
 		if (EnvProvider.get().isApp()) {
 			if (this.appType === AppType.Integrated) {
@@ -357,7 +357,7 @@ export class ClientDetector {
 
 	getClientPlatform(): ClientPlatform {
 		if (EnvProvider.get().isDesktop()) {
-			const platformId = this.envProvider.getPlatformId()
+			const platformId = EnvProvider.get().getPlatformId()
 			if (platformId === PlatformId.Darwin) return ClientPlatform.DESKTOP_MAC
 			else if (platformId === PlatformId.Linux) return ClientPlatform.DESKTOP_LINUX
 			else if (platformId === PlatformId.Win32) return ClientPlatform.DESKTOP_WINDOWS

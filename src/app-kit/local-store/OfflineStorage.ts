@@ -48,7 +48,7 @@ import {
 import { TokenOrNestedTokens } from "cborg/interface"
 import { OfflineStorageMigrator } from "./OfflineStorageMigrator.js"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
-import { isAdminClient, isBrowser, isDesktop, isTest, OutOfSyncError } from "@tutao/app-env"
+import { EnvProvider, OutOfSyncError } from "@tutao/app-env"
 import { sql, SqlFragment } from "./Sql.js"
 import { DecryptedParsedInstance, ModelMapper, TypeModelResolver } from "@tutao/instance-pipeline"
 import { CacheStorage, LastUpdateTime } from "./CacheStorage"
@@ -210,7 +210,7 @@ export class OfflineStorage implements CacheStorage {
 		private readonly customCacheHandler: CustomCacheHandlerMap,
 		additionalTables: Record<string, OfflineStorageTable>,
 	) {
-		assert((!isBrowser() && !isAdminClient()) || isTest(), "Offline storage is not available.")
+		assert((!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) || EnvProvider.isTest(), "Offline storage is not available.")
 		this.allTables = Object.freeze(Object.assign({}, additionalTables, TableDefinitions))
 	}
 
@@ -249,7 +249,7 @@ export class OfflineStorage implements CacheStorage {
 		this.userId = userId
 		this.databaseKey = databaseKey
 		if (forceNewDatabase) {
-			if (isDesktop()) {
+			if (EnvProvider.get().isDesktop()) {
 				await this.interWindowEventSender.localUserDataInvalidated(userId)
 			}
 			await this.sqlCipherFacade.deleteDb(userId)

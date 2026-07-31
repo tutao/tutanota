@@ -1,6 +1,6 @@
 import { Commands, Request, Transport } from "../../../../app-kit/native-bridge/shared/MessageTypes"
 import { WebWorkerTransport } from "../../../../app-kit/native-bridge/common/threading/WebTransport.js"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import type { DeferredObject } from "@tutao/utils"
 import { defer, downcast } from "@tutao/utils"
 import { handleUncaughtError } from "../../misc/ErrorHandler"
@@ -14,7 +14,7 @@ import { MessageDispatcher } from "../../../../app-kit/native-bridge/shared/Mess
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { EntropyDataChunk } from "../../../../platform-kit/crypto/random/EntropyDataChunk"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 type ProgressUpdater = (progress: number) => unknown
 type MainRequest = Request<MainRequestType>

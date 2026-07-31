@@ -1,9 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
 import type { TranslationKey } from "../utils/LanguageViewModel"
 import { lang } from "../utils/LanguageViewModel"
-import { assertMainOrNode } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 export type StatusType = "neutral" | "valid" | "invalid"
 export type StatusFieldAttrs = {
 	status: Status

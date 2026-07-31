@@ -1,10 +1,10 @@
 import m from "mithril"
 import { show as showNotificationOverlay } from "../../../ui/base/NotificationOverlay"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { SearchIndexStateInfo } from "../api/worker/search/SearchTypes.js"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export interface InfoMessage {
 	translationKey: TranslationKey

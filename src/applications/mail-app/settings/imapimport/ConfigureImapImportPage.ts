@@ -1,4 +1,4 @@
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import m, { Children, Vnode } from "mithril"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog"
 import { ImapImportData } from "./AddImapImportWizard"
@@ -33,7 +33,7 @@ import { Checkbox } from "../../../../ui/base/Checkbox"
 import { ImapCredentials } from "../../../common/api/common/utils/imapImportUtils/ImapSyncContext"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 	private isGmail: boolean = false

@@ -13,7 +13,7 @@ import {
 	getContactSocialTypeLabel,
 } from "./ContactGuiUtils"
 import { formatContactDate, getContactTitle, getMessengerHandleUrl, getSocialUrl, getWebsiteUrl } from "../../../common/contactsFunctionality/ContactUtils.js"
-import { assertMainOrNode } from "../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../platform-kit/app-env"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
 import { attachDropdown } from "../../../../ui/base/Dropdown.js"
@@ -25,7 +25,7 @@ import { Contact, ContactAddress, ContactMessengerHandle, ContactPhoneNumber, Co
 import { ContactAddressType, ContactPhoneNumberType, PartialRecipient } from "../../../../entities/tutanota/Utils"
 import { getContactSocialType, getCustomDateType, getRelationshipType } from "../ContactUtils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export interface ContactViewerAttrs {
 	contact: Contact

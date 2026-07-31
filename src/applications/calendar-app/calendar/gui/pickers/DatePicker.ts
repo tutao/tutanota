@@ -15,7 +15,7 @@ import { parseDate } from "../../../../common/misc/DateParser.js"
 import renderSwitchMonthArrowIcon from "../../../../../ui/base/buttons/ArrowButton.js"
 import { getCalendarMonth } from "../CalendarGuiUtils.js"
 import { isKeyPressed, keyboardEventToKeyPress, keyHandler, KeyPress, useKeyHandler } from "../../../../../ui/utils/KeyManager.js"
-import { isApp, isIOSApp, TabIndex } from "../../../../../platform-kit/app-env"
+import { EnvProvider, TabIndex } from "../../../../../platform-kit/app-env"
 import { AriaPopupType } from "../../../../../ui/AriaUtils.js"
 import { InputButton, InputButtonAttributes, InputButtonVariant } from "../../../../../ui/base/InputButton.js"
 import { Keys } from "../../../../../ui/KeyboardKeys"
@@ -86,7 +86,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 
 	private renderInputButtonPicker({ disabled, date, onDateSelected, label, nullSelectionText }: DatePickerAttrs): Children {
 		return m.fragment({}, [
-			isApp()
+			EnvProvider.get().isApp()
 				? m("input.fill-absolute.invisible.tutaui-button-outline", {
 						disabled,
 						type: LegacyTextFieldType.Date,
@@ -106,7 +106,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					})
 				: null,
 			m(InputButton, {
-				tabIndex: Number(isApp() ? TabIndex.Programmatic : TabIndex.Default),
+				tabIndex: Number(EnvProvider.get().isApp() ? TabIndex.Programmatic : TabIndex.Default),
 				ariaLabel: label,
 				inputValue: this.inputText,
 				oninput: (newValue: string) => (this.inputText = newValue),
@@ -137,7 +137,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 						event.stopPropagation()
 					}
 				},
-				containerStyle: isApp()
+				containerStyle: EnvProvider.get().isApp()
 					? {
 							zIndex: "2",
 							position: "inherit",
@@ -307,7 +307,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 			// On iOS we use "onfocusout" instead of "oninput" because the native date picker changes the input immediately, triggering an "oninput" event.
 			// And tapping "done" has the same effect as tapping outside the picker, it only closes the picker.
 			// Note that "onfocusout" firing on picker opening and closing only happens on iOS.
-			[isIOSApp() ? "onfocusout" : "oninput"]: ({ target }: { target: HTMLInputElement }) => {
+			[EnvProvider.get().isIOSApp() ? "onfocusout" : "oninput"]: ({ target }: { target: HTMLInputElement }) => {
 				this.handleNativeInput(target, onDateSelected)
 			},
 		})

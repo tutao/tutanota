@@ -1,10 +1,10 @@
 import type { TranslationKey } from "./LanguageViewModel"
-import { assertMainOrNodeBoot, isAppleDevice } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 import { lazy, mod } from "../../platform-kit/utils"
 import m from "mithril"
 import { Keys } from "../KeyboardKeys"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 export const TABBABLE = "button, input, textarea, div[contenteditable='true'], [tabindex='0'], a, [role=button], [role=input]"
 export type KeyPress = {
 	key: string
@@ -34,7 +34,7 @@ export type Key = {
  * @param event event to convert
  */
 export function keyboardEventToKeyPress(event: KeyboardEvent): KeyPress {
-	const ctrlOrCmd = isAppleDevice() ? event.metaKey : event.ctrlKey
+	const ctrlOrCmd = EnvProvider.get().isAppleDevice() ? event.metaKey : event.ctrlKey
 
 	let key = fixWaylandKeyIssue(event)
 
@@ -350,7 +350,7 @@ export function isModifierKeyPressed(key?: Key | string) {
 		return false
 	}
 
-	return isAppleDevice() ? parsedKey === Keys.META : parsedKey === Keys.CTRL
+	return EnvProvider.get().isAppleDevice() ? parsedKey === Keys.META : parsedKey === Keys.CTRL
 }
 
 export const keyManager: KeyManager = new KeyManager()

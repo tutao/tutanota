@@ -1,10 +1,10 @@
-import { assertWorkerOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { IServiceExecutor } from "./ServiceRequest.js"
 import { CounterValue, createReadCounterData } from "../../entities/monitor/TypeRefs"
 import { CounterService_GET } from "../../entities/monitor/Services"
 import { CounterType } from "../../entities/monitor/Utils"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export class CounterFacade {
 	constructor(private readonly serviceExecutor: IServiceExecutor) {}

@@ -1,7 +1,7 @@
 import { assertNotNull } from "../platform-kit/utils"
-import { assertMainOrNodeBoot } from "../platform-kit/app-env"
+import { EnvProvider } from "../platform-kit/app-env"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 
 export function applySafeAreaInsetMarginLR(element: HTMLElement) {
 	element.style.marginRight = "var(--safe-area-inset-right)"

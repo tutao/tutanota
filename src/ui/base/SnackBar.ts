@@ -8,7 +8,7 @@ import { lang, MaybeTranslation, TranslationKey } from "../utils/LanguageViewMod
 import { Styles } from "../styles"
 import { LayerType } from "./RootView"
 import type { ClickHandler } from "./GuiUtils"
-import { assertMainOrNode, TimeConstants } from "../../platform-kit/app-env"
+import { EnvProvider, TimeConstants } from "../../platform-kit/app-env"
 import { isNotEmpty, remove } from "../../platform-kit/utils"
 import { IconButton, IconButtonAttrs } from "./IconButton"
 import { AllIcons, Icon, IconSize } from "./Icon"
@@ -16,7 +16,7 @@ import { theme } from "../theme"
 import { Icons } from "./icons/Icons"
 import { fabBottomSpacing } from "./FloatingActionButton"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 const SNACKBAR_SHOW_TIME = TimeConstants.secondsToMillis(6)
 const SNACKBAR_HIDE_DELAY_TIME = TimeConstants.secondsToMillis(1.5)

@@ -1,6 +1,6 @@
 import { ImapImportCredentialsPage, ImapImportCredentialsPageAttrs } from "./ImapImportCredentialsPage.js"
 import ImapImportConfigurePage, { ImapImportConfigurePageAttrs } from "./ConfigureImapImportPage.js"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { ImapProvider, OauthConfigParams } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { TokenEndpointResponse } from "openid-client"
 import { ImapMailbox } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
@@ -16,7 +16,7 @@ import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
 import { MailSetMapping } from "../../workerUtils/imapimport/ImapImporter"
 import { mailLocator } from "../../mailLocator"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export type ImapImportData = {
 	oauthConfig?: OauthConfigParams

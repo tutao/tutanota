@@ -1,13 +1,13 @@
 import { Cat, log, timer } from "./utils/Log"
 import { layout_size } from "./size"
-import { assertMainOrNodeBoot, isAdminClient, isTest } from "../platform-kit/app-env"
+import { EnvProvider } from "../platform-kit/app-env"
 import { theme } from "./theme"
 import { assertNotNull, neverNull } from "../platform-kit/utils"
 import { ThemeController } from "./ThemeController.js"
 import { ClientDetector } from "../platform-kit/app-env/boot/ClientDetector"
 import { isNull } from "../platform-kit/utils/Utils"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 export type StyleSheetId = "main" | "outline"
 
 /**
@@ -26,7 +26,6 @@ export class Styles {
 	private readonly themeColorMeta: HTMLMetaElement | null
 
 	private static singleton: Styles | null = null
-
 	public static get(): Styles {
 		if (isNull(Styles.singleton)) {
 			Styles.singleton = new Styles()
@@ -40,7 +39,7 @@ export class Styles {
 		this.bodyWidth = neverNull(document.body).offsetWidth
 		this.bodyHeight = neverNull(document.body).offsetHeight
 
-		if (isTest()) {
+		if (EnvProvider.isTest()) {
 			this.themeColorMeta = null
 		} else {
 			this.themeColorMeta = document.createElement("meta")
@@ -96,7 +95,7 @@ export class Styles {
 	}
 
 	isUsingBottomNavigation(): boolean {
-		return !isAdminClient() && (ClientDetector.get().isMobileDevice() || !this.isDesktopLayout())
+		return !EnvProvider.get().isAdminClient() && (ClientDetector.get().isMobileDevice() || !this.isDesktopLayout())
 	}
 
 	isAppUsingBottomNav(): boolean {
@@ -134,7 +133,7 @@ export class Styles {
 
 	private updateDomStyles() {
 		// This is hacking but we currently import gui stuff from a lot of tested things
-		if (isTest()) {
+		if (EnvProvider.isTest()) {
 			return
 		}
 
@@ -164,10 +163,6 @@ export class Styles {
 		}
 
 		return styleDomElement as HTMLStyleElement
-	}
-
-	static removeSingletonForTesting() {
-		Styles.singleton = null
 	}
 }
 

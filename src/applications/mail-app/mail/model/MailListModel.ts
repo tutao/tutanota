@@ -1,7 +1,7 @@
 import { ListFilter, ListModel } from "../../../common/misc/ListModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { ConversationPrefProvider } from "../view/ConversationViewModel"
-import { assertMainOrNode } from "../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../platform-kit/app-env"
 import { assertNotNull, first, last, memoizedWithHiddenArgument, settledThen } from "@tutao/utils"
 import { ListLoadingState, ListState } from "../../../../ui/base/List"
 import Stream from "mithril/stream"
@@ -27,7 +27,7 @@ import {
 	OperationType,
 } from "../../../../platform-kit/meta"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /**
  * Handles fetching and resolving mail set entries into mails as well as handling sorting.

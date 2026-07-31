@@ -1,6 +1,6 @@
-import { assertMainOrNodeBoot } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 type LogCategory = Record<string, string>
 export const Cat: Record<string, LogCategory> = {
 	css: {

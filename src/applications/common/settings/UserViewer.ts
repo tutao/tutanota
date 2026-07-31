@@ -1,9 +1,9 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, UnsubscribeFailureReason } from "../../../platform-kit/app-env"
+import { EnvProvider, UnsubscribeFailureReason } from "../../../platform-kit/app-env"
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { formatDateWithMonth, formatStorageSize } from "../../../ui/utils/Formatter.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
-import { assertNotNull, asyncFind, getFirstOrThrow, LazyLoaded, neverNull, ofClass, promiseMap } from "../../../platform-kit/utils"
+import { asyncFind, getFirstOrThrow, LazyLoaded, neverNull, ofClass, promiseMap } from "../../../platform-kit/utils"
 import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "../../../platform-kit/rest-client/error"
 import { ColumnWidth, Table, TableAttrs } from "../../../ui/base/Table.js"
 import { getGroupTypeDisplayName } from "./groups/GroupDetailsView.js"
@@ -31,7 +31,7 @@ import { toFeatureType } from "../subscription/utils/SubscriptionUtils.js"
 import { UpdatableSettingsDetailsViewer } from "./Interfaces.js"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class UserViewer implements UpdatableSettingsDetailsViewer {
 	private readonly user: LazyLoaded<User> = new LazyLoaded(() => this.loadUser())

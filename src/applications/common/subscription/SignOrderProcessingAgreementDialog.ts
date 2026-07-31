@@ -1,7 +1,7 @@
 import m from "mithril"
 import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import { lang } from "../../../ui/utils/LanguageViewModel"
-import { assertMainOrNode, isApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { formatDate } from "../../../ui/utils/Formatter"
 import { HtmlEditor, HtmlEditorMode } from "../../../ui/editor/HtmlEditor"
 import { neverNull } from "@tutao/utils"
@@ -18,7 +18,7 @@ import {
 } from "@tutao/entities/sys"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 const PRINT_DIV_ID = "print-div"
 const agreementTexts = {
 	"1_en": {
@@ -119,7 +119,8 @@ function cleanupPrintElement() {
 export function showForViewing(agreement: OrderProcessingAgreement, signerUserGroupInfo: GroupInfo) {
 	Dialog.showActionDialog({
 		title: "orderProcessingAgreement_label",
-		okAction: !isApp() && "function" === typeof window.print ? () => printElementContent(document.getElementById("agreement-content")) : null,
+		okAction:
+			!EnvProvider.get().isApp() && "function" === typeof window.print ? () => printElementContent(document.getElementById("agreement-content")) : null,
 		okActionTextId: "print_action",
 		cancelActionTextId: "close_alt",
 		type: DialogType.EditLarge,

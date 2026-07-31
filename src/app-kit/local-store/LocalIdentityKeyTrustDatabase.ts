@@ -1,4 +1,4 @@
-import { IdentityKeySourceOfTrust, isBrowser, ProgrammingError, SessionType } from "../../platform-kit/app-env"
+import { EnvProvider, IdentityKeySourceOfTrust, ProgrammingError, SessionType } from "../../platform-kit/app-env"
 import { bytesToEd25519PublicKey, cryptoUtils, ed25519PublicKeyToBytes, SigningKeyPairType } from "../../platform-kit/crypto"
 import { lazy, Versioned } from "../../platform-kit/utils"
 import { sql } from "./Sql"
@@ -36,7 +36,7 @@ export class LocalIdentityKeyTrustDatabase implements IdentityKeyTrustDatabase {
 	async isIdentityKeyTrustDatabaseSupported(): Promise<boolean> {
 		const loginFacade = this.lazyLoginFacade()
 		const sessionType = await loginFacade.getSessionType()
-		return !isBrowser() && sessionType === SessionType.Persistent
+		return !EnvProvider.get().isBrowser() && sessionType === SessionType.Persistent
 	}
 
 	/**

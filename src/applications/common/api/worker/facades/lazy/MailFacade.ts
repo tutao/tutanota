@@ -12,7 +12,7 @@ import {
 	listIdPart,
 	OperationType,
 } from "@tutao/meta"
-import { assertWorkerOrNode, CryptoProtocolVersion, EncryptionAuthStatus, isApp, isDesktop, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
+import { CryptoProtocolVersion, EncryptionAuthStatus, EnvProvider, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
 import {
 	aes256RandomKey,
 	AesKey,
@@ -183,7 +183,7 @@ import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/ins
 import { UNCOMPRESSED_MAX_SIZE } from "../../../../../../platform-kit/instance-pipeline/Compression"
 import { parseKeyVersion } from "../../../../../../platform-kit/crypto/CryptoUtils"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 type Attachments = ReadonlyArray<File | DataFile | FileReference>
 
 interface CreateDraftParams {
@@ -532,7 +532,7 @@ export class MailFacade {
 				const fileSessionKey = aes256RandomKey()
 				let referenceTokens: Array<BlobReferenceTokenWrapper>
 				const transferId = await this.blobFacade.generateTransferId()
-				if (isApp() || isDesktop()) {
+				if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
 					const { location } = await this.fileApp.writeDataFile(providedFile)
 					referenceTokens = await this.blobFacade.encryptAndUploadNative(
 						ArchiveDataType.Attachments,
@@ -582,7 +582,7 @@ export class MailFacade {
 			.then((attachments) => attachments.filter(isNotNull))
 			.then((it) => {
 				// only delete the temporary files after all attachments have been uploaded
-				if (isApp() || isDesktop()) {
+				if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
 					this.fileApp.clearFileData().catch((e) => console.warn("Failed to clear files", e))
 				}
 

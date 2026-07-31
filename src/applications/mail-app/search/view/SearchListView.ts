@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isOfflineStorageAvailable } from "@tutao/app-env"
+import { EnvProvider, FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { downcast, YEAR_IN_MILLIS } from "@tutao/utils"
 import { MailRow } from "../../mail/view/MailRow"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
@@ -27,7 +27,7 @@ import { isSameTypeRef, TypeRef } from "@tutao/meta"
 import { CircleLoadingBar } from "../../../../ui/CircleLoadingBar.js"
 import { formatDate } from "../../../../ui/utils/Formatter"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class SearchResultListEntry {
 	constructor(readonly entry: SearchableTypes) {}
@@ -155,10 +155,10 @@ export class SearchListView implements Component<SearchListViewAttrs> {
 		} else if (
 			(attrs.listModel.state.loadingStatus === ListLoadingState.Done &&
 				attrs.indexStateStream().currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
-				isOfflineStorageAvailable()) ||
+				EnvProvider.get().isOfflineStorageAvailable()) ||
 			(sixMonthsBeforeStartDate && sixMonthsBeforeStartDate.getTime() < attrs.indexStateStream().currentMailIndexTimestamp)
 		) {
-			const extendToDate = isOfflineStorageAvailable() ? null : sixMonthsBeforeStartDate
+			const extendToDate = EnvProvider.get().isOfflineStorageAvailable() ? null : sixMonthsBeforeStartDate
 
 			// If the list is in Loading or ConnectionLost, the list has a default message that should be displayed
 			innerChildren = m(

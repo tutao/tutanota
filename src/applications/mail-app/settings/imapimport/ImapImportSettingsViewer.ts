@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { showAddImapImportWizard } from "./AddImapImportWizard.js"
-import { assertMainOrNode, UpgradePromptType } from "@tutao/app-env"
+import { EnvProvider, UpgradePromptType } from "@tutao/app-env"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces"
 import { ImapImportUiSession, ImapMailImportController } from "./ImapMailImportController.js"
 import { mailLocator } from "../../mailLocator.js"
@@ -29,7 +29,7 @@ import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../../common/misc/SubscriptionDialogs"
 import { elementIdToId, isSameSingleId } from "@tutao/meta"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 	private mailboxIdToImportHistoryExpanded: Map<Id, boolean> = new Map<Id, boolean>()

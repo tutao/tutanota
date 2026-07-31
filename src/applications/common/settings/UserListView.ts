@@ -4,7 +4,7 @@ import { component_size } from "../../../ui/size.js"
 import { elementIdPart } from "../../../platform-kit/meta"
 import { assertNotNull, contains, LazyLoaded, noOp } from "../../../platform-kit/utils"
 import { UserViewer } from "./UserViewer.js"
-import { assertMainOrNode, FeatureType } from "../../../platform-kit/app-env"
+import { EnvProvider, FeatureType } from "../../../platform-kit/app-env"
 import { Icon } from "../../../ui/base/Icon.js"
 import { Icons } from "../../../ui/base/icons/Icons.js"
 import { compareGroupInfos } from "../../../platform-kit/network/GroupUtils.js"
@@ -29,7 +29,7 @@ import { GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef } from "@tutao/entities
 import { GroupType } from "../../../entities/sys/Utils"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /**
  * Displays a list with users that are available to manage by the current user.

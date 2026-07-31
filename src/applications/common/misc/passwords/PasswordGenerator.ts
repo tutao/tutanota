@@ -1,8 +1,8 @@
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { assert } from "@tutao/utils"
 import { WorkerRandomizer } from "../../api/worker/workerInterfaces.js"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 // exported for tests
 // size of dictionary is within the 2Byte range

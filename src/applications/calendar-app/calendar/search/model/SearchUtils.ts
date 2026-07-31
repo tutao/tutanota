@@ -11,11 +11,11 @@ import {
 } from "../../../../../platform-kit/utils"
 import { RouteSetFn, throttleRoute } from "../../../../../ui/utils/RouteChange"
 import type { SearchRestriction } from "../../../../common/api/worker/search/SearchTypes"
-import { assertMainOrNode } from "../../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../../platform-kit/app-env"
 import { getElementId } from "../../../../../platform-kit/meta"
 import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 const FIXED_FREE_SEARCH_DAYS = 28
 

@@ -1,4 +1,4 @@
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { ImapImporter, ImportResult, InitializeImapImportParams, MailSetMapping } from "../../workerUtils/imapimport/ImapImporter"
 import { MailModel } from "../../mail/model/MailModel"
@@ -23,7 +23,7 @@ import { ImapErrorHandler, ReadableImapError } from "./ImapErrorHandler"
 import { ImapErrorCause } from "../../../common/api/common/error/ImapError"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export type ImapImportUiSession = {
 	provider: ImapProvider

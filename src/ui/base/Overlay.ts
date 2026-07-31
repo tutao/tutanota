@@ -1,12 +1,12 @@
 import m, { Children, Component, VnodeDOM } from "mithril"
 import { LayerType } from "./RootView"
 import { lazy, makeSingleUse, newPromise } from "../../platform-kit/utils"
-import { assertMainOrNodeBoot } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 import { component_size, px } from "../size.js"
 import { Styles } from "../styles.js"
 import { getSafeAreaInsetBottom } from "../HtmlUtils.js"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 export type PositionRect = {
 	top?: string | null
 	left?: string | null

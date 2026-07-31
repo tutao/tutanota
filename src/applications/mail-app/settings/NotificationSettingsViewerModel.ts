@@ -1,9 +1,9 @@
-import { AppType, assertMainOrNode } from "../../../platform-kit/app-env"
+import { AppType, EnvProvider } from "../../../platform-kit/app-env"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { NativePushServiceApp } from "../../common/native/NativePushServiceApp"
 import { PushIdentifier, PushIdentifierTypeRef, User } from "@tutao/entities/sys"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 // We clean up notifiers past a certain amount, but the list might not be cleaned up. To prevent showing an infinite
 // list, we limit the list to some pretty generous (but still fairly reasonable) amount.

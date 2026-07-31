@@ -10,7 +10,7 @@ import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
 import { ExpanderButton, ExpanderPanel } from "../../../../ui/base/Expander.js"
 import { attachDropdown, DropdownButtonAttrs } from "../../../../ui/base/Dropdown.js"
 import { showPlanUpgradeRequiredDialog } from "../../misc/SubscriptionDialogs.js"
-import { assertMainOrNode, UnsubscribeFailureReason, UpgradePromptType } from "@tutao/app-env"
+import { EnvProvider, UnsubscribeFailureReason, UpgradePromptType } from "@tutao/app-env"
 import { IconButtonAttrs } from "../../../../ui/base/IconButton.js"
 import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
 import { AddressInfo, AddressStatus, MailAddressTableModel } from "./MailAddressTableModel.js"
@@ -19,7 +19,7 @@ import { locator } from "../../api/main/CommonLocator.js"
 import { UpgradeRequiredError } from "../../api/main/UpgradeRequiredError.js"
 import { NewPaidPlans } from "../../../../entities/sys/Utils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export type MailAddressTableAttrs = {
 	model: MailAddressTableModel

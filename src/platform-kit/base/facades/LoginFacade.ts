@@ -17,7 +17,7 @@ import {
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
 import { elementIdToId, GENERATED_ID_BYTES_LENGTH, idToElementId, isSameId, NullEntity } from "../../meta"
-import { assertWorkerOrNode, CancelledError, Const, DeactivationReason, isTest, ProgrammingError, RolloutType, SessionType } from "@tutao/app-env"
+import { CancelledError, Const, DeactivationReason, EnvProvider, ProgrammingError, RolloutType, SessionType } from "@tutao/app-env"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "../../rest-client/types"
 import { EntityClient } from "../../network/EntityClient"
@@ -116,7 +116,7 @@ import {
 import { EntityUtils } from "../../instance-pipeline/EntityUtils"
 import { IncomingServerJson } from "../../instance-pipeline/TypeMapper"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export type NewSessionData = {
 	user: User
@@ -578,7 +578,7 @@ export class LoginFacade implements SessionTypeProvider {
 				}
 
 				await this.triggerPartialLoginSuccess(SessionType.Persistent, cacheInfo, credentials)
-				return { state: ResumeSessionState.Success, data, asyncResumeCompleted: isTest() ? asyncResumeSession : null }
+				return { state: ResumeSessionState.Success, data, asyncResumeCompleted: EnvProvider.isTest() ? asyncResumeSession : null }
 			} else {
 				return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
 			}

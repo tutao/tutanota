@@ -7,11 +7,11 @@ import { InfoLink, lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { Autocomplete, LegacyTextField, LegacyTextFieldType } from "../../../../ui/base/LegacyTextField.js"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog"
 import { locator } from "../../api/main/CommonLocator"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { MoreInfoLink } from "../../misc/news/MoreInfoLink.js"
 import { RecoverCodeInput } from "../../settings/login/RecoverCodeDialog.js"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export function showTakeOverDialog(mailAddress: string, password: string): Dialog {
 	const targetAccountAddress = stream("")

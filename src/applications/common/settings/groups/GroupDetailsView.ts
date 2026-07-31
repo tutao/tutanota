@@ -11,7 +11,7 @@ import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
 import { LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
 import type { DropDownSelectorAttrs } from "../../../../ui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../../../ui/base/DropDownSelector.js"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { IconButton, IconButtonAttrs } from "../../../../ui/base/IconButton.js"
 import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
 import { GroupDetailsModel } from "../../../mail-app/settings/groups/GroupDetailsModel.js"
@@ -19,7 +19,7 @@ import { showBuyDialog } from "../../subscription/BuyDialog.js"
 import { UpdatableSettingsDetailsViewer } from "../Interfaces.js"
 import { GroupType } from "../../../../entities/sys/Utils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	constructor(private readonly model: GroupDetailsModel) {}

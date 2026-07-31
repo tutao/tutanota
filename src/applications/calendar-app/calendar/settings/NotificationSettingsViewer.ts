@@ -6,7 +6,7 @@ import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { IdentifierRow } from "../../../common/settings/IdentifierRow.js"
 import { noOp, ofClass } from "../../../../platform-kit/utils"
 import { NotFoundError } from "@tutao/rest-client/error"
-import { AppType, isApp, isBrowser, isDesktop, PushServiceType } from "../../../../platform-kit/app-env"
+import { AppType, EnvProvider, PushServiceType } from "../../../../platform-kit/app-env"
 import { NotificationTargetsList, NotificationTargetsListAttrs } from "../../../common/settings/NotificationTargetsList.js"
 import { calendarLocator } from "../../calendarLocator.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
@@ -31,7 +31,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		identifier.disabled = !identifier.disabled
 		locator.entityClient.update(identifier).then(() => m.redraw)
 
-		if (!isBrowser() && identifier.identifier === this.currentIdentifier) {
+		if (!EnvProvider.get().isBrowser() && identifier.identifier === this.currentIdentifier) {
 			if (identifier.disabled) {
 				locator.pushService.invalidateAlarmsForUser(elementIdToId(this.user._id))
 			} else {
@@ -43,7 +43,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 	view(): Children {
 		const rows = this.identifiers
 			.map((identifier) => {
-				const isCurrentDevice = (isApp() || isDesktop()) && identifier.identifier === this.currentIdentifier
+				const isCurrentDevice = (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) && identifier.identifier === this.currentIdentifier
 
 				return m(IdentifierRow, {
 					name: this.identifierDisplayName(isCurrentDevice, identifier.pushServiceType, identifier.displayName),
@@ -92,7 +92,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 
 	private getCurrentIdentifier(): string | null {
 		const identifier = calendarLocator.pushService.getLoadedPushIdentifier()?.identifier
-		return (isApp() || isDesktop()) && identifier ? identifier : null
+		return (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) && identifier ? identifier : null
 	}
 
 	async entityEventsReceived(updates: readonly EntityUpdateData[]): Promise<void> {

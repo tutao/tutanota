@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { assertMainOrNode } from "../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../platform-kit/app-env"
 import { ListColumnWrapper } from "../../../../ui/ListColumnWrapper.js"
 import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../../../ui/theme.js"
@@ -23,7 +23,7 @@ import { Styles } from "../../../../ui/styles.js"
 
 import { ContactListEntry } from "@tutao/entities/tutanota"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export interface ContactListViewAttrs {
 	viewModel: ContactListViewModel

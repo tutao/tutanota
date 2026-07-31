@@ -1,9 +1,9 @@
 import { defer, DeferredObject } from "../../../platform-kit/utils"
-import { assertMainOrNode } from "../../../platform-kit/app-env"
+import { EnvProvider } from "../../../platform-kit/app-env"
 import { Transport } from "../shared/MessageTypes"
 import { decodeNativeMessage, encodeNativeMessage, JsMessageHandler, NativeMessage } from "../common/NativeLineProtocol.js"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /**
  * Transport for communication between android native and webview, using WebMessagePorts for two-way communication.

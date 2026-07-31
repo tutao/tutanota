@@ -3,7 +3,7 @@ import { ViewSlider } from "../../../../ui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../../ui/base/ViewColumn"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { Dialog } from "../../../../ui/base/Dialog"
-import { assertMainOrNode, CancelledError, FeatureType, isApp } from "../../../../platform-kit/app-env"
+import { CancelledError, EnvProvider, FeatureType } from "../../../../platform-kit/app-env"
 import { AppHeaderAttrs, Header } from "../../../../ui/Header.js"
 import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "../../../../platform-kit/utils"
 import { MailListView } from "./MailListView"
@@ -87,7 +87,7 @@ import { ButtonSize } from "../../../../ui/base/ButtonSize"
 import { LockedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { Keys } from "../../../../ui/KeyboardKeys"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /** State persisted between re-creations. */
 export interface MailViewCache {
@@ -328,7 +328,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getPrintAction(): (() => unknown) | null {
-		if (isApp()) {
+		if (EnvProvider.get().isApp()) {
 			return () => locator.systemFacade.print()
 		} else if (typeof window.print === "function") {
 			return () => window.print()
@@ -1288,7 +1288,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			import("../../../common/support/SupportDialog.js").then(({ showSupportDialog }) => showSupportDialog(locator.logins))
 		}
 
-		if (isApp()) {
+		if (EnvProvider.get().isApp()) {
 			let userGroupInfo = locator.logins.getUserController().userGroupInfo
 			locator.pushService.closePushNotification(
 				userGroupInfo.mailAddressAliases.map((alias) => alias.mailAddress).concat(userGroupInfo.mailAddress || []),

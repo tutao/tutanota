@@ -1,6 +1,6 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { assertMainOrNode, DnsRecordType } from "../../../../platform-kit/app-env"
+import { DnsRecordType, EnvProvider } from "../../../../platform-kit/app-env"
 import type { MailAddressTableAttrs } from "../../../common/settings/mailaddress/MailAddressTable.js"
 import { AddEmailAddressesPage, AddEmailAddressesPageAttrs } from "./AddEmailAddressesPage"
 import { DomainDnsStatus } from "../DomainDnsStatus"
@@ -14,7 +14,7 @@ import { newPromise } from "../../../../platform-kit/utils"
 import { createDnsRecord, CustomerInfo, DnsRecord } from "@tutao/entities/sys"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 export type AddDomainData = {
 	domain: Stream<string>
 	customerInfo: CustomerInfo

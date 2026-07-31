@@ -2,12 +2,12 @@ import m, { Children, Component, Vnode } from "mithril"
 import type { MaybeTranslation } from "../utils/LanguageViewModel"
 import { AllIcons, Icon, IconSize } from "./Icon"
 import type { ClickHandler } from "./GuiUtils"
-import { assertMainOrNode, TabIndex } from "../../platform-kit/app-env"
+import { EnvProvider, TabIndex } from "../../platform-kit/app-env"
 import { ButtonColor, getColors } from "./Button.js"
 import { ButtonSize } from "./ButtonSize.js"
 import { BaseButton, BaseButtonAttrs } from "./buttons/BaseButton.js"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export interface IconButtonAttrs {
 	icon: AllIcons

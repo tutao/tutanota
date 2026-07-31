@@ -1,9 +1,9 @@
 import { Aes256Key, uint8ArrayTo256Key } from "@tutao/crypto"
 import { NativeCryptoFacade } from "../../../app-kit/native-bridge/common/generatedipc/types/NativeCryptoFacade"
-import { assertWorkerOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { Argon2idFacade } from "./WasmArgon2idFacade"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 /**
  * Native implementation of Argon2id

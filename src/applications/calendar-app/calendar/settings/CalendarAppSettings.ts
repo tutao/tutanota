@@ -1,4 +1,4 @@
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider"
 import { MobilePaymentsFacade, MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
@@ -19,7 +19,7 @@ import { SettingsFolder } from "../../../common/settings/SettingsFolder"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { NotificationSettingsViewer } from "./NotificationSettingsViewer"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export function makeCalendarAppSettings(
 	credentialsProvider: CredentialsProvider,

@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, Const } from "@tutao/app-env"
+import { Const, EnvProvider } from "@tutao/app-env"
 import { freshVersioned, getFirstOrThrow, neverNull } from "@tutao/utils"
 import type { GroupManagementFacade } from "../../../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import { LoginFacade } from "../../../../../../platform-kit/base/facades/LoginFacade.js"
@@ -30,7 +30,7 @@ import { createUserAccountCreateData, createUserAccountUserData, UserAccountServ
 import { DEFAULT_KDF_TYPE } from "../../../../../../platform-kit/base/base-crypto/Constants"
 import { elementIdToId } from "@tutao/meta"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export class UserManagementFacade {
 	constructor(

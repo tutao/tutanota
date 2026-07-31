@@ -1,11 +1,11 @@
 import m, { Children, Component } from "mithril"
 import { px } from "../size"
 import { AriaLandmarks, landmarkAttrs } from "../AriaUtils"
-import { assertMainOrNode } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 import { lang } from "../utils/LanguageViewModel.js"
 import { Button, ButtonType } from "./Button.js"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class NotFoundPage implements Component<void> {
 	view(): Children {

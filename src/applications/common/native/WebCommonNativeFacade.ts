@@ -2,7 +2,7 @@ import { CommonNativeFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { CalendarOpenAction } from "@tutao/native-bridge/generatedIpc/enums"
 import { lang, MaybeTranslation, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { decodeBase64, lazyAsync, newPromise, noOp, ofClass } from "@tutao/utils"
-import { AppType, CancelledError, isDesktop } from "@tutao/app-env"
+import { AppType, CancelledError, EnvProvider } from "@tutao/app-env"
 import { UserError } from "../api/main/UserError.js"
 import m from "mithril"
 import { Dialog } from "../../../ui/base/Dialog.js"
@@ -118,7 +118,7 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 						},
 						{ text: "attachFiles_action", value: false },
 					])
-				} else if (isDesktop() && allFilesAreMail) {
+				} else if (EnvProvider.get().isDesktop() && allFilesAreMail) {
 					// importing mails is currently only allowed on plan LEGEND and UNLIMITED
 					const currentPlanType = await locator.logins.getUserController().getPlanType()
 

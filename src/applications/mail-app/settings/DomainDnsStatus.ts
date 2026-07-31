@@ -1,10 +1,10 @@
-import { assertMainOrNode, CustomDomainCheckResult, DnsRecordType, DnsRecordValidation } from "../../../platform-kit/app-env"
+import { CustomDomainCheckResult, DnsRecordType, DnsRecordValidation, EnvProvider } from "../../../platform-kit/app-env"
 import { LazyLoaded, noOp } from "../../../platform-kit/utils"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { locator } from "../../common/api/main/CommonLocator"
 import { createCustomDomainCheckGetIn, CustomDomainCheckGetOut, CustomDomainCheckService_GET } from "@tutao/entities/sys"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class DomainDnsStatus {
 	status: LazyLoaded<CustomDomainCheckGetOut>

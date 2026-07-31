@@ -7,9 +7,9 @@
  * https://www.w3.org/TR/wai-aria-1.1/
  *
  */
-import { assertMainOrNodeBoot, TabIndex } from "../platform-kit/app-env"
+import { EnvProvider, TabIndex } from "../platform-kit/app-env"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 
 // See: https://webaim.org/techniques/aria/#landmarks
 export const enum AriaLandmarks {

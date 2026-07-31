@@ -1,7 +1,7 @@
 import { BaseThemeId, Theme } from "./theme"
-import { assertMainOrNodeBoot } from "../platform-kit/app-env"
+import { EnvProvider } from "../platform-kit/app-env"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 export const WHITELABEL_CUSTOMIZATION_VERSION = "1"
 /** ThemeCustomizations that might be old or new. */
 export type UnknownThemeCustomizations = Record<string, unknown>

@@ -2,7 +2,7 @@ import m from "mithril"
 import type { TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { isDomainOrTopLevelDomain, isMailAddress } from "../../../platform-kit/utils/FormatUtils"
-import { assertMainOrNode, TUTA_MAIL_ADDRESS_DOMAINS } from "../../../platform-kit/app-env"
+import { EnvProvider, TUTA_MAIL_ADDRESS_DOMAINS } from "../../../platform-kit/app-env"
 import { contains } from "../../../platform-kit/utils"
 import { Dialog } from "../../../ui/base/Dialog"
 import stream from "mithril/stream"
@@ -15,7 +15,7 @@ import { EmailSenderListElement } from "@tutao/entities/sys"
 import { isOfflineError } from "../../../platform-kit/rest-client/error"
 import { getSpamRuleField, getSpamRuleType } from "../mail/MailUtils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 type LoadedData = { customDomains: string[]; existingSpamRules: EmailSenderListElement[] }
 

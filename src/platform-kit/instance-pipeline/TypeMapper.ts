@@ -19,9 +19,8 @@ import { ParsedValue } from "./ParsedValue"
 import { assert, assertNotNull, deepEqual, DeepEquals, isNotNull, Nullable, uint8ArrayToBase64 } from "@tutao/utils"
 import { EncryptedParsedInstance, EncryptedParsedValue } from "./CryptoMapper"
 import { assertNotNaN } from "../utils/Utils"
-import { isTest } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { TypeChecks } from "../app-env/boot/TsTypeChecks"
-import { ClientDetector } from "../app-env/boot/ClientDetector"
 
 export class TypeMapper {
 	constructor(private readonly typeModelResolver: TypeModelResolver) {}
@@ -138,6 +137,7 @@ export class IncomingServerJson implements DeepEquals {
 			return new IncomingServerJson(item as Record<string, any>, typeModel)
 		})
 	}
+
 	public static expectMultipleDesktopAlarms(data: any, typeModel: ServerTypeModel): Array<IncomingServerJson> {
 		assert(Array.isArray(data), "Expected multiple instances. But response is not an array")
 		return (data as Array<any>).map((item) => {
@@ -238,7 +238,7 @@ export class OutgoingServerJson implements DeepEquals {
 	}
 
 	public static networkDebuggedKey(attrId: AttributeId, typeModel: TypeModel): string {
-		if (ClientDetector.get().env.networkDebugging) {
+		if (EnvProvider.get().networkDebuggingEnabled()) {
 			return attrId.toString() + ":" + AttributeModel.getAttributeName(typeModel, attrId)
 		}
 		return attrId.toString()
@@ -275,7 +275,7 @@ export class OutgoingServerJson implements DeepEquals {
 	}
 
 	public static newFromRecord(json: Record<AttributeName, unknown>, clientModel: Nullable<ClientTypeModel> = null) {
-		assert(isTest(), "Do not construct with raw record in non-test environment")
+		assert(EnvProvider.isTest(), "Do not construct with raw record in non-test environment")
 		return new OutgoingServerJson(clientModel as any, json)
 	}
 

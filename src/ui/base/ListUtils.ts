@@ -1,5 +1,5 @@
 import { Shortcut } from "../utils/KeyManager.js"
-import { isBrowser } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 import { NBSP } from "../../platform-kit/utils"
 import { mapLazily } from "./MaybeLazy"
 import { ListState, MultiselectMode } from "./List.js"
@@ -94,7 +94,7 @@ export function listSelectionKeyboardShortcuts(multiselectMode: MultiselectMode,
 			help: "selectAllLoaded_action",
 			// this specific shortcut conflicts with a chrome shortcut. it was chosen because it's adjacent to ctrl + A
 			// for select all.
-			enabled: () => multiselectionEnabled() && !isBrowser(),
+			enabled: () => multiselectionEnabled() && !EnvProvider.get().isBrowser(),
 		},
 	]
 }

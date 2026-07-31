@@ -1,6 +1,6 @@
-import { ApprovalStatus, assertMainOrNode, ProgrammingError, TimeConstants } from "@tutao/app-env"
+import { ApprovalStatus, EnvProvider, ProgrammingError, TimeConstants } from "@tutao/app-env"
 import { elementIdPart, elementIdToId, getElementId, idToElementId, isSameId, isSameSingleId, OperationType } from "@tutao/meta"
-import { EntityUpdatesListener, EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import {
 	ContactTypeRef,
 	ConversationEntry,
@@ -101,7 +101,7 @@ import { UndoModel } from "../../mail-app/UndoModel"
 import { isAliasEnabledForGroupInfo } from "../../../platform-kit/network/GroupUtils"
 import { createApprovalMail } from "@tutao/entities/monitor"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export const TOO_MANY_VISIBLE_RECIPIENTS = 10
 

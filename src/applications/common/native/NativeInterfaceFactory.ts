@@ -40,7 +40,7 @@ import {
 	WebGlobalDispatcher,
 } from "@tutao/native-bridge/generatedIpc/dispatchers"
 import { NativeFileApp } from "../../../app-kit/native-bridge/common/FileApp.js"
-import { AppType, isAdminClient, isBrowser, isDesktop, ProgrammingError } from "@tutao/app-env"
+import { AppType, EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { deviceConfig } from "../misc/DeviceConfig.js"
 import { CalendarFacade } from "../api/worker/facades/lazy/CalendarFacade.js"
 import { LoginController } from "../api/main/LoginController.js"
@@ -91,7 +91,7 @@ export function createNativeInterfaces(
 	logins: LoginController,
 	app: AppType,
 ): NativeInterfaces {
-	if (isBrowser()) {
+	if (EnvProvider.get().isBrowser()) {
 		throw new ProgrammingError("Tried to make native interfaces in non-native")
 	}
 
@@ -133,7 +133,7 @@ export function createNativeInterfaces(
 }
 
 export function createDesktopInterfaces(native: NativeInterfaceMain): DesktopInterfaces {
-	if (!(isDesktop() || isAdminClient())) {
+	if (!(EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())) {
 		throw new ProgrammingError("tried to create desktop interfaces in non-electron client")
 	}
 	return {

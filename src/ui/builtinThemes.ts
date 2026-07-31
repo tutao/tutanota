@@ -2,11 +2,11 @@
  * @file color/theme definitions for default themes.
  */
 import type { Theme, ThemeId } from "./theme"
-import { assertMainOrNodeBoot } from "../platform-kit/app-env"
+import { EnvProvider } from "../platform-kit/app-env"
 import { getAppLogo } from "./base/Logo.js"
 import { ClientDetector } from "../platform-kit/app-env/boot/ClientDetector"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 
 type Themes = Record<ThemeId, Theme>
 

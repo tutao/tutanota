@@ -1,7 +1,7 @@
 import { MessageDispatcher } from "../../../../app-kit/native-bridge/shared/MessageDispatcher.js"
 import { BookingFacade } from "../../../common/api/worker/facades/lazy/BookingFacade.js"
 import { RestClient } from "../../../../platform-kit/rest-client"
-import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "../../../../platform-kit/app-env"
+import { EnvProvider, ProgrammingError } from "../../../../platform-kit/app-env"
 import { initLocator, locator, resetLocator } from "./WorkerLocator.js"
 import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
@@ -56,7 +56,7 @@ import { NotAuthenticatedError } from "@tutao/rest-client/error"
 import { RestBinaryBody, RestBodyType, RestTextBody } from "@tutao/rest-client/types"
 import { ImapImporter } from "../imapimport/ImapImporter"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 /** Interface of the facades exposed by the worker, basically interface for the worker itself */
 export interface WorkerInterface {
@@ -131,7 +131,7 @@ export class WorkerImpl implements NativeInterface {
 
 		// only register oncaught error handler if we are in the *real* worker scope
 		// Otherwise uncaught error handler might end up in an infinite loop for test cases.
-		if (workerScope && !isMainOrNode()) {
+		if (workerScope && !EnvProvider.get().isMainOrNode()) {
 			workerScope.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => {
 				this.sendError(event.reason)
 			})

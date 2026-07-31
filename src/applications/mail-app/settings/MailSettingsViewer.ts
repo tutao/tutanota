@@ -1,14 +1,5 @@
 import m, { Children } from "mithril"
-import {
-	assertMainOrNode,
-	Const,
-	FeatureType,
-	isApp,
-	isBrowser,
-	isOfflineStorageAvailable,
-	UNDO_SEND_TIMEOUT_SECONDS,
-	UpgradePromptType,
-} from "../../../platform-kit/app-env"
+import { Const, EnvProvider, FeatureType, UNDO_SEND_TIMEOUT_SECONDS, UpgradePromptType } from "../../../platform-kit/app-env"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { elementIdPart, isSameId, OperationType } from "../../../platform-kit/meta"
 import { assertNotNull, isEmpty, LazyLoaded, noOp, ofClass, promiseMap, splitInChunks } from "../../../platform-kit/utils"
@@ -69,7 +60,7 @@ import { ButtonType } from "../../../ui/base/Button"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { windowFacade } from "../../common/misc/WindowFacade"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 const MINIMUM_DISPLAYED_STORAGE_IN_BYTES = 10000
 
@@ -268,7 +259,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				if (mailIndexEnabled) {
 					showProgressDialog("pleaseWait_msg", mailLocator.indexerFacade.enableMailIndexing()).catch(
 						ofClass(IndexingNotSupportedError, () => {
-							Dialog.message(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
+							Dialog.message(EnvProvider.get().isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 						}),
 					)
 				} else {
@@ -379,7 +370,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 					m(".h4.mt-32#general", lang.get("general_label")),
 					m("#conversationthread", m(DropDownSelector, conversationViewDropdownAttrs)),
 					m("#maillistgrouping", m(DropDownSelector, mailListDisplayMode)),
-					isBrowser() ? m("#mailindexing", m(DropDownSelector, enableMailIndexingAttrs)) : null,
+					EnvProvider.get().isBrowser() ? m("#mailindexing", m(DropDownSelector, enableMailIndexingAttrs)) : null,
 					m("#behavioraftermovingemail", m(DropDownSelector, behaviorAfterMoveEmailAction)),
 					m(".h4.mt-32#emailsending", lang.get("emailSending_label")),
 					m("#defaultsender", m(DropDownSelector, defaultSenderAttrs)),
@@ -541,7 +532,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderLocalDataSection(): Children {
-		if (isOfflineStorageAvailable()) {
+		if (EnvProvider.get().isOfflineStorageAvailable()) {
 			return [m(".h4.mt-32#localdata", lang.get("localDataSection_label")), this.renderRebuildSearchIndex(), this.renderClearCacheButton()]
 		} else {
 			return null

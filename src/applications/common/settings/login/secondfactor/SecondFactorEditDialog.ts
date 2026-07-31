@@ -1,5 +1,5 @@
 import { showProgressDialog } from "../../../../../ui/dialogs/ProgressDialog.js"
-import { isApp, ProgrammingError, SecondFactorType } from "@tutao/app-env"
+import { EnvProvider, ProgrammingError, SecondFactorType } from "@tutao/app-env"
 import type { DropDownSelectorAttrs } from "../../../../../ui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../../../../ui/base/DropDownSelector.js"
 import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
@@ -145,12 +145,12 @@ export class SecondFactorEditDialog {
 		return m(".mb-16", [
 			m(LegacyTextField, {
 				label: "totpSecret_label",
-				helpLabel: () => lang.get(isApp() ? "totpTransferSecretApp_msg" : "totpTransferSecret_msg"),
+				helpLabel: () => lang.get(EnvProvider.get().isApp() ? "totpTransferSecretApp_msg" : "totpTransferSecret_msg"),
 				value: this.model.totpKeys.readableKey,
 				injectionsRight: () => m(IconButton, copyButtonAttrs),
 				isReadOnly: true,
 			}),
-			isApp()
+			EnvProvider.get().isApp()
 				? m(
 						".pt-16",
 						m(PrimaryButton, {

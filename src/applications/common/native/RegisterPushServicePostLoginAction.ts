@@ -1,7 +1,7 @@
 import { NativePushServiceApp } from "./NativePushServiceApp"
 import { DeviceConfig } from "../misc/DeviceConfig"
 import { LoggedInEvent, PostLoginAction } from "../../../app-kit/native-bridge/common/PostLoginAction"
-import { isDesktop } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 
 export class RegisterPushServicePostLoginAction implements PostLoginAction {
 	constructor(
@@ -17,7 +17,7 @@ export class RegisterPushServicePostLoginAction implements PostLoginAction {
 		// the dialog anyway.
 		// After dialog is finished or dismissed the setup is "complete".
 		// There is no setup dialog on Desktop
-		if (isDesktop() || this.deviceConfig.getIsSetupComplete()) {
+		if (EnvProvider.get().isDesktop() || this.deviceConfig.getIsSetupComplete()) {
 			// Await the push service registration so `storePushIdentifierLocally()` can set the extended notification mode on Android
 			// before `loadNewsIds()` runs the `isShown()` check of the `RichNotificationsNews` news item
 			await this.pushService.register()

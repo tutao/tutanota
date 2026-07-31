@@ -3,7 +3,7 @@ import { isSameId, OperationType } from "@tutao/meta"
 import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { Challenge, createSecondFactorAuthData, Session, SessionTypeRef } from "@tutao/entities/sys"
 import { Dialog } from "../../../../ui/base/Dialog"
-import { assertMainOrNode, SessionState } from "@tutao/app-env"
+import { EnvProvider, SessionState } from "@tutao/app-env"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { neverNull } from "@tutao/utils"
 import { NotFoundError } from "@tutao/rest-client/error"
@@ -14,7 +14,7 @@ import { SecondFactorAuthDialog } from "./SecondFactorAuthDialog"
 import type { LoginFacade } from "../../../../platform-kit/base/facades/LoginFacade"
 import { DomainConfigProvider } from "../../api/common/DomainConfigProvider.js"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /**
  * Handles showing and hiding of the following dialogs:

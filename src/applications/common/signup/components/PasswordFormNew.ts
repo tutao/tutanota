@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { PasswordFieldAttrs, PasswordFieldNew } from "./PasswordFieldNew"
 import { font_size, px } from "../../../../ui/size"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -20,7 +20,7 @@ import { showSnackBar } from "../../../../ui/base/SnackBar"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { Styles } from "../../../../ui/styles"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export interface PasswordFormAttrs {
 	model: PasswordModel

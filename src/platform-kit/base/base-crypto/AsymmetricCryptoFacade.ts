@@ -1,8 +1,8 @@
 import {
-	assertWorkerOrNode,
 	CryptoProtocolVersion,
 	EncryptionAuthStatus,
 	EncryptionKeyVerificationState,
+	EnvProvider,
 	PresentableKeyVerificationState,
 	ProgrammingError,
 } from "@tutao/app-env"
@@ -42,7 +42,7 @@ import { createPublicKeyPutIn, PubEncKeyData, PublicKeyService_PUT } from "@tuta
 import { RsaImplementation } from "../../crypto"
 import { TypeId } from "../../meta/EntityConstants"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export type Decapsulated<T extends AesKey> = {
 	decryptedAesKey: T

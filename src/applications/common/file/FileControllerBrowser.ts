@@ -1,4 +1,4 @@
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { downloadAndDecryptFromArchive, FileController, openDataFileInBrowser, zipDataFiles } from "./FileController.js"
 import { sortableTimestamp } from "@tutao/utils"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
@@ -8,7 +8,7 @@ import { TransferId } from "../../../entities/drive/Utils"
 import { DataFile } from "../../../entities/tutanota/MailBundle"
 import { DownloadableFileEntity } from "../../../entities/storage/BlobUtils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class FileControllerBrowser extends FileController {
 	constructor(blobFacade: BlobFacade) {

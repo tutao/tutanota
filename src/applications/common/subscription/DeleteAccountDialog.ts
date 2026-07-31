@@ -10,7 +10,7 @@ import { getEtId } from "@tutao/meta"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { SurveyData } from "@tutao/entities/sys"
-import { isIOSApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { CloseEventBusOption } from "../../../platform-kit/network/Constants"
 
 export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
@@ -23,7 +23,7 @@ export function showDeleteAccountDialog(surveyData: SurveyData | null = null) {
 		child: {
 			view: () =>
 				m("#delete-account-dialog", [
-					!(isIOSApp() && ClientDetector.get().isCalendarApp())
+					!(EnvProvider.get().isIOSApp() && ClientDetector.get().isCalendarApp())
 						? m(LegacyTextField, {
 								label: "targetAddress_label",
 								value: takeover,

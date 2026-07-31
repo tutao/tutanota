@@ -1,21 +1,20 @@
-import { AccountingInfoTypeRef, PriceData, PriceItemData, PriceServiceReturn } from "@tutao/entities/sys"
+import { AccountingInfoTypeRef } from "@tutao/entities/sys"
 import { BookingItemFeatureType } from "../../../entities/sys/Utils"
 import m, { Children, Component, Vnode } from "mithril"
-import { assertNotNull, filterInt, incrementDate, newPromise, ofClass } from "@tutao/utils"
+import { incrementDate, newPromise, ofClass } from "@tutao/utils"
 import { LegacyTextField, LegacyTextFieldType } from "../../../ui/base/LegacyTextField.js"
 import { Dialog, DialogType } from "../../../ui/base/Dialog.js"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
-import { assertMainOrNode, FeatureType } from "@tutao/app-env"
+import { EnvProvider, FeatureType } from "@tutao/app-env"
 import { formatDate } from "../../../ui/utils/Formatter.js"
-import * as restError from "@tutao/rest-client/error"
-import { asPaymentInterval, formatPrice, getPriceItem, PaymentInterval } from "./utils/PriceUtils.js"
+import { NotAuthorizedError } from "@tutao/rest-client/error"
+import { formatPrice } from "./utils/PriceUtils.js"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { NotAuthorizedError } from "@tutao/rest-client/error"
 import { PriceChangeModel } from "./PriceChangeModel"
 import { idToElementId } from "@tutao/meta"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export interface BookingParams {
 	featureType: BookingItemFeatureType

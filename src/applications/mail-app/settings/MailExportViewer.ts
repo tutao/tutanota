@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, isBrowser, isDesktop } from "../../../platform-kit/app-env"
+import { EnvProvider } from "../../../platform-kit/app-env"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
@@ -7,7 +7,7 @@ import { MailExportSettings } from "./MailExportSettings"
 import { MailExportController } from "../native/main/MailExportController.js"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class MailExportViewer implements UpdatableSettingsViewer {
 	private mailExportController: MailExportController | null = null
@@ -15,7 +15,7 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 	constructor() {
 		this.view = this.view.bind(this)
 
-		if (isDesktop()) {
+		if (EnvProvider.get().isDesktop()) {
 			// export is only available on desktop
 			mailLocator.mailExportController().then((controller) => {
 				this.mailExportController = controller
@@ -29,7 +29,7 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 			m(
 				".fill-absolute.scroll.plr-24.pb-48",
 				m(".h4.mt-32", lang.get("mailExportSettings_label")),
-				isDesktop() ? this.renderMailExportSettings() : this.renderExportOnlyOnDesktopText(),
+				EnvProvider.get().isDesktop() ? this.renderMailExportSettings() : this.renderExportOnlyOnDesktopText(),
 			),
 		]
 	}
@@ -56,7 +56,7 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 						label: "downloadDesktopClient_label",
 						onclick: () => {
 							const desktopClientDownloadUri = "https://tuta.com#download"
-							if (isBrowser()) {
+							if (EnvProvider.get().isBrowser()) {
 								open(desktopClientDownloadUri)
 							} else {
 								mailLocator.systemFacade.openLink(desktopClientDownloadUri)

@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { NavBar } from "./base/NavBar.js"
-import { assertMainOrNode } from "../platform-kit/app-env"
+import { EnvProvider } from "../platform-kit/app-env"
 import { OfflineIndicator } from "./base/OfflineIndicator.js"
 import { ProgressBar } from "./base/ProgressBar.js"
 import { DesktopBaseHeader } from "./base/DesktopBaseHeader.js"
@@ -8,7 +8,7 @@ import { layout_size } from "./size"
 import { IOfflineIndicatorViewModel } from "./IOfflineIndicatorViewModel"
 import { lazy } from "../platform-kit/utils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /** Attrs that are used by different header components in the app.  */
 export interface AppHeaderAttrs {

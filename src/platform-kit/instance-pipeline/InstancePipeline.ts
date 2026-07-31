@@ -2,13 +2,13 @@ import { CryptoMapper, EncryptedParsedInstance, SymmetricGroupKeyLoader } from "
 import { ModelMapper } from "./ModelMapper"
 import { lazy, Nullable } from "@tutao/utils"
 import { AesKey, makeNullableSubKeyInfoWithSessionKeyCbcThenHmac, SubKeyInfo, SymmetricCipherFacade, validateKdfNonceLength } from "@tutao/crypto"
-import { assertWorkerOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { EntityAdapter } from "./EntityAdapter"
 import { ClientOnlyTypeModelResolver, TypeModelResolver } from "./EntityFunctions"
 import { Entity, TypeRef } from "@tutao/meta"
 import { IncomingServerJson, OutgoingServerJson, TypeMapper } from "./TypeMapper"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export class InstancePipeline {
 	readonly typeMapper: TypeMapper

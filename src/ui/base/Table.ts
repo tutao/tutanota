@@ -5,13 +5,13 @@ import { downcast, neverNull } from "../../platform-kit/utils"
 import { createDropdown, DropdownButtonAttrs } from "./Dropdown.js"
 import { Icons } from "./icons/Icons"
 import type { ClickHandler } from "./GuiUtils"
-import { assertMainOrNode } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 import { IconButton, IconButtonAttrs } from "./IconButton.js"
 import { ButtonSize } from "./ButtonSize.js"
 import { component_size, px } from "../size.js"
 import { InfoIcon } from "./InfoIcon.js"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export const enum ColumnWidth {
 	// the column has a fixed small width

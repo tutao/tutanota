@@ -1,8 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "../theme"
-import { assertMainOrNode } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 export type MessageBoxAttrs = {
 	style?: Record<string, any>
 }

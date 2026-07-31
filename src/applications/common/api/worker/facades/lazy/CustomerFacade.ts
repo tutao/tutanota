@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, Const, CryptoProtocolVersion, FeatureType, ProgrammingError } from "@tutao/app-env"
+import { Const, CryptoProtocolVersion, EnvProvider, FeatureType, ProgrammingError } from "@tutao/app-env"
 import { assertNotNull, lazyAsync, neverNull, noOp, Nullable, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import type { UserManagementFacade } from "./UserManagementFacade.js"
@@ -75,7 +75,7 @@ import { Country, CountryType, getByAbbreviation } from "../../../../gui/Country
 import { idToElementId, NULL_ENTITY } from "@tutao/meta"
 import { InvoiceData } from "../../../../subscription/utils/PaymentUtils"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export class CustomerFacade {
 	// they are FeatureType but we might not be aware of newer values for it, so it is not just FeatureType

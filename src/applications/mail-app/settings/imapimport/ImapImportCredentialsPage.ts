@@ -1,6 +1,6 @@
 import m, { Children, Vnode } from "mithril"
 import { ImapImportData } from "./AddImapImportWizard.js"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog.js"
 import { TitleSection, TitleSectionAttrs } from "../../../../ui/TitleSection.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
@@ -14,7 +14,7 @@ import { ToggleButton } from "../../../../ui/base/buttons/ToggleButton"
 import { ButtonSize } from "../../../../ui/base/ButtonSize"
 import { isMailAddress } from "@tutao/utils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class ImapImportCredentialsPage implements WizardPageN<ImapImportData> {
 	shouldRevealImapAccountPassword = false

@@ -1,8 +1,8 @@
 import m from "mithril"
-import { assertMainOrNodeBoot } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 import { lazyMemoized } from "../../platform-kit/utils"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 
 export type RouteSetFn = (path: string, args: Record<string, any>) => void
 

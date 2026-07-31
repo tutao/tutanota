@@ -1,9 +1,9 @@
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { DataTransferEntity, ServiceDefinition } from "../meta"
 import { Nullable } from "@tutao/utils"
 import { ExtraServiceParams } from "../instance-pipeline/RestClientOptions"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export interface IServiceExecutor {
 	execute<In extends DataTransferEntity, Out extends DataTransferEntity>(

@@ -22,7 +22,7 @@ import {
 	sortCompareByReverseId,
 	TypeRef,
 } from "../../../../platform-kit/meta"
-import { FULL_INDEXED_TIMESTAMP, isAdminClient, isBrowser, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../platform-kit/app-env"
+import { EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../platform-kit/app-env"
 import { ListLoadingState, ListState } from "../../../../ui/base/List.js"
 import {
 	assertNotNull,
@@ -216,7 +216,7 @@ export class SearchViewModel {
 	private updateSearchResultIdToIndex(searchResult: SearchResult | null) {
 		if (searchResult == null) {
 			this.searchResultIdToIndex = null
-		} else if (!isBrowser() && !isAdminClient()) {
+		} else if (!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) {
 			this.searchResultIdToIndex = new Map()
 			for (let i = 0; i < searchResult.results.length; i++) {
 				this.searchResultIdToIndex.set(elementIdPart(searchResult.results[i]), i)
@@ -918,7 +918,7 @@ export class SearchViewModel {
 				} else if (isSameTypeRef(o1.entry._type, CalendarEventTypeRef)) {
 					return downcast(o1.entry).startTime.getTime() - downcast(o2.entry).startTime.getTime()
 				} else if (isSameTypeRef(o1.entry._type, MailTypeRef)) {
-					if (!isBrowser() && !isAdminClient()) {
+					if (!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) {
 						if (this.searchResultIdToIndex == null) {
 							return 0
 						}
@@ -1046,7 +1046,7 @@ export class SearchViewModel {
 			let startIndex = 0
 
 			if (startId !== GENERATED_MAX_ID) {
-				if (!isBrowser() && !isAdminClient()) {
+				if (!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) {
 					// offline storage is always sorted correctly
 					startIndex = searchResult.results.findIndex((id) => id[1] === startId)
 				} else {
@@ -1069,7 +1069,7 @@ export class SearchViewModel {
 			items = (await this.loadAndFilterInstances(searchResult.restriction.type, toLoad, searchResult, startIndex)) as Mail[]
 
 			// Restore the original sorting order
-			if (!isBrowser() && !isAdminClient()) {
+			if (!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) {
 				const itemsMapped = collectToMap(items, getElementId)
 				items = mapAndFilterNull(searchResult.results, (id) => itemsMapped.get(elementIdPart(id)))
 			}

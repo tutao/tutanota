@@ -6,7 +6,7 @@ import { assertNotNull, delay, filterInt, isNotNull, lastThrow } from "../../../
 import { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
 import { ExportFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { assertMainOrNode, CancelledError } from "../../../../platform-kit/app-env"
+import { CancelledError, EnvProvider } from "../../../../platform-kit/app-env"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError.js"
 import { MailExportFacade } from "../../../common/api/worker/facades/lazy/MailExportFacade.js"
 import { SuspensionError } from "../../../common/api/common/error/SuspensionError"
@@ -18,7 +18,7 @@ import { BlobServerUrl } from "@tutao/entities/storage"
 import { MailBag } from "@tutao/entities/tutanota"
 import { MailboxExportState } from "../../../../entities/tutanota/Utils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export type FailedMailDisplay = {
 	cells: string[]

@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, ProgrammingError, TimeConstants } from "@tutao/app-env"
+import { EnvProvider, ProgrammingError, TimeConstants } from "@tutao/app-env"
 import { getLetId, getListId, idToElementId, isSameId, isSameSingleId, listIdPart, RANGE_ITEM_LIMIT } from "@tutao/meta"
 import {
 	assertNotNull,
@@ -49,7 +49,7 @@ import {
 import { AlarmFacade } from "./AlarmFacade"
 import { EventAlarmInfoTemplatesTuple } from "../../../../calendar/import/ImportExportUtils"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 /** event that is a part of an event series and references another event via its recurrenceId and uid */
 export type CalendarEventAlteredInstance = Require<"recurrenceId" | "uid", CalendarEvent> & { repeatRule: null }

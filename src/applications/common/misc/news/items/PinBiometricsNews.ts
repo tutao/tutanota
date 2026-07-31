@@ -8,7 +8,7 @@ import { showCredentialsEncryptionModeDialog } from "../../../gui/dialogs/Select
 import { CredentialsProvider } from "../../credentials/CredentialsProvider.js"
 import { Dialog } from "../../../../../ui/base/Dialog.js"
 import { ExternalLink } from "../../../../../ui/base/ExternalLink.js"
-import { isAndroidApp, isIOSApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { NewsId } from "@tutao/entities/tutanota"
 
 const playstoreLink = "https://play.google.com/store/apps/details?id=de.tutao.tutanota"
@@ -25,11 +25,13 @@ export class PinBiometricsNews implements NewsListItem {
 	) {}
 
 	isShown(newsId: NewsId): Promise<boolean> {
-		return Promise.resolve((isIOSApp() || isAndroidApp()) && !this.newsModel.hasAcknowledgedNewsForDevice(newsId.newsItemId))
+		return Promise.resolve(
+			(EnvProvider.get().isIOSApp() || EnvProvider.get().isAndroidApp()) && !this.newsModel.hasAcknowledgedNewsForDevice(newsId.newsItemId),
+		)
 	}
 
 	render(newsId: NewsId): Mithril.Children {
-		const displayedLink = isAndroidApp() ? playstoreLink : appstoreLink
+		const displayedLink = EnvProvider.get().isAndroidApp() ? playstoreLink : appstoreLink
 		return m(".full-width", [
 			m(".h4", { style: { "text-transform": "capitalize" } }, lang.get("pinBiometrics_action")),
 			m("p", lang.get("pinBiometrics1_msg", { "{secureNowAction}": lang.get("secureNow_action") })),

@@ -1,4 +1,4 @@
-import { elementIdPart, isSameId, isSameSingleId, listIdPart } from "@tutao/meta"
+import { elementIdPart, isSameSingleId, listIdPart } from "@tutao/meta"
 import { FileChooserMultiMode, showFileChooser, showNativeFilePicker } from "../../file/FileController.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
@@ -8,7 +8,7 @@ import { serializeCalendar } from "../../../calendar-app/calendar/export/Calenda
 import { locator } from "../../api/main/CommonLocator.js"
 import { promiseMap, stringToUtf8Uint8Array } from "@tutao/utils"
 import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel"
-import { isApp, ShareCapability } from "@tutao/app-env"
+import { EnvProvider, ShareCapability } from "@tutao/app-env"
 import { CALENDAR_MIME_TYPE } from "../../../../platform-kit/utils/FileConstants"
 import { CalendarEvent, CalendarEventTypeRef, CalendarGroupRoot, createFile } from "@tutao/entities/tutanota"
 import { convertToDataFile } from "../../api/worker/utils/DataFile"
@@ -194,7 +194,9 @@ export type ProgenitorsToUpdateExclusionDates = {
 export async function selectAndParseIcalFile(): Promise<ParsedEventAlarmTuple[]> {
 	try {
 		const allowedExtensions = ["ical", "ics", "ifb", "icalendar"]
-		const dataFiles = isApp() ? await showNativeFilePicker(allowedExtensions, true) : await showFileChooser(FileChooserMultiMode.Multi, allowedExtensions)
+		const dataFiles = EnvProvider.get().isApp()
+			? await showNativeFilePicker(allowedExtensions, true)
+			: await showFileChooser(FileChooserMultiMode.Multi, allowedExtensions)
 		const contents = dataFiles.map((file) => parseCalendarFile(file).contents)
 		return contents.flat()
 	} catch (e) {

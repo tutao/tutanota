@@ -16,7 +16,7 @@ import {
 	splitInChunks,
 } from "../../../../platform-kit/utils"
 import { CUSTOM_MIN_ID, elementIdPart, elementIdToId, getElementId, idToElementId, isSameId, listIdPart, OperationType } from "../../../../platform-kit/meta"
-import { FeatureType, isBrowser, ProgrammingError, TutanotaError } from "../../../../platform-kit/app-env"
+import { EnvProvider, FeatureType, ProgrammingError, TutanotaError } from "../../../../platform-kit/app-env"
 
 import m from "mithril"
 import { Notifications, NotificationType } from "../../../../ui/Notifications.js"
@@ -209,7 +209,7 @@ export class MailModel {
 				if (isInternalUser && mailboxDetail && folderSystem) {
 					targetFolder = await this.processInboxHandler().handleIncomingMail(mail, sourceMailFolder, mailboxDetail, folderSystem, isLeaderClient)
 				}
-				if (isBrowser()) {
+				if (EnvProvider.get().isBrowser()) {
 					this._showNotification(targetFolder, mail)
 				}
 			}

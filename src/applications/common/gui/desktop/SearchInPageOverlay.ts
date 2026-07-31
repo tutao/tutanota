@@ -3,7 +3,7 @@ import type { PositionRect } from "../../../../ui/base/Overlay"
 import { displayOverlay } from "../../../../ui/base/Overlay"
 import { component_size, px } from "../../../../ui/size"
 import { Icons } from "../../../../ui/base/icons/Icons"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { locator } from "../../api/main/CommonLocator"
 import { ElectronResult } from "@tutao/native-bridge/generatedIpc/types"
@@ -14,7 +14,7 @@ import { Styles } from "../../../../ui/styles.js"
 import { getSafeAreaInsetBottom } from "../../../../ui/HtmlUtils.js"
 import { Keys } from "../../../../ui/KeyboardKeys"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /**
  * search bar for the Ctrl+F in-page search of the Desktop client

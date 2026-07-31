@@ -3,14 +3,14 @@ import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType, RestTextBody, validateHttpMethod } from "@tutao/rest-client/types"
 import { IServiceExecutor } from "./ServiceRequest.js"
 import { assert, assertNotNull, downcast, isNotNull, lazy, Nullable } from "@tutao/utils"
-import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
+import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { DEFAULT_REST_CLIENT_OPTIONS, ExtraServiceParams } from "../instance-pipeline/RestClientOptions"
 import { IncomingServerJson, OutgoingServerJson } from "../instance-pipeline/TypeMapper"
 import { isNull } from "../utils/Utils"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export class ServiceExecutor implements IServiceExecutor {
 	constructor(

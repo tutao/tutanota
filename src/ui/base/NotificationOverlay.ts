@@ -4,10 +4,10 @@ import { DefaultAnimationTime } from "../animation/Animations"
 import { displayOverlay } from "./Overlay"
 import type { ButtonAttrs } from "./Button.js"
 import { Button, ButtonType } from "./Button.js"
-import { assertMainOrNode } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 import { ClickHandler } from "./GuiUtils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 interface NotificationOverlayAttrs {
 	message: Component

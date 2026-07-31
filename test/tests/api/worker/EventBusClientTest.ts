@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { EventBusClient, EventBusListener } from "../../../../src/app-kit/local-store/event/EventBusClient.js"
 import { OperationType, timestampToGeneratedId } from "../../../../src/platform-kit/meta"
 import { DefaultEntityRestCache } from "../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
-import { OutOfSyncError, ProgrammingError } from "../../../../src/platform-kit/app-env"
+import { EnvProvider, OutOfSyncError, ProgrammingError } from "../../../../src/platform-kit/app-env"
 import { func, matchers, object, verify, when } from "testdouble"
 import { SleepDetector } from "../../../../src/applications/common/api/worker/utils/SleepDetector.js"
 import { UserFacade } from "../../../../src/platform-kit/base/facades/UserFacade"
@@ -81,7 +81,7 @@ o.spec("EventBusClient", function () {
 
 	o.before(function () {
 		// Things that are not defined in node but are read-only in Browser
-		if (!globalThis.isBrowser) {
+		if (!EnvProvider.get().isBrowser) {
 			// @ts-ignore
 			WebSocket.CONNECTING = WebSocket.CONNECTING ?? 0
 			// @ts-ignore

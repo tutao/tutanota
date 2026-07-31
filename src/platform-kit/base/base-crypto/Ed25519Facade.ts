@@ -1,4 +1,4 @@
-import { assertWorkerOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import {
 	bytesToEd25519PrivateKey,
 	bytesToEd25519PublicKey,
@@ -22,7 +22,7 @@ import { NativeCryptoFacade } from "../../../app-kit/native-bridge/common/genera
 import { IPCEd25519PrivateKey } from "../../../app-kit/native-bridge/common/generatedipc/types/IPCEd25519PrivateKey"
 import { IPCEd25519Signature } from "../../../app-kit/native-bridge/common/generatedipc/types/IPCEd25519Signature"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export interface Ed25519Facade {
 	generateKeypair(): Promise<Ed25519KeyPair>

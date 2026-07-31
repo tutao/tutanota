@@ -1,5 +1,4 @@
-import type { ShareCapability } from "@tutao/app-env"
-import { assertWorkerOrNode } from "@tutao/app-env"
+import { EnvProvider, ShareCapability } from "@tutao/app-env"
 import { neverNull } from "@tutao/utils"
 import { RecipientsNotFoundError } from "../../../network/error/RecipientsNotFoundError.js"
 import {
@@ -32,7 +31,7 @@ import {
 } from "@tutao/entities/tutanota"
 import { GroupInfo, GroupInfoTypeRef, ReceivedGroupInvitation } from "@tutao/entities/sys"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export class ShareFacade {
 	constructor(

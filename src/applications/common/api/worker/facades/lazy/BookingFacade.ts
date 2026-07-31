@@ -1,10 +1,10 @@
-import { assertWorkerOrNode, Const } from "@tutao/app-env"
+import { Const, EnvProvider } from "@tutao/app-env"
 import { neverNull } from "@tutao/utils"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
 import { createPriceRequestData, createPriceServiceData, PriceData, PriceItemData, PriceService_GET, PriceServiceReturn } from "@tutao/entities/sys"
 import { BookingItemFeatureType } from "../../../../../../entities/sys/Utils"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export class BookingFacade {
 	constructor(private readonly serviceExecutor: IServiceExecutor) {}
