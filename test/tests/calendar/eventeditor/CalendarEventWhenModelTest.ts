@@ -393,8 +393,6 @@ o.spec(TEST_NAME, function () {
 					excludedDates: [],
 				}),
 			})
-			const result = model.result
-
 			model.repeatEndType = EndType.Count
 			model.repeatEndOccurrences = 13
 			o(model.repeatEndOccurrences).equals(13)
