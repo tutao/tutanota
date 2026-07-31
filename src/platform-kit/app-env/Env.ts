@@ -15,6 +15,7 @@ export type EnvType = {
 	networkDebugging: boolean
 	clientName: string | null
 }
+
 export const enum PlatformId {
 	Ios = "ios",
 	Android = "android",
@@ -77,15 +78,21 @@ export const enum Mode {
  * If not set defaults to true
  */
 const assertionsEnabled = false
+
 export class EnvProvider {
 	private readonly worker: boolean
 	private readonly node: boolean
 	private boot: boolean
-	constructor(private readonly env: EnvType) {
+
+	constructor(public readonly env: EnvType) {
 		this.worker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope
 		this.node = typeof process === "object" && typeof process.versions === "object" && typeof process.versions.node !== "undefined"
 		const isDesktopMainThread = this.node && typeof this.env !== "undefined" && (this.isDesktop() || this.isAdminClient())
 		this.boot = !isDesktopMainThread && !this.worker
+	}
+
+	public getPlatformId(): PlatformId | null {
+		return this.env.platformId
 	}
 
 	isIOSApp(): boolean {
@@ -160,6 +167,7 @@ export class EnvProvider {
 	isOfflineStorageAvailable(): boolean {
 		return !this.isBrowser() && !this.isAdminClient()
 	}
+
 	bootFinished() {
 		this.boot = false
 	}
@@ -211,71 +219,26 @@ export class EnvProvider {
 		}
 	}
 }
+
 export const envProvider = new EnvProvider(env)
 
 // ========================================================
 // TODO: Inline these (CTRL+ALT+N), it will just change all files that import it
-export function assertMainOrNode() {
-	return envProvider.assertMainOrNode()
-}
-export function assertMainOrNodeBoot() {
-	return envProvider.assertMainOrNodeBoot()
-}
-export function assertWorkerOrNode() {
-	return envProvider.assertWorkerOrNode()
-}
-export function isIOSApp() {
-	return envProvider.isIOSApp()
-}
-export function isAppleDevice() {
-	return envProvider.isAppleDevice()
-}
-export function isAndroidApp() {
-	return envProvider.isAndroidApp()
-}
-export function isApp() {
-	return envProvider.isApp()
-}
-export function isDesktop() {
-	return envProvider.isDesktop()
-}
-export function isBrowser() {
-	return envProvider.isBrowser()
-}
-export function isWebClient() {
-	return envProvider.isWebClient()
-}
-export function isAdminClient() {
-	return envProvider.isAdminClient()
-}
-export function isElectronClient() {
-	return envProvider.isElectronClient()
-}
-export function isMainOrNode() {
-	return envProvider.isMainOrNode()
-}
-export function isWorkerOrNode() {
-	return envProvider.isWorkerOrNode()
-}
-export function isWorker() {
-	return envProvider.isWorker()
-}
-export function isMain() {
-	return envProvider.isMain()
-}
-export const isTest = () => {
-	return envProvider.isTest()
-}
-export const isOfflineStorageAvailable = () => {
-	return envProvider.isOfflineStorageAvailable()
-}
-export const getApiBaseUrl = (dc: DomainConfig) => {
-	return envProvider.getApiBaseUrl(dc)
-}
-export const getWebsocketBaseUrl: typeof envProvider.getWebsocketBaseUrl = (dc: DomainConfig) => {
-	return envProvider.getWebsocketBaseUrl(dc)
-}
-
-export const bootFinished = () => {
-	envProvider.bootFinished()
-}
+export const assertMainOrNode = envProvider.assertMainOrNode
+export const assertMainOrNodeBoot = envProvider.assertMainOrNodeBoot
+export const assertWorkerOrNode = envProvider.assertWorkerOrNode
+export const isIOSApp = envProvider.isIOSApp
+export const isAppleDevice = envProvider.isAppleDevice
+export const isAndroidApp = envProvider.isAndroidApp
+export const isApp = envProvider.isApp
+export const isDesktop = envProvider.isDesktop
+export const isBrowser = envProvider.isBrowser
+export const isWebClient = envProvider.isWebClient
+export const isAdminClient = envProvider.isAdminClient
+export const isMainOrNode = envProvider.isMainOrNode
+export const isWorker = envProvider.isWorker
+export const isTest = envProvider.isTest
+export const isOfflineStorageAvailable = envProvider.isOfflineStorageAvailable
+export const getApiBaseUrl = envProvider.getApiBaseUrl
+export const getWebsocketBaseUrl = envProvider.getWebsocketBaseUrl
+export const bootFinished = envProvider.bootFinished

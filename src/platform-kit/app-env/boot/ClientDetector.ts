@@ -1,4 +1,4 @@
-import { assertMainOrNodeBoot, envProvider, EnvType, Mode, PlatformId } from "../Env"
+import { assertMainOrNodeBoot, EnvProvider, envProvider, PlatformId } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
 import { AppType } from "../AppType"
@@ -28,11 +28,11 @@ export class ClientDetector {
 		if (ClientDetector.singeleton != null) {
 			return ClientDetector.singeleton
 		}
-		this.singeleton = new ClientDetector(env)
+		this.singeleton = new ClientDetector(envProvider)
 		return this.singeleton
 	}
 
-	constructor(public readonly env: EnvType) {}
+	constructor(public readonly envProvider: EnvProvider) {}
 
 	init(userAgent: string, platform: string, appType: AppType = AppType.Integrated) {
 		this.userAgent = userAgent
@@ -64,6 +64,7 @@ export class ClientDetector {
 			this.lookBehindRegex()
 		)
 	}
+
 	isSupportedBrowserVersion(): boolean {
 		return _isSupportedBrowserVersion(this.browser, this.browserVersion)
 	}
@@ -285,7 +286,9 @@ export class ClientDetector {
 	}
 
 	getIdentifier(): string {
-		if (this.env.mode === Mode.App) {
+		const platformId = this.envProvider.getPlatformId()
+
+		if (envProvider.isApp()) {
 			if (this.appType === AppType.Integrated) {
 				throw new Error("AppType.Integrated is not allowed for mobile apps")
 			}
@@ -293,11 +296,11 @@ export class ClientDetector {
 			return `${ClientDetector.get().device} ${appType} App`
 		} else if (envProvider.isBrowser()) {
 			return ClientDetector.get().browser + " Browser"
-		} else if (this.env.platformId === PlatformId.Linux) {
+		} else if (platformId === PlatformId.Linux) {
 			return "Linux Desktop"
-		} else if (this.env.platformId === PlatformId.Darwin) {
+		} else if (platformId === PlatformId.Darwin) {
 			return "Mac Desktop"
-		} else if (this.env.platformId === PlatformId.Win32) {
+		} else if (platformId === PlatformId.Win32) {
 			return "Windows Desktop"
 		}
 
@@ -344,23 +347,20 @@ export class ClientDetector {
 
 	getClientPlatform(): ClientPlatform {
 		if (envProvider.isDesktop()) {
-			if (this.env.platformId === PlatformId.Darwin) return ClientPlatform.DESKTOP_MAC
-			if (this.env.platformId === PlatformId.Linux) return ClientPlatform.DESKTOP_LINUX
-			if (this.env.platformId === PlatformId.Win32) return ClientPlatform.DESKTOP_WINDOWS
-			return ClientPlatform.DESKTOP_UNKNOWN
-		}
-		if (!envProvider.isApp()) return ClientPlatform.WEB
-
-		if (envProvider.isAndroidApp()) {
+			const platformId = this.envProvider.getPlatformId()
+			if (platformId === PlatformId.Darwin) return ClientPlatform.DESKTOP_MAC
+			else if (platformId === PlatformId.Linux) return ClientPlatform.DESKTOP_LINUX
+			else if (platformId === PlatformId.Win32) return ClientPlatform.DESKTOP_WINDOWS
+			else return ClientPlatform.DESKTOP_UNKNOWN
+		} else if (!envProvider.isApp()) return ClientPlatform.WEB
+		else if (envProvider.isAndroidApp()) {
 			return this.appType! === AppType.Calendar ? ClientPlatform.ANDROID_CALENDAR_APP : ClientPlatform.ANDROID_MAIL_APP
-		}
-
-		if (envProvider.isIOSApp()) {
+		} else if (envProvider.isIOSApp()) {
 			return this.appType! === AppType.Calendar ? ClientPlatform.IOS_CALENDAR_APP : ClientPlatform.IOS_MAIL_APP
+		} else {
+			// Fallback
+			return ClientPlatform.UNKNOWN
 		}
-
-		// Fallback
-		return ClientPlatform.UNKNOWN
 	}
 }
 

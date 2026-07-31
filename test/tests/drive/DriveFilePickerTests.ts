@@ -4,6 +4,7 @@ import { NativeFileApp } from "../../../src/app-kit/native-bridge/common/FileApp
 import { object, when } from "testdouble"
 import { PosRect } from "../../../src/ui/utils/PosRect"
 import { withOverriddenEnv } from "../TestUtils"
+import { Mode } from "../../../src/platform-kit/app-env"
 
 o.spec("DriveFilePicker", function () {
 	let picker: DriveFilePicker
@@ -11,7 +12,7 @@ o.spec("DriveFilePicker", function () {
 	let rect: PosRect
 	o.beforeEach(async () => {
 		fileApp = object()
-		await withOverriddenEnv({ mode: "Desktop" }, () => {
+		await withOverriddenEnv({ mode: Mode.Desktop }, () => {
 			picker = new AppFilePicker(fileApp)
 		})
 		rect = object()
@@ -26,13 +27,37 @@ o.spec("DriveFilePicker", function () {
 			folders: ["./home/parentFolder/childFolder"],
 		})
 		when(fileApp.getFilesMetaData(files)).thenResolve([
-			{ _type: "FileReference", name: "file1.txt", mimeType: "text/plain", size: 1024, location: "./home/parentFolder/file1.txt" },
-			{ _type: "FileReference", name: "file2.txt", mimeType: "text/plain", size: 1024, location: "./home/parentFolder/file2.txt" },
+			{
+				_type: "FileReference",
+				name: "file1.txt",
+				mimeType: "text/plain",
+				size: 1024,
+				location: "./home/parentFolder/file1.txt",
+			},
+			{
+				_type: "FileReference",
+				name: "file2.txt",
+				mimeType: "text/plain",
+				size: 1024,
+				location: "./home/parentFolder/file2.txt",
+			},
 		])
 		const childFiles = ["./home/parentFolder/childFolder/file3.txt", "./home/parentFolder/childFolder/file4.txt"]
 		when(fileApp.getFilesMetaData(childFiles)).thenResolve([
-			{ _type: "FileReference", name: "file3.txt", mimeType: "text/plain", size: 1024, location: "./home/parentFolder/childFolder/file3.txt" },
-			{ _type: "FileReference", name: "file4.txt", mimeType: "text/plain", size: 1024, location: "./home/parentFolder/childFolder/file4.txt" },
+			{
+				_type: "FileReference",
+				name: "file3.txt",
+				mimeType: "text/plain",
+				size: 1024,
+				location: "./home/parentFolder/childFolder/file3.txt",
+			},
+			{
+				_type: "FileReference",
+				name: "file4.txt",
+				mimeType: "text/plain",
+				size: 1024,
+				location: "./home/parentFolder/childFolder/file4.txt",
+			},
 		])
 		when(fileApp.readDirectory("./home/parentFolder/childFolder")).thenResolve({
 			name: "childFolder",
@@ -44,8 +69,20 @@ o.spec("DriveFilePicker", function () {
 			{
 				name: "parentFolder",
 				files: [
-					{ _type: "FileReference", name: "file1.txt", mimeType: "text/plain", size: 1024, location: "./home/parentFolder/file1.txt" },
-					{ _type: "FileReference", name: "file2.txt", mimeType: "text/plain", size: 1024, location: "./home/parentFolder/file2.txt" },
+					{
+						_type: "FileReference",
+						name: "file1.txt",
+						mimeType: "text/plain",
+						size: 1024,
+						location: "./home/parentFolder/file1.txt",
+					},
+					{
+						_type: "FileReference",
+						name: "file2.txt",
+						mimeType: "text/plain",
+						size: 1024,
+						location: "./home/parentFolder/file2.txt",
+					},
 				],
 				folders: [
 					{

@@ -43,12 +43,12 @@ import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
 import { tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
 import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
 import { EncryptedDbWrapper } from "../../src/applications/common/api/worker/search/EncryptedDbWrapper"
-import { ClientDetector, ClientPlatform } from "../../src/platform-kit/app-env/boot/ClientDetector"
+import { ClientPlatform } from "../../src/platform-kit/app-env/boot/ClientDetector"
 import { KeyLoaderFacade } from "../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants"
 import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { OfflineMapper } from "../../src/platform-kit/instance-pipeline/OfflineMapper"
-import { DomainConfig, ProgrammingError } from "../../src/platform-kit/app-env"
+import { DomainConfig, envProvider, EnvType, ProgrammingError } from "../../src/platform-kit/app-env"
 import { TypeChecks } from "../../src/platform-kit/app-env/boot/TsTypeChecks"
 import { Type } from "cborg"
 import undefined = Type.undefined
@@ -72,7 +72,12 @@ export function makeCore(
 	const { transaction } = safeArgs
 	const dbFacade = { createTransaction: () => Promise.resolve(transaction) } as Partial<DbFacade>
 	const defaultDb = new EncryptedDbWrapper(dbFacade as DbFacade)
-	defaultDb.init(safeArgs.encryptionData ?? { key: aes256RandomKey(), initializationVector: FIXED_INITIALIZATION_VECTOR })
+	defaultDb.init(
+		safeArgs.encryptionData ?? {
+			key: aes256RandomKey(),
+			initializationVector: FIXED_INITIALIZATION_VECTOR,
+		},
+	)
 	const { db, browserData } = {
 		...{ db: defaultDb, browserData: browserDataStub },
 		...safeArgs,
@@ -434,19 +439,21 @@ export function offlineMapperFromTypeModelResolver(typeModelResolver: TypeModelR
 	return new OfflineMapper(typeModelResolver)
 }
 
-export async function withOverriddenEnv<F extends (...args: any[]) => any>(override: Partial<typeof env>, action: () => ReturnType<F>) {
+export async function withOverriddenEnv<F extends (...args: any[]) => any>(override: Partial<EnvType>, action: () => ReturnType<F>) {
 	const previousEnv: typeof env = clone(env)
 	for (const [key, value] of Object.entries(override)) {
 		env[key] = value
 	}
-	;(ClientDetector.get() as any).env = env
+	// @ts-ignore
+	envProvider.env = env
 	try {
 		return await action()
 	} finally {
 		for (const key of Object.keys(override)) {
 			env[key] = previousEnv[key]
 		}
-		;(ClientDetector.get() as any).env = env
+		// @ts-ignore
+		envProvider.env = env
 	}
 }
 
