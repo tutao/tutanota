@@ -44,7 +44,7 @@ import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFol
 import { isWebFile } from "../../../../ui/utils/FileUtils"
 import { handleRestError, isOfflineError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { WebFileResolver } from "./WebFileResolver"
-import { LiveSearchResult, SearchModel, SearchQuery } from "../../../mail-app/search/model/SearchModel"
+import { DriveSearchResult, LiveSearchResult, SearchModel, SearchQuery } from "../../../mail-app/search/model/SearchModel"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 
@@ -805,10 +805,10 @@ export class DriveViewModel {
 	search() {
 		this.driveFacade.search("js")
 	}
-	selectSearchResult(searchQuery: SearchQuery, driveItem: DriveFolder | DriveFile | null) {
-		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, driveItem ? getElementId(driveItem) : null)
+	selectSearchResult(searchQuery: SearchQuery, driveSearchResult: DriveSearchResult | null) {
+		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, driveSearchResult ? getElementId(driveSearchResult.item) : null)
 	}
-	async getSearchResult(searchQuery: SearchQuery): Promise<LiveSearchResult<DriveFile | DriveFolder>> {
+	async getSearchResult(searchQuery: SearchQuery): Promise<LiveSearchResult<DriveSearchResult>> {
 		const fileGroupId = await this.driveFacade.getFileGroupId()
 		return await this.searchModel.coolNewSearchDrive(searchQuery, fileGroupId, (a: DriveFile | DriveFolder, b: DriveFile | DriveFolder) =>
 			this.compareDriveItemsForSearch(a, b),

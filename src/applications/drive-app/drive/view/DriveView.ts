@@ -46,7 +46,7 @@ import { MessageBanner } from "../../../../ui/base/MessageBanner"
 import { FabMenu, FabMenuAttrs } from "../../../../ui/FabMenu"
 import { DriveFilePicker } from "./DriveFilePicker"
 import { NewPaidPlans } from "../../../../entities/sys/Utils"
-import { DriveFile, DriveFolder } from "@tutao/entities/drive"
+import { DriveFolder } from "@tutao/entities/drive"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { DriveMobileSortButton } from "./DriveMobileSortButton"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
@@ -320,7 +320,6 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 										this.driveViewModel.selectSearchResult(searchQuery, driveItem)
 									},
 									shouldOfferUpgrade: locator.logins.getUserController().isFreeAccount(),
-									getDirectParent: (item: DriveFolder | DriveFile) => this.driveViewModel.getDirectParent(item),
 								},
 							})
 						},

@@ -11,6 +11,7 @@ import {
 	incrementMonth,
 	isEmpty,
 	isNotEmpty,
+	isNotNull,
 	lastIndex,
 	lastThrow,
 	lazyAsync,
@@ -32,6 +33,7 @@ import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/ne
 import { compareContacts } from "../../contacts/view/ContactGuiUtils"
 import { mailSearchComparator, SearchableTypes } from "../../../common/search/SearchUtils"
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef, DriveGroupRootTypeRef } from "@tutao/entities/drive"
+import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -51,6 +53,11 @@ export interface LiveSearchResult<T> {
 	dispose: () => unknown
 	extendResults: (extendEnd: number) => unknown
 	entityEventsReceived: (data: readonly EntityUpdateData[]) => Promise<unknown>
+}
+
+export interface DriveSearchResult {
+	item: DriveFolder | DriveFile
+	parent: DriveFolder | null
 }
 
 export class SearchModel {
@@ -249,7 +256,7 @@ export class SearchModel {
 		searchQuery: SearchQuery,
 		fileGroupId: string,
 		compareDriveItems: (a: DriveFile | DriveFolder, b: DriveFile | DriveFolder) => number,
-	): Promise<LiveSearchResult<DriveFile | DriveFolder>> {
+	): Promise<LiveSearchResult<DriveSearchResult>> {
 		const groupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
 		const resultItems: (DriveFolder | DriveFile)[] = []
 		const tokens = tokenize(searchQuery.query.trim())
@@ -291,6 +298,21 @@ export class SearchModel {
 
 		resultItems.sort(compareDriveItems)
 
+		const parentFolderIds = resultItems.map((item) => (isDriveFile(item) ? item.folder : item.parent)).filter(isNotNull)
+		const parentFolders = await loadMultipleFromLists(DriveFolderTypeRef, this.entityClient, parentFolderIds)
+		const idToParentFolder = collectToMap(parentFolders, (parent) => elementIdPart(parent._id))
+
+		const extendedResultItems: DriveSearchResult[] = resultItems.map((item) => {
+			let parent: DriveFolder | null = null
+
+			const parentFolderId = isDriveFile(item) ? item.folder : item.parent
+			if (parentFolderId) {
+				parent = idToParentFolder.get(elementIdPart(parentFolderId)) ?? null
+			}
+
+			return { item, parent }
+		})
+
 		const searchResult: SearchResult = {
 			matchWordOrder: false,
 			restriction: searchQuery.restriction,
@@ -305,12 +327,12 @@ export class SearchModel {
 			moreResultsEntries: [],
 			lastReadSearchIndexRow: [],
 		}
-		const liveResult: LiveSearchResult<DriveFolder | DriveFile> = {
+		const liveResult: LiveSearchResult<DriveSearchResult> = {
 			searchResult,
-			items: resultItems,
+			items: extendedResultItems,
 			loadMoreResults: async (count) => {
 				//FIXME
-				let moreResults: (DriveFolder | DriveFile)[] = []
+				let moreResults: DriveSearchResult[] = []
 				return moreResults
 			},
 			extendResults: (extendEnd) => {},
@@ -323,8 +345,9 @@ export class SearchModel {
 				return hasMoreResults(liveResult.searchResult)
 			},
 			entityEventsReceived: async (updates) => {
-				const fileItems: DriveFile[] = liveResult.items.filter((item): item is DriveFile => item._type === DriveFileTypeRef)
-				const folderItems: DriveFolder[] = liveResult.items.filter((item): item is DriveFolder => item._type === DriveFileTypeRef)
+				const driveItems = liveResult.items.map((item) => item.item)
+				const fileItems: DriveFile[] = driveItems.filter((item): item is DriveFile => item._type === DriveFileTypeRef)
+				const folderItems: DriveFolder[] = driveItems.filter((item): item is DriveFolder => item._type === DriveFileTypeRef)
 				const fileUpdates = updates.filter((update) => update.typeRef === DriveFileTypeRef)
 				const folderUpdates = updates.filter((update) => update.typeRef === DriveFolderTypeRef)
 				await this.applyEntityUpdates(DriveFileTypeRef, fileItems, fileUpdates, liveResult.updates)
