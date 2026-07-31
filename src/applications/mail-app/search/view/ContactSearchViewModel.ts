@@ -1,9 +1,8 @@
 import { ListModel } from "../../../common/misc/ListModel"
-import { SearchResultListEntry } from "./SearchListView"
 import Id from "../../../../ui/translations/id"
 import { createRestriction, getRestriction, getSearchUrl, searchQueryEquals } from "../model/SearchUtils"
 import { SearchCategoryType, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { Contact, ContactTypeRef } from "@tutao/entities/tutanota"
+import { Contact } from "@tutao/entities/tutanota"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { LiveSearchResult, SearchModel, SearchQuery } from "../model/SearchModel"
@@ -11,16 +10,16 @@ import Stream from "mithril/stream"
 import { debounce, isNotNull, noOp, onceAsync } from "@tutao/utils"
 import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
 import { CancelledError, isAdminClient, isBrowser } from "@tutao/app-env"
-import { assertIsEntity2, elementIdPart, getElementId, isSameId } from "@tutao/meta"
+import { elementIdPart, getElementId, isSameId } from "@tutao/meta"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
-import { emptyListModel, SearchableTypes } from "../../../common/search/SearchUtils"
+import { emptyListModel } from "../../../common/search/SearchUtils"
 
 export class ContactSearchViewModel {
-	#listModel: ListModel<SearchResultListEntry, Id> = emptyListModel()
+	#listModel: ListModel<Contact, Id> = emptyListModel()
 	private resultSubscription: Stream<void> | null = null
-	get listModel(): ListModel<SearchResultListEntry, Id> {
+	get listModel(): ListModel<Contact, Id> {
 		return this.#listModel
 	}
 	#delayingSearch: boolean = false
@@ -42,10 +41,7 @@ export class ContactSearchViewModel {
 	}
 
 	getSelectedContacts(): Contact[] {
-		return this.#listModel
-			.getSelectedAsArray()
-			.map((e) => e.entry)
-			.filter(assertIsEntity2(ContactTypeRef))
+		return this.#listModel.getSelectedAsArray()
 	}
 
 	getCurrentQuery() {
@@ -137,7 +133,7 @@ export class ContactSearchViewModel {
 					this.applyLiveSearchResults(result)
 					return result
 				})
-			const listModel = this.createList(searchPromise, noOp, getElementId)
+			const listModel = this.createList(searchPromise, noOp)
 			this.#listModel = listModel
 			listModel.loadInitial()
 			this.loadAndSelectIfNeeded(args.id)
@@ -146,7 +142,7 @@ export class ContactSearchViewModel {
 			this.updateUi()
 		})
 	}
-	private loadAndSelectIfNeeded(id: string | null, finder?: (a: SearchResultListEntry) => boolean) {
+	private loadAndSelectIfNeeded(id: string | null, finder?: (a: Contact) => boolean) {
 		// nothing to select
 		if (id == null) {
 			return
@@ -158,24 +154,20 @@ export class ContactSearchViewModel {
 			}
 		}
 	}
-	private handleLoadAndSelection(id: string, finder: ((a: SearchResultListEntry) => boolean) | undefined) {
+	private handleLoadAndSelection(id: string, finder: ((a: Contact) => boolean) | undefined) {
 		const listModel = this.#listModel
 		let iterations = 0
 		this.#listModel.loadAndSelect(finder ?? ((item) => isSameId(getElementId(item), id)), () => listModel !== this.#listModel || iterations++ > 10)
 	}
 
-	private createList<T extends SearchableTypes>(
-		deferredResult: Promise<LiveSearchResult<T>>,
-		restartSearch: () => unknown,
-		idExtractor: (entity: T) => Id,
-	): ListModel<SearchResultListEntry, Id> {
+	private createList(deferredResult: Promise<LiveSearchResult<Contact>>, restartSearch: () => unknown): ListModel<Contact, Id> {
 		// the list is recreated every time a new search is performed, but not when the current result is extended
 		// note in case of refactor: the fact that the list updates the URL every time it changes
 		// its state is a major source of complexity and makes everything very order-dependent
 
 		let initialLoadAborted = false
-		return new ListModel<SearchResultListEntry, Id>({
-			fetch: async (lastFetchedEntity: SearchResultListEntry | null, count: number) => {
+		return new ListModel<Contact, Id>({
+			fetch: async (lastFetchedEntity: Contact | null, count: number) => {
 				let result
 				try {
 					result = await deferredResult
@@ -198,16 +190,16 @@ export class ContactSearchViewModel {
 					newItems = result.items
 				}
 				const complete = !result.hasMoreResults
-				return { items: newItems.map((entity) => new SearchResultListEntry(entity)), complete }
+				return { items: newItems, complete }
 			},
-			getItemId(item: SearchResultListEntry): Id {
-				return idExtractor(item.entry as T)
+			getItemId(item: Contact): Id {
+				return getElementId(item)
 			},
 			isSameId(id1, id2): boolean {
 				return isSameId(id1, id2)
 			},
-			sortCompare: (o1: SearchResultListEntry, o2: SearchResultListEntry) => {
-				return compareContacts(o1.entry as any, o2.entry as any)
+			sortCompare: (o1: Contact, o2: Contact) => {
+				return compareContacts(o1, o2)
 			},
 			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		})
@@ -221,7 +213,7 @@ export class ContactSearchViewModel {
 					this.listModel.deleteLoadedItem(getElementId(update.item))
 					break
 				case "updateitem":
-					this.listModel.updateLoadedItem(new SearchResultListEntry(update.item))
+					this.listModel.updateLoadedItem(update.item)
 					break
 			}
 		})

@@ -13,8 +13,8 @@ import { assertNotNull, first, isEmpty, isNotEmpty, isSameDayOfDate, lazyMemoize
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { FeatureType, isApp, isBrowser, Keys, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
-import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
+import { FeatureType, isApp, Keys, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { Card } from "../../../../ui/base/Card"
 import { ClickHandler, getDetachedDropdownBounds } from "../../../../ui/base/GuiUtils"
 import { BackgroundColumnLayout } from "../../../../ui/BackgroundColumnLayout"
@@ -84,6 +84,7 @@ import { MultiselectMode } from "../../../../ui/base/List"
 import { SimpleMoveMailTarget } from "../../mail/MailUtils"
 import { MailSearchListView, MailSearchListViewAttrs } from "./MailSearchListView"
 import { renderSearchInOurApps } from "../../../common/search/SearchUtils"
+
 export interface MailSearchViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
@@ -180,7 +181,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 					listModel: this.searchViewModel.listModel,
 					onSingleSelection: (item) => {
 						this.viewSlider.focus(this.resultDetailsColumn)
-						if (isSameTypeRef(item.entry._type, MailTypeRef)) {
+						if (isSameTypeRef(item._type, MailTypeRef)) {
 							// Make sure that we mark mail as read if you select the mail again, even if it was selected before.
 							// Do it in the next even loop to not rely on what is called first, listModel or us. ListModel changes are
 							// sync so this should be enough.

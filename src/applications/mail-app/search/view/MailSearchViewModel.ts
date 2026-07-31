@@ -1,7 +1,6 @@
 import { ListFilter, ListModel } from "../../../common/misc/ListModel"
-import { SearchResultListEntry } from "./SearchListView"
 import Id from "../../../../ui/translations/id"
-import { Mail, MailSet, MailTypeRef } from "@tutao/entities/tutanota"
+import { Mail, MailSet } from "@tutao/entities/tutanota"
 import { ConversationViewModel, ConversationViewModelFactory } from "../../mail/view/ConversationViewModel"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import Stream from "mithril/stream"
@@ -21,7 +20,7 @@ import {
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
 import { CancelledError, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
-import { assertIsEntity2, elementIdPart, getElementId, isSameId, listIdPart } from "@tutao/meta"
+import { elementIdPart, getElementId, isSameId, listIdPart } from "@tutao/meta"
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
 import { createRestriction, getRestriction, getSearchUrl, isSameSearchRestriction, searchQueryEquals } from "../model/SearchUtils"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
@@ -36,18 +35,19 @@ import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils"
 import { MailOpenedListener } from "../../mail/view/MailViewModel"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
-import { emptyListModel, mailSearchComparator, PaidFunctionResult, SearchableTypes } from "../../../common/search/SearchUtils"
+import { emptyListModel, mailSearchComparator, PaidFunctionResult } from "../../../common/search/SearchUtils"
+import { ListFetchResult } from "../../../../ui/base/ListUtils"
 
 const SEARCH_PAGE_SIZE = 100
 export class MailSearchViewModel {
-	#listModel: ListModel<SearchResultListEntry, Id> = emptyListModel()
+	#listModel: ListModel<Mail, Id> = emptyListModel()
 	#selectedMailField: string | null = null
 	private latestMailRestriction: SearchRestriction | null = null
 	#conversationViewModel: ConversationViewModel | null = null
 	get selectedMailField(): string | null {
 		return this.#selectedMailField
 	}
-	get listModel(): ListModel<SearchResultListEntry, Id> {
+	get listModel(): ListModel<Mail, Id> {
 		return this.#listModel
 	}
 
@@ -112,9 +112,7 @@ export class MailSearchViewModel {
 
 	readonly getSelectedMails: () => readonly Mail[] = memoizedWithHiddenArgument(
 		() => this.#listModel.getSelectedAsArray(),
-		(selected) => {
-			return selected.map((e) => e.entry).filter(assertIsEntity2(MailTypeRef))
-		},
+		(selected) => selected,
 	)
 
 	getCurrentQuery() {
@@ -195,7 +193,7 @@ export class MailSearchViewModel {
 					return result
 				})
 
-			const listModel = this.createList(searchPromise, getElementId)
+			const listModel = this.createList(searchPromise)
 			this.#listModel = listModel
 			this.applyMailFilterIfNeeded()
 			listModel.loadInitial()
@@ -215,11 +213,11 @@ export class MailSearchViewModel {
 			}
 			return true
 		}
-		const liftedFilter: ListFilter<SearchResultListEntry> | null = (entry) => filterFunction(entry.entry as Mail)
+		const liftedFilter: ListFilter<Mail> | null = (mail) => filterFunction(mail)
 		this.#listModel?.setFilter(liftedFilter)
 	}
 
-	private loadAndSelectIfNeeded(id: string | null, finder?: (a: SearchResultListEntry) => boolean) {
+	private loadAndSelectIfNeeded(id: string | null, finder?: (a: Mail) => boolean) {
 		// nothing to select
 		if (id == null) {
 			return
@@ -232,22 +230,19 @@ export class MailSearchViewModel {
 		}
 	}
 
-	private handleLoadAndSelection(id: string, finder: ((a: SearchResultListEntry) => boolean) | undefined) {
+	private handleLoadAndSelection(id: string, finder: ((a: Mail) => boolean) | undefined) {
 		const listModel = this.#listModel
 		let iterations = 0
 		this.#listModel.loadAndSelect(finder ?? ((item) => isSameId(getElementId(item), id)), () => listModel !== this.#listModel || iterations++ > 10)
 	}
 
-	private createList<T extends SearchableTypes>(
-		deferredResult: Promise<LiveSearchResult<T>>,
-		idExtractor: (entity: T) => Id,
-	): ListModel<SearchResultListEntry, Id> {
+	private createList(deferredResult: Promise<LiveSearchResult<Mail>>): ListModel<Mail, Id> {
 		// the list is recreated every time a new search is performed, but not when the current result is extended
 		// note in case of refactor: the fact that the list updates the URL every time it changes
 		// its state is a major source of complexity and makes everything very order-dependent
 
-		return new ListModel<SearchResultListEntry, Id>({
-			fetch: async (lastFetchedEntity: SearchResultListEntry | null, count: number) => {
+		return new ListModel<Mail, Id>({
+			fetch: async (lastFetchedEntity: Mail | null | undefined, count: number) => {
 				let result
 				try {
 					result = await deferredResult
@@ -265,22 +260,22 @@ export class MailSearchViewModel {
 					newItems = result.items
 				}
 				const complete = !result.hasMoreResults && !this.isIndexingMails() && !this.isIndexingMailsFailed()
-				return { items: newItems.map((entity) => new SearchResultListEntry(entity)), complete }
+				return { items: newItems, complete } satisfies ListFetchResult<Mail>
 			},
-			getItemId(item: SearchResultListEntry): Id {
-				return idExtractor(item.entry as T)
+			getItemId(item: Mail): Id {
+				return getElementId(item)
 			},
 			isSameId(id1, id2): boolean {
 				return isSameId(id1, id2)
 			},
-			sortCompare: (o1: SearchResultListEntry, o2: SearchResultListEntry) => {
-				return mailSearchComparator(o1.entry as Mail, o2.entry as Mail)
+			sortCompare: (o1: Mail, o2: Mail) => {
+				return mailSearchComparator(o1, o2)
 			},
 			autoSelectBehavior: () => this.selectionBehavior,
 		})
 	}
 
-	private onListStateChange(newState: ListState<SearchResultListEntry>) {
+	private onListStateChange(newState: ListState<Mail>) {
 		if (!newState.inMultiselect && newState.selectedItems.size === 1) {
 			const mail = this.getSelectedMails()[0]
 
@@ -521,7 +516,7 @@ export class MailSearchViewModel {
 					this.listModel.deleteLoadedItem(getElementId(update.item))
 					break
 				case "updateitem":
-					this.listModel.updateLoadedItem(new SearchResultListEntry(update.item))
+					this.listModel.updateLoadedItem(update.item)
 					break
 			}
 		})

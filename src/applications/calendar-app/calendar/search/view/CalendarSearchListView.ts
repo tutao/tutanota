@@ -1,4 +1,4 @@
-import { CommonSearchListViewAttrs, SearchResultListEntry, SearchResultListRow } from "../../../../mail-app/search/view/SearchListView"
+import { CommonSearchListViewAttrs } from "../../../../mail-app/search/view/SearchListView"
 import { CalendarInfoBase } from "../../model/CalendarModel"
 import m, { Children, Component, Vnode } from "mithril"
 import { Icons } from "../../../../../ui/base/icons/Icons"
@@ -6,8 +6,9 @@ import { MultiselectMode, RenderConfig } from "../../../../../ui/base/List"
 import { component_size } from "../../../../../ui/size"
 import { KindaCalendarRow } from "../../gui/CalendarRow"
 import { renderListColumnWrapper } from "../../../../mail-app/search/view/MailSearchListView"
+import { CalendarEvent } from "@tutao/entities/tutanota"
 
-export interface CalendarSearchListViewAttrs extends CommonSearchListViewAttrs {
+export interface CalendarSearchListViewAttrs extends CommonSearchListViewAttrs<CalendarEvent> {
 	cancelCallback: () => unknown | null
 	availableCalendars: ReadonlyArray<CalendarInfoBase>
 	currentStartDate: Date | null
@@ -24,14 +25,12 @@ export class CalendarSearchListView implements Component<CalendarSearchListViewA
 		this.attrs = attrs
 		return renderListColumnWrapper(attrs.listModel, Icons.CalendarFilled, attrs.onSingleSelection, this.calendarRenderConfig, attrs.cancelCallback)
 	}
-	private readonly calendarRenderConfig: RenderConfig<SearchResultListEntry, SearchResultListRow> = {
+	private readonly calendarRenderConfig: RenderConfig<CalendarEvent, KindaCalendarRow> = {
 		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Disabled,
 		swipe: null,
 		createElement: (dom) => {
-			const row: SearchResultListRow = new SearchResultListRow(
-				new KindaCalendarRow(dom, this.attrs.availableCalendars, () => this.attrs.highlightedStrings),
-			)
+			const row = new KindaCalendarRow(dom, this.attrs.availableCalendars, () => this.attrs.highlightedStrings)
 			m.render(dom, row.render())
 			return row
 		},

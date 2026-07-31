@@ -1,15 +1,14 @@
-import { CommonSearchListViewAttrs, SearchResultListEntry, SearchResultListRow } from "./SearchListView"
+import { CommonSearchListViewAttrs } from "./SearchListView"
 import Stream from "mithril/stream"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes"
 import { Mail, MailSet } from "@tutao/entities/tutanota"
-import { CalendarInfoBase } from "../../../calendar-app/calendar/model/CalendarModel"
 import m, { Children, Component, Vnode } from "mithril"
 import { ListModel } from "../../../common/misc/ListModel"
 import { ListColumnWrapper } from "../../../../ui/ListColumnWrapper"
 import { styles } from "../../../../ui/styles"
 import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox"
 import { theme } from "../../../../ui/theme"
-import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../../../ui/base/List"
+import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig, ViewHolder } from "../../../../ui/base/List"
 import { YEAR_IN_MILLIS } from "@tutao/utils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { Button, ButtonType } from "../../../../ui/base/Button"
@@ -22,11 +21,8 @@ import { formatDate } from "../../../../ui/utils/Formatter"
 import { component_size, px, size } from "../../../../ui/size"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { MailRow } from "../../mail/view/MailRow"
-import { KindaContactRow } from "../../contacts/view/ContactListView"
-import { shouldAlwaysShowMultiselectCheckbox } from "../../../../ui/SelectableRowContainer"
-import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow"
 
-export interface MailSearchListViewAttrs extends CommonSearchListViewAttrs {
+export interface MailSearchListViewAttrs extends CommonSearchListViewAttrs<Mail> {
 	getLabelsForMail: (mail: Mail) => MailSet[]
 	indexStateStream: Stream<SearchIndexStateInfo>
 	currentStartDate: Date | null
@@ -36,7 +32,7 @@ export class MailSearchListView implements Component<MailSearchListViewAttrs> {
 	private attrs: MailSearchListViewAttrs
 	private indexStateStream: Stream<unknown> | null = null
 
-	private get listModel(): ListModel<SearchResultListEntry, Id> {
+	private get listModel(): ListModel<Mail, Id> {
 		return this.attrs.listModel
 	}
 
@@ -138,30 +134,29 @@ export class MailSearchListView implements Component<MailSearchListViewAttrs> {
 		)
 	}
 
-	private readonly mailRenderConfig: RenderConfig<SearchResultListEntry, SearchResultListRow> = {
+	private readonly mailRenderConfig: RenderConfig<Mail, MailRow> = {
 		itemHeight: component_size.list_row_height,
 		multiselectionAllowed: MultiselectMode.Enabled,
 		swipe: null,
 		createElement: (dom) => {
-			const row: SearchResultListRow = new SearchResultListRow(
-				new MailRow(
-					true,
-					(mail) => this.attrs.getLabelsForMail(mail),
-					() => row.entity && this.listModel.onSingleExclusiveSelection(row.entity),
-					() => this.attrs.highlightedStrings,
-				),
+			const row = new MailRow(
+				true,
+				(mail) => this.attrs.getLabelsForMail(mail),
+				(mail) => this.listModel.onSingleExclusiveSelection(mail),
+				() => this.attrs.highlightedStrings,
 			)
+
 			m.render(dom, row.render())
 			return row
 		},
 	}
 }
 
-export function renderListColumnWrapper(
-	listModel: ListModel<SearchResultListEntry, Id>,
+export function renderListColumnWrapper<T, U extends ViewHolder<T>>(
+	listModel: ListModel<T, Id>,
 	icon: Icons,
-	onSingleSelection: (item: SearchResultListEntry) => unknown,
-	renderConfig: RenderConfig<SearchResultListEntry, SearchResultListRow>,
+	onSingleSelection: (item: T) => unknown,
+	renderConfig: RenderConfig<T, U>,
 	cancelCallback?: () => unknown,
 	endOfListRender?: () => Children,
 ) {
@@ -183,14 +178,14 @@ export function renderListColumnWrapper(
 					onRetryLoading: () => {
 						listModel.retryLoading()
 					},
-					onSingleSelection: (item: SearchResultListEntry) => {
+					onSingleSelection: (item: T) => {
 						listModel.onSingleSelection(item)
 						onSingleSelection(item)
 					},
-					onSingleTogglingMultiselection: (item: SearchResultListEntry) => {
+					onSingleTogglingMultiselection: (item: T) => {
 						listModel.onSingleInclusiveSelection(item, styles.isSingleColumnLayout())
 					},
-					onRangeSelectionTowards: (item: SearchResultListEntry) => {
+					onRangeSelectionTowards: (item: T) => {
 						listModel.selectRangeTowards(item)
 					},
 					onStopLoading: () => {
@@ -198,6 +193,6 @@ export function renderListColumnWrapper(
 						listModel.stopLoading()
 					},
 					renderEndOfListMessage: endOfListRender ? endOfListRender() : null,
-				} satisfies ListAttrs<SearchResultListEntry, SearchResultListRow>),
+				} satisfies ListAttrs<T, U>),
 	)
 }

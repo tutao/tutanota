@@ -1,18 +1,17 @@
 import { CalendarInfoBase, CalendarModel, isBirthdayCalendarInfo, isCalendarInfo } from "../../model/CalendarModel"
 import Id from "../../../../../ui/translations/id"
-import { assertIsEntity2, elementIdPart, getElementId, isSameId, isSameTypeRef } from "@tutao/meta"
+import { elementIdPart, getElementId, isSameId } from "@tutao/meta"
 import { SearchCategoryType, SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes"
 import { createRestriction, encodeCalendarSearchKey, getSearchUrl, searchQueryEquals } from "../../../../mail-app/search/model/SearchUtils"
-import { debounce, downcast, getEndOfDay, getStartOfDay, incrementMonth, isNotNull, isSameDayOfDate, onceAsync, YEAR_IN_MILLIS } from "@tutao/utils"
+import { debounce, getEndOfDay, getStartOfDay, incrementMonth, isNotNull, isSameDayOfDate, onceAsync, YEAR_IN_MILLIS } from "@tutao/utils"
 import { ListModel } from "../../../../common/misc/ListModel"
-import { SearchResultListEntry } from "../../../../mail-app/search/view/SearchListView"
-import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef } from "@tutao/entities/tutanota"
+import { CalendarEvent, Contact, ContactTypeRef } from "@tutao/entities/tutanota"
 import { LoginController } from "../../../../common/api/main/LoginController"
 import { SearchToken } from "../../../../../ui/utils/QueryTokenUtils"
 import { LiveSearchResult, SearchModel, SearchQuery } from "../../../../mail-app/search/model/SearchModel"
 import Stream from "mithril/stream"
 import { SearchRouter } from "../../../../common/search/view/SearchRouter"
-import { CancelledError, isAdminClient, isBrowser, ProgrammingError } from "@tutao/app-env"
+import { CancelledError, isAdminClient, isBrowser } from "@tutao/app-env"
 import { EventController } from "../../../../common/api/main/EventController"
 import {
 	EntityEventsListener,
@@ -30,7 +29,7 @@ import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffs
 import { emptyListModel, PaidFunctionResult, SearchableTypes } from "../../../../common/search/SearchUtils"
 
 export class CalendarSearchViewModel {
-	#listModel: ListModel<SearchResultListEntry, Id> = emptyListModel()
+	#listModel: ListModel<CalendarEvent, Id> = emptyListModel()
 	private abortController: AbortController | null = null
 	#delayingSearch: boolean = false
 	private resultSubscription: Stream<void> | null = null
@@ -40,7 +39,7 @@ export class CalendarSearchViewModel {
 	get busy(): boolean {
 		return this.#delayingSearch
 	}
-	get listModel(): ListModel<SearchResultListEntry, Id> {
+	get listModel(): ListModel<CalendarEvent, Id> {
 		return this.#listModel
 	}
 	#birthdayContactPreviewData: { id: Id; contact: Contact | null } | null = null
@@ -175,10 +174,7 @@ export class CalendarSearchViewModel {
 	}
 
 	getSelectedEvents(): CalendarEvent[] {
-		return this.#listModel
-			.getSelectedAsArray()
-			.map((e) => e.entry)
-			.filter(assertIsEntity2(CalendarEventTypeRef))
+		return this.#listModel.getSelectedAsArray()
 	}
 
 	getUserId() {
@@ -210,7 +206,7 @@ export class CalendarSearchViewModel {
 	private updateSearchUrl() {
 		const selectedElement = this.#listModel.state.selectedItems.size === 1 ? this.#listModel.getSelectedAsArray().at(0) : null
 		this.routeCalendar(
-			(selectedElement?.entry as CalendarEvent) ?? null,
+			selectedElement ?? null,
 			createRestriction(
 				SearchCategoryType.calendar,
 				this.#startDate ? getStartOfDay(this.#startDate).getTime() : null,
@@ -342,29 +338,25 @@ export class CalendarSearchViewModel {
 						this.applyLiveSearchResults(result)
 						return result
 					})
-				const listModel = this.createList(searchPromise, restartSearch, encodeCalendarSearchKey)
+				const listModel = this.createList(searchPromise, restartSearch)
 				this.#listModel = listModel
 				listModel.loadInitial()
 
-				this.loadAndSelectIfNeeded(args.id, (item) => encodeCalendarSearchKey(item.entry as CalendarEvent) === args.id)
+				this.loadAndSelectIfNeeded(args.id, (item) => encodeCalendarSearchKey(item) === args.id)
 			}
 
 			restartSearch()
 		}
 	}
 
-	private createList<T extends SearchableTypes>(
-		deferredResult: Promise<LiveSearchResult<T>>,
-		restartSearch: () => unknown,
-		idExtractor: (entity: T) => Id,
-	): ListModel<SearchResultListEntry, Id> {
+	private createList(deferredResult: Promise<LiveSearchResult<CalendarEvent>>, restartSearch: () => unknown): ListModel<CalendarEvent, Id> {
 		// the list is recreated every time a new search is performed, but not when the current result is extended
 		// note in case of refactor: the fact that the list updates the URL every time it changes
 		// its state is a major source of complexity and makes everything very order-dependent
 
 		let initialLoadAborted = false
-		return new ListModel<SearchResultListEntry, Id>({
-			fetch: async (lastFetchedEntity: SearchResultListEntry | null, count: number) => {
+		return new ListModel<CalendarEvent, Id>({
+			fetch: async (lastFetchedEntity: CalendarEvent | null, count: number) => {
 				let result
 				try {
 					result = await deferredResult
@@ -387,21 +379,15 @@ export class CalendarSearchViewModel {
 					newItems = result.items
 				}
 				const complete = !result.hasMoreResults
-				return { items: newItems.map((entity) => new SearchResultListEntry(entity)), complete }
+				return { items: newItems, complete }
 			},
-			getItemId(item: SearchResultListEntry): Id {
-				return idExtractor(item.entry as T)
+			getItemId(item: CalendarEvent): Id {
+				return encodeCalendarSearchKey(item)
 			},
 			isSameId(id1, id2): boolean {
 				return isSameId(id1, id2)
 			},
-			sortCompare: (o1: SearchResultListEntry, o2: SearchResultListEntry) => {
-				if (isSameTypeRef(o1.entry._type, CalendarEventTypeRef)) {
-					return downcast(o1.entry).startTime.getTime() - downcast(o2.entry).startTime.getTime()
-				} else {
-					throw new ProgrammingError(`cannot sort entries for type: ${o1.entry._type.app}/${o1.entry._type.typeId}`)
-				}
-			},
+			sortCompare: (o1: CalendarEvent, o2: CalendarEvent) => o1.startTime.getTime() - o2.startTime.getTime(),
 			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		})
 	}
@@ -420,7 +406,7 @@ export class CalendarSearchViewModel {
 			}
 		})
 	}
-	private loadAndSelectIfNeeded(id: string | null, finder?: (a: SearchResultListEntry) => boolean) {
+	private loadAndSelectIfNeeded(id: string | null, finder?: (a: CalendarEvent) => boolean) {
 		// nothing to select
 		if (id == null) {
 			return
@@ -432,7 +418,7 @@ export class CalendarSearchViewModel {
 			}
 		}
 	}
-	private handleLoadAndSelection(id: string, finder: ((a: SearchResultListEntry) => boolean) | undefined) {
+	private handleLoadAndSelection(id: string, finder: ((a: CalendarEvent) => boolean) | undefined) {
 		const listModel = this.#listModel
 		let iterations = 0
 		this.#listModel.loadAndSelect(finder ?? ((item) => isSameId(getElementId(item), id)), () => listModel !== this.#listModel || iterations++ > 10)

@@ -419,7 +419,7 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 					onSingleSelection: (item) => this.viewSlider.focus(this.resultDetailsColumn),
 					isFreeAccount: locator.logins.getUserController().isFreeAccount(),
 					highlightedStrings: this.searchViewModel.getHighlightedStrings(),
-				} satisfies CommonSearchListViewAttrs),
+				} satisfies CommonSearchListViewAttrs<Contact>),
 			),
 		])
 	}
