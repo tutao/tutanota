@@ -48,7 +48,7 @@ import { KeyLoaderFacade } from "../../src/platform-kit/base/base-crypto/KeyLoad
 import { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants"
 import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { OfflineMapper } from "../../src/platform-kit/instance-pipeline/OfflineMapper"
-import { DomainConfig, envProvider, EnvType, ProgrammingError } from "../../src/platform-kit/app-env"
+import { DomainConfig, EnvProvider, EnvType, ProgrammingError } from "../../src/platform-kit/app-env"
 import { TypeChecks } from "../../src/platform-kit/app-env/boot/TsTypeChecks"
 import { Type } from "cborg"
 import undefined = Type.undefined
@@ -444,16 +444,14 @@ export async function withOverriddenEnv<F extends (...args: any[]) => any>(overr
 	for (const [key, value] of Object.entries(override)) {
 		env[key] = value
 	}
-	// @ts-ignore
-	envProvider.env = env
+	EnvProvider.get().overrideEnvForTest(env)
 	try {
 		return await action()
 	} finally {
 		for (const key of Object.keys(override)) {
 			env[key] = previousEnv[key]
 		}
-		// @ts-ignore
-		envProvider.env = env
+		EnvProvider.get().overrideEnvForTest(env)
 	}
 }
 
