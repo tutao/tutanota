@@ -1,4 +1,3 @@
-import { pad } from "@tutao/utils"
 import { DateTime } from "luxon"
 import { ProgrammingError } from "@tutao/app-env"
 
@@ -102,7 +101,11 @@ export class Time {
 	}
 
 	to12HourString(withAmPmSuffix: boolean): string {
-		let result = `${this.hourTo12HourClock().toString()}:${pad(this._minute, 2)}`
+		let result = this.hourTo12HourClock().toString() + ":x"
+		if (this._minute < 10) {
+			result += "0"
+		}
+		result += this._minute.toString()
 		if (withAmPmSuffix) {
 			result += this.isHourPm() ? " pm" : " am"
 		}
@@ -110,7 +113,15 @@ export class Time {
 	}
 
 	to24HourString(): string {
-		return `${pad(this._hour, 2)}:${pad(this._minute, 2)}`
+		let result = ""
+		if (this._hour < 10) {
+			result += "0"
+		}
+		result += this._hour.toString() + ":"
+		if (this._minute < 10) {
+			result += "0"
+		}
+		return result + this._minute.toString()
 	}
 
 	toObject(): {
@@ -125,6 +136,11 @@ export class Time {
 
 	asMinutes(): number {
 		return this._hour * 60 + this._minute
+	}
+
+	/** Returns true if this time is equal to otherTime. */
+	isEqual(otherTime: Time) {
+		return this._hour === otherTime._hour && this._minute === otherTime._minute
 	}
 
 	/**

@@ -122,6 +122,7 @@ import type { AutosaveFacade, LocalAutosavedDraftData } from "../../../common/ap
 import { showOverwriteDraftDialog, showOverwriteRemoteDraftDialog } from "./OverwriteDraftDialogs"
 import { DatePicker } from "../../../calendar-app/calendar/gui/pickers/DatePicker"
 import { TimePicker, TimePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/TimePicker"
+import { Time } from "../../../common/calendar/date/Time"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
@@ -762,9 +763,9 @@ export class MailEditor implements Component<MailEditorAttrs> {
 											},
 											m(TimePicker, {
 												time: model.getSendAtTime(),
-												onTimeSelected: (timeString: string | null) => {
-													if (timeString) {
-														model.setSendAtTimeFromString(timeString)
+												onTimeSelected: (time: Time | null) => {
+													if (time) {
+														model.setSendAtTime(time)
 													}
 												},
 												timeFormat: getTimeFormatForUser(model.logins.getUserController().userSettingsGroupRoot),
