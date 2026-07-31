@@ -23,14 +23,18 @@ import {
 	childFileFromEntry,
 	deduplicateItemNames,
 	DiskFolder,
+	DriveOperationType,
 	FileFolderItem,
 	FolderItem,
 	folderItemEntity,
 	FolderItemId,
 	folderItemToId,
+	itemsIntoIds,
 	loadFolderContents,
 	moveItems,
+	OperationUpdate,
 	pickNewFileName,
+	RunningOperation,
 	traverse,
 	walkTree,
 } from "./DriveUtils"
@@ -125,32 +129,12 @@ function emptyListModel<Item, Id>(): ListModel<Item, Id> {
 	})
 }
 
-export enum DriveOperationType {
-	Copy,
-	Delete,
-	Move,
-	Trash,
-	Restore,
-}
-
 export interface DriveStorage {
 	usedBytes: number
 	totalBytes: number
 }
 
 type ComparisonFunction = (f1: FolderItem, f2: FolderItem) => number
-
-interface RunningOperation {
-	type: DriveOperationType
-	count: number
-}
-
-export interface OperationUpdate {
-	type: DriveOperationType
-	count: number
-	status: OperationStatus
-	error: Error | null
-}
 
 export class DriveViewModel {
 	public readonly userMailAddress: string
@@ -464,16 +448,8 @@ export class DriveViewModel {
 		this.selectNone()
 	}
 
-	private itemsIntoIds(items: readonly FolderItemId[]): { fileIds: IdTuple[]; folderIds: IdTuple[] } {
-		const [fileFolderItems, folderFolderItems] = partition(items, (item) => item.type === "file")
-		return {
-			fileIds: fileFolderItems.map((item) => item.id),
-			folderIds: folderFolderItems.map((item) => item.id),
-		}
-	}
-
 	async moveToTrash(items: readonly FolderItemId[]) {
-		const { fileIds, folderIds } = this.itemsIntoIds(items)
+		const { fileIds, folderIds } = itemsIntoIds(items)
 		try {
 			await this.driveFacade.moveToTrash(fileIds, folderIds)
 			this.operationUpdates({
@@ -494,7 +470,7 @@ export class DriveViewModel {
 	}
 
 	async restoreFromTrash(items: readonly FolderItem[]) {
-		const { fileIds, folderIds } = this.itemsIntoIds(items.map(folderItemToId))
+		const { fileIds, folderIds } = itemsIntoIds(items.map(folderItemToId))
 		try {
 			await this.driveFacade.restoreFromTrash(fileIds, folderIds)
 			this.operationUpdates({

@@ -273,6 +273,14 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 						},
 						icon: Icons.CalendarFilled,
 					},
+					{
+						label: "driveView_action",
+						click: () => {
+							const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryType.drive)
+							m.route.set(href)
+						},
+						icon: Icons.DriveFilled,
+					},
 				],
 			}),
 		})

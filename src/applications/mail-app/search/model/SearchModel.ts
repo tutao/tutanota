@@ -270,7 +270,7 @@ export class SearchModel {
 				for (const item of chunk) {
 					const name = item.name.toLowerCase()
 
-					if (tokens.every((token) => name.includes(token)) && !resultItems.includes(item)) {
+					if (tokens.every((token) => name.includes(token))) {
 						resultItems.push(item)
 					}
 				}
@@ -288,7 +288,7 @@ export class SearchModel {
 				for (const item of chunk) {
 					const name = item.name.toLowerCase()
 
-					if (tokens.every((token) => name.includes(token)) && !resultItems.includes(item)) {
+					if (tokens.every((token) => name.includes(token))) {
 						resultItems.push(item)
 					}
 				}

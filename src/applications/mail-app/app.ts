@@ -75,6 +75,8 @@ import { CalendarSearchView, CalendarSearchViewAttrs } from "../calendar-app/cal
 import { CalendarSearchViewModel } from "../calendar-app/calendar/search/view/CalendarSearchViewModel"
 import { DriveSearchView, DriveSearchViewAttrs } from "../drive-app/search/view/DriveSearchView"
 import { DriveSearchViewModel } from "../drive-app/search/view/DriveSearchViewModel"
+import { FolderItem } from "../drive-app/drive/view/DriveUtils"
+import { MoveItems } from "../drive-app/drive/view/DriveMoveItemDialog"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -704,6 +706,7 @@ import("../../ui/translations/en.js")
 					drawerAttrsFactory: () => DrawerMenuAttrs
 					header: AppHeaderAttrs
 					makeViewModel: () => DriveSearchViewModel
+					showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown
 				}
 			>(
 				{
@@ -717,6 +720,7 @@ import("../../ui/translations/en.js")
 								header: await mailLocator.appHeaderAttrs(),
 								drawerAttrsFactory,
 								makeViewModel,
+								showMoveItemDialog: (items, moveItems) => mailLocator.showMoveItemDialog(items, moveItems),
 							},
 						}
 					},
@@ -725,6 +729,7 @@ import("../../ui/translations/en.js")
 							header: cache.header,
 							drawerAttrs: cache.drawerAttrsFactory(),
 							makeViewModel: cache.makeViewModel,
+							showMoveItemDialog: cache.showMoveItemDialog,
 						}
 					},
 				},

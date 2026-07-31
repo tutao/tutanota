@@ -1439,7 +1439,7 @@ class MailLocator implements CommonLocator {
 	async calendarSearchViewModelFactory(): Promise<() => CalendarSearchViewModel> {
 		const { CalendarSearchViewModel } = await import("../calendar-app/calendar/search/view/CalendarSearchViewModel.js")
 		const calendarModel = await this.calendarModel()
-		const redraw = await this.redraw
+		const redraw = await this.redraw()
 		const router = await this.scopedSearchRouter()
 		const offlineStorageSettings = await this.offlineStorageSettingsModel()
 		return () =>
@@ -1456,9 +1456,24 @@ class MailLocator implements CommonLocator {
 	}
 	async driveSearchViewModelFactory(): Promise<() => DriveSearchViewModel> {
 		const { DriveSearchViewModel } = await import("../drive-app/search/view/DriveSearchViewModel.js")
-		const router = await this.scopedSearchRouter()
+		const { DriveTransferController } = await import("../drive-app/drive/view/DriveTransferController.js")
+		const redraw = await this.redraw()
+		const transferController = new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController)
+		const searchRouter = await this.scopedSearchRouter()
+		const router = await this.throttledRouter()
 		const dateProvider = await this.noZoneDateProvider()
-		return () => new DriveSearchViewModel(router, dateProvider)
+		return () =>
+			new DriveSearchViewModel(
+				searchRouter,
+				this.search,
+				router,
+				dateProvider,
+				this.logins,
+				transferController,
+				this.driveFacade,
+				this.entityClient,
+				this.eventController,
+			)
 	}
 }
 

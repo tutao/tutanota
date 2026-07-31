@@ -7,6 +7,7 @@ import { getElementId } from "@tutao/meta"
 import { WebFile } from "../../../../entities/tutanota/Utils"
 import { DriveTransferState } from "./DriveTransferController"
 import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
+import { OperationStatus } from "@tutao/app-env"
 
 export function makeDuplicateFileName(fileName: string, indicator: string = "copy"): string {
 	const [basename, ext] = getFileBaseNameAndExtensions(fileName)
@@ -43,6 +44,10 @@ export function toFolderItem(item: DriveFile | DriveFolder): FolderItem {
 	} else {
 		return { type: "folder", folder: item }
 	}
+}
+
+export function folderItemid(item: FolderItem): IdTuple {
+	return folderItemEntity(item)._id
 }
 
 function isFolderFolderItem(item: FolderItem): item is FolderFolderItem {
@@ -220,4 +225,39 @@ export async function walkTree<EL>(root: EL, processNode: (el: EL) => Promise<EL
 		const newElements = await processNode(currentEl)
 		stack.push(...newElements)
 	}
+}
+
+export function folderItemParent(item: FolderItem): IdTuple | null {
+	if (item.type === "file") {
+		return item.file.folder
+	} else {
+		return item.folder.parent
+	}
+}
+
+export function itemsIntoIds(items: readonly FolderItemId[]): { fileIds: IdTuple[]; folderIds: IdTuple[] } {
+	const [fileFolderItems, folderFolderItems] = partition(items, (item) => item.type === "file")
+	return {
+		fileIds: fileFolderItems.map((item) => item.id),
+		folderIds: folderFolderItems.map((item) => item.id),
+	}
+}
+export enum DriveOperationType {
+	Copy,
+	Delete,
+	Move,
+	Trash,
+	Restore,
+}
+
+export interface RunningOperation {
+	type: DriveOperationType
+	count: number
+}
+
+export interface OperationUpdate {
+	type: DriveOperationType
+	count: number
+	status: OperationStatus
+	error: Error | null
 }

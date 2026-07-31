@@ -15,35 +15,56 @@ import { createDropdown } from "../../../../ui/base/Dropdown"
 import { SearchCategoryType } from "../../../common/api/worker/search/SearchTypes"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { formatDate } from "../../../../ui/utils/Formatter"
-import { isSameDayOfDate } from "@tutao/utils"
+import { isNotEmpty, isSameDayOfDate } from "@tutao/utils"
 import { ViewSlider } from "../../../../ui/nav/ViewSlider"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { styles } from "../../../../ui/styles"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../../ui/base/BaseSearchBar"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager"
-import { Keys } from "@tutao/app-env"
+import { Keys, ProgrammingError } from "@tutao/app-env"
+import { renderSearchInOurApps } from "../../../common/search/SearchUtils"
+import { Card } from "../../../../ui/base/Card"
+import { showDateRangeSelectionDialog } from "../../../calendar-app/calendar/gui/pickers/DatePickerDialog"
+import { BackgroundColumnLayout } from "../../../../ui/BackgroundColumnLayout"
+import { theme } from "../../../../ui/theme"
+import { DriveTransferStack, DriveTransferStackAttrs } from "../../drive/view/DriveTransferStack"
+import { Dialog } from "../../../../ui/base/Dialog"
+import { FolderItem, folderItemToId } from "../../drive/view/DriveUtils"
+import { MoveItems } from "../../drive/view/DriveMoveItemDialog"
+import { ListState } from "../../../../ui/base/List"
+import { MultiselectMobileHeader } from "../../../../ui/MultiselectMobileHeader"
+import { MobileHeader } from "../../../../ui/MobileHeader"
+import { DriveMobileSortButton } from "../../drive/view/DriveMobileSortButton"
+import { IconButton } from "../../../../ui/base/IconButton"
+import { EnterMultiselectIconButton } from "../../../../ui/EnterMultiselectIconButton"
+import { DriveViewAttrs } from "../../drive/view/DriveView"
+import { DriveSelectedItemsActions } from "../../drive/view/DriveFolderNav"
 
 export interface DriveSearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
 	makeViewModel: () => DriveSearchViewModel
 	drawerAttrs: DrawerMenuAttrs
+	showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown
 }
 
 export class DriveSearchView extends BaseTopLevelView implements TopLevelView<DriveSearchViewAttrs> {
 	private readonly viewSlider: ViewSlider
 	private readonly filtersColumn: ViewColumn
-	//private readonly searchResultsColumn: ViewColumn
+	private readonly searchResultsColumn: ViewColumn
 	private readonly searchViewModel: DriveSearchViewModel
+	private startOfTheWeekOffset: number
+
 	constructor(vnode: Vnode<DriveSearchViewAttrs>) {
 		super()
 		this.searchViewModel = vnode.attrs.makeViewModel()
+		this.startOfTheWeekOffset = this.searchViewModel.getStartOfTheWeekOffset()
 		this.filtersColumn = new ViewColumn(
 			{
 				view: () => {
 					return m(FolderColumnView, {
 						drawer: vnode.attrs.drawerAttrs,
-						button: this.getMainButton(),
+						button: null,
 						content: [
 							m(SidebarSection, {
 								name: "searchFilters_label",
@@ -63,9 +84,132 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 				headerCenter: "search_label",
 			},
 		)
-		this.viewSlider = new ViewSlider([this.filtersColumn], windowFacade)
+		this.searchResultsColumn = new ViewColumn(
+			{
+				view: () => {
+					const listState = this.searchViewModel.listState()
+
+					return m(BackgroundColumnLayout, {
+						backgroundColor: theme.surface_container,
+						desktopToolbar: () => [],
+						columnLayout: [
+							this.renderFolderView(listState, vnode.attrs.showMoveItemDialog),
+							m(DriveTransferStack, {
+								driveTransfers: this.searchViewModel.transfers(),
+								cancelTransfer: (transferId) => this.searchViewModel.cancelTransfer(transferId),
+								cancelAllTransfers: async () => {
+									const { currentTransfers } = this.searchViewModel.transfers()
+									const activeTransfers = currentTransfers.filter((transfer) => transfer.state === "active" || transfer.state === "waiting")
+									if (isNotEmpty(activeTransfers)) {
+										const ok =
+											activeTransfers.length === 1
+												? true
+												: await Dialog.confirm(
+														lang.getTranslation("confirmCancelTransfers_msg", { "{count}": activeTransfers.length }),
+														"confirmCancelTransfers_action",
+													)
+										if (ok) {
+											for (const { id } of currentTransfers) {
+												this.searchViewModel.cancelTransfer(id)
+											}
+											this.searchViewModel.flushTransfers()
+										}
+									} else {
+										this.searchViewModel.flushTransfers()
+									}
+								},
+							} satisfies DriveTransferStackAttrs),
+						],
+						mobileHeader: () => this.renderMobileHeader(vnode.attrs.header, vnode.attrs.showMoveItemDialog),
+					})
+				},
+			},
+			ColumnType.Background,
+			{
+				minWidth: layout_size.second_col_min_width + layout_size.third_col_min_width,
+				maxWidth: layout_size.second_col_max_width + layout_size.third_col_max_width,
+			},
+		)
+
+		this.viewSlider = new ViewSlider([this.filtersColumn, this.searchResultsColumn], windowFacade)
 	}
-	protected onNewUrl(args: Record<string, any>, requestedPath: string): void {}
+
+	private selectedItemsActions(listState: ListState<FolderItem>, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): DriveSelectedItemsActions {
+		const anyItemInTrash = this.searchViewModel.anySelectedItemInTrash()
+		const selectedItems = Array.from(listState.selectedItems)
+		const hasSelectedItems = isNotEmpty(selectedItems)
+		const allItemsInTrash = this.searchViewModel.allItemsInTrash()
+		return {
+			onTrash: !allItemsInTrash && selectedItems.length === 0 ? null : () => this.searchViewModel.moveToTrash(selectedItems.map(folderItemToId)),
+			onDelete:
+				this.searchViewModel.allItemsInTrash() && hasSelectedItems
+					? async () => {
+							this.deleteItems()
+						}
+					: null,
+			onRestore: allItemsInTrash && hasSelectedItems ? () => this.searchViewModel.restoreFromTrash(selectedItems) : null,
+			//FIXME
+			onCut: null,
+			onCopy: null,
+			onPaste: null,
+			onMove:
+				!anyItemInTrash && hasSelectedItems
+					? () => showMoveItemDialog(selectedItems, (items, destinationFolder) => this.searchViewModel.moveItems(items, destinationFolder._id))
+					: null,
+			onDownload:
+				!anyItemInTrash && hasSelectedItems && this.searchViewModel.isDownloadPermitted(selectedItems)
+					? () => {
+							for (const item of selectedItems) {
+								this.searchViewModel.downloadFile(item.file)
+							}
+						}
+					: null,
+		}
+	}
+	private renderMobileHeader(headerAttrs: AppHeaderAttrs, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): Children {
+		const listState = this.searchViewModel.listState()
+		const actions = this.selectedItemsActions(listState, showMoveItemDialog)
+		const { onPaste } = actions
+
+		if (listState.inMultiselect) {
+			return m(MultiselectMobileHeader, {
+				message: lang.getTranslation("itemsSelected_label", { "{number}": listState.selectedItems.size }),
+				selected: listState.selectedItems.size === listState.items.length,
+				selectAll: () => this.searchViewModel.toggleSelectAll(),
+				selectNone: () => this.searchViewModel.selectNone(),
+			})
+		} else {
+			return m(MobileHeader, {
+				...headerAttrs,
+				title: undefined,
+				columnType: "first",
+				actions: [
+					m(DriveMobileSortButton, {
+						currentSort: this.searchViewModel.getCurrentColumnSortOrder(),
+						onSort: (property) => this.searchViewModel.sort(property),
+					}),
+					onPaste
+						? m(IconButton, {
+								title: "paste_action",
+								icon: Icons.ClipboardFilled,
+								click: () => onPaste(),
+							})
+						: null,
+					m(EnterMultiselectIconButton, {
+						clickAction: () => this.searchViewModel.enterMultiselect(),
+					}),
+				],
+				primaryAction: () => null,
+				backAction: () => this.searchViewModel.goToDriveView(),
+				useBackButton: true,
+			})
+		}
+	}
+	protected async onNewUrl(args: Record<string, any>, requestedPath: string) {
+		await this.searchViewModel.init()
+		this.searchViewModel.onNewUrl(args, requestedPath)
+		m.redraw()
+	}
 
 	view({ attrs }: Vnode<DriveSearchViewAttrs>): Children {
 		return m(
@@ -97,7 +241,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 				},
 			},
 			m(BaseSearchBar, {
-				placeholder: lang.get("searchEmails_placeholder"),
+				placeholder: lang.get("searchDrive_placeholder"),
 				text: this.searchViewModel.getCurrentQuery(),
 				busy: this.searchViewModel.busy,
 				onInput: (text: string) => {
@@ -114,13 +258,9 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 		)
 	}
 
-	private getMainButton() {
-		return undefined
-	}
-
 	private renderFilterChips() {
 		return [
-			this.renderCategoryChip("driveHome_label", Icons.DriveFilled),
+			this.renderCategoryChip("driveView_action", Icons.DriveFilled),
 			m(FilterChip, {
 				label: lang.makeTranslation(
 					"btn:date",
@@ -134,7 +274,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 				chevron: false,
 				onClick: (_) => this.onDriveDateRangeSelect(),
 			}),
-		]
+		] //FIXME: more filter chips
 	}
 	private renderCategoryChip(label: TranslationKey, icon: AllIcons): Children {
 		return m(FilterChip, {
@@ -169,7 +309,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 						icon: Icons.CalendarFilled,
 					},
 					{
-						label: "driveHome_label",
+						label: "driveView_action",
 						click: () => {
 							const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryType.drive)
 							m.route.set(href)
@@ -181,13 +321,51 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 		})
 	}
 
-	private renderAppPromo() {
-		return undefined
+	private renderAppPromo(): Children {
+		const searchText = renderSearchInOurApps()
+		if (searchText == null) {
+			return null
+		}
+		return m("div.ml-8.mt-12.small.plr-8.content-fg.mb-16", m(Card, searchText))
 	}
 
-	private onDriveDateRangeSelect() {}
+	private async onDriveDateRangeSelect() {
+		const { start, end } = await showDateRangeSelectionDialog({
+			start: this.searchViewModel.startDate,
+			end: this.searchViewModel.endDate,
+			startOfTheWeekOffset: this.startOfTheWeekOffset,
+			optionalStartDate: true,
+			dateValidator: (startDate, endDate) => {
+				switch (this.searchViewModel.checkDates(startDate, endDate)) {
+					case "startafterend":
+						return lang.getTranslationText("startAfterEnd_label")
+					case "long":
+					case null:
+						return null
+					default:
+						throw new ProgrammingError()
+				}
+			},
+		})
+		this.searchViewModel.selectStartDate(start)
+		this.searchViewModel.selectEndDate(end)
+	}
 
 	private renderBottomNav() {
 		return undefined
+	}
+
+	private renderFolderView(listState: ListState<FolderItem>, showMoveItemDialog: any) {
+		return undefined
+	}
+
+	async deleteItems(item?: FolderItem) {
+		const items = item ? [item] : Array.from(this.searchViewModel.listState().selectedItems)
+
+		const ok = await Dialog.confirm(
+			lang.getTranslation("confirmDeleteFilesPermanently_msg", { "{count}": items.length }),
+			"confirmDeleteFilesPermanently_action",
+		)
+		if (ok) this.searchViewModel.deleteFromTrash(items)
 	}
 }
