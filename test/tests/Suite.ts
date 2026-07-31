@@ -260,6 +260,9 @@ import "./drive/DriveFilePickerTests.js"
 
 import * as td from "testdouble"
 import { EntropySource } from "../../src/platform-kit/crypto"
+import { reIntializeEnv } from "./TestUtils"
+import { Mode } from "../../src/platform-kit/app-env"
+import { assert } from "../../src/platform-kit/utils"
 
 export async function run({ integration, filter, regexp, exclude }: { integration?: boolean; filter?: string; regexp?: string; exclude?: string } = {}) {
 	await setupSuite({ integration })
@@ -357,6 +360,6 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 	o.afterEach(function () {
 		td.reset()
 		// Reset env in case any tests have fiddled with it
-		env = originalEnv
+		reIntializeEnv(originalEnv)
 	})
 }

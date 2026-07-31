@@ -9,7 +9,7 @@ import { PlanSelector, PlanSelectorAttr, SubscriptionActionButtons } from "../su
 import { getAsLazy } from "../../../ui/base/MaybeLazy"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { px } from "../../../ui/size"
-import { styles } from "../../../ui/styles"
+import { Styles } from "../../../ui/styles"
 import { MessageBanner } from "../../../ui/base/MessageBanner"
 import { AvailablePlanType, PlanType } from "../../../entities/sys/Utils"
 import { PaymentInterval } from "../subscription/utils/PriceUtils"
@@ -42,7 +42,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 		const isBusiness = ctx.viewModel.options.businessUse()
 
 		return m(
-			`.full-width${styles.isMobileLayout() ? ".pt-16" : ""}`,
+			`.full-width${Styles.get().isMobileLayout() ? ".pt-16" : ""}`,
 			// Headline for general messages -- currently only used when a user tries to manage multiple subscriptions on ios (which is not possible)
 			data.msg && m(MessageBanner, { translation: data.msg, type: "error" }),
 			// Headline for promotional messages
@@ -65,7 +65,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 							".flex-grow",
 							{
 								style: {
-									"max-width": styles.isMobileLayout() ? "initial" : isBusiness ? px(860) : px(530),
+									"max-width": Styles.get().isMobileLayout() ? "initial" : isBusiness ? px(860) : px(530),
 								},
 							},
 							m(PlanSelector, {
@@ -104,7 +104,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 		const titleTranslationKey = getPlanSelectorTitle(data.globalCampaignName, data.bonusMonthForYearlyPlans > 0)
 
 		return m(
-			`h1.font-mdio${styles.isMobileLayout() ? ".h3" : ".h1"}`,
+			`h1.font-mdio${Styles.get().isMobileLayout() ? ".h3" : ".h1"}`,
 			{
 				style: {
 					position: "relative",

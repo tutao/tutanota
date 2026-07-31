@@ -15,7 +15,7 @@ import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { layout_size, px } from "../../../../ui/size"
 import {
 	getConversationTitle,
@@ -596,7 +596,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					buttons: renderHeaderButtons(),
 				}),
 				bottomNav:
-					styles.isSingleColumnLayout() && this.viewSlider.focusedColumn === this.mailColumn && this.conversationViewModel
+					Styles.get().isSingleColumnLayout() && this.viewSlider.focusedColumn === this.mailColumn && this.conversationViewModel
 						? m(MobileMailActionBar, {
 								deleteMailsAction: this.getDeleteMailsAction(),
 								trashMailsAction: this.getTrashMailsAction(),
@@ -620,7 +620,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								}),
 								reportNotSpamAction: this.getSingleMailReportNotSpamAction(this.conversationViewModel.primaryViewModel()),
 							})
-						: styles.isSingleColumnLayout() && this.mailViewModel.listModel?.isInMultiselect()
+						: Styles.get().isSingleColumnLayout() && this.mailViewModel.listModel?.isInMultiselect()
 							? m(MobileMailMultiselectionActionBar, {
 									selectNone: () => this.mailViewModel.listModel?.selectNone(),
 									deleteMailsAction: this.getDeleteMailsAction(),
@@ -1096,7 +1096,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 						drawer: drawerAttrs,
 						button: editingFolderForMailGroup
 							? null
-							: !styles.isUsingBottomNavigation() && isNewMailActionAvailable()
+							: !Styles.get().isUsingBottomNavigation() && isNewMailActionAvailable()
 								? {
 										label: "newMail_action",
 										click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
@@ -1318,7 +1318,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private showMail(args: Record<string, any>) {
 		this.mailViewModel.showMailWithMailSetId(args.folderId, args.mailId)
-		if (styles.isSingleColumnLayout() && !args.mailId && this.viewSlider.focusedColumn === this.mailColumn) {
+		if (Styles.get().isSingleColumnLayout() && !args.mailId && this.viewSlider.focusedColumn === this.mailColumn) {
 			this.viewSlider.focus(this.listColumn)
 		}
 	}

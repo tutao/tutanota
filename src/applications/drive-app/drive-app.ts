@@ -18,7 +18,7 @@ import { MobileSettingsView } from "../common/settings/MobileSettingsView"
 import { MobileSettingsViewAttrs, SettingsViewSection } from "../common/settings/Interfaces"
 import { lang, languageCodeToTag, languages } from "../../ui/utils/LanguageViewModel"
 import { root } from "../../ui/base/RootView"
-import { styles } from "../../ui/styles"
+import { Styles } from "../../ui/styles"
 import { AppHeaderAttrs } from "../../ui/Header"
 import { DRIVE_PREFIX } from "../../ui/utils/RouteChange"
 import { TopLevelAttrs, TopLevelView } from "../../ui/base/TopLevelView"
@@ -121,7 +121,7 @@ import("../../ui/translations/en.js")
 			}
 		})
 
-		styles.init(driveLocator.themeController)
+		Styles.get().init(driveLocator.themeController)
 
 		const { makeSignupViewResolver } = await import("../common/signup/SignupViewResolver.js")
 		const paths = applicationPaths({

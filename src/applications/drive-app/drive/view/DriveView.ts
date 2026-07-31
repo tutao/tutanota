@@ -25,7 +25,7 @@ import { driveFolderName, isMobileDriveLayout, newItemActions, showNewFolderDial
 import { getDetachedDropdownBounds } from "../../../../ui/base/GuiUtils"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { MobileHeader } from "../../../../ui/MobileHeader"
 import { EnterMultiselectIconButton } from "../../../../ui/EnterMultiselectIconButton"
 import { FolderFolderItem, FolderItem, FolderItemId, folderItemToId } from "./DriveUtils"
@@ -302,7 +302,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		return m(
 			"#drive.main-view",
 			{
-				class: isAndroidApp() && styles.isAppNotUsingBottomNav() && !this.driveViewModel.listState().inMultiselect ? "mb-safe-inset" : undefined,
+				class: isAndroidApp() && Styles.get().isAppNotUsingBottomNav() && !this.driveViewModel.listState().inMultiselect ? "mb-safe-inset" : undefined,
 			},
 			[
 				m(this.viewSlider, {
@@ -313,7 +313,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 						buttons: renderHeaderButtons(),
 					}),
 					bottomNav:
-						styles.isUsingBottomNavigation() && isNotNull(attrs.bottomNav)
+						Styles.get().isUsingBottomNavigation() && isNotNull(attrs.bottomNav)
 							? this.driveViewModel.listState().inMultiselect && this.driveViewModel.listState().selectedItems.size > 0
 								? this.renderMobileActionBar(attrs.showMoveItemDialog)
 								: attrs.bottomNav()

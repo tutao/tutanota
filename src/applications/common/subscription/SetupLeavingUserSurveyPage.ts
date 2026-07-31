@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { styles } from "../../../ui/styles.js"
+import { Styles } from "../../../ui/styles.js"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { DynamicColorSvg } from "../../../ui/base/DynamicColorSvg.js"
@@ -21,8 +21,8 @@ export class SetupLeavingUserSurveyPage implements Component<SetupLeavingUserSur
 				".flex.flex-column.max-width-m.pt-16.pb-16.plr-24",
 				{
 					style: {
-						minHeight: styles.isDesktopLayout() ? "850px" : "",
-						minWidth: styles.isDesktopLayout() ? "450px" : "360px",
+						minHeight: Styles.get().isDesktopLayout() ? "850px" : "",
+						minWidth: Styles.get().isDesktopLayout() ? "450px" : "360px",
 					},
 				},
 				[
@@ -30,7 +30,7 @@ export class SetupLeavingUserSurveyPage implements Component<SetupLeavingUserSur
 						".mb-16",
 						{
 							style: {
-								height: styles.isDesktopLayout() ? "360px" : "",
+								height: Styles.get().isDesktopLayout() ? "360px" : "",
 								...vnode.attrs.imageStyle,
 							},
 						},
@@ -46,7 +46,7 @@ export class SetupLeavingUserSurveyPage implements Component<SetupLeavingUserSur
 						"p.center",
 						{
 							style: {
-								height: styles.isDesktopLayout() ? "45px" : "77.5px",
+								height: Styles.get().isDesktopLayout() ? "45px" : "77.5px",
 							},
 						},
 						lang.get(vnode.attrs.secondaryMessage),
@@ -56,7 +56,7 @@ export class SetupLeavingUserSurveyPage implements Component<SetupLeavingUserSur
 						".full-width",
 						{
 							style: {
-								margin: styles.isDesktopLayout() ? "auto 0 0 0" : "16px 0 0 0", // positions the button at the very bottom of the flex wrapper box for consistency
+								margin: Styles.get().isDesktopLayout() ? "auto 0 0 0" : "16px 0 0 0", // positions the button at the very bottom of the flex wrapper box for consistency
 							},
 						},
 						m(PrimaryButton, {

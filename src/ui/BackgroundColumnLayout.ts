@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { styles } from "./styles.js"
+import { Styles } from "./styles.js"
 
 export interface BackgroundColumnLayoutAttrs {
 	mobileHeader: () => Children
@@ -26,7 +26,7 @@ export class BackgroundColumnLayout implements Component<BackgroundColumnLayoutA
 				class: attrs.classes ?? "",
 			},
 			[
-				styles.isUsingBottomNavigation() ? attrs.mobileHeader() : attrs.desktopToolbar(),
+				Styles.get().isUsingBottomNavigation() ? attrs.mobileHeader() : attrs.desktopToolbar(),
 				m(
 					".flex-grow.rel",
 					{

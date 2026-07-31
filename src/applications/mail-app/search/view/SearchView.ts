@@ -31,7 +31,7 @@ import { Icons } from "../../../../ui/base/icons/Icons"
 import { AppHeaderAttrs, Header } from "../../../../ui/Header.js"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
 import { ContactEditor } from "../../contacts/ContactEditor"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView.js"
 import { getGroupInfoDisplayName } from "../../../../platform-kit/network/GroupUtils"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
@@ -237,7 +237,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 
 	private getResultColumnLayout() {
 		return m(".flex.col.fill-absolute", [
-			styles.isDesktopLayout() ? null : this.renderFilterBar(),
+			Styles.get().isDesktopLayout() ? null : this.renderFilterBar(),
 			m(
 				".rel.flex-grow",
 				m(SearchListView, {
@@ -531,7 +531,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		}
 
 		return m(BaseMobileHeader, {
-			left: !styles.isMobileDesktopLayout()
+			left: !Styles.get().isMobileDesktopLayout()
 				? m(
 						".icon-button",
 						m(IconButton, {
@@ -972,7 +972,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			m(
 				".border-radius-12.flex.col.flex-grow.content-bg",
 				{
-					class: styles.isDesktopLayout() ? "mlr-24" : "mlr-12",
+					class: Styles.get().isDesktopLayout() ? "mlr-24" : "mlr-12",
 				},
 				m(EventDetailsView, {
 					eventPreviewModel: assertNotNull(this.getSanitizedPreviewData(selectedEvent).getSync()),
@@ -1002,7 +1002,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private renderBottomNav(): Children {
-		if (!styles.isSingleColumnLayout()) return m(BottomNav)
+		if (!Styles.get().isSingleColumnLayout()) return m(BottomNav)
 
 		const { conversationViewModel } = this.searchViewModel
 		const isInMultiselect = this.searchViewModel.listModel.state.inMultiselect ?? false
@@ -1268,7 +1268,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		this.searchViewModel.onNewUrl(args, requestedPath)
 		if (
 			isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef) &&
-			styles.isSingleColumnLayout() &&
+			Styles.get().isSingleColumnLayout() &&
 			!args.id &&
 			this.viewSlider.focusedColumn === this.resultDetailsColumn
 		) {
@@ -1284,7 +1284,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		label: TranslationKey
 		click: ClickHandler
 	} | null {
-		if (styles.isUsingBottomNavigation()) {
+		if (Styles.get().isUsingBottomNavigation()) {
 			return null
 		} else if (isSameTypeRef(typeRef, MailTypeRef) && isNewMailActionAvailable()) {
 			return {

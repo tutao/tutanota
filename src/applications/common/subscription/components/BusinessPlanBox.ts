@@ -10,7 +10,7 @@ import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { getFeaturePlaceholderReplacement, PlanTypeToName } from "../utils/SubscriptionUtils"
 import { PlanConfig } from "./BusinessPlanContainer"
 import { DefaultAnimationTime } from "../../../../ui/animation/Animations"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { boxShadowHigh, boxShadowLow } from "../../../../ui/main-styles"
 import { PlanBadge } from "./PlanBadge"
 import { DiscountDetail, getCampaignTheme, getHasCampaign } from "../utils/PlanSelectorUtils"
@@ -41,7 +41,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 	private isHovered = false
 
 	private isMobileLayout(attrs: BusinessPlanBoxAttrs): boolean {
-		return attrs.forceMobileLayout === true ? true : styles.isMobileLayout()
+		return attrs.forceMobileLayout === true ? true : Styles.get().isMobileLayout()
 	}
 
 	private measureCollapsed() {

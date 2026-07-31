@@ -16,7 +16,7 @@ import { theme } from "../../../../../ui/theme.js"
 import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../../ui/DesktopToolbars.js"
 import { CalendarSearchListView, CalendarSearchListViewAttrs } from "./CalendarSearchListView.js"
 import { keyManager, Shortcut } from "../../../../../ui/utils/KeyManager.js"
-import { styles } from "../../../../../ui/styles.js"
+import { Styles } from "../../../../../ui/styles.js"
 import { BaseMobileHeader } from "../../../../../ui/BaseMobileHeader.js"
 import { MobileHeader } from "../../../../../ui/MobileHeader.js"
 import { searchBar } from "../CalendarSearchBar.js"
@@ -173,7 +173,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	private renderMobileListActionsHeader(header: AppHeaderAttrs) {
 		const rightActions = []
 
-		if (styles.isSingleColumnLayout()) {
+		if (Styles.get().isSingleColumnLayout()) {
 			rightActions.push(this.renderHeaderRightView())
 		}
 
@@ -278,7 +278,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 			m(
 				".border-radius-12.flex.col.flex-grow.content-bg",
 				{
-					class: styles.isDesktopLayout() ? "mlr-24" : "mlr-12",
+					class: Styles.get().isDesktopLayout() ? "mlr-24" : "mlr-12",
 				},
 				m(EventDetailsView, {
 					eventPreviewModel: assertNotNull(this.getSanitizedPreviewData(selectedEvent).getSync()),
@@ -341,7 +341,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	}
 
 	private renderHeaderRightView(): Children {
-		if (styles.isUsingBottomNavigation() && !ClientDetector.get().isCalendarApp()) {
+		if (Styles.get().isUsingBottomNavigation() && !ClientDetector.get().isCalendarApp()) {
 			return m(IconButton, {
 				click: () => this.createNewEventDialog(),
 				title: "newEvent_action",

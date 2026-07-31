@@ -1,7 +1,7 @@
 import m, { Component, Vnode } from "mithril"
 import { WizardProgress } from "../../../ui/base/wizard/WizardProgress"
 import { WizardLayoutAttrs } from "../../../ui/base/wizard/Wizard"
-import { styles } from "../../../ui/styles"
+import { Styles } from "../../../ui/styles"
 import { component_size, layout_size, px, size } from "../../../ui/size"
 import { SignupViewModel } from "./SignupView"
 import { DynamicColorSvg } from "../../../ui/base/DynamicColorSvg"
@@ -150,7 +150,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 		const { controller, index } = ctx
 		const viewModel = ctx.viewModel as SignupViewModel
 		const illustrationName = this.transitionIllustrationName ?? this.getStepIllustrationName(index, viewModel.globalCampaignName)
-		const showIllustration = styles.bodyWidth >= layout_size.wizard_show_illustration_min_width && !viewModel.options.businessUse()
+		const showIllustration = Styles.get().bodyWidth >= layout_size.wizard_show_illustration_min_width && !viewModel.options.businessUse()
 		const canTogglePlanSelector = showIllustration && this.isInlinePlanSelectorToggleEnabled(viewModel, index)
 		const showPlanSelector = canTogglePlanSelector && viewModel.inlinePlanSelectorOpen()
 		const panelTransitionMs = Math.round(DefaultAnimationTime * 1.5)
@@ -173,11 +173,11 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 			"will-change": "opacity, transform",
 			"pointer-events": showPlanSelector ? "auto" : "none",
 		}
-		const showProgressLabels = !styles.isSingleColumnLayout()
+		const showProgressLabels = !Styles.get().isSingleColumnLayout()
 		const isBusinessPlanSelector = viewModel.options.businessUse() && index === 0
 		const hideProgressColumn = isBusinessPlanSelector
 		const progressColumnStyle =
-			styles.isMobileLayout() || hideProgressColumn
+			Styles.get().isMobileLayout() || hideProgressColumn
 				? undefined
 				: {
 						width: px(showProgressLabels ? layout_size.wizard_progress_width : component_size.button_icon_bg_size),
@@ -186,12 +186,14 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 						"justify-content": "end",
 					}
 		const contentColumnStyle =
-			!styles.isMobileLayout() && !showIllustration && !isBusinessPlanSelector ? { "max-width": px(layout_size.wizard_content_max_width) } : undefined
+			!Styles.get().isMobileLayout() && !showIllustration && !isBusinessPlanSelector
+				? { "max-width": px(layout_size.wizard_content_max_width) }
+				: undefined
 		return m(
 			".flex.col.space-between.full-width",
 			{
 				style: {
-					margin: styles.isMobileLayout() ? `${px(size.spacing_24)} 0` : "auto",
+					margin: Styles.get().isMobileLayout() ? `${px(size.spacing_24)} 0` : "auto",
 					"max-height": px(layout_size.wizard_max_height),
 					"max-width": px(layout_size.wizard_max_width),
 					flex: "fit-content",
@@ -199,21 +201,21 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 				},
 			},
 			m(
-				`.flex.flex-grow.full-width${styles.isMobileLayout() ? ".col.gap-8" : ".gap-32"}`,
+				`.flex.flex-grow.full-width${Styles.get().isMobileLayout() ? ".col.gap-8" : ".gap-32"}`,
 				{
 					style: {
 						"padding-inline": "5vw",
-						"padding-block": styles.isMobileLayout() ? undefined : "7vh",
+						"padding-block": Styles.get().isMobileLayout() ? undefined : "7vh",
 					},
 				},
 				[
 					!hideProgressColumn &&
 						m(
-							`.flex.${!styles.isMobileLayout() ? "flex-column" : "row-reverse.items-center"}.flex-space-between`,
+							`.flex.${!Styles.get().isMobileLayout() ? "flex-column" : "row-reverse.items-center"}.flex-space-between`,
 							{ style: progressColumnStyle, flex: "none" },
 							[
 								showProgress &&
-									(!styles.isMobileLayout()
+									(!Styles.get().isMobileLayout()
 										? m(WizardProgress, {
 												progressState,
 												labelMaxLength: SIGNUP_PROGRESS_LABEL_MAX_LENGTH,
@@ -251,7 +253,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 						),
 					m(".flex.gap-64.full-width.flex-grow", [
 						m(
-							`.flex.flex-grow${styles.isMobileLayout() ? ".col-reverse" : ".col"}`,
+							`.flex.flex-grow${Styles.get().isMobileLayout() ? ".col-reverse" : ".col"}`,
 							{ style: contentColumnStyle },
 
 							m(`.wizard-page.flex.height-100p.full-width${controller.isInTransition ? ".wizard-page-transition" : ""}`, vnode.children),
@@ -359,13 +361,13 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 				],
 			),
 			m(
-				`.flex.gap-32.${styles.isMobileLayout() ? "justify-between" : "justify-center"}.items-center.w-full`,
+				`.flex.gap-32.${Styles.get().isMobileLayout() ? "justify-between" : "justify-center"}.items-center.w-full`,
 				{ style: { "margin-inline": px(size.spacing_24), "padding-block": px(size.spacing_16), flex: "none" } },
 				[
 					m(
 						"",
-						{ style: { height: px(32), width: styles.isMobileLayout() ? px(32) : px(90) } },
-						m.trust(styles.isMobileLayout() ? getTutaLogoSignetSvg() : getTutaLogo()),
+						{ style: { height: px(32), width: Styles.get().isMobileLayout() ? px(32) : px(90) } },
+						m.trust(Styles.get().isMobileLayout() ? getTutaLogoSignetSvg() : getTutaLogo()),
 					),
 					m(LanguageDropdown, { variant: "Link", deviceConfig }),
 				],

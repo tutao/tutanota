@@ -1,6 +1,6 @@
 import m, { ClassComponent, Vnode } from "mithril"
 import { theme } from "./theme.js"
-import { styles } from "./styles.js"
+import { Styles } from "./styles.js"
 import { px, size } from "./size.js"
 import { DefaultAnimationTime } from "./animation/Animations.js"
 import { currentNavigationType, PrimaryNavigationType } from "./base/RootView.js"
@@ -29,7 +29,7 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 					...attrs.style,
 					// this is an adjustment to keep tha columns aligned, space between columns is too big otherwise.
 					// this is an obscure place to put it and ideally should not be done here or should be passed down here.
-					marginRight: styles.isSingleColumnLayout() ? px(size.spacing_8) : "0",
+					marginRight: Styles.get().isSingleColumnLayout() ? px(size.spacing_8) : "0",
 					transition: `background 200ms`,
 					minHeight: "98%",
 				},
@@ -51,7 +51,7 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 				},
 				onblur: () => {
 					if (SelectableRowContainer.isUsingKeyboard()) {
-						if (this.selected && !styles.isSingleColumnLayout()) {
+						if (this.selected && !Styles.get().isSingleColumnLayout()) {
 							this.setBackground(theme.state_bg_hover)
 						} else {
 							this.setBackground(theme.surface)
@@ -79,7 +79,7 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 		const isUsingKeyboard = SelectableRowContainer.isUsingKeyboard()
 		// In the single column view, a row may be 'selected' by the URL still linking to a specific mail
 		// So do not highlight in that case but in just multiselect mode and keyboard navigation
-		const highlight = styles.isSingleColumnLayout() ? (this.isInMultiselect || isUsingKeyboard) && this.selected : this.selected
+		const highlight = Styles.get().isSingleColumnLayout() ? (this.isInMultiselect || isUsingKeyboard) && this.selected : this.selected
 		this.setBackground(highlight ? theme.state_bg_hover : theme.surface)
 	}
 }
@@ -97,7 +97,7 @@ export function checkboxOpacity(dom: HTMLInputElement, selected: boolean) {
 }
 
 export function shouldAlwaysShowMultiselectCheckbox() {
-	return !styles.isUsingBottomNavigation()
+	return !Styles.get().isUsingBottomNavigation()
 }
 
 // delay by 2 frames roughly so that the browser has time to do heavy stuff with layout

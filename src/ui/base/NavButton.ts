@@ -6,7 +6,7 @@ import { lazyStringValue } from "./MaybeLazy"
 import type { lazyIcon } from "./Icon"
 import { Icon } from "./Icon"
 import { theme } from "../theme"
-import { styles } from "../styles"
+import { Styles } from "../styles"
 import type { MaybeTranslation } from "../utils/LanguageViewModel"
 import { lang } from "../utils/LanguageViewModel"
 import { assertMainOrNode, isDesktop } from "../../platform-kit/app-env"
@@ -97,7 +97,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 	_getIconClass(a: NavButtonAttrs): string {
 		const isSelected = isNavButtonSelected(a)
 
-		if (a.colors === NavButtonColor.Header && !styles.isDesktopLayout()) {
+		if (a.colors === NavButtonColor.Header && !Styles.get().isDesktopLayout()) {
 			return "flex-end items-center icon-32" + (isSelected ? " selected" : "")
 		} else if (a.small === true) {
 			return "flex-center items-center icon" + (isSelected ? " selected" : "")

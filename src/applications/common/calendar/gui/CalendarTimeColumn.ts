@@ -4,7 +4,7 @@ import { formatShortTime, formatTime } from "../../../../ui/utils/Formatter"
 import { getIntervalAsMinutes, SUBROWS_PER_INTERVAL, TimeRange, TimeScale } from "./CalendarTimeGrid"
 import { layout_size, px, size } from "../../../../ui/size"
 import { Time } from "../date/Time"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { CalendarTimeCell, CalendarTimeCellAttrs, CellActionHandler } from "./CalendarTimeCell"
 import { TimeBadge, TimeBadgeAttrs, TimeBadgeVarient } from "./TimeBadge"
 import { TimeIndicator } from "./TimeIndicator"
@@ -64,7 +64,7 @@ export class CalendarTimeColumn implements ClassComponent<CalendarTimeColumnAttr
 					: null,
 				attrs.intervals.map((interval, intervalIndex) => {
 					const parsedTime = interval.toDate()
-					const formatedTime = styles.isDesktopLayout() ? formatTime(parsedTime) : formatShortTime(parsedTime)
+					const formatedTime = Styles.get().isDesktopLayout() ? formatTime(parsedTime) : formatShortTime(parsedTime)
 					const rowStart = intervalIndex * SUBROWS_PER_INTERVAL + 1
 					const rowEnd = rowStart + SUBROWS_PER_INTERVAL
 					const showBorderBottom = intervalIndex !== lastIndex(attrs.intervals)
@@ -113,5 +113,5 @@ export class CalendarTimeColumn implements ClassComponent<CalendarTimeColumnAttr
  * Returns the widht of the time column depending if it is a desktop layout or not.
  */
 export function getTimeColumnWidth(): number {
-	return styles.isDesktopLayout() ? layout_size.calendar_hour_width : layout_size.calendar_hour_width_mobile + size.spacing_8
+	return Styles.get().isDesktopLayout() ? layout_size.calendar_hour_width : layout_size.calendar_hour_width_mobile + size.spacing_8
 }
