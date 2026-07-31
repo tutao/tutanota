@@ -288,7 +288,7 @@ export class CalendarEventWhenModel {
 	set endDate(value: Date) {
 		this.validateAndCorrectInputDate(value)
 
-		if (value.getTime() === this._startDate.getTime()) {
+		if (value.getTime() === this._endDate.getTime()) {
 			return
 		}
 
