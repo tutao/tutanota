@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, isApp, isDesktop } from "@tutao/app-env"
+import { assertWorkerOrNode, EnvProvider } from "@tutao/app-env"
 import { defer, DeferredObject, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/utils"
 import { ApplicationTypesService_GET, baseModelInfo } from "../../entities/base"
 import { HttpMethod, MediaType, RestClientInterface } from "../rest-client/types"
@@ -113,7 +113,7 @@ export class ApplicationTypesFacade {
 	}
 
 	private async storeNewApplicationTypes(newApplicationTypesJsonString: string) {
-		if (isDesktop() || isApp()) {
+		if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp()) {
 			try {
 				const fileContent = stringToUtf8Uint8Array(newApplicationTypesJsonString)
 				await this.fileFacade.writeToAppDir(fileContent, APPLICATION_TYPES_FILE_NAME)
@@ -129,7 +129,7 @@ export class ApplicationTypesFacade {
 		// in the web app, we do not have a persistent server model,
 		// therefore we will load it from the server
 		// when the web app is started and store it in memory
-		if (isDesktop() || isApp()) {
+		if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp()) {
 			try {
 				const applicationTypesJsonData = await this.fileFacade.readFromAppDir(APPLICATION_TYPES_FILE_NAME)
 				const applicationTypesHash = this.computeApplicationTypesHash(applicationTypesJsonData)
@@ -173,7 +173,7 @@ export class ApplicationTypesFacade {
 	}
 
 	async invalidateApplicationTypes() {
-		if (isDesktop() || isApp()) {
+		if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp()) {
 			await this.fileFacade.deleteFromAppDir(APPLICATION_TYPES_FILE_NAME)
 			await this.fileFacade.deleteFromAppDir(APPLICATION_TYPES_PATH_SDK)
 		}

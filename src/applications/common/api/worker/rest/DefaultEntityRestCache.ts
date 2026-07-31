@@ -24,7 +24,7 @@ import {
 	ValueTypeEnum,
 } from "@tutao/meta"
 import { assertNotNull, getFirstOrThrow, groupBy, isNotEmpty, isNotNull, lastThrow, lazyAsync, Nullable } from "@tutao/utils"
-import { assertWorkerOrNode, isTest, ProgrammingError } from "@tutao/app-env"
+import { assertWorkerOrNode, EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../../../../../app-kit/local-store/event/EventBusClient.js"
 import { DecryptedParsedInstance, OwnerEncSessionKeyProvider, PatchMerger, TypeModelResolver } from "@tutao/instance-pipeline"
 import { LastProcessedEventBatchProvider } from "../../../../../platform-kit/network/LastProcessedEventBatchProvider.js"
@@ -831,7 +831,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	private shouldUseCache(typeRef: TypeRef<any>, opts?: EntityRestClientLoadOptions): boolean {
 		// if the cacheStorage for some reason is not (yet) initialized we can not use the cache,
 		// but still want to be able to use the client and do a login, etc.
-		if (!isTest() && !this.cacheStorage.isInitialized()) {
+		if (!EnvProvider.get().isTest() && !this.cacheStorage.isInitialized()) {
 			return false
 		}
 

@@ -4,7 +4,7 @@ import { locator } from "../api/main/CommonLocator.js"
 import { Stage } from "@tutao/usagetests"
 import { isEmpty } from "@tutao/utils"
 import { showUserSatisfactionDialog } from "./UserSatisfactionDialog.js"
-import { isAndroidApp, isApp, isBrowser, isDesktop } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { AvailablePlanType, LegacyBusinessPlans, NewBusinessPlans, PlanType } from "../../../entities/sys/Utils"
 import { PlanTypeToName } from "../subscription/utils/SubscriptionUtils"
 
@@ -112,7 +112,7 @@ export async function showUserSatisfactionDialogAfterUpgrade(currentPlan: PlanTy
 
 	if (currentPlan === PlanType.Free || (currentPlan === PlanType.Revolutionary && newPlan === PlanType.Legend)) {
 		// We show the rating dialog after a successful upgrade. The account age and app installation age are not checked here.
-		const disallowReasons = (await evaluateRatingEligibility(new Date(), deviceConfig, isApp())).filter(
+		const disallowReasons = (await evaluateRatingEligibility(new Date(), deviceConfig, EnvProvider.get().isApp())).filter(
 			(r) => r !== RatingDisallowReason.APP_INSTALLATION_TOO_YOUNG && r !== RatingDisallowReason.ACCOUNT_TOO_YOUNG,
 		)
 		if (isEmpty(disallowReasons)) {
@@ -169,7 +169,7 @@ export function completeEvaluationStage(triggerType: TriggerType, buttonType: Ev
 }
 
 export function completeRatingStage(triggerType: TriggerType, buttonType: RatingButtonType) {
-	if (!isApp()) return
+	if (!EnvProvider.get().isApp()) return
 	const stage = getStage(2)
 
 	stage.setMetric({
@@ -180,7 +180,7 @@ export function completeRatingStage(triggerType: TriggerType, buttonType: Rating
 }
 
 export function completeSupportTutaStage(buttonType: SupportTutaButtonType, planType: PlanType) {
-	const stage = getStage(isAndroidApp() ? 3 : 2) // 3 for android, 2 for ios or web
+	const stage = getStage(EnvProvider.get().isAndroidApp() ? 3 : 2) // 3 for android, 2 for ios or web
 	stage.setMetric({
 		name: "button",
 		value: buttonType + "_" + PlanTypeToName[planType],
@@ -189,7 +189,7 @@ export function completeSupportTutaStage(buttonType: SupportTutaButtonType, plan
 }
 
 export function completeUpgradeStage(oldPlan: PlanType, newPlan: PlanType) {
-	const stage = getStage(isAndroidApp() ? 4 : 3)
+	const stage = getStage(EnvProvider.get().isAndroidApp() ? 4 : 3)
 	stage.setMetric({
 		name: "plan",
 		value: PlanTypeToName[oldPlan] + "_to_" + PlanTypeToName[newPlan],
@@ -199,11 +199,11 @@ export function completeUpgradeStage(oldPlan: PlanType, newPlan: PlanType) {
 
 function getStage(stageNumber: number): Stage {
 	let testName
-	if (!isApp() && isDesktop()) {
+	if (!EnvProvider.get().isApp() && EnvProvider.get().isDesktop()) {
 		testName = "rating.desktop"
-	} else if (!isApp() && isBrowser()) {
+	} else if (!EnvProvider.get().isApp() && EnvProvider.get().isBrowser()) {
 		testName = "rating.web"
-	} else if (isAndroidApp()) {
+	} else if (EnvProvider.get().isAndroidApp()) {
 		testName = "rating.android"
 	} else {
 		testName = "rating.ios"

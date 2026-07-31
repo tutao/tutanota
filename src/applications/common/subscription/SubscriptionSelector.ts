@@ -14,7 +14,7 @@ import {
 	SelectedSubscriptionOptions,
 	UpgradePriceType,
 } from "./FeatureListProvider"
-import { isIOSApp, ProgrammingError } from "@tutao/app-env"
+import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { Button, ButtonType } from "../../../ui/base/Button.js"
 import { assertNotNull, downcast, lazy, NBSP } from "@tutao/utils"
 import { px, size } from "../../../ui/size.js"
@@ -125,9 +125,9 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			})
 		}
 
-		if (isCampaign && !isBusiness && (isIOSApp() ? priceAndConfigProvider.getIosIntroOfferEligibility() : true)) {
+		if (isCampaign && !isBusiness && (EnvProvider.get().isIOSApp() ? priceAndConfigProvider.getIosIntroOfferEligibility() : true)) {
 			// The headline text for the Go European campaign should be always English
-			const text = isIOSApp() ? "One-time offer: Save now!" : "One-time offer: Save 50% now!"
+			const text = EnvProvider.get().isIOSApp() ? "One-time offer: Save now!" : "One-time offer: Save 50% now!"
 			return wrapInDiv(text, { margin: "1em auto 0 auto" })
 		}
 	}
@@ -371,7 +371,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		let priceStr: string
 		let referencePriceStr: string | undefined = undefined
 		let priceType: PriceType
-		if (isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)) {
+		if (EnvProvider.get().isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)) {
 			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetSubscription].toLowerCase())
 			if (prices != null) {
 				switch (interval) {

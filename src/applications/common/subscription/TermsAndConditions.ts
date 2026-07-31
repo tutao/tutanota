@@ -9,7 +9,7 @@ import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
 import { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar"
 import { ButtonType } from "../../../ui/base/Button.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { isApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 
 /**
  * The most up-to-date versions of the terms and conditions, privacy statement, and gift card terms
@@ -44,7 +44,7 @@ export function renderTermsAndConditionsButton(terms: TermsSection, version: str
 		`a[href=${link}][target=_blank]`,
 		{
 			onclick: (e: MouseEvent) => {
-				if (isApp()) {
+				if (EnvProvider.get().isApp()) {
 					showServiceTerms(terms, version)
 					e.preventDefault()
 				}

@@ -7,7 +7,7 @@ import { BannerButtonAttrs, BannerType, InfoBanner } from "../../../../ui/base/I
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { RecipientButton } from "../../../../ui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../../../ui/base/Dropdown.js"
-import { isIOSApp, MailAuthenticationStatus, TabIndex, TimeFormat } from "../../../../platform-kit/app-env"
+import { EnvProvider, MailAuthenticationStatus, TabIndex, TimeFormat } from "../../../../platform-kit/app-env"
 import { Icon, progressIcon } from "../../../../ui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../../../ui/utils/Formatter.js"
 import { Button, ButtonType } from "../../../../ui/base/Button.js"
@@ -644,7 +644,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 							},
 							m(".flex.col." + responsiveCardHMargin(), [
 								m(".flex.flex-wrap.gap-12", this.renderAttachmentContainer(viewModel, attachments, importFile)),
-								isIOSApp()
+								EnvProvider.get().isIOSApp()
 									? null
 									: m(
 											".flex",

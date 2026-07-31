@@ -1,6 +1,6 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { AppType, assertMainOrNodeBoot, isApp, isDesktop } from "../platform-kit/app-env"
+import { AppType, assertMainOrNodeBoot, EnvProvider } from "../platform-kit/app-env"
 import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } from "../platform-kit/utils"
 import m from "mithril"
 import { BaseThemeId, BaseThemeProvider, theme, Theme, ThemeId, ThemePreference } from "./theme"
@@ -64,7 +64,7 @@ export class ThemeController implements BaseThemeProvider {
 			// mithril's parseQueryString does not follow standard exactly so we try to use the same thing we use on the native side
 			const themeJson = window.location.href ? new URL(window.location.href).searchParams.get("theme") : null
 
-			if ((isApp() || isDesktop()) && themeJson) {
+			if ((EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) && themeJson) {
 				const parsedTheme: ThemeCustomizations = this.parseCustomizations(themeJson)
 
 				// We also don't need to save anything in this case

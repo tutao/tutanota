@@ -1,5 +1,5 @@
 import { Dialog } from "../../../ui/base/Dialog.js"
-import { assertMainOrNode, isApp } from "@tutao/app-env"
+import { assertMainOrNode, EnvProvider } from "@tutao/app-env"
 import { assertNotNull, filterInt, isNotNull, neverNull, newPromise, promiseMap } from "@tutao/utils"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { deduplicateFilenames, sanitizeFilename } from "../../../ui/utils/FileUtils"
@@ -377,7 +377,7 @@ export async function downloadAndDecryptFromArchive(
 }
 
 export async function showNativeFilePicker(fileTypes?: Array<string>, isFileOnly: boolean = false): Promise<ReadonlyArray<DataFile>> {
-	if (isApp()) {
+	if (EnvProvider.get().isApp()) {
 		const rect = { width: 0, height: 0, left: 0, top: 0 } as DOMRect
 		try {
 			const fileApp = locator.fileApp

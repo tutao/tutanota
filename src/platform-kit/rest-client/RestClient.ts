@@ -15,7 +15,6 @@ import {
 } from "./types"
 import { once } from "../utils/memoized"
 import { TypeChecks } from "../app-env/boot/TsTypeChecks"
-import { ClientDetector } from "../app-env/boot/ClientDetector"
 import { isNull } from "../utils/Utils"
 import { TsDate } from "../app-env/TranspileCompatibility"
 
@@ -103,7 +102,7 @@ export class RestClient implements RestClientInterface {
 					}
 				}
 
-				const origin = options.baseUrl ?? getApiBaseUrl(this.domainConfig)
+				const origin = options.baseUrl ?? EnvProvider.get().getApiBaseUrl(this.domainConfig)
 				const resourceURL = new URL(origin)
 				resourceURL.pathname = path
 				const url = addParamsToUrl(resourceURL, queryParams)
@@ -129,7 +128,7 @@ export class RestClient implements RestClientInterface {
 						clearTimeout(requestTimeoutTimeoutID)
 					}
 					const isBlobRequest = options.body instanceof RestBinaryBody
-					requestTimeoutTimeoutID = setTimeout(abortOnTimeout, isBlobRequest ? BLOB_REQUEST_TIMEOUT_MS : ClientDetector.get().env.timeout)
+					requestTimeoutTimeoutID = setTimeout(abortOnTimeout, isBlobRequest ? BLOB_REQUEST_TIMEOUT_MS : EnvProvider.get().getTimeOutValue())
 				}
 				const cancelTimeoutTimer = () => {
 					if (requestTimeoutTimeoutID != null) clearTimeout(requestTimeoutTimeoutID)
@@ -148,7 +147,7 @@ export class RestClient implements RestClientInterface {
 				}
 
 				if (verbose) {
-					console.log(TAG, `${id}: set initial timeout ${String(requestTimeoutTimeoutID)} of ${ClientDetector.get().env.timeout}`)
+					console.log(TAG, `${id}: set initial timeout ${String(requestTimeoutTimeoutID)} of ${EnvProvider.get().getTimeOutValue()}`)
 				}
 
 				xhr.onload = async () => {
@@ -228,7 +227,7 @@ export class RestClient implements RestClientInterface {
 						restartTimeoutTimer()
 
 						if (verbose) {
-							console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${ClientDetector.get().env.timeout}`)
+							console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${EnvProvider.get().getTimeOutValue()}`)
 						}
 
 						if (options.progressListener != null && pe.lengthComputable) {
@@ -259,7 +258,7 @@ export class RestClient implements RestClientInterface {
 							if (verbose) {
 								console.log(TAG, `${id}: ${String(new Date())} upload aborted. calling error handler.`, e)
 							}
-							reject(new ConnectionError(`Reached timeout of ${ClientDetector.get().env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
+							reject(new ConnectionError(`Reached timeout of ${EnvProvider.get().getTimeOutValue()}ms ${xhr.statusText} | ${method} ${path}`))
 						}
 					}
 				}
@@ -272,7 +271,7 @@ export class RestClient implements RestClientInterface {
 					restartTimeoutTimer()
 
 					if (verbose) {
-						console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${ClientDetector.get().env.timeout}`)
+						console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${EnvProvider.get().getTimeOutValue()}`)
 					}
 
 					if (options.progressListener != null && pe.lengthComputable) {
@@ -286,7 +285,7 @@ export class RestClient implements RestClientInterface {
 					if (options.abortSignal?.aborted ?? false) {
 						reject(new CancelledError(`Request canceled | ${method} ${path}`))
 					} else {
-						reject(new ConnectionError(`Reached timeout of ${ClientDetector.get().env.timeout}ms ${xhr.statusText} | ${method} ${path}`))
+						reject(new ConnectionError(`Reached timeout of ${EnvProvider.get().getTimeOutValue()}ms ${xhr.statusText} | ${method} ${path}`))
 					}
 				}
 
@@ -338,7 +337,7 @@ export class RestClient implements RestClientInterface {
 	 * This is done to avoid making the request, because the server will return a PayloadTooLargeError anyway.
 	 * */
 	private checkRequestSizeLimit(path: string, method: HttpMethod, body: RestBody | null) {
-		if (isAdminClient()) {
+		if (EnvProvider.get().isAdminClient()) {
 			return
 		}
 

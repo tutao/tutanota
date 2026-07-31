@@ -20,10 +20,9 @@ import {
 	BIRTHDAY_CALENDAR_BASE_ID,
 	DEFAULT_BIRTHDAY_CALENDAR_COLOR,
 	DEFAULT_CALENDAR_COLOR,
+	EnvProvider,
 	EXTERNAL_CALENDAR_SYNC_INTERVAL,
 	FeatureType,
-	isApp,
-	isDesktop,
 	TutanotaError,
 } from "@tutao/app-env"
 import { EventController } from "../../../common/api/main/EventController"
@@ -1443,7 +1442,7 @@ export class CalendarModel {
 		for (const entityEventData of updates) {
 			// apps handle alarms natively. this code is a candidate to move into
 			// a generic web/native alarm handler
-			if (isUpdateForTypeRef(UserAlarmInfoTypeRef, entityEventData) && !isApp()) {
+			if (isUpdateForTypeRef(UserAlarmInfoTypeRef, entityEventData) && !EnvProvider.get().isApp()) {
 				const alarmInfoId: IdTuple = [assertNotNull(entityEventData.instanceListId), entityEventData.instanceId]
 				if (entityEventData.operation === OperationType.CREATE) {
 					// Updates for UserAlarmInfo and CalendarEvent come in a
@@ -1465,7 +1464,7 @@ export class CalendarModel {
 							throw e
 						}
 					}
-				} else if (entityEventData.operation === OperationType.DELETE && !isApp()) {
+				} else if (entityEventData.operation === OperationType.DELETE && !EnvProvider.get().isApp()) {
 					await this.cancelUserAlarmInfo(entityEventData.instanceId)
 				}
 			} else if (isUpdateForTypeRef(CalendarEventTypeRef, entityEventData)) {
@@ -1500,7 +1499,7 @@ export class CalendarModel {
 			}
 		}
 
-		if (!isApp()) {
+		if (!EnvProvider.get().isApp()) {
 			const pushIdentifier = this.pushService?.getLoadedPushIdentifier()
 			if (pushIdentifier && pushIdentifier.disabled) {
 				return console.log("Push identifier disabled. Skipping alarm schedule")
@@ -1539,7 +1538,12 @@ export class CalendarModel {
 	}
 
 	private localAlarmsEnabled(): boolean {
-		return !isApp() && !isDesktop() && this.logins.isInternalUserLoggedIn() && !this.logins.isEnabled(FeatureType.DisableCalendar)
+		return (
+			!EnvProvider.get().isApp() &&
+			!EnvProvider.get().isDesktop() &&
+			this.logins.isInternalUserLoggedIn() &&
+			!this.logins.isEnabled(FeatureType.DisableCalendar)
+		)
 	}
 
 	/**

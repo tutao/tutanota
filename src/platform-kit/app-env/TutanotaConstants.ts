@@ -1,5 +1,5 @@
 import { TimeConstants } from "./TimeConstants.js"
-import { isAdminClient, isApp, isDesktop } from "./Env"
+import { EnvProvider } from "./Env"
 import { TsMath, TsObject } from "./TranspileCompatibility"
 
 /**
@@ -619,5 +619,9 @@ export enum CredentialEncryptionMode {
 }
 
 export function getClientType(): ClientType {
-	return isApp() ? ClientType.App : isDesktop() || isAdminClient() ? ClientType.Desktop : ClientType.Browser
+	return EnvProvider.get().isApp()
+		? ClientType.App
+		: EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient()
+			? ClientType.Desktop
+			: ClientType.Browser
 }

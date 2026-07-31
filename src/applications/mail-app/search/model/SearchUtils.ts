@@ -15,7 +15,7 @@ import {
 } from "../../../../platform-kit/utils"
 import { RouteSetFn, throttleRoute } from "../../../../ui/utils/RouteChange"
 import { SearchRestriction, type SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { assertMainOrNode, isBrowser } from "../../../../platform-kit/app-env"
+import { assertMainOrNode, EnvProvider } from "../../../../platform-kit/app-env"
 import { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { SearchQuery } from "./SearchModel"
@@ -403,5 +403,5 @@ export function isIncompleteMailResult(searchResult: SearchResult, currentIndexT
  * @return true if non-blocking search is used on the current client
  */
 export function isNonBlockingSearchAvailable(): boolean {
-	return isBrowser()
+	return EnvProvider.get().isBrowser()
 }

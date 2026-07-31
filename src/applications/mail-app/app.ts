@@ -1,17 +1,4 @@
-import {
-	AppType,
-	assertMainOrNodeBoot,
-	bootFinished,
-	DomainConfig,
-	FeatureType,
-	isAdminClient,
-	isApp,
-	isBrowser,
-	isDesktop,
-	isIOSApp,
-	ProgrammingError,
-	SessionType,
-} from "../../platform-kit/app-env"
+import { AppType, assertMainOrNodeBoot, DomainConfig, EnvProvider, FeatureType, ProgrammingError, SessionType } from "../../platform-kit/app-env"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "../../ui/utils/LanguageViewModel.js"
@@ -71,7 +58,7 @@ import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
 import { AttachmentDownloader } from "./mail/view/MailGuiUtils"
 
 assertMainOrNodeBoot()
-bootFinished()
+EnvProvider.get().bootFinished()
 
 // Since it is not easy to migrate app.tutanota.com to app.tuta.com because 2FA data is stored in each domain,
 // we dynamically insert a noindex tag that can still be read by Google's crawler.
@@ -112,7 +99,7 @@ window.tutao = {
 
 ClientDetector.get().init(navigator.userAgent, navigator.platform, AppType.Mail)
 
-if (isBrowser() && !ClientDetector.get().webassembly()) {
+if (EnvProvider.get().isBrowser() && !ClientDetector.get().webassembly()) {
 	const webAssemblyError = new Error()
 	webAssemblyError.name = "NoWASMSupport"
 	throw webAssemblyError
@@ -160,7 +147,7 @@ import("../../ui/translations/en.js")
 
 		// this needs to stay after client.init
 		windowFacade.init(mailLocator.logins, mailLocator.connectivityModel)
-		if (isDesktop()) {
+		if (EnvProvider.get().isDesktop()) {
 			import("../common/native/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(mailLocator.desktopSettingsFacade))
 		}
 
@@ -175,7 +162,7 @@ import("../../ui/translations/en.js")
 				console.error("Failed to fetch translation: " + userLanguage.code, e)
 			})
 
-			if (isDesktop()) {
+			if (EnvProvider.get().isDesktop()) {
 				mailLocator.desktopSettingsFacade.changeLanguage(language.code, language.languageTag)
 			}
 		}
@@ -196,10 +183,10 @@ import("../../ui/translations/en.js")
 					if (sessionType === SessionType.Temporary) {
 						return
 					}
-					if (isApp()) {
+					if (EnvProvider.get().isApp()) {
 						mailLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 						const syncManager = mailLocator.nativeContactsSyncManager()
-						if (syncManager.isEnabled() && isIOSApp()) {
+						if (syncManager.isEnabled() && EnvProvider.get().isIOSApp()) {
 							const canSync = await syncManager.canSync()
 							if (!canSync) {
 								await syncManager.disableSync()
@@ -215,7 +202,7 @@ import("../../ui/translations/en.js")
 						return
 					}
 					// We might have outdated Customer features, force reload the customer to make sure the customizations are up-to-date
-					if (!isBrowser() && !isAdminClient()) {
+					if (!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) {
 						await mailLocator.logins.loadCustomizations(CacheMode.WriteOnly)
 						m.redraw()
 					}
@@ -290,7 +277,7 @@ import("../../ui/translations/en.js")
 			}
 		})
 
-		if (!isBrowser() && !isAdminClient()) {
+		if (!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) {
 			mailLocator.logins.addPostLoginAction(async () => {
 				const { CalendarPostLoginAction } = await import("../common/offline/CalendarPostLoginAction.js")
 				return new CalendarPostLoginAction(
@@ -316,7 +303,7 @@ import("../../ui/translations/en.js")
 			return new SpamClassificationPostLoginAction(mailLocator.spamClassifier, mailLocator.customerFacade, mailLocator.syncTracker)
 		})
 
-		if (isDesktop()) {
+		if (EnvProvider.get().isDesktop()) {
 			mailLocator.logins.addPostLoginAction(async () => {
 				const { ImapImportPostLoginAction } = await import("./mail/imapimport/ImapImportPostLoginAction")
 				return new ImapImportPostLoginAction(
@@ -333,7 +320,7 @@ import("../../ui/translations/en.js")
 			const { newMailEditorFromLocalDraftData } = await import("./mail/editor/MailEditor.js")
 			const { createEditDraftDialog } = await import("./mail/view/MailViewerUtils.js")
 			const { AttachmentDownloader } = await import("./mail/view/MailGuiUtils.js")
-			const fileApp = isBrowser() ? null : mailLocator.fileApp
+			const fileApp = EnvProvider.get().isBrowser() ? null : mailLocator.fileApp
 			return new OpenLocallySavedDraftAction(
 				mailLocator.autosaveFacade,
 				mailLocator.mailboxModel,
@@ -347,7 +334,7 @@ import("../../ui/translations/en.js")
 			)
 		})
 
-		if (isDesktop()) {
+		if (EnvProvider.get().isDesktop()) {
 			mailLocator.logins.addPostLoginAction(async () => {
 				return {
 					onPartialLoginSuccess: async () => {},
@@ -832,10 +819,10 @@ import("../../ui/translations/en.js")
 
 		// We need to initialize native once we start the mithril routing, specifically for the case of mailto handling in android
 		// If native starts telling the web side to navigate too early, mithril won't be ready and the requests will be lost
-		if (isApp() || isDesktop()) {
+		if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
 			await mailLocator.native.init()
 		}
-		if (isDesktop()) {
+		if (EnvProvider.get().isDesktop()) {
 			const { exposeNativeInterface } = await import("../common/api/common/ExposeNativeInterface.js")
 			mailLocator.logins.addPostLoginAction(async () => exposeNativeInterface(mailLocator.native).postLoginActions)
 		}
@@ -1017,10 +1004,10 @@ function makeOldViewResolver(
 function assignEnvPlatformId(urlQueryParams: Mithril.Params) {
 	const platformId = urlQueryParams["platformId"]
 
-	if (isApp() || isDesktop()) {
+	if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
 		if (
-			(isApp() && (platformId === "android" || platformId === "ios")) ||
-			(isDesktop() && (platformId === "linux" || platformId === "win32" || platformId === "darwin"))
+			(EnvProvider.get().isApp() && (platformId === "android" || platformId === "ios")) ||
+			(EnvProvider.get().isDesktop() && (platformId === "linux" || platformId === "win32" || platformId === "darwin"))
 		) {
 			env.platformId = platformId
 		} else {
@@ -1071,7 +1058,7 @@ function getStartUrl(urlQueryParams: Mithril.Params): string {
 
 function registerForMailto() {
 	// don't do this if we're in an iframe, in an app or the navigator doesn't allow us to do this.
-	if (window.parent === window && !isDesktop() && typeof navigator.registerProtocolHandler === "function") {
+	if (window.parent === window && !EnvProvider.get().isDesktop() && typeof navigator.registerProtocolHandler === "function") {
 		let origin = location.origin
 		try {
 			// @ts-ignore third argument removed from spec, but use is still recommended

@@ -5,7 +5,7 @@ import { LoginController } from "../api/main/LoginController.js"
 import type { KeyboardSizeListener, WindowSizeListener } from "../../../ui/utils/WindowUtils"
 import type { IWindowFacade } from "../../../ui/IWindowFacade"
 import { lang } from "../../../ui/utils/LanguageViewModel"
-import { assertMainOrNodeBoot, isAdminClient, isApp, isDesktop, isIOSApp } from "@tutao/app-env"
+import { assertMainOrNodeBoot, EnvProvider } from "@tutao/app-env"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 
 assertMainOrNodeBoot()
@@ -88,14 +88,14 @@ export class WindowFacade implements IWindowFacade {
 	openLink(href: string) {
 		const tmpAnchorEl = document.createElement("a")
 		tmpAnchorEl.href = href
-		tmpAnchorEl.target = isApp() ? "_system" : "_blank"
+		tmpAnchorEl.target = EnvProvider.get().isApp() ? "_system" : "_blank"
 		tmpAnchorEl.click()
 	}
 
 	init(logins: LoginController, connectivityModel: WebsocketConnectivityModel) {
 		this.logins = logins
 
-		if (window.addEventListener && !isApp()) {
+		if (window.addEventListener && !EnvProvider.get().isApp()) {
 			window.addEventListener("beforeunload", (e) => this._beforeUnload(e))
 			window.addEventListener("popstate", (e) => this._popState(e))
 			window.addEventListener("unload", (e) => this._onUnload())
@@ -103,13 +103,13 @@ export class WindowFacade implements IWindowFacade {
 
 		this.connectivityModel = connectivityModel
 
-		if (isApp() || isDesktop() || isAdminClient()) {
+		if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient()) {
 			this.addPageInBackgroundListener()
 		}
 
 		// needed to help the MacOs desktop client to distinguish between Cmd+Arrow to navigate the history
 		// and Cmd+Arrow to navigate a text editor
-		if (isDesktop() && ClientDetector.get().isMacOS && window.addEventListener) {
+		if (EnvProvider.get().isDesktop() && ClientDetector.get().isMacOS && window.addEventListener) {
 			window.addEventListener("keydown", (e) => {
 				if (!e.metaKey || e.key === "Meta") return
 
@@ -233,7 +233,7 @@ export class WindowFacade implements IWindowFacade {
 				stringifiedArgs[k] = String(v)
 			}
 		}
-		if (isApp() || isDesktop() || isAdminClient()) {
+		if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient()) {
 			const { locator } = await import("../api/main/CommonLocator")
 			await locator.commonSystemFacade.reload(stringifiedArgs)
 		} else {
@@ -248,7 +248,7 @@ export class WindowFacade implements IWindowFacade {
 		// For Android it's handled manually from native because visibilitychange listener is not called after the
 		// app was inactive for some time.
 		// See NativeWrapperCommands.js
-		if (isIOSApp()) {
+		if (EnvProvider.get().isIOSApp()) {
 			document.addEventListener("visibilitychange", () => {
 				console.log("Visibility change, hidden: ", document.hidden)
 

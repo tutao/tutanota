@@ -18,7 +18,7 @@ import {
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { AccountType, AvailablePlanType, GroupType, LegacyPlans, NewBusinessPlans, PaymentMethodType, PlanType } from "../../../entities/sys/Utils"
-import { BookingFailureReason, Const, InvoiceData, isIOSApp, UnsubscribeFailureReason } from "@tutao/app-env"
+import { BookingFailureReason, Const, EnvProvider, InvoiceData, UnsubscribeFailureReason } from "@tutao/app-env"
 import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import stream from "mithril/stream"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
@@ -74,7 +74,7 @@ export async function showSwitchDialog({
 	acceptedPlans: readonly AvailablePlanType[]
 	reason: TranslationKey | null
 }): Promise<void> {
-	if (hasRunningAppStoreSubscription(accountingInfo) && !isIOSApp()) {
+	if (hasRunningAppStoreSubscription(accountingInfo) && !EnvProvider.get().isIOSApp()) {
 		await showManageThroughAppStoreDialog()
 		return
 	}
@@ -168,7 +168,7 @@ export async function showSwitchDialog({
 		const hasGlobalFirstYearDiscount = priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
 		const isYearly = paymentInterval() === PaymentInterval.Yearly
 
-		if (isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)) {
+		if (EnvProvider.get().isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)) {
 			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetPlan].toLowerCase())
 			return hasGlobalFirstYearDiscount && isYearly && !!prices?.isEligibleForIntroOffer && !!prices?.displayOfferYearlyPerYear
 		} else {
@@ -200,7 +200,7 @@ export async function showSwitchDialog({
 }
 
 async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInfo: CurrentPlanInfo) {
-	if (isIOSApp()) {
+	if (EnvProvider.get().isIOSApp()) {
 		// We want the user to disable renewal in AppStore before they try to downgrade on our side
 		const ownership = await locator.mobilePaymentsFacade.queryAppStoreSubscriptionOwnership(
 			base64ToUint8Array(base64ExtToBase64(elementIdToId(customer._id))),
@@ -245,7 +245,7 @@ async function doSwitchToPaidPlan(
 	dialog: Dialog,
 	currentPlanInfo: CurrentPlanInfo,
 ) {
-	if (isIOSApp() && getPaymentMethodType(accountingInfo) === PaymentMethodType.AppStore) {
+	if (EnvProvider.get().isIOSApp() && getPaymentMethodType(accountingInfo) === PaymentMethodType.AppStore) {
 		const customerIdBytes = base64ToUint8Array(base64ExtToBase64(assertNotNull(locator.logins.getUserController().user.customer)))
 		dialog.close()
 		try {
@@ -407,7 +407,7 @@ export async function handleSwitchAccountPreconditionFailed(customer: Customer, 
 				break
 
 			case UnsubscribeFailureReason.ACTIVE_APPSTORE_SUBSCRIPTION:
-				if (isIOSApp()) {
+				if (EnvProvider.get().isIOSApp()) {
 					await locator.mobilePaymentsFacade.showSubscriptionConfigView()
 					return false
 				} else {

@@ -1,6 +1,6 @@
 import m, { Children, Vnode } from "mithril"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector.js"
-import { assertMainOrNode, isAndroidApp, isApp, isDesktop } from "@tutao/app-env"
+import { assertMainOrNode, EnvProvider } from "@tutao/app-env"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { defer, DeferredObject } from "@tutao/utils"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
@@ -91,7 +91,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				oncreate: () => windowFacade.addKeyboardSizeListener(this.keyboardListener),
 				onremove: () => windowFacade.removeKeyboardSizeListener(this.keyboardListener),
 				style: {
-					marginBottom: isAndroidApp() ? `calc(var(--safe-area-inset-bottom) + ${this.keyboardHeight}px)` : px(this.keyboardHeight),
+					marginBottom: EnvProvider.get().isAndroidApp() ? `calc(var(--safe-area-inset-bottom) + ${this.keyboardHeight}px)` : px(this.keyboardHeight),
 				},
 			},
 			[
@@ -101,7 +101,10 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 					m(
 						".flex.col.flex-grow-shrink-auto.max-width-m.plr-24." + (Styles.get().isSingleColumnLayout() ? "pt-16" : "pt-32"),
 						{
-							...landmarkAttrs(AriaLandmarks.Main, isApp() || isDesktop() ? lang.get("addAccount_action") : lang.get("login_label")),
+							...landmarkAttrs(
+								AriaLandmarks.Main,
+								EnvProvider.get().isApp() || EnvProvider.get().isDesktop() ? lang.get("addAccount_action") : lang.get("login_label"),
+							),
 							oncreate: (vnode) => {
 								;(vnode.dom as HTMLElement).focus()
 							},
@@ -116,7 +119,9 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 								this.renderMoreOptions(),
 							),
 							m(".flex-grow"),
-							!(isApp() || isDesktop()) && this.viewModel.shouldShowAppButtons() ? this._renderAppButtons() : null,
+							!(EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) && this.viewModel.shouldShowAppButtons()
+								? this._renderAppButtons()
+								: null,
 							renderInfoLinks(),
 						],
 					),

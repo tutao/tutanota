@@ -1,6 +1,6 @@
 import { Cat, log, timer } from "./utils/Log"
 import { layout_size } from "./size"
-import { assertMainOrNodeBoot, isAdminClient, isTest } from "../platform-kit/app-env"
+import { assertMainOrNodeBoot, EnvProvider } from "../platform-kit/app-env"
 import { theme } from "./theme"
 import { assertNotNull, neverNull } from "../platform-kit/utils"
 import { ThemeController } from "./ThemeController.js"
@@ -29,18 +29,18 @@ export class Styles {
 
 	public static get(): Styles {
 		if (isNull(Styles.singleton)) {
-			Styles.singleton = new Styles()
+			Styles.singleton = new Styles(EnvProvider.get())
 		}
 		return Styles.singleton
 	}
 
-	constructor() {
+	constructor(private readonly envProvider: EnvProvider) {
 		this.initialized = false
 		this.styles = new Map()
 		this.bodyWidth = neverNull(document.body).offsetWidth
 		this.bodyHeight = neverNull(document.body).offsetHeight
 
-		if (isTest()) {
+		if (envProvider.isTest()) {
 			this.themeColorMeta = null
 		} else {
 			this.themeColorMeta = document.createElement("meta")
@@ -96,7 +96,7 @@ export class Styles {
 	}
 
 	isUsingBottomNavigation(): boolean {
-		return !isAdminClient() && (ClientDetector.get().isMobileDevice() || !this.isDesktopLayout())
+		return !this.envProvider.isAdminClient() && (ClientDetector.get().isMobileDevice() || !this.isDesktopLayout())
 	}
 
 	isAppUsingBottomNav(): boolean {
@@ -134,7 +134,7 @@ export class Styles {
 
 	private updateDomStyles() {
 		// This is hacking but we currently import gui stuff from a lot of tested things
-		if (isTest()) {
+		if (this.envProvider.isTest()) {
 			return
 		}
 

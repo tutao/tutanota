@@ -1,6 +1,6 @@
 import m, { ChildArray, Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 import { layout_size, px, size } from "../../../../ui/size"
-import { EventTextTimeOption, isAppleDevice, isIOSApp, WeekStart } from "../../../../platform-kit/app-env"
+import { EnvProvider, EventTextTimeOption, WeekStart } from "../../../../platform-kit/app-env"
 import {
 	CalendarDay,
 	CalendarMonth,
@@ -151,7 +151,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 			weekdayDaysClasses = "content-bg border-radius-top-12"
 		} else {
 			containerStyle = {
-				paddingBottom: isIOSApp() && ClientDetector.get().isCalendarApp() ? px(getSafeAreaInsetBottom()) : null,
+				paddingBottom: EnvProvider.get().isIOSApp() && ClientDetector.get().isCalendarApp() ? px(getSafeAreaInsetBottom()) : null,
 			}
 			weekdayDaysClasses = "nav-bg"
 		}
@@ -175,8 +175,9 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					".flex.col.rel.flex-grow.overflow-hidden",
 					{
 						class:
-							(!Styles.get().isUsingBottomNavigation() || (isIOSApp() && ClientDetector.get().isCalendarApp()) ? "content-bg" : "") +
-							(!isDesktopLayout ? " border-radius-top-12" : ""),
+							(!Styles.get().isUsingBottomNavigation() || (EnvProvider.get().isIOSApp() && ClientDetector.get().isCalendarApp())
+								? "content-bg"
+								: "") + (!isDesktopLayout ? " border-radius-top-12" : ""),
 						style: containerStyle,
 					},
 					m(PageView, {
@@ -258,7 +259,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 					mouseEvent.redraw = false
 
 					let key
-					if (mouseEvent.metaKey && isAppleDevice()) {
+					if (mouseEvent.metaKey && EnvProvider.get().isAppleDevice()) {
 						key = Keys.META
 					} else if (mouseEvent.ctrlKey) {
 						key = Keys.CTRL

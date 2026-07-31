@@ -49,7 +49,7 @@ import { AppearanceSettingsViewer } from "../../common/settings/AppearanceSettin
 import { createMoreActionButtonAttrs, getConfirmation } from "../../../ui/base/GuiUtils"
 import { Icons } from "../../../ui/base/icons/Icons.js"
 import { IconButton } from "../../../ui/base/IconButton"
-import { assertMainOrNode, CancelledError, FeatureType, isApp, isDesktop, isIOSApp } from "@tutao/app-env"
+import { assertMainOrNode, CancelledError, EnvProvider, FeatureType } from "@tutao/app-env"
 import { BaseTopLevelView } from "../../../ui/BaseTopLevelView"
 import { TopLevelView } from "../../../ui/base/TopLevelView"
 import { ViewSlider } from "../../../ui/nav/ViewSlider"
@@ -112,7 +112,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		super()
 		this.logins = vnode.attrs.logins
 		this._userFolders = [
-			loginSettings(locator.credentialsProvider, isApp() ? locator.systemFacade : null),
+			loginSettings(locator.credentialsProvider, EnvProvider.get().isApp() ? locator.systemFacade : null),
 			new SettingsFolder(
 				() => "email_label",
 				() => Icons.MailFilled,
@@ -164,7 +164,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			),
 		]
 
-		if (isDesktop()) {
+		if (EnvProvider.get().isDesktop()) {
 			this._userFolders.push(
 				new SettingsFolder(
 					() => "desktop_label",
@@ -189,7 +189,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					() => Icons.CloudUploadFilled,
 					"mailImport",
 					() => {
-						if (isDesktop()) {
+						if (EnvProvider.get().isDesktop()) {
 							return new DesktopMailImportSettingsViewer(() => mailLocator.getMailImporter())
 						} else {
 							return new WebMailImportSettingsViewer(true)
@@ -208,7 +208,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						() => Icons.DownloadFilled,
 						"migration",
 						() => {
-							if (isDesktop()) {
+							if (EnvProvider.get().isDesktop()) {
 								return new ImapImportSettingsViewer(() => mailLocator.getImapMailImportController())
 							} else {
 								return new WebMailImportSettingsViewer(false)
@@ -434,7 +434,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						new UserListView(
 							(viewer) => this.replaceDetailsViewer(viewer),
 							() => this.focusSettingsDetailsColumn(),
-							() => !isApp() && this._customDomains.isLoaded() && this._customDomains.getLoaded().length > 0,
+							() => !EnvProvider.get().isApp() && this._customDomains.isLoaded() && this._customDomains.getLoaded().length > 0,
 							() => showUserImportDialog(this._customDomains.getLoaded()),
 							() => this.doExportUsers(),
 						),
@@ -489,7 +489,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						() => "adminSubscription_action",
 						() => Icons.TrophyFilled,
 						"subscription",
-						() => new SubscriptionSettingsViewer(isIOSApp() ? locator.mobilePaymentsFacade : null),
+						() => new SubscriptionSettingsViewer(EnvProvider.get().isIOSApp() ? locator.mobilePaymentsFacade : null),
 						undefined,
 					),
 				)

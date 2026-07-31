@@ -3,7 +3,7 @@ import { DropDownSelector, DropDownSelectorAttrs } from "../../../ui/base/DropDo
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { ExtendedNotificationMode, PermissionType } from "@tutao/native-bridge/generatedIpc/enums"
 import { renderNotificationPermissionsDialog } from "../../common/settings/NotificationPermissionsDialog.js"
-import { isApp, isDesktop } from "../../../platform-kit/app-env"
+import { EnvProvider } from "../../../platform-kit/app-env"
 import { NativePushServiceApp } from "../../common/native/NativePushServiceApp"
 import { SystemPermissionHandler } from "../../common/native/SystemPermissionHandler"
 
@@ -19,7 +19,7 @@ export class NotificationContentSelector implements Component<NotificationConten
 		return m(DropDownSelector, {
 			label: "notificationContent_label",
 			// Subject is not available on desktop at the moment.
-			items: isDesktop()
+			items: EnvProvider.get().isDesktop()
 				? [
 						{
 							name: lang.get("notificationPreferenceNoSenderOrSubject_action"),
@@ -47,7 +47,7 @@ export class NotificationContentSelector implements Component<NotificationConten
 			selectedValue: vnode.attrs.extendedNotificationMode,
 			selectionChangedHandler: async (newValue) => {
 				// Permissions only exist on mobile, so we should not check on other platforms
-				if (isApp()) {
+				if (EnvProvider.get().isApp()) {
 					const isNotificationPermissionGranted = await vnode.attrs.systemPermissionHandler.hasPermission(PermissionType.Notification)
 					if (isNotificationPermissionGranted) {
 						vnode.attrs.onChange(newValue)

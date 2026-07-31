@@ -1,5 +1,5 @@
 import { defer } from "@tutao/utils"
-import { assertMainOrNode, InvoiceData, isIOSApp, UpgradePromptType } from "@tutao/app-env"
+import { assertMainOrNode, EnvProvider, InvoiceData, UpgradePromptType } from "@tutao/app-env"
 import stream from "mithril/stream"
 import { Translation, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { createWizardDialog, wizardPageWrapper } from "../../../ui/base/WizardDialog.js"
@@ -155,7 +155,7 @@ export async function showUpgradeWizard({
 		wizardPageWrapper(InvoiceAndPaymentDataPage, new InvoiceAndPaymentDataPageAttrs(upgradeData)),
 		wizardPageWrapper(UpgradeConfirmSubscriptionPage, new UpgradeConfirmSubscriptionPageAttrs(upgradeData)),
 	]
-	if (isIOSApp()) {
+	if (EnvProvider.get().isIOSApp()) {
 		wizardPages.splice(1, 1) // do not show this page on AppStore payment since we are only able to show this single payment method on iOS
 	}
 

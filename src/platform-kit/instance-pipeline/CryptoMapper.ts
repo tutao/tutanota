@@ -57,7 +57,7 @@ import { OwnerKeyProvider } from "./PatchMerger"
 import { ModelMapper } from "./ModelMapper"
 import { InstanceDirection, ParsedValue } from "./ParsedValue"
 import { EntityUtils } from "./EntityUtils"
-import { isTest, ProgrammingError } from "@tutao/app-env"
+import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 
 export interface SymmetricGroupKeyLoader {
 	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey: Nullable<VersionedKey>): Promise<AesKey>
@@ -617,7 +617,7 @@ export class DecryptedParsedInstance implements DeepEquals {
 	}
 
 	public addErrorByAttributeNameForTesting(attributeName: AttributeName, errorValue: string): this {
-		assert(isTest(), "This method is intended for testing. Use addErrorByAttributeId instead.")
+		assert(EnvProvider.get().isTest(), "This method is intended for testing. Use addErrorByAttributeId instead.")
 		const attributeId = assertNotNull(AttributeModel.getAttributeId(this.typeModel, attributeName))
 		return this.addErrorByAttributeId(attributeId, errorValue)
 	}

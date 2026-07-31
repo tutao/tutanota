@@ -10,7 +10,7 @@ import { UserController } from "../../../api/main/UserController.js"
 import { progressIcon } from "../../../../../ui/base/Icon.js"
 import { showRequestPasswordDialog } from "../../passwords/PasswordRequestDialog.js"
 import { RecoverCodeFacade } from "../../../../../platform-kit/base/facades/lazy/RecoverCodeFacade.js"
-import { isApp, TimeConstants } from "@tutao/app-env"
+import { EnvProvider, TimeConstants } from "@tutao/app-env"
 import m, { Children } from "mithril"
 import { AccessBlockedError, NotAuthenticatedError } from "@tutao/rest-client/error"
 
@@ -92,7 +92,7 @@ export class RecoveryCodeNews implements NewsListItem {
 	}
 
 	private renderPrintButton(): Children {
-		if (isApp() || typeof window.print !== "function") {
+		if (EnvProvider.get().isApp() || typeof window.print !== "function") {
 			return null
 		}
 

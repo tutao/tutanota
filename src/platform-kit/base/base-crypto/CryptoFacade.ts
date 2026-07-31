@@ -14,7 +14,7 @@ import {
 	uint8ArrayToBase64,
 	Versioned,
 } from "@tutao/utils"
-import { assertWorkerOrNode, CryptoProtocolVersion, EncryptionAuthStatus, PresentableKeyVerificationState } from "@tutao/app-env"
+import { assertWorkerOrNode, CryptoProtocolVersion, EncryptionAuthStatus, EnvProvider, PresentableKeyVerificationState } from "@tutao/app-env"
 import { assertEnumValue, AttributeModel, ClientTypeModel, getElementId, getListId, idToElementId, isSameId, isSameTypeRef, stringifyId } from "../../meta"
 import { DEFAULT_REST_CLIENT_OPTIONS, RestClientInterface } from "@tutao/rest-client"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
@@ -832,7 +832,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 
 		let ownerEncSessionKeyAttributeIdStr = assertNotNull(AttributeModel.getAttributeId(typeModel, "_ownerEncSessionKey")).toString()
 		let ownerKeyVersionAttributeIdStr = assertNotNull(AttributeModel.getAttributeId(typeModel, "_ownerKeyVersion")).toString()
-		if (ClientDetector.get().env.networkDebugging) {
+		if (EnvProvider.get().networkDebuggingEnabled()) {
 			ownerEncSessionKeyAttributeIdStr += ":_ownerEncSessionKey"
 			ownerKeyVersionAttributeIdStr += ":_ownerKeyVersion"
 		}

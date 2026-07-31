@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, InvalidModelError, isTest, ProgrammingError } from "@tutao/app-env"
+import { assertWorkerOrNode, EnvProvider, InvalidModelError, ProgrammingError } from "@tutao/app-env"
 import { assert, assertNotNull, base64ToBase64Url, DeepEquals, isNotNull, Nullable, promiseMap, uint8ArrayToBase64 } from "@tutao/utils"
 import {
 	AssociationReprType,
@@ -277,7 +277,7 @@ export class ClientEntity {
 	}
 
 	public setAssociationForTest<T>(associationId: AttributeId, associationList: Array<T>) {
-		assert(isTest(), "This method is only meant for testing")
+		assert(EnvProvider.get().isTest(), "This method is only meant for testing")
 		return this.setAssociation(associationId, associationList)
 	}
 }

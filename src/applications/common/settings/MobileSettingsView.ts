@@ -5,7 +5,7 @@ import m, { Children, Vnode, VnodeDOM } from "mithril"
 import type { DomainConfigProvider } from "../api/common/DomainConfigProvider"
 import { SettingsList } from "./SettingsList"
 import { isNotEmpty } from "@tutao/utils"
-import { isAndroidApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { SettingsSupportButton } from "./SettingsSupportButton"
 import { SettingsAboutLInk } from "./SettingsAboutLInk"
 import { ViewSlider } from "../../../ui/nav/ViewSlider"
@@ -113,7 +113,7 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 				view: () =>
 					m(BackgroundColumnLayout, {
 						backgroundColor: theme.surface_container,
-						classes: (this.isTabletView() ? "pr-16 pl-8 " : "") + (isAndroidApp() ? "bottom-safe-inset overflow-y-hidden" : ""),
+						classes: (this.isTabletView() ? "pr-16 pl-8 " : "") + (EnvProvider.get().isAndroidApp() ? "bottom-safe-inset overflow-y-hidden" : ""),
 						columnLayout: m(
 							".mlr-safe-inset.fill-absolute.content-bg.border-radius-top-left-8.border-radius-top-right-8",
 							{

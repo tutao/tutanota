@@ -7,7 +7,7 @@ import { ContactEditor } from "../ContactEditor"
 import { ContactListView } from "./ContactListView"
 import { lang, Translation, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { assertNotNull, clear, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "../../../../platform-kit/utils"
-import { assertMainOrNode, ContactMergeAction, isApp, UpgradePromptType } from "../../../../platform-kit/app-env"
+import { assertMainOrNode, ContactMergeAction, EnvProvider, UpgradePromptType } from "../../../../platform-kit/app-env"
 import type { Shortcut } from "../../../../ui/utils/KeyManager"
 import { keyManager } from "../../../../ui/utils/KeyManager"
 import { Icons } from "../../../../ui/base/icons/Icons"
@@ -576,7 +576,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 				colors: ButtonColor.Nav,
 			},
 			childAttrs: async () => {
-				const vcardButtons: Array<DropdownButtonAttrs> = isApp()
+				const vcardButtons: Array<DropdownButtonAttrs> = EnvProvider.get().isApp()
 					? [
 							{
 								label: "importContacts_label",

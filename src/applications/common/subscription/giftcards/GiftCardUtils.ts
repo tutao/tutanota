@@ -8,7 +8,7 @@ import { ButtonType } from "../../../../ui/base/Button.js"
 import { DefaultAnimationTime } from "../../../../ui/animation/Animations"
 import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils"
 import { Checkbox } from "../../../../ui/base/Checkbox.js"
-import { isAndroidApp, isApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { CURRENT_GIFT_CARD_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "../TermsAndConditions"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { formatPrice } from "../utils/PriceUtils.js"
@@ -103,7 +103,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 							title: "shareViaEmail_action",
 							icon: Icons.MailFilled,
 						}),
-						isAndroidApp()
+						EnvProvider.get().isAndroidApp()
 							? m(IconButton, {
 									click: () => {
 										locator.systemFacade.shareText(
@@ -129,7 +129,7 @@ export function showGiftCardToShare(giftCard: GiftCard) {
 									title: "copyToClipboard_action",
 									icon: Icons.ClipboardFilled,
 								}),
-						!isApp()
+						!EnvProvider.get().isApp()
 							? m(IconButton, {
 									click: () => {
 										infoMessage = "emptyString_msg"

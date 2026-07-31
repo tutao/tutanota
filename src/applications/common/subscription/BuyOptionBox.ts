@@ -11,7 +11,7 @@ import { Icons } from "../../../ui/base/icons/Icons"
 import { InfoIcon } from "../../../ui/base/InfoIcon.js"
 import { isDarkTheme, theme } from "../../../ui/theme.js"
 import { goEuropeanBlue } from "../../../ui/builtinThemes.js"
-import { isIOSApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { AvailablePlanType, PlanType } from "../../../entities/sys/Utils"
 
 export type BuyOptionBoxAttr = {
@@ -263,7 +263,9 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 	}
 
 	private static renderCampaignRibbon(): Children {
-		const text = isIOSApp() ? lang.get("save_action").toUpperCase() : lang.get("pricing.globalFirstYearDiscountRibbon_label", { "{amount}": "50%" })
+		const text = EnvProvider.get().isIOSApp()
+			? lang.get("save_action").toUpperCase()
+			: lang.get("pricing.globalFirstYearDiscountRibbon_label", { "{amount}": "50%" })
 
 		return m(".rel", { style: { width: "111%", left: "50%", transform: "translateX(-50%)", top: "-10px" } }, [
 			// Ribbon

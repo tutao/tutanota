@@ -3,7 +3,7 @@ import { lang } from "../../../ui/utils/LanguageViewModel"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
-import { isBrowser } from "../../../platform-kit/app-env"
+import { EnvProvider } from "../../../platform-kit/app-env"
 import { EntityUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 /**
@@ -33,7 +33,7 @@ export class WebMailImportSettingsViewer implements UpdatableSettingsViewer {
 						label: "mailImportDownloadDesktopClient_label",
 						onclick: () => {
 							const desktopClientDownloadUri = "https://tuta.com#download"
-							if (isBrowser()) {
+							if (EnvProvider.get().isBrowser()) {
 								open(desktopClientDownloadUri)
 							} else {
 								mailLocator.systemFacade.openLink(desktopClientDownloadUri)

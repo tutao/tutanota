@@ -6,7 +6,7 @@ import { ButtonType } from "../../../ui/base/Button.js"
 import { ClickHandler } from "../../../ui/base/GuiUtils.js"
 import { PermissionType } from "@tutao/native-bridge/generatedIpc/enums"
 import { renderSettingsBannerButton } from "./SettingsBannerButton.js"
-import { isAndroidApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { isNotNull } from "@tutao/utils"
 import { NativePushServiceApp } from "../native/NativePushServiceApp"
 import { SystemPermissionHandler } from "../native/SystemPermissionHandler"
@@ -82,7 +82,7 @@ export class NotificationPermissionsBody implements Component<NotificationPermis
 				}
 				attrs.askForNotificationPermission(isNotificationPermissionGranted)
 			}),
-			!isAndroidApp()
+			!EnvProvider.get().isAndroidApp()
 				? null
 				: m("section.mt-8.mb-16", [
 						m("p.mb-8.mt-8", lang.get("allowBatteryPermission_msg")),

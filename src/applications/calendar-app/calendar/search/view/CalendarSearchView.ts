@@ -32,7 +32,7 @@ import {
 	handleSendUpdatesClick,
 } from "../../view/EventDetailsView.js"
 import { Icons } from "../../../../../ui/base/icons/Icons.js"
-import { assertMainOrNode, FeatureType, isAndroidApp, ProgrammingError, UpgradePromptType } from "../../../../../platform-kit/app-env"
+import { assertMainOrNode, EnvProvider, FeatureType, ProgrammingError, UpgradePromptType } from "../../../../../platform-kit/app-env"
 import { IconButton } from "../../../../../ui/base/IconButton.js"
 import { showNotAvailableForFreeDialog } from "../../../../common/misc/SubscriptionDialogs.js"
 import { listSelectionKeyboardShortcuts } from "../../../../../ui/base/ListUtils.js"
@@ -459,7 +459,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 
 	view({ attrs }: Vnode<CalendarSearchViewAttrs>): Children {
 		return m(
-			"#search.main-view" + (isAndroidApp() ? ".bottom-safe-inset" : ""),
+			"#search.main-view" + (EnvProvider.get().isAndroidApp() ? ".bottom-safe-inset" : ""),
 			m(this.viewSlider, {
 				header: m(Header, {
 					searchBar: () =>

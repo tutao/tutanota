@@ -1,4 +1,4 @@
-import { assertNotNull, downcast, isNotNull, lazyAsync } from "@tutao/utils"
+import { assert, assertNotNull, downcast, isNotNull, lazyAsync } from "@tutao/utils"
 import {
 	type AppName,
 	AppNameEnum,
@@ -13,7 +13,7 @@ import {
 	TypeRef,
 	ValueTypeEnum,
 } from "@tutao/meta"
-import { InvalidModelError, isTest, ProgrammingError } from "@tutao/app-env"
+import { EnvProvider, InvalidModelError, ProgrammingError } from "@tutao/app-env"
 import { ApplicationTypesGetOut } from "./ApplicationTypesFacade"
 import { TypeChecks } from "../app-env/boot/TsTypeChecks"
 
@@ -54,9 +54,7 @@ export class ClientModelInfo {
 	 * corrupted state so better be safe and use a fresh one.
 	 */
 	public static getNewInstanceForTestsOnly(): ClientModelInfo {
-		if (!isTest()) {
-			throw new ProgrammingError()
-		}
+		assert(EnvProvider.get().isTest(), "This method is only meant for testing")
 		return new ClientModelInfo()
 	}
 
@@ -151,7 +149,7 @@ export class ServerModelInfo {
 				applicationTypesJson: JSON.stringify(clientModelInfo.typeModels),
 			}),
 	): ServerModelInfo {
-		if (!isTest()) {
+		if (!EnvProvider.get().isTest()) {
 			throw new ProgrammingError()
 		}
 		const serverModelInfo = new ServerModelInfo(clientModelInfo, fetcher)

@@ -10,7 +10,7 @@ import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { ToggleButton } from "../../../../ui/base/buttons/ToggleButton.js"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
-import { isApp, isDesktop } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 
 export const BUTTON_WIDTH = 270
 
@@ -41,7 +41,7 @@ export class CustomColorEditorPreview implements Component {
 						},
 					},
 					m(PrimaryButton, {
-						label: isApp() || isDesktop() ? "addAccount_action" : "login_action",
+						label: EnvProvider.get().isApp() || EnvProvider.get().isDesktop() ? "addAccount_action" : "login_action",
 						onclick: noOp,
 					}),
 				),
