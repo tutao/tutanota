@@ -274,8 +274,11 @@ o.spec("CalendarParser", function () {
 			})
 		})
 
-		o.test("Edge-case, RFC non-compliant, time with UTC indicator and timezone throws ParserError", function () {
-			o.check(() => parseTime("20260617T214000Z", zone)).throws(ParserError)
+		o.test("Edge-case, RFC non-compliant, time with UTC indicator and timezone ignores the TZID", function () {
+			o(parseTime("20260617T214000Z", zone)).deepEquals({
+				date: new Date(Date.UTC(2026, 5, 17, 21, 40, 0)),
+				allDay: false,
+			})
 		})
 
 		o.test("All day event doens't care about timezones", function () {

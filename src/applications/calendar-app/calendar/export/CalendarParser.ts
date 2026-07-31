@@ -959,10 +959,10 @@ export function parseTime(
 	const isAllDay = !("minute" in components)
 
 	if (!isAllDay && components.zone && eventTzid) {
-		throw new ParserError(`Failed to parse time from ${value}, due to conflicting time zone representation. Event has a TZID ${eventTzid} and UTC time.`)
+		console.warn(TAG + ` Time ${value} has both a TZID (${eventTzid}) and a UTC indicator. TZID will be ignored.`)
 	}
 
-	const effectiveZone = isAllDay ? "UTC" : (eventTzid ?? components.zone)
+	const effectiveZone = isAllDay ? "UTC" : (components.zone ?? eventTzid ?? undefined)
 	if (effectiveZone === undefined) {
 		console.warn(TAG + ` effectiveZone is undefined.  Local timezone will be used.`)
 	}
