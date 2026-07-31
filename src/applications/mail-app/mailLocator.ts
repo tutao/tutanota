@@ -173,6 +173,7 @@ import { MailSearchViewModel } from "./search/view/MailSearchViewModel"
 import { ContactSearchViewModel } from "./search/view/ContactSearchViewModel"
 import { CalendarSearchViewModel } from "../calendar-app/calendar/search/view/CalendarSearchViewModel"
 import { DriveSearchViewModel } from "../drive-app/search/view/DriveSearchViewModel"
+import { DriveTransferController } from "../drive-app/drive/view/DriveTransferController"
 
 assertMainOrNode()
 
@@ -1363,14 +1364,18 @@ class MailLocator implements CommonLocator {
 		}
 	}
 
+	readonly driveTransferController: lazyAsync<DriveTransferController> = lazyMemoized(async () => {
+		const { DriveTransferController } = await import("../drive-app/drive/view/DriveTransferController.js")
+		const redraw = await this.redraw()
+		return new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController)
+	})
+
 	readonly driveViewModel: lazyAsync<DriveViewModel> = lazyMemoized(async () => {
 		const { DriveViewModel } = await import("../drive-app/drive/view/DriveViewModel.js")
 		const router = new ScopedThrottledRouter("/drive")
-		const { DriveTransferController } = await import("../drive-app/drive/view/DriveTransferController.js")
 		const { WebFileResolver } = await import("../drive-app/drive/view/WebFileResolver.js")
 
 		const redraw = await this.redraw()
-		const driveUploadStackModel = new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController)
 
 		const model = new DriveViewModel(
 			this.entityClient,
@@ -1380,7 +1385,7 @@ class MailLocator implements CommonLocator {
 			this.eventController,
 			this.logins,
 			this.userManagementFacade,
-			driveUploadStackModel,
+			await this.driveTransferController(),
 			isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp, this.desktopSystemFacade) : null,
 			redraw,
 			this.search,
@@ -1456,12 +1461,11 @@ class MailLocator implements CommonLocator {
 	}
 	async driveSearchViewModelFactory(): Promise<() => DriveSearchViewModel> {
 		const { DriveSearchViewModel } = await import("../drive-app/search/view/DriveSearchViewModel.js")
-		const { DriveTransferController } = await import("../drive-app/drive/view/DriveTransferController.js")
 		const redraw = await this.redraw()
-		const transferController = new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController)
 		const searchRouter = await this.scopedSearchRouter()
 		const router = await this.throttledRouter()
 		const dateProvider = await this.noZoneDateProvider()
+		const driveTransferController = await this.driveTransferController()
 		return () =>
 			new DriveSearchViewModel(
 				searchRouter,
@@ -1469,10 +1473,11 @@ class MailLocator implements CommonLocator {
 				router,
 				dateProvider,
 				this.logins,
-				transferController,
+				driveTransferController,
 				this.driveFacade,
 				this.entityClient,
 				this.eventController,
+				redraw,
 			)
 	}
 }

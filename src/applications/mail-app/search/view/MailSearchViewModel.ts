@@ -199,7 +199,8 @@ export class MailSearchViewModel {
 			listModel.loadInitial()
 			this.loadAndSelectIfNeeded(args.id)
 
-			this.listModel.stateStream.map((state) => this.onListStateChange(state))
+			this.listStateSubscription?.end(true)
+			this.listStateSubscription = this.listModel.stateStream.map((state) => this.onListStateChange(state))
 		}
 	}
 

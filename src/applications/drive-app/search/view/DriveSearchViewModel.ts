@@ -55,6 +55,7 @@ import { DriveSearchResult, LiveSearchResult, SearchModel, SearchQuery } from ".
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { handleRestError } from "@tutao/rest-client/error"
 import { EventController } from "../../../common/api/main/EventController"
+import { ListState } from "../../../../ui/base/List"
 
 const SEARCH_PAGE_SIZE = 100
 export class DriveSearchViewModel {
@@ -83,7 +84,7 @@ export class DriveSearchViewModel {
 	private currentQuery: string = ""
 	private operationUpdates: Stream<OperationUpdate | null> = stream(null)
 	private readonly runningOperations: Map<Id, RunningOperation> = new Map()
-	private latestDriveRestriction: SearchRestriction | null = null
+	private readonly listStateSubscription: Stream<unknown> | null = null
 
 	roots: DriveRootFolders | null = null
 	constructor(
@@ -96,6 +97,7 @@ export class DriveSearchViewModel {
 		private readonly driveFacade: DriveFacade,
 		private readonly entityClient: EntityClient,
 		private readonly eventController: EventController,
+		private readonly updateUi: () => unknown,
 	) {}
 
 	readonly init = async () => {
@@ -344,7 +346,6 @@ export class DriveSearchViewModel {
 			this.searchResult?.dispose()
 			this.#startDate = restriction.end ? new Date(restriction.end) : null
 			this.#endDate = restriction.start ? new Date(restriction.start) : null
-			this.latestDriveRestriction = restriction
 			const fileShips = this.logins.getUserController().getFileGroupMemberships()
 			if (isNotEmpty(fileShips)) {
 				const searchPromise = this.search
@@ -365,6 +366,9 @@ export class DriveSearchViewModel {
 				this.#listModel = listModel
 				listModel.loadInitial()
 				this.loadAndSelectIfNeeded(args.id)
+
+				this.listStateSubscription?.end(true)
+				this.listModel.stateStream.map((state) => this.onListStateChange(state))
 			}
 		}
 	}
@@ -458,5 +462,9 @@ export class DriveSearchViewModel {
 			),
 			selectedElement ? elementIdPart(folderItemid(selectedElement)) : null,
 		)
+	}
+
+	private onListStateChange(_state: ListState<FolderItem>) {
+		this.updateUi()
 	}
 }
