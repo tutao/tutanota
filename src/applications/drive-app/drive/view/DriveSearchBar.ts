@@ -1,4 +1,3 @@
-import { DriveSearchResult, LiveSearchResult, SearchQuery } from "../../../mail-app/search/model/SearchModel"
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { SearchBar, SearchBarAttrs } from "../../../mail-app/search/SearchBar"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
@@ -12,6 +11,8 @@ import { getDisplayType, getFileIcon, getItemIconFill } from "../model/DriveMime
 import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { FontIcons } from "../../../../ui/base/icons/FontIcons"
+import { DriveSearchResult } from "../../search/model/DriveSearchModel"
+import { LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
 
 export interface DriveSearchBarAttrs {
 	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<DriveSearchResult>>

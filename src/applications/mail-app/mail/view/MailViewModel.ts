@@ -36,7 +36,8 @@ import { ProgrammingError } from "../../../../platform-kit/app-env"
 import { $Promisable } from "../../workerUtils/index/IndexerPromiseUtils"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
-import { SearchModel, SearchQuery } from "../../search/model/SearchModel"
+import { MailSearchModel } from "../../search/model/MailSearchModel"
+import { SearchQuery } from "../../../common/search/CommonSearchModel"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -102,7 +103,7 @@ export class MailViewModel {
 		private readonly updateUi: () => unknown,
 		private readonly syncTracker: SyncTracker,
 		private readonly searchRouter: SearchRouter,
-		private readonly searchModel: SearchModel,
+		private readonly searchModel: MailSearchModel,
 	) {}
 
 	getSelectedMailSetKind(): MailSetKind | null {

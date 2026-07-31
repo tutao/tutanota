@@ -65,7 +65,6 @@ import type { CalendarEventModel, CalendarOperation } from "../../../calendar-ap
 import type { CalendarEventPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { RecipientsModel } from "./RecipientsModel.js"
 import { WorkerRandomizer } from "../worker/workerInterfaces.js"
-import { CommonSearchModel } from "../../search/CommonSearchModel.js"
 import { DeviceConfig } from "../../misc/DeviceConfig.js"
 import type { CalendarContactPreviewViewModel } from "../../../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { SyncTracker } from "./SyncTracker.js"
@@ -101,7 +100,6 @@ export interface CommonLocator {
 	secondFactorHandler: SecondFactorHandler
 	loginListener: PageContextLoginListener
 	newsModel: NewsModel
-	search: CommonSearchModel
 	infoMessageHandler: InfoMessageHandler
 	desktopSettingsFacade: SettingsFacade
 	desktopSystemFacade: DesktopSystemFacade

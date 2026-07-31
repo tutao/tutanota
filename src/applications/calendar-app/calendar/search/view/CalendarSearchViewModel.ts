@@ -8,7 +8,6 @@ import { ListModel } from "../../../../common/misc/ListModel"
 import { CalendarEvent, Contact, ContactTypeRef } from "@tutao/entities/tutanota"
 import { LoginController } from "../../../../common/api/main/LoginController"
 import { SearchToken } from "../../../../../ui/utils/QueryTokenUtils"
-import { LiveSearchResult, SearchModel, SearchQuery } from "../../../../mail-app/search/model/SearchModel"
 import Stream from "mithril/stream"
 import { SearchRouter } from "../../../../common/search/view/SearchRouter"
 import { CancelledError, isAdminClient, isBrowser } from "@tutao/app-env"
@@ -27,6 +26,8 @@ import { onlySingleSelection } from "../../../../../ui/base/ListUtils"
 import { ListAutoSelectBehavior } from "../../../../common/misc/DeviceConfig"
 import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
 import { emptyListModel, PaidFunctionResult, SearchableTypes } from "../../../../common/search/SearchUtils"
+import { CalendarSearchModel } from "../../../search/model/CalendarSearchModel"
+import { LiveSearchResult, SearchQuery } from "../../../../common/search/CommonSearchModel"
 
 export class CalendarSearchViewModel {
 	#listModel: ListModel<CalendarEvent, Id> = emptyListModel()
@@ -71,7 +72,7 @@ export class CalendarSearchViewModel {
 	constructor(
 		private readonly calendarModel: CalendarModel,
 		private readonly logins: LoginController,
-		private readonly search: SearchModel,
+		private readonly search: CalendarSearchModel,
 		private readonly router: SearchRouter,
 		private readonly eventController: EventController,
 		private readonly entityClient: EntityClient,
@@ -185,7 +186,7 @@ export class CalendarSearchViewModel {
 		this.abortController?.abort()
 	}
 	getHighlightedStrings(): readonly SearchToken[] {
-		return this.search.result()?.tokens ?? []
+		return this.searchResult?.searchResult.tokens ?? []
 	}
 	getCurrentQuery(): string {
 		return this.currentQuery
@@ -234,7 +235,8 @@ export class CalendarSearchViewModel {
 	}
 
 	readonly init = onceAsync(async () => {
-		this.resultSubscription = this.search.result.map((result) => this.onSearchResultChanged(result))
+		// FIXME
+		// this.resultSubscription = this.searchResult.result.map((result: SearchResult | null) => this.onSearchResultChanged(result))
 
 		this.eventController.addEntityListener(this.entityEventsListener)
 		await this.offlineStorageSettings?.init()
@@ -288,8 +290,8 @@ export class CalendarSearchViewModel {
 			return
 		}
 
+		const lastQuery = this.currentQuery
 		this.currentQuery = query
-		const lastQuery = this.search.lastQueryString()
 		const maxResults = null
 		const searchQuery = Object.hasOwn(args, "query") ? query : lastQuery
 		const currentQuery: SearchQuery | null = this.searchResult

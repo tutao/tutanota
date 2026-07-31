@@ -2,11 +2,11 @@ import m, { Children, ClassComponent, Vnode } from "mithril"
 import { SearchBar, SearchBarAttrs } from "../mail-app/search/SearchBar.js"
 import { LazyLoaded } from "../../platform-kit/utils"
 import { CalendarEvent } from "@tutao/entities/tutanota"
-import { LiveSearchResult, SearchQuery } from "../mail-app/search/model/SearchModel"
 import { createRestriction } from "./calendar/search/model/SearchUtils"
 import { formatEventDuration } from "./calendar/gui/CalendarGuiUtils"
 import { getTimeZone } from "../common/calendar/date/CalendarUtils"
 import { lang } from "../../ui/utils/LanguageViewModel"
+import { LiveSearchResult, SearchQuery } from "../common/search/CommonSearchModel"
 
 export interface CalendarSearchBarAttrs {
 	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<CalendarEvent>>

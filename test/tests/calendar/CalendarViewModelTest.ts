@@ -38,7 +38,7 @@ import { ProgressMonitor } from "../../../src/platform-kit/network/ProgressMonit
 import { EntityEventsListener, EntityUpdateData } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupType } from "../../../src/entities/sys/Utils"
 import { SearchRouter } from "../../../src/applications/common/search/view/SearchRouter"
-import { SearchModel } from "../../../src/applications/mail-app/search/model/SearchModel"
+import { MailSearchModel } from "../../../src/applications/mail-app/search/model/MailSearchModel"
 
 let saveAndSendMock
 let rescheduleEventMock
@@ -90,7 +90,7 @@ o.spec("CalendarViewModel", function () {
 		const previewModelFactory: CalendarEventPreviewModelFactory = async () => object()
 		const contactPreviewModelFactory: CalendarContactPreviewModelFactory = async () => object()
 		const searchRouter: SearchRouter = object()
-		const searchModel: SearchModel = object()
+		const searchModel: MailSearchModel = object()
 		const viewModel = new CalendarViewModel(
 			loginController,
 			makeViewModelCallback,

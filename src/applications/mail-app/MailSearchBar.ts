@@ -1,6 +1,5 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { SearchBar } from "./search/SearchBar.js"
-import { LiveSearchResult, SearchQuery } from "./search/model/SearchModel"
 import { Mail } from "@tutao/entities/tutanota"
 import { lang } from "../../ui/utils/LanguageViewModel"
 import { isTutaTeamMail } from "../common/mailFunctionality/SharedMailUtils"
@@ -15,6 +14,7 @@ import { Icons } from "../../ui/base/icons/Icons"
 import { createRestriction } from "./search/model/SearchUtils"
 import { SearchCategoryType } from "../common/api/worker/search/SearchTypes"
 import { Dialog } from "../../ui/base/Dialog"
+import { LiveSearchResult, SearchQuery } from "../common/search/CommonSearchModel"
 
 export interface MailSearchBarAttrs {
 	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<Mail>>

@@ -49,7 +49,7 @@ let odbUnavailableDialogShown = false
 const ignoredMessages = ["webkitExitFullScreen", "googletag", "avast_submit"]
 
 export async function handleUncaughtErrorImpl(e: Error) {
-	const { logins, interWindowEventSender, worker, search } = locator
+	const { logins, interWindowEventSender, worker } = locator
 
 	if (isLoggingOut) {
 		// ignore all errors while logging out
@@ -123,11 +123,12 @@ export async function handleUncaughtErrorImpl(e: Error) {
 			})
 		}
 	} else if (e instanceof IndexingNotSupportedError) {
+		// if ("indexingSupported" in search) {
+		// 	// search can be in two flavours: "SearchModel" and "CalendarSearchModel. Only "SearchModel" has indexing
+		// 	// FIXME
+		// 	search.indexingSupported = false
+		// }
 		console.log("Indexing not supported", e)
-		if ("indexingSupported" in search) {
-			// search can be in two flavours: "SearchModel" and "CalendarSearchModel. Only "SearchModel" has indexing
-			search.indexingSupported = false
-		}
 	} else if (e instanceof QuotaExceededError) {
 		if (!shownQuotaError) {
 			shownQuotaError = true

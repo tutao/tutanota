@@ -9,10 +9,9 @@ import { TypeRef } from "../../../../platform-kit/meta"
 import type { Shortcut } from "../../../../ui/utils/KeyManager"
 import { isKeyPressed, keyManager } from "../../../../ui/utils/KeyManager"
 import { encodeCalendarSearchKey, getRestriction } from "./model/SearchUtils"
-import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, Keys } from "../../../../platform-kit/app-env"
+import { assertMainOrNode, isApp, Keys } from "../../../../platform-kit/app-env"
 import { styles } from "../../../../ui/styles"
 import { debounce, downcast, memoized, mod } from "../../../../platform-kit/utils"
-import { hasMoreResults } from "./model/CalendarSearchModel.js"
 import type { SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { LayerType } from "../../../../ui/base/RootView"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../../ui/base/BaseSearchBar.js"
@@ -93,13 +92,13 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 	 * that shouldn't clear our current state, but if the URL changed in a way that makes the previous state outdated, we clear it.
 	 */
 	private readonly onPathChange = memoized((newPath: string) => {
-		if (calendarLocator.search.isNewSearch(this.state().query, getRestriction(newPath))) {
-			this.updateState({
-				searchResult: null,
-				selected: null,
-				entities: [],
-			})
-		}
+		// if (calendarLocator.calendarSearchModel.isNewSearch(this.state().query, getRestriction(newPath))) {
+		// 	this.updateState({
+		// 		searchResult: null,
+		// 		selected: null,
+		// 		entities: [],
+		// 	})
+		// }
 	})
 
 	view(vnode: Vnode<CalendarSearchBarAttrs>) {
@@ -195,15 +194,15 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 			this.onFocus()
 		}
 		keyManager.registerShortcuts(this.shortcuts)
-		this.stateStream = this.state.map((state) => m.redraw())
-		this.lastQueryStream = calendarLocator.search.lastQueryString.map((value) => {
-			// Set value from the model when it's set from the URL e.g. reloading the page on the search screen
-			if (value) {
-				this.updateState({
-					query: value,
-				})
-			}
-		})
+		// this.stateStream = this.state.map((state) => m.redraw())
+		// this.lastQueryStream = calendarLocator.calendarSearchModel.lastQueryString.map((value) => {
+		// 	// Set value from the model when it's set from the URL e.g. reloading the page on the search screen
+		// 	if (value) {
+		// 		this.updateState({
+		// 			query: value,
+		// 		})
+		// 	}
+		// })
 	}
 
 	onremove() {
@@ -340,24 +339,24 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 
 		let restriction = this.getRestriction()
 
-		if (!calendarLocator.search.isNewSearch(query, restriction) && oldQuery === query) {
-			const result = calendarLocator.search.result()
-
-			if (this.isQuickSearch() && result) {
-				this.showResultsInOverlay(result)
-			}
-
-			this.busy = false
-		} else {
-			if (query.trim() !== "") {
-				this.busy = true
-			}
-
-			this.doSearch(query, restriction, () => {
-				this.busy = false
-				m.redraw()
-			})
-		}
+		// if (!calendarLocator.calendarSearchModel.isNewSearch(query, restriction) && oldQuery === query) {
+		// 	const result = calendarLocator.calendarSearchModel.result()
+		//
+		// 	if (this.isQuickSearch() && result) {
+		// 		this.showResultsInOverlay(result)
+		// 	}
+		//
+		// 	this.busy = false
+		// } else {
+		// 	if (query.trim() !== "") {
+		// 		this.busy = true
+		// 	}
+		//
+		// 	this.doSearch(query, restriction, () => {
+		// 		this.busy = false
+		// 		m.redraw()
+		// 	})
+		// }
 	}
 
 	private readonly doSearch = debounce(300, (query: string, restriction: SearchRestriction, cb: () => void) => {
@@ -372,17 +371,17 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 		// we do not need to limit calendar events since they are local
 		const limit = null
 
-		calendarLocator.search
-			.search(
-				{
-					query: query ?? "",
-					restriction,
-					maxResults: limit,
-				},
-				calendarLocator.progressTracker,
-			)
-			.then((result) => this.loadAndDisplayResult(query, result ? result : null, limit))
-			.finally(() => cb())
+		// calendarLocator.calendarSearchModel
+		// 	.search(
+		// 		{
+		// 			query: query ?? "",
+		// 			restriction,
+		// 			maxResults: limit,
+		// 		},
+		// 		calendarLocator.progressTracker,
+		// 	)
+		// 	.then((result) => this.loadAndDisplayResult(query, result ? result : null, limit))
+		// 	.finally(() => cb())
 	})
 
 	/** Given the result from the search load additional results if needed and then display them or set URL. */
@@ -394,16 +393,16 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 			searchResult: safeResult,
 		})
 
-		if (!safeResult || calendarLocator.search.isNewSearch(query, safeResult.restriction)) {
-			return
-		}
+		// if (!safeResult || calendarLocator.calendarSearchModel.isNewSearch(query, safeResult.restriction)) {
+		// 	return
+		// }
 
 		if (this.isQuickSearch()) {
 			// Calendar does not have a quick search bar, so this has been taken out
 			// but this is left in case this changes in the future
 		} else {
 			// instances will be displayed as part of the list of the search view, when the search view is displayed
-			searchRouter.routeTo(query, safeResult.restriction)
+			//searchRouter.routeTo(query, safeResult.restriction)
 		}
 	}
 
@@ -412,7 +411,7 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 			// this needs to happen in this order, otherwise the list's result subscription will override our
 			// routing.
 			this.updateSearchUrl("")
-			calendarLocator.search.result(null)
+			//calendarLocator.calendarSearchModel.result(null)
 		}
 
 		this.updateState({
@@ -433,27 +432,27 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 		]
 
 		// If there was no new search while we've been downloading the result
-		if (!calendarLocator.search.isNewSearch(result.query, result.restriction)) {
-			const { filteredEntries, couldShowMore } = this.filterResults(entries, result.restriction)
-
-			if (
-				result.query.trim() !== "" &&
-				(filteredEntries.length === 0 || hasMoreResults(result) || couldShowMore || result.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP)
-			) {
-				const moreEntry: ShowMoreAction = {
-					resultCount: result.results.length,
-					shownCount: filteredEntries.length,
-					indexTimestamp: result.currentIndexTimestamp,
-					allowShowMore: true,
-				}
-				filteredEntries.push(moreEntry)
-			}
-
-			this.updateState({
-				entities: filteredEntries,
-				selected: filteredEntries[0],
-			})
-		}
+		// if (!calendarLocator.calendarSearchModel.isNewSearch(result.query, result.restriction)) {
+		// 	const { filteredEntries, couldShowMore } = this.filterResults(entries, result.restriction)
+		//
+		// 	if (
+		// 		result.query.trim() !== "" &&
+		// 		(filteredEntries.length === 0 || hasMoreResults() || couldShowMore || result.currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP)
+		// 	) {
+		// 		const moreEntry: ShowMoreAction = {
+		// 			resultCount: result.results.length,
+		// 			shownCount: filteredEntries.length,
+		// 			indexTimestamp: result.currentIndexTimestamp,
+		// 			allowShowMore: true,
+		// 		}
+		// 		filteredEntries.push(moreEntry)
+		// 	}
+		//
+		// 	this.updateState({
+		// 		entities: filteredEntries,
+		// 		selected: filteredEntries[0],
+		// 	})
+		// }
 	}
 
 	private isQuickSearch(): boolean {
@@ -514,3 +513,7 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 // Should be changed to not be a singleton and be proper component (instantiated by mithril).
 // We need to extract some state of it into some kind of viewModel, pluggable depending on the current view but this requires complete rewrite of SearchBar.
 export const searchBar = new CalendarSearchBar()
+
+function hasMoreResults() {
+	// whatever
+}

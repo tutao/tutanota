@@ -1,7 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
 import { createTestEntity } from "../TestUtils"
 import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
-import { SearchModel, SearchQuery } from "../../../src/applications/mail-app/search/model/SearchModel"
+import { MailSearchModel, SearchQuery } from "../../../src/applications/mail-app/search/model/MailSearchModel"
 import { matchers, object, when } from "testdouble"
 import { CalendarEventsRepository, DaysToEvents } from "../../../src/applications/common/calendar/date/CalendarEventsRepository"
 import { SearchFacade } from "../../../src/applications/mail-app/workerUtils/index/SearchFacade"
@@ -17,7 +17,7 @@ import stream from "mithril/stream"
 import { CancelledError } from "../../../src/platform-kit/app-env"
 
 o.spec("CalendarSearch", function () {
-	let search: SearchModel
+	let search: MailSearchModel
 	let searchFacade: SearchFacade
 	let eventController: EventController
 	let entityClient: EntityClient
@@ -37,7 +37,7 @@ o.spec("CalendarSearch", function () {
 
 		abort = new AbortController()
 
-		search = new SearchModel(searchFacade, eventController, entityClient, async () => calendarEventsRepository, progressTracker)
+		search = new MailSearchModel(searchFacade, eventController, entityClient, async () => calendarEventsRepository, progressTracker)
 	})
 	o.spec("Event Search", function () {
 		o.test("searching an event should return all the events that contain the single-word query in summary or description", async function () {

@@ -17,7 +17,6 @@ import { SearchCategoryType, SearchRestriction, type SearchResult } from "../../
 import { assertMainOrNode } from "../../../../platform-kit/app-env"
 import { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import { SearchQuery } from "./SearchModel"
 import { CalendarEvent, ContactTypeRef, MailTypeRef, tutanotaTypeModels } from "@tutao/entities/tutanota"
 import {
 	ATTACHMENTS_ID,
@@ -29,6 +28,7 @@ import {
 	SENDER_ID,
 	SUBJECT_ID,
 } from "../../../../platform-kit/meta"
+import { SearchQuery } from "../../../common/search/CommonSearchModel"
 
 assertMainOrNode()
 

@@ -106,7 +106,6 @@ import { CredentialFormatMigrator } from "../common/misc/credentials/CredentialF
 import { NativeThemeFacade, ThemeController, WebThemeFacade } from "../../ui/ThemeController.js"
 import type { HtmlSanitizer } from "../common/misc/HtmlSanitizer.js"
 import { theme } from "../../ui/theme.js"
-import { CalendarSearchModel } from "./calendar/search/model/CalendarSearchModel.js"
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
 import { CALENDAR_PREFIX } from "../../ui/utils/RouteChange.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
@@ -135,17 +134,16 @@ import { ClientModelInfo } from "@tutao/instance-pipeline"
 import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
 import { KdfType } from "../../platform-kit/base/base-crypto/Constants"
 import { ParsedEventAlarmTuple } from "./calendar/export/CalendarParser"
-import { SearchModel } from "../mail-app/search/model/SearchModel"
 import { OfflineStorageSettingsModel } from "../common/offline/OfflineStorageSettingsModel"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel"
+import { CalendarSearchModel } from "./search/model/CalendarSearchModel"
 
 assertMainOrNode()
 
 class CalendarLocator implements CommonLocator {
 	clientModelInfo!: ClientModelInfo
 	eventController!: EventController
-	search!: CalendarSearchModel
-	searchModel!: SearchModel
+	calendarSearchModel!: CalendarSearchModel
 	mailboxModel!: MailboxModel
 	contactModel!: ContactModel
 	entityClient!: EntityClient
@@ -295,7 +293,7 @@ class CalendarLocator implements CommonLocator {
 			(...args) => this.calendarEventPreviewModel(...args),
 			(...args) => this.calendarContactPreviewModel(...args),
 			await this.calendarModel(),
-			this.search as unknown as SearchModel, // FIXME
+			this.calendarSearchModel,
 			await this.calendarEventsRepository(),
 			this.entityClient,
 			this.eventController,
@@ -645,7 +643,7 @@ class CalendarLocator implements CommonLocator {
 		this.progressTracker = new ProgressTracker()
 		this.eventController = new EventController(calendarLocator.logins)
 		this.syncTracker = new SyncTracker()
-		this.search = new CalendarSearchModel(() => this.calendarEventsRepository())
+		this.calendarSearchModel = new CalendarSearchModel(this.eventController, this.calendarEventsRepository, this.progressTracker)
 		this.entityClient = new EntityClient(restInterface, this.clientModelInfo)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
@@ -1087,7 +1085,7 @@ class CalendarLocator implements CommonLocator {
 			new CalendarSearchViewModel(
 				calendarModel,
 				this.logins,
-				this.searchModel,
+				this.calendarSearchModel,
 				router,
 				this.eventController,
 				this.entityClient,

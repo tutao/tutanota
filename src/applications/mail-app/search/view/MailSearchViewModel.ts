@@ -5,7 +5,6 @@ import { ConversationViewModel, ConversationViewModelFactory } from "../../mail/
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import Stream from "mithril/stream"
 import { SearchCategoryType, SearchIndexStateInfo, SearchRestriction } from "../../../common/api/worker/search/SearchTypes"
-import { LiveSearchResult, SearchModel, SearchQuery } from "../model/SearchModel"
 import {
 	assertNotNull,
 	DateProvider,
@@ -37,6 +36,8 @@ import { MailOpenedListener } from "../../mail/view/MailViewModel"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { emptyListModel, mailSearchComparator, PaidFunctionResult } from "../../../common/search/SearchUtils"
 import { ListFetchResult } from "../../../../ui/base/ListUtils"
+import { LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
+import { MailSearchModel } from "../model/MailSearchModel"
 
 const SEARCH_PAGE_SIZE = 100
 export class MailSearchViewModel {
@@ -89,7 +90,7 @@ export class MailSearchViewModel {
 
 	constructor(
 		readonly router: SearchRouter,
-		private readonly search: SearchModel,
+		private readonly search: MailSearchModel,
 		private readonly mailboxModel: MailboxModel,
 		private readonly offlineStorageSettings: OfflineStorageSettingsModel | null = null,
 		private readonly mailModel: MailModel,
@@ -157,8 +158,8 @@ export class MailSearchViewModel {
 			return
 		}
 
+		const lastQuery = this.currentQuery
 		this.currentQuery = query
-		const lastQuery = this.search.lastQueryString()
 		const maxResults = SEARCH_PAGE_SIZE
 
 		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
@@ -474,7 +475,7 @@ export class MailSearchViewModel {
 			this.#startDate = new Date(newStartTimestamp)
 		}
 
-		const currentResult = this.search.result()
+		const currentResult = this.searchResult?.searchResult
 		const isCurrentResultComplete = currentResult == null || (this.#startDate != null && this.#startDate.getTime() > currentResult.currentIndexTimestamp)
 
 		// only extend result when index is extended and result isn't already complete

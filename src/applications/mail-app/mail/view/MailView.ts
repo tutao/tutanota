@@ -597,7 +597,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 											this.mailViewModel.selectSearchResult(searchQuery, mail)
 										},
 										shouldOfferUpgrade: locator.logins.getUserController().isFreeAccount(),
-										needsToEnableSearch: () => !mailLocator.search.indexState().mailIndexEnabled,
+										needsToEnableSearch: () => !mailLocator.mailSearchModel.indexState().mailIndexEnabled,
 										enableSearch: () =>
 											mailLocator.indexerFacade
 												.enableMailIndexing()

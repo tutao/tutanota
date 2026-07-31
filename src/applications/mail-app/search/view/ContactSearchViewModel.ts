@@ -5,7 +5,6 @@ import { SearchCategoryType, SearchRestriction, SearchResult } from "../../../co
 import { Contact } from "@tutao/entities/tutanota"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
-import { LiveSearchResult, SearchModel, SearchQuery } from "../model/SearchModel"
 import Stream from "mithril/stream"
 import { debounce, isNotNull, noOp, onceAsync } from "@tutao/utils"
 import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
@@ -15,6 +14,8 @@ import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { emptyListModel } from "../../../common/search/SearchUtils"
+import { LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
+import { ContactSearchModel } from "../model/ContactSearchModel"
 
 export class ContactSearchViewModel {
 	#listModel: ListModel<Contact, Id> = emptyListModel()
@@ -31,7 +32,7 @@ export class ContactSearchViewModel {
 	constructor(
 		private readonly logins: LoginController,
 		private readonly router: SearchRouter,
-		private readonly search: SearchModel,
+		private readonly search: ContactSearchModel,
 		private readonly offlineStorageSettings: OfflineStorageSettingsModel | null,
 		private readonly updateUi: () => unknown,
 	) {}
@@ -68,11 +69,9 @@ export class ContactSearchViewModel {
 		return this.searchResult?.searchResult.tokens ?? []
 	}
 
-	getSearchIndexStateStream() {
-		return this.search.indexState
-	}
 	readonly init = onceAsync(async () => {
-		this.resultSubscription = this.search.result.map((result) => this.onSearchResultChanged(result))
+		// FIXME
+		// this.resultSubscription = this.search.result.map((result) => this.onSearchResultChanged(result))
 		await this.offlineStorageSettings?.init()
 	})
 	private onSearchResultChanged(newResult: SearchResult | null): void {
@@ -109,8 +108,8 @@ export class ContactSearchViewModel {
 			this.router.routeTo(query, createRestriction(SearchCategoryType.contact, null, null, null, [], null))
 			return
 		}
+		const lastQuery = this.currentQuery
 		this.currentQuery = query
-		const lastQuery = this.search.lastQueryString()
 		const searchQuery = Object.hasOwn(args, "query") ? query : lastQuery
 		const currentQuery: SearchQuery | null = this.searchResult
 			? {

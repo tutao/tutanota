@@ -102,7 +102,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._defaultUnconfidential = mailLocator.logins.getUserController().props.defaultUnconfidential
 		this._sendPlaintext = mailLocator.logins.getUserController().props.sendPlaintextOnly
 		this._noAutomaticContacts = mailLocator.logins.getUserController().props.noAutomaticContacts
-		this._enableMailIndexing = mailLocator.search.indexState().mailIndexEnabled
+		this._enableMailIndexing = mailLocator.mailSearchModel.indexState().mailIndexEnabled
 		this._inboxRulesExpanded = stream<boolean>(false)
 		this.mailAddressTableExpanded = false
 		this._inboxRulesTableLines = stream<Array<TableLineAttrs>>([])
@@ -356,7 +356,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				{
 					role: "group",
 					oncreate: () => {
-						this._indexStateWatch = mailLocator.search.indexState.map((newValue) => {
+						this._indexStateWatch = mailLocator.mailSearchModel.indexState.map((newValue) => {
 							this._enableMailIndexing = newValue.mailIndexEnabled
 
 							m.redraw()
@@ -577,7 +577,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderRebuildSearchIndex() {
-		const searchIndexStateInfo = mailLocator.search.indexState()
+		const searchIndexStateInfo = mailLocator.mailSearchModel.indexState()
 		return m(
 			"",
 			searchIndexStateInfo.progress !== 0

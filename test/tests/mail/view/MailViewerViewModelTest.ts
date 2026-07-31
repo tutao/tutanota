@@ -13,7 +13,7 @@ import { LoginController } from "../../../../src/applications/common/api/main/Lo
 import { EventController } from "../../../../src/applications/common/api/main/EventController.js"
 import { WorkerFacade } from "../../../../src/applications/common/api/worker/facades/WorkerFacade.js"
 import * as restError from "../../../../src/platform-kit/rest-client/error"
-import { SearchModel } from "../../../../src/applications/mail-app/search/model/SearchModel.js"
+import { MailSearchModel } from "../../../../src/applications/mail-app/search/model/MailSearchModel.js"
 import { MailFacade } from "../../../../src/applications/common/api/worker/facades/lazy/MailFacade.js"
 import { FileController } from "../../../../src/applications/common/file/FileController.js"
 import { createTestEntity } from "../../TestUtils.js"
@@ -59,7 +59,7 @@ o.spec("MailViewerViewModel", function () {
 	let logins: LoginController
 	let eventController: EventController
 	let workerFacade: WorkerFacade
-	let searchModel: SearchModel
+	let searchModel: MailSearchModel
 	let mailFacade: MailFacade
 	let sendMailModel: SendMailModel
 	let cryptoFacade: CryptoFacade

@@ -91,10 +91,10 @@ import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInt
 import { selectAndParseIcalFile } from "../../../common/calendar/gui/CalendarImporterDialog"
 import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
 import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
-import { SearchQuery } from "../search/model/CalendarSearchModel"
-import { LiveSearchResult, SearchModel } from "../../../mail-app/search/model/SearchModel"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { encodeCalendarSearchKey } from "../search/model/SearchUtils"
+import { CalendarSearchModel } from "../../search/model/CalendarSearchModel"
+import { LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
 
 export interface EventWrapperFlags {
 	/**
@@ -243,7 +243,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		private readonly createCalendarEventPreviewModel: CalendarEventPreviewModelFactory,
 		private readonly createCalendarContactPreviewModel: CalendarContactPreviewModelFactory,
 		private readonly calendarModel: CalendarModel,
-		private readonly searchModel: SearchModel,
+		private readonly searchModel: CalendarSearchModel,
 		private readonly eventsRepository: CalendarEventsRepository,
 		private readonly entityClient: EntityClient,
 		eventController: EventController,

@@ -1,4 +1,3 @@
-import { LiveSearchResult, SearchQuery } from "../../search/model/SearchModel"
 import { Contact } from "@tutao/entities/tutanota"
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { SearchBar } from "../../search/SearchBar"
@@ -6,6 +5,7 @@ import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { createRestriction } from "../../search/model/SearchUtils"
 import { SearchCategoryType } from "../../../common/api/worker/search/SearchTypes"
 import { getContactListName } from "../../../common/contactsFunctionality/ContactUtils"
+import { LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
 
 export interface ContactSearchBarAttrs {
 	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<Contact>>

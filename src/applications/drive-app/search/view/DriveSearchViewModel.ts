@@ -51,10 +51,11 @@ import { DriveFile } from "@tutao/entities/drive"
 import { SortColumn, SortingPreference } from "../../drive/view/DriveViewModel"
 import { Router } from "../../../../ui/ScopedThrottledRouter"
 import { DRIVE_PREFIX } from "../../../../ui/utils/RouteChange"
-import { DriveSearchResult, LiveSearchResult, SearchModel, SearchQuery } from "../../../mail-app/search/model/SearchModel"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { handleRestError } from "@tutao/rest-client/error"
 import { EventController } from "../../../common/api/main/EventController"
+import { DriveSearchModel, DriveSearchResult } from "../model/DriveSearchModel"
+import { LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
 import { ListState } from "../../../../ui/base/List"
 
 const SEARCH_PAGE_SIZE = 100
@@ -89,7 +90,7 @@ export class DriveSearchViewModel {
 	roots: DriveRootFolders | null = null
 	constructor(
 		private readonly searchRouter: SearchRouter,
-		private readonly search: SearchModel,
+		private readonly search: DriveSearchModel,
 		private readonly router: Router,
 		private readonly dateProvider: DateProvider,
 		private readonly logins: LoginController,
@@ -326,8 +327,8 @@ export class DriveSearchViewModel {
 			return
 		}
 
+		const lastQuery = this.currentQuery
 		this.currentQuery = query
-		const lastQuery = this.search.lastQueryString()
 
 		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
 		// If query is not set for some reason (e.g. switching search type), use the last query value

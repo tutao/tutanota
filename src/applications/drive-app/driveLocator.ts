@@ -58,7 +58,7 @@ import type { AutosaveFacade, LocalAutosavedDraftData } from "../common/api/work
 import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
-import { DriveSearchModelStub } from "./search/model/DriveSearchModelStub"
+import { DriveSearchModel } from "./search/model/DriveSearchModel"
 import type { DriveViewModel } from "./drive/view/DriveViewModel"
 import type { CalendarEventModel, CalendarOperation } from "../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel"
 import type { CalendarInfo, CalendarModel } from "../calendar-app/calendar/model/CalendarModel"
@@ -122,14 +122,13 @@ import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
 import { SearchRouter } from "../common/search/view/SearchRouter"
-import { SearchModel } from "../mail-app/search/model/SearchModel"
 
 assertMainOrNode()
 
 class DriveLocator implements CommonLocator {
 	clientModelInfo!: ClientModelInfo
 	eventController!: EventController
-	search!: DriveSearchModelStub
+	search!: DriveSearchModel
 	mailboxModel!: MailboxModel
 	contactModel!: ContactModel
 	entityClient!: EntityClient
@@ -185,7 +184,7 @@ class DriveLocator implements CommonLocator {
 	driveFacade!: DriveFacade
 	transferProgressDispatcher!: TransferProgressDispatcher
 	searchRouter!: SearchRouter
-	searchModel!: SearchModel
+	searchModel!: DriveSearchModel
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -567,7 +566,7 @@ class DriveLocator implements CommonLocator {
 		this.progressTracker = new ProgressTracker()
 		this.eventController = new EventController(driveLocator.logins)
 		this.syncTracker = new SyncTracker()
-		this.search = new DriveSearchModelStub()
+		this.search = new DriveSearchModel(this.eventController, this.entityClient)
 		this.entityClient = new EntityClient(restInterface, this.clientModelInfo)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage

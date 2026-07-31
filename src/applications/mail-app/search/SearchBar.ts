@@ -18,7 +18,7 @@ import { mailLocator } from "../mailLocator.js"
 import { CalendarEvent, Contact, Mail } from "@tutao/entities/tutanota"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { DriveFile, DriveFolder } from "@tutao/entities/drive"
-import { LiveSearchResult, SearchQuery } from "./model/SearchModel"
+import { LiveSearchResult, SearchQuery } from "../../common/search/CommonSearchModel"
 
 assertMainOrNode()
 export type ShowMoreAction = {
@@ -386,7 +386,7 @@ export class SearchBar<T> implements Component<SearchBarAttrs<T>> {
 
 	private onFocus() {
 		// FIXME: move out of here
-		if (!mailLocator.search.indexingSupported) {
+		if (!mailLocator.mailSearchModel.indexingSupported) {
 			Dialog.message(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 		} else if (!this.focused) {
 			this.focused = true

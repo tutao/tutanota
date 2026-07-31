@@ -48,9 +48,10 @@ import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFol
 import { isWebFile } from "../../../../ui/utils/FileUtils"
 import { handleRestError, isOfflineError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { WebFileResolver } from "./WebFileResolver"
-import { DriveSearchResult, LiveSearchResult, SearchModel, SearchQuery } from "../../../mail-app/search/model/SearchModel"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
+import { DriveSearchModel, DriveSearchResult } from "../../search/model/DriveSearchModel"
+import { LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -173,7 +174,7 @@ export class DriveViewModel {
 		private readonly transferController: DriveTransferController,
 		private readonly webFileResolver: WebFileResolver | null,
 		public readonly updateUi: () => unknown,
-		private readonly searchModel: SearchModel,
+		private readonly searchModel: DriveSearchModel,
 		private readonly searchRouter: SearchRouter,
 	) {
 		this.userMailAddress = getDefaultSenderFromUser(this.loginController.getUserController())

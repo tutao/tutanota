@@ -13,7 +13,7 @@ import {
 	ProgrammingError,
 } from "../../platform-kit/app-env"
 import { EventController } from "../common/api/main/EventController.js"
-import { SearchModel } from "./search/model/SearchModel.js"
+import { MailSearchModel } from "./search/model/MailSearchModel.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
 import { MinimizedMailEditorViewModel } from "./mail/model/MinimizedMailEditorViewModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
@@ -173,14 +173,20 @@ import { MailSearchViewModel } from "./search/view/MailSearchViewModel"
 import { ContactSearchViewModel } from "./search/view/ContactSearchViewModel"
 import { CalendarSearchViewModel } from "../calendar-app/calendar/search/view/CalendarSearchViewModel"
 import { DriveSearchViewModel } from "../drive-app/search/view/DriveSearchViewModel"
-import { DriveTransferController } from "../drive-app/drive/view/DriveTransferController"
+import { CalendarSearchModel } from "../calendar-app/search/model/CalendarSearchModel"
+import { ContactSearchModel } from "./search/model/ContactSearchModel"
+import { DriveSearchModel } from "../drive-app/search/model/DriveSearchModel"
+import type { DriveTransferController } from "../drive-app/drive/view/DriveTransferController"
 
 assertMainOrNode()
 
 class MailLocator implements CommonLocator {
 	clientModelInfo!: ClientModelInfo
 	eventController!: EventController
-	search!: SearchModel
+	mailSearchModel!: MailSearchModel
+	calendarSearchModel!: CalendarSearchModel
+	contactSearchModel!: ContactSearchModel
+	driveSearchModel!: DriveSearchModel
 	mailboxModel!: MailboxModel
 	mailModel!: MailModel
 	minimizedMailModel!: MinimizedMailEditorViewModel
@@ -308,7 +314,7 @@ class MailLocator implements CommonLocator {
 			await this.redraw(),
 			this.syncTracker,
 			await this.unscopedSearchRouter(),
-			this.search,
+			this.mailSearchModel,
 		)
 	})
 
@@ -364,7 +370,7 @@ class MailLocator implements CommonLocator {
 			router,
 			await this.redraw(),
 			await this.unscopedSearchRouter(),
-			this.search,
+			this.contactSearchModel,
 		)
 	})
 
@@ -408,7 +414,7 @@ class MailLocator implements CommonLocator {
 			(...args) => this.calendarEventPreviewModel(...args),
 			(...args) => this.calendarContactPreviewModel(...args),
 			await this.calendarModel(),
-			this.search,
+			this.calendarSearchModel,
 			await this.calendarEventsRepository(),
 			this.entityClient,
 			this.eventController,
@@ -569,7 +575,7 @@ class MailLocator implements CommonLocator {
 				this.logins,
 				this.eventController,
 				this.workerFacade,
-				this.search,
+				this.mailSearchModel,
 				this.mailFacade,
 				this.cryptoFacade,
 				() => this.contactImporter(),
@@ -843,7 +849,10 @@ class MailLocator implements CommonLocator {
 		this.eventController = new EventController(mailLocator.logins)
 		this.syncTracker = new SyncTracker()
 		this.entityClient = new EntityClient(restInterface, this.clientModelInfo)
-		this.search = new SearchModel(this.searchFacade, this.eventController, this.entityClient, () => this.calendarEventsRepository(), this.progressTracker)
+		this.mailSearchModel = new MailSearchModel(this.searchFacade, this.eventController, this.entityClient)
+		this.calendarSearchModel = new CalendarSearchModel(this.eventController, this.calendarEventsRepository, this.progressTracker)
+		this.contactSearchModel = new ContactSearchModel(this.searchFacade, this.eventController, this.entityClient)
+		this.driveSearchModel = new DriveSearchModel(this.eventController, this.entityClient)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
 		this.entropyFacade = entropyFacade
@@ -865,7 +874,7 @@ class MailLocator implements CommonLocator {
 		)
 		this.operationProgressTracker = new OperationProgressTracker()
 		this.infoMessageHandler = new InfoMessageHandler((state: SearchIndexStateInfo) => {
-			mailLocator.search.indexState(state)
+			mailLocator.mailSearchModel.indexState(state)
 		})
 		this.autosaveFacade = autosaveFacade
 
@@ -1388,7 +1397,7 @@ class MailLocator implements CommonLocator {
 			await this.driveTransferController(),
 			isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp, this.desktopSystemFacade) : null,
 			redraw,
-			this.search,
+			this.driveSearchModel,
 			await this.unscopedSearchRouter(),
 		)
 		await model.init()
@@ -1415,7 +1424,7 @@ class MailLocator implements CommonLocator {
 		const redraw = await this.redraw()
 		const router = await this.scopedSearchRouter()
 		const offlineStorageSettings = await this.offlineStorageSettingsModel()
-		return () => new ContactSearchViewModel(this.logins, router, this.search, offlineStorageSettings, redraw)
+		return () => new ContactSearchViewModel(this.logins, router, this.contactSearchModel, offlineStorageSettings, redraw)
 	}
 
 	async mailSearchViewModelFactory(): Promise<() => MailSearchViewModel> {
@@ -1428,7 +1437,7 @@ class MailLocator implements CommonLocator {
 		return () =>
 			new MailSearchViewModel(
 				router,
-				this.search,
+				this.mailSearchModel,
 				this.mailboxModel,
 				offlineStorageSettings,
 				this.mailModel,
@@ -1451,7 +1460,7 @@ class MailLocator implements CommonLocator {
 			new CalendarSearchViewModel(
 				calendarModel,
 				this.logins,
-				this.search,
+				this.calendarSearchModel,
 				router,
 				this.eventController,
 				this.entityClient,
@@ -1469,7 +1478,7 @@ class MailLocator implements CommonLocator {
 		return () =>
 			new DriveSearchViewModel(
 				searchRouter,
-				this.search,
+				this.driveSearchModel,
 				router,
 				dateProvider,
 				this.logins,

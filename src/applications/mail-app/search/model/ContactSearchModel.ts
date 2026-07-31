@@ -1,0 +1,64 @@
+import { applyEntityUpdates, LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
+import { Contact, ContactTypeRef } from "@tutao/entities/tutanota"
+import { SearchResult } from "../../../common/api/worker/search/SearchTypes"
+import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
+import { compareContacts } from "../../contacts/view/ContactGuiUtils"
+import { isNotEmpty, lastIndex, remove } from "@tutao/utils"
+import stream from "mithril/stream"
+import { SearchFacade } from "../../workerUtils/index/SearchFacade"
+import { EventController } from "../../../common/api/main/EventController"
+import { OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+
+export class ContactSearchModel {
+	private readonly liveResults: LiveSearchResult<unknown>[] = []
+
+	constructor(
+		private readonly searchFacade: SearchFacade,
+		private readonly eventController: EventController,
+		private readonly entityClient: EntityClient,
+	) {
+		this.eventController.addEntityListener({
+			onEntityUpdatesReceived: async (updates, eventOwnerGroupId, isInitialSyncDone) => {
+				for (const liveResult of this.liveResults) {
+					await liveResult.entityEventsReceived(updates)
+				}
+			},
+			// receive updates after models
+			priority: OnEntityUpdateReceivedPriority.LOW,
+		})
+	}
+
+	async coolNewSearchContacts(searchQuery: SearchQuery): Promise<LiveSearchResult<Contact>> {
+		const searchResult: SearchResult = await this.searchFacade.search(searchQuery.query, searchQuery.restriction, {
+			maxResults: searchQuery.maxResults ?? undefined,
+		})
+		const resultItems = await loadMultipleFromLists(ContactTypeRef, this.entityClient, searchResult.results)
+		resultItems.sort((a, b) => compareContacts(a, b))
+		let loadedUntil = Math.min(searchQuery.maxResults ?? resultItems.length, resultItems.length)
+		const result: LiveSearchResult<Contact> = {
+			searchResult,
+			get items() {
+				return resultItems.slice(0, loadedUntil)
+			},
+			loadMoreResults: async (count) => {
+				const oldLoadedUntil = loadedUntil
+				loadedUntil = Math.min(loadedUntil + count, resultItems.length)
+				return resultItems.slice(oldLoadedUntil, loadedUntil)
+			},
+			get hasMoreResults() {
+				return isNotEmpty(resultItems) && loadedUntil < lastIndex(resultItems)
+			},
+			updates: stream(),
+			dispose: () => {
+				remove(this.liveResults, result)
+				result.updates.end(true)
+			},
+			extendResults: (extendEnd) => {},
+			entityEventsReceived: async (updates) => {
+				await applyEntityUpdates(this.entityClient, ContactTypeRef, resultItems, updates, result.updates)
+			},
+		}
+		this.liveResults.push(result)
+		return result
+	}
+}
