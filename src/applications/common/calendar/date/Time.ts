@@ -101,7 +101,7 @@ export class Time {
 	}
 
 	to12HourString(withAmPmSuffix: boolean): string {
-		let result = this.hourTo12HourClock().toString() + ":x"
+		let result = this.hourTo12HourClock().toString() + ":"
 		if (this._minute < 10) {
 			result += "0"
 		}
@@ -136,11 +136,6 @@ export class Time {
 
 	asMinutes(): number {
 		return this._hour * 60 + this._minute
-	}
-
-	/** Returns true if this time is equal to otherTime. */
-	isEqual(otherTime: Time) {
-		return this._hour === otherTime._hour && this._minute === otherTime._minute
 	}
 
 	/**
@@ -200,23 +195,28 @@ export class Time {
 		return this
 	}
 
-	/*
+	/** Returns true if this time is equal to otherTime. */
+	isEqual(otherTime: Time) {
+		return this._hour === otherTime._hour && this._minute === otherTime._minute
+	}
+
+	/**
 	 * Checks if this is after {@link param}
 	 *
-	 * @param {Time} timeB - Time to compare this with
-	 * @returns {boolean} Whether this is after or not timeB
+	 * @param timeB - Time to compare this with
+	 * @returns Whether this is after or not timeB
 	 */
-	isAfter(timeB: Time) {
+	isAfter(timeB: Time): boolean {
 		return this.asMinutes() > timeB.asMinutes()
 	}
 
-	/*
+	/**
 	 * Checks if this is before {@link param}
 	 *
-	 * @param {Time} timeB - Time to compare this with
-	 * @returns {boolean} Whether this is before or not timeB
+	 * @param timeB - Time to compare this with
+	 * @returns Whether this is before or not timeB
 	 */
-	isBefore(timeB: Time) {
+	isBefore(timeB: Time): boolean {
 		return this.asMinutes() < timeB.asMinutes()
 	}
 
