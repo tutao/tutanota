@@ -84,6 +84,15 @@ export class EnvProvider {
 	private readonly node: boolean
 	private boot: boolean
 
+	private static singeleton: EnvProvider | null = null
+
+	public static get(): EnvProvider {
+		if (this.singeleton == null) {
+			this.singeleton = new EnvProvider(env)
+		}
+		return this.singeleton
+	}
+
 	constructor(public readonly env: EnvType) {
 		this.worker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope
 		this.node = typeof process === "object" && typeof process.versions === "object" && typeof process.versions.node !== "undefined"
@@ -194,11 +203,11 @@ export class EnvProvider {
 	assertMainOrNode() {
 		if (!assertionsEnabled) return
 
-		if (!envProvider.isMainOrNode()) {
+		if (!EnvProvider.get().isMainOrNode()) {
 			throw new Error("this code must not run in the worker thread")
 		}
 
-		if (envProvider.isBootFinished()) {
+		if (EnvProvider.get().isBootFinished()) {
 			throw new Error("this main code must not be loaded at boot time")
 		}
 	}
@@ -206,7 +215,7 @@ export class EnvProvider {
 	assertMainOrNodeBoot() {
 		if (!assertionsEnabled) return
 
-		if (!envProvider.isMainOrNode()) {
+		if (!EnvProvider.get().isMainOrNode()) {
 			throw new Error("this code must not run in the worker thread")
 		}
 	}
@@ -214,31 +223,36 @@ export class EnvProvider {
 	assertWorkerOrNode() {
 		if (!assertionsEnabled) return
 
-		if (!envProvider.isWorkerOrNode()) {
+		if (!EnvProvider.get().isWorkerOrNode()) {
 			throw new Error("this code must not run in the gui thread")
 		}
 	}
-}
 
-export const envProvider = new EnvProvider(env)
+	public overrideEnvForTest(env: EnvType): void {
+		if (!this.isTest()) {
+			throw new ProgrammingError("only meant for test")
+		}
+		;(this.env satisfies EnvType) = env
+	}
+}
 
 // ========================================================
 // TODO: Inline these (CTRL+ALT+N), it will just change all files that import it
-export const assertMainOrNode = envProvider.assertMainOrNode
-export const assertMainOrNodeBoot = envProvider.assertMainOrNodeBoot
-export const assertWorkerOrNode = envProvider.assertWorkerOrNode
-export const isIOSApp = envProvider.isIOSApp
-export const isAppleDevice = envProvider.isAppleDevice
-export const isAndroidApp = envProvider.isAndroidApp
-export const isApp = envProvider.isApp
-export const isDesktop = envProvider.isDesktop
-export const isBrowser = envProvider.isBrowser
-export const isWebClient = envProvider.isWebClient
-export const isAdminClient = envProvider.isAdminClient
-export const isMainOrNode = envProvider.isMainOrNode
-export const isWorker = envProvider.isWorker
-export const isTest = envProvider.isTest
-export const isOfflineStorageAvailable = envProvider.isOfflineStorageAvailable
-export const getApiBaseUrl = envProvider.getApiBaseUrl
-export const getWebsocketBaseUrl = envProvider.getWebsocketBaseUrl
-export const bootFinished = envProvider.bootFinished
+export const assertMainOrNode = EnvProvider.get().assertMainOrNode
+export const assertMainOrNodeBoot = EnvProvider.get().assertMainOrNodeBoot
+export const assertWorkerOrNode = EnvProvider.get().assertWorkerOrNode
+export const isIOSApp = EnvProvider.get().isIOSApp
+export const isAppleDevice = EnvProvider.get().isAppleDevice
+export const isAndroidApp = EnvProvider.get().isAndroidApp
+export const isApp = EnvProvider.get().isApp
+export const isDesktop = EnvProvider.get().isDesktop
+export const isBrowser = EnvProvider.get().isBrowser
+export const isWebClient = EnvProvider.get().isWebClient
+export const isAdminClient = EnvProvider.get().isAdminClient
+export const isMainOrNode = EnvProvider.get().isMainOrNode
+export const isWorker = EnvProvider.get().isWorker
+export const isTest = EnvProvider.get().isTest
+export const isOfflineStorageAvailable = EnvProvider.get().isOfflineStorageAvailable
+export const getApiBaseUrl = EnvProvider.get().getApiBaseUrl
+export const getWebsocketBaseUrl = EnvProvider.get().getWebsocketBaseUrl
+export const bootFinished = EnvProvider.get().bootFinished
