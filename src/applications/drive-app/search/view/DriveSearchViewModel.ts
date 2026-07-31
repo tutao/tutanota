@@ -47,11 +47,11 @@ import { UserError } from "../../../common/api/main/UserError"
 import { MoveToTrashError } from "../../../common/api/common/error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../../../common/api/common/error/MoveDestinationIsSourceError"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
-import { DriveFile, DriveFolder } from "@tutao/entities/drive"
+import { DriveFile } from "@tutao/entities/drive"
 import { SortColumn, SortingPreference } from "../../drive/view/DriveViewModel"
 import { Router } from "../../../../ui/ScopedThrottledRouter"
 import { DRIVE_PREFIX } from "../../../../ui/utils/RouteChange"
-import { LiveSearchResult, SearchModel, SearchQuery } from "../../../mail-app/search/model/SearchModel"
+import { DriveSearchResult, LiveSearchResult, SearchModel, SearchQuery } from "../../../mail-app/search/model/SearchModel"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { handleRestError } from "@tutao/rest-client/error"
 import { EventController } from "../../../common/api/main/EventController"
@@ -78,7 +78,7 @@ export class DriveSearchViewModel {
 	get busy(): boolean {
 		return this.#delayingSearch
 	}
-	private searchResult: LiveSearchResult<DriveFile | DriveFolder> | null = null
+	private searchResult: LiveSearchResult<DriveSearchResult> | null = null
 	private sortingPreference: Readonly<SortingPreference> = { order: "asc", column: SortColumn.name }
 	private currentQuery: string = ""
 	private operationUpdates: Stream<OperationUpdate | null> = stream(null)
@@ -326,7 +326,6 @@ export class DriveSearchViewModel {
 
 		this.currentQuery = query
 		const lastQuery = this.search.lastQueryString()
-		const maxResults = SEARCH_PAGE_SIZE
 
 		// using hasOwnProperty to distinguish case when url is like '/search/mail/query='
 		// If query is not set for some reason (e.g. switching search type), use the last query value
@@ -339,7 +338,7 @@ export class DriveSearchViewModel {
 					maxResults: this.searchResult.searchResult.maxResults ?? null,
 				}
 			: null
-		const newQuery: SearchQuery = { query: searchQuery ?? "", restriction, maxResults }
+		const newQuery: SearchQuery = { query: searchQuery ?? "", restriction, maxResults: null }
 		const isNewSearch = currentQuery ? !searchQueryEquals(currentQuery, newQuery) : true
 		if (isNewSearch) {
 			this.searchResult?.dispose()
@@ -353,9 +352,10 @@ export class DriveSearchViewModel {
 						{
 							query: searchQuery ?? "",
 							restriction,
-							maxResults,
+							maxResults: null,
 						},
 						getFirstOrThrow(fileShips).group,
+						() => 0, //FIXME
 					)
 					.then((result) => {
 						this.applyLiveSearchResults(result)
@@ -386,21 +386,21 @@ export class DriveSearchViewModel {
 		this.#listModel.loadAndSelect(finder ?? ((item) => isSameId(folderItemid(item), id)), () => listModel !== this.#listModel || iterations++ > 10)
 	}
 
-	private applyLiveSearchResults(result: LiveSearchResult<DriveFile | DriveFolder>) {
+	private applyLiveSearchResults(result: LiveSearchResult<DriveSearchResult>) {
 		this.searchResult = result
 		result.updates.map((update) => {
 			switch (update.type) {
 				case "deleteitem":
-					this.listModel.deleteLoadedItem(getElementId(update.item))
+					this.listModel.deleteLoadedItem(getElementId(update.item.item))
 					break
 				case "updateitem":
-					this.listModel.updateLoadedItem(toFolderItem(update.item))
+					this.listModel.updateLoadedItem(toFolderItem(update.item.item))
 					break
 			}
 		})
 	}
 
-	private createList(deferredResult: Promise<LiveSearchResult<DriveFile | DriveFolder>>): ListModel<FolderItem, Id> {
+	private createList(deferredResult: Promise<LiveSearchResult<DriveSearchResult>>): ListModel<FolderItem, Id> {
 		// the list is recreated every time a new search is performed, but not when the current result is extended
 		// note in case of refactor: the fact that the list updates the URL every time it changes
 		// its state is a major source of complexity and makes everything very order-dependent
@@ -424,7 +424,7 @@ export class DriveSearchViewModel {
 					newItems = result.items
 				}
 				const complete = !result.hasMoreResults
-				return { items: newItems.map((entity) => toFolderItem(entity)), complete }
+				return { items: newItems.map((entity) => toFolderItem(entity.item)), complete }
 			},
 			getItemId(item: FolderItem): Id {
 				return elementIdPart(folderItemid(item))

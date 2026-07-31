@@ -40,6 +40,8 @@ import { IconButton } from "../../../../ui/base/IconButton"
 import { EnterMultiselectIconButton } from "../../../../ui/EnterMultiselectIconButton"
 import { DriveViewAttrs } from "../../drive/view/DriveView"
 import { DriveSelectedItemsActions } from "../../drive/view/DriveFolderNav"
+import { DriveFolderContent } from "../../drive/view/DriveFolderContent"
+import { SortColumn } from "../../drive/view/DriveViewModel"
 
 export interface DriveSearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
@@ -356,7 +358,40 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 	}
 
 	private renderFolderView(listState: ListState<FolderItem>, showMoveItemDialog: any) {
-		return undefined
+		return null
+		// return m(DriveFolderContent, {
+		// 	selection: {
+		// 		type: "multiselect",
+		// 		selectedItemCount: listState.selectedItems.size,
+		// 		selectedAll: listState.selectedItems.size === listState.items.length,
+		// 	},
+		// 	sortOrder: this.searchViewModel.getCurrentColumnSortOrder(),
+		// 	fileActions: {
+		// 		onCut:()=>{},
+		// 		onCopy:()=>{},
+		// 		onOpenItem:()=>{},
+		// 		onDownload:()=>{},
+		// 		onTrash:()=>{},
+		// 		onRename:()=>{},
+		// 		onRestore:()=>{},
+		// 		onDelete:()=>{},
+		// 		onStartMove:()=>{}
+		// 	},
+		// 	onSort:(column:SortColumn)=>this.searchViewModel.sort(column),
+		// 	listState: listState,
+		// 	selectionEvents:{
+		// 		onSingleSelection: (item: FolderItem) => {},
+		// 		onSingleExclusiveSelection: (item: FolderItem) => {},
+		// 		onSingleInclusiveSelection: (item: FolderItem) => {},
+		// 		onSelectPrevious: (item: FolderItem) => {},
+		// 		onSelectNext: (item: FolderItem) => {},
+		// 		onSelectAll: () => {},
+		// 		onSelectNone: () => {},
+		// 		onRangeSelectionTowards: (item: FolderItem) => {},
+		// 	},
+		// 	onDropInto:(f:FolderItem,event:DragEvent)=>{},
+		// 	onEntryContextMenu
+		// })
 	}
 
 	async deleteItems(item?: FolderItem) {
