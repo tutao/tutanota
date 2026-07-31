@@ -46,6 +46,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		}
 
 		return m(Select<TimeOption, Time | null>, {
+			classes: ["overflow-visible"],
 			onchange: (timeOption) => {
 				this.inputText = timeOption.name
 				this.selectedTime = timeOption.value
