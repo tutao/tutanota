@@ -230,7 +230,6 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 		if (listTreeResponse) {
 			const imapMailboxes = this.filterDisabledAndPromoteChildren(listTreeResponse.folders ?? []).map((listTreeResponse) => {
-				console.log(listTreeResponse)
 				return imapMailboxFromImapFlowListTreeResponse(listTreeResponse, null)
 			})
 			// Some providers, e.g. one.com, return a single folder (Inbox) with subfolders.
@@ -328,7 +327,6 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			const noSync = parentMailbox?.importance === SyncSessionMailboxImportance.NO_SYNC
 			syncSessionMailbox = new ImapSyncSessionMailbox({ path: imapMailbox.path, importedUidToMailIdsMap: new Map(), noSync })
 		}
-		console.log(imapMailbox.path, imapMailbox.specialUse)
 		if (imapMailbox.specialUse) {
 			syncSessionMailbox.specialUse = imapMailbox.specialUse
 		}
