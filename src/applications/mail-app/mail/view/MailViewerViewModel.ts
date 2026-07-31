@@ -124,6 +124,7 @@ export class MailViewerViewModel {
 	private forceLightMode: boolean = false
 	// always sanitized in this.sanitizeMailBody
 
+	private sanitizeUrlifyTimeoutId: TimeoutID = null
 	private sanitizeResult: SanitizedFragment | null = null
 	private loadingAttachments: boolean = false
 	private attachments: File[] = []
@@ -220,7 +221,7 @@ export class MailViewerViewModel {
 	}
 
 	private readonly connectionStateListener = {
-		id: "MailViwerViewModel",
+		id: "MailViewerViewModel",
 		priority: ListenerPriority.NORMAL,
 		onConnectionStateChanged: async (connectionState: WsConnectionState) => {
 			console.log("MailViewerViewModel connection state changed to", connectionState)
@@ -277,6 +278,10 @@ export class MailViewerViewModel {
 		this.dispose = () => console.log("disposed MailViewerViewModel a second time, ignoring")
 		this.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
 		this.connectivityModel.removeConnectionStateListener(this.connectionStateListener)
+
+		if (this.sanitizeUrlifyTimeoutId) {
+			clearTimeout(this.sanitizeUrlifyTimeoutId)
+		}
 		const inlineImages = this.getLoadedInlineImages()
 		revokeInlineImages(inlineImages)
 	}
@@ -1256,10 +1261,10 @@ export class MailViewerViewModel {
 		const { getHtmlSanitizer } = await import("../../../common/misc/HtmlSanitizer")
 		const rawBody = this.getMailBody()
 		const timeoutUrlify = new Promise<string>((resolve) => {
-			setTimeout(() => {
+			this.sanitizeUrlifyTimeoutId = setTimeout(() => {
 				console.warn("A mail has taken too long to be processed by urlify and we will use raw body instead.")
 				resolve(rawBody)
-			}, 25_000)
+			}, 5_000)
 		})
 
 		const urlified = await Promise.race([
