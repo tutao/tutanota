@@ -11,10 +11,16 @@
     <string name="archive_action">أرشيف</string>
     <string name="sendLogs_action">إرسال السجلات</string>
     <string name="account_label">المستخدم</string>
+    <string name="calendars_label">التقاويم</string>
     <string name="widgetNoCredentialsInfo_msg">لا تتوفر بيانات اعتماد</string>
     <string name="widgetUnexpectedError_msg">عذراً! حدث خطأ ما.</string>
     <string name="widgetCredentialsError_msg">يرجى تسجيل الدخول عبر تطبيق التقويم</string>
     <string name="widgetOpenApp_action">افتح التطبيق</string>
     <string name="widgetNoEvents_msg">لا توجد أحداث</string>
+    <string name="widgetNoEventsToday_msg">لا توجد أحداث اليوم</string>
     <string name="widgetDescription_msg">عرض الأحداث القادمة اليوم</string>
+    <string name="birthdayCalendar_label">أعياد الميلاد</string>
+    <string name="birthdayEvent_title">عيد ميلاد {name}</string>
+    <string name="birthdayEventAge_title">{age} عاماً</string>
+    <string name="noTitle_label">&lt;بلا عنوان&gt;</string>
 </resources>

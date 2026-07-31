@@ -11,6 +11,12 @@
     <string name="archive_action">Arkiver</string>
     <string name="sendLogs_action">Send logfiler</string>
     <string name="account_label">Bruger</string>
+    <string name="widgetNoCredentialsInfo_msg">Ingen login-oplysninger tilgængelige</string>
+    <string name="widgetUnexpectedError_msg">Ups! Noget gik galt.</string>
+    <string name="widgetCredentialsError_msg">Venligst login i kalender app\'en</string>
+    <string name="widgetOpenApp_action">Åben app\'en</string>
+    <string name="widgetNoEvents_msg">Ingen events</string>
+    <string name="widgetDescription_msg">Vis de kommende events for dagen</string>
     <string name="birthdayCalendar_label">Fødselsdage</string>
     <string name="birthdayEvent_title">{name}s fødselsdag</string>
     <string name="birthdayEventAge_title">{age} år gammel</string>
