@@ -149,3 +149,11 @@ export function collectionSum(collection: Iterable<number>): number {
 	}
 	return sum
 }
+
+export function collectionUniqueBy<T>(collection: Iterable<T>, discriminator: (item: T) => string): ArrayIterator<T> {
+	const map = new Map()
+	for (const item of collection) {
+		map.set(discriminator(item), item)
+	}
+	return map.values()
+}

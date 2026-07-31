@@ -34,6 +34,7 @@ import { compareContacts } from "../../contacts/view/ContactGuiUtils"
 import { mailSearchComparator, SearchableTypes } from "../../../common/search/SearchUtils"
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef, DriveGroupRootTypeRef } from "@tutao/entities/drive"
 import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
+import { collectionUniqueBy } from "../../../../platform-kit/utils/CollectionUtils"
 
 assertMainOrNode()
 export type SearchQuery = {
@@ -299,7 +300,8 @@ export class SearchModel {
 		resultItems.sort(compareDriveItems)
 
 		const parentFolderIds = resultItems.map((item) => (isDriveFile(item) ? item.folder : item.parent)).filter(isNotNull)
-		const parentFolders = await loadMultipleFromLists(DriveFolderTypeRef, this.entityClient, parentFolderIds)
+		const uniqueParentFolderIds = [...collectionUniqueBy(parentFolderIds, (item) => elementIdPart(item))]
+		const parentFolders = await loadMultipleFromLists(DriveFolderTypeRef, this.entityClient, uniqueParentFolderIds)
 		const idToParentFolder = collectToMap(parentFolders, (parent) => elementIdPart(parent._id))
 
 		const extendedResultItems: DriveSearchResult[] = resultItems.map((item) => {
