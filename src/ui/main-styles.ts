@@ -2673,16 +2673,6 @@ export class MainStyles {
 					"border-bottom": "9px solid transparent",
 					"border-left": "6px solid green",
 				},
-				".time-field": {
-					width: "80px",
-				},
-				".time-picker input": {
-					color: "rgba(0, 0, 0, 0)",
-				},
-				".time-picker-fake-display": {
-					bottom: "1.6em",
-					left: "0.1em",
-				},
 				".calendar-agenda-time-column": {
 					width: px(80),
 				},
@@ -3053,13 +3043,13 @@ export class MainStyles {
 				".tutaui-text-field:focus, .child-text-editor [role='textbox']:focus": {
 					"background-color": theme.surface_container_high,
 				},
-				".tutaui-text-field:invalid": {
+				".tutaui-text-field::placeholder": {
+					color: theme.on_surface_variant,
+				},
+				".tutaui-text-field[aria-invalid='true']": {
 					color: theme.on_error_container,
 					"background-color": theme.error_container,
 					"border-color": theme.on_error_container,
-				},
-				".tutaui-text-field::placeholder": {
-					color: theme.on_surface_variant,
 				},
 				".text-editor-placeholder": {
 					position: "absolute",
@@ -3155,11 +3145,6 @@ export class MainStyles {
 					display: "grid",
 					"grid-template-columns": "6fr 3fr",
 					"column-gap": px(size.spacing_8),
-				},
-				".time-selection-grid > *": {
-					overflow: "hidden",
-					"white-space": "nowrap",
-					"text-overflow": "clip",
 				},
 				".invisible": {
 					all: "none",
