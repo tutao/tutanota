@@ -12,7 +12,7 @@ import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
 import { Dialog } from "../../../ui/base/Dialog"
 import type { UpdateHelpLabelAttrs } from "./DesktopUpdateHelpLabel"
 import { DesktopUpdateHelpLabel } from "./DesktopUpdateHelpLabel"
-import { assertMainOrNode, DesktopConfigKey } from "../../../platform-kit/app-env"
+import { DesktopConfigKey, EnvProvider } from "../../../platform-kit/app-env"
 import { locator } from "../../common/api/main/CommonLocator"
 import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton.js"
 import { ButtonSize } from "../../../ui/base/ButtonSize.js"
@@ -22,7 +22,7 @@ import { MailExportMode } from "../../common/mailFunctionality/SharedMailUtils.j
 import { ifAllowedTutaLinks } from "../../common/gui/base/TutaLinkUtils"
 import { SpellcheckLanguageDialog } from "../../../ui/dialogs/SpellcheckLanguageDialog"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 enum DownloadLocationStrategy {
 	ALWAYS_ASK,

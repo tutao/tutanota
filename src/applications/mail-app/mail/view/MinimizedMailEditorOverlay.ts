@@ -10,11 +10,11 @@ import type { SendMailModel } from "../../../common/mailFunctionality/SendMailMo
 import type { MinimizedEditor, SaveStatus } from "../model/MinimizedMailEditorViewModel"
 import { MinimizedMailEditorViewModel } from "../model/MinimizedMailEditorViewModel"
 import { MinimizedEditorOverlay } from "./MinimizedEditorOverlay"
-import { assertMainOrNode } from "../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../platform-kit/app-env"
 import Stream from "mithril/stream"
 import { noOp } from "../../../../platform-kit/utils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 const MINIMIZED_OVERLAY_WIDTH_WIDE = 350
 const MINIMIZED_OVERLAY_WIDTH_SMALL = 220
 

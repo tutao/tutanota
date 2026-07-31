@@ -8,7 +8,7 @@ import { assertNotNull, debounceStart, filterInt, last, memoizedWithHiddenArgume
 import { DriveTransferController, DriveTransfers } from "./DriveTransferController"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { EventController } from "../../../common/api/main/EventController"
-import { Const, isDesktop, OperationStatus, TimeConstants } from "@tutao/app-env"
+import { Const, EnvProvider, OperationStatus, TimeConstants } from "@tutao/app-env"
 import { ListModel } from "../../../common/misc/ListModel"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { ListFetchResult } from "../../../../ui/base/ListUtils"
@@ -790,7 +790,7 @@ export class DriveViewModel {
 	}
 
 	async filesDropped(files: File[], folderTransferItems: FileSystemDirectoryEntry[]) {
-		if (isDesktop()) {
+		if (EnvProvider.get().isDesktop()) {
 			const webFileResolver = assertNotNull(this.webFileResolver)
 			const fileRefs = await promiseMap(files, (file) => webFileResolver.resolveWebFile(file))
 

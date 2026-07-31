@@ -1,4 +1,4 @@
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import m, { Children, Vnode } from "mithril"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog"
 import { ImapMailImportController } from "./ImapMailImportController"
@@ -37,7 +37,7 @@ import { ColorOptionButton } from "../../../../ui/base/colorPicker/ColorOptionBu
 import { ImapMailboxSpecialUse } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
 import { getTranslationForImapProvider, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 	private enableParentFolderEdit: boolean = false

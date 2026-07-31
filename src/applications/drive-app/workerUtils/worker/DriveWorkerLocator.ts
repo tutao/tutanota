@@ -1,5 +1,5 @@
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
-import { assertWorkerOrNode, Const, getWebsocketBaseUrl, isBrowser, isOfflineStorageAvailable, Mode, ProgrammingError } from "../../../../platform-kit/app-env"
+import { Const, EnvProvider, Mode, ProgrammingError } from "../../../../platform-kit/app-env"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
 import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { SleepDetector } from "../../../common/api/worker/utils/SleepDetector.js"
@@ -57,7 +57,7 @@ import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailA
 import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 import { CachingOfflineStorage } from "../../../../app-kit/local-store/CachingOfflineStorage"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export type DriveWorkerLocatorType = {
 	base: BaseLocator
@@ -113,13 +113,13 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		return new PdfWriter(new TextEncoder(), undefined)
 	}
 
-	if (!isBrowser() && !(env.mode === Mode.Admin)) {
+	if (!EnvProvider.get().isBrowser() && !(env.mode === Mode.Admin)) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 	}
 
 	// offlineStorageProvider and ephemeralStorageProvider reference locator.base.* lazily — only called during login init
 	let offlineStorageProvider: () => Promise<CachingOfflineStorage | null>
-	if (!isBrowser() && !(env.mode === Mode.Admin)) {
+	if (!EnvProvider.get().isBrowser() && !(env.mode === Mode.Admin)) {
 		offlineStorageProvider = async () => {
 			const customCacheHandler = new CustomCacheHandlerMap({
 				ref: UserTypeRef,
@@ -160,7 +160,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 	locator.cacheStorage = maybeUninitializedStorage
 
 	const lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider> = lazyMemoized(async () => {
-		if (isOfflineStorageAvailable()) {
+		if (EnvProvider.get().isOfflineStorageAvailable()) {
 			return new OfflineStorageLastProcessedEventBatchStorageFacade(locator.sqlCipherFacade)
 		} else {
 			return new NoOpLastProcessedEventBatchStorageFacade()
@@ -330,7 +330,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		locator.base.cache as EntityRestCache,
 		locator.base.user,
 		locator.base.instancePipeline,
-		(path) => new WebSocket(getWebsocketBaseUrl(domainConfig) + path),
+		(path) => new WebSocket(EnvProvider.get().getWebsocketBaseUrl(domainConfig) + path),
 		new SleepDetector(scheduler, dateProvider),
 		locator.base.typeModelResolver,
 		locator.base.crypto,

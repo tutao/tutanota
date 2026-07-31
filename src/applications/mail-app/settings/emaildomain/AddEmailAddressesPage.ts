@@ -2,7 +2,7 @@ import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../../../comm
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { getAliasLineAttrs } from "../../../common/settings/mailaddress/MailAddressTable.js"
 import type { AddDomainData } from "./AddDomainWizard"
-import { assertNotNull, neverNull } from "../../../../platform-kit/utils"
+import { neverNull } from "../../../../platform-kit/utils"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
 import type { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
@@ -13,7 +13,7 @@ import type { WizardPageAttrs } from "../../../../ui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../../../../ui/base/WizardDialog.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { InvalidDataError, LimitReachedError } from "../../../../platform-kit/rest-client/error"
-import { assertMainOrNode, UpgradePromptType } from "../../../../platform-kit/app-env"
+import { EnvProvider, UpgradePromptType } from "../../../../platform-kit/app-env"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
 import { UpgradeRequiredError } from "../../../common/api/main/UpgradeRequiredError.js"
@@ -22,7 +22,7 @@ import { CustomerTypeRef, GroupInfoTypeRef } from "@tutao/entities/sys"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 import { idToElementId } from "@tutao/meta"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /**
  * Part of the custom domain wizard where user can add mail addresses for the new domain.

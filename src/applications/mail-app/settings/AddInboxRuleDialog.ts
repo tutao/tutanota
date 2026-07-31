@@ -1,10 +1,10 @@
 import m from "mithril"
 import { Dialog } from "../../../ui/base/Dialog"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
-import { assertMainOrNode, UpgradePromptType } from "../../../platform-kit/app-env"
+import { EnvProvider, UpgradePromptType } from "../../../platform-kit/app-env"
 import { isDomainName, isMailAddress, isRegularExpression } from "../../../platform-kit/utils/FormatUtils"
 import { getInboxRuleTypeNameMapping } from "../mail/model/InboxRuleHandler"
-import { elementIdPart, elementIdToId, isSameId, isSameSingleId } from "../../../platform-kit/meta"
+import { elementIdPart, isSameSingleId } from "../../../platform-kit/meta"
 import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.js"
 import stream from "mithril/stream"
 import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
@@ -16,8 +16,8 @@ import { mailLocator } from "../mailLocator.js"
 import {
 	assertSystemFolderOfType,
 	getExistingRuleForType,
-	getMailSetName,
 	getIndentedFolderNameForDropdown,
+	getMailSetName,
 	getPathToFolderString,
 } from "../mail/model/MailUtils.js"
 import type { IndentedMailSet } from "../../common/api/common/mail/FolderSystem.js"
@@ -25,7 +25,7 @@ import { Checkbox } from "../../../ui/base/Checkbox"
 import { createInboxRule, InboxRule } from "@tutao/entities/tutanota"
 import { InboxRuleType, MailSetKind } from "../../../entities/tutanota/Utils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export type InboxRuleTemplate = Pick<InboxRule, "type" | "value"> & {
 	_id?: InboxRule["_id"]

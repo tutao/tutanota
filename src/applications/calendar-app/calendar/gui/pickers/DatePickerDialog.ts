@@ -4,10 +4,10 @@ import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
 import { DatePicker } from "./DatePicker.js"
 import { px, size } from "../../../../../ui/size.js"
 import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
-import { assertMainOrNode } from "../../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../../platform-kit/app-env"
 import { debounceStart, newPromise, noOp } from "../../../../../platform-kit/utils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /**
  * Shows a dialog in which the user can select a start date and an end date. Start and end date does not need to be selected, then they are null and regarded as unlimited.

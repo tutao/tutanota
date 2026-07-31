@@ -1,6 +1,6 @@
 import { noOp } from "../platform-kit/utils"
 import { CalendarNotificationIcon, MailNotificationIcon } from "./base/icons/Icons.js"
-import { isApp, isDesktop } from "../platform-kit/app-env"
+import { EnvProvider } from "../platform-kit/app-env"
 
 export const enum NotificationType {
 	Mail = "Mail",
@@ -9,7 +9,12 @@ export const enum NotificationType {
 
 export class Notifications {
 	showNotification(type: NotificationType, title: string, options?: NotificationOptions, onclick: Notification["onclick"] = noOp): Notification | null {
-		if (!isApp() && !isDesktop() && typeof window.Notification !== "undefined" && window.Notification.permission === "granted") {
+		if (
+			!EnvProvider.get().isApp() &&
+			!EnvProvider.get().isDesktop() &&
+			typeof window.Notification !== "undefined" &&
+			window.Notification.permission === "granted"
+		) {
 			try {
 				const actualOptions: NotificationOptions = Object.assign(
 					{},
@@ -38,7 +43,7 @@ export class Notifications {
 	 * @returns {Promise<boolean>} resolves to "true" if we can send notifications.
 	 */
 	requestPermission(): void {
-		if (isDesktop() || isApp() || typeof Notification === "undefined") {
+		if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp() || typeof Notification === "undefined") {
 			return
 		}
 

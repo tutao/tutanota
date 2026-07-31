@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { Mail } from "@tutao/entities/tutanota"
 import { MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
-import { assertMainOrNode } from "../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../platform-kit/app-env"
 import { getElementId, getLetId, haveSameId } from "../../../../platform-kit/meta"
 import { component_size } from "../../../../ui/size"
 import { Styles } from "../../../../ui/styles"
@@ -35,7 +35,7 @@ import { makeTrackedProgressMonitor } from "../../../common/api/common/utils/Pro
 import { Keys } from "../../../../ui/KeyboardKeys"
 import { AsyncResultStateOptions } from "../../../../platform-kit/utils/AsyncResult"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export interface MailListViewAttrs {
 	// We would like to not get and hold to the whole MailView eventually

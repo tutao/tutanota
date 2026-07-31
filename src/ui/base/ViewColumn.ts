@@ -3,12 +3,12 @@ import { AriaLandmarks, landmarkAttrs } from "../AriaUtils"
 import { LayerType } from "./RootView"
 import { lazy } from "../../platform-kit/utils"
 import { MaybeLazy, resolveMaybeLazy } from "./MaybeLazy"
-import { assertMainOrNode, TabIndex } from "../../platform-kit/app-env"
+import { EnvProvider, TabIndex } from "../../platform-kit/app-env"
 import { lang, MaybeTranslation } from "../utils/LanguageViewModel.js"
 import { layout_size, px } from "../size"
 import { Styles } from "../styles"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export const enum ColumnType {
 	Foreground = 0,

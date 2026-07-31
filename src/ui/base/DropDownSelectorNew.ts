@@ -4,13 +4,13 @@ import type { AllIcons } from "./Icon"
 import { type lazy, noOp } from "@tutao/utils"
 import { lang, MaybeTranslation } from "../utils/LanguageViewModel"
 import { ClickHandler, getOperatingClasses } from "./GuiUtils"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { IconButton } from "./IconButton"
 import { ButtonSize } from "./ButtonSize"
 import { TextField, TextFieldAttrs } from "./TextField"
 import { Icons } from "./icons/Icons"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 export type SelectorItem<T> = {
 	name: string
 	secondaryTextLine?: string

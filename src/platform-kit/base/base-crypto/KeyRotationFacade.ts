@@ -3,7 +3,7 @@ import { GroupManagementFacade } from "../facades/lazy/GroupManagementFacade.js"
 import { RecipientsNotFoundError } from "../../network/error/RecipientsNotFoundError.js"
 import { EntityClient } from "../../network/EntityClient.js"
 import { getUserGroupMemberships } from "../../network/GroupUtils.js"
-import { assertWorkerOrNode, CryptoProtocolVersion, GroupKeyRotationType, isAdminClient, RolloutType, SessionType, TutanotaError } from "@tutao/app-env"
+import { CryptoProtocolVersion, EnvProvider, GroupKeyRotationType, RolloutType, SessionType, TutanotaError } from "@tutao/app-env"
 import { assertNotNull, downcast, getFirstOrThrow, groupBy, isEmpty, isNotNull, KeyVersion, lazyAsync, Nullable, promiseMap, Versioned } from "@tutao/utils"
 import {
 	Aes256Key,
@@ -105,7 +105,7 @@ import {
 import { asPublicKeyIdentifier } from "./Constants"
 import { GroupInvitationPostData } from "@tutao/entities/tutanota"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export enum MultiAdminGroupKeyAdminActionPath {
 	WAIT_FOR_OTHER_ADMINS,
@@ -1413,7 +1413,7 @@ export class KeyRotationRolloutAction implements RolloutAction {
 
 	public async execute() {
 		// If we have not migrated to argon2 we postpone key rotation.
-		if (!isAdminClient() && this.sessionType !== SessionType.Temporary && this.modernKdfType) {
+		if (!EnvProvider.get().isAdminClient() && this.sessionType !== SessionType.Temporary && this.modernKdfType) {
 			const user = this.userFacade.getUser()
 			if (user && user.accountType !== AccountType.EXTERNAL) {
 				let requiredPasswordKey: Nullable<Aes256Key> = null

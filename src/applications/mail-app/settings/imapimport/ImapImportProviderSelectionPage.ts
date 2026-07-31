@@ -1,6 +1,6 @@
 import m, { Children, Vnode } from "mithril"
 import { ImapImportData } from "./AddImapImportWizard.js"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { GmailLogo, Icons, OutlookLogo } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
@@ -13,7 +13,7 @@ import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { RadioSelectorOption } from "../../../../ui/base/RadioSelectorItem"
 import { RadioSelector, RadioSelectorAttrs } from "../../../../ui/base/RadioSelector"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class ImapImportProviderSelectionPage implements WizardPageN<ImapImportData> {
 	private selectedProvider: ImapProvider = ImapProvider.Gmail

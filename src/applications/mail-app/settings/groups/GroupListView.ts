@@ -1,13 +1,13 @@
 import { GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef } from "@tutao/entities/sys"
 import m, { Children } from "mithril"
-import { assertNotNull, LazyLoaded, memoized, neverNull, noOp, Nullable } from "../../../../platform-kit/utils"
+import { assertNotNull, LazyLoaded, memoized, noOp } from "../../../../platform-kit/utils"
 import { GroupDetailsView } from "../../../common/settings/groups/GroupDetailsView.js"
 import * as AddGroupDialog from "./AddGroupDialog.js"
 import { Icon } from "../../../../ui/base/Icon.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { ListColumnWrapper } from "../../../../ui/ListColumnWrapper.js"
-import { assertMainOrNode, UpgradePromptType } from "../../../../platform-kit/app-env"
+import { EnvProvider, UpgradePromptType } from "../../../../platform-kit/app-env"
 import { GroupDetailsModel } from "./GroupDetailsModel.js"
 import { SelectableRowContainer, SelectableRowSelectedSetter, setVisibility } from "../../../../ui/SelectableRowContainer.js"
 import Stream from "mithril/stream"
@@ -27,7 +27,7 @@ import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 const className = "group-list"
 
 export class GroupListView implements UpdatableSettingsViewer {

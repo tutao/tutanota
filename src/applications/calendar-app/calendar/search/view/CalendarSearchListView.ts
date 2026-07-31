@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { assertMainOrNode } from "../../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../../platform-kit/app-env"
 import { downcast } from "../../../../../platform-kit/utils"
 import { List, ListAttrs, MultiselectMode, RenderConfig } from "../../../../../ui/base/List.js"
 import { component_size } from "../../../../../ui/size.js"
@@ -13,7 +13,7 @@ import { CalendarInfoBase } from "../../model/CalendarModel"
 import { Icons } from "../../../../../ui/base/icons/Icons"
 import { CalendarEvent } from "@tutao/entities/tutanota"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class CalendarSearchResultListEntry {
 	constructor(readonly entry: CalendarEvent) {}

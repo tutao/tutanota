@@ -2,7 +2,7 @@ import m, { Children, Vnode } from "mithril"
 import { ViewSlider } from "../../../../ui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../../ui/base/ViewColumn"
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
-import { assertMainOrNode, FeatureType, isApp, isBrowser, ProgrammingError, UpgradePromptType } from "../../../../platform-kit/app-env"
+import { EnvProvider, FeatureType, ProgrammingError, UpgradePromptType } from "../../../../platform-kit/app-env"
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { elementIdToId, Entity, getElementId, getIds, isSameId, isSameSingleId, isSameTypeRef, TypeRef } from "../../../../platform-kit/meta"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
@@ -122,7 +122,7 @@ import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { Keys } from "../../../../ui/KeyboardKeys"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export interface SearchViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -1486,7 +1486,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	}
 
 	private getPrintAction(): (() => unknown) | null {
-		if (isApp()) {
+		if (EnvProvider.get().isApp()) {
 			return () => locator.systemFacade.print()
 		} else if (typeof window.print === "function") {
 			return () => window.print()
@@ -1513,7 +1513,7 @@ async function newMailEditor(): Promise<Dialog | null> {
 }
 
 export function renderSearchInOurApps(): Children | null {
-	if (!isBrowser()) {
+	if (!EnvProvider.get().isBrowser()) {
 		return null
 	} else {
 		return m.trust(

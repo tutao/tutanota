@@ -2,11 +2,11 @@ import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { theme } from "../theme"
 import type { lazy } from "../../platform-kit/utils"
 import { memoized } from "../../platform-kit/utils"
-import { assertMainOrNode } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 import { Icons } from "./icons/Icons"
 import { px, size } from "../size.js"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /**
  * @deprecated use {@link Icons} directly instead

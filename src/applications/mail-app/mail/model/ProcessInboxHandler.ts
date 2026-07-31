@@ -4,7 +4,7 @@ import { InstanceSessionKey } from "@tutao/entities/sys"
 import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { InboxRuleHandler } from "./InboxRuleHandler"
 import { isSameId } from "../../../../platform-kit/meta"
-import { assertMainOrNode } from "../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../platform-kit/app-env"
 import { assertNotNull, isEmpty, Nullable, throttle } from "../../../../platform-kit/utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
@@ -13,7 +13,7 @@ import { LoginController } from "../../../common/api/main/LoginController"
 import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFacade"
 import { LockedError } from "../../../../platform-kit/rest-client/error"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export type UnencryptedProcessInboxDatum = Omit<ProcessInboxDatumParams, "encVectorLegacy" | "encVectorWithServerClassifiers" | "ownerEncVectorSessionKey"> & {
 	vectorLegacy: Uint8Array<ArrayBuffer>

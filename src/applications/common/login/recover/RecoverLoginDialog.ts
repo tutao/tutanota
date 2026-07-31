@@ -10,7 +10,7 @@ import { PasswordForm, PasswordModel } from "../../settings/PasswordForm.js"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
-import { assertMainOrNode, CancelledError } from "@tutao/app-env"
+import { CancelledError, EnvProvider } from "@tutao/app-env"
 import { locator } from "../../api/main/CommonLocator"
 import { windowFacade } from "../../misc/WindowFacade.js"
 import { createDropdown, DropdownButtonAttrs } from "../../../../ui/base/Dropdown.js"
@@ -20,7 +20,7 @@ import { PasswordField } from "../../misc/passwords/PasswordField.js"
 import { RecoverCodeInput } from "../../settings/login/RecoverCodeDialog.js"
 import { MoreInfoLink } from "../../misc/news/MoreInfoLink"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 export type ResetAction = "password" | "secondFactor"
 
 export function show(mailAddress?: string | null, resetAction?: ResetAction): Dialog {

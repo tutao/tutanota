@@ -5,7 +5,7 @@ import { showDropdownAtPosition } from "../../../../ui/base/Dropdown.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { newPromise } from "../../../../platform-kit/utils"
 import { isKeyPressed, isModifierKeyPressed, Key } from "../../../../ui/utils/KeyManager.js"
-import { isAppleDevice } from "../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../platform-kit/app-env"
 import { EventWrapper } from "./CalendarViewModel"
 import { CalendarEvent } from "@tutao/entities/tutanota"
 import { Keys } from "../../../../ui/KeyboardKeys"
@@ -196,7 +196,7 @@ export class EventDragHandler {
 			// not allowed to drag events where that's not the case.
 			// note that we're not allowing changing the whole series from dragging an altered instance.
 			const { repeatRule, recurrenceId } = dragData.originalEventWrapper.event
-			const ctrlOrCmd = isAppleDevice() ? Keys.META : Keys.CTRL
+			const ctrlOrCmd = EnvProvider.get().isAppleDevice() ? Keys.META : Keys.CTRL
 			let mode: CalendarOperation | null = CalendarOperation.Create
 			if (!isKeyPressed(pressedKey?.code, ctrlOrCmd)) {
 				// prettier-ignore

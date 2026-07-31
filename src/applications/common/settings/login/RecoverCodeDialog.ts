@@ -3,7 +3,7 @@ import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageVie
 import { Dialog, DialogType } from "../../../../ui/base/Dialog.js"
 import { assertNotNull, newPromise, noOp, ofClass } from "@tutao/utils"
 import m, { Child, Children, Component, Vnode } from "mithril"
-import { assertMainOrNode, isApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils.js"
 import { AccessBlockedError, NotAuthenticatedError } from "@tutao/rest-client/error"
 import { locator } from "../../api/main/CommonLocator.js"
@@ -24,7 +24,7 @@ import { GroupType } from "../../../../entities/sys/Utils"
 import { getHtmlSanitizer } from "../../misc/HtmlSanitizer"
 
 type Action = "get" | "create"
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export function showRecoverCodeDialogAfterPasswordVerificationAndInfoDialog(user: User) {
 	// We only show the recovery code if it is for the current user and it is a global admin
@@ -134,7 +134,7 @@ export class RecoverCodeField {
 							icon: Icons.ClipboardFilled,
 							click: () => copyToClipboard(splitRecoverCode),
 						}),
-						isApp() || typeof window.print !== "function"
+						EnvProvider.get().isApp() || typeof window.print !== "function"
 							? null
 							: m(IconButton, {
 									title: "print_action",

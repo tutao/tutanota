@@ -14,7 +14,7 @@ import {
 	uint8ArrayToBase64,
 	Versioned,
 } from "@tutao/utils"
-import { assertWorkerOrNode, CryptoProtocolVersion, EncryptionAuthStatus, PresentableKeyVerificationState } from "@tutao/app-env"
+import { CryptoProtocolVersion, EncryptionAuthStatus, EnvProvider, PresentableKeyVerificationState } from "@tutao/app-env"
 import {
 	assertEnumValue,
 	AttributeModel,
@@ -99,10 +99,9 @@ import { InstanceSessionKeysCache } from "./persistence/InstanceSessionKeysCache
 import { EntityUtils } from "../../instance-pipeline/EntityUtils"
 import { OutgoingServerJson } from "../../instance-pipeline/TypeMapper"
 import { isNull } from "../../utils/Utils"
-import { ClientDetector } from "../../app-env/boot/ClientDetector"
 import { TypeChecks } from "../../app-env/boot/TsTypeChecks"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 type ResolvedSessionKeys = {
 	resolvedSessionKeyForInstance: AesKey
@@ -843,7 +842,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 
 		let ownerEncSessionKeyAttributeIdStr = assertNotNull(AttributeModel.getAttributeId(typeModel, "_ownerEncSessionKey")).toString()
 		let ownerKeyVersionAttributeIdStr = assertNotNull(AttributeModel.getAttributeId(typeModel, "_ownerKeyVersion")).toString()
-		if (ClientDetector.get().env.networkDebugging) {
+		if (EnvProvider.get().networkDebuggingEnabled()) {
 			ownerEncSessionKeyAttributeIdStr += ":_ownerEncSessionKey"
 			ownerKeyVersionAttributeIdStr += ":_ownerKeyVersion"
 		}

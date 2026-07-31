@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { LegacyTextField, LegacyTextFieldType as TextFieldType } from "../../../../../ui/base/LegacyTextField.js"
 import { theme } from "../../../../../ui/theme.js"
-import { isApp, TabIndex, TimeFormat } from "../../../../../platform-kit/app-env"
+import { EnvProvider, TabIndex, TimeFormat } from "../../../../../platform-kit/app-env"
 import { timeStringFromParts } from "../../../../../ui/utils/Formatter.js"
 import { Time } from "../../../../common/calendar/date/Time.js"
 import { Select, SelectAttributes } from "../../../../../ui/base/Select.js"
@@ -11,7 +11,7 @@ import stream from "mithril/stream"
 import { isKeyPressed } from "../../../../../ui/utils/KeyManager.js"
 import { getNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { DateTime } from "luxon"
-import { lang, Translation, TranslationKey } from "../../../../../ui/utils/LanguageViewModel"
+import { lang, Translation } from "../../../../../ui/utils/LanguageViewModel"
 import { Keys } from "../../../../../ui/KeyboardKeys"
 
 export type TimePickerAttrs = {
@@ -62,7 +62,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			}
 		}
 
-		if (isApp()) {
+		if (EnvProvider.get().isApp()) {
 			return this.renderNativeTimePicker(attrs)
 		} else {
 			return this.renderCustomTimePicker(attrs)

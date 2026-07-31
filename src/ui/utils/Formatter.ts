@@ -1,8 +1,8 @@
 import { lang } from "./LanguageViewModel"
 import { cleanMailAddress, isSameDay, isSameDayOfDate, pad } from "@tutao/utils"
-import { assertMainOrNodeBoot } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 
 export function formatMonthWithYear(date: Date): string {
 	return lang.formats.monthWithYear.format(date)

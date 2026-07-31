@@ -6,12 +6,14 @@ import { Dialog } from "../../../../ui/base/Dialog.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { exportContacts } from "../VCardExporter.js"
 import { mailLocator } from "../../mailLocator.js"
-import { isApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { ContactTypeRef } from "@tutao/entities/tutanota"
 
 export async function importAsVCard() {
 	const allowedExtensions = ["vcf"]
-	const contactFiles = isApp() ? await showNativeFilePicker(allowedExtensions, true) : await showFileChooser(FileChooserMultiMode.Multi, allowedExtensions)
+	const contactFiles = EnvProvider.get().isApp()
+		? await showNativeFilePicker(allowedExtensions, true)
+		: await showFileChooser(FileChooserMultiMode.Multi, allowedExtensions)
 	if (contactFiles.length <= 0) return
 	return showProgressDialog(
 		"pleaseWait_msg",

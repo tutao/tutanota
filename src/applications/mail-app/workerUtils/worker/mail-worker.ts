@@ -1,5 +1,6 @@
 import { WorkerImpl } from "./WorkerImpl.js"
 import { Logger, replaceNativeLogger } from "../../../common/api/common/Logger.js"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 
 /**
  * Receives the first message from the client and initializes the WorkerImpl to receive all future messages. Sends a response to the client on this first message.
@@ -9,6 +10,7 @@ self.onmessage = function (msg) {
 
 	if (data.requestType === "setup") {
 		self.env = data.args[0]
+
 		replaceNativeLogger(self, new Logger())
 		Promise.resolve()
 			.then(async () => {

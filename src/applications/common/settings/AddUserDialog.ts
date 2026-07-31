@@ -1,6 +1,6 @@
 import m from "mithril"
 import { lang, MaybeTranslation, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
-import { assertMainOrNode, UpgradePromptType } from "../../../platform-kit/app-env"
+import { EnvProvider, UpgradePromptType } from "../../../platform-kit/app-env"
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { PasswordForm, PasswordModel } from "./PasswordForm.js"
 import { SelectMailAddressForm } from "./SelectMailAddressForm.js"
@@ -15,7 +15,7 @@ import { toFeatureType } from "../subscription/utils/SubscriptionUtils.js"
 import { showUpgradeWizard } from "../subscription/UpgradeSubscriptionWizard.js"
 import { BookingItemFeatureType } from "../../../entities/sys/Utils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export async function show(): Promise<void> {
 	const availableDomains = await getAvailableDomains(locator.logins)

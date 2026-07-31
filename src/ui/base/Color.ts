@@ -1,7 +1,7 @@
 import { assert } from "../../platform-kit/utils"
-import { assertMainOrNodeBoot } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 
 /**
  * Red-Green-Blue color representation with each channel in the

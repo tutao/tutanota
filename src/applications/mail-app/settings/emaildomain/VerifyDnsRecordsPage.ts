@@ -1,6 +1,6 @@
 import { DomainDnsStatus } from "../DomainDnsStatus"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
-import { assertMainOrNode, CustomDomainCheckResult, DnsRecordType, DnsRecordValidation } from "../../../../platform-kit/app-env"
+import { CustomDomainCheckResult, DnsRecordType, DnsRecordValidation, EnvProvider } from "../../../../platform-kit/app-env"
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import type { AddDomainData, ValidatedDnSRecord } from "./AddDomainWizard"
 import { ActionDialogProps, Dialog } from "../../../../ui/base/Dialog"
@@ -18,7 +18,7 @@ import { Icons } from "../../../../ui/base/icons/Icons"
 import { assertEnumValue } from "../../../../platform-kit/meta"
 import { DnsRecord } from "@tutao/entities/sys"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /** Wizard page which can verify DNS records for custom email domain. */
 export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {

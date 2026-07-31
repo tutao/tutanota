@@ -1,11 +1,11 @@
 import type { IWindowFacade } from "../../ui/IWindowFacade"
-import { assertMainOrNodeBoot } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import type { BaseThemeProvider } from "../../ui/theme"
 import { TopLevelAttrs, TopLevelView } from "../../ui/base/TopLevelView"
 import { LoginController } from "./api/main/LoginController"
 import { RouteResolver } from "mithril"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 
 export async function initUiSingletons(windowFacade: IWindowFacade, themeController: BaseThemeProvider) {
 	const { MainStyles } = await import("../../ui/main-styles")

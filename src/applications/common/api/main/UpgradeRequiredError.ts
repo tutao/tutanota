@@ -1,8 +1,8 @@
-import { assertMainOrNode, TutanotaError } from "@tutao/app-env"
+import { EnvProvider, TutanotaError } from "@tutao/app-env"
 import type { TranslationKeyType } from "../../../../ui/utils/TranslationKey"
 import { AvailablePlanType } from "../../../../entities/sys/Utils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /**
  * Thrown when the user is trying to go over their plan limits.

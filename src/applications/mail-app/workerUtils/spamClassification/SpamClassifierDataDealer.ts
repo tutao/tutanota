@@ -15,7 +15,7 @@ import {
 import { BulkMailLoader, MailWithMailDetails } from "../index/BulkMailLoader"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { getSpamConfidence } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
-import { isAppleDevice, isDesktop } from "../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../platform-kit/app-env"
 import {
 	ClientSpamTrainingDatum,
 	ClientSpamTrainingDatumIndexEntryTypeRef,
@@ -28,7 +28,6 @@ import {
 	MailSet,
 	MailSetTypeRef,
 	MailTypeRef,
-	PopulateClientSpamTrainingDatum,
 	PopulateClientSpamTrainingDatumParams,
 } from "@tutao/entities/tutanota"
 import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, SpamDecision } from "../../../../entities/tutanota/Utils"
@@ -67,14 +66,14 @@ export class SpamClassifierDataDealer {
 		const MAX_MAILS_CAP_APPLE = 500
 		const MAX_MAILS_CAP = 1000
 
-		if (isAppleDevice()) {
-			if (isDesktop()) {
+		if (EnvProvider.get().isAppleDevice()) {
+			if (EnvProvider.get().isDesktop()) {
 				return MAX_MAILS_CAP_DESKTOP_APPLE
 			} else {
 				return MAX_MAILS_CAP_APPLE
 			}
 		} else {
-			if (isDesktop()) {
+			if (EnvProvider.get().isDesktop()) {
 				return MAX_MAILS_CAP_DESKTOP
 			} else {
 				return MAX_MAILS_CAP

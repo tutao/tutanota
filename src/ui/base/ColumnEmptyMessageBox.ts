@@ -4,9 +4,9 @@ import { lang } from "../utils/LanguageViewModel"
 import type { AllIcons } from "./Icon"
 import { Icon } from "./Icon"
 import { px, size } from "../size"
-import { assertMainOrNode } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 // If you change this make sure you pass through all the attrs
 export type InfoMessaggeBoxAttrs = {

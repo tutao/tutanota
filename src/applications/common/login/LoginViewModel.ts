@@ -5,7 +5,7 @@ import { getLoginErrorMessage, handleExpectedLoginError } from "../misc/LoginUti
 import type { LoginController } from "../api/main/LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { assertMainOrNode, CancelledError, DomainConfig, ProgrammingError, SessionType } from "@tutao/app-env"
+import { CancelledError, DomainConfig, EnvProvider, ProgrammingError, SessionType } from "@tutao/app-env"
 import type { CredentialsProvider } from "../misc/credentials/CredentialsProvider.js"
 import { CredentialAuthenticationError } from "../api/common/error/CredentialAuthenticationError"
 import { first, noOp } from "@tutao/utils"
@@ -21,7 +21,7 @@ import { AppLockAuthenticationError } from "../api/common/error/AppLockAuthentic
 import { getWhitelabelRegistrationDomains } from "../../../ui/utils/WhitelabelUtils"
 import { ResumeSessionState } from "../../../platform-kit/base/facades/LoginFacade"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /**
  * Defines what the view should currently render.

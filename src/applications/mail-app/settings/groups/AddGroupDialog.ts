@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { assertMainOrNode, FeatureType, UpgradePromptType } from "../../../../platform-kit/app-env"
+import { EnvProvider, FeatureType, UpgradePromptType } from "../../../../platform-kit/app-env"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import type { ValidationResult } from "../../../common/settings/SelectMailAddressForm.js"
 import { SelectMailAddressForm } from "../../../common/settings/SelectMailAddressForm.js"
@@ -7,22 +7,21 @@ import { getGroupTypeDisplayName } from "../../../common/settings/groups/GroupDe
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
 import { showBuyDialog } from "../../../common/subscription/BuyDialog.js"
-import * as restError from "../../../../platform-kit/rest-client/error"
+import { PreconditionFailedError } from "../../../../platform-kit/rest-client/error"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
 import { TemplateGroupPreconditionFailedReason } from "../../../common/sharing/GroupUtils.js"
 import { DropDownSelector } from "../../../../ui/base/DropDownSelector.js"
 import { LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
-import { getFirstOrThrow, ofClass } from "../../../../platform-kit/utils"
+import { getFirstOrThrow } from "../../../../platform-kit/utils"
 import type { GroupManagementFacade } from "../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { EmailDomainData, getAvailableDomains } from "../../../common/settings/mailaddress/MailAddressesUtils.js"
 import { getAvailablePlansWithTemplates, toFeatureType } from "../../../common/subscription/utils/SubscriptionUtils.js"
 import { MoreInfoLink } from "../../../common/misc/news/MoreInfoLink.js"
 import { BookingItemFeatureType, GroupType } from "../../../../entities/sys/Utils"
-import { PreconditionFailedError } from "../../../../platform-kit/rest-client/error"
 import { ofClassAsync } from "../../../../platform-kit/utils/PromiseUtils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export type AddGroupDialogAttrs = {
 	groupType: GroupType

@@ -1,5 +1,5 @@
 import { DomainInfo, WhitelabelConfig } from "@tutao/entities/sys"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { BaseThemeId, MATERIAL_COLORS, Theme } from "../../../../ui/theme"
 import { downcast } from "@tutao/utils"
 import { hexToRgba, isValidSolidColorCode, rgbaToHex } from "../../../../ui/base/Color"
@@ -12,7 +12,7 @@ import type { WhitelabelThemeGenerator } from "../../../../ui/WhitelabelThemeGen
 import { clone } from "@tutao/meta"
 import { CustomizationKey, ThemeCustomizations, ThemeKey, WHITELABEL_CUSTOMIZATION_VERSION } from "../../../../ui/WhitelabelCustomizations"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 export type CustomColor = {
 	name: ThemeKey
 	value: string

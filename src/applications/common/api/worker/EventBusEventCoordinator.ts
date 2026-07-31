@@ -2,7 +2,7 @@ import { EventBusListener } from "../../../../app-kit/local-store/event/EventBus
 import { MailFacade } from "./facades/lazy/MailFacade.js"
 import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
-import { isAdminClient, isTest, RolloutType } from "@tutao/app-env"
+import { EnvProvider, RolloutType } from "@tutao/app-env"
 import { assertNotNull, lazyAsync } from "@tutao/utils"
 import { ExposedEventController } from "../main/EventController.js"
 import { ConfigurationDatabase } from "./facades/lazy/ConfigurationDatabase.js"
@@ -51,7 +51,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 		await this.eventController.onEntityUpdateReceived(events, groupId, isInitialSyncDone)
 		// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
 		// shall not receive the event twice.
-		if (!isTest() && !isAdminClient()) {
+		if (!EnvProvider.isTest() && !EnvProvider.get().isAdminClient()) {
 			const configurationDatabase = await this.configurationDatabase()
 			await configurationDatabase.onEntityEventsReceived(events, batchId, groupId)
 			this.appSpecificBatchHandling(events, batchId, groupId, isInitialSyncDone)
@@ -76,7 +76,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 	async onSyncDone(): Promise<void> {
 		this.syncTracker.markSyncAsDone()
 
-		if (this.userFacade.isLeader() && !isAdminClient()) {
+		if (this.userFacade.isLeader() && !EnvProvider.get().isAdminClient()) {
 			const userIdentityKeyCreationAction = {
 				execute: async () => {
 					const identityKeyCreator = await this.identityKeyCreator()

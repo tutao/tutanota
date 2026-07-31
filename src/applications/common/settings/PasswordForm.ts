@@ -4,7 +4,7 @@ import { getPasswordStrength, isSecurePassword } from "../misc/passwords/Passwor
 import type { TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { LoginController } from "../api/main/LoginController.js"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { getEnabledMailAddressesForGroupInfo } from "../../../platform-kit/network/GroupUtils.js"
 import { showPasswordGeneratorDialog } from "../misc/passwords/PasswordGeneratorDialog.js"
 import { theme } from "../../../ui/theme.js"
@@ -15,7 +15,7 @@ import stream from "mithril/stream"
 import { PasswordField, PasswordFieldAttrs } from "../misc/passwords/PasswordField.js"
 import { Status } from "../../../ui/base/StatusField"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export interface PasswordFormAttrs {
 	model: PasswordModel

@@ -7,11 +7,11 @@ import { Icon, IconSize } from "./Icon"
 import { theme } from "../theme"
 import { lang, MaybeTranslation, TranslationKey } from "../utils/LanguageViewModel"
 import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
-import { assertMainOrNode, TabIndex } from "../../platform-kit/app-env"
+import { EnvProvider, TabIndex } from "../../platform-kit/app-env"
 import { IWindowFacade } from "../IWindowFacade"
 import { Keys } from "../KeyboardKeys"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export interface WizardPageAttrs<T> {
 	/** Title of the page that is shown in the header bar of the WizardDialog*/

@@ -2,11 +2,11 @@ import { identity } from "@tutao/utils"
 import type { LoginController } from "./LoginController"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { assertMainOrNode } from "@tutao/app-env"
-import { EntityUpdatesListener, EntityUpdateData } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EnvProvider } from "@tutao/app-env"
+import { EntityUpdateData, EntityUpdatesListener } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { OperationStatusUpdate, WebsocketCounterData } from "@tutao/entities/sys"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export type ExposedEventController = Pick<EventController, "onEntityUpdateReceived" | "onCountersUpdateReceived" | "onOperationStatusUpdate">
 

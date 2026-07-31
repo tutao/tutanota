@@ -3,7 +3,7 @@ import { lang } from "../../../ui/utils/LanguageViewModel"
 import type { DropDownSelectorAttrs } from "../../../ui/base/DropDownSelector.js"
 import { DropDownSelector } from "../../../ui/base/DropDownSelector.js"
 import { locator } from "../../common/api/main/CommonLocator.js"
-import { assertMainOrNode, FeatureType, isApp } from "../../../platform-kit/app-env"
+import { EnvProvider, FeatureType } from "../../../platform-kit/app-env"
 import { Button, ButtonType } from "../../../ui/base/Button.js"
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { mailLocator } from "../mailLocator.js"
@@ -14,7 +14,7 @@ import { TutanotaProperties, TutanotaPropertiesTypeRef } from "@tutao/entities/t
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { OperationType } from "../../../platform-kit/meta"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 	private noAutomaticContacts: boolean = false
@@ -64,7 +64,7 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderImportContactsButton(): Children {
-		if (!isApp()) {
+		if (!EnvProvider.get().isApp()) {
 			return null
 		}
 		return m("#importcontacts.flex.flex-space-between.items-center", [
@@ -78,7 +78,7 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderContactsSyncDropdown(): Child {
-		if (!isApp()) return null
+		if (!EnvProvider.get().isApp()) return null
 
 		return m(
 			"#contactsync",
@@ -109,7 +109,7 @@ export class ContactsSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async onContactSyncSelectionChanged(contactSyncEnabled: boolean) {
-		assert(isApp(), "isApp")
+		assert(EnvProvider.get().isApp(), "isApp")
 		const syncManager = mailLocator.nativeContactsSyncManager()
 
 		if (!contactSyncEnabled) {

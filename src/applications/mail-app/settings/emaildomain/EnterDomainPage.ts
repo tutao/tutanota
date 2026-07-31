@@ -7,10 +7,10 @@ import type { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import type { WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../../../../ui/base/WizardDialog.js"
-import { assertMainOrNode } from "../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../platform-kit/app-env"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class EnterDomainPage implements WizardPageN<AddDomainData> {
 	private dom: HTMLElement | null = null

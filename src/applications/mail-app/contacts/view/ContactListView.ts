@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { component_size } from "../../../../ui/size"
 import { ListColumnWrapper } from "../../../../ui/ListColumnWrapper"
-import { assertMainOrNode } from "../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../platform-kit/app-env"
 import { List, ListAttrs, MultiselectMode, RenderConfig, ViewHolder } from "../../../../ui/base/List.js"
 import { ContactRow } from "./ContactRow.js"
 import { ContactViewModel } from "./ContactViewModel.js"
@@ -13,7 +13,7 @@ import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { Contact } from "@tutao/entities/tutanota"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export interface ContactListViewAttrs {
 	onSingleSelection: () => unknown

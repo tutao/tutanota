@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import { showTemplateEditor } from "./TemplateEditor"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { searchInTemplates, TEMPLATE_SHORTCUT_PREFIX } from "../templates/model/TemplatePopupModel"
-import { assertMainOrNode, ShareCapability } from "../../../platform-kit/app-env"
+import { EnvProvider, ShareCapability } from "../../../platform-kit/app-env"
 import type { TemplateGroupInstance } from "../templates/model/TemplateGroupModel"
 import type { LoginController } from "../../common/api/main/LoginController"
 import { ListColumnWrapper } from "../../../ui/ListColumnWrapper"
@@ -23,12 +23,12 @@ import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { keyManager } from "../../../ui/utils/KeyManager.js"
 import { ListAutoSelectBehavior } from "../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
-import { isSameId, isSameSingleId } from "../../../platform-kit/meta"
+import { isSameSingleId } from "../../../platform-kit/meta"
 import { EmailTemplate, EmailTemplateTypeRef } from "@tutao/entities/tutanota"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { hasCapabilityOnGroup } from "../../../entities/sys/Utils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /**
  *  List that is rendered within the template Settings

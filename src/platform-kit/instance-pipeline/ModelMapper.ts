@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, InvalidModelError, isTest, ProgrammingError } from "@tutao/app-env"
+import { EnvProvider, InvalidModelError, ProgrammingError } from "@tutao/app-env"
 import { assert, assertNotNull, base64ToBase64Url, DeepEquals, isNotNull, Nullable, promiseMap, uint8ArrayToBase64 } from "@tutao/utils"
 import {
 	AssociationReprType,
@@ -26,7 +26,7 @@ import { ParsedValue } from "./ParsedValue"
 import { DecryptedParsedInstance, DecryptedParsedValue } from "./CryptoMapper"
 import { TypeChecks } from "../app-env/boot/TsTypeChecks"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 /**
  * this mapper is responsible for "migrations" and checking model correctness, mostly field types and cardinalities.
@@ -277,7 +277,7 @@ export class ClientEntity {
 	}
 
 	public setAssociationForTest<T>(associationId: AttributeId, associationList: Array<T>) {
-		assert(isTest(), "This method is only meant for testing")
+		assert(EnvProvider.isTest(), "This method is only meant for testing")
 		return this.setAssociation(associationId, associationList)
 	}
 }

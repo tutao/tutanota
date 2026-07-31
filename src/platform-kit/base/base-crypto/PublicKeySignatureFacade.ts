@@ -20,11 +20,11 @@ import {
 	rsaPublicKeyToBytes,
 	RsaX25519PublicKey,
 } from "@tutao/crypto"
-import { assertWorkerOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { asPublicKeySignatureType, PublicKeySignatureType } from "./Constants"
 import { createPublicKeySignature, PublicKeySignature } from "@tutao/entities/sys"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export type DeserializedPublicKeyForSigning = {
 	encryptionKeyPairVersion: KeyVersion

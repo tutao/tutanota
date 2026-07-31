@@ -1,4 +1,4 @@
-import { AppType, assertMainOrNode, Const, FeatureType, isAndroidApp, isApp, isBrowser, isDesktop, isIOSApp, Mode, ProgrammingError } from "@tutao/app-env"
+import { AppType, Const, EnvProvider, FeatureType, Mode, ProgrammingError } from "@tutao/app-env"
 import { EventController } from "../common/api/main/EventController.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
@@ -124,7 +124,7 @@ import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 import type { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
 import type { AlarmInterval } from "../common/calendar/date/CalendarUtils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 class DriveLocator implements CommonLocator {
 	clientModelInfo!: ClientModelInfo
@@ -247,7 +247,7 @@ class DriveLocator implements CommonLocator {
 			this.logins,
 			this.userManagementFacade,
 			driveUploadStackModel,
-			isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp, this.desktopSystemFacade) : null,
+			EnvProvider.get().isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp, this.desktopSystemFacade) : null,
 			redraw,
 			this.connectivityModel,
 		)
@@ -259,7 +259,7 @@ class DriveLocator implements CommonLocator {
 	}
 
 	async driveFilePicker(): Promise<DriveFilePicker> {
-		if (isDesktop() || isApp()) {
+		if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp()) {
 			const { AppFilePicker } = await import("./drive/view/DriveFilePicker.js")
 			return new AppFilePicker(this.fileApp)
 		} else {
@@ -320,7 +320,7 @@ class DriveLocator implements CommonLocator {
 	}
 
 	private async contactSuggestionProvider(): Promise<ContactSuggestionProvider> {
-		if (isApp()) {
+		if (EnvProvider.get().isApp()) {
 			const { MobileContactSuggestionProvider } = await import("../common/native/MobileContactSuggestionProvider.js")
 			return new MobileContactSuggestionProvider(this.mobileContactsFacade)
 		} else {
@@ -431,7 +431,7 @@ class DriveLocator implements CommonLocator {
 
 	async credentialsRemovalHandler(): Promise<CredentialRemovalHandler> {
 		const { NoopCredentialRemovalHandler, AppsCredentialRemovalHandler } = await import("../common/login/CredentialRemovalHandler.js")
-		return isBrowser()
+		return EnvProvider.get().isBrowser()
 			? new NoopCredentialRemovalHandler()
 			: new AppsCredentialRemovalHandler(this.pushService, this.configFacade, async () => {
 					// nothing needs to be specifically done for the calendar app right now.
@@ -443,11 +443,11 @@ class DriveLocator implements CommonLocator {
 		const { LoginViewModel } = await import("../common/login/LoginViewModel.js")
 		const credentialsRemovalHandler = await driveLocator.credentialsRemovalHandler()
 		const { MobileAppLock, NoOpAppLock } = await import("../common/login/AppLock.js")
-		const appLock = isApp()
+		const appLock = EnvProvider.get().isApp()
 			? new MobileAppLock(assertNotNull(this.nativeInterfaces).mobileSystemFacade, assertNotNull(this.nativeInterfaces).nativeCredentialsFacade)
 			: new NoOpAppLock()
 		return () => {
-			const domainConfig = isBrowser()
+			const domainConfig = EnvProvider.get().isBrowser()
 				? driveLocator.domainConfigProvider().getDomainConfigForHostname(location.hostname, location.protocol, location.port)
 				: // in this case, we know that we have a staticUrl set that we need to use
 					driveLocator.domainConfigProvider().getCurrentDomainConfig()
@@ -459,7 +459,7 @@ class DriveLocator implements CommonLocator {
 				deviceConfig,
 				domainConfig,
 				credentialsRemovalHandler,
-				isBrowser() ? null : this.pushService,
+				EnvProvider.get().isBrowser() ? null : this.pushService,
 				appLock,
 			)
 		}
@@ -603,7 +603,7 @@ class DriveLocator implements CommonLocator {
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 
 		this.Const = Const
-		if (!isBrowser()) {
+		if (!EnvProvider.get().isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/WebDesktopFacade")
 			const { WebMobileFacade } = await import("../common/native/WebMobileFacade.js")
 			const { WebCommonNativeFacade } = await import("../common/native/WebCommonNativeFacade.js")
@@ -654,19 +654,19 @@ class DriveLocator implements CommonLocator {
 				AppType.Calendar,
 			)
 
-			if (isDesktop() || env.mode === Mode.Admin) {
+			if (EnvProvider.get().isDesktop() || env.mode === Mode.Admin) {
 				const desktopInterfaces = createDesktopInterfaces(this.native)
 				this.searchTextFacade = desktopInterfaces.searchTextFacade
 				this.interWindowEventSender = desktopInterfaces.interWindowEventSender
-				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider(), isApp())
-				if (isDesktop()) {
+				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider(), EnvProvider.get().isApp())
+				if (EnvProvider.get().isDesktop()) {
 					this.desktopSettingsFacade = desktopInterfaces.desktopSettingsFacade
 					this.desktopSystemFacade = desktopInterfaces.desktopSystemFacade
 				}
-			} else if (isAndroidApp() || isIOSApp()) {
+			} else if (EnvProvider.get().isAndroidApp() || EnvProvider.get().isIOSApp()) {
 				const { SystemPermissionHandler } = await import("../common/native/SystemPermissionHandler.js")
 				this.systemPermissionHandler = new SystemPermissionHandler(this.systemFacade)
-				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider(), isApp())
+				this.webAuthn = new WebauthnClient(new WebAuthnFacadeSendDispatcher(this.native), this.domainConfigProvider(), EnvProvider.get().isApp())
 
 				this.systemFacade.storeServerRemoteOrigin(assertNotNull(env.staticUrl)).catch((e) => console.log("Failed to store remote URL: ", e))
 			}
@@ -676,7 +676,7 @@ class DriveLocator implements CommonLocator {
 			this.webAuthn = new WebauthnClient(
 				new BrowserWebauthn(navigator.credentials, this.domainConfigProvider().getCurrentDomainConfig()),
 				this.domainConfigProvider(),
-				isApp(),
+				EnvProvider.get().isApp(),
 			)
 		}
 		this.secondFactorHandler = new SecondFactorHandler(
@@ -748,7 +748,9 @@ class DriveLocator implements CommonLocator {
 			},
 		}
 		const selectedThemeFacade =
-			isApp() || isDesktop() ? new NativeThemeFacade(new LazyLoaded<ThemeFacade>(async () => driveLocator.themeFacade)) : new WebThemeFacade(deviceConfig)
+			EnvProvider.get().isApp() || EnvProvider.get().isDesktop()
+				? new NativeThemeFacade(new LazyLoaded<ThemeFacade>(async () => driveLocator.themeFacade))
+				: new WebThemeFacade(deviceConfig)
 		const lazySanitizer =
 			env.mode === Mode.Test
 				? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
@@ -827,9 +829,9 @@ class DriveLocator implements CommonLocator {
 			this.fileController,
 			this.contactModel,
 			timeZone,
-			!isBrowser() ? this.externalCalendarFacade : null,
+			!EnvProvider.get().isBrowser() ? this.externalCalendarFacade : null,
 			deviceConfig,
-			!isBrowser() ? this.pushService : null,
+			!EnvProvider.get().isBrowser() ? this.pushService : null,
 			this.syncTracker,
 			() => {
 				this.systemFacade.requestWidgetRefresh()
@@ -958,7 +960,7 @@ class DriveLocator implements CommonLocator {
 	})
 
 	showSetupWizard = async () => {
-		if (isApp()) {
+		if (EnvProvider.get().isApp()) {
 			const { showSetupWizard } = await import("../common/native/wizard/SetupWizard.js")
 			return showSetupWizard(
 				this.systemPermissionHandler,
@@ -975,10 +977,10 @@ class DriveLocator implements CommonLocator {
 	}
 
 	async updateClients(): Promise<void> {
-		if (isApp()) {
-			if (isAndroidApp()) {
+		if (EnvProvider.get().isApp()) {
+			if (EnvProvider.get().isAndroidApp()) {
 				this.nativeInterfaces?.mobileSystemFacade.openLink("market://details?id=de.tutao.calendar")
-			} else if (isIOSApp()) {
+			} else if (EnvProvider.get().isIOSApp()) {
 				this.nativeInterfaces?.mobileSystemFacade.openLink("itms-apps://itunes.apple.com/app/id6657977811")
 			}
 		}
@@ -986,9 +988,9 @@ class DriveLocator implements CommonLocator {
 
 	readonly credentialFormatMigrator: () => Promise<CredentialFormatMigrator> = lazyMemoized(async () => {
 		const { CredentialFormatMigrator } = await import("../common/misc/credentials/CredentialFormatMigrator.js")
-		if (isDesktop()) {
+		if (EnvProvider.get().isDesktop()) {
 			return new CredentialFormatMigrator(deviceConfig, this.nativeCredentialsFacade, null)
-		} else if (isApp()) {
+		} else if (EnvProvider.get().isApp()) {
 			return new CredentialFormatMigrator(deviceConfig, this.nativeCredentialsFacade, this.systemFacade)
 		} else {
 			return new CredentialFormatMigrator(deviceConfig, null, null)
@@ -1007,8 +1009,12 @@ class DriveLocator implements CommonLocator {
 	 */
 	private async createCredentialsProvider(): Promise<CredentialsProvider> {
 		const { CredentialsProvider } = await import("../common/misc/credentials/CredentialsProvider.js")
-		if (isDesktop() || isApp()) {
-			return new CredentialsProvider(this.nativeCredentialsFacade, this.sqlCipherFacade, isDesktop() ? this.interWindowEventSender : null)
+		if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp()) {
+			return new CredentialsProvider(
+				this.nativeCredentialsFacade,
+				this.sqlCipherFacade,
+				EnvProvider.get().isDesktop() ? this.interWindowEventSender : null,
+			)
 		} else {
 			const { WebCredentialsFacade } = await import("../common/misc/credentials/WebCredentialsFacade.js")
 			return new CredentialsProvider(new WebCredentialsFacade(deviceConfig), null, null)

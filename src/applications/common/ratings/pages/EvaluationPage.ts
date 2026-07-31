@@ -7,7 +7,7 @@ import { DateTime } from "luxon"
 import { ImageWithOptionsDialog } from "../../../../ui/dialogs/ImageWithOptionsDialog"
 import { UserSatisfactionDialogPage } from "../UserSatisfactionDialog.js"
 import { px } from "../../../../ui/size.js"
-import { isApp, isIOSApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { getCurrentDate } from "../../../mail-app/mail/MailUtils"
 
 interface EvaluationPageAttrs {
@@ -39,8 +39,8 @@ export class EvaluationPage implements Component<EvaluationPageAttrs> {
 		const hasRated =
 			lastRatingPromptedDate != null && DateTime.fromJSDate(getCurrentDate()).diff(DateTime.fromJSDate(lastRatingPromptedDate), ["years"]).years <= 1
 
-		if (!hasRated && isApp()) {
-			if (isIOSApp()) {
+		if (!hasRated && EnvProvider.get().isApp()) {
+			if (EnvProvider.get().isIOSApp()) {
 				// We cannot get the result of the user rating on iOS, so we have to set the date here.
 				deviceConfig.setLastRatingPromptedDate(getCurrentDate())
 				dialog.close()

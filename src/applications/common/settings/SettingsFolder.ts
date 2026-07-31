@@ -2,10 +2,10 @@ import type { lazyIcon } from "../../../ui/base/Icon.js"
 import type { MaybeTranslation } from "../../../ui/utils/LanguageViewModel.js"
 import { isSelectedPrefix } from "../../../ui/base/NavButton.js"
 import type { lazy } from "@tutao/utils"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { UpdatableSettingsViewer } from "./Interfaces.js"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 interface SettingsFolderPath {
 	folder: string

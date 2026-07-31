@@ -1,6 +1,6 @@
-import { assertMainOrNodeBoot } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 export type EasingFunction = (percent: number) => number
 const EasingType = {
 	linear: 1,

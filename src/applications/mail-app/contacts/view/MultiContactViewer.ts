@@ -2,12 +2,12 @@ import m, { Component, Vnode } from "mithril"
 import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
 import { theme } from "../../../../ui/theme"
-import { assertMainOrNode } from "../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../platform-kit/app-env"
 import { Button, ButtonType } from "../../../../ui/base/Button.js"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { Contact } from "@tutao/entities/tutanota"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export interface MultiContactViewerAttrs {
 	selectedEntities: Contact[]

@@ -7,7 +7,7 @@ import m from "mithril"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import { EstimatingProgressMonitor } from "../../../common/api/common/utils/EstimatingProgressMonitor.js"
-import { getApiBaseUrl, ProgrammingError } from "../../../../platform-kit/app-env"
+import { EnvProvider, ProgrammingError } from "../../../../platform-kit/app-env"
 import { ImportFileMailState, ImportFileMailStateTypeRef, MailBox, MailSet, MailSetTypeRef } from "@tutao/entities/tutanota"
 import { FileImportStatus, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { EventController } from "../../../common/api/main/EventController"
@@ -110,7 +110,7 @@ export class FileMailImportController {
 			const mailOwnerGroupId = assertNotNull(mailbox._ownerGroup)
 			const userId = this.loginController.getUserController().userId
 			const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
-			const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
+			const apiUrl = EnvProvider.get().getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
 
 			try {
 				activeImportId = await importFacade.getResumableImport(elementIdToId(mailbox._id), mailOwnerGroupId, unencryptedCredentials, apiUrl)
@@ -267,7 +267,7 @@ export class FileMailImportController {
 		if (isEmpty(fileUris)) return
 		if (!this.shouldRenderStartButton()) throw new ProgrammingError("can't change state to starting")
 
-		const apiUrl = getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
+		const apiUrl = EnvProvider.get().getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
 		const mailbox = assertNotNull(this.selectedMailBoxDetail).mailbox
 		const mailboxId = elementIdToId(mailbox._id)
 		const mailOwnerGroupId = assertNotNull(mailbox._ownerGroup)

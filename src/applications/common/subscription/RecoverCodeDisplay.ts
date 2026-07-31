@@ -8,10 +8,10 @@ import { Icons } from "../../../ui/base/icons/Icons"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { copyToClipboard } from "../../../ui/utils/ClipboardUtils"
 import { showSnackBar } from "../../../ui/base/SnackBar"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { px } from "../../../ui/size"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export type RecoverCodeDisplayAttrs = {
 	column: boolean

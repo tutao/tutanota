@@ -5,7 +5,7 @@ import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { AriaLandmarks, landmarkAttrs } from "../../../ui/AriaUtils.js"
 import type { ClickHandler } from "../../../ui/base/GuiUtils.js"
 import { MainCreateButton } from "../../../ui/MainCreateButton.js"
-import { isAndroidApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { Styles } from "../../../ui/styles"
 
 export type Attrs = {
@@ -18,7 +18,7 @@ export type Attrs = {
 
 export class FolderColumnView implements Component<Attrs> {
 	view({ attrs }: Vnode<Attrs>): Children {
-		const isAndroidWithBottomNavAndDrawer = isAndroidApp() && Styles.get().isAppUsingBottomNav() && !Styles.get().isMobileDesktopLayout()
+		const isAndroidWithBottomNavAndDrawer = EnvProvider.get().isAndroidApp() && Styles.get().isAppUsingBottomNav() && !Styles.get().isMobileDesktopLayout()
 		return m(".flex.height-100p.nav-bg" + (isAndroidWithBottomNavAndDrawer ? ".pb-safe-inset" : ""), [
 			m(DrawerMenu, attrs.drawer),
 			m(".folder-column.flex-grow.overflow-x-hidden.flex.col", landmarkAttrs(AriaLandmarks.Navigation, lang.getTranslationText(attrs.ariaLabel)), [

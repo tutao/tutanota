@@ -9,7 +9,7 @@ import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { DownloadPostProcessing, FileChooserMultiMode, showFileChooser } from "../../../common/file/FileController.js"
-import { isApp, isDesktop, Mode } from "@tutao/app-env"
+import { EnvProvider, Mode } from "@tutao/app-env"
 import { AttachmentBubbleAttrs, AttachmentType } from "../../../../ui/AttachmentBubble.js"
 import { Attachment, FileReference } from "../../../../entities/tutanota/Utils"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
@@ -57,7 +57,9 @@ export async function chooseAndAttachFile(
 
 export function showFileChooserForAttachments(boundingRect: ClientRect, fileTypes?: Array<string>): Promise<ReadonlyArray<FileReference | DataFile> | void> {
 	const fileSelector =
-		isApp() || isDesktop() ? locator.fileApp.openFileChooser(boundingRect, fileTypes) : showFileChooser(FileChooserMultiMode.Multi, fileTypes)
+		EnvProvider.get().isApp() || EnvProvider.get().isDesktop()
+			? locator.fileApp.openFileChooser(boundingRect, fileTypes)
+			: showFileChooser(FileChooserMultiMode.Multi, fileTypes)
 	return fileSelector
 		.catch(
 			ofClass(PermissionError, () => {

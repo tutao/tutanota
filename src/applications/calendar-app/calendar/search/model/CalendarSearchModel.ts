@@ -2,7 +2,7 @@ import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes"
 import { arrayEquals, assertNonNull, assertNotNull, incrementMonth, isEmpty, lazyAsync, tokenize } from "../../../../../platform-kit/utils"
-import { assertMainOrNode } from "../../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../../platform-kit/app-env"
 import { ProgressTracker } from "../../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../../common/calendar/date/CalendarEventsRepository.js"
 import { EventWrapper } from "../../view/CalendarViewModel.js"
@@ -10,7 +10,7 @@ import { ProgressMonitorInterface } from "../../../../../platform-kit/network/Pr
 import { CalendarEvent } from "@tutao/entities/tutanota"
 import { isSameTypeRef, listIdPart } from "../../../../../platform-kit/meta"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 export type SearchQuery = {
 	query: string
 	restriction: SearchRestriction

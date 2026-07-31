@@ -9,7 +9,7 @@ import { TypeRef } from "../../../../platform-kit/meta"
 import type { Shortcut } from "../../../../ui/utils/KeyManager"
 import { isKeyPressed, keyManager } from "../../../../ui/utils/KeyManager"
 import { encodeCalendarSearchKey, getRestriction } from "./model/SearchUtils"
-import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp } from "../../../../platform-kit/app-env"
+import { EnvProvider, FULL_INDEXED_TIMESTAMP } from "../../../../platform-kit/app-env"
 import { Styles } from "../../../../ui/styles"
 import { debounce, downcast, memoized, mod } from "../../../../platform-kit/utils"
 import { hasMoreResults } from "./model/CalendarSearchModel.js"
@@ -26,7 +26,7 @@ import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDete
 import { BrowserType } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { Keys } from "../../../../ui/KeyboardKeys"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 export type ShowMoreAction = {
 	resultCount: number
 	shownCount: number
@@ -191,7 +191,7 @@ export class CalendarSearchBar implements Component<CalendarSearchBarAttrs> {
 	}
 
 	oncreate() {
-		if (isApp()) {
+		if (EnvProvider.get().isApp()) {
 			// only focus in the mobile app, the search bar always exists in desktop/web and will always be grabbing attention
 			this.onFocus()
 		}

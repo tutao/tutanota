@@ -7,7 +7,7 @@ import { assertNotNull } from "../../../../../platform-kit/utils"
 import { Button, ButtonType } from "../../../../../ui/base/Button.js"
 import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
 import { NotificationContentSelector } from "../../../../mail-app/settings/NotificationContentSelector.js"
-import { isApp } from "../../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../../platform-kit/app-env"
 import { NewsId } from "@tutao/entities/tutanota"
 import { SystemPermissionHandler } from "../../../native/SystemPermissionHandler"
 
@@ -22,7 +22,7 @@ export class RichNotificationsNews implements NewsListItem {
 
 	async isShown(_newsId: NewsId): Promise<boolean> {
 		return (
-			isApp() &&
+			EnvProvider.get().isApp() &&
 			this.pushApp != null &&
 			(this.notificationMode = await this.pushApp.getExtendedNotificationMode()) !== ExtendedNotificationMode.SenderAndSubject
 		)

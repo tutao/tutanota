@@ -4,7 +4,7 @@
  *   <li>The worker sends {ClientCommands}s to the client. The commands are executed by the client (without any response to the worker).
  * </ul>
  */
-import { isWorker } from "../../../platform-kit/app-env"
+import { EnvProvider } from "../../../platform-kit/app-env"
 import { newPromise } from "../../../platform-kit/utils"
 import type { Commands, Message, MessageCallbacks, Request, Transport } from "./MessageTypes.js"
 import { RequestError, Response } from "./MessageTypes.js"
@@ -89,7 +89,7 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 			} else {
 				let error = new Error(`unexpected request: ${message.id}, ${message.requestType}`)
 
-				if (isWorker()) {
+				if (EnvProvider.isWorker()) {
 					this.transport.postMessage(new RequestError(message.id!, error))
 				} else {
 					throw error

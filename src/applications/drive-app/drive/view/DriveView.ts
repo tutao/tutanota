@@ -17,7 +17,7 @@ import { DriveSidebar } from "./Sidebar"
 import { listSelectionKeyboardShortcuts } from "../../../../ui/base/ListUtils"
 import { ListState, MultiselectMode } from "../../../../ui/base/List"
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
-import { AppType, CancelledError, isAndroidApp, OperationStatus, UpgradePromptType } from "@tutao/app-env"
+import { AppType, CancelledError, EnvProvider, OperationStatus, UpgradePromptType } from "@tutao/app-env"
 import { formatStorageSize } from "../../../../ui/utils/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
 import { modal } from "../../../../ui/base/Modal"
@@ -302,7 +302,10 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		return m(
 			"#drive.main-view",
 			{
-				class: isAndroidApp() && Styles.get().isAppNotUsingBottomNav() && !this.driveViewModel.listState().inMultiselect ? "mb-safe-inset" : undefined,
+				class:
+					EnvProvider.get().isAndroidApp() && Styles.get().isAppNotUsingBottomNav() && !this.driveViewModel.listState().inMultiselect
+						? "mb-safe-inset"
+						: undefined,
 			},
 			[
 				m(this.viewSlider, {

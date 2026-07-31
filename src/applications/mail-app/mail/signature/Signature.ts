@@ -1,12 +1,12 @@
 import { InfoLink, lang } from "../../../../ui/utils/LanguageViewModel"
 import { getHtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import type { LoginController } from "../../../common/api/main/LoginController"
-import { assertMainOrNode } from "../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../platform-kit/app-env"
 import { LINE_BREAK } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { TutanotaProperties } from "@tutao/entities/tutanota"
 import { EmailSignatureType } from "../../../../entities/tutanota/Utils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export function getDefaultSignature(): string {
 	// add one line break to the default signature to add one empty line between signature and body

@@ -1,5 +1,5 @@
 import m from "mithril"
-import { assertMainOrNode, isAdminClient, TabIndex } from "../../platform-kit/app-env"
+import { EnvProvider, TabIndex } from "../../platform-kit/app-env"
 import { Dialog, DialogType } from "../base/Dialog"
 import { DefaultAnimationTime } from "../animation/Animations"
 import type { MaybeTranslation } from "../utils/LanguageViewModel"
@@ -11,7 +11,7 @@ import { delay } from "../../platform-kit/utils"
 import { MaybeLazy, resolveMaybeLazy } from "../base/MaybeLazy"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../base/DialogHeaderBar.js"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export async function showProgressDialog<T>(
 	messageIdOrMessageFunction: MaybeLazy<MaybeTranslation>,
@@ -60,7 +60,7 @@ export async function showProgressDialog<T>(
 	})
 	progressDialog.show()
 	let start = new Date().getTime()
-	let minDialogVisibilityMillis = isAdminClient() ? 0 : 1000
+	let minDialogVisibilityMillis = EnvProvider.get().isAdminClient() ? 0 : 1000
 	try {
 		return await action
 	} finally {

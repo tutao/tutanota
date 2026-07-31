@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { TextField } from "../../../../ui/base/TextField"
 import { Autocapitalize, Autocomplete } from "../../../../ui/base/LegacyTextField"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { EmailDomainData } from "../../settings/mailaddress/MailAddressesUtils"
 import { IconButton, IconButtonAttrs } from "../../../../ui/base/IconButton"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
@@ -13,12 +13,11 @@ import { Icon } from "../../../../ui/base/Icon"
 import { isMailAddress } from "../../../../platform-kit/utils/FormatUtils"
 import { isTutaMailAddress } from "../../mailFunctionality/SharedMailUtils"
 import { locator } from "../../api/main/CommonLocator"
-import * as restError from "@tutao/rest-client/error"
+import { AccessDeactivatedError } from "@tutao/rest-client/error"
 import { theme } from "../../../../ui/theme"
 import { Icons } from "../../../../ui/base/icons/Icons"
-import { AccessDeactivatedError } from "@tutao/rest-client/error"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 const VALID_MESSAGE_ID = "mailAddressAvailable_msg"
 const CHECK_ADDRESS_DEBOUNCE_MS = 500

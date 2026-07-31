@@ -8,12 +8,12 @@ import { assertNotNull, noOp } from "../../platform-kit/utils"
 import { Styles } from "../styles.js"
 import { AriaLandmarks } from "../AriaUtils.js"
 import { LayerType } from "../base/RootView.js"
-import { assertMainOrNode } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector.js"
 import { WindowSizeListener } from "../utils/WindowUtils"
 import { IWindowFacade } from "../IWindowFacade"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 export type GestureInfo = {
 	x: number
 	y: number

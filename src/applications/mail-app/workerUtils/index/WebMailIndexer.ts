@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, CancelledError, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, TimeConstants } from "@tutao/app-env"
+import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, TimeConstants } from "@tutao/app-env"
 import {
 	assertNotNull,
 	clamp,
@@ -55,7 +55,7 @@ import {
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { abortAware, MailIndexer, MailIndexerNewMailDownloader } from "./MailIndexer"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const MAIL_INDEX_BATCH_INTERVAL = TimeConstants.DAY_IN_MILLIS // one day

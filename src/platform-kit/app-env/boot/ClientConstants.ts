@@ -1,8 +1,7 @@
-import { assertMainOrNodeBoot } from "../Env"
 import { ClientPlatform } from "./ClientDetector"
+import { EnvProvider } from "@tutao/app-env"
 
-assertMainOrNodeBoot()
-
+EnvProvider.assertMainOrNodeBoot()
 export enum ErrorReportClientType {
 	Browser = "0",
 	Android = "1",

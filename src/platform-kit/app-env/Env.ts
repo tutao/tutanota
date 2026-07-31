@@ -1,5 +1,6 @@
 import { ProgrammingError } from "./ProgrammingError"
 import { _isNode, _isWorker } from "./boot/TsPlatformConstants"
+import { TypeChecks } from "./boot/TsTypeChecks"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -81,27 +82,53 @@ export const enum Mode {
 const assertionsEnabled = false
 
 export class EnvProvider {
-	private boot: boolean
+	private static boot: boolean =
+		_isNode && !_isWorker && EnvProvider.tryInitWithGlobalEnv() != null && (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
 
 	private static singleton: EnvProvider | null = null
 
 	public static get(): EnvProvider {
+		EnvProvider.tryInitWithGlobalEnv()
 		if (EnvProvider.singleton == null) {
+			throw new Error("global var env is not defined yet")
+		}
+		return EnvProvider.singleton
+	}
+
+	public isMainOrNode() {
+		return EnvProvider.isMainOrNode()
+	}
+
+	private static tryInitWithGlobalEnv(): EnvProvider | null {
+		if (EnvProvider.singleton == null && TypeChecks.hasProperty("env")) {
 			EnvProvider.singleton = new EnvProvider(env)
 		}
 		return EnvProvider.singleton
 	}
 
-	constructor(public readonly env: EnvType) {
-		const isDesktopMainThread = _isNode && this.env != null && (this.isDesktop() || this.isAdminClient())
-		this.boot = !isDesktopMainThread && !_isWorker
+	public getVersionNumber(): string {
+		return this.env.versionNumber
 	}
+
+	public getTimeOutValue(): number {
+		return this.env.timeout
+	}
+
+	constructor(public readonly env: EnvType) {}
 
 	public getPlatformId(): PlatformId | null {
 		return this.env.platformId
 	}
 
-	isIOSApp(): boolean {
+	public networkDebuggingEnabled(): boolean {
+		return this.env.networkDebugging
+	}
+
+	public getClientName(): string | null {
+		return this.env.clientName
+	}
+
+	public isIOSApp(): boolean {
 		if (this.isApp() && this.env.platformId == null) {
 			throw new ProgrammingError("PlatformId is not set!")
 		}
@@ -111,11 +138,11 @@ export class EnvProvider {
 	/**
 	 * Return true if an Apple device; used for checking if CTRL or CMD/Meta should be used as the primary modifier
 	 */
-	isAppleDevice(): boolean {
+	public isAppleDevice(): boolean {
 		return this.env.platformId === PlatformId.Darwin || this.isIOSApp()
 	}
 
-	isAndroidApp(): boolean {
+	public isAndroidApp(): boolean {
 		if (this.isApp() && this.env.platformId == null) {
 			throw new ProgrammingError("PlatformId is not set!")
 		}
@@ -123,23 +150,23 @@ export class EnvProvider {
 		return this.isApp() && this.env.platformId === PlatformId.Android
 	}
 
-	isApp(): boolean {
+	public isApp(): boolean {
 		return this.env.mode === Mode.App
 	}
 
-	isDesktop(): boolean {
+	public isDesktop(): boolean {
 		return this.env.mode === Mode.Desktop
 	}
 
-	isBrowser(): boolean {
+	public isBrowser(): boolean {
 		return this.env.mode === Mode.Browser
 	}
 
-	isWebClient() {
+	public isWebClient() {
 		return this.env.mode === Mode.Browser
 	}
 
-	isAdminClient(): boolean {
+	public isAdminClient(): boolean {
 		return this.env.mode === Mode.Admin
 	}
 
@@ -147,48 +174,49 @@ export class EnvProvider {
 		return this.isDesktop() || this.isAdminClient()
 	}
 
-	isMainOrNode(): boolean {
-		return !_isWorker || _isNode || this.isTest()
+	public static isMainOrNode(): boolean {
+		return !_isWorker || _isNode || EnvProvider.isTest()
 	}
 
-	isWorkerOrNode(): boolean {
-		return _isWorker || _isNode || this.isTest()
+	public static isWorkerOrNode(): boolean {
+		return _isWorker || _isNode || EnvProvider.isTest()
 	}
 
-	isWorker(): boolean {
+	public static isWorker(): boolean {
 		return _isWorker
 	}
 
-	isMain(): boolean {
+	public static isMain(): boolean {
 		return !_isWorker && !_isNode
 	}
 
-	isTest(): boolean {
-		return this.env.mode === Mode.Test
+	public static isTest(): boolean {
+		EnvProvider.tryInitWithGlobalEnv()
+		return EnvProvider.singleton?.env.mode === Mode.Test
 	}
 
 	/**
 	 * Whether or not we will be using an offline cache (doesn't take into account if credentials are stored)
 	 */
-	isOfflineStorageAvailable(): boolean {
+	public isOfflineStorageAvailable(): boolean {
 		return !this.isBrowser() && !this.isAdminClient()
 	}
 
-	bootFinished() {
+	public static bootFinished() {
 		this.boot = false
 	}
 
-	isBootFinished() {
+	public static isBootFinished() {
 		return this.boot
 	}
 
-	getWebsocketBaseUrl(domainConfig: DomainConfig): string {
+	public getWebsocketBaseUrl(domainConfig: DomainConfig): string {
 		// replaces http: with ws: and https: with wss:
 		return domainConfig.apiUrl.replace(/^http/, "ws")
 	}
 
 	/** Returns the origin which should be used for API requests. */
-	getApiBaseUrl(domainConfig: DomainConfig): string {
+	public getApiBaseUrl(domainConfig: DomainConfig): string {
 		if (this.isIOSApp()) {
 			// http:// -> api:// and https:// -> apis://
 			return domainConfig.apiUrl.replace(/^http/, "api")
@@ -197,56 +225,35 @@ export class EnvProvider {
 		}
 	}
 
-	assertMainOrNode() {
+	static assertMainOrNode() {
 		if (!assertionsEnabled) return
 
-		if (!EnvProvider.get().isMainOrNode()) {
+		if (!EnvProvider.isMainOrNode()) {
 			throw new Error("this code must not run in the worker thread")
 		}
 
-		if (EnvProvider.get().isBootFinished()) {
+		if (EnvProvider.isBootFinished()) {
 			throw new Error("this main code must not be loaded at boot time")
 		}
 	}
 
-	assertMainOrNodeBoot() {
+	public static assertMainOrNodeBoot() {
 		if (!assertionsEnabled) return
 
-		if (!EnvProvider.get().isMainOrNode()) {
+		if (!EnvProvider.isMainOrNode()) {
 			throw new Error("this code must not run in the worker thread")
 		}
 	}
 
-	assertWorkerOrNode() {
+	public static assertWorkerOrNode() {
 		if (!assertionsEnabled) return
 
-		if (!EnvProvider.get().isWorkerOrNode()) {
+		if (!EnvProvider.isWorkerOrNode()) {
 			throw new Error("this code must not run in the gui thread")
 		}
 	}
 
-	public static overrideEnvForTesting(env: EnvType): void {
+	public static overrideEnv(env: EnvType): void {
 		;(EnvProvider.get().env satisfies EnvType) = env
 	}
 }
-
-// ========================================================
-// TODO: Inline these (CTRL+ALT+N), it will just change all files that import it
-export const assertMainOrNode = EnvProvider.get().assertMainOrNode
-export const assertMainOrNodeBoot = EnvProvider.get().assertMainOrNodeBoot
-export const assertWorkerOrNode = EnvProvider.get().assertWorkerOrNode
-export const isIOSApp = EnvProvider.get().isIOSApp
-export const isAppleDevice = EnvProvider.get().isAppleDevice
-export const isAndroidApp = EnvProvider.get().isAndroidApp
-export const isApp = EnvProvider.get().isApp
-export const isDesktop = EnvProvider.get().isDesktop
-export const isBrowser = EnvProvider.get().isBrowser
-export const isWebClient = EnvProvider.get().isWebClient
-export const isAdminClient = EnvProvider.get().isAdminClient
-export const isMainOrNode = EnvProvider.get().isMainOrNode
-export const isWorker = EnvProvider.get().isWorker
-export const isTest = EnvProvider.get().isTest
-export const isOfflineStorageAvailable = EnvProvider.get().isOfflineStorageAvailable
-export const getApiBaseUrl = EnvProvider.get().getApiBaseUrl
-export const getWebsocketBaseUrl = EnvProvider.get().getWebsocketBaseUrl
-export const bootFinished = EnvProvider.get().bootFinished

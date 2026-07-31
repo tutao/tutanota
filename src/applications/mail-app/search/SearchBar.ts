@@ -8,7 +8,7 @@ import type { Shortcut } from "../../../ui/utils/KeyManager"
 import { isKeyPressed, keyManager } from "../../../ui/utils/KeyManager"
 import { encodeCalendarSearchKey, getRestriction, hasMoreResults } from "./model/SearchUtils"
 import { Dialog } from "../../../ui/base/Dialog"
-import { assertMainOrNode, FULL_INDEXED_TIMESTAMP, isApp, ProgrammingError } from "../../../platform-kit/app-env"
+import { EnvProvider, FULL_INDEXED_TIMESTAMP, ProgrammingError } from "../../../platform-kit/app-env"
 import { Styles } from "../../../ui/styles"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { debounce, downcast, memoized, mod, ofClass } from "../../../platform-kit/utils"
@@ -30,7 +30,7 @@ import { WhitelabelChild } from "@tutao/entities/sys"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { Keys } from "../../../ui/KeyboardKeys"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 export type ShowMoreAction = {
 	resultCount: number
 	shownCount: number
@@ -210,7 +210,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 	}
 
 	oncreate() {
-		if (isApp()) {
+		if (EnvProvider.get().isApp()) {
 			// only focus in the mobile app, the search bar always exists in desktop/web and will always be grabbing attention
 			this.onFocus()
 		}
@@ -381,7 +381,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 							})
 							.catch(
 								ofClass(IndexingNotSupportedError, () => {
-									Dialog.message(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
+									Dialog.message(EnvProvider.get().isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 								}),
 							)
 					}
@@ -563,7 +563,7 @@ export class SearchBar implements Component<SearchBarAttrs> {
 
 	private onFocus() {
 		if (!mailLocator.search.indexingSupported) {
-			Dialog.message(isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
+			Dialog.message(EnvProvider.get().isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 		} else if (!this.focused) {
 			this.focused = true
 			// setTimeout to fix bug in current Safari with losing focus

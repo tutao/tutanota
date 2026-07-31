@@ -1,7 +1,7 @@
-import { assertMainOrNode } from "../../../platform-kit/app-env"
+import { EnvProvider } from "../../../platform-kit/app-env"
 import { Message, Transport } from "../shared/MessageTypes"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /**
  * Transport for communication between electron native and webview

@@ -2,11 +2,11 @@ import m, { Children, Component, Vnode } from "mithril"
 import type { TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { isMailAddress } from "../../../platform-kit/utils/FormatUtils.js"
-import * as restError from "@tutao/rest-client/error"
+import { AccessDeactivatedError } from "@tutao/rest-client/error"
 import { formatMailAddressFromParts } from "../../../ui/utils/Formatter.js"
 import { Icon } from "../../../ui/base/Icon.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { font_size, px } from "../../../ui/size.js"
 import { Autocapitalize, Autocomplete, LegacyTextField } from "../../../ui/base/LegacyTextField.js"
 import { attachDropdown, DropdownButtonAttrs } from "../../../ui/base/Dropdown.js"
@@ -15,9 +15,8 @@ import { ButtonSize } from "../../../ui/base/ButtonSize.js"
 import { EmailDomainData } from "./mailaddress/MailAddressesUtils.js"
 import { isTutaMailAddress } from "../mailFunctionality/SharedMailUtils.js"
 import { Icons } from "../../../ui/base/icons/Icons"
-import { AccessDeactivatedError } from "@tutao/rest-client/error"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 const VALID_MESSAGE_ID = "mailAddressAvailable_msg"
 const CHECK_ADDRESS_DEBOUNCE_MS = 500

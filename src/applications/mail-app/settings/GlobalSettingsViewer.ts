@@ -18,7 +18,7 @@ import m, { Children } from "mithril"
 import { LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "../../../platform-kit/utils"
 import { InfoLink, lang } from "../../../ui/utils/LanguageViewModel"
 import { getSpamRuleFieldToName, getSpamRuleTypeNameMapping, showAddSpamRuleDialog } from "./AddSpamRuleDialog"
-import { assertMainOrNode, TimeConstants, UpgradePromptType } from "../../../platform-kit/app-env"
+import { EnvProvider, TimeConstants, UpgradePromptType } from "../../../platform-kit/app-env"
 import {
 	EntityIdEncoding,
 	GENERATED_MAX_ID,
@@ -55,7 +55,7 @@ import { ExpandableTable } from "../../common/settings/ExpandableTable.js"
 import { getSpamRuleField } from "../mail/MailUtils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 // Number of days for that we load rejected senders
 const REJECTED_SENDERS_TO_LOAD_MS = 5 * TimeConstants.DAY_IN_MILLIS
 // Max number of rejected sender entries that we display in the ui

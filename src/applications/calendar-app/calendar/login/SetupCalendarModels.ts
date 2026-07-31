@@ -5,7 +5,7 @@ import { CalendarEventUpdateCoordinator } from "../model/CalendarEventUpdateCoor
 import { SyncTracker } from "../../../common/api/main/SyncTracker"
 import { PostLoginAction } from "../../../../app-kit/native-bridge/common/PostLoginAction"
 import { remindActiveOutOfOfficeNotification } from "../../../common/misc/OutOfOfficeNotificationUtils"
-import { isApp, isDesktop } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { showSnackBar } from "../../../../ui/base/SnackBar"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -25,7 +25,7 @@ export async function setupCalendarModels(
 				lazyCalendarEventUpdateCoordinator().then((calendarEventUpdateCoordinator) => calendarEventUpdateCoordinator.init())
 				remindActiveOutOfOfficeNotification(entityClient)
 
-				if (isApp() || isDesktop()) {
+				if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
 					handleExternalSync(calendarModel, syncTracker)
 				}
 			})
@@ -34,7 +34,7 @@ export async function setupCalendarModels(
 }
 
 function handleExternalSync(calendarModel: CalendarModel, syncTracker: SyncTracker) {
-	if (isApp() || isDesktop()) {
+	if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
 		syncTracker.addSyncDoneListener({
 			id: "SetupCalendarModel",
 			onSyncDone: async () => {

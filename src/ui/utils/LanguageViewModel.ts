@@ -1,7 +1,7 @@
 import { downcast, lazy, typedEntries } from "../../platform-kit/utils"
 import type { TranslationKeyType } from "./TranslationKey"
 import { getWhitelabelCustomizations } from "./WhitelabelUtils"
-import { assertMainOrNodeBoot } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 import { WhitelabelCustomizations } from "../WhitelabelCustomizations"
 
 /**
@@ -35,7 +35,7 @@ export type Translation = {
 
 export type TranslationReplacements = Record<string, string | number>
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 export type DateTimeFormatOptions = {
 	hourCycle?: "h11" | "h12" | "h23" | "h24"
 }

@@ -1,5 +1,5 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
-import { assertMainOrNode } from "../../../platform-kit/app-env"
+import { EnvProvider } from "../../../platform-kit/app-env"
 import { ColumnType, ViewColumn } from "../../../ui/base/ViewColumn"
 import { ViewSlider } from "../../../ui/nav/ViewSlider.js"
 import { SettingsFolder } from "../settings/SettingsFolder.js"
@@ -23,11 +23,11 @@ import { SettingsViewAttrs, UpdatableSettingsDetailsViewer, UpdatableSettingsVie
 import { DrawerMenuAttrs } from "../gui/nav/DrawerMenu"
 import { ManagedCustomerListView } from "./ManagedCustomersListView"
 import { Icons } from "../../../ui/base/icons/Icons"
-import { EntityUpdatesListener, EntityUpdateData, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, EntityUpdatesListener, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { windowFacade } from "../misc/WindowFacade"
 import { renderHeaderButtons } from "../../calendar-app/gui/HeaderButtons"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export interface PartnerViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs

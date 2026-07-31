@@ -1,4 +1,4 @@
-import { assertWorkerOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { BulkMailLoader, MailWithMailDetails } from "../../../../../mail-app/workerUtils/index/BulkMailLoader.js"
 import { BlobFacade } from "./BlobFacade.js"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
@@ -17,7 +17,7 @@ import { DataFile } from "../../../../../../entities/tutanota/MailBundle"
 import { createReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 /**
  * Denotes the header that will have the mail export token.

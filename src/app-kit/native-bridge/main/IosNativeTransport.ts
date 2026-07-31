@@ -1,9 +1,9 @@
 import { base64ToUint8Array, utf8Uint8ArrayToString } from "../../../platform-kit/utils"
-import { assertMainOrNode } from "../../../platform-kit/app-env"
+import { EnvProvider } from "../../../platform-kit/app-env"
 import type { Transport } from "../shared/MessageTypes"
 import { decodeNativeMessage, encodeNativeMessage, JsMessageHandler, NativeMessage } from "../common/NativeLineProtocol.js"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /**
  * Transport for communication between ios native and webview

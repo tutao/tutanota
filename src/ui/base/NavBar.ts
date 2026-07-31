@@ -1,8 +1,8 @@
 import m, { Child, Children, Component, Vnode } from "mithril"
 import { AriaLandmarks, landmarkAttrs } from "../AriaUtils"
-import { assertMainOrNode } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 export type Attrs = void
 
 export class NavBar implements Component<Attrs> {

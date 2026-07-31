@@ -20,7 +20,7 @@ export function create(params) {
 	}
 }
 
-/** @param {env} env */
+/** @param {EnvType} env */
 export function preludeEnvPlugin(env) {
 	return {
 		name: "prelude-env",

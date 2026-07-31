@@ -1,10 +1,10 @@
-import { assertWorkerOrNode, ProgrammingError, RolloutType } from "@tutao/app-env"
+import { EnvProvider, ProgrammingError, RolloutType } from "@tutao/app-env"
 import { getAsEnumValue, NULL_ENTITY } from "../../meta"
 import { IServiceExecutor } from "../../network/ServiceRequest"
 import { assertNotNull, LazyLoaded } from "@tutao/utils"
 import { RolloutService_GET } from "@tutao/entities/sys"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export interface RolloutAction {
 	execute(): Promise<void>

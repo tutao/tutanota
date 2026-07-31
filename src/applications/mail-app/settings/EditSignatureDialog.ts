@@ -1,9 +1,9 @@
 import m from "mithril"
 import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import { lang } from "../../../ui/utils/LanguageViewModel"
-import { assertMainOrNode, FeatureType, isApp } from "../../../platform-kit/app-env"
+import { EnvProvider, FeatureType } from "../../../platform-kit/app-env"
 import { HtmlEditor } from "../../../ui/editor/HtmlEditor"
-import * as restError from "../../../platform-kit/rest-client/error"
+import { PayloadTooLargeError } from "../../../platform-kit/rest-client/error"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { downcast, neverNull, ofClass } from "../../../platform-kit/utils"
 import { locator } from "../../common/api/main/CommonLocator"
@@ -12,9 +12,8 @@ import { insertInlineImageB64ClickHandler } from "../../common/mailFunctionality
 import { TutanotaProperties } from "@tutao/entities/tutanota"
 import { EmailSignatureType } from "../../../entities/tutanota/Utils"
 import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer"
-import { PayloadTooLargeError } from "../../../platform-kit/rest-client/error"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 // signatures can become large, for example if they include a base64 embedded image. we ask for confirmation in such cases
 const RECOMMENDED_SIGNATURE_SIZE_LIMIT = 15 * 1024
 
@@ -35,7 +34,7 @@ export function show(props: TutanotaProperties) {
 			.enableToolbar()
 			.setToolbarOptions({
 				//Inline images require transporting over IPC boundary and we have not implemented a suitable way yet
-				imageButtonClickHandler: isApp() ? null : insertInlineImageB64ClickHandler,
+				imageButtonClickHandler: EnvProvider.get().isApp() ? null : insertInlineImageB64ClickHandler,
 			})
 			.setEnabled(selectedType === EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM)
 

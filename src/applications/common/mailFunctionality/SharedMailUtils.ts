@@ -1,4 +1,4 @@
-import { ALLOWED_IMAGE_FORMATS, assertMainOrNode, EncryptionAuthStatus, MAX_BASE64_IMAGE_SIZE, TUTA_MAIL_ADDRESS_DOMAINS } from "@tutao/app-env"
+import { ALLOWED_IMAGE_FORMATS, EncryptionAuthStatus, EnvProvider, MAX_BASE64_IMAGE_SIZE, TUTA_MAIL_ADDRESS_DOMAINS } from "@tutao/app-env"
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
 import { assertNotNull, endsWith, neverNull, uint8ArrayToBase64 } from "@tutao/utils"
 import { UserController } from "../api/main/UserController.js"
@@ -15,9 +15,9 @@ import { Contact, createContact, createContactMailAddress, Mail } from "@tutao/e
 import { Attachment, ContactAddressType, ConversationType, MailState, MAX_ATTACHMENT_SIZE } from "../../../entities/tutanota/Utils"
 import { GroupType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../entities/sys/Utils"
 import { DataFile } from "../../../entities/tutanota/MailBundle"
-import { elementIdToId, idToElementId } from "@tutao/meta"
+import { idToElementId } from "@tutao/meta"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 export const LINE_BREAK = "<br>"
 
 /**

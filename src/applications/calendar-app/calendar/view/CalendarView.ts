@@ -21,9 +21,7 @@ import { Group, GroupInfo, User } from "@tutao/entities/sys"
 import { GroupType, hasCapabilityOnGroup, NewPaidPlans } from "../../../../entities/sys/Utils"
 import {
 	DEFAULT_CALENDAR_COLOR,
-	isAndroidApp,
-	isApp,
-	isDesktop,
+	EnvProvider,
 	ProgrammingError,
 	ShareCapability,
 	TimeFormat,
@@ -166,7 +164,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					m(FolderColumnView, {
 						drawer: attrs.drawerAttrs,
 						button:
-							!isApp() && Styles.get().isDesktopLayout()
+							!EnvProvider.get().isApp() && Styles.get().isDesktopLayout()
 								? {
 										label: "newEvent_action",
 										click: () => this.createNewEventDialog(),
@@ -200,7 +198,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 													title: "addCalendar_action",
 													colors: ButtonColor.Nav,
 													click:
-														(isApp() || isDesktop()) && findFirstPrivateCalendar(attrs.calendarViewModel.calendarInfos)
+														(EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) &&
+														findFirstPrivateCalendar(attrs.calendarViewModel.calendarInfos)
 															? createDropdown({
 																	lazyButtons: () => [
 																		{
@@ -413,7 +412,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onEventClicked: (event, domEvent) => {
 										if (Styles.get().isDesktopLayout()) {
 											this.viewModel.updatePreviewedEvent(event)
-										} else if (isApp()) {
+										} else if (EnvProvider.get().isApp()) {
 											this.viewModel.updatePreviewedEvent(event).then(() => {
 												const eventId = base64ToBase64Url(stringToBase64(event._id.join("/")))
 												this.setUrl(this.currentViewType, this.viewModel.selectedDate(), false, false, eventId)
@@ -477,7 +476,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		const columns = [this.sidebarColumn, this.contentColumn]
 
 		// Adds eventDetails column to show events at agenda view as full page instead of a popover
-		if (isApp()) {
+		if (EnvProvider.get().isApp()) {
 			this.eventDetails = new ViewColumn(
 				{
 					view: () => this.renderEventDetailsColumn(attrs),
@@ -549,7 +548,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			return null
 		}
 
-		if (!isApp()) {
+		if (!EnvProvider.get().isApp()) {
 			this.viewSlider.focus(this.viewSlider.getMainColumn())
 			return null
 		}
@@ -1171,7 +1170,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 	view({ attrs }: Vnode<CalendarViewAttrs>): Children {
 		return m(
-			".main-view" + (isAndroidApp() && Styles.get().isAppNotUsingBottomNav() ? ".mb-safe-inset" : ""),
+			".main-view" + (EnvProvider.get().isAndroidApp() && Styles.get().isAppNotUsingBottomNav() ? ".mb-safe-inset" : ""),
 			m(this.viewSlider, {
 				header: m(Header, {
 					firstColWidth: this.sidebarColumn.width,
@@ -1207,14 +1206,14 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					m.redraw()
 				}
 
-				if (eventIdParam && (!isApp() || this.eventDetails)) {
+				if (eventIdParam && (!EnvProvider.get().isApp() || this.eventDetails)) {
 					try {
 						const decodedEventId = decodeBase64("utf-8", base64UrlToBase64(eventIdParam)).split("/")
 						locator.logins.waitForPartialLogin().then(() => {
 							this.viewModel.setPreviewedEventId([decodedEventId[0], decodedEventId[1]]).then(() => {
-								if (isApp() && this.viewSlider.focusedColumn !== this.eventDetails && this.eventDetails) {
+								if (EnvProvider.get().isApp() && this.viewSlider.focusedColumn !== this.eventDetails && this.eventDetails) {
 									this.viewSlider.focus(this.eventDetails)
-								} else if (!isApp() && !Styles.get().isDesktopLayout()) {
+								} else if (!EnvProvider.get().isApp() && !Styles.get().isDesktopLayout()) {
 									const eventElement = document.getElementById(eventIdParam)
 									if (eventElement && this.viewModel.previewedEventTuple()?.event) {
 										this.showCalendarEventPopup(
@@ -1265,7 +1264,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private buildRouteState(view: string, resetState: boolean, dateString: string) {
-		const shouldBuild = isApp() && !resetState && view === CalendarViewType.AGENDA
+		const shouldBuild = EnvProvider.get().isApp() && !resetState && view === CalendarViewType.AGENDA
 		if (!shouldBuild) return undefined
 
 		const returnDate = history.state?.dateString ?? dateString
@@ -1483,11 +1482,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private canExport(group: Group, user: User): boolean {
-		return !isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Read)
+		return !EnvProvider.get().isApp() && group.type === GroupType.Calendar && hasCapabilityOnGroup(user, group, ShareCapability.Read)
 	}
 
 	private canSync(isExternal: boolean): boolean {
-		return (isApp() || isDesktop()) && isExternal
+		return (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) && isExternal
 	}
 
 	private handleShare(userController: UserController, groupInfo: GroupInfo, shared: boolean) {

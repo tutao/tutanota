@@ -1,10 +1,10 @@
 import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import { DomainDnsStatus } from "./DomainDnsStatus"
 import { renderCheckResult } from "./emaildomain/VerifyDnsRecordsPage"
-import { assertMainOrNode } from "../../../platform-kit/app-env"
+import { EnvProvider } from "../../../platform-kit/app-env"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /**
  * @pre domainStatus.status.isLoaded() == true

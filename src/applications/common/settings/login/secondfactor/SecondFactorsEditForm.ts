@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, SecondFactorType } from "@tutao/app-env"
+import { EnvProvider, SecondFactorType } from "@tutao/app-env"
 import { assertNotNull, LazyLoaded, neverNull, noOp } from "@tutao/utils"
 import { Icons } from "../../../../../ui/base/icons/Icons.js"
 import { InfoLink, lang } from "../../../../../ui/utils/LanguageViewModel.js"
@@ -23,7 +23,7 @@ import { Dialog } from "../../../../../ui/base/Dialog"
 import { assertEnumValue } from "@tutao/meta"
 import { ifAllowedTutaLinks } from "../../../gui/base/TutaLinkUtils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class SecondFactorsEditForm {
 	_2FALineAttrs: TableLineAttrs[]

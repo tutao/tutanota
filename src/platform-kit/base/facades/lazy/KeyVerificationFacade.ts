@@ -1,5 +1,5 @@
 import { KeyVerificationMismatchError } from "../../../network/error/KeyVerificationMismatchError"
-import { assertWorkerOrNode, EncryptionKeyVerificationState, IdentityKeySourceOfTrust, ProgrammingError } from "@tutao/app-env"
+import { EncryptionKeyVerificationState, EnvProvider, IdentityKeySourceOfTrust, ProgrammingError } from "@tutao/app-env"
 import { concat, uint8ArrayToHex, Versioned } from "@tutao/utils"
 import {
 	ed25519PublicKeyToBytes,
@@ -15,7 +15,7 @@ import { PublicIdentityKeyProvider } from "../../base-crypto/PublicIdentityKeyPr
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../base-crypto/persistence/IdentityKeyTrustDatabase"
 import { MaybeSignedPublicKey } from "../../base-crypto/MaybeSignedPublicKey"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export type FingerPrintHex = { fingerprint: Hex }
 export type TrustedIdentity = TrustDBEntry & FingerPrintHex

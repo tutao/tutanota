@@ -9,13 +9,13 @@ import { theme } from "../theme"
 import { Styles } from "../styles"
 import type { MaybeTranslation } from "../utils/LanguageViewModel"
 import { lang } from "../utils/LanguageViewModel"
-import { assertMainOrNode, isDesktop } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 import { isKeyPressed } from "../utils/KeyManager"
 import { DragEnterHandler, DragStartHandler, DropData, DropHandler, DropType } from "./GuiUtils"
 import { fileListToArray } from "../utils/FileUtils.js"
 import { Keys } from "../KeyboardKeys"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 export type NavButtonAttrs = {
 	label: MaybeTranslation
 	icon?: lazyIcon
@@ -188,7 +188,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 						data: ev.dataTransfer.getData(DropType.DriveItems),
 					}
 					neverNull(a.dropHandler)(dropData)
-				} else if (isDesktop() && ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
+				} else if (EnvProvider.get().isDesktop() && ev.dataTransfer?.files && ev.dataTransfer.files.length > 0) {
 					neverNull(a.dropHandler)({
 						dropType: DropType.ExternalFile,
 						files: fileListToArray(ev.dataTransfer.files),

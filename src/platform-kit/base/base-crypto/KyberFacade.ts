@@ -1,6 +1,6 @@
 import { isNotNull, LazyLoaded, Nullable } from "@tutao/utils"
 import { NativeCryptoFacade } from "../../../app-kit/native-bridge/common/generatedipc/types/NativeCryptoFacade"
-import { assertWorkerOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import {
 	decapsulateKyber,
 	encapsulateKyber,
@@ -15,7 +15,7 @@ import {
 } from "@tutao/crypto"
 import { loadWasmFromFileOrNetwork } from "../../utils/WebAssembly"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 /**
  * Abstract interface for the Liboqs crypto system.

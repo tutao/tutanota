@@ -2,7 +2,7 @@ import m, { Child, Children, Component, Vnode } from "mithril"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel.js"
 import { LegacyTextFieldType } from "../../../../../ui/base/LegacyTextField.js"
 import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
-import { EndType, isApp, RepeatPeriod, TabIndex, Weekday } from "../../../../../platform-kit/app-env"
+import { EndType, EnvProvider, RepeatPeriod, TabIndex, Weekday } from "../../../../../platform-kit/app-env"
 import { DatePicker, DatePickerAttrs, PickerPosition } from "../pickers/DatePicker.js"
 
 import {
@@ -356,8 +356,8 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 					m(SingleLineTextField, {
 						classes: ["tutaui-button-outline", "text-center", "border-content-message-bg"],
 						value: isNaN(this.repeatOccurrences) ? "" : this.repeatOccurrences.toString(),
-						inputMode: isApp() ? InputMode.NONE : InputMode.TEXT,
-						readonly: isApp(),
+						inputMode: EnvProvider.get().isApp() ? InputMode.NONE : InputMode.TEXT,
+						readonly: EnvProvider.get().isApp(),
 						disabled: attrs.model.repeatEndType !== EndType.Count,
 						oninput: (val: string) => {
 							if (this.repeatOccurrences === Number(val)) {

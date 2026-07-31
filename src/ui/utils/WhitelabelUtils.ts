@@ -1,8 +1,8 @@
-import { assertMainOrNodeBoot } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 import { mapNullable } from "../../platform-kit/utils"
 import { UnknownThemeCustomizations, WhitelabelCustomizations } from "../WhitelabelCustomizations"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 
 /**
  * window.whitelabelCustomizations is defined when the user has logged in via a whitelabel domain. index.js is rewritten to have the definition

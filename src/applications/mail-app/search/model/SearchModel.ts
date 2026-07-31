@@ -1,7 +1,7 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { isSameTypeRef, listIdPart } from "../../../../platform-kit/meta"
-import { assertMainOrNode, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../platform-kit/app-env"
+import { EnvProvider, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../platform-kit/app-env"
 import { DbError } from "../../../common/api/common/error/DbError"
 import type { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { assertNonNull, assertNotNull, incrementMonth, lazyAsync, ofClass, tokenize } from "../../../../platform-kit/utils"
@@ -21,7 +21,7 @@ import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils
 import { ProgressMonitorInterface } from "../../../../platform-kit/network/ProgressMonitorInterface"
 import { CalendarEvent, CalendarEventTypeRef, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 export type SearchQuery = {
 	query: string
 	restriction: SearchRestriction

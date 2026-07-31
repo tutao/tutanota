@@ -34,12 +34,12 @@ import { PublicIdentityKeyProvider } from "../../../../platform-kit/base/base-cr
 import { DriveFacade } from "./facades/lazy/DriveFacade"
 import { TransferProgressDispatcher } from "../main/TransferProgressDispatcher"
 import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorage"
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { WebsocketConnectivityListener } from "../../../../platform-kit/network/WebsocketConnectivityListener"
 import { EntityRestInterface } from "../../../../platform-kit/network/EntityRestCacheInterface"
 import { AlarmFacade } from "./facades/lazy/AlarmFacade"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export interface WorkerRandomizer {
 	generateRandomNumber(numBytes: number): Promise<number>

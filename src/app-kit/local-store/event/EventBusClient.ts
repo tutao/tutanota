@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, CancelledError, isAdminClient, isBrowser, isTest, OutOfSyncError, TimeConstants } from "@tutao/app-env"
+import { CancelledError, EnvProvider, OutOfSyncError, TimeConstants } from "@tutao/app-env"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -49,7 +49,7 @@ import { EntityMigrator } from "../../../platform-kit/network/EntityRestClient"
 import { validateKdfNonceLength } from "@tutao/crypto"
 import { IncomingServerJson } from "../../../platform-kit/instance-pipeline/TypeMapper"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export const enum EventBusState {
 	Automatic = "automatic",
@@ -743,7 +743,7 @@ export class EventBusClient {
 
 	private eventGroups(): Id[] {
 		const user = this.loggedInUserProvider.getLoggedInUser()
-		if ((!isBrowser() && !isAdminClient()) || isTest()) {
+		if ((!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) || EnvProvider.isTest()) {
 			return user.memberships
 				.filter((membership) => membership.groupType !== GroupType.MailingList)
 				.concat(user.userGroup)

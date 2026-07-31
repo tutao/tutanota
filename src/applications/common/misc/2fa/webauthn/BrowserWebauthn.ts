@@ -1,5 +1,5 @@
 import { COSEAlgorithmIdentifier } from "./WebauthnTypes.js"
-import { CancelledError, DomainConfig, isApp, ProgrammingError } from "@tutao/app-env"
+import { CancelledError, DomainConfig, EnvProvider, ProgrammingError } from "@tutao/app-env"
 import {
 	WebAuthnFacade,
 	WebAuthnRegistrationChallenge,
@@ -44,7 +44,7 @@ export class BrowserWebauthn implements WebAuthnFacade {
 	 */
 	async isSupported(): Promise<boolean> {
 		return (
-			!isApp() &&
+			!EnvProvider.get().isApp() &&
 			this.api != null &&
 			// @ts-ignore see polyfill.js
 			// We just stub BigInt in order to import cborg without issues but we can't actually use it

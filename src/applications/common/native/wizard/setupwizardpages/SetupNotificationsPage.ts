@@ -6,7 +6,7 @@ import Stream from "mithril/stream"
 import { SetupPageLayout } from "./SetupPageLayout.js"
 import { SystemPermissionHandler } from "../../SystemPermissionHandler.js"
 import { NotificationPermissionsBody } from "../../../settings/NotificationPermissionsDialog.js"
-import { isAndroidApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { NativePushServiceApp } from "../../NativePushServiceApp"
 
 export interface NotificationPermissionsData {
@@ -79,7 +79,7 @@ export class SetupNotificationsPageAttrs implements WizardPageAttrs<Notification
 
 	private isPageNeeded(data: NotificationPermissionsData): boolean {
 		// Skip this page if the needed permissions are already granted
-		if (isAndroidApp()) {
+		if (EnvProvider.get().isAndroidApp()) {
 			return !data.isNotificationPermissionGranted || !data.isBatteryPermissionGranted
 		}
 		return !data.isNotificationPermissionGranted

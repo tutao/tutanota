@@ -24,11 +24,11 @@ import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 import { UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
 import { PasswordField } from "../../../common/misc/passwords/PasswordField.js"
 import { renderInfoLinks } from "../../../common/gui/RenderLoginInfoLinks.js"
-import { assertMainOrNode } from "../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../platform-kit/app-env"
 import { asKdfType, KdfType } from "../../../../platform-kit/base/base-crypto/Constants"
 import { Keys } from "../../../../ui/KeyboardKeys"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 type UrlData = { userId: Id; salt: Uint8Array<ArrayBuffer>; kdfType: KdfType }
 

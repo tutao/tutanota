@@ -1,7 +1,7 @@
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-import { AppType, assertMainOrNodeBoot, bootFinished, DomainConfig, isApp, isDesktop, ProgrammingError } from "../../platform-kit/app-env"
+import { AppType, DomainConfig, EnvProvider, ProgrammingError } from "../../platform-kit/app-env"
 import { assertNotNull } from "../../platform-kit/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
@@ -36,8 +36,8 @@ import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
 import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
 import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
 
-assertMainOrNodeBoot()
-bootFinished()
+EnvProvider.assertMainOrNodeBoot()
+EnvProvider.bootFinished()
 
 const urlQueryParams = m.parseQueryString(location.search)
 
@@ -93,7 +93,7 @@ import("../../ui/translations/en.js")
 
 		// this needs to stay after client.init
 		windowFacade.init(driveLocator.logins, driveLocator.connectivityModel)
-		if (isDesktop()) {
+		if (EnvProvider.get().isDesktop()) {
 			import("../common/native/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(driveLocator.desktopSettingsFacade))
 		}
 
@@ -113,7 +113,7 @@ import("../../ui/translations/en.js")
 		driveLocator.logins.addPostLoginAction(async () => {
 			return {
 				async onPartialLoginSuccess() {
-					if (isApp()) {
+					if (EnvProvider.get().isApp()) {
 						driveLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 					}
 				},
@@ -289,7 +289,7 @@ import("../../ui/translations/en.js")
 
 		// We need to initialize native once we start the mithril routing, specifically for the case of mailto handling in android
 		// If native starts telling the web side to navigate too early, mithril won't be ready and the requests will be lost
-		if (isApp() || isDesktop()) {
+		if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
 			await driveLocator.native.init()
 		}
 		// if (isDesktop()) {
@@ -428,10 +428,10 @@ function makeViewResolver<FullAttrs extends TopLevelAttrs = never, ComponentType
 function assignEnvPlatformId(urlQueryParams: Mithril.Params) {
 	const platformId = urlQueryParams["platformId"]
 
-	if (isApp() || isDesktop()) {
+	if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
 		if (
-			(isApp() && (platformId === "android" || platformId === "ios")) ||
-			(isDesktop() && (platformId === "linux" || platformId === "win32" || platformId === "darwin"))
+			(EnvProvider.get().isApp() && (platformId === "android" || platformId === "ios")) ||
+			(EnvProvider.get().isDesktop() && (platformId === "linux" || platformId === "win32" || platformId === "darwin"))
 		) {
 			env.platformId = platformId
 		} else {

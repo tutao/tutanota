@@ -1,11 +1,11 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { modal } from "./Modal"
 import { overlay } from "./Overlay"
-import { assertMainOrNodeBoot, isApp } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 import { isKeyPressed } from "../utils/KeyManager.js"
 import { Keys } from "../KeyboardKeys"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 
 export const enum LayerType {
 	// Minimized editors, SearchBarOverlay
@@ -30,7 +30,7 @@ export const enum PrimaryNavigationType {
 
 // global, in case we have multiple instances for some reason
 /** What we infer to be the user's preferred navigation type. */
-export let currentNavigationType: PrimaryNavigationType = isApp() ? PrimaryNavigationType.Touch : PrimaryNavigationType.Mouse
+export let currentNavigationType: PrimaryNavigationType = EnvProvider.get().isApp() ? PrimaryNavigationType.Touch : PrimaryNavigationType.Mouse
 
 /**
  * View which wraps anything that we render.

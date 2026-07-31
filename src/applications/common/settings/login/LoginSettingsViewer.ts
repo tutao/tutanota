@@ -9,7 +9,7 @@ import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { elementIdPart, getElementId } from "@tutao/meta"
 import { assertNotNull, LazyLoaded, neverNull, ofClass } from "@tutao/utils"
 import { formatDateTimeFromYesterdayOn } from "../../../../ui/utils/Formatter.js"
-import { assertMainOrNode, CredentialEncryptionMode, isDesktop, SessionState } from "@tutao/app-env"
+import { CredentialEncryptionMode, EnvProvider, SessionState } from "@tutao/app-env"
 import { SecondFactorsEditForm } from "./secondfactor/SecondFactorsEditForm.js"
 
 import { isOfflineError, NotFoundError } from "@tutao/rest-client/error"
@@ -36,7 +36,7 @@ import { TextField } from "../../../../ui/base/TextField"
 import { theme } from "../../../../ui/theme"
 import { Checkbox } from "../../../../ui/base/Checkbox"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	private readonly _mailAddress = stream(neverNull(locator.logins.getUserController().userGroupInfo.mailAddress))
@@ -65,7 +65,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async updateAppLockData() {
-		if (isDesktop()) {
+		if (EnvProvider.get().isDesktop()) {
 			this.credentialEncryptionMode = await this.credentialsProvider.getCredentialEncryptionMode()
 		} else if (this.mobileSystemFacade) {
 			this.appLockMethod = await this.mobileSystemFacade.getAppLockMethod()
@@ -298,7 +298,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 						click: () => onEdit(),
 					}),
 			})
-		} else if (isDesktop()) {
+		} else if (EnvProvider.get().isDesktop()) {
 			const usedMode = this.credentialEncryptionMode ?? CredentialEncryptionMode.DEVICE_LOCK
 
 			return m(LegacyTextField, {

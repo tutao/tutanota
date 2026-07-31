@@ -3,7 +3,7 @@ import { PermissionType } from "@tutao/native-bridge/generatedIpc/enums"
 import { TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { PermissionError } from "../api/common/error/PermissionError.js"
 import { Dialog } from "../../../ui/base/Dialog.js"
-import { isIOSApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 
 export class SystemPermissionHandler {
 	constructor(private readonly systemFacade: MobileSystemFacade) {}
@@ -19,7 +19,7 @@ export class SystemPermissionHandler {
 	}
 
 	async hasPermission(permission: PermissionType): Promise<boolean> {
-		if (permission === PermissionType.IgnoreBatteryOptimization && isIOSApp()) {
+		if (permission === PermissionType.IgnoreBatteryOptimization && EnvProvider.get().isIOSApp()) {
 			return true
 		}
 

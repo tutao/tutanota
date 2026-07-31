@@ -8,7 +8,7 @@ import { Icons } from "../../../../ui/base/icons/Icons"
 import { Styles } from "../../../../ui/styles"
 import { DriveFolder } from "@tutao/entities/drive"
 import { getFileBaseNameAndExtensions } from "../../../../ui/utils/FileUtils"
-import { isBrowser, isDesktop } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { isNotNull } from "@tutao/utils"
 
 export function newItemActions({
@@ -39,7 +39,7 @@ export function newItemActions({
 			icon: Icons.Upload,
 		},
 	)
-	if (isBrowser() || isDesktop()) {
+	if (EnvProvider.get().isBrowser() || EnvProvider.get().isDesktop()) {
 		newItemDropdown.push({
 			click: (event, dom) => {
 				onUploadFolders(event, dom)

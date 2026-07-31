@@ -1,5 +1,5 @@
 import m, { Children, Vnode } from "mithril"
-import { assertMainOrNode, Country, InvoiceData, isDesktop, isIOSApp } from "@tutao/app-env"
+import { Country, EnvProvider, InvoiceData } from "@tutao/app-env"
 import { InfoLink, lang, MaybeTranslation, Translation, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { BaseTopLevelView } from "../../../ui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView.js"
@@ -48,7 +48,7 @@ import { getPreselectedPlanType } from "../subscription/SubscriptionPage"
 import { UsageTestModel } from "../misc/UsageTestModel"
 import { UsageTestController } from "@tutao/usagetests"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export interface SignupViewAttrs extends TopLevelAttrs {
 	viewModel: SignupViewModel
@@ -186,7 +186,7 @@ export class SignupViewModel {
 		const featureListProvider = await FeatureListProvider.getInitializedInstance(domainConfig)
 		let message: MaybeTranslation | null = null
 		this.options.businessUse(prices.business)
-		if (isIOSApp()) {
+		if (EnvProvider.get().isIOSApp()) {
 			this.options.businessUse(false)
 			const appstoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
 			// if we are on iOS app we only show other plans if AppStore payments are enabled and there's no subscription for this Apple ID.
@@ -237,7 +237,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 		else if (this.wizardViewModel.referralData && !this.wizardViewModel.referralData.isCalledBySatisfactionDialog) referralConversion = "organic_referral"
 		SignupFlowUsageTestController.initSignupFlowUsageTest(referralConversion)
 
-		if (!isDesktop()) {
+		if (!EnvProvider.get().isDesktop()) {
 			this.unregisterListener = windowFacade.addWindowCloseListener(async () => {})
 		}
 
@@ -353,7 +353,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 							this.wizardViewModel.targetPlanType,
 							this.wizardViewModel.options.paymentInterval(),
 						)
-						if (isIOSApp()) {
+						if (EnvProvider.get().isIOSApp()) {
 							SignupFlowUsageTestController.completeStage(
 								SignupFlowStage.SELECT_PAYMENT_METHOD,
 								this.wizardViewModel.targetPlanType,
@@ -374,7 +374,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 							this.wizardViewModel.paymentData.paymentMethod,
 						)
 					},
-					isEnabled: (ctx) => ctx.viewModel.targetPlanType !== PlanType.Free && !isIOSApp(),
+					isEnabled: (ctx) => ctx.viewModel.targetPlanType !== PlanType.Free && !EnvProvider.get().isIOSApp(),
 				},
 				{
 					title: "Order Confirmation",

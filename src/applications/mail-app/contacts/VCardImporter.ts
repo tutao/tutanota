@@ -1,7 +1,7 @@
 import { decodeBase64, decodeQuotedPrintable } from "../../../platform-kit/utils"
 import { birthdayToIsoDate, isValidBirthday } from "../../common/api/common/utils/BirthdayUtils"
 import { ParsingError } from "../../common/api/common/error/ParsingError"
-import { assertMainOrNode } from "../../../platform-kit/app-env"
+import { EnvProvider } from "../../../platform-kit/app-env"
 import {
 	Birthday,
 	Contact,
@@ -30,7 +30,7 @@ import {
 	ContactWebsiteType,
 } from "../../../entities/tutanota/Utils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 /**
  * split file content with multiple vCards into a list of vCard strings

@@ -1,5 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { isApp, TimeFormat } from "@tutao/app-env"
+import { EnvProvider, TimeFormat } from "@tutao/app-env"
 import { lang, Translation } from "../../../../../ui/utils/LanguageViewModel.js"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel.js"
 import { Switch } from "../../../../../ui/base/Switch.js"
@@ -35,7 +35,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 		const renderStartTimeZone = editModel.allowsTimeZones() && attrs.separateStartAndEndTimeZone
 		const renderEndTimeZone = editModel.allowsTimeZones()
 
-		const appClasses = isApp() ? ["smaller"] : []
+		const appClasses = EnvProvider.get().isApp() ? ["smaller"] : []
 
 		return m(".flex.col.flex-grow.gap-12", [
 			m(".flex.gap-8.items-center.justify-between", [
@@ -65,7 +65,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 					m(".time-selection-grid.pr-8", [
 						m("", lang.get("dateFrom_label")),
 						m(
-							`${isApp() ? "" : ".pl-32"}`,
+							`${EnvProvider.get().isApp() ? "" : ".pl-32"}`,
 							m(DatePicker, {
 								classes: appClasses,
 								date: attrs.editModel.startDate,
@@ -100,7 +100,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 					m(".time-selection-grid.pr-8", [
 						m("", lang.get("dateTo_label")),
 						m(
-							`${isApp() ? "" : ".pl-32"}`,
+							`${EnvProvider.get().isApp() ? "" : ".pl-32"}`,
 							m(DatePicker, {
 								classes: appClasses,
 								date: attrs.editModel.endDate,

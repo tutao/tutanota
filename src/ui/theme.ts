@@ -1,7 +1,7 @@
-import { assertMainOrNodeBoot } from "../platform-kit/app-env"
+import { EnvProvider } from "../platform-kit/app-env"
 import { isColorLight } from "./base/Color"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 
 /**
  * Unique identifier for a theme.

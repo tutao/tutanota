@@ -4,10 +4,10 @@ import { lang } from "../utils/LanguageViewModel"
 import { getElevatedBackground, theme } from "../theme"
 import { noOp } from "../../platform-kit/utils"
 import type { ClickHandler } from "./GuiUtils"
-import { assertMainOrNode } from "../../platform-kit/app-env"
+import { EnvProvider } from "../../platform-kit/app-env"
 import { BaseButton } from "./buttons/BaseButton.js"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export const enum ButtonType {
 	Primary = "primary",

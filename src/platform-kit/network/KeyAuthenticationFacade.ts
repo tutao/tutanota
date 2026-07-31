@@ -1,5 +1,5 @@
 import { concat, KeyVersion } from "@tutao/utils"
-import { assertWorkerOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import {
 	Aes256Key,
 	AesKey,
@@ -13,7 +13,7 @@ import {
 } from "@tutao/crypto"
 import { KeyMac } from "@tutao/entities/sys"
 
-assertWorkerOrNode()
+EnvProvider.assertWorkerOrNode()
 
 export type NewUserGroupKey = { newUserGroupKey: Aes256Key }
 export type CurrentUserGroupKey = { currentUserGroupKey: AesKey }

@@ -1,4 +1,4 @@
-import { assertMainOrNode } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { formatDate } from "../../../ui/utils/Formatter.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { isoDateToBirthday } from "../api/common/utils/BirthdayUtils.js"
@@ -35,7 +35,7 @@ import {
 	ContactWebsiteType,
 } from "../../../entities/tutanota/Utils"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export type ContactNames = Pick<Contact, "nickname" | "firstName" | "lastName">
 

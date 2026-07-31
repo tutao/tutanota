@@ -15,7 +15,7 @@ import { DialogHeaderBar, DialogHeaderBarAttrs } from "./DialogHeaderBar"
 import { LegacyTextField, LegacyTextFieldType } from "./LegacyTextField.js"
 import type { DropDownSelectorAttrs, SelectorItemList } from "./DropDownSelector.js"
 import { DropDownSelector } from "./DropDownSelector.js"
-import { assertMainOrNode, DEFAULT_ERROR, isAndroidApp, TabIndex } from "../../platform-kit/app-env"
+import { DEFAULT_ERROR, EnvProvider, TabIndex } from "../../platform-kit/app-env"
 import { AriaWindow } from "../AriaUtils"
 import { Styles } from "../styles"
 import { assertNotNull, identity, lazy, newPromise, noOp, Thunk } from "../../platform-kit/utils"
@@ -27,7 +27,7 @@ import { TextField } from "./TextField"
 import { isOfflineError } from "../../platform-kit/rest-client/error"
 import { Keys } from "../KeyboardKeys"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 export const INPUT = "input.text, input.tutaui-text-field, textarea, div[contenteditable='true']"
 
 export const enum DialogType {
@@ -122,7 +122,7 @@ export class Dialog implements ModalComponent {
 			const sidesMargin = Styles.get().isSingleColumnLayout() && isEditLarge ? "4px" : px(margin)
 			const bottomMarginForType = isEditLarge ? 0 : margin
 			// for android, bottomMarginForType is always applied regardless of whether keyboard is open or not
-			const marginBottom = isAndroidApp()
+			const marginBottom = EnvProvider.get().isAndroidApp()
 				? `calc(${px(bottomMarginForType)} + ${isKeyboardOpen ? px(Dialog.keyboardHeight) : "var(--safe-area-inset-bottom)"})`
 				: px(isKeyboardOpen ? Dialog.keyboardHeight : bottomMarginForType)
 			return m(

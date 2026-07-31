@@ -1,7 +1,7 @@
 import { px } from "./size"
-import { assertMainOrNodeBoot } from "../platform-kit/app-env"
+import { EnvProvider } from "../platform-kit/app-env"
 
-assertMainOrNodeBoot()
+EnvProvider.assertMainOrNodeBoot()
 export const noselect = {
 	_webkit_touch_callout: "none",
 
