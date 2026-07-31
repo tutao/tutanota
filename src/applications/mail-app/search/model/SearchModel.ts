@@ -245,7 +245,11 @@ export class SearchModel {
 		this.liveResults.push(result)
 		return result
 	}
-	async coolNewSearchDrive(searchQuery: SearchQuery, fileGroupId: string): Promise<LiveSearchResult<DriveFile | DriveFolder>> {
+	async coolNewSearchDrive(
+		searchQuery: SearchQuery,
+		fileGroupId: string,
+		compareDriveItems: (a: DriveFile | DriveFolder, b: DriveFile | DriveFolder) => number,
+	): Promise<LiveSearchResult<DriveFile | DriveFolder>> {
 		const groupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
 		const resultItems: (DriveFolder | DriveFile)[] = []
 		const tokens = tokenize(searchQuery.query.trim())
@@ -260,9 +264,6 @@ export class SearchModel {
 					const name = item.name.toLowerCase()
 
 					if (tokens.every((token) => name.includes(token)) && !resultItems.includes(item)) {
-						console.log(item.size)
-						console.log(item.mimeType)
-						console.log(item.updatedDate)
 						resultItems.push(item)
 					}
 				}
@@ -287,6 +288,9 @@ export class SearchModel {
 				currentId = getElementId(lastThrow(chunk))
 			}
 		}
+
+		resultItems.sort(compareDriveItems)
+
 		const searchResult: SearchResult = {
 			matchWordOrder: false,
 			restriction: searchQuery.restriction,

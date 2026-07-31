@@ -27,8 +27,6 @@ export class DriveSearchBar implements ClassComponent<DriveSearchBarAttrs> {
 		return m(SearchBar<DriveFile | DriveFolder>, {
 			placeholder: lang.getTranslationText("searchDrive_placeholder"),
 			loadResults: async (query) => {
-				// FIXME: Sorted results would be neat: Current folder -> Home -> Rest of non-trashed folder hierarchy -> Trash root -> Rest of trash
-
 				const results = await attrs.loadResults({
 					query,
 					maxResults: 10, // FIXME

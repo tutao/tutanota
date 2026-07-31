@@ -810,7 +810,44 @@ export class DriveViewModel {
 	}
 	async getSearchResult(searchQuery: SearchQuery): Promise<LiveSearchResult<DriveFile | DriveFolder>> {
 		const fileGroupId = await this.driveFacade.getFileGroupId()
-		return await this.searchModel.coolNewSearchDrive(searchQuery, fileGroupId)
+		return await this.searchModel.coolNewSearchDrive(searchQuery, fileGroupId, (a: DriveFile | DriveFolder, b: DriveFile | DriveFolder) =>
+			this.compareDriveItemsForSearch(a, b),
+		)
+	}
+
+	compareDriveItemsForSearch(a: DriveFile | DriveFolder, b: DriveFile | DriveFolder): number {
+		const parentA = isDriveFile(a) ? a.folder : a.parent
+		const parentB = isDriveFile(b) ? b.folder : b.parent
+
+		const currentFolderId = assertNotNull(this.currentFolder?.folder)._id
+		const rootFolderId = assertNotNull(this.roots?.root)
+		const trashFolderId = assertNotNull(this.roots?.trash)
+
+		// First, prioritize results in the currently shown folder.
+		if (isSameId(currentFolderId, parentA) && !isSameId(currentFolderId, parentB)) {
+			return -1
+		}
+		if (!isSameId(currentFolderId, parentA) && isSameId(currentFolderId, parentB)) {
+			return 1
+		}
+
+		// Then, list files in "home" folder.
+		if (isSameId(rootFolderId, parentA) && !isSameId(currentFolderId, parentB)) {
+			return -1
+		}
+		if (!isSameId(currentFolderId, parentA) && isSameId(currentFolderId, parentB)) {
+			return 1
+		}
+
+		// Finally, prioritize items that are not in "trash" folder.
+		if (!isSameId(trashFolderId, parentA) && isSameId(trashFolderId, parentB)) {
+			return -1
+		}
+		if (isSameId(trashFolderId, parentA) && !isSameId(trashFolderId, parentB)) {
+			return 1
+		}
+
+		return 0
 	}
 }
 
