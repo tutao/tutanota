@@ -207,7 +207,7 @@ export class CalendarEventWhenModel {
 
 	/** return the duration of the event in minutes */
 	get duration(): { minutes: number } {
-		const duration = this.getStartDateTime().diff(this.getEventEndDateTime())
+		const duration = this.getStartDateTime().diff(this.getEndDateTime())
 		return { minutes: duration.as("minutes") }
 	}
 
@@ -221,14 +221,6 @@ export class CalendarEventWhenModel {
 		if (!this._isAllDay) {
 			this._endTime = Time.fromDateTime(newEndTime)
 		}
-	}
-
-	setStartTimeFromString(timeString: string | null) {
-		this.startTime = Time.parseFromString(timeString ?? "")
-	}
-
-	setEndTimeFromString(timeString: string | null) {
-		this.endTime = Time.parseFromString(timeString ?? "")
 	}
 
 	private validateAndCorrectInputDate(date: Date) {
@@ -622,7 +614,10 @@ export class CalendarEventWhenModel {
 		const newStartDate = oldStartTime.plus(duration)
 		this._startDate = this.createJsDateAtStartOfDayAtSystemTimeZone(newStartDate)
 
-		const oldEndTime = this.getEndDateTime()
+		let oldEndTime = this.getEndDateTime()
+		if (this._isAllDay) {
+			oldEndTime = oldEndTime.minus({ day: 1 })
+		}
 		const newEndDate = oldEndTime.plus(duration)
 		this._endDate = this.createJsDateAtStartOfDayAtSystemTimeZone(newEndDate)
 
@@ -681,26 +676,21 @@ export class CalendarEventWhenModel {
 	}
 
 	getEndDateTime() {
-		return this.createDateTime(this._endDate, this._endTime, this.getEndTimeZoneOrDefault())
-	}
-
-	private getEventEndDateTime() {
-		const displayedEndDateTime = this.getEndDateTime()
+		let dateTime = this.createDateTime(this._endDate, this._endTime, this.getEndTimeZoneOrDefault())
 		if (this._isAllDay) {
-			return displayedEndDateTime.plus({ day: 1 })
-		} else {
-			return displayedEndDateTime
+			dateTime = dateTime.plus({ day: 1 })
 		}
+		return dateTime
 	}
 
 	hasValidStartBeforeEnd(): boolean {
-		return this.getStartDateTime().diff(this.getEventEndDateTime()).as("minutes") < 0
+		return this.getStartDateTime().diff(this.getEndDateTime()).as("minutes") < 0
 	}
 
 	get result() {
 		return {
 			startTime: this.getStartDateTime().toJSDate(),
-			endTime: this.getEventEndDateTime().toJSDate(),
+			endTime: this.getEndDateTime().toJSDate(),
 			repeatRule: this.getRepeatRuleOrNull(),
 			startTimeZone: this.timeZones.startTimeZone,
 			endTimeZone: this.timeZones.endTimeZone,
