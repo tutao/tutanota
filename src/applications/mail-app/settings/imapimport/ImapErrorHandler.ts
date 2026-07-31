@@ -51,7 +51,7 @@ function imapErrorToReadableImapError(imapError: ImapError): ReadableImapError {
 		case ImapErrorCause.CERT_ERROR:
 			return {
 				cause: imapError.data,
-				errorMessage: lang.getTranslationText("migrationCertError_msg"),
+				errorMessage: lang.getTranslationText("migrationCertificateError_msg"),
 			}
 		case ImapErrorCause.PERMANENT_ERROR:
 			return {

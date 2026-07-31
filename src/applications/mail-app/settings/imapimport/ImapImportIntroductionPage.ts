@@ -113,7 +113,7 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 								try {
 									await oauthHandler.setupOauthLoginParams(extraParams)
 								} catch (e) {
-									const errorMessage = lang.getTranslation("migrationOauthNetworkDiscoveryFailure_msg", {
+									const errorMessage = lang.getTranslation("migrationOAuthNetworkDiscoveryFailure_msg", {
 										"{url}": config.server,
 									}).text
 									this.changeTitleSectionToErrorState(errorMessage)
