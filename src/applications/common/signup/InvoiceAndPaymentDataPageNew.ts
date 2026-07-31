@@ -18,7 +18,7 @@ import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { px, size } from "../../../ui/size"
 import { TextField } from "../../../ui/base/TextField"
 import { PaypalButtonNew } from "../subscription/PaypalButtonNew"
-import { styles } from "../../../ui/styles"
+import { Styles } from "../../../ui/styles"
 import { LegacyTextFieldType } from "../../../ui/base/LegacyTextField"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { LocationService_GET, LocationServiceGetReturn } from "@tutao/entities/sys"
@@ -30,7 +30,7 @@ import { NON_EXISTENT_DATA_TRANSFER_ENTITY } from "@tutao/meta"
 class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private _hasClickedNext: boolean = false
 	private paypalRequestUrl: LazyLoaded<string>
-	private readonly formGap = styles.isMobileLayout() ? ".gap-16" : ".gap-24"
+	private readonly formGap = Styles.get().isMobileLayout() ? ".gap-16" : ".gap-24"
 
 	constructor({
 		attrs: {
@@ -68,9 +68,9 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 			renderChild: () => this.renderPaymentMethodForm(ctx, value),
 		}))
 
-		return m(`.flex.flex-column.full-width${styles.isMobileLayout() ? ".pt-16" : ""}`, [
+		return m(`.flex.flex-column.full-width${Styles.get().isMobileLayout() ? ".pt-16" : ""}`, [
 			m(
-				`h1.font-mdio${styles.isMobileLayout() ? ".h2" : ".h1"}`,
+				`h1.font-mdio${Styles.get().isMobileLayout() ? ".h2" : ".h1"}`,
 				{
 					style: {
 						position: "relative",
@@ -79,7 +79,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 				},
 				lang.get("payment_page_title"),
 			),
-			m(`p${styles.isMobileLayout() ? ".mb-32" : ""}`, { style: { color: theme.on_surface_variant } }, lang.get("payment_page_subtitle")),
+			m(`p${Styles.get().isMobileLayout() ? ".mb-32" : ""}`, { style: { color: theme.on_surface_variant } }, lang.get("payment_page_subtitle")),
 			m(".flex.gap-16", [
 				m(
 					".flex-grow",
@@ -150,7 +150,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 				m(PrimaryButton, {
 					label: "verifyCreditCard_action",
 					size: "md",
-					width: styles.isMobileLayout() ? "full" : "flex",
+					width: Styles.get().isMobileLayout() ? "full" : "flex",
 					onclick: () => {
 						this.onAddPaymentData(ctx)
 					},
@@ -230,7 +230,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 	private renderPaypalForm(ctx: WizardStepContext<SignupViewModel>): Children {
 		const isPaypalConnected = !!ctx.viewModel.accountingInfo?.paypalBillingAgreement
 		return m(`.flex.col${this.formGap}`, [
-			m(`.flex.col${styles.isMobileLayout() ? ".items-center" : ".items-end"}${this.formGap}`, [
+			m(`.flex.col${Styles.get().isMobileLayout() ? ".items-center" : ".items-end"}${this.formGap}`, [
 				renderCountryDropdownNew({
 					selectedCountry: ctx.viewModel.invoiceData.country,
 					onSelectionChanged: (country: Country | null) => {
@@ -262,7 +262,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 						),
 					m(
 						"",
-						{ style: isPaypalConnected || styles.isMobileLayout() ? { width: "100%" } : { "margin-left": "auto" } },
+						{ style: isPaypalConnected || Styles.get().isMobileLayout() ? { width: "100%" } : { "margin-left": "auto" } },
 						m(PaypalButtonNew, {
 							data: ctx.viewModel,
 							onclick: async () => {
@@ -290,7 +290,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 					m(PrimaryButton, {
 						label: "continue_action",
 						size: "md",
-						width: styles.isMobileLayout() ? "full" : "flex",
+						width: Styles.get().isMobileLayout() ? "full" : "flex",
 						onclick: () => {
 							this.onAddPaymentData(ctx)
 						},
@@ -316,7 +316,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 			}),
 			ctx.viewModel.options.businessUse() && this.renderBusinessAddressFields(ctx),
 			m(
-				`.flex-shrink${styles.isMobileLayout() ? ".align-self-center" : ".align-self-end"}`,
+				`.flex-shrink${Styles.get().isMobileLayout() ? ".align-self-center" : ".align-self-end"}`,
 				m(PrimaryButton, {
 					label: "continue_action",
 					size: "md",

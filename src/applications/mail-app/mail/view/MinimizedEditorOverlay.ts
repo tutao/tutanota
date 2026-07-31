@@ -6,7 +6,7 @@ import type { MinimizedEditor, MinimizedMailEditorViewModel } from "../model/Min
 import { SaveErrorReason, SaveStatus, SaveStatusEnum } from "../model/MinimizedMailEditorViewModel"
 import { px } from "../../../../ui/size"
 import { Icons } from "../../../../ui/base/icons/Icons"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { trashMails } from "./MailGuiUtils"
 import { assertNotNull, promiseMap } from "../../../../platform-kit/utils"
 import { EventController } from "../../../common/api/main/EventController.js"
@@ -85,7 +85,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 					],
 				),
 				m(".flex.items-center.justify-right", [
-					!styles.isSingleColumnLayout()
+					!Styles.get().isSingleColumnLayout()
 						? m(IconButton, {
 								title: "edit_action",
 								click: () => viewModel.reopenMinimizedEditor(minimizedEditor),

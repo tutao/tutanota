@@ -6,7 +6,7 @@ import { Contact } from "@tutao/entities/tutanota"
 import { PartialRecipient } from "../../../../entities/tutanota/Utils"
 import type { GroupColors } from "./CalendarView"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, EventWrapper } from "./CalendarViewModel"
-import { styles } from "../../../../ui/styles.js"
+import { Styles } from "../../../../ui/styles.js"
 import { DateTime } from "luxon"
 import { CalendarAgendaItemView } from "./CalendarAgendaItemView.js"
 import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox.js"
@@ -67,7 +67,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 	private listDom: HTMLElement | null = null
 
 	view({ attrs }: Vnode<CalendarAgendaViewAttrs>): Children {
-		const isDesktopLayout = styles.isDesktopLayout()
+		const isDesktopLayout = Styles.get().isDesktopLayout()
 		const selectedDate = attrs.selectedDate
 
 		let containerStyle
@@ -144,7 +144,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							showDaySelection: true,
 							highlightToday: true,
 							highlightSelectedWeek: false,
-							useNarrowWeekName: styles.isSingleColumnLayout(),
+							useNarrowWeekName: Styles.get().isSingleColumnLayout(),
 							hasEventOn: (date) =>
 								attrs.eventsForDays
 									.get(date.getTime())
@@ -380,7 +380,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							const previousIndex = eventIndex - 1
 							if (previousItem) {
 								previousItem.focus()
-								if (previousIndex >= 0 && !styles.isSingleColumnLayout()) {
+								if (previousIndex >= 0 && !Styles.get().isSingleColumnLayout()) {
 									keyDown(events[previousIndex].event, new KeyboardEvent("keydown", { key: Keys.RETURN.code }))
 									return
 								}
@@ -394,7 +394,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							const nextIndex = eventIndex + 1
 							if (nextItem) {
 								nextItem.focus()
-								if (nextIndex < events.length && !styles.isSingleColumnLayout()) {
+								if (nextIndex < events.length && !Styles.get().isSingleColumnLayout()) {
 									keyDown(events[nextIndex].event, new KeyboardEvent("keydown", { key: Keys.RETURN.code }))
 									return
 								}

@@ -17,7 +17,7 @@ import type { DropDownSelectorAttrs, SelectorItemList } from "./DropDownSelector
 import { DropDownSelector } from "./DropDownSelector.js"
 import { assertMainOrNode, DEFAULT_ERROR, isAndroidApp, TabIndex } from "../../platform-kit/app-env"
 import { AriaWindow } from "../AriaUtils"
-import { styles } from "../styles"
+import { Styles } from "../styles"
 import { assertNotNull, identity, lazy, newPromise, noOp, Thunk } from "../../platform-kit/utils"
 import { getAsLazy, mapLazily, MaybeLazy } from "./MaybeLazy"
 import type { DialogInjectionRightAttrs } from "./DialogInjectionRight"
@@ -119,7 +119,7 @@ export class Dialog implements ModalComponent {
 			const isEditLarge = dialogType === DialogType.EditLarge
 			const isKeyboardOpen = Dialog.keyboardHeight > 0
 			const margin = size.spacing_12
-			const sidesMargin = styles.isSingleColumnLayout() && isEditLarge ? "4px" : px(margin)
+			const sidesMargin = Styles.get().isSingleColumnLayout() && isEditLarge ? "4px" : px(margin)
 			const bottomMarginForType = isEditLarge ? 0 : margin
 			// for android, bottomMarginForType is always applied regardless of whether keyboard is open or not
 			const marginBottom = isAndroidApp()

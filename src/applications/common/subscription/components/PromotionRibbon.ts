@@ -4,7 +4,7 @@ import { px, size } from "../../../../ui/size"
 import { Translation } from "../../../../ui/utils/LanguageViewModel"
 import { CAMPAIGN_NAME, PlanBoxPosition } from "../utils/PlanSelectorUtils"
 import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 
@@ -24,7 +24,7 @@ export class PromotionRibbon implements Component<PromotionRibbonAttrs> {
 				m(
 					".abs.z3",
 					{
-						style: styles.isMobileLayout()
+						style: Styles.get().isMobileLayout()
 							? {
 									top: px(-88),
 									right: px(9),

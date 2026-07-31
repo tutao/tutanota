@@ -48,7 +48,7 @@ import { DateTime } from "luxon"
 import { LockedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { CalendarAgendaView, CalendarAgendaViewAttrs } from "./CalendarAgendaView"
 import { type CalendarProperties, handleUrlSubscription, showCreateEditCalendarDialog, showEditBirthdayCalendarDialog } from "../gui/EditCalendarDialog.js"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { CalendarTimeBasedView, CalendarTimeBasedViewAttrs } from "./CalendarTimeBasedView"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { component_size, layout_size } from "../../../../ui/size"
@@ -166,14 +166,14 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					m(FolderColumnView, {
 						drawer: attrs.drawerAttrs,
 						button:
-							!isApp() && styles.isDesktopLayout()
+							!isApp() && Styles.get().isDesktopLayout()
 								? {
 										label: "newEvent_action",
 										click: () => this.createNewEventDialog(),
 									}
 								: null,
 						content: [
-							styles.isDesktopLayout()
+							Styles.get().isDesktopLayout()
 								? m(DaySelectorSidebar, {
 										selectedDate: this.viewModel.selectedDate(),
 										onDateSelected: (date) => {
@@ -322,7 +322,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									isDaySelectorExpanded: this.viewModel.isDaySelectorExpanded(),
 									onViewChanged: (vnode) => this.viewModel.setViewParameters(vnode.dom as HTMLElement),
 									currentViewType: this.currentViewType,
-									showWeekDaysSection: !styles.isDesktopLayout(),
+									showWeekDaysSection: !Styles.get().isDesktopLayout(),
 									smoothScroll: this.viewModel.forceAnimateScroll,
 									registerScrollByListener: (listener: ScrollByListener) => this.viewModel.setScrollByListener(listener),
 									removeScrollByListener: this.viewModel.removeScrollByListener,
@@ -411,7 +411,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									eventsForDays: this.viewModel.eventsForDays,
 									amPmFormat: shouldDefaultToAmPmTimeFormat(),
 									onEventClicked: (event, domEvent) => {
-										if (styles.isDesktopLayout()) {
+										if (Styles.get().isDesktopLayout()) {
 											this.viewModel.updatePreviewedEvent(event)
 										} else if (isApp()) {
 											this.viewModel.updatePreviewedEvent(event).then(() => {
@@ -424,7 +424,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									},
 									onEventKeyDown: (event, domEvent) => {
 										if (isKeyPressed(domEvent.key, Keys.RETURN, Keys.SPACE) && !domEvent.repeat) {
-											if (styles.isDesktopLayout()) {
+											if (Styles.get().isDesktopLayout()) {
 												this.viewModel.updatePreviewedEvent(event)
 											} else {
 												this.showCalendarEventPopupAtEvent(event, domEvent.target as HTMLElement, this.htmlSanitizer)
@@ -583,7 +583,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			backAction: this.exitEventDetails.bind(this),
 			columnType: "other",
 			title: "agenda_label",
-			actions: styles.isSingleColumnLayout() ? this.renderEventDetailsActions() : null,
+			actions: Styles.get().isSingleColumnLayout() ? this.renderEventDetailsActions() : null,
 			multicolumnActions: () => [],
 			primaryAction: () => null,
 			useBackButton: true,
@@ -607,7 +607,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			m(
 				".border-radius-12.flex.col.flex-grow.content-bg",
 				{
-					class: styles.isDesktopLayout() ? "mlr-24" : "mlr-12",
+					class: Styles.get().isDesktopLayout() ? "mlr-24" : "mlr-12",
 				},
 				m(EventDetailsView, {
 					eventPreviewModel: this.viewModel.eventPreviewModel,
@@ -708,7 +708,8 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private renderMobileHeader(header: AppHeaderAttrs) {
-		const isExpandable = !styles.isDesktopLayout() && this.currentViewType !== CalendarViewType.MONTH && this.currentViewType !== CalendarViewType.THREE_DAY
+		const isExpandable =
+			!Styles.get().isDesktopLayout() && this.currentViewType !== CalendarViewType.MONTH && this.currentViewType !== CalendarViewType.THREE_DAY
 		return m(CalendarMobileHeader, {
 			...header,
 			viewType: this.currentViewType,
@@ -729,7 +730,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 			onViewTypeSelected: (viewType) => this.selectView(viewType),
 			onTap: (_event, dom) => {
-				if (this.currentViewType !== CalendarViewType.MONTH && this.currentViewType !== CalendarViewType.THREE_DAY && styles.isSingleColumnLayout()) {
+				if (
+					this.currentViewType !== CalendarViewType.MONTH &&
+					this.currentViewType !== CalendarViewType.THREE_DAY &&
+					Styles.get().isSingleColumnLayout()
+				) {
 					this.viewModel.setDaySelectorExpanded(!this.viewModel.isDaySelectorExpanded())
 					return
 				}
@@ -906,7 +911,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				unit = "day"
 				break
 			case CalendarViewType.AGENDA:
-				duration = styles.isDesktopLayout()
+				duration = Styles.get().isDesktopLayout()
 					? { day: 1 }
 					: {
 							week: this.viewModel.isDaySelectorExpanded() ? 0 : 1,
@@ -1166,7 +1171,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 	view({ attrs }: Vnode<CalendarViewAttrs>): Children {
 		return m(
-			".main-view" + (isAndroidApp() && styles.isAppNotUsingBottomNav() ? ".mb-safe-inset" : ""),
+			".main-view" + (isAndroidApp() && Styles.get().isAppNotUsingBottomNav() ? ".mb-safe-inset" : ""),
 			m(this.viewSlider, {
 				header: m(Header, {
 					firstColWidth: this.sidebarColumn.width,
@@ -1209,7 +1214,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 							this.viewModel.setPreviewedEventId([decodedEventId[0], decodedEventId[1]]).then(() => {
 								if (isApp() && this.viewSlider.focusedColumn !== this.eventDetails && this.eventDetails) {
 									this.viewSlider.focus(this.eventDetails)
-								} else if (!isApp() && !styles.isDesktopLayout()) {
+								} else if (!isApp() && !Styles.get().isDesktopLayout()) {
 									const eventElement = document.getElementById(eventIdParam)
 									if (eventElement && this.viewModel.previewedEventTuple()?.event) {
 										this.showCalendarEventPopup(

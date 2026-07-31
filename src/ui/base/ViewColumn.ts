@@ -6,7 +6,7 @@ import { MaybeLazy, resolveMaybeLazy } from "./MaybeLazy"
 import { assertMainOrNode, TabIndex } from "../../platform-kit/app-env"
 import { lang, MaybeTranslation } from "../utils/LanguageViewModel.js"
 import { layout_size, px } from "../size"
-import { styles } from "../styles"
+import { Styles } from "../styles"
 
 assertMainOrNode()
 
@@ -115,7 +115,7 @@ export class ViewColumn implements Component<Attrs> {
 				},
 			},
 			m(this.component),
-			this.resizeCallback && !styles.isSingleColumnLayout() ? this.renderResizeButton(vnode.attrs.onResize) : null,
+			this.resizeCallback && !Styles.get().isSingleColumnLayout() ? this.renderResizeButton(vnode.attrs.onResize) : null,
 		)
 	}
 

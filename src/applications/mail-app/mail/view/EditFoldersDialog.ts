@@ -7,7 +7,7 @@ import { getElevatedBackground, theme } from "../../../../ui/theme.js"
 import { INPUT } from "../../../../ui/base/Dialog.js"
 import { ease } from "../../../../ui/animation/Easing.js"
 import { component_size, layout_size, px } from "../../../../ui/size.js"
-import { styles } from "../../../../ui/styles.js"
+import { Styles } from "../../../../ui/styles.js"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 import { Keys } from "../../../../ui/KeyboardKeys"
 
@@ -20,7 +20,7 @@ export class EditFoldersDialog implements ModalComponent {
 
 	private _closeHandler: Thunk | null = null
 
-	private usedBottomNavBefore: boolean = styles.isUsingBottomNavigation()
+	private usedBottomNavBefore: boolean = Styles.get().isUsingBottomNavigation()
 
 	constructor(private readonly folderList: () => Children) {
 		this.visible = false
@@ -56,10 +56,10 @@ export class EditFoldersDialog implements ModalComponent {
 	}
 
 	view() {
-		if (this.usedBottomNavBefore !== styles.isUsingBottomNavigation()) {
+		if (this.usedBottomNavBefore !== Styles.get().isUsingBottomNavigation()) {
 			this.close()
 		}
-		this.usedBottomNavBefore = styles.isUsingBottomNavigation()
+		this.usedBottomNavBefore = Styles.get().isUsingBottomNavigation()
 		const marginTop = this.usedBottomNavBefore ? "var(--safe-area-inset-top)" : px(component_size.navbar_height)
 		return m(
 			".flex.col",

@@ -8,7 +8,7 @@ import { CollapsedMailView } from "./CollapsedMailView.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { component_size, px, size } from "../../../../ui/size.js"
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager.js"
-import { styles } from "../../../../ui/styles.js"
+import { Styles } from "../../../../ui/styles.js"
 import { responsiveCardHMargin } from "../../../../ui/cards.js"
 import { assertNotNull, ofClass } from "../../../../platform-kit/utils"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -144,7 +144,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 		// We reduce space by 100 for the header of the viewer and a bit more
 		const height =
 			document.body.offsetHeight -
-			(styles.isUsingBottomNavigation() ? component_size.navbar_height_mobile + component_size.bottom_nav_bar : component_size.navbar_height) -
+			(Styles.get().isUsingBottomNavigation() ? component_size.navbar_height_mobile + component_size.bottom_nav_bar : component_size.navbar_height) -
 			300
 		return m(".mt-32.noprint", {
 			style: {
@@ -222,7 +222,7 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 						backgroundColor: theme.surface,
 						marginTop: px(position == null || position === 0 ? 0 : conversationCardMargin),
 						// column resize element takes some space, reduce margin to make the gap smaller
-						marginLeft: styles.isSingleColumnLayout() ? undefined : px(size.spacing_16),
+						marginLeft: Styles.get().isSingleColumnLayout() ? undefined : px(size.spacing_16),
 					},
 				},
 				mailViewerViewModel.isCollapsed()

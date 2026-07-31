@@ -8,7 +8,7 @@ import { ReplacementKey } from "../FeatureListProvider.js"
 import { Icon } from "../../../../ui/base/Icon.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { TranslationKeyType } from "../../../../ui/utils/TranslationKey.js"
-import { styles } from "../../../../ui/styles.js"
+import { Styles } from "../../../../ui/styles.js"
 import { getFeaturePlaceholderReplacement } from "../utils/SubscriptionUtils.js"
 import { PlanBadge } from "./PlanBadge.js"
 import { Callback } from "@tutao/utils"
@@ -29,7 +29,7 @@ type FreePlanBoxAttrs = {
 export class PersonalFreePlanBox implements Component<FreePlanBoxAttrs> {
 	view({ attrs: { isSelected, isDisabled, isCurrentPlan, onclick, priceAndConfigProvider, discountDetail } }: Vnode<FreePlanBoxAttrs>) {
 		const hasGlobalCampaign = discountDetail?.discountType === "GlobalFirstYear"
-		const scale = isSelected && !styles.isMobileLayout() ? PLAN_SELECTOR_SELECTED_BOX_SCALE : "initial"
+		const scale = isSelected && !Styles.get().isMobileLayout() ? PLAN_SELECTOR_SELECTED_BOX_SCALE : "initial"
 		const renderFeature = this.generateRenderFeature(priceAndConfigProvider)
 
 		return m(
@@ -65,7 +65,7 @@ export class PersonalFreePlanBox implements Component<FreePlanBoxAttrs> {
 							".text-center.flex.col.center-horizontally.m-0.font-mdio",
 							{
 								style: {
-									"font-size": px(styles.isMobileLayout() ? 18 : 20),
+									"font-size": px(Styles.get().isMobileLayout() ? 18 : 20),
 									color: isSelected ? theme.primary : theme.on_surface,
 								},
 							},
@@ -85,7 +85,7 @@ export class PersonalFreePlanBox implements Component<FreePlanBoxAttrs> {
 					{
 						style: {
 							gap: this.getFeaturesGap(),
-							...(styles.isMobileLayout() && { "flex-wrap": "wrap" }),
+							...(Styles.get().isMobileLayout() && { "flex-wrap": "wrap" }),
 						},
 					},
 					renderFeature("pricing.comparisonStorage_msg", Icons.CloudOutline, "storage"),
@@ -102,7 +102,7 @@ export class PersonalFreePlanBox implements Component<FreePlanBoxAttrs> {
 	}
 
 	private getFeaturesGap() {
-		if (styles.isMobileLayout()) {
+		if (Styles.get().isMobileLayout()) {
 			return `${px(size.spacing_8)} 0`
 		}
 
@@ -115,9 +115,9 @@ export class PersonalFreePlanBox implements Component<FreePlanBoxAttrs> {
 				".flex",
 				{
 					style: {
-						width: styles.isMobileLayout() ? "50%" : "fit-content",
+						width: Styles.get().isMobileLayout() ? "50%" : "fit-content",
 						gap: px(size.spacing_4),
-						"padding-left": shouldShift && styles.isMobileLayout() ? px(size.spacing_16) : "initial",
+						"padding-left": shouldShift && Styles.get().isMobileLayout() ? px(size.spacing_16) : "initial",
 					},
 				},
 				[

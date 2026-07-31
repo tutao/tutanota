@@ -7,7 +7,7 @@ import { ContactRow } from "./ContactRow.js"
 import { ContactViewModel } from "./ContactViewModel.js"
 import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../../../ui/theme.js"
-import { styles } from "../../../../ui/styles.js"
+import { Styles } from "../../../../ui/styles.js"
 import { shouldAlwaysShowMultiselectCheckbox } from "../../../../ui/SelectableRowContainer.js"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { Icons } from "../../../../ui/base/icons/Icons"
@@ -49,7 +49,7 @@ export class ContactListView implements ClassComponent<ContactListViewAttrs> {
 							onSingleSelection()
 						},
 						onSingleTogglingMultiselection: (item: Contact) => {
-							contactViewModel.listModel.onSingleInclusiveSelection(item, styles.isSingleColumnLayout())
+							contactViewModel.listModel.onSingleInclusiveSelection(item, Styles.get().isSingleColumnLayout())
 						},
 						onRangeSelectionTowards: (item: Contact) => {
 							contactViewModel.listModel.selectRangeTowards(item)

@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "../../../../ui/theme.js"
-import { styles } from "../../../../ui/styles.js"
+import { Styles } from "../../../../ui/styles.js"
 import { DefaultAnimationTime } from "../../../../ui/animation/Animations.js"
 import { px } from "../../../../ui/size.js"
 import { TabIndex } from "../../../../platform-kit/app-env"
@@ -37,7 +37,7 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 			".flex.items-center.click.plr-12.border-radius.pt-8.pb-8.rel.limit-width.full-width",
 			{
 				// Implement the background color via JavaScript on Desktop, so we can react to `attrs.selected`
-				class: styles.isDesktopLayout() ? "hide-outline" : "state-bg",
+				class: Styles.get().isDesktopLayout() ? "hide-outline" : "state-bg",
 				id: attrs.id,
 				tabIndex: TabIndex.Default,
 				onclick: attrs.click,
@@ -64,7 +64,7 @@ export class CalendarAgendaItemView implements Component<CalendarAgendaItemViewA
 	}
 
 	private static getBackground(isSelected: boolean, isFocused: boolean) {
-		if (styles.isDesktopLayout()) {
+		if (Styles.get().isDesktopLayout()) {
 			if (isSelected) {
 				return theme.state_bg_hover
 			} else {

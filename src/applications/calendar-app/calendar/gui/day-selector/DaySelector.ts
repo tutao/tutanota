@@ -7,7 +7,7 @@ import { CalendarDay, CalendarMonth } from "../../../../common/calendar/date/Cal
 import { DefaultAnimationTime } from "../../../../../ui/animation/Animations.js"
 import { theme } from "../../../../../ui/theme.js"
 import { px, size } from "../../../../../ui/size.js"
-import { styles } from "../../../../../ui/styles.js"
+import { Styles } from "../../../../../ui/styles.js"
 import { ExpanderPanel } from "../../../../../ui/base/Expander"
 
 export interface DaySelectorAttrs {
@@ -176,7 +176,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 				),
 				attrs.hasEventOn(date)
 					? m(".day-events-indicator", {
-							style: styles.isDesktopLayout()
+							style: Styles.get().isDesktopLayout()
 								? {
 										width: "3px",
 										height: "3px",
@@ -199,8 +199,8 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 			style = {
 				backgroundColor: theme.secondary_container,
 				color: theme.on_secondary_container,
-				height: px(styles.isDesktopLayout() ? 19 : 25),
-				borderRadius: px(styles.isDesktopLayout() ? 6 : 25),
+				height: px(Styles.get().isDesktopLayout() ? 19 : 25),
+				borderRadius: px(Styles.get().isDesktopLayout() ? 6 : 25),
 				width: `calc(100% - ${px(size.spacing_4)})`,
 			}
 		} else {

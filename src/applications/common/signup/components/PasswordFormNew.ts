@@ -15,10 +15,10 @@ import { theme } from "../../../../ui/theme"
 import { PasswordGenerator } from "../../misc/passwords/PasswordGenerator"
 import { locator } from "../../api/main/CommonLocator"
 import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils"
-import { debounceStart, delay, noOp } from "@tutao/utils"
+import { debounceStart, delay } from "@tutao/utils"
 import { showSnackBar } from "../../../../ui/base/SnackBar"
 import { Icons } from "../../../../ui/base/icons/Icons"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 
 assertMainOrNode()
 
@@ -240,7 +240,7 @@ export class PasswordFormNew implements Component<PasswordFormAttrs> {
 	}
 	view({ attrs }: Vnode<PasswordFormAttrs>): Children {
 		return m(
-			`.flex.flex-column.${styles.isMobileLayout() ? ".gap-8" : ".gap-24"}`,
+			`.flex.flex-column.${Styles.get().isMobileLayout() ? ".gap-8" : ".gap-24"}`,
 			{
 				onremove: () => attrs.model.clear(),
 			},

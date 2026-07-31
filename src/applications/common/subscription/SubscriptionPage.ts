@@ -1,8 +1,8 @@
-import m, { Children, Params, Vnode, VnodeDOM } from "mithril"
+import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { lang, type TranslationKey } from "../../../ui/utils/LanguageViewModel"
-import { type ReferralData, SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
+import { SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import { Button, ButtonAttrs, ButtonType } from "../../../ui/base/Button.js"
 import { getCurrentPaymentInterval, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./utils/SubscriptionUtils"
@@ -18,7 +18,7 @@ import { lazy } from "@tutao/utils"
 import { PrimaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
 import { stringToSubscriptionType } from "../misc/LoginUtils.js"
 import { PlanSelector } from "./PlanSelector.js"
-import { styles } from "../../../ui/styles.js"
+import { Styles } from "../../../ui/styles.js"
 import { Icon, IconSize } from "../../../ui/base/Icon.js"
 import { Icons } from "../../../ui/base/icons/Icons.js"
 import { theme } from "../../../ui/theme.js"
@@ -333,7 +333,7 @@ export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, ava
 		label: isBusiness ? "privateUse_action" : "forBusiness_action",
 		type: ButtonType.Primary,
 		class: ["block"], // Use block class to override the `flex` class, thus allowing the button text to be wrapped using ellipses.
-		icon: styles.isMobileLayout()
+		icon: Styles.get().isMobileLayout()
 			? null
 			: m(Icon, {
 					icon: isBusiness ? Icons.PersonFilled : Icons.SkyscraperOutline,

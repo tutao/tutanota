@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, CancelledError, DomainConfig, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient, isWorker } from "@tutao/app-env"
+import { assertWorkerOrNode, CancelledError, DomainConfig, EnvProvider, getApiBaseUrl, isAdminClient, isAndroidApp, isWebClient } from "@tutao/app-env"
 import { assertNotNull, isNotNull, newPromise, Nullable, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
 import * as restSuspension from "./SuspensionHandler.js"
 import { ConnectionError, handleRestError, PayloadTooLargeError, SuspensionError } from "./error.js"
@@ -77,7 +77,7 @@ export class RestClient implements RestClientInterface {
 	request(path: string, method: HttpMethod, options: RestClientOptions): Promise<any | null> {
 		// @ts-ignore
 		const debug: boolean = TypeChecks.hasProperty("self") && self.debug
-		const verbose: boolean = isWorker() && debug
+		const verbose: boolean = EnvProvider.get().isWorker() && debug
 
 		this.checkRequestSizeLimit(path, method, options.body ?? null)
 
@@ -97,8 +97,8 @@ export class RestClient implements RestClientInterface {
 				}
 
 				if (isNotNull(options.noCORS) && options.noCORS) {
-					queryParams["cv"] = ClientDetector.get().env.versionNumber
-					if (ClientDetector.get().env.networkDebugging) {
+					queryParams["cv"] = EnvProvider.get().getVersionNumber()
+					if (EnvProvider.get().networkDebuggingEnabled()) {
 						queryParams["network-debugging"] = "enable-network-debugging"
 					}
 				}
@@ -357,7 +357,7 @@ export class RestClient implements RestClientInterface {
 
 		// don't add custom and content-type headers for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
 		if (isNull(options.noCORS) || !options.noCORS) {
-			headers["cv"] = ClientDetector.get().env.versionNumber
+			headers["cv"] = EnvProvider.get().getVersionNumber()
 			headers["cp"] = this.clientPlatform
 			if (body instanceof RestBinaryBody) {
 				headers["Content-Type"] = MediaType.Binary
@@ -368,12 +368,12 @@ export class RestClient implements RestClientInterface {
 			// add networkDebugging header iff network debugging is activated
 			// network debugging can be activated by building with --network-debugging,
 			// and essentially activates both attributeNames and attributeIds in the request/response payload
-			if (ClientDetector.get().env.networkDebugging) {
+			if (EnvProvider.get().networkDebuggingEnabled()) {
 				headers["Network-Debugging"] = "enable-network-debugging"
 			}
 		}
 
-		const clientName = ClientDetector.get().env.clientName ?? null
+		const clientName = EnvProvider.get().getClientName()
 		if (isNotNull(clientName)) {
 			headers["Client-Name"] = clientName
 		}
@@ -418,5 +418,5 @@ function logFailedRequest(method: HttpMethod, url: URL, xhr: XMLHttpRequest, opt
 
 /** We only need to track timeout directly here on some platforms. Other platforms do it inside their network driver. */
 function usingTimeoutAbort(): boolean {
-	return isWebClient() || isAndroidApp()
+	return EnvProvider.get().isWebClient() || EnvProvider.get().isAndroidApp()
 }

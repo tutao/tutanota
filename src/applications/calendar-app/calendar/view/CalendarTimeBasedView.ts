@@ -3,7 +3,7 @@ import { deduplicate, identity, incrementDate } from "../../../../platform-kit/u
 import { getRangeOfDays, getStartOfWeek, isSameEventInstance } from "../../../common/calendar/date/CalendarUtils"
 import { WeekStart } from "../../../../platform-kit/app-env"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays, ScrollByListener } from "./CalendarViewModel"
 import { CalendarViewType } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { Time } from "../../../common/calendar/date/Time.js"
@@ -83,7 +83,8 @@ export class CalendarTimeBasedView implements Component<CalendarTimeBasedViewAtt
 				onDateClick: attrs.onDateSelected,
 				startOfWeek: attrs.startOfTheWeek,
 				isDaySelectorExpanded: attrs.isDaySelectorExpanded,
-				variant: styles.isDesktopLayout() || attrs.currentViewType === CalendarViewType.THREE_DAY ? HeaderVariant.NORMAL : HeaderVariant.SWIPEABLE,
+				variant:
+					Styles.get().isDesktopLayout() || attrs.currentViewType === CalendarViewType.THREE_DAY ? HeaderVariant.NORMAL : HeaderVariant.SWIPEABLE,
 				showWeekDays: attrs.showWeekDaysSection,
 			},
 			bodyComponentAttrs: {

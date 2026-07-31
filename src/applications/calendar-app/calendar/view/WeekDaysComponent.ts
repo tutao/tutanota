@@ -1,7 +1,7 @@
 import { CalendarViewType } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { TabIndex, WeekStart } from "../../../../platform-kit/app-env"
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { styles } from "../../../../ui/styles"
+import { Styles } from "../../../../ui/styles"
 import { getDayCircleClass } from "../gui/CalendarGuiUtils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { layout_size, px } from "../../../../ui/size"
@@ -117,7 +117,7 @@ export class WeekDaysComponent implements ClassComponent<WeekDaysComponentAttrs>
 				showDaySelection: true,
 				highlightToday: true,
 				highlightSelectedWeek: dates.length === 7,
-				useNarrowWeekName: styles.isSingleColumnLayout(),
+				useNarrowWeekName: Styles.get().isSingleColumnLayout(),
 				hasEventOn: attrs.hasEvents,
 			} satisfies DaySelectorAttrs),
 		)

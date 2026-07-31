@@ -30,7 +30,7 @@ import { theme } from "../../../ui/theme"
 import { TextField } from "../../../ui/base/TextField"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { IconButton } from "../../../ui/base/IconButton"
-import { styles } from "../../../ui/styles"
+import { Styles } from "../../../ui/styles"
 import { WizardStepComponentAttrs } from "../../../ui/base/wizard/WizardStep"
 import { AllIcons } from "../../../ui/base/Icon"
 import { layout_size, px } from "../../../ui/size"
@@ -59,9 +59,9 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 		const isFirstMonthForFree = data.planPrices!.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly
 		const isAppStorePayment = data.paymentData.paymentMethod === PaymentMethodType.AppStore
 
-		return m(`.flex.flex-column.full-width${styles.isMobileLayout() ? ".pt-16" : ""}`, [
+		return m(`.flex.flex-column.full-width${Styles.get().isMobileLayout() ? ".pt-16" : ""}`, [
 			m(
-				`h1.font-mdio${styles.isMobileLayout() ? ".h2" : ".h1"}`,
+				`h1.font-mdio${Styles.get().isMobileLayout() ? ".h2" : ".h1"}`,
 				{
 					style: {
 						position: "relative",
@@ -70,12 +70,12 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 				},
 				lang.get("confirm_order_page_title"),
 			),
-			m(`p${styles.isMobileLayout() ? ".mb-32" : ""}`, { style: { color: theme.on_surface_variant } }, lang.get("confirm_order_page_subtitle")),
+			m(`p${Styles.get().isMobileLayout() ? ".mb-32" : ""}`, { style: { color: theme.on_surface_variant } }, lang.get("confirm_order_page_subtitle")),
 
 			m(".flex.gap-16", [
 				m(".flex-grow", [
 					m(
-						`.flex.col.gap-16.pt-16.pb-16.border-radius-16${styles.isMobileLayout() ? "" : ".plr-16"}`,
+						`.flex.col.gap-16.pt-16.pb-16.border-radius-16${Styles.get().isMobileLayout() ? "" : ".plr-16"}`,
 						{
 							style: {
 								"background-color": theme.surface_container_high,
@@ -97,7 +97,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 										icon: Icons.PenFilled,
 										title: "edit_action",
 										click: () => {
-											if (styles.bodyWidth >= layout_size.wizard_show_illustration_min_width && !data.options.businessUse()) {
+											if (Styles.get().bodyWidth >= layout_size.wizard_show_illustration_min_width && !data.options.businessUse()) {
 												data.inlinePlanSelectorOpen(!data.inlinePlanSelectorOpen())
 											} else {
 												ctx.controller.setStep(0)
@@ -217,7 +217,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 						m(PrimaryButton, {
 							size: "md",
 							label: isAppStorePayment ? "checkoutWithAppStore_action" : "confirmAndPay_action",
-							width: styles.isMobileLayout() ? "full" : "flex",
+							width: Styles.get().isMobileLayout() ? "full" : "flex",
 							onclick: () => this.upgrade(ctx),
 							style: {
 								"margin-left": "auto",

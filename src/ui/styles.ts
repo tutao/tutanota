@@ -5,6 +5,7 @@ import { theme } from "./theme"
 import { assertNotNull, neverNull } from "../platform-kit/utils"
 import { ThemeController } from "./ThemeController.js"
 import { ClientDetector } from "../platform-kit/app-env/boot/ClientDetector"
+import { isNull } from "../platform-kit/utils/Utils"
 
 assertMainOrNodeBoot()
 export type StyleSheetId = "main" | "outline"
@@ -13,7 +14,7 @@ export type StyleSheetId = "main" | "outline"
  * Writes all styles to a single dom <style>-tag
  */
 
-class Styles {
+export class Styles {
 	styles: Map<StyleSheetId, (...args: Array<any>) => any>
 	initialized: boolean
 	bodyWidth: number
@@ -23,6 +24,15 @@ class Styles {
 
 	// theme-color hints web browsers what color to use when decorating their UIs
 	private readonly themeColorMeta: HTMLMetaElement | null
+
+	private static singleton: Styles | null = null
+
+	public static get(): Styles {
+		if (isNull(Styles.singleton)) {
+			Styles.singleton = new Styles()
+		}
+		return Styles.singleton
+	}
 
 	constructor() {
 		this.initialized = false
@@ -155,6 +165,10 @@ class Styles {
 
 		return styleDomElement as HTMLStyleElement
 	}
+
+	static removeSingletonForTesting() {
+		Styles.singleton = null
+	}
 }
 
 function objectToCss(indent: string, key: string, o: Record<string, string>) {
@@ -182,5 +196,3 @@ function toCss(obj: Record<string, any>, indent = "") {
 		.join("\n")
 	return ret
 }
-
-export const styles: Styles = new Styles()

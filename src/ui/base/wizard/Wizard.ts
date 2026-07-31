@@ -6,7 +6,7 @@ import { component_size, layout_size, px, size } from "../../size"
 import { TertiaryButton } from "../buttons/VariantButtons.js"
 import { lang } from "../../utils/LanguageViewModel"
 import { Icons } from "../icons/Icons"
-import { styles } from "../../styles"
+import { Styles } from "../../styles"
 import { IconButton } from "../IconButton"
 
 export interface WizardLayoutAttrs<TViewModel> {
@@ -162,7 +162,7 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 
 			const backButton =
 				isBackButtonEnabled(controller.currentStep) &&
-				(styles.isSingleColumnLayout()
+				(Styles.get().isSingleColumnLayout()
 					? m(IconButton, {
 							icon: Icons.ChevronLeft,
 							title: lang.getTranslation("back_action"),
@@ -193,25 +193,25 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 			}
 
 			return m(
-				`.full-width.${styles.isMobileLayout() ? "" : "height-100p"}`,
+				`.full-width.${Styles.get().isMobileLayout() ? "" : "height-100p"}`,
 				{
 					style: {
-						margin: styles.isMobileLayout() ? `${px(size.spacing_24)} 0` : "auto",
+						margin: Styles.get().isMobileLayout() ? `${px(size.spacing_24)} 0` : "auto",
 						"max-height": px(layout_size.wizard_max_height),
 						"max-width": px(layout_size.wizard_max_width),
 					},
 				},
 				m(
-					`.flex.height-100p.full-width.${styles.isMobileLayout() ? ".col.gap-8" : ".gap-32"}`,
+					`.flex.height-100p.full-width.${Styles.get().isMobileLayout() ? ".col.gap-8" : ".gap-32"}`,
 					{
 						style: {
 							"padding-inline": "5vw",
-							"padding-block": styles.isMobileLayout() ? undefined : "7vh",
+							"padding-block": Styles.get().isMobileLayout() ? undefined : "7vh",
 						},
 					},
 					[
 						m(".flex.flex-column.flex-space-between", [
-							!styles.isMobileLayout() &&
+							!Styles.get().isMobileLayout() &&
 								showProgress(controller.currentStep) &&
 								m(WizardProgress, {
 									progressState,

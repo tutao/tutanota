@@ -1,9 +1,9 @@
-import { styles } from "./styles.js"
+import { Styles } from "./styles.js"
 
 export function responsiveCardHMargin() {
-	return styles.isSingleColumnLayout() ? "mlr-8" : "mlr-24"
+	return Styles.get().isSingleColumnLayout() ? "mlr-8" : "mlr-24"
 }
 
 export function responsiveCardHPadding() {
-	return styles.isSingleColumnLayout() ? "plr-8" : "plr-24"
+	return Styles.get().isSingleColumnLayout() ? "plr-8" : "plr-24"
 }

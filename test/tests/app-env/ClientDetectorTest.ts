@@ -250,18 +250,22 @@ o.spec("ClientDetector test", function () {
 			o(ClientDetector.get().isMobileDevice()).equals(false)
 		})
 		o("ClientDetector firefox os is supported", async () => {
-			await withOverriddenEnv({ mode: Mode.App }, () => ClientDetector.get().init("Mozilla/5.0 (Mobile rv:26.0) Gecko/26.0 Firefox/26.0", "Linux"))
-			o(ClientDetector.get().browser).equals(BrowserType.FIREFOX)
-			o(ClientDetector.get().browserVersion).equals(26)
-			o(ClientDetector.get().device).equals(DeviceType.OTHER_MOBILE)
-			o(ClientDetector.get().isMobileDevice()).equals(true)
+			await withOverriddenEnv({ mode: Mode.App }, () => {
+				ClientDetector.get().init("Mozilla/5.0 (Mobile rv:26.0) Gecko/26.0 Firefox/26.0", "Linux")
+				o(ClientDetector.get().browser).equals(BrowserType.FIREFOX)
+				o(ClientDetector.get().browserVersion).equals(26)
+				o(ClientDetector.get().device).equals(DeviceType.OTHER_MOBILE)
+				o(ClientDetector.get().isMobileDevice()).equals(true)
+			})
 		})
 		o("ClientDetector firefox os tablet is supported", async () => {
-			await withOverriddenEnv({ mode: Mode.App }, () => ClientDetector.get().init("Mozilla/5.0 (Tablet rv:26.0) Gecko/26.0 Firefox/26.0", "Linux"))
-			o(ClientDetector.get().browser).equals(BrowserType.FIREFOX)
-			o(ClientDetector.get().browserVersion).equals(26)
-			o(ClientDetector.get().device).equals(DeviceType.OTHER_MOBILE)
-			o(ClientDetector.get().isMobileDevice()).equals(true)
+			await withOverriddenEnv({ mode: Mode.App }, () => {
+				ClientDetector.get().init("Mozilla/5.0 (Tablet rv:26.0) Gecko/26.0 Firefox/26.0", "Linux")
+				o(ClientDetector.get().browser).equals(BrowserType.FIREFOX)
+				o(ClientDetector.get().browserVersion).equals(26)
+				o(ClientDetector.get().device).equals(DeviceType.OTHER_MOBILE)
+				o(ClientDetector.get().isMobileDevice()).equals(true)
+			})
 		})
 	})
 	o("old Chrome is not supported", function () {
