@@ -3,7 +3,7 @@ import { validateWebauthnDisplayName, WebauthnClient } from "../../../misc/2fa/w
 import type { TotpSecret } from "@tutao/crypto"
 import { assertNotNull, LazyLoaded, neverNull, singleAsync } from "@tutao/utils"
 import { TranslationKey } from "../../../../../ui/utils/LanguageViewModel.js"
-import { DomainConfig, isApp, ProgrammingError, SecondFactorType } from "@tutao/app-env"
+import { DomainConfig, EnvProvider, ProgrammingError, SecondFactorType } from "@tutao/app-env"
 import { LoginFacade } from "../../../../../platform-kit/base/facades/LoginFacade.js"
 import { UserError } from "../../../api/main/UserError.js"
 import { getHtmlSanitizer } from "../../../misc/HtmlSanitizer.js"
@@ -61,7 +61,7 @@ export class SecondFactorEditModel {
 		this.otpInfo = new LazyLoaded(async () => {
 			const url = await this.getOtpAuthUrl(this.totpKeys.readableKey)
 
-			const totpQRCodeSvg = isApp()
+			const totpQRCodeSvg = EnvProvider.get().isApp()
 				? null
 				: getHtmlSanitizer().sanitizeSVG(
 						new QRCode({

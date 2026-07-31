@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "../../../../platform-kit/app-env"
+import { assertWorkerOrNode, EnvProvider, ProgrammingError } from "../../../../platform-kit/app-env"
 import { initLocator, locator, resetLocator } from "./DriveWorkerLocator.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
 import { random } from "../../../../platform-kit/crypto"
@@ -34,7 +34,7 @@ export class DriveWorkerImpl implements NativeInterface {
 
 		// only register oncaught error handler if we are in the *real* worker scope
 		// Otherwise uncaught error handler might end up in an infinite loop for test cases.
-		if (workerScope && !isMainOrNode()) {
+		if (workerScope && !EnvProvider.get().isMainOrNode()) {
 			workerScope.addEventListener("unhandledrejection", (event: PromiseRejectionEvent) => {
 				this.sendError(event.reason)
 			})

@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, CancelledError, isAdminClient, isBrowser, isTest, OutOfSyncError, TimeConstants } from "@tutao/app-env"
+import { assertWorkerOrNode, CancelledError, EnvProvider, OutOfSyncError, TimeConstants } from "@tutao/app-env"
 import {
 	AccessBlockedError,
 	AccessDeactivatedError,
@@ -743,7 +743,7 @@ export class EventBusClient {
 
 	private eventGroups(): Id[] {
 		const user = this.loggedInUserProvider.getLoggedInUser()
-		if ((!isBrowser() && !isAdminClient()) || isTest()) {
+		if ((!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) || EnvProvider.get().isTest()) {
 			return user.memberships
 				.filter((membership) => membership.groupType !== GroupType.MailingList)
 				.concat(user.userGroup)

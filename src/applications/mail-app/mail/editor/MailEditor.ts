@@ -38,11 +38,8 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import {
 	ALLOWED_IMAGE_FORMATS,
 	CancelledError,
+	EnvProvider,
 	FeatureType,
-	isApp,
-	isBrowser,
-	isDesktop,
-	isIOSApp,
 	MailAuthenticationStatus,
 	TimeConstants,
 	UNDO_SEND_TIMEOUT_SECONDS,
@@ -231,7 +228,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					blockExternalContent: !isPaste && this.blockExternalContent,
 				})
 
-				if (isPaste && isIOSApp()) {
+				if (isPaste && EnvProvider.get().isIOSApp()) {
 					// For iOS, we want to clear styling because WebKit, when copying, includes way more styling than
 					// desired (regardless of the origin of the text) and all of this styling is then pasted in. This
 					// results in emails being sent with light text and sans-serif fonts that the user did not manually
@@ -936,7 +933,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				m(RichTextToolbar, {
 					editor: this.editor,
 					//Inline images require transporting over IPC boundary and we have not implemented a suitable way yet
-					imageButtonClickHandler: isApp()
+					imageButtonClickHandler: EnvProvider.get().isApp()
 						? null
 						: (event: Event) => this.imageButtonClickHandler(model, (event.target as HTMLElement).getBoundingClientRect()),
 				}),
@@ -1414,10 +1411,10 @@ async function createMailEditorDialog(
 		},
 		middle: dialogTitleTranslationKey(model.getConversationType()),
 		create: () => {
-			if (isBrowser()) {
+			if (EnvProvider.get().isBrowser()) {
 				// Have a simple listener on browser, so their browser will make the user ask if they are sure they want to close when closing the tab/window
 				windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {})
-			} else if (isDesktop()) {
+			} else if (EnvProvider.get().isDesktop()) {
 				// Simulate clicking the Close button when on the desktop so they can see they can save a draft rather than completely closing it
 				windowCloseUnsubscribe = windowFacade.addWindowCloseListener(() => {
 					minimize()
@@ -1675,7 +1672,7 @@ export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: bo
 	if (mailTo.attach) {
 		const attach = mailTo.attach
 
-		if (isDesktop()) {
+		if (EnvProvider.get().isDesktop()) {
 			const files = await Promise.all(attach.map((uri) => locator.fileApp.readDataFile(uri)))
 			dataFiles = files.filter(isNotNull)
 		}
@@ -1737,7 +1734,7 @@ export async function newMailEditorFromTemplate(
 	await model.initWithTemplate(recipients, subject, bodyText, attachments, confidential, senderMailAddress, initialChangedState)
 	return await createMailEditorDialog(
 		model,
-		new AttachmentDownloader(locator.fileController, isBrowser() ? null : mailLocator.fileApp, locator.transferProgressDispatcher),
+		new AttachmentDownloader(locator.fileController, EnvProvider.get().isBrowser() ? null : mailLocator.fileApp, locator.transferProgressDispatcher),
 	)
 }
 
@@ -1807,7 +1804,7 @@ export async function writeGiftCardMail(link: string, mailboxDetails?: MailboxDe
 		.then((model) =>
 			createMailEditorDialog(
 				model,
-				new AttachmentDownloader(locator.fileController, isBrowser() ? null : locator.fileApp, locator.transferProgressDispatcher),
+				new AttachmentDownloader(locator.fileController, EnvProvider.get().isBrowser() ? null : locator.fileApp, locator.transferProgressDispatcher),
 				false,
 			),
 		)

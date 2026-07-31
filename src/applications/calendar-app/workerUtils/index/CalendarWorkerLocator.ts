@@ -5,15 +5,7 @@ import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import { EventBusClient } from "../../../../app-kit/local-store/event/EventBusClient.js"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate.js"
-import {
-	assertWorkerOrNode,
-	Const,
-	getWebsocketBaseUrl,
-	isAdminClient,
-	isBrowser,
-	isOfflineStorageAvailable,
-	ProgrammingError,
-} from "../../../../platform-kit/app-env"
+import { assertWorkerOrNode, Const, EnvProvider, ProgrammingError } from "../../../../platform-kit/app-env"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface.js"
 import { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp.js"
@@ -131,13 +123,13 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		return new PdfWriter(new TextEncoder(), undefined)
 	}
 
-	if (!isBrowser() && !isAdminClient()) {
+	if (!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 	}
 
 	// offlineStorageProvider and ephemeralStorageProvider reference locator.base.* lazily — only called during login init
 	let offlineStorageProvider: () => Promise<CachingOfflineStorage | null>
-	if (!isBrowser() && !isAdminClient()) {
+	if (!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) {
 		offlineStorageProvider = async () => {
 			const customCacheHandler = new CustomCacheHandlerMap({
 				ref: UserTypeRef,
@@ -179,7 +171,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	locator.cacheStorage = maybeUninitializedStorage
 
 	const lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider> = lazyMemoized(async () => {
-		if (isOfflineStorageAvailable()) {
+		if (EnvProvider.get().isOfflineStorageAvailable()) {
 			return new OfflineStorageLastProcessedEventBatchStorageFacade(locator.sqlCipherFacade)
 		} else {
 			return new NoOpLastProcessedEventBatchStorageFacade()
@@ -393,7 +385,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		locator.base.cache as EntityRestCache,
 		locator.base.user,
 		locator.base.instancePipeline,
-		(path) => new WebSocket(getWebsocketBaseUrl(domainConfig) + path),
+		(path) => new WebSocket(EnvProvider.get().getWebsocketBaseUrl(domainConfig) + path),
 		new SleepDetector(scheduler, dateProvider),
 		locator.base.typeModelResolver,
 		locator.base.crypto,

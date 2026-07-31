@@ -87,7 +87,7 @@ import {
 	isUpdateForTypeRef,
 	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { EncryptionAuthStatus, FeatureType, isBrowser, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
+import { EncryptionAuthStatus, EnvProvider, FeatureType, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
@@ -886,7 +886,7 @@ export class MailViewerViewModel {
 		}
 
 		const unsubscribePostUrl = assertNotNull(unsubscribeAction.requestUrl)
-		if (isBrowser()) {
+		if (EnvProvider.get().isBrowser()) {
 			// In case we are on the webApp we can not execute the POST request directly
 			// from the client. However, the user is informed that the list unsubscribe url will
 			// be sent to our server in this case.

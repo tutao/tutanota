@@ -22,11 +22,10 @@ import { Dialog } from "../../../../ui/base/Dialog.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { assertMainOrNode, isApp, isIOSApp, ProgrammingError } from "../../../../platform-kit/app-env"
+import { assertMainOrNode, EnvProvider, ProgrammingError } from "../../../../platform-kit/app-env"
 import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import {
 	Contact,
-	ContactParams,
 	ContactTypeRef,
 	createContact,
 	createContactAddress,
@@ -169,7 +168,7 @@ export class NativeContactsSyncManager {
 	 * it can interfere with
 	 */
 	async canSync(): Promise<boolean> {
-		if (!isApp()) {
+		if (!EnvProvider.get().isApp()) {
 			throw new ProgrammingError("Can only check Contact permissions on app")
 		}
 
@@ -178,7 +177,7 @@ export class NativeContactsSyncManager {
 			return false
 		}
 
-		return !isIOSApp() || this.checkIfExternalCloudSyncOnIos()
+		return !EnvProvider.get().isIOSApp() || this.checkIfExternalCloudSyncOnIos()
 	}
 
 	/**
@@ -186,7 +185,7 @@ export class NativeContactsSyncManager {
 	 * @returns false if no permission or iCloud sync is enabled and the user cancelled, or true if permission is granted and iCloud sync is disabled (or the user bypassed the warning dialog)
 	 */
 	private async checkIfExternalCloudSyncOnIos(): Promise<boolean> {
-		assert(isIOSApp(), "Can only check cloud syncing on iOS")
+		assert(EnvProvider.get().isIOSApp(), "Can only check cloud syncing on iOS")
 
 		let localContactStorage = await this.mobileContactsFacade.isLocalStorageAvailable()
 		if (!localContactStorage) {
@@ -398,7 +397,7 @@ export class NativeContactsSyncManager {
 
 	private mergeNativeContactWithTutaContact(contact: StructuredContact, partialContact: Contact): Contact {
 		// TODO: iOS requires a special entitlement from Apple to access these fields
-		const canMergeCommentField = !isIOSApp()
+		const canMergeCommentField = !EnvProvider.get().isIOSApp()
 
 		return {
 			...partialContact,

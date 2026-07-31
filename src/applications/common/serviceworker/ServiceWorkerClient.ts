@@ -3,7 +3,7 @@ import { windowFacade } from "../misc/WindowFacade"
 import m, { Component } from "mithril"
 import { handleUncaughtError } from "../misc/ErrorHandler"
 import { isNotSupportedError, isSecurityError, objToError } from "../api/common/utils/ErrorUtils.js"
-import { DomainConfig, isApp, isDesktop } from "@tutao/app-env"
+import { DomainConfig, EnvProvider } from "@tutao/app-env"
 import type { ServiceWorkerMessage } from "./ServiceWorkerTypes"
 
 function showUpdateOverlay({ showChangelogLink, onUpdate }: { showChangelogLink: boolean; onUpdate: () => void }) {
@@ -62,7 +62,7 @@ export function init(domainConfig: DomainConfig) {
 
 	if (serviceWorker) {
 		// We don't want service worker in certain environments
-		if (env.dist && !isApp() && !isDesktop() && window.nativeAppWebDialog == null) {
+		if (env.dist && !EnvProvider.get().isApp() && !EnvProvider.get().isDesktop() && window.nativeAppWebDialog == null) {
 			console.log("Registering ServiceWorker")
 			serviceWorker
 				.register("/sw.js")

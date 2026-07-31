@@ -16,7 +16,7 @@ import { BusinessPlanContainer } from "./components/BusinessPlanContainer.js"
 import { getSafeAreaInsetBottom } from "../../../ui/HtmlUtils.js"
 import { DiscountDetails, hasRelevantGlobalFirstYearCampaign, isPersonalPlanAvailable, shouldFixButtonPosition } from "./utils/PlanSelectorUtils.js"
 import { Styles } from "../../../ui/styles"
-import { isIOSApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { AvailablePlanType, NewBusinessPlans, NewPersonalPlans, PlanType, SubscriptionType } from "../../../entities/sys/Utils"
 
 export type PlanSelectorAttr = {
@@ -216,7 +216,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 	}
 
 	private renderAdditionalButton(newSignupFlow: undefined | boolean, options: SelectedSubscriptionOptions) {
-		if (!newSignupFlow || isIOSApp()) {
+		if (!newSignupFlow || EnvProvider.get().isIOSApp()) {
 			return null
 		}
 		if (options.businessUse()) {

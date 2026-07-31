@@ -1,4 +1,4 @@
-import { isApp, isBrowser, isDesktop } from "../../../../platform-kit/app-env"
+import { EnvProvider } from "../../../../platform-kit/app-env"
 import { assertNotNull, groupByAndMap, isEmpty, neverNull, promiseMap } from "../../../../platform-kit/utils"
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog"
@@ -501,7 +501,7 @@ async function showUnsubscribeDialog(nextUnsubscribeActions: Array<UnsubscribeAc
 				"p.m-0.mt-8",
 				nextUnsubscribeAction.type !== UnsubscribeType.HTTP_POST_UNSUBSCRIBE
 					? nextUnsubscribeAction.requestUrl
-					: isBrowser()
+					: EnvProvider.get().isBrowser()
 						? lang.get("unsubscribeHttpPostInfoWeb_msg")
 						: lang.get("unsubscribeHttpPostInfoApp_msg"),
 			),
@@ -540,7 +540,7 @@ async function showUnsubscribeDialog(nextUnsubscribeActions: Array<UnsubscribeAc
 											newMailDialog.show()
 										}
 									} else if (nextUnsubscribeAction?.type === UnsubscribeType.HTTP_GET_UNSUBSCRIBE) {
-										if (isApp()) {
+										if (EnvProvider.get().isApp()) {
 											mailLocator.systemFacade.openLink(nextUnsubscribeAction.requestUrl)
 										} else {
 											open(nextUnsubscribeAction.requestUrl)
@@ -711,5 +711,5 @@ export function getMailFilterForType(filter: MailFilterType): ListFilter<Mail> {
 }
 
 export function canDoDragAndDropExport(): boolean {
-	return isDesktop()
+	return EnvProvider.get().isDesktop()
 }

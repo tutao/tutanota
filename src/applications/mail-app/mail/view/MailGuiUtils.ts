@@ -18,16 +18,7 @@ import {
 	noOp,
 	promiseMap,
 } from "../../../../platform-kit/utils"
-import {
-	CancelledError,
-	EncryptionAuthStatus,
-	isApp,
-	isDesktop,
-	isIOSApp,
-	MailAuthenticationStatus,
-	ProgrammingError,
-	TimeConstants,
-} from "../../../../platform-kit/app-env"
+import { CancelledError, EncryptionAuthStatus, EnvProvider, MailAuthenticationStatus, ProgrammingError, TimeConstants } from "../../../../platform-kit/app-env"
 import { getReportConfirmation } from "./MailReportDialog"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
 import { DownloadPostProcessing, DownloadReturn, FileController, handleDownloadErrors } from "../../../common/file/FileController"
@@ -481,7 +472,7 @@ export function replaceCidsWithInlineImages(
 				imageElement.setAttribute("src", inlineImage.objectUrl)
 				imageElement.classList.remove("tutanota-placeholder")
 
-				if (isApp()) {
+				if (EnvProvider.get().isApp()) {
 					// Add long press action for apps
 					let timeoutId: TimeoutID | null
 					let startCoords:
@@ -523,7 +514,7 @@ export function replaceCidsWithInlineImages(
 					})
 				}
 
-				if (isDesktop()) {
+				if (EnvProvider.get().isDesktop()) {
 					// add right click action for desktop apps
 					imageElement.addEventListener("contextmenu", (e: MouseEvent) => {
 						onContext(inlineImage.cid, e, imageElement)
@@ -965,14 +956,14 @@ export class AttachmentDownloader {
 	canOpenAttachment(attachment: Attachment): boolean {
 		// Can Open: Desktop, Android, iOS
 		// Data files can only be downloaded
-		return (isApp() || isDesktop()) && !isDataFile(attachment)
+		return (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) && !isDataFile(attachment)
 	}
 
 	canDownloadAttachment(attachment: Attachment): boolean {
 		// Can Download: Web, Desktop, Android
 		// on iOS you always open and then choose where to save
 		// downloading a file reference does not make any sense, since the file is already on the file system
-		return !isIOSApp() && !isFileReference(attachment)
+		return !EnvProvider.get().isIOSApp() && !isFileReference(attachment)
 	}
 
 	async openOrDownloadAttachment(attachment: Attachment, postDownload: DownloadPostProcessing) {

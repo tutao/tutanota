@@ -22,11 +22,12 @@ import { TypeModelResolver } from "./EntityFunctions"
 import { Patch, UserTypeRef } from "@tutao/entities/sys"
 import { EntityUpdateData } from "./utils/EntityUpdateUtils"
 import { IncomingServerJson } from "./TypeMapper"
-import { ClientDetector } from "../app-env/boot/ClientDetector"
+import { EnvProvider } from "@tutao/app-env"
 
 export interface OwnerKeyProvider {
 	(ownerKeyVersion: KeyVersion): Promise<AesKey>
 }
+
 export interface OwnerEncSessionKeyProvider {
 	(instanceElementId: Id, entity: Entity): Promise<VersionedEncryptedKey>
 }
@@ -55,6 +56,7 @@ export interface SessionKeyResolver {
 	 */
 	resolveServiceSessionKey(instance: EntityAdapter): Promise<AesKey | null>
 }
+
 /*
  * Note:
  * This is a subset of interface `CacheStorage`.
@@ -185,7 +187,7 @@ export class PatchMerger {
 	}
 
 	private removeNetworkDebuggingSymbolsIfNeeded(fieldPath: string): string {
-		if (!ClientDetector.get().env.networkDebugging) {
+		if (!EnvProvider.get().networkDebuggingEnabled()) {
 			return fieldPath
 		}
 		return fieldPath
@@ -382,7 +384,7 @@ export class PatchMerger {
 		try {
 			let attributeId: number
 			const attributeIdsInServerTypeModel = Object.keys(serverTypeModel.values).concat(Object.keys(serverTypeModel.associations))
-			if (ClientDetector.get().env.networkDebugging) {
+			if (EnvProvider.get().networkDebuggingEnabled()) {
 				attributeId = parseInt(pathItem.split(":")[0])
 			} else {
 				attributeId = parseInt(pathItem)

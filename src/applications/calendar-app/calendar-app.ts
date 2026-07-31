@@ -27,7 +27,7 @@ import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/v
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
 import type { MobileSettingsView } from "../common/settings/MobileSettingsView.js"
-import { AppType, assertMainOrNodeBoot, bootFinished, DomainConfig, isAdminClient, isApp, isBrowser, isDesktop, ProgrammingError } from "@tutao/app-env"
+import { AppType, assertMainOrNodeBoot, bootFinished, DomainConfig, EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { CALENDAR_PREFIX } from "../../ui/utils/RouteChange"
 import { initUiSingletons, MakeViewResolverOptions } from "../common/app-common"
 import { NamedClientModel } from "@tutao/instance-pipeline"
@@ -104,7 +104,7 @@ import("../../ui/translations/en.js")
 
 		// this needs to stay after client.init
 		windowFacade.init(calendarLocator.logins, calendarLocator.connectivityModel)
-		if (isDesktop()) {
+		if (EnvProvider.get().isDesktop()) {
 			import("../common/native/UpdatePrompt.js").then(({ registerForUpdates }) => registerForUpdates(calendarLocator.desktopSettingsFacade))
 		}
 
@@ -133,7 +133,7 @@ import("../../ui/translations/en.js")
 		calendarLocator.logins.addPostLoginAction(async () => {
 			return {
 				async onPartialLoginSuccess() {
-					if (isApp()) {
+					if (EnvProvider.get().isApp()) {
 						calendarLocator.fileApp.clearFileData().catch((e) => console.log("Failed to clean file data", e))
 					}
 				},
@@ -141,7 +141,7 @@ import("../../ui/translations/en.js")
 			}
 		})
 
-		if (!isBrowser() && !isAdminClient()) {
+		if (!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) {
 			calendarLocator.logins.addPostLoginAction(async () => {
 				const { CalendarPostLoginAction } = await import("../common/offline/CalendarPostLoginAction.js")
 				return new CalendarPostLoginAction(
@@ -457,7 +457,7 @@ import("../../ui/translations/en.js")
 
 		// We need to initialize native once we start the mithril routing, specifically for the case of mailto handling in android
 		// If native starts telling the web side to navigate too early, mithril won't be ready and the requests will be lost
-		if (isApp() || isDesktop()) {
+		if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
 			await calendarLocator.native.init()
 		}
 		// if (isDesktop()) {
@@ -641,10 +641,10 @@ function makeOldViewResolver(
 function assignEnvPlatformId(urlQueryParams: Mithril.Params) {
 	const platformId = urlQueryParams["platformId"]
 
-	if (isApp() || isDesktop()) {
+	if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
 		if (
-			(isApp() && (platformId === "android" || platformId === "ios")) ||
-			(isDesktop() && (platformId === "linux" || platformId === "win32" || platformId === "darwin"))
+			(EnvProvider.get().isApp() && (platformId === "android" || platformId === "ios")) ||
+			(EnvProvider.get().isDesktop() && (platformId === "linux" || platformId === "win32" || platformId === "darwin"))
 		) {
 			env.platformId = platformId
 		} else {

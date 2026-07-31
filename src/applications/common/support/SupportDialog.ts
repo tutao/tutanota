@@ -1,4 +1,4 @@
-import { assertMainOrNode, isWebClient } from "@tutao/app-env"
+import { assertMainOrNode, EnvProvider } from "@tutao/app-env"
 import { LoginController } from "../api/main/LoginController.js"
 import Stream from "mithril/stream"
 import { locator } from "../api/main/CommonLocator.js"
@@ -332,7 +332,8 @@ function filterCategories(supportData: SupportData) {
 			const meetsPlatform =
 				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.TutaCalendarMobile) && ClientDetector.get().isCalendarApp()) ||
 				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.TutaMailMobile) && ClientDetector.get().isMailApp()) ||
-				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.DesktopOrWebApp) && (ClientDetector.get().isDesktopDevice() || isWebClient()))
+				(isSupportVisibilityEnabled(visibility, SupportVisibilityMask.DesktopOrWebApp) &&
+					(ClientDetector.get().isDesktopDevice() || EnvProvider.get().isWebClient()))
 
 			const isFreeAccount = !locator.logins.getUserController().isPaidAccount()
 			const meetsCustomerStatus =

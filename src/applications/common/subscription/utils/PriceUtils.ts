@@ -1,4 +1,4 @@
-import { Const, isIOSApp, ProgrammingError } from "@tutao/app-env"
+import { Const, EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { assertTranslation, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { assertNotNull, downcast, neverNull } from "@tutao/utils"
 import { UpgradePriceType, WebsitePlanPrices } from "../FeatureListProvider"
@@ -159,7 +159,7 @@ export class PriceAndConfigProvider {
 			referralCode: referralCode,
 		})
 		this.upgradePriceData = await serviceExecutor.get(UpgradePriceService, data, null)
-		if (isIOSApp()) {
+		if (EnvProvider.get().isIOSApp()) {
 			this.mobilePrices = new Map()
 
 			const allPrices = await locator.mobilePaymentsFacade.getPlanPrices()
@@ -202,7 +202,7 @@ export class PriceAndConfigProvider {
 	): SubscriptionPrice {
 		const subscription = data.targetPlanType
 
-		if (isIOSApp()) {
+		if (EnvProvider.get().isIOSApp()) {
 			return this.getAppStorePaymentsSubscriptionPrice(subscription, paymentInterval)
 		} else {
 			const price = this.getSubscriptionPrice(paymentInterval, subscription, type)
@@ -272,7 +272,7 @@ export class PriceAndConfigProvider {
 	 * Return if the user is eligible for paid plans with an introductory discount offer from Apple Payment.
 	 */
 	getIosIntroOfferEligibility(): boolean {
-		if (!isIOSApp()) return false
+		if (!EnvProvider.get().isIOSApp()) return false
 
 		let res = false
 		for (const [key, price] of assertNotNull(this.mobilePrices)) {

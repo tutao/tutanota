@@ -4,18 +4,7 @@ import { assertNotNull, DateProvider, isEmpty, LazyLoaded, neverNull, newPromise
 import { windowFacade } from "../misc/WindowFacade.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
 import { locator } from "../api/main/CommonLocator"
-import {
-	Const,
-	CredentialEncryptionMode,
-	FeatureType,
-	isAdminClient,
-	isApp,
-	isDesktop,
-	LOGIN_TITLE,
-	SecondFactorType,
-	SessionType,
-	UpgradePromptType,
-} from "@tutao/app-env"
+import { Const, CredentialEncryptionMode, EnvProvider, FeatureType, LOGIN_TITLE, SecondFactorType, SessionType, UpgradePromptType } from "@tutao/app-env"
 import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs.js"
 import { notifications } from "../../../ui/Notifications"
 import { LockedError, NotAuthorizedError } from "@tutao/rest-client/error"
@@ -108,7 +97,7 @@ export class PostLoginActions implements PostLoginAction {
 		})
 
 		// We already have user data to load themes
-		if (isApp() || isDesktop()) {
+		if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
 			await this.storeNewCustomThemes()
 		}
 	}
@@ -136,12 +125,12 @@ export class PostLoginActions implements PostLoginAction {
 
 		this.secondFactorHandler.setupAcceptOtherClientLoginListener()
 
-		if (!isAdminClient()) {
+		if (!EnvProvider.get().isAdminClient()) {
 			// If it failed during the partial login due to missing cache entries we will give it another spin here. If it didn't fail then it's just a noop
 			await locator.mailboxModel.init()
 		}
 
-		if (this.logins.isGlobalAdminUserLoggedIn() && !isAdminClient()) {
+		if (this.logins.isGlobalAdminUserLoggedIn() && !EnvProvider.get().isAdminClient()) {
 			const receiveInfoData = createReceiveInfoServiceData({
 				language: lang.code,
 			})
@@ -363,7 +352,7 @@ export class PostLoginActions implements PostLoginAction {
 	// Show the onboarding wizard if this is the first time the app has been opened since install
 	private async showSetupWizardIfNeeded(): Promise<void> {
 		const isSetupComplete = deviceConfig.getIsSetupComplete()
-		if (isApp() && !isSetupComplete) {
+		if (EnvProvider.get().isApp() && !isSetupComplete) {
 			await this.showSetupWizard()
 		}
 	}

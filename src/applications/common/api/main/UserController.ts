@@ -1,4 +1,4 @@
-import { assertMainOrNode, FeatureType, getApiBaseUrl, isDesktop, SessionType } from "@tutao/app-env"
+import { assertMainOrNode, EnvProvider, FeatureType, SessionType } from "@tutao/app-env"
 import { assertNotNull, downcast, first, mapAndFilterNull, newPromise, ofClass } from "@tutao/utils"
 import { elementIdPart, elementIdToId, idToElementId, isSameId, isSameSingleId, listIdPart } from "@tutao/meta"
 import { NotFoundError } from "@tutao/rest-client/error"
@@ -278,7 +278,7 @@ export class UserController {
 
 			if (sendBeacon) {
 				try {
-					const apiUrl = new URL(getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig()))
+					const apiUrl = new URL(EnvProvider.get().getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig()))
 					apiUrl.pathname += `rest/sys/${CloseSessionService.name.toLowerCase()}`
 					apiUrl.searchParams.append("v", sysTypeModels[SessionTypeRef.typeId].version)
 					apiUrl.searchParams.append("cv", env.versionNumber)
@@ -303,7 +303,7 @@ export class UserController {
 				}
 			} else {
 				// Fall back to sync XHR if Beacon API is not available (which it should be everywhere by now but maybe it is suppressed somehow)
-				const apiUrl = new URL(getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig()))
+				const apiUrl = new URL(EnvProvider.get().getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig()))
 				apiUrl.pathname += `/rest/sys/session/${listIdPart(this.sessionId)}/${elementIdPart(this.sessionId)}`
 				const xhr = new XMLHttpRequest()
 				xhr.open("DELETE", apiUrl, false) // sync requests increase reliability when invoked in onunload
@@ -338,7 +338,7 @@ export class UserController {
 
 	async isWhitelabelAccount(): Promise<boolean> {
 		// isTutanotaDomain always returns true on desktop
-		if (!isDesktop()) {
+		if (!EnvProvider.get().isDesktop()) {
 			return !!getWhitelabelCustomizations(window)
 		}
 

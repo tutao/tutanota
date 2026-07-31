@@ -6,13 +6,14 @@ import { vCardFileToVCards, vCardListToContacts } from "../../../src/application
 import en from "../../../src/ui/translations/en.js"
 import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
 import { createContact, createContactAddress, createContactMailAddress, createContactPhoneNumber } from "@tutao/entities/tutanota"
+import { EnvProvider } from "../../../src/platform-kit/app-env"
 
 o.spec("VCardImporterTest", function () {
 	o.before(async function () {
 		// @ts-ignore
 		window.whitelabelCustomizations = null
 
-		if (globalThis.isBrowser) {
+		if (EnvProvider.get().isBrowser()) {
 			globalThis.TextDecoder = window.TextDecoder
 		} else {
 			// @ts-ignore

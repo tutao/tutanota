@@ -1,7 +1,7 @@
 import { base64ToUint8Array, getDayShifted, getStartOfDay, typedEntries, uint8ArrayToBase64 } from "@tutao/utils"
 import type { LanguageCode } from "../../../ui/utils/LanguageViewModel"
 import type { ThemePreference } from "../../../ui/theme"
-import { assertMainOrNodeBoot, CredentialEncryptionMode, isApp, ProgrammingError } from "@tutao/app-env"
+import { assertMainOrNodeBoot, CredentialEncryptionMode, EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { PersistedAssignmentData, UsageTestStorage } from "./UsageTestModel"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { NewsItemStorage } from "./news/NewsModel.js"
@@ -152,7 +152,8 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 			mailListDisplayMode: loadedConfig.mailListDisplayMode ?? MailListDisplayMode.CONVERSATIONS,
 			syncContactsWithPhonePreference: loadedConfig.syncContactsWithPhonePreference ?? {},
 			isCalendarDaySelectorExpanded: loadedConfig.isCalendarDaySelectorExpanded ?? false,
-			mailAutoSelectBehavior: loadedConfig.mailAutoSelectBehavior ?? (isApp() ? ListAutoSelectBehavior.NONE : ListAutoSelectBehavior.OLDER),
+			mailAutoSelectBehavior:
+				loadedConfig.mailAutoSelectBehavior ?? (EnvProvider.get().isApp() ? ListAutoSelectBehavior.NONE : ListAutoSelectBehavior.OLDER),
 			isSetupComplete: loadedConfig.isSetupComplete ?? false,
 			isCredentialsMigratedToNative: loadedConfig.isCredentialsMigratedToNative ?? false,
 			lastExternalCalendarSync: loadedConfig.lastExternalCalendarSync ?? {},

@@ -1,4 +1,5 @@
 import { ProgrammingError } from "./ProgrammingError"
+import { TypeChecks } from "./boot/TsTypeChecks"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -88,9 +89,21 @@ export class EnvProvider {
 
 	public static get(): EnvProvider {
 		if (EnvProvider.singleton == null) {
-			EnvProvider.singleton = new EnvProvider(env)
+			if (TypeChecks.hasProperty("env")) {
+				EnvProvider.singleton = new EnvProvider(env)
+			} else {
+				throw new Error("global var env is not defined")
+			}
 		}
 		return EnvProvider.singleton
+	}
+
+	public getVersionNumber(): string {
+		return this.env.versionNumber
+	}
+
+	public getTimeOutValue(): number {
+		return this.env.timeout
 	}
 
 	constructor(public readonly env: EnvType) {
@@ -102,6 +115,14 @@ export class EnvProvider {
 
 	public getPlatformId(): PlatformId | null {
 		return this.env.platformId
+	}
+
+	public networkDebuggingEnabled(): boolean {
+		return this.env.networkDebugging
+	}
+
+	public getClientName(): string | null {
+		return this.env.clientName
 	}
 
 	isIOSApp(): boolean {
@@ -238,18 +259,4 @@ export class EnvProvider {
 export const assertMainOrNode = EnvProvider.get().assertMainOrNode
 export const assertMainOrNodeBoot = EnvProvider.get().assertMainOrNodeBoot
 export const assertWorkerOrNode = EnvProvider.get().assertWorkerOrNode
-export const isIOSApp = EnvProvider.get().isIOSApp
-export const isAppleDevice = EnvProvider.get().isAppleDevice
-export const isAndroidApp = EnvProvider.get().isAndroidApp
-export const isApp = EnvProvider.get().isApp
-export const isDesktop = EnvProvider.get().isDesktop
-export const isBrowser = EnvProvider.get().isBrowser
-export const isWebClient = EnvProvider.get().isWebClient
-export const isAdminClient = EnvProvider.get().isAdminClient
-export const isMainOrNode = EnvProvider.get().isMainOrNode
-export const isWorker = EnvProvider.get().isWorker
-export const isTest = EnvProvider.get().isTest
-export const isOfflineStorageAvailable = EnvProvider.get().isOfflineStorageAvailable
-export const getApiBaseUrl = EnvProvider.get().getApiBaseUrl
-export const getWebsocketBaseUrl = EnvProvider.get().getWebsocketBaseUrl
 export const bootFinished = EnvProvider.get().bootFinished

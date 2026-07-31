@@ -1,7 +1,7 @@
 import { assertNotNull } from "@tutao/utils"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { LoginController } from "../api/main/LoginController"
-import { AppType, isAndroidApp, isApp, isDesktop, isIOSApp, PushServiceType } from "@tutao/app-env"
+import { AppType, EnvProvider, PushServiceType } from "@tutao/app-env"
 import { DeviceConfig } from "../misc/DeviceConfig"
 import { locator } from "../api/main/CommonLocator"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
@@ -23,7 +23,7 @@ const MOBILE_SYS_MODEL_VERSION = 126
 function effectiveModelVersion(): number {
 	// on desktop we use generated classes
 	// on mobile we use hand-written classes
-	return isDesktop() ? sysModelInfo.version : MOBILE_SYS_MODEL_VERSION
+	return EnvProvider.get().isDesktop() ? sysModelInfo.version : MOBILE_SYS_MODEL_VERSION
 }
 
 interface CurrentPushIdentifier {
@@ -47,7 +47,7 @@ export class NativePushServiceApp {
 
 	async register(): Promise<void> {
 		console.log(`Registering for push notifications for app type ${this.app}`)
-		if (isAndroidApp() || isDesktop()) {
+		if (EnvProvider.get().isAndroidApp() || EnvProvider.get().isDesktop()) {
 			try {
 				const identifier = (await this.loadPushIdentifierFromNative()) ?? (await locator.workerFacade.generateSsePushIdentifer())
 				const pushIdentifier = (await this.loadPushIdentifier(identifier)) ?? (await this.createPushIdentifierInstance(identifier, PushServiceType.SSE))
@@ -70,7 +70,7 @@ export class NativePushServiceApp {
 					throw e
 				}
 			}
-		} else if (isIOSApp()) {
+		} else if (EnvProvider.get().isIOSApp()) {
 			const identifier = await this.loadPushIdentifierFromNative()
 
 			if (identifier) {
@@ -203,6 +203,6 @@ export class NativePushServiceApp {
 	}
 
 	async allowReceiveCalendarNotifications() {
-		return !isApp() || (await this.getReceiveCalendarNotificationConfig())
+		return !EnvProvider.get().isApp() || (await this.getReceiveCalendarNotificationConfig())
 	}
 }

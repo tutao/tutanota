@@ -5,7 +5,7 @@ import { copyToClipboard } from "../../../ui/utils/ClipboardUtils.js"
 import m from "mithril"
 import { locator } from "../api/main/CommonLocator.js"
 import { clientInfoString } from "../misc/ErrorReporter.js"
-import { isApp, isDesktop } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 
 export async function prepareLogContent() {
 	const entries: string[] = []
@@ -21,7 +21,7 @@ ${workerLog.join("\n")}
 `)
 	}
 
-	if (isDesktop() || isApp()) {
+	if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp()) {
 		entries.push(`== NATIVE LOG ==
 ${await locator.commonSystemFacade.getLog()}
 `)

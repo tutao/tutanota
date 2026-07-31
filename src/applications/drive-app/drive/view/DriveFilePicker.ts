@@ -1,6 +1,6 @@
 import { FileChooserMultiMode, showBrowserFolderChooser, showStandardsFileChooser } from "../../../common/file/FileController"
 import { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp.js"
-import { CancelledError, isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
+import { CancelledError, EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { PosRect } from "../../../../ui/utils/PosRect.js"
 import { FileReference, WebFile } from "../../../../entities/tutanota/Utils"
 import { DiskFolder, walkTree } from "./DriveUtils"
@@ -26,7 +26,7 @@ export class WebFilePicker implements DriveFilePicker {
 
 export class AppFilePicker implements DriveFilePicker {
 	constructor(private readonly fileApp: NativeFileApp) {
-		if (!isApp() && !isDesktop()) {
+		if (!EnvProvider.get().isApp() && !EnvProvider.get().isDesktop()) {
 			throw new ProgrammingError("Trying to use AppFilePicker in browser")
 		}
 	}

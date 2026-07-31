@@ -1,4 +1,4 @@
-import { Const, isAndroidApp, isIOSApp } from "@tutao/app-env"
+import { Const, EnvProvider } from "@tutao/app-env"
 import { UserController } from "../api/main/UserController.js"
 import { assertNotNull } from "@tutao/utils"
 import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
@@ -15,7 +15,8 @@ export async function shouldShowUpgradeReminder(userController: UserController, 
 	// * do not show to new plans, they already switched
 	// * do not show in ios or android app, they can't upgrade there.
 	// * do not show while a user is signing up.
-	if (!userController.isGlobalAdmin() || (await userController.isNewPaidPlan()) || isIOSApp() || isAndroidApp()) return false
+	if (!userController.isGlobalAdmin() || (await userController.isNewPaidPlan()) || EnvProvider.get().isIOSApp() || EnvProvider.get().isAndroidApp())
+		return false
 
 	const customerInfo = await userController.loadCustomerInfo()
 	const customerProperties = await userController.loadCustomerProperties()

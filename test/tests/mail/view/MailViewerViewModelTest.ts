@@ -17,7 +17,7 @@ import { SearchModel } from "../../../../src/applications/mail-app/search/model/
 import { MailFacade } from "../../../../src/applications/common/api/worker/facades/lazy/MailFacade.js"
 import { FileController } from "../../../../src/applications/common/file/FileController.js"
 import { createTestEntity } from "../../TestUtils.js"
-import { EncryptionAuthStatus, isBrowser, MailAuthenticationStatus } from "../../../../src/platform-kit/app-env"
+import { EncryptionAuthStatus, EnvProvider, MailAuthenticationStatus } from "../../../../src/platform-kit/app-env"
 import { CryptoFacade } from "../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { ContactImporter } from "../../../../src/applications/mail-app/contacts/ContactImporter.js"
 import { MailboxDetail, MailboxModel } from "../../../../src/applications/common/mailFunctionality/MailboxModel.js"
@@ -255,7 +255,7 @@ o.spec("MailViewerViewModel", function () {
 			const unsubscribeAction = unsubscribeActions.shift()!
 			const postResult = await viewModel.unsubscribePost(unsubscribeAction)
 
-			if (!isBrowser()) {
+			if (!EnvProvider.get().isBrowser()) {
 				verify(commonSystemFacade.executePostRequest(unsubscribeAction.requestUrl, LIST_UNSUBSCRIBE_POST_PAYLOAD), {
 					times: expectedPostResult ? 1 : 0,
 				})

@@ -42,7 +42,7 @@ import { lazy, lazyAsync, lazyMemoized, Nullable } from "../utils"
 import { NoZoneDateProvider } from "../utils/NoZoneDateProvider.js"
 import { NativeCryptoFacade } from "../../app-kit/native-bridge/common/generatedipc/types/NativeCryptoFacade"
 import { ServiceExecutor } from "../network/ServiceExecutor"
-import { DomainConfig, isAdminClient, isAndroidApp, isBrowser, isIOSApp } from "@tutao/app-env"
+import { DomainConfig, EnvProvider } from "@tutao/app-env"
 import { PublicEncryptionKeyCache } from "./base-crypto/persistence/PublicEncryptionKeyCache"
 import { InstanceSessionKeysCache } from "./base-crypto/persistence/InstanceSessionKeysCache.js"
 import { Argon2idFacade, WASMArgon2idFacade } from "./base-crypto/WasmArgon2idFacade"
@@ -208,7 +208,7 @@ export async function createBaseLocator({
 
 	const patchMerger = new PatchMerger(maybeUninitializedStorage, instancePipeline, typeModelResolver, lazyCrypto, SYMMETRIC_CIPHER_FACADE)
 
-	const cache: EntityRestInterface = isAdminClient()
+	const cache: EntityRestInterface = EnvProvider.get().isAdminClient()
 		? entityRestClient
 		: entityRestCache(entityRestClient, patchMerger, typeModelResolver, lastProcessedEventBatchStorageFacade)
 
@@ -217,7 +217,7 @@ export async function createBaseLocator({
 
 	let kyberFacade: KyberFacade
 	let ed25519Facade: Ed25519Facade
-	if (nativeCryptoFacade != null && (isIOSApp() || isAndroidApp())) {
+	if (nativeCryptoFacade != null && (EnvProvider.get().isIOSApp() || EnvProvider.get().isAndroidApp())) {
 		kyberFacade = new NativeKyberFacade(nativeCryptoFacade)
 		ed25519Facade = new NativeEd25519Facade(nativeCryptoFacade)
 	} else {
@@ -351,7 +351,7 @@ export async function createBaseLocator({
 	let argon2idFacade: Argon2idFacade
 	if (argon2idFacadeOverride != null) {
 		argon2idFacade = argon2idFacadeOverride
-	} else if (nativeCryptoFacade != null && !isBrowser()) {
+	} else if (nativeCryptoFacade != null && !EnvProvider.get().isBrowser()) {
 		argon2idFacade = new NativeArgon2idFacade(nativeCryptoFacade)
 	} else {
 		argon2idFacade = new WASMArgon2idFacade()

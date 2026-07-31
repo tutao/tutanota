@@ -9,7 +9,7 @@ import { ButtonSize } from "../../../../../ui/base/ButtonSize.js"
 import { Icons } from "../../../../../ui/base/icons/Icons.js"
 import { UserController } from "../../../api/main/UserController.js"
 import { MoreInfoLink } from "../MoreInfoLink.js"
-import { isApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { ifAllowedTutaLinks } from "../../../gui/base/TutaLinkUtils"
 import { createReferralCodePostIn, ReferralCodeService } from "@tutao/entities/sys"
 
@@ -84,7 +84,7 @@ export class ReferralLinkViewer implements Component<ReferralLinkAttrs> {
 	}
 
 	private async shareAction(referralLink: string): Promise<void> {
-		if (isApp()) {
+		if (EnvProvider.get().isApp()) {
 			// open native share dialog on mobile
 			const shareMessage = this.getReferralLinkMessage(referralLink)
 			return locator.systemFacade.shareText(shareMessage, lang.get("referralSettings_label")).then()

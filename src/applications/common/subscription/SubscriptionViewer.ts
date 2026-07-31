@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { ApprovalStatus, assertMainOrNode, Const, isIOSApp, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { ApprovalStatus, assertMainOrNode, Const, EnvProvider, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { elementIdPart, elementIdToId, GENERATED_MAX_ID, getEtId, idToElementId, OperationType } from "@tutao/meta"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, incrementDate, neverNull, promiseMap, stringToBase64 } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
@@ -274,7 +274,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private onSubscriptionClick() {
 		const paymentMethod = this._accountingInfo ? getPaymentMethodType(this._accountingInfo) : null
 
-		if (isIOSApp() && (paymentMethod == null || paymentMethod === PaymentMethodType.AppStore)) {
+		if (EnvProvider.get().isIOSApp() && (paymentMethod == null || paymentMethod === PaymentMethodType.AppStore)) {
 			// case 1: we are in iOS app and we either are not paying or are already on AppStore
 			void this.handleAppStoreSubscriptionChange()
 		} else if (paymentMethod === PaymentMethodType.AppStore && this._accountingInfo?.appStoreSubscription) {
@@ -299,7 +299,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	}
 
 	private async handleUpgradeSubscription() {
-		if (isIOSApp()) {
+		if (EnvProvider.get().isIOSApp()) {
 			// We pass `null` because we expect no subscription when upgrading
 			const appStoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
 

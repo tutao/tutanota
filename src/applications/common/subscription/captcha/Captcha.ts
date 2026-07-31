@@ -17,7 +17,7 @@ import { PowChallengeParameters } from "../utils/ProofOfWorkCaptchaUtils.js"
 import { showCaptchaDialog } from "./CaptchaDialog.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { PowSolution } from "../../api/common/pow-worker"
-import { isIOSApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { mailLocator } from "../../../mail-app/mailLocator"
 import { AdAttributionType } from "../utils/SubscriptionUtils"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
@@ -73,7 +73,7 @@ export async function runCaptchaFlow({
 		let captchaReturn
 		try {
 			let attributionToken: string | null = null
-			if (isIOSApp()) {
+			if (EnvProvider.get().isIOSApp()) {
 				attributionToken = await mailLocator.systemFacade.getAppleAdsAttributionToken()
 			}
 

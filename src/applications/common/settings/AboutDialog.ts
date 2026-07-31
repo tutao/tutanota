@@ -11,7 +11,7 @@ import { px, size } from "../../../ui/size.js"
 import { getTutaLogo } from "../../../ui/base/Logo.js"
 import { prepareLogContent, showLogsDialog } from "../gui/LogDialogUtils"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
-import { isApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 
 interface AboutDialogAttrs {
 	onShowSetupWizard: () => unknown
@@ -54,7 +54,7 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 			]),
 			this.logsLink(),
 			// wrap it in a div so that it's not filling the whole width
-			isApp()
+			EnvProvider.get().isApp()
 				? m(
 						"",
 						m(Button, {

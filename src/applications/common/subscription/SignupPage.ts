@@ -8,7 +8,7 @@ import { lang, Translation } from "../../../ui/utils/LanguageViewModel.js"
 import { SignupFlowStage, SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
 import { createAccount } from "./utils/PaymentUtils"
 import { Dialog } from "../../../ui/base/Dialog"
-import { isIOSApp } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { PlanType } from "../../../entities/sys/Utils"
 
 export class SignupPage implements WizardPageN<UpgradeSubscriptionData> {
@@ -75,7 +75,7 @@ export class SignupPageAttrs implements WizardPageAttrs<UpgradeSubscriptionData>
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {
 		SignupFlowUsageTestController.completeStage(SignupFlowStage.CREATE_ACCOUNT, this.data.targetPlanType, this.data.options.paymentInterval())
-		if (isIOSApp()) {
+		if (EnvProvider.get().isIOSApp()) {
 			SignupFlowUsageTestController.completeStage(
 				SignupFlowStage.SELECT_PAYMENT_METHOD,
 				this.data.targetPlanType,

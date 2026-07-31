@@ -1,4 +1,4 @@
-import { isAdminClient, isBrowser } from "../../../platform-kit/app-env"
+import { EnvProvider } from "../../../platform-kit/app-env"
 import { OfflineStorage } from "../OfflineStorage"
 import { OfflineMigration } from "../OfflineMigration"
 
@@ -11,7 +11,7 @@ export class offline6 extends OfflineMigration {
 		super(VERSION)
 	}
 	async migrate(storage: OfflineStorage): Promise<void> {
-		if (!isBrowser() && !isAdminClient()) {
+		if (!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) {
 			const { uint8ArrayToBase64, stringToUtf8Uint8Array } = await import("../../../platform-kit/utils")
 			const { sha256Hash } = await import("../../../platform-kit/crypto")
 			const userId = storage.getUserId()

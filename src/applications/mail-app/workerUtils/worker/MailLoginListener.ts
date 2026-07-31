@@ -1,5 +1,5 @@
 import { DefaultLoginListener } from "../../../common/api/worker/utils/DefaultLoginListener"
-import { isAdminClient, isTest, SessionType } from "@tutao/app-env"
+import { EnvProvider, SessionType } from "@tutao/app-env"
 import { CacheInfo, LoginListener } from "../../../../platform-kit/base/facades/LoginFacade"
 import { Credentials } from "@tutao/network/types"
 import { locator } from "./WorkerLocator"
@@ -20,7 +20,7 @@ export class MailLoginListener extends DefaultLoginListener {
 	}
 
 	async onPartialLoginSuccess(sessionType: SessionType, _cacheInfo: CacheInfo, _credentials: Credentials): Promise<void> {
-		if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
+		if (!EnvProvider.get().isTest() && sessionType !== SessionType.Temporary && !EnvProvider.get().isAdminClient()) {
 			const indexer = await locator.indexer()
 			await indexer.partialLoginInit()
 		}
@@ -28,7 +28,7 @@ export class MailLoginListener extends DefaultLoginListener {
 	}
 
 	async onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
-		if (!isTest() && sessionType !== SessionType.Temporary && !isAdminClient()) {
+		if (!EnvProvider.get().isTest() && sessionType !== SessionType.Temporary && !EnvProvider.get().isAdminClient()) {
 			// index new items in background
 			console.log("initIndexer and SpamClassifier after log in")
 			await fullLoginIndexerInit(this.worker)

@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { assertMainOrNode, isIOSApp, PostingType, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { assertMainOrNode, EnvProvider, PostingType, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { assertNotNull, last, neverNull, newPromise, ofClass } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { HtmlEditor, HtmlEditorMode } from "../../../ui/editor/HtmlEditor"
@@ -127,7 +127,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	private getIconForPaymentMethodSetting(accountingInfo: AccountingInfo | null) {
-		if (this.customer?.type === AccountType.PAID && isIOSApp()) {
+		if (this.customer?.type === AccountType.PAID && EnvProvider.get().isIOSApp()) {
 			return Icons.InfoFilled
 		} else if (accountingInfo != null && hasRunningAppStoreSubscription(accountingInfo)) {
 			return Icons.InfoFilled
@@ -140,7 +140,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			return
 		}
 		const currentPaymentMethod: PaymentMethodType | null = getPaymentMethodType(this.accountingInfo)
-		if (isIOSApp()) {
+		if (EnvProvider.get().isIOSApp()) {
 			if (currentPaymentMethod === PaymentMethodType.AppStore) {
 				// Paid users trying to change payment method on iOS with an active subscription
 				return Dialog.message(lang.getTranslation("storePaymentMethodChange_msg", { "{AppStorePaymentChange}": InfoLink.AppStorePaymentChange }))

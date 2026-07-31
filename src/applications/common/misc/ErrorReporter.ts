@@ -9,7 +9,7 @@ import { Button, ButtonType } from "../../../ui/base/Button.js"
 import { ExpanderButton, ExpanderPanel } from "../../../ui/base/Expander"
 import { assertNotNull, downcast, neverNull, newPromise, typedKeys, uint8ArrayToString } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
-import { isApp, isBrowser, isDesktop, Mode, PresentableKeyVerificationState } from "@tutao/app-env"
+import { EnvProvider, Mode, PresentableKeyVerificationState } from "@tutao/app-env"
 import { copyToClipboard } from "../../../ui/utils/ClipboardUtils"
 import { px } from "../../../ui/size"
 import { createLogFile } from "../api/common/Logger.js"
@@ -336,7 +336,7 @@ export async function sendFeedbackMail(content: FeedbackContent): Promise<void> 
 
 async function sendToServer(error: ErrorInfo, userMessage: string | null, logs: DataFile[]) {
 	function getReportingClientType(): ErrorReportClientType {
-		if (isBrowser()) {
+		if (EnvProvider.get().isBrowser()) {
 			return ErrorReportClientType.Browser
 		} else {
 			switch (env.platformId) {
@@ -446,9 +446,9 @@ export async function getLogAttachments(timestamp?: Date): Promise<Array<DataFil
 		logs.push(workerLogFile)
 	}
 
-	if (isDesktop() || isApp()) {
+	if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp()) {
 		const nativeLog = await locator.commonSystemFacade.getLog()
-		const nativeLogFile = createLogFile(nativeLog, isDesktop() ? "desktop" : "device", timestamp?.getTime())
+		const nativeLogFile = createLogFile(nativeLog, EnvProvider.get().isDesktop() ? "desktop" : "device", timestamp?.getTime())
 		logs.push(nativeLogFile)
 	}
 

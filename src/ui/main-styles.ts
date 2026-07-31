@@ -1,6 +1,6 @@
 import { Styles } from "./styles"
 import { component_size, font_size, layout_size, px, size } from "./size"
-import { assertMainOrNode, isAdminClient, isAndroidApp, isApp, isDesktop } from "../platform-kit/app-env"
+import { assertMainOrNode, EnvProvider } from "../platform-kit/app-env"
 import { lang } from "./utils/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
 import { BaseThemeProvider, getElevatedBackground, getNavigationMenuBg, isLightTheme, theme } from "./theme"
@@ -53,7 +53,7 @@ export class MainStyles {
 			const lightTheme = this.baseThemeProvider.getBaseTheme("light")
 			return {
 				"#link-tt":
-					isDesktop() || isAdminClient()
+					EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient()
 						? {
 								"pointer-events": "none",
 								"font-size": px(font_size.small),
@@ -74,14 +74,14 @@ export class MainStyles {
 							}
 						: {},
 				"#link-tt.reveal":
-					isDesktop() || isAdminClient()
+					EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient()
 						? {
 								opacity: 1,
 								transition: "opacity .1s linear",
 								"z-index": 9999,
 							}
 						: {},
-				"*:not(input):not(textarea)": isAdminClient()
+				"*:not(input):not(textarea)": EnvProvider.get().isAdminClient()
 					? {}
 					: {
 							"user-select": "none",
@@ -153,10 +153,10 @@ export class MainStyles {
 				":root": {
 					// We need it because we can't get env() value from JS directly
 					// environment-variables return 0px on Android, that's why we are using var for Android
-					"--safe-area-inset-bottom": isAndroidApp() ? "var(--safe-area-inset-bottom)" : "env(safe-area-inset-bottom)",
-					"--safe-area-inset-top": isAndroidApp() ? "var(--safe-area-inset-top)" : "env(safe-area-inset-top)",
-					"--safe-area-inset-right": isAndroidApp() ? "var(--safe-area-inset-right)" : "env(safe-area-inset-right)",
-					"--safe-area-inset-left": isAndroidApp() ? "var(--safe-area-inset-left)" : "env(safe-area-inset-left)",
+					"--safe-area-inset-bottom": EnvProvider.get().isAndroidApp() ? "var(--safe-area-inset-bottom)" : "env(safe-area-inset-bottom)",
+					"--safe-area-inset-top": EnvProvider.get().isAndroidApp() ? "var(--safe-area-inset-top)" : "env(safe-area-inset-top)",
+					"--safe-area-inset-right": EnvProvider.get().isAndroidApp() ? "var(--safe-area-inset-right)" : "env(safe-area-inset-right)",
+					"--safe-area-inset-left": EnvProvider.get().isAndroidApp() ? "var(--safe-area-inset-left)" : "env(safe-area-inset-left)",
 				},
 				"html, body": {
 					height: "100%",
@@ -918,7 +918,7 @@ export class MainStyles {
 					"text-decoration": "underline",
 				},
 				".hover-ul:hover": {
-					"text-decoration": isApp() ? "none" : "underline",
+					"text-decoration": EnvProvider.get().isApp() ? "none" : "underline",
 				},
 				// positioning1
 				".fill-absolute": {
@@ -2052,7 +2052,7 @@ export class MainStyles {
 					"flex-shrink": 0,
 					"-webkit-tap-highlight-color": "rgba(255, 255, 255, 0)",
 				},
-				".nav-button:hover": !isApp()
+				".nav-button:hover": !EnvProvider.get().isApp()
 					? {
 							// "text-decoration": "underline",
 							// opacity: 0.7,

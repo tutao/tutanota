@@ -22,14 +22,14 @@ import {
 	uint8ArrayToBase64,
 	uint8ArrayToString,
 } from "@tutao/utils"
-import { assertWorkerOrNode, CancelledError, isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
+import { assertWorkerOrNode, CancelledError, EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { BlobElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
 import { _encryptBytes, aesDecrypt, aesEncrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto"
 import type { FileUri, NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
 import type { AesApp } from "../../../../../../app-kit/native-bridge/worker/AesApp.js"
 import { splitFileIntoChunks } from "../../../../../../ui/utils/FileUtils.js"
 import { BlobAccessTokenFacade, BlobLoadOptions, DEFAULT_BLOB_LOAD_OPTIONS } from "../../../../../../platform-kit/network/BlobAccessTokenFacade.js"
-import { EncryptedParsedInstance, InstancePipeline, TypeModelResolver } from "@tutao/instance-pipeline"
+import { InstancePipeline, TypeModelResolver } from "@tutao/instance-pipeline"
 import { CryptoError } from "@tutao/crypto/error"
 import { TransferProgressDispatcher } from "../../../main/TransferProgressDispatcher"
 import { doBlobRequestWithRetry, tryServers } from "../../../../../../platform-kit/network/EntityRestClient"
@@ -353,7 +353,7 @@ export class BlobFacade {
 		sessionKey: AesKey,
 		transferId: TransferId,
 	): Promise<BlobReferenceTokenWrapper[]> {
-		if (!isApp() && !isDesktop()) {
+		if (!EnvProvider.get().isApp() && !EnvProvider.get().isDesktop()) {
 			throw new ProgrammingError("Environment is not app or Desktop!")
 		}
 		const fileHandle = await this.fileApp.openFileForReading(fileUri)
@@ -720,7 +720,7 @@ export class BlobFacade {
 		mimeType: string,
 		transferId: TransferId,
 	): Promise<FileReference> {
-		if (!isApp() && !isDesktop()) {
+		if (!EnvProvider.get().isApp() && !EnvProvider.get().isDesktop()) {
 			throw new ProgrammingError("Environment is not app or Desktop!")
 		}
 		const sessionKey = await this.resolveSessionKey(referencingInstance.entity)

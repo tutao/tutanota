@@ -2,7 +2,7 @@ import m, { Children, ClassComponent, Vnode } from "mithril"
 import { Dialog } from "../../../ui/base/Dialog"
 import { lang, MaybeTranslation } from "../../../ui/utils/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./utils/PriceUtils"
-import { Const, isIOSApp, SessionType } from "@tutao/app-env"
+import { Const, EnvProvider, SessionType } from "@tutao/app-env"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
 import {
@@ -118,7 +118,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 									color: theme.on_surface_variant,
 								},
 								injectionsRight: () => {
-									return isIOSApp()
+									return EnvProvider.get().isIOSApp()
 										? undefined
 										: m(IconButton, {
 												icon: Icons.PenFilled,
