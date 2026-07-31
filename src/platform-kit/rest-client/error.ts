@@ -2,6 +2,7 @@
 
 import { TutanotaError } from "@tutao/app-env"
 import { filterInt, isNotNull, Nullable } from "@tutao/utils"
+import { TsNumber } from "../app-env/TranspileCompatibility"
 
 export class ConnectionError extends TutanotaError {
 	static CODE: number = 0
@@ -279,7 +280,7 @@ export class SuspensionError extends TutanotaError {
 	constructor(message: string, suspensionTime: string | null) {
 		super("SuspensionError", message)
 
-		if (suspensionTime != null && Number.isNaN(filterInt(suspensionTime))) {
+		if (suspensionTime != null && TsNumber.isNaN(filterInt(suspensionTime))) {
 			throw new Error("invalid suspension time value (NaN)")
 		}
 
