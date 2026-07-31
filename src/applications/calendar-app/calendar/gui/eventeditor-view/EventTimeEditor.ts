@@ -35,8 +35,6 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 		const renderStartTimeZone = editModel.allowsTimeZones() && attrs.separateStartAndEndTimeZone
 		const renderEndTimeZone = editModel.allowsTimeZones()
 
-		const appClasses = isApp() ? ["smaller"] : []
-
 		return m(".flex.col.flex-grow.gap-12", [
 			m(".flex.gap-8.items-center.justify-between", [
 				m(Icon, {
@@ -60,81 +58,49 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 				),
 			]),
 			m(Divider, { color: theme.outline_variant }),
-			m(".flex.col.full-width.flex-grow.gap-12", [
-				m(".flex.col.gap-8", [
-					m(".time-selection-grid.pr-8", [
-						m("", lang.get("dateFrom_label")),
-						m(
-							`${isApp() ? "" : ".pl-32"}`,
-							m(DatePicker, {
-								classes: appClasses,
-								date: attrs.editModel.startDate,
-								onDateSelected: (date) => date && attrs.dateSelectionChanged(date),
-								startOfTheWeekOffset: attrs.startOfTheWeekOffset,
-								label: lang.getTranslation("dateFrom_label"),
-								useInputButton: true,
-								disabled: attrs.disabled,
-							}),
-						),
-						m(
-							".rel",
-							{
-								style: {
-									overflow: "visible",
-								},
-							},
-							m(TimePicker, {
-								classes: appClasses,
-								time: editModel.startTime,
-								onTimeSelected: (timeString) => editModel.setStartTimeFromString(timeString),
-								timeFormat: attrs.timeFormat,
-								disabled: attrs.disabled || attrs.editModel.isAllDay,
-								valid: editModel.hasValidStartBeforeEnd(),
-								invalidMessage: lang.getTranslation("startAfterEnd_label"),
-								ariaLabel: lang.getTranslation("startTime_label"),
-								renderAsTextField: false,
-							}),
-						),
-					]),
-					renderStartTimeZone && this.renderTimeZoneButton(attrs, editModel.getStartTimeZoneOrDefault()),
-				]),
-				m(".flex.col.gap-8", [
-					m(".time-selection-grid.pr-8", [
-						m("", lang.get("dateTo_label")),
-						m(
-							`${isApp() ? "" : ".pl-32"}`,
-							m(DatePicker, {
-								classes: appClasses,
-								date: attrs.editModel.endDate,
-								onDateSelected: (date) => date && (attrs.editModel.endDate = date),
-								startOfTheWeekOffset: attrs.startOfTheWeekOffset,
-								label: lang.getTranslation("dateTo_label"),
-								useInputButton: true,
-								disabled: attrs.disabled,
-							}),
-						),
-						m(
-							".rel",
-							{
-								style: {
-									overflow: "visible",
-								},
-							},
-							m(TimePicker, {
-								classes: appClasses,
-								time: editModel.endTime,
-								onTimeSelected: (timeString) => editModel.setEndTimeFromString(timeString),
-								timeFormat: attrs.timeFormat,
-								disabled: attrs.disabled || editModel.isAllDay,
-								valid: editModel.hasValidStartBeforeEnd(),
-								invalidMessage: lang.getTranslation("startAfterEnd_label"),
-								ariaLabel: lang.getTranslation("endTime_label"),
-								renderAsTextField: false,
-							}),
-						),
-					]),
-					renderEndTimeZone && this.renderTimeZoneButton(attrs, editModel.getEndTimeZoneOrDefault()),
-				]),
+			m(".time-selection-grid", [
+				m("", lang.get("dateFrom_label")),
+				m(DatePicker, {
+					classes: [isApp() ? "" : "pl-32"],
+					date: attrs.editModel.startDate,
+					onDateSelected: (date) => date && attrs.dateSelectionChanged(date),
+					startOfTheWeekOffset: attrs.startOfTheWeekOffset,
+					label: lang.getTranslation("dateFrom_label"),
+					useInputButton: true,
+					disabled: attrs.disabled,
+				}),
+				m(TimePicker, {
+					time: editModel.startTime,
+					onTimeSelected: (time) => (editModel.startTime = time),
+					timeFormat: attrs.timeFormat,
+					disabled: attrs.disabled || attrs.editModel.isAllDay,
+					valid: editModel.hasValidStartBeforeEnd(),
+					ariaLabel: lang.getTranslation("startTime_label"),
+					renderAsTextField: false,
+				}),
+				renderStartTimeZone && this.renderTimeZoneButton(attrs, editModel.getStartTimeZoneOrDefault()),
+			]),
+			m(".time-selection-grid", [
+				m("", lang.get("dateTo_label")),
+				m(DatePicker, {
+					classes: [isApp() ? "" : "pl-32"],
+					date: attrs.editModel.endDate,
+					onDateSelected: (date) => date && (attrs.editModel.endDate = date),
+					startOfTheWeekOffset: attrs.startOfTheWeekOffset,
+					label: lang.getTranslation("dateTo_label"),
+					useInputButton: true,
+					disabled: attrs.disabled,
+				}),
+				m(TimePicker, {
+					time: editModel.endTime,
+					onTimeSelected: (time) => (editModel.endTime = time),
+					timeFormat: attrs.timeFormat,
+					disabled: attrs.disabled || editModel.isAllDay,
+					valid: editModel.hasValidStartBeforeEnd(),
+					ariaLabel: lang.getTranslation("endTime_label"),
+					renderAsTextField: false,
+				}),
+				renderEndTimeZone && this.renderTimeZoneButton(attrs, editModel.getEndTimeZoneOrDefault()),
 			]),
 		])
 	}
@@ -145,7 +111,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 		return m(
 			BaseButton,
 			{
-				class: `flash flex items-center text-ellipsis smaller  ml-auto ${attrs.disabled || attrs.editModel.isAllDay ? "disabled" : ""}`,
+				class: `fill-grid-row flash flex items-center text-ellipsis smaller ml-auto ${attrs.disabled || attrs.editModel.isAllDay ? "disabled" : ""}`,
 				label: selectionButtonTextTranslation,
 				disabled: attrs.disabled || attrs.editModel.isAllDay,
 				role: AriaRole.Button,
