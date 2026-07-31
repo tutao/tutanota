@@ -363,7 +363,7 @@ o.spec(TEST_NAME, function () {
 			model.endTime = new Time(16, 0)
 
 			//
-			// Model preserve the time and date values, as they were set
+			// Model should preserve the time and date values, as they were set
 			//
 			o(model.startDate.getDate()).equals(31)
 			o(model.endDate.getDate()).equals(31)
@@ -375,7 +375,7 @@ o.spec(TEST_NAME, function () {
 			o(model.endTime.minute).equals(0)
 
 			//
-			// The result should start and end to a JS date with the correct time stamp.
+			// The result should convert the start and end to a JS date with the correct time stamp.
 			// We are using a UTC+0 calendar time zone, so we can check the results of getUTCDate, getUTCHours, etc.
 			//
 			o(model.result.startTime.getUTCDate()).equals(31)
