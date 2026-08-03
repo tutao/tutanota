@@ -87,11 +87,14 @@ export function base64ToKey(base64: Base64, acceptedBitLength?: AesKeyLength): A
 	}
 }
 
-export function uint8ArrayToKey(array: Uint8Array): AesKey
-export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength: typeof AesKeyLength.Aes128): Aes128Key
-export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength: typeof AesKeyLength.Aes256): Aes256Key
-export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey
-export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey {
+export function uint8ArrayTo256Key(array: Uint8Array): Aes256Key {
+	return new Aes256Key(uint8ArrayToKey(array, AesKeyLength.Aes256).bits)
+}
+export function uint8ArrayTo128Key(array: Uint8Array): Aes128Key {
+	return new Aes128Key(uint8ArrayToKey(array, AesKeyLength.Aes128).bits)
+}
+
+export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength: AesKeyLength | null = null): AesKey {
 	let key = uint8ArrayToBitArray(array)
 	// AesKey is an array of 4 byte numbers. therefore converting the length to bits means 4*8
 	const keyLength: number = key.length * 4 * 8

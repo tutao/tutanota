@@ -5,6 +5,7 @@ import {
 	KdfNonce,
 	keyToUint8Array,
 	uint8ArrayToKey,
+	uint8ArrayTo128Key,
 } from "../encryption/symmetric/SymmetricCipherUtils.js"
 import { AES_CBC_FACADE, AesCbcFacade, AuthenticationEnforcement, PaddingStandard } from "../encryption/symmetric/AesCbcFacade.js"
 import { SymmetricCipherVersion } from "../encryption/symmetric/SymmetricCipherVersion.js"

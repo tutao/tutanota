@@ -13,7 +13,7 @@ import {
 	random,
 	uint8ArrayToKey,
 } from "../../../src/platform-kit/crypto"
-import { validateInitializationVectorLength } from "@tutao/crypto/symmetric-cipher-utils"
+import { uint8ArrayTo128Key, validateInitializationVectorLength } from "@tutao/crypto/symmetric-cipher-utils"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
 import {
 	aes256EncryptSearchIndexEntry,
@@ -154,5 +154,5 @@ o.spec("aes", function () {
 })
 
 export function _aes128RandomKey(): Aes128Key {
-	return uint8ArrayToKey(random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes128)), AesKeyLength.Aes128)
+	return uint8ArrayTo128Key(random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes128)))
 }
