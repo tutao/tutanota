@@ -218,7 +218,6 @@ export type AnyEntityId = EntityId<Nullable<Id>, Id>
 export type ListElementId = EntityId<Id, Id>
 export type BlobElementId = EntityId<Id, Id>
 export type ElementId = EntityId<Nullable<never>, Id>
-
 /**
  * Entity types with instances that stand on their own, not being part of a list
  */
