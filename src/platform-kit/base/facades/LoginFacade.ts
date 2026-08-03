@@ -112,6 +112,7 @@ import {
 } from "../../instance-pipeline/RestClientOptions"
 import { EntityUtils } from "../../instance-pipeline/EntityUtils"
 import { IncomingServerJson } from "../../instance-pipeline/TypeMapper"
+import { uint8ArrayTo256Key } from "../../crypto/encryption/symmetric/SymmetricCipherUtils"
 
 assertWorkerOrNode()
 
@@ -702,7 +703,7 @@ export class LoginFacade implements SessionTypeProvider {
 
 	/** Changes user password to another one using recoverCode instead of the old password. */
 	async recoverLogin(mailAddress: string, recoverCode: string, newPassword: string, clientIdentifier: string): Promise<void> {
-		const recoverCodeKey = uint8ArrayToKey(hexToUint8Array(recoverCode), AesKeyLength.Aes256)
+		const recoverCodeKey = uint8ArrayTo256Key(hexToUint8Array(recoverCode))
 		const recoverCodeVerifier = createAuthVerifier(recoverCodeKey)
 		const recoverCodeVerifierBase64 = base64ToBase64Url(uint8ArrayToBase64(recoverCodeVerifier))
 		const sessionData = createCreateSessionData({

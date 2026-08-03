@@ -57,10 +57,11 @@ import { encryptKey } from "../../../src/platform-kit/crypto/instance-pipeline-c
 import { _encryptString } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { idToElementId } from "../../../src/platform-kit/meta"
+import { uint8ArrayTo256Key } from "@tutao/crypto/symmetric-cipher-utils"
 
 const { anything, argThat } = matchers
 
-const PASSWORD_KEY = uint8ArrayToKey(new Uint8Array(Array(getKeyLengthInBytes(AesKeyLength.Aes256)).keys()), AesKeyLength.Aes256)
+const PASSWORD_KEY = uint8ArrayTo256Key(new Uint8Array(Array(getKeyLengthInBytes(AesKeyLength.Aes256)).keys()))
 
 /** Verify using testdouble, but register as an ospec assertion */
 export function verify(demonstration: any, config?: td.VerificationConfig) {
