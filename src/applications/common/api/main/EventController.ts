@@ -30,7 +30,7 @@ export class EventController {
 	removeEntityUpdatesListener(listener: EntityUpdatesListener) {
 		const wasRemoved = this.entityUpdatesListeners.delete(listener.id)
 		if (!wasRemoved) {
-			console.warn(TAG, `Could not remove entityListener with id ${listener.id}, possible leak?`)
+			console.log(TAG, `Could not remove entityListener with id ${listener.id}, possible leak?`)
 		}
 	}
 

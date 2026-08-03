@@ -43,7 +43,7 @@ export class SyncTracker {
 	removeSyncDoneListener(listener: SyncDoneListener) {
 		const wasRemoved = this.syncDoneListeners.delete(listener.id)
 		if (!wasRemoved) {
-			console.warn(TAG, "Could not remove listener, possible leak?", listener)
+			console.log(TAG, "Could not remove listener, possible leak?", listener)
 		}
 	}
 

@@ -82,7 +82,7 @@ export class WebsocketConnectivityModel implements WebsocketConnectivityListener
 	removeLeaderStatusListener(listener: LeaderStatusListener) {
 		const wasRemoved = this.leaderStatusListeners.delete(listener.id)
 		if (!wasRemoved) {
-			console.warn(TAG, `Could not remove leaderStatusListener with id ${listener.id}, possible leak?`)
+			console.log(TAG, `Could not remove leaderStatusListener with id ${listener.id}, possible leak?`)
 		}
 	}
 
@@ -95,7 +95,7 @@ export class WebsocketConnectivityModel implements WebsocketConnectivityListener
 	removeConnectionStateListener(listener: ConnectionStateListener) {
 		const wasRemoved = this.connectionStateListeners.delete(listener.id)
 		if (!wasRemoved) {
-			console.warn(TAG, `Could not remove connectionStateListener with id ${listener.id}, possible leak?`)
+			console.log(TAG, `Could not remove connectionStateListener with id ${listener.id}, possible leak?`)
 		}
 	}
 
