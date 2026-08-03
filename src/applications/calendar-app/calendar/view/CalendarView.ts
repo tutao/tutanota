@@ -521,6 +521,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			)
 			streamListeners.push(this.viewModel.redraw.map(m.redraw))
 			this.viewSlider.focus(this.contentColumn)
+			this.viewModel.init()
 		}
 
 		this.onremove = () => {

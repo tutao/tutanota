@@ -62,7 +62,7 @@ export class ContactListView implements ClassComponent<ContactListViewAttrs> {
 	}
 
 	onremove(vnode: Vnode<ContactListViewAttrs>): any {
-		vnode.attrs.contactViewModel.dispose()
+		vnode.attrs.contactViewModel.deinit()
 	}
 
 	private readonly renderConfig: RenderConfig<Contact, KindaContactRow> = {

@@ -335,6 +335,10 @@ export class DriveViewModel {
 		},
 	)
 
+	deinit() {
+		this.connectivityModel.removeConnectionStateListener(this.connectionStateListener)
+	}
+
 	private async onEntityUpdatesReceived(events: ReadonlyArray<EntityUpdateData>) {
 		for (const update of events) {
 			if (isUpdateForTypeRef(DriveFileRefTypeRef, update) && update.instanceListId === this.currentFolder?.folder.files) {

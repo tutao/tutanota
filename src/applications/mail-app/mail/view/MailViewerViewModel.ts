@@ -156,6 +156,7 @@ export class MailViewerViewModel {
 
 	private collapsed: boolean = true
 	private newsletterBannerRule: NewsletterBannerRule | null = null
+	private isAlreadyDeinit: boolean = false
 
 	get mail(): Mail {
 		return this._mail
@@ -271,19 +272,22 @@ export class MailViewerViewModel {
 		}
 	}
 
-	dispose() {
+	deinit() {
 		// currently, the conversation view disposes us twice if our mail is deleted because it's getting disposed itself
 		// (from the list selecting a different element) and because it disposes the mailViewerViewModel that got updated
 		// this silences the warning about leaking entity event listeners when the listener is removed twice.
-		this.dispose = () => console.log("disposed MailViewerViewModel a second time, ignoring")
-		this.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
-		this.connectivityModel.removeConnectionStateListener(this.connectionStateListener)
+		if (!this.isAlreadyDeinit) {
+			this.isAlreadyDeinit = true
 
-		if (this.sanitizeUrlifyTimeoutId) {
-			clearTimeout(this.sanitizeUrlifyTimeoutId)
+			this.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
+			this.connectivityModel.removeConnectionStateListener(this.connectionStateListener)
+
+			if (this.sanitizeUrlifyTimeoutId) {
+				clearTimeout(this.sanitizeUrlifyTimeoutId)
+			}
+			const inlineImages = this.getLoadedInlineImages()
+			revokeInlineImages(inlineImages)
 		}
-		const inlineImages = this.getLoadedInlineImages()
-		revokeInlineImages(inlineImages)
 	}
 
 	async loadAll(

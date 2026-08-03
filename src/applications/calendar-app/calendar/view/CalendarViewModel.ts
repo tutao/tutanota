@@ -306,7 +306,6 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			onEntityUpdatesReceived: (updates) => this.onEntityUpdatesReceived(updates),
 			priority: ListenerPriority.NORMAL,
 		})
-		this.connectivityModel.addConnectionStateListener(this.connectionStateListener)
 
 		calendarInvitationsModel.init()
 
@@ -326,6 +325,11 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 					this.setHiddenCalendars(hidden)
 				}
 			})
+	}
+
+	/** init is called every time the view is opened */
+	init() {
+		this.connectivityModel.addConnectionStateListener(this.connectionStateListener)
 	}
 
 	/**

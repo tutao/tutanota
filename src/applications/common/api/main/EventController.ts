@@ -16,19 +16,19 @@ export type OperationStatusUpdateListener = (update: OperationStatusUpdate) => P
 
 export class EventController {
 	private countersStream: Stream<WebsocketCounterData> = stream()
-	private entityUpdatesListeners: Map<string, EntityUpdatesListener> = new Map()
+	private entityUpdatesListeners: Set<EntityUpdatesListener> = new Set()
 	private readonly operationListeners: Set<OperationStatusUpdateListener> = new Set()
 
 	constructor(private readonly logins: LoginController) {}
 
 	addEntityUpdatesListener(listener: EntityUpdatesListener) {
-		if (!this.entityUpdatesListeners.has(listener.id)) {
-			this.entityUpdatesListeners.set(listener.id, listener)
+		if (!this.entityUpdatesListeners.has(listener)) {
+			this.entityUpdatesListeners.add(listener)
 		}
 	}
 
 	removeEntityUpdatesListener(listener: EntityUpdatesListener) {
-		const wasRemoved = this.entityUpdatesListeners.delete(listener.id)
+		const wasRemoved = this.entityUpdatesListeners.delete(listener)
 		if (!wasRemoved) {
 			console.log(TAG, `Could not remove entityListener with id ${listener.id}, possible leak?`)
 		}

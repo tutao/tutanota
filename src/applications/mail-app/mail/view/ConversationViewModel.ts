@@ -190,7 +190,7 @@ export class ConversationViewModel {
 			// nothing to do really, why do we get this update again?
 		} else {
 			if (isSameTypeRef(oldItem.type_ref, MailTypeRef)) {
-				oldItem.viewModel.dispose()
+				oldItem.viewModel.deinit()
 			}
 
 			if (mail) {
@@ -371,7 +371,7 @@ export class ConversationViewModel {
 		}
 	}
 
-	dispose() {
+	deinit() {
 		// hack: init has been called if loadingPromise is set
 		if (this.loadingPromise != null) {
 			this.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
@@ -380,7 +380,7 @@ export class ConversationViewModel {
 			settledThen(this.loadingPromise, () => {
 				for (const item of this.conversationItems()) {
 					if (isSameTypeRef(item.type_ref, MailTypeRef)) {
-						item.viewModel.dispose()
+						item.viewModel.deinit()
 					}
 				}
 			})

@@ -649,7 +649,7 @@ export class MailViewModel {
 	}
 
 	private clearConversationViewModel() {
-		this.conversationViewModel?.dispose()
+		this.conversationViewModel?.deinit()
 		this.conversationViewModel = null
 		this.mailFolderElementIdToSelectedMailId = mapWithout(this.mailFolderElementIdToSelectedMailId, getElementId(assertNotNull(this.getFolder())))
 	}
@@ -684,7 +684,7 @@ export class MailViewModel {
 	}
 
 	private createConversationViewModel(viewModelParams: CreateMailViewerOptions) {
-		this.conversationViewModel?.dispose()
+		this.conversationViewModel?.deinit()
 		this.conversationViewModel = this.conversationViewModelFactory(viewModelParams)
 	}
 

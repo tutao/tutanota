@@ -45,6 +45,7 @@ export class ContactViewModel {
 		autoSelectBehavior: () => ListAutoSelectBehavior.NONE,
 	})
 
+	/** init is called every time the view is opened */
 	async init(contactListId?: Id) {
 		// update url if the view was just opened
 		if (contactListId == null) this.updateUrl()
@@ -53,6 +54,9 @@ export class ContactViewModel {
 		this.contactListId = assertNotNull(await this.contactModel.getContactListId(), "not available for external users")
 
 		this.initOnce()
+
+		this.connectivityModel.addConnectionStateListener(this.connectivityListener)
+
 		await this.listModel.loadInitial()
 	}
 
@@ -63,7 +67,6 @@ export class ContactViewModel {
 
 	private readonly initOnce = lazyMemoized(() => {
 		this.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
-		this.connectivityModel.addConnectionStateListener(this.connectivityListener)
 		this.listModelStateStream = this.listModel.stateStream.map(() => {
 			this.updateUi()
 			this.updateUrl()
@@ -126,8 +129,7 @@ export class ContactViewModel {
 		return this.listModel.state
 	}
 
-	dispose() {
-		this.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
+	deinit() {
 		this.connectivityModel.removeConnectionStateListener(this.connectivityListener)
 		this.listModelStateStream?.end(true)
 		this.listModelStateStream = null

@@ -29,8 +29,8 @@ export class WebsocketConnectivityModel implements WebsocketConnectivityListener
 	private readonly wsState = stream<WsConnectionState>(WsConnectionState.terminated)
 	private leaderStatus: boolean = false
 
-	private leaderStatusListeners = new Map<string, LeaderStatusListener>()
-	private connectionStateListeners = new Map<string, ConnectionStateListener>()
+	private leaderStatusListeners = new Set<LeaderStatusListener>()
+	private connectionStateListeners = new Set<ConnectionStateListener>()
 
 	constructor(private readonly eventBus: ExposedEventBus) {}
 
@@ -74,26 +74,26 @@ export class WebsocketConnectivityModel implements WebsocketConnectivityListener
 	}
 
 	addLeaderStatusListener(listener: LeaderStatusListener) {
-		if (!this.leaderStatusListeners.has(listener.id)) {
-			this.leaderStatusListeners.set(listener.id, listener)
+		if (!this.leaderStatusListeners.has(listener)) {
+			this.leaderStatusListeners.add(listener)
 		}
 	}
 
 	removeLeaderStatusListener(listener: LeaderStatusListener) {
-		const wasRemoved = this.leaderStatusListeners.delete(listener.id)
+		const wasRemoved = this.leaderStatusListeners.delete(listener)
 		if (!wasRemoved) {
 			console.log(TAG, `Could not remove leaderStatusListener with id ${listener.id}, possible leak?`)
 		}
 	}
 
 	addConnectionStateListener(listener: ConnectionStateListener) {
-		if (!this.connectionStateListeners.has(listener.id)) {
-			this.connectionStateListeners.set(listener.id, listener)
+		if (!this.connectionStateListeners.has(listener)) {
+			this.connectionStateListeners.add(listener)
 		}
 	}
 
 	removeConnectionStateListener(listener: ConnectionStateListener) {
-		const wasRemoved = this.connectionStateListeners.delete(listener.id)
+		const wasRemoved = this.connectionStateListeners.delete(listener)
 		if (!wasRemoved) {
 			console.log(TAG, `Could not remove connectionStateListener with id ${listener.id}, possible leak?`)
 		}
