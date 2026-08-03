@@ -1,8 +1,9 @@
 import { assertNotNull } from "@tutao/utils"
-import { AttributeId, AttributeName, ModelValue, TypeId, TypeModel } from "./EntityTypes"
+import { ModelValue, TypeModel } from "./EntityTypes"
 import { AppName } from "./TypeRef.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { TypeChecks } from "../app-env/boot/TsTypeChecks"
+import { AttributeId, AttributeName, TypeId } from "./EntityConstants"
 
 export class AttributeModel {
 	private static readonly typeIdToAttributeNameMap: Record<AppName, Map<TypeId, Map<AttributeName, AttributeId>>> = {
