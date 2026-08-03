@@ -16,7 +16,7 @@ import { KeyMac } from "@tutao/entities/sys"
 assertWorkerOrNode()
 
 export type UserGroupKeyAuthenticationParams = {
-	tagType: "USER_GROUP_KEY_TAG"
+	tagType: SystemMapKind.USER_GROUP_KEY_TAG
 	untrustedKey: { newUserGroupKey: Aes256Key }
 	sourceOfTrust: { currentUserGroupKey: AesKey }
 	bindingData: {
@@ -67,7 +67,7 @@ const userGroupKeyAuthenticationSystem: KeyAuthenticationSystem<UserGroupKeyAuth
 }
 
 export type NewAdminPubKeyAuthenticationParams = {
-	tagType: "NEW_ADMIN_PUB_KEY_TAG"
+	tagType: SystemMapKind.NEW_ADMIN_PUB_KEY_TAG
 	untrustedKey: { newAdminPubKey: PQPublicKeys }
 	sourceOfTrust: { receivingUserGroupKey: AesKey } // this receiving user is an admin receiving the new admin group pub keys
 	bindingData: {
@@ -101,7 +101,7 @@ const newAdminPubKeyAuthenticationSystem: KeyAuthenticationSystem<NewAdminPubKey
 }
 
 export type PubDistKeyAuthenticationParams = {
-	tagType: "PUB_DIST_KEY_TAG"
+	tagType: SystemMapKind.PUB_DIST_KEY_TAG
 	untrustedKey: { distPubKey: PQPublicKeys }
 	sourceOfTrust: { currentAdminGroupKey: AesKey }
 	bindingData: {
@@ -135,7 +135,7 @@ const pubDistKeyAuthenticationSystem: KeyAuthenticationSystem<PubDistKeyAuthenti
 }
 
 export type AdminSymKeyAuthenticationParams = {
-	tagType: "ADMIN_SYM_KEY_TAG"
+	tagType: SystemMapKind.ADMIN_SYM_KEY_TAG
 	untrustedKey: { newAdminGroupKey: Aes256Key }
 	sourceOfTrust: { currentReceivingUserGroupKey: AesKey } // this receiving user is an admin receiving the new admin group sym key
 	bindingData: {
@@ -165,7 +165,7 @@ const adminSymKeyAuthenticationSystem: KeyAuthenticationSystem<AdminSymKeyAuthen
 }
 
 export type IdentityPubKeyAuthenticationParams = {
-	tagType: "IDENTITY_PUB_KEY_TAG"
+	tagType: SystemMapKind.IDENTITY_PUB_KEY_TAG
 	untrustedKey: { identityPubKey: Ed25519PublicKey }
 	sourceOfTrust: { symmetricGroupKey: AesKey } // either the user group or the mail group key
 	bindingData: {
@@ -189,7 +189,15 @@ const identityPubKeyAuthenticationSystem: KeyAuthenticationSystem<IdentityPubKey
 }
 
 export interface KeyAuthenticationParams {
-	tagType: keyof typeof systemMap
+	tagType: SystemMapKind
+}
+
+export const enum SystemMapKind {
+	USER_GROUP_KEY_TAG = "USER_GROUP_KEY_TAG",
+	NEW_ADMIN_PUB_KEY_TAG = "NEW_ADMIN_PUB_KEY_TAG",
+	PUB_DIST_KEY_TAG = "PUB_DIST_KEY_TAG",
+	ADMIN_SYM_KEY_TAG = "ADMIN_SYM_KEY_TAG",
+	IDENTITY_PUB_KEY_TAG = "IDENTITY_PUB_KEY_TAG",
 }
 
 const systemMap = {

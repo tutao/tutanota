@@ -5,7 +5,7 @@ import { UserFacade } from "../facades/UserFacade.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
 import { AesKey, cryptoUtils, CryptoWrapper, PublicKeyIdentifierType, VersionedAes256Key, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
-import { brandKeyMac, KeyAuthenticationFacade } from "../../network/KeyAuthenticationFacade.js"
+import { brandKeyMac, KeyAuthenticationFacade, SystemMapKind } from "../../network/KeyAuthenticationFacade.js"
 import { Group, PubEncKeyData, UserTypeRef } from "@tutao/entities/sys"
 import { CacheManager } from "./persistence/CacheManager"
 import { elementIdToId, idToElementId } from "@tutao/meta"
@@ -171,7 +171,7 @@ export class AdminKeyLoaderFacade {
 
 		this.keyAuthenticationFacade.verifyTag(
 			{
-				tagType: "USER_GROUP_KEY_TAG",
+				tagType: SystemMapKind.USER_GROUP_KEY_TAG,
 				sourceOfTrust: { currentUserGroupKey: previousUserGroupKey.object },
 				untrustedKey: { newUserGroupKey: receivedUserGroupKey.object },
 				bindingData: {

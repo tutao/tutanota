@@ -22,7 +22,12 @@ import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
 import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/AdminKeyLoaderFacade"
 
 import { Group, GroupKey, GroupKeysRefTypeRef, GroupKeyTypeRef, GroupTypeRef, KeyMac, KeyMacTypeRef, PubEncKeyDataTypeRef } from "@tutao/entities/sys"
-import { brandKeyMac, KeyAuthenticationFacade, UserGroupKeyAuthenticationParams } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
+import {
+	brandKeyMac,
+	KeyAuthenticationFacade,
+	SystemMapKind,
+	UserGroupKeyAuthenticationParams,
+} from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { elementIdToId, idToElementId } from "../../../../../src/platform-kit/meta"
@@ -173,7 +178,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 				verify(
 					keyAuthenticationFacade.verifyTag(
 						{
-							tagType: "USER_GROUP_KEY_TAG",
+							tagType: SystemMapKind.USER_GROUP_KEY_TAG,
 							sourceOfTrust: { currentUserGroupKey: formerUserGroupKey.object },
 							untrustedKey: { newUserGroupKey: groupKeyBytes },
 							bindingData: {
@@ -272,7 +277,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 					// check v1
 					let params: UserGroupKeyAuthenticationParams = paramsCaptor.values![0]
 					o(params).deepEquals({
-						tagType: "USER_GROUP_KEY_TAG",
+						tagType: SystemMapKind.USER_GROUP_KEY_TAG,
 						sourceOfTrust: { currentUserGroupKey: userGroupSymKeyV0 },
 						untrustedKey: { newUserGroupKey: userGroupSymKeyV1 },
 						bindingData: {
@@ -289,7 +294,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 					// verify v2
 					params = paramsCaptor.values![1]
 					o(params).deepEquals({
-						tagType: "USER_GROUP_KEY_TAG",
+						tagType: SystemMapKind.USER_GROUP_KEY_TAG,
 						untrustedKey: {
 							newUserGroupKey: groupKeyBytes,
 						},
