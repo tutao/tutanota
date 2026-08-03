@@ -6,7 +6,14 @@
 import { AssociationReprType, Entity, getAssociationRepresentationType, isSameSingleId, isSameTypeRef, TypeRef } from "../meta"
 import { ParsedValue } from "./ParsedValue"
 import { assertNotNull, deepEqual, isEmpty, isNotNull, lazy, Nullable } from "@tutao/utils"
-import { DecryptedParsedInstance, DecryptedParsedValue, EncryptedParsedValue, EntityAdapter, InstancePipeline, PatchOperationError } from "@tutao/instance-pipeline"
+import {
+	DecryptedParsedInstance,
+	DecryptedParsedValue,
+	EncryptedParsedValue,
+	EntityAdapter,
+	InstancePipeline,
+	PatchOperationError,
+} from "@tutao/instance-pipeline"
 import {
 	AesKey,
 	InstanceDecryptor,
@@ -328,12 +335,7 @@ export class PatchMerger {
 
 		if (isValue) {
 			const encryptedValueInfo = typeModel.values[attributeId]
-			return this.instancePipeline.cryptoMapper.decryptValue(
-				encryptedValueInfo,
-				valueInPatchPayload,
-				instanceDecryptor,
-				attributePatchPath,
-			)
+			return this.instancePipeline.cryptoMapper.decryptValue(encryptedValueInfo, valueInPatchPayload, instanceDecryptor, attributePatchPath)
 		}
 
 		const associationReprType = getAssociationRepresentationType(typeModel.associations[attributeId].type)

@@ -19,9 +19,7 @@ export abstract class SubKeyInfo extends SubKeyFactory {
 }
 
 abstract class SubKeyInfoWithSessionKey extends SubKeyInfo {
-	protected constructor(
-		public readonly sessionKey: AesKey,
-	) {
+	protected constructor(public readonly sessionKey: AesKey) {
 		super()
 	}
 }
@@ -104,9 +102,7 @@ export class SubKeyProvider extends SubKeyFactory {
 	})
 }
 
-export function makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(
-	sessionKey: Nullable<AesKey>,
-): Nullable<SubKeyInfoWithSessionKeyCbcThenHmac> {
+export function makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(sessionKey: Nullable<AesKey>): Nullable<SubKeyInfoWithSessionKeyCbcThenHmac> {
 	if (sessionKey == null) {
 		return null
 	}
