@@ -309,7 +309,6 @@ function getStaticUrl(stage, mode, host) {
  * @return {Promise<void>}
  */
 export async function prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging) {
-	await fs.emptyDir(path.join(root, `${buildDir}/images`))
 	await Promise.all([
 		fs.copy(path.join(root, "/resources/favicon"), path.join(root, `/${buildDir}/images`)),
 		fs.copy(path.join(root, "/resources/images/"), path.join(root, `/${buildDir}/images`)),

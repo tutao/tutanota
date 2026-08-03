@@ -1,4 +1,4 @@
-import { AppType, assertMainOrNodeBoot, bootFinished, DomainConfig, EnvProvider, FeatureType, ProgrammingError, SessionType } from "../../platform-kit/app-env"
+import { AppType, assertMainOrNodeBoot, DomainConfig, EnvProvider, FeatureType, ProgrammingError, SessionType } from "../../platform-kit/app-env"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "../../ui/utils/LanguageViewModel.js"
@@ -58,7 +58,7 @@ import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
 import { AttachmentDownloader } from "./mail/view/MailGuiUtils"
 
 assertMainOrNodeBoot()
-bootFinished()
+EnvProvider.get().bootFinished()
 
 // Since it is not easy to migrate app.tutanota.com to app.tuta.com because 2FA data is stored in each domain,
 // we dynamically insert a noindex tag that can still be read by Google's crawler.

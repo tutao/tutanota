@@ -255,8 +255,15 @@ export class EnvProvider {
 }
 
 // ========================================================
-// TODO: Inline these (CTRL+ALT+N), it will just change all files that import it
-export const assertMainOrNode = EnvProvider.get().assertMainOrNode
-export const assertMainOrNodeBoot = EnvProvider.get().assertMainOrNodeBoot
-export const assertWorkerOrNode = EnvProvider.get().assertWorkerOrNode
-export const bootFinished = EnvProvider.get().bootFinished
+// TODO:
+// these assertion are tricky to work around translated code.
+// Idea is that we make sure the code runs on the correct thread. which do makes sense.
+// But since these are called at the top level of each file, they are executed when loading the file already,
+// so, before we call any init function.
+// solutions:
+// 1)
+// 2)
+// 3)
+export const assertMainOrNode = () => {}
+export const assertMainOrNodeBoot = () => {}
+export const assertWorkerOrNode = () => {}
