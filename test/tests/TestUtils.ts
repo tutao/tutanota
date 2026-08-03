@@ -1,7 +1,7 @@
 import { DbEncryptionData } from "../../src/applications/common/api/worker/search/SearchTypes.js"
 import { IndexerCore } from "../../src/applications/mail-app/workerUtils/index/IndexerCore.js"
 import { DbFacade, DbTransaction } from "../../src/applications/common/api/worker/search/DbFacade.js"
-import { assertNotNull, deepEqual, defer, isNotNull, Thunk, typedEntries } from "../../src/platform-kit/utils"
+import { assertNotNull, deepEqual, defer, isNotNull, remove, Thunk, typedEntries } from "../../src/platform-kit/utils"
 import type { DesktopKeyStoreFacade } from "../../src/applications/common/desktop/DesktopKeyStoreFacade.js"
 import { mock } from "@tutao/otest"
 import { Aes256Key, aes256RandomKey, FIXED_INITIALIZATION_VECTOR } from "../../src/platform-kit/crypto"
@@ -35,6 +35,9 @@ import { ClientPlatform } from "../../src/platform-kit/app-env/boot/ClientDetect
 import { KeyLoaderFacade } from "../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants"
 import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
+import { EventController } from "../../src/applications/common/api/main/EventController"
+import { EntityEventsListener, EntityUpdateData } from "../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import Id from "../../src/ui/translations/id"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -417,5 +420,27 @@ export class IdGenerator {
 	getNext(incrementByMs: number = 60000): Id {
 		this.currentId = incrementId(this.currentId, incrementByMs)
 		return this.currentId
+	}
+}
+
+export class EventControllerMock extends EventController {
+	listeners: EntityEventsListener[] = []
+
+	constructor() {
+		super(object())
+	}
+
+	addEntityListener(listener: EntityEventsListener) {
+		this.listeners.push(listener)
+	}
+
+	removeEntityListener(listener: EntityEventsListener) {
+		remove(this.listeners, listener)
+	}
+
+	async onEntityUpdateReceived(entityUpdates: readonly EntityUpdateData[], eventOwnerGroupId: Id, isInitialSyncDone: boolean): Promise<void> {
+		for (const listener of this.listeners) {
+			listener.onEntityUpdatesReceived(entityUpdates, eventOwnerGroupId, isInitialSyncDone)
+		}
 	}
 }

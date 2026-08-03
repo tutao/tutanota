@@ -1,15 +1,17 @@
 import { SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
 import stream from "mithril/stream"
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef, DriveGroupRootTypeRef } from "@tutao/entities/drive"
 import { collectToMap, isEmpty, isNotNull, lastThrow, remove, tokenize } from "@tutao/utils"
-import { elementIdPart, GENERATED_MAX_ID, getElementId } from "@tutao/meta"
+import { elementIdPart, GENERATED_MAX_ID, getElementId, isSameId, isSameTypeRef, OperationType } from "@tutao/meta"
 import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 import { hasMoreResults } from "../../../mail-app/search/model/SearchUtils"
-import { OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EventController } from "../../../common/api/main/EventController"
 import { collectionUniqueBy } from "../../../../platform-kit/utils/CollectionUtils"
+import { LiveSearchResult, ResultUpdate, SearchQuery } from "../../../common/search/SearchUtils"
+import Stream from "mithril/stream"
+import { folderItemParent, toFolderItem } from "../../drive/view/DriveUtils"
 
 export interface DriveSearchResult {
 	item: DriveFolder | DriveFile

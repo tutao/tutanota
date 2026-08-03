@@ -18,6 +18,7 @@ import { WebFile } from "../../../src/entities/tutanota/Utils"
 import { TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
 import { createDriveFolder, DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 import { GroupInfoTypeRef, PlanConfigurationTypeRef } from "@tutao/entities/sys"
+import { DriveClipboardController } from "../../../src/applications/drive-app/drive/view/DriveClipboardController"
 
 o.spec("DriveViewModel", function () {
 	let driveViewModel: DriveViewModel
@@ -32,6 +33,7 @@ o.spec("DriveViewModel", function () {
 	let userController: UserController
 	let userManagementFacade: UserManagementFacade
 	let transferController: DriveTransferController
+	let clipboardController: DriveClipboardController
 
 	const rootIds: Readonly<DriveRootFolders> = {
 		root: ["RootListID", "RootElementID"],
@@ -89,6 +91,7 @@ o.spec("DriveViewModel", function () {
 		entityRestClientMock.addListInstances(rootFolders.root)
 
 		transferController = object()
+		clipboardController = object()
 		driveViewModel = new DriveViewModel(
 			entityClient,
 			driveFacade,
@@ -102,6 +105,7 @@ o.spec("DriveViewModel", function () {
 			() => {},
 			object(),
 			object(),
+			clipboardController,
 		)
 		await driveViewModel.init()
 	})
