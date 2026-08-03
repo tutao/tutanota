@@ -34,6 +34,7 @@ import {
 	brandKeyMac,
 	KeyAuthenticationFacade,
 	PubDistKeyAuthenticationParams,
+	SystemMapKind,
 } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
 import {
 	CryptoProtocolVersion,
@@ -301,7 +302,7 @@ function prepareUserKeyRotation(
 	when(
 		mocks.keyAuthenticationFacade.computeTag(
 			matchers.argThat((params) => {
-				return params.tagType === "NEW_ADMIN_PUB_KEY_TAG"
+				return params.tagType === SystemMapKind.NEW_ADMIN_PUB_KEY_TAG
 			}),
 		),
 	).thenReturn(newAdminPubKeyTag)
@@ -309,7 +310,7 @@ function prepareUserKeyRotation(
 	when(
 		mocks.keyAuthenticationFacade.computeTag(
 			matchers.argThat((params) => {
-				return params.tagType === "USER_GROUP_KEY_TAG"
+				return params.tagType === SystemMapKind.USER_GROUP_KEY_TAG
 			}),
 		),
 	).thenReturn(NEW_USER_GROUP_KEY_TAG)
@@ -1145,7 +1146,7 @@ o.spec("KeyRotationFacade", function () {
 				verify(cryptoWrapperMock.kyberPublicKeyToBytes(generatedAdminKeyPairs.decodedKeyPairs.kyberKeyPair.publicKey))
 				verify(
 					keyAuthenticationFacade.computeTag({
-						tagType: "NEW_ADMIN_PUB_KEY_TAG",
+						tagType: SystemMapKind.NEW_ADMIN_PUB_KEY_TAG,
 						sourceOfTrust: { receivingUserGroupKey: additionalUserGroupKey.object },
 						untrustedKey: {
 							newAdminPubKey: generatedAdminKeyPairs.decodedPublicKey.object,
@@ -1185,7 +1186,7 @@ o.spec("KeyRotationFacade", function () {
 					when(
 						keyAuthenticationFacade.computeTag(
 							matchers.argThat((params: PubDistKeyAuthenticationParams) => {
-								o(params.tagType).equals("PUB_DIST_KEY_TAG")
+								o(params.tagType).equals(SystemMapKind.PUB_DIST_KEY_TAG)
 								o(params.untrustedKey.distPubKey.x25519PublicKey).equals(mockedDistKeyPair.decodedPublicKey.object.x25519PublicKey)
 								o(params.untrustedKey.distPubKey.kyberPublicKey.raw).equals(mockedDistKeyPair.decodedPublicKey.object.kyberPublicKey.raw)
 								return true
@@ -1314,7 +1315,7 @@ o.spec("KeyRotationFacade", function () {
 					when(
 						keyAuthenticationFacade.computeTag(
 							matchers.argThat((params: AdminSymKeyAuthenticationParams) => {
-								o(params.tagType).equals("ADMIN_SYM_KEY_TAG")
+								o(params.tagType).equals(SystemMapKind.ADMIN_SYM_KEY_TAG)
 								o(params.untrustedKey.newAdminGroupKey).deepEquals(NEW_ADMIN_GROUP_KEY.object)
 								o(params.bindingData.adminGroupId).equals(adminGroupId)
 								o(params.bindingData.userGroupId).equals(otherAdmin)
@@ -1572,7 +1573,7 @@ o.spec("KeyRotationFacade", function () {
 				verify(
 					keyAuthenticationFacade.verifyTag(
 						{
-							tagType: "NEW_ADMIN_PUB_KEY_TAG",
+							tagType: SystemMapKind.NEW_ADMIN_PUB_KEY_TAG,
 							sourceOfTrust: { receivingUserGroupKey: CURRENT_USER_GROUP_KEY.object },
 							untrustedKey: {
 								newAdminPubKey: adminPubKey.adminPublicKey.object,
@@ -1840,7 +1841,7 @@ o.spec("KeyRotationFacade", function () {
 				verify(
 					keyAuthenticationFacade.verifyTag(
 						{
-							tagType: "ADMIN_SYM_KEY_TAG",
+							tagType: SystemMapKind.ADMIN_SYM_KEY_TAG,
 							sourceOfTrust: { currentReceivingUserGroupKey: CURRENT_USER_GROUP_KEY.object },
 							untrustedKey: { newAdminGroupKey: NEW_ADMIN_GROUP_KEY.object },
 							bindingData: {
