@@ -25,7 +25,7 @@ o.spec("OfflineStorageContactSearchFacade", () => {
 			eventSeries: null,
 		}
 
-		when(offline.search("my contact", expectedRestriction, { maxResults: 1234 })).thenResolve({
+		when(offline.search("my contact", expectedRestriction, { minSuggestionCount: 1234 })).thenResolve({
 			results: [["it's me", "a contact"] as IdTuple],
 		} as SearchResult)
 
@@ -45,7 +45,7 @@ o.spec("OfflineStorageContactSearchFacade", () => {
 			eventSeries: null,
 		}
 
-		when(offline.search("my contact", expectedRestriction, { maxResults: 1234 })).thenResolve({
+		when(offline.search("my contact", expectedRestriction, { minSuggestionCount: 1234 })).thenResolve({
 			results: [["it's me", "a contact"] as IdTuple],
 		} as SearchResult)
 

@@ -268,6 +268,7 @@ o.spec("OfflineStorageSearchFacade", () => {
 				o.check(resultMyFavoriteSet.results).deepEquals([testMail3.mail._id, testMail2.mail._id, testMail1.mail._id])
 			})
 			o.test("secondary set", async () => {
+				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
 				const resultYourFavoriteSet = await offlineStorageSearchFacade.search("common", {
 					type: SearchCategoryType.mail,
 					start: null,
@@ -277,7 +278,6 @@ o.spec("OfflineStorageSearchFacade", () => {
 					folderIds: ["yourFavoriteSet"],
 					eventSeries: null,
 				})
-				await storeAndIndexMail([testMail1, testMail2, testMail3, spamMail])
 				o.check(resultYourFavoriteSet.results).deepEquals([testMail2.mail._id])
 			})
 			o.test("is case sensitive", async () => {

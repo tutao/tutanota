@@ -41,7 +41,6 @@ import { ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 
 import { UserTypeRef } from "@tutao/entities/sys"
 import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
-import { searchCategoryTypeToTypeRef } from "../../../../../src/applications/mail-app/search/view/SearchViewModel"
 
 type SearchIndexEntryWithType = SearchIndexEntry & {
 	typeInfo: TypeInfo
@@ -179,7 +178,7 @@ o.spec("IndexedDbSearchFacade", () => {
 	): Promise<void> => {
 		await createDbContent(transaction, dbData, dbListIds)
 		const s = createSearchFacade(transaction, currentIndexTimestamp)
-		const typeModel = await typeModelResolver.resolveClientTypeReference(searchCategoryTypeToTypeRef(restriction.type))
+		const typeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 
 		const result = await s.search(query, restriction, { minSuggestionCount, maxResults })
 		o.check(result.query).equals(query)

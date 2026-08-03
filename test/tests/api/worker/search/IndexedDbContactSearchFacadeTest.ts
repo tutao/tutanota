@@ -35,7 +35,7 @@ o.spec("IndexedDbContactSearchFacade", () => {
 				eventSeries: null,
 			}
 
-			when(offline.search('"my contact"', expectedRestriction, { maxResults: 1234 })).thenResolve({
+			when(offline.search('"my contact"', expectedRestriction, { minSuggestionCount: 1234 })).thenResolve({
 				results: [["it's me", "a contact"] as IdTuple],
 			} as SearchResult)
 
@@ -44,8 +44,6 @@ o.spec("IndexedDbContactSearchFacade", () => {
 			o.check(result).deepEquals([["it's me", "a contact"] as IdTuple])
 		})
 		o.test("recipient", async () => {
-			const mailType = await typeModelResolver.resolveClientTypeReference(ContactTypeRef)
-
 			const expectedRestriction: SearchRestriction = {
 				type: SearchCategoryType.contact,
 				start: null,
@@ -56,7 +54,7 @@ o.spec("IndexedDbContactSearchFacade", () => {
 				eventSeries: null,
 			}
 
-			when(offline.search('"my contact"', expectedRestriction, { maxResults: 1234 })).thenResolve({
+			when(offline.search('"my contact"', expectedRestriction, { minSuggestionCount: 1234 })).thenResolve({
 				results: [["it's me", "a contact"] as IdTuple],
 			} as SearchResult)
 

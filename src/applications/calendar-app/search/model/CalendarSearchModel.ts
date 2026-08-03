@@ -133,7 +133,7 @@ export class CalendarSearchModel {
 	}
 
 	async runCalendarSearch(searchQuery: SearchQuery, abortSignal: AbortSignal): Promise<{ tokens: string[]; resultItems: CalendarEvent[] }> {
-		const calendarModel = await this.calendarEventsRepository()
+		const calendarEventsRepository = await this.calendarEventsRepository()
 
 		const query = searchQuery.query
 		const tokens = tokenize(query.trim())
@@ -160,15 +160,15 @@ export class CalendarSearchModel {
 
 		const resultItems: CalendarEvent[] = []
 
-		const canLoadBirthdaysCalendar = await calendarModel.canLoadBirthdaysCalendar()
+		const canLoadBirthdaysCalendar = await calendarEventsRepository.canLoadBirthdaysCalendar()
 		if (canLoadBirthdaysCalendar) {
-			await calendarModel.loadContactsBirthdays()
+			await calendarEventsRepository.loadContactsBirthdays()
 		}
 
-		await calendarModel.loadMonthsIfNeeded(daysInMonths, abortSignal, monitor)
+		await calendarEventsRepository.loadMonthsIfNeeded(daysInMonths, abortSignal, monitor)
 		monitor.completed()
 
-		const daysToEvents = calendarModel.getDaysToEvents()()
+		const daysToEvents = calendarEventsRepository.getDaysToEvents()()
 
 		// This is taken over from the previous implementation, but these should always
 		// be non-null unless due to some weird side effects. Do we need to keep these checks?
