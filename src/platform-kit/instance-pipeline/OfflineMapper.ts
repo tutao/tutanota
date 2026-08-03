@@ -106,7 +106,7 @@ export class OfflineEntity implements DeepEquals {
 	public getValue<NestedObj extends DeepEquals>(modelValue: ModelValue): ParsedValue<NestedObj> {
 		if (modelValue.name === "_id") {
 			const id = assertNotNull(this.entityRecord[modelValue.id])
-			switch (getIdType(this.typeModel)) {
+			switch (getIdType(this.typeModel.type)) {
 				case IdType.IdTuple:
 					return ParsedValue.fromIdTuple<NestedObj>(id as IdTuple)
 				case IdType.SingleId:
@@ -120,7 +120,7 @@ export class OfflineEntity implements DeepEquals {
 	public addValue(modelValue: ModelValue, value: ParsedValue<DecryptedParsedInstance>): void {
 		const key = modelValue.id
 		if (modelValue.name === "_id") {
-			switch (getIdType(this.typeModel)) {
+			switch (getIdType(this.typeModel.type)) {
 				case IdType.IdTuple: {
 					this.entityRecord[key] = value.asIdTuple()
 					break

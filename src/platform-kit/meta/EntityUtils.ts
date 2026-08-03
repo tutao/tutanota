@@ -16,11 +16,11 @@ import {
 	uint8ArrayToBase64,
 	uint8arrayToBase64UrlCustomId,
 } from "@tutao/utils"
-import { AnyEntityId, BlobElementId, ElementId, Entity, ListElementId, ModelValue, PersistentEntity, TypeModel, ValueTypeEnum } from "./EntityTypes.js"
-import { Cardinality, ValueType } from "./EntityConstants.js"
+import { AnyEntityId, BlobElementId, ElementId, Entity, ListElementId, ModelValue, PersistentEntity, TypeModel } from "./EntityTypes.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { assertNull, isNull } from "../utils/Utils"
 import { isSameTypeRef, TypeRef } from "./TypeRef"
+import { CardinalityEnum, ValueTypeEnum } from "./EntityConstants"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -248,7 +248,7 @@ export function create<T>(
 	}
 
 	for (const [associationIdStr, association] of Object.entries(typeModel.associations)) {
-		if (association.cardinality === Cardinality.Any) {
+		if (association.cardinality === CardinalityEnum.Any) {
 			i[association.name] = []
 		} else {
 			// set to null even if the cardinality is One. we could think about calling create recursively,
@@ -268,7 +268,7 @@ function _getDefaultValue(valueName: string, value: ModelValue, typeModel: TypeM
 		return null // aggregate ids are set in the worker, list ids must be set explicitly and element ids are created on the server
 	} else if (valueName === "_permissions") {
 		return null
-	} else if (value.cardinality === Cardinality.ZeroOrOne) {
+	} else if (value.cardinality === CardinalityEnum.ZeroOrOne) {
 		return null
 	} else {
 		switch (value.type) {
@@ -282,7 +282,7 @@ function _getDefaultValue(valueName: string, value: ModelValue, typeModel: TypeM
 				return "0"
 
 			case ValueTypeEnum.String:
-			case ValueType.CompressedString:
+			case ValueTypeEnum.CompressedString:
 				return ""
 
 			case ValueTypeEnum.Boolean:
@@ -417,7 +417,7 @@ export const TECHNICAL_FIELDS = ["_original", "_errors"]
 
 export function isCustomIdType(typeModel: TypeModel): boolean {
 	const _idValue = get_IdValue(typeModel)
-	return _idValue !== null && _idValue.type === ValueType.CustomId
+	return _idValue !== null && _idValue.type === ValueTypeEnum.CustomId
 }
 
 /**
@@ -426,9 +426,9 @@ export function isCustomIdType(typeModel: TypeModel): boolean {
  */
 export function getServerIdEncodingForType(typeModel: TypeModel): EntityIdEncoding {
 	const _idValueType = assertNotNull(get_IdValue(typeModel), `no _id found for typeModel: ${typeModel.app}/${typeModel.id} `).type
-	if (_idValueType === ValueType.CustomId) {
+	if (_idValueType === ValueTypeEnum.CustomId) {
 		return EntityIdEncoding.Base64URL
-	} else if (_idValueType === ValueType.GeneratedId) {
+	} else if (_idValueType === ValueTypeEnum.GeneratedId) {
 		return EntityIdEncoding.Base64Ext
 	} else {
 		throw new ProgrammingError(`unknown _id type for entity: ${typeModel.app}/${typeModel.id}`)

@@ -141,7 +141,7 @@ export class IncomingServerJson implements DeepEquals {
 		const valueModel = this.typeModel.values[attrId] ?? null
 
 		if (isNotNull(valueModel) && valueModel.name === "_id") {
-			switch (getIdType(this.typeModel)) {
+			switch (getIdType(this.typeModel.type)) {
 				case IdType.SingleId:
 					return ParsedValue.fromString(rawValue)
 				case IdType.IdTuple:
@@ -237,7 +237,7 @@ export class OutgoingServerJson implements DeepEquals {
 	addValue<EncryptedOrDecrypted extends DeepEquals>(attrId: AttributeId, attrName: string, value: ParsedValue<EncryptedOrDecrypted>) {
 		const key = OutgoingServerJson.networkDebuggedKey(attrId, this.typeModel)
 		if (attrName === "_id" && !value.isNull()) {
-			switch (getIdType(this.typeModel)) {
+			switch (getIdType(this.typeModel.type)) {
 				case IdType.SingleId:
 					this.json[key] = value.asId()
 					break

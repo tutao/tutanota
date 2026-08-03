@@ -1,4 +1,4 @@
-import { Cardinality, ModelValue, TypeModel, ValueTypeEnum } from "@tutao/meta"
+import { CardinalityEnum, ModelValue, TypeModel, ValueTypeEnum } from "@tutao/meta"
 import { assert, DeepEquals, Nullable, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
 import { compress, uncompress } from "./Compression"
 import { ProgrammingError } from "@tutao/app-env"
@@ -33,7 +33,7 @@ export class EntityUtils {
 	public static setValue<A extends DeepEquals>(modelValue: ModelValue, key: string, parsedValue: ParsedValue<A>, entityRecord: Record<string, any>): void {
 		assert(modelValue.name !== "_id", "Do not use this method for _id. Check if it's Id or IdTuple outside")
 		if (parsedValue.isNull()) {
-			if (modelValue.cardinality === Cardinality.One) {
+			if (modelValue.cardinality === CardinalityEnum.One) {
 				throw new ProgrammingError(`Null value is not allowed for field: ${modelValue.name} with cardinality One`)
 			}
 			entityRecord[key] = null

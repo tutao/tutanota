@@ -1,6 +1,6 @@
 import o, { assertThrows } from "@tutao/otest"
 import { ClientEntity, DecryptedParsedInstance, ModelMapper, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
-import { Cardinality, ClientTypeModel, ModelAssociation, ServerTypeModel, TypeModel, ValueTypeEnum } from "../../../src/platform-kit/meta"
+import { CardinalityEnum, ClientTypeModel, ModelAssociation, ServerTypeModel, TypeModel, ValueTypeEnum } from "../../../src/platform-kit/meta"
 import {
 	createEncryptedValueType,
 	DummyTypeModelResolver,
@@ -105,7 +105,7 @@ o.spec("ModelMapperTest", function () {
 
 		o("wrong cardinality on value field throws", async function () {
 			const serverModel = structuredClone(decryptedParsedInstance.typeModel)
-			serverModel.values["1"].cardinality = Cardinality.ZeroOrOne
+			serverModel.values["1"].cardinality = CardinalityEnum.ZeroOrOne
 			;(decryptedParsedInstance as any).typeModel = serverModel
 
 			decryptedParsedInstance.addAttributeById(1, ParsedValue.fromNull())
@@ -155,27 +155,27 @@ o.spec("ModelMapperTest", function () {
 				return rec["res"]
 			}
 
-			o(f(Cardinality.One, ["v"])).deepEquals("v")
-			o(f(Cardinality.ZeroOrOne, ["v"])).deepEquals("v")
-			o(f(Cardinality.ZeroOrOne, [])).deepEquals(null)
-			o(f(Cardinality.Any, ["v"])).deepEquals(["v"])
-			o(f(Cardinality.Any, ["v", "v2"])).deepEquals(["v", "v2"])
-			o(f(Cardinality.ZeroOrOne, [["listId", "listElementId"]])).deepEquals(["listId", "listElementId"])
-			o(f(Cardinality.One, [["listId", "listElementId"]])).deepEquals(["listId", "listElementId"])
-			o(f(Cardinality.Any, [["listId", "listElementId"]])).deepEquals([["listId", "listElementId"]])
-			o(f(Cardinality.Any, [])).deepEquals([])
+			o(f(CardinalityEnum.One, ["v"])).deepEquals("v")
+			o(f(CardinalityEnum.ZeroOrOne, ["v"])).deepEquals("v")
+			o(f(CardinalityEnum.ZeroOrOne, [])).deepEquals(null)
+			o(f(CardinalityEnum.Any, ["v"])).deepEquals(["v"])
+			o(f(CardinalityEnum.Any, ["v", "v2"])).deepEquals(["v", "v2"])
+			o(f(CardinalityEnum.ZeroOrOne, [["listId", "listElementId"]])).deepEquals(["listId", "listElementId"])
+			o(f(CardinalityEnum.One, [["listId", "listElementId"]])).deepEquals(["listId", "listElementId"])
+			o(f(CardinalityEnum.Any, [["listId", "listElementId"]])).deepEquals([["listId", "listElementId"]])
+			o(f(CardinalityEnum.Any, [])).deepEquals([])
 
-			await assertThrows(InvalidModelError, async () => f(Cardinality.One, ["v", "v1", "v2"]))
-			await assertThrows(InvalidModelError, async () => f(Cardinality.ZeroOrOne, ["v", "v1", "v2"]))
-			await assertThrows(InvalidModelError, async () => f(Cardinality.One, []))
-			await assertThrows(InvalidModelError, async () => f(Cardinality.One, ["v", "v2"]))
-			await assertThrows(InvalidModelError, async () => f(Cardinality.ZeroOrOne, ["v", "v2"]))
+			await assertThrows(InvalidModelError, async () => f(CardinalityEnum.One, ["v", "v1", "v2"]))
+			await assertThrows(InvalidModelError, async () => f(CardinalityEnum.ZeroOrOne, ["v", "v1", "v2"]))
+			await assertThrows(InvalidModelError, async () => f(CardinalityEnum.One, []))
+			await assertThrows(InvalidModelError, async () => f(CardinalityEnum.One, ["v", "v2"]))
+			await assertThrows(InvalidModelError, async () => f(CardinalityEnum.ZeroOrOne, ["v", "v2"]))
 		})
 
 		o("assertCorrectValueCardinality", async function () {
-			const cardinalityOne = createEncryptedValueType(ValueTypeEnum.String, Cardinality.One)
-			const cardinalityZeroOrOne = createEncryptedValueType(ValueTypeEnum.String, Cardinality.ZeroOrOne)
-			const cardinalityAny = createEncryptedValueType(ValueTypeEnum.String, Cardinality.Any)
+			const cardinalityOne = createEncryptedValueType(ValueTypeEnum.String, CardinalityEnum.One)
+			const cardinalityZeroOrOne = createEncryptedValueType(ValueTypeEnum.String, CardinalityEnum.ZeroOrOne)
+			const cardinalityAny = createEncryptedValueType(ValueTypeEnum.String, CardinalityEnum.Any)
 
 			o(modelMapper.assertCorrectValueCardinality(TestTypeRef, cardinalityOne, cardinalityOne, ParsedValue.fromString("v"))).deepEquals(
 				ParsedValue.fromString("v"),
@@ -193,7 +193,7 @@ o.spec("ModelMapperTest", function () {
 				ParsedValue.fromString(""),
 			)
 
-			const idTupleValue = { ...createEncryptedValueType(ValueTypeEnum.GeneratedId, Cardinality.One), name: "_id" }
+			const idTupleValue = { ...createEncryptedValueType(ValueTypeEnum.GeneratedId, CardinalityEnum.One), name: "_id" }
 			o(
 				modelMapper.assertCorrectValueCardinality(TestTypeRef, idTupleValue, idTupleValue, ParsedValue.fromIdTuple(["listId", "listElementId"])),
 			).deepEquals(ParsedValue.fromIdTuple(["listId", "listElementId"]))

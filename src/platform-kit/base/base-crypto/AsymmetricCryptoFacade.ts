@@ -39,8 +39,8 @@ import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
 import { KeyVerificationMismatchError } from "../../network/error/KeyVerificationMismatchError.js"
 import { asCryptoProtoocolVersion } from "./Constants"
 import { createPublicKeyPutIn, PubEncKeyData, PublicKeyService } from "@tutao/entities/sys"
-import { TypeId } from "../../meta/EntityTypes"
 import { RsaImplementation } from "../../crypto"
+import { TypeId } from "../../meta/EntityConstants"
 
 assertWorkerOrNode()
 
