@@ -40,7 +40,6 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 		} else {
 			this.assertCorrectRange(range)
 			rawList = await storage.getWholeListParsed(CalendarEventTypeRef, listId)
-			console.log(`CalendarEvent list ${listId} has ${rawList.length} events`)
 		}
 		const unsortedList = await this.entityRestClient.mapInstancesToEntity(CalendarEventTypeRef, rawList)
 
