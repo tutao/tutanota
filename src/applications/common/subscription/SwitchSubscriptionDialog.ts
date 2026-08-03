@@ -53,9 +53,8 @@ import { px } from "../../../ui/size"
 import { getUserGroupMemberships } from "../../../platform-kit/network/GroupUtils"
 import { getByAbbreviation } from "../gui/CountryList"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
-import { PreconditionFailedError, TooManyRequestsError } from "@tutao/rest-client/error"
-import { elementIdToId } from "@tutao/meta"
-import { GENERATED_MAX_ID } from "@tutao/meta"
+import { InvalidDataError, PreconditionFailedError } from "@tutao/rest-client/error"
+import { elementIdToId, GENERATED_MAX_ID } from "@tutao/meta"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -465,7 +464,7 @@ export async function tryDowngradePremiumToFree(customer: Customer, currentPlanT
 			if (shouldRetry) {
 				return tryDowngradePremiumToFree(customer, currentPlanType)
 			}
-		} else if (e instanceof TooManyRequestsError) {
+		} else if (e instanceof InvalidDataError) {
 			await Dialog.message("accountSwitchTooManyActiveUsers_msg")
 		} else {
 			throw e
@@ -499,7 +498,7 @@ export async function showConfirmDowngradingToFreeDialog(): Promise<PlanType> {
 		return planType
 	}
 
-	return await showProgressDialog("pleaseWait_msg", cancelSubscription(assertNotNull(customer)))
+	return await showProgressDialog("pleaseWait_msg", tryDowngradePremiumToFree(assertNotNull(customer), planType))
 }
 
 async function downgradeSubscription(dialog: Dialog): Promise<PlanType> {
