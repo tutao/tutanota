@@ -455,6 +455,9 @@ export class MailViewModel {
 	/** init is called every time the view is opened */
 	init() {
 		this.onceInit()
+
+		this.connectivityModel.addConnectionStateListener(this.connectionStateListener)
+
 		const conversationDisabled = this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()
 		const mailListModePref = !conversationDisabled && this.conversationPrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS
 		if (this.conversationViewModel && this.conversationPref !== conversationDisabled) {
@@ -480,7 +483,6 @@ export class MailViewModel {
 
 	private readonly onceInit = lazyMemoized(() => {
 		this.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
-		this.connectivityModel.addConnectionStateListener(this.connectionStateListener)
 	})
 
 	get listModel(): MailSetListModel | null {
