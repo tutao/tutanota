@@ -418,7 +418,6 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		if (!existingEventWrapper || !ownAttendee) {
 			const icsAttendee = findAttendeeInAddresses(icsCalendarEvent.attendees ?? [], [recipient])
 			if (!icsAttendee) {
-				console.warn("Trying to build a reply section for an event we were not invited")
 				return null
 			}
 			ownAttendee = createCalendarEventAttendee(fromStrippedCalendarEventAttendee(icsAttendee))
