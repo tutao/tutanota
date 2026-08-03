@@ -5,6 +5,7 @@ import { getFromMap } from "@tutao/utils"
 import { Aes256Key, AesKeyLength, base64ToKey, keyToBase64 } from "@tutao/crypto"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError.js"
 import { CancelledError } from "@tutao/app-env"
+import { base64To256Key } from "../../../platform-kit/crypto/encryption/symmetric/SymmetricCipherUtils"
 
 interface NativeKeySpec {
 	/**
@@ -98,7 +99,7 @@ export class DesktopKeyStoreFacade {
 		if (base64 == null) {
 			return null
 		}
-		return base64ToKey(base64, AesKeyLength.Aes256)
+		return base64To256Key(base64)
 	}
 
 	private async generateAndStoreKey(spec: NativeKeySpec): Promise<Aes256Key> {
