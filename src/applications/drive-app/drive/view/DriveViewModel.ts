@@ -21,6 +21,8 @@ import { isDriveEnabled } from "../../../common/misc/DriveUtils"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
 import {
 	childFileFromEntry,
+	ComparisonFunction,
+	comparisonFunction,
 	deduplicateItemNames,
 	DiskFolder,
 	DriveOperationType,
@@ -52,6 +54,7 @@ import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 import { DriveSearchModel, DriveSearchResult } from "../../search/model/DriveSearchModel"
 import { LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
+import { ClipboardAction, DriveClipboard, DriveClipboardController } from "./DriveClipboardController"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -68,28 +71,6 @@ export interface SpecialFolder {
 
 export type DisplayFolder = RegularFolder | SpecialFolder
 
-const compareString = (s1: string, s2: string) => {
-	s1 = s1.toLowerCase()
-	s2 = s2.toLowerCase()
-
-	if (s1 > s2) {
-		return 1
-	} else if (s2 > s1) {
-		return -1
-	}
-	return 0
-}
-
-const compareNumber = (n1: number | bigint, n2: number | bigint) => {
-	if (n1 > n2) {
-		return 1
-	} else if (n1 < n2) {
-		return -1
-	} else {
-		return 0
-	}
-}
-
 export const enum SortColumn {
 	name = "name",
 	mimeType = "mimeType",
@@ -100,16 +81,6 @@ export const enum SortColumn {
 export interface SortingPreference {
 	column: SortColumn
 	order: SortOrder
-}
-
-export const enum ClipboardAction {
-	Cut,
-	Copy,
-}
-
-export interface DriveClipboard {
-	items: readonly FolderItemId[]
-	action: ClipboardAction
 }
 
 function emptyListModel<Item, Id>(): ListModel<Item, Id> {
@@ -135,8 +106,6 @@ export interface DriveStorage {
 	totalBytes: number
 }
 
-type ComparisonFunction = (f1: FolderItem, f2: FolderItem) => number
-
 export class DriveViewModel {
 	public readonly userMailAddress: string
 
@@ -146,12 +115,6 @@ export class DriveViewModel {
 	currentFolder: DisplayFolder | null = null
 	parents: readonly DriveFolder[] = []
 	roots: DriveRootFolders | null = null
-
-	private _clipboard: DriveClipboard | null = null
-
-	get clipboard(): DriveClipboard | null {
-		return this._clipboard
-	}
 
 	private listModel: ListModel<FolderItem, Id> = emptyListModel()
 	private listStateSubscription: Stream<unknown> | null = null
@@ -167,7 +130,7 @@ export class DriveViewModel {
 		private readonly entityClient: EntityClient,
 		private readonly driveFacade: DriveFacade,
 		private readonly router: Router,
-		public readonly uploadProgressListener: TransferProgressDispatcher,
+		public readonly transferProgressDispatcher: TransferProgressDispatcher,
 		private readonly eventController: EventController,
 		public readonly loginController: LoginController,
 		private readonly userManagementFacade: UserManagementFacade,
@@ -176,6 +139,7 @@ export class DriveViewModel {
 		public readonly updateUi: () => unknown,
 		private readonly searchModel: DriveSearchModel,
 		private readonly searchRouter: SearchRouter,
+		private clipboardController: DriveClipboardController,
 	) {
 		this.userMailAddress = getDefaultSenderFromUser(this.loginController.getUserController())
 		this.initialized = new Promise((resolve, reject) => {
@@ -183,6 +147,9 @@ export class DriveViewModel {
 		})
 	}
 
+	get clipboard(): DriveClipboard | null {
+		return this.clipboardController.clipboard
+	}
 	readonly init = async () => {
 		// if the roots have already been loaded the init must have been finished
 		if (this.roots) {
@@ -213,12 +180,12 @@ export class DriveViewModel {
 			priority: OnEntityUpdateReceivedPriority.NORMAL,
 		})
 
-		this.uploadProgressListener.addUploadListener((info: UploadProgressInfo) => {
+		this.transferProgressDispatcher.addUploadListener((info: UploadProgressInfo) => {
 			this.transferController.onChunkUploaded(info.transferId, info.uploadedBytes)
 			this.updateUi()
 		})
 
-		this.uploadProgressListener.addDownloadListener((info: DownloadProgressInfo) => {
+		this.transferProgressDispatcher.addDownloadListener((info: DownloadProgressInfo) => {
 			this.transferController.onChunkDownloaded(info.transferId, info.downloadedBytes)
 			this.updateUi()
 		})
@@ -286,27 +253,7 @@ export class DriveViewModel {
 
 	private readonly comparisonFunction: () => ComparisonFunction = memoizedWithHiddenArgument(
 		() => this.sortingPreference,
-		() => {
-			const column = this.sortingPreference.column
-			const itemName = (item: FolderItem) => (item.type === "folder" ? item.folder.name : item.file.name)
-			const itemDate = (item: FolderItem) => (item.type === "folder" ? item.folder.updatedDate : item.file.updatedDate)
-			const itemSize = (item: FolderItem) => (item.type === "folder" ? 0n : BigInt(item.file.size))
-
-			const itemMimeType = (item: FolderItem) => (item.type === "folder" ? "" : item.file.mimeType)
-
-			const attrToComparisonFunction: Record<SortColumn, ComparisonFunction> = {
-				name: (f1: FolderItem, f2: FolderItem) => compareString(itemName(f1), itemName(f2)),
-				mimeType: (f1: FolderItem, f2: FolderItem) => compareString(itemMimeType(f1), itemMimeType(f2)),
-				size: (f1: FolderItem, f2: FolderItem) => compareNumber(itemSize(f1), itemSize(f2)),
-				date: (f1: FolderItem, f2: FolderItem) => compareNumber(itemDate(f1).getTime(), itemDate(f2).getTime()),
-			}
-
-			const comparisonFn = attrToComparisonFunction[column]
-
-			// invert comparison function when the order is descending
-			const sortFunction: typeof comparisonFn = this.sortingPreference.order === "asc" ? comparisonFn : (l, r) => -comparisonFn(l, r)
-			return sortFunction
-		},
+		() => comparisonFunction(this.sortingPreference.column, this.sortingPreference.order),
 	)
 
 	private async entityEventsReceived(events: ReadonlyArray<EntityUpdateData>) {
@@ -351,12 +298,12 @@ export class DriveViewModel {
 	}
 
 	cut(items: readonly FolderItem[]) {
-		this._clipboard = { items: items.map(folderItemToId), action: ClipboardAction.Cut }
+		this.clipboardController.cut(items)
 		this.selectNone()
 	}
 
 	copy(items: readonly FolderItem[]) {
-		this._clipboard = { items: items.map(folderItemToId), action: ClipboardAction.Copy }
+		this.clipboardController.copy(items)
 		this.selectNone()
 	}
 
@@ -378,13 +325,13 @@ export class DriveViewModel {
 	async paste() {
 		if (this.currentFolder == null) return
 
-		if (this._clipboard?.action === ClipboardAction.Cut) {
-			const clipboardItems = this._clipboard.items
+		if (this.clipboard?.action === ClipboardAction.Cut) {
+			const clipboardItems = this.clipboard.items
 			await this.moveItems(clipboardItems, this.currentFolder.folder._id)
-			this._clipboard = null
+			this.clipboardController.clear()
 			this.updateUi()
-		} else if (this._clipboard?.action === ClipboardAction.Copy) {
-			const clipboardItems = this._clipboard.items
+		} else if (this.clipboard?.action === ClipboardAction.Copy) {
+			const clipboardItems = this.clipboard.items
 			await this.copyItems(clipboardItems, this.currentFolder.folder)
 			this.updateUi()
 		}

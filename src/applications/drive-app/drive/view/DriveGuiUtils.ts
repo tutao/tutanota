@@ -1,4 +1,4 @@
-import { DropdownButtonAttrs, DropdownChildAttrs } from "../../../../ui/base/Dropdown"
+import { DomRectReadOnlyPolyfilled, Dropdown, DropdownButtonAttrs, DropdownChildAttrs } from "../../../../ui/base/Dropdown"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
@@ -12,6 +12,9 @@ import { isBrowser, isDesktop } from "@tutao/app-env"
 import { isNotNull } from "@tutao/utils"
 import { FileActions } from "./DriveFolderContentEntry"
 import { DriveSelectedItemsActions } from "./DriveFolderNav"
+import { DriveFolderSelectionEvents } from "./DriveFolderContent"
+import { modal } from "../../../../ui/base/Modal"
+import { ListState } from "../../../../ui/base/List"
 
 export function newItemActions({
 	onUploadFiles,
@@ -299,6 +302,29 @@ export function getSelectionContextActions(selectionActions: DriveSelectedItemsA
 	}
 
 	return actions
+}
+export function driveItemContextMenu(
+	selectionEvents: DriveFolderSelectionEvents,
+	selectedItemsActions: DriveSelectedItemsActions,
+	fileActions: FileActions,
+	listState: ListState<FolderItem>,
+	item: FolderItem,
+	e: MouseEvent,
+) {
+	let contextActions: DropdownChildAttrs[]
+
+	if (listState.selectedItems.has(item) && listState.inMultiselect) {
+		contextActions = getSelectionContextActions(selectedItemsActions)
+	} else {
+		selectionEvents.onSingleSelection(item)
+
+		// Nothing is selected, open the context menu for the item that received the event.
+		contextActions = getFileContextActions(item, fileActions)
+	}
+
+	const dropdown = new Dropdown(() => contextActions, 300)
+	dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
+	modal.displayUnique(dropdown, false)
 }
 
 export function isMobileDriveLayout(): boolean {

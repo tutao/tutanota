@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { DriveClipboard, SortColumn, SortingPreference } from "./DriveViewModel"
+import { SortColumn, SortingPreference } from "./DriveViewModel"
 import { DriveFolderNav, DriveSelectedItemsActions } from "./DriveFolderNav"
-import { DriveFolderContent, DriveFolderContentAttrs, DriveFolderSelectionEvents, SelectionState } from "./DriveFolderContent"
+import { DriveFolderContent, DriveFolderContentAttrs, DriveFolderSelectionEvents } from "./DriveFolderContent"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { ListLoadingState, ListState } from "../../../../ui/base/List"
 import { px, size } from "../../../../ui/size"
@@ -11,17 +11,17 @@ import { theme } from "../../../../ui/theme"
 import { IconMessageBox } from "../../../../ui/base/ColumnEmptyMessageBox"
 import { LayerType } from "../../../../ui/base/RootView"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
-import { DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs } from "../../../../ui/base/Dropdown"
-import { getFileContextActions, getSelectionContextActions, isMobileDriveLayout, newItemActions, parseDragItems } from "./DriveGuiUtils"
+import { DomRectReadOnlyPolyfilled, Dropdown } from "../../../../ui/base/Dropdown"
+import { driveItemContextMenu, isMobileDriveLayout, newItemActions, parseDragItems } from "./DriveGuiUtils"
 import { modal } from "../../../../ui/base/Modal"
 import { DropType } from "../../../../ui/base/GuiUtils"
 import { FileActions } from "./DriveFolderContentEntry"
 import { FolderFolderItem, FolderItem, FolderItemId } from "./DriveUtils"
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { DriveFolder } from "@tutao/entities/drive"
+import { DriveClipboard } from "./DriveClipboardController"
 
 export interface DriveFolderViewAttrs {
-	selection: SelectionState
 	selectedItemsActions: DriveSelectedItemsActions
 	currentFolder: DriveFolder | null
 	parents: readonly DriveFolder[]
@@ -57,7 +57,6 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 			onDropFiles,
 			currentFolder,
 			parents,
-			selection,
 			selectionEvents,
 			listState,
 			loadParents,
@@ -147,39 +146,12 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 						fileActions,
 						onSort: onSortColumn,
 						onDropInto,
-						selection,
 						listState,
 						selectionEvents,
 						clipboard,
-						onEntryContextMenu: (f, e) =>
-							this.onEntryContextMenu(f, e, selection, selectionEvents, selectedItemsActions, fileActions, listState.selectedItems.has(f)),
+						onEntryContextMenu: (item, event) => driveItemContextMenu(selectionEvents, selectedItemsActions, fileActions, listState, item, event),
 					} satisfies DriveFolderContentAttrs),
 		)
-	}
-
-	private onEntryContextMenu(
-		item: FolderItem,
-		e: MouseEvent,
-		selection: SelectionState,
-		selectionEvents: DriveFolderSelectionEvents,
-		selectedItemsActions: DriveSelectedItemsActions,
-		fileActions: FileActions,
-		isItemSelected: boolean,
-	) {
-		let contextActions: DropdownChildAttrs[]
-
-		if (isItemSelected && selection.type === "multiselect") {
-			contextActions = getSelectionContextActions(selectedItemsActions)
-		} else {
-			selectionEvents.onSingleSelection(item)
-
-			// Nothing is selected, open the context menu for the item that received the event.
-			contextActions = getFileContextActions(item, fileActions)
-		}
-
-		const dropdown = new Dropdown(() => contextActions, 300)
-		dropdown.setOrigin(new DomRectReadOnlyPolyfilled(e.clientX, e.clientY, 0, 0))
-		modal.displayUnique(dropdown, false)
 	}
 
 	private renderEmptyView(folder: DriveFolder | null): Children {

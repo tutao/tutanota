@@ -177,6 +177,7 @@ import { CalendarSearchModel } from "../calendar-app/search/model/CalendarSearch
 import { ContactSearchModel } from "./search/model/ContactSearchModel"
 import { DriveSearchModel } from "../drive-app/search/model/DriveSearchModel"
 import type { DriveTransferController } from "../drive-app/drive/view/DriveTransferController"
+import { DriveClipboardController } from "../drive-app/drive/view/DriveClipboardController"
 
 assertMainOrNode()
 
@@ -1378,6 +1379,10 @@ class MailLocator implements CommonLocator {
 		const redraw = await this.redraw()
 		return new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController)
 	})
+	readonly clipboardController: lazyAsync<DriveClipboardController> = lazyMemoized(async () => {
+		const { DriveClipboardController } = await import("../drive-app/drive/view/DriveClipboardController.js")
+		return new DriveClipboardController()
+	})
 
 	readonly driveViewModel: lazyAsync<DriveViewModel> = lazyMemoized(async () => {
 		const { DriveViewModel } = await import("../drive-app/drive/view/DriveViewModel.js")
@@ -1399,6 +1404,7 @@ class MailLocator implements CommonLocator {
 			redraw,
 			this.driveSearchModel,
 			await this.unscopedSearchRouter(),
+			await this.clipboardController(),
 		)
 		await model.init()
 
@@ -1475,6 +1481,7 @@ class MailLocator implements CommonLocator {
 		const router = await this.throttledRouter()
 		const dateProvider = await this.noZoneDateProvider()
 		const driveTransferController = await this.driveTransferController()
+		const clipboardController = await this.clipboardController()
 		return () =>
 			new DriveSearchViewModel(
 				searchRouter,
@@ -1487,6 +1494,8 @@ class MailLocator implements CommonLocator {
 				this.entityClient,
 				this.eventController,
 				redraw,
+				clipboardController,
+				this.transferProgressDispatcher,
 			)
 	}
 }

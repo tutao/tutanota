@@ -14,12 +14,15 @@ import {
 	getStartOfDay,
 	isNotEmpty,
 	isNotNull,
+	memoizedWithHiddenArgument,
 	noOp,
 } from "@tutao/utils"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { LoginController } from "../../../common/api/main/LoginController"
 import {
+	comparisonFunction,
+	ComparisonFunction,
 	DriveOperationType,
 	FileFolderItem,
 	FolderFolderItem,
@@ -36,8 +39,8 @@ import {
 	toFolderItem,
 } from "../../drive/view/DriveUtils"
 import { DriveTransferController, DriveTransfers } from "../../drive/view/DriveTransferController"
-import { TransferId } from "../../../../entities/drive/Utils"
-import { elementIdPart, getElementId, isSameId } from "@tutao/meta"
+import { DownloadProgressInfo, TransferId, UploadProgressInfo } from "../../../../entities/drive/Utils"
+import { elementIdPart, getElementId, isSameId, listIdPart } from "@tutao/meta"
 import { DriveFacade, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { CancelledError, OperationStatus } from "@tutao/app-env"
 import Stream from "mithril/stream"
@@ -56,6 +59,9 @@ import { handleRestError } from "@tutao/rest-client/error"
 import { EventController } from "../../../common/api/main/EventController"
 import { DriveSearchModel, DriveSearchResult } from "../model/DriveSearchModel"
 import { ListState } from "../../../../ui/base/List"
+import { DriveClipboard, DriveClipboardController } from "../../drive/view/DriveClipboardController"
+import m from "mithril"
+import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
 
 const SEARCH_PAGE_SIZE = 100
 export class DriveSearchViewModel {
@@ -84,7 +90,7 @@ export class DriveSearchViewModel {
 	private currentQuery: string = ""
 	private operationUpdates: Stream<OperationUpdate | null> = stream(null)
 	private readonly runningOperations: Map<Id, RunningOperation> = new Map()
-	private readonly listStateSubscription: Stream<unknown> | null = null
+	private listStateSubscription: Stream<unknown> | null = null
 
 	roots: DriveRootFolders | null = null
 	constructor(
@@ -98,6 +104,8 @@ export class DriveSearchViewModel {
 		private readonly entityClient: EntityClient,
 		private readonly eventController: EventController,
 		private readonly updateUi: () => unknown,
+		private readonly clipboardController: DriveClipboardController,
+		public readonly transferProgressDispatcher: TransferProgressDispatcher,
 	) {}
 
 	readonly init = async () => {
@@ -126,6 +134,22 @@ export class DriveSearchViewModel {
 				}
 			}
 		})
+		this.transferProgressDispatcher.addUploadListener(this.uploadListener)
+
+		this.transferProgressDispatcher.addDownloadListener(this.downloadListener)
+	}
+
+	private readonly uploadListener = (info: UploadProgressInfo) => {
+		this.transferController.onChunkUploaded(info.transferId, info.uploadedBytes)
+		this.updateUi()
+	}
+	private readonly downloadListener = (info: DownloadProgressInfo) => {
+		this.transferController.onChunkDownloaded(info.transferId, info.downloadedBytes)
+		this.updateUi()
+	}
+
+	get clipboard(): DriveClipboard | null {
+		return this.clipboardController.clipboard
 	}
 
 	getUrlFromSearchCategory(category: SearchCategoryType): string {
@@ -197,8 +221,10 @@ export class DriveSearchViewModel {
 		return false
 	}
 
-	async moveToTrash(items: readonly FolderItemId[]) {
-		const { fileIds, folderIds } = itemsIntoIds(items)
+	async moveToTrash(items: readonly FolderItem[]) {
+		const trashId = this.roots ? this.roots.trash : null
+		const itemsToTrash = items.filter((item) => !isSameId(folderItemParent(item), trashId))
+		const { fileIds, folderIds } = itemsIntoIds(itemsToTrash.map(folderItemToId))
 		try {
 			await this.driveFacade.moveToTrash(fileIds, folderIds)
 			this.operationUpdates({
@@ -245,11 +271,17 @@ export class DriveSearchViewModel {
 		this.#listModel.selectNone()
 	}
 
-	cut(selectedItems: (FileFolderItem | FolderFolderItem)[]) {
-		return undefined
+	cut(selectedItems: FolderItem[]) {
+		this.clipboardController.cut(selectedItems)
+		this.selectNone()
 	}
 
-	async moveItems(items: readonly FolderItemId[], destinationId: IdTuple) {
+	copy(items: FolderItem[]) {
+		this.clipboardController.copy(items)
+		this.selectNone()
+	}
+
+	async moveItems(items: readonly FolderItemId[], destinationId: IdTuple): Promise<void> {
 		try {
 			await moveItems(this.entityClient, this.driveFacade, items, destinationId)
 			this.operationUpdates({
@@ -368,7 +400,7 @@ export class DriveSearchViewModel {
 				this.loadAndSelectIfNeeded(args.id)
 
 				this.listStateSubscription?.end(true)
-				this.listModel.stateStream.map((state) => this.onListStateChange(state))
+				this.listStateSubscription = this.listModel.stateStream.map((state) => this.onListStateChange(state))
 			}
 		}
 	}
@@ -437,8 +469,7 @@ export class DriveSearchViewModel {
 				return isSameId(id1, id2)
 			},
 			sortCompare: (o1: FolderItem, o2: FolderItem) => {
-				//FIXME
-				return 0
+				return this.comparisonFunction()(o1, o2)
 			},
 			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
 		})
@@ -466,5 +497,50 @@ export class DriveSearchViewModel {
 
 	private onListStateChange(_state: ListState<FolderItem>) {
 		this.updateUi()
+	}
+
+	areAllSelected(): boolean {
+		return this.#listModel.areAllSelected()
+	}
+
+	private readonly comparisonFunction: () => ComparisonFunction = memoizedWithHiddenArgument(
+		() => this.sortingPreference,
+		() => comparisonFunction(this.sortingPreference.column, this.sortingPreference.order),
+	)
+	navigateToFolder(folderId: IdTuple) {
+		m.route.set("/drive/:folderListId/:folderElementId", {
+			folderListId: listIdPart(folderId),
+			folderElementId: elementIdPart(folderId),
+		})
+	}
+	async openFile(file: DriveFile): Promise<void> {
+		this.transferController.download(file, "open")
+	}
+
+	rename(item: FolderItem, newName: string) {
+		this.driveFacade.rename(folderItemEntity(item), newName)
+	}
+
+	onSingleSelection(item: FolderItem) {
+		this.#listModel.onSingleSelection(item)
+	}
+	onSingleInclusiveSelection(item: FolderItem) {
+		this.listModel.onSingleInclusiveSelection(item)
+	}
+
+	onSingleExclusiveSelection(item: FolderItem) {
+		this.listModel.onSingleExclusiveSelection(item)
+	}
+
+	onRangeSelectionTowards(item: FolderItem) {
+		this.listModel.selectRangeTowards(item)
+	}
+
+	dispose() {
+		this.listStateSubscription?.end(true)
+		this.listStateSubscription = null
+		this.searchResult?.dispose()
+		this.transferProgressDispatcher.removeUploadListener(this.uploadListener)
+		this.transferProgressDispatcher.removeDownloadListener(this.downloadListener)
 	}
 }

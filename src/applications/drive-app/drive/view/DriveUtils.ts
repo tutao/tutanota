@@ -8,6 +8,7 @@ import { WebFile } from "../../../../entities/tutanota/Utils"
 import { DriveTransferState } from "./DriveTransferController"
 import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 import { OperationStatus } from "@tutao/app-env"
+import { SortColumn } from "./DriveViewModel"
 
 export function makeDuplicateFileName(fileName: string, indicator: string = "copy"): string {
 	const [basename, ext] = getFileBaseNameAndExtensions(fileName)
@@ -242,6 +243,51 @@ export function itemsIntoIds(items: readonly FolderItemId[]): { fileIds: IdTuple
 		folderIds: folderFolderItems.map((item) => item.id),
 	}
 }
+export type ComparisonFunction = (f1: FolderItem, f2: FolderItem) => number
+
+export function comparisonFunction(column: SortColumn, order: "asc" | "desc"): ComparisonFunction {
+	const itemName = (item: FolderItem) => (item.type === "folder" ? item.folder.name : item.file.name)
+	const itemDate = (item: FolderItem) => (item.type === "folder" ? item.folder.updatedDate : item.file.updatedDate)
+	const itemSize = (item: FolderItem) => (item.type === "folder" ? 0n : BigInt(item.file.size))
+
+	const itemMimeType = (item: FolderItem) => (item.type === "folder" ? "" : item.file.mimeType)
+
+	const attrToComparisonFunction: Record<SortColumn, ComparisonFunction> = {
+		name: (f1: FolderItem, f2: FolderItem) => compareString(itemName(f1), itemName(f2)),
+		mimeType: (f1: FolderItem, f2: FolderItem) => compareString(itemMimeType(f1), itemMimeType(f2)),
+		size: (f1: FolderItem, f2: FolderItem) => compareNumber(itemSize(f1), itemSize(f2)),
+		date: (f1: FolderItem, f2: FolderItem) => compareNumber(itemDate(f1).getTime(), itemDate(f2).getTime()),
+	}
+
+	const comparisonFn = attrToComparisonFunction[column]
+
+	// invert comparison function when the order is descending
+	const sortFunction: typeof comparisonFn = order === "asc" ? comparisonFn : (l, r) => -comparisonFn(l, r)
+	return sortFunction
+}
+
+const compareString = (s1: string, s2: string) => {
+	s1 = s1.toLowerCase()
+	s2 = s2.toLowerCase()
+
+	if (s1 > s2) {
+		return 1
+	} else if (s2 > s1) {
+		return -1
+	}
+	return 0
+}
+
+const compareNumber = (n1: number | bigint, n2: number | bigint) => {
+	if (n1 > n2) {
+		return 1
+	} else if (n1 < n2) {
+		return -1
+	} else {
+		return 0
+	}
+}
+
 export enum DriveOperationType {
 	Copy,
 	Delete,

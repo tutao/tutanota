@@ -1,5 +1,5 @@
 import m, { Children, CommonAttributes, Component, Vnode } from "mithril"
-import { ClipboardAction, DriveClipboard, SortColumn, SortingPreference } from "./DriveViewModel"
+import { SortColumn, SortingPreference } from "./DriveViewModel"
 import { DriveFolderContentEntry, DriveFolderContentEntryAttrs, FileActions } from "./DriveFolderContentEntry"
 import { DriveSortArrow } from "./DriveSortArrow"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
@@ -17,6 +17,8 @@ import { DriveFolderContentMobile } from "./DriveFolderContentMobile"
 import { isMobileDriveLayout } from "./DriveGuiUtils"
 import { getDisplayType, getFileIcon, getItemIconFill } from "../model/DriveMimeUtils"
 import { assertNotNull } from "../../../../platform-kit/utils"
+import { ClipboardAction, DriveClipboard } from "./DriveClipboardController"
+import { wholeListSelected } from "../../../common/misc/ListModel"
 
 export type SelectionState = { type: "multiselect"; selectedItemCount: number; selectedAll: boolean } | { type: "none" }
 
@@ -32,7 +34,6 @@ export interface DriveFolderSelectionEvents {
 }
 
 export interface DriveFolderContentAttrs {
-	selection: SelectionState
 	sortOrder: SortingPreference
 	fileActions: FileActions
 	onSort: (column: SortColumn) => unknown
@@ -89,7 +90,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 	private focusedOnMoreActions: boolean = false
 
 	view({
-		attrs: { selection, sortOrder, onSort, fileActions, selectionEvents, listState, clipboard, onDropInto, onEntryContextMenu },
+		attrs: { sortOrder, onSort, fileActions, selectionEvents, listState, clipboard, onDropInto, onEntryContextMenu },
 	}: Vnode<DriveFolderContentAttrs>): Children {
 		return m(
 			"div.flex.col.overflow-hidden.column-gap-12",
@@ -133,7 +134,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 						selectionEvents,
 					})
 				: [
-						this.renderHeader(selection, sortOrder, onSort, selectionEvents.onSelectAll),
+						this.renderHeader(listState, sortOrder, onSort, selectionEvents.onSelectAll),
 
 						m(
 							".flex.col.scroll.scrollbar-gutter-stable-or-fallback",
@@ -291,7 +292,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 		return el
 	}
 
-	private renderHeader(selection: SelectionState, sortOrder: SortingPreference, onSort: (column: SortColumn) => unknown, onSelectAll: () => unknown) {
+	private renderHeader(listState: ListState<unknown>, sortOrder: SortingPreference, onSort: (column: SortColumn) => unknown, onSelectAll: () => unknown) {
 		return m(
 			"div.flex.row.folder-row",
 			{
@@ -316,15 +317,15 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 						type: "checkbox",
 						"data-testid": "cb:selectAllLoaded_action",
 						title: lang.getTranslationText("selectAllLoaded_action"),
-						checked: selection.type === "multiselect" && selection.selectedAll,
+						checked: listState.inMultiselect && wholeListSelected(listState),
 						onchange: onSelectAll,
 						oncreate: ({ dom }) => {
 							this.selectAllDom = dom as HTMLElement
 						},
 					}),
 				),
-				selection.type === "multiselect"
-					? [m(""), m(".b", lang.getTranslation("itemsSelected_label", { "{number}": selection.selectedItemCount }).text)]
+				listState.inMultiselect
+					? [m(""), m(".b", lang.getTranslation("itemsSelected_label", { "{number}": listState.selectedItems.size }).text)]
 					: [
 							m("div", { style: { ...columnStyle } }, []),
 							renderHeaderCell(lang.getTranslation("name_label"), SortColumn.name, sortOrder, onSort),

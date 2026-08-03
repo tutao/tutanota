@@ -122,6 +122,7 @@ import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
 import { SearchRouter } from "../common/search/view/SearchRouter"
+import { DriveClipboardController } from "./drive/view/DriveClipboardController"
 
 assertMainOrNode()
 
@@ -228,13 +229,13 @@ class DriveLocator implements CommonLocator {
 	}
 
 	readonly throttledRouter: lazy<Router> = lazyMemoized(() => new ThrottledRouter())
+	readonly clipboardController: lazy<DriveClipboardController> = lazyMemoized(() => new DriveClipboardController())
 
 	readonly driveViewModel: lazyAsync<DriveViewModel> = lazyMemoized(async () => {
 		const { DriveViewModel } = await import("./drive/view/DriveViewModel.js")
 		const router = new ScopedThrottledRouter("/drive")
 		const { DriveTransferController } = await import("./drive/view/DriveTransferController.js")
 		const { WebFileResolver } = await import("../drive-app/drive/view/WebFileResolver.js")
-
 		const redraw = await this.redraw()
 		const driveUploadStackModel = new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController)
 
@@ -251,6 +252,7 @@ class DriveLocator implements CommonLocator {
 			redraw,
 			this.searchModel,
 			this.searchRouter,
+			this.clipboardController(),
 		)
 	})
 

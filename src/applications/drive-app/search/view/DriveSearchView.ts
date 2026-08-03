@@ -6,7 +6,7 @@ import { DriveSearchViewModel } from "./DriveSearchViewModel"
 import m, { Children, Vnode } from "mithril"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView"
 import { SidebarSection } from "../../../../ui/SidebarSection"
-import { layout_size, px } from "../../../../ui/size"
+import { component_size, layout_size, px, size } from "../../../../ui/size"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { AllIcons } from "../../../../ui/base/Icon"
@@ -30,7 +30,7 @@ import { BackgroundColumnLayout } from "../../../../ui/BackgroundColumnLayout"
 import { theme } from "../../../../ui/theme"
 import { DriveTransferStack, DriveTransferStackAttrs } from "../../drive/view/DriveTransferStack"
 import { Dialog } from "../../../../ui/base/Dialog"
-import { FolderItem, folderItemToId } from "../../drive/view/DriveUtils"
+import { FolderItem, FolderItemId, folderItemToId } from "../../drive/view/DriveUtils"
 import { MoveItems } from "../../drive/view/DriveMoveItemDialog"
 import { ListState } from "../../../../ui/base/List"
 import { MultiselectMobileHeader } from "../../../../ui/MultiselectMobileHeader"
@@ -42,6 +42,9 @@ import { DriveViewAttrs } from "../../drive/view/DriveView"
 import { DriveSelectedItemsActions } from "../../drive/view/DriveFolderNav"
 import { DriveFolderContent } from "../../drive/view/DriveFolderContent"
 import { SortColumn } from "../../drive/view/DriveViewModel"
+import { driveItemContextMenu, showRenameDialog } from "../../drive/view/DriveGuiUtils"
+import { DriveFolder } from "@tutao/entities/drive"
+import { FileActions } from "../../drive/view/DriveFolderContentEntry"
 
 export interface DriveSearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
@@ -90,7 +93,6 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 			{
 				view: () => {
 					const listState = this.searchViewModel.listState()
-
 					return m(BackgroundColumnLayout, {
 						backgroundColor: theme.surface_container,
 						desktopToolbar: () => [],
@@ -142,17 +144,16 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 		const hasSelectedItems = isNotEmpty(selectedItems)
 		const allItemsInTrash = this.searchViewModel.allItemsInTrash()
 		return {
-			onTrash: !allItemsInTrash && selectedItems.length === 0 ? null : () => this.searchViewModel.moveToTrash(selectedItems.map(folderItemToId)),
+			onTrash: hasSelectedItems && !allItemsInTrash ? () => this.searchViewModel.moveToTrash(selectedItems) : null,
 			onDelete:
-				this.searchViewModel.allItemsInTrash() && hasSelectedItems
+				allItemsInTrash && hasSelectedItems
 					? async () => {
-							this.deleteItems()
+							await this.deleteItems()
 						}
 					: null,
 			onRestore: allItemsInTrash && hasSelectedItems ? () => this.searchViewModel.restoreFromTrash(selectedItems) : null,
-			//FIXME
-			onCut: null,
-			onCopy: null,
+			onCut: !anyItemInTrash && hasSelectedItems ? () => this.searchViewModel.cut(selectedItems) : null,
+			onCopy: !anyItemInTrash && hasSelectedItems ? () => this.searchViewModel.copy(selectedItems) : null,
 			onPaste: null,
 			onMove:
 				!anyItemInTrash && hasSelectedItems
@@ -357,41 +358,143 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 		return undefined
 	}
 
-	private renderFolderView(listState: ListState<FolderItem>, showMoveItemDialog: any) {
-		return m(DriveFolderContent, {
-			selection: {
-				type: "multiselect",
-				selectedItemCount: listState.selectedItems.size,
-				selectedAll: listState.selectedItems.size === listState.items.length,
+	private renderFolderView(listState: ListState<FolderItem>, showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown) {
+		const selectionEvents = {
+			onSingleSelection: (item: FolderItem) => this.searchViewModel.onSingleSelection(item),
+			onSingleExclusiveSelection: (item: FolderItem) => this.searchViewModel.onSingleExclusiveSelection(item),
+			onSingleInclusiveSelection: (item: FolderItem) => this.searchViewModel.onSingleInclusiveSelection(item),
+			onSelectPrevious: (item: FolderItem) => {},
+			onSelectNext: (item: FolderItem) => {},
+			onSelectAll: () => this.searchViewModel.toggleSelectAll(),
+			onSelectNone: () => this.searchViewModel.selectNone(),
+			onRangeSelectionTowards: (item: FolderItem) => this.searchViewModel.onRangeSelectionTowards(item),
+		}
+		const fileActions: FileActions = {
+			onCut: (item) => this.searchViewModel.cut([item]),
+			onCopy: (item) => this.searchViewModel.copy([item]),
+			onOpenItem: (item) => {
+				if (item.type === "folder") {
+					this.searchViewModel.navigateToFolder(item.folder._id)
+				} else {
+					this.searchViewModel.openFile(item.file)
+				}
 			},
-			sortOrder: this.searchViewModel.getCurrentColumnSortOrder(),
-			fileActions: {
-				onCut: () => {},
-				onCopy: () => {},
-				onOpenItem: () => {},
-				onDownload: () => {},
-				onTrash: () => {},
-				onRename: () => {},
-				onRestore: () => {},
-				onDelete: () => {},
-				onStartMove: () => {},
+			onDownload: (item) => {
+				if (item.type === "file") {
+					this.searchViewModel.downloadFile(item.file)
+				}
 			},
-			onSort: (column: SortColumn) => this.searchViewModel.sort(column),
-			listState: listState,
-			selectionEvents: {
-				onSingleSelection: (item: FolderItem) => {},
-				onSingleExclusiveSelection: (item: FolderItem) => {},
-				onSingleInclusiveSelection: (item: FolderItem) => {},
-				onSelectPrevious: (item: FolderItem) => {},
-				onSelectNext: (item: FolderItem) => {},
-				onSelectAll: () => {},
-				onSelectNone: () => {},
-				onRangeSelectionTowards: (item: FolderItem) => {},
+			onTrash: (item) => this.searchViewModel.moveToTrash([item]),
+			onRename: (item) => this.onRename(item),
+			onRestore: (item) => this.searchViewModel.restoreFromTrash([item]),
+			onDelete: (item) => this.deleteItems(item),
+			onStartMove: (item) =>
+				showMoveItemDialog([item], (items: readonly FolderItemId[], destinationFolder: DriveFolder) =>
+					this.searchViewModel.moveItems(items, destinationFolder._id),
+				),
+		}
+		return m(
+			"div.col.flex.plr-8.fill-absolute",
+			this.renderActionBar(showMoveItemDialog),
+			m(DriveFolderContent, {
+				sortOrder: this.searchViewModel.getCurrentColumnSortOrder(),
+				onSort: (column: SortColumn) => this.searchViewModel.sort(column),
+				fileActions: fileActions,
+				listState: listState,
+				selectionEvents: selectionEvents,
+				onDropInto: (f: FolderItem, event: DragEvent) => {},
+				onEntryContextMenu: (item: FolderItem, event: MouseEvent) => {
+					driveItemContextMenu(
+						selectionEvents,
+						this.selectedItemsActions(this.searchViewModel.listState(), showMoveItemDialog),
+						fileActions,
+						listState,
+						item,
+						event,
+					)
+				},
+				clipboard: this.searchViewModel.clipboard,
+			}),
+		)
+	}
+	private onRename(item: FolderItem) {
+		showRenameDialog(item, (newName) => this.searchViewModel.rename(item, newName))
+	}
+
+	private renderActionBar(showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown) {
+		const { onRestore, onDelete, onCopy, onCut, onTrash, onDownload, onMove } = this.selectedItemsActions(
+			this.searchViewModel.listState(),
+			showMoveItemDialog,
+		)
+		return m(
+			".flex.items-center.justify-right.border-radius-12",
+			{
+				style: {
+					background: theme.surface,
+					padding: `${size.base_4}px ${size.spacing_12}px ${size.base_4}px ${size.spacing_24}px`,
+				},
 			},
-			onDropInto: (f: FolderItem, event: DragEvent) => {},
-			onEntryContextMenu: (f: FolderItem, event: MouseEvent) => {},
-			clipboard: null,
-		})
+			m(".flex.items-center.column-gap-4", [
+				// Ensure that the height of the bar remains the same even when no buttons are shown
+				m("", {
+					style: {
+						width: px(1),
+						height: px(component_size.button_height),
+					},
+				}),
+
+				// Caution: when adding actions, make sure they match the order in the file context menu.
+				onDownload
+					? m(IconButton, {
+							title: "download_action",
+							click: onDownload,
+							icon: Icons.DownloadFilled,
+						})
+					: null,
+				onRestore
+					? m(IconButton, {
+							title: "restoreFromTrash_action",
+							click: onRestore,
+							icon: Icons.ArrowBackFilled,
+						})
+					: null,
+				onDelete
+					? m(IconButton, {
+							title: "delete_action",
+							click: onDelete,
+							icon: Icons.TrashCrossFilled,
+						})
+					: null,
+				onCopy
+					? m(IconButton, {
+							title: "copy_action",
+							click: onCopy,
+							icon: Icons.CopyFilled,
+						})
+					: null,
+				onCut
+					? m(IconButton, {
+							title: "cut_action",
+							click: onCut,
+							icon: Icons.ScissorsFilled,
+						})
+					: null,
+				onMove
+					? m(IconButton, {
+							title: "move_action",
+							click: onMove,
+							icon: Icons.Move,
+						})
+					: null,
+				onTrash
+					? m(IconButton, {
+							title: "trash_action",
+							click: onTrash,
+							icon: Icons.TrashFilled,
+						})
+					: null,
+			]),
+		)
 	}
 
 	async deleteItems(item?: FolderItem) {

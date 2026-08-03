@@ -1,4 +1,5 @@
 import { SearchResult } from "../../../common/api/worker/search/SearchTypes"
+import { LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
 import stream from "mithril/stream"
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef, DriveGroupRootTypeRef } from "@tutao/entities/drive"
 import { collectToMap, isEmpty, isNotNull, lastThrow, remove, tokenize } from "@tutao/utils"
@@ -9,7 +10,6 @@ import { hasMoreResults } from "../../../mail-app/search/model/SearchUtils"
 import { OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EventController } from "../../../common/api/main/EventController"
 import { collectionUniqueBy } from "../../../../platform-kit/utils/CollectionUtils"
-import { applyEntityUpdates, LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
 
 export interface DriveSearchResult {
 	item: DriveFolder | DriveFile
@@ -110,16 +110,15 @@ export class DriveSearchModel {
 			moreResultsEntries: [],
 			lastReadSearchIndexRow: [],
 		}
+		const updatesStream: Stream<ResultUpdate<DriveSearchResult>> = stream<ResultUpdate<DriveSearchResult>>()
 		const liveResult: LiveSearchResult<DriveSearchResult> = {
 			searchResult,
 			items: extendedResultItems,
 			loadMoreResults: async (count) => {
-				//FIXME
-				let moreResults: DriveSearchResult[] = []
-				return moreResults
+				return []
 			},
 			extendResults: (extendEnd) => {},
-			updates: stream(),
+			updates: updatesStream,
 			dispose: () => {
 				remove(this.liveResults, liveResult)
 				liveResult.updates.end(true)
@@ -128,13 +127,35 @@ export class DriveSearchModel {
 				return hasMoreResults(liveResult.searchResult)
 			},
 			entityEventsReceived: async (updates) => {
-				const driveItems = liveResult.items.map((item) => item.item)
-				const fileItems: DriveFile[] = driveItems.filter((item): item is DriveFile => item._type === DriveFileTypeRef)
-				const folderItems: DriveFolder[] = driveItems.filter((item): item is DriveFolder => item._type === DriveFileTypeRef)
-				const fileUpdates = updates.filter((update) => update.typeRef === DriveFileTypeRef)
-				const folderUpdates = updates.filter((update) => update.typeRef === DriveFolderTypeRef)
-				await applyEntityUpdates(this.entityClient, DriveFileTypeRef, fileItems, fileUpdates, liveResult.updates)
-				await applyEntityUpdates(this.entityClient, DriveFolderTypeRef, folderItems, folderUpdates, liveResult.updates)
+				for (const update of updates) {
+					if (isUpdateForTypeRef(DriveFolderTypeRef, update) || isUpdateForTypeRef(DriveFileTypeRef, update)) {
+						if (update.operation === OperationType.DELETE) {
+							const index = liveResult.items.findIndex((item) => isSameId(getElementId(item.item), update.instanceId))
+							if (index !== -1) {
+								const [item] = liveResult.items.splice(index, 1)
+								updatesStream({ type: "deleteitem", item: item })
+							}
+						} else if (update.operation === OperationType.UPDATE) {
+							const index = liveResult.items.findIndex((item) => isSameId(getElementId(item.item), update.instanceId))
+							// surprisingly hard to convince ts that this is the correct id type
+							const instanceIdTuple = [update.instanceListId, update.instanceId] as unknown as IdTuple
+							const updatedItem = isSameTypeRef(update.typeRef, DriveFolderTypeRef)
+								? await this.entityClient.load(DriveFolderTypeRef, instanceIdTuple)
+								: await this.entityClient.load(DriveFileTypeRef, instanceIdTuple)
+							const parentFolderId = folderItemParent(toFolderItem(updatedItem))
+							const parentFolder = parentFolderId ? await this.entityClient.load(DriveFolderTypeRef, parentFolderId) : null
+							if (index !== -1) {
+								const updatedResult: DriveSearchResult = {
+									item: updatedItem,
+									parent: parentFolder,
+								}
+								liveResult.items.splice(index, 1, updatedResult)
+
+								updatesStream({ type: "updateitem", item: updatedResult })
+							}
+						}
+					}
+				}
 			},
 		}
 		this.liveResults.push(liveResult)
