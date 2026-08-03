@@ -7,7 +7,7 @@ import m from "mithril"
 import { Checkbox } from "../../../ui/base/Checkbox.js"
 import { Button, ButtonType } from "../../../ui/base/Button.js"
 import { ExpanderButton, ExpanderPanel } from "../../../ui/base/Expander"
-import { assertNotNull, downcast, neverNull, newPromise, typedKeys, uint8ArrayToString } from "@tutao/utils"
+import { downcast, neverNull, newPromise, typedKeys, uint8ArrayToString } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
 import { EnvProvider, Mode, PresentableKeyVerificationState } from "@tutao/app-env"
 import { copyToClipboard } from "../../../ui/utils/ClipboardUtils"
@@ -367,7 +367,7 @@ async function sendToServer(error: ErrorInfo, userMessage: string | null, logs: 
 			errorMessage: error.message,
 			userMessage: userMessage,
 			stackTrace: error.stack ?? "",
-			additionalInfo: ClientDetector.get().userAgent,
+			additionalInfo: ClientDetector.get().getUserAgent(),
 			time: new Date(),
 		}),
 		files: logs.map((log) => {

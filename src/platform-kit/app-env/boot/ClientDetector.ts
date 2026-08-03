@@ -14,7 +14,7 @@ import {
 assertMainOrNodeBoot()
 
 export class ClientDetector {
-	userAgent: string | null = null
+	private userAgent: string | null = null
 	overflowAuto: string | null = null
 	isMacOS: boolean | null = null
 	appType: AppType | null = null
@@ -49,6 +49,13 @@ export class ClientDetector {
 
 		this.overflowAuto = this.cssPropertyValueSupported("overflow", "overlay") ? "overlay" : "auto"
 		this.isMacOS = platform.indexOf("Mac") !== -1
+	}
+
+	getUserAgent(): NonNullable<string> {
+		if (this.userAgent == null) {
+			throw new Error("Client detector is not yet initialized!")
+		}
+		return this.userAgent
 	}
 
 	/**
@@ -127,17 +134,18 @@ export class ClientDetector {
 	}
 
 	_setBrowserAndVersion() {
-		const operaIndex1 = this.userAgent!.indexOf("Opera")
-		const operaIndex2 = this.userAgent!.indexOf("OPR/")
-		const firefoxIndex = this.userAgent!.indexOf("Firefox/")
-		const paleMoonIndex = this.userAgent!.indexOf("PaleMoon/")
-		const iceweaselIndex = this.userAgent!.indexOf("Iceweasel/")
-		const chromeIndex = this.userAgent!.indexOf("Chrome/")
-		const chromeIosIndex = this.userAgent!.indexOf("CriOS/")
-		const safariIndex = this.userAgent!.indexOf("Safari/")
-		const edgeIndex = this.userAgent!.indexOf("Edge") // "Old" edge based on EdgeHTML, "new" one based on Blink has only "Edg"
+		const userAgent = this.getUserAgent()
+		const operaIndex1 = userAgent.indexOf("Opera")
+		const operaIndex2 = userAgent.indexOf("OPR/")
+		const firefoxIndex = userAgent.indexOf("Firefox/")
+		const paleMoonIndex = userAgent.indexOf("PaleMoon/")
+		const iceweaselIndex = userAgent.indexOf("Iceweasel/")
+		const chromeIndex = userAgent.indexOf("Chrome/")
+		const chromeIosIndex = userAgent.indexOf("CriOS/")
+		const safariIndex = userAgent.indexOf("Safari/")
+		const edgeIndex = userAgent.indexOf("Edge") // "Old" edge based on EdgeHTML, "new" one based on Blink has only "Edg"
 
-		const androidIndex = this.userAgent!.indexOf("Android")
+		const androidIndex = userAgent.indexOf("Android")
 		let versionIndex = -1
 
 		if (edgeIndex !== -1) {
@@ -145,7 +153,7 @@ export class ClientDetector {
 			versionIndex = edgeIndex + 5
 		} else if (operaIndex1 !== -1) {
 			this.browser = BrowserType.OPERA
-			versionIndex = this.userAgent!.indexOf("Version/")
+			versionIndex = userAgent.indexOf("Version/")
 
 			if (versionIndex !== -1) {
 				versionIndex += 8
@@ -179,7 +187,7 @@ export class ClientDetector {
 			// Chrome and black berry pretends to be Safari, so it is skipped
 			this.browser = BrowserType.SAFARI
 			// Safari prints its version after "Version/"
-			versionIndex = this.userAgent!.indexOf("Version/")
+			versionIndex = userAgent.indexOf("Version/")
 
 			if (versionIndex !== -1) {
 				versionIndex += 8
@@ -188,7 +196,7 @@ export class ClientDetector {
 				this.extractIosVersion()
 				return
 			}
-		} else if (this.userAgent!.match(/iPad.*AppleWebKit/) || this.userAgent!.match(/iPhone.*AppleWebKit/)) {
+		} else if (userAgent.match(/iPad.*AppleWebKit/) || userAgent.match(/iPhone.*AppleWebKit/)) {
 			// iPad and iPhone do not send the Safari this.userAgent when HTML-apps are directly started from the homescreen a browser version is sent neither
 			// after "OS" the iOS version is sent, so use that one
 			// Also there are a lot of browsers on iOS but they all are based on Safari so we can use the same extraction mechanism for all of them.
@@ -197,11 +205,11 @@ export class ClientDetector {
 		}
 
 		if (versionIndex !== -1) {
-			const mainVersionEndIndex = this.userAgent!.indexOf(".", versionIndex)
+			const mainVersionEndIndex = userAgent.indexOf(".", versionIndex)
 
 			if (mainVersionEndIndex !== -1) {
 				try {
-					this.browserVersion = Number(this.userAgent!.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
+					this.browserVersion = Number(userAgent.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
 				} catch (e) {
 					/* empty */
 				}
@@ -217,7 +225,8 @@ export class ClientDetector {
 	extractIosVersion() {
 		// Extracting version does not work with iPad OS WebView because it's not in the userAgent. We could look it up
 		// from Webkit version but maybe we don't need that for now.
-		const versionIndex = this.userAgent!.indexOf(" OS ")
+		const userAgent = this.getUserAgent()
+		const versionIndex = userAgent.indexOf(" OS ")
 
 		if (versionIndex !== -1) {
 			this.browser = BrowserType.SAFARI
@@ -227,10 +236,10 @@ export class ClientDetector {
 				let pos = versionIndex + 4
 				let hadNan = false
 
-				while (pos < this.userAgent!.length) {
+				while (pos < userAgent.length) {
 					pos++
 
-					if (isNaN(Number(this.userAgent!.charAt(pos)))) {
+					if (isNaN(Number(userAgent.charAt(pos)))) {
 						if (hadNan) {
 							break
 						} else {
@@ -239,7 +248,7 @@ export class ClientDetector {
 					}
 				}
 
-				const numberString = this.userAgent!.substring(versionIndex + 4, pos)
+				const numberString = userAgent.substring(versionIndex + 4, pos)
 				this.browserVersion = Number(numberString.replace(/_/g, "."))
 			} catch (e) {
 				/* empty */
@@ -250,23 +259,24 @@ export class ClientDetector {
 	_setDeviceInfo() {
 		this.device = DeviceType.DESKTOP
 
+		const userAgent = this.getUserAgent()
 		if (
-			this.userAgent!.match(/iPad.*AppleWebKit/) != null || // iPadOS does not differ in UserAgent from Safari on macOS. Use hack with TouchEvent to detect iPad
+			userAgent.match(/iPad.*AppleWebKit/) != null || // iPadOS does not differ in UserAgent from Safari on macOS. Use hack with TouchEvent to detect iPad
 			// Desktop Chrome has TouchEvent but it also has Chrome in it. Mobile iOS has CriOS in it and not Chrome.
-			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(this.userAgent!) && window.TouchEvent != null && /.*Chrome.*/.test(this.userAgent!) === false)
+			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(userAgent) && window.TouchEvent != null && /.*Chrome.*/.test(userAgent) === false)
 		) {
 			this.device = DeviceType.IPAD
-		} else if (this.userAgent!.match(/iPhone.*AppleWebKit/) != null) {
+		} else if (userAgent.match(/iPhone.*AppleWebKit/) != null) {
 			this.device = DeviceType.IPHONE
-		} else if (this.userAgent!.match(/Android/) != null) {
-			if (this.userAgent!.match(/Ubuntu/) != null) {
+		} else if (userAgent.match(/Android/) != null) {
+			if (userAgent.match(/Ubuntu/) != null) {
 				this.device = DeviceType.OTHER_MOBILE
 			} else {
 				this.device = DeviceType.ANDROID
 			}
-		} else if (this.userAgent!.match(/Windows NT/) != null) {
+		} else if (userAgent.match(/Windows NT/) != null) {
 			this.device = DeviceType.DESKTOP
-		} else if (this.userAgent!.match(/Mobile/) != null || this.userAgent!.match(/Tablet/) != null) {
+		} else if (userAgent.match(/Mobile/) != null || userAgent.match(/Tablet/) != null) {
 			this.device = DeviceType.OTHER_MOBILE
 		}
 	}
