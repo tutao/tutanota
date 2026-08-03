@@ -420,7 +420,6 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			const index = attrs.state.activeIndex
 			const desiredPosition = attrs.state.activeIndex * rowHeight
 			if (desiredPosition > this.containerDom!.scrollTop + this.height || desiredPosition < this.containerDom!.scrollTop) {
-				console.log("active item out of screen, scrolling to", index, desiredPosition)
 				this.currentPosition = this.containerDom!.scrollTop = desiredPosition
 			} else {
 				this.currentPosition = this.containerDom!.scrollTop
