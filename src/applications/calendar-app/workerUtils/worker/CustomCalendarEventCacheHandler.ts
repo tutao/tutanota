@@ -57,7 +57,7 @@ export class CustomCalendarEventCacheHandler implements CustomCacheHandler<Calen
 
 	private assertCorrectRange(range: Range) {
 		if (range.lower !== CUSTOM_MIN_ID || range.upper !== CUSTOM_MAX_ID) {
-			throw new ProgrammingError(`Invalid range for CalendarEvent: ${JSON.stringify(range)}`)
+			console.log(`Invalid range for CalendarEvent: ${JSON.stringify(range)}`)
 		}
 	}
 
