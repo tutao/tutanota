@@ -11,8 +11,7 @@ import { Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import { EventController } from "../../../common/api/main/EventController"
 import { OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
-import { mailSearchComparator } from "../../../common/search/SearchUtils"
-import { applyEntityUpdates, LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
+import { applyEntityUpdates, LiveSearchResult, mailSearchComparator, SearchQuery } from "../../../common/search/SearchUtils"
 
 assertMainOrNode()
 

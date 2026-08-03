@@ -21,8 +21,8 @@ import { ProgressMonitorInterface } from "../../../../platform-kit/network/Progr
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef } from "@tutao/entities/tutanota"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
 import { encodeCalendarSearchKey } from "../../calendar/search/model/SearchUtils"
+import { LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
 
 assertMainOrNode()
 

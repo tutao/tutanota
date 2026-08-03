@@ -37,7 +37,8 @@ import { $Promisable } from "../../workerUtils/index/IndexerPromiseUtils"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { MailSearchModel } from "../../search/model/MailSearchModel"
-import { SearchQuery } from "../../../common/search/CommonSearchModel"
+
+import { SearchQuery } from "../../../common/search/SearchUtils"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown

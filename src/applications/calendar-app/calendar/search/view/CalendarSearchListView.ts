@@ -1,4 +1,3 @@
-import { CommonSearchListViewAttrs } from "../../../../mail-app/search/view/SearchListView"
 import { CalendarInfoBase } from "../../model/CalendarModel"
 import m, { Children, Component, Vnode } from "mithril"
 import { Icons } from "../../../../../ui/base/icons/Icons"
@@ -7,6 +6,7 @@ import { component_size } from "../../../../../ui/size"
 import { KindaCalendarRow } from "../../gui/CalendarRow"
 import { renderListColumnWrapper } from "../../../../mail-app/search/view/MailSearchListView"
 import { CalendarEvent } from "@tutao/entities/tutanota"
+import { CommonSearchListViewAttrs } from "../../../../common/search/SearchUtils"
 
 export interface CalendarSearchListViewAttrs extends CommonSearchListViewAttrs<CalendarEvent> {
 	cancelCallback: () => unknown | null

@@ -1,4 +1,3 @@
-import { CommonSearchListViewAttrs } from "./SearchListView"
 import Stream from "mithril/stream"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes"
 import { Mail, MailSet } from "@tutao/entities/tutanota"
@@ -21,6 +20,7 @@ import { formatDate } from "../../../../ui/utils/Formatter"
 import { component_size, px, size } from "../../../../ui/size"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { MailRow } from "../../mail/view/MailRow"
+import { CommonSearchListViewAttrs } from "../../../common/search/SearchUtils"
 
 export interface MailSearchListViewAttrs extends CommonSearchListViewAttrs<Mail> {
 	getLabelsForMail: (mail: Mail) => MailSet[]

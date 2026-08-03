@@ -1,5 +1,4 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { CommonSearchListViewAttrs } from "./SearchListView"
 import { ListModel } from "../../../common/misc/ListModel"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { MultiselectMode, RenderConfig } from "../../../../ui/base/List"
@@ -8,6 +7,7 @@ import { KindaContactRow } from "../../contacts/view/ContactListView"
 import { shouldAlwaysShowMultiselectCheckbox } from "../../../../ui/SelectableRowContainer"
 import { renderListColumnWrapper } from "./MailSearchListView"
 import { Contact } from "@tutao/entities/tutanota"
+import { CommonSearchListViewAttrs } from "../../../common/search/SearchUtils"
 
 export class ContactSearchListView implements Component<CommonSearchListViewAttrs<Contact>> {
 	private attrs: CommonSearchListViewAttrs<Contact>

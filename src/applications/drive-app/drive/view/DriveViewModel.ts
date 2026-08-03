@@ -51,7 +51,7 @@ import { WebFileResolver } from "./WebFileResolver"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 import { DriveSearchModel, DriveSearchResult } from "../../search/model/DriveSearchModel"
-import { LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
+import { LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular

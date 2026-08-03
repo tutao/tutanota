@@ -25,9 +25,8 @@ import { isBirthdayCalendar } from "../../../../common/calendar/date/CalendarUti
 import { onlySingleSelection } from "../../../../../ui/base/ListUtils"
 import { ListAutoSelectBehavior } from "../../../../common/misc/DeviceConfig"
 import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
-import { emptyListModel, PaidFunctionResult, SearchableTypes } from "../../../../common/search/SearchUtils"
+import { emptyListModel, LiveSearchResult, PaidFunctionResult, SearchableTypes, SearchQuery } from "../../../../common/search/SearchUtils"
 import { CalendarSearchModel } from "../../../search/model/CalendarSearchModel"
-import { LiveSearchResult, SearchQuery } from "../../../../common/search/CommonSearchModel"
 
 export class CalendarSearchViewModel {
 	#listModel: ListModel<CalendarEvent, Id> = emptyListModel()

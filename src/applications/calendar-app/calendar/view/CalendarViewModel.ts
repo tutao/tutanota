@@ -94,7 +94,7 @@ import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseU
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { encodeCalendarSearchKey } from "../search/model/SearchUtils"
 import { CalendarSearchModel } from "../../search/model/CalendarSearchModel"
-import { LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
+import { LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
 
 export interface EventWrapperFlags {
 	/**

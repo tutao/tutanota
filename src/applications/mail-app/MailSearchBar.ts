@@ -14,7 +14,7 @@ import { Icons } from "../../ui/base/icons/Icons"
 import { createRestriction } from "./search/model/SearchUtils"
 import { SearchCategoryType } from "../common/api/worker/search/SearchTypes"
 import { Dialog } from "../../ui/base/Dialog"
-import { LiveSearchResult, SearchQuery } from "../common/search/CommonSearchModel"
+import { LiveSearchResult, SearchQuery } from "../common/search/SearchUtils"
 
 export interface MailSearchBarAttrs {
 	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<Mail>>

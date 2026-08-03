@@ -5,7 +5,7 @@ import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { createRestriction } from "../../search/model/SearchUtils"
 import { SearchCategoryType } from "../../../common/api/worker/search/SearchTypes"
 import { getContactListName } from "../../../common/contactsFunctionality/ContactUtils"
-import { LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
+import { LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
 
 export interface ContactSearchBarAttrs {
 	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<Contact>>

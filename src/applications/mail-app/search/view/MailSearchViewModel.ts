@@ -34,9 +34,8 @@ import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils"
 import { MailOpenedListener } from "../../mail/view/MailViewModel"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
-import { emptyListModel, mailSearchComparator, PaidFunctionResult } from "../../../common/search/SearchUtils"
+import { emptyListModel, LiveSearchResult, mailSearchComparator, PaidFunctionResult, SearchQuery } from "../../../common/search/SearchUtils"
 import { ListFetchResult } from "../../../../ui/base/ListUtils"
-import { LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
 import { MailSearchModel } from "../model/MailSearchModel"
 
 const SEARCH_PAGE_SIZE = 100

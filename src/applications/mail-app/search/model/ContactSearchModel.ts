@@ -1,4 +1,3 @@
-import { applyEntityUpdates, LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
 import { Contact, ContactTypeRef } from "@tutao/entities/tutanota"
 import { SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
@@ -8,6 +7,7 @@ import stream from "mithril/stream"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 import { EventController } from "../../../common/api/main/EventController"
 import { OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { applyEntityUpdates, LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
 
 export class ContactSearchModel {
 	private readonly liveResults: LiveSearchResult<unknown>[] = []

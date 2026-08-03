@@ -12,7 +12,7 @@ import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { FontIcons } from "../../../../ui/base/icons/FontIcons"
 import { DriveSearchResult } from "../../search/model/DriveSearchModel"
-import { LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
+import { LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
 
 export interface DriveSearchBarAttrs {
 	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<DriveSearchResult>>

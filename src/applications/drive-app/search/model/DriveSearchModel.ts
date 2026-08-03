@@ -1,13 +1,6 @@
 import { SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { applyEntityUpdates, LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
 import stream from "mithril/stream"
-import {
-	DriveFile,
-	DriveFileTypeRef,
-	DriveFolder,
-	DriveFolderTypeRef,
-	DriveGroupRootTypeRef
-} from "@tutao/entities/drive"
+import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef, DriveGroupRootTypeRef } from "@tutao/entities/drive"
 import { collectToMap, isEmpty, isNotNull, lastThrow, remove, tokenize } from "@tutao/utils"
 import { elementIdPart, GENERATED_MAX_ID, getElementId } from "@tutao/meta"
 import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
@@ -16,6 +9,7 @@ import { hasMoreResults } from "../../../mail-app/search/model/SearchUtils"
 import { OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EventController } from "../../../common/api/main/EventController"
 import { collectionUniqueBy } from "../../../../platform-kit/utils/CollectionUtils"
+import { applyEntityUpdates, LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
 
 export interface DriveSearchResult {
 	item: DriveFolder | DriveFile

@@ -36,7 +36,6 @@ import { ProgressBar } from "../../../../ui/base/ProgressBar"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../../ui/base/BaseSearchBar"
 import { isKeyPressed, keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { FeatureType, Keys } from "@tutao/app-env"
-import { CommonSearchListViewAttrs } from "./SearchListView"
 import { ViewSlider } from "../../../../ui/nav/ViewSlider"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { ContactViewerActions } from "../../contacts/view/ContactViewerActions"
@@ -54,7 +53,7 @@ import { MultiselectMode } from "../../../../ui/base/List"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { ContactSearchListView } from "./ContactSearchListView"
-import { renderSearchInOurApps } from "../../../common/search/SearchUtils"
+import { CommonSearchListViewAttrs, renderSearchInOurApps } from "../../../common/search/SearchUtils"
 
 export interface ContactSearchViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs

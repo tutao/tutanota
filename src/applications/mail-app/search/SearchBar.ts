@@ -18,7 +18,7 @@ import { mailLocator } from "../mailLocator.js"
 import { CalendarEvent, Contact, Mail } from "@tutao/entities/tutanota"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { DriveFile, DriveFolder } from "@tutao/entities/drive"
-import { LiveSearchResult, SearchQuery } from "../../common/search/CommonSearchModel"
+import { LiveSearchResult, SearchQuery } from "../../common/search/SearchUtils"
 
 assertMainOrNode()
 export type ShowMoreAction = {

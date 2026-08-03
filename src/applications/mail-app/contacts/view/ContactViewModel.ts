@@ -13,7 +13,7 @@ import { getElementId } from "../../../../platform-kit/meta"
 import { EntityEventsListener, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { ContactSearchModel } from "../../search/model/ContactSearchModel"
-import { LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
+import { LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
 
 /** ViewModel for the overall contact view. */
 export class ContactViewModel {

@@ -1,6 +1,6 @@
 import { ListModel } from "../../../common/misc/ListModel"
 import Id from "../../../../ui/translations/id"
-import { emptyListModel } from "../../../common/search/SearchUtils"
+import { emptyListModel, LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
 import { SearchCategoryType, SearchRestriction } from "../../../common/api/worker/search/SearchTypes"
 import { createRestriction, getRestriction, getSearchUrl, searchQueryEquals } from "../../../mail-app/search/model/SearchUtils"
 import {
@@ -55,7 +55,6 @@ import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { handleRestError } from "@tutao/rest-client/error"
 import { EventController } from "../../../common/api/main/EventController"
 import { DriveSearchModel, DriveSearchResult } from "../model/DriveSearchModel"
-import { LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
 import { ListState } from "../../../../ui/base/List"
 
 const SEARCH_PAGE_SIZE = 100

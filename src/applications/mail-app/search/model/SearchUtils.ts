@@ -28,7 +28,8 @@ import {
 	SENDER_ID,
 	SUBJECT_ID,
 } from "../../../../platform-kit/meta"
-import { SearchQuery } from "../../../common/search/CommonSearchModel"
+
+import { SearchQuery } from "../../../common/search/SearchUtils"
 
 assertMainOrNode()
 

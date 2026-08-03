@@ -4,11 +4,6 @@ import m from "mithril"
 import { Router } from "../../../../ui/ScopedThrottledRouter.js"
 import { memoizedWithHiddenArgument } from "@tutao/utils"
 
-export type SearchSelection = {
-	selectedId: Id | null
-	selectedEventTime?: ReadonlyArray<number>
-}
-
 export class SearchRouter {
 	constructor(private readonly router: Router) {}
 

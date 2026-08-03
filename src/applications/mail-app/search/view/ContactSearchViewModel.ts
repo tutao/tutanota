@@ -12,8 +12,7 @@ import { getElementId, isSameId } from "@tutao/meta"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
-import { emptyListModel } from "../../../common/search/SearchUtils"
-import { LiveSearchResult, SearchQuery } from "../../../common/search/CommonSearchModel"
+import { emptyListModel, LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
 import { ContactSearchModel } from "../model/ContactSearchModel"
 
 export class ContactSearchViewModel {

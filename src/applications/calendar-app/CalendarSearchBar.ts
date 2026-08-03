@@ -1,4 +1,3 @@
-import { LiveSearchResult, SearchQuery } from "../common/search/CommonSearchModel"
 import { CalendarEvent } from "@tutao/entities/tutanota"
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { SearchBar, SearchBarAttrs } from "../mail-app/search/SearchBar"
@@ -6,6 +5,7 @@ import { lang } from "../../ui/utils/LanguageViewModel"
 import { createRestriction } from "./calendar/search/model/SearchUtils"
 import { formatEventDuration } from "./calendar/gui/CalendarGuiUtils"
 import { getTimeZone } from "../common/calendar/date/CalendarUtils"
+import { LiveSearchResult, SearchQuery } from "../common/search/SearchUtils"
 
 export interface CalendarSearchBarAttrs {
 	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<CalendarEvent>>

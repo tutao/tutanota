@@ -15,7 +15,8 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { CancelledError } from "../../../src/platform-kit/app-env"
 import { CalendarSearchModel } from "../../../src/applications/calendar-app/search/model/CalendarSearchModel"
-import { SearchQuery } from "../../../src/applications/common/search/CommonSearchModel"
+
+import { SearchQuery } from "../../../src/applications/common/search/SearchUtils"
 
 o.spec("CalendarSearch", function () {
 	let search: CalendarSearchModel
