@@ -1266,7 +1266,6 @@ export class MailViewerViewModel {
 		const rawBody = this.getMailBody()
 		const timeoutUrlify = new Promise<string>((resolve) => {
 			this.sanitizeUrlifyTimeoutId = setTimeout(() => {
-				console.warn("A mail has taken too long to be processed by urlify and we will use raw body instead.")
 				resolve(rawBody)
 			}, 5_000)
 		})
