@@ -23,38 +23,26 @@ export class CancelSubscriptionOptionPage implements Component<CancelSubscriptio
 			m(
 				".flex.col.gap-8",
 				m(MenuTitle, { content: lang.getTranslationText("subscriptionStateCardCancel_action") }),
+				m(Card, m(".flex.col.gap-8.p-16", m("", lang.getTranslationText("subscriptionSettingOptionPageCancel_label")))),
 				m(
-					Card,
-					m(
-						".flex.col.gap-8.p-16",
-						m("", lang.getTranslationText("subscriptionSettingOptionPageCancel_label")),
-						m(
-							".flex.row.justify-end",
-							m(PrimaryButton, {
-								label: "subscriptionStateCardCancel_action",
-								width: "flex",
-								style: { width: "fit-content" },
-								onclick: vnode.attrs.goToCancelSubscriptionPage,
-							}),
-						),
-					),
+					".flex.row.justify-end",
+					m(PrimaryButton, {
+						label: "subscriptionStateCardCancel_action",
+						width: "flex",
+						style: { width: "fit-content" },
+						onclick: vnode.attrs.goToCancelSubscriptionPage,
+					}),
 				),
 				m(MenuTitle, { content: lang.getTranslationText("subscriptionStateCardRevoke_action") }),
+				m(Card, m(".flex.col.gap-8.p-16", m("", lang.getTranslationText("subscriptionSettingOptionPageRevoke_label")))),
 				m(
-					Card,
-					m(
-						".flex.col.gap-8.p-16",
-						m("", lang.getTranslationText("subscriptionSettingOptionPageRevoke_label")),
-						m(
-							".flex.row.justify-end",
-							m(PrimaryButton, {
-								label: "subscriptionSettingOptionPageRevoke_action",
-								width: "flex",
-								style: { width: "fit-content" },
-								onclick: vnode.attrs.goToRevokeSubscriptionPage,
-							}),
-						),
-					),
+					".flex.row.justify-end",
+					m(PrimaryButton, {
+						label: "subscriptionSettingOptionPageRevoke_action",
+						width: "flex",
+						style: { width: "fit-content" },
+						onclick: vnode.attrs.goToRevokeSubscriptionPage,
+					}),
 				),
 			),
 		)
