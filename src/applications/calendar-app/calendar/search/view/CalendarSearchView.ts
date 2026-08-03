@@ -34,7 +34,6 @@ import { styles } from "../../../../../ui/styles"
 import { BaseMobileHeader } from "../../../../../ui/BaseMobileHeader"
 import { NavButton } from "../../../../../ui/base/NavButton"
 import { CALENDAR_PREFIX } from "../../../../../ui/utils/RouteChange"
-import { searchBar } from "../CalendarSearchBar"
 import { ProgressBar } from "../../../../../ui/base/ProgressBar"
 import { client } from "../../../../../platform-kit/app-env/boot/ClientDetector"
 import { IconButton } from "../../../../../ui/base/IconButton"
@@ -326,13 +325,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				}),
 			),
 			right: rightActions,
-			center: m(
-				".flex-grow.flex.justify-center.mr-12",
-				m(searchBar, {
-					placeholder: lang.get("searchCalendar_placeholder"),
-					returnListener: () => this.resultListColumn.focus(),
-				}),
-			),
+			center: m(".flex-grow.flex.justify-center.mr-12", this.renderSearchbar()),
 			injections: m(ProgressBar, { progress: header.offlineIndicatorModel.getProgress() }),
 		})
 	}

@@ -40,10 +40,8 @@ import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accou
 import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
 import { RevocationView, RevocationViewAttrs } from "../common/revocation/RevocationView"
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
-import { CalendarSearchBarAttrs } from "./LazyCalendarSearchBar"
 import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel"
-import { calendarLocator } from "./calendarLocator"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -345,13 +343,11 @@ import("../../ui/translations/en.js")
 					drawerAttrsFactory: () => DrawerMenuAttrs
 					header: AppHeaderAttrs
 					calendarViewModel: CalendarViewModel
-					lazySearchBar: (calendarSearchBarAttrs: CalendarSearchBarAttrs) => Children
 				}
 			>(
 				{
 					prepareRoute: async (cache) => {
 						const { CalendarView } = await import("./calendar/view/CalendarView.js")
-						const { lazyCalendarSearchBar } = await import("./LazyCalendarSearchBar.js")
 						const drawerAttrsFactory = await calendarLocator.drawerAttrsFactory()
 						return {
 							component: CalendarView,
@@ -359,17 +355,13 @@ import("../../ui/translations/en.js")
 								drawerAttrsFactory,
 								header: await calendarLocator.appHeaderAttrs(),
 								calendarViewModel: await calendarLocator.calendarViewModel(),
-								lazySearchBar: (attrs: CalendarSearchBarAttrs) => {
-									return m(lazyCalendarSearchBar, attrs)
-								},
 							},
 						}
 					},
-					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory, lazySearchBar }) => ({
+					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory }) => ({
 						drawerAttrs: drawerAttrsFactory(),
 						header,
 						calendarViewModel,
-						lazySearchBar,
 					}),
 				},
 				calendarLocator.logins,

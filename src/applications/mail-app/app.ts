@@ -65,7 +65,6 @@ import { initClientModels } from "../common/api/common/ClientModelInfoInitialize
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../platform-kit/instance-pipeline/RestClientOptions"
 import { RevocationView, RevocationViewAttrs } from "../common/revocation/RevocationView"
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
-import { CalendarSearchBarAttrs } from "../calendar-app/LazyCalendarSearchBar"
 import { ContactSearchBarAttrs } from "./contacts/view/ContactSearchBar"
 import { MailSearchView, MailSearchViewAttrs } from "./search/view/MailSearchView"
 import { MailSearchViewModel } from "./search/view/MailSearchViewModel"
@@ -743,13 +742,11 @@ import("../../ui/translations/en.js")
 					header: AppHeaderAttrs
 					calendarViewModel: CalendarViewModel
 					bottomNav: () => Children
-					lazySearchBar: (attrs: CalendarSearchBarAttrs) => Children
 				}
 			>(
 				{
 					prepareRoute: async (cache) => {
 						const { CalendarView } = await import("../calendar-app/calendar/view/CalendarView.js")
-						const { LazyCalendarSearchBar } = await import("../calendar-app/LazyCalendarSearchBar.js")
 						const drawerAttrsFactory = await mailLocator.drawerAttrsFactory()
 						return {
 							component: CalendarView,
@@ -758,16 +755,14 @@ import("../../ui/translations/en.js")
 								header: await mailLocator.appHeaderAttrs(),
 								calendarViewModel: await mailLocator.calendarViewModel(),
 								bottomNav: () => m(BottomNav),
-								lazySearchBar: (attrs) => m(LazyCalendarSearchBar, attrs),
 							},
 						}
 					},
-					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory, bottomNav, lazySearchBar }) => ({
+					prepareAttrs: ({ header, calendarViewModel, drawerAttrsFactory, bottomNav }) => ({
 						drawerAttrs: drawerAttrsFactory(),
 						header,
 						calendarViewModel,
 						bottomNav,
-						lazySearchBar,
 					}),
 				},
 				mailLocator.logins,

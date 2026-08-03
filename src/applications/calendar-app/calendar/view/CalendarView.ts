@@ -125,7 +125,8 @@ import { exportCalendar } from "../../../common/calendar/gui/CalendarImporterDia
 import { CalendarImporter } from "../../../common/calendar/import/CalendarImporter"
 import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInteractionHandler"
 import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
-import { CalendarSearchBarAttrs, LazyCalendarSearchBar } from "../../LazyCalendarSearchBar"
+import { LazyComponent } from "../../../common/gui/LazyComponent"
+import { CalendarSearchBar, CalendarSearchBarAttrs } from "../../CalendarSearchBar"
 
 export type GroupColors = Map<Id, string>
 
@@ -134,7 +135,6 @@ export interface CalendarViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
 	calendarViewModel: CalendarViewModel
 	bottomNav?: () => Children
-	lazySearchBar: (attrs: CalendarSearchBarAttrs) => Children
 }
 
 const CalendarViewTypeByValue = reverse(CalendarViewType)
@@ -1165,12 +1165,15 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				header: m(Header, {
 					firstColWidth: this.sidebarColumn.width,
 					searchBar: () =>
-						m(LazyCalendarSearchBar, {
-							loadResults: (searchQuery) => this.viewModel.getSearchResult(searchQuery),
-							selectResult: (searchQuery, entry) => {
-								this.viewModel.selectSearchResult(searchQuery, entry)
+						m(LazyComponent<CalendarSearchBarAttrs, CalendarSearchBar>, {
+							loader: async () => (await import("../../CalendarSearchBar.js")).CalendarSearchBar,
+							attrs: {
+								loadResults: (searchQuery) => this.viewModel.getSearchResult(searchQuery),
+								selectResult: (searchQuery, event) => {
+									this.viewModel.selectSearchResult(searchQuery, event)
+								},
+								shouldOfferUpgrade: locator.logins.getUserController().isFreeAccount(),
 							},
-							shouldOfferUpgrade: locator.logins.getUserController().isFreeAccount(),
 						}),
 					...attrs.header,
 					buttons: renderHeaderButtons(),
