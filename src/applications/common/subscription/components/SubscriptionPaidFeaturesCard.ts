@@ -112,7 +112,7 @@ export class SubscriptionPaidFeaturesCard implements Component<SubscriptionPaidF
 
 		return [
 			m(
-				".flex.col.gap-16.pt-16",
+				".flex.col.gap-8.pt-16",
 				m(MenuTitle, { content: lang.getTranslationText(attrs.title) }),
 				m("", lang.getTranslationText(attrs.subtitle)),
 				m(Card, [m(".flex.col.gap-8.plr-16", [paidFeatures.map(({ label, message, route }) => element(label, message, route))])]),
