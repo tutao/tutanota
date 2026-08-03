@@ -77,6 +77,7 @@ import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-p
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { uncompress } from "../../../../../src/platform-kit/instance-pipeline/Compression"
+import { uint8ArrayTo128Key, uint8ArrayTo256Key } from "@tutao/crypto/symmetric-cipher-utils"
 
 const originalRandom = random.generateRandomData
 
@@ -199,7 +200,7 @@ o.spec("CompatibilityTest", function () {
 		// We don't test encryption because we don't encrypt like this anymore
 		for (const td of testData.aes128Tests) {
 			random.generateRandomData = (_number) => hexToUint8Array(td.seed).slice(0, INITIALIZATION_VECTOR_LENGTH_BYTES)
-			let key = uint8ArrayToKey(hexToUint8Array(td.hexKey), AesKeyLength.Aes128)
+			let key = uint8ArrayTo128Key(hexToUint8Array(td.hexKey))
 			let decryptedBytes = uint8ArrayToBase64(aesDecrypt(key, base64ToUint8Array(td.cipherTextBase64)))
 			o(decryptedBytes).equals(td.plainTextBase64)
 		}
@@ -220,8 +221,8 @@ o.spec("CompatibilityTest", function () {
 		for (const td of testData.aeadTests) {
 			random.generateRandomData = (IV_BYTE_LENGTH: number) => hexToUint8Array(td.seed).slice(0, IV_BYTE_LENGTH)
 			const aeadFacade = new AeadFacade()
-			const encryptionKey = uint8ArrayToKey(hexToUint8Array(td.encryptionKey), AesKeyLength.Aes256)
-			const authenticationKey = uint8ArrayToKey(hexToUint8Array(td.authenticationKey), AesKeyLength.Aes256)
+			const encryptionKey = uint8ArrayTo256Key(hexToUint8Array(td.encryptionKey))
+			const authenticationKey = uint8ArrayTo256Key(hexToUint8Array(td.authenticationKey))
 			const cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
 			const subKeys = new AeadWithSessionKeySubKeys(encryptionKey, authenticationKey)
 			const plaintext = base64ToUint8Array(td.plaintextBase64)
@@ -501,8 +502,8 @@ o.spec("CompatibilityTest", function () {
 				o.check(keysFrom256).deepEquals({
 					cipherVersion: SymmetricCipherVersion.AeadWithGroupKey,
 					groupKeyVersion: 0,
-					encryptionKey: uint8ArrayToKey(hexToUint8Array(td.encryptionKeyFrom256Hex), AesKeyLength.Aes256),
-					authenticationKey: uint8ArrayToKey(hexToUint8Array(td.authenticationKeyFrom256Hex), AesKeyLength.Aes256),
+					encryptionKey: uint8ArrayTo256Key(hexToUint8Array(td.encryptionKeyFrom256Hex)),
+					authenticationKey: uint8ArrayTo256Key(hexToUint8Array(td.authenticationKeyFrom256Hex)),
 				})
 
 				const keysFrom128 = symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(
@@ -513,8 +514,8 @@ o.spec("CompatibilityTest", function () {
 				o.check(keysFrom128).deepEquals({
 					cipherVersion: SymmetricCipherVersion.AeadWithGroupKey,
 					groupKeyVersion: 0,
-					encryptionKey: uint8ArrayToKey(hexToUint8Array(td.encryptionKeyFrom128Hex), AesKeyLength.Aes256),
-					authenticationKey: uint8ArrayToKey(hexToUint8Array(td.authenticationKeyFrom128Hex), AesKeyLength.Aes256),
+					encryptionKey: uint8ArrayTo256Key(hexToUint8Array(td.encryptionKeyFrom128Hex)),
+					authenticationKey: uint8ArrayTo256Key(hexToUint8Array(td.authenticationKeyFrom128Hex)),
 				})
 
 				const keysFromSessionKey = symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(
@@ -523,8 +524,8 @@ o.spec("CompatibilityTest", function () {
 				)
 				o.check(keysFromSessionKey).deepEquals({
 					cipherVersion: SymmetricCipherVersion.AeadWithSessionKey,
-					encryptionKey: uint8ArrayToKey(hexToUint8Array(td.encryptionKeyFromSessionKeyHex), AesKeyLength.Aes256),
-					authenticationKey: uint8ArrayToKey(hexToUint8Array(td.authenticationKeyFromSessionKeyHex), AesKeyLength.Aes256),
+					encryptionKey: uint8ArrayTo256Key(hexToUint8Array(td.encryptionKeyFromSessionKeyHex)),
+					authenticationKey: uint8ArrayTo256Key(hexToUint8Array(td.authenticationKeyFromSessionKeyHex)),
 				})
 			}
 		})
