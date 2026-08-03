@@ -150,6 +150,13 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 
 	}
 
+	//Called when the web processes crash
+	func webViewWebContentProcessDidTerminate(_ webView: WKWebView) {
+		TUTSLog("webView process terminated")
+		// reload on the WKWebView doesn't do anything, because the DOM disappeared when the web proxy process crash.
+		self.loadMainPage(params: [:])
+	}
+
 	var appDelegate: AppDelegate { get { UIApplication.shared.delegate as! AppDelegate } }
 
 	func loadMainPage(params: [String: String]) { DispatchQueue.main.async { self._loadMainPage(params: params) } }
