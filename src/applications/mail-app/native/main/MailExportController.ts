@@ -233,7 +233,12 @@ export class MailExportController {
 						await this.exportFacade.saveMailboxExport(mailBundle, this.userId, mailBag._id, getElementId(mail))
 						exportedWithoutFailureCount++
 					} catch (e) {
-						if (e instanceof FileOpenError) {
+						if (e instanceof SuspensionError) {
+							await this.pauseExportForSuspension(e)
+							if (this._state().type !== "exporting") {
+								return
+							}
+						} else if (e instanceof FileOpenError) {
 							this._state({ type: "error", message: e.message })
 							return
 						} else {
@@ -264,13 +269,7 @@ export class MailExportController {
 					console.log(TAG, "Offline, will retry later")
 					await delay(1000 * 60) // 1 min
 				} else if (e instanceof SuspensionError) {
-					const timeToWait = Math.max(filterInt(assertNotNull(e.data)), 1)
-					console.log(TAG, `Pausing for ${Math.floor(timeToWait / 1000 + 0.5)} seconds`)
-					const currentState = this._state()
-					if (currentState.type === "exporting" && !currentState.paused) {
-						this._state({ ...currentState, paused: true })
-					}
-					await delay(timeToWait)
+					await this.pauseExportForSuspension(e)
 					if (this._state().type !== "exporting") {
 						return
 					}
@@ -299,6 +298,16 @@ export class MailExportController {
 				console.log(TAG, "Trying to continue with export")
 			}
 		}
+	}
+
+	private async pauseExportForSuspension(suspensionError: SuspensionError): Promise<void> {
+		const timeToWait = Math.max(filterInt(assertNotNull(suspensionError.data)), 1)
+		console.log(TAG, `Pausing for ${Math.floor(timeToWait / 1000 + 0.5)} seconds`)
+		const currentState = this._state()
+		if (currentState.type === "exporting" && !currentState.paused) {
+			this._state({ ...currentState, paused: true })
+		}
+		await delay(timeToWait)
 	}
 
 	private getServerUrl(): string {
