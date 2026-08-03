@@ -6,14 +6,12 @@ import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import {
 	CUSTOM_MIN_ID,
 	elementIdPart,
-	GENERATED_MAX_ID,
-	GENERATED_MIN_ID,
+	EntityTypeEnum, GENERATED_MAX_ID, GENERATED_MIN_ID,
 	getTypeString,
 	ListElementEntity,
 	listIdPart,
 	ServerTypeModel,
-	Type,
-	TypeRef,
+	TypeRef ,
 } from "@tutao/meta"
 import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
@@ -295,7 +293,7 @@ VALUES (
 
 	async storeEncryptedMailDetailsBlobs(serverTypeModel: ServerTypeModel, blobs: Array<IncomingServerJson>): Promise<void> {
 		const typeref = `${serverTypeModel.app}/${serverTypeModel.name}`
-		if (serverTypeModel.type !== Type.BlobElement) {
+		if (serverTypeModel.type !== EntityTypeEnum.BlobElement) {
 			throw new ProgrammingError(`cannot use OfflineStoragePersistence#storeEncryptedBlobs with ${serverTypeModel.type} (${typeref})`)
 		}
 
@@ -318,7 +316,7 @@ VALUES (
 
 	async retrieveEncryptedMailDetailsBlob(serverTypeModel: ServerTypeModel, blobId: Id): Promise<IncomingServerJson | null> {
 		const typeref = `${serverTypeModel.app}/${serverTypeModel.name}`
-		if (serverTypeModel.type !== Type.BlobElement) {
+		if (serverTypeModel.type !== EntityTypeEnum.BlobElement) {
 			throw new ProgrammingError(`cannot use OfflineStoragePersistence#retrieveEncryptedBlob with ${serverTypeModel.type} (${typeref})`)
 		}
 

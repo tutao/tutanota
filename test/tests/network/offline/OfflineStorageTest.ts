@@ -6,14 +6,12 @@ import {
 	deconstructMailSetEntryId,
 	elementIdPart,
 	Entity,
+	EntityTypeEnum,
 	GENERATED_MAX_ID,
 	getTypeString,
 	idToElementId,
 	listIdPart,
-	PersistentEntity,
-	serverToLocalIdEncoding,
 	timestampToGeneratedId,
-	Type as TypeId,
 	TypeRef,
 } from "../../../../src/platform-kit/meta"
 import { assertNotNull, getDayShifted, typedKeys } from "../../../../src/platform-kit/utils"
@@ -242,17 +240,17 @@ o.spec("OfflineStorageDbTest", function () {
 			const typeModel = await typeModelResolver.resolveClientTypeReference(typeRef)
 			let preparedQuery
 			switch (typeModel.type) {
-				case TypeId.Element.valueOf():
+				case EntityTypeEnum.Element.valueOf():
 					preparedQuery = sql`select *
 										from element_entities
 										where type = ${getTypeString(typeRef)}`
 					break
-				case TypeId.ListElement.valueOf():
+				case EntityTypeEnum.ListElement.valueOf():
 					preparedQuery = sql`select *
 										from list_entities
 										where type = ${getTypeString(typeRef)}`
 					break
-				case TypeId.BlobElement.valueOf():
+				case EntityTypeEnum.BlobElement.valueOf():
 					preparedQuery = sql`select *
 										from blob_element_entities
 										where type = ${getTypeString(typeRef)}`

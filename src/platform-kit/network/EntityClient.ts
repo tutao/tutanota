@@ -2,6 +2,7 @@ import {
 	AttributeModel,
 	CUSTOM_MIN_ID,
 	elementIdPart,
+	EntityTypeEnum,
 	firstBiggerThanSecond,
 	GENERATED_MIN_ID,
 	getElementId,
@@ -11,9 +12,8 @@ import {
 	ListElementId,
 	listIdPart,
 	RANGE_ITEM_LIMIT,
-	Type,
 	TypeRef,
-	ValueType,
+	ValueTypeEnum,
 } from "../meta"
 import { assertNotNull, groupByAndMap, last, Nullable, promiseMap } from "@tutao/utils"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
@@ -59,7 +59,7 @@ export class EntityClient {
 				AttributeModel.getAttributeId(typeModel, "_id"),
 				`_id attribute not defined in ${typeModel.app}/${typeModel.name}`,
 			)
-			start = typeModel.values[attributeIdFor_id].type === ValueType.GeneratedId ? GENERATED_MIN_ID : CUSTOM_MIN_ID
+			start = typeModel.values[attributeIdFor_id].type === ValueTypeEnum.GeneratedId ? GENERATED_MIN_ID : CUSTOM_MIN_ID
 		}
 
 		const elements = await this.loadRange<T>(typeRef, listId, start, RANGE_ITEM_LIMIT, false)
@@ -83,7 +83,7 @@ export class EntityClient {
 		loadedCompletely: boolean
 	}> {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
-		if (typeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
+		if (typeModel.type !== EntityTypeEnum.ListElement) throw new Error("only ListElement types are permitted")
 		const loadedEntities = await this._target.loadRange<T>(typeRef, listId, start, rangeItemLimit, true)
 		const filteredEntities = loadedEntities.filter((entity) => firstBiggerThanSecond(getElementId(entity), end, getServerIdEncodingForType(typeModel)))
 

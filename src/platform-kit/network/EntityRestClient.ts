@@ -1,6 +1,6 @@
 import { DEFAULT_REST_CLIENT_OPTIONS, type RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType, RestTextBody } from "../rest-client/types"
-import { ClientTypeModel, expandId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT, Type, TypeRef } from "../meta"
+import { ClientTypeModel, EntityTypeEnum, expandId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT, TypeRef } from "../meta"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
 	assert,
@@ -203,7 +203,7 @@ export class EntityRestClient implements EntityRestInterface {
 			null,
 		)
 		// This should never happen if type checking is not bypassed with any
-		if (clientTypeModel.type !== Type.ListElement) throw new Error("only ListElement types are permitted")
+		if (clientTypeModel.type !== EntityTypeEnum.ListElement) throw new Error("only ListElement types are permitted")
 		const json = await this.restClient.request(path, HttpMethod.GET, {
 			...DEFAULT_REST_CLIENT_OPTIONS,
 			queryParams,
@@ -255,7 +255,7 @@ export class EntityRestClient implements EntityRestInterface {
 				ids: idChunk.join(","),
 			}
 			let json: string
-			if (clientTypeModel.type === Type.BlobElement) {
+			if (clientTypeModel.type === EntityTypeEnum.BlobElement) {
 				json = await this.loadMultipleBlobElements(listId, queryParams, headers, path, typeRef, opts)
 			} else {
 				json = await this.restClient.request(path, HttpMethod.GET, {
@@ -419,9 +419,9 @@ export class EntityRestClient implements EntityRestInterface {
 			options?.ownerKey ?? null,
 		)
 
-		if (clientTypeModel.type === Type.ListElement) {
+		if (clientTypeModel.type === EntityTypeEnum.ListElement) {
 			assert(isNotNull(listId), "List Id must be defined for LETs")
-		} else if (clientTypeModel.type === Type.Element) {
+		} else if (clientTypeModel.type === EntityTypeEnum.Element) {
 			assert(isNull(listId), "List Id must not be defined for ETs")
 		} else {
 			assert(false, `EntityRestClient should only be used for Elements or ListElements. Got: ${clientTypeModel.type}`)
@@ -456,9 +456,9 @@ export class EntityRestClient implements EntityRestInterface {
 		const { clientTypeModel, path, headers } = await this._validateAndPrepareRestRequest(typeRef, listId, null, null, null, null, null)
 		const persistencePostReturnTypeModel = await this.typeModelResolver.resolveServerTypeReference(PersistenceResourcePostReturnTypeRef)
 
-		if (clientTypeModel.type === Type.ListElement) {
+		if (clientTypeModel.type === EntityTypeEnum.ListElement) {
 			assert(isNotNull(listId), "List Id must be defined for LETs")
-		} else if (clientTypeModel.type === Type.Element) {
+		} else if (clientTypeModel.type === EntityTypeEnum.Element) {
 			assert(isNull(listId), "List Id must not be defined for ETs")
 		} else {
 			assert(false, `EntityRestClient should only be used for Elements or ListElements. Got: ${clientTypeModel.type}`)

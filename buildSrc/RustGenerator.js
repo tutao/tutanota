@@ -3,7 +3,7 @@
  * but is checked in here so that it's updated in lockstep with rust code that expects it.
  */
 
-import { AssociationType, Type, ValueType } from "../src/platform-kit/meta/EntityConstants.js"
+import { AssociationType, Type, ValueType } from "./EntityConstants.js"
 import { capitalizeFirstLetter } from "../build/utils/StringUtils.js"
 
 /**

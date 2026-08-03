@@ -9,18 +9,18 @@ import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/ap
 import { matchers, object, when } from "testdouble"
 import {
 	AggregatedEntity,
-	Cardinality,
+	CardinalityEnum,
 	clone,
 	create,
 	Entity,
+	EntityTypeEnum,
 	generatedIdToTimestamp,
 	idToElementId,
 	ModelValue,
 	timestampToGeneratedId,
-	Type,
 	TypeModel,
 	TypeRef,
-	ValueType,
+	ValueTypeEnum,
 } from "../../src/platform-kit/meta"
 import { type fetch as undiciFetch, type Response } from "undici"
 import {
@@ -214,39 +214,39 @@ function getDefaultTestValue(valueName: string, value: ModelValue, typeModel: Ty
 		return "0"
 	} else if (valueName === "_id") {
 		switch (typeModel.type) {
-			case Type.DataTransfer:
+			case EntityTypeEnum.DataTransfer:
 				throw new ProgrammingError("No _id for dataTransfer")
-			case Type.Aggregated:
+			case EntityTypeEnum.Aggregated:
 				return `${value.id}_id`
-			case Type.Element:
+			case EntityTypeEnum.Element:
 				return idToElementId(`${value.id}_id`)
-			case Type.ListElement:
-			case Type.BlobElement:
+			case EntityTypeEnum.ListElement:
+			case EntityTypeEnum.BlobElement:
 				return [`${value.id}_listid`, `${value.id}_elementId`]
 		}
 	} else if (valueName === "_permissions") {
 		return `${value.id}_permissions`
-	} else if (value.cardinality === Cardinality.ZeroOrOne) {
+	} else if (value.cardinality === CardinalityEnum.ZeroOrOne) {
 		return null
 	} else {
 		switch (value.type) {
-			case ValueType.Bytes:
+			case ValueTypeEnum.Bytes:
 				return new Uint8Array(0)
 
-			case ValueType.Date:
+			case ValueTypeEnum.Date:
 				return new Date(0)
 
-			case ValueType.Number:
+			case ValueTypeEnum.Number:
 				return "0"
 
-			case ValueType.String:
+			case ValueTypeEnum.String:
 				return ""
 
-			case ValueType.Boolean:
+			case ValueTypeEnum.Boolean:
 				return false
 
-			case ValueType.CustomId:
-			case ValueType.GeneratedId:
+			case ValueTypeEnum.CustomId:
+			case ValueTypeEnum.GeneratedId:
 				return `${value.id}_${valueName}`
 		}
 	}
@@ -263,7 +263,7 @@ export function createTestEntity<T extends Entity>(
 	const entity = create(typeModel, typeRef, getDefaultTestValue)
 	if (opts?.populateAggregates) {
 		for (const [_, assocDef] of typedEntries(typeModel.associations)) {
-			if (assocDef.cardinality === Cardinality.One) {
+			if (assocDef.cardinality === CardinalityEnum.One) {
 				const assocName = assocDef.name
 				switch (assocDef.type) {
 					case "AGGREGATION": {

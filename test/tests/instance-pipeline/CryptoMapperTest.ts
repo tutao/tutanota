@@ -13,7 +13,7 @@ import {
 	VersionedKey,
 } from "../../../src/platform-kit/crypto"
 import { matchers, object, replace, verify, when } from "testdouble"
-import { AppNameEnum, Cardinality, ClientTypeModel, EncryptedModelValue, ModelValue, ServerTypeModel, ValueTypeEnum } from "../../../src/platform-kit/meta"
+import { AppNameEnum, CardinalityEnum, ClientTypeModel, EncryptedModelValue, ModelValue, ServerTypeModel, ValueTypeEnum } from "../../../src/platform-kit/meta"
 import {
 	arrayEquals,
 	assertNotNull,
@@ -117,7 +117,7 @@ o.spec("CryptoMapperTest", () => {
 			const value = "this is a string value"
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
 			const decryptedValue = await cryptoMapper.decryptValue(
-				createEncryptedValueType(ValueTypeEnum.String, Cardinality.One),
+				createEncryptedValueType(ValueTypeEnum.String, CardinalityEnum.One),
 				ParsedValue.fromByteArray(aesEncrypt(sk, stringToUtf8Uint8Array(value))),
 				instanceDecryptor,
 				null,
@@ -131,7 +131,7 @@ o.spec("CryptoMapperTest", () => {
 			const value = "516546"
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
 			const decryptedValue = await cryptoMapper.decryptValue(
-				createEncryptedValueType(ValueTypeEnum.Number, Cardinality.One),
+				createEncryptedValueType(ValueTypeEnum.Number, CardinalityEnum.One),
 				ParsedValue.fromByteArray(aesEncrypt(sk, stringToUtf8Uint8Array(value))),
 				instanceDecryptor,
 				null,
@@ -141,7 +141,7 @@ o.spec("CryptoMapperTest", () => {
 		})
 
 		o.test("decrypt boolean value", async () => {
-			const valueType = createEncryptedValueType(ValueTypeEnum.Boolean, Cardinality.One)
+			const valueType = createEncryptedValueType(ValueTypeEnum.Boolean, CardinalityEnum.One)
 			const sk = aes256RandomKey()
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
 
@@ -162,7 +162,7 @@ o.spec("CryptoMapperTest", () => {
 		})
 
 		o.test("decrypt date value", async () => {
-			const valueType = createEncryptedValueType(ValueTypeEnum.Date, Cardinality.One)
+			const valueType = createEncryptedValueType(ValueTypeEnum.Date, CardinalityEnum.One)
 			const sk = aes256RandomKey()
 			const value = new Date()
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
@@ -172,7 +172,7 @@ o.spec("CryptoMapperTest", () => {
 		})
 
 		o.test("decrypt bytes value", async () => {
-			const valueType = createEncryptedValueType(ValueTypeEnum.Bytes, Cardinality.One)
+			const valueType = createEncryptedValueType(ValueTypeEnum.Bytes, CardinalityEnum.One)
 			const sk = aes256RandomKey()
 			const value = random.generateRandomData(5)
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
@@ -182,7 +182,7 @@ o.spec("CryptoMapperTest", () => {
 		})
 
 		o.test("decrypt compressedString", async () => {
-			const valueType = createEncryptedValueType(ValueTypeEnum.CompressedString, Cardinality.One)
+			const valueType = createEncryptedValueType(ValueTypeEnum.CompressedString, CardinalityEnum.One)
 			const sk = aes256RandomKey()
 			const value = base64ToUint8Array("QHRlc3Q=")
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
@@ -192,7 +192,7 @@ o.spec("CryptoMapperTest", () => {
 		})
 
 		o.test("decrypt compressedString w resize", async () => {
-			const valueType = createEncryptedValueType(ValueTypeEnum.CompressedString, Cardinality.One)
+			const valueType = createEncryptedValueType(ValueTypeEnum.CompressedString, CardinalityEnum.One)
 			const sk = aes256RandomKey()
 			const value = base64ToUint8Array("X3RleHQgBQD//1FQdGV4dCA=")
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
@@ -204,7 +204,7 @@ o.spec("CryptoMapperTest", () => {
 		})
 
 		o.test("decrypt empty compressedString", async () => {
-			const valueType = createEncryptedValueType(ValueTypeEnum.CompressedString, Cardinality.One)
+			const valueType = createEncryptedValueType(ValueTypeEnum.CompressedString, CardinalityEnum.One)
 			const sk = aes256RandomKey()
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(sk, null, instanceTypeId)
 			const encryptedValue: EncryptedParsedValue = ParsedValue.fromByteArray(aesEncrypt(sk, new Uint8Array([])))
@@ -221,12 +221,12 @@ o.spec("CryptoMapperTest", () => {
 				return dec.getNullWhenNull()
 			}
 
-			o.check(await decryptNullValue(createEncryptedValueType(ValueTypeEnum.String, Cardinality.ZeroOrOne))).equals(null)
-			o.check(await decryptNullValue(createEncryptedValueType(ValueTypeEnum.Date, Cardinality.ZeroOrOne))).equals(null)
-			o.check(await decryptNullValue(createEncryptedValueType(ValueTypeEnum.Bytes, Cardinality.ZeroOrOne))).equals(null)
-			o.check(await decryptNullValue(createEncryptedValueType(ValueTypeEnum.Boolean, Cardinality.ZeroOrOne))).equals(null)
-			o.check(await decryptNullValue(createEncryptedValueType(ValueTypeEnum.Number, Cardinality.ZeroOrOne))).equals(null)
-			o.check(await decryptNullValue(createEncryptedValueType(ValueTypeEnum.CompressedString, Cardinality.ZeroOrOne))).equals(null)
+			o.check(await decryptNullValue(createEncryptedValueType(ValueTypeEnum.String, CardinalityEnum.ZeroOrOne))).equals(null)
+			o.check(await decryptNullValue(createEncryptedValueType(ValueTypeEnum.Date, CardinalityEnum.ZeroOrOne))).equals(null)
+			o.check(await decryptNullValue(createEncryptedValueType(ValueTypeEnum.Bytes, CardinalityEnum.ZeroOrOne))).equals(null)
+			o.check(await decryptNullValue(createEncryptedValueType(ValueTypeEnum.Boolean, CardinalityEnum.ZeroOrOne))).equals(null)
+			o.check(await decryptNullValue(createEncryptedValueType(ValueTypeEnum.Number, CardinalityEnum.ZeroOrOne))).equals(null)
+			o.check(await decryptNullValue(createEncryptedValueType(ValueTypeEnum.CompressedString, CardinalityEnum.ZeroOrOne))).equals(null)
 		})
 
 		o.test("do not decrypt empty values with Cardinality.ZeroOrOne", async () => {
@@ -237,18 +237,18 @@ o.spec("CryptoMapperTest", () => {
 				return dec.getNullWhenNull()
 			}
 
-			o.check(await decryptEmptyValue(createEncryptedValueType(ValueTypeEnum.String, Cardinality.ZeroOrOne))).equals(null)
-			o.check(await decryptEmptyValue(createEncryptedValueType(ValueTypeEnum.Date, Cardinality.ZeroOrOne))).equals(null)
-			o.check(await decryptEmptyValue(createEncryptedValueType(ValueTypeEnum.Bytes, Cardinality.ZeroOrOne))).equals(null)
-			o.check(await decryptEmptyValue(createEncryptedValueType(ValueTypeEnum.Boolean, Cardinality.ZeroOrOne))).equals(null)
-			o.check(await decryptEmptyValue(createEncryptedValueType(ValueTypeEnum.Number, Cardinality.ZeroOrOne))).equals(null)
-			o.check(await decryptEmptyValue(createEncryptedValueType(ValueTypeEnum.CompressedString, Cardinality.ZeroOrOne))).equals(null)
+			o.check(await decryptEmptyValue(createEncryptedValueType(ValueTypeEnum.String, CardinalityEnum.ZeroOrOne))).equals(null)
+			o.check(await decryptEmptyValue(createEncryptedValueType(ValueTypeEnum.Date, CardinalityEnum.ZeroOrOne))).equals(null)
+			o.check(await decryptEmptyValue(createEncryptedValueType(ValueTypeEnum.Bytes, CardinalityEnum.ZeroOrOne))).equals(null)
+			o.check(await decryptEmptyValue(createEncryptedValueType(ValueTypeEnum.Boolean, CardinalityEnum.ZeroOrOne))).equals(null)
+			o.check(await decryptEmptyValue(createEncryptedValueType(ValueTypeEnum.Number, CardinalityEnum.ZeroOrOne))).equals(null)
+			o.check(await decryptEmptyValue(createEncryptedValueType(ValueTypeEnum.CompressedString, CardinalityEnum.ZeroOrOne))).equals(null)
 		})
 	})
 
 	o.spec("encryptValue", () => {
 		o.test("encrypt string / number value", async () => {
-			const valueType = createEncryptedValueType(ValueTypeEnum.String, Cardinality.One)
+			const valueType = createEncryptedValueType(ValueTypeEnum.String, CardinalityEnum.One)
 			const sk = aes256RandomKey()
 			const value = "this is a string value"
 			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
@@ -259,7 +259,7 @@ o.spec("CryptoMapperTest", () => {
 			o.check(decryptedValue.asString()).equals(value)
 		})
 		o.test("encrypt boolean value", async () => {
-			const valueType = createEncryptedValueType(ValueTypeEnum.Boolean, Cardinality.One)
+			const valueType = createEncryptedValueType(ValueTypeEnum.Boolean, CardinalityEnum.One)
 			const sk = aes256RandomKey()
 			let value = false
 			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
@@ -276,7 +276,7 @@ o.spec("CryptoMapperTest", () => {
 		})
 
 		o.test("encrypt date value", async () => {
-			const valueType = createEncryptedValueType(ValueTypeEnum.Date, Cardinality.One)
+			const valueType = createEncryptedValueType(ValueTypeEnum.Date, CardinalityEnum.One)
 			const sk = aes256RandomKey()
 			const value = new Date()
 			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
@@ -288,7 +288,7 @@ o.spec("CryptoMapperTest", () => {
 		})
 
 		o.test("encrypt bytes value", async () => {
-			const valueType = createEncryptedValueType(ValueTypeEnum.Bytes, Cardinality.One)
+			const valueType = createEncryptedValueType(ValueTypeEnum.Bytes, CardinalityEnum.One)
 			const sk = aes256RandomKey()
 			const value = random.generateRandomData(5)
 			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
@@ -300,7 +300,7 @@ o.spec("CryptoMapperTest", () => {
 		})
 
 		o.test("do not encrypt null values", () => {
-			const dummyValueType = createEncryptedValueType(ValueTypeEnum.Bytes, Cardinality.One)
+			const dummyValueType = createEncryptedValueType(ValueTypeEnum.Bytes, CardinalityEnum.One)
 
 			const sk = aes256RandomKey()
 			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
@@ -311,7 +311,7 @@ o.spec("CryptoMapperTest", () => {
 		})
 
 		o.test("encrypt bytes with AEAD with session key roundtrip", async () => {
-			const valueType = createEncryptedValueType(ValueTypeEnum.Bytes, Cardinality.One) as ModelValue
+			const valueType = createEncryptedValueType(ValueTypeEnum.Bytes, CardinalityEnum.One) as ModelValue
 			const sessionKey = aes256RandomKey()
 			const value = random.generateRandomData(5)
 			const subKeyInfo = new SubKeyInfoWithSessionKeyAead(sessionKey)
@@ -332,7 +332,7 @@ o.spec("CryptoMapperTest", () => {
 		})
 
 		o.test("encrypt bytes with AEAD with group key roundtrip", async () => {
-			const valueType = createEncryptedValueType(ValueTypeEnum.Bytes, Cardinality.One) as ModelValue
+			const valueType = createEncryptedValueType(ValueTypeEnum.Bytes, CardinalityEnum.One) as ModelValue
 			const value = random.generateRandomData(5)
 			const groupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
 			const kdfNonce: KdfNonce = generateKdfNonce()
@@ -443,7 +443,7 @@ o.spec("CryptoMapperTest", () => {
 			valueDecryptor = object()
 			when(valueDecryptor.getValue(matchers.anything())).thenReturn(new Uint8Array())
 			instanceDecryptor = object()
-			valueType = createEncryptedValueType(ValueTypeEnum.String, Cardinality.One)
+			valueType = createEncryptedValueType(ValueTypeEnum.String, CardinalityEnum.One)
 			const nonEmptyNumberArray = [0]
 			const ciphertext = Uint8Array.from(nonEmptyNumberArray)
 			encryptedValue = ParsedValue.fromByteArray(ciphertext)
