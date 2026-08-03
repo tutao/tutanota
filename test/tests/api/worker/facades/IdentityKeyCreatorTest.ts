@@ -26,7 +26,7 @@ import { Versioned } from "../../../../../src/platform-kit/utils"
 import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
 
 import { Group, GroupMembershipTypeRef, GroupTypeRef, IdentityKeyPostIn, IdentityKeyService, PublicKeySignature, User, UserTypeRef } from "@tutao/entities/sys"
-import { KeyAuthenticationFacade } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
+import { KeyAuthenticationFacade, SystemMapKind } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { elementIdToId, idToElementId } from "../../../../../src/platform-kit/meta"
@@ -121,7 +121,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 
 			when(
 				keyAuthenticationFacade.computeTag({
-					tagType: "IDENTITY_PUB_KEY_TAG",
+					tagType: SystemMapKind.IDENTITY_PUB_KEY_TAG,
 					sourceOfTrust: { symmetricGroupKey: userGroupKey.object },
 					untrustedKey: { identityPubKey: identityKeyPair.public_key },
 					bindingData: {
