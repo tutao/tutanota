@@ -1,6 +1,6 @@
 import { Aes128Key, Aes256Key, AesKey, AesKeyLength, AesKeyOrSubKeys, getKeyLengthInBytes } from "./AesKey.js"
 import { SymmetricCipherVersion } from "./SymmetricCipherVersion.js"
-import { KdfNonce, keyToUint8Array, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
+import { KdfNonce, keyToUint8Array, uint8ArrayToKey, uint8ArrayTo256Key } from "./SymmetricCipherUtils.js"
 import { sha256Hash } from "../../hashes/Sha256.js"
 import { sha512Hash } from "../../hashes/Sha512.js"
 import { blake3Kdf } from "../../hashes/Blake3.js"
@@ -134,15 +134,15 @@ export class SymmetricKeyDeriver {
 
 	private deriveAeadSubKeys(inputKeyMaterial: Uint8Array<ArrayBuffer>, context: string): AeadWithSessionKeySubKeys {
 		const derivedBytes = blake3Kdf(inputKeyMaterial, context, DEFAULT_TOTAL_KEY_LENGTH_BYTES)
-		const encryptionKey = uint8ArrayToKey(derivedBytes.subarray(0, DEFAULT_LENGTH_PER_KEY_BYTES), AesKeyLength.Aes256)
-		const authenticationKey = uint8ArrayToKey(derivedBytes.subarray(DEFAULT_LENGTH_PER_KEY_BYTES, DEFAULT_TOTAL_KEY_LENGTH_BYTES), AesKeyLength.Aes256)
+		const encryptionKey = uint8ArrayTo256Key(derivedBytes.subarray(0, DEFAULT_LENGTH_PER_KEY_BYTES))
+		const authenticationKey = uint8ArrayTo256Key(derivedBytes.subarray(DEFAULT_LENGTH_PER_KEY_BYTES, DEFAULT_TOTAL_KEY_LENGTH_BYTES))
 		return new AeadWithSessionKeySubKeys(encryptionKey, authenticationKey)
 	}
 
 	private deriveAeadGroupKeySubKeys(inputKeyMaterial: Uint8Array<ArrayBuffer>, context: string, groupKeyVersion: KeyVersion): AeadWithGroupKeySubKeys {
 		const derivedBytes = blake3Kdf(inputKeyMaterial, context, DEFAULT_TOTAL_KEY_LENGTH_BYTES)
-		const encryptionKey = uint8ArrayToKey(derivedBytes.subarray(0, DEFAULT_LENGTH_PER_KEY_BYTES), AesKeyLength.Aes256)
-		const authenticationKey = uint8ArrayToKey(derivedBytes.subarray(DEFAULT_LENGTH_PER_KEY_BYTES, DEFAULT_TOTAL_KEY_LENGTH_BYTES), AesKeyLength.Aes256)
+		const encryptionKey = uint8ArrayTo256Key(derivedBytes.subarray(0, DEFAULT_LENGTH_PER_KEY_BYTES))
+		const authenticationKey = uint8ArrayTo256Key(derivedBytes.subarray(DEFAULT_LENGTH_PER_KEY_BYTES, DEFAULT_TOTAL_KEY_LENGTH_BYTES))
 		return new AeadWithGroupKeySubKeys(groupKeyVersion, encryptionKey, authenticationKey)
 	}
 }

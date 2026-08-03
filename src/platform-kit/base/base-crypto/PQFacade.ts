@@ -11,7 +11,7 @@ import {
 	PQKeyPairs,
 	pqKeyPairsToPublicKeys,
 	PQPublicKeys,
-	uint8ArrayToKey,
+	uint8ArrayTo256Key,
 	x25519Decapsulate,
 	x25519Encapsulate,
 	X25519KeyPair,
@@ -128,6 +128,6 @@ export class PQFacade {
 		const inputKeyMaterial = concat(eccSharedSecret.ephemeralSharedSecret, eccSharedSecret.authSharedSecret, kyberSharedSecret)
 
 		const kekBytes = hkdf(context, inputKeyMaterial, stringToUtf8Uint8Array("kek"), getKeyLengthInBytes(AesKeyLength.Aes256))
-		return uint8ArrayToKey(kekBytes, AesKeyLength.Aes256)
+		return uint8ArrayTo256Key(kekBytes)
 	}
 }
