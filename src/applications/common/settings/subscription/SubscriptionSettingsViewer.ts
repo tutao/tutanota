@@ -33,6 +33,7 @@ import {
 import {
 	AccountType,
 	AccountTypeNames,
+	AvailablePlans,
 	AvailablePlanType,
 	BookingItemFeatureType,
 	LegacyPlans,
@@ -265,29 +266,15 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 					m(SubscriptionStateCard, {
 						title: "subscriptionSettingCurrentSubscription_label",
 						cells: [
-							this.getPlanCellAttrs(
-								planType,
-								//Show button to change plan for premium customers in first card
-								!isNewPlan
-									? {
-											icon: Icons.PenFilled,
-											title: "changePlan_action",
-											click: async () => {
-												await this.handleUpgradeSubscription()
-												m.redraw()
-											},
-										}
-									: undefined,
-							),
+							this.getPlanCellAttrs(planType),
 							this.getStatusCellAttrs(currentStateSubscription),
-							isNewPlan && !isAppleSubscription ? this.getPriceCellAttrs(this._currentPriceFieldValue()) : null,
-							isNewPlan ? this.getEndDateAttrs(currentStateSubscription, booking.endDate) : null,
+							!isAppleSubscription ? this.getPriceCellAttrs(this._currentPriceFieldValue()) : null,
+							this.getEndDateAttrs(currentStateSubscription, booking.endDate),
 						],
 					} satisfies SubscriptionStateCardAttrs),
 				),
 				//Next Subscription period
-				isNewPlan &&
-					isNewSubscriptionVisible &&
+				isNewSubscriptionVisible &&
 					!isAppleSubscription &&
 					m(
 						".flex.col.gap-8",
@@ -503,7 +490,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private onSubscriptionClick() {
+	private async onSubscriptionClick() {
 		const paymentMethod = this._accountingInfo ? getPaymentMethodType(this._accountingInfo) : null
 
 		if (isIOSApp() && (paymentMethod == null || paymentMethod === PaymentMethodType.AppStore)) {
@@ -523,7 +510,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 					customer: this._customer,
 					accountingInfo: this._accountingInfo,
 					lastBooking: this._lastBooking,
-					acceptedPlans: NewPaidPlans,
+					acceptedPlans: (await locator.logins.getUserController().isNewPaidPlan()) ? NewPaidPlans : AvailablePlans,
 					reason: null,
 				})
 			}
