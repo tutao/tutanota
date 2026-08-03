@@ -40,7 +40,7 @@ import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
 import { KeyVerificationMismatchError } from "../../network/error/KeyVerificationMismatchError"
 import { RolloutAction } from "../facades/RolloutFacade"
 import { RecoverCodeFacade } from "../facades/lazy/RecoverCodeFacade.js"
-import { brandKeyMac, KeyAuthenticationFacade } from "../../network/KeyAuthenticationFacade.js"
+import { brandKeyMac, KeyAuthenticationFacade, SystemMapKind } from "../../network/KeyAuthenticationFacade.js"
 import {
 	AdminGroupKeyDistributionElement,
 	AdminGroupKeyRotationService,
@@ -443,7 +443,7 @@ export class KeyRotationFacade {
 
 			const currentUserGroupKey = await this.adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(userGroupInfo.group)
 			const tag = this.keyAuthenticationFacade.computeTag({
-				tagType: "NEW_ADMIN_PUB_KEY_TAG",
+				tagType: SystemMapKind.NEW_ADMIN_PUB_KEY_TAG,
 				sourceOfTrust: { receivingUserGroupKey: currentUserGroupKey.object },
 				untrustedKey: { newAdminPubKey },
 				bindingData: {
@@ -1004,7 +1004,7 @@ export class KeyRotationFacade {
 
 		this.keyAuthenticationFacade.verifyTag(
 			{
-				tagType: "NEW_ADMIN_PUB_KEY_TAG",
+				tagType: SystemMapKind.NEW_ADMIN_PUB_KEY_TAG,
 				sourceOfTrust: { receivingUserGroupKey: currentUserGroupKey.object },
 				untrustedKey: { newAdminPubKey: currentAdminPubKeys.publicEncryptionKey.object },
 				bindingData: {
@@ -1072,7 +1072,7 @@ export class KeyRotationFacade {
 
 		this.keyAuthenticationFacade.verifyTag(
 			{
-				tagType: "ADMIN_SYM_KEY_TAG",
+				tagType: SystemMapKind.ADMIN_SYM_KEY_TAG,
 				sourceOfTrust: { currentReceivingUserGroupKey: currentUserGroupKey.object },
 				untrustedKey: { newAdminGroupKey: versionedNewAdminGroupKey.object },
 				bindingData: {
@@ -1107,7 +1107,7 @@ export class KeyRotationFacade {
 		})
 
 		const tag = this.keyAuthenticationFacade.computeTag({
-			tagType: "USER_GROUP_KEY_TAG",
+			tagType: SystemMapKind.USER_GROUP_KEY_TAG,
 			untrustedKey: {
 				newUserGroupKey: newUserGroupKeys.symGroupKey.object,
 			},
@@ -1160,7 +1160,7 @@ export class KeyRotationFacade {
 		const adminDistPublicKey = this.publicEncryptionKeyProvider.convertFromEncryptedPqKeyPairs(adminDistributionKeyPair, 0)
 
 		const tag = this.keyAuthenticationFacade.computeTag({
-			tagType: "PUB_DIST_KEY_TAG",
+			tagType: SystemMapKind.PUB_DIST_KEY_TAG,
 			sourceOfTrust: { currentAdminGroupKey: currentAdminGroupKey.object },
 			untrustedKey: {
 				distPubKey: adminDistPublicKey.object,
@@ -1248,7 +1248,7 @@ export class KeyRotationFacade {
 			const distributionPublicKey = this.publicEncryptionKeyProvider.convertFromPubDistributionKey(distributionKey)
 			this.keyAuthenticationFacade.verifyTag(
 				{
-					tagType: "PUB_DIST_KEY_TAG",
+					tagType: SystemMapKind.PUB_DIST_KEY_TAG,
 					sourceOfTrust: { currentAdminGroupKey: currentAdminGroupKey.object },
 					untrustedKey: {
 						distPubKey: distributionPublicKey.object,
@@ -1270,7 +1270,7 @@ export class KeyRotationFacade {
 			)
 
 			const adminSymKeyTag = this.keyAuthenticationFacade.computeTag({
-				tagType: "ADMIN_SYM_KEY_TAG",
+				tagType: SystemMapKind.ADMIN_SYM_KEY_TAG,
 				sourceOfTrust: { currentReceivingUserGroupKey: targetUserGroupKey.object },
 				untrustedKey: { newAdminGroupKey: newSymAdminGroupKey.object },
 				bindingData: {

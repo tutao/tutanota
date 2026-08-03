@@ -15,7 +15,12 @@ import { IdentityKeySourceOfTrust } from "../../../../../src/platform-kit/app-en
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
 import testData from "../../../api/worker/crypto/CompatibilityTestData.json"
 import { PublicIdentityKeyProvider } from "../../../../../src/platform-kit/base/base-crypto/PublicIdentityKeyProvider"
-import { brandKeyMac, IdentityPubKeyAuthenticationParams, KeyAuthenticationFacade } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
+import {
+	brandKeyMac,
+	IdentityPubKeyAuthenticationParams,
+	KeyAuthenticationFacade,
+	SystemMapKind,
+} from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
 import { ServiceExecutor } from "../../../../../src/platform-kit/network/ServiceExecutor.js"
 
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
@@ -89,7 +94,7 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 				keyAuthenticationFacade.verifyTag(
 					matchers.argThat((params: IdentityPubKeyAuthenticationParams) => {
 						return (
-							params.tagType === "IDENTITY_PUB_KEY_TAG" &&
+							params.tagType === SystemMapKind.IDENTITY_PUB_KEY_TAG &&
 							arrayEquals(params.untrustedKey.identityPubKey, ed25519PublicKey) &&
 							params.sourceOfTrust.symmetricGroupKey === userGroupKey &&
 							isSameId(idToElementId(params.bindingData.groupId), userGroup._id) &&

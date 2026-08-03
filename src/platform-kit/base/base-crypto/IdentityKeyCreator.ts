@@ -9,7 +9,7 @@ import { AsymmetricKeyPair, CryptoWrapper, KeyPairType, VersionedKey } from "@tu
 import { Ed25519Facade } from "./Ed25519Facade"
 import { PublicKeySignatureFacade } from "./PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
-import { KeyAuthenticationFacade } from "../../network/KeyAuthenticationFacade"
+import { KeyAuthenticationFacade, SystemMapKind } from "../../network/KeyAuthenticationFacade"
 import { createIdentityKeyPair, createIdentityKeyPostIn, createKeyMac, GroupTypeRef, IdentityKeyService } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
 import { CacheManager } from "./persistence/CacheManager"
@@ -60,7 +60,7 @@ export class IdentityKeyCreator {
 		const identityKeyVersion = 0
 
 		let tag = this.keyAuthenticationFacade.computeTag({
-			tagType: "IDENTITY_PUB_KEY_TAG",
+			tagType: SystemMapKind.IDENTITY_PUB_KEY_TAG,
 			sourceOfTrust: { symmetricGroupKey: currentGroupKey.object },
 			untrustedKey: { identityPubKey: newEd25519IdentityKeyPair.public_key },
 			bindingData: {
