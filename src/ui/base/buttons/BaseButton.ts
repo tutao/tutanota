@@ -1,6 +1,5 @@
 import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { ClickHandler } from "../GuiUtils.js"
-import { assertNotNull } from "../../../platform-kit/utils"
 import { TabIndex } from "../../../platform-kit/app-env"
 import { AriaRole } from "../../AriaUtils.js"
 import { lang, MaybeTranslation } from "../../utils/LanguageViewModel.js"
@@ -46,7 +45,10 @@ export class BaseButton implements ClassComponent<BaseButtonAttrs> {
 				"aria-pressed": pressed,
 				"aria-selected": selected,
 				onclick: (event: MouseEvent) => {
-					let p: any = attrs.onclick(event, assertNotNull(this.dom))
+					if (!this.dom) {
+						console.warn("DOM node null in BaseButton")
+					}
+					let p: any = attrs.onclick(event, event.target! as HTMLElement)
 					if (p instanceof Promise) {
 						p.then(() => m.redraw())
 					}

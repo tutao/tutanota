@@ -1,4 +1,4 @@
-import m, { Children, Component } from "mithril"
+import m, { Children, Component, VnodeDOM } from "mithril"
 import { alpha, AlphaEnum, animations } from "../animation/Animations"
 import { theme } from "../theme"
 import type { Shortcut } from "../utils/KeyManager"
@@ -17,9 +17,10 @@ type ModalComponentWrapper = {
 }
 
 class Modal implements Component {
+	domElement: HTMLElement | null = null
 	components: Array<ModalComponentWrapper>
 	private uniqueComponent: ModalComponent | null
-	view: Component["view"]
+	// view: Component["view"]
 	visible: boolean
 	currentKey: number
 	private closingComponents: Array<ModalComponent>
@@ -34,84 +35,96 @@ class Modal implements Component {
 		this.visible = false
 		this.uniqueComponent = null
 		this.closingComponents = []
-
-		this.view = (): Children => {
-			return m(
-				"#modal.fill-absolute",
-				{
-					inert: !this.visible,
-					style: {
-						"z-index": LayerType.Modal,
-						display: this.visible ? "" : "none",
-					},
+	}
+	view() {
+		return m(
+			"#modal.fill-absolute",
+			{
+				inert: !this.visible,
+				style: {
+					"z-index": LayerType.Modal,
+					display: this.visible ? "" : "none",
 				},
-				this.components.map((wrapper, i, array) =>
-					m(
-						".fill-absolute",
-						{
-							key: wrapper.key,
-							inert: i !== lastIndex(array),
-							oncreate: (vnode) => {
-								// do not set visible=true already in display() because it leads to modal staying open in a second window in Chrome
-								// because onbeforeremove is not called in that case to set visible=false. this is probably an optimization in Chrome to reduce
-								// UI updates if the window is not visible. setting visible=true here is fine because this code is not even called then
-								this.visible = true
-								m.redraw()
-								if (wrapper.needsBg) this.addAnimation(vnode.dom as HTMLElement, true)
-							},
-							onclick: (event: MouseEvent) => {
-								const element = event.currentTarget as HTMLElement
-								// This layer div has a single child, the modal component
-								const child = element.firstElementChild
-
-								// child shouldn't be null but maybe the user click fast idk
-								if (child) {
-									const childRect = child.getBoundingClientRect()
-
-									if (!insideRect(event, childRect)) {
-										wrapper.component.backgroundClick(event)
-									}
-								}
-							},
-							style: {
-								zIndex: this.getComponentLayer(i + 1),
-							},
-							onbeforeremove: async (vnode) => {
-								if (wrapper.needsBg) {
-									this.closingComponents.push(wrapper.component)
-
-									await Promise.all([
-										this.addAnimation(vnode.dom as HTMLElement, false).then(() => {
-											remove(this.closingComponents, wrapper.component)
-
-											if (this.components.length === 0 && this.closingComponents.length === 0) {
-												this.visible = false
-											}
-										}),
-										wrapper.component.hideAnimation(),
-									])
-								} else {
-									if (this.components.length === 0 && this.closingComponents.length === 0) {
-										this.visible = false
-									}
-
-									await wrapper.component.hideAnimation()
-								}
-
-								m.redraw()
-
-								// Return the focus back to it's calling element.
-								// We focus callingElement onbeforeremove with requestAnimationFrame because
-								// focus can't happen if callingElement is inert. And when returning
-								// focus to main view, focus must happen after redraw that removes inert
-								requestAnimationFrame(() => wrapper.component.callingElement()?.focus())
-							},
+			},
+			this.components.map((wrapper, i, array) =>
+				m(
+					".fill-absolute",
+					{
+						// key: wrapper.key,
+						"data-id": wrapper.key,
+						inert: i !== lastIndex(array),
+						oncreate: (vnode) => {
+							// do not set visible=true already in display() because it leads to modal staying open in a second window in Chrome
+							// because onbeforeremove is not called in that case to set visible=false. this is probably an optimization in Chrome to reduce
+							// UI updates if the window is not visible. setting visible=true here is fine because this code is not even called then
+							this.visible = true
+							m.redraw()
+							if (wrapper.needsBg) this.addAnimation(vnode.dom as HTMLElement, true)
 						},
-						m(wrapper.component),
-					),
+						onclick: (event: MouseEvent) => {
+							const element = event.currentTarget as HTMLElement
+							// This layer div has a single child, the modal component
+							const child = element.firstElementChild
+
+							// child shouldn't be null but maybe the user click fast idk
+							if (child) {
+								const childRect = child.getBoundingClientRect()
+
+								if (!insideRect(event, childRect)) {
+									wrapper.component.backgroundClick(event)
+								}
+							}
+						},
+						style: {
+							zIndex: this.getComponentLayer(i + 1),
+						},
+						onbeforeremove: async (vnode) => {
+							if (wrapper.needsBg) {
+								this.closingComponents.push(wrapper.component)
+
+								await Promise.all([
+									this.addAnimation(vnode.dom as HTMLElement, false).then(() => {
+										remove(this.closingComponents, wrapper.component)
+
+										if (this.components.length === 0 && this.closingComponents.length === 0) {
+											this.visible = false
+										}
+									}),
+									wrapper.component.hideAnimation(),
+								])
+							} else {
+								if (this.components.length === 0 && this.closingComponents.length === 0) {
+									this.visible = false
+								}
+
+								await wrapper.component.hideAnimation()
+							}
+
+							m.redraw()
+
+							// Return the focus back to it's calling element.
+							// We focus callingElement onbeforeremove with requestAnimationFrame because
+							// focus can't happen if callingElement is inert. And when returning
+							// focus to main view, focus must happen after redraw that removes inert
+							requestAnimationFrame(() => wrapper.component.callingElement()?.focus())
+						},
+					},
+					m(wrapper.component),
 				),
-			)
-		}
+			),
+		)
+	}
+
+	oncreate(vnode: VnodeDOM<any>): any {
+		console.log("MODAL CREATE")
+		console.log(vnode.dom)
+		if (vnode.dom) this.domElement = vnode.dom as HTMLElement
+	}
+
+	onupdate(vnode: VnodeDOM<any>): any {
+		console.log("MODAL UPDATE")
+		console.log(vnode.dom)
+		if (vnode.dom) this.domElement = vnode.dom as HTMLElement
 	}
 
 	init(windowFacade: IWindowFacade) {
@@ -225,6 +238,23 @@ class Modal implements Component {
 		if (componentIsTopmostComponent) {
 			console.log("removed topmost modal component")
 			keyManager.unregisterModalShortcuts(component.shortcuts())
+		}
+
+		const key = this.components[componentIndex].key
+		const domElement = document.getElementById("modal")
+		console.log("MODAL DOM ELEMENT", domElement)
+		if (domElement) {
+			console.log("MODAL REMOVE")
+			console.trace()
+			let child = domElement.firstElementChild
+			while (child) {
+				console.log("CHILD", child)
+				const nextChild = child?.nextElementSibling
+				if (parseInt(child!.getAttribute("data-id") ?? "") === key) {
+					child?.remove()
+				}
+				child = nextChild
+			}
 		}
 
 		this.components.splice(componentIndex, 1)
