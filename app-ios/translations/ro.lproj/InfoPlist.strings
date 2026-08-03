@@ -20,6 +20,7 @@ TutaoWidgetOpenAppAction = "Deschide aplicația";
 TutaoWidgetUnexpectedErrorMsg = "Ceva nu a mers bine.";
 TutaoWidgetSendLogsAction = "Trimite jurnale";
 TutaoWidgetNoEventsMsg = "Niciun eveniment";
+TutaoWidgetNoEventsTodayMsg = "Astăzi nu sunt evenimente";
 TutaoWidgetCredentialsErrorMsg = "Datele de autentificare nu sunt disponibile";
 TutaoAccountLabel = "Utilizator";
 TutaoCalendarsLabel = "Calendare";
