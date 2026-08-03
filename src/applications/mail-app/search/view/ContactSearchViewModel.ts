@@ -1,15 +1,14 @@
 import { ListModel } from "../../../common/misc/ListModel"
 import Id from "../../../../ui/translations/id"
 import { createRestriction, getRestriction, getSearchUrl, searchQueryEquals } from "../model/SearchUtils"
-import { SearchCategoryType, SearchRestriction, SearchResult } from "../../../common/api/worker/search/SearchTypes"
+import { SearchCategoryType, SearchRestriction } from "../../../common/api/worker/search/SearchTypes"
 import { Contact } from "@tutao/entities/tutanota"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
-import Stream from "mithril/stream"
 import { debounce, isNotNull, noOp, onceAsync } from "@tutao/utils"
 import { OfflineStorageSettingsModel } from "../../../common/offline/OfflineStorageSettingsModel"
-import { CancelledError, isAdminClient, isBrowser } from "@tutao/app-env"
-import { elementIdPart, getElementId, isSameId } from "@tutao/meta"
+import { CancelledError } from "@tutao/app-env"
+import { getElementId, isSameId } from "@tutao/meta"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { compareContacts } from "../../contacts/view/ContactGuiUtils"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
@@ -19,7 +18,6 @@ import { ContactSearchModel } from "../model/ContactSearchModel"
 
 export class ContactSearchViewModel {
 	#listModel: ListModel<Contact, Id> = emptyListModel()
-	private resultSubscription: Stream<void> | null = null
 	get listModel(): ListModel<Contact, Id> {
 		return this.#listModel
 	}
@@ -70,25 +68,8 @@ export class ContactSearchViewModel {
 	}
 
 	readonly init = onceAsync(async () => {
-		// FIXME
-		// this.resultSubscription = this.search.result.map((result) => this.onSearchResultChanged(result))
 		await this.offlineStorageSettings?.init()
 	})
-	private onSearchResultChanged(newResult: SearchResult | null): void {
-		this.updateSearchResultIdToIndex(newResult)
-		this.stopLoadAll()
-	}
-	private searchResultIdToIndex: Map<Id, number> | null = null
-	private updateSearchResultIdToIndex(searchResult: SearchResult | null) {
-		if (searchResult == null) {
-			this.searchResultIdToIndex = null
-		} else if (!isBrowser() && !isAdminClient()) {
-			this.searchResultIdToIndex = new Map()
-			for (let i = 0; i < searchResult.results.length; i++) {
-				this.searchResultIdToIndex.set(elementIdPart(searchResult.results[i]), i)
-			}
-		}
-	}
 
 	dispose() {
 		this.stopLoadAll()
@@ -122,6 +103,7 @@ export class ContactSearchViewModel {
 		const isNewSearch = currentQuery ? !searchQueryEquals(currentQuery, newQuery) : true
 		if (isNewSearch) {
 			this.searchResult?.dispose()
+			this.stopLoadAll()
 			const searchPromise = this.search
 				.coolNewSearchContacts({
 					query: searchQuery ?? "",

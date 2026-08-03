@@ -1,7 +1,7 @@
 import { CalendarInfoBase, CalendarModel, isBirthdayCalendarInfo, isCalendarInfo } from "../../model/CalendarModel"
 import Id from "../../../../../ui/translations/id"
-import { elementIdPart, getElementId, isSameId } from "@tutao/meta"
-import { SearchCategoryType, SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes"
+import { getElementId, isSameId } from "@tutao/meta"
+import { SearchCategoryType, SearchRestriction } from "../../../../common/api/worker/search/SearchTypes"
 import { createRestriction, encodeCalendarSearchKey, getSearchUrl, searchQueryEquals } from "../../../../mail-app/search/model/SearchUtils"
 import { debounce, getEndOfDay, getStartOfDay, incrementMonth, isNotNull, isSameDayOfDate, onceAsync, YEAR_IN_MILLIS } from "@tutao/utils"
 import { ListModel } from "../../../../common/misc/ListModel"
@@ -10,7 +10,7 @@ import { LoginController } from "../../../../common/api/main/LoginController"
 import { SearchToken } from "../../../../../ui/utils/QueryTokenUtils"
 import Stream from "mithril/stream"
 import { SearchRouter } from "../../../../common/search/view/SearchRouter"
-import { CancelledError, isAdminClient, isBrowser } from "@tutao/app-env"
+import { CancelledError } from "@tutao/app-env"
 import { EventController } from "../../../../common/api/main/EventController"
 import {
 	EntityEventsListener,
@@ -34,9 +34,7 @@ export class CalendarSearchViewModel {
 	private abortController: AbortController | null = null
 	#delayingSearch: boolean = false
 	private resultSubscription: Stream<void> | null = null
-	private searchResultIdToIndex: Map<Id, number> | null = null
 	private searchResult: LiveSearchResult<unknown> | null = null
-	private latestCalendarRestriction: SearchRestriction | null = null
 	get busy(): boolean {
 		return this.#delayingSearch
 	}
@@ -235,26 +233,9 @@ export class CalendarSearchViewModel {
 	}
 
 	readonly init = onceAsync(async () => {
-		// FIXME
-		// this.resultSubscription = this.searchResult.result.map((result: SearchResult | null) => this.onSearchResultChanged(result))
-
 		this.eventController.addEntityListener(this.entityEventsListener)
 		await this.offlineStorageSettings?.init()
 	})
-	private onSearchResultChanged(newResult: SearchResult | null): void {
-		this.#listModel.cancelLoadAll()
-		this.updateSearchResultIdToIndex(newResult)
-	}
-	private updateSearchResultIdToIndex(searchResult: SearchResult | null) {
-		if (searchResult == null) {
-			this.searchResultIdToIndex = null
-		} else if (!isBrowser() && !isAdminClient()) {
-			this.searchResultIdToIndex = new Map()
-			for (let i = 0; i < searchResult.results.length; i++) {
-				this.searchResultIdToIndex.set(elementIdPart(searchResult.results[i]), i)
-			}
-		}
-	}
 	private readonly entityEventsListener: EntityEventsListener = {
 		onEntityUpdatesReceived: async (updates) => {
 			for (const update of updates) {
@@ -305,11 +286,11 @@ export class CalendarSearchViewModel {
 		const isNewSearch = currentQuery ? !searchQueryEquals(currentQuery, newQuery) : true
 		if (isNewSearch) {
 			this.searchResult?.dispose()
+			this.stopLoadAll()
 			this.abortController?.abort()
 			this.#startDate = restriction.start ? new Date(restriction.start) : null
 			this.#endDate = restriction.end ? new Date(restriction.end) : null
 			this.#includeRepeatingEvents = restriction.eventSeries ?? true
-			this.latestCalendarRestriction = restriction
 
 			// Check if user is trying to search in a birthday calendar while using a free account
 			const listIdsOrBirthdayCalendarId = this.extractCalendarListIds(restriction.folderIds)

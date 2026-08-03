@@ -43,7 +43,6 @@ const SEARCH_PAGE_SIZE = 100
 export class MailSearchViewModel {
 	#listModel: ListModel<Mail, Id> = emptyListModel()
 	#selectedMailField: string | null = null
-	private latestMailRestriction: SearchRestriction | null = null
 	#conversationViewModel: ConversationViewModel | null = null
 	get selectedMailField(): string | null {
 		return this.#selectedMailField
@@ -181,7 +180,6 @@ export class MailSearchViewModel {
 			this.#startDate = restriction.end ? new Date(restriction.end) : null
 			this.#endDate = restriction.start ? new Date(restriction.start) : null
 			this.#selectedMailFolder = restriction.folderIds
-			this.latestMailRestriction = restriction
 
 			const searchPromise = this.search
 				.coolNewSearchMails({
