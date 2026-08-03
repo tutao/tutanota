@@ -366,7 +366,7 @@ async function sendToServer(error: ErrorInfo, userMessage: string | null, logs: 
 			errorMessage: error.message,
 			userMessage: userMessage,
 			stackTrace: error.stack ?? "",
-			additionalInfo: ClientDetector.get().userAgent,
+			additionalInfo: ClientDetector.get().getUserAgent(),
 			time: new Date(),
 		}),
 		files: logs.map((log) => {
