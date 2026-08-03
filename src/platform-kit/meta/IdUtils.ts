@@ -1,5 +1,6 @@
-import { AnyEntityId } from "./EntityTypes.js"
 import { idToElementId } from "./EntityUtils"
+
+import { AnyEntityId } from "./EntityTypes"
 
 export function collapseId(listId: Id | null, elementId: Id): AnyEntityId {
 	if (listId != null) {

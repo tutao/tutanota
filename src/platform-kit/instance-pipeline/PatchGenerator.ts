@@ -1,12 +1,11 @@
 import {
 	AssociationReprType,
-	Cardinality,
+	CardinalityEnum,
 	getAssociationRepresentationType,
 	IDENTITY_FIELDS,
 	isSameIdTuple,
 	isSameSingleId,
 	isSameTypeRef,
-	ValueType,
 	ValueTypeEnum,
 } from "@tutao/meta"
 import { ParsedValue } from "./ParsedValue"
@@ -39,17 +38,17 @@ export class PatchGenerator {
 		}
 
 		switch (valueType) {
-			case ValueType.Bytes:
+			case ValueTypeEnum.Bytes:
 				return !arrayEquals(originalParsedValue.asByteArray(), currentParsedValue.asByteArray())
-			case ValueType.Date:
+			case ValueTypeEnum.Date:
 				return originalParsedValue.asDate().valueOf() !== currentParsedValue.asDate().valueOf()
-			case ValueType.Number:
-			case ValueType.String:
-			case ValueType.Boolean:
-			case ValueType.CompressedString:
+			case ValueTypeEnum.Number:
+			case ValueTypeEnum.String:
+			case ValueTypeEnum.Boolean:
+			case ValueTypeEnum.CompressedString:
 				return originalParsedValue.asString() !== currentParsedValue.asString()
-			case ValueType.CustomId:
-			case ValueType.GeneratedId:
+			case ValueTypeEnum.CustomId:
+			case ValueTypeEnum.GeneratedId:
 				if (originalParsedValue.isString()) {
 					return !isSameSingleId(originalParsedValue.asId(), currentParsedValue.asId())
 				} else if (TypeChecks.isObject(originalParsedValue)) {
@@ -134,7 +133,7 @@ export class PatchGenerator {
 				const { addedItems, removedItems, commonItems } = this.segregateAggregates(modifiedAggregatedEncryptedEntities, originalAggregatedEntities)
 
 				if (
-					(modelAssociation.cardinality !== Cardinality.Any && isEmpty(originalAggregatedEntities) !== isEmpty(modifiedAggregatedEntities)) ||
+					(modelAssociation.cardinality !== CardinalityEnum.Any && isEmpty(originalAggregatedEntities) !== isEmpty(modifiedAggregatedEntities)) ||
 					(!isEmpty(originalAggregatedEntities) && !isEmpty(modifiedAggregatedEntities) && isEmpty(commonItems))
 				) {
 					const aggregatesAsJson = modifiedAggregatedEncryptedEntities.map((agg) => this.instancePipeline.typeMapper.makeServerJson(agg))
@@ -217,7 +216,7 @@ export class PatchGenerator {
 					const addedItems = modifiedIds.filter((modifiedId) => !originalIds.some((originalId) => isSameSingleId(originalId, modifiedId)))
 					const removedItems = originalIds.filter((originalId) => !modifiedIds.some((modifiedId) => isSameSingleId(originalId, modifiedId)))
 
-					if (modelAssociation.cardinality === Cardinality.Any) {
+					if (modelAssociation.cardinality === CardinalityEnum.Any) {
 						addedItemsJson = isNotEmpty(addedItems) ? OutgoingServerJson.stringifyIdList(addedItems) : null
 						removedItemsJson = isNotEmpty(removedItems) ? OutgoingServerJson.stringifyIdList(removedItems) : null
 					} else {
@@ -229,7 +228,7 @@ export class PatchGenerator {
 					const addedItems = modifiedIdTuples.filter((modifiedId) => !originalIdTuples.some((originalId) => isSameIdTuple(originalId, modifiedId)))
 					const removedItems = originalIdTuples.filter((originalId) => !modifiedIdTuples.some((modifiedId) => isSameIdTuple(originalId, modifiedId)))
 
-					if (modelAssociation.cardinality === Cardinality.Any) {
+					if (modelAssociation.cardinality === CardinalityEnum.Any) {
 						addedItemsJson = isNotEmpty(addedItems) ? OutgoingServerJson.stringifyIdTupleList(addedItems) : null
 						removedItemsJson = isNotEmpty(removedItems) ? OutgoingServerJson.stringifyIdTupleList(removedItems) : null
 					} else {
@@ -238,11 +237,11 @@ export class PatchGenerator {
 				}
 
 				if (isNotNull(addedItemsJson)) {
-					assert(modelAssociation.cardinality === Cardinality.Any, "Only ANY cardinality association supports ADD_ITEM patch operation")
+					assert(modelAssociation.cardinality === CardinalityEnum.Any, "Only ANY cardinality association supports ADD_ITEM patch operation")
 					patches.push(createPatch({ attributePath: networkDebuggedAttributeId, value: addedItemsJson, patchOperation: PatchOperationType.ADD_ITEM }))
 				}
 				if (isNotNull(removedItemsJson)) {
-					assert(modelAssociation.cardinality === Cardinality.Any, "Only ANY cardinality association supports REMOVE_ITEM patch operation")
+					assert(modelAssociation.cardinality === CardinalityEnum.Any, "Only ANY cardinality association supports REMOVE_ITEM patch operation")
 					patches.push(
 						createPatch({ attributePath: networkDebuggedAttributeId, value: removedItemsJson, patchOperation: PatchOperationType.REMOVE_ITEM }),
 					)

@@ -4,13 +4,13 @@ import { matchers, object, verify, when } from "testdouble"
 import {
 	AppName,
 	AppNameEnum,
-	AssociationType,
-	Cardinality,
+	AssociationTypeEnum,
+	CardinalityEnum,
+	EntityTypeEnum,
 	getServiceRestPath,
 	ModelAssociation,
 	ServerTypeModel,
 	ServiceDefinition,
-	Type,
 } from "../../../src/platform-kit/meta"
 import { downcast, stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
 import { HttpMethod, MediaType } from "../../../src/platform-kit/rest-client/types"
@@ -46,15 +46,15 @@ o.spec("ApplicationTypesFacadeTest", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testAssociation",
-								type: AssociationType.Aggregation,
-								cardinality: Cardinality.One,
+								type: AssociationTypeEnum.Aggregation,
+								cardinality: CardinalityEnum.One,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",

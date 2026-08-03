@@ -4,18 +4,18 @@ import {
 	AssociationReprType,
 	AttributeId,
 	AttributeName,
-	Cardinality,
+	CardinalityEnum,
 	ClientTypeModel,
 	ElementId,
 	elementIdToId,
 	Entity,
+	EntityTypeEnum,
 	getAssociationRepresentationType,
 	idToElementId,
 	isSameTypeRef,
 	ListElementId,
 	ModelAssociation,
 	ModelValue,
-	Type,
 	TypeRef,
 } from "@tutao/meta"
 import { TypeModelResolver } from "./EntityFunctions"
@@ -63,7 +63,7 @@ export class ModelMapper {
 			const valueId = modelValue.id
 			let parsedValue: DecryptedParsedValue = instance.getValue(modelValue)
 
-			if (clientTypeModel.type === Type.Aggregated && modelValue.name === "_id" && parsedValue.isNull()) {
+			if (clientTypeModel.type === EntityTypeEnum.Aggregated && modelValue.name === "_id" && parsedValue.isNull()) {
 				const randomAggregateId = base64ToBase64Url(uint8ArrayToBase64(random.generateRandomData(4)))
 				parsedValue = ParsedValue.fromString(randomAggregateId)
 			}
@@ -159,17 +159,18 @@ export class ModelMapper {
 	): DecryptedParsedValue {
 		let valueToKeep = value
 
-		const isDeletedOnServerAndClientHaveOneCardinality = serverModelValue == null && clientModelValue.cardinality === Cardinality.One
-		const valueIsNullButServerHaveCardinalityOne = isNotNull(serverModelValue) && valueToKeep.isNull() && serverModelValue.cardinality === Cardinality.One
+		const isDeletedOnServerAndClientHaveOneCardinality = serverModelValue == null && clientModelValue.cardinality === CardinalityEnum.One
+		const valueIsNullButServerHaveCardinalityOne =
+			isNotNull(serverModelValue) && valueToKeep.isNull() && serverModelValue.cardinality === CardinalityEnum.One
 
 		if (isDeletedOnServerAndClientHaveOneCardinality || valueIsNullButServerHaveCardinalityOne) {
 			valueToKeep = EntityUtils.valueToDefault(clientModelValue.type)
 		}
 
 		const cardinality = clientModelValue.cardinality
-		if (cardinality === Cardinality.One && valueToKeep.isNull()) {
+		if (cardinality === CardinalityEnum.One && valueToKeep.isNull()) {
 			throw new InvalidModelError(`Expected non-null value for attribute with One cardinality. ${typeRef.toString()}/${clientModelValue.name}`)
-		} else if (cardinality === Cardinality.Any) {
+		} else if (cardinality === CardinalityEnum.Any) {
 			throw new InvalidModelError("Current metamodel does not support ANY cardinality value")
 		}
 
@@ -194,7 +195,7 @@ export class ClientEntity {
 		this.entityRecord._type = new TypeRef(this.typeModel.app, this.typeModel.id)
 		const entity = this.entityRecord as T
 
-		if (this.typeModel.type !== Type.DataTransfer) {
+		if (this.typeModel.type !== EntityTypeEnum.DataTransfer) {
 			entity._original = structuredClone(entity)
 		}
 
@@ -206,20 +207,20 @@ export class ClientEntity {
 		const key = modelValue.name
 		if (modelValue.name === "_id") {
 			switch (this.typeModel.type) {
-				case Type.ListElement:
-				case Type.BlobElement: {
+				case EntityTypeEnum.ListElement:
+				case EntityTypeEnum.BlobElement: {
 					this.entityRecord[key] = parsedValue.asIdTuple() satisfies ListElementId
 					break
 				}
-				case Type.Element: {
+				case EntityTypeEnum.Element: {
 					this.entityRecord[key] = idToElementId(parsedValue.asId()) satisfies ElementId
 					break
 				}
-				case Type.Aggregated: {
+				case EntityTypeEnum.Aggregated: {
 					this.entityRecord[key] = parsedValue.asId() satisfies Id
 					break
 				}
-				case Type.DataTransfer: {
+				case EntityTypeEnum.DataTransfer: {
 					throw new ProgrammingError(`Did not expected _id in DataTransferType (${this.typeModel.app}/${this.typeModel.name})`)
 				}
 			}
@@ -231,14 +232,14 @@ export class ClientEntity {
 	private setAssociation<T>(associationId: AttributeId, associationList: Array<T>) {
 		const associationModel = this.typeModel.associations[associationId]
 		switch (associationModel.cardinality) {
-			case Cardinality.ZeroOrOne: {
+			case CardinalityEnum.ZeroOrOne: {
 				if (associationList.length > 1) {
 					throw new InvalidModelError(`Cardinality ZeroOrOne can hold at max one item. Found: ${associationList.length}`)
 				}
 				this.entityRecord[associationModel.name] = associationList[0] ?? null
 				break
 			}
-			case Cardinality.One:
+			case CardinalityEnum.One:
 				if (associationList.length !== 1) {
 					throw new InvalidModelError(
 						`Cardinality One should have exactly one item. Found: ${associationList.length}. In ${this.typeModel.app}/${this.typeModel.name}::${associationModel.name}`,
@@ -246,7 +247,7 @@ export class ClientEntity {
 				}
 				this.entityRecord[associationModel.name] = associationList[0]
 				break
-			case Cardinality.Any:
+			case CardinalityEnum.Any:
 				this.entityRecord[associationModel.name] = associationList
 		}
 	}
@@ -295,20 +296,20 @@ export class OutgoingClientEntity {
 			}
 
 			switch (this.typeModel.type) {
-				case Type.ListElement:
-				case Type.BlobElement: {
+				case EntityTypeEnum.ListElement:
+				case EntityTypeEnum.BlobElement: {
 					const idTuple: ListElementId = rawValue
 					return ParsedValue.fromIdTuple<NestedObj>(idTuple)
 				}
-				case Type.Element: {
+				case EntityTypeEnum.Element: {
 					const elementId: ElementId = rawValue
 					return ParsedValue.fromId(elementIdToId(elementId))
 				}
-				case Type.Aggregated: {
+				case EntityTypeEnum.Aggregated: {
 					const aggregateId: Id = rawValue
 					return ParsedValue.fromId(aggregateId)
 				}
-				case Type.DataTransfer: {
+				case EntityTypeEnum.DataTransfer: {
 					throw new ProgrammingError(`DataTransfer Type (${this.typeModel.app}/${this.typeModel.name}) will not have _id.`)
 				}
 			}
@@ -349,7 +350,7 @@ export class OutgoingClientEntity {
 			TypeChecks.isString(value[1])
 
 		switch (associationModel.cardinality) {
-			case Cardinality.One: {
+			case CardinalityEnum.One: {
 				if (value == null) {
 					throw new InvalidModelError(`Association "${associationModel.name}"(${associationModel.id}) with cardinality one cannot be null`)
 				} else if (isIdTuple) {
@@ -359,13 +360,13 @@ export class OutgoingClientEntity {
 				}
 				return [value as T]
 			}
-			case Cardinality.ZeroOrOne: {
+			case CardinalityEnum.ZeroOrOne: {
 				if (isIdTuple || !Array.isArray(value)) {
 					return isNotNull(value) ? [value as T] : []
 				}
 				throw new InvalidModelError("Association with cardinality ZeroOrOne should have at most one item")
 			}
-			case Cardinality.Any: {
+			case CardinalityEnum.Any: {
 				if (Array.isArray(value)) {
 					return (value as Array<T>) ?? []
 				}
