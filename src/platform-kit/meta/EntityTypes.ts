@@ -1,7 +1,3 @@
-import { AssociationType, Cardinality, Type } from "./EntityConstants.js"
-import { AppName, TypeRef } from "./TypeRef.js"
-import { Nullable } from "@tutao/utils"
-
 /**
  * Tuta Metamodel Entity Types
  *
@@ -30,15 +26,9 @@ import { Nullable } from "@tutao/utils"
  * fields.
  */
 
-// // //
-//
-// Metamodel Types - used to define the actual Model Types detailed below.
-//
-// // //
-
-export type AttributeId = number
-export type TypeId = number
-export type AttributeName = string
+import { AppName, TypeRef } from "./TypeRef.js"
+import { Nullable } from "@tutao/utils"
+import { AssociationTypeEnum, AttributeId, AttributeName, CardinalityEnum, EntityTypeEnum, TypeId, ValueTypeEnum } from "./EntityConstants"
 
 /**
  * scalar fields on types in the model
@@ -52,7 +42,7 @@ export type ModelValue = {
 	/* the basic data type contained in the field*/
 	type: ValueTypeEnum
 	/* how many values can be assigned to the field */
-	cardinality: Values<typeof Cardinality>
+	cardinality: CardinalityEnum
 	/* whether the client is allowed to update the field */
 	final: boolean
 	/* whether the field should be encrypted with the containing types session key before being sent to the server. */
@@ -77,9 +67,9 @@ export type ModelAssociation = {
 	/* human-readable name */
 	name: AttributeName
 	/** if this is a reference or an aggregate. this determines the runtime representation of the containing type. */
-	type: Values<typeof AssociationType>
+	type: AssociationTypeEnum
 	/** how many values can be assigned to the field */
-	cardinality: Values<typeof Cardinality>
+	cardinality: CardinalityEnum
 	/* the ID of the type of the values that this field contains */
 	refTypeId: number
 	/* whether the client is allowed to update the field */
@@ -89,15 +79,14 @@ export type ModelAssociation = {
 	 * the field only exists for aggregates because they are only ones
 	 * which can be imported across models.
 	 */
-	dependency?: AppName | null
+	dependency?: Nullable<AppName>
 }
 
+export type Distinct<T, ModelTypeSeparator> = T & { __MODEL_TYPE_SEPARATOR__: ModelTypeSeparator }
 /** simple separator to distinguish between client model types and server model types */
 export type ClientModelTypeSeparator = "ClientModel"
 /** simple separator to distinguish between server model types and client model types */
 export type ServerModelTypeSeparator = "ServerModel"
-
-export type Distinct<T, ModelTypeSeparator> = T & { __MODEL_TYPE_SEPARATOR__: ModelTypeSeparator }
 export type ClientTypeModel = Distinct<TypeModel, ClientModelTypeSeparator>
 export type ServerTypeModel = Distinct<TypeModel, ServerModelTypeSeparator>
 
@@ -126,7 +115,7 @@ export type TypeModel = {
 	/** human-readable name. */
 	name: string
 	/** the type of entity. this defines how (and if) the type is persisted. */
-	type: Values<typeof Type>
+	type: EntityTypeEnum
 	/** unused legacy field */
 	versioned: boolean
 	/** whether the type contains encrypted values */
@@ -181,27 +170,11 @@ export interface ITypeInfo {
 	typeId: NumberString
 }
 
-//	pubEncBucketKey: null | Uint8Array
-// 	groupEncBucketKey: null | Uint8Array
-// 	protocolVersion: NumberString
-// 	recipientKeyVersion: NumberString
-// 	senderKeyVersion: null | NumberString
-//
-// 	keyGroup: null | Id
-// 	bucketEncSessionKeys: InstanceSessionKey[]
-
 /**
  * representation of an instance of a type defined in the model.
  * this interface is the bare minimum, actual entities need more fields in order to be useful.
  * these are added by defining ModelValues and ModelAssociations on the TypeModel.
  */
-
-export type EntityId<L, E> = readonly [L, E]
-export type AnyEntityId = EntityId<Nullable<Id>, Id>
-export type ListElementId = EntityId<Id, Id>
-export type BlobElementId = EntityId<Id, Id>
-export type ElementId = EntityId<Nullable<never>, Id>
-
 export interface Entity {
 	/** the address of the TypeModel this entity conforms to. */
 	_type: TypeRef<this>
@@ -216,6 +189,12 @@ export interface Entity {
 	_permissions?: null | Id
 	isAdapter?: boolean
 }
+
+export type EntityId<L, E> = readonly [L, E]
+export type AnyEntityId = EntityId<Nullable<Id>, Id>
+export type ListElementId = EntityId<Id, Id>
+export type BlobElementId = EntityId<Id, Id>
+export type ElementId = EntityId<Nullable<never>, Id>
 
 /**
  * Entity types with instances that stand on their own, not being part of a list
@@ -243,61 +222,4 @@ export interface PersistentEntity extends Entity {
 
 export interface AggregatedEntity extends Entity {
 	_id: Id
-}
-
-export const enum OperationType {
-	CREATE = "0",
-	UPDATE = "1",
-	DELETE = "2",
-}
-
-export const enum ValueTypeEnum {
-	String = "String",
-	Number = "Number",
-	Bytes = "Bytes",
-	Date = "Date",
-	Boolean = "Boolean",
-	GeneratedId = "GeneratedId",
-	CustomId = "CustomId",
-	CompressedString = "CompressedString",
-}
-
-/// How association are actually represented in metamodel
-export const enum AssociationReprType {
-	SingleId,
-	IdTuple,
-	Aggregation,
-}
-
-export const enum IdType {
-	SingleId,
-	IdTuple,
-}
-
-export function getIdType(typeModel: TypeModel) {
-	switch (typeModel.type) {
-		case Type.Element:
-		case Type.Aggregated:
-		case Type.DataTransfer:
-			return IdType.SingleId
-		case Type.BlobElement:
-		case Type.ListElement:
-			return IdType.IdTuple
-	}
-}
-
-export function getAssociationRepresentationType(associationType: Values<typeof AssociationType>) {
-	switch (associationType) {
-		case AssociationType.Aggregation:
-			return AssociationReprType.Aggregation
-
-		case AssociationType.BlobElementAssociation:
-		case AssociationType.ListElementAssociationCustom:
-		case AssociationType.ListElementAssociationGenerated:
-			return AssociationReprType.IdTuple
-
-		case AssociationType.ListAssociation:
-		case AssociationType.ElementAssociation:
-			return AssociationReprType.SingleId
-	}
 }

@@ -20,7 +20,7 @@ import {
 	PersistentEntity,
 	TypeModel,
 	TypeRef,
-	ValueType,
+	ValueTypeEnum,
 } from "@tutao/meta"
 import { assertNotNull, getFirstOrThrow, groupBy, isNotEmpty, isNotNull, lastThrow, lazyAsync, Nullable } from "@tutao/utils"
 import { assertWorkerOrNode, isTest, ProgrammingError } from "@tutao/app-env"
@@ -890,5 +890,5 @@ function isCachedRangeType(typeModel: TypeModel, typeRef: TypeRef<unknown>): boo
 
 function isGeneratedIdType(typeModel: TypeModel): boolean {
 	const _idValue = get_IdValue(typeModel)
-	return _idValue !== null && _idValue.type === ValueType.GeneratedId
+	return _idValue !== null && _idValue.type === ValueTypeEnum.GeneratedId
 }

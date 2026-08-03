@@ -41,8 +41,8 @@ import {
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { OperationType } from "../../../../platform-kit/meta/EntityTypes"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { OperationType } from "../../../../platform-kit/meta/EntityConstants"
 
 assertMainOrNode()
 

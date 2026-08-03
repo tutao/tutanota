@@ -2,16 +2,15 @@ import { assertNotNull, downcast, isNotNull, lazyAsync } from "@tutao/utils"
 import {
 	type AppName,
 	AppNameEnum,
-	AssociationType,
+	AssociationTypeEnum,
 	AttributeId,
-	Cardinality,
+	CardinalityEnum,
 	ClientTypeModel,
+	EntityTypeEnum,
 	ModelAssociation,
 	ModelValue,
 	ServerTypeModel,
-	Type,
 	TypeRef,
-	ValueType,
 	ValueTypeEnum,
 } from "@tutao/meta"
 import { InvalidModelError, isTest, ProgrammingError } from "@tutao/app-env"
@@ -225,7 +224,7 @@ export class ServerModelInfo {
 			id: typeId,
 			since: this.asNumber(typeInfoRecord.since),
 			name: this.asString(typeInfoRecord.name),
-			type: this.ensureVariantOf(Type, String(typeInfoRecord.type)),
+			type: this.ensureVariantOf(EntityTypeEnum, String(typeInfoRecord.type)),
 			versioned: this.asBoolean(typeInfoRecord.versioned),
 			encrypted: this.asBoolean(typeInfoRecord.encrypted),
 			isPublic: this.asBoolean(typeInfoRecord.isPublic),
@@ -242,10 +241,10 @@ export class ServerModelInfo {
 			const modelValueInfoRecord = modelValueInfo as Record<string, unknown>
 			const attrId = this.asNumber(modelValueInfoRecord.id)
 			const serverEncrypted = this.asBoolean(modelValueInfoRecord.encrypted)
-			const serverValueType = this.ensureVariantOf(ValueType, String(modelValueInfoRecord.type)) as ValueTypeEnum
+			const serverValueType = this.ensureVariantOf(ValueTypeEnum, String(modelValueInfoRecord.type)) as ValueTypeEnum
 			const serverName = this.asString(modelValueInfoRecord.name)
 			const serverFinal = this.asBoolean(modelValueInfoRecord.final)
-			const serverCardinality = this.ensureVariantOf(Cardinality, String(modelValueInfoRecord.cardinality))
+			const serverCardinality = this.ensureVariantOf(CardinalityEnum, String(modelValueInfoRecord.cardinality))
 
 			const clientModelValue = clientModelType?.values[attrId]
 
@@ -301,8 +300,8 @@ export class ServerModelInfo {
 				id: this.asNumber(associationInfoRecord.id),
 				name: this.asString(associationInfoRecord.name),
 				final: this.asBoolean(associationInfoRecord.final),
-				type: this.ensureVariantOf(AssociationType, String(associationInfoRecord.type)),
-				cardinality: this.ensureVariantOf(Cardinality, String(associationInfoRecord.cardinality)),
+				type: this.ensureVariantOf(AssociationTypeEnum, String(associationInfoRecord.type)),
+				cardinality: this.ensureVariantOf(CardinalityEnum, String(associationInfoRecord.cardinality)),
 				refTypeId: this.asNumber(associationInfoRecord.refTypeId),
 			}
 
@@ -320,7 +319,7 @@ export class ServerModelInfo {
 			for (const clientAssociation of Object.values(clientModelAssociation.associations)) {
 				const isRemovedByServer = !Object.keys(associations).some((serverAssocId) => clientAssociation.id.toString() === serverAssocId)
 
-				if (isRemovedByServer && clientAssociation.cardinality === Cardinality.One) {
+				if (isRemovedByServer && clientAssociation.cardinality === CardinalityEnum.One) {
 					// INFRA-NOTE:
 					// we should do more of these verification here. example: ( Adding an association with cardinality one )
 					// so when we fetch a new server model json, we can already show a client too old error.
@@ -379,7 +378,7 @@ export class ServerModelInfo {
 }
 
 export function ensureIsPersistentType(typeModel: ClientTypeModel) {
-	if (typeModel.type !== Type.Element && typeModel.type !== Type.ListElement && typeModel.type !== Type.BlobElement) {
+	if (typeModel.type !== EntityTypeEnum.Element && typeModel.type !== EntityTypeEnum.ListElement && typeModel.type !== EntityTypeEnum.BlobElement) {
 		throw new Error("only Element, ListElement and BlobElement types are permitted, was: " + typeModel.type)
 	}
 }

@@ -23,9 +23,9 @@ import { CryptoError } from "@tutao/crypto/error"
 import { SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
 import { createKeyPair, Group, GroupKey, GroupKeyTypeRef, GroupTypeRef, KeyPair } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
-import { TypeId } from "../../meta/EntityTypes"
 import { ProgrammingError } from "@tutao/app-env"
 import { CacheManager } from "./persistence/CacheManager"
+import { TypeId } from "../../meta/EntityConstants"
 
 function convertCustomIdToKeyVersion(customId: Id): KeyVersion {
 	return cryptoUtils.parseKeyVersion(base64UrlCustomIdToString(customId))
