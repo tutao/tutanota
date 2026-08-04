@@ -119,8 +119,8 @@ export class PdfInvoiceGenerator {
 			tableData.push([
 				this.formatAmount(invoiceItem.itemType, invoiceItem.amount),
 				getInvoiceItemTypeName(invoiceItem.itemType, this.languageCode),
-				invoiceItem.singlePrice == null ? "" : this.formatInvoiceCurrency(invoiceItem.singlePrice),
-				this.formatInvoiceCurrency(invoiceItem.totalPrice),
+				invoiceItem.singlePrice == null ? "" : this.formatPrice(invoiceItem.singlePrice),
+				this.formatPrice(invoiceItem.totalPrice),
 			])
 			// Entry with date range
 			tableData.push(["", `${this.formatInvoiceDate(invoiceItem.startDate)} - ${this.formatInvoiceDate(invoiceItem.endDate)}`, "", ""])
@@ -141,12 +141,7 @@ export class PdfInvoiceGenerator {
 		this.doc.changeFont(PDF_FONTS.REGULAR, 11)
 
 		// Sub total
-		this.doc.addTableRow([MARGIN_LEFT, tableEndPoint], columns, [
-			"",
-			"",
-			InvoiceTexts[this.languageCode].subTotal,
-			this.formatInvoiceCurrency(this.invoice.subTotal),
-		])
+		this.doc.addTableRow([MARGIN_LEFT, tableEndPoint], columns, ["", "", InvoiceTexts[this.languageCode].subTotal, this.formatPrice(this.invoice.subTotal)])
 		// VAT
 		if (this.invoice.vatType === VatType.ADD_VAT) {
 			// AddedVat
@@ -154,7 +149,7 @@ export class PdfInvoiceGenerator {
 				"",
 				"",
 				`${InvoiceTexts[this.languageCode].addedVat} ${this.invoice.vatRate}${InvoiceTexts[this.languageCode].vatPercent}`,
-				this.formatInvoiceCurrency(this.invoice.vat),
+				this.formatPrice(this.invoice.vat),
 			])
 		} else if (this.invoice.vatType === VatType.VAT_INCLUDED_SHOWN) {
 			// IncludedVat
@@ -162,7 +157,7 @@ export class PdfInvoiceGenerator {
 				"",
 				"",
 				`${InvoiceTexts[this.languageCode].includedVat} ${this.invoice.vatRate}${InvoiceTexts[this.languageCode].vatPercent}`,
-				this.formatInvoiceCurrency(this.invoice.vat),
+				this.formatPrice(this.invoice.vat),
 			])
 		} else {
 			additionalVerticalSpace -= 1
@@ -174,7 +169,7 @@ export class PdfInvoiceGenerator {
 			"",
 			InvoiceTexts[this.languageCode].grandTotal,
 			// in case of NO_VAT_CHARGE_TUTAO we must not show the VAT in the invoice, but we pay the taxes ourselves, so they need to be existing on the invoice
-			this.formatInvoiceCurrency(this.invoice.vatType === VatType.NO_VAT_CHARGE_TUTAO ? this.invoice.subTotal : this.invoice.grandTotal),
+			this.formatPrice(this.invoice.vatType === VatType.NO_VAT_CHARGE_TUTAO ? this.invoice.subTotal : this.invoice.grandTotal),
 		])
 	}
 
@@ -349,11 +344,13 @@ export class PdfInvoiceGenerator {
 	}
 
 	/**
-	 * Format the currency separator (dot, comma) depending on the country
+	 * Format the price - adds two trailing zeros and
+	 * formats the currency separator (dot, comma) depending on the country
 	 */
-	formatInvoiceCurrency(price: string | number): string {
-		price = `${price} EUR`
-		return this.languageCode === "de" ? price.replace(".", ",") : price
+	formatPrice(price: string | number): string {
+		const formattedPrice = Number(price).toFixed(2)
+		const result = `${formattedPrice} EUR`
+		return this.languageCode === "de" ? result.replace(".", ",") : result
 	}
 
 	/**
