@@ -548,7 +548,7 @@ o.spec("CryptoFacadeTest", function () {
 			asymmetricCryptoFacade,
 		)
 
-		when(asymmetricCryptoFacade.decryptSymKeyWithKeyPair(pqKeyPairs_v1, protocolVersion, pubEncBucketKey)).thenResolve({
+		when(asymmetricCryptoFacade.decryptSymKeyWithAnyKeyPair(pqKeyPairs_v1, protocolVersion, pubEncBucketKey)).thenResolve({
 			decryptedAesKey: bk,
 			senderIdentityPubKey: senderIdentityKeyPair.publicKey,
 		})
@@ -1779,7 +1779,7 @@ o.spec("CryptoFacadeTest", function () {
 			asymmetricCryptoFacade,
 		)
 
-		when(asymmetricCryptoFacade.decryptSymKeyWithKeyPair(pqKeyPairs, CryptoProtocolVersion.TUTA_CRYPT, pubEncBucketKey)).thenResolve({
+		when(asymmetricCryptoFacade.decryptSymKeyWithAnyKeyPair(pqKeyPairs, CryptoProtocolVersion.TUTA_CRYPT, pubEncBucketKey)).thenResolve({
 			decryptedAesKey: bk,
 			senderIdentityPubKey: senderIdentityKeyPair.publicKey,
 		})
