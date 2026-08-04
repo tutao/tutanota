@@ -60,7 +60,7 @@ import { EntityUtils } from "./EntityUtils"
 import { isTest, ProgrammingError } from "@tutao/app-env"
 
 export interface SymmetricGroupKeyLoader {
-	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey>
+	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey: Nullable<VersionedKey>): Promise<AesKey>
 	getCurrentSymGroupKey(groupId: Id): Promise<VersionedKey>
 	loadCurrentKeyPair(groupId: Id, currentGroupKey: Nullable<VersionedKey>): Promise<Versioned<AsymmetricKeyPair>>
 	loadSymUserGroupKey(requestedVersion: KeyVersion): Promise<AesKey>
@@ -111,7 +111,7 @@ export class CryptoMapper {
 	}
 
 	makeOwnerKeyProvider(groupId: Nullable<Id>): Nullable<OwnerKeyProvider> {
-		return isNotNull(groupId) ? (groupKeyVersion: KeyVersion) => this.symGroupKeyLoader().loadSymGroupKey(groupId, groupKeyVersion) : null
+		return isNotNull(groupId) ? (groupKeyVersion: KeyVersion) => this.symGroupKeyLoader().loadSymGroupKey(groupId, groupKeyVersion, null) : null
 	}
 
 	public async decryptParsedInstance(

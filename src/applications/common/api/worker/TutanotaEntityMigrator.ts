@@ -63,7 +63,7 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 
 		if (!customerGroupPermission) throw new SessionKeyNotFoundError("Permission not found, could not apply OwnerGroup migration")
 		const customerGroupKeyVersion = cryptoUtils.parseKeyVersion(customerGroupPermission.symKeyVersion ?? "0")
-		const customerGroupKey = await this.symGroupKeyLoader.loadSymGroupKey(customerGroupMembership.group, customerGroupKeyVersion)
+		const customerGroupKey = await this.symGroupKeyLoader.loadSymGroupKey(customerGroupMembership.group, customerGroupKeyVersion, null)
 		const versionedCustomerGroupKey = { object: customerGroupKey, version: customerGroupKeyVersion }
 		const listKey = decryptKey(customerGroupKey, assertNotNull(customerGroupPermission.symEncSessionKey))
 		const groupInfoSk = decryptKey(listKey, assertNotNull(data._listEncSessionKey))
@@ -101,7 +101,7 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 
 	async updateOwnerEncSessionKey(instance: EntityAdapter, ownerGroupKey: VersionedKey, resolvedSessionKey: AesKey) {
 		const newOwnerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, resolvedSessionKey)
-		this.crypto.setOwnerEncSessionKey(instance, newOwnerEncSessionKey)
+		this.crypto.setOwnerEncSessionKey(instance, newOwnerEncSessionKey, null)
 
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
 		const path = EntityUtils.typeModelToRestPath(typeModel) + "/" + stringifyId(instance._id)

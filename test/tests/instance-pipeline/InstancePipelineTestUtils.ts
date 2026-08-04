@@ -29,6 +29,7 @@ export const testTypeModel: TypeModel = {
 	since: 41,
 	type: EntityTypeEnum.ListElement,
 	isPublic: true,
+	dependsOnVersion: null,
 	values: {
 		"1": {
 			id: 1,
@@ -154,6 +155,7 @@ export const testAggregateModel: TypeModel = {
 	since: 41,
 	type: EntityTypeEnum.Aggregated,
 	isPublic: true,
+	dependsOnVersion: null,
 	values: {
 		"2": {
 			id: 2,
@@ -205,6 +207,7 @@ export const testAggregateOnAggregateModel: TypeModel = {
 	since: 41,
 	type: EntityTypeEnum.Aggregated,
 	isPublic: true,
+	dependsOnVersion: null,
 	values: {
 		"10": {
 			id: 10,

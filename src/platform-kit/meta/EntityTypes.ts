@@ -79,7 +79,7 @@ export type ModelAssociation = {
 	 * the field only exists for aggregates because they are only ones
 	 * which can be imported across models.
 	 */
-	dependency?: Nullable<AppName>
+	dependency: Nullable<AppName>
 }
 
 export type Distinct<T, ModelTypeSeparator> = T & { __MODEL_TYPE_SEPARATOR__: ModelTypeSeparator }
@@ -111,7 +111,7 @@ export type TypeModel = {
 	/**
 	 * the version of another typeModel this type (and its corresponding application) depends on, if applicable.
 	 */
-	dependsOnVersion?: number
+	dependsOnVersion: Nullable<number>
 	/** human-readable name. */
 	name: string
 	/** the type of entity. this defines how (and if) the type is persisted. */

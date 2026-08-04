@@ -8,15 +8,26 @@ export interface EntityRestClientSetupOptions {
 	/** Use this key to encrypt session key instead of trying to resolve the owner key based on the ownerGroup. */
 	ownerKey: Nullable<VersionedKey>
 }
+export const DEFAULT_ENTITY_RESTCLIENT_SETUP_OPTIONS: EntityRestClientSetupOptions = {
+	baseUrl: null,
+	ownerKey: null,
+}
 
 export interface EntityRestClientUpdateOptions {
 	baseUrl: Nullable<string>
 	/** Use this key to encrypt session key instead of trying to resolve the owner key based on the ownerGroup. */
 	ownerKey: Nullable<VersionedKey>
 }
+export const DEFAULT_ENTITY_RESTCLIENT_UPDATE_OPTIONS: EntityRestClientUpdateOptions = {
+	baseUrl: null,
+	ownerKey: null,
+}
 
 export interface EntityRestClientEraseOptions {
 	extraHeaders: Nullable<Dict>
+}
+export const DEFAULT_ENTITY_RESTCLIENT_ERASE_OPTIONS: EntityRestClientEraseOptions = {
+	extraHeaders: null,
 }
 
 /**

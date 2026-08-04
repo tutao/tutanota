@@ -1,4 +1,4 @@
-import { LazyLoaded } from "@tutao/utils"
+import { isNotNull, LazyLoaded, Nullable } from "@tutao/utils"
 import { NativeCryptoFacade } from "../../../app-kit/native-bridge/common/generatedipc/types/NativeCryptoFacade"
 import { assertWorkerOrNode } from "@tutao/app-env"
 import {
@@ -46,11 +46,11 @@ export interface KyberFacade {
  * WebAssembly implementation of Liboqs
  */
 export class WASMKyberFacade implements KyberFacade {
-	constructor(private readonly testWASM?: LibOQSExports) {}
+	constructor(private readonly testWASM: Nullable<LibOQSExports> = null) {}
 
 	// loads liboqs WASM
 	private liboqs: LazyLoaded<LibOQSExports> = new LazyLoaded(async () => {
-		if (this.testWASM) {
+		if (isNotNull(this.testWASM)) {
 			return this.testWASM
 		}
 		return await loadWasmFromFileOrNetwork<LibOQSExports>("liboqs.wasm", import.meta.url)
