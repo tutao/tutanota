@@ -3,15 +3,15 @@ import { Time } from "../../../../src/applications/common/calendar/date/Time"
 
 o.spec("Time Class", function () {
 	o.spec("parseFromString", function () {
-		o("parses correct times", function () {
-			for (const [timeString, expectedHour, expectedMinute] of [
-				// 24-hour clock times
+		const inputStringsAndExpectedResults: { [timesDescription: string]: [string, number, number][] } = {
+			"24-hour": [
 				["12:45", 12, 45],
 				["2359", 23, 59],
 				["0000", 0, 0],
 				["0623", 6, 23],
 				["08:09", 8, 9],
-				// partial 24-hour clock times
+			],
+			"partial 24-hour": [
 				["12", 12, 0],
 				["1:2", 1, 2],
 				["102", 1, 2],
@@ -20,7 +20,8 @@ o.spec("Time Class", function () {
 				["955", 9, 55],
 				["12:3", 12, 3],
 				["809", 8, 9],
-				// AM/PM times
+			],
+			"AM/PM": [
 				["7PM", 19, 0],
 				["11PM", 23, 0],
 				["12PM", 12, 0],
@@ -41,12 +42,17 @@ o.spec("Time Class", function () {
 				["1052 A.M.", 10, 52],
 				["948 P.M.", 21, 48],
 				["948 A.M.", 9, 48],
-			] as [string, number, number][]) {
-				const parsedTime = Time.parseFromString(timeString)
-				o(parsedTime?.hour).equals(expectedHour)
-				o(parsedTime?.minute).equals(expectedMinute)
-			}
-		})
+			],
+		}
+		for (const timesDescription in inputStringsAndExpectedResults) {
+			o(`parses correct ${timesDescription} times`, function () {
+				for (const [timeString, expectedHour, expectedMinute] of inputStringsAndExpectedResults[timesDescription]) {
+					const parsedTime = Time.parseFromString(timeString)
+					o(parsedTime?.hour).equals(expectedHour)
+					o(parsedTime?.minute).equals(expectedMinute)
+				}
+			})
+		}
 		o("does not parse incorrect times", function () {
 			for (const incorrectTimeString of ["12:3m", "A:3", "", ":2", "25:03", "22:93", "24", "13pm", "263PM", "1403PM", "14:03:33PM", "9:37 acme"]) {
 				o(Time.parseFromString(incorrectTimeString)).equals(null)
