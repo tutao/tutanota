@@ -87,8 +87,9 @@ import { CacheManager } from "./persistence/CacheManager"
 import { InstanceSessionKeysCache } from "./persistence/InstanceSessionKeysCache"
 import { EntityUtils } from "../../instance-pipeline/EntityUtils"
 import { OutgoingServerJson } from "../../instance-pipeline/TypeMapper"
-import { ClientDetector } from "../../app-env/boot/ClientDetector"
 import { isNull } from "../../utils/Utils"
+import { ClientDetector } from "../../app-env/boot/ClientDetector"
+import { TypeChecks } from "../../app-env/boot/TsTypeChecks"
 
 assertWorkerOrNode()
 
@@ -737,10 +738,11 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	 * @param childInstances the files that belong to the mainInstance
 	 */
 	async enforceSessionKeyUpdateIfNeeded(instance: PersistentEntity, childInstances: readonly File[]): Promise<File[]> {
-		if (!childInstances.some((f) => f._ownerEncSessionKey == null || f._errors !== undefined)) {
+		const haveOutOfSyncInstance = childInstances.some((f) => isNull(f._ownerEncSessionKey) || TypeChecks.hasProperty("_errors", f))
+		if (!haveOutOfSyncInstance) {
 			return childInstances.slice()
 		}
-		const outOfSyncInstances = childInstances.filter((f) => f._ownerEncSessionKey == null || f._errors !== undefined)
+		const outOfSyncInstances = childInstances.filter((f) => isNull(f._ownerEncSessionKey) || TypeChecks.hasProperty("_errors", f))
 		if (instance.bucketKey) {
 			// invoke updateSessionKeys service in case a bucket key is still available
 			const resolvedSessionKeys = await this.resolveWithBucketKey(instance)
