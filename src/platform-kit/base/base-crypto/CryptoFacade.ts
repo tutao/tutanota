@@ -606,7 +606,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			const keypair = await this.symGroupKeyLoader.loadCurrentKeyPair(assertNotNull(instance._ownerGroup), null)
 			// we do not authenticate as we could remove data transfer type encryption altogether and only rely on tls
 			return (
-				await this.asymmetricCryptoFacade.decryptSymKeyWithKeyPair(
+				await this.asymmetricCryptoFacade.decryptSymKeyWithAnyKeyPair(
 					keypair.object,
 					assertEnumValue(CryptoProtocolVersion, assertNotNull(instance._publicCryptoProtocolVersion)),
 					assertNotNull(instance._ownerPublicEncSessionKey),
