@@ -20,8 +20,8 @@ import { TypeChecks } from "../app-env/boot/TsTypeChecks"
 export type ApplicationTypesHash = string
 export type ApplicationVersionSum = number
 export type ApplicationVersion = number
-export type ServerTypeReferenceResolver = (typeref: TypeRef<any>) => Promise<ServerTypeModel>
-export type ClientTypeReferenceResolver = (typeref: TypeRef<any>) => Promise<ClientTypeModel>
+export type ServerTypeReferenceResolver = (typeRef: TypeRef<any>) => Promise<ServerTypeModel>
+export type ClientTypeReferenceResolver = (typeRef: TypeRef<any>) => Promise<ClientTypeModel>
 export type ServerTypeFetcher = (expectedHash: string | null) => Promise<ApplicationTypesGetOut>
 export type NamedClientModel = { app: AppName; clientModel: Record<string, ClientTypeModel>; modelInfo: ModelInfo }
 
@@ -303,14 +303,10 @@ export class ServerModelInfo {
 				type: this.ensureVariantOf(AssociationTypeEnum, String(associationInfoRecord.type)),
 				cardinality: this.ensureVariantOf(CardinalityEnum, String(associationInfoRecord.cardinality)),
 				refTypeId: this.asNumber(associationInfoRecord.refTypeId),
-			}
-
-			// dependency can be null, so assign it after above `verifyNoNullValueInRecord` check. and check here instead
-			Object.assign(modelAssociation, {
 				dependency: TypeChecks.isString(associationInfoRecord.dependency)
 					? this.ensureVariantOf(AppNameEnum, associationInfoRecord.dependency as string)
 					: null,
-			})
+			}
 
 			Object.assign(associations, { [modelAssociation.id]: modelAssociation })
 		}

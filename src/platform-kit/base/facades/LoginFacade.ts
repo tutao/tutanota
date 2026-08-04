@@ -11,6 +11,7 @@ import {
 	isNotNull,
 	lazyAsync,
 	neverNull,
+	Nullable,
 	ofClass,
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
@@ -161,10 +162,10 @@ export enum AsyncLoginStateOptions {
 
 type AsyncLoginState = {
 	state: AsyncLoginStateOptions
-	failure?: {
+	failure: Nullable<{
 		credentials: Credentials
 		cacheInfo: CacheInfo
-	}
+	}>
 }
 
 /**
@@ -207,7 +208,7 @@ export interface LoginListener {
 
 export class LoginFacade implements SessionTypeProvider {
 	/** On platforms with offline cache we do the actual login asynchronously and we can retry it. This is the state of such async login. */
-	asyncLoginState: AsyncLoginState = { state: AsyncLoginStateOptions.Idle }
+	asyncLoginState: AsyncLoginState = { state: AsyncLoginStateOptions.Idle, failure: null }
 	/**
 	 * Used for cancelling second factor and to not mix different attempts
 	 */
@@ -971,17 +972,16 @@ export class LoginFacade implements SessionTypeProvider {
 		if (this.asyncLoginState.state === AsyncLoginStateOptions.Running) {
 			throw new Error("finishLoginResume run in parallel")
 		}
-		this.asyncLoginState = { state: AsyncLoginStateOptions.Running }
+		this.asyncLoginState = { state: AsyncLoginStateOptions.Running, failure: null }
 		try {
 			await this.finishResumeSession(credentials, null, cacheInfo)
 		} catch (e) {
 			if (e instanceof NotAuthenticatedError || e instanceof SessionExpiredError) {
 				// For this type of errors we cannot use credentials anymore.
-				this.asyncLoginState = { state: AsyncLoginStateOptions.Idle }
+				this.asyncLoginState = { state: AsyncLoginStateOptions.Idle, failure: null }
 				await this.loginListener.onLoginFailure(LoginFailReason.SessionExpired)
 			} else {
-				this.asyncLoginState = { state: AsyncLoginStateOptions.Failed }
-				this.asyncLoginState.failure = { credentials, cacheInfo }
+				this.asyncLoginState = { state: AsyncLoginStateOptions.Failed, failure: { credentials, cacheInfo } }
 				if (!(e instanceof ConnectionError)) {
 					await this.applicationTypesFacade.invalidateApplicationTypes()
 					await this.sendError(e)
@@ -1034,7 +1034,7 @@ export class LoginFacade implements SessionTypeProvider {
 		}
 		partialLoginPromise.finally(() => this.triggerFullLoginSuccess(SessionType.Persistent, cacheInfo, credentialsWithPassphraseKey))
 
-		this.asyncLoginState = { state: AsyncLoginStateOptions.Idle }
+		this.asyncLoginState = { state: AsyncLoginStateOptions.Idle, failure: null }
 
 		const data = {
 			user,

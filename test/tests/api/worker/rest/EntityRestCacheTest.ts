@@ -1845,13 +1845,9 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			result.map(removeOriginals)
 			o(result).deepEquals(notInCache.concat(inCache))("all mails are in cache")
 			o(loadMultipleParsedInstances.callCount).equals(1)("load multiple is called once")
-			o(loadMultipleParsedInstances.args).deepEquals([
-				MailTypeRef,
-				listId,
-				notInCache.map(getElementId),
-				undefined,
-				DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
-			])("load multiple is called for mails not in cache")
+			o(loadMultipleParsedInstances.args).deepEquals([MailTypeRef, listId, notInCache.map(getElementId), null, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS])(
+				"load multiple is called for mails not in cache",
+			)
 			for (const item of inCache.concat(notInCache)) {
 				o(await storage.get(MailTypeRef, listId, getElementId(item))).notEquals(null)("element is in cache " + getElementId(item))
 			}
@@ -1876,7 +1872,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				CustomerTypeRef,
 				null,
 				notInCache.map((c) => elementIdToId(c._id)),
-				undefined,
+				null,
 				DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 			])("load multiple is called for customers not in cache")
 			for (const item of inCache.concat(notInCache)) {
@@ -1904,7 +1900,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				MailDetailsBlobTypeRef,
 				archiveId,
 				notInCache.map(getElementId),
-				undefined,
+				null,
 				DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 			])("load multiple is called for mails details not in cache")
 			for (const item of inCache.concat(notInCache)) {
@@ -2285,29 +2281,29 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 				)
 
-				const cacheBypassed1 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
+				const cacheBypassed1 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], null, {
 					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode: CacheMode.WriteOnly,
 				})
 				cacheBypassed1.map(removeOriginals)
 				o(cacheBypassed1).deepEquals([contactAOnTheServer])
 				// Fresh cache; should be loaded remotely and cached
-				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), {
+				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], null, anything()), {
 					times: 1,
 				})
 
-				const cacheBypassed2 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
+				const cacheBypassed2 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], null, {
 					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode: CacheMode.WriteOnly,
 				})
 				cacheBypassed2.map(removeOriginals)
 				o(cacheBypassed2).deepEquals([contactAOnTheServer])
 				// Still bypassing
-				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), {
+				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], null, anything()), {
 					times: 2,
 				})
 
-				const cached = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], undefined, {
+				const cached = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], null, {
 					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode: CacheMode.ReadAndWrite,
 				})
@@ -2315,24 +2311,23 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o(true).equals(cached.some((a) => deepEqual(a, contactAOnTheServer)))
 				o(true).equals(cached.some((b) => deepEqual(b, contactBOnTheServer)))
 				// Not bypassing; should have both contacts now, but only asked for B from server
-				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), {
+				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], null, anything()), {
 					times: 2,
 				})
-				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactBId)], undefined, anything()), {
+				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactBId)], null, anything()), {
 					times: 1,
 				})
 
-				const cacheBypassed3 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], undefined, {
+				const cacheBypassed3 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], null, {
 					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode: CacheMode.WriteOnly,
 				})
 				cacheBypassed3.map(removeOriginals)
 				o(cacheBypassed3).deepEquals([contactAOnTheServer, contactBOnTheServer])
 				// Bypassed again
-				verify(
-					client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], undefined, anything()),
-					{ times: 1 },
-				)
+				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], null, anything()), {
+					times: 1,
+				})
 			})
 		})
 
@@ -2410,29 +2405,29 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					Promise.resolve(lastProcessedBatchIdStorageFacadeMock),
 				)
 
-				const cacheReadOnly1 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
+				const cacheReadOnly1 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], null, {
 					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode: CacheMode.ReadOnly,
 				})
 				cacheReadOnly1.map(removeOriginals)
 				o(cacheReadOnly1).deepEquals([contactAOnTheServer])
 				// Fresh cache; should be loaded remotely and cached
-				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), {
+				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], null, anything()), {
 					times: 1,
 				})
 
-				const cached = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, {
+				const cached = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId)], null, {
 					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode: CacheMode.ReadAndWrite,
 				})
 				cached.map(removeOriginals)
 				o(cached).deepEquals([contactAOnTheServer])
 				// Wasn't written earlier; should be written now
-				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), {
+				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], null, anything()), {
 					times: 2,
 				})
 
-				const cacheReadOnly2 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], undefined, {
+				const cacheReadOnly2 = await cache.loadMultiple(ContactTypeRef, listId, [elementIdPart(contactAId), elementIdPart(contactBId)], null, {
 					...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 					cacheMode: CacheMode.ReadOnly,
 				})
@@ -2440,10 +2435,10 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				o(true).equals(cacheReadOnly2.some((a) => deepEqual(a, contactAOnTheServer)))
 				o(true).equals(cacheReadOnly2.some((b) => deepEqual(b, contactBOnTheServer)))
 				// Should have only asked for B from server since we cached A earlier
-				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], undefined, anything()), {
+				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactAId)], null, anything()), {
 					times: 2,
 				})
-				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactBId)], undefined, anything()), {
+				verify(client.loadMultipleParsedInstances(ContactTypeRef, listId, [elementIdPart(contactBId)], null, anything()), {
 					times: 1,
 				})
 			})

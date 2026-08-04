@@ -100,7 +100,7 @@ export function firstBiggerThanSecondBase64Ext(firstId: Id, secondId: Id): boole
 	}
 }
 
-export function get_IdValue(typeModel?: TypeModel): ModelValue | null {
+export function get_IdValue(typeModel: Nullable<TypeModel> = null): ModelValue | null {
 	if (typeModel) {
 		return Object.values(typeModel.values).find((valueType) => valueType.name === "_id") ?? null
 	}
@@ -474,7 +474,7 @@ export function localToServerIdEncoding(typeModel: TypeModel, elementId: Id): Id
  * @param key only returns true if there is an error for this key. Other errors will be ignored if the key is defined.
  * @returns {boolean} true if error was found (for the given key).
  */
-export function hasError<K>(instance: Nullable<Entity>, key?: K): boolean {
+export function hasError<K>(instance: Nullable<Entity>, key: Nullable<K> = null): boolean {
 	if (instance == null) {
 		return true
 	}

@@ -14,7 +14,7 @@ import { AesKey } from "@tutao/crypto"
  */
 export interface ValueDecryptor {
 	readonly requiredGroupKeyVersion: Nullable<KeyVersion>
-	getValue(key?: Nullable<AesKey>): Uint8Array<ArrayBuffer>
+	getValue(key: Nullable<AesKey>): Uint8Array<ArrayBuffer>
 }
 
 export class AesCbcDecryptor implements ValueDecryptor {

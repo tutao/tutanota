@@ -12,7 +12,6 @@ import {
 	getKeyLengthInBytes,
 	keyToUint8Array,
 	sha256Hash,
-	uint8ArrayToKey,
 } from "../../../src/platform-kit/crypto"
 import { AsyncLoginStateOptions, LoginFacade, LoginFailReason, LoginListener, ResumeSessionState } from "../../../src/platform-kit/base/facades/LoginFacade"
 import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest"
@@ -350,7 +349,7 @@ o.spec("LoginFacadeTest", function () {
 
 				await facade.resumeSession(credentials, null, dbKey)
 
-				o(facade.asyncLoginState).deepEquals({ state: AsyncLoginStateOptions.Idle })(
+				o(facade.asyncLoginState).deepEquals({ state: AsyncLoginStateOptions.Idle, failure: null })(
 					"Synchronous login occured, so once resume returns we have already logged in",
 				)
 				verify(eventBusClientMock.connect(ConnectMode.Initial))
@@ -367,7 +366,7 @@ o.spec("LoginFacadeTest", function () {
 
 				await facade.resumeSession(credentials, null, dbKey)
 
-				o(facade.asyncLoginState).deepEquals({ state: AsyncLoginStateOptions.Running })("Async login occurred so it is still running")
+				o(facade.asyncLoginState).deepEquals({ state: AsyncLoginStateOptions.Running, failure: null })("Async login occurred so it is still running")
 			})
 
 			o.test("when resuming a session and a notAuthenticatedError is thrown, the error is propagated to the main thread", async function () {
