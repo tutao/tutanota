@@ -389,7 +389,7 @@ export class RestClient implements RestClientInterface {
 export function addParamsToUrl(url: URL, urlParams: Nullable<Dict>): URL {
 	if (isNotNull(urlParams)) {
 		for (const [key, value] of typedEntries(urlParams)) {
-			if (value !== undefined) {
+			if (isNotNull(value)) {
 				url.searchParams.set(key, value)
 			}
 		}

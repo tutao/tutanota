@@ -19,7 +19,7 @@ export interface EntityRestInterface {
 	 * @param id
 	 * @param loadOptions
 	 */
-	load<T extends PersistentEntity>(typeRef: TypeRef<T>, id: T["_id"], loadOptions?: EntityRestClientLoadOptions): Promise<T>
+	load<T extends PersistentEntity>(typeRef: TypeRef<T>, id: T["_id"], loadOptions: EntityRestClientLoadOptions): Promise<T>
 
 	/**
 	 * Reads a range of elements from the server (or cache). Entities are decrypted before they are returned.
@@ -30,7 +30,7 @@ export interface EntityRestInterface {
 		start: Id,
 		count: number,
 		reverse: boolean,
-		loadOptions?: EntityRestClientLoadOptions,
+		loadOptions: EntityRestClientLoadOptions,
 	): Promise<T[]>
 
 	/**
@@ -45,8 +45,8 @@ export interface EntityRestInterface {
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		elementIds: Array<Id>,
-		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
-		loadOptions?: EntityRestClientLoadOptions,
+		ownerEncSessionKeyProvider: Nullable<OwnerEncSessionKeyProvider>,
+		loadOptions: EntityRestClientLoadOptions,
 	): Promise<Array<T>>
 
 	/**
@@ -70,17 +70,17 @@ export interface EntityRestInterface {
 	 * @param instance
 	 * @param options
 	 */
-	update<T extends PersistentEntity>(instance: T, options?: EntityRestClientUpdateOptions): Promise<void>
+	update<T extends PersistentEntity>(instance: T, options: EntityRestClientUpdateOptions): Promise<void>
 
 	/**
 	 * Deletes a single element on the server.
 	 */
-	erase<T extends PersistentEntity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void>
+	erase<T extends PersistentEntity>(instance: T, options: EntityRestClientEraseOptions): Promise<void>
 
 	/**
 	 * Deletes multiple elements on the server.
 	 */
-	eraseMultiple<T extends PersistentEntity>(listId: Id, instances: Array<T>, options?: EntityRestClientEraseOptions): Promise<void>
+	eraseMultiple<T extends PersistentEntity>(listId: Id, instances: Array<T>, options: EntityRestClientEraseOptions): Promise<void>
 
 	/**
 	 * Must be called when entity events are received.

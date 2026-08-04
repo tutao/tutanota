@@ -168,6 +168,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 				const gk = await this.symGroupKeyLoader.loadSymGroupKey(
 					assertNotNull(instance._ownerGroup),
 					cryptoUtils.parseKeyVersion(instance._ownerKeyVersion ?? "0"),
+					null,
 				)
 				return this.decryptSessionKeyWithOwnerKey(instance._ownerEncSessionKey, gk)
 			} else {
@@ -214,7 +215,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			} as VersionedEncryptedKey
 			this.setOwnerEncSessionKey(instance, ownerEncSessionKey)
 
-			const gk = await this.symGroupKeyLoader.loadSymGroupKey(assertNotNull(instance._ownerGroup), symKeyVersion)
+			const gk = await this.symGroupKeyLoader.loadSymGroupKey(assertNotNull(instance._ownerGroup), symKeyVersion, null)
 			const resolvedSessionKeyForInstance = this.decryptSessionKeyWithOwnerKey(symEncSessionKey, gk)
 			return {
 				resolvedSessionKeyForInstance,
@@ -293,7 +294,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	private async resolveWithGroupReference(keyGroup: Id, groupKeyVersion: KeyVersion, groupEncBucketKey: Uint8Array<ArrayBuffer>): Promise<AesKey> {
 		if (this.userFacade.hasGroup(keyGroup)) {
 			// the logged-in user (most likely external) is a member of that group. Then we have the group key from the memberships
-			const groupKey = await this.symGroupKeyLoader.loadSymGroupKey(keyGroup, groupKeyVersion)
+			const groupKey = await this.symGroupKeyLoader.loadSymGroupKey(keyGroup, groupKeyVersion, null)
 			return decryptKey(groupKey, groupEncBucketKey)
 		} else {
 			// internal user receiving a mail from secure external:
@@ -315,7 +316,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			}
 
 			const internalUserGroupKeyVersion = cryptoUtils.parseKeyVersion(externalUserGroup.adminGroupKeyVersion ?? "0")
-			const internalUserGroupKey = await this.symGroupKeyLoader.loadSymGroupKey(internalUserGroupId, internalUserGroupKeyVersion)
+			const internalUserGroupKey = await this.symGroupKeyLoader.loadSymGroupKey(internalUserGroupId, internalUserGroupKeyVersion, null)
 
 			const currentExternalUserGroupKey = decryptKey(internalUserGroupKey, assertNotNull(externalUserGroup.adminGroupEncGKey))
 			const externalUserGroupKey = await this.symGroupKeyLoader.loadSymGroupKey(externalUserGroupId, externalUserGroupKeyVersion, {
@@ -346,6 +347,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			const gk = await this.symGroupKeyLoader.loadSymGroupKey(
 				assertNotNull(symmetricPermission._ownerGroup),
 				cryptoUtils.parseKeyVersion(symmetricPermission._ownerKeyVersion ?? "0"),
+				null,
 			)
 			return decryptKey(gk, assertNotNull(symmetricPermission._ownerEncSessionKey))
 		} else {
@@ -543,6 +545,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			const ownerGroupKey = await this.symGroupKeyLoader.loadSymGroupKey(
 				neverNull(bucketPermission._ownerGroup),
 				cryptoUtils.parseKeyVersion(bucketPermission.ownerKeyVersion ?? "0"),
+				null,
 			)
 			bucketKey = decryptKey(ownerGroupKey, bucketPermission.ownerEncBucketKey)
 		} else if (bucketPermission.symEncBucketKey) {
@@ -799,7 +802,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		return null
 	}
 
-	public setOwnerEncSessionKey(instance: Entity, ownerEncSessionKey: VersionedEncryptedKey, ownerGroup?: Id): void {
+	public setOwnerEncSessionKey(instance: Entity, ownerEncSessionKey: VersionedEncryptedKey, ownerGroup: Nullable<Id> = null): void {
 		instance._ownerEncSessionKey = ownerEncSessionKey.key
 		instance._ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
 		if (isNotNull(ownerGroup)) {
@@ -808,7 +811,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	}
 
 	async decryptSessionKey(ownerGroup: Id, ownerEncSessionKey: VersionedEncryptedKey): Promise<AesKey> {
-		const gk = await this.symGroupKeyLoader.loadSymGroupKey(ownerGroup, ownerEncSessionKey.encryptingKeyVersion)
+		const gk = await this.symGroupKeyLoader.loadSymGroupKey(ownerGroup, ownerEncSessionKey.encryptingKeyVersion, null)
 		return decryptKey(gk, ownerEncSessionKey.key)
 	}
 

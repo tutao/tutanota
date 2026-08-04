@@ -14,7 +14,8 @@ import { AesKey } from "@tutao/crypto"
  */
 export interface ValueDecryptor {
 	readonly requiredGroupKeyVersion: Nullable<KeyVersion>
-	getValue(key?: Nullable<AesKey>): Uint8Array<ArrayBuffer>
+	// FIXME: classes that implements this interface do not have correct signature for this function yet tsc does not complain?
+	getValue(key: Nullable<AesKey>): Uint8Array<ArrayBuffer>
 }
 
 export class AesCbcDecryptor implements ValueDecryptor {
