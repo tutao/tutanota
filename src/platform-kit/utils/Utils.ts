@@ -1,12 +1,6 @@
 import { ProgrammingError } from "@tutao/app-env"
 import { TypeChecks } from "../app-env/boot/TsTypeChecks"
 
-export interface ErrorInfo {
-	readonly name: string | null
-	readonly message: string | null
-	readonly stack?: string | null
-}
-
 export type lazy<T> = () => T
 export type lazyAsync<T> = () => Promise<T>
 export type Thunk = () => unknown
@@ -360,25 +354,6 @@ export function onceAsync<R>(fn: () => Promise<R>): () => Promise<R> {
 
 export function randomIntFromInterval(min: number, max: number): number {
 	return Math.floor(Math.random() * (max - min + 1) + min)
-}
-
-export function errorToString(error: ErrorInfo): string {
-	let errorString = error.name ?? "?"
-
-	if (isNotNull(error.message)) {
-		errorString += `\n Error message: ${error.message}`
-	}
-
-	if (isNotNull(error.stack)) {
-		// the error id is included in the stacktrace
-		errorString += `\nStacktrace: \n${error.stack}`
-	}
-
-	return errorString
-}
-
-export function errorsToString(errors: Array<ErrorInfo>): string {
-	return errors.map(errorToString).join("\n--- next error ---\n")
 }
 
 export interface DeepEquals {
