@@ -32,8 +32,14 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 		const { attrs } = vnode
 		const editModel = attrs.editModel
 
-		const renderStartTimeZone = editModel.allowsTimeZones() && attrs.separateStartAndEndTimeZone
-		const renderEndTimeZone = editModel.allowsTimeZones()
+		let displayStartTimeZone: string | null = null
+		let displayEndTimeZone: string | null = null
+		if (editModel.allowsTimeZones()) {
+			if (attrs.separateStartAndEndTimeZone) {
+				displayStartTimeZone = editModel.getStartTimeZone() ?? editModel.calendarTimeZone
+			}
+			displayEndTimeZone = editModel.getEndTimeZone() ?? editModel.calendarTimeZone
+		}
 
 		return m(".flex.col.flex-grow.gap-12", [
 			m(".flex.gap-8.items-center.justify-between", [
@@ -78,7 +84,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 					ariaLabel: lang.getTranslation("startTime_label"),
 					renderAsTextField: false,
 				}),
-				renderStartTimeZone && this.renderTimeZoneButton(attrs, editModel.getStartTimeZoneOrDefault()),
+				displayStartTimeZone && this.renderTimeZoneButton(attrs, displayStartTimeZone),
 			]),
 			m(".time-selection-grid", [
 				m("", lang.get("dateTo_label")),
@@ -100,7 +106,7 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 					ariaLabel: lang.getTranslation("endTime_label"),
 					renderAsTextField: false,
 				}),
-				renderEndTimeZone && this.renderTimeZoneButton(attrs, editModel.getEndTimeZoneOrDefault()),
+				displayEndTimeZone && this.renderTimeZoneButton(attrs, displayEndTimeZone),
 			]),
 		])
 	}
