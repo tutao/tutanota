@@ -19,7 +19,7 @@ import {
 	_encryptKeyWithVersionedKey,
 	aes256RandomKey,
 	AesKey,
-	AesKeyLength,
+	decrypt256Key,
 	generateInitializationVector,
 	validateInitializationVectorLength,
 	VersionedKey,
@@ -48,7 +48,6 @@ import { getMembershipGroupType, GroupType } from "../../../../entities/sys/Util
 import { ClientTypeModelResolver } from "../../../../platform-kit/instance-pipeline"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
-import { decryptKey } from "../../../../platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 import { WebMailIndexer } from "./WebMailIndexer.js"
 
 export type InitParams = {
@@ -340,7 +339,7 @@ export class IndexedDbIndexer implements Indexer {
 	}
 
 	private async loadIndexTables(user: User, userGroupKey: AesKey, metaData: EncryptedIndexerMetaData): Promise<void> {
-		const key = decryptKey(userGroupKey, metaData.userEncDbKey, AesKeyLength.Aes256)
+		const key = decrypt256Key(userGroupKey, metaData.userEncDbKey)
 		const initializationVector = validateInitializationVectorLength(aesDecryptUnauthenticated(key, neverNull(metaData.encDbIv)))
 		this.db.init({ key, initializationVector })
 		const groupDiff = await this._loadGroupDiff(user)

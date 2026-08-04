@@ -7,6 +7,7 @@ import {
 	AesKey,
 	AesKeyLength,
 	bitArrayToUint8Array,
+	decrypt256Key,
 	FIXED_INITIALIZATION_VECTOR,
 	hexToRsaPrivateKey,
 	keyToUint8Array,
@@ -60,7 +61,7 @@ o.spec("key encryption", function () {
 		const encryptionKey = aes256RandomKey()
 
 		const encryptedKey = encryptKey(encryptionKey, key)
-		const decryptedKey = decryptKey(encryptionKey, encryptedKey, AesKeyLength.Aes256)
+		const decryptedKey = decrypt256Key(encryptionKey, encryptedKey)
 
 		o(uint8ArrayToBitArray(encryptedKey)).notDeepEquals(key.bits)("It isn't somehow a no-op at least")
 		o(key).deepEquals(decryptedKey)("The round trip works")
