@@ -30,7 +30,7 @@ import {
 } from "@tutao/crypto"
 import { PQFacade } from "./PQFacade.js"
 import { CryptoError } from "@tutao/crypto/error"
-import { arrayEquals, assertNotNull, KeyVersion, lazy, Versioned } from "@tutao/utils"
+import { arrayEquals, assertNotNull, KeyVersion, lazy, Nullable, Versioned } from "@tutao/utils"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { IServiceExecutor } from "../../network/ServiceRequest.js"
 import PublicEncryptionKeyProvider from "./PublicEncryptionKeyProvider.js"
@@ -150,7 +150,7 @@ export class AsymmetricCryptoFacade {
 		senderIdentifier: PublicKeyIdentifier,
 	): Promise<Decapsulated<Aes256Key>> {
 		const cryptoProtocolVersion = asCryptoProtoocolVersion(pubEncKeyData.protocolVersion)
-		const decapsulatedAesKey = await this.decryptSymKeyWithKeyPair(recipientKeyPair, cryptoProtocolVersion, pubEncKeyData.pubEncSymKey, AesKeyLength.Aes256)
+		const decapsulatedAesKey = await this.decryptSymKeyWith256KeyPair(recipientKeyPair, cryptoProtocolVersion, pubEncKeyData.pubEncSymKey)
 		if (cryptoProtocolVersion === CryptoProtocolVersion.TUTA_CRYPT) {
 			const { authStatus } = await this.authenticateSender(
 				senderIdentifier,
@@ -170,11 +170,30 @@ export class AsymmetricCryptoFacade {
 	 * @param cryptoProtocolVersion asymmetric protocol to decrypt pubEncSymKey (RSA or TutaCrypt)
 	 * @param recipientKeyPair the recipientKeyPair. Must match the cryptoProtocolVersion.
 	 */
-	async decryptSymKeyWithKeyPair(
+	async decryptSymKeyWith256KeyPair(
 		recipientKeyPair: AsymmetricKeyPair,
 		cryptoProtocolVersion: CryptoProtocolVersion,
 		pubEncSymKey: Uint8Array<ArrayBuffer>,
-	): Promise<Decapsulated<AesKey>>
+	): Promise<Decapsulated<Aes256Key>> {
+		const { decryptedAesKey, senderIdentityPubKey } = await this._decryptSymKeyWithKeyPair(
+			recipientKeyPair,
+			cryptoProtocolVersion,
+			pubEncSymKey,
+			AesKeyLength.Aes256,
+		)
+		return {
+			senderIdentityPubKey,
+			decryptedAesKey: new Aes256Key(decryptedAesKey.bits),
+		}
+	}
+
+	async decryptSymKeyWithAnyKeyPair(
+		recipientKeyPair: AsymmetricKeyPair,
+		cryptoProtocolVersion: CryptoProtocolVersion,
+		pubEncSymKey: Uint8Array<ArrayBuffer>,
+	): Promise<Decapsulated<AesKey>> {
+		return this._decryptSymKeyWithKeyPair(recipientKeyPair, cryptoProtocolVersion, pubEncSymKey, null)
+	}
 	/**
 	 * Decrypts the pubEncSymKey with the recipientKeyPair.
 	 * @param pubEncSymKey the asymmetrically encrypted session key
@@ -182,17 +201,11 @@ export class AsymmetricCryptoFacade {
 	 * @param recipientKeyPair the recipientKeyPair. Must match the cryptoProtocolVersion.
 	 * @param acceptedBitLength the accepted key length for the decrypted key
 	 */
-	async decryptSymKeyWithKeyPair(
+	private async _decryptSymKeyWithKeyPair(
 		recipientKeyPair: AsymmetricKeyPair,
 		cryptoProtocolVersion: CryptoProtocolVersion,
 		pubEncSymKey: Uint8Array<ArrayBuffer>,
-		acceptedBitLength: AesKeyLength.Aes256,
-	): Promise<Decapsulated<Aes256Key>>
-	async decryptSymKeyWithKeyPair(
-		recipientKeyPair: AsymmetricKeyPair,
-		cryptoProtocolVersion: CryptoProtocolVersion,
-		pubEncSymKey: Uint8Array<ArrayBuffer>,
-		acceptedBitLength?: AesKeyLength.Aes256,
+		acceptedBitLength: Nullable<AesKeyLength>,
 	): Promise<Decapsulated<AesKey>> {
 		switch (cryptoProtocolVersion) {
 			case CryptoProtocolVersion.RSA: {
@@ -234,7 +247,7 @@ export class AsymmetricCryptoFacade {
 		const tm = syncMetrics?.beginMeasurement(Category.Decrypt)
 		try {
 			const keyPair: AsymmetricKeyPair = await this.keyLoaderFacade.loadKeypair(recipientKeyPairGroupId, recipientKeyVersion, forTypeId)
-			return await this.decryptSymKeyWithKeyPair(keyPair, cryptoProtocolVersion, pubEncSymKey)
+			return await this.decryptSymKeyWithAnyKeyPair(keyPair, cryptoProtocolVersion, pubEncSymKey)
 		} finally {
 			tm?.endMeasurement()
 		}
