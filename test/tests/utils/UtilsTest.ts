@@ -1,5 +1,5 @@
 import o, { verify } from "@tutao/otest"
-import { arrayEquals, deepEqual, deepMemoized, getChangedProps, memoized } from "../../../src/platform-kit/utils"
+import { arrayEquals, deepEqual, deepMemoized, memoized } from "../../../src/platform-kit/utils"
 import { func, matchers, when } from "testdouble"
 import { clone } from "../../../src/platform-kit/meta"
 
@@ -30,119 +30,6 @@ o.spec("utils", function () {
 		o(c2._ownerKeyVersion).equals(c1._ownerKeyVersion)
 		o(arrayEquals(ownerEncSessionKey, c2._ownerEncSessionKey)).equals(true)
 		o(Object.is(c1.mailAddresses[0], c2.mailAddresses[0])).equals(false)("objects must be cloned")
-	})
-	o("getChangedProps", function () {
-		o(
-			getChangedProps(
-				{
-					a: 1,
-					b: 2,
-				},
-				{
-					a: 1,
-					b: 1,
-					d: 4,
-				},
-			),
-		).deepEquals(["b"])
-		o(
-			getChangedProps(
-				{
-					a: 1,
-					b: [1, 2, 3],
-				},
-				{},
-			),
-		).deepEquals([])
-		o(
-			getChangedProps(
-				{},
-				{
-					a: 1,
-					b: [1, 2, 3],
-				},
-			),
-		).deepEquals([])
-		o(
-			getChangedProps(
-				{
-					a: 1,
-					b: [1, 2, 3],
-				},
-				{
-					a: 1,
-					b: [1, 2, 3],
-				},
-			),
-		).deepEquals([])
-		o(
-			getChangedProps(
-				{
-					a: 1,
-					b: [1, 2, 3],
-				},
-				{
-					a: 1,
-					b: [2, 1, 3],
-				},
-			),
-		).deepEquals(["b"])
-		o(
-			getChangedProps(
-				{
-					a: undefined,
-					b: null,
-				},
-				{
-					a: {
-						a: "hello",
-					},
-					b: [1, 2, 3],
-				},
-			),
-		).deepEquals(["a", "b"])
-		o(
-			getChangedProps(
-				{
-					a: undefined,
-					b: null,
-				},
-				{
-					a: null,
-					b: undefined,
-				},
-			),
-		).deepEquals([])
-		o(
-			getChangedProps(
-				{
-					a: {},
-					b: [1, 2, 3],
-				},
-				{
-					a: {
-						a: "hello",
-					},
-					b: [1, 2, 3],
-				},
-			),
-		).deepEquals(["a"])
-		o(
-			getChangedProps(
-				{
-					a: "world",
-					b: [],
-				},
-				{
-					a: "hello",
-					b: [1, 2, 3],
-				},
-			),
-		).deepEquals(["a", "b"])
-		o(getChangedProps(undefined, null)).deepEquals([])
-		o(getChangedProps(null, undefined)).deepEquals([])
-		o(getChangedProps(undefined, undefined)).deepEquals([])
-		o(getChangedProps(null, null)).deepEquals([])
 	})
 
 	o.spec("memoized", function () {
