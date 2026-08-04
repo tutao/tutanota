@@ -2492,3 +2492,7 @@ export type TranslationKeyType =
 	| "appStoreConfirmationTimeout_msg"
 	| "subscriptionSettingManageSubscription_action"
 	| "subscriptionSettingSwitchPlan_action"
+	| "subscriptionSettingExpiredSubscriptionOnlyFeatures_msg"
+	| "orderProcessingAgreement_action"
+	| "openAgreement_action"
+	| "subscriptionSettingAppleWebsite_action"
