@@ -7,7 +7,7 @@ import m from "mithril"
 import { Checkbox } from "../../../ui/base/Checkbox.js"
 import { Button, ButtonType } from "../../../ui/base/Button.js"
 import { ExpanderButton, ExpanderPanel } from "../../../ui/base/Expander"
-import { convertTextToHtml, assertNotNull, downcast, ErrorInfo, errorToString, neverNull, newPromise, typedKeys, uint8ArrayToString } from "@tutao/utils"
+import { convertTextToHtml, assertNotNull, downcast, neverNull, newPromise, typedKeys, uint8ArrayToString } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
 import { isApp, isBrowser, isDesktop, Keys, Mode, PresentableKeyVerificationState } from "@tutao/app-env"
 import { copyToClipboard } from "../../../ui/utils/ClipboardUtils"
@@ -21,6 +21,7 @@ import { createErrorReportData, createErrorReportFile, createReportErrorIn, Repo
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { ErrorReportClientType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { DataFile } from "../../../entities/tutanota/MailBundle"
+import { ErrorInfo, errorToString } from "../../../ui/utils/ErrorInfo"
 
 type FeedbackContent = {
 	message: string
