@@ -45,7 +45,7 @@ import { formatStorageSize } from "../../../ui/utils/Formatter.js"
 import { getDefaultSenderFromUser, getMailAddressDisplayText } from "../../common/mailFunctionality/SharedMailUtils.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
-import { getFolderName } from "../mail/model/MailUtils.js"
+import { getMailSetName } from "../mail/model/MailUtils.js"
 import { resolveMailSetEntries } from "../mail/model/MailSetListModel"
 import { MoveMode } from "../mail/model/MailModel"
 import { ProgressBar, ProgressBarType } from "../../../ui/base/ProgressBar"
@@ -682,7 +682,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		let folder = folders.getFolderById(elementIdPart(targetFolderId))
 
 		if (folder) {
-			return getFolderName(folder)
+			return getMailSetName(folder)
 		} else {
 			return lang.get("deletedFolder_label")
 		}

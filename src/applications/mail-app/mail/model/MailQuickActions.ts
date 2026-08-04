@@ -40,13 +40,13 @@ export async function quickMailActions(
 		if (fs == null) {
 			folderActions = []
 		} else {
-			folderActions = fs.getIndentedList().map(({ folder }) => {
+			folderActions = fs.getIndentedList().map(({ mailSet }) => {
 				return {
 					// this is not the most performant thing, but we are doing this once so it's okay
-					description: `${mailboxName} ${getPathToFolderString(fs, folder)}`,
+					description: `${mailboxName} ${getPathToFolderString(fs, mailSet)}`,
 					// TODO: this is not ideal as this will forget the selected mail in that folder. We could pull it
 					//   up from somewhere.
-					exec: () => router.routeTo(`${MAIL_PREFIX}/:folder`, { folder: getElementId(folder) }),
+					exec: () => router.routeTo(`${MAIL_PREFIX}/:folder`, { folder: getElementId(mailSet) }),
 				}
 			})
 		}

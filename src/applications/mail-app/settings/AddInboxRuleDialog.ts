@@ -16,11 +16,11 @@ import { mailLocator } from "../mailLocator.js"
 import {
 	assertSystemFolderOfType,
 	getExistingRuleForType,
-	getFolderName,
+	getMailSetName,
 	getIndentedFolderNameForDropdown,
 	getPathToFolderString,
 } from "../mail/model/MailUtils.js"
-import type { IndentedFolder } from "../../common/api/common/mail/FolderSystem.js"
+import type { IndentedMailSet } from "../../common/api/common/mail/FolderSystem.js"
 import { Checkbox } from "../../../ui/base/Checkbox"
 import { createInboxRule, InboxRule } from "@tutao/entities/tutanota"
 import { InboxRuleType, MailSetKind } from "../../../entities/tutanota/Utils"
@@ -38,10 +38,10 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 		showNotAvailableForFreeDialog(UpgradePromptType.INBOX_RULES)
 	} else if (mailBoxDetail) {
 		const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailBoxDetail.mailbox.mailSets._id)
-		let targetFolders = folders.getIndentedList().map((folderInfo: IndentedFolder) => {
+		let targetFolders = folders.getIndentedList().map((folderInfo: IndentedMailSet) => {
 			return {
 				name: getIndentedFolderNameForDropdown(folderInfo),
-				value: folderInfo.folder,
+				value: folderInfo.mailSet,
 			}
 		})
 		const inboxRuleType = stream(ruleOrTemplate.type)
@@ -72,7 +72,7 @@ export async function show(mailBoxDetail: MailboxDetail, ruleOrTemplate: InboxRu
 					label: "inboxRuleTargetFolder_label",
 					items: targetFolders,
 					selectedValue: inboxRuleTarget(),
-					selectedValueDisplay: getFolderName(inboxRuleTarget()),
+					selectedValueDisplay: getMailSetName(inboxRuleTarget()),
 					selectionChangedHandler: inboxRuleTarget,
 					helpLabel: () => getPathToFolderString(folders, inboxRuleTarget(), true),
 				}),

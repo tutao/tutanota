@@ -20,7 +20,7 @@ import { showImapEditLabelDialog } from "../../mail/view/EditLabelDialog"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { DropDownSelectorNew, DropDownSelectorNewAttrs } from "../../../../ui/base/DropDownSelectorNew"
-import { getFolderName } from "../../mail/model/MailUtils"
+import { getMailSetName } from "../../mail/model/MailUtils"
 import { getFolderIconByType } from "../../mail/view/MailGuiUtils"
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
 import { elementIdPart, elementIdToId, GENERATED_MIN_ID, getElementId } from "@tutao/meta"
@@ -383,12 +383,12 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 						selectedValue: mailboxToRow.tutaMailSet,
 						selectedValueDisplay: mailboxToRow.shouldSync
 							? mailboxToRow.tutaMailSet
-								? getFolderName(mailboxToRow.tutaMailSet)
+								? getMailSetName(mailboxToRow.tutaMailSet)
 								: lang.getTranslationText("migrationChooseFolder_msg")
 							: lang.getTranslationText("migrationNotImportedFolderName_msg"),
 						items: data.folderSystem
 							.getIndentedList(null)
-							.map((indentedFolder) => ({ name: getFolderName(indentedFolder.folder), value: indentedFolder.folder })),
+							.map((indentedFolder) => ({ name: getMailSetName(indentedFolder.mailSet), value: indentedFolder.mailSet })),
 						style:
 							mailboxToRow.tutaMailSet || !mailboxToRow.shouldSync
 								? {}

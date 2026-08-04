@@ -10,6 +10,7 @@ import {
 	delay,
 	filterInt,
 	first,
+	getFirstOrThrow,
 	isEmpty,
 	isNotEmpty,
 	lazyMemoized,
@@ -39,8 +40,8 @@ import { InlineImageReference, InlineImages } from "../../../common/mailFunction
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import {
-	FolderInfo,
-	getFolderName,
+	MailSetInfo,
+	getMailSetName,
 	getIndentedFolderNameForDropdown,
 	getMoveTargetFolderSystems,
 	getMoveTargetFolderSystemsForMailsInFolder,
@@ -55,7 +56,7 @@ import { LabelsPopup } from "./LabelsPopup"
 import { styles } from "../../../../ui/styles"
 import { showSnackBar } from "../../../../ui/base/SnackBar"
 import { UndoModel } from "../../UndoModel"
-import { IndentedFolder } from "../../../common/api/common/mail/FolderSystem"
+import { FolderSystem, IndentedMailSet } from "../../../common/api/common/mail/FolderSystem"
 import { computeColor, rgbToHSL } from "../../../../ui/base/Color"
 import { getDetachedDropdownBounds } from "../../../../ui/base/GuiUtils"
 import { DownloadListener, TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
@@ -315,8 +316,8 @@ async function runPostMoveActions(mailModel: MailModel, mailboxModel: MailboxMod
 	const shouldReportMails = isNotEmpty(reportableMailIds) && (await getReportConfirmation(MailReportType.SPAM, mailboxModel, mailModel))
 
 	const undoMoveText = shouldReportMails
-		? `${lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(firstTargetFolder) }).text} ${lang.getTranslation("undoMailReport_msg").text}`
-		: lang.getTranslation("undoMoveMail_msg", { "{folder}": getFolderName(firstTargetFolder) }).text
+		? `${lang.getTranslation("undoMoveMail_msg", { "{folder}": getMailSetName(firstTargetFolder) }).text} ${lang.getTranslation("undoMailReport_msg").text}`
+		: lang.getTranslation("undoMoveMail_msg", { "{folder}": getMailSetName(firstTargetFolder) }).text
 
 	const undoMoveMessage = lang.makeTranslation("undoMoveMail_msg", undoMoveText)
 
@@ -581,7 +582,7 @@ export function getReferencedAttachments(attachments: Array<File>, referencedCid
 }
 
 type MoveDropdownParams =
-	| (RegularMoveTargets & { onClick: (folder: FolderInfo) => unknown })
+	| (RegularMoveTargets & { onClick: (folder: MailSetInfo) => unknown })
 	| (SimpleMoveTargets & {
 			onClick: (folder: SystemFolderType) => unknown
 	  })
@@ -609,13 +610,13 @@ export async function showMoveMailsFromFolderDropdown(
 		{
 			moveService: MoveService.RegularMove,
 			folders,
-			onClick: async (f: IndentedFolder) => {
+			onClick: async (f: IndentedMailSet) => {
 				const resolvedMails = await mails()
 				moveMails({
 					mailboxModel,
 					mailModel,
 					mailIds: resolvedMails,
-					targetFolder: f.folder,
+					targetFolder: f.mailSet,
 					moveMode,
 					undoModel,
 					contactModel,
@@ -651,12 +652,12 @@ export async function showMoveMailsDropdown(
 	} else {
 		moveParams = {
 			...moveTargets,
-			onClick: (f: FolderInfo) => {
+			onClick: (f: MailSetInfo) => {
 				moveMails({
 					mailboxModel,
 					mailModel,
 					mailIds: getIds(mails),
-					targetFolder: f.folder,
+					targetFolder: f.mailSet,
 					moveMode,
 					undoModel,
 					contactModel,
@@ -714,11 +715,11 @@ export async function showMailFolderDropdown(origin: PosRect, move: MoveDropdown
 	} else {
 		if (isEmpty(move.folders)) return
 
-		folderButtons = move.folders.map((f: FolderInfo) =>
+		folderButtons = move.folders.map((f: MailSetInfo) =>
 			folderButton({
 				depth: f.level,
-				folderType: getMailFolderType(f.folder),
-				folderName: getFolderName(f.folder),
+				folderType: getMailFolderType(f.mailSet),
+				folderName: getMailSetName(f.mailSet),
 				indentedFolderName: getIndentedFolderNameForDropdown(f),
 				onClick: () => move.onClick(f),
 				onSelected,
@@ -885,14 +886,43 @@ export function showLabelsPopup(
 		return
 	}
 
+	const mailGroupId = assertNotNull(getFirstOrThrow(selectedMails)._ownerGroup)
+	const labelSystem = assertNotNull(mailModel.getLabelFolderSystemByGroupId(mailGroupId))
 	const popup = new LabelsPopup(
 		dom ?? (document.activeElement as HTMLElement),
 		opts?.origin ?? dom?.getBoundingClientRect() ?? getDetachedDropdownBounds(),
 		opts?.width ?? (styles.isDesktopLayout() ? 300 : 200),
-		new LabelsPopupViewModel(mailModel.getLabelsForMails(selectedMails), labels),
+		new LabelsPopupViewModel(mailModel.getLabelsForMails(selectedMails), labels, labelSystem),
 		async (addedLabels, removedLabels) => mailModel.applyLabels(await getActionableMails(selectedMails), addedLabels, removedLabels),
 	)
 	setTimeout(() => popup.show(), 16)
+}
+
+export function getLabelsWithParentLabelNamesPrepended(mailModel: MailModel, mail: Mail): ReadonlyArray<{ name: string; color: string | null }> {
+	const mailLabels = mailModel.getLabelsForMail(mail)
+	const allLabels = mailModel.getLabelsByGroupId(assertNotNull(mail._ownerGroup))
+	const labelsWithParentNamesPrepended: { name: string; color: string | null }[] = mailLabels.map((label) => {
+		const nameParts: string[] = []
+		let current = label
+
+		while (current) {
+			nameParts.push(current.name)
+			if (!current.parentFolder) {
+				break
+			}
+			const parentId = elementIdPart(current.parentFolder)
+			const parent = allLabels.get(parentId)
+			if (!parent) {
+				break
+			}
+			current = parent
+		}
+
+		const fullName = nameParts.reverse().join("/")
+		return { name: fullName, color: label.color }
+	})
+
+	return labelsWithParentNamesPrepended.sort((labelA, labelB) => labelA.name.localeCompare(labelB.name))
 }
 
 // A temporary solution, we should try to use non-modal progress indicators

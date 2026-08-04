@@ -25,6 +25,7 @@ import m from "mithril"
 import { isOfflineError, LockedError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import {
 	AttachmentDownloader,
+	getLabelsWithParentLabelNamesPrepended,
 	getReferencedAttachments,
 	loadInlineImages,
 	moveMails,
@@ -55,7 +56,7 @@ import { getDefaultSender, getEnabledMailAddressesWithUser, getMailboxName, isTu
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { isNoReplyTeamAddress, isSystemNotification, loadMailDetails } from "./MailViewerUtils.js"
-import { assertSystemFolderOfType, getFolderName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
+import { assertSystemFolderOfType, getMailSetName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
 import { isDraft, isEditableDraft, isMailDeletable, isMailMovable, isMailScheduled } from "../model/MailChecks"
 import type { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
@@ -67,7 +68,7 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import { CALENDAR_MIME_TYPE } from "../../../../platform-kit/utils/FileConstants"
 import { SanitizedFragment } from "../../../../ui/utils/HtmlSanitizerInterface"
 import { ArchiveDataType } from "../../../../entities/sys/Utils"
-import { createMailAddress, EncryptedMailAddress, File, Mail, MailAddress, MailDetails, MailSet, MailTypeRef } from "@tutao/entities/tutanota"
+import { createMailAddress, EncryptedMailAddress, File, Mail, MailAddress, MailDetails, MailTypeRef } from "@tutao/entities/tutanota"
 import {
 	ConversationType,
 	ExternalImageRule,
@@ -81,8 +82,8 @@ import {
 import { isPermanentDeleteAllowedMailSetKind } from "../MailUtils"
 import { haveSameId, isSameId, OperationType } from "@tutao/meta"
 import {
-	EntityUpdatesListener,
 	EntityUpdateData,
+	EntityUpdatesListener,
 	isUpdateForTypeRef,
 	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -393,7 +394,7 @@ export class MailViewerViewModel {
 	getFolderInfo(): { folderType: MailSetKind; name: string } | null {
 		const folder = this.mailModel.getMailFolderForMail(this.mail)
 		if (!folder) return null
-		return { folderType: folder.folderType as MailSetKind, name: getFolderName(folder) }
+		return { folderType: folder.folderType as MailSetKind, name: getMailSetName(folder) }
 	}
 
 	getSubject(): string {
@@ -1440,8 +1441,8 @@ export class MailViewerViewModel {
 		this.collapsed = true
 	}
 
-	getLabels(): readonly MailSet[] {
-		return this.mailModel.getLabelsForMail(this.mail).sort((labelA, labelB) => labelA.name.localeCompare(labelB.name))
+	getLabels(): ReadonlyArray<{ name: string; color: string | null }> {
+		return getLabelsWithParentLabelNamesPrepended(this.mailModel, this.mail)
 	}
 
 	private updateMail({ mail, showFolder }: { mail: Mail; showFolder?: boolean }) {

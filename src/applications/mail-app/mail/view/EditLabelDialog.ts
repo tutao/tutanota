@@ -5,7 +5,7 @@ import { isOfflineError, LockedError } from "../../../../platform-kit/rest-clien
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { mailLocator } from "../../mailLocator.js"
-import type { IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
+import type { IndentedMailSet } from "../../../common/api/common/mail/FolderSystem.js"
 import { getPathToFolderString } from "../model/MailUtils.js"
 import { MailSet } from "@tutao/entities/tutanota"
 import { TextField } from "../../../../ui/base/TextField"
@@ -26,10 +26,10 @@ export async function showEditLabelDialog(
 ) {
 	const noParentFolderOption = lang.get("comboBoxSelectionNone_msg")
 	const folders = await mailLocator.mailModel.getMailboxLabelFoldersForId(mailBoxDetail.mailbox.mailSets._id)
-	let targetFolders: SelectorItemList<MailSet | null> = folders.getIndentedList(label).map((folderInfo: IndentedFolder) => {
+	let targetFolders: SelectorItemList<MailSet | null> = folders.getIndentedList(label).map((folderInfo: IndentedMailSet) => {
 		return {
-			name: folderInfo.folder.name,
-			value: folderInfo.folder,
+			name: folderInfo.mailSet.name,
+			value: folderInfo.mailSet,
 		}
 	})
 	targetFolders = [{ name: noParentFolderOption, value: null }, ...targetFolders]

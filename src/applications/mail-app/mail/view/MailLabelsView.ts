@@ -52,7 +52,7 @@ export class MailLabelsView implements Component<MailLabelViewAttrs> {
 		const isInternalUser = locator.logins.isInternalUserLoggedIn()
 		const selectedLabel = labels
 			?.getIndentedList()
-			.map((l) => l.folder)
+			.map((l) => l.mailSet)
 			.find((l) => isSelectedPrefix(MAIL_PREFIX + "/" + getElementId(l)))
 		const path = labels && selectedLabel ? labels.getPathToFolder(selectedLabel._id) : []
 		const mailTreeAttrs: MailSetTreeAttrs = {

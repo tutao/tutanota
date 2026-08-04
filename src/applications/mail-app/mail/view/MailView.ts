@@ -63,7 +63,7 @@ import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtil
 import { BottomNav } from "../../gui/BottomNav.js"
 import { mailLocator } from "../../mailLocator.js"
 import { showSnackBar } from "../../../../ui/base/SnackBar.js"
-import { getFolderName } from "../model/MailUtils.js"
+import { getMailSetName } from "../model/MailUtils.js"
 import { canDoDragAndDropExport, editDraft, getMailViewerMoreActions, MailFilterType, showReportPhishingMailDialog, startExport } from "./MailViewerUtils.js"
 import { isDraft, isMailMovable, isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { DropData, DropType, FileDropData, FolderDropData, getDetachedDropdownBounds, MailDropData } from "../../../../ui/base/GuiUtils"
@@ -186,7 +186,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 												return
 											}
 											const confirmed = await Dialog.confirm(
-												lang.getTranslation("confirmDeleteFinallySystemFolder_msg", { "{1}": getFolderName(folder) }),
+												lang.getTranslation("confirmDeleteFinallySystemFolder_msg", { "{1}": getMailSetName(folder) }),
 											)
 											if (confirmed) {
 												showProgressDialog("progressDeleting_msg", this.mailViewModel.finallyDeleteAllMailsInSelectedFolder(folder))
@@ -241,7 +241,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				maxWidth: deviceConfig.getMailListSize(userId) ?? layout_size.second_col_max_width,
 				headerCenter: () => {
 					const folder = this.mailViewModel.getFolder()
-					return folder ? lang.makeTranslation("folder_name", getFolderName(folder)) : "emptyString_msg"
+					return folder ? lang.makeTranslation("folder_name", getMailSetName(folder)) : "emptyString_msg"
 				},
 				resizeCallback: (size: number) => {
 					deviceConfig.setMailListSize(userId, size)
@@ -1246,7 +1246,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 
 		const isTargetDescendent =
-			labelFolderSystem.getDescendantFoldersOfParent(labelToMove._id)?.find((descendant) => isSameId(targetLabel._id, descendant.folder._id)) != null
+			labelFolderSystem.getDescendantFoldersOfParent(labelToMove._id)?.find((descendant) => isSameId(targetLabel._id, descendant.mailSet._id)) != null
 		if (isTargetDescendent) return
 		await mailLocator.mailFacade.updateLabel(labelToMove, labelToMove.name, assertNotNull(labelToMove.color), targetLabel._id)
 	}
@@ -1389,7 +1389,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 
 		const isTargetDescendent =
-			folderSystem.getDescendantFoldersOfParent(folderToMove._id)?.find((descendant) => isSameId(targetFolder._id, descendant.folder._id)) != null
+			folderSystem.getDescendantFoldersOfParent(folderToMove._id)?.find((descendant) => isSameId(targetFolder._id, descendant.mailSet._id)) != null
 		if (isTargetDescendent) return
 
 		await mailLocator.mailModel.setParentForFolder(folderToMove, targetFolder._id)
@@ -1479,7 +1479,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		if (isSpamOrTrashFolder(folders, folder)) {
 			const confirmed = await Dialog.confirm(
 				lang.getTranslation("confirmDeleteFinallyCustomFolder_msg", {
-					"{1}": getFolderName(folder),
+					"{1}": getMailSetName(folder),
 				}),
 			)
 			if (!confirmed) return
@@ -1487,7 +1487,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		} else {
 			const confirmed = await Dialog.confirm(
 				lang.getTranslation("confirmDeleteCustomFolder_msg", {
-					"{1}": getFolderName(folder),
+					"{1}": getMailSetName(folder),
 				}),
 			)
 			if (!confirmed) return

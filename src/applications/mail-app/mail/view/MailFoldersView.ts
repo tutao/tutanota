@@ -13,7 +13,7 @@ import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
 import { px, size } from "../../../../ui/size.js"
 import { RowButton } from "../../../../ui/base/buttons/RowButton.js"
 import { MailModel } from "../model/MailModel.js"
-import { getFolderName } from "../model/MailUtils.js"
+import { getMailSetName } from "../model/MailUtils.js"
 import { DropData } from "../../../../ui/base/GuiUtils"
 import { theme } from "../../../../ui/theme.js"
 import { MailSet } from "@tutao/entities/tutanota"
@@ -56,7 +56,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 		const children: Children = []
 		const selectedFolder = folders
 			?.getIndentedList()
-			.map((f) => f.folder)
+			.map((f) => f.mailSet)
 			.find((f) => isSelectedPrefix(MAIL_PREFIX + "/" + getElementId(f)))
 		const path = folders && selectedFolder ? folders.getPathToFolder(selectedFolder._id) : []
 		const isInternalUser = locator.logins.isInternalUserLoggedIn()
@@ -85,7 +85,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 				},
 			}),
 			getFolderName(system: FolderSubtree): string {
-				return getFolderName(system.folder)
+				return getMailSetName(system.folder)
 			},
 		}
 		const systemChildren =

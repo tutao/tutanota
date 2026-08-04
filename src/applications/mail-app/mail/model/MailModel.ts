@@ -520,11 +520,11 @@ export class MailModel {
 		const deleted = new Set<Id>()
 		for (const descendant of descendants) {
 			if (
-				(await this.isEmptyFolder(descendant.folder)) &&
-				folderSystem.getCustomFoldersOfParent(descendant.folder._id).every((f) => deleted.has(getElementId(f)))
+				(await this.isEmptyFolder(descendant.mailSet)) &&
+				folderSystem.getCustomFoldersOfParent(descendant.mailSet._id).every((f) => deleted.has(getElementId(f)))
 			) {
-				deleted.add(getElementId(descendant.folder))
-				await this.finallyDeleteCustomMailFolder(descendant.folder)
+				deleted.add(getElementId(descendant.mailSet))
+				await this.finallyDeleteCustomMailFolder(descendant.mailSet)
 			} else {
 				someNonEmpty = true
 			}

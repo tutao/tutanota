@@ -24,7 +24,7 @@ import { colorForBg } from "../../../../ui/base/GuiUtils"
 import { theme } from "../../../../ui/theme"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { getFolderName } from "../model/MailUtils"
+import { getMailSetName } from "../model/MailUtils"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
 import { isEditableDraft } from "../model/MailChecks"
@@ -79,7 +79,7 @@ export class MailRow implements VirtualRow<Mail> {
 
 	constructor(
 		private readonly showFolderIcon: boolean,
-		private readonly getLabelsForMail: (mail: Mail) => ReadonlyArray<MailSet>,
+		private readonly getLabelsForMail: (mail: Mail) => ReadonlyArray<{ name: string; color: string | null }>,
 		private readonly onSelected: (mail: Mail, selected: boolean) => unknown,
 		private readonly getHighlightedStrings?: () => readonly SearchToken[],
 	) {
@@ -147,7 +147,7 @@ export class MailRow implements VirtualRow<Mail> {
 		}
 	}
 
-	private updateLabels(mail: Mail): readonly MailSet[] {
+	private updateLabels(mail: Mail): readonly { name: string; color: string | null }[] {
 		const labels = this.getLabelsForMail(mail)
 
 		for (const [i, element] of this.labelsDom.entries()) {
@@ -409,7 +409,7 @@ export class MailRow implements VirtualRow<Mail> {
 			let folder = mailLocator.mailModel.getMailFolderForMail(mail)
 			if (folder) {
 				iconText += this.folderIcon(getMailFolderType(folder))
-				description += getFolderName(folder) + " "
+				description += getMailSetName(folder) + " "
 			}
 		}
 

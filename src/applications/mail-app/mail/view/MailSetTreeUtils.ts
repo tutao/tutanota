@@ -9,7 +9,7 @@ import { canHaveDescendents, isEditableMailSet, isNestableMailSet } from "../Mai
 import { theme } from "../../../../ui/theme"
 import { DropData, DropType, renderDragElement } from "../../../../ui/base/GuiUtils"
 import { MailSetRow } from "./MailSetRow"
-import { getFolderName, MAX_FOLDER_INDENT_LEVEL } from "../model/MailUtils"
+import { getMailSetName, MAX_FOLDER_INDENT_LEVEL } from "../model/MailUtils"
 import { last, noOp, Nullable, Thunk } from "@tutao/utils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { IconAttrs } from "../../../../ui/base/Icon"
@@ -73,7 +73,7 @@ export interface MailSetTreeAttrs {
 function getPathToFolderAsString(folderSystem: FolderSystem, currentFolder: MailSet): string {
 	return folderSystem
 		.getPathToFolder(currentFolder._id)
-		.map((f) => getFolderName(f))
+		.map((f) => getMailSetName(f))
 		.join(":")
 }
 

@@ -10,8 +10,8 @@ import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js
 import { reportMailsAutomatically } from "./MailReportDialog.js"
 import { groupByAndMap, noOp } from "../../../../platform-kit/utils"
 import { mailLocator } from "../../mailLocator.js"
-import type { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
-import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../model/MailUtils.js"
+import type { FolderSystem, IndentedMailSet } from "../../../common/api/common/mail/FolderSystem.js"
+import { getMailSetName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../model/MailUtils.js"
 import { isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { Mail, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { MailReportType, MailSetKind } from "../../../../entities/tutanota/Utils"
@@ -36,13 +36,13 @@ export async function showEditFolderDialog(
 	let targetFolders: SelectorItemList<MailSet | null> = folders
 		.getIndentedList(editedFolder)
 		// filter: SPAM and TRASH and descendants are only shown if editing (mailSets can only be moved there, not created there)
-		.filter((folderInfo: IndentedFolder) => !(editedFolder === null && isSpamOrTrashFolder(folders, folderInfo.folder)))
+		.filter((folderInfo: IndentedMailSet) => !(editedFolder === null && isSpamOrTrashFolder(folders, folderInfo.mailSet)))
 		// avoid read only folders
-		.filter((folderInfo) => !isFolderReadOnly(folderInfo.folder))
-		.map((folderInfo: IndentedFolder) => {
+		.filter((folderInfo) => !isFolderReadOnly(folderInfo.mailSet))
+		.map((folderInfo: IndentedMailSet) => {
 			return {
 				name: getIndentedFolderNameForDropdown(folderInfo),
-				value: folderInfo.folder,
+				value: folderInfo.mailSet,
 			}
 		})
 	targetFolders = [{ name: noParentFolderOption, value: null }, ...targetFolders]
@@ -59,7 +59,7 @@ export async function showEditFolderDialog(
 			label: "parentFolder_label",
 			items: targetFolders,
 			selectedValue: selectedParentFolder,
-			selectedValueDisplay: selectedParentFolder ? getFolderName(selectedParentFolder) : noParentFolderOption,
+			selectedValueDisplay: selectedParentFolder ? getMailSetName(selectedParentFolder) : noParentFolderOption,
 			selectionChangedHandler: (newFolder: MailSet | null) => (selectedParentFolder = newFolder),
 			helpLabel: () => (selectedParentFolder ? getPathToFolderString(folders, selectedParentFolder) : ""),
 		}),
@@ -100,7 +100,7 @@ export async function showEditFolderDialog(
 						lang.makeTranslation(
 							"confirm",
 							lang.get("confirmDeleteCustomFolder_msg", {
-								"{1}": getFolderName(editedFolder),
+								"{1}": getMailSetName(editedFolder),
 							}),
 						),
 					)
@@ -114,18 +114,20 @@ export async function showEditFolderDialog(
 						lang.makeTranslation(
 							"confirm",
 							lang.get("confirmSpamCustomFolder_msg", {
-								"{1}": getFolderName(editedFolder),
+								"{1}": getMailSetName(editedFolder),
 							}),
 						),
 					)
 					if (!confirmed) return
 
 					// get mails to report before moving to mail model
-					const descendants = folders.getDescendantFoldersOfParent(editedFolder._id).sort((l: IndentedFolder, r: IndentedFolder) => r.level - l.level)
+					const descendants = folders
+						.getDescendantFoldersOfParent(editedFolder._id)
+						.sort((l: IndentedMailSet, r: IndentedMailSet) => r.level - l.level)
 					let reportableMails: Array<Mail> = []
 					await loadAllMailsOfFolder(editedFolder, reportableMails)
 					for (const descendant of descendants) {
-						await loadAllMailsOfFolder(descendant.folder, reportableMails)
+						await loadAllMailsOfFolder(descendant.mailSet, reportableMails)
 					}
 					await reportMailsAutomatically(MailReportType.SPAM, locator.mailboxModel, mailLocator.mailModel, async () => reportableMails)
 

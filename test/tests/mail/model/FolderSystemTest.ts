@@ -117,12 +117,12 @@ o.spec("FolderSystem", function () {
 		const system = new FolderSystem(allFolders)
 
 		o.check(system.getIndentedList()).deepEquals([
-			{ level: 0, folder: inbox },
-			{ level: 0, folder: archive },
-			{ level: 0, folder: customFolder },
-			{ level: 1, folder: customSubfolder },
-			{ level: 2, folder: customSubSubfolderAnother },
-			{ level: 2, folder: customSubSubfolder },
+			{ level: 0, mailSet: inbox },
+			{ level: 0, mailSet: archive },
+			{ level: 0, mailSet: customFolder },
+			{ level: 1, mailSet: customSubfolder },
+			{ level: 2, mailSet: customSubSubfolderAnother },
+			{ level: 2, mailSet: customSubSubfolder },
 		])
 	})
 
@@ -142,23 +142,23 @@ o.spec("FolderSystem", function () {
 		const system = new FolderSystem([...allFolders, customFolderAnother, customFolderAnotherSub])
 
 		o.check(system.getIndentedList()).deepEquals([
-			{ level: 0, folder: inbox },
-			{ level: 0, folder: archive },
-			{ level: 0, folder: customFolderAnother },
-			{ level: 1, folder: customFolderAnotherSub },
-			{ level: 0, folder: customFolder },
-			{ level: 1, folder: customSubfolder },
-			{ level: 2, folder: customSubSubfolderAnother },
-			{ level: 2, folder: customSubSubfolder },
+			{ level: 0, mailSet: inbox },
+			{ level: 0, mailSet: archive },
+			{ level: 0, mailSet: customFolderAnother },
+			{ level: 1, mailSet: customFolderAnotherSub },
+			{ level: 0, mailSet: customFolder },
+			{ level: 1, mailSet: customSubfolder },
+			{ level: 2, mailSet: customSubSubfolderAnother },
+			{ level: 2, mailSet: customSubSubfolder },
 		])
 	})
 
 	o.test("indented list will not return folder or descendants of given folder", function () {
 		const system = new FolderSystem(allFolders)
 		o.check(system.getIndentedList(customSubfolder)).deepEquals([
-			{ level: 0, folder: inbox },
-			{ level: 0, folder: archive },
-			{ level: 0, folder: customFolder },
+			{ level: 0, mailSet: inbox },
+			{ level: 0, mailSet: archive },
+			{ level: 0, mailSet: customFolder },
 		])
 	})
 

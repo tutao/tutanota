@@ -1155,7 +1155,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			const mailFolders = mailLocator.mailModel.getFolderSystemByGroupId(elementIdToId(mailbox.mailGroup._id))?.getIndentedList() ?? []
 			for (const folderInfo of mailFolders) {
 				const mailboxLabel = mailboxIndex === 0 ? "" : ` (${getGroupInfoDisplayName(mailbox.mailGroupInfo)})`
-				const folderId = getElementId(folderInfo.folder)
+				const folderId = getElementId(folderInfo.mailSet)
 				availableMailFolders.push({
 					name: getIndentedFolderNameForDropdown(folderInfo) + mailboxLabel,
 					value: folderId,
