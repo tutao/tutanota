@@ -15,7 +15,18 @@ import {
 	Versioned,
 } from "@tutao/utils"
 import { assertWorkerOrNode, CryptoProtocolVersion, EncryptionAuthStatus, PresentableKeyVerificationState } from "@tutao/app-env"
-import { assertEnumValue, AttributeModel, ClientTypeModel, getElementId, getListId, idToElementId, isSameId, isSameTypeRef, stringifyId } from "../../meta"
+import {
+	assertEnumValue,
+	AttributeModel,
+	ClientTypeModel,
+	getElementId,
+	getListId,
+	hasError,
+	idToElementId,
+	isSameId,
+	isSameTypeRef,
+	stringifyId,
+} from "../../meta"
 import { DEFAULT_REST_CLIENT_OPTIONS, RestClientInterface } from "@tutao/rest-client"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
@@ -87,8 +98,9 @@ import { CacheManager } from "./persistence/CacheManager"
 import { InstanceSessionKeysCache } from "./persistence/InstanceSessionKeysCache"
 import { EntityUtils } from "../../instance-pipeline/EntityUtils"
 import { OutgoingServerJson } from "../../instance-pipeline/TypeMapper"
-import { ClientDetector } from "../../app-env/boot/ClientDetector"
 import { isNull } from "../../utils/Utils"
+import { ClientDetector } from "../../app-env/boot/ClientDetector"
+import { TypeChecks } from "../../app-env/boot/TsTypeChecks"
 
 assertWorkerOrNode()
 
@@ -737,10 +749,11 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	 * @param childInstances the files that belong to the mainInstance
 	 */
 	async enforceSessionKeyUpdateIfNeeded(instance: PersistentEntity, childInstances: readonly File[]): Promise<File[]> {
-		if (!childInstances.some((f) => f._ownerEncSessionKey == null || f._errors !== undefined)) {
+		const haveOutOfSyncInstance = childInstances.some((f) => isNull(f._ownerEncSessionKey) || (TypeChecks.hasProperty("_errors", f) && hasError(f)))
+		if (!haveOutOfSyncInstance) {
 			return childInstances.slice()
 		}
-		const outOfSyncInstances = childInstances.filter((f) => f._ownerEncSessionKey == null || f._errors !== undefined)
+		const outOfSyncInstances = childInstances.filter((f) => isNull(f._ownerEncSessionKey) || (TypeChecks.hasProperty("_errors", f) && hasError(f)))
 		if (instance.bucketKey) {
 			// invoke updateSessionKeys service in case a bucket key is still available
 			const resolvedSessionKeys = await this.resolveWithBucketKey(instance)

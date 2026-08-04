@@ -4,9 +4,9 @@ import { isAdminClient, isApp, isDesktop } from "./Env"
 export type Country = any
 
 export function enumKeyByValue<T extends Record<string, string>>(e: T, value: T[keyof T]): keyof T {
-	const key = Object.keys(e).find((k) => e[k] === value)
+	const key = Object.keys(e).find((k) => e[k] === value) ?? null
 
-	if (key === undefined) {
+	if (key == null) {
 		throw new Error(`Unknown enum value: ${value}`)
 	}
 
