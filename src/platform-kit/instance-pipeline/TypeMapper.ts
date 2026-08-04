@@ -109,7 +109,12 @@ export class IncomingServerJson implements DeepEquals {
 	}
 
 	public static expectSingleInstance(data: any, typeModel: ServerTypeModel): IncomingServerJson {
-		const parsedJson = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
+		const parsedJson = JSON.parse(data, (k, v) => {
+			if (k === "__proto__") {
+				delete parsedJson[k]
+			}
+			return v
+		})
 		assert(!Array.isArray(parsedJson), "Expected single instance. But response is an array")
 		return new IncomingServerJson(parsedJson, typeModel)
 	}
@@ -120,7 +125,12 @@ export class IncomingServerJson implements DeepEquals {
 	}
 
 	public static expectMultipleInstance(data: any, typeModel: ServerTypeModel): Array<IncomingServerJson> {
-		const parsedJson = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
+		const parsedJson = JSON.parse(data, (k, v) => {
+			if (k === "__proto__") {
+				delete parsedJson[k]
+			}
+			return v
+		})
 		assert(Array.isArray(parsedJson), "Expected multiple instances. But response is not an array")
 
 		return (parsedJson as Array<any>).map((item) => {

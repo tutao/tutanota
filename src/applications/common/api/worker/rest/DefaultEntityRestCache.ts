@@ -167,7 +167,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		ids: Array<Id>,
-		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
+		ownerEncSessionKeyProvider: Nullable<OwnerEncSessionKeyProvider> = null,
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<Array<T>> {
 		const useCache = this.shouldUseCache(typeRef, opts)
@@ -250,7 +250,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		ids: Array<Id>,
-		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
+		ownerEncSessionKeyProvider: Nullable<OwnerEncSessionKeyProvider> = null,
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<Array<T>> {
 		const cachingBehavior = getCacheModeBehavior(opts.cacheMode)

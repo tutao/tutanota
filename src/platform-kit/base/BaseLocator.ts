@@ -32,14 +32,13 @@ import {
 	ApplicationTypesFacade,
 	ClientModelInfo,
 	InstancePipeline,
-	NamedClientModel,
 	PatchMerger,
 	ServerModelInfo,
 	SimpleFileFacade,
 	TypeModelResolver,
 	UpdateAppTypesHashMiddleware,
 } from "../instance-pipeline"
-import { lazyAsync, lazyMemoized } from "../utils"
+import { lazy, lazyAsync, lazyMemoized, Nullable } from "../utils"
 import { NoZoneDateProvider } from "../utils/NoZoneDateProvider.js"
 import { NativeCryptoFacade } from "../../app-kit/native-bridge/common/generatedipc/types/NativeCryptoFacade"
 import { ServiceExecutor } from "../network/ServiceExecutor"
@@ -118,11 +117,11 @@ export type BaseLocatorConfig = {
 	lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider>
 	cacheManagement: lazyAsync<CacheManager>
 	identityKeyTrustDatabase: IdentityKeyTrustDatabase
-	argon2idFacade?: Argon2idFacade
+	argon2idFacade: Nullable<Argon2idFacade>
 	domainConfig: DomainConfig
 	rsa: RsaImplementation
 	fileFacade: SimpleFileFacade
-	nativeCryptoFacade?: NativeCryptoFacade
+	nativeCryptoFacade: Nullable<NativeCryptoFacade>
 	entityMigratorFactory: (params: {
 		cryptoWrapper: CryptoWrapper
 		user: UserFacade
@@ -188,7 +187,7 @@ export async function createBaseLocator({
 
 	// Declared before serviceExecutor and entityRestClient because it's captured via lazyCrypto
 	let crypto: CryptoFacade
-	const lazyCrypto = () => crypto
+	const lazyCrypto: lazy<CryptoFacade> = () => crypto
 	const serviceExecutor = new ServiceExecutor(restClient, user, instancePipeline, lazyCrypto, typeModelResolver)
 	applicationTypesFacade = new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo)
 	const entropyFacade = new EntropyFacade(user, serviceExecutor, random, () => keyLoader)

@@ -166,7 +166,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 
 	locator.pdfWriter = async () => {
 		const { PdfWriter } = await import("../../../common/api/worker/pdf/PdfWriter.js")
-		return new PdfWriter(new TextEncoder(), undefined)
+		return new PdfWriter(new TextEncoder())
 	}
 
 	// Indexing state — no factory deps, can be defined early
@@ -199,7 +199,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			const { OfflineMailIndexer } = await import("../index/OfflineMailIndexer.js")
 			const persistence = await offlineStorageIndexerPersistence()
 			const blob = await locator.blob()
-			const modelMapper = locator.base.instancePipeline.modelMapper
 			return new OfflineMailIndexer(
 				persistence,
 				blob,
@@ -387,6 +386,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		rsa: await createRsaImplementation(worker),
 		fileFacade: new FileFacadeSendDispatcher(worker),
 		nativeCryptoFacade: new NativeCryptoFacadeSendDispatcher(worker),
+		argon2idFacade: null,
 		entityMigratorFactory: ({
 			cryptoWrapper,
 			user,
