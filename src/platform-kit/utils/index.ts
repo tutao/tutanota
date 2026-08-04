@@ -143,7 +143,6 @@ export {
 	debounceStart,
 	throttleStart,
 	randomIntFromInterval,
-	errorToString,
 	deepEqual,
 	getChangedProps,
 	freezeMap,
@@ -167,19 +166,7 @@ export {
 	onceAsync,
 	isAsciiChar,
 } from "./Utils.js"
-export type {
-	Callback,
-	DeferredObject,
-	lazy,
-	lazyAsync,
-	Thunk,
-	DeferredObjectWithHandler,
-	TimeoutSetter,
-	ErrorInfo,
-	Versioned,
-	KeyVersion,
-	Nullable,
-} from "./Utils"
+export type { Callback, DeferredObject, lazy, lazyAsync, Thunk, DeferredObjectWithHandler, TimeoutSetter, Versioned, KeyVersion, Nullable } from "./Utils"
 
 export { callWebAssemblyFunctionWithArguments, allocateBuffer, type Ptr, type ConstPtr, type FreeFN, type WASMExports } from "./WebAssembly.js"
 
