@@ -6,7 +6,7 @@ import { Nullable } from "@tutao/utils"
 export interface CryptoNetworkHelper {
 	setNewOwnerEncSessionKey(clientTypeModel: ClientTypeModel, instance: Entity, keyToEncryptSessionKey: Nullable<VersionedKey>): Promise<AesKey | null>
 
-	setOwnerEncSessionKey(instance: Entity, ownerEncSessionKey: VersionedEncryptedKey, ownerGroup?: Id): void
+	setOwnerEncSessionKey(instance: Entity, ownerEncSessionKey: VersionedEncryptedKey, ownerGroup: Nullable<Id>): void
 
 	decryptSessionKey(ownerGroup: Id, ownerEncSessionKey: VersionedEncryptedKey): Promise<AesKey>
 

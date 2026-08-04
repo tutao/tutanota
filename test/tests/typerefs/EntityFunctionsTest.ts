@@ -30,6 +30,7 @@ o.spec("EntityFunctionsTest", function () {
 				since: 0,
 				type: EntityTypeEnum.ListElement,
 				isPublic: true,
+				dependsOnVersion: null,
 				values: {
 					"1": {
 						id: 1,

@@ -63,7 +63,9 @@ import {
 import { EntityUtils } from "../instance-pipeline/EntityUtils"
 import { IncomingServerJson, OutgoingServerJson } from "../instance-pipeline/TypeMapper"
 import {
+	DEFAULT_ENTITY_RESTCLIENT_ERASE_OPTIONS,
 	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	DEFAULT_ENTITY_RESTCLIENT_UPDATE_OPTIONS,
 	EntityRestClientEraseOptions,
 	EntityRestClientLoadOptions,
 	EntityRestClientSetupOptions,
@@ -233,7 +235,7 @@ export class EntityRestClient implements EntityRestInterface {
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		elementIds: Array<Id>,
-		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
+		ownerEncSessionKeyProvider: Nullable<OwnerEncSessionKeyProvider> = null,
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<Array<DecryptedParsedInstance>> {
 		const { path, headers } = await this._validateAndPrepareRestRequest(
@@ -282,7 +284,7 @@ export class EntityRestClient implements EntityRestInterface {
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		elementIds: Array<Id>,
-		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
+		ownerEncSessionKeyProvider: Nullable<OwnerEncSessionKeyProvider> = null,
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<Array<T>> {
 		const parsedInstances = await this.loadMultipleParsedInstances(typeRef, listId, elementIds, ownerEncSessionKeyProvider, opts)
@@ -343,7 +345,7 @@ export class EntityRestClient implements EntityRestInterface {
 		typeRef: TypeRef<T>,
 		loadedEntities: Array<IncomingServerJson>,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
-		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
+		ownerEncSessionKeyProvider: Nullable<OwnerEncSessionKeyProvider> = null,
 	): Promise<Array<DecryptedParsedInstance>> {
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		return await promiseMap(
@@ -372,11 +374,11 @@ export class EntityRestClient implements EntityRestInterface {
 		serverTypeModel: ServerTypeModel,
 		entityAdapter: EntityAdapter,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
-		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
+		ownerEncSessionKeyProvider: Nullable<OwnerEncSessionKeyProvider> = null,
 	): Promise<DecryptedParsedInstance> {
 		let sessionKey: AesKey | null
 		if (ownerEncSessionKeyProvider) {
-			const { listId, elementId } = expandId(entityAdapter._id)
+			const { listId: _, elementId } = expandId(entityAdapter._id)
 
 			const ownerEncSessionKey = await ownerEncSessionKeyProvider(elementId, entityAdapter)
 			const ownerGroup = assertNotNull(entityAdapter._ownerGroup)
@@ -517,17 +519,14 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 	}
 
-	async update<T extends PersistentEntity>(instance: T, options?: EntityRestClientUpdateOptions): Promise<void> {
+	async update<T extends PersistentEntity>(instance: T, options: EntityRestClientUpdateOptions = DEFAULT_ENTITY_RESTCLIENT_UPDATE_OPTIONS): Promise<void> {
 		const { listId, elementId } = expandId(assertNotNull(instance._id, "Id must be defined while updating an instance"))
-		const { path, queryParams, clientTypeModel, headers } = await this._validateAndPrepareRestRequest(
-			instance._type,
-			listId,
-			elementId,
-			null,
-			null,
-			null,
-			options?.ownerKey ?? null,
-		)
+		const {
+			path,
+			queryParams,
+			clientTypeModel: _,
+			headers,
+		} = await this._validateAndPrepareRestRequest(instance._type, listId, elementId, null, null, null, options?.ownerKey ?? null)
 		// map and encrypt instance._original and the instance
 		const originalParsedInstance = await this.instancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(instance._original))
 		const parsedInstance = await this.instancePipeline.modelMapper.mapToDecryptedInstance(instance)
@@ -608,7 +607,7 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 	}
 
-	async erase<T extends PersistentEntity>(instance: T, options?: EntityRestClientEraseOptions): Promise<void> {
+	async erase<T extends PersistentEntity>(instance: T, options: EntityRestClientEraseOptions = DEFAULT_ENTITY_RESTCLIENT_ERASE_OPTIONS): Promise<void> {
 		const { listId, elementId } = expandId(instance._id)
 		const { path, queryParams, headers } = await this._validateAndPrepareRestRequest(
 			instance._type,
@@ -626,7 +625,11 @@ export class EntityRestClient implements EntityRestInterface {
 		})
 	}
 
-	async eraseMultiple<T extends PersistentEntity>(listId: string, instances: T[], options?: EntityRestClientEraseOptions): Promise<void> {
+	async eraseMultiple<T extends PersistentEntity>(
+		listId: string,
+		instances: T[],
+		options: Nullable<EntityRestClientEraseOptions> = DEFAULT_ENTITY_RESTCLIENT_ERASE_OPTIONS,
+	): Promise<void> {
 		if (instances.length === 0) {
 			return
 		}

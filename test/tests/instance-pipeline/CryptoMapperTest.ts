@@ -350,8 +350,8 @@ o.spec("CryptoMapperTest", () => {
 			}
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(null, kdfNonce, instanceTypeId)
 			const groupId = "groupId"
-			when(keyLoader.loadSymGroupKey(groupId, groupKey.version)).thenResolve(groupKey.object)
-			const ownerKeyProvider = (groupKeyVersion: KeyVersion) => keyLoader.loadSymGroupKey(groupId, groupKeyVersion)
+			when(keyLoader.loadSymGroupKey(groupId, groupKey.version, matchers.anything())).thenResolve(groupKey.object)
+			const ownerKeyProvider = (groupKeyVersion: KeyVersion) => keyLoader.loadSymGroupKey(groupId, groupKeyVersion, null)
 			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, ownerKeyProvider, fieldPath)
 			o.check(Array.from(decryptedValue.asByteArray())).deepEquals(Array.from(value))
 		})
@@ -468,9 +468,9 @@ o.spec("CryptoMapperTest", () => {
 			when(instanceDecryptor.getValueDecryptor(matchers.anything(), matchers.anything())).thenReturn(valueDecryptor)
 			const groupId = "groupId"
 			const aes256Key = aes256RandomKey()
-			when(keyLoader.loadSymGroupKey(groupId, matchers.anything())).thenReturn(Promise.resolve(aes256Key))
+			when(keyLoader.loadSymGroupKey(groupId, matchers.anything(), matchers.anything())).thenReturn(Promise.resolve(aes256Key))
 
-			const ownerKeyProvider = (groupKeyVersion: KeyVersion) => keyLoader.loadSymGroupKey(groupId, groupKeyVersion)
+			const ownerKeyProvider = (groupKeyVersion: KeyVersion) => keyLoader.loadSymGroupKey(groupId, groupKeyVersion, null)
 			await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, ownerKeyProvider, "")
 			verify(valueDecryptor.getValue(aes256Key))
 		})
