@@ -15,7 +15,7 @@ import {
 	isOfflineStorageAvailable,
 	ProgrammingError,
 } from "../../../../platform-kit/app-env"
-import { CalendarEventTypeRef, ContactTypeRef, ImapFolderSyncStateTypeRef, ImportFileMailStateTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { ContactTypeRef, ImapFolderSyncStateTypeRef, ImportFileMailStateTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { UserTypeRef } from "@tutao/entities/sys"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
@@ -61,7 +61,6 @@ import { AesApp } from "../../../../app-kit/native-bridge/worker/AesApp.js"
 import { CacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { CustomCacheHandlerMap } from "../../../../app-kit/local-store/CustomCacheHandler"
 import { CustomUserCacheHandler } from "../../../common/api/worker/rest/CustomUserCacheHandler"
-import { CustomCalendarEventCacheHandler } from "../../../calendar-app/workerUtils/worker/CustomCalendarEventCacheHandler"
 import { CustomMailEventCacheHandler } from "./CustomMailEventCacheHandler"
 import type { ContactSearchFacade } from "../index/ContactSearchFacade"
 import type { IndexedDbSearchFacade } from "../index/IndexedDbSearchFacade.js"
@@ -307,10 +306,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			// on fastCache whenever the user is removed from a group
 			const fastCache = new EphemeralCacheStorage(locator.base.instancePipeline.modelMapper, locator.base.typeModelResolver, new CustomCacheHandlerMap())
 			const customCacheHandler = new CustomCacheHandlerMap(
-				{
-					ref: CalendarEventTypeRef,
-					handler: new CustomCalendarEventCacheHandler(locator.base.entityRestClient, locator.base.typeModelResolver),
-				},
 				{
 					ref: MailTypeRef,
 					handler: new CustomMailEventCacheHandler(mailIndexer),

@@ -53,7 +53,6 @@ import { CacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { EntityRestCache } from "../../../../platform-kit/network/EntityRestCacheInterface"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { LastProcessedEventBatchProvider } from "../../../../platform-kit/network/LastProcessedEventBatchProvider"
-import { CalendarEventTypeRef } from "@tutao/entities/tutanota"
 import { UserTypeRef } from "@tutao/entities/sys"
 import { PdfWriter } from "../../../common/api/worker/pdf/PdfWriter.js"
 import { AlarmFacade } from "../../../common/api/worker/facades/lazy/AlarmFacade"
@@ -63,7 +62,6 @@ import { createOfflineStorageMigrations, OfflineStorageMigrator } from "../../..
 import { CustomCacheHandlerMap } from "../../../../app-kit/local-store/CustomCacheHandler"
 import { CustomUserCacheHandler } from "../../../common/api/worker/rest/CustomUserCacheHandler"
 import { EphemeralCacheStorage } from "../../../../app-kit/local-store/EphemeralCacheStorage"
-import { CustomCalendarEventCacheHandler } from "../worker/CustomCalendarEventCacheHandler"
 import { DefaultLoginListener } from "../../../common/api/worker/utils/DefaultLoginListener"
 import { BaseLocator } from "../../../../platform-kit/base/BaseLocator.js"
 import { createBaseLocator } from "../../../../platform-kit/base/BaseLocator"
@@ -142,8 +140,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	if (!isBrowser() && !isAdminClient()) {
 		offlineStorageProvider = async () => {
 			const customCacheHandler = new CustomCacheHandlerMap({
-				ref: CalendarEventTypeRef,
-				handler: new CustomCalendarEventCacheHandler(locator.base.entityRestClient, locator.base.typeModelResolver),
+				ref: UserTypeRef,
+				handler: new CustomUserCacheHandler(locator.cacheStorage),
 			})
 			const offlineMapper = new OfflineMapper(locator.base.typeModelResolver)
 			const fastCache = new EphemeralCacheStorage(locator.base.instancePipeline.modelMapper, locator.base.typeModelResolver, new CustomCacheHandlerMap())

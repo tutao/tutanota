@@ -143,12 +143,11 @@ import("../../ui/translations/en.js")
 
 		if (!isBrowser() && !isAdminClient()) {
 			calendarLocator.logins.addPostLoginAction(async () => {
-				const { CachePostLoginAction } = await import("../common/offline/CachePostLoginAction.js")
-				return new CachePostLoginAction(
+				const { CalendarPostLoginAction } = await import("../common/offline/CalendarPostLoginAction.js")
+				return new CalendarPostLoginAction(
 					await calendarLocator.calendarModel(),
 					calendarLocator.entityClient,
 					calendarLocator.progressTracker,
-					calendarLocator.cacheStorage,
 					calendarLocator.logins,
 					calendarLocator.syncTracker,
 				)

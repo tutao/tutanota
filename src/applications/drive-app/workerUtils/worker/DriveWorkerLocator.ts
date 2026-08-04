@@ -36,8 +36,6 @@ import { CustomUserCacheHandler } from "../../../common/api/worker/rest/CustomUs
 import { EphemeralCacheStorage } from "../../../../app-kit/local-store/EphemeralCacheStorage"
 import { LateInitializedCacheStorageImpl } from "../../../../app-kit/local-store/CacheStorageProxy"
 import { DefaultEntityRestCache } from "../../../common/api/worker/rest/DefaultEntityRestCache"
-import { CalendarEventTypeRef } from "@tutao/entities/tutanota"
-import { CustomCalendarEventCacheHandler } from "../../../calendar-app/workerUtils/worker/CustomCalendarEventCacheHandler"
 import { OfflineStorage } from "../../../../app-kit/local-store/OfflineStorage"
 import { createOfflineStorageMigrations, OfflineStorageMigrator } from "../../../../app-kit/local-store/OfflineStorageMigrator"
 import { CacheStorage } from "../../../../app-kit/local-store/CacheStorage"
@@ -124,8 +122,8 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 	if (!isBrowser() && !(env.mode === Mode.Admin)) {
 		offlineStorageProvider = async () => {
 			const customCacheHandler = new CustomCacheHandlerMap({
-				ref: CalendarEventTypeRef,
-				handler: new CustomCalendarEventCacheHandler(locator.base.entityRestClient, locator.base.typeModelResolver),
+				ref: UserTypeRef,
+				handler: new CustomUserCacheHandler(locator.cacheStorage),
 			})
 			const fastCache = new EphemeralCacheStorage(locator.base.instancePipeline.modelMapper, locator.base.typeModelResolver, new CustomCacheHandlerMap())
 			const offlineStorage = new OfflineStorage(

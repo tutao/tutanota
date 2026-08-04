@@ -31,6 +31,7 @@ import { CacheStorage } from "../../../../../app-kit/local-store/CacheStorage"
 import { EntityRestCache } from "../../../../../platform-kit/network/EntityRestCacheInterface"
 import { EntityRestClient } from "../../../../../platform-kit/network/EntityRestClient"
 import {
+	CalendarEventTypeRef,
 	CalendarEventUidIndexTypeRef,
 	ClientSpamTrainingDatumIndexEntryTypeRef,
 	ClientSpamTrainingDatumTypeRef,
@@ -106,7 +107,7 @@ const IGNORED_TYPES = [
  * EntityUtils.serverToLocalIdEncoding). In theory, we can try to enable caching for all types but as of now we enable it for a limited amount of types because there
  * are other ways to cache customId types (see implementation of CustomCacheHandler)
  */
-const CACHEABLE_CUSTOMID_TYPES = [MailSetEntryTypeRef, GroupKeyTypeRef] as const
+const CACHEABLE_CUSTOMID_TYPES = [MailSetEntryTypeRef, GroupKeyTypeRef, CalendarEventTypeRef] as const
 
 /**
  * This implementation provides a caching mechanism to the rest chain.
