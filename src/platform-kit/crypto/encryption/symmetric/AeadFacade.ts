@@ -18,7 +18,7 @@ export const PADDING_ZERO_BYTE: number = 0x00
  * We use AES-CTR then BLAKE3, where the tag is computed over: version byte, nonce, ciphertext and associated data.
  */
 export class AeadFacade {
-	private pad(plaintext: Uint8Array): Uint8Array {
+	private pad(plaintext: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		const bytesToAppend = PADDING_BLOCK_SIZE - (plaintext.length % PADDING_BLOCK_SIZE)
 		const paddedPlaintext = new Uint8Array(plaintext.length + bytesToAppend)
 		paddedPlaintext.set(plaintext)
@@ -27,7 +27,7 @@ export class AeadFacade {
 		return paddedPlaintext
 	}
 
-	private unpad(paddedPlaintext: Uint8Array): Uint8Array {
+	private unpad(paddedPlaintext: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		let index = paddedPlaintext.length - 1
 		let zeroByteCount = 0
 		while (true) {
@@ -52,7 +52,7 @@ export class AeadFacade {
 	/**
 	 * Encrypt with AEAD.
 	 */
-	encrypt(subKeys: AeadSubKeys, plaintext: Uint8Array, associatedData: Uint8Array): Uint8Array {
+	encrypt(subKeys: AeadSubKeys, plaintext: Uint8Array<ArrayBuffer>, associatedData: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		const paddedPlaintext = this.pad(plaintext)
 		return this.encryptInternal(subKeys, paddedPlaintext, associatedData)
 	}
@@ -61,7 +61,7 @@ export class AeadFacade {
 	 * Encrypt the plaintext with AEAD. It must already be padded.
 	 * @private
 	 */
-	encryptInternal(subKeys: AeadSubKeys, plaintext: Uint8Array, associatedData: Uint8Array): Uint8Array {
+	encryptInternal(subKeys: AeadSubKeys, plaintext: Uint8Array<ArrayBuffer>, associatedData: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		const initializationVector = generateInitializationVector()
 		const aesCtrCiphertext = bitArrayToUint8Array(
 			sjcl.mode.ctr.encrypt(
@@ -81,7 +81,7 @@ export class AeadFacade {
 		return concat(this.ciphertextVersionPrefix(subKeys), initializationVectorAndCiphertext, tag)
 	}
 
-	private ciphertextVersionPrefix(subKeys: AeadSubKeys): Uint8Array {
+	private ciphertextVersionPrefix(subKeys: AeadSubKeys): Uint8Array<ArrayBuffer> {
 		switch (subKeys.cipherVersion) {
 			case SymmetricCipherVersion.AeadWithGroupKey: {
 				const keyVersionLengthByte = 0
@@ -99,7 +99,7 @@ export class AeadFacade {
 	/**
 	 * Decrypt with AEAD.
 	 */
-	decrypt(subKeys: AeadSubKeys, parsedCiphertext: ParsedCiphertextAead, associatedData: Uint8Array): Uint8Array {
+	decrypt(subKeys: AeadSubKeys, parsedCiphertext: ParsedCiphertextAead, associatedData: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		if (subKeys.cipherVersion !== parsedCiphertext.cipherVersion) {
 			throw new CryptoError("AEAD sub-keys have the wrong cipher version for decryption")
 		}
@@ -121,7 +121,7 @@ export class AeadFacade {
 		return this.unpad(paddedPlaintext)
 	}
 
-	private getSigned32BitIntegerFromNumberAsUint8Array(integer: number): Uint8Array {
+	private getSigned32BitIntegerFromNumberAsUint8Array(integer: number): Uint8Array<ArrayBuffer> {
 		return bitArrayToUint8Array([integer])
 	}
 }

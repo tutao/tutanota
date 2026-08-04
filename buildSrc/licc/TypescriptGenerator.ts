@@ -244,7 +244,7 @@ function renderTypescriptType(parsed: ParsedType): RenderedType {
 		case "number":
 			return { externals: [], name: maybeNullable("number", nullable) }
 		case "bytes":
-			return { externals: [], name: maybeNullable("Uint8Array", nullable) }
+			return { externals: [], name: maybeNullable("Uint8Array<ArrayBuffer>", nullable) }
 		case "void":
 			return { externals: [], name: maybeNullable("void", nullable) }
 		case "IdTuple":

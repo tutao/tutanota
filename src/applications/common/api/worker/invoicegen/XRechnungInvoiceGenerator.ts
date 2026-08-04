@@ -49,7 +49,7 @@ export class XRechnungInvoiceGenerator {
 	/**
 	 * Generate the XRechnung xml file
 	 */
-	generate(): Uint8Array {
+	generate(): Uint8Array<ArrayBuffer> {
 		let taxCategory = this.getTaxCategory(this.invoice.vatType as VatType, this.isInEuCountry)
 		let stringTemplate =
 			`<?xml version="1.0" encoding="UTF-8"?>\n` +

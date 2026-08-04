@@ -33,7 +33,7 @@ export function asPublicKeySignatureType(maybe: NumberString): PublicKeySignatur
 
 export type ExternalUserKeyDeriver = {
 	kdfType: KdfType
-	salt: Uint8Array
+	salt: Uint8Array<ArrayBuffer>
 }
 export function asCryptoProtoocolVersion(maybe: NumberString): CryptoProtocolVersion {
 	if (Object.values(CryptoProtocolVersion).includes(maybe as CryptoProtocolVersion)) {
@@ -44,9 +44,9 @@ export function asCryptoProtoocolVersion(maybe: NumberString): CryptoProtocolVer
 
 export type CryptoTypes = {
 	pubKeyVersion: NumberString
-	pubEccKey: null | Uint8Array
-	pubKyberKey: null | Uint8Array
-	pubRsaKey: null | Uint8Array
+	pubEccKey: null | Uint8Array<ArrayBuffer>
+	pubKyberKey: null | Uint8Array<ArrayBuffer>
+	pubRsaKey: null | Uint8Array<ArrayBuffer>
 }
 
 export function asPublicKeyIdentifier(maybe: NumberString): PublicKeyIdentifierType {

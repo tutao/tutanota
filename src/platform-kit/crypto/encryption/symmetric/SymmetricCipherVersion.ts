@@ -14,7 +14,7 @@ export enum SymmetricCipherVersion {
 /**
  * Get the SymmetricCipherVersion from either the version byte or the full ciphertext
  */
-export function getSymmetricCipherVersion(ciphertext: Uint8Array): SymmetricCipherVersion {
+export function getSymmetricCipherVersion(ciphertext: Uint8Array<ArrayBuffer>): SymmetricCipherVersion {
 	// we always have an even number of bytes because the block size and the mac tag size are even
 	// we prepend an additional version byte of one byte if we have a mac
 	// therefore we will only have an odd number of bytes if there is a mac
@@ -38,6 +38,6 @@ export function getSymmetricCipherVersion(ciphertext: Uint8Array): SymmetricCiph
 /**
  * Get a byte array of length 1 that holds the provided version byte.
  */
-export function symmetricCipherVersionToUint8Array(version: SymmetricCipherVersion): Uint8Array {
+export function symmetricCipherVersionToUint8Array(version: SymmetricCipherVersion): Uint8Array<ArrayBuffer> {
 	return Uint8Array.from([version.valueOf()])
 }

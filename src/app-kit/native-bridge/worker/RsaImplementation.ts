@@ -14,12 +14,12 @@ export async function createRsaImplementation(native: NativeInterface): Promise<
 }
 
 export class RsaWeb implements RsaImplementation {
-	async encrypt(publicKey: RsaPublicKey, bytes: Uint8Array): Promise<Uint8Array> {
+	async encrypt(publicKey: RsaPublicKey, bytes: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
 		const seed = random.generateRandomData(32)
 		return rsaEncrypt(publicKey, bytes, seed)
 	}
 
-	async decrypt(privateKey: RsaPrivateKey, bytes: Uint8Array): Promise<Uint8Array> {
+	async decrypt(privateKey: RsaPrivateKey, bytes: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
 		return rsaDecrypt(privateKey, bytes)
 	}
 }

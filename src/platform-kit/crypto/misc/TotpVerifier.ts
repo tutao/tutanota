@@ -12,7 +12,7 @@ const DIGITS_POWER =
 	[1, 10, 100, 1000, 10000, 100000, 1000000, 10000000, 100000000]
 const base32 = sjcl.codec.base32
 export type TotpSecret = {
-	key: Uint8Array
+	key: Uint8Array<ArrayBuffer>
 	readableKey: Base32
 }
 
@@ -40,7 +40,7 @@ export class TotpVerifier {
 	 * @param key  :  the shared secret. It is generated if it does not exist
 	 * @return: the key and a numeric String in base 10 that includes truncationDigits digits
 	 */
-	generateTotp(time: number, key: Uint8Array): number {
+	generateTotp(time: number, key: Uint8Array<ArrayBuffer>): number {
 		// Using the counter
 		// First 8 bytes are for the movingFactor
 		// Compliant with base RFC 4226 (HOTP)
@@ -56,12 +56,12 @@ export class TotpVerifier {
 		return code
 	}
 
-	hmac_sha(key: Uint8Array, text: Uint8Array): Uint8Array {
+	hmac_sha(key: Uint8Array<ArrayBuffer>, text: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		let hmac = new sjcl.misc.hmac(uint8ArrayToBitArray(key), sjcl.hash.sha1)
 		return bitArrayToUint8Array(hmac.encrypt(uint8ArrayToBitArray(text)))
 	}
 
-	static readableKey(key: Uint8Array): Base32 {
+	static readableKey(key: Uint8Array<ArrayBuffer>): Base32 {
 		return base32
 			.fromBits(uint8ArrayToBitArray(key))
 			.toLowerCase()

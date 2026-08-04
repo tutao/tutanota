@@ -12,7 +12,7 @@ export type KyberKeyPair = {
  * Use below functions to convert to/from our serialization format
  */
 export type KyberPrivateKey = {
-	raw: Uint8Array
+	raw: Uint8Array<ArrayBuffer>
 }
 
 /**
@@ -21,12 +21,12 @@ export type KyberPrivateKey = {
  * Use below functions to convert to/from our serialization format
  */
 export type KyberPublicKey = {
-	raw: Uint8Array
+	raw: Uint8Array<ArrayBuffer>
 }
 
 export type KyberEncapsulation = {
-	ciphertext: Uint8Array
-	sharedSecret: Uint8Array
+	ciphertext: Uint8Array<ArrayBuffer>
+	sharedSecret: Uint8Array<ArrayBuffer>
 }
 
 /**
@@ -37,7 +37,7 @@ export type KyberEncapsulation = {
  * | length (2 Byte) | privateKey.T (n Byte) |
  * | length (2 Byte) | privateKey.Rho (n Byte) |
  */
-export function kyberPrivateKeyToBytes(key: KyberPrivateKey): Uint8Array {
+export function kyberPrivateKeyToBytes(key: KyberPrivateKey): Uint8Array<ArrayBuffer> {
 	const keyBytes = key.raw
 	//liboqs: s, t, rho, hpk, nonce
 	//tuta encoded: s, hpk, nonce, t, rho
@@ -54,7 +54,7 @@ export function kyberPrivateKeyToBytes(key: KyberPrivateKey): Uint8Array {
  * | length (2 Byte) | publicKey.T (n Byte)  |
  * | length (2 Byte) | publicKey.Rho (n Byte) |
  */
-export function kyberPublicKeyToBytes(key: KyberPublicKey): Uint8Array {
+export function kyberPublicKeyToBytes(key: KyberPublicKey): Uint8Array<ArrayBuffer> {
 	const keyBytes = key.raw
 	const t = keyBytes.slice(0, KYBER_POLYVECBYTES)
 	const rho = keyBytes.slice(KYBER_POLYVECBYTES, KYBER_POLYVECBYTES + KYBER_SYMBYTES)
@@ -64,7 +64,7 @@ export function kyberPublicKeyToBytes(key: KyberPublicKey): Uint8Array {
 /**
  * Inverse of publicKeyToBytes
  */
-export function bytesToKyberPublicKey(encodedPublicKey: Uint8Array): KyberPublicKey {
+export function bytesToKyberPublicKey(encodedPublicKey: Uint8Array<ArrayBuffer>): KyberPublicKey {
 	const keyComponents = bytesToByteArrays(encodedPublicKey, 2)
 	// key is expected by oqs in the same order t, rho
 	return { raw: concat(...keyComponents) }
@@ -73,7 +73,7 @@ export function bytesToKyberPublicKey(encodedPublicKey: Uint8Array): KyberPublic
 /**
  * Inverse of privateKeyToBytes
  */
-export function bytesToKyberPrivateKey(encodedPrivateKey: Uint8Array): KyberPrivateKey {
+export function bytesToKyberPrivateKey(encodedPrivateKey: Uint8Array<ArrayBuffer>): KyberPrivateKey {
 	const keyComponents = bytesToByteArrays(encodedPrivateKey, 5)
 	const s = keyComponents[0]
 	const hpk = keyComponents[1]

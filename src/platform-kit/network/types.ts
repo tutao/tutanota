@@ -13,7 +13,7 @@ export interface Credentials {
 
 	/** Session#accessKey encrypted password. Is set when session is persisted. */
 	encryptedPassword: Base64 | null
-	encryptedPassphraseKey: Uint8Array | null
+	encryptedPassphraseKey: Uint8Array<ArrayBuffer> | null
 	accessToken: Base64Url
 	userId: Id
 	type: CredentialType

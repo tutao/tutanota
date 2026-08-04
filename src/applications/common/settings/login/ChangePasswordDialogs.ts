@@ -44,7 +44,7 @@ async function storeNewPassword(
 	currentUser: User,
 	newPasswordData: {
 		newEncryptedPassphrase: Base64
-		newEncryptedPassphraseKey: Uint8Array
+		newEncryptedPassphraseKey: Uint8Array<ArrayBuffer>
 	} | null,
 ) {
 	const credentialsProvider = locator.credentialsProvider

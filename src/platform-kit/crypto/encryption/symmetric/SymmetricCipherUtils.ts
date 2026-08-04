@@ -8,7 +8,7 @@ import { InitializationVectorVariant } from "./ParsedCiphertext"
 
 export class InitializationVector {
 	constructor(
-		public readonly bytes: Uint8Array,
+		public readonly bytes: Uint8Array<ArrayBuffer>,
 		public readonly variant: InitializationVectorVariant,
 	) {}
 }
@@ -25,7 +25,7 @@ export const SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES = 32
  * @param passwordKey The key.
  * @returns The auth verifier
  */
-export function createAuthVerifier(passwordKey: AesKey): Uint8Array {
+export function createAuthVerifier(passwordKey: AesKey): Uint8Array<ArrayBuffer> {
 	return sha256Hash(keyToUint8Array(passwordKey))
 }
 
@@ -38,7 +38,7 @@ export function createAuthVerifierAsBase64Url(passwordKey: AesKey): Base64Url {
  * @param bits The BitArray.
  * @return The uint8array.
  */
-export function bitArrayToUint8Array(bits: BitArray): Uint8Array {
+export function bitArrayToUint8Array(bits: BitArray): Uint8Array<ArrayBuffer> {
 	return new Uint8Array(sjcl.codec.arrayBuffer.fromBits(bits, false))
 }
 
@@ -47,7 +47,7 @@ export function bitArrayToUint8Array(bits: BitArray): Uint8Array {
  * @param uint8Array The uint8Array key.
  * @return The key.
  */
-export function uint8ArrayToBitArray(uint8Array: Uint8Array): BitArray {
+export function uint8ArrayToBitArray(uint8Array: Uint8Array<ArrayBuffer>): BitArray {
 	return sjcl.codec.arrayBuffer.toBits(uint8ArrayToArrayBuffer(uint8Array))
 }
 
@@ -86,11 +86,11 @@ export function base64ToKey(base64: Base64, acceptedBitLength?: AesKeyLength): A
 	}
 }
 
-export function uint8ArrayToKey(array: Uint8Array): AesKey
-export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength: typeof AesKeyLength.Aes128): Aes128Key
-export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength: typeof AesKeyLength.Aes256): Aes256Key
-export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey
-export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey {
+export function uint8ArrayToKey(array: Uint8Array<ArrayBuffer>): AesKey
+export function uint8ArrayToKey(array: Uint8Array<ArrayBuffer>, acceptedBitLength: typeof AesKeyLength.Aes128): Aes128Key
+export function uint8ArrayToKey(array: Uint8Array<ArrayBuffer>, acceptedBitLength: typeof AesKeyLength.Aes256): Aes256Key
+export function uint8ArrayToKey(array: Uint8Array<ArrayBuffer>, acceptedBitLength?: AesKeyLength): AesKey
+export function uint8ArrayToKey(array: Uint8Array<ArrayBuffer>, acceptedBitLength?: AesKeyLength): AesKey {
 	let key = uint8ArrayToBitArray(array)
 	// AesKey is an array of 4 byte numbers. therefore converting the length to bits means 4*8
 	const keyLength: number = key.length * 4 * 8
@@ -106,7 +106,7 @@ export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLen
 	throw new CryptoError(`Illegal key length: ${keyLength}`)
 }
 
-export function keyToUint8Array(key: AesKey): Uint8Array {
+export function keyToUint8Array(key: AesKey): Uint8Array<ArrayBuffer> {
 	return bitArrayToUint8Array(key.bits)
 }
 
@@ -119,7 +119,7 @@ export function aes256RandomKey(): Aes256Key {
 	return new Aes256Key(uint8ArrayToBitArray(random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes256))))
 }
 
-export type KdfNonce = Uint8Array & { readonly __brand: "KdfNonce" }
+export type KdfNonce = Uint8Array<ArrayBuffer> & { readonly __brand: "KdfNonce" }
 
 export function generateInitializationVector(): InitializationVector {
 	return new InitializationVector(random.generateRandomData(INITIALIZATION_VECTOR_LENGTH_BYTES), InitializationVectorVariant.Random)
@@ -129,9 +129,9 @@ export function generateKdfNonce(): KdfNonce {
 	return random.generateRandomData(KDF_NONCE_LENGTH_BYTES) as KdfNonce
 }
 
-export function validateInitializationVectorLength(initializationVector: Uint8Array): InitializationVector
-export function validateInitializationVectorLength(initializationVector: Nullable<Uint8Array>): Nullable<InitializationVector>
-export function validateInitializationVectorLength(initializationVector: Nullable<Uint8Array>): Nullable<InitializationVector> {
+export function validateInitializationVectorLength(initializationVector: Uint8Array<ArrayBuffer>): InitializationVector
+export function validateInitializationVectorLength(initializationVector: Nullable<Uint8Array<ArrayBuffer>>): Nullable<InitializationVector>
+export function validateInitializationVectorLength(initializationVector: Nullable<Uint8Array<ArrayBuffer>>): Nullable<InitializationVector> {
 	if (initializationVector === null) {
 		return null
 	}
@@ -141,9 +141,9 @@ export function validateInitializationVectorLength(initializationVector: Nullabl
 	return new InitializationVector(initializationVector, InitializationVectorVariant.Random)
 }
 
-export function validateKdfNonceLength(kdfNonce: Uint8Array): KdfNonce
-export function validateKdfNonceLength(kdfNonce: Nullable<Uint8Array>): Nullable<KdfNonce>
-export function validateKdfNonceLength(kdfNonce: Nullable<Uint8Array>): Nullable<KdfNonce> {
+export function validateKdfNonceLength(kdfNonce: Uint8Array<ArrayBuffer>): KdfNonce
+export function validateKdfNonceLength(kdfNonce: Nullable<Uint8Array<ArrayBuffer>>): Nullable<KdfNonce>
+export function validateKdfNonceLength(kdfNonce: Nullable<Uint8Array<ArrayBuffer>>): Nullable<KdfNonce> {
 	if (kdfNonce === null) {
 		return null
 	}

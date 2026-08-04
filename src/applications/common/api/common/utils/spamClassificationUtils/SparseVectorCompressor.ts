@@ -23,7 +23,7 @@ export type CompressedSparseVector = {
 export class SparseVectorCompressor {
 	constructor(public readonly dimension: number = DEFAULT_VECTOR_MAX_LENGTH) {}
 
-	public compress(vector: number[]): Uint8Array {
+	public compress(vector: number[]): Uint8Array<ArrayBuffer> {
 		const compressedSparseVector = this.compressToCompressedSparseVector(vector)
 		const result: number[] = new Array(compressedSparseVector.indices.length)
 

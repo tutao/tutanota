@@ -1,4 +1,4 @@
-import { Mail, MailSet, ProcessInboxDatum, ProcessInboxDatumParams } from "@tutao/entities/tutanota"
+import { Mail, MailSet, ProcessInboxDatumParams } from "@tutao/entities/tutanota"
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
 import { InstanceSessionKey } from "@tutao/entities/sys"
 import { SpamClassificationHandler } from "./SpamClassificationHandler"
@@ -16,8 +16,8 @@ import { LockedError } from "../../../../platform-kit/rest-client/error"
 assertMainOrNode()
 
 export type UnencryptedProcessInboxDatum = Omit<ProcessInboxDatumParams, "encVectorLegacy" | "encVectorWithServerClassifiers" | "ownerEncVectorSessionKey"> & {
-	vectorLegacy: Uint8Array
-	vectorWithServerClassifiers: Uint8Array
+	vectorLegacy: Uint8Array<ArrayBuffer>
+	vectorWithServerClassifiers: Uint8Array<ArrayBuffer>
 }
 
 const DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS = 500

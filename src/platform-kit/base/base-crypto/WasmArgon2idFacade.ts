@@ -12,7 +12,7 @@ export interface Argon2idFacade {
 	 * @param salt
 	 * @return bit array of the resulting key
 	 */
-	generateKeyFromPassphrase(passphrase: string, salt: Uint8Array): Promise<Aes256Key>
+	generateKeyFromPassphrase(passphrase: string, salt: Uint8Array<ArrayBuffer>): Promise<Aes256Key>
 }
 
 /**
@@ -24,7 +24,7 @@ export class WASMArgon2idFacade implements Argon2idFacade {
 		return await loadWasmFromFileOrNetwork<Argon2IDExports>("argon2.wasm", import.meta.url)
 	})
 
-	async generateKeyFromPassphrase(passphrase: string, salt: Uint8Array): Promise<Aes256Key> {
+	async generateKeyFromPassphrase(passphrase: string, salt: Uint8Array<ArrayBuffer>): Promise<Aes256Key> {
 		return generateKeyFromPassphraseArgon2id(await this.argon2.getAsync(), passphrase, salt)
 	}
 }

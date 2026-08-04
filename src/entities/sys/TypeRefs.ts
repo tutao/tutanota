@@ -13,12 +13,12 @@ export function createKeyPair(values: KeyPairParams): KeyPair {
 export type KeyPairParams = {
 
 
-	pubRsaKey: null | Uint8Array;
-	symEncPrivRsaKey: null | Uint8Array;
-	pubEccKey: null | Uint8Array;
-	symEncPrivEccKey: null | Uint8Array;
-	pubKyberKey: null | Uint8Array;
-	symEncPrivKyberKey: null | Uint8Array;
+	pubRsaKey: null | Uint8Array<ArrayBuffer>;
+	symEncPrivRsaKey: null | Uint8Array<ArrayBuffer>;
+	pubEccKey: null | Uint8Array<ArrayBuffer>;
+	symEncPrivEccKey: null | Uint8Array<ArrayBuffer>;
+	pubKyberKey: null | Uint8Array<ArrayBuffer>;
+	symEncPrivKyberKey: null | Uint8Array<ArrayBuffer>;
 
 	signature: null | PublicKeySignature;
 }
@@ -28,12 +28,12 @@ export type KeyPair = {
 	_original?: KeyPair
 
 	_id: Id;
-	pubRsaKey: null | Uint8Array;
-	symEncPrivRsaKey: null | Uint8Array;
-	pubEccKey: null | Uint8Array;
-	symEncPrivEccKey: null | Uint8Array;
-	pubKyberKey: null | Uint8Array;
-	symEncPrivKyberKey: null | Uint8Array;
+	pubRsaKey: null | Uint8Array<ArrayBuffer>;
+	symEncPrivRsaKey: null | Uint8Array<ArrayBuffer>;
+	pubEccKey: null | Uint8Array<ArrayBuffer>;
+	symEncPrivEccKey: null | Uint8Array<ArrayBuffer>;
+	pubKyberKey: null | Uint8Array<ArrayBuffer>;
+	symEncPrivKyberKey: null | Uint8Array<ArrayBuffer>;
 
 	signature: null | PublicKeySignature;
 }
@@ -47,7 +47,7 @@ export type GroupParams = {
 
 
 	type: NumberString;
-	adminGroupEncGKey: null | Uint8Array;
+	adminGroupEncGKey: null | Uint8Array<ArrayBuffer>;
 	enabled: boolean;
 	external: boolean;
 	adminGroupKeyVersion: null | NumberString;
@@ -75,7 +75,7 @@ export type Group = {
 	_permissions: Id;
 	_format: NumberString;
 	type: NumberString;
-	adminGroupEncGKey: null | Uint8Array;
+	adminGroupEncGKey: null | Uint8Array<ArrayBuffer>;
 	enabled: boolean;
 	_ownerGroup: null | Id;
 	external: boolean;
@@ -104,7 +104,7 @@ export function createGroupInfo(values: GroupInfoParams): GroupInfo {
 export type GroupInfoParams = {
 
 
-	_listEncSessionKey: null | Uint8Array;
+	_listEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	name: string;
 	mailAddress: null | string;
 	created: Date;
@@ -123,16 +123,16 @@ export type GroupInfo = {
 	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
-	_listEncSessionKey: null | Uint8Array;
+	_listEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	name: string;
 	mailAddress: null | string;
 	created: Date;
 	deleted: null | Date;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	groupType: null | NumberString;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	group: Id;
 	mailAddressAliases: MailAddressAlias[];
@@ -146,7 +146,7 @@ export function createGroupMembership(values: GroupMembershipParams): GroupMembe
 export type GroupMembershipParams = {
 
 
-	symEncGKey: Uint8Array;
+	symEncGKey: Uint8Array<ArrayBuffer>;
 	admin: boolean;
 	groupType: null | NumberString;
 	capability: null | NumberString;
@@ -163,7 +163,7 @@ export type GroupMembership = {
 	_original?: GroupMembership
 
 	_id: Id;
-	symEncGKey: Uint8Array;
+	symEncGKey: Uint8Array<ArrayBuffer>;
 	admin: boolean;
 	groupType: null | NumberString;
 	capability: null | NumberString;
@@ -249,7 +249,7 @@ export type AuthenticatedDeviceParams = {
 
 	authType: NumberString;
 	deviceToken: string;
-	deviceKey: Uint8Array;
+	deviceKey: Uint8Array<ArrayBuffer>;
 }
 
 export type AuthenticatedDevice = {
@@ -259,7 +259,7 @@ export type AuthenticatedDevice = {
 	_id: Id;
 	authType: NumberString;
 	deviceToken: string;
-	deviceKey: Uint8Array;
+	deviceKey: Uint8Array<ArrayBuffer>;
 }
 export const LoginTypeRef: TypeRef<Login> = new TypeRef("sys", 48)
 
@@ -320,9 +320,9 @@ export function createVariableExternalAuthInfo(values: VariableExternalAuthInfoP
 export type VariableExternalAuthInfoParams = {
 
 
-	loggedInVerifier: null | Uint8Array;
+	loggedInVerifier: null | Uint8Array<ArrayBuffer>;
 	loggedInTimestamp: null | Date;
-	loggedInIpAddressHash: null | Uint8Array;
+	loggedInIpAddressHash: null | Uint8Array<ArrayBuffer>;
 	sentCount: NumberString;
 	lastSentTimestamp: Date;
 	authUpdateCounter: NumberString;
@@ -335,9 +335,9 @@ export type VariableExternalAuthInfo = {
 	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
-	loggedInVerifier: null | Uint8Array;
+	loggedInVerifier: null | Uint8Array<ArrayBuffer>;
 	loggedInTimestamp: null | Date;
-	loggedInIpAddressHash: null | Uint8Array;
+	loggedInIpAddressHash: null | Uint8Array<ArrayBuffer>;
 	sentCount: NumberString;
 	lastSentTimestamp: Date;
 	authUpdateCounter: NumberString;
@@ -353,7 +353,7 @@ export type UserExternalAuthInfoParams = {
 
 
 	autoAuthenticationId: Id;
-	latestSaltHash: null | Uint8Array;
+	latestSaltHash: null | Uint8Array<ArrayBuffer>;
 	autoTransmitPassword: null | string;
 	authUpdateCounter: NumberString;
 
@@ -366,7 +366,7 @@ export type UserExternalAuthInfo = {
 
 	_id: Id;
 	autoAuthenticationId: Id;
-	latestSaltHash: null | Uint8Array;
+	latestSaltHash: null | Uint8Array<ArrayBuffer>;
 	autoTransmitPassword: null | string;
 	authUpdateCounter: NumberString;
 
@@ -381,8 +381,8 @@ export function createUser(values: UserParams): User {
 export type UserParams = {
 
 
-	salt: null | Uint8Array;
-	verifier: Uint8Array;
+	salt: null | Uint8Array<ArrayBuffer>;
+	verifier: Uint8Array<ArrayBuffer>;
 	accountType: NumberString;
 	enabled: boolean;
 	requirePasswordUpdate: boolean;
@@ -408,8 +408,8 @@ export type User = {
 	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
-	salt: null | Uint8Array;
-	verifier: Uint8Array;
+	salt: null | Uint8Array<ArrayBuffer>;
+	verifier: Uint8Array<ArrayBuffer>;
 	accountType: NumberString;
 	enabled: boolean;
 	_ownerGroup: null | Id;
@@ -492,10 +492,10 @@ export type BucketPermissionParams = {
 
 
 	type: NumberString;
-	symEncBucketKey: null | Uint8Array;
-	pubEncBucketKey: null | Uint8Array;
+	symEncBucketKey: null | Uint8Array<ArrayBuffer>;
+	pubEncBucketKey: null | Uint8Array<ArrayBuffer>;
 	pubKeyVersion: null | NumberString;
-	ownerEncBucketKey: null | Uint8Array;
+	ownerEncBucketKey: null | Uint8Array<ArrayBuffer>;
 	protocolVersion: NumberString;
 	symKeyVersion: null | NumberString;
 	senderKeyVersion: null | NumberString;
@@ -511,11 +511,11 @@ export type BucketPermission = {
 	_permissions: Id;
 	_format: NumberString;
 	type: NumberString;
-	symEncBucketKey: null | Uint8Array;
-	pubEncBucketKey: null | Uint8Array;
+	symEncBucketKey: null | Uint8Array<ArrayBuffer>;
+	pubEncBucketKey: null | Uint8Array<ArrayBuffer>;
 	pubKeyVersion: null | NumberString;
 	_ownerGroup: null | Id;
-	ownerEncBucketKey: null | Uint8Array;
+	ownerEncBucketKey: null | Uint8Array<ArrayBuffer>;
 	protocolVersion: NumberString;
 	ownerKeyVersion: null | NumberString;
 	symKeyVersion: null | NumberString;
@@ -554,8 +554,8 @@ export type PermissionParams = {
 
 
 	type: NumberString;
-	symEncSessionKey: null | Uint8Array;
-	bucketEncSessionKey: null | Uint8Array;
+	symEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	bucketEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	ops: null | string;
 	listElementTypeId: null | NumberString;
 	listElementApplication: null | string;
@@ -573,11 +573,11 @@ export type Permission = {
 	_permissions: Id;
 	_format: NumberString;
 	type: NumberString;
-	symEncSessionKey: null | Uint8Array;
-	bucketEncSessionKey: null | Uint8Array;
+	symEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	bucketEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	ops: null | string;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	listElementTypeId: null | NumberString;
 	listElementApplication: null | string;
 	_ownerKeyVersion: null | NumberString;
@@ -635,13 +635,13 @@ export type AccountingInfo = {
 	paymentInterval: NumberString;
 	paymentProviderCustomerId: null | string;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	paymentAccountIdentifier: null | string;
 	paypalBillingAgreement: null | string;
 	_modified: Date;
 	_ownerKeyVersion: null | NumberString;
 	lastUsedOffer: null | string;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	invoiceInfo: null | Id;
 	appStoreSubscription: null | IdTuple;
@@ -858,7 +858,7 @@ export type VersionInfoParams = {
 	referenceList: null | Id;
 	timestamp: Date;
 	operation: string;
-	versionData: null | Uint8Array;
+	versionData: null | Uint8Array<ArrayBuffer>;
 
 	author: Id;
 	authorGroupInfo: IdTuple;
@@ -876,7 +876,7 @@ export type VersionInfo = {
 	referenceList: null | Id;
 	timestamp: Date;
 	operation: string;
-	versionData: null | Uint8Array;
+	versionData: null | Uint8Array<ArrayBuffer>;
 	_ownerGroup: null | Id;
 
 	author: Id;
@@ -891,12 +891,12 @@ export function createSystemKeysReturn(values: SystemKeysReturnParams): SystemKe
 export type SystemKeysReturnParams = {
 
 
-	systemAdminPubRsaKey: null | Uint8Array;
+	systemAdminPubRsaKey: null | Uint8Array<ArrayBuffer>;
 	systemAdminPubKeyVersion: NumberString;
-	freeGroupKey: Uint8Array;
-	premiumGroupKey: Uint8Array;
-	systemAdminPubEccKey: null | Uint8Array;
-	systemAdminPubKyberKey: null | Uint8Array;
+	freeGroupKey: Uint8Array<ArrayBuffer>;
+	premiumGroupKey: Uint8Array<ArrayBuffer>;
+	systemAdminPubEccKey: null | Uint8Array<ArrayBuffer>;
+	systemAdminPubKyberKey: null | Uint8Array<ArrayBuffer>;
 	freeGroupKeyVersion: NumberString;
 	premiumGroupKeyVersion: NumberString;
 
@@ -909,12 +909,12 @@ export type SystemKeysReturn = {
 	_original?: SystemKeysReturn
 
 	_format: NumberString;
-	systemAdminPubRsaKey: null | Uint8Array;
+	systemAdminPubRsaKey: null | Uint8Array<ArrayBuffer>;
 	systemAdminPubKeyVersion: NumberString;
-	freeGroupKey: Uint8Array;
-	premiumGroupKey: Uint8Array;
-	systemAdminPubEccKey: null | Uint8Array;
-	systemAdminPubKyberKey: null | Uint8Array;
+	freeGroupKey: Uint8Array<ArrayBuffer>;
+	premiumGroupKey: Uint8Array<ArrayBuffer>;
+	systemAdminPubEccKey: null | Uint8Array<ArrayBuffer>;
+	systemAdminPubKyberKey: null | Uint8Array<ArrayBuffer>;
 	freeGroupKeyVersion: NumberString;
 	premiumGroupKeyVersion: NumberString;
 
@@ -1083,10 +1083,10 @@ export function createPublicKeyGetOut(values: PublicKeyGetOutParams): PublicKeyG
 export type PublicKeyGetOutParams = {
 
 
-	pubRsaKey: null | Uint8Array;
+	pubRsaKey: null | Uint8Array<ArrayBuffer>;
 	pubKeyVersion: NumberString;
-	pubEccKey: null | Uint8Array;
-	pubKyberKey: null | Uint8Array;
+	pubEccKey: null | Uint8Array<ArrayBuffer>;
+	pubKyberKey: null | Uint8Array<ArrayBuffer>;
 
 	signature: null | PublicKeySignature;
 }
@@ -1096,10 +1096,10 @@ export type PublicKeyGetOut = {
 	_original?: PublicKeyGetOut
 
 	_format: NumberString;
-	pubRsaKey: null | Uint8Array;
+	pubRsaKey: null | Uint8Array<ArrayBuffer>;
 	pubKeyVersion: NumberString;
-	pubEccKey: null | Uint8Array;
-	pubKyberKey: null | Uint8Array;
+	pubEccKey: null | Uint8Array<ArrayBuffer>;
+	pubKyberKey: null | Uint8Array<ArrayBuffer>;
 
 	signature: null | PublicKeySignature;
 }
@@ -1131,7 +1131,7 @@ export function createSaltReturn(values: SaltReturnParams): SaltReturn {
 export type SaltReturnParams = {
 
 
-	salt: Uint8Array;
+	salt: Uint8Array<ArrayBuffer>;
 	kdfVersion: NumberString;
 }
 
@@ -1140,7 +1140,7 @@ export type SaltReturn = {
 	_original?: SaltReturn
 
 	_format: NumberString;
-	salt: Uint8Array;
+	salt: Uint8Array<ArrayBuffer>;
 	kdfVersion: NumberString;
 }
 export const AutoLoginDataGetTypeRef: TypeRef<AutoLoginDataGet> = new TypeRef("sys", 431)
@@ -1194,7 +1194,7 @@ export function createAutoLoginDataReturn(values: AutoLoginDataReturnParams): Au
 export type AutoLoginDataReturnParams = {
 
 
-	deviceKey: Uint8Array;
+	deviceKey: Uint8Array<ArrayBuffer>;
 }
 
 export type AutoLoginDataReturn = {
@@ -1202,7 +1202,7 @@ export type AutoLoginDataReturn = {
 	_original?: AutoLoginDataReturn
 
 	_format: NumberString;
-	deviceKey: Uint8Array;
+	deviceKey: Uint8Array<ArrayBuffer>;
 }
 export const AutoLoginPostReturnTypeRef: TypeRef<AutoLoginPostReturn> = new TypeRef("sys", 441)
 
@@ -1242,7 +1242,7 @@ export type UpdatePermissionKeyData = {
 	_original?: UpdatePermissionKeyData
 
 	_format: NumberString;
-	ownerEncSessionKey: Uint8Array;
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
 
 	permission: IdTuple;
@@ -1367,7 +1367,7 @@ export function createMembershipAddData(values: MembershipAddDataParams): Member
 export type MembershipAddDataParams = {
 
 
-	symEncGKey: Uint8Array;
+	symEncGKey: Uint8Array<ArrayBuffer>;
 	symKeyVersion: NumberString;
 	groupKeyVersion: NumberString;
 
@@ -1380,7 +1380,7 @@ export type MembershipAddData = {
 	_original?: MembershipAddData
 
 	_format: NumberString;
-	symEncGKey: Uint8Array;
+	symEncGKey: Uint8Array<ArrayBuffer>;
 	symKeyVersion: NumberString;
 	groupKeyVersion: NumberString;
 
@@ -1396,12 +1396,12 @@ export function createChangePasswordPostIn(values: ChangePasswordPostInParams): 
 export type ChangePasswordPostInParams = {
 
 
-	verifier: Uint8Array;
-	salt: Uint8Array;
-	pwEncUserGroupKey: Uint8Array;
+	verifier: Uint8Array<ArrayBuffer>;
+	salt: Uint8Array<ArrayBuffer>;
+	pwEncUserGroupKey: Uint8Array<ArrayBuffer>;
 	code: null | string;
-	oldVerifier: null | Uint8Array;
-	recoverCodeVerifier: null | Uint8Array;
+	oldVerifier: null | Uint8Array<ArrayBuffer>;
+	recoverCodeVerifier: null | Uint8Array<ArrayBuffer>;
 	kdfVersion: NumberString;
 	userGroupKeyVersion: NumberString;
 }
@@ -1411,12 +1411,12 @@ export type ChangePasswordPostIn = {
 	_original?: ChangePasswordPostIn
 
 	_format: NumberString;
-	verifier: Uint8Array;
-	salt: Uint8Array;
-	pwEncUserGroupKey: Uint8Array;
+	verifier: Uint8Array<ArrayBuffer>;
+	salt: Uint8Array<ArrayBuffer>;
+	pwEncUserGroupKey: Uint8Array<ArrayBuffer>;
 	code: null | string;
-	oldVerifier: null | Uint8Array;
-	recoverCodeVerifier: null | Uint8Array;
+	oldVerifier: null | Uint8Array<ArrayBuffer>;
+	recoverCodeVerifier: null | Uint8Array<ArrayBuffer>;
 	kdfVersion: NumberString;
 	userGroupKeyVersion: NumberString;
 }
@@ -1477,9 +1477,9 @@ export function createResetPasswordPostIn(values: ResetPasswordPostInParams): Re
 export type ResetPasswordPostInParams = {
 
 
-	verifier: Uint8Array;
-	salt: Uint8Array;
-	pwEncUserGroupKey: Uint8Array;
+	verifier: Uint8Array<ArrayBuffer>;
+	salt: Uint8Array<ArrayBuffer>;
+	pwEncUserGroupKey: Uint8Array<ArrayBuffer>;
 	kdfVersion: NumberString;
 	userGroupKeyVersion: NumberString;
 
@@ -1491,9 +1491,9 @@ export type ResetPasswordPostIn = {
 	_original?: ResetPasswordPostIn
 
 	_format: NumberString;
-	verifier: Uint8Array;
-	salt: Uint8Array;
-	pwEncUserGroupKey: Uint8Array;
+	verifier: Uint8Array<ArrayBuffer>;
+	salt: Uint8Array<ArrayBuffer>;
+	pwEncUserGroupKey: Uint8Array<ArrayBuffer>;
 	kdfVersion: NumberString;
 	userGroupKeyVersion: NumberString;
 
@@ -1572,12 +1572,12 @@ export type PushIdentifier = {
 	_ownerGroup: null | Id;
 	lastNotificationDate: null | Date;
 	disabled: boolean;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	displayName: string;
 	lastUsageTime: Date;
 	_ownerKeyVersion: null | NumberString;
 	app: NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 }
 export const PushIdentifierListTypeRef: TypeRef<PushIdentifierList> = new TypeRef("sys", 635)
 
@@ -1612,7 +1612,7 @@ export type DeleteCustomerDataParams = {
 	undelete: boolean;
 	formattedReason: null | string;
 	takeoverMailAddress: null | string;
-	authVerifier: null | Uint8Array;
+	authVerifier: null | Uint8Array<ArrayBuffer>;
 	reason: null | NumberString;
 
 	customer: Id;
@@ -1628,7 +1628,7 @@ export type DeleteCustomerData = {
 	undelete: boolean;
 	formattedReason: null | string;
 	takeoverMailAddress: null | string;
-	authVerifier: null | Uint8Array;
+	authVerifier: null | Uint8Array<ArrayBuffer>;
 	reason: null | NumberString;
 
 	customer: Id;
@@ -1731,7 +1731,7 @@ export type RegistrationCaptchaServiceReturnParams = {
 
 
 	token: string;
-	challenge: null | Uint8Array;
+	challenge: null | Uint8Array<ArrayBuffer>;
 
 	visualChallenge: null | CaptchaChallenge;
 	audioChallenge: null | CaptchaChallenge;
@@ -1743,7 +1743,7 @@ export type RegistrationCaptchaServiceReturn = {
 
 	_format: NumberString;
 	token: string;
-	challenge: null | Uint8Array;
+	challenge: null | Uint8Array<ArrayBuffer>;
 
 	visualChallenge: null | CaptchaChallenge;
 	audioChallenge: null | CaptchaChallenge;
@@ -2358,7 +2358,7 @@ export type FileParams = {
 
 	name: string;
 	mimeType: string;
-	data: Uint8Array;
+	data: Uint8Array<ArrayBuffer>;
 }
 
 export type File = {
@@ -2368,7 +2368,7 @@ export type File = {
 	_id: Id;
 	name: string;
 	mimeType: string;
-	data: Uint8Array;
+	data: Uint8Array<ArrayBuffer>;
 }
 export const EmailSenderListElementTypeRef: TypeRef<EmailSenderListElement> = new TypeRef("sys", 949)
 
@@ -2419,11 +2419,11 @@ export type CustomerServerProperties = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	requirePasswordUpdateAfterReset: boolean;
 	saveEncryptedIpAddressInSession: boolean;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	emailSenderList: EmailSenderListElement[];
 }
@@ -2436,7 +2436,7 @@ export function createCreateCustomerServerPropertiesData(values: CreateCustomerS
 export type CreateCustomerServerPropertiesDataParams = {
 
 
-	adminGroupEncSessionKey: Uint8Array;
+	adminGroupEncSessionKey: Uint8Array<ArrayBuffer>;
 	adminGroupKeyVersion: NumberString;
 }
 
@@ -2445,7 +2445,7 @@ export type CreateCustomerServerPropertiesData = {
 	_original?: CreateCustomerServerPropertiesData
 
 	_format: NumberString;
-	adminGroupEncSessionKey: Uint8Array;
+	adminGroupEncSessionKey: Uint8Array<ArrayBuffer>;
 	adminGroupKeyVersion: NumberString;
 }
 export const CreateCustomerServerPropertiesReturnTypeRef: TypeRef<CreateCustomerServerPropertiesReturn> = new TypeRef("sys", 964)
@@ -2559,14 +2559,14 @@ export type AuditLogEntry = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	actorMailAddress: string;
 	actorIpAddress: null | string;
 	action: string;
 	modifiedEntity: string;
 	date: Date;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	groupInfo: null | IdTuple;
 	modifiedGroupInfo: null | IdTuple;
@@ -2640,9 +2640,9 @@ export type BrandingDomainDataParams = {
 
 
 	domain: string;
-	sessionEncPemCertificateChain: null | Uint8Array;
-	sessionEncPemPrivateKey: null | Uint8Array;
-	systemAdminPubEncSessionKey: Uint8Array;
+	sessionEncPemCertificateChain: null | Uint8Array<ArrayBuffer>;
+	sessionEncPemPrivateKey: null | Uint8Array<ArrayBuffer>;
+	systemAdminPubEncSessionKey: Uint8Array<ArrayBuffer>;
 	systemAdminPublicProtocolVersion: NumberString;
 	systemAdminPubKeyVersion: NumberString;
 }
@@ -2653,9 +2653,9 @@ export type BrandingDomainData = {
 
 	_format: NumberString;
 	domain: string;
-	sessionEncPemCertificateChain: null | Uint8Array;
-	sessionEncPemPrivateKey: null | Uint8Array;
-	systemAdminPubEncSessionKey: Uint8Array;
+	sessionEncPemCertificateChain: null | Uint8Array<ArrayBuffer>;
+	sessionEncPemPrivateKey: null | Uint8Array<ArrayBuffer>;
+	systemAdminPubEncSessionKey: Uint8Array<ArrayBuffer>;
 	systemAdminPublicProtocolVersion: NumberString;
 	systemAdminPubKeyVersion: NumberString;
 }
@@ -2687,9 +2687,9 @@ export function createU2fRegisteredDevice(values: U2fRegisteredDeviceParams): U2
 export type U2fRegisteredDeviceParams = {
 
 
-	keyHandle: Uint8Array;
+	keyHandle: Uint8Array<ArrayBuffer>;
 	appId: string;
-	publicKey: Uint8Array;
+	publicKey: Uint8Array<ArrayBuffer>;
 	counter: NumberString;
 	compromised: boolean;
 }
@@ -2699,9 +2699,9 @@ export type U2fRegisteredDevice = {
 	_original?: U2fRegisteredDevice
 
 	_id: Id;
-	keyHandle: Uint8Array;
+	keyHandle: Uint8Array<ArrayBuffer>;
 	appId: string;
-	publicKey: Uint8Array;
+	publicKey: Uint8Array<ArrayBuffer>;
 	counter: NumberString;
 	compromised: boolean;
 }
@@ -2716,7 +2716,7 @@ export type SecondFactorParams = {
 
 	type: NumberString;
 	name: string;
-	otpSecret: null | Uint8Array;
+	otpSecret: null | Uint8Array<ArrayBuffer>;
 
 	u2f: null | U2fRegisteredDevice;
 }
@@ -2731,7 +2731,7 @@ export type SecondFactor = {
 	_ownerGroup: null | Id;
 	type: NumberString;
 	name: string;
-	otpSecret: null | Uint8Array;
+	otpSecret: null | Uint8Array<ArrayBuffer>;
 
 	u2f: null | U2fRegisteredDevice;
 }
@@ -2744,7 +2744,7 @@ export function createU2fKey(values: U2fKeyParams): U2fKey {
 export type U2fKeyParams = {
 
 
-	keyHandle: Uint8Array;
+	keyHandle: Uint8Array<ArrayBuffer>;
 	appId: string;
 
 	secondFactor: IdTuple;
@@ -2755,7 +2755,7 @@ export type U2fKey = {
 	_original?: U2fKey
 
 	_id: Id;
-	keyHandle: Uint8Array;
+	keyHandle: Uint8Array<ArrayBuffer>;
 	appId: string;
 
 	secondFactor: IdTuple;
@@ -2769,7 +2769,7 @@ export function createU2fChallenge(values: U2fChallengeParams): U2fChallenge {
 export type U2fChallengeParams = {
 
 
-	challenge: Uint8Array;
+	challenge: Uint8Array<ArrayBuffer>;
 
 	keys: U2fKey[];
 }
@@ -2779,7 +2779,7 @@ export type U2fChallenge = {
 	_original?: U2fChallenge
 
 	_id: Id;
-	challenge: Uint8Array;
+	challenge: Uint8Array<ArrayBuffer>;
 
 	keys: U2fKey[];
 }
@@ -2821,7 +2821,7 @@ export type SessionParams = {
 	loginTime: Date;
 	loginIpAddress: null | string;
 	lastAccessTime: Date;
-	accessKey: null | Uint8Array;
+	accessKey: null | Uint8Array<ArrayBuffer>;
 	state: NumberString;
 
 	challenges: Challenge[];
@@ -2837,15 +2837,15 @@ export type Session = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	clientIdentifier: string;
 	loginTime: Date;
 	loginIpAddress: null | string;
 	lastAccessTime: Date;
-	accessKey: null | Uint8Array;
+	accessKey: null | Uint8Array<ArrayBuffer>;
 	state: NumberString;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	challenges: Challenge[];
 	user: Id;
@@ -2887,7 +2887,7 @@ export type CreateSessionDataParams = {
 	mailAddress: null | string;
 	authVerifier: null | string;
 	clientIdentifier: string;
-	accessKey: null | Uint8Array;
+	accessKey: null | Uint8Array<ArrayBuffer>;
 	authToken: null | string;
 	recoverCodeVerifier: null | string;
 
@@ -2902,7 +2902,7 @@ export type CreateSessionData = {
 	mailAddress: null | string;
 	authVerifier: null | string;
 	clientIdentifier: string;
-	accessKey: null | Uint8Array;
+	accessKey: null | Uint8Array<ArrayBuffer>;
 	authToken: null | string;
 	recoverCodeVerifier: null | string;
 
@@ -3079,13 +3079,13 @@ export type WhitelabelChild = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	mailAddress: string;
 	createdDate: Date;
 	deletedDate: null | Date;
 	comment: string;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	customer: Id;
 }
@@ -3205,12 +3205,12 @@ export type OrderProcessingAgreement = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	version: string;
 	customerAddress: string;
 	signatureDate: Date;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	signerUserGroupInfo: IdTuple;
 	customer: Id;
@@ -3312,9 +3312,9 @@ export function createRecoverCode(values: RecoverCodeParams): RecoverCode {
 export type RecoverCodeParams = {
 
 
-	userEncRecoverCode: Uint8Array;
-	recoverCodeEncUserGroupKey: Uint8Array;
-	verifier: Uint8Array;
+	userEncRecoverCode: Uint8Array<ArrayBuffer>;
+	recoverCodeEncUserGroupKey: Uint8Array<ArrayBuffer>;
+	verifier: Uint8Array<ArrayBuffer>;
 	userKeyVersion: NumberString;
 }
 
@@ -3326,9 +3326,9 @@ export type RecoverCode = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	userEncRecoverCode: Uint8Array;
-	recoverCodeEncUserGroupKey: Uint8Array;
-	verifier: Uint8Array;
+	userEncRecoverCode: Uint8Array<ArrayBuffer>;
+	recoverCodeEncUserGroupKey: Uint8Array<ArrayBuffer>;
+	verifier: Uint8Array<ArrayBuffer>;
 	userKeyVersion: NumberString;
 }
 export const ResetFactorsDeleteDataTypeRef: TypeRef<ResetFactorsDeleteData> = new TypeRef("sys", 1419)
@@ -3711,9 +3711,9 @@ export type UserAlarmInfo = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	alarmInfo: AlarmInfo;
 }
@@ -3747,7 +3747,7 @@ export function createNotificationSessionKey(values: NotificationSessionKeyParam
 export type NotificationSessionKeyParams = {
 
 
-	pushIdentifierSessionEncSessionKey: Uint8Array;
+	pushIdentifierSessionEncSessionKey: Uint8Array<ArrayBuffer>;
 
 	pushIdentifier: IdTuple;
 }
@@ -3757,7 +3757,7 @@ export type NotificationSessionKey = {
 	_original?: NotificationSessionKey
 
 	_id: Id;
-	pushIdentifierSessionEncSessionKey: Uint8Array;
+	pushIdentifierSessionEncSessionKey: Uint8Array<ArrayBuffer>;
 
 	pushIdentifier: IdTuple;
 }
@@ -3958,7 +3958,7 @@ export function createReceivedGroupInvitation(values: ReceivedGroupInvitationPar
 export type ReceivedGroupInvitationParams = {
 
 
-	sharedGroupKey: Uint8Array;
+	sharedGroupKey: Uint8Array<ArrayBuffer>;
 	sharedGroupName: string;
 	inviterMailAddress: string;
 	inviterName: string;
@@ -3980,8 +3980,8 @@ export type ReceivedGroupInvitation = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
-	sharedGroupKey: Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	sharedGroupKey: Uint8Array<ArrayBuffer>;
 	sharedGroupName: string;
 	inviterMailAddress: string;
 	inviterName: string;
@@ -3990,7 +3990,7 @@ export type ReceivedGroupInvitation = {
 	groupType: null | NumberString;
 	_ownerKeyVersion: null | NumberString;
 	sharedGroupKeyVersion: NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	sharedGroup: Id;
 	sentInvitation: IdTuple;
@@ -4114,7 +4114,7 @@ export type Invoice = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	type: NumberString;
 	date: Date;
 	paymentMethod: NumberString;
@@ -4129,7 +4129,7 @@ export type Invoice = {
 	adminUser: null | string;
 	reason: null | string;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	items: InvoiceItem[];
 	customer: Id;
@@ -4159,10 +4159,10 @@ export type MissedNotification = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	lastProcessedNotificationId: null | Id;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	notificationInfos: NotificationInfo[];
 	alarmNotifications: AlarmNotification[];
@@ -4333,14 +4333,14 @@ export type GiftCard = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	status: NumberString;
 	value: NumberString;
 	message: string;
 	orderDate: Date;
 	migrated: boolean;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 }
 export const GiftCardsRefTypeRef: TypeRef<GiftCardsRef> = new TypeRef("sys", 1791)
 
@@ -4418,7 +4418,7 @@ export type GiftCardCreateDataParams = {
 
 	message: string;
 	value: NumberString;
-	keyHash: Uint8Array;
+	keyHash: Uint8Array<ArrayBuffer>;
 }
 
 export type GiftCardCreateData = {
@@ -4428,9 +4428,9 @@ export type GiftCardCreateData = {
 
 	_format: NumberString;
 	message: string;
-	ownerEncSessionKey: Uint8Array;
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
 	value: NumberString;
-	keyHash: Uint8Array;
+	keyHash: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
 }
 export const GiftCardDeleteDataTypeRef: TypeRef<GiftCardDeleteData> = new TypeRef("sys", 1810)
@@ -4484,7 +4484,7 @@ export function createGiftCardRedeemData(values: GiftCardRedeemDataParams): Gift
 export type GiftCardRedeemDataParams = {
 
 
-	keyHash: Uint8Array;
+	keyHash: Uint8Array<ArrayBuffer>;
 	countryCode: string;
 
 	giftCardInfo: Id;
@@ -4495,7 +4495,7 @@ export type GiftCardRedeemData = {
 	_original?: GiftCardRedeemData
 
 	_format: NumberString;
-	keyHash: Uint8Array;
+	keyHash: Uint8Array<ArrayBuffer>;
 	countryCode: string;
 
 	giftCardInfo: Id;
@@ -4709,10 +4709,10 @@ export function createWebauthnResponseData(values: WebauthnResponseDataParams): 
 export type WebauthnResponseDataParams = {
 
 
-	keyHandle: Uint8Array;
-	clientData: Uint8Array;
-	authenticatorData: Uint8Array;
-	signature: Uint8Array;
+	keyHandle: Uint8Array<ArrayBuffer>;
+	clientData: Uint8Array<ArrayBuffer>;
+	authenticatorData: Uint8Array<ArrayBuffer>;
+	signature: Uint8Array<ArrayBuffer>;
 }
 
 export type WebauthnResponseData = {
@@ -4720,10 +4720,10 @@ export type WebauthnResponseData = {
 	_original?: WebauthnResponseData
 
 	_id: Id;
-	keyHandle: Uint8Array;
-	clientData: Uint8Array;
-	authenticatorData: Uint8Array;
-	signature: Uint8Array;
+	keyHandle: Uint8Array<ArrayBuffer>;
+	clientData: Uint8Array<ArrayBuffer>;
+	authenticatorData: Uint8Array<ArrayBuffer>;
+	signature: Uint8Array<ArrayBuffer>;
 }
 export const BlobReferenceTokenWrapperTypeRef: TypeRef<BlobReferenceTokenWrapper> = new TypeRef("sys", 1990)
 
@@ -4892,10 +4892,10 @@ export type InstanceSessionKeyParams = {
 
 	instanceList: Id;
 	instanceId: Id;
-	symEncSessionKey: Uint8Array;
-	encryptionAuthStatus: null | Uint8Array;
+	symEncSessionKey: Uint8Array<ArrayBuffer>;
+	encryptionAuthStatus: null | Uint8Array<ArrayBuffer>;
 	symKeyVersion: NumberString;
-	keyVerificationState: null | Uint8Array;
+	keyVerificationState: null | Uint8Array<ArrayBuffer>;
 
 	typeInfo: TypeInfo;
 }
@@ -4907,10 +4907,10 @@ export type InstanceSessionKey = {
 	_id: Id;
 	instanceList: Id;
 	instanceId: Id;
-	symEncSessionKey: Uint8Array;
-	encryptionAuthStatus: null | Uint8Array;
+	symEncSessionKey: Uint8Array<ArrayBuffer>;
+	encryptionAuthStatus: null | Uint8Array<ArrayBuffer>;
 	symKeyVersion: NumberString;
-	keyVerificationState: null | Uint8Array;
+	keyVerificationState: null | Uint8Array<ArrayBuffer>;
 
 	typeInfo: TypeInfo;
 }
@@ -4923,8 +4923,8 @@ export function createBucketKey(values: BucketKeyParams): BucketKey {
 export type BucketKeyParams = {
 
 
-	pubEncBucketKey: null | Uint8Array;
-	groupEncBucketKey: null | Uint8Array;
+	pubEncBucketKey: null | Uint8Array<ArrayBuffer>;
+	groupEncBucketKey: null | Uint8Array<ArrayBuffer>;
 	protocolVersion: NumberString;
 	recipientKeyVersion: NumberString;
 	senderKeyVersion: null | NumberString;
@@ -4938,8 +4938,8 @@ export type BucketKey = {
 	_original?: BucketKey
 
 	_id: Id;
-	pubEncBucketKey: null | Uint8Array;
-	groupEncBucketKey: null | Uint8Array;
+	pubEncBucketKey: null | Uint8Array<ArrayBuffer>;
+	groupEncBucketKey: null | Uint8Array<ArrayBuffer>;
 	protocolVersion: NumberString;
 	recipientKeyVersion: NumberString;
 	senderKeyVersion: null | NumberString;
@@ -5140,8 +5140,8 @@ export function createPublicKeyPutIn(values: PublicKeyPutInParams): PublicKeyPut
 export type PublicKeyPutInParams = {
 
 
-	pubEccKey: Uint8Array;
-	symEncPrivEccKey: Uint8Array;
+	pubEccKey: Uint8Array<ArrayBuffer>;
+	symEncPrivEccKey: Uint8Array<ArrayBuffer>;
 
 	keyGroup: Id;
 }
@@ -5151,8 +5151,8 @@ export type PublicKeyPutIn = {
 	_original?: PublicKeyPutIn
 
 	_format: NumberString;
-	pubEccKey: Uint8Array;
-	symEncPrivEccKey: Uint8Array;
+	pubEccKey: Uint8Array<ArrayBuffer>;
+	symEncPrivEccKey: Uint8Array<ArrayBuffer>;
 
 	keyGroup: Id;
 }
@@ -5258,10 +5258,10 @@ export function createChangeKdfPostIn(values: ChangeKdfPostInParams): ChangeKdfP
 export type ChangeKdfPostInParams = {
 
 
-	verifier: Uint8Array;
-	salt: Uint8Array;
-	pwEncUserGroupKey: Uint8Array;
-	oldVerifier: Uint8Array;
+	verifier: Uint8Array<ArrayBuffer>;
+	salt: Uint8Array<ArrayBuffer>;
+	pwEncUserGroupKey: Uint8Array<ArrayBuffer>;
+	oldVerifier: Uint8Array<ArrayBuffer>;
 	kdfVersion: NumberString;
 	userGroupKeyVersion: NumberString;
 }
@@ -5271,10 +5271,10 @@ export type ChangeKdfPostIn = {
 	_original?: ChangeKdfPostIn
 
 	_format: NumberString;
-	verifier: Uint8Array;
-	salt: Uint8Array;
-	pwEncUserGroupKey: Uint8Array;
-	oldVerifier: Uint8Array;
+	verifier: Uint8Array<ArrayBuffer>;
+	salt: Uint8Array<ArrayBuffer>;
+	pwEncUserGroupKey: Uint8Array<ArrayBuffer>;
+	oldVerifier: Uint8Array<ArrayBuffer>;
 	kdfVersion: NumberString;
 	userGroupKeyVersion: NumberString;
 }
@@ -5287,8 +5287,8 @@ export function createGroupKey(values: GroupKeyParams): GroupKey {
 export type GroupKeyParams = {
 
 
-	ownerEncGKey: Uint8Array;
-	adminGroupEncGKey: null | Uint8Array;
+	ownerEncGKey: Uint8Array<ArrayBuffer>;
+	adminGroupEncGKey: null | Uint8Array<ArrayBuffer>;
 	adminGroupKeyVersion: null | NumberString;
 
 	keyPair: null | KeyPair;
@@ -5303,9 +5303,9 @@ export type GroupKey = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	ownerEncGKey: Uint8Array;
+	ownerEncGKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
-	adminGroupEncGKey: null | Uint8Array;
+	adminGroupEncGKey: null | Uint8Array<ArrayBuffer>;
 	adminGroupKeyVersion: null | NumberString;
 
 	keyPair: null | KeyPair;
@@ -5446,7 +5446,7 @@ export function createUserGroupKeyDistribution(values: UserGroupKeyDistributionP
 export type UserGroupKeyDistributionParams = {
 
 
-	distributionEncUserGroupKey: Uint8Array;
+	distributionEncUserGroupKey: Uint8Array<ArrayBuffer>;
 	userGroupKeyVersion: NumberString;
 }
 
@@ -5458,7 +5458,7 @@ export type UserGroupKeyDistribution = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	distributionEncUserGroupKey: Uint8Array;
+	distributionEncUserGroupKey: Uint8Array<ArrayBuffer>;
 	userGroupKeyVersion: NumberString;
 }
 export const GroupKeyRotationDataTypeRef: TypeRef<GroupKeyRotationData> = new TypeRef("sys", 2328)
@@ -5471,8 +5471,8 @@ export type GroupKeyRotationDataParams = {
 
 
 	groupKeyVersion: NumberString;
-	groupEncPreviousGroupKey: Uint8Array;
-	adminGroupEncGroupKey: null | Uint8Array;
+	groupEncPreviousGroupKey: Uint8Array<ArrayBuffer>;
+	adminGroupEncGroupKey: null | Uint8Array<ArrayBuffer>;
 	adminGroupKeyVersion: null | NumberString;
 
 	group: Id;
@@ -5487,8 +5487,8 @@ export type GroupKeyRotationData = {
 
 	_id: Id;
 	groupKeyVersion: NumberString;
-	groupEncPreviousGroupKey: Uint8Array;
-	adminGroupEncGroupKey: null | Uint8Array;
+	groupEncPreviousGroupKey: Uint8Array<ArrayBuffer>;
+	adminGroupEncGroupKey: null | Uint8Array<ArrayBuffer>;
 	adminGroupKeyVersion: null | NumberString;
 
 	group: Id;
@@ -5550,9 +5550,9 @@ export type RecoverCodeDataParams = {
 
 
 	userKeyVersion: NumberString;
-	recoveryCodeEncUserGroupKey: Uint8Array;
-	userEncRecoveryCode: Uint8Array;
-	recoveryCodeVerifier: Uint8Array;
+	recoveryCodeEncUserGroupKey: Uint8Array<ArrayBuffer>;
+	userEncRecoveryCode: Uint8Array<ArrayBuffer>;
+	recoveryCodeVerifier: Uint8Array<ArrayBuffer>;
 }
 
 export type RecoverCodeData = {
@@ -5561,9 +5561,9 @@ export type RecoverCodeData = {
 
 	_id: Id;
 	userKeyVersion: NumberString;
-	recoveryCodeEncUserGroupKey: Uint8Array;
-	userEncRecoveryCode: Uint8Array;
-	recoveryCodeVerifier: Uint8Array;
+	recoveryCodeEncUserGroupKey: Uint8Array<ArrayBuffer>;
+	userEncRecoveryCode: Uint8Array<ArrayBuffer>;
+	recoveryCodeVerifier: Uint8Array<ArrayBuffer>;
 }
 export const UserGroupKeyRotationDataTypeRef: TypeRef<UserGroupKeyRotationData> = new TypeRef("sys", 2352)
 
@@ -5574,14 +5574,14 @@ export function createUserGroupKeyRotationData(values: UserGroupKeyRotationDataP
 export type UserGroupKeyRotationDataParams = {
 
 
-	passphraseEncUserGroupKey: Uint8Array;
-	distributionKeyEncUserGroupKey: Uint8Array;
+	passphraseEncUserGroupKey: Uint8Array<ArrayBuffer>;
+	distributionKeyEncUserGroupKey: Uint8Array<ArrayBuffer>;
 	userGroupKeyVersion: NumberString;
-	userGroupEncPreviousGroupKey: Uint8Array;
-	adminGroupEncUserGroupKey: null | Uint8Array;
+	userGroupEncPreviousGroupKey: Uint8Array<ArrayBuffer>;
+	adminGroupEncUserGroupKey: null | Uint8Array<ArrayBuffer>;
 	adminGroupKeyVersion: NumberString;
-	authVerifier: Uint8Array;
-	userGroupEncAdminGroupKey: null | Uint8Array;
+	authVerifier: Uint8Array<ArrayBuffer>;
+	userGroupEncAdminGroupKey: null | Uint8Array<ArrayBuffer>;
 
 	keyPair: KeyPair;
 	group: Id;
@@ -5594,14 +5594,14 @@ export type UserGroupKeyRotationData = {
 	_original?: UserGroupKeyRotationData
 
 	_id: Id;
-	passphraseEncUserGroupKey: Uint8Array;
-	distributionKeyEncUserGroupKey: Uint8Array;
+	passphraseEncUserGroupKey: Uint8Array<ArrayBuffer>;
+	distributionKeyEncUserGroupKey: Uint8Array<ArrayBuffer>;
 	userGroupKeyVersion: NumberString;
-	userGroupEncPreviousGroupKey: Uint8Array;
-	adminGroupEncUserGroupKey: null | Uint8Array;
+	userGroupEncPreviousGroupKey: Uint8Array<ArrayBuffer>;
+	adminGroupEncUserGroupKey: null | Uint8Array<ArrayBuffer>;
 	adminGroupKeyVersion: NumberString;
-	authVerifier: Uint8Array;
-	userGroupEncAdminGroupKey: null | Uint8Array;
+	authVerifier: Uint8Array<ArrayBuffer>;
+	userGroupEncAdminGroupKey: null | Uint8Array<ArrayBuffer>;
 
 	keyPair: KeyPair;
 	group: Id;
@@ -5644,7 +5644,7 @@ export function createGroupKeyUpdate(values: GroupKeyUpdateParams): GroupKeyUpda
 export type GroupKeyUpdateParams = {
 
 
-	groupKey: Uint8Array;
+	groupKey: Uint8Array<ArrayBuffer>;
 	groupKeyVersion: NumberString;
 
 	bucketKey: BucketKey;
@@ -5659,11 +5659,11 @@ export type GroupKeyUpdate = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
-	groupKey: Uint8Array;
+	groupKey: Uint8Array<ArrayBuffer>;
 	groupKeyVersion: NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	bucketKey: BucketKey;
 }
@@ -5698,7 +5698,7 @@ export type PubEncKeyDataParams = {
 
 
 	recipientIdentifier: string;
-	pubEncSymKey: Uint8Array;
+	pubEncSymKey: Uint8Array<ArrayBuffer>;
 	recipientKeyVersion: NumberString;
 	senderKeyVersion: null | NumberString;
 	protocolVersion: NumberString;
@@ -5715,7 +5715,7 @@ export type PubEncKeyData = {
 
 	_id: Id;
 	recipientIdentifier: string;
-	pubEncSymKey: Uint8Array;
+	pubEncSymKey: Uint8Array<ArrayBuffer>;
 	recipientKeyVersion: NumberString;
 	senderKeyVersion: null | NumberString;
 	protocolVersion: NumberString;
@@ -5735,8 +5735,8 @@ export type GroupKeyUpdateDataParams = {
 
 
 	sessionKeyEncGroupKeyVersion: NumberString;
-	sessionKeyEncGroupKey: Uint8Array;
-	bucketKeyEncSessionKey: Uint8Array;
+	sessionKeyEncGroupKey: Uint8Array<ArrayBuffer>;
+	bucketKeyEncSessionKey: Uint8Array<ArrayBuffer>;
 
 	pubEncBucketKeyData: PubEncKeyData;
 }
@@ -5747,8 +5747,8 @@ export type GroupKeyUpdateData = {
 
 	_id: Id;
 	sessionKeyEncGroupKeyVersion: NumberString;
-	sessionKeyEncGroupKey: Uint8Array;
-	bucketKeyEncSessionKey: Uint8Array;
+	sessionKeyEncGroupKey: Uint8Array<ArrayBuffer>;
+	bucketKeyEncSessionKey: Uint8Array<ArrayBuffer>;
 
 	pubEncBucketKeyData: PubEncKeyData;
 }
@@ -5763,7 +5763,7 @@ export type GroupMembershipKeyDataParams = {
 
 	groupKeyVersion: NumberString;
 	symKeyVersion: NumberString;
-	symEncGKey: Uint8Array;
+	symEncGKey: Uint8Array<ArrayBuffer>;
 
 	group: Id;
 }
@@ -5775,7 +5775,7 @@ export type GroupMembershipKeyData = {
 	_id: Id;
 	groupKeyVersion: NumberString;
 	symKeyVersion: NumberString;
-	symEncGKey: Uint8Array;
+	symEncGKey: Uint8Array<ArrayBuffer>;
 
 	group: Id;
 }
@@ -5809,7 +5809,7 @@ export function createGroupMembershipUpdateData(values: GroupMembershipUpdateDat
 export type GroupMembershipUpdateDataParams = {
 
 
-	userEncGroupKey: Uint8Array;
+	userEncGroupKey: Uint8Array<ArrayBuffer>;
 	userKeyVersion: NumberString;
 
 	userId: Id;
@@ -5820,7 +5820,7 @@ export type GroupMembershipUpdateData = {
 	_original?: GroupMembershipUpdateData
 
 	_id: Id;
-	userEncGroupKey: Uint8Array;
+	userEncGroupKey: Uint8Array<ArrayBuffer>;
 	userKeyVersion: NumberString;
 
 	userId: Id;
@@ -5912,7 +5912,7 @@ export type KeyMacParams = {
 
 
 	taggedKeyVersion: NumberString;
-	tag: Uint8Array;
+	tag: Uint8Array<ArrayBuffer>;
 	taggingKeyVersion: NumberString;
 
 	taggingGroup: Id;
@@ -5924,7 +5924,7 @@ export type KeyMac = {
 
 	_id: Id;
 	taggedKeyVersion: NumberString;
-	tag: Uint8Array;
+	tag: Uint8Array<ArrayBuffer>;
 	taggingKeyVersion: NumberString;
 
 	taggingGroup: Id;
@@ -5995,7 +5995,7 @@ export function createVerifierTokenServiceIn(values: VerifierTokenServiceInParam
 export type VerifierTokenServiceInParams = {
 
 
-	authVerifier: Uint8Array;
+	authVerifier: Uint8Array<ArrayBuffer>;
 }
 
 export type VerifierTokenServiceIn = {
@@ -6003,7 +6003,7 @@ export type VerifierTokenServiceIn = {
 	_original?: VerifierTokenServiceIn
 
 	_format: NumberString;
-	authVerifier: Uint8Array;
+	authVerifier: Uint8Array<ArrayBuffer>;
 }
 export const CalendarAdvancedRepeatRuleTypeRef: TypeRef<CalendarAdvancedRepeatRule> = new TypeRef("sys", 2521)
 
@@ -6081,8 +6081,8 @@ export function createPubDistributionKey(values: PubDistributionKeyParams): PubD
 export type PubDistributionKeyParams = {
 
 
-	pubEccKey: Uint8Array;
-	pubKyberKey: Uint8Array;
+	pubEccKey: Uint8Array<ArrayBuffer>;
+	pubKyberKey: Uint8Array<ArrayBuffer>;
 
 	userGroupId: Id;
 	pubKeyMac: KeyMac;
@@ -6093,8 +6093,8 @@ export type PubDistributionKey = {
 	_original?: PubDistributionKey
 
 	_id: Id;
-	pubEccKey: Uint8Array;
-	pubKyberKey: Uint8Array;
+	pubEccKey: Uint8Array<ArrayBuffer>;
+	pubKyberKey: Uint8Array<ArrayBuffer>;
 
 	userGroupId: Id;
 	pubKeyMac: KeyMac;
@@ -6179,8 +6179,8 @@ export type IdentityKeyPairParams = {
 
 	identityKeyVersion: NumberString;
 	encryptingKeyVersion: NumberString;
-	publicEd25519Key: Uint8Array;
-	privateEd25519Key: Uint8Array;
+	publicEd25519Key: Uint8Array<ArrayBuffer>;
+	privateEd25519Key: Uint8Array<ArrayBuffer>;
 
 	publicKeyMac: KeyMac;
 }
@@ -6192,8 +6192,8 @@ export type IdentityKeyPair = {
 	_id: Id;
 	identityKeyVersion: NumberString;
 	encryptingKeyVersion: NumberString;
-	publicEd25519Key: Uint8Array;
-	privateEd25519Key: Uint8Array;
+	publicEd25519Key: Uint8Array<ArrayBuffer>;
+	privateEd25519Key: Uint8Array<ArrayBuffer>;
 
 	publicKeyMac: KeyMac;
 }
@@ -6206,7 +6206,7 @@ export function createPublicKeySignature(values: PublicKeySignatureParams): Publ
 export type PublicKeySignatureParams = {
 
 
-	signature: Uint8Array;
+	signature: Uint8Array<ArrayBuffer>;
 	signingKeyVersion: NumberString;
 	signatureType: NumberString;
 	publicKeyVersion: NumberString;
@@ -6217,7 +6217,7 @@ export type PublicKeySignature = {
 	_original?: PublicKeySignature
 
 	_id: Id;
-	signature: Uint8Array;
+	signature: Uint8Array<ArrayBuffer>;
 	signingKeyVersion: NumberString;
 	signatureType: NumberString;
 	publicKeyVersion: NumberString;
@@ -6254,7 +6254,7 @@ export function createIdentityKeyGetOut(values: IdentityKeyGetOutParams): Identi
 export type IdentityKeyGetOutParams = {
 
 
-	publicIdentityKey: Uint8Array;
+	publicIdentityKey: Uint8Array<ArrayBuffer>;
 	publicIdentityKeyVersion: NumberString;
 }
 
@@ -6263,7 +6263,7 @@ export type IdentityKeyGetOut = {
 	_original?: IdentityKeyGetOut
 
 	_format: NumberString;
-	publicIdentityKey: Uint8Array;
+	publicIdentityKey: Uint8Array<ArrayBuffer>;
 	publicIdentityKeyVersion: NumberString;
 }
 export const IdentityKeyPostInTypeRef: TypeRef<IdentityKeyPostIn> = new TypeRef("sys", 2599)
@@ -6359,7 +6359,7 @@ export function createCaptchaChallenge(values: CaptchaChallengeParams): CaptchaC
 export type CaptchaChallengeParams = {
 
 
-	challenge: Uint8Array;
+	challenge: Uint8Array<ArrayBuffer>;
 	description: string;
 }
 
@@ -6368,7 +6368,7 @@ export type CaptchaChallenge = {
 	_original?: CaptchaChallenge
 
 	_id: Id;
-	challenge: Uint8Array;
+	challenge: Uint8Array<ArrayBuffer>;
 	description: string;
 }
 export const TimelockCaptchaGetInTypeRef: TypeRef<TimelockCaptchaGetIn> = new TypeRef("sys", 2629)
@@ -6481,9 +6481,9 @@ export type PartnerManagedCustomer = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	customerInfo: IdTuple;
 }
@@ -6546,7 +6546,7 @@ export function createUserAlarmInfoData(values: UserAlarmInfoDataParams): UserAl
 export type UserAlarmInfoDataParams = {
 
 
-	encryptedTrigger: Uint8Array;
+	encryptedTrigger: Uint8Array<ArrayBuffer>;
 	alarmIdentifier: string;
 
 	ownerGroup: Id;
@@ -6558,9 +6558,9 @@ export type UserAlarmInfoData = {
 	_original?: UserAlarmInfoData
 
 	_id: Id;
-	ownerEncSessionKey: Uint8Array;
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
-	encryptedTrigger: Uint8Array;
+	encryptedTrigger: Uint8Array<ArrayBuffer>;
 	alarmIdentifier: string;
 
 	ownerGroup: Id;
@@ -6621,7 +6621,7 @@ export type InstanceKdfNonceParams = {
 
 	instanceList: null | Id;
 	instanceId: Id;
-	kdfNonce: Uint8Array;
+	kdfNonce: Uint8Array<ArrayBuffer>;
 
 	typeInfo: TypeInfo;
 }
@@ -6633,7 +6633,7 @@ export type InstanceKdfNonce = {
 	_id: Id;
 	instanceList: null | Id;
 	instanceId: Id;
-	kdfNonce: Uint8Array;
+	kdfNonce: Uint8Array<ArrayBuffer>;
 
 	typeInfo: TypeInfo;
 }
@@ -6667,7 +6667,7 @@ export function createUpdateKdfNoncePostOut(values: UpdateKdfNoncePostOutParams)
 export type UpdateKdfNoncePostOutParams = {
 
 
-	kdfNonce: Uint8Array;
+	kdfNonce: Uint8Array<ArrayBuffer>;
 }
 
 export type UpdateKdfNoncePostOut = {
@@ -6675,7 +6675,7 @@ export type UpdateKdfNoncePostOut = {
 	_original?: UpdateKdfNoncePostOut
 
 	_format: NumberString;
-	kdfNonce: Uint8Array;
+	kdfNonce: Uint8Array<ArrayBuffer>;
 }
 export const SubscriptionRevocationRequestTypeRef: TypeRef<SubscriptionRevocationRequest> = new TypeRef("sys", 2759)
 

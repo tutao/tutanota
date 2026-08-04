@@ -20,7 +20,7 @@ export function encryptIndexKeyBase64(key: Aes256Key, indexKey: string, dbInitia
 	return uint8ArrayToBase64(encryptIndexKeyUint8Array(key, indexKey, dbInitializationVector))
 }
 
-export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string, dbInitializationVector: InitializationVector): Uint8Array {
+export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string, dbInitializationVector: InitializationVector): Uint8Array<ArrayBuffer> {
 	return aes256EncryptSearchIndexEntryWithInitializationVector(key, stringToUtf8Uint8Array(indexKey), dbInitializationVector).slice(
 		dbInitializationVector.bytes.length,
 	)
@@ -30,7 +30,7 @@ export function decryptIndexKey(key: Aes256Key, encIndexKey: Uint8Array, dbIniti
 	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, concat(dbInitializationVector.bytes, encIndexKey)))
 }
 
-export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry, encryptedInstanceId: Uint8Array): EncryptedSearchIndexEntry {
+export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry, encryptedInstanceId: Uint8Array<ArrayBuffer>): EncryptedSearchIndexEntry {
 	let searchIndexEntryNumberValues = [entry.attribute].concat(entry.positions)
 	const neededSpace = calculateNeededSpaceForNumbers(searchIndexEntryNumberValues)
 	const block = new Uint8Array(neededSpace)

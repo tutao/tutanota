@@ -51,7 +51,7 @@ export class RestTextBody extends RestBody {
 }
 
 export class RestBinaryBody extends RestBody {
-	constructor(public readonly payload: Uint8Array) {
+	constructor(public readonly payload: Uint8Array<ArrayBuffer>) {
 		super(RestBodyType.Binary)
 	}
 }

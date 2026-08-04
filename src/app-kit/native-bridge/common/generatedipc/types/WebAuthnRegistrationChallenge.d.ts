@@ -1,7 +1,7 @@
 /* generated file, don't edit. */
 
 export interface WebAuthnRegistrationChallenge {
-	readonly challenge: Uint8Array
+	readonly challenge: Uint8Array<ArrayBuffer>
 	readonly userId: string
 	readonly name: string
 	readonly displayName: string

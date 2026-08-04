@@ -27,7 +27,7 @@ interface VersionedSpamClassificationModel extends SpamClassificationModel {
  * Encode the SpamClassificationModel
  * @param model to encode
  */
-export function encodeSpamClassificationModel(model: SpamClassificationModel): Uint8Array {
+export function encodeSpamClassificationModel(model: SpamClassificationModel): Uint8Array<ArrayBuffer> {
 	return cborg.encode(
 		{
 			version: LOCAL_SPAM_CLASSIFICATION_STORAGE_VERSION,

@@ -7,7 +7,7 @@ export class NodeWorkerTransport<OutgoingCommandType, IncomingCommandType> imple
 	constructor(private readonly worker: NodeWorker | NonNullable<typeof parentPort>) {}
 
 	postMessage(message: Message<OutgoingCommandType>): void {
-		return this.worker.postMessage(message)
+		return this.worker.postMessage(message, [])
 	}
 
 	setMessageHandler(handler: (message: Message<IncomingCommandType>) => unknown) {

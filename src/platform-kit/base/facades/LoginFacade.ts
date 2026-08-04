@@ -120,13 +120,13 @@ export type NewSessionData = {
 	userGroupInfo: GroupInfo
 	sessionId: IdTuple
 	credentials: Credentials
-	databaseKey: Uint8Array | null
+	databaseKey: Uint8Array<ArrayBuffer> | null
 }
 
 export type CacheInfo = {
 	isPersistent: boolean
 	isNewOfflineDb: boolean
-	databaseKey: Uint8Array | null
+	databaseKey: Uint8Array<ArrayBuffer> | null
 }
 
 interface ResumeSessionResultData {
@@ -143,7 +143,7 @@ export const enum ResumeSessionState {
 
 export type InitCacheOptions = {
 	userId: Id
-	databaseKey: Uint8Array | null
+	databaseKey: Uint8Array<ArrayBuffer> | null
 	forceNewDatabase: boolean
 }
 
@@ -172,7 +172,7 @@ type AsyncLoginState = {
  */
 export type PassphraseKeyData = {
 	kdfType: KdfType
-	salt: Uint8Array
+	salt: Uint8Array<ArrayBuffer>
 	passphrase: string
 }
 
@@ -265,7 +265,7 @@ export class LoginFacade implements SessionTypeProvider {
 		passphrase: string,
 		clientIdentifier: string,
 		sessionType: SessionType,
-		databaseKey: Uint8Array | null,
+		databaseKey: Uint8Array<ArrayBuffer> | null,
 		createSessionOnly: boolean = false,
 	): Promise<NewSessionData> {
 		if (this.userFacade.isPartiallyLoggedIn()) {
@@ -397,7 +397,7 @@ export class LoginFacade implements SessionTypeProvider {
 	async createExternalSession(
 		userId: Id,
 		passphrase: string,
-		salt: Uint8Array,
+		salt: Uint8Array<ArrayBuffer>,
 		kdfType: KdfType,
 		clientIdentifier: string,
 		persistentSession: boolean,
@@ -512,7 +512,7 @@ export class LoginFacade implements SessionTypeProvider {
 	async resumeSession(
 		credentials: Credentials,
 		externalUserKeyDeriver: ExternalUserKeyDeriver | null,
-		databaseKey: Uint8Array | null,
+		databaseKey: Uint8Array<ArrayBuffer> | null,
 	): Promise<ResumeSessionResult> {
 		if (this.userFacade.getUser() != null) {
 			throw new ProgrammingError(
@@ -636,7 +636,7 @@ export class LoginFacade implements SessionTypeProvider {
 		newPasswordKeyDataTemplate: Omit<PassphraseKeyData, "salt">,
 	): Promise<{
 		newEncryptedPassphrase: Base64
-		newEncryptedPassphraseKey: Uint8Array
+		newEncryptedPassphraseKey: Uint8Array<ArrayBuffer>
 	} | null> {
 		const currentUserPassphraseKey = await this.deriveUserPassphraseKey(currentPasswordKeyData)
 		const currentAuthVerifier = createAuthVerifier(currentUserPassphraseKey)
@@ -843,7 +843,7 @@ export class LoginFacade implements SessionTypeProvider {
 		return this.getTotpVerifier().then((totp) => totp.generateSecret())
 	}
 
-	generateTotpCode(time: number, key: Uint8Array): Promise<number> {
+	generateTotpCode(time: number, key: Uint8Array<ArrayBuffer>): Promise<number> {
 		return this.getTotpVerifier().then((totp) => totp.generateTotp(time, key))
 	}
 
@@ -1132,7 +1132,7 @@ export class LoginFacade implements SessionTypeProvider {
 			userId: Id
 			accessKey: AesKey | null
 		},
-		externalUserSalt: Uint8Array,
+		externalUserSalt: Uint8Array<ArrayBuffer>,
 	) {
 		this.userFacade.setAccessToken(credentials.accessToken)
 		const user = await this.entityClient.load(UserTypeRef, idToElementId(sessionData.userId))

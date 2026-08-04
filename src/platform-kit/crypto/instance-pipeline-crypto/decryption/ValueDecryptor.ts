@@ -14,7 +14,7 @@ import { AesKey } from "@tutao/crypto"
  */
 export interface ValueDecryptor {
 	readonly requiredGroupKeyVersion: Nullable<KeyVersion>
-	getValue(key?: Nullable<AesKey>): Uint8Array
+	getValue(key?: Nullable<AesKey>): Uint8Array<ArrayBuffer>
 }
 
 export class AesCbcDecryptor implements ValueDecryptor {
@@ -26,7 +26,7 @@ export class AesCbcDecryptor implements ValueDecryptor {
 		private readonly instanceAesSubKeyCache: InstanceSubKeyCache<AesCbcSubKeys>,
 		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
 	) {}
-	getValue(): Uint8Array {
+	getValue(): Uint8Array<ArrayBuffer> {
 		const cipherVersion = this.parsedCiphertext.cipherVersion
 		const instanceAesSubKeyCacheKey = {
 			cipherVersion,
@@ -49,13 +49,13 @@ export class AeadWithGroupKeyDecryptor implements ValueDecryptor {
 		private readonly kdfNonce: KdfNonce,
 		private readonly instanceTypeId: InstanceTypeId,
 		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
-		private readonly associatedData: Uint8Array,
+		private readonly associatedData: Uint8Array<ArrayBuffer>,
 		private readonly instanceAeadSubKeyCache: InstanceSubKeyCache<AeadSubKeys>,
 	) {
 		this.requiredGroupKeyVersion = parsedCiphertext.groupKeyVersion
 	}
 
-	getValue(key: Nullable<AesKey>): Uint8Array {
+	getValue(key: Nullable<AesKey>): Uint8Array<ArrayBuffer> {
 		if (key == null) {
 			throw new CryptoError("AEAD decryption of a value failed because of a missing group key.")
 		}
@@ -84,10 +84,10 @@ export class AeadWithSessionKeyDecryptor implements ValueDecryptor {
 		private readonly sessionKey: AesKey,
 		private readonly instanceTypeId: InstanceTypeId,
 		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
-		private readonly associatedData: Uint8Array,
+		private readonly associatedData: Uint8Array<ArrayBuffer>,
 		private readonly instanceAeadSubKeyCache: InstanceSubKeyCache<AeadSubKeys>,
 	) {}
-	getValue(): Uint8Array {
+	getValue(): Uint8Array<ArrayBuffer> {
 		const instanceAeadSubKeyCacheKey = {
 			cipherVersion: SymmetricCipherVersion.AeadWithSessionKey,
 			aesKey: this.sessionKey,

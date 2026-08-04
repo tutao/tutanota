@@ -11,7 +11,7 @@ export const enum HkdfKeyDerivationDomains {
 	VersionedUserGroupKeyDistributionKey = "versionedUserGroupKeyDistributionKey",
 	PublicIdentityKey = "publicIdentityKey",
 }
-export type MacTag = Uint8Array & { readonly __brand: "macTag" }
+export type MacTag = Uint8Array<ArrayBuffer> & { readonly __brand: "macTag" }
 export const UNIT_SEPARATOR_CHAR = "" as const
 export type DomainSeparator = `${string}${typeof UNIT_SEPARATOR_CHAR}`
 export const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN: DomainSeparator = `attributeEncGK${UNIT_SEPARATOR_CHAR}`
@@ -57,5 +57,5 @@ export type VersionedAes256Key = Versioned<Aes256Key>
  */
 export type VersionedEncryptedKey = {
 	encryptingKeyVersion: KeyVersion // the version of the encryption key NOT the encrypted key
-	key: Uint8Array // encrypted key
+	key: Uint8Array<ArrayBuffer> // encrypted key
 }

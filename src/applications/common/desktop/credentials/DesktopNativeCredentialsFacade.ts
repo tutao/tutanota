@@ -92,7 +92,11 @@ export class DesktopNativeCredentialsFacade implements NativeCredentialsFacade {
 		this.credentialDb.setCredentialEncryptionMode(null)
 	}
 
-	async migrateToNativeCredentials(credentials: ReadonlyArray<PersistedCredentials>, encryptionMode: CredentialEncryptionMode, credentialsKey: Uint8Array) {
+	async migrateToNativeCredentials(
+		credentials: ReadonlyArray<PersistedCredentials>,
+		encryptionMode: CredentialEncryptionMode,
+		credentialsKey: Uint8Array<ArrayBuffer>,
+	) {
 		// store persistedCredentials, key & mode
 		assertSupportedEncryptionMode(encryptionMode as DesktopCredentialsMode)
 		this.credentialDb.setCredentialEncryptionMode(encryptionMode)

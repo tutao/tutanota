@@ -38,7 +38,7 @@ export function createCustomerAccountReturn(values: CustomerAccountReturnParams)
 export type CustomerAccountReturnParams = {
 
 
-	_ownerPublicEncSessionKey: null | Uint8Array;
+	_ownerPublicEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	outstandingBookingsPrice: NumberString;
 	balance: NumberString;
 	_publicCryptoProtocolVersion: null | NumberString;
@@ -53,7 +53,7 @@ export type CustomerAccountReturn = {
 
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerPublicEncSessionKey: null | Uint8Array;
+	_ownerPublicEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	outstandingBookingsPrice: NumberString;
 	balance: NumberString;
 	_publicCryptoProtocolVersion: null | NumberString;

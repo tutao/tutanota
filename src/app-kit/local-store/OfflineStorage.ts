@@ -73,7 +73,7 @@ type StorableInstance = {
 	elementId: Id
 	encodedElementId: Base64Ext
 	ownerGroup: Id
-	serializedInstance: Uint8Array
+	serializedInstance: Uint8Array<ArrayBuffer>
 	instance: DecryptedParsedInstance
 }
 
@@ -274,7 +274,7 @@ export class OfflineStorage implements CacheStorage {
 		return (await this.getLastUpdateTime()).type === "never"
 	}
 
-	private async recreateDbFile(userId: string, databaseKey: Uint8Array): Promise<void> {
+	private async recreateDbFile(userId: string, databaseKey: Uint8Array<ArrayBuffer>): Promise<void> {
 		console.log(`recreating DB file for userId ${userId}`)
 		await this.sqlCipherFacade.closeDb()
 		await this.sqlCipherFacade.deleteDb(userId)
@@ -847,7 +847,7 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	private async putMetadata<K extends keyof OfflineDbMeta>(key: K, value: OfflineDbMeta[K]): Promise<void> {
-		let encodedValue
+		let encodedValue: Uint8Array<ArrayBuffer>
 		try {
 			encodedValue = cborg.encode(value)
 		} catch (e) {
@@ -867,7 +867,7 @@ export class OfflineStorage implements CacheStorage {
 									  from metadata
 									  WHERE key = ${key}`
 		const encoded = await this.sqlCipherFacade.get(query, params)
-		return encoded && cborg.decode(encoded.value.value as Uint8Array)
+		return encoded && cborg.decode(encoded.value.value)
 	}
 
 	/**
@@ -1009,10 +1009,10 @@ export class OfflineStorage implements CacheStorage {
 		}
 	}
 
-	private serialize(instance: DecryptedParsedInstance): Uint8Array {
+	private serialize(instance: DecryptedParsedInstance): Uint8Array<ArrayBuffer> {
 		const offlineEntity = this.offlineMapper.toOfflineEntity(instance)
 		try {
-			return cborg.encode(offlineEntity.getStorableRecord(), { typeEncoders: customTypeEncoders })
+			return cborg.encode(offlineEntity.getStorableRecord(), { typeEncoders: customTypeEncoders }) as Uint8Array<ArrayBuffer>
 		} catch (e) {
 			console.log("[OfflineStorage] failed to encode entity with attribute ids: " + Object.keys(offlineEntity))
 			throw e

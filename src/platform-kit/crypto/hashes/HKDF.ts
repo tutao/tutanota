@@ -7,7 +7,12 @@ import { SHA256_HASH_LENGTH_BYTES } from "./Sha256.js"
  *@param  salt – the salt to use, may be null for a salt for hashLen zeros
  * @return the derived salt
  */
-export function hkdf(salt: Uint8Array | null, inputKeyMaterial: Uint8Array, info: Uint8Array, lengthInBytes: number): Uint8Array {
+export function hkdf(
+	salt: Uint8Array<ArrayBuffer> | null,
+	inputKeyMaterial: Uint8Array<ArrayBuffer>,
+	info: Uint8Array<ArrayBuffer>,
+	lengthInBytes: number,
+): Uint8Array<ArrayBuffer> {
 	if (salt == null) {
 		salt = new Uint8Array(SHA256_HASH_LENGTH_BYTES).fill(0)
 	}

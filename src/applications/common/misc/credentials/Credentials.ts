@@ -3,7 +3,7 @@ import { UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
 
 import { Credentials } from "../../../../platform-kit/network/types"
 
-export function credentialsToUnencrypted(credentials: Credentials, databaseKey: Uint8Array | null): UnencryptedCredentials {
+export function credentialsToUnencrypted(credentials: Credentials, databaseKey: Uint8Array<ArrayBuffer> | null): UnencryptedCredentials {
 	if (credentials.encryptedPassword == null) {
 		throw new ProgrammingError("Credentials->UnencryptedCredentials encryptedPassword and encryptedPassphraseKey are both null!")
 	}

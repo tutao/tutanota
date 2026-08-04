@@ -6,7 +6,7 @@ import { IndexName, ObjectStoreName } from "./IndexTables.js"
 import { sha256Hash } from "@tutao/crypto"
 
 export const osName = (objectStoreName: ObjectStoreName): string => objectStoreName
-export type DbKey = string | number | Uint8Array
+export type DbKey = string | number | Uint8Array<ArrayBuffer>
 export type DatabaseEntry = {
 	key: DbKey
 	value: any

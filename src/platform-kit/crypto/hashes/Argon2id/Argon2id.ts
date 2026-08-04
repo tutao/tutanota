@@ -29,7 +29,7 @@ export interface Argon2IDExports extends WASMExports {
  * @param salt 16 bytes of random data
  * @return resolved with the key
  */
-export async function generateKeyFromPassphrase(argon2: Argon2IDExports, pass: string, salt: Uint8Array): Promise<Aes256Key> {
+export async function generateKeyFromPassphrase(argon2: Argon2IDExports, pass: string, salt: Uint8Array<ArrayBuffer>): Promise<Aes256Key> {
 	const hash = await argon2idHashRaw(
 		argon2,
 		ARGON2ID_ITERATIONS,
@@ -48,10 +48,10 @@ async function argon2idHashRaw(
 	timeCost: number,
 	memoryCost: number,
 	parallelism: number,
-	password: Uint8Array,
-	salt: Uint8Array,
+	password: Uint8Array<ArrayBuffer>,
+	salt: Uint8Array<ArrayBuffer>,
 	hashLength: number,
-): Promise<Uint8Array> {
+): Promise<Uint8Array<ArrayBuffer>> {
 	const hash = new Uint8Array(hashLength)
 	const result = callWebAssemblyFunctionWithArguments(
 		argon2.argon2id_hash_raw,

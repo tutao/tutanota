@@ -921,7 +921,7 @@ export class MailFacade {
 		recipientMailAddress: string,
 		externalUserKdfType: KdfType,
 		externalUserPwKey: AesKey,
-		verifier: Uint8Array,
+		verifier: Uint8Array<ArrayBuffer>,
 	): Promise<{ currentExternalUserGroupKey: VersionedKey; currentExternalMailGroupKey: VersionedKey }> {
 		const groupRoot = await this.entityClient.loadRoot(GroupRootTypeRef, this.userFacade.getUserGroupId())
 		const cleanedMailAddress = recipientMailAddress.trim().toLocaleLowerCase()
@@ -1019,7 +1019,7 @@ export class MailFacade {
 		}
 	}
 
-	private async createExternalUser(cleanedMailAddress: string, externalUserKdfType: KdfType, externalUserPwKey: AesKey, verifier: Uint8Array) {
+	private async createExternalUser(cleanedMailAddress: string, externalUserKdfType: KdfType, externalUserPwKey: AesKey, verifier: Uint8Array<ArrayBuffer>) {
 		const internalUserGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const internalMailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(this.userFacade.getGroupId(GroupType.Mail))
 
