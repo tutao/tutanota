@@ -26,12 +26,10 @@ o.spec("UserSatisfactionDialog", () => {
 		when(locatorMock.logins.getUserController().getPlanType()).thenResolve(PlanType.Free)
 	})
 
+	// @ts-ignore
 	const userControllerMock: UserController = object({
-		// @ts-ignore
 		async loadCustomerInfo() {},
-		// @ts-ignore
 		async loadCustomer() {},
-		// @ts-ignore
 		async getPlanType() {},
 	})
 

@@ -10,7 +10,7 @@ import { isAdminClient, isBrowser } from "@tutao/app-env"
 export class DatabaseKeyFactory {
 	constructor(private crypto: DeviceEncryptionFacade) {}
 
-	async generateKey(): Promise<Uint8Array | null> {
+	async generateKey(): Promise<Uint8Array<ArrayBuffer> | null> {
 		return !isBrowser() && !isAdminClient() ? this.crypto.generateKey() : null
 	}
 }

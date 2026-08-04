@@ -134,8 +134,8 @@ type EncryptedUserGroupKeys = {
 	keyPair: KeyPair
 	recoverCodeData: RecoverCodeData | null
 	newAdminGroupKeyEncNewUserGroupKey: VersionedEncryptedKey
-	distributionKeyEncNewUserGroupKey: Uint8Array
-	authVerifier: Uint8Array
+	distributionKeyEncNewUserGroupKey: Uint8Array<ArrayBuffer>
+	authVerifier: Uint8Array<ArrayBuffer>
 }
 
 type EncryptedAndPlaintextPqKeyPairs = {
@@ -916,8 +916,8 @@ export class KeyRotationFacade {
 		const recoverCodeData = await this.reencryptRecoverCodeIfExists(user, pwKey, newUserGroupKeys)
 
 		let pubAdminGroupEncUserGroupKey: null | PubEncKeyData = null
-		let adminGroupEncUserGroupKey: null | Uint8Array = null
-		let userGroupEncAdminGroupKey: null | Uint8Array = null
+		let adminGroupEncUserGroupKey: null | Uint8Array<ArrayBuffer> = null
+		let userGroupEncAdminGroupKey: null | Uint8Array<ArrayBuffer> = null
 		let adminGroupKeyVersion: NumberString
 		//optionally decrypt new admin group key
 		if (userGroupKeyRotation.distEncAdminGroupSymKey != null) {

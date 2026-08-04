@@ -36,7 +36,7 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 
 	let publicIdentityKeyProvider: PublicIdentityKeyProvider
 
-	let rawEd25519PublicKey: Uint8Array
+	let rawEd25519PublicKey: Uint8Array<ArrayBuffer>
 	let ed25519PublicKey: Ed25519PublicKey
 
 	o.beforeEach(function () {

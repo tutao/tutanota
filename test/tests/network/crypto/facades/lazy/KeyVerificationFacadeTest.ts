@@ -182,11 +182,11 @@ o.spec("KeyVerificationFacadeTest", function () {
 		})
 
 		o("key type and key version are embedded in fingerprint", function () {
-			const verifyKeyMetadata = (concatenation: Uint8Array, keyVersion: number, keyType: SigningKeyPairType) => {
+			const verifyKeyMetadata = (concatenation: Uint8Array<ArrayBuffer>, keyVersion: number, keyType: SigningKeyPairType) => {
 				o(concatenation.slice(0, 2)).deepEquals(new Uint8Array([keyVersion, keyType]))
 			}
 
-			let concatenation: Uint8Array
+			let concatenation: Uint8Array<ArrayBuffer>
 			let publicKey: Versioned<SigningPublicKey>
 
 			publicKey = {

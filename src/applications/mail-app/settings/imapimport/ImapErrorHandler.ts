@@ -24,7 +24,7 @@ export type ImapErrorHandlerResult = {
 	readableImapError: ReadableImapError
 }
 
-type HandleCertificateErrorResult = { result?: { ignoreCertificateErrors: boolean; customCertificateData: Uint8Array | null } }
+type HandleCertificateErrorResult = { result?: { ignoreCertificateErrors: boolean; customCertificateData: Uint8Array<ArrayBuffer> | null } }
 
 function imapErrorToReadableImapError(imapError: ImapError): ReadableImapError {
 	switch (imapError.data) {

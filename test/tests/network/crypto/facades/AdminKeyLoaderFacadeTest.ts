@@ -74,8 +74,8 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 
 		const pubUserGroupEccKey = object<X25519PublicKey>()
 		const groupKeyBytes = new Aes256Key([1, 2, 3, 4, 5, 6, 7, 8])
-		const adminGroupEncGKey = object<Uint8Array>()
-		const pubAdminGroupEncSymKey = object<Uint8Array>()
+		const adminGroupEncGKey = object<Uint8Array<ArrayBuffer>>()
+		const pubAdminGroupEncSymKey = object<Uint8Array<ArrayBuffer>>()
 		const pubAdminGroupEncGKey = createTestEntity(PubEncKeyDataTypeRef, {
 			pubEncSymKey: pubAdminGroupEncSymKey,
 			protocolVersion: CryptoProtocolVersion.TUTA_CRYPT,
@@ -85,7 +85,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 			senderKeyVersion: groupKeyVersion.toString(),
 			symKeyMac: createTestEntity(KeyMacTypeRef, {
 				taggedKeyVersion: "2",
-				tag: object<Uint8Array>(),
+				tag: object<Uint8Array<ArrayBuffer>>(),
 				taggingKeyVersion: "1",
 			}),
 		})
@@ -152,7 +152,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 				group.formerGroupKeys = createTestEntity(GroupKeysRefTypeRef, { list: formerGroupKeyListId })
 
 				const formerGroupKeysV1 = createTestEntity(GroupKeyTypeRef, {
-					adminGroupEncGKey: object<Uint8Array>(),
+					adminGroupEncGKey: object<Uint8Array<ArrayBuffer>>(),
 					adminGroupKeyVersion: "1",
 				})
 				const formerGroupSymKeyV1 = object<AesKey>()
@@ -209,7 +209,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 
 					// Prepare V2
 					pubAdminGroupEncGKey.symKeyMac = createTestEntity(KeyMacTypeRef, {
-						tag: object<Uint8Array>(),
+						tag: object<Uint8Array<ArrayBuffer>>(),
 						taggingKeyVersion: "1",
 						taggedKeyVersion: "2",
 					})
@@ -223,7 +223,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 								taggedKeyVersion: "1",
 								taggingKeyVersion: "0",
 							}),
-							pubEncSymKey: object<Uint8Array>(),
+							pubEncSymKey: object<Uint8Array<ArrayBuffer>>(),
 							recipientKeyVersion: "1",
 							recipientIdentifier: adminGroupId,
 						}),
@@ -245,7 +245,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 
 					// Prepare V0
 					groupKeysV0 = createTestEntity(GroupKeyTypeRef, {
-						adminGroupEncGKey: object<Uint8Array>(),
+						adminGroupEncGKey: object<Uint8Array<ArrayBuffer>>(),
 						adminGroupKeyVersion: "0",
 					})
 					const adminSymKeyV0 = object<AesKey>()

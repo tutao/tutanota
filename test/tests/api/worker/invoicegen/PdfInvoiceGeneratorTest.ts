@@ -80,7 +80,7 @@ async function fetchStub(input: RequestInfo | URL, init?: RequestInit): Promise<
 		const [fs, path] = await Promise.all([import("node:fs"), import("node:path")])
 		const resourceFile = path.normalize(process.cwd() + "/../resources" + input.toString())
 		const response: Response = object()
-		when(response.arrayBuffer()).thenResolve(fs.readFileSync(resourceFile))
+		when(response.arrayBuffer()).thenResolve(fs.readFileSync(resourceFile).buffer)
 		return response
 	}
 }

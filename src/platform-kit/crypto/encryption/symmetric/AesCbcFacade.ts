@@ -33,12 +33,12 @@ export class AesCbcFacade {
 	 */
 	encrypt(
 		subKeys: AesCbcSubKeys,
-		plainText: Uint8Array,
+		plainText: Uint8Array<ArrayBuffer>,
 		initializationVector: InitializationVector,
 		paddingStandard: PaddingStandard,
 		cipherVersion: SymmetricCipherVersion,
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
-	): Uint8Array {
+	): Uint8Array<ArrayBuffer> {
 		this.tryToEnforceAuthentication(subKeys, cipherVersion, authenticationEnforcement)
 		const usePadding = paddingStandard === PaddingStandard.Pkcs5
 		const ciphertext = bitArrayToUint8Array(
@@ -86,7 +86,7 @@ export class AesCbcFacade {
 		parsedCiphertext: ParsedCiphertextAesCbc,
 		paddingStandard: PaddingStandard,
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
-	): Uint8Array {
+	): Uint8Array<ArrayBuffer> {
 		this.authenticate(subKeys, parsedCiphertext, authenticationEnforcement, verifyHmacSha256)
 		const usePadding = paddingStandard === PaddingStandard.Pkcs5
 		try {
@@ -108,7 +108,7 @@ export class AesCbcFacade {
 		subKeys: AesCbcSubKeys,
 		parsedCiphertext: ParsedCiphertextAesCbc,
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
-	): Promise<Uint8Array> {
+	): Promise<Uint8Array<ArrayBuffer>> {
 		await this.authenticate(subKeys, parsedCiphertext, authenticationEnforcement, verifyHmacSha256Async)
 		try {
 			const encryptionKey = await crypto.subtle.importKey("raw", keyToUint8Array(subKeys.encryptionKey), "AES-CBC", false, ["decrypt"])
@@ -124,7 +124,7 @@ export class AesCbcFacade {
 		subKeys: AesCbcSubKeys,
 		parsedCiphertext: ParsedCiphertextAesCbc,
 		authenticationEnforcement: AuthenticationEnforcement,
-		verifyHmac: (key: AesKey, data: Uint8Array, tag: MacTag) => T,
+		verifyHmac: (key: AesKey, data: Uint8Array<ArrayBuffer>, tag: MacTag) => T,
 	): T | null {
 		this.tryToEnforceAuthentication(subKeys, parsedCiphertext.cipherVersion, authenticationEnforcement)
 		if (parsedCiphertext.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac && subKeys.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac) {
@@ -139,7 +139,7 @@ export class AesCbcFacade {
 		return null
 	}
 
-	private assembleVerifiableCiphertext(parsedCiphertext: ParsedCiphertextAesCbc): Uint8Array {
+	private assembleVerifiableCiphertext(parsedCiphertext: ParsedCiphertextAesCbc): Uint8Array<ArrayBuffer> {
 		if (parsedCiphertext.initializationVector.variant === InitializationVectorVariant.Random) {
 			return concat(parsedCiphertext.initializationVector.bytes, parsedCiphertext.ciphertext)
 		} else {

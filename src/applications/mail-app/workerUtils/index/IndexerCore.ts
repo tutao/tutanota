@@ -694,7 +694,7 @@ export class IndexerCore {
 						throw new InvalidDatabaseStateError("non existing index row")
 					}
 
-					const timestampToEntries: Map<number, Array<Uint8Array>> = new Map()
+					const timestampToEntries: Map<number, Array<Uint8Array<ArrayBuffer>>> = new Map()
 					// Iterate all entries in a block, decrypt id of each and put it into the map
 					iterateBinaryBlocks(binaryBlock, (encSearchIndexEntry) => {
 						const encId = getIdFromEncSearchIndexEntry(encSearchIndexEntry)

@@ -29,9 +29,9 @@ assertWorkerOrNode()
 export type DeserializedPublicKeyForSigning = {
 	encryptionKeyPairVersion: KeyVersion
 	signatureType: PublicKeySignatureType
-	pubEccKey: Uint8Array | null
-	pubKyberKey: Uint8Array | null
-	pubRsaKey: Uint8Array | null
+	pubEccKey: Uint8Array<ArrayBuffer> | null
+	pubKyberKey: Uint8Array<ArrayBuffer> | null
+	pubRsaKey: Uint8Array<ArrayBuffer> | null
 }
 
 /**
@@ -50,12 +50,12 @@ export class PublicKeySignatureFacade {
 	 * @VisibleForTesting
 	 */
 	serializePublicKeyForSigning(versionedPublicKey: Versioned<PublicKey>): {
-		encodedKeyPairForSigning: Uint8Array
+		encodedKeyPairForSigning: Uint8Array<ArrayBuffer>
 		signatureType: PublicKeySignatureType
 	} {
 		const publicKey = versionedPublicKey.object
-		let firstPubKeyComponent: Uint8Array
-		let secondPubKeyComponent: Uint8Array
+		let firstPubKeyComponent: Uint8Array<ArrayBuffer>
+		let secondPubKeyComponent: Uint8Array<ArrayBuffer>
 		let signatureType: PublicKeySignatureType
 		if (isPqPublicKey(publicKey)) {
 			firstPubKeyComponent = publicKey.x25519PublicKey
@@ -95,7 +95,7 @@ export class PublicKeySignatureFacade {
 	/**
 	 * @VisibleForTesting
 	 */
-	deserializePublicKeyForSigning(serializedPublicKey: Uint8Array): DeserializedPublicKeyForSigning {
+	deserializePublicKeyForSigning(serializedPublicKey: Uint8Array<ArrayBuffer>): DeserializedPublicKeyForSigning {
 		const byteArrays = bytesToByteArrays(serializedPublicKey, 4)
 
 		if (byteArrays[0].length !== 1) {

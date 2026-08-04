@@ -248,7 +248,7 @@ export class SecondFactorEditModel {
 	/**
 	 * check if the given validation code is the current, next or last code for the TOTP
 	 */
-	private async tryCodes(expectedCode: number, key: Uint8Array): Promise<VerificationStatus> {
+	private async tryCodes(expectedCode: number, key: Uint8Array<ArrayBuffer>): Promise<VerificationStatus> {
 		const time = Math.floor(new Date().getTime() / 1000 / 30)
 		// We try out 3 codes: current minute, 30 seconds before and 30 seconds after.
 		// If at least one of them works, we accept it.

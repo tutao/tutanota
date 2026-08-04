@@ -312,7 +312,7 @@ export class PdfWriter {
 	 * Writes the PDF file and return its entire data as a Uint8Array
 	 * @pre baseUrl must be defined
 	 */
-	async writePdfFile(): Promise<Uint8Array> {
+	async writePdfFile(): Promise<Uint8Array<ArrayBuffer>> {
 		// Set up the objects requiring external resources last
 		await this.setupResourceObjects()
 

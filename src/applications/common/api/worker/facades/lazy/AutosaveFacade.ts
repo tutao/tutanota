@@ -71,7 +71,7 @@ interface VersionedLocalAutosavedDraftData extends LocalAutosavedDraftData {
  * Encode the autosaved draft data
  * @param data data to encode
  */
-export function encodeLocalAutosavedDraftData(data: LocalAutosavedDraftData): Uint8Array {
+export function encodeLocalAutosavedDraftData(data: LocalAutosavedDraftData): Uint8Array<ArrayBuffer> {
 	return cborg.encode(
 		{
 			version: LOCAL_DRAFT_VERSION,

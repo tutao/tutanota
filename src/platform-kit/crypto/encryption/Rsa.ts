@@ -8,7 +8,7 @@ import { sha256Hash } from "../hashes/Sha256.js"
 const RSA_KEY_LENGTH_BITS = 2048
 const RSA_PUBLIC_EXPONENT = 65537
 
-export function rsaEncrypt(publicKey: RsaPublicKey, bytes: Uint8Array, seed: Uint8Array): Uint8Array {
+export function rsaEncrypt(publicKey: RsaPublicKey, bytes: Uint8Array<ArrayBuffer>, seed: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 	const rsa = new RSAKey()
 	// we have double conversion from bytes to hex to big int because there is no direct conversion from bytes to big int
 	// BigInteger of JSBN uses a signed byte array and we convert to it by using Int8Array
@@ -30,7 +30,7 @@ export function rsaEncrypt(publicKey: RsaPublicKey, bytes: Uint8Array, seed: Uin
 	return _padAndUnpadLeadingZeros(publicKey.keyLength / 8, encrypted)
 }
 
-export function rsaDecrypt(privateKey: RsaPrivateKey, bytes: Uint8Array): Uint8Array {
+export function rsaDecrypt(privateKey: RsaPrivateKey, bytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 	try {
 		const rsa = new RSAKey()
 		// we have double conversion from bytes to hex to big int because there is no direct conversion from bytes to big int
@@ -58,7 +58,7 @@ export function rsaDecrypt(privateKey: RsaPrivateKey, bytes: Uint8Array): Uint8A
 /**
  * Adds leading 0's to the given byte array until targeByteLength bytes are reached. Removes leading 0's if byteArray is longer than targetByteLength.
  */
-export function _padAndUnpadLeadingZeros(targetByteLength: number, byteArray: Uint8Array): Uint8Array {
+export function _padAndUnpadLeadingZeros(targetByteLength: number, byteArray: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 	const result = new Uint8Array(targetByteLength)
 
 	// JSBN produces results which are not always exact length.
@@ -96,7 +96,7 @@ export function _padAndUnpadLeadingZeros(targetByteLength: number, byteArray: Ui
  * @param seed An array of 32 random bytes.
  * @return The padded byte array.
  */
-export function oaepPad(value: Uint8Array, keyLength: number, seed: Uint8Array): Uint8Array {
+export function oaepPad(value: Uint8Array<ArrayBuffer>, keyLength: number, seed: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 	let hashLength = 32 // bytes sha256
 
 	if (seed.length !== hashLength) {
@@ -130,7 +130,7 @@ export function oaepPad(value: Uint8Array, keyLength: number, seed: Uint8Array):
  * @param keyLength The length of the RSA key in bit.
  * @return The unpadded byte array.
  */
-export function oaepUnpad(value: Uint8Array, keyLength: number): Uint8Array {
+export function oaepUnpad(value: Uint8Array<ArrayBuffer>, keyLength: number): Uint8Array<ArrayBuffer> {
 	let hashLength = 32 // bytes sha256
 
 	if (value.length !== keyLength / 8 - 1) {
@@ -170,7 +170,7 @@ export function oaepUnpad(value: Uint8Array, keyLength: number): Uint8Array {
  *    32           32    keyLen-2*32-2  1  value.length
  * The label is the hash of an empty string like defined in PKCS#1 v2.1
  */
-export function _getPSBlock(value: Uint8Array, keyLength: number): Uint8Array {
+export function _getPSBlock(value: Uint8Array<ArrayBuffer>, keyLength: number): Uint8Array<ArrayBuffer> {
 	let hashLength = 32 // bytes sha256
 
 	let blockLength = keyLength / 8 - 1 // the leading byte shall be 0 to make the resulting value in any case smaller than the modulus, so we just leave the byte off
@@ -203,7 +203,7 @@ export function _getPSBlock(value: Uint8Array, keyLength: number): Uint8Array {
  * @param salt An array of random bytes.
  * @return The padded byte array.
  */
-export function encode(message: Uint8Array, keyLength: number, salt: Uint8Array): Uint8Array {
+export function encode(message: Uint8Array<ArrayBuffer>, keyLength: number, salt: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 	let hashLength = 32 // bytes sha256
 
 	let emLen = Math.ceil(keyLength / 8)
@@ -265,7 +265,7 @@ export function encode(message: Uint8Array, keyLength: number, salt: Uint8Array)
 /**
  * clears an array to contain only zeros (0)
  */
-function _clear(array: Uint8Array | null) {
+function _clear<TArray extends ArrayBufferLike>(array: Uint8Array<TArray> | null) {
 	if (!array) {
 		return
 	}
@@ -279,8 +279,8 @@ function _clear(array: Uint8Array | null) {
  * @param seed An array of byte values.
  * @param length The length of the return value in bytes.
  */
-export function mgf1(seed: Uint8Array, length: number): Uint8Array {
-	let C: Uint8Array | null = null
+export function mgf1(seed: Uint8Array<ArrayBuffer>, length: number): Uint8Array<ArrayBuffer> {
+	let C: Uint8Array<ArrayBuffer> | null = null
 	let counter = 0
 	let T = new Uint8Array(0)
 
@@ -295,7 +295,7 @@ export function mgf1(seed: Uint8Array, length: number): Uint8Array {
 /**
  * converts an integer to a 4 byte array
  */
-export function i2osp(i: number): Uint8Array {
+export function i2osp(i: number): Uint8Array<ArrayBuffer> {
 	return new Uint8Array([(i >> 24) & 255, (i >> 16) & 255, (i >> 8) & 255, (i >> 0) & 255])
 }
 

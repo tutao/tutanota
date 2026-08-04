@@ -1,7 +1,7 @@
 import { DataFile } from "../../../../../entities/tutanota/MailBundle"
 import { DownloadableFileEntity } from "../../../../../entities/storage/BlobUtils"
 
-export function createDataFile(name: string, mimeType: string, data: Uint8Array, cid?: string): DataFile {
+export function createDataFile(name: string, mimeType: string, data: Uint8Array<ArrayBuffer>, cid?: string): DataFile {
 	return {
 		_type: "DataFile",
 		name: name,
@@ -13,7 +13,7 @@ export function createDataFile(name: string, mimeType: string, data: Uint8Array,
 	}
 }
 
-export function convertToDataFile(file: File | DownloadableFileEntity, data: Uint8Array): DataFile {
+export function convertToDataFile(file: File | DownloadableFileEntity, data: Uint8Array<ArrayBuffer>): DataFile {
 	if ("_type" in file) {
 		return {
 			_type: "DataFile",

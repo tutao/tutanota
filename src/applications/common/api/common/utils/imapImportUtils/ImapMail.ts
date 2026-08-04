@@ -27,7 +27,7 @@ export enum ImapMailAttachmentDisposition {
 export type ImapMailAttachment = {
 	size: number
 	mimeType: string
-	content: Buffer
+	content: Buffer<ArrayBuffer>
 	disposition?: ImapMailAttachmentDisposition
 	filename?: string
 	cid?: string

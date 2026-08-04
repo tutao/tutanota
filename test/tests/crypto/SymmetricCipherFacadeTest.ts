@@ -32,7 +32,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 	let aeadFacade: AeadFacade
 	let symmetricKeyDeriver: SymmetricKeyDeriver
 	let aes256Key: Aes256Key
-	let plaintext: Uint8Array
+	let plaintext: Uint8Array<ArrayBuffer>
 	let aes128Key: Aes128Key
 	let keyToEncrypt_128: Aes128Key
 	let keyToEncrypt_256: Aes256Key

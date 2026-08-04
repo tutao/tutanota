@@ -7,10 +7,10 @@ export abstract class EncryptedKeyPairs {
 
 export class EncryptedPqKeyPairs extends EncryptedKeyPairs {
 	constructor(
-		public readonly pubEccKey: Uint8Array,
-		public readonly pubKyberKey: Uint8Array,
-		public readonly symEncPrivEccKey: Uint8Array,
-		public readonly symEncPrivKyberKey: Uint8Array,
+		public readonly pubEccKey: Uint8Array<ArrayBuffer>,
+		public readonly pubKyberKey: Uint8Array<ArrayBuffer>,
+		public readonly symEncPrivEccKey: Uint8Array<ArrayBuffer>,
+		public readonly symEncPrivKyberKey: Uint8Array<ArrayBuffer>,
 		public override signature: null | object, //type PublicKeySignature not available in crypto package, must be writable
 	) {
 		super(signature)
@@ -19,8 +19,8 @@ export class EncryptedPqKeyPairs extends EncryptedKeyPairs {
 
 export class EncryptedRsaKeyPairs extends EncryptedKeyPairs {
 	constructor(
-		public readonly pubRsaKey: Uint8Array,
-		public readonly symEncPrivRsaKey: Uint8Array,
+		public readonly pubRsaKey: Uint8Array<ArrayBuffer>,
+		public readonly symEncPrivRsaKey: Uint8Array<ArrayBuffer>,
 		signature: null | object, //type PublicKeySignature not available in crypto package
 	) {
 		super(signature)
@@ -29,10 +29,10 @@ export class EncryptedRsaKeyPairs extends EncryptedKeyPairs {
 
 export class EncryptedRsaX25519KeyPairs extends EncryptedRsaKeyPairs {
 	constructor(
-		public readonly pubEccKey: Uint8Array,
-		pubRsaKey: Uint8Array,
-		public readonly symEncPrivEccKey: Uint8Array,
-		symEncPrivRsaKey: Uint8Array,
+		public readonly pubEccKey: Uint8Array<ArrayBuffer>,
+		pubRsaKey: Uint8Array<ArrayBuffer>,
+		public readonly symEncPrivEccKey: Uint8Array<ArrayBuffer>,
+		symEncPrivRsaKey: Uint8Array<ArrayBuffer>,
 		signature: null | object, //type PublicKeySignature not available in crypto package
 	) {
 		super(pubRsaKey, symEncPrivRsaKey, signature)

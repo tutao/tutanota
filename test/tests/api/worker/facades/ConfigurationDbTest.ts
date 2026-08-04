@@ -183,7 +183,7 @@ o.spec("ConfigurationDbTest", function () {
 		let currentUserGroupKey: VersionedKey
 		let dbKey: Aes256Key
 		let initializationVector: InitializationVector
-		let encIv: Uint8Array
+		let encIv: Uint8Array<ArrayBuffer>
 
 		o.beforeEach(function () {
 			userFacade = object()

@@ -74,7 +74,12 @@ export class LoginController {
 	 * @param sessionType whether to store the credentials in local storage
 	 * @param databaseKey if given, will use this key for the offline database. if not, will force a new database to be created and generate a key.
 	 */
-	async createSession(username: string, password: string, sessionType: SessionType, databaseKey: Uint8Array | null = null): Promise<NewSessionData> {
+	async createSession(
+		username: string,
+		password: string,
+		sessionType: SessionType,
+		databaseKey: Uint8Array<ArrayBuffer> | null = null,
+	): Promise<NewSessionData> {
 		const newSessionData = await this.loginFacade.createSession(username, password, client.getIdentifier(), sessionType, databaseKey)
 		const { user, credentials, sessionId, userGroupInfo } = newSessionData
 		await this.onPartialLoginSuccess(
@@ -118,7 +123,7 @@ export class LoginController {
 	async createExternalSession(
 		userId: Id,
 		password: string,
-		salt: Uint8Array,
+		salt: Uint8Array<ArrayBuffer>,
 		kdfType: KdfType,
 		clientIdentifier: string,
 		sessionType: SessionType,

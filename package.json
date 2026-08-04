@@ -39,7 +39,7 @@
 		"@tensorflow/tfjs-backend-webgl": "4.22.0",
 		"@tensorflow/tfjs-core": "4.22.0",
 		"@tensorflow/tfjs-layers": "4.22.0",
-		"@tutao/oxmsg": "0.0.9-beta.0",
+		"@tutao/oxmsg": "0.2.3",
 		"@types/better-sqlite3": "7.4.2",
 		"@types/luxon": "3.6.2",
 		"@types/mithril": "2.0.11",
@@ -75,10 +75,10 @@
 		"@rollup/plugin-json": "6.1.0",
 		"@rollup/plugin-node-resolve": "15.3.1",
 		"@rollup/plugin-replace": "6.0.2",
-		"@rollup/plugin-terser": "0.4.4",
+		"@rollup/plugin-terser": "1.0.0",
 		"@rollup/plugin-typescript": "12.1.2",
 		"@types/express": "5.0.3",
-		"@types/node": "24.1.0",
+		"@types/node": "26.1.2",
 		"@types/pako": "2.0.3",
 		"body-parser": "2.2.0",
 		"commander": "14.0.0",
@@ -98,8 +98,8 @@
 		"rollup": "4.60.0",
 		"rollup-plugin-visualizer": "6.0.3",
 		"testdouble": "3.20.2",
-		"typescript": "5.8.3",
-		"typescript-eslint": "8.34.0",
+		"typescript": "6.0.3",
+		"typescript-eslint": "8.66.0",
 		"wasm-pack": "git+https://github.com/tutao/wasm-pack.git#b1e0e982fee26803ba6b8a8c29197d2a8cdd93f3",
 		"xhr2": "0.2.1",
 		"zx": "8.5.5"
@@ -110,5 +110,8 @@
 	"engines": {
 		"npm": ">=10.0.0",
 		"node": ">=24.17.0"
+	},
+	"overrides": {
+		"terser": "5.49.0"
 	}
 }

@@ -24,7 +24,7 @@ import { hkdf } from "../hashes/HKDF.js"
 import { HkdfKeyDerivationDomains, VersionedEncryptedKey, VersionedKey } from "../CryptoTypes"
 import { EncryptedKeyPairs, EncryptedPqKeyPairs, EncryptedRsaKeyPairs, EncryptedRsaX25519KeyPairs } from "../encryption/EncryptedKeyPairs"
 
-type IdentityKeyPair = { privateEd25519Key: Uint8Array; identityKeyVersion: NumberString }
+type IdentityKeyPair = { privateEd25519Key: Uint8Array<ArrayBuffer>; identityKeyVersion: NumberString }
 
 /**
  * This class is useful to bundle all the crypto primitives and make the code testable without using the real crypto implementations.
@@ -34,19 +34,19 @@ export class CryptoWrapper {
 		return aes256RandomKey()
 	}
 
-	aesDecrypt(key: AesKey, encryptedBytes: Uint8Array): Uint8Array {
+	aesDecrypt(key: AesKey, encryptedBytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		return aesDecrypt(key, encryptedBytes)
 	}
 
-	aesEncrypt(key: AesKey, bytes: Uint8Array): Uint8Array {
+	aesEncrypt(key: AesKey, bytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		return aesEncrypt(key, bytes)
 	}
 
-	decryptKey(encryptionKey: AesKey, key: Uint8Array): AesKey {
+	decryptKey(encryptionKey: AesKey, key: Uint8Array<ArrayBuffer>): AesKey {
 		return decryptKey(encryptionKey, key)
 	}
 
-	encryptX25519Key(encryptionKey: AesKey, privateKey: X25519PrivateKey): Uint8Array {
+	encryptX25519Key(encryptionKey: AesKey, privateKey: X25519PrivateKey): Uint8Array<ArrayBuffer> {
 		return encryptX25519Key(encryptionKey, privateKey)
 	}
 
@@ -64,7 +64,7 @@ export class CryptoWrapper {
 		}
 	}
 
-	encryptKey(encryptingKey: AesKey, keyToBeEncrypted: AesKey): Uint8Array {
+	encryptKey(encryptingKey: AesKey, keyToBeEncrypted: AesKey): Uint8Array<ArrayBuffer> {
 		return encryptKey(encryptingKey, keyToBeEncrypted)
 	}
 
@@ -76,23 +76,23 @@ export class CryptoWrapper {
 		return generateX25519KeyPair()
 	}
 
-	encryptKyberKey(encryptionKey: AesKey, privateKey: KyberPrivateKey): Uint8Array {
+	encryptKyberKey(encryptionKey: AesKey, privateKey: KyberPrivateKey): Uint8Array<ArrayBuffer> {
 		return encryptKyberKey(encryptionKey, privateKey)
 	}
 
-	kyberPublicKeyToBytes(kyberPublicKey: KyberPublicKey): Uint8Array {
+	kyberPublicKeyToBytes(kyberPublicKey: KyberPublicKey): Uint8Array<ArrayBuffer> {
 		return kyberPublicKeyToBytes(kyberPublicKey)
 	}
 
-	ed25519PublicKeyToBytes(ed25519PublicKey: Ed25519PublicKey): Uint8Array {
+	ed25519PublicKeyToBytes(ed25519PublicKey: Ed25519PublicKey): Uint8Array<ArrayBuffer> {
 		return ed25519PublicKeyToBytes(ed25519PublicKey)
 	}
 
-	encryptBytes(sk: AesKey, value: Uint8Array): Uint8Array {
+	encryptBytes(sk: AesKey, value: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		return _encryptBytes(sk, value)
 	}
 
-	encryptString(sk: AesKey, value: string): Uint8Array {
+	encryptString(sk: AesKey, value: string): Uint8Array<ArrayBuffer> {
 		return _encryptString(sk, value)
 	}
 
@@ -104,7 +104,7 @@ export class CryptoWrapper {
 		return decryptKeyPair(encryptionKey, keyPair)
 	}
 
-	sha256Hash(data: Uint8Array): Uint8Array {
+	sha256Hash(data: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		return sha256Hash(data)
 	}
 
@@ -117,11 +117,11 @@ export class CryptoWrapper {
 		}) as Aes256Key
 	}
 
-	hmacSha256(key: AesKey, data: Uint8Array): MacTag {
+	hmacSha256(key: AesKey, data: Uint8Array<ArrayBuffer>): MacTag {
 		return hmacSha256(key, data)
 	}
 
-	verifyHmacSha256(key: AesKey, data: Uint8Array, tag: MacTag) {
+	verifyHmacSha256(key: AesKey, data: Uint8Array<ArrayBuffer>, tag: MacTag) {
 		return verifyHmacSha256(key, data, tag)
 	}
 
@@ -163,14 +163,14 @@ function deriveKey({ salt, key, info, length }: { salt: string; key: AesKey; inf
 /**
  @deprecated use the CryptoWrapper instance instead. This function will be hidden in the future
  */
-export function _encryptBytes(sk: AesKey, value: Uint8Array): Uint8Array {
+export function _encryptBytes(sk: AesKey, value: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 	return aesEncrypt(sk, value)
 }
 
 /**
  @deprecated use the CryptoWrapper instance instead. This function will be hidden in the future
  */
-export function _encryptString(sk: AesKey, value: string): Uint8Array {
+export function _encryptString(sk: AesKey, value: string): Uint8Array<ArrayBuffer> {
 	return aesEncrypt(sk, stringToUtf8Uint8Array(value))
 }
 

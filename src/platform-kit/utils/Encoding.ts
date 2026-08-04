@@ -1,5 +1,5 @@
 // TODO rename methods according to their JAVA counterparts (e.g. Uint8Array == bytes, Utf8Uint8Array == bytes...)
-export function uint8ArrayToArrayBuffer(uint8Array: Uint8Array): ArrayBuffer {
+export function uint8ArrayToArrayBuffer(uint8Array: Uint8Array<ArrayBuffer>): ArrayBuffer {
 	if (uint8Array.byteLength === uint8Array.buffer.byteLength) {
 		return uint8Array.buffer
 	} else {
@@ -139,7 +139,7 @@ export function base64ExtToBase64Url(base64Ext: string): string {
 }
 
 // just for edge, as it does not support TextEncoder yet
-export function _stringToUtf8Uint8ArrayLegacy(string: string): Uint8Array {
+export function _stringToUtf8Uint8ArrayLegacy(string: string): Uint8Array<ArrayBuffer> {
 	let fixedString
 
 	try {
@@ -216,12 +216,12 @@ const decoder =
  * @param string The string to convert.
  * @return The array.
  */
-export function stringToUtf8Uint8Array(string: string): Uint8Array {
+export function stringToUtf8Uint8Array(string: string): Uint8Array<ArrayBuffer> {
 	return encoder.encode(string)
 }
 
 // just for edge, as it does not support TextDecoder yet
-export function _utf8Uint8ArrayToStringLegacy(uint8Array: Uint8Array): string {
+export function _utf8Uint8ArrayToStringLegacy(uint8Array: Uint8Array<ArrayBuffer>): string {
 	let stringArray: string[] = []
 	stringArray.length = uint8Array.length
 
@@ -238,11 +238,11 @@ export function _utf8Uint8ArrayToStringLegacy(uint8Array: Uint8Array): string {
  * @param uint8Array The Uint8Array.
  * @return The string.
  */
-export function utf8Uint8ArrayToString(uint8Array: Uint8Array): string {
+export function utf8Uint8ArrayToString(uint8Array: Uint8Array<ArrayBuffer>): string {
 	return decoder.decode(uint8Array)
 }
 
-export function hexToUint8Array(hex: Hex): Uint8Array {
+export function hexToUint8Array(hex: Hex): Uint8Array<ArrayBuffer> {
 	let bufView = new Uint8Array(hex.length / 2)
 
 	for (let i = 0; i < bufView.byteLength; i++) {
@@ -254,7 +254,7 @@ export function hexToUint8Array(hex: Hex): Uint8Array {
 
 const hexDigits = "0123456789abcdef"
 
-export function uint8ArrayToHex(uint8Array: Uint8Array): Hex {
+export function uint8ArrayToHex(uint8Array: Uint8Array<ArrayBuffer>): Hex {
 	let hex = ""
 
 	for (let i = 0; i < uint8Array.byteLength; i++) {
@@ -271,7 +271,7 @@ export function uint8ArrayToHex(uint8Array: Uint8Array): Hex {
  * @param bytes The bytes to convert.
  * @return The Base64 encoded string.
  */
-export function uint8ArrayToBase64(bytes: Uint8Array): Base64 {
+export function uint8ArrayToBase64(bytes: Uint8Array<ArrayBuffer>): Base64 {
 	if (bytes.length < 512) {
 		// Apply fails on big arrays fairly often. We tried it with 60000 but if you're already
 		// deep in the stack than we cannot allocate such a big argument array.
@@ -301,7 +301,7 @@ export function int8ArrayToBase64(bytes: Int8Array): Base64 {
  * @param base64 The Base64 encoded string.
  * @return The bytes.
  */
-export function base64ToUint8Array(base64: Base64): Uint8Array {
+export function base64ToUint8Array(base64: Base64): Uint8Array<ArrayBuffer> {
 	if (base64.length % 4 !== 0) {
 		throw new Error(`invalid base64 length: ${base64} (${base64.length})`)
 	}
@@ -323,7 +323,7 @@ export function base64ToUint8Array(base64: Base64): Uint8Array {
  * @trhows RangeError if the charset is not supported
  * @return The string
  */
-export function uint8ArrayToString(charset: string, bytes: Uint8Array): string {
+export function uint8ArrayToString(charset: string, bytes: Uint8Array<ArrayBuffer>): string {
 	const decoder = new TextDecoder(charset)
 	return decoder.decode(bytes)
 }
@@ -375,7 +375,7 @@ export function stringToBase64(str: string): string {
  *
  * @return encoded byte array
  */
-export function byteArraysToBytes(byteArrays: Array<Uint8Array>): Uint8Array {
+export function byteArraysToBytes(byteArrays: Array<Uint8Array<ArrayBuffer>>): Uint8Array<ArrayBuffer> {
 	const totalBytesLength = byteArrays.reduce((acc, element) => acc + element.length, 0)
 	const encodingOverhead = byteArrays.length * 2 // two byte length overhead for each byte array
 	const encodedByteArrays = new Uint8Array(encodingOverhead + totalBytesLength)
@@ -394,8 +394,8 @@ export function byteArraysToBytes(byteArrays: Array<Uint8Array>): Uint8Array {
  *
  * @return list of byte arrays
  */
-export function bytesToByteArrays(encodedByteArrays: Uint8Array, expectedByteArrays: number): Array<Uint8Array> {
-	const byteArrays = new Array<Uint8Array>()
+export function bytesToByteArrays(encodedByteArrays: Uint8Array<ArrayBuffer>, expectedByteArrays: number): Array<Uint8Array<ArrayBuffer>> {
+	const byteArrays = new Array<Uint8Array<ArrayBuffer>>()
 	let index = 0
 	while (index < encodedByteArrays.length) {
 		const readResult = readByteArray(encodedByteArrays, index)
@@ -412,7 +412,7 @@ export function bytesToByteArrays(encodedByteArrays: Uint8Array, expectedByteArr
 const BYTE_ARRAY_LENGTH_FIELD_SIZE = 2
 const MAX_ENCODED_BYTES_LENGTH = 65535
 
-function writeByteArray(result: Uint8Array, byteArray: Uint8Array, index: number): number {
+function writeByteArray(result: Uint8Array<ArrayBuffer>, byteArray: Uint8Array<ArrayBuffer>, index: number): number {
 	writeShort(result, byteArray.length, index)
 	index += BYTE_ARRAY_LENGTH_FIELD_SIZE
 	result.set(byteArray, index)
@@ -420,7 +420,7 @@ function writeByteArray(result: Uint8Array, byteArray: Uint8Array, index: number
 	return index
 }
 
-function readByteArray(encoded: Uint8Array, index: number): { index: number; byteArray: Uint8Array } {
+function readByteArray(encoded: Uint8Array<ArrayBuffer>, index: number): { index: number; byteArray: Uint8Array<ArrayBuffer> } {
 	const length = readShort(encoded, index)
 	index += BYTE_ARRAY_LENGTH_FIELD_SIZE
 	const byteArray = encoded.slice(index, length + index)
@@ -431,12 +431,12 @@ function readByteArray(encoded: Uint8Array, index: number): { index: number; byt
 	return { index, byteArray }
 }
 
-function writeShort(array: Uint8Array, value: number, index: number) {
+function writeShort(array: Uint8Array<ArrayBuffer>, value: number, index: number) {
 	array[index] = (value & 0x0000ff00) >> 8
 	array[index + 1] = (value & 0x000000ff) >> 0
 }
 
-function readShort(array: Uint8Array, index: number): number {
+function readShort(array: Uint8Array<ArrayBuffer>, index: number): number {
 	const bytes = array.subarray(index, index + BYTE_ARRAY_LENGTH_FIELD_SIZE)
 	let n = 0
 	for (const byte of bytes.values()) {
@@ -452,7 +452,7 @@ export function stringToBase64UrlCustomId(string: string): string {
 	return uint8arrayToBase64UrlCustomId(stringToUtf8Uint8Array(string))
 }
 
-export function uint8arrayToBase64UrlCustomId(array: Uint8Array): string {
+export function uint8arrayToBase64UrlCustomId(array: Uint8Array<ArrayBuffer>): string {
 	return base64ToBase64Url(uint8ArrayToBase64(array))
 }
 

@@ -39,7 +39,7 @@ export type ImapImportData = {
 	addLabelToImportedMails: boolean
 	isImapServerSupportingOAuth: boolean
 	imapSyncLabelData: ManageLabelServiceLabelData | null
-	customCertificateData: Uint8Array | null
+	customCertificateData: Uint8Array<ArrayBuffer> | null
 	ignoreCertificateErrors: boolean
 }
 

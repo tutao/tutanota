@@ -223,30 +223,30 @@ export class ContactSupportPage implements Component<Props> {
 					},
 				}),
 				attachments.map((attachment) =>
+					m(
+						".flex.center-vertically.flex-space-between.pb-8.pt-8",
+						{ style: { paddingInline: px(size.spacing_8) } },
+						m("span.smaller", attachment.name),
 						m(
-							".flex.center-vertically.flex-space-between.pb-8.pt-8",
-							{ style: { paddingInline: px(size.spacing_8) } },
-							m("span.smaller", attachment.name),
-							m(
-								BaseButton,
-								{
-									label: "remove_action",
-									onclick: () => {
-										this.sendMailModel?.removeAttachment(attachment)
-										m.redraw()
-									},
-									class: "flex justify-between flash",
+							BaseButton,
+							{
+								label: "remove_action",
+								onclick: () => {
+									this.sendMailModel?.removeAttachment(attachment)
+									m.redraw()
 								},
-								m(Icon, {
-									icon: Icons.TrashFilled,
-									style: {
-										fill: getColors(ButtonColor.Content).button,
-										paddingInline: px((size.icon_24 - size.icon_16) / 2),
-									},
-									title: lang.get("remove_action"),
-								}),
-							),
+								class: "flex justify-between flash",
+							},
+							m(Icon, {
+								icon: Icons.TrashFilled,
+								style: {
+									fill: getColors(ButtonColor.Content).button,
+									paddingInline: px((size.icon_24 - size.icon_16) / 2),
+								},
+								title: lang.get("remove_action"),
+							}),
 						),
+					),
 				),
 			],
 		)

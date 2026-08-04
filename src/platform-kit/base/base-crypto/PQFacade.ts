@@ -24,7 +24,7 @@ import { CryptoProtocolVersion } from "@tutao/app-env"
 
 export type DecapsulatedSymKey = {
 	senderIdentityPubKey: X25519PublicKey
-	decryptedSymKeyBytes: Uint8Array
+	decryptedSymKeyBytes: Uint8Array<ArrayBuffer>
 }
 
 export class PQFacade {
@@ -38,8 +38,8 @@ export class PQFacade {
 		senderIdentityKeyPair: X25519KeyPair,
 		ephemeralKeyPair: X25519KeyPair,
 		recipientPublicKeys: PQPublicKeys,
-		bucketKey: Uint8Array,
-	): Promise<Uint8Array> {
+		bucketKey: Uint8Array<ArrayBuffer>,
+	): Promise<Uint8Array<ArrayBuffer>> {
 		const encapsulated = await this.encapsulate(senderIdentityKeyPair, ephemeralKeyPair, recipientPublicKeys, bucketKey)
 		return encodePQMessage(encapsulated)
 	}
@@ -51,7 +51,7 @@ export class PQFacade {
 		senderIdentityKeyPair: X25519KeyPair,
 		ephemeralKeyPair: X25519KeyPair,
 		recipientPublicKeys: PQPublicKeys,
-		bucketKey: Uint8Array,
+		bucketKey: Uint8Array<ArrayBuffer>,
 	): Promise<PQMessage> {
 		const eccSharedSecret = x25519Encapsulate(senderIdentityKeyPair.privateKey, ephemeralKeyPair.privateKey, recipientPublicKeys.x25519PublicKey)
 		const kyberEncapsulation = await this.kyberFacade.encapsulate(recipientPublicKeys.kyberPublicKey)
@@ -78,7 +78,7 @@ export class PQFacade {
 		}
 	}
 
-	public async decapsulateEncoded(encodedPQMessage: Uint8Array, recipientKeys: PQKeyPairs): Promise<DecapsulatedSymKey> {
+	public async decapsulateEncoded(encodedPQMessage: Uint8Array<ArrayBuffer>, recipientKeys: PQKeyPairs): Promise<DecapsulatedSymKey> {
 		const decoded = decodePQMessage(encodedPQMessage)
 		return {
 			decryptedSymKeyBytes: await this.decapsulate(decoded, recipientKeys),
@@ -89,7 +89,7 @@ export class PQFacade {
 	/**
 	 * @VisibleForTesting
 	 */
-	async decapsulate(message: PQMessage, recipientKeys: PQKeyPairs): Promise<Uint8Array> {
+	async decapsulate(message: PQMessage, recipientKeys: PQKeyPairs): Promise<Uint8Array<ArrayBuffer>> {
 		const kyberCipherText = message.encapsulation.kyberCipherText
 		const eccSharedSecret = x25519Decapsulate(message.senderIdentityPubKey, message.ephemeralPubKey, recipientKeys.x25519KeyPair.privateKey)
 		const kyberSharedSecret = await this.kyberFacade.decapsulate(recipientKeys.kyberKeyPair.privateKey, kyberCipherText)
@@ -111,8 +111,8 @@ export class PQFacade {
 		senderIdentityPublicKey: X25519PublicKey,
 		ephemeralPublicKey: X25519PublicKey,
 		recipientPublicKeys: PQPublicKeys,
-		kyberCipherText: Uint8Array,
-		kyberSharedSecret: Uint8Array,
+		kyberCipherText: Uint8Array<ArrayBuffer>,
+		kyberSharedSecret: Uint8Array<ArrayBuffer>,
 		eccSharedSecret: X25519SharedSecrets,
 		cryptoProtocolVersion: CryptoProtocolVersion,
 	): Aes256Key {

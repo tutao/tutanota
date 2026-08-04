@@ -11,25 +11,25 @@ import { ProgrammingError } from "@tutao/app-env"
 import { EncryptedKeyPairs, EncryptedPqKeyPairs, EncryptedRsaKeyPairs, EncryptedRsaX25519KeyPairs } from "../encryption/EncryptedKeyPairs"
 import { PQKeyPairs } from "../encryption/PQKeyPairs"
 
-export function encryptKey(encryptionKey: AesKey, keyToBeEncrypted: AesKey): Uint8Array {
+export function encryptKey(encryptionKey: AesKey, keyToBeEncrypted: AesKey): Uint8Array<ArrayBuffer> {
 	return SYMMETRIC_CIPHER_FACADE.encryptKey(encryptionKey, keyToBeEncrypted)
 }
 
-export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array): AesKey
-export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array, acceptedBitLengths: typeof AesKeyLength.Aes256): Aes256Key
-export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array, acceptedBitLengths: typeof AesKeyLength.Aes128): Aes128Key
-export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey {
+export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array<ArrayBuffer>): AesKey
+export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array<ArrayBuffer>, acceptedBitLengths: typeof AesKeyLength.Aes256): Aes256Key
+export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array<ArrayBuffer>, acceptedBitLengths: typeof AesKeyLength.Aes128): Aes128Key
+export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array<ArrayBuffer>, acceptedBitLength?: AesKeyLength): AesKey {
 	return SYMMETRIC_CIPHER_FACADE.decryptKey(encryptionKey, keyToBeDecrypted, acceptedBitLength)
 }
 
 /**
  * @deprecated
  */
-export function decryptKeyUnauthenticatedWithDeviceKeyChain(key: Aes256Key, encryptedBytes: Uint8Array): AesKey {
+export function decryptKeyUnauthenticatedWithDeviceKeyChain(key: Aes256Key, encryptedBytes: Uint8Array<ArrayBuffer>): AesKey {
 	return SYMMETRIC_CIPHER_FACADE.decryptKeyDeprecatedUnauthenticated(key, encryptedBytes)
 }
 
-export function aes256DecryptWithRecoveryKey(encryptionKey: Aes256Key, keyToBeDecrypted: Uint8Array): AesKey {
+export function aes256DecryptWithRecoveryKey(encryptionKey: Aes256Key, keyToBeDecrypted: Uint8Array<ArrayBuffer>): AesKey {
 	// legacy case: recovery code with fixed initialization vector and without mac
 	if (keyToBeDecrypted.length === getKeyLengthInBytes(AesKeyLength.Aes128)) {
 		return SYMMETRIC_CIPHER_FACADE.decryptKeyDeprecatedUnauthenticatedFixedInitializationVector(encryptionKey, keyToBeDecrypted)
@@ -38,19 +38,19 @@ export function aes256DecryptWithRecoveryKey(encryptionKey: Aes256Key, keyToBeDe
 	}
 }
 
-export function encryptRsaKey(encryptionKey: AesKey, privateKey: RsaPrivateKey): Uint8Array {
+export function encryptRsaKey(encryptionKey: AesKey, privateKey: RsaPrivateKey): Uint8Array<ArrayBuffer> {
 	return aesEncrypt(encryptionKey, hexToUint8Array(rsaPrivateKeyToHex(privateKey)))
 }
 
-export function encryptX25519Key(encryptionKey: AesKey, privateKey: X25519PrivateKey): Uint8Array {
+export function encryptX25519Key(encryptionKey: AesKey, privateKey: X25519PrivateKey): Uint8Array<ArrayBuffer> {
 	return aesEncrypt(encryptionKey, privateKey) // passing the initialization vector as undefined here is fine, as it will generate a new one for each encryption
 }
 
-export function encryptKyberKey(encryptionKey: AesKey, privateKey: KyberPrivateKey): Uint8Array {
+export function encryptKyberKey(encryptionKey: AesKey, privateKey: KyberPrivateKey): Uint8Array<ArrayBuffer> {
 	return aesEncrypt(encryptionKey, kyberPrivateKeyToBytes(privateKey)) // passing the initialization vector as undefined here is fine, as it will generate a new one for each encryption
 }
 
-export function decryptRsaKey(encryptionKey: AesKey, encryptedPrivateKey: Uint8Array): RsaPrivateKey {
+export function decryptRsaKey(encryptionKey: AesKey, encryptedPrivateKey: Uint8Array<ArrayBuffer>): RsaPrivateKey {
 	return hexToRsaPrivateKey(uint8ArrayToHex(aesDecrypt(encryptionKey, encryptedPrivateKey)))
 }
 

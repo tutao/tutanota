@@ -34,7 +34,7 @@ export class DesktopAlarmStorage {
 	 * @param pushIdentifierSessionKey unencrypted B64 encoded key to store
 	 * @returns {*}
 	 */
-	async storePushIdentifierSessionKey(pushIdentifierId: string, pushIdentifierSessionKey: Uint8Array): Promise<void> {
+	async storePushIdentifierSessionKey(pushIdentifierId: string, pushIdentifierSessionKey: Uint8Array<ArrayBuffer>): Promise<void> {
 		const keys: Record<string, Base64> = (await this.conf.getVar(DesktopConfigKey.pushEncSessionKeys)) || {}
 
 		if (!keys[pushIdentifierId]) {

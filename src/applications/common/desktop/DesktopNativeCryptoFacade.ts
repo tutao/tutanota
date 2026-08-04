@@ -56,7 +56,7 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		return JSON.parse(stringObject)
 	}
 
-	async aesEncryptFile(key: Uint8Array, fileUri: string): Promise<EncryptedFileInfo> {
+	async aesEncryptFile(key: Uint8Array<ArrayBuffer>, fileUri: string): Promise<EncryptedFileInfo> {
 		const bytes = await this.tfs.readAsData(fileUri)
 		const keyBits = this.cryptoFns.bytesToKey(key)
 		const encrypted = this.cryptoFns.aesEncrypt(keyBits, bytes)
@@ -70,7 +70,7 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	/**
 	 * decrypts a file and returns the decrypted files path
 	 */
-	async aesDecryptFile(key: Uint8Array, encryptedFileUri: FileUri): Promise<FileUri> {
+	async aesDecryptFile(key: Uint8Array<ArrayBuffer>, encryptedFileUri: FileUri): Promise<FileUri> {
 		const targetDir = await this.tfs.ensureUnencrytpedDir()
 		const encData = await this.tfs.readAsData(encryptedFileUri)
 		const bitKey = this.cryptoFns.bytesToKey(key)
@@ -91,19 +91,19 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 	/**
 	 * @deprecated
 	 */
-	decryptKeyUnauthenticatedWithDeviceKeyChain(encryptionKey: Aes256Key, keyToDecrypt: Uint8Array): AesKey {
+	decryptKeyUnauthenticatedWithDeviceKeyChain(encryptionKey: Aes256Key, keyToDecrypt: Uint8Array<ArrayBuffer>): AesKey {
 		return this.cryptoFns.decryptKeyUnauthenticatedWithDeviceKeyChain(encryptionKey, keyToDecrypt)
 	}
 
-	aes256EncryptKey(encryptionKey: Aes256Key, keyToEncrypt: AesKey): Uint8Array {
+	aes256EncryptKey(encryptionKey: Aes256Key, keyToEncrypt: AesKey): Uint8Array<ArrayBuffer> {
 		return this.cryptoFns.encryptKey(encryptionKey, keyToEncrypt)
 	}
 
-	aesDecryptBytes(encryptionKey: Aes256Key, data: Uint8Array): Uint8Array {
+	aesDecryptBytes(encryptionKey: Aes256Key, data: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		return this.cryptoFns.aesDecrypt(encryptionKey, data)
 	}
 
-	aesEncryptBytes(encryptionKey: Aes256Key, data: Uint8Array): Uint8Array {
+	aesEncryptBytes(encryptionKey: Aes256Key, data: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		return this.cryptoFns.aesEncrypt(encryptionKey, data)
 	}
 
@@ -111,7 +111,7 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		return base64ToBase64Url(uint8ArrayToBase64(this.cryptoFns.randomBytes(byteLength)))
 	}
 
-	verifySignature(pem: string, data: Uint8Array, sig: Uint8Array): boolean {
+	verifySignature(pem: string, data: Uint8Array<ArrayBuffer>, sig: Uint8Array<ArrayBuffer>): boolean {
 		return this.cryptoFns.verifySignature(pem, data, sig)
 	}
 
@@ -119,19 +119,19 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		return this.cryptoFns.aes256RandomKey()
 	}
 
-	randomBytes(count: number): Uint8Array {
+	randomBytes(count: number): Uint8Array<ArrayBuffer> {
 		return this.cryptoFns.randomBytes(count)
 	}
 
-	async rsaDecrypt(privateKey: RsaPrivateKey, data: Uint8Array): Promise<Uint8Array> {
+	async rsaDecrypt(privateKey: RsaPrivateKey, data: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
 		throw new Error("not implemented for this platform")
 	}
 
-	async rsaEncrypt(publicKey: RsaPublicKey, data: Uint8Array, seed: Uint8Array): Promise<Uint8Array> {
+	async rsaEncrypt(publicKey: RsaPublicKey, data: Uint8Array<ArrayBuffer>, seed: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
 		throw new Error("not implemented for this platform")
 	}
 
-	async argon2idGeneratePassphraseKey(passphrase: string, salt: Uint8Array): Promise<Uint8Array> {
+	async argon2idGeneratePassphraseKey(passphrase: string, salt: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
 		const passphraseKey = await generateKeyFromPassphraseArgon2id(await this.argon2, passphrase, salt)
 		return keyToUint8Array(passphraseKey)
 	}
@@ -144,11 +144,11 @@ export class DesktopNativeCryptoFacade implements NativeCryptoFacade {
 		throw new Error("not implemented for this platform")
 	}
 
-	kyberDecapsulate(privateKey: KyberPrivateKey, ciphertext: Uint8Array): Promise<Uint8Array> {
+	kyberDecapsulate(privateKey: KyberPrivateKey, ciphertext: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
 		throw new Error("not implemented for this platform")
 	}
 
-	decryptKey(encryptionKey: AesKey, key: Uint8Array): AesKey {
+	decryptKey(encryptionKey: AesKey, key: Uint8Array<ArrayBuffer>): AesKey {
 		return this.cryptoFns.decryptKey(encryptionKey, key)
 	}
 }

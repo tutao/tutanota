@@ -7,7 +7,7 @@ import { CredentialsInfo } from "./CredentialsInfo.js"
 export interface UnencryptedCredentials {
 	readonly credentialInfo: CredentialsInfo
 	readonly accessToken: string
-	readonly databaseKey: Uint8Array | null
+	readonly databaseKey: Uint8Array<ArrayBuffer> | null
 	readonly encryptedPassword: string
-	readonly encryptedPassphraseKey: Uint8Array | null
+	readonly encryptedPassphraseKey: Uint8Array<ArrayBuffer> | null
 }

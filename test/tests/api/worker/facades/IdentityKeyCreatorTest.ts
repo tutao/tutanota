@@ -81,7 +81,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 		const currentUserGroupKeyVersion = 1
 		const userGroupKey: VersionedKey = { version: currentUserGroupKeyVersion, object: object() }
 		const identityKeyPair: Ed25519KeyPair = { public_key: object(), private_key: object() }
-		const encodedPubIdentityKey: Uint8Array = object()
+		const encodedPubIdentityKey: Uint8Array<ArrayBuffer> = object()
 		const encryptedPrivateIdentityKey: VersionedEncryptedKey = {
 			encryptingKeyVersion: userGroupKey.version,
 			key: object(),
@@ -92,7 +92,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 
 		const adminGroupId = "adminGroupId"
 		const adminKeyVersion = 2
-		const adminGroupEncGKey: Uint8Array = new Uint8Array([1])
+		const adminGroupEncGKey: Uint8Array<ArrayBuffer> = new Uint8Array([1])
 		const adminGroupKey: VersionedKey = {
 			version: adminKeyVersion,
 			object: object(),

@@ -42,7 +42,7 @@ export async function runPlatformKitExample() {
 
 	const argon2Wasm = await loadWasmFromFileOrNetwork<Argon2IDExports>("argon2.wasm", new URL("../build/", import.meta.url).href)
 	const argon2idFacade = {
-		async generateKeyFromPassphrase(passphrase: string, salt: Uint8Array) {
+		async generateKeyFromPassphrase(passphrase: string, salt: Uint8Array<ArrayBuffer>) {
 			return generateKeyFromPassphraseArgon2id(argon2Wasm, passphrase, salt)
 		},
 	}

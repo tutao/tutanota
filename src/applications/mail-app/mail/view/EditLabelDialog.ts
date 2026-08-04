@@ -1,4 +1,4 @@
-import { DropDownSelector, SelectorItemList } from "../../../../ui/base/DropDownSelector.js"
+import { DropDownSelector, DropDownSelectorAttrs, SelectorItemList } from "../../../../ui/base/DropDownSelector.js"
 import m from "mithril"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { isOfflineError, LockedError } from "../../../../platform-kit/rest-client/error"
@@ -63,7 +63,7 @@ export async function showEditLabelDialog(
 				selectedValueDisplay: selectedParentLabel ? selectedParentLabel.name : noParentFolderOption,
 				selectionChangedHandler: (newFolder: MailSet | null) => (selectedParentLabel = newFolder),
 				helpLabel: () => (selectedParentLabel ? getPathToFolderString(folders, selectedParentLabel) : ""),
-			}),
+			} satisfies DropDownSelectorAttrs<MailSet | null>),
 		])
 
 	const okAction = async (dialog: Dialog) => {

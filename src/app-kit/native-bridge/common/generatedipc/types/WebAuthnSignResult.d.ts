@@ -4,8 +4,8 @@
  * Result of Webauthn authentication with hardware key.
  */
 export interface WebAuthnSignResult {
-	readonly rawId: Uint8Array
-	readonly clientDataJSON: Uint8Array
-	readonly signature: Uint8Array
-	readonly authenticatorData: Uint8Array
+	readonly rawId: Uint8Array<ArrayBuffer>
+	readonly clientDataJSON: Uint8Array<ArrayBuffer>
+	readonly signature: Uint8Array<ArrayBuffer>
+	readonly authenticatorData: Uint8Array<ArrayBuffer>
 }

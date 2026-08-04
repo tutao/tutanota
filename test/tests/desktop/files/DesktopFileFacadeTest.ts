@@ -552,7 +552,7 @@ class BufferWritableStream extends stream.Writable {
 		this.emit("close")
 	}
 
-	result(): Uint8Array {
+	result(): Uint8Array<ArrayBuffer> {
 		return Buffer.concat(this.chunks)
 	}
 }
@@ -564,7 +564,7 @@ function mockWriteStream({ error }: { error?: Error } = {}): BufferWritableStrea
 function mockResponse(
 	statusCode: number,
 	resOpts: {
-		responseBody?: Uint8Array
+		responseBody?: Uint8Array<ArrayBuffer>
 		responseHeaders?: Record<string, string>
 	},
 ): FetchResult {
@@ -572,7 +572,7 @@ function mockResponse(
 	return new global.Response(responseBody, {
 		status: statusCode,
 		headers: new Headers(responseHeaders),
-	}) as FetchResult
+	}) as unknown as FetchResult
 }
 
 const urlLike = matchers.create({

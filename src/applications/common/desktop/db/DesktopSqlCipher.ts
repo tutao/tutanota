@@ -27,7 +27,7 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 		process.on("exit", () => this._db?.close())
 	}
 
-	async openDb(userId: string, dbKey: Uint8Array): Promise<void> {
+	async openDb(userId: string, dbKey: Uint8Array<ArrayBuffer>): Promise<void> {
 		this._db = new Database(this.dbPath)
 		try {
 			this.initSqlcipher({ databaseKey: dbKey, enableMemorySecurity: true, integrityCheck: this.integrityCheck })
@@ -76,7 +76,7 @@ export class DesktopSqlCipher implements SqlCipherFacade {
 		enableMemorySecurity,
 		integrityCheck,
 	}: {
-		databaseKey: Uint8Array
+		databaseKey: Uint8Array<ArrayBuffer>
 		enableMemorySecurity: boolean
 		// integrity check breaks tests
 		integrityCheck: boolean

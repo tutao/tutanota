@@ -12,7 +12,7 @@ import { InvoiceDataGetOutTypeRef, InvoiceDataItemTypeRef } from "@tutao/entitie
 import { urlEncodeHtmlTags } from "../../../../../src/platform-kit/utils"
 
 o.spec("XRechnungInvoiceGenerator", function () {
-	function checkResult(generated: Uint8Array<ArrayBufferLike>, expected: string) {
+	function checkResult(generated: Uint8Array<ArrayBuffer>, expected: string) {
 		let normalizedGeneratedText = new TextDecoder().decode(generated).replaceAll("\r", "").replaceAll("\n", "").replaceAll("\t", "")
 		let normalizedExpectedText = expected.replaceAll("\r", "").replaceAll("\n", "").replaceAll("\t", "")
 		// fs.writeFileSync("/tmp/gen.xml", normalizedGeneratedText, { flag: "w" })

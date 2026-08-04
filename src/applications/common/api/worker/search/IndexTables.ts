@@ -25,8 +25,8 @@ export const Metadata = Object.freeze({
 	lastEventIndexTimeMs: "lastEventIndexTimeMs",
 })
 export type EncryptedDbKeyBaseMetaData = {
-	userEncDbKey: Uint8Array
-	encDbIv: Uint8Array
+	userEncDbKey: Uint8Array<ArrayBuffer>
+	encDbIv: Uint8Array<ArrayBuffer>
 	userGroupKeyVersion: KeyVersion
 }
 

@@ -65,7 +65,7 @@ export class DesktopNativePushFacade implements NativePushFacade {
 		userId: string,
 		sseOrigin: string,
 		pushIdentifierId: string,
-		pushIdentifierSessionKey: Uint8Array,
+		pushIdentifierSessionKey: Uint8Array<ArrayBuffer>,
 	): Promise<void> {
 		await this.sseStorage.storePushIdentifier(identifier, userId, sseOrigin)
 		await this.alarmStorage.storePushIdentifierSessionKey(pushIdentifierId, pushIdentifierSessionKey)

@@ -315,7 +315,7 @@ export function hasRunningAppStoreSubscription(accountingInfo: AccountingInfo): 
 }
 
 /** Check if the latest transaction using the current Store Account belongs to the user */
-export async function queryAppStoreSubscriptionOwnership(userIdBytes: Uint8Array | null): Promise<MobilePaymentSubscriptionOwnership> {
+export async function queryAppStoreSubscriptionOwnership(userIdBytes: Uint8Array<ArrayBuffer> | null): Promise<MobilePaymentSubscriptionOwnership> {
 	return await locator.mobilePaymentsFacade.queryAppStoreSubscriptionOwnership(userIdBytes)
 }
 

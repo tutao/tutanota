@@ -243,7 +243,7 @@ export const TestAggregateOnAggregateRef = new TypeRef<TestAggregateOnAggregate>
 export type TestAggregateOnAggregate = Entity & {
 	_id: Id
 	testBytes: null | Uint8Array
-	testEncryptedBytes: Uint8Array | null
+	testEncryptedBytes: Uint8Array<ArrayBuffer> | null
 }
 
 export type TestAggregate = Entity & {
@@ -256,8 +256,8 @@ export type TestAggregate = Entity & {
 export type TestEntity = Entity & {
 	_id: IdTuple
 	testGeneratedId: Id
-	_kdfNonce: Uint8Array | null
-	_ownerEncSessionKey: Uint8Array | null
+	_kdfNonce: Uint8Array<ArrayBuffer> | null
+	_ownerEncSessionKey: Uint8Array<ArrayBuffer> | null
 	testValueZeroOrOne: string | null
 	testValue: string
 	testDate: Date

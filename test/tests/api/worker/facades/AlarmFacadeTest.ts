@@ -170,7 +170,7 @@ o.spec("AlarmFacadeTest", function () {
 			const pushIdentifierSessionKey: AesKey = object()
 			when(cryptoFacadeMock.resolveSessionKey(pushIdentifier)).thenResolve(pushIdentifierSessionKey)
 
-			const pushIdentifierEncNotificationSessionKey: Uint8Array = new Uint8Array(0x01)
+			const pushIdentifierEncNotificationSessionKey: Uint8Array<ArrayBuffer> = new Uint8Array(0x01)
 			when(cryptoWrapperMock.encryptKey(pushIdentifierSessionKey, matchers.anything())).thenReturn(pushIdentifierEncNotificationSessionKey)
 
 			const instanceCaptor = matchers.captor()

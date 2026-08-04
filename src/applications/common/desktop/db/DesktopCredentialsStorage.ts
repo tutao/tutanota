@@ -145,7 +145,7 @@ ${credentials.accessToken}, ${credentials.databaseKey}, ${credentials.encryptedP
 		}
 	}
 
-	private unmapCredentials(row: Record<string, string | number | Uint8Array | null>): PersistedCredentials {
+	private unmapCredentials(row: Record<string, string | number | Uint8Array<ArrayBuffer> | null>): PersistedCredentials {
 		const credentialType = row.type as CredentialType
 		return {
 			credentialInfo: {
@@ -154,9 +154,9 @@ ${credentials.accessToken}, ${credentials.databaseKey}, ${credentials.encryptedP
 				type: credentialType,
 			},
 			encryptedPassword: row.encryptedPassword as string,
-			encryptedPassphraseKey: row.encryptedPassphraseKey as Uint8Array | null,
-			accessToken: row.accessToken as Uint8Array,
-			databaseKey: row.databaseKey as Uint8Array,
+			encryptedPassphraseKey: row.encryptedPassphraseKey as Uint8Array<ArrayBuffer> | null,
+			accessToken: row.accessToken as Uint8Array<ArrayBuffer>,
+			databaseKey: row.databaseKey as Uint8Array<ArrayBuffer>,
 		}
 	}
 
@@ -186,10 +186,10 @@ ${credentials.accessToken}, ${credentials.databaseKey}, ${credentials.encryptedP
 		return row.credentialEncryptionMode as CredentialEncryptionMode
 	}
 
-	getCredentialEncryptionKey(): Uint8Array | null {
+	getCredentialEncryptionKey(): Uint8Array<ArrayBuffer> | null {
 		const row = this.get(usql`SELECT credentialEncryptionKey FROM credentialEncryptionKey LIMIT 1`)
 		if (!row) return null
-		return row.credentialEncryptionKey as Uint8Array
+		return row.credentialEncryptionKey as Uint8Array<ArrayBuffer>
 	}
 
 	setCredentialEncryptionMode(encryptionMode: CredentialEncryptionMode | null) {
@@ -200,7 +200,7 @@ ${credentials.accessToken}, ${credentials.databaseKey}, ${credentials.encryptedP
 		}
 	}
 
-	setCredentialEncryptionKey(encryptionKey: Uint8Array | null) {
+	setCredentialEncryptionKey(encryptionKey: Uint8Array<ArrayBuffer> | null) {
 		if (encryptionKey != null) {
 			this.run(usql`INSERT OR REPLACE INTO credentialEncryptionKey (id, credentialEncryptionKey) VALUES (0, ${encryptionKey})`)
 		} else {

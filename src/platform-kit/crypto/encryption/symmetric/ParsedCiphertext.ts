@@ -21,12 +21,12 @@ abstract class ParsedCiphertext {
 
 	protected constructor(
 		public readonly initializationVector: InitializationVector,
-		public readonly ciphertext: Uint8Array,
+		public readonly ciphertext: Uint8Array<ArrayBuffer>,
 	) {}
 }
 
 export abstract class ParsedCiphertextAesCbc extends ParsedCiphertext {
-	protected constructor(initializationVector: InitializationVector, ciphertext: Uint8Array) {
+	protected constructor(initializationVector: InitializationVector, ciphertext: Uint8Array<ArrayBuffer>) {
 		super(initializationVector, ciphertext)
 	}
 }
@@ -34,7 +34,7 @@ export abstract class ParsedCiphertextAesCbc extends ParsedCiphertext {
 export abstract class ParsedCiphertextAead extends ParsedCiphertext {
 	protected constructor(
 		initializationVector: InitializationVector,
-		ciphertext: Uint8Array,
+		ciphertext: Uint8Array<ArrayBuffer>,
 		public readonly macTag: MacTag,
 	) {
 		super(initializationVector, ciphertext)
@@ -44,7 +44,7 @@ export abstract class ParsedCiphertextAead extends ParsedCiphertext {
 export class ParsedCiphertextUnusedReservedUnauthenticated extends ParsedCiphertextAesCbc {
 	public override readonly cipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
 
-	constructor(initializationVector: InitializationVector, ciphertext: Uint8Array) {
+	constructor(initializationVector: InitializationVector, ciphertext: Uint8Array<ArrayBuffer>) {
 		super(initializationVector, ciphertext)
 	}
 }
@@ -53,7 +53,7 @@ export class ParsedCiphertextAesCbcThenHmac extends ParsedCiphertextAesCbc {
 	public override readonly cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
 	constructor(
 		initializationVector: InitializationVector,
-		ciphertext: Uint8Array,
+		ciphertext: Uint8Array<ArrayBuffer>,
 		public readonly macTag: MacTag,
 	) {
 		super(initializationVector, ciphertext)
@@ -65,7 +65,7 @@ export class ParsedCiphertextAeadWithGroupKey extends ParsedCiphertextAead {
 	constructor(
 		public readonly groupKeyVersion: KeyVersion,
 		initializationVector: InitializationVector,
-		ciphertext: Uint8Array,
+		ciphertext: Uint8Array<ArrayBuffer>,
 		macTag: MacTag,
 	) {
 		super(initializationVector, ciphertext, macTag)
@@ -74,7 +74,7 @@ export class ParsedCiphertextAeadWithGroupKey extends ParsedCiphertextAead {
 
 export class ParsedCiphertextAeadWithSessionKey extends ParsedCiphertextAead {
 	public override readonly cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
-	constructor(initializationVector: InitializationVector, ciphertext: Uint8Array, macTag: MacTag) {
+	constructor(initializationVector: InitializationVector, ciphertext: Uint8Array<ArrayBuffer>, macTag: MacTag) {
 		super(initializationVector, ciphertext, macTag)
 	}
 }
@@ -102,7 +102,7 @@ export class ParsedCiphertextAeadWithSessionKey extends ParsedCiphertextAead {
 // MAC: message authentication code
 
 export function parseVersionedCiphertext(
-	versionedCiphertext: Uint8Array,
+	versionedCiphertext: Uint8Array<ArrayBuffer>,
 	initializationVectorVariant: InitializationVectorVariant = InitializationVectorVariant.Random,
 ): ParsedCiphertext {
 	if (versionedCiphertext.length % 2 === 0) {
@@ -149,7 +149,7 @@ export function parseVersionedCiphertext(
 }
 
 function parseVersionedCipherTextUnusedReservedUnauthenticated(
-	ciphertext: Uint8Array,
+	ciphertext: Uint8Array<ArrayBuffer>,
 	initializationVectorVariant: InitializationVectorVariant,
 ): ParsedCiphertextUnusedReservedUnauthenticated {
 	let initializationVector
@@ -161,9 +161,9 @@ function parseVersionedCipherTextUnusedReservedUnauthenticated(
 	return new ParsedCiphertextUnusedReservedUnauthenticated(initializationVector, ciphertext)
 }
 
-function extractInitializationVector(ciphertext: Uint8Array): {
+function extractInitializationVector(ciphertext: Uint8Array<ArrayBuffer>): {
 	initializationVector: InitializationVector
-	ciphertext: Uint8Array
+	ciphertext: Uint8Array<ArrayBuffer>
 } {
 	if (ciphertext.length < INITIALIZATION_VECTOR_LENGTH_BYTES) {
 		throw new CryptoError("aes decryption failed> initialization vector must be 128 bits")
@@ -174,7 +174,7 @@ function extractInitializationVector(ciphertext: Uint8Array): {
 	}
 }
 
-function extractMacTag(ciphertext: Uint8Array): { ciphertext: Uint8Array; macTag: MacTag } {
+function extractMacTag(ciphertext: Uint8Array<ArrayBuffer>): { ciphertext: Uint8Array<ArrayBuffer>; macTag: MacTag } {
 	if (ciphertext.length < SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES) {
 		throw new CryptoError("aes decryption failed> message authentication code must be 256 bits")
 	}
@@ -184,7 +184,7 @@ function extractMacTag(ciphertext: Uint8Array): { ciphertext: Uint8Array; macTag
 	}
 }
 
-function extractGroupKeyVersion(ciphertext: Uint8Array): { groupKeyVersion: KeyVersion; ciphertext: Uint8Array } {
+function extractGroupKeyVersion(ciphertext: Uint8Array<ArrayBuffer>): { groupKeyVersion: KeyVersion; ciphertext: Uint8Array<ArrayBuffer> } {
 	if (ciphertext.length < 2) {
 		throw new CryptoError("aes decryption failed> group key version (including length) must be 16 bits")
 	}

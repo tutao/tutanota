@@ -39,7 +39,7 @@ export interface KyberFacade {
 	 * @param ciphertext the encapsulated ciphertext
 	 * @returns the shared secret
 	 */
-	decapsulate(privateKey: KyberPrivateKey, ciphertext: Uint8Array): Promise<Uint8Array>
+	decapsulate(privateKey: KyberPrivateKey, ciphertext: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>>
 }
 
 /**
@@ -64,7 +64,7 @@ export class WASMKyberFacade implements KyberFacade {
 		return encapsulateKyber(await this.liboqs.getAsync(), publicKey, random)
 	}
 
-	async decapsulate(privateKey: KyberPrivateKey, ciphertext: Uint8Array): Promise<Uint8Array> {
+	async decapsulate(privateKey: KyberPrivateKey, ciphertext: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
 		return decapsulateKyber(await this.liboqs.getAsync(), privateKey, ciphertext)
 	}
 }
@@ -83,7 +83,7 @@ export class NativeKyberFacade implements KyberFacade {
 		return this.nativeCryptoFacade.kyberEncapsulate(publicKey, random.generateRandomData(ML_KEM_RAND_AMOUNT_OF_ENTROPY))
 	}
 
-	decapsulate(privateKey: KyberPrivateKey, ciphertext: Uint8Array): Promise<Uint8Array> {
+	decapsulate(privateKey: KyberPrivateKey, ciphertext: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
 		return this.nativeCryptoFacade.kyberDecapsulate(privateKey, ciphertext)
 	}
 }

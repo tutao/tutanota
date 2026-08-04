@@ -25,11 +25,11 @@ import { idToElementId } from "@tutao/meta"
 assertWorkerOrNode()
 
 export type RecoverData = {
-	userEncRecoverCode: Uint8Array
+	userEncRecoverCode: Uint8Array<ArrayBuffer>
 	userKeyVersion: KeyVersion
-	recoverCodeEncUserGroupKey: Uint8Array
+	recoverCodeEncUserGroupKey: Uint8Array<ArrayBuffer>
 	hexCode: Hex
-	recoveryCodeVerifier: Uint8Array
+	recoveryCodeVerifier: Uint8Array<ArrayBuffer>
 }
 
 /**

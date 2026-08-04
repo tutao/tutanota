@@ -417,7 +417,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 		return this.config._credentialEncryptionMode
 	}
 
-	async getCredentialsEncryptionKey(): Promise<Uint8Array | null> {
+	async getCredentialsEncryptionKey(): Promise<Uint8Array<ArrayBuffer> | null> {
 		return this.config._encryptedCredentialsKey ? base64ToUint8Array(this.config._encryptedCredentialsKey) : null
 	}
 
