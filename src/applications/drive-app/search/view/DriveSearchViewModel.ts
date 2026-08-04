@@ -432,6 +432,9 @@ export class DriveSearchViewModel {
 				case "updateitem":
 					this.listModel.updateLoadedItem(toFolderItem(update.item.item))
 					break
+				case "newitem":
+					this.listModel.insertLoadedItem(toFolderItem(update.item.item))
+					break
 			}
 		})
 	}

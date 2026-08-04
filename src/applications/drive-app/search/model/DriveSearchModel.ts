@@ -1,5 +1,6 @@
 import { SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef, DriveGroupRootTypeRef } from "@tutao/entities/drive"
 import { collectToMap, isEmpty, isNotNull, lastThrow, remove, tokenize } from "@tutao/utils"
 import { elementIdPart, GENERATED_MAX_ID, getElementId, isSameId, isSameTypeRef, OperationType } from "@tutao/meta"
@@ -10,7 +11,6 @@ import { isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../
 import { EventController } from "../../../common/api/main/EventController"
 import { collectionUniqueBy } from "../../../../platform-kit/utils/CollectionUtils"
 import { LiveSearchResult, ResultUpdate, SearchQuery } from "../../../common/search/SearchUtils"
-import Stream from "mithril/stream"
 import { folderItemParent, toFolderItem } from "../../drive/view/DriveUtils"
 
 export interface DriveSearchResult {
@@ -146,14 +146,36 @@ export class DriveSearchModel {
 								: await this.entityClient.load(DriveFileTypeRef, instanceIdTuple)
 							const parentFolderId = folderItemParent(toFolderItem(updatedItem))
 							const parentFolder = parentFolderId ? await this.entityClient.load(DriveFolderTypeRef, parentFolderId) : null
-							if (index !== -1) {
-								const updatedResult: DriveSearchResult = {
-									item: updatedItem,
+							const updatedResult: DriveSearchResult = {
+								item: updatedItem,
+								parent: parentFolder,
+							}
+							if (tokens.every((token) => updatedItem.name.toLowerCase().includes(token))) {
+								if (index !== -1) {
+									liveResult.items.splice(index, 1, updatedResult)
+									updatesStream({ type: "updateitem", item: updatedResult })
+								} else {
+									liveResult.items.push(updatedResult)
+									updatesStream({ type: "newitem", item: updatedResult })
+								}
+							} else if (index !== -1) {
+								liveResult.items.splice(index, 1)
+								updatesStream({ type: "deleteitem", item: updatedResult })
+							}
+						} else if (update.operation === OperationType.CREATE) {
+							const instanceIdTuple = [update.instanceListId, update.instanceId] as unknown as IdTuple
+							const newItem = isSameTypeRef(update.typeRef, DriveFolderTypeRef)
+								? await this.entityClient.load(DriveFolderTypeRef, instanceIdTuple)
+								: await this.entityClient.load(DriveFileTypeRef, instanceIdTuple)
+							if (tokens.every((token) => newItem.name.toLowerCase().includes(token))) {
+								const parentFolderId = folderItemParent(toFolderItem(newItem))
+								const parentFolder = parentFolderId ? await this.entityClient.load(DriveFolderTypeRef, parentFolderId) : null
+								const newResult: DriveSearchResult = {
+									item: newItem,
 									parent: parentFolder,
 								}
-								liveResult.items.splice(index, 1, updatedResult)
-
-								updatesStream({ type: "updateitem", item: updatedResult })
+								liveResult.items.push(newResult)
+								updatesStream({ type: "newitem", item: newResult })
 							}
 						}
 					}
