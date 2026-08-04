@@ -1424,7 +1424,7 @@ export default {
 		"options_action": "Options",
 		"order_action": "Order",
 		"orderProcessingAgreement_label": "Order processing agreement",
-		"orderProcessingAgreementInfo_msg": "According to the EU GDPR business customers are obliged to conclude an order processing agreement with us.",
+		"orderProcessingAgreementInfo_msg": "According to the EU GDPR business customers are obliged to conclude an order processing agreement with us. Please read it and confirm your address.",
 		"organizer_label": "Organizer",
 		"other_label": "Other",
 		"otherCalendars_label": "Other calendars",
@@ -2452,7 +2452,7 @@ export default {
 		"subscriptionSettingsRevokedState_label": "Revoked",
 		"subscriptionSettingsExpiredState_label": "Expired",
 		"subscriptionSettingsUnknownState_label": "Unknown",
-		"subscriptionSettingsFreePlan_label": "Sentence about missing something to connect illustration with getting a subscription.",
+		"subscriptionSettingsFreePlan_label": "One piece is missing. Explore our subscriptions to discover even more features.",
 		"subscriptionSettingsPlannedState_label": "Planned",
 		"subscriptionSettingsCancelledState_label": "Cancelled",
 		"subscriptionSettingsMoreFeatures_action": "Get more features",
@@ -2467,8 +2467,9 @@ export default {
 		"subscriptionSettingDomainPaidFeature_label": "Custom Domains",
 		"subscriptionSettingDomainPaidFeature_msg": "If you have setup any custom domain please disable it in  Settings > Global settings > Custom email domains",
 		"subscriptionSettingSubscriptionOnlyFeatures_title": "Subscription-only features",
-		"subscriptionSettingCancelSubscriptionOnlyFeatures_msg": "If you use any of these features please deactivate it by your subscription end date. Otherwise it will not be possible to downgrade your account.",
-		"subscriptionSettingRevocationSubscriptionOnlyFeatures_msg": "If you use any of these features please deactivate it. Otherwise it will not be possible to downgrade your account.",
+		"subscriptionSettingCancelSubscriptionOnlyFeatures_msg": "If you're using any of the premium features below, please deactivate them before your subscription ends. Otherwise, we won't be able to downgrade your account automatically, and you'll need to downgrade it manually.",
+		"subscriptionSettingRevocationSubscriptionOnlyFeatures_msg": "If you're using any of the features below, please deactivate them first. Otherwise, we won't be able to downgrade your account automatically, and you'll need to downgrade it manually.",
+		"subscriptionSettingExpiredSubscriptionOnlyFeatures_msg": "We couldn't downgrade your account because you're currently using one or more subscription-only features listed below. Please deactivate them first, then try to downgrade again",
 		"goToSetting_label": "Go to settings",
 		"subscriptionChangeInterval_msg": "At the next renewal date of your subscription your payment interval will be changed to: {period}. Is this ok?",
 		"subscriptionSettingLabelPaidFeature_label": "Labels",
@@ -2483,8 +2484,10 @@ export default {
 		"subscriptionSettingStorageFeature_msg": "If you are above the limit of 1GB with your storage please free some space",
 		"subscriptionStateCardResubscribe_action": "Resubscribe",
 		"changePaymentInterval_action": "Change payment interval",
-		"subscriptionSettingDowngrade_action": "Downgrade",
-		"subscriptionSettingManageSubscription_action": "Manage subscription",
-		"subscriptionSettingSwitchPlan_action": "Switch plan"
+		"subscriptionSettingDowngrade_action": "Switch to Free",
+		"subscriptionSettingManageSubscription_action": "Apple settings",
+		"subscriptionSettingSwitchPlan_action": "Switch plan",
+		"orderProcessingAgreement_action": "Show order processing agreement",
+		"openAgreement_action": "Open agreement"
 	}
 }

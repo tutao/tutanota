@@ -7,6 +7,7 @@ import { InfoIcon } from "../../../../ui/base/InfoIcon"
 import { IconButton } from "../../../../ui/base/IconButton"
 import { MenuTitle } from "../../../../ui/titles/MenuTitle"
 import { px } from "../../../../ui/size"
+import { SubscriptionStatus } from "./SubscriptionStateCard"
 
 const paidFeatures = [
 	{
@@ -69,8 +70,7 @@ const paidFeatures = [
 
 interface SubscriptionPaidFeaturesCardAttrs {
 	plan?: PlanType
-	title: TranslationKey
-	subtitle: TranslationKey
+	subscriptionStatus: SubscriptionStatus
 }
 
 /** Card to show all features that have to be disabled before downgrading to free
@@ -112,11 +112,21 @@ export class SubscriptionPaidFeaturesCard implements Component<SubscriptionPaidF
 
 		return [
 			m(
-				".flex.col.gap-8.pt-16",
-				m(MenuTitle, { content: lang.getTranslationText(attrs.title) }),
-				m("", lang.getTranslationText(attrs.subtitle)),
+				".flex.col.gap-8",
+				m(MenuTitle, { content: lang.getTranslationText("subscriptionSettingSubscriptionOnlyFeatures_title") }),
+				m("", lang.getTranslationText(this.getSubtitleFromSubscriptionStatus(attrs.subscriptionStatus))),
 				m(Card, [m(".flex.col.gap-8.plr-16", [paidFeatures.map(({ label, message, route }) => element(label, message, route))])]),
 			),
 		]
+	}
+	private getSubtitleFromSubscriptionStatus(status: SubscriptionStatus) {
+		switch (status) {
+			case "expired":
+				return "subscriptionSettingExpiredSubscriptionOnlyFeatures_msg"
+			case "revoked":
+				return "subscriptionSettingRevocationSubscriptionOnlyFeatures_msg"
+			default:
+				return "subscriptionSettingCancelSubscriptionOnlyFeatures_msg"
+		}
 	}
 }

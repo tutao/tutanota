@@ -59,8 +59,7 @@ import { LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { locator } from "../../api/main/CommonLocator"
 import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "../../subscription/TermsAndConditions"
-import { IconButton, IconButtonAttrs } from "../../../../ui/base/IconButton.js"
-import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
+import { IconButtonAttrs } from "../../../../ui/base/IconButton.js"
 import { getDisplayNameOfPlanType } from "../../subscription/FeatureListProvider"
 import { MobilePaymentsFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
@@ -83,6 +82,7 @@ import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { showUserSatisfactionDialogAfterUpgrade } from "../../ratings/UserSatisfactionUtils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { SubscriptionStateCellAttrs } from "../../subscription/components/SubscriptionStateCell"
+import { MessageBanner } from "../../../../ui/base/MessageBanner"
 
 assertMainOrNode()
 export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
@@ -140,7 +140,8 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 							: undefined,
 						this.showOrderAgreement() ? this.renderAgreement() : null,
 						m(
-							".flex.col.gap-8",
+							".flex.row.gap-32",
+							this.showOrderAgreement() && this._orderAgreement != null ? m(".small", this.showAgreement()) : null,
 							m(".small", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
 							m(".small", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
 						),
@@ -257,12 +258,12 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		const isNewSubscriptionVisible =
 			booking.renewalEnabled && booking.endDate && !this._customerInfo?.revocationRequest && currentStateSubscription !== "expired"
 
-		//Current subscription
-		return m(".flex.col.gap-16", [
+		return [
 			m(
 				".flex.col.gap-32",
+				//Current subscription
 				m(
-					".flex.col.gap-16",
+					".flex.col.gap-8",
 					m(SubscriptionStateCard, {
 						title: "subscriptionSettingCurrentSubscription_label",
 						cells: [
@@ -272,6 +273,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 							this.getEndDateAttrs(currentStateSubscription, booking.endDate),
 						],
 					} satisfies SubscriptionStateCardAttrs),
+					!isNewSubscriptionVisible && isNewPlan && this.renderButtons(booking, currentStateSubscription, isAppleSubscription),
 				),
 				//Next Subscription period
 				isNewSubscriptionVisible &&
@@ -295,6 +297,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 											}
 										: undefined,
 								),
+
 								//Don't show interval edit button for apple users -> managed by os
 								!isAppleSubscription
 									? this.getPriceCellAttrs(this._nextPriceFieldValue(), {
@@ -326,20 +329,18 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 								this.getEndDateAttrs("planned", booking.endDate),
 							],
 						} satisfies SubscriptionStateCardAttrs),
+						//Render Buttons
+						isNewPlan && this.renderButtons(booking, currentStateSubscription, isAppleSubscription),
 					),
 			),
-			//Render Buttons
-			isNewPlan && this.renderButtons(booking, currentStateSubscription, isAppleSubscription),
+
+			//Render subscription-only features if not active or planned
 			currentStateSubscription !== "active" &&
 				currentStateSubscription !== "planned" &&
 				m(SubscriptionPaidFeaturesCard, {
-					title: "subscriptionSettingSubscriptionOnlyFeatures_title",
-					subtitle:
-						currentStateSubscription === "revoked" || currentStateSubscription === "expired"
-							? "subscriptionSettingRevocationSubscriptionOnlyFeatures_msg"
-							: "subscriptionSettingCancelSubscriptionOnlyFeatures_msg",
+					subscriptionStatus: currentStateSubscription,
 				}),
-		])
+		]
 	}
 
 	//Free variant subscription card if customer has no plan
@@ -379,6 +380,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		])
 	}
 
+	//Render needed buttons
 	private renderButtons(booking: Booking, currentSubscriptionState: SubscriptionStatus, isAppleSubscription: boolean): Children {
 		//Show no buttons if subscription is in revocation process
 		const isRevoked = this._customerInfo?.revocationRequest != null
@@ -462,6 +464,8 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
+	//Handle the keep subscription button click. Calls renewalPreferenceService with isEnabled = true
+	//to keep the subscription from getting downgraded
 	private async handleKeepSubscriptionClick() {
 		const confirm = await Dialog.confirm("subscriptionSettingsKeep_msg")
 		if (confirm) {
@@ -673,8 +677,9 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 	private showOrderAgreement(): boolean {
 		return (
 			locator.logins.getUserController().isPaidAccount() &&
-			((this._customer != null && this._customer.businessUse) ||
-				(this._customer != null && (this._customer.orderProcessingAgreement != null || this._customer.orderProcessingAgreementNeeded)))
+			this._customer != null &&
+			this._customer.businessUse &&
+			(this._customer.orderProcessingAgreement != null || this._customer.orderProcessingAgreementNeeded)
 		)
 	}
 
@@ -880,46 +885,41 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderAgreement() {
-		return m(LegacyTextField, {
-			class: "pt-0",
-			label: "orderProcessingAgreement_label",
-			helpLabel: () => lang.get("orderProcessingAgreementInfo_msg"),
-			value: this._orderAgreementFieldValue(),
-			oninput: this._orderAgreementFieldValue,
-			isReadOnly: true,
-			injectionsRight: () => {
-				if (this._orderAgreement && this._customer && this._customer.orderProcessingAgreementNeeded) {
-					return [this.renderSignProcessingAgreementAction(), this.renderShowProcessingAgreementAction()]
-				} else if (this._orderAgreement) {
-					return [this.renderShowProcessingAgreementAction()]
-				} else if (this._customer && this._customer.orderProcessingAgreementNeeded) {
-					return [this.renderSignProcessingAgreementAction()]
-				} else {
-					return []
-				}
+		if (assertNotNull(this._customer).orderProcessingAgreementNeeded) {
+			return m(
+				".flex.col",
+				m(MenuTitle, {
+					content: lang.getTranslationText("orderProcessingAgreement_label"),
+				}),
+				m(MessageBanner, {
+					translation: lang.getTranslation("orderProcessingAgreementInfo_msg"),
+					type: "warning",
+				}),
+				m(
+					".flex.row.justify-end",
+					m(PrimaryButton, {
+						label: "openAgreement_action",
+						width: "flex",
+						style: { width: "fit-content" },
+						onclick: () => SignOrderAgreementDialog.showForSigning(neverNull(this._customer), neverNull(this._accountingInfo)),
+					}),
+				),
+			)
+		}
+	}
+
+	private showAgreement() {
+		return m(
+			".underline.cursor-pointer",
+			{
+				onclick: () => {
+					locator.entityClient
+						.load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
+						.then((signerUserGroupInfo) => SignOrderAgreementDialog.showForViewing(neverNull(this._orderAgreement), signerUserGroupInfo))
+				},
 			},
-		})
-	}
-
-	private renderShowProcessingAgreementAction() {
-		return m(IconButton, {
-			title: "show_action",
-			click: () =>
-				locator.entityClient
-					.load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
-					.then((signerUserGroupInfo) => SignOrderAgreementDialog.showForViewing(neverNull(this._orderAgreement), signerUserGroupInfo)),
-			icon: Icons.DownloadFilled,
-			size: ButtonSize.Compact,
-		})
-	}
-
-	private renderSignProcessingAgreementAction() {
-		return m(IconButton, {
-			title: "sign_action",
-			click: () => SignOrderAgreementDialog.showForSigning(neverNull(this._customer), neverNull(this._accountingInfo)),
-			icon: Icons.PenFilled,
-			size: ButtonSize.Compact,
-		})
+			lang.getTranslationText("orderProcessingAgreement_action"),
+		)
 	}
 
 	private getPlanCellAttrs(plan: PlanType, button?: IconButtonAttrs): SubscriptionStateCellAttrs {

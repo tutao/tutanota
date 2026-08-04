@@ -24,6 +24,7 @@ export class SubscriptionStateCell implements Component<SubscriptionStateCellAtt
 			class: "bg-white",
 			style: {
 				"background-color": "white",
+				flex: "0 0 0",
 			},
 			injectionsRight: () => this.renderButton(button),
 		})

@@ -3414,7 +3414,10 @@ export class MainStyles {
 					"z-index": 1,
 				},
 				".subscription-settings-card": {
-					"grid-template-columns": "auto auto",
+					display: "grid",
+					"grid-template-columns": "repeat(2, 1fr)",
+					"grid-template-rows": "repeat(2, 1fr)",
+					gap: "8px",
 				},
 				"@media (max-width: 500px)": {
 					".subscription-settings-card": {
