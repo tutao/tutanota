@@ -23,6 +23,7 @@ import {
 	base64ToUint8Array,
 	KeyVersion,
 	neverNull,
+	noOp,
 	stringToUtf8Uint8Array,
 	utf8Uint8ArrayToString,
 } from "../../../src/platform-kit/utils"
@@ -38,7 +39,7 @@ import {
 	createEncryptedValueType,
 	testAggregateModel,
 	testAggregateOnAggregateModel,
-	testTransferAggregateModel,
+	testTransferAggregatedTypeModel,
 	testTypeModel,
 } from "./InstancePipelineTestUtils"
 import { CryptoError, SessionKeyNotFoundError } from "../../../src/platform-kit/crypto/error"
@@ -107,7 +108,7 @@ o.spec("CryptoMapperTest", () => {
 			)
 			.addAttributeById(10, ParsedValue.fromIdList([]))
 
-		decryptedParsedInstance = makeDecryptedparsedInstance(testTypeModel as ClientTypeModel).addAttributeById(
+		decryptedParsedInstance = makeDecryptedParsedInstance(testTypeModel as ClientTypeModel).addAttributeById(
 			3,
 			ParsedValue.fromNestedItems([parsedAggregate]),
 		)
@@ -411,48 +412,34 @@ o.spec("CryptoMapperTest", () => {
 	o.test("encryptParsedInstance transfer aggregated type works", async () => {
 		const sk = new Aes256Key([4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205])
 
-		const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(new SubKeyInfoWithSessionKeyCbcThenHmac(sk), {
-			id: testTransferAggregateModel.id,
-			name: testTransferAggregateModel.name,
-			app: testTransferAggregateModel.app,
-		})
+		const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(new SubKeyInfoWithSessionKeyCbcThenHmac(sk), testTransferAggregatedTypeModel)
 		const ownerKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
 		const sessionKeyForTransferAT = aes256RandomKey()
 		const ownerEncSessionKey = encryptKey(ownerKey.object, sessionKeyForTransferAT)
-		const decryptedTransferATInstance = DecryptedParsedInstance.outgoingToServer(testTransferAggregateModel as ClientTypeModel)
-			.addAttributeById(2, ParsedValue.fromString("7"))
-			.addAttributeById(14, ParsedValue.fromNull())
-			.addAttributeById(6, ParsedValue.fromNull())
-			.addAttributeById(9, ParsedValue.fromIdTupleList([]))
-			.addAttributeById(10, ParsedValue.fromIdTupleList([]))
-			.addAttributeById(14, ParsedValue.fromByteArray(ownerEncSessionKey))
+		const decryptedTransferATInstance = DecryptedParsedInstance.outgoingToServer(testTransferAggregatedTypeModel as ClientTypeModel)
+			.addAttributeById(18, ParsedValue.fromNull())
+			.addAttributeById(19, ParsedValue.fromString("seven"))
+			.addAttributeById(20, ParsedValue.fromByteArray(ownerEncSessionKey))
 
 		const path = new RootPath()
 		const encryptedInstance = await cryptoMapper.encryptParsedInstance(decryptedTransferATInstance, subKeyProvider, path, ownerKey)
 
-		const encryptedBytes = encryptedInstance.getAttributeById(2).asByteArray()
+		const encryptedBytes = encryptedInstance.getAttributeById(19).asByteArray()
 		const decryptedValue = utf8Uint8ArrayToString(aesDecrypt(sessionKeyForTransferAT, encryptedBytes))
-		o.check(decryptedValue).equals("7")
+		o.check(decryptedValue).equals("seven")
 	})
 
 	o.test("encryptParsedInstance transfer aggregated type requires ownerKey", async () => {
 		const sk = new Aes256Key([4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205])
 
-		const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(new SubKeyInfoWithSessionKeyCbcThenHmac(sk), {
-			id: testTransferAggregateModel.id,
-			name: testTransferAggregateModel.name,
-			app: testTransferAggregateModel.app,
-		})
+		const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(new SubKeyInfoWithSessionKeyCbcThenHmac(sk), testTransferAggregatedTypeModel)
 		const ownerKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
 		const sessionKey = aes256RandomKey()
 		const ownerEncSessionKey = encryptKey(ownerKey.object, sessionKey)
-		const decryptedTransferATInstance = DecryptedParsedInstance.outgoingToServer(testTransferAggregateModel as ClientTypeModel)
-			.addAttributeById(2, ParsedValue.fromString("7"))
-			.addAttributeById(14, ParsedValue.fromNull())
-			.addAttributeById(6, ParsedValue.fromNull())
-			.addAttributeById(9, ParsedValue.fromIdTupleList([]))
-			.addAttributeById(10, ParsedValue.fromIdTupleList([]))
-			.addAttributeById(14, ParsedValue.fromByteArray(ownerEncSessionKey))
+		const decryptedTransferATInstance = DecryptedParsedInstance.outgoingToServer(testTransferAggregatedTypeModel as ClientTypeModel)
+			.addAttributeById(18, ParsedValue.fromNull())
+			.addAttributeById(19, ParsedValue.fromString("seven"))
+			.addAttributeById(20, ParsedValue.fromByteArray(ownerEncSessionKey))
 
 		const path = new RootPath()
 		await assertThrows(ProgrammingError, async () => await cryptoMapper.encryptParsedInstance(decryptedTransferATInstance, subKeyProvider, path, null))
@@ -498,7 +485,10 @@ o.spec("CryptoMapperTest", () => {
 		)
 
 		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => aes256RandomKey()
+		const consoleError = console.error
+		console.error = noOp
 		const instanceWithErrors = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider)
+		console.error = consoleError
 		o.check(typeof instanceWithErrors.getErrors()[1]).equals("string")
 	})
 
@@ -547,6 +537,7 @@ o.spec("CryptoMapperTest", () => {
 		o.test("assembles correct field path", async () => {
 			let valueDecryptor: ValueDecryptor = object()
 			replace(valueDecryptor, "requiredGroupKeyVersion", null)
+			when(valueDecryptor.getValue()).thenReturn(new Uint8Array(0))
 			let instanceDecryptor: InstanceDecryptor = object()
 			when(instanceDecryptor.getValueDecryptor(matchers.anything(), matchers.anything())).thenResolve(valueDecryptor)
 			const symmetricCipherFacade: SymmetricCipherFacade = object()
@@ -562,11 +553,7 @@ o.spec("CryptoMapperTest", () => {
 			replace(cryptoMapper, "symmetricCipherFacade", symmetricCipherFacade)
 			const sessionKey = aes256RandomKey()
 			const encryptedInstance = sampleEncryptedParsedInstance(sessionKey)
-			try {
-				await cryptoMapper.decryptParsedInstance(encryptedInstance, sessionKey, null, null)
-			} catch (_) {
-				/* empty */
-			}
+			await cryptoMapper.decryptParsedInstance(encryptedInstance, sessionKey, null, null)
 			verify(instanceDecryptor.getValueDecryptor(matchers.anything(), "3/someCustomId/9/anotherCustomId/17"))
 		})
 	})
@@ -584,7 +571,7 @@ o.spec("CryptoMapperTest", () => {
 	})
 })
 
-function makeDecryptedparsedInstance(typeModel: ClientTypeModel) {
+function makeDecryptedParsedInstance(typeModel: ClientTypeModel) {
 	return DecryptedParsedInstance.outgoingToServer(typeModel)
 		.addAttributeById(1, ParsedValue.fromString("encrypted string"))
 		.addAttributeById(2, ParsedValue.fromNull())
