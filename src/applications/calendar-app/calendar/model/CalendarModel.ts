@@ -122,7 +122,6 @@ import {
 import { isSharedGroupOwner } from "../../../../entities/sys/Utils"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { OperationId, OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
-import { errorsToString } from "../../../../platform-kit/utils/Utils"
 import { formatNotificationForDisplay } from "../../../../ui/utils/Formatter"
 import {
 	EventAlarmInfoTemplatesTuple,
@@ -137,6 +136,7 @@ import { CalendarImporter, EventImportRejectionReason } from "../../../common/ca
 import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { removeTechnicalFields } from "../gui/eventeditor-model/CalendarEventModel"
+import { errorsToString } from "../../../../ui/utils/ErrorInfo"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
