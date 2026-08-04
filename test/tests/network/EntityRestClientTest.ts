@@ -1214,8 +1214,7 @@ o.spec("EntityRestClient", function () {
 				return instancePipeline.mapAndEncrypt(GroupMemberTypeRef, group, null)
 			})
 
-			// First bulk call throws PayloadTooLargeError, forcing a split into 25 and 25
-			const firstSplitChunkSize = untypedGroupMembers.length / 2
+			// First bulk call throws PayloadTooLargeError, forcing a split, Math.floor(chunkSize / 2), into two chunks of 25
 			when(
 				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
 					...DEFAULT_REST_CLIENT_OPTIONS,
@@ -1227,43 +1226,44 @@ o.spec("EntityRestClient", function () {
 				{ times: 1 },
 			).thenReject(new restError.PayloadTooLargeError("too large"))
 
-			// First chunk of the retry succeeds
 			const firstRetryChunkEntities = untypedGroupMembers.slice(0, untypedGroupMembers.length / 2)
 			const firstRetryChunkUntypedPersistentPostReturn = untypedPostReturns.slice(0, untypedPostReturns.length / 2)
+
+			// First chunk of the retry succeeds
 			mockSetupMultipleSuccessCall(version, firstRetryChunkEntities, firstRetryChunkUntypedPersistentPostReturn)
 
-			// Second chunk fails, forcing another split
 			const secondRetryChunkEntities = untypedGroupMembers.slice(untypedGroupMembers.length / 2, untypedGroupMembers.length)
 			const secondRetryChunkUntypedPersistentPostReturn = untypedPostReturns.slice(untypedPostReturns.length / 2, untypedPostReturns.length)
+
+			// Second chunk fails, forcing another split
 			when(
 				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
 					...DEFAULT_REST_CLIENT_OPTIONS,
 					headers: { ...authHeader, v: String(version) },
-					queryParams: { count: firstSplitChunkSize.toString() },
+					queryParams: { count: secondRetryChunkEntities.length.toString() },
 					responseType: MediaType.Json,
 					body: new RestTextBody(OutgoingServerJson.getJsonRepresentationOfMultiple(secondRetryChunkEntities)),
 				}),
 				{ times: 1 },
-			).thenReject(new restError.PayloadTooLargeError("retry too large"))
+			).thenReject(new restError.PayloadTooLargeError("second chunk retry too large"))
 
-			// Second split happens for the second half of the original list
+			// Second split happens for the second half of the original list, creating 3 chunks = 12, 12, 1
+			const newChunkSize = Math.floor(secondRetryChunkEntities.length / 2) // floor(25/2) = 12
 			mockSetupMultipleSuccessCall(
 				version,
-				secondRetryChunkEntities.slice(0, secondRetryChunkEntities.length / 2),
-				secondRetryChunkUntypedPersistentPostReturn.slice(0, secondRetryChunkUntypedPersistentPostReturn.length / 2),
+				secondRetryChunkEntities.slice(0, newChunkSize),
+				secondRetryChunkUntypedPersistentPostReturn.slice(0, newChunkSize),
 			)
 			mockSetupMultipleSuccessCall(
 				version,
-				secondRetryChunkEntities.slice(secondRetryChunkEntities.length / 2, secondRetryChunkEntities.length),
-				secondRetryChunkUntypedPersistentPostReturn.slice(
-					secondRetryChunkUntypedPersistentPostReturn.length / 2,
-					secondRetryChunkUntypedPersistentPostReturn.length,
-				),
+				secondRetryChunkEntities.slice(newChunkSize, secondRetryChunkEntities.length - 1),
+				secondRetryChunkUntypedPersistentPostReturn.slice(newChunkSize, secondRetryChunkUntypedPersistentPostReturn.length - 1),
 			)
+			mockSetupMultipleSuccessCall(version, secondRetryChunkEntities.slice(-1), secondRetryChunkUntypedPersistentPostReturn.slice(-1))
 
 			const result = await entityRestClient.setupMultiple(listId, instances)
 
-			verify(restClient.request(anything(), anything(), anything()), { ignoreExtraArgs: true, times: 5 })
+			verify(restClient.request(anything(), anything(), anything()), { ignoreExtraArgs: true, times: 6 })
 			o(result.sort((a, b) => Number.parseInt(a) - Number.parseInt(b))).deepEquals(resultIds)
 		})
 	})
