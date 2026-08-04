@@ -242,7 +242,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 	o.spec("decryptSymKeyWithKeyPair", function () {
 		o("should raise a CryptoError when the protocol version is unknown", async function () {
 			await assertThrows(CryptoError, async function () {
-				await asymmetricCryptoFacade.decryptSymKeyWithKeyPair(object(), "unknown" as CryptoProtocolVersion, object())
+				await asymmetricCryptoFacade.decryptSymKeyWithAnyKeyPair(object(), "unknown" as CryptoProtocolVersion, object())
 			})
 		})
 
@@ -251,7 +251,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 
 			when(rsa.decrypt(RSA_TEST_KEYPAIR.privateKey, pubEncSymKey)).thenResolve(keyToUint8Array(aes256RandomKey()))
 
-			await asymmetricCryptoFacade.decryptSymKeyWithKeyPair(RSA_TEST_KEYPAIR, CryptoProtocolVersion.RSA, pubEncSymKey)
+			await asymmetricCryptoFacade.decryptSymKeyWithAnyKeyPair(RSA_TEST_KEYPAIR, CryptoProtocolVersion.RSA, pubEncSymKey)
 
 			verify(rsa.decrypt(RSA_TEST_KEYPAIR.privateKey, pubEncSymKey), { times: 1 })
 		})
@@ -260,7 +260,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			const pubEncSymKey: Uint8Array<ArrayBuffer> = object()
 			const keyPair = instance(PQKeyPairs)
 			await assertThrows(CryptoError, async function () {
-				await asymmetricCryptoFacade.decryptSymKeyWithKeyPair(keyPair, CryptoProtocolVersion.RSA, pubEncSymKey)
+				await asymmetricCryptoFacade.decryptSymKeyWithAnyKeyPair(keyPair, CryptoProtocolVersion.RSA, pubEncSymKey)
 			})
 		})
 
@@ -274,7 +274,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 				senderIdentityPubKey: object(),
 			})
 
-			await asymmetricCryptoFacade.decryptSymKeyWithKeyPair(keyPair, CryptoProtocolVersion.TUTA_CRYPT, pubEncSymKey)
+			await asymmetricCryptoFacade.decryptSymKeyWithAnyKeyPair(keyPair, CryptoProtocolVersion.TUTA_CRYPT, pubEncSymKey)
 
 			verify(pqFacade.decapsulateEncoded(pubEncSymKey, keyPair), { times: 1 })
 		})
@@ -283,7 +283,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			const pubEncSymKey: Uint8Array<ArrayBuffer> = object()
 			const keyPair = instance(RsaKeyPair)
 			await assertThrows(CryptoError, async function () {
-				await asymmetricCryptoFacade.decryptSymKeyWithKeyPair(keyPair, CryptoProtocolVersion.TUTA_CRYPT, pubEncSymKey)
+				await asymmetricCryptoFacade.decryptSymKeyWithAnyKeyPair(keyPair, CryptoProtocolVersion.TUTA_CRYPT, pubEncSymKey)
 			})
 		})
 	})
