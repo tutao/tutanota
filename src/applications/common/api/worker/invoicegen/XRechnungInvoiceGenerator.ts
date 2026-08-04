@@ -207,8 +207,8 @@ export class XRechnungInvoiceGenerator {
 		return XRechnungUBLTemplate.TaxTotal.replace("{vatType}", taxCategory)
 			.replace("{vatPercent}", this.invoice.vatRate)
 			.replace("{slotTaxExemptionReason}", this.resolveTaxExemptionReason(taxCategory))
-			.replace("{taxableAmount}", this.invoice.subTotal)
-			.replaceAll("{vatAmount}", this.invoice.vat)
+			.replace("{taxableAmount}", formatPrice(this.invoice.subTotal))
+			.replaceAll("{vatAmount}", formatPrice(this.invoice.vat))
 	}
 
 	/**
@@ -236,9 +236,9 @@ export class XRechnungInvoiceGenerator {
 			"{sumOfInvoiceLines}",
 			(parseFloat(this.invoice.subTotal) + this.calculateTotalDiscount()).toFixed(2),
 		)
-			.replace("{invoiceExclusiveVat}", this.invoice.subTotal)
-			.replace("{invoiceInclusiveVat}", this.invoice.grandTotal)
-			.replace("{amountDueForPayment}", this.invoice.grandTotal)
+			.replace("{invoiceExclusiveVat}", formatPrice(this.invoice.subTotal))
+			.replace("{invoiceInclusiveVat}", formatPrice(this.invoice.grandTotal))
+			.replace("{amountDueForPayment}", formatPrice(this.invoice.grandTotal))
 			.replace("{totalDiscount}", this.calculateTotalDiscount().toFixed(2))
 	}
 
@@ -279,13 +279,13 @@ export class XRechnungInvoiceGenerator {
 		if (parseFloat(invoiceItem.totalPrice) > 0) {
 			return XRechnungUBLTemplate.InvoiceLine.replace("{invoiceLineId}", itemIndex.toString())
 				.replace("{invoiceLineQuantity}", invoiceItem.amount)
-				.replace("{invoiceLineTotal}", invoiceItem.totalPrice)
+				.replace("{invoiceLineTotal}", formatPrice(invoiceItem.totalPrice))
 				.replace("{invoiceLineStartDate}", formatDate(invoiceItem.startDate))
 				.replace("{invoiceLineEndDate}", formatDate(invoiceItem.endDate))
 				.replace("{invoiceLineItemName}", getInvoiceItemTypeName(invoiceItem.itemType, this.languageCode))
 				.replace("{invoiceLineItemVatType}", taxCategory)
 				.replace("{invoiceLineItemVatPercent}", this.invoice.vatRate)
-				.replace("{invoiceLineItemPrice}", getInvoiceItemPrice(invoiceItem))
+				.replace("{invoiceLineItemPrice}", formatPrice(getInvoiceItemPrice(invoiceItem)))
 		} else {
 			return ""
 		}
@@ -299,11 +299,11 @@ export class XRechnungInvoiceGenerator {
 	private resolveCreditNoteLine(invoiceItem: InvoiceDataItem, taxCategory: TaxCategory, itemIndex: number): string {
 		return XRechnungUBLTemplate.CreditNoteLine.replace("{invoiceLineId}", itemIndex.toString())
 			.replace("{invoiceLineQuantity}", invoiceItem.amount)
-			.replace("{invoiceLineTotal}", invoiceItem.totalPrice)
+			.replace("{invoiceLineTotal}", formatPrice(invoiceItem.totalPrice))
 			.replace("{invoiceLineItemName}", getInvoiceItemTypeName(invoiceItem.itemType, this.languageCode))
 			.replace("{invoiceLineItemVatType}", taxCategory)
 			.replace("{invoiceLineItemVatPercent}", this.invoice.vatRate)
-			.replace("{invoiceLineItemPrice}", getInvoiceItemPrice(invoiceItem))
+			.replace("{invoiceLineItemPrice}", formatPrice(getInvoiceItemPrice(invoiceItem)))
 	}
 
 	/**
@@ -318,6 +318,14 @@ export class XRechnungInvoiceGenerator {
 			.reduce((prev, current) => prev + current, 0)
 		return -sum
 	}
+}
+
+/**
+ * Format all prices to have two digits after separator
+ * @param price
+ */
+function formatPrice(price: string): string {
+	return parseFloat(price).toFixed(2)
 }
 
 /**
