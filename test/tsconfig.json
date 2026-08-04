@@ -10,6 +10,7 @@
 		"outDir": "build",
 		"resolveJsonModule": true,
 		"sourceMap": false,
+		"rootDir": "..",
 		"paths": {
 			/**
 			 * Have to redefine all paths again defined in: `../tsconfig_common.json`

@@ -2426,7 +2426,6 @@ export default {
 		"alternativePaymentMethods_label": "Alternative payment methods",
 		"proxyStorePayment_msg": "You can upgrade with cash or cryptocurrencies with a gift card via our partner ProxyStore",
 		"openProxystore_action": "Open ProxyStore",
-		"appStoreConfirmationTimeout_msg": "Apple has not confirmed your subscription yet. Your account should be upgraded within the next 72 hours. If it is not, request a refund from Apple in the App Store subscription settings.",
 		"subscriptionSettingsSubtitle_label": "On this page you can manage your subscription",
 		"subscriptionSettingCurrentSubscription_label" : "Your current subscription period",
 		"subscriptionSettingNewSubscription_label": "Your next subscription period",

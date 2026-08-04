@@ -19,12 +19,12 @@ export interface SimpleFileFacade {
 	/**
 	 * Save given file in app data folder
 	 */
-	writeToAppDir(content: Uint8Array, name: string): Promise<void>
+	writeToAppDir(content: Uint8Array<ArrayBuffer>, name: string): Promise<void>
 
 	/**
 	 * Read file from given path relative to app data folder
 	 */
-	readFromAppDir(name: string): Promise<Uint8Array>
+	readFromAppDir(name: string): Promise<Uint8Array<ArrayBuffer>>
 
 	/**
 	 * Delete file from given path relative to app data folder
@@ -151,7 +151,7 @@ export class ApplicationTypesFacade {
 	}
 
 	// visibleForTesting
-	public computeApplicationTypesHash(applicationTypesJsonData: Uint8Array): string {
+	public computeApplicationTypesHash(applicationTypesJsonData: Uint8Array<ArrayBuffer>): string {
 		const applicationTypesHash = sha256Hash(applicationTypesJsonData)
 		return uint8ArrayToBase64(applicationTypesHash.slice(0, 5))
 	}

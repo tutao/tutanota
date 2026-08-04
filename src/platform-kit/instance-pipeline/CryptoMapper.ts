@@ -403,7 +403,7 @@ export class CryptoMapper {
 			throw new CryptoError(`Encrypting ${valueType.name} requires keys!`)
 		}
 		const subKeys = subKeyProvider.getSubKeys()
-		let encryptedBytes: Uint8Array
+		let encryptedBytes: Uint8Array<ArrayBuffer>
 		if (subKeys.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac) {
 			encryptedBytes = this.symmetricCipherFacade.encryptBytes(subKeys, bytes)
 		} else {

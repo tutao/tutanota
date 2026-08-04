@@ -65,8 +65,8 @@ const BYTES_MARKER = "__bytes"
 export function replaceBytesWithWrapper(value: unknown): unknown {
 	if (value == null) {
 		return null
-	} else if (value instanceof Uint8Array) {
-		return { data: uint8ArrayToBase64(value), marker: BYTES_MARKER }
+	} else if (value instanceof Uint8Array && value.buffer instanceof ArrayBuffer) {
+		return { data: uint8ArrayToBase64(value as Uint8Array<ArrayBuffer>), marker: BYTES_MARKER }
 	} else if (Array.isArray(value)) {
 		return value.map(replaceBytesWithWrapper)
 	} else if (typeof value === "object") {

@@ -33,13 +33,13 @@ export type DriveFolder = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
 	type: NumberString;
 	name: string;
 	createdDate: Date;
 	updatedDate: Date;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	parent: null | IdTuple;
 	originalParent: null | IdTuple;
@@ -74,14 +74,14 @@ export type DriveFile = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
 	name: string;
 	size: NumberString;
 	mimeType: string;
 	createdDate: Date;
 	updatedDate: Date;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	folder: IdTuple;
 	blobs: Blob[];
@@ -207,7 +207,7 @@ export type DriveUploadedFile = {
 	_id: Id;
 	fileName: string;
 	mimeType: string;
-	ownerEncSessionKey: Uint8Array;
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
@@ -221,8 +221,8 @@ export function createDrivePostIn(values: DrivePostInParams): DrivePostIn {
 export type DrivePostInParams = {
 
 
-	ownerEncRootFolderSessionKey: Uint8Array;
-	ownerEncTrashFolderSessionKey: Uint8Array;
+	ownerEncRootFolderSessionKey: Uint8Array<ArrayBuffer>;
+	ownerEncTrashFolderSessionKey: Uint8Array<ArrayBuffer>;
 
 	fileGroupId: Id;
 }
@@ -232,8 +232,8 @@ export type DrivePostIn = {
 	_original?: DrivePostIn
 
 	_format: NumberString;
-	ownerEncRootFolderSessionKey: Uint8Array;
-	ownerEncTrashFolderSessionKey: Uint8Array;
+	ownerEncRootFolderSessionKey: Uint8Array<ArrayBuffer>;
+	ownerEncTrashFolderSessionKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
 
 	fileGroupId: Id;
@@ -353,7 +353,7 @@ export type DriveFolderServicePostIn = {
 
 	_format: NumberString;
 	folderName: string;
-	ownerEncSessionKey: Uint8Array;
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
 
 	parent: IdTuple;
@@ -388,7 +388,7 @@ export function createDriveRenameData(values: DriveRenameDataParams): DriveRenam
 export type DriveRenameDataParams = {
 
 
-	encNewName: null | Uint8Array;
+	encNewName: null | Uint8Array<ArrayBuffer>;
 
 	file: null | IdTuple;
 	folder: null | IdTuple;
@@ -399,7 +399,7 @@ export type DriveRenameData = {
 	_original?: DriveRenameData
 
 	_id: Id;
-	encNewName: null | Uint8Array;
+	encNewName: null | Uint8Array<ArrayBuffer>;
 
 	file: null | IdTuple;
 	folder: null | IdTuple;

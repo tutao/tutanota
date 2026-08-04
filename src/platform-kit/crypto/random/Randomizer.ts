@@ -28,7 +28,7 @@ export class Randomizer {
 		return Promise.resolve()
 	}
 
-	addStaticEntropy(bytes: Uint8Array) {
+	addStaticEntropy(bytes: Uint8Array<ArrayBuffer>) {
 		for (const byte of bytes) {
 			this.random.addEntropy(byte, 8, "static")
 		}
@@ -47,7 +47,7 @@ export class Randomizer {
 	 * @return A hex coded string of random data.
 	 * @throws {CryptoError} if the randomizer is not seeded (isReady == false)
 	 */
-	generateRandomData(nbrOfBytes: number): Uint8Array {
+	generateRandomData(nbrOfBytes: number): Uint8Array<ArrayBuffer> {
 		try {
 			// read the minimal number of words to get nbrOfBytes
 			let nbrOfWords = Math.floor((nbrOfBytes + 3) / 4)

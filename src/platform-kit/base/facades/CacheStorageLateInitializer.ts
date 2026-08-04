@@ -18,7 +18,7 @@ export class EphemeralStorageArgs extends StorageArgs {
 export class OfflineStorageArgs extends StorageArgs {
 	constructor(
 		readonly userId: Id,
-		readonly databaseKey: Uint8Array,
+		readonly databaseKey: Uint8Array<ArrayBuffer>,
 		readonly forceNewDatabase: boolean,
 	) {
 		super()

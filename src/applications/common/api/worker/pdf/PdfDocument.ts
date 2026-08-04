@@ -155,7 +155,7 @@ export class PdfDocument {
 	/**
 	 * Create the document: commit all streams to objects and let the PdfWriter write the file
 	 */
-	async create(): Promise<Uint8Array> {
+	async create(): Promise<Uint8Array<ArrayBuffer>> {
 		// Write all open streams and add the page tree with all pages of the document to the PDF
 		await this.renderText()
 		await this.renderGraphics()
@@ -175,7 +175,7 @@ export class PdfDocument {
 	 */
 	private async renderText(): Promise<void> {
 		const encodedTextStream = await this.deflater.deflate(
-			stringToUtf8Uint8Array(`BT q ${TRANSFORM_MATRIX} cm /F${this.currentFont} ${this.currentFontSize} Tf ` + this.textStream + ` Q ET`),
+			stringToUtf8Uint8Array(`BT q ${TRANSFORM_MATRIX} cm /F${this.currentFont} ${this.currentFontSize} Tf ` + this.textStream + ` Q ET`).buffer,
 		)
 		this.pdfWriter.createStreamObject(new Map(), encodedTextStream, PdfStreamEncoding.FLATE, `TEXT_${this.pageCount}`)
 		this.textStream = ""
@@ -185,7 +185,7 @@ export class PdfDocument {
 	 * Closes the current graphicsStream and writes it into an object
 	 */
 	private async renderGraphics(): Promise<void> {
-		const encodedGraphicsStream = await this.deflater.deflate(stringToUtf8Uint8Array(`q ${TRANSFORM_MATRIX} cm ` + this.graphicsStream + ` Q`))
+		const encodedGraphicsStream = await this.deflater.deflate(stringToUtf8Uint8Array(`q ${TRANSFORM_MATRIX} cm ` + this.graphicsStream + ` Q`).buffer)
 		this.pdfWriter.createStreamObject(new Map(), encodedGraphicsStream, PdfStreamEncoding.FLATE, `GRAPHICS_${this.pageCount}`)
 		this.graphicsStream = ""
 	}

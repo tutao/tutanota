@@ -224,8 +224,8 @@ export class SpamMailProcessor {
 		datum: SpamMailDatum,
 		serverVectorSize: number = BYTES_FOR_SERVER_CLASSIFICATION_DATA,
 	): Promise<{
-		uploadableVectorLegacy: Uint8Array
-		uploadableVector: Uint8Array
+		uploadableVectorLegacy: Uint8Array<ArrayBuffer>
+		uploadableVector: Uint8Array<ArrayBuffer>
 	}> {
 		const vectorizedMail = await this.makeVectorizedMail(datum)
 		const uploadableVectorLegacy = this.sparseVectorCompressor.compress(vectorizedMail)

@@ -146,7 +146,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		)
 	})
 
-	function createApplicationTypesGetOutFromResponse(applicationTypesGetOut: Uint8Array) {
+	function createApplicationTypesGetOutFromResponse(applicationTypesGetOut: Uint8Array<ArrayBuffer>) {
 		return JSON.parse(EntityUtils.decompressString(applicationTypesGetOut)) as ApplicationTypesGetOut
 	}
 

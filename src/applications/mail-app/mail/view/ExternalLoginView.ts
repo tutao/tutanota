@@ -29,7 +29,7 @@ import { asKdfType, KdfType } from "../../../../platform-kit/base/base-crypto/Co
 
 assertMainOrNode()
 
-type UrlData = { userId: Id; salt: Uint8Array; kdfType: KdfType }
+type UrlData = { userId: Id; salt: Uint8Array<ArrayBuffer>; kdfType: KdfType }
 
 export class ExternalLoginViewModel {
 	password: string = ""

@@ -55,11 +55,15 @@ type ConfigDb = {
 }
 
 /** @PublicForTesting */
-export async function encryptItem(item: string, key: Aes256Key, initializationVector: InitializationVector): Promise<Uint8Array> {
+export async function encryptItem(item: string, key: Aes256Key, initializationVector: InitializationVector): Promise<Uint8Array<ArrayBuffer>> {
 	return aesEncryptConfigurationDatabaseItem(key, stringToUtf8Uint8Array(item), initializationVector)
 }
 
-export async function decryptLegacyItem(encryptedAddress: Uint8Array, key: Aes256Key, initializationVector: InitializationVector): Promise<string> {
+export async function decryptLegacyItem(
+	encryptedAddress: Uint8Array<ArrayBuffer>,
+	key: Aes256Key,
+	initializationVector: InitializationVector,
+): Promise<string> {
 	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, concat(initializationVector.bytes, encryptedAddress)))
 }
 
@@ -130,7 +134,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 
 		try {
 			const transaction = await db.createTransaction(false, [LocalDraftDataOS])
-			const data = await transaction.get<Uint8Array>(LocalDraftDataOS, LOCAL_DRAFT_KEY)
+			const data = await transaction.get<Uint8Array<ArrayBuffer>>(LocalDraftDataOS, LOCAL_DRAFT_KEY)
 			if (data == null) {
 				return null
 			}
@@ -205,7 +209,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 
 		try {
 			const transaction = await db.createTransaction(false, [SpamClassificationModelOS])
-			const encryptedModel = await transaction.get<Uint8Array>(SpamClassificationModelOS, ownerGroup)
+			const encryptedModel = await transaction.get<Uint8Array<ArrayBuffer>>(SpamClassificationModelOS, ownerGroup)
 			if (encryptedModel == null) {
 				return null
 			}
@@ -438,8 +442,8 @@ export async function updateEncryptionMetadata(db: DbFacade, keyLoaderFacade: Ke
  */
 export async function getMetaData(db: DbFacade, objectStoreName: ObjectStoreName): Promise<EncryptedDbKeyBaseMetaData | null> {
 	const transaction = await db.createTransaction(true, [objectStoreName])
-	const userEncDbKey = (await transaction.get(objectStoreName, Metadata.userEncDbKey)) as Uint8Array
-	const encDbIv = (await transaction.get(objectStoreName, Metadata.encDbIv)) as Uint8Array
+	const userEncDbKey = (await transaction.get(objectStoreName, Metadata.userEncDbKey)) as Uint8Array<ArrayBuffer>
+	const encDbIv = (await transaction.get(objectStoreName, Metadata.encDbIv)) as Uint8Array<ArrayBuffer>
 	const userGroupKeyVersion = cryptoUtils.checkKeyVersionConstraints((await transaction.get<number>(objectStoreName, Metadata.userGroupKeyVersion)) ?? 0) // was not written for old dbs
 	if (userEncDbKey == null || encDbIv == null) {
 		return null
@@ -459,8 +463,8 @@ export async function getMetaData(db: DbFacade, objectStoreName: ObjectStoreName
  */
 export async function getIndexerMetaData(db: DbFacade, objectStoreName: ObjectStoreName): Promise<EncryptedIndexerMetaData | null> {
 	const transaction = await db.createTransaction(true, [objectStoreName])
-	const userEncDbKey = (await transaction.get(objectStoreName, Metadata.userEncDbKey)) as Uint8Array
-	const encDbIv = (await transaction.get(objectStoreName, Metadata.encDbIv)) as Uint8Array
+	const userEncDbKey = (await transaction.get(objectStoreName, Metadata.userEncDbKey)) as Uint8Array<ArrayBuffer>
+	const encDbIv = (await transaction.get(objectStoreName, Metadata.encDbIv)) as Uint8Array<ArrayBuffer>
 	const userGroupKeyVersion = cryptoUtils.checkKeyVersionConstraints((await transaction.get<number>(objectStoreName, Metadata.userGroupKeyVersion)) ?? 0) // was not written for old dbs
 	const mailIndexingEnabled = (await transaction.get(objectStoreName, Metadata.mailIndexingEnabled)) as boolean
 	const excludedListIds = (await transaction.get(objectStoreName, Metadata.excludedListIds)) as Id[]
@@ -479,7 +483,7 @@ export async function getIndexerMetaData(db: DbFacade, objectStoreName: ObjectSt
 	}
 }
 
-async function encryptAndSaveDbKey(userGroupKey: VersionedKey, dbKey: AesKey, dbIv: Uint8Array, db: DbFacade, objectStoreName: string) {
+async function encryptAndSaveDbKey(userGroupKey: VersionedKey, dbKey: AesKey, dbIv: Uint8Array<ArrayBuffer>, db: DbFacade, objectStoreName: string) {
 	const transaction = await db.createTransaction(false, [objectStoreName]) // create a new transaction to avoid timeouts and for writing
 	const groupEncSessionKey = _encryptKeyWithVersionedKey(userGroupKey, dbKey)
 	await transaction.put(objectStoreName, Metadata.userEncDbKey, groupEncSessionKey.key)

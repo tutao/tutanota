@@ -43,7 +43,7 @@ export const UNCOMPRESSED_MAX_SIZE = 1024 * 1024
  * @throws on invalid offset
  * @return {Uint8Array} decoded data
  */
-export function uncompress(input: Uint8Array): Uint8Array {
+export function uncompress(input: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 	const endIndex = input.length
 	let output = new Uint8Array(input.length * 6)
 	let j = 0
@@ -139,7 +139,7 @@ function compressBound(isize: number) {
 	return isize > MAX_INPUT_SIZE ? 0 : (isize + isize / 255 + 16) | 0
 }
 
-export function compress(source: Uint8Array): Uint8Array {
+export function compress(source: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 	if (source.length === 0) return new Uint8Array(0)
 	const dest = new Uint8Array(compressBound(source.length))
 	// V8 optimization: non sparse array with integers

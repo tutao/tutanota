@@ -63,7 +63,7 @@ export class SymmetricCipherFacade {
 	 * @param bytes The data to encrypt.
 	 * @return The encrypted bytes.
 	 */
-	encryptBytes(key: AesKeyOrSubKeys, bytes: Uint8Array): Uint8Array {
+	encryptBytes(key: AesKeyOrSubKeys, bytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		return this.encrypt(key, bytes, PaddingStandard.Pkcs5, SymmetricCipherVersion.AesCbcThenHmac)
 	}
 
@@ -75,7 +75,7 @@ export class SymmetricCipherFacade {
 	 * @param associatedData	The associated data to include in the authentication tag computation, to bind the ciphertext to its context.
 	 * @return					The encrypted bytes.
 	 */
-	encryptBytesWithAead(subKeys: AeadSubKeys, bytes: Uint8Array, associatedData: Uint8Array): Uint8Array {
+	encryptBytesWithAead(subKeys: AeadSubKeys, bytes: Uint8Array<ArrayBuffer>, associatedData: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		return this.encryptWithAead(subKeys, bytes, associatedData)
 	}
 
@@ -86,7 +86,7 @@ export class SymmetricCipherFacade {
 	 *
 	 * @deprecated
 	 */
-	encryptBytesDeprecatedUnauthenticated(key: AesKey, bytes: Uint8Array): Uint8Array {
+	encryptBytesDeprecatedUnauthenticated(key: AesKey, bytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		return this.encrypt(
 			key,
 			bytes,
@@ -102,7 +102,11 @@ export class SymmetricCipherFacade {
 	 *
 	 * @deprecated use encryptBytes instead
 	 */
-	encryptBytesDeprecatedCustomInitializationVector(key: AesKey, bytes: Uint8Array, initializationVector: InitializationVector): Uint8Array {
+	encryptBytesDeprecatedCustomInitializationVector(
+		key: AesKey,
+		bytes: Uint8Array<ArrayBuffer>,
+		initializationVector: InitializationVector,
+	): Uint8Array<ArrayBuffer> {
 		const cipherVersion: SymmetricCipherVersion = SymmetricCipherVersion.AesCbcThenHmac
 		const subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbc(key, cipherVersion)
 		return this.aesCbcFacade.encrypt(subKeys, bytes, initializationVector, PaddingStandard.Pkcs5, cipherVersion)
@@ -115,7 +119,11 @@ export class SymmetricCipherFacade {
 	 *
 	 * @deprecated use encryptBytes instead.
 	 */
-	encryptBytesDeprecatedUnauthenticatedCustomInitializationVector(key: AesKey, bytes: Uint8Array, initializationVector: InitializationVector): Uint8Array {
+	encryptBytesDeprecatedUnauthenticatedCustomInitializationVector(
+		key: AesKey,
+		bytes: Uint8Array<ArrayBuffer>,
+		initializationVector: InitializationVector,
+	): Uint8Array<ArrayBuffer> {
 		const cipherVersion: SymmetricCipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
 		const subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbc(key, cipherVersion)
 		return this.aesCbcFacade.encrypt(subKeys, bytes, initializationVector, PaddingStandard.Pkcs5, cipherVersion, AuthenticationEnforcement.Relaxed)
@@ -128,7 +136,7 @@ export class SymmetricCipherFacade {
 	 * @param bytes A byte array that was encrypted with the same key before.
 	 * @return The decrypted bytes.
 	 */
-	decryptBytes(key: AesKey, bytes: Uint8Array): Uint8Array {
+	decryptBytes(key: AesKey, bytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		return this.decrypt(key, bytes, PaddingStandard.Pkcs5)
 	}
 
@@ -139,7 +147,7 @@ export class SymmetricCipherFacade {
 	 * @param bytes A byte array that was encrypted with the same key before.
 	 * @return The decrypted bytes.
 	 */
-	async asyncDecryptBytes(key: AesKey, bytes: Uint8Array): Promise<Uint8Array> {
+	async asyncDecryptBytes(key: AesKey, bytes: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
 		if (this.subtleCryptoAvailable) {
 			return this.decryptAsync(key, bytes)
 		} else {
@@ -154,7 +162,7 @@ export class SymmetricCipherFacade {
 	 *
 	 * @deprecated
 	 */
-	decryptBytesDeprecatedUnauthenticated(key: AesKey, bytes: Uint8Array): Uint8Array {
+	decryptBytesDeprecatedUnauthenticated(key: AesKey, bytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		return this.decrypt(key, bytes, PaddingStandard.Pkcs5, InitializationVectorVariant.Random, AuthenticationEnforcement.Relaxed)
 	}
 
@@ -166,7 +174,7 @@ export class SymmetricCipherFacade {
 	 *
 	 * @deprecated
 	 */
-	decryptKeyDeprecatedUnauthenticated(key: AesKey, bytes: Uint8Array): AesKey {
+	decryptKeyDeprecatedUnauthenticated(key: AesKey, bytes: Uint8Array<ArrayBuffer>): AesKey {
 		return uint8ArrayToKey(this.decrypt(key, bytes, PaddingStandard.None, InitializationVectorVariant.Random, AuthenticationEnforcement.Relaxed))
 	}
 
@@ -178,7 +186,7 @@ export class SymmetricCipherFacade {
 	 *
 	 * @deprecated
 	 */
-	decryptKeyDeprecatedUnauthenticatedFixedInitializationVector(key: AesKey, bytes: Uint8Array): AesKey {
+	decryptKeyDeprecatedUnauthenticatedFixedInitializationVector(key: AesKey, bytes: Uint8Array<ArrayBuffer>): AesKey {
 		const decrypted = this.decrypt(key, bytes, PaddingStandard.None, InitializationVectorVariant.Fixed, AuthenticationEnforcement.Relaxed)
 		return uint8ArrayToKey(decrypted)
 	}
@@ -190,7 +198,7 @@ export class SymmetricCipherFacade {
 	 * @param keyToEncrypt The key that shall be encrypted.
 	 * @return The encrypted key.
 	 */
-	encryptKey(key: AesKey, keyToEncrypt: AesKey): Uint8Array {
+	encryptKey(key: AesKey, keyToEncrypt: AesKey): Uint8Array<ArrayBuffer> {
 		if (key instanceof Aes128Key) {
 			// we never authenticate keys encrypted with a legacy AES-128 key, because we rotate all keys to 256 to ensure authentication
 			return this.encrypt(
@@ -215,7 +223,7 @@ export class SymmetricCipherFacade {
 	 * @param acceptedBitLength The accepted length of the key that shall be decrypted.
 	 * @return The decrypted key.
 	 */
-	decryptKey(key: AesKey, bytes: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey {
+	decryptKey(key: AesKey, bytes: Uint8Array<ArrayBuffer>, acceptedBitLength?: AesKeyLength): AesKey {
 		if (key instanceof Aes128Key) {
 			return uint8ArrayToKey(this.decrypt(key, bytes, PaddingStandard.None, InitializationVectorVariant.Fixed), acceptedBitLength)
 		} else if (key instanceof Aes256Key) {
@@ -226,12 +234,12 @@ export class SymmetricCipherFacade {
 
 	private encrypt(
 		key: AesKeyOrSubKeys,
-		plaintext: Uint8Array,
+		plaintext: Uint8Array<ArrayBuffer>,
 		paddingStandard: PaddingStandard,
 		cipherVersion: SymmetricCipherVersion,
 		initializationVectorVariant: InitializationVectorVariant = InitializationVectorVariant.Random,
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
-	): Uint8Array {
+	): Uint8Array<ArrayBuffer> {
 		let initializationVector: InitializationVector
 		if (initializationVectorVariant === InitializationVectorVariant.Random) {
 			initializationVector = generateInitializationVector()
@@ -249,17 +257,17 @@ export class SymmetricCipherFacade {
 		return this.aesCbcFacade.encrypt(subKeys, plaintext, initializationVector, paddingStandard, cipherVersion, authenticationEnforcement)
 	}
 
-	encryptWithAead(subKeys: AeadSubKeys, plaintext: Uint8Array, associatedData: Uint8Array): Uint8Array {
+	encryptWithAead(subKeys: AeadSubKeys, plaintext: Uint8Array<ArrayBuffer>, associatedData: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		return this.aeadFacade.encrypt(subKeys, plaintext, associatedData)
 	}
 
 	decrypt(
 		key: AesKey,
-		cipherText: Uint8Array,
+		cipherText: Uint8Array<ArrayBuffer>,
 		paddingStandard: PaddingStandard,
 		initializationVectorVariant: InitializationVectorVariant = InitializationVectorVariant.Random,
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
-	): Uint8Array {
+	): Uint8Array<ArrayBuffer> {
 		const parsedCiphertext = parseVersionedCiphertext(cipherText, initializationVectorVariant)
 		if (parsedCiphertext instanceof ParsedCiphertextAesCbc) {
 			const subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbc(key, parsedCiphertext.cipherVersion)
@@ -271,10 +279,10 @@ export class SymmetricCipherFacade {
 
 	decryptAsync(
 		key: AesKey,
-		ciphertext: Uint8Array,
+		ciphertext: Uint8Array<ArrayBuffer>,
 		initializationVectorVariant: InitializationVectorVariant = InitializationVectorVariant.Random,
 		authenticationEnforcement: AuthenticationEnforcement = AuthenticationEnforcement.Strict,
-	): Promise<Uint8Array> {
+	): Promise<Uint8Array<ArrayBuffer>> {
 		const parsedCiphertext = parseVersionedCiphertext(ciphertext, initializationVectorVariant)
 		if (parsedCiphertext instanceof ParsedCiphertextAesCbc) {
 			const subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbc(key, parsedCiphertext.cipherVersion)

@@ -4,7 +4,7 @@ export class DeviceEncryptionFacade {
 	/**
 	 * Generates an encryption key.
 	 */
-	async generateKey(): Promise<Uint8Array> {
+	async generateKey(): Promise<Uint8Array<ArrayBuffer>> {
 		return keyToUint8Array(aes256RandomKey())
 	}
 
@@ -13,7 +13,7 @@ export class DeviceEncryptionFacade {
 	 * @param deviceKey Key used for encryption
 	 * @param data Data to encrypt.
 	 */
-	async encrypt(deviceKey: Uint8Array, data: Uint8Array): Promise<Uint8Array> {
+	async encrypt(deviceKey: Uint8Array<ArrayBuffer>, data: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
 		return aesEncrypt(uint8ArrayToKey(deviceKey), data)
 	}
 
@@ -22,7 +22,7 @@ export class DeviceEncryptionFacade {
 	 * @param deviceKey Key used for encryption
 	 * @param encryptedData Data to be decrypted.
 	 */
-	async decrypt(deviceKey: Uint8Array, encryptedData: Uint8Array): Promise<Uint8Array> {
+	async decrypt(deviceKey: Uint8Array<ArrayBuffer>, encryptedData: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
 		return aesDecrypt(uint8ArrayToKey(deviceKey), encryptedData)
 	}
 }

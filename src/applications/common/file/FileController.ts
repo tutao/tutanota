@@ -306,8 +306,9 @@ export async function zipDataFiles(dataFiles: Array<DataFile>, name: string): Pr
 		const filename = assertNotNull(deduplicatedMap[sanitizeFilename(file.name)].shift())
 		zip.file(filename, file.data, { binary: true })
 	}
-	const zipData = await zip.generateAsync({ type: "uint8array" })
-	return createDataFile(name, "application/zip", zipData)
+	// jszip currently doesn't have the types to support Uint8Array<ArrayBuffer> directly here.
+	const zipData = await zip.generateAsync({ type: "arraybuffer" })
+	return createDataFile(name, "application/zip", new Uint8Array(zipData))
 }
 
 export async function openDataFileInBrowser(dataFile: DataFile): Promise<void> {

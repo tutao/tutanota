@@ -419,10 +419,10 @@ export class IndexedDbSearchFacade implements SearchFacade {
 	}
 
 	private findEntriesForMetadata(transaction: DbTransaction, entry: SearchIndexMetadataEntry): Promise<EncryptedSearchIndexEntry[]> {
-		return transaction.get(SearchIndexOS, entry.key).then((indexEntriesRow) => {
+		return transaction.get(SearchIndexOS, entry.key).then((indexEntriesRow: Uint8Array<ArrayBuffer>) => {
 			if (!indexEntriesRow) return []
 			const result = new Array(entry.size)
-			iterateBinaryBlocks(indexEntriesRow as Uint8Array, (block, s, e, iteration) => {
+			iterateBinaryBlocks(indexEntriesRow, (block, s, e, iteration) => {
 				result[iteration] = block
 			})
 			return result

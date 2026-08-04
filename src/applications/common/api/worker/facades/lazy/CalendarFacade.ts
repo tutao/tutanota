@@ -562,7 +562,7 @@ function getEventIdFromUserAlarmInfo(userAlarmInfo: UserAlarmInfo): IdTuple {
 }
 
 /** to make lookup on the encrypted event uid possible, we hash it and use that value as a key. */
-function hashUid(uid: string): Uint8Array {
+function hashUid(uid: string): Uint8Array<ArrayBuffer> {
 	return sha256Hash(stringToUtf8Uint8Array(uid))
 }
 

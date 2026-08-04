@@ -29,7 +29,7 @@ import type { FileUri, NativeFileApp } from "../../../../../../app-kit/native-br
 import type { AesApp } from "../../../../../../app-kit/native-bridge/worker/AesApp.js"
 import { splitFileIntoChunks } from "../../../../../../ui/utils/FileUtils.js"
 import { BlobAccessTokenFacade, BlobLoadOptions, DEFAULT_BLOB_LOAD_OPTIONS } from "../../../../../../platform-kit/network/BlobAccessTokenFacade.js"
-import { EncryptedParsedInstance, InstancePipeline, TypeModelResolver } from "@tutao/instance-pipeline"
+import { InstancePipeline, TypeModelResolver } from "@tutao/instance-pipeline"
 import { CryptoError } from "@tutao/crypto/error"
 import { TransferProgressDispatcher } from "../../../main/TransferProgressDispatcher"
 import { doBlobRequestWithRetry, tryServers } from "../../../../../../platform-kit/network/EntityRestClient"
@@ -54,12 +54,12 @@ export const BLOB_SERVICE_REST_PATH = `/rest/${BlobService.app}/${BlobService.na
 export const TAG = "BlobFacade"
 
 export interface FileData {
-	data: Uint8Array
+	data: Uint8Array<ArrayBuffer>
 	sessionKey: AesKey
 }
 interface NewBlobWrapper {
-	hash: Uint8Array
-	data: Uint8Array
+	hash: Uint8Array<ArrayBuffer>
+	data: Uint8Array<ArrayBuffer>
 }
 export interface KeyedNewBlobWrapper {
 	sessionKey: AesKey
@@ -67,7 +67,7 @@ export interface KeyedNewBlobWrapper {
 }
 interface SerializedBinaryWrapper {
 	sessionKeys: AesKey[]
-	binary: Uint8Array
+	binary: Uint8Array<ArrayBuffer>
 }
 export const MAX_NUMBER_OF_BLOBS_IN_BINARY = 200
 const MAX_UNENCRYPTED_BLOB_SIZE_BYTES = 10 * 1024 * 1024
@@ -87,7 +87,7 @@ interface FileUploadState {
 	readonly totalSize: number
 }
 
-type EncryptedChunk = Uint8Array & { readonly __brand: unique symbol }
+type EncryptedChunk = Uint8Array<ArrayBuffer> & { readonly __brand: unique symbol }
 
 interface NativeChunk {
 	chunkUri: string
@@ -228,7 +228,7 @@ export class BlobFacade {
 	 */
 	async encryptAndUpload(
 		archiveDataType: ArchiveDataType,
-		blobData: Uint8Array,
+		blobData: Uint8Array<ArrayBuffer>,
 		ownerGroupId: Id,
 		sessionKey: AesKey,
 		transferId: TransferId,
@@ -263,7 +263,7 @@ export class BlobFacade {
 		}
 	}
 
-	private async encryptChunk(sessionKey: AesKey, chunk: Uint8Array): Promise<EncryptedChunk> {
+	private async encryptChunk(sessionKey: AesKey, chunk: Uint8Array<ArrayBuffer>): Promise<EncryptedChunk> {
 		return (await _encryptBytes(sessionKey, chunk)) as EncryptedChunk
 	}
 	private async encryptChunkNative(sessionKey: AesKey, fileUri: FileUri): Promise<string> {
@@ -480,7 +480,7 @@ export class BlobFacade {
 	}
 
 	private async uploadMultipleBlobs(
-		encryptedData: Uint8Array,
+		encryptedData: Uint8Array<ArrayBuffer>,
 		blobServerAccessInfo: BlobServerAccessInfo,
 		abortSignal: AbortSignal,
 	): Promise<BlobReferenceTokenWrapper[]> {
@@ -518,7 +518,7 @@ export class BlobFacade {
 		referencingInstance: BlobReferencingInstance,
 		transferId: TransferId,
 		blobLoadOptions: Nullable<BlobLoadOptions> = null,
-	): Promise<Uint8Array> {
+	): Promise<Uint8Array<ArrayBuffer>> {
 		const sessionKey = await this.resolveSessionKey(referencingInstance.entity)
 
 		let bytesDownloadedSoFar = 0
@@ -638,13 +638,13 @@ export class BlobFacade {
 		archiveDataType: ArchiveDataType,
 		referencingInstances: BlobReferencingInstance[],
 		blobLoadOptions: Nullable<BlobLoadOptions> = null,
-	): Promise<Map<Id, Uint8Array | null>> {
+	): Promise<Map<Id, Uint8Array<ArrayBuffer> | null>> {
 		// If a mail has multiple attachments, we cannot assume they are all on the same archive.
 		// But all blobs of a single attachment should be in the same archive
 		const instancesByArchive = groupBy(referencingInstances, (instance) => getFirstOrThrow(instance.blobs).archiveId)
 
 		// instance id to data
-		const result: Map<Id, Uint8Array | null> = new Map()
+		const result: Map<Id, Uint8Array<ArrayBuffer> | null> = new Map()
 
 		for (const [_, instances] of instancesByArchive.entries()) {
 			// request a token for all instances of the archive
@@ -675,7 +675,7 @@ export class BlobFacade {
 		return result
 	}
 
-	private async decryptInstanceData(instance: BlobReferencingInstance, blobs: Map<Id, Uint8Array>): Promise<Uint8Array | null> {
+	private async decryptInstanceData(instance: BlobReferencingInstance, blobs: Map<Id, Uint8Array<ArrayBuffer>>): Promise<Uint8Array<ArrayBuffer> | null> {
 		// get the key of the instance
 		const sessionKey = await this.resolveSessionKey(instance.entity)
 		// decrypt blobs of the instance and concatenate them
@@ -890,7 +890,7 @@ export class BlobFacade {
 	async encryptAndUploadBlobWithReferencingInstance(
 		mainInstance: PersistentEntity,
 		archiveDataType: ArchiveDataType,
-		blobData: Uint8Array,
+		blobData: Uint8Array<ArrayBuffer>,
 		ownerGroupId: Id,
 	) {
 		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(mainInstance))
@@ -940,9 +940,9 @@ export class BlobFacade {
 		blobLoadOptions: BlobLoadOptions,
 		onProgress: (bytes: number) => unknown,
 		abortSignal: Nullable<AbortSignal> = null,
-	): Promise<Map<Id, Uint8Array>> {
+	): Promise<Map<Id, Uint8Array<ArrayBuffer>>> {
 		const archiveIdToBlobs = groupBy(blobs, (blob) => blob.archiveId)
-		let mapWithEncryptedBlobs: Map<Id, Uint8Array> = new Map()
+		let mapWithEncryptedBlobs: Map<Id, Uint8Array<ArrayBuffer>> = new Map()
 		for (const [archiveId, archiveBlobs] of archiveIdToBlobs) {
 			const blobServerAccessInfo = assertNotNull(blobServerAccessInfos.get(archiveId))
 			const mapWithEncryptedBlobsOfArchive = await this.downloadBlobsOfOneArchive(
@@ -973,7 +973,7 @@ export class BlobFacade {
 		blobLoadOptions: BlobLoadOptions,
 		onProgress: (bytes: number) => unknown,
 		abortSignal: AbortSignal | null,
-	): Promise<Map<Id, Uint8Array>> {
+	): Promise<Map<Id, Uint8Array<ArrayBuffer>>> {
 		if (isEmpty(blobs)) {
 			throw new ProgrammingError("Blobs are empty")
 		}
@@ -982,7 +982,7 @@ export class BlobFacade {
 			throw new ProgrammingError("Must only request blobs of the same archive together")
 		}
 
-		let blobResponse: Map<Id, Uint8Array> = new Map()
+		let blobResponse: Map<Id, Uint8Array<ArrayBuffer>> = new Map()
 		// All the blob ids are included in the server query, so if more than 100 blobs are requested at
 		// the same time a 414 Request-URI Too Long Error will be received
 		const BLOB_PROCESS_NUM = 100
@@ -1143,9 +1143,9 @@ export class BlobFacade {
  *
  * @return a map from blobId to the binary data
  */
-export function parseMultipleBlobsResponse(concatBinaryData: Uint8Array): Map<Id, Uint8Array> {
+export function parseMultipleBlobsResponse(concatBinaryData: Uint8Array<ArrayBuffer>): Map<Id, Uint8Array<ArrayBuffer>> {
 	const dataView = new DataView(concatBinaryData.buffer)
-	const result = new Map<Id, Uint8Array>()
+	const result = new Map<Id, Uint8Array<ArrayBuffer>>()
 	const blobCount = dataView.getInt32(0)
 	if (blobCount === 0) {
 		return result
@@ -1233,10 +1233,10 @@ function encryptMultipleFileData(fileData: FileData[]): KeyedNewBlobWrapper[] {
 	return result
 }
 
-function chunkData(data: Uint8Array, size: number): Uint8Array[] {
+function chunkData(data: Uint8Array<ArrayBuffer>, size: number): Uint8Array<ArrayBuffer>[] {
 	if (data.length === 0) return [new Uint8Array(0)]
 
-	const out: Uint8Array[] = []
+	const out: Uint8Array<ArrayBuffer>[] = []
 	for (let i = 0; i < data.length; i += size) {
 		out.push(data.subarray(i, i + size))
 	}
@@ -1244,7 +1244,7 @@ function chunkData(data: Uint8Array, size: number): Uint8Array[] {
 }
 
 // see comment for parseMultipleBlobsResponse above and BinaryBlobSerializer in tutadb
-function serializeNewBlobs(blobs: NewBlobWrapper[]): Uint8Array {
+function serializeNewBlobs(blobs: NewBlobWrapper[]): Uint8Array<ArrayBuffer> {
 	let totalSize = 4 // bytes for the number of blobs
 
 	for (const blob of blobs) {

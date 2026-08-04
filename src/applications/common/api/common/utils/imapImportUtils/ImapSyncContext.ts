@@ -22,7 +22,7 @@ export type ImapCredentials = {
 	username: string
 	password?: string
 	tokenEndpointResponse?: TokenEndpointResponse
-	customCertificateData: Uint8Array | null
+	customCertificateData: Uint8Array<ArrayBuffer> | null
 	ignoreCertificateErrors: boolean
 	provider: ImapProvider
 }

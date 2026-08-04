@@ -138,7 +138,7 @@ export class LocalIdentityKeyTrustDatabase implements IdentityKeyTrustDatabase {
 		if (keyType !== SigningKeyPairType.Ed25519) {
 			throw new ProgrammingError("unexpected signing key pair type, " + keyType)
 		}
-		const ed25519PublicKey = bytesToEd25519PublicKey(entry.publicIdentityKey.value as Uint8Array)
+		const ed25519PublicKey = bytesToEd25519PublicKey(entry.publicIdentityKey.value as Uint8Array<ArrayBuffer>)
 		const sourceOfTrust = entry.sourceOfTrust.value as IdentityKeySourceOfTrust
 
 		const versionedSigningKey: Versioned<SigningPublicKey> = {

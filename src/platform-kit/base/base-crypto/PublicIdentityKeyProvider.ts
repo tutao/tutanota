@@ -13,7 +13,7 @@ import { ElementId, idToElementId } from "@tutao/meta"
 
 type IdentityKeyRawData = {
 	identityKeyVersion: NumberString
-	publicIdentityKey: Uint8Array
+	publicIdentityKey: Uint8Array<ArrayBuffer>
 }
 
 /**

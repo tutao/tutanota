@@ -30,65 +30,64 @@ const seed = () => {
 seed()
 
 export interface CryptoFunctions {
-	aesEncrypt(key: AesKey, bytes: Uint8Array): Uint8Array
+	aesEncrypt(key: AesKey, bytes: Uint8Array): Uint8Array<ArrayBuffer>
 
-	encryptKey(key: AesKey, bytes: AesKey): Uint8Array
+	encryptKey(key: AesKey, bytes: AesKey): Uint8Array<ArrayBuffer>
 
-	aesDecrypt(key: AesKey, encryptedBytes: Uint8Array): Uint8Array
-
+	aesDecrypt(key: AesKey, encryptedBytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer>
 	/**
 	 * @deprecated
 	 */
-	unauthenticatedAesDecrypt(key: Aes256Key, encryptedBytes: Uint8Array): Uint8Array
+	unauthenticatedAesDecrypt(key: Aes256Key, encryptedBytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer>
 	/**
 	 * @deprecated
 	 */
-	decryptKeyUnauthenticatedWithDeviceKeyChain(key: Aes256Key, encryptedBytes: Uint8Array): AesKey
+	decryptKeyUnauthenticatedWithDeviceKeyChain(key: Aes256Key, encryptedBytes: Uint8Array<ArrayBuffer>): AesKey
 
-	decryptKey(encryptionKey: AesKey, key: Uint8Array): AesKey
+	decryptKey(encryptionKey: AesKey, key: Uint8Array<ArrayBuffer>): AesKey
 
-	bytesToKey(bytes: Uint8Array): AesKey
+	bytesToKey(bytes: Uint8Array<ArrayBuffer>): AesKey
 
 	base64ToKey(base64: Base64): AesKey
 
-	verifySignature(pubKeyPem: string, data: Uint8Array, signature: Uint8Array): boolean
+	verifySignature(pubKeyPem: string, data: Uint8Array<ArrayBuffer>, signature: Uint8Array<ArrayBuffer>): boolean
 
-	randomBytes(nbrOfBytes: number): Uint8Array
+	randomBytes(nbrOfBytes: number): Uint8Array<ArrayBuffer>
 
 	aes256RandomKey(): Aes256Key
 }
 
 export const cryptoFns: CryptoFunctions = {
-	aesEncrypt(key: AesKey, bytes: Uint8Array): Uint8Array {
+	aesEncrypt(key: AesKey, bytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		return aesEncrypt(key, bytes)
 	},
-	encryptKey(key: AesKey, bytes: AesKey): Uint8Array {
+	encryptKey(key: AesKey, bytes: AesKey): Uint8Array<ArrayBuffer> {
 		return encryptKey(key, bytes)
 	},
 
-	aesDecrypt(key: Aes256Key, encryptedBytes: Uint8Array): Uint8Array {
+	aesDecrypt(key: Aes256Key, encryptedBytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		return aesDecrypt(key, encryptedBytes)
 	},
 
 	/**
 	 * @deprecated
 	 */
-	unauthenticatedAesDecrypt(key: Aes256Key, encryptedBytes: Uint8Array): Uint8Array {
+	unauthenticatedAesDecrypt(key: Aes256Key, encryptedBytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		return aesDecryptUnauthenticated(key, encryptedBytes)
 	},
 
 	/**
 	 * @deprecated
 	 */
-	decryptKeyUnauthenticatedWithDeviceKeyChain(key: Aes256Key, encryptedBytes: Uint8Array): AesKey {
+	decryptKeyUnauthenticatedWithDeviceKeyChain(key: Aes256Key, encryptedBytes: Uint8Array<ArrayBuffer>): AesKey {
 		return decryptKeyUnauthenticatedWithDeviceKeyChain(key, encryptedBytes)
 	},
 
-	decryptKey(encryptionKey: AesKey, key: Uint8Array): AesKey {
+	decryptKey(encryptionKey: AesKey, key: Uint8Array<ArrayBuffer>): AesKey {
 		return decryptKey(encryptionKey, key)
 	},
 
-	bytesToKey(bytes: Uint8Array): AesKey {
+	bytesToKey(bytes: Uint8Array<ArrayBuffer>): AesKey {
 		return uint8ArrayToKey(bytes)
 	},
 
@@ -99,11 +98,11 @@ export const cryptoFns: CryptoFunctions = {
 	/**
 	 * verify a signature of some data with a given PEM-encoded spki public key
 	 */
-	verifySignature(pem: string, data: Uint8Array, signature: Uint8Array): boolean {
+	verifySignature(pem: string, data: Uint8Array, signature: Uint8Array<ArrayBuffer>): boolean {
 		return crypto.verify("SHA512", data, pem, signature)
 	},
 
-	randomBytes(nbrOfBytes: number): Uint8Array {
+	randomBytes(nbrOfBytes: number): Uint8Array<ArrayBuffer> {
 		try {
 			// may fail if the entropy pools are exhausted
 			return random.generateRandomData(nbrOfBytes)

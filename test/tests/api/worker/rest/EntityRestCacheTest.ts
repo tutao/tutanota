@@ -87,7 +87,7 @@ async function getOfflineStorage(userId: Id, handlerMap: CustomCacheHandlerMap):
 	const { DesktopSqlCipher } = await import("../../../../../src/applications/common/desktop/db/DesktopSqlCipher.js")
 
 	const odbRefCounter = new OfflineDbRefCounter({
-		async create(userid: string, key: Uint8Array, retry?: boolean): Promise<SqlCipherFacade> {
+		async create(userid: string, key: Uint8Array<ArrayBuffer>, retry?: boolean): Promise<SqlCipherFacade> {
 			const db = new DesktopSqlCipher(":memory:", false)
 			//integrity check breaks for in memory database
 			await db.openDb(userId, key)

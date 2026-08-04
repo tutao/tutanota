@@ -217,7 +217,7 @@ export class OutgoingServerJson implements DeepEquals {
 		return JSON.stringify(idTupleList)
 	}
 
-	public static stringifyBytes(bytes: Uint8Array): string {
+	public static stringifyBytes(bytes: Uint8Array<ArrayBuffer>): string {
 		return uint8ArrayToBase64(bytes)
 	}
 

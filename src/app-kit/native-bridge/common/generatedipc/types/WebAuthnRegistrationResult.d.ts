@@ -5,6 +5,6 @@
  */
 export interface WebAuthnRegistrationResult {
 	readonly rpId: string
-	readonly rawId: Uint8Array
-	readonly attestationObject: Uint8Array
+	readonly rawId: Uint8Array<ArrayBuffer>
+	readonly attestationObject: Uint8Array<ArrayBuffer>
 }

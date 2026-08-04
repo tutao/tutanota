@@ -2,7 +2,7 @@
 
 import { TaggedSqlValue } from "../types/TaggedSqlValue"
 export interface SqlCipherFacade {
-	openDb(userId: string, dbKey: Uint8Array): Promise<void>
+	openDb(userId: string, dbKey: Uint8Array<ArrayBuffer>): Promise<void>
 
 	closeDb(): Promise<void>
 

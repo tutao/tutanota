@@ -254,7 +254,7 @@ export function getPerformanceTimestamp(): number {
 	return typeof performance === "undefined" ? Date.now() : performance.now() // performance is not available in Safari 10 worker scope
 }
 
-export function getIdFromEncSearchIndexEntry(entry: Uint8Array): Uint8Array {
+export function getIdFromEncSearchIndexEntry<TArray extends ArrayBufferLike>(entry: Uint8Array<TArray>): Uint8Array<TArray> {
 	return entry.subarray(0, 16)
 }
 

@@ -50,7 +50,7 @@ export type Decapsulated<T extends AesKey> = {
 }
 
 export type PubEncSymKey = {
-	pubEncSymKeyBytes: Uint8Array
+	pubEncSymKeyBytes: Uint8Array<ArrayBuffer>
 	cryptoProtocolVersion: CryptoProtocolVersion
 	senderKeyVersion: KeyVersion | null
 	recipientKeyVersion: KeyVersion
@@ -96,7 +96,7 @@ export class AsymmetricCryptoFacade {
 
 	async authenticateSender(
 		identifier: PublicKeyIdentifier,
-		senderIdentityPubKey: Uint8Array,
+		senderIdentityPubKey: Uint8Array<ArrayBuffer>,
 		senderKeyVersion: KeyVersion,
 	): Promise<AuthenticateSenderReturnType> {
 		let authenticated = false
@@ -173,7 +173,7 @@ export class AsymmetricCryptoFacade {
 	async decryptSymKeyWithKeyPair(
 		recipientKeyPair: AsymmetricKeyPair,
 		cryptoProtocolVersion: CryptoProtocolVersion,
-		pubEncSymKey: Uint8Array,
+		pubEncSymKey: Uint8Array<ArrayBuffer>,
 	): Promise<Decapsulated<AesKey>>
 	/**
 	 * Decrypts the pubEncSymKey with the recipientKeyPair.
@@ -185,13 +185,13 @@ export class AsymmetricCryptoFacade {
 	async decryptSymKeyWithKeyPair(
 		recipientKeyPair: AsymmetricKeyPair,
 		cryptoProtocolVersion: CryptoProtocolVersion,
-		pubEncSymKey: Uint8Array,
+		pubEncSymKey: Uint8Array<ArrayBuffer>,
 		acceptedBitLength: typeof AesKeyLength.Aes256,
 	): Promise<Decapsulated<Aes256Key>>
 	async decryptSymKeyWithKeyPair(
 		recipientKeyPair: AsymmetricKeyPair,
 		cryptoProtocolVersion: CryptoProtocolVersion,
-		pubEncSymKey: Uint8Array,
+		pubEncSymKey: Uint8Array<ArrayBuffer>,
 		acceptedBitLength?: typeof AesKeyLength.Aes256,
 	): Promise<Decapsulated<AesKey>> {
 		switch (cryptoProtocolVersion) {
@@ -228,7 +228,7 @@ export class AsymmetricCryptoFacade {
 		recipientKeyPairGroupId: Id,
 		recipientKeyVersion: KeyVersion,
 		cryptoProtocolVersion: CryptoProtocolVersion,
-		pubEncSymKey: Uint8Array,
+		pubEncSymKey: Uint8Array<ArrayBuffer>,
 		forTypeId: TypeId = -1,
 	): Promise<Decapsulated<AesKey>> {
 		const tm = syncMetrics?.beginMeasurement(Category.Decrypt)

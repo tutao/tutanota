@@ -1,7 +1,7 @@
 import { downcast, identity, neverNull } from "./Utils.js"
 import { getFromMap } from "./MapUtils.js"
 
-export function concat(...arrays: Uint8Array[]): Uint8Array {
+export function concat(...arrays: Uint8Array[]): Uint8Array<ArrayBuffer> {
 	let length = arrays.reduce((previous, current) => previous + current.length, 0)
 	let result = new Uint8Array(length)
 	let index = 0
@@ -346,7 +346,7 @@ export function splitInChunks<T>(chunkSize: number, array: ReadonlyArray<T>): Ar
 	return _chunkArray(chunkSize, array)
 }
 
-export function splitUint8ArrayInChunks(chunkSize: number, array: Uint8Array): Array<Uint8Array> {
+export function splitUint8ArrayInChunks(chunkSize: number, array: Uint8Array<ArrayBuffer>): Array<Uint8Array<ArrayBuffer>> {
 	return _chunkUint8Array(chunkSize, array)
 }
 
@@ -366,12 +366,12 @@ function _chunkArray<T>(chunkSize: number, array: ReadonlyArray<T>): Array<Array
 	return chunks
 }
 
-function _chunkUint8Array(chunkSize: number, array: Uint8Array): Array<Uint8Array> {
+function _chunkUint8Array(chunkSize: number, array: Uint8Array<ArrayBuffer>): Array<Uint8Array<ArrayBuffer>> {
 	if (chunkSize < 1) {
 		return []
 	}
 	let chunkNum = 0
-	const chunks: Array<Uint8Array> = []
+	const chunks: Array<Uint8Array<ArrayBuffer>> = []
 	let end
 	do {
 		let start = chunkNum * chunkSize

@@ -209,7 +209,7 @@ export async function reloginForExpiredSession() {
 		action: async (pw) => {
 			await sessionReset
 			let credentials: Credentials
-			let databaseKey: Uint8Array | null
+			let databaseKey: Uint8Array<ArrayBuffer> | null
 			try {
 				const newSessionData = await logins.createSession(mailAddress, pw, oldSessionType, oldCredentials?.databaseKey)
 				credentials = newSessionData.credentials

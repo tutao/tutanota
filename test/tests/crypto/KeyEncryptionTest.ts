@@ -107,7 +107,7 @@ o.spec("key encryption", function () {
 	})
 })
 
-function legacyEncryptKeyWithDeviceKeyChain(keyChainKey: AesKey, keyToBeEncrypted: AesKey): Uint8Array {
+function legacyEncryptKeyWithDeviceKeyChain(keyChainKey: AesKey, keyToBeEncrypted: AesKey): Uint8Array<ArrayBuffer> {
 	const initializationVector = _aes128RandomKey()
 	const encryptedBits = sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(keyChainKey.bits), keyToBeEncrypted.bits, initializationVector.bits, [], false)
 	return concat(bitArrayToUint8Array(initializationVector.bits), bitArrayToUint8Array(encryptedBits))
@@ -115,7 +115,7 @@ function legacyEncryptKeyWithDeviceKeyChain(keyChainKey: AesKey, keyToBeEncrypte
 
 //Do not use outside this test!!!
 //No padding, no mac, fixed initialization vector
-function legacyAes256EncryptWithRecoveryKey(key: Aes256Key, bytes: Uint8Array): Uint8Array {
+function legacyAes256EncryptWithRecoveryKey(key: Aes256Key, bytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 	const subKeys = new SymmetricKeyDeriver().deriveSubKeysAesCbc(key, SymmetricCipherVersion.UnusedReservedUnauthenticated)
 	const encryptedBits = sjcl.mode.cbc.encrypt(
 		new sjcl.cipher.aes(subKeys.encryptionKey.bits),

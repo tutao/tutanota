@@ -31,7 +31,7 @@ export class PdfRecoveryDocumentGenerator {
 	/**
 	 * Generate the PDF document
 	 */
-	async generate(): Promise<Uint8Array> {
+	async generate(): Promise<Uint8Array<ArrayBuffer>> {
 		const qrCodePayload = JSON.stringify({
 			mailAddress: this.emailAddress,
 			recoveryCode: this.recoveryCode,

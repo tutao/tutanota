@@ -97,12 +97,12 @@ export interface FileFacade {
 	/**
 	 * Save given file in given path relative to app data folder
 	 */
-	writeToAppDir(content: Uint8Array, name: string): Promise<void>
+	writeToAppDir(content: Uint8Array<ArrayBuffer>, name: string): Promise<void>
 
 	/**
 	 * Read file from given path relative to app data folder
 	 */
-	readFromAppDir(name: string): Promise<Uint8Array>
+	readFromAppDir(name: string): Promise<Uint8Array<ArrayBuffer>>
 
 	/**
 	 * Delete file from given path relative to app data folder

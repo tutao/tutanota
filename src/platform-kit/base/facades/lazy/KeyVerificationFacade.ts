@@ -40,7 +40,7 @@ export class KeyVerificationFacade {
 	) {}
 
 	//visible for testing
-	concatenateFingerprint(publicKey: Versioned<SigningPublicKey>): Uint8Array {
+	concatenateFingerprint(publicKey: Versioned<SigningPublicKey>): Uint8Array<ArrayBuffer> {
 		let keyMetadata = concat(new Uint8Array([publicKey.version, publicKey.object.type]))
 		return concat(keyMetadata, ed25519PublicKeyToBytes(publicKey.object.key))
 	}

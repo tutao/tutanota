@@ -66,7 +66,7 @@ function makeEntries(
 	return newEntries
 }
 
-function compareBinaryBlocks(actual: Uint8Array, expected: Uint8Array) {
+function compareBinaryBlocks(actual: Uint8Array<ArrayBuffer>, expected: Uint8Array<ArrayBuffer>) {
 	o.check(Array.from(expected)).deepEquals(Array.from(actual))
 }
 

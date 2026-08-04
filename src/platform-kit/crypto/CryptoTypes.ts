@@ -15,7 +15,7 @@ export const enum HkdfKeyDerivationDomains {
 class MacTagBrand extends TsBrand {
 	protected __brand: Nullable<never> = null
 }
-export type MacTag = BrandedType<Uint8Array, MacTagBrand>
+export type MacTag = BrandedType<Uint8Array<ArrayBuffer>, MacTagBrand>
 
 export const UNIT_SEPARATOR_CHAR = "" as const
 export type DomainSeparator = `${string}${typeof UNIT_SEPARATOR_CHAR}`
@@ -62,5 +62,5 @@ export type VersionedAes256Key = Versioned<Aes256Key>
  */
 export type VersionedEncryptedKey = {
 	encryptingKeyVersion: KeyVersion // the version of the encryption key NOT the encrypted key
-	key: Uint8Array // encrypted key
+	key: Uint8Array<ArrayBuffer> // encrypted key
 }

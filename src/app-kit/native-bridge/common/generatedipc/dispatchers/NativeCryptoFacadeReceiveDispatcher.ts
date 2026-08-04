@@ -15,43 +15,43 @@ export class NativeCryptoFacadeReceiveDispatcher {
 		switch (method) {
 			case "rsaEncrypt": {
 				const publicKey: RsaPublicKey = arg[0]
-				const data: Uint8Array = arg[1]
-				const seed: Uint8Array = arg[2]
+				const data: Uint8Array<ArrayBuffer> = arg[1]
+				const seed: Uint8Array<ArrayBuffer> = arg[2]
 				return this.facade.rsaEncrypt(publicKey, data, seed)
 			}
 			case "rsaDecrypt": {
 				const privateKey: RsaPrivateKey = arg[0]
-				const data: Uint8Array = arg[1]
+				const data: Uint8Array<ArrayBuffer> = arg[1]
 				return this.facade.rsaDecrypt(privateKey, data)
 			}
 			case "aesEncryptFile": {
-				const key: Uint8Array = arg[0]
+				const key: Uint8Array<ArrayBuffer> = arg[0]
 				const fileUri: string = arg[1]
-				const iv: Uint8Array = arg[2]
+				const iv: Uint8Array<ArrayBuffer> = arg[2]
 				return this.facade.aesEncryptFile(key, fileUri, iv)
 			}
 			case "aesDecryptFile": {
-				const key: Uint8Array = arg[0]
+				const key: Uint8Array<ArrayBuffer> = arg[0]
 				const fileUri: string = arg[1]
 				return this.facade.aesDecryptFile(key, fileUri)
 			}
 			case "argon2idGeneratePassphraseKey": {
 				const passphrase: string = arg[0]
-				const salt: Uint8Array = arg[1]
+				const salt: Uint8Array<ArrayBuffer> = arg[1]
 				return this.facade.argon2idGeneratePassphraseKey(passphrase, salt)
 			}
 			case "generateKyberKeypair": {
-				const seed: Uint8Array = arg[0]
+				const seed: Uint8Array<ArrayBuffer> = arg[0]
 				return this.facade.generateKyberKeypair(seed)
 			}
 			case "kyberEncapsulate": {
 				const publicKey: KyberPublicKey = arg[0]
-				const seed: Uint8Array = arg[1]
+				const seed: Uint8Array<ArrayBuffer> = arg[1]
 				return this.facade.kyberEncapsulate(publicKey, seed)
 			}
 			case "kyberDecapsulate": {
 				const privateKey: KyberPrivateKey = arg[0]
-				const ciphertext: Uint8Array = arg[1]
+				const ciphertext: Uint8Array<ArrayBuffer> = arg[1]
 				return this.facade.kyberDecapsulate(privateKey, ciphertext)
 			}
 			case "generateEd25519Keypair": {
@@ -59,12 +59,12 @@ export class NativeCryptoFacadeReceiveDispatcher {
 			}
 			case "ed25519Sign": {
 				const privateKey: IPCEd25519PrivateKey = arg[0]
-				const data: Uint8Array = arg[1]
+				const data: Uint8Array<ArrayBuffer> = arg[1]
 				return this.facade.ed25519Sign(privateKey, data)
 			}
 			case "ed25519Verify": {
 				const publicKey: IPCEd25519PublicKey = arg[0]
-				const data: Uint8Array = arg[1]
+				const data: Uint8Array<ArrayBuffer> = arg[1]
 				const signature: IPCEd25519Signature = arg[2]
 				return this.facade.ed25519Verify(publicKey, data, signature)
 			}

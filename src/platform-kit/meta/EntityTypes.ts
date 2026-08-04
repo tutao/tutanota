@@ -155,8 +155,8 @@ export type TypeModel = {
 export interface IBucketKey {
 	bucketEncSessionKeys: IInstanceSessionsKey[]
 	keyGroup: Id | null
-	pubEncBucketKey: null | Uint8Array
-	groupEncBucketKey: null | Uint8Array
+	pubEncBucketKey: null | Uint8Array<ArrayBuffer>
+	groupEncBucketKey: null | Uint8Array<ArrayBuffer>
 	protocolVersion: NumberString
 	recipientKeyVersion: NumberString
 	senderKeyVersion: null | NumberString
@@ -165,10 +165,10 @@ export interface IBucketKey {
 export interface IInstanceSessionsKey {
 	instanceList: Id
 	instanceId: Id
-	symEncSessionKey: Uint8Array
-	encryptionAuthStatus: null | Uint8Array
+	symEncSessionKey: Uint8Array<ArrayBuffer>
+	encryptionAuthStatus: null | Uint8Array<ArrayBuffer>
 	symKeyVersion: NumberString
-	keyVerificationState: null | Uint8Array
+	keyVerificationState: null | Uint8Array<ArrayBuffer>
 	typeInfo: ITypeInfo
 }
 
@@ -208,10 +208,10 @@ export interface Entity {
 	_original?: this
 	bucketKey?: null | IBucketKey
 	_ownerGroup?: null | Id
-	_ownerEncSessionKey?: null | Uint8Array
+	_ownerEncSessionKey?: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion?: null | NumberString
-	_kdfNonce?: null | Uint8Array
-	ownerEncSessionKey?: null | Uint8Array
+	_kdfNonce?: null | Uint8Array<ArrayBuffer>
+	ownerEncSessionKey?: null | Uint8Array<ArrayBuffer>
 	ownerEncSessionKeyVersion?: null | NumberString
 	_permissions?: null | Id
 	isAdapter?: boolean

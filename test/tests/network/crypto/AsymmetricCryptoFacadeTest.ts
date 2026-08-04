@@ -73,7 +73,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 	o.spec("authenticateSender", function () {
 		let identifier: string
 		let identifierType: PublicKeyIdentifierType
-		let senderIdentityPubKey: Uint8Array
+		let senderIdentityPubKey: Uint8Array<ArrayBuffer>
 		let senderKeyVersion: KeyVersion
 		let pubKeyIdentifier: PublicKeyIdentifier
 
@@ -169,7 +169,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 
 	o.spec("decryptSymKeyWithKeyPairAndAuthenticate", function () {
 		o("should throw CryptoError if authentication fails", async function () {
-			const pubEncSymKey: Uint8Array = object()
+			const pubEncSymKey: Uint8Array<ArrayBuffer> = object()
 			const symKey = new Uint8Array([1, 2, 3, 4])
 			const keyPair = instance(PQKeyPairs)
 
@@ -216,7 +216,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		})
 
 		o("should not try authentication when protocol is not TutaCrypt", async function () {
-			const pubEncSymKey: Uint8Array = object()
+			const pubEncSymKey: Uint8Array<ArrayBuffer> = object()
 			const pubEncKeyData: PubEncKeyData = createTestEntity(PubEncKeyDataTypeRef, {
 				pubEncSymKey,
 				protocolVersion: CryptoProtocolVersion.RSA,
@@ -247,7 +247,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		})
 
 		o("should call RSA decryption when the protocol version is set to RSA", async function () {
-			const pubEncSymKey: Uint8Array = object()
+			const pubEncSymKey: Uint8Array<ArrayBuffer> = object()
 
 			when(rsa.decrypt(RSA_TEST_KEYPAIR.privateKey, pubEncSymKey)).thenResolve(keyToUint8Array(aes256RandomKey()))
 
@@ -257,7 +257,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		})
 
 		o("should raise a Crypto Error when trying to decypher a RSA that is not an RSA KeyPair", async function () {
-			const pubEncSymKey: Uint8Array = object()
+			const pubEncSymKey: Uint8Array<ArrayBuffer> = object()
 			const keyPair = instance(PQKeyPairs)
 			await assertThrows(CryptoError, async function () {
 				await asymmetricCryptoFacade.decryptSymKeyWithKeyPair(keyPair, CryptoProtocolVersion.RSA, pubEncSymKey)
@@ -265,7 +265,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		})
 
 		o("should call tuta crypt decryption when the protocol version is set to TUTA_CRYPT", async function () {
-			const pubEncSymKey: Uint8Array = object()
+			const pubEncSymKey: Uint8Array<ArrayBuffer> = object()
 			const keyPair = instance(PQKeyPairs)
 			;(keyPair as any).keyPairType = KeyPairType.TUTA_CRYPT
 
@@ -280,7 +280,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		})
 
 		o("should raise a Crypto Error when trying to decypher a TutaCrypt that is not an TutaCrypt KeyPair", async function () {
-			const pubEncSymKey: Uint8Array = object()
+			const pubEncSymKey: Uint8Array<ArrayBuffer> = object()
 			const keyPair = instance(RsaKeyPair)
 			await assertThrows(CryptoError, async function () {
 				await asymmetricCryptoFacade.decryptSymKeyWithKeyPair(keyPair, CryptoProtocolVersion.TUTA_CRYPT, pubEncSymKey)
@@ -293,7 +293,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		const senderKeyVersion = 2
 		const senderGroupId = "senderGroupId"
 		let symKey: AesKey
-		let pubEncSymKeyBytes: Uint8Array
+		let pubEncSymKeyBytes: Uint8Array<ArrayBuffer>
 		let recipientKyberPublicKey: KyberPublicKey
 		let senderPqKeyPair: Versioned<PQKeyPairs>
 		let ephemeralKeyPair: X25519KeyPair
@@ -301,7 +301,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		o.beforeEach(function () {
 			recipientKyberPublicKey = object<KyberPublicKey>()
 			symKey = new Aes128Key([1, 2, 3, 4])
-			pubEncSymKeyBytes = object<Uint8Array>()
+			pubEncSymKeyBytes = object<Uint8Array<ArrayBuffer>>()
 			senderPqKeyPair = {
 				object: new PQKeyPairs(object(), object()),
 				version: senderKeyVersion,
@@ -352,7 +352,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 					object: senderUserGroupKey,
 					version: senderKeyVersion,
 				})
-				const encryptedEccSenderPrivateKey = object<Uint8Array>()
+				const encryptedEccSenderPrivateKey = object<Uint8Array<ArrayBuffer>>()
 				when(cryptoWrapper.encryptX25519Key(senderUserGroupKey, newIdentityEccPair.privateKey)).thenReturn(encryptedEccSenderPrivateKey)
 
 				const pubEncSymKey = await asymmetricCryptoFacade.asymEncryptSymKey(symKey, recipientPublicKeys, senderGroupId)
