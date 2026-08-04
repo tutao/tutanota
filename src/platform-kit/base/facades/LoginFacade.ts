@@ -27,7 +27,6 @@ import {
 	aes256RandomKey,
 	aesDecrypt,
 	AesKey,
-	AesKeyLength,
 	base64ToKey,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
@@ -40,6 +39,7 @@ import {
 	SymmetricEncryptionScheme,
 	TotpSecret,
 	TotpVerifier,
+	uint8ArrayTo256Key,
 	uint8ArrayToKey,
 	VersionedKey,
 } from "@tutao/crypto"
@@ -112,7 +112,6 @@ import {
 } from "../../instance-pipeline/RestClientOptions"
 import { EntityUtils } from "../../instance-pipeline/EntityUtils"
 import { IncomingServerJson } from "../../instance-pipeline/TypeMapper"
-import { uint8ArrayTo256Key } from "../../crypto/encryption/symmetric/SymmetricCipherUtils"
 
 assertWorkerOrNode()
 
