@@ -94,8 +94,8 @@ function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNe
 	]
 }
 
-function dateDecoder(bytes: number): Date {
-	return new Date(bytes)
+function dateDecoder(entries: () => number): Date {
+	return new Date(entries())
 }
 
 export const customTypeEncoders: { [typeName: string]: typeof dateEncoder } = Object.freeze({
