@@ -124,8 +124,6 @@ export { SortedArray } from "./SortedArray.js"
 export type { CompareFn } from "./SortedArray.js"
 export { pad, startsWith, capitalizeFirstLetter, endsWith, repeat, cleanMatch, NBSP, splitAt, toLowerCase, localeCompare, byteLength } from "./StringUtils.js"
 export {
-	defer,
-	deferWithHandler,
 	asyncFind,
 	asyncFindAndMap,
 	executeInGroups,
@@ -138,13 +136,7 @@ export {
 	makeSingleUse,
 	identity,
 	noOp,
-	throttle,
-	debounce,
-	debounceStart,
-	throttleStart,
 	randomIntFromInterval,
-	deepEqual,
-	getChangedProps,
 	freezeMap,
 	addressDomain,
 	typedKeys,
@@ -154,19 +146,15 @@ export {
 	insideRect,
 	mapNullable,
 	mapObject,
-	type Require,
 	BoundedExecutor,
 	freshVersioned,
 	isKeyVersion,
-	newPromise,
 	isSessionStorageAvailable,
 	assertValidURL,
 	createResizeObserver,
-	singleAsync,
-	onceAsync,
 	isAsciiChar,
 } from "./Utils.js"
-export type { Callback, DeferredObject, lazy, lazyAsync, Thunk, DeferredObjectWithHandler, TimeoutSetter, Versioned, KeyVersion, Nullable } from "./Utils"
+export type { Callback, lazy, lazyAsync, Thunk, TimeoutSetter, Versioned, Nullable } from "./Utils"
 
 export { callWebAssemblyFunctionWithArguments, allocateBuffer, type Ptr, type ConstPtr, type FreeFN, type WASMExports } from "./WebAssembly.js"
 
@@ -187,3 +175,5 @@ export { type DeepEquals } from "./Utils"
 export { secureFree } from "./WebAssemblyArgument"
 export { mutableSecureFree } from "./WebAssemblyArgument"
 export { mutable } from "./WebAssemblyArgument"
+export * from "./TsUtils"
+export { newPromise } from "./TsUtils"
