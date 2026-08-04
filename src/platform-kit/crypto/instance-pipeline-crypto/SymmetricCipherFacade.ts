@@ -5,7 +5,6 @@ import {
 	KdfNonce,
 	keyToUint8Array,
 	uint8ArrayToKey,
-	uint8ArrayTo128Key,
 } from "../encryption/symmetric/SymmetricCipherUtils.js"
 import { AES_CBC_FACADE, AesCbcFacade, AuthenticationEnforcement, PaddingStandard } from "../encryption/symmetric/AesCbcFacade.js"
 import { SymmetricCipherVersion } from "../encryption/symmetric/SymmetricCipherVersion.js"
@@ -224,7 +223,7 @@ export class SymmetricCipherFacade {
 	 * @param acceptedBitLength The accepted length of the key that shall be decrypted.
 	 * @return The decrypted key.
 	 */
-	decryptKey(key: AesKey, bytes: Uint8Array<ArrayBuffer>, acceptedBitLength?: AesKeyLength): AesKey {
+	decryptKey(key: AesKey, bytes: Uint8Array<ArrayBuffer>, acceptedBitLength: Nullable<AesKeyLength> = null): AesKey {
 		if (key instanceof Aes128Key) {
 			return uint8ArrayToKey(this.decrypt(key, bytes, PaddingStandard.None, InitializationVectorVariant.Fixed), acceptedBitLength)
 		} else if (key instanceof Aes256Key) {
