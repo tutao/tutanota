@@ -5,8 +5,8 @@ import {
 	Aes256Key,
 	aes256RandomKey,
 	AesKey,
-	AesKeyLength,
 	cryptoUtils,
+	decrypt256Key,
 	generateInitializationVector,
 	InitializationVector,
 	sha256Hash,
@@ -37,7 +37,6 @@ import {
 	aesEncrypt,
 	aesEncryptConfigurationDatabaseItem,
 } from "../../../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
-import { decryptKey } from "../../../../../../platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 
 const VERSION: number = 5
 const DB_KEY_PREFIX: string = "ConfigStorage"
@@ -391,7 +390,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 
 async function decryptMetaData(keyLoaderFacade: KeyLoaderFacade, metaData: EncryptedDbKeyBaseMetaData): Promise<EncryptionMetadata> {
 	const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(metaData.userGroupKeyVersion)
-	const key = decryptKey(userGroupKey, metaData.userEncDbKey, AesKeyLength.Aes256)
+	const key = decrypt256Key(userGroupKey, metaData.userEncDbKey)
 	const initializationVector = validateInitializationVectorLength(aesDecryptUnauthenticated(key, metaData.encDbIv))
 	return {
 		key,
