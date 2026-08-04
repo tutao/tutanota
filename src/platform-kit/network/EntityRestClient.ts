@@ -1,6 +1,6 @@
 import { DEFAULT_REST_CLIENT_OPTIONS, type RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType, RestTextBody } from "../rest-client/types"
-import { ClientTypeModel, expandId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT, Type, TypeRef } from "../meta"
+import { ClientTypeModel, expandId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_INDIVIDUAL_POST_FALLBACK_THRESHOLD, POST_MULTIPLE_LIMIT, Type, TypeRef } from "../meta"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { assertNotNull, Category, downcast, isNotEmpty, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, syncMetrics } from "@tutao/utils"
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
@@ -71,7 +71,7 @@ export interface EntityMigrator {
 /**
  * Result object returned after attempting to post multiple entities.
  */
-type PostMultipleResult<T extends PersistentEntity> = {
+type PostMultipleHandlerResult<T extends PersistentEntity> = {
 	createdIds: Id[]
 	errors?: Error[]
 	failedInstances?: T[]
@@ -448,7 +448,7 @@ export class EntityRestClient implements EntityRestInterface {
 	 *
 	 * @param listId
 	 * @param instances
-	 * @returns {Promise<PostMultipleResult<T>>} An object containing successfully created IDs, errors, and failed instances.
+	 * @returns {Promise<PostMultipleHandlerResult<T>>} An object containing successfully created IDs, errors, and failed instances.
 	 * @throws {ConnectionError} If an offline error is encountered during the process.
 	 * @throws {SetupMultipleError} If any other unrecoverable errors occur during setup.
 	 */
@@ -466,109 +466,12 @@ export class EntityRestClient implements EntityRestInterface {
 			if (listId) throw new Error("List id must not be defined for ETs")
 		}
 
-		/**
-		 * Recursively posts a chunk of entities with retry logic.
-		 * @template T - The type of the entity being processed.
-		 * @param {T[]} instanceChunk - An array of entity instances to be posted in this batch.
-		 */
-		const postMultipleWithRetry = async (instanceChunk: T[]): Promise<PostMultipleResult<T>> => {
-			console.log(this.TAG, "postMultipleWithRetry", `\nEntities in the chunk: ${instanceChunk.length}\nFirst entities Id: ${instanceChunk[0]._id}`)
-
-			try {
-				const outgoingServerJsons = await promiseMap(instanceChunk, async (instance) => {
-					instance._ownerEncSessionKey = undefined /** {@link setup} method will re-assign a session key */
-					const sk = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance, null)
-					const encEntity = await this.instancePipeline.mapAndEncryptToParsedInstance(downcast<TypeRef<Entity>>(instance._type), instance, sk)
-					return this.instancePipeline.typeMapper.makeServerJson(encEntity)
-				})
-
-				// informs the server that this is a POST_MULTIPLE request
-				const queryParams = {
-					count: String(instanceChunk.length),
-				}
-
-				const persistencePostReturn = await this.restClient.request(path, HttpMethod.POST, {
-					...DEFAULT_REST_CLIENT_OPTIONS,
-					queryParams,
-					headers,
-					body: new RestTextBody(OutgoingServerJson.getJsonRepresentationOfMultiple(outgoingServerJsons)),
-					responseType: MediaType.Json,
-				})
-
-				const untypedPersistencePostReturn = IncomingServerJson.expectMultipleInstance(persistencePostReturn, persistencePostReturnTypeModel)
-
-				return {
-					createdIds: await this.parseSetupMultiple(untypedPersistencePostReturn),
-				}
-			} catch (e) {
-				if (e instanceof PayloadTooLargeError) {
-					console.warn(
-						this.TAG,
-						'setupMultiple failed with "Payload too large".',
-						`\nEntities in the failed chunk: ${instanceChunk.length}`,
-						`\nFirst entities Id: ${instanceChunk[0]._id}`,
-						`\nOriginal error: ${e}`,
-					)
-
-					const createdIds: Id[] = []
-					const errors: Error[] = []
-					const failedInstances: T[] = []
-
-					// Fallback to individual requests if chunk size is small enough
-					const FALLBACK_THRESHOLD = POST_MULTIPLE_LIMIT / 5
-					if (instanceChunk.length <= FALLBACK_THRESHOLD) {
-						console.log(this.TAG, `Retrying with individual entity post request fallback.\nEntities left: ${instanceChunk.length}`)
-
-						const individualResults = await Promise.allSettled(
-							instanceChunk.map(async (instance) => {
-								instance._ownerEncSessionKey = undefined
-								return assertNotNull(await this.setup(listId, instance, null, null))
-							}),
-						)
-
-						for (const [index, result] of individualResults.entries()) {
-							if (result.status === "fulfilled") {
-								createdIds.push(result.value)
-							} else {
-								const err = result.reason instanceof Error ? result.reason : new Error(String(result.reason))
-								console.error("Error on individual entity setup", err)
-								errors.push(err)
-								failedInstances.push(instanceChunk[index])
-							}
-						}
-
-						return { createdIds, errors, failedInstances }
-					}
-
-					// Otherwise, split chunk in half and retry recursively
-					const smallerChunks = splitInChunks(instanceChunk.length / 2, instanceChunk)
-					for (const smallerChunk of smallerChunks) {
-						console.log(this.TAG, `Retrying with smaller chunk. \nFirst entity Id of new chunk: ${smallerChunk[0]._id}`)
-						const retryAttempt = await postMultipleWithRetry(smallerChunk)
-						createdIds.push(...retryAttempt.createdIds)
-						if (retryAttempt.errors && retryAttempt.failedInstances) {
-							errors.push(...retryAttempt.errors)
-							failedInstances.push(...retryAttempt.failedInstances)
-						}
-					}
-
-					return {
-						createdIds,
-						errors,
-						failedInstances,
-					}
-				} else {
-					return {
-						createdIds: [],
-						errors: [e],
-						failedInstances: instanceChunk,
-					}
-				}
-			}
-		}
-
 		const instanceChunks = splitInChunks(POST_MULTIPLE_LIMIT, instances)
-		const mapResult = await promiseMap(instanceChunks, postMultipleWithRetry)
+		console.time("Posting multiple with retry")
+		const mapResult = await promiseMap(instanceChunks, (chunk) =>
+			this.postMultipleHandlerWithRetry(listId!, chunk, path, headers, persistencePostReturnTypeModel, clientTypeModel),
+		)
+		console.time("Posting multiple with retry")
 
 		const createdIds = mapResult.flatMap((res) => res.createdIds)
 		const errors = mapResult.flatMap((res) => res.errors ?? [])
@@ -583,6 +486,158 @@ export class EntityRestClient implements EntityRestInterface {
 			throw new SetupMultipleError<T>("Setup multiple entities failed", errors, failedInstances)
 		} else {
 			return createdIds
+		}
+	}
+
+	/**
+	 * Recursively posts a chunk of entities with retry logic.
+	 *
+	 * @template T - The type of the entity being processed.
+	 *
+	 * @param listId
+	 * @param {T[]} instanceChunk - An array of entity instances to be posted in this batch.
+	 * @param path
+	 * @param headers
+	 * @param persistencePostReturnTypeModel
+	 * @param clientTypeModel
+	 */
+	private async postMultipleHandlerWithRetry<T extends PersistentEntity>(
+		listId: Id,
+		instanceChunk: T[],
+		path: string,
+		headers: Dict,
+		persistencePostReturnTypeModel: ServerTypeModel,
+		clientTypeModel: ClientTypeModel,
+	): Promise<PostMultipleHandlerResult<T>> {
+		console.log(this.TAG, "postMultipleHandlerWithRetry", `\nEntities in the chunk: ${instanceChunk.length}\nFirst entities Id: ${instanceChunk[0]._id}`)
+
+		try {
+			const outgoingServerJsons = await promiseMap(instanceChunk, async (instance) => {
+				instance._ownerEncSessionKey = undefined
+				const sk = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance, null)
+				const encEntity = await this.instancePipeline.mapAndEncryptToParsedInstance(downcast<TypeRef<Entity>>(instance._type), instance, sk)
+				return this.instancePipeline.typeMapper.makeServerJson(encEntity)
+			})
+
+			// informs the server that this is a POST_MULTIPLE request
+			const queryParams = {
+				count: String(instanceChunk.length),
+			}
+
+			const persistencePostReturn = await this.restClient.request(path, HttpMethod.POST, {
+				...DEFAULT_REST_CLIENT_OPTIONS,
+				queryParams,
+				headers,
+				body: new RestTextBody(OutgoingServerJson.getJsonRepresentationOfMultiple(outgoingServerJsons)),
+				responseType: MediaType.Json,
+			})
+
+			const untypedPersistencePostReturn = IncomingServerJson.expectMultipleInstance(persistencePostReturn, persistencePostReturnTypeModel)
+			const createdIds = await this.parseSetupMultiple(untypedPersistencePostReturn)
+
+			console.log(
+				this.TAG,
+				"postMultipleHandlerWithRetry",
+				`Successfully retried chunk ${instanceChunk[0]._id} resulting in ${createdIds.length} created entities`,
+			)
+
+			return {
+				createdIds,
+			}
+		} catch (e) {
+			if (e instanceof PayloadTooLargeError) {
+				return await this.handlePayloadTooLargeForSetupMultiple(
+					instanceChunk,
+					e,
+					listId,
+					path,
+					headers,
+					persistencePostReturnTypeModel,
+					clientTypeModel,
+				)
+			} else {
+				// Unknown error without a proper handling
+				console.error(this.TAG, "postMultipleHandlerWithRetry", `Unknown error when retrying chunk ${instanceChunk[0]._id}`)
+				return {
+					createdIds: [],
+					errors: [e],
+					failedInstances: instanceChunk,
+				}
+			}
+		}
+	}
+
+	private async handlePayloadTooLargeForSetupMultiple<T extends PersistentEntity>(
+		instanceChunk: T[],
+		e: PayloadTooLargeError,
+		listId: string,
+		path: string,
+		headers: Dict,
+		persistencePostReturnTypeModel: ServerTypeModel,
+		clientTypeModel: ClientTypeModel,
+	) {
+		console.warn(
+			this.TAG,
+			'setupMultiple failed with "Payload too large".',
+			`\nEntities in the failed chunk: ${instanceChunk.length}`,
+			`\nFirst entities Id: ${instanceChunk[0]._id}`,
+			`\nOriginal error: ${e}`,
+		)
+
+		const createdIds: Id[] = []
+		const errors: Error[] = []
+		const failedInstances: T[] = []
+
+		// Fallback to individual requests if chunk size is small enough
+		if (instanceChunk.length <= POST_MULTIPLE_INDIVIDUAL_POST_FALLBACK_THRESHOLD) {
+			console.log(this.TAG, `Retrying with individual entity post request fallback.\nEntities left: ${instanceChunk.length}`)
+
+			const individualResults = await Promise.allSettled(
+				instanceChunk.map(async (instance) => {
+					// {@link setup} method will re-assign a session key and make a single post request to persist the provided entity
+					instance._ownerEncSessionKey = undefined
+					const createdEntityId = await this.setup(listId, instance, null, null)
+					return assertNotNull(createdEntityId)
+				}),
+			)
+
+			for (const [index, result] of individualResults.entries()) {
+				if (result.status === "fulfilled") {
+					createdIds.push(result.value)
+				} else {
+					const err = result.reason instanceof Error ? result.reason : new Error(String(result.reason))
+					console.error("Error on individual entity setup", err)
+					errors.push(err)
+					failedInstances.push(instanceChunk[index])
+				}
+			}
+
+			return { createdIds, errors, failedInstances }
+		}
+
+		// Otherwise, split chunk in half and retry recursively
+		const smallerChunks = splitInChunks(Math.floor(instanceChunk.length / 2), instanceChunk)
+		const results = await Promise.allSettled(
+			smallerChunks.map((chunk) => {
+				console.log(this.TAG, `Retrying with smaller chunk. \nFirst entity Id of new chunk: ${chunk[0]._id}`)
+				return this.postMultipleHandlerWithRetry(listId, chunk, path, headers, persistencePostReturnTypeModel, clientTypeModel)
+			}),
+		)
+		for (const retryResult of results) {
+			if (retryResult.status === "fulfilled") {
+				createdIds.push(...retryResult.value.createdIds)
+
+				if (retryResult.value.errors) {
+					errors.push(...retryResult.value.errors)
+					failedInstances.push(...(retryResult.value.failedInstances ?? []))
+				}
+			}
+		}
+
+		return {
+			createdIds,
+			errors,
+			failedInstances,
 		}
 	}
 
