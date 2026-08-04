@@ -159,6 +159,26 @@ export default defineConfig([
 					selector: "TSTypeQuery",
 					message: "Do not use TypeScript `typeof` queries directly. Use explicit types instead",
 				},
+				{
+					selector: "Identifier[name='undefined']",
+					message: "Use null instead of undefined.",
+				},
+				{
+					selector: "TSPropertySignature[optional=true]",
+					message: "Optional properties are not allowed.",
+				},
+				{
+					selector: "PropertyDefinition[optional=true]",
+					message: "Optional class properties are not allowed.",
+				},
+				{
+					selector: "Identifier[optional=true]",
+					message: "Optional parameters are not allowed.",
+				},
+				{
+					selector: "TSMethodSignature[optional=true]",
+					message: "Optional methods are not allowed.",
+				},
 			],
 		},
 	},
