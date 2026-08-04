@@ -344,6 +344,8 @@ export const dummyResolver = (tr: TypeRef<unknown>) => {
 			return Promise.resolve(testAggregateModel)
 		case testAggregateOnAggregateModel.id:
 			return Promise.resolve(testAggregateOnAggregateModel)
+		case testTransferAggregatedTypeModel.id:
+			return Promise.resolve(testTransferAggregatedTypeModel)
 	}
 	return Promise.resolve(testTypeModel)
 }
