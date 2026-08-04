@@ -530,8 +530,6 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				this.separateStartAndEndTimeZone = value
 			},
 			onRemoveTimeZone: () => {
-				whenModel.unsetTimeZones()
-
 				attrs.navigationCallback(EditorPages.MAIN)
 			},
 			onConfirm: (selectedStartTimeZone, selectedEndTimeZone) => {
