@@ -35,9 +35,9 @@ type MaxCacheElementsConfig = {
 }
 
 const DEFAULT_CACHE_MAX_ELEMENTS: MaxCacheElementsConfig = {
-	maxElementEntities: 100_000,
-	maxListElementEntitiesPerList: 100_000,
-	maxBlobElementEntitiesPerList: 100_000,
+	maxElementEntities: 25_000,
+	maxListElementEntitiesPerList: 25_000,
+	maxBlobElementEntitiesPerList: 25_000,
 }
 
 /** Cache for a single list. */
