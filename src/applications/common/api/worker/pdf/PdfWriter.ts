@@ -25,7 +25,7 @@ export class PdfWriter {
 	private referenceTable: Map<string, PdfObject> = new Map<string, PdfObject>()
 	private cachedResources: ArrayBuffer[] | undefined
 
-	constructor(textEncoder: TextEncoder, customFetch: GlobalFetch | undefined) {
+	constructor(textEncoder: TextEncoder, customFetch?: GlobalFetch) {
 		this.textEncoder = textEncoder
 		this.customFetch = customFetch
 		this.deflater = new Deflater()
