@@ -424,7 +424,7 @@ o.spec("OfflineMailIndexer", () => {
 			const storedMails: Array<MailWithDetailsAndAttachments> = storeMailData.values![0]
 
 			o(storedMails.length).equals(1)
-			o(removeOriginals(storedMails[0].mail)).deepEquals(mail)
+			o(removeOriginals(storedMails[0].mail)).deepEquals(removeOriginals(mail))
 			o(removeOriginals(storedMails[0].mailDetails)).deepEquals(removeOriginals(mailDetails.details))
 			o(storedMails[0].attachments.map(removeOriginals)).deepEquals(attachments)
 

@@ -1,6 +1,15 @@
 import o, { assertThrows } from "@tutao/otest"
 import { DecryptedParsedInstance, ModelMapper } from "../../../src/platform-kit/instance-pipeline"
-import { AssociationTypeEnum, CardinalityEnum, ClientTypeModel, EntityTypeEnum, ServerTypeModel, TypeRef, ValueTypeEnum } from "../../../src/platform-kit/meta"
+import {
+	AssociationTypeEnum,
+	CardinalityEnum,
+	ClientTypeModel,
+	DEFAULT_ENTITY_FIELDS,
+	EntityTypeEnum,
+	ServerTypeModel,
+	TypeRef,
+	ValueTypeEnum,
+} from "../../../src/platform-kit/meta"
 import { changeInstanceDirection, DummyTypeModelResolver, TestAggregateRef, TestEntity, TestTypeRef } from "./InstancePipelineTestUtils"
 import { removeOriginals } from "../TestUtils"
 import { InstanceDirection, ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
@@ -89,6 +98,7 @@ o.spec("ModelMapperTransformations", function () {
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 		})
@@ -178,6 +188,7 @@ o.spec("ModelMapperTransformations", function () {
 
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 
 			o(typeof mappedInstance["_errors"]).equals("undefined")
@@ -276,6 +287,7 @@ o.spec("ModelMapperTransformations", function () {
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -362,6 +374,7 @@ o.spec("ModelMapperTransformations", function () {
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: typeRef,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 		})
@@ -448,6 +461,7 @@ o.spec("ModelMapperTransformations", function () {
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: typeRef,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -538,6 +552,7 @@ o.spec("ModelMapperTransformations", function () {
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -603,6 +618,7 @@ o.spec("ModelMapperTransformations", function () {
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -676,6 +692,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: "",
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -737,6 +754,7 @@ o.spec("ModelMapperTransformations", function () {
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -814,10 +832,12 @@ o.spec("ModelMapperTransformations", function () {
 			o(trueMappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: true,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(falseMappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: false,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof trueMappedInstance._errors).equals("undefined")
 			o(typeof falseMappedInstance._errors).equals("undefined")
@@ -936,8 +956,10 @@ o.spec("ModelMapperTransformations", function () {
 				testAggregation: [
 					{
 						_type: TestAggregateRef,
+						...DEFAULT_ENTITY_FIELDS,
 					},
 				],
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -1144,6 +1166,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testAggregation: null,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
 			changeInstanceDirection(parsedInstance, InstanceDirection.OutgoingToServer)
@@ -1351,6 +1374,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testAggregation: [],
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
 			changeInstanceDirection(parsedInstance, InstanceDirection.OutgoingToServer)
@@ -1458,7 +1482,8 @@ o.spec("ModelMapperTransformations", function () {
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
-				testAggregation: [{ _type: TestAggregateRef } as any],
+				testAggregation: [{ _type: TestAggregateRef, ...DEFAULT_ENTITY_FIELDS } as any],
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
 			changeInstanceDirection(parsedInstance, InstanceDirection.OutgoingToServer)
@@ -1566,6 +1591,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testListElementAssociation: [["listId", "listElementId"]],
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -1769,6 +1795,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testListElementAssociation: null,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 
 			// request is prepared with the client model and association is not changed
@@ -1977,6 +2004,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testListElementAssociation: [],
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
 			changeInstanceDirection(parsedInstance, InstanceDirection.OutgoingToServer)
@@ -2083,6 +2111,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testListElementAssociation: [["listId", "listElementId"]],
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
 			changeInstanceDirection(parsedInstance, InstanceDirection.OutgoingToServer)
@@ -2158,6 +2187,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: "example",
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -2233,6 +2263,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: "example",
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -2371,7 +2402,7 @@ o.spec("ModelMapperTransformations", function () {
 
 				const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
 				removeOriginals(mappedInstance)
-				o(mappedInstance).deepEquals({ _type: TestTypeRef, testValue: "42" } as any)
+				o(mappedInstance).deepEquals({ _type: TestTypeRef, testValue: "42", ...DEFAULT_ENTITY_FIELDS } as any)
 				o(parsedInstance.hasError()).equals(false)
 
 				// request is prepared with the client model and does not add handle the number to string transformation
@@ -2527,7 +2558,7 @@ o.spec("ModelMapperTransformations", function () {
 				// can remove aggregation with ZeroOrOne cardinality and supply null
 				const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
 				removeOriginals(mappedInstance)
-				o(mappedInstance).deepEquals({ _type: TestTypeRef, testAssociation: null } as any)
+				o(mappedInstance).deepEquals({ _type: TestTypeRef, testAssociation: null, ...DEFAULT_ENTITY_FIELDS } as any)
 				o(typeof mappedInstance["_errors"]).equals("undefined")
 
 				// request is prepared with the client model and does NOT remove ZeroOrOne aggregation
@@ -2618,6 +2649,7 @@ o.spec("ModelMapperTransformations", function () {
 				o(mappedInstance).deepEquals({
 					_type: TestTypeRef,
 					testAssociation: [],
+					...DEFAULT_ENTITY_FIELDS,
 				} as any)
 				o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -2699,6 +2731,7 @@ o.spec("ModelMapperTransformations", function () {
 				o(mappedInstance).deepEquals({
 					_type: TestTypeRef,
 					testListElementAssociation: null,
+					...DEFAULT_ENTITY_FIELDS,
 				} as any)
 
 				o(typeof mappedInstance["_errors"]).equals("undefined")
@@ -2791,6 +2824,7 @@ o.spec("ModelMapperTransformations", function () {
 				o(mappedInstance).deepEquals({
 					_type: TestTypeRef,
 					testListElementAssociation: [],
+					...DEFAULT_ENTITY_FIELDS,
 				} as any)
 				o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -2855,7 +2889,7 @@ o.spec("ModelMapperTransformations", function () {
 
 					const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
 					removeOriginals(mappedInstance)
-					o(mappedInstance).deepEquals({ _type: TestTypeRef, testValue: "" } as any)
+					o(mappedInstance).deepEquals({ _type: TestTypeRef, testValue: "", ...DEFAULT_ENTITY_FIELDS } as any)
 					o(typeof mappedInstance["_errors"]).equals("undefined")
 
 					// request is prepared with the client model and does NOT remove One value
@@ -2917,7 +2951,7 @@ o.spec("ModelMapperTransformations", function () {
 
 					const entity = await modelMapper.mapToInstance(serverDecryptedParsedInstance)
 					removeOriginals(entity)
-					o(entity).deepEquals({ _type: TestTypeRef, testValue: null } as any)
+					o(entity).deepEquals({ _type: TestTypeRef, testValue: null, ...DEFAULT_ENTITY_FIELDS } as any)
 
 					o(typeof entity["_errors"]).equals("undefined")
 
