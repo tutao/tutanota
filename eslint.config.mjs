@@ -24,7 +24,27 @@ const noUnionExceptNullable = {
 		}
 	},
 }
-
+const noUnnamedTypes = {
+	meta: {
+		type: "problem",
+		docs: { description: "Do not allow anonymous types" },
+		messages: {
+			noUnion: "Anonymous types are discouraged. Rather create a type alias and use that alias here",
+		},
+	},
+	create(context) {
+		return {
+			TSTypeLiteral(node) {
+				const parent = node.parent
+				if (parent?.type === "TSTypeAliasDeclaration" || parent?.type === "TSInterfaceDeclaration") {
+					// ok
+				} else {
+					context.report({ node, messageId: "noUnion" })
+				}
+			},
+		}
+	},
+}
 export default defineConfig([
 	{
 		rules: {
@@ -138,7 +158,7 @@ export default defineConfig([
 	},
 	{
 		files: ["src/platform-kit/**/*.ts"],
-		plugins: { local: { rules: { noUnionExceptNullable } } },
+		plugins: { local: { rules: { noUnionExceptNullable, noUnnamedTypes } } },
 		extends: [],
 		languageOptions: {
 			parserOptions: {
@@ -149,6 +169,7 @@ export default defineConfig([
 			"local/noUnionExceptNullable": "error",
 			"@typescript-eslint/strict-boolean-expressions": "error",
 			"@typescript-eslint/no-non-null-assertion": "error",
+			"local/noUnnamedTypes": "error",
 			"no-restricted-syntax": [
 				"error",
 				{
