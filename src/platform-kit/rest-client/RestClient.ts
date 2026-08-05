@@ -75,7 +75,7 @@ export class RestClient implements RestClientInterface {
 
 	request(path: string, method: HttpMethod, options: RestClientOptions): Promise<any | null> {
 		// @ts-ignore
-		const debug: boolean = !TypeChecks.hasProperty("self") && self.debug
+		const debug: boolean = TypeChecks.hasProperty("self") && self.debug
 		const verbose: boolean = isWorker() && debug
 
 		this.checkRequestSizeLimit(path, method, options.body ?? null)
