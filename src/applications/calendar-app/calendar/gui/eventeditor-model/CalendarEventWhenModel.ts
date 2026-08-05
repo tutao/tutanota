@@ -679,7 +679,7 @@ export class CalendarEventWhenModel {
 				advancedRules: [],
 			}),
 			...this.repeatRule,
-			timeZone: this.getEffectiveStartTimeZone(),
+			timeZone: this.start.timeZone ?? this.calendarTimeZone,
 		}
 		this.deleteExcludedDatesIfNecessary(repeatRule)
 		return repeatRule
