@@ -1,16 +1,16 @@
 import { TopLevelAttrs, TopLevelView } from "../../../../../ui/base/TopLevelView.js"
 import { AppHeaderAttrs, Header } from "../../../../../ui/Header.js"
-import { CalendarSearchViewModel, PaidFunctionResult } from "./CalendarSearchViewModel.js"
+import { CalendarSearchViewModel } from "./CalendarSearchViewModel.js"
 import { BaseTopLevelView } from "../../../../../ui/BaseTopLevelView.js"
 import { ColumnType, ViewColumn } from "../../../../../ui/base/ViewColumn.js"
 import { ViewSlider } from "../../../../../ui/nav/ViewSlider.js"
-import { isSameSingleId } from "../../../../../platform-kit/meta"
-import { assertNotNull, isSameDayOfDate, last, LazyLoaded, lazyMemoized, memoized, stringToBase64 } from "../../../../../platform-kit/utils"
+import { isSameSingleId } from "@tutao/meta"
+import { assertNotNull, isSameDayOfDate, last, LazyLoaded, lazyMemoized, memoized, stringToBase64 } from "@tutao/utils"
 import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import m, { Children, Vnode } from "mithril"
 import { NavButton } from "../../../../../ui/base/NavButton.js"
 import { layout_size } from "../../../../../ui/size.js"
-import { lang, type MaybeTranslation } from "../../../../../ui/utils/LanguageViewModel.js"
+import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
 import { BackgroundColumnLayout } from "../../../../../ui/BackgroundColumnLayout.js"
 import { theme } from "../../../../../ui/theme.js"
 import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../../ui/DesktopToolbars.js"
@@ -49,7 +49,6 @@ import { extractContactIdFromEvent, isBirthdayEvent } from "../../../../common/c
 import { ContactCardViewer } from "../../../../mail-app/contacts/view/ContactCardViewer.js"
 import { ContactModel } from "../../../../common/contactsFunctionality/ContactModel.js"
 import { simulateMailToClick } from "../../gui/eventpopup/ContactPreviewView.js"
-import { DatePicker, DatePickerAttrs } from "../../gui/pickers/DatePicker.js"
 import { EventEditorDialog } from "../../gui/eventeditor-view/CalendarEventEditDialog.js"
 import { FilterChip } from "../../../../../ui/base/FilterChip"
 import { formatDate } from "../../../../../ui/utils/Formatter"
@@ -141,7 +140,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				".rel.flex-grow",
 				m(CalendarSearchListView, {
 					listModel: this.searchViewModel.listModel,
-					onSingleSelection: (item) => {
+					onSingleSelection: () => {
 						this.viewSlider.focus(this.resultDetailsColumn)
 					},
 					cancelCallback: () => {
@@ -350,49 +349,6 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		} else if (ClientDetector.get().isCalendarApp()) {
 			return m.fragment({}, [this.renderSearchResultActions()])
 		}
-	}
-
-	private renderDateRangeSelection(): Children {
-		const renderedHelpText: MaybeTranslation | undefined =
-			this.searchViewModel.warning === "startafterend"
-				? "startAfterEnd_label"
-				: this.searchViewModel.warning === "long"
-					? "longSearchRange_msg"
-					: this.searchViewModel.startDate == null
-						? "unlimited_label"
-						: undefined
-		return m(
-			".flex.col",
-			m(
-				".pl-4.flex-grow.flex-space-between.flex-column",
-				m(DatePicker, {
-					date: this.searchViewModel.startDate,
-					onDateSelected: (date) => {
-						if (this.searchViewModel.selectStartDate(date) !== PaidFunctionResult.Success) {
-							showNotAvailableForFreeDialog(UpgradePromptType.CALENDAR_SEARCH)
-						}
-					},
-					startOfTheWeekOffset: this.startOfTheWeekOffset,
-					label: lang.getTranslation("dateFrom_label"),
-					nullSelectionText: renderedHelpText,
-					rightAlignDropdown: true,
-				} satisfies DatePickerAttrs),
-			),
-			m(
-				".pl-4.flex-grow.flex-space-between.flex-column",
-				m(DatePicker, {
-					date: this.searchViewModel.endDate,
-					onDateSelected: (date) => {
-						if (this.searchViewModel.selectEndDate(date) !== PaidFunctionResult.Success) {
-							showNotAvailableForFreeDialog(UpgradePromptType.CALENDAR_SEARCH)
-						}
-					},
-					startOfTheWeekOffset: this.startOfTheWeekOffset,
-					label: lang.getTranslation("dateTo_label"),
-					rightAlignDropdown: true,
-				} satisfies DatePickerAttrs),
-			),
-		)
 	}
 
 	private readonly shortcuts = lazyMemoized<ReadonlyArray<Shortcut>>(() => [
