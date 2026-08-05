@@ -972,7 +972,7 @@ o.spec("OfflineStorageDbTest", function () {
 					await storage.putMultiple(MailDetailsBlobTypeRef, await Promise.all(storableMailDetails.map(async (smd) => await toStorableInstance(smd))))
 
 					mailDetailsBlob = await storage.provideMultiple(MailDetailsBlobTypeRef, archiveId, [blobElementId1, blobElementId2])
-					o.check(mailDetailsBlob.map(removeOriginals)).deepEquals(storableMailDetails)
+					o.check(mailDetailsBlob.map(removeOriginals)).deepEquals(storableMailDetails.map(removeOriginals))
 
 					await storage.deleteIn(MailDetailsBlobTypeRef, archiveId, [blobElementId1, blobElementId2])
 

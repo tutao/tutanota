@@ -201,7 +201,7 @@ o.spec("ImportExportUtilsTest", function () {
 			let repeatRule: CalendarRepeatRule
 
 			o.beforeEach(function () {
-				repeatRule = {
+				repeatRule = createTestEntity(CalendarRepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
 					endType: EndType.Never,
 					endValue: null,
@@ -211,8 +211,7 @@ o.spec("ImportExportUtilsTest", function () {
 					advancedRules: [],
 					_id: object(),
 					_original: object(),
-					_type: CalendarRepeatRuleTypeRef,
-				}
+				})
 			})
 
 			o.test("comparing events with identical simple repeat rules returns true", function () {

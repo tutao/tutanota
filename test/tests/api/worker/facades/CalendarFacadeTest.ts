@@ -11,7 +11,7 @@ import {
 } from "../../../../../src/applications/common/api/worker/facades/lazy/CalendarFacade.js"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import { DefaultEntityRestCache } from "../../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
-import { assertNotNull, downcast, first, stringToUtf8Uint8Array, uint8arrayToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
+import { assert, assertNotNull, downcast, first, isNotNull, stringToUtf8Uint8Array, uint8arrayToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
 import { clone, ElementId, elementIdPart, elementIdToId, getElementId, getLetId, getListId, idToElementId } from "../../../../../src/platform-kit/meta"
 import { SetupMultipleError } from "../../../../../src/platform-kit/network/error/SetupMultipleError.js"
 import { GroupManagementFacade } from "../../../../../src/platform-kit/base/facades/lazy/GroupManagementFacade.js"
@@ -602,6 +602,7 @@ o.spec("CalendarFacadeTest", function () {
 				_id: idToElementId(PRIVATE_CALENDAR_ID),
 				index: createTestEntity(CalendarEventIndexRefTypeRef),
 			})
+			assert(isNotNull(privateCalendarGroupRoot.index), JSON.stringify(privateCalendarGroupRoot))
 
 			subscriptionGroupRoot = createTestEntity(CalendarGroupRootTypeRef, {
 				_id: idToElementId(SUBSCRIPTION_CALENDAR_ID),

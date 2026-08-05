@@ -101,4 +101,8 @@ export class EntityAdapter implements Entity {
 	get _publicCryptoProtocolVersion(): null | NumberString {
 		return this.encryptedParsedInstance.getAttributeByNameOrNull("_publicCryptoProtocolVersion")?.getNullWhenNull()?.asString() ?? null
 	}
+
+	get _original(): null | this {
+		return null
+	}
 }
