@@ -32,8 +32,11 @@ export function min<T extends Iterable<number>>(set: T): number | null {
 	return minBy(set, identity)
 }
 
+export type MinByResult<T> = { item: T; value: number }
+export type MaxByResult<T> = { item: T; value: number }
+
 export function minBy<E, T extends Iterable<E>>(collection: T, selector: (item: E) => number): E | null {
-	let min: { item: E; value: number } | null = null
+	let min: MinByResult<E> | null = null
 	for (const item of collection) {
 		const value = selector(item)
 		if (min == null || value < min.value) {
@@ -48,7 +51,7 @@ export function max<T extends Iterable<number>>(set: T): number | null {
 }
 
 export function maxBy<E, T extends Iterable<E>>(collection: T, selector: (item: E) => number): E | null {
-	let max: { item: E; value: number } | null = null
+	let max: MaxByResult<E> | null = null
 	for (const item of collection) {
 		const value = selector(item)
 		if (max == null || value > max.value) {
@@ -88,20 +91,19 @@ export function mapWithout<K, V>(map: ReadonlyMap<K, V>, key: K): Map<K, V> {
 	return newMap
 }
 
+export type TrisectionResult<T> = {
+	kept: Array<T>
+	added: Array<T>
+	deleted: Array<T>
+}
+
 /**
  * diff two maps by keys
  * @param before the map that's considered the old contents
  * @param after the map that's representing the current contents.
  * @returns arrays containing the kept, added, and deleted values.
  */
-export function trisectingDiff<T>(
-	before: ReadonlyMap<unknown, T>,
-	after: ReadonlyMap<unknown, T>,
-): {
-	kept: Array<T>
-	added: Array<T>
-	deleted: Array<T>
-} {
+export function trisectingDiff<T>(before: ReadonlyMap<unknown, T>, after: ReadonlyMap<unknown, T>): TrisectionResult<T> {
 	const kept: Array<T> = []
 	const added: Array<T> = []
 	const deleted: Array<T> = []

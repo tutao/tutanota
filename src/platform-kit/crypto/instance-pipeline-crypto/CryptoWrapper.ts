@@ -12,7 +12,7 @@ import {
 	KyberPublicKey,
 	kyberPublicKeyToBytes,
 } from "../encryption/Liboqs/KyberKeyPair.js"
-import { RsaPublicKey, RsaKeyPair, RsaX25519KeyPair } from "../encryption/RsaKeyPair.js"
+import { RsaKeyPair, RsaPublicKey, RsaX25519KeyPair } from "../encryption/RsaKeyPair.js"
 import { AsymmetricKeyPair } from "../encryption/AsymmetricKeyPair.js"
 import { sha256Hash } from "../hashes/Sha256.js"
 import { Aes256Key, AesKey, AesKeyLength, getKeyLengthInBytes } from "../encryption/symmetric/AesKey.js"
@@ -24,7 +24,16 @@ import { hkdf } from "../hashes/HKDF.js"
 import { HkdfKeyDerivationDomains, MacTag, VersionedEncryptedKey, VersionedKey } from "../CryptoTypes"
 import { EncryptedKeyPairs, EncryptedPqKeyPairs, EncryptedRsaKeyPairs, EncryptedRsaX25519KeyPairs } from "../encryption/EncryptedKeyPairs"
 
-type IdentityKeyPair = { privateEd25519Key: Uint8Array<ArrayBuffer>; identityKeyVersion: NumberString }
+export type IdentityKeyPair = {
+	privateEd25519Key: Uint8Array<ArrayBuffer>
+	identityKeyVersion: NumberString
+}
+
+export type HkdfDerivedKey = {
+	key: AesKey
+	salt: string
+	context: HkdfKeyDerivationDomains
+}
 
 /**
  * This class is useful to bundle all the crypto primitives and make the code testable without using the real crypto implementations.
@@ -108,7 +117,7 @@ export class CryptoWrapper {
 		return sha256Hash(data)
 	}
 
-	deriveKeyWithHkdf({ key, salt, context }: { key: AesKey; salt: string; context: HkdfKeyDerivationDomains }): Aes256Key {
+	deriveKeyWithHkdf({ key, salt, context }: HkdfDerivedKey): Aes256Key {
 		return deriveKey({
 			salt,
 			key,
@@ -156,8 +165,12 @@ export class CryptoWrapper {
 	}
 }
 
-function deriveKey({ salt, key, info, length }: { salt: string; key: AesKey; info: string; length: number }) {
-	return uint8ArrayToKey(hkdf(sha256Hash(stringToUtf8Uint8Array(salt)), keyToUint8Array(key), stringToUtf8Uint8Array(info), length))
+type DeriveKeyParams = { salt: string; key: AesKey; info: string; length: number }
+
+function deriveKey(deriveKeyParams: DeriveKeyParams) {
+	const salt = sha256Hash(stringToUtf8Uint8Array(deriveKeyParams.salt))
+	const info = stringToUtf8Uint8Array(deriveKeyParams.info)
+	return uint8ArrayToKey(hkdf(salt, keyToUint8Array(deriveKeyParams.key), info, deriveKeyParams.length))
 }
 
 /**

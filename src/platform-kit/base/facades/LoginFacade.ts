@@ -160,12 +160,13 @@ export enum AsyncLoginStateOptions {
 	Failed,
 }
 
-type AsyncLoginState = {
+export type CredentialAndCacheInfo = {
+	credentials: Credentials
+	cacheInfo: CacheInfo
+}
+export type AsyncLoginState = {
 	state: AsyncLoginStateOptions
-	failure: Nullable<{
-		credentials: Credentials
-		cacheInfo: CacheInfo
-	}>
+	failure: Nullable<CredentialAndCacheInfo>
 }
 
 /**
@@ -204,6 +205,11 @@ export interface LoginListener {
 	onSecondFactorChallenge(sessionId: IdTuple, challenges: ReadonlyArray<Challenge>, mailAddress: string | null): Promise<void>
 
 	onResetSession(): void
+}
+
+export type PassphraseAndKey = {
+	newEncryptedPassphrase: Base64
+	newEncryptedPassphraseKey: Uint8Array<ArrayBuffer>
 }
 
 export class LoginFacade implements SessionTypeProvider {
@@ -635,10 +641,7 @@ export class LoginFacade implements SessionTypeProvider {
 	async changePassword(
 		currentPasswordKeyData: PassphraseKeyData,
 		newPasswordKeyDataTemplate: Omit<PassphraseKeyData, "salt">,
-	): Promise<{
-		newEncryptedPassphrase: Base64
-		newEncryptedPassphraseKey: Uint8Array<ArrayBuffer>
-	} | null> {
+	): Promise<Nullable<PassphraseAndKey>> {
 		const currentUserPassphraseKey = await this.deriveUserPassphraseKey(currentPasswordKeyData)
 		const currentAuthVerifier = createAuthVerifier(currentUserPassphraseKey)
 		const newPasswordKeyData = { ...newPasswordKeyDataTemplate, salt: generateRandomSalt() }
@@ -904,14 +907,7 @@ export class LoginFacade implements SessionTypeProvider {
 	/**
 	 * If the second factor login has been cancelled a CancelledError is thrown.
 	 */
-	private waitUntilSecondFactorApprovedOrCancelled(
-		createSessionReturn: CreateSessionReturn,
-		mailAddress: string | null,
-	): Promise<{
-		sessionId: IdTuple
-		userId: Id
-		accessToken: Base64Url
-	}> {
+	private waitUntilSecondFactorApprovedOrCancelled(createSessionReturn: CreateSessionReturn, mailAddress: string | null): Promise<SessionUserAndAccessToken> {
 		let p = Promise.resolve()
 		let sessionId = [this.getSessionListId(createSessionReturn.accessToken), this.getSessionElementId(createSessionReturn.accessToken)] as const
 		this.loginRequestSessionId = sessionId
@@ -1055,11 +1051,7 @@ export class LoginFacade implements SessionTypeProvider {
 		return { state: ResumeSessionState.Success, data, asyncResumeCompleted: null }
 	}
 
-	private async initSession(
-		userId: Id,
-		accessToken: Base64Url,
-		userPassphraseKey: AesKey,
-	): Promise<{ user: User; accessToken: string; userGroupInfo: GroupInfo }> {
+	private async initSession(userId: Id, accessToken: Base64Url, userPassphraseKey: AesKey): Promise<UserAcessTokenAndGroupInfo> {
 		// We might have userId already if:
 		// - session has expired and a new one was created
 		// - if it's a partial login
@@ -1127,14 +1119,7 @@ export class LoginFacade implements SessionTypeProvider {
 	/**
 	 * Check whether the passed salt for external user is up-to-date (whether an outdated link was used).
 	 */
-	private async checkOutdatedExternalSalt(
-		credentials: Credentials,
-		sessionData: {
-			userId: Id
-			accessKey: AesKey | null
-		},
-		externalUserSalt: Uint8Array<ArrayBuffer>,
-	) {
+	private async checkOutdatedExternalSalt(credentials: Credentials, sessionData: UserIdAndAccessKey, externalUserSalt: Uint8Array<ArrayBuffer>) {
 		this.userFacade.setAccessToken(credentials.accessToken)
 		const user = await this.entityClient.load(UserTypeRef, idToElementId(sessionData.userId))
 		let externalAuthInfo = assertNotNull(user.externalAuthInfo, "user does not have externalAuthInfo")
@@ -1167,13 +1152,7 @@ export class LoginFacade implements SessionTypeProvider {
 		}
 	}
 
-	private async loadUserPassphraseKey(
-		mailAddress: string,
-		passphrase: string,
-	): Promise<{
-		kdfType: KdfType
-		userPassphraseKey: AesKey
-	}> {
+	private async loadUserPassphraseKey(mailAddress: string, passphrase: string): Promise<PassphraseKeyAndKdfType> {
 		mailAddress = mailAddress.toLowerCase().trim()
 		const saltRequest = createSaltData({ mailAddress })
 		const saltReturn = await this.serviceExecutor.get(SaltService, saltRequest, null)
@@ -1194,10 +1173,7 @@ export class LoginFacade implements SessionTypeProvider {
 		return base64ToBase64Ext(uint8ArrayToBase64(byteAccessToken.slice(0, GENERATED_ID_BYTES_LENGTH)))
 	}
 
-	private async loadSessionData(accessToken: Base64Url): Promise<{
-		userId: Id
-		accessKey: AesKey | null
-	}> {
+	private async loadSessionData(accessToken: Base64Url): Promise<UserIdAndAccessKey> {
 		const sessionTypeModel = await this.typeModelResolver.resolveServerTypeReference(SessionTypeRef)
 		const clientSessionTypeVersion = (await this.typeModelResolver.resolveClientTypeReference(SessionTypeRef)).version
 		const path = EntityUtils.typeModelToRestPath(sessionTypeModel) + "/" + this.getSessionListId(accessToken) + "/" + this.getSessionElementId(accessToken)
@@ -1237,4 +1213,20 @@ export class LoginFacade implements SessionTypeProvider {
 	private getTotpVerifier(): Promise<TotpVerifier> {
 		return Promise.resolve(new TotpVerifier())
 	}
+}
+
+type UserAcessTokenAndGroupInfo = { user: User; accessToken: string; userGroupInfo: GroupInfo }
+type SessionUserAndAccessToken = {
+	sessionId: IdTuple
+	userId: Id
+	accessToken: Base64Url
+}
+
+type UserIdAndAccessKey = {
+	userId: Id
+	accessKey: AesKey | null
+}
+type PassphraseKeyAndKdfType = {
+	kdfType: KdfType
+	userPassphraseKey: AesKey
 }

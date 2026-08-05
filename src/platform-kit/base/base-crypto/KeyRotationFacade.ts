@@ -298,13 +298,7 @@ export class KeyRotationFacade {
 	}
 
 	//We assume that the logged-in user is an admin user and that the key encrypting the group key are already pq secure
-	private async rotateUserAreaGroupKeys(
-		user: User,
-		pendingKeyRotations: PendingKeyRotation,
-	): Promise<{
-		groupKeyRotationData: GroupKeyRotationData[]
-		preparedReInvites: GroupInvitationPostData[]
-	}> {
+	private async rotateUserAreaGroupKeys(user: User, pendingKeyRotations: PendingKeyRotation): Promise<GroupKeyRotationDataAndReInvites> {
 		// * the encrypting keys are 128-bit keys. (user group key)
 		const currentUserGroupKey = this.keyLoaderFacade.getCurrentSymUserGroupKey()
 		if (hasNonQuantumSafeKeys(currentUserGroupKey.object)) {
@@ -1413,4 +1407,9 @@ export class KeyRotationRolloutAction implements RolloutAction {
 			}
 		}
 	}
+}
+
+type GroupKeyRotationDataAndReInvites = {
+	groupKeyRotationData: GroupKeyRotationData[]
+	preparedReInvites: GroupInvitationPostData[]
 }

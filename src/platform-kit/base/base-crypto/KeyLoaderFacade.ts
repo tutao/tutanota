@@ -233,11 +233,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 		}
 	}
 
-	private async findFormerGroupKey(
-		group: Group,
-		currentGroupKey: VersionedKey,
-		targetKeyVersion: KeyVersion,
-	): Promise<{ symmetricGroupKey: AesKey; groupKeyInstance: GroupKey }> {
+	private async findFormerGroupKey(group: Group, currentGroupKey: VersionedKey, targetKeyVersion: KeyVersion): Promise<GroupKeyAndGroupKeyInstance> {
 		const formerKeysList = group.formerGroupKeys.list
 		// start id is not included in the result of the range request, so we need to start at current version.
 		const startId = convertKeyVersionToCustomId(currentGroupKey.version)
@@ -366,6 +362,11 @@ export function toKeyPair(keyPair: EncryptedKeyPairs): KeyPair {
 		})
 	}
 	throw new CryptoError("Invalid key pair")
+}
+
+type GroupKeyAndGroupKeyInstance = {
+	symmetricGroupKey: AesKey
+	groupKeyInstance: GroupKey
 }
 
 export function isEncryptedPqKeyPairs(keyPair: KeyPair): boolean {
