@@ -136,6 +136,23 @@ o.spec("DateTimeTextFormatterUtils", () => {
 				),
 			).equals("All Day, Jan 1, 2026 - Jan 3, 2026")
 		})
+		o.test(
+			"Handles event where the start and end date are in different days in the start and end time zones, but the same day in the calendar time zone",
+			() => {
+				o(
+					formatEventDuration(
+						{
+							startTime: DateTime.fromISO("2026-08-07T05:00:00", { zone: "Asia/Tokyo" }).toJSDate(),
+							endTime: DateTime.fromISO("2026-08-06T23:00:00", { zone: "Europe/Berlin" }).toJSDate(),
+							startTimeZone: "Asia/Tokyo",
+							endTimeZone: "Europe/Berlin",
+						},
+						"Europe/Berlin",
+						true,
+					),
+				).equals("Aug 7, 2026, 5:00 AM (Tokyo) - Aug 6, 2026, 11:00 PM (Berlin)")
+			},
+		)
 	})
 	o.spec("formatTimeWithZoneInfo", () => {
 		o.test("Only displays start time zone if end time zone is NOT provided", () => {

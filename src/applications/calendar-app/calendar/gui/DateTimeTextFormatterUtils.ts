@@ -1,7 +1,7 @@
 import { CalendarEventDateTimeFields, CalendarEventTimeZones, getAllDayDateLocal, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { EventTextTimeOption } from "@tutao/app-env"
-import { assert, isSameDay, isSameDayOfDate } from "@tutao/utils"
+import { assert, isSameDayOfDate } from "@tutao/utils"
 import { formatDateTime, formatDateWithMonth, formatTime } from "../../../../ui/utils/Formatter"
 import { DateTime } from "luxon"
 import { eventEndsAfterDay, eventStartsBefore, getEndOfDayWithZone } from "../../../common/calendar/date/CalendarUtils"
@@ -107,12 +107,18 @@ export function formatEventDuration(event: CalendarEventDateTimeFields, calendar
 		const startTimeZone = includeTimezone ? resolveStartTimeZone(event, calendarTimeZone) : calendarTimeZone
 		const endTimeZone = includeTimezone ? resolveEndTimeZone(event, calendarTimeZone) : calendarTimeZone
 
+		const startDateTime = DateTime.fromJSDate(event.startTime, { zone: startTimeZone })
+		const endDateTime = DateTime.fromJSDate(event.endTime, { zone: endTimeZone })
+
+		const isSameDayInTimeZones =
+			startDateTime.year === endDateTime.year && startDateTime.month === endDateTime.month && startDateTime.day === endDateTime.day
+
 		result += formatDateTime(event.startTime, startTimeZone)
 		if (includeTimezone) {
 			result += " (" + getTimeZoneShortName(startTimeZone) + ")"
 		}
 		result += " - "
-		if (isSameDay(event.startTime, event.endTime)) {
+		if (isSameDayInTimeZones) {
 			result += formatTime(event.endTime, endTimeZone)
 		} else {
 			result += formatDateTime(event.endTime, endTimeZone)
