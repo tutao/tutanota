@@ -78,6 +78,7 @@ export class OfflineMailIndexer implements MailIndexer {
 		private readonly infoMessageHandler: InfoMessageHandler,
 		private readonly newMailDownloader: MailIndexerNewMailDownloader,
 		private readonly instancePipeline: InstancePipeline,
+		private readonly indexChunkSize: number = INDEX_CHUNK_SIZE,
 	) {}
 
 	private fullyIndexed: boolean = false
@@ -268,7 +269,7 @@ export class OfflineMailIndexer implements MailIndexer {
 		let totalMailsDownloaded = 0
 
 		while (!this.abortController.signal.aborted) {
-			const mails = await this.entityClient.loadRange(MailTypeRef, mailList, currentId, INDEX_CHUNK_SIZE, true)
+			const mails = await this.entityClient.loadRange(MailTypeRef, mailList, currentId, this.indexChunkSize, true)
 			if (isEmpty(mails)) {
 				return
 			}
@@ -449,7 +450,7 @@ export class OfflineMailIndexer implements MailIndexer {
 
 		const archiveDownloadPromises = new Map()
 
-		for (const chunk of splitInChunks(INDEX_CHUNK_SIZE, mailIds)) {
+		for (const chunk of splitInChunks(this.indexChunkSize, mailIds)) {
 			const idsGrouped = groupByAndMap(chunk, listIdPart, elementIdPart)
 			const mails = await promiseMap(idsGrouped, async ([list, elements]) => {
 				return await this.entityClient.loadMultiple(MailTypeRef, list, elements)
