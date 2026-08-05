@@ -161,10 +161,12 @@ function parseVersionedCipherTextUnusedReservedUnauthenticated(
 	return new ParsedCiphertextUnusedReservedUnauthenticated(initializationVector, ciphertext)
 }
 
-function extractInitializationVector(ciphertext: Uint8Array<ArrayBuffer>): {
+type IvWithCipherText = {
 	initializationVector: InitializationVector
 	ciphertext: Uint8Array<ArrayBuffer>
-} {
+}
+
+function extractInitializationVector(ciphertext: Uint8Array<ArrayBuffer>): IvWithCipherText {
 	if (ciphertext.length < INITIALIZATION_VECTOR_LENGTH_BYTES) {
 		throw new CryptoError("aes decryption failed> initialization vector must be 128 bits")
 	}
@@ -174,7 +176,8 @@ function extractInitializationVector(ciphertext: Uint8Array<ArrayBuffer>): {
 	}
 }
 
-function extractMacTag(ciphertext: Uint8Array<ArrayBuffer>): { ciphertext: Uint8Array<ArrayBuffer>; macTag: MacTag } {
+type CipherTextWithMac = { ciphertext: Uint8Array<ArrayBuffer>; macTag: MacTag }
+function extractMacTag(ciphertext: Uint8Array<ArrayBuffer>): CipherTextWithMac {
 	if (ciphertext.length < SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES) {
 		throw new CryptoError("aes decryption failed> message authentication code must be 256 bits")
 	}
@@ -184,7 +187,8 @@ function extractMacTag(ciphertext: Uint8Array<ArrayBuffer>): { ciphertext: Uint8
 	}
 }
 
-function extractGroupKeyVersion(ciphertext: Uint8Array<ArrayBuffer>): { groupKeyVersion: KeyVersion; ciphertext: Uint8Array<ArrayBuffer> } {
+type CipherTextWithGroupKeyVersion = { groupKeyVersion: KeyVersion; ciphertext: Uint8Array<ArrayBuffer> }
+function extractGroupKeyVersion(ciphertext: Uint8Array<ArrayBuffer>): CipherTextWithGroupKeyVersion {
 	if (ciphertext.length < 2) {
 		throw new CryptoError("aes decryption failed> group key version (including length) must be 16 bits")
 	}

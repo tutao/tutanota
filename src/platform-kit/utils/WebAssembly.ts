@@ -61,6 +61,8 @@ export async function loadWasmFromFileOrNetwork<T extends WASMExports>(wasmPath:
 	}
 }
 
+type ArgsToOverWrite = { arrayInWASM: Uint8Array; originalBufferYouPassedIn: AbstractMutableUint8Array }
+
 /**
  * Call the WebAssembly function with the given arguments.
  *
@@ -76,7 +78,7 @@ export function callWebAssemblyFunctionWithArguments<T>(func: (...args: number[]
 	const argsToPass: number[] = []
 	const toFree: Ptr[] = []
 	const toClear: Uint8Array[] = []
-	const toOverwrite: { arrayInWASM: Uint8Array; originalBufferYouPassedIn: AbstractMutableUint8Array }[] = []
+	const toOverwrite: ArgsToOverWrite[] = []
 
 	try {
 		for (const arg of args) {

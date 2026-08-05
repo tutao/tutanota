@@ -85,6 +85,13 @@ export interface EntityMigrator {
 	applyMigrations(typeRef: TypeRef<Entity>, data: EntityAdapter): Promise<EntityAdapter>
 }
 
+type PreparedRestRequestParams = {
+	path: string
+	queryParams: Nullable<Dict>
+	headers: Dict
+	clientTypeModel: ClientTypeModel
+}
+
 /**
  * Retrieves the instances from the backend (db) and converts them to entities.
  *
@@ -253,12 +260,12 @@ export class EntityRestClient implements EntityRestInterface {
 
 		const loadedChunks = await promiseMap(idChunks, async (idChunk) => {
 			const tm = syncMetrics?.beginMeasurement(Category.LoadMultipleRest)
-			let queryParams = {
-				ids: idChunk.join(","),
-			}
+			const joinedIds = idChunk.join(",")
+			const queryParams = { ids: joinedIds }
+
 			let json: string
 			if (clientTypeModel.type === EntityTypeEnum.BlobElement) {
-				json = await this.loadMultipleBlobElements(listId, queryParams, headers, path, typeRef, opts)
+				json = await this.loadMultipleBlobElements(listId, joinedIds, headers, path, typeRef, opts)
 			} else {
 				json = await this.restClient.request(path, HttpMethod.GET, {
 					...DEFAULT_REST_CLIENT_OPTIONS,
@@ -293,7 +300,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 	private async loadMultipleBlobElements(
 		archiveId: Id | null,
-		queryParams: { ids: string },
+		idsToLoad: string,
 		headers: Dict,
 		path: string,
 		typeRef: TypeRef<any>,
@@ -307,7 +314,7 @@ export class EntityRestClient implements EntityRestInterface {
 			const additionalRequestParams = Object.assign(
 				{},
 				headers, // prevent CORS request due to non standard header usage
-				queryParams,
+				{ ids: idsToLoad },
 			)
 			const allParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, additionalRequestParams, typeRef)
 
@@ -662,12 +669,7 @@ export class EntityRestClient implements EntityRestInterface {
 		extraHeaders: Nullable<Dict>,
 		ownerKeyProvider: OwnerKeyProvider | null,
 		ownerKey: VersionedKey | null,
-	): Promise<{
-		path: string
-		queryParams: Nullable<Dict>
-		headers: Dict
-		clientTypeModel: ClientTypeModel
-	}> {
+	): Promise<PreparedRestRequestParams> {
 		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 
 		ensureIsPersistentType(clientTypeModel)

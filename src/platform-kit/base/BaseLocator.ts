@@ -103,13 +103,25 @@ export type BaseLocator = {
 	lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider>
 }
 
+export interface BaseLocatorWorker {
+	sendError(e: Error): Promise<void>
+	getMainInterface(): BaseLocatorMainInterface
+}
+
+export type BaseLocatorMainInterface = {
+	infoMessageHandler: OnInfoMessage
+}
+export interface OnInfoMessage {
+	onInfoMessage(msg: InfoMessageArgs): void
+}
+
+export type InfoMessageArgs = {
+	translationKey: string
+	args: Record<string, unknown>
+}
+
 export type BaseLocatorConfig = {
-	worker: {
-		sendError(e: Error): Promise<void>
-		getMainInterface(): {
-			infoMessageHandler: { onInfoMessage(msg: { translationKey: string; args: Record<string, unknown> }): void }
-		}
-	}
+	worker: BaseLocatorWorker
 	clientModelInfo: ClientModelInfo
 	browserData: BrowserData
 	loginListenerProvider: (user: UserFacade) => LoginListener
@@ -122,23 +134,25 @@ export type BaseLocatorConfig = {
 	rsa: RsaImplementation
 	fileFacade: SimpleFileFacade
 	nativeCryptoFacade: Nullable<NativeCryptoFacade>
-	entityMigratorFactory: (params: {
-		cryptoWrapper: CryptoWrapper
-		user: UserFacade
-		keyLoader: KeyLoaderFacade
-		cachingEntityClient: EntityClient
-		serviceExecutor: IServiceExecutor
-		typeModelResolver: TypeModelResolver
-		instancePipeline: InstancePipeline
-		restClient: RestClient
-		crypto: CryptoFacade
-	}) => EntityMigrator
+	entityMigratorFactory: (params: EntityMigratorFactoryParams) => EntityMigrator
 	entityRestCache: (
 		entityRestClient: EntityRestClient,
 		patchMerger: PatchMerger,
 		typeModelResolver: TypeModelResolver,
 		lastProcessed: lazyAsync<LastProcessedEventBatchProvider>,
 	) => EntityRestInterface
+}
+
+export type EntityMigratorFactoryParams = {
+	cryptoWrapper: CryptoWrapper
+	user: UserFacade
+	keyLoader: KeyLoaderFacade
+	cachingEntityClient: EntityClient
+	serviceExecutor: IServiceExecutor
+	typeModelResolver: TypeModelResolver
+	instancePipeline: InstancePipeline
+	restClient: RestClient
+	crypto: CryptoFacade
 }
 
 export async function createBaseLocator({
