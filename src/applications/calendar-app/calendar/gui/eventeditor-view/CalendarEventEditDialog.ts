@@ -246,8 +246,7 @@ export class EventEditorDialog {
 					resolve()
 				} catch (e) {
 					if (e instanceof UserError) {
-						// noinspection ES6MissingAwait
-						showUserError(e)
+						await showUserError(e)
 					} else if (e instanceof UpgradeRequiredError) {
 						await showPlanUpgradeRequiredDialog(UpgradePromptType.EDIT_CALENDAR_EVENT_REQUIRING_SUBSCRIPTION, e.plans)
 					} else {
