@@ -22,8 +22,8 @@ export class TimeZoneSelectionPage implements Component<TimeZoneSelectionPageAtt
 	private selectedEndTimeZone: string
 
 	constructor({ attrs }: Vnode<TimeZoneSelectionPageAttrs>) {
-		this.selectedStartTimeZone = attrs.whenModel.getStartTimeZone() ?? attrs.whenModel.calendarTimeZone
-		this.selectedEndTimeZone = attrs.whenModel.getEndTimeZone() ?? attrs.whenModel.calendarTimeZone
+		this.selectedStartTimeZone = attrs.whenModel.getEffectiveStartTimeZone()
+		this.selectedEndTimeZone = attrs.whenModel.getEffectiveEndTimeZone()
 	}
 
 	view({ attrs }: Vnode<TimeZoneSelectionPageAttrs>): Children {

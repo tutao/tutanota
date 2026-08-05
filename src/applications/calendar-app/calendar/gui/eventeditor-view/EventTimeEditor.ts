@@ -36,9 +36,9 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 		let displayEndTimeZone: string | null = null
 		if (editModel.allowsTimeZones()) {
 			if (attrs.separateStartAndEndTimeZone) {
-				displayStartTimeZone = editModel.getStartTimeZone() ?? editModel.calendarTimeZone
+				displayStartTimeZone = editModel.getEffectiveStartTimeZone()
 			}
-			displayEndTimeZone = editModel.getEndTimeZone() ?? editModel.calendarTimeZone
+			displayEndTimeZone = editModel.getEffectiveEndTimeZone()
 		}
 
 		const appClasses = EnvProvider.get().isApp() ? ["smaller"] : []
