@@ -1,4 +1,4 @@
-import type { lazyAsync } from "./Utils.js"
+import { assertNotNull, lazyAsync } from "./Utils.js"
 
 enum LoadState {
 	NotLoaded,
@@ -70,9 +70,9 @@ export class LazyLoaded<T> {
 				return loadingPromise
 			}
 			case LoadState.Loading:
-				return this.promise!
+				return assertNotNull(this.promise)
 			case LoadState.Loaded:
-				return Promise.resolve(this.value!)
+				return Promise.resolve(assertNotNull(this.value))
 		}
 	}
 
@@ -88,7 +88,7 @@ export class LazyLoaded<T> {
 	 */
 	getLoaded(): T {
 		if (this.state === LoadState.Loaded) {
-			return this.value!
+			return assertNotNull(this.value)
 		} else {
 			throw new Error("Not loaded!")
 		}

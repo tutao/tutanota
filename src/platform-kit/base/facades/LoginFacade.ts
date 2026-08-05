@@ -852,7 +852,8 @@ export class LoginFacade implements SessionTypeProvider {
 		if (this.asyncLoginState.state === AsyncLoginStateOptions.Running) {
 			return
 		} else if (this.asyncLoginState.state === AsyncLoginStateOptions.Failed) {
-			await this.asyncResumeSession(this.asyncLoginState.failure!.credentials, this.asyncLoginState.failure!.cacheInfo)
+			const failure = assertNotNull(this.asyncLoginState.failure)
+			await this.asyncResumeSession(failure.credentials, failure.cacheInfo)
 		} else {
 			throw new Error("credentials went missing")
 		}
@@ -1136,7 +1137,8 @@ export class LoginFacade implements SessionTypeProvider {
 	) {
 		this.userFacade.setAccessToken(credentials.accessToken)
 		const user = await this.entityClient.load(UserTypeRef, idToElementId(sessionData.userId))
-		const latestSaltHash = assertNotNull(user.externalAuthInfo!.latestSaltHash, "latestSaltHash is not set!")
+		let externalAuthInfo = assertNotNull(user.externalAuthInfo, "user does not have externalAuthInfo")
+		const latestSaltHash = assertNotNull(externalAuthInfo.latestSaltHash, "latestSaltHash is not set!")
 		if (!arrayEquals(latestSaltHash, sha256Hash(externalUserSalt))) {
 			// Do not delete session or credentials, we can still use them if the password
 			// hasn't been changed.
