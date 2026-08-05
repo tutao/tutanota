@@ -13,7 +13,7 @@ import {
 	VersionedKey,
 } from "../../../src/platform-kit/crypto"
 import { matchers, object, replace, verify, when } from "testdouble"
-import { AppNameEnum, CardinalityEnum, ClientTypeModel, EncryptedModelValue, ModelValue, ServerTypeModel, ValueTypeEnum } from "../../../src/platform-kit/meta"
+import { AppNameEnum, CardinalityEnum, ClientTypeModel, ModelValue, ServerTypeModel, ValueTypeEnum } from "../../../src/platform-kit/meta"
 import {
 	arrayEquals,
 	assertNotNull,
@@ -436,7 +436,7 @@ o.spec("CryptoMapperTest", () => {
 	o.spec("decryptValue", () => {
 		let valueDecryptor: ValueDecryptor
 		let instanceDecryptor: InstanceDecryptor
-		let valueType: EncryptedModelValue
+		let valueType: ModelValue
 		let encryptedValue: EncryptedParsedValue
 
 		o.beforeEach(() => {

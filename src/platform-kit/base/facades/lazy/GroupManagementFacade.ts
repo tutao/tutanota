@@ -36,7 +36,7 @@ import {
 	TemplateGroupService,
 	UserAreaGroupData,
 } from "@tutao/entities/tutanota"
-import { CacheManager } from "../../base-crypto/persistence/CacheManager"
+import { CacheManager, UserAndGroup } from "../../base-crypto/persistence/CacheManager"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../instance-pipeline/RestClientOptions"
 import { elementIdToId, idToElementId } from "@tutao/meta"
 import { isNull } from "../../../utils/Utils"
@@ -146,7 +146,7 @@ export class GroupManagementFacade {
 		})
 	}
 
-	async createCalendar(name: string): Promise<{ user: User; group: Group }> {
+	async createCalendar(name: string): Promise<UserAndGroup> {
 		const groupData = await this.generateUserAreaGroupData(name)
 		const postData = createUserAreaGroupPostData({
 			groupData,

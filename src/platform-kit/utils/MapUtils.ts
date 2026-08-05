@@ -35,13 +35,14 @@ export function getFromMap<K, V>(map: Map<K, V>, key: K, byDefault: () => V): V 
 	return value
 }
 
+export type TakeFromMapResult<T> = { item: Nullable<T>; wasPresent: boolean }
 /**
  * Removes an item from the map and returns it.
  *
  * In the case that the key-value pair was present but its value was undefined, you can read wasPresent to
  * check that it was present (and therefore deleted).
  */
-export function takeFromMap<K, V>(map: Map<K, V>, key: K): { item: V | null; wasPresent: boolean } {
+export function takeFromMap<K, V>(map: Map<K, V>, key: K): TakeFromMapResult<V> {
 	// Will return undefined if not present OR the value is actually === undefined
 	const item = map.get(key) ?? null
 
