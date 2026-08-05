@@ -2493,3 +2493,4 @@ export type TranslationKeyType =
 	| "subscriptionSettingExpiredSubscriptionOnlyFeatures_msg"
 	| "orderProcessingAgreement_action"
 	| "openAgreement_action"
+	| "subscriptionSettingAppleWebsite_action"

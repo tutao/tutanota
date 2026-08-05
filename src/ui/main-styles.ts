@@ -3419,9 +3419,18 @@ export class MainStyles {
 					"grid-template-rows": "repeat(2, 1fr)",
 					gap: "8px",
 				},
+				".subscription-links": {
+					display: "flex",
+					"flex-direction": "row",
+					gap: "32px",
+				},
 				"@media (max-width: 500px)": {
 					".subscription-settings-card": {
 						"grid-template-columns": "none",
+					},
+					".subscription-links": {
+						"flex-direction": "column",
+						gap: "16px",
 					},
 				},
 				".subscription-explanation li": {

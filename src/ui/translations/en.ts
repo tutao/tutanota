@@ -2488,6 +2488,7 @@ export default {
 		"subscriptionSettingManageSubscription_action": "Apple settings",
 		"subscriptionSettingSwitchPlan_action": "Switch plan",
 		"orderProcessingAgreement_action": "Show order processing agreement",
-		"openAgreement_action": "Open agreement"
+		"openAgreement_action": "Open agreement",
+		"subscriptionSettingAppleWebsite_action": "Apple website"
 	}
 }

@@ -140,7 +140,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 							: undefined,
 						this.showOrderAgreement() ? this.renderAgreement() : null,
 						m(
-							".flex.row.gap-32",
+							".subscription-links",
 							this.showOrderAgreement() && this._orderAgreement != null ? m(".small", this.showAgreement()) : null,
 							m(".small", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
 							m(".small", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
@@ -250,7 +250,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		//Accounting interval can be changed by customer
 		const paymentInterval = Number(asPaymentInterval(accountingInfo.paymentInterval))
 		const isNewPlan = NewPaidPlans.includes(planType as AvailablePlanType)
-		const isAppleSubscription = accountingInfo.paymentMethod === PaymentMethodType.AppStore || isIOSApp()
+		const isAppleSubscription = accountingInfo.paymentMethod === PaymentMethodType.AppStore
 		//Make copy of booking end date to alter it
 		const nextEndDate = new Date(assertNotNull(booking.endDate))
 		nextEndDate.setMonth(nextEndDate.getMonth() + paymentInterval)
@@ -273,7 +273,9 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 							this.getEndDateAttrs(currentStateSubscription, booking.endDate),
 						],
 					} satisfies SubscriptionStateCardAttrs),
-					!isNewSubscriptionVisible && isNewPlan && this.renderButtons(booking, currentStateSubscription, isAppleSubscription),
+					(!isNewSubscriptionVisible || isAppleSubscription) &&
+						isNewPlan &&
+						this.renderButtons(booking, currentStateSubscription, isAppleSubscription),
 				),
 				//Next Subscription period
 				isNewSubscriptionVisible &&
@@ -405,7 +407,6 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 							m(PrimaryButton, {
 								label: "subscriptionSettingSwitchPlan_action",
 								width: "flex",
-								icon: Icons.OpenOutline,
 								onclick: () => {
 									this.onSubscriptionClick()
 								},
@@ -414,7 +415,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 				: m(
 						".flex.justify-end.gap-8",
 						m(PrimaryButton, {
-							label: "subscriptionSettingManageSubscription_action",
+							label: "subscriptionSettingAppleWebsite_action",
 							width: "flex",
 							onclick: () => {
 								this.onSubscriptionClick()
@@ -891,6 +892,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 				m(MenuTitle, {
 					content: lang.getTranslationText("orderProcessingAgreement_label"),
 				}),
+
 				m(MessageBanner, {
 					translation: lang.getTranslation("orderProcessingAgreementInfo_msg"),
 					type: "warning",
@@ -900,7 +902,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 					m(PrimaryButton, {
 						label: "openAgreement_action",
 						width: "flex",
-						style: { width: "fit-content" },
+						style: { width: "fit-content", marginTop: "-8px" },
 						onclick: () => SignOrderAgreementDialog.showForSigning(neverNull(this._customer), neverNull(this._accountingInfo)),
 					}),
 				),
