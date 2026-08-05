@@ -13,6 +13,7 @@ import {
 	getFirstOrThrow,
 	isEmpty,
 	isNotEmpty,
+	lazy,
 	lazyMemoized,
 	neverNull,
 	noOp,
@@ -66,6 +67,8 @@ import { getMailFolderType, SimpleMoveMailTarget } from "../MailUtils"
 import { $Promisable } from "../../workerUtils/index/IndexerPromiseUtils"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp"
+import type { Shortcut } from "../../../../ui/utils/KeyManager"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 const UNDO_SNACKBAR_SHOW_TIME = TimeConstants.secondsToMillis(10)
 
@@ -944,6 +947,206 @@ export async function showDownloadProgressDialog(
 	} finally {
 		transferProgressDispatcher.removeDownloadListener(listener)
 	}
+}
+
+export function getCommonShortcuts(
+	createAction: (() => void | Promise<void>) | null,
+	createFolderAction: (() => void | Promise<void>) | null,
+	toggleUnreadAction: (() => void | Promise<void>) | null,
+	deleteOrTrashAction: (() => void | Promise<void>) | null,
+	labelAction: (() => void | Promise<void>) | null,
+	moveMailsToFolderAction: ((kind: MailSetKind) => void | Promise<void>) | null,
+	moveMailsFromFolderAction: (() => void | Promise<void>) | null,
+	switchToFolderAction: ((kind: MailSetKind) => Promise<void>) | null,
+	undoAction: (() => void | Promise<void>) | null,
+	isDragAndDropExportEnabled: lazy<boolean>,
+	isInternalUserLoggedIn: lazy<boolean>,
+	isInternalCommunicationEnabled: lazy<boolean>,
+	isNewMailActionAvailable: lazy<boolean>,
+): Shortcut[] {
+	return [
+		{
+			key: Keys.N,
+			exec: () => {
+				createAction?.()
+			},
+			enabled: () => createAction !== null && isNewMailActionAvailable(),
+			help: "newMail_action",
+		},
+		{
+			key: Keys.DELETE,
+			exec: () => {
+				deleteOrTrashAction?.()
+			},
+			help: "deleteEmails_action",
+			enabled: () => deleteOrTrashAction !== null,
+		},
+		{
+			key: Keys.BACKSPACE,
+			exec: () => {
+				deleteOrTrashAction?.()
+			},
+			help: "deleteEmails_action",
+			enabled: () => deleteOrTrashAction !== null,
+		},
+		{
+			key: Keys.DELETE,
+			shift: true,
+			exec: () => {
+				moveMailsToFolderAction?.(MailSetKind.SPAM)
+			},
+			help: "reportSpam_action",
+			enabled: () => moveMailsToFolderAction !== null,
+		},
+		{
+			key: Keys.BACKSPACE,
+			shift: true,
+			exec: () => {
+				moveMailsToFolderAction?.(MailSetKind.SPAM)
+			},
+			help: "reportSpam_action",
+			enabled: () => moveMailsToFolderAction !== null,
+		},
+		{
+			key: Keys.A,
+			exec: () => {
+				moveMailsToFolderAction?.(MailSetKind.ARCHIVE)
+			},
+			help: "archive_action",
+			enabled: () => moveMailsToFolderAction !== null && isInternalUserLoggedIn(),
+		},
+		{
+			key: Keys.I,
+			exec: () => {
+				moveMailsToFolderAction?.(MailSetKind.INBOX)
+			},
+			help: "moveToInbox_action",
+			enabled: () => moveMailsToFolderAction !== null,
+		},
+		{
+			key: Keys.N,
+			shift: true,
+			ctrlOrCmd: true,
+			exec: () => {
+				createFolderAction?.()
+				return true
+			},
+			help: "addFolder_action",
+			enabled: () => createFolderAction !== null,
+		},
+		{
+			key: Keys.V,
+			exec: () => {
+				moveMailsFromFolderAction?.()
+				return true
+			},
+			help: "move_action",
+		},
+		{
+			key: Keys.L,
+			exec: () => {
+				labelAction?.()
+				return true
+			},
+			help: "labels_label",
+			enabled: () => labelAction !== null,
+		},
+		{
+			key: Keys.U,
+			exec: () => {
+				toggleUnreadAction?.()
+			},
+			help: "toggleUnread_action",
+			enabled: () => toggleUnreadAction !== null,
+		},
+		{
+			key: Keys.Z,
+			exec: () => {
+				undoAction?.()
+			},
+			ctrlOrCmd: true,
+			help: "undo_action",
+			enabled: () => undoAction !== null,
+		},
+		{
+			key: Keys.ONE,
+			exec: () => {
+				switchToFolderAction?.(MailSetKind.INBOX)
+				return true
+			},
+			help: "switchInbox_action",
+			enabled: () => switchToFolderAction !== null,
+		},
+		{
+			key: Keys.TWO,
+			exec: () => {
+				switchToFolderAction?.(MailSetKind.DRAFT)
+				return true
+			},
+			help: "switchDrafts_action",
+			enabled: () => switchToFolderAction !== null,
+		},
+		{
+			key: Keys.THREE,
+			exec: () => {
+				// This should be removed once the batch job to add the Scheduled Mail set to all users is run
+				const goToScheduledFolder = async () => {
+					try {
+						await switchToFolderAction?.(MailSetKind.SCHEDULED)
+					} catch (e) {
+						console.log("SCHEDULED FOLDER NOT FOUND", e)
+					}
+				}
+				goToScheduledFolder()
+
+				return true
+			},
+			help: "switchScheduledFolder_action",
+			enabled: () => switchToFolderAction !== null,
+		},
+		{
+			key: Keys.FOUR,
+			exec: () => {
+				switchToFolderAction?.(MailSetKind.SENT)
+				return true
+			},
+			help: "switchSentFolder_action",
+			enabled: () => switchToFolderAction !== null,
+		},
+		{
+			key: Keys.FIVE,
+			exec: () => {
+				switchToFolderAction?.(MailSetKind.TRASH)
+				return true
+			},
+			help: "switchTrash_action",
+			enabled: () => switchToFolderAction !== null,
+		},
+		{
+			key: Keys.SIX,
+			exec: () => {
+				switchToFolderAction?.(MailSetKind.ARCHIVE)
+				return true
+			},
+			enabled: () => switchToFolderAction !== null && isInternalUserLoggedIn(),
+			help: "switchArchive_action",
+		},
+		{
+			key: Keys.SEVEN,
+			exec: () => {
+				switchToFolderAction?.(MailSetKind.SPAM)
+				return true
+			},
+			enabled: () => switchToFolderAction !== null && isInternalUserLoggedIn() && !isInternalCommunicationEnabled(),
+			help: "switchSpam_action",
+		},
+		{
+			key: Keys.CTRL,
+			exec: () => false,
+			enabled: isDragAndDropExportEnabled,
+			help: "dragAndDrop_action",
+		},
+	]
 }
 
 export class AttachmentDownloader {

@@ -6,7 +6,7 @@ import { EnvProvider, FeatureType, ProgrammingError, UpgradePromptType } from ".
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { elementIdToId, Entity, getElementId, getIds, isSameId, isSameSingleId, isSameTypeRef, TypeRef } from "../../../../platform-kit/meta"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
-import { MailReportType, MailSetKind } from "../../../../entities/tutanota/Utils"
+import { MailReportType, MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
 import { layout_size } from "../../../../ui/size"
 import { SEARCH_MAIL_FIELDS, SearchCategoryTypes } from "../model/SearchUtils"
@@ -21,7 +21,6 @@ import {
 	isSameDayOfDate,
 	last,
 	LazyLoaded,
-	lazyMemoized,
 	memoized,
 	noOp,
 	ofClass,
@@ -46,7 +45,7 @@ import { TopLevelAttrs, TopLevelView } from "../../../../ui/base/TopLevelView.js
 import { getContactSelectionMessage, MultiContactViewer } from "../../contacts/view/MultiContactViewer.js"
 import { ContactCardViewer } from "../../contacts/view/ContactCardViewer.js"
 import { getMailSelectionMessage, MultiItemViewer } from "../../mail/view/MultiItemViewer.js"
-import { ConversationViewer, ConversationViewerAttrs } from "../../mail/view/ConversationViewer.js"
+import { ConversationViewer } from "../../mail/view/ConversationViewer.js"
 import { ContactViewerActions } from "../../contacts/view/ContactViewerActions.js"
 import { confirmMerge, deleteContacts, writeMail } from "../../contacts/view/ContactView.js"
 import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox.js"
@@ -64,6 +63,7 @@ import { MobileHeader } from "../../../../ui/MobileHeader.js"
 import { MobileActionAttrs, MobileActionBar } from "../../../../ui/MobileActionBar.js"
 import { MobileBottomActionBar } from "../../../../ui/MobileBottomActionBar.js"
 import {
+	getCommonShortcuts,
 	getConversationTitle,
 	LabelsPopupOpts,
 	promptAndDeleteMails,
@@ -99,7 +99,14 @@ import { allInSameMailbox, getIndentedFolderNameForDropdown } from "../../mail/m
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
 import { extractContactIdFromEvent, isBirthdayEvent } from "../../../common/calendar/date/CalendarUtils.js"
 import { createDropdown } from "../../../../ui/base/Dropdown"
-import { editDraft, getMailViewerMoreActions, MailFilterType, showReportPhishingMailDialog, startExport } from "../../mail/view/MailViewerUtils"
+import {
+	canDoDragAndDropExport,
+	editDraft,
+	getMailViewerMoreActions,
+	MailFilterType,
+	showReportPhishingMailDialog,
+	startExport,
+} from "../../mail/view/MailViewerUtils"
 import { isDraft, isMailMovable } from "../../mail/model/MailChecks"
 import { ConversationViewModel } from "../../mail/view/ConversationViewModel"
 import { UserError } from "../../../common/api/main/UserError"
@@ -121,6 +128,7 @@ import { SimpleMoveMailTarget } from "../../mail/MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { showEditFolderDialog } from "../../mail/view/EditFolderDialog"
 
 EnvProvider.assertMainOrNode()
 
@@ -295,6 +303,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					{
 						label: "emails_label",
 						click: () => {
+							keyManager.unregisterShortcuts(this.shortcuts())
 							const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryTypes.mail)
 							m.route.set(href)
 						},
@@ -303,6 +312,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					{
 						label: "contacts_label",
 						click: () => {
+							keyManager.unregisterShortcuts(this.shortcuts())
 							const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryTypes.contact)
 							m.route.set(href)
 						},
@@ -311,6 +321,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					{
 						label: "calendar_label",
 						click: () => {
+							keyManager.unregisterShortcuts(this.shortcuts())
 							const href = this.searchViewModel.getUrlFromSearchCategory(SearchCategoryTypes.calendar)
 							m.route.set(href)
 						},
@@ -1164,33 +1175,15 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		return this.viewSlider
 	}
 
-	private readonly shortcuts = lazyMemoized<ReadonlyArray<Shortcut>>(() => {
+	private readonly shortcuts = (): Shortcut[] => {
 		const deleteOrTrashAction = () => {
 			const deleteTrashActions = this.getDeleteAndTrashActions()
 			const action = deleteTrashActions.deleteAction ?? deleteTrashActions.trashAction
 			action?.()
 		}
 
-		return [
-			...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.searchViewModel.listModel),
-			{
-				key: Keys.N,
-				exec: () => {
-					const type = this.searchViewModel.searchedType
-
-					if (isSameTypeRef(type, MailTypeRef)) {
-						newMailEditor()
-							.then((editor) => editor?.show())
-							.catch(ofClass(PermissionError, noOp))
-					} else if (isSameTypeRef(type, ContactTypeRef)) {
-						locator.contactModel.getContactListId().then((contactListId) => {
-							new ContactEditor(locator.entityClient, null, assertNotNull(contactListId)).show()
-						})
-					}
-				},
-				enabled: () => locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.ReplyOnly),
-				help: "newMail_action",
-			},
+		// shortcuts that are present in mail, calendar and contacts view with the same description and action
+		const allCommon: Shortcut[] = [
 			{
 				key: Keys.DELETE,
 				exec: () => {
@@ -1204,38 +1197,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					deleteOrTrashAction()
 				},
 				help: "delete_action",
-			},
-			{
-				key: Keys.DELETE,
-				shift: true,
-				exec: () => this.moveSelectedToSystemFolder(MailSetKind.SPAM),
-				help: "reportSpam_action",
-			},
-			{
-				key: Keys.BACKSPACE,
-				shift: true,
-				exec: () => this.moveSelectedToSystemFolder(MailSetKind.SPAM),
-				help: "reportSpam_action",
-			},
-			{
-				key: Keys.A,
-				exec: () => this.moveSelectedToSystemFolder(MailSetKind.ARCHIVE),
-				help: "archive_action",
-				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
-			},
-			{
-				key: Keys.I,
-				exec: () => this.moveSelectedToSystemFolder(MailSetKind.INBOX),
-				help: "moveToInbox_action",
-				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
-			},
-			{
-				key: Keys.V,
-				exec: () => {
-					this.move()
-				},
-				help: "move_action",
-				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
 			},
 			{
 				key: Keys.Z,
@@ -1246,14 +1207,100 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 				help: "undo_action",
 				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
 			},
-			{
-				key: Keys.U,
-				exec: () => this.toggleUnreadStatus(),
-				help: "toggleUnread_action",
-				enabled: () => getCurrentSearchMode() === SearchCategoryTypes.mail,
-			},
 		]
-	})
+
+		return [
+			...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.searchViewModel.listModel),
+			...(isSameTypeRef(this.searchViewModel.searchedType, MailTypeRef)
+				? this.getMailSpecificShortcuts(deleteOrTrashAction)
+				: isSameTypeRef(this.searchViewModel.searchedType, ContactTypeRef)
+					? [
+							{
+								key: Keys.N,
+								exec: () => {
+									locator.contactModel.getContactListId().then((contactListId) => {
+										new ContactEditor(locator.entityClient, null, assertNotNull(contactListId)).show()
+									})
+								},
+								help: "newContact_action",
+							} satisfies Shortcut,
+							...allCommon,
+						]
+					: isSameTypeRef(this.searchViewModel.searchedType, CalendarEventTypeRef)
+						? [
+								{
+									key: Keys.N,
+									exec: () => {
+										this.createNewEventDialog()
+									},
+									help: "newEvent_action",
+								} satisfies Shortcut,
+								...allCommon,
+							]
+						: []),
+		]
+	}
+
+	private getMailSpecificShortcuts(deleteOrTrashAction: () => void | Promise<void>) {
+		const ownerGroupId = () => {
+			const group = this.searchViewModel.mailboxes[0].mailGroup
+			return group !== null ? elementIdToId(group._id) : null
+		}
+
+		return getCommonShortcuts(
+			// createAction
+			() => {
+				newMailEditor()
+					.then((editor) => editor?.show())
+					.catch(ofClass(PermissionError, noOp))
+			},
+			// createFolderAction
+			async () => {
+				const currentOwnerGroupId = ownerGroupId()
+				if (currentOwnerGroupId !== null) {
+					const mailFolders = mailLocator.mailModel.getFolderSystemByGroupId(currentOwnerGroupId)
+					const parentFolder = this.searchViewModel.selectedMailFolder.length
+						? (assertNotNull(mailFolders).getFolderById(this.searchViewModel.selectedMailFolder[0]) ?? null)
+						: null
+					const mailboxDetail = await locator.mailboxModel.getMailboxDetailsForMailGroup(currentOwnerGroupId)
+					await showEditFolderDialog(mailboxDetail, null, parentFolder)
+				}
+			},
+			// toggleUnreadAction
+			() => this.toggleUnreadStatus(),
+			// deleteOrTrashAction
+			() => deleteOrTrashAction(),
+			// labelAction
+			() => this.getLabelsAction()?.(null) ?? noOp(),
+			// moveMailsToFolderAction
+			(targetFolder: SimpleMoveMailTarget) => this.moveSelectedToSystemFolder(targetFolder),
+			// moveMailsFromFolderAction
+			() => this.move(),
+			// switchToFolderAction
+			async (type: SystemFolderType) => {
+				const currentOwnerGroupId = ownerGroupId()
+				if (currentOwnerGroupId !== null) {
+					const mailFolders = mailLocator.mailModel.getFolderSystemByGroupId(currentOwnerGroupId)
+					const folder = assertNotNull(mailFolders).getSystemFolderByType(type)
+					if (folder !== null) {
+						await this.searchViewModel.selectMailFolder([getElementId(folder)])
+					}
+				}
+			},
+			// undoAction
+			() => this.undoModel.performUndoAction(),
+			// isDragAndDropExportEnabled
+			canDoDragAndDropExport,
+			// isInternalUserLoggedIn
+			// if we just pass the function, "this" in locator.logins.isInternalUserLoggedIn becomes null
+			// so need to wrap it here
+			() => locator.logins.isInternalUserLoggedIn(),
+			// isInternalCommunicationEnabled
+			() => locator.logins.isEnabled(FeatureType.InternalCommunication),
+			// isNewMailActionAvailable
+			() => isNewMailActionAvailable(),
+		)
+	}
 
 	async onNewUrl(args: Record<string, any>, requestedPath: string) {
 		// calling init here too because this is called very early in the lifecycle and onNewUrl won't work properly if init is called
@@ -1269,6 +1316,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 			this.viewSlider.focusPreviousColumn()
 		}
 		this.invalidateBirthdayPreview()
+		keyManager.registerShortcuts(this.shortcuts())
 
 		// redraw because init() is async
 		m.redraw()
