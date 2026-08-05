@@ -1,4 +1,4 @@
-import { ListModel } from "../../../common/misc/ListModel"
+import { ListFilter, ListModel } from "../../../common/misc/ListModel"
 import Id from "../../../../ui/translations/id"
 import { emptyListModel, LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
 import { SearchCategoryType, SearchRestriction } from "../../../common/api/worker/search/SearchTypes"
@@ -62,8 +62,18 @@ import { ListState } from "../../../../ui/base/List"
 import { DriveClipboard, DriveClipboardController } from "../../drive/view/DriveClipboardController"
 import m from "mithril"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
+import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
 
 const SEARCH_PAGE_SIZE = 100
+
+export enum DriveSizeFilter {
+	NoLimit,
+	Below1MB,
+	Below10MB,
+	Below250MB,
+	Below1000MB,
+	Over1000MB,
+}
 export class DriveSearchViewModel {
 	#listModel: ListModel<FolderItem, Id> = emptyListModel()
 	#startDate: Date | null = null
@@ -84,6 +94,10 @@ export class DriveSearchViewModel {
 	#delayingSearch: boolean = false
 	get busy(): boolean {
 		return this.#delayingSearch
+	}
+	#driveSizeFilter: DriveSizeFilter = DriveSizeFilter.NoLimit
+	get driveSizeFilter() {
+		return this.#driveSizeFilter
 	}
 	private searchResult: LiveSearchResult<DriveSearchResult> | null = null
 	private sortingPreference: Readonly<SortingPreference> = { order: "asc", column: SortColumn.name }
@@ -172,6 +186,23 @@ export class DriveSearchViewModel {
 		return getStartOfTheWeekOffsetForUser(this.logins.getUserController().userSettingsGroupRoot)
 	}
 
+	labelForDriveSizeFilterChip(): Translation {
+		switch (this.#driveSizeFilter) {
+			case DriveSizeFilter.Below1MB:
+				return lang.getTranslation("driveFileSizeLessThan1MB_label")
+			case DriveSizeFilter.Below10MB:
+				return lang.getTranslation("driveFileSizeLessThan10MB_label")
+			case DriveSizeFilter.Below250MB:
+				return lang.getTranslation("driveFileSizeLessThan250MB_label")
+			case DriveSizeFilter.Below1000MB:
+				return lang.getTranslation("driveFileSizeLessThan1GB_label")
+			case DriveSizeFilter.Over1000MB:
+				return lang.getTranslation("driveFileSizeBiggerThan1GB_label")
+			case DriveSizeFilter.NoLimit:
+				return lang.getTranslation("driveFileSizeFilter_label")
+		}
+	}
+
 	public checkDates(startDate: Date | null, endDate: Date | null): "long" | "extendIndex" | "startafterend" | null {
 		if (startDate && endDate) {
 			if (startDate.getTime() > endDate.getTime()) {
@@ -183,10 +214,12 @@ export class DriveSearchViewModel {
 
 	selectStartDate(startDate: Date | null): void {
 		this.#startDate = startDate
+		this.searchAgain()
 	}
 
 	selectEndDate(endDate: Date) {
 		this.#endDate = endDate
+		this.searchAgain()
 	}
 
 	listState() {
@@ -416,6 +449,48 @@ export class DriveSearchViewModel {
 			}
 		}
 	}
+	setDriveFilter(filter: DriveSizeFilter) {
+		this.#driveSizeFilter = filter
+		this.applyDriveFilterIfNeeded(filter)
+	}
+	private applyDriveFilterIfNeeded(filter: DriveSizeFilter) {
+		const filterFunction = (item: FolderItem) => {
+			return this.getDriveSizeFilterForType(filter)(item)
+		}
+		const liftedFilter: ListFilter<FolderItem> | null = (driveItem) => filterFunction(driveItem)
+		this.#listModel?.setFilter(liftedFilter)
+	}
+	getDriveSizeFilterForType(filter: DriveSizeFilter): ListFilter<FolderItem> {
+		const _1MB = 1024 * 1024
+		const _10MB = 1024 * 1024 * 10
+		const _250MB = 1024 * 1024 * 250
+		const _1000MB = 1024 * 1024 * 1024
+
+		const isFileAndSizeBetween = (item: FolderItem, minBytes: number, maxBytes: number | null): boolean => {
+			if (item.type !== "file") return false
+
+			const size = filterInt(item.file.size)
+			const minCondition = minBytes <= size
+			const maxCondition = maxBytes ? size < maxBytes : true
+			return minCondition && maxCondition
+		}
+
+		switch (filter) {
+			case DriveSizeFilter.NoLimit:
+				return () => true
+			case DriveSizeFilter.Below1MB:
+				return (driveItem) => isFileAndSizeBetween(driveItem, 0, _1MB)
+			case DriveSizeFilter.Below10MB:
+				return (driveItem) => isFileAndSizeBetween(driveItem, _1MB, _10MB)
+			case DriveSizeFilter.Below250MB:
+				return (driveItem) => isFileAndSizeBetween(driveItem, _10MB, _250MB)
+			case DriveSizeFilter.Below1000MB:
+				return (driveItem) => isFileAndSizeBetween(driveItem, _250MB, _1000MB)
+			case DriveSizeFilter.Over1000MB:
+				return (driveItem) => isFileAndSizeBetween(driveItem, _1000MB, null)
+		}
+	}
+
 	private handleLoadAndSelection(id: string, finder: ((a: FolderItem) => boolean) | undefined) {
 		const listModel = this.#listModel
 		let iterations = 0
@@ -496,6 +571,10 @@ export class DriveSearchViewModel {
 			),
 			selectedElement ? elementIdPart(folderItemid(selectedElement)) : null,
 		)
+	}
+	private searchAgain() {
+		this.updateSearchUrl()
+		this.updateUi()
 	}
 
 	private onListStateChange(_state: ListState<FolderItem>) {

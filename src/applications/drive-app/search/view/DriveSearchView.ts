@@ -2,7 +2,7 @@ import { AppHeaderAttrs, Header } from "../../../../ui/Header"
 import { TopLevelAttrs, TopLevelView } from "../../../../ui/base/TopLevelView"
 import { BaseTopLevelView } from "../../../../ui/BaseTopLevelView"
 import { ColumnType, ViewColumn } from "../../../../ui/base/ViewColumn"
-import { DriveSearchViewModel } from "./DriveSearchViewModel"
+import { DriveSearchViewModel, DriveSizeFilter } from "./DriveSearchViewModel"
 import m, { Children, Vnode } from "mithril"
 import { FolderColumnView } from "../../../common/gui/FolderColumnView"
 import { SidebarSection } from "../../../../ui/SidebarSection"
@@ -30,7 +30,7 @@ import { BackgroundColumnLayout } from "../../../../ui/BackgroundColumnLayout"
 import { theme } from "../../../../ui/theme"
 import { DriveTransferStack, DriveTransferStackAttrs } from "../../drive/view/DriveTransferStack"
 import { Dialog } from "../../../../ui/base/Dialog"
-import { FolderItem, FolderItemId, folderItemToId } from "../../drive/view/DriveUtils"
+import { FolderItem, FolderItemId } from "../../drive/view/DriveUtils"
 import { MoveItems } from "../../drive/view/DriveMoveItemDialog"
 import { ListState } from "../../../../ui/base/List"
 import { MultiselectMobileHeader } from "../../../../ui/MultiselectMobileHeader"
@@ -277,7 +277,40 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 				chevron: false,
 				onClick: (_) => this.onDriveDateRangeSelect(),
 			}),
-		] //FIXME: more filter chips
+			m(FilterChip, {
+				label: this.searchViewModel.labelForDriveSizeFilterChip(),
+				selected: this.searchViewModel.driveSizeFilter !== DriveSizeFilter.NoLimit,
+				chevron: true,
+				onClick: createDropdown({
+					lazyButtons: () => [
+						{
+							label: lang.getTranslation("driveFileSizeLessThan1MB_label"),
+							click: () => this.searchViewModel.setDriveFilter(DriveSizeFilter.Below1MB),
+						},
+						{
+							label: lang.getTranslation("driveFileSizeLessThan10MB_label"),
+							click: () => this.searchViewModel.setDriveFilter(DriveSizeFilter.Below10MB),
+						},
+						{
+							label: lang.getTranslation("driveFileSizeLessThan250MB_label"),
+							click: () => this.searchViewModel.setDriveFilter(DriveSizeFilter.Below250MB),
+						},
+						{
+							label: lang.getTranslation("driveFileSizeLessThan1GB_label"),
+							click: () => this.searchViewModel.setDriveFilter(DriveSizeFilter.Below1000MB),
+						},
+						{
+							label: lang.getTranslation("driveFileSizeBiggerThan1GB_label"),
+							click: () => this.searchViewModel.setDriveFilter(DriveSizeFilter.Over1000MB),
+						},
+						{
+							label: lang.getTranslation("driveFileSizeNoLimit_label"),
+							click: () => this.searchViewModel.setDriveFilter(DriveSizeFilter.NoLimit),
+						},
+					],
+				}),
+			}),
+		]
 	}
 	private renderCategoryChip(label: TranslationKey, icon: AllIcons): Children {
 		return m(FilterChip, {

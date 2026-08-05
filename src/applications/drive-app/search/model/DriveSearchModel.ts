@@ -35,6 +35,9 @@ export class DriveSearchModel {
 			priority: OnEntityUpdateReceivedPriority.LOW,
 		})
 	}
+	isDriveItemInDateRange(item: DriveFile | DriveFolder, startDate: number | null, endDate: number | null) {
+		return startDate && endDate ? item.createdDate.getTime() >= startDate && item.createdDate.getTime() <= endDate : true
+	}
 
 	async coolNewSearchDrive(
 		searchQuery: SearchQuery,
@@ -44,39 +47,45 @@ export class DriveSearchModel {
 		const groupRoot = await this.entityClient.load(DriveGroupRootTypeRef, fileGroupId)
 		const resultItems: (DriveFolder | DriveFile)[] = []
 		const tokens = tokenize(searchQuery.query.trim())
-		for (const fileBagId of groupRoot.fileBags) {
-			let currentId = GENERATED_MAX_ID
-			while (true) {
-				const chunk = await this.entityClient.loadRange(DriveFileTypeRef, fileBagId.files, currentId, 100, true)
-				if (isEmpty(chunk)) {
-					break
-				}
-				for (const item of chunk) {
-					const name = item.name.toLowerCase()
-
-					if (tokens.every((token) => name.includes(token))) {
-						resultItems.push(item)
+		if (searchQuery.query !== "") {
+			for (const fileBagId of groupRoot.fileBags) {
+				let currentId = GENERATED_MAX_ID
+				while (true) {
+					const chunk = await this.entityClient.loadRange(DriveFileTypeRef, fileBagId.files, currentId, 100, true)
+					if (isEmpty(chunk)) {
+						break
 					}
-				}
+					for (const item of chunk) {
+						if (this.isDriveItemInDateRange(item, searchQuery.restriction.end, searchQuery.restriction.start)) {
+							const name = item.name.toLowerCase()
 
-				currentId = getElementId(lastThrow(chunk))
+							if (tokens.every((token) => name.includes(token))) {
+								resultItems.push(item)
+							}
+						}
+					}
+
+					currentId = getElementId(lastThrow(chunk))
+				}
 			}
-		}
-		for (const folderBagId of groupRoot.folderBags) {
-			let currentId = GENERATED_MAX_ID
-			while (true) {
-				const chunk = await this.entityClient.loadRange(DriveFolderTypeRef, folderBagId.folders, currentId, 100, true)
-				if (isEmpty(chunk)) {
-					break
-				}
-				for (const item of chunk) {
-					const name = item.name.toLowerCase()
-
-					if (tokens.every((token) => name.includes(token))) {
-						resultItems.push(item)
+			for (const folderBagId of groupRoot.folderBags) {
+				let currentId = GENERATED_MAX_ID
+				while (true) {
+					const chunk = await this.entityClient.loadRange(DriveFolderTypeRef, folderBagId.folders, currentId, 100, true)
+					if (isEmpty(chunk)) {
+						break
 					}
+					for (const item of chunk) {
+						if (this.isDriveItemInDateRange(item, searchQuery.restriction.end, searchQuery.restriction.start)) {
+							const name = item.name.toLowerCase()
+
+							if (tokens.every((token) => name.includes(token))) {
+								resultItems.push(item)
+							}
+						}
+					}
+					currentId = getElementId(lastThrow(chunk))
 				}
-				currentId = getElementId(lastThrow(chunk))
 			}
 		}
 

@@ -290,6 +290,21 @@ export function getRestriction(route: string): SearchRestriction {
 		}
 	} else if (route.startsWith("/drive") || route.startsWith("/search/drive")) {
 		category = SearchCategoryType.drive
+		if (route.startsWith("/search/drive")) {
+			try {
+				// mithril will parse boolean but not numbers
+				const { params } = m.parsePathname(route)
+				if (typeof params["start"] === "string") {
+					start = filterInt(params["start"])
+				}
+
+				if (typeof params["end"] === "string") {
+					end = filterInt(params["end"])
+				}
+			} catch (e) {
+				console.log("invalid query: " + route, e)
+			}
+		}
 	} else {
 		throw new Error("invalid type " + route)
 	}

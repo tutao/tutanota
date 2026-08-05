@@ -2322,6 +2322,13 @@ export default {
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
-		"searchDrive_placeholder": "Search Files and Folders"
+		"searchDrive_placeholder": "Search Files and Folders",
+		"driveFileSizeLessThan1MB_label": "Less than 1MB",
+		"driveFileSizeLessThan10MB_label": "1 - 10MB",
+		"driveFileSizeLessThan250MB_label": "10 - 250MB",
+		"driveFileSizeLessThan1GB_label": "250MB - 1GB",
+		"driveFileSizeBiggerThan1GB_label" : "Larger than 1GB",
+		"driveFileSizeNoLimit_label": "No size limit",
+		"driveFileSizeFilter_label":"Size"
 	}
 }
