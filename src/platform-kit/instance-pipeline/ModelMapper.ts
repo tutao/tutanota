@@ -6,6 +6,7 @@ import {
 	AttributeName,
 	CardinalityEnum,
 	ClientTypeModel,
+	DEFAULT_ENTITY_FIELDS,
 	ElementId,
 	elementIdToId,
 	Entity,
@@ -192,8 +193,13 @@ export class ClientEntity {
 
 	// This is needed to make transpilation easier.
 	castAsEntity<T extends Entity>(): T {
-		this.entityRecord._type = new TypeRef(this.typeModel.app, this.typeModel.id)
-		const entity = this.entityRecord as T
+		const entity = Object.assign(
+			{
+				_type: new TypeRef(this.typeModel.app, this.typeModel.id),
+				...DEFAULT_ENTITY_FIELDS,
+			},
+			this.entityRecord,
+		) as T
 
 		if (this.typeModel.type !== EntityTypeEnum.DataTransfer) {
 			entity._original = structuredClone(entity)
@@ -332,8 +338,9 @@ export class OutgoingClientEntity {
 		}
 
 		return this.getAssociation<Record<AttributeName, unknown>>(associationModel).map((agg) => {
-			agg._type = aggregateTypeRef
-			const entityLike = Object.assign(agg, { _type: aggregateTypeRef })
+			const entityLike = Object.assign(agg as unknown as Entity, {
+				_type: aggregateTypeRef,
+			})
 			return new OutgoingClientEntity(entityLike, aggregateTypeModel)
 		})
 	}

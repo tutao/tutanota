@@ -24,7 +24,6 @@ import { CalendarInviteHandler } from "../../../../src/applications/calendar-app
 import {
 	CalendarEvent,
 	CalendarEventAttendeeTypeRef,
-	CalendarEventParams,
 	CalendarEventTypeRef,
 	createCalendarEventAttendee,
 	EncryptedMailAddressTypeRef,
@@ -34,7 +33,7 @@ import {
 	MailBoxTypeRef,
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
-import { clone, ElementEntity, Entity, TypeRef } from "../../../../src/platform-kit/meta"
+import { clone } from "../../../../src/platform-kit/meta"
 
 import {
 	AlarmInfoTypeRef,
@@ -102,7 +101,7 @@ o.spec("CalendarEventModel", function () {
 			const logins: LoginController = object()
 			const userSettingsGroupRoot = createTestEntity(UserSettingsGroupRootTypeRef, { groupSettings: [] })
 
-			const userController = makeUserController([ownerAlias.address], AccountType.PAID, ownerMailAddress, true, false, undefined, userSettingsGroupRoot)
+			const userController = makeUserController([ownerAlias.address], AccountType.PAID, ownerMailAddress, true, false, null!, userSettingsGroupRoot)
 			when(logins.getUserController()).thenReturn(userController)
 
 			when(calendarModel.loadAlarms(event.alarmInfos, userController.user)).thenResolve([
@@ -335,10 +334,13 @@ o.spec("CalendarEventModel", function () {
 		}
 
 		o("it doesn't do anything when there's nothing to remove", function () {
-			const originalEntity = makeEntity()
+			const originalEntity = makeEntity() as any
+			delete originalEntity["isAdapter"]
+			delete originalEntity["_errors"]
+			delete originalEntity["_original"]
 			const entityCopy = clone(originalEntity)
-			removeTechnicalFields(entityCopy as CalendarEventParams)
-			o(entityCopy as unknown).deepEquals(originalEntity)
+			removeTechnicalFields(entityCopy)
+			o(entityCopy).deepEquals(originalEntity)
 		})
 	})
 })

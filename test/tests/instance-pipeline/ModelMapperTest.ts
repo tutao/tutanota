@@ -1,6 +1,14 @@
 import o, { assertThrows } from "@tutao/otest"
 import { ClientEntity, DecryptedParsedInstance, ModelMapper, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
-import { CardinalityEnum, ClientTypeModel, ModelAssociation, ServerTypeModel, TypeModel, ValueTypeEnum } from "../../../src/platform-kit/meta"
+import {
+	CardinalityEnum,
+	ClientTypeModel,
+	DEFAULT_ENTITY_FIELDS,
+	ModelAssociation,
+	ServerTypeModel,
+	TypeModel,
+	ValueTypeEnum,
+} from "../../../src/platform-kit/meta"
 import {
 	createEncryptedValueType,
 	DummyTypeModelResolver,
@@ -11,7 +19,7 @@ import {
 	TestTypeRef,
 } from "./InstancePipelineTestUtils"
 import { InvalidModelError, ProgrammingError } from "../../../src/platform-kit/app-env"
-import { removeOriginals } from "../TestUtils"
+import { createTestEntityWithDummyResolver, removeOriginals } from "../TestUtils"
 import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { random } from "../../../src/platform-kit/crypto"
 
@@ -23,16 +31,14 @@ o.spec("ModelMapperTest", function () {
 	o.beforeEach(async () => {
 		modelMapper = new ModelMapper(new DummyTypeModelResolver() as TypeModelResolver)
 
-		instance = {
-			_type: TestTypeRef,
+		instance = await createTestEntityWithDummyResolver(TestTypeRef, {
 			testAssociation: [
-				{
+				await createTestEntityWithDummyResolver(TestAggregateRef, {
 					_id: null!,
-					_type: TestAggregateRef,
 					testNumber: "123456",
 					testSecondLevelAssociation: [],
 					testZeroOrOneAggregation: null,
-				},
+				}),
 			],
 			_kdfNonce: null,
 			_ownerEncSessionKey: null,
@@ -46,7 +52,7 @@ o.spec("ModelMapperTest", function () {
 			testGeneratedId: "generatedId",
 			_id: ["listId", "listElementId"],
 			testFinalBoolean: false,
-		}
+		})
 		decryptedParsedInstance = DecryptedParsedInstance.incomingFromServer(testTypeModel as ServerTypeModel)
 			.addAttributeById(1, ParsedValue.fromString("some encrypted string"))
 			.addAttributeById(7, ParsedValue.fromString("1"))
@@ -89,6 +95,7 @@ o.spec("ModelMapperTest", function () {
 				_id: "some id",
 				testSecondLevelAssociation: [],
 				testZeroOrOneAggregation: null,
+				...DEFAULT_ENTITY_FIELDS,
 			})
 			o(mappedInstance.testElementAssociation).equals("associatedElementId")
 			o(mappedInstance.testGeneratedId).equals("generatedId")
