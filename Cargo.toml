@@ -1,5 +1,5 @@
 [workspace.package]
-version = "356.260804.0"
+version = "356.260805.0"
 rust-version = "1.84.0"
 edition = "2021"
 homepage = "https://tutao.de"
