@@ -1,4 +1,4 @@
-import m, { Children, Component, VnodeDOM } from "mithril"
+import m, { Component } from "mithril"
 import { alpha, AlphaEnum, animations } from "../animation/Animations"
 import { theme } from "../theme"
 import type { Shortcut } from "../utils/KeyManager"
@@ -17,7 +17,6 @@ type ModalComponentWrapper = {
 }
 
 class Modal implements Component {
-	domElement: HTMLElement | null = null
 	components: Array<ModalComponentWrapper>
 	private uniqueComponent: ModalComponent | null
 	// view: Component["view"]
@@ -50,7 +49,7 @@ class Modal implements Component {
 				m(
 					".fill-absolute",
 					{
-						// key: wrapper.key,
+						key: wrapper.key,
 						"data-id": wrapper.key,
 						inert: i !== lastIndex(array),
 						oncreate: (vnode) => {
@@ -113,18 +112,6 @@ class Modal implements Component {
 				),
 			),
 		)
-	}
-
-	oncreate(vnode: VnodeDOM<any>): any {
-		console.log("MODAL CREATE")
-		console.log(vnode.dom)
-		if (vnode.dom) this.domElement = vnode.dom as HTMLElement
-	}
-
-	onupdate(vnode: VnodeDOM<any>): any {
-		console.log("MODAL UPDATE")
-		console.log(vnode.dom)
-		if (vnode.dom) this.domElement = vnode.dom as HTMLElement
 	}
 
 	init(windowFacade: IWindowFacade) {
@@ -238,23 +225,6 @@ class Modal implements Component {
 		if (componentIsTopmostComponent) {
 			console.log("removed topmost modal component")
 			keyManager.unregisterModalShortcuts(component.shortcuts())
-		}
-
-		const key = this.components[componentIndex].key
-		const domElement = document.getElementById("modal")
-		console.log("MODAL DOM ELEMENT", domElement)
-		if (domElement) {
-			console.log("MODAL REMOVE")
-			console.trace()
-			let child = domElement.firstElementChild
-			while (child) {
-				console.log("CHILD", child)
-				const nextChild = child?.nextElementSibling
-				if (parseInt(child!.getAttribute("data-id") ?? "") === key) {
-					child?.remove()
-				}
-				child = nextChild
-			}
 		}
 
 		this.components.splice(componentIndex, 1)
