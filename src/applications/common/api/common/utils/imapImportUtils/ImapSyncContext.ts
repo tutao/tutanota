@@ -1,4 +1,5 @@
 import type { TokenEndpointResponse } from "oauth4webapi"
+import { ImapProvider } from "./ImapKnownConfigs"
 
 export type ImapMailId = {
 	uid: number
@@ -23,6 +24,7 @@ export type ImapCredentials = {
 	tokenEndpointResponse?: TokenEndpointResponse
 	customCertificateData: Uint8Array | null
 	ignoreCertificateErrors: boolean
+	provider: ImapProvider
 }
 
 export type ImapSyncContext = {

@@ -89,6 +89,11 @@ export class ImapMailImportController {
 					if (shouldDisplayErrorDialog) {
 						Dialog.message("migrationSyncFailure_msg")
 					}
+					const shouldDisplayGmailAllMailsIMAPDisabledErrorDialog =
+						imapAccountSyncState.status === ImapAccountSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR
+					if (shouldDisplayGmailAllMailsIMAPDisabledErrorDialog) {
+						Dialog.message("migrationGmailAllMailsDisabledImapError_msg")
+					}
 				}
 			}
 		}
@@ -185,6 +190,12 @@ export class ImapMailImportController {
 						remoteStateId: imapAccountSyncStateId,
 					})
 				}
+			} else if (this.imapErrorHandler.isGmailAllMailsIMAPDisabledError(e)) {
+				await this.imapImporter.setGmailAllMailsImapDisabledOnImport(imapAccountSyncStateId)
+				return Promise.resolve({
+					state: { status: ImapAccountSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR },
+					remoteStateId: imapAccountSyncStateId,
+				})
 			} else {
 				const postponedUntilDate = new Date(Date.now() + IMAP_ERROR_POSTPONE_TIME)
 				await this.imapImporter.postponeImport(imapAccountSyncStateId, postponedUntilDate)
@@ -252,7 +263,8 @@ export class ImapMailImportController {
 		return (
 			session.imapAccountSyncStatus === ImapAccountSyncStatus.FINISHED ||
 			session.imapAccountSyncStatus === ImapAccountSyncStatus.POSTPONED ||
-			session.imapAccountSyncStatus === ImapAccountSyncStatus.AUTH_ERROR
+			session.imapAccountSyncStatus === ImapAccountSyncStatus.AUTH_ERROR ||
+			session.imapAccountSyncStatus === ImapAccountSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR
 		)
 	}
 
@@ -273,11 +285,18 @@ export class ImapMailImportController {
 	}
 
 	shouldRenderErrorIcon(session: ImapImportUiSession) {
-		return session.imapAccountSyncStatus === ImapAccountSyncStatus.ERROR
+		return (
+			session.imapAccountSyncStatus === ImapAccountSyncStatus.ERROR ||
+			session.imapAccountSyncStatus === ImapAccountSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR
+		)
 	}
 
 	shouldRenderAuthErrorIcon(session: ImapImportUiSession) {
 		return session.imapAccountSyncStatus === ImapAccountSyncStatus.AUTH_ERROR
+	}
+
+	shouldRenderGmailAllMailsIMAPDisabledErrorMessage(session: ImapImportUiSession) {
+		return session.imapAccountSyncStatus === ImapAccountSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR
 	}
 
 	shouldDisableButtons() {

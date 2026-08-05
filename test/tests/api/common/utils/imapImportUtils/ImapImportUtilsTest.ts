@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import {
 	getFolderSyncStateForMailboxPath,
 	guessServerImapConfigFromEmail,
-	imapAccountToImapCredentials,
+	imapAccountSyncStateToImapCredentials,
 	imapMailToImportMailParams,
 	oAuthTokenEndpointResponseToTokenEndpointResponse,
 	tokenEndpointResponseToOAuthTokenEndpointResponse,
@@ -17,8 +17,9 @@ import {
 } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMail"
 import { ImapMailboxSpecialUse } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMailbox"
 import { MailMethod, MailState, ReplyType } from "../../../../../../src/entities/tutanota/Utils"
-import { ImapAccountTypeRef, ImapFolderSyncStateTypeRef, OAuthTokenEndpointResponseTypeRef } from "@tutao/entities/tutanota"
+import { ImapAccountSyncStateTypeRef, ImapAccountTypeRef, ImapFolderSyncStateTypeRef, OAuthTokenEndpointResponseTypeRef } from "@tutao/entities/tutanota"
 import { ImapImportAttachments, ImapImportDataFile } from "../../../../../../src/applications/common/api/worker/facades/lazy/ImportMailFacade"
+import { ImapProvider } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 
 o.spec("ImapImportUtils", () => {
 	o.spec("guessServerImapConfigFromEmail", () => {
@@ -35,19 +36,23 @@ o.spec("ImapImportUtils", () => {
 
 	o.spec("imapAccountToImapCredentials", () => {
 		o.test("converts ImapAccount to ImapCredentials without token", () => {
-			const importAccountMock = createTestEntity(ImapAccountTypeRef, {
-				host: "imap.test.com",
-				port: "993",
-				username: "user@test.com",
-				password: "secret",
-				oAuthTokenEndpointResponse: null,
+			const imapAccountSyncStateMock = createTestEntity(ImapAccountSyncStateTypeRef, {
+				imapAccount: createTestEntity(ImapAccountTypeRef, {
+					host: "imap.test.com",
+					port: "993",
+					username: "user@test.com",
+					password: "secret",
+					oAuthTokenEndpointResponse: null,
+				}),
+				provider: ImapProvider.Other.toString(),
 			})
-			const result = imapAccountToImapCredentials(importAccountMock)
+			const result = imapAccountSyncStateToImapCredentials(imapAccountSyncStateMock)
 			o.check(result.host).equals("imap.test.com")
 			o.check(result.port).equals(993)
 			o.check(result.username).equals("user@test.com")
 			o.check(result.password).equals("secret")
 			o.check(result.tokenEndpointResponse).equals(undefined)
+			o.check(result.provider).equals(ImapProvider.Other)
 		})
 
 		o.test("converts with token endpoint response", () => {
@@ -57,18 +62,22 @@ o.spec("ImapImportUtils", () => {
 				expiresIn: "3600",
 				tokenType: "Bearer",
 			})
-			const importAccountMock = createTestEntity(ImapAccountTypeRef, {
-				host: "imap.test.com",
-				port: "993",
-				username: "user@test.com",
-				password: null,
-				oAuthTokenEndpointResponse: tokenResponseMock,
+			const imapAccountSyncStateMock = createTestEntity(ImapAccountSyncStateTypeRef, {
+				imapAccount: createTestEntity(ImapAccountTypeRef, {
+					host: "imap.test.com",
+					port: "993",
+					username: "user@test.com",
+					password: null,
+					oAuthTokenEndpointResponse: tokenResponseMock,
+				}),
+				provider: ImapProvider.Gmail.toString(),
 			})
-			const result = imapAccountToImapCredentials(importAccountMock)
+			const result = imapAccountSyncStateToImapCredentials(imapAccountSyncStateMock)
 			o.check(result.tokenEndpointResponse!.access_token).equals("access123")
 			o.check(result.tokenEndpointResponse!.refresh_token).equals("refresh456")
 			o.check(result.tokenEndpointResponse!.expires_in).equals(3600)
 			o.check(result.tokenEndpointResponse!.token_type.toLowerCase()).equals("bearer")
+			o.check(result.provider).equals(ImapProvider.Gmail)
 		})
 	})
 

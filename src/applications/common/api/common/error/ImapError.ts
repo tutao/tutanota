@@ -14,6 +14,7 @@ export enum ImapErrorCause {
 	HOST_NOT_FOUND,
 	CERT_ERROR,
 	HOST_NOT_REACHABLE,
+	GMAIL_ALL_MAILS_IMAP_DISABLED,
 }
 
 export class ImapError extends TutanotaError {

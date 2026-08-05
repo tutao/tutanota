@@ -12,7 +12,7 @@ import { ImapImportSession, newImapImportSession } from "./ImapImportSession"
 import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import {
 	getFolderSyncStateForMailboxPath,
-	imapAccountToImapCredentials,
+	imapAccountSyncStateToImapCredentials,
 	imapMailToImportMailParams,
 } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
 import { ImapAccountSyncStatus, ImapFolderSyncStatus, ImapSyncEventType } from "../../../../entities/tutanota/Utils"
@@ -153,7 +153,7 @@ export class ImapImporter implements ImapSyncFacade {
 			}
 		}
 
-		const imapCredentials = imapAccountToImapCredentials(session.imapAccountSyncState.imapAccount)
+		const imapCredentials = imapAccountSyncStateToImapCredentials(session.imapAccountSyncState)
 		const maxQuota = parseInt(session.imapAccountSyncState.maxQuota)
 		const imapMailboxStates = await this.getAllImapMailboxStates(session)
 		const isGmail = (parseInt(session.imapAccountSyncState.provider) as ImapProvider) === ImapProvider.Gmail
@@ -197,6 +197,19 @@ export class ImapImporter implements ImapSyncFacade {
 				ImapAccountSyncStatus.POSTPONED,
 				ImapFolderSyncStatus.PAUSED,
 				postponedUntil.getTime().toString(),
+			)
+		}
+	}
+
+	async setGmailAllMailsImapDisabledOnImport(accountSyncStateId: IdTuple): Promise<void> {
+		const session = this.getImapImportSessionOrNull(accountSyncStateId)
+		if (session !== null) {
+			await this.imapSyncSystemFacade.stopSync(session.imapAccountSyncState._id)
+			await this.imapFacade.updateAccountSyncStateAndAllFolderSyncStates(
+				session.imapAccountSyncState,
+				ImapAccountSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR,
+				ImapFolderSyncStatus.PAUSED,
+				undefined,
 			)
 		}
 	}

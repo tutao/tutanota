@@ -2419,3 +2419,5 @@ export type TranslationKeyType =
 	| "migrationConfigInfoGmail_msg"
 	| "migrationInProgressInfoGmail_msg"
 	| "emptyString_msg"
+	| "migrationGmailAllMailsDisabledImapError_msg"
+	| "migrationSyncStateGmailAllMailsDisabledImapError_msg"

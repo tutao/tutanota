@@ -1,11 +1,11 @@
 import { ImapMail, ImapMailAddress, ImapMailAttachment } from "./ImapMail.js"
 import { ImapMailboxSpecialUse } from "./ImapMailbox.js"
 import { plainTextToHtml } from "./PlainTextToHtmlConverter"
-import { getImapConfigWithPasswordAuthForDomain, ServerImapImportParams } from "./ImapKnownConfigs"
+import { getImapConfigWithPasswordAuthForDomain, ImapProvider, ServerImapImportParams } from "./ImapKnownConfigs"
 
 import { ImapCredentials } from "./ImapSyncContext"
 import type { TokenEndpointResponse } from "oauth4webapi"
-import { createOAuthTokenEndpointResponse, ImapAccount, ImapFolderSyncState, OAuthTokenEndpointResponse } from "@tutao/entities/tutanota"
+import { createOAuthTokenEndpointResponse, ImapAccount, ImapAccountSyncState, ImapFolderSyncState, OAuthTokenEndpointResponse } from "@tutao/entities/tutanota"
 import { ImapImportAttachments, ImapImportDataFile, ImportMailParams } from "../../../worker/facades/lazy/ImportMailFacade"
 import {
 	CalendarMethod,
@@ -25,13 +25,15 @@ const IMAP_FLAG_SEEN = "\\Seen"
 const IMAP_FLAG_ANSWERED = "\\Answered"
 const IMAP_FLAG_FORWARDED = "$Forwarded"
 
-export function imapAccountToImapCredentials(imapAccount: ImapAccount): ImapCredentials {
+export function imapAccountSyncStateToImapCredentials(imapAccountSyncState: ImapAccountSyncState): ImapCredentials {
+	const imapAccount = imapAccountSyncState.imapAccount
 	const imapCredentials: ImapCredentials = {
 		host: imapAccount.host,
 		port: parseInt(imapAccount.port),
 		username: imapAccount.username,
 		ignoreCertificateErrors: imapAccount.ignoreCertificateErrors,
 		customCertificateData: imapAccount.customCertificateData,
+		provider: parseInt(imapAccountSyncState.provider) as ImapProvider,
 	}
 	imapCredentials.password = imapAccount.password ?? undefined
 	const tokenEndpointResponse = imapAccount.oAuthTokenEndpointResponse

@@ -75,8 +75,8 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 		return m("", [
 			m(TitleSection, {
 				icon: Icons.DownloadFilled,
-				title: lang.get("migration_title"),
-				subTitle: lang.get("migrationInfo_msg"),
+				title: lang.getTranslationText("migration_title"),
+				subTitle: lang.getTranslationText("migrationInfo_msg"),
 			}),
 		])
 	}
@@ -199,7 +199,9 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 					}),
 				})
 			} else if (this.imapImportController().shouldRenderErrorIcon(session)) {
-				syncMessage = lang.getTranslation("migrationSyncFailure_msg")
+				syncMessage = this.imapImportController().shouldRenderGmailAllMailsIMAPDisabledErrorMessage(session)
+					? lang.getTranslation("migrationSyncStateGmailAllMailsDisabledImapError_msg")
+					: lang.getTranslation("migrationSyncFailure_msg")
 			}
 
 			const mailboxDetail = this.imapImportController().getDestinationMailboxDetailForSession(session)
@@ -225,7 +227,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 					? theme.success
 					: statusIcon === Icons.PauseOutline
 						? theme.warning
-						: statusIcon === Icons.SyncProblem
+						: statusIcon === Icons.SyncProblem || statusIcon === Icons.FailureFilled
 							? theme.error
 							: theme.on_surface
 			const statusIconParameters: Partial<IconAttrs> = {

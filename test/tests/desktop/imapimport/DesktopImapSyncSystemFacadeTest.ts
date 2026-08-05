@@ -8,6 +8,7 @@ import {
 	ImapInitFolderSyncFactory,
 	ImapSyncFactory,
 } from "../../../../src/applications/common/desktop/imapimport/DesktopImapSyncSystemFacade"
+import { ImapProvider } from "../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 
 const { anything } = matchers
 
@@ -26,6 +27,7 @@ o.spec("DesktopImapSyncSystemFacade", () => {
 		password: "pass",
 		ignoreCertificateErrors: false,
 		customCertificateData: null,
+		provider: ImapProvider.Other,
 	}
 	const imapSyncContextMock = { imapCredentials: imapCredentialsMock } as ImapSyncContext
 	const imapErrorMock = new ImapError("Connection failed", ImapErrorCause.UNKNOWN)

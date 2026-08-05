@@ -10,6 +10,7 @@ import type { ImapFlow, ListTreeResponse } from "imapflow"
 import { IMAP_ERROR_POSTPONE_TIME, ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
 import { assertNotNull, first, isEmpty, isNotEmpty, noOp, utf8Uint8ArrayToString } from "@tutao/utils"
 import { CertificateProvider } from "../../CertificateProvider"
+import { ImapProvider } from "../../../api/common/utils/imapImportUtils/ImapKnownConfigs"
 
 const IMAP_RATE_LIMIT_POSTPONE_TIME: number = 25 * 60 * 60 * 1000 // 25 hours
 const MAX_MAILBOX_FAILURES_THRESHOLD = 2
@@ -126,6 +127,9 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 		if (this.imapSyncContext?.isGmail) {
 			this.syncSessionMailboxes = setupResult.filter((mailbox) => mailbox.specialUse === ImapMailboxSpecialUse.ALL)
+			if (isEmpty(this.syncSessionMailboxes)) {
+				throw new ImapError("All mails Gmail mailbox is not enabled for IMAP", ImapErrorCause.GMAIL_ALL_MAILS_IMAP_DISABLED)
+			}
 		} else {
 			this.syncSessionMailboxes = setupResult
 		}
@@ -200,7 +204,12 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		imapClient.on("error", (entry) => {
 			console.log(`[${entry.name}] ${entry.message}, ${entry.cause}`)
 		})
-		return await this.getImapMailboxes(imapClient)
+		const imapMailboxes = await this.getImapMailboxes(imapClient)
+		const isGmail = imapCredentials.provider === ImapProvider.Gmail
+		if (isGmail && !imapMailboxes.some((mailbox) => mailbox.specialUse === ImapMailboxSpecialUse.ALL)) {
+			throw new ImapError("All mails Gmail mailbox is not enabled for IMAP", ImapErrorCause.GMAIL_ALL_MAILS_IMAP_DISABLED)
+		}
+		return imapMailboxes
 	}
 
 	private async verifyImapConnection(imapCredentials: ImapCredentials) {

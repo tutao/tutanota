@@ -2420,6 +2420,7 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
-	}
+		"zoomOut_action": "Herauszoomen",
+		"migrationGmailAllMailsDisabledImapError_msg": "The \"All Mail\" label is disabled for IMAP in your Gmail settings.\nPlease make sure IMAP is enabled for the \"All Mail\" label.\nPlease check Settings -> See all Settings -> Labels in your Gmail account and try again.",
+		"migrationSyncStateGmailAllMailsDisabledImapError_msg": "Your migration is paused, because the \"All Mail\" label is disabled for IMAP in your Gmail settings.",	}
 }

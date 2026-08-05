@@ -26,18 +26,20 @@ export class DesktopImapSyncSystemFacade implements ImapSyncSystemFacade {
 		return sync.startImapSync(imapSyncContext)
 	}
 
-	async getImapMailboxesFromServer(imapAccount: ImapCredentials): Promise<ImapGetMailboxResult> {
+	async getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ImapGetMailboxResult> {
 		try {
-			const mailboxes = await this.imapInitFolderSyncFactory().getImapMailboxesFromServer(imapAccount)
+			const mailboxes = await this.imapInitFolderSyncFactory().getImapMailboxesFromServer(imapCredentials)
 			return { result: mailboxes }
 		} catch (e) {
 			const errorList = e.errors ?? [e]
 			const firstError = first(errorList)
-			if (firstError) {
-				console.log(firstError)
+			if (firstError instanceof ImapError) {
+				return { error: firstError }
+			} else if (firstError) {
 				return { error: fromImapFlowError(firstError) }
+			} else {
+				return { error: new ImapError("initial connection failed", ImapErrorCause.INITIAL_CONNECT_FAILED) }
 			}
-			return { error: new ImapError("initial connection failed", ImapErrorCause.INITIAL_CONNECT_FAILED) }
 		}
 	}
 

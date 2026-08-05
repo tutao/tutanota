@@ -58,6 +58,11 @@ function imapErrorToReadableImapError(imapError: ImapError): ReadableImapError {
 				cause: imapError.data,
 				errorMessage: lang.getTranslationText("migrationSyncFailure_msg"),
 			}
+		case ImapErrorCause.GMAIL_ALL_MAILS_IMAP_DISABLED:
+			return {
+				cause: imapError.data,
+				errorMessage: lang.getTranslationText("migrationGmailAllMailsDisabledImapError_msg"),
+			}
 		case ImapErrorCause.UNKNOWN:
 		case ImapErrorCause.POSTPONE:
 		default:
@@ -188,6 +193,10 @@ export class ImapErrorHandler {
 
 	isCertificateError(e: ImapError) {
 		return e.data === ImapErrorCause.CERT_ERROR
+	}
+
+	isGmailAllMailsIMAPDisabledError(e: ImapError) {
+		return e.data === ImapErrorCause.GMAIL_ALL_MAILS_IMAP_DISABLED
 	}
 
 	private async requestCredentialUpdate(imapAccountSyncState: ImapAccountSyncState) {
