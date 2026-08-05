@@ -49,6 +49,7 @@ import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
 import { DuplicateFilesDialogDecision, showDuplicateFilesChoiceDialog } from "./DriveGuiUtils"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
+import { NameTooLongError } from "../../../common/api/common/error/NameTooLongError"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -417,7 +418,15 @@ export class DriveViewModel {
 				parentFolderId = currentFolder._id
 			}
 		}
-		return this.driveFacade.createFolder(folderName, parentFolderId)
+		try {
+			return this.driveFacade.createFolder(folderName, parentFolderId)
+		} catch (e) {
+			if (e instanceof NameTooLongError) {
+				throw new UserError("nameTooLong_msg")
+			} else {
+				throw e
+			}
+		}
 	}
 
 	navigateToFolder(folderId: IdTuple) {
@@ -453,8 +462,16 @@ export class DriveViewModel {
 		this.listModel.sort()
 	}
 
-	rename(item: FolderItem, newName: string) {
-		this.driveModel.rename(item, newName)
+	async rename(item: FolderItem, newName: string) {
+		try {
+			await this.driveFacade.rename(folderItemEntity(item), newName)
+		} catch (e) {
+			if (e instanceof NameTooLongError) {
+				throw new UserError("nameTooLong_msg")
+			} else {
+				throw e
+			}
+		}
 	}
 
 	toggleSelectAll() {
