@@ -17,8 +17,6 @@ import {
 	CalendarEventValidity,
 	checkEventDateValidity,
 	getAllDayDateUTCFromZone,
-	getEventEnd,
-	getEventStart,
 	getRepeatEndTimeForDisplay,
 	incrementByRepeatPeriod,
 } from "../../../../common/calendar/date/CalendarUtils.js"
@@ -34,12 +32,19 @@ import m from "mithril"
 export class CalendarEventWhenModel {
 	private repeatRule: CalendarRepeatRule | null = null
 	private _isAllDay: boolean
-	private useDefaultTimesWhenToggleAllDayOff: boolean = true
 
-	private startDateTime: DateTime
-	private endDateTime: DateTime
-
+	private startYear: number
+	private startMonth: number
+	private startDay: number
+	private startHour: number | null
+	private startMinute: number | null
 	private startTimeZone: string | null
+
+	private endYear: number
+	private endMonth: number
+	private endDay: number
+	private endHour: number | null
+	private endMinute: number | null
 	private endTimeZone: string | null
 
 	constructor(
@@ -54,22 +59,86 @@ export class CalendarEventWhenModel {
 		}
 
 		this._isAllDay = isAllDayEvent(initialTimes)
-		this.useDefaultTimesWhenToggleAllDayOff = this._isAllDay
 		this.repeatRule = clone(initialValues.repeatRule ?? null)
-
-		const eventStart = getEventStart(initialTimes, this.calendarTimeZone)
-		const eventEnd = getEventEnd(initialTimes, this.calendarTimeZone)
 
 		this.startTimeZone = initialValues.startTimeZone ?? null
 		this.endTimeZone = initialValues.endTimeZone ?? initialValues.startTimeZone ?? null
-
 		if (this._isAllDay) {
-			this.startDateTime = DateTime.utc(eventStart.getFullYear(), eventStart.getMonth() + 1, eventStart.getDate())
-			this.endDateTime = DateTime.utc(eventEnd.getFullYear(), eventEnd.getMonth() + 1, eventEnd.getDate()).minus({ day: 1 })
+			this.startYear = initialTimes.startTime.getUTCFullYear()
+			this.startMonth = initialTimes.startTime.getUTCMonth() + 1
+			this.startDay = initialTimes.startTime.getUTCDate()
+			this.startHour = null
+			this.startMinute = null
+
+			const eventEndJsDate = new Date(initialTimes.endTime)
+			eventEndJsDate.setUTCDate(eventEndJsDate.getUTCDate() - 1)
+			this.endYear = eventEndJsDate.getUTCFullYear()
+			this.endMonth = eventEndJsDate.getUTCMonth() + 1
+			this.endDay = eventEndJsDate.getUTCDate()
+			this.endHour = null
+			this.endMinute = null
 		} else {
-			this.startDateTime = DateTime.fromJSDate(eventStart, { zone: this.startTimeZone ?? this.calendarTimeZone })
-			this.endDateTime = DateTime.fromJSDate(eventEnd, { zone: this.endTimeZone ?? this.calendarTimeZone })
+			const startDateTime = DateTime.fromJSDate(initialTimes.startTime, { zone: this.startTimeZone ?? this.calendarTimeZone })
+			const endDateTime = DateTime.fromJSDate(initialTimes.endTime, { zone: this.endTimeZone ?? this.calendarTimeZone })
+
+			this.startYear = -1
+			this.startMonth = -1
+			this.startDay = -1
+			this.startHour = null
+			this.startMinute = null
+			this.setStartFromDateTime(startDateTime)
+
+			this.endYear = -1
+			this.endMonth = -1
+			this.endDay = -1
+			this.endHour = null
+			this.endMinute = null
+			this.setEndFromDateTime(endDateTime)
 		}
+	}
+
+	private setStartFromDateTime(dateTime: DateTime) {
+		this.startYear = dateTime.year
+		this.startMonth = dateTime.month
+		this.startDay = dateTime.day
+		this.startHour = dateTime.hour
+		this.startMinute = dateTime.minute
+	}
+
+	private setEndFromDateTime(dateTime: DateTime) {
+		this.endYear = dateTime.year
+		this.endMonth = dateTime.month
+		this.endDay = dateTime.day
+		this.endHour = dateTime.hour
+		this.endMinute = dateTime.minute
+	}
+
+	getStartDateTime() {
+		const timeZone = this._isAllDay ? "UTC" : (this.startTimeZone ?? this.calendarTimeZone)
+		return DateTime.fromObject(
+			{
+				year: this.startYear,
+				month: this.startMonth,
+				day: this.startDay,
+				hour: this.startHour ?? 0,
+				minute: this.startMinute ?? 0,
+			},
+			{ zone: timeZone },
+		)
+	}
+
+	getEndDateTime() {
+		const timeZone = this._isAllDay ? "UTC" : (this.endTimeZone ?? this.calendarTimeZone)
+		return DateTime.fromObject(
+			{
+				year: this.endYear,
+				month: this.endMonth,
+				day: this.endDay,
+				hour: this.endHour ?? 0,
+				minute: this.endMinute ?? 0,
+			},
+			{ zone: timeZone },
+		)
 	}
 
 	/**
@@ -82,29 +151,24 @@ export class CalendarEventWhenModel {
 		if (this._isAllDay === value) return
 
 		this._isAllDay = value
-		let newStartDateTimeZone: string
-		let newEndDateTimeZone: string
 		if (this._isAllDay) {
 			// reset time zone if allDay is true (prevents bugs where timezone info is still shown for all day events)
 			this.startTimeZone = null
 			this.endTimeZone = null
-			// Use UTC in start and end datetimes because all-day events are always in UTC
-			newStartDateTimeZone = "UTC"
-			newEndDateTimeZone = "UTC"
 		} else {
-			if (this.useDefaultTimesWhenToggleAllDayOff) {
+			if (this.startHour === null || this.startMinute === null || this.endHour === null || this.endMinute === null) {
+				if (this.startHour !== null || this.startMinute !== null || this.endHour !== null || this.endMinute !== null) {
+					throw new ProgrammingError("Start and end hours/minutes inconsistently initialized!")
+				}
+
 				// set start & end times to default times
 				const defaultTimes = getEventWithDefaultTimes()
-				this.startDateTime = this.startDateTime.set({ hour: defaultTimes.startTime.getHours(), minute: defaultTimes.startTime.getMinutes() })
-				this.endDateTime = this.endDateTime.minus({ day: 1 }).set({ hour: defaultTimes.endTime.getHours(), minute: defaultTimes.endTime.getMinutes() })
-
-				this.useDefaultTimesWhenToggleAllDayOff = false
+				this.startHour = defaultTimes.startTime.getHours()
+				this.startMinute = defaultTimes.startTime.getMinutes()
+				this.endHour = defaultTimes.endTime.getHours()
+				this.endMinute = defaultTimes.endTime.getMinutes()
 			}
-			newStartDateTimeZone = this.startTimeZone ?? this.calendarTimeZone
-			newEndDateTimeZone = this.endTimeZone ?? this.calendarTimeZone
 		}
-		this.startDateTime = this.startDateTime.setZone(newStartDateTimeZone, { keepLocalTime: true })
-		this.endDateTime = this.endDateTime.setZone(newEndDateTimeZone, { keepLocalTime: true })
 
 		if (this.repeatRule != null) {
 			const previousEndDate = this.repeatEndDateForDisplay
@@ -133,8 +197,10 @@ export class CalendarEventWhenModel {
 		if (this._isAllDay) {
 			return new Time(0, 0)
 		}
-
-		return new Time(this.startDateTime.hour, this.startDateTime.minute)
+		if (this.startHour === null || this.startMinute === null) {
+			throw new ProgrammingError("Start hour or minute not initialized for non all-day event!")
+		}
+		return new Time(this.startHour, this.startMinute)
 	}
 
 	/**
@@ -146,22 +212,18 @@ export class CalendarEventWhenModel {
 			return
 		}
 
-		if (!this.hasValidStartBeforeEnd()) {
-			// Allow the user to correct the invalid state by only changing the start time,
-			// decoupled from the end time
-			this.startDateTime = this.startDateTime.set({ hour: v.hour, minute: v.minute })
-			return
+		const keepDurationBetweenStartAndEnd = this.hasValidStartBeforeEnd()
+
+		let hourDiff = v.hour - (this.startHour ?? 0)
+		let minuteDiff = v.minute - (this.startMinute ?? 0)
+
+		this.startHour = v.hour
+		this.startMinute = v.minute
+
+		if (keepDurationBetweenStartAndEnd && (hourDiff !== 0 || minuteDiff !== 0)) {
+			this.setEndFromDateTime(this.getEndDateTime().plus({ hours: hourDiff, minutes: minuteDiff }))
+			this.uiUpdateCallback()
 		}
-
-		// const startTime = this._startTime!
-		const delta = ((v.hour - this.startDateTime.hour) * 60 + (v.minute - this.startDateTime.minute)) * 60000
-
-		if (delta === 0) {
-			return
-		}
-
-		this.shiftEvent({ millisecond: delta })
-		this.uiUpdateCallback()
 	}
 
 	/**
@@ -172,8 +234,10 @@ export class CalendarEventWhenModel {
 		if (this._isAllDay) {
 			return new Time(0, 0)
 		}
-
-		return new Time(this.endDateTime.hour, this.endDateTime.minute)
+		if (this.endHour === null || this.endMinute === null) {
+			throw new ProgrammingError("End hour or minute not initialized for non all-day event!")
+		}
+		return new Time(this.endHour, this.endMinute)
 	}
 
 	/**
@@ -184,13 +248,14 @@ export class CalendarEventWhenModel {
 		if (newEndTime == null || this._isAllDay) {
 			return
 		}
-		this.endDateTime = this.endDateTime.set({ hour: newEndTime.hour, minute: newEndTime.minute })
+		this.endHour = newEndTime.hour
+		this.endMinute = newEndTime.minute
 		this.uiUpdateCallback()
 	}
 
 	/** return the duration of the event in minutes */
 	get duration(): { minutes: number } {
-		return { minutes: this.startDateTime.diff(this.endDateTime).as("minutes") }
+		return { minutes: this.getEndDateTime().diff(this.getStartDateTime()).as("minutes") }
 	}
 
 	/** set the duration of the event in minutes, effectively setting the endDate and endTime. */
@@ -199,7 +264,11 @@ export class CalendarEventWhenModel {
 			console.warn(`Attempted to set invalid negative event duration = ${duration.minutes}mins!`)
 			return
 		}
-		this.endDateTime = this.startDateTime.plus(duration)
+		this.setEndFromDateTime(
+			this.getStartDateTime()
+				.plus(duration)
+				.setZone(this.endTimeZone ?? this.calendarTimeZone),
+		)
 	}
 
 	private validateAndCorrectInputDate(date: Date) {
@@ -225,7 +294,7 @@ export class CalendarEventWhenModel {
 	 * will always be a start of day in local time.
 	 */
 	get startDate(): Date {
-		return new Date(this.startDateTime.year, this.startDateTime.month - 1, this.startDateTime.day)
+		return new Date(this.startYear, this.startMonth - 1, this.startDay)
 	}
 
 	/**
@@ -240,13 +309,11 @@ export class CalendarEventWhenModel {
 		const newYear = date.getFullYear()
 		const newMonth = date.getMonth() + 1
 		const newDay = date.getDate()
-		if (newYear === this.startDateTime.year && newMonth === this.startDateTime.month && newDay === this.startDateTime.day) {
+		if (newYear === this.startYear && newMonth === this.startMonth && newDay === this.startDay) {
 			return
 		}
-		const newStartDateTime = this.startDateTime.set({ year: newYear, month: newMonth, day: newDay })
-		const diff = newStartDateTime.diff(this.startDateTime)
-		this.startDateTime = this.startDateTime.plus(diff)
-		this.endDateTime = this.endDateTime.plus(diff)
+
+		this.shiftEvent({ years: newYear - this.startYear, months: newMonth - this.startMonth, days: newDay - this.startDay })
 		this.uiUpdateCallback()
 	}
 
@@ -256,48 +323,38 @@ export class CalendarEventWhenModel {
 	 * will always be a start of day in local time.
 	 */
 	get endDate(): Date {
-		return new Date(this.endDateTime.year, this.endDateTime.month - 1, this.endDateTime.day)
+		return new Date(this.endYear, this.endMonth - 1, this.endDay)
 	}
 
 	/**
 	 * set the date portion of the events end time (value's time component is ignored)
 	 *
 	 * */
-	set endDate(value: Date) {
-		this.validateAndCorrectInputDate(value)
+	set endDate(newEndDate: Date) {
+		this.validateAndCorrectInputDate(newEndDate)
+
+		const oldEndYear = this.endYear
+		const oldEndMonth = this.endMonth
+		const oldEndDay = this.endDay
 
 		if (this._isAllDay) {
-			value.setDate(value.getDate() + 1)
+			newEndDate.setDate(newEndDate.getDate() + 1)
 		}
-		const newEndYear = value.getFullYear()
-		const newEndMonth = value.getMonth() + 1
-		let newEndDay = value.getDate()
-		if (newEndYear === this.endDateTime.year && newEndMonth === this.endDateTime.month && newEndDay === this.endDateTime.day) {
-			return
-		}
+		this.endYear = newEndDate.getFullYear()
+		this.endMonth = newEndDate.getMonth() + 1
+		this.endDay = newEndDate.getDate()
 
-		const startYear = this.startDateTime.year
-		const startMonth = this.startDateTime.month
-		const startDay = this.startDateTime.day
-
-		let isBeforeStart: boolean
-		if (newEndYear === startYear) {
-			if (newEndMonth === startMonth) {
-				isBeforeStart = newEndDay < startDay
+		if (this.endYear !== oldEndYear || this.endMonth !== oldEndMonth || this.endDay !== oldEndDay) {
+			if (this.hasValidStartBeforeEnd()) {
+				this.uiUpdateCallback()
 			} else {
-				isBeforeStart = newEndMonth < startMonth
+				console.log("tried to set the end date to before the start date")
+				// rollback to old values
+				this.endYear = oldEndYear
+				this.endMonth = oldEndMonth
+				this.endDay = oldEndDay
 			}
-		} else {
-			isBeforeStart = newEndYear < startYear
 		}
-		if (isBeforeStart) {
-			console.log("tried to set the end date to before the start date")
-			return
-		}
-
-		this.endDateTime = this.endDateTime.set({ year: newEndYear, month: newEndMonth, day: newEndDay })
-
-		this.uiUpdateCallback()
 	}
 
 	get repeatPeriod(): RepeatPeriod | null {
@@ -456,7 +513,7 @@ export class CalendarEventWhenModel {
 
 		const repeatEndDate = incrementByRepeatPeriod(newRepeatEndDate, RepeatPeriod.DAILY, 1, this.endTimeZone ?? this.calendarTimeZone)
 		// We pass this.calendarTimeZone because we use it to convert an all-day to local timezone.
-		if (repeatEndDate < this.startDateTime.toJSDate()) {
+		if (repeatEndDate < this.getStartDateTime().toJSDate()) {
 			throw new UserError("startAfterEnd_label")
 		}
 
@@ -479,7 +536,6 @@ export class CalendarEventWhenModel {
 
 	setStartTimeZone(startTimeZone: string) {
 		this.startTimeZone = startTimeZone
-		this.startDateTime = this.startDateTime.setZone(this.startTimeZone, { keepLocalTime: true })
 		this.uiUpdateCallback()
 	}
 
@@ -489,7 +545,6 @@ export class CalendarEventWhenModel {
 
 	setEndTimeZone(endTimeZone: string) {
 		this.endTimeZone = endTimeZone
-		this.endDateTime = this.endDateTime.setZone(this.endTimeZone, { keepLocalTime: true })
 		this.uiUpdateCallback()
 	}
 
@@ -504,16 +559,6 @@ export class CalendarEventWhenModel {
 	removeTimeZones() {
 		this.startTimeZone = null
 		this.endTimeZone = null
-
-		let newDateTimeTimeZone: string
-		if (this._isAllDay) {
-			console.warn("Trying to unset time zones on all day event!")
-			newDateTimeTimeZone = "UTC"
-		} else {
-			newDateTimeTimeZone = this.calendarTimeZone
-		}
-		this.startDateTime = this.startDateTime.setZone(newDateTimeTimeZone, { keepLocalTime: true })
-		this.endDateTime = this.endDateTime.setZone(newDateTimeTimeZone, { keepLocalTime: true })
 	}
 
 	/**
@@ -609,8 +654,8 @@ export class CalendarEventWhenModel {
 	 * @param duration an object containing a duration in luxons year/quarter/... format
 	 */
 	shiftEvent(duration: DurationLikeObject): void {
-		this.startDateTime = this.startDateTime.plus(duration)
-		this.endDateTime = this.endDateTime.plus(duration)
+		this.setStartFromDateTime(this.getStartDateTime().plus(duration))
+		this.setEndFromDateTime(this.getEndDateTime().plus(duration))
 	}
 
 	getRepeatRuleOrNull(): RepeatRule | null {
@@ -635,24 +680,16 @@ export class CalendarEventWhenModel {
 		return repeatRule
 	}
 
-	getStartDateTime() {
-		return this.startDateTime
-	}
-
-	getEndDateTime() {
-		return this.endDateTime
-	}
-
 	hasValidStartBeforeEnd(): boolean {
-		return this.startDateTime.diff(this.endDateTime).as("minutes") < 0
+		return this.getStartDateTime().diff(this.getEndDateTime()).as("minutes") < 0
 	}
 
 	get result() {
-		let startDateTime = this.startDateTime
-		let endDateTime = this.endDateTime
+		let startDateTime = this.getStartDateTime()
+		let endDateTime = this.getEndDateTime()
 		if (this._isAllDay) {
 			startDateTime = startDateTime.set({ hour: 0, minute: 0, millisecond: 0 })
-			endDateTime = endDateTime.set({ hour: 0, minute: 0, millisecond: 0 }).plus({ day: 1 })
+			endDateTime = endDateTime.plus({ day: 1 }).set({ hour: 0, minute: 0, millisecond: 0 })
 		}
 
 		return {
@@ -681,7 +718,7 @@ export class CalendarEventWhenModel {
 			return
 		}
 
-		if (this.startDateTime.toMillis() !== this.initialValues.startTime.getTime()) {
+		if (this.getStartDateTime().toMillis() !== this.initialValues.startTime.getTime()) {
 			newRepeat.excludedDates = []
 			return
 		}
