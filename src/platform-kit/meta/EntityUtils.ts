@@ -234,6 +234,19 @@ export function getIds<T extends PersistentEntity>(entities: Iterable<T>): Array
 	return ids
 }
 
+export const DEFAULT_ENTITY_FIELDS = {
+	_original: null,
+	isAdapter: false,
+
+	_permissions: null,
+	bucketKey: null,
+	_ownerGroup: null,
+	_ownerEncSessionKey: null,
+	_ownerKeyVersion: null,
+	_kdfNonce: null,
+	ownerEncSessionKey: null,
+	ownerEncSessionKeyVersion: null,
+}
 export function create<T>(
 	typeModel: TypeModel,
 	typeRef: TypeRef<T>,
@@ -241,6 +254,7 @@ export function create<T>(
 ): T {
 	let i: Record<string, any> = {
 		_type: typeRef,
+		...DEFAULT_ENTITY_FIELDS,
 	}
 
 	for (const [valueIdStr, value] of Object.entries(typeModel.values)) {
@@ -413,7 +427,7 @@ export const SENDER_ID = 111
 export const ATTACHMENTS_ID = 115
 
 export const IDENTITY_FIELDS = ["_id", "_ownerGroup", "_ownerEncSessionKey", "_ownerKeyVersion", "_kdfNonce", "_permissions"]
-export const TECHNICAL_FIELDS = ["_original", "_errors"]
+export const TECHNICAL_FIELDS = ["_original", "_errors", "isAdapter"]
 
 export function isCustomIdType(typeModel: TypeModel): boolean {
 	const _idValue = get_IdValue(typeModel)

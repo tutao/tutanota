@@ -141,7 +141,7 @@ export type TypeModel = {
 // // //
 
 // decouples from sys entities
-export interface IBucketKey {
+export interface IBucketKey extends AggregatedEntity {
 	bucketEncSessionKeys: IInstanceSessionsKey[]
 	keyGroup: Id | null
 	pubEncBucketKey: null | Uint8Array<ArrayBuffer>
@@ -149,9 +149,17 @@ export interface IBucketKey {
 	protocolVersion: NumberString
 	recipientKeyVersion: NumberString
 	senderKeyVersion: null | NumberString
+	isAdapter: false
+	_permissions: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
 }
 
-export interface IInstanceSessionsKey {
+export interface IInstanceSessionsKey extends AggregatedEntity {
 	instanceList: Id
 	instanceId: Id
 	symEncSessionKey: Uint8Array<ArrayBuffer>
@@ -159,15 +167,30 @@ export interface IInstanceSessionsKey {
 	symKeyVersion: NumberString
 	keyVerificationState: null | Uint8Array<ArrayBuffer>
 	typeInfo: ITypeInfo
+	isAdapter: false
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
 }
 
-export interface ITypeInfo {
-	_type: TypeRef<ITypeInfo>
-	_original?: ITypeInfo
-
+export interface ITypeInfo extends AggregatedEntity {
 	_id: Id
 	application: string
 	typeId: NumberString
+	isAdapter: false
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
 }
 
 /**
@@ -178,16 +201,16 @@ export interface ITypeInfo {
 export interface Entity {
 	/** the address of the TypeModel this entity conforms to. */
 	_type: TypeRef<this>
-	_original?: this
-	bucketKey?: null | IBucketKey
-	_ownerGroup?: null | Id
-	_ownerEncSessionKey?: null | Uint8Array<ArrayBuffer>
-	_ownerKeyVersion?: null | NumberString
-	_kdfNonce?: null | Uint8Array<ArrayBuffer>
-	ownerEncSessionKey?: null | Uint8Array<ArrayBuffer>
-	ownerEncSessionKeyVersion?: null | NumberString
-	_permissions?: null | Id
-	isAdapter?: boolean
+	_original: Nullable<this>
+	bucketKey: Nullable<IBucketKey>
+	_ownerGroup: Nullable<Id>
+	_ownerEncSessionKey: Nullable<Uint8Array<ArrayBuffer>>
+	_ownerKeyVersion: Nullable<NumberString>
+	_kdfNonce: Nullable<Uint8Array<ArrayBuffer>>
+	ownerEncSessionKey: Nullable<Uint8Array<ArrayBuffer>>
+	ownerEncSessionKeyVersion: Nullable<NumberString>
+	_permissions: Nullable<Id>
+	isAdapter: boolean
 }
 
 export type EntityId<L, E> = readonly [L, E]

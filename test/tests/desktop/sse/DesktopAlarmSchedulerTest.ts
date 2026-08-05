@@ -2,7 +2,7 @@ import o, { spy } from "@tutao/otest"
 import n from "../../nodemocker.js"
 import { EndType, RepeatPeriod } from "../../../../src/platform-kit/app-env"
 import { DesktopAlarmScheduler } from "../../../../src/applications/common/desktop/sse/DesktopAlarmScheduler.js"
-import { stringToUtf8Uint8Array } from "../../../../src/platform-kit/utils"
+import { isNotNull, stringToUtf8Uint8Array } from "../../../../src/platform-kit/utils"
 import { WindowManager } from "../../../../src/applications/common/desktop/DesktopWindowManager.js"
 import { DesktopNotifier } from "../../../../src/applications/common/desktop/notifications/DesktopNotifier.js"
 import { DesktopAlarmStorage } from "../../../../src/applications/common/desktop/sse/DesktopAlarmStorage.js"
@@ -263,18 +263,16 @@ function createAlarmNotification({ startTime, endTime, trigger, endType, endValu
 		eventEnd: endTime,
 		operation: "0",
 		summary: `summary${alarmIdCounter}`,
-		alarmInfo: {
-			_type: AlarmInfoTypeRef,
+		alarmInfo: createTestEntity(AlarmInfoTypeRef, {
 			_id: `alarmInfoId1${alarmIdCounter}`,
 			alarmIdentifier: `alarmIdentifier${alarmIdCounter}`,
 			trigger,
-			calendarRef: {
-				_type: CalendarEventRefTypeRef,
+			calendarRef: createTestEntity(CalendarEventRefTypeRef, {
 				_id: `calendarRefId${alarmIdCounter}`,
 				elementId: `calendarRefElementId${alarmIdCounter}`,
 				listId: `calendarRefListId${alarmIdCounter}`,
-			},
-		},
+			}),
+		}),
 		notificationSessionKeys: [
 			createTestEntity(NotificationSessionKeyTypeRef, {
 				_id: `notificationSessionKeysId${alarmIdCounter}`,
@@ -282,10 +280,9 @@ function createAlarmNotification({ startTime, endTime, trigger, endType, endValu
 				pushIdentifier: [`pushIdentifier${alarmIdCounter}Part1`, `pushIdentifier${alarmIdCounter}Part2`],
 			}),
 		],
-		repeatRule: endType
-			? {
+		repeatRule: isNotNull(endType)
+			? createTestEntity(RepeatRuleTypeRef, {
 					_id: `repeatRuleId${alarmIdCounter}`,
-					_type: RepeatRuleTypeRef,
 					timeZone: "Europe/Berlin",
 					excludedDates: [],
 					endType,
@@ -293,7 +290,7 @@ function createAlarmNotification({ startTime, endTime, trigger, endType, endValu
 					frequency,
 					interval,
 					advancedRules: [],
-				}
+				})
 			: null,
 		user: userId,
 	})

@@ -456,13 +456,12 @@ END:VCARD
 		let bday = createTestEntity(BirthdayTypeRef)
 		let contacts = [b]
 		b._ownerGroup = ""
-		b.addresses[0] = {
-			_type: ContactAddressTypeRef,
+		b.addresses[0] = createTestEntity(ContactAddressTypeRef, {
 			_id: neverNull(null),
 			address: "Die Heide 81\nBasche",
 			customTypeName: "",
 			type: "2",
-		}
+		})
 		b.firstName = "John;Quinlan"
 		b.lastName = "Public"
 		b.comment = "Hello World\nHier ist ein Umbruch"
