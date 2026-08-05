@@ -168,7 +168,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 	) {
 		let contextActions: DropdownChildAttrs[]
 
-		if (isItemSelected && selection.type === "multiselect") {
+		if (isItemSelected && selection.type === "multiselect" && selection.selectedItemCount > 1) {
 			contextActions = getSelectionContextActions(selectedItemsActions)
 		} else {
 			selectionEvents.onSingleSelection(item)
