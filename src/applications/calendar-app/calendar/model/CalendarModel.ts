@@ -254,7 +254,7 @@ export class CalendarModel {
 		eventController.addEntityUpdatesListener({
 			id: "CalendarModel",
 			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => this.onEntityUpdatesReceived(updates, eventOwnerGroupId),
-			priority: ListenerPriority.NORMAL,
+			priority: ListenerPriority.HIGH,
 		})
 
 		syncTracker.addSyncDoneListener({

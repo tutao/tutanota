@@ -86,7 +86,7 @@ export class CalendarEventsRepository {
 		eventController.addEntityUpdatesListener({
 			id: "CalendarEventsRepository",
 			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => this.onEntityUpdatesReceived(updates, eventOwnerGroupId),
-			priority: ListenerPriority.HIGH,
+			priority: ListenerPriority.NORMAL,
 		})
 		this.calendarMemberships = this.logins
 			.getUserController()
