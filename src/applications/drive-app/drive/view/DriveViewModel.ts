@@ -1,4 +1,4 @@
-import { elementIdPart, getElementId, isSameId, isSameSingleId, listIdPart, OperationType } from "@tutao/meta"
+import { elementIdPart, getElementId, isSameSingleId, listIdPart, OperationType } from "@tutao/meta"
 import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
@@ -48,6 +48,7 @@ import { DuplicateFilesDialogDecision, showDuplicateFilesChoiceDialog } from "./
 import { WindowFacade } from "../../../common/misc/WindowFacade"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
+import { NameTooLongError } from "../../../common/api/common/error/NameTooLongError"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -694,7 +695,15 @@ export class DriveViewModel {
 				parentFolderId = currentFolder._id
 			}
 		}
-		return this.driveFacade.createFolder(folderName, parentFolderId)
+		try {
+			return this.driveFacade.createFolder(folderName, parentFolderId)
+		} catch (e) {
+			if (e instanceof NameTooLongError) {
+				throw new UserError("nameTooLong_msg")
+			} else {
+				throw e
+			}
+		}
 	}
 
 	navigateToFolder(folderId: IdTuple) {
@@ -744,8 +753,16 @@ export class DriveViewModel {
 		this.listModel.sort()
 	}
 
-	rename(item: FolderItem, newName: string) {
-		this.driveFacade.rename(folderItemEntity(item), newName)
+	async rename(item: FolderItem, newName: string) {
+		try {
+			await this.driveFacade.rename(folderItemEntity(item), newName)
+		} catch (e) {
+			if (e instanceof NameTooLongError) {
+				throw new UserError("nameTooLong_msg")
+			} else {
+				throw e
+			}
+		}
 	}
 
 	onSingleSelection(item: FolderItem) {

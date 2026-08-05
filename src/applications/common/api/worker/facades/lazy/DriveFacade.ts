@@ -5,7 +5,7 @@ import { ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
 import { aes256RandomKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
-import { assertNotNull, first, groupBy, isEmpty, partition, promiseMap, Require } from "@tutao/utils"
+import { assertNotNull, first, groupBy, isEmpty, partition, promiseMap, Require, stringToUtf8Uint8Array } from "@tutao/utils"
 import { getElementId, getListId, idToElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
@@ -45,6 +45,7 @@ import { TransferId } from "../../../../../../entities/drive/Utils"
 import { getCleanedMimeType } from "../../utils/DataFile"
 import { ExposedCacheStorage } from "../../../../../../app-kit/local-store/CacheStorage"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { NameTooLongError } from "../../../common/error/NameTooLongError"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -91,8 +92,13 @@ export class DriveFacade {
 		private readonly cacheStorage: ExposedCacheStorage,
 	) {}
 
+	/**
+	 * @throws NameTooLongError
+	 */
 	public async rename(item: DriveFile | DriveFolder, newName: string) {
 		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(item))
+
+		checkNameLimits(newName)
 
 		const data = createDriveItemPutIn({
 			file: isSameTypeRef(item._type, DriveFileTypeRef) ? item._id : null,
@@ -183,9 +189,12 @@ export class DriveFacade {
 
 	/**
 	 * @param to this is the folder where the file will be uploaded
+	 * @throws NameTooLongError
 	 */
 	public async uploadFile(file: WebFile | FileReference, fileId: TransferId, fileName: string, to: IdTuple): Promise<DriveFile | null> {
 		const { fileGroupId, fileGroupKey } = await this.getCryptoInfo()
+
+		checkNameLimits(fileName)
 
 		const sessionKey = aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
@@ -233,9 +242,12 @@ export class DriveFacade {
 	/**
 	 * @param folderName the name of the folder, duh
 	 * @param parentFolder not implemented yet, used for creating a folder inside a folder that is not the root drive
+	 * @throws NameTooLongError
 	 */
 	public async createFolder(folderName: string, parentFolder: IdTuple): Promise<DriveFolder> {
 		const { fileGroupKey } = await this.getCryptoInfo()
+
+		checkNameLimits(folderName)
 
 		const sessionKey = aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
@@ -421,5 +433,16 @@ export function* splitListElementsIntoChunksByList<I, L extends I, R extends I>(
 			rightItems = []
 		}
 		yield { left: leftItems, right: rightItems }
+	}
+}
+
+/**
+ * @throws NameTooLongError
+ */
+function checkNameLimits(name: string) {
+	const bytes = stringToUtf8Uint8Array(name).length
+	// 4943 is the maximum byte count that still fits into a 5000 byte payload after AES encryption
+	if (bytes > 4943) {
+		throw new NameTooLongError(`name is ${bytes} bytes large`)
 	}
 }
