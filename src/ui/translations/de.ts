@@ -2530,6 +2530,7 @@ export default {
 		"attachingDriveFile_label" : "Attaching file to email",
 		"savingAttachmentToDrive_Label": "Saving file to Drive",
 		"sendDriveFileWithMail_action": "Send via email",
-		"openDriveDestinationPickerForAttachment_action": "Attach drive files"
+		"openDriveDestinationPickerForAttachment_action": "Attach drive files",
+		"nameTooLong_msg": "This filename is too long."
 	}
 }
