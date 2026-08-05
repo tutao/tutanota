@@ -29,14 +29,12 @@ export type ModelInfo = { version: ApplicationVersion }
 export type ModelInfos = {
 	[knownApps in AppName]: ModelInfo
 }
-export type ServerModels = Record<
-	AppName,
-	{
-		name: AppName
-		version: ApplicationVersion
-		types: Record<string, ServerTypeModel>
-	}
->
+export type JsApp = {
+	name: AppName
+	version: ApplicationVersion
+	types: Record<string, ServerTypeModel>
+}
+export type ServerModels = Record<AppName, JsApp>
 export type ClientModels = Record<AppName, Record<string, ClientTypeModel>>
 
 export class ClientModelInfo {
@@ -112,6 +110,11 @@ export class ClientModelInfo {
 	private resolveDependsOnVersion(dependency: AppName) {
 		return this.modelInfos[dependency].version
 	}
+}
+
+type ParsedModel = {
+	types: Record<string, ServerTypeModel>
+	version: number
 }
 
 export class ServerModelInfo {
@@ -193,10 +196,7 @@ export class ServerModelInfo {
 		this.applicationTypesHash = applicationTypesHash
 	}
 
-	private parseAllTypesForModel(modelInfo: Record<string, unknown>): {
-		types: Record<string, ServerTypeModel>
-		version: number
-	} {
+	private parseAllTypesForModel(modelInfo: Record<string, unknown>): ParsedModel {
 		const appName = this.ensureVariantOfList(this.getAppNames(), String(modelInfo.name))
 		const version: ApplicationVersion = this.asNumber(modelInfo.version)
 		const modelTypeInfoRecord = assertNotNull(modelInfo.types) as Record<string, unknown>

@@ -80,10 +80,7 @@ export class EntityClient {
 		start: Id,
 		end: Id,
 		rangeItemLimit: number = RANGE_ITEM_LIMIT,
-	): Promise<{
-		elements: T[]
-		loadedCompletely: boolean
-	}> {
+	): Promise<ReverseRangeBetweenItems<T>> {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		if (typeModel.type !== EntityTypeEnum.ListElement) throw new Error("only ListElement types are permitted")
 		const loadedEntities = await this._target.loadRange<T>(typeRef, listId, start, rangeItemLimit, true, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS)
@@ -221,4 +218,9 @@ export async function loadMultipleFromLists<T extends ListElementEntity>(
 			{ concurrency: 3 },
 		)
 	).flat()
+}
+
+export type ReverseRangeBetweenItems<T extends ListElementEntity> = {
+	elements: T[]
+	loadedCompletely: boolean
 }

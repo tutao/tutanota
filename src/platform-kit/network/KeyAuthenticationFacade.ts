@@ -15,17 +15,20 @@ import { KeyMac } from "@tutao/entities/sys"
 
 assertWorkerOrNode()
 
+export type NewUserGroupKey = { newUserGroupKey: Aes256Key }
+export type CurrentUserGroupKey = { currentUserGroupKey: AesKey }
+export type UserGroupBindingData = {
+	userGroupId: Id
+	adminGroupId: Id
+	currentUserGroupKeyVersion: KeyVersion
+	newUserGroupKeyVersion: KeyVersion
+	newAdminGroupKeyVersion: KeyVersion
+}
 export type UserGroupKeyAuthenticationParams = {
 	tagType: SystemMapKind.USER_GROUP_KEY_TAG
-	untrustedKey: { newUserGroupKey: Aes256Key }
-	sourceOfTrust: { currentUserGroupKey: AesKey }
-	bindingData: {
-		userGroupId: Id
-		adminGroupId: Id
-		currentUserGroupKeyVersion: KeyVersion
-		newUserGroupKeyVersion: KeyVersion
-		newAdminGroupKeyVersion: KeyVersion
-	}
+	untrustedKey: NewUserGroupKey
+	sourceOfTrust: CurrentUserGroupKey
+	bindingData: UserGroupBindingData
 }
 
 /**
@@ -66,16 +69,20 @@ const userGroupKeyAuthenticationSystem: KeyAuthenticationSystem<UserGroupKeyAuth
 	},
 }
 
+export type UntrustedKey = { newAdminPubKey: PQPublicKeys }
+export type SourceOfTrust = { receivingUserGroupKey: AesKey }
+type AdminBindingData = {
+	userGroupId: Id
+	adminGroupId: Id
+	currentReceivingUserGroupKeyVersion: KeyVersion
+	newAdminGroupKeyVersion: KeyVersion
+}
+
 export type NewAdminPubKeyAuthenticationParams = {
 	tagType: SystemMapKind.NEW_ADMIN_PUB_KEY_TAG
-	untrustedKey: { newAdminPubKey: PQPublicKeys }
-	sourceOfTrust: { receivingUserGroupKey: AesKey } // this receiving user is an admin receiving the new admin group pub keys
-	bindingData: {
-		userGroupId: Id
-		adminGroupId: Id
-		newAdminGroupKeyVersion: KeyVersion
-		currentReceivingUserGroupKeyVersion: KeyVersion
-	}
+	untrustedKey: UntrustedKey
+	sourceOfTrust: SourceOfTrust // this receiving user is an admin receiving the new admin group pub keys
+	bindingData: AdminBindingData
 }
 
 /**
@@ -100,16 +107,19 @@ const newAdminPubKeyAuthenticationSystem: KeyAuthenticationSystem<NewAdminPubKey
 	},
 }
 
+export type PubDistUntrustedKey = { distPubKey: PQPublicKeys }
+export type PubDistSourceOfTrust = { currentAdminGroupKey: AesKey }
+export type PubDistBindingData = {
+	userGroupId: Id
+	adminGroupId: Id
+	currentUserGroupKeyVersion: KeyVersion
+	currentAdminGroupKeyVersion: KeyVersion
+}
 export type PubDistKeyAuthenticationParams = {
 	tagType: SystemMapKind.PUB_DIST_KEY_TAG
-	untrustedKey: { distPubKey: PQPublicKeys }
-	sourceOfTrust: { currentAdminGroupKey: AesKey }
-	bindingData: {
-		userGroupId: Id
-		adminGroupId: Id
-		currentUserGroupKeyVersion: KeyVersion
-		currentAdminGroupKeyVersion: KeyVersion
-	}
+	untrustedKey: PubDistUntrustedKey
+	sourceOfTrust: PubDistSourceOfTrust
+	bindingData: PubDistBindingData
 }
 
 /**
@@ -134,16 +144,13 @@ const pubDistKeyAuthenticationSystem: KeyAuthenticationSystem<PubDistKeyAuthenti
 	},
 }
 
+export type AdminSymKeyUntrustedKey = { newAdminGroupKey: Aes256Key }
+export type AdminSymKeySourceOfTrust = { currentReceivingUserGroupKey: AesKey }
 export type AdminSymKeyAuthenticationParams = {
 	tagType: SystemMapKind.ADMIN_SYM_KEY_TAG
-	untrustedKey: { newAdminGroupKey: Aes256Key }
-	sourceOfTrust: { currentReceivingUserGroupKey: AesKey } // this receiving user is an admin receiving the new admin group sym key
-	bindingData: {
-		userGroupId: Id
-		adminGroupId: Id
-		newAdminGroupKeyVersion: KeyVersion
-		currentReceivingUserGroupKeyVersion: KeyVersion
-	}
+	untrustedKey: AdminSymKeyUntrustedKey
+	sourceOfTrust: AdminSymKeySourceOfTrust // this receiving user is an admin receiving the new admin group sym key
+	bindingData: AdminBindingData
 }
 
 /**
@@ -164,15 +171,18 @@ const adminSymKeyAuthenticationSystem: KeyAuthenticationSystem<AdminSymKeyAuthen
 	},
 }
 
+export type IdentityPubKeyUntrustedKey = { identityPubKey: Ed25519PublicKey }
+export type IdentityPubKeySourceOfTrust = { symmetricGroupKey: AesKey }
+export type IdentityPubKeyBindingData = {
+	publicIdentityKeyVersion: KeyVersion
+	groupKeyVersion: KeyVersion
+	groupId: Id
+}
 export type IdentityPubKeyAuthenticationParams = {
 	tagType: SystemMapKind.IDENTITY_PUB_KEY_TAG
-	untrustedKey: { identityPubKey: Ed25519PublicKey }
-	sourceOfTrust: { symmetricGroupKey: AesKey } // either the user group or the mail group key
-	bindingData: {
-		publicIdentityKeyVersion: KeyVersion
-		groupKeyVersion: KeyVersion
-		groupId: Id
-	}
+	untrustedKey: IdentityPubKeyUntrustedKey
+	sourceOfTrust: IdentityPubKeySourceOfTrust // either the user group or the mail group key
+	bindingData: IdentityPubKeyBindingData
 }
 
 const identityPubKeyAuthenticationSystem: KeyAuthenticationSystem<IdentityPubKeyAuthenticationParams> = {
@@ -238,7 +248,8 @@ export class KeyAuthenticationFacade {
 	}
 }
 
-type BrandedKeyMac = Omit<KeyMac, "mac"> & { tag: MacTag }
+type MacTagAsTag = { tag: MacTag }
+type BrandedKeyMac = Omit<KeyMac, "mac"> & MacTagAsTag
 
 /**
  * Brands a KeyMac so that it has a branded MacTag, which can be used in authentication methods.

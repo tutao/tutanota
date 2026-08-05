@@ -27,7 +27,7 @@
  */
 
 import { AppName, TypeRef } from "./TypeRef.js"
-import { Nullable } from "@tutao/utils"
+import { BrandedType, Nullable, TsBrand } from "@tutao/utils"
 import { AssociationTypeEnum, AttributeId, AttributeName, CardinalityEnum, EntityTypeEnum, TypeId, ValueTypeEnum } from "./EntityConstants"
 
 /**
@@ -48,11 +48,6 @@ export type ModelValue = {
 	/* whether the field should be encrypted with the containing types session key before being sent to the server. */
 	encrypted: boolean
 }
-
-/**
- * encrypted scalar fields on types in the model
- */
-export type EncryptedModelValue = ModelValue & { encrypted: true }
 
 /**
  * metamodel representation of an association between types in the model.
@@ -82,13 +77,16 @@ export type ModelAssociation = {
 	dependency: Nullable<AppName>
 }
 
-export type Distinct<T, ModelTypeSeparator> = T & { __MODEL_TYPE_SEPARATOR__: ModelTypeSeparator }
 /** simple separator to distinguish between client model types and server model types */
-export type ClientModelTypeSeparator = "ClientModel"
+class ServerModelTsBrand extends TsBrand {
+	protected __brand: Nullable<never> = null
+}
 /** simple separator to distinguish between server model types and client model types */
-export type ServerModelTypeSeparator = "ServerModel"
-export type ClientTypeModel = Distinct<TypeModel, ClientModelTypeSeparator>
-export type ServerTypeModel = Distinct<TypeModel, ServerModelTypeSeparator>
+class ClientModelTsBrand extends TsBrand {
+	protected __brand: Nullable<never> = null
+}
+export type ClientTypeModel = BrandedType<TypeModel, ClientModelTsBrand>
+export type ServerTypeModel = BrandedType<TypeModel, ServerModelTsBrand>
 
 /**
  * this type models how the main entity types in the model are defined.

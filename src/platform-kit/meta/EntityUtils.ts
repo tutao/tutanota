@@ -404,7 +404,8 @@ export function constructMailSetEntryId(receiveDate: Date, mailId: Id): Id {
 	return uint8arrayToBase64UrlCustomId(new Uint8Array(buffer.buffer))
 }
 
-export function deconstructMailSetEntryId(id: Id): { receiveDate: Date; mailId: Id } {
+export type MailSetEntryIdInfo = { receiveDate: Date; mailId: Id }
+export function deconstructMailSetEntryId(id: Id): MailSetEntryIdInfo {
 	const buffer = base64UrlIdToUint8array(id)
 	const timestampBytes = buffer.slice(0, 4)
 	const generatedIdBytes = buffer.slice(4)

@@ -40,7 +40,7 @@ import {
 	OutOfOfficeNotificationRecipientListTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
-import { AttributeModel, EncryptedModelValue, Entity, idToElementId } from "../../../src/platform-kit/meta"
+import { AttributeModel, Entity, idToElementId, ModelValue } from "../../../src/platform-kit/meta"
 import { createPatch, Customer, CustomerTypeRef, Patch } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
 import { CacheManager } from "../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
@@ -199,7 +199,7 @@ o.spec("PatchMergerTest", () => {
 			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 
 			const subjectAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "subject"))
-			const valueType = mailTypeModel.values[subjectAttributeId] as EncryptedModelValue
+			const valueType = mailTypeModel.values[subjectAttributeId] as ModelValue
 			let plaintext: ParsedValue<DecryptedParsedInstance> = ParsedValue.fromString("new subject")
 			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
@@ -230,7 +230,7 @@ o.spec("PatchMergerTest", () => {
 			const mailTypeModel = await typeModelResolver.resolveClientTypeReference(MailTypeRef)
 
 			const encryptionAuthStatusAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "encryptionAuthStatus"))
-			const valueType = mailTypeModel.values[encryptionAuthStatusAttributeId] as EncryptedModelValue
+			const valueType = mailTypeModel.values[encryptionAuthStatusAttributeId] as ModelValue
 			const plaintext: ParsedValue<DecryptedParsedInstance> = ParsedValue.fromString(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
 			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
@@ -354,7 +354,7 @@ o.spec("PatchMergerTest", () => {
 
 			const senderAttributeId = assertNotNull(AttributeModel.getAttributeId(mailTypeModel, "sender"))
 			const nameAttributeId = assertNotNull(AttributeModel.getAttributeId(mailAddressTypeModel, "name"))
-			const valueType = mailAddressTypeModel.values[nameAttributeId] as EncryptedModelValue
+			const valueType = mailAddressTypeModel.values[nameAttributeId] as ModelValue
 
 			const pathString = `${senderAttributeId}/senderId/${nameAttributeId}`
 			let plaintextParsedValue: ParsedValue<DecryptedParsedInstance> = ParsedValue.fromString("new name")

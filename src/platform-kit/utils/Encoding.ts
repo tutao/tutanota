@@ -456,7 +456,8 @@ function writeByteArray(result: Uint8Array, byteArray: Uint8Array, index: number
 	return index
 }
 
-function readByteArray(encoded: Uint8Array, index: number): { index: number; byteArray: Uint8Array } {
+type IndexAndByteArray = { index: number; byteArray: Uint8Array }
+function readByteArray(encoded: Uint8Array, index: number): IndexAndByteArray {
 	const length = readShort(encoded, index)
 	index += BYTE_ARRAY_LENGTH_FIELD_SIZE
 	const byteArray = encoded.slice(index, length + index)

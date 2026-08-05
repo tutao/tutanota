@@ -50,14 +50,16 @@ export const enum CacheMode {
 	ReadOnly,
 }
 
+type CacheBehavior = {
+	readsFromCache: boolean
+	writesToCache: boolean
+}
+
 /**
  * Get the behavior of the cache mode for the options
  * @param cacheMode cache mode to check, or if `undefined`, check the default cache mode ({@link CacheMode.ReadAndWrite})
  */
-export function getCacheModeBehavior(cacheMode: Nullable<CacheMode> = null): {
-	readsFromCache: boolean
-	writesToCache: boolean
-} {
+export function getCacheModeBehavior(cacheMode: Nullable<CacheMode> = null): CacheBehavior {
 	switch (cacheMode ?? CacheMode.ReadAndWrite) {
 		case CacheMode.ReadAndWrite:
 			return { readsFromCache: true, writesToCache: true }
