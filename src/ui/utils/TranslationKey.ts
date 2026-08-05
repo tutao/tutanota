@@ -2426,3 +2426,4 @@ export type TranslationKeyType =
 	| "transferTimeRemaining_msg"
 	| "closeWindowWithActiveTransfers_msg"
 	| "dontQuit_action"
+	| "nameTooLong_msg"

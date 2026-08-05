@@ -11,6 +11,7 @@ import { TransferId } from "../../../../entities/drive/Utils"
 import { ArchiveDataType } from "../../../../entities/sys/Utils"
 import { FileTooLargeError } from "../../../common/api/common/error/FileTooLargeError"
 import { UserError } from "../../../common/api/main/UserError"
+import { NameTooLongError } from "../../../common/api/common/error/NameTooLongError"
 
 export type DriveTransferType = "upload" | "download"
 
@@ -150,6 +151,8 @@ export class DriveTransferController {
 					this.transferFailed(id)
 					if (e instanceof FileTooLargeError) {
 						handleUncaughtError(new UserError("nativeFileUploadTooLarge_msg"))
+					} else if (e instanceof NameTooLongError) {
+						handleUncaughtError(new UserError("nameTooLong_msg"))
 					} else if (!isOfflineError(e)) {
 						handleUncaughtError(e)
 					}
