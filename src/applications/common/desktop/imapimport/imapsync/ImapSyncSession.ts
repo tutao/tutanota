@@ -92,6 +92,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		if (this.state !== SyncSessionState.RUNNING) {
 			this.state = SyncSessionState.RUNNING
 			this.imapSyncContext = imapSyncContext
+			this.runningSyncSessionProcess?.stopSyncSessionProcess()
 			this.runningSyncSessionProcess = null
 
 			return await this.runSyncSession()
@@ -350,8 +351,9 @@ export class ImapSyncSession implements SyncSessionEventListener {
 				throw new ProgrammingError("The imapSyncContext has not been set!")
 			}
 
-			const syncSessionProcess = new ImapSyncSessionProcess(syncSessionMailbox, this, this.imapSyncConfig, this.imapFlowFactory)
+			this.runningSyncSessionProcess?.stopSyncSessionProcess()
 
+			const syncSessionProcess = new ImapSyncSessionProcess(syncSessionMailbox, this, this.imapSyncConfig, this.imapFlowFactory)
 			this.runningSyncSessionProcess = syncSessionProcess
 
 			syncSessionProcess.startSyncSessionProcess(this.imapSyncContext.imapCredentials, this.imapSyncEventListener).then((state) => {
