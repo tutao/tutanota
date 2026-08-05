@@ -3,7 +3,7 @@ import { theme } from "../theme.js"
 import { SingleLineTextField } from "./SingleLineTextField.js"
 import { font_size, px, size } from "../size.js"
 import { LegacyTextFieldType } from "./LegacyTextField.js"
-import { TabIndex } from "../../platform-kit/app-env"
+import { TabIndex } from "@tutao/app-env"
 import { Translation } from "../utils/LanguageViewModel"
 
 export enum InputButtonVariant {
@@ -54,7 +54,7 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 		return m(
 			"button",
 			{
-				title: attrs.ariaLabel,
+				title: attrs.ariaLabel.text,
 				"aria-live": "off", // Button contents and label will be handled by the input field
 				class: this.resolveContainerClasses(attrs.variant, attrs.classes, attrs.disabled),
 				tabIndex: attrs.tabIndex,
