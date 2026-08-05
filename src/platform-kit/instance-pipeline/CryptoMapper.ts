@@ -618,7 +618,8 @@ export class DecryptedParsedInstance implements DeepEquals {
 
 	public addErrorByAttributeNameForTesting(attributeName: AttributeName, errorValue: string): this {
 		assert(isTest(), "This method is intended for testing. Use addErrorByAttributeId instead.")
-		return this.addErrorByAttributeId(AttributeModel.getAttributeId(this.typeModel, attributeName)!, errorValue)
+		const attributeId = assertNotNull(AttributeModel.getAttributeId(this.typeModel, attributeName))
+		return this.addErrorByAttributeId(attributeId, errorValue)
 	}
 	public addErrorByAttributeId(attributeId: AttributeId, errorValue: string): this {
 		this._errors[attributeId] = errorValue

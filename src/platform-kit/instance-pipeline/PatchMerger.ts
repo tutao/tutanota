@@ -23,6 +23,7 @@ import { Patch, UserTypeRef } from "@tutao/entities/sys"
 import { EntityUpdateData } from "./utils/EntityUpdateUtils"
 import { IncomingServerJson } from "./TypeMapper"
 import { ClientDetector } from "../app-env/boot/ClientDetector"
+import { isNull } from "../utils/Utils"
 
 export interface OwnerKeyProvider {
 	(ownerKeyVersion: KeyVersion): Promise<AesKey>
@@ -375,10 +376,10 @@ export class PatchMerger {
 	}
 
 	private async traversePath(parsedInstance: DecryptedParsedInstance, serverTypeModel: ServerTypeModel, path: Array<string>): Promise<PathResult | null> {
-		if (path.length === 0) {
+		const pathItem = path.shift() ?? null
+		if (isNull(pathItem)) {
 			throw new PatchOperationError("Invalid attributePath, expected non-empty attributePath")
 		}
-		const pathItem = path.shift()!
 		try {
 			let attributeId: number
 			const attributeIdsInServerTypeModel = Object.keys(serverTypeModel.values).concat(Object.keys(serverTypeModel.associations))

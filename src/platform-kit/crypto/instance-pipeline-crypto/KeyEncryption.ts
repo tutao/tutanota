@@ -67,7 +67,7 @@ export function decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedKeyPairs
 
 function decryptRsaOrRsaX25519KeyPair(encryptionKey: AesKey, keyPair: EncryptedRsaKeyPairs): RsaKeyPair {
 	const publicKey = hexToRsaPublicKey(uint8ArrayToHex(assertNotNull(keyPair.pubRsaKey)))
-	const privateKey = hexToRsaPrivateKey(uint8ArrayToHex(aesDecrypt(encryptionKey, keyPair.symEncPrivRsaKey!)))
+	const privateKey = hexToRsaPrivateKey(uint8ArrayToHex(aesDecrypt(encryptionKey, assertNotNull(keyPair.symEncPrivRsaKey))))
 	if (keyPair instanceof EncryptedRsaX25519KeyPairs) {
 		const publicEccKey = assertNotNull(keyPair.pubEccKey)
 		const privateEccKey = aesDecrypt(encryptionKey, assertNotNull(keyPair.symEncPrivEccKey))

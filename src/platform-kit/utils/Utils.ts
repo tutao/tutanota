@@ -120,7 +120,7 @@ export function isNotNull<T>(t: T | null): t is NonNullable<T> {
 	return t != null
 }
 
-export function isNull<T>(t: T | null): t is Nullable<T> {
+export function isNull<T>(t: T | null): t is null {
 	return (
 		t === null ||
 		// eslint-disable-next-line no-restricted-syntax
