@@ -1,4 +1,7 @@
 // TODO rename methods according to their JAVA counterparts (e.g. Uint8Array == bytes, Utf8Uint8Array == bytes...)
+import { TypeChecks } from "../app-env/boot/TsTypeChecks"
+import { isNotNull, Nullable } from "./Utils"
+
 export function uint8ArrayToArrayBuffer(uint8Array: Uint8Array<ArrayBuffer>): ArrayBuffer {
 	if (uint8Array.byteLength === uint8Array.buffer.byteLength) {
 		return uint8Array.buffer
@@ -139,13 +142,13 @@ export function base64ExtToBase64Url(base64Ext: string): string {
 }
 
 // just for edge, as it does not support TextEncoder yet
-export function _stringToUtf8Uint8ArrayLegacy(string: string): Uint8Array<ArrayBuffer> {
+export function _stringToUtf8Uint8ArrayLegacy(str: string): Uint8Array<ArrayBuffer> {
 	let fixedString
 
 	try {
-		fixedString = encodeURIComponent(string)
+		fixedString = encodeURIComponent(str)
 	} catch (e) {
-		fixedString = encodeURIComponent(_replaceLoneSurrogates(string)) // we filter lone surrogates as trigger URIErrors, otherwise (see https://github.com/tutao/tutanota/issues/618)
+		fixedString = encodeURIComponent(_replaceLoneSurrogates(str)) // we filter lone surrogates as trigger URIErrors, otherwise (see https://github.com/tutao/tutanota/issues/618)
 	}
 
 	let utf8 = unescape(fixedString)
@@ -197,16 +200,50 @@ export function _replaceLoneSurrogates(s: string | null): string {
 	return result.join("")
 }
 
-const encoder = isFunction(TextEncoder)
-	? new TextEncoder()
-	: {
-			encode: _stringToUtf8Uint8ArrayLegacy,
+interface IEncoder {
+	encode(str: string): Uint8Array<ArrayBuffer>
+}
+interface IDecoder {
+	decode(bytes: Uint8Array<ArrayBuffer>): string
+}
+
+class LegacyEncoderDecoder implements IEncoder, IDecoder {
+	encode(str: string): Uint8Array<ArrayBuffer> {
+		return _stringToUtf8Uint8ArrayLegacy(str)
+	}
+	decode(bytes: Uint8Array<ArrayBuffer>): string {
+		return _utf8Uint8ArrayToStringLegacy(bytes)
+	}
+}
+
+export class EncoderDecoder implements IEncoder, IDecoder {
+	private readonly encoder: IEncoder
+	private readonly decoder: IDecoder
+
+	private static singeleton: Nullable<EncoderDecoder>
+	public static get(): EncoderDecoder {
+		if (isNotNull(EncoderDecoder.singeleton)) {
+			return EncoderDecoder.singeleton
 		}
-const decoder = isFunction(TextDecoder)
-	? new TextDecoder()
-	: {
-			decode: _utf8Uint8ArrayToStringLegacy,
-		}
+		EncoderDecoder.singeleton = new EncoderDecoder()
+		return EncoderDecoder.singeleton
+	}
+
+	constructor() {
+		const hasTextEncoder = TypeChecks.hasProperty("TextEncoder") && TypeChecks.isFunction(TextEncoder)
+		const hasTextDecoder = TypeChecks.hasProperty("TextDecoder") && TypeChecks.isFunction(TextDecoder)
+		this.encoder = hasTextEncoder ? new TextEncoder() : new LegacyEncoderDecoder()
+		this.decoder = hasTextDecoder ? new TextDecoder() : new LegacyEncoderDecoder()
+	}
+
+	encode(str: string): Uint8Array<ArrayBuffer> {
+		return this.encoder.encode(str)
+	}
+
+	decode(bytes: Uint8Array<ArrayBuffer>): string {
+		return this.decoder.decode(bytes)
+	}
+}
 
 /**
  * Converts a string to a Uint8Array containing a UTF-8 string data.
@@ -215,7 +252,7 @@ const decoder = isFunction(TextDecoder)
  * @return The array.
  */
 export function stringToUtf8Uint8Array(string: string): Uint8Array<ArrayBuffer> {
-	return encoder.encode(string)
+	return EncoderDecoder.get().encode(string)
 }
 
 // just for edge, as it does not support TextDecoder yet
@@ -237,7 +274,7 @@ export function _utf8Uint8ArrayToStringLegacy(uint8Array: Uint8Array<ArrayBuffer
  * @return The string.
  */
 export function utf8Uint8ArrayToString(uint8Array: Uint8Array<ArrayBuffer>): string {
-	return decoder.decode(uint8Array)
+	return EncoderDecoder.get().decode(uint8Array)
 }
 
 export function hexToUint8Array(hex: Hex): Uint8Array<ArrayBuffer> {
