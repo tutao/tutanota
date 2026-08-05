@@ -36,8 +36,16 @@ import { Mail } from "@tutao/entities/tutanota"
 import { SearchCategoryType } from "../../../common/api/worker/search/SearchTypes"
 import { MailViewerActions } from "../../mail/view/MailViewerToolbar"
 import { MobileHeader } from "../../../../ui/MobileHeader"
-import { editDraft, getMailViewerMoreActions, MailFilterType, showReportPhishingMailDialog, startExport } from "../../mail/view/MailViewerUtils"
 import {
+	canDoDragAndDropExport,
+	editDraft,
+	getMailViewerMoreActions,
+	MailFilterType,
+	showReportPhishingMailDialog,
+	startExport,
+} from "../../mail/view/MailViewerUtils"
+import {
+	getCommonShortcuts,
 	getConversationTitle,
 	LabelsPopupOpts,
 	promptAndDeleteMails,
@@ -58,7 +66,7 @@ import { allInSameMailbox, getIndentedFolderNameForDropdown } from "../../mail/m
 import { ConversationViewModel } from "../../mail/view/ConversationViewModel"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
-import { MailReportType, MailSetKind } from "../../../../entities/tutanota/Utils"
+import { MailReportType, MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { LockedError } from "@tutao/rest-client/error"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
 import { windowFacade } from "../../../common/misc/WindowFacade"
@@ -87,6 +95,7 @@ import { PaidFunctionResult } from "../../../common/search/SearchUtils"
 import { Styles } from "../../../../ui/styles"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { showEditFolderDialog } from "../../mail/view/EditFolderDialog"
 
 export interface MailSearchViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -436,63 +445,66 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 			action?.()
 		}
 
-		return [
-			...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.searchViewModel.listModel),
-			{
-				key: Keys.N,
-				exec: () => {
-					newMailEditor()
-						.then((editor) => editor?.show())
-						.catch(ofClass(PermissionError, noOp))
-				},
-				enabled: () => locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.ReplyOnly),
-				help: "newMail_action",
+		const ownerGroupId = () => {
+			const group = this.searchViewModel.mailboxes[0].mailGroup
+			return group !== null ? elementIdToId(group._id) : null
+		}
+
+		const commonMailShortcuts = getCommonShortcuts(
+			// createAction
+			() => {
+				newMailEditor()
+					.then((editor) => editor?.show())
+					.catch(ofClass(PermissionError, noOp))
 			},
-			{
-				key: Keys.DELETE,
-				exec: () => {
-					deleteOrTrashAction()
-				},
-				help: "delete_action",
+			// createFolderAction
+			async () => {
+				const currentOwnerGroupId = ownerGroupId()
+				if (currentOwnerGroupId !== null) {
+					const mailFolders = mailLocator.mailModel.getFolderSystemByGroupId(currentOwnerGroupId)
+					const parentFolder = this.searchViewModel.selectedMailFolder.length
+						? (assertNotNull(mailFolders).getFolderById(this.searchViewModel.selectedMailFolder[0]) ?? null)
+						: null
+					const mailboxDetail = await locator.mailboxModel.getMailboxDetailsForMailGroup(currentOwnerGroupId)
+					await showEditFolderDialog(mailboxDetail, null, parentFolder)
+				}
 			},
-			{
-				key: Keys.BACKSPACE,
-				exec: () => {
-					deleteOrTrashAction()
-				},
-				help: "delete_action",
+			// toggleUnreadAction
+			() => this.toggleUnreadStatus(),
+			// deleteOrTrashAction
+			() => deleteOrTrashAction(),
+			// labelAction
+			() => this.getLabelsAction()?.(null) ?? noOp(),
+			// moveMailsToFolderAction
+			(targetFolder: SimpleMoveMailTarget) => this.moveSelectedToSystemFolder(targetFolder),
+			// moveMailsFromFolderAction
+			() => this.move(),
+			// switchToFolderAction
+			async (type: SystemFolderType) => {
+				const currentOwnerGroupId = ownerGroupId()
+				if (currentOwnerGroupId !== null) {
+					const mailFolders = mailLocator.mailModel.getFolderSystemByGroupId(currentOwnerGroupId)
+					const folder = assertNotNull(mailFolders).getSystemFolderByType(type)
+					if (folder !== null) {
+						await this.searchViewModel.selectMailFolder([getElementId(folder)])
+					}
+				}
 			},
-			{
-				key: Keys.A,
-				exec: () => this.moveSelectedToSystemFolder(MailSetKind.ARCHIVE),
-				help: "archive_action",
-			},
-			{
-				key: Keys.I,
-				exec: () => this.moveSelectedToSystemFolder(MailSetKind.INBOX),
-				help: "moveToInbox_action",
-			},
-			{
-				key: Keys.V,
-				exec: () => {
-					this.move()
-				},
-				help: "move_action",
-			},
-			{
-				key: Keys.Z,
-				ctrlOrCmd: true,
-				exec: () => {
-					this.undoModel.performUndoAction()
-				},
-				help: "undo_action",
-			},
-			{
-				key: Keys.U,
-				exec: () => this.toggleUnreadStatus(),
-				help: "toggleUnread_action",
-			},
-		]
+			// undoAction
+			() => this.undoModel.performUndoAction(),
+			// isDragAndDropExportEnabled
+			canDoDragAndDropExport,
+			// isInternalUserLoggedIn
+			// if we just pass the function, "this" in locator.logins.isInternalUserLoggedIn becomes null
+			// so need to wrap it here
+			() => locator.logins.isInternalUserLoggedIn(),
+			// isInternalCommunicationEnabled
+			() => locator.logins.isEnabled(FeatureType.InternalCommunication),
+			// isNewMailActionAvailable
+			() => isNewMailActionAvailable(),
+		)
+
+		return [...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.searchViewModel.listModel), ...commonMailShortcuts]
 	})
 
 	private moveSelectedToSystemFolder(targetFolder: SimpleMoveMailTarget): void {

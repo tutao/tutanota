@@ -183,10 +183,17 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 					})
 				},
 				enabled: () => locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.ReplyOnly),
-				help: "newMail_action",
+				help: "newContact_action",
 			},
 			{
 				key: Keys.DELETE,
+				exec: () => {
+					deleteOrTrashAction()
+				},
+				help: "delete_action",
+			},
+			{
+				key: Keys.BACKSPACE,
 				exec: () => {
 					deleteOrTrashAction()
 				},

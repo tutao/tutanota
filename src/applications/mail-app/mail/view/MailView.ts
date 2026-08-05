@@ -18,6 +18,7 @@ import { PermissionError } from "../../../common/api/common/error/PermissionErro
 import { Styles } from "../../../../ui/styles"
 import { layout_size, px } from "../../../../ui/size"
 import {
+	getCommonShortcuts,
 	getConversationTitle,
 	LabelsPopupOpts,
 	moveMails,
@@ -887,172 +888,42 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 		return [
 			...listSelectionKeyboardShortcuts(MultiselectMode.Enabled, () => this.mailViewModel),
-			{
-				key: Keys.N,
-				exec: () => {
-					this.showNewMailDialog().catch(ofClass(PermissionError, noOp))
-				},
-				enabled: () => !!this.mailViewModel.getMailSet() && isNewMailActionAvailable(),
-				help: "newMail_action",
-			},
-			{
-				key: Keys.DELETE,
-				exec: () => {
-					deleteOrTrashAction()
-				},
-				help: "deleteEmails_action",
-			},
-			{
-				key: Keys.BACKSPACE,
-				exec: () => {
-					deleteOrTrashAction()
-				},
-				help: "deleteEmails_action",
-			},
-			{
-				key: Keys.DELETE,
-				shift: true,
-				exec: () => {
-					this.moveMailsToSystemFolder(MailSetKind.SPAM)
-				},
-				help: "reportSpam_action",
-			},
-			{
-				key: Keys.BACKSPACE,
-				shift: true,
-				exec: () => {
-					this.moveMailsToSystemFolder(MailSetKind.SPAM)
-				},
-				help: "reportSpam_action",
-			},
-			{
-				key: Keys.A,
-				exec: () => {
-					this.moveMailsToSystemFolder(MailSetKind.ARCHIVE)
-				},
-				help: "archive_action",
-				enabled: () => locator.logins.isInternalUserLoggedIn(),
-			},
-			{
-				key: Keys.I,
-				exec: () => {
-					this.moveMailsToSystemFolder(MailSetKind.INBOX)
-				},
-				help: "moveToInbox_action",
-			},
-			{
-				key: Keys.N,
-				shift: true,
-				ctrlOrCmd: true,
-				exec: () => {
+			...getCommonShortcuts(
+				// createAction
+				() => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
+				// createFolderAction
+				() => {
 					// Since the user can have multiple mailboxes, get the current folder to find which mailbox the user selected
 					const currentFolder = this.mailViewModel.getMailSet()
 					if (currentFolder != null) {
 						this.showFolderAddEditDialog(assertNotNull(currentFolder._ownerGroup), null, null)
 					}
-					return true
 				},
-				help: "addFolder_action",
-			},
-			{
-				key: Keys.V,
-				exec: () => {
-					this.moveFromFolder(getDetachedDropdownBounds())
-					return true
-				},
-				help: "move_action",
-			},
-			{
-				key: Keys.L,
-				exec: () => {
-					const labelsCall = this.getLabelsAction()
-					labelsCall?.(null)
-					return true
-				},
-				help: "labels_label",
-			},
-			{
-				key: Keys.U,
-				exec: () => {
-					if (this.mailViewModel.listModel) this.toggleUnreadMails()
-				},
-				help: "toggleUnread_action",
-			},
-			{
-				key: Keys.Z,
-				exec: () => {
-					this.undoModel.performUndoAction()
-				},
-				ctrlOrCmd: true,
-				help: "undo_action",
-			},
-			{
-				key: Keys.ONE,
-				exec: () => {
-					this.mailViewModel.switchToFolder(MailSetKind.INBOX)
-					return true
-				},
-				help: "switchInbox_action",
-			},
-			{
-				key: Keys.TWO,
-				exec: () => {
-					this.mailViewModel.switchToFolder(MailSetKind.DRAFT)
-					return true
-				},
-				help: "switchDrafts_action",
-			},
-			{
-				key: Keys.THREE,
-				exec: () => {
-					// This should be removed once the batch job to add the Scheduled Mail set to all users is run
-					this.goToScheduledFolder()
-					// This should be put back
-					//this.mailViewModel.switchToFolder(MailSetKind.SCHEDULED)
-					return true
-				},
-				help: "switchScheduledFolder_action",
-			},
-			{
-				key: Keys.FOUR,
-				exec: () => {
-					this.mailViewModel.switchToFolder(MailSetKind.SENT)
-					return true
-				},
-				help: "switchSentFolder_action",
-			},
-			{
-				key: Keys.FIVE,
-				exec: () => {
-					this.mailViewModel.switchToFolder(MailSetKind.TRASH)
-					return true
-				},
-				help: "switchTrash_action",
-			},
-			{
-				key: Keys.SIX,
-				exec: () => {
-					this.mailViewModel.switchToFolder(MailSetKind.ARCHIVE)
-					return true
-				},
-				enabled: () => locator.logins.isInternalUserLoggedIn(),
-				help: "switchArchive_action",
-			},
-			{
-				key: Keys.SEVEN,
-				exec: () => {
-					this.mailViewModel.switchToFolder(MailSetKind.SPAM)
-					return true
-				},
-				enabled: () => locator.logins.isInternalUserLoggedIn() && !locator.logins.isEnabled(FeatureType.InternalCommunication),
-				help: "switchSpam_action",
-			},
-			{
-				key: Keys.CTRL,
-				exec: () => false,
-				enabled: canDoDragAndDropExport,
-				help: "dragAndDrop_action",
-			},
+				// toggleUnreadAction
+				() => (this.mailViewModel.listModel ? this.toggleUnreadMails() : noOp()),
+				// deleteOrTrashAction
+				() => deleteOrTrashAction(),
+				// labelAction
+				() => this.getLabelsAction()?.(null) ?? noOp(),
+				// moveMailsToFolderAction
+				(targetFolder: SystemFolderType) => this.moveMailsToSystemFolder(targetFolder),
+				// moveMailsFromFolderAction
+				() => this.moveFromFolder(getDetachedDropdownBounds()),
+				// switchToFolderAction
+				(type: SystemFolderType) => this.mailViewModel.switchToFolder(type),
+				// undoAction
+				() => this.undoModel.performUndoAction(),
+				// isDragAndDropExportEnabled
+				canDoDragAndDropExport,
+				// isInternalUserLoggedIn
+				// if we just pass the function, "this" in locator.logins.isInternalUserLoggedIn becomes null
+				// so need to wrap it here
+				() => locator.logins.isInternalUserLoggedIn(),
+				// isInternalCommunicationEnabled
+				() => locator.logins.isEnabled(FeatureType.InternalCommunication),
+				// isNewMailActionAvailable
+				() => !!this.mailViewModel.getMailSet() && isNewMailActionAvailable(),
+			),
 			{
 				key: Keys.P,
 				ctrlOrCmd: true,
