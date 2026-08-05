@@ -148,6 +148,7 @@ export default defineConfig([
 		rules: {
 			"local/noUnionExceptNullable": "error",
 			"@typescript-eslint/strict-boolean-expressions": "error",
+			"@typescript-eslint/no-non-null-assertion": "error",
 			"no-restricted-syntax": [
 				"error",
 				{
