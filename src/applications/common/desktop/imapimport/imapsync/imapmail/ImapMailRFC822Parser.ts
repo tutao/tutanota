@@ -30,14 +30,13 @@ export class ImapMailRFC822Parser {
 			// when parsing, the encoding is set to arrayBuffer, so this will always be an arrayBuffer
 			const content = attachment.content as ArrayBuffer
 			const size = content.byteLength
-			//replace <,> characters with empty for inline attachments, fix for gmail which adds such.
-			const cid = !attachment.related ? attachment.contentId : attachment.contentId?.replaceAll("<", "").replaceAll(">", "")
 			const imapImportAttachment: ImapMailAttachment = {
 				size,
 				mimeType: attachment.mimeType,
 				content: Buffer.from(new Uint8Array(content)),
 				related: attachment.related ?? false, // related true == inline attachment
-				cid,
+				//replace "<",">" characters with empty for inline attachments, fix for gmail which adds such.
+				cid: attachment.contentId?.replaceAll("<", "").replaceAll(">", ""),
 				method: attachment.method,
 			}
 
