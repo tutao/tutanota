@@ -24,19 +24,20 @@ export class ImapMailRFC822Parser {
 		parsedImapRFC822.parsedEnvelope = imapMailEnvelopeFromPostalMimeEmail(email)
 
 		parsedImapRFC822.parsedBody = { html: email.html ?? "", plaintext: email.text ?? "" }
-
 		parsedImapRFC822.parsedHeaders = email.headers.map((header) => `${header.originalKey}: ${header.value}`).join("\n")
 
 		parsedImapRFC822.parsedAttachments = await promiseMap(email.attachments, async (attachment) => {
 			// when parsing, the encoding is set to arrayBuffer, so this will always be an arrayBuffer
 			const content = attachment.content as ArrayBuffer
 			const size = content.byteLength
+			//replace <,> characters with empty for inline attachments, fix for gmail which adds such.
+			const cid = !attachment.related ? attachment.contentId : attachment.contentId?.replaceAll("<", "").replaceAll(">", "")
 			const imapImportAttachment: ImapMailAttachment = {
 				size,
 				mimeType: attachment.mimeType,
 				content: Buffer.from(new Uint8Array(content)),
 				related: attachment.related ?? false, // related true == inline attachment
-				cid: attachment.contentId,
+				cid,
 				method: attachment.method,
 			}
 
