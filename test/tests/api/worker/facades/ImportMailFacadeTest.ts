@@ -83,7 +83,10 @@ o.spec("ImportMailFacade", () => {
 		imapUid: 42,
 		imapModSeq: 12345n,
 		imapFolderSyncState: imapFolderSyncStateIdMock,
-		labels: [],
+		labels: [
+			["mailSetsListId", "labelId"],
+			["mailSetsListId", "anotherLabelId"],
+		],
 	}
 
 	o.beforeEach(async () => {

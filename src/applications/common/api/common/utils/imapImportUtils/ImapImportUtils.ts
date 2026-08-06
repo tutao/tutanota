@@ -116,7 +116,7 @@ export function imapMailToImportMailParams(
 	}
 }
 
-function labelsFromImapLabels(imapLabels: Set<string>, imapFolderSyncStates: ImapFolderSyncState[]): IdTuple[] {
+export function labelsFromImapLabels(imapLabels: Set<string>, imapFolderSyncStates: ImapFolderSyncState[]): IdTuple[] {
 	let result: Set<IdTuple> = new Set()
 
 	for (const imapLabel of imapLabels) {
