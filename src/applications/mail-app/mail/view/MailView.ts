@@ -70,7 +70,7 @@ import { DropData, DropType, FileDropData, FolderDropData, getDetachedDropdownBo
 import { fileListToArray } from "../../../../ui/utils/FileUtils.js"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
-import { LockedError } from "../../../../platform-kit/rest-client/error"
+import { LockedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { MailViewerViewModel } from "./MailViewerViewModel"
 import { MoveMode } from "../model/MailModel"
 import { UndoModel } from "../../UndoModel"
@@ -1553,7 +1553,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			}),
 		)
 		if (!confirmed) return
-		await this.mailViewModel.deleteLabel(label)
+		await this.mailViewModel.deleteLabel(label).catch(ofClass(NotFoundError, () => console.log("label already deleted")))
 	}
 	private renderEditMailboxButton(onEditMailbox: () => unknown) {
 		return m(IconButton, {
