@@ -45,7 +45,8 @@ export class EntityUtils {
 				entityRecord[key] = parsedValue.asByteArray()
 				break
 			case ValueTypeEnum.Number:
-				entityRecord[key] = assertNotNaN(parseFloat(parsedValue.asString()), `Non-numeric string for attribute: ${modelValue.name}`).toString()
+				assertNotNaN(parseFloat(parsedValue.asString()), `Non-numeric string for attribute: ${modelValue.name}`)
+				entityRecord[key] = parsedValue.asString()
 				break
 			case ValueTypeEnum.String:
 			case ValueTypeEnum.CompressedString:
