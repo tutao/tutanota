@@ -332,11 +332,13 @@ o.spec("CalendarParser", function () {
 	})
 
 	o.spec("parseUntilRruleTime", function () {
-		o("when given full UTC date it gives the beginning of the next day", function () {
+		o("when given full UTC date it gives the beginning of the next day in the start time zone", function () {
 			// will take start of the next date because that's how we do it internally: end range is "exclusive" while it's questionable how it for ical but
 			// mostly "inclusive"
-			const zone = "Asia/Krasnoyarsk"
-			o(parseUntilRruleTime("20190919T235959Z", zone)).deepEquals(DateTime.fromObject({ year: 2019, month: 9, day: 20 }, { zone: zone }).toJSDate())
+			const startTzId = "Asia/Krasnoyarsk"
+			o(parseUntilRruleTime("20190919T235959Z", startTzId)).deepEquals(
+				DateTime.fromObject({ year: 2019, month: 9, day: 20 }, { zone: startTzId }).toJSDate(),
+			)
 		})
 	})
 
@@ -572,6 +574,62 @@ o.spec("CalendarParser", function () {
 			// assigning uid so we can test that the other fields are the same.
 			parsedEvent.icsCalendarEvent.uid = "test@tuta.com"
 			testParsedEventEquality(parsedEvent, expectedParsedCalendarData.contents[0])
+		})
+
+		o("event with TZID=UTC and Z suffix does not cause error", async function () {
+			const result = parseCalendarStringData(
+				[
+					"BEGIN:VCALENDAR",
+					"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
+					"VERSION:2.0",
+					"CALSCALE:GREGORIAN",
+					"METHOD:PUBLISH",
+					"BEGIN:VEVENT",
+					`DTSTART;TZID=UTC:20190813T050600Z`,
+					`DTEND;TZID=UTC:20190913T050600Z`,
+					`DTSTAMP:20190813T140100Z`,
+					`UID:test@tuta.com`,
+					"SEQUENCE:0",
+					"SUMMARY:VERY UTC",
+					"END:VEVENT",
+					"END:VCALENDAR",
+				].join("\r\n"),
+				zone,
+			)
+
+			o(result.contents[0].icsCalendarEvent.startTime.toISOString()).equals("2019-08-13T05:06:00.000Z")
+			o(result.contents[0].icsCalendarEvent.endTime.toISOString()).equals("2019-09-13T05:06:00.000Z")
+
+			o(result.contents[0].icsCalendarEvent.startTimeZone).equals("UTC")
+			o(result.contents[0].icsCalendarEvent.endTimeZone).equals("UTC")
+		})
+
+		o("event with TZID=UTC and Z suffix does not cause error", async function () {
+			const result = parseCalendarStringData(
+				[
+					"BEGIN:VCALENDAR",
+					"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
+					"VERSION:2.0",
+					"CALSCALE:GREGORIAN",
+					"METHOD:PUBLISH",
+					"BEGIN:VEVENT",
+					`DTSTART;TZID=UTC:20190813T050600Z`,
+					`DTEND;TZID=UTC:20190913T050600Z`,
+					`DTSTAMP:20190813T140100Z`,
+					`UID:test@tuta.com`,
+					"SEQUENCE:0",
+					"SUMMARY:VERY UTC",
+					"END:VEVENT",
+					"END:VCALENDAR",
+				].join("\r\n"),
+				zone,
+			)
+
+			o(result.contents[0].icsCalendarEvent.startTime.toISOString()).equals("2019-08-13T05:06:00.000Z")
+			o(result.contents[0].icsCalendarEvent.endTime.toISOString()).equals("2019-09-13T05:06:00.000Z")
+
+			o(result.contents[0].icsCalendarEvent.startTimeZone).equals("UTC")
+			o(result.contents[0].icsCalendarEvent.endTimeZone).equals("UTC")
 		})
 
 		o.spec("With attendee", function () {
@@ -1346,6 +1404,33 @@ END:VCALENDAR`
 				"END:VEVENT\n" +
 				"END:VCALENDAR"
 			o.check(() => parseCalendarStringData(calendar, zone)).throws(ParserError)
+		})
+		o.test("Throw error when given a TZID that is not UTC and has a Z-Suffix", function () {
+			const calendarInvalidDtStart =
+				"BEGIN:VCALENDAR\n" +
+				"VERSION:2.0\n" +
+				"BEGIN:VEVENT\n" +
+				"UID:test-123\n" +
+				"DTSTART;TZID=Europe/Berlin:20260101T120000Z\n" +
+				"DTEND:20260101T123000\n" +
+				"SUMMARY:Test TZID\n" +
+				"END:VEVENT\n" +
+				"END:VCALENDAR"
+
+			o.check(() => parseCalendarStringData(calendarInvalidDtStart, zone)).throws(ParserError)
+
+			const calendarInvalidDtEnd =
+				"BEGIN:VCALENDAR\n" +
+				"VERSION:2.0\n" +
+				"BEGIN:VEVENT\n" +
+				"UID:test-123\n" +
+				"DTSTART:20260101T120000\n" +
+				"DTEND;TZID=Europe/Berlin:20260101T123000Z\n" +
+				"SUMMARY:Test TZID\n" +
+				"END:VEVENT\n" +
+				"END:VCALENDAR"
+
+			o.check(() => parseCalendarStringData(calendarInvalidDtEnd, zone)).throws(ParserError)
 		})
 	})
 })
