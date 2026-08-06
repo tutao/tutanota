@@ -15,7 +15,7 @@ import { createDropdown } from "../../../../ui/base/Dropdown"
 import { SearchCategoryType } from "../../../common/api/worker/search/SearchTypes"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { formatDate } from "../../../../ui/utils/Formatter"
-import { isEmpty, isNotEmpty, isSameDayOfDate } from "@tutao/utils"
+import { isEmpty, isNotEmpty, isNotNull, isSameDayOfDate } from "@tutao/utils"
 import { ViewSlider } from "../../../../ui/nav/ViewSlider"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
@@ -33,9 +33,6 @@ import { Dialog } from "../../../../ui/base/Dialog"
 import { FolderItem, FolderItemId } from "../../drive/view/DriveUtils"
 import { MoveItems } from "../../drive/view/DriveMoveItemDialog"
 import { ListLoadingState, ListState } from "../../../../ui/base/List"
-import { MultiselectMobileHeader } from "../../../../ui/MultiselectMobileHeader"
-import { MobileHeader } from "../../../../ui/MobileHeader"
-import { DriveMobileSortButton } from "../../drive/view/DriveMobileSortButton"
 import { IconButton } from "../../../../ui/base/IconButton"
 import { EnterMultiselectIconButton } from "../../../../ui/EnterMultiselectIconButton"
 import { DriveViewAttrs } from "../../drive/view/DriveView"
@@ -46,12 +43,19 @@ import { driveItemContextMenu, showRenameDialog } from "../../drive/view/DriveGu
 import { DriveFolder } from "@tutao/entities/drive"
 import { FileActions } from "../../drive/view/DriveFolderContentEntry"
 import { IconMessageBox } from "../../../../ui/base/ColumnEmptyMessageBox"
+import { BaseMobileHeader } from "../../../../ui/BaseMobileHeader"
+import { DRIVE_PREFIX } from "../../../../ui/utils/RouteChange"
+import { ProgressBar } from "../../../../ui/base/ProgressBar"
+import { MultiselectMobileHeader } from "../../../../ui/MultiselectMobileHeader"
+import { selectionAttrsForList } from "../../../common/misc/ListModel"
+import { MobileActionAttrs, MobileActionBar } from "../../../../ui/MobileActionBar"
 
 export interface DriveSearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
 	makeViewModel: () => DriveSearchViewModel
 	drawerAttrs: DrawerMenuAttrs
 	showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown
+	bottomNav?: () => Children
 }
 
 export class DriveSearchView extends BaseTopLevelView implements TopLevelView<DriveSearchViewAttrs> {
@@ -125,7 +129,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 								},
 							} satisfies DriveTransferStackAttrs),
 						],
-						mobileHeader: () => this.renderMobileHeader(vnode.attrs.header, vnode.attrs.showMoveItemDialog),
+						mobileHeader: () => this.renderMobileListHeader(vnode.attrs.header),
 					})
 				},
 			},
@@ -170,44 +174,10 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 					: null,
 		}
 	}
-	private renderMobileHeader(headerAttrs: AppHeaderAttrs, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): Children {
-		const listState = this.searchViewModel.listState()
-		const actions = this.selectedItemsActions(listState, showMoveItemDialog)
-		const { onPaste } = actions
-
-		if (listState.inMultiselect) {
-			return m(MultiselectMobileHeader, {
-				message: lang.getTranslation("itemsSelected_label", { "{number}": listState.selectedItems.size }),
-				selected: listState.selectedItems.size === listState.items.length,
-				selectAll: () => this.searchViewModel.toggleSelectAll(),
-				selectNone: () => this.searchViewModel.selectNone(),
-			})
-		} else {
-			return m(MobileHeader, {
-				...headerAttrs,
-				title: undefined,
-				columnType: "first",
-				actions: [
-					m(DriveMobileSortButton, {
-						currentSort: this.searchViewModel.getCurrentColumnSortOrder(),
-						onSort: (property) => this.searchViewModel.sort(property),
-					}),
-					onPaste
-						? m(IconButton, {
-								title: "paste_action",
-								icon: Icons.ClipboardFilled,
-								click: () => onPaste(),
-							})
-						: null,
-					m(EnterMultiselectIconButton, {
-						clickAction: () => this.searchViewModel.enterMultiselect(),
-					}),
-				],
-				primaryAction: () => null,
-				backAction: () => this.searchViewModel.goToDriveView(),
-				useBackButton: true,
-			})
-		}
+	private renderMobileListHeader(header: AppHeaderAttrs): Children {
+		return this.searchViewModel.listModel && this.searchViewModel.listModel.state.inMultiselect
+			? this.renderMultiSelectMobileHeader()
+			: this.renderMobileListActionsHeader(header)
 	}
 	protected async onNewUrl(args: Record<string, any>, requestedPath: string) {
 		await this.searchViewModel.init()
@@ -225,9 +195,74 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 					...attrs.header,
 					buttons: renderHeaderButtons(),
 				}),
-				bottomNav: this.renderBottomNav(),
+				bottomNav:
+					styles.isUsingBottomNavigation() && isNotNull(attrs.bottomNav)
+						? this.searchViewModel.listState().inMultiselect && this.searchViewModel.listState().selectedItems.size > 0
+							? this.renderMobileActionBar(attrs.showMoveItemDialog)
+							: attrs.bottomNav()
+						: null,
 			}),
 		)
+	}
+	private renderMobileActionBar(showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): Children {
+		const { onCopy, onCut, onDelete, onRestore, onTrash, onMove, onDownload } = this.selectedItemsActions(
+			this.searchViewModel.listState(),
+			showMoveItemDialog,
+		)
+		const actionsAttrs: MobileActionAttrs[] = []
+		if (onDownload) {
+			actionsAttrs.push({
+				title: "download_action",
+				action: onDownload,
+				icon: Icons.DownloadFilled,
+			})
+		}
+		if (onRestore) {
+			actionsAttrs.push({
+				title: "restoreFromTrash_action",
+				action: onRestore,
+				icon: Icons.ArrowBackFilled,
+			})
+		}
+		if (onDelete) {
+			actionsAttrs.push({
+				title: "delete_action",
+				action: onDelete,
+				icon: Icons.TrashCrossFilled,
+			})
+		}
+		if (onCopy) {
+			actionsAttrs.push({
+				title: "copy_action",
+				action: onCopy,
+				icon: Icons.CopyFilled,
+			})
+		}
+		if (onCut) {
+			actionsAttrs.push({
+				title: "cut_action",
+				action: onCut,
+				icon: Icons.ScissorsFilled,
+			})
+		}
+		if (onMove) {
+			actionsAttrs.push({
+				title: "move_action",
+				action: onMove,
+				icon: Icons.Move,
+			})
+		}
+		if (onTrash) {
+			actionsAttrs.push({
+				title: "trash_action",
+				action: onTrash,
+				icon: Icons.TrashFilled,
+			})
+		}
+
+		return m(MobileActionBar, {
+			actions: actionsAttrs,
+		})
 	}
 
 	private renderSearchbar() {
@@ -388,10 +423,6 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 		this.searchViewModel.selectEndDate(end)
 	}
 
-	private renderBottomNav() {
-		return undefined
-	}
-
 	private renderFolderView(listState: ListState<FolderItem>, showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown) {
 		const selectionEvents = {
 			onSingleSelection: (item: FolderItem) => this.searchViewModel.onSingleSelection(item),
@@ -429,28 +460,32 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 		}
 		return m(
 			"div.col.flex.plr-8.fill-absolute",
-			this.renderActionBar(showMoveItemDialog),
-			listState.loadingStatus === ListLoadingState.Done && isEmpty(listState.items)
-				? this.renderEmptyView()
-				: m(DriveFolderContent, {
-						sortOrder: this.searchViewModel.getCurrentColumnSortOrder(),
-						onSort: (column: SortColumn) => this.searchViewModel.sort(column),
-						fileActions: fileActions,
-						listState: listState,
-						selectionEvents: selectionEvents,
-						onDropInto: (f: FolderItem, event: DragEvent) => {},
-						onEntryContextMenu: (item: FolderItem, event: MouseEvent) => {
-							driveItemContextMenu(
-								selectionEvents,
-								this.selectedItemsActions(this.searchViewModel.listState(), showMoveItemDialog),
-								fileActions,
-								listState,
-								item,
-								event,
-							)
-						},
-						clipboard: this.searchViewModel.clipboard,
-					}),
+			styles.isDesktopLayout() ? null : this.renderFilterBar(),
+			m(
+				".rel.flex-grow",
+				!styles.isDesktopLayout() ? null : this.renderActionBar(showMoveItemDialog),
+				listState.loadingStatus === ListLoadingState.Done && isEmpty(listState.items)
+					? this.renderEmptyView()
+					: m(DriveFolderContent, {
+							sortOrder: this.searchViewModel.getCurrentColumnSortOrder(),
+							onSort: (column: SortColumn) => this.searchViewModel.sort(column),
+							fileActions: fileActions,
+							listState: listState,
+							selectionEvents: selectionEvents,
+							onDropInto: (f: FolderItem, event: DragEvent) => {},
+							onEntryContextMenu: (item: FolderItem, event: MouseEvent) => {
+								driveItemContextMenu(
+									selectionEvents,
+									this.selectedItemsActions(this.searchViewModel.listState(), showMoveItemDialog),
+									fileActions,
+									listState,
+									item,
+									event,
+								)
+							},
+							clipboard: this.searchViewModel.clipboard,
+						}),
+			),
 		)
 	}
 	private onRename(item: FolderItem) {
@@ -557,5 +592,47 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 				color: theme.on_surface_variant,
 			}),
 		)
+	}
+	private renderFilterBar(): Children {
+		return m(".flex.gap-8.pl-16.pr-16.pt-8.pb-8.scroll-x", this.renderFilterChips())
+	}
+
+	private renderMultiSelectMobileHeader(): Children {
+		return m(MultiselectMobileHeader, {
+			...selectionAttrsForList(this.searchViewModel.listModel),
+			message: lang.getTranslation("itemsSelected_label", { "{number}": this.searchViewModel.listState().selectedItems.size }),
+		})
+	}
+
+	private renderMobileListActionsHeader(header: AppHeaderAttrs) {
+		const rightActions: Children[] = []
+		rightActions.push(
+			m(EnterMultiselectIconButton, {
+				clickAction: () => {
+					this.searchViewModel.listModel.enterMultiselect()
+				},
+			}),
+		)
+		return m(BaseMobileHeader, {
+			left: !styles.isMobileDesktopLayout()
+				? m(
+						".icon-button",
+						m(IconButton, {
+							title: "back_action",
+							icon: Icons.ChevronLeft,
+							click: () => m.route.set(DRIVE_PREFIX),
+						}),
+					)
+				: m(".ml-8"),
+			right: rightActions,
+			center: m(
+				".flex-grow.flex.justify-center",
+				{
+					class: rightActions.length === 0 ? "mr-12" : "",
+				},
+				this.renderSearchbar(),
+			),
+			injections: m(ProgressBar, { progress: header.offlineIndicatorModel.getProgress() }),
+		})
 	}
 }

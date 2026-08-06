@@ -706,6 +706,7 @@ import("../../ui/translations/en.js")
 					header: AppHeaderAttrs
 					makeViewModel: () => DriveSearchViewModel
 					showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown
+					bottomNav: () => Children
 				}
 			>(
 				{
@@ -720,6 +721,7 @@ import("../../ui/translations/en.js")
 								drawerAttrsFactory,
 								makeViewModel,
 								showMoveItemDialog: (items, moveItems) => mailLocator.showMoveItemDialog(items, moveItems),
+								bottomNav: () => m(BottomNav),
 							},
 						}
 					},
@@ -729,6 +731,7 @@ import("../../ui/translations/en.js")
 							drawerAttrs: cache.drawerAttrsFactory(),
 							makeViewModel: cache.makeViewModel,
 							showMoveItemDialog: cache.showMoveItemDialog,
+							bottomNav: cache.bottomNav,
 						}
 					},
 				},
