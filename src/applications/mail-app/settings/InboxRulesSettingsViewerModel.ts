@@ -65,4 +65,30 @@ export class InboxRulesSettingsViewerModel {
 	async deleteInboxRule(rule: ExpandedInboxRule) {
 		await this.inboxRuleModel.deleteInboxRule(rule)
 	}
+
+	async moveRuleToFirst(rule: ExpandedInboxRule, index: number) {
+		this.orderedInboxRules.splice(index, 1)
+		this.orderedInboxRules.unshift(rule)
+		await this.saveInboxRuleOrder()
+	}
+
+	async moveRuleUp(rule: ExpandedInboxRule, index: number) {
+		let prev = this.orderedInboxRules[index - 1]
+		this.orderedInboxRules[index - 1] = rule
+		this.orderedInboxRules[index] = prev
+		await this.saveInboxRuleOrder()
+	}
+
+	async moveRuleDown(rule: ExpandedInboxRule, index: number) {
+		let next = this.orderedInboxRules[index + 1]
+		this.orderedInboxRules[index + 1] = rule
+		this.orderedInboxRules[index] = next
+		await this.saveInboxRuleOrder()
+	}
+
+	async moveRuleToLast(rule: ExpandedInboxRule, index: number) {
+		this.orderedInboxRules.splice(index, 1)
+		this.orderedInboxRules.push(rule)
+		await this.saveInboxRuleOrder()
+	}
 }
