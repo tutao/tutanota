@@ -7,7 +7,7 @@ import { defineConfig, globalIgnores } from "eslint/config"
 const noUnionExceptNullable = {
 	meta: {
 		type: "problem",
-		docs: {description: "Disallow union types except T | null (Nullable<T>)"},
+		docs: { description: "Disallow union types except T | null (Nullable<T>)" },
 		messages: {
 			noUnion: "Union types are not allowed except 'T | null'. Use classes instead.",
 		},
@@ -18,7 +18,7 @@ const noUnionExceptNullable = {
 			TSUnionType(node) {
 				const isNullable = node.types.length === 2 && node.types.some((t) => t.type === "TSNullKeyword")
 				if (!isNullable) {
-					context.report({node, messageId: "noUnion"})
+					context.report({ node, messageId: "noUnion" })
 				}
 			},
 		}
@@ -138,8 +138,18 @@ export default defineConfig([
 	},
 	{
 		files: ["src/platform-kit/**/*.ts"],
-		plugins: {"local": {rules: {noUnionExceptNullable}}},
-		rules: {"local/noUnionExceptNullable": "error"},
+		plugins: { local: { rules: { noUnionExceptNullable } } },
+		rules: {
+			"local/noUnionExceptNullable": "error",
+			"no-restricted-syntax": [
+				"error",
+				{
+					selector: "PropertyDefinition[key.name='__brand'][accessibility!='protected']",
+					message:
+						"If you are extending TsBrand, make sure __brand is always protected. Else two brand with public __brand field will be same from type level",
+				},
+			],
+		},
 	},
 	[
 		globalIgnores([

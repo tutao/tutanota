@@ -6,7 +6,7 @@ export interface CacheStorageInitReturn {
 }
 
 export abstract class StorageArgs {
-	__brand: null = null
+	protected __brand: null = null
 }
 
 export class EphemeralStorageArgs extends StorageArgs {

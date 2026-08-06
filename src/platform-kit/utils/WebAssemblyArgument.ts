@@ -1,5 +1,5 @@
 export abstract class WebAssemblyArgument {
-	readonly __brand: null = null // prevent structural typing
+	protected readonly __brand: null = null // prevent structural typing
 }
 
 export class NumberArgument extends WebAssemblyArgument {

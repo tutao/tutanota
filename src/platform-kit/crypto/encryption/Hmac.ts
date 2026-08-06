@@ -2,8 +2,7 @@ import sjcl from "../internal/sjcl.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { bitArrayToUint8Array, keyToUint8Array, uint8ArrayToBitArray } from "./symmetric/SymmetricCipherUtils.js"
 import { AesKey } from "./symmetric/AesKey"
-
-export type MacTag = Uint8Array & { readonly __brand: "macTag" }
+import { MacTag } from "../CryptoTypes"
 
 /**
  * Create an HMAC-SHA-256 tag over the given data using the given key.

@@ -16,12 +16,12 @@ import { RsaPublicKey, RsaKeyPair, RsaX25519KeyPair } from "../encryption/RsaKey
 import { AsymmetricKeyPair } from "../encryption/AsymmetricKeyPair.js"
 import { sha256Hash } from "../hashes/Sha256.js"
 import { Aes256Key, AesKey, AesKeyLength, getKeyLengthInBytes } from "../encryption/symmetric/AesKey.js"
-import { hmacSha256, MacTag, verifyHmacSha256 } from "../encryption/Hmac.js"
+import { hmacSha256, verifyHmacSha256 } from "../encryption/Hmac.js"
 import { extractRawPublicRsaKeyFromPrivateRsaKey } from "../encryption/Rsa.js"
 import * as cryptoUtils from "../CryptoUtils.js"
 import { PQKeyPairs } from "../encryption/PQKeyPairs.js"
 import { hkdf } from "../hashes/HKDF.js"
-import { HkdfKeyDerivationDomains, VersionedEncryptedKey, VersionedKey } from "../CryptoTypes"
+import { HkdfKeyDerivationDomains, MacTag, VersionedEncryptedKey, VersionedKey } from "../CryptoTypes"
 import { EncryptedKeyPairs, EncryptedPqKeyPairs, EncryptedRsaKeyPairs, EncryptedRsaX25519KeyPairs } from "../encryption/EncryptedKeyPairs"
 
 type IdentityKeyPair = { privateEd25519Key: Uint8Array; identityKeyVersion: NumberString }

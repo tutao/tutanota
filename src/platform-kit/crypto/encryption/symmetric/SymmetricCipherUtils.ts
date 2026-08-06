@@ -5,6 +5,7 @@ import { sha256Hash } from "../../hashes/Sha256.js"
 import sjcl from "../../internal/sjcl.js"
 import { Aes128Key, Aes256Key, AesKey, AesKeyLength, BitArray, getKeyLengthInBytes } from "./AesKey.js"
 import { InitializationVectorVariant } from "./ParsedCiphertext"
+import { BrandedType, TsBrand } from "../../../utils/TsUtils"
 
 export class InitializationVector {
 	constructor(
@@ -119,7 +120,11 @@ export function aes256RandomKey(): Aes256Key {
 	return new Aes256Key(uint8ArrayToBitArray(random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes256))))
 }
 
-export type KdfNonce = Uint8Array & { readonly __brand: "KdfNonce" }
+export class KdfNonceTag extends TsBrand {
+	protected __brand: Nullable<never> = null
+}
+
+export type KdfNonce = BrandedType<Uint8Array, KdfNonceTag>
 
 export function generateInitializationVector(): InitializationVector {
 	return new InitializationVector(random.generateRandomData(INITIALIZATION_VECTOR_LENGTH_BYTES), InitializationVectorVariant.Random)

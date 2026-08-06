@@ -113,7 +113,7 @@ export { TotpVerifier } from "./misc/TotpVerifier.js"
 export { type TotpSecret } from "./misc/TotpVerifier.js"
 export { murmurHash } from "./hashes/MurmurHash.js"
 export { hkdf } from "./hashes/HKDF.js"
-export { hmacSha256, verifyHmacSha256, type MacTag, verifyHmacSha256Async, hmacSha256Async } from "./encryption/Hmac.js"
+export { hmacSha256, verifyHmacSha256, verifyHmacSha256Async, hmacSha256Async } from "./encryption/Hmac.js"
 export {
 	aes256RandomKey,
 	keyToUint8Array,
