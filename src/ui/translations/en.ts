@@ -2491,6 +2491,7 @@ export default {
 		"subscriptionSettingSwitchPlan_action": "Switch plan",
 		"orderProcessingAgreement_action": "Show order processing agreement",
 		"openAgreement_action": "Open agreement",
-		"subscriptionSettingAppleWebsite_action": "Apple website"
+		"subscriptionSettingAppleWebsite_action": "Apple website",
+		"confirmDeleteLabelWithSublabels_msg": "Are you sure that you want to delete the label \"{1}\" and all its sublabels?",
 	}
 }

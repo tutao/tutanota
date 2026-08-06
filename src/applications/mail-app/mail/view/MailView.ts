@@ -1544,8 +1544,11 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private async showLabelDeleteDialog(label: MailSet) {
+		const labelSystem = mailLocator.mailModel.getLabelFolderSystemByGroupId(assertNotNull(label._ownerGroup))
+		if (labelSystem == null) return
+		const hasSublabels = isNotEmpty(labelSystem.getDescendantFoldersOfParent(label._id))
 		const confirmed = await Dialog.confirm(
-			lang.getTranslation("confirmDeleteLabel_msg", {
+			lang.getTranslation(hasSublabels ? "confirmDeleteLabelWithSublabels_msg" : "confirmDeleteLabel_msg", {
 				"{1}": label.name,
 			}),
 		)

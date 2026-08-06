@@ -2496,3 +2496,4 @@ export type TranslationKeyType =
 	| "orderProcessingAgreement_action"
 	| "openAgreement_action"
 	| "subscriptionSettingAppleWebsite_action"
+	| "confirmDeleteLabelWithSublabels_msg"
