@@ -424,7 +424,7 @@ export class EntityRestClient implements EntityRestInterface {
 		const persistencePostReturnTypeModel = await this.typeModelResolver.resolveServerTypeReference(PersistenceResourcePostReturnTypeRef)
 		const postReturnJson = IncomingServerJson.expectSingleInstance(persistencePostReturn, persistencePostReturnTypeModel)
 		const parsedPersistencePostReturn = await this.instancePipeline.typeMapper.parseServerJson(postReturnJson)
-		return parsedPersistencePostReturn.getAttributeByNameOrNull("generatedId")?.asId() ?? null
+		return parsedPersistencePostReturn.getAttributeByNameOrNull("generatedId")?.getNullWhenNull()?.asId() ?? null
 	}
 
 	async setupMultiple<T extends PersistentEntity>(listId: Id | null, instances: Array<T>): Promise<Array<Id>> {
