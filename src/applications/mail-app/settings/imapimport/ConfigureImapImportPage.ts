@@ -37,7 +37,7 @@ assertMainOrNode()
 class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 	private isGmail: boolean = false
 
-	private shouldDisplayRootImportFolderTextField: boolean = false
+	private shouldDisplayRootImportMailSetTextField: boolean = false
 	private shouldDisplayLabelField: boolean = false
 	private shouldDisplayInfoHover: boolean = false
 	private hoverPosition: { left: number; top: number } = { left: 0, top: 0 }
@@ -57,7 +57,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 		this.titleSectionParams.subTitle = lang.getTranslation("migrationConfigLoading_msg", {
 			"{provider}": lang.getTranslationText(getTranslationForImapProvider(vnode.attrs.data.imapProvider)),
 		}).text
-		this.shouldDisplayRootImportFolderTextField = !vnode.attrs.data.matchImapMailboxesToTutaMailSets
+		this.shouldDisplayRootImportMailSetTextField = !vnode.attrs.data.matchImapMailboxesToTutaMailSets
 		this.shouldDisplayLabelField = vnode.attrs.data.addLabelToImportedMails
 
 		const imapImportController = mailLocator.getImapMailImportController()
@@ -156,7 +156,8 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 
 	private isFolderMappingCompleted(data: ImapImportData) {
 		return (
-			data.rootImportMailSetName !== "" || (data.matchImapMailboxesToTutaMailSets && data.imapMailboxes.length === data.imapMailboxesToTutaMailSets?.size)
+			(this.shouldDisplayRootImportMailSetTextField && data.rootImportMailSetName !== "") ||
+			(data.matchImapMailboxesToTutaMailSets && data.imapMailboxes.length === data.imapMailboxesToTutaMailSets?.size)
 		)
 	}
 
@@ -258,7 +259,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 					ariaLabel: "matchMigrationFoldersToTutaMailSets_label",
 					checked: data.matchImapMailboxesToTutaMailSets,
 					onclick: (checked: boolean) => {
-						obj.shouldDisplayRootImportFolderTextField = !checked
+						obj.shouldDisplayRootImportMailSetTextField = !checked
 						data.matchImapMailboxesToTutaMailSets = checked
 						if (checked) {
 							data.rootImportMailSetName = ""
@@ -272,7 +273,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 					title: "migrationFolderMapping_title",
 					click: this.updateHoverMessage("migrationConfigurationLinkFoldersInfo_msg"),
 				}),
-				!this.shouldDisplayRootImportFolderTextField && this.successfullyLoadedMailboxes && !this.isFolderMappingCompleted(data)
+				!this.shouldDisplayRootImportMailSetTextField && this.successfullyLoadedMailboxes && !this.isFolderMappingCompleted(data)
 					? m(
 							"",
 							{
@@ -285,7 +286,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 						)
 					: null,
 			]),
-			this.shouldDisplayRootImportFolderTextField
+			this.shouldDisplayRootImportMailSetTextField
 				? m(TextField, {
 						label: "migrationRootMailFolderName_label",
 						value: data.rootImportMailSetName,
@@ -297,8 +298,8 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 						},
 					})
 				: null,
-			!this.shouldDisplayRootImportFolderTextField ? this.renderFolderMapping(data) : null,
-			this.shouldDisplayRootImportFolderTextField
+			!this.shouldDisplayRootImportMailSetTextField ? this.renderFolderMapping(data) : null,
+			this.shouldDisplayRootImportMailSetTextField
 				? m(".tutaui-switch", [
 						m(Checkbox, {
 							label: () => lang.getTranslationText("migrationMigrateSpamFolder_label"),
