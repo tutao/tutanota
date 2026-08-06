@@ -23,7 +23,12 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 		const isApplePrice = shouldShowApplePrices(accountingInfo ?? null)
 		const discountDetails = getDiscountDetails(isApplePrice, planPrices!)
 		const promotionMessage = planPrices!.getRawPricingData().messageTextId as TranslationKeyType
-
+		let message
+		try {
+			message = lang.getTranslation(promotionMessage)
+		} catch (e) {
+			message = null
+		}
 		const button: PrimaryButtonAttrs = {
 			label: "pricing.select_action",
 			onclick: () => {},
@@ -41,7 +46,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 			// Headline for general messages -- currently only used when a user tries to manage multiple subscriptions on ios (which is not possible)
 			data.msg && m(MessageBanner, { translation: data.msg, type: "error" }),
 			// Headline for promotional messages
-			promotionMessage && m(MessageBanner, { translation: lang.getTranslation(promotionMessage), type: "base" }),
+			message && m(MessageBanner, { translation: message, type: "base" }),
 
 			m(
 				".flex.flex-column.items-start.full-width",
