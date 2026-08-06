@@ -20,6 +20,8 @@ import { assert, assertNotNull, deepEqual, DeepEquals, isNotNull, Nullable, uint
 import { EncryptedParsedInstance, EncryptedParsedValue } from "./CryptoMapper"
 import { assertNotNaN } from "../utils/Utils"
 import { isTest } from "@tutao/app-env"
+import { TypeChecks } from "../app-env/boot/TsTypeChecks"
+import { ClientDetector } from "../app-env/boot/ClientDetector"
 
 export class TypeMapper {
 	constructor(private readonly typeModelResolver: TypeModelResolver) {}
@@ -107,18 +109,28 @@ export class IncomingServerJson implements DeepEquals {
 	}
 
 	public static expectSingleInstance(data: any, typeModel: ServerTypeModel): IncomingServerJson {
-		const parsedJson = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
+		const parsedJson = JSON.parse(data, (k, v) => {
+			if (k === "__proto__") {
+				delete parsedJson[k]
+			}
+			return v
+		})
 		assert(!Array.isArray(parsedJson), "Expected single instance. But response is an array")
 		return new IncomingServerJson(parsedJson, typeModel)
 	}
 
 	public static expectSingleMailDetailsBlob(data: any, typeModel: ServerTypeModel): IncomingServerJson {
-		assert(typeof data === "object" && !Array.isArray(data), "Expected single instance. But response is an array")
+		assert(TypeChecks.isObject(data) && !Array.isArray(data), "Expected single instance. But response is an array")
 		return new IncomingServerJson(data, typeModel)
 	}
 
 	public static expectMultipleInstance(data: any, typeModel: ServerTypeModel): Array<IncomingServerJson> {
-		const parsedJson = JSON.parse(data, (k, v) => (k === "__proto__" ? undefined : v))
+		const parsedJson = JSON.parse(data, (k, v) => {
+			if (k === "__proto__") {
+				delete parsedJson[k]
+			}
+			return v
+		})
 		assert(Array.isArray(parsedJson), "Expected multiple instances. But response is not an array")
 
 		return (parsedJson as Array<any>).map((item) => {
@@ -139,7 +151,7 @@ export class IncomingServerJson implements DeepEquals {
 		const valueModel = this.typeModel.values[attrId] ?? null
 
 		if (isNotNull(valueModel) && valueModel.name === "_id") {
-			switch (getIdType(this.typeModel)) {
+			switch (getIdType(this.typeModel.type)) {
 				case IdType.SingleId:
 					return ParsedValue.fromString(rawValue)
 				case IdType.IdTuple:
@@ -226,7 +238,7 @@ export class OutgoingServerJson implements DeepEquals {
 	}
 
 	public static networkDebuggedKey(attrId: AttributeId, typeModel: TypeModel): string {
-		if (env.networkDebugging) {
+		if (ClientDetector.get().env.networkDebugging) {
 			return attrId.toString() + ":" + AttributeModel.getAttributeName(typeModel, attrId)
 		}
 		return attrId.toString()
@@ -235,7 +247,7 @@ export class OutgoingServerJson implements DeepEquals {
 	addValue<EncryptedOrDecrypted extends DeepEquals>(attrId: AttributeId, attrName: string, value: ParsedValue<EncryptedOrDecrypted>) {
 		const key = OutgoingServerJson.networkDebuggedKey(attrId, this.typeModel)
 		if (attrName === "_id" && !value.isNull()) {
-			switch (getIdType(this.typeModel)) {
+			switch (getIdType(this.typeModel.type)) {
 				case IdType.SingleId:
 					this.json[key] = value.asId()
 					break

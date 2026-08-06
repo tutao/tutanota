@@ -82,7 +82,7 @@ import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
 import { showUserSatisfactionDialogAfterUpgrade } from "../ratings/UserSatisfactionUtils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { client, ClientPlatform } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector, ClientPlatform } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { isFreeSignupOnly } from "../misc/LoginUtils"
 
@@ -137,7 +137,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 		this.view = (): Children => {
 			const renderEditSubscriptionButton = () => {
-				if (client.getClientPlatform() === ClientPlatform.ANDROID_CALENDAR_APP) {
+				if (ClientDetector.get().getClientPlatform() === ClientPlatform.ANDROID_CALENDAR_APP) {
 					return null
 				} else if (locator.logins.getUserController().isFreeAccount()) {
 					return m(IconButton, {
@@ -432,9 +432,9 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 		const isMailSubscription = appStoreSubscriptionData.app === SubscriptionApp.Mail
 
-		if (client.isCalendarApp() && isMailSubscription) {
+		if (ClientDetector.get().isCalendarApp() && isMailSubscription) {
 			return await this.handleAppOpen(SubscriptionApp.Mail)
-		} else if (!client.isCalendarApp() && !isMailSubscription) {
+		} else if (!ClientDetector.get().isCalendarApp() && !isMailSubscription) {
 			return await this.handleAppOpen(SubscriptionApp.Calendar)
 		}
 

@@ -16,23 +16,11 @@ import {
 	uint8ArrayToBase64,
 	uint8arrayToBase64UrlCustomId,
 } from "@tutao/utils"
-import {
-	AggregatedEntity,
-	AnyEntityId,
-	BlobElementEntity,
-	BlobElementId,
-	ElementEntity,
-	ElementId,
-	isSameTypeRef,
-	ListElementEntity,
-	ListElementId,
-	TypeRef,
-	ValueTypeEnum,
-} from "./index"
-import { Entity, ModelValue, PersistentEntity, TypeModel } from "./EntityTypes.js"
-import { Cardinality, ValueType } from "./EntityConstants.js"
+import { AnyEntityId, BlobElementId, ElementId, Entity, ListElementId, ModelValue, PersistentEntity, TypeModel } from "./EntityTypes.js"
 import { ProgrammingError } from "@tutao/app-env"
-import { assertNull } from "../utils/Utils"
+import { assertNull, isNull } from "../utils/Utils"
+import { isSameTypeRef, TypeRef } from "./TypeRef"
+import { CardinalityEnum, ValueTypeEnum } from "./EntityConstants"
 
 /**
  * the maximum ID for elements stored on the server (number with the length of 10 bytes) => 2^80 - 1
@@ -70,19 +58,6 @@ export const RANGE_ITEM_LIMIT = 1000
 export const LOAD_MULTIPLE_LIMIT = 100
 export const POST_MULTIPLE_LIMIT = 100
 export const DELETE_MULTIPLE_LIMIT = 100
-
-type OptionalEntity<T extends Entity> = T & {
-	_id?: T extends AggregatedEntity
-		? Id
-		: T extends ElementEntity
-			? ElementId
-			: T extends ListElementEntity
-				? ListElementId
-				: T extends BlobElementEntity
-					? ListElementId
-					: never
-	_ownerGroup?: Id
-}
 
 export const enum EntityIdEncoding {
 	Base64Ext,
@@ -125,7 +100,7 @@ export function firstBiggerThanSecondBase64Ext(firstId: Id, secondId: Id): boole
 	}
 }
 
-export function get_IdValue(typeModel?: TypeModel): ModelValue | null {
+export function get_IdValue(typeModel: Nullable<TypeModel> = null): ModelValue | null {
 	if (typeModel) {
 		return Object.values(typeModel.values).find((valueType) => valueType.name === "_id") ?? null
 	}
@@ -223,11 +198,7 @@ export function getEtId(entity: Element): Id {
 }
 
 export function getLetId(entity: ListElement): IdTuple {
-	if (typeof entity._id === "undefined" || entity._id === null) {
-		throw new Error("listId is not defined for " + (typeof (entity as any)._type === "undefined" ? JSON.stringify(entity) : (entity as any)))
-	}
-
-	return entity._id
+	return assertNotNull(entity._id, `listId is not defined for entity of type: ${JSON.stringify((entity as any)._type) ?? entity}`)
 }
 
 export function getElementId<T extends ListElement>(entity: T): Id {
@@ -263,6 +234,19 @@ export function getIds<T extends PersistentEntity>(entities: Iterable<T>): Array
 	return ids
 }
 
+export const DEFAULT_ENTITY_FIELDS = {
+	_original: null,
+	isAdapter: false,
+
+	_permissions: null,
+	bucketKey: null,
+	_ownerGroup: null,
+	_ownerEncSessionKey: null,
+	_ownerKeyVersion: null,
+	_kdfNonce: null,
+	ownerEncSessionKey: null,
+	ownerEncSessionKeyVersion: null,
+}
 export function create<T>(
 	typeModel: TypeModel,
 	typeRef: TypeRef<T>,
@@ -270,6 +254,7 @@ export function create<T>(
 ): T {
 	let i: Record<string, any> = {
 		_type: typeRef,
+		...DEFAULT_ENTITY_FIELDS,
 	}
 
 	for (const [valueIdStr, value] of Object.entries(typeModel.values)) {
@@ -277,7 +262,7 @@ export function create<T>(
 	}
 
 	for (const [associationIdStr, association] of Object.entries(typeModel.associations)) {
-		if (association.cardinality === Cardinality.Any) {
+		if (association.cardinality === CardinalityEnum.Any) {
 			i[association.name] = []
 		} else {
 			// set to null even if the cardinality is One. we could think about calling create recursively,
@@ -297,7 +282,7 @@ function _getDefaultValue(valueName: string, value: ModelValue, typeModel: TypeM
 		return null // aggregate ids are set in the worker, list ids must be set explicitly and element ids are created on the server
 	} else if (valueName === "_permissions") {
 		return null
-	} else if (value.cardinality === Cardinality.ZeroOrOne) {
+	} else if (value.cardinality === CardinalityEnum.ZeroOrOne) {
 		return null
 	} else {
 		switch (value.type) {
@@ -311,7 +296,7 @@ function _getDefaultValue(valueName: string, value: ModelValue, typeModel: TypeM
 				return "0"
 
 			case ValueTypeEnum.String:
-			case ValueType.CompressedString:
+			case ValueTypeEnum.CompressedString:
 				return ""
 
 			case ValueTypeEnum.Boolean:
@@ -419,7 +404,8 @@ export function constructMailSetEntryId(receiveDate: Date, mailId: Id): Id {
 	return uint8arrayToBase64UrlCustomId(new Uint8Array(buffer.buffer))
 }
 
-export function deconstructMailSetEntryId(id: Id): { receiveDate: Date; mailId: Id } {
+export type MailSetEntryIdInfo = { receiveDate: Date; mailId: Id }
+export function deconstructMailSetEntryId(id: Id): MailSetEntryIdInfo {
 	const buffer = base64UrlIdToUint8array(id)
 	const timestampBytes = buffer.slice(0, 4)
 	const generatedIdBytes = buffer.slice(4)
@@ -442,11 +428,11 @@ export const SENDER_ID = 111
 export const ATTACHMENTS_ID = 115
 
 export const IDENTITY_FIELDS = ["_id", "_ownerGroup", "_ownerEncSessionKey", "_ownerKeyVersion", "_kdfNonce", "_permissions"]
-export const TECHNICAL_FIELDS = ["_original", "_errors"]
+export const TECHNICAL_FIELDS = ["_original", "_errors", "isAdapter"]
 
 export function isCustomIdType(typeModel: TypeModel): boolean {
 	const _idValue = get_IdValue(typeModel)
-	return _idValue !== null && _idValue.type === ValueType.CustomId
+	return _idValue !== null && _idValue.type === ValueTypeEnum.CustomId
 }
 
 /**
@@ -455,9 +441,9 @@ export function isCustomIdType(typeModel: TypeModel): boolean {
  */
 export function getServerIdEncodingForType(typeModel: TypeModel): EntityIdEncoding {
 	const _idValueType = assertNotNull(get_IdValue(typeModel), `no _id found for typeModel: ${typeModel.app}/${typeModel.id} `).type
-	if (_idValueType === ValueType.CustomId) {
+	if (_idValueType === ValueTypeEnum.CustomId) {
 		return EntityIdEncoding.Base64URL
-	} else if (_idValueType === ValueType.GeneratedId) {
+	} else if (_idValueType === ValueTypeEnum.GeneratedId) {
 		return EntityIdEncoding.Base64Ext
 	} else {
 		throw new ProgrammingError(`unknown _id type for entity: ${typeModel.app}/${typeModel.id}`)
@@ -503,14 +489,14 @@ export function localToServerIdEncoding(typeModel: TypeModel, elementId: Id): Id
  * @param key only returns true if there is an error for this key. Other errors will be ignored if the key is defined.
  * @returns {boolean} true if error was found (for the given key).
  */
-export function hasError<K>(instance: Nullable<Entity>, key?: K): boolean {
+export function hasError<K>(instance: Nullable<Entity>, key: Nullable<K> = null): boolean {
 	if (instance == null) {
 		return true
 	}
 	const downCastedInstance = downcast(instance)
-	const hasNonEmptyErrorObject = !!downCastedInstance._errors && !isErrorObjectEmpty(downCastedInstance._errors)
+	const hasNonEmptyErrorObject = isNotNull(downCastedInstance._errors) && !isErrorObjectEmpty(downCastedInstance._errors)
 
-	return hasNonEmptyErrorObject && (!key || !!downCastedInstance._errors.key)
+	return hasNonEmptyErrorObject && (isNull(key) || isNotNull(downCastedInstance._errors[key] ?? null))
 }
 
 function isErrorObjectEmpty(obj: Record<string, unknown>): boolean {

@@ -1,3 +1,5 @@
+import { TypeChecks } from "./boot/TsTypeChecks"
+
 /**
  * Base class for all errors in Tutanota. Provides the handling of error stacks for chrome (captureStackTrace) and others.
  * Implemented using ES5 inheritance as babel does not support extending builtin types
@@ -30,12 +32,12 @@ export class TutanotaError extends ExtendableError {
 		this.name = name
 		this.message = message
 
-		if (typeof Error.captureStackTrace === "function") {
+		if (TypeChecks.isFunction(Error.captureStackTrace)) {
 			Error.captureStackTrace(this, this.constructor)
 		} else {
 			let error = new Error()
 
-			if (!error.stack) {
+			if (error.stack == null) {
 				// fill the stack trace on ios devices
 				try {
 					throw error
@@ -46,7 +48,7 @@ export class TutanotaError extends ExtendableError {
 
 			this.stack = this.name + ". " + this.message
 
-			if (error.stack) {
+			if (error.stack != null) {
 				// not existing in IE9
 				let stackLines = error.stack.split("\n")
 

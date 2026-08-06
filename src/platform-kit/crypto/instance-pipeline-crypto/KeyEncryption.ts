@@ -1,11 +1,11 @@
 import { aesDecrypt, aesEncrypt } from "./Aes.js"
-import { assertNotNull, hexToUint8Array, uint8ArrayToHex } from "@tutao/utils"
+import { assertNotNull, hexToUint8Array, Nullable, uint8ArrayToHex } from "@tutao/utils"
 import { hexToRsaPrivateKey, hexToRsaPublicKey, rsaPrivateKeyToHex } from "../encryption/Rsa.js"
 import { RsaKeyPair, RsaPrivateKey, RsaX25519KeyPair } from "../encryption/RsaKeyPair.js"
 import { bytesToKyberPrivateKey, bytesToKyberPublicKey, KyberPrivateKey, kyberPrivateKeyToBytes } from "../encryption/Liboqs/KyberKeyPair.js"
 import { X25519PrivateKey } from "../encryption/X25519.js"
 import { AsymmetricKeyPair } from "../encryption/AsymmetricKeyPair.js"
-import { Aes128Key, Aes256Key, AesKey, AesKeyLength, assert256BitKey, getKeyLengthInBytes } from "../encryption/symmetric/AesKey.js"
+import { Aes256Key, AesKey, AesKeyLength, assert256BitKey, getKeyLengthInBytes } from "../encryption/symmetric/AesKey.js"
 import { SYMMETRIC_CIPHER_FACADE } from "./SymmetricCipherFacade.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { EncryptedKeyPairs, EncryptedPqKeyPairs, EncryptedRsaKeyPairs, EncryptedRsaX25519KeyPairs } from "../encryption/EncryptedKeyPairs"
@@ -15,10 +15,11 @@ export function encryptKey(encryptionKey: AesKey, keyToBeEncrypted: AesKey): Uin
 	return SYMMETRIC_CIPHER_FACADE.encryptKey(encryptionKey, keyToBeEncrypted)
 }
 
-export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array): AesKey
-export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array, acceptedBitLengths: typeof AesKeyLength.Aes256): Aes256Key
-export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array, acceptedBitLengths: typeof AesKeyLength.Aes128): Aes128Key
-export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey {
+export function decrypt256Key(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array): Aes256Key {
+	return new Aes256Key(decryptKey(encryptionKey, keyToBeDecrypted, AesKeyLength.Aes256).bits)
+}
+
+export function decryptKey(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array, acceptedBitLength: Nullable<AesKeyLength> = null): AesKey {
 	return SYMMETRIC_CIPHER_FACADE.decryptKey(encryptionKey, keyToBeDecrypted, acceptedBitLength)
 }
 
@@ -66,7 +67,7 @@ export function decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedKeyPairs
 
 function decryptRsaOrRsaX25519KeyPair(encryptionKey: AesKey, keyPair: EncryptedRsaKeyPairs): RsaKeyPair {
 	const publicKey = hexToRsaPublicKey(uint8ArrayToHex(assertNotNull(keyPair.pubRsaKey)))
-	const privateKey = hexToRsaPrivateKey(uint8ArrayToHex(aesDecrypt(encryptionKey, keyPair.symEncPrivRsaKey!)))
+	const privateKey = hexToRsaPrivateKey(uint8ArrayToHex(aesDecrypt(encryptionKey, assertNotNull(keyPair.symEncPrivRsaKey))))
 	if (keyPair instanceof EncryptedRsaX25519KeyPairs) {
 		const publicEccKey = assertNotNull(keyPair.pubEccKey)
 		const privateEccKey = aesDecrypt(encryptionKey, assertNotNull(keyPair.symEncPrivEccKey))

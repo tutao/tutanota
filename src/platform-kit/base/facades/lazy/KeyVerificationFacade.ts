@@ -17,7 +17,8 @@ import { MaybeSignedPublicKey } from "../../base-crypto/MaybeSignedPublicKey"
 
 assertWorkerOrNode()
 
-export type TrustedIdentity = TrustDBEntry & { fingerprint: Hex }
+export type FingerPrintHex = { fingerprint: Hex }
+export type TrustedIdentity = TrustDBEntry & FingerPrintHex
 
 export type VerifiedPublicEncryptionKey = {
 	publicEncryptionKey: Versioned<PublicKey>

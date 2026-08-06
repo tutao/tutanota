@@ -14,18 +14,18 @@ import {
 	isRsaOrRsaX25519KeyPair,
 	VersionedKey,
 } from "@tutao/crypto"
-import { base64UrlCustomIdToString, downcast, KeyVersion, lazyAsync, Nullable, promiseMap, stringToBase64UrlCustomId, Versioned } from "@tutao/utils"
+import { base64UrlCustomIdToString, downcast, isNotNull, KeyVersion, lazyAsync, Nullable, promiseMap, stringToBase64UrlCustomId, Versioned } from "@tutao/utils"
 import { UserFacade } from "../facades/UserFacade.js"
 import { NotFoundError } from "@tutao/rest-client/error"
-import { elementIdToId, getElementId, idToElementId, isSameId, isSameSingleId } from "../../meta"
+import { elementIdToId, getElementId, idToElementId, isSameSingleId } from "../../meta"
 import { KeyCache } from "./persistence/KeyCache.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
 import { createKeyPair, Group, GroupKey, GroupKeyTypeRef, GroupTypeRef, KeyPair } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
-import { TypeId } from "../../meta/EntityTypes"
 import { ProgrammingError } from "@tutao/app-env"
 import { CacheManager } from "./persistence/CacheManager"
+import { TypeId } from "../../meta/EntityConstants"
 
 function convertCustomIdToKeyVersion(customId: Id): KeyVersion {
 	return cryptoUtils.parseKeyVersion(base64UrlCustomIdToString(customId))
@@ -54,8 +54,8 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 	 * @param requestedVersion the requestedVersion of the key to be loaded
 	 * @param currentGroupKey needs to be set if the user is not a member of the group (e.g. an admin)
 	 */
-	async loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey> {
-		if (currentGroupKey != null && currentGroupKey.version < requestedVersion) {
+	async loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey: Nullable<VersionedKey> = null): Promise<AesKey> {
+		if (isNotNull(currentGroupKey) && currentGroupKey.version < requestedVersion) {
 			// we might not have the membership for this group. so the caller needs to handle it by refreshing the cache
 			throw new Error(
 				`Provided current group key is too old (${currentGroupKey.version}) to load the requested version ${requestedVersion} for group ${groupId}`,
@@ -197,7 +197,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 	 * Loads all former key pairs for a group
 	 * @param group The group's former keys must have a keypair otherwise an exception is thrown
 	 */
-	async loadAllFormerKeyPairs(group: Group, currentGroupKey?: VersionedKey): Promise<Versioned<AsymmetricKeyPair>[]> {
+	async loadAllFormerKeyPairs(group: Group, currentGroupKey: Nullable<VersionedKey> = null): Promise<Versioned<AsymmetricKeyPair>[]> {
 		const currentKey = currentGroupKey ?? (await this.getCurrentSymGroupKey(elementIdToId(group._id)))
 		// this request makes sure everything is cached
 		// decryption and parsing will be inefficient if there are many former keys
@@ -233,11 +233,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 		}
 	}
 
-	private async findFormerGroupKey(
-		group: Group,
-		currentGroupKey: VersionedKey,
-		targetKeyVersion: KeyVersion,
-	): Promise<{ symmetricGroupKey: AesKey; groupKeyInstance: GroupKey }> {
+	private async findFormerGroupKey(group: Group, currentGroupKey: VersionedKey, targetKeyVersion: KeyVersion): Promise<GroupKeyAndGroupKeyInstance> {
 		const formerKeysList = group.formerGroupKeys.list
 		// start id is not included in the result of the range request, so we need to start at current version.
 		const startId = convertKeyVersionToCustomId(currentGroupKey.version)
@@ -366,6 +362,11 @@ export function toKeyPair(keyPair: EncryptedKeyPairs): KeyPair {
 		})
 	}
 	throw new CryptoError("Invalid key pair")
+}
+
+type GroupKeyAndGroupKeyInstance = {
+	symmetricGroupKey: AesKey
+	groupKeyInstance: GroupKey
 }
 
 export function isEncryptedPqKeyPairs(keyPair: KeyPair): boolean {

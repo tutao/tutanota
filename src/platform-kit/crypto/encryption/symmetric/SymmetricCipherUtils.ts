@@ -62,7 +62,10 @@ export function keyToBase64(key: AesKey): Base64 {
  * @return The key.
  * @throws {CryptoError} If the conversion fails.
  */
-export function base64ToKey(base64: Base64): AesKey
+export function base64To256Key(base64: Base64): Aes256Key {
+	return new Aes256Key(base64ToKey(base64, AesKeyLength.Aes256).bits)
+}
+
 /**
  * Converts the given base64 coded string to a key.
  * @param base64 The base64 coded string representation of the key.
@@ -70,16 +73,7 @@ export function base64ToKey(base64: Base64): AesKey
  * @return The key.
  * @throws {CryptoError} If the conversion fails.
  */
-export function base64ToKey(base64: Base64, acceptedBitLength: typeof AesKeyLength.Aes128): Aes128Key
-/**
- * Converts the given base64 coded string to a key.
- * @param base64 The base64 coded string representation of the key.
- * @param acceptedBitLength The accepted key length for the decoded key.
- * @return The key.
- * @throws {CryptoError} If the conversion fails.
- */
-export function base64ToKey(base64: Base64, acceptedBitLength: typeof AesKeyLength.Aes256): Aes256Key
-export function base64ToKey(base64: Base64, acceptedBitLength?: AesKeyLength): AesKey {
+export function base64ToKey(base64: Base64, acceptedBitLength: Nullable<AesKeyLength> = null): AesKey {
 	try {
 		return uint8ArrayToKey(base64ToUint8Array(base64), acceptedBitLength)
 	} catch (e) {
@@ -87,11 +81,14 @@ export function base64ToKey(base64: Base64, acceptedBitLength?: AesKeyLength): A
 	}
 }
 
-export function uint8ArrayToKey(array: Uint8Array): AesKey
-export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength: typeof AesKeyLength.Aes128): Aes128Key
-export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength: typeof AesKeyLength.Aes256): Aes256Key
-export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey
-export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength?: AesKeyLength): AesKey {
+export function uint8ArrayTo256Key(array: Uint8Array): Aes256Key {
+	return new Aes256Key(uint8ArrayToKey(array, AesKeyLength.Aes256).bits)
+}
+export function uint8ArrayTo128Key(array: Uint8Array): Aes128Key {
+	return new Aes128Key(uint8ArrayToKey(array, AesKeyLength.Aes128).bits)
+}
+
+export function uint8ArrayToKey(array: Uint8Array, acceptedBitLength: Nullable<AesKeyLength> = null): AesKey {
 	let key = uint8ArrayToBitArray(array)
 	// AesKey is an array of 4 byte numbers. therefore converting the length to bits means 4*8
 	const keyLength: number = key.length * 4 * 8

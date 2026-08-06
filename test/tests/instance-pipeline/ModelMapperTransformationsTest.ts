@@ -1,6 +1,15 @@
 import o, { assertThrows } from "@tutao/otest"
 import { DecryptedParsedInstance, ModelMapper } from "../../../src/platform-kit/instance-pipeline"
-import { AssociationType, Cardinality, ClientTypeModel, ServerTypeModel, Type, TypeRef, ValueType } from "../../../src/platform-kit/meta"
+import {
+	AssociationTypeEnum,
+	CardinalityEnum,
+	ClientTypeModel,
+	DEFAULT_ENTITY_FIELDS,
+	EntityTypeEnum,
+	ServerTypeModel,
+	TypeRef,
+	ValueTypeEnum,
+} from "../../../src/platform-kit/meta"
 import { changeInstanceDirection, DummyTypeModelResolver, TestAggregateRef, TestEntity, TestTypeRef } from "./InstancePipelineTestUtils"
 import { removeOriginals } from "../TestUtils"
 import { InstanceDirection, ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
@@ -17,15 +26,15 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {},
 					associations: {
 						"3": {
 							id: 3,
 							name: "testAssociation",
-							type: AssociationType.Aggregation,
-							cardinality: Cardinality.One,
+							type: AssociationTypeEnum.Aggregation,
+							cardinality: CardinalityEnum.One,
 							refTypeId: 43,
 							final: false,
 							dependency: "tutanota",
@@ -41,14 +50,14 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestAggregate",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.Aggregated,
+					type: EntityTypeEnum.Aggregated,
 					isPublic: true,
 					values: {
 						"2": {
 							id: 2,
 							name: "testNumber",
-							type: ValueType.Number,
-							cardinality: Cardinality.One,
+							type: ValueTypeEnum.Number,
+							cardinality: CardinalityEnum.One,
 							final: false,
 							encrypted: false,
 						},
@@ -66,7 +75,7 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {},
 					associations: {},
@@ -89,6 +98,7 @@ o.spec("ModelMapperTransformations", function () {
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 		})
@@ -102,7 +112,7 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {},
 					associations: {},
@@ -118,15 +128,15 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {},
 					associations: {
 						"3": {
 							id: 3,
 							name: "testAssociation",
-							type: AssociationType.Aggregation,
-							cardinality: Cardinality.ZeroOrOne,
+							type: AssociationTypeEnum.Aggregation,
+							cardinality: CardinalityEnum.ZeroOrOne,
 							refTypeId: 43,
 							final: false,
 							dependency: "tutanota",
@@ -142,14 +152,14 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestAggregate",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.Aggregated,
+					type: EntityTypeEnum.Aggregated,
 					isPublic: true,
 					values: {
 						"2": {
 							id: 2,
 							name: "testNumber",
-							type: ValueType.Number,
-							cardinality: Cardinality.ZeroOrOne,
+							type: ValueTypeEnum.Number,
+							cardinality: CardinalityEnum.ZeroOrOne,
 							final: false,
 							encrypted: false,
 						},
@@ -178,6 +188,7 @@ o.spec("ModelMapperTransformations", function () {
 
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 
 			o(typeof mappedInstance["_errors"]).equals("undefined")
@@ -197,15 +208,15 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {},
 					associations: {
 						"3": {
 							id: 3,
 							name: "testAssociation",
-							type: AssociationType.Aggregation,
-							cardinality: Cardinality.Any,
+							type: AssociationTypeEnum.Aggregation,
+							cardinality: CardinalityEnum.Any,
 							refTypeId: 43,
 							final: false,
 							dependency: "tutanota",
@@ -221,14 +232,14 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestAggregate",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.Aggregated,
+					type: EntityTypeEnum.Aggregated,
 					isPublic: true,
 					values: {
 						"2": {
 							id: 2,
 							name: "testNumber",
-							type: ValueType.Number,
-							cardinality: Cardinality.ZeroOrOne,
+							type: ValueTypeEnum.Number,
+							cardinality: CardinalityEnum.ZeroOrOne,
 							final: false,
 							encrypted: false,
 						},
@@ -246,7 +257,7 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {},
 					associations: {},
@@ -276,6 +287,7 @@ o.spec("ModelMapperTransformations", function () {
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -294,15 +306,15 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {},
 					associations: {
 						"3": {
 							id: 3,
 							name: "testListElementAssociation",
-							type: AssociationType.ListElementAssociationGenerated,
-							cardinality: Cardinality.One,
+							type: AssociationTypeEnum.ListElementAssociationGenerated,
+							cardinality: CardinalityEnum.One,
 							refTypeId: 43,
 							final: false,
 							dependency: "tutanota",
@@ -318,7 +330,7 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestRef",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {},
 					associations: {},
@@ -334,7 +346,7 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {},
 					associations: {},
@@ -362,6 +374,7 @@ o.spec("ModelMapperTransformations", function () {
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: typeRef,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 		})
@@ -375,15 +388,15 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {},
 					associations: {
 						"3": {
 							id: 3,
 							name: "testListElementAssociation",
-							type: AssociationType.ListElementAssociationGenerated,
-							cardinality: Cardinality.ZeroOrOne,
+							type: AssociationTypeEnum.ListElementAssociationGenerated,
+							cardinality: CardinalityEnum.ZeroOrOne,
 							refTypeId: 43,
 							final: false,
 							dependency: "tutanota",
@@ -399,7 +412,7 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestRef",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {},
 					associations: {},
@@ -415,7 +428,7 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {},
 					associations: {},
@@ -448,6 +461,7 @@ o.spec("ModelMapperTransformations", function () {
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: typeRef,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -465,15 +479,15 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {},
 					associations: {
 						"3": {
 							id: 3,
 							name: "testListElementAssociation",
-							type: AssociationType.ListElementAssociationGenerated,
-							cardinality: Cardinality.Any,
+							type: AssociationTypeEnum.ListElementAssociationGenerated,
+							cardinality: CardinalityEnum.Any,
 							refTypeId: 43,
 							final: false,
 							dependency: "tutanota",
@@ -489,14 +503,14 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestAggregate",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.Aggregated,
+					type: EntityTypeEnum.Aggregated,
 					isPublic: true,
 					values: {
 						"2": {
 							id: 2,
 							name: "testNumber",
-							type: ValueType.Number,
-							cardinality: Cardinality.ZeroOrOne,
+							type: ValueTypeEnum.Number,
+							cardinality: CardinalityEnum.ZeroOrOne,
 							final: false,
 							encrypted: false,
 						},
@@ -515,7 +529,7 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {},
 					associations: {},
@@ -538,6 +552,7 @@ o.spec("ModelMapperTransformations", function () {
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -557,14 +572,14 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {
 						"1": {
 							id: 1,
 							name: "testValue",
-							type: ValueType.String,
-							cardinality: Cardinality.One,
+							type: ValueTypeEnum.String,
+							cardinality: CardinalityEnum.One,
 							final: true,
 							encrypted: true,
 						},
@@ -582,7 +597,7 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {},
 					associations: {},
@@ -603,6 +618,7 @@ o.spec("ModelMapperTransformations", function () {
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -620,14 +636,14 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {
 						"1": {
 							id: 1,
 							name: "testValue",
-							type: ValueType.String,
-							cardinality: Cardinality.One,
+							type: ValueTypeEnum.String,
+							cardinality: CardinalityEnum.One,
 							final: true,
 							encrypted: true,
 						},
@@ -645,14 +661,14 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {
 						"1": {
 							id: 1,
 							name: "testValue",
-							type: ValueType.String,
-							cardinality: Cardinality.One,
+							type: ValueTypeEnum.String,
+							cardinality: CardinalityEnum.One,
 							final: true,
 							encrypted: true,
 						},
@@ -676,6 +692,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: "",
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -692,7 +709,7 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {},
 					associations: {},
@@ -708,14 +725,14 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {
 						"1": {
 							id: 1,
 							name: "testValue",
-							type: ValueType.String,
-							cardinality: Cardinality.ZeroOrOne,
+							type: ValueTypeEnum.String,
+							cardinality: CardinalityEnum.ZeroOrOne,
 							final: true,
 							encrypted: true,
 						},
@@ -737,6 +754,7 @@ o.spec("ModelMapperTransformations", function () {
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -755,14 +773,14 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {
 						"1": {
 							id: 1,
 							name: "testValue",
-							type: ValueType.Number,
-							cardinality: Cardinality.ZeroOrOne,
+							type: ValueTypeEnum.Number,
+							cardinality: CardinalityEnum.ZeroOrOne,
 							final: true,
 							encrypted: true,
 						},
@@ -780,14 +798,14 @@ o.spec("ModelMapperTransformations", function () {
 					name: "TestType",
 					rootId: "SoMeId",
 					since: 0,
-					type: Type.ListElement,
+					type: EntityTypeEnum.ListElement,
 					isPublic: true,
 					values: {
 						"1": {
 							id: 1,
 							name: "testValue",
-							type: ValueType.Boolean,
-							cardinality: Cardinality.ZeroOrOne,
+							type: ValueTypeEnum.Boolean,
+							cardinality: CardinalityEnum.ZeroOrOne,
 							final: true,
 							encrypted: true,
 						},
@@ -814,10 +832,12 @@ o.spec("ModelMapperTransformations", function () {
 			o(trueMappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: true,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(falseMappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: false,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof trueMappedInstance._errors).equals("undefined")
 			o(typeof falseMappedInstance._errors).equals("undefined")
@@ -841,15 +861,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testAggregation",
-								type: AssociationType.Aggregation,
-								cardinality: Cardinality.One,
+								type: AssociationTypeEnum.Aggregation,
+								cardinality: CardinalityEnum.One,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -865,7 +885,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestAggregate",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.Aggregated,
+						type: EntityTypeEnum.Aggregated,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -885,15 +905,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testAggregation",
-								type: AssociationType.Aggregation,
-								cardinality: Cardinality.Any,
+								type: AssociationTypeEnum.Aggregation,
+								cardinality: CardinalityEnum.Any,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -909,7 +929,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestAggregate",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.Aggregated,
+						type: EntityTypeEnum.Aggregated,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -936,8 +956,10 @@ o.spec("ModelMapperTransformations", function () {
 				testAggregation: [
 					{
 						_type: TestAggregateRef,
+						...DEFAULT_ENTITY_FIELDS,
 					},
 				],
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -955,15 +977,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testAggregation",
-								type: AssociationType.Aggregation,
-								cardinality: Cardinality.Any,
+								type: AssociationTypeEnum.Aggregation,
+								cardinality: CardinalityEnum.Any,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -979,7 +1001,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestAggregate",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.Aggregated,
+						type: EntityTypeEnum.Aggregated,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -999,15 +1021,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testAggregation",
-								type: AssociationType.Aggregation,
-								cardinality: Cardinality.One,
+								type: AssociationTypeEnum.Aggregation,
+								cardinality: CardinalityEnum.One,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1023,7 +1045,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestAggregate",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.Aggregated,
+						type: EntityTypeEnum.Aggregated,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1043,7 +1065,7 @@ o.spec("ModelMapperTransformations", function () {
 
 			// can't convert an empty array to one
 			const err = await assertThrows(InvalidModelError, async () => modelMapper.mapToInstance(parsedInstance))
-			o(err.message).equals("Cardinality One should have exactly one item. Found: 0")
+			o(err.message).equals("Cardinality One should have exactly one item. Found: 0. In tutanota/TestType::testAggregation")
 		})
 		o("change aggregation from ZeroOrOne to Any null value", async function () {
 			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
@@ -1055,15 +1077,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testAggregation",
-								type: AssociationType.Aggregation,
-								cardinality: Cardinality.Any,
+								type: AssociationTypeEnum.Aggregation,
+								cardinality: CardinalityEnum.Any,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1079,7 +1101,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestAggregate",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.Aggregated,
+						type: EntityTypeEnum.Aggregated,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1099,15 +1121,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testAggregation",
-								type: AssociationType.Aggregation,
-								cardinality: Cardinality.ZeroOrOne,
+								type: AssociationTypeEnum.Aggregation,
+								cardinality: CardinalityEnum.ZeroOrOne,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1123,7 +1145,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestAggregate",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.Aggregated,
+						type: EntityTypeEnum.Aggregated,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1144,6 +1166,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testAggregation: null,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
 			changeInstanceDirection(parsedInstance, InstanceDirection.OutgoingToServer)
@@ -1159,15 +1182,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testAggregation",
-								type: AssociationType.Aggregation,
-								cardinality: Cardinality.Any,
+								type: AssociationTypeEnum.Aggregation,
+								cardinality: CardinalityEnum.Any,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1183,7 +1206,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestAggregate",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.Aggregated,
+						type: EntityTypeEnum.Aggregated,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1203,15 +1226,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testAggregation",
-								type: AssociationType.Aggregation,
-								cardinality: Cardinality.ZeroOrOne,
+								type: AssociationTypeEnum.Aggregation,
+								cardinality: CardinalityEnum.ZeroOrOne,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1227,7 +1250,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestAggregate",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.Aggregated,
+						type: EntityTypeEnum.Aggregated,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1262,15 +1285,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testAggregation",
-								type: AssociationType.Aggregation,
-								cardinality: Cardinality.ZeroOrOne,
+								type: AssociationTypeEnum.Aggregation,
+								cardinality: CardinalityEnum.ZeroOrOne,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1286,7 +1309,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestAggregate",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.Aggregated,
+						type: EntityTypeEnum.Aggregated,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1306,15 +1329,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testAggregation",
-								type: AssociationType.Aggregation,
-								cardinality: Cardinality.Any,
+								type: AssociationTypeEnum.Aggregation,
+								cardinality: CardinalityEnum.Any,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1330,7 +1353,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestAggregate",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.Aggregated,
+						type: EntityTypeEnum.Aggregated,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1351,6 +1374,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testAggregation: [],
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
 			changeInstanceDirection(parsedInstance, InstanceDirection.OutgoingToServer)
@@ -1366,15 +1390,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testAggregation",
-								type: AssociationType.Aggregation,
-								cardinality: Cardinality.ZeroOrOne,
+								type: AssociationTypeEnum.Aggregation,
+								cardinality: CardinalityEnum.ZeroOrOne,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1390,7 +1414,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestAggregate",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.Aggregated,
+						type: EntityTypeEnum.Aggregated,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1410,15 +1434,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testAggregation",
-								type: AssociationType.Aggregation,
-								cardinality: Cardinality.Any,
+								type: AssociationTypeEnum.Aggregation,
+								cardinality: CardinalityEnum.Any,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1434,7 +1458,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestAggregate",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.Aggregated,
+						type: EntityTypeEnum.Aggregated,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1458,7 +1482,8 @@ o.spec("ModelMapperTransformations", function () {
 			removeOriginals(mappedInstance)
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
-				testAggregation: [{ _type: TestAggregateRef } as any],
+				testAggregation: [{ _type: TestAggregateRef, ...DEFAULT_ENTITY_FIELDS } as any],
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
 			changeInstanceDirection(parsedInstance, InstanceDirection.OutgoingToServer)
@@ -1475,15 +1500,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testListElementAssociation",
-								type: AssociationType.ListElementAssociationGenerated,
-								cardinality: Cardinality.One,
+								type: AssociationTypeEnum.ListElementAssociationGenerated,
+								cardinality: CardinalityEnum.One,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1499,7 +1524,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestRef",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1519,15 +1544,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testListElementAssociation",
-								type: AssociationType.ListElementAssociationGenerated,
-								cardinality: Cardinality.Any,
+								type: AssociationTypeEnum.ListElementAssociationGenerated,
+								cardinality: CardinalityEnum.Any,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1543,7 +1568,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestRef",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1566,6 +1591,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testListElementAssociation: [["listId", "listElementId"]],
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -1583,15 +1609,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testListElementAssociation",
-								type: AssociationType.ListElementAssociationGenerated,
-								cardinality: Cardinality.Any,
+								type: AssociationTypeEnum.ListElementAssociationGenerated,
+								cardinality: CardinalityEnum.Any,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1607,7 +1633,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestRef",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1627,15 +1653,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testListElementAssociation",
-								type: AssociationType.ListElementAssociationGenerated,
-								cardinality: Cardinality.One,
+								type: AssociationTypeEnum.ListElementAssociationGenerated,
+								cardinality: CardinalityEnum.One,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1651,7 +1677,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestRef",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1668,7 +1694,7 @@ o.spec("ModelMapperTransformations", function () {
 
 			// can't convert an empty array to one
 			const err = await assertThrows(InvalidModelError, async () => modelMapper.mapToInstance(parsedInstance))
-			o(err.message).equals("Cardinality One should have exactly one item. Found: 0")
+			o(err.message).equals("Cardinality One should have exactly one item. Found: 0. In tutanota/TestType::testListElementAssociation")
 		})
 		o("change list element association from ZeroOrOne to Any null value", async function () {
 			const serverModelResolver = async (typeRef: TypeRef<any>): Promise<ServerTypeModel> => {
@@ -1680,15 +1706,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testListElementAssociation",
-								type: AssociationType.ListElementAssociationGenerated,
-								cardinality: Cardinality.Any,
+								type: AssociationTypeEnum.ListElementAssociationGenerated,
+								cardinality: CardinalityEnum.Any,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1704,7 +1730,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestRef",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1724,15 +1750,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testListElementAssociation",
-								type: AssociationType.ListElementAssociationGenerated,
-								cardinality: Cardinality.ZeroOrOne,
+								type: AssociationTypeEnum.ListElementAssociationGenerated,
+								cardinality: CardinalityEnum.ZeroOrOne,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1748,7 +1774,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestRef",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1769,6 +1795,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testListElementAssociation: null,
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 
 			// request is prepared with the client model and association is not changed
@@ -1786,15 +1813,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testListElementAssociation",
-								type: AssociationType.ListElementAssociationGenerated,
-								cardinality: Cardinality.Any,
+								type: AssociationTypeEnum.ListElementAssociationGenerated,
+								cardinality: CardinalityEnum.Any,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1810,7 +1837,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestRef",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1830,15 +1857,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testListElementAssociation",
-								type: AssociationType.ListElementAssociationGenerated,
-								cardinality: Cardinality.ZeroOrOne,
+								type: AssociationTypeEnum.ListElementAssociationGenerated,
+								cardinality: CardinalityEnum.ZeroOrOne,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1854,7 +1881,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestRef",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1888,15 +1915,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testListElementAssociation",
-								type: AssociationType.ListElementAssociationGenerated,
-								cardinality: Cardinality.ZeroOrOne,
+								type: AssociationTypeEnum.ListElementAssociationGenerated,
+								cardinality: CardinalityEnum.ZeroOrOne,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1912,7 +1939,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestRef",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1932,15 +1959,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testListElementAssociation",
-								type: AssociationType.ListElementAssociationGenerated,
-								cardinality: Cardinality.Any,
+								type: AssociationTypeEnum.ListElementAssociationGenerated,
+								cardinality: CardinalityEnum.Any,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -1956,7 +1983,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestRef",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -1977,6 +2004,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testListElementAssociation: [],
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
 			changeInstanceDirection(parsedInstance, InstanceDirection.OutgoingToServer)
@@ -1992,15 +2020,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testListElementAssociation",
-								type: AssociationType.ListElementAssociationGenerated,
-								cardinality: Cardinality.ZeroOrOne,
+								type: AssociationTypeEnum.ListElementAssociationGenerated,
+								cardinality: CardinalityEnum.ZeroOrOne,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -2016,7 +2044,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestRef",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -2036,15 +2064,15 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {
 							"3": {
 								id: 3,
 								name: "testListElementAssociation",
-								type: AssociationType.ListElementAssociationGenerated,
-								cardinality: Cardinality.Any,
+								type: AssociationTypeEnum.ListElementAssociationGenerated,
+								cardinality: CardinalityEnum.Any,
 								refTypeId: 43,
 								final: false,
 								dependency: "tutanota",
@@ -2060,7 +2088,7 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestRef",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {},
 						associations: {},
@@ -2083,6 +2111,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testListElementAssociation: [["listId", "listElementId"]],
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			const newParsedInstance = await modelMapper.mapToDecryptedInstance(mappedInstance)
 			changeInstanceDirection(parsedInstance, InstanceDirection.OutgoingToServer)
@@ -2100,14 +2129,14 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {
 							"1": {
 								id: 1,
 								name: "testValue",
-								type: ValueType.String,
-								cardinality: Cardinality.One,
+								type: ValueTypeEnum.String,
+								cardinality: CardinalityEnum.One,
 								final: true,
 								encrypted: true,
 							},
@@ -2129,14 +2158,14 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {
 							"1": {
 								id: 1,
 								name: "testValue",
-								type: ValueType.String,
-								cardinality: Cardinality.ZeroOrOne,
+								type: ValueTypeEnum.String,
+								cardinality: CardinalityEnum.ZeroOrOne,
 								final: true,
 								encrypted: true,
 							},
@@ -2158,6 +2187,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: "example",
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -2175,14 +2205,14 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {
 							"1": {
 								id: 1,
 								name: "testValue",
-								type: ValueType.String,
-								cardinality: Cardinality.ZeroOrOne,
+								type: ValueTypeEnum.String,
+								cardinality: CardinalityEnum.ZeroOrOne,
 								final: true,
 								encrypted: true,
 							},
@@ -2204,14 +2234,14 @@ o.spec("ModelMapperTransformations", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {
 							"1": {
 								id: 1,
 								name: "testValue",
-								type: ValueType.String,
-								cardinality: Cardinality.One,
+								type: ValueTypeEnum.String,
+								cardinality: CardinalityEnum.One,
 								final: true,
 								encrypted: true,
 							},
@@ -2233,6 +2263,7 @@ o.spec("ModelMapperTransformations", function () {
 			o(mappedInstance).deepEquals({
 				_type: TestTypeRef,
 				testValue: "example",
+				...DEFAULT_ENTITY_FIELDS,
 			} as any)
 			o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -2250,14 +2281,14 @@ o.spec("ModelMapperTransformations", function () {
 							name: "TestType",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.ListElement,
+							type: EntityTypeEnum.ListElement,
 							isPublic: true,
 							values: {
 								"1": {
 									id: 1,
 									name: "testValue",
-									type: ValueType.String,
-									cardinality: Cardinality.ZeroOrOne,
+									type: ValueTypeEnum.String,
+									cardinality: CardinalityEnum.ZeroOrOne,
 									final: true,
 									encrypted: true,
 								},
@@ -2279,14 +2310,14 @@ o.spec("ModelMapperTransformations", function () {
 							name: "TestType",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.ListElement,
+							type: EntityTypeEnum.ListElement,
 							isPublic: true,
 							values: {
 								"1": {
 									id: 1,
 									name: "testValue",
-									type: ValueType.String,
-									cardinality: Cardinality.One,
+									type: ValueTypeEnum.String,
+									cardinality: CardinalityEnum.One,
 									final: true,
 									encrypted: true,
 								},
@@ -2316,14 +2347,14 @@ o.spec("ModelMapperTransformations", function () {
 							name: "TestType",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.ListElement,
+							type: EntityTypeEnum.ListElement,
 							isPublic: true,
 							values: {
 								"1": {
 									id: 1,
 									name: "testValue",
-									type: ValueType.String,
-									cardinality: Cardinality.ZeroOrOne,
+									type: ValueTypeEnum.String,
+									cardinality: CardinalityEnum.ZeroOrOne,
 									final: true,
 									encrypted: true,
 								},
@@ -2345,14 +2376,14 @@ o.spec("ModelMapperTransformations", function () {
 							name: "TestType",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.ListElement,
+							type: EntityTypeEnum.ListElement,
 							isPublic: true,
 							values: {
 								"1": {
 									id: 1,
 									name: "testValue",
-									type: ValueType.Number,
-									cardinality: Cardinality.ZeroOrOne,
+									type: ValueTypeEnum.Number,
+									cardinality: CardinalityEnum.ZeroOrOne,
 									final: true,
 									encrypted: true,
 								},
@@ -2371,7 +2402,7 @@ o.spec("ModelMapperTransformations", function () {
 
 				const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
 				removeOriginals(mappedInstance)
-				o(mappedInstance).deepEquals({ _type: TestTypeRef, testValue: "42" } as any)
+				o(mappedInstance).deepEquals({ _type: TestTypeRef, testValue: "42", ...DEFAULT_ENTITY_FIELDS } as any)
 				o(parsedInstance.hasError()).equals(false)
 
 				// request is prepared with the client model and does not add handle the number to string transformation
@@ -2388,14 +2419,14 @@ o.spec("ModelMapperTransformations", function () {
 							name: "TestType",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.ListElement,
+							type: EntityTypeEnum.ListElement,
 							isPublic: true,
 							values: {
 								"1": {
 									id: 1,
 									name: "testValue",
-									type: ValueType.String,
-									cardinality: Cardinality.ZeroOrOne,
+									type: ValueTypeEnum.String,
+									cardinality: CardinalityEnum.ZeroOrOne,
 									final: true,
 									encrypted: true,
 								},
@@ -2417,14 +2448,14 @@ o.spec("ModelMapperTransformations", function () {
 							name: "TestType",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.ListElement,
+							type: EntityTypeEnum.ListElement,
 							isPublic: true,
 							values: {
 								"1": {
 									id: 1,
 									name: "testValue",
-									type: ValueType.Number,
-									cardinality: Cardinality.ZeroOrOne,
+									type: ValueTypeEnum.Number,
+									cardinality: CardinalityEnum.ZeroOrOne,
 									final: true,
 									encrypted: true,
 								},
@@ -2456,7 +2487,7 @@ o.spec("ModelMapperTransformations", function () {
 							name: "TestType",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.ListElement,
+							type: EntityTypeEnum.ListElement,
 							isPublic: true,
 							values: {},
 							associations: {},
@@ -2476,15 +2507,15 @@ o.spec("ModelMapperTransformations", function () {
 							name: "TestType",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.ListElement,
+							type: EntityTypeEnum.ListElement,
 							isPublic: true,
 							values: {},
 							associations: {
 								"3": {
 									id: 3,
 									name: "testAssociation",
-									type: AssociationType.Aggregation,
-									cardinality: Cardinality.ZeroOrOne,
+									type: AssociationTypeEnum.Aggregation,
+									cardinality: CardinalityEnum.ZeroOrOne,
 									refTypeId: 43,
 									final: false,
 									dependency: "tutanota",
@@ -2500,14 +2531,14 @@ o.spec("ModelMapperTransformations", function () {
 							name: "TestAggregate",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.Aggregated,
+							type: EntityTypeEnum.Aggregated,
 							isPublic: true,
 							values: {
 								"2": {
 									id: 2,
 									name: "testNumber",
-									type: ValueType.Number,
-									cardinality: Cardinality.One,
+									type: ValueTypeEnum.Number,
+									cardinality: CardinalityEnum.One,
 									final: false,
 									encrypted: false,
 								},
@@ -2527,7 +2558,7 @@ o.spec("ModelMapperTransformations", function () {
 				// can remove aggregation with ZeroOrOne cardinality and supply null
 				const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
 				removeOriginals(mappedInstance)
-				o(mappedInstance).deepEquals({ _type: TestTypeRef, testAssociation: null } as any)
+				o(mappedInstance).deepEquals({ _type: TestTypeRef, testAssociation: null, ...DEFAULT_ENTITY_FIELDS } as any)
 				o(typeof mappedInstance["_errors"]).equals("undefined")
 
 				// request is prepared with the client model and does NOT remove ZeroOrOne aggregation
@@ -2544,7 +2575,7 @@ o.spec("ModelMapperTransformations", function () {
 							name: "TestType",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.ListElement,
+							type: EntityTypeEnum.ListElement,
 							isPublic: true,
 							values: {},
 							associations: {},
@@ -2564,15 +2595,15 @@ o.spec("ModelMapperTransformations", function () {
 							name: "TestType",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.ListElement,
+							type: EntityTypeEnum.ListElement,
 							isPublic: true,
 							values: {},
 							associations: {
 								"3": {
 									id: 3,
 									name: "testAssociation",
-									type: AssociationType.Aggregation,
-									cardinality: Cardinality.Any,
+									type: AssociationTypeEnum.Aggregation,
+									cardinality: CardinalityEnum.Any,
 									refTypeId: 43,
 									final: false,
 									dependency: "tutanota",
@@ -2588,14 +2619,14 @@ o.spec("ModelMapperTransformations", function () {
 							name: "TestAggregate",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.Aggregated,
+							type: EntityTypeEnum.Aggregated,
 							isPublic: true,
 							values: {
 								"2": {
 									id: 2,
 									name: "testNumber",
-									type: ValueType.Number,
-									cardinality: Cardinality.ZeroOrOne,
+									type: ValueTypeEnum.Number,
+									cardinality: CardinalityEnum.ZeroOrOne,
 									final: false,
 									encrypted: false,
 								},
@@ -2618,6 +2649,7 @@ o.spec("ModelMapperTransformations", function () {
 				o(mappedInstance).deepEquals({
 					_type: TestTypeRef,
 					testAssociation: [],
+					...DEFAULT_ENTITY_FIELDS,
 				} as any)
 				o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -2635,7 +2667,7 @@ o.spec("ModelMapperTransformations", function () {
 							name: "TestType",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.ListElement,
+							type: EntityTypeEnum.ListElement,
 							isPublic: true,
 							values: {},
 							associations: {},
@@ -2655,15 +2687,15 @@ o.spec("ModelMapperTransformations", function () {
 							name: "TestType",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.ListElement,
+							type: EntityTypeEnum.ListElement,
 							isPublic: true,
 							values: {},
 							associations: {
 								"3": {
 									id: 3,
 									name: "testListElementAssociation",
-									type: AssociationType.ListElementAssociationGenerated,
-									cardinality: Cardinality.ZeroOrOne,
+									type: AssociationTypeEnum.ListElementAssociationGenerated,
+									cardinality: CardinalityEnum.ZeroOrOne,
 									refTypeId: 43,
 									final: false,
 									dependency: "tutanota",
@@ -2679,7 +2711,7 @@ o.spec("ModelMapperTransformations", function () {
 							name: "TestRef",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.ListElement,
+							type: EntityTypeEnum.ListElement,
 							isPublic: true,
 							values: {},
 							associations: {},
@@ -2699,6 +2731,7 @@ o.spec("ModelMapperTransformations", function () {
 				o(mappedInstance).deepEquals({
 					_type: TestTypeRef,
 					testListElementAssociation: null,
+					...DEFAULT_ENTITY_FIELDS,
 				} as any)
 
 				o(typeof mappedInstance["_errors"]).equals("undefined")
@@ -2717,7 +2750,7 @@ o.spec("ModelMapperTransformations", function () {
 							name: "TestType",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.ListElement,
+							type: EntityTypeEnum.ListElement,
 							isPublic: true,
 							values: {},
 							associations: {},
@@ -2737,15 +2770,15 @@ o.spec("ModelMapperTransformations", function () {
 							name: "TestType",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.ListElement,
+							type: EntityTypeEnum.ListElement,
 							isPublic: true,
 							values: {},
 							associations: {
 								"3": {
 									id: 3,
 									name: "testListElementAssociation",
-									type: AssociationType.ListElementAssociationGenerated,
-									cardinality: Cardinality.Any,
+									type: AssociationTypeEnum.ListElementAssociationGenerated,
+									cardinality: CardinalityEnum.Any,
 									refTypeId: 43,
 									final: false,
 									dependency: "tutanota",
@@ -2761,14 +2794,14 @@ o.spec("ModelMapperTransformations", function () {
 							name: "TestAggregate",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.Aggregated,
+							type: EntityTypeEnum.Aggregated,
 							isPublic: true,
 							values: {
 								"2": {
 									id: 2,
 									name: "testNumber",
-									type: ValueType.Number,
-									cardinality: Cardinality.ZeroOrOne,
+									type: ValueTypeEnum.Number,
+									cardinality: CardinalityEnum.ZeroOrOne,
 									final: false,
 									encrypted: false,
 								},
@@ -2791,6 +2824,7 @@ o.spec("ModelMapperTransformations", function () {
 				o(mappedInstance).deepEquals({
 					_type: TestTypeRef,
 					testListElementAssociation: [],
+					...DEFAULT_ENTITY_FIELDS,
 				} as any)
 				o(typeof mappedInstance["_errors"]).equals("undefined")
 
@@ -2809,7 +2843,7 @@ o.spec("ModelMapperTransformations", function () {
 								name: "TestType",
 								rootId: "SoMeId",
 								since: 0,
-								type: Type.ListElement,
+								type: EntityTypeEnum.ListElement,
 								isPublic: true,
 								values: {},
 								associations: {},
@@ -2829,14 +2863,14 @@ o.spec("ModelMapperTransformations", function () {
 								name: "TestType",
 								rootId: "SoMeId",
 								since: 0,
-								type: Type.ListElement,
+								type: EntityTypeEnum.ListElement,
 								isPublic: true,
 								values: {
 									"1": {
 										id: 1,
 										name: "testValue",
-										type: ValueType.String,
-										cardinality: Cardinality.One,
+										type: ValueTypeEnum.String,
+										cardinality: CardinalityEnum.One,
 										final: true,
 										encrypted: true,
 									},
@@ -2855,7 +2889,7 @@ o.spec("ModelMapperTransformations", function () {
 
 					const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
 					removeOriginals(mappedInstance)
-					o(mappedInstance).deepEquals({ _type: TestTypeRef, testValue: "" } as any)
+					o(mappedInstance).deepEquals({ _type: TestTypeRef, testValue: "", ...DEFAULT_ENTITY_FIELDS } as any)
 					o(typeof mappedInstance["_errors"]).equals("undefined")
 
 					// request is prepared with the client model and does NOT remove One value
@@ -2872,7 +2906,7 @@ o.spec("ModelMapperTransformations", function () {
 								name: "TestType",
 								rootId: "SoMeId",
 								since: 0,
-								type: Type.ListElement,
+								type: EntityTypeEnum.ListElement,
 								isPublic: true,
 								values: {},
 								associations: {},
@@ -2891,14 +2925,14 @@ o.spec("ModelMapperTransformations", function () {
 								name: "TestType",
 								rootId: "SoMeId",
 								since: 0,
-								type: Type.ListElement,
+								type: EntityTypeEnum.ListElement,
 								isPublic: true,
 								values: {
 									"1": {
 										id: 1,
 										name: "testValue",
-										type: ValueType.String,
-										cardinality: Cardinality.ZeroOrOne,
+										type: ValueTypeEnum.String,
+										cardinality: CardinalityEnum.ZeroOrOne,
 										final: true,
 										encrypted: true,
 									},
@@ -2917,7 +2951,7 @@ o.spec("ModelMapperTransformations", function () {
 
 					const entity = await modelMapper.mapToInstance(serverDecryptedParsedInstance)
 					removeOriginals(entity)
-					o(entity).deepEquals({ _type: TestTypeRef, testValue: null } as any)
+					o(entity).deepEquals({ _type: TestTypeRef, testValue: null, ...DEFAULT_ENTITY_FIELDS } as any)
 
 					o(typeof entity["_errors"]).equals("undefined")
 

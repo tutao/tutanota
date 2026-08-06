@@ -18,7 +18,8 @@ export function hmacSha256(key: AesKey, data: Uint8Array): MacTag {
  */
 export function verifyHmacSha256(key: AesKey, data: Uint8Array, tag: MacTag) {
 	const computedTag = hmacSha256(key, data)
-	if (!sjcl.bitArray.equal(computedTag, tag)) {
+	const tagMatches: boolean = sjcl.bitArray.equal(computedTag, tag)
+	if (!tagMatches) {
 		throw new CryptoError("invalid mac")
 	}
 }
@@ -44,7 +45,8 @@ export async function hmacSha256Async(key: AesKey, data: Uint8Array): Promise<Ma
 export async function verifyHmacSha256Async(key: AesKey, data: Uint8Array, tag: MacTag) {
 	// technically re-implementing SubtleCrypto#verify() but doing it this way for easier testing and symmetry.
 	const computedTag = await hmacSha256Async(key, data)
-	if (!sjcl.bitArray.equal(computedTag, tag)) {
+	const tagMatches: boolean = sjcl.bitArray.equal(computedTag, tag)
+	if (!tagMatches) {
 		throw new CryptoError("invalid mac")
 	}
 }

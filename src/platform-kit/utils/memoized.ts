@@ -1,5 +1,6 @@
 import { arrayEquals } from "./ArrayUtils.js"
-import { deepEqual, lazy } from "./Utils.js"
+import { lazy } from "./Utils.js"
+import { deepEqual } from "./TsUtils"
 
 /**
  * Function which accepts another function. On first invocation

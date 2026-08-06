@@ -8,6 +8,7 @@ import {
 	elementIdPart,
 	elementIdToId,
 	Entity,
+	EntityTypeEnum,
 	expandId,
 	firstBiggerThanSecond,
 	firstBiggerThanSecondBase64Ext,
@@ -24,7 +25,6 @@ import {
 	PersistentEntity,
 	serverToLocalIdEncoding,
 	ServerTypeModel,
-	Type as TypeId,
 	TypeModel,
 	TypeRef,
 } from "../../platform-kit/meta"
@@ -80,9 +80,9 @@ type StorableInstance = {
 }
 
 const tableNameByTypeId: Map<string, string> = new Map([
-	[TypeId.Element, "element_entities"],
-	[TypeId.ListElement, "list_entities"],
-	[TypeId.BlobElement, "blob_element_entities"],
+	[EntityTypeEnum.Element, "element_entities"],
+	[EntityTypeEnum.ListElement, "list_entities"],
+	[EntityTypeEnum.BlobElement, "blob_element_entities"],
 ])
 
 function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNestedTokens | null {
@@ -303,18 +303,18 @@ export class OfflineStorage implements CacheStorage {
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		let formattedQuery
 		switch (typeModel.type) {
-			case TypeId.Element:
+			case EntityTypeEnum.Element:
 				formattedQuery = sql`SELECT elementId
 									 FROM element_entities
 									 WHERE type = ${type}`
 				break
-			case TypeId.ListElement:
+			case EntityTypeEnum.ListElement:
 				formattedQuery = sql`SELECT listId, elementId
 									 FROM list_entities
 									 WHERE type = ${type}`
 				await this.deleteAllRangesForType(type)
 				break
-			case TypeId.BlobElement:
+			case EntityTypeEnum.BlobElement:
 				formattedQuery = sql`SELECT listId, elementId
 									 FROM blob_element_entities
 									 WHERE type = ${type}`
@@ -350,20 +350,20 @@ export class OfflineStorage implements CacheStorage {
 		const encodedElementId = serverToLocalIdEncoding(serverTypeModel, id)
 		let formattedQuery
 		switch (serverTypeModel.type) {
-			case TypeId.Element:
+			case EntityTypeEnum.Element:
 				formattedQuery = sql`SELECT entity
 									 from element_entities
 									 WHERE type = ${type}
 									   AND elementId = ${encodedElementId}`
 				break
-			case TypeId.ListElement:
+			case EntityTypeEnum.ListElement:
 				formattedQuery = sql`SELECT entity
 									 from list_entities
 									 WHERE type = ${type}
 									   AND listId = ${listId}
 									   AND elementId = ${encodedElementId}`
 				break
-			case TypeId.BlobElement:
+			case EntityTypeEnum.BlobElement:
 				formattedQuery = sql`SELECT entity
 									 from blob_element_entities
 									 WHERE type = ${type}
@@ -388,18 +388,18 @@ export class OfflineStorage implements CacheStorage {
 
 		const type = getTypeString(typeRef)
 		const serializedList: ReadonlyArray<Record<string, TaggedSqlValue>> = await this.allChunked(1000, encodedElementIds, (c) => {
-			if (typeModel.type === TypeId.Element) {
+			if (typeModel.type === EntityTypeEnum.Element) {
 				return sql`SELECT entity
 						   FROM element_entities
 						   WHERE type = ${type}
 							 AND elementId IN ${paramList(c)}`
-			} else if (typeModel.type === TypeId.ListElement) {
+			} else if (typeModel.type === EntityTypeEnum.ListElement) {
 				return sql`SELECT entity
 						   FROM list_entities
 						   WHERE type = ${type}
 							 AND listId = ${listId}
 							 AND elementId IN ${paramList(c)}`
-			} else if (typeModel.type === TypeId.BlobElement) {
+			} else if (typeModel.type === EntityTypeEnum.BlobElement) {
 				return sql`SELECT entity
 						   FROM blob_element_entities
 						   WHERE type = ${type}
@@ -511,7 +511,7 @@ export class OfflineStorage implements CacheStorage {
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const typeString = getTypeString(typeRef)
 
-		if (typeModel.type === TypeId.Aggregated || typeModel.type === TypeId.DataTransfer) {
+		if (typeModel.type === EntityTypeEnum.Aggregated || typeModel.type === EntityTypeEnum.DataTransfer) {
 			throw new Error("must be a persistent type")
 		}
 
@@ -539,7 +539,7 @@ export class OfflineStorage implements CacheStorage {
 				// Note that we have to also select and re-insert the rowid or else it will not match search index.
 				//
 				// A null rowid (i.e. not found) is fine if this is an insertion.
-				if (typeModel.type === TypeId.Element) {
+				if (typeModel.type === EntityTypeEnum.Element) {
 					const nestedlistOfParams: Array<Array<SqlValue>> = chunk.map((storable) => {
 						const { rowId, typeString, encodedElementId, ownerGroup, serializedInstance } = storable
 						return [rowId, typeString, encodedElementId, ownerGroup, serializedInstance] satisfies Array<SqlValue>
@@ -548,7 +548,7 @@ export class OfflineStorage implements CacheStorage {
 						"INSERT OR REPLACE INTO element_entities (rowid, type, elementId, ownerGroup, entity) VALUES ",
 						nestedlistOfParams,
 					)
-				} else if (typeModel.type === TypeId.ListElement) {
+				} else if (typeModel.type === EntityTypeEnum.ListElement) {
 					const nestedlistOfParams: Array<Array<SqlValue>> = chunk.map((storable) => {
 						const { rowId, typeString, encodedElementId, ownerGroup, serializedInstance } = storable
 						return [rowId, typeString, listId, encodedElementId, ownerGroup, serializedInstance] as Array<SqlValue>
@@ -557,7 +557,7 @@ export class OfflineStorage implements CacheStorage {
 						"INSERT OR REPLACE INTO list_entities (rowid, type, listId, elementId, ownerGroup, entity) VALUES ",
 						nestedlistOfParams,
 					)
-				} else if (typeModel.type === TypeId.BlobElement) {
+				} else if (typeModel.type === EntityTypeEnum.BlobElement) {
 					const nestedlistOfParams: Array<Array<SqlValue>> = chunk.map((storable) => {
 						const { rowId, typeString, encodedElementId, ownerGroup, serializedInstance } = storable
 						return [rowId, typeString, listId, encodedElementId, ownerGroup, serializedInstance] as Array<SqlValue>
@@ -628,18 +628,18 @@ export class OfflineStorage implements CacheStorage {
 		const ids = storableInstances.map((dbRefs) => dbRefs.encodedElementId)
 
 		const resultRows = await this.allChunked(1000, ids, (idsChunk) => {
-			if (typeModel.type === TypeId.Element) {
+			if (typeModel.type === EntityTypeEnum.Element) {
 				return sql`SELECT elementId, rowid
 						   FROM element_entities
 						   WHERE type = ${typeString}
 							 and elementId IN ${paramList(idsChunk)}`
-			} else if (typeModel.type === TypeId.ListElement) {
+			} else if (typeModel.type === EntityTypeEnum.ListElement) {
 				return sql`SELECT elementId, listId, rowid
 						   FROM list_entities
 						   WHERE type = ${typeString}
 							 and listId = ${listId}
 							 and elementId IN ${paramList(idsChunk)}`
-			} else if (typeModel.type === TypeId.BlobElement) {
+			} else if (typeModel.type === EntityTypeEnum.BlobElement) {
 				return sql`SELECT elementId, listId, rowid
 						   FROM blob_element_entities
 						   WHERE type = ${typeString}
@@ -908,7 +908,7 @@ export class OfflineStorage implements CacheStorage {
 			}
 		}
 		switch (typeModel.type) {
-			case TypeId.Element:
+			case EntityTypeEnum.Element:
 				await this.runChunked(
 					MAX_SAFE_SQL_VARS - 1,
 					ids.map((id) => serverToLocalIdEncoding(typeModel, elementIdToId(id))),
@@ -918,7 +918,7 @@ export class OfflineStorage implements CacheStorage {
 								 AND elementId IN ${paramList(c)}`,
 				)
 				break
-			case TypeId.ListElement:
+			case EntityTypeEnum.ListElement:
 				{
 					const byListId = groupByAndMap(ids, listIdPart, (id) => serverToLocalIdEncoding(typeModel, elementIdPart(id as IdTuple)))
 					for (const [listId, elementIds] of byListId) {
@@ -934,7 +934,7 @@ export class OfflineStorage implements CacheStorage {
 					}
 				}
 				break
-			case TypeId.BlobElement:
+			case EntityTypeEnum.BlobElement:
 				{
 					const byListId = groupByAndMap(ids as IdTuple[], listIdPart, (id) => serverToLocalIdEncoding(typeModel, elementIdPart(id)))
 					for (const [listId, elementIds] of byListId) {

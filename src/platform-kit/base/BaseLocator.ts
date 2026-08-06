@@ -32,14 +32,13 @@ import {
 	ApplicationTypesFacade,
 	ClientModelInfo,
 	InstancePipeline,
-	NamedClientModel,
 	PatchMerger,
 	ServerModelInfo,
 	SimpleFileFacade,
 	TypeModelResolver,
 	UpdateAppTypesHashMiddleware,
 } from "../instance-pipeline"
-import { lazyAsync, lazyMemoized } from "../utils"
+import { lazy, lazyAsync, lazyMemoized, Nullable } from "../utils"
 import { NoZoneDateProvider } from "../utils/NoZoneDateProvider.js"
 import { NativeCryptoFacade } from "../../app-kit/native-bridge/common/generatedipc/types/NativeCryptoFacade"
 import { ServiceExecutor } from "../network/ServiceExecutor"
@@ -104,13 +103,25 @@ export type BaseLocator = {
 	lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider>
 }
 
+export interface BaseLocatorWorker {
+	sendError(e: Error): Promise<void>
+	getMainInterface(): BaseLocatorMainInterface
+}
+
+export type BaseLocatorMainInterface = {
+	infoMessageHandler: OnInfoMessage
+}
+export interface OnInfoMessage {
+	onInfoMessage(msg: InfoMessageArgs): void
+}
+
+export type InfoMessageArgs = {
+	translationKey: string
+	args: Record<string, unknown>
+}
+
 export type BaseLocatorConfig = {
-	worker: {
-		sendError(e: Error): Promise<void>
-		getMainInterface(): {
-			infoMessageHandler: { onInfoMessage(msg: { translationKey: string; args: Record<string, unknown> }): void }
-		}
-	}
+	worker: BaseLocatorWorker
 	clientModelInfo: ClientModelInfo
 	browserData: BrowserData
 	loginListenerProvider: (user: UserFacade) => LoginListener
@@ -118,28 +129,30 @@ export type BaseLocatorConfig = {
 	lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider>
 	cacheManagement: lazyAsync<CacheManager>
 	identityKeyTrustDatabase: IdentityKeyTrustDatabase
-	argon2idFacade?: Argon2idFacade
+	argon2idFacade: Nullable<Argon2idFacade>
 	domainConfig: DomainConfig
 	rsa: RsaImplementation
 	fileFacade: SimpleFileFacade
-	nativeCryptoFacade?: NativeCryptoFacade
-	entityMigratorFactory: (params: {
-		cryptoWrapper: CryptoWrapper
-		user: UserFacade
-		keyLoader: KeyLoaderFacade
-		cachingEntityClient: EntityClient
-		serviceExecutor: IServiceExecutor
-		typeModelResolver: TypeModelResolver
-		instancePipeline: InstancePipeline
-		restClient: RestClient
-		crypto: CryptoFacade
-	}) => EntityMigrator
+	nativeCryptoFacade: Nullable<NativeCryptoFacade>
+	entityMigratorFactory: (params: EntityMigratorFactoryParams) => EntityMigrator
 	entityRestCache: (
 		entityRestClient: EntityRestClient,
 		patchMerger: PatchMerger,
 		typeModelResolver: TypeModelResolver,
 		lastProcessed: lazyAsync<LastProcessedEventBatchProvider>,
 	) => EntityRestInterface
+}
+
+export type EntityMigratorFactoryParams = {
+	cryptoWrapper: CryptoWrapper
+	user: UserFacade
+	keyLoader: KeyLoaderFacade
+	cachingEntityClient: EntityClient
+	serviceExecutor: IServiceExecutor
+	typeModelResolver: TypeModelResolver
+	instancePipeline: InstancePipeline
+	restClient: RestClient
+	crypto: CryptoFacade
 }
 
 export async function createBaseLocator({
@@ -188,7 +201,7 @@ export async function createBaseLocator({
 
 	// Declared before serviceExecutor and entityRestClient because it's captured via lazyCrypto
 	let crypto: CryptoFacade
-	const lazyCrypto = () => crypto
+	const lazyCrypto: lazy<CryptoFacade> = () => crypto
 	const serviceExecutor = new ServiceExecutor(restClient, user, instancePipeline, lazyCrypto, typeModelResolver)
 	applicationTypesFacade = new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo)
 	const entropyFacade = new EntropyFacade(user, serviceExecutor, random, () => keyLoader)

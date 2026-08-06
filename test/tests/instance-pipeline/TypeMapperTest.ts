@@ -4,6 +4,7 @@ import { EncryptedParsedInstance, TypeModelResolver } from "../../../src/platfor
 import { changeInstanceDirection, DummyTypeModelResolver, testAggregateModel, testTypeModel } from "./InstancePipelineTestUtils"
 import { IncomingServerJson, TypeMapper } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
 import { InstanceDirection, ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
+import { withOverriddenEnv } from "../TestUtils"
 
 o.spec("TypeMapperTest", function () {
 	let typeMapper: TypeMapper
@@ -117,15 +118,16 @@ o.spec("TypeMapperTest", function () {
 		})
 
 		o("jsonify outgoing instance with networkDebugging", async function () {
-			env.networkDebugging = true
-			const outgoingJsonNetDebugged = await typeMapper.makeServerJson(encryptedParsedInstance)
+			await withOverriddenEnv({ networkDebugging: true }, async () => {
+				const outgoingJsonNetDebugged = await typeMapper.makeServerJson(encryptedParsedInstance)
 
-			const instanceAsRecord = outgoingJsonNetDebugged.getInnerJson()
-			o(instanceAsRecord["1:testValue"]).equals("test string")
-			o(instanceAsRecord["3:testAssociation"]![0]["2:testNumber"]).equals("123")
-			o(instanceAsRecord["5:testDate"]).equals("1735736415000")
+				const instanceAsRecord = outgoingJsonNetDebugged.getInnerJson()
+				o(instanceAsRecord["1:testValue"]).equals("test string")
+				o(instanceAsRecord["3:testAssociation"]![0]["2:testNumber"]).equals("123")
+				o(instanceAsRecord["5:testDate"]).equals("1735736415000")
 
-			o(JSON.parse(outgoingJsonNetDebugged.getJsonRepresentation())).deepEquals(JSON.parse(jsonInstanceNetDebugged))
+				o(JSON.parse(outgoingJsonNetDebugged.getJsonRepresentation())).deepEquals(JSON.parse(jsonInstanceNetDebugged))
+			})
 		})
 	})
 })

@@ -2,6 +2,14 @@ import { assertMainOrNodeBoot, isAndroidApp, isApp, isBrowser, isDesktop, isIOSA
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
 import { AppType } from "../AppType"
+import { TypeChecks } from "./TsTypeChecks"
+import {
+	_cssQuerySelectorIsSupported,
+	_expectedBuiltInsArePresent,
+	_expectedJsSyntaxes,
+	_haveWebsocket,
+	_isSupportedBrowserVersion,
+} from "./TsPlatformConstants"
 
 assertMainOrNodeBoot()
 
@@ -15,7 +23,16 @@ export class ClientDetector {
 	appType!: AppType
 	isAutomatedBrowser: boolean = false
 
-	constructor() {}
+	private static singeleton: ClientDetector | null = null
+	public static get(): ClientDetector {
+		if (this.singeleton != null) {
+			return this.singeleton
+		}
+		this.singeleton = new ClientDetector(env)
+		return this.singeleton
+	}
+
+	constructor(public readonly env: Env) {}
 
 	init(userAgent: string, platform: string, appType: AppType = AppType.Integrated) {
 		this.userAgent = userAgent
@@ -40,103 +57,20 @@ export class ClientDetector {
 	}
 
 	/**
-	 * This function uses syntax constructs which we want to make sure are supported. If they are not then this file cannot be imported.
-	 */
-	syntaxChecks() {
-		// By default rollup disables tree-shaking inside the try-catch.
-		try {
-			const arrowFunction = () => {
-				return 1
-			}
-
-			let aLet = 2
-
-			function* testGenerator() {}
-
-			async function testAsync() {}
-
-			function testDefaultArgs(a = 2) {}
-
-			testGenerator()
-			testAsync()
-			testDefaultArgs()
-			const anArray = [1, 2, 3]
-			const spreadArray = [...anArray]
-			const dynamicString = ""
-			const impossibleCondition = arrowFunction() === aLet
-
-			if (impossibleCondition) {
-				import(dynamicString)
-			}
-
-			const objectSyntax = {
-				[dynamicString]: true,
-
-				testFn() {},
-
-				get accessor() {
-					return null
-				},
-
-				set accessor(newValue) {},
-			}
-			const templateString = `test ${dynamicString}`
-			const x = 1
-			const y = 2
-			const propertyShorthand = {
-				x,
-				y,
-			}
-			const { x: x2, y: y2 } = propertyShorthand
-			const [a1, a2, ...arest] = anArray
-
-			class WithStatisMember {
-				static aFuncton() {}
-			}
-
-			for (const item of testGenerator()) {
-				/* empty */
-			}
-		} catch (e) {
-			/* empty */
-		}
-	}
-
-	testBuiltins(): boolean {
-		return (
-			typeof Set !== "undefined" &&
-			typeof Map !== "undefined" &&
-			typeof Array.prototype.includes === "function" &&
-			typeof Object.entries === "function" &&
-			typeof Object.values === "function" &&
-			typeof Object.fromEntries === "function" &&
-			typeof Symbol !== "undefined" &&
-			typeof Uint8Array !== "undefined" &&
-			typeof Proxy !== "undefined" &&
-			typeof Reflect !== "undefined" &&
-			typeof Promise.prototype.finally !== "undefined" &&
-			typeof String.prototype.replaceAll === "function" &&
-			typeof BigInt !== "undefined" &&
-			typeof structuredClone === "function"
-		)
-	}
-
-	testCss(): boolean {
-		try {
-			document.querySelector("blockquote:not(blockquote blockquote)")
-			document.querySelectorAll(":where(.mouse-nav)")
-			return true
-		} catch (e) {
-			return false
-		}
-	}
-
-	/**
 	 * Browsers which support these features are supported
 	 */
 	isSupported(): boolean {
-		this.syntaxChecks()
-		return this.isSupportedBrowserVersion() && this.testBuiltins() && this.websockets() && this.testCss() && this.lookBehindRegex()
+		return (
+			_expectedJsSyntaxes() &&
+			this.isSupportedBrowserVersion() &&
+			_expectedBuiltInsArePresent &&
+			_haveWebsocket() &&
+			_cssQuerySelectorIsSupported() &&
+			this.lookBehindRegex()
+		)
+	}
+	isSupportedBrowserVersion(): boolean {
+		return _isSupportedBrowserVersion(this.browser, this.browserVersion)
 	}
 
 	isMobileDevice(): boolean {
@@ -145,13 +79,6 @@ export class ClientDetector {
 
 	isDesktopDevice(): boolean {
 		return this.device === DeviceType.DESKTOP
-	}
-
-	/**
-	 * @see https://github.com/Modernizr/Modernizr/blob/5e3f359bfc9aa511543ece60bd8a6ea8aa7defd3/feature-detects/websockets.js
-	 */
-	websockets(): boolean {
-		return "WebSocket" in window && window.WebSocket.CLOSING === 2
 	}
 
 	localStorage(): boolean {
@@ -169,14 +96,14 @@ export class ClientDetector {
 	 * @returns true if webassembly is supported
 	 */
 	webassembly(): boolean {
-		return typeof WebAssembly === "object" && typeof WebAssembly.instantiate === "function"
+		return TypeChecks.isObject(WebAssembly) && TypeChecks.isFunction(WebAssembly.instantiate)
 	}
 
 	/**
 	 * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/history.js
 	 */
 	history(): boolean {
-		return window.history && "pushState" in window.history
+		return window.history != null && "pushState" in window.history
 	}
 
 	/**
@@ -330,7 +257,7 @@ export class ClientDetector {
 		if (
 			this.userAgent.match(/iPad.*AppleWebKit/) != null || // iPadOS does not differ in UserAgent from Safari on macOS. Use hack with TouchEvent to detect iPad
 			// Desktop Chrome has TouchEvent but it also has Chrome in it. Mobile iOS has CriOS in it and not Chrome.
-			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(this.userAgent) && window.TouchEvent && /.*Chrome.*/.test(this.userAgent) === false)
+			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(this.userAgent) && window.TouchEvent != null && /.*Chrome.*/.test(this.userAgent) === false)
 		) {
 			this.device = DeviceType.IPAD
 		} else if (this.userAgent.match(/iPhone.*AppleWebKit/) != null) {
@@ -363,36 +290,21 @@ export class ClientDetector {
 	}
 
 	getIdentifier(): string {
-		if (env.mode === Mode.App) {
+		if (this.env.mode === Mode.App) {
 			if (this.appType === AppType.Integrated) throw new Error("AppType.Integrated is not allowed for mobile apps")
 			const appType = this.appType === AppType.Mail ? "Mail" : "Calendar"
-			return `${client.device} ${appType} App`
+			return `${ClientDetector.get().device} ${appType} App`
 		} else if (isBrowser()) {
-			return client.browser + " Browser"
-		} else if (env.platformId === "linux") {
+			return ClientDetector.get().browser + " Browser"
+		} else if (this.env.platformId === "linux") {
 			return "Linux Desktop"
-		} else if (env.platformId === "darwin") {
+		} else if (this.env.platformId === "darwin") {
 			return "Mac Desktop"
-		} else if (env.platformId === "win32") {
+		} else if (this.env.platformId === "win32") {
 			return "Windows Desktop"
 		}
 
 		return "Unknown"
-	}
-
-	isSupportedBrowserVersion(): boolean {
-		return this.notOldFirefox() && this.notOldChrome()
-	}
-
-	notOldFirefox(): boolean {
-		// issue only occurs for old Firefox browsers
-		// Object.hasOwn() is only supported starting in 92
-		return this.browser !== BrowserType.FIREFOX || this.browserVersion > 92
-	}
-
-	notOldChrome(): boolean {
-		// Object.hasOwn() is only supported starting in 93
-		return this.browser !== BrowserType.CHROME || this.browserVersion > 93
 	}
 
 	needsMicrotaskHack(): boolean {
@@ -418,7 +330,7 @@ export class ClientDetector {
 	}
 
 	compressionStreamSupported(): boolean {
-		return typeof CompressionStream !== "undefined"
+		return !TypeChecks.hasProperty("CompressionStream")
 	}
 
 	isCalendarApp(): boolean {
@@ -435,9 +347,9 @@ export class ClientDetector {
 
 	getClientPlatform(): ClientPlatform {
 		if (isDesktop()) {
-			if (env.platformId === "darwin") return ClientPlatform.DESKTOP_MAC
-			if (env.platformId === "linux") return ClientPlatform.DESKTOP_LINUX
-			if (env.platformId === "win32") return ClientPlatform.DESKTOP_WINDOWS
+			if (this.env.platformId === "darwin") return ClientPlatform.DESKTOP_MAC
+			if (this.env.platformId === "linux") return ClientPlatform.DESKTOP_LINUX
+			if (this.env.platformId === "win32") return ClientPlatform.DESKTOP_WINDOWS
 			return ClientPlatform.DESKTOP_UNKNOWN
 		}
 		if (!isApp()) return ClientPlatform.WEB
@@ -469,5 +381,3 @@ export enum ClientPlatform {
 	DESKTOP_LINUX,
 	DESKTOP_WINDOWS,
 }
-
-export const client: ClientDetector = new ClientDetector()

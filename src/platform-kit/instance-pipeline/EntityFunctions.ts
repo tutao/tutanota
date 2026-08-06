@@ -2,26 +2,26 @@ import { assertNotNull, downcast, isNotNull, lazyAsync } from "@tutao/utils"
 import {
 	type AppName,
 	AppNameEnum,
-	AssociationType,
+	AssociationTypeEnum,
 	AttributeId,
-	Cardinality,
+	CardinalityEnum,
 	ClientTypeModel,
+	EntityTypeEnum,
 	ModelAssociation,
 	ModelValue,
 	ServerTypeModel,
-	Type,
 	TypeRef,
-	ValueType,
 	ValueTypeEnum,
 } from "@tutao/meta"
 import { InvalidModelError, isTest, ProgrammingError } from "@tutao/app-env"
 import { ApplicationTypesGetOut } from "./ApplicationTypesFacade"
+import { TypeChecks } from "../app-env/boot/TsTypeChecks"
 
 export type ApplicationTypesHash = string
 export type ApplicationVersionSum = number
 export type ApplicationVersion = number
-export type ServerTypeReferenceResolver = (typeref: TypeRef<any>) => Promise<ServerTypeModel>
-export type ClientTypeReferenceResolver = (typeref: TypeRef<any>) => Promise<ClientTypeModel>
+export type ServerTypeReferenceResolver = (typeRef: TypeRef<any>) => Promise<ServerTypeModel>
+export type ClientTypeReferenceResolver = (typeRef: TypeRef<any>) => Promise<ClientTypeModel>
 export type ServerTypeFetcher = (expectedHash: string | null) => Promise<ApplicationTypesGetOut>
 export type NamedClientModel = { app: AppName; clientModel: Record<string, ClientTypeModel>; modelInfo: ModelInfo }
 
@@ -29,14 +29,12 @@ export type ModelInfo = { version: ApplicationVersion }
 export type ModelInfos = {
 	[knownApps in AppName]: ModelInfo
 }
-export type ServerModels = Record<
-	AppName,
-	{
-		name: AppName
-		version: ApplicationVersion
-		types: Record<string, ServerTypeModel>
-	}
->
+export type JsApp = {
+	name: AppName
+	version: ApplicationVersion
+	types: Record<string, ServerTypeModel>
+}
+export type ServerModels = Record<AppName, JsApp>
 export type ClientModels = Record<AppName, Record<string, ClientTypeModel>>
 
 export class ClientModelInfo {
@@ -112,6 +110,11 @@ export class ClientModelInfo {
 	private resolveDependsOnVersion(dependency: AppName) {
 		return this.modelInfos[dependency].version
 	}
+}
+
+type ParsedModel = {
+	types: Record<string, ServerTypeModel>
+	version: number
 }
 
 export class ServerModelInfo {
@@ -193,10 +196,7 @@ export class ServerModelInfo {
 		this.applicationTypesHash = applicationTypesHash
 	}
 
-	private parseAllTypesForModel(modelInfo: Record<string, unknown>): {
-		types: Record<string, ServerTypeModel>
-		version: number
-	} {
+	private parseAllTypesForModel(modelInfo: Record<string, unknown>): ParsedModel {
 		const appName = this.ensureVariantOfList(this.getAppNames(), String(modelInfo.name))
 		const version: ApplicationVersion = this.asNumber(modelInfo.version)
 		const modelTypeInfoRecord = assertNotNull(modelInfo.types) as Record<string, unknown>
@@ -224,7 +224,7 @@ export class ServerModelInfo {
 			id: typeId,
 			since: this.asNumber(typeInfoRecord.since),
 			name: this.asString(typeInfoRecord.name),
-			type: this.ensureVariantOf(Type, String(typeInfoRecord.type)),
+			type: this.ensureVariantOf(EntityTypeEnum, String(typeInfoRecord.type)),
 			versioned: this.asBoolean(typeInfoRecord.versioned),
 			encrypted: this.asBoolean(typeInfoRecord.encrypted),
 			isPublic: this.asBoolean(typeInfoRecord.isPublic),
@@ -241,10 +241,10 @@ export class ServerModelInfo {
 			const modelValueInfoRecord = modelValueInfo as Record<string, unknown>
 			const attrId = this.asNumber(modelValueInfoRecord.id)
 			const serverEncrypted = this.asBoolean(modelValueInfoRecord.encrypted)
-			const serverValueType = this.ensureVariantOf(ValueType, String(modelValueInfoRecord.type)) as ValueTypeEnum
+			const serverValueType = this.ensureVariantOf(ValueTypeEnum, String(modelValueInfoRecord.type)) as ValueTypeEnum
 			const serverName = this.asString(modelValueInfoRecord.name)
 			const serverFinal = this.asBoolean(modelValueInfoRecord.final)
-			const serverCardinality = this.ensureVariantOf(Cardinality, String(modelValueInfoRecord.cardinality))
+			const serverCardinality = this.ensureVariantOf(CardinalityEnum, String(modelValueInfoRecord.cardinality))
 
 			const clientModelValue = clientModelType?.values[attrId]
 
@@ -300,15 +300,13 @@ export class ServerModelInfo {
 				id: this.asNumber(associationInfoRecord.id),
 				name: this.asString(associationInfoRecord.name),
 				final: this.asBoolean(associationInfoRecord.final),
-				type: this.ensureVariantOf(AssociationType, String(associationInfoRecord.type)),
-				cardinality: this.ensureVariantOf(Cardinality, String(associationInfoRecord.cardinality)),
+				type: this.ensureVariantOf(AssociationTypeEnum, String(associationInfoRecord.type)),
+				cardinality: this.ensureVariantOf(CardinalityEnum, String(associationInfoRecord.cardinality)),
 				refTypeId: this.asNumber(associationInfoRecord.refTypeId),
+				dependency: TypeChecks.isString(associationInfoRecord.dependency)
+					? this.ensureVariantOf(AppNameEnum, associationInfoRecord.dependency as string)
+					: null,
 			}
-
-			// dependency can be null, so assign it after above `verifyNoNullValueInRecord` check. and check here instead
-			Object.assign(modelAssociation, {
-				dependency: typeof associationInfoRecord.dependency === "string" ? this.ensureVariantOf(AppNameEnum, associationInfoRecord.dependency) : null,
-			})
 
 			Object.assign(associations, { [modelAssociation.id]: modelAssociation })
 		}
@@ -317,7 +315,7 @@ export class ServerModelInfo {
 			for (const clientAssociation of Object.values(clientModelAssociation.associations)) {
 				const isRemovedByServer = !Object.keys(associations).some((serverAssocId) => clientAssociation.id.toString() === serverAssocId)
 
-				if (isRemovedByServer && clientAssociation.cardinality === Cardinality.One) {
+				if (isRemovedByServer && clientAssociation.cardinality === CardinalityEnum.One) {
 					// INFRA-NOTE:
 					// we should do more of these verification here. example: ( Adding an association with cardinality one )
 					// so when we fetch a new server model json, we can already show a client too old error.
@@ -331,7 +329,7 @@ export class ServerModelInfo {
 		return associations
 	}
 
-	private ensureVariantOf<T extends string>(obj: Record<any, T>, inputStr: string): Values<typeof obj> {
+	private ensureVariantOf<T extends string>(obj: Record<any, T>, inputStr: string): T {
 		const knownVariants = Object.values(obj)
 		return assertNotNull(
 			knownVariants.find((a) => a === inputStr),
@@ -351,35 +349,32 @@ export class ServerModelInfo {
 	}
 
 	private asString(value: any): string {
-		if (value != null && typeof value !== "object") return value.toString()
+		if (value != null && !TypeChecks.isObject(value)) return value.toString()
 		else throw new Error(`value ${value} is not string compatible`)
 	}
 
 	private asNumber(value: any): number {
-		if (value != null && (typeof value === "string" || typeof value === "number")) return parseInt(value.toString())
+		if (value != null && (TypeChecks.isString(value) || TypeChecks.isNumber(value))) return parseInt(value.toString())
 		else throw new Error(`value ${value} is not number compatible`)
 	}
 
 	private asBoolean(value: any): boolean {
-		if (typeof value === "boolean") return value
-		else if (typeof value === "string") return value === "true"
+		if (TypeChecks.isBoolean(value)) return value
+		else if (TypeChecks.isString(value)) return value === "true"
 		else throw new Error(`value: ${value} is not boolean compatible`)
 	}
 
 	private getClientModelType(appName: AppName, typeId: string): ClientTypeModel | null {
-		const clientApp = this.clientModelInfo.typeModels[appName]
-		if (clientApp) {
-			const clientType = clientApp[typeId]
-			if (clientType) {
-				return clientType
-			}
+		const clientApp = this.clientModelInfo.typeModels[appName] ?? null
+		if (isNotNull(clientApp)) {
+			return clientApp[typeId] ?? null
 		}
 		return null
 	}
 }
 
 export function ensureIsPersistentType(typeModel: ClientTypeModel) {
-	if (typeModel.type !== Type.Element && typeModel.type !== Type.ListElement && typeModel.type !== Type.BlobElement) {
+	if (typeModel.type !== EntityTypeEnum.Element && typeModel.type !== EntityTypeEnum.ListElement && typeModel.type !== EntityTypeEnum.BlobElement) {
 		throw new Error("only Element, ListElement and BlobElement types are permitted, was: " + typeModel.type)
 	}
 }

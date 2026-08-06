@@ -118,6 +118,8 @@ export {
 	aes256RandomKey,
 	keyToUint8Array,
 	uint8ArrayToKey,
+	uint8ArrayTo256Key,
+	uint8ArrayTo128Key,
 	base64ToKey,
 	keyToBase64,
 	uint8ArrayToBitArray,

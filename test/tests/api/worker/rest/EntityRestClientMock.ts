@@ -7,8 +7,9 @@ import {
 	ElementEntity,
 	elementIdPart,
 	elementIdToId,
+	EntityTypeEnum,
+	expandId,
 	firstBiggerThanSecond,
-	getIdOfInstance,
 	getServerIdEncodingForType,
 	idToElementId,
 	isSameId,
@@ -18,7 +19,6 @@ import {
 	PersistentEntity,
 	stringifyId,
 	timestampToGeneratedId,
-	Type,
 	TypeRef,
 } from "../../../../../src/platform-kit/meta"
 import { ensureIsPersistentType, LoggedInUserProvider, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
@@ -167,7 +167,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		const typeModel = await this._typeModelResolver.resolveClientTypeReference(typeRef)
 
 		switch (typeModel.type) {
-			case Type.Element: {
+			case EntityTypeEnum.Element: {
 				const entities = this._entities[typeRef.toString()] ?? {}
 				return elementIds
 					.map((id) => {
@@ -183,12 +183,12 @@ export class EntityRestClientMock extends EntityRestClient {
 					})
 					.filter(isNotNull)
 			}
-			case Type.BlobElement:
-			case Type.ListElement: {
+			case EntityTypeEnum.BlobElement:
+			case EntityTypeEnum.ListElement: {
 				return elementIds.map((id) => downcast<T>(this._getListEntry(typeRef as TypeRef<ListElementEntity>, assertNotNull(lid), id))).filter(isNotNull)
 			}
-			case Type.Aggregated:
-			case Type.DataTransfer: {
+			case EntityTypeEnum.Aggregated:
+			case EntityTypeEnum.DataTransfer: {
 				throw new ProgrammingError("aggregated/dataTransfer are not to be requested")
 			}
 		}
@@ -198,9 +198,9 @@ export class EntityRestClientMock extends EntityRestClient {
 		const typeModel = await this._typeModelResolver.resolveClientTypeReference(instance._type)
 		ensureIsPersistentType(typeModel)
 
-		const ids = getIdOfInstance(instance, typeModel)
+		const { listId, elementId } = expandId(instance._id)
 
-		this._handleDelete(instance._type, ids.id, ids.listId)
+		this._handleDelete(instance._type, elementId, listId)
 		return Promise.resolve()
 	}
 
@@ -213,7 +213,7 @@ export class EntityRestClientMock extends EntityRestClient {
 		ensureIsPersistentType(typeModel)
 
 		this._handleDeleteMultiple(
-			instances.map((it) => getIdOfInstance(it, typeModel).id),
+			instances.map((it) => expandId(it._id).elementId),
 			listId,
 		)
 		return Promise.resolve()

@@ -12,7 +12,6 @@ import {
 	getKeyLengthInBytes,
 	keyToUint8Array,
 	sha256Hash,
-	uint8ArrayToKey,
 } from "../../../src/platform-kit/crypto"
 import { AsyncLoginStateOptions, LoginFacade, LoginFailReason, LoginListener, ResumeSessionState } from "../../../src/platform-kit/base/facades/LoginFacade"
 import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest"
@@ -57,10 +56,11 @@ import { encryptKey } from "../../../src/platform-kit/crypto/instance-pipeline-c
 import { _encryptString } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { idToElementId } from "../../../src/platform-kit/meta"
+import { uint8ArrayTo256Key } from "@tutao/crypto/symmetric-cipher-utils"
 
 const { anything, argThat } = matchers
 
-const PASSWORD_KEY = uint8ArrayToKey(new Uint8Array(Array(getKeyLengthInBytes(AesKeyLength.Aes256)).keys()), AesKeyLength.Aes256)
+const PASSWORD_KEY = uint8ArrayTo256Key(new Uint8Array(Array(getKeyLengthInBytes(AesKeyLength.Aes256)).keys()))
 
 /** Verify using testdouble, but register as an ospec assertion */
 export function verify(demonstration: any, config?: td.VerificationConfig) {
@@ -349,7 +349,7 @@ o.spec("LoginFacadeTest", function () {
 
 				await facade.resumeSession(credentials, null, dbKey)
 
-				o(facade.asyncLoginState).deepEquals({ state: AsyncLoginStateOptions.Idle })(
+				o(facade.asyncLoginState).deepEquals({ state: AsyncLoginStateOptions.Idle, failure: null })(
 					"Synchronous login occured, so once resume returns we have already logged in",
 				)
 				verify(eventBusClientMock.connect(ConnectMode.Initial))
@@ -366,7 +366,7 @@ o.spec("LoginFacadeTest", function () {
 
 				await facade.resumeSession(credentials, null, dbKey)
 
-				o(facade.asyncLoginState).deepEquals({ state: AsyncLoginStateOptions.Running })("Async login occurred so it is still running")
+				o(facade.asyncLoginState).deepEquals({ state: AsyncLoginStateOptions.Running, failure: null })("Async login occurred so it is still running")
 			})
 
 			o.test("when resuming a session and a notAuthenticatedError is thrown, the error is propagated to the main thread", async function () {

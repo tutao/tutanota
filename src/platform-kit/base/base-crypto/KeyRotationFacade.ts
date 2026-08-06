@@ -40,7 +40,7 @@ import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
 import { KeyVerificationMismatchError } from "../../network/error/KeyVerificationMismatchError"
 import { RolloutAction } from "../facades/RolloutFacade"
 import { RecoverCodeFacade } from "../facades/lazy/RecoverCodeFacade.js"
-import { brandKeyMac, KeyAuthenticationFacade } from "../../network/KeyAuthenticationFacade.js"
+import { brandKeyMac, KeyAuthenticationFacade, SystemMapKind } from "../../network/KeyAuthenticationFacade.js"
 import {
 	AdminGroupKeyDistributionElement,
 	AdminGroupKeyRotationService,
@@ -213,12 +213,12 @@ export class KeyRotationFacade {
 		]
 			.flat()
 			.filter(isNotNull)
-		let customerGroupKeyRotationArray = keyRotationsByType.get(GroupKeyRotationType.Customer) || []
-		const adminOrUserGroupKeyRotation = adminOrUserGroupKeyRotationArray[0]
+		const customerGroupKeyRotationArray = keyRotationsByType.get(GroupKeyRotationType.Customer) || []
+		const adminOrUserGroupKeyRotation = adminOrUserGroupKeyRotationArray.at(0) ?? null
 		return {
-			adminOrUserGroupKeyRotation: adminOrUserGroupKeyRotation ? adminOrUserGroupKeyRotation : null,
-			teamOrCustomerGroupKeyRotations: customerGroupKeyRotationArray.concat(keyRotationsByType.get(GroupKeyRotationType.Team) || []),
-			userAreaGroupsKeyRotations: keyRotationsByType.get(GroupKeyRotationType.UserArea) || [],
+			adminOrUserGroupKeyRotation,
+			teamOrCustomerGroupKeyRotations: customerGroupKeyRotationArray.concat(keyRotationsByType.get(GroupKeyRotationType.Team) ?? []),
+			userAreaGroupsKeyRotations: keyRotationsByType.get(GroupKeyRotationType.UserArea) ?? [],
 		}
 	}
 
@@ -298,13 +298,7 @@ export class KeyRotationFacade {
 	}
 
 	//We assume that the logged-in user is an admin user and that the key encrypting the group key are already pq secure
-	private async rotateUserAreaGroupKeys(
-		user: User,
-		pendingKeyRotations: PendingKeyRotation,
-	): Promise<{
-		groupKeyRotationData: GroupKeyRotationData[]
-		preparedReInvites: GroupInvitationPostData[]
-	}> {
+	private async rotateUserAreaGroupKeys(user: User, pendingKeyRotations: PendingKeyRotation): Promise<GroupKeyRotationDataAndReInvites> {
 		// * the encrypting keys are 128-bit keys. (user group key)
 		const currentUserGroupKey = this.keyLoaderFacade.getCurrentSymUserGroupKey()
 		if (hasNonQuantumSafeKeys(currentUserGroupKey.object)) {
@@ -443,7 +437,7 @@ export class KeyRotationFacade {
 
 			const currentUserGroupKey = await this.adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(userGroupInfo.group)
 			const tag = this.keyAuthenticationFacade.computeTag({
-				tagType: "NEW_ADMIN_PUB_KEY_TAG",
+				tagType: SystemMapKind.NEW_ADMIN_PUB_KEY_TAG,
 				sourceOfTrust: { receivingUserGroupKey: currentUserGroupKey.object },
 				untrustedKey: { newAdminPubKey },
 				bindingData: {
@@ -1004,7 +998,7 @@ export class KeyRotationFacade {
 
 		this.keyAuthenticationFacade.verifyTag(
 			{
-				tagType: "NEW_ADMIN_PUB_KEY_TAG",
+				tagType: SystemMapKind.NEW_ADMIN_PUB_KEY_TAG,
 				sourceOfTrust: { receivingUserGroupKey: currentUserGroupKey.object },
 				untrustedKey: { newAdminPubKey: currentAdminPubKeys.publicEncryptionKey.object },
 				bindingData: {
@@ -1072,7 +1066,7 @@ export class KeyRotationFacade {
 
 		this.keyAuthenticationFacade.verifyTag(
 			{
-				tagType: "ADMIN_SYM_KEY_TAG",
+				tagType: SystemMapKind.ADMIN_SYM_KEY_TAG,
 				sourceOfTrust: { currentReceivingUserGroupKey: currentUserGroupKey.object },
 				untrustedKey: { newAdminGroupKey: versionedNewAdminGroupKey.object },
 				bindingData: {
@@ -1107,7 +1101,7 @@ export class KeyRotationFacade {
 		})
 
 		const tag = this.keyAuthenticationFacade.computeTag({
-			tagType: "USER_GROUP_KEY_TAG",
+			tagType: SystemMapKind.USER_GROUP_KEY_TAG,
 			untrustedKey: {
 				newUserGroupKey: newUserGroupKeys.symGroupKey.object,
 			},
@@ -1160,7 +1154,7 @@ export class KeyRotationFacade {
 		const adminDistPublicKey = this.publicEncryptionKeyProvider.convertFromEncryptedPqKeyPairs(adminDistributionKeyPair, 0)
 
 		const tag = this.keyAuthenticationFacade.computeTag({
-			tagType: "PUB_DIST_KEY_TAG",
+			tagType: SystemMapKind.PUB_DIST_KEY_TAG,
 			sourceOfTrust: { currentAdminGroupKey: currentAdminGroupKey.object },
 			untrustedKey: {
 				distPubKey: adminDistPublicKey.object,
@@ -1248,7 +1242,7 @@ export class KeyRotationFacade {
 			const distributionPublicKey = this.publicEncryptionKeyProvider.convertFromPubDistributionKey(distributionKey)
 			this.keyAuthenticationFacade.verifyTag(
 				{
-					tagType: "PUB_DIST_KEY_TAG",
+					tagType: SystemMapKind.PUB_DIST_KEY_TAG,
 					sourceOfTrust: { currentAdminGroupKey: currentAdminGroupKey.object },
 					untrustedKey: {
 						distPubKey: distributionPublicKey.object,
@@ -1270,7 +1264,7 @@ export class KeyRotationFacade {
 			)
 
 			const adminSymKeyTag = this.keyAuthenticationFacade.computeTag({
-				tagType: "ADMIN_SYM_KEY_TAG",
+				tagType: SystemMapKind.ADMIN_SYM_KEY_TAG,
 				sourceOfTrust: { currentReceivingUserGroupKey: targetUserGroupKey.object },
 				untrustedKey: { newAdminGroupKey: newSymAdminGroupKey.object },
 				bindingData: {
@@ -1413,4 +1407,9 @@ export class KeyRotationRolloutAction implements RolloutAction {
 			}
 		}
 	}
+}
+
+type GroupKeyRotationDataAndReInvites = {
+	groupKeyRotationData: GroupKeyRotationData[]
+	preparedReInvites: GroupInvitationPostData[]
 }

@@ -1,4 +1,8 @@
 // TODO rename methods according to their JAVA counterparts (e.g. Uint8Array == bytes, Utf8Uint8Array == bytes...)
+
+import { TypeChecks } from "../app-env/boot/TsTypeChecks"
+import { isNotNull, Nullable } from "./Utils"
+
 export function uint8ArrayToArrayBuffer(uint8Array: Uint8Array): ArrayBuffer {
 	if (uint8Array.byteLength === uint8Array.buffer.byteLength) {
 		return uint8Array.buffer
@@ -139,13 +143,13 @@ export function base64ExtToBase64Url(base64Ext: string): string {
 }
 
 // just for edge, as it does not support TextEncoder yet
-export function _stringToUtf8Uint8ArrayLegacy(string: string): Uint8Array {
+export function _stringToUtf8Uint8ArrayLegacy(str: string): Uint8Array {
 	let fixedString
 
 	try {
-		fixedString = encodeURIComponent(string)
+		fixedString = encodeURIComponent(str)
 	} catch (e) {
-		fixedString = encodeURIComponent(_replaceLoneSurrogates(string)) // we filter lone surrogates as trigger URIErrors, otherwise (see https://github.com/tutao/tutanota/issues/618)
+		fixedString = encodeURIComponent(_replaceLoneSurrogates(str)) // we filter lone surrogates as trigger URIErrors, otherwise (see https://github.com/tutao/tutanota/issues/618)
 	}
 
 	let utf8 = unescape(fixedString)
@@ -197,18 +201,50 @@ export function _replaceLoneSurrogates(s: string | null): string {
 	return result.join("")
 }
 
-const encoder =
-	typeof TextEncoder === "function"
-		? new TextEncoder()
-		: {
-				encode: _stringToUtf8Uint8ArrayLegacy,
-			}
-const decoder =
-	typeof TextDecoder === "function"
-		? new TextDecoder()
-		: {
-				decode: _utf8Uint8ArrayToStringLegacy,
-			}
+interface IEncoder {
+	encode(str: string): Uint8Array
+}
+interface IDecoder {
+	decode(bytes: Uint8Array): string
+}
+
+class LegacyEncoderDecoder implements IEncoder, IDecoder {
+	encode(str: string): Uint8Array {
+		return _stringToUtf8Uint8ArrayLegacy(str)
+	}
+	decode(bytes: Uint8Array): string {
+		return _utf8Uint8ArrayToStringLegacy(bytes)
+	}
+}
+
+export class EncoderDecoder implements IEncoder, IDecoder {
+	private readonly encoder: IEncoder
+	private readonly decoder: IDecoder
+
+	private static singeleton: Nullable<EncoderDecoder>
+	public static get(): EncoderDecoder {
+		if (isNotNull(EncoderDecoder.singeleton)) {
+			return EncoderDecoder.singeleton
+		}
+		EncoderDecoder.singeleton = new EncoderDecoder()
+		return EncoderDecoder.singeleton
+	}
+
+	constructor() {
+		const hasTextEncoder = TypeChecks.hasProperty("TextEncoder") && TypeChecks.isFunction(TextEncoder)
+		const hasTextDecoder = TypeChecks.hasProperty("TextDecoder") && TypeChecks.isFunction(TextDecoder)
+		this.encoder = hasTextEncoder ? new TextEncoder() : new LegacyEncoderDecoder()
+		this.decoder = hasTextDecoder ? new TextDecoder() : new LegacyEncoderDecoder()
+	}
+
+	encode(str: string): Uint8Array {
+		return this.encoder.encode(str)
+	}
+
+	decode(bytes: Uint8Array): string {
+		return this.decoder.decode(bytes)
+	}
+}
 
 /**
  * Converts a string to a Uint8Array containing a UTF-8 string data.
@@ -217,7 +253,7 @@ const decoder =
  * @return The array.
  */
 export function stringToUtf8Uint8Array(string: string): Uint8Array {
-	return encoder.encode(string)
+	return EncoderDecoder.get().encode(string)
 }
 
 // just for edge, as it does not support TextDecoder yet
@@ -239,7 +275,7 @@ export function _utf8Uint8ArrayToStringLegacy(uint8Array: Uint8Array): string {
  * @return The string.
  */
 export function utf8Uint8ArrayToString(uint8Array: Uint8Array): string {
-	return decoder.decode(uint8Array)
+	return EncoderDecoder.get().decode(uint8Array)
 }
 
 export function hexToUint8Array(hex: Hex): Uint8Array {
@@ -420,7 +456,8 @@ function writeByteArray(result: Uint8Array, byteArray: Uint8Array, index: number
 	return index
 }
 
-function readByteArray(encoded: Uint8Array, index: number): { index: number; byteArray: Uint8Array } {
+type IndexAndByteArray = { index: number; byteArray: Uint8Array }
+function readByteArray(encoded: Uint8Array, index: number): IndexAndByteArray {
 	const length = readShort(encoded, index)
 	index += BYTE_ARRAY_LENGTH_FIELD_SIZE
 	const byteArray = encoded.slice(index, length + index)

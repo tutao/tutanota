@@ -19,7 +19,7 @@ import { Dialog } from "../../../../ui/base/Dialog"
 import { DateTime } from "luxon"
 import { clone, elementIdToId } from "@tutao/meta"
 import { EndType } from "@tutao/app-env"
-import { errorsToString } from "../../../../platform-kit/utils/Utils"
+import { errorsToString } from "../../../../ui/utils/ErrorInfo"
 
 export class CalendarImporter {
 	constructor(

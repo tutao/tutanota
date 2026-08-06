@@ -1,5 +1,5 @@
 import { callWebAssemblyFunctionWithArguments, ConstPtr, mutableSecureFree, Ptr, secureFree, stringToUtf8Uint8Array, WASMExports } from "@tutao/utils"
-import { uint8ArrayToKey } from "../../encryption/symmetric/SymmetricCipherUtils.js"
+import { uint8ArrayToKey, uint8ArrayTo256Key } from "../../encryption/symmetric/SymmetricCipherUtils.js"
 import { Aes256Key, AesKeyLength } from "../../encryption/symmetric/AesKey"
 import { number, NumberArgument, Uint8ArrayArgument } from "../../../utils/WebAssemblyArgument"
 // Per OWASP's recommendations @ https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html
@@ -40,7 +40,7 @@ export async function generateKeyFromPassphrase(argon2: Argon2IDExports, pass: s
 		ARGON2ID_KEY_LENGTH,
 	)
 
-	return uint8ArrayToKey(hash, AesKeyLength.Aes256)
+	return uint8ArrayTo256Key(hash)
 }
 
 async function argon2idHashRaw(

@@ -1,4 +1,4 @@
-import { neverNull } from "./Utils.js"
+import { isNull, neverNull, Nullable } from "./Utils.js"
 
 /**
  * Merges multiple maps into a single map with lists of values.
@@ -25,9 +25,9 @@ export function mergeMaps<T>(maps: Map<string, T>[]): Map<string, T[]> {
  * {@link byDefault} will be called, and its return value will be inserted into the map and returned.
  */
 export function getFromMap<K, V>(map: Map<K, V>, key: K, byDefault: () => V): V {
-	let value = map.get(key)
+	let value: Nullable<V> = map.get(key) ?? null
 
-	if (!value) {
+	if (isNull(value)) {
 		value = byDefault()
 		map.set(key, value)
 	}
@@ -35,13 +35,14 @@ export function getFromMap<K, V>(map: Map<K, V>, key: K, byDefault: () => V): V 
 	return value
 }
 
+export type TakeFromMapResult<T> = { item: Nullable<T>; wasPresent: boolean }
 /**
  * Removes an item from the map and returns it.
  *
  * In the case that the key-value pair was present but its value was undefined, you can read wasPresent to
  * check that it was present (and therefore deleted).
  */
-export function takeFromMap<K, V>(map: Map<K, V>, key: K): { item: V | null; wasPresent: boolean } {
+export function takeFromMap<K, V>(map: Map<K, V>, key: K): TakeFromMapResult<V> {
 	// Will return undefined if not present OR the value is actually === undefined
 	const item = map.get(key) ?? null
 

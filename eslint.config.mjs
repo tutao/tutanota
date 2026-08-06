@@ -24,7 +24,27 @@ const noUnionExceptNullable = {
 		}
 	},
 }
-
+const noUnnamedTypes = {
+	meta: {
+		type: "problem",
+		docs: { description: "Do not allow anonymous types" },
+		messages: {
+			noUnion: "Anonymous types are discouraged. Rather create a type alias and use that alias here",
+		},
+	},
+	create(context) {
+		return {
+			TSTypeLiteral(node) {
+				const parent = node.parent
+				if (parent?.type === "TSTypeAliasDeclaration" || parent?.type === "TSInterfaceDeclaration") {
+					// ok
+				} else {
+					context.report({ node, messageId: "noUnion" })
+				}
+			},
+		}
+	},
+}
 export default defineConfig([
 	{
 		rules: {
@@ -138,15 +158,53 @@ export default defineConfig([
 	},
 	{
 		files: ["src/platform-kit/**/*.ts"],
-		plugins: { local: { rules: { noUnionExceptNullable } } },
+		plugins: { local: { rules: { noUnionExceptNullable, noUnnamedTypes } } },
+		extends: [],
+		languageOptions: {
+			parserOptions: {
+				projectService: true,
+			},
+		},
 		rules: {
 			"local/noUnionExceptNullable": "error",
+			"@typescript-eslint/strict-boolean-expressions": "error",
+			"@typescript-eslint/no-non-null-assertion": "error",
+			"local/noUnnamedTypes": "error",
 			"no-restricted-syntax": [
 				"error",
 				{
 					selector: "PropertyDefinition[key.name='__brand'][accessibility!='protected']",
 					message:
 						"If you are extending TsBrand, make sure __brand is always protected. Else two brand with public __brand field will be same from type level",
+				},
+				{
+					selector: "UnaryExpression[operator='typeof']",
+					message:
+						"Do not use `typeof` check directly. Use helper functions in src/platform-kit/app-env/boot/TypeChecks.ts instead",
+				},
+				{
+					selector: "TSTypeQuery",
+					message: "Do not use TypeScript `typeof` queries directly. Use explicit types instead",
+				},
+				{
+					selector: "Identifier[name='undefined']",
+					message: "Use null instead of undefined.",
+				},
+				{
+					selector: "TSPropertySignature[optional=true]",
+					message: "Optional properties are not allowed.",
+				},
+				{
+					selector: "PropertyDefinition[optional=true]",
+					message: "Optional class properties are not allowed.",
+				},
+				{
+					selector: "Identifier[optional=true]",
+					message: "Optional parameters are not allowed.",
+				},
+				{
+					selector: "TSMethodSignature[optional=true]",
+					message: "Optional methods are not allowed.",
 				},
 			],
 		},

@@ -9,18 +9,19 @@ import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/ap
 import { matchers, object, when } from "testdouble"
 import {
 	AggregatedEntity,
-	Cardinality,
+	AssociationTypeEnum,
+	CardinalityEnum,
 	clone,
 	create,
 	Entity,
+	EntityTypeEnum,
 	generatedIdToTimestamp,
 	idToElementId,
 	ModelValue,
 	timestampToGeneratedId,
-	Type,
 	TypeModel,
 	TypeRef,
-	ValueType,
+	ValueTypeEnum,
 } from "../../src/platform-kit/meta"
 import { type fetch as undiciFetch, type Response } from "undici"
 import {
@@ -42,12 +43,15 @@ import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
 import { tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
 import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
 import { EncryptedDbWrapper } from "../../src/applications/common/api/worker/search/EncryptedDbWrapper"
-import { ClientPlatform } from "../../src/platform-kit/app-env/boot/ClientDetector"
+import { ClientDetector, ClientPlatform } from "../../src/platform-kit/app-env/boot/ClientDetector"
 import { KeyLoaderFacade } from "../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants"
 import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { OfflineMapper } from "../../src/platform-kit/instance-pipeline/OfflineMapper"
 import { ProgrammingError } from "../../src/platform-kit/app-env"
+import { TypeChecks } from "../../src/platform-kit/app-env/boot/TsTypeChecks"
+import { Type } from "cborg"
+import undefined = Type.undefined
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -214,39 +218,39 @@ function getDefaultTestValue(valueName: string, value: ModelValue, typeModel: Ty
 		return "0"
 	} else if (valueName === "_id") {
 		switch (typeModel.type) {
-			case Type.DataTransfer:
+			case EntityTypeEnum.DataTransfer:
 				throw new ProgrammingError("No _id for dataTransfer")
-			case Type.Aggregated:
+			case EntityTypeEnum.Aggregated:
 				return `${value.id}_id`
-			case Type.Element:
+			case EntityTypeEnum.Element:
 				return idToElementId(`${value.id}_id`)
-			case Type.ListElement:
-			case Type.BlobElement:
+			case EntityTypeEnum.ListElement:
+			case EntityTypeEnum.BlobElement:
 				return [`${value.id}_listid`, `${value.id}_elementId`]
 		}
 	} else if (valueName === "_permissions") {
 		return `${value.id}_permissions`
-	} else if (value.cardinality === Cardinality.ZeroOrOne) {
+	} else if (value.cardinality === CardinalityEnum.ZeroOrOne) {
 		return null
 	} else {
 		switch (value.type) {
-			case ValueType.Bytes:
+			case ValueTypeEnum.Bytes:
 				return new Uint8Array(0)
 
-			case ValueType.Date:
+			case ValueTypeEnum.Date:
 				return new Date(0)
 
-			case ValueType.Number:
+			case ValueTypeEnum.Number:
 				return "0"
 
-			case ValueType.String:
+			case ValueTypeEnum.String:
 				return ""
 
-			case ValueType.Boolean:
+			case ValueTypeEnum.Boolean:
 				return false
 
-			case ValueType.CustomId:
-			case ValueType.GeneratedId:
+			case ValueTypeEnum.CustomId:
+			case ValueTypeEnum.GeneratedId:
 				return `${value.id}_${valueName}`
 		}
 	}
@@ -263,36 +267,32 @@ export function createTestEntity<T extends Entity>(
 	const entity = create(typeModel, typeRef, getDefaultTestValue)
 	if (opts?.populateAggregates) {
 		for (const [_, assocDef] of typedEntries(typeModel.associations)) {
-			if (assocDef.cardinality === Cardinality.One) {
+			if (assocDef.cardinality === CardinalityEnum.One) {
 				const assocName = assocDef.name
 				switch (assocDef.type) {
-					case "AGGREGATION": {
+					case AssociationTypeEnum.Aggregation: {
 						const assocTypeRef = new TypeRef<AggregatedEntity>(assocDef.dependency ?? typeRef.app, assocDef.refTypeId)
-						entity[assocName] = createTestEntity(assocTypeRef, undefined, opts)
+						entity[assocName] = createTestEntity(assocTypeRef, {}, opts)
 						break
 					}
-					case "ELEMENT_ASSOCIATION":
+					case AssociationTypeEnum.ElementAssociation:
 						entity[assocName] = `elementAssoc_${assocName}`
 						break
-					case "LIST_ASSOCIATION":
+					case AssociationTypeEnum.ListAssociation:
 						entity[assocName] = `listAssoc_${assocName}`
 						break
-					case "LIST_ELEMENT_ASSOCIATION_GENERATED":
-					case "LIST_ELEMENT_ASSOCIATION_CUSTOM":
+					case AssociationTypeEnum.ListElementAssociationGenerated:
+					case AssociationTypeEnum.ListElementAssociationCustom:
 						entity[assocName] = [`listElemAssocList_${assocName}`, `listElemAssocElem_${assocName}`]
 						break
-					case "BLOB_ELEMENT_ASSOCIATION":
+					case AssociationTypeEnum.BlobElementAssociation:
 						entity[assocName] = [`blobElemAssocList_${assocName}`, `blobElemAssocElem_${assocName}`]
 						break
 				}
 			}
 		}
 	}
-	if (values) {
-		return Object.assign(entity, values)
-	} else {
-		return entity
-	}
+	return Object.assign(entity, values ?? {})
 }
 
 export async function createTestEntityWithDummyResolver<T extends Entity>(typeRef: TypeRef<T>, values?: Partial<T>): Promise<T> {
@@ -355,7 +355,9 @@ The last expected item is ${JSON.stringify(expectedArray.at(-1))} but got ${JSON
 
 export function removeOriginals<T extends Entity>(instance: T | null): T | null {
 	if (isNotNull(instance) && typeof instance === "object") {
-		delete instance["_original"]
+		if (TypeChecks.hasProperty("_original", instance)) {
+			instance["_original"] = null
+		}
 		for (const i of Object.values(instance).filter(isNotNull)) {
 			removeOriginals(i)
 		}
@@ -437,12 +439,14 @@ export async function withOverriddenEnv<F extends (...args: any[]) => any>(overr
 	for (const [key, value] of Object.entries(override)) {
 		env[key] = value
 	}
+	;(ClientDetector.get() as any).env = env
 	try {
 		return await action()
 	} finally {
 		for (const key of Object.keys(override)) {
 			env[key] = previousEnv[key]
 		}
+		;(ClientDetector.get() as any).env = env
 	}
 }
 

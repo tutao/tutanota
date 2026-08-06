@@ -5,6 +5,7 @@ import {
 	KeyAuthenticationFacade,
 	NewAdminPubKeyAuthenticationParams,
 	PubDistKeyAuthenticationParams,
+	SystemMapKind,
 	UserGroupKeyAuthenticationParams,
 } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade.js"
 import {
@@ -77,7 +78,7 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 	o.spec("user group key authentication system", function () {
 		o("should verify computed tag", async function () {
 			const params: UserGroupKeyAuthenticationParams = {
-				tagType: "USER_GROUP_KEY_TAG",
+				tagType: SystemMapKind.USER_GROUP_KEY_TAG,
 				untrustedKey: { newUserGroupKey },
 				sourceOfTrust: { currentUserGroupKey: currentUserGroupKey },
 				bindingData: {
@@ -122,7 +123,7 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 	o.spec("new admin public key authentication system", function () {
 		o("should verify computed tag", async function () {
 			const params: NewAdminPubKeyAuthenticationParams = {
-				tagType: "NEW_ADMIN_PUB_KEY_TAG",
+				tagType: SystemMapKind.NEW_ADMIN_PUB_KEY_TAG,
 				sourceOfTrust: { receivingUserGroupKey: currentUserGroupKey },
 				untrustedKey: {
 					newAdminPubKey: new PQPublicKeys(x25519PublicKey, kyberPublicKey),
@@ -180,7 +181,7 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 	o.spec("public distribution key authentication system", function () {
 		o("should verify computed tag", async function () {
 			const params: PubDistKeyAuthenticationParams = {
-				tagType: "PUB_DIST_KEY_TAG",
+				tagType: SystemMapKind.PUB_DIST_KEY_TAG,
 				sourceOfTrust: { currentAdminGroupKey },
 				untrustedKey: { distPubKey: new PQPublicKeys(x25519PublicKey, kyberPublicKey) },
 				bindingData: {
@@ -236,7 +237,7 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 	o.spec("admin group symmetric key authentication system", function () {
 		o("should verify computed tag", async function () {
 			const params: AdminSymKeyAuthenticationParams = {
-				tagType: "ADMIN_SYM_KEY_TAG",
+				tagType: SystemMapKind.ADMIN_SYM_KEY_TAG,
 				sourceOfTrust: { currentReceivingUserGroupKey: currentUserGroupKey },
 				untrustedKey: { newAdminGroupKey },
 				bindingData: {
@@ -278,7 +279,7 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 	o.spec("public identity key authentication system", function () {
 		o("should verify computed tag", async function () {
 			const params: IdentityPubKeyAuthenticationParams = {
-				tagType: "IDENTITY_PUB_KEY_TAG",
+				tagType: SystemMapKind.IDENTITY_PUB_KEY_TAG,
 				sourceOfTrust: { symmetricGroupKey: currentUserGroupKey },
 				untrustedKey: { identityPubKey: ed25519PublicKey },
 				bindingData: {

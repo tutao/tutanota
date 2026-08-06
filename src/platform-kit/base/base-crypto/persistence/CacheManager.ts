@@ -1,12 +1,14 @@
 import { Group, User } from "@tutao/entities/sys"
 import { PersistentEntity, TypeRef } from "@tutao/meta"
 
+export type UserAndGroup = { user: User; group: Group }
+
 export interface CacheManager {
 	/**
 	 * Refreshes group and user (because of the memberships) in the rest cache and updates the key cache if possible.
 	 * @param groupId
 	 */
-	refreshKeyCache(groupId: Id): Promise<{ user: User; group: Group }>
+	refreshKeyCache(groupId: Id): Promise<UserAndGroup>
 
 	/**
 	 * Refreshes a group in the rest cache.

@@ -8,15 +8,26 @@ export interface EntityRestClientSetupOptions {
 	/** Use this key to encrypt session key instead of trying to resolve the owner key based on the ownerGroup. */
 	ownerKey: Nullable<VersionedKey>
 }
+export const DEFAULT_ENTITY_RESTCLIENT_SETUP_OPTIONS: EntityRestClientSetupOptions = {
+	baseUrl: null,
+	ownerKey: null,
+}
 
 export interface EntityRestClientUpdateOptions {
 	baseUrl: Nullable<string>
 	/** Use this key to encrypt session key instead of trying to resolve the owner key based on the ownerGroup. */
 	ownerKey: Nullable<VersionedKey>
 }
+export const DEFAULT_ENTITY_RESTCLIENT_UPDATE_OPTIONS: EntityRestClientUpdateOptions = {
+	baseUrl: null,
+	ownerKey: null,
+}
 
 export interface EntityRestClientEraseOptions {
 	extraHeaders: Nullable<Dict>
+}
+export const DEFAULT_ENTITY_RESTCLIENT_ERASE_OPTIONS: EntityRestClientEraseOptions = {
+	extraHeaders: null,
 }
 
 /**
@@ -39,14 +50,16 @@ export const enum CacheMode {
 	ReadOnly,
 }
 
+type CacheBehavior = {
+	readsFromCache: boolean
+	writesToCache: boolean
+}
+
 /**
  * Get the behavior of the cache mode for the options
  * @param cacheMode cache mode to check, or if `undefined`, check the default cache mode ({@link CacheMode.ReadAndWrite})
  */
-export function getCacheModeBehavior(cacheMode: Nullable<CacheMode> = null): {
-	readsFromCache: boolean
-	writesToCache: boolean
-} {
+export function getCacheModeBehavior(cacheMode: Nullable<CacheMode> = null): CacheBehavior {
 	switch (cacheMode ?? CacheMode.ReadAndWrite) {
 		case CacheMode.ReadAndWrite:
 			return { readsFromCache: true, writesToCache: true }

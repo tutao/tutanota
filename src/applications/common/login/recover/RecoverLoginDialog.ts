@@ -9,7 +9,7 @@ import { InfoLink, lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { PasswordForm, PasswordModel } from "../../settings/PasswordForm.js"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { assertMainOrNode, CancelledError } from "@tutao/app-env"
 import { locator } from "../../api/main/CommonLocator"
 import { windowFacade } from "../../misc/WindowFacade.js"
@@ -111,7 +111,12 @@ export function show(mailAddress?: string | null, resetAction?: ResetAction): Di
 				} else {
 					showProgressDialog(
 						"pleaseWait_msg",
-						locator.loginFacade.recoverLogin(cleanMailAddress, cleanRecoverCodeValue, passwordModel.getNewPassword(), client.getIdentifier()),
+						locator.loginFacade.recoverLogin(
+							cleanMailAddress,
+							cleanRecoverCodeValue,
+							passwordModel.getNewPassword(),
+							ClientDetector.get().getIdentifier(),
+						),
 					)
 						.then(async () => {
 							recoverDialog.close()

@@ -9,6 +9,7 @@ import {
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
 	cryptoUtils,
+	decrypt256Key,
 	decryptKey,
 	encryptKey,
 	keyToUint8Array,
@@ -84,7 +85,7 @@ export class RecoverCodeFacade {
 			extraHeaders,
 		})
 		const userGroupKey = await this.keyLoaderFacade.loadSymUserGroupKey(cryptoUtils.parseKeyVersion(recoveryCodeEntity.userKeyVersion))
-		return decryptKey(userGroupKey, recoveryCodeEntity.userEncRecoverCode, AesKeyLength.Aes256)
+		return decrypt256Key(userGroupKey, recoveryCodeEntity.userEncRecoverCode)
 	}
 
 	private async getPassphraseKey(user: User, passphrase: string) {

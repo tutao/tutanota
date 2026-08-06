@@ -1,6 +1,6 @@
 import o, { assertThrows } from "@tutao/otest"
 import { stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
-import { AssociationType, Cardinality, Type, TypeModel, TypeRef, ValueType, ValueTypeEnum } from "../../../src/platform-kit/meta"
+import { AssociationTypeEnum, CardinalityEnum, EntityTypeEnum, TypeModel, TypeRef, ValueTypeEnum } from "../../../src/platform-kit/meta"
 import { InvalidModelError } from "../../../src/platform-kit/app-env"
 import { ApplicationTypesFacade } from "../../../src/platform-kit/instance-pipeline/ApplicationTypesFacade"
 import { object } from "testdouble"
@@ -28,14 +28,15 @@ o.spec("EntityFunctionsTest", function () {
 				name: "TestType",
 				rootId: "SoMeId",
 				since: 0,
-				type: Type.ListElement,
+				type: EntityTypeEnum.ListElement,
 				isPublic: true,
+				dependsOnVersion: null,
 				values: {
 					"1": {
 						id: 1,
 						name: "testValue",
 						type: ValueTypeEnum.String,
-						cardinality: Cardinality.One,
+						cardinality: CardinalityEnum.One,
 						final: true,
 						encrypted: true,
 					},
@@ -44,8 +45,8 @@ o.spec("EntityFunctionsTest", function () {
 					"2": {
 						id: 2,
 						name: "testAssociation",
-						type: AssociationType.ListAssociation,
-						cardinality: Cardinality.One,
+						type: AssociationTypeEnum.ListAssociation,
+						cardinality: CardinalityEnum.One,
 						refTypeId: 3,
 						dependency: null,
 						final: false,
@@ -67,14 +68,14 @@ o.spec("EntityFunctionsTest", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						isPublic: true,
 						values: {
 							"1": {
 								id: 1,
 								name: "testValue",
-								type: ValueType.String,
-								cardinality: Cardinality.One,
+								type: ValueTypeEnum.String,
+								cardinality: CardinalityEnum.One,
 								final: true,
 								encrypted: false,
 							},
@@ -83,8 +84,8 @@ o.spec("EntityFunctionsTest", function () {
 							"2": {
 								id: 2,
 								name: "testAssocation",
-								type: AssociationType.ListAssociation,
-								cardinality: Cardinality.One,
+								type: AssociationTypeEnum.ListAssociation,
+								cardinality: CardinalityEnum.One,
 								refTypeId: 3,
 								dependency: null,
 								final: false,
@@ -126,14 +127,14 @@ o.spec("EntityFunctionsTest", function () {
 							name: "TestType",
 							rootId: "SoMeId",
 							since: 0,
-							type: Type.ListElement,
+							type: EntityTypeEnum.ListElement,
 							isPublic: true,
 							values: {
 								"1": {
 									id: 1,
 									name: "testValue",
-									type: ValueType.String,
-									cardinality: Cardinality.One,
+									type: ValueTypeEnum.String,
+									cardinality: CardinalityEnum.One,
 									final: true,
 									encrypted: false,
 								},
@@ -174,13 +175,13 @@ o.spec("EntityFunctionsTest", function () {
 						name: "TestType",
 						rootId: "SoMeId",
 						since: 0,
-						type: Type.ListElement,
+						type: EntityTypeEnum.ListElement,
 						values: {
 							"3": {
 								id: 3,
 								name: "anotherTestValue",
-								type: ValueType.String,
-								cardinality: Cardinality.One,
+								type: ValueTypeEnum.String,
+								cardinality: CardinalityEnum.One,
 								final: true,
 								encrypted: true,
 							},

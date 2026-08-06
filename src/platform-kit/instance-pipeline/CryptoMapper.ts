@@ -1,10 +1,10 @@
 import {
 	AssociationReprType,
-	AssociationType,
+	AssociationTypeEnum,
 	AttributeId,
 	AttributeModel,
 	AttributeName,
-	Cardinality,
+	CardinalityEnum,
 	ClientTypeModel,
 	elementIdToId,
 	Entity,
@@ -60,7 +60,7 @@ import { EntityUtils } from "./EntityUtils"
 import { isTest, ProgrammingError } from "@tutao/app-env"
 
 export interface SymmetricGroupKeyLoader {
-	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey?: VersionedKey): Promise<AesKey>
+	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey: Nullable<VersionedKey>): Promise<AesKey>
 	getCurrentSymGroupKey(groupId: Id): Promise<VersionedKey>
 	loadCurrentKeyPair(groupId: Id, currentGroupKey: Nullable<VersionedKey>): Promise<Versioned<AsymmetricKeyPair>>
 	loadSymUserGroupKey(requestedVersion: KeyVersion): Promise<AesKey>
@@ -111,7 +111,7 @@ export class CryptoMapper {
 	}
 
 	makeOwnerKeyProvider(groupId: Nullable<Id>): Nullable<OwnerKeyProvider> {
-		return groupId ? (groupKeyVersion: KeyVersion) => this.symGroupKeyLoader().loadSymGroupKey(groupId, groupKeyVersion) : null
+		return isNotNull(groupId) ? (groupKeyVersion: KeyVersion) => this.symGroupKeyLoader().loadSymGroupKey(groupId, groupKeyVersion, null) : null
 	}
 
 	public async decryptParsedInstance(
@@ -359,13 +359,13 @@ export class CryptoMapper {
 
 		if (!valueType.encrypted) {
 			return ParsedValue.fromString(value)
-		} else if (valueType.cardinality === Cardinality.ZeroOrOne && value === "") {
+		} else if (valueType.cardinality === CardinalityEnum.ZeroOrOne && value === "") {
 			// Might happen if cardinality was changed from ZeroOrOne -> One -> ZeroOrOne
 			console.warn(`Found an encrypted attribute (${valueType.id}:${valueType.name}) with a Cardinality.ZeroOrOne and an empty value`)
 			return ParsedValue.fromNull()
 		}
 
-		if (valueType.cardinality === Cardinality.One && value === "") {
+		if (valueType.cardinality === CardinalityEnum.One && value === "") {
 			return EntityUtils.valueToDefault(valueType.type)
 		}
 		const ciphertext = base64ToUint8Array(value)
@@ -503,7 +503,7 @@ export class EncryptedParsedInstance implements DeepEquals {
 			// _id can be null when creating new instances of generateId, as they are generated on server
 			return this.addAttributeByName("_id", ParsedValue.fromNull())
 		}
-		switch (getIdType(this.typeModel)) {
+		switch (getIdType(this.typeModel.type)) {
 			case IdType.SingleId:
 				return this.addAttributeByName("_id", ParsedValue.fromId(parsedValue.asId()))
 			case IdType.IdTuple:
@@ -528,7 +528,7 @@ export class EncryptedParsedInstance implements DeepEquals {
 		// so that typeMapper can convert it into serverJson
 		const alwaysOutgoing = new EncryptedParsedInstance(this.typeModel, InstanceDirection.OutgoingToServer, this.parsedInstance)
 		for (const assoc of Object.values(this.typeModel.associations)) {
-			if (assoc.type === AssociationType.Aggregation) {
+			if (assoc.type === AssociationTypeEnum.Aggregation) {
 				const aggregations = alwaysOutgoing
 					.getAttributeById(assoc.id)
 					.asNestedObjList()
@@ -591,7 +591,7 @@ export class DecryptedParsedInstance implements DeepEquals {
 
 	public addId(parsedValue: EncryptedParsedValue) {
 		const attributeId = assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_id"))
-		switch (getIdType(this.typeModel)) {
+		switch (getIdType(this.typeModel.type)) {
 			case IdType.IdTuple:
 				return this.addAttributeById(attributeId, ParsedValue.fromIdTuple(parsedValue.asIdTuple()))
 
@@ -618,7 +618,8 @@ export class DecryptedParsedInstance implements DeepEquals {
 
 	public addErrorByAttributeNameForTesting(attributeName: AttributeName, errorValue: string): this {
 		assert(isTest(), "This method is intended for testing. Use addErrorByAttributeId instead.")
-		return this.addErrorByAttributeId(AttributeModel.getAttributeId(this.typeModel, attributeName)!, errorValue)
+		const attributeId = assertNotNull(AttributeModel.getAttributeId(this.typeModel, attributeName))
+		return this.addErrorByAttributeId(attributeId, errorValue)
 	}
 	public addErrorByAttributeId(attributeId: AttributeId, errorValue: string): this {
 		this._errors[attributeId] = errorValue

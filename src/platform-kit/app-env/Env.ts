@@ -1,4 +1,7 @@
 import { ProgrammingError } from "./ProgrammingError"
+import { TypeChecks } from "./boot/TsTypeChecks"
+import { ClientDetector } from "./boot/ClientDetector"
+import { _isNode, _isWorker } from "./boot/TsPlatformConstants"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -30,56 +33,53 @@ export function getApiBaseUrl(domainConfig: DomainConfig): string {
 }
 
 export function isIOSApp(): boolean {
-	if (isApp() && env.platformId == null) {
+	if (isApp() && ClientDetector.get().env.platformId == null) {
 		throw new ProgrammingError("PlatformId is not set!")
 	}
-	return isApp() && env.platformId === "ios"
+	return isApp() && ClientDetector.get().env.platformId === "ios"
 }
 
 /**
  * Return true if an Apple device; used for checking if CTRL or CMD/Meta should be used as the primary modifier
  */
 export function isAppleDevice(): boolean {
-	return env.platformId === "darwin" || isIOSApp()
+	return ClientDetector.get().env.platformId === "darwin" || isIOSApp()
 }
 
 export function isAndroidApp(): boolean {
-	if (isApp() && env.platformId == null) {
+	if (isApp() && ClientDetector.get().env.platformId == null) {
 		throw new ProgrammingError("PlatformId is not set!")
 	}
 
-	return isApp() && env.platformId === "android"
+	return isApp() && ClientDetector.get().env.platformId === "android"
 }
 
 export function isApp(): boolean {
-	return env.mode === Mode.App
+	return ClientDetector.get().env.mode === Mode.App
 }
 
 export function isDesktop(): boolean {
-	return env.mode === Mode.Desktop
+	return ClientDetector.get().env.mode === Mode.Desktop
 }
 
 export function isBrowser(): boolean {
-	return env.mode === Mode.Browser
+	return ClientDetector.get().env.mode === Mode.Browser
 }
 
 export function ifDesktop<T>(obj: T | null): T | null {
 	return isDesktop() ? obj : null
 }
 
-let worker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope
-let node = typeof process === "object" && typeof process.versions === "object" && typeof process.versions.node !== "undefined"
-
 export function isMain(): boolean {
-	return !worker && !node
+	return !_isWorker && !_isNode
 }
 
 export function isWebClient() {
-	return env.mode === Mode.Browser
+	return ClientDetector.get().env.mode === Mode.Browser
 }
 
 export function isAdminClient(): boolean {
-	return env.mode === Mode.Admin
+	return ClientDetector.get().env.mode === Mode.Admin
 }
 
 export function isElectronClient(): boolean {
@@ -87,23 +87,23 @@ export function isElectronClient(): boolean {
 }
 
 export function isMainOrNode(): boolean {
-	return !worker || node || isTest()
+	return !_isWorker || _isNode || isTest()
 }
 
 export function isWorkerOrNode(): boolean {
-	return worker || node || isTest()
+	return _isWorker || _isNode || isTest()
 }
 
 export function isWorker(): boolean {
-	return worker
+	return _isWorker
 }
 
 export function isTest(): boolean {
-	return env.mode === Mode.Test
+	return ClientDetector.get().env.mode === Mode.Test
 }
 
 export function isDesktopMainThread(): boolean {
-	return node && typeof env !== "undefined" && (isDesktop() || isAdminClient())
+	return _isNode && !TypeChecks.hasProperty("env", ClientDetector.get()) && (isDesktop() || isAdminClient())
 }
 
 let boot = !isDesktopMainThread() && !isWorker()

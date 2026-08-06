@@ -21,6 +21,7 @@ import { IPCEd25519PublicKey } from "../../../app-kit/native-bridge/common/gener
 import { NativeCryptoFacade } from "../../../app-kit/native-bridge/common/generatedipc/types/NativeCryptoFacade"
 import { IPCEd25519PrivateKey } from "../../../app-kit/native-bridge/common/generatedipc/types/IPCEd25519PrivateKey"
 import { IPCEd25519Signature } from "../../../app-kit/native-bridge/common/generatedipc/types/IPCEd25519Signature"
+
 assertWorkerOrNode()
 
 export interface Ed25519Facade {
@@ -35,7 +36,7 @@ export interface Ed25519Facade {
  * Implementation of EdDSA based on Ed25519.
  */
 export class WASMEd25519Facade implements Ed25519Facade {
-	constructor(private readonly testWASM?: BufferSource) {}
+	constructor(private readonly testWASM: BufferSource | null = null) {}
 
 	// loads liboqs WASM
 	private initEd25519: LazyLoaded<void> = new LazyLoaded(async () => {

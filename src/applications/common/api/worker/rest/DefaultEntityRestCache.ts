@@ -20,7 +20,7 @@ import {
 	PersistentEntity,
 	TypeModel,
 	TypeRef,
-	ValueType,
+	ValueTypeEnum,
 } from "@tutao/meta"
 import { assertNotNull, getFirstOrThrow, groupBy, isNotEmpty, isNotNull, lastThrow, lazyAsync, Nullable } from "@tutao/utils"
 import { assertWorkerOrNode, isTest, ProgrammingError } from "@tutao/app-env"
@@ -167,7 +167,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		ids: Array<Id>,
-		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
+		ownerEncSessionKeyProvider: Nullable<OwnerEncSessionKeyProvider> = null,
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<Array<T>> {
 		const useCache = this.shouldUseCache(typeRef, opts)
@@ -250,7 +250,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		ids: Array<Id>,
-		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
+		ownerEncSessionKeyProvider: Nullable<OwnerEncSessionKeyProvider> = null,
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<Array<T>> {
 		const cachingBehavior = getCacheModeBehavior(opts.cacheMode)
@@ -890,5 +890,5 @@ function isCachedRangeType(typeModel: TypeModel, typeRef: TypeRef<unknown>): boo
 
 function isGeneratedIdType(typeModel: TypeModel): boolean {
 	const _idValue = get_IdValue(typeModel)
-	return _idValue !== null && _idValue.type === ValueType.GeneratedId
+	return _idValue !== null && _idValue.type === ValueTypeEnum.GeneratedId
 }

@@ -1,6 +1,6 @@
 import {
-	AssociationType,
-	Cardinality,
+	AssociationTypeEnum,
+	CardinalityEnum,
 	compareNewestFirst,
 	elementIdPart,
 	EntityIdEncoding,
@@ -10,7 +10,7 @@ import {
 	timestampToGeneratedId,
 	TypeModel,
 	TypeRef,
-	ValueType,
+	ValueTypeEnum,
 } from "../../../../platform-kit/meta"
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import {
@@ -229,7 +229,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 
 		return asyncFind(attributeIds, async (attributeId) => {
 			const modelValue = model.values[attributeId]
-			if (modelValue && modelValue.type === ValueType.String && entity[modelValue.name]) {
+			if (modelValue && modelValue.type === ValueTypeEnum.String && entity[modelValue.name]) {
 				const attributeValue = entity[modelValue.name]
 				if (matchWordOrder) {
 					return Promise.resolve(normalizeQuery(attributeValue).indexOf(suggestionToken) !== -1)
@@ -239,8 +239,8 @@ export class IndexedDbSearchFacade implements SearchFacade {
 				}
 			} else {
 				const modelAssociation = model.associations[attributeId]
-				if (modelAssociation && modelAssociation.type === AssociationType.Aggregation && entity[modelAssociation.name]) {
-					let aggregates = modelAssociation.cardinality === Cardinality.Any ? entity[modelAssociation.name] : [entity[modelAssociation.name]]
+				if (modelAssociation && modelAssociation.type === AssociationTypeEnum.Aggregation && entity[modelAssociation.name]) {
+					let aggregates = modelAssociation.cardinality === CardinalityEnum.Any ? entity[modelAssociation.name] : [entity[modelAssociation.name]]
 					const refModel = await this.typeModelResolver.resolveClientTypeReference(new TypeRef(model.app, modelAssociation.refTypeId))
 					return asyncFind(aggregates, (aggregate) => {
 						return this.containsSuggestionToken(downcast<Record<string, any>>(aggregate), refModel, null, suggestionToken, matchWordOrder)

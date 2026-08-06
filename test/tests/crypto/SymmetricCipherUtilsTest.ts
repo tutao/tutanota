@@ -10,6 +10,7 @@ import {
 	uint8ArrayToKey,
 } from "../../../src/platform-kit/crypto"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
+import { uint8ArrayTo128Key, uint8ArrayTo256Key } from "@tutao/crypto/symmetric-cipher-utils"
 
 o.spec("SymmetricCipherUtilsTest", function () {
 	o.spec("Key conversion", function () {
@@ -31,22 +32,22 @@ o.spec("SymmetricCipherUtilsTest", function () {
 			o.test("accept only 256", async function () {
 				const bits = new Uint8Array(16).fill(0)
 				await assertThrows(CryptoError, async () => {
-					return uint8ArrayToKey(bits, AesKeyLength.Aes256)
+					return uint8ArrayTo256Key(bits)
 				})
 			})
 			o.test("accept only 128", async function () {
 				const bits = new Uint8Array(32).fill(0)
 				await assertThrows(CryptoError, async () => {
-					return uint8ArrayToKey(bits, AesKeyLength.Aes128)
+					return uint8ArrayTo128Key(bits)
 				})
 			})
 			o.test("accept 256", function () {
 				const bits = new Uint8Array(32).fill(0)
-				uint8ArrayToKey(bits, AesKeyLength.Aes256)
+				uint8ArrayTo256Key(bits)
 			})
 			o.test("accept 128", function () {
 				const bits = new Uint8Array(16).fill(0)
-				uint8ArrayToKey(bits, AesKeyLength.Aes128)
+				uint8ArrayTo128Key(bits)
 			})
 			o.test("invalid key length", async function () {
 				const bits = new Uint8Array(24).fill(0)

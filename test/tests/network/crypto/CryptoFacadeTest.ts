@@ -249,7 +249,7 @@ o.spec("CryptoFacadeTest", function () {
 
 		const sk = aes256RandomKey()
 		const groupKey_v1 = aes256RandomKey()
-		when(keyLoaderFacade.loadSymGroupKey(elementIdToId(recipientUser.mailGroup._id), 1)).thenResolve(groupKey_v1)
+		when(keyLoaderFacade.loadSymGroupKey(elementIdToId(recipientUser.mailGroup._id), 1, null)).thenResolve(groupKey_v1)
 
 		const mail = createTestEntity(MailTypeRef, {
 			_ownerGroup: elementIdToId(recipientUser.mailGroup._id),
@@ -548,7 +548,7 @@ o.spec("CryptoFacadeTest", function () {
 			asymmetricCryptoFacade,
 		)
 
-		when(asymmetricCryptoFacade.decryptSymKeyWithKeyPair(pqKeyPairs_v1, protocolVersion, pubEncBucketKey)).thenResolve({
+		when(asymmetricCryptoFacade.decryptSymKeyWithAnyKeyPair(pqKeyPairs_v1, protocolVersion, pubEncBucketKey)).thenResolve({
 			decryptedAesKey: bk,
 			senderIdentityPubKey: senderIdentityKeyPair.publicKey,
 		})
@@ -1124,8 +1124,6 @@ o.spec("CryptoFacadeTest", function () {
 		const testData = await prepareConfidentialMailToExternalRecipient([file1SessionKey, file2SessionKey])
 
 		const mailSessionKey = neverNull(await crypto.resolveSessionKey(testData.entityAdapter))
-		console.log(mailSessionKey)
-		console.log(testData.sk)
 		o(mailSessionKey).deepEquals(testData.sk)
 
 		const resolvedSessionKeys = assertNotNull(await crypto.resolveWithBucketKey(testData.entityAdapter))
@@ -1141,7 +1139,7 @@ o.spec("CryptoFacadeTest", function () {
 	})
 
 	o("authenticateSender | no authentication needed for secure external sender", async function () {
-		//o.timeout(500) // in CI or with debugging it can take a while
+		//o.timeout(500) // in CI or with debugging, it can take a while
 		const testData = await prepareConfidentialReplyFromExternalUser()
 		const externalUser = testData.externalUser
 
@@ -1577,7 +1575,7 @@ o.spec("CryptoFacadeTest", function () {
 			_ownerGroup: ownerGroup,
 			_ownerEncSessionKey: encryptKey(gk, sk),
 		})
-		when(keyLoaderFacade.loadSymGroupKey(ownerGroup, 0)).thenResolve(gk)
+		when(keyLoaderFacade.loadSymGroupKey(ownerGroup, 0, null)).thenResolve(gk)
 
 		const mailDetailsBlobSessionKey = neverNull(await crypto.resolveSessionKey(mailDetailsBlob))
 		o(mailDetailsBlobSessionKey).deepEquals(sk)
@@ -1781,7 +1779,7 @@ o.spec("CryptoFacadeTest", function () {
 			asymmetricCryptoFacade,
 		)
 
-		when(asymmetricCryptoFacade.decryptSymKeyWithKeyPair(pqKeyPairs, CryptoProtocolVersion.TUTA_CRYPT, pubEncBucketKey)).thenResolve({
+		when(asymmetricCryptoFacade.decryptSymKeyWithAnyKeyPair(pqKeyPairs, CryptoProtocolVersion.TUTA_CRYPT, pubEncBucketKey)).thenResolve({
 			decryptedAesKey: bk,
 			senderIdentityPubKey: senderIdentityKeyPair.publicKey,
 		})
@@ -2100,6 +2098,6 @@ export function configureLoggedInUser(testUser: TestUser, userFacade: UserFacade
 	when(userFacade.getCurrentUserGroupKey()).thenReturn({ object: testUser.userGroupKey, version: 0 })
 	when(userFacade.isLeader()).thenReturn(true)
 	when(userFacade.isFullyLoggedIn()).thenReturn(true)
-	when(keyLoaderFacade.loadSymGroupKey(mailGroupId, 0)).thenResolve(testUser.mailGroupKey)
-	when(keyLoaderFacade.loadSymGroupKey(userGroupId, 0)).thenResolve(testUser.userGroupKey)
+	when(keyLoaderFacade.loadSymGroupKey(mailGroupId, 0, null)).thenResolve(testUser.mailGroupKey)
+	when(keyLoaderFacade.loadSymGroupKey(userGroupId, 0, null)).thenResolve(testUser.userGroupKey)
 }

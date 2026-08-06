@@ -3,14 +3,15 @@ import o from "@tutao/otest"
 import { DesktopNativeCryptoFacade } from "../../../src/applications/common/desktop/DesktopNativeCryptoFacade.js"
 import { stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
 import type { CryptoFunctions } from "../../../src/applications/common/desktop/CryptoFns.js"
-import { Aes256Key, aes256RandomKey, AesKeyLength, Argon2IDExports, getKeyLengthInBytes, random, uint8ArrayToKey } from "../../../src/platform-kit/crypto"
+import { aes256RandomKey, AesKeyLength, Argon2IDExports, getKeyLengthInBytes, random, uint8ArrayTo256Key } from "../../../src/platform-kit/crypto"
 import { matchers, object, verify, when } from "testdouble"
 import { TempFs } from "../../../src/applications/common/desktop/files/TempFs.js"
 import { mockFsReadStream } from "./desktopTestUtils"
+import { uint8ArrayTo128Key } from "@tutao/crypto/symmetric-cipher-utils"
 
 o.spec("DesktopCryptoFacadeTest", () => {
 	const data = Buffer.from([42])
-	const aes128Key = uint8ArrayToKey(random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes128)), AesKeyLength.Aes128)
+	const aes128Key = uint8ArrayTo128Key(random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes128)))
 	const aes256Key = aes256RandomKey()
 	const aes256DecryptedKey = aes256RandomKey()
 	const aes256EncryptedKey = new Uint8Array([2, 5, 6, 1])
@@ -45,7 +46,7 @@ o.spec("DesktopCryptoFacadeTest", () => {
 		when(cryptoFnsMock.decryptKey(aes128Key, aes256EncryptedKey)).thenReturn(aes256DecryptedKey)
 		when(cryptoFnsMock.bytesToKey(someKey)).thenReturn(aes128Key)
 		when(cryptoFnsMock.randomBytes(matchers.anything())).thenReturn(Buffer.alloc(10, 4))
-		when(cryptoFnsMock.aes256RandomKey()).thenReturn(uint8ArrayToKey(Buffer.alloc(32, 1)) as Aes256Key)
+		when(cryptoFnsMock.aes256RandomKey()).thenReturn(uint8ArrayTo256Key(Buffer.alloc(32, 1)))
 
 		const fsPromises: typeof import("fs").promises = object()
 		when(fsPromises.mkdir(matchers.anything())).thenResolve()

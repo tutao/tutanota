@@ -5,10 +5,11 @@ import { UserFacade } from "../facades/UserFacade.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
 import { AesKey, cryptoUtils, CryptoWrapper, PublicKeyIdentifierType, VersionedAes256Key, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
-import { brandKeyMac, KeyAuthenticationFacade } from "../../network/KeyAuthenticationFacade.js"
+import { brandKeyMac, KeyAuthenticationFacade, SystemMapKind } from "../../network/KeyAuthenticationFacade.js"
 import { Group, PubEncKeyData, UserTypeRef } from "@tutao/entities/sys"
 import { CacheManager } from "./persistence/CacheManager"
 import { elementIdToId, idToElementId } from "@tutao/meta"
+import { isNull } from "../../utils/Utils"
 
 assertWorkerOrNode()
 
@@ -82,7 +83,7 @@ export class AdminKeyLoaderFacade {
 			if (!this.hasAdminEncGKey(group)) {
 				throw new ProgrammingError("Group doesn't have adminGroupEncGKey, you can't get group key this way")
 			}
-			if (!(group.admin && this.userFacade.hasGroup(group.admin))) {
+			if (isNull(group.admin) || !this.userFacade.hasGroup(group.admin)) {
 				throw new Error(`The user is not a member of the admin group ${group.admin} when trying to get the group key for group ${groupId}`)
 			}
 
@@ -170,7 +171,7 @@ export class AdminKeyLoaderFacade {
 
 		this.keyAuthenticationFacade.verifyTag(
 			{
-				tagType: "USER_GROUP_KEY_TAG",
+				tagType: SystemMapKind.USER_GROUP_KEY_TAG,
 				sourceOfTrust: { currentUserGroupKey: previousUserGroupKey.object },
 				untrustedKey: { newUserGroupKey: receivedUserGroupKey.object },
 				bindingData: {

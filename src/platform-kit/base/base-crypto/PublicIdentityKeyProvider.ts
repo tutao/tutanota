@@ -4,7 +4,7 @@ import { bytesToEd25519PublicKey, cryptoUtils, PublicKeyIdentifier, PublicKeyIde
 import { Versioned } from "@tutao/utils"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { EntityClient } from "../../network/EntityClient"
-import { brandKeyMac, KeyAuthenticationFacade } from "../../network/KeyAuthenticationFacade"
+import { brandKeyMac, KeyAuthenticationFacade, SystemMapKind } from "../../network/KeyAuthenticationFacade"
 import { createIdentityKeyGetIn, GroupTypeRef, IdentityKeyService } from "@tutao/entities/sys"
 import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../entities/sys/Utils"
 import { IdentityKeySourceOfTrust } from "@tutao/app-env"
@@ -64,7 +64,7 @@ export class PublicIdentityKeyProvider {
 
 		this.keyAuthenticationFacade.verifyTag(
 			{
-				tagType: "IDENTITY_PUB_KEY_TAG",
+				tagType: SystemMapKind.IDENTITY_PUB_KEY_TAG,
 				sourceOfTrust: {
 					symmetricGroupKey: taggingGroupKey,
 				},
