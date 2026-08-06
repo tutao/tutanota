@@ -2418,6 +2418,6 @@ export type TranslationKeyType =
 	| "migrationMailFolderNameGmail_helpLabel"
 	| "migrationConfigInfoGmail_msg"
 	| "migrationInProgressInfoGmail_msg"
-	| "emptyString_msg"
-	| "migrationGmailAllMailsDisabledImapError_msg"
 	| "migrationSyncStateGmailAllMailsDisabledImapError_msg"
+	| "migrationGmailAllMailsDisabledImapError_msg"
+	| "emptyString_msg"

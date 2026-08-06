@@ -1230,6 +1230,7 @@ export default {
 		"migrationFolderMapping_title": "Ordner Zuordnung ",
 		"migrationFolderMappingEditConfirmButton_label": "Ordner bestätigen",
 		"migrationGenericError_msg": "Während der Ein-Klick E-Mail Migration ist ein Fehler aufgetreten. Fehlercode: {errorCode}",
+		"migrationGmailAllMailsDisabledImapError_msg": "Das Label \"Alle E-Mails\" in Ihrem Gmail-Account ist für IMAP deaktiviert. Bitte stellen Sie sicher, dass \"In IMAP anzeigen\" für das Label \"Alle E-Mails\" in Ihrem Gmail-Account aktiviert ist. Bitte überprüfen Sie diese Gmail-Einstellung unter: Einstellungen -> Alle Einstellungen aufrufen -> Labels, in Ihrem Gmail-Account.",
 		"migrationHistory_label": "Migrations-Verlauf",
 		"migrationHistoryTotalImportedMails_msg": "{imported} E-Mails importiert",
 		"migrationHostNotFoundError_msg": "Leider konnte keine Verbindung zum IMAP-Server aufgebaut werden. Bitte überprüfen Sie Ihre eingegebenen IMAP-Server Daten und stelle Sie sicher, dass in Ihrem Netzwerk Verbindungen zu diesem IMAP-Server erlaubt.",
@@ -1272,6 +1273,7 @@ export default {
 		"migrationSummaryImportInformation_label": "Migrieren nach",
 		"migrationSummarySourceInformation_label": "Migrieren von",
 		"migrationSyncFailure_msg": "Während der Migration ist ein fataler Fehler aufgetreten. Bitte brechen Sie die aktuelle Migration ab und starten Sie eine neue.",
+		"migrationSyncStateGmailAllMailsDisabledImapError_msg": "Ihre Migration ist pausiert, da das Label \"Alle E-Mails\" in Ihrem Gmail-Account für IMAP deaktiviert ist.",
 		"migrationUpdateCredentials_title": "Fehler bei der Migration",
 		"migrationUpdateCredentialsInfo_msg": "Die aktuellen Zugangsdaten für Ihre Migration sind ungültig oder abgelaufen. Bitte korrigieren Sie Ihre Zugangsdaten, um die Migration fortzusetzen.",
 		"migrationUploadCustomCertificate_action": "Zertifikatsdatei auswählen",
@@ -2420,7 +2422,6 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"migrationGmailAllMailsDisabledImapError_msg": "The \"All Mail\" label is disabled for IMAP in your Gmail settings.\nPlease make sure IMAP is enabled for the \"All Mail\" label.\nPlease check Settings -> See all Settings -> Labels in your Gmail account and try again.",
-		"migrationSyncStateGmailAllMailsDisabledImapError_msg": "Your migration is paused, because the \"All Mail\" label is disabled for IMAP in your Gmail settings.",	}
+		"zoomOut_action": "Herauszoomen"
+	}
 }
