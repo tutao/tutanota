@@ -271,7 +271,7 @@ export class CryptoMapper {
 				case AssociationReprType.Aggregation: {
 					const associationPath = path.addAssociationId(associationModel)
 					const unencryptedAggregates = parsedInstance.getAttributeById(associationId).asNestedObjList()
-					const encryptedAggregates = await this.encryptAggregateAssociation(unencryptedAggregates, subKeyProvider, associationPath)
+					const encryptedAggregates = await this.encryptAggregateAssociation(unencryptedAggregates, subKeyProvider, associationPath, ownerKey)
 					encryptedInstance.addAttributeById(associationId, ParsedValue.fromNestedItems(encryptedAggregates))
 					break
 				}
@@ -376,11 +376,12 @@ export class CryptoMapper {
 		aggregateValues: Array<DecryptedParsedInstance>,
 		subKeyProvider: Nullable<SubKeyProvider>,
 		associationPath: AssociationPath,
+		ownerKey: Nullable<VersionedKey> = null,
 	): Promise<Array<EncryptedParsedInstance>> {
 		let encryptedAggregates = new Array<EncryptedParsedInstance>()
 		for (const aggregate of aggregateValues) {
 			const aggregateId = aggregate.getAttributeByName("_id").asId()
-			encryptedAggregates.push(await this.encryptParsedInstance(aggregate, subKeyProvider, associationPath.addAggregateId(aggregateId)))
+			encryptedAggregates.push(await this.encryptParsedInstance(aggregate, subKeyProvider, associationPath.addAggregateId(aggregateId), ownerKey))
 		}
 
 		return encryptedAggregates
