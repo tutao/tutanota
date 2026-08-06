@@ -2421,3 +2421,4 @@ export type TranslationKeyType =
 	| "migrationSyncStateGmailAllMailsDisabledImapError_msg"
 	| "migrationGmailAllMailsDisabledImapError_msg"
 	| "emptyString_msg"
+	| "confirmDeleteLabelWithSublabels_msg"
