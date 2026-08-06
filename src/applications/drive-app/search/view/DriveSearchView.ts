@@ -15,7 +15,7 @@ import { createDropdown } from "../../../../ui/base/Dropdown"
 import { SearchCategoryType } from "../../../common/api/worker/search/SearchTypes"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { formatDate } from "../../../../ui/utils/Formatter"
-import { isNotEmpty, isSameDayOfDate } from "@tutao/utils"
+import { isEmpty, isNotEmpty, isSameDayOfDate } from "@tutao/utils"
 import { ViewSlider } from "../../../../ui/nav/ViewSlider"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
@@ -32,7 +32,7 @@ import { DriveTransferStack, DriveTransferStackAttrs } from "../../drive/view/Dr
 import { Dialog } from "../../../../ui/base/Dialog"
 import { FolderItem, FolderItemId } from "../../drive/view/DriveUtils"
 import { MoveItems } from "../../drive/view/DriveMoveItemDialog"
-import { ListState } from "../../../../ui/base/List"
+import { ListLoadingState, ListState } from "../../../../ui/base/List"
 import { MultiselectMobileHeader } from "../../../../ui/MultiselectMobileHeader"
 import { MobileHeader } from "../../../../ui/MobileHeader"
 import { DriveMobileSortButton } from "../../drive/view/DriveMobileSortButton"
@@ -45,6 +45,7 @@ import { SortColumn } from "../../drive/view/DriveViewModel"
 import { driveItemContextMenu, showRenameDialog } from "../../drive/view/DriveGuiUtils"
 import { DriveFolder } from "@tutao/entities/drive"
 import { FileActions } from "../../drive/view/DriveFolderContentEntry"
+import { IconMessageBox } from "../../../../ui/base/ColumnEmptyMessageBox"
 
 export interface DriveSearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
@@ -429,25 +430,27 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 		return m(
 			"div.col.flex.plr-8.fill-absolute",
 			this.renderActionBar(showMoveItemDialog),
-			m(DriveFolderContent, {
-				sortOrder: this.searchViewModel.getCurrentColumnSortOrder(),
-				onSort: (column: SortColumn) => this.searchViewModel.sort(column),
-				fileActions: fileActions,
-				listState: listState,
-				selectionEvents: selectionEvents,
-				onDropInto: (f: FolderItem, event: DragEvent) => {},
-				onEntryContextMenu: (item: FolderItem, event: MouseEvent) => {
-					driveItemContextMenu(
-						selectionEvents,
-						this.selectedItemsActions(this.searchViewModel.listState(), showMoveItemDialog),
-						fileActions,
-						listState,
-						item,
-						event,
-					)
-				},
-				clipboard: this.searchViewModel.clipboard,
-			}),
+			listState.loadingStatus === ListLoadingState.Done && isEmpty(listState.items)
+				? this.renderEmptyView()
+				: m(DriveFolderContent, {
+						sortOrder: this.searchViewModel.getCurrentColumnSortOrder(),
+						onSort: (column: SortColumn) => this.searchViewModel.sort(column),
+						fileActions: fileActions,
+						listState: listState,
+						selectionEvents: selectionEvents,
+						onDropInto: (f: FolderItem, event: DragEvent) => {},
+						onEntryContextMenu: (item: FolderItem, event: MouseEvent) => {
+							driveItemContextMenu(
+								selectionEvents,
+								this.selectedItemsActions(this.searchViewModel.listState(), showMoveItemDialog),
+								fileActions,
+								listState,
+								item,
+								event,
+							)
+						},
+						clipboard: this.searchViewModel.clipboard,
+					}),
 		)
 	}
 	private onRename(item: FolderItem) {
@@ -538,5 +541,21 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 			"confirmDeleteFilesPermanently_action",
 		)
 		if (ok) this.searchViewModel.deleteFromTrash(items)
+	}
+
+	private renderEmptyView(): Children {
+		return m(
+			"",
+			{
+				style: {
+					marginTop: "6.4rem",
+				},
+			},
+			m(IconMessageBox, {
+				message: lang.getTranslation("searchNoResults_msg"),
+				icon: Icons.DriveFilled,
+				color: theme.on_surface_variant,
+			}),
+		)
 	}
 }
