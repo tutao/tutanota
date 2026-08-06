@@ -3,7 +3,7 @@ import m, { Children, ClassComponent, Vnode } from "mithril"
 export interface CardAttrs {
 	rootElementType?: "div" | "section"
 	classes?: Array<string>
-	style?: Partial<Pick<CSSStyleDeclaration, "padding">>
+	style?: Partial<CSSStyleDeclaration>
 	shouldDivide?: boolean
 }
 
