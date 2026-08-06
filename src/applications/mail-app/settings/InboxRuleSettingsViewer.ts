@@ -1,8 +1,7 @@
-import { assertMainOrNode, UpgradePromptType } from "@tutao/app-env"
+import { assertMainOrNode, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { ColumnWidth, createRowActions, Table, type TableAttrs, TableLineAttrs } from "../../../ui/base/Table"
 import { mailLocator } from "../mailLocator"
 import { EntityUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
@@ -27,10 +26,16 @@ import { TitleSection } from "../../../ui/TitleSection"
 import { MenuTitle } from "../../../ui/titles/MenuTitle"
 import { Card } from "../../../ui/base/Card"
 import { getMailSetName } from "../mail/model/MailUtils"
-import { getInboxRuleConditionTypeName } from "../mail/model/InboxRuleHandler"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { InboxRulesSettingsViewerModel } from "./InboxRulesSettingsViewerModel"
 import { InboxRuleModel } from "../mail/model/InboxRuleModel"
+import { MessageBanner } from "../../../ui/base/MessageBanner"
+import { Icon, IconSize } from "../../../ui/base/Icon"
+import { Switch } from "../../../ui/base/Switch"
+import { IconButton } from "../../../ui/base/IconButton"
+import { createDropdown } from "../../../ui/base/Dropdown"
+import { ButtonSize } from "../../../ui/base/ButtonSize"
+import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
 
 assertMainOrNode()
 
@@ -52,34 +57,38 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 
 	view(): Children {
 		const tableLines = this.renderInboxRuleTableLines()
-		const inboxRulesTableAttrs: TableAttrs = {
-			columnHeading: ["inboxRuleField_label", "inboxRuleValue_label", "inboxRuleTargetFolder_label"],
-			columnWidths: [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small],
-			showActionButtonColumn: true,
-			lines: tableLines,
-		}
+		const isMobile = client.isMobileDevice()
+
+		// Making the scroll section based on mobile view allows for the title section to also be scrolled away
+		const inboxRuleSectionClasses = `.overflow-hidden.flex-v-start${isMobile ? ".scroll.scrollbar-gutter-stable-or-fallback" : ""}`
+		const inboxRuleListClasses = `.mt-16.gap-8.flex-v-start${isMobile ? "" : ".scroll.scrollbar-gutter-stable-or-fallback"}`
 
 		return m("", [
 			m(
-				".fill-absolute.scroll.plr-24.pb-48",
+				".fill-absolute.plr-24.pb-48.flex-v-start",
 				{
 					style: {
 						backgroundColor: theme.surface_container,
-						gap: "16px",
-						display: "flex",
-						flexDirection: "column",
 					},
 				},
 				[
-					m(TitleSection, {
-						icon: Icons.FunnelOutline,
-						title: lang.getTranslationText("inboxRuleManagement_label"),
-						subTitle: lang.getTranslationText("inboxRuleManagement_text"),
-					}),
-					m(MenuTitle, { content: lang.get("inboxRulesSettings_action") }),
-					m(Card, m(Table, inboxRulesTableAttrs)),
 					m(
-						".mt-8.flex-end.gap-8",
+						inboxRuleSectionClasses,
+						m(TitleSection, {
+							icon: Icons.FunnelOutline,
+							title: lang.getTranslationText("inboxRuleManagement_label"),
+							subTitle: lang.getTranslationText("inboxRuleManagement_text"),
+						}),
+						m(".mt-24", m(MenuTitle, { content: lang.get("inboxRulesSettings_action") })),
+						tableLines.length > 0
+							? m(inboxRuleListClasses, tableLines)
+							: m(MessageBanner, {
+									translation: lang.getTranslation("noEntries_msg"),
+									type: "base",
+								}),
+					),
+					m(
+						".mt-16.flex-wrap.flex-end.gap-8",
 						tableLines.length > 0
 							? m(SecondaryButton, {
 									label: "reapplyInboxRules_action",
@@ -101,40 +110,138 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		])
 	}
 
-	renderInboxRuleTableLines(): TableLineAttrs[] {
+	renderInboxRuleTableLines(): Children[] {
 		return this.model.orderedInboxRules.map((rule, index) => {
 			// rule should never be null as we check that all rules in the order list are in the map, but get can still theoretically return undefined
-			return {
-				cells: [rule.name, getInboxRuleConditionTypeName(rule.conditions[0].type), "None"],
-				actionButtonAttrs: createRowActions(
+			return [
+				m(
+					Card,
 					{
-						getArray: () => this.model.orderedInboxRules,
-						updateInstance: async () => {
-							await this.model.saveInboxRuleOrder()
+						style: {
+							display: "grid",
+							gridTemplateColumns: "auto 1fr auto auto",
+							gridTemplateRows: "auto",
+							alignItems: "center",
 						},
 					},
-					rule,
-					index,
 					[
-						{
-							label: "edit_action",
-							click: () =>
-								this.mailboxModel
-									.getUserMailboxDetails()
-									.then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, this.inboxRuleModel, rule)),
-						},
-						{
-							label: "delete_action",
-							click: () => {
-								this.model.deleteInboxRule(rule)
+						// reorder
+						m(Icon, {
+							// hoverText: lang.getTranslationText("move_action"),
+							icon: Icons.DragDrop,
+							size: IconSize.PX32,
+							style: {
+								fill: theme.outline,
 							},
-						},
+						}),
+						// name
+						m(
+							".selectable.text-ellipsis.plr-16",
+							{
+								// title for tooltip
+								title: rule.name,
+							},
+							rule.name,
+						),
+						// toggle button
+						m(Switch, {
+							ariaLabel: "deactivate_action",
+							checked: true,
+							onclick(checked: boolean) {
+								throw new ProgrammingError("not implemented")
+							},
+						}),
+						// actions button
+						m(IconButton, {
+							label: "edit_action",
+							icon: Icons.More,
+							size: ButtonSize.Normal,
+							click: createDropdown({
+								lazyButtons: () => [
+									{
+										label: "edit_action",
+										click: () =>
+											mailLocator.mailboxModel
+												.getUserMailboxDetails()
+												.then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, this.inboxRuleModel, rule)),
+									},
+									index > 1
+										? {
+												label: "moveToTop_action",
+												click: () => this.model.moveRuleToFirst(rule, index),
+											}
+										: null,
+									index > 0
+										? {
+												label: "moveUp_action",
+												click: () => this.model.moveRuleUp(rule, index),
+											}
+										: null,
+									index < this.model.orderedInboxRules.length - 1
+										? {
+												label: "moveDown_action",
+												click: () => this.model.moveRuleDown(rule, index),
+											}
+										: null,
+									index < this.model.orderedInboxRules.length - 2
+										? {
+												label: "moveToBottom_action",
+												click: () => this.model.moveRuleToLast(rule, index),
+											}
+										: null,
+									{
+										label: "delete_action",
+										click: () => this.model.deleteInboxRule(rule),
+									},
+								],
+								width: 260,
+							}),
+						}),
 					],
 				),
-			}
+			]
 		})
+
+		// This code is left in to help support old inbox rules, which will be done in another issue
+		// mailLocator.mailboxModel.getUserMailboxDetails().then(async (mailboxDetails) => {
+		// 	const ruleLines = await promiseMap(props.inboxRules, async (rule, index) => {
+		// 		return {
+		// 			// FIXME: getInboxRuleTypeName needs to be added back
+		// 			cells: [getInboxRuleTypeName(rule.type), rule.value, await this.getTextForTarget(mailboxDetails, rule.targetFolder)],
+		// 			actionButtonAttrs: createRowActions(
+		// 				{
+		// 					getArray: () => props.inboxRules,
+		// 					updateInstance: () => mailLocator.entityClient.update(props).catch(ofClass(LockedError, noOp)),
+		// 				},
+		// 				rule,
+		// 				index,
+		// 				[
+		// 					{
+		// 						label: "edit_action",
+		// 						click: () => {
+		// 							// FIXME: need to add old inbox rule dialog back
+		// 						},
+		// 					},
+		// 				],
+		// 			),
+		// 		} satisfies TableLineAttrs
+		// 	})
+		//
+		// 	const table = [
+		// 		m(Table, {
+		// 			columnHeading: ["inboxRuleField_label", "inboxRuleValue_label", "inboxRuleTargetFolder_label"],
+		// 			columnWidths: [ColumnWidth.Small, ColumnWidth.Largest, ColumnWidth.Small],
+		// 			showActionButtonColumn: true,
+		// 			lines: ruleLines,
+		// 		}),
+		// 	]
+		// 	this.inboxRulesTableLines(table)
+		//
+		// 	m.redraw()
+		// })
 	}
 
+	// This is kept around to support old inbox rules, remove once they are no longer used
 	private async getTextForTarget(mailboxDetail: MailboxDetail, targetFolderId: IdTuple): Promise<string> {
 		const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
 		let folder = folders.getFolderById(elementIdPart(targetFolderId))
