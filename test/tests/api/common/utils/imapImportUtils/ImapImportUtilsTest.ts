@@ -4,6 +4,7 @@ import {
 	guessServerImapConfigFromEmail,
 	imapAccountSyncStateToImapCredentials,
 	imapMailToImportMailParams,
+	labelsFromImapLabels,
 	oAuthTokenEndpointResponseToTokenEndpointResponse,
 	tokenEndpointResponseToOAuthTokenEndpointResponse,
 } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapImportUtils.js"
@@ -155,6 +156,29 @@ o.spec("ImapImportUtils", () => {
 		let imapMailMock: ImapMail
 		let folderSyncStateIdMock: IdTuple
 
+		const folderSyncStatesMock = [
+			createTestEntity(ImapFolderSyncStateTypeRef, {
+				path: "INBOX",
+				imapSpecialUse: ImapMailboxSpecialUse.INBOX,
+				mailSet: ["mailSetsListId", "inboxLabelSet"],
+			}),
+			createTestEntity(ImapFolderSyncStateTypeRef, {
+				path: "[Google Mail]/Important",
+				imapSpecialUse: ImapMailboxSpecialUse.IMPORTANT,
+				mailSet: ["mailSetsListId", "importantLabelSet"],
+			}),
+			createTestEntity(ImapFolderSyncStateTypeRef, {
+				path: "Drafts",
+				imapSpecialUse: ImapMailboxSpecialUse.DRAFTS,
+				mailSet: ["mailSetsListId", "draftsLabelSet"],
+			}),
+			createTestEntity(ImapFolderSyncStateTypeRef, {
+				path: "Custom",
+				imapSpecialUse: null,
+				mailSet: ["mailSetsListId", "customLabelSet"],
+			}),
+		]
+
 		o.beforeEach(() => {
 			folderSyncStateIdMock = ["listId", "elementId"]
 			imapMailMock = {
@@ -182,11 +206,14 @@ o.spec("ImapImportUtils", () => {
 				},
 				attachments: [],
 				headers: "Header: value",
+				labels: new Set(["\\Important", "Custom", "RandomLabelNotToBeApplied"]),
 			} as any
 		})
 
 		o.test("converts basic mail without attachments", () => {
-			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, [])
+			imapMailMock.labels?.add("\\Inbox")
+
+			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, folderSyncStatesMock)
 			o.check(result.subject).equals("Test subject")
 			o.check(result.bodyText).equals("<p>HTML body</p>")
 			o.check(result.sentDate).equals(imapMailMock.envelope!.date)
@@ -209,61 +236,100 @@ o.spec("ImapImportUtils", () => {
 			o.check(result.imapUid).equals(123)
 			o.check(result.imapModSeq).equals(456n)
 			o.check(result.imapFolderSyncState).equals(folderSyncStateIdMock)
+			const expectedLabels = new Set([
+				["mailSetsListId", "customLabelSet"] as IdTuple,
+				["mailSetsListId", "importantLabelSet"] as IdTuple,
+				["mailSetsListId", "inboxLabelSet"] as IdTuple,
+			])
+			o.check(new Set(result.labels)).deepEquals(expectedLabels)
+		})
+
+		o.test("converts basic mail without attachments with draft label", () => {
+			imapMailMock.labels?.add("\\Draft")
+
+			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, folderSyncStatesMock)
+			o.check(result.subject).equals("Test subject")
+			o.check(result.bodyText).equals("<p>HTML body</p>")
+			o.check(result.sentDate).equals(imapMailMock.envelope!.date)
+			o.check(result.receivedDate).equals(imapMailMock.internalDate)
+			o.check(result.state).equals(MailState.DRAFT)
+			o.check(result.unread).equals(true)
+			o.check(result.senderMailAddress).equals("sender@example.com")
+			o.check(result.senderName).equals("Sender")
+			o.check(result.method).equals(MailMethod.NONE)
+			o.check(result.replyType).equals(ReplyType.NONE)
+			o.check(result.differentEnvelopeSender).equals(null)
+			o.check(result.headers).equals("Header: value")
+			o.check(result.replyTos).deepEquals([])
+			o.check(result.toRecipients).deepEquals([{ address: "to@example.com", name: "Recipient" }])
+			o.check(result.ccRecipients).deepEquals([])
+			o.check(result.bccRecipients).deepEquals([])
+			o.check(result.attachments).deepEquals([])
+			o.check(result.inReplyTo).equals(null)
+			o.check(result.references).deepEquals([])
+			o.check(result.imapUid).equals(123)
+			o.check(result.imapModSeq).equals(456n)
+			o.check(result.imapFolderSyncState).equals(folderSyncStateIdMock)
+			o.check(result.labels).deepEquals([
+				["mailSetsListId", "importantLabelSet"],
+				["mailSetsListId", "customLabelSet"],
+				["mailSetsListId", "draftsLabelSet"],
+			])
 		})
 
 		o.test("uses plaintext body when HTML missing", () => {
 			imapMailMock.body = { plaintext: "Only plaintext \n", html: "" } as any
-			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, [])
+			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, folderSyncStatesMock)
 			o.check(result.bodyText.includes("<br>")).equals(true)
 		})
 
 		o.test("handles missing subject", () => {
 			imapMailMock.envelope!.subject = undefined
-			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, [])
+			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, folderSyncStatesMock)
 			o.check(result.subject).equals("")
 		})
 
 		o.test("sets differentEnvelopeSender when sender differs from from", () => {
 			imapMailMock.envelope!.sender = [{ address: "different@example.com", name: "Different" } as ImapMailAddress]
-			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, [])
+			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, folderSyncStatesMock)
 			o.check(result.differentEnvelopeSender).equals("different@example.com")
 		})
 
 		o.test("sets unread false when mail has \\Seen flag", () => {
 			imapMailMock.flags = new Set(["\\Seen"])
-			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, [])
+			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, folderSyncStatesMock)
 			o.check(result.unread).equals(false)
 		})
 
 		o.test("sets replyType correctly for flags", () => {
 			imapMailMock.flags = new Set(["\\Answered"])
-			let result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, [])
+			let result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, folderSyncStatesMock)
 			o.check(result.replyType).equals(ReplyType.REPLY)
 
 			imapMailMock.flags = new Set(["$Forwarded"])
-			result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, [])
+			result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, folderSyncStatesMock)
 			o.check(result.replyType).equals(ReplyType.FORWARD)
 
 			imapMailMock.flags = new Set(["\\Answered", "$Forwarded"])
-			result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, [])
+			result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, folderSyncStatesMock)
 			o.check(result.replyType).equals(ReplyType.REPLY_FORWARD)
 		})
 
 		o.test("sets state to SENT for Sent mailbox", () => {
 			imapMailMock.belongsToMailbox = { path: "Sent", specialUse: ImapMailboxSpecialUse.SENT }
-			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, [])
+			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, folderSyncStatesMock)
 			o.check(result.state).equals(MailState.SENT)
 		})
 
 		o.test("sets state to DRAFT for Drafts mailbox", () => {
 			imapMailMock.belongsToMailbox = { path: "Drafts", specialUse: ImapMailboxSpecialUse.DRAFTS }
-			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, [])
+			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, folderSyncStatesMock)
 			o.check(result.state).equals(MailState.DRAFT)
 		})
 
 		o.test("includes deduplicated attachments when provided", () => {
 			const dedupedAttachmentsMock: ImapImportAttachments = [{ _type: "ImapImportTutaFileId", _id: ["file", "id"] }]
-			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, dedupedAttachmentsMock, [])
+			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, dedupedAttachmentsMock, folderSyncStatesMock)
 			o.check(result.attachments).equals(dedupedAttachmentsMock)
 		})
 
@@ -276,7 +342,7 @@ o.spec("ImapImportUtils", () => {
 				content: new Uint8Array([1, 2, 3]),
 			} as ImapMailAttachment
 			imapMailMock.attachments = [attachmentMock]
-			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, [])
+			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, folderSyncStatesMock)
 			o.check(result.attachments!.length).equals(1)
 			const file = result.attachments![0] as any
 			o.check(file._type).equals("DataFile")
@@ -294,9 +360,19 @@ o.spec("ImapImportUtils", () => {
 				content: new Uint8Array([1, 2, 3]),
 			} as ImapMailAttachment
 			imapMailMock.attachments = [attachmentMock]
-			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, [])
+			const result = imapMailToImportMailParams(imapMailMock, folderSyncStateIdMock, null, folderSyncStatesMock)
 			const file = result.attachments![0] as ImapImportDataFile
 			o.check(file.name).equals("image.png")
+		})
+
+		o.test("labelsFromImapLabels works correctly", () => {
+			const labels = new Set(["\\Inbox", "\\Important", "\\Draft", "Custom", "RandomLabelShouldNotBeImported"])
+			const result = labelsFromImapLabels(labels, folderSyncStatesMock)
+			o.check(result[0]).equals(folderSyncStatesMock[0].mailSet)
+			o.check(result[1]).equals(folderSyncStatesMock[1].mailSet)
+			o.check(result[2]).equals(folderSyncStatesMock[2].mailSet)
+			o.check(result[3]).equals(folderSyncStatesMock[3].mailSet)
+			o.check(result.length).equals(4)
 		})
 	})
 })
