@@ -32,7 +32,7 @@ import {
 	ParserError,
 	StringIterator,
 } from "../../../common/misc/parsing/ParserCombinator"
-import { DAY_IN_MILLIS, EndType, RepeatPeriod } from "@tutao/app-env"
+import { DAY_IN_MILLIS, EndType, ProgrammingError, RepeatPeriod } from "@tutao/app-env"
 import { reverse } from "../../../common/misc/EnumUtils"
 import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
@@ -815,27 +815,38 @@ function parseEndTime(eventObj: ICalObject, allDay: boolean, startTime: Date, st
 }
 
 function icalFrequencyToRepeatPeriod(value: string): RepeatPeriod {
-	const convertedValue = {
-		DAILY: RepeatPeriod.DAILY,
-		WEEKLY: RepeatPeriod.WEEKLY,
-		MONTHLY: RepeatPeriod.MONTHLY,
-		YEARLY: RepeatPeriod.ANNUALLY,
-	}[value]
-	if (convertedValue == null) {
-		throw new ParserError("Invalid frequency: " + value)
+	switch (value) {
+		case "DAILY":
+			return RepeatPeriod.DAILY
+		case "WEEKLY":
+			return RepeatPeriod.WEEKLY
+		case "MONTHLY":
+			return RepeatPeriod.MONTHLY
+		case "YEARLY":
+			return RepeatPeriod.ANNUALLY
+
+		case "HOURLY":
+		case "MINUTELY":
+		case "SECONDLY":
+			throw new ParserError("Unsupported ICal frequency: " + value)
+		default:
+			throw new ParserError("Invalid ICal frequency: " + value)
 	}
-	return convertedValue
 }
 
 export function repeatPeriodToIcalFrequency(repeatPeriod: RepeatPeriod) {
-	// Separate variable to declare mapping type
-	const mapping: Record<RepeatPeriod, string> = {
-		[RepeatPeriod.DAILY]: "DAILY",
-		[RepeatPeriod.WEEKLY]: "WEEKLY",
-		[RepeatPeriod.MONTHLY]: "MONTHLY",
-		[RepeatPeriod.ANNUALLY]: "YEARLY",
+	switch (repeatPeriod) {
+		case RepeatPeriod.DAILY:
+			return "DAILY"
+		case RepeatPeriod.WEEKLY:
+			return "WEEKLY"
+		case RepeatPeriod.MONTHLY:
+			return "MONTHLY"
+		case RepeatPeriod.ANNUALLY:
+			return "YEARLY"
+		default:
+			throw new ProgrammingError(`Invalid RepeatPeriod=${repeatPeriod}!`)
 	}
-	return mapping[repeatPeriod]
 }
 
 /** parse a time */
@@ -848,7 +859,7 @@ export function parseDateTime(
 	isAllDay: boolean
 	hasZSuffix: boolean
 } {
-	const matchGroups = value.trim().match(/([0-9][0-9][0-9][0-9])([0-9][0-9])([0-9][0-9])(?:T([0-9][0-9])([0-9][0-9])[0-9][0-9](Z?))?/)
+	const matchGroups = value.trim().match(/(\d\d\d\d)(\d\d)(\d\d)(?:T(\d\d)(\d\d)\d\d(Z?))?/)
 	if (matchGroups === null) {
 		throw new ParserError("Failed to parse time: " + value.trim())
 	}
