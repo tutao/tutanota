@@ -246,12 +246,9 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 							...statusIconParameters,
 							size: IconSize.PX32,
 						} as IconAttrs),
-						m(".pl-4.pr-32.items-base.flex-column", [
-							m(".text-preline.text-ellipsis", syncSourceAndDestinationMessage.text),
-							m(".text-preline.small", syncMessage.text),
-						]),
+						m(".items-base.flex-column", [m(".text-preline", syncSourceAndDestinationMessage.text), m(".text-preline.small", syncMessage.text)]),
 					]),
-					m(".flex-column.items-center", buttons),
+					m(".flex.ml-16.items-center", buttons),
 				]),
 			)
 		})
