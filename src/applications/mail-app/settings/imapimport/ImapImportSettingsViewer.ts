@@ -279,9 +279,10 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 		}
 		return [
 			m(".flex-space-between.items-center.mt-4.mb-4", [
-				m(".h5", lang.getTranslation("migrationHistory_label").text + mailboxLabel),
+				m(MenuTitle, { content: lang.getTranslation("migrationHistory_label").text + mailboxLabel }),
 				m(ExpanderButton, {
 					label: "show_action",
+					style: { "padding-top": "0px" },
 					expanded: this.mailboxIdToImportHistoryExpanded.get(mailboxId) || false,
 					onExpandedChange: () => {
 						this.mailboxIdToImportHistoryExpanded.set(mailboxId, !this.mailboxIdToImportHistoryExpanded.get(mailboxId))
