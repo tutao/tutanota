@@ -15,11 +15,12 @@ export class LabelsPopupViewModel {
 		labelSystem: FolderSystem,
 	) {
 		const indentedLabels = labelSystem.getIndentedList()
-		for (const label of initialLabelState) {
-			const indentedLabel = indentedLabels.find(({ mailSet }) => isSameId(mailSet._id, label.label._id))
-			if (indentedLabel) {
+		for (const indentedLabel of indentedLabels) {
+			if (!indentedLabel) continue
+			const labelState = initialLabelState.find(({ label }) => isSameId(indentedLabel.mailSet._id, label._id))
+			if (labelState) {
 				const displayName = getIndentedFolderNameForDropdown(indentedLabel)
-				this.labelStateTracker.push({ displayName: displayName, label: label.label, state: label.state, startingState: label.state })
+				this.labelStateTracker.push({ displayName: displayName, label: labelState.label, state: labelState.state, startingState: labelState.state })
 			}
 		}
 		this.updateLabelLimitReached()
