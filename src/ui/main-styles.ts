@@ -745,6 +745,9 @@ export class MainStyles {
 				".min-width-0": {
 					"min-width": 0,
 				},
+				".min-width-fit": {
+					"min-width": "fit-content",
+				},
 				".min-width-full": {
 					"min-width": "100%",
 				},
@@ -1571,6 +1574,13 @@ export class MainStyles {
 					"max-width": px(component_size.button_height_sm),
 					"max-height": px(component_size.button_height_sm),
 				},
+				".icon-button-extra-small": {
+					"border-radius": "25%",
+					width: px(component_size.button_height_xs),
+					height: px(component_size.button_height_xs),
+					"max-width": px(component_size.button_height_xs),
+					"max-height": px(component_size.button_height_xs),
+				},
 				".center-h": {
 					margin: "0 auto",
 				},
@@ -2036,6 +2046,9 @@ export class MainStyles {
 				},
 				".ml-between-4 > :not(:first-child)": {
 					"margin-left": px(size.spacing_4),
+				},
+				".ml-between-8 > :not(:first-child)": {
+					"margin-left": px(size.spacing_8),
 				},
 				".mt-between-4 > :not(:first-child)": {
 					"margin-top": px(size.spacing_4),
@@ -3057,6 +3070,13 @@ export class MainStyles {
 				},
 				".svg-text-content-bg text": {
 					fill: theme.surface,
+				},
+				// IconButton only accepts ButtonColors, so we need to override it like this for black/white on labels
+				".icon-button-wrapper-black-icon .icon": {
+					fill: "black !important",
+				},
+				".icon-button-wrapper-white-icon .icon": {
+					fill: "white !important",
 				},
 				".overflow-auto": {
 					overflow: "auto",

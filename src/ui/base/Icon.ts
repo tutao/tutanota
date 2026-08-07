@@ -14,6 +14,7 @@ EnvProvider.assertMainOrNode()
 export type AllIcons = Icons
 
 export enum IconSize {
+	PX12,
 	PX20,
 	PX24,
 	PX32,
@@ -125,6 +126,9 @@ export class Icon implements Component<IconAttrs> {
 	getClass(attrs: IconAttrs): string {
 		let cls = ""
 		switch (attrs.size) {
+			case IconSize.PX12:
+				cls += "icon-small "
+				break
 			case IconSize.PX24:
 				cls += "icon-24 "
 				break

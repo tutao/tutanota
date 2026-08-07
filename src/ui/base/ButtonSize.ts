@@ -8,6 +8,7 @@
  * Compact = 30px button, 24px icon
  */
 export const enum ButtonSize {
+	ExtraSmall,
 	Small,
 	Normal,
 	Compact,
