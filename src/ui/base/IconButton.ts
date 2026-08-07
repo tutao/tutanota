@@ -30,7 +30,7 @@ export class IconButton implements Component<IconButtonAttrs> {
 				icon: attrs.icon,
 				container: "div",
 				class: "center-h",
-				size: attrs.size === ButtonSize.Large ? IconSize.PX32 : IconSize.PX24,
+				size: attrs.size === ButtonSize.Large ? IconSize.PX32 : attrs.size === ButtonSize.ExtraSmall ? IconSize.PX20 : IconSize.PX24,
 				style: {
 					fill: getColors(attrs.colors ?? ButtonColor.Content).button,
 					visibility: attrs.hidden ? "hidden" : "visible",
@@ -38,7 +38,7 @@ export class IconButton implements Component<IconButtonAttrs> {
 			}),
 			onclick: attrs.click,
 			onkeydown: attrs.onkeydown,
-			class: `${attrs.size === ButtonSize.Small ? "icon-button-small" : "icon-button"}  ${attrs.disabled ? "disabled" : "state-bg"} ${IconButton.getSizeClass(attrs.size)}`,
+			class: `${attrs.size === ButtonSize.Small ? "icon-button-small" : attrs.size === ButtonSize.ExtraSmall ? "icon-button-extra-small" : "icon-button"}  ${attrs.disabled ? "disabled" : "state-bg"} ${IconButton.getSizeClass(attrs.size)}`,
 			disabled: attrs.hidden || attrs.disabled,
 			style: {
 				...attrs.style,

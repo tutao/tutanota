@@ -144,6 +144,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					m(Label, {
 						text: label.name,
 						color: label.color ?? theme.primary,
+						cancelable: false,
 					}),
 				),
 			],

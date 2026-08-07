@@ -149,6 +149,7 @@ export const layout_size = {
 
 export const component_size = {
 	button_height: 44,
+	button_height_xs: 20,
 	button_height_sm: 32,
 	button_height_md: 48,
 	button_height_lg: 56,
