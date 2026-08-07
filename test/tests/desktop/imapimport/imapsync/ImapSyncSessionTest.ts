@@ -91,7 +91,7 @@ o.spec("ImapSyncSession", () => {
 	o.test("stopSyncSession - stops all processes", async () => {
 		await session.startSyncSession(imapSyncContext)
 		await session.stopSyncSession()
-		o.check(session.state).equals(SyncSessionState.PAUSED)
+		o.check(session.state).equals(SyncSessionState.STOPPED)
 	})
 
 	o.test("onAllMailboxesFinish - finishes and calls onFinish", async () => {

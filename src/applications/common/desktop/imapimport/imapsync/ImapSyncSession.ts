@@ -16,10 +16,11 @@ const IMAP_RATE_LIMIT_POSTPONE_TIME: number = 25 * 60 * 60 * 1000 // 25 hours
 const MAX_MAILBOX_FAILURES_THRESHOLD = 2
 
 export enum SyncSessionState {
+	NOT_STARTED,
 	RUNNING,
-	PAUSED,
 	POSTPONED,
 	FINISHED,
+	STOPPED,
 }
 
 export enum ShutdownSyncAction {
@@ -86,7 +87,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			})
 		},
 	) {
-		this.state = SyncSessionState.PAUSED
+		this.state = SyncSessionState.NOT_STARTED
 	}
 
 	async startSyncSession(imapSyncContext: ImapSyncContext): Promise<void> {
@@ -115,7 +116,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		} else if (shutdownSyncAction === ShutdownSyncAction.FINISHED) {
 			this.state = SyncSessionState.FINISHED
 		} else {
-			this.state = SyncSessionState.PAUSED
+			this.state = SyncSessionState.STOPPED
 		}
 	}
 
@@ -170,6 +171,10 @@ export class ImapSyncSession implements SyncSessionEventListener {
 	}
 
 	private async startNextMailboxSync() {
+		if (this.state === SyncSessionState.STOPPED) {
+			return
+		}
+
 		const remainingMailboxes = this.syncSessionMailboxes
 			.filter((mailbox) => mailbox.importance !== SyncSessionMailboxImportance.NO_SYNC)
 			.sort((a, b) => {
