@@ -139,7 +139,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		this.listColumn = new ViewColumn(
 			{
 				view: () => {
-					const folder = this.mailViewModel.getFolder()
+					const folder = this.mailViewModel.getMailSet()
 					return m(BackgroundColumnLayout, {
 						backgroundColor: theme.surface_container,
 						desktopToolbar: () => m(DesktopListToolbar, m(SelectAllCheckbox, selectionAttrsForList(this.mailViewModel)), this.renderFilterButton()),
@@ -180,7 +180,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 											this.mailViewModel.onSingleExclusiveSelection(...args)
 										},
 										onClearFolder: async () => {
-											const folder = this.mailViewModel.getFolder()
+											const folder = this.mailViewModel.getMailSet()
 											if (folder == null) {
 												console.warn("Cannot delete folder, no folder is selected")
 												return
@@ -240,7 +240,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				minWidth: layout_size.second_col_min_width,
 				maxWidth: deviceConfig.getMailListSize(userId) ?? layout_size.second_col_max_width,
 				headerCenter: () => {
-					const folder = this.mailViewModel.getFolder()
+					const folder = this.mailViewModel.getMailSet()
 					return folder ? lang.makeTranslation("folder_name", getMailSetName(folder)) : "emptyString_msg"
 				},
 				resizeCallback: (size: number) => {
@@ -377,7 +377,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private getReportMailsAsNotSpamAction(): (() => void) | null {
 		const isExternalUser = !locator.logins.isInternalUserLoggedIn()
-		const folder = this.mailViewModel.getFolder()
+		const folder = this.mailViewModel.getMailSet()
 		const isSpamFolder = folder?.folderType === MailSetKind.SPAM
 		if (isSpamFolder && !isExternalUser) {
 			const actionableMails = this.mailViewModel.getActionableMails().filter((mail) => !isDraft(mail))
@@ -417,7 +417,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getReapplyInboxRulesAction(): (() => void) | null {
-		const currentFolder = this.mailViewModel.getFolder()
+		const currentFolder = this.mailViewModel.getMailSet()
 		//Inbox reapply rules should only be visible for paying users currently on the inbox folder.
 		if (!mailLocator.logins.getUserController().isPaidAccount() || currentFolder?.folderType !== MailSetKind.INBOX) {
 			return null
@@ -684,7 +684,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			listModel.selectNone()
 			return true
 		} else if (this.viewSlider.isFirstBackgroundColumnFocused()) {
-			const folder = this.mailViewModel.getFolder()
+			const folder = this.mailViewModel.getMailSet()
 			if (folder == null || getMailFolderType(folder) !== MailSetKind.INBOX) {
 				this.mailViewModel.switchToFolder(MailSetKind.INBOX)
 				return true
@@ -782,7 +782,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				exec: () => {
 					this.showNewMailDialog().catch(ofClass(PermissionError, noOp))
 				},
-				enabled: () => !!this.mailViewModel.getFolder() && isNewMailActionAvailable(),
+				enabled: () => !!this.mailViewModel.getMailSet() && isNewMailActionAvailable(),
 				help: "newMail_action",
 			},
 			{
@@ -836,7 +836,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				ctrlOrCmd: true,
 				exec: () => {
 					// Since the user can have multiple mailboxes, get the current folder to find which mailbox the user selected
-					const currentFolder = this.mailViewModel.getFolder()
+					const currentFolder = this.mailViewModel.getMailSet()
 					if (currentFolder != null) {
 						this.showFolderAddEditDialog(assertNotNull(currentFolder._ownerGroup), null, null)
 					}
@@ -1012,7 +1012,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private async moveMailsToSystemFolder(targetFolderType: SystemFolderType) {
-		const folder = this.mailViewModel.getFolder()
+		const folder = this.mailViewModel.getMailSet()
 		if (folder == null) {
 			return
 		}
@@ -1035,7 +1035,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private moveMailsFromFolder(origin: PosRect, opts?: ShowMoveMailsDropdownOpts) {
-		const currentFolder = this.mailViewModel.getFolder()
+		const currentFolder = this.mailViewModel.getMailSet()
 		if (currentFolder == null) {
 			return
 		}
@@ -1400,7 +1400,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			return
 		}
 
-		const currentFolder = this.mailViewModel.getFolder()
+		const currentFolder = this.mailViewModel.getMailSet()
 		if (!currentFolder) {
 			return
 		}
@@ -1527,7 +1527,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private async deleteSelectedMails() {
 		const actionableMails = await this.mailViewModel.getResolvedActionableMails()
-		const currentFolder = assertNotNull(this.mailViewModel.getFolder())
+		const currentFolder = assertNotNull(this.mailViewModel.getMailSet())
 		if (isNotEmpty(actionableMails)) {
 			await promptAndDeleteMails(mailLocator.mailModel, actionableMails, currentFolder._id, noOp)
 		}
