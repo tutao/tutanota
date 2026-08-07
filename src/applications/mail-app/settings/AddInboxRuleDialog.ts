@@ -520,6 +520,15 @@ function getRuleResultValueInputByType(ruleResult: InboxRuleResultField) {
 					selectionChangedHandler: ruleResult.value,
 					class: "",
 				})
+		case InboxRuleResultType.LABEL:
+			return (targetFolders: MoveTargetFolder[]) =>
+				m(DropDownSelectorNew, {
+					items: targetFolders,
+					selectedValue: lang.getTranslationText("labels_label"),
+					selectedValueDisplay: lang.getTranslationText("labels_label"),
+					selectionChangedHandler: ruleResult.value,
+					class: "",
+				})
 		case InboxRuleResultType.EXCLUDE_SPAM:
 		case InboxRuleResultType.READ:
 			return null
