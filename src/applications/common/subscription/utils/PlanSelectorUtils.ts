@@ -121,12 +121,14 @@ export function getBorderColor(isSelected: boolean, hasCampaign: boolean, localT
 	}
 }
 
-export function getBorderRadius(hasBanner: boolean, position: PlanBoxPosition) {
+export function getBorderRadius(hasBanner: boolean, position: PlanBoxPosition, freePlanVisible?: boolean) {
 	const topOuterRadius = hasBanner ? "0" : px(size.radius_8)
 	if (styles.isMobileLayout()) {
 		return `0 0 0 0`
 	} else if (position === "bottom") {
 		return `0 0 ${px(size.radius_8)} ${px(size.radius_8)}`
+	} else if (freePlanVisible === false) {
+		return position === "left" ? `${topOuterRadius} 0 0 ${topOuterRadius}` : `0 ${topOuterRadius} ${topOuterRadius} 0`
 	} else {
 		return position === "left" ? `${topOuterRadius} 0 0 0` : `0 ${topOuterRadius} 0 0`
 	}
