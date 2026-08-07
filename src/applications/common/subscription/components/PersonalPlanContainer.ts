@@ -155,9 +155,11 @@ export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 						showMultiUser,
 						position: idx % 2 === 0 ? "left" : "right",
 						discountDetail: discountDetails?.[planConfig.type],
+						freePlanVisible: availablePlans.includes(PlanType.Free),
 					})
 				}),
 			),
+			//Only show free plan when explicitly included, because we don't want to switch directly to Free anymore
 			availablePlans.includes(PlanType.Free) &&
 				m(PersonalFreePlanBox, {
 					isSelected: selectedPlan() === PlanType.Free,

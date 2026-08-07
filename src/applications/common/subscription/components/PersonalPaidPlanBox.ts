@@ -36,6 +36,7 @@ type PersonalPlanBoxAttrs = {
 	showMultiUser: boolean
 	position: Exclude<PlanBoxPosition, "bottom">
 	discountDetail?: DiscountDetail
+	freePlanVisible?: boolean
 }
 
 export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
@@ -69,6 +70,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 			showMultiUser,
 			position,
 			discountDetail,
+			freePlanVisible,
 		},
 	}: Vnode<PersonalPlanBoxAttrs>) {
 		this.scale = isSelected && !this.preventRescaling ? PLAN_SELECTOR_SELECTED_BOX_SCALE : "initial"
@@ -133,7 +135,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 						"border-style": "solid",
 						"border-color": getBorderColor(isSelected, hasCampaign, localTheme),
 						"border-width": getBorderWidth(isSelected, position),
-						"border-radius": getBorderRadius(hasCampaign, position),
+						"border-radius": getBorderRadius(hasCampaign, position, freePlanVisible),
 						"box-shadow": isSelected ? boxShadowHigh : "none",
 						overflow: "hidden",
 						padding: `${px(20)} ${px(styles.isMobileLayout() ? 16 : 20)}`,
