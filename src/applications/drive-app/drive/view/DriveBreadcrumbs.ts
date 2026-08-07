@@ -113,7 +113,7 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 								},
 								onDrop: onDropInto
 									? (event) => {
-											onDropInto({ type: "folder", folder: entry }, event)
+											onDropInto({ type: "folder", folder: entry, parentFolder: entry.parentFolder }, event)
 										}
 									: undefined,
 							}),
@@ -170,7 +170,7 @@ export class DriveBreadcrumbs implements Component<DriveBreadcrumbsAttrs> {
 					},
 					drop: (event) => {
 						dropdown.close()
-						onDropInto?.({ type: "folder", folder: parent }, event)
+						onDropInto?.({ type: "folder", folder: parent, parentFolder: parent.parentFolder }, event)
 					},
 					dragover: (event) => {
 						if (timeoutId != null) {

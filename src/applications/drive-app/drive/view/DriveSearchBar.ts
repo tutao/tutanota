@@ -39,7 +39,7 @@ export class DriveSearchBar implements ClassComponent<DriveSearchBarAttrs> {
 					const fill = getItemIconFill(dt)
 				}
 
-				return this.renderDriveResult(toFolderItem(item), isSelected, entry.parent)
+				return this.renderDriveResult(toFolderItem(item, item.parentFolder), isSelected, entry.parent)
 			},
 			shouldOfferUpgrade: attrs.shouldOfferUpgrade,
 		} satisfies SearchBarAttrs<DriveSearchResult>)

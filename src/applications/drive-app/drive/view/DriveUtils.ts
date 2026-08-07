@@ -19,11 +19,13 @@ export function makeDuplicateFileName(fileName: string, indicator: string = "cop
 export interface FileFolderItem {
 	type: "file"
 	file: DriveFile
+	parentFolder: DriveFolder | null
 }
 
 export interface FolderFolderItem {
 	type: "folder"
 	folder: DriveFolder
+	parentFolder: DriveFolder | null
 }
 
 export type FolderItem = FileFolderItem | FolderFolderItem
@@ -34,16 +36,16 @@ export function folderItemEntity(folderItem: FileFolderItem | FolderFolderItem):
 
 export function toFolderItems(folderContents: FolderContents): FolderItem[] {
 	return [
-		...folderContents.folders.map((folder) => ({ type: "folder", folder }) satisfies FolderFolderItem),
-		...folderContents.files.map((file) => ({ type: "file", file }) satisfies FileFolderItem),
+		...folderContents.folders.map((folder) => ({ type: "folder", folder, parentFolder: folder.parentFolder }) satisfies FolderFolderItem),
+		...folderContents.files.map((file) => ({ type: "file", file, parentFolder: file.parentFolder }) satisfies FileFolderItem),
 	]
 }
 
-export function toFolderItem(item: DriveFile | DriveFolder): FolderItem {
+export function toFolderItem(item: DriveFile | DriveFolder, parentFolder: DriveFolder | null): FolderItem {
 	if (isDriveFile(item)) {
-		return { type: "file", file: item }
+		return { type: "file", file: item, parentFolder: parentFolder }
 	} else {
-		return { type: "folder", folder: item }
+		return { type: "folder", folder: item, parentFolder: parentFolder }
 	}
 }
 
@@ -251,10 +253,12 @@ export function comparisonFunction(column: SortColumn, order: "asc" | "desc"): C
 	const itemSize = (item: FolderItem) => (item.type === "folder" ? 0n : BigInt(item.file.size))
 
 	const itemMimeType = (item: FolderItem) => (item.type === "folder" ? "" : item.file.mimeType)
+	const itemLocation = (item: FolderItem) => item.parentFolder?.name || ""
 
 	const attrToComparisonFunction: Record<SortColumn, ComparisonFunction> = {
 		name: (f1: FolderItem, f2: FolderItem) => compareString(itemName(f1), itemName(f2)),
 		mimeType: (f1: FolderItem, f2: FolderItem) => compareString(itemMimeType(f1), itemMimeType(f2)),
+		location: (f1: FolderItem, f2: FolderItem) => compareString(itemLocation(f1), itemLocation(f2)),
 		size: (f1: FolderItem, f2: FolderItem) => compareNumber(itemSize(f1), itemSize(f2)),
 		date: (f1: FolderItem, f2: FolderItem) => compareNumber(itemDate(f1).getTime(), itemDate(f2).getTime()),
 	}

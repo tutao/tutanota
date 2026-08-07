@@ -505,10 +505,10 @@ export class DriveSearchViewModel {
 					this.listModel.deleteLoadedItem(getElementId(update.item.item))
 					break
 				case "updateitem":
-					this.listModel.updateLoadedItem(toFolderItem(update.item.item))
+					this.listModel.updateLoadedItem(toFolderItem(update.item.item, update.item.parent))
 					break
 				case "newitem":
-					this.listModel.insertLoadedItem(toFolderItem(update.item.item))
+					this.listModel.insertLoadedItem(toFolderItem(update.item.item, update.item.parent))
 					break
 			}
 		})
@@ -538,7 +538,7 @@ export class DriveSearchViewModel {
 					newItems = result.items
 				}
 				const complete = !result.hasMoreResults
-				return { items: newItems.map((entity) => toFolderItem(entity.item)), complete }
+				return { items: newItems.map((entity) => toFolderItem(entity.item, entity.parent)), complete }
 			},
 			getItemId(item: FolderItem): Id {
 				return elementIdPart(folderItemid(item))

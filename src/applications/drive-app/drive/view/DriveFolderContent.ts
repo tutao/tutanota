@@ -143,7 +143,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 								"data-testid": "grid:folderContent",
 								style: {
 									"grid-column-start": "1",
-									"grid-column-end": "8",
+									"grid-column-end": "9",
 									display: "grid",
 									"grid-template-columns": "subgrid",
 								},
@@ -301,7 +301,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 					// ensure that the bar does not shrink too much if we have only text
 					minHeight: px(component_size.button_height + 2 * size.core_8),
 					"grid-column-start": "1",
-					"grid-column-end": "8",
+					"grid-column-end": "9",
 					display: "grid",
 					"grid-template-columns": "subgrid",
 				},
@@ -329,6 +329,7 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 					: [
 							m("div", { style: { ...columnStyle } }, []),
 							renderHeaderCell(lang.getTranslation("name_label"), SortColumn.name, sortOrder, onSort),
+							renderHeaderCell(lang.getTranslation("location_label"), SortColumn.location, sortOrder, onSort),
 							renderHeaderCell(lang.getTranslation("type_label"), SortColumn.mimeType, sortOrder, onSort),
 							renderHeaderCell(lang.getTranslation("size_label"), SortColumn.size, sortOrder, onSort),
 							renderHeaderCell(lang.getTranslation("date_label"), SortColumn.date, sortOrder, onSort),

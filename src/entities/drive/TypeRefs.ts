@@ -14,6 +14,7 @@ export type DriveFolder = {
 	_type: TypeRef<DriveFolder>;
 	_errors: Object;
 	_original?: DriveFolder
+	parentFolder: DriveFolder | null
 
 	_id: IdTuple;
 	_permissions: Id;
@@ -41,6 +42,7 @@ export type DriveFile = {
 	_type: TypeRef<DriveFile>;
 	_errors: Object;
 	_original?: DriveFile
+	parentFolder:DriveFolder | null
 
 	_id: IdTuple;
 	_permissions: Id;
@@ -54,7 +56,6 @@ export type DriveFile = {
 	createdDate: Date;
 	updatedDate: Date;
 	_kdfNonce: null | Uint8Array;
-
 	folder: IdTuple;
 	blobs: Blob[];
 	originalParent: null | IdTuple;

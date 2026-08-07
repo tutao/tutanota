@@ -153,7 +153,7 @@ export class DriveSearchModel {
 							const updatedItem = isSameTypeRef(update.typeRef, DriveFolderTypeRef)
 								? await this.entityClient.load(DriveFolderTypeRef, instanceIdTuple)
 								: await this.entityClient.load(DriveFileTypeRef, instanceIdTuple)
-							const parentFolderId = folderItemParent(toFolderItem(updatedItem))
+							const parentFolderId = folderItemParent(toFolderItem(updatedItem, updatedItem.parentFolder))
 							const parentFolder = parentFolderId ? await this.entityClient.load(DriveFolderTypeRef, parentFolderId) : null
 							const updatedResult: DriveSearchResult = {
 								item: updatedItem,
@@ -177,7 +177,7 @@ export class DriveSearchModel {
 								? await this.entityClient.load(DriveFolderTypeRef, instanceIdTuple)
 								: await this.entityClient.load(DriveFileTypeRef, instanceIdTuple)
 							if (tokens.every((token) => newItem.name.toLowerCase().includes(token))) {
-								const parentFolderId = folderItemParent(toFolderItem(newItem))
+								const parentFolderId = folderItemParent(toFolderItem(newItem, newItem.parentFolder))
 								const parentFolder = parentFolderId ? await this.entityClient.load(DriveFolderTypeRef, parentFolderId) : null
 								const newResult: DriveSearchResult = {
 									item: newItem,

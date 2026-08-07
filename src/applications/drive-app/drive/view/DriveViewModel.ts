@@ -76,6 +76,7 @@ export const enum SortColumn {
 	mimeType = "mimeType",
 	size = "size",
 	date = "date",
+	location = "location",
 }
 
 export interface SortingPreference {
@@ -290,10 +291,10 @@ export class DriveViewModel {
 	private async loadItem(type: "file" | "folder", id: IdTuple): Promise<FolderItem> {
 		if (type === "file") {
 			const file = await this.entityClient.load(DriveFileTypeRef, id)
-			return { type, file }
+			return { type, file, parentFolder: file.parentFolder }
 		} else {
 			const folder = await this.entityClient.load(DriveFolderTypeRef, id)
-			return { type, folder }
+			return { type, folder, parentFolder: folder.parentFolder }
 		}
 	}
 
