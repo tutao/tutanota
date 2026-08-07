@@ -679,34 +679,35 @@ export class MailViewerViewModel {
 	}
 
 	async reapplyInboxRuleForMail() {
-		const inboxRuleHandler = mailLocator.processInboxHandler()
-
 		const mail = this.mail
 		if (!mail._ownerGroup) {
 			return false
 		}
 		const mailboxDetail = await this.mailboxModel.getMailboxDetailsForMailGroup(mail._ownerGroup)
 
-		const currentFolder = this.mailModel.getMailFolderForMail(mail)
-		if (!currentFolder) {
-			return false
-		}
+		await mailLocator.inboxRuleHandler().applyRulesToGivenMails([mail], mailboxDetail)
 
-		const targetFolder = await inboxRuleHandler.getInboxRuleMoveTarget(mail, currentFolder, mailboxDetail)
-
-		if (isSameId(currentFolder._id, targetFolder._id)) {
-			return false
-		}
-
-		await moveMails({
-			targetFolder,
-			mailboxModel: locator.mailboxModel,
-			mailModel: mailLocator.mailModel,
-			mailIds: [mail._id],
-			moveMode: MoveMode.Mails,
-			undoModel: this.undoModel,
-			contactModel: mailLocator.contactModel,
-		})
+		// FIXME: old code for handling old inbox rules
+		// const inboxRuleHandler = mailLocator.processInboxHandler()
+		// const currentFolder = this.mailModel.getMailFolderForMail(mail)
+		// if (!currentFolder) {
+		// 	return false
+		// }
+		// const targetFolder = await inboxRuleHandler.getInboxRuleMoveTarget(mail, currentFolder, mailboxDetail)
+		//
+		// if (isSameId(currentFolder._id, targetFolder._id)) {
+		// 	return false
+		// }
+		//
+		// await moveMails({
+		// 	targetFolder,
+		// 	mailboxModel: locator.mailboxModel,
+		// 	mailModel: mailLocator.mailModel,
+		// 	mailIds: [mail._id],
+		// 	moveMode: MoveMode.Mails,
+		// 	undoModel: this.undoModel,
+		// 	contactModel: mailLocator.contactModel,
+		// })
 
 		return true
 	}

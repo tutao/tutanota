@@ -41,6 +41,7 @@ import { ButtonSize } from "../../../ui/base/ButtonSize"
 import { SelectorItem } from "../../../ui/base/DropDownSelector"
 import { getInboxRuleConditionTypeNameMapping, getInboxRuleResultTypeNameMapping } from "../mail/model/InboxRuleHandler"
 import { InboxRuleModel } from "../mail/model/InboxRuleModel"
+import { applyRuleWithProgress } from "./InboxRuleSettingsViewer"
 
 assertMainOrNode()
 
@@ -330,83 +331,6 @@ export async function show(
 			]
 		}
 
-		const applyRule = async (rule: ExpandedInboxRule, progress: Stream<number>, abort: AbortController) => {
-			// FIXME: Adapting this applyRule is the focus of another issue
-			throw new ProgrammingError("Not properly using ExpandedInboxRules!")
-
-			// const inbox = assertSystemFolderOfType(folders, MailSetKind.INBOX)
-			// const targetFolder = folders.getFolderById(elementIdPart(rule.targetFolder))
-			// if (targetFolder == null || targetFolder.folderType === MailSetKind.INBOX) {
-			// 	return
-			// }
-			//
-			// let totalProcessed = 0
-			// let totalMoved = 0
-			//
-			// try {
-			// 	const allIds = (await mailLocator.entityClient.loadAll(MailSetEntryTypeRef, inbox.entries)).reverse()
-			// 	const chunked = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, allIds)
-			//
-			// 	for (const chunk of chunked) {
-			// 		if (abort.signal.aborted) {
-			// 			break
-			// 		}
-			//
-			// 		const loadedMails = await resolveMailSetEntries(
-			// 			chunk,
-			// 			(list, elements) => mailLocator.entityClient.loadMultiple(MailTypeRef, list, elements),
-			// 			mailLocator.mailModel,
-			// 		)
-			//
-			// 		const mailsToMove: IdTuple[] = []
-			//
-			// 		await promiseMap(loadedMails, async (loadedMail) => {
-			// 			if (loadedMail.mail.mailDetails == null) {
-			// 				// inbox rules do not work on drafts
-			// 				return
-			// 			}
-			//
-			// 			const mailMatchesRule = await checkInboxRule(locator.mailFacade, loadedMail.mail, rule)
-			// 			if (mailMatchesRule) {
-			// 				mailsToMove.push(loadedMail.mail._id)
-			// 			}
-			// 		})
-			//
-			// 		await mailLocator.mailModel.moveMails(mailsToMove, targetFolder, MoveMode.Mails)
-			// 		totalMoved += mailsToMove.length
-			//
-			// 		totalProcessed += chunk.length
-			// 		progress((totalProcessed / allIds.length) * 100)
-			// 	}
-			// } catch (e) {
-			// 	if (!isOfflineError(e)) {
-			// 		throw e
-			// 	}
-			// }
-		}
-
-		const applyRuleWithProgress = async (rule: ExpandedInboxRule) => {
-			const progress = stream(0)
-			const abort = new AbortController()
-			await showProgressDialog("pleaseWait_msg", applyRule(rule, progress, abort), progress, {
-				middle: "applyingInboxRules_label",
-				left: () => {
-					return [
-						{
-							label: "cancel_action",
-							click: () => {
-								abort.abort()
-
-								// set progress to 100 so it doesn't look "stuck" even if it might take a few seconds to finish
-								progress(100)
-							},
-							type: ButtonType.Secondary,
-						} as const,
-					]
-				},
-			})
-		}
-
 		const prepareRule = (validatedName: string, ruleConditions: InboxRuleCondition[], ruleResults: InboxRuleResult[]): ExpandedInboxRule => {
 			if (originalInboxRule) {
 				const rule = clone(originalInboxRule)
@@ -456,7 +380,7 @@ export async function show(
 			savePromise
 				.then(() => {
 					if (applyRule) {
-						return applyRuleWithProgress(rule)
+						return applyRuleWithProgress([rule], mailLocator.inboxRuleHandler())
 					}
 				})
 				.then(() => {
@@ -464,15 +388,11 @@ export async function show(
 				})
 				.catch((error) => {
 					if (isOfflineError(error)) {
-						//FIXME: do we need to add a fallback like this back in?
-						//props.inboxRules = inboxRules
 						//do not close
 						throw error
 					} else if (error instanceof LockedError) {
 						dialog.close()
 					} else {
-						//FIXME: do we need to add a fallback like this back in?
-						//props.inboxRules = inboxRules
 						dialog.close()
 						throw error
 					}

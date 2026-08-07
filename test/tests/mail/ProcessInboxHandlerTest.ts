@@ -90,6 +90,7 @@ o.spec("ProcessInboxHandler", function () {
 			() => spamHandler,
 			() => inboxRuleHandler,
 			new Map(),
+			new Map(),
 			0,
 		)
 	})
@@ -460,11 +461,9 @@ o.spec("ProcessInboxHandler", function () {
 				verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
 				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
 				verify(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail), { times: 1 })
-				verify(inboxRuleHandler.getReadResultValue(matchingInboxRule), { times: 1 })
-				//FIXME check other inbox rule actions are applied
 
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
-					classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
+					classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
 					mailId: mail._id,
 					targetMoveFolder: spamFolder._id,
 					vectorLegacy: uploadableVectorLegacy,
@@ -486,8 +485,6 @@ o.spec("ProcessInboxHandler", function () {
 				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
 				verify(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail), { times: 1 })
 				verify(inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule), { times: 1 })
-				verify(inboxRuleHandler.getReadResultValue(matchingInboxRule), { times: 0 })
-				//FIXME check other inbox rule actions are NOT applied
 
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
 					classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
@@ -512,8 +509,6 @@ o.spec("ProcessInboxHandler", function () {
 				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
 				verify(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail), { times: 1 })
 				verify(inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule), { times: 1 })
-				verify(inboxRuleHandler.getReadResultValue(matchingInboxRule), { times: 0 })
-				//FIXME check other inbox rule actions are NOT applied
 
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
 					classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
@@ -538,8 +533,6 @@ o.spec("ProcessInboxHandler", function () {
 				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
 				verify(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail), { times: 1 })
 				verify(inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule), { times: 1 })
-				verify(inboxRuleHandler.getReadResultValue(matchingInboxRule), { times: 1 })
-				//FIXME check other inbox rule actions are applied
 
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
 					classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
@@ -564,8 +557,6 @@ o.spec("ProcessInboxHandler", function () {
 				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
 				verify(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail), { times: 1 })
 				verify(inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule), { times: 1 })
-				verify(inboxRuleHandler.getReadResultValue(matchingInboxRule), { times: 1 })
-				//FIXME check other inbox rule actions are applied
 
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
 					classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
