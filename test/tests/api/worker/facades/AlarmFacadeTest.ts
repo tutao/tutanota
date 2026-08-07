@@ -16,7 +16,7 @@ import {
 	AlarmInfoTypeRef,
 	AlarmNotification,
 	AlarmNotificationTypeRef,
-	AlarmService,
+	AlarmService_POST,
 	CalendarEventRefTypeRef,
 	createAlarmInfo,
 	createAlarmNotification,
@@ -141,7 +141,7 @@ o.spec("AlarmFacadeTest", function () {
 
 			await alarmFacade.createAlarms(user, [eventAlarmsTuple], [pushIdentifier])
 
-			verify(serviceExecutorMock.post(AlarmService, alarmServicePostData, matchers.anything()), { times: 1 })
+			verify(serviceExecutorMock.execute(AlarmService_POST, alarmServicePostData, matchers.anything()), { times: 1 })
 		})
 	})
 

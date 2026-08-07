@@ -66,7 +66,9 @@ import {
 	AdminGroupKeyRotationGetOutTypeRef,
 	AdminGroupKeyRotationPostIn,
 	AdminGroupKeyRotationPutIn,
-	AdminGroupKeyRotationService,
+	AdminGroupKeyRotationService_GET,
+	AdminGroupKeyRotationService_POST,
+	AdminGroupKeyRotationService_PUT,
 	createKeyPair,
 	createPubEncKeyData,
 	Customer,
@@ -76,7 +78,7 @@ import {
 	GroupInfoTypeRef,
 	GroupKeyRotationData,
 	GroupKeyRotationPostIn,
-	GroupKeyRotationService,
+	GroupKeyRotationService_POST,
 	GroupKeyUpdatesRefTypeRef,
 	GroupMembershipTypeRef,
 	GroupMemberTypeRef,
@@ -96,7 +98,7 @@ import {
 	User,
 	UserAuthenticationTypeRef,
 	UserGroupKeyRotationData,
-	UserGroupKeyRotationService,
+	UserGroupKeyRotationService_POST,
 	UserGroupRoot,
 	UserGroupRootTypeRef,
 	UserTypeRef,
@@ -560,7 +562,7 @@ o.spec("KeyRotationFacade", function () {
 				await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)
 
 				const captor = matchers.captor()
-				verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture(), null))
+				verify(serviceExecutorMock.execute(GroupKeyRotationService_POST, captor.capture(), null))
 				verify(shareFacade.sendGroupInvitationRequest(anything()), { times: 0 })
 				const sentData: GroupKeyRotationPostIn = captor.value
 				o(sentData.groupKeyUpdates.length).equals(1)
@@ -591,7 +593,7 @@ o.spec("KeyRotationFacade", function () {
 				await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)
 
 				const captor = matchers.captor()
-				verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture(), null))
+				verify(serviceExecutorMock.execute(GroupKeyRotationService_POST, captor.capture(), null))
 				verify(shareFacade.sendGroupInvitationRequest(anything()), { times: 0 })
 				const sentData: GroupKeyRotationPostIn = captor.value
 				o(sentData.groupKeyUpdates.length).equals(1)
@@ -624,7 +626,7 @@ o.spec("KeyRotationFacade", function () {
 				await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)
 
 				const captor = matchers.captor()
-				verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture(), null))
+				verify(serviceExecutorMock.execute(GroupKeyRotationService_POST, captor.capture(), null))
 				verify(shareFacade.sendGroupInvitationRequest(anything()), { times: 0 })
 				const sentData: GroupKeyRotationPostIn = captor.value
 				o(sentData.groupKeyUpdates.length).equals(1)
@@ -681,7 +683,7 @@ o.spec("KeyRotationFacade", function () {
 					await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)
 
 					const captor = matchers.captor()
-					verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture(), null))
+					verify(serviceExecutorMock.execute(GroupKeyRotationService_POST, captor.capture(), null))
 					verify(shareFacade.sendGroupInvitationRequest(groupInvitationPostDataMock))
 					const sentData: GroupKeyRotationPostIn = captor.value
 					o(sentData.groupKeyUpdates.length).equals(1)
@@ -718,7 +720,7 @@ o.spec("KeyRotationFacade", function () {
 					await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)
 
 					const captor = matchers.captor()
-					verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture(), null))
+					verify(serviceExecutorMock.execute(GroupKeyRotationService_POST, captor.capture(), null))
 					verify(shareFacade.sendGroupInvitationRequest(anything()), { times: 0 })
 					const sentData: GroupKeyRotationPostIn = captor.value
 					o(sentData.groupKeyUpdates.length).equals(1)
@@ -754,7 +756,7 @@ o.spec("KeyRotationFacade", function () {
 					await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)
 
 					const captor = matchers.captor()
-					verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture(), null))
+					verify(serviceExecutorMock.execute(GroupKeyRotationService_POST, captor.capture(), null))
 					verify(shareFacade.sendGroupInvitationRequest(anything()), { times: 0 })
 					const sentData: GroupKeyRotationPostIn = captor.value
 					o(sentData.groupKeyUpdates.length).equals(1)
@@ -818,7 +820,7 @@ o.spec("KeyRotationFacade", function () {
 					await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)
 
 					const captor = matchers.captor()
-					verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture(), null))
+					verify(serviceExecutorMock.execute(GroupKeyRotationService_POST, captor.capture(), null))
 					verify(shareFacade.sendGroupInvitationRequest(anything()), { times: 0 })
 					const sentData: GroupKeyRotationPostIn = captor.value
 					o(sentData.groupKeyUpdates.length).equals(1)
@@ -889,7 +891,7 @@ o.spec("KeyRotationFacade", function () {
 					await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)
 
 					const captor = matchers.captor()
-					verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture(), null))
+					verify(serviceExecutorMock.execute(GroupKeyRotationService_POST, captor.capture(), null))
 					verify(shareFacade.sendGroupInvitationRequest(anything()), { times: 0 })
 					const sentData: GroupKeyRotationPostIn = captor.value
 					o(sentData.groupKeyUpdates.length).equals(1)
@@ -928,7 +930,7 @@ o.spec("KeyRotationFacade", function () {
 				await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)
 
 				const captor = matchers.captor()
-				verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture(), null))
+				verify(serviceExecutorMock.execute(GroupKeyRotationService_POST, captor.capture(), null))
 				const sentData: GroupKeyRotationPostIn = captor.value
 				o(sentData.groupKeyUpdates.length).equals(2)
 				const update = sentData.groupKeyUpdates[0]
@@ -957,7 +959,7 @@ o.spec("KeyRotationFacade", function () {
 				await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)
 
 				const captor = matchers.captor()
-				verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture(), null))
+				verify(serviceExecutorMock.execute(GroupKeyRotationService_POST, captor.capture(), null))
 				verify(shareFacade.sendGroupInvitationRequest(anything()), { times: 0 })
 				const sentData: GroupKeyRotationPostIn = captor.value
 				o(sentData.groupKeyUpdates.length).equals(1)
@@ -1022,8 +1024,8 @@ o.spec("KeyRotationFacade", function () {
 				await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, PW_KEY)
 
 				verify(
-					serviceExecutorMock.post(
-						AdminGroupKeyRotationService,
+					serviceExecutorMock.execute(
+						AdminGroupKeyRotationService_POST,
 						matchers.argThat((arg) => {
 							const userGroupKeyData: UserGroupKeyRotationData = arg.userGroupKeyData
 							const adminGroupKeyData: GroupKeyRotationData = arg.adminGroupKeyData
@@ -1050,7 +1052,7 @@ o.spec("KeyRotationFacade", function () {
 						null,
 					),
 				)
-				verify(serviceExecutorMock.put(AdminGroupKeyRotationService, anything(), null), { times: 0 })
+				verify(serviceExecutorMock.execute(AdminGroupKeyRotationService_PUT, anything(), null), { times: 0 })
 
 				verify(userFacade.setNewUserGroupKey(NEW_USER_GROUP_KEY))
 
@@ -1077,8 +1079,8 @@ o.spec("KeyRotationFacade", function () {
 				await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, PW_KEY)
 
 				verify(
-					serviceExecutorMock.post(
-						AdminGroupKeyRotationService,
+					serviceExecutorMock.execute(
+						AdminGroupKeyRotationService_POST,
 						matchers.argThat((arg) => {
 							const userGroupKeyData: UserGroupKeyRotationData = arg.userGroupKeyData
 							const adminGroupKeyData: GroupKeyRotationData = arg.adminGroupKeyData
@@ -1126,8 +1128,8 @@ o.spec("KeyRotationFacade", function () {
 				await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, PW_KEY)
 
 				verify(
-					serviceExecutorMock.post(
-						AdminGroupKeyRotationService,
+					serviceExecutorMock.execute(
+						AdminGroupKeyRotationService_POST,
 						matchers.argThat((arg: AdminGroupKeyRotationPostIn) => {
 							o(arg.adminPubKeyMacList).notEquals(null)
 							o(arg.adminPubKeyMacList.length).equals(1)
@@ -1141,7 +1143,7 @@ o.spec("KeyRotationFacade", function () {
 						null,
 					),
 				)
-				verify(serviceExecutorMock.put(AdminGroupKeyRotationService, anything(), null), { times: 0 })
+				verify(serviceExecutorMock.execute(AdminGroupKeyRotationService_PUT, anything(), null), { times: 0 })
 
 				verify(cryptoWrapperMock.kyberPublicKeyToBytes(generatedAdminKeyPairs.decodedKeyPairs.kyberKeyPair.publicKey))
 				verify(
@@ -1196,7 +1198,7 @@ o.spec("KeyRotationFacade", function () {
 
 					const distributionKeys = []
 					const userGroupIdsMissingDistributionKeys = ["missing"]
-					when(serviceExecutorMock.get(AdminGroupKeyRotationService, anything(), null)).thenResolve(
+					when(serviceExecutorMock.execute(AdminGroupKeyRotationService_GET, anything(), null)).thenResolve(
 						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, {
 							distributionKeys,
 							userGroupIdsMissingDistributionKeys,
@@ -1206,8 +1208,8 @@ o.spec("KeyRotationFacade", function () {
 					await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, PW_KEY)
 
 					verify(
-						serviceExecutorMock.put(
-							AdminGroupKeyRotationService,
+						serviceExecutorMock.execute(
+							AdminGroupKeyRotationService_PUT,
 							matchers.argThat((arg: AdminGroupKeyRotationPutIn) => {
 								o(arg.distKeyMac.taggedKeyVersion).equals("0")
 								o(arg.distKeyMac.taggingKeyVersion).equals(CURRENT_ADMIN_GROUP_KEY.version.toString())
@@ -1253,7 +1255,7 @@ o.spec("KeyRotationFacade", function () {
 
 					const distributionKeys = [createTestEntity(PubDistributionKeyTypeRef, { userGroupId })]
 					const userGroupIdsMissingDistributionKeys = ["missing"]
-					when(serviceExecutorMock.get(AdminGroupKeyRotationService, anything(), null)).thenResolve(
+					when(serviceExecutorMock.execute(AdminGroupKeyRotationService_GET, anything(), null)).thenResolve(
 						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, {
 							distributionKeys,
 							userGroupIdsMissingDistributionKeys,
@@ -1262,7 +1264,7 @@ o.spec("KeyRotationFacade", function () {
 
 					await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, PW_KEY)
 
-					verify(serviceExecutorMock.put(AdminGroupKeyRotationService, anything(), null), { times: 0 })
+					verify(serviceExecutorMock.execute(AdminGroupKeyRotationService_PUT, anything(), null), { times: 0 })
 				})
 
 				o("distributes new admin group key to other admins", async function () {
@@ -1289,7 +1291,7 @@ o.spec("KeyRotationFacade", function () {
 						}),
 					]
 					const userGroupIdsMissingDistributionKeys = []
-					when(serviceExecutorMock.get(AdminGroupKeyRotationService, anything(), null)).thenResolve(
+					when(serviceExecutorMock.execute(AdminGroupKeyRotationService_GET, anything(), null)).thenResolve(
 						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, {
 							distributionKeys,
 							userGroupIdsMissingDistributionKeys,
@@ -1338,8 +1340,8 @@ o.spec("KeyRotationFacade", function () {
 					await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, PW_KEY)
 
 					verify(
-						serviceExecutorMock.post(
-							AdminGroupKeyRotationService,
+						serviceExecutorMock.execute(
+							AdminGroupKeyRotationService_POST,
 							matchers.argThat((arg: AdminGroupKeyRotationPostIn) => {
 								// verify that for admin performing rotation we make sure the new membership
 								// was encrypted with the new admingroupkey AND for its usergroupid
@@ -1389,7 +1391,7 @@ o.spec("KeyRotationFacade", function () {
 					const otherAdmin = "otherAdmin"
 					const distributionKeys = [createTestEntity(PubDistributionKeyTypeRef, { userGroupId: otherAdmin })]
 					const userGroupIdsMissingDistributionKeys = [user.userGroup.group]
-					when(serviceExecutorMock.get(AdminGroupKeyRotationService, anything(), null)).thenResolve(
+					when(serviceExecutorMock.execute(AdminGroupKeyRotationService_GET, anything(), null)).thenResolve(
 						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, {
 							distributionKeys,
 							userGroupIdsMissingDistributionKeys,
@@ -1432,7 +1434,7 @@ o.spec("KeyRotationFacade", function () {
 						}),
 					]
 					const userGroupIdsMissingDistributionKeys = [user.userGroup.group]
-					when(serviceExecutorMock.get(AdminGroupKeyRotationService, anything(), null)).thenResolve(
+					when(serviceExecutorMock.execute(AdminGroupKeyRotationService_GET, anything(), null)).thenResolve(
 						createTestEntity(AdminGroupKeyRotationGetOutTypeRef, {
 							distributionKeys,
 							userGroupIdsMissingDistributionKeys,
@@ -1542,8 +1544,8 @@ o.spec("KeyRotationFacade", function () {
 				await keyRotationFacade.processPendingKeyRotation(adminPubKey.pendingKeyRotations, user, PW_KEY)
 
 				verify(
-					serviceExecutorMock.post(
-						UserGroupKeyRotationService,
+					serviceExecutorMock.execute(
+						UserGroupKeyRotationService_POST,
 						matchers.argThat((arg) => {
 							const userGroupKeyData: UserGroupKeyRotationData = arg.userGroupKeyData
 							verifyRecoverCodeData(userGroupKeyData)
@@ -1634,8 +1636,8 @@ o.spec("KeyRotationFacade", function () {
 				await keyRotationFacade.processPendingKeyRotation(prepared.pendingKeyRotations, user, PW_KEY)
 
 				verify(
-					serviceExecutorMock.post(
-						UserGroupKeyRotationService,
+					serviceExecutorMock.execute(
+						UserGroupKeyRotationService_POST,
 						matchers.argThat((arg) => {
 							const userGroupKeyData: UserGroupKeyRotationData = arg.userGroupKeyData
 							const signature = userGroupKeyData.keyPair?.signature
@@ -1666,8 +1668,8 @@ o.spec("KeyRotationFacade", function () {
 				await keyRotationFacade.processPendingKeyRotation(prepared.pendingKeyRotations, user, PW_KEY)
 
 				verify(
-					serviceExecutorMock.post(
-						UserGroupKeyRotationService,
+					serviceExecutorMock.execute(
+						UserGroupKeyRotationService_POST,
 						matchers.argThat((arg) => {
 							const userGroupKeyData: UserGroupKeyRotationData = arg.userGroupKeyData
 							o(userGroupKeyData.recoverCodeData).equals(null)
@@ -1810,8 +1812,8 @@ o.spec("KeyRotationFacade", function () {
 				await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, PW_KEY)
 
 				verify(
-					serviceExecutorMock.post(
-						UserGroupKeyRotationService,
+					serviceExecutorMock.execute(
+						UserGroupKeyRotationService_POST,
 						matchers.argThat((arg) => {
 							const userGroupKeyData: UserGroupKeyRotationData = arg.userGroupKeyData
 							verifyRecoverCodeData(userGroupKeyData)
@@ -1893,7 +1895,7 @@ o.spec("KeyRotationFacade", function () {
 
 				await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)
 
-				verify(serviceExecutorMock.post(anything(), anything(), null), { times: 0 })
+				verify(serviceExecutorMock.execute(anything(), anything(), null), { times: 0 })
 			})
 		})
 
@@ -1914,7 +1916,7 @@ o.spec("KeyRotationFacade", function () {
 				await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)
 
 				const captor = matchers.captor()
-				verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture(), null))
+				verify(serviceExecutorMock.execute(GroupKeyRotationService_POST, captor.capture(), null))
 				verify(shareFacade.sendGroupInvitationRequest(anything()), { times: 0 })
 				const sentData: GroupKeyRotationPostIn = captor.value
 				o(sentData.groupKeyUpdates.length).equals(1)
@@ -1979,7 +1981,7 @@ o.spec("KeyRotationFacade", function () {
 				await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)
 
 				const captor = matchers.captor()
-				verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture(), null))
+				verify(serviceExecutorMock.execute(GroupKeyRotationService_POST, captor.capture(), null))
 
 				const sentData: GroupKeyRotationPostIn = captor.value
 				o(sentData.groupKeyUpdates.length).equals(1)
@@ -2021,7 +2023,7 @@ o.spec("KeyRotationFacade", function () {
 				await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)
 
 				const captor = matchers.captor()
-				verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture(), null))
+				verify(serviceExecutorMock.execute(GroupKeyRotationService_POST, captor.capture(), null))
 				verify(shareFacade.sendGroupInvitationRequest(anything()), { times: 0 })
 				const sentData: GroupKeyRotationPostIn = captor.value
 				o(sentData.groupKeyUpdates.length).equals(1)
@@ -2052,7 +2054,7 @@ o.spec("KeyRotationFacade", function () {
 
 				await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)
 
-				verify(serviceExecutorMock.post(anything(), anything(), null), { times: 0 })
+				verify(serviceExecutorMock.execute(anything(), anything(), null), { times: 0 })
 			})
 
 			o("If the admin group key is not quantum-safe yet, the group key rotations are ignored", async function () {
@@ -2072,7 +2074,7 @@ o.spec("KeyRotationFacade", function () {
 
 				await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)
 
-				verify(serviceExecutorMock.post(anything(), anything(), null), { times: 0 })
+				verify(serviceExecutorMock.execute(anything(), anything(), null), { times: 0 })
 			})
 
 			o("When the group has no members, the rotation is still handled but no membership update is created", async function () {
@@ -2095,7 +2097,7 @@ o.spec("KeyRotationFacade", function () {
 				await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)
 
 				const captor = matchers.captor()
-				verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture(), null))
+				verify(serviceExecutorMock.execute(GroupKeyRotationService_POST, captor.capture(), null))
 				verify(shareFacade.sendGroupInvitationRequest(anything()), { times: 0 })
 				const sentData: GroupKeyRotationPostIn = captor.value
 				o(sentData.groupKeyUpdates.length).equals(1)
@@ -2137,7 +2139,7 @@ o.spec("KeyRotationFacade", function () {
 				await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)
 
 				const captor = matchers.captor()
-				verify(serviceExecutorMock.post(GroupKeyRotationService, captor.capture(), null))
+				verify(serviceExecutorMock.execute(GroupKeyRotationService_POST, captor.capture(), null))
 				verify(shareFacade.sendGroupInvitationRequest(anything()), { times: 0 })
 				const sentData: GroupKeyRotationPostIn = captor.value
 				o(sentData.groupKeyUpdates.length).equals(3)

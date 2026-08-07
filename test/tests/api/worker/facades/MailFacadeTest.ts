@@ -35,7 +35,7 @@ import {
 	SendDraftData,
 	SendDraftDataTypeRef,
 	SymEncInternalRecipientKeyDataTypeRef,
-	UnreadMailStateService,
+	UnreadMailStateService_POST,
 } from "@tutao/entities/tutanota"
 import {
 	BucketKeyTypeRef,
@@ -466,8 +466,8 @@ o.spec("MailFacade test", function () {
 			const testIds: IdTuple[] = [["a", "b"]]
 			await facade.markMails(testIds, true)
 			verify(
-				serviceExecutor.post(
-					UnreadMailStateService,
+				serviceExecutor.execute(
+					UnreadMailStateService_POST,
 					matchers.contains({
 						mails: testIds,
 						unread: true,
@@ -484,8 +484,8 @@ o.spec("MailFacade test", function () {
 			]
 			await facade.markMails(testIds, true)
 			verify(
-				serviceExecutor.post(
-					UnreadMailStateService,
+				serviceExecutor.execute(
+					UnreadMailStateService_POST,
 					matchers.contains({
 						mails: testIds,
 						unread: true,
@@ -504,8 +504,8 @@ o.spec("MailFacade test", function () {
 			await facade.markMails(testIds, true)
 			for (let i = 0; i < expectedBatches; i++) {
 				verify(
-					serviceExecutor.post(
-						UnreadMailStateService,
+					serviceExecutor.execute(
+						UnreadMailStateService_POST,
 						matchers.contains({
 							mails: testIds.slice(i * MAX_NBR_OF_MAILS_SYNC_OPERATION, (i + 1) * MAX_NBR_OF_MAILS_SYNC_OPERATION),
 							unread: true,
@@ -515,7 +515,7 @@ o.spec("MailFacade test", function () {
 				)
 			}
 
-			verify(serviceExecutor.post(UnreadMailStateService, matchers.anything(), null), { times: expectedBatches })
+			verify(serviceExecutor.execute(UnreadMailStateService_POST, matchers.anything(), null), { times: expectedBatches })
 		})
 	})
 

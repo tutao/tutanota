@@ -1,6 +1,6 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ListElementId, ElementId } from "@tutao/meta"
+import { ListElementId, ElementId, DataTransferId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 import { Nullable } from "@tutao/utils"
 import { Blob } from '../sys/TypeRefs.js'
@@ -20,7 +20,7 @@ export type DriveFolderParams = {
 	name: string;
 	createdDate: Date;
 	updatedDate: Date;
-
+	
 
 
 	parent: null | IdTuple;
@@ -43,6 +43,9 @@ export type DriveFolder = {
 	updatedDate: Date;
 	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	parent: null | IdTuple;
@@ -51,12 +54,12 @@ export type DriveFolder = {
 
 
     //== some entities have these and some don't
-
+    
     bucketKey: null
-
-
-
-
+	
+	
+	
+	
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
@@ -82,7 +85,7 @@ export type DriveFileParams = {
 	mimeType: string;
 	createdDate: Date;
 	updatedDate: Date;
-
+	
 
 
 	folder: IdTuple;
@@ -106,6 +109,9 @@ export type DriveFile = {
 	updatedDate: Date;
 	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	folder: IdTuple;
@@ -114,12 +120,12 @@ export type DriveFile = {
 
 
     //== some entities have these and some don't
-
+    
     bucketKey: null
-
-
-
-
+	
+	
+	
+	
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
@@ -140,7 +146,7 @@ export function createDriveFileRef(values: DriveFileRefParams): DriveFileRef {
 export type DriveFileRefParams = {
 
 
-
+	
 
 
 	file: null | IdTuple;
@@ -155,6 +161,9 @@ export type DriveFileRef = {
 	_format: NumberString;
 	_ownerGroup: null | Id;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	file: null | IdTuple;
@@ -162,9 +171,9 @@ export type DriveFileRef = {
 
 
     //== some entities have these and some don't
-
+    
     bucketKey: null
-
+	
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
 	_kdfNonce: null
@@ -187,7 +196,7 @@ export function createDriveFileBag(values: DriveFileBagParams): DriveFileBag {
 export type DriveFileBagParams = {
 
 
-
+	
 
 
 	files: Id;
@@ -197,6 +206,9 @@ export type DriveFileBag = {
     // == values
 
 	_id: Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -229,7 +241,7 @@ export function createDriveFolderBag(values: DriveFolderBagParams): DriveFolderB
 export type DriveFolderBagParams = {
 
 
-
+	
 
 
 	folders: Id;
@@ -239,6 +251,9 @@ export type DriveFolderBag = {
     // == values
 
 	_id: Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -271,7 +286,7 @@ export function createDriveGroupRoot(values: DriveGroupRootParams): DriveGroupRo
 export type DriveGroupRootParams = {
 
 
-
+	
 
 
 	fileBags: DriveFileBag[];
@@ -288,6 +303,9 @@ export type DriveGroupRoot = {
 	_format: NumberString;
 	_ownerGroup: null | Id;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	fileBags: DriveFileBag[];
@@ -297,9 +315,9 @@ export type DriveGroupRoot = {
 
 
     //== some entities have these and some don't
-
+    
     bucketKey: null
-
+	
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
 	_kdfNonce: null
@@ -324,7 +342,7 @@ export type DriveUploadedFileParams = {
 
 	fileName: string;
 	mimeType: string;
-
+	
 
 
 	referenceTokens: BlobReferenceTokenWrapper[];
@@ -339,6 +357,9 @@ export type DriveUploadedFile = {
 	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	referenceTokens: BlobReferenceTokenWrapper[];
@@ -351,7 +372,7 @@ export type DriveUploadedFile = {
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
 	_kdfNonce: null
-
+	
 	ownerEncSessionKeyVersion: null
 
 
@@ -372,7 +393,7 @@ export type DrivePostInParams = {
 
 	ownerEncRootFolderSessionKey: Uint8Array<ArrayBuffer>;
 	ownerEncTrashFolderSessionKey: Uint8Array<ArrayBuffer>;
-
+	
 
 
 	fileGroupId: Id;
@@ -385,6 +406,9 @@ export type DrivePostIn = {
 	ownerEncRootFolderSessionKey: Uint8Array<ArrayBuffer>;
 	ownerEncTrashFolderSessionKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -417,7 +441,7 @@ export function createDriveItemPostIn(values: DriveItemPostInParams): DriveItemP
 export type DriveItemPostInParams = {
 
 
-
+	
 
 
 	parent: IdTuple;
@@ -428,6 +452,9 @@ export type DriveItemPostIn = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -462,7 +489,7 @@ export function createDriveItemPostOut(values: DriveItemPostOutParams): DriveIte
 export type DriveItemPostOutParams = {
 
 
-
+	
 
 
 	createdFile: IdTuple;
@@ -472,6 +499,9 @@ export type DriveItemPostOut = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -505,7 +535,7 @@ export type DriveItemPutInParams = {
 
 
 	newName: string;
-
+	
 
 
 	file: null | IdTuple;
@@ -517,6 +547,9 @@ export type DriveItemPutIn = {
 
 	_format: NumberString;
 	newName: string;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -551,7 +584,7 @@ export function createDriveItemDeleteIn(values: DriveItemDeleteInParams): DriveI
 export type DriveItemDeleteInParams = {
 
 
-
+	
 
 
 	files: IdTuple[];
@@ -562,6 +595,9 @@ export type DriveItemDeleteIn = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -596,7 +632,7 @@ export type DriveFolderServicePostInParams = {
 
 
 	folderName: string;
-
+	
 
 
 	parent: IdTuple;
@@ -610,6 +646,9 @@ export type DriveFolderServicePostIn = {
 	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	parent: IdTuple;
@@ -622,7 +661,7 @@ export type DriveFolderServicePostIn = {
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
 	_kdfNonce: null
-
+	
 	ownerEncSessionKeyVersion: null
 
 
@@ -642,7 +681,7 @@ export function createDriveFolderServicePostOut(values: DriveFolderServicePostOu
 export type DriveFolderServicePostOutParams = {
 
 
-
+	
 
 
 	folder: IdTuple;
@@ -652,6 +691,9 @@ export type DriveFolderServicePostOut = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -685,7 +727,7 @@ export type DriveRenameDataParams = {
 
 
 	encNewName: null | Uint8Array<ArrayBuffer>;
-
+	
 
 
 	file: null | IdTuple;
@@ -697,6 +739,9 @@ export type DriveRenameData = {
 
 	_id: Id;
 	encNewName: null | Uint8Array<ArrayBuffer>;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -730,7 +775,7 @@ export function createDriveFolderServicePutIn(values: DriveFolderServicePutInPar
 export type DriveFolderServicePutInParams = {
 
 
-
+	
 
 
 	items: DriveRenameData[];
@@ -741,6 +786,9 @@ export type DriveFolderServicePutIn = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -775,7 +823,7 @@ export type DriveFolderServiceDeleteInParams = {
 
 
 	restore: boolean;
-
+	
 
 
 	files: IdTuple[];
@@ -787,6 +835,9 @@ export type DriveFolderServiceDeleteIn = {
 
 	_format: NumberString;
 	restore: boolean;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -820,7 +871,7 @@ export function createDriveCopyServicePostIn(values: DriveCopyServicePostInParam
 export type DriveCopyServicePostInParams = {
 
 
-
+	
 
 
 	items: DriveRenameData[];
@@ -831,6 +882,9 @@ export type DriveCopyServicePostIn = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -865,7 +919,7 @@ export type DriveCopyServicePostOutParams = {
 
 
 	operationId: Id;
-
+	
 
 }
 
@@ -874,6 +928,9 @@ export type DriveCopyServicePostOut = {
 
 	_format: NumberString;
 	operationId: Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -905,7 +962,7 @@ export type DriveItemServiceDeleteOutParams = {
 
 
 	operationId: Id;
-
+	
 
 }
 
@@ -914,6 +971,9 @@ export type DriveItemServiceDeleteOut = {
 
 	_format: NumberString;
 	operationId: Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 

@@ -1,6 +1,6 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ListElementId, ElementId } from "@tutao/meta"
+import { ListElementId, ElementId, DataTransferId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 import { Nullable } from "@tutao/utils"
 
@@ -27,6 +27,9 @@ export type UsageTestMetricConfigValue = {
 	_id: Id;
 	key: string;
 	value: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -72,6 +75,9 @@ export type UsageTestMetricConfig = {
 	name: string;
 	type: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	configValues: UsageTestMetricConfigValue[];
@@ -115,6 +121,9 @@ export type UsageTestMetricData = {
 	_id: Id;
 	name: string;
 	value: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -164,6 +173,9 @@ export type UsageTestStage = {
 	maxPings: NumberString;
 	isFinalStage: boolean;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	metrics: UsageTestMetricConfig[];
@@ -205,6 +217,9 @@ export type UsageTestAssignmentIn = {
 
 	_format: NumberString;
 	testDeviceId: null | Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -256,6 +271,9 @@ export type UsageTestAssignment = {
 	sendPings: boolean;
 	variantName: null | string;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	stages: UsageTestStage[];
@@ -299,6 +317,9 @@ export type UsageTestAssignmentOut = {
 
 	_format: NumberString;
 	testDeviceId: Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -350,6 +371,9 @@ export type UsageTestParticipationIn = {
 	testDeviceId: Id;
 	isFinalPingForStage: boolean;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	metrics: UsageTestMetricData[];
@@ -393,6 +417,9 @@ export type UsageTestParticipationOut = {
 	_format: NumberString;
 	pingListId: Id;
 	pingId: Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -439,6 +466,9 @@ export type UsageTestParticipationDeleteIn = {
 	testDeviceId: Id;
 	pingListId: Id;
 	pingId: Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 

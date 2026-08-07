@@ -1,6 +1,6 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ListElementId, ElementId } from "@tutao/meta"
+import { ListElementId, ElementId, DataTransferId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 import { Nullable } from "@tutao/utils"
 
@@ -27,6 +27,9 @@ export type PersistenceResourcePostReturn = {
 	_format: NumberString;
 	generatedId: null | Id;
 	permissionListId: Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 

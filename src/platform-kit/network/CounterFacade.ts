@@ -1,7 +1,7 @@
 import { assertWorkerOrNode } from "@tutao/app-env"
 import { IServiceExecutor } from "./ServiceRequest.js"
 import { CounterValue, createReadCounterData } from "../../entities/monitor/TypeRefs"
-import { CounterService } from "../../entities/monitor/Services"
+import { CounterService_GET } from "../../entities/monitor/Services"
 import { CounterType } from "../../entities/monitor/Utils"
 
 assertWorkerOrNode()
@@ -15,7 +15,7 @@ export class CounterFacade {
 			rowName,
 			columnName,
 		})
-		const counterReturn = await this.serviceExecutor.get(CounterService, counterData, null)
+		const counterReturn = await this.serviceExecutor.execute(CounterService_GET, counterData, null)
 		return Number(counterReturn.counterValues[0].value)
 	}
 
@@ -25,7 +25,7 @@ export class CounterFacade {
 			rowName: customerId,
 			columnName: null,
 		})
-		const counterReturn = await this.serviceExecutor.get(CounterService, counterData, null)
+		const counterReturn = await this.serviceExecutor.execute(CounterService_GET, counterData, null)
 		return counterReturn.counterValues
 	}
 }

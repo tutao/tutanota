@@ -1,11 +1,11 @@
-import { _encryptBytes, aesDecrypt, cryptoUtils, random, Randomizer } from "@tutao/crypto"
+import { _encryptBytes, aesDecrypt, cryptoUtils, EntropyDataChunk, random, Randomizer } from "@tutao/crypto"
 import { UserFacade } from "./UserFacade.js"
 import { lazy, noOp, ofClass } from "@tutao/utils"
 import { ConnectionError, LockedError, ServiceUnavailableError } from "@tutao/rest-client/error"
 import { IServiceExecutor } from "../../network/ServiceRequest.js"
 import { KeyLoaderFacade } from "../base-crypto/KeyLoaderFacade.js"
-import { createEntropyData, EntropyService, TutanotaProperties } from "@tutao/entities/tutanota"
-import { EntropyDataChunk } from "@tutao/crypto"
+import { createEntropyData, EntropyService_PUT, TutanotaProperties } from "@tutao/entities/tutanota"
+import { NullEntity } from "@tutao/meta"
 
 /** A class which accumulates the entropy and stores it on the server. */
 export class EntropyFacade {
@@ -46,7 +46,7 @@ export class EntropyFacade {
 			userKeyVersion: userGroupKey.version.toString(),
 		})
 		return this.serviceExecutor
-			.put(EntropyService, entropyData, null)
+			.execute(EntropyService_PUT, entropyData, null)
 			.catch(ofClass(LockedError, noOp))
 			.catch(
 				ofClass(ConnectionError, (e) => {
@@ -58,6 +58,7 @@ export class EntropyFacade {
 					console.log("could not store entropy", e)
 				}),
 			)
+			.then((_: NullEntity) => {})
 	}
 
 	/**

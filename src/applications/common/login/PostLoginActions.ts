@@ -34,7 +34,7 @@ import { SyncTracker } from "../api/main/SyncTracker"
 import { showRequestPasswordDialog } from "../misc/passwords/PasswordRequestDialog"
 import { LoginFacade } from "../../../platform-kit/base/facades/LoginFacade"
 import { LoggedInEvent, PostLoginAction } from "../../../app-kit/native-bridge/common/PostLoginAction.js"
-import { createReceiveInfoServiceData, OutOfOfficeNotification, ReceiveInfoService } from "@tutao/entities/tutanota"
+import { createReceiveInfoServiceData, OutOfOfficeNotification, ReceiveInfoService_POST } from "@tutao/entities/tutanota"
 import { getHourCycle } from "../../../entities/tutanota/Utils"
 import { createCustomerProperties, SecondFactorTypeRef } from "@tutao/entities/sys"
 import { CloseEventBusOption } from "../../../platform-kit/network/Constants"
@@ -145,7 +145,7 @@ export class PostLoginActions implements PostLoginAction {
 			const receiveInfoData = createReceiveInfoServiceData({
 				language: lang.code,
 			})
-			const receiveInfoServicePostOut = await locator.serviceExecutor.post(ReceiveInfoService, receiveInfoData, null)
+			const receiveInfoServicePostOut = await locator.serviceExecutor.execute(ReceiveInfoService_POST, receiveInfoData, null)
 			if (receiveInfoServicePostOut && receiveInfoServicePostOut.outdatedVersion) {
 				return Dialog.updateReminder(true, () => {
 					this.updateClient()

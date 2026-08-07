@@ -4,7 +4,7 @@ import { matchers, object, verify, when } from "testdouble"
 import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { noOp } from "../../../../../src/platform-kit/utils"
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
-import { createImapOauthConfigGetIn, createImapOauthConfigGetOut, ImapOauthConfigService } from "@tutao/entities/tutanota"
+import { createImapOauthConfigGetIn, createImapOauthConfigGetOut, ImapOauthConfigService_GET } from "@tutao/entities/tutanota"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { OauthConfigParams } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 
@@ -64,14 +64,14 @@ o.spec("OAuthHandler", () => {
 			state: stateMock,
 			...oauthConfigMock.providerSpecificParams,
 		})
-		verify(serviceExecutorMock.get(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+		verify(serviceExecutorMock.execute(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 	})
 
 	o.test("setupOauthLoginParams - with clientSecret uses ClientSecretPost auth", async () => {
 		oauthConfigMock.requiresClientSecret = true
 		handler = new OAuthHandler(oauthConfigMock, serviceExecutorMock, clientMock)
 		when(
-			serviceExecutorMock.get(ImapOauthConfigService, createImapOauthConfigGetIn({ clientId: "test-client" }), DEFAULT_EXTRA_SERVICE_PARAMS),
+			serviceExecutorMock.execute(ImapOauthConfigService_GET, createImapOauthConfigGetIn({ clientId: "test-client" }), DEFAULT_EXTRA_SERVICE_PARAMS),
 		).thenResolve(createImapOauthConfigGetOut({ clientSecret: "secret123" }))
 		const authMock = noOp
 		when(clientMock.ClientSecretPost("secret123")).thenReturn(authMock)
@@ -98,7 +98,7 @@ o.spec("OAuthHandler", () => {
 			),
 			{ times: 1 },
 		)
-		verify(serviceExecutorMock.get(ImapOauthConfigService, createImapOauthConfigGetIn({ clientId: "test-client" }), DEFAULT_EXTRA_SERVICE_PARAMS), {
+		verify(serviceExecutorMock.execute(ImapOauthConfigService_GET, createImapOauthConfigGetIn({ clientId: "test-client" }), DEFAULT_EXTRA_SERVICE_PARAMS), {
 			times: 1,
 		})
 	})

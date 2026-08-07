@@ -14,7 +14,7 @@ import {
 	PlanPrices,
 	PriceData,
 	PriceItemData,
-	UpgradePriceService,
+	UpgradePriceService_GET,
 	UpgradePriceServiceReturn,
 } from "@tutao/entities/sys"
 import { BookingItemFeatureType, PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
@@ -163,7 +163,7 @@ export class PriceAndConfigProvider {
 			campaign: registrationDataId,
 			referralCode: referralCode,
 		})
-		this.upgradePriceData = await serviceExecutor.get(UpgradePriceService, data, null)
+		this.upgradePriceData = await serviceExecutor.execute(UpgradePriceService_GET, data, null)
 		if (isIOSApp()) {
 			this.mobilePrices = new Map()
 

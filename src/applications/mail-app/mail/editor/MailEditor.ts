@@ -10,7 +10,7 @@ import {
 	Mail,
 	MailboxProperties,
 	MailDetails,
-	TranslationService,
+	TranslationService_GET,
 } from "@tutao/entities/tutanota"
 import {
 	Attachment,
@@ -1781,7 +1781,7 @@ export async function writeInviteMail(referralLink: string) {
 		"{registrationLink}": referralLink,
 		"{username}": username,
 	})
-	const { invitationSubject } = await locator.serviceExecutor.get(TranslationService, createTranslationGetIn({ lang: lang.code }), null)
+	const { invitationSubject } = await locator.serviceExecutor.execute(TranslationService_GET, createTranslationGetIn({ lang: lang.code }), null)
 	const dialog = await newMailEditorFromTemplate(detailsProperties.mailboxDetails, {}, invitationSubject, body, [], false)
 	dialog?.show()
 }
@@ -1801,7 +1801,7 @@ export async function writeGiftCardMail(link: string, mailboxDetails?: MailboxDe
 		})
 		.split("\n")
 		.join("<br />")
-	const { giftCardSubject } = await locator.serviceExecutor.get(TranslationService, createTranslationGetIn({ lang: lang.code }), null)
+	const { giftCardSubject } = await locator.serviceExecutor.execute(TranslationService_GET, createTranslationGetIn({ lang: lang.code }), null)
 	locator
 		.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
 		.then((model) => model.initWithTemplate({}, giftCardSubject, appendEmailSignature(bodyText, locator.logins.getUserController().props), [], false))

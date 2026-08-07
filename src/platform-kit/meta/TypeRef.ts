@@ -15,10 +15,7 @@ export const AppNameEnum = Object.freeze({
 	Usage: "usage",
 })
 
-/**
- * T should be restricted to Entity.
- */
-export class TypeRef<T> {
+export class TypeRef<T extends Entity> {
 	readonly app: AppName
 	readonly typeId: number
 
@@ -42,7 +39,7 @@ export class TypeRef<T> {
 	}
 }
 
-export function getTypeString(typeRef: TypeRef<unknown>) {
+export function getTypeString(typeRef: TypeRef<Entity>) {
 	return typeRef.app + "/" + typeRef.typeId
 }
 
@@ -55,10 +52,10 @@ export function parseTypeString<T extends Entity>(s: string): TypeRef<T> {
 	return new TypeRef<T>(app as AppName, parseInt(parts[1], 10))
 }
 
-export function isSameTypeRefByAttr(typeRef: TypeRef<unknown>, app: string, typeId: number): boolean {
+export function isSameTypeRefByAttr(typeRef: TypeRef<Entity>, app: string, typeId: number): boolean {
 	return typeRef.app === app && typeRef.typeId === typeId
 }
 
-export function isSameTypeRef(typeRef1: TypeRef<unknown>, typeRef2: TypeRef<unknown>): boolean {
+export function isSameTypeRef(typeRef1: TypeRef<Entity>, typeRef2: TypeRef<Entity>): boolean {
 	return isSameTypeRefByAttr(typeRef1, typeRef2.app, typeRef2.typeId)
 }

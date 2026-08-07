@@ -16,7 +16,7 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
-import { elementIdToId, GENERATED_ID_BYTES_LENGTH, idToElementId, isSameId } from "../../meta"
+import { elementIdToId, GENERATED_ID_BYTES_LENGTH, idToElementId, isSameId, NullEntity } from "../../meta"
 import { assertWorkerOrNode, CancelledError, Const, DeactivationReason, isTest, ProgrammingError, RolloutType, SessionType } from "@tutao/app-env"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "../../rest-client/types"
@@ -82,15 +82,17 @@ import { Credentials, CredentialType } from "../../network/types"
 import { asKdfType, DEFAULT_KDF_TYPE, ExternalUserKeyDeriver, KdfType } from "../base-crypto/Constants"
 import { TypeModelResolver } from "../../instance-pipeline/EntityFunctions"
 import {
-	ChangeKdfService,
-	ChangePasswordService,
-	CustomerService,
-	ResetFactorsService,
-	SaltService,
-	SecondFactorAuthService,
-	SessionService,
-	TakeOverDeletedAddressService,
-	VerifierTokenService,
+	ChangeKdfService_POST,
+	ChangePasswordService_POST,
+	CustomerService_DELETE,
+	ResetFactorsService_DELETE,
+	SaltService_GET,
+	SecondFactorAuthService_DELETE,
+	SecondFactorAuthService_GET,
+	SecondFactorAuthService_POST,
+	SessionService_POST,
+	TakeOverDeletedAddressService_POST,
+	VerifierTokenService_POST,
 } from "@tutao/entities/sys"
 import { TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
 import {
@@ -300,7 +302,7 @@ export class LoginFacade implements SessionTypeProvider {
 			accessKey = aes256RandomKey()
 			createSessionData.accessKey = keyToUint8Array(accessKey)
 		}
-		const createSessionReturn = await this.serviceExecutor.post(SessionService, createSessionData, null)
+		const createSessionReturn = await this.serviceExecutor.execute(SessionService_POST, createSessionData, null)
 		const sessionData = await this.waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, mailAddress)
 
 		const forceNewDatabase = sessionType === SessionType.Persistent && databaseKey == null
@@ -388,7 +390,7 @@ export class LoginFacade implements SessionTypeProvider {
 			userGroupKeyVersion: String(currentUserGroupKey.version),
 		})
 		console.log("Migrate KDF from:", user.kdfVersion, "to", targetKdfType)
-		await this.serviceExecutor.post(ChangeKdfService, changeKdfPostIn, null)
+		await this.serviceExecutor.execute(ChangeKdfService_POST, changeKdfPostIn, null)
 		// We reload the user because we experienced a race condition
 		// were we do not process the User update after doing the argon2 migration from the web client.´
 		// In order do not rework the entity processing and its initialization for new clients we
@@ -433,7 +435,7 @@ export class LoginFacade implements SessionTypeProvider {
 			sessionData.accessKey = keyToUint8Array(accessKey)
 		}
 
-		const createSessionReturn = await this.serviceExecutor.post(SessionService, sessionData, null)
+		const createSessionReturn = await this.serviceExecutor.execute(SessionService_POST, sessionData, null)
 
 		let sessionId = [this.getSessionListId(createSessionReturn.accessToken), this.getSessionElementId(createSessionReturn.accessToken)] as const
 		const cacheInfo = await this.initCache({
@@ -487,7 +489,7 @@ export class LoginFacade implements SessionTypeProvider {
 			session: sessionId,
 		})
 		await this.serviceExecutor
-			.delete(SecondFactorAuthService, secondFactorAuthDeleteData, null)
+			.execute(SecondFactorAuthService_DELETE, secondFactorAuthDeleteData, null)
 			.catch(
 				ofClass(NotFoundError, (e) => {
 					// This can happen during some odd behavior in browser where main loop would be blocked by webauthn (hello, FF) and then we would try to
@@ -507,7 +509,7 @@ export class LoginFacade implements SessionTypeProvider {
 
 	/** Finishes 2FA process either using second factor or approving session on another client. */
 	async authenticateWithSecondFactor(data: SecondFactorAuthData, host: string | null): Promise<void> {
-		await this.serviceExecutor.post(SecondFactorAuthService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, baseUrl: host })
+		await this.serviceExecutor.execute(SecondFactorAuthService_POST, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, baseUrl: host })
 	}
 
 	/**
@@ -650,7 +652,7 @@ export class LoginFacade implements SessionTypeProvider {
 		const currentUserGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const pwEncUserGroupKey = encryptKey(newUserPassphraseKey, currentUserGroupKey.object)
 		const authVerifier = createAuthVerifier(newUserPassphraseKey)
-		const service = createChangePasswordPostIn({
+		const changePasswordPostIn = createChangePasswordPostIn({
 			code: null,
 			kdfVersion: newPasswordKeyDataTemplate.kdfType,
 			oldVerifier: currentAuthVerifier,
@@ -661,7 +663,7 @@ export class LoginFacade implements SessionTypeProvider {
 			userGroupKeyVersion: String(currentUserGroupKey.version),
 		})
 
-		await this.serviceExecutor.post(ChangePasswordService, service, null)
+		await this.serviceExecutor.execute(ChangePasswordService_POST, changePasswordPostIn, null)
 
 		this.userFacade.setUserDistKey(currentUserGroupKey.version, newUserPassphraseKey)
 		const accessToken = assertNotNull(this.userFacade.getAccessToken())
@@ -701,7 +703,7 @@ export class LoginFacade implements SessionTypeProvider {
 		} else {
 			deleteCustomerData.takeoverMailAddress = null
 		}
-		await this.serviceExecutor.delete(CustomerService, deleteCustomerData, null)
+		await this.serviceExecutor.execute(CustomerService_DELETE, deleteCustomerData, null)
 	}
 
 	/** Changes user password to another one using recoverCode instead of the old password. */
@@ -758,7 +760,7 @@ export class LoginFacade implements SessionTypeProvider {
 			() => this.entityMigrator,
 		)
 		const entityClient = new EntityClient(eventRestClient, this.typeModelResolver)
-		const createSessionReturn = await this.serviceExecutor.post(SessionService, sessionData, null) // Don't pass email address to avoid proposing to reset second factor when we're resetting password
+		const createSessionReturn = await this.serviceExecutor.execute(SessionService_POST, sessionData, null) // Don't pass email address to avoid proposing to reset second factor when we're resetting password
 
 		const { userId, accessToken } = await this.waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, null)
 		const user = await entityClient.load(UserTypeRef, idToElementId(userId), {
@@ -802,7 +804,7 @@ export class LoginFacade implements SessionTypeProvider {
 			const extraHeaders = {
 				accessToken,
 			}
-			await this.serviceExecutor.post(ChangePasswordService, postData, { ...DEFAULT_EXTRA_SERVICE_PARAMS, extraHeaders })
+			await this.serviceExecutor.execute(ChangePasswordService_POST, postData, { ...DEFAULT_EXTRA_SERVICE_PARAMS, extraHeaders })
 		} finally {
 			this.deleteSession(accessToken)
 		}
@@ -819,7 +821,7 @@ export class LoginFacade implements SessionTypeProvider {
 				authVerifier,
 				recoverCodeVerifier,
 			})
-			return this.serviceExecutor.delete(ResetFactorsService, deleteData, null)
+			return this.serviceExecutor.execute(ResetFactorsService_DELETE, deleteData, null).then((_: NullEntity) => {})
 		})
 	}
 
@@ -839,7 +841,7 @@ export class LoginFacade implements SessionTypeProvider {
 				recoverCodeVerifier,
 				targetAccountMailAddress,
 			})
-			return this.serviceExecutor.post(TakeOverDeletedAddressService, data, null)
+			return this.serviceExecutor.execute(TakeOverDeletedAddressService_POST, data, null).then((_: NullEntity) => {})
 		})
 	}
 
@@ -875,7 +877,7 @@ export class LoginFacade implements SessionTypeProvider {
 		})
 
 		const authVerifier = createAuthVerifier(passphraseKey)
-		const out = await this.serviceExecutor.post(VerifierTokenService, createVerifierTokenServiceIn({ authVerifier }), null)
+		const out = await this.serviceExecutor.execute(VerifierTokenService_POST, createVerifierTokenServiceIn({ authVerifier }), null)
 		return out.token
 	}
 
@@ -933,7 +935,7 @@ export class LoginFacade implements SessionTypeProvider {
 			accessToken,
 		})
 		try {
-			const secondFactorAuthGetReturn = await this.serviceExecutor.get(SecondFactorAuthService, secondFactorAuthGetData, null)
+			const secondFactorAuthGetReturn = await this.serviceExecutor.execute(SecondFactorAuthService_GET, secondFactorAuthGetData, null)
 			if (!this.loginRequestSessionId || !isSameId(this.loginRequestSessionId, sessionId)) {
 				throw new CancelledError("login cancelled")
 			}
@@ -1155,7 +1157,7 @@ export class LoginFacade implements SessionTypeProvider {
 	private async loadUserPassphraseKey(mailAddress: string, passphrase: string): Promise<PassphraseKeyAndKdfType> {
 		mailAddress = mailAddress.toLowerCase().trim()
 		const saltRequest = createSaltData({ mailAddress })
-		const saltReturn = await this.serviceExecutor.get(SaltService, saltRequest, null)
+		const saltReturn = await this.serviceExecutor.execute(SaltService_GET, saltRequest, null)
 		const kdfType = asKdfType(saltReturn.kdfVersion)
 		return {
 			userPassphraseKey: await this.deriveUserPassphraseKey({ kdfType, passphrase, salt: saltReturn.salt }),

@@ -64,9 +64,9 @@ export interface SessionKeyResolver {
  * we should extract the cacheStorage and/or offlineStorage into a separate package and reuse the ` CacheStorage ` interface
  */
 export interface GetOrPutInstance {
-	getParsed(typeRef: TypeRef<unknown>, listId: Id | null, id: Id): Promise<DecryptedParsedInstance | null>
+	getParsed(typeRef: TypeRef<Entity>, listId: Id | null, id: Id): Promise<DecryptedParsedInstance | null>
 
-	put(typeRef: TypeRef<unknown>, instance: DecryptedParsedInstance): Promise<void>
+	put(typeRef: TypeRef<Entity>, instance: DecryptedParsedInstance): Promise<void>
 }
 
 type PathResult = {

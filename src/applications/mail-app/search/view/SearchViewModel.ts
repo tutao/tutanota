@@ -7,6 +7,7 @@ import {
 	assertIsEntity2,
 	elementIdPart,
 	elementIdToId,
+	Entity,
 	EntityIdEncoding,
 	GENERATED_MAX_ID,
 	getElementId,
@@ -88,8 +89,8 @@ import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, Mai
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
 import { isPermanentDeleteAllowedForFolder } from "../../mail/MailUtils"
 import {
-	EntityUpdatesListener,
 	EntityUpdateData,
+	EntityUpdatesListener,
 	isUpdateForTypeRef,
 	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -945,7 +946,7 @@ export class SearchViewModel {
 		})
 	}
 
-	private isInSearchResult(typeRef: TypeRef<unknown>, id: IdTuple): boolean {
+	private isInSearchResult(typeRef: TypeRef<Entity>, id: IdTuple): boolean {
 		const result = this.search.result()
 
 		if (result && isSameTypeRef(typeRef, result.restriction.type)) {

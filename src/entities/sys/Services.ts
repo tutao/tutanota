@@ -1,627 +1,247 @@
-import { AdminGroupKeyRotationGetOutTypeRef } from "./TypeRefs.js"
-import { AdminGroupKeyRotationPostInTypeRef } from "./TypeRefs.js"
-import { AdminGroupKeyRotationPutInTypeRef } from "./TypeRefs.js"
-import { AffiliatePartnerKpiServiceGetOutTypeRef } from "./TypeRefs.js"
-import { AlarmServicePostTypeRef } from "./TypeRefs.js"
-import { AppStoreSubscriptionGetInTypeRef } from "./TypeRefs.js"
-import { AppStoreSubscriptionGetOutTypeRef } from "./TypeRefs.js"
-import { AutoLoginDataGetTypeRef } from "./TypeRefs.js"
-import { AutoLoginDataReturnTypeRef } from "./TypeRefs.js"
-import { AutoLoginPostReturnTypeRef } from "./TypeRefs.js"
-import { AutoLoginDataDeleteTypeRef } from "./TypeRefs.js"
-import { BrandingDomainGetReturnTypeRef } from "./TypeRefs.js"
-import { BrandingDomainDataTypeRef } from "./TypeRefs.js"
-import { BrandingDomainDeleteDataTypeRef } from "./TypeRefs.js"
-import { ChangeKdfPostInTypeRef } from "./TypeRefs.js"
-import { ChangePasswordPostInTypeRef } from "./TypeRefs.js"
-import { CloseSessionServicePostTypeRef } from "./TypeRefs.js"
-import { CreateCustomerServerPropertiesDataTypeRef } from "./TypeRefs.js"
-import { CreateCustomerServerPropertiesReturnTypeRef } from "./TypeRefs.js"
-import { CustomDomainCheckGetInTypeRef } from "./TypeRefs.js"
-import { CustomDomainCheckGetOutTypeRef } from "./TypeRefs.js"
-import { CustomDomainDataTypeRef } from "./TypeRefs.js"
-import { CustomDomainReturnTypeRef } from "./TypeRefs.js"
-import { CustomerAccountTerminationPostInTypeRef } from "./TypeRefs.js"
-import { CustomerAccountTerminationPostOutTypeRef } from "./TypeRefs.js"
-import { PublicKeyGetOutTypeRef } from "./TypeRefs.js"
-import { DeleteCustomerDataTypeRef } from "./TypeRefs.js"
-import { DebitServicePutDataTypeRef } from "./TypeRefs.js"
-import { DomainMailAddressAvailabilityDataTypeRef } from "./TypeRefs.js"
-import { DomainMailAddressAvailabilityReturnTypeRef } from "./TypeRefs.js"
-import { ExternalPropertiesReturnTypeRef } from "./TypeRefs.js"
-import { GiftCardRedeemDataTypeRef } from "./TypeRefs.js"
-import { GiftCardRedeemGetReturnTypeRef } from "./TypeRefs.js"
-import { GiftCardGetReturnTypeRef } from "./TypeRefs.js"
-import { GiftCardCreateDataTypeRef } from "./TypeRefs.js"
-import { GiftCardCreateReturnTypeRef } from "./TypeRefs.js"
-import { GiftCardDeleteDataTypeRef } from "./TypeRefs.js"
-import { GroupKeyRotationInfoGetOutTypeRef } from "./TypeRefs.js"
-import { GroupKeyRotationPostInTypeRef } from "./TypeRefs.js"
-import { IdentityKeyGetInTypeRef } from "./TypeRefs.js"
-import { IdentityKeyGetOutTypeRef } from "./TypeRefs.js"
-import { IdentityKeyPostInTypeRef } from "./TypeRefs.js"
-import { InvoiceDataGetInTypeRef } from "./TypeRefs.js"
-import { InvoiceDataGetOutTypeRef } from "./TypeRefs.js"
-import { LocationServiceGetReturnTypeRef } from "./TypeRefs.js"
-import { MailAddressAliasGetInTypeRef } from "./TypeRefs.js"
-import { MailAddressAliasServiceReturnTypeRef } from "./TypeRefs.js"
-import { MailAddressAliasServiceDataTypeRef } from "./TypeRefs.js"
-import { MailAddressAliasServiceDataDeleteTypeRef } from "./TypeRefs.js"
-import { MembershipAddDataTypeRef } from "./TypeRefs.js"
-import { MembershipPutInTypeRef } from "./TypeRefs.js"
-import { MembershipRemoveDataTypeRef } from "./TypeRefs.js"
-import { MultipleMailAddressAvailabilityDataTypeRef } from "./TypeRefs.js"
-import { MultipleMailAddressAvailabilityReturnTypeRef } from "./TypeRefs.js"
-import { PaymentDataServiceGetDataTypeRef } from "./TypeRefs.js"
-import { PaymentDataServiceGetReturnTypeRef } from "./TypeRefs.js"
-import { PaymentDataServicePostDataTypeRef } from "./TypeRefs.js"
-import { PaymentDataServicePutDataTypeRef } from "./TypeRefs.js"
-import { PaymentDataServicePutReturnTypeRef } from "./TypeRefs.js"
-import { PlanServiceGetOutTypeRef } from "./TypeRefs.js"
-import { PriceServiceDataTypeRef } from "./TypeRefs.js"
-import { PriceServiceReturnTypeRef } from "./TypeRefs.js"
-import { PublicKeyGetInTypeRef } from "./TypeRefs.js"
-import { PublicKeyPutInTypeRef } from "./TypeRefs.js"
-import { ReferralCodeGetInTypeRef } from "./TypeRefs.js"
-import { ReferralCodePostInTypeRef } from "./TypeRefs.js"
-import { ReferralCodePostOutTypeRef } from "./TypeRefs.js"
-import { RegistrationCaptchaServiceGetDataTypeRef } from "./TypeRefs.js"
-import { RegistrationCaptchaServiceReturnTypeRef } from "./TypeRefs.js"
-import { RegistrationCaptchaServiceDataTypeRef } from "./TypeRefs.js"
-import { RegistrationServiceDataTypeRef } from "./TypeRefs.js"
-import { RegistrationReturnTypeRef } from "./TypeRefs.js"
-import { RenewalPreferenceServicePostInTypeRef } from "./TypeRefs.js"
-import { ResetFactorsDeleteDataTypeRef } from "./TypeRefs.js"
-import { ResetPasswordPostInTypeRef } from "./TypeRefs.js"
-import { RolloutGetOutTypeRef } from "./TypeRefs.js"
-import { SaltDataTypeRef } from "./TypeRefs.js"
-import { SaltReturnTypeRef } from "./TypeRefs.js"
-import { SecondFactorAuthAllowedReturnTypeRef } from "./TypeRefs.js"
-import { SecondFactorAuthGetDataTypeRef } from "./TypeRefs.js"
-import { SecondFactorAuthGetReturnTypeRef } from "./TypeRefs.js"
-import { SecondFactorAuthDataTypeRef } from "./TypeRefs.js"
-import { SecondFactorAuthDeleteDataTypeRef } from "./TypeRefs.js"
-import { CreateSessionDataTypeRef } from "./TypeRefs.js"
-import { CreateSessionReturnTypeRef } from "./TypeRefs.js"
-import { SignOrderProcessingAgreementDataTypeRef } from "./TypeRefs.js"
-import { SubscriptionRevocationServicePostInTypeRef } from "./TypeRefs.js"
-import { SurveyDataPostInTypeRef } from "./TypeRefs.js"
-import { SwitchAccountTypePostInTypeRef } from "./TypeRefs.js"
-import { SystemKeysReturnTypeRef } from "./TypeRefs.js"
-import { TakeOverDeletedAddressDataTypeRef } from "./TypeRefs.js"
-import { TimelockCaptchaGetInTypeRef } from "./TypeRefs.js"
-import { TimelockCaptchaGetOutTypeRef } from "./TypeRefs.js"
-import { UpdateKdfNoncePostInTypeRef } from "./TypeRefs.js"
-import { UpdateKdfNoncePostOutTypeRef } from "./TypeRefs.js"
-import { UpdatePermissionKeyDataTypeRef } from "./TypeRefs.js"
-import { UpdateSessionKeysPostInTypeRef } from "./TypeRefs.js"
-import { UpgradePriceServiceDataTypeRef } from "./TypeRefs.js"
-import { UpgradePriceServiceReturnTypeRef } from "./TypeRefs.js"
-import { UserGroupKeyRotationPostInTypeRef } from "./TypeRefs.js"
-import { UserDataDeleteTypeRef } from "./TypeRefs.js"
-import { VerifierTokenServiceInTypeRef } from "./TypeRefs.js"
-import { VerifierTokenServiceOutTypeRef } from "./TypeRefs.js"
-import { VersionDataTypeRef } from "./TypeRefs.js"
-import { VersionReturnTypeRef } from "./TypeRefs.js"
+import { AdminGroupKeyRotationGetOut, AdminGroupKeyRotationGetOutTypeRef } from "./TypeRefs.js"
+import { AdminGroupKeyRotationPostIn, AdminGroupKeyRotationPostInTypeRef } from "./TypeRefs.js"
+import { AdminGroupKeyRotationPutIn, AdminGroupKeyRotationPutInTypeRef } from "./TypeRefs.js"
+import { AffiliatePartnerKpiServiceGetOut, AffiliatePartnerKpiServiceGetOutTypeRef } from "./TypeRefs.js"
+import { AlarmServicePost, AlarmServicePostTypeRef } from "./TypeRefs.js"
+import { AppStoreSubscriptionGetIn, AppStoreSubscriptionGetInTypeRef } from "./TypeRefs.js"
+import { AppStoreSubscriptionGetOut, AppStoreSubscriptionGetOutTypeRef } from "./TypeRefs.js"
+import { AutoLoginDataGet, AutoLoginDataGetTypeRef } from "./TypeRefs.js"
+import { AutoLoginDataReturn, AutoLoginDataReturnTypeRef } from "./TypeRefs.js"
+import { AutoLoginPostReturn, AutoLoginPostReturnTypeRef } from "./TypeRefs.js"
+import { AutoLoginDataDelete, AutoLoginDataDeleteTypeRef } from "./TypeRefs.js"
+import { BrandingDomainGetReturn, BrandingDomainGetReturnTypeRef } from "./TypeRefs.js"
+import { BrandingDomainData, BrandingDomainDataTypeRef } from "./TypeRefs.js"
+import { BrandingDomainDeleteData, BrandingDomainDeleteDataTypeRef } from "./TypeRefs.js"
+import { ChangeKdfPostIn, ChangeKdfPostInTypeRef } from "./TypeRefs.js"
+import { ChangePasswordPostIn, ChangePasswordPostInTypeRef } from "./TypeRefs.js"
+import { CloseSessionServicePost, CloseSessionServicePostTypeRef } from "./TypeRefs.js"
+import { CreateCustomerServerPropertiesData, CreateCustomerServerPropertiesDataTypeRef } from "./TypeRefs.js"
+import { CreateCustomerServerPropertiesReturn, CreateCustomerServerPropertiesReturnTypeRef } from "./TypeRefs.js"
+import { CustomDomainCheckGetIn, CustomDomainCheckGetInTypeRef } from "./TypeRefs.js"
+import { CustomDomainCheckGetOut, CustomDomainCheckGetOutTypeRef } from "./TypeRefs.js"
+import { CustomDomainData, CustomDomainDataTypeRef } from "./TypeRefs.js"
+import { CustomDomainReturn, CustomDomainReturnTypeRef } from "./TypeRefs.js"
+import { CustomerAccountTerminationPostIn, CustomerAccountTerminationPostInTypeRef } from "./TypeRefs.js"
+import { CustomerAccountTerminationPostOut, CustomerAccountTerminationPostOutTypeRef } from "./TypeRefs.js"
+import { PublicKeyGetOut, PublicKeyGetOutTypeRef } from "./TypeRefs.js"
+import { DeleteCustomerData, DeleteCustomerDataTypeRef } from "./TypeRefs.js"
+import { DebitServicePutData, DebitServicePutDataTypeRef } from "./TypeRefs.js"
+import { DomainMailAddressAvailabilityData, DomainMailAddressAvailabilityDataTypeRef } from "./TypeRefs.js"
+import { DomainMailAddressAvailabilityReturn, DomainMailAddressAvailabilityReturnTypeRef } from "./TypeRefs.js"
+import { ExternalPropertiesReturn, ExternalPropertiesReturnTypeRef } from "./TypeRefs.js"
+import { GiftCardRedeemData, GiftCardRedeemDataTypeRef } from "./TypeRefs.js"
+import { GiftCardRedeemGetReturn, GiftCardRedeemGetReturnTypeRef } from "./TypeRefs.js"
+import { GiftCardGetReturn, GiftCardGetReturnTypeRef } from "./TypeRefs.js"
+import { GiftCardCreateData, GiftCardCreateDataTypeRef } from "./TypeRefs.js"
+import { GiftCardCreateReturn, GiftCardCreateReturnTypeRef } from "./TypeRefs.js"
+import { GiftCardDeleteData, GiftCardDeleteDataTypeRef } from "./TypeRefs.js"
+import { GroupKeyRotationInfoGetOut, GroupKeyRotationInfoGetOutTypeRef } from "./TypeRefs.js"
+import { GroupKeyRotationPostIn, GroupKeyRotationPostInTypeRef } from "./TypeRefs.js"
+import { IdentityKeyGetIn, IdentityKeyGetInTypeRef } from "./TypeRefs.js"
+import { IdentityKeyGetOut, IdentityKeyGetOutTypeRef } from "./TypeRefs.js"
+import { IdentityKeyPostIn, IdentityKeyPostInTypeRef } from "./TypeRefs.js"
+import { InvoiceDataGetIn, InvoiceDataGetInTypeRef } from "./TypeRefs.js"
+import { InvoiceDataGetOut, InvoiceDataGetOutTypeRef } from "./TypeRefs.js"
+import { LocationServiceGetReturn, LocationServiceGetReturnTypeRef } from "./TypeRefs.js"
+import { MailAddressAliasGetIn, MailAddressAliasGetInTypeRef } from "./TypeRefs.js"
+import { MailAddressAliasServiceReturn, MailAddressAliasServiceReturnTypeRef } from "./TypeRefs.js"
+import { MailAddressAliasServiceData, MailAddressAliasServiceDataTypeRef } from "./TypeRefs.js"
+import { MailAddressAliasServiceDataDelete, MailAddressAliasServiceDataDeleteTypeRef } from "./TypeRefs.js"
+import { MembershipAddData, MembershipAddDataTypeRef } from "./TypeRefs.js"
+import { MembershipPutIn, MembershipPutInTypeRef } from "./TypeRefs.js"
+import { MembershipRemoveData, MembershipRemoveDataTypeRef } from "./TypeRefs.js"
+import { MultipleMailAddressAvailabilityData, MultipleMailAddressAvailabilityDataTypeRef } from "./TypeRefs.js"
+import { MultipleMailAddressAvailabilityReturn, MultipleMailAddressAvailabilityReturnTypeRef } from "./TypeRefs.js"
+import { PaymentDataServiceGetData, PaymentDataServiceGetDataTypeRef } from "./TypeRefs.js"
+import { PaymentDataServiceGetReturn, PaymentDataServiceGetReturnTypeRef } from "./TypeRefs.js"
+import { PaymentDataServicePostData, PaymentDataServicePostDataTypeRef } from "./TypeRefs.js"
+import { PaymentDataServicePutData, PaymentDataServicePutDataTypeRef } from "./TypeRefs.js"
+import { PaymentDataServicePutReturn, PaymentDataServicePutReturnTypeRef } from "./TypeRefs.js"
+import { PlanServiceGetOut, PlanServiceGetOutTypeRef } from "./TypeRefs.js"
+import { PriceServiceData, PriceServiceDataTypeRef } from "./TypeRefs.js"
+import { PriceServiceReturn, PriceServiceReturnTypeRef } from "./TypeRefs.js"
+import { PublicKeyGetIn, PublicKeyGetInTypeRef } from "./TypeRefs.js"
+import { PublicKeyPutIn, PublicKeyPutInTypeRef } from "./TypeRefs.js"
+import { ReferralCodeGetIn, ReferralCodeGetInTypeRef } from "./TypeRefs.js"
+import { ReferralCodePostIn, ReferralCodePostInTypeRef } from "./TypeRefs.js"
+import { ReferralCodePostOut, ReferralCodePostOutTypeRef } from "./TypeRefs.js"
+import { RegistrationCaptchaServiceGetData, RegistrationCaptchaServiceGetDataTypeRef } from "./TypeRefs.js"
+import { RegistrationCaptchaServiceReturn, RegistrationCaptchaServiceReturnTypeRef } from "./TypeRefs.js"
+import { RegistrationCaptchaServiceData, RegistrationCaptchaServiceDataTypeRef } from "./TypeRefs.js"
+import { RegistrationServiceData, RegistrationServiceDataTypeRef } from "./TypeRefs.js"
+import { RegistrationReturn, RegistrationReturnTypeRef } from "./TypeRefs.js"
+import { RenewalPreferenceServicePostIn, RenewalPreferenceServicePostInTypeRef } from "./TypeRefs.js"
+import { ResetFactorsDeleteData, ResetFactorsDeleteDataTypeRef } from "./TypeRefs.js"
+import { ResetPasswordPostIn, ResetPasswordPostInTypeRef } from "./TypeRefs.js"
+import { RolloutGetOut, RolloutGetOutTypeRef } from "./TypeRefs.js"
+import { SaltData, SaltDataTypeRef } from "./TypeRefs.js"
+import { SaltReturn, SaltReturnTypeRef } from "./TypeRefs.js"
+import { SecondFactorAuthAllowedReturn, SecondFactorAuthAllowedReturnTypeRef } from "./TypeRefs.js"
+import { SecondFactorAuthGetData, SecondFactorAuthGetDataTypeRef } from "./TypeRefs.js"
+import { SecondFactorAuthGetReturn, SecondFactorAuthGetReturnTypeRef } from "./TypeRefs.js"
+import { SecondFactorAuthData, SecondFactorAuthDataTypeRef } from "./TypeRefs.js"
+import { SecondFactorAuthDeleteData, SecondFactorAuthDeleteDataTypeRef } from "./TypeRefs.js"
+import { CreateSessionData, CreateSessionDataTypeRef } from "./TypeRefs.js"
+import { CreateSessionReturn, CreateSessionReturnTypeRef } from "./TypeRefs.js"
+import { SignOrderProcessingAgreementData, SignOrderProcessingAgreementDataTypeRef } from "./TypeRefs.js"
+import { SubscriptionRevocationServicePostIn, SubscriptionRevocationServicePostInTypeRef } from "./TypeRefs.js"
+import { SurveyDataPostIn, SurveyDataPostInTypeRef } from "./TypeRefs.js"
+import { SwitchAccountTypePostIn, SwitchAccountTypePostInTypeRef } from "./TypeRefs.js"
+import { SystemKeysReturn, SystemKeysReturnTypeRef } from "./TypeRefs.js"
+import { TakeOverDeletedAddressData, TakeOverDeletedAddressDataTypeRef } from "./TypeRefs.js"
+import { TimelockCaptchaGetIn, TimelockCaptchaGetInTypeRef } from "./TypeRefs.js"
+import { TimelockCaptchaGetOut, TimelockCaptchaGetOutTypeRef } from "./TypeRefs.js"
+import { UpdateKdfNoncePostIn, UpdateKdfNoncePostInTypeRef } from "./TypeRefs.js"
+import { UpdateKdfNoncePostOut, UpdateKdfNoncePostOutTypeRef } from "./TypeRefs.js"
+import { UpdatePermissionKeyData, UpdatePermissionKeyDataTypeRef } from "./TypeRefs.js"
+import { UpdateSessionKeysPostIn, UpdateSessionKeysPostInTypeRef } from "./TypeRefs.js"
+import { UpgradePriceServiceData, UpgradePriceServiceDataTypeRef } from "./TypeRefs.js"
+import { UpgradePriceServiceReturn, UpgradePriceServiceReturnTypeRef } from "./TypeRefs.js"
+import { UserGroupKeyRotationPostIn, UserGroupKeyRotationPostInTypeRef } from "./TypeRefs.js"
+import { UserDataDelete, UserDataDeleteTypeRef } from "./TypeRefs.js"
+import { VerifierTokenServiceIn, VerifierTokenServiceInTypeRef } from "./TypeRefs.js"
+import { VerifierTokenServiceOut, VerifierTokenServiceOutTypeRef } from "./TypeRefs.js"
+import { VersionData, VersionDataTypeRef } from "./TypeRefs.js"
+import { VersionReturn, VersionReturnTypeRef } from "./TypeRefs.js"
+import { GetService, PostService, PutService, DeleteService, NullEntityTypeRef, NullEntity } from "@tutao/meta"
 
-export const AdminGroupKeyRotationService = Object.freeze({
-	app: "sys",
-	name: "AdminGroupKeyRotationService",
-	get: { data: null, return: AdminGroupKeyRotationGetOutTypeRef },
-	post: { data: AdminGroupKeyRotationPostInTypeRef, return: null },
-	put: { data: AdminGroupKeyRotationPutInTypeRef, return: null },
-	delete: null,
-} as const)
+export const AdminGroupKeyRotationService_GET = new GetService<NullEntity, AdminGroupKeyRotationGetOut>("sys", "AdminGroupKeyRotationService", NullEntityTypeRef, AdminGroupKeyRotationGetOutTypeRef)
+export const AdminGroupKeyRotationService_POST = new PostService<AdminGroupKeyRotationPostIn, NullEntity>("sys", "AdminGroupKeyRotationService", AdminGroupKeyRotationPostInTypeRef, NullEntityTypeRef)
+export const AdminGroupKeyRotationService_PUT = new PutService<AdminGroupKeyRotationPutIn, NullEntity>("sys", "AdminGroupKeyRotationService", AdminGroupKeyRotationPutInTypeRef, NullEntityTypeRef)
 
-export const AffiliatePartnerKpiService = Object.freeze({
-	app: "sys",
-	name: "AffiliatePartnerKpiService",
-	get: { data: null, return: AffiliatePartnerKpiServiceGetOutTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const AffiliatePartnerKpiService_GET = new GetService<NullEntity, AffiliatePartnerKpiServiceGetOut>("sys", "AffiliatePartnerKpiService", NullEntityTypeRef, AffiliatePartnerKpiServiceGetOutTypeRef)
 
-export const AlarmService = Object.freeze({
-	app: "sys",
-	name: "AlarmService",
-	get: null,
-	post: { data: AlarmServicePostTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const AlarmService_POST = new PostService<AlarmServicePost, NullEntity>("sys", "AlarmService", AlarmServicePostTypeRef, NullEntityTypeRef)
 
-export const AppStoreSubscriptionService = Object.freeze({
-	app: "sys",
-	name: "AppStoreSubscriptionService",
-	get: { data: AppStoreSubscriptionGetInTypeRef, return: AppStoreSubscriptionGetOutTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const AppStoreSubscriptionService_GET = new GetService<AppStoreSubscriptionGetIn, AppStoreSubscriptionGetOut>("sys", "AppStoreSubscriptionService", AppStoreSubscriptionGetInTypeRef, AppStoreSubscriptionGetOutTypeRef)
 
-export const AutoLoginService = Object.freeze({
-	app: "sys",
-	name: "AutoLoginService",
-	get: { data: AutoLoginDataGetTypeRef, return: AutoLoginDataReturnTypeRef },
-	post: { data: AutoLoginDataReturnTypeRef, return: AutoLoginPostReturnTypeRef },
-	put: null,
-	delete: { data: AutoLoginDataDeleteTypeRef, return: null },
-} as const)
+export const AutoLoginService_GET = new GetService<AutoLoginDataGet, AutoLoginDataReturn>("sys", "AutoLoginService", AutoLoginDataGetTypeRef, AutoLoginDataReturnTypeRef)
+export const AutoLoginService_POST = new PostService<AutoLoginDataReturn, AutoLoginPostReturn>("sys", "AutoLoginService", AutoLoginDataReturnTypeRef, AutoLoginPostReturnTypeRef)
+export const AutoLoginService_DELETE = new DeleteService<AutoLoginDataDelete, NullEntity>("sys", "AutoLoginService", AutoLoginDataDeleteTypeRef, NullEntityTypeRef)
 
-export const BrandingDomainService = Object.freeze({
-	app: "sys",
-	name: "BrandingDomainService",
-	get: { data: null, return: BrandingDomainGetReturnTypeRef },
-	post: { data: BrandingDomainDataTypeRef, return: null },
-	put: { data: BrandingDomainDataTypeRef, return: null },
-	delete: { data: BrandingDomainDeleteDataTypeRef, return: null },
-} as const)
+export const BrandingDomainService_GET = new GetService<NullEntity, BrandingDomainGetReturn>("sys", "BrandingDomainService", NullEntityTypeRef, BrandingDomainGetReturnTypeRef)
+export const BrandingDomainService_POST = new PostService<BrandingDomainData, NullEntity>("sys", "BrandingDomainService", BrandingDomainDataTypeRef, NullEntityTypeRef)
+export const BrandingDomainService_PUT = new PutService<BrandingDomainData, NullEntity>("sys", "BrandingDomainService", BrandingDomainDataTypeRef, NullEntityTypeRef)
+export const BrandingDomainService_DELETE = new DeleteService<BrandingDomainDeleteData, NullEntity>("sys", "BrandingDomainService", BrandingDomainDeleteDataTypeRef, NullEntityTypeRef)
 
-export const ChangeKdfService = Object.freeze({
-	app: "sys",
-	name: "ChangeKdfService",
-	get: null,
-	post: { data: ChangeKdfPostInTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const ChangeKdfService_POST = new PostService<ChangeKdfPostIn, NullEntity>("sys", "ChangeKdfService", ChangeKdfPostInTypeRef, NullEntityTypeRef)
 
-export const ChangePasswordService = Object.freeze({
-	app: "sys",
-	name: "ChangePasswordService",
-	get: null,
-	post: { data: ChangePasswordPostInTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const ChangePasswordService_POST = new PostService<ChangePasswordPostIn, NullEntity>("sys", "ChangePasswordService", ChangePasswordPostInTypeRef, NullEntityTypeRef)
 
-export const CloseSessionService = Object.freeze({
-	app: "sys",
-	name: "CloseSessionService",
-	get: null,
-	post: { data: CloseSessionServicePostTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const CloseSessionService_POST = new PostService<CloseSessionServicePost, NullEntity>("sys", "CloseSessionService", CloseSessionServicePostTypeRef, NullEntityTypeRef)
 
-export const CreateCustomerServerProperties = Object.freeze({
-	app: "sys",
-	name: "CreateCustomerServerProperties",
-	get: null,
-	post: { data: CreateCustomerServerPropertiesDataTypeRef, return: CreateCustomerServerPropertiesReturnTypeRef },
-	put: null,
-	delete: null,
-} as const)
+export const CreateCustomerServerProperties_POST = new PostService<CreateCustomerServerPropertiesData, CreateCustomerServerPropertiesReturn>("sys", "CreateCustomerServerProperties", CreateCustomerServerPropertiesDataTypeRef, CreateCustomerServerPropertiesReturnTypeRef)
 
-export const CustomDomainCheckService = Object.freeze({
-	app: "sys",
-	name: "CustomDomainCheckService",
-	get: { data: CustomDomainCheckGetInTypeRef, return: CustomDomainCheckGetOutTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const CustomDomainCheckService_GET = new GetService<CustomDomainCheckGetIn, CustomDomainCheckGetOut>("sys", "CustomDomainCheckService", CustomDomainCheckGetInTypeRef, CustomDomainCheckGetOutTypeRef)
 
-export const CustomDomainService = Object.freeze({
-	app: "sys",
-	name: "CustomDomainService",
-	get: null,
-	post: { data: CustomDomainDataTypeRef, return: CustomDomainReturnTypeRef },
-	put: { data: CustomDomainDataTypeRef, return: null },
-	delete: { data: CustomDomainDataTypeRef, return: null },
-} as const)
+export const CustomDomainService_POST = new PostService<CustomDomainData, CustomDomainReturn>("sys", "CustomDomainService", CustomDomainDataTypeRef, CustomDomainReturnTypeRef)
+export const CustomDomainService_PUT = new PutService<CustomDomainData, NullEntity>("sys", "CustomDomainService", CustomDomainDataTypeRef, NullEntityTypeRef)
+export const CustomDomainService_DELETE = new DeleteService<CustomDomainData, NullEntity>("sys", "CustomDomainService", CustomDomainDataTypeRef, NullEntityTypeRef)
 
-export const CustomerAccountTerminationService = Object.freeze({
-	app: "sys",
-	name: "CustomerAccountTerminationService",
-	get: null,
-	post: { data: CustomerAccountTerminationPostInTypeRef, return: CustomerAccountTerminationPostOutTypeRef },
-	put: null,
-	delete: null,
-} as const)
+export const CustomerAccountTerminationService_POST = new PostService<CustomerAccountTerminationPostIn, CustomerAccountTerminationPostOut>("sys", "CustomerAccountTerminationService", CustomerAccountTerminationPostInTypeRef, CustomerAccountTerminationPostOutTypeRef)
 
-export const CustomerPublicKeyService = Object.freeze({
-	app: "sys",
-	name: "CustomerPublicKeyService",
-	get: { data: null, return: PublicKeyGetOutTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const CustomerPublicKeyService_GET = new GetService<NullEntity, PublicKeyGetOut>("sys", "CustomerPublicKeyService", NullEntityTypeRef, PublicKeyGetOutTypeRef)
 
-export const CustomerService = Object.freeze({
-	app: "sys",
-	name: "CustomerService",
-	get: null,
-	post: null,
-	put: null,
-	delete: { data: DeleteCustomerDataTypeRef, return: null },
-} as const)
+export const CustomerService_DELETE = new DeleteService<DeleteCustomerData, NullEntity>("sys", "CustomerService", DeleteCustomerDataTypeRef, NullEntityTypeRef)
 
-export const DebitService = Object.freeze({
-	app: "sys",
-	name: "DebitService",
-	get: null,
-	post: null,
-	put: { data: DebitServicePutDataTypeRef, return: null },
-	delete: null,
-} as const)
+export const DebitService_PUT = new PutService<DebitServicePutData, NullEntity>("sys", "DebitService", DebitServicePutDataTypeRef, NullEntityTypeRef)
 
-export const DomainMailAddressAvailabilityService = Object.freeze({
-	app: "sys",
-	name: "DomainMailAddressAvailabilityService",
-	get: { data: DomainMailAddressAvailabilityDataTypeRef, return: DomainMailAddressAvailabilityReturnTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const DomainMailAddressAvailabilityService_GET = new GetService<DomainMailAddressAvailabilityData, DomainMailAddressAvailabilityReturn>("sys", "DomainMailAddressAvailabilityService", DomainMailAddressAvailabilityDataTypeRef, DomainMailAddressAvailabilityReturnTypeRef)
 
-export const ExternalPropertiesService = Object.freeze({
-	app: "sys",
-	name: "ExternalPropertiesService",
-	get: { data: null, return: ExternalPropertiesReturnTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const ExternalPropertiesService_GET = new GetService<NullEntity, ExternalPropertiesReturn>("sys", "ExternalPropertiesService", NullEntityTypeRef, ExternalPropertiesReturnTypeRef)
 
-export const GiftCardRedeemService = Object.freeze({
-	app: "sys",
-	name: "GiftCardRedeemService",
-	get: { data: GiftCardRedeemDataTypeRef, return: GiftCardRedeemGetReturnTypeRef },
-	post: { data: GiftCardRedeemDataTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const GiftCardRedeemService_GET = new GetService<GiftCardRedeemData, GiftCardRedeemGetReturn>("sys", "GiftCardRedeemService", GiftCardRedeemDataTypeRef, GiftCardRedeemGetReturnTypeRef)
+export const GiftCardRedeemService_POST = new PostService<GiftCardRedeemData, NullEntity>("sys", "GiftCardRedeemService", GiftCardRedeemDataTypeRef, NullEntityTypeRef)
 
-export const GiftCardService = Object.freeze({
-	app: "sys",
-	name: "GiftCardService",
-	get: { data: null, return: GiftCardGetReturnTypeRef },
-	post: { data: GiftCardCreateDataTypeRef, return: GiftCardCreateReturnTypeRef },
-	put: null,
-	delete: { data: GiftCardDeleteDataTypeRef, return: null },
-} as const)
+export const GiftCardService_GET = new GetService<NullEntity, GiftCardGetReturn>("sys", "GiftCardService", NullEntityTypeRef, GiftCardGetReturnTypeRef)
+export const GiftCardService_POST = new PostService<GiftCardCreateData, GiftCardCreateReturn>("sys", "GiftCardService", GiftCardCreateDataTypeRef, GiftCardCreateReturnTypeRef)
+export const GiftCardService_DELETE = new DeleteService<GiftCardDeleteData, NullEntity>("sys", "GiftCardService", GiftCardDeleteDataTypeRef, NullEntityTypeRef)
 
-export const GroupKeyRotationInfoService = Object.freeze({
-	app: "sys",
-	name: "GroupKeyRotationInfoService",
-	get: { data: null, return: GroupKeyRotationInfoGetOutTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const GroupKeyRotationInfoService_GET = new GetService<NullEntity, GroupKeyRotationInfoGetOut>("sys", "GroupKeyRotationInfoService", NullEntityTypeRef, GroupKeyRotationInfoGetOutTypeRef)
 
-export const GroupKeyRotationService = Object.freeze({
-	app: "sys",
-	name: "GroupKeyRotationService",
-	get: null,
-	post: { data: GroupKeyRotationPostInTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const GroupKeyRotationService_POST = new PostService<GroupKeyRotationPostIn, NullEntity>("sys", "GroupKeyRotationService", GroupKeyRotationPostInTypeRef, NullEntityTypeRef)
 
-export const IdentityKeyService = Object.freeze({
-	app: "sys",
-	name: "IdentityKeyService",
-	get: { data: IdentityKeyGetInTypeRef, return: IdentityKeyGetOutTypeRef },
-	post: { data: IdentityKeyPostInTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const IdentityKeyService_GET = new GetService<IdentityKeyGetIn, IdentityKeyGetOut>("sys", "IdentityKeyService", IdentityKeyGetInTypeRef, IdentityKeyGetOutTypeRef)
+export const IdentityKeyService_POST = new PostService<IdentityKeyPostIn, NullEntity>("sys", "IdentityKeyService", IdentityKeyPostInTypeRef, NullEntityTypeRef)
 
-export const InvoiceDataService = Object.freeze({
-	app: "sys",
-	name: "InvoiceDataService",
-	get: { data: InvoiceDataGetInTypeRef, return: InvoiceDataGetOutTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const InvoiceDataService_GET = new GetService<InvoiceDataGetIn, InvoiceDataGetOut>("sys", "InvoiceDataService", InvoiceDataGetInTypeRef, InvoiceDataGetOutTypeRef)
 
-export const LocationService = Object.freeze({
-	app: "sys",
-	name: "LocationService",
-	get: { data: null, return: LocationServiceGetReturnTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const LocationService_GET = new GetService<NullEntity, LocationServiceGetReturn>("sys", "LocationService", NullEntityTypeRef, LocationServiceGetReturnTypeRef)
 
-export const MailAddressAliasService = Object.freeze({
-	app: "sys",
-	name: "MailAddressAliasService",
-	get: { data: MailAddressAliasGetInTypeRef, return: MailAddressAliasServiceReturnTypeRef },
-	post: { data: MailAddressAliasServiceDataTypeRef, return: null },
-	put: null,
-	delete: { data: MailAddressAliasServiceDataDeleteTypeRef, return: null },
-} as const)
+export const MailAddressAliasService_GET = new GetService<MailAddressAliasGetIn, MailAddressAliasServiceReturn>("sys", "MailAddressAliasService", MailAddressAliasGetInTypeRef, MailAddressAliasServiceReturnTypeRef)
+export const MailAddressAliasService_POST = new PostService<MailAddressAliasServiceData, NullEntity>("sys", "MailAddressAliasService", MailAddressAliasServiceDataTypeRef, NullEntityTypeRef)
+export const MailAddressAliasService_DELETE = new DeleteService<MailAddressAliasServiceDataDelete, NullEntity>("sys", "MailAddressAliasService", MailAddressAliasServiceDataDeleteTypeRef, NullEntityTypeRef)
 
-export const MembershipService = Object.freeze({
-	app: "sys",
-	name: "MembershipService",
-	get: null,
-	post: { data: MembershipAddDataTypeRef, return: null },
-	put: { data: MembershipPutInTypeRef, return: null },
-	delete: { data: MembershipRemoveDataTypeRef, return: null },
-} as const)
+export const MembershipService_POST = new PostService<MembershipAddData, NullEntity>("sys", "MembershipService", MembershipAddDataTypeRef, NullEntityTypeRef)
+export const MembershipService_PUT = new PutService<MembershipPutIn, NullEntity>("sys", "MembershipService", MembershipPutInTypeRef, NullEntityTypeRef)
+export const MembershipService_DELETE = new DeleteService<MembershipRemoveData, NullEntity>("sys", "MembershipService", MembershipRemoveDataTypeRef, NullEntityTypeRef)
 
-export const MultipleMailAddressAvailabilityService = Object.freeze({
-	app: "sys",
-	name: "MultipleMailAddressAvailabilityService",
-	get: { data: MultipleMailAddressAvailabilityDataTypeRef, return: MultipleMailAddressAvailabilityReturnTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const MultipleMailAddressAvailabilityService_GET = new GetService<MultipleMailAddressAvailabilityData, MultipleMailAddressAvailabilityReturn>("sys", "MultipleMailAddressAvailabilityService", MultipleMailAddressAvailabilityDataTypeRef, MultipleMailAddressAvailabilityReturnTypeRef)
 
-export const PaymentDataService = Object.freeze({
-	app: "sys",
-	name: "PaymentDataService",
-	get: { data: PaymentDataServiceGetDataTypeRef, return: PaymentDataServiceGetReturnTypeRef },
-	post: { data: PaymentDataServicePostDataTypeRef, return: null },
-	put: { data: PaymentDataServicePutDataTypeRef, return: PaymentDataServicePutReturnTypeRef },
-	delete: null,
-} as const)
+export const PaymentDataService_GET = new GetService<PaymentDataServiceGetData, PaymentDataServiceGetReturn>("sys", "PaymentDataService", PaymentDataServiceGetDataTypeRef, PaymentDataServiceGetReturnTypeRef)
+export const PaymentDataService_POST = new PostService<PaymentDataServicePostData, NullEntity>("sys", "PaymentDataService", PaymentDataServicePostDataTypeRef, NullEntityTypeRef)
+export const PaymentDataService_PUT = new PutService<PaymentDataServicePutData, PaymentDataServicePutReturn>("sys", "PaymentDataService", PaymentDataServicePutDataTypeRef, PaymentDataServicePutReturnTypeRef)
 
-export const PlanService = Object.freeze({
-	app: "sys",
-	name: "PlanService",
-	get: { data: null, return: PlanServiceGetOutTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const PlanService_GET = new GetService<NullEntity, PlanServiceGetOut>("sys", "PlanService", NullEntityTypeRef, PlanServiceGetOutTypeRef)
 
-export const PriceService = Object.freeze({
-	app: "sys",
-	name: "PriceService",
-	get: { data: PriceServiceDataTypeRef, return: PriceServiceReturnTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const PriceService_GET = new GetService<PriceServiceData, PriceServiceReturn>("sys", "PriceService", PriceServiceDataTypeRef, PriceServiceReturnTypeRef)
 
-export const PublicKeyService = Object.freeze({
-	app: "sys",
-	name: "PublicKeyService",
-	get: { data: PublicKeyGetInTypeRef, return: PublicKeyGetOutTypeRef },
-	post: null,
-	put: { data: PublicKeyPutInTypeRef, return: null },
-	delete: null,
-} as const)
+export const PublicKeyService_GET = new GetService<PublicKeyGetIn, PublicKeyGetOut>("sys", "PublicKeyService", PublicKeyGetInTypeRef, PublicKeyGetOutTypeRef)
+export const PublicKeyService_PUT = new PutService<PublicKeyPutIn, NullEntity>("sys", "PublicKeyService", PublicKeyPutInTypeRef, NullEntityTypeRef)
 
-export const ReferralCodeService = Object.freeze({
-	app: "sys",
-	name: "ReferralCodeService",
-	get: { data: ReferralCodeGetInTypeRef, return: null },
-	post: { data: ReferralCodePostInTypeRef, return: ReferralCodePostOutTypeRef },
-	put: null,
-	delete: null,
-} as const)
+export const ReferralCodeService_GET = new GetService<ReferralCodeGetIn, NullEntity>("sys", "ReferralCodeService", ReferralCodeGetInTypeRef, NullEntityTypeRef)
+export const ReferralCodeService_POST = new PostService<ReferralCodePostIn, ReferralCodePostOut>("sys", "ReferralCodeService", ReferralCodePostInTypeRef, ReferralCodePostOutTypeRef)
 
-export const RegistrationCaptchaService = Object.freeze({
-	app: "sys",
-	name: "RegistrationCaptchaService",
-	get: { data: RegistrationCaptchaServiceGetDataTypeRef, return: RegistrationCaptchaServiceReturnTypeRef },
-	post: { data: RegistrationCaptchaServiceDataTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const RegistrationCaptchaService_GET = new GetService<RegistrationCaptchaServiceGetData, RegistrationCaptchaServiceReturn>("sys", "RegistrationCaptchaService", RegistrationCaptchaServiceGetDataTypeRef, RegistrationCaptchaServiceReturnTypeRef)
+export const RegistrationCaptchaService_POST = new PostService<RegistrationCaptchaServiceData, NullEntity>("sys", "RegistrationCaptchaService", RegistrationCaptchaServiceDataTypeRef, NullEntityTypeRef)
 
-export const RegistrationService = Object.freeze({
-	app: "sys",
-	name: "RegistrationService",
-	get: { data: null, return: RegistrationServiceDataTypeRef },
-	post: { data: RegistrationServiceDataTypeRef, return: RegistrationReturnTypeRef },
-	put: null,
-	delete: null,
-} as const)
+export const RegistrationService_GET = new GetService<NullEntity, RegistrationServiceData>("sys", "RegistrationService", NullEntityTypeRef, RegistrationServiceDataTypeRef)
+export const RegistrationService_POST = new PostService<RegistrationServiceData, RegistrationReturn>("sys", "RegistrationService", RegistrationServiceDataTypeRef, RegistrationReturnTypeRef)
 
-export const RenewalPreferenceService = Object.freeze({
-	app: "sys",
-	name: "RenewalPreferenceService",
-	get: null,
-	post: { data: RenewalPreferenceServicePostInTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const RenewalPreferenceService_POST = new PostService<RenewalPreferenceServicePostIn, NullEntity>("sys", "RenewalPreferenceService", RenewalPreferenceServicePostInTypeRef, NullEntityTypeRef)
 
-export const ResetFactorsService = Object.freeze({
-	app: "sys",
-	name: "ResetFactorsService",
-	get: null,
-	post: null,
-	put: null,
-	delete: { data: ResetFactorsDeleteDataTypeRef, return: null },
-} as const)
+export const ResetFactorsService_DELETE = new DeleteService<ResetFactorsDeleteData, NullEntity>("sys", "ResetFactorsService", ResetFactorsDeleteDataTypeRef, NullEntityTypeRef)
 
-export const ResetPasswordService = Object.freeze({
-	app: "sys",
-	name: "ResetPasswordService",
-	get: null,
-	post: { data: ResetPasswordPostInTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const ResetPasswordService_POST = new PostService<ResetPasswordPostIn, NullEntity>("sys", "ResetPasswordService", ResetPasswordPostInTypeRef, NullEntityTypeRef)
 
-export const RolloutService = Object.freeze({
-	app: "sys",
-	name: "RolloutService",
-	get: { data: null, return: RolloutGetOutTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const RolloutService_GET = new GetService<NullEntity, RolloutGetOut>("sys", "RolloutService", NullEntityTypeRef, RolloutGetOutTypeRef)
 
-export const SaltService = Object.freeze({
-	app: "sys",
-	name: "SaltService",
-	get: { data: SaltDataTypeRef, return: SaltReturnTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const SaltService_GET = new GetService<SaltData, SaltReturn>("sys", "SaltService", SaltDataTypeRef, SaltReturnTypeRef)
 
-export const SecondFactorAuthAllowedService = Object.freeze({
-	app: "sys",
-	name: "SecondFactorAuthAllowedService",
-	get: { data: null, return: SecondFactorAuthAllowedReturnTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const SecondFactorAuthAllowedService_GET = new GetService<NullEntity, SecondFactorAuthAllowedReturn>("sys", "SecondFactorAuthAllowedService", NullEntityTypeRef, SecondFactorAuthAllowedReturnTypeRef)
 
-export const SecondFactorAuthService = Object.freeze({
-	app: "sys",
-	name: "SecondFactorAuthService",
-	get: { data: SecondFactorAuthGetDataTypeRef, return: SecondFactorAuthGetReturnTypeRef },
-	post: { data: SecondFactorAuthDataTypeRef, return: null },
-	put: null,
-	delete: { data: SecondFactorAuthDeleteDataTypeRef, return: null },
-} as const)
+export const SecondFactorAuthService_GET = new GetService<SecondFactorAuthGetData, SecondFactorAuthGetReturn>("sys", "SecondFactorAuthService", SecondFactorAuthGetDataTypeRef, SecondFactorAuthGetReturnTypeRef)
+export const SecondFactorAuthService_POST = new PostService<SecondFactorAuthData, NullEntity>("sys", "SecondFactorAuthService", SecondFactorAuthDataTypeRef, NullEntityTypeRef)
+export const SecondFactorAuthService_DELETE = new DeleteService<SecondFactorAuthDeleteData, NullEntity>("sys", "SecondFactorAuthService", SecondFactorAuthDeleteDataTypeRef, NullEntityTypeRef)
 
-export const SessionService = Object.freeze({
-	app: "sys",
-	name: "SessionService",
-	get: null,
-	post: { data: CreateSessionDataTypeRef, return: CreateSessionReturnTypeRef },
-	put: null,
-	delete: null,
-} as const)
+export const SessionService_POST = new PostService<CreateSessionData, CreateSessionReturn>("sys", "SessionService", CreateSessionDataTypeRef, CreateSessionReturnTypeRef)
 
-export const SignOrderProcessingAgreementService = Object.freeze({
-	app: "sys",
-	name: "SignOrderProcessingAgreementService",
-	get: null,
-	post: { data: SignOrderProcessingAgreementDataTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const SignOrderProcessingAgreementService_POST = new PostService<SignOrderProcessingAgreementData, NullEntity>("sys", "SignOrderProcessingAgreementService", SignOrderProcessingAgreementDataTypeRef, NullEntityTypeRef)
 
-export const SubscriptionRevocationService = Object.freeze({
-	app: "sys",
-	name: "SubscriptionRevocationService",
-	get: null,
-	post: { data: SubscriptionRevocationServicePostInTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const SubscriptionRevocationService_POST = new PostService<SubscriptionRevocationServicePostIn, NullEntity>("sys", "SubscriptionRevocationService", SubscriptionRevocationServicePostInTypeRef, NullEntityTypeRef)
 
-export const SurveyService = Object.freeze({
-	app: "sys",
-	name: "SurveyService",
-	get: null,
-	post: { data: SurveyDataPostInTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const SurveyService_POST = new PostService<SurveyDataPostIn, NullEntity>("sys", "SurveyService", SurveyDataPostInTypeRef, NullEntityTypeRef)
 
-export const SwitchAccountTypeService = Object.freeze({
-	app: "sys",
-	name: "SwitchAccountTypeService",
-	get: null,
-	post: { data: SwitchAccountTypePostInTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const SwitchAccountTypeService_POST = new PostService<SwitchAccountTypePostIn, NullEntity>("sys", "SwitchAccountTypeService", SwitchAccountTypePostInTypeRef, NullEntityTypeRef)
 
-export const SystemKeysService = Object.freeze({
-	app: "sys",
-	name: "SystemKeysService",
-	get: { data: null, return: SystemKeysReturnTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const SystemKeysService_GET = new GetService<NullEntity, SystemKeysReturn>("sys", "SystemKeysService", NullEntityTypeRef, SystemKeysReturnTypeRef)
 
-export const TakeOverDeletedAddressService = Object.freeze({
-	app: "sys",
-	name: "TakeOverDeletedAddressService",
-	get: null,
-	post: { data: TakeOverDeletedAddressDataTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const TakeOverDeletedAddressService_POST = new PostService<TakeOverDeletedAddressData, NullEntity>("sys", "TakeOverDeletedAddressService", TakeOverDeletedAddressDataTypeRef, NullEntityTypeRef)
 
-export const TimelockCaptchaService = Object.freeze({
-	app: "sys",
-	name: "TimelockCaptchaService",
-	get: { data: TimelockCaptchaGetInTypeRef, return: TimelockCaptchaGetOutTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const TimelockCaptchaService_GET = new GetService<TimelockCaptchaGetIn, TimelockCaptchaGetOut>("sys", "TimelockCaptchaService", TimelockCaptchaGetInTypeRef, TimelockCaptchaGetOutTypeRef)
 
-export const UpdateKdfNonceService = Object.freeze({
-	app: "sys",
-	name: "UpdateKdfNonceService",
-	get: null,
-	post: { data: UpdateKdfNoncePostInTypeRef, return: UpdateKdfNoncePostOutTypeRef },
-	put: null,
-	delete: null,
-} as const)
+export const UpdateKdfNonceService_POST = new PostService<UpdateKdfNoncePostIn, UpdateKdfNoncePostOut>("sys", "UpdateKdfNonceService", UpdateKdfNoncePostInTypeRef, UpdateKdfNoncePostOutTypeRef)
 
-export const UpdatePermissionKeyService = Object.freeze({
-	app: "sys",
-	name: "UpdatePermissionKeyService",
-	get: null,
-	post: { data: UpdatePermissionKeyDataTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const UpdatePermissionKeyService_POST = new PostService<UpdatePermissionKeyData, NullEntity>("sys", "UpdatePermissionKeyService", UpdatePermissionKeyDataTypeRef, NullEntityTypeRef)
 
-export const UpdateSessionKeysService = Object.freeze({
-	app: "sys",
-	name: "UpdateSessionKeysService",
-	get: null,
-	post: { data: UpdateSessionKeysPostInTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const UpdateSessionKeysService_POST = new PostService<UpdateSessionKeysPostIn, NullEntity>("sys", "UpdateSessionKeysService", UpdateSessionKeysPostInTypeRef, NullEntityTypeRef)
 
-export const UpgradePriceService = Object.freeze({
-	app: "sys",
-	name: "UpgradePriceService",
-	get: { data: UpgradePriceServiceDataTypeRef, return: UpgradePriceServiceReturnTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const UpgradePriceService_GET = new GetService<UpgradePriceServiceData, UpgradePriceServiceReturn>("sys", "UpgradePriceService", UpgradePriceServiceDataTypeRef, UpgradePriceServiceReturnTypeRef)
 
-export const UserGroupKeyRotationService = Object.freeze({
-	app: "sys",
-	name: "UserGroupKeyRotationService",
-	get: null,
-	post: { data: UserGroupKeyRotationPostInTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const UserGroupKeyRotationService_POST = new PostService<UserGroupKeyRotationPostIn, NullEntity>("sys", "UserGroupKeyRotationService", UserGroupKeyRotationPostInTypeRef, NullEntityTypeRef)
 
-export const UserService = Object.freeze({
-	app: "sys",
-	name: "UserService",
-	get: null,
-	post: null,
-	put: null,
-	delete: { data: UserDataDeleteTypeRef, return: null },
-} as const)
+export const UserService_DELETE = new DeleteService<UserDataDelete, NullEntity>("sys", "UserService", UserDataDeleteTypeRef, NullEntityTypeRef)
 
-export const VerifierTokenService = Object.freeze({
-	app: "sys",
-	name: "VerifierTokenService",
-	get: null,
-	post: { data: VerifierTokenServiceInTypeRef, return: VerifierTokenServiceOutTypeRef },
-	put: null,
-	delete: null,
-} as const)
+export const VerifierTokenService_POST = new PostService<VerifierTokenServiceIn, VerifierTokenServiceOut>("sys", "VerifierTokenService", VerifierTokenServiceInTypeRef, VerifierTokenServiceOutTypeRef)
 
-export const VersionService = Object.freeze({
-	app: "sys",
-	name: "VersionService",
-	get: { data: VersionDataTypeRef, return: VersionReturnTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const VersionService_GET = new GetService<VersionData, VersionReturn>("sys", "VersionService", VersionDataTypeRef, VersionReturnTypeRef)

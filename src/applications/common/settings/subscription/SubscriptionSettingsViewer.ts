@@ -14,7 +14,7 @@ import * as SignOrderAgreementDialog from "../../subscription/SignOrderProcessin
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
-	AppStoreSubscriptionService,
+	AppStoreSubscriptionService_GET,
 	Booking,
 	BookingTypeRef,
 	createAppStoreSubscriptionGetIn,
@@ -27,7 +27,7 @@ import {
 	OrderProcessingAgreement,
 	OrderProcessingAgreementTypeRef,
 	PlanConfiguration,
-	RenewalPreferenceService,
+	RenewalPreferenceService_POST,
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import {
@@ -63,18 +63,11 @@ import { IconButtonAttrs } from "../../../../ui/base/IconButton.js"
 import { getDisplayNameOfPlanType } from "../../subscription/FeatureListProvider"
 import { MobilePaymentsFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
-import { MobilePaymentError } from "../api/common/error/MobilePaymentError"
-import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
-import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
-import { showUserSatisfactionDialogAfterUpgrade } from "../ratings/UserSatisfactionUtils"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { ClientDetector, ClientPlatform } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { openAppleSubscriptionPage } from "../../subscription/PaymentViewer.js"
 import { theme } from "../../../../ui/theme"
 import { TitleSection } from "../../../../ui/TitleSection"
 import { px } from "../../../../ui/size"
-import { UpdatableSettingsViewer } from "../Interfaces"
 import { SubscriptionStateCard, SubscriptionStateCardAttrs, SubscriptionStatus } from "../../subscription/components/SubscriptionStateCard"
 import { SubscriptionPaidFeaturesCard } from "../../subscription/components/SubscriptionPaidFeaturesCard"
 import { MenuTitle } from "../../../../ui/titles/MenuTitle"
@@ -84,11 +77,12 @@ import { PrimaryButton, SecondaryButton } from "../../../../ui/base/buttons/Vari
 import { showSubscriptionCancellationDialog } from "./SubscriptionCancellationDialog"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { MobilePaymentError } from "../../api/common/error/MobilePaymentError"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { showUserSatisfactionDialogAfterUpgrade } from "../../ratings/UserSatisfactionUtils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { SubscriptionStateCellAttrs } from "../../subscription/components/SubscriptionStateCell"
 import { MessageBanner } from "../../../../ui/base/MessageBanner"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { UpdatableSettingsViewer } from "../Interfaces"
 
 assertMainOrNode()
 export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
@@ -397,7 +391,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		}
 		//Render buttons for apple
 		if (isAppleSubscription) {
-			return isIOSApp()
+			return EnvProvider.get().isIOSApp()
 				? m(
 						".flex.justify-end.gap-8",
 
@@ -482,7 +476,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 				customerId: customerId,
 			}
 			const data = createRenewalPreferenceServicePostIn(inputData)
-			await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(RenewalPreferenceService, data, null))
+			await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.execute(RenewalPreferenceService_POST, data, null))
 		}
 	}
 
@@ -642,8 +636,8 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 			return true
 		}
 
-		const appStoreSubscriptionData = await locator.serviceExecutor.get(
-			AppStoreSubscriptionService,
+		const appStoreSubscriptionData = await locator.serviceExecutor.execute(
+			AppStoreSubscriptionService_GET,
 			createAppStoreSubscriptionGetIn({ subscriptionId: elementIdPart(assertNotNull(accountingInfo.appStoreSubscription)) }),
 			null,
 		)

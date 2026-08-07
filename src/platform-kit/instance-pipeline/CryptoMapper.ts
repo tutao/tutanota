@@ -434,7 +434,7 @@ export class EncryptedParsedInstance implements DeepEquals {
 		private readonly parsedInstance: Map<AttributeId, EncryptedParsedValue> = new Map(),
 	) {}
 
-	public getTypeRef(): TypeRef<unknown> {
+	public getTypeRef(): TypeRef<Entity> {
 		return new TypeRef(this.typeModel.app, this.typeModel.id)
 	}
 

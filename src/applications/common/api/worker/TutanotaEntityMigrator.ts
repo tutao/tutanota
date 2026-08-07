@@ -10,7 +10,7 @@ import {
 	PermissionTypeRef,
 	PushIdentifierTypeRef,
 } from "@tutao/entities/sys"
-import { createEncryptTutanotaPropertiesData, EncryptTutanotaPropertiesService, TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
+import { createEncryptTutanotaPropertiesData, EncryptTutanotaPropertiesService_POST, TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
 import { assertNotNull, downcast, ofClass, uint8ArrayToBase64 } from "@tutao/utils"
 import { GroupType } from "../../../../entities/sys/Utils"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
@@ -95,7 +95,7 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 			symKeyVersion: String(groupEncSessionKey.encryptingKeyVersion),
 			symEncSessionKey: groupEncSessionKey.key,
 		})
-		await this.serviceExecutor.post(EncryptTutanotaPropertiesService, migrationData, null)
+		await this.serviceExecutor.execute(EncryptTutanotaPropertiesService_POST, migrationData, null)
 		return instance
 	}
 
