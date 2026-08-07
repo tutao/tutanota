@@ -2558,3 +2558,5 @@ export type TranslationKeyType =
 	| "inboxRuleExplainer_msg"
 	| "addCondition_label"
 	| "addResult_action"
+	| "inboxRulesAppliedSuccessfully_msg"
+	| "noMatchingInboxRulesFound_msg"
