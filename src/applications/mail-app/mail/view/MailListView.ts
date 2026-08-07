@@ -315,7 +315,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 		this.attrs = vnode.attrs
 
 		// Save the folder before showing the dialog so that there's no chance that it will change
-		const folder = this.mailViewModel.getFolder()
+		const folder = this.mailViewModel.getMailSet()
 		const purgeButtonAttrs: ButtonAttrs = {
 			label: "clearFolder_action",
 			type: ButtonType.Primary,
@@ -410,7 +410,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 	}
 
 	private async targetInbox(): Promise<boolean> {
-		const selectedFolder = this.mailViewModel.getFolder()
+		const selectedFolder = this.mailViewModel.getMailSet()
 		if (selectedFolder) {
 			const mailDetails = await this.mailViewModel.getMailboxDetails()
 			const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailDetails.mailbox.mailSets._id)
@@ -421,7 +421,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 
 	private async onSwipeLeft(listElement: Mail): Promise<ListSwipeDecision> {
 		const actionableMails = await this.mailViewModel.getResolvedMails([listElement])
-		const currentFolder = this.mailViewModel.getFolder()
+		const currentFolder = this.mailViewModel.getMailSet()
 
 		if (this.mailViewModel.isPermanentDeleteAllowed()) {
 			const wereDeleted = await promptAndDeleteMails(mailLocator.mailModel, actionableMails, assertNotNull(currentFolder)._id, () =>
@@ -440,7 +440,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 			this.mailViewModel.listModel?.selectNone()
 			return ListSwipeDecision.Cancel
 		} else {
-			const folder = this.mailViewModel.getFolder()
+			const folder = this.mailViewModel.getMailSet()
 			if (folder) {
 				//Check if the user is in the trash/spam folder or if it's in Inbox or Archive
 				//to determinate the target folder
