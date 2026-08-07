@@ -16,6 +16,7 @@ import {
 	parseTime,
 	parseUntilRruleTime,
 	propertySequenceParser,
+	repeatPeriodToIcalFrequency,
 	triggerToAlarmInterval,
 } from "../../../../src/applications/calendar-app/calendar/export/CalendarParser"
 import { AlarmInfo, AlarmInfoTypeRef, createDateWrapper, createRepeatRule, UserAlarmInfo, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
@@ -506,42 +507,126 @@ o.spec("CalendarParser", function () {
 			}
 		})
 
-		o("regular event", async function () {
-			const actual = await parseCalendarStringData(
-				[
-					"BEGIN:VCALENDAR",
-					"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
-					"VERSION:2.0",
-					"CALSCALE:GREGORIAN",
-					"METHOD:PUBLISH",
-					"BEGIN:VEVENT",
-					`DTSTART;TZID="W. Europe Standard Time":20190813T050600`,
-					`DTEND;TZID="W. Europe Standard Time":20190913T050600`,
-					`DTSTAMP:20190813T140100Z`,
-					`UID:test@tuta.com`,
-					"SEQUENCE:0",
-					"SUMMARY:Word \\N \\\\ \\;\\, \\n",
-					"RRULE:FREQ=WEEKLY;INTERVAL=3",
-					"END:VEVENT",
-					"END:VCALENDAR",
-				].join("\r\n"),
-				zone,
-			)
+		o.spec("Events with Repeat Rules", function () {
+			o("regular event", function () {
+				const actual = parseCalendarStringData(
+					"BEGIN:VCALENDAR\r\n" +
+						"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN\r\n" +
+						"VERSION:2.0\r\n" +
+						"CALSCALE:GREGORIAN\r\n" +
+						"METHOD:PUBLISH\r\n" +
+						"BEGIN:VEVENT\r\n" +
+						'DTSTART;TZID="W. Europe Standard Time":20190813T050600\r\n' +
+						'DTEND;TZID="W. Europe Standard Time":20190913T050600\r\n' +
+						"DTSTAMP:20190813T140100Z\r\n" +
+						"UID:test@tuta.com\r\n" +
+						"SEQUENCE:0\r\n" +
+						"SUMMARY:Word \\N \\\\ \\;\\, \\n\r\n" +
+						"RRULE:FREQ=WEEKLY;INTERVAL=3\r\n" +
+						"END:VEVENT\r\n" +
+						"END:VCALENDAR",
+					zone,
+				)
 
-			expectedParsedCalendarData.contents[0].icsCalendarEvent.summary = "Word \n \\ ;, \n"
-			expectedParsedCalendarData.contents[0].icsCalendarEvent.repeatRule = createRepeatRule({
-				endType: EndType.Never,
-				interval: "3",
-				frequency: RepeatPeriod.WEEKLY,
-				timeZone: zone,
-				advancedRules: [],
-				excludedDates: [],
-				endValue: null,
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.summary = "Word \n \\ ;, \n"
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.repeatRule = createRepeatRule({
+					endType: EndType.Never,
+					interval: "3",
+					frequency: RepeatPeriod.WEEKLY,
+					timeZone: zone,
+					advancedRules: [],
+					excludedDates: [],
+					endValue: null,
+				})
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
+				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
+
+				testParsedCalendarDataEquality(actual, expectedParsedCalendarData)
 			})
-			expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
-			expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
 
-			testParsedCalendarDataEquality(actual, expectedParsedCalendarData)
+			for (const supportedRepeatFrequency of ["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]) {
+				o(`Accepts events with supported ${supportedRepeatFrequency} repeat frequency`, function () {
+					const result = parseCalendarStringData(
+						"BEGIN:VCALENDAR\r\n" +
+							"PRODID:-//Tutao GmbH//Tutanota 42//EN\r\n" +
+							"VERSION:2.0\r\n" +
+							"CALSCALE:GREGORIAN\r\n" +
+							"METHOD:PUBLISH\r\n" +
+							"BEGIN:VEVENT\r\n" +
+							"DTSTART;TZID=Europe/Berlin:20000101T020000\r\n" +
+							"DTEND;TZID=Europe/Berlin:20100007T020000\r\n" +
+							"DTSTAMP:20190813T140100Z\r\n" +
+							"UID:test@tuta.com\r\n" +
+							"SEQUENCE:0\r\n" +
+							"SUMMARY:Hourly repeating event\r\n" +
+							`RRULE:FREQ=${supportedRepeatFrequency}\r\n` +
+							"END:VEVENT\r\n" +
+							"END:VCALENDAR",
+						zone,
+					)
+					const repeatRule = result.contents[0].icsCalendarEvent.repeatRule
+					o(repeatPeriodToIcalFrequency((repeatRule?.frequency ?? "") as unknown as RepeatPeriod) as string).equals(supportedRepeatFrequency)
+				})
+			}
+
+			for (const unsupportedRepeatFrequency of ["HOURLY", "MINUTELY", "SECONDLY"]) {
+				o(`Rejects events with unsupported ${unsupportedRepeatFrequency} repeat frequency`, function () {
+					let didError: boolean
+					try {
+						parseCalendarStringData(
+							"BEGIN:VCALENDAR\r\n" +
+								"PRODID:-//Tutao GmbH//Tutanota 42//EN\r\n" +
+								"VERSION:2.0\r\n" +
+								"CALSCALE:GREGORIAN\r\n" +
+								"METHOD:PUBLISH\r\n" +
+								"BEGIN:VEVENT\r\n" +
+								"DTSTART;TZID=Europe/Berlin:20000101T020000\r\n" +
+								"DTEND;TZID=Europe/Berlin:20000107T020000\r\n" +
+								"DTSTAMP:20190813T140100Z\r\n" +
+								"UID:test@tuta.com\r\n" +
+								"SEQUENCE:0\r\n" +
+								"SUMMARY:Hourly repeating event\r\n" +
+								`RRULE:FREQ=${unsupportedRepeatFrequency}\r\n` +
+								"END:VEVENT\r\n" +
+								"END:VCALENDAR",
+							zone,
+						)
+						didError = false
+					} catch (e) {
+						o(e instanceof ParserError).equals(true)
+						o(e.message).equals(`Unsupported ICal frequency: ${unsupportedRepeatFrequency}`)
+						didError = true
+					}
+					o(didError).equals(true)
+				})
+			}
+
+			o("Repeat rule with UNTIL causes repeatRule.endValue to be set to the start of the next day in the start time zone", function () {
+				const result = parseCalendarStringData(
+					"BEGIN:VCALENDAR\r\n" +
+						"PRODID:-//Tutao GmbH//Tutanota 42//EN\r\n" +
+						"VERSION:2.0\r\n" +
+						"CALSCALE:GREGORIAN\r\n" +
+						"METHOD:PUBLISH\r\n" +
+						"BEGIN:VEVENT\r\n" +
+						"DTSTART;TZID=Europe/Berlin:20000101T010000\r\n" +
+						"DTEND;TZID=Europe/Berlin:20000107T010000\r\n" +
+						"DTSTAMP:20190813T140100Z\r\n" +
+						"UID:test\r\n" +
+						"SEQUENCE:0\r\n" +
+						"SUMMARY:Hourly repeating event\r\n" +
+						"RRULE:FREQ=DAILY;UNTIL=20000107T000000Z\r\n" +
+						"END:VEVENT\r\n" +
+						"END:VCALENDAR",
+					zone,
+				)
+				const repeatRule = result.contents[0].icsCalendarEvent.repeatRule
+				o(repeatRule?.endType).equals(EndType.UntilDate)
+				const dateTime = DateTime.fromJSDate(new Date(parseInt(repeatRule?.endValue ?? "")), { zone: "Europe/Berlin" })
+				o(dateTime.day).equals(8)
+				o(dateTime.hour).equals(0)
+				o(dateTime.minute).equals(0)
+			})
 		})
 
 		o("recurrence id on event without UID will be deleted", async function () {
