@@ -2502,6 +2502,8 @@ export default {
 		"applyingInboxRules_label": "Applying Inbox Rule(s)",
 		"inboxRuleExplainer_msg": "This would be a short sentence that explains the configuration of Inbox Rules.",
 		"addCondition_label": "Add condition",
-		"addResult_action": "Add result"
+		"addResult_action": "Add result",
+		"inboxRulesAppliedSuccessfully_msg": "Inbox Rules applied successfully",
+		"noMatchingInboxRulesFound_msg": "No emails were affected",
 	}
 }

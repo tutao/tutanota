@@ -4,23 +4,17 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { mailLocator } from "../mailLocator"
 import { EntityUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { elementIdPart, isSameId } from "@tutao/meta"
 import m, { Children } from "mithril"
-import { assertNotNull, isEmpty, promiseMap, splitInChunks } from "@tutao/utils"
 import type { MailboxDetail, MailboxModel } from "../../common/mailFunctionality/MailboxModel"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
-import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../entities/tutanota/Utils"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { PrimaryButton, SecondaryButton } from "../../../ui/base/buttons/VariantButtons"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { ButtonType } from "../../../ui/base/Button"
 import { Dialog } from "../../../ui/base/Dialog"
-import { resolveMailSetEntries } from "../mail/model/MailSetListModel"
-import { MoveMode } from "../mail/model/MailModel"
-import { isOfflineError } from "@tutao/rest-client/error"
 import { theme } from "../../../ui/theme"
 import { TitleSection } from "../../../ui/TitleSection"
 import { MenuTitle } from "../../../ui/titles/MenuTitle"
@@ -36,6 +30,13 @@ import { IconButton } from "../../../ui/base/IconButton"
 import { createDropdown } from "../../../ui/base/Dropdown"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
+import { ExpandedInboxRuleHandler } from "../mail/model/ExpandedInboxRuleHandler"
+import { ExpandedInboxRule, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { assertNotNull, isEmpty, promiseMap, splitInChunks } from "@tutao/utils"
+import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../entities/tutanota/Utils"
+import { resolveMailSetEntries } from "../mail/model/MailSetListModel"
+import { MoveMode } from "../mail/model/MailModel"
+import { isOfflineError } from "@tutao/rest-client/error"
 
 assertMainOrNode()
 
@@ -46,6 +47,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		readonly mailboxModel: MailboxModel,
 		readonly entityClient: EntityClient,
 		readonly inboxRuleModel: InboxRuleModel,
+		readonly expandedInboxRuleHandler: ExpandedInboxRuleHandler,
 	) {
 		this.model = new InboxRulesSettingsViewerModel(entityClient, inboxRuleModel)
 	}
@@ -253,6 +255,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
+	// reapplyAllInboxRules is only needed for applying old inbox rules and should be removed once they are removed
 	private async reapplyAllInboxRules(progress: Stream<number>, abort: AbortController): Promise<number> {
 		const userController = mailLocator.logins.getUserController()
 		const inboxRules = userController.props.inboxRules
@@ -333,25 +336,85 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 			return
 		}
 
-		const progress = stream(0)
-		const abort = new AbortController()
-		const moved = await showProgressDialog("pleaseWait_msg", this.reapplyAllInboxRules(progress, abort), progress, {
-			middle: "reapplyInboxRules_action",
-			left: () => {
-				return [
-					{
-						label: "cancel_action",
-						click: () => {
-							abort.abort()
+		const rules = await this.inboxRuleModel.getOrderedInboxRules()
 
-							// set progress to 100 so it doesn't look "stuck" even if it might take a few seconds to finish
-							progress(100)
-						},
-						type: ButtonType.Secondary,
-					} as const,
-				]
-			},
-		})
-		await Dialog.message(lang.getTranslation("moveItemsSuccess_msg", { "{count}": moved }))
+		applyRuleWithProgress(rules, this.expandedInboxRuleHandler)
+
+		// FIXME: old code for old inbox rules
+		// const progress = stream(0)
+		// const abort = new AbortController()
+		// const mailsAffected = await showProgressDialog("pleaseWait_msg", this.reapplyAllInboxRules(progress, abort), progress, {
+		// 	middle: "reapplyInboxRules_action",
+		// 	left: () => {
+		// 		return [
+		// 			{
+		// 				label: "cancel_action",
+		// 				click: () => {
+		// 					abort.abort()
+		//
+		// 					// set progress to 100 so it doesn't look "stuck" even if it might take a few seconds to finish
+		// 					progress(100)
+		// 				},
+		// 				type: ButtonType.Secondary,
+		// 			} as const,
+		// 		]
+		// 	},
+		// })
+		// await Dialog.message(lang.getTranslation("moveItemsSuccess_msg", { "{count}": mailsAffected }))
 	}
+}
+
+export async function applyRuleWithProgress(rules: Array<ExpandedInboxRule>, inboxRuleHandler: ExpandedInboxRuleHandler): Promise<void> {
+	const progress = stream(0)
+	const abort = new AbortController()
+	const mailsAffected = await showProgressDialog("pleaseWait_msg", inboxRuleHandler.applyRulesToAllMails(progress, abort, rules), progress, {
+		middle: "applyingInboxRules_label",
+		left: () => {
+			return [
+				{
+					label: "cancel_action",
+					click: () => {
+						abort.abort()
+
+						// set progress to 100 so it doesn't look "stuck" even if it might take a few seconds to finish
+						progress(100)
+					},
+					type: ButtonType.Secondary,
+				} as const,
+			]
+		},
+	})
+
+	const dialog = Dialog.editMediumDialog(
+		{
+			middle: "applyingInboxRules_label",
+			right: [
+				{
+					type: ButtonType.Secondary,
+					label: "ok_action",
+					title: "ok_action",
+					click: () => {
+						dialog.onClose()
+					},
+				},
+			],
+		},
+		TitleSection,
+		{
+			icon: Icons.Checkmark,
+			title: lang.getTranslationText("inboxRulesAppliedSuccessfully_msg"),
+			subTitle: mailsAffected === 0 ? lang.getTranslationText("noMatchingInboxRulesFound_msg") : undefined,
+		},
+		{
+			height: "100%",
+			"background-color": theme.surface_container,
+		},
+		{
+			// plr is added elsewhere
+			paddingTop: "24px",
+			paddingBottom: "24px",
+		},
+	)
+
+	dialog.show()
 }

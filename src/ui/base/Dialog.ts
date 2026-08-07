@@ -1151,6 +1151,7 @@ export class Dialog implements ModalComponent {
 		child: Class<Component<T>>,
 		childAttrs: T,
 		dialogStyle?: Partial<CSSStyleDeclaration> | object,
+		dialogBodyStyle?: Partial<CSSStyleDeclaration> | object,
 	): Dialog {
 		return new Dialog(DialogType.EditMedium, {
 			view: () =>
@@ -1158,7 +1159,7 @@ export class Dialog implements ModalComponent {
 					/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
 					headerBarAttrs.noHeader ? null : m(DialogHeaderBar, headerBarAttrs),
 					/** variable-size child container that may be scrollable. */
-					m(".scroll.hide-outline.plr-24.flex-grow", { style: { "overflow-x": "hidden" } }, m(child, childAttrs)),
+					m(".scroll.hide-outline.plr-24.flex-grow", { style: { "overflow-x": "hidden", ...dialogBodyStyle } }, m(child, childAttrs)),
 				]),
 		})
 	}
