@@ -3,7 +3,7 @@ import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceReque
 
 import { createTestEntity } from "../TestUtils.js"
 
-import { PlanConfigurationTypeRef, PlanPricesTypeRef, UpgradePriceService } from "@tutao/entities/sys"
+import { PlanConfigurationTypeRef, PlanPricesTypeRef, UpgradePriceService_GET } from "@tutao/entities/sys"
 
 export const PLAN_PRICES = {
 	Free: createTestEntity(PlanPricesTypeRef, {
@@ -199,7 +199,7 @@ export function createUpgradePriceServiceMock(
 	bonusMonths: number = 0,
 ): IServiceExecutor {
 	const executorMock = object<IServiceExecutor>()
-	when(executorMock.get(UpgradePriceService, matchers.anything(), null)).thenResolve({
+	when(executorMock.execute(UpgradePriceService_GET, matchers.anything(), null)).thenResolve({
 		premiumPrices: planPrices.Premium,
 		premiumBusinessPrices: planPrices.PremiumBusiness,
 		teamsPrices: planPrices.Teams,

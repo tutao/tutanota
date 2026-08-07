@@ -17,7 +17,7 @@ import {
 	CustomerInfo,
 	CustomerInfoTypeRef,
 	CustomerTypeRef,
-	PaymentDataService,
+	PaymentDataService_GET,
 	PlanConfiguration,
 } from "@tutao/entities/sys"
 import {
@@ -34,7 +34,7 @@ import {
 	PlanName,
 	PlanType,
 } from "../../../../entities/sys/Utils"
-import { EntityUpdatesListener, EntityUpdateData, isUpdateFor, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, EntityUpdatesListener, isUpdateFor, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { reverse } from "../../misc/EnumUtils"
 import { idToElementId } from "@tutao/meta"
@@ -182,8 +182,8 @@ export function getLazyLoadedPayPalUrl(): LazyLoaded<string> {
 	return new LazyLoaded(async () => {
 		const clientType = getClientType()
 		const subscriptionApp = ClientDetector.get().isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail
-		const result = await locator.serviceExecutor.get(
-			PaymentDataService,
+		const result = await locator.serviceExecutor.execute(
+			PaymentDataService_GET,
 			createPaymentDataServiceGetData({
 				clientType,
 				subscriptionApp,

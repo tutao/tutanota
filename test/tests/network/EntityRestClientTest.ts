@@ -51,7 +51,7 @@ import {
 	sysModelInfo,
 	UpdateKdfNoncePostIn,
 	UpdateKdfNoncePostOutTypeRef,
-	UpdateKdfNonceService,
+	UpdateKdfNonceService_POST,
 } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
 import { CacheManager } from "../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
@@ -120,7 +120,7 @@ o.spec("EntityRestClient", function () {
 	let loggedInUserProvider: TestLoggedInUserProvider
 	let serviceExecutor: ServiceExecutor
 
-	async function typeRefToRestPath(typeRef: TypeRef<unknown>): Promise<string> {
+	async function typeRefToRestPath(typeRef: TypeRef<Entity>): Promise<string> {
 		return EntityUtils.typeModelToRestPath(await typeModelResolver.resolveClientTypeReference(typeRef))
 	}
 
@@ -1333,7 +1333,7 @@ o.spec("EntityRestClient", function () {
 			calendarEvent.summary = "totally different"
 			calendarEvent._ownerKeyVersion = ownerGroupKey.version.toString()
 
-			when(serviceExecutor.post(UpdateKdfNonceService, matchers.anything(), null)).thenDo((_: any, postIn: UpdateKdfNoncePostIn) =>
+			when(serviceExecutor.execute(UpdateKdfNonceService_POST, matchers.anything(), null)).thenDo((_: any, postIn: UpdateKdfNoncePostIn) =>
 				createTestEntity(UpdateKdfNoncePostOutTypeRef, { kdfNonce: postIn.instanceKdfNonce.kdfNonce }),
 			)
 
@@ -1383,7 +1383,7 @@ o.spec("EntityRestClient", function () {
 
 			let kdfNonce = generateKdfNonce()
 
-			when(serviceExecutor.post(UpdateKdfNonceService, matchers.anything(), null)).thenResolve(
+			when(serviceExecutor.execute(UpdateKdfNonceService_POST, matchers.anything(), null)).thenResolve(
 				createTestEntity(UpdateKdfNoncePostOutTypeRef, { kdfNonce }),
 			)
 
@@ -1435,7 +1435,7 @@ o.spec("EntityRestClient", function () {
 
 			await entityRestClient.update(calendarEvent, { baseUrl: null, ownerKey: ownerGroupKey })
 
-			verify(serviceExecutor.post(UpdateKdfNonceService, matchers.anything(), null), { times: 0 })
+			verify(serviceExecutor.execute(UpdateKdfNonceService_POST, matchers.anything(), null), { times: 0 })
 
 			o.check(arrayEquals(calendarEvent._kdfNonce, originalKdfNonce)).equals(true)
 

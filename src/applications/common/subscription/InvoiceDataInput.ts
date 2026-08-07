@@ -8,9 +8,10 @@ import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { locator } from "../api/main/CommonLocator"
 import { renderCountryDropdown } from "../gui/CountryDropdown"
-import { LocationService, LocationServiceGetReturn } from "@tutao/entities/sys"
+import { LocationService_GET, LocationServiceGetReturn } from "@tutao/entities/sys"
 import { Countries, CountryType } from "../gui/CountryList"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
+import { NON_EXISTENT_DATA_TRANSFER_ENTITY } from "@tutao/meta"
 
 export enum InvoiceDataInputLocation {
 	InWizard = 0,
@@ -66,7 +67,7 @@ export class InvoiceDataInput implements Component {
 	}
 
 	oncreate() {
-		locator.serviceExecutor.get(LocationService, null, null).then((location: LocationServiceGetReturn) => {
+		locator.serviceExecutor.execute(LocationService_GET, NON_EXISTENT_DATA_TRANSFER_ENTITY, null).then((location: LocationServiceGetReturn) => {
 			if (!this.selectedCountry()) {
 				const country = Countries.find((c) => c.a === location.country)
 

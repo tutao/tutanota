@@ -5,7 +5,8 @@ import { func, matchers, object, verify, when } from "testdouble"
 
 import { createTestEntity } from "../../../TestUtils"
 import { ProgrammingError, RolloutType } from "../../../../../src/platform-kit/app-env"
-import { RolloutGetOutTypeRef, RolloutService, RolloutTypeRef } from "@tutao/entities/sys"
+import { RolloutGetOutTypeRef, RolloutService_GET, RolloutTypeRef } from "@tutao/entities/sys"
+import { NON_EXISTENT_DATA_TRANSFER_ENTITY } from "../../../../../src/platform-kit/meta"
 
 o.spec("RolloutFacadeTest", function () {
 	let serviceExecutor: IServiceExecutor
@@ -18,15 +19,17 @@ o.spec("RolloutFacadeTest", function () {
 	})
 
 	o("getScheduledRolloutTypes() gets the rollouts from the server only once", async function () {
-		when(serviceExecutor.get(RolloutService, null, null)).thenResolve(createTestEntity(RolloutGetOutTypeRef, { rollouts: [] }))
+		when(serviceExecutor.execute(RolloutService_GET, NON_EXISTENT_DATA_TRANSFER_ENTITY, null)).thenResolve(
+			createTestEntity(RolloutGetOutTypeRef, { rollouts: [] }),
+		)
 		await rolloutFacade.getScheduledRolloutTypes()
 		await rolloutFacade.getScheduledRolloutTypes()
 
-		verify(serviceExecutor.get(RolloutService, null, null), { times: 1 })
+		verify(serviceExecutor.execute(RolloutService_GET, NON_EXISTENT_DATA_TRANSFER_ENTITY, null), { times: 1 })
 	})
 
 	o("processRollout() executes a scheduled rollout", async function () {
-		when(serviceExecutor.get(RolloutService, null, null)).thenResolve(
+		when(serviceExecutor.execute(RolloutService_GET, NON_EXISTENT_DATA_TRANSFER_ENTITY, null)).thenResolve(
 			createTestEntity(RolloutGetOutTypeRef, {
 				rollouts: [createTestEntity(RolloutTypeRef, { rolloutType: RolloutType.UserIdentityKeyCreation })],
 			}),
@@ -40,7 +43,7 @@ o.spec("RolloutFacadeTest", function () {
 	})
 
 	o("processRollout() does not execute a rollout that was not scheduled", async function () {
-		when(serviceExecutor.get(RolloutService, null, null)).thenResolve(
+		when(serviceExecutor.execute(RolloutService_GET, NON_EXISTENT_DATA_TRANSFER_ENTITY, null)).thenResolve(
 			createTestEntity(RolloutGetOutTypeRef, {
 				rollouts: [createTestEntity(RolloutTypeRef, { rolloutType: RolloutType.UserIdentityKeyCreation })],
 			}),
@@ -53,7 +56,7 @@ o.spec("RolloutFacadeTest", function () {
 	})
 
 	o("rollouts are removed after processed", async function () {
-		when(serviceExecutor.get(RolloutService, null, null)).thenResolve(
+		when(serviceExecutor.execute(RolloutService_GET, NON_EXISTENT_DATA_TRANSFER_ENTITY, null)).thenResolve(
 			createTestEntity(RolloutGetOutTypeRef, {
 				rollouts: [createTestEntity(RolloutTypeRef, { rolloutType: RolloutType.UserIdentityKeyCreation })],
 			}),
@@ -71,7 +74,9 @@ o.spec("RolloutFacadeTest", function () {
 	})
 
 	o("cannot configure rollouts that are not scheduled", async function () {
-		when(serviceExecutor.get(RolloutService, null, null)).thenResolve(createTestEntity(RolloutGetOutTypeRef, { rollouts: [] }))
+		when(serviceExecutor.execute(RolloutService_GET, NON_EXISTENT_DATA_TRANSFER_ENTITY, null)).thenResolve(
+			createTestEntity(RolloutGetOutTypeRef, { rollouts: [] }),
+		)
 		await rolloutFacade.getScheduledRolloutTypes()
 		const action: RolloutAction = object()
 
@@ -88,7 +93,7 @@ o.spec("RolloutFacadeTest", function () {
 	})
 
 	o("errors are sent", async function () {
-		when(serviceExecutor.get(RolloutService, null, null)).thenResolve(
+		when(serviceExecutor.execute(RolloutService_GET, NON_EXISTENT_DATA_TRANSFER_ENTITY, null)).thenResolve(
 			createTestEntity(RolloutGetOutTypeRef, {
 				rollouts: [createTestEntity(RolloutTypeRef, { rolloutType: RolloutType.UserIdentityKeyCreation })],
 			}),
@@ -109,7 +114,7 @@ o.spec("RolloutFacadeTest", function () {
 	})
 
 	o("scheduled rollouts must be configured before processed", async function () {
-		when(serviceExecutor.get(RolloutService, null, null)).thenResolve(
+		when(serviceExecutor.execute(RolloutService_GET, NON_EXISTENT_DATA_TRANSFER_ENTITY, null)).thenResolve(
 			createTestEntity(RolloutGetOutTypeRef, {
 				rollouts: [createTestEntity(RolloutTypeRef, { rolloutType: RolloutType.UserIdentityKeyCreation })],
 			}),

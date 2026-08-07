@@ -4,6 +4,7 @@ import { EventController } from "../../../../common/api/main/EventController.js"
 import {
 	assertIsEntity2,
 	elementIdPart,
+	Entity,
 	GENERATED_MAX_ID,
 	getElementId,
 	isSameId,
@@ -562,7 +563,7 @@ export class CalendarSearchViewModel {
 		})
 	}
 
-	isInSearchResult(typeRef: TypeRef<unknown>, id: IdTuple): boolean {
+	isInSearchResult(typeRef: TypeRef<Entity>, id: IdTuple): boolean {
 		const result = this.searchResult
 
 		if (result && isSameTypeRef(typeRef, result.restriction.type)) {

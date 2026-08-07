@@ -1,27 +1,15 @@
-import {
-	DeleteService,
-	Entity,
-	GetService,
-	getServiceRestPath,
-	isSameTypeRef,
-	MethodDefinition,
-	ParamTypeFromRef,
-	PostService,
-	PutService,
-	ReturnTypeFromRef,
-	ServiceDefinition,
-	TypeRef,
-} from "@tutao/meta"
+import { DataTransferEntity, Entity, isSameTypeRef, NON_EXISTENT_DATA_TRANSFER_ENTITY, ServiceDefinition, TypeRef } from "@tutao/meta"
 import { RestClient } from "@tutao/rest-client"
-import { HttpMethod, MediaType, RestTextBody } from "@tutao/rest-client/types"
+import { HttpMethod, MediaType, RestTextBody, validateHttpMethod } from "@tutao/rest-client/types"
 import { IServiceExecutor } from "./ServiceRequest.js"
-import { isNotNull, lazy, Nullable } from "@tutao/utils"
+import { assert, assertNotNull, downcast, isNotNull, lazy, Nullable } from "@tutao/utils"
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { DEFAULT_REST_CLIENT_OPTIONS, ExtraServiceParams } from "../instance-pipeline/RestClientOptions"
-
 import { IncomingServerJson, OutgoingServerJson } from "../instance-pipeline/TypeMapper"
+import { isNull } from "../utils/Utils"
+
 assertWorkerOrNode()
 
 export class ServiceExecutor implements IServiceExecutor {
@@ -33,65 +21,42 @@ export class ServiceExecutor implements IServiceExecutor {
 		private readonly typeModelResolver: TypeModelResolver,
 	) {}
 
-	get<S extends GetService>(
-		service: S,
-		data: ParamTypeFromRef<S["get"]["data"]>,
+	public async execute<In extends DataTransferEntity, Out extends DataTransferEntity>(
+		service: ServiceDefinition<In, Out>,
+		requestEntity: In,
 		params: Nullable<ExtraServiceParams>,
-	): Promise<ReturnTypeFromRef<S["get"]["return"]>> {
-		return this.executeServiceRequest(service, HttpMethod.GET, data, params)
-	}
+	): Promise<Out> {
+		const method = validateHttpMethod(service.httpMethod)
+		assert(method !== HttpMethod.PATCH, "Patch method for services are not yet implemented!")
+		const requestTypeRef = service.requestTypeRef
+		const returnTypeRef = service.returnTypeRef
 
-	post<S extends PostService>(
-		service: S,
-		data: ParamTypeFromRef<S["post"]["data"]>,
-		params: Nullable<ExtraServiceParams> = null,
-	): Promise<ReturnTypeFromRef<S["post"]["return"]>> {
-		return this.executeServiceRequest(service, HttpMethod.POST, data, params)
-	}
-
-	put<S extends PutService>(
-		service: S,
-		data: ParamTypeFromRef<S["put"]["data"]>,
-		params: Nullable<ExtraServiceParams>,
-	): Promise<ReturnTypeFromRef<S["put"]["return"]>> {
-		return this.executeServiceRequest(service, HttpMethod.PUT, data, params)
-	}
-
-	delete<S extends DeleteService>(
-		service: S,
-		data: ParamTypeFromRef<S["delete"]["data"]>,
-		params: Nullable<ExtraServiceParams>,
-	): Promise<ReturnTypeFromRef<S["delete"]["return"]>> {
-		return this.executeServiceRequest(service, HttpMethod.DELETE, data, params)
-	}
-
-	private async executeServiceRequest(
-		service: ServiceDefinition,
-		method: HttpMethod,
-		requestEntity: Nullable<Entity>,
-		params: Nullable<ExtraServiceParams> = null,
-	): Promise<any> {
-		const methodDefinition = this.getMethodDefinition(service, method)
 		if (
-			methodDefinition.return &&
-			params?.sessionKey == null &&
-			(await this.typeModelResolver.resolveClientTypeReference(methodDefinition.return)).encrypted &&
+			isNotNull(returnTypeRef) &&
+			isNull(params?.sessionKey ?? null) &&
+			(await this.typeModelResolver.resolveClientTypeReference(returnTypeRef)).encrypted &&
 			!this.authDataProvider.isFullyLoggedIn()
 		) {
 			// Short-circuit before we do an actual request which we can't decrypt
 			// If we have a session key passed it doesn't mean that it is for the return type, but it is likely
 			// so we allow the request.
-			throw new LoginIncompleteError(`Tried to make service request with encrypted return type but is not fully logged in yet, service: ${service.name}`)
+			throw new LoginIncompleteError(
+				`Tried to make service request with encrypted return type but is not fully logged in yet, service: ${service.fullServiceName}`,
+			)
 		}
 
-		const modelVersion = await this.getModelVersion(methodDefinition)
+		// This is some kind of hack because we don't generate data for the whole model anywhere (unfortunately).
+		let modelVersionOpt: Nullable<number> = null
+		if (isNotNull(returnTypeRef)) {
+			modelVersionOpt = (await this.typeModelResolver.resolveClientTypeReference(returnTypeRef)).version
+		} else if (isNotNull(requestTypeRef)) {
+			modelVersionOpt = (await this.typeModelResolver.resolveClientTypeReference(requestTypeRef)).version
+		}
 
-		const path = getServiceRestPath(service)
+		const modelVersion = assertNotNull(modelVersionOpt)
 		const headers = { ...this.authDataProvider.createAuthHeaders(), ...params?.extraHeaders, v: String(modelVersion) }
-
-		const encryptedEntity = await this.encryptDataIfNeeded(methodDefinition, requestEntity, service, method, params ?? null)
-
-		const data: string | null = await this.restClient.request(path, method, {
+		const encryptedEntity = await this.encryptDataIfNeeded(requestEntity, service, params ?? null)
+		const data: Nullable<string> = await this.restClient.request(service.serviceRestPath, method, {
 			...DEFAULT_REST_CLIENT_OPTIONS,
 			queryParams: params?.queryParams ?? null,
 			headers,
@@ -101,51 +66,36 @@ export class ServiceExecutor implements IServiceExecutor {
 			baseUrl: params?.baseUrl ?? null,
 		})
 
-		if (methodDefinition.return) {
-			return await this.decryptResponse(methodDefinition.return, data as string, params)
+		if (isNull(returnTypeRef)) {
+			if (data != null) {
+				// FIXME: should this be an assertNull() instead?
+				// what happens when we have a model change that adds a return type,
+				// will server also return it for older client?
+				console.error(`Server return some data when calling ${service.fullServiceName}. But this this service does not expect any return data`)
+			}
+			return downcast<Out>(NON_EXISTENT_DATA_TRANSFER_ENTITY)
 		}
+		const returnData = assertNotNull(
+			data,
+			`Expected service ${service.fullServiceName} to return data of type: ${returnTypeRef.toString()}. But got no response`,
+		)
+		return await this.decryptResponse<Out>(returnTypeRef, returnData, params)
 	}
 
-	private getMethodDefinition(service: ServiceDefinition, method: HttpMethod): MethodDefinition {
-		switch (method) {
-			case HttpMethod.GET:
-				return (service as GetService)["get"]
-			case HttpMethod.POST:
-				return (service as PostService)["post"]
-			case HttpMethod.PUT:
-				return (service as PutService)["put"]
-			case HttpMethod.DELETE:
-				return (service as DeleteService)["delete"]
-			case HttpMethod.PATCH:
-				throw new ProgrammingError("Services do not implement PATCH for now")
-		}
-	}
-
-	private async getModelVersion(methodDefinition: MethodDefinition): Promise<number> {
-		// This is some kind of hack because we don't generate data for the whole model anywhere (unfortunately).
-		const someTypeRef = methodDefinition.data ?? methodDefinition.return
-		if (someTypeRef == null) {
-			throw new ProgrammingError("Need either data or return for the service method!")
-		}
-		const model = await this.typeModelResolver.resolveClientTypeReference(someTypeRef)
-		return model.version
-	}
-
-	private async encryptDataIfNeeded(
-		methodDefinition: MethodDefinition,
+	private async encryptDataIfNeeded<In extends DataTransferEntity, Out extends DataTransferEntity>(
 		requestEntity: Entity | null,
-		service: ServiceDefinition,
-		method: HttpMethod,
+		service: ServiceDefinition<In, Out>,
 		params: ExtraServiceParams | null,
 	): Promise<Nullable<OutgoingServerJson>> {
-		if (methodDefinition.data != null) {
-			if (requestEntity == null || !isSameTypeRef(methodDefinition.data, requestEntity._type)) {
-				throw new ProgrammingError(`Invalid service data! ${service.name} ${method}`)
+		const requestTypeRef = service.requestTypeRef
+		if (isNotNull(requestTypeRef)) {
+			if (requestEntity == null || !isSameTypeRef(requestTypeRef, requestEntity._type)) {
+				throw new ProgrammingError(`Invalid service data! ${service.fullServiceName}`)
 			}
 
-			const requestTypeModel = await this.typeModelResolver.resolveClientTypeReference(methodDefinition.data)
+			const requestTypeModel = await this.typeModelResolver.resolveClientTypeReference(requestTypeRef)
 			if (requestTypeModel.encrypted && params?.sessionKey == null) {
-				throw new ProgrammingError(`Must provide a session key for an encrypted data transfer type!: ${service.app}/${service.name}`)
+				throw new ProgrammingError(`Must provide a session key for an encrypted data transfer type!: ${service.fullServiceName}`)
 			}
 
 			return await this.instancePipeline.mapAndEncrypt(requestEntity._type, requestEntity, params?.sessionKey ?? null)

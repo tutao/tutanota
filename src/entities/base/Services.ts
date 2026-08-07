@@ -1,9 +1,3 @@
+import { GetService, PostService, PutService, DeleteService, NonExistentDataTransferEntity, NonExistentDataTransferEntityTypeRef } from "@tutao/meta"
 
-export const ApplicationTypesService = Object.freeze({
-	app: "base",
-	name: "ApplicationTypesService",
-	get: null,
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const ApplicationTypesService_GET = new GetService<NonExistentDataTransferEntity, NonExistentDataTransferEntity>("base", "ApplicationTypesService", NonExistentDataTransferEntityTypeRef, NonExistentDataTransferEntityTypeRef)

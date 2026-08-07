@@ -25,7 +25,16 @@ import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/base-
 import { Versioned } from "../../../../../src/platform-kit/utils"
 import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
 
-import { Group, GroupMembershipTypeRef, GroupTypeRef, IdentityKeyPostIn, IdentityKeyService, PublicKeySignature, User, UserTypeRef } from "@tutao/entities/sys"
+import {
+	Group,
+	GroupMembershipTypeRef,
+	GroupTypeRef,
+	IdentityKeyPostIn,
+	IdentityKeyService_POST,
+	PublicKeySignature,
+	User,
+	UserTypeRef,
+} from "@tutao/entities/sys"
 import { KeyAuthenticationFacade, SystemMapKind } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
@@ -145,8 +154,8 @@ o.spec("IdentityKeyCreatorTest", function () {
 			await identityKeyCreator.createIdentityKeyPair(userGroupId, userGroupKeyPair, [])
 
 			verify(
-				serviceExecutor.post(
-					IdentityKeyService,
+				serviceExecutor.execute(
+					IdentityKeyService_POST,
 					argThat((data: IdentityKeyPostIn) => {
 						const identityKeyPairFromRequest = data.identityKeyPair
 						const keyMacFromRequest = identityKeyPairFromRequest.publicKeyMac
@@ -177,7 +186,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 		o("no service invocation if the identity key pair exists", async function () {
 			userGroup.identityKeyPair = object()
 			await identityKeyCreator.createIdentityKeyPair(userGroupId, userGroupKeyPair, [])
-			verify(serviceExecutor.post(IdentityKeyService, anything(), null), { times: 0 })
+			verify(serviceExecutor.execute(IdentityKeyService_POST, anything(), null), { times: 0 })
 		})
 
 		o("success admin creates new user", async function () {
@@ -185,8 +194,8 @@ o.spec("IdentityKeyCreatorTest", function () {
 			await identityKeyCreator.createIdentityKeyPair(userGroupId, userGroupKeyPair, [])
 
 			verify(
-				serviceExecutor.post(
-					IdentityKeyService,
+				serviceExecutor.execute(
+					IdentityKeyService_POST,
 					argThat((data: IdentityKeyPostIn) => {
 						const identityKeyPairFromRequest = data.identityKeyPair
 						const keyMacFromRequest = identityKeyPairFromRequest.publicKeyMac
@@ -216,8 +225,8 @@ o.spec("IdentityKeyCreatorTest", function () {
 			await identityKeyCreator.createIdentityKeyPair(userGroupId, userGroupKeyPair, [], adminGroupKey)
 
 			verify(
-				serviceExecutor.post(
-					IdentityKeyService,
+				serviceExecutor.execute(
+					IdentityKeyService_POST,
 					argThat((data: IdentityKeyPostIn) => {
 						const identityKeyPairFromRequest = data.identityKeyPair
 						const keyMacFromRequest = identityKeyPairFromRequest.publicKeyMac
@@ -271,8 +280,8 @@ o.spec("IdentityKeyCreatorTest", function () {
 				await identityKeyCreator.createIdentityKeyPairForExistingUsers()
 				verify(asymmetricCryptoFacade.getOrMakeSenderX25519KeyPair(currentUserGroupKeyPair.object, userGroupId))
 				verify(
-					serviceExecutor.post(
-						IdentityKeyService,
+					serviceExecutor.execute(
+						IdentityKeyService_POST,
 						argThat((data: IdentityKeyPostIn) => {
 							o(data.signatures.length).equals(2)
 							o(data.signatures[1]).equals(formerGroupKeyPairSignature)
@@ -343,7 +352,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 				await identityKeyCreator.createIdentityKeyPairForExistingTeamGroups(groupIds)
 
 				const captor = matchers.captor()
-				verify(serviceExecutor.post(IdentityKeyService, captor.capture(), anything()))
+				verify(serviceExecutor.execute(IdentityKeyService_POST, captor.capture(), anything()))
 				for (const { group, signature, encPrivIdentityKey } of teamGroupData) {
 					verify(asymmetricCryptoFacade.getOrMakeSenderX25519KeyPair(anything(), elementIdToId(group._id)))
 					o(captor.values?.length).equals(teamGroupData.length)
@@ -369,7 +378,7 @@ o.spec("IdentityKeyCreatorTest", function () {
 
 				await identityKeyCreator.createIdentityKeyPairForExistingTeamGroups([elementIdToId(group1._id)])
 
-				verify(serviceExecutor.post(IdentityKeyService, anything(), anything()), { times: 0 })
+				verify(serviceExecutor.execute(IdentityKeyService_POST, anything(), anything()), { times: 0 })
 			})
 
 			o("errors bubble up", async function () {

@@ -7,7 +7,7 @@ import { IServiceExecutor } from "../../../platform-kit/network/ServiceRequest.j
 import { EntityClient } from "../../../platform-kit/network/EntityClient.js"
 import { PreconditionFailedError } from "@tutao/rest-client/error"
 import type { NewSessionData } from "../../../platform-kit/base/facades/LoginFacade"
-import { createSubscriptionRevocationServicePostIn, SubscriptionRevocationService, SurveyData } from "@tutao/entities/sys"
+import { createSubscriptionRevocationServicePostIn, SubscriptionRevocationService_POST, SurveyData } from "@tutao/entities/sys"
 
 export type RevocationRequestError = "alreadyRevoked" | "noActiveSubscription" | "hasAppStoreSubscription" | "olderThanTwoWeeks" | "noPersonalPlan"
 
@@ -46,7 +46,7 @@ export class RevocationViewModel {
 	private async revocationRequest(surveyData: SurveyData | null) {
 		try {
 			const inputData = createSubscriptionRevocationServicePostIn({ surveyData })
-			await this.serviceExecutor.post(SubscriptionRevocationService, inputData, null)
+			await this.serviceExecutor.execute(SubscriptionRevocationService_POST, inputData, null)
 			this.acceptedRevocationRequest = true
 		} catch (e) {
 			if (e instanceof PreconditionFailedError) {

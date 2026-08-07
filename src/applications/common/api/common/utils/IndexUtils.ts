@@ -1,4 +1,4 @@
-import { AppName, isSameTypeRef, TypeModel, TypeRef } from "@tutao/meta"
+import { AppName, Entity, isSameTypeRef, TypeModel, TypeRef } from "@tutao/meta"
 import type { IndexUpdate, SearchIndexMetadataEntry, SearchRestriction } from "../../worker/search/SearchTypes"
 import { FULL_INDEXED_TIMESTAMP, isOfflineStorageAvailable, isTest, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { GroupMembership, User } from "@tutao/entities/sys"
@@ -58,7 +58,7 @@ export function typeRefToTypeInfo(typeRef: TypeRef<any>): TypeInfo {
 	return typeInfo
 }
 
-export function typeInfoToTypeRef(typeInfo: TypeInfo, appName: AppName): TypeRef<unknown> | null {
+export function typeInfoToTypeRef(typeInfo: TypeInfo, appName: AppName): TypeRef<Entity> | null {
 	if (typeInfos.get(appName)?.has(typeInfo.typeId)) {
 		return new TypeRef(appName, typeInfo.typeId)
 	} else {

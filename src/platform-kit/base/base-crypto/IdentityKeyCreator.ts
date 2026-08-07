@@ -10,7 +10,7 @@ import { Ed25519Facade } from "./Ed25519Facade"
 import { PublicKeySignatureFacade } from "./PublicKeySignatureFacade"
 import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
 import { KeyAuthenticationFacade, SystemMapKind } from "../../network/KeyAuthenticationFacade"
-import { createIdentityKeyPair, createIdentityKeyPostIn, createKeyMac, GroupTypeRef, IdentityKeyService } from "@tutao/entities/sys"
+import { createIdentityKeyPair, createIdentityKeyPostIn, createKeyMac, GroupTypeRef, IdentityKeyService_POST } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
 import { CacheManager } from "./persistence/CacheManager"
 import { idToElementId } from "@tutao/meta"
@@ -104,8 +104,8 @@ export class IdentityKeyCreator {
 			console.log(`Identity key pair already exists. Did not create it again for group: ${groupId}`)
 			return
 		}
-		await this.serviceExecutor.post(
-			IdentityKeyService,
+		await this.serviceExecutor.execute(
+			IdentityKeyService_POST,
 			createIdentityKeyPostIn({
 				identityKeyPair,
 				signatures,

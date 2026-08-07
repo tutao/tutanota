@@ -1,8 +1,7 @@
 import { HttpMethod, RestClientMiddleware } from "../rest-client/types"
 import { isNotNull } from "@tutao/utils"
-import { getServiceRestPath } from "../meta"
 import { ServerModelInfo } from "./EntityFunctions"
-import { ApplicationTypesService } from "@tutao/entities/base"
+import { ApplicationTypesService_GET } from "@tutao/entities/base"
 
 export const APPLICATION_TYPES_HASH_HEADER = "app-types-hash"
 
@@ -17,7 +16,7 @@ export class UpdateAppTypesHashMiddleware implements RestClientMiddleware {
 		const applicationTypesHashResponseHeader = sentRequest.getResponseHeader(APPLICATION_TYPES_HASH_HEADER)
 		if (isNotNull(applicationTypesHashResponseHeader)) {
 			this.serverModelInfo.setCurrentHash(applicationTypesHashResponseHeader)
-		} else if (!(path === getServiceRestPath(ApplicationTypesService) && method === HttpMethod.GET)) {
+		} else if (!(path === ApplicationTypesService_GET.serviceRestPath && method === HttpMethod.GET)) {
 			console.log(`Empty value for app types hash header in response with path ${path} and method ${method}`)
 		}
 	}

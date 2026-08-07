@@ -1,8 +1,6 @@
 import { assertWorkerOrNode, isApp, isDesktop } from "@tutao/app-env"
 import { defer, DeferredObject, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/utils"
-import { getServiceRestPath, ServiceDefinition } from "../meta"
-import { ApplicationTypesService } from "@tutao/entities/base"
-import { baseModelInfo } from "../../entities/base"
+import { ApplicationTypesService_GET, baseModelInfo } from "../../entities/base"
 import { HttpMethod, MediaType, RestClientInterface } from "../rest-client/types"
 import { sha256Hash } from "@tutao/crypto"
 import { ServerModelsUnavailableError } from "./ServerModelsUnavailableError.js"
@@ -70,17 +68,13 @@ export class ApplicationTypesFacade {
 	}
 
 	private async requestApplicationTypes(): Promise<ApplicationTypesGetOut> {
-		const applicationTypesGetOutCompressed = await this.restClient.request(
-			getServiceRestPath(ApplicationTypesService as ServiceDefinition),
-			HttpMethod.GET,
-			{
-				...DEFAULT_REST_CLIENT_OPTIONS,
-				headers: {
-					v: String(baseModelInfo.version),
-				},
-				responseType: MediaType.Binary,
+		const applicationTypesGetOutCompressed = await this.restClient.request(ApplicationTypesService_GET.serviceRestPath, HttpMethod.GET, {
+			...DEFAULT_REST_CLIENT_OPTIONS,
+			headers: {
+				v: String(baseModelInfo.version),
 			},
-		)
+			responseType: MediaType.Binary,
+		})
 		return JSON.parse(EntityUtils.decompressString(applicationTypesGetOutCompressed))
 	}
 

@@ -4,9 +4,9 @@ import {
 	createClientPerformanceInfo,
 	createRegistrationCaptchaServiceGetData,
 	createTimelockCaptchaGetIn,
-	RegistrationCaptchaService,
+	RegistrationCaptchaService_GET,
 	TimelockCaptchaGetOut,
-	TimelockCaptchaService,
+	TimelockCaptchaService_GET,
 } from "@tutao/entities/sys"
 import { deviceConfig } from "../../misc/DeviceConfig.js"
 import { AccessDeactivatedError, AccessExpiredError, InvalidDataError } from "@tutao/rest-client/error"
@@ -77,8 +77,8 @@ export async function runCaptchaFlow({
 				attributionToken = await mailLocator.systemFacade.getAppleAdsAttributionToken()
 			}
 
-			captchaReturn = await locator.serviceExecutor.get(
-				RegistrationCaptchaService,
+			captchaReturn = await locator.serviceExecutor.execute(
+				RegistrationCaptchaService_GET,
 				createRegistrationCaptchaServiceGetData({
 					campaignToken: campaignToken,
 					mailAddress,
@@ -182,7 +182,7 @@ export async function runPowChallenge(signupToken: string): Promise<PowSolution>
 		deviceInfo: createClientPerformanceInfo({ isAutomatedBrowser: ClientDetector.get().isAutomatedBrowser }),
 		timeToSolveCalibrationChallenge: powWorker.timeToSolveCalibrationChallenge.toString(),
 	})
-	const ret = await locator.serviceExecutor.get(TimelockCaptchaService, data, null)
+	const ret = await locator.serviceExecutor.execute(TimelockCaptchaService_GET, data, null)
 	return await powWorker.solveChallenge({
 		base: BigInt(ret.base),
 		difficulty: Number(ret.difficulty),

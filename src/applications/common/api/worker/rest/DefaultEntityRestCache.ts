@@ -4,6 +4,7 @@ import {
 	CUSTOM_MAX_ID,
 	CUSTOM_MIN_ID,
 	elementIdPart,
+	Entity,
 	expandId,
 	firstBiggerThanSecond,
 	GENERATED_MAX_ID,
@@ -867,14 +868,14 @@ function isRangeRequestAwayFromExistingRange(range: Range, reverse: boolean, sta
  * isCachedRangeType(ref) ---> !isIgnoredType(ref) but
  * isIgnoredType(ref) -/-> !isCachedRangeType(ref) because of opted-in CustomId types.
  */
-function isIgnoredType(typeRef: TypeRef<unknown>): boolean {
+function isIgnoredType(typeRef: TypeRef<Entity>): boolean {
 	return typeRef.app === "monitor" || IGNORED_TYPES.some((ref) => isSameTypeRef(typeRef, ref))
 }
 
 /**
  * Checks if for the given type, that contains a customId,  caching is enabled.
  */
-function isCachableCustomIdType(typeRef: TypeRef<unknown>): boolean {
+function isCachableCustomIdType(typeRef: TypeRef<Entity>): boolean {
 	return CACHEABLE_CUSTOMID_TYPES.some((ref) => isSameTypeRef(typeRef, ref))
 }
 
@@ -884,7 +885,7 @@ function isCachableCustomIdType(typeRef: TypeRef<unknown>): boolean {
  * isCachedRangeType(ref) ---> !isIgnoredType(ref) but
  * isIgnoredType(ref) -/-> !isCachedRangeType(ref)
  */
-function isCachedRangeType(typeModel: TypeModel, typeRef: TypeRef<unknown>): boolean {
+function isCachedRangeType(typeModel: TypeModel, typeRef: TypeRef<Entity>): boolean {
 	return (!isIgnoredType(typeRef) && isGeneratedIdType(typeModel)) || isCachableCustomIdType(typeRef)
 }
 

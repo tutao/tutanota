@@ -1,4 +1,4 @@
-import { EntityUpdatesListener, EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { AccountingInfo, Braintree3ds2Request, InvoiceInfoTypeRef } from "@tutao/entities/sys"
 import { AvailablePlanType, PaymentMethodType } from "../../../entities/sys/Utils"
 import m, { Children, Vnode, VnodeDOM } from "mithril"

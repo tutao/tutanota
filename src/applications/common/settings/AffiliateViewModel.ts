@@ -1,6 +1,7 @@
 import { IServiceExecutor } from "../../../platform-kit/network/ServiceRequest.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { AffiliatePartnerKpiService, AffiliatePartnerKpiServiceGetOut } from "@tutao/entities/sys"
+import { AffiliatePartnerKpiService_GET, AffiliatePartnerKpiServiceGetOut } from "@tutao/entities/sys"
+import { NON_EXISTENT_DATA_TRANSFER_ENTITY } from "@tutao/meta"
 
 /**
  * Class containing state of the affiliate model.
@@ -23,7 +24,7 @@ export class AffiliateViewModel {
 
 	public async load() {
 		try {
-			this._data = await this.serviceExecutor.get(AffiliatePartnerKpiService, null, null)
+			this._data = await this.serviceExecutor.execute(AffiliatePartnerKpiService_GET, NON_EXISTENT_DATA_TRANSFER_ENTITY, null)
 		} finally {
 			this._isLoading = false
 		}

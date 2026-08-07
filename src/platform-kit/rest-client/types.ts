@@ -1,3 +1,5 @@
+import { ProgrammingError } from "@tutao/app-env"
+
 /**
  * Middlewares that are invoked after the request have been made
  * Hence the implementation should only read/modify response
@@ -35,6 +37,25 @@ export const enum HttpMethod {
 	PATCH = "PATCH",
 	DELETE = "DELETE",
 }
+export function validateHttpMethod(method: string): HttpMethod {
+	switch (method) {
+		case HttpMethod.GET:
+			return HttpMethod.GET
+		case HttpMethod.POST:
+			return HttpMethod.POST
+		case HttpMethod.PUT:
+			return HttpMethod.PUT
+		case HttpMethod.PATCH:
+			return HttpMethod.PATCH
+		case HttpMethod.DELETE:
+			return HttpMethod.DELETE
+		default:
+			throw new ProgrammingError(
+				`Unknown http method: ${method}. Valid methods are: ${[HttpMethod.GET, HttpMethod.PUT, HttpMethod.POST, HttpMethod.PATCH, HttpMethod.DELETE]}`,
+			)
+	}
+}
+
 export const enum RestBodyType {
 	Text,
 	Binary,

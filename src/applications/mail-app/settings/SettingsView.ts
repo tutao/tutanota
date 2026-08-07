@@ -66,7 +66,7 @@ import { getNullableSharedGroupName, getSharedGroupName } from "../../common/sha
 import { styles } from "../../../ui/styles"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { Header } from "../../../ui/Header"
-import { EntityUpdatesListener, EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { NavButtonAttrs, NavButtonColor } from "../../../ui/base/NavButton"
 import { clone, elementIdToId, getEtId } from "@tutao/meta"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
@@ -75,7 +75,7 @@ import { SETTINGS_PREFIX } from "../../../ui/utils/RouteChange"
 import { BaseButton } from "../../../ui/base/buttons/BaseButton.js"
 import { Icon, IconSize } from "../../../ui/base/Icon.js"
 import { Dialog } from "../../../ui/base/Dialog.js"
-import { createUserAreaGroupDeleteData, TemplateGroupService, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
+import { createUserAreaGroupDeleteData, TemplateGroupService_DELETE, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
 import { ButtonType } from "../../../ui/base/Button"
 import { renderHeaderButtons } from "../../calendar-app/gui/HeaderButtons"
 import ImapImportSettingsViewer from "./imapimport/ImapImportSettingsViewer.js"
@@ -645,8 +645,8 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		return getConfirmation("confirmDeleteTemplateGroup_msg").confirmed(() =>
 			showProgressDialog(
 				"pleaseWait_msg",
-				locator.serviceExecutor.delete(
-					TemplateGroupService,
+				locator.serviceExecutor.execute(
+					TemplateGroupService_DELETE,
 					createUserAreaGroupDeleteData({
 						group: templateInfo.groupInfo.group,
 					}),

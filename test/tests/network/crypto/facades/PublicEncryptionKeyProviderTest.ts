@@ -25,7 +25,7 @@ import {
 	createPublicKeyGetOut,
 	PubDistributionKey,
 	PublicKeyGetOut,
-	PublicKeyService,
+	PublicKeyService_GET,
 	PublicKeySignature,
 	PublicKeySignatureTypeRef,
 	SystemKeysReturn,
@@ -89,7 +89,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 				verificationState: object(),
 				publicEncryptionKey: expectedPublicKey,
 			}
-			when(serviceExecutor.get(PublicKeyService, matchers.anything(), null)).thenResolve(publicKeyGetOut)
+			when(serviceExecutor.execute(PublicKeyService_GET, matchers.anything(), null)).thenResolve(publicKeyGetOut)
 			when(
 				keyVerificationFacade.verify(publicKeyIdentifier, {
 					publicKey: expectedPublicKey,
@@ -123,7 +123,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 				publicEncryptionKey: expectedPublicKey,
 			}
 
-			when(serviceExecutor.get(PublicKeyService, matchers.anything(), null)).thenResolve(publicKeyGetOut)
+			when(serviceExecutor.execute(PublicKeyService_GET, matchers.anything(), null)).thenResolve(publicKeyGetOut)
 			when(
 				keyVerificationFacade.verify(publicKeyIdentifier, {
 					publicKey: expectedPublicKey,
@@ -138,7 +138,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 		o("rsa key in version other than 0", async function () {
 			const pubRsaKey = object<Uint8Array<ArrayBuffer>>()
 			currentVersion = 1
-			when(serviceExecutor.get(PublicKeyService, matchers.anything(), null)).thenResolve(
+			when(serviceExecutor.execute(PublicKeyService_GET, matchers.anything(), null)).thenResolve(
 				createPublicKeyGetOut({
 					pubKeyVersion: String(currentVersion),
 					pubRsaKey,
@@ -163,7 +163,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 				signature: object(),
 			})
 			when(publicEncryptionKeyCache.get(matchers.anything(), matchers.anything())).thenReturn(null)
-			when(serviceExecutor.get(PublicKeyService, matchers.anything(), null)).thenResolve(publicKeyGetOut)
+			when(serviceExecutor.execute(PublicKeyService_GET, matchers.anything(), null)).thenResolve(publicKeyGetOut)
 
 			const expectedPublicKey: MaybeSignedPublicKey = {
 				publicKey: {
@@ -189,7 +189,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 				pubEccKey: x25519PublicKey,
 				signature: object(),
 			})
-			when(serviceExecutor.get(PublicKeyService, matchers.anything(), null)).thenResolve(publicKeyGetOut)
+			when(serviceExecutor.execute(PublicKeyService_GET, matchers.anything(), null)).thenResolve(publicKeyGetOut)
 
 			const expectedPublicKey: MaybeSignedPublicKey = {
 				publicKey: {
@@ -205,7 +205,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 			const pubKeys = await publicEncryptionKeyProvider.loadPublicEncryptionKey(publicKeyIdentifier, null)
 			o(pubKeys).deepEquals(expectedResult)
 			verify(publicEncryptionKeyCache.get(matchers.anything(), matchers.anything()), { times: 0 })
-			verify(serviceExecutor.get(PublicKeyService, matchers.anything(), null))
+			verify(serviceExecutor.execute(PublicKeyService_GET, matchers.anything(), null))
 			verify(publicEncryptionKeyCache.put(publicKeyIdentifier, expectedPublicKey))
 		})
 
@@ -225,7 +225,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 				signature: publicKeyGetOut.signature,
 			}
 			when(publicEncryptionKeyCache.get(publicKeyIdentifier, requestedVersion)).thenReturn(expectedPublicKey)
-			when(serviceExecutor.get(PublicKeyService, matchers.anything(), null)).thenResolve(publicKeyGetOut)
+			when(serviceExecutor.execute(PublicKeyService_GET, matchers.anything(), null)).thenResolve(publicKeyGetOut)
 
 			let expectedResult: VerifiedPublicEncryptionKey = object()
 			when(keyVerificationFacade.verify(publicKeyIdentifier, expectedPublicKey)).thenResolve(expectedResult)
@@ -233,12 +233,12 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 			const pubKeys = await publicEncryptionKeyProvider.loadPublicEncryptionKey(publicKeyIdentifier, requestedVersion)
 			o(pubKeys).deepEquals(expectedResult)
 			verify(publicEncryptionKeyCache.get(publicKeyIdentifier, requestedVersion))
-			verify(serviceExecutor.get(PublicKeyService, matchers.anything(), null), { times: 0 })
+			verify(serviceExecutor.execute(PublicKeyService_GET, matchers.anything(), null), { times: 0 })
 			verify(publicEncryptionKeyCache.put(publicKeyIdentifier, expectedPublicKey))
 		})
 
 		o("invalid version returned", async function () {
-			when(serviceExecutor.get(PublicKeyService, matchers.anything(), null)).thenResolve(
+			when(serviceExecutor.execute(PublicKeyService_GET, matchers.anything(), null)).thenResolve(
 				createPublicKeyGetOut({
 					pubKeyVersion: String(currentVersion),
 					pubRsaKey: null,
@@ -254,7 +254,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 		o("rsa key in version other than 0", async function () {
 			const pubRsaKey = object<Uint8Array<ArrayBuffer>>()
 			currentVersion = 1
-			when(serviceExecutor.get(PublicKeyService, matchers.anything(), null)).thenResolve(
+			when(serviceExecutor.execute(PublicKeyService_GET, matchers.anything(), null)).thenResolve(
 				createPublicKeyGetOut({
 					pubKeyVersion: String(currentVersion),
 					pubRsaKey,
@@ -269,7 +269,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 
 	o.spec("version validation", function () {
 		o("throws if the version is negative", async function () {
-			when(serviceExecutor.get(PublicKeyService, matchers.anything(), null)).thenResolve(
+			when(serviceExecutor.execute(PublicKeyService_GET, matchers.anything(), null)).thenResolve(
 				createPublicKeyGetOut({
 					pubKeyVersion: "-1",
 					pubRsaKey: object(),
@@ -284,7 +284,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 		})
 
 		o("throws if the version is not an integer", async function () {
-			when(serviceExecutor.get(PublicKeyService, matchers.anything(), null)).thenResolve(
+			when(serviceExecutor.execute(PublicKeyService_GET, matchers.anything(), null)).thenResolve(
 				createPublicKeyGetOut({
 					pubKeyVersion: "1.5",
 					pubRsaKey: object(),

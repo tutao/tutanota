@@ -5,7 +5,7 @@ import { lang } from "../../../../../ui/utils/LanguageViewModel"
 import { Card } from "../../../../../ui/base/Card"
 import { PrimaryButton } from "../../../../../ui/base/buttons/VariantButtons"
 import { Thunk } from "@tutao/utils"
-import { createSubscriptionRevocationServicePostIn, SubscriptionRevocationService } from "@tutao/entities/sys"
+import { createSubscriptionRevocationServicePostIn, SubscriptionRevocationService_POST } from "@tutao/entities/sys"
 import { PreconditionFailedError } from "@tutao/rest-client/error"
 import { locator } from "../../../api/main/CommonLocator"
 import { RevocationRequestError } from "../../../revocation/RevocationViewModel"
@@ -47,7 +47,7 @@ export class RevokeSubscriptionPage implements Component<RevokeSubscriptionPageA
 	async handleRevocationClick(attrs: RevokeSubscriptionPageAttrs) {
 		try {
 			const inputData = createSubscriptionRevocationServicePostIn({ surveyData: null })
-			await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SubscriptionRevocationService, inputData, null))
+			await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.execute(SubscriptionRevocationService_POST, inputData, null))
 			attrs.data.sourcePage = "revokeSubscriptionPage"
 			attrs.onSuccess()
 		} catch (e) {

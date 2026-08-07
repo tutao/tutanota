@@ -1,10 +1,4 @@
-import { CustomerAccountReturnTypeRef } from "./TypeRefs.js"
+import { CustomerAccountReturn, CustomerAccountReturnTypeRef } from "./TypeRefs.js"
+import { GetService, PostService, PutService, DeleteService, NonExistentDataTransferEntity, NonExistentDataTransferEntityTypeRef } from "@tutao/meta"
 
-export const CustomerAccountService = Object.freeze({
-	app: "accounting",
-	name: "CustomerAccountService",
-	get: { data: null, return: CustomerAccountReturnTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const CustomerAccountService_GET = new GetService<NonExistentDataTransferEntity, CustomerAccountReturn>("accounting", "CustomerAccountService", NonExistentDataTransferEntityTypeRef, CustomerAccountReturnTypeRef)

@@ -1,36 +1,47 @@
-import { TypeRef } from "./TypeRef.js"
-import { Entity } from "./EntityTypes.js"
+import { AppName, isSameTypeRef, TypeRef } from "./TypeRef.js"
+import { DataTransferEntity, NonExistentDataTransferEntityTypeRef } from "./EntityTypes.js"
+import { Nullable } from "@tutao/utils"
 
-export type MethodDefinition = {
-	data: TypeRef<Entity> | null
-	return: TypeRef<Entity> | null
+export abstract class ServiceDefinition<In extends DataTransferEntity, Out extends DataTransferEntity> {
+	public readonly requestTypeRef: Nullable<TypeRef<In>>
+	public readonly returnTypeRef: Nullable<TypeRef<Out>>
+	public readonly fullServiceName: string
+	public readonly serviceRestPath: string
+
+	protected constructor(
+		protected readonly app: AppName,
+		protected readonly name: string,
+		public readonly httpMethod: string,
+		inTypeRef: TypeRef<In>,
+		outTypeRef: TypeRef<Out>,
+	) {
+		this.requestTypeRef = isSameTypeRef(NonExistentDataTransferEntityTypeRef, inTypeRef) ? null : inTypeRef
+		this.returnTypeRef = isSameTypeRef(NonExistentDataTransferEntityTypeRef, outTypeRef) ? null : outTypeRef
+		this.fullServiceName = `${this.app.toLowerCase()}/${this.name.toLowerCase()}`
+		this.serviceRestPath = `/rest/${this.fullServiceName}`
+	}
 }
 
-export interface ServiceDefinition {
-	app: string
-	name: string
+export class GetService<In extends DataTransferEntity, Out extends DataTransferEntity> extends ServiceDefinition<In, Out> {
+	constructor(app: AppName, name: string, inTypeRef: TypeRef<In>, outTypeRef: TypeRef<Out>) {
+		super(app, name, "GET", inTypeRef, outTypeRef)
+	}
 }
 
-export interface GetService extends ServiceDefinition {
-	get: MethodDefinition
+export class PostService<In extends DataTransferEntity, Out extends DataTransferEntity> extends ServiceDefinition<In, Out> {
+	constructor(app: AppName, name: string, inTypeRef: TypeRef<In>, outTypeRef: TypeRef<Out>) {
+		super(app, name, "POST", inTypeRef, outTypeRef)
+	}
 }
 
-export interface PostService extends ServiceDefinition {
-	post: MethodDefinition
+export class PutService<In extends DataTransferEntity, Out extends DataTransferEntity> extends ServiceDefinition<In, Out> {
+	constructor(app: AppName, name: string, inTypeRef: TypeRef<In>, outTypeRef: TypeRef<Out>) {
+		super(app, name, "PUT", inTypeRef, outTypeRef)
+	}
 }
 
-export interface PutService extends ServiceDefinition {
-	put: MethodDefinition
-}
-
-export interface DeleteService extends ServiceDefinition {
-	delete: MethodDefinition
-}
-
-export type ParamTypeFromRef<TR extends TypeRef<Entity> | null> = TR extends TypeRef<infer T> ? T : null
-
-export type ReturnTypeFromRef<TR extends TypeRef<Entity> | null> = TR extends TypeRef<infer T> ? T : undefined
-
-export function getServiceRestPath(service: ServiceDefinition) {
-	return `/rest/${service.app.toLowerCase()}/${service.name.toLowerCase()}`
+export class DeleteService<In extends DataTransferEntity, Out extends DataTransferEntity> extends ServiceDefinition<In, Out> {
+	constructor(app: AppName, name: string, inTypeRef: TypeRef<In>, outTypeRef: TypeRef<Out>) {
+		super(app, name, "DELETE", inTypeRef, outTypeRef)
+	}
 }

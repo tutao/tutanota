@@ -22,9 +22,11 @@ import {
 	createUsageTestParticipationIn,
 	UsageTestAssignment,
 	UsageTestAssignmentOut,
-	UsageTestAssignmentService,
+	UsageTestAssignmentService_POST,
+	UsageTestAssignmentService_PUT,
 	UsageTestAssignmentTypeRef,
-	UsageTestParticipationService,
+	UsageTestParticipationService_DELETE,
+	UsageTestParticipationService_POST,
 } from "@tutao/entities/usage"
 import { CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef } from "@tutao/entities/sys"
 import { ClientTypeModelResolver } from "@tutao/instance-pipeline"
@@ -324,11 +326,11 @@ export class UsageTestModel implements PingAdapter {
 
 		try {
 			const response: UsageTestAssignmentOut = testDeviceId
-				? await this.serviceExecutor.put(UsageTestAssignmentService, data, {
+				? await this.serviceExecutor.execute(UsageTestAssignmentService_PUT, data, {
 						...DEFAULT_EXTRA_SERVICE_PARAMS,
 						suspensionBehavior: SuspensionBehavior.Throw,
 					})
-				: await this.serviceExecutor.post(UsageTestAssignmentService, data, {
+				: await this.serviceExecutor.execute(UsageTestAssignmentService_POST, data, {
 						...DEFAULT_EXTRA_SERVICE_PARAMS,
 						suspensionBehavior: SuspensionBehavior.Throw,
 					})
@@ -395,7 +397,7 @@ export class UsageTestModel implements PingAdapter {
 			pingListId,
 			pingId,
 		})
-		await this.serviceExecutor.delete(UsageTestParticipationService, data, null)
+		await this.serviceExecutor.execute(UsageTestParticipationService_DELETE, data, null)
 		console.log(`Removed Ping: ${pingId}, ${pingListId}`)
 	}
 
@@ -432,7 +434,7 @@ export class UsageTestModel implements PingAdapter {
 		})
 
 		try {
-			const { pingListId, pingId } = await this.serviceExecutor.post(UsageTestParticipationService, data, {
+			const { pingListId, pingId } = await this.serviceExecutor.execute(UsageTestParticipationService_POST, data, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				suspensionBehavior: SuspensionBehavior.Throw,
 			})

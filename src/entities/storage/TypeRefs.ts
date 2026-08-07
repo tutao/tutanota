@@ -1,6 +1,6 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ListElementId, ElementId } from "@tutao/meta"
+import { ListElementId, ElementId, DataTransferId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 import { Nullable } from "@tutao/utils"
 import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
@@ -30,6 +30,9 @@ export type BlobGetIn = {
 	_format: NumberString;
 	archiveId: Id;
 	blobId: null | Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -72,6 +75,9 @@ export type BlobWriteData = {
 
 	_id: Id;
 	archiveOwnerGroup: Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -116,6 +122,9 @@ export type BlobAccessTokenPostIn = {
 	_format: NumberString;
 	archiveDataType: null | NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	write: null | BlobWriteData;
@@ -158,6 +167,9 @@ export type BlobAccessTokenPostOut = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -207,6 +219,9 @@ export type BlobReferencePutIn = {
 	instanceId: Id;
 	archiveDataType: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	referenceTokens: BlobReferenceTokenWrapper[];
@@ -255,6 +270,9 @@ export type BlobReferenceDeleteIn = {
 	instanceId: Id;
 	archiveDataType: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	blobs: Blob[];
@@ -298,6 +316,9 @@ export type BlobPostOut = {
 
 	_format: NumberString;
 	blobReferenceToken: null | string;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -344,6 +365,9 @@ export type BlobArchiveRef = {
 	_format: NumberString;
 	_ownerGroup: null | Id;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	archive: Id;
@@ -385,6 +409,9 @@ export type BlobId = {
 
 	_id: Id;
 	blobId: Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -425,6 +452,9 @@ export type BlobServerUrl = {
 
 	_id: Id;
 	url: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -472,6 +502,9 @@ export type BlobServerAccessInfo = {
 	expires: Date;
 	tokenKind: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	servers: BlobServerUrl[];
@@ -513,6 +546,9 @@ export type InstanceId = {
 
 	_id: Id;
 	instanceId: null | Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -557,6 +593,9 @@ export type BlobReadData = {
 	_id: Id;
 	archiveId: Id;
 	instanceListId: null | Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 

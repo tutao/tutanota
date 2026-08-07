@@ -247,7 +247,7 @@ export const DEFAULT_ENTITY_FIELDS = {
 	ownerEncSessionKey: null,
 	ownerEncSessionKeyVersion: null,
 }
-export function create<T>(
+export function create<T extends Entity>(
 	typeModel: TypeModel,
 	typeRef: TypeRef<T>,
 	createDefaultValue: (name: string, value: ModelValue, typeModel: TypeModel) => any = _getDefaultValue,

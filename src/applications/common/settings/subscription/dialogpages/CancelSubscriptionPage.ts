@@ -6,7 +6,7 @@ import { Card } from "../../../../../ui/base/Card"
 import { PrimaryButton } from "../../../../../ui/base/buttons/VariantButtons"
 import { assertNotNull, Thunk } from "@tutao/utils"
 import { locator } from "../../../api/main/CommonLocator"
-import { createRenewalPreferenceServicePostIn, RenewalPreferenceService } from "@tutao/entities/sys"
+import { createRenewalPreferenceServicePostIn, RenewalPreferenceService_POST } from "@tutao/entities/sys"
 import { CancelSubscriptionDialogState } from "../SubscriptionCancellationDialog"
 import { showProgressDialog } from "../../../../../ui/dialogs/ProgressDialog"
 import { formatDate } from "../../../../../ui/utils/Formatter"
@@ -63,7 +63,7 @@ export class CancelSubscriptionPage implements Component<CancelSubscriptionPageA
 		}
 		try {
 			const data = createRenewalPreferenceServicePostIn(inputData)
-			await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(RenewalPreferenceService, data, null))
+			await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.execute(RenewalPreferenceService_POST, data, null))
 			attrs.data.sourcePage = "cancelSubscriptionPage"
 			attrs.onSuccess()
 			m.redraw()

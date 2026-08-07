@@ -1,6 +1,6 @@
 import { assertMainOrNode, FeatureType, getApiBaseUrl, isDesktop, SessionType } from "@tutao/app-env"
 import { assertNotNull, downcast, first, mapAndFilterNull, newPromise, ofClass } from "@tutao/utils"
-import { elementIdPart, elementIdToId, idToElementId, isSameId, isSameSingleId, listIdPart } from "@tutao/meta"
+import { elementIdPart, elementIdToId, idToElementId, isSameId, isSameSingleId, listIdPart, NON_EXISTENT_DATA_TRANSFER_ENTITY } from "@tutao/meta"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { locator } from "./CommonLocator"
 import { getWhitelabelCustomizations } from "../../../../ui/utils/WhitelabelUtils"
@@ -12,7 +12,7 @@ import { MediaType } from "../../../../platform-kit/rest-client/types"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
-	CloseSessionService,
+	CloseSessionService_POST,
 	Customer,
 	CustomerInfo,
 	CustomerInfoTypeRef,
@@ -24,7 +24,7 @@ import {
 	GroupInfoTypeRef,
 	GroupMembership,
 	PlanConfiguration,
-	PlanService,
+	PlanService_GET,
 	SessionTypeRef,
 	sysTypeModels,
 	User,
@@ -147,7 +147,7 @@ export class UserController {
 
 	async getPlanConfig(): Promise<PlanConfiguration> {
 		if (this.planConfig === null) {
-			const planServiceGetOut = await this.serviceExecutor.get(PlanService, null, null)
+			const planServiceGetOut = await this.serviceExecutor.execute(PlanService_GET, NON_EXISTENT_DATA_TRANSFER_ENTITY, null)
 			this.planConfig = planServiceGetOut.config
 		}
 		return downcast(this.planConfig)
@@ -279,7 +279,7 @@ export class UserController {
 			if (sendBeacon) {
 				try {
 					const apiUrl = new URL(getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig()))
-					apiUrl.pathname += `rest/sys/${CloseSessionService.name.toLowerCase()}`
+					apiUrl.pathname += CloseSessionService_POST.fullServiceName
 					apiUrl.searchParams.append("v", sysTypeModels[SessionTypeRef.typeId].version)
 					apiUrl.searchParams.append("cv", env.versionNumber)
 					// atleast in the iOS WebView, we _have_ to use a http(s) URL to sendBeacon to not error out.

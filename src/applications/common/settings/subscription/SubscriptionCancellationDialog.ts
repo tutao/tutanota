@@ -10,13 +10,13 @@ import { CancelSubscriptionErrorPage } from "./dialogpages/CancelSubscriptionErr
 import { CancelSubscriptionSuccessPage } from "./dialogpages/CancelSubscriptionSuccessPage"
 import m from "mithril"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { Booking, createSurveyData, createSurveyDataPostIn, SurveyService } from "@tutao/entities/sys"
+import { Booking, createSurveyData, createSurveyDataPostIn, SurveyService_POST } from "@tutao/entities/sys"
 import { showLeavingUserSurveyWizard } from "../../subscription/LeavingUserSurveyWizard"
 import { locator } from "../../api/main/CommonLocator"
 import { SURVEY_VERSION_NUMBER } from "../../subscription/LeavingUserSurveyConstants"
-import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { SurveyDataType } from "../../ratings/pages/SuggestionPage"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
+import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 
 export type CancelSubscriptionPages =
 	| "cancelSubscriptionOptionPage"
@@ -41,10 +41,10 @@ async function sendCancellationSurveyData(surveyType: SurveyDataType) {
 				details: reason.details,
 				version: SURVEY_VERSION_NUMBER,
 				clientVersion: env.versionNumber,
-				clientPlatform: client.getClientPlatform().valueOf().toString(),
+				clientPlatform: ClientDetector.get().getClientPlatform().valueOf().toString(),
 			}),
 		})
-		await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SurveyService, data, null))
+		await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.execute(SurveyService_POST, data, null))
 	}
 }
 

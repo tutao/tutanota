@@ -18,15 +18,17 @@ import {
 	DeduplicatedImportedAttachmentTypeRef,
 	ImapAccountSyncState,
 	ImapAccountSyncStateTypeRef,
-	ImapFolderService,
+	ImapFolderService_DELETE,
+	ImapFolderService_POST,
 	ImapFolderSyncState,
 	ImapFolderSyncStateTypeRef,
-	ImapService,
+	ImapService_DELETE,
+	ImapService_POST,
+	ImapService_PUT,
 	ImportedImapMail,
 	ImportedImapMailTypeRef,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
-	MailSet,
 	MailSetTypeRef,
 } from "@tutao/entities/tutanota"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient"
@@ -96,7 +98,7 @@ export class ImapFacade {
 		imapPostIn.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
 		imapPostIn.ownerGroup = mailGroupId
 
-		const imapPostOut = await this.serviceExecutor.post(ImapService, imapPostIn, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
+		const imapPostOut = await this.serviceExecutor.execute(ImapService_POST, imapPostIn, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
 		const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapPostOut.imapAccountSyncState)
 
 		let initialFolderSyncStates: ImapFolderSyncState[] = []
@@ -137,7 +139,7 @@ export class ImapFacade {
 			newPostponedUntil: newPostponedUntil ?? null,
 		})
 		const sessionKey = this.cryptoWrapper.decryptKey(mailGroupKey, assertNotNull(imapAccountSyncState._ownerEncSessionKey))
-		await this.serviceExecutor.put(ImapService, imapPutIn, {
+		await this.serviceExecutor.execute(ImapService_PUT, imapPutIn, {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
 			sessionKey,
 		})
@@ -145,7 +147,7 @@ export class ImapFacade {
 
 	async deleteImapImport(imapAccountSyncStateId: IdTuple): Promise<void> {
 		const imapDeleteIn = createImapDeleteIn({ imapAccountSyncState: imapAccountSyncStateId })
-		await this.serviceExecutor.delete(ImapService, imapDeleteIn, null)
+		await this.serviceExecutor.execute(ImapService_DELETE, imapDeleteIn, null)
 	}
 
 	async createInitialImportMailFolders(
@@ -171,7 +173,7 @@ export class ImapFacade {
 			imapFolderPostIn.ownerEncSessionKey = ownerEncSessionKey.key
 			imapFolderPostIn.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
 			imapFolderPostIn.ownerGroup = mailGroupId
-			const imapFolderPostOut = await this.serviceExecutor.post(ImapFolderService, imapFolderPostIn, {
+			const imapFolderPostOut = await this.serviceExecutor.execute(ImapFolderService_POST, imapFolderPostIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				sessionKey: sk,
 			})
@@ -224,7 +226,7 @@ export class ImapFacade {
 			imapFolderPostIn.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
 			imapFolderPostIn.ownerGroup = mailGroupId
 
-			const imapFolderPostOut = await this.serviceExecutor.post(ImapFolderService, imapFolderPostIn, {
+			const imapFolderPostOut = await this.serviceExecutor.execute(ImapFolderService_POST, imapFolderPostIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				sessionKey: sk,
 			})
@@ -240,7 +242,7 @@ export class ImapFacade {
 	}
 
 	async deleteImapFolderSyncState(folderSyncStateId: IdTuple) {
-		await this.serviceExecutor.delete(ImapFolderService, createImapFolderDeleteIn({ imapFolderSyncState: folderSyncStateId }), null)
+		await this.serviceExecutor.execute(ImapFolderService_DELETE, createImapFolderDeleteIn({ imapFolderSyncState: folderSyncStateId }), null)
 	}
 
 	async getImapAccountSyncStateById(
