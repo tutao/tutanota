@@ -1272,6 +1272,7 @@ export default {
 		"migrationSummaryImportInformation_label": "Migrando a",
 		"migrationSummarySourceInformation_label": "Migrando desde",
 		"migrationSyncFailure_msg": "Atopamos un erro non recuperable durante a migración, por favor cancela a migración e inicia unha nova.",
+		"migrationSyncStateGmailAllMailsDisabledImapError_msg": "A migración está en pausa, porque a etiqueta \"All Mail\" está desactivada para IMAP nos teus axustes de Gmail.",
 		"migrationUpdateCredentials_title": "Erro na migración",
 		"migrationUpdateCredentialsInfo_msg": "As credenciais actuais da migración son incorrectas ou caducaron. Actualiza as credenciais para continuar.",
 		"migrationUploadCustomCertificate_action": "Selecciona o ficheiro do certificado",
