@@ -60,6 +60,7 @@ export class ImapImportCredentialsPage implements WizardPageN<ImapImportData> {
 								icon: Icons.GenericLockFilled,
 								color: theme.on_surface_variant,
 							},
+							onDomInputCreated: (dom) => dom.focus(),
 						}),
 					)
 				: null,
