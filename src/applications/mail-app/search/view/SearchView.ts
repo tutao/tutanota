@@ -46,7 +46,7 @@ import { TopLevelAttrs, TopLevelView } from "../../../../ui/base/TopLevelView.js
 import { getContactSelectionMessage, MultiContactViewer } from "../../contacts/view/MultiContactViewer.js"
 import { ContactCardViewer } from "../../contacts/view/ContactCardViewer.js"
 import { getMailSelectionMessage, MultiItemViewer } from "../../mail/view/MultiItemViewer.js"
-import { ConversationViewer, ConversationViewerAttrs } from "../../mail/view/ConversationViewer.js"
+import { ConversationViewer } from "../../mail/view/ConversationViewer.js"
 import { ContactViewerActions } from "../../contacts/view/ContactViewerActions.js"
 import { confirmMerge, deleteContacts, writeMail } from "../../contacts/view/ContactView.js"
 import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox.js"
@@ -984,7 +984,6 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 					searchBar: () =>
 						m(searchBar, {
 							placeholder: this.searchBarPlaceholder(),
-							returnListener: () => this.resultListColumn.focus(),
 						}),
 					...attrs.header,
 					buttons: renderHeaderButtons(),
