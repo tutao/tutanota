@@ -84,6 +84,7 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 						icon: Icons.MailFilled,
 						color: theme.on_surface_variant,
 					},
+					onDomInputCreated: (dom) => dom.focus(),
 				}),
 				this.renderMailboxSelectionControls(),
 			]),
