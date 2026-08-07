@@ -50,7 +50,7 @@ import {
 	MailSetTypeRef,
 	MailTypeRef,
 } from "@tutao/entities/tutanota"
-import { MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
+import { ImapAccountSyncStatus, MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { elementIdPart, getElementId, isSameId, isSameSingleId, OperationType } from "../../../../platform-kit/meta"
 import {
 	EntityUpdateData,
@@ -354,7 +354,7 @@ export class MailViewModel {
 			mailId,
 			() =>
 				// if we changed the list, stop
-				this.getFolder() !== folder ||
+				this.getMailSet() !== folder ||
 				// if listModel is gone for some reason, stop
 				!this.listModel ||
 				// if the target mail has changed, stop
@@ -422,7 +422,7 @@ export class MailViewModel {
 	 * Permanent delete is only allowed when the mail is deletable, in the current folder, and the current folder is Trash/Spam.
 	 */
 	isPermanentDeleteAllowed(): boolean {
-		const currentFolder = this.getFolder()
+		const currentFolder = this.getMailSet()
 		if (currentFolder == null) {
 			return false
 		}
@@ -496,7 +496,7 @@ export class MailViewModel {
 	/**
 	 * Beware: this can return a label.
 	 */
-	getFolder(): MailSet | null {
+	getMailSet(): MailSet | null {
 		return this._folder
 	}
 
@@ -581,7 +581,7 @@ export class MailViewModel {
 			// If mailSets are changed, the list won't have the data we need.
 			// Do not rely on counters if we are not connected.
 			// We can't know the correct unreadMailCount if some unread mails are filtered out.
-			const ourFolder = this.getFolder()
+			const ourFolder = this.getMailSet()
 			const listHasAllUnreadMails = this.filterType.size === 0 || (this.filterType.size === 1 && this.filterType.has(MailFilterType.Unread))
 			if (
 				ourFolder == null ||
@@ -613,7 +613,7 @@ export class MailViewModel {
 	private onListStateChange(listModel: MailSetListModel, newState: ListState<Mail>) {
 		// Fixup isn't needed for labels since only mailSets have counters.
 		// A counter fixup with a partially loaded list will set the counter to an incorrect value.
-		const folder = this.getFolder()
+		const folder = this.getMailSet()
 		if (this.shouldAttemptCounterFixup && folder != null && folder.folderType !== MailSetKind.LABEL && newState.loadingStatus === ListLoadingState.Done) {
 			// We use listModel.mails to get a correct count as it has all mails, even when conversation grouping is enabled
 			this.fixCounterIfNeeded(folder, listModel.mails)
@@ -629,7 +629,7 @@ export class MailViewModel {
 				// Always write the targetItem in case it was not written before but already being displayed (sticky mail)
 				this.mailFolderElementIdToSelectedMailId = mapWith(
 					this.mailFolderElementIdToSelectedMailId,
-					getElementId(assertNotNull(this.getFolder())),
+					getElementId(assertNotNull(this.getMailSet())),
 					getElementId(targetItem),
 				)
 				if (!this.conversationViewModel || !isSameId(this.conversationViewModel?.primaryMail._id, targetItem._id)) {
@@ -651,7 +651,7 @@ export class MailViewModel {
 	private clearConversationViewModel() {
 		this.conversationViewModel?.deinit()
 		this.conversationViewModel = null
-		this.mailFolderElementIdToSelectedMailId = mapWithout(this.mailFolderElementIdToSelectedMailId, getElementId(assertNotNull(this.getFolder())))
+		this.mailFolderElementIdToSelectedMailId = mapWithout(this.mailFolderElementIdToSelectedMailId, getElementId(assertNotNull(this.getMailSet())))
 	}
 
 	private updateUrl() {
@@ -693,7 +693,7 @@ export class MailViewModel {
 			return
 		}
 
-		const currentFolder = this.getFolder()
+		const currentFolder = this.getMailSet()
 		if (currentFolder == null) {
 			return
 		}
@@ -758,7 +758,7 @@ export class MailViewModel {
 				} else if (isUpdateForTypeRef(ImportFileMailStateTypeRef, update)) {
 					const targetFolder = await this.getFileImportTargetFolder(update)
 					if (targetFolder) {
-						await this.deleteMailSetEntryRangeFolder(targetFolder)
+						await this.deleteMailSetEntryRangeFolder(targetFolder, true)
 					}
 				} else if (isUpdateForTypeRef(ImapAccountSyncStateTypeRef, update)) {
 					// We need to drop all ranges for mailSets corresponding to ImapFolderSyncStates + imapSyncLabel
@@ -766,10 +766,13 @@ export class MailViewModel {
 						assertNotNull(update.instanceListId),
 						update.instanceId,
 					])
+					// we only reload the folder / label the user is currently viewing in case we are done
+					const shouldReload = imapAccountSyncState.status !== ImapAccountSyncStatus.RUNNING
+
 					const imapFolderSyncStates = await this.entityClient.loadAll(ImapFolderSyncStateTypeRef, imapAccountSyncState.imapFolderSyncStateList)
 					if (imapAccountSyncState.imapSyncLabel) {
 						const syncLabel = await this.entityClient.load(MailSetTypeRef, imapAccountSyncState.imapSyncLabel)
-						await this.deleteMailSetEntryRangeFolder(syncLabel)
+						await this.deleteMailSetEntryRangeFolder(syncLabel, shouldReload)
 					}
 					const mailSetIdsToDeleteRange = imapFolderSyncStates.map((imapFolderSyncState) => imapFolderSyncState.mailSet).filter(isNotNull)
 					if (isNotEmpty(mailSetIdsToDeleteRange)) {
@@ -779,7 +782,7 @@ export class MailViewModel {
 						)
 						for (const mailSet of mailSetsToDeleteRange) {
 							if (mailSet) {
-								await this.deleteMailSetEntryRangeFolder(mailSet)
+								await this.deleteMailSetEntryRangeFolder(mailSet, shouldReload)
 							}
 						}
 					}
@@ -790,7 +793,7 @@ export class MailViewModel {
 		}
 	}
 
-	private async deleteMailSetEntryRangeFolder(targetFolder: MailSet) {
+	private async deleteMailSetEntryRangeFolder(targetFolder: MailSet, shouldReload: boolean = false) {
 		// This deletes the range of MailSetEntries for a targetFolder entries list,
 		// currently used when importing mails from a file or IMAP.
 		// This makes sure that we keep already downloaded MailSetEntries in the cache but still show
@@ -801,8 +804,8 @@ export class MailViewModel {
 		const targetFolderEntriesListId = targetFolder.entries
 		await this.cacheStorage.deleteRange(MailSetEntryTypeRef, targetFolderEntriesListId)
 
-		const selectedMailSet = this.getFolder()
-		if (selectedMailSet && isSameId(selectedMailSet._id, targetFolder._id)) {
+		const selectedMailSet = this.getMailSet()
+		if (shouldReload && selectedMailSet && isSameId(selectedMailSet._id, targetFolder._id)) {
 			this.listModel?.reload()
 		}
 	}
@@ -831,14 +834,14 @@ export class MailViewModel {
 	}
 
 	async getMailboxDetails(): Promise<MailboxDetail> {
-		const folder = this.getFolder()
+		const folder = this.getMailSet()
 		return await this.mailboxDetailForListWithFallback(folder)
 	}
 
 	async showingDraftsFolder(): Promise<boolean> {
 		if (!this._folder) return false
 		const mailboxDetail = await this.mailModel.getMailboxDetailsForMailFolder(this._folder)
-		const selectedFolder = this.getFolder()
+		const selectedFolder = this.getMailSet()
 		if (selectedFolder && mailboxDetail) {
 			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
 			return isOfTypeOrSubfolderOf(folders, selectedFolder, MailSetKind.DRAFT)
@@ -848,7 +851,7 @@ export class MailViewModel {
 	}
 
 	async showingTrashOrSpamFolder(): Promise<boolean> {
-		const folder = this.getFolder()
+		const folder = this.getMailSet()
 		if (folder) {
 			const mailboxDetail = await this.mailModel.getMailboxDetailsForMailFolder(folder)
 			if (folder && mailboxDetail) {
