@@ -18,7 +18,7 @@ import { BubbleButton } from "../../../ui/base/buttons/BubbleButton.js"
 import { getTimeZone } from "../calendar/date/CalendarUtils.js"
 import { ConversationType, MailMethod, RecipientType } from "../../../entities/tutanota/Utils"
 import { AccountType } from "../../../entities/sys/Utils"
-import { createErrorReportData, createErrorReportFile, createReportErrorIn, ReportErrorService } from "@tutao/entities/monitor"
+import { createErrorReportData, createErrorReportFile, createReportErrorIn, ReportErrorService_POST } from "@tutao/entities/monitor"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { ErrorReportClientType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { DataFile } from "../../../entities/tutanota/MailBundle"
@@ -377,7 +377,7 @@ async function sendToServer(error: ErrorInfo, userMessage: string | null, logs: 
 			})
 		}),
 	})
-	await locator.serviceExecutor.post(ReportErrorService, errorData, null)
+	await locator.serviceExecutor.execute(ReportErrorService_POST, errorData, null)
 }
 
 function prepareFeedbackContent(error: ErrorInfo, loggedIn: boolean): FeedbackContent {

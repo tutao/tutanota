@@ -1,6 +1,6 @@
 import { Range } from "./OfflineStorage.js"
 import { ProgrammingError } from "@tutao/app-env"
-import { ListElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
+import { Entity, ListElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
 import { Nullable } from "@tutao/utils"
 import { EphemeralCacheStorage } from "./EphemeralCacheStorage"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
@@ -46,12 +46,12 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return await this.inner.setCacheSyncStatus(cacheSyncStatus)
 	}
 
-	async getParsed(typeRef: TypeRef<unknown>, listId: string | null, id: string): Promise<DecryptedParsedInstance | null> {
+	async getParsed(typeRef: TypeRef<Entity>, listId: string | null, id: string): Promise<DecryptedParsedInstance | null> {
 		return await this.inner.getParsed(typeRef, listId, id)
 	}
 
 	async provideFromRangeParsed(
-		typeRef: TypeRef<unknown>,
+		typeRef: TypeRef<Entity>,
 		listId: string,
 		start: string,
 		count: number,
@@ -60,11 +60,11 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return await this.inner.provideFromRangeParsed(typeRef, listId, start, count, reverse)
 	}
 
-	async provideMultipleParsed(typeRef: TypeRef<unknown>, listId: Nullable<string>, elementIds: string[]): Promise<Array<DecryptedParsedInstance>> {
+	async provideMultipleParsed(typeRef: TypeRef<Entity>, listId: Nullable<string>, elementIds: string[]): Promise<Array<DecryptedParsedInstance>> {
 		return await this.inner.provideMultipleParsed(typeRef, listId, elementIds)
 	}
 
-	async getWholeListParsed(typeRef: TypeRef<unknown>, listId: string): Promise<Array<DecryptedParsedInstance>> {
+	async getWholeListParsed(typeRef: TypeRef<Entity>, listId: string): Promise<Array<DecryptedParsedInstance>> {
 		return await this.inner.getWholeListParsed(typeRef, listId)
 	}
 
@@ -177,11 +177,11 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.purgeStorage()
 	}
 
-	put(typeRef: TypeRef<unknown>, instance: DecryptedParsedInstance): Promise<void> {
+	put(typeRef: TypeRef<Entity>, instance: DecryptedParsedInstance): Promise<void> {
 		return this.inner.put(typeRef, instance)
 	}
 
-	putMultiple(typeRef: TypeRef<unknown>, instances: Array<DecryptedParsedInstance>): Promise<void> {
+	putMultiple(typeRef: TypeRef<Entity>, instances: Array<DecryptedParsedInstance>): Promise<void> {
 		return this.inner.putMultiple(typeRef, instances)
 	}
 

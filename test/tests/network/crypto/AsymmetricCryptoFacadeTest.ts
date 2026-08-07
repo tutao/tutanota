@@ -37,7 +37,7 @@ import { createTestEntity } from "../../TestUtils.js"
 import { VerifiedPublicEncryptionKey } from "../../../../src/platform-kit/base/facades/lazy/KeyVerificationFacade"
 import PublicEncryptionKeyProvider from "../../../../src/platform-kit/base/base-crypto/PublicEncryptionKeyProvider.js"
 import { AdminKeyLoaderFacade } from "../../../../src/platform-kit/base/base-crypto/AdminKeyLoaderFacade"
-import { PubEncKeyData, PubEncKeyDataTypeRef, PublicKeyPutIn, PublicKeyService } from "@tutao/entities/sys"
+import { PubEncKeyData, PubEncKeyDataTypeRef, PublicKeyPutIn, PublicKeyService_PUT } from "@tutao/entities/sys"
 import { CryptoWrapper } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 
 o.spec("AsymmetricCryptoFacadeTest", function () {
@@ -364,8 +364,8 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 					cryptoProtocolVersion: CryptoProtocolVersion.TUTA_CRYPT,
 				})
 				verify(
-					serviceExecutor.put(
-						PublicKeyService,
+					serviceExecutor.execute(
+						PublicKeyService_PUT,
 						matchers.argThat((arg: PublicKeyPutIn) => {
 							return (
 								arg.pubEccKey === newIdentityEccPair.publicKey &&

@@ -5,11 +5,11 @@ import { Versioned } from "@tutao/utils"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { EntityClient } from "../../network/EntityClient"
 import { brandKeyMac, KeyAuthenticationFacade, SystemMapKind } from "../../network/KeyAuthenticationFacade"
-import { createIdentityKeyGetIn, GroupTypeRef, IdentityKeyService } from "@tutao/entities/sys"
+import { createIdentityKeyGetIn, GroupTypeRef, IdentityKeyService_GET } from "@tutao/entities/sys"
 import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../entities/sys/Utils"
 import { IdentityKeySourceOfTrust } from "@tutao/app-env"
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "./persistence/IdentityKeyTrustDatabase"
-import { ElementId, idToElementId } from "@tutao/meta"
+import { idToElementId } from "@tutao/meta"
 
 type IdentityKeyRawData = {
 	identityKeyVersion: NumberString
@@ -109,7 +109,7 @@ export class PublicIdentityKeyProvider {
 		})
 
 		try {
-			const identityKeyGetOut = await this.serviceExecutor.get(IdentityKeyService, requestData, null)
+			const identityKeyGetOut = await this.serviceExecutor.execute(IdentityKeyService_GET, requestData, null)
 			const identityKeyFromServer = this.convertFromIdentityKeyRawData({
 				publicIdentityKey: identityKeyGetOut.publicIdentityKey,
 				identityKeyVersion: identityKeyGetOut.publicIdentityKeyVersion,

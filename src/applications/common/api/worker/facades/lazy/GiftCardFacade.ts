@@ -22,8 +22,9 @@ import {
 	createGiftCardRedeemData,
 	GiftCard,
 	GiftCardRedeemGetReturn,
-	GiftCardRedeemService,
-	GiftCardService,
+	GiftCardRedeemService_GET,
+	GiftCardRedeemService_POST,
+	GiftCardService_POST,
 } from "@tutao/entities/sys"
 import { GroupType } from "../../../../../../entities/sys/Utils"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
@@ -60,14 +61,14 @@ export class GiftCardFacade {
 		})
 		data.ownerEncSessionKey = ownerEncSessionKey.key
 		data.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
-		const { giftCard } = await this.serviceExecutor.post(GiftCardService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
+		const { giftCard } = await this.serviceExecutor.execute(GiftCardService_POST, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
 
 		return giftCard
 	}
 
 	getGiftCardInfo(id: Id, key: string): Promise<GiftCardRedeemGetReturn> {
-		return this.serviceExecutor.get(
-			GiftCardRedeemService,
+		return this.serviceExecutor.execute(
+			GiftCardRedeemService_GET,
 			createGiftCardRedeemData({
 				giftCardInfo: id,
 				keyHash: sha256Hash(base64ToUint8Array(key)),
@@ -90,8 +91,8 @@ export class GiftCardFacade {
 			throw new ProgrammingError("User must provide a country")
 		}
 
-		await this.serviceExecutor.post(
-			GiftCardRedeemService,
+		await this.serviceExecutor.execute(
+			GiftCardRedeemService_POST,
 			createGiftCardRedeemData({
 				giftCardInfo: giftCardInfoId,
 				keyHash: sha256Hash(base64ToUint8Array(key)),

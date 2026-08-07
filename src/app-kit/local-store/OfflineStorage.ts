@@ -218,7 +218,7 @@ export class OfflineStorage implements CacheStorage {
 		return this.userId != null
 	}
 
-	async getWholeListParsed(typeRef: TypeRef<unknown>, listId: string): Promise<DecryptedParsedInstance[]> {
+	async getWholeListParsed(typeRef: TypeRef<Entity>, listId: string): Promise<DecryptedParsedInstance[]> {
 		const { query, params } = sql`SELECT entity
 									  FROM list_entities
 									  WHERE type = ${getTypeString(typeRef)}

@@ -11,7 +11,7 @@ import { noOp } from "@tutao/utils"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { SURVEY_VERSION_NUMBER } from "../../subscription/LeavingUserSurveyConstants"
 import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg.js"
-import { createSurveyData, createSurveyDataPostIn, SurveyService } from "@tutao/entities/sys"
+import { createSurveyData, createSurveyDataPostIn, SurveyService_POST } from "@tutao/entities/sys"
 
 interface SuggestionPageAttrs {
 	dialog: Dialog
@@ -78,8 +78,8 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 
 	private async onSendButtonClick() {
 		const send = async () => {
-			await locator.serviceExecutor.post(
-				SurveyService,
+			await locator.serviceExecutor.execute(
+				SurveyService_POST,
 				createSurveyDataPostIn({
 					surveyData: createSurveyData({
 						version: SURVEY_VERSION_NUMBER,

@@ -114,7 +114,7 @@ import {
 	GroupInfoTypeRef,
 	GroupMembership,
 	GroupTypeRef,
-	MembershipService,
+	MembershipService_DELETE,
 	User,
 	UserAlarmInfo,
 	UserAlarmInfoTypeRef,
@@ -441,8 +441,8 @@ export class CalendarModel {
 		for (const membership of notFoundMemberships) {
 			// noinspection ES6MissingAwait
 			this.serviceExecutor
-				.delete(
-					MembershipService,
+				.execute(
+					MembershipService_DELETE,
 					createMembershipRemoveData({
 						user: userController.userId,
 						group: membership.group,

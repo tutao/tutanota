@@ -2,7 +2,8 @@ import { IServiceExecutor } from "../../../../platform-kit/network/ServiceReques
 import { NotFoundError } from "@tutao/rest-client/error"
 import { NewsListItem } from "./NewsListItem.js"
 import { isIOSApp } from "@tutao/app-env"
-import { createNewsIn, NewsId, NewsOut, NewsService } from "@tutao/entities/tutanota"
+import { createNewsIn, NewsId, NewsOut, NewsService_GET, NewsService_POST } from "@tutao/entities/tutanota"
+import { NON_EXISTENT_DATA_TRANSFER_ENTITY } from "@tutao/meta"
 
 /**
  * Interface for storing information about displayed news items on the device.
@@ -30,7 +31,7 @@ export class NewsModel {
 	 * Loads the user's unacknowledged NewsItems.
 	 */
 	async loadNewsIds(): Promise<NewsId[]> {
-		const response: NewsOut = await this.serviceExecutor.get(NewsService, null, null)
+		const response: NewsOut = await this.serviceExecutor.execute(NewsService_GET, NON_EXISTENT_DATA_TRANSFER_ENTITY, null)
 
 		this.liveNewsIds = []
 		this.liveNewsListItems = {}
@@ -59,7 +60,7 @@ export class NewsModel {
 		const data = createNewsIn({ newsItemId })
 
 		try {
-			await this.serviceExecutor.post(NewsService, data, null)
+			await this.serviceExecutor.execute(NewsService_POST, data, null)
 			return true
 		} catch (e) {
 			if (e instanceof NotFoundError) {

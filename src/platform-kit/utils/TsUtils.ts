@@ -1,9 +1,11 @@
 import { assertNotNull, DeepEquals, downcast, isNotNull, isNull, Nullable } from "./Utils"
 import { TypeChecks } from "../app-env/boot/TsTypeChecks"
+import { ProgrammingError } from "@tutao/app-env"
 
 // This file is not transpiled
 /* eslint-disable  no-restricted-syntax */
 /* eslint-disable local/noUnnamedTypes */
+/* eslint-disable local/noUnionExceptNullable */
 
 /**
  * Integer constraint from 0 to n (using tail-recursion elimination)
@@ -323,3 +325,18 @@ function traceUnresolvedPromises<T>(promise: Promise<T>, tag: Nullable<string> =
 		}
 	}, 60000)
 }
+
+const throwOnlyProxy = new Proxy(() => {}, {
+	get(target: () => void, p: string | symbol, receiver: any): any {
+		throw new ProgrammingError("This object was created with intention that it wont ever be used")
+	},
+	apply(target: () => void, thisArg: any, argArray: any[]): any {
+		throw new ProgrammingError("This object was created with intention that it wont ever be used")
+	},
+	has(target: () => void, p: string | symbol): boolean {
+		throw new ProgrammingError("This object was created with intention that it wont ever be used")
+	},
+	set(target: () => void, p: string | symbol, newValue: any, receiver: any): boolean {
+		throw new ProgrammingError("This object was created with intention that it wont ever be used")
+	},
+})

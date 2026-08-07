@@ -1,6 +1,6 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ListElementId, ElementId } from "@tutao/meta"
+import { ListElementId, ElementId, DataTransferId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 import { Nullable } from "@tutao/utils"
 
@@ -31,6 +31,9 @@ export type CustomerAccountPosting = {
 	valueDate: Date;
 	invoiceNumber: null | string;
 	amount: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -80,6 +83,9 @@ export type CustomerAccountReturn = {
 	outstandingBookingsPrice: NumberString;
 	balance: NumberString;
 	_publicCryptoProtocolVersion: null | NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 

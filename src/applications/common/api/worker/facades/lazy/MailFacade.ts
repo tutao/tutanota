@@ -80,10 +80,10 @@ import {
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../../../../entities/sys/Utils"
-import { CounterService, createWriteCounterData } from "@tutao/entities/monitor"
+import { CounterService_POST, createWriteCounterData } from "@tutao/entities/monitor"
 import { CounterType } from "../../../../../../entities/monitor/Utils"
 import {
-	ApplyLabelService,
+	ApplyLabelService_POST,
 	Contact,
 	createApplyLabelServicePostIn,
 	createAttachmentKeyData,
@@ -120,37 +120,42 @@ import {
 	createUpdateMailFolderData,
 	DraftAttachment,
 	DraftRecipient,
-	DraftService,
+	DraftService_POST,
+	DraftService_PUT,
 	EncryptedMailAddress,
-	ExternalUserService,
+	ExternalUserService_POST,
 	File,
 	FileTypeRef,
-	ListUnsubscribeService,
+	ListUnsubscribeService_POST,
 	Mail,
 	MailDetails,
 	MailDetailsBlobTypeRef,
 	MailDetailsDraftTypeRef,
-	MailFolderService,
-	MailService,
+	MailFolderService_DELETE,
+	MailFolderService_POST,
+	MailFolderService_PUT,
+	MailService_DELETE,
 	MailSet,
 	MailTypeRef,
-	ManageLabelService,
+	ManageLabelService_DELETE,
+	ManageLabelService_POST,
+	ManageLabelService_PUT,
 	MovedMails,
-	MoveMailService,
-	PopulateClientSpamTrainingDataService,
+	MoveMailService_POST,
+	PopulateClientSpamTrainingDataService_POST,
 	PopulateClientSpamTrainingDatum,
 	ProcessInboxDatum,
-	ProcessInboxService,
+	ProcessInboxService_POST,
 	ReportedMailFieldMarker,
-	ReportMailService,
-	ResolveConversationsService,
-	SendDraftParameters,
+	ReportMailService_POST,
+	ResolveConversationsService_GET,
 	SendDraftParametersParams,
 	SendDraftReturn,
-	SendDraftService,
-	SimpleMoveMailService,
+	SendDraftService_DELETE,
+	SendDraftService_POST,
+	SimpleMoveMailService_POST,
 	TutanotaPropertiesTypeRef,
-	UnreadMailStateService,
+	UnreadMailStateService_POST,
 } from "@tutao/entities/tutanota"
 import {
 	ConversationType,
@@ -241,7 +246,7 @@ export class MailFacade {
 		newFolder.ownerEncSessionKey = ownerEncSessionKey.key
 		newFolder.ownerGroup = ownerGroupId
 		newFolder.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
-		const postReturn = await this.serviceExecutor.post(MailFolderService, newFolder, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
+		const postReturn = await this.serviceExecutor.execute(MailFolderService_POST, newFolder, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
 		return postReturn.newFolder
 	}
 
@@ -273,7 +278,7 @@ export class MailFacade {
 				folder: folder._id,
 				newParent: newParent,
 			})
-			await this.serviceExecutor.put(MailFolderService, updateFolder, null)
+			await this.serviceExecutor.execute(MailFolderService_PUT, updateFolder, null)
 		}
 	}
 
@@ -329,7 +334,7 @@ export class MailFacade {
 		})
 		service.ownerEncSessionKey = ownerEncSessionKey.key
 		service.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
-		const createDraftReturn = await this.serviceExecutor.post(DraftService, service, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
+		const createDraftReturn = await this.serviceExecutor.execute(DraftService_POST, service, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
 		return this.entityClient.load(MailTypeRef, createDraftReturn.draft)
 	}
 
@@ -375,7 +380,7 @@ export class MailFacade {
 		const replyTos = await this.getReplyTos(draft)
 
 		const sk = decryptKey(mailGroupKey.object, assertNotNull(draft._ownerEncSessionKey))
-		const service = createDraftUpdateData({
+		const draftUpdateData = createDraftUpdateData({
 			draft: draft._id,
 			draftData: createDraftData({
 				subject: subject,
@@ -398,7 +403,7 @@ export class MailFacade {
 		this.deferredDraftUpdate = defer()
 		// use a local reference here because this._deferredDraftUpdate is set to null when the event is received async
 		const deferredUpdatePromiseWrapper = this.deferredDraftUpdate
-		await this.serviceExecutor.put(DraftService, service, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
+		await this.serviceExecutor.execute(DraftService_PUT, draftUpdateData, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
 		return deferredUpdatePromiseWrapper.promise
 	}
 
@@ -416,8 +421,8 @@ export class MailFacade {
 		for (const [_, mailsInList] of mailsPerList) {
 			const mailChunks = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mailsInList)
 			for (const mails of mailChunks) {
-				const moveMailPostOut = await this.serviceExecutor.post(
-					MoveMailService,
+				const moveMailPostOut = await this.serviceExecutor.execute(
+					MoveMailService_POST,
 					createMoveMailData({
 						mails,
 						excludeMailSet,
@@ -440,8 +445,8 @@ export class MailFacade {
 		const mailChunks = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails)
 		const movedMails: MovedMails[] = []
 		for (const mails of mailChunks) {
-			const simpleMove = await this.serviceExecutor.post(
-				SimpleMoveMailService,
+			const simpleMove = await this.serviceExecutor.execute(
+				SimpleMoveMailService_POST,
 				createSimpleMoveMailPostIn({
 					mails,
 					destinationSetType: targetFolderKind,
@@ -461,7 +466,7 @@ export class MailFacade {
 			mailSessionKey: keyToUint8Array(mailSessionKey),
 			reportType,
 		})
-		await this.serviceExecutor.post(ReportMailService, postData, null)
+		await this.serviceExecutor.execute(ReportMailService_POST, postData, null)
 	}
 
 	async deleteMails(mails: readonly IdTuple[], filterMailSet: IdTuple | null): Promise<void> {
@@ -478,7 +483,7 @@ export class MailFacade {
 					mails: mailChunk,
 					folder: filterMailSet,
 				})
-				await this.serviceExecutor.delete(MailService, deleteMailData, null)
+				await this.serviceExecutor.execute(MailService_DELETE, deleteMailData, null)
 			}
 		}
 	}
@@ -676,12 +681,12 @@ export class MailFacade {
 			allowUndo,
 		})
 
-		return await this.serviceExecutor.post(SendDraftService, sendDraftData, null)
+		return await this.serviceExecutor.execute(SendDraftService_POST, sendDraftData, null)
 	}
 
 	async unscheduleMail(mail: IdTuple) {
-		await this.serviceExecutor.delete(
-			SendDraftService,
+		await this.serviceExecutor.execute(
+			SendDraftService_DELETE,
 			createSendDraftDeleteIn({
 				mail,
 				sendJob: null,
@@ -691,8 +696,8 @@ export class MailFacade {
 	}
 
 	async undoSendMail(mail: IdTuple, sendJob: IdTuple) {
-		await this.serviceExecutor.delete(
-			SendDraftService,
+		await this.serviceExecutor.execute(
+			SendDraftService_DELETE,
 			createSendDraftDeleteIn({
 				mail,
 				sendJob,
@@ -792,7 +797,7 @@ export class MailFacade {
 			folders: [id],
 		})
 		// TODO make DeleteMailFolderData unencrypted in next model version
-		await this.serviceExecutor.delete(MailFolderService, deleteMailFolderData, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: "dummy" as any })
+		await this.serviceExecutor.execute(MailFolderService_DELETE, deleteMailFolderData, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: "dummy" as any })
 	}
 
 	async fixupCounterForFolder(groupId: Id, folder: MailSet, unreadMails: number): Promise<void> {
@@ -803,7 +808,7 @@ export class MailFacade {
 			column: counterId,
 			value: String(unreadMails),
 		})
-		await this.serviceExecutor.post(CounterService, data, null)
+		await this.serviceExecutor.execute(CounterService_POST, data, null)
 	}
 
 	_checkFieldForPhishing(type: ReportedMailFieldType, value: string): boolean {
@@ -1070,7 +1075,7 @@ export class MailFacade {
 			internalMailEncMailGroupInfoSessionKey: internalMailEncMailGroupInfoSessionKey.key,
 			internalMailGroupKeyVersion: internalMailGroupKey.version.toString(),
 		})
-		await this.serviceExecutor.post(ExternalUserService, externalUserData, null)
+		await this.serviceExecutor.execute(ExternalUserService_POST, externalUserData, null)
 		return {
 			currentExternalUserGroupKey,
 			currentExternalMailGroupKey,
@@ -1126,7 +1131,7 @@ export class MailFacade {
 			folder: folderId,
 			mails: [],
 		})
-		await this.serviceExecutor.delete(MailService, deleteMailData, null)
+		await this.serviceExecutor.execute(MailService_DELETE, deleteMailData, null)
 	}
 
 	async unsubscribe(mailId: IdTuple, postUrl: string) {
@@ -1134,7 +1139,7 @@ export class MailFacade {
 			mail: mailId,
 			postLink: postUrl,
 		})
-		await this.serviceExecutor.post(ListUnsubscribeService, postData, null)
+		await this.serviceExecutor.execute(ListUnsubscribeService_POST, postData, null)
 	}
 
 	async loadAttachments(mail: Mail): Promise<File[]> {
@@ -1223,7 +1228,7 @@ export class MailFacade {
 		data.ownerGroup = mailGroupId
 		data.ownerEncSessionKey = ownerEncSessionKey.key
 		data.ownerKeyVersion = String(ownerEncSessionKey.encryptingKeyVersion)
-		const manageLabelPostOut = await this.serviceExecutor.post(ManageLabelService, data, {
+		const manageLabelPostOut = await this.serviceExecutor.execute(ManageLabelService_POST, data, {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
 			sessionKey: sk,
 		})
@@ -1257,7 +1262,7 @@ export class MailFacade {
 			const ownerKeyVersion = parseKeyVersion(assertNotNull(label._ownerKeyVersion))
 			const mailGroupKey = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(label._ownerGroup), ownerKeyVersion)
 			const sessionKey = this.cryptoWrapper.decryptKey(mailGroupKey, assertNotNull(label._ownerEncSessionKey))
-			await this.serviceExecutor.put(ManageLabelService, manageLabelServicePutIn, {
+			await this.serviceExecutor.execute(ManageLabelService_PUT, manageLabelServicePutIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				sessionKey,
 			})
@@ -1265,8 +1270,8 @@ export class MailFacade {
 	}
 
 	async deleteLabel(label: MailSet) {
-		await this.serviceExecutor.delete(
-			ManageLabelService,
+		await this.serviceExecutor.execute(
+			ManageLabelService_DELETE,
 			createManageLabelServiceDeleteIn({
 				label: label._id,
 			}),
@@ -1280,7 +1285,7 @@ export class MailFacade {
 			addedLabels: addedLabels.map((label) => label._id),
 			removedLabels: removedLabels.map((label) => label._id),
 		})
-		await this.serviceExecutor.post(ApplyLabelService, postIn, null)
+		await this.serviceExecutor.execute(ApplyLabelService_POST, postIn, null)
 	}
 
 	/**
@@ -1292,8 +1297,8 @@ export class MailFacade {
 		await promiseMap(
 			splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails),
 			async (mails) =>
-				this.serviceExecutor.post(
-					UnreadMailStateService,
+				this.serviceExecutor.execute(
+					UnreadMailStateService_POST,
 					createUnreadMailStatePostIn({
 						unread,
 						mails,
@@ -1334,8 +1339,8 @@ export class MailFacade {
 		await promiseMap(
 			splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, processInboxData),
 			async (inboxData) =>
-				this.serviceExecutor.post(
-					ProcessInboxService,
+				this.serviceExecutor.execute(
+					ProcessInboxService_POST,
 					createProcessInboxPostIn({
 						mailOwnerGroup: mailGroupId,
 						processInboxData: inboxData,
@@ -1381,8 +1386,8 @@ export class MailFacade {
 		await promiseMap(
 			splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, populateClientSpamTrainingData),
 			async (clientSpamTrainingData) =>
-				this.serviceExecutor.post(
-					PopulateClientSpamTrainingDataService,
+				this.serviceExecutor.execute(
+					PopulateClientSpamTrainingDataService_POST,
 					createPopulateClientSpamTrainingDataPostIn({
 						mailOwnerGroup: mailGroupId,
 						populateClientSpamTrainingData: clientSpamTrainingData,
@@ -1405,8 +1410,8 @@ export class MailFacade {
 		const result = await promiseMap(
 			splitInChunks(MAX_NBR_OF_CONVERSATIONS, conversationListIds),
 			async (conversationListIds) =>
-				this.serviceExecutor.get(
-					ResolveConversationsService,
+				this.serviceExecutor.execute(
+					ResolveConversationsService_GET,
 					createResolveConversationsServiceGetIn({
 						conversationLists: conversationListIds.map((id) => createGeneratedIdWrapper({ value: id })),
 					}),

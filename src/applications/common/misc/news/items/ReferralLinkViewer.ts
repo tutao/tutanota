@@ -11,7 +11,7 @@ import { UserController } from "../../../api/main/UserController.js"
 import { MoreInfoLink } from "../MoreInfoLink.js"
 import { isApp } from "@tutao/app-env"
 import { ifAllowedTutaLinks } from "../../../gui/base/TutaLinkUtils"
-import { createReferralCodePostIn, ReferralCodeService } from "@tutao/entities/sys"
+import { createReferralCodePostIn, ReferralCodeService_POST } from "@tutao/entities/sys"
 
 export type ReferralLinkAttrs = {
 	referralLink: string
@@ -115,6 +115,6 @@ export async function getReferralLink(userController: UserController, isCalledBy
 }
 
 async function requestNewReferralCode(): Promise<string> {
-	const { referralCode } = await locator.serviceExecutor.post(ReferralCodeService, createReferralCodePostIn({}), null)
+	const { referralCode } = await locator.serviceExecutor.execute(ReferralCodeService_POST, createReferralCodePostIn({}), null)
 	return referralCode
 }

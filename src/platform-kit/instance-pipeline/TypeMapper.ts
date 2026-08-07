@@ -279,8 +279,8 @@ export class OutgoingServerJson implements DeepEquals {
 		return new OutgoingServerJson(clientModel as any, json)
 	}
 
-	getTypeRef(): TypeRef<unknown> {
-		return new TypeRef<unknown>(this.typeModel.app, this.typeModel.id)
+	getTypeRef(): TypeRef<Entity> {
+		return new TypeRef<Entity>(this.typeModel.app, this.typeModel.id)
 	}
 
 	deepEquals(other: this): boolean {

@@ -1,6 +1,6 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ListElementId, ElementId } from "@tutao/meta"
+import { ListElementId, ElementId, DataTransferId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 import { Nullable } from "@tutao/utils"
 
@@ -37,6 +37,9 @@ export type KeyPair = {
 	symEncPrivEccKey: null | Uint8Array;
 	pubKyberKey: null | Uint8Array;
 	symEncPrivKyberKey: null | Uint8Array;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -105,6 +108,9 @@ export type Group = {
 	external: boolean;
 	adminGroupKeyVersion: null | NumberString;
 	groupKeyVersion: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -178,6 +184,9 @@ export type GroupInfo = {
 	_ownerKeyVersion: null | NumberString;
 	_kdfNonce: null | Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	group: Id;
@@ -235,6 +244,9 @@ export type GroupMembership = {
 	capability: null | NumberString;
 	groupKeyVersion: NumberString;
 	symKeyVersion: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -307,6 +319,9 @@ export type Customer = {
 	orderProcessingAgreementNeeded: boolean;
 	businessUse: boolean;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	adminGroup: Id;
@@ -368,6 +383,9 @@ export type AuthenticatedDevice = {
 	authType: NumberString;
 	deviceToken: string;
 	deviceKey: Uint8Array;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -411,6 +429,9 @@ export type Login = {
 	_format: NumberString;
 	time: Date;
 	_ownerGroup: null | Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -460,6 +481,9 @@ export type SecondFactorAuthentication = {
 	finished: boolean;
 	service: string;
 	_ownerGroup: null | Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -513,6 +537,9 @@ export type VariableExternalAuthInfo = {
 	lastSentTimestamp: Date;
 	authUpdateCounter: NumberString;
 	_ownerGroup: null | Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -561,6 +588,9 @@ export type UserExternalAuthInfo = {
 	latestSaltHash: null | Uint8Array;
 	autoTransmitPassword: null | string;
 	authUpdateCounter: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -629,6 +659,9 @@ export type User = {
 	requirePasswordUpdate: boolean;
 	kdfVersion: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	userGroup: GroupMembership;
@@ -685,6 +718,9 @@ export type ExternalUserReference = {
 	_format: NumberString;
 	_ownerGroup: null | Id;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	user: Id;
@@ -732,6 +768,9 @@ export type GroupRoot = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -797,6 +836,9 @@ export type BucketPermission = {
 	symKeyVersion: null | NumberString;
 	senderKeyVersion: null | NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	group: Id;
@@ -838,6 +880,9 @@ export type Bucket = {
     // == values
 
 	_id: Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -900,6 +945,9 @@ export type Permission = {
 	listElementApplication: null | string;
 	_ownerKeyVersion: null | NumberString;
 	symKeyVersion: null | NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -980,6 +1028,9 @@ export type AccountingInfo = {
 	_ownerKeyVersion: null | NumberString;
 	lastUsedOffer: null | string;
 	_kdfNonce: null | Uint8Array;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -1082,6 +1133,9 @@ export type CustomerInfo = {
 	confirmedHuman: boolean;
 	adAttributionCampaignId: null | string;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	customer: Id;
@@ -1144,6 +1198,9 @@ export type SentGroupInvitation = {
 	inviteeMailAddress: string;
 	capability: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	sharedGroup: Id;
@@ -1189,6 +1246,9 @@ export type MailAddressToGroup = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -1239,6 +1299,9 @@ export type GroupMember = {
 	_ownerGroup: null | Id;
 	capability: null | NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	userGroupInfo: IdTuple;
@@ -1285,6 +1348,9 @@ export type RootInstance = {
 	_format: NumberString;
 	reference: Id;
 	_ownerGroup: null | Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -1341,6 +1407,9 @@ export type VersionInfo = {
 	operation: string;
 	versionData: null | Uint8Array;
 	_ownerGroup: null | Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -1402,6 +1471,9 @@ export type SystemKeysReturn = {
 	freeGroupKeyVersion: NumberString;
 	premiumGroupKeyVersion: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	freeGroup: null | Id;
@@ -1446,6 +1518,9 @@ export type RegistrationServiceData = {
 	_format: NumberString;
 	state: NumberString;
 	source: null | string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -1486,6 +1561,9 @@ export type RegistrationReturn = {
 
 	_format: NumberString;
 	authToken: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -1532,6 +1610,9 @@ export type SendRegistrationCodeData = {
 	language: string;
 	accountType: NumberString;
 	mobilePhoneNumber: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -1572,6 +1653,9 @@ export type SendRegistrationCodeReturn = {
 
 	_format: NumberString;
 	authToken: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -1614,6 +1698,9 @@ export type VerifyRegistrationCodeData = {
 	_format: NumberString;
 	authToken: string;
 	code: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -1658,6 +1745,9 @@ export type UserDataDelete = {
 	_format: NumberString;
 	restore: boolean;
 	date: null | Date;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -1704,6 +1794,9 @@ export type PublicKeyGetIn = {
 	identifier: string;
 	version: null | NumberString;
 	identifierType: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -1753,6 +1846,9 @@ export type PublicKeyGetOut = {
 	pubEccKey: null | Uint8Array;
 	pubKyberKey: null | Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	signature: null | PublicKeySignature;
@@ -1794,6 +1890,9 @@ export type SaltData = {
 
 	_format: NumberString;
 	mailAddress: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -1836,6 +1935,9 @@ export type SaltReturn = {
 	_format: NumberString;
 	salt: Uint8Array;
 	kdfVersion: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -1879,6 +1981,9 @@ export type AutoLoginDataGet = {
 	_format: NumberString;
 	deviceToken: string;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	userId: Id;
@@ -1920,6 +2025,9 @@ export type AutoLoginDataDelete = {
 
 	_format: NumberString;
 	deviceToken: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -1960,6 +2068,9 @@ export type AutoLoginDataReturn = {
 
 	_format: NumberString;
 	deviceKey: Uint8Array;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -2000,6 +2111,9 @@ export type AutoLoginPostReturn = {
 
 	_format: NumberString;
 	deviceToken: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -2043,6 +2157,9 @@ export type UpdatePermissionKeyData = {
 	_format: NumberString;
 	ownerEncSessionKey: Uint8Array;
 	ownerKeyVersion: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -2101,6 +2218,9 @@ export type EntityUpdate = {
 	instance: null | string;
 	blobInstance: null | string;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	patch: null | PatchList;
@@ -2150,6 +2270,9 @@ export type Version = {
 	timestamp: Date;
 	operation: string;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	author: Id;
@@ -2198,6 +2321,9 @@ export type VersionData = {
 	typeId: NumberString;
 	id: Id;
 	listId: null | Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -2238,6 +2364,9 @@ export type VersionReturn = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -2287,6 +2416,9 @@ export type MembershipAddData = {
 	symEncGKey: Uint8Array;
 	symKeyVersion: NumberString;
 	groupKeyVersion: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -2344,6 +2476,9 @@ export type ChangePasswordPostIn = {
 	recoverCodeVerifier: null | Uint8Array;
 	kdfVersion: NumberString;
 	userGroupKeyVersion: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -2391,6 +2526,9 @@ export type SecondFactorAuthData = {
 	type: null | NumberString;
 	otpCode: null | NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	u2f: null | U2fResponseData;
@@ -2434,6 +2572,9 @@ export type SecondFactorAuthAllowedReturn = {
 
 	_format: NumberString;
 	allowed: boolean;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -2485,6 +2626,9 @@ export type ResetPasswordPostIn = {
 	kdfVersion: NumberString;
 	userGroupKeyVersion: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	user: Id;
@@ -2526,6 +2670,9 @@ export type DomainMailAddressAvailabilityData = {
 
 	_format: NumberString;
 	mailAddress: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -2566,6 +2713,9 @@ export type DomainMailAddressAvailabilityReturn = {
 
 	_format: NumberString;
 	available: boolean;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -2628,6 +2778,9 @@ export type PushIdentifier = {
 	_ownerKeyVersion: null | NumberString;
 	app: NumberString;
 	_kdfNonce: null | Uint8Array;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -2669,6 +2822,9 @@ export type PushIdentifierList = {
     // == values
 
 	_id: Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -2723,6 +2879,9 @@ export type DeleteCustomerData = {
 	takeoverMailAddress: null | string;
 	authVerifier: null | Uint8Array;
 	reason: null | NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -2781,6 +2940,9 @@ export type CustomerProperties = {
 	usageDataOptedOut: boolean;
 	requireTwoFactor: boolean;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	smallLogo: null | File;
@@ -2830,6 +2992,9 @@ export type ExternalPropertiesReturn = {
 	message: string;
 	accountType: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	smallLogo: null | File;
@@ -2876,6 +3041,9 @@ export type RegistrationCaptchaServiceData = {
 	token: string;
 	visualChallengeResponse: null | string;
 	audioChallengeResponse: null | string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -2922,6 +3090,9 @@ export type RegistrationCaptchaServiceReturn = {
 	token: string;
 	challenge: null | Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	visualChallenge: null | CaptchaChallenge;
@@ -2966,6 +3137,9 @@ export type MailAddressAlias = {
 	_id: Id;
 	mailAddress: string;
 	enabled: boolean;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -3008,6 +3182,9 @@ export type MailAddressAliasServiceData = {
 
 	_format: NumberString;
 	mailAddress: string;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -3056,6 +3233,9 @@ export type MailAddressAliasServiceReturn = {
 	totalAliases: NumberString;
 	usedAliases: NumberString;
 	enabledAliases: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -3099,6 +3279,9 @@ export type DomainInfo = {
 
 	_id: Id;
 	domain: string;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -3154,6 +3337,9 @@ export type BookingItem = {
 	currentInvoicedCount: NumberString;
 	price: NumberString;
 	priceType: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -3213,6 +3399,9 @@ export type Booking = {
 	bonusMonth: NumberString;
 	renewalEnabled: boolean;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	items: BookingItem[];
@@ -3256,6 +3445,9 @@ export type BookingsRef = {
 
 	_id: Id;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	items: Id;
@@ -3297,6 +3489,9 @@ export type StringWrapper = {
 
 	_id: Id;
 	value: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -3339,6 +3534,9 @@ export type CustomDomainReturn = {
 
 	_format: NumberString;
 	validationResult: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -3383,6 +3581,9 @@ export type CustomDomainData = {
 
 	_format: NumberString;
 	domain: string;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -3453,6 +3654,9 @@ export type InvoiceInfo = {
 	specialPriceBusinessPerUser: null | NumberString;
 	discountPercentage: null | NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	paymentErrorInfo: null | PaymentErrorInfo;
@@ -3508,6 +3712,9 @@ export type SwitchAccountTypePostIn = {
 	specialPriceUserSingle: null | NumberString;
 	app: null | NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	referralCode: null | Id;
@@ -3555,6 +3762,9 @@ export type MailAddressAliasServiceDataDelete = {
 	mailAddress: string;
 	restore: boolean;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	group: Id;
@@ -3596,6 +3806,9 @@ export type PaymentDataServiceGetReturn = {
 
 	_format: NumberString;
 	loginUrl: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -3655,6 +3868,9 @@ export type PaymentDataServicePutData = {
 	paymentToken: null | string;
 	confirmedCountry: null | string;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	creditCard: null | CreditCard;
@@ -3699,6 +3915,9 @@ export type PaymentDataServicePutReturn = {
 
 	_format: NumberString;
 	result: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -3751,6 +3970,9 @@ export type PriceRequestData = {
 	paymentInterval: null | NumberString;
 	accountType: null | NumberString;
 	reactivate: boolean;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -3793,6 +4015,9 @@ export type PriceServiceData = {
 
 	_format: NumberString;
 	date: null | Date;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -3841,6 +4066,9 @@ export type PriceItemData = {
 	count: NumberString;
 	price: NumberString;
 	singleType: boolean;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -3887,6 +4115,9 @@ export type PriceData = {
 	price: NumberString;
 	taxIncluded: boolean;
 	paymentInterval: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -3937,6 +4168,9 @@ export type PriceServiceReturn = {
 	periodEndDate: Date;
 	currentPeriodAddedPrice: null | NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	currentPriceThisPeriod: null | PriceData;
@@ -3982,6 +4216,9 @@ export type MembershipRemoveData = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -4029,6 +4266,9 @@ export type File = {
 	name: string;
 	mimeType: string;
 	data: Uint8Array;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -4075,6 +4315,9 @@ export type EmailSenderListElement = {
 	value: string;
 	type: NumberString;
 	field: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -4126,6 +4369,9 @@ export type CustomerServerProperties = {
 	_ownerKeyVersion: null | NumberString;
 	_kdfNonce: null | Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	emailSenderList: EmailSenderListElement[];
@@ -4170,6 +4416,9 @@ export type CreateCustomerServerPropertiesData = {
 	_format: NumberString;
 	adminGroupEncSessionKey: Uint8Array;
 	adminGroupKeyVersion: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -4210,6 +4459,9 @@ export type CreateCustomerServerPropertiesReturn = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -4253,6 +4505,9 @@ export type UserAreaGroups = {
 
 	_id: Id;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	list: Id;
@@ -4292,6 +4547,9 @@ export type DebitServicePutData = {
     // == values
 
 	_format: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -4335,6 +4593,9 @@ export type EntityEventBatch = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -4395,6 +4656,9 @@ export type AuditLogEntry = {
 	_ownerKeyVersion: null | NumberString;
 	_kdfNonce: null | Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	groupInfo: null | IdTuple;
@@ -4438,6 +4702,9 @@ export type AuditLogRef = {
     // == values
 
 	_id: Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -4497,6 +4764,9 @@ export type WhitelabelConfig = {
 	privacyStatementUrl: null | string;
 	whitelabelCode: string;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	bootstrapCustomizations: BootstrapFeature[];
@@ -4549,6 +4819,9 @@ export type BrandingDomainData = {
 	systemAdminPubEncSessionKey: Uint8Array;
 	systemAdminPublicProtocolVersion: NumberString;
 	systemAdminPubKeyVersion: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -4589,6 +4862,9 @@ export type BrandingDomainDeleteData = {
 
 	_format: NumberString;
 	domain: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -4637,6 +4913,9 @@ export type U2fRegisteredDevice = {
 	publicKey: Uint8Array;
 	counter: NumberString;
 	compromised: boolean;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -4687,6 +4966,9 @@ export type SecondFactor = {
 	name: string;
 	otpSecret: null | Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	u2f: null | U2fRegisteredDevice;
@@ -4733,6 +5015,9 @@ export type U2fKey = {
 	keyHandle: Uint8Array;
 	appId: string;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	secondFactor: IdTuple;
@@ -4776,6 +5061,9 @@ export type U2fChallenge = {
 
 	_id: Id;
 	challenge: Uint8Array;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -4821,6 +5109,9 @@ export type Challenge = {
 
 	_id: Id;
 	type: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -4884,6 +5175,9 @@ export type Session = {
 	_ownerKeyVersion: null | NumberString;
 	_kdfNonce: null | Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	challenges: Challenge[];
@@ -4929,6 +5223,9 @@ export type UserAuthentication = {
     // == values
 
 	_id: Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -4986,6 +5283,9 @@ export type CreateSessionData = {
 	authToken: null | string;
 	recoverCodeVerifier: null | string;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	user: null | Id;
@@ -5030,6 +5330,9 @@ export type CreateSessionReturn = {
 
 	_format: NumberString;
 	accessToken: string;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -5077,6 +5380,9 @@ export type U2fResponseData = {
 	keyHandle: string;
 	clientData: string;
 	signatureData: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -5117,6 +5423,9 @@ export type SecondFactorAuthGetData = {
 
 	_format: NumberString;
 	accessToken: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -5157,6 +5466,9 @@ export type SecondFactorAuthGetReturn = {
 
 	_format: NumberString;
 	secondFactorPending: boolean;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -5197,6 +5509,9 @@ export type OtpChallenge = {
     // == values
 
 	_id: Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -5239,6 +5554,9 @@ export type BootstrapFeature = {
 
 	_id: Id;
 	feature: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -5279,6 +5597,9 @@ export type Feature = {
 
 	_id: Id;
 	feature: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -5334,6 +5655,9 @@ export type WhitelabelChild = {
 	_ownerKeyVersion: null | NumberString;
 	_kdfNonce: null | Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	customer: Id;
@@ -5377,6 +5701,9 @@ export type WhitelabelChildrenRef = {
 
 	_id: Id;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	items: Id;
@@ -5419,6 +5746,9 @@ export type WhitelabelParent = {
     // == values
 
 	_id: Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -5470,6 +5800,9 @@ export type CreditCard = {
 	cvv: string;
 	expirationMonth: string;
 	expirationYear: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -5510,6 +5843,9 @@ export type LocationServiceGetReturn = {
 
 	_format: NumberString;
 	country: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -5564,6 +5900,9 @@ export type OrderProcessingAgreement = {
 	_ownerKeyVersion: null | NumberString;
 	_kdfNonce: null | Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	signerUserGroupInfo: IdTuple;
@@ -5609,6 +5948,9 @@ export type SignOrderProcessingAgreementData = {
 	_format: NumberString;
 	version: string;
 	customerAddress: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -5649,6 +5991,9 @@ export type GeneratedIdWrapper = {
 
 	_id: Id;
 	value: Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -5691,6 +6036,9 @@ export type SseConnectData = {
 
 	_format: NumberString;
 	identifier: string;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -5737,6 +6085,9 @@ export type NotificationInfo = {
 	_id: Id;
 	mailAddress: string;
 	userId: Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -5788,6 +6139,9 @@ export type RecoverCode = {
 	recoverCodeEncUserGroupKey: Uint8Array;
 	verifier: Uint8Array;
 	userKeyVersion: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -5832,6 +6186,9 @@ export type ResetFactorsDeleteData = {
 	mailAddress: string;
 	authVerifier: string;
 	recoverCodeVerifier: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -5876,6 +6233,9 @@ export type UpgradePriceServiceData = {
 	_format: NumberString;
 	date: null | Date;
 	campaign: null | string;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -5943,6 +6303,9 @@ export type PlanPrices = {
 	planName: string;
 	businessPlan: boolean;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	planConfiguration: PlanConfiguration;
@@ -6007,6 +6370,9 @@ export type UpgradePriceServiceReturn = {
 	firstMonthForFreeForYearlyPlan: boolean;
 	hasGlobalFirstYearDiscount: boolean;
 	globalCampaignName: null | string;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -6077,6 +6443,9 @@ export type RegistrationCaptchaServiceGetData = {
 	language: string;
 	isAutomatedBrowser: boolean;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	adAttribution: null | AdAttribution;
@@ -6127,6 +6496,9 @@ export type WebsocketEntityData = {
 	applicationVersionSum: NumberString;
 	applicationTypesHash: string;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	entityUpdates: EntityUpdate[];
@@ -6170,6 +6542,9 @@ export type WebsocketCounterValue = {
 	_id: Id;
 	counterId: Id;
 	count: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -6216,6 +6591,9 @@ export type WebsocketCounterData = {
 	mailGroup: Id;
 	applicationVersionSum: NumberString;
 	applicationTypesHash: string;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -6265,6 +6643,9 @@ export type CertificateInfo = {
 	state: NumberString;
 	type: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	certificate: null | Id;
@@ -6310,6 +6691,9 @@ export type NotificationMailTemplate = {
 	language: string;
 	body: string;
 	subject: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -6352,6 +6736,9 @@ export type CalendarEventRef = {
 	_id: Id;
 	elementId: Id;
 	listId: Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -6396,6 +6783,9 @@ export type AlarmInfo = {
 	_id: Id;
 	trigger: string;
 	alarmIdentifier: string;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -6445,6 +6835,9 @@ export type UserAlarmInfo = {
 	_ownerKeyVersion: null | NumberString;
 	_kdfNonce: null | Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	alarmInfo: AlarmInfo;
@@ -6487,6 +6880,9 @@ export type UserAlarmInfoListType = {
     // == values
 
 	_id: Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -6531,6 +6927,9 @@ export type NotificationSessionKey = {
 
 	_id: Id;
 	pushIdentifierSessionEncSessionKey: Uint8Array;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -6584,6 +6983,9 @@ export type RepeatRule = {
 	endValue: null | NumberString;
 	interval: NumberString;
 	timeZone: string;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -6639,6 +7041,9 @@ export type AlarmNotification = {
 	eventStart: Date;
 	eventEnd: Date;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	alarmInfo: AlarmInfo;
@@ -6684,6 +7089,9 @@ export type AlarmServicePost = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -6732,6 +7140,9 @@ export type DnsRecord = {
 	subdomain: null | string;
 	type: NumberString;
 	value: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -6774,6 +7185,9 @@ export type CustomDomainCheckGetIn = {
 
 	_format: NumberString;
 	domain: string;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -6821,6 +7235,9 @@ export type CustomDomainCheckGetOut = {
 	_format: NumberString;
 	checkResult: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	missingRecords: DnsRecord[];
@@ -6866,6 +7283,9 @@ export type CloseSessionServicePost = {
 
 	_format: NumberString;
 	accessToken: string;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -6932,6 +7352,9 @@ export type ReceivedGroupInvitation = {
 	sharedGroupKeyVersion: NumberString;
 	_kdfNonce: null | Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	sharedGroup: Id;
@@ -6981,6 +7404,9 @@ export type UserGroupRoot = {
 	_format: NumberString;
 	_ownerGroup: null | Id;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	invitations: Id;
@@ -7028,6 +7454,9 @@ export type PaymentErrorInfo = {
 	errorTime: Date;
 	errorCode: string;
 	thirdPartyErrorId: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -7080,6 +7509,9 @@ export type InvoiceItem = {
 	startDate: null | Date;
 	endDate: null | Date;
 	singleType: boolean;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -7155,6 +7587,9 @@ export type Invoice = {
 	_ownerKeyVersion: null | NumberString;
 	_kdfNonce: null | Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	items: InvoiceItem[];
@@ -7209,6 +7644,9 @@ export type MissedNotification = {
 	_ownerKeyVersion: null | NumberString;
 	_kdfNonce: null | Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	notificationInfos: NotificationInfo[];
@@ -7252,6 +7690,9 @@ export type BrandingDomainGetReturn = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -7305,6 +7746,9 @@ export type RejectedSender = {
 	senderHostname: string;
 	recipientMailAddress: string;
 	reason: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -7345,6 +7789,9 @@ export type RejectedSendersRef = {
     // == values
 
 	_id: Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -7387,6 +7834,9 @@ export type SecondFactorAuthDeleteData = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -7435,6 +7885,9 @@ export type TakeOverDeletedAddressData = {
 	authVerifier: string;
 	recoverCodeVerifier: null | string;
 	targetAccountMailAddress: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -7479,6 +7932,9 @@ export type WebsocketLeaderStatus = {
 	leaderStatus: boolean;
 	applicationVersionSum: null | NumberString;
 	applicationTypesHash: null | string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -7533,6 +7989,9 @@ export type GiftCard = {
 	migrated: boolean;
 	_ownerKeyVersion: null | NumberString;
 	_kdfNonce: null | Uint8Array;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -7575,6 +8034,9 @@ export type GiftCardsRef = {
 
 	_id: Id;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	items: Id;
@@ -7616,6 +8078,9 @@ export type GiftCardOption = {
 
 	_id: Id;
 	value: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -7660,6 +8125,9 @@ export type GiftCardGetReturn = {
 	_format: NumberString;
 	maxPerPeriod: NumberString;
 	period: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -7708,6 +8176,9 @@ export type GiftCardCreateData = {
 	value: NumberString;
 	keyHash: Uint8Array;
 	ownerKeyVersion: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -7750,6 +8221,9 @@ export type GiftCardDeleteData = {
 
 	_format: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	giftCard: IdTuple;
@@ -7791,6 +8265,9 @@ export type GiftCardCreateReturn = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -7838,6 +8315,9 @@ export type GiftCardRedeemData = {
 	keyHash: Uint8Array;
 	countryCode: string;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	giftCardInfo: Id;
@@ -7883,6 +8363,9 @@ export type GiftCardRedeemGetReturn = {
 	_format: NumberString;
 	message: string;
 	value: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -7930,6 +8413,9 @@ export type Braintree3ds2Request = {
 	clientToken: string;
 	nonce: string;
 	bin: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -7972,6 +8458,9 @@ export type Braintree3ds2Response = {
 	_id: Id;
 	clientToken: string;
 	nonce: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -8012,6 +8501,9 @@ export type PaymentDataServicePostData = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -8056,6 +8548,9 @@ export type PaymentDataServiceGetData = {
 	_format: NumberString;
 	clientType: null | NumberString;
 	subscriptionApp: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -8098,6 +8593,9 @@ export type TypeInfo = {
 	_id: Id;
 	application: string;
 	typeId: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -8138,6 +8636,9 @@ export type ArchiveRef = {
 
 	_id: Id;
 	archiveId: Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -8180,6 +8681,9 @@ export type ArchiveType = {
     // == values
 
 	_id: Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -8228,6 +8732,9 @@ export type Blob = {
 	archiveId: Id;
 	size: NumberString;
 	blobId: Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -8274,6 +8781,9 @@ export type WebauthnResponseData = {
 	clientData: Uint8Array;
 	authenticatorData: Uint8Array;
 	signature: Uint8Array;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -8314,6 +8824,9 @@ export type BlobReferenceTokenWrapper = {
 
 	_id: Id;
 	blobReferenceToken: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -8362,6 +8875,9 @@ export type CustomerAccountTerminationRequest = {
 	terminationDate: Date;
 	terminationRequestDate: Date;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	customer: Id;
@@ -8406,6 +8922,9 @@ export type CustomerAccountTerminationPostIn = {
 	_format: NumberString;
 	terminationDate: null | Date;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	surveyData: null | SurveyData;
@@ -8447,6 +8966,9 @@ export type CustomerAccountTerminationPostOut = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -8491,6 +9013,9 @@ export type MailAddressAvailability = {
 	_id: Id;
 	mailAddress: string;
 	available: boolean;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -8534,6 +9059,9 @@ export type MultipleMailAddressAvailabilityData = {
 	_format: NumberString;
 	signupToken: null | string;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	mailAddresses: StringWrapper[];
@@ -8575,6 +9103,9 @@ export type MultipleMailAddressAvailabilityReturn = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -8630,6 +9161,9 @@ export type InstanceSessionKey = {
 	symKeyVersion: NumberString;
 	keyVerificationState: null | Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	typeInfo: TypeInfo;
@@ -8683,6 +9217,9 @@ export type BucketKey = {
 	recipientKeyVersion: NumberString;
 	senderKeyVersion: null | NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	keyGroup: null | Id;
@@ -8726,6 +9263,9 @@ export type UpdateSessionKeysPostIn = {
 
 	_format: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	ownerEncSessionKeys: InstanceSessionKey[];
@@ -8768,6 +9308,9 @@ export type ReferralCodeGetIn = {
 
 	_format: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	referralCode: Id;
@@ -8807,6 +9350,9 @@ export type ReferralCodePostIn = {
     // == values
 
 	_format: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -8847,6 +9393,9 @@ export type ReferralCodePostOut = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -8889,6 +9438,9 @@ export type DateWrapper = {
 
 	_id: Id;
 	date: Date;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -8929,6 +9481,9 @@ export type MailAddressAliasGetIn = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -8995,6 +9550,9 @@ export type PlanConfiguration = {
 	maxLabels: NumberString;
 	scheduledMails: boolean;
 	drive: boolean;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -9035,6 +9593,9 @@ export type PlanServiceGetOut = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -9081,6 +9642,9 @@ export type PublicKeyPutIn = {
 	_format: NumberString;
 	pubEccKey: Uint8Array;
 	symEncPrivEccKey: Uint8Array;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -9133,6 +9697,9 @@ export type InvoiceDataItem = {
 	totalPrice: NumberString;
 	startDate: null | Date;
 	endDate: null | Date;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -9198,6 +9765,9 @@ export type InvoiceDataGetOut = {
 	grandTotal: NumberString;
 	vatType: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	items: InvoiceDataItem[];
@@ -9239,6 +9809,9 @@ export type InvoiceDataGetIn = {
 
 	_format: NumberString;
 	invoiceNumber: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -9289,6 +9862,9 @@ export type ChangeKdfPostIn = {
 	oldVerifier: Uint8Array;
 	kdfVersion: NumberString;
 	userGroupKeyVersion: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -9341,6 +9917,9 @@ export type GroupKey = {
 	adminGroupEncGKey: null | Uint8Array;
 	adminGroupKeyVersion: null | NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	keyPair: null | KeyPair;
@@ -9383,6 +9962,9 @@ export type GroupKeysRef = {
     // == values
 
 	_id: Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -9436,6 +10018,9 @@ export type KeyRotation = {
 	targetKeyVersion: NumberString;
 	groupKeyRotationType: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	adminPubKeyMac: null | KeyMac;
@@ -9480,6 +10065,9 @@ export type KeyRotationsRef = {
     // == values
 
 	_id: Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -9532,6 +10120,9 @@ export type SurveyData = {
 	version: NumberString;
 	clientVersion: string;
 	clientPlatform: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -9574,6 +10165,9 @@ export type IdTupleWrapper = {
 	_id: Id;
 	listId: Id;
 	listElementId: Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -9619,6 +10213,9 @@ export type UserGroupKeyDistribution = {
 	_ownerGroup: null | Id;
 	distributionEncUserGroupKey: Uint8Array;
 	userGroupKeyVersion: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -9671,6 +10268,9 @@ export type GroupKeyRotationData = {
 	adminGroupEncGroupKey: null | Uint8Array;
 	adminGroupKeyVersion: null | NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	group: Id;
@@ -9716,6 +10316,9 @@ export type GroupKeyRotationPostIn = {
 
 	_format: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	groupKeyUpdates: GroupKeyRotationData[];
@@ -9759,6 +10362,9 @@ export type GroupKeyRotationInfoGetOut = {
 
 	_format: NumberString;
 	userOrAdminGroupKeyRotationScheduled: boolean;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -9807,6 +10413,9 @@ export type RecoverCodeData = {
 	recoveryCodeEncUserGroupKey: Uint8Array;
 	userEncRecoveryCode: Uint8Array;
 	recoveryCodeVerifier: Uint8Array;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -9867,6 +10476,9 @@ export type UserGroupKeyRotationData = {
 	authVerifier: Uint8Array;
 	userGroupEncAdminGroupKey: null | Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	keyPair: KeyPair;
@@ -9914,6 +10526,9 @@ export type AdminGroupKeyRotationPostIn = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -9970,6 +10585,9 @@ export type GroupKeyUpdate = {
 	groupKeyVersion: NumberString;
 	_kdfNonce: null | Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	bucketKey: BucketKey;
@@ -10012,6 +10630,9 @@ export type GroupKeyUpdatesRef = {
     // == values
 
 	_id: Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -10071,6 +10692,9 @@ export type PubEncKeyData = {
 	senderIdentifier: null | string;
 	senderIdentifierType: null | NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	symKeyMac: null | KeyMac;
@@ -10118,6 +10742,9 @@ export type GroupKeyUpdateData = {
 	sessionKeyEncGroupKeyVersion: NumberString;
 	sessionKeyEncGroupKey: Uint8Array;
 	bucketKeyEncSessionKey: Uint8Array;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -10167,6 +10794,9 @@ export type GroupMembershipKeyData = {
 	symKeyVersion: NumberString;
 	symEncGKey: Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	group: Id;
@@ -10208,6 +10838,9 @@ export type MembershipPutIn = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -10254,6 +10887,9 @@ export type GroupMembershipUpdateData = {
 	_id: Id;
 	userEncGroupKey: Uint8Array;
 	userKeyVersion: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -10306,6 +10942,9 @@ export type AffiliatePartnerKpiMonthSummary = {
 	totalFree: NumberString;
 	totalPaid: NumberString;
 	commission: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -10353,6 +10992,9 @@ export type AffiliatePartnerKpiServiceGetOut = {
 	accumulatedCommission: NumberString;
 	creditedCommission: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	kpis: AffiliatePartnerKpiMonthSummary[];
@@ -10394,6 +11036,9 @@ export type UserGroupKeyRotationPostIn = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -10443,6 +11088,9 @@ export type KeyMac = {
 	tag: Uint8Array;
 	taggingKeyVersion: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	taggingGroup: Id;
@@ -10484,6 +11132,9 @@ export type AppStoreSubscriptionGetOut = {
 
 	_format: NumberString;
 	app: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -10524,6 +11175,9 @@ export type AppStoreSubscriptionGetIn = {
 
 	_format: NumberString;
 	subscriptionId: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -10564,6 +11218,9 @@ export type VerifierTokenServiceOut = {
 
 	_format: NumberString;
 	token: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -10604,6 +11261,9 @@ export type VerifierTokenServiceIn = {
 
 	_format: NumberString;
 	authVerifier: Uint8Array;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -10646,6 +11306,9 @@ export type CalendarAdvancedRepeatRule = {
 	_id: Id;
 	ruleType: NumberString;
 	interval: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -10687,6 +11350,9 @@ export type AdminGroupKeyDistributionElement = {
     // == values
 
 	_id: Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -10731,6 +11397,9 @@ export type AdminGroupKeyRotationPutIn = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -10780,6 +11449,9 @@ export type PubDistributionKey = {
 	pubEccKey: Uint8Array;
 	pubKyberKey: Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	userGroupId: Id;
@@ -10824,6 +11496,9 @@ export type AdminGroupKeyRotationGetOut = {
 
 	_format: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	userGroupIdsMissingDistributionKeys: Id[];
@@ -10866,6 +11541,9 @@ export type SurveyDataPostIn = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -10912,6 +11590,9 @@ export type Patch = {
 	patchOperation: NumberString;
 	attributePath: string;
 	value: null | string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -10961,6 +11642,9 @@ export type IdentityKeyPair = {
 	publicEd25519Key: Uint8Array;
 	privateEd25519Key: Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	publicKeyMac: KeyMac;
@@ -11008,6 +11692,9 @@ export type PublicKeySignature = {
 	signingKeyVersion: NumberString;
 	signatureType: NumberString;
 	publicKeyVersion: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -11052,6 +11739,9 @@ export type IdentityKeyGetIn = {
 	version: null | NumberString;
 	identifierType: NumberString;
 	identifier: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -11094,6 +11784,9 @@ export type IdentityKeyGetOut = {
 	_format: NumberString;
 	publicIdentityKey: Uint8Array;
 	publicIdentityKeyVersion: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -11135,6 +11828,9 @@ export type IdentityKeyPostIn = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -11178,6 +11874,9 @@ export type Rollout = {
 
 	_id: Id;
 	rolloutType: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -11218,6 +11917,9 @@ export type RolloutGetOut = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -11260,6 +11962,9 @@ export type PatchList = {
     // == values
 
 	_id: Id;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
 
     // == associations
 
@@ -11304,6 +12009,9 @@ export type CaptchaChallenge = {
 	_id: Id;
 	challenge: Uint8Array;
 	description: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -11348,6 +12056,9 @@ export type TimelockCaptchaGetIn = {
 	_format: NumberString;
 	signupToken: string;
 	timeToSolveCalibrationChallenge: null | NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -11394,6 +12105,9 @@ export type TimelockCaptchaGetOut = {
 	difficulty: string;
 	modulus: string;
 	base: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -11434,6 +12148,9 @@ export type ClientPerformanceInfo = {
 
 	_id: Id;
 	isAutomatedBrowser: boolean;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -11476,6 +12193,9 @@ export type AbuseInfo = {
 	_id: Id;
 	criterion: string;
 	value: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -11523,6 +12243,9 @@ export type PartnerManagedCustomer = {
 	_ownerKeyVersion: null | NumberString;
 	_kdfNonce: null | Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	customerInfo: IdTuple;
@@ -11567,6 +12290,9 @@ export type AdAttribution = {
 	_id: Id;
 	attributionId: string;
 	attributionType: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -11617,6 +12343,9 @@ export type OperationStatusUpdate = {
 	status: NumberString;
 	statusCode: null | NumberString;
 	reason: null | string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -11665,6 +12394,9 @@ export type UserAlarmInfoData = {
 	encryptedTrigger: Uint8Array;
 	alarmIdentifier: string;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	ownerGroup: Id;
@@ -11711,6 +12443,9 @@ export type SubscriptionReference = {
 	subscriptionProvider: NumberString;
 	foreignKey: null | string;
 	subscriptionApp: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -11753,6 +12488,9 @@ export type RenewalPreferenceServicePostIn = {
 	_format: NumberString;
 	isEnabled: boolean;
 	customerId: Id;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -11800,6 +12538,9 @@ export type InstanceKdfNonce = {
 	instanceId: Id;
 	kdfNonce: Uint8Array;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	typeInfo: TypeInfo;
@@ -11842,6 +12583,9 @@ export type UpdateKdfNoncePostIn = {
 
 	_format: NumberString;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 	instanceKdfNonce: InstanceKdfNonce;
@@ -11883,6 +12627,9 @@ export type UpdateKdfNoncePostOut = {
 
 	_format: NumberString;
 	kdfNonce: Uint8Array;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -11935,6 +12682,9 @@ export type SubscriptionRevocationRequest = {
 	latestDowngradeFailedNotification: null | Date;
 	downgradeGracePeriodEnd: null | Date;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	customer: Id;
@@ -11976,6 +12726,9 @@ export type SubscriptionRevocationServicePostIn = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 

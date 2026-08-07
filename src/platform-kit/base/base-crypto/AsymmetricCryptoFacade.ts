@@ -38,7 +38,7 @@ import { Category, syncMetrics } from "../../utils/SyncMetrics"
 import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
 import { KeyVerificationMismatchError } from "../../network/error/KeyVerificationMismatchError.js"
 import { asCryptoProtoocolVersion } from "./Constants"
-import { createPublicKeyPutIn, PubEncKeyData, PublicKeyService } from "@tutao/entities/sys"
+import { createPublicKeyPutIn, PubEncKeyData, PublicKeyService_PUT } from "@tutao/entities/sys"
 import { RsaImplementation } from "../../crypto"
 import { TypeId } from "../../meta/EntityConstants"
 
@@ -348,7 +348,7 @@ export class AsymmetricCryptoFacade {
 			symEncPrivEccKey,
 			keyGroup: keyGroupId,
 		})
-		await this.serviceExecutor.put(PublicKeyService, data, null)
+		await this.serviceExecutor.execute(PublicKeyService_PUT, data, null)
 		return newX25519KeyPair
 	}
 }

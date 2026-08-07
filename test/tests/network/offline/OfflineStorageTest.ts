@@ -236,7 +236,7 @@ o.spec("OfflineStorageDbTest", function () {
 	})
 
 	o.spec("Unit test", function () {
-		async function getAllIdsForType(typeRef: TypeRef<unknown>): Promise<Id[]> {
+		async function getAllIdsForType(typeRef: TypeRef<Entity>): Promise<Id[]> {
 			const typeModel = await typeModelResolver.resolveClientTypeReference(typeRef)
 			let preparedQuery
 			switch (typeModel.type) {

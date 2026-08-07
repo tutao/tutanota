@@ -36,15 +36,14 @@ import {
 	createDebitServicePutData,
 	Customer,
 	CustomerTypeRef,
-	DebitService,
+	DebitService_PUT,
 	InvoiceInfo,
 	InvoiceInfoTypeRef,
 } from "@tutao/entities/sys"
 import { AccountType, AvailablePlans, NewPaidPlans, PaymentMethodType } from "../../../entities/sys/Utils"
-import { GENERATED_MAX_ID, idToElementId } from "@tutao/meta"
+import { GENERATED_MAX_ID, idToElementId, NON_EXISTENT_DATA_TRANSFER_ENTITY, NonExistentDataTransferEntity } from "@tutao/meta"
 import { getByAbbreviation } from "../gui/CountryList"
-import { CustomerAccountPosting } from "@tutao/entities/accounting"
-import { CustomerAccountService } from "../../../entities/accounting/Services"
+import { CustomerAccountPosting, CustomerAccountService_GET } from "@tutao/entities/accounting"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError } from "@tutao/rest-client/error"
@@ -421,7 +420,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	private loadPostings(): Promise<void> {
-		return locator.serviceExecutor.get(CustomerAccountService, null, null).then((result) => {
+		return locator.serviceExecutor.execute(CustomerAccountService_GET, NON_EXISTENT_DATA_TRANSFER_ENTITY, null).then((result) => {
 			this.postings = result.postings
 			this.outstandingBookingsPrice = Number(result.outstandingBookingsPrice)
 			this.balance = Number(result.balance)
@@ -465,7 +464,8 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					return showProgressDialog(
 						"pleaseWait_msg",
 						locator.serviceExecutor
-							.put(DebitService, createDebitServicePutData({}), null)
+							.execute(DebitService_PUT, createDebitServicePutData({}), null)
+							.then((_: NonExistentDataTransferEntity) => {})
 							.catch(ofClass(LockedError, () => "operationStillActive_msg" as TranslationKey))
 							.catch(ofClass(PreconditionFailedError, (error) => getPreconditionFailedPaymentMsg(error.data)))
 							.catch(ofClass(BadGatewayError, () => "paymentProviderNotAvailableError_msg" as TranslationKey))

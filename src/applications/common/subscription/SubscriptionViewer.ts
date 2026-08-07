@@ -14,7 +14,7 @@ import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
-	AppStoreSubscriptionService,
+	AppStoreSubscriptionService_GET,
 	Booking,
 	BookingTypeRef,
 	createAppStoreSubscriptionGetIn,
@@ -420,8 +420,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			return true
 		}
 
-		const appStoreSubscriptionData = await locator.serviceExecutor.get(
-			AppStoreSubscriptionService,
+		const appStoreSubscriptionData = await locator.serviceExecutor.execute(
+			AppStoreSubscriptionService_GET,
 			createAppStoreSubscriptionGetIn({ subscriptionId: elementIdPart(assertNotNull(accountingInfo.appStoreSubscription)) }),
 			null,
 		)

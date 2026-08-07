@@ -4,7 +4,7 @@ import { ColumnType, ViewColumn } from "../../../../ui/base/ViewColumn"
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { assertMainOrNode, FeatureType, isApp, isBrowser, Keys, ProgrammingError, UpgradePromptType } from "../../../../platform-kit/app-env"
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
-import { elementIdToId, getElementId, getIds, isSameId, isSameSingleId, isSameTypeRef, TypeRef } from "../../../../platform-kit/meta"
+import { elementIdToId, Entity, getElementId, getIds, isSameId, isSameSingleId, isSameTypeRef, TypeRef } from "../../../../platform-kit/meta"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import { MailReportType, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { SearchListView, SearchListViewAttrs } from "./SearchListView"
@@ -1279,7 +1279,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		m.redraw()
 	}
 
-	private getMainButton(typeRef: TypeRef<unknown>): {
+	private getMainButton(typeRef: TypeRef<Entity>): {
 		label: TranslationKey
 		click: ClickHandler
 	} | null {

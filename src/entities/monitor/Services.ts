@@ -1,22 +1,10 @@
-import { ReadCounterDataTypeRef } from "./TypeRefs.js"
-import { ReadCounterReturnTypeRef } from "./TypeRefs.js"
-import { WriteCounterDataTypeRef } from "./TypeRefs.js"
-import { ReportErrorInTypeRef } from "./TypeRefs.js"
+import { ReadCounterData, ReadCounterDataTypeRef } from "./TypeRefs.js"
+import { ReadCounterReturn, ReadCounterReturnTypeRef } from "./TypeRefs.js"
+import { WriteCounterData, WriteCounterDataTypeRef } from "./TypeRefs.js"
+import { ReportErrorIn, ReportErrorInTypeRef } from "./TypeRefs.js"
+import { GetService, PostService, PutService, DeleteService, NonExistentDataTransferEntity, NonExistentDataTransferEntityTypeRef } from "@tutao/meta"
 
-export const CounterService = Object.freeze({
-	app: "monitor",
-	name: "CounterService",
-	get: { data: ReadCounterDataTypeRef, return: ReadCounterReturnTypeRef },
-	post: { data: WriteCounterDataTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const CounterService_GET = new GetService<ReadCounterData, ReadCounterReturn>("monitor", "CounterService", ReadCounterDataTypeRef, ReadCounterReturnTypeRef)
+export const CounterService_POST = new PostService<WriteCounterData, NonExistentDataTransferEntity>("monitor", "CounterService", WriteCounterDataTypeRef, NonExistentDataTransferEntityTypeRef)
 
-export const ReportErrorService = Object.freeze({
-	app: "monitor",
-	name: "ReportErrorService",
-	get: null,
-	post: { data: ReportErrorInTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const ReportErrorService_POST = new PostService<ReportErrorIn, NonExistentDataTransferEntity>("monitor", "ReportErrorService", ReportErrorInTypeRef, NonExistentDataTransferEntityTypeRef)

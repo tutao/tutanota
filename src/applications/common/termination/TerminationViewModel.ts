@@ -12,7 +12,7 @@ import {
 	createCustomerAccountTerminationPostIn,
 	CustomerAccountTerminationRequest,
 	CustomerAccountTerminationRequestTypeRef,
-	CustomerAccountTerminationService,
+	CustomerAccountTerminationService_POST,
 	SurveyData,
 } from "@tutao/entities/sys"
 import type { NewSessionData } from "../../../platform-kit/base/facades/LoginFacade"
@@ -59,7 +59,7 @@ export class TerminationViewModel {
 				terminationDate: this.getTerminationDate(),
 				surveyData: surveyData,
 			})
-			let serviceResponse = await this.serviceExecutor.post(CustomerAccountTerminationService, inputData, null)
+			const serviceResponse = await this.serviceExecutor.execute(CustomerAccountTerminationService_POST, inputData, null)
 			this.acceptedTerminationRequest = await this.entityClient.load(CustomerAccountTerminationRequestTypeRef, serviceResponse.terminationRequest)
 		} catch (e) {
 			if (e instanceof PreconditionFailedError) {

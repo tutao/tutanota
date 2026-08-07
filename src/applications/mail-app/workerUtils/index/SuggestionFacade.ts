@@ -1,13 +1,13 @@
 import { stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "../../../../platform-kit/utils"
 import { SearchTermSuggestionsOS } from "../../../common/api/worker/search/IndexTables.js"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
-import { TypeRef } from "../../../../platform-kit/meta"
+import { PersistentEntity, TypeRef } from "../../../../platform-kit/meta"
 import { ClientTypeModelResolver } from "../../../../platform-kit/instance-pipeline"
 import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
 
 export type SuggestionsType = Record<string, string[]>
 
-export class SuggestionFacade<T> {
+export class SuggestionFacade<T extends PersistentEntity> {
 	_db: EncryptedDbWrapper
 	type: TypeRef<T>
 	_suggestions: SuggestionsType

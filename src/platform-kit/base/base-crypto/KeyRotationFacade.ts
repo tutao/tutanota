@@ -43,7 +43,9 @@ import { RecoverCodeFacade } from "../facades/lazy/RecoverCodeFacade.js"
 import { brandKeyMac, KeyAuthenticationFacade, SystemMapKind } from "../../network/KeyAuthenticationFacade.js"
 import {
 	AdminGroupKeyDistributionElement,
-	AdminGroupKeyRotationService,
+	AdminGroupKeyRotationService_GET,
+	AdminGroupKeyRotationService_POST,
+	AdminGroupKeyRotationService_PUT,
 	createAdminGroupKeyDistributionElement,
 	createAdminGroupKeyRotationPostIn,
 	createAdminGroupKeyRotationPutIn,
@@ -63,7 +65,7 @@ import {
 	Group,
 	GroupInfoTypeRef,
 	GroupKeyRotationData,
-	GroupKeyRotationService,
+	GroupKeyRotationService_POST,
 	GroupKeyUpdate,
 	GroupKeyUpdateData,
 	GroupKeyUpdateTypeRef,
@@ -76,19 +78,30 @@ import {
 	KeyPair,
 	KeyRotation,
 	KeyRotationTypeRef,
-	MembershipService,
+	MembershipService_PUT,
 	PubDistributionKey,
 	PubEncKeyData,
 	PublicKeySignature,
 	RecoverCodeData,
 	SentGroupInvitationTypeRef,
 	User,
-	UserGroupKeyRotationService,
+	UserGroupKeyRotationService_POST,
 	UserGroupRootTypeRef,
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { AccountType, GroupType } from "../../../entities/sys/Utils"
-import { assertEnumValue, elementIdPart, elementIdToId, getElementId, idToElementId, isSameId, isSameSingleId, listIdPart } from "@tutao/meta"
+import {
+	assertEnumValue,
+	elementIdPart,
+	elementIdToId,
+	getElementId,
+	idToElementId,
+	isSameId,
+	isSameSingleId,
+	listIdPart,
+	NON_EXISTENT_DATA_TRANSFER_ENTITY,
+	NonExistentDataTransferEntity,
+} from "@tutao/meta"
 import { asPublicKeyIdentifier } from "./Constants"
 import { GroupInvitationPostData } from "@tutao/entities/tutanota"
 
@@ -267,7 +280,7 @@ export class KeyRotationFacade {
 		if (serviceData.groupKeyUpdates.length <= 0) {
 			return
 		}
-		await this.serviceExecutor.post(GroupKeyRotationService, serviceData, null)
+		await this.serviceExecutor.execute(GroupKeyRotationService_POST, serviceData, null)
 
 		for (const groupKeyUpdate of serviceData.groupKeyUpdates) {
 			this.groupIdsThatPerformedKeyRotations.add(groupKeyUpdate.group)
@@ -292,7 +305,7 @@ export class KeyRotationFacade {
 		const currentAdminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupMembership.group)
 		const adminKeyRotationData = await this.prepareKeyRotationForSingleAdmin(keyRotation, user, currentUserGroupKey, currentAdminGroupKey, passphraseKey)
 
-		await this.serviceExecutor.post(AdminGroupKeyRotationService, adminKeyRotationData.keyRotationData, null)
+		await this.serviceExecutor.execute(AdminGroupKeyRotationService_POST, adminKeyRotationData.keyRotationData, null)
 		this.userFacade.setNewUserGroupKey(adminKeyRotationData.newUserGroupKeys.symGroupKey)
 		this.groupIdsThatPerformedKeyRotations.add(user.userGroup.group)
 	}
@@ -865,7 +878,7 @@ export class KeyRotationFacade {
 		const membershipPutIn = createMembershipPutIn({
 			groupKeyUpdates,
 		})
-		return this.serviceExecutor.put(MembershipService, membershipPutIn, null)
+		return this.serviceExecutor.execute(MembershipService_PUT, membershipPutIn, null).then((_: NonExistentDataTransferEntity) => {})
 	}
 
 	private prepareGroupMembershipUpdate(groupKeyUpdate: GroupKeyUpdate): GroupMembershipKeyData {
@@ -953,8 +966,8 @@ export class KeyRotationFacade {
 			userGroupEncAdminGroupKey,
 		})
 
-		await this.serviceExecutor.post(
-			UserGroupKeyRotationService,
+		await this.serviceExecutor.execute(
+			UserGroupKeyRotationService_POST,
 			createUserGroupKeyRotationPostIn({
 				userGroupKeyData,
 			}),
@@ -1176,12 +1189,16 @@ export class KeyRotationFacade {
 				taggingKeyVersion: currentAdminGroupKey.version.toString(),
 			}),
 		})
-		await this.serviceExecutor.put(AdminGroupKeyRotationService, putDistributionKeyPairsOnKeyRotation, null)
+		await this.serviceExecutor.execute(AdminGroupKeyRotationService_PUT, putDistributionKeyPairsOnKeyRotation, null)
 	}
 
 	async rotateMultipleAdminsGroupKeys(user: User, passphraseKey: Aes256Key, keyRotation: KeyRotation) {
 		// first get all admin members' available distribution keys
-		const { distributionKeys, userGroupIdsMissingDistributionKeys } = await this.serviceExecutor.get(AdminGroupKeyRotationService, null, null)
+		const { distributionKeys, userGroupIdsMissingDistributionKeys } = await this.serviceExecutor.execute(
+			AdminGroupKeyRotationService_GET,
+			NON_EXISTENT_DATA_TRANSFER_ENTITY,
+			null,
+		)
 
 		switch (this.decideMultiAdminGroupKeyRotationNextPathOfAction(userGroupIdsMissingDistributionKeys, user, distributionKeys)) {
 			case MultiAdminGroupKeyAdminActionPath.WAIT_FOR_OTHER_ADMINS:
@@ -1302,7 +1319,7 @@ export class KeyRotationFacade {
 		}
 
 		// call service
-		await this.serviceExecutor.post(AdminGroupKeyRotationService, keyRotationData, null)
+		await this.serviceExecutor.execute(AdminGroupKeyRotationService_POST, keyRotationData, null)
 		this.userFacade.setNewUserGroupKey(symUserGroupKey)
 		this.groupIdsThatPerformedKeyRotations.add(user.userGroup.group)
 	}

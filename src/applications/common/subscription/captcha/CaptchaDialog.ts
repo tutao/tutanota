@@ -7,7 +7,7 @@ import m, { Children } from "mithril"
 import { LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { px } from "../../../../ui/size"
-import { CaptchaChallenge, createRegistrationCaptchaServiceData, RegistrationCaptchaService } from "@tutao/entities/sys"
+import { CaptchaChallenge, createRegistrationCaptchaServiceData, RegistrationCaptchaService_POST } from "@tutao/entities/sys"
 
 const enum CaptchaType {
 	Visual,
@@ -101,8 +101,8 @@ export function showCaptchaDialog(audioChallenge: CaptchaChallenge, visualChalle
 			dialog.close()
 			viewModel.revokeBlobUrl()
 			locator.serviceExecutor
-				.post(
-					RegistrationCaptchaService,
+				.execute(
+					RegistrationCaptchaService_POST,
 					createRegistrationCaptchaServiceData({
 						token,
 						visualChallengeResponse: viewModel.getSelectedCaptchaType() === CaptchaType.Visual ? parsedInput : null,

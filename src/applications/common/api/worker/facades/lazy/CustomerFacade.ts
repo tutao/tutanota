@@ -32,31 +32,35 @@ import {
 	VersionedKey,
 } from "@tutao/crypto"
 import { CounterType } from "../../../../../../entities/monitor/Utils"
-import { createCustomerAccountCreateData, CustomerAccountService } from "@tutao/entities/tutanota"
+import { createCustomerAccountCreateData, CustomerAccountService_POST } from "@tutao/entities/tutanota"
 import { SpamRuleFieldType, SpamRuleType } from "../../../../../../entities/tutanota/Utils"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
-	BrandingDomainService,
+	BrandingDomainService_DELETE,
+	BrandingDomainService_POST,
+	BrandingDomainService_PUT,
 	createBrandingDomainData,
 	createBrandingDomainDeleteData,
 	createCreateCustomerServerPropertiesData,
 	createCustomDomainData,
-	CreateCustomerServerProperties,
+	CreateCustomerServerProperties_POST,
 	createEmailSenderListElement,
 	createInvoiceDataGetIn,
 	createPaymentDataServicePutData,
 	CustomDomainReturn,
-	CustomDomainService,
+	CustomDomainService_DELETE,
+	CustomDomainService_POST,
+	CustomDomainService_PUT,
 	CustomerInfoTypeRef,
 	CustomerServerProperties,
 	CustomerServerPropertiesTypeRef,
 	CustomerTypeRef,
 	EmailSenderListElement,
-	InvoiceDataService,
-	PaymentDataService,
+	InvoiceDataService_GET,
+	PaymentDataService_PUT,
 	PaymentDataServicePutReturn,
-	SystemKeysService,
+	SystemKeysService_GET,
 	User,
 } from "@tutao/entities/sys"
 import { AccountType, BookingItemFeatureType, GroupType } from "../../../../../../entities/sys/Utils"
@@ -68,7 +72,7 @@ import {
 	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	DEFAULT_EXTRA_SERVICE_PARAMS,
 } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
-import { idToElementId } from "@tutao/meta"
+import { idToElementId, NON_EXISTENT_DATA_TRANSFER_ENTITY } from "@tutao/meta"
 
 assertWorkerOrNode()
 
@@ -108,7 +112,7 @@ export class CustomerFacade {
 			domain: domainName.trim().toLowerCase(),
 			catchAllMailGroup: null,
 		})
-		return this.serviceExecutor.post(CustomDomainService, data, null)
+		return this.serviceExecutor.execute(CustomDomainService_POST, data, null)
 	}
 
 	async removeDomain(domainName: string): Promise<void> {
@@ -116,7 +120,7 @@ export class CustomerFacade {
 			domain: domainName.trim().toLowerCase(),
 			catchAllMailGroup: null,
 		})
-		await this.serviceExecutor.delete(CustomDomainService, data, null)
+		await this.serviceExecutor.execute(CustomDomainService_DELETE, data, null)
 	}
 
 	async setCatchAllGroup(domainName: string, mailGroupId: Id | null): Promise<void> {
@@ -124,7 +128,7 @@ export class CustomerFacade {
 			domain: domainName.trim().toLowerCase(),
 			catchAllMailGroup: mailGroupId,
 		})
-		await this.serviceExecutor.put(CustomDomainService, data, null)
+		await this.serviceExecutor.execute(CustomDomainService_PUT, data, null)
 	}
 
 	async orderWhitelabelCertificate(domainName: string): Promise<void> {
@@ -134,7 +138,7 @@ export class CustomerFacade {
 		let existingBrandingDomain = getWhitelabelDomainInfo(customerInfo, domainName)
 		let sessionKey = this.cryptoWrapper.aes256RandomKey()
 
-		const keyData = await this.serviceExecutor.get(SystemKeysService, null, null)
+		const keyData = await this.serviceExecutor.execute(SystemKeysService_GET, NON_EXISTENT_DATA_TRANSFER_ENTITY, null)
 		const systemAdminPubKeys = this.publicEncryptionKeyProvider.convertFromSystemKeysReturn(keyData)
 		const { pubEncSymKeyBytes, cryptoProtocolVersion } = await this.asymmetricCryptoFacade.asymEncryptSymKey(
 			sessionKey,
@@ -150,9 +154,9 @@ export class CustomerFacade {
 			sessionEncPemCertificateChain: null,
 		})
 		if (existingBrandingDomain) {
-			await this.serviceExecutor.put(BrandingDomainService, data, null)
+			await this.serviceExecutor.execute(BrandingDomainService_PUT, data, null)
 		} else {
-			await this.serviceExecutor.post(BrandingDomainService, data, null)
+			await this.serviceExecutor.execute(BrandingDomainService_POST, data, null)
 		}
 	}
 
@@ -164,7 +168,7 @@ export class CustomerFacade {
 		const data = createBrandingDomainDeleteData({
 			domain: domainName,
 		})
-		await this.serviceExecutor.delete(BrandingDomainService, data, null)
+		await this.serviceExecutor.execute(BrandingDomainService_DELETE, data, null)
 	}
 
 	/**
@@ -222,7 +226,7 @@ export class CustomerFacade {
 				adminGroupEncSessionKey: adminGroupEncSessionKey.key,
 				adminGroupKeyVersion: adminGroupEncSessionKey.encryptingKeyVersion.toString(),
 			})
-			const returnData = await this.serviceExecutor.post(CreateCustomerServerProperties, data, null)
+			const returnData = await this.serviceExecutor.execute(CreateCustomerServerProperties_POST, data, null)
 			cspId = returnData.id
 		}
 		return this.entityClient.load(CustomerServerPropertiesTypeRef, idToElementId(cspId))
@@ -286,7 +290,7 @@ export class CustomerFacade {
 		const accountingInfoSessionKey = this.cryptoWrapper.aes256RandomKey()
 		const customerServerPropertiesSessionKey = this.cryptoWrapper.aes256RandomKey()
 
-		const keyData = await this.serviceExecutor.get(SystemKeysService, null, null)
+		const keyData = await this.serviceExecutor.execute(SystemKeysService_GET, NON_EXISTENT_DATA_TRANSFER_ENTITY, null)
 		const pubRsaKey = keyData.systemAdminPubRsaKey
 		let systemAdminPubEncAccountingInfoSessionKey: VersionedEncryptedKey
 		let systemAdminPublicProtocolVersion: CryptoProtocolVersion
@@ -364,7 +368,7 @@ export class CustomerFacade {
 			accountGroupKeyVersion: "0",
 			app,
 		})
-		await this.serviceExecutor.post(CustomerAccountService, data, null)
+		await this.serviceExecutor.execute(CustomerAccountService_POST, data, null)
 
 		return recoverData.hexCode
 	}
@@ -391,7 +395,7 @@ export class CustomerFacade {
 			creditCard: paymentData && paymentData.creditCardData ? paymentData.creditCardData : null,
 			confirmedCountry: confirmedInvoiceCountry ? confirmedInvoiceCountry.a : null,
 		})
-		return this.serviceExecutor.put(PaymentDataService, service, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: accountingInfoSessionKey })
+		return this.serviceExecutor.execute(PaymentDataService_PUT, service, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: accountingInfoSessionKey })
 	}
 
 	/**
@@ -415,7 +419,7 @@ export class CustomerFacade {
 	}
 
 	async generatePdfInvoice(invoiceNumber: string): Promise<DataFile> {
-		const invoiceData = await this.serviceExecutor.get(InvoiceDataService, createInvoiceDataGetIn({ invoiceNumber }), null)
+		const invoiceData = await this.serviceExecutor.execute(InvoiceDataService_GET, createInvoiceDataGetIn({ invoiceNumber }), null)
 		const writer = await this.pdfWriter()
 		const { PdfInvoiceGenerator } = await import("../../invoicegen/PdfInvoiceGenerator.js")
 		const pdfGenerator = new PdfInvoiceGenerator(writer, invoiceData, invoiceNumber, this.getCustomerId())
@@ -450,7 +454,7 @@ export class CustomerFacade {
 	async generateXRechnungInvoice(invoiceNumber: string): Promise<DataFile> {
 		const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(assertNotNull(this.userFacade.getUser()?.customer)))
 		const customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
-		const invoiceData = await this.serviceExecutor.get(InvoiceDataService, createInvoiceDataGetIn({ invoiceNumber }), null)
+		const invoiceData = await this.serviceExecutor.execute(InvoiceDataService_GET, createInvoiceDataGetIn({ invoiceNumber }), null)
 		const { XRechnungInvoiceGenerator } = await import("../../invoicegen/XRechnungInvoiceGenerator.js")
 		const xRechnungGenerator = new XRechnungInvoiceGenerator(invoiceData, invoiceNumber, this.getCustomerId(), customerInfo.registrationMailAddress)
 		const xRechnungFile = xRechnungGenerator.generate()

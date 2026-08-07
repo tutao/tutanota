@@ -272,7 +272,7 @@ export type TestEntity = Entity & {
 	testFinalBoolean: boolean
 }
 
-export const dummyResolver = (tr: TypeRef<unknown>) => {
+export const dummyResolver = (tr: TypeRef<Entity>) => {
 	switch (tr.typeId) {
 		case testTypeModel.id:
 			return Promise.resolve(testTypeModel)

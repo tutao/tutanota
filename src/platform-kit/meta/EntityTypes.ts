@@ -216,6 +216,7 @@ export type AnyEntityId = EntityId<Nullable<Id>, Id>
 export type ListElementId = EntityId<Id, Id>
 export type BlobElementId = EntityId<Id, Id>
 export type ElementId = EntityId<Nullable<never>, Id>
+export type DataTransferId = EntityId<Nullable<never>, Nullable<never>>
 
 /**
  * Entity types with instances that stand on their own, not being part of a list
@@ -239,6 +240,31 @@ export interface BlobElementEntity extends PersistentEntity {
 
 export interface PersistentEntity extends Entity {
 	_id: AnyEntityId
+}
+
+export interface DataTransferEntity extends Entity {
+	_id: DataTransferId
+}
+
+export const NonExistentDataTransferEntityTypeRef = new TypeRef<NonExistentDataTransferEntity>("non-existant-app", 0)
+class NonExistentEntityBrand extends TsBrand {
+	protected __brand: Nullable<never> = null
+}
+export type NonExistentDataTransferEntity = BrandedType<DataTransferEntity, NonExistentEntityBrand>
+export const NON_EXISTENT_DATA_TRANSFER_ENTITY: NonExistentDataTransferEntity = {
+	__brand: new NonExistentEntityBrand(),
+	_id: [null, null],
+	_kdfNonce: null,
+	_original: null,
+	_ownerEncSessionKey: null,
+	_ownerGroup: null,
+	_ownerKeyVersion: null,
+	_permissions: null,
+	_type: NonExistentDataTransferEntityTypeRef,
+	bucketKey: null,
+	isAdapter: false,
+	ownerEncSessionKey: null,
+	ownerEncSessionKeyVersion: null,
 }
 
 export interface AggregatedEntity extends Entity {
