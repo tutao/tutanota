@@ -86,7 +86,7 @@ import { UndoModel } from "../../UndoModel"
 import { PosRect } from "../../../../ui/utils/PosRect"
 import { Mail, MailSet } from "@tutao/entities/tutanota"
 import { MailReportType, MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
-import { elementIdPart, elementIdToId, getElementId, isSameId, isSameSingleId } from "../../../../platform-kit/meta"
+import { elementIdToId, getElementId, isSameId, isSameSingleId } from "../../../../platform-kit/meta"
 import { getMailFolderType, isFolder, isFolderReadOnly, isPermanentDeleteAllowedForFolder } from "../MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
@@ -483,7 +483,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				try {
 					await showProgressDialog(
 						"pleaseWait_msg",
-						this.mailViewModel.reapplyInboxRulesForMails(actionableMails, this.undoModel).then(async (movedMailIds) => {
+						this.mailViewModel.reapplyInboxRulesForMails(actionableMails, this.undoModel) /*.then(async (movedMailIds) => {
+							FIXME old inbox rule stuff that did some weird things we don't understand (moving mails again?)
 							const mailsToMoveToInbox = actionableMails
 								.filter((mail) => !movedMailIds?.some((movedMailId) => isSameSingleId(elementIdPart(mail._id), movedMailId)))
 								.map((mail) => mail._id)
@@ -498,7 +499,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								undoModel: this.undoModel,
 								contactModel: mailLocator.contactModel,
 							})
-						}),
+						})*/,
 					)
 				} catch (e) {
 					// handle the user cancelling the dialog
@@ -514,6 +515,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getReapplyInboxRulesAction(): (() => void) | null {
+		// FIXME need to check if using expandedInboxRules and if so use ExpandedInboxRuleHandler applyRulesToGivenMails
 		const currentFolder = this.mailViewModel.getMailSet()
 		//Inbox reapply rules should only be visible for paying users currently on the inbox folder.
 		if (!mailLocator.logins.getUserController().isPaidAccount() || currentFolder?.folderType !== MailSetKind.INBOX) {

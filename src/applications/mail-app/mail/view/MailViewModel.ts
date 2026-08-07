@@ -33,8 +33,7 @@ import { MailListDisplayMode } from "../../../common/misc/DeviceConfig"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { ProcessInboxHandler } from "../model/ProcessInboxHandler"
 import { mailLocator } from "../../mailLocator"
-import { getLabelsWithParentLabelNamesPrepended, moveMails } from "./MailGuiUtils"
-import { locator } from "../../../common/api/main/CommonLocator"
+import { getLabelsWithParentLabelNamesPrepended } from "./MailGuiUtils"
 import { UndoModel } from "../../UndoModel"
 import { SyncTracker } from "../../../common/api/main/SyncTracker"
 import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorage"
@@ -693,48 +692,51 @@ export class MailViewModel {
 			return
 		}
 
-		const currentFolder = this.getMailSet()
-		if (currentFolder == null) {
-			return
-		}
-
-		const inboxRuleHandler = mailLocator.processInboxHandler()
 		const mailboxDetails = await this.getMailboxDetails()
-		const targetFolderIdToFolderMailMap = new Map<Id, { folder: MailSet; mails: Mail[] }>()
+		await mailLocator.inboxRuleHandler().applyRulesToGivenMails(actionableMails, mailboxDetails)
 
-		// preload mailDetails, to cache in one request
-		await mailLocator.bulkMailLoader.loadMailDetails(actionableMails)
-
-		for (const mail of actionableMails) {
-			const folder = await inboxRuleHandler.getInboxRuleMoveTarget(mail, currentFolder, mailboxDetails)
-			const folderId = getElementId(folder)
-			if (!targetFolderIdToFolderMailMap.has(folderId)) {
-				targetFolderIdToFolderMailMap.set(folderId, { folder, mails: [] })
-			}
-			targetFolderIdToFolderMailMap.get(folderId)!.mails.push(mail)
-		}
-
-		let movedMailIds: IdTuple[] = []
-		for (const folderId of targetFolderIdToFolderMailMap.keys()) {
-			let { folder: targetFolder, mails } = assertNotNull(targetFolderIdToFolderMailMap.get(folderId))
-			if (isSameId(currentFolder._id, targetFolder._id)) {
-				continue
-			}
-
-			const resolvedMails: readonly IdTuple[] = await this.getResolvedMails(mails)
-			await moveMails({
-				targetFolder,
-				mailboxModel: locator.mailboxModel,
-				mailModel: mailLocator.mailModel,
-				mailIds: resolvedMails,
-				moveMode: this.getMoveMode(currentFolder),
-				undoModel,
-				contactModel: mailLocator.contactModel,
-			})
-			movedMailIds.push(...resolvedMails)
-		}
-
-		return movedMailIds.flat()
+		// FIXME this is for handling the old inbox rules
+		// const currentFolder = this.getFolder()
+		// if (currentFolder == null) {
+		// 	return
+		// }
+		//
+		// const inboxRuleHandler = mailLocator.processInboxHandler()
+		// const targetFolderIdToFolderMailMap = new Map<Id, { folder: MailSet; mails: Mail[] }>()
+		//
+		// // preload mailDetails, to cache in one request
+		// await mailLocator.bulkMailLoader.loadMailDetails(actionableMails)
+		//
+		// for (const mail of actionableMails) {
+		// 	const folder = await inboxRuleHandler.getInboxRuleMoveTarget(mail, currentFolder, mailboxDetails)
+		// 	const folderId = getElementId(folder)
+		// 	if (!targetFolderIdToFolderMailMap.has(folderId)) {
+		// 		targetFolderIdToFolderMailMap.set(folderId, { folder, mails: [] })
+		// 	}
+		// 	targetFolderIdToFolderMailMap.get(folderId)!.mails.push(mail)
+		// }
+		//
+		// let movedMailIds: IdTuple[] = []
+		// for (const folderId of targetFolderIdToFolderMailMap.keys()) {
+		// 	let { folder: targetFolder, mails } = assertNotNull(targetFolderIdToFolderMailMap.get(folderId))
+		// 	if (isSameId(currentFolder._id, targetFolder._id)) {
+		// 		continue
+		// 	}
+		//
+		// 	const resolvedMails: readonly IdTuple[] = await this.getResolvedMails(mails)
+		//  await moveMails({
+		// 		targetFolder,
+		// 		mailboxModel: locator.mailboxModel,
+		// 		mailModel: mailLocator.mailModel,
+		// 		mailIds: resolvedMails,
+		// 		moveMode: this.getMoveMode(currentFolder),
+		// 		undoModel,
+		// 		contactModel: mailLocator.contactModel,
+		// 	})
+		// 	movedMailIds.push(...resolvedMails)
+		// }
+		//
+		// return movedMailIds.flat()
 	}
 
 	private async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>, isInitialSyncDone: boolean) {
