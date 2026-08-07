@@ -679,6 +679,7 @@ export class MailViewerViewModel {
 	}
 
 	async reapplyInboxRuleForMail() {
+		// FIXME: need to check if using expanded inbox rules and if so use ExpandedInboxRuleHandeler applyRulesToGivenMails
 		const inboxRuleHandler = mailLocator.processInboxHandler()
 
 		const mail = this.mail

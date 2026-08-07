@@ -254,6 +254,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async reapplyAllInboxRules(progress: Stream<number>, abort: AbortController): Promise<number> {
+		// FIXME: need to check is using new inbox rules and if so use ExpandedInboxRuleHandler reapplyRulesToAllMails
 		const userController = mailLocator.logins.getUserController()
 		const inboxRules = userController.props.inboxRules
 		if (isEmpty(inboxRules)) {

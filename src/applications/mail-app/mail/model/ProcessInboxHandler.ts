@@ -123,6 +123,7 @@ export class ProcessInboxHandler {
 		if (targetFolder.folderType === MailSetKind.INBOX || skipPredictionReason === SkipClientSpamClassificationReason.None) {
 			// mail landed in Inbox or was moved to Spam folder by client side classification
 			const inboxRuleHandler = this.inboxRuleHandler()
+			// FIXME need to check if using ExpandedInboxRules and check there. Big question though: how to handle exclude from spam?
 			matchingInboxRule = await inboxRuleHandler.findMatchingInboxRule(mail, targetFolder)
 
 			if (matchingInboxRule != null) {
@@ -163,14 +164,6 @@ export class ProcessInboxHandler {
 		}
 
 		void this.sendProcessInboxServiceRequest(this.mailFacade)
-		//fixme: move applying result into ruleHandler, group mails and apply them
-		if (applyInboxRuleResultActions && matchingInboxRule && this.inboxRuleHandler().getReadResultValue(matchingInboxRule)) {
-			await this.mailFacade.markMails([mail._id], false)
-		}
-		/* FIXME: apply the rest of the actions if applyInboxRuleResultActions is true
-		 * Note: the move result action is applied through ProcessInboxService, so we only apply the rest of the actions
-		 * once the move is done because both move and label update the sets field on the mail.
-		 */
 
 		return targetFolder
 	}

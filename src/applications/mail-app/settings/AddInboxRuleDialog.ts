@@ -331,7 +331,7 @@ export async function show(
 		}
 
 		const applyRule = async (rule: ExpandedInboxRule, progress: Stream<number>, abort: AbortController) => {
-			// FIXME: Adapting this applyRule is the focus of another issue
+			// FIXME use ExpandedInboxRuleHandler reapplyRulesToAllMails
 			throw new ProgrammingError("Not properly using ExpandedInboxRules!")
 
 			// const inbox = assertSystemFolderOfType(folders, MailSetKind.INBOX)

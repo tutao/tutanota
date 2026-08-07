@@ -513,6 +513,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getReapplyInboxRulesAction(): (() => void) | null {
+		// FIXME need to check if using expandedInboxRules and if so use ExpandedInboxRuleHandler applyRulesToGivenMails
 		const currentFolder = this.mailViewModel.getFolder()
 		//Inbox reapply rules should only be visible for paying users currently on the inbox folder.
 		if (!mailLocator.logins.getUserController().isPaidAccount() || currentFolder?.folderType !== MailSetKind.INBOX) {
