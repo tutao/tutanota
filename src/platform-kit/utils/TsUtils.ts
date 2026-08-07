@@ -4,8 +4,8 @@ import { ProgrammingError } from "@tutao/app-env"
 
 // This file is not transpiled
 /* eslint-disable  no-restricted-syntax */
-/* eslint-disable local/noUnionExceptNullable */
 /* eslint-disable local/noUnnamedTypes */
+/* eslint-disable local/noUnionExceptNullable */
 
 /**
  * Integer constraint from 0 to n (using tail-recursion elimination)

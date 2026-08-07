@@ -9,11 +9,9 @@ import type { AddressInfo } from "node:net"
 import { matchers, object, reset, verify } from "testdouble"
 import { domainConfigStub } from "../TestUtils"
 import { ClientPlatform } from "../../../src/platform-kit/app-env/boot/ClientDetector"
-
-import { getServiceRestPath } from "../../../src/platform-kit/meta"
 import { APPLICATION_TYPES_HASH_HEADER, ServerModelInfo, UpdateAppTypesHashMiddleware } from "../../../src/platform-kit/instance-pipeline"
-import { ApplicationTypesService } from "@tutao/entities/base"
 import { DEFAULT_REST_CLIENT_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
+import { ApplicationTypesService_GET } from "@tutao/entities/base"
 
 type SuspensionHandler = restSuspension.SuspensionHandler
 
@@ -291,7 +289,7 @@ o.spec("RestClientTest", function () {
 			restClient.addMiddleware(updateTypesHashMiddleware)
 			let responseText = '{"msg":"Hello Client"}'
 
-			const applicationTypesServiceRestPath = getServiceRestPath(ApplicationTypesService)
+			const applicationTypesServiceRestPath = ApplicationTypesService_GET.serviceRestPath
 
 			app.get(applicationTypesServiceRestPath, (req, res) => {
 				o(req.method).equals("GET")

@@ -20,7 +20,7 @@ import {
 	ImportMailDataTypeRef,
 	ImportMailPostIn,
 	ImportMailPostOutTypeRef,
-	ImportMailService,
+	ImportMailService_POST,
 	MailAddress,
 	MailAddressTypeRef,
 } from "@tutao/entities/tutanota"
@@ -123,7 +123,7 @@ o.spec("ImportMailFacade", () => {
 
 		const postInCaptor = matchers.captor()
 		when(
-			serviceExecutorMock.post(ImportMailService, postInCaptor.capture(), {
+			serviceExecutorMock.execute(ImportMailService_POST, postInCaptor.capture(), {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				suspensionBehavior: SuspensionBehavior.Throw,
 			}),
@@ -133,7 +133,7 @@ o.spec("ImportMailFacade", () => {
 		verify(instancePipelineMock.mapAndEncrypt(ImportMailDataTypeRef, anything(), anything()), { times: 1 })
 
 		verify(
-			serviceExecutorMock.post(ImportMailService, postInCaptor.capture(), {
+			serviceExecutorMock.execute(ImportMailService_POST, postInCaptor.capture(), {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				suspensionBehavior: SuspensionBehavior.Throw,
 			}),
@@ -159,12 +159,12 @@ o.spec("ImportMailFacade", () => {
 		})
 
 		let postCalls: any[] = []
-		when(serviceExecutorMock.post(ImportMailService, anything(), { ...DEFAULT_EXTRA_SERVICE_PARAMS, suspensionBehavior: SuspensionBehavior.Throw })).thenDo(
-			async (_, postIn) => {
-				postCalls.push(postIn)
-				return {}
-			},
-		)
+		when(
+			serviceExecutorMock.execute(ImportMailService_POST, anything(), { ...DEFAULT_EXTRA_SERVICE_PARAMS, suspensionBehavior: SuspensionBehavior.Throw }),
+		).thenDo(async (_, postIn) => {
+			postCalls.push(postIn)
+			return {}
+		})
 
 		await facade.importMails(paramsList, mailGroupId)
 

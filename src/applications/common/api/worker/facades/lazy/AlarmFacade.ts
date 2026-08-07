@@ -12,7 +12,7 @@ import { AlarmNotification, NativePushFacade } from "@tutao/native-bridge/genera
 import {
 	AlarmInfo,
 	AlarmNotificationTypeRef,
-	AlarmService,
+	AlarmService_POST,
 	AlarmServicePost,
 	createAlarmInfo,
 	createAlarmNotification,
@@ -132,7 +132,7 @@ export class AlarmFacade {
 
 	private async postAlarmServiceRequest(notificationSessionKey: AesKey, alarmServicePostData: AlarmServicePost): Promise<void> {
 		try {
-			await this.serviceExecutor.post(AlarmService, alarmServicePostData, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: notificationSessionKey })
+			await this.serviceExecutor.execute(AlarmService_POST, alarmServicePostData, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: notificationSessionKey })
 		} catch (e) {
 			if (e instanceof TooManyRequestsError) {
 				return this.infoMessageHandler.onInfoMessage({

@@ -14,7 +14,7 @@ import {
 	Customer,
 	GroupInfo,
 	OrderProcessingAgreement,
-	SignOrderProcessingAgreementService,
+	SignOrderProcessingAgreementService_POST,
 } from "@tutao/entities/sys"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
 
@@ -51,7 +51,7 @@ export function showForSigning(customer: Customer, accountingInfo: AccountingInf
 		if (addressEditor.getValue().trim().split("\n").length < 3) {
 			Dialog.message("contractorInfo_msg")
 		} else {
-			locator.serviceExecutor.post(SignOrderProcessingAgreementService, data, null).then(() => dialog.close())
+			locator.serviceExecutor.execute(SignOrderProcessingAgreementService_POST, data, null).then(() => dialog.close())
 		}
 	}
 

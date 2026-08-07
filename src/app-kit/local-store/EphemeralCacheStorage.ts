@@ -3,6 +3,7 @@ import {
 	CUSTOM_MIN_ID,
 	elementIdPart,
 	elementIdToId,
+	Entity,
 	EntityTypeEnum,
 	expandId,
 	firstBiggerThanSecondBase64Ext,
@@ -97,7 +98,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 	/**
 	 * Get a given entity from the cache, expects that you have already checked for existence
 	 */
-	async getParsed(typeRef: TypeRef<unknown>, listId: Id | null, id: Id): Promise<DecryptedParsedInstance | null> {
+	async getParsed(typeRef: TypeRef<Entity>, listId: Id | null, id: Id): Promise<DecryptedParsedInstance | null> {
 		// We downcast because we can't prove that map has correct entity on the type level
 		const type = getTypeString(typeRef)
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
@@ -116,7 +117,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	async provideFromRangeParsed(
-		typeRef: TypeRef<unknown>,
+		typeRef: TypeRef<Entity>,
 		listId: string,
 		startElementId: string,
 		count: number,
@@ -166,7 +167,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 		return result
 	}
 
-	async provideMultipleParsed(typeRef: TypeRef<unknown>, listId: Nullable<string>, elementIds: string[]): Promise<Array<DecryptedParsedInstance>> {
+	async provideMultipleParsed(typeRef: TypeRef<Entity>, listId: Nullable<string>, elementIds: string[]): Promise<Array<DecryptedParsedInstance>> {
 		const result = await Promise.all(
 			elementIds.map((elementId) => {
 				return this.getParsed(typeRef, listId, elementId)
@@ -175,7 +176,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 		return filterNull(result)
 	}
 
-	async getWholeListParsed(typeRef: TypeRef<unknown>, listId: string): Promise<Array<DecryptedParsedInstance>> {
+	async getWholeListParsed(typeRef: TypeRef<Entity>, listId: string): Promise<Array<DecryptedParsedInstance>> {
 		const listCache = this.listElementEntities.get(getTypeString(typeRef))?.get(listId)
 
 		if (listCache == null) {
@@ -359,7 +360,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	/** @pre: elementId is converted to base64ext if necessary */
-	private async putListElement(typeRef: TypeRef<unknown>, listId: Id, elementId: Id, entity: DecryptedParsedInstance) {
+	private async putListElement(typeRef: TypeRef<Entity>, listId: Id, elementId: Id, entity: DecryptedParsedInstance) {
 		const typeString = getTypeString(typeRef)
 		const cache = this.listElementEntities.get(typeString)?.get(listId)
 		if (cache == null) {

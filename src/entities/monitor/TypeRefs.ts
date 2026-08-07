@@ -1,6 +1,6 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ListElementId, ElementId } from "@tutao/meta"
+import { ListElementId, ElementId, DataTransferId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 import { Nullable } from "@tutao/utils"
 
@@ -29,6 +29,9 @@ export type ReadCounterData = {
 	rowName: string;
 	columnName: null | Id;
 	counterType: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -71,6 +74,9 @@ export type ReadCounterReturn = {
 
 	_format: NumberString;
 	value: null | NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 
@@ -119,6 +125,9 @@ export type WriteCounterData = {
 	column: Id;
 	value: NumberString;
 	counterType: null | NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
     // == associations
 
 
@@ -169,6 +178,9 @@ export type ApprovalMail = {
 	date: null | Date;
 	text: string;
 
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 	customer: null | Id;
@@ -212,6 +224,9 @@ export type CounterValue = {
 	_id: Id;
 	counterId: Id;
 	value: NumberString;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -254,6 +269,9 @@ export type ErrorReportFile = {
 	_id: Id;
 	name: string;
 	content: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -310,6 +328,9 @@ export type ErrorReportData = {
 	stackTrace: string;
 	userMessage: null | string;
 	additionalInfo: string;
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	
+
     // == associations
 
 
@@ -351,6 +372,9 @@ export type ReportErrorIn = {
     // == values
 
 	_format: NumberString;
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
 
     // == associations
 

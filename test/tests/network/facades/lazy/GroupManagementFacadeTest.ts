@@ -16,6 +16,7 @@ import { AesKey, PQKeyPairs } from "../../../../../src/platform-kit/crypto"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { CustomerTypeRef, GroupInfo, GroupInfoTypeRef } from "@tutao/entities/sys"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
+import { MailGroupService_POST } from "@tutao/entities/tutanota"
 
 const { anything } = matchers
 
@@ -70,7 +71,7 @@ o.spec("GroupManagementFacadeTest", function () {
 		when(pqFacade.generateKeyPairs()).thenResolve(newMailGroupKeyPair)
 		when(cryptoWrapper.encryptKeyWithVersionedKey(anything(), anything())).thenReturn(object())
 		let mailGroupId = "sharedMailGroupId"
-		when(serviceExecutor.post(anything(), anything(), null)).thenResolve({ mailGroup: mailGroupId })
+		when(serviceExecutor.execute(MailGroupService_POST, anything(), null)).thenResolve({ mailGroup: mailGroupId })
 
 		await groupManagementFacade.createSharedMailGroup("some group", "example@tuta.com")
 

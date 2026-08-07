@@ -35,14 +35,16 @@ import {
 	createDebitServicePutData,
 	Customer,
 	CustomerTypeRef,
-	DebitService,
+	DebitService_PUT,
 	GiftCard,
 	GiftCardTypeRef,
 	InvoiceInfo,
 	InvoiceInfoTypeRef,
 } from "@tutao/entities/sys"
+import { AccountType, NewPaidPlans, PaymentMethodType } from "../../../entities/sys/Utils"
+import { elementIdPart, idToElementId, NULL_ENTITY, NullEntity, OperationType } from "@tutao/meta"
 import { getByAbbreviation } from "../gui/CountryList"
-import { CustomerAccountPosting, CustomerAccountService } from "@tutao/entities/accounting"
+import { CustomerAccountPosting, CustomerAccountService_GET } from "@tutao/entities/accounting"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError } from "@tutao/rest-client/error"
@@ -54,8 +56,6 @@ import Stream from "mithril/stream"
 import { GiftCardMessageEditorField } from "./giftcards/GiftCardMessageEditorField"
 import { CURRENT_GIFT_CARD_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
 import { SettingsExpander } from "../settings/SettingsExpander"
-import { elementIdPart, idToElementId, OperationType } from "@tutao/meta"
-import { AccountType, NewPaidPlans, PaymentMethodType } from "../../../entities/sys/Utils"
 
 assertMainOrNode()
 
@@ -457,7 +457,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	private loadPostings(): Promise<void> {
-		return locator.serviceExecutor.get(CustomerAccountService, null, null).then((result) => {
+		return locator.serviceExecutor.execute(CustomerAccountService_GET, NULL_ENTITY, null).then((result) => {
 			this.postings = result.postings
 			this.outstandingBookingsPrice = Number(result.outstandingBookingsPrice)
 			this.balance = Number(result.balance)
@@ -506,7 +506,8 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 					return showProgressDialog(
 						"pleaseWait_msg",
 						locator.serviceExecutor
-							.put(DebitService, createDebitServicePutData({}), null)
+							.execute(DebitService_PUT, createDebitServicePutData({}), null)
+							.then((_: NullEntity) => {})
 							.catch(ofClass(LockedError, () => "operationStillActive_msg" as TranslationKey))
 							.catch(ofClass(PreconditionFailedError, (error) => getPreconditionFailedPaymentMsg(error.data)))
 							.catch(ofClass(BadGatewayError, () => "paymentProviderNotAvailableError_msg" as TranslationKey))

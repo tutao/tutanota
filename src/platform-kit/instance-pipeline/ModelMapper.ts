@@ -153,7 +153,7 @@ export class ModelMapper {
 	 * @return a value that can be assigned to a ParsedInstance or Instance (depending on the direction)
 	 */
 	assertCorrectValueCardinality(
-		typeRef: TypeRef<unknown>,
+		typeRef: TypeRef<Entity>,
 		serverModelValue: Nullable<ModelValue>,
 		clientModelValue: ModelValue,
 		value: DecryptedParsedValue,

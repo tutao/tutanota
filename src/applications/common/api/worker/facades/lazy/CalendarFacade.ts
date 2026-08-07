@@ -1,5 +1,5 @@
 import { assertWorkerOrNode, DAY_IN_MILLIS, ProgrammingError } from "@tutao/app-env"
-import { ElementId, elementIdToId, getLetId, getListId, idToElementId, isSameId, isSameSingleId, listIdPart, RANGE_ITEM_LIMIT } from "@tutao/meta"
+import { getLetId, getListId, idToElementId, isSameId, isSameSingleId, listIdPart, RANGE_ITEM_LIMIT } from "@tutao/meta"
 import {
 	assertNotNull,
 	getFromMap,
@@ -43,7 +43,7 @@ import {
 	CalendarEventUidIndex,
 	CalendarEventUidIndexTypeRef,
 	CalendarGroupRootTypeRef,
-	CalendarService,
+	CalendarService_DELETE,
 	createCalendarDeleteIn,
 } from "@tutao/entities/tutanota"
 import { AlarmFacade } from "./AlarmFacade"
@@ -432,7 +432,7 @@ export class CalendarFacade {
 	}
 
 	async deleteCalendar(groupRootId: Id): Promise<void> {
-		await this.serviceExecutor.delete(CalendarService, createCalendarDeleteIn({ groupRootId }), null)
+		await this.serviceExecutor.execute(CalendarService_DELETE, createCalendarDeleteIn({ groupRootId }), null)
 	}
 
 	/**

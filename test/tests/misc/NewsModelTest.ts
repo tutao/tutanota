@@ -6,7 +6,8 @@ import { NewsItemStorage, NewsModel } from "../../../src/applications/common/mis
 import { NewsListItem } from "../../../src/applications/common/misc/news/NewsListItem.js"
 import { Children } from "mithril"
 import { createTestEntity } from "../TestUtils.js"
-import { NewsId, NewsIdTypeRef, NewsInTypeRef, NewsOutTypeRef, NewsService } from "@tutao/entities/tutanota"
+import { NewsId, NewsIdTypeRef, NewsInTypeRef, NewsOutTypeRef, NewsService_GET, NewsService_POST } from "@tutao/entities/tutanota"
+import { NULL_ENTITY } from "../../../src/platform-kit/meta"
 
 o.spec("NewsModel", function () {
 	let newsModel: NewsModel
@@ -37,7 +38,7 @@ o.spec("NewsModel", function () {
 			}),
 		]
 
-		when(serviceExecutor.get(NewsService, null, null)).thenResolve(
+		when(serviceExecutor.execute(NewsService_GET, NULL_ENTITY, null)).thenResolve(
 			createTestEntity(NewsOutTypeRef, {
 				newsItemIds: newsIds,
 			}),
@@ -58,7 +59,7 @@ o.spec("NewsModel", function () {
 			await newsModel.acknowledgeNews(newsIds[0].newsItemId)
 
 			const expectedNewsIn = createTestEntity(NewsInTypeRef, { newsItemId: newsIds[0].newsItemId })
-			verify(serviceExecutor.post(NewsService, expectedNewsIn, null))
+			verify(serviceExecutor.execute(NewsService_POST, expectedNewsIn, null))
 		})
 	})
 })

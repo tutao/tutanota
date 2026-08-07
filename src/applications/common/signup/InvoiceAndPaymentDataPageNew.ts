@@ -22,11 +22,11 @@ import { PaypalButtonNew } from "../subscription/PaypalButtonNew"
 import { styles } from "../../../ui/styles"
 import { LegacyTextFieldType } from "../../../ui/base/LegacyTextField"
 import { Icons } from "../../../ui/base/icons/Icons"
-
-import { LocationService, LocationServiceGetReturn } from "@tutao/entities/sys"
+import { LocationService_GET, LocationServiceGetReturn } from "@tutao/entities/sys"
 import { PaymentMethodType } from "../../../entities/sys/Utils"
 import { renderCountryDropdownNew } from "../gui/CountryDropdown"
 import { Countries, CountryType } from "../gui/CountryList"
+import { NULL_ENTITY } from "@tutao/meta"
 
 class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private _hasClickedNext: boolean = false
@@ -42,7 +42,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 	}
 
 	oncreate(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
-		locator.serviceExecutor.get(LocationService, null, null).then((location: LocationServiceGetReturn) => {
+		locator.serviceExecutor.execute(LocationService_GET, NULL_ENTITY, null).then((location: LocationServiceGetReturn) => {
 			if (!vnode.attrs.ctx.viewModel.invoiceData.country) {
 				const country = Countries.find((c) => c.a === location.country)
 

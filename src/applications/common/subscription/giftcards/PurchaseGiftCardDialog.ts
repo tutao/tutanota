@@ -23,8 +23,9 @@ import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 import { MessageBanner } from "../../../../ui/base/MessageBanner"
-import { GiftCard, GiftCardOption, GiftCardService, GiftCardTypeRef } from "@tutao/entities/sys"
+import { GiftCard, GiftCardOption, GiftCardService_GET, GiftCardTypeRef } from "@tutao/entities/sys"
 import { PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
+import { NULL_ENTITY } from "@tutao/meta"
 
 class PurchaseGiftCardModel {
 	message = lang.get("defaultGiftCardMessage_msg")
@@ -270,7 +271,7 @@ async function loadGiftCardModel(): Promise<PurchaseGiftCardModel> {
 	}
 
 	const [giftCardInfo, customerInfo] = await Promise.all([
-		locator.serviceExecutor.get(GiftCardService, null, null),
+		locator.serviceExecutor.execute(GiftCardService_GET, NULL_ENTITY, null),
 		locator.logins.getUserController().loadCustomerInfo(),
 	])
 

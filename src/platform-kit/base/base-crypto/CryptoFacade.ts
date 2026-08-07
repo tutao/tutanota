@@ -74,9 +74,9 @@ import {
 	Permission,
 	PermissionTypeRef,
 	UpdateKdfNoncePostOut,
-	UpdateKdfNonceService,
-	UpdatePermissionKeyService,
-	UpdateSessionKeysService,
+	UpdateKdfNonceService_POST,
+	UpdatePermissionKeyService_POST,
+	UpdateSessionKeysService_POST,
 } from "@tutao/entities/sys"
 import { AccountType, GroupType, PermissionType, SYSTEM_GROUP_MAIL_ADDRESS } from "../../../entities/sys/Utils"
 import { TypeModelResolver } from "../../instance-pipeline/EntityFunctions"
@@ -741,7 +741,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			})
 			updateService.ownerKeyVersion = String(encryptedKey.encryptingKeyVersion)
 			updateService.ownerEncSessionKey = encryptedKey.key
-			await this.serviceExecutor.post(UpdatePermissionKeyService, updateService, null)
+			await this.serviceExecutor.execute(UpdatePermissionKeyService_POST, updateService, null)
 		}
 	}
 
@@ -778,7 +778,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	async postUpdateSessionKeysService(instanceSessionKeys: Array<InstanceSessionKey>, retryCount: number = 0) {
 		try {
 			const input = createUpdateSessionKeysPostIn({ ownerEncSessionKeys: instanceSessionKeys })
-			await this.serviceExecutor.post(UpdateSessionKeysService, input, null)
+			await this.serviceExecutor.execute(UpdateSessionKeysService_POST, input, null)
 		} catch (e) {
 			// we retry once here in case we get a LockedError, if that fails as well the processInboxHandler is going to retry soon
 			if (e instanceof LockedError && retryCount < 1) {
@@ -828,7 +828,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 
 	async postUpdateKdfNonceService(instanceKdfNonce: InstanceKdfNonce): Promise<UpdateKdfNoncePostOut> {
 		const input = createUpdateKdfNoncePostIn({ instanceKdfNonce: instanceKdfNonce })
-		return await this.serviceExecutor.post(UpdateKdfNonceService, input, null)
+		return await this.serviceExecutor.execute(UpdateKdfNonceService_POST, input, null)
 	}
 
 	async updateOwnerEncSessionKey(instance: EntityAdapter, ownerGroupKey: VersionedKey, resolvedSessionKey: AesKey) {

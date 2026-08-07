@@ -6,7 +6,7 @@ import { LoggedInUserProvider } from "@tutao/instance-pipeline"
 import { TypeModelResolver } from "../instance-pipeline/EntityFunctions"
 import { ArchiveDataType, BlobAccessTokenKind } from "../../entities/sys/Utils"
 import { BlobServerAccessInfo, createBlobAccessTokenPostIn, createBlobReadData, createBlobWriteData, createInstanceId } from "../../entities/storage/TypeRefs"
-import { BlobAccessTokenService } from "../../entities/storage/Services"
+import { BlobAccessTokenService_POST } from "../../entities/storage/Services"
 import { BlobReferencingInstance } from "../../entities/storage/BlobUtils"
 import { TypeRef } from "@tutao/meta"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../instance-pipeline/RestClientOptions"
@@ -62,7 +62,7 @@ export class BlobAccessTokenFacade {
 				}),
 				read: null,
 			})
-			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest, null)
+			const { blobAccessInfo } = await this.serviceExecutor.execute(BlobAccessTokenService_POST, tokenRequest, null)
 			return blobAccessInfo
 		}
 		const key = this.makeWriteCacheKey(ownerGroupId, archiveDataType)
@@ -118,7 +118,7 @@ export class BlobAccessTokenFacade {
 				}),
 				write: null,
 			})
-			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest, {
+			const { blobAccessInfo } = await this.serviceExecutor.execute(BlobAccessTokenService_POST, tokenRequest, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				...blobLoadOptions,
 			})
@@ -161,7 +161,7 @@ export class BlobAccessTokenFacade {
 					write: null,
 				})
 				return (
-					await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest, {
+					await this.serviceExecutor.execute(BlobAccessTokenService_POST, tokenRequest, {
 						...DEFAULT_EXTRA_SERVICE_PARAMS,
 						...blobLoadOptions,
 					})
@@ -208,7 +208,7 @@ export class BlobAccessTokenFacade {
 				}),
 				write: null,
 			})
-			const { blobAccessInfo } = await this.serviceExecutor.post(BlobAccessTokenService, tokenRequest, null)
+			const { blobAccessInfo } = await this.serviceExecutor.execute(BlobAccessTokenService_POST, tokenRequest, null)
 			return blobAccessInfo
 		}
 		return this.readCache.getToken(archiveId, [], requestNewToken)

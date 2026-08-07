@@ -1,372 +1,152 @@
-import { ApplyLabelServicePostInTypeRef } from "./TypeRefs.js"
-import { UserAreaGroupPostDataTypeRef } from "./TypeRefs.js"
-import { CreateGroupPostReturnTypeRef } from "./TypeRefs.js"
-import { CalendarDeleteInTypeRef } from "./TypeRefs.js"
-import { ChangePrimaryAddressServicePutInTypeRef } from "./TypeRefs.js"
-import { ClientClassifierResultPostInTypeRef } from "./TypeRefs.js"
-import { UserAreaGroupDeleteDataTypeRef } from "./TypeRefs.js"
-import { CustomerAccountCreateDataTypeRef } from "./TypeRefs.js"
-import { DraftCreateDataTypeRef } from "./TypeRefs.js"
-import { DraftCreateReturnTypeRef } from "./TypeRefs.js"
-import { DraftUpdateDataTypeRef } from "./TypeRefs.js"
-import { DraftUpdateReturnTypeRef } from "./TypeRefs.js"
-import { EncryptTutanotaPropertiesDataTypeRef } from "./TypeRefs.js"
-import { EntropyDataTypeRef } from "./TypeRefs.js"
-import { ExternalUserDataTypeRef } from "./TypeRefs.js"
-import { GroupInvitationPostDataTypeRef } from "./TypeRefs.js"
-import { GroupInvitationPostReturnTypeRef } from "./TypeRefs.js"
-import { GroupInvitationPutDataTypeRef } from "./TypeRefs.js"
-import { GroupInvitationDeleteDataTypeRef } from "./TypeRefs.js"
-import { ImapFolderPostInTypeRef } from "./TypeRefs.js"
-import { ImapFolderPostOutTypeRef } from "./TypeRefs.js"
-import { ImapFolderDeleteInTypeRef } from "./TypeRefs.js"
-import { ImapOauthConfigGetInTypeRef } from "./TypeRefs.js"
-import { ImapOauthConfigGetOutTypeRef } from "./TypeRefs.js"
-import { ImapPostInTypeRef } from "./TypeRefs.js"
-import { ImapPostOutTypeRef } from "./TypeRefs.js"
-import { ImapPutInTypeRef } from "./TypeRefs.js"
-import { ImapDeleteInTypeRef } from "./TypeRefs.js"
-import { ImportMailGetInTypeRef } from "./TypeRefs.js"
-import { ImportMailGetOutTypeRef } from "./TypeRefs.js"
-import { ImportMailPostInTypeRef } from "./TypeRefs.js"
-import { ImportMailPostOutTypeRef } from "./TypeRefs.js"
-import { ListUnsubscribeDataTypeRef } from "./TypeRefs.js"
-import { MailExportTokenServicePostOutTypeRef } from "./TypeRefs.js"
-import { CreateMailFolderDataTypeRef } from "./TypeRefs.js"
-import { CreateMailFolderReturnTypeRef } from "./TypeRefs.js"
-import { UpdateMailFolderDataTypeRef } from "./TypeRefs.js"
-import { DeleteMailFolderDataTypeRef } from "./TypeRefs.js"
-import { CreateMailGroupDataTypeRef } from "./TypeRefs.js"
-import { MailGroupPostOutTypeRef } from "./TypeRefs.js"
-import { DeleteGroupDataTypeRef } from "./TypeRefs.js"
-import { DeleteMailDataTypeRef } from "./TypeRefs.js"
-import { ManageLabelServicePostInTypeRef } from "./TypeRefs.js"
-import { ManageLabelServicePostOutTypeRef } from "./TypeRefs.js"
-import { ManageLabelServicePutInTypeRef } from "./TypeRefs.js"
-import { ManageLabelServiceDeleteInTypeRef } from "./TypeRefs.js"
-import { MoveMailDataTypeRef } from "./TypeRefs.js"
-import { MoveMailPostOutTypeRef } from "./TypeRefs.js"
-import { NewsOutTypeRef } from "./TypeRefs.js"
-import { NewsInTypeRef } from "./TypeRefs.js"
-import { PopulateClientSpamTrainingDataPostInTypeRef } from "./TypeRefs.js"
-import { ProcessInboxPostInTypeRef } from "./TypeRefs.js"
-import { ReceiveInfoServiceDataTypeRef } from "./TypeRefs.js"
-import { ReceiveInfoServicePostOutTypeRef } from "./TypeRefs.js"
-import { ReportMailPostDataTypeRef } from "./TypeRefs.js"
-import { ResolveConversationsServiceGetInTypeRef } from "./TypeRefs.js"
-import { ResolveConversationsServiceGetOutTypeRef } from "./TypeRefs.js"
-import { SendDraftDataTypeRef } from "./TypeRefs.js"
-import { SendDraftReturnTypeRef } from "./TypeRefs.js"
-import { SendDraftDeleteInTypeRef } from "./TypeRefs.js"
-import { SimpleMoveMailPostInTypeRef } from "./TypeRefs.js"
-import { TranslationGetInTypeRef } from "./TypeRefs.js"
-import { TranslationGetOutTypeRef } from "./TypeRefs.js"
-import { UnreadMailStatePostInTypeRef } from "./TypeRefs.js"
-import { UserAccountCreateDataTypeRef } from "./TypeRefs.js"
-import { UserAccountPostOutTypeRef } from "./TypeRefs.js"
+import { ApplyLabelServicePostIn, ApplyLabelServicePostInTypeRef } from "./TypeRefs.js"
+import { UserAreaGroupPostData, UserAreaGroupPostDataTypeRef } from "./TypeRefs.js"
+import { CreateGroupPostReturn, CreateGroupPostReturnTypeRef } from "./TypeRefs.js"
+import { CalendarDeleteIn, CalendarDeleteInTypeRef } from "./TypeRefs.js"
+import { ChangePrimaryAddressServicePutIn, ChangePrimaryAddressServicePutInTypeRef } from "./TypeRefs.js"
+import { ClientClassifierResultPostIn, ClientClassifierResultPostInTypeRef } from "./TypeRefs.js"
+import { UserAreaGroupDeleteData, UserAreaGroupDeleteDataTypeRef } from "./TypeRefs.js"
+import { CustomerAccountCreateData, CustomerAccountCreateDataTypeRef } from "./TypeRefs.js"
+import { DraftCreateData, DraftCreateDataTypeRef } from "./TypeRefs.js"
+import { DraftCreateReturn, DraftCreateReturnTypeRef } from "./TypeRefs.js"
+import { DraftUpdateData, DraftUpdateDataTypeRef } from "./TypeRefs.js"
+import { DraftUpdateReturn, DraftUpdateReturnTypeRef } from "./TypeRefs.js"
+import { EncryptTutanotaPropertiesData, EncryptTutanotaPropertiesDataTypeRef } from "./TypeRefs.js"
+import { EntropyData, EntropyDataTypeRef } from "./TypeRefs.js"
+import { ExternalUserData, ExternalUserDataTypeRef } from "./TypeRefs.js"
+import { GroupInvitationPostData, GroupInvitationPostDataTypeRef } from "./TypeRefs.js"
+import { GroupInvitationPostReturn, GroupInvitationPostReturnTypeRef } from "./TypeRefs.js"
+import { GroupInvitationPutData, GroupInvitationPutDataTypeRef } from "./TypeRefs.js"
+import { GroupInvitationDeleteData, GroupInvitationDeleteDataTypeRef } from "./TypeRefs.js"
+import { ImapFolderPostIn, ImapFolderPostInTypeRef } from "./TypeRefs.js"
+import { ImapFolderPostOut, ImapFolderPostOutTypeRef } from "./TypeRefs.js"
+import { ImapFolderDeleteIn, ImapFolderDeleteInTypeRef } from "./TypeRefs.js"
+import { ImapOauthConfigGetIn, ImapOauthConfigGetInTypeRef } from "./TypeRefs.js"
+import { ImapOauthConfigGetOut, ImapOauthConfigGetOutTypeRef } from "./TypeRefs.js"
+import { ImapPostIn, ImapPostInTypeRef } from "./TypeRefs.js"
+import { ImapPostOut, ImapPostOutTypeRef } from "./TypeRefs.js"
+import { ImapPutIn, ImapPutInTypeRef } from "./TypeRefs.js"
+import { ImapDeleteIn, ImapDeleteInTypeRef } from "./TypeRefs.js"
+import { ImportMailGetIn, ImportMailGetInTypeRef } from "./TypeRefs.js"
+import { ImportMailGetOut, ImportMailGetOutTypeRef } from "./TypeRefs.js"
+import { ImportMailPostIn, ImportMailPostInTypeRef } from "./TypeRefs.js"
+import { ImportMailPostOut, ImportMailPostOutTypeRef } from "./TypeRefs.js"
+import { ListUnsubscribeData, ListUnsubscribeDataTypeRef } from "./TypeRefs.js"
+import { MailExportTokenServicePostOut, MailExportTokenServicePostOutTypeRef } from "./TypeRefs.js"
+import { CreateMailFolderData, CreateMailFolderDataTypeRef } from "./TypeRefs.js"
+import { CreateMailFolderReturn, CreateMailFolderReturnTypeRef } from "./TypeRefs.js"
+import { UpdateMailFolderData, UpdateMailFolderDataTypeRef } from "./TypeRefs.js"
+import { DeleteMailFolderData, DeleteMailFolderDataTypeRef } from "./TypeRefs.js"
+import { CreateMailGroupData, CreateMailGroupDataTypeRef } from "./TypeRefs.js"
+import { MailGroupPostOut, MailGroupPostOutTypeRef } from "./TypeRefs.js"
+import { DeleteGroupData, DeleteGroupDataTypeRef } from "./TypeRefs.js"
+import { DeleteMailData, DeleteMailDataTypeRef } from "./TypeRefs.js"
+import { ManageLabelServicePostIn, ManageLabelServicePostInTypeRef } from "./TypeRefs.js"
+import { ManageLabelServicePostOut, ManageLabelServicePostOutTypeRef } from "./TypeRefs.js"
+import { ManageLabelServicePutIn, ManageLabelServicePutInTypeRef } from "./TypeRefs.js"
+import { ManageLabelServiceDeleteIn, ManageLabelServiceDeleteInTypeRef } from "./TypeRefs.js"
+import { MoveMailData, MoveMailDataTypeRef } from "./TypeRefs.js"
+import { MoveMailPostOut, MoveMailPostOutTypeRef } from "./TypeRefs.js"
+import { NewsOut, NewsOutTypeRef } from "./TypeRefs.js"
+import { NewsIn, NewsInTypeRef } from "./TypeRefs.js"
+import { PopulateClientSpamTrainingDataPostIn, PopulateClientSpamTrainingDataPostInTypeRef } from "./TypeRefs.js"
+import { ProcessInboxPostIn, ProcessInboxPostInTypeRef } from "./TypeRefs.js"
+import { ReceiveInfoServiceData, ReceiveInfoServiceDataTypeRef } from "./TypeRefs.js"
+import { ReceiveInfoServicePostOut, ReceiveInfoServicePostOutTypeRef } from "./TypeRefs.js"
+import { ReportMailPostData, ReportMailPostDataTypeRef } from "./TypeRefs.js"
+import { ResolveConversationsServiceGetIn, ResolveConversationsServiceGetInTypeRef } from "./TypeRefs.js"
+import { ResolveConversationsServiceGetOut, ResolveConversationsServiceGetOutTypeRef } from "./TypeRefs.js"
+import { SendDraftData, SendDraftDataTypeRef } from "./TypeRefs.js"
+import { SendDraftReturn, SendDraftReturnTypeRef } from "./TypeRefs.js"
+import { SendDraftDeleteIn, SendDraftDeleteInTypeRef } from "./TypeRefs.js"
+import { SimpleMoveMailPostIn, SimpleMoveMailPostInTypeRef } from "./TypeRefs.js"
+import { TranslationGetIn, TranslationGetInTypeRef } from "./TypeRefs.js"
+import { TranslationGetOut, TranslationGetOutTypeRef } from "./TypeRefs.js"
+import { UnreadMailStatePostIn, UnreadMailStatePostInTypeRef } from "./TypeRefs.js"
+import { UserAccountCreateData, UserAccountCreateDataTypeRef } from "./TypeRefs.js"
+import { UserAccountPostOut, UserAccountPostOutTypeRef } from "./TypeRefs.js"
+import { GetService, PostService, PutService, DeleteService, NullEntityTypeRef, NullEntity } from "@tutao/meta"
 
-export const ApplyLabelService = Object.freeze({
-	app: "tutanota",
-	name: "ApplyLabelService",
-	get: null,
-	post: { data: ApplyLabelServicePostInTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const ApplyLabelService_POST = new PostService<ApplyLabelServicePostIn, NullEntity>("tutanota", "ApplyLabelService", ApplyLabelServicePostInTypeRef, NullEntityTypeRef)
 
-export const CalendarService = Object.freeze({
-	app: "tutanota",
-	name: "CalendarService",
-	get: null,
-	post: { data: UserAreaGroupPostDataTypeRef, return: CreateGroupPostReturnTypeRef },
-	put: null,
-	delete: { data: CalendarDeleteInTypeRef, return: null },
-} as const)
+export const CalendarService_POST = new PostService<UserAreaGroupPostData, CreateGroupPostReturn>("tutanota", "CalendarService", UserAreaGroupPostDataTypeRef, CreateGroupPostReturnTypeRef)
+export const CalendarService_DELETE = new DeleteService<CalendarDeleteIn, NullEntity>("tutanota", "CalendarService", CalendarDeleteInTypeRef, NullEntityTypeRef)
 
-export const ChangePrimaryAddressService = Object.freeze({
-	app: "tutanota",
-	name: "ChangePrimaryAddressService",
-	get: null,
-	post: null,
-	put: { data: ChangePrimaryAddressServicePutInTypeRef, return: null },
-	delete: null,
-} as const)
+export const ChangePrimaryAddressService_PUT = new PutService<ChangePrimaryAddressServicePutIn, NullEntity>("tutanota", "ChangePrimaryAddressService", ChangePrimaryAddressServicePutInTypeRef, NullEntityTypeRef)
 
-export const ClientClassifierResultService = Object.freeze({
-	app: "tutanota",
-	name: "ClientClassifierResultService",
-	get: null,
-	post: { data: ClientClassifierResultPostInTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const ClientClassifierResultService_POST = new PostService<ClientClassifierResultPostIn, NullEntity>("tutanota", "ClientClassifierResultService", ClientClassifierResultPostInTypeRef, NullEntityTypeRef)
 
-export const ContactListGroupService = Object.freeze({
-	app: "tutanota",
-	name: "ContactListGroupService",
-	get: null,
-	post: { data: UserAreaGroupPostDataTypeRef, return: CreateGroupPostReturnTypeRef },
-	put: null,
-	delete: { data: UserAreaGroupDeleteDataTypeRef, return: null },
-} as const)
+export const ContactListGroupService_POST = new PostService<UserAreaGroupPostData, CreateGroupPostReturn>("tutanota", "ContactListGroupService", UserAreaGroupPostDataTypeRef, CreateGroupPostReturnTypeRef)
+export const ContactListGroupService_DELETE = new DeleteService<UserAreaGroupDeleteData, NullEntity>("tutanota", "ContactListGroupService", UserAreaGroupDeleteDataTypeRef, NullEntityTypeRef)
 
-export const CustomerAccountService = Object.freeze({
-	app: "tutanota",
-	name: "CustomerAccountService",
-	get: null,
-	post: { data: CustomerAccountCreateDataTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const CustomerAccountService_POST = new PostService<CustomerAccountCreateData, NullEntity>("tutanota", "CustomerAccountService", CustomerAccountCreateDataTypeRef, NullEntityTypeRef)
 
-export const DraftService = Object.freeze({
-	app: "tutanota",
-	name: "DraftService",
-	get: null,
-	post: { data: DraftCreateDataTypeRef, return: DraftCreateReturnTypeRef },
-	put: { data: DraftUpdateDataTypeRef, return: DraftUpdateReturnTypeRef },
-	delete: null,
-} as const)
+export const DraftService_POST = new PostService<DraftCreateData, DraftCreateReturn>("tutanota", "DraftService", DraftCreateDataTypeRef, DraftCreateReturnTypeRef)
+export const DraftService_PUT = new PutService<DraftUpdateData, DraftUpdateReturn>("tutanota", "DraftService", DraftUpdateDataTypeRef, DraftUpdateReturnTypeRef)
 
-export const EncryptTutanotaPropertiesService = Object.freeze({
-	app: "tutanota",
-	name: "EncryptTutanotaPropertiesService",
-	get: null,
-	post: { data: EncryptTutanotaPropertiesDataTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const EncryptTutanotaPropertiesService_POST = new PostService<EncryptTutanotaPropertiesData, NullEntity>("tutanota", "EncryptTutanotaPropertiesService", EncryptTutanotaPropertiesDataTypeRef, NullEntityTypeRef)
 
-export const EntropyService = Object.freeze({
-	app: "tutanota",
-	name: "EntropyService",
-	get: null,
-	post: null,
-	put: { data: EntropyDataTypeRef, return: null },
-	delete: null,
-} as const)
+export const EntropyService_PUT = new PutService<EntropyData, NullEntity>("tutanota", "EntropyService", EntropyDataTypeRef, NullEntityTypeRef)
 
-export const ExternalUserService = Object.freeze({
-	app: "tutanota",
-	name: "ExternalUserService",
-	get: null,
-	post: { data: ExternalUserDataTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const ExternalUserService_POST = new PostService<ExternalUserData, NullEntity>("tutanota", "ExternalUserService", ExternalUserDataTypeRef, NullEntityTypeRef)
 
-export const GroupInvitationService = Object.freeze({
-	app: "tutanota",
-	name: "GroupInvitationService",
-	get: null,
-	post: { data: GroupInvitationPostDataTypeRef, return: GroupInvitationPostReturnTypeRef },
-	put: { data: GroupInvitationPutDataTypeRef, return: null },
-	delete: { data: GroupInvitationDeleteDataTypeRef, return: null },
-} as const)
+export const GroupInvitationService_POST = new PostService<GroupInvitationPostData, GroupInvitationPostReturn>("tutanota", "GroupInvitationService", GroupInvitationPostDataTypeRef, GroupInvitationPostReturnTypeRef)
+export const GroupInvitationService_PUT = new PutService<GroupInvitationPutData, NullEntity>("tutanota", "GroupInvitationService", GroupInvitationPutDataTypeRef, NullEntityTypeRef)
+export const GroupInvitationService_DELETE = new DeleteService<GroupInvitationDeleteData, NullEntity>("tutanota", "GroupInvitationService", GroupInvitationDeleteDataTypeRef, NullEntityTypeRef)
 
-export const ImapFolderService = Object.freeze({
-	app: "tutanota",
-	name: "ImapFolderService",
-	get: null,
-	post: { data: ImapFolderPostInTypeRef, return: ImapFolderPostOutTypeRef },
-	put: null,
-	delete: { data: ImapFolderDeleteInTypeRef, return: null },
-} as const)
+export const ImapFolderService_POST = new PostService<ImapFolderPostIn, ImapFolderPostOut>("tutanota", "ImapFolderService", ImapFolderPostInTypeRef, ImapFolderPostOutTypeRef)
+export const ImapFolderService_DELETE = new DeleteService<ImapFolderDeleteIn, NullEntity>("tutanota", "ImapFolderService", ImapFolderDeleteInTypeRef, NullEntityTypeRef)
 
-export const ImapOauthConfigService = Object.freeze({
-	app: "tutanota",
-	name: "ImapOauthConfigService",
-	get: { data: ImapOauthConfigGetInTypeRef, return: ImapOauthConfigGetOutTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const ImapOauthConfigService_GET = new GetService<ImapOauthConfigGetIn, ImapOauthConfigGetOut>("tutanota", "ImapOauthConfigService", ImapOauthConfigGetInTypeRef, ImapOauthConfigGetOutTypeRef)
 
-export const ImapService = Object.freeze({
-	app: "tutanota",
-	name: "ImapService",
-	get: null,
-	post: { data: ImapPostInTypeRef, return: ImapPostOutTypeRef },
-	put: { data: ImapPutInTypeRef, return: null },
-	delete: { data: ImapDeleteInTypeRef, return: null },
-} as const)
+export const ImapService_POST = new PostService<ImapPostIn, ImapPostOut>("tutanota", "ImapService", ImapPostInTypeRef, ImapPostOutTypeRef)
+export const ImapService_PUT = new PutService<ImapPutIn, NullEntity>("tutanota", "ImapService", ImapPutInTypeRef, NullEntityTypeRef)
+export const ImapService_DELETE = new DeleteService<ImapDeleteIn, NullEntity>("tutanota", "ImapService", ImapDeleteInTypeRef, NullEntityTypeRef)
 
-export const ImportMailService = Object.freeze({
-	app: "tutanota",
-	name: "ImportMailService",
-	get: { data: ImportMailGetInTypeRef, return: ImportMailGetOutTypeRef },
-	post: { data: ImportMailPostInTypeRef, return: ImportMailPostOutTypeRef },
-	put: null,
-	delete: null,
-} as const)
+export const ImportMailService_GET = new GetService<ImportMailGetIn, ImportMailGetOut>("tutanota", "ImportMailService", ImportMailGetInTypeRef, ImportMailGetOutTypeRef)
+export const ImportMailService_POST = new PostService<ImportMailPostIn, ImportMailPostOut>("tutanota", "ImportMailService", ImportMailPostInTypeRef, ImportMailPostOutTypeRef)
 
-export const ListUnsubscribeService = Object.freeze({
-	app: "tutanota",
-	name: "ListUnsubscribeService",
-	get: null,
-	post: { data: ListUnsubscribeDataTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const ListUnsubscribeService_POST = new PostService<ListUnsubscribeData, NullEntity>("tutanota", "ListUnsubscribeService", ListUnsubscribeDataTypeRef, NullEntityTypeRef)
 
-export const MailExportTokenService = Object.freeze({
-	app: "tutanota",
-	name: "MailExportTokenService",
-	get: null,
-	post: { data: null, return: MailExportTokenServicePostOutTypeRef },
-	put: null,
-	delete: null,
-} as const)
+export const MailExportTokenService_POST = new PostService<NullEntity, MailExportTokenServicePostOut>("tutanota", "MailExportTokenService", NullEntityTypeRef, MailExportTokenServicePostOutTypeRef)
 
-export const MailFolderService = Object.freeze({
-	app: "tutanota",
-	name: "MailFolderService",
-	get: null,
-	post: { data: CreateMailFolderDataTypeRef, return: CreateMailFolderReturnTypeRef },
-	put: { data: UpdateMailFolderDataTypeRef, return: null },
-	delete: { data: DeleteMailFolderDataTypeRef, return: null },
-} as const)
+export const MailFolderService_POST = new PostService<CreateMailFolderData, CreateMailFolderReturn>("tutanota", "MailFolderService", CreateMailFolderDataTypeRef, CreateMailFolderReturnTypeRef)
+export const MailFolderService_PUT = new PutService<UpdateMailFolderData, NullEntity>("tutanota", "MailFolderService", UpdateMailFolderDataTypeRef, NullEntityTypeRef)
+export const MailFolderService_DELETE = new DeleteService<DeleteMailFolderData, NullEntity>("tutanota", "MailFolderService", DeleteMailFolderDataTypeRef, NullEntityTypeRef)
 
-export const MailGroupService = Object.freeze({
-	app: "tutanota",
-	name: "MailGroupService",
-	get: null,
-	post: { data: CreateMailGroupDataTypeRef, return: MailGroupPostOutTypeRef },
-	put: null,
-	delete: { data: DeleteGroupDataTypeRef, return: null },
-} as const)
+export const MailGroupService_POST = new PostService<CreateMailGroupData, MailGroupPostOut>("tutanota", "MailGroupService", CreateMailGroupDataTypeRef, MailGroupPostOutTypeRef)
+export const MailGroupService_DELETE = new DeleteService<DeleteGroupData, NullEntity>("tutanota", "MailGroupService", DeleteGroupDataTypeRef, NullEntityTypeRef)
 
-export const MailService = Object.freeze({
-	app: "tutanota",
-	name: "MailService",
-	get: null,
-	post: null,
-	put: null,
-	delete: { data: DeleteMailDataTypeRef, return: null },
-} as const)
+export const MailService_DELETE = new DeleteService<DeleteMailData, NullEntity>("tutanota", "MailService", DeleteMailDataTypeRef, NullEntityTypeRef)
 
-export const ManageLabelService = Object.freeze({
-	app: "tutanota",
-	name: "ManageLabelService",
-	get: null,
-	post: { data: ManageLabelServicePostInTypeRef, return: ManageLabelServicePostOutTypeRef },
-	put: { data: ManageLabelServicePutInTypeRef, return: null },
-	delete: { data: ManageLabelServiceDeleteInTypeRef, return: null },
-} as const)
+export const ManageLabelService_POST = new PostService<ManageLabelServicePostIn, ManageLabelServicePostOut>("tutanota", "ManageLabelService", ManageLabelServicePostInTypeRef, ManageLabelServicePostOutTypeRef)
+export const ManageLabelService_PUT = new PutService<ManageLabelServicePutIn, NullEntity>("tutanota", "ManageLabelService", ManageLabelServicePutInTypeRef, NullEntityTypeRef)
+export const ManageLabelService_DELETE = new DeleteService<ManageLabelServiceDeleteIn, NullEntity>("tutanota", "ManageLabelService", ManageLabelServiceDeleteInTypeRef, NullEntityTypeRef)
 
-export const MoveMailService = Object.freeze({
-	app: "tutanota",
-	name: "MoveMailService",
-	get: null,
-	post: { data: MoveMailDataTypeRef, return: MoveMailPostOutTypeRef },
-	put: null,
-	delete: null,
-} as const)
+export const MoveMailService_POST = new PostService<MoveMailData, MoveMailPostOut>("tutanota", "MoveMailService", MoveMailDataTypeRef, MoveMailPostOutTypeRef)
 
-export const NewsService = Object.freeze({
-	app: "tutanota",
-	name: "NewsService",
-	get: { data: null, return: NewsOutTypeRef },
-	post: { data: NewsInTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const NewsService_GET = new GetService<NullEntity, NewsOut>("tutanota", "NewsService", NullEntityTypeRef, NewsOutTypeRef)
+export const NewsService_POST = new PostService<NewsIn, NullEntity>("tutanota", "NewsService", NewsInTypeRef, NullEntityTypeRef)
 
-export const PopulateClientSpamTrainingDataService = Object.freeze({
-	app: "tutanota",
-	name: "PopulateClientSpamTrainingDataService",
-	get: null,
-	post: { data: PopulateClientSpamTrainingDataPostInTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const PopulateClientSpamTrainingDataService_POST = new PostService<PopulateClientSpamTrainingDataPostIn, NullEntity>("tutanota", "PopulateClientSpamTrainingDataService", PopulateClientSpamTrainingDataPostInTypeRef, NullEntityTypeRef)
 
-export const ProcessInboxService = Object.freeze({
-	app: "tutanota",
-	name: "ProcessInboxService",
-	get: null,
-	post: { data: ProcessInboxPostInTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const ProcessInboxService_POST = new PostService<ProcessInboxPostIn, NullEntity>("tutanota", "ProcessInboxService", ProcessInboxPostInTypeRef, NullEntityTypeRef)
 
-export const ReceiveInfoService = Object.freeze({
-	app: "tutanota",
-	name: "ReceiveInfoService",
-	get: null,
-	post: { data: ReceiveInfoServiceDataTypeRef, return: ReceiveInfoServicePostOutTypeRef },
-	put: null,
-	delete: null,
-} as const)
+export const ReceiveInfoService_POST = new PostService<ReceiveInfoServiceData, ReceiveInfoServicePostOut>("tutanota", "ReceiveInfoService", ReceiveInfoServiceDataTypeRef, ReceiveInfoServicePostOutTypeRef)
 
-export const ReportMailService = Object.freeze({
-	app: "tutanota",
-	name: "ReportMailService",
-	get: null,
-	post: { data: ReportMailPostDataTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const ReportMailService_POST = new PostService<ReportMailPostData, NullEntity>("tutanota", "ReportMailService", ReportMailPostDataTypeRef, NullEntityTypeRef)
 
-export const ResolveConversationsService = Object.freeze({
-	app: "tutanota",
-	name: "ResolveConversationsService",
-	get: { data: ResolveConversationsServiceGetInTypeRef, return: ResolveConversationsServiceGetOutTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const ResolveConversationsService_GET = new GetService<ResolveConversationsServiceGetIn, ResolveConversationsServiceGetOut>("tutanota", "ResolveConversationsService", ResolveConversationsServiceGetInTypeRef, ResolveConversationsServiceGetOutTypeRef)
 
-export const SendDraftService = Object.freeze({
-	app: "tutanota",
-	name: "SendDraftService",
-	get: null,
-	post: { data: SendDraftDataTypeRef, return: SendDraftReturnTypeRef },
-	put: null,
-	delete: { data: SendDraftDeleteInTypeRef, return: null },
-} as const)
+export const SendDraftService_POST = new PostService<SendDraftData, SendDraftReturn>("tutanota", "SendDraftService", SendDraftDataTypeRef, SendDraftReturnTypeRef)
+export const SendDraftService_DELETE = new DeleteService<SendDraftDeleteIn, NullEntity>("tutanota", "SendDraftService", SendDraftDeleteInTypeRef, NullEntityTypeRef)
 
-export const SimpleMoveMailService = Object.freeze({
-	app: "tutanota",
-	name: "SimpleMoveMailService",
-	get: null,
-	post: { data: SimpleMoveMailPostInTypeRef, return: MoveMailPostOutTypeRef },
-	put: null,
-	delete: null,
-} as const)
+export const SimpleMoveMailService_POST = new PostService<SimpleMoveMailPostIn, MoveMailPostOut>("tutanota", "SimpleMoveMailService", SimpleMoveMailPostInTypeRef, MoveMailPostOutTypeRef)
 
-export const TemplateGroupService = Object.freeze({
-	app: "tutanota",
-	name: "TemplateGroupService",
-	get: null,
-	post: { data: UserAreaGroupPostDataTypeRef, return: CreateGroupPostReturnTypeRef },
-	put: null,
-	delete: { data: UserAreaGroupDeleteDataTypeRef, return: null },
-} as const)
+export const TemplateGroupService_POST = new PostService<UserAreaGroupPostData, CreateGroupPostReturn>("tutanota", "TemplateGroupService", UserAreaGroupPostDataTypeRef, CreateGroupPostReturnTypeRef)
+export const TemplateGroupService_DELETE = new DeleteService<UserAreaGroupDeleteData, NullEntity>("tutanota", "TemplateGroupService", UserAreaGroupDeleteDataTypeRef, NullEntityTypeRef)
 
-export const TranslationService = Object.freeze({
-	app: "tutanota",
-	name: "TranslationService",
-	get: { data: TranslationGetInTypeRef, return: TranslationGetOutTypeRef },
-	post: null,
-	put: null,
-	delete: null,
-} as const)
+export const TranslationService_GET = new GetService<TranslationGetIn, TranslationGetOut>("tutanota", "TranslationService", TranslationGetInTypeRef, TranslationGetOutTypeRef)
 
-export const UnreadMailStateService = Object.freeze({
-	app: "tutanota",
-	name: "UnreadMailStateService",
-	get: null,
-	post: { data: UnreadMailStatePostInTypeRef, return: null },
-	put: null,
-	delete: null,
-} as const)
+export const UnreadMailStateService_POST = new PostService<UnreadMailStatePostIn, NullEntity>("tutanota", "UnreadMailStateService", UnreadMailStatePostInTypeRef, NullEntityTypeRef)
 
-export const UserAccountService = Object.freeze({
-	app: "tutanota",
-	name: "UserAccountService",
-	get: null,
-	post: { data: UserAccountCreateDataTypeRef, return: UserAccountPostOutTypeRef },
-	put: null,
-	delete: null,
-} as const)
+export const UserAccountService_POST = new PostService<UserAccountCreateData, UserAccountPostOut>("tutanota", "UserAccountService", UserAccountCreateDataTypeRef, UserAccountPostOutTypeRef)

@@ -14,10 +14,13 @@ import {
 	ImapAccountSyncStateTypeRef,
 	ImapAccountTypeRef,
 	ImapDeleteInTypeRef,
-	ImapFolderService,
+	ImapFolderService_DELETE,
+	ImapFolderService_POST,
 	ImapFolderSyncState,
 	ImapFolderSyncStateTypeRef,
-	ImapService,
+	ImapService_DELETE,
+	ImapService_POST,
+	ImapService_PUT,
 	ImportedImapMailTypeRef,
 	MailBox,
 	MailboxGroupRoot,
@@ -115,13 +118,13 @@ o.spec("ImapFacade", () => {
 		when(mailFacadeMock.createMailFolder("IMAP Import", null, mailGroupId)).thenResolve(rootImportMailFolderIdMock)
 
 		const imapPostOutMock = { imapAccountSyncState: imapAccountSyncStateIdMock }
-		when(serviceExecutorMock.post(ImapService, anything(), anything())).thenResolve(imapPostOutMock)
+		when(serviceExecutorMock.execute(ImapService_POST, anything(), anything())).thenResolve(imapPostOutMock)
 		when(entityClientMock.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateIdMock)).thenResolve(imapAccountSyncStateMock)
 
 		const result = await imapFacade.initializeImapImport(initializeParams)
 
 		verify(mailFacadeMock.createMailFolder("IMAP Import", null, mailGroupId), { times: 1 })
-		verify(serviceExecutorMock.post(ImapService, anything(), anything()), { times: 1 })
+		verify(serviceExecutorMock.execute(ImapService_POST, anything(), anything()), { times: 1 })
 		verify(entityClientMock.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateIdMock), { times: 1 })
 		o.check(result.imapAccountSyncState).equals(imapAccountSyncStateMock)
 	})
@@ -145,23 +148,23 @@ o.spec("ImapFacade", () => {
 	})
 
 	o.test("updateAccountSyncStateAndAllFolderSyncStates - calls service executor", async () => {
-		when(serviceExecutorMock.put(ImapService, anything(), anything())).thenDo(() => Promise.resolve())
+		when(serviceExecutorMock.execute(ImapService_PUT, anything(), anything())).thenDo(() => Promise.resolve())
 		await imapFacade.updateAccountSyncStateAndAllFolderSyncStates(
 			imapAccountSyncStateMock,
 			ImapAccountSyncStatus.FINISHED,
 			ImapFolderSyncStatus.FINISHED,
 			undefined,
 		)
-		verify(serviceExecutorMock.put(ImapService, anything(), anything()), { times: 1 })
+		verify(serviceExecutorMock.execute(ImapService_PUT, anything(), anything()), { times: 1 })
 	})
 
 	o.test("deleteImapImport - calls service executor delete", async () => {
 		const deleteInMock = createTestEntity(ImapDeleteInTypeRef, { imapAccountSyncState: imapAccountSyncStateIdMock })
-		when(serviceExecutorMock.delete(ImapService, anything(), null)).thenDo(() => Promise.resolve())
+		when(serviceExecutorMock.execute(ImapService_DELETE, anything(), null)).thenDo(() => Promise.resolve())
 
 		await imapFacade.deleteImapImport(imapAccountSyncStateIdMock)
 
-		verify(serviceExecutorMock.delete(ImapService, deleteInMock, null), { times: 1 })
+		verify(serviceExecutorMock.execute(ImapService_DELETE, deleteInMock, null), { times: 1 })
 	})
 
 	o.test("createImportMailFolder - creates folder and returns sync state when no root folder and mapping exists", async () => {
@@ -171,12 +174,12 @@ o.spec("ImapFacade", () => {
 		when(entityClientMock.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))).thenResolve(mailboxGroupRootMock)
 		when(entityClientMock.load(MailBoxTypeRef, idToElementId(mailboxGroupRootMock.mailbox))).thenResolve(mailBoxMock)
 		const postOutMock = { imapFolderSyncState: imapFolderSyncStateIdMock }
-		when(serviceExecutorMock.post(ImapFolderService, anything(), anything())).thenResolve(postOutMock)
+		when(serviceExecutorMock.execute(ImapFolderService_POST, anything(), anything())).thenResolve(postOutMock)
 		when(entityClientMock.load(ImapFolderSyncStateTypeRef, imapFolderSyncStateIdMock)).thenResolve(imapFolderSyncStateMock)
 
 		await imapFacade.initializeImapMailSet(imapMailbox, imapAccountSyncStateMock, null, true, false)
 
-		verify(serviceExecutorMock.post(ImapFolderService, anything(), anything()), { times: 1 })
+		verify(serviceExecutorMock.execute(ImapFolderService_POST, anything(), anything()), { times: 1 })
 	})
 
 	o.test("createImportMailFolder - creates new folder when root folder is set", async () => {
@@ -185,7 +188,7 @@ o.spec("ImapFacade", () => {
 		when(mailFacadeMock.createMailFolder("Sent", null, mailGroupId)).thenResolve(mailFolderIdMock)
 
 		const postOutMock = { imapFolderSyncState: imapFolderSyncStateIdMock }
-		when(serviceExecutorMock.post(ImapFolderService, anything(), anything())).thenResolve(postOutMock)
+		when(serviceExecutorMock.execute(ImapFolderService_POST, anything(), anything())).thenResolve(postOutMock)
 		when(entityClientMock.load(ImapFolderSyncStateTypeRef, imapFolderSyncStateIdMock)).thenResolve(imapFolderSyncStateMock)
 
 		await imapFacade.initializeImapMailSet(imapMailbox, imapAccountSyncStateMock, null, true, false)
@@ -235,11 +238,11 @@ o.spec("ImapFacade", () => {
 
 	o.test("deleteImapFolderSyncState - calls service executor delete", async () => {
 		const deleteInMock = createImapFolderDeleteIn({ imapFolderSyncState: imapFolderSyncStateIdMock })
-		when(serviceExecutorMock.delete(ImapFolderService, anything(), null)).thenDo(() => Promise.resolve())
+		when(serviceExecutorMock.execute(ImapFolderService_DELETE, anything(), null)).thenDo(() => Promise.resolve())
 
 		await imapFacade.deleteImapFolderSyncState(imapFolderSyncStateIdMock)
 
-		verify(serviceExecutorMock.delete(ImapFolderService, deleteInMock, null), { times: 1 })
+		verify(serviceExecutorMock.execute(ImapFolderService_DELETE, deleteInMock, null), { times: 1 })
 	})
 
 	o.test("getImapAccountSyncStateById - loads entity", async () => {

@@ -15,7 +15,7 @@ import {
 } from "./utils/SubscriptionUtils"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, ofClass } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
-import { createSwitchAccountTypePostIn, SwitchAccountTypeService } from "@tutao/entities/sys"
+import { createSwitchAccountTypePostIn, SwitchAccountTypeService_POST } from "@tutao/entities/sys"
 import { AccountType, AvailablePlanType, PaymentMethodType, PlanType } from "../../../entities/sys/Utils"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
@@ -255,7 +255,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			app: ClientDetector.get().isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 		})
 		return (
-			showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(SwitchAccountTypeService, serviceData, null))
+			showProgressDialog("pleaseWait_msg", locator.serviceExecutor.execute(SwitchAccountTypeService_POST, serviceData, null))
 				// Order confirmation (click on Buy), send selected payment method as an enum
 				.then(() => ctx.goNext())
 				.catch(

@@ -18,7 +18,7 @@ import {
 	ImportAttachment,
 	ImportMailDataMailReference,
 	ImportMailDataTypeRef,
-	ImportMailService,
+	ImportMailService_POST,
 } from "@tutao/entities/tutanota"
 import { assertNotNull, getFirstOrThrow, isEmpty, promiseMap } from "@tutao/utils"
 import { ArchiveDataType } from "../../../../../../entities/sys/Utils"
@@ -171,7 +171,7 @@ export class ImportMailFacade {
 				importFileMailState: null,
 				imapFolderSyncState: getFirstOrThrow(importMailsParamsList).imapFolderSyncState,
 			})
-			await this.serviceExecutor.post(ImportMailService, importMailPostIn, {
+			await this.serviceExecutor.execute(ImportMailService_POST, importMailPostIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				suspensionBehavior: SuspensionBehavior.Throw,
 			})

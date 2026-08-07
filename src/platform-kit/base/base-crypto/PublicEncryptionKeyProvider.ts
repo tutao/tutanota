@@ -16,7 +16,7 @@ import { InvalidDataError } from "@tutao/rest-client/error"
 import { CryptoError } from "@tutao/crypto/error"
 import { KeyVerificationFacade, VerifiedPublicEncryptionKey } from "../facades/lazy/KeyVerificationFacade"
 import { CryptoTypes } from "./Constants"
-import { createPublicKeyGetIn, PubDistributionKey, PublicKeyGetOut, PublicKeyService, SystemKeysReturn } from "@tutao/entities/sys"
+import { createPublicKeyGetIn, PubDistributionKey, PublicKeyGetOut, PublicKeyService_GET, SystemKeysReturn } from "@tutao/entities/sys"
 import { MaybeSignedPublicKey } from "./MaybeSignedPublicKey"
 import { PublicEncryptionKeyCache } from "./persistence/PublicEncryptionKeyCache"
 
@@ -67,7 +67,7 @@ class PublicEncryptionKeyProvider {
 			identifier: pubKeyIdentifier.identifier,
 			identifierType: pubKeyIdentifier.identifierType,
 		})
-		const publicKeyGetOut = await this.serviceExecutor.get(PublicKeyService, requestData, null)
+		const publicKeyGetOut = await this.serviceExecutor.execute(PublicKeyService_GET, requestData, null)
 		const publicEncryptionKey = this.convertFromPublicKeyGetOut(publicKeyGetOut)
 		this.enforceRsaKeyVersionConstraint(publicEncryptionKey.publicKey)
 		if (version != null && publicEncryptionKey.publicKey.version !== version) {

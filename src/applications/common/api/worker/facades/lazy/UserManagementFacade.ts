@@ -24,9 +24,9 @@ import { RecoverCodeFacade, RecoverData } from "../../../../../../platform-kit/b
 import { AdminKeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/AdminKeyLoaderFacade"
 import { IdentityKeyCreator } from "../../../../../../platform-kit/base/base-crypto/IdentityKeyCreator"
 import { CounterType } from "../../../../../../entities/monitor/Utils"
-import { createResetPasswordPostIn, createUserDataDelete, ResetPasswordService, User, UserService } from "@tutao/entities/sys"
+import { createResetPasswordPostIn, createUserDataDelete, ResetPasswordService_POST, User, UserService_DELETE } from "@tutao/entities/sys"
 import { GroupType } from "../../../../../../entities/sys/Utils"
-import { createUserAccountCreateData, createUserAccountUserData, UserAccountService, UserAccountUserData } from "@tutao/entities/tutanota"
+import { createUserAccountCreateData, createUserAccountUserData, UserAccountService_POST, UserAccountUserData } from "@tutao/entities/tutanota"
 import { DEFAULT_KDF_TYPE } from "../../../../../../platform-kit/base/base-crypto/Constants"
 import { elementIdToId } from "@tutao/meta"
 
@@ -62,7 +62,7 @@ export class UserManagementFacade {
 			kdfVersion: kdfType,
 			userGroupKeyVersion: String(userGroupKey.version),
 		})
-		await this.serviceExecutor.post(ResetPasswordService, data, null)
+		await this.serviceExecutor.execute(ResetPasswordService_POST, data, null)
 	}
 
 	async changeAdminFlag(user: User, admin: boolean): Promise<void> {
@@ -86,7 +86,7 @@ export class UserManagementFacade {
 			restore,
 			date: Const.CURRENT_DATE,
 		})
-		await this.serviceExecutor.delete(UserService, data, null)
+		await this.serviceExecutor.execute(UserService_DELETE, data, null)
 	}
 
 	async createUser(
@@ -130,7 +130,7 @@ export class UserManagementFacade {
 				this.recoverCodeFacade.generateRecoveryCode(userGroupKey),
 			),
 		})
-		const { userGroup } = await this.serviceExecutor.post(UserAccountService, data, null)
+		const { userGroup } = await this.serviceExecutor.execute(UserAccountService_POST, data, null)
 
 		await this.identityKeyCreator.createIdentityKeyPair(
 			userGroup,

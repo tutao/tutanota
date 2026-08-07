@@ -8,7 +8,7 @@ import {
 	PresentableKeyVerificationState,
 } from "../../../../src/platform-kit/app-env"
 import { asCryptoProtoocolVersion, BucketPermissionType } from "../../../../src/platform-kit/base/base-crypto/Constants.js"
-import { elementIdPart, elementIdToId, getListId, idToElementId, isSameId, listIdPart, TypeModel } from "../../../../src/platform-kit/meta"
+import { elementIdPart, elementIdToId, getListId, idToElementId, isSameId, listIdPart, NULL_ENTITY, TypeModel } from "../../../../src/platform-kit/meta"
 import { RestClient, restError } from "../../../../src/platform-kit/rest-client"
 import { HttpMethod } from "../../../../src/platform-kit/rest-client/types"
 import { EntityClient } from "../../../../src/platform-kit/network/EntityClient.js"
@@ -76,7 +76,7 @@ import {
 	PermissionTypeRef,
 	TypeInfoTypeRef,
 	UpdatePermissionKeyData,
-	UpdatePermissionKeyService,
+	UpdatePermissionKeyService_POST,
 	User,
 	UserTypeRef,
 } from "@tutao/entities/sys"
@@ -317,14 +317,14 @@ o.spec("CryptoFacadeTest", function () {
 		when(entityClient.loadAll(BucketPermissionTypeRef, getListId(bucketPermission))).thenResolve([bucketPermission])
 		when(entityClient.loadAll(PermissionTypeRef, getListId(permission))).thenResolve([permission])
 		when(
-			serviceExecutor.post(
-				UpdatePermissionKeyService,
+			serviceExecutor.execute(
+				UpdatePermissionKeyService_POST,
 				argThat((p: UpdatePermissionKeyData) => {
 					return isSameId(p.permission, permission._id) && isSameId(p.bucketPermission, bucketPermission._id)
 				}),
 				null,
 			),
-		).thenResolve(undefined)
+		).thenResolve(NULL_ENTITY)
 
 		const sessionKey = neverNull(await crypto.resolveSessionKey(mail))
 

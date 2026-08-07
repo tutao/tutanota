@@ -23,10 +23,11 @@ import {
 	usageModelInfo,
 	UsageTestAssignmentInTypeRef,
 	UsageTestAssignmentOutTypeRef,
-	UsageTestAssignmentService,
+	UsageTestAssignmentService_POST,
+	UsageTestAssignmentService_PUT,
 	UsageTestAssignmentTypeRef,
 	UsageTestParticipationInTypeRef,
-	UsageTestParticipationService,
+	UsageTestParticipationService_POST,
 } from "@tutao/entities/usage"
 import { clone } from "../../../src/platform-kit/meta"
 
@@ -123,7 +124,7 @@ o.spec("UsageTestModel", function () {
 		o.spec("usage test model loading assignments", function () {
 			o("when there's no deviceId it does POST", async function () {
 				when(
-					serviceExecutor.post(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, {}), {
+					serviceExecutor.execute(UsageTestAssignmentService_POST, createTestEntity(UsageTestAssignmentInTypeRef, {}), {
 						...DEFAULT_EXTRA_SERVICE_PARAMS,
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
@@ -147,7 +148,7 @@ o.spec("UsageTestModel", function () {
 				})
 
 				when(
-					serviceExecutor.put(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, { testDeviceId }), {
+					serviceExecutor.execute(UsageTestAssignmentService_PUT, createTestEntity(UsageTestAssignmentInTypeRef, { testDeviceId }), {
 						...DEFAULT_EXTRA_SERVICE_PARAMS,
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
@@ -164,7 +165,7 @@ o.spec("UsageTestModel", function () {
 
 			o("loads from server and stores if nothing is stored", async function () {
 				when(
-					serviceExecutor.put(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, { testDeviceId }), {
+					serviceExecutor.execute(UsageTestAssignmentService_PUT, createTestEntity(UsageTestAssignmentInTypeRef, { testDeviceId }), {
 						...DEFAULT_EXTRA_SERVICE_PARAMS,
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
@@ -197,7 +198,7 @@ o.spec("UsageTestModel", function () {
 				await ephemeralStorage.storeAssignments(assignmentData)
 
 				when(
-					serviceExecutor.put(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, { testDeviceId }), {
+					serviceExecutor.execute(UsageTestAssignmentService_PUT, createTestEntity(UsageTestAssignmentInTypeRef, { testDeviceId }), {
 						...DEFAULT_EXTRA_SERVICE_PARAMS,
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
@@ -237,8 +238,8 @@ o.spec("UsageTestModel", function () {
 				stage.setMetric(metric)
 
 				when(
-					serviceExecutor.post(
-						UsageTestParticipationService,
+					serviceExecutor.execute(
+						UsageTestParticipationService_POST,
 						createTestEntity(UsageTestParticipationInTypeRef, {
 							testId: usageTest.testId,
 							metrics: [createUsageTestMetricData(metric)],
@@ -251,7 +252,7 @@ o.spec("UsageTestModel", function () {
 
 				await usageTestModel.sendPing(usageTest, stage, false)
 
-				verify(serviceExecutor.post(UsageTestParticipationService, anything(), anything()), {
+				verify(serviceExecutor.execute(UsageTestParticipationService_POST, anything(), anything()), {
 					times: 1,
 					ignoreExtraArgs: true,
 				})
@@ -271,8 +272,8 @@ o.spec("UsageTestModel", function () {
 				const pingOrder: Array<string> = []
 
 				when(
-					serviceExecutor.post(
-						UsageTestParticipationService,
+					serviceExecutor.execute(
+						UsageTestParticipationService_POST,
 						createTestEntity(UsageTestParticipationInTypeRef, {
 							testId: usageTest.testId,
 							stage: "0",
@@ -298,8 +299,8 @@ o.spec("UsageTestModel", function () {
 				})
 
 				when(
-					serviceExecutor.post(
-						UsageTestParticipationService,
+					serviceExecutor.execute(
+						UsageTestParticipationService_POST,
 						createTestEntity(UsageTestParticipationInTypeRef, {
 							testId: usageTest.testId,
 							stage: "1",
@@ -323,8 +324,8 @@ o.spec("UsageTestModel", function () {
 				})
 
 				when(
-					serviceExecutor.post(
-						UsageTestParticipationService,
+					serviceExecutor.execute(
+						UsageTestParticipationService_POST,
 						createTestEntity(UsageTestParticipationInTypeRef, {
 							testId: usageTest.testId,
 							stage: "2",
@@ -350,7 +351,7 @@ o.spec("UsageTestModel", function () {
 				usageTestModel.setStorageBehavior(StorageBehavior.Persist)
 
 				when(
-					serviceExecutor.post(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, {}), {
+					serviceExecutor.execute(UsageTestAssignmentService_POST, createTestEntity(UsageTestAssignmentInTypeRef, {}), {
 						...DEFAULT_EXTRA_SERVICE_PARAMS,
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
@@ -373,7 +374,7 @@ o.spec("UsageTestModel", function () {
 				usageTestModel.setStorageBehavior(StorageBehavior.Persist)
 
 				when(
-					serviceExecutor.post(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, {}), {
+					serviceExecutor.execute(UsageTestAssignmentService_POST, createTestEntity(UsageTestAssignmentInTypeRef, {}), {
 						...DEFAULT_EXTRA_SERVICE_PARAMS,
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),
@@ -396,7 +397,7 @@ o.spec("UsageTestModel", function () {
 				usageTestModel.setStorageBehavior(StorageBehavior.Persist)
 
 				when(
-					serviceExecutor.post(UsageTestAssignmentService, createTestEntity(UsageTestAssignmentInTypeRef, {}), {
+					serviceExecutor.execute(UsageTestAssignmentService_POST, createTestEntity(UsageTestAssignmentInTypeRef, {}), {
 						...DEFAULT_EXTRA_SERVICE_PARAMS,
 						suspensionBehavior: SuspensionBehavior.Throw,
 					}),

@@ -1,6 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
 import {
-	BLOB_SERVICE_REST_PATH,
 	BlobFacade,
 	FileData,
 	KeyedNewBlobWrapper,
@@ -37,6 +36,7 @@ import {
 	BlobPostOutTypeRef,
 	BlobServerAccessInfoTypeRef,
 	BlobServerUrlTypeRef,
+	BlobService_GET,
 	createBlobPostOut,
 	createBlobServerUrl,
 	storageTypeModels,
@@ -148,13 +148,15 @@ o.spec("BlobFacadeTest", function () {
 			})
 			const blobServiceServerResponse = await realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, blobServiceResponse, sessionKey)
 
-			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything())).thenResolve(blobServiceServerResponse.getJsonRepresentation())
+			when(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.POST, anything())).thenResolve(
+				blobServiceServerResponse.getJsonRepresentation(),
+			)
 
 			const referenceTokens = await blobFacade.encryptAndUpload(archiveDataType, blobData, ownerGroup, sessionKey, transferId)
 			o(referenceTokens).deepEquals(expectedReferenceTokens)
 
 			const optionsCaptor = captor()
-			verify(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, optionsCaptor.capture()))
+			verify(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.POST, optionsCaptor.capture()))
 			const encryptedData = (optionsCaptor.value.body as RestBinaryBody).payload
 			const decryptedData = aesDecrypt(sessionKey, encryptedData)
 			o(arrayEquals(decryptedData, blobData)).equals(true)
@@ -191,12 +193,14 @@ o.spec("BlobFacadeTest", function () {
 					blobReferenceTokens: expectedTokens,
 				})
 				const expectedBlobPostOut = await realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, expectedBlobPostOutEntity, aes256RandomKey())
-				when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything())).thenResolve(expectedBlobPostOut.getJsonRepresentation())
+				when(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.POST, anything())).thenResolve(
+					expectedBlobPostOut.getJsonRepresentation(),
+				)
 
 				const tokensArray = expectedTokens.map((t) => Array.of(t.blobReferenceToken))
 				const result = await blobFacade.encryptAndUploadMultiple(archiveDataType, ownerGroup, fileData, transferId)
 				o(result.map((r) => r.map((i) => i.blobReferenceToken))).deepEquals(tokensArray)
-				verify(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything()), { times: 1 })
+				verify(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.POST, anything()), { times: 1 })
 				verify(blobAccessTokenFacade.requestWriteToken(anything(), anything()), { times: 1 })
 			})
 
@@ -234,7 +238,7 @@ o.spec("BlobFacadeTest", function () {
 				when(blobAccessTokenFacade.requestWriteToken(anything(), anything())).thenResolve(blobAccessInfo)
 
 				let restClientCall = 0
-				when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything())).thenDo(() => {
+				when(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.POST, anything())).thenDo(() => {
 					restClientCall++
 					if (restClientCall === 1) {
 						return Promise.resolve(firstServerResponse.getJsonRepresentation())
@@ -248,7 +252,7 @@ o.spec("BlobFacadeTest", function () {
 
 				const result = await blobFacade.encryptAndUploadMultiple(archiveDataType, ownerGroup, fileData, transferId)
 				o(result.map((r) => r.map((i) => i.blobReferenceToken))).deepEquals([firstAttachmentTokens, ...restTokens])
-				verify(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything()), { times: 2 })
+				verify(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.POST, anything()), { times: 2 })
 			})
 
 			o("encryptAndUploadMultiple - worst case", async function () {
@@ -289,7 +293,7 @@ o.spec("BlobFacadeTest", function () {
 				when(blobAccessTokenFacade.requestWriteToken(anything(), anything())).thenResolve(blobAccessInfo)
 
 				let restClientCall = 0
-				when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything())).thenDo(() => {
+				when(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.POST, anything())).thenDo(() => {
 					restClientCall++
 					switch (restClientCall) {
 						case 1:
@@ -309,7 +313,7 @@ o.spec("BlobFacadeTest", function () {
 				const thirdAttachmentToken = blobRefTokenWrappers[3].blobReferenceToken
 
 				o(result.map((r) => r.map((i) => i.blobReferenceToken))).deepEquals([firstAttachmentTokens, [secondAttachmentToken], [thirdAttachmentToken]])
-				verify(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything()), { times: 4 })
+				verify(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.POST, anything()), { times: 4 })
 			})
 		})
 
@@ -362,7 +366,7 @@ o.spec("BlobFacadeTest", function () {
 			verify(
 				fileAppMock.upload(
 					encryptedFileInfo.uri,
-					`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`,
+					`http://w1.api.tuta.com${BlobService_GET.serviceRestPath}?test=theseAreTheParamsIPromise`,
 					HttpMethod.POST,
 					{
 						v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
@@ -414,13 +418,13 @@ o.spec("BlobFacadeTest", function () {
 				// blob data
 				encryptedBlobData,
 			)
-			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, anything())).thenResolve(blobResponse)
+			when(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.GET, anything())).thenResolve(blobResponse)
 
 			const decryptedData = await blobFacade.downloadAndDecrypt(archiveDataType, wrapTutanotaFile(file), transferId)
 
 			o(decryptedData).deepEquals(blobData)("decrypted data is equal")
 			const optionsCaptor = captor()
-			verify(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, optionsCaptor.capture()))
+			verify(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.GET, optionsCaptor.capture()))
 			o(optionsCaptor.value.baseUrl).equals("someBaseUrl")
 			o(optionsCaptor.value.queryParams.blobAccessToken).deepEquals(blobAccessInfo.blobAccessToken)
 
@@ -480,7 +484,7 @@ o.spec("BlobFacadeTest", function () {
 				// blob data
 				encryptedBlobData2,
 			)
-			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, anything())).thenResolve(blobResponse)
+			when(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.GET, anything())).thenResolve(blobResponse)
 
 			const decryptedData = await blobFacade.downloadAndDecrypt(archiveDataType, wrapTutanotaFile(file), transferId)
 
@@ -541,7 +545,7 @@ o.spec("BlobFacadeTest", function () {
 				// blob data
 				encryptedBlobData2,
 			)
-			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, anything())).thenResolve(blobResponse)
+			when(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.GET, anything())).thenResolve(blobResponse)
 
 			const decryptedData = await blobFacade.downloadAndDecrypt(archiveDataType, wrapTutanotaFile(file), transferId)
 
@@ -591,7 +595,7 @@ o.spec("BlobFacadeTest", function () {
 			o(decryptedFileReference).deepEquals(expectedFileReference)
 			verify(
 				fileAppMock.download(
-					`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`,
+					`http://w1.api.tuta.com${BlobService_GET.serviceRestPath}?test=theseAreTheParamsIPromise`,
 					blobs[0].blobId + ".blob",
 					{
 						v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
@@ -666,7 +670,7 @@ o.spec("BlobFacadeTest", function () {
 			o(decryptedFileReference).deepEquals(expectedFileReference)
 			verify(
 				fileAppMock.download(
-					`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`,
+					`http://w1.api.tuta.com${BlobService_GET.serviceRestPath}?test=theseAreTheParamsIPromise`,
 					blobId1 + ".blob",
 					{
 						v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
@@ -677,7 +681,7 @@ o.spec("BlobFacadeTest", function () {
 			)
 			verify(
 				fileAppMock.download(
-					`http://w1.api.tuta.com${BLOB_SERVICE_REST_PATH}?test=theseAreTheParamsIPromise`,
+					`http://w1.api.tuta.com${BlobService_GET.serviceRestPath}?test=theseAreTheParamsIPromise`,
 					blobId2 + ".blob",
 					{
 						v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
@@ -793,7 +797,7 @@ o.spec("BlobFacadeTest", function () {
 				// blob data
 				encryptedBlobData3,
 			)
-			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, anything())).thenResolve(blobResponse)
+			when(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.GET, anything())).thenResolve(blobResponse)
 
 			const result = await blobFacade.downloadAndDecryptBlobsOfMultipleInstances(archiveDataType, [wrapTutanotaFile(file), wrapTutanotaFile(anotherFile)])
 
@@ -897,7 +901,7 @@ o.spec("BlobFacadeTest", function () {
 			const blobIdTypeModel = await typeModelResolver.resolveServerTypeReference(BlobIdTypeRef)
 			when(
 				restClientMock.request(
-					BLOB_SERVICE_REST_PATH,
+					BlobService_GET.serviceRestPath,
 					HttpMethod.GET,
 					matchers.argThat((options: RestClientOptions) => {
 						if (!options.body) {
@@ -911,7 +915,7 @@ o.spec("BlobFacadeTest", function () {
 			).thenResolve(blobResponse1)
 			when(
 				restClientMock.request(
-					BLOB_SERVICE_REST_PATH,
+					BlobService_GET.serviceRestPath,
 					HttpMethod.GET,
 					matchers.argThat((options: RestClientOptions) => {
 						if (!options.body) {
@@ -989,7 +993,7 @@ o.spec("BlobFacadeTest", function () {
 				// blob data
 				encryptedBlobData2,
 			)
-			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, anything())).thenResolve(blobResponse)
+			when(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.GET, anything())).thenResolve(blobResponse)
 
 			const result = await blobFacade.downloadAndDecryptBlobsOfMultipleInstances(archiveDataType, [wrapTutanotaFile(file), wrapTutanotaFile(anotherFile)])
 
@@ -1066,7 +1070,7 @@ o.spec("BlobFacadeTest", function () {
 				// blob data
 				encryptedBlobData3,
 			)
-			when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.GET, anything())).thenResolve(blobResponse)
+			when(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.GET, anything())).thenResolve(blobResponse)
 
 			const result = await blobFacade.downloadAndDecryptBlobsOfMultipleInstances(archiveDataType, [wrapTutanotaFile(file), wrapTutanotaFile(anotherFile)])
 

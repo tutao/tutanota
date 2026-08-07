@@ -35,14 +35,14 @@ import { Argon2idFacade } from "../../../src/platform-kit/base/base-crypto/WasmA
 import { Credentials, CredentialType } from "../../../src/platform-kit/network/types"
 import { TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
 import {
-	ChangeKdfService,
+	ChangeKdfService_POST,
 	createSaltReturn,
 	CreateSessionReturnTypeRef,
 	GroupInfoTypeRef,
 	GroupMembershipTypeRef,
 	SaltReturnTypeRef,
-	SaltService,
-	SessionService,
+	SaltService_GET,
+	SessionService_POST,
 	SessionTypeRef,
 	User,
 	UserExternalAuthInfoTypeRef,
@@ -135,7 +135,7 @@ o.spec("LoginFacadeTest", function () {
 
 	o.beforeEach(function () {
 		serviceExecutor = object()
-		when(serviceExecutor.get(SaltService, anything(), null), { ignoreExtraArgs: true }).thenResolve(
+		when(serviceExecutor.execute(SaltService_GET, anything(), null), { ignoreExtraArgs: true }).thenResolve(
 			createTestEntity(SaltReturnTypeRef, { salt: SALT, kdfVersion: DEFAULT_KDF_TYPE }),
 		)
 
@@ -204,7 +204,7 @@ o.spec("LoginFacadeTest", function () {
 			const accessToken = "accessToken"
 
 			o.beforeEach(async function () {
-				when(serviceExecutor.post(SessionService, anything(), null), { ignoreExtraArgs: true }).thenResolve(
+				when(serviceExecutor.execute(SessionService_POST, anything(), null), { ignoreExtraArgs: true }).thenResolve(
 					createTestEntity(CreateSessionReturnTypeRef, {
 						user: userId,
 						accessToken: accessToken,
@@ -743,7 +743,7 @@ o.spec("LoginFacadeTest", function () {
 					entityClientMock.load(UserTypeRef, idToElementId(userId), { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly }),
 				).thenResolve(user)
 
-				when(serviceExecutor.get(SaltService, anything(), null), { ignoreExtraArgs: true }).thenResolve(
+				when(serviceExecutor.execute(SaltService_GET, anything(), null), { ignoreExtraArgs: true }).thenResolve(
 					createSaltReturn({ salt: SALT, kdfVersion: KdfType.Bcrypt }),
 				)
 
@@ -935,8 +935,8 @@ o.spec("LoginFacadeTest", function () {
 				),
 			)
 			verify(
-				serviceExecutor.post(
-					ChangeKdfService,
+				serviceExecutor.execute(
+					ChangeKdfService_POST,
 					argThat(({ kdfVersion, oldVerifier, pwEncUserGroupKey, salt, verifier }) => {
 						return kdfVersion === KdfType.Argon2id
 					}),

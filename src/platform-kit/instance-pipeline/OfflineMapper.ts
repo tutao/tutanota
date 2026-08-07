@@ -5,6 +5,7 @@ import {
 	AssociationReprType,
 	AttributeId,
 	AttributeName,
+	Entity,
 	getAssociationRepresentationType,
 	getIdType,
 	IdType,
@@ -173,8 +174,8 @@ export class OfflineEntity implements DeepEquals {
 		})
 	}
 
-	getTypeRef(): TypeRef<unknown> {
-		return new TypeRef<unknown>(this.typeModel.app, this.typeModel.id)
+	getTypeRef(): TypeRef<Entity> {
+		return new TypeRef<Entity>(this.typeModel.app, this.typeModel.id)
 	}
 
 	deepEquals(other: this): boolean {

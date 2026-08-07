@@ -1,33 +1,15 @@
-import { BlobAccessTokenPostInTypeRef } from "./TypeRefs.js"
-import { BlobAccessTokenPostOutTypeRef } from "./TypeRefs.js"
-import { BlobReferencePutInTypeRef } from "./TypeRefs.js"
-import { BlobReferenceDeleteInTypeRef } from "./TypeRefs.js"
-import { BlobGetInTypeRef } from "./TypeRefs.js"
-import { BlobPostOutTypeRef } from "./TypeRefs.js"
+import { BlobAccessTokenPostIn, BlobAccessTokenPostInTypeRef } from "./TypeRefs.js"
+import { BlobAccessTokenPostOut, BlobAccessTokenPostOutTypeRef } from "./TypeRefs.js"
+import { BlobReferencePutIn, BlobReferencePutInTypeRef } from "./TypeRefs.js"
+import { BlobReferenceDeleteIn, BlobReferenceDeleteInTypeRef } from "./TypeRefs.js"
+import { BlobGetIn, BlobGetInTypeRef } from "./TypeRefs.js"
+import { BlobPostOut, BlobPostOutTypeRef } from "./TypeRefs.js"
+import { GetService, PostService, PutService, DeleteService, NullEntityTypeRef, NullEntity } from "@tutao/meta"
 
-export const BlobAccessTokenService = Object.freeze({
-	app: "storage",
-	name: "BlobAccessTokenService",
-	get: null,
-	post: { data: BlobAccessTokenPostInTypeRef, return: BlobAccessTokenPostOutTypeRef },
-	put: null,
-	delete: null,
-} as const)
+export const BlobAccessTokenService_POST = new PostService<BlobAccessTokenPostIn, BlobAccessTokenPostOut>("storage", "BlobAccessTokenService", BlobAccessTokenPostInTypeRef, BlobAccessTokenPostOutTypeRef)
 
-export const BlobReferenceService = Object.freeze({
-	app: "storage",
-	name: "BlobReferenceService",
-	get: null,
-	post: null,
-	put: { data: BlobReferencePutInTypeRef, return: null },
-	delete: { data: BlobReferenceDeleteInTypeRef, return: null },
-} as const)
+export const BlobReferenceService_PUT = new PutService<BlobReferencePutIn, NullEntity>("storage", "BlobReferenceService", BlobReferencePutInTypeRef, NullEntityTypeRef)
+export const BlobReferenceService_DELETE = new DeleteService<BlobReferenceDeleteIn, NullEntity>("storage", "BlobReferenceService", BlobReferenceDeleteInTypeRef, NullEntityTypeRef)
 
-export const BlobService = Object.freeze({
-	app: "storage",
-	name: "BlobService",
-	get: { data: BlobGetInTypeRef, return: null },
-	post: { data: null, return: BlobPostOutTypeRef },
-	put: null,
-	delete: null,
-} as const)
+export const BlobService_GET = new GetService<BlobGetIn, NullEntity>("storage", "BlobService", BlobGetInTypeRef, NullEntityTypeRef)
+export const BlobService_POST = new PostService<NullEntity, BlobPostOut>("storage", "BlobService", NullEntityTypeRef, BlobPostOutTypeRef)
