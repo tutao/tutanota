@@ -459,7 +459,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 				),
 		}
 		return m(
-			"div.col.flex.plr-8.fill-absolute",
+			"div.col.flex.plr-8.fill-absolute..overflow-y-scroll",
 			styles.isDesktopLayout() ? null : this.renderFilterBar(),
 			m(
 				".rel.flex-grow",

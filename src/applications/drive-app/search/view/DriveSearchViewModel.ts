@@ -78,7 +78,7 @@ export class DriveSearchViewModel {
 	#listModel: ListModel<FolderItem, Id> = emptyListModel()
 	#startDate: Date | null = null
 	get startDate(): Date | null {
-		return this.#startDate ?? new Date()
+		return this.#startDate
 	}
 	#endDate: Date | null = null
 	get endDate(): Date {
