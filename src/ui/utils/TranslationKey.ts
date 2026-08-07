@@ -2511,3 +2511,4 @@ export type TranslationKeyType =
 	| "whenCondition_label"
 	| "inboxRuleConditions_label"
 	| "inboxRuleResults_label"
+	| "selectLabel_action"
