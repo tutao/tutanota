@@ -2510,5 +2510,7 @@ export default {
 		"markRead_action": "Gelesen markieren",
 		"markUnread_action": "Ungelesen markieren",
 		"inboxRuleSenderEquals_action": "Absenderadresse",
+		"selectLabel_action": "Label(s) auswählen",
+		"labelMustBeSelected_msg": "At least one Label must be selected."
 	}
 }

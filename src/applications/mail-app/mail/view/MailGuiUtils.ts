@@ -31,12 +31,12 @@ import { InlineImageReference, InlineImages } from "../../../common/mailFunction
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import {
-	MailSetInfo,
-	getMailSetName,
 	getIndentedFolderNameForDropdown,
+	getMailSetName,
 	getMoveTargetFolderSystems,
 	getMoveTargetFolderSystemsForMailsInFolder,
 	getSystemFolderName,
+	MailSetInfo,
 	MoveService,
 	RegularMoveTargets,
 	SimpleMoveTargets,
@@ -47,7 +47,7 @@ import { LabelsPopup } from "./LabelsPopup"
 import { Styles } from "../../../../ui/styles"
 import { showSnackBar } from "../../../../ui/base/SnackBar"
 import { UndoModel } from "../../UndoModel"
-import { FolderSystem, IndentedMailSet } from "../../../common/api/common/mail/FolderSystem"
+import { IndentedMailSet } from "../../../common/api/common/mail/FolderSystem"
 import { computeColor, rgbToHSL } from "../../../../ui/base/Color"
 import { getDetachedDropdownBounds } from "../../../../ui/base/GuiUtils"
 import { DownloadListener, TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
@@ -69,6 +69,7 @@ import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp"
 import type { Shortcut } from "../../../../ui/utils/KeyManager"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { prependParentLabelNamesToLabel } from "./MailSetTreeUtils"
 
 const UNDO_SNACKBAR_SHOW_TIME = TimeConstants.secondsToMillis(10)
 
@@ -894,27 +895,10 @@ export function showLabelsPopup(
 export function getLabelsWithParentLabelNamesPrepended(mailModel: MailModel, mail: Mail): ReadonlyArray<{ name: string; color: string | null }> {
 	const mailLabels = mailModel.getLabelsForMail(mail)
 	const allLabels = mailModel.getLabelsByGroupId(assertNotNull(mail._ownerGroup))
-	const labelsWithParentNamesPrepended: { name: string; color: string | null }[] = mailLabels.map((label) => {
-		const nameParts: string[] = []
-		let current = label
-
-		while (current) {
-			nameParts.push(current.name)
-			if (!current.parentFolder) {
-				break
-			}
-			const parentId = elementIdPart(current.parentFolder)
-			const parent = allLabels.get(parentId)
-			if (!parent) {
-				break
-			}
-			current = parent
-		}
-
-		const fullName = nameParts.reverse().join("/")
-		return { name: fullName, color: label.color }
-	})
-
+	const labelsWithParentNamesPrepended: { name: string; color: string | null }[] = mailLabels.map((label) => ({
+		name: prependParentLabelNamesToLabel(label, allLabels),
+		color: label.color,
+	}))
 	return labelsWithParentNamesPrepended.sort((labelA, labelB) => labelA.name.localeCompare(labelB.name))
 }
 
