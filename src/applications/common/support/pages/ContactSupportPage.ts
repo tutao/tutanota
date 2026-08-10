@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
+import m, { Children, Component, Vnode } from "mithril"
 import { getCategoryName, getTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { clientInfoString, getLogAttachments } from "../../misc/ErrorReporter.js"
 import { Thunk } from "@tutao/utils"
@@ -60,6 +60,17 @@ export class ContactSupportPage implements Component<Props> {
 		const { HtmlEditor } = await import("../../../../ui/editor/HtmlEditor")
 		this.htmlEditor = new HtmlEditor(getHtmlSanitizer()).setMinHeight(250).setEnabled(true)
 
+		// we could've also added an onupdate listener on the ContactSupportPage itself, but that fires too often
+		this.htmlEditor.editor.initialized.promise.then(() => {
+			this.htmlEditor!.editor.addChangeListener(() => {
+				const supportRequestHtml = this.htmlEditor?.getValue() ?? ""
+
+				data.supportRequestHtml = supportRequestHtml
+				// If we would call `this.htmlEditor.isEmpty()` here, it would always return false because the value from inside is not updated yet, only on blur.
+				data.isSupportRequestEmpty = supportRequestHtml.trim() === "" || new RegExp(/^<div( dir=["'][A-z]*["'])?><br><\/div>$/).test(supportRequestHtml)
+			})
+		})
+
 		// "Technical Issues" -> Other -> use contactTemplate from category - "Technical Issues"
 		// "Technical Issues" -> "I cannot log in" -> use contactTemplate from topic - "I cannot log in"
 
@@ -83,14 +94,6 @@ export class ContactSupportPage implements Component<Props> {
 			false,
 		)
 		m.redraw()
-	}
-
-	onupdate({ attrs: { data } }: VnodeDOM<Props>): void {
-		const supportRequestHtml = this.htmlEditor?.getValue() ?? ""
-
-		data.supportRequestHtml = supportRequestHtml
-		// If we would call `this.htmlEditor.isEmpty()` here, it would always return false because the value from inside is not updated yet, only on blur.
-		data.isSupportRequestEmpty = supportRequestHtml.trim() === "" || new RegExp(/^<div( dir=["'][A-z]*["'])?><br><\/div>$/).test(supportRequestHtml)
 	}
 
 	/**
