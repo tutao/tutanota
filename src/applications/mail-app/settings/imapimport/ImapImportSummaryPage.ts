@@ -12,7 +12,7 @@ import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { IconButton } from "../../../../ui/base/IconButton"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { ImapMailbox } from "@tutao/native-bridge/generatedIpc/types"
-import { createImapAccount, createManageLabelServiceLabelData, MailSet } from "@tutao/entities/tutanota"
+import { createImapAccount, createManageLabelServiceLabelData, MailSet, MailSetTypeRef } from "@tutao/entities/tutanota"
 import { TextField } from "../../../../ui/base/TextField"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { theme } from "../../../../ui/theme"
@@ -36,6 +36,7 @@ import { isValidCSSHexColor } from "../../../../ui/base/Color"
 import { ColorOptionButton } from "../../../../ui/base/colorPicker/ColorOptionButton"
 import { ImapMailboxSpecialUse } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
 import { getTranslationForImapProvider, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 
 assertMainOrNode()
 
@@ -222,7 +223,12 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 								mailboxToRow.imapMailbox.name,
 								async (folderId) => {
 									newFolderElementId = elementIdPart(folderId)
-									data.folderSystem = await assertNotNull(mailLocator.getImapMailImportController()).getFolderSystemForSelectedMailbox()
+									const newFolder = await mailLocator.entityClient.load(MailSetTypeRef, folderId)
+									const mailSets = await mailLocator.entityClient.loadAll(
+										MailSetTypeRef,
+										assertNotNull(mailLocator.getImapMailImportController().selectedMailBoxDetail).mailbox.mailSets.mailSets,
+									)
+									data.folderSystem = new FolderSystem(mailSets)
 									if (newFolderElementId !== null) {
 										data.imapMailboxesToTutaMailSets?.set(mailboxToRow.imapMailbox.path, {
 											mailSetElementId: newFolderElementId,
