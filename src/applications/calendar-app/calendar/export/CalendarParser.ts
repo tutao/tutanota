@@ -928,8 +928,46 @@ export function parseTime(
 	date: Date
 	allDay: boolean
 } {
-	const result = parseDateTime(value, eventTzId, null)
-	return { date: result.dateTime.toJSDate(), allDay: result.isAllDay }
+	const components = parseTimeIntoComponents(value)
+
+	// if minute is not provided it is an all day date YYYYMMDD
+	const isAllDay = !("minute" in components)
+
+	if (!isAllDay && components.zone && eventTzid) {
+		console.warn(TAG + ` Time ${value} has both a TZID (${eventTzid}) and a UTC indicator. TZID will be ignored.`)
+	}
+
+	const effectiveZone = isAllDay ? "UTC" : (components.zone ?? eventTzid ?? undefined)
+	if (effectiveZone === undefined) {
+		console.warn(TAG + ` effectiveZone is undefined.  Local timezone will be used.`)
+	}
+
+	delete components["zone"]
+
+	const filledComponents = Object.assign(
+		{},
+		isAllDay
+			? {
+					hour: 0,
+					minute: 0,
+					second: 0,
+					millisecond: 0,
+				}
+			: {},
+		components,
+	)
+
+	try {
+		const dateTime = DateTime.fromObject(filledComponents, { zone: effectiveZone })
+		return { date: toValidJSDate(dateTime, value, eventTzid ?? null), allDay: isAllDay }
+	} catch (e) {
+		if (e instanceof ParserError) {
+			throw e
+		}
+		throw new ParserError(
+			`failed to parse time from ${value} to ${JSON.stringify(filledComponents)}, effectiveZone: ${effectiveZone}, original error: ${e.message}`,
+		)
+	}
 }
 
 function toValidJSDate(dateTime: DateTime, value: string, zone: string | null): Date {
