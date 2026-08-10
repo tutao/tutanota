@@ -589,7 +589,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 	 * (multi) mail viewer or a (multi) contact viewer or an event preview
 	 */
 	private renderDetailsView(header: AppHeaderAttrs): Children {
-		if (this.searchViewModel.listModel.isSelectionEmpty() && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
+		if (this.searchViewModel.listModel.isSelectionEmpty() && this.viewSlider.focusedColumn === this.resultDetailsColumn && !searchBar.focused) {
 			this.viewSlider.focus(this.resultListColumn)
 			return null
 		}
