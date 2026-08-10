@@ -18,7 +18,7 @@ export const AppNameEnum = Object.freeze({
 /**
  * T should be restricted to Entity.
  */
-export class TypeRef<T extends Entity> {
+export class TypeRef<T extends Entity<T>> {
 	readonly app: AppName
 	readonly typeId: number
 
@@ -42,11 +42,11 @@ export class TypeRef<T extends Entity> {
 	}
 }
 
-export function getTypeString(typeRef: TypeRef<Entity>) {
+export function getTypeString<T extends Entity<T>>(typeRef: TypeRef<T>) {
 	return typeRef.app + "/" + typeRef.typeId
 }
 
-export function parseTypeString<T extends Entity>(s: string): TypeRef<T> {
+export function parseTypeString<T extends Entity<T>>(s: string): TypeRef<T> {
 	const parts = s.split("/")
 	const [app, versionString] = parts
 	if (app == null || versionString == null) {
@@ -55,10 +55,10 @@ export function parseTypeString<T extends Entity>(s: string): TypeRef<T> {
 	return new TypeRef<T>(app as AppName, parseInt(parts[1], 10))
 }
 
-export function isSameTypeRefByAttr(typeRef: TypeRef<Entity>, app: string, typeId: number): boolean {
+export function isSameTypeRefByAttr<T extends Entity<T>>(typeRef: TypeRef<T>, app: string, typeId: number): boolean {
 	return typeRef.app === app && typeRef.typeId === typeId
 }
 
-export function isSameTypeRef(typeRef1: TypeRef<Entity>, typeRef2: TypeRef<Entity>): boolean {
+export function isSameTypeRef<T1 extends Entity<T1>, T2 extends Entity<T2>>(typeRef1: TypeRef<T1>, typeRef2: TypeRef<T2>): boolean {
 	return isSameTypeRefByAttr(typeRef1, typeRef2.app, typeRef2.typeId)
 }

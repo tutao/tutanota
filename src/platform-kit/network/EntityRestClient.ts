@@ -82,7 +82,7 @@ export interface EntityMigrator {
 	 * @param data
 	 * @return the unmapped and still encrypted instance
 	 */
-	applyMigrations(typeRef: TypeRef<Entity>, data: EntityAdapter): Promise<EntityAdapter>
+	applyMigrations<T extends Entity<T>>(typeRef: TypeRef<T>, data: EntityAdapter): Promise<EntityAdapter>
 }
 
 type PreparedRestRequestParams = {
@@ -120,7 +120,7 @@ export class EntityRestClient implements EntityRestInterface {
 		this.patchGenerator = new PatchGenerator(instancePipeline)
 	}
 
-	async loadParsedInstance<T extends PersistentEntity>(
+	async loadParsedInstance<T extends PersistentEntity<T>>(
 		typeRef: TypeRef<T>,
 		id: T["_id"],
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
@@ -164,7 +164,7 @@ export class EntityRestClient implements EntityRestInterface {
 		return decrypted
 	}
 
-	async load<T extends PersistentEntity>(
+	async load<T extends PersistentEntity<T>>(
 		typeRef: TypeRef<T>,
 		id: T["_id"],
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
@@ -173,11 +173,11 @@ export class EntityRestClient implements EntityRestInterface {
 		return await this.mapInstanceToEntity(parsedInstance)
 	}
 
-	async mapInstanceToEntity<T extends PersistentEntity>(parsedInstance: DecryptedParsedInstance): Promise<T> {
+	async mapInstanceToEntity<T extends PersistentEntity<T>>(parsedInstance: DecryptedParsedInstance): Promise<T> {
 		return await this.instancePipeline.modelMapper.mapToInstance<T>(parsedInstance)
 	}
 
-	async mapInstancesToEntity<T extends PersistentEntity>(typeRef: TypeRef<T>, parsedInstances: Array<DecryptedParsedInstance>): Promise<T[]> {
+	async mapInstancesToEntity<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, parsedInstances: Array<DecryptedParsedInstance>): Promise<T[]> {
 		return await promiseMap(
 			parsedInstances,
 			async (parsedInstance) => {
@@ -189,7 +189,7 @@ export class EntityRestClient implements EntityRestInterface {
 		)
 	}
 
-	async loadParsedInstancesRange<T extends ListElementEntity>(
+	async loadParsedInstancesRange<T extends ListElementEntity<T>>(
 		typeRef: TypeRef<T>,
 		listId: Id,
 		start: Id,
@@ -226,7 +226,7 @@ export class EntityRestClient implements EntityRestInterface {
 		return await this._handleLoadResult(typeRef, serverJson, opts.ownerKeyProvider ?? null)
 	}
 
-	async loadRange<T extends ListElementEntity>(
+	async loadRange<T extends ListElementEntity<T>>(
 		typeRef: TypeRef<T>,
 		listId: Id,
 		start: Id,
@@ -238,7 +238,7 @@ export class EntityRestClient implements EntityRestInterface {
 		return this.mapInstancesToEntity(typeRef, parsedInstances)
 	}
 
-	async loadMultipleParsedInstances<T extends PersistentEntity>(
+	async loadMultipleParsedInstances<T extends PersistentEntity<T>>(
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		elementIds: Array<Id>,
@@ -287,7 +287,7 @@ export class EntityRestClient implements EntityRestInterface {
 		return loadedChunks.flat()
 	}
 
-	async loadMultiple<T extends PersistentEntity>(
+	async loadMultiple<T extends PersistentEntity<T>>(
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		elementIds: Array<Id>,
@@ -348,7 +348,7 @@ export class EntityRestClient implements EntityRestInterface {
 		return doBlobRequestWithRetry(doBlobRequest, doEvictToken)
 	}
 
-	async _handleLoadResult<T extends PersistentEntity>(
+	async _handleLoadResult<T extends PersistentEntity<T>>(
 		typeRef: TypeRef<T>,
 		loadedEntities: Array<IncomingServerJson>,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
@@ -411,7 +411,7 @@ export class EntityRestClient implements EntityRestInterface {
 		)
 	}
 
-	async setup<T extends PersistentEntity>(
+	async setup<T extends PersistentEntity<T>>(
 		listId: Id | null,
 		instance: T,
 		extraHeaders: Nullable<Dict>,
@@ -453,7 +453,7 @@ export class EntityRestClient implements EntityRestInterface {
 		return parsedPersistencePostReturn.getAttributeByNameOrNull("generatedId")?.getNullWhenNull()?.asId() ?? null
 	}
 
-	async setupMultiple<T extends PersistentEntity>(listId: Id | null, instances: Array<T>): Promise<Array<Id>> {
+	async setupMultiple<T extends PersistentEntity<T>>(listId: Id | null, instances: Array<T>): Promise<Array<Id>> {
 		const count = instances.length
 
 		if (count < 1) {
@@ -479,7 +479,7 @@ export class EntityRestClient implements EntityRestInterface {
 			try {
 				const outgoingServerJsons = await promiseMap(instanceChunk, async (instance) => {
 					const sk = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance, null)
-					const encEntity = await this.instancePipeline.mapAndEncryptToParsedInstance(downcast<TypeRef<Entity>>(instance._type), instance, sk)
+					const encEntity = await this.instancePipeline.mapAndEncryptToParsedInstance(downcast<TypeRef<Entity<any>>>(instance._type), instance, sk)
 					return this.instancePipeline.typeMapper.makeServerJson(encEntity)
 				})
 				// informs the server that this is a POST_MULTIPLE request
@@ -526,7 +526,7 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 	}
 
-	async update<T extends PersistentEntity>(instance: T, options: EntityRestClientUpdateOptions = DEFAULT_ENTITY_RESTCLIENT_UPDATE_OPTIONS): Promise<void> {
+	async update<T extends PersistentEntity<T>>(instance: T, options: EntityRestClientUpdateOptions = DEFAULT_ENTITY_RESTCLIENT_UPDATE_OPTIONS): Promise<void> {
 		const { listId, elementId } = expandId(assertNotNull(instance._id, "Id must be defined while updating an instance"))
 		const {
 			path,
@@ -556,7 +556,7 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 	}
 
-	private async getSubKeyInfoOnSetup<T extends PersistentEntity>(
+	private async getSubKeyInfoOnSetup<T extends PersistentEntity<T>>(
 		ownerKey: VersionedKey | null,
 		instance: T,
 		clientTypeModel: ClientTypeModel,
@@ -582,7 +582,7 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 	}
 
-	private async getSubKeyInfoOnUpdate<T extends PersistentEntity>(ownerKey: VersionedKey | null, instance: T): Promise<Nullable<SubKeyInfo>> {
+	private async getSubKeyInfoOnUpdate<T extends PersistentEntity<T>>(ownerKey: VersionedKey | null, instance: T): Promise<Nullable<SubKeyInfo>> {
 		if (this.authDataProvider.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.AesCbc) {
 			const sessionKey: Nullable<AesKey> = await this.sessionKeyResolver().resolveSessionKeyWithOwnerKey(
 				ownerKey != null ? ownerKey.object : null,
@@ -614,7 +614,7 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 	}
 
-	async erase<T extends PersistentEntity>(instance: T, options: EntityRestClientEraseOptions = DEFAULT_ENTITY_RESTCLIENT_ERASE_OPTIONS): Promise<void> {
+	async erase<T extends PersistentEntity<T>>(instance: T, options: EntityRestClientEraseOptions = DEFAULT_ENTITY_RESTCLIENT_ERASE_OPTIONS): Promise<void> {
 		const { listId, elementId } = expandId(instance._id)
 		const { path, queryParams, headers } = await this._validateAndPrepareRestRequest(
 			instance._type,
@@ -632,7 +632,7 @@ export class EntityRestClient implements EntityRestInterface {
 		})
 	}
 
-	async eraseMultiple<T extends PersistentEntity>(
+	async eraseMultiple<T extends PersistentEntity<T>>(
 		listId: string,
 		instances: T[],
 		options: Nullable<EntityRestClientEraseOptions> = DEFAULT_ENTITY_RESTCLIENT_ERASE_OPTIONS,

@@ -1,6 +1,6 @@
 import { Range } from "./OfflineStorage.js"
 import { ProgrammingError } from "@tutao/app-env"
-import { Entity, ListElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
+import { ListElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
 import { Nullable } from "@tutao/utils"
 import { EphemeralCacheStorage } from "./EphemeralCacheStorage"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
@@ -46,12 +46,12 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return await this.inner.setCacheSyncStatus(cacheSyncStatus)
 	}
 
-	async getParsed(typeRef: TypeRef<Entity>, listId: string | null, id: string): Promise<DecryptedParsedInstance | null> {
+	async getParsed<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, listId: string | null, id: string): Promise<DecryptedParsedInstance | null> {
 		return await this.inner.getParsed(typeRef, listId, id)
 	}
 
-	async provideFromRangeParsed(
-		typeRef: TypeRef<Entity>,
+	async provideFromRangeParsed<T extends PersistentEntity<T>>(
+		typeRef: TypeRef<T>,
 		listId: string,
 		start: string,
 		count: number,
@@ -60,11 +60,15 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return await this.inner.provideFromRangeParsed(typeRef, listId, start, count, reverse)
 	}
 
-	async provideMultipleParsed(typeRef: TypeRef<Entity>, listId: Nullable<string>, elementIds: string[]): Promise<Array<DecryptedParsedInstance>> {
+	async provideMultipleParsed<T extends PersistentEntity<T>>(
+		typeRef: TypeRef<T>,
+		listId: Nullable<string>,
+		elementIds: string[],
+	): Promise<Array<DecryptedParsedInstance>> {
 		return await this.inner.provideMultipleParsed(typeRef, listId, elementIds)
 	}
 
-	async getWholeListParsed(typeRef: TypeRef<Entity>, listId: string): Promise<Array<DecryptedParsedInstance>> {
+	async getWholeListParsed<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, listId: string): Promise<Array<DecryptedParsedInstance>> {
 		return await this.inner.getWholeListParsed(typeRef, listId)
 	}
 
@@ -129,23 +133,23 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		throw new Error("Invalid OfflineStorage args")
 	}
 
-	deleteIfExists<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void> {
+	deleteIfExists<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void> {
 		return this.inner.deleteIfExists(typeRef, listId, id)
 	}
 
-	deleteMultiple<T extends PersistentEntity>(typeRef: TypeRef<T>, ids: T["_id"][]): Promise<void> {
+	deleteMultiple<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, ids: T["_id"][]): Promise<void> {
 		return this.inner.deleteMultiple(typeRef, ids)
 	}
 
-	deleteRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: string): Promise<void> {
+	deleteRange<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: string): Promise<void> {
 		return this.inner.deleteRange(typeRef, listId)
 	}
 
-	get<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null> {
+	get<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null> {
 		return this.inner.get<T>(typeRef, listId, id)
 	}
 
-	getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>> {
+	getIdsInRange<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>> {
 		return this.inner.getIdsInRange(typeRef, listId)
 	}
 
@@ -153,23 +157,23 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this._inner ? this.inner.getLastUpdateTime() : { type: "uninitialized" }
 	}
 
-	getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null> {
+	getRangeForList<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null> {
 		return this.inner.getRangeForList(typeRef, listId)
 	}
 
-	isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<boolean> {
+	isElementIdInCacheRange<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<boolean> {
 		return this.inner.isElementIdInCacheRange(typeRef, listId, id)
 	}
 
-	provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
+	provideFromRange<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]> {
 		return this.inner.provideFromRange(typeRef, listId, start, count, reverse)
 	}
 
-	provideMultiple<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: string, elementIds: string[]): Promise<T[]> {
+	provideMultiple<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: string, elementIds: string[]): Promise<T[]> {
 		return this.inner.provideMultiple(typeRef, listId, elementIds)
 	}
 
-	getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {
+	getWholeList<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {
 		return this.inner.getWholeList(typeRef, listId)
 	}
 
@@ -177,11 +181,11 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.purgeStorage()
 	}
 
-	put(typeRef: TypeRef<Entity>, instance: DecryptedParsedInstance): Promise<void> {
+	put<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, instance: DecryptedParsedInstance): Promise<void> {
 		return this.inner.put(typeRef, instance)
 	}
 
-	putMultiple(typeRef: TypeRef<Entity>, instances: Array<DecryptedParsedInstance>): Promise<void> {
+	putMultiple<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, instances: Array<DecryptedParsedInstance>): Promise<void> {
 		return this.inner.putMultiple(typeRef, instances)
 	}
 
@@ -189,15 +193,15 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.putLastUpdateTime(value)
 	}
 
-	setLowerRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void> {
+	setLowerRangeForList<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void> {
 		return this.inner.setLowerRangeForList(typeRef, listId, id)
 	}
 
-	setNewRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lower: Id, upper: Id): Promise<void> {
+	setNewRangeForList<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id, lower: Id, upper: Id): Promise<void> {
 		return this.inner.setNewRangeForList(typeRef, listId, lower, upper)
 	}
 
-	setUpperRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void> {
+	setUpperRangeForList<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void> {
 		return this.inner.setUpperRangeForList(typeRef, listId, id)
 	}
 

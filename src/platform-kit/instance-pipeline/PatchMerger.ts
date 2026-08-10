@@ -3,7 +3,7 @@
 // apply patch operations using a similar logic from the server
 // update the instance in the offline db
 
-import { AssociationReprType, getAssociationRepresentationType, isSameId, isSameSingleId, isSameTypeRef, TypeRef } from "../meta"
+import { AssociationReprType, getAssociationRepresentationType, isSameId, isSameSingleId, isSameTypeRef, PersistentEntity, TypeRef } from "../meta"
 import { ParsedValue } from "./ParsedValue"
 import { assertNotNull, deepEqual, isEmpty, isNotNull, KeyVersion, lazy, Nullable } from "@tutao/utils"
 import {
@@ -16,7 +16,7 @@ import {
 } from "@tutao/instance-pipeline"
 import { AesKey, InstanceDecryptor, InstanceTypeId, SymmetricCipherFacade, validateKdfNonceLength, VersionedEncryptedKey } from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"
-import { Entity, ServerTypeModel } from "@tutao/meta"
+import { ServerTypeModel } from "@tutao/meta"
 import { PatchOperationType } from "./PatchGenerator.js"
 import { TypeModelResolver } from "./EntityFunctions"
 import { Patch, UserTypeRef } from "@tutao/entities/sys"
@@ -30,7 +30,7 @@ export interface OwnerKeyProvider {
 }
 
 export interface OwnerEncSessionKeyProvider {
-	(instanceElementId: Id, entity: Entity): Promise<VersionedEncryptedKey>
+	(instanceElementId: Id, entity: PersistentEntity<any>): Promise<VersionedEncryptedKey>
 }
 
 export interface SessionKeyResolver {
@@ -42,11 +42,14 @@ export interface SessionKeyResolver {
 	 *
 	 * @param instance The unencrypted (client-side) instance or encrypted (server-side) object literal
 	 */
-	resolveSessionKey(instance: Entity): Promise<Nullable<AesKey>>
+	resolveSessionKey<T extends PersistentEntity<T>>(instance: T): Promise<Nullable<AesKey>>
 
-	resolveSessionKeyWithOwnerKey(ownerKeyProvider: AesKey | null, migratedEntity: Entity): Promise<Nullable<AesKey>>
+	resolveSessionKeyWithOwnerKey<T extends PersistentEntity<T>>(ownerKeyProvider: AesKey | null, migratedEntity: T): Promise<Nullable<AesKey>>
 
-	resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | null, migratedEntity: Entity): Promise<Nullable<AesKey>>
+	resolveSessionKeyWithOwnerKeyProvider<T extends PersistentEntity<T>>(
+		ownerKeyProvider: OwnerKeyProvider | null,
+		migratedEntity: T,
+	): Promise<Nullable<AesKey>>
 
 	/**
 	 * Returns the session key for the provided service response:
@@ -66,9 +69,9 @@ export interface SessionKeyResolver {
  * we should extract the cacheStorage and/or offlineStorage into a separate package and reuse the ` CacheStorage ` interface
  */
 export interface GetOrPutInstance {
-	getParsed(typeRef: TypeRef<Entity>, listId: Id | null, id: Id): Promise<DecryptedParsedInstance | null>
+	getParsed<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<DecryptedParsedInstance | null>
 
-	put(typeRef: TypeRef<Entity>, instance: DecryptedParsedInstance): Promise<void>
+	put<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, instance: DecryptedParsedInstance): Promise<void>
 }
 
 type PathResult = {
@@ -87,8 +90,8 @@ export class PatchMerger {
 	) {}
 
 	// visible for testing
-	public async getPatchedInstanceParsed(
-		instanceType: TypeRef<Entity>,
+	public async getPatchedInstanceParsed<T extends PersistentEntity<T>>(
+		instanceType: TypeRef<T>,
 		listId: Nullable<Id>,
 		elementId: Id,
 		patches: Array<Patch>,
@@ -221,7 +224,7 @@ export class PatchMerger {
 
 				// We fetch the latest state of the user immediately in LoginFacade#initSession, but we still receive
 				// patches from the server for the group memberships of the user. This is fine, so we don't want to log it
-				if (!isEmpty(commonAssociationItems) && !isSameTypeRef(UserTypeRef, new TypeRef(typeModel.app, typeModel.id))) {
+				if (!isEmpty(commonAssociationItems) && !isSameTypeRef(UserTypeRef, new TypeRef<any>(typeModel.app, typeModel.id))) {
 					console.log(
 						`PatchMerger attempted to add an already existing item to an association. Common items: ${JSON.stringify(commonAssociationItems)}`,
 					)

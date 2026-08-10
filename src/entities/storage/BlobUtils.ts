@@ -6,18 +6,18 @@ import { Blob } from "@tutao/entities/sys"
  * because the name of the attribute can be different for each instance.
  *
  */
-export type BlobReferencingInstance = {
+export type BlobReferencingInstance<T extends PersistentEntity<T>> = {
 	elementId: Id
 	listId: Id | null
 	blobs: readonly Blob[]
-	entity: PersistentEntity
+	entity: T
 }
 
 /**
  * Another abstraction over various entities that can be downloaded as data. This one is not a concrete type but
  * rather a common denominator for entity before the conversion.
  */
-export interface DownloadableFileEntity extends ListElementEntity {
+export interface DownloadableFileEntity extends ListElementEntity<DownloadableFileEntity> {
 	_id: IdTuple
 	name: string
 	size: NumberString
@@ -27,7 +27,7 @@ export interface DownloadableFileEntity extends ListElementEntity {
 	blobs: readonly Blob[]
 }
 
-export function createReferencingInstance(tutanotaFile: DownloadableFileEntity): BlobReferencingInstance {
+export function createReferencingInstance(tutanotaFile: DownloadableFileEntity): BlobReferencingInstance<DownloadableFileEntity> {
 	return {
 		blobs: tutanotaFile.blobs,
 		elementId: elementIdPart(tutanotaFile._id),

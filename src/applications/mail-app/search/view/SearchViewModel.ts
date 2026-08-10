@@ -4,7 +4,6 @@ import { SearchIndexStateInfo, SearchRestriction, SearchResult } from "../../../
 import { EventController } from "../../../common/api/main/EventController.js"
 import {
 	assertIsEntity,
-	assertIsEntity2,
 	elementIdPart,
 	elementIdToId,
 	Entity,
@@ -798,7 +797,7 @@ export class SearchViewModel {
 	readonly getSelectedMails: () => readonly Mail[] = memoizedWithHiddenArgument(
 		() => this._listModel.getSelectedAsArray(),
 		(selected) => {
-			return selected.map((e) => e.entry).filter(assertIsEntity2(MailTypeRef))
+			return selected.map((e) => e.entry).filter(assertIsEntity(MailTypeRef))
 		},
 	)
 
@@ -820,14 +819,14 @@ export class SearchViewModel {
 		return this._listModel
 			.getSelectedAsArray()
 			.map((e) => e.entry)
-			.filter(assertIsEntity2(ContactTypeRef))
+			.filter(assertIsEntity(ContactTypeRef))
 	}
 
 	getSelectedEvents(): CalendarEvent[] {
 		return this._listModel
 			.getSelectedAsArray()
 			.map((e) => e.entry)
-			.filter(assertIsEntity2(CalendarEventTypeRef))
+			.filter(assertIsEntity(CalendarEventTypeRef))
 	}
 
 	private onListStateChange(newState: ListState<SearchResultListEntry>) {
@@ -946,7 +945,7 @@ export class SearchViewModel {
 		})
 	}
 
-	private isInSearchResult(typeRef: TypeRef<Entity>, id: IdTuple): boolean {
+	private isInSearchResult<T extends Entity<T>>(typeRef: TypeRef<T>, id: IdTuple): boolean {
 		const result = this.search.result()
 
 		if (result && isSameTypeRef(typeRef, result.restriction.type)) {
@@ -1118,7 +1117,7 @@ export class SearchViewModel {
 	 * take a list of IDs and load them by list, filtering out the ones that could not be loaded.
 	 * updates the passed currentResult.result list to not include the failed IDs anymore
 	 */
-	private async loadAndFilterInstances<T extends ListElementEntity>(
+	private async loadAndFilterInstances<T extends ListElementEntity<T>>(
 		type: TypeRef<T>,
 		toLoad: IdTuple[],
 		currentResult: SearchResult,

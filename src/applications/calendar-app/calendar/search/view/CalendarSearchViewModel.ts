@@ -2,7 +2,7 @@ import { CalendarSearchResultListEntry } from "./CalendarSearchListView.js"
 import { SearchRestriction, SearchResult } from "../../../../common/api/worker/search/SearchTypes.js"
 import { EventController } from "../../../../common/api/main/EventController.js"
 import {
-	assertIsEntity2,
+	assertIsEntity,
 	elementIdPart,
 	Entity,
 	GENERATED_MAX_ID,
@@ -34,7 +34,7 @@ import { NotFoundError } from "../../../../../platform-kit/rest-client/error"
 import { createRestriction, decodeCalendarSearchKey, encodeCalendarSearchKey, getRestriction } from "../model/SearchUtils.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { generateCalendarInstancesInRange, isBirthdayCalendar, retrieveBirthdayEventsForUser } from "../../../../common/calendar/date/CalendarUtils.js"
+import { generateCalendarInstancesInRange, retrieveBirthdayEventsForUser } from "../../../../common/calendar/date/CalendarUtils.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { EntityClient } from "../../../../../platform-kit/network/EntityClient.js"
 
@@ -48,8 +48,8 @@ import { CalendarEventsRepository } from "../../../../common/calendar/date/Calen
 import { ListElementListModel } from "../../../../common/misc/ListElementListModel"
 import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
 import {
-	EntityUpdatesListener,
 	EntityUpdateData,
+	EntityUpdatesListener,
 	isUpdateForTypeRef,
 	ListenerPriority,
 } from "../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils.js"
@@ -504,7 +504,7 @@ export class CalendarSearchViewModel {
 		return this.listModel
 			.getSelectedAsArray()
 			.map((e) => e.entry)
-			.filter(assertIsEntity2(CalendarEventTypeRef))
+			.filter(assertIsEntity(CalendarEventTypeRef))
 	}
 
 	private onListStateChange(newState: ListState<CalendarSearchResultListEntry>) {

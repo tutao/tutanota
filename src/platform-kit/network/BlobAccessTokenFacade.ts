@@ -7,7 +7,7 @@ import { TypeModelResolver } from "../instance-pipeline/EntityFunctions"
 import { ArchiveDataType, BlobAccessTokenKind } from "../../entities/sys/Utils"
 import { BlobServerAccessInfo, createBlobAccessTokenPostIn, createBlobReadData, createBlobWriteData, createInstanceId } from "../../entities/storage/TypeRefs"
 import { BlobAccessTokenService_POST } from "../../entities/storage/Services"
-import { BlobReferencingInstance } from "../../entities/storage/BlobUtils"
+import { BlobReferencingInstance, DownloadableFileEntity } from "../../entities/storage/BlobUtils"
 import { TypeRef } from "@tutao/meta"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../instance-pipeline/RestClientOptions"
 
@@ -94,7 +94,7 @@ export class BlobAccessTokenFacade {
 	 */
 	async requestReadTokenMultipleInstances(
 		archiveDataType: ArchiveDataType,
-		referencingInstances: readonly BlobReferencingInstance[],
+		referencingInstances: readonly BlobReferencingInstance<DownloadableFileEntity>[],
 		blobLoadOptions: BlobLoadOptions,
 	): Promise<BlobServerAccessInfo> {
 		if (isEmpty(referencingInstances)) {
@@ -141,7 +141,7 @@ export class BlobAccessTokenFacade {
 	 */
 	async requestReadTokenBlobs(
 		archiveDataType: ArchiveDataType,
-		referencingInstance: BlobReferencingInstance,
+		referencingInstance: BlobReferencingInstance<DownloadableFileEntity>,
 		blobLoadOptions: BlobLoadOptions,
 	): Promise<Map<Id, BlobServerAccessInfo>> {
 		const archiveIds = this.getArchiveIds([referencingInstance])
@@ -177,7 +177,7 @@ export class BlobAccessTokenFacade {
 	 * Remove a given read blobs token from the cache.
 	 * @param referencingInstance
 	 */
-	evictReadBlobsToken(referencingInstance: BlobReferencingInstance): void {
+	evictReadBlobsToken(referencingInstance: BlobReferencingInstance<DownloadableFileEntity>): void {
 		this.readCache.evictInstanceId(referencingInstance.elementId)
 		const archiveId = this.getArchiveId([referencingInstance])
 		this.readCache.evictArchiveOrGroupKey(archiveId)
@@ -187,7 +187,7 @@ export class BlobAccessTokenFacade {
 	 * Remove a given read blobs token from the cache.
 	 * @param referencingInstances
 	 */
-	evictReadBlobsTokenMultipleBlobs(referencingInstances: BlobReferencingInstance[]): void {
+	evictReadBlobsTokenMultipleBlobs(referencingInstances: BlobReferencingInstance<DownloadableFileEntity>[]): void {
 		this.readCache.evictAll(referencingInstances.map((instance) => instance.elementId))
 		const archiveId = this.getArchiveId(referencingInstances)
 		this.readCache.evictArchiveOrGroupKey(archiveId)
@@ -222,7 +222,7 @@ export class BlobAccessTokenFacade {
 		this.readCache.evictArchiveOrGroupKey(archiveId)
 	}
 
-	private getArchiveIds(referencingInstances: readonly BlobReferencingInstance[]): Set<Id> {
+	private getArchiveIds(referencingInstances: readonly BlobReferencingInstance<DownloadableFileEntity>[]): Set<Id> {
 		if (isEmpty(referencingInstances)) {
 			throw new ProgrammingError("Must pass at least one referencing instance")
 		}
@@ -238,7 +238,7 @@ export class BlobAccessTokenFacade {
 		return archiveIds
 	}
 
-	private getArchiveId(referencingInstances: readonly BlobReferencingInstance[]): Id {
+	private getArchiveId(referencingInstances: readonly BlobReferencingInstance<DownloadableFileEntity>[]): Id {
 		const archiveIds = this.getArchiveIds(referencingInstances)
 		if (archiveIds.size !== 1) {
 			throw new Error(`only one archive id allowed, but was ${archiveIds}`)

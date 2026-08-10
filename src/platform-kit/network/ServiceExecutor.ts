@@ -21,7 +21,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		private readonly typeModelResolver: TypeModelResolver,
 	) {}
 
-	public async execute<In extends DataTransferEntity, Out extends DataTransferEntity>(
+	public async execute<In extends DataTransferEntity<In>, Out extends DataTransferEntity<Out>>(
 		service: ServiceDefinition<In, Out>,
 		requestEntity: In,
 		params: Nullable<ExtraServiceParams>,
@@ -82,8 +82,8 @@ export class ServiceExecutor implements IServiceExecutor {
 		return await this.decryptResponse<Out>(returnTypeRef, returnData, params)
 	}
 
-	private async encryptDataIfNeeded<In extends DataTransferEntity, Out extends DataTransferEntity>(
-		requestEntity: Entity | null,
+	private async encryptDataIfNeeded<In extends DataTransferEntity<In>, Out extends DataTransferEntity<Out>>(
+		requestEntity: Nullable<In>,
 		service: ServiceDefinition<In, Out>,
 		params: ExtraServiceParams | null,
 	): Promise<Nullable<OutgoingServerJson>> {
@@ -104,7 +104,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		}
 	}
 
-	private async decryptResponse<T extends Entity>(typeRef: TypeRef<T>, data: string, params: Nullable<ExtraServiceParams> = null): Promise<T> {
+	private async decryptResponse<T extends Entity<T>>(typeRef: TypeRef<T>, data: string, params: Nullable<ExtraServiceParams> = null): Promise<T> {
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const incomingJson = IncomingServerJson.expectSingleInstance(data, typeModel)
 		const encryptedParsedInstance = await this.instancePipeline.typeMapper.parseServerJson(incomingJson)

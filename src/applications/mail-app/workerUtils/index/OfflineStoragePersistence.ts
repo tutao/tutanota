@@ -6,12 +6,14 @@ import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import {
 	CUSTOM_MIN_ID,
 	elementIdPart,
-	EntityTypeEnum, GENERATED_MAX_ID, GENERATED_MIN_ID,
+	EntityTypeEnum,
+	GENERATED_MAX_ID,
+	GENERATED_MIN_ID,
 	getTypeString,
 	ListElementEntity,
 	listIdPart,
 	ServerTypeModel,
-	TypeRef ,
+	TypeRef,
 } from "@tutao/meta"
 import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
@@ -356,7 +358,7 @@ VALUES (
 		}
 	}
 
-	private async getRowid<T extends ListElementEntity>(typeRef: TypeRef<T>, id: IdTuple): Promise<SqlValue | null> {
+	private async getRowid<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, id: IdTuple): Promise<SqlValue | null> {
 		// Find rowid from the offline storage.
 		// We could have done it in a single query but we need to insert into two tables.
 		const rowIdQuery = sql`SELECT rowid

@@ -45,7 +45,7 @@ import {
 	storageTypeModels,
 } from "@tutao/entities/storage"
 import { FileReference } from "../../../../../../entities/tutanota/Utils"
-import { BlobReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
+import { BlobReferencingInstance, DownloadableFileEntity } from "../../../../../../entities/storage/BlobUtils"
 import { IncomingServerJson } from "../../../../../../platform-kit/instance-pipeline/TypeMapper"
 import { EntityUtils } from "../../../../../../platform-kit/instance-pipeline/EntityUtils"
 
@@ -636,7 +636,7 @@ export class BlobFacade {
 	 */
 	async downloadAndDecryptBlobsOfMultipleInstances(
 		archiveDataType: ArchiveDataType,
-		referencingInstances: BlobReferencingInstance[],
+		referencingInstances: BlobReferencingInstance<DownloadableFileEntity>[],
 		blobLoadOptions: Nullable<BlobLoadOptions> = null,
 	): Promise<Map<Id, Uint8Array<ArrayBuffer> | null>> {
 		// If a mail has multiple attachments, we cannot assume they are all on the same archive.

@@ -1,16 +1,18 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ListElementId, ElementId, DataTransferId } from "@tutao/meta"
+import { DataTransferId, ElementId, Entity, ListElementId, PersistentEntity } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 import { Nullable } from "@tutao/utils"
-import { Blob } from '../sys/TypeRefs.js'
-import { BucketKey } from '../sys/TypeRefs.js'
-import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
-import { DateWrapper } from '../sys/TypeRefs.js'
-import { StringWrapper } from '../sys/TypeRefs.js'
-import { GeneratedIdWrapper } from '../sys/TypeRefs.js'
-import { IdTupleWrapper } from '../sys/TypeRefs.js'
-import { InstanceSessionKey } from '../sys/TypeRefs.js'
+import {
+	Blob,
+	BlobReferenceTokenWrapper,
+	BucketKey,
+	DateWrapper,
+	GeneratedIdWrapper,
+	IdTupleWrapper,
+	InstanceSessionKey,
+	StringWrapper
+} from "../sys/TypeRefs.js"
 
 export const SubfilesTypeRef: TypeRef<Subfiles> = new TypeRef("tutanota", 11)
 
@@ -610,67 +612,72 @@ export type MailParams = {
 	clientSpamClassifierResult: null | ClientSpamClassifierResult;
 }
 
-export type Mail = {
-    // == values
+export class Mail implements PersistentEntity<Mail>{
 
-	_id: ListElementId;
-	_permissions: Id;
-	_format: NumberString;
-	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
-	subject: string;
-	receivedDate: Date;
-	state: NumberString;
-	unread: boolean;
-	confidential: boolean;
-	replyType: NumberString;
-	_ownerGroup: null | Id;
-	differentEnvelopeSender: null | string;
-	listUnsubscribe: boolean;
-	movedTime: null | Date;
-	phishingStatus: NumberString;
-	authStatus: null | NumberString;
-	method: NumberString;
-	recipientCount: NumberString;
-	encryptionAuthStatus: null | NumberString;
-	_ownerKeyVersion: null | NumberString;
-	processingState: NumberString;
-	processNeeded: boolean;
-	sendAt: null | Date;
-	serverClassificationData: null | string;
-	_kdfNonce: null | Uint8Array<ArrayBuffer>;
+	public constructor(
+		// == values
+		public _id: ListElementId,
+	public _permissions: Id,
+	public _format: NumberString,
+	public _ownerEncSessionKey: null | Uint8Array<ArrayBuffer>,
+	public subject: string,
+	public receivedDate: Date,
+	public state: NumberString,
+	public unread: boolean,
+	public confidential: boolean,
+	public replyType: NumberString,
+	public _ownerGroup: null | Id,
+	public differentEnvelopeSender: null | string,
+	public listUnsubscribe: boolean,
+	public movedTime: null | Date,
+	public phishingStatus: NumberString,
+	public authStatus: null | NumberString,
+	public method: NumberString,
+	public recipientCount: NumberString,
+	public encryptionAuthStatus: null | NumberString,
+	public _ownerKeyVersion: null | NumberString,
+	public processingState: NumberString,
+	public processNeeded: boolean,
+	public sendAt: null | Date,
+	public serverClassificationData: null | string,
+	public _kdfNonce: null | Uint8Array<ArrayBuffer>,
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
-	
-
-    // == associations
-
-	sender: MailAddress;
-	attachments: IdTuple[];
-	conversationEntry: IdTuple;
-	firstRecipient: null | MailAddress;
-	mailDetails: null | IdTuple;
-	mailDetailsDraft: null | IdTuple;
-	bucketKey: null | BucketKey;
-	sets: IdTuple[];
-	clientSpamClassifierResult: null | ClientSpamClassifierResult;
 
 
-    //== some entities have these and some don't
-    
-    
-	
-	
-	
-	
-	ownerEncSessionKey: null
-	ownerEncSessionKeyVersion: null
+	// == associations
+
+	public sender: MailAddress,
+	public attachments: IdTuple[],
+	public conversationEntry: IdTuple,
+	public firstRecipient: null | MailAddress,
+	public mailDetails: null | IdTuple,
+	public mailDetailsDraft: null | IdTuple,
+	public bucketKey: null | BucketKey,
+	public sets: IdTuple[],
+	public clientSpamClassifierResult: null | ClientSpamClassifierResult,
+
+
+	//== some entities have these and some don't
+
+
+
+
+
+
+	public ownerEncSessionKey: null,
+	public ownerEncSessionKeyVersion: null,
 
 
 	// === these are not present in metamodel
-	_type: TypeRef<Mail>;
-    _errors: Object;
-    _original: Nullable<Mail>
-    isAdapter: false,
+	public _type: TypeRef<Mail>,
+	public _errors: Object,
+	public _original: Nullable<Mail>,
+	public isAdapter: false,
+	) {
+	}
+
+
 }
 export const MailBoxTypeRef: TypeRef<MailBox> = new TypeRef("tutanota", 125)
 

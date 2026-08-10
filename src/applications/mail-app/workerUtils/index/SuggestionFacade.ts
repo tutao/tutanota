@@ -7,7 +7,7 @@ import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "../../
 
 export type SuggestionsType = Record<string, string[]>
 
-export class SuggestionFacade<T extends PersistentEntity> {
+export class SuggestionFacade<T extends PersistentEntity<T>> {
 	_db: EncryptedDbWrapper
 	type: TypeRef<T>
 	_suggestions: SuggestionsType

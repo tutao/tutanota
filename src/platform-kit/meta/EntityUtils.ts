@@ -165,7 +165,7 @@ export function isSameIdTuple(id1: IdTuple | null, id2: IdTuple | null) {
 	else return id1[0] === id2[0] && id1[1] === id2[1]
 }
 
-export function haveSameId(entity1: PersistentEntity, entity2: PersistentEntity): boolean {
+export function haveSameId<T extends PersistentEntity<T>>(entity1: T, entity2: T): boolean {
 	return isSameId(entity1._id, entity2._id)
 }
 
@@ -226,7 +226,7 @@ export function elementIdToId(id: AnyEntityId): Id {
  * Takes an iterator of list element entities and returns their ids in an array.
  * @param entities
  */
-export function getIds<T extends PersistentEntity>(entities: Iterable<T>): Array<T["_id"]> {
+export function getIds<T extends PersistentEntity<T>>(entities: Iterable<T>): Array<T["_id"]> {
 	const ids: Array<T["_id"]> = []
 	for (const entity of entities) {
 		ids.push(entity._id)
@@ -247,7 +247,7 @@ export const DEFAULT_ENTITY_FIELDS = {
 	ownerEncSessionKey: null,
 	ownerEncSessionKeyVersion: null,
 }
-export function create<T extends Entity>(
+export function create<T extends Entity<T>>(
 	typeModel: TypeModel,
 	typeRef: TypeRef<T>,
 	createDefaultValue: (name: string, value: ModelValue, typeModel: TypeModel) => any = _getDefaultValue,
@@ -366,16 +366,8 @@ export function generatedIdToTimestamp(base64Ext: Id): number {
 	return numberResult
 }
 
-export function assertIsEntity<T extends PersistentEntity>(entity: PersistentEntity, type: TypeRef<T>): entity is T {
-	if (isSameTypeRef(entity._type, type)) {
-		return true
-	} else {
-		return false
-	}
-}
-
-export function assertIsEntity2<T extends PersistentEntity>(type: TypeRef<T>): (entity: PersistentEntity) => entity is T {
-	return (e): e is T => assertIsEntity(e, type)
+export function assertIsEntity<T extends PersistentEntity<T>>(entity: PersistentEntity<T>, type: TypeRef<T>): entity is T {
+	return isSameTypeRef(entity._type, type)
 }
 
 /**
@@ -489,7 +481,7 @@ export function localToServerIdEncoding(typeModel: TypeModel, elementId: Id): Id
  * @param key only returns true if there is an error for this key. Other errors will be ignored if the key is defined.
  * @returns {boolean} true if error was found (for the given key).
  */
-export function hasError<K>(instance: Nullable<Entity>, key: Nullable<K> = null): boolean {
+export function hasError<T extends Entity<T>, K>(instance: Nullable<T>, key: Nullable<K> = null): boolean {
 	if (instance == null) {
 		return true
 	}

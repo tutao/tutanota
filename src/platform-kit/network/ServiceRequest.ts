@@ -6,7 +6,7 @@ import { ExtraServiceParams } from "../instance-pipeline/RestClientOptions"
 assertMainOrNode()
 
 export interface IServiceExecutor {
-	execute<In extends DataTransferEntity, Out extends DataTransferEntity>(
+	execute<In extends DataTransferEntity<In>, Out extends DataTransferEntity<Out>>(
 		service: ServiceDefinition<In, Out>,
 		data: In,
 		params: Nullable<ExtraServiceParams>,

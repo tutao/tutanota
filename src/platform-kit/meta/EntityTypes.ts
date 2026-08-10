@@ -139,7 +139,7 @@ export type TypeModel = {
 // // //
 
 // decouples from sys entities
-export interface IBucketKey extends AggregatedEntity {
+export interface IBucketKey extends AggregatedEntity<IBucketKey> {
 	bucketEncSessionKeys: IInstanceSessionsKey[]
 	keyGroup: Id | null
 	pubEncBucketKey: null | Uint8Array<ArrayBuffer>
@@ -157,7 +157,7 @@ export interface IBucketKey extends AggregatedEntity {
 	ownerEncSessionKeyVersion: null
 }
 
-export interface IInstanceSessionsKey extends AggregatedEntity {
+export interface IInstanceSessionsKey extends AggregatedEntity<IInstanceSessionsKey> {
 	instanceList: Id
 	instanceId: Id
 	symEncSessionKey: Uint8Array<ArrayBuffer>
@@ -176,7 +176,7 @@ export interface IInstanceSessionsKey extends AggregatedEntity {
 	ownerEncSessionKeyVersion: null
 }
 
-export interface ITypeInfo extends AggregatedEntity {
+export interface ITypeInfo extends AggregatedEntity<ITypeInfo> {
 	_id: Id
 	application: string
 	typeId: NumberString
@@ -196,10 +196,10 @@ export interface ITypeInfo extends AggregatedEntity {
  * this interface is the bare minimum, actual entities need more fields in order to be useful.
  * these are added by defining ModelValues and ModelAssociations on the TypeModel.
  */
-export interface Entity {
+export interface Entity<T extends Entity<T>> {
 	/** the address of the TypeModel this entity conforms to. */
-	_type: TypeRef<this>
-	_original: Nullable<this>
+	_type: TypeRef<T>
+	_original: Nullable<T>
 	bucketKey: Nullable<IBucketKey>
 	_ownerGroup: Nullable<Id>
 	_ownerEncSessionKey: Nullable<Uint8Array<ArrayBuffer>>
@@ -218,39 +218,43 @@ export type BlobElementId = EntityId<Id, Id>
 export type ElementId = EntityId<Nullable<never>, Id>
 export type DataTransferId = EntityId<Nullable<never>, Nullable<never>>
 
+export interface PersistentEntity<T extends PersistentEntity<T>> extends Entity<T> {
+	_id: AnyEntityId
+}
+
+export interface AggregatedEntity<T extends AggregatedEntity<T>> extends Entity<T> {
+	_id: Id
+}
+
+export interface DataTransferEntity<T extends DataTransferEntity<T>> extends Entity<T> {
+	_id: DataTransferId
+}
+
 /**
  * Entity types with instances that stand on their own, not being part of a list
  */
-export interface ElementEntity extends PersistentEntity {
+export interface ElementEntity<T extends ElementEntity<T>> extends PersistentEntity<T> {
 	_id: ElementId
 }
 
 /**
  * Entity types with instances that are part of a list
  */
-export interface ListElementEntity extends PersistentEntity {
+export interface ListElementEntity<T extends ListElementEntity<T>> extends PersistentEntity<T> {
 	_id: ListElementId
 }
 /**
  * Entity types that are stored in an immutable blob storage
  */
-export interface BlobElementEntity extends PersistentEntity {
+export interface BlobElementEntity<T extends BlobElementEntity<T>> extends PersistentEntity<T> {
 	_id: BlobElementId
-}
-
-export interface PersistentEntity extends Entity {
-	_id: AnyEntityId
-}
-
-export interface DataTransferEntity extends Entity {
-	_id: DataTransferId
 }
 
 export const NonExistentDataTransferEntityTypeRef = new TypeRef<NonExistentDataTransferEntity>("non-existant-app", 0)
 class NonExistentEntityBrand extends TsBrand {
 	protected __brand: Nullable<never> = null
 }
-export type NonExistentDataTransferEntity = BrandedType<DataTransferEntity, NonExistentEntityBrand>
+export type NonExistentDataTransferEntity = BrandedType<DataTransferEntity<NonExistentDataTransferEntity>, NonExistentEntityBrand>
 export const NON_EXISTENT_DATA_TRANSFER_ENTITY: NonExistentDataTransferEntity = {
 	__brand: new NonExistentEntityBrand(),
 	_id: [null, null],
@@ -265,8 +269,4 @@ export const NON_EXISTENT_DATA_TRANSFER_ENTITY: NonExistentDataTransferEntity = 
 	isAdapter: false,
 	ownerEncSessionKey: null,
 	ownerEncSessionKeyVersion: null,
-}
-
-export interface AggregatedEntity extends Entity {
-	_id: Id
 }

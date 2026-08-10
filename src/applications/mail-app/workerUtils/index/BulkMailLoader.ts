@@ -149,7 +149,7 @@ export class BulkMailLoader {
 		return filesResults.flat()
 	}
 
-	public async loadInChunks<T extends PersistentEntity>(
+	public async loadInChunks<T extends PersistentEntity<T>>(
 		typeRef: TypeRef<T>,
 		listId: Id | null,
 		ids: Id[],

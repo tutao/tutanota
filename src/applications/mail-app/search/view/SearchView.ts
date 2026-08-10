@@ -1280,7 +1280,7 @@ export class SearchView extends BaseTopLevelView implements TopLevelView<SearchV
 		m.redraw()
 	}
 
-	private getMainButton(typeRef: TypeRef<Entity>): {
+	private getMainButton(typeRef: TypeRef<Entity<any>>): {
 		label: TranslationKey
 		click: ClickHandler
 	} | null {

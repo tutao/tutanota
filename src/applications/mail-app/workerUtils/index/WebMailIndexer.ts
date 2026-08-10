@@ -78,8 +78,8 @@ type CommonImportedMailFields = {
 	_ownerGroup: null | Id
 }
 
-type CommonImportState = ListElementEntity & CommonImportStateFields
-export type CommonImportedMail = ListElementEntity & CommonImportedMailFields
+type CommonImportState = ListElementEntity<any> & CommonImportStateFields
+export type CommonImportedMail = ListElementEntity<any> & CommonImportedMailFields
 
 export class WebMailIndexer implements MailIndexer {
 	// {@link currentIndexTimestamp}: the **oldest** timestamp that has been indexed for all mail lists

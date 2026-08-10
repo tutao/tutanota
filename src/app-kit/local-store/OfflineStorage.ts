@@ -218,7 +218,7 @@ export class OfflineStorage implements CacheStorage {
 		return this.userId != null
 	}
 
-	async getWholeListParsed(typeRef: TypeRef<Entity>, listId: string): Promise<DecryptedParsedInstance[]> {
+	async getWholeListParsed<T extends Entity<T>>(typeRef: TypeRef<T>, listId: string): Promise<DecryptedParsedInstance[]> {
 		const { query, params } = sql`SELECT entity
 									  FROM list_entities
 									  WHERE type = ${getTypeString(typeRef)}
@@ -229,7 +229,7 @@ export class OfflineStorage implements CacheStorage {
 		return await this.deserializeList(instanceBytes, typeRef)
 	}
 
-	async get<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: string | null, id: string): Promise<T | null> {
+	async get<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, listId: string | null, id: string): Promise<T | null> {
 		const parsedInstance = await this.getParsed(typeRef, listId, id)
 		if (parsedInstance == null) {
 			return null
@@ -237,7 +237,7 @@ export class OfflineStorage implements CacheStorage {
 		return await this.modelMapper.mapToInstance<T>(parsedInstance)
 	}
 
-	async provideMultiple<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: string, elementIds: string[]): Promise<T[]> {
+	async provideMultiple<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: string, elementIds: string[]): Promise<T[]> {
 		const parsedInstances = await this.provideMultipleParsed(typeRef, listId, elementIds)
 		return await this.modelMapper.mapToInstances(parsedInstances)
 	}
@@ -293,12 +293,12 @@ export class OfflineStorage implements CacheStorage {
 		await this.sqlCipherFacade.closeDb()
 	}
 
-	async deleteIfExists<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Nullable<Id>, elementId: Id): Promise<void> {
+	async deleteIfExists<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, listId: Nullable<Id>, elementId: Id): Promise<void> {
 		const fullId: AnyEntityId = listId == null ? idToElementId(elementId) : [listId, elementId]
-		await this.deleteMultiple(typeRef, [fullId])
+		await this.deleteMultiple<T>(typeRef, [fullId])
 	}
 
-	async deleteAllOfType(typeRef: TypeRef<PersistentEntity>): Promise<void> {
+	async deleteAllOfType<T extends PersistentEntity<T>>(typeRef: TypeRef<T>): Promise<void> {
 		const type = getTypeString(typeRef)
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		let formattedQuery
@@ -331,7 +331,7 @@ export class OfflineStorage implements CacheStorage {
 	/**
 	 * Remove all ranges (and only ranges, without associated data) for the specified {@param typeRef}.
 	 */
-	async deleteAllRangesOfType(typeRef: TypeRef<PersistentEntity>): Promise<void> {
+	async deleteAllRangesOfType<T extends PersistentEntity<T>>(typeRef: TypeRef<T>): Promise<void> {
 		const type = getTypeString(typeRef)
 		await this.deleteAllRangesForType(type)
 	}
@@ -379,7 +379,7 @@ export class OfflineStorage implements CacheStorage {
 		return result
 	}
 
-	async provideMultipleParsed<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[]): Promise<Array<DecryptedParsedInstance>> {
+	async provideMultipleParsed<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id, elementIds: Id[]): Promise<Array<DecryptedParsedInstance>> {
 		const tm = syncMetrics?.beginMeasurement(Category.ProvideMultipleDb)
 
 		if (elementIds.length === 0) return []
@@ -418,7 +418,7 @@ export class OfflineStorage implements CacheStorage {
 		return result
 	}
 
-	async getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>> {
+	async getIdsInRange<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>> {
 		const type = getTypeString(typeRef)
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const range = await this.getRange(typeRef, listId)
@@ -439,7 +439,7 @@ export class OfflineStorage implements CacheStorage {
 	/** don't use this internally in this class, use OfflineStorage::getRange instead. OfflineStorage is
 	 * using converted custom IDs internally which is undone when using this to access the range.
 	 */
-	async getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null> {
+	async getRangeForList<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null> {
 		let range = await this.getRange(typeRef, listId)
 		if (range == null) return range
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
@@ -449,7 +449,7 @@ export class OfflineStorage implements CacheStorage {
 		}
 	}
 
-	async isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, elementId: Id): Promise<boolean> {
+	async isElementIdInCacheRange<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id, elementId: Id): Promise<boolean> {
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const encodedElementId = serverToLocalIdEncoding(typeModel, elementId)
 
@@ -457,7 +457,7 @@ export class OfflineStorage implements CacheStorage {
 		return range != null && !firstBiggerThanSecondBase64Ext(encodedElementId, range.upper) && !firstBiggerThanSecondBase64Ext(range.lower, encodedElementId)
 	}
 
-	async provideFromRangeParsed<T extends ListElementEntity>(
+	async provideFromRangeParsed<T extends ListElementEntity<T>>(
 		typeRef: TypeRef<T>,
 		listId: Id,
 		start: Id,
@@ -494,18 +494,18 @@ export class OfflineStorage implements CacheStorage {
 		return result
 	}
 
-	async provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<Array<T>> {
+	async provideFromRange<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<Array<T>> {
 		const parsed = await this.provideFromRangeParsed(typeRef, listId, start, count, reverse)
 		return await this.modelMapper.mapToInstances(parsed)
 	}
 
-	async put(typeRef: TypeRef<PersistentEntity>, instance: DecryptedParsedInstance): Promise<void> {
+	async put<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, instance: DecryptedParsedInstance): Promise<void> {
 		const tm = syncMetrics?.beginMeasurement(Category.PutDb)
 		await this.putMultiple(typeRef, [instance])
 		tm?.endMeasurement()
 	}
 
-	async putMultiple(typeRef: TypeRef<PersistentEntity>, instances: DecryptedParsedInstance[]): Promise<void> {
+	async putMultiple<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, instances: DecryptedParsedInstance[]): Promise<void> {
 		const tm = instances.length > 1 ? syncMetrics?.beginMeasurement(Category.PutMultipleDb) : null
 		const handler = this.getCustomCacheHandlerMap().get(typeRef)
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
@@ -527,7 +527,7 @@ export class OfflineStorage implements CacheStorage {
 		for (const [listId, storableInstances] of groupedByListId) {
 			for (const storable of storableInstances) {
 				if (handler?.onBeforeCacheUpdate) {
-					const typedInstance = await this.modelMapper.mapToInstance<PersistentEntity>(storable.instance)
+					const typedInstance = await this.modelMapper.mapToInstance<T>(storable.instance)
 					await handler.onBeforeCacheUpdate(typedInstance)
 				}
 			}
@@ -663,7 +663,7 @@ export class OfflineStorage implements CacheStorage {
 		}
 	}
 
-	async setLowerRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lowerId: Id): Promise<void> {
+	async setLowerRangeForList<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id, lowerId: Id): Promise<void> {
 		let typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		lowerId = serverToLocalIdEncoding(typeModel, lowerId)
 		const type = getTypeString(typeRef)
@@ -674,7 +674,7 @@ export class OfflineStorage implements CacheStorage {
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async setUpperRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, upperId: Id): Promise<void> {
+	async setUpperRangeForList<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id, upperId: Id): Promise<void> {
 		upperId = serverToLocalIdEncoding(await this.typeModelResolver.resolveServerTypeReference(typeRef), upperId)
 		const type = getTypeString(typeRef)
 		const { query, params } = sql`UPDATE ranges
@@ -684,7 +684,7 @@ export class OfflineStorage implements CacheStorage {
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async setNewRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lower: Id, upper: Id): Promise<void> {
+	async setNewRangeForList<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id, lower: Id, upper: Id): Promise<void> {
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		lower = serverToLocalIdEncoding(typeModel, lower)
 		upper = serverToLocalIdEncoding(typeModel, upper)
@@ -725,7 +725,7 @@ export class OfflineStorage implements CacheStorage {
 		}
 	}
 
-	async deleteRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: string): Promise<void> {
+	async deleteRange<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: string): Promise<void> {
 		const { query, params } = sql`DELETE
 									  FROM ranges
 									  WHERE type = ${getTypeString(typeRef)}
@@ -733,7 +733,7 @@ export class OfflineStorage implements CacheStorage {
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async getElementsOfType<T extends ElementEntity>(typeRef: TypeRef<T>): Promise<Array<T>> {
+	async getElementsOfType<T extends ElementEntity<T>>(typeRef: TypeRef<T>): Promise<Array<T>> {
 		const { query, params } = sql`SELECT entity
 									  from element_entities
 									  WHERE type = ${getTypeString(typeRef)}`
@@ -744,7 +744,7 @@ export class OfflineStorage implements CacheStorage {
 		return await this.modelMapper.mapToInstances(parsedInstances)
 	}
 
-	async getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {
+	async getWholeList<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>> {
 		const parsedInstances = await this.getWholeListParsed(typeRef, listId)
 		return await this.modelMapper.mapToInstances(parsedInstances)
 	}
@@ -787,7 +787,7 @@ export class OfflineStorage implements CacheStorage {
 		const rows = taggedRows.map(untagSqlObject) as { listId: Id; elementId: Id; type: string }[]
 		const groupedByType = groupBy(rows, (row) => row.type)
 		for (const [type, rows] of groupedByType) {
-			const typeRef = parseTypeString(type) as TypeRef<BlobElementEntity>
+			const typeRef = parseTypeString(type) as TypeRef<BlobElementEntity<any>>
 			await this.deleteMultiple(
 				typeRef,
 				rows.map((row) => [row.listId, row.elementId]),
@@ -812,7 +812,7 @@ export class OfflineStorage implements CacheStorage {
 		// delete the ranges for those listIds
 		for (const [_, rows] of listIdsByType.entries()) {
 			const { type } = getFirstOrThrow(rows)
-			const typeRef = parseTypeString(type) as TypeRef<ListElementEntity>
+			const typeRef = parseTypeString(type) as TypeRef<ListElementEntity<any>>
 			// this particular query uses one other SQL var for the type.
 			const safeChunkSize = MAX_SAFE_SQL_VARS - 1
 			const listIdArr = rows.map((row) => row.listId)
@@ -843,7 +843,7 @@ export class OfflineStorage implements CacheStorage {
 			(row) => idToElementId(row.elementId),
 		)
 		for (const [type, ids] of groupedByType) {
-			const typeRef = parseTypeString(type) as TypeRef<ElementEntity>
+			const typeRef = parseTypeString(type) as TypeRef<ElementEntity<any>>
 			await this.deleteMultiple(typeRef, ids)
 		}
 	}
@@ -878,7 +878,7 @@ export class OfflineStorage implements CacheStorage {
 		}
 	}
 
-	private async getRange(typeRef: TypeRef<ElementEntity | ListElementEntity>, listId: Id): Promise<Range | null> {
+	private async getRange(typeRef: TypeRef<ElementEntity<any> | ListElementEntity<any>>, listId: Id): Promise<Range | null> {
 		const type = getTypeString(typeRef)
 		const { query, params } = sql`SELECT upper, lower
 									  FROM ranges
@@ -893,7 +893,7 @@ export class OfflineStorage implements CacheStorage {
 	 * A neat helper which can delete types in any lists as long as they belong to the same type.
 	 * Will invoke {@link CustomCacheHandler#onBeforeCacheDeletion}.
 	 */
-	async deleteMultiple(typeRef: TypeRef<PersistentEntity>, ids: Array<AnyEntityId>) {
+	async deleteMultiple<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, ids: Array<T["_id"]>) {
 		if (isEmpty(ids)) {
 			return
 		}
@@ -955,7 +955,7 @@ export class OfflineStorage implements CacheStorage {
 		}
 	}
 
-	async deleteIn<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Nullable<Id>, elementIds: Id[]): Promise<void> {
+	async deleteIn<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, listId: Nullable<Id>, elementIds: Id[]): Promise<void> {
 		if (isEmpty(elementIds)) return
 
 		const fullIds: Array<AnyEntityId> = listId == null ? elementIds.map(idToElementId) : elementIds.map((id) => [listId, id])
@@ -966,7 +966,7 @@ export class OfflineStorage implements CacheStorage {
 		// no-op
 	}
 
-	async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, rawCutoffId: Id): Promise<void> {
+	async updateRangeForList<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id, rawCutoffId: Id): Promise<void> {
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const isCustomId = isCustomIdType(typeModel)
 		const encodedCutoffId = serverToLocalIdEncoding(typeModel, rawCutoffId)
@@ -1020,7 +1020,7 @@ export class OfflineStorage implements CacheStorage {
 	/**
 	 * Convert the type from CBOR representation to the runtime type
 	 */
-	private async deserialize<T extends Entity>(loaded: Uint8Array, typeRef: TypeRef<T>): Promise<DecryptedParsedInstance | null> {
+	private async deserialize<T extends Entity<T>>(loaded: Uint8Array, typeRef: TypeRef<T>): Promise<DecryptedParsedInstance | null> {
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		try {
 			const savedEntity = cborg.decode(loaded, { tags: customTypeDecoders }) as Record<AttributeName, unknown>

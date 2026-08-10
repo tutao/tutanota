@@ -81,7 +81,7 @@ export class CacheManagementFacade implements CacheManager {
 	/**
 	 * Delete a cached entity. Sometimes this is necessary to do to ensure you always load the new version
 	 */
-	async deleteFromCacheIfExists<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void> {
+	async deleteFromCacheIfExists<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, listId: Id | null, elementId: Id): Promise<void> {
 		return this.entityRestCache.deleteFromCacheIfExists(typeRef, listId, elementId)
 	}
 }

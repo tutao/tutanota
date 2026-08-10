@@ -4,9 +4,13 @@ import { InstanceKdfNonce, UpdateKdfNoncePostOut } from "@tutao/entities/sys"
 import { Nullable } from "@tutao/utils"
 
 export interface CryptoNetworkHelper {
-	setNewOwnerEncSessionKey(clientTypeModel: ClientTypeModel, instance: Entity, keyToEncryptSessionKey: Nullable<VersionedKey>): Promise<AesKey | null>
+	setNewOwnerEncSessionKey<T extends Entity<T>>(
+		clientTypeModel: ClientTypeModel,
+		instance: T,
+		keyToEncryptSessionKey: Nullable<VersionedKey>,
+	): Promise<AesKey | null>
 
-	setOwnerEncSessionKey(instance: Entity, ownerEncSessionKey: VersionedEncryptedKey, ownerGroup: Nullable<Id>): void
+	setOwnerEncSessionKey<T extends Entity<T>>(instance: Entity<T>, ownerEncSessionKey: VersionedEncryptedKey, ownerGroup: Nullable<Id>): void
 
 	decryptSessionKey(ownerGroup: Id, ownerEncSessionKey: VersionedEncryptedKey): Promise<AesKey>
 

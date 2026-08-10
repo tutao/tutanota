@@ -2,7 +2,7 @@ import { Nullable } from "@tutao/utils"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler"
 import { DecryptedParsedInstance, GetOrPutInstance } from "../../platform-kit/instance-pipeline"
 import { Range } from "./OfflineStorage"
-import { Entity, ListElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
+import { ListElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
 
 import { CacheSyncStatus } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
@@ -18,7 +18,7 @@ export type LastUpdateTime = { type: "recorded"; time: number } | { type: "never
  * (mainly password changes)
  */
 export interface ExposedCacheStorage extends GetOrPutInstance {
-	get<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null>
+	get<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null>
 
 	/**
 	 * Load range of entities. Does not include {@param start}.
@@ -27,19 +27,19 @@ export interface ExposedCacheStorage extends GetOrPutInstance {
 	 * If {@param reverse} is true then returns entities older than {@param start} in descending order sorted by
 	 * elementId.
 	 */
-	provideFromRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]>
+	provideFromRange<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id, start: Id, count: number, reverse: boolean): Promise<T[]>
 
 	/**
 	 * Load a set of entities by id. Missing elements are not returned, no error is thrown.
 	 */
-	provideMultiple<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Nullable<Id>, elementIds: Id[]): Promise<Array<T>>
+	provideMultiple<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Nullable<Id>, elementIds: Id[]): Promise<Array<T>>
 
 	/**
 	 * retrieve all list elements that are in the cache
 	 * @param typeRef
 	 * @param listId
 	 */
-	getWholeList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>>
+	getWholeList<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id): Promise<Array<T>>
 
 	getLastUpdateTime(): Promise<LastUpdateTime>
 
@@ -55,7 +55,7 @@ export interface ExposedCacheStorage extends GetOrPutInstance {
 	 * the exposed interface is intentionally more narrow than the internal cacheStorage because
 	 * we must maintain the integrity of our list ranges.
 	 * */
-	deleteIfExists<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
+	deleteIfExists<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
 
 	/**
 	 * remove a complete range for a ListElementEntity from the cache by typeRef and listId.
@@ -68,14 +68,14 @@ export interface ExposedCacheStorage extends GetOrPutInstance {
 	 * MailSetEntries in cache, but still show all mails inside the targetFolder correctly.
 	 *
 	 */
-	deleteRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: string): Promise<void>
+	deleteRange<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: string): Promise<void>
 }
 
 export interface CacheStorage extends ExposedCacheStorage {
 	/**
 	 * Get a given entity from the cache, expects that you have already checked for existence
 	 */
-	getParsed(typeRef: TypeRef<Entity>, listId: Id | null, id: Id): Promise<DecryptedParsedInstance | null>
+	getParsed<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<DecryptedParsedInstance | null>
 
 	/**
 	 * Load range of entities. Does not include {@param start}.
@@ -84,19 +84,25 @@ export interface CacheStorage extends ExposedCacheStorage {
 	 * If {@param reverse} is true then returns entities older than {@param start} in descending order sorted by
 	 * elementId.
 	 */
-	provideFromRangeParsed(typeRef: TypeRef<Entity>, listId: Id, start: Id, count: number, reverse: boolean): Promise<DecryptedParsedInstance[]>
+	provideFromRangeParsed<T extends PersistentEntity<T>>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		count: number,
+		reverse: boolean,
+	): Promise<DecryptedParsedInstance[]>
 
 	/**
 	 * Load a set of by id. Missing elements are not returned, no error is thrown.
 	 */
-	provideMultipleParsed(typeRef: TypeRef<Entity>, listId: Nullable<Id>, elementIds: Id[]): Promise<Array<DecryptedParsedInstance>>
+	provideMultipleParsed<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, listId: Nullable<Id>, elementIds: Id[]): Promise<Array<DecryptedParsedInstance>>
 
 	/**
 	 * retrieve all list elements that are in the cache
 	 * @param typeRef
 	 * @param listId
 	 */
-	getWholeListParsed(typeRef: TypeRef<Entity>, listId: Id): Promise<Array<DecryptedParsedInstance>>
+	getWholeListParsed<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, listId: Id): Promise<Array<DecryptedParsedInstance>>
 
 	/**
 	 * get a map with cache handlers for the customId types this storage implementation supports
@@ -104,17 +110,17 @@ export interface CacheStorage extends ExposedCacheStorage {
 	 */
 	getCustomCacheHandlerMap(): CustomCacheHandlerMap
 
-	isElementIdInCacheRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<boolean>
+	isElementIdInCacheRange<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<boolean>
 
-	put(typeRef: TypeRef<Entity>, instance: DecryptedParsedInstance): Promise<void>
+	put<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, instance: DecryptedParsedInstance): Promise<void>
 
-	putMultiple(typeRef: TypeRef<Entity>, instances: DecryptedParsedInstance[]): Promise<void>
+	putMultiple<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, instances: DecryptedParsedInstance[]): Promise<void>
 
-	getRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null>
+	getRangeForList<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id): Promise<Range | null>
 
-	setUpperRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void>
+	setUpperRangeForList<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void>
 
-	setLowerRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void>
+	setLowerRangeForList<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id, id: Id): Promise<void>
 
 	/**
 	 * Creates a new list cache if there is none. Resets everything but elements.
@@ -123,13 +129,13 @@ export interface CacheStorage extends ExposedCacheStorage {
 	 * @param lower
 	 * @param upper
 	 */
-	setNewRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, lower: Id, upper: Id): Promise<void>
+	setNewRangeForList<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id, lower: Id, upper: Id): Promise<void>
 
-	getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>>
+	getIdsInRange<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>>
 
-	deleteIfExists<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
+	deleteIfExists<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<void>
 
-	deleteMultiple<T extends PersistentEntity>(typeRef: TypeRef<T>, ids: T["_id"][]): Promise<void>
+	deleteMultiple<T extends PersistentEntity<T>>(typeRef: TypeRef<T>, ids: T["_id"][]): Promise<void>
 
 	/**
 	 * remove a complete range for a ListElementEntity from the cache by typeRef and listId.
@@ -141,7 +147,7 @@ export interface CacheStorage extends ExposedCacheStorage {
 	 * respective targetFolder when importing mails. This makes sure, that we keep already downloaded
 	 * MailSetEntries in cache, but still show all mails inside the targetFolder correctly.
 	 */
-	deleteRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: string): Promise<void>
+	deleteRange<T extends ListElementEntity<T>>(typeRef: TypeRef<T>, listId: string): Promise<void>
 
 	putLastUpdateTime(value: number): Promise<void>
 
