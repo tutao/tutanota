@@ -17,6 +17,7 @@ const typeModels = {
 		versioned: false,
 		encrypted: false,
 		isPublic: true,
+		targetTypeId: null,
 		values: {
 			13: {
 				final: false,
@@ -25,6 +26,7 @@ const typeModels = {
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			14: {
 				final: false,
@@ -33,6 +35,7 @@ const typeModels = {
 				type: "String",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			15: {
 				final: false,
@@ -41,6 +44,7 @@ const typeModels = {
 				type: "GeneratedId",
 				cardinality: "ZeroOrOne",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			299: {
 				final: false,
@@ -49,6 +53,7 @@ const typeModels = {
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 		},
 		associations: {},
@@ -64,6 +69,7 @@ const typeModels = {
 		versioned: false,
 		encrypted: false,
 		isPublic: true,
+		targetTypeId: null,
 		values: {
 			17: {
 				final: false,
@@ -72,6 +78,7 @@ const typeModels = {
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			18: {
 				final: false,
@@ -80,6 +87,7 @@ const typeModels = {
 				type: "Number",
 				cardinality: "ZeroOrOne",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 		},
 		associations: {
@@ -91,6 +99,7 @@ const typeModels = {
 				cardinality: "Any",
 				refTypeId: 300,
 				dependency: null,
+				transferredAttributeId: null,
 			},
 		},
 	},
@@ -105,6 +114,7 @@ const typeModels = {
 		versioned: false,
 		encrypted: false,
 		isPublic: true,
+		targetTypeId: null,
 		values: {
 			50: {
 				final: false,
@@ -113,6 +123,7 @@ const typeModels = {
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			51: {
 				final: false,
@@ -121,6 +132,7 @@ const typeModels = {
 				type: "String",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			52: {
 				final: false,
@@ -129,6 +141,7 @@ const typeModels = {
 				type: "GeneratedId",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			53: {
 				final: false,
@@ -137,6 +150,7 @@ const typeModels = {
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			215: {
 				final: false,
@@ -145,6 +159,7 @@ const typeModels = {
 				type: "Number",
 				cardinality: "ZeroOrOne",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 		},
 		associations: {},
@@ -160,6 +175,7 @@ const typeModels = {
 		versioned: false,
 		encrypted: false,
 		isPublic: true,
+		targetTypeId: null,
 		values: {
 			223: {
 				final: true,
@@ -168,6 +184,7 @@ const typeModels = {
 				type: "CustomId",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			224: {
 				final: true,
@@ -176,6 +193,7 @@ const typeModels = {
 				type: "GeneratedId",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			225: {
 				final: false,
@@ -184,6 +202,7 @@ const typeModels = {
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			226: {
 				final: true,
@@ -192,6 +211,7 @@ const typeModels = {
 				type: "GeneratedId",
 				cardinality: "ZeroOrOne",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			227: {
 				final: true,
@@ -200,6 +220,7 @@ const typeModels = {
 				type: "String",
 				cardinality: "ZeroOrOne",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			228: {
 				final: true,
@@ -208,6 +229,7 @@ const typeModels = {
 				type: "Date",
 				cardinality: "ZeroOrOne",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			229: {
 				final: true,
@@ -216,6 +238,7 @@ const typeModels = {
 				type: "String",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 		},
 		associations: {
@@ -227,6 +250,7 @@ const typeModels = {
 				cardinality: "ZeroOrOne",
 				refTypeId: 31,
 				dependency: "sys",
+				transferredAttributeId: null,
 			},
 		},
 	},
@@ -241,6 +265,7 @@ const typeModels = {
 		versioned: false,
 		encrypted: false,
 		isPublic: true,
+		targetTypeId: null,
 		values: {
 			301: {
 				final: true,
@@ -249,6 +274,7 @@ const typeModels = {
 				type: "CustomId",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			302: {
 				final: false,
@@ -257,6 +283,7 @@ const typeModels = {
 				type: "GeneratedId",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			303: {
 				final: false,
@@ -265,6 +292,7 @@ const typeModels = {
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 		},
 		associations: {},
@@ -280,6 +308,7 @@ const typeModels = {
 		versioned: false,
 		encrypted: false,
 		isPublic: true,
+		targetTypeId: null,
 		values: {
 			306: {
 				final: true,
@@ -288,6 +317,7 @@ const typeModels = {
 				type: "CustomId",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			307: {
 				final: true,
@@ -296,6 +326,7 @@ const typeModels = {
 				type: "String",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			308: {
 				final: true,
@@ -304,6 +335,7 @@ const typeModels = {
 				type: "String",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 		},
 		associations: {},
@@ -319,6 +351,7 @@ const typeModels = {
 		versioned: false,
 		encrypted: false,
 		isPublic: true,
+		targetTypeId: null,
 		values: {
 			317: {
 				final: true,
@@ -327,6 +360,7 @@ const typeModels = {
 				type: "CustomId",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			318: {
 				final: true,
@@ -335,6 +369,7 @@ const typeModels = {
 				type: "Date",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			319: {
 				final: true,
@@ -343,6 +378,7 @@ const typeModels = {
 				type: "String",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			320: {
 				final: true,
@@ -351,6 +387,7 @@ const typeModels = {
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			321: {
 				final: true,
@@ -359,6 +396,7 @@ const typeModels = {
 				type: "String",
 				cardinality: "ZeroOrOne",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			322: {
 				final: true,
@@ -367,6 +405,7 @@ const typeModels = {
 				type: "String",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			323: {
 				final: true,
@@ -375,6 +414,7 @@ const typeModels = {
 				type: "String",
 				cardinality: "ZeroOrOne",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			324: {
 				final: true,
@@ -383,6 +423,7 @@ const typeModels = {
 				type: "String",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			325: {
 				final: true,
@@ -391,6 +432,7 @@ const typeModels = {
 				type: "String",
 				cardinality: "ZeroOrOne",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			326: {
 				final: true,
@@ -399,6 +441,7 @@ const typeModels = {
 				type: "String",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 		},
 		associations: {},
@@ -414,6 +457,7 @@ const typeModels = {
 		versioned: false,
 		encrypted: false,
 		isPublic: true,
+		targetTypeId: null,
 		values: {
 			336: {
 				final: false,
@@ -422,6 +466,7 @@ const typeModels = {
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 		},
 		associations: {
@@ -433,6 +478,7 @@ const typeModels = {
 				cardinality: "One",
 				refTypeId: 316,
 				dependency: null,
+				transferredAttributeId: null,
 			},
 			338: {
 				final: false,
@@ -442,6 +488,7 @@ const typeModels = {
 				cardinality: "Any",
 				refTypeId: 305,
 				dependency: null,
+				transferredAttributeId: null,
 			},
 		},
 	},

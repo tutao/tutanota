@@ -17,6 +17,7 @@ const typeModels = {
 		versioned: false,
 		encrypted: false,
 		isPublic: true,
+		targetTypeId: null,
 		values: {
 			80: {
 				final: true,
@@ -25,6 +26,7 @@ const typeModels = {
 				type: "CustomId",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			81: {
 				final: true,
@@ -33,6 +35,7 @@ const typeModels = {
 				type: "Number",
 				cardinality: "One",
 				encrypted: true,
+				transferredAttributeId: null,
 			},
 			82: {
 				final: true,
@@ -41,6 +44,7 @@ const typeModels = {
 				type: "Date",
 				cardinality: "One",
 				encrypted: true,
+				transferredAttributeId: null,
 			},
 			83: {
 				final: true,
@@ -49,6 +53,7 @@ const typeModels = {
 				type: "String",
 				cardinality: "ZeroOrOne",
 				encrypted: true,
+				transferredAttributeId: null,
 			},
 			84: {
 				final: true,
@@ -57,6 +62,7 @@ const typeModels = {
 				type: "Number",
 				cardinality: "One",
 				encrypted: true,
+				transferredAttributeId: null,
 			},
 		},
 		associations: {},
@@ -72,6 +78,7 @@ const typeModels = {
 		versioned: false,
 		encrypted: true,
 		isPublic: true,
+		targetTypeId: null,
 		values: {
 			87: {
 				final: false,
@@ -80,6 +87,7 @@ const typeModels = {
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			88: {
 				final: true,
@@ -88,6 +96,7 @@ const typeModels = {
 				type: "GeneratedId",
 				cardinality: "ZeroOrOne",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			89: {
 				final: true,
@@ -96,6 +105,7 @@ const typeModels = {
 				type: "Bytes",
 				cardinality: "ZeroOrOne",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			92: {
 				final: false,
@@ -104,6 +114,7 @@ const typeModels = {
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			94: {
 				final: true,
@@ -112,6 +123,7 @@ const typeModels = {
 				type: "Number",
 				cardinality: "One",
 				encrypted: true,
+				transferredAttributeId: null,
 			},
 			96: {
 				final: true,
@@ -120,6 +132,7 @@ const typeModels = {
 				type: "Number",
 				cardinality: "ZeroOrOne",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 		},
 		associations: {
@@ -131,6 +144,7 @@ const typeModels = {
 				cardinality: "Any",
 				refTypeId: 79,
 				dependency: null,
+				transferredAttributeId: null,
 			},
 		},
 	},
