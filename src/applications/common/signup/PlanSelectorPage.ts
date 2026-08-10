@@ -25,7 +25,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 		const promotionMessage = planPrices!.getRawPricingData().messageTextId as TranslationKeyType
 		let message
 		try {
-			message = lang.getTranslation(promotionMessage)
+			message = promotionMessage == null ? null : lang.getTranslation(promotionMessage)
 		} catch (e) {
 			message = null
 		}
