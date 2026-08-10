@@ -39,8 +39,6 @@ import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/Calen
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
 import { availableIANATimeZones, windowsToIANATimeZones } from "../../../common/calendar/TimeZoneData"
-import { Type } from "cborg"
-import undefined = Type.undefined
 
 const TAG = "[CalendarParser]"
 
