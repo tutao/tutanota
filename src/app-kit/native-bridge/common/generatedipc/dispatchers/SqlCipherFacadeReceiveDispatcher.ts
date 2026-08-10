@@ -9,7 +9,7 @@ export class SqlCipherFacadeReceiveDispatcher {
 		switch (method) {
 			case "openDb": {
 				const userId: string = arg[0]
-				const dbKey: Uint8Array = arg[1]
+				const dbKey: Uint8Array<ArrayBuffer> = arg[1]
 				return this.facade.openDb(userId, dbKey)
 			}
 			case "closeDb": {

@@ -1,9 +1,9 @@
 import { ImapSyncEventListener } from "./ImapSyncEventListener.js"
 import { ImapSyncSession } from "./ImapSyncSession.js"
-import { ImapError } from "../../../api/common/error/ImapError"
 import { ImapMailbox } from "../../../api/common/utils/imapImportUtils/ImapMailbox"
 import { ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
 import { ImapCredentials, ImapSyncContext } from "../../../api/common/utils/imapImportUtils/ImapSyncContext"
+import { CertificateProvider } from "../../CertificateProvider"
 
 const defaultImapSyncConfig: ImapSyncConfig = {
 	emitImapSyncEventTypes: new Set<ImapSyncEventType>([ImapSyncEventType.CREATE]),
@@ -26,11 +26,15 @@ export class ImapSync {
 		return this.syncSession.stopSyncSession()
 	}
 
-	async getImapMailboxesFromServer(imapAccount: ImapCredentials): Promise<ReadonlyArray<ImapMailbox>> {
-		return await this.syncSession.getImapMailboxesFromServer(imapAccount)
+	async getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ReadonlyArray<ImapMailbox>> {
+		return await this.syncSession.getImapMailboxesFromServer(imapCredentials)
 	}
 }
 
-export function createImapSync(imapSyncEventListener: ImapSyncEventListener, imapSyncConfig: ImapSyncConfig = defaultImapSyncConfig): ImapSync {
-	return new ImapSync(new ImapSyncSession(imapSyncEventListener, imapSyncConfig))
+export function createImapSync(
+	imapSyncEventListener: ImapSyncEventListener,
+	certificateProvider: CertificateProvider,
+	imapSyncConfig: ImapSyncConfig = defaultImapSyncConfig,
+): ImapSync {
+	return new ImapSync(new ImapSyncSession(imapSyncEventListener, certificateProvider, imapSyncConfig))
 }

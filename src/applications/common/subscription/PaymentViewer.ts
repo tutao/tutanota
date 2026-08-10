@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { assertMainOrNode, isIOSApp, PostingType, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
-import { assertNotNull, last, neverNull, newPromise, ofClass } from "@tutao/utils"
+import { assertNotNull, neverNull, newPromise, ofClass } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { HtmlEditor, HtmlEditorMode } from "../../../ui/editor/HtmlEditor"
 import { formatPrice, getPaymentMethodInfoText, getPaymentMethodName } from "./utils/PriceUtils"
@@ -20,34 +20,42 @@ import { ExpanderButton, ExpanderPanel } from "../../../ui/base/Expander"
 import { locator } from "../api/main/CommonLocator"
 import { createNotAvailableForFreeClickHandler } from "../misc/SubscriptionDialogs"
 import { TranslationKeyType } from "../../../ui/utils/TranslationKey"
-import { IconButton } from "../../../ui/base/IconButton.js"
+import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton.js"
 import { ButtonSize } from "../../../ui/base/ButtonSize.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { DeviceType } from "../../../platform-kit/app-env/boot/ClientConstants.js"
-import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
+import { PrimaryButton, SecondaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
-import { showSwitchDialog } from "./SwitchSubscriptionDialog.js"
-import { createDropdown } from "../../../ui/base/Dropdown.js"
+import { showConfirmDowngradingToFreeDialog } from "./SwitchSubscriptionDialog.js"
+import { attachDropdown, createDropdown } from "../../../ui/base/Dropdown.js"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
-	BookingTypeRef,
 	createDebitServicePutData,
 	Customer,
 	CustomerTypeRef,
 	DebitService,
+	GiftCard,
+	GiftCardTypeRef,
 	InvoiceInfo,
 	InvoiceInfoTypeRef,
 } from "@tutao/entities/sys"
-import { AccountType, AvailablePlans, NewPaidPlans, PaymentMethodType } from "../../../entities/sys/Utils"
-import { GENERATED_MAX_ID, idToElementId } from "@tutao/meta"
 import { getByAbbreviation } from "../gui/CountryList"
-import { CustomerAccountPosting } from "@tutao/entities/accounting"
-import { CustomerAccountService } from "../../../entities/accounting/Services"
+import { CustomerAccountPosting, CustomerAccountService } from "@tutao/entities/accounting"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError } from "@tutao/rest-client/error"
+import { windowFacade } from "../misc/WindowFacade"
+import { showPurchaseGiftCardDialog } from "./giftcards/PurchaseGiftCardDialog"
+import { GiftCardStatus, loadGiftCards, showGiftCardToShare } from "./giftcards/GiftCardUtils"
+import stream from "mithril/stream"
+import Stream from "mithril/stream"
+import { GiftCardMessageEditorField } from "./giftcards/GiftCardMessageEditorField"
+import { CURRENT_GIFT_CARD_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "./TermsAndConditions"
+import { SettingsExpander } from "../settings/SettingsExpander"
+import { elementIdPart, idToElementId, OperationType } from "@tutao/meta"
+import { AccountType, NewPaidPlans, PaymentMethodType } from "../../../entities/sys/Utils"
 
 assertMainOrNode()
 
@@ -63,8 +71,12 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	private balance: number = 0
 	private invoiceInfo: InvoiceInfo | null = null
 	private postingsExpanded: boolean = false
+	private isPremiumPredicate: () => boolean
+	private _giftCards: Map<Id, GiftCard>
+	private readonly _giftCardsExpanded: Stream<boolean>
 
 	constructor() {
+		this.isPremiumPredicate = () => locator.logins.getUserController().isPaidAccount()
 		this.invoiceAddressField = new HtmlEditor(getHtmlSanitizer())
 			.setMinHeight(140)
 			.showBorders()
@@ -75,6 +87,13 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			.displayOnly()
 		this.loadData()
 		this.view = this.view.bind(this)
+		this._giftCards = new Map()
+		loadGiftCards(assertNotNull(locator.logins.getUserController().user.customer)).then((giftCards) => {
+			for (const giftCard of giftCards) {
+				this._giftCards.set(elementIdPart(giftCard._id), giftCard)
+			}
+		})
+		this._giftCardsExpanded = stream<boolean>(false)
 	}
 
 	view(): Children {
@@ -83,7 +102,22 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			{
 				role: "group",
 			},
-			[this.renderInvoiceData(), this.renderPaymentMethod(), this.renderPostings()],
+			[
+				this.renderInvoiceData(),
+				this.renderPaymentMethod(),
+				this.renderPostings(),
+				m(
+					SettingsExpander,
+					{
+						id: "giftcards",
+						title: "giftCards_label",
+						infoMsg: "giftCardSection_label",
+						expanded: this._giftCardsExpanded,
+					},
+					this.renderGiftCardTable(Array.from(this._giftCards.values()), this.isPremiumPredicate),
+				),
+				this.renderOtherPaymentMethods(),
+			],
 		)
 	}
 
@@ -160,7 +194,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				lang.getTranslation("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLink.AppStoreDowngrade }),
 				[
 					{
-						text: "changePlan_action",
+						text: "subscriptionSettingDowngrade_action",
 						value: false,
 					},
 					{
@@ -172,20 +206,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			if (isResubscribe) {
 				return showManageThroughAppStoreDialog()
 			} else {
-				const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
-				const bookings = await locator.entityClient.loadRange(BookingTypeRef, assertNotNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
-				const lastBooking = last(bookings)
-				if (lastBooking == null) {
-					console.warn("No booking but payment method is AppStore?")
-					return
-				}
-				return showSwitchDialog({
-					customer: this.customer,
-					accountingInfo: this.accountingInfo,
-					lastBooking,
-					acceptedPlans: AvailablePlans,
-					reason: null,
-				})
+				return showConfirmDowngradingToFreeDialog()
 			}
 		} else {
 			const showPaymentMethodDialog = createNotAvailableForFreeClickHandler(
@@ -312,6 +333,21 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				m(".small", lang.get("invoiceSettingDescription_msg") + " " + lang.get("laterInvoicingInfo_msg")),
 			]
 		}
+	}
+
+	private renderOtherPaymentMethods(): Children {
+		return [
+			m("mt-32.mb-8", [
+				m(".h4.pt-16.pb-8", lang.getTranslationText("alternativePaymentMethods_label")),
+				m(".small.pb-8", lang.getTranslationText("proxyStorePayment_msg")),
+				m(SecondaryButton, {
+					label: lang.getTranslation("openProxystore_action"),
+					width: "flex",
+					icon: Icons.OpenOutline,
+					onclick: () => windowFacade.openLink("https://digitalgoods.proxysto.re/brand/tuta"),
+				}),
+			]),
+		]
 	}
 
 	private postingLineAttrs(posting: CustomerAccountPosting): TableLineAttrs {
@@ -447,6 +483,11 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		} else if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
 			this.invoiceInfo = await locator.entityClient.load(InvoiceInfoTypeRef, idToElementId(instanceId))
 			m.redraw()
+		} else if (isUpdateForTypeRef(GiftCardTypeRef, update)) {
+			const giftCardId = [assertNotNull(update.instanceListId), update.instanceId] as const
+			const giftCard = await locator.entityClient.load(GiftCardTypeRef, giftCardId)
+			this._giftCards.set(elementIdPart(giftCard._id), giftCard)
+			if (update.operation === OperationType.CREATE) this._giftCardsExpanded(true)
 		}
 	}
 
@@ -506,6 +547,89 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 						isReadOnly: true,
 					})
 				: null,
+		]
+	}
+	private renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => boolean): Children {
+		const addButtonAttrs: IconButtonAttrs = {
+			title: "buyGiftCard_label",
+			click: createNotAvailableForFreeClickHandler(
+				UpgradePromptType.PURCHASE_GIFT_CARDS,
+				NewPaidPlans,
+				() => showPurchaseGiftCardDialog(),
+				isPremiumPredicate,
+			),
+			icon: Icons.Plus,
+			size: ButtonSize.Compact,
+		}
+		const columnHeading: [TranslationKey, TranslationKey] = ["purchaseDate_label", "value_label"]
+		const columnWidths = [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small]
+		const lines = giftCards
+			.filter((giftCard) => giftCard.status === GiftCardStatus.Usable)
+			.map((giftCard) => {
+				return {
+					cells: [formatDate(giftCard.orderDate), formatPrice(parseFloat(giftCard.value), true)],
+					actionButtonAttrs: attachDropdown({
+						mainButtonAttrs: {
+							title: "options_action",
+							icon: Icons.More,
+							size: ButtonSize.Compact,
+						},
+						childAttrs: async () => [
+							{
+								label: "view_label",
+								click: () => showGiftCardToShare(giftCard),
+							},
+							{
+								label: "edit_action",
+								click: () => {
+									let message = stream(giftCard.message)
+									Dialog.showActionDialog({
+										title: "editMessage_label",
+										child: () =>
+											m(
+												".flex-center",
+												m(GiftCardMessageEditorField, {
+													message: message(),
+													onMessageChanged: message,
+												}),
+											),
+										okAction: (dialog: Dialog) => {
+											giftCard.message = message()
+											locator.entityClient
+												.update(giftCard)
+												.then(() => dialog.close())
+												.catch(() => Dialog.message("giftCardUpdateError_msg"))
+											showGiftCardToShare(giftCard)
+										},
+										okActionTextId: "save_action",
+										type: DialogType.EditSmall,
+									})
+								},
+							},
+						],
+					}),
+				}
+			})
+		return [
+			m(Table, {
+				addButtonAttrs,
+				columnHeading,
+				columnWidths,
+				lines,
+				showActionButtonColumn: true,
+			}),
+			m(".small", renderTermsAndConditionsButton(TermsSection.GiftCards, CURRENT_GIFT_CARD_TERMS_VERSION)),
+		]
+	}
+
+	private renderGiftCardEntries(): Children {
+		return [
+			m(SettingsExpander, {
+				id: "giftcards",
+				title: "giftCards_label",
+				infoMsg: "giftCardSection_label",
+				expanded: this._giftCardsExpanded,
+			}),
 		]
 	}
 }
@@ -590,6 +714,10 @@ export async function showManageThroughAppStoreDialog(): Promise<void> {
 		}),
 	)
 	if (confirmed) {
-		window.open("https://apps.apple.com/account/subscriptions", "_blank", "noopener,noreferrer")
+		openAppleSubscriptionPage()
 	}
+}
+
+export function openAppleSubscriptionPage() {
+	window.open("https://apps.apple.com/account/subscriptions", "_blank", "noopener,noreferrer")
 }

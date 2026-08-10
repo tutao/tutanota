@@ -128,11 +128,11 @@ export class ParsedValue<NestedObject extends DeepEquals> implements DeepEquals 
 		return this.asString() !== "0"
 	}
 
-	asByteArray(): Uint8Array {
+	asByteArray(): Uint8Array<ArrayBuffer> {
 		return base64ToUint8Array(this.asString())
 	}
 
-	static fromByteArray<NestedObject extends DeepEquals>(byteArray: Uint8Array): ParsedValue<NestedObject> {
+	static fromByteArray<NestedObject extends DeepEquals>(byteArray: Uint8Array<ArrayBuffer>): ParsedValue<NestedObject> {
 		const bytesAsString = uint8ArrayToBase64(byteArray)
 		return ParsedValue.fromString<NestedObject>(bytesAsString)
 	}

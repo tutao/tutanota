@@ -11,6 +11,8 @@ import { MailIndexerNewMailDownloader } from "../../../../../src/applications/ma
 import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
 import {
 	compareOldestFirst,
+	constructMailSetEntryId,
+	CUSTOM_MIN_ID,
 	elementIdPart,
 	EntityIdEncoding,
 	GENERATED_MAX_ID,
@@ -28,6 +30,8 @@ import {
 	FileTypeRef,
 	ImportedFileMail,
 	ImportedFileMailTypeRef,
+	ImportedImapMail,
+	ImportedImapMailTypeRef,
 	Mail,
 	MailBagTypeRef,
 	MailboxGroupRootTypeRef,
@@ -37,6 +41,8 @@ import {
 	MailDetailsTypeRef,
 	MailSetEntry,
 	MailSetEntryTypeRef,
+	MailSetRefTypeRef,
+	MailSetTypeRef,
 	MailTypeRef,
 } from "@tutao/entities/tutanota"
 import { func, matchers, object, verify, when } from "testdouble"
@@ -44,11 +50,13 @@ import { EntityClient } from "../../../../../src/platform-kit/network/EntityClie
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
 import { MailWithDetailsAndAttachments } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexerBackend"
-import { assert, assertNotNull, collectToMap, deepEqual } from "../../../../../src/platform-kit/utils"
+import { assert, assertNotNull, collectToMap, deepEqual, last, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade"
 import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
 import { IncomingServerJson } from "../../../../../src/platform-kit/instance-pipeline/TypeMapper"
+import { MailImportType, MailSetKind } from "../../../../../src/entities/tutanota/Utils"
 
+const TEST_INDEX_CHUNK_SIZE = 50
 o.spec("OfflineMailIndexer", () => {
 	let mailIndexer: OfflineMailIndexer
 	let persistence: OfflineStoragePersistence
@@ -61,9 +69,31 @@ o.spec("OfflineMailIndexer", () => {
 	let crypto: CryptoFacade
 	let newMailDownloader: MailIndexerNewMailDownloader
 	let user: User
-
 	const userId = "userId"
 	const mailGroupId = "I'm a mail group!"
+	const mailboxId = "I'm a mailbox!"
+	const mailSetListId = "I'm a mail set list!"
+	const mailBagMailListId = "---------z-z"
+
+	const mailBox = createTestEntity(MailBoxTypeRef, {
+		_id: idToElementId(mailboxId),
+		_ownerGroup: mailGroupId,
+		currentMailBag: createTestEntity(MailBagTypeRef, {
+			mails: mailBagMailListId,
+		}),
+		mailSets: createTestEntity(MailSetRefTypeRef, {
+			mailSets: mailSetListId,
+		}),
+	})
+	const mailboxGroupRoot = createTestEntity(MailboxGroupRootTypeRef, {
+		_id: idToElementId(mailGroupId),
+		mailbox: mailboxId,
+	})
+	const importedMailSet = createTestEntity(MailSetTypeRef, {
+		_id: [mailBox.mailSets.mailSets, "imported mail set"],
+		entries: "mailSetEntryList",
+		folderType: MailSetKind.IMPORTED,
+	})
 
 	let mail: Mail
 	let mailSetEntry: MailSetEntry
@@ -91,6 +121,7 @@ o.spec("OfflineMailIndexer", () => {
 			infoMessageHandler,
 			newMailDownloader,
 			realInstancePipeline,
+			TEST_INDEX_CHUNK_SIZE,
 		)
 		user = createTestEntity(UserTypeRef, {
 			_id: idToElementId(userId),
@@ -98,14 +129,14 @@ o.spec("OfflineMailIndexer", () => {
 		mail = createTestEntity(
 			MailTypeRef,
 			{
-				_id: ["---------z-z", "---------zzz"],
+				_id: [mailBagMailListId, "---------zzz"],
 				_ownerGroup: mailGroupId,
 			},
 			{ populateAggregates: true },
 		)
 
 		mailSetEntry = createTestEntity(MailSetEntryTypeRef, {
-			_id: ["mailSetEntryList", "mailSetEntryElement"],
+			_id: ["mailSetEntryList", constructMailSetEntryId(mail.receivedDate, elementIdPart(mail._id))],
 			mail: mail._id,
 			_ownerGroup: mailGroupId,
 		})
@@ -122,6 +153,9 @@ o.spec("OfflineMailIndexer", () => {
 				storedBlobs.set(elementIdPart(b.getValueByName("_id").asIdTuple()), b)
 			}
 		})
+
+		entityRestClientMock.addElementInstances(mailBox, mailboxGroupRoot)
+		entityRestClientMock.addListInstances(importedMailSet)
 
 		when(persistence.getImportQueueEntries()).thenResolve([])
 	})
@@ -185,22 +219,6 @@ o.spec("OfflineMailIndexer", () => {
 
 		addTestMail()
 
-		const mailboxId = "I'm a mailbox!"
-
-		entityRestClientMock.addElementInstances(
-			createTestEntity(MailboxGroupRootTypeRef, {
-				_id: idToElementId(mailGroupId),
-				mailbox: mailboxId,
-			}),
-			createTestEntity(MailBoxTypeRef, {
-				_id: idToElementId(mailboxId),
-				_ownerGroup: mailGroupId,
-				currentMailBag: createTestEntity(MailBagTypeRef, {
-					mails: listIdPart(mail._id),
-				}),
-			}),
-		)
-
 		const attachments = [
 			createTestEntity(FileTypeRef, {
 				name: `this is a file.txt`,
@@ -248,7 +266,6 @@ o.spec("OfflineMailIndexer", () => {
 		const detailBlobs: MailDetailsBlob[] = []
 
 		const archiveId = "WHOA, I store LOTS of cool stuff!"
-		const mailListId = getListId(mail)
 
 		for (let i = 0; i < mailCount; i++) {
 			const mailDetails = createTestEntity(
@@ -270,7 +287,7 @@ o.spec("OfflineMailIndexer", () => {
 			const mailMail = createTestEntity(
 				MailTypeRef,
 				{
-					_id: [mailListId, `${i}`.padStart(GENERATED_MIN_ID.length, "0")],
+					_id: [getListId(mail), `${i}`.padStart(GENERATED_MIN_ID.length, "0")],
 					mailDetails: mailDetails._id,
 				},
 				{ populateAggregates: true },
@@ -310,22 +327,6 @@ o.spec("OfflineMailIndexer", () => {
 					),
 				),
 			),
-		)
-
-		const mailboxId = "I'm a mailbox!"
-
-		entityRestClientMock.addElementInstances(
-			createTestEntity(MailboxGroupRootTypeRef, {
-				_id: idToElementId(mailGroupId),
-				mailbox: mailboxId,
-			}),
-			createTestEntity(MailBoxTypeRef, {
-				_id: idToElementId(mailboxId),
-				_ownerGroup: mailGroupId,
-				currentMailBag: createTestEntity(MailBagTypeRef, {
-					mails: mailListId,
-				}),
-			}),
 		)
 
 		when(persistence.getIndexedGroups()).thenResolve([
@@ -398,7 +399,7 @@ o.spec("OfflineMailIndexer", () => {
 			entityRestClientMock.addListInstances(importedMail)
 
 			const sk = aes256RandomKey()
-			when(persistence.getImportQueueProgress(listIdPart(importedMail._id))).thenResolve(GENERATED_MAX_ID)
+			when(persistence.getImportQueueProgress(listIdPart(importedMail._id))).thenResolve(GENERATED_MIN_ID)
 			when(crypto.resolveSessionKey(matchers.anything())).thenResolve(sk)
 
 			when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails))).thenDo(async () => {
@@ -413,6 +414,10 @@ o.spec("OfflineMailIndexer", () => {
 			addTestMail()
 		})
 
+		function createId(idText: string): string {
+			return Array(13 - idText.length).join("-") + idText
+		}
+
 		function do_verify() {
 			const storeMailData = matchers.captor()
 			verify(persistence.storeMailData(storeMailData.capture()))
@@ -423,24 +428,228 @@ o.spec("OfflineMailIndexer", () => {
 			o(removeOriginals(storedMails[0].mailDetails)).deepEquals(removeOriginals(mailDetails.details))
 			o(storedMails[0].attachments.map(removeOriginals)).deepEquals(attachments)
 
-			verify(persistence.removeImportQueueEntry(listIdPart(importedMail._id)))
 			verify(persistence.clearEncryptedMailDetailsBlobs())
-			verify(persistence.updateImportQueueProgress(listIdPart(importedMail._id), elementIdPart(mail._id)))
+			verify(persistence.updateImportQueueProgress(listIdPart(importedMail._id), elementIdPart(importedMail._id), MailImportType.FileImport))
 		}
 
 		o.test("beforeImportedMailFinished", async () => {
-			await mailIndexer.beforeImportedMailFinished(listIdPart(importedMail._id))
+			await mailIndexer.beforeImportedMailFinished(listIdPart(importedMail._id), MailImportType.FileImport)
 			await mailIndexer.waitForIndex()
 			do_verify()
 		})
 
 		o.test("resume", async () => {
 			when(persistence.getIndexedGroups()).thenResolve([])
-			when(persistence.getImportQueueEntries()).thenResolve([listIdPart(importedMail._id)])
+			when(persistence.getImportQueueEntries()).thenResolve([{ listId: listIdPart(importedMail._id), mailImportType: MailImportType.FileImport }])
 
 			await mailIndexer.extendMailIndex(user)
 			await mailIndexer.waitForIndex()
 			do_verify()
+		})
+
+		o.test("indexes all mails when starting from beginning", async () => {
+			const importList = "imported mails list"
+			const mailImportType = MailImportType.ImapImport
+			const totalMails = TEST_INDEX_CHUNK_SIZE * 5
+
+			const mails: Mail[] = []
+			const mailSetEntries: MailSetEntry[] = []
+			const importedMails: ImportedImapMail[] = []
+
+			for (let i = 1; i <= totalMails; i++) {
+				const mailElementId = createId(i.toString())
+				const mailId: IdTuple = [mailBagMailListId, mailElementId]
+				const mailObj = createTestEntity(
+					MailTypeRef,
+					{
+						_id: mailId,
+						_ownerGroup: mailGroupId,
+						receivedDate: new Date(2020, 1, i + 1),
+						mailDetails: ["blobList", `blob${i}`],
+					},
+					{ populateAggregates: true },
+				)
+				mails.push(mailObj)
+
+				const mailSetEntryId: IdTuple = ["mailSetEntryList", constructMailSetEntryId(mailObj.receivedDate, mailElementId)]
+				const mailSetEntryObj = createTestEntity(MailSetEntryTypeRef, {
+					_id: mailSetEntryId,
+					mail: mailId,
+					_ownerGroup: mailGroupId,
+				})
+				mailSetEntries.push(mailSetEntryObj)
+
+				const importedMailId: IdTuple = [importList, stringToBase64UrlCustomId(i.toString())]
+				const importedMailObj = createTestEntity(ImportedImapMailTypeRef, {
+					_id: importedMailId,
+					mailSetEntry: mailSetEntryId,
+					_ownerGroup: mailGroupId,
+				})
+				importedMails.push(importedMailObj)
+			}
+
+			entityRestClientMock.addListInstances(...mails, ...mailSetEntries, ...importedMails)
+
+			when(persistence.getImportQueueProgress(importList)).thenResolve(stringToBase64UrlCustomId("0"))
+
+			when(persistence.getIndexedGroups()).thenResolve([])
+			when(persistence.getImportQueueEntries()).thenResolve([{ listId: importList, mailImportType }])
+
+			when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, "blobList")).thenDo(async () => {
+				const sk = aes256RandomKey()
+				return await Promise.all(
+					mails.map(async (mail) => {
+						const mailDetailsBlob = createTestEntity(
+							MailDetailsBlobTypeRef,
+							{
+								_id: mail.mailDetails!,
+								details: createTestEntity(MailDetailsTypeRef, {}, { populateAggregates: true }),
+							},
+							{ populateAggregates: true },
+						)
+						const mapped = await realInstancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, mailDetailsBlob, sk)
+						return IncomingServerJson.expectSingleMailDetailsBlob(mapped.getInnerJson(), mailDetailsBlobModel)
+					}),
+				)
+			})
+			when(mailFacade.loadAttachments(matchers.anything())).thenResolve([])
+			when(crypto.resolveSessionKey(matchers.anything())).thenResolve(aes256RandomKey())
+
+			await mailIndexer.beforeImportedMailFinished(importList, mailImportType)
+			await mailIndexer.waitForIndex()
+
+			const storeMailDataCaptor = matchers.captor()
+			verify(persistence.storeMailData(storeMailDataCaptor.capture()))
+			const storedMails = storeMailDataCaptor.values!.reduce((acc, val) => acc.concat(val), [])
+			o(storedMails.length).equals(totalMails)
+
+			const updateProgressCaptor = matchers.captor()
+			verify(persistence.updateImportQueueProgress(importList, updateProgressCaptor.capture(), mailImportType))
+			o(last(updateProgressCaptor.values!)).equals(elementIdPart(importedMails[totalMails - 1]._id))
+
+			verify(persistence.clearEncryptedMailDetailsBlobs())
+			verify(persistence.removeImportQueueEntry(matchers.anything()), { times: 0 })
+		})
+
+		o.test("index initial mails and then index newly imported mails from where we left off", async () => {
+			const listId = "imported mails list"
+			const mailImportType = MailImportType.ImapImport
+			const FIRST_BATCH = TEST_INDEX_CHUNK_SIZE * 10
+			const SECOND_BATCH = TEST_INDEX_CHUNK_SIZE * 2
+			const TOTAL_MAILS = FIRST_BATCH + SECOND_BATCH
+
+			const mails: Mail[] = []
+			const mailSetEntries: MailSetEntry[] = []
+			const importedMails: ImportedImapMail[] = []
+
+			const createMailInstances = (index: number) => {
+				const mailElementId = createId(index.toString())
+				const mailId: IdTuple = [mailBagMailListId, mailElementId]
+				const mailObj = createTestEntity(
+					MailTypeRef,
+					{
+						_id: mailId,
+						_ownerGroup: mailGroupId,
+						receivedDate: new Date(2020, 0, index), // sequential dates
+						mailDetails: ["blobList", `blob${index}`],
+					},
+					{ populateAggregates: true },
+				)
+				mails.push(mailObj)
+
+				const mailSetEntryId: IdTuple = ["mailSetEntryList", constructMailSetEntryId(mailObj.receivedDate, mailElementId)]
+				const mailSetEntryObj = createTestEntity(MailSetEntryTypeRef, {
+					_id: mailSetEntryId,
+					mail: mailId,
+					_ownerGroup: mailGroupId,
+				})
+				mailSetEntries.push(mailSetEntryObj)
+
+				const importedMailId: IdTuple = [listId, stringToBase64UrlCustomId(index.toString())]
+				const importedMailObj = createTestEntity(ImportedImapMailTypeRef, {
+					_id: importedMailId,
+					mailSetEntry: mailSetEntryId,
+					_ownerGroup: mailGroupId,
+				})
+				importedMails.push(importedMailObj)
+			}
+
+			for (let i = 1; i <= FIRST_BATCH; i++) {
+				createMailInstances(i)
+			}
+			entityRestClientMock.addListInstances(...mails, ...mailSetEntries, ...importedMails)
+
+			let importQueueProgress = CUSTOM_MIN_ID
+			when(persistence.getImportQueueProgress(listId)).thenDo(() => {
+				return importQueueProgress
+			})
+			const updateProgressCaptor = matchers.captor()
+			when(persistence.updateImportQueueProgress(listId, updateProgressCaptor.capture(), mailImportType)).thenDo(() => {
+				importQueueProgress = last(updateProgressCaptor.values!)
+			})
+
+			when(persistence.getIndexedGroups()).thenResolve([])
+			when(persistence.getImportQueueEntries()).thenResolve([{ listId, mailImportType }])
+
+			when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, "blobList")).thenDo(async () => {
+				const sk = aes256RandomKey()
+				return await Promise.all(
+					mails.map(async (mail) => {
+						const mailDetailsBlob = createTestEntity(
+							MailDetailsBlobTypeRef,
+							{
+								_id: mail.mailDetails!,
+								details: createTestEntity(MailDetailsTypeRef, {}, { populateAggregates: true }),
+							},
+							{ populateAggregates: true },
+						)
+						const mapped = await realInstancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, mailDetailsBlob, sk)
+						return IncomingServerJson.expectSingleMailDetailsBlob(mapped.getInnerJson(), mailDetailsBlobModel)
+					}),
+				)
+			})
+			when(mailFacade.loadAttachments(matchers.anything())).thenResolve([])
+			when(crypto.resolveSessionKey(matchers.anything())).thenResolve(aes256RandomKey())
+
+			let totalStored = 0
+			let storedFirstRun = 0
+			let firstRun = true
+			const mailDataCaptor = matchers.captor()
+			let callCount = 0
+			when(persistence.storeMailData(mailDataCaptor.capture())).thenDo(async () => {
+				const batch = mailDataCaptor.values![callCount]
+				totalStored += batch.length
+				if (firstRun) {
+					storedFirstRun += batch.length
+				}
+				callCount++
+			})
+
+			await mailIndexer.beforeImportedMailFinished(listId, mailImportType)
+			await mailIndexer.waitForIndex()
+			firstRun = false
+			const progressAfterFirstRun = updateProgressCaptor.values![updateProgressCaptor.values!.length - 1]
+			const lastMailFirstBatch = importedMails[FIRST_BATCH - 1]
+			o(progressAfterFirstRun).equals(elementIdPart(lastMailFirstBatch._id))
+
+			for (let i = FIRST_BATCH + 1; i <= TOTAL_MAILS; i++) {
+				createMailInstances(i)
+			}
+
+			entityRestClientMock.addListInstances(...mails, ...mailSetEntries, ...importedMails)
+
+			await mailIndexer.beforeImportedMailFinished(listId, mailImportType)
+			await mailIndexer.waitForIndex()
+
+			o(totalStored).equals(TOTAL_MAILS)
+			o(storedFirstRun).equals(FIRST_BATCH)
+
+			const finalProgress = updateProgressCaptor.values![updateProgressCaptor.values!.length - 1]
+			const lastMailTotal = importedMails[TOTAL_MAILS - 1]
+			o(finalProgress).equals(elementIdPart(lastMailTotal._id))
+
+			verify(persistence.removeImportQueueEntry(matchers.anything()), { times: 0 })
+			verify(persistence.clearEncryptedMailDetailsBlobs())
 		})
 	})
 })

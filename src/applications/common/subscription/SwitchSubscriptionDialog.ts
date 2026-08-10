@@ -6,13 +6,14 @@ import { createUserAreaGroupDeleteData, TemplateGroupService } from "@tutao/enti
 import {
 	AccountingInfo,
 	Booking,
-	createSurveyData,
+	BookingTypeRef,
+	createRenewalPreferenceServicePostIn,
 	createSwitchAccountTypePostIn,
 	Customer,
 	GroupInfo,
 	GroupInfoTypeRef,
 	GroupTypeRef,
-	SurveyData,
+	RenewalPreferenceService,
 	SwitchAccountTypeService,
 	UserTypeRef,
 } from "@tutao/entities/sys"
@@ -26,12 +27,10 @@ import type { CurrentPlanInfo } from "./SwitchSubscriptionDialogModel"
 import { SwitchSubscriptionDialogModel } from "./SwitchSubscriptionDialogModel"
 import { locator } from "../api/main/CommonLocator"
 import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
-import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, delay, downcast, lazy } from "@tutao/utils"
+import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, delay, downcast, last, lazy } from "@tutao/utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { PrimaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
-import { showLeavingUserSurveyWizard } from "./LeavingUserSurveyWizard.js"
-import { SURVEY_VERSION_NUMBER } from "./LeavingUserSurveyConstants.js"
 import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
 import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
 import {
@@ -54,8 +53,8 @@ import { px } from "../../../ui/size"
 import { getUserGroupMemberships } from "../../../platform-kit/network/GroupUtils"
 import { getByAbbreviation } from "../gui/CountryList"
 import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
-import { PreconditionFailedError, TooManyRequestsError } from "@tutao/rest-client/error"
-import { elementIdToId } from "@tutao/meta"
+import { InvalidDataError, PreconditionFailedError } from "@tutao/rest-client/error"
+import { elementIdToId, GENERATED_MAX_ID } from "@tutao/meta"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -218,19 +217,7 @@ async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInf
 		}
 	}
 
-	const reason = await showLeavingUserSurveyWizard(true, true)
-	const data =
-		reason.submitted && reason.category && reason.reason
-			? createSurveyData({
-					category: reason.category,
-					reason: reason.reason,
-					details: reason.details,
-					version: SURVEY_VERSION_NUMBER,
-					clientVersion: env.versionNumber,
-					clientPlatform: client.getClientPlatform().valueOf().toString(),
-				})
-			: null
-	const newPlanType = await cancelSubscription(dialog, currentPlanInfo, customer, data)
+	const newPlanType = await downgradeSubscription(dialog)
 
 	if (newPlanType === PlanType.Free) {
 		if (mailLocator.mailModel) {
@@ -455,10 +442,9 @@ export async function handleSwitchAccountPreconditionFailed(customer: Customer, 
 /**
  * @param customer
  * @param currentPlanType
- * @param surveyData
  * @returns the new plan type after the attempt.
  */
-export async function tryDowngradePremiumToFree(customer: Customer, currentPlanType: PlanType, surveyData: SurveyData | null): Promise<PlanType> {
+export async function tryDowngradePremiumToFree(customer: Customer, currentPlanType: PlanType): Promise<PlanType> {
 	const switchAccountTypeData = createSwitchAccountTypePostIn({
 		accountType: AccountType.FREE,
 		date: Const.CURRENT_DATE,
@@ -466,7 +452,7 @@ export async function tryDowngradePremiumToFree(customer: Customer, currentPlanT
 		specialPriceUserSingle: null,
 		referralCode: null,
 		plan: PlanType.Free,
-		surveyData: surveyData,
+		surveyData: null,
 		app: client.isCalendarApp() ? SubscriptionApp.Calendar : SubscriptionApp.Mail,
 	})
 	try {
@@ -476,9 +462,9 @@ export async function tryDowngradePremiumToFree(customer: Customer, currentPlanT
 		if (e instanceof PreconditionFailedError) {
 			const shouldRetry = await handleSwitchAccountPreconditionFailed(customer, e)
 			if (shouldRetry) {
-				return tryDowngradePremiumToFree(customer, currentPlanType, surveyData)
+				return tryDowngradePremiumToFree(customer, currentPlanType)
 			}
-		} else if (e instanceof TooManyRequestsError) {
+		} else if (e instanceof InvalidDataError) {
 			await Dialog.message("accountSwitchTooManyActiveUsers_msg")
 		} else {
 			throw e
@@ -487,12 +473,16 @@ export async function tryDowngradePremiumToFree(customer: Customer, currentPlanT
 	}
 }
 
-async function cancelSubscription(
-	dialog: Dialog,
-	currentPlanInfo: CurrentPlanInfo,
-	customer: Customer,
-	surveyData: SurveyData | null = null,
-): Promise<PlanType> {
+export async function showConfirmDowngradingToFreeDialog(): Promise<PlanType> {
+	const planType = await locator.logins.getUserController().getPlanType()
+	const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
+	const customer = locator.logins.getUserController().getCustomer()
+	const bookings = await locator.entityClient.loadRange(BookingTypeRef, assertNotNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+	const lastBooking = last(bookings)
+	if (lastBooking == null) {
+		console.warn("No booking")
+		return planType
+	}
 	const confirmCancelSubscription = Dialog.confirm("unsubscribeConfirm_msg", "ok_action", () => {
 		return m(
 			".pt-16",
@@ -505,14 +495,27 @@ async function cancelSubscription(
 	})
 
 	if (!(await confirmCancelSubscription)) {
-		return currentPlanInfo.planType
+		return planType
 	}
 
-	try {
-		return await showProgressDialog("pleaseWait_msg", tryDowngradePremiumToFree(customer, currentPlanInfo.planType, surveyData))
-	} finally {
-		dialog.close()
+	return await showProgressDialog("pleaseWait_msg", tryDowngradePremiumToFree(assertNotNull(customer), planType))
+}
+
+async function downgradeSubscription(dialog: Dialog): Promise<PlanType> {
+	const plan = await showConfirmDowngradingToFreeDialog()
+	dialog.close()
+	return plan
+}
+
+//Calls renewal preference service and sets renewal to false. Does not downgrade the plan
+async function cancelSubscription(customer: Customer): Promise<PlanType> {
+	const inputData = {
+		isEnabled: false,
+		customerId: elementIdToId(customer._id),
 	}
+	const data = createRenewalPreferenceServicePostIn(inputData)
+	await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(RenewalPreferenceService, data, null))
+	return PlanType.Free
 }
 
 async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, currentPlanInfo: CurrentPlanInfo): Promise<void> {

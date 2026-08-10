@@ -8,11 +8,11 @@ export type PQMessage = {
 }
 
 export type PQBucketKeyEncapsulation = {
-	kyberCipherText: Uint8Array
-	kekEncBucketKey: Uint8Array
+	kyberCipherText: Uint8Array<ArrayBuffer>
+	kekEncBucketKey: Uint8Array<ArrayBuffer>
 }
 
-export function decodePQMessage(encoded: Uint8Array): PQMessage {
+export function decodePQMessage(encoded: Uint8Array<ArrayBuffer>): PQMessage {
 	const pqMessageParts = bytesToByteArrays(encoded, 4)
 	return {
 		senderIdentityPubKey: pqMessageParts[0],
@@ -24,6 +24,6 @@ export function decodePQMessage(encoded: Uint8Array): PQMessage {
 	}
 }
 
-export function encodePQMessage({ senderIdentityPubKey, ephemeralPubKey, encapsulation }: PQMessage): Uint8Array {
+export function encodePQMessage({ senderIdentityPubKey, ephemeralPubKey, encapsulation }: PQMessage): Uint8Array<ArrayBuffer> {
 	return byteArraysToBytes([senderIdentityPubKey, ephemeralPubKey, encapsulation.kyberCipherText, encapsulation.kekEncBucketKey])
 }

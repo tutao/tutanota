@@ -49,6 +49,8 @@ export default {
 		paymentCreditCard: "The grand total will be debited from your credit card.",
 		paymentPaypal: "The grand total will be debited from your PayPal account.",
 		paymentAccountBalance: "The grand total was debited from your account balance.",
+		noPaymentRequired: "No payment is required.",
+		noPaymentRequiredAccountCredit: "No payment is required. Any credit will be applied to your account balance.",
 		thankYou: "Thank you very much!",
 
 		legalNoSigned: "This document was created automatically and is not signed.",
@@ -128,6 +130,8 @@ export default {
 		paymentCreditCard: "Der Rechnungsbetrag wird von Ihrer Kreditkarte eingezogen.",
 		paymentPaypal: "Der Rechnungsbetrag wird von Ihrem PayPal-Account abgebucht.",
 		paymentAccountBalance: "Der Rechnungsbetrag wurde von dem Guthaben ihres Kontos abgezogen.",
+		noPaymentRequired: "Es ist keine Zahlung erforderlich.",
+		noPaymentRequiredAccountCredit: "Es ist keine Zahlung erforderlich. Ein etwaiger Gutschriftsbetrag wird Ihrem Kundenkonto gutgeschrieben.",
 		thankYou: "Vielen Dank!",
 
 		legalNoSigned: "Dieses Schreiben wurde maschinell erstellt und enthält keine Unterschrift.",

@@ -87,7 +87,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { UserError } from "../../../common/api/main/UserError.js"
 import { LanguageViewModel } from "../../../../ui/utils/LanguageViewModel.js"
 import { NativePushServiceApp } from "../../../common/native/NativePushServiceApp.js"
-import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker.js"
+import { SyncTracker } from "../../../common/api/main/SyncTracker.js"
 import { NoopProgressMonitor, ProgressMonitorInterface } from "../../../../platform-kit/network/ProgressMonitorInterface"
 import { getEnabledMailAddressesForGroupInfo } from "../../../../platform-kit/network/GroupUtils"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
@@ -120,12 +120,7 @@ import {
 	UserAlarmInfoTypeRef,
 } from "@tutao/entities/sys"
 import { isSharedGroupOwner } from "../../../../entities/sys/Utils"
-import {
-	EntityUpdateData,
-	isUpdateFor,
-	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
-} from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { OperationId, OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { errorsToString } from "../../../../platform-kit/utils/Utils"
 import { formatNotificationForDisplay } from "../../../../ui/utils/Formatter"
@@ -175,20 +170,6 @@ type ExternalCalendarQueueItem = {
 	url: string
 	group: string
 	name: string | null
-}
-
-export function assertEventValidity(event: CalendarEvent) {
-	switch (checkEventValidity(event)) {
-		case CalendarEventValidity.InvalidContainsInvalidDate:
-			throw new UserError("invalidDate_msg")
-		case CalendarEventValidity.InvalidEndBeforeStart:
-			throw new UserError("startAfterEnd_label")
-		case CalendarEventValidity.InvalidPre1970:
-			// shouldn't happen while the check in setStartDate is still there, resetting the date each time
-			throw new UserError("pre1970Start_msg")
-		case CalendarEventValidity.Valid:
-		// event is valid, nothing to do
-	}
 }
 
 export class CalendarModel {
@@ -256,14 +237,16 @@ export class CalendarModel {
 		private readonly lang: LanguageViewModel,
 	) {
 		this.readProgressMonitor = oneShotProgressMonitorGenerator(progressTracker, logins.getUserController())
-		eventController.addEntityListener({
-			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => this.entityEventsReceived(updates, eventOwnerGroupId),
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+		eventController.addEntityUpdatesListener({
+			id: "CalendarModel",
+			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => this.onEntityUpdatesReceived(updates, eventOwnerGroupId),
+			priority: ListenerPriority.HIGH,
 		})
 
 		syncTracker.addSyncDoneListener({
+			id: "CalendarModel",
 			onSyncDone: async () => this.requestWidgetRefresh(),
-			priority: SyncDonePriority.HIGH,
+			priority: ListenerPriority.HIGH,
 		})
 
 		this.birthdayCalendarInfo = this.createBirthdayCalendarInfo()
@@ -417,7 +400,10 @@ export class CalendarModel {
 				if (e instanceof NotFoundError) {
 					notFoundMemberships.push(membership)
 				} else {
-					throw e
+					console.error("Error loading calendar info for group: ", membership.group, e)
+					if (!(e instanceof NotAuthorizedError)) {
+						throw e
+					}
 				}
 			}
 			progressMonitor.workDone(3)
@@ -753,7 +739,19 @@ export class CalendarModel {
 			// Reset permissions because server will assign them
 			downcast(event)._permissions = null
 			event._ownerGroup = elementIdToId(currentCalendarGroupRoot._id)
-			assertEventValidity(event)
+
+			switch (checkEventValidity(event)) {
+				case CalendarEventValidity.InvalidDate:
+					throw new UserError("invalidDate_msg")
+				case CalendarEventValidity.InvalidEndBeforeStart:
+					throw new UserError("startAfterEnd_label")
+				case CalendarEventValidity.InvalidPre1970:
+					// shouldn't happen while the check in setStartDate is still there, resetting the date each time
+					throw new UserError("pre1970Start_msg")
+				case CalendarEventValidity.Valid:
+				// event is valid, nothing to do
+			}
+
 			operationsLog.created++
 		}
 		if (isNotEmpty(eventsForCreation)) {
@@ -1174,11 +1172,17 @@ export class CalendarModel {
 	): Promise<void> {
 		const calendarEvent = makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent)
 		const sentByOrganizer: boolean = resolvedPersistedCalendarEvent.organizer != null && resolvedPersistedCalendarEvent.organizer.address === sender
+
+		// When handling an existing calendar invite, we should already have a sender assigned to it.
+		// Therefore, even if the organizer is not the same as the sender, if the current invitation update was sent by
+		// the same email that invited the user in the first place, it is safe to assume that we want to process it.
+		const sentByOriginalSender = resolvedPersistedCalendarEvent.sender === sender
+
 		if (method === CalendarMethod.REPLY) {
 			return this.processCalendarReply(sender, resolvedPersistedCalendarEvent, calendarEvent) // TODO: why are alarms NOT passed in here
-		} else if (sentByOrganizer && method === CalendarMethod.REQUEST) {
+		} else if ((sentByOrganizer || sentByOriginalSender) && method === CalendarMethod.REQUEST) {
 			return await this.processUpdateToCalendarEventFromIcs(uidIndexEntry, resolvedPersistedCalendarEvent, calendarEvent)
-		} else if (sentByOrganizer && method === CalendarMethod.CANCEL) {
+		} else if ((sentByOrganizer || sentByOriginalSender) && method === CalendarMethod.CANCEL) {
 			return await this.processCalendarCancel(uidIndexEntry, resolvedPersistedCalendarEvent)
 		} else {
 			console.log(TAG, `${method} update sent not by organizer, ignoring.`)
@@ -1436,7 +1440,7 @@ export class CalendarModel {
 	}
 
 	// Visible for testing
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		const calendarInfos = await this.calendarInfos.getAsync()
 		// We iterate over the alarms twice: once to collect them and to set the counter correctly and the second time to actually process them.
 		const alarmEventsToProcess: UserAlarmInfo[] = []

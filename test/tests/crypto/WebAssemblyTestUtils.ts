@@ -4,7 +4,7 @@ import { Argon2IDExports, LibOQSExports } from "../../../src/platform-kit/crypto
 export async function loadWasmFromFileOrNetwork(wasmFile: string): Promise<ArrayBuffer> {
 	const loadWasmInNode: ArrayBuffer = await node(async () => {
 		const { default: fs } = await import("node:fs/promises")
-		return await fs.readFile(process.cwd() + "/build/" + wasmFile)
+		return (await fs.readFile(process.cwd() + "/build/" + wasmFile)).buffer
 	})()
 	const loadWasmInBrowser: ArrayBuffer = await browser(async () => {
 		const r = await fetch("/" + wasmFile)

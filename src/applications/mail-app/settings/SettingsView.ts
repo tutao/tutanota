@@ -8,7 +8,7 @@ import { UserListView } from "../../common/settings/UserListView.js"
 import { GroupListView } from "./groups/GroupListView.js"
 import { WhitelabelSettingsViewer } from "../../common/settings/whitelabel/WhitelabelSettingsViewer"
 import { locator } from "../../common/api/main/CommonLocator"
-import { SubscriptionViewer } from "../../common/subscription/SubscriptionViewer"
+import { SubscriptionSettingsViewer } from "../../common/settings/subscription/SubscriptionSettingsViewer"
 import { PaymentViewer } from "../../common/subscription/PaymentViewer"
 import { showUserImportDialog } from "../../common/settings/UserViewer.js"
 import { FolderColumnView } from "../../common/gui/FolderColumnView.js"
@@ -66,12 +66,7 @@ import { getNullableSharedGroupName, getSharedGroupName } from "../../common/sha
 import { styles } from "../../../ui/styles"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { Header } from "../../../ui/Header"
-import {
-	EntityEventsListener,
-	EntityUpdateData,
-	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
-} from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdatesListener, EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { NavButtonAttrs, NavButtonColor } from "../../../ui/base/NavButton"
 import { clone, elementIdToId, getEtId } from "@tutao/meta"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
@@ -494,7 +489,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						() => "adminSubscription_action",
 						() => Icons.TrophyFilled,
 						"subscription",
-						() => new SubscriptionViewer(isIOSApp() ? locator.mobilePaymentsFacade : null),
+						() => new SubscriptionSettingsViewer(isIOSApp() ? locator.mobilePaymentsFacade : null),
 						undefined,
 					),
 				)
@@ -551,7 +546,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	}
 
 	oncreate(vnode: Vnode<SettingsViewAttrs>) {
-		locator.eventController.addEntityListener(this.entityListener)
+		locator.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 		this.populateAdminFolders().then(() => {
 			// We have to wait for the mailSets to be initialized before setting the URL,
 			// otherwise we won't find the requested folder and will just pick the default folder
@@ -564,14 +559,15 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	}
 
 	onremove(vnode: VnodeDOM<SettingsViewAttrs>) {
-		locator.eventController.removeEntityListener(this.entityListener)
+		locator.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
 	}
 
-	private entityListener: EntityEventsListener = {
+	private entityUpdatesListener: EntityUpdatesListener = {
+		id: "SettingsView",
 		onEntityUpdatesReceived: (updates: EntityUpdateData[], eventOwnerGroupId: Id) => {
-			return this.entityEventsReceived(updates, eventOwnerGroupId)
+			return this.onEntityUpdatesReceived(updates, eventOwnerGroupId)
 		},
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+		priority: ListenerPriority.NORMAL,
 	}
 
 	view({ attrs }: Vnode<SettingsViewAttrs>): Children {
@@ -789,7 +785,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		this.showBusinessSettings((await this.logins.getUserController().reloadCustomer()).businessUse === true)
 	}
 
-	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
+	async onEntityUpdatesReceived<T>(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(CustomerTypeRef, update)) {
 				await this.updateShowBusinessSettings()

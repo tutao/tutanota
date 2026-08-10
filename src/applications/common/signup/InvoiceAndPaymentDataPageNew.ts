@@ -292,7 +292,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 						size: "md",
 						width: styles.isMobileLayout() ? "full" : "flex",
 						onclick: () => {
-							ctx.goNext()
+							this.onAddPaymentData(ctx)
 						},
 						disabled: !ctx.viewModel.invoiceData.country,
 					}),

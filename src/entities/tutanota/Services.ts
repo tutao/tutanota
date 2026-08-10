@@ -42,6 +42,7 @@ import { DeleteGroupDataTypeRef } from "./TypeRefs.js"
 import { DeleteMailDataTypeRef } from "./TypeRefs.js"
 import { ManageLabelServicePostInTypeRef } from "./TypeRefs.js"
 import { ManageLabelServicePostOutTypeRef } from "./TypeRefs.js"
+import { ManageLabelServicePutInTypeRef } from "./TypeRefs.js"
 import { ManageLabelServiceDeleteInTypeRef } from "./TypeRefs.js"
 import { MoveMailDataTypeRef } from "./TypeRefs.js"
 import { MoveMailPostOutTypeRef } from "./TypeRefs.js"
@@ -249,7 +250,7 @@ export const ManageLabelService = Object.freeze({
 	name: "ManageLabelService",
 	get: null,
 	post: { data: ManageLabelServicePostInTypeRef, return: ManageLabelServicePostOutTypeRef },
-	put: null,
+	put: { data: ManageLabelServicePutInTypeRef, return: null },
 	delete: { data: ManageLabelServiceDeleteInTypeRef, return: null },
 } as const)
 

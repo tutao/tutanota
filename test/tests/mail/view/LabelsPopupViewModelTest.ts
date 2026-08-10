@@ -5,6 +5,7 @@ import { LabelState } from "../../../../src/applications/mail-app/mail/model/Mai
 
 import { MailSetKind } from "../../../../src/entities/tutanota/Utils"
 import { MailSet, MailSetTypeRef } from "@tutao/entities/tutanota"
+import { FolderSystem } from "../../../../src/applications/common/api/common/mail/FolderSystem"
 
 o.spec("LabelsPopupViewModelTest", () => {
 	const originalLabels: MailSet[] = [
@@ -40,7 +41,7 @@ o.spec("LabelsPopupViewModelTest", () => {
 			name: "6",
 		}),
 	]
-
+	let labelSystem: FolderSystem
 	let mailLabelMap: Map<Id, ReadonlyArray<MailSet>>
 	let initialLabelStates: { label: MailSet; state: LabelState }[]
 	let viewModel: LabelsPopupViewModel
@@ -56,13 +57,14 @@ o.spec("LabelsPopupViewModelTest", () => {
 
 	o.beforeEach(() => {
 		mailLabelMap = new Map()
+		labelSystem = new FolderSystem(originalLabels, MailSetKind.LABEL)
 		initialLabelStates = originalLabels.map((label) => {
 			return { label: label, state: LabelState.NotApplied }
 		})
 	})
 
 	o.test("add a label", () => {
-		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates)
+		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates, labelSystem)
 
 		const addedLabel = initialLabelStates[0].label
 		viewModel.toggleLabel(addedLabel)
@@ -76,7 +78,7 @@ o.spec("LabelsPopupViewModelTest", () => {
 		mailLabelMap.set("mailId", [labelStateToRemove.label])
 		labelStateToRemove.state = LabelState.Applied
 
-		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates)
+		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates, labelSystem)
 
 		viewModel.toggleLabel(labelStateToRemove.label)
 
@@ -90,7 +92,7 @@ o.spec("LabelsPopupViewModelTest", () => {
 		mailLabelMap.set("mailId", [labelStateToRemove.label])
 		labelStateToRemove.state = LabelState.Applied
 
-		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates)
+		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates, labelSystem)
 
 		viewModel.toggleLabel(labelToAdd)
 		viewModel.toggleLabel(labelStateToRemove.label)
@@ -105,7 +107,7 @@ o.spec("LabelsPopupViewModelTest", () => {
 		mailLabelMap.set("mailId", [initialLabelState.label])
 		initialLabelState.state = LabelState.Applied
 
-		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates)
+		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates, labelSystem)
 
 		viewModel.toggleLabel(labelToAdd)
 
@@ -124,7 +126,7 @@ o.spec("LabelsPopupViewModelTest", () => {
 			label.state = LabelState.Applied
 		}
 
-		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates)
+		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates, labelSystem)
 
 		viewModel.toggleLabel(labelToRemove)
 
@@ -138,7 +140,7 @@ o.spec("LabelsPopupViewModelTest", () => {
 		mailLabelMap.set("mailId2", [])
 		initialLabelState.state = LabelState.AppliedToSome
 
-		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates)
+		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates, labelSystem)
 
 		viewModel.toggleLabel(initialLabelState.label)
 
@@ -152,7 +154,7 @@ o.spec("LabelsPopupViewModelTest", () => {
 		mailLabelMap.set("mailId2", [])
 		initialLabelState.state = LabelState.AppliedToSome
 
-		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates)
+		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates, labelSystem)
 
 		viewModel.toggleLabel(initialLabelState.label)
 		// need to toggle twice so it will go into removed state, first toggle changes to added
@@ -171,7 +173,7 @@ o.spec("LabelsPopupViewModelTest", () => {
 			label.state = LabelState.AppliedToSome
 		}
 
-		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates)
+		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates, labelSystem)
 
 		viewModel.toggleLabel(addedLabel)
 
@@ -189,7 +191,7 @@ o.spec("LabelsPopupViewModelTest", () => {
 			label.state = LabelState.Applied
 		}
 
-		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates)
+		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates, labelSystem)
 
 		o(viewModel.isLabelLimitReached()).equals(true)
 	})
@@ -206,7 +208,7 @@ o.spec("LabelsPopupViewModelTest", () => {
 			label.state = LabelState.Applied
 		}
 
-		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates)
+		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates, labelSystem)
 
 		viewModel.toggleLabel(addedLabel)
 
@@ -225,7 +227,7 @@ o.spec("LabelsPopupViewModelTest", () => {
 			label.state = LabelState.Applied
 		}
 
-		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates)
+		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates, labelSystem)
 
 		viewModel.toggleLabel(addedLabel)
 
@@ -245,7 +247,7 @@ o.spec("LabelsPopupViewModelTest", () => {
 			label.state = LabelState.Applied
 		}
 
-		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates)
+		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates, labelSystem)
 
 		viewModel.toggleLabel(removedLabel)
 		viewModel.toggleLabel(addedLabel)
@@ -259,7 +261,7 @@ o.spec("LabelsPopupViewModelTest", () => {
 		mailLabelMap.set("mailId", [initialLabel.label])
 		initialLabel.state = LabelState.Applied
 
-		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates)
+		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates, labelSystem)
 
 		viewModel.toggleLabel(initialLabel.label)
 		viewModel.toggleLabel(initialLabel.label)
@@ -276,7 +278,7 @@ o.spec("LabelsPopupViewModelTest", () => {
 		initialLabelStates[1].state = LabelState.Applied
 		initialLabelStates[2].state = LabelState.AppliedToSome
 
-		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates)
+		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates, labelSystem)
 
 		viewModel.toggleLabel(addedLabels[0])
 		viewModel.toggleLabel(addedLabels[1])
@@ -297,7 +299,7 @@ o.spec("LabelsPopupViewModelTest", () => {
 			label.state = LabelState.AppliedToSome
 		}
 
-		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates)
+		viewModel = new LabelsPopupViewModel(mailLabelMap, initialLabelStates, labelSystem)
 
 		viewModel.toggleLabel(removedLabel)
 

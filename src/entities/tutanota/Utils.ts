@@ -336,7 +336,8 @@ export enum ImapAccountSyncStatus {
 	FINISHED = "3",
 	ERROR = "4",
 	AUTH_ERROR = "5",
-	CANCELED = "6"
+	CANCELED = "6",
+	GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR = "7"
 }
 
 
@@ -485,3 +486,7 @@ export enum ImapSyncEventType {
 
 export const IMAP_ERROR_POSTPONE_TIME: number = 60 * 1000 // 60 seconds
 export const IMAP_AUTH_ERROR_POSTPONE_TIME: number = 15 * 60 * 1000 // 15 minutes
+export enum MailImportType {
+	FileImport = "FileImport",
+	ImapImport = "ImapImport",
+}

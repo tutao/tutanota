@@ -1,4 +1,5 @@
 import { defer, DeferredObject } from "@tutao/utils"
+import { EntityUpdatesListener, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 /**
  * This tracker stores the state of the initial sync, after ending processing
@@ -15,17 +16,11 @@ import { defer, DeferredObject } from "@tutao/utils"
 
 const TAG = "[SyncTracker]"
 
-export enum SyncDonePriority {
-	LOW = 1,
-	NORMAL = 2,
-	HIGH = 3,
-}
-
-export type SyncDoneListener = { onSyncDone: () => Promise<unknown>; priority: SyncDonePriority }
+export type SyncDoneListener = { id: string; onSyncDone: () => Promise<unknown>; priority: ListenerPriority }
 
 export class SyncTracker {
 	private _isSyncDone: boolean = false
-	private syncDoneListeners: Set<SyncDoneListener> = new Set()
+	private syncDoneListeners: Map<string, SyncDoneListener> = new Map()
 	private readonly syncDone: DeferredObject<unknown> = defer()
 
 	constructor() {}
@@ -35,10 +30,8 @@ export class SyncTracker {
 	}
 
 	addSyncDoneListener(listener: SyncDoneListener) {
-		if (this.syncDoneListeners.has(listener)) {
-			console.warn(TAG, "Adding the same listener twice!")
-		} else {
-			this.syncDoneListeners.add(listener)
+		if (!this.syncDoneListeners.has(listener.id)) {
+			this.syncDoneListeners.set(listener.id, listener)
 
 			// if the sync is already done, execute the listener immediately
 			if (this._isSyncDone) {
@@ -48,9 +41,9 @@ export class SyncTracker {
 	}
 
 	removeSyncDoneListener(listener: SyncDoneListener) {
-		const wasRemoved = this.syncDoneListeners.delete(listener)
+		const wasRemoved = this.syncDoneListeners.delete(listener.id)
 		if (!wasRemoved) {
-			console.warn(TAG, "Could not remove listener, possible leak?", listener)
+			console.log(TAG, "Could not remove listener, possible leak?", listener)
 		}
 	}
 
@@ -59,7 +52,7 @@ export class SyncTracker {
 		this._isSyncDone = true
 		this.syncDone.resolve(null)
 
-		const listenersByPriorities = Array.from(this.syncDoneListeners).sort(
+		const listenersByPriorities = Array.from(this.syncDoneListeners.values()).sort(
 			(listenerA, listenerB) => listenerB.priority.valueOf() - listenerA.priority.valueOf(),
 		)
 		for (const listener of listenersByPriorities) {

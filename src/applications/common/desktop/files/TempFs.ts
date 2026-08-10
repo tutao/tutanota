@@ -26,7 +26,7 @@ export class TempFs {
 	/** we store all temporary files in a directory with a random name, so that the download location is not predictable */
 	private readonly randomDirectoryName: string
 
-	private inMemoryFiles = new Map<TmpFilename, Uint8Array>()
+	private inMemoryFiles = new Map<TmpFilename, Uint8Array<ArrayBuffer>>()
 	private openStreams: Map<string, fs.ReadStream> = new Map()
 
 	constructor(
@@ -163,7 +163,7 @@ export class TempFs {
 		return url
 	}
 
-	createInMemoryFile(content: Uint8Array): string {
+	createInMemoryFile(content: Uint8Array<ArrayBuffer>): string {
 		const filename = this.generateFilename()
 		this.inMemoryFiles.set(filename, content)
 		return tutaUrlToString({ type: "tmp", name: filename })
@@ -263,7 +263,7 @@ export class TempFs {
 		}
 	}
 
-	public async readAsData(uri: string): Promise<Uint8Array> {
+	public async readAsData(uri: string): Promise<Uint8Array<ArrayBuffer>> {
 		const tutaUrl = tutaUrlFromString(uri)
 		switch (tutaUrl.type) {
 			case "tmp": {

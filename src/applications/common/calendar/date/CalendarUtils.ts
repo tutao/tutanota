@@ -58,6 +58,7 @@ import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
 import { EventWrapper, type EventWrapperFlags } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
 import { AllIcons } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
+import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
 
 export type CalendarTimeRange = {
 	start: number
@@ -936,10 +937,19 @@ function assertDateIsValid(date: Date) {
  * impossible to create through the interface.
  */
 export const enum CalendarEventValidity {
-	InvalidContainsInvalidDate,
+	InvalidDate,
 	InvalidEndBeforeStart,
 	InvalidPre1970,
 	Valid,
+}
+
+export function checkEventDateValidity(date: Date): CalendarEventValidity {
+	if (!isValidDate(date)) {
+		return CalendarEventValidity.InvalidDate
+	} else if (date.getTime() < TIMESTAMP_ZERO_YEAR) {
+		return CalendarEventValidity.InvalidPre1970
+	}
+	return CalendarEventValidity.Valid
 }
 
 /**
@@ -948,12 +958,16 @@ export const enum CalendarEventValidity {
  * @returns Enum describing the reason to reject the event, if any.
  */
 export function checkEventValidity(event: CalendarEvent): CalendarEventValidity {
-	if (!isValidDate(event.startTime) || !isValidDate(event.endTime)) {
-		return CalendarEventValidity.InvalidContainsInvalidDate
-	} else if (event.endTime.getTime() <= event.startTime.getTime()) {
+	const startValidity = checkEventDateValidity(event.startTime)
+	if (startValidity !== CalendarEventValidity.Valid) {
+		return startValidity
+	}
+	const endValidity = checkEventDateValidity(event.endTime)
+	if (endValidity !== CalendarEventValidity.Valid) {
+		return endValidity
+	}
+	if (event.endTime.getTime() <= event.startTime.getTime()) {
 		return CalendarEventValidity.InvalidEndBeforeStart
-	} else if (event.startTime.getTime() < TIMESTAMP_ZERO_YEAR) {
-		return CalendarEventValidity.InvalidPre1970
 	}
 	return CalendarEventValidity.Valid
 }
@@ -1929,4 +1943,8 @@ export function getWeekStart(userSettings: UserSettingsGroupRoot): WeekStart {
 
 export function getAttendeeStatus(attendee: CalendarEventAttendee): CalendarAttendeeStatus {
 	return downcast(attendee.status)
+}
+
+export function getCalendarEventDurationInMinutes(ev: CalendarEvent | IcsCalendarEvent) {
+	return DateTime.fromJSDate(ev.endTime).diff(DateTime.fromJSDate(ev.startTime), "minutes").minutes
 }

@@ -28,7 +28,7 @@ export class InstanceDecryptor {
 		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
 	) {}
 
-	getValueDecryptor(versionedCiphertext: Uint8Array, fieldPath: string): ValueDecryptor {
+	getValueDecryptor(versionedCiphertext: Uint8Array<ArrayBuffer>, fieldPath: string): ValueDecryptor {
 		const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext)
 		if (parsedCiphertext instanceof ParsedCiphertextAesCbc) {
 			if (this.sessionKey == null) {

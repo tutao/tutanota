@@ -24,8 +24,8 @@ export type ImapImportData = {
 	imapAccountHost: string
 	imapAccountPort: number
 	imapAccountUsername: string
-	imapAccountPassword: string
-	rootImportMailFolderName: string
+	imapAccountPassword: string | undefined
+	rootImportMailSetName: string
 	spamFolderMigrationInformation: {
 		shouldMigrateSpamFolder: boolean // flag to migrate spam folder to Tuta spam folder in case a root folder is provided for the account
 		spamMailbox: ImapMailbox | null // the spam mailbox if it exists, null otherwise
@@ -33,12 +33,14 @@ export type ImapImportData = {
 	revealImapAccountPassword: boolean
 	imapAccountSyncStatus: ImapAccountSyncStatus
 	matchImapMailboxesToTutaMailSets: boolean
-	imapMailboxes: ImapMailbox[]
+	imapMailboxes: ReadonlyArray<ImapMailbox>
 	folderSystem: FolderSystem
 	imapMailboxesToTutaMailSets?: Map<string, MailSetMapping>
 	addLabelToImportedMails: boolean
 	isImapServerSupportingOAuth: boolean
 	imapSyncLabelData: ManageLabelServiceLabelData | null
+	customCertificateData: Uint8Array<ArrayBuffer> | null
+	ignoreCertificateErrors: boolean
 }
 
 /** Shows a wizard for adding an IMAP import. */

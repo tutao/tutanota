@@ -8,14 +8,18 @@ import { Aes256Key, AesKey } from "../encryption/symmetric/AesKey"
  * @param bytes The plain text.
  * @return The encrypted bytes
  */
-export function aesEncrypt(key: AesKey, bytes: Uint8Array) {
+export function aesEncrypt(key: AesKey, bytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 	return SYMMETRIC_CIPHER_FACADE.encryptBytes(key, bytes)
 }
 
 /**
  * @deprecated use aesEncrypt instead
  */
-export function aesEncryptConfigurationDatabaseItem(key: AesKey, bytes: Uint8Array, initializationVector: InitializationVector): Uint8Array {
+export function aesEncryptConfigurationDatabaseItem(
+	key: AesKey,
+	bytes: Uint8Array<ArrayBuffer>,
+	initializationVector: InitializationVector,
+): Uint8Array<ArrayBuffer> {
 	return SYMMETRIC_CIPHER_FACADE.encryptBytesDeprecatedCustomInitializationVector(key, bytes, initializationVector)
 }
 
@@ -23,7 +27,7 @@ export function aesEncryptConfigurationDatabaseItem(key: AesKey, bytes: Uint8Arr
  * Encrypts bytes with AES 256 in CBC mode without mac. This is legacy code and should be removed once the index has been migrated.
  * @deprecated
  */
-export function aes256EncryptSearchIndexEntry(key: Aes256Key, bytes: Uint8Array): Uint8Array {
+export function aes256EncryptSearchIndexEntry(key: Aes256Key, bytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 	return SYMMETRIC_CIPHER_FACADE.encryptBytesDeprecatedUnauthenticated(key, bytes)
 }
 
@@ -32,9 +36,9 @@ export function aes256EncryptSearchIndexEntry(key: Aes256Key, bytes: Uint8Array)
  */
 export function aes256EncryptSearchIndexEntryWithInitializationVector(
 	key: Aes256Key,
-	bytes: Uint8Array,
+	bytes: Uint8Array<ArrayBuffer>,
 	initializationVector: InitializationVector,
-): Uint8Array {
+): Uint8Array<ArrayBuffer> {
 	return SYMMETRIC_CIPHER_FACADE.encryptBytesDeprecatedUnauthenticatedCustomInitializationVector(key, bytes, initializationVector)
 }
 
@@ -44,11 +48,11 @@ export function aes256EncryptSearchIndexEntryWithInitializationVector(
  * @param encryptedBytes The ciphertext encoded as bytes.
  * @return The decrypted bytes.
  */
-export function aesDecrypt(key: AesKey, encryptedBytes: Uint8Array): Uint8Array {
+export function aesDecrypt(key: AesKey, encryptedBytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 	return SYMMETRIC_CIPHER_FACADE.decryptBytes(key, encryptedBytes)
 }
 
-export function asyncDecryptBytes(key: AesKey, bytes: Uint8Array): Promise<Uint8Array> {
+export function asyncDecryptBytes(key: AesKey, bytes: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
 	return SYMMETRIC_CIPHER_FACADE.asyncDecryptBytes(key, bytes)
 }
 
@@ -61,6 +65,6 @@ export function asyncDecryptBytes(key: AesKey, bytes: Uint8Array): Promise<Uint8
  * @return The decrypted bytes.
  * @deprecated
  */
-export function aesDecryptUnauthenticated(key: Aes256Key, encryptedBytes: Uint8Array): Uint8Array {
+export function aesDecryptUnauthenticated(key: Aes256Key, encryptedBytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 	return SYMMETRIC_CIPHER_FACADE.decryptBytesDeprecatedUnauthenticated(key, encryptedBytes)
 }

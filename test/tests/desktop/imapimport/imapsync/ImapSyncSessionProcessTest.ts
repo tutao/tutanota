@@ -24,9 +24,9 @@ o.spec("ImapSyncSessionProcess", () => {
 	let imapSyncSessionMock: ImapSyncSession
 	let eventListenerMock: ImapSyncEventListener
 	let sessionProcess: ImapSyncSessionProcess
-	let imapAccountMock: ImapCredentials
 	let syncSessionMailboxMock: ImapSyncSessionMailbox
 	let uidLoaderMock: DifferentialUidLoader
+	let imapCredentialsMock: ImapCredentials
 
 	const mailboxPath = "INBOX"
 
@@ -41,12 +41,7 @@ o.spec("ImapSyncSessionProcess", () => {
 		imapSyncSessionMock = object<ImapSyncSession>()
 		differentialUidLoaderFactoryMock = () => uidLoaderMock
 		eventListenerMock = object<ImapSyncEventListener>()
-		imapAccountMock = {
-			host: "localhost",
-			port: 993,
-			username: "user",
-			password: "pass",
-		} as any
+		imapCredentialsMock = object<ImapCredentials>()
 
 		syncSessionMailboxMock = new ImapSyncSessionMailbox({ path: mailboxPath, importedUidToMailIdsMap: new Map(), noSync: false })
 
@@ -62,31 +57,31 @@ o.spec("ImapSyncSessionProcess", () => {
 		)
 	})
 
-	o.test("startSyncSessionProcess - connects, starts sync, returns RUNNING", async () => {
+	o.test("startSyncSessionProcess - connects, starts sync, returns STOPPED after finishing", async () => {
 		when(imapClientMock.connect()).thenResolve()
 		when(imapClientMock.mailboxOpen(anything(), anything())).thenResolve({})
-		const result = await sessionProcess.startSyncSessionProcess(imapAccountMock, eventListenerMock)
-		o.check(result).equals(SyncSessionProcessState.RUNNING)
+		const result = await sessionProcess.startSyncSessionProcess(imapCredentialsMock, eventListenerMock)
+		o.check(result).equals(SyncSessionProcessState.STOPPED)
 		verify(imapClientMock.connect(), { times: 1 })
 	})
 
 	o.test("startSyncSessionProcess - handles connection error with responseStatus NO", async () => {
 		const error = new Error("NO authentication failed") as any
 		error.responseStatus = "NO"
-		when(imapClientMock.mailboxOpen(anything())).thenReject(error)
-		const result = await sessionProcess.startSyncSessionProcess(imapAccountMock, eventListenerMock)
-		o.check(result).equals(SyncSessionProcessState.CONNECTION_FAILED_UNKNOWN)
+		when(imapClientMock.connect()).thenReject(error)
+		const result = await sessionProcess.startSyncSessionProcess(imapCredentialsMock, eventListenerMock)
+		o.check(result).equals(SyncSessionProcessState.CONNECTION_FAILED_REJECTED)
 	})
 
 	o.test("startSyncSessionProcess - handles unknown error", async () => {
 		const error = new Error("Network failure")
 		when(imapClientMock.connect()).thenReject(error)
-		const result = await sessionProcess.startSyncSessionProcess(imapAccountMock, eventListenerMock)
+		const result = await sessionProcess.startSyncSessionProcess(imapCredentialsMock, eventListenerMock)
 		o.check(result).equals(SyncSessionProcessState.CONNECTION_FAILED_UNKNOWN)
 	})
 
 	o.test("stopSyncSessionProcess - stops optimizer and returns mailbox", async () => {
-		const result = await sessionProcess.stopSyncSessionProcess()
+		await sessionProcess.stopSyncSessionProcess()
 		o.check(sessionProcess.state).equals(SyncSessionProcessState.STOPPED)
 	})
 
@@ -100,8 +95,8 @@ o.spec("ImapSyncSessionProcess", () => {
 			highestModseq: 67890n,
 			exists: 15,
 		})
-		const result = await sessionProcess.startSyncSessionProcess(imapAccountMock, eventListenerMock)
-		o.check(result).equals(SyncSessionProcessState.RUNNING)
+		const result = await sessionProcess.startSyncSessionProcess(imapCredentialsMock, eventListenerMock)
+		o.check(result).equals(SyncSessionProcessState.STOPPED)
 	})
 
 	o.test("runSyncSessionProcess - QRESYNC mode with changedSince (calls background runner)", async () => {
@@ -116,8 +111,8 @@ o.spec("ImapSyncSessionProcess", () => {
 			highestModseq: 67890n,
 			exists: 15,
 		})
-		const result = await sessionProcess.startSyncSessionProcess(imapAccountMock, eventListenerMock)
-		o.check(result).equals(SyncSessionProcessState.RUNNING)
+		const result = await sessionProcess.startSyncSessionProcess(imapCredentialsMock, eventListenerMock)
+		o.check(result).equals(SyncSessionProcessState.STOPPED)
 	})
 
 	o.test("handleDeletedUids - emits DELETE events", async () => {
@@ -152,31 +147,38 @@ o.spec("ImapSyncSessionProcess", () => {
 	})
 
 	o.test("logout - calls onMailboxFinish when finished", async () => {
-		await sessionProcess.logout(imapClientMock, true, 5)
-		verify(imapClientMock.logout(), { times: 1 })
+		imapSyncConfigMock.isEnableImapQresync = false
+		when(imapClientMock.connect()).thenResolve()
+		when(imapClientMock.mailboxOpen(anything(), anything())).thenResolve({
+			path: syncSessionMailboxMock.mailboxState.path,
+			uidValidity: 12345n,
+			uidNext: 100,
+			highestModseq: 67890n,
+			exists: 15,
+		})
+		await sessionProcess.startSyncSessionProcess(imapCredentialsMock, eventListenerMock)
+		verify(imapClientMock.logout())
 		verify(imapSyncSessionMock.onMailboxFinish(syncSessionMailboxMock), { times: 1 })
 	})
 
 	o.test("logout - calls onMailboxInterrupted when not finished", async () => {
-		await sessionProcess.logout(imapClientMock, false, 5)
+		await sessionProcess.startSyncSessionProcess(imapCredentialsMock, eventListenerMock)
 		verify(imapClientMock.logout(), { times: 1 })
 		verify(imapSyncSessionMock.onMailboxInterrupted(syncSessionMailboxMock), { times: 1 })
-		o.check(syncSessionMailboxMock.lastFetchedMailSeq).equals(5)
+		o.check(syncSessionMailboxMock.lastFetchedMailSeq).equals(0)
 	})
 
-	o.test("setupImapFlowErrorHandler - logs error and logs out", async () => {
+	o.test("setupImapFlowErrorHandler - logs error", async () => {
 		const error = new Error("Connection lost")
 		when(imapClientMock.on("error", anything())).thenDo((event, handler) => {
 			handler(error)
 		})
 		when(eventListenerMock.onError(anything())).thenResolve()
-		when(imapClientMock.logout()).thenResolve()
-		sessionProcess.setupImapFlowErrorHandler(imapClientMock, eventListenerMock)
+		await sessionProcess.startSyncSessionProcess(imapCredentialsMock, eventListenerMock)
 		const callbacks = (imapClientMock as any).on.calls
 		const onErrorCall = callbacks.find((c) => c.args[0] === "error")
 		if (onErrorCall) onErrorCall.args[1](error)
 		verify(eventListenerMock.onError(anything()), { times: 1 })
-		verify(imapClientMock.logout(), { times: 1 })
 	})
 
 	o.test("handleQresyncFetchResult - splits into updates and creates", async () => {

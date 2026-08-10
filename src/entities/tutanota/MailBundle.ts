@@ -15,7 +15,7 @@ export interface DataFile {
 	readonly _type: "DataFile"
 	name: string
 	mimeType: string
-	data: Uint8Array
+	data: Uint8Array<ArrayBuffer>
 	size: number
 	id?: IdTuple
 	cid?: string

@@ -104,7 +104,7 @@ o.spec("EntityAdapter", () => {
 		changeInstanceDirection(mailParsed, InstanceDirection.IncomingFromServer)
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(mailParsed, instancePipeline.modelMapper, instancePipeline.cryptoMapper)
 
-		const ownerEncSk: Uint8Array = new Uint8Array([1, 2, 3])
+		const ownerEncSk: Uint8Array<ArrayBuffer> = new Uint8Array([1, 2, 3])
 
 		o(entityAdapter._ownerEncSessionKey).equals(null)
 		o(entityAdapter._ownerKeyVersion).equals(null)
@@ -127,7 +127,7 @@ o.spec("EntityAdapter", () => {
 		changeInstanceDirection(mailParsed, InstanceDirection.IncomingFromServer)
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(mailParsed, instancePipeline.modelMapper, instancePipeline.cryptoMapper)
 
-		const kdfNonce: Uint8Array = new Uint8Array([3, 4, 5])
+		const kdfNonce: Uint8Array<ArrayBuffer> = new Uint8Array([3, 4, 5])
 
 		o(entityAdapter._kdfNonce).equals(null)
 

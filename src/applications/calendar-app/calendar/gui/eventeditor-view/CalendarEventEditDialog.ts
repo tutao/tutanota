@@ -12,7 +12,7 @@ import { ButtonAttrs, ButtonType } from "../../../../../ui/base/Button.js"
 import { Keys, ProgrammingError, UpgradePromptType } from "../../../../../platform-kit/app-env"
 import { AlarmInterval, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
 import { client } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
-import { assertNotNull, newPromise, noOp, Thunk } from "../../../../../platform-kit/utils"
+import { assertNotNull, convertTextToHtml, newPromise, noOp, Thunk } from "../../../../../platform-kit/utils"
 import type { HtmlEditor } from "../../../../../ui/editor/HtmlEditor.js"
 import { locator } from "../../../../common/api/main/CommonLocator.js"
 import { CalendarEventEditView, EditorPages } from "./CalendarEventEditView.js"
@@ -20,7 +20,6 @@ import { askIfShouldSendCalendarUpdatesToAttendees } from "../CalendarGuiUtils.j
 import { CalendarEventIdentity, CalendarEventModel, EventSaveResult } from "../eventeditor-model/CalendarEventModel.js"
 import { UpgradeRequiredError } from "../../../../common/api/main/UpgradeRequiredError.js"
 import { showPlanUpgradeRequiredDialog } from "../../../../common/misc/SubscriptionDialogs.js"
-import { convertTextToHtml } from "../../../../../ui/utils/Formatter.js"
 import { UserError } from "../../../../common/api/main/UserError.js"
 import { showUserError } from "../../../../common/misc/ErrorHandlerImpl.js"
 import { theme } from "../../../../../ui/theme.js"
@@ -246,8 +245,7 @@ export class EventEditorDialog {
 					resolve()
 				} catch (e) {
 					if (e instanceof UserError) {
-						// noinspection ES6MissingAwait
-						showUserError(e)
+						await showUserError(e)
 					} else if (e instanceof UpgradeRequiredError) {
 						await showPlanUpgradeRequiredDialog(UpgradePromptType.EDIT_CALENDAR_EVENT_REQUIRING_SUBSCRIPTION, e.plans)
 					} else {

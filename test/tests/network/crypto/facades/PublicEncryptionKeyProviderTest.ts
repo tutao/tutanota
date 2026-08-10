@@ -45,9 +45,9 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 	let publicKeyIdentifier: PublicKeyIdentifier
 	let currentVersion: KeyVersion
 
-	let rsaPublicKey: Uint8Array
-	let x25519PublicKey: Uint8Array
-	let kyberPublicKey: Uint8Array
+	let rsaPublicKey: Uint8Array<ArrayBuffer>
+	let x25519PublicKey: Uint8Array<ArrayBuffer>
+	let kyberPublicKey: Uint8Array<ArrayBuffer>
 	let keyVerificationFacade: KeyVerificationFacade
 	let publicEncryptionKeyCache: PublicEncryptionKeyCache
 
@@ -136,7 +136,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 		})
 
 		o("rsa key in version other than 0", async function () {
-			const pubRsaKey = object<Uint8Array>()
+			const pubRsaKey = object<Uint8Array<ArrayBuffer>>()
 			currentVersion = 1
 			when(serviceExecutor.get(PublicKeyService, matchers.anything(), null)).thenResolve(
 				createPublicKeyGetOut({
@@ -252,7 +252,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 		})
 
 		o("rsa key in version other than 0", async function () {
-			const pubRsaKey = object<Uint8Array>()
+			const pubRsaKey = object<Uint8Array<ArrayBuffer>>()
 			currentVersion = 1
 			when(serviceExecutor.get(PublicKeyService, matchers.anything(), null)).thenResolve(
 				createPublicKeyGetOut({
@@ -302,9 +302,9 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 
 o.spec("PublicEncryptionKeyProvider - convert keys", function () {
 	let publicKeyProvider: PublicEncryptionKeyProvider
-	let rsaPublicKey: Uint8Array
-	let x25519PublicKey: Uint8Array
-	let kyberPublicKey: Uint8Array
+	let rsaPublicKey: Uint8Array<ArrayBuffer>
+	let x25519PublicKey: Uint8Array<ArrayBuffer>
+	let kyberPublicKey: Uint8Array<ArrayBuffer>
 	let serviceExecutor: ServiceExecutor
 	let entityClient: EntityClient
 	let keyAuthenticationFacade: KeyAuthenticationFacade

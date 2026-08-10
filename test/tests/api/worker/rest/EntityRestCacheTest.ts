@@ -75,6 +75,7 @@ import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../.
 import { OfflineStorageArgs } from "../../../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
 import { changeInstanceDirection } from "../../../instance-pipeline/InstancePipelineTestUtils"
 import { InstanceDirection } from "../../../../../src/platform-kit/instance-pipeline/ParsedValue"
+import { WebsocketConnectivityListener } from "../../../../../src/platform-kit/network/WebsocketConnectivityListener"
 
 const { anything } = matchers
 
@@ -86,7 +87,7 @@ async function getOfflineStorage(userId: Id, handlerMap: CustomCacheHandlerMap):
 	const { DesktopSqlCipher } = await import("../../../../../src/applications/common/desktop/db/DesktopSqlCipher.js")
 
 	const odbRefCounter = new OfflineDbRefCounter({
-		async create(userid: string, key: Uint8Array, retry?: boolean): Promise<SqlCipherFacade> {
+		async create(userid: string, key: Uint8Array<ArrayBuffer>, retry?: boolean): Promise<SqlCipherFacade> {
 			const db = new DesktopSqlCipher(":memory:", false)
 			//integrity check breaks for in memory database
 			await db.openDb(userId, key)
@@ -137,6 +138,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		let modelMapper: ModelMapper
 		let patchMergerMock: PatchMerger
 		let lastProcessedBatchIdStorageFacadeMock: LastProcessedEventBatchProvider
+		let connectivityListenerMock: WebsocketConnectivityListener
 
 		// The entity client will assert to throwing if an unexpected method is called
 		// You can mock it's attributes if you want to assert that a given method will be called
@@ -259,6 +261,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 		}
 
 		o.beforeEach(async function () {
+			connectivityListenerMock = object<WebsocketConnectivityListener>()
 			userId = "userId"
 			customCacheHandlerMap = object()
 			lastProcessedBatchIdStorageFacadeMock = object<LastProcessedEventBatchProvider>()

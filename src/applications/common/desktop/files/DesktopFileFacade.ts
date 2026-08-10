@@ -25,7 +25,7 @@ import { BuildConfigKey, CancelledError, DesktopConfigKey, ProgrammingError } fr
 import { DesktopConfig } from "../config/DesktopConfig.js"
 import { TempFs } from "./TempFs.js"
 import { HttpMethod } from "@tutao/rest-client/types"
-import { FetchImpl } from "../net/NetAgent"
+import { FetchImpl, toGlobalResponse } from "../net/NetAgent"
 import { OpenDialogOptions } from "electron"
 import { CommandExecutor } from "../CommandExecutor"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
@@ -78,7 +78,11 @@ export class DesktopFileFacade implements FileFacade {
 		const abortController = new AbortController()
 		this.activeRequests.set(fileId, abortController)
 		try {
-			const { status, headers: headersIncoming, body } = await this.fetch(sourceUrl, { method: "GET", headers, signal: abortController.signal })
+			const {
+				status,
+				headers: headersIncoming,
+				body,
+			} = toGlobalResponse(await this.fetch(sourceUrl, { method: "GET", headers, signal: abortController.signal }))
 
 			let encryptedFileUrl: URL | null
 			if (status === 200 && body != null) {
@@ -308,9 +312,9 @@ export class DesktopFileFacade implements FileFacade {
 		const progressStream = wrapReadableAsCountable(fileStream, onProgress)
 
 		try {
-			const response = await this.fetch(targetUrl, { method, headers, body: progressStream, signal: abortController.signal })
+			const response = toGlobalResponse(await this.fetch(targetUrl, { method, headers, body: progressStream, signal: abortController.signal }))
 
-			let responseBody: Uint8Array
+			let responseBody: Uint8Array<ArrayBuffer>
 			if ((response.status === 200 || response.status === 201) && response.body != null) {
 				const readable: stream.Readable = bodyToReadable(response.body)
 				responseBody = await readStreamToBuffer(readable)
@@ -342,13 +346,13 @@ export class DesktopFileFacade implements FileFacade {
 	}
 
 	// This write data to app dir and return full path
-	async writeToAppDir(content: Uint8Array, name: string): Promise<void> {
+	async writeToAppDir(content: Uint8Array<ArrayBuffer>, name: string): Promise<void> {
 		const fullPath = this.path.join(this.electron.app.getPath("userData"), name)
 		this.assertPathWithinUserData(fullPath)
 		this.fs.writeFileSync(fullPath, content)
 	}
 
-	async readFromAppDir(fileName: string): Promise<Uint8Array> {
+	async readFromAppDir(fileName: string): Promise<Uint8Array<ArrayBuffer>> {
 		const fullPath = this.path.join(this.electron.app.getPath("userData"), fileName)
 		this.assertPathWithinUserData(fullPath)
 		return this.fs.readFileSync(fullPath)
@@ -486,7 +490,7 @@ function closeFileStream(stream: FsModule.WriteStream): Promise<void> {
 	})
 }
 
-export async function readStreamToBuffer(stream: NodeJS.ReadableStream, upToBytes?: number): Promise<Uint8Array> {
+export async function readStreamToBuffer(stream: NodeJS.ReadableStream, upToBytes?: number): Promise<Uint8Array<ArrayBuffer>> {
 	const CHUNK_SIZE = 1024 * 1024
 	return newPromise((resolve, reject) => {
 		// stream will give us data in whatever chunks it pleases so we need to assemble them manually

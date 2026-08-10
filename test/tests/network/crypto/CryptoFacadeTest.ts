@@ -125,10 +125,10 @@ o.spec("CryptoFacadeTest", function () {
 	let instanceSessionKeysCache: InstanceSessionKeysCache
 
 	async function prepareBucketKeyInstance(
-		bucketEncMailSessionKey: Uint8Array,
+		bucketEncMailSessionKey: Uint8Array<ArrayBuffer>,
 		fileSessionKeys: Array<AesKey>,
 		bk: AesKey,
-		pubEncBucketKey: Uint8Array,
+		pubEncBucketKey: Uint8Array<ArrayBuffer>,
 		recipientUser: TestUser,
 		mail: Mail,
 		senderPubEccKey: Versioned<X25519PublicKey> | undefined,
@@ -294,7 +294,7 @@ o.spec("CryptoFacadeTest", function () {
 			bucket,
 			type: PermissionType.Public,
 		})
-		const pubEncBucketKey = object<Uint8Array>()
+		const pubEncBucketKey = object<Uint8Array<ArrayBuffer>>()
 		const bucketPermission = createTestEntity(BucketPermissionTypeRef, {
 			_id: ["bucketPermissionListId", "bucketPermissionId"],
 			_ownerGroup: elementIdToId(recipientUser.userGroup._id),
@@ -676,7 +676,7 @@ o.spec("CryptoFacadeTest", function () {
 			kekEncBucketKey: new Uint8Array([2]),
 		}
 
-		const encodedPqMessage: Uint8Array = encodePQMessage({
+		const encodedPqMessage: Uint8Array<ArrayBuffer> = encodePQMessage({
 			senderIdentityPubKey: senderKeyPair.pubEccKey!,
 			ephemeralPubKey: senderKeyPair.pubEccKey!,
 			encapsulation: pqEncapsulation,
@@ -783,7 +783,7 @@ o.spec("CryptoFacadeTest", function () {
 			}),
 		).thenResolve(loadedSenderPublicKey)
 
-		const pubEncBucketKey = object<Uint8Array>()
+		const pubEncBucketKey = object<Uint8Array<ArrayBuffer>>()
 		when(asymmetricCryptoFacade.asymEncryptSymKey(bk, recipientPublicKeys, elementIdToId(senderUserGroup._id))).thenResolve({
 			recipientKeyVersion: recipientPublicKeys.version,
 			senderKeyVersion: cryptoUtils.parseKeyVersion(senderUserGroup.groupKeyVersion),

@@ -37,6 +37,6 @@ export interface NativeCredentialsFacade {
 	migrateToNativeCredentials(
 		credentials: ReadonlyArray<PersistedCredentials>,
 		encryptionMode: CredentialEncryptionMode,
-		credentialsKey: Uint8Array,
+		credentialsKey: Uint8Array<ArrayBuffer>,
 	): Promise<void>
 }

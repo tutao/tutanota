@@ -4,7 +4,7 @@
 // Example: npm run trace-imports -- node_modules/.bin/eslint . --cache --cache-location cache/eslint
 //
 // Important! It writes the result only upon normal process exit. If somewhere there is an explicit
-// `provess.exit()` it will not work
+// `process.exit()` it will not work
 
 import module from "node:module"
 import fs from "node:fs"

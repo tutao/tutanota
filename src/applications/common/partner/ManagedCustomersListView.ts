@@ -157,7 +157,7 @@ export class ManagedCustomerListView implements UpdatableSettingsViewer {
 					update.instanceId,
 				])
 				const customerInfoId = partnerManagedCustomer.customerInfo
-				await this.listModel.entityEventReceived(listIdPart(customerInfoId), elementIdPart(customerInfoId), update.operation)
+				await this.listModel.onEntityUpdateReceived(listIdPart(customerInfoId), elementIdPart(customerInfoId), update.operation)
 			}
 
 			m.redraw()

@@ -1,9 +1,4 @@
-import {
-	EntityEventsListener,
-	EntityUpdateData,
-	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
-} from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdatesListener, EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { AccountingInfo, Braintree3ds2Request, InvoiceInfoTypeRef } from "@tutao/entities/sys"
 import { AvailablePlanType, PaymentMethodType } from "../../../entities/sys/Utils"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
@@ -385,7 +380,8 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 				exec: closeAction,
 				help: "close_alt",
 			})
-		let entityEventListener: EntityEventsListener = {
+		let entityUpdatesListener: EntityUpdatesListener = {
+			id: "InvoiceAndPaymentDataPage",
 			onEntityUpdatesReceived: (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) => {
 				return promiseMap(updates, (update) => {
 					if (isUpdateForTypeRef(InvoiceInfoTypeRef, update)) {
@@ -434,10 +430,10 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 					return Promise.resolve()
 				}).then(noOp)
 			},
-			priority: OnEntityUpdateReceivedPriority.NORMAL,
+			priority: ListenerPriority.NORMAL,
 		}
 
-		locator.eventController.addEntityListener(entityEventListener)
+		locator.eventController.addEntityUpdatesListener(entityUpdatesListener)
 		const app = client.isCalendarApp() ? "calendar" : "mail"
 		let params = `clientToken=${encodeURIComponent(braintree3ds.clientToken)}&nonce=${encodeURIComponent(braintree3ds.nonce)}&bin=${encodeURIComponent(
 			braintree3ds.bin,
@@ -449,6 +445,6 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 			window.open(paymentUrl)
 			progressDialog.show()
 		})
-		return progressDialogPromise.finally(() => locator.eventController.removeEntityListener(entityEventListener))
+		return progressDialogPromise.finally(() => locator.eventController.removeEntityUpdatesListener(entityUpdatesListener))
 	})
 }

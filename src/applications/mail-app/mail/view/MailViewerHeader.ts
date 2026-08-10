@@ -7,7 +7,7 @@ import { BannerButtonAttrs, BannerType, InfoBanner } from "../../../../ui/base/I
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { RecipientButton } from "../../../../ui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../../../ui/base/Dropdown.js"
-import { isAndroidApp, isDesktop, isIOSApp, Keys, MailAuthenticationStatus, TabIndex, TimeFormat } from "../../../../platform-kit/app-env"
+import { isIOSApp, Keys, MailAuthenticationStatus, TabIndex, TimeFormat } from "../../../../platform-kit/app-env"
 import { Icon, progressIcon } from "../../../../ui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../../../ui/utils/Formatter.js"
 import { Button, ButtonType } from "../../../../ui/base/Button.js"
@@ -872,6 +872,8 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					? {
 							label: "assignLabel_action",
 							click: (_, dom) => {
+								const mailGroup = assertNotNull(viewModel.mail._ownerGroup)
+								const labelSystem = assertNotNull(viewModel.mailModel.getLabelFolderSystemByGroupId(mailGroup))
 								const popup = new LabelsPopup(
 									dom,
 									dom.getBoundingClientRect(),
@@ -879,6 +881,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									new LabelsPopupViewModel(
 										viewModel.mailModel.getLabelsForMails([viewModel.mail]),
 										viewModel.mailModel.getLabelStatesForMails([viewModel.mail]),
+										labelSystem,
 									),
 									(addedLabels, removedLabels) => viewModel.mailModel.applyLabels([viewModel.mail._id], addedLabels, removedLabels),
 								)

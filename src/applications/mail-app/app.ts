@@ -291,12 +291,11 @@ import("../../ui/translations/en.js")
 
 		if (!isBrowser() && !isAdminClient()) {
 			mailLocator.logins.addPostLoginAction(async () => {
-				const { CachePostLoginAction } = await import("../common/offline/CachePostLoginAction.js")
-				return new CachePostLoginAction(
+				const { CalendarPostLoginAction } = await import("../common/offline/CalendarPostLoginAction.js")
+				return new CalendarPostLoginAction(
 					await mailLocator.calendarModel(),
 					mailLocator.entityClient,
 					mailLocator.progressTracker,
-					mailLocator.cacheStorage,
 					mailLocator.logins,
 					mailLocator.syncTracker,
 				)

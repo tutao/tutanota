@@ -1,6 +1,6 @@
 import { imapMailboxFromSyncSessionMailbox, ImapSyncSessionMailbox } from "./ImapSyncSessionMailbox.js"
 import type { ImapSyncEventListener } from "./ImapSyncEventListener.js"
-import { ImapCredentials, ImapMailId } from "../../../api/common/utils/imapImportUtils/ImapSyncContext.js"
+import { ImapCredentials, ImapMailId, ImapSyncContext } from "../../../api/common/utils/imapImportUtils/ImapSyncContext.js"
 import { ImapMail } from "../../../api/common/utils/imapImportUtils/ImapMail.js"
 import { ImapMailbox, ImapMailboxStatus } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
 import { ImapSyncConfig } from "./ImapSync.js"
@@ -11,7 +11,7 @@ import { imapMailFromImapFlowFetchMessageObject } from "./imapmail/ImapParserUti
 import type { ImapFlow } from "imapflow"
 import { ImapFlowFactory, SyncSessionEventListener } from "./ImapSyncSession"
 import { ImapFolderSyncStatus, ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
-import { ImapError } from "../../../api/common/error/ImapError"
+import { fromImapFlowError } from "../../../api/common/error/ImapError"
 
 export enum SyncSessionProcessState {
 	NOT_STARTED,
@@ -34,6 +34,7 @@ export type DifferentialUidLoaderFactory = (
 export class ImapSyncSessionProcess {
 	// Visible for testing
 	state: SyncSessionProcessState = SyncSessionProcessState.NOT_STARTED
+	imapClient: ImapFlow | null = null
 
 	constructor(
 		// Visible for testing
@@ -45,35 +46,13 @@ export class ImapSyncSessionProcess {
 			new DifferentialUidLoader(client, map, qresync, eventTypes),
 	) {}
 
-	async startSyncSessionProcess(imapAccount: ImapCredentials, imapSyncEventListener: ImapSyncEventListener): Promise<SyncSessionProcessState> {
-		const imapClient = await this.imapFlowFactory({
-			host: imapAccount.host,
-			port: imapAccount.port,
-			secure: imapAccount.host !== "localhost",
-			auth: {
-				user: imapAccount.username,
-				pass: imapAccount.password,
-				accessToken: imapAccount.tokenEndpointResponse?.access_token,
-			},
-			qresync: this.imapSyncConfig.isEnableImapQresync,
-		})
-
-		this.setupImapFlowErrorHandler(imapClient, imapSyncEventListener)
+	async startSyncSessionProcess(imapCredentials: ImapCredentials, imapSyncEventListener: ImapSyncEventListener): Promise<SyncSessionProcessState> {
+		this.imapClient = await this.imapFlowFactory(imapCredentials, this.imapSyncConfig)
+		this.setupImapFlowErrorLogger(imapSyncEventListener)
 
 		try {
-			await imapClient.connect()
-		} catch (e) {
-			this.state = SyncSessionProcessState.CONNECTION_FAILED_UNKNOWN
-			return this.state
-		}
-
-		try {
-			if (this.state === SyncSessionProcessState.NOT_STARTED) {
-				await this.runSyncSessionProcess(imapClient, imapSyncEventListener)
-				this.state = SyncSessionProcessState.RUNNING
-			}
+			await this.imapClient.connect()
 		} catch (error) {
-			await this.logout(imapClient, false, 0)
 			if (error.response !== undefined && error.response.match(/NO \[LIMIT\]/)) {
 				this.state = SyncSessionProcessState.CONNECTION_FAILED_REJECTED
 			} else if (error.responseStatus !== undefined && error.responseStatus.match("(NO|BAD)")) {
@@ -81,7 +60,13 @@ export class ImapSyncSessionProcess {
 			} else {
 				this.state = SyncSessionProcessState.CONNECTION_FAILED_UNKNOWN
 			}
+			return this.state
 		}
+
+		this.state = SyncSessionProcessState.RUNNING
+		await this.runSyncSessionProcess(imapSyncEventListener)
+		this.state = SyncSessionProcessState.STOPPED
+
 		return this.state
 	}
 
@@ -90,12 +75,16 @@ export class ImapSyncSessionProcess {
 		return this.syncSessionProcessMailbox
 	}
 
-	private async runSyncSessionProcess(imapClient: ImapFlow, imapSyncEventListener: ImapSyncEventListener) {
+	private async runSyncSessionProcess(imapSyncEventListener: ImapSyncEventListener) {
 		let isMailboxFinished = false
+
+		if (!this.imapClient) {
+			return
+		}
 
 		try {
 			// open mailbox readonly
-			const mailboxObject = await imapClient.mailboxOpen(this.syncSessionProcessMailbox.mailboxState.path, { readOnly: true })
+			const mailboxObject = await this.imapClient.mailboxOpen(this.syncSessionProcessMailbox.mailboxState.path, { readOnly: true })
 
 			// emit ImapMailboxStatus and update SyncSessionMailbox
 			const imapMailboxStatus: ImapMailboxStatus = {
@@ -113,14 +102,14 @@ export class ImapSyncSessionProcess {
 			const imapServerHighestModeSeq = mailboxObject.highestModseq
 			const isEnableImapQresync = this.imapSyncConfig.isEnableImapQresync && imapServerHighestModeSeq != null
 			if (isEnableImapQresync) {
-				this.setupImapFlowExpungeHandler(imapClient, openedImapMailbox, imapSyncEventListener)
+				this.setupImapFlowExpungeHandler(openedImapMailbox, imapSyncEventListener)
 			}
 
 			let imapQresyncImapMails: ImapMail[] = []
 
 			// calculate UID differences
 			const differentialUidLoader = this.differentialUidLoaderFactory(
-				imapClient,
+				this.imapClient,
 				this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap,
 				isEnableImapQresync,
 				this.imapSyncConfig.emitImapSyncEventTypes,
@@ -143,7 +132,7 @@ export class ImapSyncSessionProcess {
 					continue
 				}
 
-				const mails = imapClient.fetch(
+				const mails = this.imapClient.fetch(
 					nextUidFetchRequest.uidFetchSequenceString,
 					{
 						uid: true,
@@ -152,7 +141,6 @@ export class ImapSyncSessionProcess {
 						size: true,
 						flags: true,
 						internalDate: true,
-						headers: true,
 					},
 					fetchOptions,
 				)
@@ -161,16 +149,12 @@ export class ImapSyncSessionProcess {
 				const imapMailsUpdate: ImapMail[] = []
 				for await (const mail of mails) {
 					if (this.state === SyncSessionProcessState.STOPPED) {
-						await this.logout(imapClient, isMailboxFinished, mail.seq - 1)
+						await this.logout(isMailboxFinished, mail.seq - 1)
 						return
 					}
 
 					if (mail.source) {
-						const imapMail = await imapMailFromImapFlowFetchMessageObject(
-							mail,
-							openedImapMailbox,
-							this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.get(mail.uid),
-						)
+						const imapMail = await imapMailFromImapFlowFetchMessageObject(mail, openedImapMailbox)
 
 						switch (nextUidFetchRequest.fetchRequestType) {
 							case UidFetchRequestType.CREATE:
@@ -194,7 +178,7 @@ export class ImapSyncSessionProcess {
 								break
 						}
 					} else {
-						await this.logout(imapClient, isMailboxFinished, mail.seq - 1)
+						await this.logout(isMailboxFinished, mail.seq - 1)
 						return
 					}
 				}
@@ -215,15 +199,18 @@ export class ImapSyncSessionProcess {
 			isMailboxFinished = true
 			imapMailboxStatus.syncStatus = ImapFolderSyncStatus.FINISHED
 			await imapSyncEventListener.onMailboxStatus(imapMailboxStatus)
+		} catch (e) {
+			// catch all exceptions, we will retry later
+			// errors are reported using the onError callback inside the setupImapFlowErrorLogger
 		} finally {
-			await this.logout(imapClient, isMailboxFinished)
+			await this.logout(isMailboxFinished)
 		}
 	}
 
 	// Visible for testing
-	async logout(imapClient: ImapFlow, isMailboxFinished: boolean, lastFetchedMailSeq: number = 0) {
+	async logout(isMailboxFinished: boolean, lastFetchedMailSeq: number = 0) {
 		try {
-			await imapClient.logout()
+			await this.imapClient?.logout()
 		} catch (e) {
 			// Ignore failures to logout, this just means we already have logged out.
 		}
@@ -286,16 +273,19 @@ export class ImapSyncSessionProcess {
 	}
 
 	// Visible for testing
-	setupImapFlowErrorHandler(imapClient: ImapFlow, imapSyncEventListener: ImapSyncEventListener) {
-		imapClient.on("error", (error) => {
-			imapSyncEventListener.onError(new ImapError(error.message))
-			this.logout(imapClient, false)
+	setupImapFlowErrorLogger(imapSyncEventListener: ImapSyncEventListener) {
+		this.imapClient?.on("error", (error: any) => {
+			const imapError = fromImapFlowError(error)
+			if (error.code) {
+				console.error("imap error code", error.code, imapError)
+			}
+			imapSyncEventListener.onError(imapError)
 		})
 	}
 
 	// emit DELETE events when IMAP QRESYNC is enabled and supported
-	private setupImapFlowExpungeHandler(imapClient: ImapFlow, openedImapMailbox: ImapMailbox, imapSyncEventListener: ImapSyncEventListener) {
-		imapClient.on("expunge", async (deletedMail) => {
+	private setupImapFlowExpungeHandler(openedImapMailbox: ImapMailbox, imapSyncEventListener: ImapSyncEventListener) {
+		this.imapClient?.on("expunge", async (deletedMail) => {
 			await this.emitImapMailDeleteEvent(assertNotNull(deletedMail.uid), openedImapMailbox, imapSyncEventListener)
 		})
 	}

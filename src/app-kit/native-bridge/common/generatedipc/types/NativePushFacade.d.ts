@@ -12,7 +12,7 @@ export interface NativePushFacade {
 		userId: string,
 		sseOrigin: string,
 		pushIdentifierId: string,
-		pushIdentifierSessionKey: Uint8Array,
+		pushIdentifierSessionKey: Uint8Array<ArrayBuffer>,
 	): Promise<void>
 
 	removeUser(userId: string): Promise<void>

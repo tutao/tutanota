@@ -99,7 +99,7 @@ export class FileFacadeReceiveDispatcher {
 				return this.facade.writeTempDataFile(file)
 			}
 			case "writeToAppDir": {
-				const content: Uint8Array = arg[0]
+				const content: Uint8Array<ArrayBuffer> = arg[0]
 				const name: string = arg[1]
 				return this.facade.writeToAppDir(content, name)
 			}

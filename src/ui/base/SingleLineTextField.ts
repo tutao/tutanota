@@ -2,7 +2,7 @@ import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril
 import { LegacyTextFieldType } from "./LegacyTextField.js"
 import { AllIcons, Icon, IconSize } from "./Icon.js"
 import { px, size } from "../size.js"
-import { filterInt } from "../../platform-kit/utils"
+import { filterInt } from "@tutao/utils"
 import { lang, Translation } from "../utils/LanguageViewModel"
 
 export enum InputMode {
@@ -16,6 +16,11 @@ export interface SingleLineTextFieldAttrs<T extends LegacyTextFieldType> extends
 	ariaLabel: Translation
 	disabled?: boolean
 	/**
+	 * If this attribute is false, an error state is indicated by displaying the text field in error colors.
+	 * Additionally, if false, the attribute "aria-invalid" is set to "true".
+	 */
+	valid?: boolean
+	/**
 	 * Callback fired whenever the input is interacted with.
 	 * This property is mandatory if the input is interactive (disabled = false).
 	 * @example
@@ -28,7 +33,7 @@ export interface SingleLineTextFieldAttrs<T extends LegacyTextFieldType> extends
 	oninput?: (newValue: string) => unknown
 	placeholder?: string
 	classes?: Array<string>
-	style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize" | "textAlign">>
+	style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize" | "textAlign" | "borderWidth">>
 	onclick?: (...args: unknown[]) => unknown
 	onfocus?: (...args: unknown[]) => unknown
 	onblur?: (...args: unknown[]) => unknown
@@ -115,7 +120,7 @@ export class SingleLineTextField<T extends LegacyTextFieldType> implements Class
 	}
 
 	private renderInput(attrs: InputAttrs<T>, inputPadding?: string) {
-		return m("input.tutaui-text-field", {
+		const inputAttrs: Record<string, any> = {
 			ariaLabel: attrs.ariaLabel.text,
 			value: attrs.value,
 			disabled: attrs.disabled ? true : undefined,
@@ -137,7 +142,7 @@ export class SingleLineTextField<T extends LegacyTextFieldType> implements Class
 				}
 			},
 			placeholder: attrs.placeholder,
-			class: this.resolveClasses(attrs.classes, attrs.disabled),
+			class: "",
 			style: {
 				...attrs.style,
 				...(inputPadding ? { paddingLeft: inputPadding } : {}),
@@ -146,25 +151,25 @@ export class SingleLineTextField<T extends LegacyTextFieldType> implements Class
 			inputMode: attrs.inputMode,
 			readonly: attrs.readonly,
 			"data-testid": `sltfi:${attrs.ariaLabel ? lang.getTestId(attrs.ariaLabel) : null}`,
-			...this.getInputProperties(attrs),
-		})
-	}
+		}
 
-	private getInputProperties(attrs: InputAttrs<T>): Pick<SingleLineNumberFieldAttrs<LegacyTextFieldType.Number>, "min" | "max"> | undefined {
+		if (attrs.classes) {
+			inputAttrs["class"] += attrs.classes.join(" ")
+		}
+		if (attrs.disabled) {
+			inputAttrs["class"] += " disabled"
+		}
+
 		if (attrs.type === LegacyTextFieldType.Number) {
 			const numberAttrs = attrs as SingleLineNumberFieldAttrs<LegacyTextFieldType.Number>
-			return { min: numberAttrs.min, max: numberAttrs.max }
+			inputAttrs["min"] = numberAttrs.min
+			inputAttrs["max"] = numberAttrs.max
 		}
 
-		return undefined
-	}
-
-	private resolveClasses(classes: Array<string> = [], disabled: boolean = false): string {
-		const classList = [...classes]
-		if (disabled) {
-			classList.push("disabled")
+		if (attrs.valid === false) {
+			inputAttrs["aria-invalid"] = "true"
 		}
 
-		return classList.join(" ")
+		return m("input.tutaui-text-field", inputAttrs)
 	}
 }

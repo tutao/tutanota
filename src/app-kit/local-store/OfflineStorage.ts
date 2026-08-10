@@ -1,10 +1,12 @@
 import {
+	AnyEntityId,
 	AttributeName,
 	BlobElementEntity,
 	collapseId,
 	CUSTOM_MIN_ID,
 	ElementEntity,
 	elementIdPart,
+	elementIdToId,
 	Entity,
 	expandId,
 	firstBiggerThanSecond,
@@ -13,20 +15,18 @@ import {
 	getElementId,
 	getServerIdEncodingForType,
 	getTypeString,
+	idToElementId,
 	isCustomIdType,
 	ListElementEntity,
 	listIdPart,
 	localToServerIdEncoding,
 	parseTypeString,
+	PersistentEntity,
 	serverToLocalIdEncoding,
 	ServerTypeModel,
-	PersistentEntity,
 	Type as TypeId,
 	TypeModel,
 	TypeRef,
-	AnyEntityId,
-	elementIdToId,
-	idToElementId,
 } from "../../platform-kit/meta"
 import * as cborg from "cborg"
 import { EncodeOptions, Token, Type } from "cborg"
@@ -59,6 +59,8 @@ import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { OfflineStorageArgs } from "../../platform-kit/base/facades/CacheStorageLateInitializer"
 import { OfflineEntity, OfflineMapper } from "../../platform-kit/instance-pipeline/OfflineMapper"
 
+import { CacheSyncStatus } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+
 /**
  * this is the value of SQLITE_MAX_VARIABLE_NUMBER in sqlite3.c
  * it may change if the sqlite version is updated.
@@ -73,7 +75,7 @@ type StorableInstance = {
 	elementId: Id
 	encodedElementId: Base64Ext
 	ownerGroup: Id
-	serializedInstance: Uint8Array
+	serializedInstance: Uint8Array<ArrayBuffer>
 	instance: DecryptedParsedInstance
 }
 
@@ -92,8 +94,8 @@ function dateEncoder(data: Date, typ: string, options: EncodeOptions): TokenOrNe
 	]
 }
 
-function dateDecoder(bytes: number): Date {
-	return new Date(bytes)
+function dateDecoder(entries: () => number): Date {
+	return new Date(entries())
 }
 
 export const customTypeEncoders: { [typeName: string]: typeof dateEncoder } = Object.freeze({
@@ -227,7 +229,7 @@ export class OfflineStorage implements CacheStorage {
 		return await this.deserializeList(instanceBytes, typeRef)
 	}
 
-	async get<T extends Entity>(typeRef: TypeRef<T>, listId: string | null, id: string): Promise<T | null> {
+	async get<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: string | null, id: string): Promise<T | null> {
 		const parsedInstance = await this.getParsed(typeRef, listId, id)
 		if (parsedInstance == null) {
 			return null
@@ -274,7 +276,7 @@ export class OfflineStorage implements CacheStorage {
 		return (await this.getLastUpdateTime()).type === "never"
 	}
 
-	private async recreateDbFile(userId: string, databaseKey: Uint8Array): Promise<void> {
+	private async recreateDbFile(userId: string, databaseKey: Uint8Array<ArrayBuffer>): Promise<void> {
 		console.log(`recreating DB file for userId ${userId}`)
 		await this.sqlCipherFacade.closeDb()
 		await this.sqlCipherFacade.deleteDb(userId)
@@ -847,7 +849,7 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	private async putMetadata<K extends keyof OfflineDbMeta>(key: K, value: OfflineDbMeta[K]): Promise<void> {
-		let encodedValue
+		let encodedValue: Uint8Array<ArrayBuffer>
 		try {
 			encodedValue = cborg.encode(value)
 		} catch (e) {
@@ -867,15 +869,7 @@ export class OfflineStorage implements CacheStorage {
 									  from metadata
 									  WHERE key = ${key}`
 		const encoded = await this.sqlCipherFacade.get(query, params)
-		return encoded && cborg.decode(encoded.value.value as Uint8Array)
-	}
-
-	/**
-	 * Clear out unneeded data from the offline database (i.e. old data).
-	 * This will be called after login (CachePostLoginActions.ts) to ensure fast login time.
-	 */
-	async clearExcludedData(): Promise<void> {
-		// no-op for now
+		return encoded && cborg.decode(encoded.value.value)
 	}
 
 	private async createTables() {
@@ -968,6 +962,10 @@ export class OfflineStorage implements CacheStorage {
 		await this.deleteMultiple(typeRef, fullIds)
 	}
 
+	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void> {
+		// no-op
+	}
+
 	async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, rawCutoffId: Id): Promise<void> {
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const isCustomId = isCustomIdType(typeModel)
@@ -1009,10 +1007,10 @@ export class OfflineStorage implements CacheStorage {
 		}
 	}
 
-	private serialize(instance: DecryptedParsedInstance): Uint8Array {
+	private serialize(instance: DecryptedParsedInstance): Uint8Array<ArrayBuffer> {
 		const offlineEntity = this.offlineMapper.toOfflineEntity(instance)
 		try {
-			return cborg.encode(offlineEntity.getStorableRecord(), { typeEncoders: customTypeEncoders })
+			return cborg.encode(offlineEntity.getStorableRecord(), { typeEncoders: customTypeEncoders }) as Uint8Array<ArrayBuffer>
 		} catch (e) {
 			console.log("[OfflineStorage] failed to encode entity with attribute ids: " + Object.keys(offlineEntity))
 			throw e

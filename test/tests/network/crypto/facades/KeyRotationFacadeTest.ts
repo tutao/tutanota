@@ -173,7 +173,7 @@ const NEW_ADMIN_GROUP_ENC_NEW_USER_GROUP_KEY: VersionedEncryptedKey = {
 	encryptingKeyVersion: 1,
 }
 
-const PUB_ADMIN_ENC_NEW_USER_GROUP_KEY: Uint8Array = new Uint8Array([123])
+const PUB_ADMIN_ENC_NEW_USER_GROUP_KEY: Uint8Array<ArrayBuffer> = new Uint8Array([123])
 
 const NEW_ADMIN_GROUP_ENC_NEW_ADMIN_GROUP_KEY: VersionedEncryptedKey = {
 	key: new Uint8Array(NEW_ADMIN_GROUP_KEY.object.bits.concat(NEW_ADMIN_GROUP_KEY.object.bits)),
@@ -271,8 +271,8 @@ function prepareUserKeyRotation(
 	keyRotationFacade: KeyRotationFacade,
 	userGroup: Group,
 ): {
-	adminPubKyberKeyBytes: Uint8Array
-	adminPubEccKeyBytes: Uint8Array
+	adminPubKyberKeyBytes: Uint8Array<ArrayBuffer>
+	adminPubEccKeyBytes: Uint8Array<ArrayBuffer>
 	adminPublicKey: Versioned<PQPublicKeys>
 	pendingKeyRotations: PendingKeyRotation
 } {
@@ -316,7 +316,7 @@ function prepareUserKeyRotation(
 
 	// public key service request to get the admin keys
 
-	const newUserGroupKeyTag = object<Uint8Array>()
+	const newUserGroupKeyTag = object<Uint8Array<ArrayBuffer>>()
 	when(mocks.cryptoWrapper.hmacSha256(anything(), newUserGroupKeyTag)).thenReturn(NEW_USER_GROUP_KEY_TAG)
 
 	const adminPublicKey: Versioned<PQPublicKeys> = {
@@ -355,7 +355,7 @@ function prepareMultiAdminUserKeyRotation(
 ) {
 	const pubEncNewAdminGroupKey = new Uint8Array([9, 9, 9, 9])
 
-	const userEncNewAdminGroupKeyHash = object<Uint8Array>()
+	const userEncNewAdminGroupKeyHash = object<Uint8Array<ArrayBuffer>>()
 
 	const userEncAdminSymKeyHash = createTestEntity(KeyMacTypeRef, {
 		tag: userEncNewAdminGroupKeyHash,
@@ -409,7 +409,7 @@ function prepareMultiAdminUserKeyRotation(
 	})
 
 	const newAdminGroupHashData = concat(Uint8Array.from([0, NEW_ADMIN_GROUP_KEY.version]), Uint8Array.from(NEW_ADMIN_GROUP_KEY.object.bits))
-	const newAdminGroupSymKeyHash = object<Uint8Array>()
+	const newAdminGroupSymKeyHash = object<Uint8Array<ArrayBuffer>>()
 	when(mocks.cryptoWrapper.sha256Hash(newAdminGroupHashData)).thenReturn(newAdminGroupSymKeyHash)
 	// public key service request to get the admin keys
 
@@ -444,7 +444,7 @@ o.spec("KeyRotationFacade", function () {
 
 	let user: User
 	let cryptoWrapperMock: CryptoWrapper
-	let userEncAdminKey: Uint8Array
+	let userEncAdminKey: Uint8Array<ArrayBuffer>
 	const groupId = someGroupId
 	let group: Group
 	let groupInfo: GroupInfo
@@ -794,7 +794,7 @@ o.spec("KeyRotationFacade", function () {
 						}),
 					])
 					const recipientKeyVersion = "0"
-					const pubEncBucketKeyMock = object<Uint8Array>()
+					const pubEncBucketKeyMock = object<Uint8Array<ArrayBuffer>>()
 					const protocolVersion = CryptoProtocolVersion.TUTA_CRYPT
 					when(cryptoFacade.encryptBucketKeyForInternalRecipient(userGroupId, anything(), memberMailAddress, [], [])).thenResolve(
 						new RecipientKeyData(
@@ -1296,7 +1296,7 @@ o.spec("KeyRotationFacade", function () {
 					)
 
 					const encryptedAdminGroupKeyForThisAdmin = object<PubEncSymKey>()
-					encryptedAdminGroupKeyForThisAdmin.pubEncSymKeyBytes = object<Uint8Array>()
+					encryptedAdminGroupKeyForThisAdmin.pubEncSymKeyBytes = object<Uint8Array<ArrayBuffer>>()
 					when(asymmetricCryptoFacade.tutaCryptEncryptSymKey(anything(), anything(), anything())).thenResolve(encryptedAdminGroupKeyForThisAdmin)
 
 					const currentAdminGroupKey: VersionedKey = {
@@ -1452,7 +1452,7 @@ o.spec("KeyRotationFacade", function () {
 					when(keyAuthenticationFacade.verifyTag(anything(), anything())).thenThrow(new CryptoError("test error"))
 					const encryptedAdminGroupKeyForThisAdmin = object<PubEncSymKey>()
 
-					encryptedAdminGroupKeyForThisAdmin.pubEncSymKeyBytes = object<Uint8Array>()
+					encryptedAdminGroupKeyForThisAdmin.pubEncSymKeyBytes = object<Uint8Array<ArrayBuffer>>()
 					when(asymmetricCryptoFacade.tutaCryptEncryptSymKey(anything(), anything(), anything())).thenResolve(encryptedAdminGroupKeyForThisAdmin)
 
 					const generatedAdminKeyPairs = generatedKeyPairs.get(NEW_ADMIN_GROUP_KEY.object)!
@@ -2433,11 +2433,11 @@ function mockPrepareKeyForOtherMembers(user: User, adminKeyLoader: AdminKeyLoade
 type MockedKeyPairs = {
 	decodedKeyPairs: PQKeyPairs
 	decodedPublicKey: Versioned<PQPublicKeys>
-	encryptedEccPrivKey: Uint8Array
-	encryptedKyberPrivKey: Uint8Array
+	encryptedEccPrivKey: Uint8Array<ArrayBuffer>
+	encryptedKyberPrivKey: Uint8Array<ArrayBuffer>
 	encryptedPqKeyPairs: EncryptedPqKeyPairs
-	encodedKyberPublicKey: Uint8Array // encoded as stored in the db
-	encodedx25519PublicKey: Uint8Array // encoded as stored in the db
+	encodedKyberPublicKey: Uint8Array<ArrayBuffer> // encoded as stored in the db
+	encodedx25519PublicKey: Uint8Array<ArrayBuffer> // encoded as stored in the db
 }
 
 function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoWrapper, ...newKeys: AesKey[]): Map<AesKey, MockedKeyPairs> {
@@ -2445,21 +2445,21 @@ function mockGenerateKeyPairs(pqFacadeMock: PQFacade, cryptoWrapperMock: CryptoW
 	for (const newKey of newKeys) {
 		const newKeyPairs: PQKeyPairs = new PQKeyPairs(
 			{
-				publicKey: object<Uint8Array>(),
-				privateKey: object<Uint8Array>(),
+				publicKey: object<Uint8Array<ArrayBuffer>>(),
+				privateKey: object<Uint8Array<ArrayBuffer>>(),
 			},
 			{
-				publicKey: { raw: object<Uint8Array>() },
+				publicKey: { raw: object<Uint8Array<ArrayBuffer>>() },
 				privateKey: object<KyberPrivateKey>(),
 			},
 		)
 
-		const encodedKyberPublicKey = object<Uint8Array>()
+		const encodedKyberPublicKey = object<Uint8Array<ArrayBuffer>>()
 		const encodedx25519PublicKey = newKeyPairs.x25519KeyPair.publicKey // encoded and decoded ecc public keys are the same.
 
-		const encryptedEccPrivKey: Uint8Array = object()
+		const encryptedEccPrivKey: Uint8Array<ArrayBuffer> = object()
 		when(cryptoWrapperMock.encryptX25519Key(newKey, newKeyPairs.x25519KeyPair.privateKey)).thenReturn(encryptedEccPrivKey)
-		const encryptedKyberPrivKey: Uint8Array = object()
+		const encryptedKyberPrivKey: Uint8Array<ArrayBuffer> = object()
 		when(cryptoWrapperMock.encryptKyberKey(newKey, newKeyPairs.kyberKeyPair.privateKey)).thenReturn(encryptedKyberPrivKey)
 		when(cryptoWrapperMock.kyberPublicKeyToBytes(newKeyPairs.kyberKeyPair.publicKey)).thenReturn(encodedKyberPublicKey)
 

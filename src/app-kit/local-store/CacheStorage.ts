@@ -2,7 +2,9 @@ import { Nullable } from "@tutao/utils"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler"
 import { DecryptedParsedInstance, GetOrPutInstance } from "../../platform-kit/instance-pipeline"
 import { Range } from "./OfflineStorage"
-import { Entity, ListElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
+import { ListElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
+
+import { CacheSyncStatus } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 export type LastUpdateTime = { type: "recorded"; time: number } | { type: "never" } | { type: "uninitialized" }
 
@@ -16,7 +18,7 @@ export type LastUpdateTime = { type: "recorded"; time: number } | { type: "never
  * (mainly password changes)
  */
 export interface ExposedCacheStorage extends GetOrPutInstance {
-	get<T extends Entity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null>
+	get<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null>
 
 	/**
 	 * Load range of entities. Does not include {@param start}.
@@ -47,8 +49,6 @@ export interface ExposedCacheStorage extends GetOrPutInstance {
 	 * Tables unrelated to cache will not be deleted.
 	 */
 	purgeStorage(): Promise<void>
-
-	clearExcludedData(timeRangeDate: Date): Promise<void>
 
 	/**
 	 * remove an ElementEntity from the cache by typeRef and Id.
@@ -150,4 +150,6 @@ export interface CacheStorage extends ExposedCacheStorage {
 	deleteAllOwnedBy(owner: Id): Promise<void>
 
 	isInitialized(): boolean
+
+	setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void>
 }

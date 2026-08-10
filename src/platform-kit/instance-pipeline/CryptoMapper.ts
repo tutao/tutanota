@@ -403,7 +403,7 @@ export class CryptoMapper {
 			throw new CryptoError(`Encrypting ${valueType.name} requires keys!`)
 		}
 		const subKeys = subKeyProvider.getSubKeys()
-		let encryptedBytes: Uint8Array
+		let encryptedBytes: Uint8Array<ArrayBuffer>
 		if (subKeys.cipherVersion === SymmetricCipherVersion.AesCbcThenHmac) {
 			encryptedBytes = this.symmetricCipherFacade.encryptBytes(subKeys, bytes)
 		} else {
@@ -466,7 +466,11 @@ export class EncryptedParsedInstance implements DeepEquals {
 
 	public getAttributeByNameOrNull(attributeName: AttributeName): Nullable<EncryptedParsedValue> {
 		const attrId = AttributeModel.getAttributeId(this.typeModel, attributeName)
-		return isNotNull(attrId) ? assertNotNull(this.parsedInstance.get(attrId), `Attribute ${attributeName} not found in instance`) : null
+		if (isNotNull(attrId)) {
+			const value = this.parsedInstance.get(attrId)
+			return assertNotNull(value, `Attribute ${attributeName} not found in instance`)
+		}
+		return null
 	}
 	public getAttributeByName(name: AttributeName): EncryptedParsedValue {
 		return assertNotNull(this.getAttributeByNameOrNull(name))

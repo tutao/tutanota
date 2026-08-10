@@ -17,10 +17,10 @@ import type { GroupManagementFacade } from "../../../../platform-kit/base/facade
 import { RecipientsModel } from "../../api/main/RecipientsModel"
 import { GroupNameData, GroupSettingsModel } from "./GroupSettingsModel"
 import {
-	EntityEventsListener,
+	EntityUpdatesListener,
 	EntityUpdateData,
 	isUpdateForTypeRef,
-	OnEntityUpdateReceivedPriority,
+	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { MailAddress } from "@tutao/entities/tutanota"
 import { Recipient, RecipientType } from "../../../../entities/tutanota/Utils"
@@ -66,12 +66,13 @@ export class GroupSharingModel {
 		this._shareFacade = shareFacade
 		this._groupManagementFacade = groupManagementFacade
 		this.onEntityUpdate = stream()
-		this.eventController.addEntityListener(this.onEntityEvents)
+		this.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 	}
 
-	private readonly onEntityEvents: EntityEventsListener = {
-		onEntityUpdatesReceived: (events, id) => this.entityEventsReceived(events, id),
-		priority: OnEntityUpdateReceivedPriority.NORMAL,
+	private readonly entityUpdatesListener: EntityUpdatesListener = {
+		id: "GroupSharingModel",
+		onEntityUpdatesReceived: (events, id) => this.onEntityUpdatesReceived(events, id),
+		priority: ListenerPriority.NORMAL,
 	}
 
 	static async newAsync(
@@ -109,7 +110,7 @@ export class GroupSharingModel {
 	}
 
 	dispose() {
-		this.eventController.removeEntityListener(this.onEntityEvents)
+		this.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
 	}
 
 	/**
@@ -203,7 +204,7 @@ export class GroupSharingModel {
 		return groupInvitationReturn.invitedMailAddresses
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
+	onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		return promiseMap(updates, (update) => {
 			if (!isSameSingleId(eventOwnerGroupId, getEtId(this.group))) {
 				// ignore events of different group here

@@ -22,7 +22,7 @@ export class EntityUtils {
 			case ValueTypeEnum.Number:
 				return ParsedValue.fromString(value as NumberString)
 			case ValueTypeEnum.Bytes:
-				return ParsedValue.fromByteArray(value as Uint8Array)
+				return ParsedValue.fromByteArray(value as Uint8Array<ArrayBuffer>)
 			case ValueTypeEnum.Date:
 				return ParsedValue.fromString((value as Date).getTime().toString())
 			case ValueTypeEnum.Boolean:
@@ -45,7 +45,8 @@ export class EntityUtils {
 				entityRecord[key] = parsedValue.asByteArray()
 				break
 			case ValueTypeEnum.Number:
-				entityRecord[key] = assertNotNaN(parseInt(parsedValue.asString()), `Non-numeric string for attribute: ${modelValue.name}`).toString()
+				assertNotNaN(parseFloat(parsedValue.asString()), `Non-numeric string for attribute: ${modelValue.name}`)
+				entityRecord[key] = parsedValue.asString()
 				break
 			case ValueTypeEnum.String:
 			case ValueTypeEnum.CompressedString:
@@ -64,11 +65,11 @@ export class EntityUtils {
 		}
 	}
 
-	static compressString(uncompressed: string): Uint8Array {
+	static compressString(uncompressed: string): Uint8Array<ArrayBuffer> {
 		return compress(stringToUtf8Uint8Array(uncompressed))
 	}
 
-	static decompressString(compressed: Uint8Array): string {
+	static decompressString(compressed: Uint8Array<ArrayBuffer>): string {
 		if (compressed.length === 0) {
 			return ""
 		}

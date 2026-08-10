@@ -5,21 +5,20 @@ import { CounterBadge } from "../../../../ui/base/CounterBadge"
 import { theme } from "../../../../ui/theme"
 import { component_size, px, size } from "../../../../ui/size"
 import { IconButton, IconButtonAttrs } from "../../../../ui/base/IconButton.js"
-import { Icon, IconSize } from "../../../../ui/base/Icon.js"
+import { Icon, IconAttrs } from "../../../../ui/base/Icon.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
-import { getFolderIcon } from "./MailGuiUtils"
 import { MailSet } from "@tutao/entities/tutanota"
 import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
 
-export type MailFolderRowAttrs = {
+export type MailSetRowAttrs = {
 	count: number
 	button: NavButtonAttrs
 	rightButton?: IconButtonAttrs | null
 	expanded: boolean | null
 	indentationLevel: number
 	onExpanderClick: (event: Event) => unknown
-	folder: MailSet
+	mailSet: MailSet
 	hasChildren: boolean
 	onSelectedPath: boolean
 	numberOfPreviousRows: number
@@ -28,14 +27,15 @@ export type MailFolderRowAttrs = {
 	onHover: () => void
 	onDragEnter: () => void
 	fullFolderPath: string
+	getIconForMailSet: (mailSet: MailSet, button: NavButtonAttrs) => IconAttrs
 }
 
-export class MailFolderRow implements Component<MailFolderRowAttrs> {
+export class MailSetRow implements Component<MailSetRowAttrs> {
 	private hovered: boolean = false
 
-	view(vnode: Vnode<MailFolderRowAttrs>): Children {
-		const { count, button, rightButton, expanded, indentationLevel, folder, hasChildren, editMode, onDragEnter } = vnode.attrs
-		const icon = getFolderIcon(folder)
+	view(vnode: Vnode<MailSetRowAttrs>): Children {
+		const { count, button, rightButton, expanded, indentationLevel, mailSet, hasChildren, editMode, onDragEnter, getIconForMailSet } = vnode.attrs
+		const iconAttrs = getIconForMailSet(mailSet, button)
 		const onHover = () => {
 			vnode.attrs.onHover()
 			this.hovered = true
@@ -104,13 +104,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 						onclick: vnode.attrs.onExpanderClick,
 						onkeydown: handleBackwardsTab,
 					},
-					m(Icon, {
-						icon,
-						size: IconSize.PX24,
-						style: {
-							fill: isNavButtonSelected(button) ? theme.primary : theme.on_surface_variant,
-						},
-					}),
+					m(Icon, iconAttrs),
 				),
 				m(NavButton, {
 					...button,
@@ -140,7 +134,7 @@ export class MailFolderRow implements Component<MailFolderRowAttrs> {
 		)
 	}
 
-	private renderHierarchyLine({ indentationLevel, numberOfPreviousRows, isLastSibling, onSelectedPath }: MailFolderRowAttrs, indentationMargin: number) {
+	private renderHierarchyLine({ indentationLevel, numberOfPreviousRows, isLastSibling, onSelectedPath }: MailSetRowAttrs, indentationMargin: number) {
 		const lineSize = 1
 		const border = `${lineSize}px solid ${theme.outline}`
 		const verticalOffsetInsideRow = component_size.button_height / 2 + 1

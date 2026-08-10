@@ -70,7 +70,7 @@ export class LabelsPopup implements ModalComponent {
 				m(
 					".pb-8.scroll",
 					this.viewModel.getLabelState().map((labelState) => {
-						const { label, state } = labelState
+						const { label, state, displayName } = labelState
 						const color = theme.on_surface
 						const canToggleLabel = state === LabelState.Applied || state === LabelState.AppliedToSome || !this.viewModel.isLabelLimitReached()
 						const opacity = !canToggleLabel ? 0.5 : undefined
@@ -103,7 +103,7 @@ export class LabelsPopup implements ModalComponent {
 											opacity,
 										},
 									},
-									m(".text-ellipsis", label.name),
+									m(".text-ellipsis", displayName),
 								),
 							],
 						)

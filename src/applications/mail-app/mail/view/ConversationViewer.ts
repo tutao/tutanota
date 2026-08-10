@@ -131,9 +131,6 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 					oncreate: (vnode) => {
 						this.containerDom = vnode.dom as HTMLElement
 					},
-					onremove: () => {
-						console.log("remove container")
-					},
 				},
 				this.renderItems(viewModel, this.lastItems, vnode.attrs.actions, vnode.attrs.moreActions),
 				this.renderLoadingState(viewModel),

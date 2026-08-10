@@ -195,6 +195,7 @@ export enum FeatureType {
 	DriveInternalBeta = "22", // Enables drive access for internal testing
 	SolutionPartner = "23",
 	ImapSyncMigration = "24",
+	RespectMxRecord = "25",
 }
 
 export const GENERATED_ID_MAX_TIMESTAMP: number = Math.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)

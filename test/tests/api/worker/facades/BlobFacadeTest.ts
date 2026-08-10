@@ -1159,7 +1159,7 @@ o.spec("BlobFacadeTest", function () {
 			])
 
 			const result = parseMultipleBlobsResponse(new Uint8Array(binaryData))
-			o(result).deepEquals(new Map<Id, Uint8Array>())
+			o(result).deepEquals(new Map<Id, Uint8Array<ArrayBuffer>>())
 		})
 	})
 

@@ -3,9 +3,9 @@ import m, { Children } from "mithril"
 import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
 import { assertNotNull, lazy } from "../../../platform-kit/utils"
-import { getFolderName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../mail/model/MailUtils"
+import { getMailSetName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../mail/model/MailUtils"
 import { UpgradePromptType } from "../../../platform-kit/app-env"
-import { IndentedFolder } from "../../common/api/common/mail/FolderSystem"
+import { IndentedMailSet } from "../../common/api/common/mail/FolderSystem"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { FileMailImportController, UiImportStatus } from "../mail/import/FileMailImportController.js"
 import { Icons } from "../../../ui/base/icons/Icons.js"
@@ -108,7 +108,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		const emptyLabel = m("br")
 		const selectedTargetFolder = this.fileMailImportController().selectedTargetFolder
 		const selectedTargetFolderPath = selectedTargetFolder ? getPathToFolderString(folders, selectedTargetFolder) : ""
-		const isNotSubfolder = selectedTargetFolder ? selectedTargetFolderPath === getFolderName(selectedTargetFolder) : true
+		const isNotSubfolder = selectedTargetFolder ? selectedTargetFolderPath === getMailSetName(selectedTargetFolder) : true
 		let helpLabel = selectedTargetFolder ? (isNotSubfolder ? emptyLabel : selectedTargetFolderPath) : emptyLabel
 		if (helpLabel === "") {
 			helpLabel = emptyLabel
@@ -123,12 +123,12 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		// but at least we won't block inbox ( incoming new mails )
 		const selectableFolders = folders
 			.getIndentedList()
-			.filter((folderInfo) => folderInfo.folder.folderType !== MailSetKind.INBOX && folderInfo.folder.folderType !== MailSetKind.SCHEDULED)
+			.filter((folderInfo) => folderInfo.mailSet.folderType !== MailSetKind.INBOX && folderInfo.mailSet.folderType !== MailSetKind.SCHEDULED)
 
-		const targetFolders: SelectorItemList<MailSet | null> = selectableFolders.map((folderInfo: IndentedFolder) => {
+		const targetFolders: SelectorItemList<MailSet | null> = selectableFolders.map((folderInfo: IndentedMailSet) => {
 			return {
 				name: getIndentedFolderNameForDropdown(folderInfo),
-				value: folderInfo.folder,
+				value: folderInfo.mailSet,
 			}
 		})
 		return m(DropDownSelector, {
@@ -136,7 +136,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 			items: targetFolders,
 			disabled: this.fileMailImportController().shouldRenderImportStatus(),
 			selectedValue: selectedTargetFolder,
-			selectedValueDisplay: selectedTargetFolder ? getFolderName(selectedTargetFolder) : loadingMsg,
+			selectedValueDisplay: selectedTargetFolder ? getMailSetName(selectedTargetFolder) : loadingMsg,
 			selectionChangedHandler: (newFolder: MailSet | null) => (this.fileMailImportController().selectedTargetFolder = newFolder),
 			helpLabel: () => helpLabel,
 		})
@@ -280,7 +280,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 				.sort((a, b) => sortCompareByReverseId(a, b, EntityIdEncoding.Base64Ext))
 				.map((im) => {
 					const targetFolderId = im.targetFolder
-					const displayTargetFolder = folders!.find((f) => isSameId(f.folder._id, targetFolderId))
+					const displayTargetFolder = folders!.find((f) => isSameId(f.mailSet._id, targetFolderId))
 
 					return {
 						cells: () => [
@@ -288,7 +288,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 								main: lang.get("mailImportHistoryTableRowTitle_label", {
 									"{status}": getReadableImportStatus(parseInt(im.status) as FileImportStatus),
 									"{folder}": displayTargetFolder
-										? getFolderName(displayTargetFolder.folder)
+										? getMailSetName(displayTargetFolder.mailSet)
 										: lang.get("mailImportHistoryTableRowFolderDeleted_label"),
 								}),
 								info: [

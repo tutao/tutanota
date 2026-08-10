@@ -59,14 +59,14 @@ export type File = {
 	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	name: string;
 	size: NumberString;
 	mimeType: null | string;
 	_ownerGroup: null | Id;
 	cid: null | string;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	parent: null | IdTuple;
 	subFiles: null | Subfiles;
@@ -94,9 +94,9 @@ export type FileSystem = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	files: Id;
 }
@@ -239,7 +239,7 @@ export type Contact = {
 	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	firstName: string;
 	lastName: string;
 	company: string;
@@ -258,7 +258,7 @@ export type Contact = {
 	phoneticLast: null | string;
 	department: null | string;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	mailAddresses: ContactMailAddress[];
 	phoneNumbers: ContactPhoneNumber[];
@@ -374,7 +374,7 @@ export type Mail = {
 	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	subject: string;
 	receivedDate: Date;
 	state: NumberString;
@@ -395,7 +395,7 @@ export type Mail = {
 	processNeeded: boolean;
 	sendAt: null | Date;
 	serverClassificationData: null | string;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	sender: MailAddress;
 	attachments: IdTuple[];
@@ -444,9 +444,9 @@ export type MailBox = {
 	_format: NumberString;
 	lastInfoDate: Date;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	sentAttachments: Id;
 	receivedAttachments: Id;
@@ -473,8 +473,8 @@ export type CreateExternalUserGroupDataParams = {
 
 
 	mailAddress: string;
-	externalPwEncUserGroupKey: Uint8Array;
-	internalUserEncUserGroupKey: Uint8Array;
+	externalPwEncUserGroupKey: Uint8Array<ArrayBuffer>;
+	internalUserEncUserGroupKey: Uint8Array<ArrayBuffer>;
 	internalUserGroupKeyVersion: NumberString;
 }
 
@@ -484,8 +484,8 @@ export type CreateExternalUserGroupData = {
 
 	_id: Id;
 	mailAddress: string;
-	externalPwEncUserGroupKey: Uint8Array;
-	internalUserEncUserGroupKey: Uint8Array;
+	externalPwEncUserGroupKey: Uint8Array<ArrayBuffer>;
+	internalUserEncUserGroupKey: Uint8Array<ArrayBuffer>;
 	internalUserGroupKeyVersion: NumberString;
 }
 export const ExternalUserDataTypeRef: TypeRef<ExternalUserData> = new TypeRef("tutanota", 145)
@@ -497,15 +497,15 @@ export function createExternalUserData(values: ExternalUserDataParams): External
 export type ExternalUserDataParams = {
 
 
-	externalUserEncMailGroupKey: Uint8Array;
-	verifier: Uint8Array;
-	externalUserEncUserGroupInfoSessionKey: Uint8Array;
-	externalUserEncEntropy: Uint8Array;
-	internalMailEncUserGroupInfoSessionKey: Uint8Array;
-	externalMailEncMailGroupInfoSessionKey: Uint8Array;
-	internalMailEncMailGroupInfoSessionKey: Uint8Array;
-	externalUserEncTutanotaPropertiesSessionKey: Uint8Array;
-	externalMailEncMailBoxSessionKey: Uint8Array;
+	externalUserEncMailGroupKey: Uint8Array<ArrayBuffer>;
+	verifier: Uint8Array<ArrayBuffer>;
+	externalUserEncUserGroupInfoSessionKey: Uint8Array<ArrayBuffer>;
+	externalUserEncEntropy: Uint8Array<ArrayBuffer>;
+	internalMailEncUserGroupInfoSessionKey: Uint8Array<ArrayBuffer>;
+	externalMailEncMailGroupInfoSessionKey: Uint8Array<ArrayBuffer>;
+	internalMailEncMailGroupInfoSessionKey: Uint8Array<ArrayBuffer>;
+	externalUserEncTutanotaPropertiesSessionKey: Uint8Array<ArrayBuffer>;
+	externalMailEncMailBoxSessionKey: Uint8Array<ArrayBuffer>;
 	kdfVersion: NumberString;
 	internalMailGroupKeyVersion: NumberString;
 
@@ -517,15 +517,15 @@ export type ExternalUserData = {
 	_original?: ExternalUserData
 
 	_format: NumberString;
-	externalUserEncMailGroupKey: Uint8Array;
-	verifier: Uint8Array;
-	externalUserEncUserGroupInfoSessionKey: Uint8Array;
-	externalUserEncEntropy: Uint8Array;
-	internalMailEncUserGroupInfoSessionKey: Uint8Array;
-	externalMailEncMailGroupInfoSessionKey: Uint8Array;
-	internalMailEncMailGroupInfoSessionKey: Uint8Array;
-	externalUserEncTutanotaPropertiesSessionKey: Uint8Array;
-	externalMailEncMailBoxSessionKey: Uint8Array;
+	externalUserEncMailGroupKey: Uint8Array<ArrayBuffer>;
+	verifier: Uint8Array<ArrayBuffer>;
+	externalUserEncUserGroupInfoSessionKey: Uint8Array<ArrayBuffer>;
+	externalUserEncEntropy: Uint8Array<ArrayBuffer>;
+	internalMailEncUserGroupInfoSessionKey: Uint8Array<ArrayBuffer>;
+	externalMailEncMailGroupInfoSessionKey: Uint8Array<ArrayBuffer>;
+	internalMailEncMailGroupInfoSessionKey: Uint8Array<ArrayBuffer>;
+	externalUserEncTutanotaPropertiesSessionKey: Uint8Array<ArrayBuffer>;
+	externalMailEncMailBoxSessionKey: Uint8Array<ArrayBuffer>;
 	kdfVersion: NumberString;
 	internalMailGroupKeyVersion: NumberString;
 
@@ -554,9 +554,9 @@ export type ContactList = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	contacts: Id;
 	photos: null | PhotosRef;
@@ -676,7 +676,7 @@ export function createTutanotaProperties(values: TutanotaPropertiesParams): Tuta
 export type TutanotaPropertiesParams = {
 
 
-	userEncEntropy: null | Uint8Array;
+	userEncEntropy: null | Uint8Array<ArrayBuffer>;
 	notificationMailLanguage: null | string;
 	defaultSender: null | string;
 	defaultUnconfidential: boolean;
@@ -701,7 +701,7 @@ export type TutanotaProperties = {
 	_id: ElementId;
 	_permissions: Id;
 	_format: NumberString;
-	userEncEntropy: null | Uint8Array;
+	userEncEntropy: null | Uint8Array<ArrayBuffer>;
 	notificationMailLanguage: null | string;
 	defaultSender: null | string;
 	defaultUnconfidential: boolean;
@@ -709,13 +709,13 @@ export type TutanotaProperties = {
 	emailSignatureType: NumberString;
 	noAutomaticContacts: boolean;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	sendPlaintextOnly: boolean;
 	lastSeenAnnouncement: NumberString;
 	_ownerKeyVersion: null | NumberString;
 	userKeyVersion: null | NumberString;
 	defaultLabelCreated: boolean;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	lastPushedMail: null | IdTuple;
 	imapSyncConfig: ImapSyncConfiguration[];
@@ -796,13 +796,13 @@ export type MailSet = {
 	_id: ListElementId;
 	_permissions: Id;
 	_format: NumberString;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	name: string;
 	folderType: NumberString;
 	_ownerGroup: null | Id;
 	_ownerKeyVersion: null | NumberString;
 	color: null | string;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	parentFolder: null | IdTuple;
 	entries: Id;
@@ -876,7 +876,7 @@ export type CreateMailFolderData = {
 
 	_format: NumberString;
 	folderName: string;
-	ownerEncSessionKey: Uint8Array;
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
 	ownerGroup: null | Id;
 	ownerKeyVersion: NumberString;
 
@@ -935,7 +935,7 @@ export function createEncryptTutanotaPropertiesData(values: EncryptTutanotaPrope
 export type EncryptTutanotaPropertiesDataParams = {
 
 
-	symEncSessionKey: Uint8Array;
+	symEncSessionKey: Uint8Array<ArrayBuffer>;
 	symKeyVersion: NumberString;
 
 	properties: Id;
@@ -946,7 +946,7 @@ export type EncryptTutanotaPropertiesData = {
 	_original?: EncryptTutanotaPropertiesData
 
 	_format: NumberString;
-	symEncSessionKey: Uint8Array;
+	symEncSessionKey: Uint8Array<ArrayBuffer>;
 	symKeyVersion: NumberString;
 
 	properties: Id;
@@ -981,9 +981,9 @@ export function createNewDraftAttachment(values: NewDraftAttachmentParams): NewD
 export type NewDraftAttachmentParams = {
 
 
-	encFileName: Uint8Array;
-	encMimeType: Uint8Array;
-	encCid: null | Uint8Array;
+	encFileName: Uint8Array<ArrayBuffer>;
+	encMimeType: Uint8Array<ArrayBuffer>;
+	encCid: null | Uint8Array<ArrayBuffer>;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
 }
@@ -993,9 +993,9 @@ export type NewDraftAttachment = {
 	_original?: NewDraftAttachment
 
 	_id: Id;
-	encFileName: Uint8Array;
-	encMimeType: Uint8Array;
-	encCid: null | Uint8Array;
+	encFileName: Uint8Array<ArrayBuffer>;
+	encMimeType: Uint8Array<ArrayBuffer>;
+	encCid: null | Uint8Array<ArrayBuffer>;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
 }
@@ -1008,7 +1008,7 @@ export function createDraftAttachment(values: DraftAttachmentParams): DraftAttac
 export type DraftAttachmentParams = {
 
 
-	ownerEncFileSessionKey: Uint8Array;
+	ownerEncFileSessionKey: Uint8Array<ArrayBuffer>;
 
 	newFile: null | NewDraftAttachment;
 	existingFile: null | IdTuple;
@@ -1019,7 +1019,7 @@ export type DraftAttachment = {
 	_original?: DraftAttachment
 
 	_id: Id;
-	ownerEncFileSessionKey: Uint8Array;
+	ownerEncFileSessionKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
 
 	newFile: null | NewDraftAttachment;
@@ -1093,7 +1093,7 @@ export type DraftCreateData = {
 	_format: NumberString;
 	previousMessageId: null | string;
 	conversationType: NumberString;
-	ownerEncSessionKey: Uint8Array;
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
 
 	draftData: DraftData;
@@ -1175,7 +1175,7 @@ export type InternalRecipientKeyDataParams = {
 
 
 	mailAddress: string;
-	pubEncBucketKey: Uint8Array;
+	pubEncBucketKey: Uint8Array<ArrayBuffer>;
 	recipientKeyVersion: NumberString;
 	protocolVersion: NumberString;
 	senderKeyVersion: null | NumberString;
@@ -1187,7 +1187,7 @@ export type InternalRecipientKeyData = {
 
 	_id: Id;
 	mailAddress: string;
-	pubEncBucketKey: Uint8Array;
+	pubEncBucketKey: Uint8Array<ArrayBuffer>;
 	recipientKeyVersion: NumberString;
 	protocolVersion: NumberString;
 	senderKeyVersion: null | NumberString;
@@ -1202,11 +1202,11 @@ export type SecureExternalRecipientKeyDataParams = {
 
 
 	mailAddress: string;
-	passwordVerifier: Uint8Array;
-	salt: null | Uint8Array;
-	saltHash: null | Uint8Array;
-	pwEncCommunicationKey: null | Uint8Array;
-	ownerEncBucketKey: Uint8Array;
+	passwordVerifier: Uint8Array<ArrayBuffer>;
+	salt: null | Uint8Array<ArrayBuffer>;
+	saltHash: null | Uint8Array<ArrayBuffer>;
+	pwEncCommunicationKey: null | Uint8Array<ArrayBuffer>;
+	ownerEncBucketKey: Uint8Array<ArrayBuffer>;
 	kdfVersion: NumberString;
 	userGroupKeyVersion: NumberString;
 }
@@ -1217,11 +1217,11 @@ export type SecureExternalRecipientKeyData = {
 
 	_id: Id;
 	mailAddress: string;
-	passwordVerifier: Uint8Array;
-	salt: null | Uint8Array;
-	saltHash: null | Uint8Array;
-	pwEncCommunicationKey: null | Uint8Array;
-	ownerEncBucketKey: Uint8Array;
+	passwordVerifier: Uint8Array<ArrayBuffer>;
+	salt: null | Uint8Array<ArrayBuffer>;
+	saltHash: null | Uint8Array<ArrayBuffer>;
+	pwEncCommunicationKey: null | Uint8Array<ArrayBuffer>;
+	ownerEncBucketKey: Uint8Array<ArrayBuffer>;
 	kdfVersion: NumberString;
 	ownerKeyVersion: NumberString;
 	userGroupKeyVersion: NumberString;
@@ -1235,8 +1235,8 @@ export function createAttachmentKeyData(values: AttachmentKeyDataParams): Attach
 export type AttachmentKeyDataParams = {
 
 
-	bucketEncFileSessionKey: null | Uint8Array;
-	fileSessionKey: null | Uint8Array;
+	bucketEncFileSessionKey: null | Uint8Array<ArrayBuffer>;
+	fileSessionKey: null | Uint8Array<ArrayBuffer>;
 
 	file: IdTuple;
 }
@@ -1246,8 +1246,8 @@ export type AttachmentKeyData = {
 	_original?: AttachmentKeyData
 
 	_id: Id;
-	bucketEncFileSessionKey: null | Uint8Array;
-	fileSessionKey: null | Uint8Array;
+	bucketEncFileSessionKey: null | Uint8Array<ArrayBuffer>;
+	fileSessionKey: null | Uint8Array<ArrayBuffer>;
 
 	file: IdTuple;
 }
@@ -1261,12 +1261,12 @@ export type SendDraftDataParams = {
 
 
 	language: string;
-	mailSessionKey: null | Uint8Array;
-	bucketEncMailSessionKey: null | Uint8Array;
+	mailSessionKey: null | Uint8Array<ArrayBuffer>;
+	bucketEncMailSessionKey: null | Uint8Array<ArrayBuffer>;
 	senderNameUnencrypted: null | string;
 	plaintext: boolean;
 	calendarMethod: boolean;
-	sessionEncEncryptionAuthStatus: null | Uint8Array;
+	sessionEncEncryptionAuthStatus: null | Uint8Array<ArrayBuffer>;
 	sendAt: null | Date;
 	allowUndo: boolean;
 
@@ -1284,12 +1284,12 @@ export type SendDraftData = {
 
 	_format: NumberString;
 	language: string;
-	mailSessionKey: null | Uint8Array;
-	bucketEncMailSessionKey: null | Uint8Array;
+	mailSessionKey: null | Uint8Array<ArrayBuffer>;
+	bucketEncMailSessionKey: null | Uint8Array<ArrayBuffer>;
 	senderNameUnencrypted: null | string;
 	plaintext: boolean;
 	calendarMethod: boolean;
-	sessionEncEncryptionAuthStatus: null | Uint8Array;
+	sessionEncEncryptionAuthStatus: null | Uint8Array<ArrayBuffer>;
 	sendAt: null | Date;
 	allowUndo: boolean;
 
@@ -1406,25 +1406,25 @@ export type UserAccountUserDataParams = {
 
 
 	mailAddress: string;
-	encryptedName: Uint8Array;
-	salt: Uint8Array;
-	verifier: Uint8Array;
-	pwEncUserGroupKey: Uint8Array;
-	userEncCustomerGroupKey: Uint8Array;
-	userEncMailGroupKey: Uint8Array;
-	userEncContactGroupKey: Uint8Array;
-	userEncFileGroupKey: Uint8Array;
-	userEncEntropy: Uint8Array;
-	userEncTutanotaPropertiesSessionKey: Uint8Array;
-	mailEncMailBoxSessionKey: Uint8Array;
-	contactEncContactListSessionKey: Uint8Array;
-	fileEncFileSystemSessionKey: Uint8Array;
-	customerEncMailGroupInfoSessionKey: Uint8Array;
-	customerEncContactGroupInfoSessionKey: Uint8Array;
-	customerEncFileGroupInfoSessionKey: Uint8Array;
-	userEncRecoverCode: Uint8Array;
-	recoverCodeEncUserGroupKey: Uint8Array;
-	recoverCodeVerifier: Uint8Array;
+	encryptedName: Uint8Array<ArrayBuffer>;
+	salt: Uint8Array<ArrayBuffer>;
+	verifier: Uint8Array<ArrayBuffer>;
+	pwEncUserGroupKey: Uint8Array<ArrayBuffer>;
+	userEncCustomerGroupKey: Uint8Array<ArrayBuffer>;
+	userEncMailGroupKey: Uint8Array<ArrayBuffer>;
+	userEncContactGroupKey: Uint8Array<ArrayBuffer>;
+	userEncFileGroupKey: Uint8Array<ArrayBuffer>;
+	userEncEntropy: Uint8Array<ArrayBuffer>;
+	userEncTutanotaPropertiesSessionKey: Uint8Array<ArrayBuffer>;
+	mailEncMailBoxSessionKey: Uint8Array<ArrayBuffer>;
+	contactEncContactListSessionKey: Uint8Array<ArrayBuffer>;
+	fileEncFileSystemSessionKey: Uint8Array<ArrayBuffer>;
+	customerEncMailGroupInfoSessionKey: Uint8Array<ArrayBuffer>;
+	customerEncContactGroupInfoSessionKey: Uint8Array<ArrayBuffer>;
+	customerEncFileGroupInfoSessionKey: Uint8Array<ArrayBuffer>;
+	userEncRecoverCode: Uint8Array<ArrayBuffer>;
+	recoverCodeEncUserGroupKey: Uint8Array<ArrayBuffer>;
+	recoverCodeVerifier: Uint8Array<ArrayBuffer>;
 	kdfVersion: NumberString;
 	customerKeyVersion: NumberString;
 }
@@ -1435,25 +1435,25 @@ export type UserAccountUserData = {
 
 	_id: Id;
 	mailAddress: string;
-	encryptedName: Uint8Array;
-	salt: Uint8Array;
-	verifier: Uint8Array;
-	pwEncUserGroupKey: Uint8Array;
-	userEncCustomerGroupKey: Uint8Array;
-	userEncMailGroupKey: Uint8Array;
-	userEncContactGroupKey: Uint8Array;
-	userEncFileGroupKey: Uint8Array;
-	userEncEntropy: Uint8Array;
-	userEncTutanotaPropertiesSessionKey: Uint8Array;
-	mailEncMailBoxSessionKey: Uint8Array;
-	contactEncContactListSessionKey: Uint8Array;
-	fileEncFileSystemSessionKey: Uint8Array;
-	customerEncMailGroupInfoSessionKey: Uint8Array;
-	customerEncContactGroupInfoSessionKey: Uint8Array;
-	customerEncFileGroupInfoSessionKey: Uint8Array;
-	userEncRecoverCode: Uint8Array;
-	recoverCodeEncUserGroupKey: Uint8Array;
-	recoverCodeVerifier: Uint8Array;
+	encryptedName: Uint8Array<ArrayBuffer>;
+	salt: Uint8Array<ArrayBuffer>;
+	verifier: Uint8Array<ArrayBuffer>;
+	pwEncUserGroupKey: Uint8Array<ArrayBuffer>;
+	userEncCustomerGroupKey: Uint8Array<ArrayBuffer>;
+	userEncMailGroupKey: Uint8Array<ArrayBuffer>;
+	userEncContactGroupKey: Uint8Array<ArrayBuffer>;
+	userEncFileGroupKey: Uint8Array<ArrayBuffer>;
+	userEncEntropy: Uint8Array<ArrayBuffer>;
+	userEncTutanotaPropertiesSessionKey: Uint8Array<ArrayBuffer>;
+	mailEncMailBoxSessionKey: Uint8Array<ArrayBuffer>;
+	contactEncContactListSessionKey: Uint8Array<ArrayBuffer>;
+	fileEncFileSystemSessionKey: Uint8Array<ArrayBuffer>;
+	customerEncMailGroupInfoSessionKey: Uint8Array<ArrayBuffer>;
+	customerEncContactGroupInfoSessionKey: Uint8Array<ArrayBuffer>;
+	customerEncFileGroupInfoSessionKey: Uint8Array<ArrayBuffer>;
+	userEncRecoverCode: Uint8Array<ArrayBuffer>;
+	recoverCodeEncUserGroupKey: Uint8Array<ArrayBuffer>;
+	recoverCodeVerifier: Uint8Array<ArrayBuffer>;
 	kdfVersion: NumberString;
 	customerKeyVersion: NumberString;
 }
@@ -1466,14 +1466,14 @@ export function createInternalGroupData(values: InternalGroupDataParams): Intern
 export type InternalGroupDataParams = {
 
 
-	pubRsaKey: null | Uint8Array;
-	groupEncPrivRsaKey: null | Uint8Array;
-	adminEncGroupKey: Uint8Array;
-	ownerEncGroupInfoSessionKey: Uint8Array;
-	pubEccKey: null | Uint8Array;
-	groupEncPrivEccKey: null | Uint8Array;
-	pubKyberKey: null | Uint8Array;
-	groupEncPrivKyberKey: null | Uint8Array;
+	pubRsaKey: null | Uint8Array<ArrayBuffer>;
+	groupEncPrivRsaKey: null | Uint8Array<ArrayBuffer>;
+	adminEncGroupKey: Uint8Array<ArrayBuffer>;
+	ownerEncGroupInfoSessionKey: Uint8Array<ArrayBuffer>;
+	pubEccKey: null | Uint8Array<ArrayBuffer>;
+	groupEncPrivEccKey: null | Uint8Array<ArrayBuffer>;
+	pubKyberKey: null | Uint8Array<ArrayBuffer>;
+	groupEncPrivKyberKey: null | Uint8Array<ArrayBuffer>;
 	adminKeyVersion: NumberString;
 
 	adminGroup: null | Id;
@@ -1484,14 +1484,14 @@ export type InternalGroupData = {
 	_original?: InternalGroupData
 
 	_id: Id;
-	pubRsaKey: null | Uint8Array;
-	groupEncPrivRsaKey: null | Uint8Array;
-	adminEncGroupKey: Uint8Array;
-	ownerEncGroupInfoSessionKey: Uint8Array;
-	pubEccKey: null | Uint8Array;
-	groupEncPrivEccKey: null | Uint8Array;
-	pubKyberKey: null | Uint8Array;
-	groupEncPrivKyberKey: null | Uint8Array;
+	pubRsaKey: null | Uint8Array<ArrayBuffer>;
+	groupEncPrivRsaKey: null | Uint8Array<ArrayBuffer>;
+	adminEncGroupKey: Uint8Array<ArrayBuffer>;
+	ownerEncGroupInfoSessionKey: Uint8Array<ArrayBuffer>;
+	pubEccKey: null | Uint8Array<ArrayBuffer>;
+	groupEncPrivEccKey: null | Uint8Array<ArrayBuffer>;
+	pubKyberKey: null | Uint8Array<ArrayBuffer>;
+	groupEncPrivKyberKey: null | Uint8Array<ArrayBuffer>;
 	adminKeyVersion: NumberString;
 	ownerKeyVersion: NumberString;
 
@@ -1509,11 +1509,11 @@ export type CustomerAccountCreateDataParams = {
 	authToken: string;
 	date: null | Date;
 	lang: string;
-	userEncAdminGroupKey: Uint8Array;
-	userEncAccountGroupKey: Uint8Array;
-	adminEncAccountingInfoSessionKey: Uint8Array;
-	systemAdminPubEncAccountingInfoSessionKey: Uint8Array;
-	adminEncCustomerServerPropertiesSessionKey: Uint8Array;
+	userEncAdminGroupKey: Uint8Array<ArrayBuffer>;
+	userEncAccountGroupKey: Uint8Array<ArrayBuffer>;
+	adminEncAccountingInfoSessionKey: Uint8Array<ArrayBuffer>;
+	systemAdminPubEncAccountingInfoSessionKey: Uint8Array<ArrayBuffer>;
+	adminEncCustomerServerPropertiesSessionKey: Uint8Array<ArrayBuffer>;
 	code: string;
 	systemAdminPublicProtocolVersion: NumberString;
 	accountGroupKeyVersion: NumberString;
@@ -1534,11 +1534,11 @@ export type CustomerAccountCreateData = {
 	authToken: string;
 	date: null | Date;
 	lang: string;
-	userEncAdminGroupKey: Uint8Array;
-	userEncAccountGroupKey: Uint8Array;
-	adminEncAccountingInfoSessionKey: Uint8Array;
-	systemAdminPubEncAccountingInfoSessionKey: Uint8Array;
-	adminEncCustomerServerPropertiesSessionKey: Uint8Array;
+	userEncAdminGroupKey: Uint8Array<ArrayBuffer>;
+	userEncAccountGroupKey: Uint8Array<ArrayBuffer>;
+	adminEncAccountingInfoSessionKey: Uint8Array<ArrayBuffer>;
+	systemAdminPubEncAccountingInfoSessionKey: Uint8Array<ArrayBuffer>;
+	adminEncCustomerServerPropertiesSessionKey: Uint8Array<ArrayBuffer>;
 	code: string;
 	systemAdminPublicProtocolVersion: NumberString;
 	accountGroupKeyVersion: NumberString;
@@ -1639,8 +1639,8 @@ export type CreateMailGroupDataParams = {
 
 
 	mailAddress: string;
-	encryptedName: Uint8Array;
-	mailEncMailboxSessionKey: Uint8Array;
+	encryptedName: Uint8Array<ArrayBuffer>;
+	mailEncMailboxSessionKey: Uint8Array<ArrayBuffer>;
 
 	groupData: InternalGroupData;
 }
@@ -1651,8 +1651,8 @@ export type CreateMailGroupData = {
 
 	_format: NumberString;
 	mailAddress: string;
-	encryptedName: Uint8Array;
-	mailEncMailboxSessionKey: Uint8Array;
+	encryptedName: Uint8Array<ArrayBuffer>;
+	mailEncMailboxSessionKey: Uint8Array<ArrayBuffer>;
 
 	groupData: InternalGroupData;
 }
@@ -1794,7 +1794,7 @@ export type CalendarEventParams = {
 	endTime: Date;
 	location: string;
 	uid: null | string;
-	hashedUid: null | Uint8Array;
+	hashedUid: null | Uint8Array<ArrayBuffer>;
 	sequence: NumberString;
 	invitedConfidentially: null | boolean;
 	recurrenceId: null | Date;
@@ -1818,21 +1818,21 @@ export type CalendarEvent = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	summary: string;
 	description: string;
 	startTime: Date;
 	endTime: Date;
 	location: string;
 	uid: null | string;
-	hashedUid: null | Uint8Array;
+	hashedUid: null | Uint8Array<ArrayBuffer>;
 	sequence: NumberString;
 	invitedConfidentially: null | boolean;
 	recurrenceId: null | Date;
 	_ownerKeyVersion: null | NumberString;
 	sender: null | string;
 	pendingInvitation: null | boolean;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 	startTimeZone: null | string;
 	endTimeZone: null | string;
 
@@ -1865,9 +1865,9 @@ export type CalendarGroupRoot = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	shortEvents: Id;
 	longEvents: Id;
@@ -1882,11 +1882,11 @@ export function createUserAreaGroupData(values: UserAreaGroupDataParams): UserAr
 export type UserAreaGroupDataParams = {
 
 
-	groupEncGroupRootSessionKey: Uint8Array;
-	adminEncGroupKey: null | Uint8Array;
-	customerEncGroupInfoSessionKey: Uint8Array;
-	userEncGroupKey: Uint8Array;
-	groupInfoEncName: Uint8Array;
+	groupEncGroupRootSessionKey: Uint8Array<ArrayBuffer>;
+	adminEncGroupKey: null | Uint8Array<ArrayBuffer>;
+	customerEncGroupInfoSessionKey: Uint8Array<ArrayBuffer>;
+	userEncGroupKey: Uint8Array<ArrayBuffer>;
+	groupInfoEncName: Uint8Array<ArrayBuffer>;
 	adminKeyVersion: null | NumberString;
 	customerKeyVersion: NumberString;
 	userKeyVersion: NumberString;
@@ -1899,11 +1899,11 @@ export type UserAreaGroupData = {
 	_original?: UserAreaGroupData
 
 	_id: Id;
-	groupEncGroupRootSessionKey: Uint8Array;
-	adminEncGroupKey: null | Uint8Array;
-	customerEncGroupInfoSessionKey: Uint8Array;
-	userEncGroupKey: Uint8Array;
-	groupInfoEncName: Uint8Array;
+	groupEncGroupRootSessionKey: Uint8Array<ArrayBuffer>;
+	adminEncGroupKey: null | Uint8Array<ArrayBuffer>;
+	customerEncGroupInfoSessionKey: Uint8Array<ArrayBuffer>;
+	userEncGroupKey: Uint8Array<ArrayBuffer>;
+	groupInfoEncName: Uint8Array<ArrayBuffer>;
 	adminKeyVersion: null | NumberString;
 	customerKeyVersion: NumberString;
 	userKeyVersion: NumberString;
@@ -1986,13 +1986,13 @@ export type UserSettingsGroupRoot = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	timeFormat: NumberString;
 	startOfTheWeek: NumberString;
 	usageDataOptedIn: null | boolean;
 	_ownerKeyVersion: null | NumberString;
 	birthdayCalendarColor: null | string;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	groupSettings: GroupSettings[];
 }
@@ -2049,12 +2049,12 @@ export type SharedGroupDataParams = {
 
 
 	capability: NumberString;
-	sessionEncSharedGroupKey: Uint8Array;
-	sessionEncSharedGroupName: Uint8Array;
-	sessionEncInviterName: Uint8Array;
-	bucketEncInvitationSessionKey: Uint8Array;
-	sharedGroupEncInviterGroupInfoKey: Uint8Array;
-	sharedGroupEncSharedGroupInfoKey: Uint8Array;
+	sessionEncSharedGroupKey: Uint8Array<ArrayBuffer>;
+	sessionEncSharedGroupName: Uint8Array<ArrayBuffer>;
+	sessionEncInviterName: Uint8Array<ArrayBuffer>;
+	bucketEncInvitationSessionKey: Uint8Array<ArrayBuffer>;
+	sharedGroupEncInviterGroupInfoKey: Uint8Array<ArrayBuffer>;
+	sharedGroupEncSharedGroupInfoKey: Uint8Array<ArrayBuffer>;
 	sharedGroup: Id;
 	sharedGroupKeyVersion: NumberString;
 }
@@ -2065,12 +2065,12 @@ export type SharedGroupData = {
 
 	_id: Id;
 	capability: NumberString;
-	sessionEncSharedGroupKey: Uint8Array;
-	sessionEncSharedGroupName: Uint8Array;
-	sessionEncInviterName: Uint8Array;
-	bucketEncInvitationSessionKey: Uint8Array;
-	sharedGroupEncInviterGroupInfoKey: Uint8Array;
-	sharedGroupEncSharedGroupInfoKey: Uint8Array;
+	sessionEncSharedGroupKey: Uint8Array<ArrayBuffer>;
+	sessionEncSharedGroupName: Uint8Array<ArrayBuffer>;
+	sessionEncInviterName: Uint8Array<ArrayBuffer>;
+	bucketEncInvitationSessionKey: Uint8Array<ArrayBuffer>;
+	sharedGroupEncInviterGroupInfoKey: Uint8Array<ArrayBuffer>;
+	sharedGroupEncSharedGroupInfoKey: Uint8Array<ArrayBuffer>;
 	sharedGroup: Id;
 	sharedGroupKeyVersion: NumberString;
 }
@@ -2131,8 +2131,8 @@ export function createGroupInvitationPutData(values: GroupInvitationPutDataParam
 export type GroupInvitationPutDataParams = {
 
 
-	userGroupEncGroupKey: Uint8Array;
-	sharedGroupEncInviteeGroupInfoKey: Uint8Array;
+	userGroupEncGroupKey: Uint8Array<ArrayBuffer>;
+	sharedGroupEncInviteeGroupInfoKey: Uint8Array<ArrayBuffer>;
 	userGroupKeyVersion: NumberString;
 	sharedGroupKeyVersion: NumberString;
 
@@ -2144,8 +2144,8 @@ export type GroupInvitationPutData = {
 	_original?: GroupInvitationPutData
 
 	_format: NumberString;
-	userGroupEncGroupKey: Uint8Array;
-	sharedGroupEncInviteeGroupInfoKey: Uint8Array;
+	userGroupEncGroupKey: Uint8Array<ArrayBuffer>;
+	sharedGroupEncInviteeGroupInfoKey: Uint8Array<ArrayBuffer>;
 	userGroupKeyVersion: NumberString;
 	sharedGroupKeyVersion: NumberString;
 
@@ -2229,7 +2229,7 @@ export function createReportMailPostData(values: ReportMailPostDataParams): Repo
 export type ReportMailPostDataParams = {
 
 
-	mailSessionKey: Uint8Array;
+	mailSessionKey: Uint8Array<ArrayBuffer>;
 	reportType: NumberString;
 
 	mailId: IdTuple;
@@ -2240,7 +2240,7 @@ export type ReportMailPostData = {
 	_original?: ReportMailPostData
 
 	_format: NumberString;
-	mailSessionKey: Uint8Array;
+	mailSessionKey: Uint8Array<ArrayBuffer>;
 	reportType: NumberString;
 
 	mailId: IdTuple;
@@ -2338,10 +2338,10 @@ export type CalendarEventUpdate = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	sender: string;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	file: IdTuple;
 }
@@ -2375,7 +2375,7 @@ export function createEntropyData(values: EntropyDataParams): EntropyData {
 export type EntropyDataParams = {
 
 
-	userEncEntropy: Uint8Array;
+	userEncEntropy: Uint8Array<ArrayBuffer>;
 	userKeyVersion: NumberString;
 }
 
@@ -2384,7 +2384,7 @@ export type EntropyData = {
 	_original?: EntropyData
 
 	_format: NumberString;
-	userEncEntropy: Uint8Array;
+	userEncEntropy: Uint8Array<ArrayBuffer>;
 	userKeyVersion: NumberString;
 }
 export const OutOfOfficeNotificationMessageTypeRef: TypeRef<OutOfOfficeNotificationMessage> = new TypeRef("tutanota", 1126)
@@ -2526,11 +2526,11 @@ export type EmailTemplate = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	title: string;
 	tag: string;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	contents: EmailTemplateContent[];
 }
@@ -2577,11 +2577,11 @@ export type KnowledgeBaseEntry = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	title: string;
 	description: string;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	keywords: KnowledgeBaseEntryKeyword[];
 }
@@ -2608,9 +2608,9 @@ export type TemplateGroupRoot = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	templates: Id;
 	knowledgeBase: Id;
@@ -2659,10 +2659,10 @@ export type MailboxProperties = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	reportMovedMails: NumberString;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	mailAddressProperties: MailAddressProperties[];
 }
@@ -2889,9 +2889,9 @@ export type MailDetailsDraft = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	details: MailDetails;
 }
@@ -2917,9 +2917,9 @@ export type MailDetailsBlob = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	details: MailDetails;
 }
@@ -2988,10 +2988,10 @@ export type ContactListEntry = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	emailAddress: string;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 }
 export const ContactListGroupRootTypeRef: TypeRef<ContactListGroupRoot> = new TypeRef("tutanota", 1333)
 
@@ -3015,9 +3015,9 @@ export type ContactListGroupRoot = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	entries: Id;
 }
@@ -3031,7 +3031,7 @@ export type SymEncInternalRecipientKeyDataParams = {
 
 
 	mailAddress: string;
-	symEncBucketKey: Uint8Array;
+	symEncBucketKey: Uint8Array<ArrayBuffer>;
 	symKeyVersion: NumberString;
 
 	keyGroup: Id;
@@ -3043,7 +3043,7 @@ export type SymEncInternalRecipientKeyData = {
 
 	_id: Id;
 	mailAddress: string;
-	symEncBucketKey: Uint8Array;
+	symEncBucketKey: Uint8Array<ArrayBuffer>;
 	symKeyVersion: NumberString;
 
 	keyGroup: Id;
@@ -3324,6 +3324,8 @@ export type ManageLabelServiceLabelDataParams = {
 
 	name: string;
 	color: string;
+
+	parentLabel: null | IdTuple;
 }
 
 export type ManageLabelServiceLabelData = {
@@ -3333,6 +3335,8 @@ export type ManageLabelServiceLabelData = {
 	_id: Id;
 	name: string;
 	color: string;
+
+	parentLabel: null | IdTuple;
 }
 export const ManageLabelServicePostInTypeRef: TypeRef<ManageLabelServicePostIn> = new TypeRef("tutanota", 1484)
 
@@ -3353,7 +3357,7 @@ export type ManageLabelServicePostIn = {
 	_original?: ManageLabelServicePostIn
 
 	_format: NumberString;
-	ownerEncSessionKey: Uint8Array;
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
 	ownerGroup: Id;
 
@@ -3379,6 +3383,30 @@ export type ManageLabelServicePostOut = {
 	_format: NumberString;
 
 	label: IdTuple;
+}
+export const ManageLabelServicePutInTypeRef: TypeRef<ManageLabelServicePutIn> = new TypeRef("tutanota", 1493)
+
+export function createManageLabelServicePutIn(values: ManageLabelServicePutInParams): ManageLabelServicePutIn {
+    return Object.assign(create(typeModels[ManageLabelServicePutInTypeRef.typeId], ManageLabelServicePutInTypeRef), values)
+}
+
+export type ManageLabelServicePutInParams = {
+
+
+
+	label: IdTuple;
+	data: ManageLabelServiceLabelData;
+}
+
+export type ManageLabelServicePutIn = {
+	_type: TypeRef<ManageLabelServicePutIn>;
+	_errors: Object;
+	_original?: ManageLabelServicePutIn
+
+	_format: NumberString;
+
+	label: IdTuple;
+	data: ManageLabelServiceLabelData;
 }
 export const ManageLabelServiceDeleteInTypeRef: TypeRef<ManageLabelServiceDeleteIn> = new TypeRef("tutanota", 1500)
 
@@ -3454,11 +3482,11 @@ export function createNewImportAttachment(values: NewImportAttachmentParams): Ne
 export type NewImportAttachmentParams = {
 
 
-	ownerEncFileHashSessionKey: null | Uint8Array;
-	encFileHash: null | Uint8Array;
-	encFileName: Uint8Array;
-	encMimeType: Uint8Array;
-	encCid: null | Uint8Array;
+	ownerEncFileHashSessionKey: null | Uint8Array<ArrayBuffer>;
+	encFileHash: null | Uint8Array<ArrayBuffer>;
+	encFileName: Uint8Array<ArrayBuffer>;
+	encMimeType: Uint8Array<ArrayBuffer>;
+	encCid: null | Uint8Array<ArrayBuffer>;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
 }
@@ -3468,11 +3496,11 @@ export type NewImportAttachment = {
 	_original?: NewImportAttachment
 
 	_id: Id;
-	ownerEncFileHashSessionKey: null | Uint8Array;
-	encFileHash: null | Uint8Array;
-	encFileName: Uint8Array;
-	encMimeType: Uint8Array;
-	encCid: null | Uint8Array;
+	ownerEncFileHashSessionKey: null | Uint8Array<ArrayBuffer>;
+	encFileHash: null | Uint8Array<ArrayBuffer>;
+	encFileName: Uint8Array<ArrayBuffer>;
+	encMimeType: Uint8Array<ArrayBuffer>;
+	encCid: null | Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: null | NumberString;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
@@ -3486,7 +3514,7 @@ export function createImportAttachment(values: ImportAttachmentParams): ImportAt
 export type ImportAttachmentParams = {
 
 
-	ownerEncFileSessionKey: Uint8Array;
+	ownerEncFileSessionKey: Uint8Array<ArrayBuffer>;
 	ownerFileKeyVersion: NumberString;
 
 	newAttachment: null | NewImportAttachment;
@@ -3498,7 +3526,7 @@ export type ImportAttachment = {
 	_original?: ImportAttachment
 
 	_id: Id;
-	ownerEncFileSessionKey: Uint8Array;
+	ownerEncFileSessionKey: Uint8Array<ArrayBuffer>;
 	ownerFileKeyVersion: NumberString;
 
 	newAttachment: null | NewImportAttachment;
@@ -3534,6 +3562,7 @@ export type ImportMailDataParams = {
 	replyTos: EncryptedMailAddress[];
 	recipients: Recipients;
 	importedAttachments: ImportAttachment[];
+	labels: IdTuple[];
 }
 
 export type ImportMailData = {
@@ -3542,7 +3571,7 @@ export type ImportMailData = {
 	_original?: ImportMailData
 
 	_format: NumberString;
-	ownerEncSessionKey: Uint8Array;
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
 	subject: string;
 	compressedBodyText: string;
@@ -3565,6 +3594,7 @@ export type ImportMailData = {
 	replyTos: EncryptedMailAddress[];
 	recipients: Recipients;
 	importedAttachments: ImportAttachment[];
+	labels: IdTuple[];
 }
 export const ImportedFileMailTypeRef: TypeRef<ImportedFileMail> = new TypeRef("tutanota", 1552)
 
@@ -3689,7 +3719,7 @@ export type ImportMailGetIn = {
 	_format: NumberString;
 	ownerGroup: Id;
 	ownerKeyVersion: NumberString;
-	ownerEncSessionKey: Uint8Array;
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
 	newImportedMailSetName: string;
 	totalMails: NumberString;
 
@@ -4087,8 +4117,8 @@ export type ClientSpamTrainingDatumParams = {
 
 	confidence: NumberString;
 	spamDecision: NumberString;
-	vectorLegacy: Uint8Array;
-	vectorWithServerClassifiers: null | Uint8Array;
+	vectorLegacy: Uint8Array<ArrayBuffer>;
+	vectorWithServerClassifiers: null | Uint8Array<ArrayBuffer>;
 }
 
 export type ClientSpamTrainingDatum = {
@@ -4100,13 +4130,13 @@ export type ClientSpamTrainingDatum = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
 	confidence: NumberString;
 	spamDecision: NumberString;
-	vectorLegacy: Uint8Array;
-	vectorWithServerClassifiers: null | Uint8Array;
-	_kdfNonce: null | Uint8Array;
+	vectorLegacy: Uint8Array<ArrayBuffer>;
+	vectorWithServerClassifiers: null | Uint8Array<ArrayBuffer>;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 }
 export const ClientSpamTrainingDatumIndexEntryTypeRef: TypeRef<ClientSpamTrainingDatumIndexEntry> = new TypeRef("tutanota", 1747)
 
@@ -4139,10 +4169,10 @@ export function createProcessInboxDatum(values: ProcessInboxDatumParams): Proces
 export type ProcessInboxDatumParams = {
 
 
-	ownerEncVectorSessionKey: Uint8Array;
+	ownerEncVectorSessionKey: Uint8Array<ArrayBuffer>;
 	classifierType: null | NumberString;
-	encVectorLegacy: Uint8Array;
-	encVectorWithServerClassifiers: null | Uint8Array;
+	encVectorLegacy: Uint8Array<ArrayBuffer>;
+	encVectorWithServerClassifiers: null | Uint8Array<ArrayBuffer>;
 
 	mailId: IdTuple;
 	targetMoveFolder: IdTuple;
@@ -4154,11 +4184,11 @@ export type ProcessInboxDatum = {
 	_original?: ProcessInboxDatum
 
 	_id: Id;
-	ownerEncVectorSessionKey: Uint8Array;
+	ownerEncVectorSessionKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
 	classifierType: null | NumberString;
-	encVectorLegacy: Uint8Array;
-	encVectorWithServerClassifiers: null | Uint8Array;
+	encVectorLegacy: Uint8Array<ArrayBuffer>;
+	encVectorWithServerClassifiers: null | Uint8Array<ArrayBuffer>;
 
 	mailId: IdTuple;
 	targetMoveFolder: IdTuple;
@@ -4196,11 +4226,11 @@ export function createPopulateClientSpamTrainingDatum(values: PopulateClientSpam
 export type PopulateClientSpamTrainingDatumParams = {
 
 
-	ownerEncVectorSessionKey: Uint8Array;
+	ownerEncVectorSessionKey: Uint8Array<ArrayBuffer>;
 	isSpam: boolean;
 	confidence: NumberString;
-	encVectorLegacy: Uint8Array;
-	encVectorWithServerClassifiers: null | Uint8Array;
+	encVectorLegacy: Uint8Array<ArrayBuffer>;
+	encVectorWithServerClassifiers: null | Uint8Array<ArrayBuffer>;
 
 	mailId: IdTuple;
 }
@@ -4210,12 +4240,12 @@ export type PopulateClientSpamTrainingDatum = {
 	_original?: PopulateClientSpamTrainingDatum
 
 	_id: Id;
-	ownerEncVectorSessionKey: Uint8Array;
+	ownerEncVectorSessionKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
 	isSpam: boolean;
 	confidence: NumberString;
-	encVectorLegacy: Uint8Array;
-	encVectorWithServerClassifiers: null | Uint8Array;
+	encVectorLegacy: Uint8Array<ArrayBuffer>;
+	encVectorWithServerClassifiers: null | Uint8Array<ArrayBuffer>;
 
 	mailId: IdTuple;
 }
@@ -4275,12 +4305,12 @@ export type SendDraftParametersParams = {
 
 
 	language: string;
-	mailSessionKey: null | Uint8Array;
-	bucketEncMailSessionKey: null | Uint8Array;
+	mailSessionKey: null | Uint8Array<ArrayBuffer>;
+	bucketEncMailSessionKey: null | Uint8Array<ArrayBuffer>;
 	senderNameUnencrypted: null | string;
 	plaintext: boolean;
 	calendarMethod: boolean;
-	sessionEncEncryptionAuthStatus: null | Uint8Array;
+	sessionEncEncryptionAuthStatus: null | Uint8Array<ArrayBuffer>;
 
 	mail: IdTuple;
 	internalRecipientKeyData: InternalRecipientKeyData[];
@@ -4295,12 +4325,12 @@ export type SendDraftParameters = {
 
 	_id: Id;
 	language: string;
-	mailSessionKey: null | Uint8Array;
-	bucketEncMailSessionKey: null | Uint8Array;
+	mailSessionKey: null | Uint8Array<ArrayBuffer>;
+	bucketEncMailSessionKey: null | Uint8Array<ArrayBuffer>;
 	senderNameUnencrypted: null | string;
 	plaintext: boolean;
 	calendarMethod: boolean;
-	sessionEncEncryptionAuthStatus: null | Uint8Array;
+	sessionEncEncryptionAuthStatus: null | Uint8Array<ArrayBuffer>;
 
 	mail: IdTuple;
 	internalRecipientKeyData: InternalRecipientKeyData[];
@@ -4346,6 +4376,8 @@ export type ImapAccountParams = {
 	port: NumberString;
 	username: string;
 	password: null | string;
+	ignoreCertificateErrors: boolean;
+	customCertificateData: null | Uint8Array;
 
 	oAuthTokenEndpointResponse: null | OAuthTokenEndpointResponse;
 }
@@ -4359,6 +4391,8 @@ export type ImapAccount = {
 	port: NumberString;
 	username: string;
 	password: null | string;
+	ignoreCertificateErrors: boolean;
+	customCertificateData: null | Uint8Array<ArrayBuffer>;
 
 	oAuthTokenEndpointResponse: null | OAuthTokenEndpointResponse;
 }
@@ -4415,9 +4449,9 @@ export type DeduplicatedImportedAttachment = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 	attachmentHash: string;
 
 	attachment: IdTuple;
@@ -4436,9 +4470,10 @@ export type ImapFolderSyncStateParams = {
 	uidvalidity: null | NumberString;
 	uidnext: null | NumberString;
 	highestmodseq: null | NumberString;
+	imapSpecialUse: null | string;
 
 	importedMails: Id;
-	mailFolder: null | IdTuple;
+	mailSet: null | IdTuple;
 	imapAccountSyncState: IdTuple;
 }
 
@@ -4451,17 +4486,18 @@ export type ImapFolderSyncState = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 	path: string;
 	status: NumberString;
 	uidvalidity: null | NumberString;
 	uidnext: null | NumberString;
 	highestmodseq: null | NumberString;
+	imapSpecialUse: null | string;
 
 	importedMails: Id;
-	mailFolder: null | IdTuple;
+	mailSet: null | IdTuple;
 	imapAccountSyncState: IdTuple;
 }
 export const ImapAccountSyncStateTypeRef: TypeRef<ImapAccountSyncState> = new TypeRef("tutanota", 1911)
@@ -4481,7 +4517,7 @@ export type ImapAccountSyncStateParams = {
 
 	imapFolderSyncStateList: Id;
 	imapAccount: ImapAccount;
-	rootImportMailFolder: null | IdTuple;
+	rootImportMailSet: null | IdTuple;
 	imapSyncLabel: null | IdTuple;
 }
 
@@ -4494,9 +4530,9 @@ export type ImapAccountSyncState = {
 	_permissions: Id;
 	_format: NumberString;
 	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
-	_kdfNonce: null | Uint8Array;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 	maxQuota: NumberString;
 	postponedUntil: NumberString;
 	provider: NumberString;
@@ -4505,7 +4541,7 @@ export type ImapAccountSyncState = {
 
 	imapFolderSyncStateList: Id;
 	imapAccount: ImapAccount;
-	rootImportMailFolder: null | IdTuple;
+	rootImportMailSet: null | IdTuple;
 	imapSyncLabel: null | IdTuple;
 }
 export const ImapFolderPostInTypeRef: TypeRef<ImapFolderPostIn> = new TypeRef("tutanota", 1929)
@@ -4518,9 +4554,11 @@ export type ImapFolderPostInParams = {
 
 
 	path: string;
+	shouldSync: boolean;
+	imapSpecialUse: null | string;
 
 	imapAccountSyncState: IdTuple;
-	mailFolder: null | IdTuple;
+	mailSet: null | IdTuple;
 }
 
 export type ImapFolderPostIn = {
@@ -4529,13 +4567,15 @@ export type ImapFolderPostIn = {
 	_original?: ImapFolderPostIn
 
 	_format: NumberString;
-	ownerEncSessionKey: Uint8Array;
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
 	ownerGroup: Id;
 	path: string;
+	shouldSync: boolean;
+	imapSpecialUse: null | string;
 
 	imapAccountSyncState: IdTuple;
-	mailFolder: null | IdTuple;
+	mailSet: null | IdTuple;
 }
 export const ImapFolderPostOutTypeRef: TypeRef<ImapFolderPostOut> = new TypeRef("tutanota", 1937)
 
@@ -4593,7 +4633,7 @@ export type ImapPostInParams = {
 	provider: NumberString;
 
 	imapAccount: ImapAccount;
-	rootImportMailFolder: null | IdTuple;
+	rootImportMailSet: null | IdTuple;
 	syncLabel: null | IdTuple;
 }
 
@@ -4603,7 +4643,7 @@ export type ImapPostIn = {
 	_original?: ImapPostIn
 
 	_format: NumberString;
-	ownerEncSessionKey: Uint8Array;
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
 	ownerGroup: Id;
 	maxQuota: NumberString;
@@ -4611,7 +4651,7 @@ export type ImapPostIn = {
 	provider: NumberString;
 
 	imapAccount: ImapAccount;
-	rootImportMailFolder: null | IdTuple;
+	rootImportMailSet: null | IdTuple;
 	syncLabel: null | IdTuple;
 }
 export const ImapPostOutTypeRef: TypeRef<ImapPostOut> = new TypeRef("tutanota", 1955)
@@ -4705,6 +4745,7 @@ export type ImapPutInParams = {
 
 	newImapAccountSyncStatus: NumberString;
 	newImapFolderSyncStatus: NumberString;
+	newPostponedUntil: null | string;
 
 	imapAccountSyncState: IdTuple;
 }
@@ -4716,6 +4757,7 @@ export type ImapPutIn = {
 	_format: NumberString;
 	newImapAccountSyncStatus: NumberString;
 	newImapFolderSyncStatus: NumberString;
+	newPostponedUntil: null | string;
 
 	imapAccountSyncState: IdTuple;
 }

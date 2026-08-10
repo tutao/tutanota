@@ -3,24 +3,10 @@
 // check is expensive, and unnecessary for our purposes. The values returned
 // are compatible with @sindresorhus/is, however.
 
-const typeofs = [
-  'string',
-  'number',
-  'bigint',
-  'symbol'
-];
-
+// Types that reach getObjectType() - excludes types with fast-paths above:
+// primitives (typeof), Array (isArray), Uint8Array (instanceof), plain Object (constructor)
 const objectTypeNames = [
-  'Function',
-  'Generator',
-  'AsyncGenerator',
-  'GeneratorFunction',
-  'AsyncGeneratorFunction',
-  'AsyncFunction',
-  'Observable',
-  'Array',
-  'Buffer',
-  'Object',
+  'Object', // for Object.create(null) and other non-plain objects
   'RegExp',
   'Date',
   'Error',
@@ -35,7 +21,6 @@ const objectTypeNames = [
   'URL',
   'HTMLElement',
   'Int8Array',
-  'Uint8Array',
   'Uint8ClampedArray',
   'Int16Array',
   'Uint16Array',
@@ -44,7 +29,8 @@ const objectTypeNames = [
   'Float32Array',
   'Float64Array',
   'BigInt64Array',
-  'BigUint64Array'
+  'BigUint64Array',
+  'Tagged'
 ];
 
 /**
@@ -62,34 +48,28 @@ function is (value) {
     return 'boolean'
   }
   const typeOf = typeof value;
-  if (typeofs.includes(typeOf)) {
+  if (typeOf === 'string' || typeOf === 'number' || typeOf === 'bigint' || typeOf === 'symbol') {
     return typeOf
   }
-  /* c8 ignore next 4 */
-  // not going to bother testing this, it's not going to be valid anyway
   if (typeOf === 'function') {
     return 'Function'
   }
   if (Array.isArray(value)) {
     return 'Array'
   }
-  if (isBuffer$1(value)) {
-    return 'Buffer'
+  // Also catches Node.js Buffer which extends Uint8Array
+  if (value instanceof Uint8Array) {
+    return 'Uint8Array'
+  }
+  // Fast path for plain objects (most common case after primitives/arrays/bytes)
+  if (value.constructor === Object) {
+    return 'Object'
   }
   const objectType = getObjectType(value);
   if (objectType) {
     return objectType
   }
-  /* c8 ignore next */
   return 'Object'
-}
-
-/**
- * @param {any} value
- * @returns {boolean}
- */
-function isBuffer$1 (value) {
-  return value && value.constructor && value.constructor.isBuffer && value.constructor.isBuffer.call(null, value)
 }
 
 /**
@@ -101,7 +81,6 @@ function getObjectType (value) {
   if (objectTypeNames.includes(objectTypeName)) {
     return objectTypeName
   }
-  /* c8 ignore next */
   return undefined
 }
 
@@ -118,7 +97,6 @@ class Type {
     this.terminal = terminal;
   }
 
-  /* c8 ignore next 3 */
   toString () {
     return `Type[${this.major}].${this.name}`
   }
@@ -128,8 +106,19 @@ class Type {
    * @returns {number}
    */
   compare (typ) {
-    /* c8 ignore next 1 */
     return this.major < typ.major ? -1 : this.major > typ.major ? 1 : 0
+  }
+
+  /**
+   * Check equality between two Type instances. Safe to use across different
+   * copies of the Type class (e.g., when bundlers duplicate the module).
+   * (major, name) uniquely identifies a Type; terminal is implied by these.
+   * @param {Type} a
+   * @param {Type} b
+   * @returns {boolean}
+   */
+  static equals (a, b) {
+    return a === b || (a.major === b.major && a.name === b.name)
   }
 }
 
@@ -165,7 +154,6 @@ class Token {
     this.byteValue = undefined;
   }
 
-  /* c8 ignore next 3 */
   toString () {
     return `Token[${this.type}].${this.value}`
   }
@@ -183,8 +171,12 @@ const useBuffer = globalThis.process &&
   // @ts-ignore
   typeof globalThis.Buffer.isBuffer === 'function';
 
-const textDecoder = new TextDecoder();
 const textEncoder = new TextEncoder();
+
+/**
+ * @typedef {import('../interface.js').ByteView} ByteView
+ * @typedef {import('../interface.js').AllocatedByteView} AllocatedByteView
+ */
 
 /**
  * @param {Uint8Array} buf
@@ -196,43 +188,21 @@ function isBuffer (buf) {
 }
 
 /**
- * @param {Uint8Array|number[]} buf
- * @returns {Uint8Array}
+ * @param {ByteView|number[]} buf
+ * @returns {ByteView}
  */
 function asU8A (buf) {
-  /* c8 ignore next */
   if (!(buf instanceof Uint8Array)) {
     return Uint8Array.from(buf)
   }
   return isBuffer(buf) ? new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength) : buf
 }
 
-const toString = useBuffer
-  ? // eslint-disable-line operator-linebreak
-    /**
-     * @param {Uint8Array} bytes
-     * @param {number} start
-     * @param {number} end
-     */
-    (bytes, start, end) => {
-      return end - start > 64
-        ? // eslint-disable-line operator-linebreak
-      // @ts-ignore
-        globalThis.Buffer.from(bytes.subarray(start, end)).toString('utf8')
-        : utf8Slice(bytes, start, end)
-    }
-  /* c8 ignore next 11 */
-  : // eslint-disable-line operator-linebreak
-    /**
-     * @param {Uint8Array} bytes
-     * @param {number} start
-     * @param {number} end
-     */
-    (bytes, start, end) => {
-      return end - start > 64
-        ? textDecoder.decode(bytes.subarray(start, end))
-        : utf8Slice(bytes, start, end)
-    };
+// Threshold for manual UTF-8 encoding vs native methods.
+// Node.js Buffer.from: crossover ~24 chars
+// Browser TextEncoder: crossover ~200 chars
+const FROM_STRING_THRESHOLD_BUFFER = 24;
+const FROM_STRING_THRESHOLD_TEXTENCODER = 200;
 
 const fromString = useBuffer
   ? // eslint-disable-line operator-linebreak
@@ -240,25 +210,24 @@ const fromString = useBuffer
      * @param {string} string
      */
     (string) => {
-      return string.length > 64
+      return string.length >= FROM_STRING_THRESHOLD_BUFFER
         ? // eslint-disable-line operator-linebreak
       // @ts-ignore
         globalThis.Buffer.from(string)
         : utf8ToBytes(string)
     }
-  /* c8 ignore next 7 */
   : // eslint-disable-line operator-linebreak
     /**
      * @param {string} string
      */
     (string) => {
-      return string.length > 64 ? textEncoder.encode(string) : utf8ToBytes(string)
+      return string.length >= FROM_STRING_THRESHOLD_TEXTENCODER ? textEncoder.encode(string) : utf8ToBytes(string)
     };
 
 /**
  * Buffer variant not fast enough for what we need
  * @param {number[]} arr
- * @returns {Uint8Array}
+ * @returns {AllocatedByteView}
  */
 const fromArray = (arr) => {
   return Uint8Array.from(arr)
@@ -271,13 +240,13 @@ const slice = useBuffer
      * @param {number} start
      * @param {number} end
      */
+    // Buffer.slice() returns a view, not a copy, so we need special handling
     (bytes, start, end) => {
       if (isBuffer(bytes)) {
         return new Uint8Array(bytes.subarray(start, end))
       }
       return bytes.slice(start, end)
     }
-  /* c8 ignore next 9 */
   : // eslint-disable-line operator-linebreak
     /**
      * @param {Uint8Array} bytes
@@ -291,29 +260,25 @@ const slice = useBuffer
 const concat = useBuffer
   ? // eslint-disable-line operator-linebreak
     /**
-     * @param {Uint8Array[]} chunks
+     * @param {ByteView[]} chunks
      * @param {number} length
-     * @returns {Uint8Array}
+     * @returns {AllocatedByteView}
      */
     (chunks, length) => {
       // might get a stray plain Array here
-      /* c8 ignore next 1 */
       chunks = chunks.map((c) => c instanceof Uint8Array
         ? c
-        // this case is occasionally missed during test runs so becomes coverage-flaky
-        /* c8 ignore next 4 */
         : // eslint-disable-line operator-linebreak
         // @ts-ignore
         globalThis.Buffer.from(c));
       // @ts-ignore
-      return asU8A(globalThis.Buffer.concat(chunks, length))
+      return /** @type {AllocatedByteView} */ (asU8A(globalThis.Buffer.concat(chunks, length)))
     }
-  /* c8 ignore next 19 */
   : // eslint-disable-line operator-linebreak
     /**
-     * @param {Uint8Array[]} chunks
+     * @param {ByteView[]} chunks
      * @param {number} length
-     * @returns {Uint8Array}
+     * @returns {AllocatedByteView}
      */
     (chunks, length) => {
       const out = new Uint8Array(length);
@@ -333,18 +298,17 @@ const alloc = useBuffer
   ? // eslint-disable-line operator-linebreak
     /**
      * @param {number} size
-     * @returns {Uint8Array}
+     * @returns {AllocatedByteView}
      */
     (size) => {
       // we always write over the contents we expose so this should be safe
       // @ts-ignore
       return globalThis.Buffer.allocUnsafe(size)
     }
-  /* c8 ignore next 8 */
   : // eslint-disable-line operator-linebreak
     /**
      * @param {number} size
-     * @returns {Uint8Array}
+     * @returns {AllocatedByteView}
      */
     (size) => {
       return new Uint8Array(size)
@@ -356,7 +320,6 @@ const alloc = useBuffer
  * @returns {number}
  */
 function compare (b1, b2) {
-  /* c8 ignore next 5 */
   if (isBuffer(b1) && isBuffer(b2)) {
     // probably not possible to get here in the current API
     // @ts-ignore Buffer
@@ -367,7 +330,7 @@ function compare (b1, b2) {
       continue
     }
     return b1[i] < b2[i] ? -1 : 1
-  } /* c8 ignore next 3 */
+  }
   return 0
 }
 
@@ -398,118 +361,15 @@ function utf8ToBytes (str) {
       out[p++] = ((c >> 6) & 63) | 128;
       out[p++] = (c & 63) | 128;
     } else {
+      if ((c >= 0xD800) && (c <= 0xDFFF)) {
+        c = 0xFFFD; // Unpaired Surrogate
+      }
       out[p++] = (c >> 12) | 224;
       out[p++] = ((c >> 6) & 63) | 128;
       out[p++] = (c & 63) | 128;
     }
   }
   return out
-}
-
-// The below code is mostly taken from https://github.com/feross/buffer
-// Licensed MIT. Copyright (c) Feross Aboukhadijeh
-
-/**
- * @param {Uint8Array} buf
- * @param {number} offset
- * @param {number} end
- * @returns {string}
- */
-function utf8Slice (buf, offset, end) {
-  const res = [];
-
-  while (offset < end) {
-    const firstByte = buf[offset];
-    let codePoint = null;
-    let bytesPerSequence = (firstByte > 0xef) ? 4 : (firstByte > 0xdf) ? 3 : (firstByte > 0xbf) ? 2 : 1;
-
-    if (offset + bytesPerSequence <= end) {
-      let secondByte, thirdByte, fourthByte, tempCodePoint;
-
-      switch (bytesPerSequence) {
-        case 1:
-          if (firstByte < 0x80) {
-            codePoint = firstByte;
-          }
-          break
-        case 2:
-          secondByte = buf[offset + 1];
-          if ((secondByte & 0xc0) === 0x80) {
-            tempCodePoint = (firstByte & 0x1f) << 0x6 | (secondByte & 0x3f);
-            if (tempCodePoint > 0x7f) {
-              codePoint = tempCodePoint;
-            }
-          }
-          break
-        case 3:
-          secondByte = buf[offset + 1];
-          thirdByte = buf[offset + 2];
-          if ((secondByte & 0xc0) === 0x80 && (thirdByte & 0xc0) === 0x80) {
-            tempCodePoint = (firstByte & 0xf) << 0xc | (secondByte & 0x3f) << 0x6 | (thirdByte & 0x3f);
-            /* c8 ignore next 3 */
-            if (tempCodePoint > 0x7ff && (tempCodePoint < 0xd800 || tempCodePoint > 0xdfff)) {
-              codePoint = tempCodePoint;
-            }
-          }
-          break
-        case 4:
-          secondByte = buf[offset + 1];
-          thirdByte = buf[offset + 2];
-          fourthByte = buf[offset + 3];
-          if ((secondByte & 0xc0) === 0x80 && (thirdByte & 0xc0) === 0x80 && (fourthByte & 0xc0) === 0x80) {
-            tempCodePoint = (firstByte & 0xf) << 0x12 | (secondByte & 0x3f) << 0xc | (thirdByte & 0x3f) << 0x6 | (fourthByte & 0x3f);
-            if (tempCodePoint > 0xffff && tempCodePoint < 0x110000) {
-              codePoint = tempCodePoint;
-            }
-          }
-      }
-    }
-
-    /* c8 ignore next 5 */
-    if (codePoint === null) {
-      // we did not generate a valid codePoint so insert a
-      // replacement char (U+FFFD) and advance only 1 byte
-      codePoint = 0xfffd;
-      bytesPerSequence = 1;
-    } else if (codePoint > 0xffff) {
-      // encode to utf16 (surrogate pair dance)
-      codePoint -= 0x10000;
-      res.push(codePoint >>> 10 & 0x3ff | 0xd800);
-      codePoint = 0xdc00 | codePoint & 0x3ff;
-    }
-
-    res.push(codePoint);
-    offset += bytesPerSequence;
-  }
-
-  return decodeCodePointsArray(res)
-}
-
-// Based on http://stackoverflow.com/a/22747272/680742, the browser with
-// the lowest limit is Chrome, with 0x10000 args.
-// We go 1 magnitude less, for safety
-const MAX_ARGUMENTS_LENGTH = 0x1000;
-
-/**
- * @param {number[]} codePoints
- * @returns {string}
- */
-function decodeCodePointsArray (codePoints) {
-  const len = codePoints.length;
-  if (len <= MAX_ARGUMENTS_LENGTH) {
-    return String.fromCharCode.apply(String, codePoints) // avoid extra slice()
-  }
-  /* c8 ignore next 10 */
-  // Decode in chunks to avoid "call stack size exceeded".
-  let res = '';
-  let i = 0;
-  while (i < len) {
-    res += String.fromCharCode.apply(
-      String,
-      codePoints.slice(i, i += MAX_ARGUMENTS_LENGTH)
-    );
-  }
-  return res
 }
 
 /**
@@ -530,6 +390,11 @@ function decodeCodePointsArray (codePoints) {
  */
 
 
+/**
+ * @typedef {import('../interface.js').ByteView} ByteView
+ * @typedef {import('../interface.js').AllocatedByteView} AllocatedByteView
+ */
+
 // the ts-ignores in this file are almost all for the `Uint8Array|number[]` duality that exists
 // for perf reasons. Consider better approaches to this or removing it entirely, it is quite
 // risky because of some assumptions about small chunks === number[] and everything else === Uint8Array.
@@ -546,10 +411,10 @@ class Bl {
     this.cursor = 0;
     /** @type {number} */
     this.maxCursor = -1;
-    /** @type {(Uint8Array|number[])[]} */
+    /** @type {(ByteView|number[])[]} */
     this.chunks = [];
     // keep the first chunk around if we can to save allocations for future encodes
-    /** @type {Uint8Array|number[]|null} */
+    /** @type {ByteView|number[]|null} */
     this._initReuseChunk = null;
   }
 
@@ -566,7 +431,25 @@ class Bl {
   }
 
   /**
-   * @param {Uint8Array|number[]} bytes
+   * @param {number} byte
+   */
+  pushByte (byte) {
+    let topChunk = this.chunks[this.chunks.length - 1];
+    if (this.cursor > this.maxCursor) {
+      topChunk = alloc(this.chunkSize);
+      this.chunks.push(topChunk);
+      this.maxCursor += topChunk.length;
+      if (this._initReuseChunk === null) {
+        this._initReuseChunk = topChunk;
+      }
+    }
+    const chunkPos = topChunk.length - (this.maxCursor - this.cursor) - 1;
+    topChunk[chunkPos] = byte;
+    this.cursor++;
+  }
+
+  /**
+   * @param {ByteView|number[]} bytes
    */
   push (bytes) {
     let topChunk = this.chunks[this.chunks.length - 1];
@@ -608,14 +491,13 @@ class Bl {
 
   /**
    * @param {boolean} [reset]
-   * @returns {Uint8Array}
+   * @returns {AllocatedByteView}
    */
   toBytes (reset = false) {
     let byts;
     if (this.chunks.length === 1) {
       const chunk = this.chunks[0];
       if (reset && this.cursor > chunk.length / 2) {
-        /* c8 ignore next 2 */
         // @ts-ignore
         byts = this.cursor === chunk.length ? chunk : chunk.subarray(0, this.cursor);
         this._initReuseChunk = null;
@@ -628,6 +510,63 @@ class Bl {
       // @ts-ignore
       byts = concat(this.chunks, this.cursor);
     }
+    if (reset) {
+      this.reset();
+    }
+    return byts
+  }
+}
+
+/**
+ * U8Bl is a buffer list that writes directly to a user-provided Uint8Array.
+ * It provides the same interface as Bl but writes to a fixed destination.
+ * @template {ArrayBufferLike} T
+ */
+class U8Bl {
+  /**
+   * @param {Uint8Array<T>} dest
+   */
+  constructor (dest) {
+    this.dest = dest;
+    /** @type {number} */
+    this.cursor = 0;
+    // chunks is for interface compatibility with Bl - encode.js checks chunks.length
+    // as a sanity check for pre-calculated sizes. For U8Bl this is always [dest].
+    /** @type {Array<Uint8Array<T>>} */
+    this.chunks = [dest];
+  }
+
+  reset () {
+    this.cursor = 0;
+  }
+
+  /**
+   * @param {number} byte
+   */
+  pushByte (byte) {
+    if (this.cursor >= this.dest.length) {
+      throw new Error('write out of bounds, destination buffer is too small')
+    }
+    this.dest[this.cursor++] = byte;
+  }
+
+  /**
+   * @param {ByteView|number[]} bytes
+   */
+  push (bytes) {
+    if (this.cursor + bytes.length > this.dest.length) {
+      throw new Error('write out of bounds, destination buffer is too small')
+    }
+    this.dest.set(bytes, this.cursor);
+    this.cursor += bytes.length;
+  }
+
+  /**
+   * @param {boolean} [reset]
+   * @returns {Uint8Array<T>}
+   */
+  toBytes (reset = false) {
+    const byts = this.dest.subarray(0, this.cursor);
     if (reset) {
       this.reset();
     }
@@ -655,8 +594,8 @@ function assertEnoughData (data, pos, need) {
 const uintBoundaries = [24, 256, 65536, 4294967296, BigInt('18446744073709551616')];
 
 /**
- * @typedef {import('./bl.js').Bl} Bl
- * @typedef {import('../interface').DecodeOptions} DecodeOptions
+ * @typedef {import('../interface.js').ByteWriter} ByteWriter
+ * @typedef {import('../interface.js').DecodeOptions} DecodeOptions
  */
 
 /**
@@ -780,35 +719,35 @@ function decodeUint64 (data, pos, _minor, options) {
 }
 
 /**
- * @param {Bl} buf
+ * @param {ByteWriter} writer
  * @param {Token} token
  */
-function encodeUint (buf, token) {
-  return encodeUintValue(buf, 0, token.value)
+function encodeUint (writer, token) {
+  return encodeUintValue(writer, 0, token.value)
 }
 
 /**
- * @param {Bl} buf
+ * @param {ByteWriter} writer
  * @param {number} major
  * @param {number|bigint} uint
  */
-function encodeUintValue (buf, major, uint) {
+function encodeUintValue (writer, major, uint) {
   if (uint < uintBoundaries[0]) {
     const nuint = Number(uint);
     // pack into one byte, minor=0, additional=value
-    buf.push([major | nuint]);
+    writer.pushByte(major | nuint);
   } else if (uint < uintBoundaries[1]) {
     const nuint = Number(uint);
     // pack into two byte, minor=0, additional=24
-    buf.push([major | 24, nuint]);
+    writer.push([major | 24, nuint]);
   } else if (uint < uintBoundaries[2]) {
     const nuint = Number(uint);
     // pack into three byte, minor=0, additional=25
-    buf.push([major | 25, nuint >>> 8, nuint & 0xff]);
+    writer.push([major | 25, nuint >>> 8, nuint & 0xff]);
   } else if (uint < uintBoundaries[3]) {
     const nuint = Number(uint);
     // pack into five byte, minor=0, additional=26
-    buf.push([major | 26, (nuint >>> 24) & 0xff, (nuint >>> 16) & 0xff, (nuint >>> 8) & 0xff, nuint & 0xff]);
+    writer.push([major | 26, (nuint >>> 24) & 0xff, (nuint >>> 16) & 0xff, (nuint >>> 8) & 0xff, nuint & 0xff]);
   } else {
     const buint = BigInt(uint);
     if (buint < uintBoundaries[4]) {
@@ -831,7 +770,7 @@ function encodeUintValue (buf, major, uint) {
       set[2] = hi & 0xff;
       hi = hi >> 8;
       set[1] = hi & 0xff;
-      buf.push(set);
+      writer.push(set);
     } else {
       throw new Error(`${decodeErrPrefix} encountered BigInt larger than allowable range`)
     }
@@ -872,15 +811,15 @@ encodeUintValue.encodedSize = function encodedSize (uint) {
  * @returns {number}
  */
 encodeUint.compareTokens = function compareTokens (tok1, tok2) {
-  return tok1.value < tok2.value ? -1 : tok1.value > tok2.value ? 1 : /* c8 ignore next */ 0
+  return tok1.value < tok2.value ? -1 : tok1.value > tok2.value ? 1 : 0
 };
 
 /* eslint-env es2020 */
 
 
 /**
- * @typedef {import('./bl.js').Bl} Bl
- * @typedef {import('../interface').DecodeOptions} DecodeOptions
+ * @typedef {import('../interface.js').ByteWriter} ByteWriter
+ * @typedef {import('../interface.js').DecodeOptions} DecodeOptions
  */
 
 /**
@@ -916,8 +855,8 @@ function decodeNegint32 (data, pos, _minor, options) {
   return new Token(Type.negint, -1 - readUint32(data, pos + 1, options), 5)
 }
 
-const neg1b = BigInt(-1);
-const pos1b = BigInt(1);
+const neg1b$1 = BigInt(-1);
+const pos1b$1 = BigInt(1);
 
 /**
  * @param {Uint8Array} data
@@ -937,17 +876,17 @@ function decodeNegint64 (data, pos, _minor, options) {
   if (options.allowBigInt !== true) {
     throw new Error(`${decodeErrPrefix} integers outside of the safe integer range are not supported`)
   }
-  return new Token(Type.negint, neg1b - BigInt(int), 9)
+  return new Token(Type.negint, neg1b$1 - BigInt(int), 9)
 }
 
 /**
- * @param {Bl} buf
+ * @param {ByteWriter} writer
  * @param {Token} token
  */
-function encodeNegint (buf, token) {
+function encodeNegint (writer, token) {
   const negint = token.value;
-  const unsigned = (typeof negint === 'bigint' ? (negint * neg1b - pos1b) : (negint * -1 - 1));
-  encodeUintValue(buf, token.type.majorEncoded, unsigned);
+  const unsigned = (typeof negint === 'bigint' ? (negint * neg1b$1 - pos1b$1) : (negint * -1 - 1));
+  encodeUintValue(writer, token.type.majorEncoded, unsigned);
 }
 
 /**
@@ -956,8 +895,7 @@ function encodeNegint (buf, token) {
  */
 encodeNegint.encodedSize = function encodedSize (token) {
   const negint = token.value;
-  const unsigned = (typeof negint === 'bigint' ? (negint * neg1b - pos1b) : (negint * -1 - 1));
-  /* c8 ignore next 4 */
+  const unsigned = (typeof negint === 'bigint' ? (negint * neg1b$1 - pos1b$1) : (negint * -1 - 1));
   // handled by quickEncode, we shouldn't get here but it's included for completeness
   if (unsigned < uintBoundaries[0]) {
     return 1
@@ -981,12 +919,12 @@ encodeNegint.encodedSize = function encodedSize (token) {
  */
 encodeNegint.compareTokens = function compareTokens (tok1, tok2) {
   // opposite of the uint comparison since we store the uint version in bytes
-  return tok1.value < tok2.value ? 1 : tok1.value > tok2.value ? -1 : /* c8 ignore next */ 0
+  return tok1.value < tok2.value ? 1 : tok1.value > tok2.value ? -1 : 0
 };
 
 /**
- * @typedef {import('./bl.js').Bl} Bl
- * @typedef {import('../interface').DecodeOptions} DecodeOptions
+ * @typedef {import('../interface.js').ByteWriter} ByteWriter
+ * @typedef {import('../interface.js').DecodeOptions} DecodeOptions
  */
 
 /**
@@ -998,7 +936,7 @@ encodeNegint.compareTokens = function compareTokens (tok1, tok2) {
  */
 function toToken$3 (data, pos, prefix, length) {
   assertEnoughData(data, pos, prefix + length);
-  const buf = slice(data, pos + prefix, pos + prefix + length);
+  const buf = data.slice(pos + prefix, pos + prefix + length);
   return new Token(Type.bytes, buf, prefix + length)
 }
 
@@ -1070,20 +1008,20 @@ function decodeBytes64 (data, pos, _minor, options) {
  */
 function tokenBytes (token) {
   if (token.encodedBytes === undefined) {
-    token.encodedBytes = token.type === Type.string ? fromString(token.value) : token.value;
+    token.encodedBytes = Type.equals(token.type, Type.string) ? fromString(token.value) : token.value;
   }
   // @ts-ignore c'mon
   return token.encodedBytes
 }
 
 /**
- * @param {Bl} buf
+ * @param {ByteWriter} writer
  * @param {Token} token
  */
-function encodeBytes (buf, token) {
+function encodeBytes (writer, token) {
   const bytes = tokenBytes(token);
-  encodeUintValue(buf, token.type.majorEncoded, bytes.length);
-  buf.push(bytes);
+  encodeUintValue(writer, token.type.majorEncoded, bytes.length);
+  writer.push(bytes);
 }
 
 /**
@@ -1113,10 +1051,40 @@ function compareBytes (b1, b2) {
   return b1.length < b2.length ? -1 : b1.length > b2.length ? 1 : compare(b1, b2)
 }
 
+const textDecoder = new TextDecoder();
+
+// Threshold for ASCII fast-path vs TextDecoder. Short ASCII strings (common for
+// map keys) are faster to decode with a simple loop than TextDecoder overhead.
+const ASCII_THRESHOLD = 32;
+
 /**
- * @typedef {import('./bl.js').Bl} Bl
- * @typedef {import('../interface').DecodeOptions} DecodeOptions
+ * @typedef {import('../interface.js').ByteWriter} ByteWriter
+ * @typedef {import('../interface.js').DecodeOptions} DecodeOptions
  */
+
+/**
+ * Decode UTF-8 bytes to string. For short ASCII strings (common case for map keys),
+ * a simple loop is faster than TextDecoder.
+ * @param {Uint8Array} bytes
+ * @param {number} start
+ * @param {number} end
+ * @returns {string}
+ */
+function toStr (bytes, start, end) {
+  const len = end - start;
+  if (len < ASCII_THRESHOLD) {
+    let str = '';
+    for (let i = start; i < end; i++) {
+      const c = bytes[i];
+      if (c & 0x80) { // non-ASCII, fall back to TextDecoder
+        return textDecoder.decode(bytes.subarray(start, end))
+      }
+      str += String.fromCharCode(c);
+    }
+    return str
+  }
+  return textDecoder.decode(bytes.subarray(start, end))
+}
 
 /**
  * @param {Uint8Array} data
@@ -1129,9 +1097,9 @@ function compareBytes (b1, b2) {
 function toToken$2 (data, pos, prefix, length, options) {
   const totLength = prefix + length;
   assertEnoughData(data, pos, totLength);
-  const tok = new Token(Type.string, toString(data, pos + prefix, pos + totLength), totLength);
+  const tok = new Token(Type.string, toStr(data, pos + prefix, pos + totLength), totLength);
   if (options.retainStringBytes === true) {
-    tok.byteValue = slice(data, pos + prefix, pos + totLength);
+    tok.byteValue = data.slice(pos + prefix, pos + totLength);
   }
   return tok
 }
@@ -1199,8 +1167,8 @@ function decodeString64 (data, pos, _minor, options) {
 const encodeString = encodeBytes;
 
 /**
- * @typedef {import('./bl.js').Bl} Bl
- * @typedef {import('../interface').DecodeOptions} DecodeOptions
+ * @typedef {import('../interface.js').ByteWriter} ByteWriter
+ * @typedef {import('../interface.js').DecodeOptions} DecodeOptions
  */
 
 /**
@@ -1289,11 +1257,11 @@ function decodeArrayIndefinite (data, pos, _minor, options) {
 }
 
 /**
- * @param {Bl} buf
+ * @param {ByteWriter} writer
  * @param {Token} token
  */
-function encodeArray (buf, token) {
-  encodeUintValue(buf, Type.array.majorEncoded, token.value);
+function encodeArray (writer, token) {
+  encodeUintValue(writer, Type.array.majorEncoded, token.value);
 }
 
 // using an array as a map key, are you sure about this? we can only sort
@@ -1309,8 +1277,8 @@ encodeArray.encodedSize = function encodedSize (token) {
 };
 
 /**
- * @typedef {import('./bl.js').Bl} Bl
- * @typedef {import('../interface').DecodeOptions} DecodeOptions
+ * @typedef {import('../interface.js').ByteWriter} ByteWriter
+ * @typedef {import('../interface.js').DecodeOptions} DecodeOptions
  */
 
 /**
@@ -1399,11 +1367,11 @@ function decodeMapIndefinite (data, pos, _minor, options) {
 }
 
 /**
- * @param {Bl} buf
+ * @param {ByteWriter} writer
  * @param {Token} token
  */
-function encodeMap (buf, token) {
-  encodeUintValue(buf, Type.map.majorEncoded, token.value);
+function encodeMap (writer, token) {
+  encodeUintValue(writer, Type.map.majorEncoded, token.value);
 }
 
 // using a map as a map key, are you sure about this? we can only sort
@@ -1419,8 +1387,8 @@ encodeMap.encodedSize = function encodedSize (token) {
 };
 
 /**
- * @typedef {import('./bl.js').Bl} Bl
- * @typedef {import('../interface').DecodeOptions} DecodeOptions
+ * @typedef {import('../interface.js').ByteWriter} ByteWriter
+ * @typedef {import('../interface.js').DecodeOptions} DecodeOptions
  */
 
 /**
@@ -1479,11 +1447,11 @@ function decodeTag64 (data, pos, _minor, options) {
 }
 
 /**
- * @param {Bl} buf
+ * @param {ByteWriter} writer
  * @param {Token} token
  */
-function encodeTag (buf, token) {
-  encodeUintValue(buf, Type.tag.majorEncoded, token.value);
+function encodeTag (writer, token) {
+  encodeUintValue(writer, Type.tag.majorEncoded, token.value);
 }
 
 encodeTag.compareTokens = encodeUint.compareTokens;
@@ -1501,9 +1469,9 @@ encodeTag.encodedSize = function encodedSize (token) {
 
 
 /**
- * @typedef {import('./bl.js').Bl} Bl
- * @typedef {import('../interface').DecodeOptions} DecodeOptions
- * @typedef {import('../interface').EncodeOptions} EncodeOptions
+ * @typedef {import('../interface.js').ByteWriter} ByteWriter
+ * @typedef {import('../interface.js').DecodeOptions} DecodeOptions
+ * @typedef {import('../interface.js').EncodeOptions} EncodeOptions
  */
 
 const MINOR_FALSE = 20;
@@ -1593,21 +1561,21 @@ function decodeFloat64 (data, pos, _minor, options) {
 }
 
 /**
- * @param {Bl} buf
+ * @param {ByteWriter} writer
  * @param {Token} token
  * @param {EncodeOptions} options
  */
-function encodeFloat (buf, token, options) {
+function encodeFloat (writer, token, options) {
   const float = token.value;
 
   if (float === false) {
-    buf.push([Type.float.majorEncoded | MINOR_FALSE]);
+    writer.pushByte(Type.float.majorEncoded | MINOR_FALSE);
   } else if (float === true) {
-    buf.push([Type.float.majorEncoded | MINOR_TRUE]);
+    writer.pushByte(Type.float.majorEncoded | MINOR_TRUE);
   } else if (float === null) {
-    buf.push([Type.float.majorEncoded | MINOR_NULL]);
+    writer.pushByte(Type.float.majorEncoded | MINOR_NULL);
   } else if (float === undefined) {
-    buf.push([Type.float.majorEncoded | MINOR_UNDEFINED]);
+    writer.pushByte(Type.float.majorEncoded | MINOR_UNDEFINED);
   } else {
     let decoded;
     let success = false;
@@ -1616,14 +1584,14 @@ function encodeFloat (buf, token, options) {
       decoded = readFloat16(ui8a, 1);
       if (float === decoded || Number.isNaN(float)) {
         ui8a[0] = 0xf9;
-        buf.push(ui8a.slice(0, 3));
+        writer.push(ui8a.slice(0, 3));
         success = true;
       } else {
         encodeFloat32(float);
         decoded = readFloat32(ui8a, 1);
         if (float === decoded) {
           ui8a[0] = 0xfa;
-          buf.push(ui8a.slice(0, 5));
+          writer.push(ui8a.slice(0, 5));
           success = true;
         }
       }
@@ -1632,7 +1600,7 @@ function encodeFloat (buf, token, options) {
       encodeFloat64(float);
       decoded = readFloat64(ui8a, 1);
       ui8a[0] = 0xfb;
-      buf.push(ui8a.slice(0, 9));
+      writer.push(ui8a.slice(0, 9));
     }
   }
 }
@@ -1684,18 +1652,17 @@ function encodeFloat16 (inp) {
     const exponent = (valu32 & 0x7f800000) >> 23;
     const mantissa = valu32 & 0x7fffff;
 
-    /* c8 ignore next 6 */
     if (exponent === 0xff) {
       // too big, Infinity, but this should be hard (impossible?) to trigger
       dataView.setUint16(0, 0x7c00, false);
     } else if (exponent === 0x00) {
       // 0.0, -0.0 and subnormals, shouldn't be possible to get here because 0.0 should be counted as an int
-      dataView.setUint16(0, ((inp & 0x80000000) >> 16) | (mantissa >> 13), false);
+      // Use valu32 for sign bit since bitwise ops on floats lose -0 sign
+      dataView.setUint16(0, ((valu32 & 0x80000000) >> 16) | (mantissa >> 13), false);
     } else { // standard numbers
       // chunks of logic here borrowed from https://github.com/PJK/libcbor/blob/c78f437182533e3efa8d963ff4b945bb635c2284/src/cbor/encoding.c#L127
       const logicalExponent = exponent - 127;
       // Now we know that 2^exponent <= 0 logically
-      /* c8 ignore next 6 */
       if (logicalExponent < -24) {
         /* No unambiguous representation exists, this float is not a half float
           and is too small to be represented using a half, round off to zero.
@@ -1741,7 +1708,6 @@ function readFloat16 (ui8a, pos) {
     val = mant * (2 ** -24);
   } else if (exp !== 31) {
     val = (mant + 1024) * (2 ** (exp - 25));
-  /* c8 ignore next 4 */
   } else {
     // may not be possible to get here
     val = mant === 0 ? Infinity : NaN;
@@ -1790,20 +1756,100 @@ function readFloat64 (ui8a, pos) {
 }
 
 /**
- * @param {Token} _tok1
- * @param {Token} _tok2
- * @returns {number}
+ * @typedef {Token & {
+ *   _keyBytes?: Uint8Array,
+ *   _keyBytesFloat64?: Uint8Array
+ * }} TokenEx
  */
-encodeFloat.compareTokens = encodeUint.compareTokens;
-/*
-encodeFloat.compareTokens = function compareTokens (_tok1, _tok2) {
-  return _tok1
-  throw new Error(`${encodeErrPrefix} cannot use floats as map keys`)
-}
-*/
 
 /**
- * @typedef {import('../interface').DecodeOptions} DecodeOptions
+ * The canonical CBOR bytes for a major 7 map key. The four simple values encode
+ * to a single byte and every float to its 3, 5 or 9 byte form, exactly as
+ * {@link encodeFloat} writes them. This mirrors the width selection in
+ * `encodeFloat` because the sorter needs the bytes in hand to compare.
+ * @param {Token} token
+ * @param {boolean} float64
+ * @returns {Uint8Array}
+ */
+function encodeMajorSevenBytes (token, float64) {
+  const float = token.value;
+  if (float === false) {
+    return Uint8Array.of(Type.float.majorEncoded | MINOR_FALSE)
+  }
+  if (float === true) {
+    return Uint8Array.of(Type.float.majorEncoded | MINOR_TRUE)
+  }
+  if (float === null) {
+    return Uint8Array.of(Type.float.majorEncoded | MINOR_NULL)
+  }
+  if (float === undefined) {
+    return Uint8Array.of(Type.float.majorEncoded | MINOR_UNDEFINED)
+  }
+  if (!float64) {
+    encodeFloat16(float);
+    if (float === readFloat16(ui8a, 1) || Number.isNaN(float)) {
+      ui8a[0] = 0xf9;
+      return ui8a.slice(0, 3)
+    }
+    encodeFloat32(float);
+    if (float === readFloat32(ui8a, 1)) {
+      ui8a[0] = 0xfa;
+      return ui8a.slice(0, 5)
+    }
+  }
+  encodeFloat64(float);
+  ui8a[0] = 0xfb;
+  return ui8a.slice(0, 9)
+}
+
+/**
+ * Get the canonical CBOR bytes for a major 7 map key, honouring
+ * `options.float64`. Bytes are cached because Array.sort compares each key
+ * multiple times.
+ * @param {Token} token
+ * @param {EncodeOptions} [options]
+ * @returns {Uint8Array}
+ */
+function majorSevenBytes (token, options) {
+  const tokenEx = /** @type {TokenEx} */ (token);
+  const float64 = options?.float64 === true;
+  const cached = float64 ? tokenEx._keyBytesFloat64 : tokenEx._keyBytes;
+  if (cached !== undefined) {
+    return cached
+  }
+
+  const bytes = encodeMajorSevenBytes(token, float64);
+  if (float64) {
+    tokenEx._keyBytesFloat64 = bytes;
+  } else {
+    tokenEx._keyBytes = bytes;
+  }
+  return bytes
+}
+
+/**
+ * Order two major 7 map keys by RFC 7049 §3.9 canonical order: shorter encoding
+ * first, then bytewise. Because the four simple values encode to one byte they
+ * sort ahead of every float, and comparing the `float64`-honouring encoded bytes
+ * (rather than the numeric value) makes negative floats, mixed encoding widths
+ * and `NaN` deterministic regardless of insertion order.
+ * @param {Token} tok1
+ * @param {Token} tok2
+ * @param {EncodeOptions} [options]
+ * @returns {number}
+ */
+encodeFloat.compareTokens = function compareTokens (tok1, tok2, options) {
+  const b1 = majorSevenBytes(tok1, options);
+  const b2 = majorSevenBytes(tok2, options);
+  if (b1.length !== b2.length) {
+    return b1.length < b2.length ? -1 : 1
+  }
+  return compare(b1, b2)
+};
+
+/**
+ * @typedef {import('../interface.js').DecodeOptions} DecodeOptions
+ * @typedef {import('../interface.js').AllocatedByteView} AllocatedByteView
  */
 
 /**
@@ -1954,7 +2000,7 @@ quick[0xf6] = new Token(Type.null, null, 1);
 
 /**
  * @param {Token} token
- * @returns {Uint8Array|undefined}
+ * @returns {AllocatedByteView|undefined}
  */
 function quickEncodeToken (token) {
   switch (token.type) {
@@ -1978,14 +2024,12 @@ function quickEncodeToken (token) {
       if (token.value === 0) {
         return fromArray([0x80])
       }
-      /* c8 ignore next 2 */
       // shouldn't be possible if this were called when there was only one token
       return
     case Type.map:
       if (token.value === 0) {
         return fromArray([0xa0])
       }
-      /* c8 ignore next 2 */
       // shouldn't be possible if this were called when there was only one token
       return
     case Type.uint:
@@ -2001,12 +2045,15 @@ function quickEncodeToken (token) {
 }
 
 /**
- * @typedef {import('../interface').EncodeOptions} EncodeOptions
- * @typedef {import('../interface').OptionalTypeEncoder} OptionalTypeEncoder
- * @typedef {import('../interface').Reference} Reference
- * @typedef {import('../interface').StrictTypeEncoder} StrictTypeEncoder
- * @typedef {import('../interface').TokenTypeEncoder} TokenTypeEncoder
- * @typedef {import('../interface').TokenOrNestedTokens} TokenOrNestedTokens
+ * @typedef {import('../interface.js').EncodeOptions} EncodeOptions
+ * @typedef {import('../interface.js').OptionalTypeEncoder} OptionalTypeEncoder
+ * @typedef {import('../interface.js').Reference} Reference
+ * @typedef {import('../interface.js').StrictTypeEncoder} StrictTypeEncoder
+ * @typedef {import('../interface.js').TokenTypeEncoder} TokenTypeEncoder
+ * @typedef {import('../interface.js').TokenOrNestedTokens} TokenOrNestedTokens
+ * @typedef {import('../interface.js').ByteWriter} ByteWriter
+ * @typedef {import('../interface.js').ByteView} ByteView
+ * @typedef {import('../interface.js').AllocatedByteView} AllocatedByteView
  */
 
 /** @type {EncodeOptions} */
@@ -2015,6 +2062,12 @@ const defaultEncodeOptions = {
   mapSorter,
   quickEncodeToken
 };
+
+/** @type {EncodeOptions} */
+const rfc8949EncodeOptions = Object.freeze({
+  mapSorter: rfc8949MapSorter,
+  quickEncodeToken
+});
 
 /** @returns {TokenTypeEncoder[]} */
 function makeCborEncoders () {
@@ -2032,7 +2085,7 @@ function makeCborEncoders () {
 
 const cborEncoders = makeCborEncoders();
 
-const buf = new Bl();
+const defaultWriter = new Bl();
 
 /** @implements {Reference} */
 class Ref {
@@ -2231,28 +2284,65 @@ const typeEncoders = {
     const isMap = typ !== 'Object';
     // it's slightly quicker to use Object.keys() than Object.entries()
     const keys = isMap ? obj.keys() : Object.keys(obj);
-    const length = isMap ? obj.size : keys.length;
-    if (!length) {
+    const maxLength = isMap ? obj.size : keys.length;
+
+    /** @type {undefined | [TokenOrNestedTokens, TokenOrNestedTokens][]} */
+    let entries;
+
+    if (maxLength) {
+      // Pre-allocate the array with the expected size
+      entries = new Array(maxLength);
+      refStack = Ref.createCheck(refStack, obj);
+      const skipUndefined = !isMap && options.ignoreUndefinedProperties;
+
+      let i = 0;
+      for (const key of keys) {
+        const value = isMap ? obj.get(key) : obj[key];
+        if (skipUndefined && value === undefined) {
+          continue
+        }
+        entries[i++] = [
+          objectToTokens(key, options, refStack),
+          objectToTokens(value, options, refStack)
+        ];
+      }
+
+      // Truncate only if properties were skipped
+      if (i < maxLength) {
+        entries.length = i;
+      }
+    }
+
+    if (!entries?.length) {
       if (options.addBreakTokens === true) {
         return [simpleTokens.emptyMap, new Token(Type.break)]
       }
       return simpleTokens.emptyMap
     }
-    refStack = Ref.createCheck(refStack, obj);
-    /** @type {TokenOrNestedTokens[]} */
-    const entries = [];
-    let i = 0;
-    for (const key of keys) {
-      entries[i++] = [
-        objectToTokens(key, options, refStack),
-        objectToTokens(isMap ? obj.get(key) : obj[key], options, refStack)
-      ];
-    }
+
     sortMapEntries(entries, options);
     if (options.addBreakTokens) {
-      return [new Token(Type.map, length), entries, new Token(Type.break)]
+      return [new Token(Type.map, entries.length), entries, new Token(Type.break)]
     }
-    return [new Token(Type.map, length), entries]
+    return [new Token(Type.map, entries.length), entries]
+  },
+
+  /**
+   * Encode a `Tagged` wrapper as a CBOR tag header followed by the encoded
+   * form of the wrapped value. The value is recursively tokenised through
+   * `objectToTokens()` so any registered `typeEncoders` apply to it.
+   *
+   * @param {any} obj
+   * @param {string} _typ
+   * @param {EncodeOptions} options
+   * @param {Reference} [refStack]
+   * @returns {TokenOrNestedTokens}
+   */
+  Tagged (obj, _typ, options, refStack) {
+    return [
+      new Token(Type.tag, obj.tag),
+      objectToTokens(obj.value, options, refStack)
+    ]
   }
 };
 
@@ -2338,50 +2428,43 @@ Recommendation: stick to single key types or you'll get into trouble, and prefer
 string keys because it's much simpler that way.
 */
 
-/*
-(UPDATE, Dec 2020)
-https://tools.ietf.org/html/rfc8949 is the updated CBOR spec and clarifies some
-of the questions above with a new recommendation for sorting order being much
-closer to what would be expected in other environments (i.e. no length-first
-weirdness).
-This new sorting order is not yet implemented here but could be added as an
-option. "Determinism" (canonicity) is system dependent and it's difficult to
-change existing systems that are built with existing expectations. So if a new
-ordering is introduced here, the old needs to be kept as well with the user
-having the option.
-*/
-
 /**
  * @param {TokenOrNestedTokens[]} entries
  * @param {EncodeOptions} options
  */
 function sortMapEntries (entries, options) {
-  if (options.mapSorter) {
-    entries.sort(options.mapSorter);
+  // cast because entries carry the wider TokenOrNestedTokens element type while
+  // MapSorter narrows to (Token | Token[])[]; the original direct sort relied on
+  // sort's bivariant parameter check, the wrapper below re-states it
+  const mapSorter = /** @type {(e1: TokenOrNestedTokens, e2: TokenOrNestedTokens, options?: EncodeOptions) => number} */ (options.mapSorter);
+  if (mapSorter) {
+    // pass options so a sorter can honour encode options (e.g. major 7 keys
+    // order by their float64-honouring encoding); custom sorters that take
+    // only (e1, e2) simply ignore the extra argument
+    entries.sort((e1, e2) => mapSorter(e1, e2, options));
   }
 }
 
 /**
  * @param {(Token|Token[])[]} e1
  * @param {(Token|Token[])[]} e2
+ * @param {EncodeOptions} [options]
  * @returns {number}
  */
-function mapSorter (e1, e2) {
+function mapSorter (e1, e2, options) {
   // the key position ([0]) could have a single token or an array
   // almost always it'll be a single token but complex key might get involved
-  /* c8 ignore next 2 */
   const keyToken1 = Array.isArray(e1[0]) ? e1[0][0] : e1[0];
   const keyToken2 = Array.isArray(e2[0]) ? e2[0][0] : e2[0];
 
-  // different key types
-  if (keyToken1.type !== keyToken2.type) {
+  // different key type majors
+  if (keyToken1.type.major !== keyToken2.type.major) {
     return keyToken1.type.compare(keyToken2.type)
   }
 
   const major = keyToken1.type.major;
   // TODO: handle case where cmp === 0 but there are more keyToken e. complex type)
-  const tcmp = cborEncoders[major].compareTokens(keyToken1, keyToken2);
-  /* c8 ignore next 5 */
+  const tcmp = cborEncoders[major].compareTokens(keyToken1, keyToken2, options);
   if (tcmp === 0) {
     // duplicate key or complex type where the first token matched,
     // i.e. a map or array and we're only comparing the opening token
@@ -2391,66 +2474,353 @@ function mapSorter (e1, e2) {
 }
 
 /**
- * @param {Bl} buf
- * @param {TokenOrNestedTokens} tokens
- * @param {TokenTypeEncoder[]} encoders
- * @param {EncodeOptions} options
+ * @typedef {Token & { _keyBytes?: AllocatedByteView }} TokenEx
+ *
+ * @param {(Token|Token[])[]} e1
+ * @param {(Token|Token[])[]} e2
+ * @returns {number}
  */
-function tokensToEncoded (buf, tokens, encoders, options) {
-  if (Array.isArray(tokens)) {
-    for (const token of tokens) {
-      tokensToEncoded(buf, token, encoders, options);
+function rfc8949MapSorter (e1, e2) {
+  if (e1[0] instanceof Token && e2[0] instanceof Token) {
+    const t1 = /** @type {TokenEx} */ (e1[0]);
+    const t2 = /** @type {TokenEx} */ (e2[0]);
+
+    if (!t1._keyBytes) {
+      t1._keyBytes = encodeRfc8949(t1.value);
     }
-  } else {
-    encoders[tokens.type.major](buf, tokens, options);
+
+    if (!t2._keyBytes) {
+      t2._keyBytes = encodeRfc8949(t2.value);
+    }
+
+    return compare(t1._keyBytes, t2._keyBytes)
   }
+
+  throw new Error('rfc8949MapSorter: complex key types are not supported yet')
 }
 
 /**
  * @param {any} data
+ * @returns {AllocatedByteView}
+ */
+function encodeRfc8949 (data) {
+  return encodeCustom(data, cborEncoders, rfc8949EncodeOptions)
+}
+
+/**
+ * @param {ByteWriter} writer
+ * @param {TokenOrNestedTokens} tokens
  * @param {TokenTypeEncoder[]} encoders
  * @param {EncodeOptions} options
- * @returns {Uint8Array}
  */
-function encodeCustom (data, encoders, options) {
+function tokensToEncoded (writer, tokens, encoders, options) {
+  if (Array.isArray(tokens)) {
+    for (const token of tokens) {
+      tokensToEncoded(writer, token, encoders, options);
+    }
+  } else {
+    encoders[tokens.type.major](writer, tokens, options);
+  }
+}
+
+// CBOR major type prefixes, cached from Type for hot path performance
+const MAJOR_UINT = Type.uint.majorEncoded;
+const MAJOR_NEGINT = Type.negint.majorEncoded;
+const MAJOR_BYTES = Type.bytes.majorEncoded;
+const MAJOR_STRING = Type.string.majorEncoded;
+const MAJOR_ARRAY = Type.array.majorEncoded;
+const MAJOR_MAP = Type.map.majorEncoded;
+
+// Simple value bytes (CBOR major type 7 + minor value)
+const SIMPLE_FALSE = Type.float.majorEncoded | MINOR_FALSE;
+const SIMPLE_TRUE = Type.float.majorEncoded | MINOR_TRUE;
+const SIMPLE_NULL = Type.float.majorEncoded | MINOR_NULL;
+const SIMPLE_UNDEFINED = Type.float.majorEncoded | MINOR_UNDEFINED;
+
+const neg1b = BigInt(-1);
+const pos1b = BigInt(1);
+
+/**
+ * Compact direct-path writes avoid the full uint boundary chain.
+ * @param {ByteWriter} writer
+ * @param {number} major
+ * @param {number|bigint} uint
+ */
+function directEncodeUintValue (writer, major, uint) {
+  if (uint < 24) {
+    writer.pushByte(major | Number(uint));
+  } else {
+    encodeUintValue(writer, major, uint);
+  }
+}
+
+/**
+ * Check if direct encoding can be used for the given options.
+ * Direct encoding bypasses token creation for most values.
+ * @param {EncodeOptions} options
+ * @returns {boolean}
+ */
+function canDirectEncode (options) {
+  // Cannot use direct encode with addBreakTokens (needs special break token handling).
+  // Direct encode checks typeEncoders per-value, falling back to tokens as needed.
+  // Maps fall back to token-based encoding for efficient key sorting.
+  return options.addBreakTokens !== true
+}
+
+/**
+ * Encode a map through the default deterministic sorter while keeping values
+ * on the direct path. Only keys need tokens for comparison.
+ * @param {ByteWriter} writer
+ * @param {any} data
+ * @param {string} typ
+ * @param {EncodeOptions} options
+ * @param {Reference|undefined} refStack
+ */
+function directEncodeMap (writer, data, typ, options, refStack) {
+  const isMap = typ === 'Map';
+  const keys = isMap ? data.keys() : Object.keys(data);
+  const maxLength = isMap ? data.size : keys.length;
+
+  if (!maxLength) {
+    writer.pushByte(MAJOR_MAP);
+    return
+  }
+
+  refStack = Ref.createCheck(refStack, data);
+  const skipUndefined = !isMap && options.ignoreUndefinedProperties;
+  const entries = new Array(maxLength);
+  let length = 0;
+
+  for (const key of keys) {
+    const value = isMap ? data.get(key) : data[key];
+    if (skipUndefined && value === undefined) {
+      continue
+    }
+    entries[length++] = [objectToTokens(key, options, refStack), value];
+  }
+
+  if (length === 0) {
+    writer.pushByte(MAJOR_MAP);
+    return
+  }
+  if (length < maxLength) {
+    entries.length = length;
+  }
+
+  entries.sort((e1, e2) => mapSorter(e1, e2, options));
+  directEncodeUintValue(writer, MAJOR_MAP, length);
+  for (const [key, value] of entries) {
+    tokensToEncoded(writer, key, cborEncoders, options);
+    directEncode(writer, value, options, refStack);
+  }
+}
+
+/**
+ * Direct encode a value to the writer, bypassing token creation for most types.
+ * Falls back to token-based encoding for custom type encoders.
+ * @param {ByteWriter} writer
+ * @param {any} data
+ * @param {EncodeOptions} options
+ * @param {Reference|undefined} refStack
+ */
+function directEncode (writer, data, options, refStack) {
+  const typ = is(data);
+
+  // Check for custom encoder for THIS specific type
+  const customEncoder = options.typeEncoders && options.typeEncoders[typ];
+  if (customEncoder) {
+    const tokens = customEncoder(data, typ, options, refStack);
+    if (tokens != null) {
+      // Custom encoder returned tokens, serialize immediately
+      tokensToEncoded(writer, tokens, cborEncoders, options);
+      return
+    }
+    // Custom encoder returned null, fall through to default handling
+  }
+
+  // Direct encode based on type
+  switch (typ) {
+    case 'null':
+      writer.pushByte(SIMPLE_NULL);
+      return
+
+    case 'undefined':
+      writer.pushByte(SIMPLE_UNDEFINED);
+      return
+
+    case 'boolean':
+      writer.pushByte(data ? SIMPLE_TRUE : SIMPLE_FALSE);
+      return
+
+    case 'number':
+      if (!Number.isInteger(data) || !Number.isSafeInteger(data)) {
+        // Float, use token encoder for complex float encoding
+        encodeFloat(writer, new Token(Type.float, data), options);
+      } else if (data >= 0) {
+        directEncodeUintValue(writer, MAJOR_UINT, data);
+      } else {
+        // Negative integer
+        directEncodeUintValue(writer, MAJOR_NEGINT, data * -1 - 1);
+      }
+      return
+
+    case 'bigint':
+      if (data >= BigInt(0)) {
+        directEncodeUintValue(writer, MAJOR_UINT, data);
+      } else {
+        directEncodeUintValue(writer, MAJOR_NEGINT, data * neg1b - pos1b);
+      }
+      return
+
+    case 'string': {
+      const bytes = fromString(data);
+      directEncodeUintValue(writer, MAJOR_STRING, bytes.length);
+      writer.push(bytes);
+      return
+    }
+
+    case 'Uint8Array':
+      directEncodeUintValue(writer, MAJOR_BYTES, data.length);
+      writer.push(data);
+      return
+
+    case 'Array':
+      if (!data.length) {
+        writer.pushByte(MAJOR_ARRAY); // Empty array: 0x80
+        return
+      }
+      refStack = Ref.createCheck(refStack, data);
+      directEncodeUintValue(writer, MAJOR_ARRAY, data.length);
+      for (const elem of data) {
+        directEncode(writer, elem, options, refStack);
+      }
+      return
+
+    case 'Object':
+    case 'Map':
+      if (options.mapSorter === mapSorter) {
+        directEncodeMap(writer, data, typ, options, refStack);
+      } else {
+        const tokens = typeEncoders.Object(data, typ, options, refStack);
+        tokensToEncoded(writer, tokens, cborEncoders, options);
+      }
+      return
+
+    default:
+    // Fall back to token-based encoding for other types (DataView, TypedArrays, etc.)
+    {
+      const typeEncoder = typeEncoders[typ];
+      if (!typeEncoder) {
+        throw new Error(`${encodeErrPrefix} unsupported type: ${typ}`)
+      }
+      const tokens = typeEncoder(data, typ, options, refStack);
+      tokensToEncoded(writer, tokens, cborEncoders, options);
+    }
+  }
+}
+
+/**
+ * @template {ArrayBufferLike} T
+ * @overload
+ * @param {any} data
+ * @param {TokenTypeEncoder[]} encoders
+ * @param {EncodeOptions} options
+ * @param {Uint8Array<T>} destination
+ * @returns {Uint8Array<T>}
+ */
+/**
+ * @overload
+ * @param {any} data
+ * @param {TokenTypeEncoder[]} encoders
+ * @param {EncodeOptions} options
+ * @returns {AllocatedByteView}
+ */
+/**
+ * @param {any} data
+ * @param {TokenTypeEncoder[]} encoders
+ * @param {EncodeOptions} options
+ * @param {ByteView} [destination]
+ * @returns {ByteView}
+ */
+function encodeCustom (data, encoders, options, destination) {
+  // arg ordering is different to encodeInto for backward compatibility
+  const hasDest = destination instanceof Uint8Array;
+  let writeTo = hasDest ? new U8Bl(destination) : defaultWriter;
+
   const tokens = objectToTokens(data, options);
   if (!Array.isArray(tokens) && options.quickEncodeToken) {
     const quickBytes = options.quickEncodeToken(tokens);
     if (quickBytes) {
+      if (hasDest) {
+        // Copy quick bytes into destination buffer
+        writeTo.push(quickBytes);
+        return writeTo.toBytes()
+      }
       return quickBytes
     }
     const encoder = encoders[tokens.type.major];
     if (encoder.encodedSize) {
       const size = encoder.encodedSize(tokens, options);
-      const buf = new Bl(size);
-      encoder(buf, tokens, options);
-      /* c8 ignore next 4 */
+      if (!hasDest) {
+        writeTo = new Bl(size);
+      }
+      encoder(writeTo, tokens, options);
       // this would be a problem with encodedSize() functions
-      if (buf.chunks.length !== 1) {
+      if (writeTo.chunks.length !== 1) {
         throw new Error(`Unexpected error: pre-calculated length for ${tokens} was wrong`)
       }
-      return asU8A(buf.chunks[0])
+      return hasDest ? writeTo.toBytes() : asU8A(writeTo.chunks[0])
     }
   }
-  buf.reset();
-  tokensToEncoded(buf, tokens, encoders, options);
-  return buf.toBytes(true)
+  writeTo.reset();
+  tokensToEncoded(writeTo, tokens, encoders, options);
+  return writeTo.toBytes(true)
 }
 
 /**
  * @param {any} data
  * @param {EncodeOptions} [options]
- * @returns {Uint8Array}
+ * @returns {AllocatedByteView}
  */
 function encode (data, options) {
   options = Object.assign({}, defaultEncodeOptions, options);
+
+  // Use direct encode path when possible
+  if (canDirectEncode(options)) {
+    defaultWriter.reset();
+    directEncode(defaultWriter, data, options, undefined);
+    return defaultWriter.toBytes(true)
+  }
+
   return encodeCustom(data, cborEncoders, options)
 }
 
 /**
+ * @template {ArrayBufferLike} T
+ * @param {any} data
+ * @param {Uint8Array<T>} destination
+ * @param {EncodeOptions} [options]
+ * @returns {{ written: number }}
+ */
+function encodeInto (data, destination, options) {
+  options = Object.assign({}, defaultEncodeOptions, options);
+
+  // Use direct encode path when possible
+  if (canDirectEncode(options)) {
+    const writer = new U8Bl(destination);
+    directEncode(writer, data, options, undefined);
+    return { written: writer.toBytes().length }
+  }
+
+  const result = encodeCustom(data, cborEncoders, options, destination);
+  return { written: result.length }
+}
+
+/**
  * @typedef {import('./token.js').Token} Token
- * @typedef {import('../interface').DecodeOptions} DecodeOptions
- * @typedef {import('../interface').DecodeTokenizer} DecodeTokenizer
+ * @typedef {import('../interface.js').DecodeOptions} DecodeOptions
+ * @typedef {import('../interface.js').DecodeTokenizer} DecodeTokenizer
+ * @typedef {import('../interface.js').TagDecodeControl} TagDecodeControl
  */
 
 const defaultDecodeOptions = {
@@ -2487,7 +2857,6 @@ class Tokeniser {
     let token = quick[byt];
     if (token === undefined) {
       const decoder = jump[byt];
-      /* c8 ignore next 4 */
       // if we're here then there's something wrong with our jump or quick lists!
       if (!decoder) {
         throw new Error(`${decodeErrPrefix} no decoder for major type ${byt >>> 5} (byte 0x${byt.toString(16).padStart(2, '0')})`)
@@ -2508,7 +2877,7 @@ const BREAK = Symbol.for('BREAK');
  * @param {Token} token
  * @param {DecodeTokenizer} tokeniser
  * @param {DecodeOptions} options
- * @returns {any|BREAK|DONE}
+ * @returns {any|typeof BREAK|typeof DONE}
  */
 function tokenToArray (token, tokeniser, options) {
   const arr = [];
@@ -2533,10 +2902,11 @@ function tokenToArray (token, tokeniser, options) {
  * @param {Token} token
  * @param {DecodeTokenizer} tokeniser
  * @param {DecodeOptions} options
- * @returns {any|BREAK|DONE}
+ * @returns {any|typeof BREAK|typeof DONE}
  */
 function tokenToMap (token, tokeniser, options) {
   const useMaps = options.useMaps === true;
+  const rejectDuplicateMapKeys = options.rejectDuplicateMapKeys === true;
   const obj = useMaps ? undefined : {};
   const m = useMaps ? new Map() : undefined;
   for (let i = 0; i < token.value; i++) {
@@ -2551,12 +2921,12 @@ function tokenToMap (token, tokeniser, options) {
     if (key === DONE) {
       throw new Error(`${decodeErrPrefix} found map but not enough entries (got ${i} [no key], expected ${token.value})`)
     }
-    if (useMaps !== true && typeof key !== 'string') {
+    if (!useMaps && typeof key !== 'string') {
       throw new Error(`${decodeErrPrefix} non-string keys not supported (got ${typeof key})`)
     }
-    if (options.rejectDuplicateMapKeys === true) {
+    if (rejectDuplicateMapKeys) {
       // @ts-ignore
-      if ((useMaps && m.has(key)) || (!useMaps && (key in obj))) {
+      if ((useMaps && m.has(key)) || (!useMaps && Object.hasOwn(obj, key))) {
         throw new Error(`${decodeErrPrefix} found repeat map key "${key}"`)
       }
     }
@@ -2577,9 +2947,83 @@ function tokenToMap (token, tokeniser, options) {
 }
 
 /**
+ * Generator that yields [key, value] entries from a CBOR map token.
+ * Used by tag decoders that need to preserve key types (e.g., Tag 259 Map).
+ * @param {Token} token - The map token
  * @param {DecodeTokenizer} tokeniser
  * @param {DecodeOptions} options
- * @returns {any|BREAK|DONE}
+ * @returns {Generator<[any, any], void, unknown>}
+ */
+function * tokenToMapEntries (token, tokeniser, options) {
+  for (let i = 0; i < token.value; i++) {
+    const key = tokensToObject(tokeniser, options);
+    if (key === BREAK) {
+      if (token.value === Infinity) {
+        // normal end to indefinite length map
+        break
+      }
+      throw new Error(`${decodeErrPrefix} got unexpected break to lengthed map`)
+    }
+    if (key === DONE) {
+      throw new Error(`${decodeErrPrefix} found map but not enough entries (got ${i} [no key], expected ${token.value})`)
+    }
+    const value = tokensToObject(tokeniser, options);
+    if (value === DONE) {
+      throw new Error(`${decodeErrPrefix} found map but not enough entries (got ${i} [no value], expected ${token.value})`)
+    }
+    yield [key, value];
+  }
+}
+
+/**
+ * Creates a TagDecodeControl object for tag decoders.
+ * @param {DecodeTokenizer} tokeniser
+ * @param {DecodeOptions} options
+ * @returns {TagDecodeControl}
+ */
+function createTagDecodeControl (tokeniser, options) {
+  /** @type {TagDecodeControl & {_called: boolean}} */
+  const decode = function () {
+    if (decode._called) {
+      throw new Error(`${decodeErrPrefix} tag decode() may only be called once`)
+    }
+    decode._called = true;
+    const value = tokensToObject(tokeniser, options);
+    if (value === DONE) {
+      throw new Error(`${decodeErrPrefix} tag content missing`)
+    }
+    if (value === BREAK) {
+      throw new Error(`${decodeErrPrefix} got unexpected break in tag content`)
+    }
+    return value
+  };
+
+  decode.entries = function () {
+    if (decode._called) {
+      throw new Error(`${decodeErrPrefix} tag decode() may only be called once`)
+    }
+    decode._called = true;
+
+    const token = tokeniser.next();
+    if (!Type.equals(token.type, Type.map)) {
+      throw new Error(`${decodeErrPrefix} entries() requires map content, got ${token.type.name}`)
+    }
+
+    const entries = [];
+    for (const entry of tokenToMapEntries(token, tokeniser, options)) {
+      entries.push(entry);
+    }
+    return entries
+  };
+
+  decode._called = false;
+  return decode
+}
+
+/**
+ * @param {DecodeTokenizer} tokeniser
+ * @param {DecodeOptions} options
+ * @returns {any|typeof BREAK|typeof DONE}
  */
 function tokensToObject (tokeniser, options) {
   // should we support array as an argument?
@@ -2590,7 +3034,7 @@ function tokensToObject (tokeniser, options) {
 
   const token = tokeniser.next();
 
-  if (token.type === Type.break) {
+  if (Type.equals(token.type, Type.break)) {
     return BREAK
   }
 
@@ -2598,22 +3042,25 @@ function tokensToObject (tokeniser, options) {
     return token.value
   }
 
-  if (token.type === Type.array) {
+  if (Type.equals(token.type, Type.array)) {
     return tokenToArray(token, tokeniser, options)
   }
 
-  if (token.type === Type.map) {
+  if (Type.equals(token.type, Type.map)) {
     return tokenToMap(token, tokeniser, options)
   }
 
-  if (token.type === Type.tag) {
+  if (Type.equals(token.type, Type.tag)) {
     if (options.tags && typeof options.tags[token.value] === 'function') {
-      const tagged = tokensToObject(tokeniser, options);
-      return options.tags[token.value](tagged)
+      const decodeControl = createTagDecodeControl(tokeniser, options);
+      const result = options.tags[token.value](decodeControl);
+      if (!decodeControl._called) {
+        throw new Error(`${decodeErrPrefix} tag decoder must call decode() or entries()`)
+      }
+      return result
     }
     throw new Error(`${decodeErrPrefix} tag not supported (${token.value})`)
   }
-  /* c8 ignore next */
   throw new Error('unsupported')
 }
 
@@ -2627,7 +3074,9 @@ function decodeFirst (data, options) {
     throw new Error(`${decodeErrPrefix} data to decode must be a Uint8Array`)
   }
   options = Object.assign({}, defaultDecodeOptions, options);
-  const tokeniser = options.tokenizer || new Tokeniser(data, options);
+  // Convert Buffer to plain Uint8Array for faster slicing in decode path
+  const u8aData = asU8A(data);
+  const tokeniser = options.tokenizer || new Tokeniser(u8aData, options);
   const decoded = tokensToObject(tokeniser, options);
   if (decoded === DONE) {
     throw new Error(`${decodeErrPrefix} did not find any content to decode`)
@@ -2651,4 +3100,83 @@ function decode (data, options) {
   return decoded
 }
 
-export { Token, Tokeniser as Tokenizer, Type, decode, decodeFirst, encode, tokensToObject };
+/**
+ * @typedef {import('../interface.js').TagDecodeControl} TagDecodeControl
+ * @typedef {(decode: TagDecodeControl) => Tagged} TaggedTagDecoder
+ */
+
+/**
+ * A wrapper class for representing a CBOR tag with an arbitrary nested value.
+ *
+ * `Tagged` is a symmetric primitive: it can be passed to `encode()` to emit
+ * a CBOR tag header followed by the encoded form of `value`, and it can be
+ * returned from a tag decoder (via `Tagged.decoder(tag)` or `Tagged.preserve()`)
+ * to round-trip a tag through decode without losing the tag number.
+ *
+ * Use `Tagged` for one-off tag handling where defining a dedicated
+ * `typeEncoders` entry and tag decoder pair would be heavyweight, e.g. when
+ * wrapping a structure in a single application-specific tag (COSE, dCBOR
+ * envelopes, etc.).
+ *
+ * For systematic mapping of a JS type to a tag (e.g. CID -> tag 42), prefer
+ * a dedicated `typeEncoders` entry instead.
+ */
+class Tagged {
+  /**
+   * @param {number} tag - CBOR tag number, a non-negative integer
+   * @param {any} value - The value to be tagged; encoded recursively
+   */
+  constructor (tag, value) {
+    if (typeof tag !== 'number' || !Number.isInteger(tag) || tag < 0) {
+      throw new TypeError('Tagged: tag must be a non-negative integer')
+    }
+    this.tag = tag;
+    this.value = value;
+  }
+
+  /**
+   * Build a tag decoder for use in `decode()`'s `tags` option that returns the
+   * decoded content wrapped in a `Tagged` instance, preserving the tag number
+   * for the caller to inspect.
+   *
+   * @param {number} tag - The CBOR tag number this decoder will be registered for
+   * @returns {TaggedTagDecoder}
+   *
+   * @example
+   * import { decode, Tagged } from 'cborg'
+   * const value = decode(bytes, { tags: { 16: Tagged.decoder(16) } })
+   * // value instanceof Tagged; value.tag === 16
+   */
+  static decoder (tag) {
+    return (decode) => new Tagged(tag, decode())
+  }
+
+  /**
+   * Build a `tags` option for `decode()` that wraps each listed tag number in
+   * a `Tagged` instance, preserving those tags through decode without
+   * registering a dedicated decoder per tag.
+   *
+   * @param {...number} tagNumbers - One or more CBOR tag numbers to preserve
+   * @returns {{[tagNumber: number]: TaggedTagDecoder}}
+   *
+   * @example
+   * import { decode, Tagged } from 'cborg'
+   * const value = decode(bytes, { tags: Tagged.preserve(16, 96) })
+   */
+  static preserve (...tagNumbers) {
+    /** @type {{[tagNumber: number]: TaggedTagDecoder}} */
+    const tags = {};
+    for (const tag of tagNumbers) {
+      tags[tag] = Tagged.decoder(tag);
+    }
+    return tags
+  }
+}
+
+// Symbol.toStringTag so the internal `is()` type detection returns 'Tagged'
+// for instances, allowing the default Tagged typeEncoder to match.
+Object.defineProperty(Tagged.prototype, Symbol.toStringTag, {
+  value: 'Tagged'
+});
+
+export { Tagged, Token, Tokeniser as Tokenizer, Type, decode, decodeFirst, encode, encodeInto, objectToTokens, rfc8949EncodeOptions, tokensToObject };

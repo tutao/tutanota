@@ -76,16 +76,14 @@ export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 	]
 
 	oncreate({ attrs }: Vnode<PlanBoxContainerAttrs>) {
-		if (attrs.selectedPlan() == null) {
-			const { planConfigs, selectedPlan } = filterPlanConfigsAndGetSelectedPlan(
-				this.paidPlanConfigs,
-				attrs.availablePlans,
-				PlanType.Revolutionary,
-				attrs.currentPlan,
-			)
-			this.paidPlanConfigs = planConfigs
-			attrs.selectedPlan(selectedPlan)
-		}
+		const { planConfigs, selectedPlan } = filterPlanConfigsAndGetSelectedPlan(
+			this.paidPlanConfigs,
+			attrs.availablePlans,
+			attrs.selectedPlan(),
+			attrs.currentPlan,
+		)
+		this.paidPlanConfigs = planConfigs
+		attrs.selectedPlan(selectedPlan)
 		m.redraw()
 	}
 
@@ -160,13 +158,14 @@ export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 					})
 				}),
 			),
-			m(PersonalFreePlanBox, {
-				isSelected: selectedPlan() === PlanType.Free,
-				isDisabled: !availablePlans.includes(PlanType.Free) || currentPlan === PlanType.Free,
-				isCurrentPlan: currentPlan === PlanType.Free,
-				onclick: (newPlan) => selectedPlan(newPlan),
-				priceAndConfigProvider,
-			}),
+			availablePlans.includes(PlanType.Free) &&
+				m(PersonalFreePlanBox, {
+					isSelected: selectedPlan() === PlanType.Free,
+					isDisabled: !availablePlans.includes(PlanType.Free) || currentPlan === PlanType.Free,
+					isCurrentPlan: currentPlan === PlanType.Free,
+					onclick: (newPlan) => selectedPlan(newPlan),
+					priceAndConfigProvider,
+				}),
 		)
 	}
 }

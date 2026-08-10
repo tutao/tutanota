@@ -205,7 +205,6 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			],
 		)
 	}
-
 	private isMatchingPlanSelected(options: SelectedSubscriptionOptions): boolean {
 		if (options.businessUse() && NewBusinessPlans.includes(this.selectedPlan() as AvailablePlanType)) {
 			return true

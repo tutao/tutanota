@@ -3,7 +3,7 @@
 // apply patch operations using a similar logic from the server
 // update the instance in the offline db
 
-import { AssociationReprType, getAssociationRepresentationType, isSameSingleId, isSameTypeRef, TypeRef } from "../meta"
+import { AssociationReprType, getAssociationRepresentationType, isSameId, isSameSingleId, isSameTypeRef, TypeRef } from "../meta"
 import { ParsedValue } from "./ParsedValue"
 import { assertNotNull, deepEqual, isEmpty, isNotNull, KeyVersion, lazy, Nullable } from "@tutao/utils"
 import {
@@ -256,10 +256,14 @@ export class PatchMerger {
 				}
 				const associationArray = instanceToChange.getAttributeById(attributeId).asArray()
 				const idsToRemove = valueInPatchPayload.asArray()
-				const remainingAggregations = associationArray.filter((currentAggregation) => {
-					return !idsToRemove.some((removingAggregationId) => PatchMerger.isSameDecryptedParsedValue(currentAggregation, removingAggregationId))
+				const remainingAssociations = associationArray.filter((currentAssociationId) => {
+					const currentAggregationId =
+						associationReprType === AssociationReprType.Aggregation
+							? currentAssociationId.asNestedObj().getAttributeByName("_id").asAnyEntityId()
+							: currentAssociationId.asAnyEntityId()
+					return !idsToRemove.some((removingAggregationId) => isSameId(currentAggregationId, removingAggregationId.asAnyEntityId()))
 				})
-				const uniqueAssociations = this.distinctAssociations(remainingAggregations)
+				const uniqueAssociations = this.distinctAssociations(remainingAssociations)
 
 				if (associationReprType === AssociationReprType.Aggregation) {
 					instanceToChange.addAttributeById(attributeId, ParsedValue.fromNestedItems(uniqueAssociations.map((item) => item.asNestedObj())))

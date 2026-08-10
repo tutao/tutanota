@@ -1,5 +1,6 @@
-import { KeyVersion, Versioned } from "@tutao/utils"
+import { KeyVersion, Nullable, Versioned } from "@tutao/utils"
 import { Aes256Key, AesKey } from "./encryption/symmetric/AesKey"
+import { BrandedType, TsBrand } from "../utils/TsUtils"
 
 export const enum HkdfKeyDerivationDomains {
 	UserGroupKeyDistributionKey = "userGroupKeyDistributionKey",
@@ -11,7 +12,11 @@ export const enum HkdfKeyDerivationDomains {
 	VersionedUserGroupKeyDistributionKey = "versionedUserGroupKeyDistributionKey",
 	PublicIdentityKey = "publicIdentityKey",
 }
-export type MacTag = Uint8Array & { readonly __brand: "macTag" }
+class MacTagBrand extends TsBrand {
+	protected __brand: Nullable<never> = null
+}
+export type MacTag = BrandedType<Uint8Array<ArrayBuffer>, MacTagBrand>
+
 export const UNIT_SEPARATOR_CHAR = "" as const
 export type DomainSeparator = `${string}${typeof UNIT_SEPARATOR_CHAR}`
 export const AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN: DomainSeparator = `attributeEncGK${UNIT_SEPARATOR_CHAR}`
@@ -57,5 +62,5 @@ export type VersionedAes256Key = Versioned<Aes256Key>
  */
 export type VersionedEncryptedKey = {
 	encryptingKeyVersion: KeyVersion // the version of the encryption key NOT the encrypted key
-	key: Uint8Array // encrypted key
+	key: Uint8Array<ArrayBuffer> // encrypted key
 }

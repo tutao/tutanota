@@ -5,8 +5,8 @@ import pako from "pako"
 o.spec("Deflater", function () {
 	o("correctly deflate", async function () {
 		const input = new Uint8Array([1, 7, 35, 232])
-		const expected = pako.deflate(input)
-		const actual = await new Deflater().deflate(input)
+		const expected: Uint8Array<ArrayBuffer> = Uint8Array.from(pako.deflate(input))
+		const actual = await new Deflater().deflate(input.buffer)
 		o(actual).deepEquals(expected)
 	})
 })

@@ -521,6 +521,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			)
 			streamListeners.push(this.viewModel.redraw.map(m.redraw))
 			this.viewSlider.focus(this.contentColumn)
+			this.viewModel.init()
 		}
 
 		this.onremove = () => {
@@ -536,6 +537,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			for (let listener of streamListeners) {
 				listener.end(true)
 			}
+			this.viewModel.deinit()
 		}
 
 		deviceConfig.getLastSyncStream().map(redraw)

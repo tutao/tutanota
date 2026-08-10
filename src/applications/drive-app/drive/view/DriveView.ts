@@ -139,6 +139,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		keyManager.unregisterShortcuts(this.shortcuts)
 		this.operationUpdatesSubscription?.end(true)
 		this.operationUpdatesSubscription = null
+		this.driveViewModel.deinit()
 	}
 
 	constructor(vnode: Vnode<DriveViewAttrs>) {
@@ -274,6 +275,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		]
 	}
 
+	/** init is called every time the view is opened */
 	private async init() {
 		await this.driveViewModel.init()
 		if (!(await this.driveViewModel.currentPlanSupportsDrive())) {

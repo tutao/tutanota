@@ -4,9 +4,9 @@ import { Mail, MailSet } from "@tutao/entities/tutanota"
 import { MailSetKind, SystemFolderType } from "../../../../../entities/tutanota/Utils"
 import { isTopLevelMailSet, isVisibleSystemMailSet } from "../../../../mail-app/mail/MailUtils"
 
-export interface IndentedFolder {
+export interface IndentedMailSet {
 	level: number
-	folder: MailSet
+	mailSet: MailSet
 }
 
 /** Accessor for the folder trees. */
@@ -16,7 +16,7 @@ export class FolderSystem {
 	readonly orphanSubtrees: ReadonlyArray<FolderSubtree>
 	readonly importedMailSet: Readonly<MailSet | null>
 
-	constructor(mailSets: readonly MailSet[]) {
+	constructor(mailSets: readonly MailSet[], topLevelCustomFolderKind = MailSetKind.CUSTOM) {
 		const mailSetByParent = groupBy(mailSets, (mailSet) => (mailSet.parentFolder ? elementIdPart(mailSet.parentFolder) : null))
 		const existingMailSets = new Set(mailSets.map(getElementId))
 		const systemMailSets: MailSet[] = []
@@ -26,7 +26,7 @@ export class FolderSystem {
 		for (const mailSet of mailSets) {
 			if (isVisibleSystemMailSet(mailSet)) {
 				systemMailSets.push(mailSet)
-			} else if (mailSet.folderType === MailSetKind.CUSTOM) {
+			} else if (mailSet.folderType === topLevelCustomFolderKind) {
 				if (isTopLevelMailSet(mailSet)) {
 					topLevelCustomFolders.push(mailSet)
 				} else if (!existingMailSets.has(elementIdPart(assertNotNull(mailSet.parentFolder)))) {
@@ -41,7 +41,7 @@ export class FolderSystem {
 		this.orphanSubtrees = topLevelOrphanFolders.sort(compareCustom).map((f) => this.makeSubtree(mailSetByParent, f, compareCustom))
 	}
 
-	getIndentedList(excludeFolder: MailSet | null = null): IndentedFolder[] {
+	getIndentedList(excludeFolder: MailSet | null = null): IndentedMailSet[] {
 		// orphanSubtrees are excluded from indentedList because they're only shown so the user can decide whether to
 		// delete or move them to the system/custom subtrees.
 		return [...this.getIndentedFolderList(this.systemSubtrees, excludeFolder), ...this.getIndentedFolderList(this.customSubtrees, excludeFolder)]
@@ -84,7 +84,7 @@ export class FolderSystem {
 		}
 	}
 
-	getDescendantFoldersOfParent(parent: IdTuple): IndentedFolder[] {
+	getDescendantFoldersOfParent(parent: IdTuple): IndentedMailSet[] {
 		const parentFolder = this.getFolderByIdInSubtrees([...this.orphanSubtrees, ...this.customSubtrees, ...this.systemSubtrees], elementIdPart(parent))
 		if (parentFolder) {
 			return this.getIndentedFolderList([parentFolder]).slice(1)
@@ -115,20 +115,20 @@ export class FolderSystem {
 		}
 	}
 
-	private getIndentedFolderList(subtrees: ReadonlyArray<FolderSubtree>, excludeFolder: MailSet | null = null, currentLevel: number = 0): IndentedFolder[] {
-		const plainList: IndentedFolder[] = []
+	private getIndentedFolderList(subtrees: ReadonlyArray<FolderSubtree>, excludeFolder: MailSet | null = null, currentLevel: number = 0): IndentedMailSet[] {
+		const plainList: IndentedMailSet[] = []
 		for (const subtree of subtrees) {
 			if (!excludeFolder || !isSameId(subtree.folder._id, excludeFolder._id)) {
-				plainList.push({ level: currentLevel, folder: subtree.folder })
+				plainList.push({ level: currentLevel, mailSet: subtree.folder })
 				plainList.push(...this.getIndentedFolderList(subtree.children, excludeFolder, currentLevel + 1))
 			}
 		}
 		return plainList
 	}
 
-	private getIndentedSystemList(): IndentedFolder[] {
+	private getIndentedSystemList(): IndentedMailSet[] {
 		return this.systemSubtrees.map((subtree) => {
-			return { level: 0, folder: subtree.folder }
+			return { level: 0, mailSet: subtree.folder }
 		})
 	}
 
@@ -137,7 +137,7 @@ export class FolderSystem {
 	}
 
 	getFolderByName(folderName: string): MailSet | null {
-		return this.getCustomFoldersOfParent(null).find((f) => folderName.localeCompare(f.name) === 0) ?? null
+		return this.getCustomFoldersOfParent(null).find((f) => folderName === f.name) ?? null
 	}
 
 	private getFolderBy(systems: ReadonlyArray<FolderSubtree>, predicate: (subtree: FolderSubtree) => boolean): FolderSubtree | null {

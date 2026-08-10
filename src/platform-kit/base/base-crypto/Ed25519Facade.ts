@@ -26,9 +26,9 @@ assertWorkerOrNode()
 export interface Ed25519Facade {
 	generateKeypair(): Promise<Ed25519KeyPair>
 
-	sign(privateKey: Ed25519PrivateKey, message: Uint8Array): Promise<EncodedEd25519Signature>
+	sign(privateKey: Ed25519PrivateKey, message: Uint8Array<ArrayBuffer>): Promise<EncodedEd25519Signature>
 
-	verifySignature(publicKey: Ed25519PublicKey, signature: EncodedEd25519Signature, message: Uint8Array): Promise<boolean>
+	verifySignature(publicKey: Ed25519PublicKey, signature: EncodedEd25519Signature, message: Uint8Array<ArrayBuffer>): Promise<boolean>
 }
 
 /**
@@ -51,12 +51,12 @@ export class WASMEd25519Facade implements Ed25519Facade {
 		return generateEd25519KeyPair()
 	}
 
-	async sign(privateKey: Ed25519PrivateKey, message: Uint8Array): Promise<EncodedEd25519Signature> {
+	async sign(privateKey: Ed25519PrivateKey, message: Uint8Array<ArrayBuffer>): Promise<EncodedEd25519Signature> {
 		await this.initEd25519.getAsync()
 		return ed25519SignatureToBytes(signWithEd25519(privateKey, message))
 	}
 
-	async verifySignature(publicKey: Ed25519PublicKey, signature: EncodedEd25519Signature, message: Uint8Array): Promise<boolean> {
+	async verifySignature(publicKey: Ed25519PublicKey, signature: EncodedEd25519Signature, message: Uint8Array<ArrayBuffer>): Promise<boolean> {
 		await this.initEd25519.getAsync()
 		return verifyEd25519Signature(publicKey, message, bytesToEd25519Signature(signature))
 	}
@@ -78,7 +78,7 @@ export class NativeEd25519Facade implements Ed25519Facade {
 		}
 	}
 
-	async sign(privateKey: Ed25519PrivateKey, message: Uint8Array): Promise<EncodedEd25519Signature> {
+	async sign(privateKey: Ed25519PrivateKey, message: Uint8Array<ArrayBuffer>): Promise<EncodedEd25519Signature> {
 		const ipcPrivateKey: IPCEd25519PrivateKey = {
 			raw: ed25519PrivateKeyToBytes(privateKey),
 		}
@@ -86,7 +86,7 @@ export class NativeEd25519Facade implements Ed25519Facade {
 		return ipcSignature.signature
 	}
 
-	async verifySignature(publicKey: Ed25519PublicKey, signature: EncodedEd25519Signature, message: Uint8Array): Promise<boolean> {
+	async verifySignature(publicKey: Ed25519PublicKey, signature: EncodedEd25519Signature, message: Uint8Array<ArrayBuffer>): Promise<boolean> {
 		const ipcPublicKey: IPCEd25519PublicKey = {
 			raw: ed25519PublicKeyToBytes(publicKey),
 		}

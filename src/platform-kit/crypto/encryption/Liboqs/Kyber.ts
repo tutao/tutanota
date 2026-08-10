@@ -102,7 +102,7 @@ export function encapsulate(kyberWasm: LibOQSExports, publicKey: KyberPublicKey,
  * @param ciphertext the ciphertext output of encapsulate()
  * @return the plaintext secret key
  */
-export function decapsulate(kyberWasm: LibOQSExports, privateKey: KyberPrivateKey, ciphertext: Uint8Array): Uint8Array {
+export function decapsulate(kyberWasm: LibOQSExports, privateKey: KyberPrivateKey, ciphertext: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 	if (privateKey.raw.length !== OQS_KEM_ml_kem_1024_length_secret_key) {
 		throw new CryptoError(`Invalid private key length; expected ${OQS_KEM_ml_kem_1024_length_secret_key}, got ${privateKey.raw.length}`)
 	}

@@ -81,10 +81,10 @@ o.spec("AeadFacadeTest", function () {
 	})
 
 	o.spec("decrypt_detects_wrong_padding", function () {
-		let testDecryptionWithInvalidPadding: (plaintext: Uint8Array) => Promise<void>
+		let testDecryptionWithInvalidPadding: (plaintext: Uint8Array<ArrayBuffer>) => Promise<void>
 
 		o.before(() => {
-			testDecryptionWithInvalidPadding = async function (plaintext: Uint8Array) {
+			testDecryptionWithInvalidPadding = async function (plaintext: Uint8Array<ArrayBuffer>) {
 				const versionedCiphertext = aeadFacade.encryptInternal(keys, plaintext, associatedData)
 				const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextAead
 				const e = await assertThrows(CryptoError, async () => {

@@ -1,6 +1,6 @@
-import { OfflineStorage, Range } from "./OfflineStorage.js"
+import { Range } from "./OfflineStorage.js"
 import { ProgrammingError } from "@tutao/app-env"
-import { Entity, ListElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
+import { ListElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
 import { Nullable } from "@tutao/utils"
 import { EphemeralCacheStorage } from "./EphemeralCacheStorage"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
@@ -13,6 +13,8 @@ import {
 	StorageArgs,
 } from "../../platform-kit/base/facades/CacheStorageLateInitializer"
 import { DecryptedParsedInstance } from "@tutao/instance-pipeline"
+import { CachingOfflineStorage } from "./CachingOfflineStorage"
+import { CacheSyncStatus } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 /**
  * This is necessary so that we can release offline storage mode without having to rewrite the credentials handling system. Since it's possible that
@@ -26,18 +28,22 @@ import { DecryptedParsedInstance } from "@tutao/instance-pipeline"
  * @param factory A factory function to get a CacheStorage implementation when initialize is called
  * @return {CacheStorageLateInitializer} The uninitialized proxy and a function to initialize it
  */
-export type SomeStorage = OfflineStorage | EphemeralCacheStorage
+export type SomeStorage = CachingOfflineStorage | EphemeralCacheStorage
 
 export class LateInitializedCacheStorageImpl implements CacheStorageLateInitializer, CacheStorage {
 	private _inner: SomeStorage | null = null
 	constructor(
 		private readonly sendError: (error: Error) => Promise<void>,
 		private readonly ephemeralStorageProvider: () => Promise<EphemeralCacheStorage>,
-		private readonly offlineStorageProvider: () => Promise<null | OfflineStorage>,
+		private readonly offlineStorageProvider: () => Promise<CachingOfflineStorage | null>,
 	) {}
 
 	isInitialized(): boolean {
 		return this._inner?.isInitialized() ?? false
+	}
+
+	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void> {
+		return await this.inner.setCacheSyncStatus(cacheSyncStatus)
 	}
 
 	async getParsed(typeRef: TypeRef<unknown>, listId: string | null, id: string): Promise<DecryptedParsedInstance | null> {
@@ -135,7 +141,7 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this.inner.deleteRange(typeRef, listId)
 	}
 
-	get<T extends Entity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null> {
+	get<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null, id: Id): Promise<T | null> {
 		return this.inner.get<T>(typeRef, listId, id)
 	}
 
@@ -205,9 +211,5 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 
 	async deleteAllOwnedBy(owner: Id): Promise<void> {
 		return this.inner.deleteAllOwnedBy(owner)
-	}
-
-	clearExcludedData(timeRangeDate: Date): Promise<void> {
-		return this.inner.clearExcludedData(timeRangeDate)
 	}
 }

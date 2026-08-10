@@ -384,7 +384,7 @@ class MailLocator implements CommonLocator {
 	readonly contactViewModel = lazyMemoized(async () => {
 		const { ContactViewModel } = await import("./contacts/view/ContactViewModel.js")
 		const router = new ScopedThrottledRouter("/contact")
-		return new ContactViewModel(this.contactModel, this.entityClient, this.eventController, router, await this.redraw())
+		return new ContactViewModel(this.contactModel, this.entityClient, this.eventController, router, await this.redraw(), this.connectivityModel)
 	})
 
 	readonly contactListViewModel = lazyMemoized(async () => {
@@ -438,6 +438,7 @@ class MailLocator implements CommonLocator {
 			this.contactModel,
 			this.groupSettingsModel,
 			this.operationProgressTracker,
+			this.connectivityModel,
 		)
 	})
 
@@ -599,6 +600,7 @@ class MailLocator implements CommonLocator {
 				undoModel,
 				this.transferProgressDispatcher,
 				this.operationProgressTracker,
+				this.connectivityModel,
 			)
 	}
 
@@ -1000,7 +1002,7 @@ class MailLocator implements CommonLocator {
 					this.oauthFacade = desktopInterfaces.desktopOauthWindowFacade
 
 					const { ImapMailImportController } = await import("./settings/imapimport/ImapMailImportController.js")
-					const { OAuthErrorHandler } = await import("./settings/imapimport/oauth/OAuthErrorHandler.js")
+					const { ImapErrorHandler } = await import("./settings/imapimport/ImapErrorHandler.js")
 					this.imapMailImportController = new ImapMailImportController(
 						this.imapImporter,
 						this.mailModel,
@@ -1008,7 +1010,7 @@ class MailLocator implements CommonLocator {
 						this.entityClient,
 						this.eventController,
 						this.oauthFacade,
-						new OAuthErrorHandler(this.entityClient, this.serviceExecutor),
+						new ImapErrorHandler(this.entityClient, this.serviceExecutor),
 					)
 				}
 			} else if (isAndroidApp() || isIOSApp()) {
@@ -1440,6 +1442,7 @@ class MailLocator implements CommonLocator {
 			driveUploadStackModel,
 			isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp, this.desktopSystemFacade) : null,
 			redraw,
+			this.connectivityModel,
 		)
 		await model.init()
 

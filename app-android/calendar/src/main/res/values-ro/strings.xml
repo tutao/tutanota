@@ -18,6 +18,7 @@ Puteți adăuga un mesaj pentru a ne ajuta să remediem eroarea.</string>
     <string name="widgetCredentialsError_msg">Autentifică-te în aplicația Calendar</string>
     <string name="widgetOpenApp_action">Deschide aplicația</string>
     <string name="widgetNoEvents_msg">Niciun eveniment</string>
+    <string name="widgetNoEventsToday_msg">Astăzi nu sunt evenimente</string>
     <string name="widgetDescription_msg">Arată următoarele evenimente de azi</string>
     <string name="birthdayCalendar_label">Aniversări</string>
     <string name="birthdayEvent_title">Aniversarea lui {name}</string>

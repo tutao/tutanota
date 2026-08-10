@@ -72,7 +72,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 							icon: Icons.GiftFilled,
 							title: "buyGiftCard_label",
 							click: () => {
-								m.route.set("/settings/subscription")
+								m.route.set("/settings/invoice")
 								import("../../subscription/giftcards/PurchaseGiftCardDialog").then(({ showPurchaseGiftCardDialog }) => {
 									return showPurchaseGiftCardDialog()
 								})

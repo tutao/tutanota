@@ -117,7 +117,7 @@ export class GiftCardFacade {
 		return { id, key }
 	}
 
-	private encodeToken(id: Id, key: Uint8Array): Base64 {
+	private encodeToken(id: Id, key: Uint8Array<ArrayBuffer>): Base64 {
 		if (id.length !== ID_LENGTH) {
 			throw new Error("Invalid gift card params")
 		}

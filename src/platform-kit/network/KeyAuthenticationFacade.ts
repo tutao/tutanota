@@ -36,7 +36,7 @@ type KeyAuthenticationSystem<T extends KeyAuthenticationParams> = {
 	 * Canonicalizes the data we want to authenticate, i.e., the new key and some binding data, into a byte array.
 	 * @param params
 	 */
-	generateAuthenticationData(params: T): Uint8Array
+	generateAuthenticationData(params: T): Uint8Array<ArrayBuffer>
 	/**
 	 * Derives the authentication key from a trusted key and some additional binding parameters.
 	 * @param params

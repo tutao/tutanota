@@ -9,7 +9,7 @@ import {
 } from "../../../../src/applications/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhenModel.js"
 import { Time } from "../../../../src/applications/common/calendar/date/Time.js"
 
-import { CalendarEvent, CalendarEventTypeRef, CalendarRepeatRule, CalendarRepeatRuleParams } from "@tutao/entities/tutanota"
+import { CalendarEvent, CalendarEventTypeRef, CalendarRepeatRule } from "@tutao/entities/tutanota"
 
 import { createDateWrapper, createRepeatRule, DateWrapperTypeRef, RepeatRuleTypeRef } from "@tutao/entities/sys"
 import { getTimeZone } from "../../../../src/applications/common/calendar/date/CalendarUtils"
@@ -346,7 +346,95 @@ o.spec(TEST_NAME, function () {
 			const newResult = krasnoyarskModel.result
 			o(newResult.repeatRule?.timeZone).equals(krasnoyarskModel.calendarTimeZone)
 		})
+
+		o("Set start = 10pm Pacific/Efate and end = 4pm America/New_York, get correct dates and times from model and result", function () {
+			const model = new CalendarEventWhenModel(
+				createTestEntity(CalendarEventTypeRef, {
+					startTime: new Date("2026-07-31T12:00:00.000Z"),
+					endTime: new Date("2026-07-31T12:30:00.000Z"),
+				}),
+				"UTC",
+				noOp,
+			)
+
+			model.setStartTimeZone("Pacific/Efate") // UTC+11
+			model.startTime = new Time(22, 0)
+			model.setEndTimeZone("America/New_York") // UTC-4
+			model.endTime = new Time(16, 0)
+
+			//
+			// Model should preserve the time and date values, as they were set
+			//
+			o(model.startDate.getDate()).equals(31)
+			o(model.endDate.getDate()).equals(31)
+
+			o(model.startTime.hour).equals(22)
+			o(model.startTime.minute).equals(0)
+
+			o(model.endTime.hour).equals(16)
+			o(model.endTime.minute).equals(0)
+
+			//
+			// The result should convert the start and end to a JS date with the correct time stamp.
+			// We are using a UTC+0 calendar time zone, so we can check the results of getUTCDate, getUTCHours, etc.
+			//
+			o(model.result.startTime.getUTCDate()).equals(31)
+			o(model.result.startTime.getUTCHours()).equals(11) // 22:00 (UTC+11) - 11 = 11:00 (UTC+2)
+			o(model.result.startTime.getUTCMinutes()).equals(0)
+
+			o(model.result.endTime.getUTCDate()).equals(31)
+			o(model.result.endTime.getUTCHours()).equals(20) // 16:00 (UTC-4) + 4 = 20:00 (UTC+2)
+			o(model.result.endTime.getUTCMinutes()).equals(0)
+		})
 	})
+
+	o(
+		"Set start = 4pm America/New_York and end 10pm Pacific/Efate, get correct dates and times from model and result, ensure hasValidStartBeforeEnd is false",
+		function () {
+			const model = new CalendarEventWhenModel(
+				createTestEntity(CalendarEventTypeRef, {
+					startTime: new Date("2026-07-31T12:00:00.000Z"),
+					endTime: new Date("2026-07-31T12:30:00.000Z"),
+				}),
+				"UTC",
+				noOp,
+			)
+
+			model.setStartTimeZone("America/New_York") // UTC-4
+			model.startTime = new Time(16, 0)
+			model.setEndTimeZone("Pacific/Efate") // UTC+11
+			model.endTime = new Time(22, 0)
+
+			//
+			// Model should preserve the time and date values, as they were set
+			//
+			o(model.startDate.getDate()).equals(31)
+			o(model.endDate.getDate()).equals(31)
+
+			o(model.startTime.hour).equals(16)
+			o(model.startTime.minute).equals(0)
+
+			o(model.endTime.hour).equals(22)
+			o(model.endTime.minute).equals(0)
+
+			//
+			// Ensure that model is flags as having an invalid start after end
+			//
+			o(model.hasValidStartBeforeEnd()).equals(false)
+
+			//
+			// The result should convert the start and end to a JS date with the correct time stamp.
+			// We are using a UTC+0 calendar time zone, so we can check the results of getUTCDate, getUTCHours, etc.
+			//
+			o(model.result.startTime.getUTCDate()).equals(31)
+			o(model.result.startTime.getUTCHours()).equals(20) // 16:00 (UTC-4) + 4 = 20:00 (UTC+2)
+			o(model.result.startTime.getUTCMinutes()).equals(0)
+
+			o(model.result.endTime.getUTCDate()).equals(31)
+			o(model.result.endTime.getUTCHours()).equals(11) // 22:00 (UTC+11) - 11 = 11:00 (UTC+2)
+			o(model.result.endTime.getUTCMinutes()).equals(0)
+		},
+	)
 
 	o.spec("repeat rules", function () {
 		o("the repeat interval is reflected on the result and for display, no repeat", function () {
@@ -393,8 +481,6 @@ o.spec(TEST_NAME, function () {
 					excludedDates: [],
 				}),
 			})
-			const result = model.result
-
 			model.repeatEndType = EndType.Count
 			model.repeatEndOccurrences = 13
 			o(model.repeatEndOccurrences).equals(13)
@@ -735,7 +821,7 @@ o.spec(TEST_NAME, function () {
 			model.excludeDate(exclusions[1])
 			model.excludeDate(exclusions[0])
 
-			o(model.result.repeatRule?.excludedDates).deepEquals(exclusions.map((date) => createDateWrapper({ date })))
+			o(model.getRepeatRuleOrNull()?.excludedDates).deepEquals(exclusions.map((date) => createDateWrapper({ date })))
 			o(model.excludedDates).deepEquals(exclusions)
 		})
 		o("adding two exclusions in order sorts them", async function () {

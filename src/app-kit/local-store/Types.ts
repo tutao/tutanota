@@ -1,4 +1,4 @@
-export type SqlValue = null | string | number | Uint8Array
+export type SqlValue = null | string | number | Uint8Array<ArrayBuffer>
 
 /**
  * Type tag for values being passed to SQL statements
@@ -15,4 +15,4 @@ export type TaggedSqlValue =
 	| { type: SqlType.Null; value: null }
 	| { type: SqlType.String; value: string }
 	| { type: SqlType.Number; value: number }
-	| { type: SqlType.Bytes; value: Uint8Array }
+	| { type: SqlType.Bytes; value: Uint8Array<ArrayBuffer> }

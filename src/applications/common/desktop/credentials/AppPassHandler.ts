@@ -18,7 +18,7 @@ export class AppPassHandler {
 		private readonly getCurrentCommonNativeFacade: () => Promise<CommonNativeFacade>,
 	) {}
 
-	async addAppPassWrapper(dataWithoutAppPassWrapper: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
+	async addAppPassWrapper(dataWithoutAppPassWrapper: Uint8Array<ArrayBuffer>, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array<ArrayBuffer>> {
 		if (encryptionMode === CredentialEncryptionMode.APP_PASSWORD) {
 			const appPassKey = (await this.deriveKeyFromAppPass()) ?? (await this.enrollForAppPass())
 			return this.crypto.aesEncryptBytes(appPassKey, dataWithoutAppPassWrapper)
@@ -29,7 +29,7 @@ export class AppPassHandler {
 		}
 	}
 
-	async removeAppPassWrapper(dataWithAppPassWrapper: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
+	async removeAppPassWrapper(dataWithAppPassWrapper: Uint8Array<ArrayBuffer>, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array<ArrayBuffer>> {
 		// our mode is not app Pass, so there is no wrapper to remove
 		if (encryptionMode !== CredentialEncryptionMode.APP_PASSWORD) return dataWithAppPassWrapper
 

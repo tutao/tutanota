@@ -44,7 +44,7 @@ export class NativeCredentialsFacadeReceiveDispatcher {
 			case "migrateToNativeCredentials": {
 				const credentials: ReadonlyArray<PersistedCredentials> = arg[0]
 				const encryptionMode: CredentialEncryptionMode = arg[1]
-				const credentialsKey: Uint8Array = arg[2]
+				const credentialsKey: Uint8Array<ArrayBuffer> = arg[2]
 				return this.facade.migrateToNativeCredentials(credentials, encryptionMode, credentialsKey)
 			}
 		}

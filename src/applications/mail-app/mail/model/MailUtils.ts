@@ -1,4 +1,4 @@
-import { FolderSystem, IndentedFolder } from "../../../common/api/common/mail/FolderSystem.js"
+import { FolderSystem, IndentedMailSet } from "../../../common/api/common/mail/FolderSystem.js"
 import { assertNotNull, first } from "../../../../platform-kit/utils"
 import { MailModel } from "./MailModel.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
@@ -7,7 +7,7 @@ import { MailSetKind, ReplyType, SystemFolderType } from "../../../../entities/t
 import { EntityIdEncoding, isSameId, isSameSingleId, sortCompareByReverseId } from "../../../../platform-kit/meta"
 import { isFolderReadOnly, MOVE_SYSTEM_FOLDERS } from "../MailUtils"
 
-export type FolderInfo = { level: number; folder: MailSet }
+export type MailSetInfo = { level: number; mailSet: MailSet }
 
 export const enum MoveService {
 	RegularMove = "RegularMove",
@@ -16,7 +16,7 @@ export const enum MoveService {
 
 export interface RegularMoveTargets {
 	moveService: MoveService.RegularMove
-	folders: readonly FolderInfo[]
+	folders: readonly MailSetInfo[]
 }
 
 export interface SimpleMoveTargets {
@@ -28,12 +28,13 @@ export type MoveTargets = RegularMoveTargets | SimpleMoveTargets
 
 export const MAX_FOLDER_INDENT_LEVEL = 10
 
-export function getFolderName(folder: MailSet): string {
-	switch (folder.folderType) {
+export function getMailSetName(mailSet: MailSet): string {
+	switch (mailSet.folderType) {
 		case MailSetKind.CUSTOM:
-			return folder.name
+		case MailSetKind.LABEL:
+			return mailSet.name
 		default:
-			return getSystemFolderName(folder.folderType as MailSetKind)
+			return getSystemFolderName(mailSet.folderType as MailSetKind)
 	}
 }
 
@@ -67,13 +68,13 @@ export function getSystemFolderName(folderType: MailSetKind): string {
 	}
 }
 
-export function getIndentedFolderNameForDropdown(folderInfo: FolderInfo) {
+export function getIndentedFolderNameForDropdown(folderInfo: MailSetInfo) {
 	const indentLevel = Math.min(folderInfo.level, MAX_FOLDER_INDENT_LEVEL)
-	return ". ".repeat(indentLevel) + getFolderName(folderInfo.folder)
+	return ". ".repeat(indentLevel) + getMailSetName(folderInfo.mailSet)
 }
 
 export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails: readonly Mail[]): Promise<MoveTargets> {
-	const regularMoveTargets = (folders: readonly FolderInfo[]): RegularMoveTargets => ({
+	const regularMoveTargets = (folders: readonly MailSetInfo[]): RegularMoveTargets => ({
 		moveService: MoveService.RegularMove,
 		folders,
 	})
@@ -114,15 +115,15 @@ export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails:
 		})
 
 	if (areMailsInDifferentFolders) {
-		return regularMoveTargets(folders.getIndentedList().filter((f: IndentedFolder) => !isFolderReadOnly(f.folder)))
+		return regularMoveTargets(folders.getIndentedList().filter((f: IndentedMailSet) => !isFolderReadOnly(f.mailSet)))
 	} else {
 		return regularMoveTargets(
-			folders.getIndentedList().filter((f: IndentedFolder) => !isFolderReadOnly(f.folder) && !isSameId(f.folder._id, folderOfFirstMail._id)),
+			folders.getIndentedList().filter((f: IndentedMailSet) => !isFolderReadOnly(f.mailSet) && !isSameId(f.mailSet._id, folderOfFirstMail._id)),
 		)
 	}
 }
 
-export async function getMoveTargetFolderSystemsForMailsInFolder(foldersModel: MailModel, currentFolder: MailSet): Promise<Array<FolderInfo>> {
+export async function getMoveTargetFolderSystemsForMailsInFolder(foldersModel: MailModel, currentFolder: MailSet): Promise<Array<MailSetInfo>> {
 	const mailboxDetails = await foldersModel.getMailboxDetailsForMailFolder(currentFolder)
 	if (mailboxDetails == null) {
 		return []
@@ -133,8 +134,8 @@ export async function getMoveTargetFolderSystemsForMailsInFolder(foldersModel: M
 		return []
 	}
 
-	return folders.getIndentedList().filter((f: IndentedFolder) => {
-		return !isFolderReadOnly(f.folder) && !isSameId(f.folder._id, currentFolder._id)
+	return folders.getIndentedList().filter((f: IndentedMailSet) => {
+		return !isFolderReadOnly(f.mailSet) && !isSameId(f.mailSet._id, currentFolder._id)
 	})
 }
 
@@ -153,7 +154,7 @@ export function getPathToFolderString(folderSystem: FolderSystem, folder: MailSe
 	if (omitLast) {
 		folderPath.pop()
 	}
-	return folderPath.map(getFolderName).join(" · ")
+	return folderPath.map(getMailSetName).join(" · ")
 }
 
 export function getMailHeaders(headers: Header): string {

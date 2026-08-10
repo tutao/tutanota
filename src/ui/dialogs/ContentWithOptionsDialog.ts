@@ -10,6 +10,7 @@ export interface ContentWithOptionsDialogAttrs {
 	mainActionClick: () => unknown
 	subActionText: TranslationKey | null
 	subActionClick: () => unknown
+	disableMainActionButton?: boolean
 }
 
 // Returns the layout for this dialog type
@@ -28,6 +29,7 @@ export class ContentWithOptionsDialog implements Component<ContentWithOptionsDia
 					style: {
 						height: px(component_size.button_height + size.spacing_4 * 1.5),
 					},
+					disabled: attrs.disableMainActionButton ?? false,
 				}),
 
 				attrs.subActionText

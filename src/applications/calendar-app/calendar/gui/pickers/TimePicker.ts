@@ -1,297 +1,205 @@
-import m, { Children, Component, Vnode } from "mithril"
-import { LegacyTextField, LegacyTextFieldType as TextFieldType } from "../../../../../ui/base/LegacyTextField.js"
-import { theme } from "../../../../../ui/theme.js"
-import { isApp, Keys, TabIndex, TimeFormat } from "../../../../../platform-kit/app-env"
-import { timeStringFromParts } from "../../../../../ui/utils/Formatter.js"
+import m, { ChildArray, Children, Component, Vnode } from "mithril"
+import { LegacyTextField, LegacyTextFieldAttrs, LegacyTextFieldType as TextFieldType } from "../../../../../ui/base/LegacyTextField.js"
+import { isApp, Keys, TabIndex, TimeFormat } from "@tutao/app-env"
 import { Time } from "../../../../common/calendar/date/Time.js"
 import { Select, SelectAttributes } from "../../../../../ui/base/Select.js"
 import { SingleLineTextField, SingleLineTextFieldAttrs } from "../../../../../ui/base/SingleLineTextField.js"
-import { font_size, px, size } from "../../../../../ui/size.js"
+import { font_size, px } from "../../../../../ui/size.js"
 import stream from "mithril/stream"
 import { isKeyPressed } from "../../../../../ui/utils/KeyManager.js"
-import { getNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { DateTime } from "luxon"
-import { lang, Translation, TranslationKey } from "../../../../../ui/utils/LanguageViewModel"
+import { lang, Translation } from "../../../../../ui/utils/LanguageViewModel"
 
 export type TimePickerAttrs = {
 	time: Time | null
-	onTimeSelected: (arg0: Time | null) => unknown
+	onTimeSelected: (time: Time | null) => unknown
 	timeFormat: TimeFormat
 	disabled?: boolean
+	valid?: boolean
 	ariaLabel: Translation
 	classes?: Array<string>
 	renderAsTextField: boolean
 }
 
 interface TimeOption {
-	value: string
+	value: Time | null
 	ariaValue: string
 	name: string
 }
 
 export class TimePicker implements Component<TimePickerAttrs> {
-	private values: ReadonlyArray<string>
-	private focused: boolean
-	private isExpanded: boolean = false
-	private oldValue: string
-	private value: string
-	private readonly amPm: boolean
+	private selectedTime: Time | null = null
+	private timeDropdownOptions: TimeOption[] = []
+	private inputText: string = ""
+	private inputTextIsValid: boolean = true
 
 	constructor({ attrs }: Vnode<TimePickerAttrs>) {
-		this.focused = false
-		this.value = ""
-		this.amPm = attrs.timeFormat === TimeFormat.TWELVE_HOURS
-		const times: string[] = []
-
 		for (let hour = 0; hour < 24; hour++) {
 			for (let minute = 0; minute < 60; minute += 30) {
-				times.push(timeStringFromParts(hour, minute, this.amPm))
+				this.timeDropdownOptions.push(this.createTimeOption(new Time(hour, minute), attrs))
 			}
 		}
-		this.oldValue = attrs.time?.toString() ?? "--"
-		this.values = times
 	}
 
 	view({ attrs }: Vnode<TimePickerAttrs>): Children {
-		if (attrs.time) {
-			const timeAsString = attrs.time?.toString(this.amPm ? { withAmPmSuffix: true } : undefined) ?? ""
-
-			if (!this.focused) {
-				this.value = timeAsString
-			}
+		if (attrs.time && !(this.selectedTime && attrs.time.isEqual(this.selectedTime))) {
+			this.setValidInputTextFromTime(attrs.time, attrs)
 		}
 
-		if (isApp()) {
-			return this.renderNativeTimePicker(attrs)
-		} else {
-			return this.renderCustomTimePicker(attrs)
-		}
-	}
-
-	private renderNativeTimePicker(attrs: TimePickerAttrs): Children {
-		if (this.oldValue !== attrs.time?.toString()) {
-			this.onSelected(attrs)
-		}
-
-		// input[type=time] wants time in 24h format, no matter what is actually displayed. Otherwise it will be empty.
-		const timeAsString = attrs.time?.toString() ?? ""
-		this.oldValue = timeAsString
-		this.value = timeAsString
-
-		const displayTime = attrs.time?.toString(this.amPm ? { withAmPmSuffix: true } : undefined)
-
-		if (attrs.renderAsTextField) {
-			return this.renderTextFieldNativeTimePicker(displayTime, attrs)
-		}
-
-		return m(".rel", [
-			m("input.fill-absolute.invisible.tutaui-button-outline", {
-				disabled: attrs.disabled,
-				type: TextFieldType.Time,
-				style: {
-					zIndex: 1,
-					border: `2px solid ${theme.outline}`,
-					width: "auto",
-					height: "auto",
-					appearance: "none",
-					opacity: attrs.disabled ? 0.7 : 1.0,
-				},
-				value: this.value,
-				oninput: (event: InputEvent) => {
-					const inputValue = (event.target as HTMLInputElement).value
-					if (this.value === inputValue) {
-						return
-					}
-					this.value = inputValue
-					attrs.onTimeSelected(Time.parseFromString(inputValue))
-				},
-			}),
-			m(
-				".tutaui-button-outline",
-				{
-					class: attrs.classes?.join(" "),
-					style: {
-						zIndex: "2",
-						position: "inherit",
-						borderColor: "transparent",
-						pointerEvents: "none",
-						padding: `${px(size.spacing_8)} 0`,
-						opacity: attrs.disabled ? 0.7 : 1.0,
-					},
-				},
-				displayTime,
-			),
-		])
-	}
-
-	private renderTextFieldNativeTimePicker(displayTime: string | undefined, attrs: TimePickerAttrs) {
-		return m(".rel.full-width", [
-			m(LegacyTextField, {
-				class: "time-picker pt-16",
-				label: attrs.ariaLabel,
-				value: this.value,
-				type: TextFieldType.Time,
-				oninput: (value) => {
-					if (this.value === value) {
-						return
-					}
-					this.value = value
-					attrs.onTimeSelected(Time.parseFromString(value))
-				},
-				disabled: attrs.disabled,
-			}),
-			// A 'fake' display that overlays over the real time input that allows us to show 12 or 24 time format regardless of browser locale
-			m(".time-picker-fake-display.rel.no-hover", displayTime),
-		])
-	}
-
-	private renderTimeOptions(option: TimeOption, isTarget: boolean, isSelected: boolean) {
-		return m(
-			"button.items-center.flex-grow",
-			{
-				...(isTarget ? { "data-target": "true" } : {}),
-				...(isSelected ? { "aria-selected": "true" } : {}),
-				class: "state-bg button-content dropdown-button pt-8 pb-8 button-min-height" + (isSelected ? "content-accent-fg row-selected icon-accent" : ""),
+		return m(Select<TimeOption, Time | null>, {
+			classes: ["overflow-visible"],
+			onchange: (timeOption) => {
+				this.inputText = timeOption.name
+				this.selectedTime = timeOption.value
+				this.inputTextIsValid = true
+				attrs.onTimeSelected(this.selectedTime)
 			},
-			option.name,
-		)
-	}
-
-	private renderCustomTimePicker(attrs: TimePickerAttrs): Children {
-		const options = this.values.map((time) => ({
-			value: time,
-			name: time,
-			ariaValue: time,
-		}))
-
-		return m(Select<TimeOption, string>, {
-			onchange: (newValue) => {
-				if (this.value === newValue.value) {
-					return
-				}
-
-				this.value = newValue.value
-				this.onSelected(attrs)
-				m.redraw.sync()
-			},
-			onclose: () => {
-				this.isExpanded = false
-			},
-			selected: { value: this.value, name: this.value, ariaValue: this.value },
+			selected: this.createTimeOption(this.selectedTime, attrs),
 			ariaLabel: lang.getTranslationText(attrs.ariaLabel),
 			disabled: attrs.disabled,
-			options: stream(options),
+			options: stream(this.timeDropdownOptions),
 			noIcon: true,
 			expanded: true,
 			tabIndex: Number(TabIndex.Programmatic),
-			renderDisplay: () => (attrs.renderAsTextField ? this.renderTextFieldCustomTextPicker(attrs) : this.renderTimeSelectInput(attrs)),
-			renderOption: (option) => this.renderTimeOptions(option, option.value === this.getTargetHour(this.value), option.value === this.value),
-		} satisfies SelectAttributes<TimeOption, string>)
+			renderDisplay: () => this.renderInputFields(attrs),
+			renderOption: (option) => this.renderTimeOption(option),
+		} satisfies SelectAttributes<TimeOption, Time | null>)
 	}
 
-	private getTargetHour(currentTime: string): string {
-		const time = Time.parseFromString(currentTime)?.toObject()
-
-		if (!time) {
-			return Time.fromDate(getNextHalfHour()).toString()
+	private renderInputFields(attrs: TimePickerAttrs): Children {
+		let returnValue: ChildArray = []
+		if (attrs.renderAsTextField) {
+			returnValue.push(
+				m(LegacyTextField, {
+					style: {
+						width: "100%",
+						fontSize: px(font_size.smaller),
+					},
+					label: attrs.ariaLabel,
+					disabled: attrs.disabled,
+					value: this.inputText,
+					oninput: (textInputValue) => this.handleTextInput(textInputValue, attrs),
+					keyHandler: (key) => {
+						this.handleKeyPress(key.key, attrs)
+						return true
+					},
+				} satisfies LegacyTextFieldAttrs),
+			)
+		} else {
+			returnValue.push(
+				m(SingleLineTextField, {
+					classes: [...(attrs.classes ?? []), "tutaui-button-outline", "text-center", "border-content-message-bg"],
+					disabled: attrs.disabled,
+					valid: attrs.valid && this.inputTextIsValid,
+					ariaLabel: attrs.ariaLabel,
+					style: {
+						textAlign: "center",
+						fontSize: px(font_size.smaller),
+						borderWidth: isApp() ? "2px" : "",
+					},
+					value: this.inputText,
+					oninput: (textInputValue) => this.handleTextInput(textInputValue, attrs),
+					onkeydown: (event: KeyboardEvent) => this.handleKeyPress(event.key, attrs),
+					type: TextFieldType.Text,
+				} satisfies SingleLineTextFieldAttrs<TextFieldType.Text>),
+			)
 		}
-		return Time.fromDateTime({ hour: time.hours, minute: time.minutes === 30 ? 30 : 0 } as DateTime).toString()
-	}
-	private renderTimeSelectInput(attrs: TimePickerAttrs) {
-		return m(SingleLineTextField, {
-			classes: [...(attrs.classes ?? []), "tutaui-button-outline", "text-center", "border-content-message-bg"],
-			value: this.value,
-			oninput: (val: string) => {
-				if (this.value === val) {
-					return
-				}
 
-				this.value = val
-			},
-			disabled: attrs.disabled,
-			ariaLabel: attrs.ariaLabel,
-			style: {
-				textAlign: "center",
-				fontSize: px(font_size.smaller),
-			},
-			onclick: (e: MouseEvent) => {
-				e.stopImmediatePropagation()
-				if (!this.isExpanded) {
-					;(e.target as HTMLElement).parentElement?.click()
-					this.isExpanded = true
-				}
-			},
-			onfocus: () => {
-				this.focused = true
-			},
-			onkeydown: (e: KeyboardEvent) => {
-				if (isKeyPressed(e.key, Keys.RETURN) && !this.isExpanded) {
-					this.focused = true
-					;(e.target as HTMLElement).parentElement?.click()
-					this.isExpanded = true
-					m.redraw.sync()
-				}
-			},
-			onblur: (e: any) => {
-				if (this.focused) {
-					this.onSelected(attrs)
-				}
+		if (isApp()) {
+			// On mobile, we use native time pickers to select the time. To achieve this, we add an
+			// invisible time input field, covering the other input fields. The invisible input has
+			// type="time", so it will display the native time picker when clicked.
+			returnValue.push(
+				m("input.invisible.abs.full-width.full-height", {
+					type: TextFieldType.Time,
+					oninput: (event: InputEvent) => {
+						const inputElement = event.target! as HTMLInputElement
+						this.handleTextInput(inputElement.value, attrs)
+						m.redraw()
+					},
+					onchange: (event: InputEvent) => {
+						const inputElement = event.target! as HTMLInputElement
+						const parsedTime = Time.parseFromString(inputElement.value)
+						if (parsedTime) {
+							this.selectedTime = parsedTime
+							this.setValidInputTextFromTime(this.selectedTime, attrs)
+							m.redraw()
+						}
+					},
+					onclick: (event: MouseEvent) => event.stopPropagation(),
+				}),
+			)
+		}
 
-				e.redraw = false
-			},
-			type: TextFieldType.Text,
-		} satisfies SingleLineTextFieldAttrs<TextFieldType.Text>)
+		return returnValue
 	}
 
-	private renderTextFieldCustomTextPicker(attrs: TimePickerAttrs): Children {
-		return m(LegacyTextField, {
-			style: {
-				width: "100%",
-				fontSize: px(font_size.smaller),
-			},
-			label: attrs.ariaLabel,
-			value: this.value,
-			oninput: (val: string) => {
-				if (this.value === val) {
-					return
+	private renderTimeOption(option: TimeOption) {
+		const buttonAttrs: Record<string, string> = {
+			class: "state-bg button-content dropdown-button pt-8 pb-8 button-min-height",
+		}
+		if (option.value) {
+			const timeFromTextInput = Time.parseFromString(this.inputText)
+			if (timeFromTextInput) {
+				if (timeFromTextInput.hour === option.value.hour) {
+					let minuteDiff = timeFromTextInput.minute - option.value.minute
+					if (0 <= minuteDiff && minuteDiff <= 30) {
+						// Special handling for the option that is at the start of the same half an hour
+						// as the inputted time
+						buttonAttrs["data-target"] = "true"
+						if (minuteDiff === 0) {
+							// Special handling for options that exactly matches the inputted time
+							buttonAttrs["class"] += " content-accent-fg row-selected icon-accent"
+							buttonAttrs["aria-selected"] = "true"
+						}
+					}
 				}
-
-				this.value = val
-			},
-			onclick: (e: MouseEvent) => {
-				e.stopImmediatePropagation()
-				if (!this.isExpanded) {
-					;(e.target as HTMLElement).parentElement?.click()
-					this.isExpanded = true
-				}
-				m.redraw.sync()
-			},
-			disabled: attrs.disabled,
-			onfocus: () => {
-				this.focused = true
-			},
-			onblur: (e) => {
-				if (this.focused) {
-					this.onSelected(attrs)
-				}
-
-				e.redraw = false
-			},
-			keyHandler: (key) => {
-				if (isKeyPressed(key.key, Keys.RETURN)) {
-					this.onSelected(attrs)
-					const active = document.activeElement as HTMLElement | null
-					active?.blur()
-				}
-
-				return true
-			},
-		})
+			}
+		}
+		return m("button.items-center.flex-grow", buttonAttrs, option.name)
 	}
 
-	private onSelected(attrs: TimePickerAttrs) {
-		this.focused = true
+	private handleTextInput(textInputValue: string, attrs: TimePickerAttrs) {
+		this.inputText = textInputValue
+		const parsedTime = Time.parseFromString(this.inputText)
+		this.inputTextIsValid = parsedTime !== null
+		if (this.inputTextIsValid && (!this.selectedTime || !parsedTime!.isEqual(this.selectedTime))) {
+			// Update the time if we were able to parse a new time from the text input
+			this.selectedTime = parsedTime
+			attrs.onTimeSelected(this.selectedTime)
+		}
+	}
 
-		attrs.onTimeSelected(Time.parseFromString(this.value))
+	private handleKeyPress(key: string, attrs: TimePickerAttrs) {
+		if (isKeyPressed(key, Keys.RETURN)) {
+			if (this.selectedTime) {
+				// This call causes the text input to be rewritten in the expected format
+				this.setValidInputTextFromTime(this.selectedTime, attrs)
+			}
+
+			// Close the dropdown and unfocus the text input
+			const active = document.activeElement as HTMLElement | null
+			active?.blur()
+		}
+	}
+
+	private setValidInputTextFromTime(time: Time, attrs: TimePickerAttrs) {
+		if (attrs.timeFormat === TimeFormat.TWELVE_HOURS) {
+			this.inputText = time.to12HourString(true)
+		} else {
+			this.inputText = time.to24HourString()
+		}
+		this.inputTextIsValid = true
+	}
+
+	private createTimeOption(time: Time | null, attrs: TimePickerAttrs): TimeOption {
+		let timeString: string
+		if (time === null) {
+			timeString = "--"
+		} else if (attrs.timeFormat === TimeFormat.TWELVE_HOURS) {
+			timeString = time.to12HourString(true)
+		} else {
+			timeString = time.to24HourString()
+		}
+		return { value: time, name: timeString, ariaValue: timeString }
 	}
 }

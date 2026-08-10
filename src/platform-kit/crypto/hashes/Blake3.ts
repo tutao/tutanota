@@ -10,14 +10,14 @@ export const DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES = 32
 /**
  * Compute a 32 byte BLAKE3 hash.
  */
-export function blake3Hash(data: Uint8Array) {
+export function blake3Hash(data: Uint8Array<ArrayBuffer>) {
 	return blake3(data, { dkLen: DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES })
 }
 
 /**
  * Create a 32 byte BLAKE3 tag over the given data using the given key.
  */
-export function blake3Mac(keyBytes: Uint8Array, data: Uint8Array): MacTag {
+export function blake3Mac(keyBytes: Uint8Array<ArrayBuffer>, data: Uint8Array<ArrayBuffer>): MacTag {
 	return blake3(data, { dkLen: DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES, key: keyBytes }) as MacTag
 }
 
@@ -25,7 +25,7 @@ export function blake3Mac(keyBytes: Uint8Array, data: Uint8Array): MacTag {
  * Verify a BLAKE3 tag against the given data and key.
  * @throws CryptoError if the tag does not match the data and key.
  */
-export function blake3MacVerify(keyBytes: Uint8Array, data: Uint8Array, tag: MacTag) {
+export function blake3MacVerify(keyBytes: Uint8Array<ArrayBuffer>, data: Uint8Array<ArrayBuffer>, tag: MacTag) {
 	const computedTag = blake3Mac(keyBytes, data)
 	if (!sjcl.bitArray.equal(computedTag, tag)) {
 		throw new CryptoError("invalid mac")
@@ -38,6 +38,6 @@ export function blake3MacVerify(keyBytes: Uint8Array, data: Uint8Array, tag: Mac
  * @param context
  * @param desiredLengthBytes
  */
-export function blake3Kdf(inputKeyMaterial: Uint8Array, context: string, desiredLengthBytes: number): Uint8Array {
+export function blake3Kdf(inputKeyMaterial: Uint8Array<ArrayBuffer>, context: string, desiredLengthBytes: number): Uint8Array<ArrayBuffer> {
 	return blake3(inputKeyMaterial, { dkLen: desiredLengthBytes, context: stringToUtf8Uint8Array(context) })
 }

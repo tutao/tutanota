@@ -2,7 +2,7 @@ import { isCustomizationEnabledForCustomer } from "../../../common/api/common/ut
 import { LoggedInEvent, PostLoginAction } from "../../../../app-kit/native-bridge/common/PostLoginAction"
 import { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
-import { SyncDonePriority, SyncTracker } from "../../../common/api/main/SyncTracker"
+import { SyncTracker } from "../../../common/api/main/SyncTracker"
 import { assertNotNull } from "../../../../platform-kit/utils/Utils"
 import { isInternalUser } from "../../../common/api/common/utils/UserUtils"
 import { CustomerTypeRef } from "@tutao/entities/sys"
@@ -11,6 +11,7 @@ import { filterMailMemberships } from "../../../common/api/common/utils/IndexUti
 import { MailBox, MailboxGroupRootTypeRef, MailBoxTypeRef } from "@tutao/entities/tutanota"
 import { ImapMailImportController } from "../../settings/imapimport/ImapMailImportController"
 import { idToElementId } from "@tutao/meta"
+import { ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 /**
  * continue an IMAP import tasks after login if there is one
@@ -45,10 +46,11 @@ export class ImapImportPostLoginAction implements PostLoginAction {
 			await this.imapMailImportController.init(mailboxesOfUser)
 
 			this.syncTracker.addSyncDoneListener({
+				id: "ImapImportPostLoginAction",
 				onSyncDone: async () => {
 					await this.imapMailImportController.continueAllImportsAfterLogin()
 				},
-				priority: SyncDonePriority.LOW,
+				priority: ListenerPriority.LOW,
 			})
 		}
 	}

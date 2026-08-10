@@ -50,8 +50,8 @@ export type UnencryptedPopulateClientSpamTrainingDatum = Omit<
 	PopulateClientSpamTrainingDatumParams,
 	"encVectorLegacy" | "encVectorWithServerClassifiers" | "ownerEncVectorSessionKey"
 > & {
-	vector: Uint8Array
-	vectorNewFormat: Uint8Array
+	vector: Uint8Array<ArrayBuffer>
+	vectorNewFormat: Uint8Array<ArrayBuffer>
 }
 
 export class SpamClassifierDataDealer {

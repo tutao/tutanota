@@ -1,4 +1,5 @@
 import type { TokenEndpointResponse } from "oauth4webapi"
+import { ImapProvider } from "./ImapKnownConfigs"
 
 export type ImapMailId = {
 	uid: number
@@ -21,10 +22,14 @@ export type ImapCredentials = {
 	username: string
 	password?: string
 	tokenEndpointResponse?: TokenEndpointResponse
+	customCertificateData: Uint8Array<ArrayBuffer> | null
+	ignoreCertificateErrors: boolean
+	provider: ImapProvider
 }
 
 export type ImapSyncContext = {
 	imapCredentials: ImapCredentials
 	maxQuota: number
 	imapMailboxStates: ImapMailboxState[]
+	isGmail: boolean
 }

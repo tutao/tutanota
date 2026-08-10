@@ -34,7 +34,7 @@ import { BulkMailLoader, MailWithMailDetails } from "../../workerUtils/index/Bul
 import { Mail, MailboxGroupRoot, MailboxProperties, MailSet, MailSetEntryTypeRef, MailSetTypeRef, MailTypeRef, MovedMails } from "@tutao/entities/tutanota"
 import { MailReportType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, ReportMovedMailsType, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { isLabel, SimpleMoveMailTarget } from "../MailUtils"
-import { EntityUpdateData, isUpdateForTypeRef, OnEntityUpdateReceivedPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { WebsocketCounterData } from "@tutao/entities/sys"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClientLoadOptions } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 
@@ -43,6 +43,7 @@ interface MailboxSets {
 	/** a map from element id to the mail set */
 	labels: ReadonlyMap<Id, MailSet>
 	scheduledFolder: MailSet | null
+	labelFolderSystem: FolderSystem
 }
 
 export const enum LabelState {
@@ -80,9 +81,10 @@ export class MailModel {
 
 	// only init listeners once
 	private readonly initListeners = lazyMemoized(() => {
-		this.eventController.addEntityListener({
-			onEntityUpdatesReceived: (updates, _) => this.entityEventsReceived(updates),
-			priority: OnEntityUpdateReceivedPriority.HIGH,
+		this.eventController.addEntityUpdatesListener({
+			id: "MailModel",
+			onEntityUpdatesReceived: (updates, _) => this.onEntityUpdatesReceived(updates),
+			priority: ListenerPriority.HIGH,
 		})
 
 		this.eventController.getCountersStream().map((update) => {
@@ -140,7 +142,9 @@ export class MailModel {
 
 				const scheduledFolder = mailSets.find((set) => set.folderType === MailSetKind.SCHEDULED) ?? null
 				const folderSystem = new FolderSystem(mailSets)
-				tempFolders.set(foldersRef._id, { folders: folderSystem, labels: labelsMap, scheduledFolder })
+				const labelFolderSystem = new FolderSystem(labels, MailSetKind.LABEL)
+
+				tempFolders.set(foldersRef._id, { folders: folderSystem, labels: labelsMap, scheduledFolder, labelFolderSystem: labelFolderSystem })
 			}
 		}
 
@@ -174,7 +178,7 @@ export class MailModel {
 	}
 
 	// visibleForTesting
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailSetTypeRef, update)) {
 				await this.init()
@@ -257,6 +261,15 @@ export class MailModel {
 		return folderSystem
 	}
 
+	async getMailboxLabelFoldersForId(foldersId: Id): Promise<FolderSystem> {
+		const folderStructures = await this.loadMailSets()
+		const folderSystem = folderStructures.get(foldersId)?.labelFolderSystem
+		if (folderSystem == null) {
+			throw new ProgrammingError(`no folder system for folder id ${foldersId}`)
+		}
+		return folderSystem
+	}
+
 	getMailFolderForMail(mail: Mail): MailSet | null {
 		const folderSystem = this.getFolderSystemByGroupId(assertNotNull(mail._ownerGroup))
 		if (folderSystem == null) return null
@@ -266,6 +279,10 @@ export class MailModel {
 
 	getFolderSystemByGroupId(groupId: Id): FolderSystem | null {
 		return this.getMailSetsForGroup(groupId)?.folders ?? null
+	}
+
+	getLabelFolderSystemByGroupId(groupId: Id): FolderSystem | null {
+		return this.getMailSetsForGroup(groupId)?.labelFolderSystem ?? null
 	}
 
 	getLabelsByGroupId(groupId: Id): ReadonlyMap<Id, MailSet> {
@@ -503,11 +520,11 @@ export class MailModel {
 		const deleted = new Set<Id>()
 		for (const descendant of descendants) {
 			if (
-				(await this.isEmptyFolder(descendant.folder)) &&
-				folderSystem.getCustomFoldersOfParent(descendant.folder._id).every((f) => deleted.has(getElementId(f)))
+				(await this.isEmptyFolder(descendant.mailSet)) &&
+				folderSystem.getCustomFoldersOfParent(descendant.mailSet._id).every((f) => deleted.has(getElementId(f)))
 			) {
-				deleted.add(getElementId(descendant.folder))
-				await this.finallyDeleteCustomMailFolder(descendant.folder)
+				deleted.add(getElementId(descendant.mailSet))
+				await this.finallyDeleteCustomMailFolder(descendant.mailSet)
 			} else {
 				someNonEmpty = true
 			}
@@ -569,12 +586,12 @@ export class MailModel {
 	/**
 	 * Create a label (aka MailSet aka {@link MailSet} of kind {@link MailSetKind.LABEL}) for the group {@param mailGroupId}.
 	 */
-	async createLabel(mailGroupId: Id, labelData: { name: string; color: string }) {
+	async createLabel(mailGroupId: Id, labelData: { name: string; color: string; parentLabelId?: IdTuple }) {
 		await this.mailFacade.createLabel(mailGroupId, labelData)
 	}
 
-	async updateLabel(label: MailSet, newData: { name: string; color: string }) {
-		await this.mailFacade.updateLabel(label, newData.name, newData.color)
+	async updateLabel(label: MailSet, newData: { name: string; color: string; parentFolderId?: IdTuple }) {
+		await this.mailFacade.updateLabel(label, newData.name, newData.color, newData.parentFolderId)
 	}
 
 	async deleteLabel(label: MailSet) {

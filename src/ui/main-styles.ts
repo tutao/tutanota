@@ -1,6 +1,6 @@
 import { styles } from "./styles"
 import { component_size, font_size, layout_size, px, size } from "./size"
-import { assertMainOrNode, isAdminClient, isAndroidApp, isApp, isDesktop } from "../platform-kit/app-env"
+import { assertMainOrNode, isAdminClient, isAndroidApp, isApp, isDesktop } from "@tutao/app-env"
 import { lang } from "./utils/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
 import { BaseThemeProvider, getElevatedBackground, getNavigationMenuBg, isLightTheme, theme } from "./theme"
@@ -2673,16 +2673,6 @@ export class MainStyles {
 					"border-bottom": "9px solid transparent",
 					"border-left": "6px solid green",
 				},
-				".time-field": {
-					width: "80px",
-				},
-				".time-picker input": {
-					color: "rgba(0, 0, 0, 0)",
-				},
-				".time-picker-fake-display": {
-					bottom: "1.6em",
-					left: "0.1em",
-				},
 				".calendar-agenda-time-column": {
 					width: px(80),
 				},
@@ -3056,6 +3046,11 @@ export class MainStyles {
 				".tutaui-text-field::placeholder": {
 					color: theme.on_surface_variant,
 				},
+				".tutaui-text-field[aria-invalid='true']": {
+					color: theme.on_error_container,
+					"background-color": theme.error_container,
+					"border-color": theme.on_error_container,
+				},
 				".text-editor-placeholder": {
 					position: "absolute",
 					top: px(size.spacing_12),
@@ -3150,11 +3145,6 @@ export class MainStyles {
 					display: "grid",
 					"grid-template-columns": "6fr 3fr",
 					"column-gap": px(size.spacing_8),
-				},
-				".time-selection-grid > *": {
-					overflow: "hidden",
-					"white-space": "nowrap",
-					"text-overflow": "clip",
 				},
 				".invisible": {
 					all: "none",
@@ -3412,6 +3402,29 @@ export class MainStyles {
 					border: `2px solid ${theme.outline}`,
 					"max-width": "250px",
 					"z-index": 1,
+				},
+				".subscription-settings-card": {
+					display: "grid",
+					"grid-template-columns": "repeat(2, 1fr)",
+					"grid-template-rows": "repeat(2, 1fr)",
+					gap: "8px",
+				},
+				".subscription-links": {
+					display: "flex",
+					"flex-direction": "row",
+					gap: "32px",
+				},
+				"@media (max-width: 500px)": {
+					".subscription-settings-card": {
+						"grid-template-columns": "none",
+					},
+					".subscription-links": {
+						"flex-direction": "column",
+						gap: "16px",
+					},
+				},
+				".subscription-explanation li": {
+					"margin-bottom": px(8),
 				},
 				".event-editor-section": {
 					height: "48px",

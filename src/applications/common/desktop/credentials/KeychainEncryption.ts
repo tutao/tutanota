@@ -13,7 +13,7 @@ export class KeychainEncryption {
 		private readonly desktopKeyStoreFacade: DesktopKeyStoreFacade,
 	) {}
 
-	async decryptUsingKeychain(encryptedDataWithAppPassWrapper: Uint8Array, encryptionMode: DesktopCredentialsMode): Promise<AesKey> {
+	async decryptUsingKeychain(encryptedDataWithAppPassWrapper: Uint8Array<ArrayBuffer>, encryptionMode: DesktopCredentialsMode): Promise<AesKey> {
 		try {
 			assertSupportedEncryptionMode(encryptionMode)
 			const encryptedData = await this.appPassHandler.removeAppPassWrapper(encryptedDataWithAppPassWrapper, encryptionMode)
@@ -30,7 +30,7 @@ export class KeychainEncryption {
 		}
 	}
 
-	async encrypKeyUsingKeychain(key: AesKey, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array> {
+	async encrypKeyUsingKeychain(key: AesKey, encryptionMode: DesktopCredentialsMode): Promise<Uint8Array<ArrayBuffer>> {
 		try {
 			assertSupportedEncryptionMode(encryptionMode)
 			const keyChainKey = await this.desktopKeyStoreFacade.getKeyChainKey()

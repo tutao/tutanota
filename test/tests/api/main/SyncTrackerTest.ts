@@ -1,5 +1,6 @@
 import o from "@tutao/otest"
-import { SyncDonePriority, SyncTracker } from "../../../../src/applications/common/api/main/SyncTracker.js"
+import { SyncTracker } from "../../../../src/applications/common/api/main/SyncTracker.js"
+import { ListenerPriority } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 o.spec("SyncTracker", () => {
 	o("should execute listeners in descending order of priority", async () => {
@@ -11,19 +12,22 @@ o.spec("SyncTracker", () => {
 		})
 
 		syncTracker.addSyncDoneListener({
-			priority: SyncDonePriority.LOW,
+			id: "testId1",
+			priority: ListenerPriority.LOW,
 			onSyncDone: async () => {
 				executionOrder.push("LOW")
 			},
 		})
 		syncTracker.addSyncDoneListener({
-			priority: SyncDonePriority.HIGH,
+			id: "testId2",
+			priority: ListenerPriority.HIGH,
 			onSyncDone: async () => {
 				executionOrder.push("HIGH")
 			},
 		})
 		syncTracker.addSyncDoneListener({
-			priority: SyncDonePriority.NORMAL,
+			id: "testId3",
+			priority: ListenerPriority.NORMAL,
 			onSyncDone: async () => {
 				executionOrder.push("NORMAL")
 			},

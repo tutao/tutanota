@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { func, matchers, object, verify, when } from "testdouble"
+import { matchers, object, verify, when } from "testdouble"
 import { ImapSyncEventListener } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncEventListener"
 import type { ImapFlow, ListTreeResponse } from "imapflow"
 import { ImapFlowFactory, ImapSyncSession, SyncSessionState } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncSession"
@@ -7,35 +7,49 @@ import { ImapCredentials, ImapMailboxState, ImapSyncContext } from "../../../../
 import { ImapSyncConfig } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSync"
 import { ImapError, ImapErrorCause } from "../../../../../src/applications/common/api/common/error/ImapError"
 import { ImapSyncSessionMailbox } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncSessionMailbox"
-import { ImapSyncSessionProcess } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncSessionProcess"
+import { CertificateProvider } from "../../../../../src/applications/common/desktop/CertificateProvider"
+import { ImapMailboxSpecialUse } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMailbox"
+import { getFirstOrThrow } from "../../../../../src/platform-kit/utils"
+import { ImapProvider } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 
 o.spec("ImapSyncSession", () => {
 	let eventListenerMock: ImapSyncEventListener
-	let ConfigMock: ImapSyncConfig
+	let configMock: ImapSyncConfig
 	let imapFlowFactory: ImapFlowFactory
 	let imapFlowMock: ImapFlow
 	let session: ImapSyncSession
+	let certificateProviderMock: CertificateProvider
 
-	const imapCredentials: ImapCredentials = { host: "localhost", port: 993, username: "user", password: "pass" }
+	const imapCredentials: ImapCredentials = {
+		host: "localhost",
+		port: 993,
+		username: "user",
+		password: "pass",
+		ignoreCertificateErrors: false,
+		customCertificateData: null,
+		provider: ImapProvider.Other,
+	}
 	const imapSyncContext: ImapSyncContext = {
 		imapCredentials: imapCredentials,
 		maxQuota: 100_000_000,
 		imapMailboxStates: [],
+		isGmail: false,
 	}
 
 	o.beforeEach(() => {
 		eventListenerMock = object<ImapSyncEventListener>()
-		ConfigMock = {
+		configMock = {
 			emitImapSyncEventTypes: new Set(),
 			isEnableImapQresync: true,
 		}
 		imapFlowMock = object<ImapFlow>()
+		certificateProviderMock = object<CertificateProvider>()
 		imapFlowFactory = () => Promise.resolve(imapFlowMock)
 		const listTreeResponse = { folders: [{ disabled: false, path: "INBOX" }] }
 		when(imapFlowMock.listTree()).thenResolve(listTreeResponse)
 		when(imapFlowMock.mailboxOpen(matchers.anything(), matchers.anything())).thenResolve({})
 		when(imapFlowMock.fetch(matchers.anything(), matchers.anything())).thenResolve((async function* () {})())
-		session = new ImapSyncSession(eventListenerMock, ConfigMock, imapFlowFactory)
+		session = new ImapSyncSession(eventListenerMock, certificateProviderMock, configMock, imapFlowFactory)
 	})
 
 	o.test("startSyncSession - when not running, sets up and starts sync", async () => {
@@ -65,12 +79,12 @@ o.spec("ImapSyncSession", () => {
 		o.check(e!.data).equals(ImapErrorCause.AUTH_FAILED)
 	})
 
-	o.test("startSyncSession - returns ImapError with postpone when non-auth error happens", async () => {
+	o.test("startSyncSession - returns ImapError with UNKNOWN when unknown error happens", async () => {
 		const error = new Error("Server connection failed") as any
 		when(imapFlowMock.connect()).thenReject(error)
 
 		const e = await assertThrows(ImapError, async () => await session.startSyncSession(imapSyncContext))
-		o.check(e!.data).equals(ImapErrorCause.POSTPONE)
+		o.check(e!.data).equals(ImapErrorCause.UNKNOWN)
 		o.check(session!.state).equals(SyncSessionState.POSTPONED)
 	})
 
@@ -109,6 +123,7 @@ o.spec("ImapSyncSession", () => {
 			imapCredentials: imapCredentials,
 			maxQuota: 100,
 			imapMailboxStates: [],
+			isGmail: false,
 		}
 		await session.startSyncSession(imapSyncContextWithStates)
 		session.state = SyncSessionState.RUNNING
@@ -143,6 +158,7 @@ o.spec("ImapSyncSession", () => {
 			imapCredentials: imapCredentials,
 			maxQuota: 100,
 			imapMailboxStates: [],
+			isGmail: false,
 		}
 		await session.startSyncSession(imapSyncContextWithStates)
 		session.state = SyncSessionState.RUNNING
@@ -179,6 +195,7 @@ o.spec("ImapSyncSession", () => {
 			imapCredentials: imapCredentials,
 			maxQuota: 100,
 			imapMailboxStates: [],
+			isGmail: false,
 		}
 		await session.startSyncSession(imapSyncContextWithStates)
 		session.state = SyncSessionState.RUNNING
@@ -195,6 +212,29 @@ o.spec("ImapSyncSession", () => {
 		o(session.runningSyncSessionProcess?.syncSessionProcessMailbox.mailboxState.path).equals("Custom")
 	})
 
+	o.test("startNextMailboxSync - only syncSessionMailbox is ALL mailbox if isGmail is true", async () => {
+		const listTreeResponse = {
+			folders: [
+				{ disabled: false, path: "ALL", name: "All Mails", specialUse: ImapMailboxSpecialUse.ALL },
+				{ disabled: false, path: "DRAFT", name: "DRAFT", specialUse: ImapMailboxSpecialUse.DRAFT },
+				{ disabled: false, path: "Custom", name: "INBOX", specialUse: ImapMailboxSpecialUse.INBOX },
+				{ disabled: false, path: "Another", name: "Another" },
+				{ disabled: true, path: "Trash", specialUse: ImapMailboxSpecialUse.TRASH },
+			],
+		}
+		when(imapFlowMock.listTree()).thenResolve(listTreeResponse)
+		const imapSyncContextWithStates: ImapSyncContext = {
+			imapCredentials: imapCredentials,
+			maxQuota: 100,
+			imapMailboxStates: [],
+			isGmail: true,
+		}
+		await session.startSyncSession(imapSyncContextWithStates)
+		session.state = SyncSessionState.RUNNING
+		o(session.syncSessionMailboxes?.length).equals(1)
+		o(getFirstOrThrow(session.syncSessionMailboxes).specialUse).equals(ImapMailboxSpecialUse.ALL)
+	})
+
 	o.test("getImapMailboxesFromServer - returns array of ImapMailbox", async () => {
 		const listTreeResponse = {
 			folders: [
@@ -207,7 +247,7 @@ o.spec("ImapSyncSession", () => {
 		const result = await session.getImapMailboxesFromServer(imapCredentials)
 		o.check(result.length).equals(1)
 		o.check(result[0].path).equals("INBOX")
-		verify(imapFlowMock.connect(), { times: 1 })
+		verify(imapFlowMock.connect(), { times: 2 }) // one for verify, one for connect
 		verify(imapFlowMock.logout(), { times: 1 })
 	})
 

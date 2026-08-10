@@ -43,7 +43,7 @@ import { AsymmetricCryptoFacade, AuthenticateSenderReturnType } from "./Asymmetr
 import PublicEncryptionKeyProvider from "./PublicEncryptionKeyProvider.js"
 import { KeyRotationFacade } from "./KeyRotationFacade.js"
 import { KeyVerificationMismatchError } from "../../network/error/KeyVerificationMismatchError"
-import { isOfflineError, NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "@tutao/rest-client/error"
+import { isOfflineError, LockedError, NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "@tutao/rest-client/error"
 import { EntityClient } from "../../network/EntityClient"
 import {
 	BucketPermission,
@@ -119,7 +119,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	) {}
 
 	/** Resolve a session key an {@param instance} using an already known {@param ownerKey}. */
-	decryptSessionKeyWithOwnerKey(ownerEncSessionKey: Uint8Array, ownerKey: AesKey): AesKey {
+	decryptSessionKeyWithOwnerKey(ownerEncSessionKey: Uint8Array<ArrayBuffer>, ownerKey: AesKey): AesKey {
 		return decryptKey(ownerKey, ownerEncSessionKey)
 	}
 
@@ -181,7 +181,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	}
 
 	/** Helper for the rare cases when we needed it on the client side. */
-	async resolveSessionKeyForInstanceBinary(instance: PersistentEntity): Promise<Uint8Array | null> {
+	async resolveSessionKeyForInstanceBinary(instance: PersistentEntity): Promise<Uint8Array<ArrayBuffer> | null> {
 		const key = await this.resolveSessionKey(instance)
 		return key == null ? null : keyToUint8Array(key)
 	}
@@ -285,7 +285,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	 * @param groupKeyVersion the version of the key from the keyGroup
 	 * @param groupEncBucketKey The group key encrypted bucket key.
 	 */
-	private async resolveWithGroupReference(keyGroup: Id, groupKeyVersion: KeyVersion, groupEncBucketKey: Uint8Array): Promise<AesKey> {
+	private async resolveWithGroupReference(keyGroup: Id, groupKeyVersion: KeyVersion, groupEncBucketKey: Uint8Array<ArrayBuffer>): Promise<AesKey> {
 		if (this.userFacade.hasGroup(keyGroup)) {
 			// the logged-in user (most likely external) is a member of that group. Then we have the group key from the memberships
 			const groupKey = await this.symGroupKeyLoader.loadSymGroupKey(keyGroup, groupKeyVersion)
@@ -401,7 +401,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 
 	private async authenticateMainInstance(
 		encryptionAuthStatus: EncryptionAuthStatus | null,
-		pqMessageSenderKey: Uint8Array | null,
+		pqMessageSenderKey: Uint8Array<ArrayBuffer> | null,
 		pqMessageSenderKeyVersion: KeyVersion | null,
 		instance: Entity,
 		resolvedSessionKeyForInstance: AesKey,
@@ -464,7 +464,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 
 	private async tryAuthenticateSenderOfMainInstance(
 		senderMailAddress: string,
-		pqMessageSenderKey: Uint8Array,
+		pqMessageSenderKey: Uint8Array<ArrayBuffer>,
 		pqMessageSenderKeyVersion: KeyVersion,
 	): Promise<AuthenticateSenderReturnType> {
 		try {
@@ -755,9 +755,18 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		)
 	}
 
-	async postUpdateSessionKeysService(instanceSessionKeys: Array<InstanceSessionKey>) {
-		const input = createUpdateSessionKeysPostIn({ ownerEncSessionKeys: instanceSessionKeys })
-		await this.serviceExecutor.post(UpdateSessionKeysService, input, null)
+	async postUpdateSessionKeysService(instanceSessionKeys: Array<InstanceSessionKey>, retryCount: number = 0) {
+		try {
+			const input = createUpdateSessionKeysPostIn({ ownerEncSessionKeys: instanceSessionKeys })
+			await this.serviceExecutor.post(UpdateSessionKeysService, input, null)
+		} catch (e) {
+			// we retry once here in case we get a LockedError, if that fails as well the processInboxHandler is going to retry soon
+			if (e instanceof LockedError && retryCount < 1) {
+				await this.postUpdateSessionKeysService(instanceSessionKeys, 1)
+			} else if (!(e instanceof LockedError)) {
+				throw e
+			}
+		}
 	}
 
 	async getCurrentSymGroupKey(groupId: Id): Promise<VersionedKey> {

@@ -161,7 +161,7 @@ export class ElectronUpdater {
 		this.checkUpdate()
 	}
 
-	private verifySignature(pubKey: string, updateInfo: TutanotaUpdateInfo, data: Uint8Array): boolean {
+	private verifySignature(pubKey: string, updateInfo: TutanotaUpdateInfo, data: Uint8Array<ArrayBuffer>): boolean {
 		if (!this.checkUpdateSignature) {
 			return true
 		}

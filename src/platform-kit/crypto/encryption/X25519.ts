@@ -2,8 +2,8 @@
 import { x25519 } from "../internal/noble-curves-1.3.0.js"
 import { random } from "../random/Randomizer.js"
 
-export type X25519PrivateKey = Uint8Array
-export type X25519PublicKey = Uint8Array
+export type X25519PrivateKey = Uint8Array<ArrayBuffer>
+export type X25519PublicKey = Uint8Array<ArrayBuffer>
 
 /**
  * Contains a public key and its corresponding private key
@@ -22,8 +22,8 @@ export type X25519KeyPair = {
  * The involved public keys should also be included when deriving an AES key from these shared secrets.
  */
 export type X25519SharedSecrets = {
-	ephemeralSharedSecret: Uint8Array
-	authSharedSecret: Uint8Array
+	ephemeralSharedSecret: Uint8Array<ArrayBuffer>
+	authSharedSecret: Uint8Array<ArrayBuffer>
 }
 
 // The number of bytes for a private key in the curve
@@ -81,7 +81,7 @@ export function x25519Decapsulate(
 /**
  * Diffie-Hellman key exchange; works by combining one party's private key and the other party's public key to form a shared secret between both parties
  */
-function generateSharedSecret(localPrivateKey: X25519PrivateKey, remotePublicKey: X25519PublicKey): Uint8Array {
+function generateSharedSecret(localPrivateKey: X25519PrivateKey, remotePublicKey: X25519PublicKey): Uint8Array<ArrayBuffer> {
 	const sharedSecret = x25519.getSharedSecret(localPrivateKey, remotePublicKey)
 
 	// if every byte somehow happens to be 0, we can't use this as a secret; this is astronomically unlikely to happen by chance

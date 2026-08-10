@@ -1,25 +1,31 @@
 import { LabelState } from "../model/MailModel"
 import { MAX_LABELS_PER_MAIL } from "../../../../platform-kit/app-env"
 import { MailSet } from "@tutao/entities/tutanota"
-import { getElementId } from "../../../../platform-kit/meta"
+import { getElementId, isSameId } from "../../../../platform-kit/meta"
+import { getIndentedFolderNameForDropdown } from "../model/MailUtils"
+import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 
 export class LabelsPopupViewModel {
 	private labelLimitReached: boolean = false
-	private labelStateTracker: Array<{ label: MailSet; state: LabelState; startingState: LabelState }> = []
+	private labelStateTracker: Array<{ displayName: string; label: MailSet; state: LabelState; startingState: LabelState }> = []
 
 	constructor(
 		private readonly labelsForMails: ReadonlyMap<Id, ReadonlyArray<MailSet>>,
 		initialLabelState: { label: MailSet; state: LabelState }[],
+		labelSystem: FolderSystem,
 	) {
+		const indentedLabels = labelSystem.getIndentedList()
 		for (const label of initialLabelState) {
-			this.labelStateTracker.push({ label: label.label, state: label.state, startingState: label.state })
+			const indentedLabel = indentedLabels.find(({ mailSet }) => isSameId(mailSet._id, label.label._id))
+			if (indentedLabel) {
+				const displayName = getIndentedFolderNameForDropdown(indentedLabel)
+				this.labelStateTracker.push({ displayName: displayName, label: label.label, state: label.state, startingState: label.state })
+			}
 		}
-		// We sort right now
-		this.labelStateTracker.sort((labelA, labelB) => labelA.label.name.localeCompare(labelB.label.name))
 		this.updateLabelLimitReached()
 	}
 
-	getLabelState(): Array<{ label: MailSet; state: LabelState; startingState: LabelState }> {
+	getLabelState(): Array<{ displayName: string; label: MailSet; state: LabelState; startingState: LabelState }> {
 		return this.labelStateTracker
 	}
 

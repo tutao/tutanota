@@ -1,14 +1,13 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { getCategoryName, getTopicIssue, SupportDialogState } from "../SupportDialog.js"
 import { clientInfoString, getLogAttachments } from "../../misc/ErrorReporter.js"
-import { Thunk } from "@tutao/utils"
+import { convertTextToHtml, Thunk } from "@tutao/utils"
 import { locator } from "../../api/main/CommonLocator.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { Card } from "../../../../ui/base/Card.js"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../misc/HtmlSanitizer.js"
 import type { SendMailModel } from "../../mailFunctionality/SendMailModel.js"
-import { convertTextToHtml } from "../../../../ui/utils/Formatter.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
 import { Switch } from "../../../../ui/base/Switch.js"
 import { SectionButton } from "../../../../ui/base/buttons/SectionButton.js"
@@ -35,6 +34,7 @@ type Props = {
 export class ContactSupportPage implements Component<Props> {
 	private sendMailModel: SendMailModel | undefined
 	private readonly htmlSanitizer: HtmlSanitizer = getHtmlSanitizer()
+	private sendButtonClicked: boolean = false
 
 	private htmlEditor: HtmlEditor | null = null
 
@@ -150,7 +150,7 @@ export class ContactSupportPage implements Component<Props> {
 				this.htmlEditor?.isEmpty() && !this.htmlEditor?.isActive() && m("span.text-editor-placeholder", lang.get("beginTyping_msg")),
 				this.htmlEditor != null && m(this.htmlEditor),
 			),
-			this.renderAttachmentList(),
+			this.renderAttachmentList(data),
 			this.renderAttachLogsSwitch(data),
 		])
 	}
@@ -183,6 +183,9 @@ export class ContactSupportPage implements Component<Props> {
 					this.sendMailModel.setBody(sanitisedBody)
 					this.sendMailModel.setSubject(await this.getSubject(data, isRating))
 
+					//Set to not include logs into attachment file list
+					this.sendButtonClicked = data.shouldIncludeLogs()
+
 					if (data.shouldIncludeLogs()) {
 						this.sendMailModel.attachFiles(data.logs())
 					}
@@ -195,7 +198,15 @@ export class ContactSupportPage implements Component<Props> {
 		)
 	}
 
-	private renderAttachmentList() {
+	private renderAttachmentList(data: SupportDialogState) {
+		//Exclude last two files if send button was clicked because these
+		//are the log files which should not be displayed on the last render before sending
+		const attachments = (this.sendMailModel?.getAttachments() ?? []).slice()
+		// const attachmentsToRender = this.sendButtonClicked ? attachments.slice(0, data.logs().length - attachments.length) : attachments
+		if (this.sendButtonClicked) {
+			attachments.splice(attachments.length - data.logs().length, data.logs().length)
+		}
+
 		return m(
 			Card,
 			{
@@ -211,7 +222,7 @@ export class ContactSupportPage implements Component<Props> {
 						m.redraw()
 					},
 				}),
-				(this.sendMailModel?.getAttachments() ?? []).map((attachment) =>
+				attachments.map((attachment) =>
 					m(
 						".flex.center-vertically.flex-space-between.pb-8.pt-8",
 						{ style: { paddingInline: px(size.spacing_8) } },

@@ -113,7 +113,7 @@ export { TotpVerifier } from "./misc/TotpVerifier.js"
 export { type TotpSecret } from "./misc/TotpVerifier.js"
 export { murmurHash } from "./hashes/MurmurHash.js"
 export { hkdf } from "./hashes/HKDF.js"
-export { hmacSha256, verifyHmacSha256, type MacTag, verifyHmacSha256Async, hmacSha256Async } from "./encryption/Hmac.js"
+export { hmacSha256, verifyHmacSha256, verifyHmacSha256Async, hmacSha256Async } from "./encryption/Hmac.js"
 export {
 	aes256RandomKey,
 	keyToUint8Array,
@@ -133,7 +133,7 @@ export {
 	validateInitializationVectorLength,
 	validateKdfNonceLength,
 } from "./encryption/symmetric/SymmetricCipherUtils.js"
-export { AesKey, Aes256Key, Aes128Key, BitArray, AesKeyLength, getKeyLengthInBytes, assert256BitKey } from "./encryption/symmetric/AesKey.js"
+export { AesKey, Aes256Key, Aes128Key, type BitArray, AesKeyLength, getKeyLengthInBytes, assert256BitKey } from "./encryption/symmetric/AesKey.js"
 export { blake3Hash, blake3Mac, blake3MacVerify, blake3Kdf } from "./hashes/Blake3.js"
 export { PADDING_BYTE } from "./encryption/symmetric/AeadFacade.js"
 export * as cryptoUtils from "./CryptoUtils.js"
@@ -157,5 +157,5 @@ export * from "./instance-pipeline-crypto/KeyEncryption.js"
 export * from "./instance-pipeline-crypto/SymmetricCipherFacade.js"
 export * from "./instance-pipeline-crypto/decryption/InstanceDecryptor.js"
 export * from "./instance-pipeline-crypto/encryption/SubKeyProvider.js"
-export { RsaImplementation } from "./encryption/RsaImplementation.js"
+export { type RsaImplementation } from "./encryption/RsaImplementation.js"
 export { EncryptedKeyPairs, EncryptedRsaX25519KeyPairs, EncryptedRsaKeyPairs, EncryptedPqKeyPairs } from "./encryption/EncryptedKeyPairs"

@@ -11,4 +11,7 @@
     <string name="archive_action">ארכיון</string>
     <string name="sendLogs_action">שליחת דו"חות</string>
     <string name="account_label">משתמש</string>
+    <string name="widgetNoCredentialsInfo_msg">אין פרטי משתמש זמינים</string>
+    <string name="widgetUnexpectedError_msg">אופס! משהו השתבש.</string>
+    <string name="widgetNoEvents_msg">אין אירועים</string>
 </resources>

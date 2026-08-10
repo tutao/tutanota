@@ -42,11 +42,11 @@ export class EntityAdapter implements Entity {
 		return new TypeRef(this.typeModel.app, this.typeModel.id)
 	}
 
-	get _ownerEncSessionKey(): null | Uint8Array {
+	get _ownerEncSessionKey(): null | Uint8Array<ArrayBuffer> {
 		return this.encryptedParsedInstance.getAttributeByNameOrNull("_ownerEncSessionKey")?.getNullWhenNull()?.asByteArray() ?? null
 	}
 
-	set _ownerEncSessionKey(value: Uint8Array) {
+	set _ownerEncSessionKey(value: Uint8Array<ArrayBuffer>) {
 		this.encryptedParsedInstance.addAttributeByName("_ownerEncSessionKey", ParsedValue.fromByteArray(value))
 	}
 
@@ -58,15 +58,15 @@ export class EntityAdapter implements Entity {
 		this.encryptedParsedInstance.addAttributeByName("_ownerKeyVersion", ParsedValue.fromString(value))
 	}
 
-	get _kdfNonce(): null | Uint8Array {
+	get _kdfNonce(): null | Uint8Array<ArrayBuffer> {
 		return this.encryptedParsedInstance.getAttributeByNameOrNull("_kdfNonce")?.getNullWhenNull()?.asByteArray() ?? null
 	}
 
-	set _kdfNonce(value: Uint8Array) {
+	set _kdfNonce(value: Uint8Array<ArrayBuffer>) {
 		this.encryptedParsedInstance.addAttributeByName("_kdfNonce", ParsedValue.fromByteArray(value))
 	}
 
-	get ownerEncSessionKey(): null | Uint8Array {
+	get ownerEncSessionKey(): null | Uint8Array<ArrayBuffer> {
 		return this.encryptedParsedInstance.getAttributeByNameOrNull("ownerEncSessionKey")?.getNullWhenNull()?.asByteArray() ?? null
 	}
 
@@ -90,11 +90,11 @@ export class EntityAdapter implements Entity {
 		return this.encryptedParsedInstance.getAttributeByNameOrNull("_permissions")?.getNullWhenNull()?.asId() ?? null
 	}
 
-	get _listEncSessionKey(): null | Uint8Array {
+	get _listEncSessionKey(): null | Uint8Array<ArrayBuffer> {
 		return this.encryptedParsedInstance.getAttributeByNameOrNull("_listEncSessionKey")?.getNullWhenNull()?.asByteArray() ?? null
 	}
 
-	get _ownerPublicEncSessionKey(): null | Uint8Array {
+	get _ownerPublicEncSessionKey(): null | Uint8Array<ArrayBuffer> {
 		return this.encryptedParsedInstance.getAttributeByNameOrNull("_ownerPublicEncSessionKey")?.getNullWhenNull()?.asByteArray() ?? null
 	}
 

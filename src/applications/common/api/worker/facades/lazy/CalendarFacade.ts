@@ -1,5 +1,5 @@
 import { assertWorkerOrNode, DAY_IN_MILLIS, ProgrammingError } from "@tutao/app-env"
-import { ElementId, elementIdToId, getLetId, getListId, idToElementId, isSameId, isSameSingleId, listIdPart } from "@tutao/meta"
+import { ElementId, elementIdToId, getLetId, getListId, idToElementId, isSameId, isSameSingleId, listIdPart, RANGE_ITEM_LIMIT } from "@tutao/meta"
 import {
 	assertNotNull,
 	getFromMap,
@@ -149,7 +149,13 @@ export class CalendarFacade {
 		const calendars: Array<{ long: EventWrapper[]; short: EventWrapper[] }> = []
 
 		for (const { groupRoot, color } of calendarInfos.values()) {
-			const shortEventsResult = await this.cachingEntityClient.loadReverseRangeBetween(CalendarEventTypeRef, groupRoot.shortEvents, endId, startId, 200)
+			const shortEventsResult = await this.cachingEntityClient.loadReverseRangeBetween(
+				CalendarEventTypeRef,
+				groupRoot.shortEvents,
+				endId,
+				startId,
+				RANGE_ITEM_LIMIT,
+			)
 			const longEventsResult = await this.cachingEntityClient.loadAll(CalendarEventTypeRef, groupRoot.longEvents)
 
 			const shortEvents: Array<EventWrapper> = shortEventsResult.elements.map((e) => ({
@@ -556,7 +562,7 @@ function getEventIdFromUserAlarmInfo(userAlarmInfo: UserAlarmInfo): IdTuple {
 }
 
 /** to make lookup on the encrypted event uid possible, we hash it and use that value as a key. */
-function hashUid(uid: string): Uint8Array {
+function hashUid(uid: string): Uint8Array<ArrayBuffer> {
 	return sha256Hash(stringToUtf8Uint8Array(uid))
 }
 

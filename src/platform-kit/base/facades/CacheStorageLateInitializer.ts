@@ -6,7 +6,7 @@ export interface CacheStorageInitReturn {
 }
 
 export abstract class StorageArgs {
-	__brand: null = null
+	protected __brand: null = null
 }
 
 export class EphemeralStorageArgs extends StorageArgs {
@@ -18,7 +18,7 @@ export class EphemeralStorageArgs extends StorageArgs {
 export class OfflineStorageArgs extends StorageArgs {
 	constructor(
 		readonly userId: Id,
-		readonly databaseKey: Uint8Array,
+		readonly databaseKey: Uint8Array<ArrayBuffer>,
 		readonly forceNewDatabase: boolean,
 	) {
 		super()

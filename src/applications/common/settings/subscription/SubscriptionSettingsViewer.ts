@@ -1,16 +1,16 @@
 import m, { Children } from "mithril"
 import { ApprovalStatus, assertMainOrNode, Const, isIOSApp, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
-import { elementIdPart, elementIdToId, GENERATED_MAX_ID, getEtId, idToElementId, OperationType } from "@tutao/meta"
-import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, incrementDate, neverNull, promiseMap, stringToBase64 } from "@tutao/utils"
-import { InfoLink, lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
-import { Icons } from "../../../ui/base/icons/Icons"
-import { asPaymentInterval, formatPrice, formatPriceDataWithInfo, PaymentInterval } from "./utils/PriceUtils"
-import { formatDate, formatStorageSize } from "../../../ui/utils/Formatter"
-import { showUpgradeWizard } from "./UpgradeSubscriptionWizard"
-import { showSwitchDialog } from "./SwitchSubscriptionDialog"
+import { elementIdPart, elementIdToId, GENERATED_MAX_ID, getEtId, idToElementId } from "@tutao/meta"
+import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, neverNull, promiseMap, stringToBase64 } from "@tutao/utils"
+import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import { asPaymentInterval, formatPriceDataWithInfo, PaymentInterval } from "../../subscription/utils/PriceUtils"
+import { formatDate, formatStorageSize } from "../../../../ui/utils/Formatter"
+import { showUpgradeWizard } from "../../subscription/UpgradeSubscriptionWizard"
+import { showConfirmDowngradingToFreeDialog, showSwitchDialog } from "../../subscription/SwitchSubscriptionDialog"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import * as SignOrderAgreementDialog from "./SignOrderProcessingAgreementDialog"
+import * as SignOrderAgreementDialog from "../../subscription/SignOrderProcessingAgreementDialog"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
@@ -18,28 +18,29 @@ import {
 	Booking,
 	BookingTypeRef,
 	createAppStoreSubscriptionGetIn,
+	createRenewalPreferenceServicePostIn,
 	Customer,
 	CustomerInfo,
 	CustomerInfoTypeRef,
 	CustomerTypeRef,
-	GiftCard,
-	GiftCardTypeRef,
 	GroupInfoTypeRef,
 	OrderProcessingAgreement,
 	OrderProcessingAgreementTypeRef,
 	PlanConfiguration,
+	RenewalPreferenceService,
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import {
 	AccountType,
 	AccountTypeNames,
 	AvailablePlans,
+	AvailablePlanType,
 	BookingItemFeatureType,
 	LegacyPlans,
 	NewPaidPlans,
 	PaymentMethodType,
 	PlanType,
-} from "../../../entities/sys/Utils"
+} from "../../../../entities/sys/Utils"
 import {
 	appStorePlanName,
 	getCurrentCount,
@@ -50,46 +51,41 @@ import {
 	isEventInvitesActive,
 	isSharingActive,
 	isWhitelabelActive,
+	PlanTypeToName,
 	queryAppStoreSubscriptionOwnership,
 	SubscriptionApp,
-} from "./utils/SubscriptionUtils"
-import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
-import { Dialog, DialogType } from "../../../ui/base/Dialog"
-import { ColumnWidth, Table } from "../../../ui/base/Table.js"
-import { showPurchaseGiftCardDialog } from "./giftcards/PurchaseGiftCardDialog"
-import { GiftCardStatus, loadGiftCards, showGiftCardToShare } from "./giftcards/GiftCardUtils"
-import { locator } from "../api/main/CommonLocator"
-import { GiftCardMessageEditorField } from "./giftcards/GiftCardMessageEditorField"
-import { attachDropdown } from "../../../ui/base/Dropdown.js"
-import { createNotAvailableForFreeClickHandler } from "../misc/SubscriptionDialogs"
-import { SettingsExpander } from "../settings/SettingsExpander.js"
-import {
-	CURRENT_GIFT_CARD_TERMS_VERSION,
-	CURRENT_PRIVACY_VERSION,
-	CURRENT_TERMS_VERSION,
-	renderTermsAndConditionsButton,
-	TermsSection,
-} from "./TermsAndConditions"
-import { DropDownSelector, SelectorItemList } from "../../../ui/base/DropDownSelector.js"
-import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton.js"
-import { ButtonSize } from "../../../ui/base/ButtonSize.js"
-import { getDisplayNameOfPlanType } from "./FeatureListProvider"
-import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
+} from "../../subscription/utils/SubscriptionUtils"
+import { LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
+import { Dialog } from "../../../../ui/base/Dialog"
+import { locator } from "../../api/main/CommonLocator"
+import { CURRENT_PRIVACY_VERSION, CURRENT_TERMS_VERSION, renderTermsAndConditionsButton, TermsSection } from "../../subscription/TermsAndConditions"
+import { IconButtonAttrs } from "../../../../ui/base/IconButton.js"
+import { getDisplayNameOfPlanType } from "../../subscription/FeatureListProvider"
 import { MobilePaymentsFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
-import { MobilePaymentError } from "../api/common/error/MobilePaymentError"
-import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
-import type { UpdatableSettingsViewer } from "../settings/Interfaces.js"
-import { showUserSatisfactionDialogAfterUpgrade } from "../ratings/UserSatisfactionUtils"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { client, ClientPlatform } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { NotFoundError } from "@tutao/rest-client/error"
-import { isFreeSignupOnly } from "../misc/LoginUtils"
+import { openAppleSubscriptionPage } from "../../subscription/PaymentViewer.js"
+import { theme } from "../../../../ui/theme"
+import { TitleSection } from "../../../../ui/TitleSection"
+import { px } from "../../../../ui/size"
+import { UpdatableSettingsViewer } from "../Interfaces"
+import { SubscriptionStateCard, SubscriptionStateCardAttrs, SubscriptionStatus } from "../../subscription/components/SubscriptionStateCard"
+import { SubscriptionPaidFeaturesCard } from "../../subscription/components/SubscriptionPaidFeaturesCard"
+import { MenuTitle } from "../../../../ui/titles/MenuTitle"
+import { Card } from "../../../../ui/base/Card"
+import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg"
+import { PrimaryButton, SecondaryButton } from "../../../../ui/base/buttons/VariantButtons"
+import { showSubscriptionCancellationDialog } from "./SubscriptionCancellationDialog"
+import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
+import { MobilePaymentError } from "../../api/common/error/MobilePaymentError"
+import { client } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { showUserSatisfactionDialogAfterUpgrade } from "../../ratings/UserSatisfactionUtils"
+import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { SubscriptionStateCellAttrs } from "../../subscription/components/SubscriptionStateCell"
+import { MessageBanner } from "../../../../ui/base/MessageBanner"
 
 assertMainOrNode()
-const DAY = 1000 * 60 * 60 * 24
-
-export class SubscriptionViewer implements UpdatableSettingsViewer {
+export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 	readonly view: UpdatableSettingsViewer["view"]
 	private readonly _subscriptionFieldValue: Stream<string>
 	private readonly _orderAgreementFieldValue: Stream<string>
@@ -104,16 +100,12 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 	private readonly _sharingFieldValue: Stream<string>
 	private readonly _eventInvitesFieldValue: Stream<string>
 	private readonly _autoResponderFieldValue: Stream<string>
-	private readonly _giftCardsExpanded: Stream<boolean>
-	private _periodEndDate: Date | null = null
-	private _nextPeriodPriceVisible: boolean | null = null
 	private _customer: Customer | null = null
 	private _customerInfo: CustomerInfo | null = null
 	private _accountingInfo: AccountingInfo | null = null
 	private _lastBooking: Booking | null = null
 	private _orderAgreement: OrderProcessingAgreement | null = null
 	private currentPlanType: PlanType | null = null
-	private _giftCards: Map<Id, GiftCard>
 	private _shownSatisfactionDialog = false
 
 	constructor(private readonly mobilePaymentsFacade: MobilePaymentsFacade | null) {
@@ -125,118 +117,93 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				m.redraw()
 			})
 
-		const isPremiumPredicate = () => locator.logins.getUserController().isPaidAccount()
-
-		this._giftCards = new Map()
-		loadGiftCards(assertNotNull(locator.logins.getUserController().user.customer)).then((giftCards) => {
-			for (const giftCard of giftCards) {
-				this._giftCards.set(elementIdPart(giftCard._id), giftCard)
-			}
-		})
-		this._giftCardsExpanded = stream<boolean>(false)
-
 		this.view = (): Children => {
-			const renderEditSubscriptionButton = () => {
-				if (client.getClientPlatform() === ClientPlatform.ANDROID_CALENDAR_APP) {
-					return null
-				} else if (locator.logins.getUserController().isFreeAccount()) {
-					return m(IconButton, {
-						title: "upgrade_action",
-						click: () => showProgressDialog("pleaseWait_msg", this.handleUpgradeSubscription()),
-						icon: Icons.PenFilled,
-						size: ButtonSize.Compact,
-					})
-				} else {
-					return m(IconButton, {
-						title: "subscription_label",
-						click: () => this.onSubscriptionClick(),
-						icon: Icons.PenFilled,
-						size: ButtonSize.Compact,
-					})
-				}
-			}
-			return m("#subscription-settings.fill-absolute.scroll.plr-24.pb-48", [
-				m(".h4.mt-32", lang.get("currentlyBooked_label")),
-				m(LegacyTextField, {
-					label: "subscription_label",
-					value: this._subscriptionFieldValue(),
-					oninput: this._subscriptionFieldValue,
-					isReadOnly: true,
-					injectionsRight: renderEditSubscriptionButton,
-				}),
-				this.showOrderAgreement() ? this.renderAgreement() : null,
-				this.showPriceData() ? this.renderIntervals() : null,
-				this.showPriceData() && this._nextPeriodPriceVisible && this._periodEndDate
-					? m(LegacyTextField, {
-							label: lang.getTranslation("priceFrom_label", {
-								"{date}": formatDate(new Date(neverNull(this._periodEndDate).getTime() + DAY)),
-							}),
-							helpLabel: () => lang.get("nextSubscriptionPrice_msg"),
-							value: this._nextPriceFieldValue(),
-							oninput: this._nextPriceFieldValue,
-							isReadOnly: true,
-						})
-					: null,
-				m(".small.mt-8", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
-				m(".small.mt-8", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
-				m(
-					SettingsExpander,
-					{
-						id: "giftcards",
-						title: "giftCards_label",
-						infoMsg: "giftCardSection_label",
-						expanded: this._giftCardsExpanded,
+			return m(
+				"#subscription-settings.fill-absolute.scroll.plr-24.pb-48",
+				{
+					style: {
+						backgroundColor: theme.surface_container,
 					},
-					renderGiftCardTable(Array.from(this._giftCards.values()), isPremiumPredicate),
-				),
-				this.currentPlanType && LegacyPlans.includes(this.currentPlanType)
-					? [
-							m(".h4.mt-32", lang.get("adminPremiumFeatures_action")),
-							m(LegacyTextField, {
-								label: "storageCapacity_label",
-								value: this._storageFieldValue(),
-								oninput: this._storageFieldValue,
-								isReadOnly: true,
-							}),
-							m(LegacyTextField, {
-								label: "mailAddressAliases_label",
-								value: this._emailAliasFieldValue(),
-								oninput: this._emailAliasFieldValue,
-								isReadOnly: true,
-							}),
-							m(LegacyTextField, {
-								label: "pricing.comparisonSharingCalendar_msg",
-								value: this._sharingFieldValue(),
-								oninput: this._sharingFieldValue,
-								isReadOnly: true,
-							}),
-							m(LegacyTextField, {
-								label: "pricing.comparisonEventInvites_msg",
-								value: this._eventInvitesFieldValue(),
-								oninput: this._eventInvitesFieldValue,
-								isReadOnly: true,
-							}),
-							m(LegacyTextField, {
-								label: "pricing.comparisonOutOfOffice_msg",
-								value: this._autoResponderFieldValue(),
-								oninput: this._autoResponderFieldValue,
-								isReadOnly: true,
-							}),
-							m(LegacyTextField, {
-								label: "whitelabel.login_title",
-								value: this._whitelabelFieldValue(),
-								oninput: this._whitelabelFieldValue,
-								isReadOnly: true,
-							}),
-							m(LegacyTextField, {
-								label: "whitelabel.custom_title",
-								value: this._whitelabelFieldValue(),
-								oninput: this._whitelabelFieldValue,
-								isReadOnly: true,
-							}),
-						]
-					: [],
-			])
+				},
+				[
+					m(
+						".flex.col.gap-32",
+						m(TitleSection, {
+							icon: Icons.TrophyOutline,
+							title: lang.getTranslationText("adminSubscription_action"),
+							subTitle: lang.getTranslationText("subscriptionSettingsSubtitle_label"),
+						}),
+						this._customerInfo !== null
+							? this._customerInfo.plan === PlanType.Free
+								? this.renderFreeSubscriptionCard()
+								: this.renderSubscriptionStateCard()
+							: undefined,
+						this.showOrderAgreementSection() ? this.renderAgreement() : null,
+						m(
+							".subscription-links",
+							this.showOrderAgreementLink() ? m(".small", this.showAgreementLink()) : null,
+							m(".small", renderTermsAndConditionsButton(TermsSection.Terms, CURRENT_TERMS_VERSION)),
+							m(".small", renderTermsAndConditionsButton(TermsSection.Privacy, CURRENT_PRIVACY_VERSION)),
+						),
+						this.currentPlanType && LegacyPlans.includes(this.currentPlanType)
+							? [
+									m(
+										"",
+										m(".h4", lang.get("adminPremiumFeatures_action")),
+										m(
+											"",
+											{
+												style: { minHeight: px(50) },
+											},
+											m(LegacyTextField, {
+												label: "storageCapacity_label",
+												value: this._storageFieldValue(),
+												oninput: this._storageFieldValue,
+												isReadOnly: true,
+											}),
+											m(LegacyTextField, {
+												label: "mailAddressAliases_label",
+												value: this._emailAliasFieldValue(),
+												oninput: this._emailAliasFieldValue,
+												isReadOnly: true,
+											}),
+											m(LegacyTextField, {
+												label: "pricing.comparisonSharingCalendar_msg",
+												value: this._sharingFieldValue(),
+												oninput: this._sharingFieldValue,
+												isReadOnly: true,
+											}),
+											m(LegacyTextField, {
+												label: "pricing.comparisonEventInvites_msg",
+												value: this._eventInvitesFieldValue(),
+												oninput: this._eventInvitesFieldValue,
+												isReadOnly: true,
+											}),
+											m(LegacyTextField, {
+												label: "pricing.comparisonOutOfOffice_msg",
+												value: this._autoResponderFieldValue(),
+												oninput: this._autoResponderFieldValue,
+												isReadOnly: true,
+											}),
+											m(LegacyTextField, {
+												label: "whitelabel.login_title",
+												value: this._whitelabelFieldValue(),
+												oninput: this._whitelabelFieldValue,
+												isReadOnly: true,
+											}),
+											m(LegacyTextField, {
+												label: "whitelabel.custom_title",
+												value: this._whitelabelFieldValue(),
+												oninput: this._whitelabelFieldValue,
+												isReadOnly: true,
+											}),
+										),
+									),
+								]
+							: [],
+					),
+				],
+			)
 		}
 
 		locator.entityClient
@@ -253,7 +220,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				this.updateAccountInfoData(accountingInfo)
 				void this.updatePriceInfo()
 			})
-		const loadingString = lang.get("loading_msg")
+		const loadingString = lang.getTranslationText("loading_msg")
 		this._currentPriceFieldValue = stream(loadingString)
 		this._subscriptionFieldValue = stream(loadingString)
 		this._orderAgreementFieldValue = stream(loadingString)
@@ -271,19 +238,276 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		void this.updateBookings()
 	}
 
-	private onSubscriptionClick() {
+	private renderSubscriptionStateCard(): Children {
+		const booking = this._lastBooking
+		const accountingInfo = this._accountingInfo
+		const planType = this.currentPlanType
+
+		if (booking == null || accountingInfo == null || planType == null) {
+			return
+		}
+		const currentStateSubscription = this.getCurrentStateOfSubscription(booking)
+		//Accounting interval can be changed by customer
+		const paymentInterval = Number(asPaymentInterval(accountingInfo.paymentInterval))
+		const isNewPlan = NewPaidPlans.includes(planType as AvailablePlanType)
+		const isAppleSubscription = accountingInfo.paymentMethod === PaymentMethodType.AppStore
+		//Make copy of booking end date to alter it
+		const nextEndDate = new Date(assertNotNull(booking.endDate))
+		nextEndDate.setMonth(nextEndDate.getMonth() + paymentInterval)
+		//Is the new subscription section visible
+		const isNewSubscriptionVisible =
+			booking.renewalEnabled && booking.endDate && !this._customerInfo?.revocationRequest && currentStateSubscription !== "expired"
+
+		return [
+			m(
+				".flex.col.gap-32",
+				//Current subscription
+				m(
+					".flex.col.gap-8",
+					m(SubscriptionStateCard, {
+						title: "subscriptionSettingCurrentSubscription_label",
+						cells: [
+							this.getPlanCellAttrs(planType),
+							this.getStatusCellAttrs(currentStateSubscription),
+							!isAppleSubscription ? this.getPriceCellAttrs(this._currentPriceFieldValue()) : null,
+							this.getEndDateAttrs(currentStateSubscription, booking.endDate),
+						],
+					} satisfies SubscriptionStateCardAttrs),
+					(!isNewSubscriptionVisible || isAppleSubscription) &&
+						isNewPlan &&
+						this.renderButtons(booking, currentStateSubscription, isAppleSubscription),
+				),
+				//Next Subscription period
+				isNewSubscriptionVisible &&
+					!isAppleSubscription &&
+					m(
+						".flex.col.gap-8",
+						m(SubscriptionStateCard, {
+							title: "subscriptionSettingNewSubscription_label",
+							cells: [
+								this.getPlanCellAttrs(
+									planType,
+									//Don't show edit button next to plan for apple users -> managed by os
+									!isAppleSubscription
+										? {
+												icon: Icons.PenFilled,
+												title: "changePlan_action",
+												click: () => {
+													this.onSubscriptionClick()
+													m.redraw()
+												},
+											}
+										: undefined,
+								),
+
+								//Don't show interval edit button for apple users -> managed by os
+								!isAppleSubscription
+									? this.getPriceCellAttrs(this._nextPriceFieldValue(), {
+											icon: Icons.Swap,
+											title: "changePaymentInterval_action",
+											click: async () => {
+												const message = lang.getTranslation("subscriptionChangeInterval_msg", {
+													"{period}":
+														paymentInterval === PaymentInterval.Yearly
+															? lang.getTranslationText("pricing.monthly_label")
+															: lang.getTranslationText("pricing.yearly_label"),
+												})
+												Dialog.confirm(message).then(async (confirmed) => {
+													if (this._accountingInfo == null) {
+														return
+													}
+													if (confirmed) {
+														if (paymentInterval === PaymentInterval.Yearly) {
+															await locator.customerFacade.changePaymentInterval(this._accountingInfo, PaymentInterval.Monthly)
+														} else {
+															await locator.customerFacade.changePaymentInterval(this._accountingInfo, PaymentInterval.Yearly)
+														}
+													}
+													m.redraw()
+												})
+											},
+										})
+									: null,
+								this.getEndDateAttrs("planned", booking.endDate),
+							],
+						} satisfies SubscriptionStateCardAttrs),
+						//Render Buttons
+						isNewPlan && this.renderButtons(booking, currentStateSubscription, isAppleSubscription),
+					),
+			),
+
+			//Render subscription-only features if not active or planned
+			currentStateSubscription !== "active" &&
+				currentStateSubscription !== "planned" &&
+				m(SubscriptionPaidFeaturesCard, {
+					subscriptionStatus: currentStateSubscription,
+				}),
+		]
+	}
+
+	//Free variant subscription card if customer has no plan
+	//Shows a picture and a "Get more features" button
+	private renderFreeSubscriptionCard(): Children {
+		return m(".flex.col.gap-16", [
+			m(MenuTitle, { content: lang.getTranslationText("subscriptionSettingCurrentSubscription_label") }),
+			m(
+				Card,
+				m(
+					".p-16",
+					m(
+						".block.center-h",
+						{
+							style: {
+								width: "80%",
+								maxWidth: px(320),
+							},
+						},
+						m(DynamicColorSvg, {
+							path: `/images/leaving-wizard/feature.svg`,
+						}),
+					),
+					m("", lang.getTranslationText("subscriptionSettingsFreePlan_label")),
+				),
+			),
+			m(
+				".flex.justify-end",
+				m(PrimaryButton, {
+					label: "subscriptionSettingsMoreFeatures_action",
+					width: "flex",
+					onclick: () => {
+						this.handleUpgradeSubscription()
+					},
+				}),
+			),
+		])
+	}
+
+	//Render needed buttons
+	private renderButtons(booking: Booking, currentSubscriptionState: SubscriptionStatus, isAppleSubscription: boolean): Children {
+		//Show no buttons if subscription is in revocation process
+		const isRevoked = this._customerInfo?.revocationRequest != null
+		if (isRevoked) {
+			return undefined
+		}
+		//Render buttons for apple
+		if (isAppleSubscription) {
+			return isIOSApp()
+				? m(
+						".flex.justify-end.gap-8",
+
+						m(SecondaryButton, {
+							label: "subscriptionSettingManageSubscription_action",
+							width: "flex",
+							icon: Icons.OpenOutline,
+							onclick: async () => {
+								await locator.mobilePaymentsFacade.showSubscriptionConfigView()
+							},
+						}),
+						currentSubscriptionState !== "cancelled" &&
+							m(PrimaryButton, {
+								label: "subscriptionSettingSwitchPlan_action",
+								width: "flex",
+								onclick: () => {
+									this.onSubscriptionClick()
+								},
+							}),
+					)
+				: m(
+						".flex.justify-end.gap-8",
+						m(PrimaryButton, {
+							label: "subscriptionSettingAppleWebsite_action",
+							width: "flex",
+							onclick: () => {
+								this.onSubscriptionClick()
+							},
+						}),
+					)
+		}
+		//Show downgrade and resubscribe button if expired
+		if (currentSubscriptionState === "expired") {
+			return m(
+				".flex.justify-end.gap-8",
+				m(SecondaryButton, {
+					label: "subscriptionSettingDowngrade_action",
+					width: "flex",
+					onclick: () => showConfirmDowngradingToFreeDialog(),
+				}),
+				m(PrimaryButton, {
+					label: "subscriptionStateCardResubscribe_action",
+					width: "flex",
+					onclick: () => this.onSubscriptionClick(),
+				}),
+			)
+		}
+
+		//Show cancel button if renewal is enabled
+		if (booking.renewalEnabled) {
+			return m(
+				".flex.justify-end",
+				m(SecondaryButton, {
+					label: "subscriptionStateCardCancel_action",
+					width: "flex",
+					onclick: () => showSubscriptionCancellationDialog(booking),
+				}),
+			)
+		}
+
+		//Show keep subscription if renewal is not enabled
+		else if (!booking.renewalEnabled) {
+			return m(
+				".flex.justify-end",
+				m(PrimaryButton, {
+					label: "subscriptionSettingsKeep_action",
+					width: "flex",
+					onclick: () => this.handleKeepSubscriptionClick(),
+				}),
+			)
+		}
+	}
+
+	//Handle the keep subscription button click. Calls renewalPreferenceService with isEnabled = true
+	//to keep the subscription from getting downgraded
+	private async handleKeepSubscriptionClick() {
+		const confirm = await Dialog.confirm("subscriptionSettingsKeep_msg")
+		if (confirm) {
+			const customerId = assertNotNull(locator.logins.getUserController().user.customer)
+			const inputData = {
+				isEnabled: true,
+				customerId: customerId,
+			}
+			const data = createRenewalPreferenceServicePostIn(inputData)
+			await showProgressDialog("pleaseWait_msg", locator.serviceExecutor.post(RenewalPreferenceService, data, null))
+		}
+	}
+
+	//Gets the current state of a subscription
+	private getCurrentStateOfSubscription(booking: Booking): SubscriptionStatus {
+		if (booking.endDate && booking.endDate?.getTime() < Date.now()) {
+			return "expired"
+		} else if (this._customerInfo?.revocationRequest) {
+			return "revoked"
+		} else if (booking.renewalEnabled) {
+			return "active"
+		} else if (!booking.renewalEnabled) {
+			return "cancelled"
+		} else {
+			return "unknown"
+		}
+	}
+
+	private async onSubscriptionClick() {
 		const paymentMethod = this._accountingInfo ? getPaymentMethodType(this._accountingInfo) : null
 
 		if (isIOSApp() && (paymentMethod == null || paymentMethod === PaymentMethodType.AppStore)) {
 			// case 1: we are in iOS app and we either are not paying or are already on AppStore
 			void this.handleAppStoreSubscriptionChange()
-		} else if (paymentMethod === PaymentMethodType.AppStore && this._accountingInfo?.appStoreSubscription) {
+		} else if (paymentMethod === PaymentMethodType.AppStore /*&& this._accountingInfo?.appStoreSubscription*/) {
 			// case 2: we have a running AppStore subscription but this is not an iOS app
 
 			// If there's a running App Store subscription it must be managed through Apple.
 			// This includes the case where renewal is already disabled, but it's not expired yet.
 			// Running subscription cannot be changed from other client, but it can still be managed through iOS app or when subscription expires.
-			void showManageThroughAppStoreDialog()
+			void openAppleSubscriptionPage()
 		} else {
 			// other cases (not iOS app, not app store payment method, no running AppStore subscription, iOS but another payment method)
 			if (this._accountingInfo && this._customer && this._customerInfo && this._lastBooking) {
@@ -291,7 +515,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					customer: this._customer,
 					accountingInfo: this._accountingInfo,
 					lastBooking: this._lastBooking,
-					acceptedPlans: AvailablePlans,
+					acceptedPlans: (await locator.logins.getUserController().isNewPaidPlan()) ? NewPaidPlans : AvailablePlans,
 					reason: null,
 				})
 			}
@@ -363,7 +587,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 				lang.getTranslation("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLink.AppStoreDowngrade }),
 				[
 					{
-						text: "changePlan_action",
+						text: "subscriptionSettingDowngrade_action",
 						value: false,
 					},
 					{
@@ -392,15 +616,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					}
 				}
 			} else {
-				if (this._customerInfo && this._lastBooking) {
-					return showSwitchDialog({
-						customer,
-						accountingInfo,
-						lastBooking: this._lastBooking,
-						acceptedPlans: AvailablePlans,
-						reason: null,
-					})
-				}
+				return showConfirmDowngradingToFreeDialog()
 			}
 		} else {
 			if (this._customerInfo && this._lastBooking) {
@@ -408,7 +624,7 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 					customer,
 					accountingInfo,
 					lastBooking: this._lastBooking,
-					acceptedPlans: AvailablePlans,
+					acceptedPlans: NewPaidPlans,
 					reason: null,
 				})
 			}
@@ -459,11 +675,21 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 		return false
 	}
 
-	private showOrderAgreement(): boolean {
+	private showOrderAgreementSection(): boolean {
 		return (
 			locator.logins.getUserController().isPaidAccount() &&
-			((this._customer != null && this._customer.businessUse) ||
-				(this._customer != null && (this._customer.orderProcessingAgreement != null || this._customer.orderProcessingAgreementNeeded)))
+			this._customer != null &&
+			this._customer.businessUse &&
+			(this._customer.orderProcessingAgreement == null || this._customer.orderProcessingAgreementNeeded)
+		)
+	}
+	private showOrderAgreementLink(): boolean {
+		return (
+			locator.logins.getUserController().isPaidAccount() &&
+			this._customer != null &&
+			this._customer.businessUse &&
+			this._customer.orderProcessingAgreement != null &&
+			!this._customer.orderProcessingAgreementNeeded
 		)
 	}
 
@@ -502,19 +728,8 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 
 		const priceServiceReturn = await locator.bookingFacade.getCurrentPrice()
 		if (priceServiceReturn.currentPriceThisPeriod != null && priceServiceReturn.currentPriceNextPeriod != null) {
-			if (priceServiceReturn.currentPriceThisPeriod.price !== priceServiceReturn.currentPriceNextPeriod.price) {
-				this._currentPriceFieldValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
-
-				this._nextPriceFieldValue(formatPriceDataWithInfo(neverNull(priceServiceReturn.currentPriceNextPeriod)))
-
-				this._nextPeriodPriceVisible = true
-			} else {
-				this._currentPriceFieldValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
-
-				this._nextPeriodPriceVisible = false
-			}
-
-			this._periodEndDate = priceServiceReturn.periodEndDate
+			this._currentPriceFieldValue(formatPriceDataWithInfo(priceServiceReturn.currentPriceThisPeriod))
+			this._nextPriceFieldValue(formatPriceDataWithInfo(neverNull(priceServiceReturn.currentPriceNextPeriod)))
 			m.redraw()
 		}
 	}
@@ -676,114 +891,102 @@ export class SubscriptionViewer implements UpdatableSettingsViewer {
 			await this.updateBookings()
 			if (!this._shownSatisfactionDialog) await this.showSatisfactionDialog()
 			return await this.updatePriceInfo()
-		} else if (isUpdateForTypeRef(GiftCardTypeRef, update)) {
-			const giftCard = await locator.entityClient.load(GiftCardTypeRef, [assertNotNull(update.instanceListId), update.instanceId])
-			this._giftCards.set(elementIdPart(giftCard._id), giftCard)
-			if (update.operation === OperationType.CREATE) this._giftCardsExpanded(true)
 		}
 	}
 
-	private renderIntervals() {
-		const subscriptionPeriods: SelectorItemList<PaymentInterval | null> = [
-			{
-				name: lang.get("pricing.yearly_label"),
-				value: PaymentInterval.Yearly,
-			},
-			{
-				name: lang.get("pricing.monthly_label"),
-				value: PaymentInterval.Monthly,
-			},
-			{
-				name: lang.get("loading_msg"),
-				value: null,
-				selectable: false,
-			},
-		]
-
-		const bonusMonths = this._lastBooking ? Number(this._lastBooking.bonusMonth) : 0
-		return [
-			m(DropDownSelector, {
-				label: "paymentInterval_label",
-				helpLabel: () => this.getChargeDateText(),
-				items: subscriptionPeriods,
-				selectedValue: this._selectedSubscriptionInterval(),
-				dropdownWidth: 300,
-				selectionChangedHandler: (value: number) => {
-					if (this._accountingInfo) {
-						showChangeSubscriptionIntervalDialog(this._accountingInfo, value, this._periodEndDate)
-					}
-				},
-			}),
-			bonusMonths === 0
-				? null
-				: m(LegacyTextField, {
-						label: "bonus_label",
-						value: lang.get("bonusMonth_msg", { "{months}": bonusMonths }),
-						isReadOnly: true,
-					}),
-			m(LegacyTextField, {
-				label:
-					this._nextPeriodPriceVisible && this._periodEndDate
-						? lang.getTranslation("priceTill_label", {
-								"{date}": formatDate(this._periodEndDate),
-							})
-						: "price_label",
-				value: this._currentPriceFieldValue(),
-				oninput: this._currentPriceFieldValue,
-				isReadOnly: true,
-				helpLabel: () => (this._customer && this._customer.businessUse ? lang.get("pricing.subscriptionPeriodInfoBusiness_msg") : null),
-			}),
-		]
-	}
-
 	private renderAgreement() {
-		return m(LegacyTextField, {
-			label: "orderProcessingAgreement_label",
-			helpLabel: () => lang.get("orderProcessingAgreementInfo_msg"),
-			value: this._orderAgreementFieldValue(),
-			oninput: this._orderAgreementFieldValue,
-			isReadOnly: true,
-			injectionsRight: () => {
-				if (this._orderAgreement && this._customer && this._customer.orderProcessingAgreementNeeded) {
-					return [this.renderSignProcessingAgreementAction(), this.renderShowProcessingAgreementAction()]
-				} else if (this._orderAgreement) {
-					return [this.renderShowProcessingAgreementAction()]
-				} else if (this._customer && this._customer.orderProcessingAgreementNeeded) {
-					return [this.renderSignProcessingAgreementAction()]
-				} else {
-					return []
-				}
+		if (assertNotNull(this._customer).orderProcessingAgreementNeeded) {
+			return m(
+				".flex.col",
+				m(MenuTitle, {
+					content: lang.getTranslationText("orderProcessingAgreement_label"),
+				}),
+
+				m(MessageBanner, {
+					translation: lang.getTranslation("orderProcessingAgreementInfo_msg"),
+					type: "warning",
+				}),
+				m(
+					".flex.row.justify-end",
+					m(PrimaryButton, {
+						label: "openAgreement_action",
+						width: "flex",
+						style: { width: "fit-content", marginTop: "-8px" },
+						onclick: () => SignOrderAgreementDialog.showForSigning(neverNull(this._customer), neverNull(this._accountingInfo)),
+					}),
+				),
+			)
+		}
+	}
+
+	private showAgreementLink() {
+		return m(
+			".underline.cursor-pointer",
+			{
+				onclick: () => {
+					locator.entityClient
+						.load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
+						.then((signerUserGroupInfo) => SignOrderAgreementDialog.showForViewing(neverNull(this._orderAgreement), signerUserGroupInfo))
+				},
 			},
-		})
+			lang.getTranslationText("orderProcessingAgreement_action"),
+		)
 	}
 
-	private renderShowProcessingAgreementAction() {
-		return m(IconButton, {
-			title: "show_action",
-			click: () =>
-				locator.entityClient
-					.load(GroupInfoTypeRef, neverNull(this._orderAgreement).signerUserGroupInfo)
-					.then((signerUserGroupInfo) => SignOrderAgreementDialog.showForViewing(neverNull(this._orderAgreement), signerUserGroupInfo)),
-			icon: Icons.DownloadFilled,
-			size: ButtonSize.Compact,
-		})
+	private getPlanCellAttrs(plan: PlanType, button?: IconButtonAttrs): SubscriptionStateCellAttrs {
+		return {
+			label: "subscription_label",
+			value: PlanTypeToName[plan],
+			button,
+		}
 	}
 
-	private renderSignProcessingAgreementAction() {
-		return m(IconButton, {
-			title: "sign_action",
-			click: () => SignOrderAgreementDialog.showForSigning(neverNull(this._customer), neverNull(this._accountingInfo)),
-			icon: Icons.PenFilled,
-			size: ButtonSize.Compact,
-		})
+	private getStatusCellAttrs(status: SubscriptionStatus): SubscriptionStateCellAttrs {
+		return {
+			label: "state_label",
+			value: lang.getTranslationText(this.getSubscriptionStateLabel(status)),
+		}
 	}
 
-	private getChargeDateText(): string {
-		if (this._periodEndDate) {
-			const chargeDate = formatDate(incrementDate(new Date(this._periodEndDate), 1))
-			return lang.get("nextChargeOn_label", { "{chargeDate}": chargeDate })
-		} else {
-			return ""
+	private getPriceCellAttrs(formattedPrice: string, button?: IconButtonAttrs): SubscriptionStateCellAttrs {
+		return {
+			label: "price_label",
+			value: formattedPrice,
+			button,
+		}
+	}
+
+	private getEndDateAttrs(status: SubscriptionStatus, endDate: Date | null): SubscriptionStateCellAttrs {
+		const formatDateNullableDate = (value: Date | null): string => (value ? formatDate(value) : "-")
+		const dateLabel = (status: SubscriptionStatus) => {
+			if (status === "active") {
+				return "subscriptionStateCardRenewalDate_label"
+			} else if (status === "planned") {
+				return "subscriptionStateCardStartDate_label"
+			} else {
+				return "subscriptionStateCardEndDate_label"
+			}
+		}
+		return {
+			label: dateLabel(status),
+			value: formatDateNullableDate(endDate),
+		}
+	}
+
+	private getSubscriptionStateLabel(status: SubscriptionStatus): TranslationKey {
+		switch (status) {
+			case "active":
+				return "subscriptionSettingsActiveState_label"
+			case "revoked":
+				return "subscriptionSettingsRevokedState_label"
+			case "expired":
+				return "subscriptionSettingsExpiredState_label"
+			case "planned":
+				return "subscriptionSettingsPlannedState_label"
+			case "cancelled":
+				return "subscriptionSettingsCancelledState_label"
+			default:
+				return "subscriptionSettingsUnknownState_label"
 		}
 	}
 }
@@ -794,95 +997,4 @@ function _getAccountTypeName(type: AccountType, subscription: PlanType): string 
 	} else {
 		return AccountTypeNames[type]
 	}
-}
-
-function showChangeSubscriptionIntervalDialog(accountingInfo: AccountingInfo, paymentInterval: PaymentInterval, periodEndDate: Date | null): void {
-	if (accountingInfo && accountingInfo.invoiceCountry && asPaymentInterval(accountingInfo.paymentInterval) !== paymentInterval) {
-		const confirmationMessage = periodEndDate
-			? lang.getTranslation("subscriptionChangePeriod_msg", {
-					"{1}": formatDate(periodEndDate),
-				})
-			: "subscriptionChange_msg"
-
-		Dialog.confirm(confirmationMessage).then(async (confirmed) => {
-			if (confirmed) {
-				await locator.customerFacade.changePaymentInterval(accountingInfo, paymentInterval)
-			}
-		})
-	}
-}
-
-function renderGiftCardTable(giftCards: GiftCard[], isPremiumPredicate: () => boolean): Children {
-	const addButtonAttrs: IconButtonAttrs | null = isFreeSignupOnly()
-		? null
-		: {
-				title: "buyGiftCard_label",
-				click: createNotAvailableForFreeClickHandler(
-					UpgradePromptType.PURCHASE_GIFT_CARDS,
-					NewPaidPlans,
-					() => showPurchaseGiftCardDialog(),
-					isPremiumPredicate,
-				),
-				icon: Icons.Plus,
-				size: ButtonSize.Compact,
-			}
-	const columnHeading: [TranslationKey, TranslationKey] = ["purchaseDate_label", "value_label"]
-	const columnWidths = [ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Small]
-	const lines = giftCards
-		.filter((giftCard) => giftCard.status === GiftCardStatus.Usable)
-		.map((giftCard) => {
-			return {
-				cells: [formatDate(giftCard.orderDate), formatPrice(parseFloat(giftCard.value), true)],
-				actionButtonAttrs: attachDropdown({
-					mainButtonAttrs: {
-						title: "options_action",
-						icon: Icons.More,
-						size: ButtonSize.Compact,
-					},
-					childAttrs: async () => [
-						{
-							label: "view_label",
-							click: () => showGiftCardToShare(giftCard),
-						},
-						{
-							label: "edit_action",
-							click: () => {
-								let message = stream(giftCard.message)
-								Dialog.showActionDialog({
-									title: "editMessage_label",
-									child: () =>
-										m(
-											".flex-center",
-											m(GiftCardMessageEditorField, {
-												message: message(),
-												onMessageChanged: message,
-											}),
-										),
-									okAction: (dialog: Dialog) => {
-										giftCard.message = message()
-										locator.entityClient
-											.update(giftCard)
-											.then(() => dialog.close())
-											.catch(() => Dialog.message("giftCardUpdateError_msg"))
-										showGiftCardToShare(giftCard)
-									},
-									okActionTextId: "save_action",
-									type: DialogType.EditSmall,
-								})
-							},
-						},
-					],
-				}),
-			}
-		})
-	return [
-		m(Table, {
-			addButtonAttrs,
-			columnHeading,
-			columnWidths,
-			lines,
-			showActionButtonColumn: true,
-		}),
-		m(".small", renderTermsAndConditionsButton(TermsSection.GiftCards, CURRENT_GIFT_CARD_TERMS_VERSION)),
-	]
 }

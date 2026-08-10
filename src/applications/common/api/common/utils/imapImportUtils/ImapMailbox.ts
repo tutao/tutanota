@@ -13,11 +13,13 @@ export enum ImapMailboxSpecialUse {
 	INBOX = "\\Inbox",
 	SENT = "\\Sent",
 	DRAFTS = "\\Drafts",
+	DRAFT = "\\Draft",
 	TRASH = "\\Trash",
 	ARCHIVE = "\\Archive",
 	JUNK = "\\Junk",
 	ALL = "\\All",
 	FLAGGED = "\\FLAGGED",
+	IMPORTANT = "\\Important",
 }
 
 export type ImapMailbox = {
@@ -37,7 +39,10 @@ export function imapMailboxFromImapFlowListTreeResponse(listTreeResponse: ListTr
 		name: listTreeResponse.name ?? "-",
 		pathDelimiter: listTreeResponse.delimiter ?? "/",
 		flags: Array.from(listTreeResponse.flags ?? []),
-		specialUse: listTreeResponse.specialUse as ImapMailboxSpecialUse,
+		// the Gmail \Important special use is on the flags
+		specialUse: listTreeResponse.flags?.has(ImapMailboxSpecialUse.IMPORTANT)
+			? ImapMailboxSpecialUse.IMPORTANT
+			: (listTreeResponse.specialUse as ImapMailboxSpecialUse),
 		disabled: listTreeResponse.disabled ?? false,
 		parentFolder: parentFolder,
 	}

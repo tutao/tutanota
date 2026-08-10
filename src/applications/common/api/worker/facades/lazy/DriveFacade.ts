@@ -308,7 +308,7 @@ export class DriveFacade {
 		for (const { left: filesChunk, right: foldersChunk } of splitListElementsIntoChunksByList(50, getListId, files, folders)) {
 			const items: DriveRenameData[] = [
 				...(await promiseMap(filesChunk, async (file) => {
-					let encNewName: Uint8Array | null
+					let encNewName: Uint8Array<ArrayBuffer> | null
 					const newName = renamedFiles.get(getElementId(file))
 					if (newName) {
 						const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
@@ -319,7 +319,7 @@ export class DriveFacade {
 					return createDriveRenameData({ file: file._id, folder: null, encNewName })
 				})),
 				...(await promiseMap(foldersChunk, async (folder) => {
-					let encNewName: Uint8Array | null
+					let encNewName: Uint8Array<ArrayBuffer> | null
 					const newName = renamedFiles.get(getElementId(folder))
 					if (newName) {
 						const sk = assertNotNull(await this.cryptoFacade.resolveSessionKey(folder))

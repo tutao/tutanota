@@ -14,7 +14,12 @@ export interface TimeBadgeAttrs {
 
 export class TimeBadge implements ClassComponent<TimeBadgeAttrs> {
 	view({ attrs }: Vnode<TimeBadgeAttrs>): Children {
-		const formatedTime = attrs.currentTime.toString(attrs.amPm ? { withAmPmSuffix: false } : undefined)
+		let formatedTime: string
+		if (attrs.amPm) {
+			formatedTime = attrs.currentTime.to12HourString(false)
+		} else {
+			formatedTime = attrs.currentTime.to24HourString()
+		}
 
 		return m(
 			".time-badge.small.text-center.fit-content",
