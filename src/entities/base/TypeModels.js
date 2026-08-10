@@ -17,6 +17,7 @@ const typeModels = {
 		versioned: false,
 		encrypted: false,
 		isPublic: true,
+		targetTypeId: null,
 		values: {
 			1: {
 				final: false,
@@ -25,6 +26,7 @@ const typeModels = {
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			2: {
 				final: false,
@@ -33,6 +35,7 @@ const typeModels = {
 				type: "GeneratedId",
 				cardinality: "ZeroOrOne",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 			3: {
 				final: false,
@@ -41,6 +44,7 @@ const typeModels = {
 				type: "GeneratedId",
 				cardinality: "One",
 				encrypted: false,
+				transferredAttributeId: null,
 			},
 		},
 		associations: {},
