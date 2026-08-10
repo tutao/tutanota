@@ -31,6 +31,7 @@ import { getTranslationForImapProvider, ImapProvider } from "../../../common/api
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { Checkbox } from "../../../../ui/base/Checkbox"
 import { ImapCredentials } from "../../../common/api/common/utils/imapImportUtils/ImapSyncContext"
+import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 
 assertMainOrNode()
 
@@ -428,7 +429,13 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 										mailboxToRow.imapMailbox.name,
 										async (folderId) => {
 											newFolderElementId = elementIdPart(folderId)
-											data.folderSystem = await mailLocator.getImapMailImportController().getFolderSystemForSelectedMailbox()
+											// load new folder so that it is put to the cache and will be retrieved by the loadAll call
+											const newFolder = await mailLocator.entityClient.load(MailSetTypeRef, folderId)
+											const mailSets = await mailLocator.entityClient.loadAll(
+												MailSetTypeRef,
+												assertNotNull(mailLocator.getImapMailImportController().selectedMailBoxDetail).mailbox.mailSets.mailSets,
+											)
+											data.folderSystem = new FolderSystem(mailSets)
 											if (newFolderElementId !== null) {
 												data.imapMailboxesToTutaMailSets?.set(mailboxToRow.imapMailbox.path, {
 													mailSetElementId: newFolderElementId,
@@ -528,7 +535,11 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 							})
 						}
 					}).then(async () => {
-						data.folderSystem = await mailLocator.getImapMailImportController().getFolderSystemForSelectedMailbox()
+						const mailSets = await mailLocator.entityClient.loadAll(
+							MailSetTypeRef,
+							assertNotNull(mailLocator.getImapMailImportController().selectedMailBoxDetail).mailbox.mailSets.mailSets,
+						)
+						data.folderSystem = new FolderSystem(mailSets)
 					}),
 				)
 			},
