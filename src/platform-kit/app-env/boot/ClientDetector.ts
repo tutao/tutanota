@@ -321,13 +321,13 @@ export class ClientDetector {
 		return (
 			this.isIos() ||
 			this.browser === BrowserType.SAFARI ||
-			(this.browser === BrowserType.FIREFOX && this.browserVersion! <= 60) ||
-			(this.browser === BrowserType.CHROME && this.browserVersion! < 59)
+			(this.browser === BrowserType.FIREFOX && this.browserVersion <= 60) ||
+			(this.browser === BrowserType.CHROME && this.browserVersion < 59)
 		)
 	}
 
 	needsExplicitIDBIds(): boolean {
-		return this.browser === BrowserType.SAFARI && this.browserVersion! < 12.2
+		return this.browser === BrowserType.SAFARI && this.browserVersion < 12.2
 	}
 
 	browserData(): BrowserData {
@@ -364,9 +364,9 @@ export class ClientDetector {
 			else return ClientPlatform.DESKTOP_UNKNOWN
 		} else if (!EnvProvider.get().isApp()) return ClientPlatform.WEB
 		else if (EnvProvider.get().isAndroidApp()) {
-			return this.appType! === AppType.Calendar ? ClientPlatform.ANDROID_CALENDAR_APP : ClientPlatform.ANDROID_MAIL_APP
+			return this.appType === AppType.Calendar ? ClientPlatform.ANDROID_CALENDAR_APP : ClientPlatform.ANDROID_MAIL_APP
 		} else if (EnvProvider.get().isIOSApp()) {
-			return this.appType! === AppType.Calendar ? ClientPlatform.IOS_CALENDAR_APP : ClientPlatform.IOS_MAIL_APP
+			return this.appType === AppType.Calendar ? ClientPlatform.IOS_CALENDAR_APP : ClientPlatform.IOS_MAIL_APP
 		} else {
 			// Fallback
 			return ClientPlatform.UNKNOWN
