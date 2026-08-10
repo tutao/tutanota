@@ -17,6 +17,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": true,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"2": {
 				"final": true,
@@ -24,7 +25,8 @@ const typeModels = {
 				"id": 2,
 				"type": "GeneratedId",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"3": {
 				"final": true,
@@ -32,7 +34,8 @@ const typeModels = {
 				"id": 3,
 				"type": "GeneratedId",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"4": {
 				"final": false,
@@ -40,7 +43,8 @@ const typeModels = {
 				"id": 4,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"5": {
 				"final": true,
@@ -48,7 +52,8 @@ const typeModels = {
 				"id": 5,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"6": {
 				"final": true,
@@ -56,7 +61,8 @@ const typeModels = {
 				"id": 6,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"7": {
 				"final": true,
@@ -64,7 +70,8 @@ const typeModels = {
 				"id": 7,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"8": {
 				"final": true,
@@ -72,7 +79,8 @@ const typeModels = {
 				"id": 8,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"9": {
 				"final": true,
@@ -80,7 +88,8 @@ const typeModels = {
 				"id": 9,
 				"type": "String",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": true,
+				"transferredAttributeId": null
 			},
 			"10": {
 				"final": true,
@@ -88,7 +97,8 @@ const typeModels = {
 				"id": 10,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"11": {
 				"final": true,
@@ -96,7 +106,8 @@ const typeModels = {
 				"id": 11,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"121": {
 				"final": true,
@@ -104,7 +115,8 @@ const typeModels = {
 				"id": 121,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -115,7 +127,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 0,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			},
 			"13": {
 				"final": true,
@@ -124,7 +137,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 0,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			},
 			"38": {
 				"final": true,
@@ -133,7 +147,8 @@ const typeModels = {
 				"type": "LIST_ASSOCIATION",
 				"cardinality": "One",
 				"refTypeId": 30,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -148,6 +163,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": true,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"16": {
 				"final": true,
@@ -155,7 +171,8 @@ const typeModels = {
 				"id": 16,
 				"type": "GeneratedId",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"17": {
 				"final": true,
@@ -163,7 +180,8 @@ const typeModels = {
 				"id": 17,
 				"type": "GeneratedId",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"18": {
 				"final": false,
@@ -171,7 +189,8 @@ const typeModels = {
 				"id": 18,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"19": {
 				"final": true,
@@ -179,7 +198,8 @@ const typeModels = {
 				"id": 19,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"20": {
 				"final": true,
@@ -187,7 +207,8 @@ const typeModels = {
 				"id": 20,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"21": {
 				"final": true,
@@ -195,7 +216,8 @@ const typeModels = {
 				"id": 21,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"22": {
 				"final": true,
@@ -203,7 +225,8 @@ const typeModels = {
 				"id": 22,
 				"type": "String",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": true,
+				"transferredAttributeId": null
 			},
 			"23": {
 				"final": true,
@@ -211,7 +234,8 @@ const typeModels = {
 				"id": 23,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"24": {
 				"final": true,
@@ -219,7 +243,8 @@ const typeModels = {
 				"id": 24,
 				"type": "String",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": true,
+				"transferredAttributeId": null
 			},
 			"25": {
 				"final": true,
@@ -227,7 +252,8 @@ const typeModels = {
 				"id": 25,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"26": {
 				"final": true,
@@ -235,7 +261,8 @@ const typeModels = {
 				"id": 26,
 				"type": "Date",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"122": {
 				"final": true,
@@ -243,7 +270,8 @@ const typeModels = {
 				"id": 122,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -254,7 +282,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 0,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			},
 			"28": {
 				"final": true,
@@ -263,7 +292,8 @@ const typeModels = {
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 1882,
-				"dependency": "sys"
+				"dependency": "sys",
+				"transferredAttributeId": null
 			},
 			"29": {
 				"final": true,
@@ -272,7 +302,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 0,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -287,6 +318,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"32": {
 				"final": true,
@@ -294,7 +326,8 @@ const typeModels = {
 				"id": 32,
 				"type": "GeneratedId",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"33": {
 				"final": true,
@@ -302,7 +335,8 @@ const typeModels = {
 				"id": 33,
 				"type": "GeneratedId",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"34": {
 				"final": false,
@@ -310,7 +344,8 @@ const typeModels = {
 				"id": 34,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"35": {
 				"final": true,
@@ -318,7 +353,8 @@ const typeModels = {
 				"id": 35,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -329,7 +365,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 14,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			},
 			"37": {
 				"final": true,
@@ -338,7 +375,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 0,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -353,6 +391,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"40": {
 				"final": true,
@@ -360,7 +399,8 @@ const typeModels = {
 				"id": 40,
 				"type": "CustomId",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -371,7 +411,8 @@ const typeModels = {
 				"type": "LIST_ASSOCIATION",
 				"cardinality": "One",
 				"refTypeId": 14,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -386,6 +427,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"43": {
 				"final": true,
@@ -393,7 +435,8 @@ const typeModels = {
 				"id": 43,
 				"type": "CustomId",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -404,7 +447,8 @@ const typeModels = {
 				"type": "LIST_ASSOCIATION",
 				"cardinality": "One",
 				"refTypeId": 0,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -419,6 +463,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"47": {
 				"final": true,
@@ -426,7 +471,8 @@ const typeModels = {
 				"id": 47,
 				"type": "GeneratedId",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"48": {
 				"final": true,
@@ -434,7 +480,8 @@ const typeModels = {
 				"id": 48,
 				"type": "GeneratedId",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"49": {
 				"final": false,
@@ -442,7 +489,8 @@ const typeModels = {
 				"id": 49,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"50": {
 				"final": true,
@@ -450,7 +498,8 @@ const typeModels = {
 				"id": 50,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -461,7 +510,8 @@ const typeModels = {
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 39,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			},
 			"52": {
 				"final": false,
@@ -470,7 +520,8 @@ const typeModels = {
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 42,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			},
 			"53": {
 				"final": false,
@@ -479,7 +530,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 0,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			},
 			"54": {
 				"final": false,
@@ -488,7 +540,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 0,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -503,6 +556,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"56": {
 				"final": true,
@@ -510,7 +564,8 @@ const typeModels = {
 				"id": 56,
 				"type": "CustomId",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"57": {
 				"final": true,
@@ -518,7 +573,8 @@ const typeModels = {
 				"id": 57,
 				"type": "String",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": true,
+				"transferredAttributeId": null
 			},
 			"58": {
 				"final": true,
@@ -526,7 +582,8 @@ const typeModels = {
 				"id": 58,
 				"type": "String",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": true,
+				"transferredAttributeId": null
 			},
 			"59": {
 				"final": true,
@@ -534,7 +591,8 @@ const typeModels = {
 				"id": 59,
 				"type": "Bytes",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"112": {
 				"final": false,
@@ -542,7 +600,8 @@ const typeModels = {
 				"id": 112,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -553,7 +612,8 @@ const typeModels = {
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 1990,
-				"dependency": "sys"
+				"dependency": "sys",
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -568,6 +628,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"62": {
 				"final": false,
@@ -575,7 +636,8 @@ const typeModels = {
 				"id": 62,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"64": {
 				"final": true,
@@ -583,7 +645,8 @@ const typeModels = {
 				"id": 64,
 				"type": "Bytes",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"65": {
 				"final": true,
@@ -591,7 +654,8 @@ const typeModels = {
 				"id": 65,
 				"type": "Bytes",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"113": {
 				"final": false,
@@ -599,7 +663,8 @@ const typeModels = {
 				"id": 113,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -610,7 +675,8 @@ const typeModels = {
 				"type": "ELEMENT_ASSOCIATION",
 				"cardinality": "One",
 				"refTypeId": 5,
-				"dependency": "sys"
+				"dependency": "sys",
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -625,6 +691,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": true,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"68": {
 				"final": false,
@@ -632,7 +699,8 @@ const typeModels = {
 				"id": 68,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -643,7 +711,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 0,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			},
 			"70": {
 				"final": true,
@@ -652,7 +721,8 @@ const typeModels = {
 				"type": "AGGREGATION",
 				"cardinality": "One",
 				"refTypeId": 55,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -667,6 +737,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"72": {
 				"final": false,
@@ -674,7 +745,8 @@ const typeModels = {
 				"id": 72,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -685,7 +757,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 14,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -700,6 +773,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": true,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"75": {
 				"final": false,
@@ -707,7 +781,8 @@ const typeModels = {
 				"id": 75,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"76": {
 				"final": true,
@@ -715,7 +790,8 @@ const typeModels = {
 				"id": 76,
 				"type": "String",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": true,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -726,7 +802,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 14,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			},
 			"78": {
 				"final": true,
@@ -735,7 +812,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 0,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -750,6 +828,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"80": {
 				"final": false,
@@ -757,7 +836,8 @@ const typeModels = {
 				"id": 80,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -768,7 +848,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refTypeId": 14,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			},
 			"82": {
 				"final": false,
@@ -777,7 +858,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refTypeId": 0,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -792,6 +874,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": true,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"85": {
 				"final": false,
@@ -799,7 +882,8 @@ const typeModels = {
 				"id": 85,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"86": {
 				"final": true,
@@ -807,7 +891,8 @@ const typeModels = {
 				"id": 86,
 				"type": "String",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": true,
+				"transferredAttributeId": null
 			},
 			"87": {
 				"final": true,
@@ -815,7 +900,8 @@ const typeModels = {
 				"id": 87,
 				"type": "Bytes",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"114": {
 				"final": false,
@@ -823,7 +909,8 @@ const typeModels = {
 				"id": 114,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -834,7 +921,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 0,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -849,6 +937,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"90": {
 				"final": false,
@@ -856,7 +945,8 @@ const typeModels = {
 				"id": 90,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -867,7 +957,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 0,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -882,6 +973,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"93": {
 				"final": true,
@@ -889,7 +981,8 @@ const typeModels = {
 				"id": 93,
 				"type": "CustomId",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"94": {
 				"final": true,
@@ -897,7 +990,8 @@ const typeModels = {
 				"id": 94,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -908,7 +1002,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 14,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			},
 			"96": {
 				"final": true,
@@ -917,7 +1012,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 0,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -932,6 +1028,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"98": {
 				"final": false,
@@ -939,7 +1036,8 @@ const typeModels = {
 				"id": 98,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -950,7 +1048,8 @@ const typeModels = {
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 92,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			},
 			"100": {
 				"final": true,
@@ -959,7 +1058,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 0,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -974,6 +1074,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"102": {
 				"final": false,
@@ -981,7 +1082,8 @@ const typeModels = {
 				"id": 102,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"105": {
 				"final": false,
@@ -989,7 +1091,8 @@ const typeModels = {
 				"id": 105,
 				"type": "Boolean",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -1000,7 +1103,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refTypeId": 14,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			},
 			"104": {
 				"final": true,
@@ -1009,7 +1113,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refTypeId": 0,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -1024,6 +1129,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"108": {
 				"final": false,
@@ -1031,7 +1137,8 @@ const typeModels = {
 				"id": 108,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -1042,7 +1149,8 @@ const typeModels = {
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 92,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			},
 			"110": {
 				"final": false,
@@ -1051,7 +1159,8 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 0,
-				"dependency": null
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -1066,6 +1175,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"116": {
 				"final": false,
@@ -1073,7 +1183,8 @@ const typeModels = {
 				"id": 116,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"117": {
 				"final": false,
@@ -1081,7 +1192,8 @@ const typeModels = {
 				"id": 117,
 				"type": "GeneratedId",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {}
@@ -1097,6 +1209,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
+		"targetTypeId": null,
 		"values": {
 			"119": {
 				"final": false,
@@ -1104,7 +1217,8 @@ const typeModels = {
 				"id": 119,
 				"type": "Number",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			},
 			"120": {
 				"final": false,
@@ -1112,7 +1226,8 @@ const typeModels = {
 				"id": 120,
 				"type": "GeneratedId",
 				"cardinality": "One",
-				"encrypted": false
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {}
