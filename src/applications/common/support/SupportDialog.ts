@@ -190,7 +190,13 @@ export async function showSupportDialog(logins: LoginController) {
 				title: lang.get("supportMenu_label"),
 				leftAction: {
 					type: ButtonType.Secondary,
-					click: withConfirmation(() => goBack(), "supportBackLostRequest_msg"),
+					click: withConfirmation(async () => {
+						goBack()
+
+						// set manually, since onChange is not fired when we go back
+						data.supportRequestHtml = ""
+						data.isSupportRequestEmpty = true
+					}, "supportBackLostRequest_msg"),
 					label: "back_action",
 					title: "back_action",
 				},
@@ -257,7 +263,7 @@ export async function showSupportDialog(logins: LoginController) {
 			help: "close_alt",
 			key: Keys.ESC,
 			exec: () => {
-				dialog.onClose()
+				withConfirmation(() => dialog.onClose(), "supportBackLostRequest_msg")()
 			},
 		})
 		.show()
