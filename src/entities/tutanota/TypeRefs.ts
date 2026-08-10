@@ -1392,6 +1392,7 @@ export type NewDraftAttachmentParams = {
 	encCid: null | Uint8Array<ArrayBuffer>
 
 	referenceTokens: BlobReferenceTokenWrapper[]
+	file: null | FileTransferAggregatedType
 }
 
 export type NewDraftAttachment = {
@@ -1405,6 +1406,7 @@ export type NewDraftAttachment = {
 	// == associations
 
 	referenceTokens: BlobReferenceTokenWrapper[]
+	file: null | FileTransferAggregatedType
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -1428,7 +1430,7 @@ export function createDraftAttachment(values: DraftAttachmentParams): DraftAttac
 }
 
 export type DraftAttachmentParams = {
-	ownerEncFileSessionKey: Uint8Array<ArrayBuffer>
+	ownerEncFileSessionKey: null | Uint8Array<ArrayBuffer>
 
 	newFile: null | NewDraftAttachment
 	existingFile: null | IdTuple
@@ -1438,8 +1440,8 @@ export type DraftAttachment = {
 	// == values
 
 	_id: Id
-	ownerEncFileSessionKey: Uint8Array<ArrayBuffer>
-	ownerKeyVersion: NumberString
+	ownerEncFileSessionKey: null | Uint8Array<ArrayBuffer>
+	ownerKeyVersion: null | NumberString
 
 	// == associations
 
@@ -1482,6 +1484,8 @@ export type DraftDataParams = {
 	addedAttachments: DraftAttachment[]
 	removedAttachments: IdTuple[]
 	replyTos: EncryptedMailAddress[]
+	mail: null | MailTransferAggregatedType
+	mailDetailsBlob: null | MailDetailsBlobTransferAggregatedType
 }
 
 export type DraftData = {
@@ -1504,6 +1508,8 @@ export type DraftData = {
 	addedAttachments: DraftAttachment[]
 	removedAttachments: IdTuple[]
 	replyTos: EncryptedMailAddress[]
+	mail: null | MailTransferAggregatedType
+	mailDetailsBlob: null | MailDetailsBlobTransferAggregatedType
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -7386,5 +7392,310 @@ export type ExpandedInboxRuleList = {
 	// === these are not present in metamodel
 	_type: TypeRef<ExpandedInboxRuleList>
 	_original: Nullable<ExpandedInboxRuleList>
+	isAdapter: false
+}
+export const FileTransferAggregatedTypeTypeRef: TypeRef<FileTransferAggregatedType> = new TypeRef("tutanota", 2021)
+
+export function createFileTransferAggregatedType(values: FileTransferAggregatedTypeParams): FileTransferAggregatedType {
+	return Object.assign(create(typeModels[FileTransferAggregatedTypeTypeRef.typeId], FileTransferAggregatedTypeTypeRef), values)
+}
+
+export type FileTransferAggregatedTypeParams = {
+	name: string
+	mimeType: null | string
+	cid: null | string
+}
+
+export type FileTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	name: string
+	mimeType: null | string
+	cid: null | string
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<FileTransferAggregatedType>
+	_original: Nullable<FileTransferAggregatedType>
+	isAdapter: false
+}
+export const MailAddressTransferAggregatedTypeTypeRef: TypeRef<MailAddressTransferAggregatedType> = new TypeRef("tutanota", 2028)
+
+export function createMailAddressTransferAggregatedType(values: MailAddressTransferAggregatedTypeParams): MailAddressTransferAggregatedType {
+	return Object.assign(create(typeModels[MailAddressTransferAggregatedTypeTypeRef.typeId], MailAddressTransferAggregatedTypeTypeRef), values)
+}
+
+export type MailAddressTransferAggregatedTypeParams = {
+	name: string
+	address: string
+
+	contact: null | IdTuple
+}
+
+export type MailAddressTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	name: string
+	address: string
+
+	// == associations
+
+	contact: null | IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<MailAddressTransferAggregatedType>
+	_original: Nullable<MailAddressTransferAggregatedType>
+	isAdapter: false
+}
+export const EncryptedMailAddressTransferAggregatedTypeTypeRef: TypeRef<EncryptedMailAddressTransferAggregatedType> = new TypeRef("tutanota", 2033)
+
+export function createEncryptedMailAddressTransferAggregatedType(
+	values: EncryptedMailAddressTransferAggregatedTypeParams,
+): EncryptedMailAddressTransferAggregatedType {
+	return Object.assign(
+		create(typeModels[EncryptedMailAddressTransferAggregatedTypeTypeRef.typeId], EncryptedMailAddressTransferAggregatedTypeTypeRef),
+		values,
+	)
+}
+
+export type EncryptedMailAddressTransferAggregatedTypeParams = {
+	name: string
+	address: string
+}
+
+export type EncryptedMailAddressTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	name: string
+	address: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<EncryptedMailAddressTransferAggregatedType>
+	_original: Nullable<EncryptedMailAddressTransferAggregatedType>
+	isAdapter: false
+}
+export const BodyTransferAggregatedTypeTypeRef: TypeRef<BodyTransferAggregatedType> = new TypeRef("tutanota", 2037)
+
+export function createBodyTransferAggregatedType(values: BodyTransferAggregatedTypeParams): BodyTransferAggregatedType {
+	return Object.assign(create(typeModels[BodyTransferAggregatedTypeTypeRef.typeId], BodyTransferAggregatedTypeTypeRef), values)
+}
+
+export type BodyTransferAggregatedTypeParams = {
+	text: null | string
+	compressedText: null | string
+}
+
+export type BodyTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	text: null | string
+	compressedText: null | string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<BodyTransferAggregatedType>
+	_original: Nullable<BodyTransferAggregatedType>
+	isAdapter: false
+}
+export const RecipientsTransferAggregatedTypeTypeRef: TypeRef<RecipientsTransferAggregatedType> = new TypeRef("tutanota", 2041)
+
+export function createRecipientsTransferAggregatedType(values: RecipientsTransferAggregatedTypeParams): RecipientsTransferAggregatedType {
+	return Object.assign(create(typeModels[RecipientsTransferAggregatedTypeTypeRef.typeId], RecipientsTransferAggregatedTypeTypeRef), values)
+}
+
+export type RecipientsTransferAggregatedTypeParams = {
+	toRecipients: MailAddressTransferAggregatedType[]
+	ccRecipients: MailAddressTransferAggregatedType[]
+	bccRecipients: MailAddressTransferAggregatedType[]
+}
+
+export type RecipientsTransferAggregatedType = {
+	// == values
+
+	_id: Id
+
+	// == associations
+
+	toRecipients: MailAddressTransferAggregatedType[]
+	ccRecipients: MailAddressTransferAggregatedType[]
+	bccRecipients: MailAddressTransferAggregatedType[]
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<RecipientsTransferAggregatedType>
+	_original: Nullable<RecipientsTransferAggregatedType>
+	isAdapter: false
+}
+export const MailDetailsTransferAggregatedTypeTypeRef: TypeRef<MailDetailsTransferAggregatedType> = new TypeRef("tutanota", 2046)
+
+export function createMailDetailsTransferAggregatedType(values: MailDetailsTransferAggregatedTypeParams): MailDetailsTransferAggregatedType {
+	return Object.assign(create(typeModels[MailDetailsTransferAggregatedTypeTypeRef.typeId], MailDetailsTransferAggregatedTypeTypeRef), values)
+}
+
+export type MailDetailsTransferAggregatedTypeParams = {
+	replyTos: EncryptedMailAddressTransferAggregatedType[]
+	recipients: RecipientsTransferAggregatedType
+	body: BodyTransferAggregatedType
+}
+
+export type MailDetailsTransferAggregatedType = {
+	// == values
+
+	_id: Id
+
+	// == associations
+
+	replyTos: EncryptedMailAddressTransferAggregatedType[]
+	recipients: RecipientsTransferAggregatedType
+	body: BodyTransferAggregatedType
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<MailDetailsTransferAggregatedType>
+	_original: Nullable<MailDetailsTransferAggregatedType>
+	isAdapter: false
+}
+export const MailDetailsBlobTransferAggregatedTypeTypeRef: TypeRef<MailDetailsBlobTransferAggregatedType> = new TypeRef("tutanota", 2051)
+
+export function createMailDetailsBlobTransferAggregatedType(values: MailDetailsBlobTransferAggregatedTypeParams): MailDetailsBlobTransferAggregatedType {
+	return Object.assign(create(typeModels[MailDetailsBlobTransferAggregatedTypeTypeRef.typeId], MailDetailsBlobTransferAggregatedTypeTypeRef), values)
+}
+
+export type MailDetailsBlobTransferAggregatedTypeParams = {
+	details: MailDetailsTransferAggregatedType
+}
+
+export type MailDetailsBlobTransferAggregatedType = {
+	// == values
+
+	_id: Id
+
+	// == associations
+
+	details: MailDetailsTransferAggregatedType
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<MailDetailsBlobTransferAggregatedType>
+	_original: Nullable<MailDetailsBlobTransferAggregatedType>
+	isAdapter: false
+}
+export const MailTransferAggregatedTypeTypeRef: TypeRef<MailTransferAggregatedType> = new TypeRef("tutanota", 2054)
+
+export function createMailTransferAggregatedType(values: MailTransferAggregatedTypeParams): MailTransferAggregatedType {
+	return Object.assign(create(typeModels[MailTransferAggregatedTypeTypeRef.typeId], MailTransferAggregatedTypeTypeRef), values)
+}
+
+export type MailTransferAggregatedTypeParams = {
+	subject: string
+	confidential: boolean
+	method: NumberString
+
+	sender: MailAddressTransferAggregatedType
+	firstRecipient: null | MailAddressTransferAggregatedType
+}
+
+export type MailTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	subject: string
+	confidential: boolean
+	method: NumberString
+
+	// == associations
+
+	sender: MailAddressTransferAggregatedType
+	firstRecipient: null | MailAddressTransferAggregatedType
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<MailTransferAggregatedType>
+	_original: Nullable<MailTransferAggregatedType>
 	isAdapter: false
 }
