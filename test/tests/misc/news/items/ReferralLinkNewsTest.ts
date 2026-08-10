@@ -9,7 +9,6 @@ import { timestampToGeneratedId } from "../../../../../src/platform-kit/meta"
 import { UserController } from "../../../../../src/applications/common/api/main/UserController.js"
 import { initCommonLocator } from "../../../../../src/applications/common/api/main/CommonLocator.js"
 import { IMailLocator } from "../../../../../src/applications/mail-app/mailLocator.js"
-
 import { Customer, User } from "@tutao/entities/sys"
 import { DomainConfig } from "../../../../../src/platform-kit/app-env"
 
