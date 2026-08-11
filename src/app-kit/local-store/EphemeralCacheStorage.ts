@@ -443,7 +443,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 		upperId = serverToLocalIdEncoding(typeModel, upperId)
 		const listCache = this.listElementEntities.get(getTypeString(typeRef))?.get(listId)
 		if (listCache == null) {
-			throw new Error("list does not exist")
+			return
 		}
 		listCache.upperRangeId = upperId
 	}
@@ -453,7 +453,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 		lowerId = serverToLocalIdEncoding(typeModel, lowerId)
 		const listCache = this.listElementEntities.get(getTypeString(typeRef))?.get(listId)
 		if (listCache == null) {
-			throw new Error("list does not exist")
+			return
 		}
 		listCache.lowerRangeId = lowerId
 	}
