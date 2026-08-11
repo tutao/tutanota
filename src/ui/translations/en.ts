@@ -2434,5 +2434,7 @@ export default {
 		"addResult_action": "Add result",
 		"inboxRulesAppliedSuccessfully_msg": "Inbox Rules applied successfully",
 		"noMatchingInboxRulesFound_msg": "No emails were affected",
+		"inboxRuleHasAttachment_label": "Has attachment",
+		"inboxRuleHasNoAttachment_label": "Has no attachment",
 	}
 }
