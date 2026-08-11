@@ -70,6 +70,10 @@ export function getInboxRuleConditionTypeNameMapping(): SelectorItemList<string>
 			name: lang.getTranslationText("inboxRuleBCCRecipientEquals_action"),
 		},
 		{
+			value: InboxRuleConditionType.RECIPIENT_ANY_EQUALS,
+			name: lang.getTranslationText("inboxRuleAnyRecipientEquals_action"),
+		},
+		{
 			value: InboxRuleConditionType.SUBJECT_CONTAINS,
 			name: lang.getTranslationText("inboxRuleSubjectContains_action"),
 		},

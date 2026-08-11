@@ -157,6 +157,7 @@ export function getSpamRuleFieldToName(): Record<SpamRuleFieldType, string> {
 		[SpamRuleFieldType.TO]: lang.get("inboxRuleToRecipientEquals_action"),
 		[SpamRuleFieldType.CC]: lang.get("inboxRuleCCRecipientEquals_action"),
 		[SpamRuleFieldType.BCC]: lang.get("inboxRuleBCCRecipientEquals_action"),
+		[SpamRuleFieldType.TO_ANY]: lang.get("inboxRuleAnyRecipientEquals_action"),
 	}
 }
 
