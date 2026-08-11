@@ -431,6 +431,7 @@ function getRuleConditionValueInputByType(ruleCondition: InboxRuleConditionField
 		case InboxRuleConditionType.RECIPIENT_TO_EQUALS:
 		case InboxRuleConditionType.RECIPIENT_CC_EQUALS:
 		case InboxRuleConditionType.RECIPIENT_BCC_EQUALS:
+		case InboxRuleConditionType.RECIPIENT_ANY_EQUALS:
 		case InboxRuleConditionType.SUBJECT_CONTAINS:
 		case InboxRuleConditionType.MAIL_HEADER_CONTAINS:
 			return m(TextField, {
