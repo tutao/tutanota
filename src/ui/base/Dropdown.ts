@@ -7,7 +7,7 @@ import { focusNext, focusPrevious, Shortcut } from "../utils/KeyManager"
 import type { ButtonAttrs } from "./Button.js"
 import { MultilineRowButton, MultilineRowButtonAttrs } from "./buttons/MultilineRowButton"
 import { lang, MaybeTranslation, Translation } from "../utils/LanguageViewModel"
-import { assertMainOrNode, Keys, TabIndex } from "@tutao/app-env"
+import { assertMainOrNode, TabIndex } from "@tutao/app-env"
 import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../HtmlUtils"
 import { assertNotNull, delay, downcast, filterNull, lazy, lazyAsync, makeSingleUse, noOp, Thunk } from "@tutao/utils"
 import { pureComponent } from "./PureComponent"
@@ -20,9 +20,9 @@ import { BaseButton } from "./buttons/BaseButton"
 import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector"
 import { InputAttrs, SingleLineTextField } from "./SingleLineTextField"
 import { LegacyTextFieldType } from "./LegacyTextField"
-
 import { PosRect } from "../utils/PosRect"
 import { Icons } from "./icons/Icons"
+import { Keys } from "../KeyboardKeys"
 
 assertMainOrNode()
 export type DropdownInfoAttrs = {

@@ -38,11 +38,12 @@ import { isKeyPressed } from "../../../../ui/utils/KeyManager"
 import { fromStrippedCalendarEventAttendee, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/import/ImportExportUtils"
 import { CalendarEvent, createCalendarEventAttendee, Mail } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../../entities/tutanota/Utils"
-import { EventTextTimeOption, Keys, ProgrammingError, TabIndex, TimeConstants } from "@tutao/app-env"
+import { EventTextTimeOption, ProgrammingError, TabIndex, TimeConstants } from "@tutao/app-env"
 import { clone, GENERATED_MIN_ID } from "@tutao/meta"
 import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
 import { getTimeZone } from "../../../common/calendar/date/CalendarUtils"
 import { formatEventTime } from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData

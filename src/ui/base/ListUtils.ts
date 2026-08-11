@@ -1,10 +1,11 @@
 import { Shortcut } from "../utils/KeyManager.js"
-import { isBrowser, Keys } from "../../platform-kit/app-env"
+import { isBrowser } from "../../platform-kit/app-env"
 import { NBSP } from "../../platform-kit/utils"
 import { mapLazily } from "./MaybeLazy"
 import { ListState, MultiselectMode } from "./List.js"
 import { Children } from "mithril"
 import { SearchToken, splitTextForHighlighting } from "../utils/QueryTokenUtils"
+import { Keys } from "../KeyboardKeys"
 
 export const ACTION_DISTANCE = 150
 export const PageSize = 100

@@ -3,10 +3,10 @@ import m, { Component } from "mithril"
 import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../../../ui/base/DialogHeaderBar.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog.js"
-import { Keys } from "@tutao/app-env"
 import { NewsList } from "./NewsList.js"
 import { NewsModel } from "./NewsModel.js"
 import { progressIcon } from "../../../../ui/base/Icon.js"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export function showNewsDialog(newsModel: NewsModel) {
 	const closeButton: ButtonAttrs = {

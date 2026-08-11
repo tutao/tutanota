@@ -5,11 +5,12 @@ import { theme } from "../../../../ui/theme.js"
 import { AllIcons, Icon } from "../../../../ui/base/Icon.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { responsiveCardHPadding } from "../../../../ui/cards.js"
-import { Keys, TabIndex } from "../../../../platform-kit/app-env"
+import { TabIndex } from "../../../../platform-kit/app-env"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { getMailAddressDisplayText } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getConfidentialIcon, getFolderIconByType } from "./MailGuiUtils.js"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export interface CollapsedMailViewAttrs {
 	viewModel: MailViewerViewModel

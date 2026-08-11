@@ -2,7 +2,7 @@ import m, { Child, Children, Component, Vnode } from "mithril"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel.js"
 import { LegacyTextFieldType } from "../../../../../ui/base/LegacyTextField.js"
 import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
-import { EndType, isApp, Keys, RepeatPeriod, TabIndex, Weekday } from "../../../../../platform-kit/app-env"
+import { EndType, isApp, RepeatPeriod, TabIndex, Weekday } from "../../../../../platform-kit/app-env"
 import { DatePicker, DatePickerAttrs, PickerPosition } from "../pickers/DatePicker.js"
 
 import {
@@ -29,6 +29,7 @@ import { Divider } from "../../../../../ui/Divider.js"
 import { WeekdaySelector, WeekdayToTranslation } from "./WeekdaySelector.js"
 import { WeekRepetitionSelector } from "./WeekRepetitionSelector.js"
 import { DateTime } from "luxon"
+import { Keys } from "../../../../../ui/KeyboardKeys"
 
 export type RepeatRuleEditorAttrs = {
 	model: CalendarEventWhenModel

@@ -39,7 +39,7 @@ import {
 	getWeekNumber,
 	StandardAlarmInterval,
 } from "../../../common/calendar/date/CalendarUtils.js"
-import { DEFAULT_CALENDAR_COLOR, EndType, isAppleDevice, Keys, RepeatPeriod, ShareCapability, TimeConstants, Weekday, WeekStart } from "@tutao/app-env"
+import { DEFAULT_CALENDAR_COLOR, EndType, isAppleDevice, RepeatPeriod, ShareCapability, TimeConstants, Weekday, WeekStart } from "@tutao/app-env"
 import { AllIcons } from "../../../../ui/base/Icon.js"
 import { SelectorItemList } from "../../../../ui/base/DropDownSelector.js"
 import { Duration } from "luxon"
@@ -67,6 +67,7 @@ import { CalendarAttendeeStatus } from "../../../../entities/tutanota/Utils"
 import { AccountType, hasCapabilityOnGroup } from "../../../../entities/sys/Utils"
 import { clone } from "@tutao/meta"
 import { IcsCalendarEvent } from "../export/CalendarParser"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export interface IntervalOption {
 	value: number

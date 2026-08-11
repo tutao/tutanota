@@ -10,7 +10,7 @@ import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../../../ui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../../../ui/base/WizardDialog.js"
 import { DefaultAnimationTime } from "../../../ui/animation/Animations"
-import { Keys } from "@tutao/app-env"
+
 import { Checkbox } from "../../../ui/base/Checkbox.js"
 import { UpgradePriceType } from "./FeatureListProvider"
 import { PaymentInterval } from "./utils/PriceUtils.js"
@@ -28,6 +28,7 @@ import { TranslationKeyType } from "../../../ui/utils/TranslationKey"
 import { PlanSelectorHeadline } from "./components/PlanSelectorHeadline"
 import { px } from "../../../ui/size"
 import { AvailablePlanType, PlanType, SubscriptionType } from "../../../entities/sys/Utils"
+import { Keys } from "../../../ui/KeyboardKeys"
 
 /** Subscription type passed from the website */
 export const PlanTypeParameter = Object.freeze({

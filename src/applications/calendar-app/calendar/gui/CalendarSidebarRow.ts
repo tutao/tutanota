@@ -1,4 +1,4 @@
-import { Keys, TabIndex } from "../../../../platform-kit/app-env"
+import { TabIndex } from "../../../../platform-kit/app-env"
 import m, { Component, Vnode } from "mithril"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager"
 import { px, size } from "../../../../ui/size"
@@ -10,6 +10,7 @@ import { ButtonColor } from "../../../../ui/base/Button"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { ButtonSize } from "../../../../ui/base/ButtonSize"
 import { createDropdown, DropdownChildAttrs } from "../../../../ui/base/Dropdown"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 export type CalendarSidebarRowIconData = Pick<IconAttrs, "icon" | "title">
 export type CalendarSidebarRowAttrs = Omit<CalendarInfoBase, "type"> & {

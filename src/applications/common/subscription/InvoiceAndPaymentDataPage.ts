@@ -8,7 +8,7 @@ import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { InvoiceDataInput, InvoiceDataInputLocation } from "./InvoiceDataInput"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { Country, getClientType, InvoiceData, Keys, PaymentDataResultType } from "@tutao/app-env"
+import { Country, getClientType, InvoiceData, PaymentDataResultType } from "@tutao/app-env"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { assertNotNull, LazyLoaded, neverNull, newPromise, noOp, promiseMap } from "@tutao/utils"
 import { getLazyLoadedPayPalUrl, getPreconditionFailedPaymentMsg, PaymentData, PaymentErrorCode, UpgradeType } from "./utils/SubscriptionUtils"
@@ -27,6 +27,7 @@ import { SimplifiedCreditCardViewModel } from "./SimplifiedCreditCardInputModel"
 import { SimplifiedCreditCardInput } from "./SimplifiedCreditCardInput"
 import { PaypalButton } from "./PaypalButton"
 import { idToElementId } from "@tutao/meta"
+import { Keys } from "../../../ui/KeyboardKeys"
 
 /**
  * Wizard page for editing invoice and payment data.

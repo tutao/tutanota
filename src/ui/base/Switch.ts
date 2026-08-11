@@ -1,7 +1,8 @@
 import m, { ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { Keys, TabIndex } from "../../platform-kit/app-env"
+import { TabIndex } from "../../platform-kit/app-env"
 import { isKeyPressed } from "../utils/KeyManager.js"
 import { AriaRole } from "../AriaUtils.js"
+import { Keys } from "../KeyboardKeys"
 
 type SwitchVariant = "normal" | "expanded"
 type TogglePillPosition = "left" | "right"

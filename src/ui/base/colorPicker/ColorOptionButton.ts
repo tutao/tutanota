@@ -1,9 +1,10 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { theme } from "../../theme"
-import { Keys, TabIndex } from "@tutao/app-env"
+import { TabIndex } from "@tutao/app-env"
 import { px } from "../../size"
 import { lang } from "../../utils/LanguageViewModel.js"
 import { isKeyPressed } from "../../utils/KeyManager.js"
+import { Keys } from "../../KeyboardKeys"
 
 export type ColorOptionButtonAttrs = {
 	color: string
