@@ -267,24 +267,26 @@ export function createDriveUploadedFile(values: DriveUploadedFileParams): DriveU
 }
 
 export type DriveUploadedFileParams = {
-	fileName: string
-	mimeType: string
+	fileName: null | string
+	mimeType: null | string
 
 	referenceTokens: BlobReferenceTokenWrapper[]
+	file: null | DriveFileTransferAggregatedType
 }
 
 export type DriveUploadedFile = {
 	// == values
 
 	_id: Id
-	fileName: string
-	mimeType: string
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>
-	ownerKeyVersion: NumberString
+	fileName: null | string
+	mimeType: null | string
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	ownerKeyVersion: null | NumberString
 
 	// == associations
 
 	referenceTokens: BlobReferenceTokenWrapper[]
+	file: null | DriveFileTransferAggregatedType
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -428,17 +430,19 @@ export function createDriveItemPutIn(values: DriveItemPutInParams): DriveItemPut
 }
 
 export type DriveItemPutInParams = {
-	newName: string
+	newName: null | string
 
 	file: null | IdTuple
 	folder: null | IdTuple
+	fileWithNewName: null | DriveFileNameTransferAggregatedType
+	folderWithNewName: null | DriveFolderNameTransferAggregatedType
 }
 
 export type DriveItemPutIn = {
 	// == values
 
 	_format: NumberString
-	newName: string
+	newName: null | string
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
@@ -447,6 +451,8 @@ export type DriveItemPutIn = {
 
 	file: null | IdTuple
 	folder: null | IdTuple
+	fileWithNewName: null | DriveFileNameTransferAggregatedType
+	folderWithNewName: null | DriveFolderNameTransferAggregatedType
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -510,25 +516,27 @@ export function createDriveFolderServicePostIn(values: DriveFolderServicePostInP
 }
 
 export type DriveFolderServicePostInParams = {
-	folderName: string
+	folderName: null | string
 
-	parent: IdTuple
+	parent: null | IdTuple
+	folder: null | DriveFolderTransferAggregatedType
 }
 
 export type DriveFolderServicePostIn = {
 	// == values
 
 	_format: NumberString
-	folderName: string
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>
-	ownerKeyVersion: NumberString
+	folderName: null | string
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	ownerKeyVersion: null | NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
 	// == associations
 
-	parent: IdTuple
+	parent: null | IdTuple
+	folder: null | DriveFolderTransferAggregatedType
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -810,5 +818,145 @@ export type DriveItemServiceDeleteOut = {
 	// === these are not present in metamodel
 	_type: TypeRef<DriveItemServiceDeleteOut>
 	_original: Nullable<DriveItemServiceDeleteOut>
+	isAdapter: false
+}
+export const DriveFolderTransferAggregatedTypeTypeRef: TypeRef<DriveFolderTransferAggregatedType> = new TypeRef("drive", 123)
+
+export function createDriveFolderTransferAggregatedType(values: DriveFolderTransferAggregatedTypeParams): DriveFolderTransferAggregatedType {
+	return Object.assign(create(typeModels[DriveFolderTransferAggregatedTypeTypeRef.typeId], DriveFolderTransferAggregatedTypeTypeRef), values)
+}
+
+export type DriveFolderTransferAggregatedTypeParams = {
+	name: string
+
+	parent: null | IdTuple
+}
+
+export type DriveFolderTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	name: string
+
+	// == associations
+
+	parent: null | IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DriveFolderTransferAggregatedType>
+	_original: Nullable<DriveFolderTransferAggregatedType>
+	isAdapter: false
+}
+export const DriveFolderNameTransferAggregatedTypeTypeRef: TypeRef<DriveFolderNameTransferAggregatedType> = new TypeRef("drive", 129)
+
+export function createDriveFolderNameTransferAggregatedType(values: DriveFolderNameTransferAggregatedTypeParams): DriveFolderNameTransferAggregatedType {
+	return Object.assign(create(typeModels[DriveFolderNameTransferAggregatedTypeTypeRef.typeId], DriveFolderNameTransferAggregatedTypeTypeRef), values)
+}
+
+export type DriveFolderNameTransferAggregatedTypeParams = {
+	name: string
+}
+
+export type DriveFolderNameTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	name: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DriveFolderNameTransferAggregatedType>
+	_original: Nullable<DriveFolderNameTransferAggregatedType>
+	isAdapter: false
+}
+export const DriveFileTransferAggregatedTypeTypeRef: TypeRef<DriveFileTransferAggregatedType> = new TypeRef("drive", 132)
+
+export function createDriveFileTransferAggregatedType(values: DriveFileTransferAggregatedTypeParams): DriveFileTransferAggregatedType {
+	return Object.assign(create(typeModels[DriveFileTransferAggregatedTypeTypeRef.typeId], DriveFileTransferAggregatedTypeTypeRef), values)
+}
+
+export type DriveFileTransferAggregatedTypeParams = {
+	name: string
+	mimeType: string
+}
+
+export type DriveFileTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	name: string
+	mimeType: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DriveFileTransferAggregatedType>
+	_original: Nullable<DriveFileTransferAggregatedType>
+	isAdapter: false
+}
+export const DriveFileNameTransferAggregatedTypeTypeRef: TypeRef<DriveFileNameTransferAggregatedType> = new TypeRef("drive", 138)
+
+export function createDriveFileNameTransferAggregatedType(values: DriveFileNameTransferAggregatedTypeParams): DriveFileNameTransferAggregatedType {
+	return Object.assign(create(typeModels[DriveFileNameTransferAggregatedTypeTypeRef.typeId], DriveFileNameTransferAggregatedTypeTypeRef), values)
+}
+
+export type DriveFileNameTransferAggregatedTypeParams = {
+	name: string
+}
+
+export type DriveFileNameTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	name: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DriveFileNameTransferAggregatedType>
+	_original: Nullable<DriveFileNameTransferAggregatedType>
 	isAdapter: false
 }
