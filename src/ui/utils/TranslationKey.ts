@@ -2503,3 +2503,5 @@ export type TranslationKeyType =
 	| "addResult_action"
 	| "inboxRulesAppliedSuccessfully_msg"
 	| "noMatchingInboxRulesFound_msg"
+	| "inboxRuleHasAttachment_label"
+	| "inboxRuleHasNoAttachment_label"

@@ -77,7 +77,14 @@ export function getInboxRuleConditionTypeNameMapping(): SelectorItemList<string>
 			value: InboxRuleConditionType.MAIL_HEADER_CONTAINS,
 			name: lang.getTranslationText("inboxRuleMailHeaderContains_action"),
 		},
-		// TODO: need to add HAS_ATTACHMENT
+		{
+			value: InboxRuleConditionType.HAS_ATTACHMENT,
+			name: lang.getTranslationText("inboxRuleHasAttachment_label"),
+		},
+		{
+			value: InboxRuleConditionType.HAS_NO_ATTACHMENT,
+			name: lang.getTranslationText("inboxRuleHasNoAttachment_label"),
+		},
 	]
 }
 

@@ -105,6 +105,12 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 					} else {
 						return false
 					}
+				} else if (type === InboxRuleConditionType.HAS_ATTACHMENT) {
+					// this does not care about inline attachments
+					matches = !isEmpty(mail.attachments)
+				} else if (type === InboxRuleConditionType.HAS_NO_ATTACHMENT) {
+					// this does not care about inline attachments
+					matches = isEmpty(mail.attachments)
 				} else {
 					// no good way to handle unknown conditions, so we bail
 					console.warn("Unknown condition type: ", type)

@@ -142,8 +142,9 @@ export const enum InboxRuleConditionType {
 	// Text Conditions - value will be a string
 	SUBJECT_CONTAINS = "4",
 	MAIL_HEADER_CONTAINS = "5",
-	// Boolean Conditions - value should be "true" or "false"
-	HAS_ATTACHMENT = "6"
+	// Boolean Conditions - existence is the positive, value will be empty and ignored
+	HAS_ATTACHMENT = "6",
+	HAS_NO_ATTACHMENT = "7"
 }
 
 export const enum InboxRuleResultType {
