@@ -83,6 +83,7 @@ import { showUserSatisfactionDialogAfterUpgrade } from "../../ratings/UserSatisf
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { SubscriptionStateCellAttrs } from "../../subscription/components/SubscriptionStateCell"
 import { MessageBanner } from "../../../../ui/base/MessageBanner"
+import { shouldOfferSubscriptionRevocation } from "./RevocationEligibility"
 
 assertMainOrNode()
 export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
@@ -447,7 +448,11 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 				m(SecondaryButton, {
 					label: "subscriptionStateCardCancel_action",
 					width: "flex",
-					onclick: () => showSubscriptionCancellationDialog(booking),
+					onclick: () =>
+						showSubscriptionCancellationDialog(
+							booking,
+							shouldOfferSubscriptionRevocation(assertNotNull(this._customer).businessUse, assertNotNull(this._customerInfo).activationTime),
+						),
 				}),
 			)
 		}

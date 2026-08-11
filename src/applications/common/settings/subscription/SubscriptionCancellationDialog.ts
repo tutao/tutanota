@@ -60,19 +60,15 @@ async function sendCancellationSurveyData(surveyType: SurveyDataType) {
  * cancelSubscriptionSuccessPage: If everything goes well. Only possible to close the dialog from here
  * cancelSubscriptionErrorPage: If there is an error it will be shown here. Only possible to close the dialog from here
  */
-export async function showSubscriptionCancellationDialog(booking: Booking): Promise<void> {
+export async function showSubscriptionCancellationDialog(booking: Booking, shouldOfferRevocation: boolean): Promise<void> {
 	const data: CancelSubscriptionDialogState = {
 		sourcePage: "cancelSubscriptionPage",
 		periodEndDate: booking.endDate,
 	}
 
-	const maxRevokeDate = new Date(booking.createDate)
-	maxRevokeDate.setDate(maxRevokeDate.getDate() + 14)
-	const isInRefundPeriod = new Date() < maxRevokeDate
-
 	const dialog = new MultiPageDialog<CancelSubscriptionPages>(
 		//Starting page depends on current revocation eligibility
-		isInRefundPeriod ? "cancelSubscriptionOptionPage" : "cancelSubscriptionPage",
+		shouldOfferRevocation ? "cancelSubscriptionOptionPage" : "cancelSubscriptionPage",
 
 		(dialog, navigateToPage, goBack) => ({
 			//--choose option page--\\
@@ -104,7 +100,7 @@ export async function showSubscriptionCancellationDialog(booking: Booking): Prom
 				title: lang.getTranslationText("subscriptionStateCardCancel_action"),
 				//Render close button left if not legible for revocation
 				//Do not render it while in period
-				leftAction: isInRefundPeriod
+				leftAction: shouldOfferRevocation
 					? {
 							type: ButtonType.Secondary,
 							click: () => goBack("cancelSubscriptionOptionPage"),
