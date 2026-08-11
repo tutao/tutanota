@@ -3,221 +3,174 @@ import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
 import { ListElementId, ElementId, DataTransferId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 import { Nullable } from "@tutao/utils"
-import { Blob } from '../sys/TypeRefs.js'
-import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
+import { Blob } from "../sys/TypeRefs.js"
+import { BlobReferenceTokenWrapper } from "../sys/TypeRefs.js"
 
 export const DriveFolderTypeRef: TypeRef<DriveFolder> = new TypeRef("drive", 0)
 
 export function createDriveFolder(values: DriveFolderParams): DriveFolder {
-    return Object.assign(create(typeModels[DriveFolderTypeRef.typeId], DriveFolderTypeRef), values)
+	return Object.assign(create(typeModels[DriveFolderTypeRef.typeId], DriveFolderTypeRef), values)
 }
 
-
 export type DriveFolderParams = {
+	type: NumberString
+	name: string
+	createdDate: Date
+	updatedDate: Date
 
-
-	type: NumberString;
-	name: string;
-	createdDate: Date;
-	updatedDate: Date;
-	
-
-
-	parent: null | IdTuple;
-	originalParent: null | IdTuple;
-	files: Id;
+	parent: null | IdTuple
+	originalParent: null | IdTuple
+	files: Id
 }
 
 export type DriveFolder = {
-    // == values
+	// == values
 
-	_id: ListElementId;
-	_permissions: Id;
-	_format: NumberString;
-	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
-	_ownerKeyVersion: null | NumberString;
-	type: NumberString;
-	name: string;
-	createdDate: Date;
-	updatedDate: Date;
-	_kdfNonce: null | Uint8Array<ArrayBuffer>;
+	_id: ListElementId
+	_permissions: Id
+	_format: NumberString
+	_ownerGroup: null | Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	type: NumberString
+	name: string
+	createdDate: Date
+	updatedDate: Date
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 
-	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
-	
+	// == associations
 
-    // == associations
+	parent: null | IdTuple
+	originalParent: null | IdTuple
+	files: Id
 
-	parent: null | IdTuple;
-	originalParent: null | IdTuple;
-	files: Id;
+	//== some entities have these and some don't
 
+	bucketKey: null
 
-    //== some entities have these and some don't
-    
-    bucketKey: null
-	
-	
-	
-	
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveFolder>;
-    _errors: Object;
-    _original: Nullable<DriveFolder>
-    isAdapter: false,
+	_type: TypeRef<DriveFolder>
+	_errors: Object
+	_original: Nullable<DriveFolder>
+	isAdapter: false
 }
 export const DriveFileTypeRef: TypeRef<DriveFile> = new TypeRef("drive", 14)
 
 export function createDriveFile(values: DriveFileParams): DriveFile {
-    return Object.assign(create(typeModels[DriveFileTypeRef.typeId], DriveFileTypeRef), values)
+	return Object.assign(create(typeModels[DriveFileTypeRef.typeId], DriveFileTypeRef), values)
 }
 
-
 export type DriveFileParams = {
+	name: string
+	size: NumberString
+	mimeType: string
+	createdDate: Date
+	updatedDate: Date
 
-
-	name: string;
-	size: NumberString;
-	mimeType: string;
-	createdDate: Date;
-	updatedDate: Date;
-	
-
-
-	folder: IdTuple;
-	blobs: Blob[];
-	originalParent: null | IdTuple;
+	folder: IdTuple
+	blobs: Blob[]
+	originalParent: null | IdTuple
 }
 
 export type DriveFile = {
-    // == values
+	// == values
 
-	_id: ListElementId;
-	_permissions: Id;
-	_format: NumberString;
-	_ownerGroup: null | Id;
-	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
-	_ownerKeyVersion: null | NumberString;
-	name: string;
-	size: NumberString;
-	mimeType: string;
-	createdDate: Date;
-	updatedDate: Date;
-	_kdfNonce: null | Uint8Array<ArrayBuffer>;
+	_id: ListElementId
+	_permissions: Id
+	_format: NumberString
+	_ownerGroup: null | Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	name: string
+	size: NumberString
+	mimeType: string
+	createdDate: Date
+	updatedDate: Date
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 
-	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
-	
+	// == associations
 
-    // == associations
+	folder: IdTuple
+	blobs: Blob[]
+	originalParent: null | IdTuple
 
-	folder: IdTuple;
-	blobs: Blob[];
-	originalParent: null | IdTuple;
+	//== some entities have these and some don't
 
+	bucketKey: null
 
-    //== some entities have these and some don't
-    
-    bucketKey: null
-	
-	
-	
-	
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveFile>;
-    _errors: Object;
-    _original: Nullable<DriveFile>
-    isAdapter: false,
+	_type: TypeRef<DriveFile>
+	_errors: Object
+	_original: Nullable<DriveFile>
+	isAdapter: false
 }
 export const DriveFileRefTypeRef: TypeRef<DriveFileRef> = new TypeRef("drive", 30)
 
 export function createDriveFileRef(values: DriveFileRefParams): DriveFileRef {
-    return Object.assign(create(typeModels[DriveFileRefTypeRef.typeId], DriveFileRefTypeRef), values)
+	return Object.assign(create(typeModels[DriveFileRefTypeRef.typeId], DriveFileRefTypeRef), values)
 }
 
-
 export type DriveFileRefParams = {
-
-
-	
-
-
-	file: null | IdTuple;
-	folder: null | IdTuple;
+	file: null | IdTuple
+	folder: null | IdTuple
 }
 
 export type DriveFileRef = {
-    // == values
+	// == values
 
-	_id: ListElementId;
-	_permissions: Id;
-	_format: NumberString;
-	_ownerGroup: null | Id;
+	_id: ListElementId
+	_permissions: Id
+	_format: NumberString
+	_ownerGroup: null | Id
 
-	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
-	
+	// == associations
 
-    // == associations
+	file: null | IdTuple
+	folder: null | IdTuple
 
-	file: null | IdTuple;
-	folder: null | IdTuple;
+	//== some entities have these and some don't
 
+	bucketKey: null
 
-    //== some entities have these and some don't
-    
-    bucketKey: null
-	
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
 	_kdfNonce: null
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveFileRef>;
-    _original: Nullable<DriveFileRef>
-    isAdapter: false,
+	_type: TypeRef<DriveFileRef>
+	_original: Nullable<DriveFileRef>
+	isAdapter: false
 }
 export const DriveFileBagTypeRef: TypeRef<DriveFileBag> = new TypeRef("drive", 39)
 
 export function createDriveFileBag(values: DriveFileBagParams): DriveFileBag {
-    return Object.assign(create(typeModels[DriveFileBagTypeRef.typeId], DriveFileBagTypeRef), values)
+	return Object.assign(create(typeModels[DriveFileBagTypeRef.typeId], DriveFileBagTypeRef), values)
 }
 
-
 export type DriveFileBagParams = {
-
-
-	
-
-
-	files: Id;
+	files: Id
 }
 
 export type DriveFileBag = {
-    // == values
+	// == values
 
-	_id: Id;
+	_id: Id
 
-	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
-	
+	// == associations
 
-    // == associations
+	files: Id
 
-	files: Id;
-
-
-    //== some entities have these and some don't
-    _permissions: null
-    bucketKey: null
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
 	_ownerGroup: null
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
@@ -225,44 +178,33 @@ export type DriveFileBag = {
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveFileBag>;
-    _original: Nullable<DriveFileBag>
-    isAdapter: false,
+	_type: TypeRef<DriveFileBag>
+	_original: Nullable<DriveFileBag>
+	isAdapter: false
 }
 export const DriveFolderBagTypeRef: TypeRef<DriveFolderBag> = new TypeRef("drive", 42)
 
 export function createDriveFolderBag(values: DriveFolderBagParams): DriveFolderBag {
-    return Object.assign(create(typeModels[DriveFolderBagTypeRef.typeId], DriveFolderBagTypeRef), values)
+	return Object.assign(create(typeModels[DriveFolderBagTypeRef.typeId], DriveFolderBagTypeRef), values)
 }
 
-
 export type DriveFolderBagParams = {
-
-
-	
-
-
-	folders: Id;
+	folders: Id
 }
 
 export type DriveFolderBag = {
-    // == values
+	// == values
 
-	_id: Id;
+	_id: Id
 
-	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
-	
+	// == associations
 
-    // == associations
+	folders: Id
 
-	folders: Id;
-
-
-    //== some entities have these and some don't
-    _permissions: null
-    bucketKey: null
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
 	_ownerGroup: null
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
@@ -270,154 +212,126 @@ export type DriveFolderBag = {
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveFolderBag>;
-    _original: Nullable<DriveFolderBag>
-    isAdapter: false,
+	_type: TypeRef<DriveFolderBag>
+	_original: Nullable<DriveFolderBag>
+	isAdapter: false
 }
 export const DriveGroupRootTypeRef: TypeRef<DriveGroupRoot> = new TypeRef("drive", 45)
 
 export function createDriveGroupRoot(values: DriveGroupRootParams): DriveGroupRoot {
-    return Object.assign(create(typeModels[DriveGroupRootTypeRef.typeId], DriveGroupRootTypeRef), values)
+	return Object.assign(create(typeModels[DriveGroupRootTypeRef.typeId], DriveGroupRootTypeRef), values)
 }
 
-
 export type DriveGroupRootParams = {
-
-
-	
-
-
-	fileBags: DriveFileBag[];
-	folderBags: DriveFolderBag[];
-	root: IdTuple;
-	trash: IdTuple;
+	fileBags: DriveFileBag[]
+	folderBags: DriveFolderBag[]
+	root: IdTuple
+	trash: IdTuple
 }
 
 export type DriveGroupRoot = {
-    // == values
+	// == values
 
-	_id: ElementId;
-	_permissions: Id;
-	_format: NumberString;
-	_ownerGroup: null | Id;
+	_id: ElementId
+	_permissions: Id
+	_format: NumberString
+	_ownerGroup: null | Id
 
-	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
-	
+	// == associations
 
-    // == associations
+	fileBags: DriveFileBag[]
+	folderBags: DriveFolderBag[]
+	root: IdTuple
+	trash: IdTuple
 
-	fileBags: DriveFileBag[];
-	folderBags: DriveFolderBag[];
-	root: IdTuple;
-	trash: IdTuple;
+	//== some entities have these and some don't
 
+	bucketKey: null
 
-    //== some entities have these and some don't
-    
-    bucketKey: null
-	
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
 	_kdfNonce: null
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveGroupRoot>;
-    _original: Nullable<DriveGroupRoot>
-    isAdapter: false,
+	_type: TypeRef<DriveGroupRoot>
+	_original: Nullable<DriveGroupRoot>
+	isAdapter: false
 }
 export const DriveUploadedFileTypeRef: TypeRef<DriveUploadedFile> = new TypeRef("drive", 55)
 
 export function createDriveUploadedFile(values: DriveUploadedFileParams): DriveUploadedFile {
-    return Object.assign(create(typeModels[DriveUploadedFileTypeRef.typeId], DriveUploadedFileTypeRef), values)
+	return Object.assign(create(typeModels[DriveUploadedFileTypeRef.typeId], DriveUploadedFileTypeRef), values)
 }
 
-
 export type DriveUploadedFileParams = {
+	fileName: string
+	mimeType: string
 
-
-	fileName: string;
-	mimeType: string;
-	
-
-
-	referenceTokens: BlobReferenceTokenWrapper[];
+	referenceTokens: BlobReferenceTokenWrapper[]
 }
 
 export type DriveUploadedFile = {
-    // == values
+	// == values
 
-	_id: Id;
-	fileName: string;
-	mimeType: string;
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
-	ownerKeyVersion: NumberString;
+	_id: Id
+	fileName: string
+	mimeType: string
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>
+	ownerKeyVersion: NumberString
 
-	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
-	
+	// == associations
 
-    // == associations
+	referenceTokens: BlobReferenceTokenWrapper[]
 
-	referenceTokens: BlobReferenceTokenWrapper[];
-
-
-    //== some entities have these and some don't
-    _permissions: null
-    bucketKey: null
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
 	_ownerGroup: null
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
 	_kdfNonce: null
-	
+
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveUploadedFile>;
-    _original: Nullable<DriveUploadedFile>
-    isAdapter: false,
+	_type: TypeRef<DriveUploadedFile>
+	_original: Nullable<DriveUploadedFile>
+	isAdapter: false
 }
 export const DrivePostInTypeRef: TypeRef<DrivePostIn> = new TypeRef("drive", 61)
 
 export function createDrivePostIn(values: DrivePostInParams): DrivePostIn {
-    return Object.assign(create(typeModels[DrivePostInTypeRef.typeId], DrivePostInTypeRef), values)
+	return Object.assign(create(typeModels[DrivePostInTypeRef.typeId], DrivePostInTypeRef), values)
 }
 
-
 export type DrivePostInParams = {
+	ownerEncRootFolderSessionKey: Uint8Array<ArrayBuffer>
+	ownerEncTrashFolderSessionKey: Uint8Array<ArrayBuffer>
 
-
-	ownerEncRootFolderSessionKey: Uint8Array<ArrayBuffer>;
-	ownerEncTrashFolderSessionKey: Uint8Array<ArrayBuffer>;
-	
-
-
-	fileGroupId: Id;
+	fileGroupId: Id
 }
 
 export type DrivePostIn = {
-    // == values
+	// == values
 
-	_format: NumberString;
-	ownerEncRootFolderSessionKey: Uint8Array<ArrayBuffer>;
-	ownerEncTrashFolderSessionKey: Uint8Array<ArrayBuffer>;
-	ownerKeyVersion: NumberString;
+	_format: NumberString
+	ownerEncRootFolderSessionKey: Uint8Array<ArrayBuffer>
+	ownerEncTrashFolderSessionKey: Uint8Array<ArrayBuffer>
+	ownerKeyVersion: NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
-    // == associations
+	// == associations
 
-	fileGroupId: Id;
+	fileGroupId: Id
 
-
-    //== some entities have these and some don't
-    _permissions: null
-    bucketKey: null
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
 	_ownerGroup: null
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
@@ -425,46 +339,38 @@ export type DrivePostIn = {
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DrivePostIn>;
-    _original: Nullable<DrivePostIn>
-    isAdapter: false,
+	_type: TypeRef<DrivePostIn>
+	_original: Nullable<DrivePostIn>
+	isAdapter: false
 }
 export const DriveItemPostInTypeRef: TypeRef<DriveItemPostIn> = new TypeRef("drive", 67)
 
 export function createDriveItemPostIn(values: DriveItemPostInParams): DriveItemPostIn {
-    return Object.assign(create(typeModels[DriveItemPostInTypeRef.typeId], DriveItemPostInTypeRef), values)
+	return Object.assign(create(typeModels[DriveItemPostInTypeRef.typeId], DriveItemPostInTypeRef), values)
 }
 
-
 export type DriveItemPostInParams = {
-
-
-	
-
-
-	parent: IdTuple;
-	uploadedFile: DriveUploadedFile;
+	parent: IdTuple
+	uploadedFile: DriveUploadedFile
 }
 
 export type DriveItemPostIn = {
-    // == values
+	// == values
 
-	_format: NumberString;
+	_format: NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
-    // == associations
+	// == associations
 
-	parent: IdTuple;
-	uploadedFile: DriveUploadedFile;
+	parent: IdTuple
+	uploadedFile: DriveUploadedFile
 
-
-    //== some entities have these and some don't
-    _permissions: null
-    bucketKey: null
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
 	_ownerGroup: null
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
@@ -472,45 +378,37 @@ export type DriveItemPostIn = {
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveItemPostIn>;
-    _errors: Object;
-    _original: Nullable<DriveItemPostIn>
-    isAdapter: false,
+	_type: TypeRef<DriveItemPostIn>
+	_errors: Object
+	_original: Nullable<DriveItemPostIn>
+	isAdapter: false
 }
 export const DriveItemPostOutTypeRef: TypeRef<DriveItemPostOut> = new TypeRef("drive", 71)
 
 export function createDriveItemPostOut(values: DriveItemPostOutParams): DriveItemPostOut {
-    return Object.assign(create(typeModels[DriveItemPostOutTypeRef.typeId], DriveItemPostOutTypeRef), values)
+	return Object.assign(create(typeModels[DriveItemPostOutTypeRef.typeId], DriveItemPostOutTypeRef), values)
 }
 
-
 export type DriveItemPostOutParams = {
-
-
-	
-
-
-	createdFile: IdTuple;
+	createdFile: IdTuple
 }
 
 export type DriveItemPostOut = {
-    // == values
+	// == values
 
-	_format: NumberString;
+	_format: NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
-    // == associations
+	// == associations
 
-	createdFile: IdTuple;
+	createdFile: IdTuple
 
-
-    //== some entities have these and some don't
-    _permissions: null
-    bucketKey: null
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
 	_ownerGroup: null
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
@@ -518,48 +416,41 @@ export type DriveItemPostOut = {
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveItemPostOut>;
-    _original: Nullable<DriveItemPostOut>
-    isAdapter: false,
+	_type: TypeRef<DriveItemPostOut>
+	_original: Nullable<DriveItemPostOut>
+	isAdapter: false
 }
 export const DriveItemPutInTypeRef: TypeRef<DriveItemPutIn> = new TypeRef("drive", 74)
 
 export function createDriveItemPutIn(values: DriveItemPutInParams): DriveItemPutIn {
-    return Object.assign(create(typeModels[DriveItemPutInTypeRef.typeId], DriveItemPutInTypeRef), values)
+	return Object.assign(create(typeModels[DriveItemPutInTypeRef.typeId], DriveItemPutInTypeRef), values)
 }
 
-
 export type DriveItemPutInParams = {
+	newName: string
 
-
-	newName: string;
-	
-
-
-	file: null | IdTuple;
-	folder: null | IdTuple;
+	file: null | IdTuple
+	folder: null | IdTuple
 }
 
 export type DriveItemPutIn = {
-    // == values
+	// == values
 
-	_format: NumberString;
-	newName: string;
+	_format: NumberString
+	newName: string
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
-    // == associations
+	// == associations
 
-	file: null | IdTuple;
-	folder: null | IdTuple;
+	file: null | IdTuple
+	folder: null | IdTuple
 
-
-    //== some entities have these and some don't
-    _permissions: null
-    bucketKey: null
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
 	_ownerGroup: null
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
@@ -567,47 +458,39 @@ export type DriveItemPutIn = {
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveItemPutIn>;
-    _errors: Object;
-    _original: Nullable<DriveItemPutIn>
-    isAdapter: false,
+	_type: TypeRef<DriveItemPutIn>
+	_errors: Object
+	_original: Nullable<DriveItemPutIn>
+	isAdapter: false
 }
 export const DriveItemDeleteInTypeRef: TypeRef<DriveItemDeleteIn> = new TypeRef("drive", 79)
 
 export function createDriveItemDeleteIn(values: DriveItemDeleteInParams): DriveItemDeleteIn {
-    return Object.assign(create(typeModels[DriveItemDeleteInTypeRef.typeId], DriveItemDeleteInTypeRef), values)
+	return Object.assign(create(typeModels[DriveItemDeleteInTypeRef.typeId], DriveItemDeleteInTypeRef), values)
 }
 
-
 export type DriveItemDeleteInParams = {
-
-
-	
-
-
-	files: IdTuple[];
-	folders: IdTuple[];
+	files: IdTuple[]
+	folders: IdTuple[]
 }
 
 export type DriveItemDeleteIn = {
-    // == values
+	// == values
 
-	_format: NumberString;
+	_format: NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
-    // == associations
+	// == associations
 
-	files: IdTuple[];
-	folders: IdTuple[];
+	files: IdTuple[]
+	folders: IdTuple[]
 
-
-    //== some entities have these and some don't
-    _permissions: null
-    bucketKey: null
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
 	_ownerGroup: null
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
@@ -615,94 +498,79 @@ export type DriveItemDeleteIn = {
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveItemDeleteIn>;
-    _original: Nullable<DriveItemDeleteIn>
-    isAdapter: false,
+	_type: TypeRef<DriveItemDeleteIn>
+	_original: Nullable<DriveItemDeleteIn>
+	isAdapter: false
 }
 export const DriveFolderServicePostInTypeRef: TypeRef<DriveFolderServicePostIn> = new TypeRef("drive", 84)
 
 export function createDriveFolderServicePostIn(values: DriveFolderServicePostInParams): DriveFolderServicePostIn {
-    return Object.assign(create(typeModels[DriveFolderServicePostInTypeRef.typeId], DriveFolderServicePostInTypeRef), values)
+	return Object.assign(create(typeModels[DriveFolderServicePostInTypeRef.typeId], DriveFolderServicePostInTypeRef), values)
 }
 
-
 export type DriveFolderServicePostInParams = {
+	folderName: string
 
-
-	folderName: string;
-	
-
-
-	parent: IdTuple;
+	parent: IdTuple
 }
 
 export type DriveFolderServicePostIn = {
-    // == values
+	// == values
 
-	_format: NumberString;
-	folderName: string;
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
-	ownerKeyVersion: NumberString;
+	_format: NumberString
+	folderName: string
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>
+	ownerKeyVersion: NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
-    // == associations
+	// == associations
 
-	parent: IdTuple;
+	parent: IdTuple
 
-
-    //== some entities have these and some don't
-    _permissions: null
-    bucketKey: null
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
 	_ownerGroup: null
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
 	_kdfNonce: null
-	
+
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveFolderServicePostIn>;
-    _errors: Object;
-    _original: Nullable<DriveFolderServicePostIn>
-    isAdapter: false,
+	_type: TypeRef<DriveFolderServicePostIn>
+	_errors: Object
+	_original: Nullable<DriveFolderServicePostIn>
+	isAdapter: false
 }
 export const DriveFolderServicePostOutTypeRef: TypeRef<DriveFolderServicePostOut> = new TypeRef("drive", 89)
 
 export function createDriveFolderServicePostOut(values: DriveFolderServicePostOutParams): DriveFolderServicePostOut {
-    return Object.assign(create(typeModels[DriveFolderServicePostOutTypeRef.typeId], DriveFolderServicePostOutTypeRef), values)
+	return Object.assign(create(typeModels[DriveFolderServicePostOutTypeRef.typeId], DriveFolderServicePostOutTypeRef), values)
 }
 
-
 export type DriveFolderServicePostOutParams = {
-
-
-	
-
-
-	folder: IdTuple;
+	folder: IdTuple
 }
 
 export type DriveFolderServicePostOut = {
-    // == values
+	// == values
 
-	_format: NumberString;
+	_format: NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
-    // == associations
+	// == associations
 
-	folder: IdTuple;
+	folder: IdTuple
 
-
-    //== some entities have these and some don't
-    _permissions: null
-    bucketKey: null
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
 	_ownerGroup: null
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
@@ -710,48 +578,38 @@ export type DriveFolderServicePostOut = {
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveFolderServicePostOut>;
-    _original: Nullable<DriveFolderServicePostOut>
-    isAdapter: false,
+	_type: TypeRef<DriveFolderServicePostOut>
+	_original: Nullable<DriveFolderServicePostOut>
+	isAdapter: false
 }
 export const DriveRenameDataTypeRef: TypeRef<DriveRenameData> = new TypeRef("drive", 92)
 
 export function createDriveRenameData(values: DriveRenameDataParams): DriveRenameData {
-    return Object.assign(create(typeModels[DriveRenameDataTypeRef.typeId], DriveRenameDataTypeRef), values)
+	return Object.assign(create(typeModels[DriveRenameDataTypeRef.typeId], DriveRenameDataTypeRef), values)
 }
 
-
 export type DriveRenameDataParams = {
+	encNewName: null | Uint8Array<ArrayBuffer>
 
-
-	encNewName: null | Uint8Array<ArrayBuffer>;
-	
-
-
-	file: null | IdTuple;
-	folder: null | IdTuple;
+	file: null | IdTuple
+	folder: null | IdTuple
 }
 
 export type DriveRenameData = {
-    // == values
+	// == values
 
-	_id: Id;
-	encNewName: null | Uint8Array<ArrayBuffer>;
+	_id: Id
+	encNewName: null | Uint8Array<ArrayBuffer>
 
-	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
-	
+	// == associations
 
-    // == associations
+	file: null | IdTuple
+	folder: null | IdTuple
 
-	file: null | IdTuple;
-	folder: null | IdTuple;
-
-
-    //== some entities have these and some don't
-    _permissions: null
-    bucketKey: null
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
 	_ownerGroup: null
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
@@ -759,46 +617,38 @@ export type DriveRenameData = {
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveRenameData>;
-    _original: Nullable<DriveRenameData>
-    isAdapter: false,
+	_type: TypeRef<DriveRenameData>
+	_original: Nullable<DriveRenameData>
+	isAdapter: false
 }
 export const DriveFolderServicePutInTypeRef: TypeRef<DriveFolderServicePutIn> = new TypeRef("drive", 97)
 
 export function createDriveFolderServicePutIn(values: DriveFolderServicePutInParams): DriveFolderServicePutIn {
-    return Object.assign(create(typeModels[DriveFolderServicePutInTypeRef.typeId], DriveFolderServicePutInTypeRef), values)
+	return Object.assign(create(typeModels[DriveFolderServicePutInTypeRef.typeId], DriveFolderServicePutInTypeRef), values)
 }
 
-
 export type DriveFolderServicePutInParams = {
-
-
-	
-
-
-	items: DriveRenameData[];
-	destination: IdTuple;
+	items: DriveRenameData[]
+	destination: IdTuple
 }
 
 export type DriveFolderServicePutIn = {
-    // == values
+	// == values
 
-	_format: NumberString;
+	_format: NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
-    // == associations
+	// == associations
 
-	items: DriveRenameData[];
-	destination: IdTuple;
+	items: DriveRenameData[]
+	destination: IdTuple
 
-
-    //== some entities have these and some don't
-    _permissions: null
-    bucketKey: null
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
 	_ownerGroup: null
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
@@ -806,48 +656,41 @@ export type DriveFolderServicePutIn = {
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveFolderServicePutIn>;
-    _original: Nullable<DriveFolderServicePutIn>
-    isAdapter: false,
+	_type: TypeRef<DriveFolderServicePutIn>
+	_original: Nullable<DriveFolderServicePutIn>
+	isAdapter: false
 }
 export const DriveFolderServiceDeleteInTypeRef: TypeRef<DriveFolderServiceDeleteIn> = new TypeRef("drive", 101)
 
 export function createDriveFolderServiceDeleteIn(values: DriveFolderServiceDeleteInParams): DriveFolderServiceDeleteIn {
-    return Object.assign(create(typeModels[DriveFolderServiceDeleteInTypeRef.typeId], DriveFolderServiceDeleteInTypeRef), values)
+	return Object.assign(create(typeModels[DriveFolderServiceDeleteInTypeRef.typeId], DriveFolderServiceDeleteInTypeRef), values)
 }
 
-
 export type DriveFolderServiceDeleteInParams = {
+	restore: boolean
 
-
-	restore: boolean;
-	
-
-
-	files: IdTuple[];
-	folders: IdTuple[];
+	files: IdTuple[]
+	folders: IdTuple[]
 }
 
 export type DriveFolderServiceDeleteIn = {
-    // == values
+	// == values
 
-	_format: NumberString;
-	restore: boolean;
+	_format: NumberString
+	restore: boolean
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
-    // == associations
+	// == associations
 
-	files: IdTuple[];
-	folders: IdTuple[];
+	files: IdTuple[]
+	folders: IdTuple[]
 
-
-    //== some entities have these and some don't
-    _permissions: null
-    bucketKey: null
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
 	_ownerGroup: null
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
@@ -855,46 +698,38 @@ export type DriveFolderServiceDeleteIn = {
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveFolderServiceDeleteIn>;
-    _original: Nullable<DriveFolderServiceDeleteIn>
-    isAdapter: false,
+	_type: TypeRef<DriveFolderServiceDeleteIn>
+	_original: Nullable<DriveFolderServiceDeleteIn>
+	isAdapter: false
 }
 export const DriveCopyServicePostInTypeRef: TypeRef<DriveCopyServicePostIn> = new TypeRef("drive", 107)
 
 export function createDriveCopyServicePostIn(values: DriveCopyServicePostInParams): DriveCopyServicePostIn {
-    return Object.assign(create(typeModels[DriveCopyServicePostInTypeRef.typeId], DriveCopyServicePostInTypeRef), values)
+	return Object.assign(create(typeModels[DriveCopyServicePostInTypeRef.typeId], DriveCopyServicePostInTypeRef), values)
 }
 
-
 export type DriveCopyServicePostInParams = {
-
-
-	
-
-
-	items: DriveRenameData[];
-	destination: IdTuple;
+	items: DriveRenameData[]
+	destination: IdTuple
 }
 
 export type DriveCopyServicePostIn = {
-    // == values
+	// == values
 
-	_format: NumberString;
+	_format: NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
-    // == associations
+	// == associations
 
-	items: DriveRenameData[];
-	destination: IdTuple;
+	items: DriveRenameData[]
+	destination: IdTuple
 
-
-    //== some entities have these and some don't
-    _permissions: null
-    bucketKey: null
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
 	_ownerGroup: null
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
@@ -902,42 +737,34 @@ export type DriveCopyServicePostIn = {
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveCopyServicePostIn>;
-    _original: Nullable<DriveCopyServicePostIn>
-    isAdapter: false,
+	_type: TypeRef<DriveCopyServicePostIn>
+	_original: Nullable<DriveCopyServicePostIn>
+	isAdapter: false
 }
 export const DriveCopyServicePostOutTypeRef: TypeRef<DriveCopyServicePostOut> = new TypeRef("drive", 115)
 
 export function createDriveCopyServicePostOut(values: DriveCopyServicePostOutParams): DriveCopyServicePostOut {
-    return Object.assign(create(typeModels[DriveCopyServicePostOutTypeRef.typeId], DriveCopyServicePostOutTypeRef), values)
+	return Object.assign(create(typeModels[DriveCopyServicePostOutTypeRef.typeId], DriveCopyServicePostOutTypeRef), values)
 }
 
-
 export type DriveCopyServicePostOutParams = {
-
-
-	operationId: Id;
-	
-
+	operationId: Id
 }
 
 export type DriveCopyServicePostOut = {
-    // == values
+	// == values
 
-	_format: NumberString;
-	operationId: Id;
+	_format: NumberString
+	operationId: Id
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
-    // == associations
+	// == associations
 
-
-
-    //== some entities have these and some don't
-    _permissions: null
-    bucketKey: null
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
 	_ownerGroup: null
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
@@ -945,42 +772,34 @@ export type DriveCopyServicePostOut = {
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveCopyServicePostOut>;
-    _original: Nullable<DriveCopyServicePostOut>
-    isAdapter: false,
+	_type: TypeRef<DriveCopyServicePostOut>
+	_original: Nullable<DriveCopyServicePostOut>
+	isAdapter: false
 }
 export const DriveItemServiceDeleteOutTypeRef: TypeRef<DriveItemServiceDeleteOut> = new TypeRef("drive", 118)
 
 export function createDriveItemServiceDeleteOut(values: DriveItemServiceDeleteOutParams): DriveItemServiceDeleteOut {
-    return Object.assign(create(typeModels[DriveItemServiceDeleteOutTypeRef.typeId], DriveItemServiceDeleteOutTypeRef), values)
+	return Object.assign(create(typeModels[DriveItemServiceDeleteOutTypeRef.typeId], DriveItemServiceDeleteOutTypeRef), values)
 }
 
-
 export type DriveItemServiceDeleteOutParams = {
-
-
-	operationId: Id;
-	
-
+	operationId: Id
 }
 
 export type DriveItemServiceDeleteOut = {
-    // == values
+	// == values
 
-	_format: NumberString;
-	operationId: Id;
+	_format: NumberString
+	operationId: Id
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
-    // == associations
+	// == associations
 
-
-
-    //== some entities have these and some don't
-    _permissions: null
-    bucketKey: null
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
 	_ownerGroup: null
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
@@ -988,9 +807,8 @@ export type DriveItemServiceDeleteOut = {
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<DriveItemServiceDeleteOut>;
-    _original: Nullable<DriveItemServiceDeleteOut>
-    isAdapter: false,
+	_type: TypeRef<DriveItemServiceDeleteOut>
+	_original: Nullable<DriveItemServiceDeleteOut>
+	isAdapter: false
 }

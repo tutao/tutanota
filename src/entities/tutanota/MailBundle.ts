@@ -1,4 +1,3 @@
-
 /**
  * Used to pass all downloaded mail stuff to the desktop side to be exported as a file
  * Ideally this would just be {Mail, Headers, Body, FileReference[]}
@@ -20,8 +19,6 @@ export interface DataFile {
 	id?: IdTuple
 	cid?: string
 }
-
-
 
 export type MailBundle = {
 	mailId: IdTuple

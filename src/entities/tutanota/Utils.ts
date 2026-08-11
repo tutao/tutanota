@@ -326,7 +326,7 @@ export const enum ImapFolderSyncStatus {
 	PAUSED = "1",
 	FINISHED = "2",
 	NO_SYNC = "3",
-	CANCELED = "4"
+	CANCELED = "4",
 }
 
 export enum ImapAccountSyncStatus {
@@ -337,9 +337,8 @@ export enum ImapAccountSyncStatus {
 	ERROR = "4",
 	AUTH_ERROR = "5",
 	CANCELED = "6",
-	GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR = "7"
+	GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR = "7",
 }
-
 
 export enum SpamDecision {
 	NONE = "0",

@@ -5,8 +5,28 @@ import { UsageTestParticipationOut, UsageTestParticipationOutTypeRef } from "./T
 import { UsageTestParticipationDeleteIn, UsageTestParticipationDeleteInTypeRef } from "./TypeRefs.js"
 import { GetService, PostService, PutService, DeleteService, NullEntityTypeRef, NullEntity } from "@tutao/meta"
 
-export const UsageTestAssignmentService_POST = new PostService<UsageTestAssignmentIn, UsageTestAssignmentOut>("usage", "UsageTestAssignmentService", UsageTestAssignmentInTypeRef, UsageTestAssignmentOutTypeRef)
-export const UsageTestAssignmentService_PUT = new PutService<UsageTestAssignmentIn, UsageTestAssignmentOut>("usage", "UsageTestAssignmentService", UsageTestAssignmentInTypeRef, UsageTestAssignmentOutTypeRef)
+export const UsageTestAssignmentService_POST = new PostService<UsageTestAssignmentIn, UsageTestAssignmentOut>(
+	"usage",
+	"UsageTestAssignmentService",
+	UsageTestAssignmentInTypeRef,
+	UsageTestAssignmentOutTypeRef,
+)
+export const UsageTestAssignmentService_PUT = new PutService<UsageTestAssignmentIn, UsageTestAssignmentOut>(
+	"usage",
+	"UsageTestAssignmentService",
+	UsageTestAssignmentInTypeRef,
+	UsageTestAssignmentOutTypeRef,
+)
 
-export const UsageTestParticipationService_POST = new PostService<UsageTestParticipationIn, UsageTestParticipationOut>("usage", "UsageTestParticipationService", UsageTestParticipationInTypeRef, UsageTestParticipationOutTypeRef)
-export const UsageTestParticipationService_DELETE = new DeleteService<UsageTestParticipationDeleteIn, NullEntity>("usage", "UsageTestParticipationService", UsageTestParticipationDeleteInTypeRef, NullEntityTypeRef)
+export const UsageTestParticipationService_POST = new PostService<UsageTestParticipationIn, UsageTestParticipationOut>(
+	"usage",
+	"UsageTestParticipationService",
+	UsageTestParticipationInTypeRef,
+	UsageTestParticipationOutTypeRef,
+)
+export const UsageTestParticipationService_DELETE = new DeleteService<UsageTestParticipationDeleteIn, NullEntity>(
+	"usage",
+	"UsageTestParticipationService",
+	UsageTestParticipationDeleteInTypeRef,
+	NullEntityTypeRef,
+)

@@ -6,12 +6,14 @@ import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import {
 	CUSTOM_MIN_ID,
 	elementIdPart,
-	EntityTypeEnum, GENERATED_MAX_ID, GENERATED_MIN_ID,
+	EntityTypeEnum,
+	GENERATED_MAX_ID,
+	GENERATED_MIN_ID,
 	getTypeString,
 	ListElementEntity,
 	listIdPart,
 	ServerTypeModel,
-	TypeRef ,
+	TypeRef,
 } from "@tutao/meta"
 import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"

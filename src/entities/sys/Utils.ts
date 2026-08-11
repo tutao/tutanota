@@ -139,7 +139,7 @@ export enum SubscriptionType {
 	Personal,
 	Business,
 	PaidPersonal,
-	FreeOnly
+	FreeOnly,
 }
 
 export enum BookingItemFeatureType {

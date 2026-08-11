@@ -4,39 +4,31 @@ import { ListElementId, ElementId, DataTransferId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 import { Nullable } from "@tutao/utils"
 
-
 export const PersistenceResourcePostReturnTypeRef: TypeRef<PersistenceResourcePostReturn> = new TypeRef("base", 0)
 
 export function createPersistenceResourcePostReturn(values: PersistenceResourcePostReturnParams): PersistenceResourcePostReturn {
-    return Object.assign(create(typeModels[PersistenceResourcePostReturnTypeRef.typeId], PersistenceResourcePostReturnTypeRef), values)
+	return Object.assign(create(typeModels[PersistenceResourcePostReturnTypeRef.typeId], PersistenceResourcePostReturnTypeRef), values)
 }
 
-
 export type PersistenceResourcePostReturnParams = {
-
-
-	generatedId: null | Id;
-	permissionListId: Id;
-	
-
+	generatedId: null | Id
+	permissionListId: Id
 }
 
 export type PersistenceResourcePostReturn = {
-    // == values
+	// == values
 
-	_format: NumberString;
-	generatedId: null | Id;
-	permissionListId: Id;
+	_format: NumberString
+	generatedId: null | Id
+	permissionListId: Id
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
-    // == associations
+	// == associations
 
-
-
-    //== some entities have these and some don't
-    _permissions: null
-    bucketKey: null
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
 	_ownerGroup: null
 	_ownerEncSessionKey: null
 	_ownerKeyVersion: null
@@ -44,9 +36,8 @@ export type PersistenceResourcePostReturn = {
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
-
 	// === these are not present in metamodel
-	_type: TypeRef<PersistenceResourcePostReturn>;
-    _original: Nullable<PersistenceResourcePostReturn>
-    isAdapter: false,
+	_type: TypeRef<PersistenceResourcePostReturn>
+	_original: Nullable<PersistenceResourcePostReturn>
+	isAdapter: false
 }
