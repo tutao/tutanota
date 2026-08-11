@@ -2493,6 +2493,8 @@ export default {
 		"openAgreement_action": "Vertrag öffnen",
 		"subscriptionSettingAppleWebsite_action": "Apple-Website",
 		"paymentMethodOnAccountHowItWorks_msg": "So funktioniert es\nSie erhalten eine Rechnung und bezahlen per Banküberweisung.\nDie Rechnung enthält IBAN und Bankverbindung.\nSie überweisen den Betrag von Ihrer Bank.",
-		"confirmDeleteLabelWithSublabels_msg": "Are you sure that you want to delete the label \"{1}\" and all its sublabels?"
+		"confirmDeleteLabelWithSublabels_msg": "Are you sure that you want to delete the label \"{1}\" and all its sublabels?",
+		"migrationGreetingTimeout_msg": "We could not establish a connection to the IMAP server due a timeout. Please verify that the provided IMAP server information is correct, and your network allows connections to this IMAP server and check if your connection is secure(SSL), if so please make sure you've checked the setting during setup.",
+		"migrationUseSSL_label": "Use SSL/TLS",
 	}
 }

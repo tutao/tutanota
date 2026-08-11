@@ -2494,5 +2494,7 @@ export default {
 		"subscriptionSettingAppleWebsite_action": "Apple website",
 		"paymentMethodOnAccountHowItWorks_msg": "How it works\nYou will receive an invoice and pay via bank transfer.\nThe invoice contains IBAN / bank details.\nYou make the transfer from your bank.",
 		"confirmDeleteLabelWithSublabels_msg": "Are you sure that you want to delete the label \"{1}\" and all its sublabels?",
+		"migrationGreetingTimeout_msg": "We could not establish a connection to the IMAP server due a timeout. Please verify that the provided IMAP server information is correct, and your network allows connections to this IMAP server. Please check if your connection uses SSL/TLS security, if so, make sure you've enabled the 'Use SSL/TLS' checkbox in the previous step.",
+		"migrationUseSSL_label": "Use SSL/TLS",
 	}
 }

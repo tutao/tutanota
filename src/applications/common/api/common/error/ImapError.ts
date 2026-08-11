@@ -15,6 +15,7 @@ export enum ImapErrorCause {
 	CERT_ERROR,
 	HOST_NOT_REACHABLE,
 	GMAIL_ALL_MAILS_IMAP_DISABLED,
+	GREETING_TIMEOUT,
 }
 
 export class ImapError extends TutanotaError {
@@ -64,6 +65,9 @@ export function fromImapFlowError(imapFlowError: any) {
 			break
 		case "EHOSTUNREACH":
 			cause = ImapErrorCause.HOST_NOT_REACHABLE
+			break
+		case "GREETING_TIMEOUT":
+			cause = ImapErrorCause.GREETING_TIMEOUT
 			break
 		default:
 			if (imapFlowError.authenticationFailed) {

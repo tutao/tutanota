@@ -28,6 +28,7 @@ o.spec("ImapSyncSession", () => {
 		ignoreCertificateErrors: false,
 		customCertificateData: null,
 		provider: ImapProvider.Other,
+		useSSL: true,
 	}
 	const imapSyncContext: ImapSyncContext = {
 		imapCredentials: imapCredentials,

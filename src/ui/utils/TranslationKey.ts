@@ -2498,3 +2498,5 @@ export type TranslationKeyType =
 	| "openAgreement_action"
 	| "subscriptionSettingAppleWebsite_action"
 	| "confirmDeleteLabelWithSublabels_msg"
+	| "migrationGreetingTimeout_msg"
+	| "migrationUseSSL_label"
