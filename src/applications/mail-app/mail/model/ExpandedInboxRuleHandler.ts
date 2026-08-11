@@ -96,6 +96,10 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 						bccRecipients.map((m) => m.address),
 						value,
 					)
+				} else if (type === InboxRuleConditionType.RECIPIENT_ANY_EQUALS) {
+					const { toRecipients, ccRecipients, bccRecipients } = (await this.mailFacade.loadMailDetailsBlob(mail)).recipients
+					const addresses = [...toRecipients, ...ccRecipients, ...bccRecipients].map((r) => r.address)
+					matches = _checkEmailAddresses(addresses, value)
 				} else if (type === InboxRuleConditionType.SUBJECT_CONTAINS) {
 					matches = _checkContainsRuleCondition(mail.subject, value)
 				} else if (type === InboxRuleConditionType.MAIL_HEADER_CONTAINS) {

@@ -710,6 +710,10 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				spamRuleField = SpamRuleFieldType.BCC
 				break
 
+			case InboxRuleConditionType.RECIPIENT_ANY_EQUALS:
+				spamRuleField = SpamRuleFieldType.TO_ANY
+				break
+
 			default:
 				spamRuleField = SpamRuleFieldType.FROM
 				break
