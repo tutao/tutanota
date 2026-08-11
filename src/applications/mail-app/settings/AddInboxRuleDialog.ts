@@ -39,8 +39,6 @@ import { TextField } from "../../../ui/base/TextField"
 import { theme } from "../../../ui/theme"
 import { px, size } from "../../../ui/size"
 import { assertNotNull, isEmpty, last } from "@tutao/utils"
-import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
-import { ButtonType } from "../../../ui/base/Button"
 import { onbeforeremoveColapseAnimation, oncreateExpandAnimation } from "../../../ui/animation/Animations"
 import { IconButton } from "../../../ui/base/IconButton"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
@@ -108,6 +106,17 @@ export async function show(
 				})
 			: []
 
+		// HAS and HAS_NO Attachment are mutually exclusive and should only be selected once per inbox rule
+		// when HAS_(NO_)ATTACHMENT is selected, show both options in that dropdown and do not display them in other dropdowns
+		const selectableInboxRuleConditions = (currentConditionType: InboxRuleConditionType) => {
+			const attachmentConditions = [InboxRuleConditionType.HAS_ATTACHMENT, InboxRuleConditionType.HAS_NO_ATTACHMENT]
+			let selectableConditions = getInboxRuleConditionTypeNameMapping()
+			if (!attachmentConditions.includes(currentConditionType) && inboxRuleConditions.some(({ type }) => attachmentConditions.includes(type()))) {
+				selectableConditions = selectableConditions.filter(({ value }) => !attachmentConditions.includes(value as InboxRuleConditionType))
+			}
+			return selectableConditions
+		}
+
 		// Only allow one result of each type
 		const allRuleResults = getInboxRuleResultTypeNameMapping()
 		let availableRuleResults: Set<SelectorItem<InboxRuleResultType>>
@@ -135,6 +144,7 @@ export async function show(
 		const renderConditionRow = (condition: InboxRuleConditionField, conditionIndex: number) => {
 			const isFirstCondition = conditionIndex === 0
 			const conditionLabel: TranslationKey = isFirstCondition ? "when_label" : "and_label"
+			const conditionInput = getRuleConditionValueInputByType(condition)
 
 			return m(
 				".inbox-rule-wrapping-row.items-center.row-gap-8.mt-16",
@@ -147,14 +157,14 @@ export async function show(
 					m(".flex.items-center", [
 						m(`.smaller.no-wrap.mr-16 ${isFirstCondition ? ".capitalize" : ".lowercase"}`, lang.getTranslationText(conditionLabel)),
 						m(DropDownSelectorNew, {
-							items: getInboxRuleConditionTypeNameMapping(),
+							items: selectableInboxRuleConditions(condition.type()),
 							selectedValue: condition.type(),
 							selectionChangedHandler: condition.type,
 						}),
 					]),
 					m(".flex.items-center", [
-						m(".mlr-16", "="),
-						getRuleConditionValueInputByType(condition),
+						conditionInput ? m(".mlr-16", "=") : null,
+						conditionInput,
 						!isFirstCondition
 							? m(
 									".ml-4",
@@ -415,7 +425,7 @@ export async function show(
 	}
 }
 
-function getRuleConditionValueInputByType(ruleCondition: InboxRuleConditionField) {
+function getRuleConditionValueInputByType(ruleCondition: InboxRuleConditionField): Children {
 	switch (ruleCondition.type()) {
 		case InboxRuleConditionType.FROM_EQUALS:
 		case InboxRuleConditionType.RECIPIENT_TO_EQUALS:
@@ -430,6 +440,10 @@ function getRuleConditionValueInputByType(ruleCondition: InboxRuleConditionField
 				oninput: ruleCondition.value,
 				class: "",
 			})
+		case InboxRuleConditionType.HAS_ATTACHMENT:
+		case InboxRuleConditionType.HAS_NO_ATTACHMENT:
+			ruleCondition.value("")
+			return null
 		default:
 			throw new ProgrammingError(`No Input specified for rule condition of type: ${ruleCondition.type()}`)
 	}
@@ -459,13 +473,15 @@ function validateInboxRuleCondition(condition: InboxRuleConditionField): Transla
 	const value = condition.value()
 	const currentCleanedValue = getCleanedValue(type, value)
 
-	if (currentCleanedValue === "") {
+	if (type !== InboxRuleConditionType.HAS_ATTACHMENT && type !== InboxRuleConditionType.HAS_NO_ATTACHMENT && currentCleanedValue === "") {
 		return "inboxRuleEnterValue_msg"
 	} else if (isInvalidRegex(currentCleanedValue)) {
 		return "invalidRegexSyntax_msg"
 	} else if (
 		type !== InboxRuleConditionType.SUBJECT_CONTAINS &&
 		type !== InboxRuleConditionType.MAIL_HEADER_CONTAINS &&
+		type !== InboxRuleConditionType.HAS_ATTACHMENT &&
+		type !== InboxRuleConditionType.HAS_NO_ATTACHMENT &&
 		!isRegularExpression(currentCleanedValue) &&
 		!isDomainName(currentCleanedValue) &&
 		!isMailAddress(currentCleanedValue, false)
