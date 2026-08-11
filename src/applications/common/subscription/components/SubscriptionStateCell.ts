@@ -2,6 +2,7 @@ import m, { Component, Vnode } from "mithril"
 import { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { IconButton, IconButtonAttrs } from "../../../../ui/base/IconButton"
 import { TextField } from "../../../../ui/base/TextField"
+import { theme } from "../../../../ui/theme"
 
 export type SubscriptionStateCellAttrs = {
 	label: TranslationKey
@@ -23,7 +24,7 @@ export class SubscriptionStateCell implements Component<SubscriptionStateCellAtt
 			isReadOnly: true,
 			class: "bg-white",
 			style: {
-				"background-color": "white",
+				"background-color": theme.surface,
 				flex: "0 0 0",
 			},
 			injectionsRight: () => this.renderButton(button),
