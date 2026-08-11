@@ -385,7 +385,6 @@ export class ImapMailImportController {
 			imapAccountSyncStatus: ImapAccountSyncStatus.PAUSED,
 			matchImapMailboxesToTutaMailSets: true,
 			isImapServerSupportingOAuth: false,
-			revealImapAccountPassword: false,
 			addLabelToImportedMails: true,
 			imapSyncLabelData: null,
 			imapMailboxes: [],

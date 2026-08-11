@@ -3,10 +3,9 @@ import { ImapImportData } from "./AddImapImportWizard.js"
 import { assertMainOrNode } from "@tutao/app-env"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog.js"
 import { TitleSection, TitleSectionAttrs } from "../../../../ui/TitleSection.js"
-import { GmailLogo, Icons, OutlookLogo } from "../../../../ui/base/icons/Icons.js"
+import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { theme } from "../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
-import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { px, size } from "../../../../ui/size"
 import { TextField } from "../../../../ui/base/TextField"
 import { LegacyTextFieldType } from "../../../../ui/base/LegacyTextField"
@@ -18,11 +17,7 @@ import { isMailAddress } from "@tutao/utils"
 assertMainOrNode()
 
 export class ImapImportCredentialsPage implements WizardPageN<ImapImportData> {
-	private shouldDisplayServerConfigFields: boolean = false
-	oninit(vnode: Vnode<WizardPageAttrs<ImapImportData>>) {
-		this.shouldDisplayServerConfigFields = !vnode.attrs.data.isImapServerSupportingOAuth
-	}
-
+	shouldRevealImapAccountPassword = false
 	view(vnode: Vnode<WizardPageAttrs<ImapImportData>>): Children {
 		return m(".mt-24", [
 			m(TitleSection, {
@@ -46,51 +41,47 @@ export class ImapImportCredentialsPage implements WizardPageN<ImapImportData> {
 					color: theme.on_surface_variant,
 				},
 			}),
-			this.shouldDisplayServerConfigFields
-				? m(
-						".flex.row.gap-16.mt-16",
-						m(TextField, {
-							label: "migrationImapAccountPassword_label",
-							value: vnode.attrs.data.imapAccountPassword ?? "",
-							oninput: (value) => (vnode.attrs.data.imapAccountPassword = value),
-							type: vnode.attrs.data.revealImapAccountPassword ? LegacyTextFieldType.Text : LegacyTextFieldType.Password,
-							injectionsRight: () => this.renderRevealIcon(vnode.attrs.data),
-							class: "",
-							leadingIcon: {
-								icon: Icons.GenericLockFilled,
-								color: theme.on_surface_variant,
-							},
-							onDomInputCreated: (dom) => dom.focus(),
-						}),
-					)
-				: null,
-			this.shouldDisplayServerConfigFields
-				? m(".flex.row.gap-16.mt-16", [
-						m(TextField, {
-							label: "migrationImapAccountHost_label",
-							class: "",
-							value: vnode.attrs.data.imapAccountHost,
-							oninput: (value) => (vnode.attrs.data.imapAccountHost = value),
-							leadingIcon: {
-								icon: Icons.ServerFilled,
-								color: theme.on_surface_variant,
-							},
-						}),
-						m(TextField, {
-							label: "migrationImapAccountPort_label",
-							class: "",
-							value: vnode.attrs.data.imapAccountPort.toString(),
-							oninput: (value) => {
-								const typedNumber = Number.parseInt(value)
-								vnode.attrs.data.imapAccountPort = Number.isNaN(typedNumber) ? 0 : typedNumber
-							},
-							leadingIcon: {
-								icon: Icons.KeyFilled,
-								color: theme.on_surface_variant,
-							},
-						}),
-					])
-				: null,
+			m(
+				".flex.row.gap-16.mt-16",
+				m(TextField, {
+					label: "migrationImapAccountPassword_label",
+					value: vnode.attrs.data.imapAccountPassword ?? "",
+					oninput: (value) => (vnode.attrs.data.imapAccountPassword = value),
+					type: this.shouldRevealImapAccountPassword ? LegacyTextFieldType.Text : LegacyTextFieldType.Password,
+					injectionsRight: () => this.renderRevealIcon(),
+					class: "",
+					leadingIcon: {
+						icon: Icons.GenericLockFilled,
+						color: theme.on_surface_variant,
+					},
+					onDomInputCreated: (dom) => dom.focus(),
+				}),
+			),
+			m(".flex.row.gap-16.mt-16", [
+				m(TextField, {
+					label: "migrationImapAccountHost_label",
+					class: "",
+					value: vnode.attrs.data.imapAccountHost,
+					oninput: (value) => (vnode.attrs.data.imapAccountHost = value),
+					leadingIcon: {
+						icon: Icons.ServerFilled,
+						color: theme.on_surface_variant,
+					},
+				}),
+				m(TextField, {
+					label: "migrationImapAccountPort_label",
+					class: "",
+					value: vnode.attrs.data.imapAccountPort.toString(),
+					oninput: (value) => {
+						const typedNumber = Number.parseInt(value)
+						vnode.attrs.data.imapAccountPort = Number.isNaN(typedNumber) ? 0 : typedNumber
+					},
+					leadingIcon: {
+						icon: Icons.KeyFilled,
+						color: theme.on_surface_variant,
+					},
+				}),
+			]),
 			m(
 				".flex-end.full-width.pt-32.mb-32",
 				m(
@@ -103,17 +94,14 @@ export class ImapImportCredentialsPage implements WizardPageN<ImapImportData> {
 					m(PrimaryButton, {
 						label: "continue_action",
 						class: "wizard-next-button",
-						disabled:
-							(!this.shouldDisplayServerConfigFields && !isMailAddress(vnode.attrs.data.imapAccountUsername, true)) ||
-							(this.shouldDisplayServerConfigFields &&
-								!(
-									isMailAddress(vnode.attrs.data.imapAccountUsername, true) &&
-									vnode.attrs.data.imapAccountPassword &&
-									vnode.attrs.data.imapAccountPassword.length > 0 &&
-									vnode.attrs.data.imapAccountHost.length > 0 &&
-									!Number.isNaN(vnode.attrs.data.imapAccountPort) &&
-									vnode.attrs.data.imapAccountPort > 0
-								)),
+						disabled: !(
+							isMailAddress(vnode.attrs.data.imapAccountUsername, true) &&
+							vnode.attrs.data.imapAccountPassword &&
+							vnode.attrs.data.imapAccountPassword.length > 0 &&
+							vnode.attrs.data.imapAccountHost.length > 0 &&
+							!Number.isNaN(vnode.attrs.data.imapAccountPort) &&
+							vnode.attrs.data.imapAccountPort > 0
+						),
 						onclick: async (_, dom) => {
 							emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
 						},
@@ -123,15 +111,15 @@ export class ImapImportCredentialsPage implements WizardPageN<ImapImportData> {
 		])
 	}
 
-	private renderRevealIcon(model: ImapImportData): Children {
+	private renderRevealIcon(): Children {
 		return m(ToggleButton, {
-			title: model ? "concealPassword_action" : "revealPassword_action",
-			toggled: model.revealImapAccountPassword,
+			title: this.shouldRevealImapAccountPassword ? "concealPassword_action" : "revealPassword_action",
+			toggled: this.shouldRevealImapAccountPassword,
 			onToggled: (_, e) => {
-				model.revealImapAccountPassword = !model.revealImapAccountPassword
+				this.shouldRevealImapAccountPassword = !this.shouldRevealImapAccountPassword
 				e.stopPropagation()
 			},
-			icon: model.revealImapAccountPassword ? Icons.EyeCrossedFilled : Icons.EyeFilled,
+			icon: this.shouldRevealImapAccountPassword ? Icons.EyeCrossedFilled : Icons.EyeFilled,
 			size: ButtonSize.Compact,
 		})
 	}
