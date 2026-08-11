@@ -431,6 +431,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 											newFolderElementId = elementIdPart(folderId)
 											// load new folder so that it is put to the cache and will be retrieved by the loadAll call
 											const newFolder = await mailLocator.entityClient.load(MailSetTypeRef, folderId)
+											data.newlyCreatedFolders.add(newFolder)
 											const mailSets = await mailLocator.entityClient.loadAll(
 												MailSetTypeRef,
 												assertNotNull(mailLocator.getImapMailImportController().selectedMailBoxDetail).mailbox.mailSets.mailSets,
@@ -528,6 +529,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 							const newFolderId = await mailLocator.mailFacade.createMailFolder(imapMailbox.name ?? "", null, elementIdToId(ownerGroupId))
 							// loading here to populate the cache so that the folder system will have it
 							const newFolder = await mailLocator.entityClient.load(MailSetTypeRef, newFolderId)
+							data.newlyCreatedFolders.add(newFolder)
 							data.imapMailboxesToTutaMailSets?.set(imapMailbox.path, {
 								mailSetElementId: elementIdPart(newFolder._id),
 								shouldSync: true,

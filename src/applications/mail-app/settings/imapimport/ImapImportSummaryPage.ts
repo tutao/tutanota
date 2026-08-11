@@ -224,6 +224,7 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 								async (folderId) => {
 									newFolderElementId = elementIdPart(folderId)
 									const newFolder = await mailLocator.entityClient.load(MailSetTypeRef, folderId)
+									data.newlyCreatedFolders.add(newFolder)
 									const mailSets = await mailLocator.entityClient.loadAll(
 										MailSetTypeRef,
 										assertNotNull(mailLocator.getImapMailImportController().selectedMailBoxDetail).mailbox.mailSets.mailSets,
