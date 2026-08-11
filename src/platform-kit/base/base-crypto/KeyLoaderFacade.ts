@@ -137,7 +137,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 		}
 	}
 
-	private async loadKeyPairImpl(group: Group, requestedVersion: KeyVersion, currentGroupKey: VersionedKey, forTypeId: TypeId) {
+	private async loadKeyPairImpl(group: Group, requestedVersion: KeyVersion, currentGroupKey: VersionedKey, forTypeId: TypeId): Promise<AsymmetricKeyPair> {
 		const keyPairGroupId = elementIdToId(group._id)
 		let keyPair: KeyPair | null
 		let symGroupKey: VersionedKey
@@ -221,7 +221,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 	 * @param groupId MUST NOT be the user group id!
 	 * @private
 	 */
-	private async loadAndDecryptCurrentSymGroupKey(groupId: Id) {
+	private async loadAndDecryptCurrentSymGroupKey(groupId: Id): Promise<SymGroupKey> {
 		if (isSameSingleId(groupId, this.userFacade.getUserGroupId())) {
 			throw new ProgrammingError("Must not add the user group to the regular group key cache")
 		}
@@ -379,3 +379,5 @@ export function isEncryptedPqKeyPairs(keyPair: KeyPair): boolean {
 		keyPair.symEncPrivRsaKey == null
 	)
 }
+
+type SymGroupKey = { version: KeyVersion; object: AesKey }

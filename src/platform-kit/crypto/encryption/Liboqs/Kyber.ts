@@ -130,7 +130,7 @@ export function decapsulate(kyberWasm: LibOQSExports, privateKey: KyberPrivateKe
 	}
 }
 
-function freeKem(kyberWasm: LibOQSExports, OQS_KEM: KemPtr) {
+function freeKem(kyberWasm: LibOQSExports, OQS_KEM: KemPtr): void {
 	callWebAssemblyFunctionWithArguments(kyberWasm.OQS_KEM_free, kyberWasm, number(OQS_KEM))
 }
 
@@ -140,7 +140,7 @@ function createKem(kyberWasm: LibOQSExports): KemPtr {
 }
 
 // Add bytes externally to the random number generator
-function fillEntropyPool(exports: LibOQSExports, randomizer: Randomizer) {
+function fillEntropyPool(exports: LibOQSExports, randomizer: Randomizer): void {
 	const entropyAmount = randomizer.generateRandomData(ML_KEM_RAND_AMOUNT_OF_ENTROPY)
 	const remaining = callWebAssemblyFunctionWithArguments(exports.TUTA_inject_entropy, exports, uint8array(entropyAmount), number(entropyAmount.length))
 	if (remaining < 0) {

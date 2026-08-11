@@ -57,7 +57,7 @@ const END_OF_WORD_CHARS: Set<string> = new Set([
 	"|",
 	"@",
 ])
-function addCurrentWord(currentWord: string[], words: string[]) {
+function addCurrentWord(currentWord: string[], words: string[]): void {
 	while (currentWord.length > 0 && currentWord[0] === "'") {
 		currentWord.shift()
 	}

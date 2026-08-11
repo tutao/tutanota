@@ -1,5 +1,6 @@
 /// This file will not be transpiled, so it's ok to ignore transpile-related eslint
 /* eslint-disable  no-restricted-syntax */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { BrowserType } from "./ClientConstants"
 
@@ -22,7 +23,7 @@ export const _expectedBuiltInsArePresent =
 	typeof BigInt !== "undefined" &&
 	typeof structuredClone === "function"
 
-export function _cssQuerySelectorIsSupported() {
+export function _cssQuerySelectorIsSupported(): boolean {
 	try {
 		document.querySelector("blockquote:not(blockquote blockquote)")
 		document.querySelectorAll(":where(.mouse-nav)")
@@ -38,7 +39,7 @@ export function _cssQuerySelectorIsSupported() {
 export function _expectedJsSyntaxes(): boolean {
 	// By default rollup disables tree-shaking inside the try-catch.
 	try {
-		const arrowFunction = () => {
+		const arrowFunction = (): 1 => {
 			return 1
 		}
 
@@ -101,7 +102,7 @@ export function _expectedJsSyntaxes(): boolean {
 /**
  * @see https://github.com/Modernizr/Modernizr/blob/5e3f359bfc9aa511543ece60bd8a6ea8aa7defd3/feature-detects/websockets.js
  */
-export function _haveWebsocket() {
+export function _haveWebsocket(): boolean {
 	return "WebSocket" in window && window.WebSocket.CLOSING === 2
 }
 

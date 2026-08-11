@@ -54,7 +54,7 @@ export const enum IdType {
 	IdTuple,
 }
 
-export function getIdType(typeModel: EntityTypeEnum) {
+export function getIdType(typeModel: EntityTypeEnum): IdType {
 	switch (typeModel) {
 		case EntityTypeEnum.Element:
 		case EntityTypeEnum.Aggregated:
@@ -66,7 +66,7 @@ export function getIdType(typeModel: EntityTypeEnum) {
 	}
 }
 
-export function getAssociationRepresentationType(associationType: AssociationTypeEnum) {
+export function getAssociationRepresentationType(associationType: AssociationTypeEnum): AssociationReprType {
 	switch (associationType) {
 		case AssociationTypeEnum.Aggregation:
 			return AssociationReprType.Aggregation

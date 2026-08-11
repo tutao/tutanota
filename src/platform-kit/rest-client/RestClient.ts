@@ -115,11 +115,11 @@ export class RestClient implements RestClientInterface {
 
 				// We time out reqeuests if there is no progress for some time
 				let requestTimeoutTimeoutID: TimeoutID | null = null
-				const abortOnTimeout = () => {
+				const abortOnTimeout = (): void => {
 					console.log(TAG, `${id}: ${String(new Date())} aborting ${requestTimeoutTimeoutID}`)
 					xhr.abort()
 				}
-				const restartTimeoutTimer = () => {
+				const restartTimeoutTimer = (): void => {
 					if (!usingTimeoutAbort()) {
 						return
 					}
@@ -130,7 +130,7 @@ export class RestClient implements RestClientInterface {
 					const isBlobRequest = options.body instanceof RestBinaryBody
 					requestTimeoutTimeoutID = setTimeout(abortOnTimeout, isBlobRequest ? BLOB_REQUEST_TIMEOUT_MS : EnvProvider.get().getTimeOutValue())
 				}
-				const cancelTimeoutTimer = () => {
+				const cancelTimeoutTimer = (): void => {
 					if (requestTimeoutTimeoutID != null) clearTimeout(requestTimeoutTimeoutID)
 				}
 
@@ -150,7 +150,7 @@ export class RestClient implements RestClientInterface {
 					console.log(TAG, `${id}: set initial timeout ${String(requestTimeoutTimeoutID)} of ${EnvProvider.get().getTimeOutValue()}`)
 				}
 
-				xhr.onload = async () => {
+				xhr.onload = async (): Promise<void> => {
 					try {
 						// XMLHttpRequestProgressEvent, but not needed
 						if (verbose) {
@@ -205,7 +205,7 @@ export class RestClient implements RestClientInterface {
 					}
 				}
 
-				xhr.onerror = function () {
+				xhr.onerror = (): void => {
 					try {
 						cancelTimeoutTimer()
 						logFailedRequest(method, url, xhr, options)
@@ -219,7 +219,7 @@ export class RestClient implements RestClientInterface {
 
 				// don't add an EventListener for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
 				if (isNull(options.noCORS) || !options.noCORS) {
-					xhr.upload.onprogress = (pe: ProgressEvent) => {
+					xhr.upload.onprogress = (pe: ProgressEvent): void => {
 						if (verbose) {
 							console.log(TAG, `${id}: ${String(new Date())} upload progress. Clearing Timeout ${String(requestTimeoutTimeoutID)}`, pe)
 						}
@@ -236,21 +236,21 @@ export class RestClient implements RestClientInterface {
 						}
 					}
 
-					xhr.upload.ontimeout = (e) => {
+					xhr.upload.ontimeout = (e): void => {
 						if (verbose) {
 							console.log(TAG, `${id}: ${String(new Date())} upload timeout. calling error handler.`, e)
 						}
 						xhr.onerror?.(e)
 					}
 
-					xhr.upload.onerror = (e) => {
+					xhr.upload.onerror = (e): void => {
 						if (verbose) {
 							console.log(TAG, `${id}: ${String(new Date())} upload error. calling error handler.`, e)
 						}
 						xhr.onerror?.(e)
 					}
 
-					xhr.upload.onabort = (e) => {
+					xhr.upload.onabort = (e): void => {
 						cancelTimeoutTimer()
 						if (options.abortSignal?.aborted ?? false) {
 							reject(new CancelledError(`upload has been aborted ${method} ${path}`))
@@ -263,7 +263,7 @@ export class RestClient implements RestClientInterface {
 					}
 				}
 
-				xhr.onprogress = (pe: ProgressEvent) => {
+				xhr.onprogress = (pe: ProgressEvent): void => {
 					if (verbose) {
 						console.log(TAG, `${id}: ${String(new Date())} download progress. Clearing Timeout ${String(requestTimeoutTimeoutID)}`, pe)
 					}
@@ -280,7 +280,7 @@ export class RestClient implements RestClientInterface {
 					}
 				}
 
-				xhr.onabort = () => {
+				xhr.onabort = (): void => {
 					cancelTimeoutTimer()
 					if (options.abortSignal?.aborted ?? false) {
 						reject(new CancelledError(`Request canceled | ${method} ${path}`))
@@ -300,7 +300,7 @@ export class RestClient implements RestClientInterface {
 		}
 	}
 
-	private saveServerTimeOffsetFromRequest(xhr: XMLHttpRequest) {
+	private saveServerTimeOffsetFromRequest(xhr: XMLHttpRequest): void {
 		// Dates sent in the `Date` field of HTTP headers follow the format specified by rfc7231
 		// JavaScript's Date expects dates in the format specified by rfc2822
 		// rfc7231 provides three options of formats, the preferred one being IMF-fixdate. This one is definitely
@@ -336,7 +336,7 @@ export class RestClient implements RestClientInterface {
 	 * Ignores the method because GET requests etc. should not exceed the limits neither.
 	 * This is done to avoid making the request, because the server will return a PayloadTooLargeError anyway.
 	 * */
-	private checkRequestSizeLimit(path: string, method: HttpMethod, body: RestBody | null) {
+	private checkRequestSizeLimit(path: string, method: HttpMethod, body: RestBody | null): void {
 		if (EnvProvider.get().isAdminClient()) {
 			return
 		}
@@ -348,7 +348,7 @@ export class RestClient implements RestClientInterface {
 		}
 	}
 
-	setHeaders(xhr: XMLHttpRequest, options: RestClientOptions) {
+	setHeaders(xhr: XMLHttpRequest, options: RestClientOptions): void {
 		if (options.headers == null) {
 			options.headers = {}
 		}

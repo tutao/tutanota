@@ -39,17 +39,17 @@ export class ProgressMonitor implements ProgressMonitorInterface {
 		this.progressMonitorId = null
 	}
 
-	updateTotalWork(totalWork: number) {
+	updateTotalWork(totalWork: number): void {
 		this.totalWork = totalWork
 		this.updater(this.percentage())
 	}
 
-	workDone(amount: number) {
+	workDone(amount: number): void {
 		this.workCompleted += amount
 		this.updater(this.percentage())
 	}
 
-	totalWorkDone(totalAmount: number) {
+	totalWorkDone(totalAmount: number): void {
 		this.workCompleted = totalAmount
 		this.updater(this.percentage())
 	}
@@ -59,7 +59,7 @@ export class ProgressMonitor implements ProgressMonitorInterface {
 		return Math.min(100, result)
 	}
 
-	completed() {
+	completed(): void {
 		this.workCompleted = this.totalWork
 		this.updater(100)
 	}
@@ -73,13 +73,13 @@ export class NoopProgressMonitor implements ProgressMonitorInterface {
 	totalWork: number = 0
 	progressMonitorId: Promise<number> | null = null
 
-	workDone(amount: number) {}
+	workDone(amount: number): void {}
 
-	totalWorkDone(totalAmount: number) {}
+	totalWorkDone(totalAmount: number): void {}
 
-	updateTotalWork(totalWork: number) {}
+	updateTotalWork(totalWork: number): void {}
 
-	completed() {}
+	completed(): void {}
 
 	async isDone(): Promise<boolean> {
 		return true

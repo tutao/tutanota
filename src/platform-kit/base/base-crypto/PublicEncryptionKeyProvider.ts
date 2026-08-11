@@ -81,7 +81,7 @@ class PublicEncryptionKeyProvider {
 	 *
 	 * Receiving a higher version would indicate a protocol downgrade/ MITM attack, and we reject such keys.
 	 */
-	private enforceRsaKeyVersionConstraint(pubKeys: Versioned<PublicKey>) {
+	private enforceRsaKeyVersionConstraint(pubKeys: Versioned<PublicKey>): void {
 		if (pubKeys.version !== 0 && isVersionedRsaOrRsaX25519PublicKey(pubKeys)) {
 			throw new CryptoError("rsa key in a version that is not 0")
 		}

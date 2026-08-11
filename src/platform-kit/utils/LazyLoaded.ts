@@ -97,7 +97,7 @@ export class LazyLoaded<T> {
 	/**
 	 * Removes the currently loaded object, so it will be loaded again with the next getAsync() call. Does not set any default value.
 	 */
-	reset() {
+	reset(): void {
 		this.state = LoadState.NotLoaded
 		this.defaultValue = null
 	}

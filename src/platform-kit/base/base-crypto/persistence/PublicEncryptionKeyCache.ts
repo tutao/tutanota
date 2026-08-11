@@ -14,7 +14,7 @@ export class PublicEncryptionKeyCache {
 	/**
 	 * Puts the key into the cache if it does not exist yet (otherwise a noop) and it matches the requirements for caching.
 	 */
-	put(publicKeyIdentifier: PublicKeyIdentifier, publicEncryptionKey: MaybeSignedPublicKey) {
+	put(publicKeyIdentifier: PublicKeyIdentifier, publicEncryptionKey: MaybeSignedPublicKey): void {
 		const lookupKey = this.makeLookupKey(publicKeyIdentifier, publicEncryptionKey.publicKey.version)
 		if (this.cache.has(lookupKey)) {
 			return

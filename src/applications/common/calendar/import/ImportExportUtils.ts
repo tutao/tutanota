@@ -19,6 +19,7 @@ import { createDateWrapper, DateWrapper, DateWrapperParams } from "@tutao/entiti
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { assertValidURL, deepEqual } from "@tutao/utils"
 import { IcsCalendarEvent, StrippedCalendarEventAttendee, StrippedRepeatRule } from "../../../calendar-app/calendar/export/CalendarParser"
+import { isNull } from "../../../../platform-kit/utils/Utils"
 
 export type EventAlarmInfoTemplatesTuple = {
 	event: CalendarEvent
@@ -68,7 +69,7 @@ export const enum SyncStatus {
 
 export function checkURLString(url: string): TranslationKey | URL {
 	const assertResult = assertValidURL(url)
-	if (!assertResult) return "invalidURL_msg"
+	if (isNull(assertResult)) return "invalidURL_msg"
 	if (!hasValidProtocol(assertResult, ["https:", "webcal:", "webcals:"])) return "invalidURLProtocol_msg"
 	return assertResult
 }

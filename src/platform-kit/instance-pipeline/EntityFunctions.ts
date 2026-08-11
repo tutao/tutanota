@@ -105,7 +105,7 @@ export class ClientModelInfo {
 		return this.typeModels[application as AppName][typeId] != null
 	}
 
-	private resolveDependsOnVersion(dependency: AppName) {
+	private resolveDependsOnVersion(dependency: AppName): ApplicationVersion {
 		return this.modelInfos[dependency].version
 	}
 }
@@ -157,7 +157,7 @@ export class ServerModelInfo {
 		return serverModelInfo
 	}
 
-	public setCurrentHash(newHash: string) {
+	public setCurrentHash(newHash: string): void {
 		if (this.applicationTypesHash === newHash) {
 			return
 		}
@@ -182,7 +182,7 @@ export class ServerModelInfo {
 		}
 	}
 
-	private init({ applicationTypesHash, applicationTypesJson }: ApplicationTypesGetOut) {
+	private init({ applicationTypesHash, applicationTypesJson }: ApplicationTypesGetOut): void {
 		const parsedApplicationTypesJson = JSON.parse(applicationTypesJson)
 		let newTypeModels = {} as ServerModels
 		for (const appName of this.getAppNames()) {
@@ -371,7 +371,7 @@ export class ServerModelInfo {
 	}
 }
 
-export function ensureIsPersistentType(typeModel: ClientTypeModel) {
+export function ensureIsPersistentType(typeModel: ClientTypeModel): void {
 	if (typeModel.type !== EntityTypeEnum.Element && typeModel.type !== EntityTypeEnum.ListElement && typeModel.type !== EntityTypeEnum.BlobElement) {
 		throw new Error("only Element, ListElement and BlobElement types are permitted, was: " + typeModel.type)
 	}

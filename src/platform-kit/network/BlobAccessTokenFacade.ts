@@ -54,7 +54,7 @@ export class BlobAccessTokenFacade {
 	 * @param ownerGroupId The ownerGroup were the data belongs to (e.g. group of type mail)
 	 */
 	async requestWriteToken(archiveDataType: ArchiveDataType, ownerGroupId: Id): Promise<BlobServerAccessInfo> {
-		const requestNewToken = async () => {
+		const requestNewToken = async (): Promise<BlobServerAccessInfo> => {
 			const tokenRequest = createBlobAccessTokenPostIn({
 				archiveDataType,
 				write: createBlobWriteData({
@@ -69,7 +69,7 @@ export class BlobAccessTokenFacade {
 		return this.writeCache.getToken(key, [], requestNewToken)
 	}
 
-	private makeWriteCacheKey(ownerGroupId: string, archiveDataType: ArchiveDataType) {
+	private makeWriteCacheKey(ownerGroupId: string, archiveDataType: ArchiveDataType): string {
 		return ownerGroupId + archiveDataType
 	}
 
@@ -147,7 +147,7 @@ export class BlobAccessTokenFacade {
 		const archiveIds = this.getArchiveIds([referencingInstance])
 		const archiveIdsToAccessInfo = new Map<Id, BlobServerAccessInfo>()
 		for (const archiveId of archiveIds) {
-			const requestNewToken = async () => {
+			const requestNewToken = async (): Promise<BlobServerAccessInfo> => {
 				const instanceListId = referencingInstance.listId
 				const instanceId = referencingInstance.elementId
 				const instanceIds = [createInstanceId({ instanceId })]
@@ -198,7 +198,7 @@ export class BlobAccessTokenFacade {
 	 * @param archiveId ID for the archive to read blobs from
 	 */
 	async requestReadTokenArchive(archiveId: Id): Promise<BlobServerAccessInfo> {
-		const requestNewToken = async () => {
+		const requestNewToken = async (): Promise<BlobServerAccessInfo> => {
 			const tokenRequest = createBlobAccessTokenPostIn({
 				archiveDataType: null,
 				read: createBlobReadData({

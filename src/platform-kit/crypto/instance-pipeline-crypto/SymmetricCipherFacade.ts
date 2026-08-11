@@ -299,7 +299,7 @@ export class SymmetricCipherFacade {
 	 * @param instanceTypeId	The type ID of the instance to be encrypted using the sub-keys.
 	 * @return 					The sub-key provider.
 	 */
-	getSubKeyProvider(subKeyInfo: SubKeyInfo, instanceTypeId: InstanceTypeId) {
+	getSubKeyProvider(subKeyInfo: SubKeyInfo, instanceTypeId: InstanceTypeId): SubKeyProvider {
 		return new SubKeyProvider(subKeyInfo, this.symmetricKeyDeriver, instanceTypeId)
 	}
 }

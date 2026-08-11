@@ -135,7 +135,7 @@ const RUN_MASK = (1 << RUN_BITS) - 1
 const HASHER = 2654435761
 
 // CompressBound returns the maximum length of a lz4 block, given it's uncompressed length
-function compressBound(isize: number) {
+function compressBound(isize: number): number {
 	return isize > MAX_INPUT_SIZE ? 0 : (isize + isize / 255 + 16) | 0
 }
 

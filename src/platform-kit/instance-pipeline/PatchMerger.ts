@@ -197,7 +197,11 @@ export class PatchMerger {
 			.join("/")
 	}
 
-	private async applyPatchOperation(patchOperation: Values<PatchOperationType>, pathResult: PathResult, valueInPatchPayload: DecryptedParsedValue) {
+	private async applyPatchOperation(
+		patchOperation: Values<PatchOperationType>,
+		pathResult: PathResult,
+		valueInPatchPayload: DecryptedParsedValue,
+	): Promise<void> {
 		const { attributeId, instanceToChange, typeModel } = pathResult
 		const isValue = isNotNull(typeModel.values[attributeId])
 		const isAssociation = isNotNull(typeModel.associations[attributeId])

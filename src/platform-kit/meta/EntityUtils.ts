@@ -160,7 +160,7 @@ export function isSameSingleId(id1: Id | null, id2: Id | null): boolean {
 	return id1 === id2
 }
 
-export function isSameIdTuple(id1: IdTuple | null, id2: IdTuple | null) {
+export function isSameIdTuple(id1: IdTuple | null, id2: IdTuple | null): boolean {
 	if (id1 === null || id2 === null) return false
 	else return id1[0] === id2[0] && id1[1] === id2[1]
 }
@@ -257,11 +257,11 @@ export function create<T extends Entity>(
 		...DEFAULT_ENTITY_FIELDS,
 	}
 
-	for (const [valueIdStr, value] of Object.entries(typeModel.values)) {
+	for (const value of Object.values(typeModel.values)) {
 		i[value.name] = createDefaultValue(value.name, value, typeModel)
 	}
 
-	for (const [associationIdStr, association] of Object.entries(typeModel.associations)) {
+	for (const association of Object.values(typeModel.associations)) {
 		if (association.cardinality === CardinalityEnum.Any) {
 			i[association.name] = []
 		} else {

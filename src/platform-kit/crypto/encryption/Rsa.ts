@@ -4,6 +4,7 @@ import { base64ToHex, base64ToUint8Array, concat, hexToUint8Array, int8ArrayToBa
 import { RsaPrivateKey, RsaPublicKey } from "./RsaKeyPair.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { sha256Hash } from "../hashes/Sha256.js"
+import { isNull } from "../../utils/Utils"
 
 const RSA_KEY_LENGTH_BITS = 2048
 const RSA_PUBLIC_EXPONENT = 65537
@@ -265,8 +266,8 @@ export function encode(message: Uint8Array<ArrayBuffer>, keyLength: number, salt
 /**
  * clears an array to contain only zeros (0)
  */
-function _clear<TArray extends ArrayBufferLike>(array: Uint8Array<TArray> | null) {
-	if (!array) {
+function _clear<TArray extends ArrayBufferLike>(array: Uint8Array<TArray> | null): void {
+	if (isNull(array)) {
 		return
 	}
 
@@ -400,7 +401,7 @@ function _hexToKeyArray(hex: Hex): BigInteger[] {
 	}
 }
 
-function _validateKeyLength(key: BigInteger[]) {
+function _validateKeyLength(key: BigInteger[]): void {
 	if (key.length !== 1 && key.length !== 7) {
 		throw new Error("invalid key params")
 	}
@@ -418,7 +419,7 @@ export function rsaPublicKeyToHex(publicKey: RsaPublicKey): Hex {
 	return _keyArrayToHex(_publicKeyToArray(publicKey))
 }
 
-export function rsaPublicKeyToBytes(rsaPublicKey: RsaPublicKey) {
+export function rsaPublicKeyToBytes(rsaPublicKey: RsaPublicKey): Uint8Array<ArrayBuffer> {
 	return hexToUint8Array(rsaPublicKeyToHex(rsaPublicKey))
 }
 

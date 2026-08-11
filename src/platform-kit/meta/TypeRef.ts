@@ -39,7 +39,7 @@ export class TypeRef<T extends Entity> {
 	}
 }
 
-export function getTypeString(typeRef: TypeRef<Entity>) {
+export function getTypeString(typeRef: TypeRef<Entity>): string {
 	return typeRef.app + "/" + typeRef.typeId
 }
 

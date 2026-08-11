@@ -11,7 +11,7 @@
  */
 import { stringToUtf8Uint8Array } from "@tutao/utils"
 
-function x86fmix32(h: number) {
+function x86fmix32(h: number): number {
 	h ^= h >>> 16
 	h = mul32(h, 0x85ebca6b)
 	h ^= h >>> 13
@@ -23,7 +23,7 @@ function x86fmix32(h: number) {
 const x86hash32c1 = 0xcc9e2d51
 const x86hash32c2 = 0x1b873593
 
-function x86mix32(h: number, k: number) {
+function x86mix32(h: number, k: number): number {
 	k = mul32(k, x86hash32c1)
 	k = rol32(k, 15)
 	k = mul32(k, x86hash32c2)
@@ -33,11 +33,11 @@ function x86mix32(h: number, k: number) {
 	return h
 }
 
-function mul32(m: number, n: number) {
+function mul32(m: number, n: number): number {
 	return (m & 0xffff) * n + ((((m >>> 16) * n) & 0xffff) << 16)
 }
 
-function rol32(n: number, r: number) {
+function rol32(n: number, r: number): number {
 	return (n << r) | (n >>> (32 - r))
 }
 

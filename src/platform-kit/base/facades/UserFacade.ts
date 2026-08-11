@@ -8,7 +8,6 @@ import { GroupType } from "../../../entities/sys/Utils"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { KeyCache } from "../base-crypto/persistence/KeyCache"
 import { isSameSingleId } from "@tutao/meta"
-import { isNull } from "../../utils/Utils"
 
 /** Holder for the user and session-related data on the worker side. */
 export class UserFacade extends LoggedInUserProvider {
@@ -40,7 +39,7 @@ export class UserFacade extends LoggedInUserProvider {
 	// 1. Access token is set
 	// 2. User is set
 	// 3. UserGroupKey is unlocked
-	setAccessToken(accessToken: string | null) {
+	setAccessToken(accessToken: string | null): void {
 		this.accessToken = accessToken
 	}
 
@@ -48,14 +47,14 @@ export class UserFacade extends LoggedInUserProvider {
 		return this.accessToken
 	}
 
-	setUser(user: User) {
+	setUser(user: User): void {
 		if (this.accessToken == null) {
 			throw new ProgrammingError("invalid state: no access token")
 		}
 		this.user = user
 	}
 
-	unlockUserGroupKey(userPassphraseKey: AesKey) {
+	unlockUserGroupKey(userPassphraseKey: AesKey): void {
 		if (this.user == null) {
 			throw new ProgrammingError("Invalid state: no user")
 		}
@@ -68,7 +67,7 @@ export class UserFacade extends LoggedInUserProvider {
 		this.setUserDistKey(currentUserGroupKey.version, userPassphraseKey)
 	}
 
-	setUserDistKey(currentUserGroupKeyVersion: KeyVersion, userPassphraseKey: AesKey) {
+	setUserDistKey(currentUserGroupKeyVersion: KeyVersion, userPassphraseKey: AesKey): void {
 		if (this.user == null) {
 			throw new ProgrammingError("Invalid state: no user")
 		}
@@ -118,7 +117,7 @@ export class UserFacade extends LoggedInUserProvider {
 		})
 	}
 
-	async updateUser(user: User) {
+	async updateUser(user: User): Promise<void> {
 		if (this.user == null) {
 			throw new ProgrammingError("Update user is called without logging in. This function is not for you.")
 		}
@@ -209,7 +208,7 @@ export class UserFacade extends LoggedInUserProvider {
 		return assertNotNull(this.user, "getLoggedInUser called for user not logged in")
 	}
 
-	setLeaderStatus(status: WebsocketLeaderStatus) {
+	setLeaderStatus(status: WebsocketLeaderStatus): void {
 		this.leaderStatus = status
 		console.log("New leader status set:", status.leaderStatus)
 	}
@@ -218,7 +217,7 @@ export class UserFacade extends LoggedInUserProvider {
 		return this.leaderStatus.leaderStatus
 	}
 
-	reset() {
+	reset(): void {
 		this.user = null
 		this.accessToken = null
 		this.keyCache.reset()
@@ -230,7 +229,7 @@ export class UserFacade extends LoggedInUserProvider {
 		})
 	}
 
-	updateUserGroupKey(userGroupKeyDistribution: UserGroupKeyDistribution) {
+	updateUserGroupKey(userGroupKeyDistribution: UserGroupKeyDistribution): void {
 		const userDistKey = this.keyCache.getUserDistKey()
 		if (userDistKey == null) {
 			console.log("could not update userGroupKey because distribution key is not available")
@@ -272,7 +271,7 @@ export class UserFacade extends LoggedInUserProvider {
 	 * NOTE: should only be used with a freshly generated key. For keys received from the server, use `updateUserGroupKey`
 	 * @param userGroupKey
 	 */
-	public setNewUserGroupKey(userGroupKey: VersionedKey) {
+	public setNewUserGroupKey(userGroupKey: VersionedKey): void {
 		console.log(`updating userGroupKey. new version: ${userGroupKey.version}`)
 		this.keyCache.setCurrentUserGroupKey(userGroupKey)
 	}

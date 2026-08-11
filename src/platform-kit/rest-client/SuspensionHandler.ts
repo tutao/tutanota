@@ -21,7 +21,7 @@ export class SuspensionHandler {
 	 * Activates suspension states for the given amount of seconds. After the end of the suspension time all deferred requests are executed.
 	 */
 	// if already suspended do we want to ignore incoming suspensions?
-	activateSuspensionIfInactive(suspensionDurationSeconds: number, resourceURL: URL) {
+	activateSuspensionIfInactive(suspensionDurationSeconds: number, resourceURL: URL): void {
 		if (!this.isSuspended()) {
 			console.log(`Activating suspension (${resourceURL}):  ${suspensionDurationSeconds}s`)
 			this._isSuspended = true
@@ -65,7 +65,7 @@ export class SuspensionHandler {
 		}
 	}
 
-	async _onSuspensionComplete() {
+	async _onSuspensionComplete(): Promise<void> {
 		const deferredRequests = this._deferredRequests
 		this._deferredRequests = []
 

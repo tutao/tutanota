@@ -265,11 +265,11 @@ export function count<T>(theArray: ReadonlyArray<T>, pred: (e: T) => boolean): n
 	return theArray.reduce<number>((acc, next) => (pred(next) ? ++acc : acc), 0)
 }
 
-export function addAll(array: Array<any>, elements: Array<any>) {
+export function addAll(array: Array<any>, elements: Array<any>): void {
 	array.push(...elements)
 }
 
-export function removeAll(array: Array<any>, elements: Array<any>) {
+export function removeAll(array: Array<any>, elements: Array<any>): void {
 	for (const element of elements) {
 		remove(array, element)
 	}
@@ -411,7 +411,7 @@ export function insertIntoSortedArray<T>(
 	array: Array<T>,
 	comparator: (left: T, right: T) => number,
 	replaceIf: (newElement: T, existing: T) => boolean = () => false,
-) {
+): void {
 	let i = 0
 
 	while (i < array.length) {

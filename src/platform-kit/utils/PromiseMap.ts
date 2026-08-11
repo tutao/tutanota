@@ -1,5 +1,7 @@
 import { TypeChecks } from "../app-env/boot/TsTypeChecks"
 
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+
 /**
  * @file Vendored version of p-map: https://github.com/sindresorhus/p-map/
  * Vendored to avoid having dependency on AggregateError.

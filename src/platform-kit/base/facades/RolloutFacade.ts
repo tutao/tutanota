@@ -37,7 +37,7 @@ export class RolloutFacade {
 		})
 	}
 
-	public async getScheduledRolloutTypes() {
+	public async getScheduledRolloutTypes(): Promise<MapIterator<RolloutType>> {
 		return (await this.rolloutActions.getAsync()).keys()
 	}
 
@@ -49,7 +49,7 @@ export class RolloutFacade {
 	 * The action will be discarded if the RolloutType is not scheduled for this user, and it will also be deleted
 	 * after being executed.
 	 */
-	public async configureRollout(rolloutType: RolloutType, rolloutAction: RolloutAction) {
+	public async configureRollout(rolloutType: RolloutType, rolloutAction: RolloutAction): Promise<void> {
 		const actions = await this.rolloutActions.getAsync()
 		if (actions.has(rolloutType)) {
 			actions.set(rolloutType, rolloutAction)

@@ -255,7 +255,10 @@ export class PatchGenerator {
 		return patches
 	}
 
-	private segregateAggregates(modifiedEncryptedAggregates: Array<EncryptedParsedInstance>, originalAggregates: Array<DecryptedParsedInstance>) {
+	private segregateAggregates(
+		modifiedEncryptedAggregates: Array<EncryptedParsedInstance>,
+		originalAggregates: Array<DecryptedParsedInstance>,
+	): SegregatedAggregates {
 		const addedItems = modifiedEncryptedAggregates.filter((modifiedAggregatedEntity) => {
 			const modifiedAggregatedId = modifiedAggregatedEntity.getAttributeByName("_id").asId()
 			const existedInOriginalAggregate = originalAggregates.some((originalAggregatedEntity) => {
@@ -286,8 +289,14 @@ export class PatchGenerator {
 		return { addedItems, removedItems, commonItems }
 	}
 
-	private isDistinctAggregateIds(array: Array<Id>) {
+	private isDistinctAggregateIds(array: Array<Id>): boolean {
 		const checkSet = new Set(array)
 		return checkSet.size === array.length
 	}
+}
+
+type SegregatedAggregates = {
+	addedItems: Array<EncryptedParsedInstance>
+	removedItems: Array<DecryptedParsedInstance>
+	commonItems: Array<DecryptedParsedInstance>
 }

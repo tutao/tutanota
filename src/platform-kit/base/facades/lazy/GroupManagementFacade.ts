@@ -195,7 +195,7 @@ export class GroupManagementFacade {
 		return group
 	}
 
-	async deleteContactListGroup(groupRoot: ContactListGroupRoot) {
+	async deleteContactListGroup(groupRoot: ContactListGroupRoot): Promise<void> {
 		const serviceData = createUserAreaGroupDeleteData({
 			group: elementIdToId(groupRoot._id),
 		})

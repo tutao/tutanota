@@ -95,7 +95,7 @@ export class EnvProvider {
 		return EnvProvider.singleton
 	}
 
-	public isMainOrNode() {
+	public isMainOrNode(): boolean {
 		return EnvProvider.isMainOrNode()
 	}
 
@@ -162,7 +162,7 @@ export class EnvProvider {
 		return this.env.mode === Mode.Browser
 	}
 
-	public isWebClient() {
+	public isWebClient(): boolean {
 		return this.env.mode === Mode.Browser
 	}
 
@@ -202,11 +202,11 @@ export class EnvProvider {
 		return !this.isBrowser() && !this.isAdminClient()
 	}
 
-	public static bootFinished() {
+	public static bootFinished(): void {
 		this.boot = false
 	}
 
-	public static isBootFinished() {
+	public static isBootFinished(): boolean {
 		return this.boot
 	}
 
@@ -225,7 +225,7 @@ export class EnvProvider {
 		}
 	}
 
-	static assertMainOrNode() {
+	static assertMainOrNode(): void {
 		if (!assertionsEnabled) return
 
 		if (!EnvProvider.isMainOrNode()) {
@@ -237,7 +237,7 @@ export class EnvProvider {
 		}
 	}
 
-	public static assertMainOrNodeBoot() {
+	public static assertMainOrNodeBoot(): void {
 		if (!assertionsEnabled) return
 
 		if (!EnvProvider.isMainOrNode()) {
@@ -245,7 +245,7 @@ export class EnvProvider {
 		}
 	}
 
-	public static assertWorkerOrNode() {
+	public static assertWorkerOrNode(): void {
 		if (!assertionsEnabled) return
 
 		if (!EnvProvider.isWorkerOrNode()) {

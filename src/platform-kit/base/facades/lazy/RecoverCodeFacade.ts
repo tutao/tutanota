@@ -86,7 +86,7 @@ export class RecoverCodeFacade {
 		return decrypt256Key(userGroupKey, recoveryCodeEntity.userEncRecoverCode)
 	}
 
-	private async getPassphraseKey(user: User, passphrase: string) {
+	private async getPassphraseKey(user: User, passphrase: string): Promise<AesKey> {
 		const passphraseKeyData = {
 			kdfType: asKdfType(user.kdfVersion),
 			passphrase,

@@ -43,6 +43,7 @@ import { RecoverCodeFacade } from "../facades/lazy/RecoverCodeFacade.js"
 import { brandKeyMac, KeyAuthenticationFacade, SystemMapKind } from "../../network/KeyAuthenticationFacade.js"
 import {
 	AdminGroupKeyDistributionElement,
+	AdminGroupKeyRotationPostIn,
 	AdminGroupKeyRotationService_GET,
 	AdminGroupKeyRotationService_POST,
 	AdminGroupKeyRotationService_PUT,
@@ -239,7 +240,7 @@ export class KeyRotationFacade {
 	 * Processes the internal list of @PendingKeyRotation. Key rotations and (if existent) password keys are deleted after processing.
 	 * @VisibleForTesting
 	 */
-	async processPendingKeyRotation(pendingKeyRotations: PendingKeyRotation, user: User, pwKey: Aes256Key | null) {
+	async processPendingKeyRotation(pendingKeyRotations: PendingKeyRotation, user: User, pwKey: Aes256Key | null): Promise<void> {
 		// first admin, then user and then user area
 		if (pendingKeyRotations.adminOrUserGroupKeyRotation && pwKey) {
 			const groupKeyRotationType = assertEnumValue(GroupKeyRotationType, pendingKeyRotations.adminOrUserGroupKeyRotation.groupKeyRotationType)
@@ -295,7 +296,7 @@ export class KeyRotationFacade {
 	/**
 	 * @VisibleForTesting
 	 */
-	async rotateSingleAdminGroupKeys(user: User, passphraseKey: Aes256Key, keyRotation: KeyRotation) {
+	async rotateSingleAdminGroupKeys(user: User, passphraseKey: Aes256Key, keyRotation: KeyRotation): Promise<void> {
 		if (hasNonQuantumSafeKeys(passphraseKey)) {
 			console.log("Not allowed to rotate admin group keys with a bcrypt password key")
 			return
@@ -332,13 +333,13 @@ export class KeyRotationFacade {
 	}
 
 	//We assume that the logged-in user is an admin user and that the key encrypting the group key are already pq secure
-	private async rotateCustomerOrTeamGroupKeys(user: User, pendingKeyRotations: PendingKeyRotation) {
+	private async rotateCustomerOrTeamGroupKeys(user: User, pendingKeyRotations: PendingKeyRotation): Promise<Nullable<Array<GroupKeyRotationData>>> {
 		//group key rotation is skipped if
 		// * user is not an admin user
 		const adminGroupMembership = user.memberships.find((m) => m.groupType === GroupType.Admin)
 		if (adminGroupMembership == null) {
 			console.log("Only admin user can rotate the group")
-			return
+			return null
 		}
 
 		// * the encrypting keys are 128-bit keys. (user group key, admin group key)
@@ -347,7 +348,7 @@ export class KeyRotationFacade {
 		if (hasNonQuantumSafeKeys(currentUserGroupKey.object, currentAdminGroupKey.object)) {
 			// admin group key rotation should be scheduled first on the server, so this should not happen
 			console.log("Keys cannot be rotated as the encrypting keys are not pq secure")
-			return
+			return null
 		}
 
 		const groupKeyUpdates = new Array<GroupKeyRotationData>()
@@ -364,7 +365,7 @@ export class KeyRotationFacade {
 		currentUserGroupKey: VersionedKey,
 		currentAdminGroupKey: VersionedKey,
 		passphraseKey: Aes256Key,
-	) {
+	): Promise<AdminKeyRotationData> {
 		const adminGroupId = this.getTargetGroupId(keyRotation)
 		const userGroupMembership = user.userGroup
 		const userGroupId = userGroupMembership.group
@@ -531,7 +532,7 @@ export class KeyRotationFacade {
 		currentUserGroupKey: VersionedKey,
 		currentAdminGroupKey: VersionedKey,
 		user: User,
-	) {
+	): Promise<GroupKeyRotationData> {
 		const targetGroupId = this.getTargetGroupId(keyRotation)
 		console.log(`KeyRotationFacade: rotate key for group: ${targetGroupId}, groupKeyRotationType: ${keyRotation.groupKeyRotationType}`)
 		const targetGroup = await this.entityClient.load(GroupTypeRef, idToElementId(targetGroupId))
@@ -638,7 +639,12 @@ export class KeyRotationFacade {
 		return recoverCodeData
 	}
 
-	private encryptUserGroupKeyForUser(passphraseKey: AesKey, newUserGroupKeys: GeneratedGroupKeys, userGroup: Group, currentGroupKey: VersionedKey) {
+	private encryptUserGroupKeyForUser(
+		passphraseKey: AesKey,
+		newUserGroupKeys: GeneratedGroupKeys,
+		userGroup: Group,
+		currentGroupKey: VersionedKey,
+	): EncryptedUserGroupKey {
 		const versionedPassphraseKey: VersionedKey = {
 			object: passphraseKey,
 			version: 0, // dummy
@@ -656,7 +662,7 @@ export class KeyRotationFacade {
 		}
 	}
 
-	private async handlePendingInvitations(targetGroup: Group, newTargetGroupKey: VersionedKey) {
+	private async handlePendingInvitations(targetGroup: Group, newTargetGroupKey: VersionedKey): Promise<Array<GroupInvitationPostData>> {
 		const preparedReInvitations: Array<GroupInvitationPostData> = []
 		const targetGroupInfo = await this.entityClient.load(GroupInfoTypeRef, targetGroup.groupInfo)
 		const pendingInvitations = await this.entityClient.loadAll(SentGroupInvitationTypeRef, targetGroup.invitations)
@@ -664,7 +670,7 @@ export class KeyRotationFacade {
 		const shareFacade = await this.shareFacade()
 		for (const [capability, sentInvitations] of sentInvitationsByCapability) {
 			const inviteeMailAddresses = sentInvitations.map((invite) => invite.inviteeMailAddress)
-			const prepareGroupReInvites = async (mailAddresses: string[]) => {
+			const prepareGroupReInvites = async (mailAddresses: string[]): Promise<void> => {
 				const preparedInvitation = await shareFacade.prepareGroupInvitation(newTargetGroupKey, targetGroupInfo, mailAddresses, downcast(capability))
 				preparedReInvitations.push(preparedInvitation)
 			}
@@ -770,7 +776,7 @@ export class KeyRotationFacade {
 	/**
 	 * Get the ID of the group we want to rotate the keys for.
 	 */
-	private getTargetGroupId(keyRotation: KeyRotation) {
+	private getTargetGroupId(keyRotation: KeyRotation): string {
 		// The KeyRotation is a list element type whose list element ID part is the target group ID,
 		// i.e., an indirect reference to Group.
 		return elementIdPart(keyRotation._id)
@@ -902,7 +908,7 @@ export class KeyRotationFacade {
 	 * @param userGroupKeyRotation
 	 * @private
 	 */
-	private async rotateUserGroupKey(user: User, pwKey: Aes256Key, userGroupKeyRotation: KeyRotation) {
+	private async rotateUserGroupKey(user: User, pwKey: Aes256Key, userGroupKeyRotation: KeyRotation): Promise<void> {
 		const userGroupMembership = user.userGroup
 		const userGroupId = userGroupMembership.group
 		const currentUserGroupKey = this.keyLoaderFacade.getCurrentSymUserGroupKey()
@@ -983,7 +989,7 @@ export class KeyRotationFacade {
 		userGroupId: Id,
 		adminGroupId: Id,
 		newUserGroupKeys: GeneratedGroupKeys,
-	) {
+	): Promise<EncryptedKeysForUser> {
 		if (userGroupKeyRotation.adminPubKeyMac == null) {
 			throw new Error("The hash encrypted by admin is not present in the user group key rotation !")
 		}
@@ -1041,7 +1047,7 @@ export class KeyRotationFacade {
 		userGroupId: Id,
 		currentUserGroupKey: VersionedKey,
 		newUserGroupKeys: GeneratedGroupKeys,
-	) {
+	): Promise<EncryptedKeysForAdmin> {
 		const distEncAdminGroupSymKey = assertNotNull(userGroupKeyRotation.distEncAdminGroupSymKey, "missing new admin group key")
 		const pubAdminEncGKeyAuthHash = brandKeyMac(assertNotNull(distEncAdminGroupSymKey.symKeyMac, "missing new admin group key encrypted hash"))
 		if (userGroupKeyRotation.adminDistKeyPair == null || !isEncryptedPqKeyPairs(userGroupKeyRotation.adminDistKeyPair)) {
@@ -1150,7 +1156,7 @@ export class KeyRotationFacade {
 		})
 	}
 
-	private async createDistributionKeyPair(pwKey: Aes256Key, multiAdminKeyRotation: KeyRotation) {
+	private async createDistributionKeyPair(pwKey: Aes256Key, multiAdminKeyRotation: KeyRotation): Promise<void> {
 		let adminGroupId = getElementId(multiAdminKeyRotation)
 		const currentAdminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 		const currentUserGroupKey = this.keyLoaderFacade.getCurrentSymUserGroupKey()
@@ -1192,7 +1198,7 @@ export class KeyRotationFacade {
 		await this.serviceExecutor.execute(AdminGroupKeyRotationService_PUT, putDistributionKeyPairsOnKeyRotation, null)
 	}
 
-	async rotateMultipleAdminsGroupKeys(user: User, passphraseKey: Aes256Key, keyRotation: KeyRotation) {
+	async rotateMultipleAdminsGroupKeys(user: User, passphraseKey: Aes256Key, keyRotation: KeyRotation): Promise<void> {
 		// first get all admin members' available distribution keys
 		const { distributionKeys, userGroupIdsMissingDistributionKeys } = await this.serviceExecutor.execute(
 			AdminGroupKeyRotationService_GET,
@@ -1217,7 +1223,12 @@ export class KeyRotationFacade {
 		}
 	}
 
-	private async performMultiAdminKeyRotation(keyRotation: KeyRotation, user: User, passphraseKey: Aes256Key, distributionKeys: PubDistributionKey[]) {
+	private async performMultiAdminKeyRotation(
+		keyRotation: KeyRotation,
+		user: User,
+		passphraseKey: Aes256Key,
+		distributionKeys: PubDistributionKey[],
+	): Promise<void> {
 		const adminGroupId = this.getTargetGroupId(keyRotation)
 
 		// load current admin group key
@@ -1371,11 +1382,11 @@ export class KeyRotationFacade {
 /**
  * We require AES keys to be 256-bit long to be quantum-safe because of Grover's algorithm.
  */
-function isQuantumSafe(key: AesKey) {
+function isQuantumSafe(key: AesKey): boolean {
 	return key.keyLength === AesKeyLength.Aes256
 }
 
-function hasNonQuantumSafeKeys(...keys: AesKey[]) {
+function hasNonQuantumSafeKeys(...keys: AesKey[]): boolean {
 	return keys.some((key) => !isQuantumSafe(key))
 }
 
@@ -1411,7 +1422,7 @@ export class KeyRotationRolloutAction implements RolloutAction {
 		private readonly sessionType: SessionType,
 	) {}
 
-	public async execute() {
+	public async execute(): Promise<void> {
 		// If we have not migrated to argon2 we postpone key rotation.
 		if (!EnvProvider.get().isAdminClient() && this.sessionType !== SessionType.Temporary && this.modernKdfType) {
 			const user = this.userFacade.getUser()
@@ -1429,4 +1440,19 @@ export class KeyRotationRolloutAction implements RolloutAction {
 type GroupKeyRotationDataAndReInvites = {
 	groupKeyRotationData: GroupKeyRotationData[]
 	preparedReInvites: GroupInvitationPostData[]
+}
+
+type EncryptedKeysForUser = { pubAdminGroupEncUserGroupKey: PubEncKeyData; adminGroupKeyVersion: KeyVersion }
+type EncryptedKeysForAdmin = {
+	adminGroupEncUserGroupKey: Uint8Array<ArrayBuffer>
+	userGroupEncAdminGroupKey: Uint8Array<ArrayBuffer>
+	adminGroupKeyVersion: string
+}
+
+type AdminKeyRotationData = { keyRotationData: AdminGroupKeyRotationPostIn; newAdminGroupKeys: GeneratedGroupKeys; newUserGroupKeys: GeneratedGroupKeys }
+type EncryptedUserGroupKey = {
+	membershipSymEncNewGroupKey: VersionedEncryptedKey
+	distributionKeyEncNewUserGroupKey: Uint8Array<ArrayBuffer>
+	authVerifier: Uint8Array<ArrayBuffer>
+	newGroupKeyEncCurrentGroupKey: VersionedEncryptedKey
 }

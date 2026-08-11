@@ -467,7 +467,7 @@ function readByteArray(encoded: Uint8Array<ArrayBuffer>, index: number): IndexAn
 	return { index, byteArray }
 }
 
-function writeShort(array: Uint8Array<ArrayBuffer>, value: number, index: number) {
+function writeShort(array: Uint8Array<ArrayBuffer>, value: number, index: number): void {
 	array[index] = (value & 0x0000ff00) >> 8
 	array[index + 1] = (value & 0x000000ff) >> 0
 }

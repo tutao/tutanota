@@ -27,13 +27,13 @@ export class AttributeModel {
 		return typeIdMap.get(attrName) ?? null
 	}
 
-	private static computeAttributeIdsForTypeIfNotExists(typeModel: TypeModel) {
+	private static computeAttributeIdsForTypeIfNotExists(typeModel: TypeModel): void {
 		if (!AttributeModel.typeIdToAttributeNameMap[typeModel.app].has(typeModel.id)) {
 			AttributeModel.computeAttributeIdsForType(typeModel)
 		}
 	}
 
-	private static computeAttributeIdsForType(typeModel: TypeModel) {
+	private static computeAttributeIdsForType(typeModel: TypeModel): void {
 		let attributeNameToAttributeId: Map<string, number> = new Map()
 		for (const [valueId, value] of Object.entries(typeModel.values)) {
 			attributeNameToAttributeId.set(value.name, parseInt(valueId))

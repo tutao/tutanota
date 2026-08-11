@@ -15,7 +15,7 @@ export class KeyCache {
 
 	private legacyUserDistKey: Aes256Key | null = null
 
-	setCurrentUserGroupKey(newUserGroupKey: VersionedKey) {
+	setCurrentUserGroupKey(newUserGroupKey: VersionedKey): void {
 		if (this.currentUserGroupKey != null && this.currentUserGroupKey.version > newUserGroupKey.version) {
 			console.log("Tried to set an outdated user group key")
 			return
@@ -29,11 +29,11 @@ export class KeyCache {
 		return this.currentUserGroupKey
 	}
 
-	setUserDistKey(userDistKey: Aes256Key) {
+	setUserDistKey(userDistKey: Aes256Key): void {
 		this.userDistKey = userDistKey
 	}
 
-	setLegacyUserDistKey(legacyUserDistKey: Aes256Key) {
+	setLegacyUserDistKey(legacyUserDistKey: Aes256Key): void {
 		this.legacyUserDistKey = legacyUserDistKey
 	}
 
@@ -59,7 +59,7 @@ export class KeyCache {
 		})
 	}
 
-	reset() {
+	reset(): void {
 		this.currentGroupKeys = new Map<Id, Promise<VersionedKey>>()
 		this.currentUserGroupKey = null
 		this.userDistKey = null
@@ -70,7 +70,7 @@ export class KeyCache {
 	 * An outdated user membership is ignored and should be processed by the UserGroupKeyDistribution update.
 	 * @param user updated user with up-to-date memberships
 	 */
-	async removeOutdatedGroupKeys(user: User) {
+	async removeOutdatedGroupKeys(user: User): Promise<void> {
 		const currentUserGroupKeyVersion = neverNull(this.getCurrentUserGroupKey()).version
 		const receivedUserGroupKeyVersion = cryptoUtils.parseKeyVersion(user.userGroup.groupKeyVersion)
 		if (receivedUserGroupKeyVersion > currentUserGroupKeyVersion) {

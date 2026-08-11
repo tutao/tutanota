@@ -10,7 +10,7 @@ export const DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES = 32
 /**
  * Compute a 32 byte BLAKE3 hash.
  */
-export function blake3Hash(data: Uint8Array<ArrayBuffer>) {
+export function blake3Hash(data: Uint8Array<ArrayBuffer>): any {
 	return blake3(data, { dkLen: DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES })
 }
 
@@ -25,7 +25,7 @@ export function blake3Mac(keyBytes: Uint8Array<ArrayBuffer>, data: Uint8Array<Ar
  * Verify a BLAKE3 tag against the given data and key.
  * @throws CryptoError if the tag does not match the data and key.
  */
-export function blake3MacVerify(keyBytes: Uint8Array<ArrayBuffer>, data: Uint8Array<ArrayBuffer>, tag: MacTag) {
+export function blake3MacVerify(keyBytes: Uint8Array<ArrayBuffer>, data: Uint8Array<ArrayBuffer>, tag: MacTag): void {
 	const computedTag = blake3Mac(keyBytes, data)
 	const tagMatches: boolean = sjcl.bitArray.equal(computedTag, tag)
 	if (!tagMatches) {

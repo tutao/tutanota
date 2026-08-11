@@ -147,7 +147,11 @@ export class AesCbcFacade {
 		}
 	}
 
-	private tryToEnforceAuthentication(subKeys: AesCbcSubKeys, cipherVersion: SymmetricCipherVersion, authenticationEnforcement: AuthenticationEnforcement) {
+	private tryToEnforceAuthentication(
+		subKeys: AesCbcSubKeys,
+		cipherVersion: SymmetricCipherVersion,
+		authenticationEnforcement: AuthenticationEnforcement,
+	): void {
 		if (cipherVersion === SymmetricCipherVersion.UnusedReservedUnauthenticated) {
 			// this is an unauthenticated cipher version which we only accept for certain exceptions and legacy encryption versions which are only possible for 128-bit keys
 			if (authenticationEnforcement === AuthenticationEnforcement.Relaxed) {

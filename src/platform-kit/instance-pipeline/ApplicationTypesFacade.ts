@@ -112,7 +112,7 @@ export class ApplicationTypesFacade {
 		return deferredObject.promise
 	}
 
-	private async storeNewApplicationTypes(newApplicationTypesJsonString: string) {
+	private async storeNewApplicationTypes(newApplicationTypesJsonString: string): Promise<void> {
 		if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp()) {
 			try {
 				const fileContent = stringToUtf8Uint8Array(newApplicationTypesJsonString)
@@ -154,7 +154,7 @@ export class ApplicationTypesFacade {
 		return this.serverModelInfo.getApplicationTypesHash()
 	}
 
-	private resolvePendingRequests(typesReturn: ApplicationTypesGetOut) {
+	private resolvePendingRequests(typesReturn: ApplicationTypesGetOut): void {
 		const deferredRequests = this.deferredRequests.slice(0, this.deferredRequests.length)
 		this.deferredRequests = []
 
@@ -163,7 +163,7 @@ export class ApplicationTypesFacade {
 		}
 	}
 
-	private rejectPendingRequests(e: Error) {
+	private rejectPendingRequests(e: Error): void {
 		const deferredRequests = this.deferredRequests.slice(0, this.deferredRequests.length)
 		this.deferredRequests = []
 
@@ -172,7 +172,7 @@ export class ApplicationTypesFacade {
 		}
 	}
 
-	async invalidateApplicationTypes() {
+	async invalidateApplicationTypes(): Promise<void> {
 		if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp()) {
 			await this.fileFacade.deleteFromAppDir(APPLICATION_TYPES_FILE_NAME)
 			await this.fileFacade.deleteFromAppDir(APPLICATION_TYPES_PATH_SDK)

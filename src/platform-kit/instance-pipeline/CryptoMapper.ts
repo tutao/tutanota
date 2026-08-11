@@ -111,7 +111,10 @@ export class CryptoMapper {
 	}
 
 	makeOwnerKeyProvider(groupId: Nullable<Id>): Nullable<OwnerKeyProvider> {
-		return isNotNull(groupId) ? (groupKeyVersion: KeyVersion) => this.symGroupKeyLoader().loadSymGroupKey(groupId, groupKeyVersion, null) : null
+		if (isNotNull(groupId)) {
+			return (groupKeyVersion: KeyVersion): Promise<AesKey> => this.symGroupKeyLoader().loadSymGroupKey(groupId, groupKeyVersion, null)
+		}
+		return null
 	}
 
 	public async decryptParsedInstance(
@@ -589,7 +592,7 @@ export class DecryptedParsedInstance implements DeepEquals {
 		return this
 	}
 
-	public addId(parsedValue: EncryptedParsedValue) {
+	public addId(parsedValue: EncryptedParsedValue): this {
 		const attributeId = assertNotNull(AttributeModel.getAttributeId(this.typeModel, "_id"))
 		switch (getIdType(this.typeModel.type)) {
 			case IdType.IdTuple:

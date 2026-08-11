@@ -748,7 +748,7 @@ export class LoginFacade implements SessionTypeProvider {
 				throw new Error("No loggedInUser to have an encryption scheme")
 			}
 		})()
-		const lazyCrypto = () => this.cryptoFacade
+		const lazyCrypto = (): CryptoFacade => this.cryptoFacade
 		const eventRestClient = new EntityRestClient(
 			tempAuthDataProvider,
 			this.restClient,
@@ -881,7 +881,7 @@ export class LoginFacade implements SessionTypeProvider {
 		return out.token
 	}
 
-	private async initializeKeyRotationRollouts(userPassphraseKey: AesKey, modernKdfType: boolean, sessionType: SessionType) {
+	private async initializeKeyRotationRollouts(userPassphraseKey: AesKey, modernKdfType: boolean, sessionType: SessionType): Promise<void> {
 		// configure key rotation rollouts. For admin group key or user group key rotation we need access to the password key.
 		// We bind this here to the rollout action. The actual key rotation is then executed after the client is synchronized.
 		const rollouts = await this.rolloutFacade.getScheduledRolloutTypes()
@@ -1121,7 +1121,11 @@ export class LoginFacade implements SessionTypeProvider {
 	/**
 	 * Check whether the passed salt for external user is up-to-date (whether an outdated link was used).
 	 */
-	private async checkOutdatedExternalSalt(credentials: Credentials, sessionData: UserIdAndAccessKey, externalUserSalt: Uint8Array<ArrayBuffer>) {
+	private async checkOutdatedExternalSalt(
+		credentials: Credentials,
+		sessionData: UserIdAndAccessKey,
+		externalUserSalt: Uint8Array<ArrayBuffer>,
+	): Promise<void> {
 		this.userFacade.setAccessToken(credentials.accessToken)
 		const user = await this.entityClient.load(UserTypeRef, idToElementId(sessionData.userId))
 		let externalAuthInfo = assertNotNull(user.externalAuthInfo, "user does not have externalAuthInfo")
@@ -1144,7 +1148,7 @@ export class LoginFacade implements SessionTypeProvider {
 	 * @param accessToken
 	 * @param userPassphraseKey
 	 */
-	private async checkOutdatedVerifier(user: User, accessToken: string, userPassphraseKey: AesKey) {
+	private async checkOutdatedVerifier(user: User, accessToken: string, userPassphraseKey: AesKey): Promise<void> {
 		if (uint8ArrayToBase64(user.verifier) !== uint8ArrayToBase64(sha256Hash(createAuthVerifier(userPassphraseKey)))) {
 			console.log("Auth verifier has changed")
 			// delete the obsolete session to make sure it can not be used anymore

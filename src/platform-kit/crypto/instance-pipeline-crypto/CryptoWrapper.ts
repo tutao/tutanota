@@ -130,7 +130,7 @@ export class CryptoWrapper {
 		return hmacSha256(key, data)
 	}
 
-	verifyHmacSha256(key: AesKey, data: Uint8Array<ArrayBuffer>, tag: MacTag) {
+	verifyHmacSha256(key: AesKey, data: Uint8Array<ArrayBuffer>, tag: MacTag): void {
 		return verifyHmacSha256(key, data, tag)
 	}
 
@@ -167,7 +167,7 @@ export class CryptoWrapper {
 
 type DeriveKeyParams = { salt: string; key: AesKey; info: string; length: number }
 
-function deriveKey(deriveKeyParams: DeriveKeyParams) {
+function deriveKey(deriveKeyParams: DeriveKeyParams): AesKey {
 	const salt = sha256Hash(stringToUtf8Uint8Array(deriveKeyParams.salt))
 	const info = stringToUtf8Uint8Array(deriveKeyParams.info)
 	return uint8ArrayToKey(hkdf(salt, keyToUint8Array(deriveKeyParams.key), info, deriveKeyParams.length))

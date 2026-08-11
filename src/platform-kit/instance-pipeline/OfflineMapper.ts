@@ -136,15 +136,15 @@ export class OfflineEntity implements DeepEquals {
 		}
 	}
 
-	setAggregations(associationId: AttributeId, aggregates: Array<OfflineEntity>) {
+	setAggregations(associationId: AttributeId, aggregates: Array<OfflineEntity>): void {
 		this.entityRecord[associationId] = aggregates.map((agg) => agg.entityRecord)
 	}
 
-	setIdList(associationId: AttributeId, idList: Array<Id>) {
+	setIdList(associationId: AttributeId, idList: Array<Id>): void {
 		this.entityRecord[associationId] = idList
 	}
 
-	setIdTupleList(associationId: AttributeId, idTupleList: Array<IdTuple>) {
+	setIdTupleList(associationId: AttributeId, idTupleList: Array<IdTuple>): void {
 		this.entityRecord[associationId] = idTupleList
 	}
 

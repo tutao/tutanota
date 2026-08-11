@@ -136,7 +136,7 @@ export function urlEncodeHtmlTags(text: string): string {
 	return stripControlCharacters(text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"))
 }
 
-export function convertTextToHtml(text: string) {
+export function convertTextToHtml(text: string): string {
 	return text.replace(/(\r)?\n/g, "<br>")
 }
 

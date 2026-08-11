@@ -309,7 +309,7 @@ export class EntityRestClient implements EntityRestInterface {
 		if (archiveId == null) {
 			throw new Error("archiveId must be set to load BlobElementTypes")
 		}
-		const doBlobRequest = async () => {
+		const doBlobRequest = async (): Promise<any> => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenArchive(archiveId)
 			const additionalRequestParams = Object.assign(
 				{},
@@ -343,7 +343,7 @@ export class EntityRestClient implements EntityRestInterface {
 				`can't load instances from server `,
 			)
 		}
-		const doEvictToken = () => this.blobAccessTokenFacade.evictArchiveToken(archiveId)
+		const doEvictToken = (): void => this.blobAccessTokenFacade.evictArchiveToken(archiveId)
 
 		return doBlobRequestWithRetry(doBlobRequest, doEvictToken)
 	}

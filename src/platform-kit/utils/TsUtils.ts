@@ -1,6 +1,5 @@
 import { assertNotNull, DeepEquals, downcast, isNotNull, isNull, Nullable } from "./Utils"
 import { TypeChecks } from "../app-env/boot/TsTypeChecks"
-import { ProgrammingError } from "@tutao/app-env"
 
 // This file is not transpiled
 /* eslint-disable  no-restricted-syntax */
@@ -314,7 +313,7 @@ export function newPromise<T>(executor: (resolve: (value: T) => void, reject: (r
 	return promise
 }
 
-function traceUnresolvedPromises<T>(promise: Promise<T>, tag: Nullable<string> = null) {
+function traceUnresolvedPromises<T>(promise: Promise<T>, tag: Nullable<string> = null): void {
 	let pending = true
 	promise.then(
 		() => (pending = false),

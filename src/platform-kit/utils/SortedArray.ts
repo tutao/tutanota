@@ -44,7 +44,7 @@ export class SortedArray<T> {
 		return this.contents[index]
 	}
 
-	insertAll(array: ReadonlyArray<T>) {
+	insertAll(array: ReadonlyArray<T>): void {
 		this.contents.push(...array)
 
 		this.contents.sort(this.compareFn)

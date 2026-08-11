@@ -61,7 +61,7 @@ export function maxBy<E, T extends Iterable<E>>(collection: T, selector: (item: 
 	return max ? max.item : null
 }
 
-export function setAddAll<T>(set: Set<T>, toAdd: Iterable<T>) {
+export function setAddAll<T>(set: Set<T>, toAdd: Iterable<T>): void {
 	for (const item of toAdd) {
 		set.add(item)
 	}

@@ -244,7 +244,7 @@ export class OutgoingServerJson implements DeepEquals {
 		return attrId.toString()
 	}
 
-	addValue<EncryptedOrDecrypted extends DeepEquals>(attrId: AttributeId, attrName: string, value: ParsedValue<EncryptedOrDecrypted>) {
+	addValue<EncryptedOrDecrypted extends DeepEquals>(attrId: AttributeId, attrName: string, value: ParsedValue<EncryptedOrDecrypted>): void {
 		const key = OutgoingServerJson.networkDebuggedKey(attrId, this.typeModel)
 		if (attrName === "_id" && !value.isNull()) {
 			switch (getIdType(this.typeModel.type)) {
@@ -259,22 +259,22 @@ export class OutgoingServerJson implements DeepEquals {
 		}
 	}
 
-	addAggregationList(attrId: AttributeId, value: Array<OutgoingServerJson>) {
+	addAggregationList(attrId: AttributeId, value: Array<OutgoingServerJson>): void {
 		const attributeKey = OutgoingServerJson.networkDebuggedKey(attrId, this.typeModel)
 		this.json[attributeKey] = value.map((v) => v.json)
 	}
 
-	addIdTupleList(attrId: AttributeId, value: Array<IdTuple>) {
+	addIdTupleList(attrId: AttributeId, value: Array<IdTuple>): void {
 		const attributeKey = OutgoingServerJson.networkDebuggedKey(attrId, this.typeModel)
 		this.json[attributeKey] = value
 	}
 
-	addIdList(attrId: AttributeId, value: Array<Id>) {
+	addIdList(attrId: AttributeId, value: Array<Id>): void {
 		const attributeKey = OutgoingServerJson.networkDebuggedKey(attrId, this.typeModel)
 		this.json[attributeKey] = value
 	}
 
-	public static newFromRecord(json: Record<AttributeName, unknown>, clientModel: Nullable<ClientTypeModel> = null) {
+	public static newFromRecord(json: Record<AttributeName, unknown>, clientModel: Nullable<ClientTypeModel> = null): OutgoingServerJson {
 		assert(EnvProvider.isTest(), "Do not construct with raw record in non-test environment")
 		return new OutgoingServerJson(clientModel as any, json)
 	}

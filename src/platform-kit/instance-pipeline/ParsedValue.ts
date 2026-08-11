@@ -36,7 +36,7 @@ export class ParsedValue<NestedObject extends DeepEquals> implements DeepEquals 
 		return isNotNull(this.nestedObj)
 	}
 
-	public isNull() {
+	public isNull(): boolean {
 		return this.stringValue == null && this.arrayValue == null && this.nestedObj == null
 	}
 

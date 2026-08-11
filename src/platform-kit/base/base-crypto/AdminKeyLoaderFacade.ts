@@ -63,7 +63,7 @@ export class AdminKeyLoaderFacade {
 	/**
 	 * @returns true if the group currently has an adminEncGKey. This may be an asymmetrically encrypted one.
 	 */
-	hasAdminEncGKey(group: Group) {
+	hasAdminEncGKey(group: Group): boolean {
 		return (group.adminGroupEncGKey != null && group.adminGroupEncGKey.length !== 0) || group.pubAdminGroupEncGKey != null
 	}
 
@@ -139,7 +139,7 @@ export class AdminKeyLoaderFacade {
 		return versionedDecryptedUserGroupKey
 	}
 
-	private async verifyUserGroupKeyMac(pubEncKeyData: PubEncKeyData, userGroup: Group, receivedUserGroupKey: VersionedAes256Key) {
+	private async verifyUserGroupKeyMac(pubEncKeyData: PubEncKeyData, userGroup: Group, receivedUserGroupKey: VersionedAes256Key): Promise<void> {
 		const givenUserGroupKeyMac = brandKeyMac(assertNotNull(pubEncKeyData.symKeyMac))
 
 		// The given mac is authenticated by the previous user group key, so we can get the version from there.

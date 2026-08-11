@@ -208,7 +208,7 @@ export class ClientEntity {
 		return entity
 	}
 
-	setValue(valueId: AttributeId, parsedValue: DecryptedParsedValue) {
+	setValue(valueId: AttributeId, parsedValue: DecryptedParsedValue): void {
 		const modelValue = assertNotNull(this.typeModel.values[valueId])
 		const key = modelValue.name
 		if (modelValue.name === "_id") {
@@ -235,7 +235,7 @@ export class ClientEntity {
 		}
 	}
 
-	private setAssociation<T>(associationId: AttributeId, associationList: Array<T>) {
+	private setAssociation<T>(associationId: AttributeId, associationList: Array<T>): void {
 		const associationModel = this.typeModel.associations[associationId]
 		switch (associationModel.cardinality) {
 			case CardinalityEnum.ZeroOrOne: {
@@ -257,26 +257,26 @@ export class ClientEntity {
 				this.entityRecord[associationModel.name] = associationList
 		}
 	}
-	setAggregations(associationId: AttributeId, aggregates: Array<ClientEntity>) {
+	setAggregations(associationId: AttributeId, aggregates: Array<ClientEntity>): void {
 		this.setAssociation(
 			associationId,
 			aggregates.map((agg) => agg.castAsEntity()),
 		)
 	}
 
-	setIdList(associationId: AttributeId, idList: Array<Id>) {
+	setIdList(associationId: AttributeId, idList: Array<Id>): void {
 		this.setAssociation(associationId, idList)
 	}
 
-	setIdTupleList(associationId: AttributeId, idTupleList: Array<IdTuple>) {
+	setIdTupleList(associationId: AttributeId, idTupleList: Array<IdTuple>): void {
 		this.setAssociation(associationId, idTupleList)
 	}
 
-	setErrors(errors: Record<AttributeId, string>) {
+	setErrors(errors: Record<AttributeId, string>): void {
 		this.entityRecord["_errors"] = errors
 	}
 
-	public setAssociationForTest<T>(associationId: AttributeId, associationList: Array<T>) {
+	public setAssociationForTest<T>(associationId: AttributeId, associationList: Array<T>): void {
 		assert(EnvProvider.isTest(), "This method is only meant for testing")
 		return this.setAssociation(associationId, associationList)
 	}

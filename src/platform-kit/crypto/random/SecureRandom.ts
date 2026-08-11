@@ -9,7 +9,7 @@ export class SecureRandom {
 	 * Only this function is used by jsbn for getting random bytes. Each byte is a value between 0 and 255.
 	 * @param array An array to fill with random bytes. The length of the array defines the number of bytes to create.
 	 */
-	nextBytes(array: number[]) {
+	nextBytes(array: number[]): void {
 		let bytes = random.generateRandomData(array.length)
 
 		for (let i = 0; i < array.length; i++) {

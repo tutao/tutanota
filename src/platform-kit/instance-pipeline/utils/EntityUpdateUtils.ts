@@ -60,7 +60,7 @@ export function getLogStringForEntityEvent(event: EntityUpdateData): string {
 	return `event: ${getTypeString(event.typeRef)}, listId: ${event.instanceListId}, elementId: ${event.instanceId}, operation: ${event.operation}, patches: ${getLogStringForPatches(event.patches ?? [])} ;`
 }
 
-export function getLogStringForPatches(patches: Array<Patch>) {
+export function getLogStringForPatches(patches: Array<Patch>): string {
 	let message = ""
 	for (const patch of patches) {
 		message += "Patch Operation: " + patch.patchOperation + " Patched Attribute: " + patch.attributePath + " ;"

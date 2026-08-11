@@ -134,11 +134,11 @@ export class KeyVerificationFacade {
 		return identities
 	}
 
-	async untrust(mailAddress: string) {
+	async untrust(mailAddress: string): Promise<void> {
 		return this.identityKeyTrustDatabase.untrust(mailAddress)
 	}
 
-	async trust(mailAddress: string, identityKey: Versioned<SigningPublicKey>, sourceOfTrust: IdentityKeySourceOfTrust) {
+	async trust(mailAddress: string, identityKey: Versioned<SigningPublicKey>, sourceOfTrust: IdentityKeySourceOfTrust): Promise<TrustDBEntry> {
 		return this.identityKeyTrustDatabase.trust(mailAddress, identityKey, sourceOfTrust)
 	}
 

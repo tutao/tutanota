@@ -34,7 +34,7 @@ export class ClientDetector {
 
 	constructor() {}
 
-	init(userAgent: string, platform: string, appType: AppType = AppType.Integrated) {
+	init(userAgent: string, platform: string, appType: AppType = AppType.Integrated): void {
 		this.userAgent = userAgent
 		this.appType = appType
 		this._setBrowserAndVersion()
@@ -133,7 +133,7 @@ export class ClientDetector {
 		}
 	}
 
-	_setBrowserAndVersion() {
+	_setBrowserAndVersion(): void {
 		const userAgent = this.getUserAgent()
 		const operaIndex1 = userAgent.indexOf("Opera")
 		const operaIndex2 = userAgent.indexOf("OPR/")
@@ -222,7 +222,7 @@ export class ClientDetector {
 		}
 	}
 
-	extractIosVersion() {
+	extractIosVersion(): void {
 		// Extracting version does not work with iPad OS WebView because it's not in the userAgent. We could look it up
 		// from Webkit version but maybe we don't need that for now.
 		const userAgent = this.getUserAgent()
@@ -256,7 +256,7 @@ export class ClientDetector {
 		}
 	}
 
-	_setDeviceInfo() {
+	_setDeviceInfo(): void {
 		this.device = DeviceType.DESKTOP
 
 		const userAgent = this.getUserAgent()

@@ -91,6 +91,7 @@ import {
 	Mail,
 	MailTypeRef,
 	SymEncInternalRecipientKeyData,
+	SymEncInternalRecipientKeyDataParams,
 } from "@tutao/entities/tutanota"
 import { HttpMethod, RestTextBody } from "@tutao/rest-client/types"
 import { CryptoNetworkHelper } from "../../network/CryptoNetworkHelper"
@@ -425,7 +426,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		instanceSessionKeyWithOwnerEncSessionKey: InstanceSessionKey,
 		decryptedSessionKey: AesKey,
 		keyGroup: Id | null,
-	) {
+	): Promise<void> {
 		// we only authenticate mail instances
 		const isMailInstance = isSameTypeRef(MailTypeRef, instance._type)
 		if (isMailInstance) {
@@ -686,7 +687,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		recipientMailAddress: string,
 		recipientPublicKeys: Versioned<PublicKey>,
 		senderGroupId: Id,
-	) {
+	): Promise<InternalRecipientKeyData> {
 		const pubEncBucketKey = await this.asymmetricCryptoFacade.asymEncryptSymKey(bucketKey, recipientPublicKeys, senderGroupId)
 		return createInternalRecipientKeyData({
 			mailAddress: recipientMailAddress,
@@ -697,7 +698,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		})
 	}
 
-	private async createSymEncInternalRecipientKeyData(recipientMailAddress: string, bucketKey: AesKey) {
+	private async createSymEncInternalRecipientKeyData(recipientMailAddress: string, bucketKey: AesKey): Promise<SymEncInternalRecipientKeyData> {
 		const keyGroup = this.userFacade.getGroupId(GroupType.Mail)
 		const externalMailGroupKey = await this.symGroupKeyLoader.getCurrentSymGroupKey(keyGroup)
 		return createSymEncInternalRecipientKeyData({
@@ -723,7 +724,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		permissionOwnerGroupKey: VersionedKey,
 		sessionKey: AesKey,
 	): Promise<void> {
-		if (instance.isAdapter !== true || !this.userFacade.isLeader()) {
+		if (!instance.isAdapter || !this.userFacade.isLeader()) {
 			// do not update the session key in case of an unencrypted client side instance
 			// or in case we are not the leader client
 			return
@@ -774,7 +775,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		)
 	}
 
-	async postUpdateSessionKeysService(instanceSessionKeys: Array<InstanceSessionKey>, retryCount: number = 0) {
+	async postUpdateSessionKeysService(instanceSessionKeys: Array<InstanceSessionKey>, retryCount: number = 0): Promise<void> {
 		try {
 			const input = createUpdateSessionKeysPostIn({ ownerEncSessionKeys: instanceSessionKeys })
 			await this.serviceExecutor.execute(UpdateSessionKeysService_POST, input, null)
@@ -830,7 +831,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		return await this.serviceExecutor.execute(UpdateKdfNonceService_POST, input, null)
 	}
 
-	async updateOwnerEncSessionKey(instance: EntityAdapter, ownerGroupKey: VersionedKey, resolvedSessionKey: AesKey) {
+	async updateOwnerEncSessionKey(instance: EntityAdapter, ownerGroupKey: VersionedKey, resolvedSessionKey: AesKey): Promise<void> {
 		const newOwnerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, resolvedSessionKey)
 		this.setOwnerEncSessionKey(instance, newOwnerEncSessionKey)
 

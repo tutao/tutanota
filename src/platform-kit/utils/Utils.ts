@@ -98,7 +98,7 @@ export function assertNotNaN(number: number, message: string = "Found NaN when v
  * @param value the value to check
  * @param message optional error message
  */
-export function assertNull<T>(value: T | null, message: string = "not null") {
+export function assertNull<T>(value: T | null, message: string = "not null"): void {
 	if (value != null) {
 		throw new Error("AssertNull failed : " + message)
 	}
@@ -124,7 +124,7 @@ export function isNull<T>(t: T | null): t is null {
 	return t === null || isStrictlyUndefined(t)
 }
 
-export function assert(assertion: boolean, message: string) {
+export function assert(assertion: boolean, message: string): void {
 	if (!assertion) {
 		throw new Error(`Assertion failed: ${message}`)
 	}
@@ -161,7 +161,7 @@ export function identity<T>(t: T): T {
 /**
  * Function which does nothing.
  */
-export function noOp() {}
+export function noOp(): void {}
 
 export function randomIntFromInterval(min: number, max: number): number {
 	return Math.floor(Math.random() * (max - min + 1) + min)
@@ -186,7 +186,7 @@ export function freezeMap<K, V>(myMap: ReadonlyMap<K, V>): ReadonlyMap<K, V> {
 		throw new Error("Can't delete property " + key + ", map is frozen")
 	}
 
-	function mapClear() {
+	function mapClear(): void {
 		throw new Error("Can't clear map, map is frozen")
 	}
 
@@ -302,11 +302,11 @@ export class BoundedExecutor {
 	}
 }
 
-export function assertValidURL(url: string) {
+export function assertValidURL(url: string): Nullable<URL> {
 	try {
 		return new URL(url)
 	} catch (e) {
-		return false
+		return null
 	}
 }
 

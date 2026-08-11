@@ -133,7 +133,7 @@ export class IdentityKeyCreator {
 	 *
 	 * NOTE: does nothing if the user is not an admin.
 	 */
-	async createIdentityKeyPairForExistingTeamGroups(teamGroupIds: Id[]) {
+	async createIdentityKeyPairForExistingTeamGroups(teamGroupIds: Id[]): Promise<void> {
 		const user = assertNotNull(this.userFacade.getUser(), "User not available when trying to create identity keys for existing shared mailboxes")
 
 		const adminGroupMembership = assertNotNull(

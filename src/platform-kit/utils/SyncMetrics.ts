@@ -7,7 +7,7 @@ class Sumup {
 	timeSum: number = 0
 	amount: number = 0
 
-	add(time: number) {
+	add(time: number): void {
 		this.timeSum += time
 		this.amount++
 	}
@@ -83,10 +83,10 @@ function roundAndFormat(sum: number): string {
 
 export let syncMetrics: Nullable<SyncMetrics> = null
 
-export function newSyncMetrics() {
+export function newSyncMetrics(): void {
 	syncMetrics = new SyncMetrics()
 }
 
-export function purgeSyncMetrics() {
+export function purgeSyncMetrics(): void {
 	syncMetrics = null
 }

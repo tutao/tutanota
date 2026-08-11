@@ -2,8 +2,6 @@
 import sjcl from "../internal/sjcl.js"
 import { CryptoError } from "@tutao/crypto/error"
 
-import { EntropySource } from "../CryptoTypes"
-
 import { EntropyDataChunk } from "./EntropyDataChunk"
 
 /**
@@ -28,7 +26,7 @@ export class Randomizer {
 		return Promise.resolve()
 	}
 
-	addStaticEntropy(bytes: Uint8Array<ArrayBuffer>) {
+	addStaticEntropy(bytes: Uint8Array<ArrayBuffer>): void {
 		for (const byte of bytes) {
 			this.random.addEntropy(byte, 8, "static")
 		}
