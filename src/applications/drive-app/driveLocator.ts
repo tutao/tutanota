@@ -1,16 +1,4 @@
-import {
-	AppType,
-	assertMainOrNode,
-	Const,
-	FeatureType,
-	isAndroidApp,
-	isApp,
-	isBrowser,
-	isDesktop,
-	isIOSApp,
-	Mode,
-	ProgrammingError
-} from "@tutao/app-env"
+import { AppType, assertMainOrNode, Const, FeatureType, isAndroidApp, isApp, isBrowser, isDesktop, isIOSApp, Mode, ProgrammingError } from "@tutao/app-env"
 import { EventController } from "../common/api/main/EventController.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
@@ -47,11 +35,7 @@ import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorVi
 import { DeviceConfig, deviceConfig } from "../common/misc/DeviceConfig.js"
 import { getEnabledMailAddressesWithUser } from "../common/mailFunctionality/SharedMailUtils.js"
 import { ContactSuggestionProvider, RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
-import {
-	MailAddressNameChanger,
-	MailAddressTableModel,
-	UserInfo
-} from "../common/settings/mailaddress/MailAddressTableModel.js"
+import { MailAddressNameChanger, MailAddressTableModel, UserInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import { DrawerMenuAttrs, isPartnerEnabled } from "../common/gui/nav/DrawerMenu.js"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
 import { CredentialRemovalHandler } from "../common/login/CredentialRemovalHandler.js"
@@ -68,9 +52,7 @@ import { PostLoginActions } from "../common/login/PostLoginActions.js"
 import { CredentialFormatMigrator } from "../common/misc/credentials/CredentialFormatMigrator.js"
 import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
-import type {
-	CalendarContactPreviewViewModel
-} from "../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
+import type { CalendarContactPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import type { AutosaveFacade, LocalAutosavedDraftData } from "../common/api/worker/facades/lazy/AutosaveFacade"
 import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
@@ -78,15 +60,10 @@ import { TransferProgressDispatcher } from "../common/api/main/TransferProgressD
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
 import { DriveSearchModelStub } from "./search/model/DriveSearchModelStub"
 import type { DriveViewModel } from "./drive/view/DriveViewModel"
-import type {
-	CalendarEventModel,
-	CalendarOperation
-} from "../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel"
+import type { CalendarEventModel, CalendarOperation } from "../calendar-app/calendar/gui/eventeditor-model/CalendarEventModel"
 import type { CalendarInfo, CalendarModel } from "../calendar-app/calendar/model/CalendarModel"
 import type { CalendarInviteHandler } from "../calendar-app/calendar/view/CalendarInvites"
-import type {
-	CalendarEventPreviewViewModel
-} from "../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel"
+import type { CalendarEventPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel"
 import { FolderItem } from "./drive/view/DriveUtils"
 import { MoveItems } from "./drive/view/DriveMoveItemDialog"
 import { DriveFilePicker } from "./drive/view/DriveFilePicker"
