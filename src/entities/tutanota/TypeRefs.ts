@@ -4377,7 +4377,8 @@ export type ImapAccountParams = {
 	username: string;
 	password: null | string;
 	ignoreCertificateErrors: boolean;
-	customCertificateData: null | Uint8Array;
+	customCertificateData: null | Uint8Array<ArrayBuffer>;
+	useSSL: null | boolean;
 
 	oAuthTokenEndpointResponse: null | OAuthTokenEndpointResponse;
 }
@@ -4393,6 +4394,7 @@ export type ImapAccount = {
 	password: null | string;
 	ignoreCertificateErrors: boolean;
 	customCertificateData: null | Uint8Array<ArrayBuffer>;
+	useSSL: null | boolean;
 
 	oAuthTokenEndpointResponse: null | OAuthTokenEndpointResponse;
 }
