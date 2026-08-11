@@ -215,8 +215,53 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			o.check(foundRule).equals(null)
 		})
 
-		o.test("matching rule for HAS_ATTACHMENT condition is found", async () => {
-			// FIXME
+		o.spec("findMatchingInboxRule_attachment_conditions", () => {
+			const ruleHas = _createRule(
+				[_createRuleCondition(InboxRuleConditionType.HAS_ATTACHMENT, "")],
+				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+			)
+
+			const ruleHasNot = _createRule(
+				[_createRuleCondition(InboxRuleConditionType.HAS_NO_ATTACHMENT, "")],
+				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+			)
+
+			const mailWithAttachments = _createMailWithDifferentEnvelopeSender({ attachments: [["a", "b"]] })
+			const mailWithoutAttachments = _createMailWithDifferentEnvelopeSender({ attachments: [] })
+
+			const mailDetails = _createMailDetails()
+
+			o.test("matching rule for HAS_NO_ATTACHMENT, mail without attachments", async () => {
+				when(mailFacade.loadMailDetailsBlob(mailWithoutAttachments)).thenResolve(mailDetails)
+				when(inboxRuleModel.getOrderedInboxRules()).thenResolve([ruleHasNot])
+
+				const foundRule = await ruleHandler.findMatchingInboxRule(mailWithoutAttachments, inboxFolder, true)
+				o.check(foundRule).equals(ruleHasNot)
+			})
+
+			o.test("matching no rule for HAS_NO_ATTACHMENT, mail with one attachment", async () => {
+				when(mailFacade.loadMailDetailsBlob(mailWithAttachments)).thenResolve(mailDetails)
+				when(inboxRuleModel.getOrderedInboxRules()).thenResolve([ruleHasNot])
+
+				const foundRule = await ruleHandler.findMatchingInboxRule(mailWithAttachments, inboxFolder, true)
+				o.check(foundRule).equals(null)
+			})
+
+			o.test("matching no rule for HAS_ATTACHMENT, mail without attachments", async () => {
+				when(mailFacade.loadMailDetailsBlob(mailWithoutAttachments)).thenResolve(mailDetails)
+				when(inboxRuleModel.getOrderedInboxRules()).thenResolve([ruleHas])
+
+				const foundRule = await ruleHandler.findMatchingInboxRule(mailWithoutAttachments, inboxFolder, true)
+				o.check(foundRule).equals(null)
+			})
+
+			o.test("matching rule for HAS_ATTACHMENT, mail with one attachment", async () => {
+				when(mailFacade.loadMailDetailsBlob(mailWithAttachments)).thenResolve(mailDetails)
+				when(inboxRuleModel.getOrderedInboxRules()).thenResolve([ruleHas])
+
+				const foundRule = await ruleHandler.findMatchingInboxRule(mailWithAttachments, inboxFolder, true)
+				o.check(foundRule).equals(ruleHas)
+			})
 		})
 
 		o.test("matching rule for multiple conditions is found", async () => {
