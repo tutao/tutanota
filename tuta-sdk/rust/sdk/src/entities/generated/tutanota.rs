@@ -4461,6 +4461,8 @@ pub struct ImapAccount {
 	#[serde(rename = "1988")]
 	#[serde(with = "serde_bytes")]
 	pub customCertificateData: Option<Vec<u8>>,
+	#[serde(rename = "1994")]
+	pub useSSL: Option<bool>,
 	#[serde(rename = "1872")]
 	pub oAuthTokenEndpointResponse: Option<OAuthTokenEndpointResponse>,
 
