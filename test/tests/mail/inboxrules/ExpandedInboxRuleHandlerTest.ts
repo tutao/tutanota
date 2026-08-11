@@ -159,6 +159,40 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			o.check(foundRule).deepEquals(rule)
 		})
 
+		o.test("matching rule for RECIPIENT_ANY_EQUALS condition is found", async () => {
+			const rule = _createRule(
+				[
+					_createRuleCondition(InboxRuleConditionType.RECIPIENT_ANY_EQUALS, "to-recipient@tuta.com"),
+					_createRuleCondition(InboxRuleConditionType.RECIPIENT_ANY_EQUALS, "cc-recipient@tuta.com"),
+					_createRuleCondition(InboxRuleConditionType.RECIPIENT_ANY_EQUALS, "bcc-recipient@tuta.com"),
+				],
+				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+			)
+			const mail = _createMailWithDifferentEnvelopeSender()
+			const mailDetails = _createMailDetails()
+
+			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
+			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+
+			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
+			o.check(foundRule).deepEquals(rule)
+		})
+
+		o.test("sender is not checked for RECIPIENT_ANY_EQUALS condition", async () => {
+			const rule = _createRule(
+				[_createRuleCondition(InboxRuleConditionType.RECIPIENT_ANY_EQUALS, "sender@tuta.com")],
+				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+			)
+			const mail = _createMailWithDifferentEnvelopeSender()
+			const mailDetails = _createMailDetails()
+
+			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
+			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+
+			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
+			o.check(foundRule).deepEquals(null)
+		})
+
 		o.test("matching rule for SUBJECT_CONTAINS condition is found", async () => {
 			const rule = _createRule(
 				[_createRuleCondition(InboxRuleConditionType.SUBJECT_CONTAINS, "fri")],
