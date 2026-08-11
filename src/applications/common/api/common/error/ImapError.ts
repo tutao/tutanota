@@ -66,8 +66,13 @@ export function fromImapFlowError(imapFlowError: any) {
 			cause = ImapErrorCause.HOST_NOT_REACHABLE
 			break
 		default:
-			cause = ImapErrorCause.UNKNOWN
-			console.warn("Unknown IMAP error code: " + code)
+			if (imapFlowError.authenticationFailed) {
+				cause = ImapErrorCause.AUTH_FAILED
+				new ImapError(imapFlowError.message, cause, "AUTHENTICATIONFAILED")
+			} else {
+				cause = ImapErrorCause.UNKNOWN
+				console.warn("Unknown IMAP error code: " + code)
+			}
 			break
 	}
 	return new ImapError(imapFlowError.message, cause, code)
