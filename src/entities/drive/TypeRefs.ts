@@ -1,9 +1,8 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ListElementId, ElementId } from "@tutao/meta"
+import { ElementId, ListElementId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
-import { Blob } from '../sys/TypeRefs.js'
-import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
+import { Blob, BlobReferenceTokenWrapper } from "../sys/TypeRefs.js"
 
 export const DriveFolderTypeRef: TypeRef<DriveFolder> = new TypeRef("drive", 0)
 
@@ -194,10 +193,11 @@ export function createDriveUploadedFile(values: DriveUploadedFileParams): DriveU
 export type DriveUploadedFileParams = {
 
 
-	fileName: string;
-	mimeType: string;
+	fileName: null | string;
+	mimeType: null | string;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
+	file: null | DriveFileTransferAggregatedType;
 }
 
 export type DriveUploadedFile = {
@@ -205,12 +205,13 @@ export type DriveUploadedFile = {
 	_original?: DriveUploadedFile
 
 	_id: Id;
-	fileName: string;
-	mimeType: string;
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
-	ownerKeyVersion: NumberString;
+	fileName: null | string;
+	mimeType: null | string;
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: null | NumberString;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
+	file: null | DriveFileTransferAggregatedType;
 }
 export const DrivePostInTypeRef: TypeRef<DrivePostIn> = new TypeRef("drive", 61)
 
@@ -292,10 +293,12 @@ export function createDriveItemPutIn(values: DriveItemPutInParams): DriveItemPut
 export type DriveItemPutInParams = {
 
 
-	newName: string;
+	newName: null | string;
 
 	file: null | IdTuple;
 	folder: null | IdTuple;
+	fileWithNewName: null | DriveFileTransferAggregatedType;
+	folderWithNewName: null | DriveFolderTransferAggregatedType;
 }
 
 export type DriveItemPutIn = {
@@ -304,10 +307,12 @@ export type DriveItemPutIn = {
 	_original?: DriveItemPutIn
 
 	_format: NumberString;
-	newName: string;
+	newName: null | string;
 
 	file: null | IdTuple;
 	folder: null | IdTuple;
+	fileWithNewName: null | DriveFileTransferAggregatedType;
+	folderWithNewName: null | DriveFolderTransferAggregatedType;
 }
 export const DriveItemDeleteInTypeRef: TypeRef<DriveItemDeleteIn> = new TypeRef("drive", 79)
 
@@ -341,9 +346,10 @@ export function createDriveFolderServicePostIn(values: DriveFolderServicePostInP
 export type DriveFolderServicePostInParams = {
 
 
-	folderName: string;
+	folderName: null | string;
 
-	parent: IdTuple;
+	parent: null | IdTuple;
+	folder: null | DriveFolderTransferAggregatedType;
 }
 
 export type DriveFolderServicePostIn = {
@@ -352,11 +358,12 @@ export type DriveFolderServicePostIn = {
 	_original?: DriveFolderServicePostIn
 
 	_format: NumberString;
-	folderName: string;
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
-	ownerKeyVersion: NumberString;
+	folderName: null | string;
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: null | NumberString;
 
-	parent: IdTuple;
+	parent: null | IdTuple;
+	folder: null | DriveFolderTransferAggregatedType;
 }
 export const DriveFolderServicePostOutTypeRef: TypeRef<DriveFolderServicePostOut> = new TypeRef("drive", 89)
 
@@ -512,4 +519,52 @@ export type DriveItemServiceDeleteOut = {
 
 	_format: NumberString;
 	operationId: Id;
+}
+export const DriveFolderTransferAggregatedTypeTypeRef: TypeRef<DriveFolderTransferAggregatedType> = new TypeRef("drive", 123)
+
+export function createDriveFolderTransferAggregatedType(values: DriveFolderTransferAggregatedTypeParams): DriveFolderTransferAggregatedType {
+    return Object.assign(create(typeModels[DriveFolderTransferAggregatedTypeTypeRef.typeId], DriveFolderTransferAggregatedTypeTypeRef), values)
+}
+
+export type DriveFolderTransferAggregatedTypeParams = {
+
+
+	name: string;
+
+	parent: null | IdTuple;
+}
+
+export type DriveFolderTransferAggregatedType = {
+	_type: TypeRef<DriveFolderTransferAggregatedType>;
+	_original?: DriveFolderTransferAggregatedType
+
+	_id: Id;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	name: string;
+
+	parent: null | IdTuple;
+}
+export const DriveFileTransferAggregatedTypeTypeRef: TypeRef<DriveFileTransferAggregatedType> = new TypeRef("drive", 129)
+
+export function createDriveFileTransferAggregatedType(values: DriveFileTransferAggregatedTypeParams): DriveFileTransferAggregatedType {
+    return Object.assign(create(typeModels[DriveFileTransferAggregatedTypeTypeRef.typeId], DriveFileTransferAggregatedTypeTypeRef), values)
+}
+
+export type DriveFileTransferAggregatedTypeParams = {
+
+
+	name: string;
+	mimeType: string;
+}
+
+export type DriveFileTransferAggregatedType = {
+	_type: TypeRef<DriveFileTransferAggregatedType>;
+	_original?: DriveFileTransferAggregatedType
+
+	_id: Id;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	name: string;
+	mimeType: string;
 }

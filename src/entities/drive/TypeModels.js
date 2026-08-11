@@ -9,7 +9,7 @@ const typeModels = {
 	"0": {
 		"name": "DriveFolder",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "LIST_ELEMENT_TYPE",
 		"id": 0,
@@ -155,7 +155,7 @@ const typeModels = {
 	"14": {
 		"name": "DriveFile",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "LIST_ELEMENT_TYPE",
 		"id": 14,
@@ -310,7 +310,7 @@ const typeModels = {
 	"30": {
 		"name": "DriveFileRef",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "LIST_ELEMENT_TYPE",
 		"id": 30,
@@ -383,7 +383,7 @@ const typeModels = {
 	"39": {
 		"name": "DriveFileBag",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 39,
@@ -419,7 +419,7 @@ const typeModels = {
 	"42": {
 		"name": "DriveFolderBag",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 42,
@@ -455,7 +455,7 @@ const typeModels = {
 	"45": {
 		"name": "DriveGroupRoot",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "ELEMENT_TYPE",
 		"id": 45,
@@ -548,7 +548,7 @@ const typeModels = {
 	"55": {
 		"name": "DriveUploadedFile",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 55,
@@ -572,7 +572,7 @@ const typeModels = {
 				"name": "fileName",
 				"id": 57,
 				"type": "String",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": true,
 				"transferredAttributeId": null
 			},
@@ -581,7 +581,7 @@ const typeModels = {
 				"name": "mimeType",
 				"id": 58,
 				"type": "String",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": true,
 				"transferredAttributeId": null
 			},
@@ -590,7 +590,7 @@ const typeModels = {
 				"name": "ownerEncSessionKey",
 				"id": 59,
 				"type": "Bytes",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -599,7 +599,7 @@ const typeModels = {
 				"name": "ownerKeyVersion",
 				"id": 112,
 				"type": "Number",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			}
@@ -614,13 +614,23 @@ const typeModels = {
 				"refTypeId": 1990,
 				"dependency": "sys",
 				"transferredAttributeId": null
+			},
+			"135": {
+				"final": true,
+				"name": "file",
+				"id": 135,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 129,
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
 	"61": {
 		"name": "DrivePostIn",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 61,
@@ -683,7 +693,7 @@ const typeModels = {
 	"67": {
 		"name": "DriveItemPostIn",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 67,
@@ -729,7 +739,7 @@ const typeModels = {
 	"71": {
 		"name": "DriveItemPostOut",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 71,
@@ -765,7 +775,7 @@ const typeModels = {
 	"74": {
 		"name": "DriveItemPutIn",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 74,
@@ -789,7 +799,7 @@ const typeModels = {
 				"name": "newName",
 				"id": 76,
 				"type": "String",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": true,
 				"transferredAttributeId": null
 			}
@@ -814,13 +824,33 @@ const typeModels = {
 				"refTypeId": 0,
 				"dependency": null,
 				"transferredAttributeId": null
+			},
+			"136": {
+				"final": true,
+				"name": "fileWithNewName",
+				"id": 136,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 129,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"137": {
+				"final": true,
+				"name": "folderWithNewName",
+				"id": 137,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 123,
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
 	"79": {
 		"name": "DriveItemDeleteIn",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 79,
@@ -866,7 +896,7 @@ const typeModels = {
 	"84": {
 		"name": "DriveFolderServicePostIn",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 84,
@@ -890,7 +920,7 @@ const typeModels = {
 				"name": "folderName",
 				"id": 86,
 				"type": "String",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": true,
 				"transferredAttributeId": null
 			},
@@ -899,7 +929,7 @@ const typeModels = {
 				"name": "ownerEncSessionKey",
 				"id": 87,
 				"type": "Bytes",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -908,7 +938,7 @@ const typeModels = {
 				"name": "ownerKeyVersion",
 				"id": 114,
 				"type": "Number",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			}
@@ -919,8 +949,18 @@ const typeModels = {
 				"name": "parent",
 				"id": 88,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"refTypeId": 0,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"138": {
+				"final": true,
+				"name": "folder",
+				"id": 138,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 123,
 				"dependency": null,
 				"transferredAttributeId": null
 			}
@@ -929,7 +969,7 @@ const typeModels = {
 	"89": {
 		"name": "DriveFolderServicePostOut",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 89,
@@ -965,7 +1005,7 @@ const typeModels = {
 	"92": {
 		"name": "DriveRenameData",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 92,
@@ -1020,7 +1060,7 @@ const typeModels = {
 	"97": {
 		"name": "DriveFolderServicePutIn",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 97,
@@ -1066,7 +1106,7 @@ const typeModels = {
 	"101": {
 		"name": "DriveFolderServiceDeleteIn",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 101,
@@ -1121,7 +1161,7 @@ const typeModels = {
 	"107": {
 		"name": "DriveCopyServicePostIn",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 107,
@@ -1167,7 +1207,7 @@ const typeModels = {
 	"115": {
 		"name": "DriveCopyServicePostOut",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 3,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 115,
@@ -1201,7 +1241,7 @@ const typeModels = {
 	"118": {
 		"name": "DriveItemServiceDeleteOut",
 		"app": "drive",
-		"version": 4,
+		"version": 5,
 		"since": 3,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 118,
@@ -1228,6 +1268,130 @@ const typeModels = {
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": null
+			}
+		},
+		"associations": {}
+	},
+	"123": {
+		"name": "DriveFolderTransferAggregatedType",
+		"app": "drive",
+		"version": 5,
+		"since": 5,
+		"type": "AGGREGATED_TYPE",
+		"id": 123,
+		"rootId": "BWRyaXZlAHs",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 0,
+		"values": {
+			"124": {
+				"final": true,
+				"name": "_id",
+				"id": 124,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"125": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 125,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 6
+			},
+			"126": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 126,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 7
+			},
+			"127": {
+				"final": true,
+				"name": "name",
+				"id": 127,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 9
+			}
+		},
+		"associations": {
+			"128": {
+				"final": true,
+				"name": "parent",
+				"id": 128,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 0,
+				"dependency": null,
+				"transferredAttributeId": 12
+			}
+		}
+	},
+	"129": {
+		"name": "DriveFileTransferAggregatedType",
+		"app": "drive",
+		"version": 5,
+		"since": 5,
+		"type": "AGGREGATED_TYPE",
+		"id": 129,
+		"rootId": "BWRyaXZlAACB",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 14,
+		"values": {
+			"130": {
+				"final": true,
+				"name": "_id",
+				"id": 130,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"131": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 131,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 20
+			},
+			"132": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 132,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 21
+			},
+			"133": {
+				"final": true,
+				"name": "name",
+				"id": 133,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 22
+			},
+			"134": {
+				"final": true,
+				"name": "mimeType",
+				"id": 134,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 24
 			}
 		},
 		"associations": {}

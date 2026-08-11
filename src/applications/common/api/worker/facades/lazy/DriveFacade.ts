@@ -98,6 +98,8 @@ export class DriveFacade {
 			file: isSameTypeRef(item._type, DriveFileTypeRef) ? item._id : null,
 			folder: isSameTypeRef(item._type, DriveFolderTypeRef) ? item._id : null,
 			newName,
+			fileWithNewName: null,
+			folderWithNewName: null,
 		})
 
 		await this.serviceExecutor.put(DriveItemService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
@@ -221,6 +223,7 @@ export class DriveFacade {
 			referenceTokens: blobRefTokens,
 			fileName: fileName,
 			mimeType: getCleanedMimeType(isWebFile(file) ? file.file.type : file.mimeType),
+			file: null,
 		})
 		uploadedFile.ownerEncSessionKey = ownerEncSessionKey
 		uploadedFile.ownerKeyVersion = String(fileGroupKey.version)
@@ -243,6 +246,7 @@ export class DriveFacade {
 		const newFolder = createDriveFolderServicePostIn({
 			folderName,
 			parent: parentFolder,
+			folder: null,
 		})
 		newFolder.ownerEncSessionKey = ownerEncSessionKey
 		newFolder.ownerKeyVersion = String(fileGroupKey.version)
