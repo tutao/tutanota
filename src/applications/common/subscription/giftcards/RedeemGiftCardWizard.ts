@@ -1,6 +1,6 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
-import { mapNullable, neverNull, noOp, ofClass } from "@tutao/utils"
+import { assertNotNull, mapNullable, neverNull, noOp, ofClass } from "@tutao/utils"
 import type { WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog.js"
 import { createWizardDialog, emitWizardEvent, WizardEventType, wizardPageWrapper } from "../../../../ui/base/WizardDialog.js"
 import { LoginController } from "../../api/main/LoginController"
@@ -89,7 +89,7 @@ class RedeemGiftCardModel {
 	}
 
 	get message(): string {
-		return this.config.giftCardInfo.message
+		return assertNotNull(this.config.giftCardInfo.message ?? this.config.giftCardInfo.giftCardForMessage?.message)
 	}
 
 	get paymentMethod(): PaymentMethodType {
@@ -220,7 +220,11 @@ class GiftCardWelcomePage implements WizardPageN<RedeemGiftCardModel> {
 							width: "480px",
 						},
 					},
-					renderGiftCardSvg(parseFloat(a.data.giftCardInfo.value), null, a.data.message),
+					renderGiftCardSvg(
+						parseFloat(assertNotNull(a.data.giftCardInfo.value ?? a.data.giftCardInfo.giftCardForMessage?.value)),
+						null,
+						a.data.message,
+					),
 				),
 			),
 			m(

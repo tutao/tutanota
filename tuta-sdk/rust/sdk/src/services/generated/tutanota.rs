@@ -1,6 +1,5 @@
 // @generated
 #![allow(unused_imports, dead_code, unused_variables)]
-use crate::bindings::rest_client::HttpMethod;
 use crate::entities::generated::tutanota::ApplyLabelServicePostIn;
 use crate::entities::generated::tutanota::CalendarDeleteIn;
 use crate::entities::generated::tutanota::ChangePrimaryAddressServicePutIn;
@@ -67,12 +66,7 @@ use crate::entities::generated::tutanota::UserAccountCreateData;
 use crate::entities::generated::tutanota::UserAccountPostOut;
 use crate::entities::generated::tutanota::UserAreaGroupDeleteData;
 use crate::entities::generated::tutanota::UserAreaGroupPostData;
-use crate::entities::Entity;
-use crate::services::hidden::Nothing;
-use crate::services::{
-	DeleteService, Executor, ExtraServiceParams, GetService, PostService, PutService, Service,
-};
-use crate::ApiCallError;
+use crate::services::{DeleteService, Executor, GetService, PostService, PutService};
 pub struct ApplyLabelService;
 
 crate::service_impl!(

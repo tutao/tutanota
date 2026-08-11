@@ -1,6 +1,6 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ListElementId, ElementId } from "@tutao/meta"
+import { ElementId, ListElementId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 
 
@@ -4416,9 +4416,11 @@ export function createGiftCardCreateData(values: GiftCardCreateDataParams): Gift
 export type GiftCardCreateDataParams = {
 
 
-	message: string;
-	value: NumberString;
+	message: null | string;
+	value: null | NumberString;
 	keyHash: Uint8Array<ArrayBuffer>;
+
+	giftCard: null | GiftCardTransferAggregatedType;
 }
 
 export type GiftCardCreateData = {
@@ -4427,11 +4429,13 @@ export type GiftCardCreateData = {
 	_original?: GiftCardCreateData
 
 	_format: NumberString;
-	message: string;
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
-	value: NumberString;
+	message: null | string;
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	value: null | NumberString;
 	keyHash: Uint8Array<ArrayBuffer>;
-	ownerKeyVersion: NumberString;
+	ownerKeyVersion: null | NumberString;
+
+	giftCard: null | GiftCardTransferAggregatedType;
 }
 export const GiftCardDeleteDataTypeRef: TypeRef<GiftCardDeleteData> = new TypeRef("sys", 1810)
 
@@ -4509,10 +4513,11 @@ export function createGiftCardRedeemGetReturn(values: GiftCardRedeemGetReturnPar
 export type GiftCardRedeemGetReturnParams = {
 
 
-	message: string;
-	value: NumberString;
+	message: null | string;
+	value: null | NumberString;
 
 	giftCard: IdTuple;
+	giftCardForMessage: null | GiftCardTransferAggregatedType;
 }
 
 export type GiftCardRedeemGetReturn = {
@@ -4521,10 +4526,11 @@ export type GiftCardRedeemGetReturn = {
 	_original?: GiftCardRedeemGetReturn
 
 	_format: NumberString;
-	message: string;
-	value: NumberString;
+	message: null | string;
+	value: null | NumberString;
 
 	giftCard: IdTuple;
+	giftCardForMessage: null | GiftCardTransferAggregatedType;
 }
 export const Braintree3ds2RequestTypeRef: TypeRef<Braintree3ds2Request> = new TypeRef("sys", 1828)
 
@@ -6729,4 +6735,27 @@ export type SubscriptionRevocationServicePostIn = {
 	_format: NumberString;
 
 	surveyData: null | SurveyData;
+}
+export const GiftCardTransferAggregatedTypeTypeRef: TypeRef<GiftCardTransferAggregatedType> = new TypeRef("sys", 2783)
+
+export function createGiftCardTransferAggregatedType(values: GiftCardTransferAggregatedTypeParams): GiftCardTransferAggregatedType {
+    return Object.assign(create(typeModels[GiftCardTransferAggregatedTypeTypeRef.typeId], GiftCardTransferAggregatedTypeTypeRef), values)
+}
+
+export type GiftCardTransferAggregatedTypeParams = {
+
+
+	value: NumberString;
+	message: string;
+}
+
+export type GiftCardTransferAggregatedType = {
+	_type: TypeRef<GiftCardTransferAggregatedType>;
+	_original?: GiftCardTransferAggregatedType
+
+	_id: Id;
+	value: NumberString;
+	message: string;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
 }
