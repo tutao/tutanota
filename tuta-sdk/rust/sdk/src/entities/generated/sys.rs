@@ -4360,17 +4360,19 @@ pub struct GiftCardCreateData {
 	#[serde(rename = "1804")]
 	pub _format: i64,
 	#[serde(rename = "1805")]
-	pub message: String,
+	pub message: Option<String>,
 	#[serde(rename = "1806")]
 	#[serde(with = "serde_bytes")]
-	pub ownerEncSessionKey: Vec<u8>,
+	pub ownerEncSessionKey: Option<Vec<u8>>,
 	#[serde(rename = "1807")]
-	pub value: i64,
+	pub value: Option<i64>,
 	#[serde(rename = "1809")]
 	#[serde(with = "serde_bytes")]
 	pub keyHash: Vec<u8>,
 	#[serde(rename = "2275")]
-	pub ownerKeyVersion: i64,
+	pub ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2793")]
+	pub giftCard: Option<GiftCardTransferAggregatedType>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -4450,11 +4452,13 @@ pub struct GiftCardRedeemGetReturn {
 	#[serde(rename = "1822")]
 	pub _format: i64,
 	#[serde(rename = "1824")]
-	pub message: String,
+	pub message: Option<String>,
 	#[serde(rename = "1825")]
-	pub value: i64,
+	pub value: Option<i64>,
 	#[serde(rename = "1823")]
 	pub giftCard: IdTupleGenerated,
+	#[serde(rename = "2794")]
+	pub giftCardForMessageAndValue: Option<GiftCardRedeemTransferAggregatedType>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -6569,6 +6573,57 @@ impl Entity for SubscriptionRevocationServicePostIn {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2771),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct GiftCardTransferAggregatedType {
+	#[serde(rename = "2784")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2785")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2786")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2787")]
+	pub value: i64,
+	#[serde(rename = "2788")]
+	pub message: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for GiftCardTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2783),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct GiftCardRedeemTransferAggregatedType {
+	#[serde(rename = "2790")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2791")]
+	pub value: i64,
+	#[serde(rename = "2792")]
+	pub message: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for GiftCardRedeemTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2789),
 		}
 	}
 }

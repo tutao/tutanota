@@ -57,6 +57,7 @@ export class GiftCardFacade {
 			message: message,
 			keyHash: sha256Hash(keyToUint8Array(sessionKey)),
 			value,
+			giftCard: null,
 		})
 		data.ownerEncSessionKey = ownerEncSessionKey.key
 		data.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
