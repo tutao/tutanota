@@ -383,6 +383,7 @@ export class ImapMailImportController {
 				spamMailbox: null,
 			},
 			imapAccountSyncStatus: ImapAccountSyncStatus.PAUSED,
+			newlyCreatedFolders: new Set(),
 			matchImapMailboxesToTutaMailSets: true,
 			isImapServerSupportingOAuth: false,
 			addLabelToImportedMails: true,

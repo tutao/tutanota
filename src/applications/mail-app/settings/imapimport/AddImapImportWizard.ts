@@ -5,7 +5,7 @@ import { ImapProvider, OauthConfigParams } from "../../../common/api/common/util
 import { TokenEndpointResponse } from "openid-client"
 import { ImapMailbox } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
-import { ManageLabelServiceLabelData } from "@tutao/entities/tutanota"
+import { MailSet, ManageLabelServiceLabelData } from "@tutao/entities/tutanota"
 import { createWizardDialog, wizardPageWrapper } from "../../../../ui/base/WizardDialog"
 import { ImapImportProviderSelectionPage, ImapImportProviderSelectionPageAttrs } from "./ImapImportProviderSelectionPage"
 import { ImapImportIntroductionPage, ImapImportIntroductionPageAttrs } from "./ImapImportIntroductionPage"
@@ -14,6 +14,7 @@ import { windowFacade } from "../../../common/misc/WindowFacade"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog"
 import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
 import { MailSetMapping } from "../../workerUtils/imapimport/ImapImporter"
+import { mailLocator } from "../../mailLocator"
 
 assertMainOrNode()
 
@@ -32,6 +33,7 @@ export type ImapImportData = {
 	}
 	imapAccountSyncStatus: ImapAccountSyncStatus
 	matchImapMailboxesToTutaMailSets: boolean
+	newlyCreatedFolders: Set<MailSet>
 	imapMailboxes: ReadonlyArray<ImapMailbox>
 	folderSystem: FolderSystem
 	imapMailboxesToTutaMailSets?: Map<string, MailSetMapping>
@@ -56,10 +58,14 @@ export function showAddImapImportWizard(imapImportData: ImapImportData): Promise
 		const wizardBuilder = createWizardDialog({
 			data: imapImportData,
 			pages: wizardPages,
-			closeAction: () => {
+			closeAction: async () => {
 				resolve()
 				if (imapImportData.imapAccountSyncStatus === ImapAccountSyncStatus.RUNNING) {
 					Dialog.showImapInitializationSuccessfulDialog()
+				} else if (imapImportData.imapAccountSyncStatus === ImapAccountSyncStatus.PAUSED) {
+					for (const mailSet of imapImportData.newlyCreatedFolders) {
+						await mailLocator.mailModel.finallyDeleteCustomMailFolder(mailSet)
+					}
 				}
 				return Promise.resolve()
 			},
