@@ -6715,24 +6715,29 @@ export function createGiftCardCreateData(values: GiftCardCreateDataParams): Gift
 }
 
 export type GiftCardCreateDataParams = {
-	message: string
-	value: NumberString
+	message: null | string
+	value: null | NumberString
 	keyHash: Uint8Array<ArrayBuffer>
+
+	giftCard: null | GiftCardTransferAggregatedType
 }
 
 export type GiftCardCreateData = {
 	// == values
 
 	_format: NumberString
-	message: string
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>
-	value: NumberString
+	message: null | string
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	value: null | NumberString
 	keyHash: Uint8Array<ArrayBuffer>
-	ownerKeyVersion: NumberString
+	ownerKeyVersion: null | NumberString
+
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
 	// == associations
+
+	giftCard: null | GiftCardTransferAggregatedType
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -6873,18 +6878,19 @@ export function createGiftCardRedeemGetReturn(values: GiftCardRedeemGetReturnPar
 }
 
 export type GiftCardRedeemGetReturnParams = {
-	message: string
-	value: NumberString
+	message: null | string
+	value: null | NumberString
 
 	giftCard: IdTuple
+	giftCardForMessageAndValue: null | GiftCardRedeemTransferAggregatedType
 }
 
 export type GiftCardRedeemGetReturn = {
 	// == values
 
 	_format: NumberString
-	message: string
-	value: NumberString
+	message: null | string
+	value: null | NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
@@ -6892,6 +6898,7 @@ export type GiftCardRedeemGetReturn = {
 	// == associations
 
 	giftCard: IdTuple
+	giftCardForMessageAndValue: null | GiftCardRedeemTransferAggregatedType
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -10581,5 +10588,76 @@ export type CustomerPlugins = {
 	// === these are not present in metamodel
 	_type: TypeRef<CustomerPlugins>
 	_original: Nullable<CustomerPlugins>
+	isAdapter: false
+}
+export const GiftCardTransferAggregatedTypeTypeRef: TypeRef<GiftCardTransferAggregatedType> = new TypeRef("sys", 2816)
+
+export function createGiftCardTransferAggregatedType(values: GiftCardTransferAggregatedTypeParams): GiftCardTransferAggregatedType {
+	return Object.assign(create(typeModels[GiftCardTransferAggregatedTypeTypeRef.typeId], GiftCardTransferAggregatedTypeTypeRef), values)
+}
+
+export type GiftCardTransferAggregatedTypeParams = {
+	value: NumberString
+	message: string
+}
+
+export type GiftCardTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	value: NumberString
+	message: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<GiftCardTransferAggregatedType>
+	_original: Nullable<GiftCardTransferAggregatedType>
+	isAdapter: false
+}
+export const GiftCardRedeemTransferAggregatedTypeTypeRef: TypeRef<GiftCardRedeemTransferAggregatedType> = new TypeRef("sys", 2822)
+
+export function createGiftCardRedeemTransferAggregatedType(values: GiftCardRedeemTransferAggregatedTypeParams): GiftCardRedeemTransferAggregatedType {
+	return Object.assign(create(typeModels[GiftCardRedeemTransferAggregatedTypeTypeRef.typeId], GiftCardRedeemTransferAggregatedTypeTypeRef), values)
+}
+
+export type GiftCardRedeemTransferAggregatedTypeParams = {
+	value: NumberString
+	message: string
+}
+
+export type GiftCardRedeemTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	value: NumberString
+	message: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<GiftCardRedeemTransferAggregatedType>
+	_original: Nullable<GiftCardRedeemTransferAggregatedType>
 	isAdapter: false
 }
