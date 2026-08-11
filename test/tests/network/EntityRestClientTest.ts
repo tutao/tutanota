@@ -11,13 +11,7 @@ import { arrayEquals, deepEqual, downcast, KeyVersion, Mapper, noOp, Nullable, o
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
-import {
-	DecryptedParsedInstance,
-	EntityAdapter,
-	InstancePipeline,
-	LoggedInUserProvider,
-	TypeModelResolver,
-} from "../../../src/platform-kit/instance-pipeline"
+import { DecryptedParsedInstance, EntityAdapter, InstancePipeline, LoggedInUserProvider, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
 import {
 	aes256RandomKey,
 	AesKey,
