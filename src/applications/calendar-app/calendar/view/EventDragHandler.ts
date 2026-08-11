@@ -5,9 +5,10 @@ import { showDropdownAtPosition } from "../../../../ui/base/Dropdown.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { newPromise } from "../../../../platform-kit/utils"
 import { isKeyPressed, isModifierKeyPressed, Key } from "../../../../ui/utils/KeyManager.js"
-import { isAppleDevice, Keys } from "../../../../platform-kit/app-env"
+import { isAppleDevice } from "../../../../platform-kit/app-env"
 import { EventWrapper } from "./CalendarViewModel"
 import { CalendarEvent } from "@tutao/entities/tutanota"
+import { Keys } from "../../../../ui/KeyboardKeys"
 
 const DRAG_THRESHOLD = 10
 export type MousePos = {

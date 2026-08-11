@@ -1,5 +1,5 @@
 import { keyManager } from "../../../ui/utils/KeyManager.js"
-import { FeatureType, Keys } from "../../../platform-kit/app-env"
+import { FeatureType } from "../../../platform-kit/app-env"
 import m from "mithril"
 import { CALENDAR_PREFIX, CONTACTS_PREFIX, DRIVE_PREFIX, LogoutUrl, MAIL_PREFIX, SETTINGS_PREFIX } from "../../../ui/utils/RouteChange.js"
 import { showQuickActionBar } from "./quickactions/QuickActionBar"
@@ -7,6 +7,7 @@ import { LoginController } from "../api/main/LoginController"
 import { QuickActionsModel } from "./quickactions/QuickActionsModel"
 import { SessionType } from "../../../platform-kit/app-env/SessionType"
 import { isDriveEnabled } from "./DriveUtils"
+import { Keys } from "../../../ui/KeyboardKeys"
 
 export function setupNavShortcuts({ quickActionsModel, logins }: { quickActionsModel: () => Promise<QuickActionsModel>; logins: LoginController }) {
 	function hasInAppNavigation() {

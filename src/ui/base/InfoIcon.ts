@@ -1,7 +1,8 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { px } from "../size.js"
 import { isKeyPressed } from "../utils/KeyManager.js"
-import { Keys, TabIndex } from "../../platform-kit/app-env"
+import { TabIndex } from "../../platform-kit/app-env"
+import { Keys } from "../KeyboardKeys"
 
 export interface InfoIconAttrs {
 	text: Children

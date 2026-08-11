@@ -1,7 +1,6 @@
 import { modal, ModalComponent } from "../../../../../ui/base/Modal.js"
 import { Shortcut } from "../../../../../ui/utils/KeyManager.js"
 import m, { Children } from "mithril"
-import { Keys } from "../../../../../platform-kit/app-env"
 import { DaySelector } from "./DaySelector.js"
 import { animations, opacity, transform, TransformEnum } from "../../../../../ui/animation/Animations.js"
 import { ease } from "../../../../../ui/animation/Easing.js"
@@ -10,8 +9,8 @@ import { formatMonthWithFullYear } from "../../../../../ui/utils/Formatter.js"
 import { incrementMonth } from "../../../../../platform-kit/utils"
 import { styles } from "../../../../../ui/styles.js"
 import renderSwitchMonthArrowIcon from "../../../../../ui/base/buttons/ArrowButton.js"
-
 import { PosRect } from "../../../../../ui/utils/PosRect"
+import { Keys } from "../../../../../ui/KeyboardKeys"
 
 export interface DaySelectorPopupAttrs {
 	selectedDate: Date

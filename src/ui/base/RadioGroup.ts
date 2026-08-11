@@ -2,8 +2,8 @@ import type { MaybeTranslation } from "../utils/LanguageViewModel"
 import { lang } from "../utils/LanguageViewModel"
 import m, { Child, Children, Component, Vnode } from "mithril"
 import { isKeyPressed } from "../utils/KeyManager.js"
-import { Keys } from "../../platform-kit/app-env"
 import { AriaRole } from "../AriaUtils.js"
+import { Keys } from "../KeyboardKeys"
 
 export interface SingularOrPluralLabel {
 	singular: MaybeTranslation
