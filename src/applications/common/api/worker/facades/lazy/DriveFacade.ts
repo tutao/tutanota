@@ -5,7 +5,7 @@ import { ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
 import { aes256RandomKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
-import { assertNotNull, first, groupBy, isEmpty, partition, promiseMap, Require } from "@tutao/utils"
+import { assertNotNull, first, groupBy, isEmpty, Nullable, partition, promiseMap, Require } from "@tutao/utils"
 import { getElementId, getListId, idToElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
@@ -18,9 +18,13 @@ import { isWebFile } from "../../../../../../ui/utils/FileUtils"
 import { FileReference, WebFile } from "../../../../../../entities/tutanota/Utils"
 import {
 	createDriveCopyServicePostIn,
+	createDriveFileNameTransferAggregatedType,
+	createDriveFileTransferAggregatedType,
+	createDriveFolderNameTransferAggregatedType,
 	createDriveFolderServiceDeleteIn,
 	createDriveFolderServicePostIn,
 	createDriveFolderServicePutIn,
+	createDriveFolderTransferAggregatedType,
 	createDriveItemDeleteIn,
 	createDriveItemPostIn,
 	createDriveItemPutIn,
@@ -29,10 +33,12 @@ import {
 	createDriveUploadedFile,
 	DriveCopyService,
 	DriveFile,
+	DriveFileNameTransferAggregatedType,
 	DriveFileRef,
 	DriveFileRefTypeRef,
 	DriveFileTypeRef,
 	DriveFolder,
+	DriveFolderNameTransferAggregatedType,
 	DriveFolderService,
 	DriveFolderTypeRef,
 	DriveGroupRoot,
@@ -65,6 +71,10 @@ function isDriveFile(source: DriveFile | DriveFolder): source is DriveFile {
 	return isSameTypeRef(source._type, DriveFileTypeRef)
 }
 
+function isDriveFolder(source: DriveFile | DriveFolder): source is DriveFolder {
+	return isSameTypeRef(source._type, DriveFolderTypeRef)
+}
+
 export interface DriveRootFolders {
 	root: IdTuple
 	trash: IdTuple
@@ -94,12 +104,29 @@ export class DriveFacade {
 	public async rename(item: DriveFile | DriveFolder, newName: string) {
 		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(item))
 
+		let fileWithNewName: Nullable<DriveFileNameTransferAggregatedType> = null
+		if (isDriveFile(item)) {
+			fileWithNewName = createDriveFileNameTransferAggregatedType({
+				name: newName,
+			})
+		}
+
+		let folderWithNewName: Nullable<DriveFolderNameTransferAggregatedType> = null
+		if (isDriveFolder(item)) {
+			folderWithNewName = createDriveFolderNameTransferAggregatedType({
+				name: newName,
+			})
+		}
+
 		const data = createDriveItemPutIn({
-			file: isSameTypeRef(item._type, DriveFileTypeRef) ? item._id : null,
-			folder: isSameTypeRef(item._type, DriveFolderTypeRef) ? item._id : null,
-			newName,
-			fileWithNewName: null,
-			folderWithNewName: null,
+			file: isDriveFile(item) ? item._id : null,
+			folder: isDriveFolder(item) ? item._id : null,
+			fileWithNewName,
+			folderWithNewName,
+
+			// no longer used
+
+			newName: null,
 		})
 
 		await this.serviceExecutor.put(DriveItemService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
@@ -184,6 +211,9 @@ export class DriveFacade {
 	}
 
 	/**
+	 * @param file
+	 * @param fileId
+	 * @param fileName
 	 * @param to this is the folder where the file will be uploaded
 	 */
 	public async uploadFile(file: WebFile | FileReference, fileId: TransferId, fileName: string, to: IdTuple): Promise<DriveFile | null> {
@@ -219,16 +249,23 @@ export class DriveFacade {
 			return null
 		}
 
+		const transferFile = createDriveFileTransferAggregatedType({
+			name: fileName,
+			mimeType: getCleanedMimeType(isWebFile(file) ? file.file.type : file.mimeType),
+		})
+		transferFile._ownerEncSessionKey = ownerEncSessionKey
+		transferFile._ownerKeyVersion = String(fileGroupKey.version)
 		const uploadedFile = createDriveUploadedFile({
 			referenceTokens: blobRefTokens,
-			fileName: fileName,
-			mimeType: getCleanedMimeType(isWebFile(file) ? file.file.type : file.mimeType),
-			file: null,
+			file: transferFile,
+
+			// no longer used
+
+			fileName: null,
+			mimeType: null,
 		})
-		uploadedFile.ownerEncSessionKey = ownerEncSessionKey
-		uploadedFile.ownerKeyVersion = String(fileGroupKey.version)
 		const data = createDriveItemPostIn({ uploadedFile: uploadedFile, parent: to })
-		const response = await this.serviceExecutor.post(DriveItemService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
+		const response = await this.serviceExecutor.post(DriveItemService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey, ownerKey: fileGroupKey })
 
 		return await this.entityClient.load(DriveFileTypeRef, response.createdFile)
 	}
@@ -243,14 +280,21 @@ export class DriveFacade {
 		const sessionKey = aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
 
-		const newFolder = createDriveFolderServicePostIn({
-			folderName,
+		const folder = createDriveFolderTransferAggregatedType({
+			name: folderName,
 			parent: parentFolder,
-			folder: null,
 		})
-		newFolder.ownerEncSessionKey = ownerEncSessionKey
-		newFolder.ownerKeyVersion = String(fileGroupKey.version)
-		const response = await this.serviceExecutor.post(DriveFolderService, newFolder, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
+		folder._ownerEncSessionKey = ownerEncSessionKey
+		folder._ownerKeyVersion = String(fileGroupKey.version)
+		const newFolder = createDriveFolderServicePostIn({
+			folder,
+
+			// no longer used
+
+			folderName: null,
+			parent: null,
+		})
+		const response = await this.serviceExecutor.post(DriveFolderService, newFolder, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey, ownerKey: fileGroupKey })
 		return this.entityClient.load(DriveFolderTypeRef, response.folder)
 	}
 
