@@ -20,6 +20,7 @@ import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto
 import {
 	createGiftCardCreateData,
 	createGiftCardRedeemData,
+	createGiftCardTransferAggregatedType,
 	GiftCard,
 	GiftCardRedeemGetReturn,
 	GiftCardRedeemService,
@@ -53,16 +54,20 @@ export class GiftCardFacade {
 
 		const sessionKey = aes256RandomKey()
 		const ownerEncSessionKey = _encryptKeyWithVersionedKey(ownerKey, sessionKey)
-		const data = createGiftCardCreateData({
-			message: message,
-			keyHash: sha256Hash(keyToUint8Array(sessionKey)),
+		const giftCardTransferAggregatedType = createGiftCardTransferAggregatedType({
+			message,
 			value,
-			giftCard: null,
 		})
-		data.ownerEncSessionKey = ownerEncSessionKey.key
-		data.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
-		const { giftCard } = await this.serviceExecutor.post(GiftCardService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
+		giftCardTransferAggregatedType._ownerEncSessionKey = ownerEncSessionKey.key
+		giftCardTransferAggregatedType._ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
+		const data = createGiftCardCreateData({
+			message: null,
+			value: null,
+			keyHash: sha256Hash(keyToUint8Array(sessionKey)),
+			giftCard: giftCardTransferAggregatedType,
+		})
 
+		const { giftCard } = await this.serviceExecutor.post(GiftCardService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey, ownerKey })
 		return giftCard
 	}
 
