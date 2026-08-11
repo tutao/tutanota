@@ -172,7 +172,7 @@ function wasReverseRangeCompletelyLoaded<T extends ListElementEntity>(rangeItemL
 		const lastLoaded = last(loadedEntities)
 		const lastFiltered = last(filteredEntities)
 
-		if (!lastLoaded) {
+		if (isNull(lastLoaded)) {
 			return true
 		}
 

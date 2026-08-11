@@ -26,6 +26,7 @@ import { GroupType } from "../../../entities/sys/Utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { CacheManager } from "./persistence/CacheManager"
 import { TypeId } from "../../meta/EntityConstants"
+import { isNull } from "../../utils/Utils"
 
 function convertCustomIdToKeyVersion(customId: Id): KeyVersion {
 	return cryptoUtils.parseKeyVersion(base64UrlCustomIdToString(customId))
@@ -264,7 +265,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 			}
 		}
 
-		if (lastVersion !== targetKeyVersion || !lastGroupKeyInstance) {
+		if (lastVersion !== targetKeyVersion || isNull(lastGroupKeyInstance)) {
 			throw new Error(`could not get version (last version is ${lastVersion} of ${formerKeys.length} key(s) loaded from list ${formerKeysList})`)
 		}
 

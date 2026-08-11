@@ -5,6 +5,7 @@
  */
 
 import { TimeConstants } from "@tutao/app-env"
+import { isNull } from "./Utils"
 
 /**
  * The minimum length of a calendar year.
@@ -96,7 +97,7 @@ export function incrementMonth(d: Date, byValue: number): Date {
 
 export function isSameDayOfDate(date1: Date | null, date2: Date | null): boolean {
 	return (
-		(!date1 && !date2) ||
+		(isNull(date1) && isNull(date2)) ||
 		(date1 != null &&
 			date2 != null &&
 			date1.getFullYear() === date2.getFullYear() &&

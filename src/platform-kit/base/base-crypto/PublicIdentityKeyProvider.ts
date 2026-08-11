@@ -10,6 +10,7 @@ import { SYSTEM_GROUP_MAIL_ADDRESS } from "../../../entities/sys/Utils"
 import { IdentityKeySourceOfTrust } from "@tutao/app-env"
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "./persistence/IdentityKeyTrustDatabase"
 import { idToElementId } from "@tutao/meta"
+import { isNull } from "../../utils/Utils"
 
 type IdentityKeyRawData = {
 	identityKeyVersion: NumberString
@@ -48,7 +49,7 @@ export class PublicIdentityKeyProvider {
 		const group = await this.entityClient.load(GroupTypeRef, idToElementId(groupId))
 		const groupIdentityKeyPair = group.identityKeyPair
 
-		if (!groupIdentityKeyPair) {
+		if (isNull(groupIdentityKeyPair)) {
 			return null
 		}
 

@@ -43,7 +43,7 @@ export function minBy<E, T extends Iterable<E>>(collection: T, selector: (item: 
 			min = { item, value }
 		}
 	}
-	return min ? min.item : null
+	return min?.item ?? null
 }
 
 export function max<T extends Iterable<number>>(set: T): number | null {
@@ -58,7 +58,7 @@ export function maxBy<E, T extends Iterable<E>>(collection: T, selector: (item: 
 			max = { item, value }
 		}
 	}
-	return max ? max.item : null
+	return max?.item ?? null
 }
 
 export function setAddAll<T>(set: Set<T>, toAdd: Iterable<T>): void {

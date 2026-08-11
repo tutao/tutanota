@@ -1,7 +1,7 @@
 import { EnvProvider, ProgrammingError, RolloutType } from "@tutao/app-env"
 import { getAsEnumValue, NULL_ENTITY } from "../../meta"
 import { IServiceExecutor } from "../../network/ServiceRequest"
-import { assertNotNull, LazyLoaded } from "@tutao/utils"
+import { assertNotNull, isNotNull, LazyLoaded } from "@tutao/utils"
 import { RolloutService_GET } from "@tutao/entities/sys"
 
 EnvProvider.assertWorkerOrNode()
@@ -65,8 +65,8 @@ export class RolloutFacade {
 	 */
 	public async processRollout(rolloutType: RolloutType): Promise<void> {
 		const rolloutActions = await this.rolloutActions.getAsync()
-		const rollout = rolloutActions.get(rolloutType)
-		if (rollout) {
+		const rollout = rolloutActions.get(rolloutType) ?? null
+		if (isNotNull(rollout)) {
 			try {
 				await rollout.execute()
 			} catch (e) {

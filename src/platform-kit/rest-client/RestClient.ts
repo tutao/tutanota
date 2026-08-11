@@ -136,7 +136,7 @@ export class RestClient implements RestClientInterface {
 
 				restartTimeoutTimer()
 
-				if (options.abortSignal) {
+				if (isNotNull(options.abortSignal)) {
 					options.abortSignal.addEventListener(
 						"abort",
 						() => {

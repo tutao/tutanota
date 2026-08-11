@@ -1,6 +1,6 @@
 import { _encryptBytes, aesDecrypt, cryptoUtils, EntropyDataChunk, random, Randomizer } from "@tutao/crypto"
 import { UserFacade } from "./UserFacade.js"
-import { lazy, noOp, ofClass } from "@tutao/utils"
+import { isNotNull, lazy, noOp, ofClass } from "@tutao/utils"
 import { ConnectionError, LockedError, ServiceUnavailableError } from "@tutao/rest-client/error"
 import { IServiceExecutor } from "../../network/ServiceRequest.js"
 import { KeyLoaderFacade } from "../base-crypto/KeyLoaderFacade.js"
@@ -65,7 +65,7 @@ export class EntropyFacade {
 	 * Loads entropy from the last logout.
 	 */
 	public async loadEntropy(tutanotaProperties: TutanotaProperties): Promise<void> {
-		if (tutanotaProperties.userEncEntropy) {
+		if (isNotNull(tutanotaProperties.userEncEntropy)) {
 			try {
 				const keyLoaderFacade = this.lazyKeyLoaderFacade()
 				const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(cryptoUtils.parseKeyVersion(tutanotaProperties.userKeyVersion ?? "0"))

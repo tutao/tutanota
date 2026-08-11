@@ -1,5 +1,5 @@
 import { EnvProvider, ShareCapability } from "@tutao/app-env"
-import { neverNull } from "@tutao/utils"
+import { isNotNull, neverNull } from "@tutao/utils"
 import { RecipientsNotFoundError } from "../../../network/error/RecipientsNotFoundError.js"
 import {
 	_encryptBytes,
@@ -95,7 +95,7 @@ export class ShareFacade {
 				notFoundRecipients,
 				keyVerificationMismatchRecipients,
 			)
-			if (keyData && keyData.pubEncRecipientKeyData != null) {
+			if (isNotNull(keyData) && keyData.pubEncRecipientKeyData != null) {
 				invitationData.internalKeyData.push(keyData.pubEncRecipientKeyData)
 			}
 		}

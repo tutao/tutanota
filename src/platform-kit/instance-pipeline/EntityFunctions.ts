@@ -244,9 +244,9 @@ export class ServerModelInfo {
 			const serverFinal = this.asBoolean(modelValueInfoRecord.final)
 			const serverCardinality = this.ensureVariantOf(CardinalityEnum, String(modelValueInfoRecord.cardinality))
 
-			const clientModelValue = clientModelType?.values[attrId]
+			const clientModelValue = clientModelType?.values[attrId] ?? null
 
-			if (clientModelValue) {
+			if (isNotNull(clientModelValue) && isNotNull(clientModelType)) {
 				const isEncrypted = this.asBoolean(clientModelValue.encrypted)
 				if (isEncrypted && !serverEncrypted) {
 					throw new InvalidModelError(

@@ -1,4 +1,4 @@
-import { Nullable } from "./Utils"
+import { isNull, Nullable } from "./Utils"
 
 /**
  * Metrics sum up of time periods
@@ -64,7 +64,7 @@ export class SyncMetrics {
 
 	getSumup(category: Category): Sumup {
 		let measurement: Sumup | null = this.metrics.get(category) ?? null
-		if (!measurement) {
+		if (isNull(measurement)) {
 			measurement = new Sumup()
 			this.metrics.set(category, measurement)
 		}

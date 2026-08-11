@@ -1,5 +1,5 @@
 import { EnvProvider } from "@tutao/app-env"
-import { freshVersioned, getFirstOrThrow, neverNull } from "@tutao/utils"
+import { freshVersioned, getFirstOrThrow, isNotNull, neverNull } from "@tutao/utils"
 import { CounterFacade } from "../../../network/CounterFacade.js"
 import { EntityClient } from "../../../network/EntityClient.js"
 import { IServiceExecutor } from "../../../network/ServiceRequest.js"
@@ -132,7 +132,7 @@ export class GroupManagementFacade {
 		const groupInfoSessionKey = this.cryptoWrapper.aes256RandomKey()
 
 		const userEncGroupKey = _encryptKeyWithVersionedKey(userGroupKey, groupKey.object)
-		const adminEncGroupKey = adminGroupKey ? _encryptKeyWithVersionedKey(adminGroupKey, groupKey.object) : null
+		const adminEncGroupKey = isNotNull(adminGroupKey) ? _encryptKeyWithVersionedKey(adminGroupKey, groupKey.object) : null
 		const customerEncGroupInfoSessionKey = _encryptKeyWithVersionedKey(customerGroupKey, groupInfoSessionKey)
 		const groupEncGroupRootSessionKey = _encryptKeyWithVersionedKey(groupKey, groupRootSessionKey)
 

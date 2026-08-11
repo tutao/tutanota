@@ -101,7 +101,7 @@ export function firstBiggerThanSecondBase64Ext(firstId: Id, secondId: Id): boole
 }
 
 export function get_IdValue(typeModel: Nullable<TypeModel> = null): ModelValue | null {
-	if (typeModel) {
+	if (isNotNull(typeModel)) {
 		return Object.values(typeModel.values).find((valueType) => valueType.name === "_id") ?? null
 	}
 	return null

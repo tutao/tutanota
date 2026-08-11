@@ -1,6 +1,6 @@
 import { KeyVerificationMismatchError } from "../../../network/error/KeyVerificationMismatchError"
 import { EncryptionKeyVerificationState, EnvProvider, IdentityKeySourceOfTrust, ProgrammingError } from "@tutao/app-env"
-import { concat, uint8ArrayToHex, Versioned } from "@tutao/utils"
+import { concat, isNotNull, uint8ArrayToHex, Versioned } from "@tutao/utils"
 import {
 	ed25519PublicKeyToBytes,
 	PublicKey,
@@ -73,7 +73,7 @@ export class KeyVerificationFacade {
 
 		// there is no identity key for the mailAddress (a legitimate case for now)
 		if (trustedIdentity == null) {
-			if (publicKeySignature) {
+			if (isNotNull(publicKeySignature)) {
 				throw new KeyVerificationMismatchError("signature but no identity key for: " + mailAddress)
 			}
 			return {

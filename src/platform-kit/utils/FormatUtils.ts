@@ -1,4 +1,5 @@
 import { startsWith } from "./index"
+import { isNull } from "./Utils"
 
 const DOMAIN_PART_REGEX = "[\\w\\-\\+_]+"
 export const DOMAIN_REGEXP = new RegExp(`^${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`)
@@ -104,7 +105,7 @@ export function isRegularExpression(value: string): boolean {
 export function isValidCreditCardNumber(input: string): boolean {
 	const cleaned = input.match(/^[0123456789 ]+$/)
 
-	if (!cleaned || cleaned.length !== 1) {
+	if (isNull(cleaned) || cleaned.length !== 1) {
 		return false
 	}
 

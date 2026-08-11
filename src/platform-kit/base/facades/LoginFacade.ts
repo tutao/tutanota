@@ -16,7 +16,7 @@ import {
 	uint8ArrayToBase64,
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
-import { elementIdToId, GENERATED_ID_BYTES_LENGTH, idToElementId, isSameId, NullEntity } from "../../meta"
+import { elementIdToId, GENERATED_ID_BYTES_LENGTH, idToElementId, isSameId, isSameSingleId, NullEntity } from "../../meta"
 import { CancelledError, Const, DeactivationReason, EnvProvider, ProgrammingError, RolloutType, SessionType } from "@tutao/app-env"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "../../rest-client/types"
@@ -115,6 +115,7 @@ import {
 } from "../../instance-pipeline/RestClientOptions"
 import { EntityUtils } from "../../instance-pipeline/EntityUtils"
 import { IncomingServerJson } from "../../instance-pipeline/TypeMapper"
+import { isNull } from "../../utils/Utils"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -447,8 +448,8 @@ export class LoginFacade implements SessionTypeProvider {
 		const credentials = {
 			login: userId,
 			accessToken,
-			encryptedPassword: accessKey ? uint8ArrayToBase64(_encryptString(accessKey, passphrase)) : null,
-			encryptedPassphraseKey: accessKey ? encryptKey(accessKey, userPassphraseKey) : null,
+			encryptedPassword: isNotNull(accessKey) ? uint8ArrayToBase64(_encryptString(accessKey, passphrase)) : null,
+			encryptedPassphraseKey: isNotNull(accessKey) ? encryptKey(accessKey, userPassphraseKey) : null,
 			userId,
 			type: CredentialType.External,
 		}
@@ -481,7 +482,7 @@ export class LoginFacade implements SessionTypeProvider {
 
 	/** Cancels 2FA process. */
 	async cancelCreateSession(sessionId: IdTuple): Promise<void> {
-		if (!this.loginRequestSessionId || !isSameId(this.loginRequestSessionId, sessionId)) {
+		if (isNull(this.loginRequestSessionId) || !isSameId(this.loginRequestSessionId, sessionId)) {
 			throw new Error("Trying to cancel session creation but the state is invalid")
 		}
 
@@ -936,7 +937,7 @@ export class LoginFacade implements SessionTypeProvider {
 		})
 		try {
 			const secondFactorAuthGetReturn = await this.serviceExecutor.execute(SecondFactorAuthService_GET, secondFactorAuthGetData, null)
-			if (!this.loginRequestSessionId || !isSameId(this.loginRequestSessionId, sessionId)) {
+			if (isNull(this.loginRequestSessionId) || !isSameId(this.loginRequestSessionId, sessionId)) {
 				throw new CancelledError("login cancelled")
 			}
 
@@ -1059,7 +1060,7 @@ export class LoginFacade implements SessionTypeProvider {
 		// - if it's a partial login
 		const userIdFromFormerLogin = this.userFacade.getUser()?._id ?? null
 
-		if (userIdFromFormerLogin && userId !== elementIdToId(userIdFromFormerLogin)) {
+		if (isNotNull(userIdFromFormerLogin) && !isSameSingleId(userId, elementIdToId(userIdFromFormerLogin))) {
 			throw new Error("different user is tried to login in existing other user's session")
 		}
 

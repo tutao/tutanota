@@ -166,7 +166,20 @@ export default defineConfig([
 			},
 		},
 		rules: {
-			"@typescript-eslint/strict-boolean-expressions": "error",
+			"@typescript-eslint/strict-boolean-expressions": [
+				"error",
+				{
+					allowRuleToRunWithoutStrictNullChecksIKnowWhatIAmDoing: false,
+					allowAny: false,
+					allowNullableBoolean: false,
+					allowNullableEnum: false,
+					allowNullableNumber: false,
+					allowNullableObject: false,
+					allowNullableString: false,
+					allowNumber: false,
+					allowString: false,
+				},
+			],
 			"@typescript-eslint/no-non-null-assertion": "error",
 			"@typescript-eslint/explicit-function-return-type": "error",
 			"local/noUnionExceptNullable": "error",

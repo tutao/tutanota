@@ -40,7 +40,7 @@ export class TutanotaError extends Error {
 				// not existing in IE9
 				let stackLines = error.stack.split("\n")
 
-				while (stackLines[0] != null && !stackLines[0].match(this.name)) {
+				while (stackLines[0] != null && stackLines[0].match(this.name) == null) {
 					stackLines = stackLines.slice(1) // removes line from stack
 				}
 

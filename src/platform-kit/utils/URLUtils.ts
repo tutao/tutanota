@@ -1,3 +1,5 @@
+import { Nullable } from "./Utils"
+
 export function parseUrl(link: string): URL | null {
 	try {
 		return new URL(link)
@@ -6,7 +8,6 @@ export function parseUrl(link: string): URL | null {
 	}
 }
 
-export function getUrlDomain(link: string): string | null {
-	const url = parseUrl(link)
-	return url && url.hostname
+export function getUrlDomain(link: string): Nullable<string> {
+	return parseUrl(link)?.hostname ?? null
 }

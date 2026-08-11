@@ -90,7 +90,7 @@ export function debounceStart<F extends (...args: any) => void>(timeout: number,
 	let lastInvoked = 0
 	return downcast((...args: any) => {
 		if (Date.now() - lastInvoked < timeout) {
-			if (timeoutId) clearTimeout(timeoutId)
+			if (isNotNull(timeoutId)) clearTimeout(timeoutId)
 			timeoutId = setTimeout(() => {
 				timeoutId = null
 				toThrottle.apply(null, args)

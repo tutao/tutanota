@@ -24,6 +24,7 @@ import {
 	hasError,
 	idToElementId,
 	isSameId,
+	isSameSingleId,
 	isSameTypeRef,
 	stringifyId,
 } from "../../meta"
@@ -91,7 +92,6 @@ import {
 	Mail,
 	MailTypeRef,
 	SymEncInternalRecipientKeyData,
-	SymEncInternalRecipientKeyDataParams,
 } from "@tutao/entities/tutanota"
 import { HttpMethod, RestTextBody } from "@tutao/rest-client/types"
 import { CryptoNetworkHelper } from "../../network/CryptoNetworkHelper"
@@ -146,7 +146,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 
 	async resolveSessionKeyWithOwnerKey(ownerKey: AesKey | null, migratedEntity: PersistentEntity): Promise<Nullable<AesKey>> {
 		try {
-			if (ownerKey && migratedEntity._ownerEncSessionKey) {
+			if (isNotNull(ownerKey) && isNotNull(migratedEntity._ownerEncSessionKey)) {
 				return this.decryptSessionKeyWithOwnerKey(migratedEntity._ownerEncSessionKey, ownerKey)
 			} else {
 				return await this.resolveSessionKey(migratedEntity)
@@ -168,12 +168,16 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		}
 
 		try {
-			if (instance.bucketKey) {
+			if (isNotNull(instance.bucketKey)) {
 				// if we have a bucket key, then we need to cache the session keys stored in the bucket key for details, files, etc.
 				// we need to do this BEFORE we check the owner enc session key
 				const resolvedSessionKeys = await this.resolveWithBucketKey(instance)
 				return resolvedSessionKeys.resolvedSessionKeyForInstance
-			} else if (instance._ownerEncSessionKey && this.userFacade.isFullyLoggedIn() && this.userFacade.hasGroup(assertNotNull(instance._ownerGroup))) {
+			} else if (
+				isNotNull(instance._ownerEncSessionKey) &&
+				this.userFacade.isFullyLoggedIn() &&
+				this.userFacade.hasGroup(assertNotNull(instance._ownerGroup))
+			) {
 				this.instanceSessionKeysCache.delete(instance)
 
 				const gk = await this.symGroupKeyLoader.loadSymGroupKey(
@@ -210,7 +214,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	 */
 	public async resolveWithBucketKey(instance: PersistentEntity): Promise<ResolvedSessionKeys> {
 		const instanceSessionKeysFromCache = this.instanceSessionKeysCache.get(instance)
-		if (instanceSessionKeysFromCache) {
+		if (isNotNull(instanceSessionKeysFromCache)) {
 			const instanceId = instance._id
 			const encryptedSessionKeyForInstance = first(
 				instanceSessionKeysFromCache.filter((instanceSessionKey) =>
@@ -354,7 +358,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 					this.userFacade.hasGroup(p._ownerGroup),
 			) ?? null
 
-		if (symmetricPermission) {
+		if (isNotNull(symmetricPermission)) {
 			const gk = await this.symGroupKeyLoader.loadSymGroupKey(
 				assertNotNull(symmetricPermission._ownerGroup),
 				cryptoUtils.parseKeyVersion(symmetricPermission._ownerKeyVersion ?? "0"),
@@ -433,7 +437,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			const mail = await this.getDecryptedMailFromAdapter(instance, resolvedSessionKeyForInstance)
 
 			if (isNull(encryptionAuthStatus)) {
-				if (!pqMessageSenderKey) {
+				if (isNull(pqMessageSenderKey)) {
 					// This message was encrypted with RSA. We check if TutaCrypt could have been used instead.
 					const recipientGroup = assertNotNull(
 						keyGroup,
@@ -559,7 +563,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 				null,
 			)
 			bucketKey = decryptKey(ownerGroupKey, bucketPermission.ownerEncBucketKey)
-		} else if (bucketPermission.symEncBucketKey) {
+		} else if (isNotNull(bucketPermission.symEncBucketKey)) {
 			// legacy case: for very old email sent to external user we used symEncBucketKey on the bucket permission.
 			// The bucket key is encrypted with the user group key of the external user.
 			// We maintain this code as we still have some old BucketKeys in some external mailboxes.
@@ -616,7 +620,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 	}
 
 	async resolveServiceSessionKey(instance: EntityAdapter): Promise<AesKey | null> {
-		if (instance._ownerPublicEncSessionKey) {
+		if (isNotNull(instance._ownerPublicEncSessionKey)) {
 			// we assume the server uses the current key pair of the recipient
 			const keypair = await this.symGroupKeyLoader.loadCurrentKeyPair(assertNotNull(instance._ownerGroup), null)
 			// we do not authenticate as we could remove data transfer type encryption altogether and only rely on tls
@@ -730,7 +734,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			return
 		}
 
-		if (!instance._ownerEncSessionKey && permission._ownerGroup === instance._ownerGroup) {
+		if (isNull(instance._ownerEncSessionKey) && isSameSingleId(permission._ownerGroup, instance._ownerGroup)) {
 			return this.updateOwnerEncSessionKey(downcast<EntityAdapter>(instance), permissionOwnerGroupKey, sessionKey)
 		} else {
 			// instances shared via permissions (e.g. body)
@@ -757,7 +761,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			return childInstances.slice()
 		}
 		const outOfSyncInstances = childInstances.filter((f) => isNull(f._ownerEncSessionKey) || (TypeChecks.hasProperty("_errors", f) && hasError(f)))
-		if (instance.bucketKey) {
+		if (isNotNull(instance.bucketKey)) {
 			// invoke updateSessionKeys service in case a bucket key is still available
 			const resolvedSessionKeys = await this.resolveWithBucketKey(instance)
 			await this.postUpdateSessionKeysService(resolvedSessionKeys.instanceSessionKeys)

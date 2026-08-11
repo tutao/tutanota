@@ -320,9 +320,9 @@ export class EntityRestClient implements EntityRestInterface {
 
 			let serversToTry = blobServerAccessInfo.servers
 			if (isNotNull(opts.baseUrl)) {
-				const preferredServer = blobServerAccessInfo.servers.find((server) => server.url === opts.baseUrl)
+				const preferredServer = blobServerAccessInfo.servers.find((server) => server.url === opts.baseUrl) ?? null
 
-				if (preferredServer) {
+				if (isNotNull(preferredServer)) {
 					// preferredServer takes precedence over the rest
 					serversToTry = [preferredServer].concat(blobServerAccessInfo.servers.filter((server) => server.url !== opts.baseUrl))
 				}
@@ -384,7 +384,7 @@ export class EntityRestClient implements EntityRestInterface {
 		ownerEncSessionKeyProvider: Nullable<OwnerEncSessionKeyProvider> = null,
 	): Promise<DecryptedParsedInstance> {
 		let sessionKey: AesKey | null
-		if (ownerEncSessionKeyProvider) {
+		if (isNotNull(ownerEncSessionKeyProvider)) {
 			const { listId: _, elementId } = expandId(entityAdapter._id)
 
 			const ownerEncSessionKey = await ownerEncSessionKeyProvider(elementId, entityAdapter)
@@ -516,7 +516,7 @@ export class EntityRestClient implements EntityRestInterface {
 			}
 		})
 
-		if (errors.length) {
+		if (errors.length > 0) {
 			if (errors.some(isOfflineError)) {
 				throw new ConnectionError("Setup multiple entities failed")
 			}
@@ -590,7 +590,7 @@ export class EntityRestClient implements EntityRestInterface {
 			)
 			return makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(sessionKey)
 		} else {
-			if (!ownerKey) {
+			if (isNull(ownerKey)) {
 				if (instance._ownerGroup == null) {
 					throw new ProgrammingError("This instance has no owner group")
 				}

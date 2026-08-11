@@ -1,4 +1,4 @@
-import { assertNotNull, Nullable, Versioned } from "@tutao/utils"
+import { assertNotNull, isNotNull, Nullable, Versioned } from "@tutao/utils"
 import { EntityClient } from "../../network/EntityClient.js"
 import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { IServiceExecutor } from "../../network/ServiceRequest.js"
@@ -147,7 +147,7 @@ export class IdentityKeyCreator {
 			try {
 				// it can be the case that some groups already have an identity key, so we check first
 				let group = await this.entityClient.load(GroupTypeRef, idToElementId(groupId))
-				if (group.identityKeyPair) continue
+				if (isNotNull(group.identityKeyPair)) continue
 
 				// shared mailbox group members don't need access to identity keys, that's the responsibility of the admins
 				//if we have an RSA only keypair we generate the ecc key now so we do not have to sign again

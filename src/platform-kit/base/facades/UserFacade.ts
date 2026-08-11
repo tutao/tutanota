@@ -8,6 +8,7 @@ import { GroupType } from "../../../entities/sys/Utils"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { KeyCache } from "../base-crypto/persistence/KeyCache"
 import { isSameSingleId } from "@tutao/meta"
+import { isNull } from "../../utils/Utils"
 
 /** Holder for the user and session-related data on the worker side. */
 export class UserFacade extends LoggedInUserProvider {
@@ -155,13 +156,8 @@ export class UserFacade extends LoggedInUserProvider {
 	}
 
 	getMembership(groupId: Id): GroupMembership {
-		let membership = this.getLoggedInUser().memberships.find((g: GroupMembership) => isSameSingleId(g.group, groupId))
-
-		if (!membership) {
-			console.log(new Error().stack)
-		}
-
-		if (!membership) {
+		const membership = this.getLoggedInUser().memberships.find((g: GroupMembership) => isSameSingleId(g.group, groupId)) ?? null
+		if (isNull(membership)) {
 			throw new Error(`No membership with groupId ${groupId} found!`)
 		}
 
@@ -179,9 +175,9 @@ export class UserFacade extends LoggedInUserProvider {
 		if (groupType === GroupType.User) {
 			return this.getUserGroupId()
 		} else {
-			let membership = this.getLoggedInUser().memberships.find((m) => m.groupType === groupType)
+			let membership = this.getLoggedInUser().memberships.find((m) => m.groupType === groupType) ?? null
 
-			if (!membership) {
+			if (isNull(membership)) {
 				throw new Error("could not find groupType " + groupType + " for user " + this.getLoggedInUser()._id)
 			}
 
