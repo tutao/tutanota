@@ -2436,5 +2436,6 @@ export default {
 		"noMatchingInboxRulesFound_msg": "No emails were affected",
 		"inboxRuleHasAttachment_label": "Mit Anhang",
 		"inboxRuleHasNoAttachment_label": "Ohne Anhang",
+		"inboxRuleAnyRecipientEquals_action": "Irgendein Empfänger",
 	}
 }
