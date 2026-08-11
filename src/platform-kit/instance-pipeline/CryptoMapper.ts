@@ -335,7 +335,11 @@ export class CryptoMapper {
 		parsedInstance: DecryptedParsedInstance,
 		ownerKey: Nullable<VersionedKey>,
 	) {
-		const ownerEncSessionKey = parsedInstance.getAttributeByNameIfPresentOrNull("_ownerEncSessionKey")?.asByteArray() ?? null
+		const parsedValueOwnerEncSessionKey = parsedInstance.getAttributeByNameIfPresentOrNull("_ownerEncSessionKey")
+		let ownerEncSessionKey = null
+		if (parsedValueOwnerEncSessionKey != null && !parsedValueOwnerEncSessionKey.isNull()) {
+			ownerEncSessionKey = parsedValueOwnerEncSessionKey.asByteArray()
+		}
 		let newSubKeyInfo: Nullable<SubKeyInfo> = null
 		if (ownerEncSessionKey) {
 			if (ownerKey == null) {
