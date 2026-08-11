@@ -1,0 +1,52 @@
+[plantuml, puml, svg]
+----
+@startuml
+title Worker API Architecture
+
+package "IDL" as IDL {
+    [ProtoBuf]
+    [Cap'n Proto]
+}
+
+[Serializer]
+
+package "RPC Protocol" as RPC {
+    [JSON-RPC]
+    [gRPC]
+    [Connect]
+    [Cap’n Proto RPC]
+    [Apache Thrift]
+    [MessagePack-RPC]
+    [XML-RPC]
+    [SOAP]
+}
+
+[Deserializer]
+
+package "Transport" {
+    [IPC]
+    [HTTP/1.1]
+    [HTTP/2]
+    [custom TCP]
+}
+
+package Serialization {
+    [JSON]
+    [Protobuf]
+    [MessagePack]
+    [Thrift binary]
+    [Cap'n Proto]
+}
+
+IDL -down-> Serializer: generate
+IDL -down-> Deserializer: generate
+
+Serializer -down-> RPC
+RPC -up-> Deserializer
+
+RPC <-down-> Transport
+
+@enduml
+----
+
+https://github.com/GoogleChromeLabs/comlink

@@ -1,0 +1,22 @@
+[plantuml, puml, svg]
+----
+@startuml
+
+class Mail {
+    Recipient
+    CarbonCopy
+    BlindCarbonCopy
+    Subject
+    Body
+    Attatchments
+}
+
+class Calendar
+
+@enduml
+
+----
+
+Mail Folder
+-> what if we switch to labels instead of folders
+-> how to specify mail location?

@@ -1,0 +1,22 @@
+[plantuml, puml, svg]
+----
+@startuml
+actor Support
+participant "E-Mail Client" as Client
+participant Plugin
+boundary "Summary REST API" as Api
+
+Plugin -> Client : Register button
+Support -> Client : Click button
+Client -> Plugin : Notify about button click
+Plugin -> Client : Display loading popup
+Plugin -> Client : Request mail body
+Client -> Support : Display loading popup
+Client -> Plugin : Provide mail body
+Plugin -> Api : Request summary
+Api -> Plugin : Respond with summary
+Plugin -> Client : Display result
+Client -> Support : Display result popup
+@enduml
+
+----

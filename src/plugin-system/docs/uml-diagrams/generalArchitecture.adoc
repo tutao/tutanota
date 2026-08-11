@@ -1,0 +1,52 @@
+[plantuml, puml, svg]
+----
+@startuml
+skinparam componentStyle uml2
+
+title Plugin Sketch
+
+package "Server" {
+    component TutaServer
+    component PluginStore as Store
+}
+package "Client" {
+    component Adapter
+    component Plugin as Plugin
+    package TutaClient {
+        component  SharedBase
+        component Native
+        component UI as Ui
+
+        database DB {
+            component NativeDB
+        }
+
+        SharedBase -up- Native
+        Native -up- Ui
+        Native - NativeDB
+    }
+    package "PluginInterfaces" {
+        ' Observe (read data, events, state)
+        interface IReadData
+        interface IEventBus
+        ' Act (modify entities, execute commands, start services/ tasks)
+        interface IModifyData
+        ' Persist (Store plugin state, access configuration, cache data)
+        interface IPluginStorage
+        interface ISharedStorage
+        ' Extend (Register commands, UI elements, new entity types, import/export handlers, event handlers)
+        interface IUIRegistry
+    }
+
+
+    PluginInterfaces <-left-> Plugin
+    PluginInterfaces <--> Adapter
+    Adapter <--> TutaClient
+}
+
+
+TutaClient <--> TutaServer
+Store --> Plugin
+
+@enduml
+----

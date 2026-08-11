@@ -1,0 +1,69 @@
+[plantuml,puml,svg]
+----
+@startuml
+
+start
+
+:Start application;
+
+:Initialize core services;
+note right
+Logger
+Configuration
+DI Container
+Event Bus
+end note
+
+partition "Plugin Manager" {
+    :Discover plugins;
+
+    repeat
+        :Load plugin module;
+        :Instantiate plugin;
+    repeat while (More plugins?)
+
+    partition "Registration Phase" {
+
+        repeat
+            :Call plugin.register(api);
+
+            note right
+            Register:
+            - Commands
+            - Menus
+            - Views
+            - Services
+            - Event handlers
+            - Settings
+            end note
+
+        repeat while (More plugins?)
+
+        :Validate registrations;
+        :Resolve dependencies;
+        :Freeze registries;
+    }
+
+    partition "Initialization Phase" {
+
+        repeat
+            :Call plugin.initialize();
+        repeat while (More plugins?)
+
+    }
+
+    partition "Activation Phase" {
+
+        repeat
+            :Call plugin.start();
+        repeat while (More plugins?)
+
+    }
+}
+
+:System ready;
+
+stop
+
+@enduml
+----

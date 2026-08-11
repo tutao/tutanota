@@ -1,0 +1,48 @@
+[plantuml, puml, svg]
+----
+@startuml
+
+package "Client" {
+    package "Main Process" {
+        [Host Application] as Host
+        [Adapter] as HostAdapter
+        [Connector] as HostConnector
+
+        Host <--> HostAdapter
+        HostAdapter <--> HostConnector
+    }
+
+    package "Isolated Process" {
+        [Connector] as PluginConnector
+        [Plugin A] as PluginA
+        [Plugin B] as PluginB
+        [Plugin C] as PluginC
+
+        PluginConnector <--> PluginA
+        PluginConnector <--> PluginB
+        PluginConnector <--> PluginC
+    }
+    HostConnector <--> PluginConnector: IPC
+}
+
+package "Interface Description Language" as IDL{
+    [ProtoBuf]
+    [Cap'n Proto]
+}
+
+    package "Plugin Interfaces" as PluginInterfaces {
+        () IReadData
+        () IEventBus
+        () IModifyData
+        () IPluginStorage
+        () ISharedStorage
+        () IUIRegistry
+    }
+
+IDL --> PluginInterfaces: specifies
+
+IDL -left-> HostConnector: generate
+IDL -left-> PluginConnector: generate
+
+@enduml
+----

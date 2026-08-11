@@ -1,0 +1,38 @@
+[plantuml, puml, svg]
+----
+@startuml
+actor User
+participant "E-Mail Client" as Client
+participant Plugin
+boundary "NextCloud Endpoint" as Api
+
+group Discovery
+    Client -> Client : Startup
+    Client -> Plugin : Discover
+    Plugin -> Client : Response
+    Client -> Client : Register plugin
+end
+
+group Load Plugin
+    Client -> Plugin : Load
+    Plugin -> Client : Show text input popup
+    Client -> User : Show text input popup
+    User -> Client : Provide API key
+    Client -> Plugin : Provide API key
+    Plugin -> Api : Verify API key
+    Plugin -> Client : Store API key
+end
+
+group Unload Plugin
+    Client -> Plugin : Unload
+    Plugin -> Client : Delete API keys
+    Client -> Client : Clean up
+end
+
+
+@enduml
+----
+
+should generalization already happen here?
+
+e.g. Show text input popup or Request API key?

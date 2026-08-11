@@ -1,0 +1,16 @@
+[plantuml,puml,svg]
+----
+@startuml
+skinparam componentStyle uml2
+
+component core as "Core System"
+component plugin_a as "Plug-in A"
+component plugin_b as "Plug-in B"
+component plugin_c as "Plug-in C"
+
+core <--> plugin_a
+core <--> plugin_b
+core <--> plugin_c
+
+@enduml
+----

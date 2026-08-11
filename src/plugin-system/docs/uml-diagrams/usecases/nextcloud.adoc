@@ -1,0 +1,21 @@
+[plantuml, puml, svg]
+----
+@startuml
+actor User
+participant "E-Mail Client" as Client
+participant Plugin
+boundary "NextCloud Endpoint" as Api
+
+Plugin -> Client : Register button
+User -> Client : Click button
+Client -> Plugin : Notify about button click
+Plugin -> Client : Request attatchment
+Client -> Plugin : Provide attatchment
+Plugin -> Client : Request API key
+Client -> Plugin : Provide API key
+Plugin -> Api : Upload request
+Api -> Plugin : Success
+Plugin -> Client : Display success popup
+Client -> User : Display success popup
+@enduml
+----

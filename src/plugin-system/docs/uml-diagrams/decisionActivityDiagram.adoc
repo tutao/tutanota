@@ -1,0 +1,176 @@
+[plantuml, puml, svg]
+----
+@startuml
+title Modern Plugin Architecture Decision Guide
+
+start
+
+:Identify Host Environment;
+
+if (Host is a\nWeb Frontend?) then (Yes)
+  if (Are plugins untrusted\nor third-party?) then (Yes)
+    :Use Sandboxed Web Plugins;
+    note right
+      **Examples:**
+      - Figma/Canva plugin system
+      - WASM + Shadow DOM
+      - iframe sandboxes
+
+      **Pros:**
+      + Strong security/isolation
+      + Zero host dependencies
+      + Safe for open ecosystems
+
+      **Cons:**
+      - Restricted browser API access
+      - IPC serialization overhead
+    end note
+  else (No - Internal/Trusted)
+    if (Require deep UI\ncomposition?) then (Yes)
+      :Use Micro-Frontend Plugins;
+      note right
+        **Examples:**
+        - Module Federation (Webpack)
+        - Single-SPA
+        - Dynamic React/Vue imports
+
+        **Pros:**
+        + Seamless UX integration
+        + Shared component libraries
+        + Independent deployments
+
+        **Cons:**
+        - Bundle size bloat
+        - CSS/JS version conflicts
+      end note
+    else (No)
+      :Use SDK/Hook-based Plugins;
+      note right
+        **Examples:**
+        - Chart.js plugins
+        - Rollup/Vite build plugins
+        - jQuery extensions
+
+        **Pros:**
+        + Lightweight
+        + Easy to develop
+        + Tightly coupled to host logic
+
+        **Cons:**
+        - Usually limited to logic, not UI
+        - Host API breaks break plugins
+      end note
+    endif
+  endif
+
+elseif (Host is a\nDesktop App?) then (Yes)
+  if (Require direct OS/Hardware\naccess?) then (Yes)
+    if (Need crash/security\nisolation?) then (Yes)
+      :Use Out-of-Process Native;
+      note right
+        **Examples:**
+        - Chrome renderer processes
+        - Rust/C++ via D-Bus/IPC
+
+        **Pros:**
+        + Host survives plugin crashes
+        + Strict OS-level security
+
+        **Cons:**
+        - High IPC latency
+        - Complex serialization
+      end note
+    else (No)
+      :Use In-Process Native;
+      note right
+        **Examples:**
+        - C++ DLL/SO/dylib
+        - JNI (Java)
+
+        **Pros:**
+        + Maximum performance
+        + Direct memory/hardware access
+
+        **Cons:**
+        - Plugin crash = Host crash
+        - ABI compatibility nightmares
+      end note
+    endif
+  else (No - Mostly UI/App logic)
+    :Use Embedded JS/Node Plugins;
+    note right
+      **Examples:**
+      - VS Code Extensions
+      - Electron IPC plugins
+      - Obsidian plugins
+
+      **Pros:**
+      + Web developers can write plugins
+      + Good balance of power/safety
+
+      **Cons:**
+      - Hosts must bundle Node/V8
+      - Memory overhead
+    end note
+  endif
+
+else (Host is a Backend\n/ Server / CLI)
+  if (Plugins must be\nlanguage-agnostic?) then (Yes)
+    :Use Sidecar / Service Plugins;
+    note right
+      **Examples:**
+      - Language Server Protocol (LSP)
+      - gRPC/REST plugin services
+      - Docker container plugins (e.g., GitLab CI runners)
+
+      **Pros:**
+      + Write plugins in ANY language
+      + Perfect isolation/scaling
+
+      **Cons:**
+      - Network/Process startup overhead
+      - Deployment complexity
+    end note
+  else (No - Same ecosystem as host)
+    if (Need extreme throughput\n& memory sharing?) then (Yes)
+      :Use Native Extensions;
+      note right
+        **Examples:**
+        - Python C-extensions / Cython
+        - Go Plugins (`plugin` package)
+        - JVM Agent / JAR loading
+
+        **Pros:**
+        + Near-native performance
+        + Shared memory space
+
+        **Cons:**
+        - Memory corruption risks
+        - Requires compiled toolchains
+      end note
+    else (No)
+      :Use Scripting / DSL Plugins;
+      note right
+        **Examples:**
+        - Lua in Nginx/Redis
+        - Groovy in Jenkins
+        - YAML/JSON configurations
+        - Webpack loaders
+
+        **Pros:**
+        + Safest option
+        + Hot-reloadable
+        + Fastest developer velocity
+
+        **Cons:**
+        - Execution speed limits
+        - Constrained by DSL capabilities
+      end note
+    endif
+  endif
+
+endif
+
+stop
+@enduml
+----
