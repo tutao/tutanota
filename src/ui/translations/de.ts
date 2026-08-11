@@ -2422,6 +2422,8 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",				"confirmDeleteLabelWithSublabels_msg": "Are you sure that you want to delete the label \"{1}\" and all its sublabels?"
+		"zoomOut_action": "Herauszoomen",				"confirmDeleteLabelWithSublabels_msg": "Are you sure that you want to delete the label \"{1}\" and all its sublabels?",
+		"migrationGreetingTimeout_msg": "test",
+		"migrationUseSSL_label": "Connect securely to port(Use SSL)",
 	}
 }

@@ -24,6 +24,7 @@ export type ImapImportData = {
 	imapProvider: ImapProvider
 	imapAccountHost: string
 	imapAccountPort: number
+	useSSL: boolean
 	imapAccountUsername: string
 	imapAccountPassword: string | undefined
 	rootImportMailSetName: string

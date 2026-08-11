@@ -2422,3 +2422,5 @@ export type TranslationKeyType =
 	| "migrationGmailAllMailsDisabledImapError_msg"
 	| "emptyString_msg"
 	| "confirmDeleteLabelWithSublabels_msg"
+	| "migrationGreetingTimeout_msg"
+	| "migrationUseSSL_label"

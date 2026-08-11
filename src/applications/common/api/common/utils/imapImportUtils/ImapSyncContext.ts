@@ -24,6 +24,7 @@ export type ImapCredentials = {
 	tokenEndpointResponse?: TokenEndpointResponse
 	customCertificateData: Uint8Array | null
 	ignoreCertificateErrors: boolean
+	useSSL: boolean | null
 	provider: ImapProvider
 }
 
