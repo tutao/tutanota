@@ -28,6 +28,7 @@
 		"types": ["node"],
 		"incremental": true,
 		"paths": {
+			"@tutao/lang-api": ["./src/platform-kit/lang-api/everywhere.ts"],
 			"@tutao/utils": ["./src/platform-kit/utils"],
 			"@tutao/crypto": ["./src/platform-kit/crypto"],
 			"@tutao/crypto/error": ["./src/platform-kit/crypto/error"],

@@ -35,6 +35,7 @@ import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
 import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
 import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accounting"
 import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
+import { CheckBrowser } from "../../ui/CheckBrowser"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
@@ -54,11 +55,7 @@ window.tutao = {
 	locator: null,
 }
 
-ClientDetector.get().init(navigator.userAgent, navigator.platform, AppType.Drive)
-
-if (!ClientDetector.get().isSupported()) {
-	throw new Error("Unsupported")
-}
+new CheckBrowser(AppType.Drive).ensureIsSupported()
 
 // Setup exception handling after checking for client support, because in android the Error is caught by the unhandled rejection handler
 // and then the "Update WebView" message will never be show

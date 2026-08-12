@@ -43,6 +43,7 @@ import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accou
 import { initClientModels } from "../common/api/common/ClientModelInfoInitializer"
 import { RevocationView, RevocationViewAttrs } from "../common/revocation/RevocationView"
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
+import { CheckBrowser } from "../../ui/CheckBrowser"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
@@ -62,11 +63,7 @@ window.tutao = {
 	locator: null,
 }
 
-ClientDetector.get().init(navigator.userAgent, navigator.platform, AppType.Calendar)
-
-if (!ClientDetector.get().isSupported()) {
-	throw new Error("Unsupported")
-}
+new CheckBrowser(AppType.Calendar).ensureIsSupported()
 
 // Setup exception handling after checking for client support, because in android the Error is caught by the unhandled rejection handler
 // and then the "Update WebView" message will never be show
