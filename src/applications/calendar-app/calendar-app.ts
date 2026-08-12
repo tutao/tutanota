@@ -364,6 +364,7 @@ import("../../ui/translations/en.js")
 					const { showGiftCardDialog } = await import("../common/misc/LoginUtils.js")
 					showGiftCardDialog(location.hash)
 					m.route.set("/login", {
+						noAutoLogin: true,
 						keepSession: true,
 					})
 					return null
