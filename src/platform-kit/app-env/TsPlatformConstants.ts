@@ -3,6 +3,7 @@
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
 import { BrowserType } from "./boot/ClientConstants"
+import { TypeChecks } from "./TsTypeChecks"
 
 export let _isWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope
 export let _isNode = typeof process === "object" && typeof process.versions === "object" && typeof process.versions.node !== "undefined"
@@ -120,4 +121,43 @@ function notOldFirefox(browser: BrowserType, browserVersion: number): boolean {
 function notOldChrome(browser: BrowserType, browserVersion: number): boolean {
 	// Object.hasOwn() is only supported starting in 93
 	return browser !== BrowserType.CHROME || browserVersion > 93
+}
+
+export function _webAssemblyIsSupported(): boolean {
+	return TypeChecks.isObject(WebAssembly) && TypeChecks.isFunction(WebAssembly.instantiate)
+}
+
+/**
+ * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/history.js
+ */
+export function _supportsHistory(): boolean {
+	return window.history != null && "pushState" in window.history
+}
+
+/**
+ * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/network/xhr2.js
+ */
+export function _supportsXhr2(): boolean {
+	return "XMLHttpRequest" in window
+}
+
+export function _supportsLookBehindRegex(): boolean {
+	try {
+		;/(?<=([ab]+)([bc]+))$/.exec("abc")
+		return true
+	} catch (e) {
+		return false
+	}
+}
+
+export function _isTouchSupported(): boolean {
+	return "ontouchstart" in window
+}
+
+export function _indexedDbIsSupported(): boolean {
+	try {
+		return window.indexedDB != null
+	} catch (e) {
+		return false
+	}
 }
