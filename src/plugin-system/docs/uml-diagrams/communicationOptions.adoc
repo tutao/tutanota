@@ -1,0 +1,61 @@
+[plantuml,puml,svg]
+----
+@startuml
+title Communication Options
+
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+
+package "Same Machine" {
+
+    package "Direct" {
+        component "Function calls" as FunctionCalls
+        component "Shared memory" as SharedMemory
+    }
+
+    package "Kernel-mediated IPC" {
+        component "Pipes / FIFOs" as Pipes
+        component "Named pipes" as NamedPipes
+        component "Unix domain sockets" as UnixSockets
+        component "Message queues" as MessageQueues
+        component "Signals" as Signals
+        component "OS-specific IPC" as OSIPC
+    }
+
+    package "Higher-level IPC" {
+        component "MessagePort" as MessagePort
+        component "D-Bus" as DBus
+        component "RPC" as LocalRPC
+    }
+}
+
+package "Different Machine" {
+
+    package "Transport" {
+        component "TCP" as TCP
+        component "UDP" as UDP
+        component "QUIC" as QUIC
+        component "SCTP" as SCTP
+        component "RDMA" as RDMA
+    }
+
+    package "Application Protocols" {
+        component "HTTP" as HTTP
+        component "WebSocket" as WebSocket
+        component "MQTT" as MQTT
+        component "AMQP" as AMQP
+        component "XMPP" as XMPP
+        component "WebRTC" as WebRTC
+    }
+
+    package "RPC / Messaging" {
+        component "gRPC" as GRPC
+        component "Thrift" as Thrift
+        component "JSON-RPC" as JSONRPC
+        component "ZeroMQ" as ZeroMQ
+        component "NATS" as NATS
+        component "DDS" as DDS
+    }
+}
+@enduml
+----

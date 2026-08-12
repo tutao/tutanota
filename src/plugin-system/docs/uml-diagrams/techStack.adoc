@@ -1,0 +1,25 @@
+[plantuml, puml, svg]
+----
+@startuml
+[.proto file] as Spec
+[Protoc]
+package "Buf" {
+    [Generator]
+    [Breaking Checks] as Breaking
+    [Linting]
+    [Protovalidate]
+    [Protobuf-ES] as TSGen
+    [Custom Protobuf Plugin] as CustomGen
+}
+
+Spec --> Linting
+Spec --> Breaking
+Spec --> Generator
+
+Linting --> Protovalidate
+Generator --> TSGen
+Generator --> Protoc
+Generator --> CustomGen
+
+@enduml
+----
