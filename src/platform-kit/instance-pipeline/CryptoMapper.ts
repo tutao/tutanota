@@ -128,6 +128,15 @@ export class CryptoMapper {
 		const serverTypeModel = encryptedInstance.ensureIncoming()
 		const decrypted: DecryptedParsedInstance = DecryptedParsedInstance.incomingFromServer(serverTypeModel)
 
+		if (serverTypeModel.targetTypeId != null && !path.hasBeenCutOff) {
+			const keyDerivationContext = makeKeyDerivationContext({
+				app: serverTypeModel.app,
+				id: assertNotNull(serverTypeModel.targetTypeId),
+				name: `[transfer aggregate of ${serverTypeModel.name}]`,
+			})
+			instanceDecryptor = await instanceDecryptor.updateForTransferAggregatedType(keyDerivationContext)
+		}
+
 		for (const valueModel of Object.values(serverTypeModel.values)) {
 			const { id: valueId, name: valueName } = valueModel
 			const encryptedValue = encryptedInstance.getAttributeById(valueId)
