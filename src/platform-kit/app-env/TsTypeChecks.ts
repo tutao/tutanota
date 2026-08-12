@@ -29,4 +29,8 @@ export class TypeChecks {
 	public static getTypeOf(a: any): string {
 		return typeof a
 	}
+
+	static isNaN(number: number): boolean {
+		return isNaN(number)
+	}
 }

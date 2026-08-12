@@ -216,7 +216,7 @@ export class ClientDetector {
 				while (pos < userAgent.length) {
 					pos++
 
-					if (isNaN(Number(userAgent.charAt(pos)))) {
+					if (TypeChecks.isNaN(Number(userAgent.charAt(pos)))) {
 						if (hadNan) {
 							break
 						} else {
