@@ -23,6 +23,9 @@ import { CustomDomainDataTypeRef } from "./TypeRefs.js"
 import { CustomDomainReturnTypeRef } from "./TypeRefs.js"
 import { CustomerAccountTerminationPostInTypeRef } from "./TypeRefs.js"
 import { CustomerAccountTerminationPostOutTypeRef } from "./TypeRefs.js"
+import { CustomerMigrationPostInTypeRef } from "./TypeRefs.js"
+import { CustomerMigrationPostOutTypeRef } from "./TypeRefs.js"
+import { CustomerMigrationDeleteInTypeRef } from "./TypeRefs.js"
 import { PublicKeyGetOutTypeRef } from "./TypeRefs.js"
 import { DeleteCustomerDataTypeRef } from "./TypeRefs.js"
 import { DebitServicePutDataTypeRef } from "./TypeRefs.js"
@@ -219,6 +222,15 @@ export const CustomerAccountTerminationService = Object.freeze({
 	post: { data: CustomerAccountTerminationPostInTypeRef, return: CustomerAccountTerminationPostOutTypeRef },
 	put: null,
 	delete: null,
+} as const)
+
+export const CustomerMigrationService = Object.freeze({
+	app: "sys",
+	name: "CustomerMigrationService",
+	get: null,
+	post: { data: CustomerMigrationPostInTypeRef, return: CustomerMigrationPostOutTypeRef },
+	put: null,
+	delete: { data: CustomerMigrationDeleteInTypeRef, return: null },
 } as const)
 
 export const CustomerPublicKeyService = Object.freeze({

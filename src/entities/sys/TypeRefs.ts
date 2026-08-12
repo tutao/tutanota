@@ -691,6 +691,7 @@ export type CustomerInfoParams = {
 	managedByPartner: null | Id;
 	partnerManagedCustomers: null | Id;
 	revocationRequest: null | IdTuple;
+	migrationInfos: null | Id;
 }
 
 export type CustomerInfo = {
@@ -737,6 +738,7 @@ export type CustomerInfo = {
 	managedByPartner: null | Id;
 	partnerManagedCustomers: null | Id;
 	revocationRequest: null | IdTuple;
+	migrationInfos: null | Id;
 }
 export const SentGroupInvitationTypeRef: TypeRef<SentGroupInvitation> = new TypeRef("sys", 195)
 
@@ -6729,4 +6731,232 @@ export type SubscriptionRevocationServicePostIn = {
 	_format: NumberString;
 
 	surveyData: null | SurveyData;
+}
+export const AdminOAuthTokenEndpointResponseTypeRef: TypeRef<AdminOAuthTokenEndpointResponse> = new TypeRef("sys", 2783)
+
+export function createAdminOAuthTokenEndpointResponse(values: AdminOAuthTokenEndpointResponseParams): AdminOAuthTokenEndpointResponse {
+    return Object.assign(create(typeModels[AdminOAuthTokenEndpointResponseTypeRef.typeId], AdminOAuthTokenEndpointResponseTypeRef), values)
+}
+
+export type AdminOAuthTokenEndpointResponseParams = {
+
+
+	accessToken: string;
+	refreshToken: null | string;
+	expiresIn: null | NumberString;
+	tokenType: string;
+}
+
+export type AdminOAuthTokenEndpointResponse = {
+	_type: TypeRef<AdminOAuthTokenEndpointResponse>;
+	_original?: AdminOAuthTokenEndpointResponse
+
+	_id: Id;
+	accessToken: string;
+	refreshToken: null | string;
+	expiresIn: null | NumberString;
+	tokenType: string;
+}
+export const CustomerMigrationAdminCredentialsTypeRef: TypeRef<CustomerMigrationAdminCredentials> = new TypeRef("sys", 2789)
+
+export function createCustomerMigrationAdminCredentials(values: CustomerMigrationAdminCredentialsParams): CustomerMigrationAdminCredentials {
+    return Object.assign(create(typeModels[CustomerMigrationAdminCredentialsTypeRef.typeId], CustomerMigrationAdminCredentialsTypeRef), values)
+}
+
+export type CustomerMigrationAdminCredentialsParams = {
+
+
+	username: string;
+	password: null | string;
+
+	adminOAuthTokenEndpointResponse: null | AdminOAuthTokenEndpointResponse;
+}
+
+export type CustomerMigrationAdminCredentials = {
+	_type: TypeRef<CustomerMigrationAdminCredentials>;
+	_original?: CustomerMigrationAdminCredentials
+
+	_id: Id;
+	username: string;
+	password: null | string;
+
+	adminOAuthTokenEndpointResponse: null | AdminOAuthTokenEndpointResponse;
+}
+export const MailboxMigrationInformationTypeRef: TypeRef<MailboxMigrationInformation> = new TypeRef("sys", 2794)
+
+export function createMailboxMigrationInformation(values: MailboxMigrationInformationParams): MailboxMigrationInformation {
+    return Object.assign(create(typeModels[MailboxMigrationInformationTypeRef.typeId], MailboxMigrationInformationTypeRef), values)
+}
+
+export type MailboxMigrationInformationParams = {
+
+
+	status: NumberString;
+	name: string;
+	mailAddress: string;
+	initialPassword: null | string;
+	isShared: boolean;
+	errorCode: null | NumberString;
+
+	imapAccountSyncState: IdTupleWrapper;
+}
+
+export type MailboxMigrationInformation = {
+	_type: TypeRef<MailboxMigrationInformation>;
+	_errors: Object;
+	_original?: MailboxMigrationInformation
+
+	_id: ListElementId;
+	_permissions: Id;
+	_format: NumberString;
+	_ownerGroup: null | Id;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
+	status: NumberString;
+	name: string;
+	mailAddress: string;
+	initialPassword: null | string;
+	isShared: boolean;
+	errorCode: null | NumberString;
+
+	imapAccountSyncState: IdTupleWrapper;
+}
+export const CustomerMigrationImapConfigurationTypeRef: TypeRef<CustomerMigrationImapConfiguration> = new TypeRef("sys", 2810)
+
+export function createCustomerMigrationImapConfiguration(values: CustomerMigrationImapConfigurationParams): CustomerMigrationImapConfiguration {
+    return Object.assign(create(typeModels[CustomerMigrationImapConfigurationTypeRef.typeId], CustomerMigrationImapConfigurationTypeRef), values)
+}
+
+export type CustomerMigrationImapConfigurationParams = {
+
+
+	host: string;
+	port: NumberString;
+	ignoreCertificateErrors: boolean;
+	customCertificateData: null | Uint8Array<ArrayBuffer>;
+	useSSL: boolean;
+
+	adminCredentials: CustomerMigrationAdminCredentials;
+}
+
+export type CustomerMigrationImapConfiguration = {
+	_type: TypeRef<CustomerMigrationImapConfiguration>;
+	_original?: CustomerMigrationImapConfiguration
+
+	_id: Id;
+	host: string;
+	port: NumberString;
+	ignoreCertificateErrors: boolean;
+	customCertificateData: null | Uint8Array<ArrayBuffer>;
+	useSSL: boolean;
+
+	adminCredentials: CustomerMigrationAdminCredentials;
+}
+export const CustomerMigrationInformationTypeRef: TypeRef<CustomerMigrationInformation> = new TypeRef("sys", 2818)
+
+export function createCustomerMigrationInformation(values: CustomerMigrationInformationParams): CustomerMigrationInformation {
+    return Object.assign(create(typeModels[CustomerMigrationInformationTypeRef.typeId], CustomerMigrationInformationTypeRef), values)
+}
+
+export type CustomerMigrationInformationParams = {
+
+
+	status: NumberString;
+	userListProvider: NumberString;
+
+	userListAdminCredentials: null | CustomerMigrationAdminCredentials;
+	imapConfiguration: null | CustomerMigrationImapConfiguration;
+	mailboxMigrationInformation: Id;
+}
+
+export type CustomerMigrationInformation = {
+	_type: TypeRef<CustomerMigrationInformation>;
+	_errors: Object;
+	_original?: CustomerMigrationInformation
+
+	_id: ListElementId;
+	_permissions: Id;
+	_format: NumberString;
+	_ownerGroup: null | Id;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
+	status: NumberString;
+	userListProvider: NumberString;
+
+	userListAdminCredentials: null | CustomerMigrationAdminCredentials;
+	imapConfiguration: null | CustomerMigrationImapConfiguration;
+	mailboxMigrationInformation: Id;
+}
+export const CustomerMigrationPostInTypeRef: TypeRef<CustomerMigrationPostIn> = new TypeRef("sys", 2833)
+
+export function createCustomerMigrationPostIn(values: CustomerMigrationPostInParams): CustomerMigrationPostIn {
+    return Object.assign(create(typeModels[CustomerMigrationPostInTypeRef.typeId], CustomerMigrationPostInTypeRef), values)
+}
+
+export type CustomerMigrationPostInParams = {
+
+
+	userListProvider: NumberString;
+
+	userListAdminCredentials: null | CustomerMigrationAdminCredentials;
+	imapConfiguration: null | CustomerMigrationImapConfiguration;
+}
+
+export type CustomerMigrationPostIn = {
+	_type: TypeRef<CustomerMigrationPostIn>;
+	_errors: Object;
+	_original?: CustomerMigrationPostIn
+
+	_format: NumberString;
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: NumberString;
+	ownerGroup: Id;
+	userListProvider: NumberString;
+
+	userListAdminCredentials: null | CustomerMigrationAdminCredentials;
+	imapConfiguration: null | CustomerMigrationImapConfiguration;
+}
+export const CustomerMigrationPostOutTypeRef: TypeRef<CustomerMigrationPostOut> = new TypeRef("sys", 2841)
+
+export function createCustomerMigrationPostOut(values: CustomerMigrationPostOutParams): CustomerMigrationPostOut {
+    return Object.assign(create(typeModels[CustomerMigrationPostOutTypeRef.typeId], CustomerMigrationPostOutTypeRef), values)
+}
+
+export type CustomerMigrationPostOutParams = {
+
+
+
+	migrationInfo: IdTuple;
+}
+
+export type CustomerMigrationPostOut = {
+	_type: TypeRef<CustomerMigrationPostOut>;
+	_original?: CustomerMigrationPostOut
+
+	_format: NumberString;
+
+	migrationInfo: IdTuple;
+}
+export const CustomerMigrationDeleteInTypeRef: TypeRef<CustomerMigrationDeleteIn> = new TypeRef("sys", 2844)
+
+export function createCustomerMigrationDeleteIn(values: CustomerMigrationDeleteInParams): CustomerMigrationDeleteIn {
+    return Object.assign(create(typeModels[CustomerMigrationDeleteInTypeRef.typeId], CustomerMigrationDeleteInTypeRef), values)
+}
+
+export type CustomerMigrationDeleteInParams = {
+
+
+
+	migrationInfo: IdTuple;
+}
+
+export type CustomerMigrationDeleteIn = {
+	_type: TypeRef<CustomerMigrationDeleteIn>;
+	_original?: CustomerMigrationDeleteIn
+
+	_format: NumberString;
+
+	migrationInfo: IdTuple;
 }
