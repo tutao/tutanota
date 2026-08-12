@@ -28,8 +28,8 @@ import {
 import { ImapAccountSyncStatus, ImapFolderSyncStatus } from "../../../../../src/entities/tutanota/Utils"
 import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { ImapFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/ImapFacade"
-import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { idToElementId } from "../../../../../src/platform-kit/meta"
+import { GroupKeyProvider } from "../../../../../src/platform-kit/base/base-crypto/GroupKeyProvider"
 
 const { anything } = matchers
 
@@ -37,7 +37,7 @@ o.spec("ImapFacade", () => {
 	let mailFacadeMock: MailFacade
 	let serviceExecutorMock: IServiceExecutor
 	let entityClientMock: EntityClient
-	let keyLoaderMock: KeyLoaderFacade
+	let keyLoaderMock: GroupKeyProvider
 	let cryptoWrapperMock: CryptoWrapper
 	let imapFacade: ImapFacade
 
@@ -57,7 +57,7 @@ o.spec("ImapFacade", () => {
 		mailFacadeMock = object<MailFacade>()
 		serviceExecutorMock = object<IServiceExecutor>()
 		entityClientMock = object<EntityClient>()
-		keyLoaderMock = object<KeyLoaderFacade>()
+		keyLoaderMock = object<GroupKeyProvider>()
 		cryptoWrapperMock = object<CryptoWrapper>()
 		imapFacade = new ImapFacade(mailFacadeMock, serviceExecutorMock, entityClientMock, keyLoaderMock, cryptoWrapperMock)
 		when(keyLoaderMock.getCurrentSymGroupKey(mailGroupId)).thenResolve({ object: object(), version: 1 })

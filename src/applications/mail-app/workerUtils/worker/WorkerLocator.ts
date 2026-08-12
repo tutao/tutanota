@@ -92,6 +92,7 @@ import { WebMailIndexer } from "../index/WebMailIndexer"
 import { CustomImportFileMailStateCacheHandler } from "./CustomImportFileMailStateCacheHandler"
 import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 import { CustomImapFolderSyncStateCacheHandler } from "./CustomImapFolderSyncStateCacheHandler"
+import { GroupKeyProviderFactory } from "../../../../platform-kit/base/base-crypto/GroupKeyProvider"
 
 assertWorkerOrNode()
 
@@ -627,6 +628,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		},
 	}
 
+	const groupKeyProviderFactory = new GroupKeyProviderFactory(locator.base.keyLoader, locator.base.adminKeyLoader)
+
 	const domainConfig = new DomainConfigProvider().getCurrentDomainConfig()
 	locator.imapImporter = lazyMemoized(async () => {
 		const { ImportMailFacade } = await import("../../../common/api/worker/facades/lazy/ImportMailFacade.js")
@@ -647,7 +650,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			mailFacade,
 			locator.base.serviceExecutor,
 			locator.base.cachingEntityClient,
-			locator.base.keyLoader,
+			groupKeyProviderFactory.ownProvider(),
 			locator.base.cryptoWrapper,
 		)
 

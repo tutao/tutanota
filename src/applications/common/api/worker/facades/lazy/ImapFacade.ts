@@ -34,7 +34,7 @@ import { IServiceExecutor } from "../../../../../../platform-kit/network/Service
 import { ProgrammingError } from "@tutao/app-env"
 import { ImapAccountSyncStatus, ImapFolderSyncStatus, MailSetKind } from "../../../../../../entities/tutanota/Utils"
 import { ImapMailbox, ImapMailboxSpecialUse, ImapMailboxStatus } from "../../../common/utils/imapImportUtils/ImapMailbox"
-import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade"
+import { GroupKeyProvider } from "../../../../../../platform-kit/base/base-crypto/GroupKeyProvider"
 import {
 	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	DEFAULT_EXTRA_SERVICE_PARAMS,
@@ -50,7 +50,7 @@ export class ImapFacade {
 		private readonly mailFacade: MailFacade,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly entityClient: EntityClient,
-		private readonly keyLoader: KeyLoaderFacade,
+		private readonly groupKeyProvider: GroupKeyProvider,
 		private readonly cryptoWrapper: CryptoWrapper,
 	) {}
 
@@ -80,7 +80,7 @@ export class ImapFacade {
 			syncLabelId = await this.mailFacade.createLabel(mailGroupId, initializeParams.imapSyncLabelData)
 		}
 
-		const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
+		const mailGroupKey = await this.groupKeyProvider.getCurrentSymGroupKey(mailGroupId)
 		const sk = this.cryptoWrapper.aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
@@ -129,7 +129,7 @@ export class ImapFacade {
 		newPostponedUntil?: string,
 	) {
 		const ownerKeyVersion = parseKeyVersion(assertNotNull(imapAccountSyncState._ownerKeyVersion))
-		const mailGroupKey = await this.keyLoader.loadSymGroupKey(assertNotNull(imapAccountSyncState._ownerGroup), ownerKeyVersion)
+		const mailGroupKey = await this.groupKeyProvider.loadSymGroupKey(assertNotNull(imapAccountSyncState._ownerGroup), ownerKeyVersion)
 		const imapPutIn = createImapPutIn({
 			imapAccountSyncState: imapAccountSyncState._id,
 			newImapAccountSyncStatus,
@@ -157,7 +157,7 @@ export class ImapFacade {
 		const mailbox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailboxGroupRoot.mailbox))
 		const imapFolderSyncStates: ImapFolderSyncState[] = []
 		for (const [imapMailboxPath, { mailSetElementId, shouldSync, specialUse }] of imapMailboxesToTutaFolders.entries()) {
-			const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
+			const mailGroupKey = await this.groupKeyProvider.getCurrentSymGroupKey(mailGroupId)
 			const sk = this.cryptoWrapper.aes256RandomKey()
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
@@ -209,7 +209,7 @@ export class ImapFacade {
 			} else {
 				mailSetId = shouldSync ? await this.mailFacade.createMailFolder(name, parentMailSetId, mailGroupId) : null
 			}
-			const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
+			const mailGroupKey = await this.groupKeyProvider.getCurrentSymGroupKey(mailGroupId)
 			const sk = this.cryptoWrapper.aes256RandomKey()
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
