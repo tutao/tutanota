@@ -108,6 +108,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 			customCertificateData: imapImportData.customCertificateData,
 			ignoreCertificateErrors: imapImportData.ignoreCertificateErrors,
 			provider: imapImportData.imapProvider,
+			useSSL: imapImportData.useSSL,
 		}
 		return imapCredentials
 	}
