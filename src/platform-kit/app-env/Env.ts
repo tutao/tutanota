@@ -1,6 +1,4 @@
-import { ProgrammingError } from "./ProgrammingError"
-import { _isNode, _isWorker } from "./TsPlatformConstants"
-import { TypeChecks } from "./TsTypeChecks"
+import { _isNode, _isWorker, ProgrammingError, TypeChecks } from "@tutao/lang-api"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"

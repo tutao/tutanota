@@ -53,6 +53,7 @@ import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../platfor
 import { RevocationView, RevocationViewAttrs } from "../common/revocation/RevocationView"
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
 import { AttachmentDownloader } from "./mail/view/MailGuiUtils"
+import { CheckBrowser } from "../../ui/CheckBrowser"
 import { MailSearchView, MailSearchViewAttrs } from "./search/view/MailSearchView"
 import { MailSearchViewModel } from "./search/view/MailSearchViewModel"
 import { ContactSearchView, ContactSearchViewAttrs } from "./search/view/ContactSearchView"
@@ -104,17 +105,7 @@ window.tutao = {
 	locator: null,
 }
 
-ClientDetector.get().init(navigator.userAgent, navigator.platform, AppType.Mail)
-
-if (EnvProvider.get().isBrowser() && !ClientDetector.get().webassembly()) {
-	const webAssemblyError = new Error()
-	webAssemblyError.name = "NoWASMSupport"
-	throw webAssemblyError
-}
-
-if (!ClientDetector.get().isSupported()) {
-	throw new Error("Unsupported")
-}
+new CheckBrowser(AppType.Mail).ensureIsSupported()
 
 // Setup exception handling after checking for client support, because in android the Error is caught by the unhandled rejection handler
 // and then the "Update WebView" message will never be show
