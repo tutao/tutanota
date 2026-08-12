@@ -102,4 +102,17 @@ export class InstanceDecryptor {
 		const ownerKey = await ownerKeyProvider(requiredOwnerKeyVersion)
 		return { object: ownerKey, version: requiredOwnerKeyVersion }
 	}
+
+	public async updateForTransferAggregatedType(keyDerivationContext: KeyDerivationContext): Promise<InstanceDecryptor> {
+		return new InstanceDecryptor(
+			this.sessionKey,
+			this.kdfNonce,
+			this.instanceKey,
+			this.ownerKeyProvider,
+			keyDerivationContext,
+			this.aesCbcFacade,
+			this.aeadFacade,
+			this.symmetricKeyDeriver,
+		)
+	}
 }
