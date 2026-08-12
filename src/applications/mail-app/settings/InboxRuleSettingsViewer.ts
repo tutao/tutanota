@@ -42,6 +42,8 @@ assertMainOrNode()
 
 export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 	private model: InboxRulesSettingsViewerModel
+	private draggingOverRuleIndex: number | null = null
+	private draggingOverRule2ndHalf: boolean | null = null
 
 	constructor(
 		readonly mailboxModel: MailboxModel,
@@ -62,8 +64,9 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		const isMobile = client.isMobileDevice()
 
 		// Making the scroll section based on mobile view allows for the title section to also be scrolled away
-		const inboxRuleSectionClasses = `.overflow-hidden.flex-v-start${isMobile ? ".scroll.scrollbar-gutter-stable-or-fallback" : ""}`
-		const inboxRuleListClasses = `.mt-16.gap-8.flex-v-start${isMobile ? "" : ".scroll.scrollbar-gutter-stable-or-fallback"}`
+		const inboxRuleSectionClasses = `.overflow-hidden.flex-v-start${isMobile ? ".overflow-y-scroll-inbox-rules.scrollbar-gutter-stable-or-fallback" : ""}`
+		// no gap to make drag&drop between the lines work, the components have padding that makes up for it
+		const inboxRuleListClasses = `.mt-12.flex-v-start${isMobile ? "" : ".overflow-y-scroll-inbox-rules.scrollbar-gutter-stable-or-fallback"}`
 
 		return m("", [
 			m(
@@ -113,9 +116,55 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	renderInboxRuleTableLines(): Children[] {
-		return this.model.orderedInboxRules.map((rule, index) => {
+		return this.model.orderedInboxRules.map((rule, index, { length }) => {
+			const dragBorder = ".border-nota.border-left-none.border-right-none"
+			const dragBorderTop = `.pt-4.pb-4.border-bottom-none${dragBorder}${index === 0 ? ".border-md" : ".border-sm"}`
+			const dragBorderBottom = `.border-top-none${dragBorder}${index === length - 1 ? ".border-md" : ".border-sm"}`
+
+			const maybeDragBorder = this.draggingOverRule2ndHalf
+				? this.draggingOverRuleIndex === index
+					? dragBorderBottom
+					: this.draggingOverRuleIndex !== null && this.draggingOverRuleIndex + 1 === index
+						? dragBorderTop
+						: ""
+				: this.draggingOverRuleIndex === index
+					? dragBorderTop
+					: this.draggingOverRuleIndex !== null && this.draggingOverRuleIndex - 1 === index
+						? dragBorderBottom
+						: ""
 			// rule should never be null as we check that all rules in the order list are in the map, but get can still theoretically return undefined
-			return [
+			return m(
+				`.pb-4.pt-4${maybeDragBorder}`,
+				{
+					// insert at position & clear state when we're finished dragging
+					ondragend: async (ev: DragEvent) => {
+						// insert
+						await this.model.moveRuleToIndex(rule, index, assertNotNull(this.draggingOverRuleIndex) + (this.draggingOverRule2ndHalf ? 1 : 0))
+
+						// clear state
+						assertNotNull(ev.target as HTMLElement).setAttribute("draggable", "false")
+						this.draggingOverRuleIndex = null
+						this.draggingOverRule2ndHalf = null
+					},
+					ondragstart: (ev: DragEvent) => {
+						// The datatransfer is needed or the drag will not work on iOS
+						assertNotNull(ev.dataTransfer).setData("text/plain", `${index}`)
+						assertNotNull(ev.dataTransfer).effectAllowed = "move"
+
+						this.draggingOverRuleIndex = index
+					},
+					// insert when finished dragging
+					// update our state while moving the rule around
+					ondragover: (ev: DragEvent) => {
+						const halfHeight = assertNotNull(ev.currentTarget as HTMLElement).offsetHeight / 2
+						const mousePosition = ev.offsetY
+						this.draggingOverRuleIndex = index
+						this.draggingOverRule2ndHalf = mousePosition > halfHeight
+						assertNotNull(ev.dataTransfer).dropEffect = "move"
+						ev.stopPropagation()
+						ev.preventDefault()
+					},
+				},
 				m(
 					Card,
 					{
@@ -128,14 +177,37 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 					},
 					[
 						// reorder
-						m(Icon, {
-							// hoverText: lang.getTranslationText("move_action"),
-							icon: Icons.DragDrop,
-							size: IconSize.PX32,
-							style: {
-								fill: theme.outline,
+						m(
+							".cursor-grab",
+							{
+								// when beginning to try and drag the handle, set parent draggable (for touch & mouse)
+								onmousedown: (e: Event) =>
+									assertNotNull(e.currentTarget as HTMLElement).parentElement!.parentElement!.setAttribute("draggable", "true"),
+								ontouchstart: (e: Event) =>
+									assertNotNull(e.currentTarget as HTMLElement).parentElement!.parentElement!.setAttribute("draggable", "true"),
+								// remove if the drag never started (we just clicked or something)
+								onmouseup: (e: Event) =>
+									assertNotNull(e.currentTarget as HTMLElement).parentElement!.parentElement!.setAttribute("draggable", "false"),
+								ontouchend: (e: Event) =>
+									assertNotNull(e.currentTarget as HTMLElement).parentElement!.parentElement!.setAttribute("draggable", "false"),
 							},
-						}),
+							m(
+								"",
+								{
+									// title for tooltip
+									title: lang.getTranslationText("move_action"),
+									ariaLabel: lang.getTranslationText("move_action"),
+								},
+								m(Icon, {
+									// hoverText here breaks styling, so tooltip is used
+									icon: Icons.DragDrop,
+									size: IconSize.PX32,
+									style: {
+										fill: theme.outline,
+									},
+								}),
+							),
+						),
 						// name
 						m(
 							".selectable.text-ellipsis.plr-16",
@@ -201,7 +273,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 						}),
 					],
 				),
-			]
+			)
 		})
 
 		// This code is left in to help support old inbox rules, which will be done in another issue

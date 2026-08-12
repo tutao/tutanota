@@ -66,7 +66,7 @@ import { getNullableSharedGroupName, getSharedGroupName } from "../../common/sha
 import { styles } from "../../../ui/styles"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { Header } from "../../../ui/Header"
-import { EntityUpdatesListener, EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { NavButtonAttrs, NavButtonColor } from "../../../ui/base/NavButton"
 import { clone, elementIdToId, getEtId } from "@tutao/meta"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
@@ -582,6 +582,12 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	view({ attrs }: Vnode<SettingsViewAttrs>): Children {
 		return m(
 			"#settings.main-view",
+			{
+				// this ondragover is for dragging InboxRules
+				ondragover: (ev: DragEvent) => {
+					ev.preventDefault()
+				},
+			},
 			m(this.viewSlider, {
 				header: m(Header, {
 					...attrs.header,
