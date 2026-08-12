@@ -231,10 +231,13 @@ import("../../ui/translations/en.js")
 							const mailboxDetail = await mailLocator.mailboxModel.getMailboxDetails()
 
 							mailLocator.mailFacade
-								.createLabel(assertNotNull(mailboxDetail[0].mailbox._ownerGroup), {
-									name: lang.get("importantLabel_label"),
-									color: "#FEDC59",
-								})
+								.createLabel(
+									{
+										name: lang.get("importantLabel_label"),
+										color: "#FEDC59",
+									},
+									assertNotNull(mailboxDetail[0].mailbox._ownerGroup),
+								)
 								.then(() => {
 									mailLocator.logins.getUserController().props.defaultLabelCreated = true
 									mailLocator.entityClient.update(mailLocator.logins.getUserController().props)

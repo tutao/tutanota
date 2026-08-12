@@ -26,7 +26,6 @@ import {
 	ImportedImapMailTypeRef,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
-	MailSet,
 	MailSetTypeRef,
 } from "@tutao/entities/tutanota"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient"
@@ -54,6 +53,7 @@ export class ImapFacade {
 		private readonly cryptoWrapper: CryptoWrapper,
 	) {}
 
+	// fixme probably makes sense to have a separate function for initializing imports on behalf of the user, at least not load the ImapAccountSyncState and folder sync states after init
 	async initializeImapImport(
 		initializeParams: InitializeImapImportParams,
 	): Promise<{ imapAccountSyncState: ImapAccountSyncState; initialFolderSyncStates: ImapFolderSyncState[] }> {
@@ -64,23 +64,25 @@ export class ImapFacade {
 		}
 
 		let rootImportMailSetId: IdTuple | null = null
+		const mailGroupKey = await this.groupKeyProvider.getCurrentSymGroupKey(mailGroupId)
 		if (initializeParams.rootImportMailSetName) {
 			if (initializeParams.provider === ImapProvider.Gmail) {
-				rootImportMailSetId = await this.mailFacade.createLabel(mailGroupId, {
-					name: initializeParams.rootImportMailSetName,
-					color: randomHexColor(),
-				})
+				rootImportMailSetId = await this.mailFacade.createLabel(
+					{
+						name: initializeParams.rootImportMailSetName,
+						color: randomHexColor(),
+					},
+					mailGroupId,
+					mailGroupKey,
+				)
 			} else {
-				rootImportMailSetId = await this.mailFacade.createMailFolder(initializeParams.rootImportMailSetName, null, mailGroupId)
+				rootImportMailSetId = await this.mailFacade.createMailFolder(initializeParams.rootImportMailSetName, null, mailGroupId, mailGroupKey)
 			}
 		}
-
 		let syncLabelId: IdTuple | null = null
 		if (initializeParams.imapSyncLabelData) {
-			syncLabelId = await this.mailFacade.createLabel(mailGroupId, initializeParams.imapSyncLabelData)
+			syncLabelId = await this.mailFacade.createLabel(initializeParams.imapSyncLabelData, mailGroupId, mailGroupKey)
 		}
-
-		const mailGroupKey = await this.groupKeyProvider.getCurrentSymGroupKey(mailGroupId)
 		const sk = this.cryptoWrapper.aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
@@ -201,11 +203,14 @@ export class ImapFacade {
 			const mailGroupId = assertNotNull(imapAccountSyncState._ownerGroup)
 			let mailSetId: IdTuple | null
 			if (shouldCreateLabels) {
-				mailSetId = await this.mailFacade.createLabel(mailGroupId, {
-					name: name,
-					color: randomHexColor(),
-					parentLabelId: parentMailSetId ?? undefined,
-				})
+				mailSetId = await this.mailFacade.createLabel(
+					{
+						name: name,
+						color: randomHexColor(),
+						parentLabelId: parentMailSetId ?? undefined,
+					},
+					mailGroupId,
+				)
 			} else {
 				mailSetId = shouldSync ? await this.mailFacade.createMailFolder(name, parentMailSetId, mailGroupId) : null
 			}

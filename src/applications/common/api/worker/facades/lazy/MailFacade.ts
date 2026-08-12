@@ -229,8 +229,8 @@ export class MailFacade {
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
 	) {}
 
-	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<IdTuple> {
-		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(ownerGroupId)
+	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id, mailGroupKey?: VersionedKey): Promise<IdTuple> {
+		mailGroupKey = mailGroupKey ?? (await this.keyLoaderFacade.getCurrentSymGroupKey(ownerGroupId))
 
 		const sk = aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
@@ -1208,8 +1208,8 @@ export class MailFacade {
 	/**
 	 * Create a label (aka MailSet aka {@link MailSet} of kind {@link MailSetKind.LABEL}) for the group {@param mailGroupId}.
 	 */
-	async createLabel(mailGroupId: Id, labelData: { name: string; color: string; parentLabelId?: IdTuple }) {
-		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
+	async createLabel(labelData: { name: string; color: string; parentLabelId?: IdTuple }, mailGroupId: Id, mailGroupKey?: VersionedKey) {
+		mailGroupKey = mailGroupKey ?? (await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId))
 		const sk = aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
