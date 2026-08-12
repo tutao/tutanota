@@ -55,6 +55,7 @@ import { NamedClientModel } from "@tutao/instance-pipeline"
 import { NotAuthenticatedError } from "@tutao/rest-client/error"
 import { RestBinaryBody, RestBodyType, RestTextBody } from "@tutao/rest-client/types"
 import { ImapImporter } from "../imapimport/ImapImporter"
+import { AdminImapFacade } from "../../../common/api/worker/facades/lazy/AdminImapFacade"
 
 assertWorkerOrNode()
 
@@ -103,6 +104,7 @@ export interface WorkerInterface {
 	readonly autosaveFacade: AutosaveFacade
 	readonly driveFacade: DriveFacade
 	readonly imapImporter: ImapImporter
+	readonly adminImapFacade: AdminImapFacade
 }
 
 type WorkerRequest = Request<WorkerRequestType>
@@ -327,6 +329,9 @@ export class WorkerImpl implements NativeInterface {
 			},
 			async imapImporter() {
 				return locator.imapImporter()
+			},
+			async adminImapFacade() {
+				return locator.adminImapFacade()
 			},
 		}
 	}

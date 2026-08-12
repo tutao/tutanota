@@ -93,6 +93,8 @@ import { CustomImportFileMailStateCacheHandler } from "./CustomImportFileMailSta
 import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 import { CustomImapFolderSyncStateCacheHandler } from "./CustomImapFolderSyncStateCacheHandler"
 import { GroupKeyProviderFactory } from "../../../../platform-kit/base/base-crypto/GroupKeyProvider"
+import type { AdminImapFacade } from "../../../common/api/worker/facades/lazy/AdminImapFacade"
+import type { ImapFacade } from "../../../common/api/worker/facades/lazy/ImapFacade"
 
 assertWorkerOrNode()
 
@@ -146,6 +148,7 @@ export type WorkerLocatorType = {
 
 	// IMAP mail import
 	imapImporter: lazyAsync<ImapImporter>
+	adminImapFacade: lazyAsync<AdminImapFacade>
 }
 
 export const locator: WorkerLocatorType = {} as any
@@ -655,6 +658,19 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		)
 
 		return new ImapImporter(new ImapSyncSystemFacadeSendDispatcher(worker), imapFacade, importMailFacade)
+	})
+
+	const createImapFacade = async (userId?: Id): Promise<ImapFacade> => {
+		const { ImapFacade } = await import("../../../common/api/worker/facades/lazy/ImapFacade.js")
+		const mailFacade = await locator.mail()
+		const provider = userId ? groupKeyProviderFactory.adminProvider(userId) : groupKeyProviderFactory.ownProvider()
+
+		return new ImapFacade(mailFacade, locator.base.serviceExecutor, locator.base.cachingEntityClient, provider, locator.base.cryptoWrapper)
+	}
+
+	locator.adminImapFacade = lazyMemoized(async () => {
+		const { AdminImapFacade } = await import("../../../common/api/worker/facades/lazy/AdminImapFacade.js")
+		return new AdminImapFacade(createImapFacade)
 	})
 
 	const eventBusCoordinator = new EventBusEventCoordinator(
