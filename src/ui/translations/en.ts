@@ -2496,7 +2496,8 @@ export default {
 		"confirmDeleteLabelWithSublabels_msg": "Are you sure that you want to delete the label \"{1}\" and all its sublabels?",
 		"inboxRuleManagement_label": "Inbox Rule Management",
 		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Order matters, as only the first matching rule will apply.",
-		"condition_label": "Condition",
+		"inboxRuleConditions_label": "Conditions",
+		"inboxRuleResults_label": "Results",
 		"then_label": "Then",
 		"saveAndApply_action": "Save & Apply",
 		"applyingInboxRules_label": "Applying Inbox Rule(s)",
@@ -2508,5 +2509,6 @@ export default {
 		"inboxRuleAnyRecipientEquals_action": "Any recipient",
 		"inboxRuleHasAttachment_label": "Has attachment",
 		"inboxRuleHasNoAttachment_label": "Has no attachment",
+		"whenCondition_label": "When",
 	}
 }
