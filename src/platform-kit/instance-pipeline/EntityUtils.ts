@@ -45,7 +45,24 @@ export class EntityUtils {
 				entityRecord[key] = parsedValue.asByteArray()
 				break
 			case ValueTypeEnum.Number:
-				assertNotNaN(parseFloat(parsedValue.asString()), `Non-numeric string for attribute: ${modelValue.name}`)
+				// RepeatRule.endValue model types were set to an empty string to represent null in the past.
+				// After introducing stricter checking (see below) this was causing errors for preexisting entities.
+				// As a fix, we decided to special-case numeric values named "endValue" and set them to null in
+				// cases where they are empty strings.
+				if (parsedValue.asString() === "" && key === "endValue") {
+					if (modelValue.cardinality !== Cardinality.ZeroOrOne) {
+						throw new ProgrammingError(
+							`endValue.asString() (attributeId=${modelValue.id}) is an empty string but does not have cardinality ZeroOrOne!`,
+						)
+					}
+					entityRecord[key] = null
+					break
+				}
+				// Default case
+				assertNotNaN(
+					parseFloat(parsedValue.asString()),
+					`Non-numeric string for attribute (attributeId=${modelValue.id}): ${modelValue.name}.asString()=${parsedValue.asString()}`,
+				)
 				entityRecord[key] = parsedValue.asString()
 				break
 			case ValueTypeEnum.String:
