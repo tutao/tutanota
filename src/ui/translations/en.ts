@@ -2553,7 +2553,8 @@ export default {
 		"confirmClearFolder_msg": "Do you really want to permanently delete all emails from the folder '{1}'? Depending on the number of emails this operation may take a long time and will be executed in the background.",
 		"inboxRuleManagement_label": "Inbox Rule Management",
 		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Order matters, as only the first matching rule will apply.",
-		"condition_label": "Condition",
+		"inboxRuleConditions_label": "Conditions",
+		"inboxRuleResults_label": "Results",
 		"then_label": "Then",
 		"saveAndApply_action": "Save & Apply",
 		"applyingInboxRules_label": "Applying Inbox Rule(s)",
@@ -2565,5 +2566,6 @@ export default {
 		"inboxRuleAnyRecipientEquals_action": "Any recipient",
 		"inboxRuleHasAttachment_label": "Has attachment",
 		"inboxRuleHasNoAttachment_label": "Has no attachment",
+		"whenCondition_label": "When",
 	}
 }
