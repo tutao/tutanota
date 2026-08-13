@@ -2,7 +2,7 @@
 /* eslint-disable  no-restricted-syntax */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 
-import { BrowserType } from "./ClientConstants"
+import { BrowserType } from "./boot/ClientConstants"
 
 export let _isWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope
 export let _isNode = typeof process === "object" && typeof process.versions === "object" && typeof process.versions.node !== "undefined"

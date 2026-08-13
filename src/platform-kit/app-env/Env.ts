@@ -1,5 +1,5 @@
 import { ProgrammingError } from "./ProgrammingError"
-import { _isNode, _isWorker } from "./boot/TsPlatformConstants"
+import { _isNode, _isWorker } from "./TsPlatformConstants"
 import { TypeChecks } from "./TsTypeChecks"
 
 // keep in sync with LaunchHtml.js meta tag title

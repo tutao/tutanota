@@ -9,7 +9,7 @@ import {
 	_expectedJsSyntaxes,
 	_haveWebsocket,
 	_isSupportedBrowserVersion,
-} from "./TsPlatformConstants"
+} from "../TsPlatformConstants"
 
 EnvProvider.assertMainOrNodeBoot()
 
