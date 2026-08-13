@@ -143,7 +143,7 @@ export async function show(
 
 		const renderConditionRow = (condition: InboxRuleConditionField, conditionIndex: number) => {
 			const isFirstCondition = conditionIndex === 0
-			const conditionLabel: TranslationKey = isFirstCondition ? "when_label" : "and_label"
+			const conditionLabel: TranslationKey = isFirstCondition ? "whenCondition_label" : "and_label"
 			const conditionInput = getRuleConditionValueInputByType(condition)
 
 			return m(
@@ -325,10 +325,10 @@ export async function show(
 					m(".smaller.mt-16", lang.getTranslationText("inboxRuleExplainer_msg")),
 				]),
 				renderName(),
-				m(".uppercase.b.mt-32.content-fg", lang.getTranslationText("condition_label")),
+				m(".uppercase.b.mt-32.content-fg", lang.getTranslationText("inboxRuleConditions_label")),
 				inboxRuleConditions.map(renderConditionRow),
 				renderAddConditionRow(),
-				m(".uppercase.b.mt-32.content-fg", lang.getTranslationText("searchResult_label")),
+				m(".uppercase.b.mt-32.content-fg", lang.getTranslationText("inboxRuleResults_label")),
 				inboxRuleResults.map(renderResultRow),
 				renderAddResultRow(),
 				m(
