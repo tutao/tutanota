@@ -28,7 +28,7 @@ import { TranslationKeyType } from "../../../ui/utils/TranslationKey"
 import { PlanSelectorHeadline } from "./components/PlanSelectorHeadline"
 import { px } from "../../../ui/size"
 import { AvailablePlanType, PlanType, SubscriptionType } from "../../../entities/sys/Utils"
-import { Keys } from "../../../ui/KeyboardKeys"
+import { Keys } from "../../../ui/utils/KeyboardKeys"
 
 /** Subscription type passed from the website */
 export const PlanTypeParameter = Object.freeze({

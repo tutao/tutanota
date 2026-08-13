@@ -22,7 +22,7 @@ import { InputAttrs, SingleLineTextField } from "./SingleLineTextField"
 import { LegacyTextFieldType } from "./LegacyTextField"
 import { PosRect } from "../utils/PosRect"
 import { Icons } from "./icons/Icons"
-import { Keys } from "../KeyboardKeys"
+import { Keys } from "../utils/KeyboardKeys"
 
 EnvProvider.assertMainOrNode()
 export type DropdownInfoAttrs = {

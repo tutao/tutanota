@@ -3,7 +3,7 @@ import { IconButton } from "../../../../ui/base/IconButton.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager.js"
 import { CalendarEvent } from "@tutao/entities/tutanota"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 export interface CalendarViewToolbarAttrs {
 	event: CalendarEvent | null

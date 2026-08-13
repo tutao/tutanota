@@ -7,7 +7,7 @@ import { memoized } from "../../../../platform-kit/utils"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
 import { theme } from "../../../../ui/theme.js"
 import { EmailTemplate } from "@tutao/entities/tutanota"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 /**
  * TemplateExpander is the right side that is rendered within the Popup. Consists of Dropdown, Content and Button.

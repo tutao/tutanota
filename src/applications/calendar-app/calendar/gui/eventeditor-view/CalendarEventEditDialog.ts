@@ -27,7 +27,7 @@ import stream from "mithril/stream"
 import { getStartOfTheWeekOffsetForUser } from "../../../../common/misc/weekOffset"
 import { getTimeFormatForUser } from "../../../../common/api/common/utils/UserUtils"
 import { PosRect } from "../../../../../ui/utils/PosRect"
-import { Keys } from "../../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../../ui/utils/KeyboardKeys"
 
 const enum ConfirmationResult {
 	Cancel,

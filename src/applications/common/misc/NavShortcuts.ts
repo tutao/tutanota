@@ -7,7 +7,7 @@ import { LoginController } from "../api/main/LoginController"
 import { QuickActionsModel } from "./quickactions/QuickActionsModel"
 import { SessionType } from "../../../platform-kit/app-env/SessionType"
 import { isDriveEnabled } from "./DriveUtils"
-import { Keys } from "../../../ui/KeyboardKeys"
+import { Keys } from "../../../ui/utils/KeyboardKeys"
 
 export function setupNavShortcuts({ quickActionsModel, logins }: { quickActionsModel: () => Promise<QuickActionsModel>; logins: LoginController }) {
 	function hasInAppNavigation() {

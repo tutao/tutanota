@@ -16,7 +16,7 @@ import { stringToBase64 } from "../../../../../platform-kit/utils"
 import { calendarLocator } from "../../../calendarLocator.js"
 import { Dialog } from "../../../../../ui/base/Dialog.js"
 import { PosRect } from "../../../../../ui/utils/PosRect"
-import { Keys } from "../../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../../ui/utils/KeyboardKeys"
 
 /**
  * small modal displaying all relevant information about a contact in a compact fashion. offers limited editing capabilities to participants in the

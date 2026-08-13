@@ -12,7 +12,7 @@ import { BaseButton } from "../../../ui/base/buttons/BaseButton.js"
 import { MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { AppLockMethod } from "@tutao/native-bridge/generatedIpc/enums"
 import { type RadioSelectorOption } from "../../../ui/base/RadioSelectorItem"
-import { Keys } from "../../../ui/KeyboardKeys"
+import { Keys } from "../../../ui/utils/KeyboardKeys"
 
 export async function showAppLockMethodDialog(mobileSystemFacade: MobileSystemFacade): Promise<void> {
 	await AppLockMethodDialog.showAndWaitForSelection(mobileSystemFacade)

@@ -36,7 +36,7 @@ import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
 import { File } from "@tutao/entities/tutanota"
 import { InboxRuleType, NewsletterBannerRule } from "../../../../entities/tutanota/Utils"
 import { canSeeTutaLinks } from "../../../common/gui/base/TutaLinkUtils"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { DownloadPostProcessing } from "../../../common/file/FileController"
 import { elementIdToId } from "@tutao/meta"
 

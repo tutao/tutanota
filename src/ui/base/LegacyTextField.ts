@@ -9,7 +9,7 @@ import { isKeyPressed, keyHandler, useKeyHandler } from "../utils/KeyManager"
 import { TabIndex } from "../../platform-kit/app-env"
 import { ClickHandler, getOperatingClasses } from "./GuiUtils"
 import { AriaPopupType } from "../AriaUtils.js"
-import { Keys } from "../KeyboardKeys"
+import { Keys } from "../utils/KeyboardKeys"
 
 export type LegacyTextFieldAttrs = {
 	id?: string

@@ -4,7 +4,7 @@ import { TabIndex } from "@tutao/app-env"
 import { px } from "../../size"
 import { lang } from "../../utils/LanguageViewModel.js"
 import { isKeyPressed } from "../../utils/KeyManager.js"
-import { Keys } from "../../KeyboardKeys"
+import { Keys } from "../../utils/KeyboardKeys"
 
 export type ColorOptionButtonAttrs = {
 	color: string

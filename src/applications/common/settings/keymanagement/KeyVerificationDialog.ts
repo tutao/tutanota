@@ -19,7 +19,7 @@ import { FingerprintMismatchInfoPage } from "./dialogpages/FingerprintMismatchIn
 import { FingerprintMismatchKeepPage } from "./dialogpages/FingerprintMismatchKeepPage"
 import { assertNotNull } from "../../../../platform-kit/utils"
 import { windowFacade } from "../../misc/WindowFacade"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 enum KeyVerificationDialogPages {
 	CHOOSE_METHOD = "CHOOSE_METHOD",

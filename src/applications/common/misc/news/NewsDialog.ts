@@ -6,7 +6,7 @@ import { Dialog, DialogType } from "../../../../ui/base/Dialog.js"
 import { NewsList } from "./NewsList.js"
 import { NewsModel } from "./NewsModel.js"
 import { progressIcon } from "../../../../ui/base/Icon.js"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 export function showNewsDialog(newsModel: NewsModel) {
 	const closeButton: ButtonAttrs = {

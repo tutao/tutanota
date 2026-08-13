@@ -5,7 +5,7 @@ import { mapLazily } from "./MaybeLazy"
 import { ListState, MultiselectMode } from "./List.js"
 import { Children } from "mithril"
 import { SearchToken, splitTextForHighlighting } from "../utils/QueryTokenUtils"
-import { Keys } from "../KeyboardKeys"
+import { Keys } from "../utils/KeyboardKeys"
 
 export const ACTION_DISTANCE = 150
 export const PageSize = 100

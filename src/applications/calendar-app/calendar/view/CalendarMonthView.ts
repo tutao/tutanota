@@ -45,7 +45,7 @@ import { isModifierKeyPressed, Key } from "../../../../ui/utils/KeyManager.js"
 import { shallowIsSameEvent } from "../../../common/calendar/import/ImportExportUtils"
 import { LegacyContinuingCalendarEventBubble, LegacyContinuingCalendarEventBubbleAttrs } from "./LegacyContinuingEventBubble"
 import { theme } from "../../../../ui/theme"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 type CalendarMonthAttrs = {
 	selectedDate: Date

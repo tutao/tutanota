@@ -31,7 +31,7 @@ import { TimeIndicator } from "../../../common/calendar/gui/TimeIndicator"
 import { TimeBadgeVarient } from "../../../common/calendar/gui/TimeBadge"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { formatEventTimesAtDate } from "../gui/DateTimeTextFormatterUtils"
 
 export type CalendarAgendaViewAttrs = {

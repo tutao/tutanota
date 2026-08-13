@@ -18,7 +18,7 @@ import { MailViewerMoreActions } from "./MailViewerUtils"
 import { MailHeaderActions } from "./MailViewerHeader"
 import { MailTypeRef } from "@tutao/entities/tutanota"
 import { elementIdPart, isSameId, isSameTypeRef } from "../../../../platform-kit/meta"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 export interface ConversationViewerAttrs {
 	viewModel: ConversationViewModel

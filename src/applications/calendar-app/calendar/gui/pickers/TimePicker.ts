@@ -12,7 +12,7 @@ import { isKeyPressed } from "../../../../../ui/utils/KeyManager.js"
 import { getNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { DateTime } from "luxon"
 import { lang, Translation } from "../../../../../ui/utils/LanguageViewModel"
-import { Keys } from "../../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../../ui/utils/KeyboardKeys"
 
 export type TimePickerAttrs = {
 	time: Time | null

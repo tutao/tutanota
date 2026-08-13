@@ -10,7 +10,7 @@ import { incrementMonth } from "../../../../../platform-kit/utils"
 import { Styles } from "../../../../../ui/styles.js"
 import renderSwitchMonthArrowIcon from "../../../../../ui/base/buttons/ArrowButton.js"
 import { PosRect } from "../../../../../ui/utils/PosRect"
-import { Keys } from "../../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../../ui/utils/KeyboardKeys"
 
 export interface DaySelectorPopupAttrs {
 	selectedDate: Date

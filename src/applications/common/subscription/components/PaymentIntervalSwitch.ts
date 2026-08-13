@@ -2,7 +2,7 @@ import m, { ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { AriaRole } from "../../../../ui/AriaUtils.js"
 import { TabIndex } from "@tutao/app-env"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager.js"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 type SwitchState = "left" | "right"
 

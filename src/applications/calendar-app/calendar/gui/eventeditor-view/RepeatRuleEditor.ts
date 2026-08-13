@@ -29,7 +29,7 @@ import { Divider } from "../../../../../ui/Divider.js"
 import { WeekdaySelector, WeekdayToTranslation } from "./WeekdaySelector.js"
 import { WeekRepetitionSelector } from "./WeekRepetitionSelector.js"
 import { DateTime } from "luxon"
-import { Keys } from "../../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../../ui/utils/KeyboardKeys"
 
 export type RepeatRuleEditorAttrs = {
 	model: CalendarEventWhenModel

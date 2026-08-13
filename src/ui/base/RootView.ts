@@ -3,7 +3,7 @@ import { modal } from "./Modal"
 import { overlay } from "./Overlay"
 import { EnvProvider } from "../../platform-kit/app-env"
 import { isKeyPressed } from "../utils/KeyManager.js"
-import { Keys } from "../KeyboardKeys"
+import { Keys } from "../utils/KeyboardKeys"
 
 EnvProvider.assertMainOrNodeBoot()
 

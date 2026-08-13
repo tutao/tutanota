@@ -8,7 +8,7 @@ import { ExpanderPanel } from "./Expander"
 import { TabIndex } from "../../platform-kit/app-env"
 import { isKeyPressed } from "../utils/KeyManager"
 import { Styles } from "../styles"
-import { Keys } from "../KeyboardKeys"
+import { Keys } from "../utils/KeyboardKeys"
 
 export type RadioSelectorOption<T> = {
 	readonly name: MaybeTranslation

@@ -15,7 +15,7 @@ import { windowFacade } from "../../misc/WindowFacade"
 import { CancelledError, CredentialEncryptionMode } from "@tutao/app-env"
 import { BaseButton } from "../../../../ui/base/buttons/BaseButton.js"
 import { type RadioSelectorOption } from "../../../../ui/base/RadioSelectorItem"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 export const DEFAULT_CREDENTIAL_ENCRYPTION_MODE = CredentialEncryptionMode.DEVICE_LOCK
 

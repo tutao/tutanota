@@ -10,7 +10,7 @@ import { isDarkTheme, theme } from "../../theme.js"
 import { isKeyPressed } from "../../utils/KeyManager"
 import { assertNotNull, clamp, filterInt } from "@tutao/utils"
 import { TabIndex } from "@tutao/app-env"
-import { Keys } from "../../KeyboardKeys"
+import { Keys } from "../../utils/KeyboardKeys"
 
 const HUE_GRADIENT_BORDER_WIDTH = 1
 const HUE_GRADIENT_HEIGHT = 40

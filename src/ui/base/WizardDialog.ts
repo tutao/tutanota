@@ -9,7 +9,7 @@ import { lang, MaybeTranslation, TranslationKey } from "../utils/LanguageViewMod
 import type { DialogHeaderBarAttrs } from "./DialogHeaderBar"
 import { EnvProvider, TabIndex } from "../../platform-kit/app-env"
 import { IWindowFacade } from "../IWindowFacade"
-import { Keys } from "../KeyboardKeys"
+import { Keys } from "../utils/KeyboardKeys"
 
 EnvProvider.assertMainOrNode()
 

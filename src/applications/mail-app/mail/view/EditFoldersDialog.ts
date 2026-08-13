@@ -9,7 +9,7 @@ import { ease } from "../../../../ui/animation/Easing.js"
 import { component_size, layout_size, px } from "../../../../ui/size.js"
 import { Styles } from "../../../../ui/styles.js"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 export class EditFoldersDialog implements ModalComponent {
 	private visible: boolean

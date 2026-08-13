@@ -10,7 +10,7 @@ import { ButtonColor } from "../../../../ui/base/Button"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { ButtonSize } from "../../../../ui/base/ButtonSize"
 import { createDropdown, DropdownChildAttrs } from "../../../../ui/base/Dropdown"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 export type CalendarSidebarRowIconData = Pick<IconAttrs, "icon" | "title">
 export type CalendarSidebarRowAttrs = Omit<CalendarInfoBase, "type"> & {

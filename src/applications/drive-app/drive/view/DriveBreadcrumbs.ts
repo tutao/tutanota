@@ -11,7 +11,7 @@ import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { modal } from "../../../../ui/base/Modal"
 import { DriveFolder } from "@tutao/entities/drive"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 export interface DriveBreadcrumbsAttrs {
 	currentFolder: DriveFolder | null

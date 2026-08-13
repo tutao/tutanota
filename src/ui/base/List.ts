@@ -11,7 +11,7 @@ import { applySafeAreaInsetMarginLR } from "../HtmlUtils.js"
 import { theme, ThemeId } from "../theme.js"
 import { Coordinate2D } from "./SwipeHandler.js"
 import { Styles } from "../styles.js"
-import { Keys } from "../KeyboardKeys"
+import { Keys } from "../utils/KeyboardKeys"
 
 export type ListState<T> = Readonly<{
 	items: ReadonlyArray<T>

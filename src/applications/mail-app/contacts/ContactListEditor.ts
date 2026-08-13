@@ -16,7 +16,7 @@ import { GroupNameData } from "../../common/sharing/model/GroupSettingsModel"
 import { ContactListEditorModel } from "./ContactListEditorModel"
 import { ContactListGroupRoot } from "@tutao/entities/tutanota"
 import { clone, isSameId } from "../../../platform-kit/meta"
-import { Keys } from "../../../ui/KeyboardKeys"
+import { Keys } from "../../../ui/utils/KeyboardKeys"
 
 export async function showContactListEditor(
 	contactListGroupRoot: ContactListGroupRoot | null,

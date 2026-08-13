@@ -14,7 +14,7 @@ import { showDeletePopup } from "../CalendarGuiUtils.js"
 import { prepareCalendarDescription } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { PosRect } from "../../../../../ui/utils/PosRect"
 import { convertTextToHtml } from "@tutao/utils"
-import { Keys } from "../../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../../ui/utils/KeyboardKeys"
 
 /**
  * small modal displaying all relevant information about an event in a compact fashion. offers limited editing capabilities to participants in the

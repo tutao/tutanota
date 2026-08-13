@@ -10,7 +10,7 @@ import { isKeyPressed } from "../../../../ui/utils/KeyManager.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { getMailAddressDisplayText } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getConfidentialIcon, getFolderIconByType } from "./MailGuiUtils.js"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 export interface CollapsedMailViewAttrs {
 	viewModel: MailViewerViewModel

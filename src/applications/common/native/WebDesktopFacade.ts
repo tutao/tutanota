@@ -4,7 +4,7 @@ import { LoginController } from "../api/main/LoginController.js"
 import { lazy, lazyAsync } from "@tutao/utils"
 import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
 import { SpellcheckLanguageDialog } from "../../../ui/dialogs/SpellcheckLanguageDialog"
-import { Keys } from "../../../ui/KeyboardKeys"
+import { Keys } from "../../../ui/utils/KeyboardKeys"
 
 export class WebDesktopFacade implements DesktopFacade {
 	constructor(

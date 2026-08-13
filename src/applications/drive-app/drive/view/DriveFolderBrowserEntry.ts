@@ -6,7 +6,7 @@ import { FolderItem } from "./DriveUtils"
 import { TabIndex } from "../../../../platform-kit/app-env"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 export interface DriveFolderBrowserEntryAttrs {
 	item: FolderItem

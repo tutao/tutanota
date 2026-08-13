@@ -17,7 +17,7 @@ import QRCode from "qrcode-svg"
 import { CustomerInfo, CustomerInfoTypeRef, CustomerTypeRef, GiftCard, GiftCardTypeRef } from "@tutao/entities/sys"
 import { urlEncodeHtmlTags } from "@tutao/utils"
 import { idToElementId } from "@tutao/meta"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 export const enum GiftCardStatus {
 	Deactivated = "0",

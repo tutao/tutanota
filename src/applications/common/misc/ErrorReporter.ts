@@ -22,7 +22,7 @@ import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetecto
 import { ErrorReportClientType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { DataFile } from "../../../entities/tutanota/MailBundle"
 import { ErrorInfo, errorToString } from "../../../ui/utils/ErrorInfo"
-import { Keys } from "../../../ui/KeyboardKeys"
+import { Keys } from "../../../ui/utils/KeyboardKeys"
 
 type FeedbackContent = {
 	message: string

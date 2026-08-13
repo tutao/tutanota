@@ -36,7 +36,7 @@ import { File, Mail } from "@tutao/entities/tutanota"
 import { InboxRuleType, MailSetKind, SpamRuleFieldType, SpamRuleType } from "../../../../entities/tutanota/Utils"
 import { createEmailSenderListElement } from "@tutao/entities/sys"
 import { DownloadPostProcessing } from "../../../common/file/FileController"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 EnvProvider.assertMainOrNode()
 

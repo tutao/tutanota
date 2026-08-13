@@ -4,7 +4,7 @@ import { Dialog } from "./Dialog"
 import { EnvProvider } from "../../platform-kit/app-env"
 import { LegacyTextField } from "./LegacyTextField.js"
 import type { Shortcut } from "../utils/KeyManager"
-import { Keys } from "../KeyboardKeys"
+import { Keys } from "../utils/KeyboardKeys"
 
 function makeShortcutName(shortcut: Shortcut): Translation {
 	const mainModifier = EnvProvider.get().isAppleDevice() ? Keys.META.name : Keys.CTRL.name

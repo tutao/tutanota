@@ -67,7 +67,7 @@ import { CalendarAttendeeStatus } from "../../../../entities/tutanota/Utils"
 import { AccountType, hasCapabilityOnGroup } from "../../../../entities/sys/Utils"
 import { clone } from "@tutao/meta"
 import { IcsCalendarEvent } from "../export/CalendarParser"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 export interface IntervalOption {
 	value: number

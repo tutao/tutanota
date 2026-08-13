@@ -14,7 +14,7 @@ import { DriveFolderContentMobile } from "./DriveFolderContentMobile"
 import { isMobileDriveLayout } from "./DriveGuiUtils"
 import { getDisplayType, getFileIcon } from "../model/DriveMimeUtils"
 import { assertNotNull } from "../../../../platform-kit/utils"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 export type SelectionState = { type: "multiselect"; selectedItemCount: number; selectedAll: boolean } | { type: "none" }
 

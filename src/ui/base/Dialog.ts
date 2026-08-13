@@ -25,7 +25,7 @@ import { DialogInjectionRight } from "./DialogInjectionRight"
 import Stream from "mithril/stream"
 import { TextField } from "./TextField"
 import { isOfflineError } from "../../platform-kit/rest-client/error"
-import { Keys } from "../KeyboardKeys"
+import { Keys } from "../utils/KeyboardKeys"
 
 EnvProvider.assertMainOrNode()
 export const INPUT = "input.text, input.tutaui-text-field, textarea, div[contenteditable='true']"

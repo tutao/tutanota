@@ -85,7 +85,7 @@ import { MailLabelsView } from "./MailLabelsView"
 import { showEditLabelDialog } from "./EditLabelDialog"
 import { ButtonSize } from "../../../../ui/base/ButtonSize"
 import { LockedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 EnvProvider.assertMainOrNode()
 

@@ -15,7 +15,7 @@ import { animations, opacity, transform, TransformEnum } from "../animation/Anim
 import { ease } from "../animation/Easing.js"
 import { BaseButton } from "./buttons/BaseButton.js"
 import { Icons } from "./icons/Icons"
-import { Keys } from "../KeyboardKeys"
+import { Keys } from "../utils/KeyboardKeys"
 
 /**
  * **GENERIC** Interface to declare everything that is important to use at the select option

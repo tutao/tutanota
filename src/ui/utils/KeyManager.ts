@@ -2,7 +2,7 @@ import type { TranslationKey } from "./LanguageViewModel"
 import { EnvProvider } from "../../platform-kit/app-env"
 import { lazy, mod } from "../../platform-kit/utils"
 import m from "mithril"
-import { Keys } from "../KeyboardKeys"
+import { Keys } from "./KeyboardKeys"
 
 EnvProvider.assertMainOrNodeBoot()
 export const TABBABLE = "button, input, textarea, div[contenteditable='true'], [tabindex='0'], a, [role=button], [role=input]"

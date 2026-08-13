@@ -9,7 +9,7 @@ import { lang } from "../../utils/LanguageViewModel"
 import { TextField } from "../TextField"
 import { TabIndex } from "@tutao/app-env"
 import { isKeyPressed } from "../../utils/KeyManager"
-import { Keys } from "../../KeyboardKeys"
+import { Keys } from "../../utils/KeyboardKeys"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 
 const HUE_GRADIENT_BORDER_WIDTH = 1

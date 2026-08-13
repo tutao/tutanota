@@ -67,7 +67,7 @@ import { Contact, ContactTypeRef } from "../../../../entities/tutanota/TypeRefs"
 import { PartialRecipient } from "../../../../entities/tutanota/Utils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 EnvProvider.assertMainOrNode()
 

@@ -8,7 +8,7 @@ import { px } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
 import { isKeyPressed } from "../utils/KeyManager.js"
 import { assertNotNull } from "../../platform-kit/utils"
-import { Keys } from "../KeyboardKeys"
+import { Keys } from "../utils/KeyboardKeys"
 
 export type ExpanderAttrs = {
 	label: MaybeTranslation

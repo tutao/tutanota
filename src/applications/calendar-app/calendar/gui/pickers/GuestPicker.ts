@@ -16,7 +16,7 @@ import { px, size } from "../../../../../ui/size.js"
 import { DefaultAnimationTime } from "../../../../../ui/animation/Animations.js"
 import { LegacyTextFieldType } from "../../../../../ui/base/LegacyTextField.js"
 import { keyboardEventToKeyPress } from "../../../../../ui/utils/KeyManager.js"
-import { Keys } from "../../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../../ui/utils/KeyboardKeys"
 
 export interface GuestPickerAttrs {
 	ariaLabel: TranslationKey

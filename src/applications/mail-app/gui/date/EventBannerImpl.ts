@@ -43,7 +43,7 @@ import { clone, GENERATED_MIN_ID } from "@tutao/meta"
 import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
 import { getTimeZone } from "../../../common/calendar/date/CalendarUtils"
 import { formatEventTime } from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData

@@ -18,7 +18,7 @@ import { isKeyPressed, keyboardEventToKeyPress, keyHandler, KeyPress, useKeyHand
 import { EnvProvider, TabIndex } from "../../../../../platform-kit/app-env"
 import { AriaPopupType } from "../../../../../ui/AriaUtils.js"
 import { InputButton, InputButtonAttributes, InputButtonVariant } from "../../../../../ui/base/InputButton.js"
-import { Keys } from "../../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../../ui/utils/KeyboardKeys"
 
 export enum PickerPosition {
 	TOP,

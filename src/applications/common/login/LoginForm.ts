@@ -10,7 +10,7 @@ import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { PasswordField } from "../misc/passwords/PasswordField.js"
 import { EnvProvider } from "@tutao/app-env"
 import { useKeyHandler } from "../../../ui/utils/KeyManager.js"
-import { Keys } from "../../../ui/KeyboardKeys"
+import { Keys } from "../../../ui/utils/KeyboardKeys"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => unknown

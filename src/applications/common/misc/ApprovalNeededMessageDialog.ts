@@ -6,7 +6,7 @@ import { CommonButtonAttrs, PrimaryButton, PrimaryButtonAttrs, SecondaryButton }
 import { ApprovalStatus, CancelledError } from "@tutao/app-env"
 import { locator } from "../api/main/CommonLocator"
 import { renderMoreInfoLink } from "./news/MoreInfoLink"
-import { Keys } from "../../../ui/KeyboardKeys"
+import { Keys } from "../../../ui/utils/KeyboardKeys"
 
 // Function that will be called if user presses fast-track buttons
 // Opens a new MailEditor Window with prefilled mailto and subject

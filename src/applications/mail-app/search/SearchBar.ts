@@ -28,7 +28,7 @@ import { compareMails } from "../mail/model/MailUtils"
 import { CalendarEvent, CalendarEventTypeRef, Contact, ContactTypeRef, Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import { WhitelabelChild } from "@tutao/entities/sys"
 import { windowFacade } from "../../common/misc/WindowFacade"
-import { Keys } from "../../../ui/KeyboardKeys"
+import { Keys } from "../../../ui/utils/KeyboardKeys"
 
 EnvProvider.assertMainOrNode()
 export type ShowMoreAction = {

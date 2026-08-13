@@ -3,7 +3,7 @@ import { lang } from "../utils/LanguageViewModel"
 import m, { Child, Children, Component, Vnode } from "mithril"
 import { isKeyPressed } from "../utils/KeyManager.js"
 import { AriaRole } from "../AriaUtils.js"
-import { Keys } from "../KeyboardKeys"
+import { Keys } from "../utils/KeyboardKeys"
 
 export interface SingularOrPluralLabel {
 	singular: MaybeTranslation

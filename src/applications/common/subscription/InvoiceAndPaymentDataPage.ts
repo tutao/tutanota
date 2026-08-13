@@ -28,7 +28,7 @@ import { SimplifiedCreditCardInput } from "./SimplifiedCreditCardInput"
 import { PaypalButton } from "./PaypalButton"
 import { idToElementId } from "@tutao/meta"
 import { Country } from "../gui/CountryList"
-import { Keys } from "../../../ui/KeyboardKeys"
+import { Keys } from "../../../ui/utils/KeyboardKeys"
 
 /**
  * Wizard page for editing invoice and payment data.

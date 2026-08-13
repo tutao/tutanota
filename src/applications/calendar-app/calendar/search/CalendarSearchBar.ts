@@ -24,7 +24,7 @@ import { calendarLocator } from "../../calendarLocator.js"
 import { CalendarSearchBarOverlay } from "./CalendarSearchBarOverlay.js"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { BrowserType } from "../../../../platform-kit/app-env/boot/ClientConstants"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 EnvProvider.assertMainOrNode()
 export type ShowMoreAction = {

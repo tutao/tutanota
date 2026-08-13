@@ -8,7 +8,7 @@ import { highlightTextInQueryAsChildren } from "../../../../ui/TextHighlightView
 import { theme } from "../../../../ui/theme"
 import { boxShadowHigh } from "../../../../ui/main-styles"
 import { QuickAction, QuickActionsModel } from "./QuickActionsModel"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 interface Attrs {
 	runAction: (action: QuickAction) => unknown

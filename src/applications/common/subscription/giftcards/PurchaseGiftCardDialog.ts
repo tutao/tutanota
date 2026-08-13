@@ -26,7 +26,7 @@ import { MessageBanner } from "../../../../ui/base/MessageBanner"
 import { GiftCard, GiftCardOption, GiftCardService_GET, GiftCardTypeRef } from "@tutao/entities/sys"
 import { PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
 import { NULL_ENTITY } from "@tutao/meta"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 class PurchaseGiftCardModel {
 	message = lang.get("defaultGiftCardMessage_msg")

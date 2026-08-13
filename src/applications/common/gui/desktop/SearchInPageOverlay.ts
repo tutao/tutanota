@@ -12,7 +12,7 @@ import { IconButton } from "../../../../ui/base/IconButton.js"
 import { ToggleButton } from "../../../../ui/base/buttons/ToggleButton.js"
 import { Styles } from "../../../../ui/styles.js"
 import { getSafeAreaInsetBottom } from "../../../../ui/HtmlUtils.js"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 EnvProvider.assertMainOrNode()
 

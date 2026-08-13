@@ -18,7 +18,7 @@ import { RemoteBridge, WindowCleanup } from "./ipc/RemoteBridge.js"
 import { InterWindowEventFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
 import { handleProtocols } from "./net/ProtocolProxy.js"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade"
-import { Keys } from "../../../ui/KeyboardKeys"
+import { Keys } from "../../../ui/utils/KeyboardKeys"
 
 const MINIMUM_WINDOW_SIZE: number = 350
 export type UserInfo = {

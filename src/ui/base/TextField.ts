@@ -11,7 +11,7 @@ import { ClickHandler, getOperatingClasses } from "./GuiUtils"
 import { AriaPopupType } from "../AriaUtils.js"
 import { AllIcons, Icon, IconSize } from "./Icon"
 import { Autocapitalize, Autocomplete, LegacyTextFieldType } from "./LegacyTextField"
-import { Keys } from "../KeyboardKeys"
+import { Keys } from "../utils/KeyboardKeys"
 
 export type TextFieldAttrs = {
 	id?: string

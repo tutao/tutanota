@@ -15,7 +15,7 @@ import { SenderKeyVerificationRecoverySuccessPage } from "./dialogpages/SenderKe
 import { SenderKeyVerificationRecoveryInfoPage } from "./dialogpages/SenderKeyVerificationRecoveryInfoPage"
 import { MultiRecipientsKeyVerificationRecoveryUserSelectionPage } from "./dialogpages/MultiRecipientsKeyVerificationRecoveryUserSelectionPage"
 import { windowFacade } from "../../misc/WindowFacade"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 export enum MultiRecipientsKeyVerificationRecoveryDialogPages {
 	USER_SELECTION = "USER_SELECTION",

@@ -19,7 +19,7 @@ import { Contact } from "@tutao/entities/tutanota"
 import { ContactAddressType } from "../../../../entities/tutanota/Utils"
 import { getContactSocialType } from "../ContactUtils"
 import { HtmlSanitizerInterface } from "../../../../ui/utils/HtmlSanitizerInterface"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 export class ContactMergeView {
 	dialog: Dialog

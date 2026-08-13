@@ -114,7 +114,7 @@ import { PartialRecipient } from "../../../../entities/tutanota/Utils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { renderHeaderButtons } from "../../gui/HeaderButtons"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 import { parseCalendarStringData, ParsedEventAlarmTuple } from "../export/CalendarParser"
 import { getExternalCalendarName } from "../../../common/calendar/import/ImportExportUtils"

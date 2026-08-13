@@ -5,7 +5,7 @@ import { FolderItem, folderItemEntity } from "./DriveUtils"
 import { isEmpty, lastIndex } from "../../../../platform-kit/utils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 export interface DriveFolderBrowserAttrs {
 	items: readonly FolderItem[]

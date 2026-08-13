@@ -18,7 +18,7 @@ import { LabelsPopupViewModel } from "./LabelsPopupViewModel"
 
 import { PosRect } from "../../../../ui/utils/PosRect"
 import { MailSet } from "@tutao/entities/tutanota"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 /**
  * Popup that displays assigned labels and allows changing them

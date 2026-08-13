@@ -8,7 +8,7 @@ import { isKeyPressed, isModifierKeyPressed, Key } from "../../../../ui/utils/Ke
 import { EnvProvider } from "../../../../platform-kit/app-env"
 import { EventWrapper } from "./CalendarViewModel"
 import { CalendarEvent } from "@tutao/entities/tutanota"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 const DRAG_THRESHOLD = 10
 export type MousePos = {

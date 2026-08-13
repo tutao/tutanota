@@ -33,7 +33,7 @@ import { WindowSizeListener } from "../../../../ui/utils/WindowUtils"
 import { EmailTemplate, TemplateGroupRoot, TemplateGroupRootTypeRef } from "@tutao/entities/tutanota"
 import { hasCapabilityOnGroup } from "../../../../entities/sys/Utils"
 import { idToElementId } from "@tutao/meta"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 /**
  *    Creates a Modal/Popup that allows user to paste templates directly into the MailEditor.

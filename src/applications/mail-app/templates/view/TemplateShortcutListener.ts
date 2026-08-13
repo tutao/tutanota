@@ -6,7 +6,7 @@ import { lang, languageByCode, LanguageViewModel } from "../../../../ui/utils/La
 import { Dropdown } from "../../../../ui/base/Dropdown.js"
 import { modal } from "../../../../ui/base/Modal"
 import { showTemplatePopupInEditor } from "./TemplatePopup.js"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 export function registerTemplateShortcutListener(editor: Editor, templateModel: TemplatePopupModel): TemplateShortcutListener {
 	const listener = new TemplateShortcutListener(editor, templateModel, lang)

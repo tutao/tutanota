@@ -13,7 +13,7 @@ import { EnvProvider } from "../../platform-kit/app-env"
 import { isKeyPressed } from "../utils/KeyManager"
 import { DragEnterHandler, DragStartHandler, DropData, DropHandler, DropType } from "./GuiUtils"
 import { fileListToArray } from "../utils/FileUtils.js"
-import { Keys } from "../KeyboardKeys"
+import { Keys } from "../utils/KeyboardKeys"
 
 EnvProvider.assertMainOrNode()
 export type NavButtonAttrs = {

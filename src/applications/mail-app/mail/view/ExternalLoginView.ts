@@ -26,7 +26,7 @@ import { PasswordField } from "../../../common/misc/passwords/PasswordField.js"
 import { renderInfoLinks } from "../../../common/gui/RenderLoginInfoLinks.js"
 import { EnvProvider } from "../../../../platform-kit/app-env"
 import { asKdfType, KdfType } from "../../../../platform-kit/base/base-crypto/Constants"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 EnvProvider.assertMainOrNode()
 

@@ -120,7 +120,7 @@ import { PosRect } from "../../../../ui/utils/PosRect"
 import { SimpleMoveMailTarget } from "../../mail/MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 EnvProvider.assertMainOrNode()
 

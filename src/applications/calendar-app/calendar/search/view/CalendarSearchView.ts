@@ -60,7 +60,7 @@ import { windowFacade } from "../../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../gui/HeaderButtons"
 import { isFreeSignupOnly } from "../../../../common/misc/LoginUtils"
 import { locator } from "../../../../common/api/main/CommonLocator"
-import { Keys } from "../../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../../ui/utils/KeyboardKeys"
 
 EnvProvider.assertMainOrNode()
 

@@ -23,7 +23,7 @@ import { getStartOfTheWeekOffsetForUser } from "../../common/misc/weekOffset"
 import { OutOfOfficeNotification } from "@tutao/entities/tutanota"
 import { OUT_OF_OFFICE_SUBJECT_PREFIX } from "../../../entities/tutanota/Utils"
 import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer"
-import { Keys } from "../../../ui/KeyboardKeys"
+import { Keys } from "../../../ui/utils/KeyboardKeys"
 
 export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: OutOfOfficeNotification | null) {
 	const dialogModel = new EditOutOfOfficeNotificationDialogModel(

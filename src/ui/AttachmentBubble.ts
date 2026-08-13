@@ -18,7 +18,7 @@ import { lang } from "./utils/LanguageViewModel.js"
 import { PosRect } from "./utils/PosRect"
 import { Attachment, isTutanotaFile } from "../entities/tutanota/Utils"
 import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../platform-kit/utils/FileConstants"
-import { Keys } from "./KeyboardKeys"
+import { Keys } from "./utils/KeyboardKeys"
 
 export enum AttachmentType {
 	GENERIC,

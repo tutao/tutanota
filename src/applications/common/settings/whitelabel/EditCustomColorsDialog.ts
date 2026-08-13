@@ -5,7 +5,7 @@ import { ButtonType } from "../../../../ui/base/Button.js"
 import type { DialogHeaderBarAttrs } from "../../../../ui/base/DialogHeaderBar"
 import { CustomColorEditor } from "./CustomColorEditor"
 import { CustomColorsEditorViewModel } from "./CustomColorsEditorViewModel"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 EnvProvider.assertMainOrNode()
 

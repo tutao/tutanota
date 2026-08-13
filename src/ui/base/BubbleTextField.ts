@@ -4,7 +4,7 @@ import { MaybeTranslation, Translation } from "../utils/LanguageViewModel"
 import { createAsyncDropdown, DropdownChildAttrs } from "./Dropdown.js"
 import { lazy } from "../../platform-kit/utils"
 import { BaseButton, BaseButtonAttrs } from "./buttons/BaseButton.js"
-import { Keys } from "../KeyboardKeys"
+import { Keys } from "../utils/KeyboardKeys"
 
 export enum BubbleTextFieldClickBehaviour {
 	SHOW_DROPDOWN,

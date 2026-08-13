@@ -19,7 +19,7 @@ import { locator } from "../../../common/api/main/CommonLocator.js"
 import { getDefaultSender } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { MailMethod } from "../../../../entities/tutanota/Utils"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
 type PressContact = {
 	email: string

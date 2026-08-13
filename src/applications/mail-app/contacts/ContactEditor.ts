@@ -71,7 +71,7 @@ import {
 import { clone, timestampToGeneratedId } from "../../../platform-kit/meta"
 import { EnvProvider, ProgrammingError } from "../../../platform-kit/app-env"
 import { GroupType } from "../../../entities/sys/Utils"
-import { Keys } from "../../../ui/KeyboardKeys"
+import { Keys } from "../../../ui/utils/KeyboardKeys"
 
 EnvProvider.assertMainOrNode()
 

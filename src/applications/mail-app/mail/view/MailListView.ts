@@ -32,7 +32,7 @@ import { DropType, renderDragElement } from "../../../../ui/base/GuiUtils"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel"
 import { generateExportFileName } from "../export/emlUtils.js"
 import { makeTrackedProgressMonitor } from "../../../common/api/common/utils/ProgressMonitor"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { AsyncResultStateOptions } from "../../../../platform-kit/utils/AsyncResult"
 
 EnvProvider.assertMainOrNode()

@@ -39,7 +39,7 @@ import { Card } from "../../../../ui/base/Card"
 import { isDarkTheme, theme } from "../../../../ui/theme"
 import { LocalAutosavedDraftData } from "../../../common/api/worker/facades/lazy/AutosaveFacade"
 import { ifAllowedTutaLinks } from "../../../common/gui/base/TutaLinkUtils"
-import { Keys } from "../../../../ui/KeyboardKeys"
+import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { $Promisable } from "../../workerUtils/index/IndexerPromiseUtils"
 
 export type MailViewerMoreActions = {
