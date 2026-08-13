@@ -1,9 +1,16 @@
 <resources>
     <string name="reminder_label">Meeldetuletus</string>
     <string name="pushNewMail_msg">Uus e-kiri saabunud.</string>
-    <string name="wantToSendReport_msg">Midagi ootamatut läks valesti. Kas soovite saata veateadet? Võite lisada sõnumi, et aidata meil seda viga parandada.</string>
+    <string name="wantToSendReport_msg">Midagi ootamatut läks valesti. Kas soovite saata veateadet? Võid lisada sõnumi, et aidata meil seda viga parandada.</string>
+    <string name="unlockCredentials_action">Ava juurdepääsuandmed</string>
     <string name="delete_action">Kustuta</string>
     <string name="markRead_action">Märgi loetuks</string>
     <string name="archive_action">Arhiiv</string>
     <string name="account_label">Kasutaja</string>
+    <string name="widgetNoCredentialsInfo_msg">Isikuandmed ei ole saadaval</string>
+    <string name="widgetUnexpectedError_msg">Oi! Midagi läks valesti.</string>
+    <string name="widgetCredentialsError_msg">Palun logige Calendar äppi</string>
+    <string name="widgetOpenApp_action">Ava äppi</string>
+    <string name="widgetNoEvents_msg">Sündmusi ei ole</string>
+    <string name="widgetDescription_msg">Näita tänaseid sündmusi</string>
 </resources>
