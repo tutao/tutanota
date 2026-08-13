@@ -40,6 +40,9 @@ import { CreateMailGroupDataTypeRef } from "./TypeRefs.js"
 import { MailGroupPostOutTypeRef } from "./TypeRefs.js"
 import { DeleteGroupDataTypeRef } from "./TypeRefs.js"
 import { DeleteMailDataTypeRef } from "./TypeRefs.js"
+import { MailboxMigrationPostInTypeRef } from "./TypeRefs.js"
+import { MailboxMigrationPostOutTypeRef } from "./TypeRefs.js"
+import { MailboxMigrationDeleteInTypeRef } from "./TypeRefs.js"
 import { ManageLabelServicePostInTypeRef } from "./TypeRefs.js"
 import { ManageLabelServicePostOutTypeRef } from "./TypeRefs.js"
 import { ManageLabelServicePutInTypeRef } from "./TypeRefs.js"
@@ -243,6 +246,15 @@ export const MailService = Object.freeze({
 	post: null,
 	put: null,
 	delete: { data: DeleteMailDataTypeRef, return: null },
+} as const)
+
+export const MailboxMigrationService = Object.freeze({
+	app: "tutanota",
+	name: "MailboxMigrationService",
+	get: null,
+	post: { data: MailboxMigrationPostInTypeRef, return: MailboxMigrationPostOutTypeRef },
+	put: null,
+	delete: { data: MailboxMigrationDeleteInTypeRef, return: null },
 } as const)
 
 export const ManageLabelService = Object.freeze({

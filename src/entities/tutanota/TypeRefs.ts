@@ -4516,11 +4516,13 @@ export type ImapAccountSyncStateParams = {
 	provider: NumberString;
 	status: NumberString;
 	importedMailCount: null | NumberString;
+	errorCause: null | NumberString;
 
 	imapFolderSyncStateList: Id;
 	imapAccount: ImapAccount;
 	rootImportMailSet: null | IdTuple;
 	imapSyncLabel: null | IdTuple;
+	mailboxMigrationInformation: null | IdTuple;
 }
 
 export type ImapAccountSyncState = {
@@ -4540,11 +4542,13 @@ export type ImapAccountSyncState = {
 	provider: NumberString;
 	status: NumberString;
 	importedMailCount: null | NumberString;
+	errorCause: null | NumberString;
 
 	imapFolderSyncStateList: Id;
 	imapAccount: ImapAccount;
 	rootImportMailSet: null | IdTuple;
 	imapSyncLabel: null | IdTuple;
+	mailboxMigrationInformation: null | IdTuple;
 }
 export const ImapFolderPostInTypeRef: TypeRef<ImapFolderPostIn> = new TypeRef("tutanota", 1929)
 
@@ -4762,4 +4766,98 @@ export type ImapPutIn = {
 	newPostponedUntil: null | string;
 
 	imapAccountSyncState: IdTuple;
+}
+export const MailboxMigrationPostInTypeRef: TypeRef<MailboxMigrationPostIn> = new TypeRef("tutanota", 1997)
+
+export function createMailboxMigrationPostIn(values: MailboxMigrationPostInParams): MailboxMigrationPostIn {
+    return Object.assign(create(typeModels[MailboxMigrationPostInTypeRef.typeId], MailboxMigrationPostInTypeRef), values)
+}
+
+export type MailboxMigrationPostInParams = {
+
+
+	mailGroup: Id;
+	ownerEncImapAccountSyncStateSessionKey: Uint8Array<ArrayBuffer>;
+	ownerImapAccountSyncStateKeyVersion: NumberString;
+	ownerEncMailboxMigrationInformationSessionKey: Uint8Array<ArrayBuffer>;
+	ownerEncMailboxMigrationInformationKeyVersion: NumberString;
+	maxQuota: NumberString;
+	postponedUntil: NumberString;
+	provider: NumberString;
+	encName: Uint8Array<ArrayBuffer>;
+	encMailAddress: Uint8Array<ArrayBuffer>;
+	encInitialPassword: null | Uint8Array<ArrayBuffer>;
+	isShared: boolean;
+
+	imapAccount: ImapAccount;
+	customerMigrationInformation: IdTuple;
+	user: null | Id;
+}
+
+export type MailboxMigrationPostIn = {
+	_type: TypeRef<MailboxMigrationPostIn>;
+	_errors: Object;
+	_original?: MailboxMigrationPostIn
+
+	_format: NumberString;
+	mailGroup: Id;
+	ownerEncImapAccountSyncStateSessionKey: Uint8Array<ArrayBuffer>;
+	ownerImapAccountSyncStateKeyVersion: NumberString;
+	ownerEncMailboxMigrationInformationSessionKey: Uint8Array<ArrayBuffer>;
+	ownerEncMailboxMigrationInformationKeyVersion: NumberString;
+	maxQuota: NumberString;
+	postponedUntil: NumberString;
+	provider: NumberString;
+	encName: Uint8Array<ArrayBuffer>;
+	encMailAddress: Uint8Array<ArrayBuffer>;
+	encInitialPassword: null | Uint8Array<ArrayBuffer>;
+	isShared: boolean;
+
+	imapAccount: ImapAccount;
+	customerMigrationInformation: IdTuple;
+	user: null | Id;
+}
+export const MailboxMigrationPostOutTypeRef: TypeRef<MailboxMigrationPostOut> = new TypeRef("tutanota", 2014)
+
+export function createMailboxMigrationPostOut(values: MailboxMigrationPostOutParams): MailboxMigrationPostOut {
+    return Object.assign(create(typeModels[MailboxMigrationPostOutTypeRef.typeId], MailboxMigrationPostOutTypeRef), values)
+}
+
+export type MailboxMigrationPostOutParams = {
+
+
+
+	mailboxMigrationInformation: IdTuple;
+}
+
+export type MailboxMigrationPostOut = {
+	_type: TypeRef<MailboxMigrationPostOut>;
+	_original?: MailboxMigrationPostOut
+
+	_format: NumberString;
+
+	mailboxMigrationInformation: IdTuple;
+}
+export const MailboxMigrationDeleteInTypeRef: TypeRef<MailboxMigrationDeleteIn> = new TypeRef("tutanota", 2017)
+
+export function createMailboxMigrationDeleteIn(values: MailboxMigrationDeleteInParams): MailboxMigrationDeleteIn {
+    return Object.assign(create(typeModels[MailboxMigrationDeleteInTypeRef.typeId], MailboxMigrationDeleteInTypeRef), values)
+}
+
+export type MailboxMigrationDeleteInParams = {
+
+
+
+	user: null | Id;
+	mailboxMigrationInformation: IdTuple;
+}
+
+export type MailboxMigrationDeleteIn = {
+	_type: TypeRef<MailboxMigrationDeleteIn>;
+	_original?: MailboxMigrationDeleteIn
+
+	_format: NumberString;
+
+	user: null | Id;
+	mailboxMigrationInformation: IdTuple;
 }
