@@ -51,6 +51,25 @@ o.spec("EntityUtilsTest", () => {
 			o(result["encrypted"]).deepEquals("100")
 		})
 
+		o("endValue special case: endValue empty string to null", () => {
+			const modelValueEncrypted = createEncryptedValueType(ValueTypeEnum.Number, Cardinality.ZeroOrOne)
+
+			const result: Record<string, any> = {}
+			EntityUtils.setValue(modelValueEncrypted, "endValue", ParsedValue.fromString(""), result)
+
+			o(result["endValue"]).equals(null)
+		})
+
+		o("endValue special case: empty string with non-ZeroToOne cardinality is invalid and throws error", () => {
+			const modelValueEncrypted = createEncryptedValueType(ValueTypeEnum.Number, Cardinality.One)
+
+			const result: Record<string, any> = {}
+
+			o(() => {
+				EntityUtils.setValue(modelValueEncrypted, "endValue", ParsedValue.fromString(""), result)
+			}).throws(ProgrammingError)
+		})
+
 		o("convert base64 bytes to JS Uint8Array", () => {
 			const modelValueEncrypted = createEncryptedValueType(ValueTypeEnum.Bytes, Cardinality.One)
 
