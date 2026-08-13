@@ -34,6 +34,7 @@ import { Credentials } from "../../../platform-kit/network/types"
 import { locator } from "../api/main/CommonLocator"
 import { UserTypeRef } from "@tutao/entities/sys"
 import { elementIdToId } from "@tutao/meta"
+import { errToErrorInfo } from "../../../platform-kit/utils/ErrorInfo"
 
 EnvProvider.assertMainOrNode()
 
@@ -155,14 +156,14 @@ export async function handleUncaughtErrorImpl(e: Error) {
 
 			// only logged in users can report errors because we send mail for that.
 			if (logins.isUserLoggedIn()) {
-				const { ignored } = await showErrorNotification(e)
+				const { ignored } = await showErrorNotification(errToErrorInfo(e))
 				unknownErrorDialogActive = false
 				if (ignored) {
 					ignoredMessages.push(e.message)
 				}
 			} else {
 				console.log("Unknown error", e)
-				showErrorDialogNotLoggedIn(e).then(() => (unknownErrorDialogActive = false))
+				showErrorDialogNotLoggedIn(errToErrorInfo(e)).then(() => (unknownErrorDialogActive = false))
 			}
 		}
 	}

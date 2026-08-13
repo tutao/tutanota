@@ -1,10 +1,18 @@
-import { isNotNull } from "@tutao/utils"
+import { isNotNull } from "./index"
 
 export interface ErrorInfo {
 	readonly name: string | null
 	readonly message: string | null
-	readonly stack?: string | null
+	readonly stack: string | null
 }
+
+export function errToErrorInfo(err: Error): ErrorInfo {
+	return {
+		stack: err.stack ?? null,
+		...err,
+	}
+}
+
 export function errorToString(error: ErrorInfo): string {
 	let errorString = error.name ?? "?"
 

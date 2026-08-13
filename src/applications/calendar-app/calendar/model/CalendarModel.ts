@@ -135,7 +135,7 @@ import { CalendarImporter, EventImportRejectionReason } from "../../../common/ca
 import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { removeTechnicalFields } from "../gui/eventeditor-model/CalendarEventModel"
-import { errorsToString } from "../../../../ui/utils/ErrorInfo"
+import { errorsToString, errToErrorInfo } from "../../../../platform-kit/utils/ErrorInfo"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
@@ -385,9 +385,9 @@ export class CalendarModel {
 			return
 		}
 		let errorMessage = "Failed events: " + result.failedEvents.length + "\n"
-		errorMessage = errorMessage.concat(errorsToString(result.failedEventErrors))
+		errorMessage = errorMessage.concat(errorsToString(result.failedEventErrors.map((e) => errToErrorInfo(e))))
 		errorMessage += "\nFailed alarms: " + result.failedAlarms.length + "\n"
-		errorMessage = errorMessage.concat(errorsToString(result.failedAlarmErrors))
+		errorMessage = errorMessage.concat(errorsToString(result.failedAlarmErrors.map((e) => errToErrorInfo(e))))
 		throw new Error(errorMessage)
 	}
 

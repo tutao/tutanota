@@ -2,7 +2,7 @@
 
 import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
-import { errorToString } from "../../../../ui/utils/ErrorInfo"
+import { errorToString } from "../../../../platform-kit/utils/ErrorInfo"
 
 export const LOG_SIZE = 1000
 

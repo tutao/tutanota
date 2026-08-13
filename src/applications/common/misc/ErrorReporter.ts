@@ -21,7 +21,7 @@ import { createErrorReportData, createErrorReportFile, createReportErrorIn, Repo
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { ErrorReportClientType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { DataFile } from "../../../entities/tutanota/MailBundle"
-import { ErrorInfo, errorToString } from "../../../ui/utils/ErrorInfo"
+import { ErrorInfo, errorToString } from "../../../platform-kit/utils/ErrorInfo"
 import { Keys } from "../../../ui/utils/KeyboardKeys"
 
 type FeedbackContent = {
