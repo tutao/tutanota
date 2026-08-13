@@ -1,5 +1,5 @@
 import { assertNotNull, DeepEquals, downcast, isNotNull, isNull, Nullable } from "./Utils"
-import { TypeChecks } from "../app-env/boot/TsTypeChecks"
+import { TypeChecks } from "../app-env/TsTypeChecks"
 
 // This file is not transpiled
 /* eslint-disable  no-restricted-syntax */

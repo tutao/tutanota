@@ -20,7 +20,7 @@ import { assert, assertNotNull, deepEqual, DeepEquals, isNotNull, Nullable, uint
 import { EncryptedParsedInstance, EncryptedParsedValue } from "./CryptoMapper"
 import { assertNotNaN } from "../utils/Utils"
 import { EnvProvider } from "@tutao/app-env"
-import { TypeChecks } from "../app-env/boot/TsTypeChecks"
+import { TypeChecks } from "../app-env/TsTypeChecks"
 
 export class TypeMapper {
 	constructor(private readonly typeModelResolver: TypeModelResolver) {}

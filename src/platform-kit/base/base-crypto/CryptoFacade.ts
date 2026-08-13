@@ -100,7 +100,7 @@ import { InstanceSessionKeysCache } from "./persistence/InstanceSessionKeysCache
 import { EntityUtils } from "../../instance-pipeline/EntityUtils"
 import { OutgoingServerJson } from "../../instance-pipeline/TypeMapper"
 import { isNull } from "../../utils/Utils"
-import { TypeChecks } from "../../app-env/boot/TsTypeChecks"
+import { TypeChecks } from "../../app-env/TsTypeChecks"
 
 EnvProvider.assertWorkerOrNode()
 

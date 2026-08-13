@@ -2,7 +2,7 @@ import { EnvProvider, PlatformId } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
 import { AppType } from "../AppType"
-import { TypeChecks } from "./TsTypeChecks"
+import { TypeChecks } from "../TsTypeChecks"
 import {
 	_cssQuerySelectorIsSupported,
 	_expectedBuiltInsArePresent,

@@ -49,7 +49,7 @@ import { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants
 import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { OfflineMapper } from "../../src/platform-kit/instance-pipeline/OfflineMapper"
 import { DomainConfig, EnvProvider, EnvType, ProgrammingError } from "../../src/platform-kit/app-env"
-import { TypeChecks } from "../../src/platform-kit/app-env/boot/TsTypeChecks"
+import { TypeChecks } from "../../src/platform-kit/app-env/TsTypeChecks"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,

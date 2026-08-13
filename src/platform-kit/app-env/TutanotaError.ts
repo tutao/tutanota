@@ -1,4 +1,4 @@
-import { TypeChecks } from "./boot/TsTypeChecks"
+import { TypeChecks } from "./TsTypeChecks"
 
 /**
  * Base class for all errors in Tutanota. Provides the handling of error stacks for chrome (captureStackTrace) and others.

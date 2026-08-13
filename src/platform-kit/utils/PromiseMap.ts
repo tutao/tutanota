@@ -1,4 +1,4 @@
-import { TypeChecks } from "../app-env/boot/TsTypeChecks"
+import { TypeChecks } from "../app-env/TsTypeChecks"
 
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 

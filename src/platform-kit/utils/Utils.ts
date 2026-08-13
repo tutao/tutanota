@@ -1,5 +1,5 @@
 import { ProgrammingError } from "@tutao/app-env"
-import { TypeChecks } from "../app-env/boot/TsTypeChecks"
+import { TypeChecks } from "../app-env/TsTypeChecks"
 import { isStrictlyUndefined, KeyVersion } from "./TsUtils"
 
 export type lazy<T> = () => T

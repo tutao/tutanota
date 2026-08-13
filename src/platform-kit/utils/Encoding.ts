@@ -1,5 +1,5 @@
 // TODO rename methods according to their JAVA counterparts (e.g. Uint8Array == bytes, Utf8Uint8Array == bytes...)
-import { TypeChecks } from "../app-env/boot/TsTypeChecks"
+import { TypeChecks } from "../app-env/TsTypeChecks"
 import { isNotNull, Nullable } from "./Utils"
 
 export function uint8ArrayToArrayBuffer(uint8Array: Uint8Array<ArrayBuffer>): ArrayBuffer {

@@ -24,7 +24,7 @@ import { random } from "@tutao/crypto"
 import { EntityUtils } from "./EntityUtils"
 import { ParsedValue } from "./ParsedValue"
 import { DecryptedParsedInstance, DecryptedParsedValue } from "./CryptoMapper"
-import { TypeChecks } from "../app-env/boot/TsTypeChecks"
+import { TypeChecks } from "../app-env/TsTypeChecks"
 
 EnvProvider.assertWorkerOrNode()
 

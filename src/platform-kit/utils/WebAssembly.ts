@@ -10,7 +10,7 @@ import {
 	Uint8ArrayArgument,
 	WebAssemblyArgument,
 } from "./WebAssemblyArgument"
-import { TypeChecks } from "../app-env/boot/TsTypeChecks"
+import { TypeChecks } from "../app-env/TsTypeChecks"
 
 /**
  * General interface for WASM exports, whether from native WASM or a fallback.

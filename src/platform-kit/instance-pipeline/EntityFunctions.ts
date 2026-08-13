@@ -15,7 +15,7 @@ import {
 } from "@tutao/meta"
 import { EnvProvider, InvalidModelError, ProgrammingError } from "@tutao/app-env"
 import { ApplicationTypesGetOut } from "./ApplicationTypesFacade"
-import { TypeChecks } from "../app-env/boot/TsTypeChecks"
+import { TypeChecks } from "../app-env/TsTypeChecks"
 
 export type ApplicationTypesHash = string
 export type ApplicationVersionSum = number

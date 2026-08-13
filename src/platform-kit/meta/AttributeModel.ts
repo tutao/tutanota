@@ -2,7 +2,7 @@ import { assertNotNull } from "@tutao/utils"
 import { ModelValue, TypeModel } from "./EntityTypes"
 import { AppName } from "./TypeRef.js"
 import { ProgrammingError } from "@tutao/app-env"
-import { TypeChecks } from "../app-env/boot/TsTypeChecks"
+import { TypeChecks } from "../app-env/TsTypeChecks"
 import { AttributeId, AttributeName, TypeId } from "./EntityConstants"
 
 export class AttributeModel {

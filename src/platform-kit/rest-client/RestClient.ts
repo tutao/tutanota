@@ -14,7 +14,7 @@ import {
 	SuspensionBehavior,
 } from "./types"
 import { once } from "../utils/memoized"
-import { TypeChecks } from "../app-env/boot/TsTypeChecks"
+import { TypeChecks } from "../app-env/TsTypeChecks"
 import { isNull } from "../utils/Utils"
 import { TsDate } from "../app-env/TranspileCompatibility"
 

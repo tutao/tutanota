@@ -1,6 +1,6 @@
 import { ProgrammingError } from "./ProgrammingError"
 import { _isNode, _isWorker } from "./boot/TsPlatformConstants"
-import { TypeChecks } from "./boot/TsTypeChecks"
+import { TypeChecks } from "./TsTypeChecks"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
