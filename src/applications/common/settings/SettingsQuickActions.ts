@@ -301,8 +301,8 @@ function planSettings(router: Router) {
 			exec: () => routeToFolder(router, folder),
 		},
 		{
-			description: `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("giftCards_label")}`,
-			exec: () => routeToFolderSection(router, folder, "giftcards"),
+			description: `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("adminSubscription_action")} ${lang.getTranslationText("cancel_action")}`,
+			exec: () => routeToFolderSection(router, folder, "managesubscription"),
 		},
 	]
 }
@@ -329,6 +329,10 @@ function adminSettings(router: Router) {
 		{
 			description: `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("adminPayment_action")}`,
 			exec: () => routeToFolder(router, "invoice"),
+		},
+		{
+			description: `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("adminPayment_action")} ${lang.getTranslationText("giftCards_label")}`,
+			exec: () => routeToFolderSection(router, "invoice", "giftcards"),
 		},
 	]
 }

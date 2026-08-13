@@ -372,6 +372,9 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 			),
 			m(
 				".flex.justify-end",
+				{
+					id: "managesubscription",
+				},
 				m(PrimaryButton, {
 					label: "subscriptionSettingsMoreFeatures_action",
 					width: "flex",
@@ -445,6 +448,9 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		if (booking.renewalEnabled) {
 			return m(
 				".flex.justify-end",
+				{
+					id: "managesubscription",
+				},
 				m(SecondaryButton, {
 					label: "subscriptionStateCardCancel_action",
 					width: "flex",
@@ -461,6 +467,9 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		else if (!booking.renewalEnabled) {
 			return m(
 				".flex.justify-end",
+				{
+					id: "managesubscription",
+				},
 				m(PrimaryButton, {
 					label: "subscriptionSettingsKeep_action",
 					width: "flex",
