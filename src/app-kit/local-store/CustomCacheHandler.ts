@@ -57,7 +57,7 @@ export interface CustomCacheHandler<T extends PersistentEntity> {
 
 	getElementIdsInCacheRange?: (storage: ExposedCacheStorage, listId: Id, ids: Array<Id>) => Promise<Array<Id>>
 
-	shouldLoadOnCreateEvent?: (event: EntityUpdateData) => boolean
+	shouldLoadOnCreateEntityUpdate?: (event: EntityUpdateData) => boolean
 
 	/**
 	 * Called when an entity is about to be inserted into the cache.
@@ -81,7 +81,7 @@ export interface CustomCacheHandler<T extends PersistentEntity> {
 	 *
 	 * @param id ID of the entity
 	 */
-	onEntityEventCreate?: (id: T["_id"], events: EntityUpdateData[]) => Promise<void>
+	onCreateEntityUpdate?: (id: T["_id"], events: EntityUpdateData[]) => Promise<void>
 
 	/**
 	 * Called after receiving an update event for an entity.
@@ -91,7 +91,7 @@ export interface CustomCacheHandler<T extends PersistentEntity> {
 	 *
 	 * @param id ID of the entity
 	 */
-	onEntityEventUpdate?: (id: T["_id"], events: EntityUpdateData[]) => Promise<void>
+	onUpdateEntityUpdate?: (id: T["_id"], events: EntityUpdateData[]) => Promise<void>
 
 	/**
 	 * Called after receiving a deletion event for an entity.
@@ -101,5 +101,5 @@ export interface CustomCacheHandler<T extends PersistentEntity> {
 	 *
 	 * @param id ID of the entity
 	 */
-	onEntityEventDelete?: (id: T["_id"]) => Promise<void>
+	onDeleteEntityUpdate?: (id: T["_id"]) => Promise<void>
 }

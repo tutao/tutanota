@@ -6,7 +6,7 @@ import { Nullable } from "@tutao/utils"
 import { EntityRestClientLoadOptions } from "../../../../../platform-kit/instance-pipeline/RestClientOptions"
 
 export class AdminClientDummyEntityRestCache implements EntityRestCache {
-	async entityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]> {
+	async onEntityUpdatesReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]> {
 		return events
 	}
 

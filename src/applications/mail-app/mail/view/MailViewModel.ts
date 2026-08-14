@@ -118,7 +118,7 @@ export class MailViewModel {
 
 	private readonly entityUpdatesListener: EntityUpdatesListener = {
 		id: "MailViewModel",
-		onEntityUpdatesReceived: (updates, _, isInitialSyncDone) => this.onEntityUpdatesReceived(updates, isInitialSyncDone),
+		onEntityUpdatesReceived: (updates, _) => this.onEntityUpdatesReceived(updates),
 		priority: ListenerPriority.HIGH,
 	}
 
@@ -749,7 +749,7 @@ export class MailViewModel {
 		return movedMailIds.flat()
 	}
 
-	private async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>, isInitialSyncDone: boolean) {
+	private async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>) {
 		// capturing the state so that if we switch mailSets, we won't run into race conditions
 		const folder = this._folder
 		const listModel = this.listModel

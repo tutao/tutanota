@@ -190,7 +190,7 @@ export class UserListView implements UpdatableSettingsViewer {
 		AddUserDialog.show()
 	}
 
-	async entityEventsReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async onEntityUpdatesReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(GroupInfoTypeRef, update) && this.listId.getSync() === update.instanceListId) {
 				await this.listModel.onEntityUpdateReceived(assertNotNull(update.instanceListId), update.instanceId, update.operation)

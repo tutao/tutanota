@@ -485,7 +485,7 @@ export class ImapImporter implements ImapSyncFacade {
 		return Promise.resolve()
 	}
 
-	async entityEventsReceived(updates: readonly EntityUpdateData[], groupId: Id) {
+	async onEntityUpdatesReceived(updates: readonly EntityUpdateData[], groupId: Id) {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(ImapAccountSyncStateTypeRef, update)) {
 				const accountSyncStateId = collapseId(update.instanceListId, update.instanceId) as IdTuple

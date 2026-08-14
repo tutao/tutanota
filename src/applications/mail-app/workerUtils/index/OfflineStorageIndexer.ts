@@ -52,8 +52,8 @@ export class OfflineStorageIndexer implements Indexer {
 		throw new ProgrammingError("Operation not supported for sqlite search index")
 	}
 
-	async processEntityEvents(updates: readonly EntityUpdateData[], batchId: Id, groupId: Id) {
-		await this.mailIndexer.processEntityEvents(updates, groupId, batchId)
+	async onEntityUpdatesReceived(updates: readonly EntityUpdateData[], batchId: Id, groupId: Id) {
+		await this.mailIndexer.onEntityUpdatesReceived(updates, groupId, batchId)
 	}
 
 	async extendMailIndex() {

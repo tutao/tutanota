@@ -113,7 +113,7 @@ export class CalendarSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
 				this.updateScrollTimeOptions(this.userController.userSettingsGroupRoot.timeFormat)

@@ -479,7 +479,7 @@ export class OfflineMailIndexer implements MailIndexer {
 		await this.extendMailIndex(user)
 	}
 
-	async processEntityEvents(): Promise<void> {
+	async onEntityUpdatesReceived(): Promise<void> {
 		// no-op
 	}
 

@@ -1,15 +1,15 @@
 import { ConnectionError, ServiceUnavailableError } from "@tutao/rest-client/error"
 import { purgeSyncMetrics, syncMetrics } from "@tutao/utils"
-import { EntityUpdateData, getLogStringForEntityEvent } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, getLogStringForEntityUpdate } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 export type QueuedBatch = {
-	events: readonly EntityUpdateData[]
+	updates: readonly EntityUpdateData[]
 	groupId: Id
 	batchId: Id
 	isInitialSyncDone: boolean
 }
 
-type WritableQueuedBatch = QueuedBatch & { events: EntityUpdateData[] }
+type WritableQueuedBatch = QueuedBatch & { updates: EntityUpdateData[] }
 
 type QueueAction = (nextElement: QueuedBatch) => Promise<void>
 
@@ -36,19 +36,19 @@ export class EventQueue {
 
 	addBatches(batches: ReadonlyArray<QueuedBatch>) {
 		for (const batch of batches) {
-			this.add(batch.batchId, batch.groupId, batch.events, batch.isInitialSyncDone)
+			this.add(batch.batchId, batch.groupId, batch.updates, batch.isInitialSyncDone)
 		}
 	}
 
 	add(batchId: Id, groupId: Id, newEvents: ReadonlyArray<EntityUpdateData>, isInitialSyncDone: boolean): void {
 		const newBatch: WritableQueuedBatch = {
-			events: [],
+			updates: [],
 			groupId,
 			batchId,
 			isInitialSyncDone,
 		}
 
-		newBatch.events.push(...newEvents)
+		newBatch.updates.push(...newEvents)
 		this.eventQueue.push(newBatch)
 
 		// ensures that events are processed when not **paused**
@@ -90,8 +90,8 @@ export class EventQueue {
 						"EventQueue",
 						this.tag,
 						"error",
-						next.events.map(function (event: EntityUpdateData): string {
-							return getLogStringForEntityEvent(event)
+						next.updates.map(function (event: EntityUpdateData): string {
+							return getLogStringForEntityUpdate(event)
 						}),
 						e,
 					)
@@ -102,8 +102,8 @@ export class EventQueue {
 						console.error(
 							"Uncaught EventQueue error!",
 							e,
-							next.events.map(function (event: EntityUpdateData): string {
-								return getLogStringForEntityEvent(event)
+							next.updates.map(function (event: EntityUpdateData): string {
+								return getLogStringForEntityUpdate(event)
 							}),
 						)
 					}

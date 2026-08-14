@@ -203,7 +203,7 @@ export class SecondFactorsEditForm {
 		}
 	}
 
-	entityEventReceived(update: EntityUpdateData): Promise<void> {
+	processEntityUpdate(update: EntityUpdateData): Promise<void> {
 		if (isUpdateForTypeRef(SecondFactorTypeRef, update)) {
 			return this._updateSecondFactors()
 		} else {

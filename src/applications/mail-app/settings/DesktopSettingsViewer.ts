@@ -342,5 +342,5 @@ export class DesktopSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	// this is all local for now
-	entityEventsReceived: () => Promise<void> = () => Promise.resolve()
+	onEntityUpdatesReceived: () => Promise<void> = () => Promise.resolve()
 }

@@ -88,7 +88,7 @@ export class TemplateDetailsViewer implements UpdatableSettingsDetailsViewer {
 		showTemplateEditor(template, groupRoot)
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		return Promise.resolve()
 	}
 }

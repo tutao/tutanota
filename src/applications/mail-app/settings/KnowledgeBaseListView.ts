@@ -160,7 +160,7 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 		)
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<any> {
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<any> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(KnowledgeBaseEntryTypeRef, update) && isSameSingleId(this.getListId(), update.instanceListId)) {
 				await this.listModel.onEntityUpdateReceived(assertNotNull(update.instanceListId), update.instanceId, update.operation)
@@ -246,7 +246,7 @@ export class KnowledgeBaseSettingsDetailsViewer implements UpdatableSettingsDeta
 		)
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<any> {
+	onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<any> {
 		return Promise.resolve()
 	}
 }

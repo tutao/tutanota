@@ -56,5 +56,5 @@ export class WebMailImportSettingsViewer implements UpdatableSettingsViewer {
 		]
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {}
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {}
 }

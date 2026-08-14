@@ -83,7 +83,7 @@ export class AppearanceSettingsViewer implements UpdatableSettingsViewer {
 		return m("#colortheme", m(DropDownSelector, themeDropDownAttrs))
 	}
 
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		return promiseMap(updates, (update) => {
 			if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
 				return locator.entityClient.load(UserSettingsGroupRootTypeRef, idToElementId(update.instanceId)).then((settings) => {

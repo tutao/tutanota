@@ -90,7 +90,7 @@ const enum MessageType {
 export interface EventBusListener {
 	onCounterChanged(counter: WebsocketCounterData): unknown
 
-	onEntityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean): Promise<void>
+	onEntityUpdatesReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean): Promise<void>
 
 	/**
 	 * @param markers only phishing (not spam) markers will be sent as event bus updates
@@ -701,9 +701,9 @@ export class EventBusClient {
 		try {
 			if (this.isTerminated()) return
 
-			const filteredEvents = await this.cache.entityEventsReceived(batch.events, batch.batchId, batch.groupId)
+			const filteredEvents = await this.cache.onEntityUpdatesReceived(batch.updates, batch.batchId, batch.groupId)
 			if (!this.isTerminated() && isNotEmpty(filteredEvents)) {
-				await this.listener.onEntityEventsReceived(filteredEvents, batch.batchId, batch.groupId, assertNotNull(batch.isInitialSyncDone))
+				await this.listener.onEntityUpdatesReceived(filteredEvents, batch.batchId, batch.groupId, assertNotNull(batch.isInitialSyncDone))
 			}
 
 			if (!(await this.progressMonitor?.isDone())) {
@@ -761,7 +761,7 @@ export class EventBusClient {
 	}
 
 	private async processAccumulatedEventBatches() {
-		const allMissedEventsFlat = this.eventQueue.eventQueue.flatMap((batch) => batch.events)
+		const allMissedEventsFlat = this.eventQueue.eventQueue.flatMap((batch) => batch.updates)
 		await this.cache.updateCacheWithMissedEntityUpdates(allMissedEventsFlat)
 		// we set the instance and blobInstance to null to make sure that the event queue does not take up too much memory
 		allMissedEventsFlat.map((entityUpdate) => {

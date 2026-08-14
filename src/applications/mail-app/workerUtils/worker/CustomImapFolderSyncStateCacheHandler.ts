@@ -16,11 +16,11 @@ export class CustomImapFolderSyncStateCacheHandler implements CustomCacheHandler
 		private readonly entityClient: EntityClient,
 	) {}
 
-	onEntityEventCreate(id: IdTuple) {
+	onCreateEntityUpdate(id: IdTuple) {
 		return this.handle(id)
 	}
 
-	onEntityEventUpdate(id: IdTuple) {
+	onUpdateEntityUpdate(id: IdTuple) {
 		return this.handle(id)
 	}
 
