@@ -6,6 +6,7 @@ import {
 	IcsCalendarEvent,
 	parseCalendarEvents,
 	parseCalendarStringData,
+	parseDateTime,
 	ParsedCalendarData,
 	ParsedEventAlarmTuple,
 	parseDuration,
@@ -285,6 +286,27 @@ o.spec("CalendarParser", function () {
 
 		o.test("Invalid month throws error", function () {
 			o(() => parseTime("20180015T214000Z", "Europe/Berlin")).throws(ParserError)
+		})
+	})
+
+	o.spec("parseDateTime", function () {
+		o.test("does not mistake a valid date-time after invalid string prefix as valid", function () {
+			o.check(() => parseDateTime("invalidPrefix 20331122T001122", "UTC", "UTC")).throws(ParserError)
+		})
+		o.test("does not mistake a valid all-day date after invalid string prefix as valid", function () {
+			o.check(() => parseDateTime("invalidPrefix 20331122", "UTC", "UTC")).throws(ParserError)
+		})
+		o.test("does not mistake a valid date-time before invalid string suffix as valid", function () {
+			o.check(() => parseDateTime("20331122T001122 invalidSuffix", "UTC", "UTC")).throws(ParserError)
+		})
+		o.test("does not mistake a valid all-day date after invalid string prefix as valid", function () {
+			o.check(() => parseDateTime("20331122 invalidSuffix", "UTC", "UTC")).throws(ParserError)
+		})
+		o.test("does not mistake a valid date-time after invalid numeric prefix as valid", function () {
+			o.check(() => parseDateTime("2020111122T001122", "UTC", "UTC")).throws(ParserError)
+		})
+		o.test("does not mistake a valid all-day date after invalid string prefix as valid", function () {
+			o.check(() => parseDateTime("2020331122", "UTC", "UTC")).throws(ParserError)
 		})
 	})
 
