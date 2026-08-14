@@ -75,7 +75,7 @@ o.spec("PdfInvoiceGenerator", function () {
 })
 
 async function fetchStub(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-	if (EnvProvider.get().isBrowser()) {
+	if (globalThis.isBrowserTest) {
 		return fetch("./resources/pdf/" + input.toString())
 	} else {
 		const [fs, path] = await Promise.all([import("node:fs"), import("node:path")])

@@ -11,7 +11,7 @@ window.browser = (func) => func
 //@ts-ignore
 window.node = () => () => {}
 
-globalThis.isBrowser = true
+globalThis.isBrowserTest = true
 
 // @ts-ignore
 window.tutao = {}
