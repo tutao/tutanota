@@ -284,6 +284,7 @@ export class CalendarInviteHandler {
 			{
 				method: CalendarMethod.REQUEST,
 				contents: [{ icsCalendarEvent: eventUserIsReplyingTo, alarms: [] }],
+				parseEventErrors: [],
 			},
 			dbEvents,
 		)
