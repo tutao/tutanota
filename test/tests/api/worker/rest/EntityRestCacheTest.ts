@@ -248,7 +248,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			when(entityRestClient.mapInstancesToEntity(typeRefCaptor.capture(), serverModelParsedInstanceCaptor.capture())).thenDo(async () =>
 				downcast<any>(await modelMapper.mapToInstances(serverModelParsedInstanceCaptor.value)),
 			)
-			when(entityRestClient.entityEventsReceived(batchCaptor.capture(), matchers.anything(), matchers.anything())).thenResolve(batchCaptor.value)
+			when(entityRestClient.onEntityUpdatesReceived(batchCaptor.capture(), matchers.anything(), matchers.anything())).thenResolve(batchCaptor.value)
 			when(entityRestClient.getRestClient()).thenReturn(restClient)
 			return entityRestClient
 		}
@@ -275,7 +275,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			)
 		})
 
-		o.spec("ERC entityEventsReceived", function () {
+		o.spec("ERC onEntityUpdatesReceived", function () {
 			const firstContactListId = "contactListId1"
 			const secondContactListId = "contactListId2"
 			const id1 = "id1"
@@ -302,7 +302,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				when(putLastBatchIdForGroup(groupId, batchId)).thenResolve(undefined)
 				replace(lastProcessedBatchIdStorageFacadeMock, "putLastEntityEventBatchForGroup", putLastBatchIdForGroup)
 
-				await cache.entityEventsReceived(batch, "batchId", groupId)
+				await cache.onEntityUpdatesReceived(batch, "batchId", groupId)
 				await lastProcessedBatchIdStorageFacadeMock.getLastEntityEventBatchForGroup(groupId)
 				verify(putLastBatchIdForGroup(groupId, batchId))
 			})
@@ -313,7 +313,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						await updateDataForCreate(ContactTypeRef, firstContactListId, id1, null),
 						await updateDataForCreate(ContactTypeRef, firstContactListId, id2, null),
 					]
-					const updates = await cache.entityEventsReceived(batch, "batchId", groupId)
+					const updates = await cache.onEntityUpdatesReceived(batch, "batchId", groupId)
 
 					o(await storage.get(ContactTypeRef, firstContactListId, id1)).equals(null)
 					o(await storage.get(ContactTypeRef, firstContactListId, id2)).equals(null)
@@ -340,7 +340,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					)
 					when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id3])).thenResolve(await toStorableInstance(thirdContact))
 
-					const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
+					const filteredUpdates = await cache.onEntityUpdatesReceived(batch, "batchId", groupId)
 					o(removeOriginals(await storage.get(ContactTypeRef, firstContactListId, id1))).deepEquals(firstContact)
 					o(removeOriginals(await storage.get(ContactTypeRef, firstContactListId, id2))).deepEquals(null)
 					o(await storage.get(ContactTypeRef, firstContactListId, id3)).equals(null)
@@ -397,7 +397,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						contact3EntityUpdate,
 					]
 
-					await cache.entityEventsReceived(batch, "batchId", groupId)
+					await cache.onEntityUpdatesReceived(batch, "batchId", groupId)
 					verify(entityRestClient.loadParsedInstance(anything(), anything()), { times: 2 })
 				})
 
@@ -460,7 +460,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						contact3EntityUpdate,
 					]
 
-					await cache.entityEventsReceived(batch, "batchId", groupId)
+					await cache.onEntityUpdatesReceived(batch, "batchId", groupId)
 					verify(entityRestClient.loadParsedInstance(anything(), anything()), { times: 2 })
 				})
 
@@ -489,7 +489,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 						await updateDataForCreate(ContactTypeRef, secondContactListId, id3, null),
 						await updateDataForCreate(ContactTypeRef, secondContactListId, id4, null),
 					]
-					const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
+					const filteredUpdates = await cache.onEntityUpdatesReceived(batch, "batchId", groupId)
 					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id1)))).deepEquals(firstContact)
 					o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, secondContactListId, id4)))).deepEquals(fourthContact)
 					o(await storage.get(ContactTypeRef, firstContactListId, id2)).equals(null)
@@ -506,7 +506,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					await updateDataForUpdate(ContactTypeRef, firstContactListId, id1, null),
 					await updateDataForUpdate(ContactTypeRef, firstContactListId, id2, null),
 				]
-				const updates = await cache.entityEventsReceived(batch, "batchId", groupId)
+				const updates = await cache.onEntityUpdatesReceived(batch, "batchId", groupId)
 
 				o(await storage.get(ContactTypeRef, firstContactListId, id1)).equals(null)
 				o(await storage.get(ContactTypeRef, firstContactListId, id2)).equals(null)
@@ -536,7 +536,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id2])).thenReject(new restError.NotFoundError("does not exist"))
 				when(entityRestClient.loadParsedInstance(ContactTypeRef, [firstContactListId, id3])).thenResolve(await toStorableInstance(thirdContact))
 
-				const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
+				const filteredUpdates = await cache.onEntityUpdatesReceived(batch, "batchId", groupId)
 				o(removeOriginals(await storage.get(ContactTypeRef, firstContactListId, id1))).deepEquals(firstContact)
 				o(removeOriginals(await storage.get(ContactTypeRef, firstContactListId, id2))).deepEquals(null)
 				o(removeOriginals(await storage.get(ContactTypeRef, firstContactListId, id3))).deepEquals(thirdContact)
@@ -583,7 +583,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				updateContact3.instance = parsedInstance3
 				const batch: readonly EntityUpdateData[] = [updateContact1, updateContact2, updateContact3]
 
-				await cache.entityEventsReceived(batch, "batchId", groupId)
+				await cache.onEntityUpdatesReceived(batch, "batchId", groupId)
 				verify(entityRestClient.loadParsedInstance(anything(), anything()), { times: 0 })
 			})
 
@@ -625,7 +625,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null),
 				]
 
-				await cache.entityEventsReceived(batch, "batchId", groupId)
+				await cache.onEntityUpdatesReceived(batch, "batchId", groupId)
 				verify(entityRestClient.loadParsedInstance(anything(), anything()), { times: 3 })
 			})
 
@@ -667,7 +667,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					await updateDataForUpdate(ContactTypeRef, firstContactListId, id3, null),
 				]
 
-				await cache.entityEventsReceived(batch, "batchId", groupId)
+				await cache.onEntityUpdatesReceived(batch, "batchId", groupId)
 				verify(entityRestClient.loadParsedInstance(anything(), anything()), { times: 3 })
 
 				// contacts where not put / updated in storage with _errors
@@ -740,7 +740,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					return fourthContactPatchedParsed
 				})
 
-				const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
+				const filteredUpdates = await cache.onEntityUpdatesReceived(batch, "batchId", groupId)
 				o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id2)))).deepEquals(firstContactPatched)
 				o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id1)))).deepEquals(secondContact)
 				o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, secondContactListId, id3)))).deepEquals(thirdContact)
@@ -787,7 +787,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					return firstContactPatchedParsed
 				})
 
-				const filteredUpdates = await cache.entityEventsReceived(batch, "batchId", groupId)
+				const filteredUpdates = await cache.onEntityUpdatesReceived(batch, "batchId", groupId)
 				o(removeOriginals(assertNotNull(await storage.get(ContactTypeRef, firstContactListId, id1)))).deepEquals(firstContactPatched)
 				o(await storage.get(ContactTypeRef, firstContactListId, id2)).deepEquals(null)
 
@@ -801,7 +801,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				let blobUpdate = await updateDataForCreate(MailDetailsBlobTypeRef, listIdPart(blob._id), elementIdPart(blob._id), blob)
 
 				await storage.setNewRangeForList(MailDetailsBlobTypeRef, blobUpdate.instanceListId!, GENERATED_MIN_ID, GENERATED_MAX_ID)
-				await cache.entityEventsReceived(Array.of(blobUpdate), batchId, groupId)
+				await cache.onEntityUpdatesReceived(Array.of(blobUpdate), batchId, groupId)
 
 				const blobFromStorage = await storage.get(MailDetailsBlobTypeRef, blobUpdate.instanceListId, blobUpdate.instanceId)
 				o(blob).deepEquals(assertNotNull(removeOriginals(blobFromStorage)))
@@ -809,7 +809,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			o.test("Create event with customCacheHandler should use instance attached to event", async () => {
 				const customCacheHandler: CustomCacheHandler<MailDetailsBlob> = {
-					shouldLoadOnCreateEvent: () => true,
+					shouldLoadOnCreateEntityUpdate: () => true,
 				}
 				when(customCacheHandlerMap.get(MailDetailsBlobTypeRef)).thenReturn(customCacheHandler)
 
@@ -817,7 +817,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				let blobUpdate = await updateDataForCreate(MailDetailsBlobTypeRef, listIdPart(blob._id), elementIdPart(blob._id), blob)
 
 				await storage.setNewRangeForList(MailDetailsBlobTypeRef, blobUpdate.instanceListId!, GENERATED_MIN_ID, GENERATED_MAX_ID)
-				await cache.entityEventsReceived(Array.of(blobUpdate), batchId, groupId)
+				await cache.onEntityUpdatesReceived(Array.of(blobUpdate), batchId, groupId)
 
 				verify(entityRestClient.loadParsedInstance(MailDetailsBlobTypeRef, blob._id, anything()), { times: 0 })
 				const blobFromStorage = await storage.get(MailDetailsBlobTypeRef, blobUpdate.instanceListId, blobUpdate.instanceId)
@@ -829,7 +829,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				let blobUpdate = await makeUpdateData(MailDetailsBlobTypeRef, listIdPart(blob._id), elementIdPart(blob._id), OperationType.CREATE, null, [])
 
 				await storage.setNewRangeForList(MailDetailsBlobTypeRef, blobUpdate.instanceListId!, GENERATED_MIN_ID, GENERATED_MAX_ID)
-				await cache.entityEventsReceived(Array.of(blobUpdate), batchId, groupId)
+				await cache.onEntityUpdatesReceived(Array.of(blobUpdate), batchId, groupId)
 
 				o(await storage.get(MailDetailsBlobTypeRef, blobUpdate.instanceListId, blobUpdate.instanceId)).equals(null)
 			})
@@ -843,7 +843,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				when(entityRestClient.loadParsedInstance(MailDetailsBlobTypeRef, mailDetailsBlob._id, anything())).thenReject(
 					new restError.NotFoundError("not found"),
 				)
-				await cache.entityEventsReceived([await updateDataForDelete(MailDetailsBlobTypeRef, archiveId, createId(mailDetailsId))], "batchId", groupId)
+				await cache.onEntityUpdatesReceived([await updateDataForDelete(MailDetailsBlobTypeRef, archiveId, createId(mailDetailsId))], "batchId", groupId)
 				// entity is not loaded from server when it is deleted
 				verify(entityRestClient.loadParsedInstance(MailDetailsBlobTypeRef, mailDetailsBlob._id, anything()), { times: 0 })
 				await assertThrows(restError.NotFoundError, () => cache.load(MailDetailsBlobTypeRef, [archiveId, createId(mailDetailsId)]))
@@ -874,7 +874,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 					times: 1,
 				})
 				// Move mail event: we don't try to load the mail again, we just update our cached mail
-				await cache.entityEventsReceived(
+				await cache.onEntityUpdatesReceived(
 					[
 						await updateDataForDelete(MailSetEntryTypeRef, getListId(mailSetEntries[0]), getElementId(mailSetEntries[0])),
 						await updateDataForCreate(MailSetEntryTypeRef, newListId, getElementId(mailSetEntries[0]), null),
@@ -917,7 +917,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				})
 
 				mailSetEntries[2]._id = ["listId2", "id3"]
-				await cache.entityEventsReceived(
+				await cache.onEntityUpdatesReceived(
 					[
 						await updateDataForDelete(MailSetEntryTypeRef, "listId1", getElementId(mailSetEntries[2])),
 						await updateDataForCreate(MailSetEntryTypeRef, "listId2", getElementId(mailSetEntries[2]), mailSetEntries[2]),
@@ -938,7 +938,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				await storage.put(MailTypeRef, await toStorableInstance(mail))
 				await storage.put(MailDetailsBlobTypeRef, await toStorableInstance(mailDetailsBlob))
 
-				await cache.entityEventsReceived([await updateDataForDelete(MailTypeRef, getListId(mail), getElementId(mail))], "batchId", groupId)
+				await cache.onEntityUpdatesReceived([await updateDataForDelete(MailTypeRef, getListId(mail), getElementId(mail))], "batchId", groupId)
 
 				o(await storage.get(MailTypeRef, getListId(mail), getElementId(mail))).equals(null)
 				o(await storage.get(MailDetailsBlobTypeRef, getListId(mailDetailsBlob), getElementId(mailDetailsBlob))).equals(null)
@@ -946,14 +946,14 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 			o("when the list is not cached but there is a custom cache handler, mail create notifications are put into cache", async function () {
 				const customCacheHandler: CustomCacheHandler<Mail> = {
-					shouldLoadOnCreateEvent: () => true,
+					shouldLoadOnCreateEntityUpdate: () => true,
 				}
 				when(customCacheHandlerMap.get(MailTypeRef)).thenReturn(customCacheHandler)
 				const mail = createMailInstance("listId1", "id1", "i am a mail")
 				when(entityRestClient.loadParsedInstance(MailTypeRef, mail._id)).thenResolve(await toStorableInstance(mail))
 				when(entityRestClient.load(MailTypeRef, mail._id)).thenResolve(mail)
 
-				await cache.entityEventsReceived([await updateDataForCreate(MailTypeRef, getListId(mail), getElementId(mail), mail)], "batchId", groupId)
+				await cache.onEntityUpdatesReceived([await updateDataForCreate(MailTypeRef, getListId(mail), getElementId(mail), mail)], "batchId", groupId)
 
 				o(removeOriginals(await storage.get(MailTypeRef, getListId(mail), getElementId(mail)))).deepEquals(mail)
 			})
@@ -961,13 +961,13 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 			o("when deleted from a range, then the remaining range will still be retrieved from the cache", async function () {
 				const originalMails = await setupMailList(true, true)
 				// no load should be called
-				await cache.entityEventsReceived([await updateDataForDelete(MailTypeRef, "listId1", createId("id2"))], "batchId", groupId)
+				await cache.onEntityUpdatesReceived([await updateDataForDelete(MailTypeRef, "listId1", createId("id2"))], "batchId", groupId)
 				const mails = await cache.loadRange(MailTypeRef, "listId1", GENERATED_MIN_ID, 4, false)
 				// The entity is provided from the cache
 				mails.map(removeOriginals)
 				o(mails).deepEquals([originalMails[0], originalMails[2]])
 			})
-		}) // entityEventsReceived
+		})
 
 		o.spec("ERC updateCacheWithMissedEntityUpdates", function () {
 			const contactListId = "contactListId"

@@ -485,7 +485,7 @@ export class WebMailIndexer implements MailIndexer {
 		return await this.entityClient.loadAll(MailSetTypeRef, mailbox.mailSets.mailSets)
 	}
 
-	private async processImportStateEntityEvents(operation: OperationType, importStateId: IdTuple, importType: MailImportType): Promise<void> {
+	private async processImportStateEntityUpdates(operation: OperationType, importStateId: IdTuple, importType: MailImportType): Promise<void> {
 		await this.initialized.promise
 		if (!this._mailIndexingEnabled) return
 		// we can only process create and update events (create is because of EntityEvent optimization
@@ -573,17 +573,17 @@ export class WebMailIndexer implements MailIndexer {
 	}
 
 	/**
-	 * Prepare IndexUpdate in response to the new entity events.
+	 * Prepare IndexUpdate in response to the new entity updates.
 	 */
-	async processEntityEvents(events: readonly EntityUpdateData[]): Promise<void> {
+	async onEntityUpdatesReceived(updates: readonly EntityUpdateData[]): Promise<void> {
 		await this.initialized.promise
 		if (!this._mailIndexingEnabled) return
 
-		for (const event of events) {
+		for (const event of updates) {
 			if (isUpdateForTypeRef(ImportFileMailStateTypeRef, event)) {
-				await this.processImportStateEntityEvents(event.operation, [assertNotNull(event.instanceListId), event.instanceId], MailImportType.FileImport)
+				await this.processImportStateEntityUpdates(event.operation, [assertNotNull(event.instanceListId), event.instanceId], MailImportType.FileImport)
 			} else if (isUpdateForTypeRef(ImapFolderSyncStateTypeRef, event)) {
-				await this.processImportStateEntityEvents(event.operation, [assertNotNull(event.instanceListId), event.instanceId], MailImportType.ImapImport)
+				await this.processImportStateEntityUpdates(event.operation, [assertNotNull(event.instanceListId), event.instanceId], MailImportType.ImapImport)
 			}
 		}
 	}

@@ -44,16 +44,16 @@ export class EventBusEventCoordinator implements EventBusListener {
 		private readonly syncTracker: SyncTracker,
 	) {}
 
-	async onEntityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean): Promise<void> {
-		await this.entityEventsReceived(events)
-		await (await this.mailFacade?.())?.entityEventsReceived(events)
-		await (await this.imapImporter?.())?.entityEventsReceived(events, groupId)
-		await this.eventController.onEntityUpdateReceived(events, groupId, isInitialSyncDone)
+	async onEntityUpdatesReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean): Promise<void> {
+		await this.entityUpdatesReceived(events)
+		await (await this.mailFacade?.())?.onEntityUpdatesReceived(events)
+		await (await this.imapImporter?.())?.onEntityUpdatesReceived(events, groupId)
+		await this.eventController.onEntityUpdatesReceived(events, groupId, isInitialSyncDone)
 		// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
 		// shall not receive the event twice.
 		if (!EnvProvider.isTest() && !EnvProvider.get().isAdminClient()) {
 			const configurationDatabase = await this.configurationDatabase()
-			await configurationDatabase.onEntityEventsReceived(events, batchId, groupId)
+			await configurationDatabase.onEntityUpdatesReceived(events, batchId, groupId)
 			this.appSpecificBatchHandling(events, batchId, groupId, isInitialSyncDone)
 		}
 	}
@@ -140,7 +140,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 		this.eventController.onOperationStatusUpdate(update)
 	}
 
-	private async entityEventsReceived(data: readonly EntityUpdateData[]): Promise<void> {
+	private async entityUpdatesReceived(data: readonly EntityUpdateData[]): Promise<void> {
 		// This is a compromise to not add entityClient to UserFacade which would introduce a circular dep.
 		const groupKeyUpdates: IdTuple[] = [] // GroupKeyUpdates all in the same list
 		const user = this.userFacade.getUser()

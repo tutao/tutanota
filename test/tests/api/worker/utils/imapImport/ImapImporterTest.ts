@@ -416,7 +416,7 @@ o.spec("ImapImporter", () => {
 		when(imapFacadeMock.getImapAccountSyncStateById(accountSyncStateIdMock)).thenResolve(accountSyncStateMock)
 		when(imapFacadeMock.getAllImapFolderSyncStates("folderSyncStateListId")).thenResolve([folderSyncStateMock])
 
-		await importer.entityEventsReceived([update], "groupId")
+		await importer.onEntityUpdatesReceived([update], "groupId")
 
 		o.check(session.imapAccountSyncState).equals(accountSyncStateMock)
 		o.check(session.imapFolderSyncStates).deepEquals([folderSyncStateMock])
@@ -433,7 +433,7 @@ o.spec("ImapImporter", () => {
 		when(imapFacadeMock.getImapAccountSyncStateById(accountSyncStateIdMock)).thenResolve(accountSyncStateMock)
 		when(imapFacadeMock.getAllImapFolderSyncStates("folderSyncStateListId")).thenResolve([folderSyncStateMock])
 
-		await importer.entityEventsReceived([update], "groupId")
+		await importer.onEntityUpdatesReceived([update], "groupId")
 
 		o.check(importer.imapImportSessions.size).equals(1)
 		const newSession = importer.imapImportSessions.get(importer.getImapImportSessionsMapKey(accountSyncStateIdMock))
@@ -453,7 +453,7 @@ o.spec("ImapImporter", () => {
 		} as EntityUpdateData
 
 		// TODO: needs tests for the changes in delete operation.
-		await importer.entityEventsReceived([update], "groupId")
+		await importer.onEntityUpdatesReceived([update], "groupId")
 
 		o.check(importer.imapImportSessions.has(importer.getImapImportSessionsMapKey(accountSyncStateIdMock))).equals(false)
 	})

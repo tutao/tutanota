@@ -42,7 +42,7 @@ o.spec("EventQueueTest", function () {
 		queue.pause()
 		const groupId = "groupId"
 		const batchWithOnlyDelete: QueuedBatch = {
-			events: [newUpdate(OperationType.DELETE, "1")],
+			updates: [newUpdate(OperationType.DELETE, "1")],
 			groupId,
 			batchId: "1",
 			isInitialSyncDone: true,
@@ -61,7 +61,7 @@ o.spec("EventQueueTest", function () {
 		queue.pause()
 		const groupId = "groupId"
 		const batchWithOnlyDelete: QueuedBatch = {
-			events: [newUpdate(OperationType.DELETE, "1")],
+			updates: [newUpdate(OperationType.DELETE, "1")],
 			groupId,
 			batchId: "1",
 			isInitialSyncDone: true,
@@ -76,13 +76,13 @@ o.spec("EventQueueTest", function () {
 	o("handle ConnectionError", async function () {
 		const groupId = "groupId"
 		const batchWithThrow: QueuedBatch = {
-			events: [newUpdate(OperationType.CREATE, "2"), newUpdate(OperationType.DELETE, "2")],
+			updates: [newUpdate(OperationType.CREATE, "2"), newUpdate(OperationType.DELETE, "2")],
 			groupId,
 			batchId: "2",
 			isInitialSyncDone: true,
 		}
 		const batchWithOnlyCreate: QueuedBatch = {
-			events: [newUpdate(OperationType.CREATE, "3")],
+			updates: [newUpdate(OperationType.CREATE, "3")],
 			groupId,
 			batchId: "3",
 			isInitialSyncDone: true,

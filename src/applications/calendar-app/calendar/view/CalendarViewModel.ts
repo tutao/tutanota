@@ -814,7 +814,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		}
 	}
 
-	private async onEntityUpdatesReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	private async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
 				const eventId: IdTuple = [assertNotNull(update.instanceListId), update.instanceId]
@@ -831,9 +831,9 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 						} catch (e) {
 							if (e instanceof NotAuthorizedError) {
 								// return updates that are not in cache Range if NotAuthorizedError (for those updates that are in cache range)
-								console.log("NotAuthorizedError for event in entityEventsReceived of view", e)
+								console.log("NotAuthorizedError for event in onEntityUpdatesReceived of view", e)
 							} else if (e instanceof NotFoundError) {
-								console.log("Not found event in entityEventsReceived of view", e)
+								console.log("Not found event in onEntityUpdatesReceived of view", e)
 							} else {
 								throw e
 							}

@@ -83,10 +83,10 @@ export interface EntityRestInterface {
 	eraseMultiple<T extends PersistentEntity>(listId: Id, instances: Array<T>, options: EntityRestClientEraseOptions): Promise<void>
 
 	/**
-	 * Must be called when entity events are received.
-	 * @return Similar to the events in the data parameter, but reduced by the events which are obsolete.
+	 * Must be called when entity updates are received.
+	 * @return Similar to the updates in the data parameter, but reduced by the updates which are obsolete.
 	 */
-	entityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]>
+	onEntityUpdatesReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]>
 }
 
 export interface EntityRestCache extends EntityRestInterface {

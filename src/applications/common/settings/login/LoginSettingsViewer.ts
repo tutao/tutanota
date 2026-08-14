@@ -401,7 +401,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 		)
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(SessionTypeRef, update)) {
 				await this._updateSessions()
@@ -409,7 +409,7 @@ export class LoginSettingsViewer implements UpdatableSettingsViewer {
 				m.redraw()
 			}
 
-			await this._secondFactorsForm.entityEventReceived(update)
+			await this._secondFactorsForm.processEntityUpdate(update)
 		}
 	}
 

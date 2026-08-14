@@ -14,12 +14,12 @@ export class CustomContactEventCacheHandler implements CustomCacheHandler<Contac
 		return indexer.beforeContactDeleted(id)
 	}
 
-	async onEntityEventCreate(id: IdTuple): Promise<void> {
+	async onCreateEntityUpdate(id: IdTuple): Promise<void> {
 		const indexer = await this.indexer()
 		return indexer.afterContactCreated(id)
 	}
 
-	async onEntityEventUpdate(id: IdTuple): Promise<void> {
+	async onUpdateEntityUpdate(id: IdTuple): Promise<void> {
 		const indexer = await this.indexer()
 		return indexer.afterContactUpdated(id)
 	}
