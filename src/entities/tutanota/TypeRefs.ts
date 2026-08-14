@@ -866,9 +866,10 @@ export function createCreateMailFolderData(values: CreateMailFolderDataParams): 
 export type CreateMailFolderDataParams = {
 
 
-	folderName: string;
+	folderName: null | string;
 
 	parentFolder: null | IdTuple;
+	mailSet: null | MailSetTransferAggregatedType;
 }
 
 export type CreateMailFolderData = {
@@ -877,12 +878,13 @@ export type CreateMailFolderData = {
 	_original?: CreateMailFolderData
 
 	_format: NumberString;
-	folderName: string;
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
+	folderName: null | string;
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	ownerGroup: null | Id;
-	ownerKeyVersion: NumberString;
+	ownerKeyVersion: null | NumberString;
 
 	parentFolder: null | IdTuple;
+	mailSet: null | MailSetTransferAggregatedType;
 }
 export const CreateMailFolderReturnTypeRef: TypeRef<CreateMailFolderReturn> = new TypeRef("tutanota", 455)
 
@@ -4960,4 +4962,30 @@ export type MailTransferAggregatedType = {
 
 	sender: MailAddressTransferAggregatedType;
 	firstRecipient: null | MailAddressTransferAggregatedType;
+}
+export const MailSetTransferAggregatedTypeTypeRef: TypeRef<MailSetTransferAggregatedType> = new TypeRef("tutanota", 2037)
+
+export function createMailSetTransferAggregatedType(values: MailSetTransferAggregatedTypeParams): MailSetTransferAggregatedType {
+    return Object.assign(create(typeModels[MailSetTransferAggregatedTypeTypeRef.typeId], MailSetTransferAggregatedTypeTypeRef), values)
+}
+
+export type MailSetTransferAggregatedTypeParams = {
+
+
+	name: string;
+
+	parentFolder: null | IdTuple;
+}
+
+export type MailSetTransferAggregatedType = {
+	_type: TypeRef<MailSetTransferAggregatedType>;
+	_original?: MailSetTransferAggregatedType
+
+	_id: Id;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	_ownerGroup: null | Id;
+	name: string;
+
+	parentFolder: null | IdTuple;
 }
