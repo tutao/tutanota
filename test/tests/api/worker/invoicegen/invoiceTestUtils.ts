@@ -12,8 +12,8 @@ export function invoiceItemListMock(amountOfEntries: number) {
 		data.push(
 			createTestEntity(InvoiceDataItemTypeRef, {
 				amount: `${i}`,
-				startDate: new Date("09.09.1984"),
-				endDate: new Date("09.09.1984"),
+				startDate: new Date("1984-09-09"),
+				endDate: new Date("1984-09-09"),
 				singlePrice: "10.00",
 				totalPrice: "10.00",
 				itemType: "25",
