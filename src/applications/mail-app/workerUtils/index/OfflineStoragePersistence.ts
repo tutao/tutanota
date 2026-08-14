@@ -293,7 +293,7 @@ VALUES (
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async storeEncryptedMailDetailsBlobs(serverTypeModel: ServerTypeModel, blobs: Array<IncomingServerJson>): Promise<void> {
+	async storeEncryptedMailDetailsBlobs(serverTypeModel: ServerTypeModel, blobs: readonly IncomingServerJson[]): Promise<void> {
 		const typeref = `${serverTypeModel.app}/${serverTypeModel.name}`
 		if (serverTypeModel.type !== EntityTypeEnum.BlobElement) {
 			throw new ProgrammingError(`cannot use OfflineStoragePersistence#storeEncryptedBlobs with ${serverTypeModel.type} (${typeref})`)

@@ -47,7 +47,8 @@ export class ModelMapper {
 	}
 
 	async mapToInstance<T extends Entity>(parsedInstance: DecryptedParsedInstance): Promise<T> {
-		return (await this._mapToInstance(parsedInstance)).castAsEntity<T>()
+		const instance = await this._mapToInstance(parsedInstance, null)
+		return instance.castAsEntity<T>(instance.typeModel)
 	}
 
 	async mapToDecryptedInstance<T extends Entity>(passedInstance: T): Promise<DecryptedParsedInstance> {
@@ -100,13 +101,15 @@ export class ModelMapper {
 		return parsedInstance
 	}
 
-	private async _mapToInstance(parsedInstance: DecryptedParsedInstance): Promise<ClientEntity> {
+	private async _mapToInstance(parsedInstance: DecryptedParsedInstance, parentTypeModel: Nullable<ClientTypeModel>): Promise<ClientEntity> {
 		// in case of a new type, the server should not send it to clients until the oldest client can handle it.
 		// if a type is not in the client's model anymore, it should have been removed from the business logic and
 		// the server should have stopped sending it by now.
 		const typeRef = parsedInstance.getTypeRef()
 		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const serverTypeModel = parsedInstance.ensureIncoming()
+
+		parentTypeModel = parentTypeModel ?? clientTypeModel
 
 		const clientInstance = new ClientEntity(clientTypeModel)
 		if (parsedInstance.hasError()) {
@@ -129,8 +132,8 @@ export class ModelMapper {
 			const association = parsedInstance.getAttributeByIdOrNull(associationModel.id) ?? ParsedValue.emptyAssociation()
 			switch (getAssociationRepresentationType(associationModel.type)) {
 				case AssociationReprType.Aggregation: {
-					const aggregates = association.asNestedObjList().map((agg) => this._mapToInstance(agg))
-					clientInstance.setAggregations(associationModel.id, await Promise.all(aggregates))
+					const aggregates = association.asNestedObjList().map((agg) => this._mapToInstance(agg, parentTypeModel))
+					clientInstance.setAggregations(associationModel.id, await Promise.all(aggregates), parentTypeModel)
 					break
 				}
 				case AssociationReprType.IdTuple: {
@@ -192,7 +195,7 @@ export class ClientEntity {
 	) {}
 
 	// This is needed to make transpilation easier.
-	castAsEntity<T extends Entity>(): T {
+	castAsEntity<T extends Entity>(parentTypeModel: ClientTypeModel): T {
 		const entity = Object.assign(
 			{
 				_type: new TypeRef(this.typeModel.app, this.typeModel.id),
@@ -201,7 +204,7 @@ export class ClientEntity {
 			this.entityRecord,
 		) as T
 
-		if (this.typeModel.type !== EntityTypeEnum.DataTransfer) {
+		if (parentTypeModel.type !== EntityTypeEnum.DataTransfer && parentTypeModel.type !== EntityTypeEnum.BlobElement) {
 			entity._original = structuredClone(entity)
 		}
 
@@ -257,10 +260,10 @@ export class ClientEntity {
 				this.entityRecord[associationModel.name] = associationList
 		}
 	}
-	setAggregations(associationId: AttributeId, aggregates: Array<ClientEntity>): void {
+	setAggregations(associationId: AttributeId, aggregates: Array<ClientEntity>, parentTypeModel: ClientTypeModel): void {
 		this.setAssociation(
 			associationId,
-			aggregates.map((agg) => agg.castAsEntity()),
+			aggregates.map((agg) => agg.castAsEntity(parentTypeModel)),
 		)
 	}
 
