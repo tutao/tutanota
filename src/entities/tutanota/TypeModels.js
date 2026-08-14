@@ -8986,7 +8986,7 @@ const typeModels = {
 				"name": "ownerEncSessionKey",
 				"id": 1486,
 				"type": "Bytes",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -8995,7 +8995,7 @@ const typeModels = {
 				"name": "ownerKeyVersion",
 				"id": 1487,
 				"type": "Number",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -9015,8 +9015,18 @@ const typeModels = {
 				"name": "data",
 				"id": 1489,
 				"type": "AGGREGATION",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"refTypeId": 1480,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"2046": {
+				"final": true,
+				"name": "mailSet",
+				"id": 2046,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2037,
 				"dependency": null,
 				"transferredAttributeId": null
 			}
@@ -9097,8 +9107,18 @@ const typeModels = {
 				"name": "data",
 				"id": 1499,
 				"type": "AGGREGATION",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"refTypeId": 1480,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"2045": {
+				"final": true,
+				"name": "mailSet",
+				"id": 2045,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2037,
 				"dependency": null,
 				"transferredAttributeId": null
 			}
@@ -13068,6 +13088,15 @@ const typeModels = {
 				"cardinality": "One",
 				"encrypted": true,
 				"transferredAttributeId": 435
+			},
+			"2044": {
+				"final": true,
+				"name": "color",
+				"id": 2044,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true,
+				"transferredAttributeId": 1479
 			}
 		},
 		"associations": {

@@ -907,18 +907,18 @@ pub struct CreateMailFolderData {
 	#[serde(rename = "451")]
 	pub _format: i64,
 	#[serde(rename = "453")]
-    pub folderName: Option<String>,
+	pub folderName: Option<String>,
 	#[serde(rename = "454")]
 	#[serde(with = "serde_bytes")]
-    pub ownerEncSessionKey: Option<Vec<u8>>,
+	pub ownerEncSessionKey: Option<Vec<u8>>,
 	#[serde(rename = "1268")]
 	pub ownerGroup: Option<GeneratedId>,
 	#[serde(rename = "1414")]
-    pub ownerKeyVersion: Option<i64>,
+	pub ownerKeyVersion: Option<i64>,
 	#[serde(rename = "452")]
 	pub parentFolder: Option<IdTupleGenerated>,
-    #[serde(rename = "2043")]
-    pub mailSet: Option<MailSetTransferAggregatedType>,
+	#[serde(rename = "2043")]
+	pub mailSet: Option<MailSetTransferAggregatedType>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -3461,13 +3461,15 @@ pub struct ManageLabelServicePostIn {
 	pub _format: i64,
 	#[serde(rename = "1486")]
 	#[serde(with = "serde_bytes")]
-	pub ownerEncSessionKey: Vec<u8>,
+	pub ownerEncSessionKey: Option<Vec<u8>>,
 	#[serde(rename = "1487")]
-	pub ownerKeyVersion: i64,
+	pub ownerKeyVersion: Option<i64>,
 	#[serde(rename = "1488")]
 	pub ownerGroup: GeneratedId,
 	#[serde(rename = "1489")]
-	pub data: ManageLabelServiceLabelData,
+	pub data: Option<ManageLabelServiceLabelData>,
+	#[serde(rename = "2046")]
+	pub mailSet: Option<MailSetTransferAggregatedType>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -3508,7 +3510,9 @@ pub struct ManageLabelServicePutIn {
 	#[serde(rename = "1498")]
 	pub label: IdTupleGenerated,
 	#[serde(rename = "1499")]
-	pub data: ManageLabelServiceLabelData,
+	pub data: Option<ManageLabelServiceLabelData>,
+	#[serde(rename = "2045")]
+	pub mailSet: Option<MailSetTransferAggregatedType>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -5058,27 +5062,29 @@ impl Entity for MailTransferAggregatedType {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailSetTransferAggregatedType {
-    #[serde(rename = "2038")]
-    pub _id: Option<CustomId>,
-    #[serde(rename = "2039")]
-    #[serde(with = "serde_bytes")]
-    pub _ownerEncSessionKey: Option<Vec<u8>>,
-    #[serde(rename = "2040")]
-    pub _ownerKeyVersion: Option<i64>,
-    #[serde(rename = "2041")]
-    pub name: String,
-    #[serde(rename = "2042")]
-    pub parentFolder: Option<IdTupleGenerated>,
+	#[serde(rename = "2038")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2039")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2040")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2041")]
+	pub name: String,
+	#[serde(rename = "2044")]
+	pub color: Option<String>,
+	#[serde(rename = "2042")]
+	pub parentFolder: Option<IdTupleGenerated>,
 
-    #[serde(default)]
-    pub _errors: Errors,
+	#[serde(default)]
+	pub _errors: Errors,
 }
 
 impl Entity for MailSetTransferAggregatedType {
-    fn type_ref() -> TypeRef {
-        TypeRef {
-            app: AppName::Tutanota,
-            type_id: TypeId::from(2037),
-        }
-    }
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2037),
+		}
+	}
 }

@@ -249,6 +249,7 @@ export class MailFacade {
 		const mailSet = createMailSetTransferAggregatedType({
 			name,
 			parentFolder: parent,
+			color: null,
 		})
 		mailSet._ownerEncSessionKey = ownerEncSessionKey.key
 		mailSet._ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
@@ -1318,6 +1319,7 @@ export class MailFacade {
 				color: labelData.color,
 				parentLabel: labelData.parentLabelId ? labelData.parentLabelId : null,
 			}),
+			mailSet: null,
 		})
 		data.ownerGroup = mailGroupId
 		data.ownerEncSessionKey = ownerEncSessionKey.key
@@ -1352,6 +1354,7 @@ export class MailFacade {
 			const manageLabelServicePutIn = createManageLabelServicePutIn({
 				data: updateFolder,
 				label: label._id,
+				mailSet: null,
 			})
 			const ownerKeyVersion = parseKeyVersion(assertNotNull(label._ownerKeyVersion))
 			const mailGroupKey = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(label._ownerGroup), ownerKeyVersion)

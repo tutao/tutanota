@@ -1,15 +1,17 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ListElementId, ElementId } from "@tutao/meta"
+import { ElementId, ListElementId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
-import { Blob } from '../sys/TypeRefs.js'
-import { BucketKey } from '../sys/TypeRefs.js'
-import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
-import { DateWrapper } from '../sys/TypeRefs.js'
-import { StringWrapper } from '../sys/TypeRefs.js'
-import { GeneratedIdWrapper } from '../sys/TypeRefs.js'
-import { IdTupleWrapper } from '../sys/TypeRefs.js'
-import { InstanceSessionKey } from '../sys/TypeRefs.js'
+import {
+	Blob,
+	BlobReferenceTokenWrapper,
+	BucketKey,
+	DateWrapper,
+	GeneratedIdWrapper,
+	IdTupleWrapper,
+	InstanceSessionKey,
+	StringWrapper
+} from "../sys/TypeRefs.js"
 
 export const SubfilesTypeRef: TypeRef<Subfiles> = new TypeRef("tutanota", 11)
 
@@ -3356,7 +3358,8 @@ export type ManageLabelServicePostInParams = {
 
 
 
-	data: ManageLabelServiceLabelData;
+	data: null | ManageLabelServiceLabelData;
+	mailSet: null | MailSetTransferAggregatedType;
 }
 
 export type ManageLabelServicePostIn = {
@@ -3365,11 +3368,12 @@ export type ManageLabelServicePostIn = {
 	_original?: ManageLabelServicePostIn
 
 	_format: NumberString;
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
-	ownerKeyVersion: NumberString;
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: null | NumberString;
 	ownerGroup: Id;
 
-	data: ManageLabelServiceLabelData;
+	data: null | ManageLabelServiceLabelData;
+	mailSet: null | MailSetTransferAggregatedType;
 }
 export const ManageLabelServicePostOutTypeRef: TypeRef<ManageLabelServicePostOut> = new TypeRef("tutanota", 1490)
 
@@ -3403,7 +3407,8 @@ export type ManageLabelServicePutInParams = {
 
 
 	label: IdTuple;
-	data: ManageLabelServiceLabelData;
+	data: null | ManageLabelServiceLabelData;
+	mailSet: null | MailSetTransferAggregatedType;
 }
 
 export type ManageLabelServicePutIn = {
@@ -3414,7 +3419,8 @@ export type ManageLabelServicePutIn = {
 	_format: NumberString;
 
 	label: IdTuple;
-	data: ManageLabelServiceLabelData;
+	data: null | ManageLabelServiceLabelData;
+	mailSet: null | MailSetTransferAggregatedType;
 }
 export const ManageLabelServiceDeleteInTypeRef: TypeRef<ManageLabelServiceDeleteIn> = new TypeRef("tutanota", 1500)
 
@@ -4971,6 +4977,7 @@ export type MailSetTransferAggregatedTypeParams = {
 
 
 	name: string;
+	color: null | string;
 
 	parentFolder: null | IdTuple;
 }
@@ -4983,6 +4990,7 @@ export type MailSetTransferAggregatedType = {
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
 	name: string;
+	color: null | string;
 
 	parentFolder: null | IdTuple;
 }
