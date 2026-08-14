@@ -1,6 +1,6 @@
 import { app, BrowserWindow, utilityProcess } from "electron"
 import path from "node:path"
-import { registerWorker } from "./registerWorker.js"
+import { registerHttpWorker } from "./registerHttpWorker.js"
 import { fileURLToPath } from "node:url"
 
 const __filename = fileURLToPath(import.meta.url)
@@ -16,7 +16,7 @@ const createWindow = () => {
 }
 
 app.whenReady().then(() => {
-	registerWorker()
+	registerHttpWorker()
 	createWindow()
 })
 

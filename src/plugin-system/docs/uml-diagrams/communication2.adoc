@@ -27,7 +27,6 @@ package "Client" {
 
 package "Interface Description Language" as IDL{
     [ProtoBuf]
-    [Cap'n Proto]
 }
 
     package "Plugin Interfaces" as PluginInterfaces {
