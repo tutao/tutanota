@@ -395,7 +395,7 @@ o.spec("CalendarViewModel", function () {
 			o(Array.from(longEvents)).deepEquals(expected.longEvents)
 		})
 	})
-	o.spec("entityEventsReceived", function () {
+	o.spec("onEntityUpdatesReceived", function () {
 		o("transient event is removed on update", async function () {
 			const entityListeners: EntityUpdatesListener[] = []
 			const eventController: EventController = downcast({
@@ -436,7 +436,7 @@ o.spec("CalendarViewModel", function () {
 				assertNotNull(wrapperToDrag.event.uid),
 			)
 			entityClientMock.addListInstances(updatedEventFromServer.event)
-			await entityListeners[0].onEntityUpdatesReceived([entityUpdate], assertNotNull(wrapperToDrag.event._ownerGroup), true)
+			await entityListeners[0].onEntityUpdatesReceived([entityUpdate], assertNotNull(wrapperToDrag.event._ownerGroup))
 			o(viewModel.temporaryEvents.some((eventWrapper) => eventWrapper.event.uid === wrapperToDrag.event.uid)).equals(false)("Transient event removed")
 		})
 	})

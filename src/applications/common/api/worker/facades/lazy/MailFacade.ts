@@ -980,8 +980,8 @@ export class MailFacade {
 			.catch(ofClass(NotFoundError, () => null))
 	}
 
-	entityEventsReceived(data: readonly EntityUpdateData[]): Promise<void> {
-		return promiseMap(data, (update) => {
+	onEntityUpdatesReceived(updates: readonly EntityUpdateData[]): Promise<void> {
+		return promiseMap(updates, (update) => {
 			if (
 				this.deferredDraftUpdate != null &&
 				this.deferredDraftId != null &&

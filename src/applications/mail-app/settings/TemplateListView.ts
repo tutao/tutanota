@@ -159,7 +159,7 @@ export class TemplateListView implements UpdatableSettingsViewer {
 		)
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(EmailTemplateTypeRef, update) && isSameSingleId(this.templateListId(), update.instanceListId)) {
 				await this.listModel.onEntityUpdateReceived(assertNotNull(update.instanceListId), update.instanceId, update.operation)

@@ -11,14 +11,14 @@ import { Translation } from "../../../ui/utils/LanguageViewModel"
 
 /** UI component shown in the second column of settings. */
 export interface UpdatableSettingsViewer extends Component {
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown>
+	onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown>
 }
 
 /** UI component shown in the third column of settings. Not actually a Mithril component. */
 export interface UpdatableSettingsDetailsViewer {
 	renderView(): Children
 
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown>
+	onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown>
 }
 
 export interface SettingsViewAttrs extends TopLevelAttrs {

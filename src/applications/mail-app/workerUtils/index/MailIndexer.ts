@@ -26,7 +26,7 @@ export interface MailIndexer {
 	readonly mailIndexingEnabled: boolean
 
 	init(user: User): Promise<void>
-	processEntityEvents(events: readonly EntityUpdateData[], groupId: Id, batchId: Id): Promise<void>
+	onEntityUpdatesReceived(events: readonly EntityUpdateData[], groupId: Id, batchId: Id): Promise<void>
 	beforeMailDeleted(mailid: IdTuple): Promise<void>
 	afterMailDeleted(mailid: IdTuple): Promise<void>
 	afterMailCreated(mailid: IdTuple): Promise<void>

@@ -95,7 +95,7 @@ export class AffiliateSettingsViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		// can be a noop because the referral code will never change once it was created
 		// we trigger creation in the constructor if there is no code yet
 	}

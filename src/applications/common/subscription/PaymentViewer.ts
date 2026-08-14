@@ -465,7 +465,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		})
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			await this.processEntityUpdate(update)
 		}

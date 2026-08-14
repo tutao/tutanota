@@ -90,7 +90,7 @@ export class KeyManagementSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		// we only need to listen for updates of new identity keys of the user group
 		// everything else is only stored locally
 		for (const update of updates) {

@@ -59,10 +59,10 @@ export class NativeContactsSyncManager {
 		})
 	}
 
-	private async onEntityUpdatesReceived(events: ReadonlyArray<EntityUpdateData>) {
+	private async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>) {
 		await this.entityUpdateLock
 
-		await this.processContactEventUpdate(events)
+		await this.processContactEventUpdate(updates)
 	}
 
 	private async processContactEventUpdate(events: ReadonlyArray<EntityUpdateData>) {

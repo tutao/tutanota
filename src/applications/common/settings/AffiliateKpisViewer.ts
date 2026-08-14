@@ -89,7 +89,7 @@ export class AffiliateKpisViewer implements UpdatableSettingsDetailsViewer {
 		}
 	}
 
-	entityEventsReceived(updates: readonly EntityUpdateData[]): Promise<unknown> {
+	onEntityUpdatesReceived(updates: readonly EntityUpdateData[]): Promise<unknown> {
 		return Promise.resolve()
 	}
 }
