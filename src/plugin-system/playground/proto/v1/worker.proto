@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package proto.v1;
+
+message WorkerRequest {
+  oneof payload {
+    InitializeRequest initialize = 1;
+    CalculateRequest calculate = 2;
+    ButtonClickRequest button_click = 3;
+  }
+}
+
+message InitializeRequest {}
+
+message CalculateRequest {
+  int32 value = 1;
+}
+
+message ButtonClickRequest {
+  string id = 1;
+}
+
+message WorkerResponse {
+  oneof payload {
+    InitializeResponse initialize = 1;
+    CalculateResponse calculate = 2;
+    ButtonRegistration button_registration = 3;
+  }
+}
+
+message InitializeResponse {
+  Status status = 1;
+  string error = 2;
+}
+
+enum Status {
+  STATUS_UNSPECIFIED = 0;
+  STATUS_OK = 1;
+  STATUS_ERROR = 2;
+}
+
+message ButtonRegistration {
+  string id = 1;
+  string label = 2;
+  string action = 3;
+}
+
+message CalculateResponse {
+  int32 value = 1;
+}
