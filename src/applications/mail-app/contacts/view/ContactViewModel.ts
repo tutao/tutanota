@@ -53,6 +53,7 @@ export class ContactViewModel {
 
 	/** init is called every time the view is opened */
 	async init(contactListId?: Id) {
+		this.connectivityModel.addConnectionStateListener(this.connectivityListener)
 		// update url if the view was just opened
 		if (contactListId == null) this.updateUrl()
 		if (this.contactListId) return
@@ -60,8 +61,6 @@ export class ContactViewModel {
 		this.contactListId = assertNotNull(await this.contactModel.getContactListId(), "not available for external users")
 
 		this.initOnce()
-
-		this.connectivityModel.addConnectionStateListener(this.connectivityListener)
 
 		await this.listModel.loadInitial()
 	}
