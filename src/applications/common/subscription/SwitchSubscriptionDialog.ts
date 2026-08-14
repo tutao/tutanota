@@ -203,15 +203,15 @@ export async function showSwitchDialog({
 async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInfo: CurrentPlanInfo) {
 	if (EnvProvider.get().isIOSApp()) {
 		// We want the user to disable renewal in AppStore before they try to downgrade on our side
-		const ownership = await locator.mobilePaymentsFacade.queryAppStoreSubscriptionOwnership(
+		const ownership = await locator.mobilePaymentsFacade.queryExternalSubscriptionOwnership(
 			base64ToUint8Array(base64ExtToBase64(elementIdToId(customer._id))),
 		)
-		if (ownership === MobilePaymentSubscriptionOwnership.Owner && (await locator.mobilePaymentsFacade.isAppStoreRenewalEnabled())) {
+		if (ownership === MobilePaymentSubscriptionOwnership.Owner && (await locator.mobilePaymentsFacade.isExternalSubscriptionRenewalEnabled())) {
 			await locator.mobilePaymentsFacade.showSubscriptionConfigView()
 
 			await showProgressDialog("pleaseWait_msg", waitUntilRenewalDisabled())
 
-			if (await locator.mobilePaymentsFacade.isAppStoreRenewalEnabled()) {
+			if (await locator.mobilePaymentsFacade.isExternalSubscriptionRenewalEnabled()) {
 				console.log("AppStore renewal is still enabled, canceling downgrade")
 				// User probably did not disable the renewal still, cancel
 				return
@@ -233,7 +233,7 @@ async function waitUntilRenewalDisabled() {
 	for (let i = 0; i < 3; i++) {
 		// Wait a bit before checking, it takes a bit to propagate
 		await delay(2000)
-		if (!(await locator.mobilePaymentsFacade.isAppStoreRenewalEnabled())) {
+		if (!(await locator.mobilePaymentsFacade.isExternalSubscriptionRenewalEnabled())) {
 			return
 		}
 	}

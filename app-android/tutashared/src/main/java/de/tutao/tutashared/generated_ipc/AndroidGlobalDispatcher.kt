@@ -14,6 +14,7 @@ class AndroidGlobalDispatcher (
 	externalCalendarFacade : ExternalCalendarFacade,
 	fileFacade : FileFacade,
 	mobileContactsFacade : MobileContactsFacade,
+	mobilePaymentsFacade : MobilePaymentsFacade,
 	mobileSystemFacade : MobileSystemFacade,
 	nativeCredentialsFacade : NativeCredentialsFacade,
 	nativeCryptoFacade : NativeCryptoFacade,
@@ -26,6 +27,7 @@ class AndroidGlobalDispatcher (
 	private val externalCalendarFacade: ExternalCalendarFacadeReceiveDispatcher = ExternalCalendarFacadeReceiveDispatcher(json, externalCalendarFacade)
 	private val fileFacade: FileFacadeReceiveDispatcher = FileFacadeReceiveDispatcher(json, fileFacade)
 	private val mobileContactsFacade: MobileContactsFacadeReceiveDispatcher = MobileContactsFacadeReceiveDispatcher(json, mobileContactsFacade)
+	private val mobilePaymentsFacade: MobilePaymentsFacadeReceiveDispatcher = MobilePaymentsFacadeReceiveDispatcher(json, mobilePaymentsFacade)
 	private val mobileSystemFacade: MobileSystemFacadeReceiveDispatcher = MobileSystemFacadeReceiveDispatcher(json, mobileSystemFacade)
 	private val nativeCredentialsFacade: NativeCredentialsFacadeReceiveDispatcher = NativeCredentialsFacadeReceiveDispatcher(json, nativeCredentialsFacade)
 	private val nativeCryptoFacade: NativeCryptoFacadeReceiveDispatcher = NativeCryptoFacadeReceiveDispatcher(json, nativeCryptoFacade)
@@ -40,6 +42,7 @@ class AndroidGlobalDispatcher (
 			"ExternalCalendarFacade" -> this.externalCalendarFacade.dispatch(methodName, args)
 			"FileFacade" -> this.fileFacade.dispatch(methodName, args)
 			"MobileContactsFacade" -> this.mobileContactsFacade.dispatch(methodName, args)
+			"MobilePaymentsFacade" -> this.mobilePaymentsFacade.dispatch(methodName, args)
 			"MobileSystemFacade" -> this.mobileSystemFacade.dispatch(methodName, args)
 			"NativeCredentialsFacade" -> this.nativeCredentialsFacade.dispatch(methodName, args)
 			"NativeCryptoFacade" -> this.nativeCryptoFacade.dispatch(methodName, args)

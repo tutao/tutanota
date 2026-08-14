@@ -57,6 +57,7 @@ import de.tutao.calendar.widget.WidgetRefresher
 import de.tutao.tutashared.ActivityResult
 import de.tutao.tutashared.ActivityUtils
 import de.tutao.tutashared.AndroidCalendarFacade
+import de.tutao.tutashared.AndroidMobilePaymentsFacade
 import de.tutao.tutashared.AndroidMobileSystemFacade
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.AppType
@@ -207,6 +208,7 @@ class MainActivity : FragmentActivity(), ActivityUtils {
 			calendarFacade,
 			fileFacade,
 			AndroidMobileContactsFacade(this),
+			AndroidMobilePaymentsFacade(this),
 			AndroidMobileSystemFacade(
 				fileFacade,
 				this,
