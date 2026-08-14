@@ -243,6 +243,8 @@ export class OfflineMailIndexer implements MailIndexer {
 		for (const mailList of allMailBags) {
 			if (groupData.lastIndexedEntityListId === mailList || !firstBiggerThanSecondBase64Ext(mailList, groupData.lastIndexedEntityListId)) {
 				const startingId = groupData.lastIndexedEntityListId === mailList ? groupData.lastIndexedEntityElementId : GENERATED_MAX_ID
+				console.log(TAG, `Indexing mailbag with mail list ${mailList}`)
+				const indexMailbagStart = performance.now()
 				await this.indexMailbag(groupData.groupId, mailList, startingId, async (newMailsIndexed, currentMailbagMailsDownloaded) => {
 					// We don't know how many mails a user has in a mailbox, so this curve actually never reaches 1 (but
 					// reaches ~99.98% after 5000 mails)
@@ -251,6 +253,8 @@ export class OfflineMailIndexer implements MailIndexer {
 					const currentMailbagDownloadedPartialProgress = 1 - 5000 ** (-currentMailbagMailsDownloaded / 5000)
 					await mailboxProgress((indexedMailbags + currentMailbagDownloadedPartialProgress) / totalMailbags, newMailsIndexed)
 				})
+				const indexMailbagEnd = performance.now()
+				console.log(TAG, `Finished indexing mail list ${mailList} (took ${indexMailbagEnd - indexMailbagStart} ms)`)
 			}
 
 			indexedMailbags += 1
@@ -341,8 +345,16 @@ export class OfflineMailIndexer implements MailIndexer {
 			} else {
 				console.log(TAG, `Downloading archive ${archiveId}...`)
 				const storePromise = abortAware(this.abortController, async () => {
+					const downloadStart = performance.now()
 					const blobs = await this.blobFacade.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, archiveId)
-					return await this.offlineStoragePersistence.storeEncryptedMailDetailsBlobs(mailDetailsBlobTypeModel, blobs)
+					const downloadEnd = performance.now()
+					console.log(
+						TAG,
+						`Finished downloading archive ${archiveId} (${blobs.length} blob(s), took ${downloadEnd - downloadStart} ms), storing in offline db...`,
+					)
+					await this.offlineStoragePersistence.storeEncryptedMailDetailsBlobs(mailDetailsBlobTypeModel, blobs)
+					const storeEnd = performance.now()
+					console.log(TAG, `Finished storing archive ${archiveId} in offline db (took ${storeEnd - downloadEnd} ms)`)
 				})
 
 				archiveDownloadPromises.set(archiveId, storePromise)
