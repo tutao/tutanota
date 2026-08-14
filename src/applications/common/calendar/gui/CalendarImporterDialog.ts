@@ -1,7 +1,6 @@
 import { elementIdPart, isSameSingleId, listIdPart } from "@tutao/meta"
 import { FileChooserMultiMode, showFileChooser, showNativeFilePicker } from "../../file/FileController.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
-import { ParserError } from "../../misc/parsing/ParserCombinator.js"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog.js"
 import { lang, MaybeTranslation } from "../../../../ui/utils/LanguageViewModel.js"
 import { serializeCalendar } from "../../../calendar-app/calendar/export/CalendarExporter.js"
@@ -192,29 +191,38 @@ export type ProgenitorsToUpdateExclusionDates = {
 }
 
 export async function selectAndParseIcalFile(): Promise<ParsedEventAlarmTuple[]> {
-	try {
-		const allowedExtensions = ["ical", "ics", "ifb", "icalendar"]
-		const dataFiles = EnvProvider.get().isApp()
-			? await showNativeFilePicker(allowedExtensions, true)
-			: await showFileChooser(FileChooserMultiMode.Multi, allowedExtensions)
-		const contents = dataFiles.map((file) => parseCalendarFile(file).contents)
-		return contents.flat()
-	} catch (e) {
-		if (e instanceof ParserError) {
-			console.log("Failed to parse file", e)
-			Dialog.message(
-				lang.makeTranslation(
-					"confirm_msg",
-					lang.get("importReadFileError_msg", {
-						"{filename}": e.filename ?? "",
-					}),
-				),
-			)
-			return []
-		} else {
-			throw e
+	const allowedExtensions = ["ical", "ics", "ifb", "icalendar"]
+	const dataFiles = EnvProvider.get().isApp() ? await showNativeFilePicker(allowedExtensions, true) : await showFileChooser(FileChooserMultiMode.Multi, allowedExtensions)
+	const contents: ParsedEventAlarmTuple[] = []
+	let failureMessage = ""
+	for (const file of dataFiles) {
+		const result = parseCalendarFile(file)
+		contents.push(...result.contents)
+
+		const succeededEventsCount = contents.length
+		const failedEventsCount = result.parseEventErrors.length
+		if (failedEventsCount > 0) {
+			failureMessage +=
+				lang.getTranslation("importFileFailuresError_msg", {
+					"{failedEventsCount}": failedEventsCount,
+					"{filename}": file.name,
+					"{succeededEventsCount}": succeededEventsCount,
+				}).text + "\n"
 		}
 	}
+
+	if (failureMessage.length > 0) {
+		console.log(failureMessage)
+		// await so that other importer-related dialogs don't pop up and interfere with this msg.
+		await Dialog.message(
+			lang.makeTranslation(
+				"confirm_msg",
+				failureMessage,
+			),
+		)
+	}
+
+	return contents
 }
 
 /** export all events from a calendar, using the alarmInfos the current user has access to and ignoring the other ones that may be set on the event. */

@@ -1357,6 +1357,7 @@ export type TranslationKeyType =
 	| "importVCardSuccess_msg"
 	| "importVCardError_msg"
 	| "importUsers_action"
+	| "importFileFailuresError_msg"
 	| "importReadFileError_msg"
 	| "importPre1970StartInEvent_msg"
 	| "importInvalidDatesInEvent_msg"

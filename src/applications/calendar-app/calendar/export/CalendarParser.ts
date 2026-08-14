@@ -79,7 +79,8 @@ export type ParsedEventAlarmTuple = {
 }
 export type ParsedCalendarData = {
 	method: string
-	contents: Array<ParsedEventAlarmTuple>
+	contents: ParsedEventAlarmTuple[]
+	parseEventErrors: ParserError[]
 }
 export type StrippedCalendarEventAttendee = {
 	status: NumberString
@@ -523,7 +524,7 @@ function getTzId(prop: Property): string | null {
 		return Intl.DateTimeFormat("en-US", { timeZone: tzIdValue }).resolvedOptions().timeZone
 	} catch (e) {
 		if (e instanceof RangeError) {
-			throw new ParserError(`${TAG} Invalid timezone in property ${prop.name}=${tzIdValue}.`)
+			throw new ParserError(`${TAG} Invalid timezone in property ${prop.name}: TZID=${tzIdValue}.`)
 		} else {
 			throw e
 		}
@@ -580,125 +581,141 @@ export function parseCalendarEvents(icalObject: ICalObject, userCalendarTimeZone
 	const methodProp = getProp(icalObject, "METHOD", true)
 	const method = methodProp ? methodProp.value : CalendarMethod.PUBLISH
 	const eventObjects = icalObject.children.filter((obj) => obj.type === "VEVENT")
-	const contents = getContents(eventObjects, userCalendarTimeZone)
+	const [contents, parseEventErrors] = getContents(eventObjects, userCalendarTimeZone)
 
 	return {
 		method,
 		contents,
+		parseEventErrors,
 	}
 }
 
-function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEventAlarmTuple> {
-	return eventObjects.map((eventObj, index) => {
-		const startProp = getProp(eventObj, "DTSTART", false)
-		const startTzId: string | null = getTzId(startProp)
-		const { date: startTime, allDay } = parseTime(startProp.value, startTzId)
-
-		// start time and tzid is sorted, so we can worry about event identity now before proceeding...
-		let hasValidUid = false
-		let uid: string | null = null
+function getContents(eventObjects: ICalObject[], zone: string): [ParsedEventAlarmTuple[], ParserError[]] {
+	const contents: ParsedEventAlarmTuple[] = []
+	const errors: ParserError[] = []
+	for (let i = 0; i < eventObjects.length; ++i) {
 		try {
-			uid = getPropStringValue(eventObj, "UID", false)
-			hasValidUid = true
+			contents.push(parseEventObject(eventObjects[i], i, zone))
 		} catch (e) {
 			if (e instanceof ParserError) {
-				// Also parse event and create new UID if none is set
-				uid = `import-${Date.now()}-${index}@tuta.com`
+				errors.push(e)
 			} else {
 				throw e
 			}
 		}
+	}
+	return [contents, errors]
+}
 
-		const recurrenceIdProp = getProp(eventObj, "RECURRENCE-ID", true)
-		let recurrenceId: Date | null = null
-		if (recurrenceIdProp != null && hasValidUid) {
-			// if we generated the UID, we have no way of knowing which event series this recurrenceId refers to.
-			// in that case, we just don't add the recurrenceId and import the event as a standalone.
-			recurrenceId = parseRecurrenceId(recurrenceIdProp, startTzId)
+function parseEventObject(eventObj: ICalObject, index: number, zone: string) {
+	const startProp = getProp(eventObj, "DTSTART", false)
+	const startTzId: string | null = getTzId(startProp)
+	const { date: startTime, allDay } = parseTime(startProp.value, startTzId)
+
+	// start time and tzid is sorted, so we can worry about event identity now before proceeding...
+	let hasValidUid = false
+	let uid: string | null = null
+	try {
+		uid = getPropStringValue(eventObj, "UID", false)
+		hasValidUid = true
+	} catch (e) {
+		if (e instanceof ParserError) {
+			// Also parse event and create new UID if none is set
+			uid = `import-${Date.now()}-${index}@tuta.com`
+		} else {
+			throw e
+		}
+	}
+
+	const recurrenceIdProp = getProp(eventObj, "RECURRENCE-ID", true)
+	let recurrenceId: Date | null = null
+	if (recurrenceIdProp != null && hasValidUid) {
+		// if we generated the UID, we have no way of knowing which event series this recurrenceId refers to.
+		// in that case, we just don't add the recurrenceId and import the event as a standalone.
+		recurrenceId = parseRecurrenceId(recurrenceIdProp, startTzId)
+	}
+
+	const endProp = getProp(eventObj, "DTEND", true)
+	const endTzId = endProp ? getTzId(endProp) : null
+	const endTime = parseEndTime(eventObj, allDay, startTime, startTzId, zone)
+
+	let summary: string = ""
+	const maybeSummary = parseICalText(eventObj, "SUMMARY")
+	if (maybeSummary) summary = maybeSummary
+
+	let location: string = ""
+	const maybeLocation = parseICalText(eventObj, "LOCATION")
+	if (maybeLocation) location = maybeLocation
+
+	const rruleProp = getPropStringValue(eventObj, "RRULE", true)
+	const excludedDateProps = eventObj.properties.filter((p) => p.name === "EXDATE")
+
+	let repeatRule: RepeatRule | null = null
+	if (rruleProp != null) {
+		repeatRule = parseRrule(rruleProp, startTzId)
+		repeatRule.excludedDates = parseExDates(excludedDateProps)
+	}
+
+	const description = parseICalText(eventObj, "DESCRIPTION") ?? ""
+
+	const sequenceProp = getProp(eventObj, "SEQUENCE", true)
+	let sequence: string = "0"
+	if (sequenceProp) {
+		const sequenceNumber = filterInt(sequenceProp.value)
+
+		if (Number.isNaN(sequenceNumber)) {
+			throw new ParserError("SEQUENCE value is not a number")
 		}
 
-		const endProp = getProp(eventObj, "DTEND", true)
-		const endTzId = endProp ? getTzId(endProp) : null
-		const endTime = parseEndTime(eventObj, allDay, startTime, startTzId, zone)
+		// Convert it back to NumberString. Could use original one but this feels more robust.
+		sequence = String(sequenceNumber)
+	}
 
-		let summary: string = ""
-		const maybeSummary = parseICalText(eventObj, "SUMMARY")
-		if (maybeSummary) summary = maybeSummary
+	const attendees = getAttendees(eventObj)
 
-		let location: string = ""
-		const maybeLocation = parseICalText(eventObj, "LOCATION")
-		if (maybeLocation) location = maybeLocation
+	const organizerProp = getProp(eventObj, "ORGANIZER", true)
+	let organizer: EncryptedMailAddress | null = null
+	if (organizerProp) {
+		const organizerAddress = parseMailtoValue(organizerProp.value)
 
-		const rruleProp = getPropStringValue(eventObj, "RRULE", true)
-		const excludedDateProps = eventObj.properties.filter((p) => p.name === "EXDATE")
-
-		let repeatRule: RepeatRule | null = null
-		if (rruleProp != null) {
-			repeatRule = parseRrule(rruleProp, startTzId)
-			repeatRule.excludedDates = parseExDates(excludedDateProps)
+		if (organizerAddress && isMailAddress(organizerAddress, false)) {
+			organizer = createEncryptedMailAddress({
+				address: organizerAddress,
+				name: organizerProp.params["name"] || "",
+			})
+		} else {
+			console.log("organizer has no address or address is invalid, ignoring: ", organizerAddress)
 		}
+	}
 
-		const description = parseICalText(eventObj, "DESCRIPTION") ?? ""
+	const icsCalendarEvent: IcsCalendarEvent = {
+		summary,
+		description,
+		startTime,
+		endTime,
+		location,
+		uid,
+		sequence,
+		recurrenceId,
+		repeatRule,
+		attendees,
+		organizer,
+		startTimeZone: allDay ? null : startTzId,
+		endTimeZone: allDay ? null : endTzId,
+	}
 
-		const sequenceProp = getProp(eventObj, "SEQUENCE", true)
-		let sequence: string = "0"
-		if (sequenceProp) {
-			const sequenceNumber = filterInt(sequenceProp.value)
+	let alarms: AlarmInfoTemplate[] = []
 
-			if (Number.isNaN(sequenceNumber)) {
-				throw new ParserError("SEQUENCE value is not a number")
-			}
+	try {
+		alarms = getAlarms(eventObj, startTime)
+	} catch (e) {
+		console.log("alarm is invalid for event: ", icsCalendarEvent.summary, icsCalendarEvent.startTime)
+	}
 
-			// Convert it back to NumberString. Could use original one but this feels more robust.
-			sequence = String(sequenceNumber)
-		}
-
-		const attendees = getAttendees(eventObj)
-
-		const organizerProp = getProp(eventObj, "ORGANIZER", true)
-		let organizer: EncryptedMailAddress | null = null
-		if (organizerProp) {
-			const organizerAddress = parseMailtoValue(organizerProp.value)
-
-			if (organizerAddress && isMailAddress(organizerAddress, false)) {
-				organizer = createEncryptedMailAddress({
-					address: organizerAddress,
-					name: organizerProp.params["name"] || "",
-				})
-			} else {
-				console.log("organizer has no address or address is invalid, ignoring: ", organizerAddress)
-			}
-		}
-
-		const icsCalendarEvent: IcsCalendarEvent = {
-			summary,
-			description,
-			startTime,
-			endTime,
-			location,
-			uid,
-			sequence,
-			recurrenceId,
-			repeatRule,
-			attendees,
-			organizer,
-			startTimeZone: allDay ? null : startTzId,
-			endTimeZone: allDay ? null : endTzId,
-		}
-
-		let alarms: AlarmInfoTemplate[] = []
-
-		try {
-			alarms = getAlarms(eventObj, startTime)
-		} catch (e) {
-			console.log("alarm is invalid for event: ", icsCalendarEvent.summary, icsCalendarEvent.startTime)
-		}
-
-		return {
-			icsCalendarEvent,
-			alarms,
-		}
-	})
+	return {
+		icsCalendarEvent,
+		alarms,
+	}
 }
 
 function getAttendees(eventObj: ICalObject) {

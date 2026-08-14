@@ -872,6 +872,7 @@ export default {
 		"importIncomplete_title": "Import unsuccessful",
 		"importInvalidDatesInEvent_msg": "{amount} of {total} events contain invalid dates and will not be imported.",
 		"importPre1970StartInEvent_msg": "{amount} of {total} events start or end before 1970 and will not be imported.",
+		"importFileFailuresError_msg": "Failed to import {failedEventsCount} from file \"{filename}\". {succeededEventsCount} successfully imported.",
 		"importReadFileError_msg": "Sorry, the file {filename} is not readable.",
 		"importTargetFolderDeleted_msg": "Import canceled, the import folder was deleted.",
 		"importUsers_action": "Import users",
