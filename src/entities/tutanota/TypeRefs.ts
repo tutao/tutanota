@@ -1,17 +1,15 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ElementId, ListElementId } from "@tutao/meta"
+import { ListElementId, ElementId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
-import {
-	Blob,
-	BlobReferenceTokenWrapper,
-	BucketKey,
-	DateWrapper,
-	GeneratedIdWrapper,
-	IdTupleWrapper,
-	InstanceSessionKey,
-	StringWrapper
-} from "../sys/TypeRefs.js"
+import { Blob } from '../sys/TypeRefs.js'
+import { BucketKey } from '../sys/TypeRefs.js'
+import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
+import { DateWrapper } from '../sys/TypeRefs.js'
+import { StringWrapper } from '../sys/TypeRefs.js'
+import { GeneratedIdWrapper } from '../sys/TypeRefs.js'
+import { IdTupleWrapper } from '../sys/TypeRefs.js'
+import { InstanceSessionKey } from '../sys/TypeRefs.js'
 
 export const SubfilesTypeRef: TypeRef<Subfiles> = new TypeRef("tutanota", 11)
 
@@ -866,9 +864,10 @@ export function createCreateMailFolderData(values: CreateMailFolderDataParams): 
 export type CreateMailFolderDataParams = {
 
 
-	folderName: string;
+	folderName: null | string;
 
 	parentFolder: null | IdTuple;
+	mailSet: null | MailSetTransferAggregatedType;
 }
 
 export type CreateMailFolderData = {
@@ -877,12 +876,13 @@ export type CreateMailFolderData = {
 	_original?: CreateMailFolderData
 
 	_format: NumberString;
-	folderName: string;
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
+	folderName: null | string;
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	ownerGroup: null | Id;
-	ownerKeyVersion: NumberString;
+	ownerKeyVersion: null | NumberString;
 
 	parentFolder: null | IdTuple;
+	mailSet: null | MailSetTransferAggregatedType;
 }
 export const CreateMailFolderReturnTypeRef: TypeRef<CreateMailFolderReturn> = new TypeRef("tutanota", 455)
 
@@ -4960,4 +4960,29 @@ export type MailTransferAggregatedType = {
 
 	sender: MailAddressTransferAggregatedType;
 	firstRecipient: null | MailAddressTransferAggregatedType;
+}
+export const MailSetTransferAggregatedTypeTypeRef: TypeRef<MailSetTransferAggregatedType> = new TypeRef("tutanota", 2037)
+
+export function createMailSetTransferAggregatedType(values: MailSetTransferAggregatedTypeParams): MailSetTransferAggregatedType {
+    return Object.assign(create(typeModels[MailSetTransferAggregatedTypeTypeRef.typeId], MailSetTransferAggregatedTypeTypeRef), values)
+}
+
+export type MailSetTransferAggregatedTypeParams = {
+
+
+	name: string;
+
+	parentFolder: null | IdTuple;
+}
+
+export type MailSetTransferAggregatedType = {
+	_type: TypeRef<MailSetTransferAggregatedType>;
+	_original?: MailSetTransferAggregatedType
+
+	_id: Id;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	name: string;
+
+	parentFolder: null | IdTuple;
 }

@@ -2672,7 +2672,7 @@ const typeModels = {
 				"name": "folderName",
 				"id": 453,
 				"type": "String",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": true,
 				"transferredAttributeId": null
 			},
@@ -2681,7 +2681,7 @@ const typeModels = {
 				"name": "ownerEncSessionKey",
 				"id": 454,
 				"type": "Bytes",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -2699,7 +2699,7 @@ const typeModels = {
 				"name": "ownerKeyVersion",
 				"id": 1414,
 				"type": "Number",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			}
@@ -2712,6 +2712,16 @@ const typeModels = {
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 429,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"2043": {
+				"final": true,
+				"name": "mailSet",
+				"id": 2043,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2037,
 				"dependency": null,
 				"transferredAttributeId": null
 			}
@@ -13007,6 +13017,69 @@ const typeModels = {
 				"refTypeId": 2001,
 				"dependency": null,
 				"transferredAttributeId": 1306
+			}
+		}
+	},
+	"2037": {
+		"name": "MailSetTransferAggregatedType",
+		"app": "tutanota",
+		"version": 114,
+		"since": 114,
+		"type": "AGGREGATED_TYPE",
+		"id": 2037,
+		"rootId": "CHR1dGFub3RhAAf1",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 429,
+		"values": {
+			"2038": {
+				"final": true,
+				"name": "_id",
+				"id": 2038,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2039": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 2039,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 434
+			},
+			"2040": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 2040,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 1399
+			},
+			"2041": {
+				"final": true,
+				"name": "name",
+				"id": 2041,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 435
+			}
+		},
+		"associations": {
+			"2042": {
+				"final": true,
+				"name": "parentFolder",
+				"id": 2042,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 429,
+				"dependency": null,
+				"transferredAttributeId": 439
 			}
 		}
 	}
