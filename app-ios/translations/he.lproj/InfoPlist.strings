@@ -21,6 +21,7 @@ TutaoWidgetSendLogsAction = "שליחת דו\"חות";
 TutaoWidgetNoEventsMsg = "אין אירועים";
 TutaoWidgetCredentialsErrorMsg = "אין פרטי משתמש זמינים";
 TutaoAccountLabel = "משתמש";
+TutaoWidgetDescription = "הצג את האירועים הקרבים של היום";
 TutaoDefaultCalendarNameTitle = "פרטי";
 TutaoAllDayLabel = "כל היום";
 TutaoAttachFilesAction = "צרף קבצים";
