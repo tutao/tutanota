@@ -207,6 +207,7 @@ export class DriveViewModel {
 	}
 
 	readonly init = async () => {
+		this.connectivityModel.addConnectionStateListener(this.connectionStateListener)
 		// if the roots have already been loaded the init must have been finished
 		if (this.roots) {
 			return
@@ -236,8 +237,6 @@ export class DriveViewModel {
 			},
 			priority: ListenerPriority.NORMAL,
 		})
-
-		this.connectivityModel.addConnectionStateListener(this.connectionStateListener)
 
 		this.uploadProgressListener.addUploadListener((info: UploadProgressInfo) => {
 			this.transferController.onChunkUploaded(info.transferId, info.uploadedBytes)
