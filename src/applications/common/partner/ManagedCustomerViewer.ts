@@ -54,5 +54,5 @@ export class ManagedCustomerViewer implements UpdatableSettingsDetailsViewer {
 		])
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {}
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>) {}
 }

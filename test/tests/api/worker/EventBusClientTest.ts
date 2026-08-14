@@ -200,8 +200,8 @@ o.spec("EventBusClient", function () {
 		)
 
 		const filteredEvents: EntityUpdateData[] = []
-		when(cacheMock.entityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(filteredEvents)
-		when(listenerMock.onEntityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenResolve()
+		when(cacheMock.onEntityUpdatesReceived(matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(filteredEvents)
+		when(listenerMock.onEntityUpdatesReceived(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenResolve()
 
 		// call twice as if it was received in parallel
 		const p1 = socket.onmessage?.({
@@ -218,7 +218,7 @@ o.spec("EventBusClient", function () {
 		await ebc.waitForEmptyQueue()
 
 		// Is waiting for cache to process the first event
-		verify(cacheMock.entityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything()), { times: 2 })
+		verify(cacheMock.onEntityUpdatesReceived(matchers.anything(), matchers.anything(), matchers.anything()), { times: 2 })
 	})
 
 	o.test("on counter update it send message to the main thread", async function () {
@@ -326,7 +326,7 @@ o.spec("EventBusClient", function () {
 					}),
 				),
 			]
-			when(cacheMock.entityEventsReceived(matchers.anything(), eventBatchId, mailGroupId)).thenResolve(batchEvents)
+			when(cacheMock.onEntityUpdatesReceived(matchers.anything(), eventBatchId, mailGroupId)).thenResolve(batchEvents)
 
 			await ebc.connect(ConnectMode.Initial)
 			await socket.onopen?.(new Event("open"))
@@ -352,14 +352,14 @@ o.spec("EventBusClient", function () {
 			} as MessageEvent)
 			await ebc.messageQueue
 			await ebc.waitForEmptyQueue()
-			verify(listenerMock.onEntityEventsReceived(batchEvents, eventBatchId, mailGroupId, matchers.anything()))
+			verify(listenerMock.onEntityUpdatesReceived(batchEvents, eventBatchId, mailGroupId, matchers.anything()))
 			verify(progressMonitor.workDone(1), { times: 1 })
 			verify(listenerMock.onSyncDone())
 		})
 
 		o.test("event batch with entity update of an unknown type is processed", async function () {
 			const eventBatchId = "1"
-			when(cacheMock.entityEventsReceived(matchers.anything(), eventBatchId, mailGroupId)).thenResolve([])
+			when(cacheMock.onEntityUpdatesReceived(matchers.anything(), eventBatchId, mailGroupId)).thenResolve([])
 
 			await ebc.connect(ConnectMode.Initial)
 			await socket.onopen?.(new Event("open"))
@@ -380,14 +380,14 @@ o.spec("EventBusClient", function () {
 			} as MessageEvent)
 			await ebc.messageQueue
 			await ebc.waitForEmptyQueue()
-			verify(listenerMock.onEntityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+			verify(listenerMock.onEntityUpdatesReceived(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 			verify(progressMonitor.workDone(1), { times: 1 })
 			verify(listenerMock.onSyncDone())
 		})
 
 		o.test("event batch with empty entity updates is processed", async function () {
 			const eventBatchId = "1"
-			when(cacheMock.entityEventsReceived(matchers.anything(), eventBatchId, mailGroupId)).thenResolve([])
+			when(cacheMock.onEntityUpdatesReceived(matchers.anything(), eventBatchId, mailGroupId)).thenResolve([])
 
 			await ebc.connect(ConnectMode.Initial)
 			await socket.onopen?.(new Event("open"))
@@ -413,7 +413,7 @@ o.spec("EventBusClient", function () {
 			} as MessageEvent)
 			await ebc.messageQueue
 			await ebc.waitForEmptyQueue()
-			verify(listenerMock.onEntityEventsReceived(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+			verify(listenerMock.onEntityUpdatesReceived(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 			verify(progressMonitor.workDone(1), { times: 1 })
 			verify(listenerMock.onSyncDone())
 		})
@@ -493,7 +493,7 @@ o.spec("EventBusClient", function () {
 					operation: OperationType.UPDATE,
 				}),
 			)
-			when(cacheMock.entityEventsReceived(matchers.anything(), eventBatchId, "mailGroupId")).thenResolve([entityUpdateData])
+			when(cacheMock.onEntityUpdatesReceived(matchers.anything(), eventBatchId, "mailGroupId")).thenResolve([entityUpdateData])
 			when(createProgressMonitor(matchers.anything())).thenReturn(object<ProgressMonitorInterface>())
 			await ebc.connect(ConnectMode.Initial)
 			await socket.onopen?.(new Event("open"))

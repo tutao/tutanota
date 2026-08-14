@@ -202,12 +202,12 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			},
 		]
 
-		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId", false)
+		await eventBusEventCoordinator.onEntityUpdatesReceived(updates, "batchId", "groupId", false)
 
 		verify(userFacade.updateUser(user))
 		verify(cacheManagementFacade.tryUpdatingUserGroupKey())
-		verify(eventController.onEntityUpdateReceived(updates, "groupId", false))
-		verify(mailFacade.entityEventsReceived(updates))
+		verify(eventController.onEntityUpdatesReceived(updates, "groupId", false))
+		verify(mailFacade.onEntityUpdatesReceived(updates))
 	})
 
 	o("updateUser only user update", async function () {
@@ -221,12 +221,12 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			},
 		]
 
-		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId", false)
+		await eventBusEventCoordinator.onEntityUpdatesReceived(updates, "batchId", "groupId", false)
 
 		verify(userFacade.updateUser(user))
 		verify(cacheManagementFacade.tryUpdatingUserGroupKey(), { times: 0 })
-		verify(eventController.onEntityUpdateReceived(updates, "groupId", false))
-		verify(mailFacade.entityEventsReceived(updates))
+		verify(eventController.onEntityUpdatesReceived(updates, "groupId", false))
+		verify(mailFacade.onEntityUpdatesReceived(updates))
 	})
 
 	o("groupKeyUpdate", async function () {
@@ -245,12 +245,12 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			},
 		]
 
-		await eventBusEventCoordinator.onEntityEventsReceived(updates, "batchId", "groupId", false)
+		await eventBusEventCoordinator.onEntityUpdatesReceived(updates, "batchId", "groupId", false)
 
 		verify(keyRotationFacadeMock.updateGroupMembershipsInOneList([[instanceListId, instanceId]]))
 		verify(userFacade.updateUser(user), { times: 0 })
 		verify(cacheManagementFacade.tryUpdatingUserGroupKey(), { times: 0 })
-		verify(eventController.onEntityUpdateReceived(updates, "groupId", false))
-		verify(mailFacade.entityEventsReceived(updates))
+		verify(eventController.onEntityUpdatesReceived(updates, "groupId", false))
+		verify(mailFacade.onEntityUpdatesReceived(updates))
 	})
 })

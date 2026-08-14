@@ -395,7 +395,7 @@ o.spec("CalendarViewModel", function () {
 			o(Array.from(longEvents)).deepEquals(expected.longEvents)
 		})
 	})
-	o.spec("entityEventsReceived", function () {
+	o.spec("onEntityUpdatesReceived", function () {
 		o("transient event is removed on update", async function () {
 			const entityListeners: EntityUpdatesListener[] = []
 			const eventController: EventController = downcast({

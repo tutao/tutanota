@@ -668,7 +668,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		},
 		async (events, batchId, groupId, isInitialSyncDone) => {
 			const indexer = await locator.indexer()
-			await indexer.processEntityEvents(events, batchId, groupId, isInitialSyncDone)
+			await indexer.onEntityUpdatesReceived(events, batchId, groupId, isInitialSyncDone)
 		},
 		locator.base.rolloutFacade,
 		locator.base.groupManagement,

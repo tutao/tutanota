@@ -547,8 +547,8 @@ o.spec("IndexedDbIndexer", () => {
 		let indexer = indexerTemplate
 	})
 
-	o.spec("processEntityEvents", function () {
-		o.test("dispatches events to indexers and writes the timestamp", async function () {
+	o.spec("processEntityUpdates", function () {
+		o.test("dispatches update to indexers and writes the timestamp", async function () {
 			const groupId = "group-id"
 			const batchId = "batch-id"
 			const user = createTestEntity(UserTypeRef, {
@@ -566,7 +566,7 @@ o.spec("IndexedDbIndexer", () => {
 
 			dbWithStub.init({ key, initializationVector })
 			const indexer = mock(indexerTemplate, (indexerMock) => {
-				indexerMock._processUserEntityEvents = func<IndexedDbIndexer["_processUserEntityEvents"]>()
+				indexerMock._processUserEntityUpdates = func<IndexedDbIndexer["_processUserEntityUpdates"]>()
 				indexerMock._initParams = {
 					user,
 				}
@@ -574,7 +574,7 @@ o.spec("IndexedDbIndexer", () => {
 				indexerMock.initDeferred.resolve()
 			})
 
-			const events: EntityUpdateData[] = [
+			const updates: EntityUpdateData[] = [
 				{ typeRef: MailTypeRef, operation: OperationType.CREATE, instanceListId: "mail-list", instanceId: "mail-create" },
 				{ typeRef: MailTypeRef, operation: OperationType.UPDATE, instanceListId: "mail-list", instanceId: "mail-update" },
 				{ typeRef: MailTypeRef, operation: OperationType.DELETE, instanceListId: "mail-list", instanceId: "mail-delete" },
@@ -584,15 +584,15 @@ o.spec("IndexedDbIndexer", () => {
 				{ typeRef: UserTypeRef },
 			] as Partial<EntityUpdateData>[] as EntityUpdateData[]
 			const batch = {
-				events,
+				updates,
 				groupId,
 				batchId,
 				isInitialSyncDone: true,
 			}
 
-			await indexer._processEntityEvents(batch)
+			await indexer._processEntityUpdates(batch)
 			verify(core.putLastBatchIdForGroup(groupId, batchId))
-			verify(mailIndexer.processEntityEvents(events), { times: 1 })
+			verify(mailIndexer.onEntityUpdatesReceived(updates), { times: 1 })
 			verify(mailIndexer.afterMailCreated(["mail-list", "mail-create"]), { times: 1 })
 			verify(mailIndexer.afterMailUpdated(["mail-list", "mail-update"]), { times: 1 })
 			verify(mailIndexer.afterMailDeleted(["mail-list", "mail-delete"]), { times: 1 })
@@ -620,17 +620,17 @@ o.spec("IndexedDbIndexer", () => {
 			dbWithStub.init({ key, initializationVector })
 			let indexer = indexerTemplate
 
-			indexer._processEntityEvents = func<IndexedDbIndexer["_processEntityEvents"]>()
+			indexer._processEntityUpdates = func<IndexedDbIndexer["_processEntityUpdates"]>()
 			const queue = indexer.eventQueue
 			queue.addBatches = func<EventQueue["addBatches"]>()
-			await indexer.processEntityEvents(entityUpdateData, newestBatchId, groupId, true)
+			await indexer.onEntityUpdatesReceived(entityUpdateData, newestBatchId, groupId, true)
 			verify(queue.addBatches(matchers.anything()), { times: 1 })
 			verify(
 				queue.addBatches([
 					{
 						groupId,
 						batchId: newestBatchId,
-						events: entityUpdateData,
+						updates: entityUpdateData,
 						isInitialSyncDone: true,
 					},
 				]),
@@ -651,17 +651,17 @@ o.spec("IndexedDbIndexer", () => {
 			const transaction = await idbStub.createTransaction()
 			transaction.put(MetaDataOS, Metadata.lastEventIndexTimeMs, OUT_OF_DATE_SERVER_TIME)
 
-			const processEntityEvents = func<IndexedDbIndexer["_processEntityEvents"]>()
+			const processEntityUpdates = func<IndexedDbIndexer["_processEntityUpdates"]>()
 
 			dbWithStub.init({ key, initializationVector })
 			let indexer = mock(indexerTemplate, (mock) => {
-				mock._processEntityEvents = processEntityEvents
+				mock._processEntityUpdates = processEntityUpdates
 			})
 			o.check(idbStub.getValue(MetaDataOS, Metadata.lastEventIndexTimeMs)).deepEquals(OUT_OF_DATE_SERVER_TIME)
-			verify(processEntityEvents(matchers.anything()), { times: 0 })
+			verify(processEntityUpdates(matchers.anything()), { times: 0 })
 		})
 
-		o.test("when receiving multiple events it dispatches both and records the batch twice", async function () {
+		o.test("when receiving multiple updates it dispatches both and records the batch twice", async function () {
 			const groupId = "group-id"
 			const user = createTestEntity(UserTypeRef, {
 				memberships: [
@@ -674,7 +674,7 @@ o.spec("IndexedDbIndexer", () => {
 
 			dbWithStub.init({ key, initializationVector })
 			const indexer = mock(indexerTemplate, (mock) => {
-				mock._processUserEntityEvents = func<IndexedDbIndexer["_processUserEntityEvents"]>()
+				mock._processUserEntityUpdates = func<IndexedDbIndexer["_processUserEntityUpdates"]>()
 				mock._initParams = {
 					user,
 				}
@@ -694,7 +694,7 @@ o.spec("IndexedDbIndexer", () => {
 
 			const batchId1 = "batch-id-1"
 			const batch1: QueuedBatch = {
-				events: events1,
+				updates: events1,
 				groupId: groupId,
 				batchId: batchId1,
 				isInitialSyncDone: true,
@@ -711,13 +711,13 @@ o.spec("IndexedDbIndexer", () => {
 			]
 			const batchId2 = "batch-id-2"
 			const batch2: QueuedBatch = {
-				events: events2,
+				updates: events2,
 				groupId: groupId,
 				batchId: batchId2,
 				isInitialSyncDone: true,
 			}
-			await indexer.processEntityEvents(batch1.events, batch1.batchId, batch1.groupId, true)
-			await indexer.processEntityEvents(batch2.events, batch2.batchId, batch2.groupId, true)
+			await indexer.onEntityUpdatesReceived(batch1.updates, batch1.batchId, batch1.groupId, true)
+			await indexer.onEntityUpdatesReceived(batch2.updates, batch2.batchId, batch2.groupId, true)
 
 			indexer.eventQueue.resume()
 
@@ -725,11 +725,11 @@ o.spec("IndexedDbIndexer", () => {
 			await indexer.eventQueue.waitForEmptyQueue()
 
 			verify(core.putLastBatchIdForGroup(groupId, batchId1))
-			verify(mailIndexer.processEntityEvents(events1))
+			verify(mailIndexer.onEntityUpdatesReceived(events1))
 			verify(mailIndexer.afterMailCreated(["list-id", "id-1"]))
 
 			verify(core.putLastBatchIdForGroup(groupId, batchId2))
-			verify(mailIndexer.processEntityEvents(events2))
+			verify(mailIndexer.onEntityUpdatesReceived(events2))
 			verify(mailIndexer.afterMailCreated(["list-id", "id-2"]))
 		})
 
@@ -737,7 +737,7 @@ o.spec("IndexedDbIndexer", () => {
 			let indexer: IndexedDbIndexer
 
 			const testBatch: QueuedBatch = {
-				events: [
+				updates: [
 					{
 						typeRef: MailTypeRef,
 						operation: OperationType.CREATE,
@@ -811,7 +811,7 @@ o.spec("IndexedDbIndexer", () => {
 
 			o.beforeEach(() => {
 				indexer = mock(indexerTemplate, (mock) => {
-					mock._processUserEntityEvents = func<IndexedDbIndexer["_processUserEntityEvents"]>()
+					mock._processUserEntityUpdates = func<IndexedDbIndexer["_processUserEntityUpdates"]>()
 					mock.initDeferred = defer()
 					mock._indexedGroupIds = [testBatch.groupId]
 					mock.initDeferred.resolve()
@@ -819,21 +819,21 @@ o.spec("IndexedDbIndexer", () => {
 			})
 
 			o.test("create", async () => {
-				await indexer._processEntityEvents(testBatch)
+				await indexer._processEntityUpdates(testBatch)
 				verify(mailIndexer.afterMailCreated(["create", "id-1"]))
 				verify(mailIndexer.afterMailCreated(["create", "id-3"]))
 				verify(mailIndexer.afterMailCreated(matchers.anything()), { times: 2 })
 				verify(core.putLastBatchIdForGroup(testBatch.groupId, testBatch.batchId))
 			})
 			o.test("update", async () => {
-				await indexer._processEntityEvents(testBatch)
+				await indexer._processEntityUpdates(testBatch)
 				verify(mailIndexer.afterMailUpdated(["update", "id-4"]))
 				verify(mailIndexer.afterMailUpdated(["update", "id-6"]))
 				verify(mailIndexer.afterMailUpdated(matchers.anything()), { times: 2 })
 				verify(core.putLastBatchIdForGroup(testBatch.groupId, testBatch.batchId))
 			})
 			o.test("delete", async () => {
-				await indexer._processEntityEvents(testBatch)
+				await indexer._processEntityUpdates(testBatch)
 				verify(mailIndexer.afterMailDeleted(["delete", "id-7"]))
 				verify(mailIndexer.afterMailDeleted(["delete", "id-9"]))
 				verify(mailIndexer.afterMailDeleted(matchers.anything()), { times: 2 })
@@ -843,7 +843,7 @@ o.spec("IndexedDbIndexer", () => {
 			o.test("gracefully handles not found errors", async () => {
 				when(mailIndexer.afterMailCreated(["create", "id-1"])).thenReject(new restError.NotFoundError("Not found :("))
 				when(mailIndexer.afterMailCreated(["update", "id-4"])).thenReject(new restError.NotFoundError("Not found :("))
-				await indexer._processEntityEvents(testBatch)
+				await indexer._processEntityUpdates(testBatch)
 
 				verify(mailIndexer.afterMailCreated(["create", "id-1"]))
 				verify(mailIndexer.afterMailCreated(["create", "id-3"]))
@@ -863,7 +863,7 @@ o.spec("IndexedDbIndexer", () => {
 			o.test("gracefully handles not authorized errors", async () => {
 				when(mailIndexer.afterMailCreated(["create", "id-1"])).thenReject(new restError.NotAuthorizedError("You shall not pass :("))
 				when(mailIndexer.afterMailCreated(["update", "id-4"])).thenReject(new restError.NotAuthorizedError("You shall not pass :("))
-				await indexer._processEntityEvents(testBatch)
+				await indexer._processEntityUpdates(testBatch)
 
 				verify(mailIndexer.afterMailCreated(["create", "id-1"]))
 				verify(mailIndexer.afterMailCreated(["create", "id-3"]))
@@ -1005,20 +1005,20 @@ o.spec("IndexedDbIndexer", () => {
 						...noPatchesAndInstance,
 					},
 				]
-				when(mailIndexer.processEntityEvents(updates)).thenDo(() => processDeferred.resolve())
+				when(mailIndexer.onEntityUpdatesReceived(updates)).thenDo(() => processDeferred.resolve())
 				indexer.enableMailIndexing()
 
 				await initialIndexingCalled.promise
 				// dispatch an event while initial indexing is running and see that it is not immediately processed
-				await indexer.processEntityEvents(updates, "batchId", userGroupId, true)
+				await indexer.onEntityUpdatesReceived(updates, "batchId", userGroupId, true)
 				// not processed yet
-				verify(mailIndexer.processEntityEvents(matchers.anything()), { times: 0 })
+				verify(mailIndexer.onEntityUpdatesReceived(matchers.anything()), { times: 0 })
 
 				// allow initial indexing to finish
 				initialIndexingDone.resolve()
 				// wait until process callback is called
 				await processDeferred.promise
-				verify(mailIndexer.processEntityEvents(updates))
+				verify(mailIndexer.onEntityUpdatesReceived(updates))
 				verify(mailIndexer.doInitialMailIndexing(user))
 			})
 
@@ -1045,19 +1045,19 @@ o.spec("IndexedDbIndexer", () => {
 						...noPatchesAndInstance,
 					},
 				]
-				when(mailIndexer.processEntityEvents(updates)).thenDo(() => processDeferred.resolve())
+				when(mailIndexer.onEntityUpdatesReceived(updates)).thenDo(() => processDeferred.resolve())
 				indexer.extendMailIndex(time.getTime())
 
 				await extendingMailIndexingCalled.promise
-				await indexer.processEntityEvents(updates, "batchId", userGroupId, true)
+				await indexer.onEntityUpdatesReceived(updates, "batchId", userGroupId, true)
 				// not processed yet
-				verify(mailIndexer.processEntityEvents(matchers.anything()), { times: 0 })
+				verify(mailIndexer.onEntityUpdatesReceived(matchers.anything()), { times: 0 })
 
 				// allow extending indexing to finish
 				extendMailIndexingDone.resolve()
 				// wait until process callback is called
 				await processDeferred.promise
-				verify(mailIndexer.processEntityEvents(updates))
+				verify(mailIndexer.onEntityUpdatesReceived(updates))
 				verify(mailIndexer.extendIndexIfNeeded(user, time.getTime()))
 			})
 

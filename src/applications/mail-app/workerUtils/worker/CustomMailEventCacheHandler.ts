@@ -9,7 +9,7 @@ import { Mail } from "@tutao/entities/tutanota"
 export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 	constructor(private readonly indexer: lazyAsync<MailIndexer>) {}
 
-	shouldLoadOnCreateEvent(): boolean {
+	shouldLoadOnCreateEntityUpdate(): boolean {
 		// New emails should be pre-cached.
 		//  - we need them to display the folder contents
 		//  - will very likely be loaded by indexer later
@@ -23,12 +23,12 @@ export class CustomMailEventCacheHandler implements CustomCacheHandler<Mail> {
 		return indexer.beforeMailDeleted(id)
 	}
 
-	async onEntityEventCreate(id: IdTuple) {
+	async onCreateEntityUpdate(id: IdTuple) {
 		const indexer = await this.indexer()
 		return indexer.afterMailCreated(id)
 	}
 
-	async onEntityEventUpdate(id: IdTuple) {
+	async onUpdateEntityUpdate(id: IdTuple) {
 		const indexer = await this.indexer()
 		return indexer.afterMailUpdated(id)
 	}

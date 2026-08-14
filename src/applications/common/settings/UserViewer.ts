@@ -422,7 +422,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		}
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>) {
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>) {
 		for (const update of updates) {
 			const { instanceListId, instanceId, operation } = update
 			if (
@@ -451,7 +451,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 				await this.updateUsedStorageAndAdminFlag()
 				await this.updateGroups()
 			}
-			await this.secondFactorsForm.entityEventReceived(update)
+			await this.secondFactorsForm.processEntityUpdate(update)
 		}
 		m.redraw()
 	}

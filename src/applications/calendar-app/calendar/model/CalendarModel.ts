@@ -1440,12 +1440,12 @@ export class CalendarModel {
 		const calendarInfos = await this.calendarInfos.getAsync()
 		// We iterate over the alarms twice: once to collect them and to set the counter correctly and the second time to actually process them.
 		const alarmEventsToProcess: UserAlarmInfo[] = []
-		for (const entityEventData of updates) {
+		for (const update of updates) {
 			// apps handle alarms natively. this code is a candidate to move into
 			// a generic web/native alarm handler
-			if (isUpdateForTypeRef(UserAlarmInfoTypeRef, entityEventData) && !isApp()) {
-				const alarmInfoId: IdTuple = [assertNotNull(entityEventData.instanceListId), entityEventData.instanceId]
-				if (entityEventData.operation === OperationType.CREATE) {
+			if (isUpdateForTypeRef(UserAlarmInfoTypeRef, update) && !isApp()) {
+				const alarmInfoId: IdTuple = [assertNotNull(update.instanceListId), update.instanceId]
+				if (update.operation === OperationType.CREATE) {
 					// Updates for UserAlarmInfo and CalendarEvent come in a
 					// separate batches and there's a race between loading of the
 					// UserAlarmInfo and creation of the event.
@@ -1460,20 +1460,20 @@ export class CalendarModel {
 						deferredEvent.pendingAlarmCounter++
 					} catch (e) {
 						if (e instanceof NotFoundError) {
-							console.log(TAG, e, "Event or alarm were not found: ", entityEventData, e)
+							console.log(TAG, e, "Event or alarm were not found: ", update, e)
 						} else {
 							throw e
 						}
 					}
-				} else if (entityEventData.operation === OperationType.DELETE && !isApp()) {
-					await this.cancelUserAlarmInfo(entityEventData.instanceId)
+				} else if (update.operation === OperationType.DELETE && !isApp()) {
+					await this.cancelUserAlarmInfo(update.instanceId)
 				}
-			} else if (isUpdateForTypeRef(CalendarEventTypeRef, entityEventData)) {
-				if (entityEventData.operation === OperationType.CREATE || entityEventData.operation === OperationType.UPDATE) {
-					const deferredEvent = this.getPendingAlarmRequest(entityEventData.instanceId)
+			} else if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
+				if (update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) {
+					const deferredEvent = this.getPendingAlarmRequest(update.instanceId)
 					deferredEvent.deferred.resolve(undefined)
 				}
-			} else if (this.logins.getUserController().isUpdateForLoggedInUserInstance(entityEventData, eventOwnerGroupId)) {
+			} else if (this.logins.getUserController().isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {
 				const calendarMemberships = this.logins.getUserController().getCalendarMemberships()
 				const oldGroupIds = new Set(calendarInfos.keys())
 				const newGroupIds = new Set(calendarMemberships.map((m) => m.group))
@@ -1482,15 +1482,15 @@ export class CalendarModel {
 				if (diff.size !== 0) {
 					this.calendarInfos.reload()
 				}
-			} else if (isUpdateForTypeRef(GroupInfoTypeRef, entityEventData)) {
+			} else if (isUpdateForTypeRef(GroupInfoTypeRef, update)) {
 				// the batch does not belong to that group so we need to find if we actually care about the related GroupInfo
 				for (const { groupInfo } of calendarInfos.values()) {
-					if (isUpdateFor(groupInfo, entityEventData)) {
+					if (isUpdateFor(groupInfo, update)) {
 						this.calendarInfos.reload()
 						break
 					}
 				}
-			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, entityEventData)) {
+			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
 				// Usually this type of update comes alone after all other calendar updates,
 				// and user might have subscribed to a new calendar, so we must reload
 				// calendar infos to make sure that the calendar has been put in the correct section

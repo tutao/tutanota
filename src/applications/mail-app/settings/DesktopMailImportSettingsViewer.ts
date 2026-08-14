@@ -307,7 +307,7 @@ export class DesktopMailImportSettingsViewer implements UpdatableSettingsViewer 
 		}
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {}
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {}
 }
 
 export function getReadableUiImportStatus(uiStatus: UiImportStatus): string {

@@ -182,8 +182,8 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 		})
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		return this.model.entityEventsReceived(updates)
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		return this.model.onEntityUpdatesReceived(updates)
 	}
 
 	private renderMembersTable(): Children {

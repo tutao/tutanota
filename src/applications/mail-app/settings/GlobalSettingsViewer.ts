@@ -438,7 +438,7 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			}
 		})
 	}
-	entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		this.accountMaintenanceUpdateNotifier?.(updates)
 
 		return promiseMap(updates, (update) => {

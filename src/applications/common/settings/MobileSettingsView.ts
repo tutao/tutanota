@@ -259,8 +259,8 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 			this.setUrl(this.settingSections[0].settings[0].url)
 		}
 
-		await this.currentViewer?.entityEventsReceived(updates)
-		await this.detailsViewer?.entityEventsReceived(updates)
+		await this.currentViewer?.onEntityUpdatesReceived(updates)
+		await this.detailsViewer?.onEntityUpdatesReceived(updates)
 	}
 
 	getViewSlider(): ViewSlider | null {

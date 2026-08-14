@@ -8,7 +8,7 @@ import { OperationStatusUpdate, WebsocketCounterData } from "@tutao/entities/sys
 
 assertMainOrNode()
 
-export type ExposedEventController = Pick<EventController, "onEntityUpdateReceived" | "onCountersUpdateReceived" | "onOperationStatusUpdate">
+export type ExposedEventController = Pick<EventController, "onEntityUpdatesReceived" | "onCountersUpdateReceived" | "onOperationStatusUpdate">
 
 const TAG = "[EventController]"
 
@@ -47,10 +47,10 @@ export class EventController {
 		return this.countersStream.map(identity)
 	}
 
-	async onEntityUpdateReceived(entityUpdates: readonly EntityUpdateData[], eventOwnerGroupId: Id, isInitialSyncDone: boolean): Promise<void> {
+	async onEntityUpdatesReceived(entityUpdates: readonly EntityUpdateData[], eventOwnerGroupId: Id, isInitialSyncDone: boolean): Promise<void> {
 		if (this.logins.isUserLoggedIn()) {
 			// the UserController must be notified first as other event receivers depend on it to be up-to-date
-			await this.logins.getUserController().entityEventsReceived(entityUpdates, eventOwnerGroupId)
+			await this.logins.getUserController().onEntityUpdatesReceived(entityUpdates, eventOwnerGroupId)
 
 			const listenersByPriorities = Array.from(this.entityUpdatesListeners.values()).sort(
 				(listenerA, listenerB) => listenerB.priority.valueOf() - listenerA.priority.valueOf(),

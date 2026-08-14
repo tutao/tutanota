@@ -250,7 +250,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					view: () => {
 						return m(DummyTemplateListView)
 					},
-					entityEventsReceived: () => Promise.resolve(),
+					onEntityUpdatesReceived: () => Promise.resolve(),
 				}
 			},
 			undefined,
@@ -832,9 +832,9 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			}
 		}
 
-		await this._currentViewer?.entityEventsReceived(updates)
+		await this._currentViewer?.onEntityUpdatesReceived(updates)
 
-		await this.detailsViewer?.entityEventsReceived(updates)
+		await this.detailsViewer?.onEntityUpdatesReceived(updates)
 	}
 
 	private async reloadTemplateData(): Promise<SettingsFolder<TemplateGroupInstance>[]> {

@@ -232,7 +232,7 @@ export class GroupDetailsModel {
 		this.updateViewCallback()
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		await promiseMap(updates, async (update) => {
 			const { instanceListId, instanceId, operation } = update
 

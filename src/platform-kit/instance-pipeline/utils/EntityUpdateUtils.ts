@@ -56,8 +56,8 @@ export function isUpdateFor<T extends PersistentEntity>(entity: T, update: Entit
 	return isSameTypeRef(typeRef, update.typeRef) && isSameId([update.instanceListId, update.instanceId], entity._id)
 }
 
-export function getLogStringForEntityEvent(event: EntityUpdateData): string {
-	return `event: ${getTypeString(event.typeRef)}, listId: ${event.instanceListId}, elementId: ${event.instanceId}, operation: ${event.operation}, patches: ${getLogStringForPatches(event.patches ?? [])} ;`
+export function getLogStringForEntityUpdate(update: EntityUpdateData): string {
+	return `event: ${getTypeString(update.typeRef)}, listId: ${update.instanceListId}, elementId: ${update.instanceId}, operation: ${update.operation}, patches: ${getLogStringForPatches(update.patches ?? [])} ;`
 }
 
 export function getLogStringForPatches(patches: Array<Patch>) {

@@ -167,7 +167,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	async entityEventsReceived(updates: readonly EntityUpdateData[]): Promise<void> {
+	async onEntityUpdatesReceived(updates: readonly EntityUpdateData[]): Promise<void> {
 		if (updates.some((update) => isUpdateForTypeRef(PushIdentifierTypeRef, update))) {
 			await this.reloadPushIdentifiers()
 		}

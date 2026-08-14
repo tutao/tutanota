@@ -17,7 +17,7 @@ export interface Indexer {
 
 	disableMailIndexing(): Promise<void>
 
-	processEntityEvents(updates: readonly EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean): Promise<void>
+	onEntityUpdatesReceived(updates: readonly EntityUpdateData[], batchId: Id, groupId: Id, isInitialSyncDone: boolean): Promise<void>
 
 	/**
 	 * Extends the mail index to the given timestamp.
