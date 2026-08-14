@@ -1556,6 +1556,40 @@ END:VCALENDAR`
 			o(parsedDtEndResult.parseEventErrors.length).equals(1)(`ParserError not produced for ${invalidDtEndTzidWithDate}.`)
 		})
 	})
+
+	o.spec("handles repeat rule property", function () {
+		const calendarWithRRule = (rruleValue: string) =>
+			"BEGIN:VCALENDAR\r\n" +
+			"VERSION:2.0\r\n" +
+			"BEGIN:VEVENT\r\n" +
+			"UID:repeat-rule-test\r\n" +
+			"DTSTART:20331122T001122Z\r\n" +
+			"DTEND:20331122T112233Z\r\n" +
+			"SUMMARY:Test Repeat Rule\r\n" +
+			`RRULE:${rruleValue}\r\n` +
+			"END:VEVENT\r\n" +
+			"END:VCALENDAR"
+
+		o.test("throws an error when COUNT is non-numeric", function () {
+			const rruleValue = "FREQ=DAILY;INTERVAL=1;COUNT=abc"
+			o.check(() => parseCalendarStringData(calendarWithRRule(rruleValue), zone)).throws(ParserError)
+		})
+		o.test("throws an error when COUNT has an invalid suffix", function () {
+			const rruleValue = "FREQ=DAILY;INTERVAL=1;COUNT=1 invalidSuffix"
+			o.check(() => parseCalendarStringData(calendarWithRRule(rruleValue), zone)).throws(ParserError)
+		})
+		o.test("throws an error when COUNT is negative", function () {
+			const rruleValue = "FREQ=DAILY;INTERVAL=1;COUNT=-1"
+			o.check(() => parseCalendarStringData(calendarWithRRule(rruleValue), zone)).throws(ParserError)
+		})
+		o.test("throws an error when COUNT is hexidecimal", function () {
+			let rruleValue = "FREQ=DAILY;INTERVAL=1;COUNT=0x123"
+			o.check(() => parseCalendarStringData(calendarWithRRule(rruleValue), zone)).throws(ParserError)
+
+			rruleValue = "FREQ=DAILY;INTERVAL=1;COUNT=0X123"
+			o.check(() => parseCalendarStringData(calendarWithRRule(rruleValue), zone)).throws(ParserError)
+		})
+	})
 })
 
 function testParsedCalendarDataEquality(actual: ParsedCalendarData, expected: ParsedCalendarData, message?: string): void {
