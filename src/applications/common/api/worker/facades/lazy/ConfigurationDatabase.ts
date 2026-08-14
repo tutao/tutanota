@@ -361,7 +361,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 		}
 	}
 
-	async onEntityEventsReceived(events: readonly EntityUpdateData[], _batchId: Id, _groupId: Id): Promise<any> {
+	async onEntityUpdatesReceived(events: readonly EntityUpdateData[], _batchId: Id, _groupId: Id): Promise<any> {
 		for (const event of events) {
 			if (!(event.operation === OperationType.UPDATE && isUpdateForTypeRef(UserTypeRef, event))) {
 				continue

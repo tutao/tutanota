@@ -59,7 +59,7 @@ import {
 	CacheSyncStatus,
 	CachingStatus,
 	EntityUpdateData,
-	getLogStringForEntityEvent,
+	getLogStringForEntityUpdate,
 	isUpdateForTypeRef,
 } from "../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { isExpectedErrorForSynchronization } from "@tutao/rest-client/error"
@@ -90,7 +90,7 @@ const IGNORED_TYPES = [
 	RejectedSenderTypeRef,
 	// when doing automatic calendar updates, we will miss uid index entity updates if we're using the cache.
 	// this is mainly caused by some calendaring apps sending the same update multiple times in the same mail.
-	// the earliest place where we could deduplicate would be in entityEventsReceived on the calendarModel.
+	// the earliest place where we could deduplicate would be in onEntityUpdatesReceived on the calendarModel.
 	CalendarEventUidIndexTypeRef,
 	KeyRotationTypeRef,
 	UserGroupRootTypeRef,
@@ -605,7 +605,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	 *
 	 * @return Promise, which resolves to the array of valid events (if response is NotFound or NotAuthorized we filter it out)
 	 */
-	async entityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]> {
+	async onEntityUpdatesReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]> {
 		await this.recordSyncTime()
 
 		const regularUpdates = events.filter((u) => u.typeRef.app !== "monitor")
@@ -677,13 +677,13 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			try {
 				switch (operation) {
 					case OperationType.CREATE:
-						await handler.onEntityEventCreate?.(id, filteredUpdateEvents)
+						await handler.onCreateEntityUpdate?.(id, filteredUpdateEvents)
 						break
 					case OperationType.UPDATE:
-						await handler.onEntityEventUpdate?.(id, filteredUpdateEvents)
+						await handler.onUpdateEntityUpdate?.(id, filteredUpdateEvents)
 						break
 					case OperationType.DELETE:
-						await handler.onEntityEventDelete?.(id)
+						await handler.onDeleteEntityUpdate?.(id)
 						break
 				}
 			} catch (e) {
@@ -703,7 +703,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 	private async processCreateEvent(typeRef: TypeRef<any>, update: EntityUpdateData): Promise<EntityUpdateData | null> {
 		// if there is a custom handler we follow its decision
-		let shouldUpdateDb = this.cacheStorage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEvent?.(update)
+		let shouldUpdateDb = this.cacheStorage.getCustomCacheHandlerMap().get(typeRef)?.shouldLoadOnCreateEntityUpdate?.(update)
 		// otherwise, we do a range check to see if we need to keep the range up-to-date. No need to load anything out of range
 		// we put new instances into cache only when it's a new instance in the cached range which is only for the list instances
 		if (update.instanceListId != null) {
@@ -748,7 +748,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				// If the entity is not there anymore we should evict it from the cache and not keep the outdated/nonexistent instance around.
 				// Even for list elements this should be safe as the instance is not there anymore.
 				if (isExpectedErrorForSynchronization(e)) {
-					console.log(`instance not found when processing update for ${getLogStringForEntityEvent(update)}, deleting from the cache`)
+					console.log(`instance not found when processing update for ${getLogStringForEntityUpdate(update)}, deleting from the cache`)
 					await this.cacheStorage.deleteIfExists(update.typeRef, update.instanceListId, update.instanceId)
 					return null
 				} else {

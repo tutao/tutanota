@@ -238,9 +238,9 @@ export class PartnerView extends BaseTopLevelView implements TopLevelView<Partne
 	}
 
 	async onEntityUpdatesReceived<T>(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		await this._currentViewer?.entityEventsReceived(updates)
+		await this._currentViewer?.onEntityUpdatesReceived(updates)
 
-		await this.detailsViewer?.entityEventsReceived(updates)
+		await this.detailsViewer?.onEntityUpdatesReceived(updates)
 	}
 
 	getViewSlider(): ViewSlider | null {

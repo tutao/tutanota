@@ -217,7 +217,7 @@ export class UserController {
 	 * There are two updates for the user instance sent if the logged in user is an admin:, one for the user group and one for the admin group.
 	 * We only want to process it once, so we skip the admin group update
 	 *
-	 * Attention: Modules that act on user updates, e.g. for changed group memberships, need to use this function in their entityEventsReceived listener.
+	 * Attention: Modules that act on user updates, e.g. for changed group memberships, need to use this function in their onEntityUpdatesReceived listener.
 	 * Only then it is guaranteed that the user in the user controller has been updated. The update event for the admin group might come first, so if a module
 	 * reacts on that one the user controller is not updated yet.
 	 */
@@ -230,7 +230,7 @@ export class UserController {
 		) // only include updates for the user group here
 	}
 
-	async entityEventsReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> {
 		for (const update of updates) {
 			const { instanceId, operation } = update
 			if (this.isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {

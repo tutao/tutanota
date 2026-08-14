@@ -79,7 +79,7 @@ export class MailExportViewer implements UpdatableSettingsViewer {
 		]
 	}
 
-	async entityEventsReceived(): Promise<void> {
+	async onEntityUpdatesReceived(): Promise<void> {
 		return Promise.resolve()
 	}
 }

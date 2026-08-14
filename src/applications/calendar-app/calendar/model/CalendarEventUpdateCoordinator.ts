@@ -78,30 +78,27 @@ export class CalendarEventUpdateCoordinator {
 	}
 
 	public async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id) {
-		for (const entityEventData of updates) {
-			if (isUpdateForTypeRef(CalendarEventUpdateTypeRef, entityEventData) && entityEventData.operation === OperationType.CREATE) {
+		for (const update of updates) {
+			if (isUpdateForTypeRef(CalendarEventUpdateTypeRef, update) && update.operation === OperationType.CREATE) {
 				try {
-					const calendarEventUpdate = await this.entityClient.load(CalendarEventUpdateTypeRef, [
-						entityEventData.instanceListId!,
-						entityEventData.instanceId,
-					])
+					const calendarEventUpdate = await this.entityClient.load(CalendarEventUpdateTypeRef, [update.instanceListId!, update.instanceId])
 					await this.handleCalendarEventUpdateAndHandleErrors(calendarEventUpdate)
 				} catch (e) {
 					if (e instanceof NotFoundError) {
-						console.log(TAG, "invite not found", [entityEventData.instanceListId, entityEventData.instanceId])
+						console.log(TAG, "invite not found", [update.instanceListId, update.instanceId])
 					} else {
 						throw e
 					}
 				}
-			} else if (isUpdateForTypeRef(FileTypeRef, entityEventData)) {
+			} else if (isUpdateForTypeRef(FileTypeRef, update)) {
 				// with a file update, the owner enc session key should be present now so we can try to process any skipped calendar event updates
 				// (see NoOwnerEncSessionKeyForCalendarEventError's comment)
-				const skippedCalendarEventUpdate = this.fileIdToSkippedCalendarEventUpdates.get(entityEventData.instanceId)
+				const skippedCalendarEventUpdate = this.fileIdToSkippedCalendarEventUpdates.get(update.instanceId)
 				if (skippedCalendarEventUpdate) {
 					try {
 						await this.calendarModel.handleCalendarEventUpdate(skippedCalendarEventUpdate)
 					} finally {
-						this.fileIdToSkippedCalendarEventUpdates.delete(entityEventData.instanceId)
+						this.fileIdToSkippedCalendarEventUpdates.delete(update.instanceId)
 					}
 				}
 			}

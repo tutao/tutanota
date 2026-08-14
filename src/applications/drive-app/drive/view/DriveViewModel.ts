@@ -221,8 +221,8 @@ export class DriveViewModel {
 		this.connectivityModel.removeConnectionStateListener(this.connectionStateListener)
 	}
 
-	private async onEntityUpdatesReceived(events: ReadonlyArray<EntityUpdateData>) {
-		for (const update of events) {
+	private async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>) {
+		for (const update of updates) {
 			if (isUpdateForTypeRef(DriveFileRefTypeRef, update) && update.instanceListId === this.currentFolder?.folder.files) {
 				if (update.operation === OperationType.DELETE) {
 					await this.listModel.deleteLoadedItem(update.instanceId)
