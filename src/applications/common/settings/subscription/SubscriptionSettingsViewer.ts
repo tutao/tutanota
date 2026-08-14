@@ -300,35 +300,9 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 											}
 										: undefined,
 								),
-
 								//Don't show interval edit button for apple users -> managed by os
-								!isAppleSubscription
-									? this.getPriceCellAttrs(this._nextPriceFieldValue(), {
-											icon: Icons.Swap,
-											title: "changePaymentInterval_action",
-											click: async () => {
-												const message = lang.getTranslation("subscriptionChangeInterval_msg", {
-													"{period}":
-														paymentInterval === PaymentInterval.Yearly
-															? lang.getTranslationText("pricing.monthly_label")
-															: lang.getTranslationText("pricing.yearly_label"),
-												})
-												Dialog.confirm(message).then(async (confirmed) => {
-													if (this._accountingInfo == null) {
-														return
-													}
-													if (confirmed) {
-														if (paymentInterval === PaymentInterval.Yearly) {
-															await locator.customerFacade.changePaymentInterval(this._accountingInfo, PaymentInterval.Monthly)
-														} else {
-															await locator.customerFacade.changePaymentInterval(this._accountingInfo, PaymentInterval.Yearly)
-														}
-													}
-													m.redraw()
-												})
-											},
-										})
-									: null,
+								!isAppleSubscription ? this.getPaymentPeriodAttrs(accountingInfo.paymentInterval) : null,
+								!isAppleSubscription ? this.getPriceCellAttrs(this._nextPriceFieldValue()) : null,
 								this.getEndDateAttrs("planned", booking.endDate),
 							],
 						} satisfies SubscriptionStateCardAttrs),
@@ -962,11 +936,46 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private getPriceCellAttrs(formattedPrice: string, button?: IconButtonAttrs): SubscriptionStateCellAttrs {
+	private getPaymentPeriodAttrs(paymentInterval: string): SubscriptionStateCellAttrs {
+		const currentInterval = asPaymentInterval(paymentInterval)
+		return {
+			label: "paymentInterval_label",
+			value:
+				currentInterval === PaymentInterval.Monthly
+					? lang.getTranslation("pricing.monthly_label").text
+					: lang.getTranslation("pricing.yearly_label").text,
+			button: {
+				icon: Icons.Swap,
+				title: "changePaymentInterval_action",
+				click: async () => {
+					const message = lang.getTranslation("subscriptionChangeInterval_msg", {
+						"{period}":
+							currentInterval === PaymentInterval.Yearly
+								? lang.getTranslationText("pricing.monthly_label")
+								: lang.getTranslationText("pricing.yearly_label"),
+					})
+					Dialog.confirm(message).then(async (confirmed) => {
+						if (this._accountingInfo == null) {
+							return
+						}
+						if (confirmed) {
+							if (currentInterval === PaymentInterval.Yearly) {
+								await locator.customerFacade.changePaymentInterval(this._accountingInfo, PaymentInterval.Monthly)
+							} else {
+								await locator.customerFacade.changePaymentInterval(this._accountingInfo, PaymentInterval.Yearly)
+							}
+						}
+						m.redraw()
+					})
+				},
+			},
+		}
+	}
+
+	private getPriceCellAttrs(formattedPrice: string): SubscriptionStateCellAttrs {
 		return {
 			label: "price_label",
 			value: formattedPrice,
-			button,
 		}
 	}
 
