@@ -3020,6 +3020,7 @@ export type InvoiceInfoParams = {
 	discountPercentage: null | NumberString
 
 	paymentErrorInfo: null | PaymentErrorInfo
+	discountEligiblePlans: PlanTypeWrapper[]
 }
 
 export type InvoiceInfo = {
@@ -3045,6 +3046,7 @@ export type InvoiceInfo = {
 	// == associations
 
 	paymentErrorInfo: null | PaymentErrorInfo
+	discountEligiblePlans: PlanTypeWrapper[]
 
 	//== some entities have these and some don't
 
@@ -5171,6 +5173,7 @@ export type PlanPricesParams = {
 	customDomains: NumberString
 	planName: string
 	businessPlan: boolean
+	bonusMonthsForYearlyPlan: NumberString
 
 	planConfiguration: PlanConfiguration
 }
@@ -5191,6 +5194,7 @@ export type PlanPrices = {
 	customDomains: NumberString
 	planName: string
 	businessPlan: boolean
+	bonusMonthsForYearlyPlan: NumberString
 
 	// == associations
 
@@ -10433,5 +10437,38 @@ export type SubscriptionRevocationServicePostIn = {
 	// === these are not present in metamodel
 	_type: TypeRef<SubscriptionRevocationServicePostIn>
 	_original: Nullable<SubscriptionRevocationServicePostIn>
+	isAdapter: false
+}
+export const PlanTypeWrapperTypeRef: TypeRef<PlanTypeWrapper> = new TypeRef("sys", 2783)
+
+export function createPlanTypeWrapper(values: PlanTypeWrapperParams): PlanTypeWrapper {
+	return Object.assign(create(typeModels[PlanTypeWrapperTypeRef.typeId], PlanTypeWrapperTypeRef), values)
+}
+
+export type PlanTypeWrapperParams = {
+	plan: NumberString
+}
+
+export type PlanTypeWrapper = {
+	// == values
+
+	_id: Id
+	plan: NumberString
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<PlanTypeWrapper>
+	_original: Nullable<PlanTypeWrapper>
 	isAdapter: false
 }

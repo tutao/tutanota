@@ -49,6 +49,7 @@ import { UsageTestModel } from "../misc/UsageTestModel"
 import { UsageTestController } from "@tutao/usagetests"
 import { InvoiceData } from "../subscription/utils/PaymentUtils"
 import { Country } from "../gui/CountryList"
+import { NotFoundError } from "@tutao/rest-client/error"
 
 EnvProvider.assertMainOrNode()
 
@@ -177,11 +178,21 @@ export class SignupViewModel {
 	}
 
 	async init() {
-		const priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(
-			this.registrationDataId,
-			locator.serviceExecutor,
-			this.referralData?.code ?? null,
-		)
+		let priceDataProvider: PriceAndConfigProvider
+		try {
+			priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(
+				this.registrationDataId,
+				locator.serviceExecutor,
+				this.referralData?.code ?? null,
+			)
+		} catch (e) {
+			if (e instanceof NotFoundError && this.registrationDataId != null) {
+				this.registrationDataId = null
+				priceDataProvider = await PriceAndConfigProvider.getInitializedInstance(null, locator.serviceExecutor, this.referralData?.code ?? null)
+			} else {
+				throw e
+			}
+		}
 		const prices = priceDataProvider.getRawPricingData()
 		this.globalCampaignName = prices.globalCampaignName
 		const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
