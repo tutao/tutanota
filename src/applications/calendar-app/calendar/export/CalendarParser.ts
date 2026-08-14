@@ -411,7 +411,14 @@ export function parseRrule(rawRruleValue: string, startTzId: string | null): Rep
 
 	const frequency = icalFrequencyToRepeatPeriod(rruleValue["FREQ"])
 	const until = rruleValue["UNTIL"] ? parseUntilRruleTime(rruleValue["UNTIL"], startTzId) : null
-	const count = rruleValue["COUNT"] ? parseInt(rruleValue["COUNT"]) : null
+	let count: number | null = null
+	const countString = rruleValue["COUNT"]
+	if (countString) {
+		count = parsePositiveInt(countString)
+		if (count === null) {
+			throw new ParserError(`Invalid COUNT in repeat rule: RRULE:${rawRruleValue}`)
+		}
+	}
 	const endType: EndType = until != null ? EndType.UntilDate : count != null ? EndType.Count : EndType.Never
 	const interval = rruleValue["INTERVAL"] ? parseInt(rruleValue["INTERVAL"]) : 1
 	const repeatRule = createRepeatRule({
@@ -847,7 +854,7 @@ export function repeatPeriodToIcalFrequency(repeatPeriod: RepeatPeriod) {
 	}
 }
 
-/** parse a time */
+/** parse a date time */
 export function parseDateTime(
 	value: string,
 	tzId: string | null,
@@ -855,40 +862,78 @@ export function parseDateTime(
 ): {
 	dateTime: DateTime
 	isAllDay: boolean
-	hasZSuffix: boolean
 } {
-	const matchGroups = value.trim().match(/(\d\d\d\d)(\d\d)(\d\d)(?:T(\d\d)(\d\d)\d\d(Z?))?/)
-	if (matchGroups === null) {
-		throw new ParserError("Failed to parse time: " + value.trim())
+	value = value.trim()
+
+	let offset = 0
+
+	let year = parsePositiveFixedLenInt(value, offset, 4)
+	if (year === null) {
+		throw new ParserError(`No year in invalid date time string: ${value}!`)
 	}
-	const year = parseInt(matchGroups[1])
-	const month = parseInt(matchGroups[2])
-	const day = parseInt(matchGroups[3])
-	let hour = parseInt(matchGroups[4])
-	let minute = parseInt(matchGroups[5])
-	const hasZSuffix = matchGroups[6] === "Z"
-	const isAllDay = Number.isNaN(hour)
-	if (isAllDay) {
-		hour = 0
-		minute = 0
+	offset += 4
+
+	let month = parsePositiveFixedLenInt(value, offset, 2)
+	if (month === null) {
+		throw new ParserError(`No month in invalid date time string: ${value}!`)
 	}
-	let zone: string | undefined
-	if (isAllDay) {
-		zone = "UTC"
-	} else if (hasZSuffix) {
-		if (tzId !== null && tzId !== "UTC") {
-			throw new ParserError(`Failed to parse time from ${value}, due to conflicting time zone representation. Event has a TZID ${tzId} and UTC time.`)
+	offset += 2
+
+	let day = parsePositiveFixedLenInt(value, offset, 2)
+	if (day === null) {
+		throw new ParserError(`No day in invalid date time string: ${value}!`)
+	}
+	offset += 2
+
+	if (offset < value.length) {
+		if (value[offset] !== "T") {
+			throw new ParserError(`Invalid date time string "${value}"! Expected character 'T' between YYYYMMDD and hhmmss.`)
 		}
+		++offset
+	}
+
+	let hour = 0
+	let minute = 0
+	let zone: string | undefined = tzId ?? fallbackZone ?? undefined
+	const isAllDay = offset >= value.length
+	if (isAllDay) {
 		zone = "UTC"
-	} else if (tzId) {
-		zone = tzId
-	} else if (fallbackZone) {
-		zone = fallbackZone
 	} else {
+		const hourOrNull = parsePositiveFixedLenInt(value, offset, 2)
+		if (hourOrNull === null) {
+			throw new ParserError(`No hour in invalid date time string: ${value}!`)
+		}
+		hour = hourOrNull
+		offset += 2
+
+		const minuteOrNull = parsePositiveFixedLenInt(value, offset, 2)
+		if (minuteOrNull === null) {
+			throw new ParserError(`No minute in invalid date time string: ${value}!`)
+		}
+		minute = minuteOrNull
+		offset += 2
+
+		parsePositiveFixedLenInt(value, offset, 2) // parse seconds
+		offset += 2
+
+		if (offset < value.length && value[offset] === "Z") {
+			zone = "UTC"
+			if (tzId !== null && tzId !== zone) {
+				throw new ParserError(`Failed to parse time from ${value}, due to conflicting time zone representation. Event has a TZID ${tzId} and UTC time.`)
+			}
+			++offset
+		}
+	}
+	if (offset < value.length) {
+		throw new ParserError(`Invalid characters at end of date time string: ${value}!`)
+	}
+
+	if (!zone) {
 		console.warn(TAG + " zone is undefined.  Event time will appear the same in all time zones.")
 	}
+
 	const dateTime = DateTime.fromObject({ year, month, day, hour, minute }, { zone })
-	return { isAllDay, dateTime, hasZSuffix }
+	return { isAllDay, dateTime }
 }
 
 export function parseUntilRruleTime(value: string, startTzId: string | null): Date {
@@ -1016,4 +1061,40 @@ export function parseDuration(value: string): ICalDuration {
 	}
 
 	return duration
+}
+
+/**
+ * Parse a positive integer from a string.
+ *
+ * Simpler and safer than to parseInt... no "helpful" edge-cases
+ */
+function parsePositiveInt(str: string): number | null {
+	const MAX_SAFE_INTEGER_LEN = 15
+	if (str.length > MAX_SAFE_INTEGER_LEN) {
+		return null
+	}
+	return parsePositiveFixedLenInt(str, 0, str.length)
+}
+
+/**
+ * Parse a positive integer with a fixed number of digits at a specified offset in a string.
+ *
+ * Simpler and safer than to parseInt... no "helpful" edge-cases
+ *
+ * @returns [boolean indicating success or failure,  the positive integer,  new offset after parsing]
+ */
+function parsePositiveFixedLenInt(str: string, offset: number, fixedLen: number): number | null {
+	const end = offset + fixedLen
+	if (end > str.length) {
+		return null
+	}
+	let integer = 0
+	for (let i = offset; i < end; ++i) {
+		const digit = str.charCodeAt(i) - 0x30 // 0 has charCode 0X30
+		if (digit < 0 || digit > 9) {
+			return null
+		}
+		integer = 10 * integer + digit
+	}
+	return integer
 }
