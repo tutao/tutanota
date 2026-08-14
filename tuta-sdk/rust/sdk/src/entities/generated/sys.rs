@@ -2026,6 +2026,8 @@ pub struct InvoiceInfo {
 	pub discountPercentage: Option<i64>,
 	#[serde(rename = "1640")]
 	pub paymentErrorInfo: Option<PaymentErrorInfo>,
+	#[serde(rename = "2788")]
+	pub discountEligiblePlans: Vec<PlanTypeWrapper>,
 }
 
 impl Entity for InvoiceInfo {
@@ -3369,6 +3371,8 @@ pub struct PlanPrices {
 	pub planName: String,
 	#[serde(rename = "2129")]
 	pub businessPlan: bool,
+	#[serde(rename = "2789")]
+	pub bonusMonthsForYearlyPlan: i64,
 	#[serde(rename = "2127")]
 	pub planConfiguration: PlanConfiguration,
 }
@@ -6569,6 +6573,24 @@ impl Entity for SubscriptionRevocationServicePostIn {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2771),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct PlanTypeWrapper {
+	#[serde(rename = "2784")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2785")]
+	pub plan: i64,
+}
+
+impl Entity for PlanTypeWrapper {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2783),
 		}
 	}
 }
