@@ -5030,23 +5030,25 @@ export function createManageLabelServicePostIn(values: ManageLabelServicePostInP
 }
 
 export type ManageLabelServicePostInParams = {
-	data: ManageLabelServiceLabelData
+	data: null | ManageLabelServiceLabelData
+	mailSet: null | LabelPostTransferAggregatedType
 }
 
 export type ManageLabelServicePostIn = {
 	// == values
 
 	_format: NumberString
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>
-	ownerKeyVersion: NumberString
-	ownerGroup: Id
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	ownerKeyVersion: null | NumberString
+	ownerGroup: null | Id
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
 	// == associations
 
-	data: ManageLabelServiceLabelData
+	data: null | ManageLabelServiceLabelData
+	mailSet: null | LabelPostTransferAggregatedType
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -5109,7 +5111,8 @@ export function createManageLabelServicePutIn(values: ManageLabelServicePutInPar
 
 export type ManageLabelServicePutInParams = {
 	label: IdTuple
-	data: ManageLabelServiceLabelData
+	data: null | ManageLabelServiceLabelData
+	mailSet: null | LabelPutTransferAggregatedType
 }
 
 export type ManageLabelServicePutIn = {
@@ -5123,7 +5126,8 @@ export type ManageLabelServicePutIn = {
 	// == associations
 
 	label: IdTuple
-	data: ManageLabelServiceLabelData
+	data: null | ManageLabelServiceLabelData
+	mailSet: null | LabelPutTransferAggregatedType
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -7737,5 +7741,84 @@ export type MailSetTransferAggregatedType = {
 	// === these are not present in metamodel
 	_type: TypeRef<MailSetTransferAggregatedType>
 	_original: Nullable<MailSetTransferAggregatedType>
+	isAdapter: false
+}
+export const LabelPutTransferAggregatedTypeTypeRef: TypeRef<LabelPutTransferAggregatedType> = new TypeRef("tutanota", 2072)
+
+export function createLabelPutTransferAggregatedType(values: LabelPutTransferAggregatedTypeParams): LabelPutTransferAggregatedType {
+	return Object.assign(create(typeModels[LabelPutTransferAggregatedTypeTypeRef.typeId], LabelPutTransferAggregatedTypeTypeRef), values)
+}
+
+export type LabelPutTransferAggregatedTypeParams = {
+	name: string
+	color: null | string
+
+	parentFolder: null | IdTuple
+}
+
+export type LabelPutTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	name: string
+	color: null | string
+
+	// == associations
+
+	parentFolder: null | IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<LabelPutTransferAggregatedType>
+	_original: Nullable<LabelPutTransferAggregatedType>
+	isAdapter: false
+}
+export const LabelPostTransferAggregatedTypeTypeRef: TypeRef<LabelPostTransferAggregatedType> = new TypeRef("tutanota", 2077)
+
+export function createLabelPostTransferAggregatedType(values: LabelPostTransferAggregatedTypeParams): LabelPostTransferAggregatedType {
+	return Object.assign(create(typeModels[LabelPostTransferAggregatedTypeTypeRef.typeId], LabelPostTransferAggregatedTypeTypeRef), values)
+}
+
+export type LabelPostTransferAggregatedTypeParams = {
+	name: string
+	color: null | string
+
+	parentFolder: null | IdTuple
+}
+
+export type LabelPostTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_ownerGroup: null | Id
+	name: string
+	color: null | string
+
+	// == associations
+
+	parentFolder: null | IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<LabelPostTransferAggregatedType>
+	_original: Nullable<LabelPostTransferAggregatedType>
 	isAdapter: false
 }
