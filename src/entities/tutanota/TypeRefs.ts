@@ -3358,7 +3358,8 @@ export type ManageLabelServicePostInParams = {
 
 
 
-	data: ManageLabelServiceLabelData;
+	data: null | ManageLabelServiceLabelData;
+	mailSet: null | LabelPostTransferAggregatedType;
 }
 
 export type ManageLabelServicePostIn = {
@@ -3367,11 +3368,12 @@ export type ManageLabelServicePostIn = {
 	_original?: ManageLabelServicePostIn
 
 	_format: NumberString;
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
-	ownerKeyVersion: NumberString;
-	ownerGroup: Id;
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: null | NumberString;
+	ownerGroup: null | Id;
 
-	data: ManageLabelServiceLabelData;
+	data: null | ManageLabelServiceLabelData;
+	mailSet: null | LabelPostTransferAggregatedType;
 }
 export const ManageLabelServicePostOutTypeRef: TypeRef<ManageLabelServicePostOut> = new TypeRef("tutanota", 1490)
 
@@ -3405,7 +3407,8 @@ export type ManageLabelServicePutInParams = {
 
 
 	label: IdTuple;
-	data: ManageLabelServiceLabelData;
+	data: null | ManageLabelServiceLabelData;
+	mailSet: null | LabelPutTransferAggregatedType;
 }
 
 export type ManageLabelServicePutIn = {
@@ -3416,7 +3419,8 @@ export type ManageLabelServicePutIn = {
 	_format: NumberString;
 
 	label: IdTuple;
-	data: ManageLabelServiceLabelData;
+	data: null | ManageLabelServiceLabelData;
+	mailSet: null | LabelPutTransferAggregatedType;
 }
 export const ManageLabelServiceDeleteInTypeRef: TypeRef<ManageLabelServiceDeleteIn> = new TypeRef("tutanota", 1500)
 
@@ -4986,6 +4990,59 @@ export type MailSetTransferAggregatedType = {
 	_ownerKeyVersion: null | NumberString;
 	_ownerGroup: null | Id;
 	name: string;
+
+	parentFolder: null | IdTuple;
+}
+export const LabelPutTransferAggregatedTypeTypeRef: TypeRef<LabelPutTransferAggregatedType> = new TypeRef("tutanota", 2045)
+
+export function createLabelPutTransferAggregatedType(values: LabelPutTransferAggregatedTypeParams): LabelPutTransferAggregatedType {
+    return Object.assign(create(typeModels[LabelPutTransferAggregatedTypeTypeRef.typeId], LabelPutTransferAggregatedTypeTypeRef), values)
+}
+
+export type LabelPutTransferAggregatedTypeParams = {
+
+
+	name: string;
+	color: null | string;
+
+	parentFolder: null | IdTuple;
+}
+
+export type LabelPutTransferAggregatedType = {
+	_type: TypeRef<LabelPutTransferAggregatedType>;
+	_original?: LabelPutTransferAggregatedType
+
+	_id: Id;
+	name: string;
+	color: null | string;
+
+	parentFolder: null | IdTuple;
+}
+export const LabelPostTransferAggregatedTypeTypeRef: TypeRef<LabelPostTransferAggregatedType> = new TypeRef("tutanota", 2050)
+
+export function createLabelPostTransferAggregatedType(values: LabelPostTransferAggregatedTypeParams): LabelPostTransferAggregatedType {
+    return Object.assign(create(typeModels[LabelPostTransferAggregatedTypeTypeRef.typeId], LabelPostTransferAggregatedTypeTypeRef), values)
+}
+
+export type LabelPostTransferAggregatedTypeParams = {
+
+
+	name: string;
+	color: null | string;
+
+	parentFolder: null | IdTuple;
+}
+
+export type LabelPostTransferAggregatedType = {
+	_type: TypeRef<LabelPostTransferAggregatedType>;
+	_original?: LabelPostTransferAggregatedType
+
+	_id: Id;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	_ownerGroup: null | Id;
+	name: string;
+	color: null | string;
 
 	parentFolder: null | IdTuple;
 }

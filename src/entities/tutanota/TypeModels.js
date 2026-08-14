@@ -8986,7 +8986,7 @@ const typeModels = {
 				"name": "ownerEncSessionKey",
 				"id": 1486,
 				"type": "Bytes",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -8995,7 +8995,7 @@ const typeModels = {
 				"name": "ownerKeyVersion",
 				"id": 1487,
 				"type": "Number",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -9004,7 +9004,7 @@ const typeModels = {
 				"name": "ownerGroup",
 				"id": 1488,
 				"type": "GeneratedId",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			}
@@ -9015,8 +9015,18 @@ const typeModels = {
 				"name": "data",
 				"id": 1489,
 				"type": "AGGREGATION",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"refTypeId": 1480,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"2059": {
+				"final": true,
+				"name": "mailSet",
+				"id": 2059,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2050,
 				"dependency": null,
 				"transferredAttributeId": null
 			}
@@ -9097,8 +9107,18 @@ const typeModels = {
 				"name": "data",
 				"id": 1499,
 				"type": "AGGREGATION",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"refTypeId": 1480,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"2058": {
+				"final": true,
+				"name": "mailSet",
+				"id": 2058,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2045,
 				"dependency": null,
 				"transferredAttributeId": null
 			}
@@ -13084,6 +13104,141 @@ const typeModels = {
 				"final": true,
 				"name": "parentFolder",
 				"id": 2043,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 429,
+				"dependency": null,
+				"transferredAttributeId": 439
+			}
+		}
+	},
+	"2045": {
+		"name": "LabelPutTransferAggregatedType",
+		"app": "tutanota",
+		"version": 114,
+		"since": 114,
+		"type": "AGGREGATED_TYPE",
+		"id": 2045,
+		"rootId": "CHR1dGFub3RhAAf9",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 429,
+		"values": {
+			"2046": {
+				"final": true,
+				"name": "_id",
+				"id": 2046,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2047": {
+				"final": false,
+				"name": "name",
+				"id": 2047,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 435
+			},
+			"2049": {
+				"final": false,
+				"name": "color",
+				"id": 2049,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true,
+				"transferredAttributeId": 1479
+			}
+		},
+		"associations": {
+			"2048": {
+				"final": true,
+				"name": "parentFolder",
+				"id": 2048,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 429,
+				"dependency": null,
+				"transferredAttributeId": 439
+			}
+		}
+	},
+	"2050": {
+		"name": "LabelPostTransferAggregatedType",
+		"app": "tutanota",
+		"version": 114,
+		"since": 114,
+		"type": "AGGREGATED_TYPE",
+		"id": 2050,
+		"rootId": "CHR1dGFub3RhAAgC",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 429,
+		"values": {
+			"2051": {
+				"final": true,
+				"name": "_id",
+				"id": 2051,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2052": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 2052,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 434
+			},
+			"2053": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 2053,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 1399
+			},
+			"2054": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 2054,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 589
+			},
+			"2055": {
+				"final": false,
+				"name": "name",
+				"id": 2055,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 435
+			},
+			"2057": {
+				"final": false,
+				"name": "color",
+				"id": 2057,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true,
+				"transferredAttributeId": 1479
+			}
+		},
+		"associations": {
+			"2056": {
+				"final": true,
+				"name": "parentFolder",
+				"id": 2056,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 429,

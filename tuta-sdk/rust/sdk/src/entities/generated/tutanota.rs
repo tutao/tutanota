@@ -3461,13 +3461,15 @@ pub struct ManageLabelServicePostIn {
 	pub _format: i64,
 	#[serde(rename = "1486")]
 	#[serde(with = "serde_bytes")]
-	pub ownerEncSessionKey: Vec<u8>,
+	pub ownerEncSessionKey: Option<Vec<u8>>,
 	#[serde(rename = "1487")]
-	pub ownerKeyVersion: i64,
+	pub ownerKeyVersion: Option<i64>,
 	#[serde(rename = "1488")]
-	pub ownerGroup: GeneratedId,
+	pub ownerGroup: Option<GeneratedId>,
 	#[serde(rename = "1489")]
-	pub data: ManageLabelServiceLabelData,
+	pub data: Option<ManageLabelServiceLabelData>,
+	#[serde(rename = "2059")]
+	pub mailSet: Option<LabelPostTransferAggregatedType>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -3508,7 +3510,9 @@ pub struct ManageLabelServicePutIn {
 	#[serde(rename = "1498")]
 	pub label: IdTupleGenerated,
 	#[serde(rename = "1499")]
-	pub data: ManageLabelServiceLabelData,
+	pub data: Option<ManageLabelServiceLabelData>,
+	#[serde(rename = "2058")]
+	pub mailSet: Option<LabelPutTransferAggregatedType>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -5081,6 +5085,63 @@ impl Entity for MailSetTransferAggregatedType {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(2037),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct LabelPutTransferAggregatedType {
+	#[serde(rename = "2046")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2047")]
+	pub name: String,
+	#[serde(rename = "2049")]
+	pub color: Option<String>,
+	#[serde(rename = "2048")]
+	pub parentFolder: Option<IdTupleGenerated>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for LabelPutTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2045),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct LabelPostTransferAggregatedType {
+	#[serde(rename = "2051")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2052")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2053")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2054")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2055")]
+	pub name: String,
+	#[serde(rename = "2057")]
+	pub color: Option<String>,
+	#[serde(rename = "2056")]
+	pub parentFolder: Option<IdTupleGenerated>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for LabelPostTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2050),
 		}
 	}
 }
