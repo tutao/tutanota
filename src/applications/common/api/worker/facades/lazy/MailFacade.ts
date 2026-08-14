@@ -254,6 +254,7 @@ export class MailFacade {
 		const newFolder = createCreateMailFolderData({
 			folderName: name,
 			parentFolder: parent,
+			mailSet: null,
 		})
 		newFolder.ownerEncSessionKey = ownerEncSessionKey.key
 		newFolder.ownerGroup = ownerGroupId

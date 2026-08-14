@@ -1190,19 +1190,20 @@ export function createCreateMailFolderData(values: CreateMailFolderDataParams): 
 }
 
 export type CreateMailFolderDataParams = {
-	folderName: string
+	folderName: null | string
 
 	parentFolder: null | IdTuple
+	mailSet: null | MailSetTransferAggregatedType
 }
 
 export type CreateMailFolderData = {
 	// == values
 
 	_format: NumberString
-	folderName: string
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>
+	folderName: null | string
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	ownerGroup: null | Id
-	ownerKeyVersion: NumberString
+	ownerKeyVersion: null | NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
@@ -1210,6 +1211,7 @@ export type CreateMailFolderData = {
 	// == associations
 
 	parentFolder: null | IdTuple
+	mailSet: null | MailSetTransferAggregatedType
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -7697,5 +7699,43 @@ export type MailTransferAggregatedType = {
 	// === these are not present in metamodel
 	_type: TypeRef<MailTransferAggregatedType>
 	_original: Nullable<MailTransferAggregatedType>
+	isAdapter: false
+}
+export const MailSetTransferAggregatedTypeTypeRef: TypeRef<MailSetTransferAggregatedType> = new TypeRef("tutanota", 2064)
+
+export function createMailSetTransferAggregatedType(values: MailSetTransferAggregatedTypeParams): MailSetTransferAggregatedType {
+	return Object.assign(create(typeModels[MailSetTransferAggregatedTypeTypeRef.typeId], MailSetTransferAggregatedTypeTypeRef), values)
+}
+
+export type MailSetTransferAggregatedTypeParams = {
+	name: string
+
+	parentFolder: null | IdTuple
+}
+
+export type MailSetTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_ownerGroup: null | Id
+	name: string
+
+	// == associations
+
+	parentFolder: null | IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<MailSetTransferAggregatedType>
+	_original: Nullable<MailSetTransferAggregatedType>
 	isAdapter: false
 }

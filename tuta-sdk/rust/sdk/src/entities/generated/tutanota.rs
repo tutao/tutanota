@@ -907,16 +907,18 @@ pub struct CreateMailFolderData {
 	#[serde(rename = "451")]
 	pub _format: i64,
 	#[serde(rename = "453")]
-	pub folderName: String,
+	pub folderName: Option<String>,
 	#[serde(rename = "454")]
 	#[serde(with = "serde_bytes")]
-	pub ownerEncSessionKey: Vec<u8>,
+	pub ownerEncSessionKey: Option<Vec<u8>>,
 	#[serde(rename = "1268")]
 	pub ownerGroup: Option<GeneratedId>,
 	#[serde(rename = "1414")]
-	pub ownerKeyVersion: i64,
+	pub ownerKeyVersion: Option<i64>,
 	#[serde(rename = "452")]
 	pub parentFolder: Option<IdTupleGenerated>,
+	#[serde(rename = "2071")]
+	pub mailSet: Option<MailSetTransferAggregatedType>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -5160,6 +5162,36 @@ impl Entity for MailTransferAggregatedType {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(2054),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct MailSetTransferAggregatedType {
+	#[serde(rename = "2065")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2066")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2067")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2068")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2069")]
+	pub name: String,
+	#[serde(rename = "2070")]
+	pub parentFolder: Option<IdTupleGenerated>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for MailSetTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2064),
 		}
 	}
 }
