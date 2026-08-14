@@ -1,6 +1,15 @@
 export const TsMath = Math
 export type TsRegex = RegExp
-export const TsObject = Object
+export const TsObject = {
+	keys(obj: any): string[] {
+		return Object.keys(obj)
+	},
+
+	freeze<T>(obj: T): Readonly<T> {
+		return obj
+	},
+}
+
 export const TsNumber = Number
 export const TsDate = Date
 export const TsString = String

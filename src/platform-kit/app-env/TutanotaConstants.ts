@@ -3,7 +3,7 @@ import { EnvProvider } from "./Env"
 import { TsMath, TsObject } from "./TranspileCompatibility"
 
 export function enumKeyByValue<T extends Record<string, string>>(e: T, value: T[keyof T]): keyof T {
-	const key = Object.keys(e).find((k) => e[k] === value) ?? null
+	const key = TsObject.keys(e).find((k) => e[k] === value) ?? null
 
 	if (key == null) {
 		throw new Error(`Unknown enum value: ${value}`)
