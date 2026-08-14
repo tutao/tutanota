@@ -2,7 +2,7 @@
 	"name": "MobilePaymentsFacade",
 	"type": "facade",
 	"senders": ["web"],
-	"receivers": ["ios"],
+	"receivers": ["ios", "android"],
 	"doc": "Operations for handling mobile payments.",
 	"methods": {
 		"requestSubscriptionToPlan": {
@@ -30,8 +30,8 @@
 			"arg": [],
 			"ret": "void"
 		},
-		"queryAppStoreSubscriptionOwnership": {
-			"doc": "Check if the latest transaction using the current Store Account belongs to the user",
+		"queryExternalSubscriptionOwnership": {
+			"doc": "Check if the latest transaction using the current Store Account belongs to the tuta customer",
 			"arg": [
 				{
 					"customerIdBytes": "bytes?"
@@ -39,8 +39,8 @@
 			],
 			"ret": "MobilePaymentSubscriptionOwnership"
 		},
-		"isAppStoreRenewalEnabled": {
-			"doc": "Check if there's a subscription and if it has auto-renew enabled",
+		"isExternalSubscriptionRenewalEnabled": {
+			"doc": "Check if there's a subscription with google or apple and if it has auto-renew enabled",
 			"arg": [],
 			"ret": "boolean"
 		}
