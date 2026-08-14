@@ -22,6 +22,7 @@ import { Dialog } from "../../../../ui/base/Dialog"
 import { ImapErrorHandler, ReadableImapError } from "./ImapErrorHandler"
 import { ImapErrorCause } from "../../../common/api/common/error/ImapError"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
+import { showInitialImapCredentialsDialog } from "../../../common/gui/dialogs/InitialImapCredentialsDialog"
 
 assertMainOrNode()
 
@@ -57,6 +58,7 @@ export class ImapMailImportController {
 	public canceledImapImportUiSessions: ImapImportUiSession[] = []
 	private imapImportResyncIntervalId: TimeoutID | null = null
 	private isDisplayingOauthCredentialPopup = false
+	private isDisplayingInitialCredentialsPopup = false
 
 	constructor(
 		private readonly imapImporter: ImapImporter,
@@ -95,6 +97,14 @@ export class ImapMailImportController {
 						Dialog.message("migrationGmailAllMailsDisabledImapError_msg")
 					}
 				}
+				if (update.operation === OperationType.CREATE) {
+					const imapAccountSyncStateId = collapseId(update.instanceListId, update.instanceId) as IdTuple
+					const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId)
+					const shouldDisplayInitializationDialog = imapAccountSyncState.status === ImapAccountSyncStatus.SCHEDULED
+					if (shouldDisplayInitializationDialog) {
+						this.displayInitialImapCredentialsDialog(imapAccountSyncState)
+					}
+				}
 			}
 		}
 	}
@@ -125,6 +135,32 @@ export class ImapMailImportController {
 				},
 				() => {
 					this.isDisplayingOauthCredentialPopup = false
+				},
+			)
+		}
+	}
+
+	private displayInitialImapCredentialsDialog(imapAccountSyncState: ImapAccountSyncState) {
+		if (!this.isDisplayingInitialCredentialsPopup) {
+			this.isDisplayingInitialCredentialsPopup = true
+			showInitialImapCredentialsDialog(
+				{
+					syncState: imapAccountSyncState,
+					oauthHandlerFactory: (config, serviceExecutor) => new OAuthHandler(config, serviceExecutor),
+				},
+				async (dialog, updatedAccount) => {
+					if (updatedAccount) {
+						imapAccountSyncState.imapAccount = updatedAccount
+						imapAccountSyncState.status = ImapAccountSyncStatus.PAUSED
+						await this.entityClient.update(imapAccountSyncState)
+						await this.continueImport(imapAccountSyncState._id)
+						dialog.close()
+					} else {
+						// Think of case we don't have the updated account sucessfully?
+					}
+				},
+				() => {
+					this.isDisplayingInitialCredentialsPopup = false
 				},
 			)
 		}

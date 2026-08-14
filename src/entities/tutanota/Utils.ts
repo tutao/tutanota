@@ -337,7 +337,8 @@ export enum ImapAccountSyncStatus {
 	ERROR = "4",
 	AUTH_ERROR = "5",
 	CANCELED = "6",
-	GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR = "7"
+	GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR = "7",
+	SCHEDULED = "8"
 }
 
 
