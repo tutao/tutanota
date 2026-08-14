@@ -139,6 +139,7 @@ export class DriveViewModel {
 		return this.driveModel.clipboard
 	}
 	readonly init = async () => {
+		this.connectivityModel.addConnectionStateListener(this.connectionStateListener)
 		// if the roots have already been loaded the init must have been finished
 		if (this.roots) {
 			return
@@ -169,7 +170,6 @@ export class DriveViewModel {
 			priority: ListenerPriority.NORMAL,
 		})
 
-		this.connectivityModel.addConnectionStateListener(this.connectionStateListener)
 		this.loginController.waitForFullLogin().then(() => this.refreshStorage())
 		await this.driveModel.init()
 		this.resolveInitialized()
