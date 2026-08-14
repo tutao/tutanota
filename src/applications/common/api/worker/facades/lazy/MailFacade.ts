@@ -106,6 +106,7 @@ import {
 	createMailAddressTransferAggregatedType,
 	createMailDetailsBlobTransferAggregatedType,
 	createMailDetailsTransferAggregatedType,
+	createMailSetTransferAggregatedType,
 	createMailTransferAggregatedType,
 	createManageLabelServiceDeleteIn,
 	createManageLabelServiceLabelData,
@@ -243,17 +244,25 @@ export class MailFacade {
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<IdTuple> {
 		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(ownerGroupId)
 
-		const sk = aes256RandomKey()
-		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
-		const newFolder = createCreateMailFolderData({
-			folderName: name,
+		const sessionKey = aes256RandomKey()
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
+		const mailSet = createMailSetTransferAggregatedType({
+			name,
 			parentFolder: parent,
-			mailSet: null,
 		})
-		newFolder.ownerEncSessionKey = ownerEncSessionKey.key
+		mailSet._ownerEncSessionKey = ownerEncSessionKey.key
+		mailSet._ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
+		const newFolder = createCreateMailFolderData({
+			folderName: null,
+			parentFolder: null,
+			mailSet,
+		})
 		newFolder.ownerGroup = ownerGroupId
-		newFolder.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
-		const postReturn = await this.serviceExecutor.post(MailFolderService, newFolder, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
+		const postReturn = await this.serviceExecutor.post(MailFolderService, newFolder, {
+			...DEFAULT_EXTRA_SERVICE_PARAMS,
+			sessionKey,
+			ownerKey: mailGroupKey,
+		})
 		return postReturn.newFolder
 	}
 
