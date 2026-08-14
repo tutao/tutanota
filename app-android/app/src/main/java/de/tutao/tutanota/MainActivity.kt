@@ -62,6 +62,7 @@ import de.tutao.tutashared.ActivityResult
 import de.tutao.tutashared.ActivityUtils
 import de.tutao.tutashared.AndroidCalendarFacade
 import de.tutao.tutashared.AndroidCommonSystemFacade
+import de.tutao.tutashared.AndroidMobilePaymentsFacade
 import de.tutao.tutashared.AndroidMobileSystemFacade
 import de.tutao.tutashared.AndroidMobileSystemFacade.Companion.TUTA_INTENT_ACTION
 import de.tutao.tutashared.AndroidNativeCryptoFacade
@@ -223,6 +224,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 			calendarFacade,
 			fileFacade,
 			AndroidMobileContactsFacade(this),
+			AndroidMobilePaymentsFacade(this),
 			AndroidMobileSystemFacade(
 				fileFacade,
 				this,

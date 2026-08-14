@@ -323,7 +323,12 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 		try {
 			const result = await showProgressDialog(
 				"pleaseWait_msg",
-				locator.mobilePaymentsFacade.requestSubscriptionToPlan(appStorePlanName(data.targetPlanType), data.options.paymentInterval(), customerIdBytes),
+				locator.mobilePaymentsFacade.requestSubscriptionToPlan(
+					appStorePlanName(data.targetPlanType),
+					data.options.paymentInterval(),
+					customerIdBytes,
+					null,
+				),
 			)
 			if (result.result !== MobilePaymentResultType.Success) {
 				return false

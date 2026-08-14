@@ -10,7 +10,12 @@ export interface MobilePaymentsFacade {
 	/**
 	 * Display a pop-up for the user to start a subscription
 	 */
-	requestSubscriptionToPlan(plan: string, interval: number, customerIdBytes: Uint8Array<ArrayBuffer>): Promise<MobilePaymentResult>
+	requestSubscriptionToPlan(
+		plan: string,
+		interval: number,
+		customerIdBytes: Uint8Array<ArrayBuffer>,
+		currentInterval: number | null,
+	): Promise<MobilePaymentResult>
 
 	/**
 	 * Returns displayable prices for all plans
@@ -23,12 +28,12 @@ export interface MobilePaymentsFacade {
 	showSubscriptionConfigView(): Promise<void>
 
 	/**
-	 * Check if the latest transaction using the current Store Account belongs to the user
+	 * Check if the latest transaction using the current Store Account belongs to the tuta customer
 	 */
-	queryAppStoreSubscriptionOwnership(customerIdBytes: Uint8Array<ArrayBuffer> | null): Promise<MobilePaymentSubscriptionOwnership>
+	queryExternalSubscriptionOwnership(customerIdBytes: Uint8Array<ArrayBuffer> | null): Promise<MobilePaymentSubscriptionOwnership>
 
 	/**
-	 * Check if there's a subscription and if it has auto-renew enabled
+	 * Check if there's a subscription with google or apple and if it has auto-renew enabled
 	 */
-	isAppStoreRenewalEnabled(): Promise<boolean>
+	isExternalSubscriptionRenewalEnabled(): Promise<boolean>
 }

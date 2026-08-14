@@ -14,10 +14,12 @@ public final class MobilePaymentsFacadeReceiveDispatcher: Sendable {
 			let plan = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			let interval = try! JSONDecoder().decode(Int.self, from: arg[1].data(using: .utf8)!)
 			let customerIdBytes = try! JSONDecoder().decode(DataWrapper.self, from: arg[2].data(using: .utf8)!)
+			let currentInterval = try! JSONDecoder().decode(Int?.self, from: arg[3].data(using: .utf8)!)
 			let result = try await self.facade.requestSubscriptionToPlan(
 				plan,
 				interval,
-				customerIdBytes
+				customerIdBytes,
+				currentInterval
 			)
 			return toJson(result)
 		case "getPlanPrices":
@@ -28,14 +30,14 @@ public final class MobilePaymentsFacadeReceiveDispatcher: Sendable {
 			try await self.facade.showSubscriptionConfigView(
 			)
 			return "null"
-		case "queryAppStoreSubscriptionOwnership":
+		case "queryExternalSubscriptionOwnership":
 			let customerIdBytes = try! JSONDecoder().decode(DataWrapper?.self, from: arg[0].data(using: .utf8)!)
-			let result = try await self.facade.queryAppStoreSubscriptionOwnership(
+			let result = try await self.facade.queryExternalSubscriptionOwnership(
 				customerIdBytes
 			)
 			return toJson(result)
-		case "isAppStoreRenewalEnabled":
-			let result = try await self.facade.isAppStoreRenewalEnabled(
+		case "isExternalSubscriptionRenewalEnabled":
+			let result = try await self.facade.isExternalSubscriptionRenewalEnabled(
 			)
 			return toJson(result)
 		default:

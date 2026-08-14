@@ -13,7 +13,8 @@ public protocol MobilePaymentsFacade : Sendable {
 	func requestSubscriptionToPlan(
 		_ plan: String,
 		_ interval: Int,
-		_ customerIdBytes: DataWrapper
+		_ customerIdBytes: DataWrapper,
+		_ currentInterval: Int?
 	) async throws -> MobilePaymentResult
 	/**
 	 * Returns displayable prices for all plans
@@ -26,14 +27,14 @@ public protocol MobilePaymentsFacade : Sendable {
 	func showSubscriptionConfigView(
 	) async throws -> Void
 	/**
-	 * Check if the latest transaction using the current Store Account belongs to the user
+	 * Check if the latest transaction using the current Store Account belongs to the tuta customer
 	 */
-	func queryAppStoreSubscriptionOwnership(
+	func queryExternalSubscriptionOwnership(
 		_ customerIdBytes: DataWrapper?
 	) async throws -> MobilePaymentSubscriptionOwnership
 	/**
-	 * Check if there's a subscription and if it has auto-renew enabled
+	 * Check if there's a subscription with google or apple and if it has auto-renew enabled
 	 */
-	func isAppStoreRenewalEnabled(
+	func isExternalSubscriptionRenewalEnabled(
 	) async throws -> Bool
 }

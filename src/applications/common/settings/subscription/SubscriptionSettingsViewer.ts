@@ -591,6 +591,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 						appStorePlanName(planType),
 						asPaymentInterval(accountingInfo.paymentInterval),
 						customerIdBytes,
+						null,
 					)
 				} catch (e) {
 					if (e instanceof MobilePaymentError) {

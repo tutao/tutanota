@@ -21,7 +21,7 @@ public final class IosMobilePaymentsFacade: MobilePaymentsFacade {
 		self.windowScene = windowScene
 	}
 
-	public func queryAppStoreSubscriptionOwnership(_ customerIdBytes: DataWrapper?) async throws -> MobilePaymentSubscriptionOwnership {
+	public func queryExternalSubscriptionOwnership(_ customerIdBytes: DataWrapper?) async throws -> MobilePaymentSubscriptionOwnership {
 		var currentResult = MobilePaymentSubscriptionOwnership.no_subscription
 
 		for await transaction in Transaction.currentEntitlements {
@@ -105,7 +105,7 @@ public final class IosMobilePaymentsFacade: MobilePaymentsFacade {
 		}
 	}
 	@MainActor public func showSubscriptionConfigView() async throws { try await AppStore.showManageSubscriptions(in: self.windowScene()) }
-	public func requestSubscriptionToPlan(_ plan: String, _ interval: Int, _ customerIdBytes: DataWrapper) async throws -> MobilePaymentResult {
+	public func requestSubscriptionToPlan(_ plan: String, _ interval: Int, _ customerIdBytes: DataWrapper, _: Int?) async throws -> MobilePaymentResult {
 		let uuid = customerIdToUUID(customerIdBytes.data)
 		let planType = formatPlanType(plan, UInt(interval))
 
@@ -148,7 +148,7 @@ public final class IosMobilePaymentsFacade: MobilePaymentsFacade {
 		}
 	}
 
-	public func isAppStoreRenewalEnabled() async throws -> Bool {
+	public func isExternalSubscriptionRenewalEnabled() async throws -> Bool {
 		let plans: [String] = ALL_PURCHASEABLE_PLANS.flatMap { plan in [self.formatPlanType(plan, 1), self.formatPlanType(plan, 12)] }
 		guard let anyProduct = try await Product.products(for: plans).first else {
 			throw TUTErrorFactory.createError(withDomain: mobilePaymentDomain, message: "No products found")
