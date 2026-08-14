@@ -441,7 +441,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			mobile,
 			bonusMonths:
 				targetSubscription !== PlanType.Free && isYearly
-					? Number(selectorAttrs.priceAndConfigProvider.getRawPricingData().bonusMonthsForYearlyPlan)
+					? Number(selectorAttrs.priceAndConfigProvider.getPlanPricesForPlan(targetSubscription).bonusMonthsForYearlyPlan)
 					: 0,
 			targetSubscription,
 			hasFirstYearDiscount: hasFirstYearDiscount,

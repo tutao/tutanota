@@ -169,7 +169,6 @@ export function hasRelevantGlobalFirstYearCampaign(
 export function getDiscountDetails(isApplePrice: boolean, priceAndConfigProvider: PriceAndConfigProvider): DiscountDetails {
 	const discountDetails: DiscountDetails = {}
 	const pricingData = priceAndConfigProvider.getRawPricingData()
-	const bonusMonth = Number(pricingData.bonusMonthsForYearlyPlan)
 
 	type PriceKey = "freePrices" | "revolutionaryPrices" | "legendaryPrices" | "essentialPrices" | "advancedPrices" | "unlimitedPrices"
 	const planTypeToPriceKey: Record<AvailablePlanType, PriceKey> = {
@@ -207,6 +206,7 @@ export function getDiscountDetails(isApplePrice: boolean, priceAndConfigProvider
 	const targetPlans = isApplePrice ? NewPersonalPaidPlans : AvailablePlans
 	for (const targetPlan of targetPlans) {
 		const priceKey = planTypeToPriceKey[targetPlan]
+		const bonusMonths = Number(pricingData[priceKey].bonusMonthsForYearlyPlan)
 		const firstYearDiscount = getFirstYearDiscount(priceKey, targetPlan)
 		const hasGlobalCampaign = hasGlobalFirstYearDiscount(firstYearDiscount)
 		const monthlyPrice = isApplePrice
@@ -229,15 +229,15 @@ export function getDiscountDetails(isApplePrice: boolean, priceAndConfigProvider
 		const permanentDiscountPercentage = Math.floor((1 - monthlyPrice / monthlyRefPrice) * 100)
 		const firstYearDiscountPercentage = Math.floor((firstYearDiscount / yearlyRefPrice) * 100)
 
-		if (bonusMonth > 0 && NewPersonalPaidPlans.includes(targetPlan)) {
+		if (bonusMonths > 0) {
 			if (firstYearDiscount > 0) {
 				discountDetails[targetPlan] = {
-					ribbonTranslation: lang.getTranslation("pricing.bonusMonthWithCampaign_label", { "{months}": bonusMonth }),
+					ribbonTranslation: lang.getTranslation("pricing.bonusMonthWithCampaign_label", { "{months}": bonusMonths }),
 					discountType: "BonusMonthsAndGlobalFirstYear",
 				}
 			} else {
 				discountDetails[targetPlan] = {
-					ribbonTranslation: lang.getTranslation("pricing.bonusMonth_label", { "{months}": bonusMonth }),
+					ribbonTranslation: lang.getTranslation("pricing.bonusMonth_label", { "{months}": bonusMonths }),
 					discountType: "BonusMonths",
 				}
 			}
