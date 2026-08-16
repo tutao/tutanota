@@ -194,7 +194,7 @@ impl AsymmetricCryptoFacade {
 					})
 				},
 				_ => Err(AsymmetricCryptoError::UnexpectedAsymmetricKeyPairType(
-					format!("{:? }", recipient_key_pair),
+					format!("{recipient_key_pair:? }"),
 				)),
 			},
 			CryptoProtocolVersion::TutaCrypt => match recipient_key_pair {
@@ -207,7 +207,7 @@ impl AsymmetricCryptoFacade {
 					})
 				},
 				_ => Err(AsymmetricCryptoError::UnexpectedAsymmetricKeyPairType(
-					format!("{:? }", recipient_key_pair),
+					format!("{recipient_key_pair:? }"),
 				)),
 			},
 			_ => Err(AsymmetricCryptoError::InvalidCryptoProtocolVersion(
@@ -267,12 +267,9 @@ impl AsymmetricCryptoFacade {
 					.get_or_make_sender_identity_key_pair(sender_key_pair.object, sender_group_id)
 					.await?;
 				match sym_key {
-					GenericAesKey::Aes128(_) => {
-						Err(AsymmetricCryptoError::UnexpectedSymmetricKeyType(format!(
-							"{:? }",
-							sym_key
-						)))
-					},
+					GenericAesKey::Aes128(_) => Err(
+						AsymmetricCryptoError::UnexpectedSymmetricKeyType(format!("{sym_key:? }")),
+					),
 					GenericAesKey::Aes256(aes256_sym_key) => Ok(self
 						.tuta_crypt_encrypt_sym_key_impl(
 							Versioned {
@@ -305,8 +302,7 @@ impl AsymmetricCryptoFacade {
 		match recipient_public_key {
 			PublicKey::RsaX25519(_) | PublicKey::Rsa(_) => {
 				Err(AsymmetricCryptoError::UnexpectedPublicKeyPairType(format!(
-					"{:? }",
-					recipient_public_key
+					"{recipient_public_key:? }"
 				)))
 			},
 			PublicKey::TutaCrypt(tuta_crypt_pub_keys) => self.tuta_crypt_encrypt_sym_key_impl(
