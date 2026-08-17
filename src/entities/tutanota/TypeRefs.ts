@@ -7237,7 +7237,7 @@ export type ImapPutIn = {
 	_original: Nullable<ImapPutIn>
 	isAdapter: false
 }
-export const InboxRuleConditionTypeRef: TypeRef<InboxRuleCondition> = new TypeRef("tutanota", 1995)
+export const InboxRuleConditionTypeRef: TypeRef<InboxRuleCondition> = new TypeRef("tutanota", 1994)
 
 export function createInboxRuleCondition(values: InboxRuleConditionParams): InboxRuleCondition {
 	return Object.assign(create(typeModels[InboxRuleConditionTypeRef.typeId], InboxRuleConditionTypeRef), values)
@@ -7272,7 +7272,7 @@ export type InboxRuleCondition = {
 	_original: Nullable<InboxRuleCondition>
 	isAdapter: false
 }
-export const InboxRuleResultTypeRef: TypeRef<InboxRuleResult> = new TypeRef("tutanota", 1999)
+export const InboxRuleResultTypeRef: TypeRef<InboxRuleResult> = new TypeRef("tutanota", 1998)
 
 export function createInboxRuleResult(values: InboxRuleResultParams): InboxRuleResult {
 	return Object.assign(create(typeModels[InboxRuleResultTypeRef.typeId], InboxRuleResultTypeRef), values)
@@ -7309,7 +7309,7 @@ export type InboxRuleResult = {
 	_original: Nullable<InboxRuleResult>
 	isAdapter: false
 }
-export const ExpandedInboxRuleTypeRef: TypeRef<ExpandedInboxRule> = new TypeRef("tutanota", 2003)
+export const ExpandedInboxRuleTypeRef: TypeRef<ExpandedInboxRule> = new TypeRef("tutanota", 2002)
 
 export function createExpandedInboxRule(values: ExpandedInboxRuleParams): ExpandedInboxRule {
 	return Object.assign(create(typeModels[ExpandedInboxRuleTypeRef.typeId], ExpandedInboxRuleTypeRef), values)
@@ -7317,7 +7317,6 @@ export function createExpandedInboxRule(values: ExpandedInboxRuleParams): Expand
 
 export type ExpandedInboxRuleParams = {
 	name: string
-	enabled: boolean
 
 	conditions: InboxRuleCondition[]
 	results: InboxRuleResult[]
@@ -7334,7 +7333,6 @@ export type ExpandedInboxRule = {
 	_ownerKeyVersion: null | NumberString
 	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	name: string
-	enabled: boolean
 
 	// == associations
 
@@ -7354,7 +7352,7 @@ export type ExpandedInboxRule = {
 	_original: Nullable<ExpandedInboxRule>
 	isAdapter: false
 }
-export const ExpandedInboxRuleListTypeRef: TypeRef<ExpandedInboxRuleList> = new TypeRef("tutanota", 2016)
+export const ExpandedInboxRuleListTypeRef: TypeRef<ExpandedInboxRuleList> = new TypeRef("tutanota", 2014)
 
 export function createExpandedInboxRuleList(values: ExpandedInboxRuleListParams): ExpandedInboxRuleList {
 	return Object.assign(create(typeModels[ExpandedInboxRuleListTypeRef.typeId], ExpandedInboxRuleListTypeRef), values)
