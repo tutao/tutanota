@@ -357,6 +357,40 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
 			o.check(foundRule).equals(null)
 		})
+
+		o.test("disabled rule is not found", async () => {
+			const rule = _createRule(
+				[_createRuleCondition(InboxRuleConditionType.SUBJECT_CONTAINS, "fri")],
+				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				"no-name",
+				false,
+			)
+			const mail = _createMailWithDifferentEnvelopeSender({ subject: "hello friend" })
+			const mailDetails = _createMailDetails()
+
+			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
+			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+
+			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
+			o.check(foundRule).deepEquals(null)
+		})
+
+		o.test("enabled rule is found", async () => {
+			const rule = _createRule(
+				[_createRuleCondition(InboxRuleConditionType.SUBJECT_CONTAINS, "fri")],
+				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				"no-name",
+				true,
+			)
+			const mail = _createMailWithDifferentEnvelopeSender({ subject: "hello friend" })
+			const mailDetails = _createMailDetails()
+
+			when(mailFacade.loadMailDetailsBlob(mail)).thenResolve(mailDetails)
+			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
+
+			const foundRule = await ruleHandler.findMatchingInboxRule(mail, inboxFolder, true)
+			o.check(foundRule).deepEquals(rule)
+		})
 	})
 
 	o.spec("getMoveResultValue", () => {
@@ -557,10 +591,11 @@ function _createRuleResult(type: InboxRuleResultType, value: InboxRuleResult["va
 	})
 }
 
-function _createRule(conditions: InboxRuleCondition[], results: InboxRuleResult[], name?: string): ExpandedInboxRule {
+function _createRule(conditions: InboxRuleCondition[], results: InboxRuleResult[], name?: string, enabled?: boolean): ExpandedInboxRule {
 	return createTestEntity(ExpandedInboxRuleTypeRef, {
 		name: name ?? "no-name",
 		conditions,
 		results,
+		enabled: enabled ?? true,
 	})
 }

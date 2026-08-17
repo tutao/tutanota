@@ -62,6 +62,10 @@ export class InboxRulesSettingsViewerModel {
 		await this.inboxRuleModel.updateInboxRuleOrder(this.orderedInboxRules)
 	}
 
+	async saveInboxRule(rule: ExpandedInboxRule) {
+		await this.inboxRuleModel.updateInboxRule(rule)
+	}
+
 	async deleteInboxRule(rule: ExpandedInboxRule) {
 		await this.inboxRuleModel.deleteInboxRule(rule)
 	}
