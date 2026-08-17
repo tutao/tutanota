@@ -141,8 +141,8 @@ class WidgetConfigActivity : AppCompatActivity() {
 			val remoteStorage = RemoteStorage(db)
 
 			val serverURL = remoteStorage.getRemoteUrl()
-			val tempDir= TempDir(applicationContext)
-			val tempFs= TempFs(applicationContext, SecureRandom(),tempDir)
+			val tempDir = TempDir(applicationContext)
+			val tempFs = TempFs(applicationContext, SecureRandom(), tempDir)
 			val crypto = AndroidNativeCryptoFacade(baseContext, tempFs)
 			val sdk =
 				if (serverURL == null) {
@@ -259,13 +259,16 @@ class WidgetConfigActivity : AppCompatActivity() {
 							try {
 								val activityContext = this
 								val storeJob = viewModel.storeSettings(this, appWidgetId)
+								Log.i("DEBUG", "Widget config ok action before coroutine launch")
 								storeJob.invokeOnCompletion {
 									lifecycleScope.launch {
 										Log.i(TAG, "Asking for widget reload after user change its settings")
 										val manager = GlanceAppWidgetManager(activityContext)
 										val widget = Agenda()
 										val glanceIds = manager.getGlanceIds(widget.javaClass)
+										Log.i(TAG, "Found ${glanceIds.count()} widgets")
 										glanceIds.forEach { glanceId ->
+											Log.i(TAG, "Reload widget with glanceId ${glanceId}")
 											widget.update(context, glanceId)
 										}
 									}

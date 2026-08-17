@@ -80,6 +80,9 @@ class WidgetDataRepository private constructor() : WidgetRepository() {
 			encryptedEventListMap[calendar] = base64String
 		}
 
+		// TODO: Maybe add error handling here, to see if writing to the cache data store fails
+		// TODO: Continue code investigation from here!!!!!
+		Log.i("DEBUG", "")
 		val databaseWidgetIdentifier = "${WIDGET_EVENTS_CACHE}_$widgetId"
 		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
 		val encryptedEventListMapJson = json.encodeToString(encryptedEventListMap)
@@ -152,6 +155,7 @@ class WidgetDataRepository private constructor() : WidgetRepository() {
 
 		calendars.forEach { calendarId ->
 			try {
+				Log.i(TAG, "Fetching events for calendarId: ${calendarId}")
 				val events = calendarFacade.getCalendarEvents(calendarId, start, end)
 				Log.i(
 					TAG,
