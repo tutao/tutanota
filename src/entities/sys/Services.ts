@@ -40,6 +40,7 @@ import { GroupKeyRotationPostIn, GroupKeyRotationPostInTypeRef } from "./TypeRef
 import { IdentityKeyGetIn, IdentityKeyGetInTypeRef } from "./TypeRefs.js"
 import { IdentityKeyGetOut, IdentityKeyGetOutTypeRef } from "./TypeRefs.js"
 import { IdentityKeyPostIn, IdentityKeyPostInTypeRef } from "./TypeRefs.js"
+import { InstanceKeyPermissionServicePostIn, InstanceKeyPermissionServicePostInTypeRef } from "./TypeRefs.js"
 import { InvoiceDataGetIn, InvoiceDataGetInTypeRef } from "./TypeRefs.js"
 import { InvoiceDataGetOut, InvoiceDataGetOutTypeRef } from "./TypeRefs.js"
 import { LocationServiceGetReturn, LocationServiceGetReturnTypeRef } from "./TypeRefs.js"
@@ -303,6 +304,13 @@ export const IdentityKeyService_GET = new GetService<IdentityKeyGetIn, IdentityK
 	IdentityKeyGetOutTypeRef,
 )
 export const IdentityKeyService_POST = new PostService<IdentityKeyPostIn, NullEntity>("sys", "IdentityKeyService", IdentityKeyPostInTypeRef, NullEntityTypeRef)
+
+export const InstanceKeyPermissionService_POST = new PostService<InstanceKeyPermissionServicePostIn, NullEntity>(
+	"sys",
+	"InstanceKeyPermissionService",
+	InstanceKeyPermissionServicePostInTypeRef,
+	NullEntityTypeRef,
+)
 
 export const InvoiceDataService_GET = new GetService<InvoiceDataGetIn, InvoiceDataGetOut>(
 	"sys",

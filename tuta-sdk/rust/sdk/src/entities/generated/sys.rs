@@ -135,6 +135,8 @@ pub struct GroupInfo {
 	pub group: GeneratedId,
 	#[serde(rename = "687")]
 	pub mailAddressAliases: Vec<MailAddressAlias>,
+	#[serde(rename = "2869")]
+	pub _formerInstanceKeys: Option<InstanceKeysRef>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -599,6 +601,14 @@ pub struct Permission {
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "2251")]
 	pub symKeyVersion: Option<i64>,
+	#[serde(rename = "2864")]
+	#[serde(with = "serde_bytes")]
+	pub symEncInstanceKey: Option<Vec<u8>>,
+	#[serde(rename = "2865")]
+	pub instanceKeyVersion: Option<i64>,
+	#[serde(rename = "2866")]
+	#[serde(with = "serde_bytes")]
+	pub bucketEncInstanceKey: Option<Vec<u8>>,
 	#[serde(rename = "141")]
 	pub group: Option<GeneratedId>,
 	#[serde(rename = "142")]
@@ -1257,9 +1267,14 @@ pub struct UpdatePermissionKeyData {
 	pub _format: i64,
 	#[serde(rename = "1031")]
 	#[serde(with = "serde_bytes")]
-	pub ownerEncSessionKey: Vec<u8>,
+	pub ownerEncSessionKey: Option<Vec<u8>>,
 	#[serde(rename = "2245")]
 	pub ownerKeyVersion: i64,
+	#[serde(rename = "2867")]
+	#[serde(with = "serde_bytes")]
+	pub ownerEncInstanceKey: Option<Vec<u8>>,
+	#[serde(rename = "2868")]
+	pub instanceKeyVersion: Option<i64>,
 	#[serde(rename = "450")]
 	pub permission: IdTupleGenerated,
 	#[serde(rename = "451")]
@@ -6725,6 +6740,148 @@ impl Entity for GiftCardRedeemTransferAggregatedType {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2822),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct InstanceKey {
+	#[serde(rename = "2831")]
+	pub _id: Option<IdTupleCustom>,
+	#[serde(rename = "2832")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "2833")]
+	pub _format: i64,
+	#[serde(rename = "2834")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2835")]
+	#[serde(with = "serde_bytes")]
+	pub symEncInstanceKey: Vec<u8>,
+	#[serde(rename = "2836")]
+	pub symKeyVersion: i64,
+}
+
+impl Entity for InstanceKey {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2829),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct InstanceKeysRef {
+	#[serde(rename = "2838")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2839")]
+	pub list: GeneratedId,
+}
+
+impl Entity for InstanceKeysRef {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2837),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct InstanceKeyPermissionData {
+	#[serde(rename = "2841")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2843")]
+	pub symKeyVersion: Option<i64>,
+	#[serde(rename = "2844")]
+	#[serde(with = "serde_bytes")]
+	pub symEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2845")]
+	#[serde(with = "serde_bytes")]
+	pub symEncInstanceKey: Vec<u8>,
+	#[serde(rename = "2846")]
+	pub instanceKeyVersion: i64,
+	#[serde(rename = "2842")]
+	pub sharingPermission: IdTupleGenerated,
+	#[serde(rename = "2847")]
+	pub pubEncKeyData: Option<PubEncKeyData>,
+}
+
+impl Entity for InstanceKeyPermissionData {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2840),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct FormerInstanceKeyData {
+	#[serde(rename = "2849")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2850")]
+	#[serde(with = "serde_bytes")]
+	pub symEncInstanceKey: Vec<u8>,
+	#[serde(rename = "2851")]
+	pub symKeyVersion: i64,
+	#[serde(rename = "2852")]
+	pub instanceKeyVersion: i64,
+}
+
+impl Entity for FormerInstanceKeyData {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2848),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct InstanceKeyInstanceData {
+	#[serde(rename = "2854")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2856")]
+	pub sharedInstanceListId: Option<GeneratedId>,
+	#[serde(rename = "2857")]
+	pub sharedInstanceElementId: GeneratedId,
+	#[serde(rename = "2855")]
+	pub typeInfo: TypeInfo,
+	#[serde(rename = "2858")]
+	pub formerInstanceKeys: Vec<FormerInstanceKeyData>,
+	#[serde(rename = "2859")]
+	pub permissionData: Vec<InstanceKeyPermissionData>,
+}
+
+impl Entity for InstanceKeyInstanceData {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2853),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct InstanceKeyPermissionServicePostIn {
+	#[serde(rename = "2861")]
+	pub _format: i64,
+	#[serde(rename = "2862")]
+	pub permissionDataPerInstance: Vec<InstanceKeyInstanceData>,
+}
+
+impl Entity for InstanceKeyPermissionServicePostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2860),
 		}
 	}
 }
