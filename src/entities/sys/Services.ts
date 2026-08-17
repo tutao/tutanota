@@ -40,6 +40,7 @@ import { GroupKeyRotationPostInTypeRef } from "./TypeRefs.js"
 import { IdentityKeyGetInTypeRef } from "./TypeRefs.js"
 import { IdentityKeyGetOutTypeRef } from "./TypeRefs.js"
 import { IdentityKeyPostInTypeRef } from "./TypeRefs.js"
+import { InstanceKeyPermissionServicePostInTypeRef } from "./TypeRefs.js"
 import { InvoiceDataGetInTypeRef } from "./TypeRefs.js"
 import { InvoiceDataGetOutTypeRef } from "./TypeRefs.js"
 import { LocationServiceGetReturnTypeRef } from "./TypeRefs.js"
@@ -307,6 +308,15 @@ export const IdentityKeyService = Object.freeze({
 	name: "IdentityKeyService",
 	get: { data: IdentityKeyGetInTypeRef, return: IdentityKeyGetOutTypeRef },
 	post: { data: IdentityKeyPostInTypeRef, return: null },
+	put: null,
+	delete: null,
+} as const)
+
+export const InstanceKeyPermissionService = Object.freeze({
+	app: "sys",
+	name: "InstanceKeyPermissionService",
+	get: null,
+	post: { data: InstanceKeyPermissionServicePostInTypeRef, return: null },
 	put: null,
 	delete: null,
 } as const)

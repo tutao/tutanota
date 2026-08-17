@@ -474,6 +474,16 @@ const typeModels = {
 				"refTypeId": 684,
 				"dependency": null,
 				"transferredAttributeId": null
+			},
+			"2836": {
+				"final": true,
+				"name": "_formerInstanceKeys",
+				"id": 2836,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2804,
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -1904,6 +1914,33 @@ const typeModels = {
 				"name": "symKeyVersion",
 				"id": 2251,
 				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2831": {
+				"final": true,
+				"name": "symEncInstanceKey",
+				"id": 2831,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2832": {
+				"final": true,
+				"name": "instanceKeyVersion",
+				"id": 2832,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2833": {
+				"final": true,
+				"name": "bucketEncInstanceKey",
+				"id": 2833,
+				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
@@ -3744,7 +3781,7 @@ const typeModels = {
 				"name": "ownerEncSessionKey",
 				"id": 1031,
 				"type": "Bytes",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -3754,6 +3791,24 @@ const typeModels = {
 				"id": 2245,
 				"type": "Number",
 				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2834": {
+				"final": false,
+				"name": "ownerEncInstanceKey",
+				"id": 2834,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2835": {
+				"final": false,
+				"name": "instanceKeyVersion",
+				"id": 2835,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			}
@@ -17338,6 +17393,356 @@ const typeModels = {
 			}
 		},
 		"associations": {}
+	},
+	"2796": {
+		"name": "InstanceKey",
+		"app": "sys",
+		"version": 155,
+		"since": 155,
+		"type": "LIST_ELEMENT_TYPE",
+		"id": 2796,
+		"rootId": "A3N5cwAK7A",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"2798": {
+				"final": true,
+				"name": "_id",
+				"id": 2798,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2799": {
+				"final": true,
+				"name": "_permissions",
+				"id": 2799,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2800": {
+				"final": false,
+				"name": "_format",
+				"id": 2800,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2801": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 2801,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2802": {
+				"final": true,
+				"name": "symEncInstanceKey",
+				"id": 2802,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2803": {
+				"final": true,
+				"name": "symKeyVersion",
+				"id": 2803,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {}
+	},
+	"2804": {
+		"name": "InstanceKeysRef",
+		"app": "sys",
+		"version": 155,
+		"since": 155,
+		"type": "AGGREGATED_TYPE",
+		"id": 2804,
+		"rootId": "A3N5cwAK9A",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"2805": {
+				"final": true,
+				"name": "_id",
+				"id": 2805,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"2806": {
+				"final": true,
+				"name": "list",
+				"id": 2806,
+				"type": "LIST_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 2796,
+				"dependency": null,
+				"transferredAttributeId": null
+			}
+		}
+	},
+	"2807": {
+		"name": "InstanceKeyPermissionData",
+		"app": "sys",
+		"version": 155,
+		"since": 155,
+		"type": "AGGREGATED_TYPE",
+		"id": 2807,
+		"rootId": "A3N5cwAK9w",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"2808": {
+				"final": true,
+				"name": "_id",
+				"id": 2808,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2810": {
+				"final": false,
+				"name": "symKeyVersion",
+				"id": 2810,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2811": {
+				"final": false,
+				"name": "symEncSessionKey",
+				"id": 2811,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2812": {
+				"final": false,
+				"name": "symEncInstanceKey",
+				"id": 2812,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2813": {
+				"final": false,
+				"name": "instanceKeyVersion",
+				"id": 2813,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"2809": {
+				"final": false,
+				"name": "sharingPermission",
+				"id": 2809,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 132,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"2814": {
+				"final": false,
+				"name": "pubEncKeyData",
+				"id": 2814,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2384,
+				"dependency": null,
+				"transferredAttributeId": null
+			}
+		}
+	},
+	"2815": {
+		"name": "FormerInstanceKeyData",
+		"app": "sys",
+		"version": 155,
+		"since": 155,
+		"type": "AGGREGATED_TYPE",
+		"id": 2815,
+		"rootId": "A3N5cwAK_w",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"2816": {
+				"final": true,
+				"name": "_id",
+				"id": 2816,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2817": {
+				"final": false,
+				"name": "symEncInstanceKey",
+				"id": 2817,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2818": {
+				"final": false,
+				"name": "symKeyVersion",
+				"id": 2818,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2819": {
+				"final": false,
+				"name": "instanceKeyVersion",
+				"id": 2819,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {}
+	},
+	"2820": {
+		"name": "InstanceKeyInstanceData",
+		"app": "sys",
+		"version": 155,
+		"since": 155,
+		"type": "AGGREGATED_TYPE",
+		"id": 2820,
+		"rootId": "A3N5cwALBA",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"2821": {
+				"final": true,
+				"name": "_id",
+				"id": 2821,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2823": {
+				"final": false,
+				"name": "sharedInstanceListId",
+				"id": 2823,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2824": {
+				"final": false,
+				"name": "sharedInstanceElementId",
+				"id": 2824,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"2822": {
+				"final": false,
+				"name": "typeInfo",
+				"id": 2822,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 1869,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"2825": {
+				"final": false,
+				"name": "formerInstanceKeys",
+				"id": 2825,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2815,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"2826": {
+				"final": false,
+				"name": "permissionData",
+				"id": 2826,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2807,
+				"dependency": null,
+				"transferredAttributeId": null
+			}
+		}
+	},
+	"2827": {
+		"name": "InstanceKeyPermissionServicePostIn",
+		"app": "sys",
+		"version": 155,
+		"since": 155,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2827,
+		"rootId": "A3N5cwALCw",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"2828": {
+				"final": false,
+				"name": "_format",
+				"id": 2828,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"2829": {
+				"final": false,
+				"name": "permissionDataPerInstance",
+				"id": 2829,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2820,
+				"dependency": null,
+				"transferredAttributeId": null
+			}
+		}
 	}
 }
 export default typeModels

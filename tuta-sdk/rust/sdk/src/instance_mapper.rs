@@ -1924,6 +1924,7 @@ mod tests {
 			group: GeneratedId::test_random(),
 			mailAddressAliases: vec![],
 			_errors: Default::default(),
+			_formerInstanceKeys: None,
 		};
 
 		let type_model_provider = Arc::new(mock_type_model_provider());
