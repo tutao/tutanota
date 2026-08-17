@@ -39,7 +39,10 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 	}
 
 	private async findMatchingInboxRuleForRules(mail: Readonly<Mail>, rules: Array<ExpandedInboxRule>): Promise<ExpandedInboxRule | null> {
-		return await asyncFind(rules, (rule) => this.checkInboxRuleConditions(mail, rule.conditions as InboxRuleConditionTuple[]))
+		return await asyncFind(
+			rules.filter((rule) => rule.enabled),
+			(rule) => this.checkInboxRuleConditions(mail, rule.conditions as InboxRuleConditionTuple[]),
+		)
 	}
 
 	async getMoveResultValue(inboxRule: ExpandedInboxRule, mailboxDetail: MailboxDetail): Promise<MailSet | null> {
