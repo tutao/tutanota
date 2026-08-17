@@ -109,7 +109,6 @@ import {
 	createMailSetTransferAggregatedType,
 	createMailTransferAggregatedType,
 	createManageLabelServiceDeleteIn,
-	createManageLabelServiceLabelData,
 	createManageLabelServicePostIn,
 	createManageLabelServicePutIn,
 	createMoveMailData,
@@ -1310,23 +1309,27 @@ export class MailFacade {
 	 */
 	async createLabel(mailGroupId: Id, labelData: { name: string; color: string; parentLabelId?: IdTuple }) {
 		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
-		const sk = aes256RandomKey()
-		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
+		const sessionKey = aes256RandomKey()
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
+
+		const mailSet = createMailSetTransferAggregatedType({
+			name: labelData.name,
+			parentFolder: labelData.parentLabelId ?? null,
+			color: labelData.color,
+		})
+		mailSet._ownerEncSessionKey = ownerEncSessionKey.key
+		mailSet._ownerKeyVersion = String(ownerEncSessionKey.encryptingKeyVersion)
 
 		const data = createManageLabelServicePostIn({
-			data: createManageLabelServiceLabelData({
-				name: labelData.name,
-				color: labelData.color,
-				parentLabel: labelData.parentLabelId ? labelData.parentLabelId : null,
-			}),
-			mailSet: null,
+			data: null,
+			mailSet,
 		})
 		data.ownerGroup = mailGroupId
-		data.ownerEncSessionKey = ownerEncSessionKey.key
-		data.ownerKeyVersion = String(ownerEncSessionKey.encryptingKeyVersion)
+
 		const manageLabelPostOut = await this.serviceExecutor.post(ManageLabelService, data, {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
-			sessionKey: sk,
+			sessionKey,
+			ownerKey: mailGroupKey,
 		})
 		return manageLabelPostOut.label
 	}
@@ -1346,15 +1349,15 @@ export class MailFacade {
 		const isNameChange = label.name !== name
 
 		if (!isOwnParent && (isDifferentParent || isNewParent || isUnsettingParent || isColorChange || isNameChange)) {
-			const updateFolder = createManageLabelServiceLabelData({
+			const mailSet = createMailSetTransferAggregatedType({
+				name,
+				parentFolder: parentLabelId ?? null,
 				color: assertNotNull(color),
-				name: name,
-				parentLabel: parentLabelId ?? null,
 			})
 			const manageLabelServicePutIn = createManageLabelServicePutIn({
-				data: updateFolder,
+				data: null,
 				label: label._id,
-				mailSet: null,
+				mailSet,
 			})
 			const ownerKeyVersion = parseKeyVersion(assertNotNull(label._ownerKeyVersion))
 			const mailGroupKey = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(label._ownerGroup), ownerKeyVersion)
@@ -1362,6 +1365,10 @@ export class MailFacade {
 			await this.serviceExecutor.put(ManageLabelService, manageLabelServicePutIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				sessionKey,
+				ownerKey: {
+					object: mailGroupKey,
+					version: ownerKeyVersion,
+				},
 			})
 		}
 	}
