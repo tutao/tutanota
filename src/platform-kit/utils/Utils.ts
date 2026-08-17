@@ -1,6 +1,6 @@
-import { ProgrammingError } from "@tutao/app-env"
-import { TypeChecks } from "../app-env/TsTypeChecks"
-import { isStrictlyUndefined, KeyVersion } from "./TsUtils"
+import { ProgrammingError } from "../app-env/ProgrammingError.js"
+import { TypeChecks } from "../app-env/TsTypeChecks.js"
+import { isStrictlyUndefined, KeyVersion } from "./TsUtils.js"
 
 export type lazy<T> = () => T
 export type lazyAsync<T> = () => Promise<T>
