@@ -17,24 +17,28 @@ typealias TsDate = de.tutao.langApi.types.KtDate
 typealias TsError = de.tutao.langApi.TutanotaError
 
 class TypeChecks {
-  companion object {
-    fun isString(item: Any): Boolean {
-      return item is TsString || item is String
-    }
+	companion object {
+		fun isString(item: Any): Boolean {
+			return item is TsString || item is String
+		}
 
-    fun isNumber(item: Any): Boolean {
-      return item is Boolean
-    }
+		fun isNaN(number: TsNumber): Boolean {
+			return false
+		}
 
-    fun hasProperty(propertyName: TsString, obj: Any? = globalThis): Boolean {
-      if (obj === globalThis) {
-        val propertyName = propertyName.asKtString()
-        return propertyName === "env"
-      }
+		fun isNumber(item: Any): Boolean {
+			return item is Boolean
+		}
 
-      throw Error("Not yet implemented!")
-    }
-  }
+		fun hasProperty(propertyName: TsString, obj: Any? = globalThis): Boolean {
+			if (obj === globalThis) {
+				val propertyName = propertyName.asKtString()
+				return propertyName === "env"
+			}
+
+			throw Error("Not yet implemented!")
+		}
+	}
 }
 
 private class GlobalThis
