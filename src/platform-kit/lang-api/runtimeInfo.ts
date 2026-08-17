@@ -8,3 +8,7 @@ export function indexedDbIsSupported(): boolean {
 		return false
 	}
 }
+
+export function hasTouchEvent(): boolean {
+	return window.TouchEvent != null
+}

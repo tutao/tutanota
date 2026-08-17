@@ -10,6 +10,24 @@ export const TsObject = {
 	},
 }
 
+export const console = {
+	log(...msg: any): void {
+		return console.log(...msg)
+	},
+
+	error(...msg: any): void {
+		return console.error(...msg)
+	},
+
+	warn(...msg: any): void {
+		return console.warn(...msg)
+	},
+
+	debug(...msg: any): void {
+		return console.debug(...msg)
+	},
+}
+
 export const TsNumber = Number
 export const TsDate = Date
 export const TsString = String
