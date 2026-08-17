@@ -37,6 +37,7 @@ import de.tutao.tutashared.toBase64
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -76,14 +77,20 @@ class WidgetUIViewModel(
 		val normalEvents: HashMap<LocalDate, List<UIEvent>> = HashMap()
 		val zoneId = this.calendar.timeZone.toZoneId()
 
-		val (settings, calendars, credentials, lastSync) = this.getInitialUiState(widgetDataStore)
-			?: return WidgetUIData(
+		val initialUiState = this.getInitialUiState(widgetDataStore)
+		if (initialUiState == null) {
+			Log.i(TAG, "No previous state found, initializing empty widget")
+			_uiState.value = WidgetUIData(
 				hashMapOf(),
 				hashMapOf()
 			)
+			return uiState.value
+		}
 
+		val (settings, calendars, credentials, lastSync) = initialUiState
 		// Force is set as True when worker detects that it's a new day
 		val forceRemoteEventsFetch = lastSync?.force ?: false
+		Log.d(TAG, "Starting to fetch calendar events...")
 		val calendarToEventsListMap = this.getCalendarEvents(
 			(lastSync == null || lastSync.trigger == WidgetUpdateTrigger.APP || forceRemoteEventsFetch) && this.sdk != null,
 			this.sdk,
@@ -197,18 +204,21 @@ class WidgetUIViewModel(
 		var calendars: List<String> = listOf()
 		var lastSync: LastSyncDao? = null
 		try {
-			settings = repository.loadSettings(widgetDataStore, widgetId) ?: return null
-			Log.i(TAG, "Widget settings has ${settings.calendars.values.size} calendars")
+			val preferences = widgetDataStore.data.first().toPreferences()
 
+			settings = repository.decodeSettingsFromPreferences(preferences, widgetId) ?: return null
+			Log.i(TAG, "Widget settings has ${settings.calendars.values.size} calendars")
 			settings.calendars.entries.forEach { (calendarId, calendar) ->
 				Log.d(TAG, "$calendarId - ${calendar.name}")
 			}
-			lastSync = repository.loadLastSync(widgetDataStore, widgetId)
+
+			lastSync = repository.decodeLastSyncFromPreferences(preferences, widgetId)
 			Log.i(TAG, "Widget last sync at $lastSync")
 
 			sdk?.let { sdk -> loadCalendars(widgetDataStore, sdk, settings) }
 			calendars = settings.calendars.keys.toList()
 		} catch (e: Exception) {
+			Log.e(TAG, "Error when loading initial UI State", e)
 			// We couldn't load widget settings, so we must show an error to User
 			_error.value = WidgetError(
 				"Error reading from DataStore (WidgetId $widgetId)",
@@ -219,7 +229,6 @@ class WidgetUIViewModel(
 		}
 		val userId = settings?.userId
 		var credentials = this.credentialsFacade.loadByUserId(userId!!)
-		credentials
 		if (credentials == null) {
 			_error.value = WidgetError(
 				"Missing credentials for user ${userId}",
@@ -302,6 +311,7 @@ class WidgetUIViewModel(
 				)
 			} catch (e: Exception) {
 				Log.e(TAG, "Unknown exception occurred", e)
+
 				return repository.loadEventsFromCache(
 					widgetCacheDataStore,
 					widgetId,
@@ -334,6 +344,7 @@ class WidgetUIViewModel(
 			val loadedCalendars = repository.loadCalendars(settings.userId, credentialsFacade, sdk)
 			Log.i(TAG, "Successfully fetched ${loadedCalendars.size} calendars")
 			for (key in loadedCalendars.keys) {
+				// FIXME: Seems to only be updating colors but maybe not handling renames/deletions
 				settings.calendars[key]?.color = loadedCalendars[key]?.color ?: continue
 			}
 			repository.storeSettings(widgetDataStore, widgetId, settings)
