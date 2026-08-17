@@ -359,6 +359,7 @@ export async function show(
 					name: validatedName,
 					conditions: ruleConditions,
 					results: ruleResults,
+					enabled: true,
 				})
 			}
 		}

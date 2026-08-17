@@ -7317,6 +7317,7 @@ export function createExpandedInboxRule(values: ExpandedInboxRuleParams): Expand
 
 export type ExpandedInboxRuleParams = {
 	name: string
+	enabled: boolean
 
 	conditions: InboxRuleCondition[]
 	results: InboxRuleResult[]
@@ -7333,6 +7334,7 @@ export type ExpandedInboxRule = {
 	_ownerKeyVersion: null | NumberString
 	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	name: string
+	enabled: boolean
 
 	// == associations
 
@@ -7352,7 +7354,7 @@ export type ExpandedInboxRule = {
 	_original: Nullable<ExpandedInboxRule>
 	isAdapter: false
 }
-export const ExpandedInboxRuleListTypeRef: TypeRef<ExpandedInboxRuleList> = new TypeRef("tutanota", 2014)
+export const ExpandedInboxRuleListTypeRef: TypeRef<ExpandedInboxRuleList> = new TypeRef("tutanota", 2015)
 
 export function createExpandedInboxRuleList(values: ExpandedInboxRuleListParams): ExpandedInboxRuleList {
 	return Object.assign(create(typeModels[ExpandedInboxRuleListTypeRef.typeId], ExpandedInboxRuleListTypeRef), values)

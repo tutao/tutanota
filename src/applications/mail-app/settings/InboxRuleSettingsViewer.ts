@@ -28,7 +28,6 @@ import { Switch } from "../../../ui/base/Switch"
 import { IconButton } from "../../../ui/base/IconButton"
 import { createDropdown } from "../../../ui/base/Dropdown"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { ExpandedInboxRuleHandler } from "../mail/model/ExpandedInboxRuleHandler"
 import { ExpandedInboxRule, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { assertNotNull, isEmpty, promiseMap, splitInChunks } from "@tutao/utils"
@@ -36,6 +35,7 @@ import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../entities/
 import { resolveMailSetEntries } from "../mail/model/MailSetListModel"
 import { MoveMode } from "../mail/model/MailModel"
 import { isOfflineError } from "@tutao/rest-client/error"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { Icon, IconSize } from "../../../ui/base/Icon"
 
 EnvProvider.assertMainOrNode()
@@ -221,9 +221,10 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 						// toggle button
 						m(Switch, {
 							ariaLabel: "deactivate_action",
-							checked: true,
-							onclick(checked: boolean) {
-								throw new ProgrammingError("not implemented")
+							checked: rule.enabled,
+							onclick: async (checked: boolean) => {
+								rule.enabled = checked
+								await this.model.saveInboxRule(rule)
 							},
 						}),
 						// actions button

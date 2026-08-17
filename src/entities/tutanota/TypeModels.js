@@ -4245,13 +4245,13 @@ const typeModels = {
 				refTypeId: 1195,
 				dependency: null,
 			},
-			2017: {
+			2018: {
 				final: true,
 				name: "inboxRules",
-				id: 2017,
+				id: 2018,
 				type: "AGGREGATION",
 				cardinality: "ZeroOrOne",
-				refTypeId: 2014,
+				refTypeId: 2015,
 				dependency: null,
 			},
 		},
@@ -6665,10 +6665,10 @@ const typeModels = {
 				refTypeId: 1263,
 				dependency: null,
 			},
-			2018: {
+			2019: {
 				final: false,
 				name: "inboxRuleOrder",
-				id: 2018,
+				id: 2019,
 				type: "AGGREGATION",
 				cardinality: "Any",
 				refTypeId: 2315,
@@ -11503,21 +11503,29 @@ const typeModels = {
 				cardinality: "One",
 				encrypted: true,
 			},
-		},
-		associations: {
 			2012: {
 				final: false,
-				name: "conditions",
+				name: "enabled",
 				id: 2012,
+				type: "Boolean",
+				cardinality: "One",
+				encrypted: false,
+			},
+		},
+		associations: {
+			2013: {
+				final: false,
+				name: "conditions",
+				id: 2013,
 				type: "AGGREGATION",
 				cardinality: "Any",
 				refTypeId: 1994,
 				dependency: null,
 			},
-			2013: {
+			2014: {
 				final: false,
 				name: "results",
-				id: 2013,
+				id: 2014,
 				type: "AGGREGATION",
 				cardinality: "Any",
 				refTypeId: 1998,
@@ -11525,32 +11533,32 @@ const typeModels = {
 			},
 		},
 	},
-	2014: {
+	2015: {
 		name: "ExpandedInboxRuleList",
 		app: "tutanota",
 		version: 114,
 		since: 114,
 		type: "AGGREGATED_TYPE",
-		id: 2014,
-		rootId: "CHR1dGFub3RhAAfe",
+		id: 2015,
+		rootId: "CHR1dGFub3RhAAff",
 		versioned: false,
 		encrypted: false,
 		isPublic: true,
 		values: {
-			2015: {
+			2016: {
 				final: true,
 				name: "_id",
-				id: 2015,
+				id: 2016,
 				type: "CustomId",
 				cardinality: "One",
 				encrypted: false,
 			},
 		},
 		associations: {
-			2016: {
+			2017: {
 				final: true,
 				name: "list",
-				id: 2016,
+				id: 2017,
 				type: "LIST_ASSOCIATION",
 				cardinality: "One",
 				refTypeId: 2002,
