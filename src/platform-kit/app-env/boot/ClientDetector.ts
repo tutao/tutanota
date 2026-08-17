@@ -1,8 +1,8 @@
 import { EnvProvider, PlatformId } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
-import { BotKind, load } from "@fingerprintjs/botd"
 import { AppType } from "../AppType"
-import { console, hasTouchEvent, indexedDbIsSupported, TsString, TypeChecks } from "@tutao/lang-api"
+import { console, RuntimeInfo, TsNumber, TsString, TutanotaError, TypeChecks } from "@tutao/lang-api"
+import { BotdResult, BotKind, FingerprintJs } from "@tutao/lang-api/fingerprintJs"
 
 EnvProvider.assertMainOrNodeBoot()
 
@@ -16,6 +16,7 @@ export class ClientDetector {
 	device: DeviceType = DeviceType.DESKTOP
 
 	private static singeleton: ClientDetector | null = null
+
 	public static get(): ClientDetector {
 		if (ClientDetector.singeleton != null) {
 			return ClientDetector.singeleton
@@ -27,18 +28,17 @@ export class ClientDetector {
 
 	constructor() {}
 
-	init(userAgent: string, platform: string, appType: AppType = AppType.Integrated): ClientDetector {
+	init(userAgent: string, platform: TsString, appType: AppType = AppType.Integrated): ClientDetector {
 		this.userAgent = userAgent
 		this.appType = appType
 		this._setBrowserAndVersion()
 		this._setDeviceInfo()
 
-		load({ monitoring: false })
-			.then((botd) => botd.detect())
-			.then((result) => {
+		FingerprintJs.detect(false)
+			.then((result: BotdResult) => {
 				this.isAutomatedBrowser = result.bot && result.botKind !== BotKind.Electron
 			})
-			.catch((error) => console.error(error))
+			.catch((error: TutanotaError) => console.error(error))
 
 		this.isMacOS = platform.indexOf("Mac") !== -1
 
@@ -136,7 +136,7 @@ export class ClientDetector {
 
 			if (mainVersionEndIndex !== -1) {
 				try {
-					this.browserVersion = Number(userAgent.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
+					this.browserVersion = TsNumber(userAgent.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
 				} catch (e) {
 					/* empty */
 				}
@@ -166,7 +166,7 @@ export class ClientDetector {
 				while (pos < userAgent.length) {
 					pos++
 
-					if (TypeChecks.isNaN(Number(userAgent.charAt(pos)))) {
+					if (TypeChecks.isNaN(TsNumber(userAgent.charAt(pos)))) {
 						if (hadNan) {
 							break
 						} else {
@@ -176,7 +176,7 @@ export class ClientDetector {
 				}
 
 				const numberString = userAgent.substring(versionIndex + 4, pos)
-				this.browserVersion = Number(numberString.replace(/_/g, "."))
+				this.browserVersion = TsNumber(numberString.replace(/_/g, "."))
 			} catch (e) {
 				/* empty */
 			}
@@ -190,7 +190,9 @@ export class ClientDetector {
 		if (
 			userAgent.match(/iPad.*AppleWebKit/) != null || // iPadOS does not differ in UserAgent from Safari on macOS. Use hack with TouchEvent to detect iPad
 			// Desktop Chrome has TouchEvent but it also has Chrome in it. Mobile iOS has CriOS in it and not Chrome.
-			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(userAgent as string) && hasTouchEvent() && /.*Chrome.*/.test(userAgent as string) === false)
+			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(userAgent as string) &&
+				RuntimeInfo.hasTouchEvent() &&
+				/.*Chrome.*/.test(userAgent as string) === false)
 		) {
 			this.device = DeviceType.IPAD
 		} else if (userAgent.match(/iPhone.*AppleWebKit/) != null) {
@@ -251,7 +253,7 @@ export class ClientDetector {
 		return {
 			needsMicrotaskHack: this.needsMicrotaskHack(),
 			needsExplicitIDBIds: this.needsExplicitIDBIds(),
-			indexedDbSupported: indexedDbIsSupported(),
+			indexedDbSupported: RuntimeInfo.indexedDbIsSupported(),
 			clientPlatform: this.getClientPlatform(),
 		}
 	}
