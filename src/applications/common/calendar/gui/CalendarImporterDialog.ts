@@ -170,26 +170,6 @@ export function calendarSelectionDialog(
 	}).show()
 }
 
-/**
- * Used to track altered instances that need to have excluded dates added to their progenitors during import operations.
- *
- * Not all other calendar providers add excluded dates to their repeating iCalendar progenitors.
- * Therefore, we need to identify all the excluded dates ourselves and add them to the appropriate progenitor.
- *
- * **progenitorsToCreate**: is a Map to track new progenitors that do not exist in a user's calendar yet,
- * and therefore exclusions can be added before first creation.
- *
- * **progenitorsToUpdate**: is a Map progenitors that already exist in a user's calendar, and therefore we need to
- * fetch and update them with these exclusions after the new altered instances have been imported and created.
- *
- * Both Maps use the *progenitor's UID as a key*, to ensure fast lookup speed if we have a large number of altered instances.
- *
- */
-export type ProgenitorsToUpdateExclusionDates = {
-	alteredInstancesForNewProgenitors: Map<CalendarEventProgenitor, CalendarEventAlteredInstance[]>
-	alteredInstancesForExistingProgenitors: Map<CalendarEventProgenitor, CalendarEventAlteredInstance[]>
-}
-
 export async function selectAndParseIcalFile(): Promise<ParsedEventAlarmTuple[]> {
 	const allowedExtensions = ["ical", "ics", "ifb", "icalendar"]
 	const dataFiles = isApp() ? await showNativeFilePicker(allowedExtensions, true) : await showFileChooser(FileChooserMultiMode.Multi, allowedExtensions)
