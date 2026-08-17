@@ -183,7 +183,7 @@ export class MailAddressFacade {
 
 	/**
 	 * Add an {@param alias} to {@param targetGroupId}.
-	 * {@param targetGroupId} is *not* a Mail group, it is currently only a user group.
+	 * {@param targetGroupId} can be a user group or a shared mail grou.
 	 *
 	 * Can only be done by an admin.
 	 */
@@ -197,7 +197,7 @@ export class MailAddressFacade {
 
 	/**
 	 * Enable/disable an {@param alias} on {@param targetGroupId}.
-	 * {@param targetGroupId} is *not* a Mail group, it is currently only a user group.
+	 * {@param targetGroupId} can be a user group or a shared mail group.
 	 *
 	 * {@param restore} means whether the alias will be enabled or disabled.
 	 *
@@ -252,7 +252,7 @@ export class MailAddressFacade {
 	 * remove the sender name of the given mail address.
 	 * If no user is given, the operation will be attempted as an admin of the group.
 	 */
-	async removeSenderName(mailGroupId: Id, mailAddress: string, viaUser: Id): Promise<Map<string, string>> {
+	async removeSenderName(mailGroupId: Id, mailAddress: string, viaUser?: Id): Promise<Map<string, string>> {
 		const mailboxProperties = await this.getOrCreateMailboxProperties(mailGroupId, viaUser)
 		findAndRemove(mailboxProperties.mailAddressProperties, (p) => p.mailAddress === mailAddress)
 		const updatedProperties = await this.updateMailboxProperties(mailboxProperties, viaUser)

@@ -119,12 +119,14 @@ function addressDropdownButtons(attrs: MailAddressTableAttrs, addressInfo: Addre
 						switchAliasStatus(addressInfo, attrs)
 					},
 				})
-				buttons.push({
-					label: "setPrimaryMailAddress_label",
-					click: () => {
-						makeAliasPrimary(addressInfo, attrs.model)
-					},
-				})
+				if (attrs.model.canSetPrimaryAddress()) {
+					buttons.push({
+						label: "setPrimaryMailAddress_label",
+						click: () => {
+							makeAliasPrimary(addressInfo, attrs.model)
+						},
+					})
+				}
 			}
 			return buttons
 		}
@@ -149,12 +151,14 @@ function addressDropdownButtons(attrs: MailAddressTableAttrs, addressInfo: Addre
 						switchAliasStatus(addressInfo, attrs)
 					},
 				})
-				buttons.push({
-					label: "setPrimaryMailAddress_label",
-					click: () => {
-						makeAliasPrimary(addressInfo, attrs.model)
-					},
-				})
+				if (attrs.model.canSetPrimaryAddress()) {
+					buttons.push({
+						label: "setPrimaryMailAddress_label",
+						click: () => {
+							makeAliasPrimary(addressInfo, attrs.model)
+						},
+					})
+				}
 			}
 			return buttons
 		}

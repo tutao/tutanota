@@ -18,10 +18,13 @@ import { GroupDetailsModel } from "../../../mail-app/settings/groups/GroupDetail
 import { showBuyDialog } from "../../subscription/BuyDialog.js"
 import { UpdatableSettingsDetailsViewer } from "../Interfaces.js"
 import { GroupType } from "../../../../entities/sys/Utils"
+import { MailAddressTable } from "../mailaddress/MailAddressTable.js"
 
 EnvProvider.assertMainOrNode()
 
 export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
+	private mailAddressTableExpanded = true
+
 	constructor(private readonly model: GroupDetailsModel) {}
 
 	/**
@@ -33,7 +36,11 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	}
 
 	renderView(): Children {
-		return m("#user-viewer.fill-absolute.scroll.plr-24", [this.renderHeader(), this.renderCommonInfo(), this.renderMailGroupInfo()])
+		return m("#user-viewer.fill-absolute.scroll.plr-24", [
+			this.renderHeader(),
+			this.renderCommonInfo(),
+			this.model.isMailGroup() ? this.renderMailGroupInfo() : null,
+		])
 	}
 
 	/**
@@ -53,6 +60,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	 * @private
 	 */
 	private renderMailGroupInfo(): ChildArray {
+		const mailAddressTableModel = this.model.getMailAddressTableModel()
 		return [
 			this.renderUsedStorage(),
 			m(LegacyTextField, {
@@ -73,6 +81,15 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 						},
 					}),
 			}),
+			mailAddressTableModel
+				? m(MailAddressTable, {
+						model: mailAddressTableModel,
+						expanded: this.mailAddressTableExpanded,
+						onExpanded: (expanded) => {
+							this.mailAddressTableExpanded = expanded
+						},
+					})
+				: null,
 		]
 	}
 
