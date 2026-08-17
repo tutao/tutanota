@@ -16,7 +16,7 @@ import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../api
 
 import { CalendarImporter } from "../import/CalendarImporter"
 import { UserController } from "../../api/main/UserController.js"
-import { parseCalendarFile, ParsedEventAlarmTuple } from "../../../calendar-app/calendar/export/CalendarParser"
+import { parseCalendarFile, ParsedCalendarData, ParsedEventAlarmTuple } from "../../../calendar-app/calendar/export/CalendarParser"
 import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../../../ui/base/List"
 import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow"
 import { component_size } from "../../../../ui/size"
@@ -196,7 +196,7 @@ export async function selectAndParseIcalFile(): Promise<ParsedEventAlarmTuple[]>
 	const contents: ParsedEventAlarmTuple[] = []
 	let failureMessage = ""
 	for (const file of dataFiles) {
-		const result = parseCalendarFile(file)
+		const result: ParsedCalendarData = parseCalendarFile(file)
 		contents.push(...result.contents)
 
 		const succeededEventsCount = contents.length
@@ -212,16 +212,9 @@ export async function selectAndParseIcalFile(): Promise<ParsedEventAlarmTuple[]>
 	}
 
 	if (failureMessage.length > 0) {
-		console.log(failureMessage)
 		// await so that other importer-related dialogs don't pop up and interfere with this msg.
-		await Dialog.message(
-			lang.makeTranslation(
-				"confirm_msg",
-				failureMessage,
-			),
-		)
+		await Dialog.message(lang.makeTranslation("confirm_msg", failureMessage))
 	}
-
 	return contents
 }
 

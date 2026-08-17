@@ -297,6 +297,7 @@ o.spec("CalendarModel", function () {
 			baseParsedCalendarData = {
 				method: CalendarMethod.REPLY,
 				contents: [baseParsedEventReply],
+				parseEventErrors: [],
 			}
 
 			userGroupInfo = object()
@@ -354,6 +355,7 @@ o.spec("CalendarModel", function () {
 						alarms: [],
 					},
 				],
+				parseEventErrors: [],
 			}
 
 			const createCalendarEventsResult: CreateCalendarEventsResult = object()
@@ -536,6 +538,7 @@ o.spec("CalendarModel", function () {
 							alarms: [],
 						},
 					],
+					parseEventErrors: [],
 				})
 
 				const eventCaptor = matchers.captor()
@@ -564,6 +567,7 @@ o.spec("CalendarModel", function () {
 							alarms: [],
 						},
 					],
+					parseEventErrors: [],
 				})
 
 				const eventCaptor = matchers.captor()
@@ -592,6 +596,7 @@ o.spec("CalendarModel", function () {
 							alarms: [],
 						},
 					],
+					parseEventErrors: [],
 				})
 
 				verify(calendarFacadeMock.getEventsByUid(anything(), anything(), anything()), { times: 1 })
@@ -669,6 +674,7 @@ o.spec("CalendarModel", function () {
 						alarms: [],
 					},
 				],
+				parseEventErrors: [],
 			})
 
 			const oldEventCaptor = matchers.captor()
@@ -709,6 +715,7 @@ o.spec("CalendarModel", function () {
 			baseParsedCalendarDataCancel = {
 				method: CalendarMethod.CANCEL,
 				contents: [baseParsedEvent],
+				parseEventErrors: [],
 			}
 		})
 
@@ -824,6 +831,7 @@ o.spec("CalendarModel", function () {
 						alarms: [],
 					},
 				],
+				parseEventErrors: [],
 			})
 			verify(calendarFacadeMock.getEventsByUid(anything(), anything(), anything()), { times: 1 })
 			verify(calendarModel.handleNewCalendarEventInvitationFromIcs(anything(), anything(), anything()), { times: 0 })
@@ -843,6 +851,7 @@ o.spec("CalendarModel", function () {
 						alarms: [],
 					},
 				],
+				parseEventErrors: [],
 			})
 
 			const eventCaptor = matchers.captor()

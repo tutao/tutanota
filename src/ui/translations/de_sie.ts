@@ -872,6 +872,7 @@ export default {
 		"importIncomplete_title": "Import nicht erfolgreich",
 		"importInvalidDatesInEvent_msg": "{amount} von {total} Terminen enthalten ungültige Daten und werden nicht importiert.",
 		"importPre1970StartInEvent_msg": "{amount} von {total} Terminen liegen vor 1970 und werden nicht importiert.",
+		"importFileFailuresError_msg": "{failedEventsCount} Termine aus Datei \"{filename}\" könnten nicht importiert werden. {succeededEventsCount} erflogreich importiert.",
 		"importReadFileError_msg": "Die Datei {filename} ist leider nicht lesbar.",
 		"importTargetFolderDeleted_msg": "Der Import wurde abgebrochen, da der Importordner gelöscht wurde.",
 		"importUsers_action": "Benutzer*innen importieren",

@@ -3,6 +3,7 @@ import { createTestEntity } from "../../TestUtils"
 import { EndType, RepeatPeriod } from "../../../../src/platform-kit/app-env"
 import { DateTime } from "luxon"
 import {
+	IcsCalendarEvent,
 	parseCalendarEvents,
 	parseCalendarStringData,
 	ParsedCalendarData,
@@ -500,6 +501,7 @@ o.spec("CalendarParser", function () {
 						alarms: [],
 					},
 				],
+				parseEventErrors: [],
 			}
 		})
 
@@ -567,33 +569,27 @@ o.spec("CalendarParser", function () {
 
 			for (const unsupportedRepeatFrequency of ["HOURLY", "MINUTELY", "SECONDLY"]) {
 				o(`Rejects events with unsupported ${unsupportedRepeatFrequency} repeat frequency`, function () {
-					let didError: boolean
-					try {
-						parseCalendarStringData(
-							"BEGIN:VCALENDAR\r\n" +
-								"PRODID:-//Tutao GmbH//Tutanota 42//EN\r\n" +
-								"VERSION:2.0\r\n" +
-								"CALSCALE:GREGORIAN\r\n" +
-								"METHOD:PUBLISH\r\n" +
-								"BEGIN:VEVENT\r\n" +
-								"DTSTART;TZID=Europe/Berlin:20000101T020000\r\n" +
-								"DTEND;TZID=Europe/Berlin:20000107T020000\r\n" +
-								"DTSTAMP:20190813T140100Z\r\n" +
-								"UID:test@tuta.com\r\n" +
-								"SEQUENCE:0\r\n" +
-								"SUMMARY:Hourly repeating event\r\n" +
-								`RRULE:FREQ=${unsupportedRepeatFrequency}\r\n` +
-								"END:VEVENT\r\n" +
-								"END:VCALENDAR",
-							zone,
-						)
-						didError = false
-					} catch (e) {
-						o(e instanceof ParserError).equals(true)
-						o(e.message).equals(`Unsupported ICal frequency: ${unsupportedRepeatFrequency}`)
-						didError = true
-					}
-					o(didError).equals(true)
+					const result = parseCalendarStringData(
+						"BEGIN:VCALENDAR\r\n" +
+							"PRODID:-//Tutao GmbH//Tutanota 42//EN\r\n" +
+							"VERSION:2.0\r\n" +
+							"CALSCALE:GREGORIAN\r\n" +
+							"METHOD:PUBLISH\r\n" +
+							"BEGIN:VEVENT\r\n" +
+							"DTSTART;TZID=Europe/Berlin:20000101T020000\r\n" +
+							"DTEND;TZID=Europe/Berlin:20000107T020000\r\n" +
+							"DTSTAMP:20190813T140100Z\r\n" +
+							"UID:test@tuta.com\r\n" +
+							"SEQUENCE:0\r\n" +
+							"SUMMARY:Hourly repeating event\r\n" +
+							`RRULE:FREQ=${unsupportedRepeatFrequency}\r\n` +
+							"END:VEVENT\r\n" +
+							"END:VCALENDAR",
+						zone,
+					)
+					o(result.contents.length).equals(0)
+					o(result.parseEventErrors.length).equals(1)
+					o(result.parseEventErrors[0].message).equals(`Unsupported ICal frequency: ${unsupportedRepeatFrequency}`)
 				})
 			}
 
@@ -655,62 +651,6 @@ o.spec("CalendarParser", function () {
 			// assigning uid so we can test that the other fields are the same.
 			parsedEvent.icsCalendarEvent.uid = "test@tuta.com"
 			testParsedEventEquality(parsedEvent, expectedParsedCalendarData.contents[0])
-		})
-
-		o("event with TZID=UTC and Z suffix does not cause error", async function () {
-			const result = parseCalendarStringData(
-				[
-					"BEGIN:VCALENDAR",
-					"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
-					"VERSION:2.0",
-					"CALSCALE:GREGORIAN",
-					"METHOD:PUBLISH",
-					"BEGIN:VEVENT",
-					`DTSTART;TZID=UTC:20190813T050600Z`,
-					`DTEND;TZID=UTC:20190913T050600Z`,
-					`DTSTAMP:20190813T140100Z`,
-					`UID:test@tuta.com`,
-					"SEQUENCE:0",
-					"SUMMARY:VERY UTC",
-					"END:VEVENT",
-					"END:VCALENDAR",
-				].join("\r\n"),
-				zone,
-			)
-
-			o(result.contents[0].icsCalendarEvent.startTime.toISOString()).equals("2019-08-13T05:06:00.000Z")
-			o(result.contents[0].icsCalendarEvent.endTime.toISOString()).equals("2019-09-13T05:06:00.000Z")
-
-			o(result.contents[0].icsCalendarEvent.startTimeZone).equals("UTC")
-			o(result.contents[0].icsCalendarEvent.endTimeZone).equals("UTC")
-		})
-
-		o("event with TZID=UTC and Z suffix does not cause error", async function () {
-			const result = parseCalendarStringData(
-				[
-					"BEGIN:VCALENDAR",
-					"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
-					"VERSION:2.0",
-					"CALSCALE:GREGORIAN",
-					"METHOD:PUBLISH",
-					"BEGIN:VEVENT",
-					`DTSTART;TZID=UTC:20190813T050600Z`,
-					`DTEND;TZID=UTC:20190913T050600Z`,
-					`DTSTAMP:20190813T140100Z`,
-					`UID:test@tuta.com`,
-					"SEQUENCE:0",
-					"SUMMARY:VERY UTC",
-					"END:VEVENT",
-					"END:VCALENDAR",
-				].join("\r\n"),
-				zone,
-			)
-
-			o(result.contents[0].icsCalendarEvent.startTime.toISOString()).equals("2019-08-13T05:06:00.000Z")
-			o(result.contents[0].icsCalendarEvent.endTime.toISOString()).equals("2019-09-13T05:06:00.000Z")
-
-			o(result.contents[0].icsCalendarEvent.startTimeZone).equals("UTC")
-			o(result.contents[0].icsCalendarEvent.endTimeZone).equals("UTC")
 		})
 
 		o.spec("With attendee", function () {
@@ -1068,6 +1008,7 @@ o.spec("CalendarParser", function () {
 								alarms: [],
 							},
 						],
+						parseEventErrors: [],
 					},
 				)
 			})
@@ -1440,6 +1381,34 @@ END:VCALENDAR`
 	})
 
 	o.spec("Handles TZID property parameter", () => {
+		o("event with TZID=UTC and Z suffix does not cause error", async function () {
+			const result = parseCalendarStringData(
+				[
+					"BEGIN:VCALENDAR",
+					"PRODID:-//Tutao GmbH//Tutanota 3.57.6Yup//EN",
+					"VERSION:2.0",
+					"CALSCALE:GREGORIAN",
+					"METHOD:PUBLISH",
+					"BEGIN:VEVENT",
+					`DTSTART;TZID=UTC:20190813T050600Z`,
+					`DTEND;TZID=UTC:20190913T050600Z`,
+					`DTSTAMP:20190813T140100Z`,
+					`UID:test@tuta.com`,
+					"SEQUENCE:0",
+					"SUMMARY:VERY UTC",
+					"END:VEVENT",
+					"END:VCALENDAR",
+				].join("\r\n"),
+				zone,
+			)
+			// this is failing because the value is being sorted out as an error/failure but it shouldnt be.
+			o(result.contents[0].icsCalendarEvent.startTime.toISOString()).equals("2019-08-13T05:06:00.000Z")
+			o(result.contents[0].icsCalendarEvent.endTime.toISOString()).equals("2019-09-13T05:06:00.000Z")
+
+			o(result.contents[0].icsCalendarEvent.startTimeZone).equals("UTC")
+			o(result.contents[0].icsCalendarEvent.endTimeZone).equals("UTC")
+		})
+
 		o.test("Handles valid time zones", () => {
 			for (const [tzIdValue, expectedTimeZone] of [
 				// Valid IANA time zones and/or alias (so-called "Links" in the tzdb)
@@ -1457,6 +1426,32 @@ END:VCALENDAR`
 				//    Beware, 'Etc/GMT+<offset>' flip the sign of the GMT-offset because they were standardized
 				//    in an old POSIX standard; i.e. Etc/GMT+1 != UTC+1 && Etc/GMT+1 == UTC-1!
 				["UTC-02", "Etc/GMT+2"],
+
+				// Irregular ETC/UTC timezones that we don't let users select but are technically correct.
+				["UTC+13", "Etc/GMT-13"],
+				["GMT+13", "Etc/GMT-13"],
+				["UTC-11", "Etc/GMT+11"],
+				["GMT-11", "Etc/GMT+11"],
+
+				// Handles irregular hour/minute offsets.  Intl API cannot handle minute offsets so those are always 00 in these tests.
+				["UTC+0200", "Etc/GMT-2"],
+				["GMT-0900", "Etc/GMT+9"],
+				["GMT+400", "Etc/GMT-4"],
+				["UTC-1100", "Etc/GMT+11"],
+				["GMT+0000", "UTC"],
+				["UTC+0000", "UTC"],
+				["UTC-0000", "UTC"],
+				["GMT+00", "UTC"],
+				["GMT+000", "UTC"],
+				["GMT-000", "UTC"],
+
+				["GMT-1200", "Etc/GMT+12"], // min offset
+				["GMT+1400", "Etc/GMT-14"], // max offset
+
+				// handles irregular casing for robustness
+				["gMt", "UTC"],
+				["GmT", "UTC"],
+				["uTc", "UTC"],
 			]) {
 				const calendar =
 					"BEGIN:VCALENDAR\n" +
@@ -1469,36 +1464,59 @@ END:VCALENDAR`
 					"END:VEVENT\n" +
 					"END:VCALENDAR"
 				const result = parseCalendarStringData(calendar, zone)
-				const calendarEvent = result.contents[0].icsCalendarEvent
-				o(calendarEvent.startTimeZone).equals(expectedTimeZone)
+				const calendarEvent: IcsCalendarEvent | undefined = result.contents[0]?.icsCalendarEvent
+				o(calendarEvent?.startTimeZone).equals(expectedTimeZone)(result.parseEventErrors.toString())
 			}
 		})
-		o.test("Throw error on invalid time zone", () => {
-			const calendar =
-				"BEGIN:VCALENDAR\n" +
-				"VERSION:2.0\n" +
-				"BEGIN:VEVENT\n" +
-				"UID:test-123\n" +
-				"DTSTART;TZID=Bogus/Time_Zone:20260101T120000\n" +
-				"DTEND:20260101T123000\n" +
-				"SUMMARY:Test TZID\n" +
-				"END:VEVENT\n" +
-				"END:VCALENDAR"
-			o.check(() => parseCalendarStringData(calendar, zone)).throws(ParserError)
+		o.test("Parser rejects invalid time zones and collects info about failures", () => {
+			for (const tzIdValue of [
+				"Bogus/Time_Zone",
+				"ICP",
+				"GMOS",
+				"UTC+40",
+				"GMT+40",
+				"UTC-40",
+				"GMT-40",
+				"GMT+4000",
+				"GMT+00000",
+				"GMT-00000",
+				"GMT-1300", // below min offset
+				"GMT+1500", // above max offset
+			]) {
+				const calendar =
+					"BEGIN:VCALENDAR\n" +
+					"VERSION:2.0\n" +
+					"BEGIN:VEVENT\n" +
+					"UID:test-123\n" +
+					`DTSTART;TZID=${tzIdValue}:20260101T120000` +
+					"DTEND:20260101T123000\n" +
+					"SUMMARY:Test TZID\n" +
+					"END:VEVENT\n" +
+					"END:VCALENDAR"
+
+				const parseResult = parseCalendarStringData(calendar, zone)
+				o(parseResult.contents.length).equals(0)(`Parsing ${tzIdValue} succeeded, but should have failed.`)
+				o(parseResult.parseEventErrors.length).equals(1)(`ParserError not produced for ${tzIdValue}.`)
+			}
 		})
-		o.test("Throw error when given a TZID that is not UTC and has a Z-Suffix", function () {
+		o.test("Produces error when given a TZID that is not UTC and has a Z-Suffix", function () {
+			const invalidDtStartTzidWithDate = "Europe/Berlin:20260101T120000Z"
 			const calendarInvalidDtStart =
 				"BEGIN:VCALENDAR\n" +
 				"VERSION:2.0\n" +
 				"BEGIN:VEVENT\n" +
 				"UID:test-123\n" +
-				"DTSTART;TZID=Europe/Berlin:20260101T120000Z\n" +
+				`DTSTART;TZID=${invalidDtStartTzidWithDate}` +
 				"DTEND:20260101T123000\n" +
 				"SUMMARY:Test TZID\n" +
 				"END:VEVENT\n" +
 				"END:VCALENDAR"
 
-			o.check(() => parseCalendarStringData(calendarInvalidDtStart, zone)).throws(ParserError)
+			const parsedDtStartResult = parseCalendarStringData(calendarInvalidDtStart, zone)
+			o(parsedDtStartResult.contents.length).equals(0)(`Parsing ${invalidDtStartTzidWithDate} succeeded, but should have failed.`)
+			o(parsedDtStartResult.parseEventErrors.length).equals(1)(`ParserError not produced for ${invalidDtStartTzidWithDate}.`)
+
+			const invalidDtEndTzidWithDate = "Europe/Berlin:20260101T123000Z"
 
 			const calendarInvalidDtEnd =
 				"BEGIN:VCALENDAR\n" +
@@ -1506,12 +1524,14 @@ END:VCALENDAR`
 				"BEGIN:VEVENT\n" +
 				"UID:test-123\n" +
 				"DTSTART:20260101T120000\n" +
-				"DTEND;TZID=Europe/Berlin:20260101T123000Z\n" +
+				`DTEND;TZID=${invalidDtEndTzidWithDate}` +
 				"SUMMARY:Test TZID\n" +
 				"END:VEVENT\n" +
 				"END:VCALENDAR"
 
-			o.check(() => parseCalendarStringData(calendarInvalidDtEnd, zone)).throws(ParserError)
+			const parsedDtEndResult = parseCalendarStringData(calendarInvalidDtEnd, zone)
+			o(parsedDtEndResult.contents.length).equals(0)(`Parsing ${invalidDtEndTzidWithDate} succeeded, but should have failed.`)
+			o(parsedDtEndResult.parseEventErrors.length).equals(1)(`ParserError not produced for ${invalidDtEndTzidWithDate}.`)
 		})
 	})
 })
