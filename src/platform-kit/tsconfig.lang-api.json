@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["./lang-api/"],
+	"include": ["./lang-api/", "../types/"],
 	"compilerOptions": {
 		"rootDir": "./lang-api/",
 		"outDir": "../../build/lang-api",
