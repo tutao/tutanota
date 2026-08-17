@@ -78,7 +78,7 @@ export const SEARCH_MAIL_FIELDS: ReadonlyArray<SearchMailField> = [
 	{
 		textId: "subject_label",
 		field: "subject",
-		attributeIds: [tutanotaTypeModels[MailTypeRef.typeId].values[SUBJECT_ID] as number],
+		attributeIds: [tutanotaTypeModels[MailTypeRef.typeId].values[SUBJECT_ID].id as number],
 	},
 	{
 		textId: "mailBody_label",
