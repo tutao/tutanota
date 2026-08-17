@@ -2,13 +2,12 @@ import { EnvProvider, PlatformId } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
 import { AppType } from "../AppType"
-import { indexedDbIsSupported, TypeChecks } from "@tutao/lang-api"
+import { console, hasTouchEvent, indexedDbIsSupported, TypeChecks } from "@tutao/lang-api"
 
 EnvProvider.assertMainOrNodeBoot()
 
 export class ClientDetector {
 	private userAgent: string | null = null
-	overflowAuto: string | null = null
 	isMacOS: boolean | null = null
 	appType: AppType | null = null
 	isAutomatedBrowser: boolean = false
@@ -41,7 +40,6 @@ export class ClientDetector {
 			})
 			.catch((error) => console.error(error))
 
-		this.overflowAuto = this.cssPropertyValueSupported("overflow", "overlay") ? "overlay" : "auto"
 		this.isMacOS = platform.indexOf("Mac") !== -1
 
 		return this
@@ -60,15 +58,6 @@ export class ClientDetector {
 
 	isDesktopDevice(): boolean {
 		return this.device === DeviceType.DESKTOP
-	}
-
-	localStorage(): boolean {
-		try {
-			return localStorage != null
-		} catch (e) {
-			// DOMException is thrown if all cookies are disabled
-			return false
-		}
 	}
 
 	_setBrowserAndVersion(): void {
@@ -201,7 +190,7 @@ export class ClientDetector {
 		if (
 			userAgent.match(/iPad.*AppleWebKit/) != null || // iPadOS does not differ in UserAgent from Safari on macOS. Use hack with TouchEvent to detect iPad
 			// Desktop Chrome has TouchEvent but it also has Chrome in it. Mobile iOS has CriOS in it and not Chrome.
-			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(userAgent) && window.TouchEvent != null && /.*Chrome.*/.test(userAgent) === false)
+			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(userAgent) && hasTouchEvent() && /.*Chrome.*/.test(userAgent) === false)
 		) {
 			this.device = DeviceType.IPAD
 		} else if (userAgent.match(/iPhone.*AppleWebKit/) != null) {
@@ -221,12 +210,6 @@ export class ClientDetector {
 
 	isIos(): boolean {
 		return this.device === DeviceType.IPAD || this.device === DeviceType.IPHONE
-	}
-
-	cssPropertyValueSupported(prop: string, value: string): boolean {
-		let d = document.createElement("div") as any
-		d.style[prop] = value
-		return d.style[prop] === value
 	}
 
 	getIdentifier(): string {

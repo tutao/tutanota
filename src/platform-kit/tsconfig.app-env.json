@@ -5,7 +5,10 @@
 		"rootDir": "./app-env/",
 		"outDir": "../../build/app-env",
 		"tsBuildInfoFile": "../../build/app-env/tsbuildinfo",
-		"composite": true
+		"composite": true,
+
+		"lib": ["es2023"],
+		"types": []
 	},
 	"references": [
 		{

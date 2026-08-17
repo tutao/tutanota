@@ -10,6 +10,7 @@ import { DefaultAnimationTime } from "./animation/Animations"
 import { FontIcons } from "./base/icons/FontIcons"
 import type { IWindowFacade } from "./IWindowFacade.js"
 import { ClientDetector } from "../platform-kit/app-env/boot/ClientDetector"
+import { CheckBrowser } from "./CheckBrowser"
 import { downcast } from "@tutao/utils"
 
 EnvProvider.assertMainOrNode()
@@ -973,7 +974,7 @@ export class MainStyles {
 					"max-width": px(200),
 				},
 				".scroll": {
-					"overflow-y": ClientDetector.get().overflowAuto,
+					"overflow-y": CheckBrowser.overflowAuto,
 					"-webkit-overflow-scrolling": "touch",
 				},
 				".scroll-no-overlay": {
