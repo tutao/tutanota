@@ -119,10 +119,7 @@ export class SymmetricKeyDeriver {
 	 * Derive instance key for AEAD from groupKey and Kdf nonce.
 	 */
 	deriveInstanceKey(groupKey: VersionedKey, kdfNonce: KdfNonce): VersionedAes256Key {
-		const context = AEAD_FROM_GROUP_KEY_AND_NONCE_DERIVATION_OF_INSTANCE_KEY
-		const inputKeyMaterial = concat(keyToUint8Array(groupKey.object), kdfNonce)
-		const derivedBytes = blake3Kdf(inputKeyMaterial, context, DEFAULT_LENGTH_PER_KEY_BYTES)
-		return { object: uint8ArrayTo256Key(derivedBytes), version: groupKey.version }
+		return deriveInstanceKey(groupKey, kdfNonce)
 	}
 
 	/**
@@ -168,6 +165,13 @@ export class SymmetricKeyDeriver {
 		const authenticationKey = uint8ArrayTo256Key(derivedBytes.subarray(DEFAULT_LENGTH_PER_KEY_BYTES, DEFAULT_TOTAL_KEY_LENGTH_BYTES))
 		return new AeadWithInstanceKeySubKeys(groupKeyVersion, encryptionKey, authenticationKey)
 	}
+}
+
+export function deriveInstanceKey(groupKey: VersionedKey, kdfNonce: KdfNonce): VersionedAes256Key {
+	const context = AEAD_FROM_GROUP_KEY_AND_NONCE_DERIVATION_OF_INSTANCE_KEY
+	const inputKeyMaterial = concat(keyToUint8Array(groupKey.object), kdfNonce)
+	const derivedBytes = blake3Kdf(inputKeyMaterial, context, DEFAULT_LENGTH_PER_KEY_BYTES)
+	return { object: uint8ArrayTo256Key(derivedBytes), version: groupKey.version }
 }
 
 export const SYMMETRIC_KEY_DERIVER = new SymmetricKeyDeriver()

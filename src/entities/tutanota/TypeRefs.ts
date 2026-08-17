@@ -670,6 +670,10 @@ export type ExternalUserDataParams = {
 	externalMailEncMailBoxSessionKey: Uint8Array<ArrayBuffer>
 	kdfVersion: NumberString
 	internalMailGroupKeyVersion: NumberString
+	externalMailEncMailGroupInfoInstanceKey: null | Uint8Array<ArrayBuffer>
+	externalMailGroupInfoInstanceKeyVersion: null | NumberString
+	externalUserEncUserGroupInfoInstanceKey: null | Uint8Array<ArrayBuffer>
+	externalUserGroupInfoInstanceKeyVersion: null | NumberString
 
 	userGroupData: CreateExternalUserGroupData
 }
@@ -689,6 +693,10 @@ export type ExternalUserData = {
 	externalMailEncMailBoxSessionKey: Uint8Array<ArrayBuffer>
 	kdfVersion: NumberString
 	internalMailGroupKeyVersion: NumberString
+	externalMailEncMailGroupInfoInstanceKey: null | Uint8Array<ArrayBuffer>
+	externalMailGroupInfoInstanceKeyVersion: null | NumberString
+	externalUserEncUserGroupInfoInstanceKey: null | Uint8Array<ArrayBuffer>
+	externalUserGroupInfoInstanceKeyVersion: null | NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
@@ -2984,10 +2992,14 @@ export type SharedGroupDataParams = {
 	sessionEncSharedGroupName: Uint8Array<ArrayBuffer>
 	sessionEncInviterName: Uint8Array<ArrayBuffer>
 	bucketEncInvitationSessionKey: Uint8Array<ArrayBuffer>
-	sharedGroupEncInviterGroupInfoKey: Uint8Array<ArrayBuffer>
-	sharedGroupEncSharedGroupInfoKey: Uint8Array<ArrayBuffer>
+	sharedGroupEncInviterGroupInfoSessionKey: Uint8Array<ArrayBuffer>
+	sharedGroupEncSharedGroupInfoSessionKey: Uint8Array<ArrayBuffer>
 	sharedGroup: Id
 	sharedGroupKeyVersion: NumberString
+	sharedGroupEncInviterGroupInfoInstanceKey: null | Uint8Array<ArrayBuffer>
+	inviterGroupInfoInstanceKeyVersion: null | NumberString
+	sharedGroupEncSharedGroupInfoInstanceKey: null | Uint8Array<ArrayBuffer>
+	sharedGroupInfoInstanceKeyVersion: null | NumberString
 }
 
 export type SharedGroupData = {
@@ -2999,10 +3011,14 @@ export type SharedGroupData = {
 	sessionEncSharedGroupName: Uint8Array<ArrayBuffer>
 	sessionEncInviterName: Uint8Array<ArrayBuffer>
 	bucketEncInvitationSessionKey: Uint8Array<ArrayBuffer>
-	sharedGroupEncInviterGroupInfoKey: Uint8Array<ArrayBuffer>
-	sharedGroupEncSharedGroupInfoKey: Uint8Array<ArrayBuffer>
+	sharedGroupEncInviterGroupInfoSessionKey: Uint8Array<ArrayBuffer>
+	sharedGroupEncSharedGroupInfoSessionKey: Uint8Array<ArrayBuffer>
 	sharedGroup: Id
 	sharedGroupKeyVersion: NumberString
+	sharedGroupEncInviterGroupInfoInstanceKey: null | Uint8Array<ArrayBuffer>
+	inviterGroupInfoInstanceKeyVersion: null | NumberString
+	sharedGroupEncSharedGroupInfoInstanceKey: null | Uint8Array<ArrayBuffer>
+	sharedGroupInfoInstanceKeyVersion: null | NumberString
 
 	// == associations
 
@@ -3109,9 +3125,11 @@ export function createGroupInvitationPutData(values: GroupInvitationPutDataParam
 
 export type GroupInvitationPutDataParams = {
 	userGroupEncGroupKey: Uint8Array<ArrayBuffer>
-	sharedGroupEncInviteeGroupInfoKey: Uint8Array<ArrayBuffer>
+	sharedGroupEncInviteeGroupInfoSessionKey: Uint8Array<ArrayBuffer>
 	userGroupKeyVersion: NumberString
 	sharedGroupKeyVersion: NumberString
+	sharedGroupEncInviteeGroupInfoInstanceKey: null | Uint8Array<ArrayBuffer>
+	inviteeGroupInfoInstanceKeyVersion: null | NumberString
 
 	receivedInvitation: IdTuple
 }
@@ -3121,9 +3139,11 @@ export type GroupInvitationPutData = {
 
 	_format: NumberString
 	userGroupEncGroupKey: Uint8Array<ArrayBuffer>
-	sharedGroupEncInviteeGroupInfoKey: Uint8Array<ArrayBuffer>
+	sharedGroupEncInviteeGroupInfoSessionKey: Uint8Array<ArrayBuffer>
 	userGroupKeyVersion: NumberString
 	sharedGroupKeyVersion: NumberString
+	sharedGroupEncInviteeGroupInfoInstanceKey: null | Uint8Array<ArrayBuffer>
+	inviteeGroupInfoInstanceKeyVersion: null | NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId

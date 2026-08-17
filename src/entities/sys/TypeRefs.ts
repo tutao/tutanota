@@ -139,6 +139,7 @@ export type GroupInfoParams = {
 
 	group: Id
 	mailAddressAliases: MailAddressAlias[]
+	_formerInstanceKeys: null | InstanceKeysRef
 }
 
 export type GroupInfo = {
@@ -162,6 +163,7 @@ export type GroupInfo = {
 
 	group: Id
 	mailAddressAliases: MailAddressAlias[]
+	_formerInstanceKeys: null | InstanceKeysRef
 
 	//== some entities have these and some don't
 
@@ -766,6 +768,9 @@ export type PermissionParams = {
 	listElementTypeId: null | NumberString
 	listElementApplication: null | string
 	symKeyVersion: null | NumberString
+	symEncInstanceKey: null | Uint8Array<ArrayBuffer>
+	instanceKeyVersion: null | NumberString
+	bucketEncInstanceKey: null | Uint8Array<ArrayBuffer>
 
 	group: null | Id
 	bucket: null | Bucket
@@ -787,6 +792,9 @@ export type Permission = {
 	listElementApplication: null | string
 	_ownerKeyVersion: null | NumberString
 	symKeyVersion: null | NumberString
+	symEncInstanceKey: null | Uint8Array<ArrayBuffer>
+	instanceKeyVersion: null | NumberString
+	bucketEncInstanceKey: null | Uint8Array<ArrayBuffer>
 
 	// == associations
 
@@ -1790,6 +1798,9 @@ export function createUpdatePermissionKeyData(values: UpdatePermissionKeyDataPar
 }
 
 export type UpdatePermissionKeyDataParams = {
+	ownerEncInstanceKey: null | Uint8Array<ArrayBuffer>
+	instanceKeyVersion: null | NumberString
+
 	permission: IdTuple
 	bucketPermission: IdTuple
 }
@@ -1798,8 +1809,10 @@ export type UpdatePermissionKeyData = {
 	// == values
 
 	_format: NumberString
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	ownerKeyVersion: NumberString
+	ownerEncInstanceKey: null | Uint8Array<ArrayBuffer>
+	instanceKeyVersion: null | NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
@@ -10661,5 +10674,239 @@ export type GiftCardRedeemTransferAggregatedType = {
 	// === these are not present in metamodel
 	_type: TypeRef<GiftCardRedeemTransferAggregatedType>
 	_original: Nullable<GiftCardRedeemTransferAggregatedType>
+	isAdapter: false
+}
+export const InstanceKeyTypeRef: TypeRef<InstanceKey> = new TypeRef("sys", 2829)
+
+export function createInstanceKey(values: InstanceKeyParams): InstanceKey {
+	return Object.assign(create(typeModels[InstanceKeyTypeRef.typeId], InstanceKeyTypeRef), values)
+}
+
+export type InstanceKeyParams = {
+	symEncInstanceKey: Uint8Array<ArrayBuffer>
+	symKeyVersion: NumberString
+}
+
+export type InstanceKey = {
+	// == values
+
+	_id: ListElementId
+	_permissions: Id
+	_format: NumberString
+	_ownerGroup: null | Id
+	symEncInstanceKey: Uint8Array<ArrayBuffer>
+	symKeyVersion: NumberString
+
+	// == associations
+
+	//== some entities have these and some don't
+
+	bucketKey: null
+
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<InstanceKey>
+	_original: Nullable<InstanceKey>
+	isAdapter: false
+}
+export const InstanceKeysRefTypeRef: TypeRef<InstanceKeysRef> = new TypeRef("sys", 2837)
+
+export function createInstanceKeysRef(values: InstanceKeysRefParams): InstanceKeysRef {
+	return Object.assign(create(typeModels[InstanceKeysRefTypeRef.typeId], InstanceKeysRefTypeRef), values)
+}
+
+export type InstanceKeysRefParams = {
+	list: Id
+}
+
+export type InstanceKeysRef = {
+	// == values
+
+	_id: Id
+
+	// == associations
+
+	list: Id
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<InstanceKeysRef>
+	_original: Nullable<InstanceKeysRef>
+	isAdapter: false
+}
+export const InstanceKeyPermissionDataTypeRef: TypeRef<InstanceKeyPermissionData> = new TypeRef("sys", 2840)
+
+export function createInstanceKeyPermissionData(values: InstanceKeyPermissionDataParams): InstanceKeyPermissionData {
+	return Object.assign(create(typeModels[InstanceKeyPermissionDataTypeRef.typeId], InstanceKeyPermissionDataTypeRef), values)
+}
+
+export type InstanceKeyPermissionDataParams = {
+	symKeyVersion: null | NumberString
+	symEncSessionKey: null | Uint8Array<ArrayBuffer>
+	symEncInstanceKey: Uint8Array<ArrayBuffer>
+	instanceKeyVersion: NumberString
+
+	sharingPermission: IdTuple
+	pubEncKeyData: null | PubEncKeyData
+}
+
+export type InstanceKeyPermissionData = {
+	// == values
+
+	_id: Id
+	symKeyVersion: null | NumberString
+	symEncSessionKey: null | Uint8Array<ArrayBuffer>
+	symEncInstanceKey: Uint8Array<ArrayBuffer>
+	instanceKeyVersion: NumberString
+
+	// == associations
+
+	sharingPermission: IdTuple
+	pubEncKeyData: null | PubEncKeyData
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<InstanceKeyPermissionData>
+	_original: Nullable<InstanceKeyPermissionData>
+	isAdapter: false
+}
+export const FormerInstanceKeyDataTypeRef: TypeRef<FormerInstanceKeyData> = new TypeRef("sys", 2848)
+
+export function createFormerInstanceKeyData(values: FormerInstanceKeyDataParams): FormerInstanceKeyData {
+	return Object.assign(create(typeModels[FormerInstanceKeyDataTypeRef.typeId], FormerInstanceKeyDataTypeRef), values)
+}
+
+export type FormerInstanceKeyDataParams = {
+	symEncInstanceKey: Uint8Array<ArrayBuffer>
+	symKeyVersion: NumberString
+	instanceKeyVersion: NumberString
+}
+
+export type FormerInstanceKeyData = {
+	// == values
+
+	_id: Id
+	symEncInstanceKey: Uint8Array<ArrayBuffer>
+	symKeyVersion: NumberString
+	instanceKeyVersion: NumberString
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<FormerInstanceKeyData>
+	_original: Nullable<FormerInstanceKeyData>
+	isAdapter: false
+}
+export const InstanceKeyInstanceDataTypeRef: TypeRef<InstanceKeyInstanceData> = new TypeRef("sys", 2853)
+
+export function createInstanceKeyInstanceData(values: InstanceKeyInstanceDataParams): InstanceKeyInstanceData {
+	return Object.assign(create(typeModels[InstanceKeyInstanceDataTypeRef.typeId], InstanceKeyInstanceDataTypeRef), values)
+}
+
+export type InstanceKeyInstanceDataParams = {
+	sharedInstanceListId: null | Id
+	sharedInstanceElementId: Id
+
+	typeInfo: TypeInfo
+	formerInstanceKeys: FormerInstanceKeyData[]
+	permissionData: InstanceKeyPermissionData[]
+}
+
+export type InstanceKeyInstanceData = {
+	// == values
+
+	_id: Id
+	sharedInstanceListId: null | Id
+	sharedInstanceElementId: Id
+
+	// == associations
+
+	typeInfo: TypeInfo
+	formerInstanceKeys: FormerInstanceKeyData[]
+	permissionData: InstanceKeyPermissionData[]
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<InstanceKeyInstanceData>
+	_original: Nullable<InstanceKeyInstanceData>
+	isAdapter: false
+}
+export const InstanceKeyPermissionServicePostInTypeRef: TypeRef<InstanceKeyPermissionServicePostIn> = new TypeRef("sys", 2860)
+
+export function createInstanceKeyPermissionServicePostIn(values: InstanceKeyPermissionServicePostInParams): InstanceKeyPermissionServicePostIn {
+	return Object.assign(create(typeModels[InstanceKeyPermissionServicePostInTypeRef.typeId], InstanceKeyPermissionServicePostInTypeRef), values)
+}
+
+export type InstanceKeyPermissionServicePostInParams = {
+	permissionDataPerInstance: InstanceKeyInstanceData[]
+}
+
+export type InstanceKeyPermissionServicePostIn = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	permissionDataPerInstance: InstanceKeyInstanceData[]
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<InstanceKeyPermissionServicePostIn>
+	_original: Nullable<InstanceKeyPermissionServicePostIn>
 	isAdapter: false
 }
