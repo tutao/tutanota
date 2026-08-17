@@ -1,4 +1,4 @@
-import { _isNode, _isWorker, ProgrammingError, TsString, TypeChecks } from "@tutao/lang-api"
+import { isNotNull, ProgrammingError, RuntimeInfo, TsString } from "@tutao/lang-api"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -81,16 +81,19 @@ const assertionsEnabled = false
 
 export class EnvProvider {
 	private static boot: boolean =
-		_isNode && !_isWorker && EnvProvider.tryInitWithGlobalEnv() != null && (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
+		RuntimeInfo._isNode &&
+		!RuntimeInfo._isWorker &&
+		EnvProvider.tryInitWithGlobalEnv() != null &&
+		(EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
 
 	private static singleton: EnvProvider | null = null
 
 	public static get(): EnvProvider {
-		EnvProvider.tryInitWithGlobalEnv()
-		if (EnvProvider.singleton == null) {
+		const singleton = EnvProvider.tryInitWithGlobalEnv()
+		if (singleton == null) {
 			throw new Error("global var env is not defined yet")
 		}
-		return EnvProvider.singleton
+		return singleton
 	}
 
 	public isMainOrNode(): boolean {
@@ -98,8 +101,11 @@ export class EnvProvider {
 	}
 
 	private static tryInitWithGlobalEnv(): EnvProvider | null {
-		if (EnvProvider.singleton == null && TypeChecks.hasProperty("env")) {
-			EnvProvider.singleton = new EnvProvider(env)
+		if (EnvProvider.singleton == null) {
+			const env = RuntimeInfo.globallyDefinedEnv<EnvType>()
+			if (isNotNull(env)) {
+				EnvProvider.singleton = new EnvProvider(env)
+			}
 		}
 		return EnvProvider.singleton
 	}
@@ -173,19 +179,19 @@ export class EnvProvider {
 	}
 
 	public static isMainOrNode(): boolean {
-		return !_isWorker || _isNode || EnvProvider.isTest()
+		return !RuntimeInfo._isWorker || RuntimeInfo._isNode || EnvProvider.isTest()
 	}
 
 	public static isWorkerOrNode(): boolean {
-		return _isWorker || _isNode || EnvProvider.isTest()
+		return RuntimeInfo._isWorker || RuntimeInfo._isNode || EnvProvider.isTest()
 	}
 
 	public static isWorker(): boolean {
-		return _isWorker
+		return RuntimeInfo._isWorker
 	}
 
 	public static isMain(): boolean {
-		return !_isWorker && !_isNode
+		return !RuntimeInfo._isWorker && !RuntimeInfo._isNode
 	}
 
 	public static isTest(): boolean {
