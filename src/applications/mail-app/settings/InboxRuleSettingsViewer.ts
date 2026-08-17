@@ -37,7 +37,6 @@ import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../entities/
 import { resolveMailSetEntries } from "../mail/model/MailSetListModel"
 import { MoveMode } from "../mail/model/MailModel"
 import { isOfflineError } from "@tutao/rest-client/error"
-
 EnvProvider.assertMainOrNode()
 
 export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
