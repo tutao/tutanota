@@ -501,18 +501,44 @@ function parseEventDuration(durationValue: string, startTime: Date): Date {
 }
 
 function getTzId(prop: Property): string | null {
-	const tzIdValue = prop.params["TZID"]
+	let tzIdValue: string = prop.params["TZID"]
 	if (!tzIdValue) {
 		return null
 	}
+	tzIdValue = tzIdValue.trim()
 
 	if (availableIANATimeZones.includes(tzIdValue)) {
 		return tzIdValue
 	}
-	// Implementations of Intl API understand the "UTC" time zone, but we don't include it in our list of
-	// available IANA time zones, because we don't expect that users will want to select it
-	if (tzIdValue === "UTC") {
-		return "UTC"
+
+	// Special-case handling for time zone IDs starting with GMT/UTC, followed by an optional offset: +/-h[h][mm]
+	// We throw an error if the seconds value is non-zero, because we have no easy way to map them to an IANA time zone
+	// using the Intl API.
+	const threeCharPrefix = tzIdValue.length >= 3 ? tzIdValue.slice(0, 3).toUpperCase() : null
+	if (threeCharPrefix !== null && (threeCharPrefix === "UTC" || threeCharPrefix === "GMT")) {
+		if (tzIdValue.length === 3) {
+			return "UTC"
+		} else {
+			const regexMatches = tzIdValue.slice(3).match(/^([+-]\d\d?)(\d\d)?$/)
+			if (regexMatches === null) {
+				throw new ParserError(`${TAG} Invalid GMT/UTC TZID parameter in property ${prop.name}: TZID=${tzIdValue}.`)
+			}
+			const [_, hourString, minuteString] = regexMatches
+			let hour = parseInt(hourString)
+			if (hour === 0) {
+				return "UTC"
+			}
+			if (hour < -12 || hour > 14) {
+				throw new ParserError(`${TAG} Invalid hour in GMT/UTC TZID parameter in property ${prop.name}: TZID=${tzIdValue}.`)
+			}
+			const minute = minuteString ? parseInt(minuteString) : 0
+			if (minute !== 0) {
+				// our system cannot currently handle minute offsets.
+				throw new ParserError(`${TAG} Incompatible GMT/UTC TZID with minute offset in property ${prop.name}: TZID=${tzIdValue}.`)
+			}
+			// Etc/UTC is the reverse of normal UTC.  Same with GMT.  (See: https://data.iana.org/time-zones/tzdb/etcetera)
+			return `Etc/GMT${hour < 0 ? "+" : "-"}${Math.abs(hour)}`
+		}
 	}
 
 	const timeZoneFromWindowsMap = windowsToIANATimeZones[tzIdValue]
