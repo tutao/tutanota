@@ -54,7 +54,8 @@ import { UsageTestModel } from "../../misc/UsageTestModel.js"
 import { WebMobileFacade } from "../../native/WebMobileFacade.js"
 import { OperationProgressTracker } from "./OperationProgressTracker.js"
 import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
-import { MailAddressTableModel, UserInfo } from "../../settings/mailaddress/MailAddressTableModel.js"
+import { MailAddressTableModel, MailAddressTableInfo } from "../../settings/mailaddress/MailAddressTableModel.js"
+import type { GroupInfo } from "@tutao/entities/sys"
 import { lazy } from "@tutao/utils"
 import { NativeInterfaceMain } from "../../native/NativeInterfaceMain.js"
 import { NativePushServiceApp } from "../../native/NativePushServiceApp.js"
@@ -167,7 +168,9 @@ export interface CommonLocator {
 
 	mailAddressTableModelForOwnMailbox(): Promise<MailAddressTableModel>
 
-	mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userInfo: UserInfo): Promise<MailAddressTableModel>
+	mailAddressTableModelForSharedMailbox(mailGroupInfo: GroupInfo): Promise<MailAddressTableModel>
+
+	mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userInfo: MailAddressTableInfo): Promise<MailAddressTableModel>
 
 	sendMailModel(mailboxDetails: MailboxDetail, mailboxProperties: MailboxProperties): Promise<SendMailModel>
 

@@ -13,14 +13,16 @@ import { BookingItemFeatureType, GroupType } from "../../../../entities/sys/Util
 import { MailboxPropertiesTypeRef } from "@tutao/entities/tutanota"
 import { GENERATED_MIN_ID, idToElementId, isSameId, OperationType } from "../../../../platform-kit/meta"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { MailAddressTableModel } from "../../../common/settings/mailaddress/MailAddressTableModel.js"
 
 export class GroupDetailsModel {
 	groupInfo: GroupInfo
 	private readonly group: LazyLoaded<Group>
 	private usedStorageInBytes!: number
-	private readonly members: LazyLoaded<Array<GroupInfo>>
 
+	private readonly members: LazyLoaded<Array<GroupInfo>>
 	private senderName!: LazyLoaded<string>
+	private mailAddressTableModel!: LazyLoaded<MailAddressTableModel>
 
 	constructor(
 		groupInfo: GroupInfo,
@@ -29,8 +31,8 @@ export class GroupDetailsModel {
 	) {
 		this.entityClient = entityClient
 		this.groupInfo = groupInfo
-		this.group = new LazyLoaded(() => this.entityClient.load(GroupTypeRef, idToElementId(this.groupInfo.group)))
 
+		this.group = new LazyLoaded(() => this.entityClient.load(GroupTypeRef, idToElementId(this.groupInfo.group)))
 		this.group.getAsync().then(() => this.updateViewCallback())
 
 		this.members = new LazyLoaded(async () => {
@@ -40,16 +42,16 @@ export class GroupDetailsModel {
 			return promiseMap(groupMembers, (member) => this.entityClient.load(GroupInfoTypeRef, member.userGroupInfo))
 		})
 
-		// noinspection JSIgnoredPromiseFromCall
 		this.updateMembers()
 
-		if (this.groupInfo.groupType === GroupType.Mail) {
+		if (this.isMailGroup()) {
 			this.senderName = new LazyLoaded<string>(() => this.loadSenderName())
-			// noinspection JSIgnoredPromiseFromCall
 			this.updateSenderName()
+
+			this.mailAddressTableModel = new LazyLoaded<MailAddressTableModel>(() => locator.mailAddressTableModelForSharedMailbox(this.groupInfo))
+			this.updateMailAddressTableModel()
 		}
 
-		// noinspection JSIgnoredPromiseFromCall
 		this.updateUsedStorage()
 	}
 
@@ -211,9 +213,19 @@ export class GroupDetailsModel {
 		this.updateViewCallback()
 	}
 
+	getMailAddressTableModel(): MailAddressTableModel | null {
+		return this.mailAddressTableModel.isLoaded() ? this.mailAddressTableModel.getLoaded() : null
+	}
+
 	private async updateSenderName(): Promise<void> {
 		this.senderName.reset()
 		await this.senderName.getAsync()
+		this.updateViewCallback()
+	}
+
+	private async updateMailAddressTableModel(): Promise<void> {
+		this.mailAddressTableModel.reset()
+		await this.mailAddressTableModel.getAsync()
 		this.updateViewCallback()
 	}
 

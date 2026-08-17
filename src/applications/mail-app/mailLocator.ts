@@ -79,8 +79,9 @@ import { ConversationViewModel, ConversationViewModelFactory } from "./mail/view
 import { CreateMailViewerOptions } from "./mail/view/MailViewer.js"
 import { MailViewerViewModel } from "./mail/view/MailViewerViewModel.js"
 import { ExternalLoginViewModel } from "./mail/view/ExternalLoginView.js"
-import { MailAddressNameChanger, MailAddressTableModel, UserInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
+import { MailAddressNameChanger, MailAddressTableModel, MailAddressTableInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import { DrawerMenuAttrs, isPartnerEnabled } from "../common/gui/nav/DrawerMenu.js"
+import type { GroupInfo } from "@tutao/entities/sys"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
 import { CredentialRemovalHandler } from "../common/login/CredentialRemovalHandler.js"
 import { LoginViewModel } from "../common/login/LoginViewModel.js"
@@ -649,13 +650,28 @@ class MailLocator implements CommonLocator {
 			this.mailAddressFacade,
 			this.logins,
 			this.eventController,
-			{ user: this.logins.getUserController().user, userGroupInfo: this.logins.getUserController().userGroupInfo },
+			{ user: this.logins.getUserController().user, groupInfo: this.logins.getUserController().userGroupInfo },
 			nameChanger,
 			await this.redraw(),
 		)
 	}
 
-	async mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userInfo: UserInfo): Promise<MailAddressTableModel> {
+	async mailAddressTableModelForSharedMailbox(mailGroupInfo: GroupInfo): Promise<MailAddressTableModel> {
+		const { MailAddressTableModel } = await import("../common/settings/mailaddress/MailAddressTableModel.js")
+		const nameChanger = await this.sharedMailboxNameChanger(mailGroupInfo.group)
+		return new MailAddressTableModel(
+			this.entityClient,
+			this.serviceExecutor,
+			this.mailAddressFacade,
+			this.logins,
+			this.eventController,
+			{ user: null, groupInfo: mailGroupInfo },
+			nameChanger,
+			await this.redraw(),
+		)
+	}
+
+	async mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userInfo: MailAddressTableInfo): Promise<MailAddressTableModel> {
 		const { MailAddressTableModel } = await import("../common/settings/mailaddress/MailAddressTableModel.js")
 		const nameChanger = await this.adminNameChanger(mailGroupId, userId)
 		return new MailAddressTableModel(
@@ -673,6 +689,11 @@ class MailLocator implements CommonLocator {
 	async ownMailAddressNameChanger(): Promise<MailAddressNameChanger> {
 		const { OwnMailAddressNameChanger } = await import("../common/settings/mailaddress/OwnMailAddressNameChanger.js")
 		return new OwnMailAddressNameChanger(this.mailboxModel, this.entityClient)
+	}
+
+	async sharedMailboxNameChanger(mailGroupId: Id): Promise<MailAddressNameChanger> {
+		const { SharedMailboxNameChanger } = await import("../common/settings/mailaddress/SharedMailboxNameChanger.js")
+		return new SharedMailboxNameChanger(this.mailAddressFacade, mailGroupId)
 	}
 
 	async adminNameChanger(mailGroupId: Id, userId: Id): Promise<MailAddressNameChanger> {
