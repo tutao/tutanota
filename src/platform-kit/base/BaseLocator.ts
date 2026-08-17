@@ -56,6 +56,7 @@ import { IdentityKeyTrustDatabase } from "./base-crypto/persistence/IdentityKeyT
 import { KeyCache } from "./base-crypto/persistence/KeyCache"
 import { CryptoFacade } from "./base-crypto/CryptoFacade"
 import { HttpClientJavascript } from "../http-client/HttpClientJavascript"
+import { InstanceKeyFacade } from "./base-crypto/InstanceKeyFacade"
 
 export type BaseLocator = {
 	cryptoWrapper: CryptoWrapper
@@ -81,6 +82,7 @@ export type BaseLocator = {
 	entropyFacade: EntropyFacade
 	rolloutFacade: RolloutFacade
 	crypto: CryptoFacade
+	instanceKey: InstanceKeyFacade
 
 	counters: lazyAsync<CounterFacade>
 	share: lazyAsync<ShareFacade>
@@ -296,6 +298,8 @@ export async function createBaseLocator({
 		},
 	)
 
+	const instanceKey = new InstanceKeyFacade(keyLoader, crypto, typeModelResolver)
+
 	// Declared before recoverCode because it's captured inside the lazy callback
 	let login: LoginFacade
 	const recoverCode = lazyMemoized(async () => {
@@ -434,6 +438,7 @@ export async function createBaseLocator({
 		entropyFacade,
 		rolloutFacade,
 		crypto,
+		instanceKey,
 		counters,
 		share,
 		recoverCode,

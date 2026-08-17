@@ -4,7 +4,9 @@ import {
 	ClientTypeModel,
 	EntityTypeEnum,
 	expandId,
-	isCustomIdType, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_INDIVIDUAL_POST_FALLBACK_THRESHOLD,
+	isCustomIdType,
+	LOAD_MULTIPLE_LIMIT,
+	POST_MULTIPLE_INDIVIDUAL_POST_FALLBACK_THRESHOLD,
 	POST_MULTIPLE_LIMIT,
 	TypeRef,
 } from "../meta"
@@ -754,27 +756,7 @@ export class EntityRestClient implements EntityRestInterface {
 				}
 				ownerKey = await this._crypto.getCurrentSymGroupKey(instance._ownerGroup)
 			}
-			let kdfNonce: KdfNonce
-			if (instance._kdfNonce == null) {
-				const instanceList = instance._id[0]
-				let instanceId: Nullable<Id> = instance._id[1]
-				const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
-				let instanceCustomId: Nullable<Id> = null
-				if (isCustomIdType(clientTypeModel)) {
-					instanceCustomId = instanceId
-					instanceId = null
-				}
-				const application = instance._type.app
-				const typeId = instance._type.typeId.toString()
-				const typeInfo = createTypeInfo({ application, typeId })
-				const out = await this._crypto.postUpdateKdfNonceService(
-					createInstanceKdfNonce({ kdfNonce: generateKdfNonce(), instanceId, instanceCustomId, instanceList, typeInfo }),
-				)
-				kdfNonce = validateKdfNonceLength(out.kdfNonce)
-				instance._kdfNonce = kdfNonce
-			} else {
-				kdfNonce = validateKdfNonceLength(instance._kdfNonce)
-			}
+			const kdfNonce = await createAndSetOrGetKdfNonce(this.typeModelResolver, this._crypto, instance)
 			return new SubKeyInfoAeadWithInstanceKeyFromGroupKey(ownerKey, kdfNonce)
 		}
 	}
@@ -937,4 +919,33 @@ export async function doBlobRequestWithRetry<T>(doBlobRequest: () => Promise<T>,
 			return doBlobRequest()
 		}),
 	)
+}
+
+export async function createAndSetOrGetKdfNonce(
+	typeModelResolver: TypeModelResolver,
+	cryptoNetworkHelper: CryptoNetworkHelper,
+	instance: PersistentEntity,
+): Promise<KdfNonce> {
+	if (instance._kdfNonce == null) {
+		const instanceList = instance._id[0]
+		let instanceId: Nullable<Id> = instance._id[1]
+		const clientTypeModel = await typeModelResolver.resolveClientTypeReference(instance._type)
+		let instanceCustomId: Nullable<Id> = null
+		if (isCustomIdType(clientTypeModel)) {
+			instanceCustomId = instanceId
+			instanceId = null
+		}
+
+		const application = instance._type.app
+		const typeId = instance._type.typeId.toString()
+		const typeInfo = createTypeInfo({ application, typeId })
+		const out = await cryptoNetworkHelper.postUpdateKdfNonceService(
+			createInstanceKdfNonce({ kdfNonce: generateKdfNonce(), instanceId, instanceCustomId, instanceList, typeInfo }),
+		)
+		const kdfNonce = validateKdfNonceLength(out.kdfNonce)
+		instance._kdfNonce = kdfNonce
+		return kdfNonce
+	} else {
+		return validateKdfNonceLength(instance._kdfNonce)
+	}
 }

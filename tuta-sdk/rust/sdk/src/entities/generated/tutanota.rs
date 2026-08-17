@@ -558,6 +558,16 @@ pub struct ExternalUserData {
 	pub kdfVersion: i64,
 	#[serde(rename = "1429")]
 	pub internalMailGroupKeyVersion: i64,
+	#[serde(rename = "2093")]
+	#[serde(with = "serde_bytes")]
+	pub externalMailEncMailGroupInfoInstanceKey: Option<Vec<u8>>,
+	#[serde(rename = "2094")]
+	pub externalMailGroupInfoInstanceKeyVersion: Option<i64>,
+	#[serde(rename = "2095")]
+	#[serde(with = "serde_bytes")]
+	pub externalUserEncUserGroupInfoInstanceKey: Option<Vec<u8>>,
+	#[serde(rename = "2096")]
+	pub externalUserGroupInfoInstanceKeyVersion: Option<i64>,
 	#[serde(rename = "151")]
 	pub userGroupData: CreateExternalUserGroupData,
 }
@@ -2146,14 +2156,24 @@ pub struct SharedGroupData {
 	pub bucketEncInvitationSessionKey: Vec<u8>,
 	#[serde(rename = "999")]
 	#[serde(with = "serde_bytes")]
-	pub sharedGroupEncInviterGroupInfoKey: Vec<u8>,
+	pub sharedGroupEncInviterGroupInfoSessionKey: Vec<u8>,
 	#[serde(rename = "1000")]
 	#[serde(with = "serde_bytes")]
-	pub sharedGroupEncSharedGroupInfoKey: Vec<u8>,
+	pub sharedGroupEncSharedGroupInfoSessionKey: Vec<u8>,
 	#[serde(rename = "1001")]
 	pub sharedGroup: GeneratedId,
 	#[serde(rename = "1420")]
 	pub sharedGroupKeyVersion: i64,
+	#[serde(rename = "2087")]
+	#[serde(with = "serde_bytes")]
+	pub sharedGroupEncInviterGroupInfoInstanceKey: Option<Vec<u8>>,
+	#[serde(rename = "2088")]
+	pub inviterGroupInfoInstanceKeyVersion: Option<i64>,
+	#[serde(rename = "2089")]
+	#[serde(with = "serde_bytes")]
+	pub sharedGroupEncSharedGroupInfoInstanceKey: Option<Vec<u8>>,
+	#[serde(rename = "2090")]
+	pub sharedGroupInfoInstanceKeyVersion: Option<i64>,
 }
 
 impl Entity for SharedGroupData {
@@ -2217,11 +2237,16 @@ pub struct GroupInvitationPutData {
 	pub userGroupEncGroupKey: Vec<u8>,
 	#[serde(rename = "1014")]
 	#[serde(with = "serde_bytes")]
-	pub sharedGroupEncInviteeGroupInfoKey: Vec<u8>,
+	pub sharedGroupEncInviteeGroupInfoSessionKey: Vec<u8>,
 	#[serde(rename = "1418")]
 	pub userGroupKeyVersion: i64,
 	#[serde(rename = "1419")]
 	pub sharedGroupKeyVersion: i64,
+	#[serde(rename = "2091")]
+	#[serde(with = "serde_bytes")]
+	pub sharedGroupEncInviteeGroupInfoInstanceKey: Option<Vec<u8>>,
+	#[serde(rename = "2092")]
+	pub inviteeGroupInfoInstanceKeyVersion: Option<i64>,
 	#[serde(rename = "1015")]
 	pub receivedInvitation: IdTupleGenerated,
 }
