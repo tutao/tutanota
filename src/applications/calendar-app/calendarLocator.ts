@@ -73,7 +73,8 @@ import { showProgressDialog } from "../../ui/dialogs/ProgressDialog.js"
 import { ContactSuggestionProvider, RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
 import { NativeInterfaceMain } from "../common/native/NativeInterfaceMain.js"
 import { NativePushServiceApp } from "../common/native/NativePushServiceApp.js"
-import { MailAddressNameChanger, MailAddressTableModel, UserInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
+import { MailAddressNameChanger, MailAddressTableModel, MailAddressTableInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
+import type { GroupInfo } from "@tutao/entities/sys"
 import { DrawerMenuAttrs, isPartnerEnabled } from "../common/gui/nav/DrawerMenu.js"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
 import { CredentialRemovalHandler } from "../common/login/CredentialRemovalHandler.js"
@@ -451,13 +452,13 @@ class CalendarLocator implements CommonLocator {
 			this.mailAddressFacade,
 			this.logins,
 			this.eventController,
-			{ user: this.logins.getUserController().user, userGroupInfo: this.logins.getUserController().userGroupInfo },
+			{ user: this.logins.getUserController().user, groupInfo: this.logins.getUserController().userGroupInfo },
 			nameChanger,
 			await this.redraw(),
 		)
 	}
 
-	async mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, userInfo: UserInfo): Promise<MailAddressTableModel> {
+	async mailAddressTableModelForAdmin(mailGroupId: Id, userId: Id, mailAddressTableInfo: MailAddressTableInfo): Promise<MailAddressTableModel> {
 		const { MailAddressTableModel } = await import("../common/settings/mailaddress/MailAddressTableModel.js")
 		const nameChanger = await this.adminNameChanger(mailGroupId, userId)
 		return new MailAddressTableModel(
@@ -466,7 +467,22 @@ class CalendarLocator implements CommonLocator {
 			this.mailAddressFacade,
 			this.logins,
 			this.eventController,
-			userInfo,
+			mailAddressTableInfo,
+			nameChanger,
+			await this.redraw(),
+		)
+	}
+
+	async mailAddressTableModelForSharedMailbox(mailGroupInfo: GroupInfo): Promise<MailAddressTableModel> {
+		const { MailAddressTableModel } = await import("../common/settings/mailaddress/MailAddressTableModel.js")
+		const nameChanger = await this.sharedMailboxNameChanger(mailGroupInfo.group)
+		return new MailAddressTableModel(
+			this.entityClient,
+			this.serviceExecutor,
+			this.mailAddressFacade,
+			this.logins,
+			this.eventController,
+			{ user: null, groupInfo: mailGroupInfo },
 			nameChanger,
 			await this.redraw(),
 		)
@@ -480,6 +496,11 @@ class CalendarLocator implements CommonLocator {
 	async adminNameChanger(mailGroupId: Id, userId: Id): Promise<MailAddressNameChanger> {
 		const { AnotherUserMailAddressNameChanger } = await import("../common/settings/mailaddress/AnotherUserMailAddressNameChanger.js")
 		return new AnotherUserMailAddressNameChanger(this.mailAddressFacade, mailGroupId, userId)
+	}
+
+	async sharedMailboxNameChanger(mailGroupId: Id): Promise<MailAddressNameChanger> {
+		const { SharedMailboxNameChanger } = await import("../common/settings/mailaddress/SharedMailboxNameChanger.js")
+		return new SharedMailboxNameChanger(this.mailAddressFacade, mailGroupId)
 	}
 
 	async drawerAttrsFactory(): Promise<() => DrawerMenuAttrs> {
