@@ -66,8 +66,9 @@ export class ShareFacade {
 		const sharedGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKey(sharedGroupInfo)
 		const bucketKey = aes256RandomKey()
 		const invitationSessionKey = aes256RandomKey()
-		const sharedGroupEncInviterGroupInfoKey = _encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
-		const sharedGroupEncSharedGroupInfoKey = _encryptKeyWithVersionedKey(sharedGroupKey, neverNull(sharedGroupInfoSessionKey))
+		const sharedGroupEncInviterGroupInfoSessionKey = _encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
+		const sharedGroupEncSharedGroupInfoSessionKey = _encryptKeyWithVersionedKey(sharedGroupKey, neverNull(sharedGroupInfoSessionKey))
+
 		const sharedGroupData = createSharedGroupData({
 			sessionEncInviterName: _encryptString(invitationSessionKey, userGroupInfo.name),
 			sessionEncSharedGroupKey: _encryptBytes(invitationSessionKey, keyToUint8Array(sharedGroupKey.object)),
@@ -75,9 +76,14 @@ export class ShareFacade {
 			bucketEncInvitationSessionKey: encryptKey(bucketKey, invitationSessionKey),
 			capability: shareCapability,
 			sharedGroup: sharedGroupInfo.group,
-			sharedGroupEncInviterGroupInfoKey: sharedGroupEncInviterGroupInfoKey.key,
-			sharedGroupEncSharedGroupInfoKey: sharedGroupEncSharedGroupInfoKey.key,
+			sharedGroupEncInviterGroupInfoSessionKey: sharedGroupEncInviterGroupInfoSessionKey.key,
+			sharedGroupEncSharedGroupInfoSessionKey: sharedGroupEncSharedGroupInfoSessionKey.key,
 			sharedGroupKeyVersion: String(sharedGroupKey.version),
+			// TODO
+			sharedGroupEncInviterGroupInfoInstanceKey: null,
+			inviterGroupInfoInstanceKeyVersion: null,
+			sharedGroupEncSharedGroupInfoInstanceKey: null,
+			sharedGroupInfoInstanceKeyVersion: null,
 		})
 		const invitationData = createGroupInvitationPostData({
 			sharedGroupData,
@@ -119,13 +125,16 @@ export class ShareFacade {
 		}
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const userGroupEncGroupKey = _encryptKeyWithVersionedKey(userGroupKey, sharedGroupKey.object)
-		const sharedGroupEncInviteeGroupInfoKey = _encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
+		const sharedGroupEncInviteeGroupInfoSessionKey = _encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
 		const serviceData = createGroupInvitationPutData({
 			receivedInvitation: invitation._id,
 			userGroupEncGroupKey: userGroupEncGroupKey.key,
-			sharedGroupEncInviteeGroupInfoKey: sharedGroupEncInviteeGroupInfoKey.key,
+			sharedGroupEncInviteeGroupInfoSessionKey: sharedGroupEncInviteeGroupInfoSessionKey.key,
 			userGroupKeyVersion: userGroupEncGroupKey.encryptingKeyVersion.toString(),
-			sharedGroupKeyVersion: sharedGroupEncInviteeGroupInfoKey.encryptingKeyVersion.toString(),
+			sharedGroupKeyVersion: sharedGroupEncInviteeGroupInfoSessionKey.encryptingKeyVersion.toString(),
+			// TODO
+			sharedGroupEncInviteeGroupInfoInstanceKey: null,
+			inviteeGroupInfoInstanceKeyVersion: null,
 		})
 		await this.serviceExecutor.put(GroupInvitationService, serviceData, null)
 	}

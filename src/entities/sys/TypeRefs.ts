@@ -1,6 +1,6 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ElementId, ListElementId } from "@tutao/meta"
+import { ListElementId, ElementId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 
 
@@ -113,6 +113,7 @@ export type GroupInfoParams = {
 
 	group: Id;
 	mailAddressAliases: MailAddressAlias[];
+	_formerInstanceKeys: null | InstanceKeysRef;
 }
 
 export type GroupInfo = {
@@ -136,6 +137,7 @@ export type GroupInfo = {
 
 	group: Id;
 	mailAddressAliases: MailAddressAlias[];
+	_formerInstanceKeys: null | InstanceKeysRef;
 }
 export const GroupMembershipTypeRef: TypeRef<GroupMembership> = new TypeRef("sys", 25)
 
@@ -560,6 +562,9 @@ export type PermissionParams = {
 	listElementTypeId: null | NumberString;
 	listElementApplication: null | string;
 	symKeyVersion: null | NumberString;
+	symEncInstanceKey: null | Uint8Array<ArrayBuffer>;
+	instanceKeyVersion: null | NumberString;
+	bucketEncInstanceKey: null | Uint8Array<ArrayBuffer>;
 
 	group: null | Id;
 	bucket: null | Bucket;
@@ -582,6 +587,9 @@ export type Permission = {
 	listElementApplication: null | string;
 	_ownerKeyVersion: null | NumberString;
 	symKeyVersion: null | NumberString;
+	symEncInstanceKey: null | Uint8Array<ArrayBuffer>;
+	instanceKeyVersion: null | NumberString;
+	bucketEncInstanceKey: null | Uint8Array<ArrayBuffer>;
 
 	group: null | Id;
 	bucket: null | Bucket;
@@ -1232,6 +1240,8 @@ export function createUpdatePermissionKeyData(values: UpdatePermissionKeyDataPar
 export type UpdatePermissionKeyDataParams = {
 
 
+	ownerEncInstanceKey: null | Uint8Array<ArrayBuffer>;
+	instanceKeyVersion: null | NumberString;
 
 	permission: IdTuple;
 	bucketPermission: IdTuple;
@@ -1242,8 +1252,10 @@ export type UpdatePermissionKeyData = {
 	_original?: UpdatePermissionKeyData
 
 	_format: NumberString;
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
+	ownerEncInstanceKey: null | Uint8Array<ArrayBuffer>;
+	instanceKeyVersion: null | NumberString;
 
 	permission: IdTuple;
 	bucketPermission: IdTuple;
@@ -6760,4 +6772,153 @@ export type GiftCardTransferAggregatedType = {
 	message: string;
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
+}
+export const InstanceKeyTypeRef: TypeRef<InstanceKey> = new TypeRef("sys", 2792)
+
+export function createInstanceKey(values: InstanceKeyParams): InstanceKey {
+    return Object.assign(create(typeModels[InstanceKeyTypeRef.typeId], InstanceKeyTypeRef), values)
+}
+
+export type InstanceKeyParams = {
+
+
+	symEncInstanceKey: Uint8Array<ArrayBuffer>;
+	symKeyVersion: NumberString;
+}
+
+export type InstanceKey = {
+	_type: TypeRef<InstanceKey>;
+	_original?: InstanceKey
+
+	_id: ListElementId;
+	_permissions: Id;
+	_format: NumberString;
+	_ownerGroup: null | Id;
+	symEncInstanceKey: Uint8Array<ArrayBuffer>;
+	symKeyVersion: NumberString;
+}
+export const InstanceKeysRefTypeRef: TypeRef<InstanceKeysRef> = new TypeRef("sys", 2800)
+
+export function createInstanceKeysRef(values: InstanceKeysRefParams): InstanceKeysRef {
+    return Object.assign(create(typeModels[InstanceKeysRefTypeRef.typeId], InstanceKeysRefTypeRef), values)
+}
+
+export type InstanceKeysRefParams = {
+
+
+
+	list: Id;
+}
+
+export type InstanceKeysRef = {
+	_type: TypeRef<InstanceKeysRef>;
+	_original?: InstanceKeysRef
+
+	_id: Id;
+
+	list: Id;
+}
+export const InstanceKeyPermissionDataTypeRef: TypeRef<InstanceKeyPermissionData> = new TypeRef("sys", 2803)
+
+export function createInstanceKeyPermissionData(values: InstanceKeyPermissionDataParams): InstanceKeyPermissionData {
+    return Object.assign(create(typeModels[InstanceKeyPermissionDataTypeRef.typeId], InstanceKeyPermissionDataTypeRef), values)
+}
+
+export type InstanceKeyPermissionDataParams = {
+
+
+	symKeyVersion: null | NumberString;
+	symEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	symEncInstanceKey: Uint8Array<ArrayBuffer>;
+	instanceKeyVersion: NumberString;
+
+	sharingPermission: IdTuple;
+	pubEncKeyData: null | PubEncKeyData;
+}
+
+export type InstanceKeyPermissionData = {
+	_type: TypeRef<InstanceKeyPermissionData>;
+	_original?: InstanceKeyPermissionData
+
+	_id: Id;
+	symKeyVersion: null | NumberString;
+	symEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	symEncInstanceKey: Uint8Array<ArrayBuffer>;
+	instanceKeyVersion: NumberString;
+
+	sharingPermission: IdTuple;
+	pubEncKeyData: null | PubEncKeyData;
+}
+export const FormerInstanceKeyDataTypeRef: TypeRef<FormerInstanceKeyData> = new TypeRef("sys", 2811)
+
+export function createFormerInstanceKeyData(values: FormerInstanceKeyDataParams): FormerInstanceKeyData {
+    return Object.assign(create(typeModels[FormerInstanceKeyDataTypeRef.typeId], FormerInstanceKeyDataTypeRef), values)
+}
+
+export type FormerInstanceKeyDataParams = {
+
+
+	symEncInstanceKey: Uint8Array<ArrayBuffer>;
+	symKeyVersion: NumberString;
+	instanceKeyVersion: NumberString;
+}
+
+export type FormerInstanceKeyData = {
+	_type: TypeRef<FormerInstanceKeyData>;
+	_original?: FormerInstanceKeyData
+
+	_id: Id;
+	symEncInstanceKey: Uint8Array<ArrayBuffer>;
+	symKeyVersion: NumberString;
+	instanceKeyVersion: NumberString;
+}
+export const InstanceKeyInstanceDataTypeRef: TypeRef<InstanceKeyInstanceData> = new TypeRef("sys", 2816)
+
+export function createInstanceKeyInstanceData(values: InstanceKeyInstanceDataParams): InstanceKeyInstanceData {
+    return Object.assign(create(typeModels[InstanceKeyInstanceDataTypeRef.typeId], InstanceKeyInstanceDataTypeRef), values)
+}
+
+export type InstanceKeyInstanceDataParams = {
+
+
+	sharedInstanceListId: null | Id;
+	sharedInstanceElementId: Id;
+
+	typeInfo: TypeInfo;
+	formerInstanceKeys: FormerInstanceKeyData[];
+	permissionData: InstanceKeyPermissionData[];
+}
+
+export type InstanceKeyInstanceData = {
+	_type: TypeRef<InstanceKeyInstanceData>;
+	_original?: InstanceKeyInstanceData
+
+	_id: Id;
+	sharedInstanceListId: null | Id;
+	sharedInstanceElementId: Id;
+
+	typeInfo: TypeInfo;
+	formerInstanceKeys: FormerInstanceKeyData[];
+	permissionData: InstanceKeyPermissionData[];
+}
+export const InstanceKeyPermissionServicePostInTypeRef: TypeRef<InstanceKeyPermissionServicePostIn> = new TypeRef("sys", 2823)
+
+export function createInstanceKeyPermissionServicePostIn(values: InstanceKeyPermissionServicePostInParams): InstanceKeyPermissionServicePostIn {
+    return Object.assign(create(typeModels[InstanceKeyPermissionServicePostInTypeRef.typeId], InstanceKeyPermissionServicePostInTypeRef), values)
+}
+
+export type InstanceKeyPermissionServicePostInParams = {
+
+
+
+	permissionDataPerInstance: InstanceKeyInstanceData[];
+}
+
+export type InstanceKeyPermissionServicePostIn = {
+	_type: TypeRef<InstanceKeyPermissionServicePostIn>;
+	_original?: InstanceKeyPermissionServicePostIn
+
+	_format: NumberString;
+
+	permissionDataPerInstance: InstanceKeyInstanceData[];
 }

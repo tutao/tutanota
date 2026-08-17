@@ -1168,6 +1168,11 @@ export class MailFacade {
 			internalMailEncUserGroupInfoSessionKey: internalMailEncUserGroupInfoSessionKey.key,
 			internalMailEncMailGroupInfoSessionKey: internalMailEncMailGroupInfoSessionKey.key,
 			internalMailGroupKeyVersion: internalMailGroupKey.version.toString(),
+			//TODO
+			externalMailEncMailGroupInfoInstanceKey: null,
+			externalMailGroupInfoInstanceKeyVersion: null,
+			externalUserEncUserGroupInfoInstanceKey: null,
+			externalUserGroupInfoInstanceKeyVersion: null,
 		})
 		await this.serviceExecutor.post(ExternalUserService, externalUserData, null)
 		return {

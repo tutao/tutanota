@@ -1707,6 +1707,42 @@ const typeModels = {
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": null
+			},
+			"2053": {
+				"final": false,
+				"name": "externalMailEncMailGroupInfoInstanceKey",
+				"id": 2053,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2054": {
+				"final": false,
+				"name": "externalMailGroupInfoInstanceKeyVersion",
+				"id": 2054,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2055": {
+				"final": false,
+				"name": "externalUserEncUserGroupInfoInstanceKey",
+				"id": 2055,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2056": {
+				"final": false,
+				"name": "externalUserGroupInfoInstanceKeyVersion",
+				"id": 2056,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -5927,7 +5963,7 @@ const typeModels = {
 			},
 			"999": {
 				"final": true,
-				"name": "sharedGroupEncInviterGroupInfoKey",
+				"name": "sharedGroupEncInviterGroupInfoSessionKey",
 				"id": 999,
 				"type": "Bytes",
 				"cardinality": "One",
@@ -5936,7 +5972,7 @@ const typeModels = {
 			},
 			"1000": {
 				"final": true,
-				"name": "sharedGroupEncSharedGroupInfoKey",
+				"name": "sharedGroupEncSharedGroupInfoSessionKey",
 				"id": 1000,
 				"type": "Bytes",
 				"cardinality": "One",
@@ -5958,6 +5994,42 @@ const typeModels = {
 				"id": 1420,
 				"type": "Number",
 				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2047": {
+				"final": true,
+				"name": "sharedGroupEncInviterGroupInfoInstanceKey",
+				"id": 2047,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2048": {
+				"final": true,
+				"name": "inviterGroupInfoInstanceKeyVersion",
+				"id": 2048,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2049": {
+				"final": true,
+				"name": "sharedGroupEncSharedGroupInfoInstanceKey",
+				"id": 2049,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2050": {
+				"final": true,
+				"name": "sharedGroupInfoInstanceKeyVersion",
+				"id": 2050,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			}
@@ -6099,7 +6171,7 @@ const typeModels = {
 			},
 			"1014": {
 				"final": true,
-				"name": "sharedGroupEncInviteeGroupInfoKey",
+				"name": "sharedGroupEncInviteeGroupInfoSessionKey",
 				"id": 1014,
 				"type": "Bytes",
 				"cardinality": "One",
@@ -6121,6 +6193,24 @@ const typeModels = {
 				"id": 1419,
 				"type": "Number",
 				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2051": {
+				"final": true,
+				"name": "sharedGroupEncInviteeGroupInfoInstanceKey",
+				"id": 2051,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2052": {
+				"final": true,
+				"name": "inviteeGroupInfoInstanceKeyVersion",
+				"id": 2052,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			}
