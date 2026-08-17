@@ -11,6 +11,7 @@ import { PasswordField } from "../misc/passwords/PasswordField.js"
 import { EnvProvider } from "@tutao/app-env"
 import { useKeyHandler } from "../../../ui/utils/KeyManager.js"
 import { Keys } from "../../../ui/utils/KeyboardKeys"
+import { CheckBrowser } from "../../../ui/CheckBrowser"
 
 export type LoginFormAttrs = {
 	onSubmit: (username: string, password: string) => unknown
@@ -54,7 +55,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 
 	view(vnode: Vnode<LoginFormAttrs>): Children {
 		const a = vnode.attrs
-		const canSaveCredentials = ClientDetector.get().localStorage()
+		const canSaveCredentials = CheckBrowser.haveLocalStorage()
 		if (a.savePassword && (EnvProvider.get().isApp() || EnvProvider.get().isDesktop())) {
 			a.savePassword(true)
 		}
