@@ -18,7 +18,7 @@ export class ClientDetector {
 	private static singeleton: ClientDetector | null = null
 	public static get(): ClientDetector {
 		if (ClientDetector.singeleton != null) {
-			return ClientDetector.singeleton.appType as any
+			return ClientDetector.singeleton
 		}
 
 		ClientDetector.singeleton = new ClientDetector()
