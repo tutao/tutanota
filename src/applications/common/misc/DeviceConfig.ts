@@ -3,7 +3,6 @@ import type { LanguageCode } from "../../../ui/utils/LanguageViewModel"
 import type { ThemePreference } from "../../../ui/theme"
 import { CredentialEncryptionMode, EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { PersistedAssignmentData, UsageTestStorage } from "./UsageTestModel"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { NewsItemStorage } from "./news/NewsModel.js"
 import { CredentialsInfo } from "@tutao/native-bridge/generatedIpc/types"
 import { CalendarViewType } from "../api/common/utils/CommonCalendarUtils.js"
@@ -11,6 +10,7 @@ import { SyncStatus } from "../calendar/import/ImportExportUtils.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { ThemeConfigurator } from "../../../ui/ThemeController"
+import { CheckBrowser } from "../../../ui/CheckBrowser"
 
 EnvProvider.assertMainOrNodeBoot()
 export const defaultThemePreference: ThemePreference = "auto:light|dark"
@@ -668,4 +668,4 @@ export interface DeviceConfigCredentials {
 	readonly encryptedPassphraseKey: Base64 | null
 }
 
-export const deviceConfig: DeviceConfig = new DeviceConfig(ClientDetector.get().localStorage() ? localStorage : null)
+export const deviceConfig: DeviceConfig = new DeviceConfig(CheckBrowser.haveLocalStorage() ? localStorage : null)
