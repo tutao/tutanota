@@ -2473,7 +2473,7 @@ o.spec("ModelMapperTransformations", function () {
 				const wrongParsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(1, ParsedValue.fromString("example"))
 
 				const err = await assertThrows(ProgrammingError, () => modelMapper.mapToInstance(wrongParsedInstance))
-				o(err.message).equals("Non-numeric string for attribute: testValue")
+				o(err.message).equals("Non-numeric string for attribute: testValue(1)")
 			})
 		})
 		o.spec("RemoveAssociation", function () {
