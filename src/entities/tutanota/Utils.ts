@@ -145,7 +145,7 @@ export const enum InboxRuleConditionType {
 	MAIL_HEADER_CONTAINS = "5",
 	// Boolean Conditions - existence is the positive, value will be empty and ignored
 	HAS_ATTACHMENT = "7",
-	HAS_NO_ATTACHMENT = "8"
+	HAS_NO_ATTACHMENT = "8",
 }
 
 export const enum InboxRuleResultType {
@@ -154,7 +154,7 @@ export const enum InboxRuleResultType {
 	LABEL = "1",
 	// Boolean Results - no value needed, existence is the positive
 	READ = "2",
-	EXCLUDE_SPAM = "3"
+	EXCLUDE_SPAM = "3",
 }
 
 export enum SpamRuleType {
@@ -168,7 +168,7 @@ export const enum SpamRuleFieldType {
 	TO = "1",
 	CC = "2",
 	BCC = "3",
-	TO_ANY = "4"
+	TO_ANY = "4",
 }
 
 export const enum ReportMovedMailsType {

@@ -1,4 +1,4 @@
-import { assertMainOrNode, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { EnvProvider, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -29,7 +29,6 @@ import { Switch } from "../../../ui/base/Switch"
 import { IconButton } from "../../../ui/base/IconButton"
 import { createDropdown } from "../../../ui/base/Dropdown"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
-import { client } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { ExpandedInboxRuleHandler } from "../mail/model/ExpandedInboxRuleHandler"
 import { ExpandedInboxRule, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { assertNotNull, isEmpty, promiseMap, splitInChunks } from "@tutao/utils"
@@ -37,8 +36,9 @@ import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../entities/
 import { resolveMailSetEntries } from "../mail/model/MailSetListModel"
 import { MoveMode } from "../mail/model/MailModel"
 import { isOfflineError } from "@tutao/rest-client/error"
+import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 	private model: InboxRulesSettingsViewerModel
@@ -59,7 +59,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 
 	view(): Children {
 		const tableLines = this.renderInboxRuleTableLines()
-		const isMobile = client.isMobileDevice()
+		const isMobile = ClientDetector.get().isMobileDevice()
 
 		// Making the scroll section based on mobile view allows for the title section to also be scrolled away
 		const inboxRuleSectionClasses = `.overflow-hidden.flex-v-start${isMobile ? ".scroll.scrollbar-gutter-stable-or-fallback" : ""}`

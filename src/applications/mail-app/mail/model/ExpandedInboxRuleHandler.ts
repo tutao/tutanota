@@ -1,6 +1,6 @@
 import { assertNotNull, asyncFind, isEmpty, promiseMap, splitInChunks } from "@tutao/utils"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
-import { assertMainOrNode, ProgrammingError } from "@tutao/app-env"
+import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailModel, MoveMode } from "./MailModel"
@@ -15,7 +15,7 @@ import { resolveMailSetEntries } from "./MailSetListModel"
 import { isOfflineError } from "@tutao/rest-client/error"
 import Stream from "mithril/stream"
 
-assertMainOrNode()
+EnvProvider.assertMainOrNode()
 
 interface InboxRuleConditionTuple {
 	type: InboxRuleConditionType
