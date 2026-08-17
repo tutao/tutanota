@@ -1,4 +1,4 @@
-import { EnvProvider, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { EnvProvider, UpgradePromptType } from "@tutao/app-env"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -221,9 +221,10 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 						// toggle button
 						m(Switch, {
 							ariaLabel: "deactivate_action",
-							checked: true,
-							onclick(checked: boolean) {
-								throw new ProgrammingError("not implemented")
+							checked: rule.enabled,
+							onclick: async (checked: boolean) => {
+								rule.enabled = checked
+								await this.model.saveInboxRule(rule)
 							},
 						}),
 						// actions button
