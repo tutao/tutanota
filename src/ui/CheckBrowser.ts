@@ -4,6 +4,8 @@ import { BrowserType } from "../platform-kit/app-env/boot/ClientConstants"
 import { TypeChecks } from "@tutao/lang-api"
 
 export class CheckBrowser {
+	public static readonly overflowAuto: string = CheckBrowser.cssPropertyValueSupported("overflow", "overlay") ? "overlay" : "auto"
+
 	constructor(appType: AppType) {
 		ClientDetector.get().init(navigator.userAgent, navigator.platform, appType)
 	}
@@ -30,6 +32,12 @@ export class CheckBrowser {
 			webAssemblyError.name = "NoWASMSupport"
 			throw webAssemblyError
 		}
+	}
+
+	private static cssPropertyValueSupported(prop: string, value: string): boolean {
+		let d = document.createElement("div") as any
+		d.style[prop] = value
+		return d.style[prop] === value
 	}
 
 	static _cssQuerySelectorIsSupported(): boolean {
@@ -176,5 +184,14 @@ export class CheckBrowser {
 
 	private static supportsHistory(): boolean {
 		return window.history != null && "pushState" in window.history
+	}
+
+	public static haveLocalStorage(): boolean {
+		try {
+			return localStorage != null
+		} catch (e) {
+			// DOMException is thrown if all cookies are disabled
+			return false
+		}
 	}
 }
