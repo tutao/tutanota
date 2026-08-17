@@ -1,7 +1,13 @@
 export const TsMath = Math
 export type TsRegex = RegExp
+
+export type TsArray<T> = {
+	find(predicate: (value: T, index: TsNumber, obj: T[]) => unknown, thisArg?: any): Nullable<T>
+	map<U>(callbackfn: (value: T, index: TsNumber, array: T[]) => U, thisArg?: any): TsArray<U>
+}
+
 export const TsObject = {
-	keys(obj: any): string[] {
+	keys(obj: any): TsArray<TsString> {
 		return Object.keys(obj)
 	},
 
@@ -29,8 +35,17 @@ export const console = {
 }
 
 export const TsNumber = Number
+export type TsNumber = number
 export const TsDate = Date
 export const TsString = String
+export type TsString = {
+	length: TsNumber
+	replace(f: TsRegex, r: TsString): TsString
+	match(m: TsRegex): Nullable<RegExpMatchArray>
+	indexOf(s: TsString, position?: TsNumber): TsNumber
+	substring(start: TsNumber, end?: TsNumber): TsString
+	charAt(pos: TsNumber): TsString
+}
 
 export type Nullable<T> = T | null
 

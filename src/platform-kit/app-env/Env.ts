@@ -1,4 +1,4 @@
-import { _isNode, _isWorker, ProgrammingError, TypeChecks } from "@tutao/lang-api"
+import { _isNode, _isWorker, ProgrammingError, TsString, TypeChecks } from "@tutao/lang-api"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -54,7 +54,7 @@ export type DomainConfig = {
 	 *  What URL should be used for REST requests.
 	 * Important! You probably do not want to use it directly but rather through the accessor function
 	 */
-	apiUrl: string
+	apiUrl: TsString
 	websocketUrl: string
 	/**
 	 * Which URL should be opened for Webauthn flow on desktop for keys associated with our current domain (tuta.com).
@@ -245,7 +245,7 @@ export class EnvProvider {
 
 	public getWebsocketBaseUrl(domainConfig: DomainConfig): string {
 		// replaces http: with ws: and https: with wss:
-		return domainConfig.apiUrl.replace(/^http/, "ws")
+		return domainConfig.apiUrl.replace(/^http/, "ws") as string
 	}
 
 	/**

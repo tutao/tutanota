@@ -2,7 +2,7 @@ import { EnvProvider, PlatformId } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
 import { AppType } from "../AppType"
-import { console, hasTouchEvent, indexedDbIsSupported, TypeChecks } from "@tutao/lang-api"
+import { console, hasTouchEvent, indexedDbIsSupported, TsString, TypeChecks } from "@tutao/lang-api"
 
 EnvProvider.assertMainOrNodeBoot()
 
@@ -45,7 +45,7 @@ export class ClientDetector {
 		return this
 	}
 
-	getUserAgent(): NonNullable<string> {
+	getUserAgent(): NonNullable<TsString> {
 		if (this.userAgent == null) {
 			throw new Error("Client detector is not yet initialized!")
 		}
@@ -190,7 +190,7 @@ export class ClientDetector {
 		if (
 			userAgent.match(/iPad.*AppleWebKit/) != null || // iPadOS does not differ in UserAgent from Safari on macOS. Use hack with TouchEvent to detect iPad
 			// Desktop Chrome has TouchEvent but it also has Chrome in it. Mobile iOS has CriOS in it and not Chrome.
-			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(userAgent) && hasTouchEvent() && /.*Chrome.*/.test(userAgent) === false)
+			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(userAgent as string) && hasTouchEvent() && /.*Chrome.*/.test(userAgent as string) === false)
 		) {
 			this.device = DeviceType.IPAD
 		} else if (userAgent.match(/iPhone.*AppleWebKit/) != null) {
