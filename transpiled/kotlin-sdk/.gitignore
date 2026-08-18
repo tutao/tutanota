@@ -1,5 +1,5 @@
 .gradle
-build/
+.build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
@@ -9,7 +9,7 @@ build/
 *.iws
 *.iml
 *.ipr
-out/
+.out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 
