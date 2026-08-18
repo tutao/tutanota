@@ -15777,6 +15777,15 @@ const typeModels = {
 				"cardinality": "One",
 				"refTypeId": 2315,
 				"dependency": null
+			},
+			"2840": {
+				"final": false,
+				"name": "migrationInfo",
+				"id": 2840,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 2818,
+				"dependency": null
 			}
 		}
 	},
@@ -16006,35 +16015,27 @@ const typeModels = {
 			},
 			"2837": {
 				"final": true,
-				"name": "ownerGroup",
-				"id": 2837,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"2838": {
-				"final": true,
 				"name": "userListProvider",
-				"id": 2838,
+				"id": 2837,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": true
 			}
 		},
 		"associations": {
-			"2839": {
+			"2838": {
 				"final": true,
 				"name": "userListAdminCredentials",
-				"id": 2839,
+				"id": 2838,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2789,
 				"dependency": null
 			},
-			"2840": {
+			"2839": {
 				"final": true,
 				"name": "imapConfiguration",
-				"id": 2840,
+				"id": 2839,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2810,

@@ -6660,6 +6660,8 @@ pub struct MailboxMigrationInformation {
 	pub errorCode: Option<i64>,
 	#[serde(rename = "2809")]
 	pub imapAccountSyncState: IdTupleWrapper,
+	#[serde(rename = "2840")]
+	pub migrationInfo: IdTupleGenerated,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -6760,12 +6762,10 @@ pub struct CustomerMigrationPostIn {
 	#[serde(rename = "2836")]
 	pub ownerKeyVersion: i64,
 	#[serde(rename = "2837")]
-	pub ownerGroup: GeneratedId,
-	#[serde(rename = "2838")]
 	pub userListProvider: i64,
-	#[serde(rename = "2839")]
+	#[serde(rename = "2838")]
 	pub userListAdminCredentials: Option<CustomerMigrationAdminCredentials>,
-	#[serde(rename = "2840")]
+	#[serde(rename = "2839")]
 	pub imapConfiguration: Option<CustomerMigrationImapConfiguration>,
 
 	#[serde(default)]

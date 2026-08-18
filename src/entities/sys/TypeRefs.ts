@@ -6799,6 +6799,7 @@ export type MailboxMigrationInformationParams = {
 	errorCode: null | NumberString;
 
 	imapAccountSyncState: IdTupleWrapper;
+	migrationInfo: IdTuple;
 }
 
 export type MailboxMigrationInformation = {
@@ -6821,6 +6822,7 @@ export type MailboxMigrationInformation = {
 	errorCode: null | NumberString;
 
 	imapAccountSyncState: IdTupleWrapper;
+	migrationInfo: IdTuple;
 }
 export const CustomerMigrationImapConfigurationTypeRef: TypeRef<CustomerMigrationImapConfiguration> = new TypeRef("sys", 2810)
 
@@ -6912,7 +6914,6 @@ export type CustomerMigrationPostIn = {
 	_format: NumberString;
 	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
-	ownerGroup: Id;
 	userListProvider: NumberString;
 
 	userListAdminCredentials: null | CustomerMigrationAdminCredentials;
