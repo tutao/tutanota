@@ -110,7 +110,7 @@ export class EnvProvider {
 	public static get(): EnvProvider {
 		const singleton = EnvProvider.tryInitWithGlobalEnv()
 		if (singleton == null) {
-			throw new Error("global var env is not defined yet")
+			throw new ProgrammingError("global var env is not defined yet")
 		}
 		return singleton
 	}
@@ -271,11 +271,11 @@ export class EnvProvider {
 		if (!assertionsEnabled) return
 
 		if (!EnvProvider.isMainOrNode()) {
-			throw new Error("this code must not run in the worker thread")
+			throw new ProgrammingError("this code must not run in the worker thread")
 		}
 
 		if (EnvProvider.isBootFinished()) {
-			throw new Error("this main code must not be loaded at boot time")
+			throw new ProgrammingError("this main code must not be loaded at boot time")
 		}
 	}
 
@@ -283,7 +283,7 @@ export class EnvProvider {
 		if (!assertionsEnabled) return
 
 		if (!EnvProvider.isMainOrNode()) {
-			throw new Error("this code must not run in the worker thread")
+			throw new ProgrammingError("this code must not run in the worker thread")
 		}
 	}
 
@@ -291,7 +291,7 @@ export class EnvProvider {
 		if (!assertionsEnabled) return
 
 		if (!EnvProvider.isWorkerOrNode()) {
-			throw new Error("this code must not run in the gui thread")
+			throw new ProgrammingError("this code must not run in the gui thread")
 		}
 	}
 

@@ -1,6 +1,6 @@
 import { TimeConstants } from "./TimeConstants.js"
 import { EnvProvider } from "./Env"
-import { TsMath, TsObject } from "./TranspileCompatibility"
+import { ProgrammingError, TsMath, TsObject } from "@tutao/lang-api"
 
 export function enumKeyByValue<T extends Record<string, string>>(e: T, value: T[keyof T]): keyof T {
 	const key =
@@ -9,7 +9,7 @@ export function enumKeyByValue<T extends Record<string, string>>(e: T, value: T[
 			.find((k) => e[k] === value) ?? null
 
 	if (key == null) {
-		throw new Error(`Unknown enum value: ${value}`)
+		throw new ProgrammingError(`Unknown enum value: ${value}`)
 	}
 
 	return key
@@ -166,7 +166,7 @@ export enum PresentableKeyVerificationState {
 
 export const MAX_LOGO_SIZE = 1024 * 100
 export const MAX_BASE64_IMAGE_SIZE = MAX_LOGO_SIZE
-export const ALLOWED_IMAGE_FORMATS = ["png", "jpg", "jpeg", "svg"]
+export const ALLOWED_IMAGE_FORMATS = TsObject.freeze(["png", "jpg", "jpeg", "svg"])
 
 // Keep non-const for admin
 export enum FeatureType {
