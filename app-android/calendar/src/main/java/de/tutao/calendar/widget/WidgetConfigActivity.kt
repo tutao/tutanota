@@ -259,7 +259,6 @@ class WidgetConfigActivity : AppCompatActivity() {
 							try {
 								val activityContext = this
 								val storeJob = viewModel.storeSettings(this, appWidgetId)
-								Log.i("DEBUG", "Widget config ok action before coroutine launch")
 								storeJob.invokeOnCompletion {
 									lifecycleScope.launch {
 										Log.i(TAG, "Asking for widget reload after user change its settings")

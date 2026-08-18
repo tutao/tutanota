@@ -8,8 +8,10 @@ import androidx.datastore.core.IOException
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.action.Action
 import androidx.glance.appwidget.action.actionStartActivity
+import androidx.glance.appwidget.updateAll
 import androidx.lifecycle.ViewModel
 import de.tutao.calendar.MainActivity
+import de.tutao.calendar.widget.Agenda
 import de.tutao.calendar.widget.WidgetUpdateTrigger
 import de.tutao.calendar.widget.data.BirthdayEventDao
 import de.tutao.calendar.widget.data.CalendarEventDao
