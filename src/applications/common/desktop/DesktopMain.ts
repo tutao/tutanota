@@ -161,7 +161,11 @@ if (opts.registerAsMailHandler && opts.unregisterAsMailHandler) {
 			app.exit(1)
 		})
 } else {
-	createComponents().then(startupInstance)
+	createComponents()
+		.then(startupInstance)
+		.catch((e) => {
+			log.error(TAG, "fatal error during startup, no window will be shown:", e)
+		})
 }
 
 const err: DesktopErrorHandler = new DesktopErrorHandler(desktopUtils)
@@ -465,6 +469,7 @@ async function startupInstance(components: Components) {
 
 async function onAppReady(components: Components) {
 	const { wm, keyStoreFacade, conf } = components
+	err.init(wm)
 	// We await for it to not open any windows on top of keychain dialogs
 	await unlockDeviceKeychain(keyStoreFacade, wm, conf, desktopUtils)
 	app.on("window-all-closed", async () => {
@@ -472,7 +477,6 @@ async function onAppReady(components: Components) {
 			app.quit()
 		}
 	})
-	err.init(wm)
 	// only create a window if there are none (may already have created one, e.g. for mailto handling)
 	// also don't show the window when we're an autolaunched tray app
 	const w = await wm.getLastFocused(!((await conf.getVar(DesktopConfigKey.runAsTrayApp)) && opts.wasAutoLaunched))
