@@ -10429,6 +10429,16 @@ const typeModels = {
 				"refTypeId": 2722,
 				"dependency": null,
 				"transferredAttributeId": null
+			},
+			"2848": {
+				"final": true,
+				"name": "userAlarmInfo",
+				"id": 2848,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2842,
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -17698,6 +17708,166 @@ const typeModels = {
 				"refTypeId": 2816,
 				"dependency": null,
 				"transferredAttributeId": null
+			}
+		}
+	},
+	"2833": {
+		"name": "CalendarEventRefTransferAggregatedType",
+		"app": "sys",
+		"version": 155,
+		"since": 155,
+		"type": "AGGREGATED_TYPE",
+		"id": 2833,
+		"rootId": "A3N5cwALEQ",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1532,
+		"values": {
+			"2834": {
+				"final": true,
+				"name": "_id",
+				"id": 2834,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2835": {
+				"final": true,
+				"name": "elementId",
+				"id": 2835,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": 1534
+			},
+			"2836": {
+				"final": true,
+				"name": "listId",
+				"id": 2836,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": 1535
+			}
+		},
+		"associations": {}
+	},
+	"2837": {
+		"name": "AlarmInfoTransferAggregatedType",
+		"app": "sys",
+		"version": 155,
+		"since": 155,
+		"type": "AGGREGATED_TYPE",
+		"id": 2837,
+		"rootId": "A3N5cwALFQ",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1536,
+		"values": {
+			"2838": {
+				"final": true,
+				"name": "_id",
+				"id": 2838,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2839": {
+				"final": true,
+				"name": "trigger",
+				"id": 2839,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1538
+			},
+			"2840": {
+				"final": true,
+				"name": "alarmIdentifier",
+				"id": 2840,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": 1539
+			}
+		},
+		"associations": {
+			"2841": {
+				"final": true,
+				"name": "calendarRef",
+				"id": 2841,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 2833,
+				"dependency": null,
+				"transferredAttributeId": 1540
+			}
+		}
+	},
+	"2842": {
+		"name": "UserAlarmInfoTransferAggregatedType",
+		"app": "sys",
+		"version": 155,
+		"since": 155,
+		"type": "AGGREGATED_TYPE",
+		"id": 2842,
+		"rootId": "A3N5cwALGg",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1541,
+		"values": {
+			"2843": {
+				"final": true,
+				"name": "_id",
+				"id": 2843,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2844": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 2844,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 1546
+			},
+			"2845": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 2845,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 1547
+			},
+			"2846": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 2846,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 2233
+			}
+		},
+		"associations": {
+			"2847": {
+				"final": true,
+				"name": "alarmInfo",
+				"id": 2847,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 2837,
+				"dependency": null,
+				"transferredAttributeId": 1548
 			}
 		}
 	}
