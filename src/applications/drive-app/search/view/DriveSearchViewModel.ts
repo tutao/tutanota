@@ -228,6 +228,10 @@ export class DriveSearchViewModel {
 		this.driveOperations.cancelTransfer(transferId)
 	}
 
+	retryTransfer(transferId: TransferId) {
+		this.driveOperations.retryTransfer(transferId)
+	}
+
 	async cancelAllTransfers(confirmationDialog: (activeTransfers: DriveTransferState[]) => Promise<boolean>) {
 		await this.driveOperations.cancelAllTransfers(confirmationDialog)
 	}
