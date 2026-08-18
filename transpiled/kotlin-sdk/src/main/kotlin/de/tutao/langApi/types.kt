@@ -8,38 +8,43 @@ typealias TsObject = de.tutao.langApi.types.KtObject
 
 typealias TsNumber = de.tutao.langApi.types.KtInt
 
+typealias TsDouble = de.tutao.langApi.types.KtDouble
+
 typealias TsString = de.tutao.langApi.types.KtString
 
 typealias TsDate = de.tutao.langApi.types.KtDate
-typealias TsArray<T> = de.tutao.langApi.types.KtArray<T>;
+
+typealias TsArray<T> = de.tutao.langApi.types.KtArray<T>
+
+typealias ReadonlyArray<T> = TsArray<T>
 
 /// This alias should not have been necessary,
 /// make sure everything in client project is using TutanotaError() and not Error()
 typealias TsError = de.tutao.langApi.TutanotaError
 
 class TypeChecks {
-	companion object {
-		fun isString(item: Any): Boolean {
-			return item is TsString || item is String
-		}
+    companion object {
+        fun isString(item: Any): Boolean {
+            return item is TsString || item is String
+        }
 
-		fun isNaN(number: TsNumber): Boolean {
-			return false
-		}
+        fun isNaN(number: TsNumber): Boolean {
+            return false
+        }
 
-		fun isNumber(item: Any): Boolean {
-			return item is Boolean
-		}
+        fun isNumber(item: Any): Boolean {
+            return item is Boolean
+        }
 
-		fun hasProperty(propertyName: TsString, obj: Any? = globalThis): Boolean {
-			if (obj === globalThis) {
-				val propertyName = propertyName.asKtString()
-				return propertyName === "env"
-			}
+        fun hasProperty(propertyName: TsString, obj: Any? = globalThis): Boolean {
+            if (obj === globalThis) {
+                val propertyName = propertyName.asKtString()
+                return propertyName === "env"
+            }
 
-			throw Error("Not yet implemented!")
-		}
-	}
+            throw Error("Not yet implemented!")
+        }
+    }
 }
 
 private class GlobalThis
