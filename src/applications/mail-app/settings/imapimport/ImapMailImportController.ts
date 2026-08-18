@@ -393,6 +393,7 @@ export class ImapMailImportController {
 			imapProvider: ImapProvider.Other,
 			customCertificateData: null,
 			ignoreCertificateErrors: false,
+			useSSL: true,
 		}
 
 		if (!env.dist) {

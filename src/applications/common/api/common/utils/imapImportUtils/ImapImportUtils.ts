@@ -5,7 +5,7 @@ import { getImapConfigWithPasswordAuthForDomain, ImapProvider, ServerImapImportP
 
 import { ImapCredentials } from "./ImapSyncContext"
 import type { TokenEndpointResponse } from "oauth4webapi"
-import { createOAuthTokenEndpointResponse, ImapAccount, ImapAccountSyncState, ImapFolderSyncState, OAuthTokenEndpointResponse } from "@tutao/entities/tutanota"
+import { createOAuthTokenEndpointResponse, ImapAccountSyncState, ImapFolderSyncState, OAuthTokenEndpointResponse } from "@tutao/entities/tutanota"
 import { ImapImportAttachments, ImapImportDataFile, ImportMailParams } from "../../../worker/facades/lazy/ImportMailFacade"
 import {
 	CalendarMethod,
@@ -34,6 +34,7 @@ export function imapAccountSyncStateToImapCredentials(imapAccountSyncState: Imap
 		ignoreCertificateErrors: imapAccount.ignoreCertificateErrors,
 		customCertificateData: imapAccount.customCertificateData,
 		provider: parseInt(imapAccountSyncState.provider) as ImapProvider,
+		useSSL: imapAccount.useSSL,
 	}
 	imapCredentials.password = imapAccount.password ?? undefined
 	const tokenEndpointResponse = imapAccount.oAuthTokenEndpointResponse

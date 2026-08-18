@@ -58,6 +58,11 @@ function imapErrorToReadableImapError(imapError: ImapError): ReadableImapError {
 				cause: imapError.data,
 				errorMessage: lang.getTranslationText("migrationSyncFailure_msg"),
 			}
+		case ImapErrorCause.GREETING_TIMEOUT:
+			return {
+				cause: imapError.data,
+				errorMessage: lang.getTranslationText("migrationGreetingTimeout_msg"),
+			}
 		case ImapErrorCause.GMAIL_ALL_MAILS_IMAP_DISABLED:
 			return {
 				cause: imapError.data,
@@ -179,7 +184,7 @@ export class ImapErrorHandler {
 		if (userChoice === "ignore") {
 			return { result: { ignoreCertificateErrors: true, customCertificateData: null } }
 		} else if (userChoice === "upload") {
-			const [certificateFile] = await showFileChooser(FileChooserMultiMode.Single, ["crt"])
+			const [certificateFile] = await showFileChooser(FileChooserMultiMode.Single, ["crt", "pem"])
 			if (certificateFile) {
 				return { result: { ignoreCertificateErrors: false, customCertificateData: certificateFile.data } }
 			}
