@@ -19,7 +19,7 @@ android {
 	defaultConfig {
 		applicationId = "de.tutao.drive"
 		minSdk = 26
-		targetSdk = 35
+		targetSdk = 36
 		versionCode = 44
 		versionName = "357.260818.1"
 
