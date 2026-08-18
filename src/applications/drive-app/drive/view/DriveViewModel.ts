@@ -526,6 +526,10 @@ export class DriveViewModel {
 		this.driveModel.cancelTransfer(transferId)
 	}
 
+	retryTransfer(transferId: TransferId) {
+		this.driveModel.retryTransfer(transferId)
+	}
+
 	flushTransfers() {
 		this.driveModel.flushTransfers()
 	}

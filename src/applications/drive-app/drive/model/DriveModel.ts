@@ -215,12 +215,19 @@ export class DriveModel {
 	transfers(): DriveTransfers {
 		return this.transferController.state
 	}
+
 	cancelTransfer(transferId: TransferId) {
 		this.transferController.cancelTransfer(transferId)
 	}
+
+	retryTransfer(transferId: TransferId) {
+		this.transferController.retryTransfer(transferId)
+	}
+
 	flushTransfers() {
 		this.transferController.flush()
 	}
+
 	async moveToTrash(items: readonly FolderItemId[]) {
 		const { fileIds, folderIds } = itemsIntoIds(items)
 		try {
