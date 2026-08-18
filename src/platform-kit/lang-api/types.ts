@@ -17,7 +17,27 @@ export const TsObject = {
 	},
 }
 
-export const TsNumber = Number
+export const TsNumber = {
+	parseInt(str: TsString): TsNumber {
+		return Number.parseInt(str as string)
+	},
+
+	parseFloat(str: TsString): TsNumber {
+		return Number.parseFloat(str as string)
+	},
+
+	isNaN(num: number): boolean {
+		return Number.isNaN(num)
+	},
+
+	fromInt(int: number): TsNumber {
+		return int as TsNumber
+	},
+
+	fromFloat(float: number): TsNumber {
+		return float as TsNumber
+	},
+}
 export type TsNumber = number
 export const TsDate = Date
 export const TsString = String
