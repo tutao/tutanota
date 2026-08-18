@@ -53,11 +53,12 @@ import {
 import { User } from "@tutao/entities/sys"
 import { GroupType } from "../../../../entities/sys/Utils"
 import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFacade"
-import { isDraft } from "../../mail/model/MailChecks"
-import { ConnectionError } from "@tutao/rest-client/error"
+import { ConnectionError, NotAuthorizedError } from "@tutao/rest-client/error"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 import { CommonImportedMail } from "./WebMailIndexer"
 import { MailImportType, MailSetKind } from "../../../../entities/tutanota/Utils"
+import { isDraft } from "../../mail/model/MailChecks"
+import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -268,8 +269,19 @@ export class OfflineMailIndexer implements MailIndexer {
 		const archiveDownloadPromises = new Map()
 		let totalMailsDownloaded = 0
 
+		let mails: Mail[] = []
 		while (!this.abortController.signal.aborted) {
-			const mails = await this.entityClient.loadRange(MailTypeRef, mailList, currentId, this.indexChunkSize, true)
+			try {
+				mails = await this.entityClient.loadRange(MailTypeRef, mailList, currentId, this.indexChunkSize, true)
+			} catch (e) {
+				if (e instanceof NotAuthorizedError) {
+					console.warn("NotAuthorized: ", e)
+					return
+				} else {
+					throw e
+				}
+			}
+
 			if (isEmpty(mails)) {
 				return
 			}
@@ -357,15 +369,28 @@ export class OfflineMailIndexer implements MailIndexer {
 		if (storedBlobJson == null) {
 			return null
 		}
-		const mailSessionKey = assertNotNull(await this.crypto.resolveSessionKey(mail))
-		const mailDetails = await this.instancePipeline.decryptAndMap<MailDetailsBlob>(storedBlobJson, mailSessionKey)
-		const attachments = await this.mailFacade.loadAttachments(mail)
 
-		return {
-			mail,
-			mailDetails: mailDetails.details,
-			attachments,
-		} satisfies MailWithDetailsAndAttachments
+		try {
+			const mailSessionKey = assertNotNull(await this.crypto.resolveSessionKey(mail))
+			const mailDetails = await this.instancePipeline.decryptAndMap<MailDetailsBlob>(storedBlobJson, mailSessionKey)
+			const attachments = await this.mailFacade.loadAttachments(mail)
+
+			return {
+				mail,
+				mailDetails: mailDetails.details,
+				attachments,
+			} satisfies MailWithDetailsAndAttachments
+		} catch (e) {
+			// Usually we should be able to resolve the session key, but some emails are permanently stuck in this state
+			// due to being corrupted.
+			if (e instanceof CryptoError || e instanceof SessionKeyNotFoundError) {
+				console.warn(`Decryption error when trying to index mail ${mail._id} (skipping):`, e)
+				return null
+			} else {
+				console.error(`Error when trying to load mail ${mail._id} for indexing:`, e)
+				throw e
+			}
+		}
 	}
 
 	private processIndexQueue() {
