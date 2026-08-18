@@ -17,7 +17,8 @@ import de.tutao.tutashared.IdTuple
 import de.tutao.tutashared.base64ToBytes
 import de.tutao.tutashared.ipc.UnencryptedCredentials
 import de.tutao.tutashared.toBase64
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.runBlocking
 import java.time.LocalDate
 import java.util.Calendar
 import java.util.Date
@@ -82,12 +83,12 @@ class WidgetDataRepository private constructor() : WidgetRepository() {
 
 		// TODO: Maybe add error handling here, to see if writing to the cache data store fails
 		// TODO: Continue code investigation from here!!!!!
-		Log.i("DEBUG", "")
 		val databaseWidgetIdentifier = "${WIDGET_EVENTS_CACHE}_$widgetId"
 		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
 		val encryptedEventListMapJson = json.encodeToString(encryptedEventListMap)
 
 		cacheDataStore.edit { preferences ->
+			Log.i(TAG, "Saving events to dataStore for widget $widgetId")
 			preferences[preferencesKey] = encryptedEventListMapJson
 		}
 
@@ -102,10 +103,19 @@ class WidgetDataRepository private constructor() : WidgetRepository() {
 	): Map<GeneratedId, CalendarEventListDao> {
 		val key = credentials.databaseKey ?: return mapOf()
 
+		val preferences = cacheDataStore.data.firstOrNull()
+		Log.d(TAG, "Cache preferences $preferences")
+
+		if (preferences == null) {
+			Log.w(
+				TAG,
+				"Could not find preferences from provided DataStore. Returning empty data map from loadCache attempt."
+			)
+			return mapOf()
+		}
+
 		val databaseWidgetIdentifier = "${WIDGET_EVENTS_CACHE}_$widgetId"
 		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
-
-		val preferences = cacheDataStore.data.first()
 		Log.i(TAG, "Reading dataStore. Looking for key $preferencesKey")
 		val encodedEventsJson = preferences[preferencesKey] ?: return mapOf()
 
@@ -192,8 +202,13 @@ class WidgetDataRepository private constructor() : WidgetRepository() {
 	): Map<GeneratedId, CalendarEventListDao> {
 		Log.i(TAG, "Init loadEvents from cache...")
 		val now = Calendar.getInstance(TimeZone.getDefault()).timeInMillis.toULong()
-		val cachedEvents: MutableMap<GeneratedId, CalendarEventListDao> =
-			loadCache(cacheDataStore, widgetId, cryptoFacade, credentials).toMutableMap()
+
+		var cachedEvents: MutableMap<GeneratedId, CalendarEventListDao> = mutableMapOf()
+
+		runBlocking {
+			cachedEvents = loadCache(cacheDataStore, widgetId, cryptoFacade, credentials).toMutableMap()
+		}
+
 		val cache = cachedEvents.filterKeys { calendars.contains(it) }
 
 		for ((id, events) in cache.entries) {

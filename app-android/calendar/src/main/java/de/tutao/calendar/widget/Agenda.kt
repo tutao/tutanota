@@ -23,6 +23,7 @@ import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
+import androidx.glance.appwidget.updateAll
 import androidx.glance.background
 import androidx.glance.currentState
 import androidx.glance.layout.Column
@@ -59,6 +60,7 @@ import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.remote.RemoteStorage
+import kotlinx.coroutines.launch
 import java.security.SecureRandom
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -100,13 +102,26 @@ class Agenda : GlanceAppWidget() {
 
 			val preferences = currentState<Preferences>()
 
-			LaunchedEffect(
-				preferences[settingsPreferencesKey], preferences[lastSyncPreferencesKey]
-			) {
-				widgetUIViewModel.loadUIState(
-					context.widgetDataStore, context.widgetCacheDataStore, LocalDateTime.now()
-				)
+			if (data == null) {
+				Log.i(TAG, "Widget UI state is empty, starting coroutine to populate UI state.")
+				LaunchedEffect(
+					preferences[settingsPreferencesKey], preferences[lastSyncPreferencesKey]
+				) {
+					this.launch {
+						widgetUIViewModel.loadUIState(
+							context.widgetDataStore, context.widgetCacheDataStore, LocalDateTime.now()
+						).let {
+							Agenda().updateAll(context)
+						}
+					}
+				}
 			}
+
+			Log.d(TAG, "UI data = $data")
+			Log.i(
+				TAG,
+				"Widget UI has ${data?.normalEvents?.size} normal timed events and ${data?.allDayEvents?.size} all day events."
+			)
 
 			GlanceTheme(
 				colors = AppTheme.colors
