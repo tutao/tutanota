@@ -443,7 +443,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 									lazyButtons: async () => {
 										const childElements = [
 											{
-												info: lang.get("envelopeSenderInfo_msg"),
+												info: lang.getTranslationText("envelopeSenderInfo_msg"),
 												center: false,
 												bold: false,
 											},
@@ -758,10 +758,10 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		return m(InfoBanner, {
 			message: () =>
 				viewModel.mail.differentEnvelopeSender
-					? lang.get("mailAuthMissingWithTechnicalSender_msg", {
+					? lang.getTranslation("mailAuthMissingWithTechnicalSender_msg", {
 							"{sender}": viewModel.mail.differentEnvelopeSender,
-						})
-					: lang.get("mailAuthMissing_label"),
+						}).text
+					: lang.getTranslationText("mailAuthMissing_label"),
 			icon: Icons.ExclamationFilled,
 			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
 			buttons: buttons,
