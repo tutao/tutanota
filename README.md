@@ -13,11 +13,10 @@ communicate securely with anyone on all your devices.
   via support mail.
 
 <div align="center">
-<a href="https://play.google.com/store/apps/details?id=de.tutao.tutanota"><img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" height="75"></a><a href="https://f-droid.org/packages/de.tutao.tutanota/"><img src="https://f-droid.org/badge/get-it-on.png" height="75"></a>
+<a href="https://play.google.com/store/apps/details?id=de.tutao.tutanota"><img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" height="75"></a><a href="https://f-droid.org/packages/de.tutao.tutanota/"><img src="https://f-droid.org/badge/get-it-on.png" height="75"></a> <br>
+<a href="https://itunes.apple.com/us/app/tutanota/id922429609"><img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" height="55"></a>
 
 <a href="https://app.tuta.com">Web client</a>
-•
-<a href="https://itunes.apple.com/us/app/tutanota/id922429609">iOS App Store</a>
 •
 <a href="https://tuta.com/#download">Desktop Client</a>
 
