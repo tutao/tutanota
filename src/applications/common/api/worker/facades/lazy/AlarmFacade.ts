@@ -15,13 +15,15 @@ import {
 	AlarmService,
 	AlarmServicePost,
 	createAlarmInfo,
+	createAlarmInfoTransferAggregatedType,
 	createAlarmNotification,
 	createAlarmServicePost,
 	createCalendarEventRef,
+	createCalendarEventRefTransferAggregatedType,
 	createDateWrapper,
 	createNotificationSessionKey,
 	createRepeatRule,
-	createUserAlarmInfoData,
+	createUserAlarmInfoTransferAggregatedType,
 	PushIdentifier,
 	RepeatRule,
 	User,
@@ -45,15 +47,16 @@ export class AlarmFacade {
 
 	public async createAlarms(loggedInUser: User, eventAlarmsTuples: EventAlarmInfoTemplatesTuple[], pushIdentifiers: PushIdentifier[]): Promise<void> {
 		const notificationSessionKey = aes256RandomKey()
+		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const alarmServicePostRequestData = await this.prepareAlarmServicePostData(
 			elementIdToId(loggedInUser._id),
 			this.userFacade.getUserGroupId(),
-			this.userFacade.getCurrentUserGroupKey(),
+			userGroupKey,
 			eventAlarmsTuples,
 			pushIdentifiers,
 			notificationSessionKey,
 		)
-		await this.postAlarmServiceRequest(notificationSessionKey, alarmServicePostRequestData)
+		await this.postAlarmServiceRequest(notificationSessionKey, alarmServicePostRequestData, userGroupKey)
 	}
 
 	public async scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier, eventsWithAlarmInfos: Array<EventWithUserAlarmInfos>): Promise<void> {
@@ -97,15 +100,20 @@ export class AlarmFacade {
 
 			for (const alarmInfoTemplate of alarmInfoTemplates) {
 				const userAlarmInfoSessionKey = aes256RandomKey()
-				const userAlarmInfoData = createUserAlarmInfoData({
-					encryptedTrigger: this.cryptoWrapper.encryptString(userAlarmInfoSessionKey, alarmInfoTemplate.trigger),
-					alarmIdentifier: alarmInfoTemplate.alarmIdentifier,
-					ownerGroup: ownerGroup,
-					calendarEventRef: eventRef,
+				const userAlarmInfo = createUserAlarmInfoTransferAggregatedType({
+					alarmInfo: createAlarmInfoTransferAggregatedType({
+						alarmIdentifier: alarmInfoTemplate.alarmIdentifier,
+						calendarRef: createCalendarEventRefTransferAggregatedType({
+							listId: eventRef.listId,
+							elementId: eventRef.elementId,
+						}),
+						trigger: alarmInfoTemplate.trigger,
+					}),
 				})
-				userAlarmInfoData.ownerEncSessionKey = this.cryptoWrapper.encryptKey(userGroupKey.object, userAlarmInfoSessionKey)
-				userAlarmInfoData.ownerKeyVersion = userGroupKey.version.toString()
-				alarmServicePost.userAlarmInfoData.push(userAlarmInfoData)
+				userAlarmInfo._ownerGroup = ownerGroup
+				userAlarmInfo._ownerEncSessionKey = this.cryptoWrapper.encryptKey(userGroupKey.object, userAlarmInfoSessionKey)
+				userAlarmInfo._ownerKeyVersion = userGroupKey.version.toString()
+				alarmServicePost.userAlarmInfo.push(userAlarmInfo)
 
 				// one session key is used for all notifications of a single alarmInfo, but is encrypted separately for each device.
 				// (Doesn't this mean that if you decrypt one key, you can decrypt all notifications on all devices? What security does this add?
@@ -130,9 +138,13 @@ export class AlarmFacade {
 		return alarmServicePost
 	}
 
-	private async postAlarmServiceRequest(notificationSessionKey: AesKey, alarmServicePostData: AlarmServicePost): Promise<void> {
+	private async postAlarmServiceRequest(notificationSessionKey: AesKey, alarmServicePostData: AlarmServicePost, userGroupKey: VersionedKey): Promise<void> {
 		try {
-			await this.serviceExecutor.post(AlarmService, alarmServicePostData, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: notificationSessionKey })
+			await this.serviceExecutor.post(AlarmService, alarmServicePostData, {
+				...DEFAULT_EXTRA_SERVICE_PARAMS,
+				sessionKey: notificationSessionKey,
+				ownerKey: userGroupKey,
+			})
 		} catch (e) {
 			if (e instanceof TooManyRequestsError) {
 				return this.infoMessageHandler.onInfoMessage({

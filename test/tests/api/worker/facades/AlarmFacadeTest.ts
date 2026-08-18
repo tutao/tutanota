@@ -19,16 +19,18 @@ import {
 	AlarmService,
 	CalendarEventRefTypeRef,
 	createAlarmInfo,
+	createAlarmInfoTransferAggregatedType,
 	createAlarmNotification,
 	createAlarmServicePost,
 	createCalendarEventRef,
-	createUserAlarmInfoData,
+	createCalendarEventRefTransferAggregatedType,
+	createUserAlarmInfoTransferAggregatedType,
 	GroupMembership,
 	GroupMembershipTypeRef,
 	PushIdentifier,
 	PushIdentifierTypeRef,
 	User,
-	UserAlarmInfoData,
+	UserAlarmInfoTransferAggregatedType,
 	UserAlarmInfoTypeRef,
 	UserTypeRef,
 } from "@tutao/entities/sys"
@@ -109,9 +111,10 @@ o.spec("AlarmFacadeTest", function () {
 				listId: listIdPart(personalCalendarEvent._id),
 				elementId: elementIdPart(personalCalendarEvent._id),
 			})
+			const alarmInfo = createAlarmInfo({ ...personalAlarmInfoTemplate, calendarRef: calendarEventRef })
 			const alarmNotifications: AlarmNotification[] = [
 				createAlarmNotification({
-					alarmInfo: createAlarmInfo({ ...personalAlarmInfoTemplate, calendarRef: calendarEventRef }),
+					alarmInfo,
 					repeatRule: null,
 					notificationSessionKeys: [],
 					operation: OperationType.CREATE,
@@ -121,17 +124,22 @@ o.spec("AlarmFacadeTest", function () {
 					user: elementIdToId(user._id),
 				}),
 			]
-			const userAlarmInfoData: UserAlarmInfoData[] = [
-				createUserAlarmInfoData({
-					encryptedTrigger,
-					alarmIdentifier: personalAlarmInfoTemplate.alarmIdentifier,
-					ownerGroup: user.userGroup.group,
-					calendarEventRef: calendarEventRef,
+			const userAlarmInfo: UserAlarmInfoTransferAggregatedType[] = [
+				createUserAlarmInfoTransferAggregatedType({
+					alarmInfo: createAlarmInfoTransferAggregatedType({
+						alarmIdentifier: alarmInfo.alarmIdentifier,
+						calendarRef: createCalendarEventRefTransferAggregatedType({
+							elementId: alarmInfo.calendarRef.elementId,
+							listId: alarmInfo.calendarRef.listId,
+						}),
+						trigger: alarmInfo.trigger,
+					}),
 				}),
 			]
-			userAlarmInfoData[0].ownerEncSessionKey = ownerEncSessionKey
-			userAlarmInfoData[0].ownerKeyVersion = userGroupKey.version.toString()
-			const alarmServicePostData = createAlarmServicePost({ alarmNotifications, userAlarmInfoData, userAlarmInfo: [] })
+			userAlarmInfo[0]._ownerGroup = userGroupMembership.group
+			userAlarmInfo[0]._ownerEncSessionKey = ownerEncSessionKey
+			userAlarmInfo[0]._ownerKeyVersion = userGroupKey.version.toString()
+			const alarmServicePostData = createAlarmServicePost({ alarmNotifications, userAlarmInfoData: [], userAlarmInfo })
 
 			const eventAlarmsTuple: EventAlarmInfoTemplatesTuple = {
 				event: personalCalendarEvent,
