@@ -28,6 +28,7 @@ o.spec("DesktopImapSyncSystemFacade", () => {
 		ignoreCertificateErrors: false,
 		customCertificateData: null,
 		provider: ImapProvider.Other,
+		useSSL: true,
 	}
 	const imapSyncContextMock = { imapCredentials: imapCredentialsMock } as ImapSyncContext
 	const imapErrorMock = new ImapError("Connection failed", ImapErrorCause.UNKNOWN)
