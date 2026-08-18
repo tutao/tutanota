@@ -6,7 +6,7 @@ typealias TsRegex = de.tutao.langApi.types.KtRegex
 
 typealias TsObject = de.tutao.langApi.types.KtObject
 
-typealias TsNumber = de.tutao.langApi.types.KtNumber
+typealias TsNumber = de.tutao.langApi.types.KtInt
 
 typealias TsString = de.tutao.langApi.types.KtString
 
