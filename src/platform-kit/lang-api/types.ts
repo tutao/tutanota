@@ -11,11 +11,15 @@ export type TsArray<T> = {
 	find(predicate: (value: T, index: TsNumber, obj: T[]) => unknown, thisArg?: any): Nullable<T>
 	map<U>(callbackfn: (value: T, index: TsNumber, array: T[]) => U, thisArg?: any): TsArray<U>
 }
-export const TsArray = Array
+export const TsArray = {
+	from<T>(arr: Array<T>): TsArray<T> {
+		return arr as unknown as TsArray<T>
+	},
+}
 
 export const TsObject = {
 	keys(obj: any): TsArray<TsString> {
-		return Object.keys(obj)
+		return TsArray.from(Object.keys(obj).map((k) => TsString.fromString(k)))
 	},
 
 	freeze<T>(obj: T): Readonly<T> {
@@ -25,23 +29,11 @@ export const TsObject = {
 
 export const TsNumber = {
 	parseInt(str: TsString): TsNumber {
-		return Number.parseInt(str as string)
-	},
-
-	parseFloat(str: TsString): TsNumber {
-		return Number.parseFloat(str as string)
+		return Number.parseInt(str.asString()) as TsNumber
 	},
 
 	isNaN(num: number): boolean {
 		return Number.isNaN(num)
-	},
-
-	fromInt(int: number): TsNumber {
-		return int as TsNumber
-	},
-
-	fromFloat(float: number): TsNumber {
-		return float as TsNumber
 	},
 }
 
@@ -54,16 +46,37 @@ export class TsDoubleBrand extends TsBrand {
 }
 
 export type TsNumber = BrandedType<number, TsNumberBrand>
+
 export type TsDouble = BrandedType<number, TsDoubleBrand>
+
+export const TsDouble = {
+	from(num: TsDouble): TsDouble {
+		return num
+	},
+	parseFloat(str: TsString): TsNumber {
+		return Number.parseFloat(str.asString()) as TsNumber
+	},
+}
+
 export const TsDate = Date
-export const TsString = String
+export const TsString = {
+	fromString(str: string): TsString {
+		return str as unknown as TsString
+	},
+}
 export type TsString = {
 	length: TsNumber
-	replace(f: TsRegex, r: TsString): TsString
+	replace(f: TsRegex, r: TsString | string): TsString
 	match(m: TsRegex): Nullable<RegExpMatchArray>
-	indexOf(s: TsString, position?: TsNumber): TsNumber
-	substring(start: TsNumber, end?: TsNumber): TsString
-	charAt(pos: TsNumber): TsString
+	indexOf(s: TsString | string, position?: TsNumber | number): TsNumber
+	substring(start: TsNumber | number, end?: TsNumber | number): TsString
+	charAt(pos: TsNumber | number): TsString
+
+	// FIXME:
+	// extend string prototype so that this function actually exists during runtime
+	// Fixme:
+	// this should not be used outside of lang-api package itself
+	asString(): string
 }
 
 export type Nullable<T> = T | null

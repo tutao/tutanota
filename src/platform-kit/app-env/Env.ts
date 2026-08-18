@@ -251,7 +251,7 @@ export class EnvProvider {
 
 	public getWebsocketBaseUrl(domainConfig: DomainConfig): string {
 		// replaces http: with ws: and https: with wss:
-		return domainConfig.apiUrl.replace(/^http/, "ws") as string
+		return domainConfig.apiUrl.replace(/^http/, "ws").asString()
 	}
 
 	/**

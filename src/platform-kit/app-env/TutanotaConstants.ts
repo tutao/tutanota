@@ -5,7 +5,7 @@ import { ProgrammingError, TsDouble, TsMath, TsObject } from "@tutao/lang-api"
 export function enumKeyByValue<T extends Record<string, string>>(e: T, value: T[keyof T]): keyof T {
 	const key =
 		TsObject.keys(e)
-			.map((k) => k as string)
+			.map((k) => k.asString())
 			.find((k) => e[k] === value) ?? null
 
 	if (key == null) {
@@ -34,7 +34,7 @@ export const Const: ConstType = {
 	INITIAL_UPGRADE_REMINDER_INTERVAL_MS: 14 * TimeConstants.DAY_IN_MILLIS,
 	REPEATED_UPGRADE_REMINDER_INTERVAL_MS: 90 * TimeConstants.DAY_IN_MILLIS,
 	MEMORY_GB_FACTOR: 1000000000,
-	MEMORY_WARNING_FACTOR: 0.9,
+	MEMORY_WARNING_FACTOR: TsDouble.from(0.9),
 	// Sets the current date for testing date dependent services. Only available in test environments.
 	CURRENT_DATE: null,
 	CURRENCY_SYMBOL_EUR: "€",
