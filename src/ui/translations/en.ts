@@ -2518,6 +2518,8 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"migrationGreetingTimeout_msg": "We could not establish a connection to the IMAP server due a timeout. Please verify that the provided IMAP server information is correct, and your network allows connections to this IMAP server. Please check if your connection uses SSL/TLS security, if so, make sure you've enabled the 'Use SSL/TLS' checkbox in the previous step.",
+		"migrationUseSSL_label": "Use SSL/TLS",
 	}
 }

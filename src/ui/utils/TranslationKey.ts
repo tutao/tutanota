@@ -2517,3 +2517,5 @@ export type TranslationKeyType =
 	| "driveAllFileTypes_label"
 	| "retryFailedTransfers_action"
 	| "emptyString_msg"
+	| "migrationGreetingTimeout_msg"
+	| "migrationUseSSL_label"
