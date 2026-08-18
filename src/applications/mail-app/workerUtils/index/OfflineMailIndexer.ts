@@ -7,6 +7,7 @@ import {
 	collectToMap,
 	difference,
 	getFirstOrThrow,
+	groupBy,
 	groupByAndMap,
 	isEmpty,
 	isNotEmpty,
@@ -38,6 +39,7 @@ import {
 	TypeRef,
 } from "@tutao/meta"
 import {
+	FileTypeRef,
 	ImportedFileMailTypeRef,
 	ImportedImapMailTypeRef,
 	Mail,
@@ -295,6 +297,14 @@ export class OfflineMailIndexer implements MailIndexer {
 
 			if (isEmpty(mails)) {
 				return
+			}
+
+			const attachmentIds: IdTuple[] = mails.flatMap((mails) => mails.attachments)
+			const attachmentsByList: Map<Id, IdTuple[]> = groupBy(attachmentIds, listIdPart)
+
+			// load all files into cache (we should be able to retrieve these later if we are successful)
+			for (const [list, ids] of attachmentsByList.entries()) {
+				await this.entityClient.loadMultiple(FileTypeRef, list, ids.map(elementIdPart))
 			}
 
 			const lastMail = lastThrow(mails)
