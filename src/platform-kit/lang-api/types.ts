@@ -5,6 +5,7 @@ export type TsArray<T> = {
 	find(predicate: (value: T, index: TsNumber, obj: T[]) => unknown, thisArg?: any): Nullable<T>
 	map<U>(callbackfn: (value: T, index: TsNumber, array: T[]) => U, thisArg?: any): TsArray<U>
 }
+export const TsArray = Array
 
 export const TsObject = {
 	keys(obj: any): TsArray<TsString> {

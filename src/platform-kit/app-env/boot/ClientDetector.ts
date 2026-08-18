@@ -1,7 +1,7 @@
 import { EnvProvider, PlatformId } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { AppType } from "../AppType"
-import { console, RuntimeInfo, TsNumber, TsString, TutanotaError, TypeChecks } from "@tutao/lang-api"
+import { console, ProgrammingError, RuntimeInfo, TsNumber, TsString, TutanotaError, TypeChecks } from "@tutao/lang-api"
 import { BotdResult, BotKind, FingerprintJs } from "@tutao/lang-api/fingerprintJs"
 
 EnvProvider.assertMainOrNodeBoot()
@@ -47,7 +47,7 @@ export class ClientDetector {
 
 	getUserAgent(): NonNullable<TsString> {
 		if (this.userAgent == null) {
-			throw new Error("Client detector is not yet initialized!")
+			throw new ProgrammingError("Client detector is not yet initialized!")
 		}
 		return this.userAgent
 	}
@@ -219,7 +219,7 @@ export class ClientDetector {
 
 		if (EnvProvider.get().isApp()) {
 			if (this.appType === AppType.Integrated) {
-				throw new Error("AppType.Integrated is not allowed for mobile apps")
+				throw new ProgrammingError("AppType.Integrated is not allowed for mobile apps")
 			}
 			const appType: string = this.appType === AppType.Mail ? "Mail" : "Calendar"
 			return `${ClientDetector.get().device} ${appType} App`
