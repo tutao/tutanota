@@ -47,8 +47,8 @@ export class TempFs {
 					this.fs.rmSync(tmpSubPath, { recursive: true })
 				} catch (e) {
 					// ignore if the file was deleted between readdir and delete
-					// or if it's not our tmp dir
-					if (e.code !== "ENOENT" && e.code !== "EACCES") throw e
+					// or if it's not our tmp dir, or we do not have the correct permission
+					if (e.code !== "ENOENT" && e.code !== "EACCES" && e.code !== "EPERM") throw e
 				}
 			}
 		} catch (e) {
