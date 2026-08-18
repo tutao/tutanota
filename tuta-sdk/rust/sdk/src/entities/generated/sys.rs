@@ -3805,6 +3805,8 @@ pub struct AlarmServicePost {
 	pub alarmNotifications: Vec<AlarmNotification>,
 	#[serde(rename = "2730")]
 	pub userAlarmInfoData: Vec<UserAlarmInfoData>,
+	#[serde(rename = "2885")]
+	pub userAlarmInfo: Vec<UserAlarmInfoTransferAggregatedType>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -6882,6 +6884,76 @@ impl Entity for InstanceKeyPermissionServicePostIn {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2860),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CalendarEventRefTransferAggregatedType {
+	#[serde(rename = "2871")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2872")]
+	pub elementId: CustomId,
+	#[serde(rename = "2873")]
+	pub listId: GeneratedId,
+}
+
+impl Entity for CalendarEventRefTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2870),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct AlarmInfoTransferAggregatedType {
+	#[serde(rename = "2875")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2876")]
+	pub trigger: String,
+	#[serde(rename = "2877")]
+	pub alarmIdentifier: String,
+	#[serde(rename = "2878")]
+	pub calendarRef: CalendarEventRefTransferAggregatedType,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for AlarmInfoTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2874),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UserAlarmInfoTransferAggregatedType {
+	#[serde(rename = "2880")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2881")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2882")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2883")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2884")]
+	pub alarmInfo: AlarmInfoTransferAggregatedType,
+}
+
+impl Entity for UserAlarmInfoTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2879),
 		}
 	}
 }

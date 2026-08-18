@@ -87,7 +87,7 @@ export class AlarmFacade {
 		pushIdentifiers: PushIdentifier[],
 		notificationSessionKey: AesKey,
 	): Promise<AlarmServicePost> {
-		const alarmServicePost = createAlarmServicePost({ alarmNotifications: [], userAlarmInfoData: [] })
+		const alarmServicePost = createAlarmServicePost({ alarmNotifications: [], userAlarmInfoData: [], userAlarmInfo: [] })
 
 		for (const { event, alarmInfoTemplates } of eventAlarmTuples) {
 			const eventRef = createCalendarEventRef({

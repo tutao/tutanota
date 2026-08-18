@@ -131,7 +131,7 @@ o.spec("AlarmFacadeTest", function () {
 			]
 			userAlarmInfoData[0].ownerEncSessionKey = ownerEncSessionKey
 			userAlarmInfoData[0].ownerKeyVersion = userGroupKey.version.toString()
-			const alarmServicePostData = createAlarmServicePost({ alarmNotifications, userAlarmInfoData })
+			const alarmServicePostData = createAlarmServicePost({ alarmNotifications, userAlarmInfoData, userAlarmInfo: [] })
 
 			const eventAlarmsTuple: EventAlarmInfoTemplatesTuple = {
 				event: personalCalendarEvent,
