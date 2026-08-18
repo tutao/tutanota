@@ -340,7 +340,7 @@ export class ClientDetector {
 	}
 
 	compressionStreamSupported(): boolean {
-		return !TypeChecks.hasProperty("CompressionStream")
+		return TypeChecks.hasProperty("CompressionStream")
 	}
 
 	isCalendarApp(): boolean {

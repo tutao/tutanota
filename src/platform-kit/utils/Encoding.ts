@@ -1,6 +1,6 @@
 // TODO rename methods according to their JAVA counterparts (e.g. Uint8Array == bytes, Utf8Uint8Array == bytes...)
-import { TypeChecks } from "../app-env/TsTypeChecks"
-import { isNotNull, Nullable } from "./Utils"
+import { TypeChecks } from "../app-env/TsTypeChecks.js"
+import { isNotNull, Nullable } from "./Utils.js"
 
 export function uint8ArrayToArrayBuffer(uint8Array: Uint8Array<ArrayBuffer>): ArrayBuffer {
 	if (uint8Array.byteLength === uint8Array.buffer.byteLength) {
