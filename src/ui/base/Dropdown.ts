@@ -58,7 +58,7 @@ export interface DropdownMultilineButtonAttrs {
  * Renders small info message inside the dropdown.
  */
 const DropdownInfo = pureComponent<DropdownInfoAttrs>(({ center, bold, info }) => {
-	return m(".text-break.selectable.flex.button-height" + (center ? ".center.flex-center.items-center" : "") + (bold ? ".b" : ""), info)
+	return m(".pt-8.pb-8.plr-24.text-break.selectable.flex.max-width-s" + (center ? ".center.flex-center.items-center" : "") + (bold ? ".b" : ""), info)
 })
 export type DropdownChildAttrs = DropdownInfoAttrs | DropdownButtonAttrs | DropdownMultilineButtonAttrs
 
