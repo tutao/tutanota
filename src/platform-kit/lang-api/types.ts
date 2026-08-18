@@ -1,6 +1,12 @@
 export const TsMath = Math
 export type TsRegex = RegExp
 
+export abstract class TsBrand {
+	protected abstract readonly __brand: Nullable<never>
+}
+
+export type BrandedType<T, B extends TsBrand> = { __brand: B } & T
+
 export type TsArray<T> = {
 	find(predicate: (value: T, index: TsNumber, obj: T[]) => unknown, thisArg?: any): Nullable<T>
 	map<U>(callbackfn: (value: T, index: TsNumber, array: T[]) => U, thisArg?: any): TsArray<U>
@@ -38,7 +44,17 @@ export const TsNumber = {
 		return float as TsNumber
 	},
 }
-export type TsNumber = number
+
+export class TsNumberBrand extends TsBrand {
+	protected __brand: Nullable<never> = null
+}
+
+export class TsDoubleBrand extends TsBrand {
+	protected __brand: Nullable<never> = null
+}
+
+export type TsNumber = BrandedType<number, TsNumberBrand>
+export type TsDouble = BrandedType<number, TsDoubleBrand>
 export const TsDate = Date
 export const TsString = String
 export type TsString = {
