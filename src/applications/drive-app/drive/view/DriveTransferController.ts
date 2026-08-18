@@ -1,7 +1,7 @@
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
-import { assertNotNull, filterInt } from "@tutao/utils"
+import { assertNotNull, filterInt, findAllAndRemove } from "@tutao/utils"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
-import { CancelledError } from "@tutao/app-env"
+import { CancelledError, ProgrammingError } from "@tutao/app-env"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
 import { FileController } from "../../../common/file/FileController"
 import { FileReference, WebFile } from "../../../../entities/tutanota/Utils"
@@ -63,12 +63,13 @@ type FileId = TransferId
 
 export class DriveTransferController {
 	private queue: QueuedTransfer[] = []
-	private finishedTransfers: DriveTransferState[] = []
+	private finishedTransfers: QueuedTransfer[] = []
 	private allTransfersDoneListener: (() => unknown) | null = null
 
 	get state(): DriveTransfers {
 		const currentTransfers = this.queue.map(queuedTransferToState)
-		const allTransfers = [...this.finishedTransfers, ...currentTransfers]
+		const finishedTransfers = this.finishedTransfers.map(queuedTransferToState)
+		const allTransfers = [...finishedTransfers, ...currentTransfers]
 		const timeRemaining = this.remainingTime()
 
 		return { allTransfers, currentTransfers, timeRemainingSec: timeRemaining }
@@ -121,6 +122,20 @@ export class DriveTransferController {
 			targetFolderId,
 		})
 		this.drainQueue("upload")
+	}
+
+	private async reset(failedTransfer: QueuedTransfer) {
+		findAllAndRemove(this.finishedTransfers, (transfer) => transfer.id === failedTransfer.id)
+
+		// reset volatile properties
+		failedTransfer.transferredBytes = 0
+		failedTransfer.startTime = null
+		failedTransfer.lastChunkUpdateTime = null
+
+		// reset state and get the queue moving again
+		failedTransfer.state = "waiting"
+		this.queue.push(failedTransfer)
+		this.drainQueue(failedTransfer.type)
 	}
 
 	private drainQueue(transferType: "upload" | "download") {
@@ -203,7 +218,7 @@ export class DriveTransferController {
 	}
 
 	private transferForId(fileId: TransferId) {
-		return this.queue.find((item) => item.id === fileId)
+		return this.queue.find((item) => item.id === fileId) || this.finishedTransfers.find((item) => item.id === fileId)
 	}
 
 	async cancelTransfer(transferId: TransferId): Promise<void> {
@@ -216,6 +231,17 @@ export class DriveTransferController {
 			}
 		} else if (state?.state === "waiting") {
 			this.removeTransfer(transferId)
+		}
+	}
+
+	retryTransfer(transferId: TransferId) {
+		const state = this.transferForId(transferId)
+		if (state) {
+			if (state.state === "failed") {
+				this.reset(state)
+			} else {
+				throw new ProgrammingError("wanted to retry non-failed transfer")
+			}
 		}
 	}
 
@@ -287,7 +313,7 @@ export class DriveTransferController {
 			// once all transfers are done move them to the finished, which are not used for progress
 			const allTransfersDone = this.checkAllTransfersDone()
 			if (allTransfersDone) {
-				this.finishedTransfers.push(...this.queue.splice(0).map(queuedTransferToState))
+				this.finishedTransfers.push(...this.queue.splice(0))
 			}
 			this.updateUi()
 		}

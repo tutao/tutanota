@@ -18,6 +18,7 @@ import { formatDurationNarrow } from "../../../../ui/utils/Formatter"
 export interface DriveTransferStackAttrs {
 	driveTransfers: DriveTransfers
 	cancelTransfer: (transferId: TransferId) => unknown
+	retryTransfer: (transferId: TransferId) => unknown
 	cancelAllTransfers: () => unknown
 }
 
@@ -93,7 +94,7 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 		return 0
 	}
 
-	view({ attrs: { driveTransfers, cancelTransfer, cancelAllTransfers } }: Vnode<DriveTransferStackAttrs>): Children {
+	view({ attrs: { driveTransfers, cancelTransfer, retryTransfer, cancelAllTransfers } }: Vnode<DriveTransferStackAttrs>): Children {
 		const allTransfers = driveTransfers.allTransfers
 		if (allTransfers.length === 0) {
 			return
@@ -111,6 +112,7 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 				percentage: Math.min(Math.round((transferState.transferredBytes / transferState.totalBytes) * 100), 100),
 				timeRemainingSec: transferState.timeRemainingSec ?? null,
 				onCancel: () => cancelTransfer(transferState.id),
+				onRetry: () => retryTransfer(transferState.id),
 			} satisfies ProgressSnackBarAttrs & { key: string })
 		})
 		return m(
