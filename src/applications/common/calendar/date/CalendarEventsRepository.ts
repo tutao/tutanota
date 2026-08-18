@@ -25,7 +25,7 @@ import { BIRTHDAY_CALENDAR_BASE_ID, DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CAL
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { EventController } from "../../api/main/EventController.js"
 
-import { generateLocalEventElementId } from "../../api/common/utils/CommonCalendarUtils.js"
+import { findAttendeeInAddresses, generateLocalEventElementId } from "../../api/common/utils/CommonCalendarUtils.js"
 import { ContactModel } from "../../contactsFunctionality/ContactModel.js"
 import { LoginController } from "../../api/main/LoginController.js"
 import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils.js"
@@ -34,6 +34,7 @@ import { ProgressMonitorInterface } from "../../../../platform-kit/network/Progr
 import {
 	Birthday,
 	CalendarEvent,
+	CalendarEventAttendee,
 	CalendarEventTypeRef,
 	Contact,
 	ContactTypeRef,
@@ -42,6 +43,8 @@ import {
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
 import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { getEnabledMailAddressesForGroupInfo } from "../../../../platform-kit/network/GroupUtils"
+import { CalendarAttendeeStatus } from "../../../../entities/tutanota/Utils"
 
 const LIMIT_PAST_EVENTS_YEARS = 100
 
@@ -388,10 +391,15 @@ export class CalendarEventsRepository {
 		if (update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) {
 			try {
 				const event = await this.entityClient.load(CalendarEventTypeRef, [update.instanceListId!, update.instanceId])
+
+				const ownMailAddresses = getEnabledMailAddressesForGroupInfo(this.logins.getUserController().userGroupInfo)
+				const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(event.attendees, ownMailAddresses)
+
 				const wrapper: EventWrapper = {
 					event,
 					flags: {
 						isGhost: !!event.pendingInvitation,
+						saidNo: ownAttendee?.status === CalendarAttendeeStatus.DECLINED,
 						hasAlarms: isNotEmpty(event.alarmInfos),
 						isAlteredInstance: Boolean(event.recurrenceId),
 					},

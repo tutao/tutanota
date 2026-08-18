@@ -854,7 +854,7 @@ export function getEventType(
 			// OwnerGroup is not set for events from file, but we also require an organizer to treat it as an invite.
 			return EventType.INVITE
 		} else {
-			// either the organizer exists and it's us, or the organizer does not exist and we can treat this as our event,
+			// either the organizer exists and it's us, or the organizer does not exist, and we can treat this as our event,
 			// like for newly created events.
 			return EventType.OWN
 		}
@@ -862,7 +862,7 @@ export function getEventType(
 
 	const calendarInfoForEvent = calendars.get(existingEvent._ownerGroup) ?? null
 	if (calendarInfoForEvent == null || calendarInfoForEvent.isExternal) {
-		// event has an ownergroup, but it's not in one of our calendars. this might actually be an error.
+		// event has an owner group, but it's not in one of our calendars. this might actually be an error.
 		return EventType.SHARED_RO
 	}
 

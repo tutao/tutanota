@@ -156,11 +156,17 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 			backgroundColor: theme.surface_container_high,
 		}
 
-		return {
+		let styles: Partial<CSSStyleDeclaration> = {
 			...defaultStyle,
 			...(eventWrapper.flags?.isFeatured ? featuredEventStyle : {}),
 			...(eventWrapper.flags?.isGhost ? ghostStyle : {}),
 		}
+		if (eventWrapper.flags.saidNo) {
+			styles = Object.assign(styles, ghostStyle)
+			styles.borderStyle = "solid"
+			styles.textDecoration = "line-through"
+		}
+		return styles
 	}
 
 	private renderFeaturedTexts(title: string, color: string, isConflict: boolean) {
