@@ -1,20 +1,32 @@
 package de.tutao.langApi.types
 
-class KtNumber(val inner: Int) {
-  operator fun plus(anotherNumber: KtNumber): KtNumber {
-    return KtNumber(this.inner + anotherNumber.inner)
-  }
+class KtNumber(private val inner: Int) {
 
-  operator fun unaryMinus(): KtNumber {
-    return KtNumber(-this.inner)
-  }
+	fun asKotlinInt(): Int {
+		return this.inner
+	}
 
-  operator fun compareTo(other: KtNumber): Int {
-    return this.inner.compareTo(other.inner)
-  }
+	operator fun plus(anotherNumber: KtNumber): KtNumber {
+		return KtNumber(this.inner.plus(anotherNumber.inner))
+	}
 
-  operator fun inc(): KtNumber {
-    this.inner.inc()
-    return this
-  }
+	operator fun minus(anotherNumber: KtNumber): KtNumber {
+		return KtNumber(this.inner.minus(anotherNumber.inner))
+	}
+
+	operator fun unaryMinus(): KtNumber {
+		return KtNumber(this.inner.unaryMinus())
+	}
+
+	operator fun compareTo(other: KtNumber): Int {
+		return this.inner.compareTo(other.inner)
+	}
+
+	operator fun inc(): KtNumber {
+		return KtNumber(this.inner.inc())
+	}
+
+	operator fun times(other: KtNumber): KtNumber {
+		return KtNumber(this.inner.times(other.inner))
+	}
 }
