@@ -38,4 +38,4 @@ class KtInt(private val inner: Int) {
 }
 
 
-class KtFloat(private val inner: Float) {}
+class KtDouble(private val inner: Double) {}
