@@ -1,6 +1,8 @@
 import { assertNotNull, DeepEquals, downcast, isNotNull, isNull, Nullable } from "./Utils"
 import { TypeChecks } from "../app-env/TsTypeChecks"
 
+export { BrandedType, TsBrand } from "@tutao/lang-api"
+
 // This file is not transpiled
 /* eslint-disable  no-restricted-syntax */
 /* eslint-disable local/noUnnamedTypes */
@@ -32,12 +34,6 @@ export type DeferredObjectWithHandler<T, U> = {
 	reject: (arg0: Error) => void
 	promise: Promise<U>
 }
-
-export abstract class TsBrand {
-	protected abstract readonly __brand: Nullable<never>
-}
-
-export type BrandedType<T, B extends TsBrand> = T & { __brand: B }
 
 export function defer<T>(): DeferredObject<T> {
 	let ret: DeferredObject<T> = {} as DeferredObject<T>
