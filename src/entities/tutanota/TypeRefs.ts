@@ -6638,6 +6638,7 @@ export type ImapAccountParams = {
 	password: null | string
 	ignoreCertificateErrors: boolean
 	customCertificateData: null | Uint8Array<ArrayBuffer>
+	useSSL: null | boolean
 
 	oAuthTokenEndpointResponse: null | OAuthTokenEndpointResponse
 }
@@ -6652,6 +6653,7 @@ export type ImapAccount = {
 	password: null | string
 	ignoreCertificateErrors: boolean
 	customCertificateData: null | Uint8Array<ArrayBuffer>
+	useSSL: null | boolean
 
 	// == associations
 

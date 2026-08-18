@@ -22,7 +22,8 @@ export type OauthConfigParams = {
 
 export type ServerImapImportParams = Pick<ImapAccount, "host" | "port"> & { authType: ImapAuthType; oauthConfig?: OauthConfigParams }
 
-const IMAP_SSL_PORT = "993"
+export const IMAP_SSL_PORT = "993"
+export const IMAP_UNSAFE_PORT = "143"
 
 const wellKnownConfigs = {
 	// Also checkable through https://autoconfig.thunderbird.net/v1.1/

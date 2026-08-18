@@ -61,6 +61,7 @@ o.spec("ImapImporter", () => {
 		ignoreCertificateErrors: false,
 		customCertificateData: null,
 		provider: ImapProvider.Other,
+		useSSL: true,
 	}
 	const imapMailboxMock: ImapMailbox = { path: "INBOX", name: "INBOX" }
 	const imapMailboxStatusMock: ImapMailboxStatus = {

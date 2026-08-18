@@ -6,7 +6,7 @@ import { ProgrammingError } from "@tutao/app-env"
 import { ImapMailbox, imapMailboxFromImapFlowListTreeResponse, ImapMailboxSpecialUse } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
 import { ImapSyncConfig } from "./ImapSync.js"
 import { fromImapFlowError, ImapError, ImapErrorCause } from "../../../api/common/error/ImapError"
-import type { ImapFlow, ListTreeResponse } from "imapflow"
+import type { ImapFlow, ImapFlowOptions, ListTreeResponse } from "imapflow"
 import { IMAP_ERROR_POSTPONE_TIME, ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
 import { assertNotNull, first, isEmpty, isNotEmpty, noOp, utf8Uint8ArrayToString } from "@tutao/utils"
 import { CertificateProvider } from "../../CertificateProvider"
@@ -62,7 +62,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			const systemCertificates = await this.certificateProvider.getCertificates()
 			const customCertificateData = imapCredentials.customCertificateData
 			const customCertificate = customCertificateData !== null ? [utf8Uint8ArrayToString(customCertificateData)] : []
-			return new ImapFlow({
+			const options: ImapFlowOptions = {
 				host: imapCredentials.host,
 				port: imapCredentials.port,
 				auth: {
@@ -84,7 +84,11 @@ export class ImapSyncSession implements SyncSessionEventListener {
 					info: noOp,
 				},
 				verifyOnly: verifyOnly ?? false,
-			})
+			}
+			if (imapCredentials.useSSL) {
+				options.secure = imapCredentials.useSSL
+			}
+			return new ImapFlow(options)
 		},
 	) {
 		this.state = SyncSessionState.NOT_STARTED
