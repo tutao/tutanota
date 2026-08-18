@@ -1,7 +1,7 @@
 import { DropDownSelector, DropDownSelectorAttrs, SelectorItemList } from "../../../../ui/base/DropDownSelector.js"
 import m from "mithril"
 import { Dialog } from "../../../../ui/base/Dialog.js"
-import { isOfflineError, LockedError } from "../../../../platform-kit/rest-client/error"
+import { isOfflineError, LockedError, PreconditionFailedError } from "../../../../platform-kit/rest-client/error"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { mailLocator } from "../../mailLocator.js"
@@ -13,6 +13,11 @@ import { Icons } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { ColorPickerView } from "../../../../ui/base/colorPicker/ColorPickerView"
 import { MailViewModel } from "./MailViewModel"
+import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
+import { UpgradePromptType } from "@tutao/app-env"
+
+/** Free users only get 3 labels. See MAX_LABELS_PER_FREE_USER in tutanota constants. */
+const LIMIT_EXCEEDED_ERROR = "limitReached"
 
 /**
  * Dialog for Edit and Add label are the same.
@@ -77,7 +82,14 @@ export async function showEditLabelDialog(
 				await mailViewModel.editLabel(label, { name, color, parentFolderId: selectedParentLabel?._id })
 			}
 		} catch (error) {
-			if (isOfflineError(error) || !(error instanceof LockedError)) {
+			// we check the limit before creating this modal as well, but handle possible error just to be sure
+			if (error instanceof PreconditionFailedError) {
+				if (error.data === LIMIT_EXCEEDED_ERROR) {
+					showNotAvailableForFreeDialog(UpgradePromptType.MORE_LABELS_NEEDED)
+				} else {
+					Dialog.message("unknownError_msg")
+				}
+			} else if (isOfflineError(error) || !(error instanceof LockedError)) {
 				throw error
 			}
 		}
