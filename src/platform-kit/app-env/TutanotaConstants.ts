@@ -1,6 +1,6 @@
 import { TimeConstants } from "./TimeConstants.js"
 import { EnvProvider } from "./Env"
-import { ProgrammingError, TsMath, TsObject } from "@tutao/lang-api"
+import { ProgrammingError, TsDouble, TsMath, TsObject } from "@tutao/lang-api"
 
 export function enumKeyByValue<T extends Record<string, string>>(e: T, value: T[keyof T]): keyof T {
 	const key =
@@ -19,7 +19,7 @@ export type ConstType = {
 	INITIAL_UPGRADE_REMINDER_INTERVAL_MS: number
 	REPEATED_UPGRADE_REMINDER_INTERVAL_MS: number
 	MEMORY_GB_FACTOR: number
-	MEMORY_WARNING_FACTOR: number
+	MEMORY_WARNING_FACTOR: TsDouble
 	CURRENT_DATE: Date | null
 	CURRENCY_SYMBOL_EUR: string
 	DEFAULT_APP_DOMAIN: string
