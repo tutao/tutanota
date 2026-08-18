@@ -11,6 +11,7 @@ typealias TsNumber = de.tutao.langApi.types.KtNumber
 typealias TsString = de.tutao.langApi.types.KtString
 
 typealias TsDate = de.tutao.langApi.types.KtDate
+typealias TsArray<T> = de.tutao.langApi.types.KtArray<T>;
 
 /// This alias should not have been necessary,
 /// make sure everything in client project is using TutanotaError() and not Error()
