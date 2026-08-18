@@ -3,7 +3,7 @@ import { ViewSlider } from "../../../../ui/nav/ViewSlider.js"
 import { ColumnType, ViewColumn } from "../../../../ui/base/ViewColumn"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { Dialog } from "../../../../ui/base/Dialog"
-import { CancelledError, EnvProvider, FeatureType } from "../../../../platform-kit/app-env"
+import { CancelledError, EnvProvider, FeatureType, MAX_LABELS_PER_FREE_USER, UpgradePromptType } from "../../../../platform-kit/app-env"
 import { AppHeaderAttrs, Header } from "../../../../ui/Header.js"
 import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "../../../../platform-kit/utils"
 import { MailListView } from "./MailListView"
@@ -96,6 +96,7 @@ import { ButtonSize } from "../../../../ui/base/ButtonSize"
 import { LockedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { DropdownButtonAttrs } from "../../../../ui/base/Dropdown"
+import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 
 EnvProvider.assertMainOrNode()
 
@@ -1505,8 +1506,18 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private async showLabelFolderAddEditDialog(mailViewModel: MailViewModel, mailGroupId: Id, label: MailSet | null, parentFolder: MailSet | null) {
-		const mailboxDetail = await locator.mailboxModel.getMailboxDetailsForMailGroup(mailGroupId)
-		await showEditLabelDialog(mailboxDetail, mailViewModel, label, parentFolder)
+		if (
+			// creating new label?
+			!label &&
+			// free users can only have 3 labels at once
+			locator.logins.getUserController().isFreeAccount() &&
+			assertNotNull(this.mailViewModel.mailModel.getLabelsByGroupId(mailGroupId)).size >= MAX_LABELS_PER_FREE_USER
+		) {
+			await showNotAvailableForFreeDialog(UpgradePromptType.MORE_LABELS_NEEDED)
+		} else {
+			const mailboxDetail = await locator.mailboxModel.getMailboxDetailsForMailGroup(mailGroupId)
+			await showEditLabelDialog(mailboxDetail, mailViewModel, label, parentFolder)
+		}
 	}
 
 	private async showLabelDeleteDialog(label: MailSet) {
