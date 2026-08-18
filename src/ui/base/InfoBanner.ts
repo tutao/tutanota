@@ -61,8 +61,8 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 						m(
 							`.mr-12${type === BannerType.SettingsInfo ? "" : ".pt-8.pb-8"}`,
 							typeof message === "function"
-								? message()
-								: m(`${type === BannerType.SettingsInfo ? ".ml-24" : ".small"}.text-break`, lang.get(message)),
+								? m(`${type === BannerType.SettingsInfo ? ".ml-24" : ".small"}.text-break`, message())
+								: m(`${type === BannerType.SettingsInfo ? ".ml-24" : ".small"}.text-break`, lang.getTranslationText(message)),
 						),
 						m(".flex.ml-negative-8", { style: buttonContainerStyle }, [this.renderButtons(buttons), this.renderHelpLink(helpLink)]),
 					],
