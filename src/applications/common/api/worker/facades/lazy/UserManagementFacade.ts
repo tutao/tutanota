@@ -96,7 +96,7 @@ export class UserManagementFacade {
 		userIndex: number,
 		overallNbrOfUsersToCreate: number,
 		operationId: OperationId,
-	): Promise<void> {
+	): Promise<{ userId: Id }> {
 		let adminGroupIds = this.userFacade.getGroupIds(GroupType.Admin)
 		const adminGroupId = getFirstOrThrow(adminGroupIds)
 
@@ -130,7 +130,7 @@ export class UserManagementFacade {
 				this.recoverCodeFacade.generateRecoveryCode(userGroupKey),
 			),
 		})
-		const { userGroup } = await this.serviceExecutor.post(UserAccountService, data, null)
+		const { userId, userGroup } = await this.serviceExecutor.post(UserAccountService, data, null)
 
 		await this.identityKeyCreator.createIdentityKeyPair(
 			userGroup,
@@ -141,7 +141,8 @@ export class UserManagementFacade {
 			[],
 		)
 
-		return this.operationProgressTracker.onProgress(operationId, ((userIndex + 1) / overallNbrOfUsersToCreate) * 100)
+		await this.operationProgressTracker.onProgress(operationId, ((userIndex + 1) / overallNbrOfUsersToCreate) * 100)
+		return { userId }
 	}
 
 	async generateUserAccountData(

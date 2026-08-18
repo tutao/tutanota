@@ -338,7 +338,8 @@ export enum ImapAccountSyncStatus {
 	AUTH_ERROR = "5",
 	CANCELED = "6",
 	GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR = "7",
-	SCHEDULED = "8"
+	COMPLETED_SUCCESSFULLY = "8",
+	SCHEDULED = "9"
 }
 
 
@@ -491,3 +492,23 @@ export enum MailImportType {
 	FileImport = "FileImport",
 	ImapImport = "ImapImport",
 }
+
+/** Status of a `CustomerMigrationInformation` (the customer-wide record for one admin-driven migration batch). */
+export enum CustomerMigrationInfoStatus {
+	CREATED = "0",
+	RUNNING = "1",
+	FINISHING_MIGRATION = "2",
+	COMPLETED_SUCCESSFULLY = "3",
+	CANCELLED = "4",
+}
+
+/** Status of a `MailboxMigrationInformation` (a single mailbox's migration within a batch). */
+export enum CustomerMigrationMailboxInfoStatus {
+	CREATED = "0",
+	RUNNING = "1",
+	ERROR = "2",
+	CANCELLED = "3",
+	FINISHED_SYNC = "4",
+	COMPLETED_SUCCESSFULLY = "5",
+}
+

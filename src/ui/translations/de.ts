@@ -2496,5 +2496,6 @@ export default {
 		"confirmDeleteLabelWithSublabels_msg": "Are you sure that you want to delete the label \"{1}\" and all its sublabels?",
 		"migrationGreetingTimeout_msg": "test",
 		"migrationUseSSL_label": "Connect securely to port(Use SSL)",
+		"multiuserMigration_label": "Migration",
 	}
 }

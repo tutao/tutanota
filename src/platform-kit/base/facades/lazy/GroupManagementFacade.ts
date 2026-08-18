@@ -60,7 +60,7 @@ export class GroupManagementFacade {
 		return this.counters.readCounterValue(CounterType.UserStorageLegacy, neverNull(group.customer), elementIdToId(group._id))
 	}
 
-	async createSharedMailGroup(name: string, mailAddress: string): Promise<void> {
+	async createSharedMailGroup(name: string, mailAddress: string): Promise<{ mailGroup: Id }> {
 		const adminGroupIds = this.userFacade.getGroupIds(GroupType.Admin)
 		const adminGroupId = getFirstOrThrow(adminGroupIds)
 
@@ -99,6 +99,8 @@ export class GroupManagementFacade {
 			[],
 			adminGroupKey,
 		)
+
+		return { mailGroup: mailGroupPostOut.mailGroup }
 	}
 
 	/**

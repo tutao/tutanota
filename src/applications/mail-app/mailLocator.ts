@@ -28,6 +28,7 @@ import { LoginFacade } from "../../platform-kit/base/facades/LoginFacade.js"
 import { LoginController } from "../common/api/main/LoginController.js"
 import { AppHeaderAttrs, Header } from "../../ui/Header.js"
 import { CustomerFacade } from "../common/api/worker/facades/lazy/CustomerFacade.js"
+import { CustomerMigrationFacade } from "../common/api/worker/facades/lazy/CustomerMigrationFacade.js"
 import { GiftCardFacade } from "../common/api/worker/facades/lazy/GiftCardFacade.js"
 import { GroupManagementFacade } from "../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import { ConfigurationDatabase } from "../common/api/worker/facades/lazy/ConfigurationDatabase.js"
@@ -195,6 +196,7 @@ class MailLocator implements CommonLocator {
 	logins!: LoginController
 	header!: Header
 	customerFacade!: CustomerFacade
+	customerMigrationFacade!: CustomerMigrationFacade
 	keyLoaderFacade!: KeyLoaderFacade
 	giftCardFacade!: GiftCardFacade
 	groupManagementFacade!: GroupManagementFacade
@@ -847,10 +849,11 @@ class MailLocator implements CommonLocator {
 			spamClassifier,
 			driveFacade,
 			imapImporter,
-			mailboxMigrationFacade,
+			customerMigrationFacade,
 		} = this.worker.getWorkerInterface() as WorkerInterface
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
+		this.customerMigrationFacade = customerMigrationFacade
 		this.giftCardFacade = giftCardFacade
 		this.groupManagementFacade = groupManagementFacade
 		this.identityKeyCreator = identityKeyCreator
@@ -1024,7 +1027,19 @@ class MailLocator implements CommonLocator {
 						this.oauthFacade,
 						new ImapErrorHandler(this.entityClient, this.serviceExecutor),
 					)
-					this.customerMigrationController = new CustomerMigrationController(mailboxMigrationFacade)
+					this.customerMigrationController = new CustomerMigrationController(
+						customerMigrationFacade,
+						userManagementFacade,
+						groupManagementFacade,
+						mailAddressFacade,
+						this.entityClient,
+						async () => {
+							const { PasswordGenerator } = await import("../common/misc/passwords/PasswordGenerator.js")
+							const baseUrl = location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "")
+							const dictionary = await fetch(baseUrl + "/wordlibrary.json").then((response) => response.json())
+							return new PasswordGenerator(this.random, dictionary).generateRandomPassphrase()
+						},
+					)
 				}
 			} else if (isAndroidApp() || isIOSApp()) {
 				const { SystemPermissionHandler } = await import("../common/native/SystemPermissionHandler.js")

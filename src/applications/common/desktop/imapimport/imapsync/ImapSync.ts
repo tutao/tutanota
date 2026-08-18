@@ -29,6 +29,10 @@ export class ImapSync {
 	async getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ReadonlyArray<ImapMailbox>> {
 		return await this.syncSession.getImapMailboxesFromServer(imapCredentials)
 	}
+
+	async verifyImapConnection(imapCredentials: ImapCredentials): Promise<void> {
+		await this.syncSession.verifyImapConnection(imapCredentials)
+	}
 }
 
 export function createImapSync(

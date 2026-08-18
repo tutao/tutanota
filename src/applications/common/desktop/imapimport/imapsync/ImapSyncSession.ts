@@ -221,7 +221,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		return imapMailboxes
 	}
 
-	private async verifyImapConnection(imapCredentials: ImapCredentials) {
+	public async verifyImapConnection(imapCredentials: ImapCredentials) {
 		const connectionWorksImapClient = await this.imapFlowFactory(imapCredentials, this.imapSyncConfig, true)
 		connectionWorksImapClient.on("error", (entry) => {
 			console.log(`[${entry.name}] ${entry.message}, ${entry.cause}`)

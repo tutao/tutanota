@@ -8,9 +8,8 @@ import { ImapProvider } from "../../../common/utils/imapImportUtils/ImapKnownCon
 import { GroupType } from "../../../../../../entities/sys/Utils"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
 import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade"
-import { CustomerFacade } from "./CustomerFacade"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
-import { GENERATED_MIN_ID } from "@tutao/meta"
+import { createCustomerMigrationPostIn, CustomerMigrationImapConfiguration, CustomerMigrationService } from "@tutao/entities/sys"
 
 export type MailboxMigrationInitializationParameters = {
 	mailGroupId: Id
@@ -20,19 +19,40 @@ export type MailboxMigrationInitializationParameters = {
 	provider: ImapProvider
 	maxQuota: string
 	userId: Id | null
+	customerMigrationInformation: IdTuple
 }
 
-export class MailboxMigrationFacade {
+export class CustomerMigrationFacade {
 	constructor(
 		private readonly mailFacade: MailFacade,
 		private readonly userFacade: UserFacade,
-		private readonly customerFacade: CustomerFacade,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly entityClient: EntityClient,
 		private readonly adminKeyLoader: AdminKeyLoaderFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
 	) {}
+
+	/**
+	 * Creates the customer-wide record that groups together the individual mailbox migrations
+	 * scheduled for a single admin-driven multi-user migration run.
+	 * @returns the IdTuple to pass as `customerMigrationInformation` to each MailboxMigrationService call in this batch.
+	 */
+	async createCustomerMigrationInformation(imapConfiguration: CustomerMigrationImapConfiguration): Promise<IdTuple> {
+		const customerGroupId = this.userFacade.getGroupId(GroupType.Customer)
+		const customerGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(customerGroupId)
+		const sessionKey = this.cryptoWrapper.aes256RandomKey()
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(customerGroupKey, sessionKey)
+		const data = createCustomerMigrationPostIn({
+			userListProvider: "0",
+			userListAdminCredentials: null,
+			imapConfiguration,
+		})
+		data.ownerEncSessionKey = ownerEncSessionKey.key
+		data.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
+		const postOut = await this.serviceExecutor.post(CustomerMigrationService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
+		return postOut.migrationInfo
+	}
 
 	async scheduleMailboxMigration(migrationInitializationParameters: MailboxMigrationInitializationParameters): Promise<void> {
 		const { mailGroupId, userId } = migrationInitializationParameters
@@ -65,7 +85,7 @@ export class MailboxMigrationFacade {
 			encMailAddress: this.cryptoWrapper.encryptString(mailboxMigrationInformationSessionKey, migrationInitializationParameters.imapAccount.username),
 			isShared: userId === null,
 			imapAccount: migrationInitializationParameters.imapAccount,
-			customerMigrationInformation: [GENERATED_MIN_ID, GENERATED_MIN_ID], // fixme get this via customerFacade, when implementing CustomerMigrationService
+			customerMigrationInformation: migrationInitializationParameters.customerMigrationInformation,
 			user: migrationInitializationParameters.userId,
 		})
 		const mailboxMigrationPostOut = await this.serviceExecutor.post(MailboxMigrationService, mailboxMigrationPostIn, {

@@ -8,6 +8,7 @@ import { sha256Hash } from "@tutao/crypto"
 import { ImapImportDataFile, ImapImportTutaFileId, ImportMailFacade, ImportMailParams } from "../../../common/api/worker/facades/lazy/ImportMailFacade"
 import { SuspensionError } from "../../../common/api/common/error/SuspensionError"
 import { ImapGetMailboxResult } from "../../../common/api/common/utils/imapImportUtils/ImapGetMailboxResult"
+import { ImapVerifyConnectionResult } from "../../../common/api/common/utils/imapImportUtils/ImapVerifyConnectionResult"
 import { ImapImportSession, newImapImportSession } from "./ImapImportSession"
 import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import {
@@ -222,6 +223,10 @@ export class ImapImporter implements ImapSyncFacade {
 
 	async getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ImapGetMailboxResult> {
 		return await this.imapSyncSystemFacade.getImapMailboxesFromServer(imapCredentials)
+	}
+
+	async verifyImapConnection(imapCredentials: ImapCredentials): Promise<ImapVerifyConnectionResult> {
+		return await this.imapSyncSystemFacade.verifyImapConnection(imapCredentials)
 	}
 
 	private async getAllImapMailboxStates(session: ImapImportSession): Promise<ImapMailboxState[]> {

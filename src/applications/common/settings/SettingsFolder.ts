@@ -25,6 +25,8 @@ export class SettingsFolder<T> {
 	 * @param viewerCreator A function to produce instances of {@link UpdatableSettingsViewer}.
 	 * @param data Additional data that the folder can carry
 	 * @param pathId used in case the settings must be under a different path
+	 * @param wantsWideDetailsColumn if true, the settings column is widened at the expense of the details column
+	 * while this folder is selected (for folders whose viewer needs more room than the usual list+details split)
 	 */
 	constructor(
 		readonly name: () => MaybeTranslation,
@@ -33,6 +35,7 @@ export class SettingsFolder<T> {
 		readonly viewerCreator: lazy<UpdatableSettingsViewer>,
 		readonly data: T,
 		readonly pathId = "settings",
+		readonly wantsWideDetailsColumn = false,
 	) {
 		this.path = typeof path === "string" ? { folder: path, id: null } : path
 		this.url =

@@ -194,7 +194,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		}
 	}
 
-	private updateVisibleBackgroundColumns() {
+	updateVisibleBackgroundColumns() {
 		// In case the first column (folder / sidebar / (calendar app settings categories) column should be rendered
 		// as a Background column instead of, as by default, as a Foreground column,
 		// we update the columnType on every redraw (orientation change, resize, etc.)

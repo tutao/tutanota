@@ -66,7 +66,7 @@ import { getNullableSharedGroupName, getSharedGroupName } from "../../common/sha
 import { styles } from "../../../ui/styles"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { Header } from "../../../ui/Header"
-import { EntityUpdatesListener, EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { NavButtonAttrs, NavButtonColor } from "../../../ui/base/NavButton"
 import { clone, elementIdToId, getEtId } from "@tutao/meta"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
@@ -79,8 +79,12 @@ import { createUserAreaGroupDeleteData, TemplateGroupService, UserSettingsGroupR
 import { ButtonType } from "../../../ui/base/Button"
 import { renderHeaderButtons } from "../../calendar-app/gui/HeaderButtons"
 import ImapImportSettingsViewer from "./imapimport/ImapImportSettingsViewer.js"
+import { WebMigrationViewer } from "./migration/WebMigrationViewer"
+import MigrationViewer from "./migration/MigrationViewer"
 
 assertMainOrNode()
+
+const SETTINGS_COLUMN_DEFAULT_MAX_WIDTH = 600
 
 export class SettingsView extends BaseTopLevelView implements TopLevelView<SettingsViewAttrs> {
 	viewSlider: ViewSlider
@@ -370,7 +374,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			ColumnType.Background,
 			{
 				minWidth: 400,
-				maxWidth: 600,
+				maxWidth: SETTINGS_COLUMN_DEFAULT_MAX_WIDTH,
 				headerCenter: this._selectedFolder.name,
 			},
 		)
@@ -441,6 +445,25 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					undefined,
 				),
 			)
+			if (this.logins.isEnabled(FeatureType.ImapSyncMigration)) {
+				adminFolders.push(
+					new SettingsFolder(
+						() => "multiuserMigration_label",
+						() => Icons.SimpleArrowRight,
+						"multiusermigration",
+						() => {
+							if (isDesktop()) {
+								return new MigrationViewer(() => mailLocator.getCustomerMigrationController())
+							} else {
+								return new WebMigrationViewer()
+							}
+						},
+						undefined,
+						"settings",
+						true,
+					),
+				)
+			}
 			if (!this.logins.isEnabled(FeatureType.WhitelabelChild)) {
 				adminFolders.push(
 					new SettingsFolder(
@@ -682,6 +705,10 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		if (!this._currentViewer) {
 			this.detailsViewer = null
 			this._currentViewer = this._selectedFolder.viewerCreator()
+			this._settingsColumn.maxWidth = this._selectedFolder.wantsWideDetailsColumn
+				? layout_size.second_col_max_width + layout_size.third_col_max_width
+				: SETTINGS_COLUMN_DEFAULT_MAX_WIDTH
+			this.viewSlider.updateVisibleBackgroundColumns()
 		}
 
 		return this._currentViewer

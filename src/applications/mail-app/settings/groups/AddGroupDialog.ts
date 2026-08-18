@@ -100,7 +100,7 @@ export class AddGroupDialogViewModel {
 		this.selectedDomain = getFirstOrThrow(availableDomains)
 	}
 
-	createSharedMailGroup(): Promise<void> {
+	createSharedMailGroup(): Promise<{ mailGroup: Id }> {
 		return this._groupManagementFacade.createSharedMailGroup(this.groupName, this.mailAddress)
 	}
 

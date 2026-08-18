@@ -26,6 +26,15 @@
 			],
 			"ret": "ImapGetMailboxResult"
 		},
+		"verifyImapConnection": {
+			"doc": "Verifies that a connection to the IMAP server can be established with the given credentials, without listing mailboxes.",
+			"arg": [
+				{
+					"imapCredentials": "ImapCredentials"
+				}
+			],
+			"ret": "ImapVerifyConnectionResult"
+		},
 		"stopSync": {
 			"doc": "Stop a specific running IMAP sync.",
 			"arg": [

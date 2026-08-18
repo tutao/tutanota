@@ -2496,5 +2496,6 @@ export default {
 		"confirmDeleteLabelWithSublabels_msg": "Are you sure that you want to delete the label \"{1}\" and all its sublabels?",
 		"migrationGreetingTimeout_msg": "We could not establish a connection to the IMAP server due a timeout. Please verify that the provided IMAP server information is correct, and your network allows connections to this IMAP server and check if your connection is secure(SSL), if so please make sure you've checked the setting during setup.",
 		"migrationUseSSL_label": "Use SSL/TLS",
+		"multiuserMigration_label": "Migration",
 	}
 }

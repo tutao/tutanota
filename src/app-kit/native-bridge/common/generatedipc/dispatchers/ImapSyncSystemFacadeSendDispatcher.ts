@@ -13,6 +13,9 @@ export class ImapSyncSystemFacadeSendDispatcher implements ImapSyncSystemFacade 
 	async getImapMailboxesFromServer(...args: Parameters<ImapSyncSystemFacade["getImapMailboxesFromServer"]>) {
 		return this.transport.invokeNative("ipc", ["ImapSyncSystemFacade", "getImapMailboxesFromServer", ...args])
 	}
+	async verifyImapConnection(...args: Parameters<ImapSyncSystemFacade["verifyImapConnection"]>) {
+		return this.transport.invokeNative("ipc", ["ImapSyncSystemFacade", "verifyImapConnection", ...args])
+	}
 	async stopSync(...args: Parameters<ImapSyncSystemFacade["stopSync"]>) {
 		return this.transport.invokeNative("ipc", ["ImapSyncSystemFacade", "stopSync", ...args])
 	}

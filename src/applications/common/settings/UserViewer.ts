@@ -34,6 +34,7 @@ import { CustomerMigrationController } from "../../mail-app/settings/migration/C
 import { mailLocator } from "../../mail-app/mailLocator"
 import { TextField } from "../../../ui/base/TextField"
 import { createImapAccount } from "@tutao/entities/tutanota"
+import { createCustomerMigrationAdminCredentials, createCustomerMigrationImapConfiguration } from "@tutao/entities/sys"
 import { DEFAULT_IMAP_IMPORT_MAX_QUOTA } from "../api/common/utils/imapImportUtils/ImapImportUtils"
 import { IMAP_SSL_PORT, ImapProvider } from "../api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { ImapErrorCause } from "../api/common/error/ImapError"
@@ -41,7 +42,7 @@ import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../../ui/base/DialogHe
 import { ButtonType } from "../../../ui/base/Button"
 import { theme } from "../../../ui/theme"
 import { ContentWithOptionsDialog } from "../../../ui/dialogs/ContentWithOptionsDialog"
-import { MailboxMigrationInitializationParameters } from "../api/worker/facades/lazy/MailboxMigrationFacade"
+import { MailboxMigrationInitializationParameters } from "../api/worker/facades/lazy/CustomerMigrationFacade"
 
 assertMainOrNode()
 
@@ -493,6 +494,21 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 												useSSL: viewModel.port.toString() === IMAP_SSL_PORT,
 											})
 
+											const imapConfiguration = createCustomerMigrationImapConfiguration({
+												host: viewModel.host,
+												port: viewModel.port.toString(),
+												useSSL: viewModel.port.toString() === IMAP_SSL_PORT,
+												ignoreCertificateErrors: false,
+												customCertificateData: null,
+												adminCredentials: createCustomerMigrationAdminCredentials({
+													username: viewModel.username,
+													password: null,
+													adminOAuthTokenEndpointResponse: null,
+												}),
+											})
+											const customerMigrationInformation =
+												await mailLocator.customerMigrationFacade.createCustomerMigrationInformation(imapConfiguration)
+
 											const params: MailboxMigrationInitializationParameters = {
 												imapAccount,
 												name: viewModel.name,
@@ -501,6 +517,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 												mailGroupId,
 												provider: ImapProvider.Other,
 												userId: userId,
+												customerMigrationInformation,
 											}
 
 											await showProgressDialog("startingMigration_msg", customerMigrationController.scheduleMigration(params))
