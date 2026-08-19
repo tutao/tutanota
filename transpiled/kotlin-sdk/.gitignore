@@ -41,7 +41,6 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-# Do not commit kotlin src
-/src
-# Can commit langApi implementation
-!/src/main/kotlin/de/tutao/langApi
+
+/src/main/kotlin/de/tutao/platformKit/
+/src/main/kotlin/de/tutao/types/
