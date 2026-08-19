@@ -131,7 +131,12 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 		await buildArgon2(resolvedBuildDir)
 		await buildLibOqs(resolvedBuildDir)
 		const bundle = await rolldown({
-			input: { app: entry, worker, "pow-worker": "src/applications/common/api/common/pow-worker.ts" },
+			input: {
+				app: entry,
+				worker,
+				"pow-worker": "src/applications/common/api/common/pow-worker.ts",
+				"plugin-worker": "src/plugin-system/plugin-worker.ts",
+			},
 			transform: {
 				define: {
 					// Need it at least until inlining enums is supported

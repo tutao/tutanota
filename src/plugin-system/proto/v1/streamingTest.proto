@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package proto.v1;
+
+service StreamingTestService {
+  rpc RegisterButton(RegisterTestButtonRequest) returns (stream ButtonTestEvent);
+}
+
+message RegisterTestButtonRequest{}
+message ButtonTestEvent {
+  string button_id = 1;
+}
+
+
+//Client:
+//    const stream = client.watchUsers({});
+//
+//    stream.on("data", event => {
+//      console.log("User event:", event);
+//    });
+//
+//    stream.on("error", console.error);
+
+//Server:
+//  function watchUsers(request, stream) {
+//    subscribers.add(stream);
+//
+//    stream.on("cancelled", () => {
+//      subscribers.delete(stream);
+//    });
+//  }
+//
+//// Later:
+//    for (const stream of subscribers) {
+//      stream.write({
+//        type: "USER_CREATED",
+//        userId: "123"
+//      });
+//    }
+

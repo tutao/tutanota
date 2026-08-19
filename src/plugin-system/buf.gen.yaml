@@ -5,10 +5,10 @@ managed:
 
 plugins:
   - remote: buf.build/bufbuild/es:v2.13.0
-    out: src/gen
+    out: gen
     opt: target=ts
-  - local: [ "npx", "tsx", "src/protoc-plugins/protoc-gen-capnweb.ts" ]
-    out: src/gen
+  - local: [ "npx", "tsx", "protoc-plugins/protoc-gen-capnweb.ts" ]
+    out: gen
     opt:
       - target=ts
       - import_extension=.js

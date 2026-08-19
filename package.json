@@ -32,6 +32,7 @@
 	},
 	"dependencies": {
 		"@bufbuild/buf": "^1.72.0",
+		"@bufbuild/protoplugin": "^2.14.0",
 		"@fingerprintjs/botd": "1.9.1",
 		"@indutny/simple-windows-notifications": "git+https://github.com/tutao/simple-windows-notifications.git#58600c1639ff47a1bae5e195ac8b52e87b17796e",
 		"@material/material-color-utilities": "git+https://github.com/tutao/material-color-utilities#064dcc2768cb0c8106c150a819eedb6233bb1d0a",
@@ -46,6 +47,7 @@
 		"@types/luxon": "3.6.2",
 		"@types/mithril": "2.0.11",
 		"@types/qrcode-svg": "1.1.4",
+		"capnweb": "^0.11.1",
 		"cborg": "4.2.2",
 		"dompurify": "3.4.11",
 		"electron": "42.5.0",
@@ -60,6 +62,7 @@
 		"pako": "2.1.0",
 		"qrcode-svg": "1.1.0",
 		"squire-rte": "2.2.7",
+		"tsx": "^4.23.12",
 		"undici": "7.28.0"
 	},
 	"optionalDependencies": {

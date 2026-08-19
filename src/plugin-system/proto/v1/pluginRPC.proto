@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package proto.v1;
+
+// Api provided by the host implementing host functionality and consumed by the worker
+service HostApi {
+  rpc GetMail(GetMailRequest) returns (GetMailResponse);
+  rpc DisplayPopup(DisplayPopupRequest) returns (DisplayPopupResponse);
+  rpc RegisterButton(RegisterButtonRequest) returns (stream ButtonEvent);
+}
+
+message GetMailRequest{}
+message GetMailResponse{}
+
+message DisplayPopupRequest{}
+message DisplayPopupResponse{}
+
+message RegisterButtonRequest{}
+message ButtonEvent{
+  string id = 1;
+}
+
+// Api provided by the worker implementing worker functionality and consumed by the host
+service WorkerApi {
+  rpc GetManifest(GetManifestRequest) returns (GetManifestResponse);
+  rpc InitializePlugin(InitializePluginRequest) returns (InitializePluginResponse);
+  rpc ActivatePlugin(ActivatePluginRequest) returns (ActivatePluginResponse);
+  rpc DeactivatePlugin(DeactivatePluginRequest) returns (DeactivatePluginResponse);
+}
+
+message GetManifestRequest{}
+message GetManifestResponse{
+  string name = 1;
+  string author = 2;
+  string version = 3;
+}
+
+message InitializePluginRequest{}
+message InitializePluginResponse{}
+
+message ActivatePluginRequest{}
+message ActivatePluginResponse{}
+
+message DeactivatePluginRequest{}
+message DeactivatePluginResponse{}

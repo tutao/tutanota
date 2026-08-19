@@ -89,6 +89,8 @@ import { getMailFolderType, isFolder, isFolderReadOnly } from "../MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { LockedError } from "../../../../platform-kit/rest-client/error"
+import { execWorker } from "../../../../plugin-system/pluginManager"
+import { Button } from "../../../../ui/base/Button"
 
 assertMainOrNode()
 
@@ -1099,7 +1101,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 							: !styles.isUsingBottomNavigation() && isNewMailActionAvailable()
 								? {
 										label: "newMail_action",
-										click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
+										click: () => execWorker(),
 									}
 								: null,
 						content: this.renderFoldersAndLabels(editingFolderForMailGroup),
