@@ -1,4 +1,4 @@
-import { TutanotaError } from "./TutanotaError"
+import { TutanotaError } from "@tutao/lang-api"
 
 export class CancelledError extends TutanotaError {
 	/**
