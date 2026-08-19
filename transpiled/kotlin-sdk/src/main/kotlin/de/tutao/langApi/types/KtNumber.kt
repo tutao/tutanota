@@ -5,6 +5,10 @@ class KtInt(private val inner: Int) {
 		fun fromFloat(float: Float): KtInt {
 			return null!!
 		}
+
+		fun parseInt(str: KtString): KtInt {
+			return null!!
+		}
 	}
 
 	fun asKotlinInt(): Int {
@@ -38,8 +42,8 @@ class KtInt(private val inner: Int) {
 
 class KtDouble(private val inner: Double) {
 	companion object {
-		fun from(float: KtDouble): KtDouble {
-			return float
+		fun from(double: Double): KtDouble {
+			return KtDouble(double)
 		}
 	}
 }

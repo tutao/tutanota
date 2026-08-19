@@ -84,3 +84,11 @@ export function checkNullAnd<T, R>(item: Nullable<T>, whenNull: () => R, whenNot
 export function checkNotNullAnd<T, R>(item: Nullable<T>, whenNotNull: (_: NonNullable<T>) => R, whenNull: () => R): R {
 	return checkNullAnd(item, whenNull, whenNotNull)
 }
+
+export function getStringEnumValue(value: string): string {
+	return value
+}
+
+export function getNumericEnumValue(value: number): number {
+	return value
+}

@@ -28,4 +28,8 @@ class KtString(val inner: String) {
 	fun replace(f: KtRegex, r: KtString): KtString {
 		return this
 	}
+
+	operator fun plus(other: KtString): KtString {
+		return KtString(this.inner.plus(other.inner))
+	}
 }
