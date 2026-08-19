@@ -1,7 +1,7 @@
 package de.tutao.langApi.types
 
 
-class KtString(val inner: String) {
+class KtString(private val inner: String) {
 	var length: KtInt = KtInt(inner.length)
 
 	fun indexOf(hay: KtString, from: KtInt = KtInt(0)): KtInt {
@@ -21,7 +21,7 @@ class KtString(val inner: String) {
 		return null
 	}
 
-	fun charAt(loc: KtInt): KtInt {
+	fun charAt(loc: KtInt): KtString {
 		return null!!
 	}
 

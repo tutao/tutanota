@@ -12,9 +12,9 @@ fun <T> neverNull(item: T?): T {
 	return item as T
 }
 
-fun <T> assertNotNull(item: T?): T {
+fun <T> assertNotNull(item: T?, message: TsString? = TsString("")): T {
 	if (item == null) {
-		throw Error("")
+		throw Error("Assertion failed: $message")
 	}
 
 	return item
