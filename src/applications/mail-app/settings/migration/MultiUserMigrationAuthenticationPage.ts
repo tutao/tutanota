@@ -28,6 +28,8 @@ assertMainOrNode()
 export class MultiUserMigrationAuthenticationPage implements Component<WizardStepComponentAttrs<MultiUserMigrationData>> {
 	shouldRevealPassword = false
 	shouldDisplayUseSSLSwitch = false
+	/** true while the OAuth window is open and/or the connection is being verified - disables the Continue button. */
+	private isProcessing = false
 
 	oninit(vnode: Vnode<WizardStepComponentAttrs<MultiUserMigrationData>>) {
 		this.shouldDisplayUseSSLSwitch = vnode.attrs.ctx.viewModel.port !== parseInt(IMAP_SSL_PORT)
@@ -62,12 +64,26 @@ export class MultiUserMigrationAuthenticationPage implements Component<WizardSte
 					m(PrimaryButton, {
 						label: "continue_action",
 						class: "wizard-next-button",
-						disabled: !this.isContinueEnabled(data),
-						onclick: () => ctx.goNext(),
+						disabled: !this.isContinueEnabled(data) || this.isProcessing,
+						onclick: () => this.handleContinue(ctx),
 					}),
 				),
 			),
 		])
+	}
+
+	private async handleContinue(ctx: WizardStepContext<MultiUserMigrationData>): Promise<void> {
+		this.isProcessing = true
+		m.redraw()
+		try {
+			const success = await authenticateAndVerifyConnection(ctx.viewModel)
+			if (success) {
+				ctx.goNext()
+			}
+		} finally {
+			this.isProcessing = false
+			m.redraw()
+		}
 	}
 
 	private renderManualFields(data: MultiUserMigrationData): Children {
@@ -159,14 +175,14 @@ function buildImapCredentials(data: MultiUserMigrationData): ImapCredentials {
 }
 
 /**
- * Wizard step `onNext` hook: for OAuth providers, opens the OAuth window to obtain a token first.
- * Either way, once credentials/token are available, verifies the IMAP connection can actually be
- * established (reusing the same connection-verification/cert-error machinery as the single-mailbox
- * IMAP import wizard) before allowing the admin to continue.
+ * For OAuth providers, opens the OAuth window to obtain a token first (mirroring
+ * `ImapImportIntroductionPage`'s single-mailbox-import behavior: the whole flow runs inline before
+ * advancing, and the caller keeps the Continue button disabled for the duration instead of navigating
+ * away immediately). Either way, once credentials/token are available, verifies the IMAP connection can
+ * actually be established (reusing the same connection-verification/cert-error machinery as the
+ * single-mailbox IMAP import wizard) before allowing the admin to continue.
  */
-export async function migrationAuthenticationOnNext(ctx: WizardStepContext<MultiUserMigrationData>): Promise<boolean> {
-	const data = ctx.viewModel
-
+async function authenticateAndVerifyConnection(data: MultiUserMigrationData): Promise<boolean> {
 	if (data.isImapServerSupportingOAuth) {
 		const config = data.oauthConfig
 		if (config === undefined) {

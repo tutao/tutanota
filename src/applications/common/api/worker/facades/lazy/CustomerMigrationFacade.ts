@@ -9,7 +9,12 @@ import { GroupType } from "../../../../../../entities/sys/Utils"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
 import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
-import { createCustomerMigrationPostIn, CustomerMigrationImapConfiguration, CustomerMigrationService } from "@tutao/entities/sys"
+import {
+	createCustomerMigrationDeleteIn,
+	createCustomerMigrationPostIn,
+	CustomerMigrationImapConfiguration,
+	CustomerMigrationService,
+} from "@tutao/entities/sys"
 
 export type MailboxMigrationInitializationParameters = {
 	mailGroupId: Id
@@ -52,6 +57,11 @@ export class CustomerMigrationFacade {
 		data.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
 		const postOut = await this.serviceExecutor.post(CustomerMigrationService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
 		return postOut.migrationInfo
+	}
+
+	/** Cancels an admin-driven multi-user migration batch. */
+	async cancelMigration(migrationInfo: IdTuple): Promise<void> {
+		await this.serviceExecutor.delete(CustomerMigrationService, createCustomerMigrationDeleteIn({ migrationInfo }), null)
 	}
 
 	async scheduleMailboxMigration(migrationInitializationParameters: MailboxMigrationInitializationParameters): Promise<void> {

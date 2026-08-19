@@ -342,6 +342,25 @@ export enum ImapAccountSyncStatus {
 	SCHEDULED = "9"
 }
 
+/** Status of a `CustomerMigrationInformation` (the customer-wide record for one admin-driven migration batch). */
+export enum CustomerMigrationInfoStatus {
+	CREATED = "0",
+	RUNNING = "1",
+	FINISHING_MIGRATION = "2",
+	COMPLETED_SUCCESSFULLY = "3",
+	CANCELLED = "4",
+}
+
+/** Status of a `MailboxMigrationInformation` (a single mailbox's migration within a batch). */
+export enum CustomerMigrationMailboxInfoStatus {
+	CREATED = "0",
+	RUNNING = "1",
+	ERROR = "2",
+	CANCELLED = "3",
+	FINISHED_SYNC = "4",
+	COMPLETED_SUCCESSFULLY = "5",
+}
+
 
 export enum SpamDecision {
 	NONE = "0",
@@ -492,23 +511,3 @@ export enum MailImportType {
 	FileImport = "FileImport",
 	ImapImport = "ImapImport",
 }
-
-/** Status of a `CustomerMigrationInformation` (the customer-wide record for one admin-driven migration batch). */
-export enum CustomerMigrationInfoStatus {
-	CREATED = "0",
-	RUNNING = "1",
-	FINISHING_MIGRATION = "2",
-	COMPLETED_SUCCESSFULLY = "3",
-	CANCELLED = "4",
-}
-
-/** Status of a `MailboxMigrationInformation` (a single mailbox's migration within a batch). */
-export enum CustomerMigrationMailboxInfoStatus {
-	CREATED = "0",
-	RUNNING = "1",
-	ERROR = "2",
-	CANCELLED = "3",
-	FINISHED_SYNC = "4",
-	COMPLETED_SUCCESSFULLY = "5",
-}
-

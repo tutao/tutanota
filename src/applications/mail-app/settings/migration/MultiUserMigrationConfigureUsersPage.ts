@@ -14,15 +14,14 @@ import { showFileChooser, FileChooserMultiMode } from "../../../common/file/File
 import { renderCsv, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "../../../../platform-kit/utils"
 import { MailboxType, parseMigrationCsv } from "./MigrationCsvParser"
 import { ParserError } from "../../../common/misc/parsing/ParserCombinator"
-import { getAvailableDomains } from "../../../common/settings/mailaddress/MailAddressesUtils"
 import { mailLocator } from "../../mailLocator"
-import { ColumnWidth, Table, TableAttrs } from "../../../../ui/base/Table"
 import { showBuyDialog } from "../../../common/subscription/BuyDialog"
 import { BookingItemFeatureType } from "../../../../entities/sys/Utils"
 import { toFeatureType } from "../../../common/subscription/utils/SubscriptionUtils"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { createAdminOAuthTokenEndpointResponse, createCustomerMigrationAdminCredentials, createCustomerMigrationImapConfiguration } from "@tutao/entities/sys"
 import { createDataFile } from "../../../common/api/worker/utils/DataFile"
+import { MigrationCsvPreviewTable } from "./MigrationCsvPreviewTable"
 
 const EXAMPLE_CSV_FILENAME = "migration-example.csv"
 const EXAMPLE_CSV_MIMETYPE = "text/csv"
@@ -31,6 +30,12 @@ assertMainOrNode()
 
 export class MultiUserMigrationConfigureUsersPage implements Component<WizardStepComponentAttrs<MultiUserMigrationData>> {
 	private isParsing = false
+
+	oncreate({ attrs }: Vnode<WizardStepComponentAttrs<MultiUserMigrationData>>) {
+		// Once the admin has entered IMAP credentials and reached this step, going back would let them silently
+		// change provider/credentials after already committing to them - lock steps 1 and 2 (provider, auth).
+		attrs.ctx.lockAllPreviousSteps()
+	}
 
 	view({ attrs: { ctx } }: Vnode<WizardStepComponentAttrs<MultiUserMigrationData>>): Children {
 		const data = ctx.viewModel
@@ -45,18 +50,40 @@ export class MultiUserMigrationConfigureUsersPage implements Component<WizardSte
 					borderRadius: px(size.radius_16),
 				},
 			} as TitleSectionAttrs),
-			m(".mt-16.flex.row.gap-16", [
+			m(".mt-16", [
 				m(PrimaryButton, {
 					label: "migrationUploadCsvFile_action",
 					onclick: () => this.uploadCsv(data),
 					disabled: this.isParsing,
 				}),
-				m(TertiaryButton, {
-					label: "migrationDownloadExampleCsv_action",
-					onclick: () => downloadExampleCsv(),
-				}),
+				m(
+					".mt-8",
+					m(TertiaryButton, {
+						label: "migrationDownloadExampleCsv_action",
+						onclick: () => downloadExampleCsv(),
+					}),
+				),
 			]),
-			data.rows.length > 0 ? this.renderPreview(data) : null,
+			data.rows.length > 0
+				? m(MigrationCsvPreviewTable, {
+						rows: data.rows,
+						selectedSourceEmails: data.selectedSourceEmails,
+						onToggleRow: (sourceEmail) => {
+							if (data.selectedSourceEmails.has(sourceEmail)) {
+								data.selectedSourceEmails.delete(sourceEmail)
+							} else {
+								data.selectedSourceEmails.add(sourceEmail)
+							}
+						},
+						onToggleSelectAll: () => {
+							if (data.rows.every((row) => data.selectedSourceEmails.has(row.sourceEmail))) {
+								data.selectedSourceEmails.clear()
+							} else {
+								data.rows.forEach((row) => data.selectedSourceEmails.add(row.sourceEmail))
+							}
+						},
+					})
+				: null,
 			m(
 				".flex-end.full-width.pt-32.mb-32",
 				m(
@@ -65,36 +92,12 @@ export class MultiUserMigrationConfigureUsersPage implements Component<WizardSte
 					m(PrimaryButton, {
 						label: "migrationStartBatch_action",
 						class: "wizard-next-button",
-						disabled: data.rows.length === 0,
+						disabled: data.selectedSourceEmails.size === 0,
 						onclick: () => ctx.goNext(),
 					}),
 				),
 			),
 		])
-	}
-
-	private renderPreview(data: MultiUserMigrationData): Children {
-		const tableAttrs: TableAttrs = {
-			columnHeading: [
-				"migrationCsvColumnSource_label",
-				"migrationCsvColumnTuta_label",
-				"migrationCsvColumnType_label",
-				"migrationCsvColumnAliases_label",
-			],
-			columnWidths: [ColumnWidth.Largest, ColumnWidth.Largest, ColumnWidth.Small, ColumnWidth.Largest],
-			showActionButtonColumn: false,
-			lines: data.rows.map((row) => ({
-				cells: [
-					row.sourceEmail,
-					row.tutaEmail,
-					row.mailboxType === MailboxType.User
-						? lang.getTranslationText("migrationMailboxTypeUser_label")
-						: lang.getTranslationText("migrationMailboxTypeShared_label"),
-					row.aliases.join(", "),
-				],
-			})),
-		}
-		return m(".mt-16", [m(".small.mb-8", lang.getTranslation("migrationCsvRowsFound_msg", { "{count}": data.rows.length }).text), m(Table, tableAttrs)])
 	}
 
 	private async uploadCsv(data: MultiUserMigrationData) {
@@ -105,10 +108,11 @@ export class MultiUserMigrationConfigureUsersPage implements Component<WizardSte
 			if (!file) return
 
 			const csvText = utf8Uint8ArrayToString(file.data)
-			const availableDomains = await getAvailableDomains(mailLocator.logins)
 			data.rows = parseMigrationCsv(csvText, {})
+			data.selectedSourceEmails = new Set(data.rows.map((row) => row.sourceEmail))
 		} catch (e) {
 			data.rows = []
+			data.selectedSourceEmails = new Set()
 			if (e instanceof ParserError) {
 				await Dialog.message(lang.makeTranslation("error_msg", e.message))
 			} else {
@@ -134,46 +138,50 @@ async function downloadExampleCsv(): Promise<void> {
 	await mailLocator.fileController.saveDataFile(dataFile)
 }
 
-/** Wizard step `onNext` hook: buys the required seats, creates the customer migration record and runs the batch. */
+/** Wizard step `onNext` hook: buys the required seats (for newly-created mailboxes only), creates the customer migration record and runs the batch. */
 export async function migrationConfigureUsersOnNext(ctx: WizardStepContext<MultiUserMigrationData>): Promise<boolean> {
 	const data = ctx.viewModel
-	if (data.rows.length === 0) {
+	const rows = data.rows.filter((row) => data.selectedSourceEmails.has(row.sourceEmail))
+	if (rows.length === 0) {
 		await Dialog.message("noInputWasMade_msg")
 		return false
 	}
 
-	const unavailable = await showProgressDialog(
+	const customer = await mailLocator.logins.getUserController().reloadCustomer()
+	const classifications = await showProgressDialog(
 		"migrationCheckingAddresses_msg",
-		mailLocator.getCustomerMigrationController().findUnavailableTutaEmails(data.rows),
+		mailLocator.getCustomerMigrationController().classifyTutaEmails(rows, customer.userGroups, customer.teamGroups),
 	)
+	const unavailable = rows.filter((row) => classifications.get(row.tutaEmail)?.kind === "unavailable").map((row) => row.tutaEmail)
 	if (unavailable.length > 0) {
 		await Dialog.message(lang.getTranslation("migrationTutaAddressesUnavailable_msg", { "{addresses}": unavailable.join(", ") }))
 		return false
 	}
 
-	const userRowCount = data.rows.filter((row) => row.mailboxType === MailboxType.User).length
-	const sharedRowCount = data.rows.length - userRowCount
+	// Only mailboxes that will actually be newly created need to be bought - rows reusing an existing user/shared mailbox don't.
+	const newUserRowCount = rows.filter((row) => row.mailboxType === MailboxType.User && classifications.get(row.tutaEmail)?.kind === "new").length
+	const newSharedRowCount = rows.filter((row) => row.mailboxType === MailboxType.Shared && classifications.get(row.tutaEmail)?.kind === "new").length
 
 	const userController = mailLocator.logins.getUserController()
 	const planType = await userController.getPlanType()
 	const isNewPaidPlan = await userController.isNewPaidPlan()
 
-	if (userRowCount > 0) {
+	if (newUserRowCount > 0) {
 		const accepted = await showBuyDialog({
 			featureType: isNewPaidPlan ? toFeatureType(planType) : BookingItemFeatureType.LegacyUsers,
 			bookingText: "bookingItemUsersIncluding_label",
-			count: userRowCount,
+			count: newUserRowCount,
 			freeAmount: 0,
 			reactivate: false,
 		})
 		if (!accepted) return false
 	}
 
-	if (sharedRowCount > 0) {
+	if (newSharedRowCount > 0) {
 		const accepted = await showBuyDialog({
 			featureType: BookingItemFeatureType.SharedMailGroup,
 			bookingText: "sharedMailbox_label",
-			count: sharedRowCount,
+			count: newSharedRowCount,
 			freeAmount: 0,
 			reactivate: false,
 		})
@@ -206,12 +214,15 @@ export async function migrationConfigureUsersOnNext(ctx: WizardStepContext<Multi
 		data.results = await showProgressDialog(
 			"migrationRunningBatch_msg",
 			mailLocator.getCustomerMigrationController().migrateUsersFromCsv(
-				data.rows,
+				rows,
+				classifications,
 				{
 					provider: data.provider,
 					host: data.host,
 					port: data.port.toString(),
 					useSSL: data.useSSL,
+					customCertificateData: data.customCertificateData,
+					ignoreCertificateErrors: data.ignoreCertificateErrors,
 					customerMigrationInformation,
 				},
 				operation.id,

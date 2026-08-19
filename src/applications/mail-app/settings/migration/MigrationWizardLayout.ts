@@ -14,7 +14,10 @@ export class MigrationWizardLayout<TViewModel> implements Component<WizardLayout
 	view(vnode: Vnode<WizardLayoutAttrs<TViewModel>>) {
 		const { progressState, showProgress, backButton } = vnode.attrs
 		return m(".full-width.flex.row.gap-32", { style: { padding: `${px(size.spacing_24)} 0` } }, [
-			showProgress ? m(".flex.col.gap-16", [backButton, m(WizardProgress, { progressState, labelMaxLength: 24 })]) : m(".flex.col", backButton),
+			m(".flex.col.gap-16", { style: { width: "220px", flex: "none" } }, [
+				backButton,
+				showProgress ? m(WizardProgress, { progressState, labelMaxLength: 24 }) : null,
+			]),
 			m(".flex-grow", vnode.children),
 		])
 	}

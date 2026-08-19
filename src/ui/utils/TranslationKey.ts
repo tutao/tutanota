@@ -2538,3 +2538,7 @@ export type TranslationKeyType =
 	| "migrationCheckingAddresses_msg"
 	| "migrationTutaAddressesUnavailable_msg"
 	| "migrationVerifyingConnection_msg"
+	| "migrationActiveMigrationExists_msg"
+	| "migrationCancel_action"
+	| "migrationFinish_action"
+	| "migrationPastMigrations_label"

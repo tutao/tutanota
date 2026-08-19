@@ -58,7 +58,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		private imapSyncConfig: ImapSyncConfig,
 		private imapFlowFactory: ImapFlowFactory = async (imapCredentials, imapSyncConfig, verifyOnly?: boolean) => {
 			const { ImapFlow } = await import("./imapflow-custom")
-
+			console.log(imapCredentials, imapSyncConfig, verifyOnly)
 			const systemCertificates = await this.certificateProvider.getCertificates()
 			const customCertificateData = imapCredentials.customCertificateData
 			const customCertificate = customCertificateData !== null ? [utf8Uint8ArrayToString(customCertificateData)] : []

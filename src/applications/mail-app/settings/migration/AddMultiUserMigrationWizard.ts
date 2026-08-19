@@ -13,7 +13,7 @@ import { TokenEndpointResponse } from "openid-client"
 import { MigrationMailboxRow } from "./MigrationCsvParser"
 import { MigrationRowResult } from "./CustomerMigrationController"
 import { MultiUserMigrationProviderSelectionPage } from "./MultiUserMigrationProviderSelectionPage"
-import { migrationAuthenticationOnNext, MultiUserMigrationAuthenticationPage } from "./MultiUserMigrationAuthenticationPage"
+import { MultiUserMigrationAuthenticationPage } from "./MultiUserMigrationAuthenticationPage"
 import { migrationConfigureUsersOnNext, MultiUserMigrationConfigureUsersPage } from "./MultiUserMigrationConfigureUsersPage"
 import { MultiUserMigrationSummaryPage } from "./MultiUserMigrationSummaryPage"
 
@@ -32,6 +32,8 @@ export type MultiUserMigrationData = {
 	customCertificateData: Uint8Array<ArrayBuffer> | null
 	ignoreCertificateErrors: boolean
 	rows: MigrationMailboxRow[]
+	/** `sourceEmail`s of `rows` the admin has ticked for creation/migration - all rows are selected by default. */
+	selectedSourceEmails: Set<string>
 	results: MigrationRowResult[]
 }
 
@@ -51,6 +53,7 @@ export function newMultiUserMigrationData(): MultiUserMigrationData {
 		customCertificateData: null,
 		ignoreCertificateErrors: false,
 		rows: [],
+		selectedSourceEmails: new Set(),
 		results: [],
 	}
 }
@@ -59,22 +62,21 @@ export const migrationWizardSteps: WizardStepAttrs<MultiUserMigrationData>[] = [
 	{
 		title: lang.getTranslationText("migrationSetup_title"),
 		content: MultiUserMigrationProviderSelectionPage,
-		showProgress: () => false,
 	},
 	{
 		title: lang.getTranslationText("migrationImapImap_title"),
 		content: MultiUserMigrationAuthenticationPage,
-		onNext: migrationAuthenticationOnNext,
 	},
 	{
 		title: lang.getTranslationText("migrationConfigureUsers_title"),
 		content: MultiUserMigrationConfigureUsersPage,
 		onNext: migrationConfigureUsersOnNext,
+		isBackButtonEnabled: () => false,
 	},
 	{
 		title: lang.getTranslationText("migrationBatchSummary_title"),
 		content: MultiUserMigrationSummaryPage,
-		showProgress: () => false,
+		isBackButtonEnabled: () => false,
 	},
 ]
 

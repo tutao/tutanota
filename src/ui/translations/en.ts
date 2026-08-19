@@ -2534,5 +2534,9 @@ export default {
 		"migrationCheckingAddresses_msg": "Checking address availability ...",
 		"migrationTutaAddressesUnavailable_msg": "The following Tuta addresses are already taken: {addresses}",
 		"migrationVerifyingConnection_msg": "Verifying connection ...",
+		"migrationActiveMigrationExists_msg": "A migration is already in progress. Please wait for it to conclude before starting a new one.",
+		"migrationCancel_action": "Cancel migration",
+		"migrationFinish_action": "Finish migration",
+		"migrationPastMigrations_label": "Past migrations",
 	}
 }

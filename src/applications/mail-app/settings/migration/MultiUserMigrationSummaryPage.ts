@@ -19,6 +19,11 @@ const CREDENTIALS_CSV_FILENAME = "migration-users.csv"
 const CREDENTIALS_CSV_MIMETYPE = "text/csv"
 
 export const MultiUserMigrationSummaryPage: Component<WizardStepComponentAttrs<MultiUserMigrationData>> = {
+	oncreate({ attrs }: Vnode<WizardStepComponentAttrs<MultiUserMigrationData>>) {
+		// The batch has already been created by this point - going back would be misleading, so lock all prior steps.
+		attrs.ctx.lockAllPreviousSteps()
+	},
+
 	view({ attrs: { ctx } }: Vnode<WizardStepComponentAttrs<MultiUserMigrationData>>): Children {
 		const data = ctx.viewModel
 		const successCount = data.results.filter((r) => r.success).length
