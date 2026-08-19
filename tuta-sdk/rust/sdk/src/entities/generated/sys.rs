@@ -6473,10 +6473,12 @@ pub struct InstanceKdfNonce {
 	#[serde(rename = "2749")]
 	pub instanceList: Option<GeneratedId>,
 	#[serde(rename = "2750")]
-	pub instanceId: GeneratedId,
+	pub instanceId: Option<GeneratedId>,
 	#[serde(rename = "2751")]
 	#[serde(with = "serde_bytes")]
 	pub kdfNonce: Vec<u8>,
+	#[serde(rename = "2791")]
+	pub instanceCustomId: Option<CustomId>,
 	#[serde(rename = "2748")]
 	pub typeInfo: TypeInfo,
 }

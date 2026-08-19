@@ -16994,7 +16994,7 @@ const typeModels = {
 				"name": "instanceId",
 				"id": 2750,
 				"type": "GeneratedId",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -17004,6 +17004,15 @@ const typeModels = {
 				"id": 2751,
 				"type": "Bytes",
 				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2791": {
+				"final": true,
+				"name": "instanceCustomId",
+				"id": 2791,
+				"type": "CustomId",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			}
