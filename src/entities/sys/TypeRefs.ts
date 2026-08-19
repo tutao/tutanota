@@ -5851,6 +5851,7 @@ export function createAlarmServicePost(values: AlarmServicePostParams): AlarmSer
 export type AlarmServicePostParams = {
 	alarmNotifications: AlarmNotification[]
 	userAlarmInfoData: UserAlarmInfoData[]
+	notification: null | NotificationTransferAggregatedType
 	userAlarmInfo: UserAlarmInfoTransferAggregatedType[]
 }
 
@@ -5866,6 +5867,7 @@ export type AlarmServicePost = {
 
 	alarmNotifications: AlarmNotification[]
 	userAlarmInfoData: UserAlarmInfoData[]
+	notification: null | NotificationTransferAggregatedType
 	userAlarmInfo: UserAlarmInfoTransferAggregatedType[]
 
 	//== some entities have these and some don't
@@ -10912,7 +10914,40 @@ export type InstanceKeyPermissionServicePostIn = {
 	_original: Nullable<InstanceKeyPermissionServicePostIn>
 	isAdapter: false
 }
-export const CalendarEventRefTransferAggregatedTypeTypeRef: TypeRef<CalendarEventRefTransferAggregatedType> = new TypeRef("sys", 2870)
+export const DateWrapperTransferAggregatedTypeTypeRef: TypeRef<DateWrapperTransferAggregatedType> = new TypeRef("sys", 2870)
+
+export function createDateWrapperTransferAggregatedType(values: DateWrapperTransferAggregatedTypeParams): DateWrapperTransferAggregatedType {
+	return Object.assign(create(typeModels[DateWrapperTransferAggregatedTypeTypeRef.typeId], DateWrapperTransferAggregatedTypeTypeRef), values)
+}
+
+export type DateWrapperTransferAggregatedTypeParams = {
+	date: Date
+}
+
+export type DateWrapperTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	date: Date
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DateWrapperTransferAggregatedType>
+	_original: Nullable<DateWrapperTransferAggregatedType>
+	isAdapter: false
+}
+export const CalendarEventRefTransferAggregatedTypeTypeRef: TypeRef<CalendarEventRefTransferAggregatedType> = new TypeRef("sys", 2873)
 
 export function createCalendarEventRefTransferAggregatedType(values: CalendarEventRefTransferAggregatedTypeParams): CalendarEventRefTransferAggregatedType {
 	return Object.assign(create(typeModels[CalendarEventRefTransferAggregatedTypeTypeRef.typeId], CalendarEventRefTransferAggregatedTypeTypeRef), values)
@@ -10947,7 +10982,7 @@ export type CalendarEventRefTransferAggregatedType = {
 	_original: Nullable<CalendarEventRefTransferAggregatedType>
 	isAdapter: false
 }
-export const AlarmInfoTransferAggregatedTypeTypeRef: TypeRef<AlarmInfoTransferAggregatedType> = new TypeRef("sys", 2874)
+export const AlarmInfoTransferAggregatedTypeTypeRef: TypeRef<AlarmInfoTransferAggregatedType> = new TypeRef("sys", 2877)
 
 export function createAlarmInfoTransferAggregatedType(values: AlarmInfoTransferAggregatedTypeParams): AlarmInfoTransferAggregatedType {
 	return Object.assign(create(typeModels[AlarmInfoTransferAggregatedTypeTypeRef.typeId], AlarmInfoTransferAggregatedTypeTypeRef), values)
@@ -10986,7 +11021,7 @@ export type AlarmInfoTransferAggregatedType = {
 	_original: Nullable<AlarmInfoTransferAggregatedType>
 	isAdapter: false
 }
-export const UserAlarmInfoTransferAggregatedTypeTypeRef: TypeRef<UserAlarmInfoTransferAggregatedType> = new TypeRef("sys", 2879)
+export const UserAlarmInfoTransferAggregatedTypeTypeRef: TypeRef<UserAlarmInfoTransferAggregatedType> = new TypeRef("sys", 2882)
 
 export function createUserAlarmInfoTransferAggregatedType(values: UserAlarmInfoTransferAggregatedTypeParams): UserAlarmInfoTransferAggregatedType {
 	return Object.assign(create(typeModels[UserAlarmInfoTransferAggregatedTypeTypeRef.typeId], UserAlarmInfoTransferAggregatedTypeTypeRef), values)
@@ -11019,5 +11054,217 @@ export type UserAlarmInfoTransferAggregatedType = {
 	// === these are not present in metamodel
 	_type: TypeRef<UserAlarmInfoTransferAggregatedType>
 	_original: Nullable<UserAlarmInfoTransferAggregatedType>
+	isAdapter: false
+}
+export const CalendarAdvancedRepeatRuleTransferAggregatedTypeTypeRef: TypeRef<CalendarAdvancedRepeatRuleTransferAggregatedType> = new TypeRef("sys", 2888)
+
+export function createCalendarAdvancedRepeatRuleTransferAggregatedType(
+	values: CalendarAdvancedRepeatRuleTransferAggregatedTypeParams,
+): CalendarAdvancedRepeatRuleTransferAggregatedType {
+	return Object.assign(
+		create(typeModels[CalendarAdvancedRepeatRuleTransferAggregatedTypeTypeRef.typeId], CalendarAdvancedRepeatRuleTransferAggregatedTypeTypeRef),
+		values,
+	)
+}
+
+export type CalendarAdvancedRepeatRuleTransferAggregatedTypeParams = {
+	ruleType: NumberString
+	interval: string
+}
+
+export type CalendarAdvancedRepeatRuleTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	ruleType: NumberString
+	interval: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CalendarAdvancedRepeatRuleTransferAggregatedType>
+	_original: Nullable<CalendarAdvancedRepeatRuleTransferAggregatedType>
+	isAdapter: false
+}
+export const RepeatRuleTransferAggregatedTypeTypeRef: TypeRef<RepeatRuleTransferAggregatedType> = new TypeRef("sys", 2892)
+
+export function createRepeatRuleTransferAggregatedType(values: RepeatRuleTransferAggregatedTypeParams): RepeatRuleTransferAggregatedType {
+	return Object.assign(create(typeModels[RepeatRuleTransferAggregatedTypeTypeRef.typeId], RepeatRuleTransferAggregatedTypeTypeRef), values)
+}
+
+export type RepeatRuleTransferAggregatedTypeParams = {
+	frequency: NumberString
+	endType: NumberString
+	endValue: null | NumberString
+	interval: NumberString
+	timeZone: string
+
+	excludedDates: DateWrapperTransferAggregatedType[]
+	advancedRules: CalendarAdvancedRepeatRuleTransferAggregatedType[]
+}
+
+export type RepeatRuleTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	frequency: NumberString
+	endType: NumberString
+	endValue: null | NumberString
+	interval: NumberString
+	timeZone: string
+
+	// == associations
+
+	excludedDates: DateWrapperTransferAggregatedType[]
+	advancedRules: CalendarAdvancedRepeatRuleTransferAggregatedType[]
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<RepeatRuleTransferAggregatedType>
+	_original: Nullable<RepeatRuleTransferAggregatedType>
+	isAdapter: false
+}
+export const NotificationSessionKeyTransferAggregatedTypeTypeRef: TypeRef<NotificationSessionKeyTransferAggregatedType> = new TypeRef("sys", 2901)
+
+export function createNotificationSessionKeyTransferAggregatedType(
+	values: NotificationSessionKeyTransferAggregatedTypeParams,
+): NotificationSessionKeyTransferAggregatedType {
+	return Object.assign(
+		create(typeModels[NotificationSessionKeyTransferAggregatedTypeTypeRef.typeId], NotificationSessionKeyTransferAggregatedTypeTypeRef),
+		values,
+	)
+}
+
+export type NotificationSessionKeyTransferAggregatedTypeParams = {
+	pushIdentifierSessionEncSessionKey: Uint8Array<ArrayBuffer>
+
+	pushIdentifier: IdTuple
+}
+
+export type NotificationSessionKeyTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	pushIdentifierSessionEncSessionKey: Uint8Array<ArrayBuffer>
+
+	// == associations
+
+	pushIdentifier: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<NotificationSessionKeyTransferAggregatedType>
+	_original: Nullable<NotificationSessionKeyTransferAggregatedType>
+	isAdapter: false
+}
+export const AlarmNotificationTransferAggregatedTypeTypeRef: TypeRef<AlarmNotificationTransferAggregatedType> = new TypeRef("sys", 2905)
+
+export function createAlarmNotificationTransferAggregatedType(values: AlarmNotificationTransferAggregatedTypeParams): AlarmNotificationTransferAggregatedType {
+	return Object.assign(create(typeModels[AlarmNotificationTransferAggregatedTypeTypeRef.typeId], AlarmNotificationTransferAggregatedTypeTypeRef), values)
+}
+
+export type AlarmNotificationTransferAggregatedTypeParams = {
+	operation: NumberString
+	summary: string
+	eventStart: Date
+	eventEnd: Date
+
+	alarmInfo: AlarmInfoTransferAggregatedType
+	repeatRule: null | RepeatRuleTransferAggregatedType
+	notificationSessionKeys: NotificationSessionKeyTransferAggregatedType[]
+	user: Id
+}
+
+export type AlarmNotificationTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	operation: NumberString
+	summary: string
+	eventStart: Date
+	eventEnd: Date
+
+	// == associations
+
+	alarmInfo: AlarmInfoTransferAggregatedType
+	repeatRule: null | RepeatRuleTransferAggregatedType
+	notificationSessionKeys: NotificationSessionKeyTransferAggregatedType[]
+	user: Id
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<AlarmNotificationTransferAggregatedType>
+	_original: Nullable<AlarmNotificationTransferAggregatedType>
+	isAdapter: false
+}
+export const NotificationTransferAggregatedTypeTypeRef: TypeRef<NotificationTransferAggregatedType> = new TypeRef("sys", 2915)
+
+export function createNotificationTransferAggregatedType(values: NotificationTransferAggregatedTypeParams): NotificationTransferAggregatedType {
+	return Object.assign(create(typeModels[NotificationTransferAggregatedTypeTypeRef.typeId], NotificationTransferAggregatedTypeTypeRef), values)
+}
+
+export type NotificationTransferAggregatedTypeParams = {
+	alarms: AlarmNotificationTransferAggregatedType[]
+}
+
+export type NotificationTransferAggregatedType = {
+	// == values
+
+	_id: Id
+
+	// == associations
+
+	alarms: AlarmNotificationTransferAggregatedType[]
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<NotificationTransferAggregatedType>
+	_original: Nullable<NotificationTransferAggregatedType>
 	isAdapter: false
 }
