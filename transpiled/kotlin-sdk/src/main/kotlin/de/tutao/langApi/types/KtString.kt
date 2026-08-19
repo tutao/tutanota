@@ -13,6 +13,10 @@ class KtString(private val inner: String) {
 		return this.inner
 	}
 
+	fun asString(): KtString {
+		return this
+	}
+
 	fun substring(f: Any, s: Any? = null): KtString {
 		return null!!
 	}
