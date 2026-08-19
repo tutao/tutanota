@@ -1,6 +1,6 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ListElementId, ElementId } from "@tutao/meta"
+import { ElementId, ListElementId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 
 
@@ -6626,8 +6626,9 @@ export type InstanceKdfNonceParams = {
 
 
 	instanceList: null | Id;
-	instanceId: Id;
+	instanceId: null | Id;
 	kdfNonce: Uint8Array<ArrayBuffer>;
+	instanceCustomId: null | Id;
 
 	typeInfo: TypeInfo;
 }
@@ -6638,8 +6639,9 @@ export type InstanceKdfNonce = {
 
 	_id: Id;
 	instanceList: null | Id;
-	instanceId: Id;
+	instanceId: null | Id;
 	kdfNonce: Uint8Array<ArrayBuffer>;
+	instanceCustomId: null | Id;
 
 	typeInfo: TypeInfo;
 }
