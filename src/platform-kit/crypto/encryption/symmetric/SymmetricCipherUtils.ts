@@ -37,14 +37,14 @@ export function createAuthVerifierAsBase64Url(passwordKey: AesKey): Base64Url {
 /**
  * Converts the given BitArray (SJCL) to an Uint8Array.
  * @param bits The BitArray.
- * @return The uint8array.
+ * @return The Uint8Array.
  */
 export function bitArrayToUint8Array(bits: BitArray): Uint8Array<ArrayBuffer> {
 	return new Uint8Array(sjcl.codec.arrayBuffer.fromBits(bits, false))
 }
 
 /**
- * Converts the given uint8array to a BitArray (SJCL).
+ * Converts the given Uint8Array to a BitArray (SJCL).
  * @param uint8Array The uint8Array key.
  * @return The key.
  */
