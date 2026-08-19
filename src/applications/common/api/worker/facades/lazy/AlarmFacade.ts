@@ -22,6 +22,7 @@ import {
 	createCalendarEventRefTransferAggregatedType,
 	createDateWrapper,
 	createNotificationSessionKey,
+	createNotificationTransferAggregatedType,
 	createRepeatRule,
 	createUserAlarmInfoTransferAggregatedType,
 	PushIdentifier,
@@ -90,7 +91,10 @@ export class AlarmFacade {
 		pushIdentifiers: PushIdentifier[],
 		notificationSessionKey: AesKey,
 	): Promise<AlarmServicePost> {
-		const alarmServicePost = createAlarmServicePost({ alarmNotifications: [], userAlarmInfoData: [], userAlarmInfo: [] })
+		const notification = createNotificationTransferAggregatedType({
+			alarms: [],
+		})
+		const alarmServicePost = createAlarmServicePost({ alarmNotifications: [], notification, userAlarmInfoData: [], userAlarmInfo: [] })
 
 		for (const { event, alarmInfoTemplates } of eventAlarmTuples) {
 			const eventRef = createCalendarEventRef({
