@@ -4,8 +4,7 @@ import {
 	ClientTypeModel,
 	EntityTypeEnum,
 	expandId,
-	LOAD_MULTIPLE_LIMIT,
-	POST_MULTIPLE_INDIVIDUAL_POST_FALLBACK_THRESHOLD,
+	isCustomIdType, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_INDIVIDUAL_POST_FALLBACK_THRESHOLD,
 	POST_MULTIPLE_LIMIT,
 	TypeRef,
 } from "../meta"
@@ -757,12 +756,19 @@ export class EntityRestClient implements EntityRestInterface {
 			}
 			let kdfNonce: KdfNonce
 			if (instance._kdfNonce == null) {
-				const [instanceList, instanceId] = instance._id
+				const instanceList = instance._id[0]
+				let instanceId: Nullable<Id> = instance._id[1]
+				const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
+				let instanceCustomId: Nullable<Id> = null
+				if (isCustomIdType(clientTypeModel)) {
+					instanceCustomId = instanceId
+					instanceId = null
+				}
 				const application = instance._type.app
 				const typeId = instance._type.typeId.toString()
 				const typeInfo = createTypeInfo({ application, typeId })
 				const out = await this._crypto.postUpdateKdfNonceService(
-					createInstanceKdfNonce({ kdfNonce: generateKdfNonce(), instanceId, instanceList, typeInfo }),
+					createInstanceKdfNonce({ kdfNonce: generateKdfNonce(), instanceId, instanceCustomId, instanceList, typeInfo }),
 				)
 				kdfNonce = validateKdfNonceLength(out.kdfNonce)
 				instance._kdfNonce = kdfNonce
