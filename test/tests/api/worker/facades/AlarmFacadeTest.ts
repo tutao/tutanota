@@ -24,6 +24,7 @@ import {
 	createAlarmServicePost,
 	createCalendarEventRef,
 	createCalendarEventRefTransferAggregatedType,
+	createNotificationTransferAggregatedType,
 	createUserAlarmInfoTransferAggregatedType,
 	GroupMembership,
 	GroupMembershipTypeRef,
@@ -139,7 +140,10 @@ o.spec("AlarmFacadeTest", function () {
 			userAlarmInfo[0]._ownerGroup = userGroupMembership.group
 			userAlarmInfo[0]._ownerEncSessionKey = ownerEncSessionKey
 			userAlarmInfo[0]._ownerKeyVersion = userGroupKey.version.toString()
-			const alarmServicePostData = createAlarmServicePost({ alarmNotifications, userAlarmInfoData: [], userAlarmInfo })
+			const notification = createNotificationTransferAggregatedType({
+				alarms: [],
+			})
+			const alarmServicePostData = createAlarmServicePost({ alarmNotifications, notification, userAlarmInfoData: [], userAlarmInfo })
 
 			const eventAlarmsTuple: EventAlarmInfoTemplatesTuple = {
 				event: personalCalendarEvent,
