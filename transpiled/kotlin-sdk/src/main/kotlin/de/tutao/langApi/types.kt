@@ -18,6 +18,7 @@ typealias TsArray<T> = de.tutao.langApi.types.KtArray<T>
 typealias TsRecord<K, V> = de.tutao.langApi.types.KtRecord<K, V>
 
 typealias ReadonlyArray<T> = de.tutao.langApi.types.KtList<T>
+typealias TsList<T> = de.tutao.langApi.types.KtList<T>
 
 /// This alias should not have been necessary,
 /// make sure everything in client project is using TutanotaError() and not Error()
