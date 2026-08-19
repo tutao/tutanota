@@ -1,5 +1,7 @@
 package de.tutao.langApi.types
 
+import de.tutao.langApi.TsString
+
 class KtInt(private val inner: Int) {
 	companion object {
 		fun fromFloat(float: Float): KtInt {
@@ -8,6 +10,10 @@ class KtInt(private val inner: Int) {
 
 		fun parseInt(str: KtString): KtInt {
 			return null!!
+		}
+
+		fun isNaN(num: KtInt): Boolean {
+			return false
 		}
 	}
 
@@ -45,5 +51,21 @@ class KtDouble(private val inner: Double) {
 		fun from(double: Double): KtDouble {
 			return KtDouble(double)
 		}
+
+		fun from(int: KtInt): KtDouble {
+			return KtDouble(int.asKotlinInt().toDouble())
+		}
+
+		fun parseDouble(doubleStr: TsString): KtDouble {
+			return KtDouble(doubleStr.asKtString().toDouble())
+		}
+	}
+
+	operator fun compareTo(other: KtDouble): Int {
+		return this.inner.compareTo(other.inner)
+	}
+
+	operator fun compareTo(other: KtInt): Int {
+		return this.inner.compareTo(other.asKotlinInt())
 	}
 }
