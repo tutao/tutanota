@@ -52,8 +52,8 @@ export type TsNumber = BrandedType<number, TsNumberBrand>
 export type TsDouble = BrandedType<number, TsDoubleBrand>
 
 export const TsDouble = {
-	from(num: TsDouble): TsDouble {
-		return num
+	from(num: number): TsDouble {
+		return num as TsDouble
 	},
 	parseFloat(str: TsString): TsNumber {
 		return Number.parseFloat(str.asString()) as TsNumber

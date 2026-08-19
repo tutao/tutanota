@@ -214,18 +214,18 @@ export class EnvProvider {
 		return this.boot
 	}
 
-	public getWebsocketBaseUrl(domainConfig: DomainConfig): string {
+	public getWebsocketBaseUrl(domainConfig: DomainConfig): TsString {
 		// replaces http: with ws: and https: with wss:
-		return domainConfig.apiUrl.replace(/^http/, "ws").asString()
+		return domainConfig.apiUrl.replace(/^http/, "ws")
 	}
 
 	/** Returns the origin which should be used for API requests. */
-	public getApiBaseUrl(domainConfig: DomainConfig): string {
+	public getApiBaseUrl(domainConfig: DomainConfig): TsString {
 		if (this.isIOSApp()) {
 			// http:// -> api:// and https:// -> apis://
-			return domainConfig.apiUrl.replace(/^http/, "api").asString()
+			return domainConfig.apiUrl.replace(/^http/, "api")
 		} else {
-			return domainConfig.apiUrl.asString()
+			return domainConfig.apiUrl
 		}
 	}
 
