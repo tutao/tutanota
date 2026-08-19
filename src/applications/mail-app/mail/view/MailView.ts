@@ -18,6 +18,7 @@ import { PermissionError } from "../../../common/api/common/error/PermissionErro
 import { Styles } from "../../../../ui/styles"
 import { layout_size, px } from "../../../../ui/size"
 import {
+	checkMailSetName,
 	getCommonShortcuts,
 	getConversationTitle,
 	LabelsPopupOpts,
@@ -1215,7 +1216,14 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		const isTargetDescendent =
 			labelFolderSystem.getDescendantFoldersOfParent(labelToMove._id)?.find((descendant) => isSameId(targetLabel._id, descendant.mailSet._id)) != null
 		if (isTargetDescendent) return
-		await mailLocator.mailFacade.updateLabel(labelToMove, labelToMove.name, assertNotNull(labelToMove.color), targetLabel._id)
+
+		// don't move label into another label that contains child with same name
+		const message = checkMailSetName(labelFolderSystem, labelToMove.name, targetLabel._id, true)
+		if (message != null) {
+			await Dialog.message(message)
+		} else {
+			await mailLocator.mailFacade.updateLabel(labelToMove, labelToMove.name, assertNotNull(labelToMove.color), targetLabel._id)
+		}
 	}
 
 	private setExpandedMailSetState(folder: MailSet, currentExpansionState: boolean) {
@@ -1359,7 +1367,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			folderSystem.getDescendantFoldersOfParent(folderToMove._id)?.find((descendant) => isSameId(targetFolder._id, descendant.mailSet._id)) != null
 		if (isTargetDescendent) return
 
-		await this.mailViewModel.mailModel.setParentForFolder(folderToMove, targetFolder._id)
+		// don't move folder into another folder that contains child with same name
+		const message = checkMailSetName(folderSystem, folderToMove.name, targetFolder._id, false)
+		if (message != null) {
+			await Dialog.message(message)
+		} else {
+			await this.mailViewModel.mailModel.setParentForFolder(folderToMove, targetFolder._id)
+		}
 	}
 
 	private async handleFolderMailDrop(dropData: MailDropData, targetFolder: MailSet) {

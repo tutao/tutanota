@@ -3,20 +3,20 @@ import m from "mithril"
 import { LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
-import * as restError from "../../../../platform-kit/rest-client/error"
 import { isOfflineError, LockedError } from "../../../../platform-kit/rest-client/error"
-import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
+import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
 import { groupByAndMap, noOp } from "../../../../platform-kit/utils"
 import { mailLocator } from "../../mailLocator.js"
-import type { FolderSystem, IndentedMailSet } from "../../../common/api/common/mail/FolderSystem.js"
-import { getMailSetName, getIndentedFolderNameForDropdown, getPathToFolderString } from "../model/MailUtils.js"
+import type { IndentedMailSet } from "../../../common/api/common/mail/FolderSystem.js"
+import { getIndentedFolderNameForDropdown, getMailSetName, getPathToFolderString } from "../model/MailUtils.js"
 import { isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { Mail, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { MailReportType, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { isFolderReadOnly } from "../MailUtils"
-import { elementIdPart, elementIdToId, idToElementId, isSameId, listIdPart } from "../../../../platform-kit/meta"
+import { elementIdPart, elementIdToId, isSameId, listIdPart } from "../../../../platform-kit/meta"
+import { checkMailSetName } from "./MailGuiUtils"
 
 /**
  * Dialog for Edit and Add folder are the same.
@@ -148,18 +148,8 @@ export async function showEditFolderDialog(
 	Dialog.showActionDialog({
 		title: editedFolder ? "editFolder_action" : "addFolder_action",
 		child: form,
-		validator: async () => checkFolderName(folders, folderNameValue, selectedParentFolder?._id ?? null),
+		validator: async () => checkMailSetName(folders, folderNameValue, selectedParentFolder?._id ?? null, false),
 		allowOkWithReturn: true,
 		okAction: okAction,
 	})
-}
-
-function checkFolderName(folders: FolderSystem, name: string, parentFolderId: IdTuple | null): TranslationKey | null {
-	if (name.trim() === "") {
-		return "folderNameNeutral_msg"
-	} else if (folders.getCustomFoldersOfParent(parentFolderId).some((f) => f.name === name)) {
-		return "folderNameInvalidExisting_msg"
-	} else {
-		return null
-	}
 }

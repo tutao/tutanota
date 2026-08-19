@@ -15,6 +15,7 @@ import { ColorPickerView } from "../../../../ui/base/colorPicker/ColorPickerView
 import { MailViewModel } from "./MailViewModel"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 import { UpgradePromptType } from "@tutao/app-env"
+import { checkMailSetName } from "./MailGuiUtils"
 
 /** Free users only get 3 labels. See MAX_LABELS_PER_FREE_USER in tutanota constants. */
 const LIMIT_EXCEEDED_ERROR = "limitReached"
@@ -98,6 +99,7 @@ export async function showEditLabelDialog(
 	Dialog.showActionDialog({
 		title: label ? "editLabel_action" : "addLabel_action",
 		child: form,
+		validator: async () => checkMailSetName(folders, name, parentLabel?._id ?? null, true),
 		allowOkWithReturn: true,
 		okAction: okAction,
 	})
