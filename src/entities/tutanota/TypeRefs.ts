@@ -4752,6 +4752,7 @@ export type ImapPutInParams = {
 	newImapAccountSyncStatus: NumberString;
 	newImapFolderSyncStatus: NumberString;
 	newPostponedUntil: null | string;
+	errorCause: null | NumberString;
 
 	imapAccountSyncState: IdTuple;
 }
@@ -4764,6 +4765,7 @@ export type ImapPutIn = {
 	newImapAccountSyncStatus: NumberString;
 	newImapFolderSyncStatus: NumberString;
 	newPostponedUntil: null | string;
+	errorCause: null | NumberString;
 
 	imapAccountSyncState: IdTuple;
 }

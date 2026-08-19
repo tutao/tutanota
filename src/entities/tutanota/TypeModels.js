@@ -11340,6 +11340,14 @@ const typeModels = {
 				"type": "String",
 				"cardinality": "ZeroOrOne",
 				"encrypted": true
+			},
+			"2022": {
+				"final": false,
+				"name": "errorCause",
+				"id": 2022,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false
 			}
 		},
 		"associations": {

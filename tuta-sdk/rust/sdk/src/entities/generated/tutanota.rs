@@ -4845,6 +4845,8 @@ pub struct ImapPutIn {
 	pub newImapFolderSyncStatus: i64,
 	#[serde(rename = "1986")]
 	pub newPostponedUntil: Option<String>,
+	#[serde(rename = "2022")]
+	pub errorCause: Option<i64>,
 	#[serde(rename = "1981")]
 	pub imapAccountSyncState: IdTupleGenerated,
 
