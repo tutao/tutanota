@@ -249,9 +249,9 @@ export class EnvProvider {
 		return this.boot
 	}
 
-	public getWebsocketBaseUrl(domainConfig: DomainConfig): string {
+	public getWebsocketBaseUrl(domainConfig: DomainConfig): TsString {
 		// replaces http: with ws: and https: with wss:
-		return domainConfig.apiUrl.replace(/^http/, "ws").asString()
+		return domainConfig.apiUrl.replace(/^http/, "ws")
 	}
 
 	/**
@@ -259,7 +259,7 @@ export class EnvProvider {
 	 * This is done in order to avoid preflight requests with Origin asset://app
 	 * @param url
 	 */
-	public rewriteSchemeForIos(url: string): string {
+	public rewriteSchemeForIos(url: string): TsString {
 		if (this.isIOSApp()) {
 			// http:// -> api:// and https:// -> apis://
 			return url.replace(/^http/, "api")
