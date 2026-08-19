@@ -132,9 +132,12 @@ class MigrationViewer implements UpdatableSettingsViewer {
 			m(PrimaryButton, {
 				width: "flex",
 				label: "migrationFinish_action",
-				// TODO: no backend service exists yet to conclude a migration (CustomerMigrationService has no PUT
-				// and `status` is a final field) - wire this up once that's implemented.
-				onclick: () => {},
+				onclick: async () => {
+					const customerMigrationInformation = await mailLocator.entityClient.load(CustomerMigrationInformationTypeRef, activeBatch.id)
+					customerMigrationInformation.status = CustomerMigrationInfoStatus.FINISHING_MIGRATION
+					await mailLocator.entityClient.update(customerMigrationInformation)
+					await this.reload()
+				},
 			}),
 		])
 	}
