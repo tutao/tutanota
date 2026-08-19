@@ -1,6 +1,6 @@
 import { DEFAULT_REST_CLIENT_OPTIONS, type RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType, RestTextBody } from "../rest-client/types"
-import { ClientTypeModel, expandId, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT, Type, TypeRef } from "../meta"
+import { ClientTypeModel, expandId, isCustomIdType, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT, Type, TypeRef } from "../meta"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { assertNotNull, Category, downcast, isNotEmpty, lazy, Mapper, Nullable, ofClass, promiseMap, splitInChunks, syncMetrics } from "@tutao/utils"
 import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
@@ -575,18 +575,26 @@ export class EntityRestClient implements EntityRestInterface {
 			let kdfNonce: KdfNonce
 			if (instance._kdfNonce == null) {
 				let instanceList: Nullable<Id> = null
-				let instanceId: Id
+				let instanceId: Nullable<Id>
 				if (instance._id instanceof Array) {
 					instanceList = instance._id[0]
 					instanceId = instance._id[1]
 				} else {
 					instanceId = instance._id
 				}
+
+				const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
+				let instanceCustomId: Nullable<Id> = null
+				if (isCustomIdType(clientTypeModel)) {
+					instanceCustomId = instanceId
+					instanceId = null
+				}
+
 				const application = instance._type.app
 				const typeId = instance._type.typeId.toString()
 				const typeInfo = createTypeInfo({ application, typeId })
 				const out = await this._crypto.postUpdateKdfNonceService(
-					createInstanceKdfNonce({ kdfNonce: generateKdfNonce(), instanceId, instanceList, typeInfo }),
+					createInstanceKdfNonce({ kdfNonce: generateKdfNonce(), instanceId, instanceCustomId, instanceList, typeInfo }),
 				)
 				kdfNonce = validateKdfNonceLength(out.kdfNonce)
 				instance._kdfNonce = kdfNonce
