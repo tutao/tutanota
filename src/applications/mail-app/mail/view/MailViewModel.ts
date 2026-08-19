@@ -582,9 +582,9 @@ export class MailViewModel {
 		this.shouldAttemptCounterFixup = true
 	}
 
-	private fixCounterIfNeeded: (folder: MailSet, loadedMailsWhenCalled: ReadonlyArray<Mail>) => void = debounce(
+	private fixCounterIfNeeded: (mailSet: MailSet, loadedMailsWhenCalled: ReadonlyArray<Mail>) => void = debounce(
 		2000,
-		async (folder: MailSet, loadedMailsWhenCalled: ReadonlyArray<Mail>) => {
+		async (mailSet: MailSet, loadedMailsWhenCalled: ReadonlyArray<Mail>) => {
 			// We cannot be sure that we will fix counters correctly if sync is not yet done
 			if (!this.syncTracker.isSyncDone) {
 				return
@@ -597,7 +597,7 @@ export class MailViewModel {
 			const listHasAllUnreadMails = this.filterType.size === 0 || (this.filterType.size === 1 && this.filterType.has(MailFilterType.Unread))
 			if (
 				ourFolder == null ||
-				!isSameSingleId(getElementId(ourFolder), getElementId(folder)) ||
+				!isSameSingleId(getElementId(ourFolder), getElementId(mailSet)) ||
 				this.connectivityModel.wsConnection()() !== WsConnectionState.connected ||
 				!listHasAllUnreadMails
 			) {
@@ -607,28 +607,28 @@ export class MailViewModel {
 			// If the list was modified in the meantime, we cannot be sure that we will fix counters correctly (e.g., because of the inbox rules)
 			if (this.listModel?.mails !== loadedMailsWhenCalled) {
 				console.log("list changed, trying again later")
-				return this.fixCounterIfNeeded(folder, this.listModel?.mails ?? [])
+				return this.fixCounterIfNeeded(mailSet, this.listModel?.mails ?? [])
 			}
 
 			const unreadMailsCount = count(this.listModel.mails, (e) => e.unread)
 
-			const counterValue = await this.mailModel.getCounterValue(folder)
+			const folderOrLabel = mailSet.folderType === MailSetKind.LABEL ? "label" : "folder"
+			const counterValue = await this.mailModel.getCounterValue(mailSet)
 			if (counterValue != null && counterValue !== unreadMailsCount) {
-				console.log(`fixing up counter for folder ${folder._id}`)
-				await this.mailModel.fixupCounterForFolder(folder, unreadMailsCount)
+				console.log(`fixing up counter for ${folderOrLabel} ${mailSet._id}`)
+				await this.mailModel.fixupCounterForFolder(mailSet, unreadMailsCount)
 			} else {
-				console.log(`same counter, no fixup on folder ${folder._id}`)
+				console.log(`same counter, no fixup on ${folderOrLabel} ${mailSet._id}`)
 			}
 		},
 	)
 
 	private onListStateChange(listModel: MailSetListModel, newState: ListState<Mail>) {
-		// Fixup isn't needed for labels since only mailSets have counters.
 		// A counter fixup with a partially loaded list will set the counter to an incorrect value.
-		const folder = this.getMailSet()
-		if (this.shouldAttemptCounterFixup && folder != null && folder.folderType !== MailSetKind.LABEL && newState.loadingStatus === ListLoadingState.Done) {
+		const mailSet = this.getMailSet()
+		if (this.shouldAttemptCounterFixup && mailSet != null && newState.loadingStatus === ListLoadingState.Done) {
 			// We use listModel.mails to get a correct count as it has all mails, even when conversation grouping is enabled
-			this.fixCounterIfNeeded(folder, listModel.mails)
+			this.fixCounterIfNeeded(mailSet, listModel.mails)
 			this.shouldAttemptCounterFixup = false
 		}
 
