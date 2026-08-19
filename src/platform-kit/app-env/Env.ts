@@ -1,9 +1,9 @@
-import { isNotNull, ProgrammingError, RuntimeInfo, TsString } from "@tutao/lang-api"
+import { isNotNull, ProgrammingError, RuntimeInfo, TsRecord, TsString } from "@tutao/lang-api"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
 
-export type DomainConfigMap = Record<string, DomainConfig>
+export type DomainConfigMap = TsRecord<string, DomainConfig>
 export type EnvType = {
 	staticUrl: string | null // if null the url from the browser is used
 	mode: Mode
