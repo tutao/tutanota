@@ -310,7 +310,7 @@ export class CryptoMapper {
 			// number fields were set to empty string which does not satisfy valid ValueType.Number,
 			// since this field is encrypted, we have reset it to correct value on client side and make
 			// update request to server
-			// Until then, we just fallback to null.
+			// Until then, we just fall back to null.
 			return ParsedValue.fromNull()
 		}
 		return decryptedValue
@@ -625,7 +625,7 @@ export class DecryptedParsedInstance implements DeepEquals {
 	public addAttributeById(attributeId: AttributeId, parsedValue: ParsedValue<DecryptedParsedInstance>): this {
 		assert(
 			isNotNull(this.typeModel.values[attributeId]) || isNotNull(this.typeModel.associations[attributeId]),
-			`Cannot add non-existant attributeId: ${attributeId} to instance of type: ${this.typeModel.app}/${this.typeModel.name}`,
+			`Cannot add non-existent attributeId: ${attributeId} to instance of type: ${this.typeModel.app}/${this.typeModel.name}`,
 		)
 
 		this.parsedInstance.set(attributeId, parsedValue)

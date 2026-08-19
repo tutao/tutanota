@@ -215,7 +215,7 @@ export class UserFacade extends LoggedInUserProvider {
 		try {
 			newUserGroupKeyBytes = decryptKey(userDistKey, userGroupKeyDistribution.distributionEncUserGroupKey)
 		} catch (e) {
-			// this may happen during offline storage synchronisation when the event queue contains user group key rotation and a password change.
+			// this may happen during offline storage synchronization when the event queue contains user group key rotation and a password change.
 			// We can ignore this error as we already have the latest user group key after connecting the offline client
 			console.log(`Could not decrypt userGroupKeyUpdate`, e)
 			return

@@ -82,7 +82,7 @@ export function hasValidProtocol(url: URL, validProtocols: string[]) {
  * webcal:// and webcals:// are calendar subscription protocols that should be fetched over HTTPS.
  */
 export function normalizeCalendarUrl(url: string): string {
-	return url.replace(/^webcal[s]?:\/\//, "https://")
+	return url.replace(/^webcals?:\/\//, "https://")
 }
 
 export function shallowIsSameEvent(eventA: CalendarEvent | IcsCalendarEvent, eventB: CalendarEvent | IcsCalendarEvent) {

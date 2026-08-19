@@ -627,7 +627,7 @@ function getPreselectedCalendar(calendars: ReadonlyMap<Id, CalendarInfo>, event?
 		if (!calendar) throw new Error("Can't find a private calendar")
 		return calendar
 	} else {
-		return assertNotNull(calendars.get(ownerGroup), "invalid ownergroup for existing event?")
+		return assertNotNull(calendars.get(ownerGroup), "invalid owner group for existing event?")
 	}
 }
 
