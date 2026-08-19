@@ -243,6 +243,13 @@ export class MainStyles {
 					"overflow-y": "scroll",
 					"webkit-overflow-scrolling": "touch",
 				},
+				".overflow-y-scroll-inbox-rules": {
+					// The scrollbar is always there with "overflow-y": "scroll",
+					// but displays little scrollbar arrows even when there is no scroll bar, which is not visually appealing
+					// this differs from ".scroll" as there is no hyphen in front of webkit
+					"overflow-y": ClientDetector.get().overflowAuto,
+					"webkit-overflow-scrolling": "touch",
+				},
 				".overflow-visible": {
 					overflow: "visible",
 				},
@@ -268,6 +275,10 @@ export class MainStyles {
 				".border-sm": {
 					"border-style": "solid",
 					"border-width": "2px",
+				},
+				".border-md": {
+					"border-style": "solid",
+					"border-width": "4px",
 				},
 				".border-bottom-none": {
 					"border-bottom": "none",
@@ -2862,6 +2873,12 @@ export class MainStyles {
 				},
 				".cursor-grabbing *": {
 					cursor: "grabbing !important",
+				},
+				".cursor-grab": {
+					cursor: "grab",
+				},
+				".cursor-grab:active": {
+					cursor: "grabbing",
 				},
 				// This is applied to elements that should indicate they will be draggable when some key is pressed.
 				// Ideally we would use cursor: grab here, but it doesn't seem to be supported in electron
