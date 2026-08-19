@@ -582,6 +582,12 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	view({ attrs }: Vnode<SettingsViewAttrs>): Children {
 		return m(
 			"#settings.main-view",
+			{
+				// this ondragover is for dragging InboxRules
+				ondragover: (ev: DragEvent) => {
+					ev.preventDefault()
+				},
+			},
 			m(this.viewSlider, {
 				header: m(Header, {
 					...attrs.header,
