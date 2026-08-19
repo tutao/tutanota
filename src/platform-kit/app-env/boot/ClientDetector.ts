@@ -1,7 +1,7 @@
 import { EnvProvider, PlatformId } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { AppType } from "../AppType"
-import { console, ProgrammingError, RuntimeInfo, TsNumber, TsString, TutanotaError, TypeChecks } from "@tutao/lang-api"
+import { console, getStringEnumValue, ProgrammingError, RuntimeInfo, TsInt, TsString, TutanotaError, TypeChecks } from "@tutao/lang-api"
 import { BotdResult, BotKind, FingerprintJs } from "@tutao/lang-api/fingerprintJs"
 
 EnvProvider.assertMainOrNodeBoot()
@@ -136,7 +136,7 @@ export class ClientDetector {
 
 			if (mainVersionEndIndex !== -1) {
 				try {
-					this.browserVersion = TsNumber.parseInt(userAgent.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
+					this.browserVersion = TsInt.parseInt(userAgent.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
 				} catch (e) {
 					/* empty */
 				}
@@ -166,7 +166,7 @@ export class ClientDetector {
 				while (pos < userAgent.length) {
 					pos++
 
-					if (TypeChecks.isNaN(TsNumber.parseInt(userAgent.charAt(pos)))) {
+					if (TsInt.isNaN(TsInt.parseInt(userAgent.charAt(pos)))) {
 						if (hadNan) {
 							break
 						} else {
@@ -176,7 +176,7 @@ export class ClientDetector {
 				}
 
 				const numberString = userAgent.substring(versionIndex + 4, pos)
-				this.browserVersion = TsNumber.parseInt(numberString.replace(/_/g, "."))
+				this.browserVersion = TsInt.parseInt(numberString.replace(/_/g, "."))
 			} catch (e) {
 				/* empty */
 			}
@@ -224,7 +224,7 @@ export class ClientDetector {
 			const appType: string = this.appType === AppType.Mail ? "Mail" : "Calendar"
 			return `${ClientDetector.get().device} ${appType} App`
 		} else if (EnvProvider.get().isBrowser()) {
-			return ClientDetector.get().browser + " Browser"
+			return getStringEnumValue(ClientDetector.get().browser) + " Browser"
 		} else if (platformId === PlatformId.Linux) {
 			return "Linux Desktop"
 		} else if (platformId === PlatformId.Darwin) {
