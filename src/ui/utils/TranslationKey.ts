@@ -2517,3 +2517,4 @@ export type TranslationKeyType =
 	| "driveAllFileTypes_label"
 	| "retryFailedTransfers_action"
 	| "emptyString_msg"
+	| "labelNameInvalidExisting_msg"
