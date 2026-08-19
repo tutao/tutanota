@@ -46,7 +46,7 @@ export class DesktopNativePushFacade implements NativePushFacade {
 	}
 
 	async initPushNotifications(): Promise<void> {
-		// make sure that we are connected if we just received new push datap
+		// make sure that we are connected if we just received new push data
 		await this.sse.connect()
 	}
 
