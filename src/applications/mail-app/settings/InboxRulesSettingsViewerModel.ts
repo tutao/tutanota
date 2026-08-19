@@ -91,4 +91,12 @@ export class InboxRulesSettingsViewerModel {
 		this.orderedInboxRules.push(rule)
 		await this.saveInboxRuleOrder()
 	}
+
+	async moveRuleToIndex(rule: ExpandedInboxRule, currentIndex: number, insertAtIndex: number) {
+		if (currentIndex === insertAtIndex || currentIndex + 1 === insertAtIndex) return
+
+		this.orderedInboxRules.splice(insertAtIndex, 0, rule)
+		this.orderedInboxRules.splice(currentIndex > insertAtIndex ? currentIndex + 1 : currentIndex, 1)
+		await this.saveInboxRuleOrder()
+	}
 }
