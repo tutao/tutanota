@@ -10264,8 +10264,9 @@ export function createInstanceKdfNonce(values: InstanceKdfNonceParams): Instance
 
 export type InstanceKdfNonceParams = {
 	instanceList: null | Id
-	instanceId: Id
+	instanceId: null | Id
 	kdfNonce: Uint8Array<ArrayBuffer>
+	instanceCustomId: null | Id
 
 	typeInfo: TypeInfo
 }
@@ -10275,8 +10276,9 @@ export type InstanceKdfNonce = {
 
 	_id: Id
 	instanceList: null | Id
-	instanceId: Id
+	instanceId: null | Id
 	kdfNonce: Uint8Array<ArrayBuffer>
+	instanceCustomId: null | Id
 
 	// == associations
 
