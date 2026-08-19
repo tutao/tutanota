@@ -1,5 +1,6 @@
 export const TsMath = Math
 export type TsRegex = RegExp
+export const TsRegex = RegExp
 
 export abstract class TsBrand {
 	protected abstract readonly __brand: Nullable<never>
