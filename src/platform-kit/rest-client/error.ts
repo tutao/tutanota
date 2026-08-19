@@ -2,7 +2,7 @@
 
 import { TutanotaError } from "@tutao/app-env"
 import { filterInt, isNotNull, Nullable } from "@tutao/utils"
-import { TsNumber } from "../app-env/TranspileCompatibility"
+import { TsInt } from "../app-env/TranspileCompatibility"
 
 export class ConnectionError extends TutanotaError {
 	static CODE: number = 0
