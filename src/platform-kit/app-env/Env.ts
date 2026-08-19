@@ -118,7 +118,7 @@ export class EnvProvider {
 		return this.env.timeout
 	}
 
-	constructor(public readonly env: EnvType) {}
+	constructor(private readonly env: EnvType) {}
 
 	public getPlatformId(): PlatformId | null {
 		return this.env.platformId
@@ -258,6 +258,6 @@ export class EnvProvider {
 	}
 
 	public static overrideEnv(env: EnvType): void {
-		;(EnvProvider.get().env satisfies EnvType) = env
+		EnvProvider.singleton = new EnvProvider(env)
 	}
 }
