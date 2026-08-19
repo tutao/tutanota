@@ -26,13 +26,13 @@ import {
 	ImportedImapMailTypeRef,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
-	MailSet,
 	MailSetTypeRef,
 } from "@tutao/entities/tutanota"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
 import { ProgrammingError } from "@tutao/app-env"
 import { ImapAccountSyncStatus, ImapFolderSyncStatus, MailSetKind } from "../../../../../../entities/tutanota/Utils"
+import { ImapErrorCause } from "../../../common/error/ImapError"
 import { ImapMailbox, ImapMailboxSpecialUse, ImapMailboxStatus } from "../../../common/utils/imapImportUtils/ImapMailbox"
 import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade"
 import {
@@ -126,6 +126,7 @@ export class ImapFacade {
 		imapAccountSyncState: ImapAccountSyncState,
 		newImapAccountSyncStatus: ImapAccountSyncStatus,
 		newImapFolderSyncStatus: ImapFolderSyncStatus,
+		errorCause: ImapErrorCause | null = null,
 		newPostponedUntil?: string,
 	) {
 		const ownerKeyVersion = parseKeyVersion(assertNotNull(imapAccountSyncState._ownerKeyVersion))
@@ -135,6 +136,7 @@ export class ImapFacade {
 			newImapAccountSyncStatus,
 			newImapFolderSyncStatus,
 			newPostponedUntil: newPostponedUntil ?? null,
+			errorCause: errorCause != null ? errorCause.toString() : null,
 		})
 		const sessionKey = this.cryptoWrapper.decryptKey(mailGroupKey, assertNotNull(imapAccountSyncState._ownerEncSessionKey))
 		await this.serviceExecutor.put(ImapService, imapPutIn, {

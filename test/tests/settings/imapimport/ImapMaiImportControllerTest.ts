@@ -151,7 +151,7 @@ o.spec("ImapMailImportController", () => {
 		const importResult = await controller.continueImport(accountSyncStateMock._id)
 
 		o.check(importResult.state.status).deepEquals(ImapAccountSyncStatus.POSTPONED)
-		verify(imapImporter.postponeImport(accountSyncStateMock._id, anything()), { times: 1 })
+		verify(imapImporter.postponeImport(accountSyncStateMock._id, anything(), anything()), { times: 1 })
 	})
 
 	o.test("continue import rejects when error happens", async () => {
@@ -168,7 +168,7 @@ o.spec("ImapMailImportController", () => {
 		const activeSessions = [{ imapAccountSyncStateId: imapAccountSyncStateIdMock } as ImapImportUiSession] as ImapImportUiSession[]
 		when(imapImporter.getImapImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
 		await controller.pauseImport(imapAccountSyncStateIdMock)
-		verify(imapImporter.pauseImport(imapAccountSyncStateIdMock), { times: 1 })
+		verify(imapImporter.pauseImport(imapAccountSyncStateIdMock, anything()), { times: 1 })
 	})
 
 	o.test("deleteImport - delegates to imapImporter", async () => {

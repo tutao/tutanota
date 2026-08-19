@@ -20,7 +20,7 @@ import { showUpdateImapCredentialsDialog } from "../../../common/gui/dialogs/Upd
 import { OAuthHandler } from "./oauth/OAuthHandler"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { ImapErrorHandler, ReadableImapError } from "./ImapErrorHandler"
-import { ImapErrorCause } from "../../../common/api/common/error/ImapError"
+import { ImapError, ImapErrorCause } from "../../../common/api/common/error/ImapError"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { showInitialImapCredentialsDialog } from "../../../common/gui/dialogs/InitialImapCredentialsDialog"
 
@@ -212,15 +212,19 @@ export class ImapMailImportController {
 			return await this.imapImporter.continueImport(imapAccountSyncStateId, isForceRetry, retryAttempts)
 		} catch (e) {
 			console.log(`failed to continue imap sync for imapAccountSyncState: ${imapAccountSyncStateId}`, e)
+			let errorCause: null | ImapErrorCause = null
+			if (e.name === "ImapError" && !Number.isNaN(e.data)) {
+				errorCause = e.data as ImapErrorCause
+			}
 
 			if (this.imapErrorHandler.isAuthError(e) && retryAttempts < 1) {
-				await this.pauseImport(imapAccountSyncStateId)
+				await this.pauseImport(imapAccountSyncStateId, errorCause)
 				const shouldRetry = await this.imapErrorHandler.handleImapError(e, undefined, imapAccountSyncStateId)
 				if (shouldRetry) {
 					return await this.continueImport(imapAccountSyncStateId, false, 1)
 				} else {
 					const postponedUntilDate = new Date(Date.now() + IMAP_AUTH_ERROR_POSTPONE_TIME)
-					await this.imapImporter.postponeImport(imapAccountSyncStateId, postponedUntilDate)
+					await this.imapImporter.postponeImport(imapAccountSyncStateId, postponedUntilDate, errorCause)
 					return Promise.resolve({
 						state: { status: ImapAccountSyncStatus.POSTPONED, postponedUntil: postponedUntilDate },
 						remoteStateId: imapAccountSyncStateId,
@@ -234,7 +238,7 @@ export class ImapMailImportController {
 				})
 			} else {
 				const postponedUntilDate = new Date(Date.now() + IMAP_ERROR_POSTPONE_TIME)
-				await this.imapImporter.postponeImport(imapAccountSyncStateId, postponedUntilDate)
+				await this.imapImporter.postponeImport(imapAccountSyncStateId, postponedUntilDate, errorCause)
 				return Promise.resolve({
 					state: { status: ImapAccountSyncStatus.POSTPONED, postponedUntil: postponedUntilDate },
 					remoteStateId: imapAccountSyncStateId,
@@ -262,9 +266,9 @@ export class ImapMailImportController {
 		}
 	}
 
-	async pauseImport(accountSyncStateId: IdTuple) {
+	async pauseImport(accountSyncStateId: IdTuple, errorCause: ImapErrorCause | null = null) {
 		this.isInStateTransition = true
-		await this.imapImporter.pauseImport(accountSyncStateId)
+		await this.imapImporter.pauseImport(accountSyncStateId, errorCause)
 		await this.updateActiveUiSessions()
 		this.isInStateTransition = false
 	}

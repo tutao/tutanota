@@ -151,7 +151,12 @@ o.spec("ImapImporter", () => {
 		when(imapFacadeMock.getDeduplicatedImportedAttachments(mailGroupIdMock)).thenResolve([])
 		when(imapSyncSystemFacadeMock.startSync(accountSyncStateIdMock, anything())).thenResolve()
 		when(
-			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateMock, ImapAccountSyncStatus.RUNNING, ImapFolderSyncStatus.RUNNING),
+			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(
+				accountSyncStateMock,
+				ImapAccountSyncStatus.RUNNING,
+				ImapFolderSyncStatus.RUNNING,
+				null,
+			),
 		).thenDo(() => {
 			session.imapAccountSyncState.status = ImapAccountSyncStatus.RUNNING
 			folderSyncStateMock.status = ImapFolderSyncStatus.RUNNING
@@ -164,9 +169,17 @@ o.spec("ImapImporter", () => {
 		o.check(result.state.status).equals(ImapAccountSyncStatus.RUNNING)
 		o.check(session.imapAccountSyncState.status).equals(ImapAccountSyncStatus.RUNNING)
 		verify(imapSyncSystemFacadeMock.startSync(accountSyncStateIdMock, anything()), { times: 1 })
-		verify(imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateMock, ImapAccountSyncStatus.RUNNING, ImapFolderSyncStatus.RUNNING), {
-			times: 1,
-		})
+		verify(
+			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(
+				accountSyncStateMock,
+				ImapAccountSyncStatus.RUNNING,
+				ImapFolderSyncStatus.RUNNING,
+				null,
+			),
+			{
+				times: 1,
+			},
+		)
 	})
 
 	o.test("continueImport - returns postponed if postponedUntil in future", async () => {
@@ -194,7 +207,7 @@ o.spec("ImapImporter", () => {
 
 		when(imapSyncSystemFacadeMock.stopSync(accountSyncStateIdMock)).thenResolve()
 		when(
-			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateMock, ImapAccountSyncStatus.PAUSED, ImapFolderSyncStatus.PAUSED),
+			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateMock, ImapAccountSyncStatus.PAUSED, ImapFolderSyncStatus.PAUSED, null),
 		).thenDo(() => {
 			session.imapAccountSyncState.status = ImapAccountSyncStatus.PAUSED
 			folderSyncStateMock.status = ImapFolderSyncStatus.PAUSED
@@ -205,9 +218,12 @@ o.spec("ImapImporter", () => {
 
 		o.check(session.imapAccountSyncState.status).equals(ImapAccountSyncStatus.PAUSED)
 		verify(imapSyncSystemFacadeMock.stopSync(accountSyncStateIdMock), { times: 1 })
-		verify(imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateMock, ImapAccountSyncStatus.PAUSED, ImapFolderSyncStatus.PAUSED), {
-			times: 1,
-		})
+		verify(
+			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateMock, ImapAccountSyncStatus.PAUSED, ImapFolderSyncStatus.PAUSED, null),
+			{
+				times: 1,
+			},
+		)
 	})
 
 	o.test("pauseImport - does nothing if session not found", async () => {
@@ -335,6 +351,7 @@ o.spec("ImapImporter", () => {
 				ImapAccountSyncStatus.POSTPONED,
 				ImapFolderSyncStatus.PAUSED,
 				anything(),
+				anything(),
 			),
 			{ times: 1 },
 		)
@@ -352,6 +369,7 @@ o.spec("ImapImporter", () => {
 				session.imapAccountSyncState,
 				ImapAccountSyncStatus.POSTPONED,
 				ImapFolderSyncStatus.PAUSED,
+				null,
 				postponedUntil.toString(),
 			),
 		).thenDo(() => {
@@ -381,7 +399,12 @@ o.spec("ImapImporter", () => {
 
 		o.check(session.imapAccountSyncState.status).equals(ImapAccountSyncStatus.FINISHED)
 		verify(
-			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateMock, ImapAccountSyncStatus.FINISHED, ImapFolderSyncStatus.FINISHED),
+			imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(
+				accountSyncStateMock,
+				ImapAccountSyncStatus.FINISHED,
+				ImapFolderSyncStatus.FINISHED,
+				anything(),
+			),
 			{ times: 1 },
 		)
 	})
