@@ -21,7 +21,7 @@ import {
 } from "../../../../platform-kit/utils"
 import { CancelledError, EncryptionAuthStatus, EnvProvider, MailAuthenticationStatus, ProgrammingError, TimeConstants } from "../../../../platform-kit/app-env"
 import { getReportConfirmation } from "./MailReportDialog"
-import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
+import { lang, Translation, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { DownloadPostProcessing, DownloadReturn, FileController, handleDownloadErrors } from "../../../common/file/FileController"
 import { DomRectReadOnlyPolyfilled, Dropdown, DropdownChildAttrs } from "../../../../ui/base/Dropdown.js"
 import { modal } from "../../../../ui/base/Modal.js"
@@ -31,12 +31,12 @@ import { InlineImageReference, InlineImages } from "../../../common/mailFunction
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import {
-	MailSetInfo,
-	getMailSetName,
 	getIndentedFolderNameForDropdown,
+	getMailSetName,
 	getMoveTargetFolderSystems,
 	getMoveTargetFolderSystemsForMailsInFolder,
 	getSystemFolderName,
+	MailSetInfo,
 	MoveService,
 	RegularMoveTargets,
 	SimpleMoveTargets,
@@ -946,6 +946,16 @@ export async function showDownloadProgressDialog(
 		await handleDownloadErrors(e, Dialog.message)
 	} finally {
 		transferProgressDispatcher.removeDownloadListener(listener)
+	}
+}
+
+export function checkMailSetName(system: FolderSystem, name: string, parentId: IdTuple | null, isLabel: boolean): TranslationKey | null {
+	if (name.trim() === "") {
+		return isLabel ? "enterName_msg" : "folderNameNeutral_msg"
+	} else if (system.getCustomFoldersOfParent(parentId).some((ms) => ms.name === name)) {
+		return isLabel ? "labelNameInvalidExisting_msg" : "folderNameInvalidExisting_msg"
+	} else {
+		return null
 	}
 }
 

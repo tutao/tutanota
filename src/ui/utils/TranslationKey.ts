@@ -2519,3 +2519,4 @@ export type TranslationKeyType =
 	| "emptyString_msg"
 	| "migrationGreetingTimeout_msg"
 	| "migrationUseSSL_label"
+	| "labelNameInvalidExisting_msg"

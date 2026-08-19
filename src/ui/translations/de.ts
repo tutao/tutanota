@@ -2521,5 +2521,6 @@ export default {
 		"zoomOut_action": "Herauszoomen",
 		"migrationGreetingTimeout_msg": "test",
 		"migrationUseSSL_label": "Connect securely to port(Use SSL)",
+		"labelNameInvalidExisting_msg": "Ein Label mit diesem Namen existiert bereits."
 	}
 }
