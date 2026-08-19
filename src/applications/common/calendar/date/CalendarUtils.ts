@@ -204,6 +204,49 @@ export function getAllDayDateForTimezone(utcDate: Date, zone: string): Date {
 		.toJSDate()
 }
 
+/** Returns true if the year is a leap year in the Gregorian calendar. */
+export function isLeapYear(year: number): boolean {
+	// See https://en.wikipedia.org/wiki/Leap_year#Gregorian_calendar
+	return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)
+}
+
+/**
+ * Returns the number of days in a month.
+ *
+ * @param year needs year because February has 29 days on leap years, instead of 28
+ * @param month 1 to 12
+ */
+export function daysInMonth(year: number, month: number): number {
+	switch (month) {
+		case 1:
+			return 31
+		case 2:
+			return 28 + (isLeapYear(year) ? 1 : 0)
+		case 3:
+			return 31
+		case 4:
+			return 30
+		case 5:
+			return 31
+		case 6:
+			return 30
+		case 7:
+			return 31
+		case 8:
+			return 31
+		case 9:
+			return 30
+		case 10:
+			return 31
+		case 11:
+			return 30
+		case 12:
+			return 31
+		default:
+			throw new Error(`daysInMonth called with invalid month=${month}! Month must be between 1 and 12.`)
+	}
+}
+
 /**
  * Objecting representing Luxon's DateTime values for {@link WeekdayNumbers}
  */

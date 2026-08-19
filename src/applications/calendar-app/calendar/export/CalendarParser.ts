@@ -23,9 +23,7 @@ import {
 	combineParsers,
 	makeCharacterParser,
 	makeEitherParser,
-	makeNotCharacterParser,
 	makeSeparatedByParser,
-	makeZeroOrMoreParser,
 	mapParser,
 	maybeParse,
 	numberParser,
@@ -34,7 +32,7 @@ import {
 } from "../../../common/misc/parsing/ParserCombinator"
 import { DAY_IN_MILLIS, EndType, ProgrammingError, RepeatPeriod } from "@tutao/app-env"
 import { reverse } from "../../../common/misc/EnumUtils"
-import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
+import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP, daysInMonth, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
@@ -221,14 +219,6 @@ const propertyStringValueParser: Parser<string> = (iterator) => {
 }
 
 /**
- * Parses values separated by commas
- */
-const separatedByCommaParser: Parser<Array<string>> = makeSeparatedByParser(
-	makeCharacterParser(","),
-	mapParser(makeZeroOrMoreParser(makeNotCharacterParser(",")), (arr) => arr.join("")),
-)
-
-/**
  * Parses the whole property (both sides)
  */
 export const propertySequenceParser: Parser<[string, [string, Array<[string, string, string]>] | null, string, string]> = combineParsers(
@@ -350,7 +340,11 @@ export function triggerToAlarmInterval(eventStart: Date, triggerValue: string): 
 	if (triggerValue.endsWith("Z")) {
 		// For absolute time we just convert the trigger to minutes. There might be a bigger unit that can express it but we don't have to take care about time
 		// zones or daylight saving in this case and it's simpler this way.
-		const triggerTime = parseTime(triggerValue, null).date
+		const dtParseResult = parseDateTime(triggerValue)
+		if (!dtParseResult.hasZSuffix) {
+			throw new ProgrammingError(`triggerValue=${triggerValue} ends with Z but parseDateTime result has hasZSuffix===false!`)
+		}
+		const triggerTime = jsDateFromDateTimeParseResult(dtParseResult, "UTC")
 		const tillEvent = eventStart.getTime() - triggerTime.getTime()
 		const minutes = Duration.fromMillis(tillEvent).as("minutes")
 		return { unit: AlarmIntervalUnit.MINUTE, value: minutes }
@@ -462,22 +456,75 @@ export function parseAdvancedRule(rrule: Record<string, string>): CalendarAdvanc
 }
 
 export function parseExDates(excludedDatesProps: Property[]): DateWrapper[] {
-	// it's possible that we have duplicated entries since this data comes from whereever, this deduplicates it.
-	const allExDates: Map<number, DateWrapper> = new Map<number, DateWrapper>()
+	// it's possible that we have duplicated entries since this data comes from whereever, we use the set to check for duplicates.
+	const exclusionTimestamps = new Set<number>()
+	const exclusionDates: DateWrapper[] = []
 	for (let excludedDatesProp of excludedDatesProps) {
 		const tzId: string | null = getTzId(excludedDatesProp)
-		const values = separatedByCommaParser(new StringIterator(excludedDatesProp.value))
-		for (let value of values) {
-			const { date: exDate } = parseTime(value, tzId)
-			allExDates.set(exDate.getTime(), createDateWrapper({ date: exDate }))
+		for (let value of excludedDatesProp.value.split(",")) {
+			const dtParseResult = parseDateTime(value)
+
+			// resolve the exclusion date time zone
+			let zone: string | null
+			const isAllDay = dtParseResult.hour === null && dtParseResult.minute === null
+			if (isAllDay) {
+				if (tzId) {
+					console.warn(TAG + ` EXDATES date-time has all-day value ${value}, but also TZID=${tzId}. Ignoreing TZID!`)
+				}
+				zone = "UTC"
+			} else if (dtParseResult.hasZSuffix) {
+				if (tzId !== null && tzId !== "UTC") {
+					throw new ParserError(`Invalid EXDATES date-time ${value} has both Z suffix in date-time value ${value} and non-UTC TZID=${tzId}!`)
+				}
+				zone = "UTC"
+			} else if (tzId) {
+				zone = tzId
+			} else {
+				zone = null
+				console.warn(TAG + ` exclusion date-time ${value} has undefined time zone. The local time zone will be used! `)
+			}
+
+			const date = jsDateFromDateTimeParseResult(dtParseResult, zone)
+			const timestamp = date.getTime()
+			if (!exclusionTimestamps.has(timestamp)) {
+				exclusionTimestamps.add(timestamp)
+				exclusionDates.push(createDateWrapper({ date }))
+			}
 		}
 	}
-	return [...allExDates.values()].sort((dateWrapper1, dateWrapper2) => dateWrapper1.date.getTime() - dateWrapper2.date.getTime())
+	return exclusionDates.sort((dateWrapper1, dateWrapper2) => dateWrapper1.date.getTime() - dateWrapper2.date.getTime())
 }
 
-export function parseRecurrenceId(recurrenceIdProp: Property, tzId: string | null): Date {
-	const result = parseDateTime(recurrenceIdProp.value, getTzId(recurrenceIdProp), tzId ?? null)
-	return toValidJSDate(result.dateTime, recurrenceIdProp.value, tzId)
+export function parseRecurrenceId(recurrenceIdProp: Property, startTzId: string | null): Date {
+	const value = recurrenceIdProp.value
+
+	const dtParseResult = parseDateTime(value)
+
+	// resolve the recurrence ID time zone
+	let zone: string | null
+	const isAllDay = dtParseResult.hour === null && dtParseResult.minute === null
+	if (isAllDay) {
+		zone = "UTC"
+	} else {
+		const tzId = getTzId(recurrenceIdProp)
+		if (dtParseResult.hasZSuffix) {
+			if (tzId !== null && tzId !== "UTC") {
+				throw new ParserError(`Invalid RECURRENCE-ID has both Z suffix in date-time value ${value} ` + `and non-UTC TZID=${tzId}!`)
+			}
+			zone = "UTC"
+		} else if (tzId) {
+			zone = tzId
+		} else if (startTzId) {
+			// If the recurrence ID prop does NOT have a time zone, but DTSTART DOES have a time zone, we use the start time zone
+			zone = startTzId
+		} else {
+			zone = null
+			console.warn(TAG + " RECURRENCE-ID time zone is undefined. The local time zone will be used, to match DTSTART behavior! ")
+		}
+	}
+
+	const dateTime = luxonDateTimeFromDateTimeParseResult(dtParseResult, zone)
+	return toValidJSDate(dateTime, recurrenceIdProp.value, startTzId)
 }
 
 /**
@@ -599,7 +646,7 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 	return eventObjects.map((eventObj, index) => {
 		const startProp = getProp(eventObj, "DTSTART", false)
 		const startTzId: string | null = getTzId(startProp)
-		const { date: startTime, allDay } = parseTime(startProp.value, startTzId)
+		const { date: startTime, allDay } = parseDtStartValue(startProp.value, startTzId)
 
 		// start time and tzid is sorted, so we can worry about event identity now before proceeding...
 		let hasValidUid = false
@@ -619,14 +666,30 @@ function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEven
 		const recurrenceIdProp = getProp(eventObj, "RECURRENCE-ID", true)
 		let recurrenceId: Date | null = null
 		if (recurrenceIdProp != null && hasValidUid) {
-			// if we generated the UID, we have no way of knowing which event series this recurrenceId refers to.
-			// in that case, we just don't add the recurrenceId and import the event as a standalone.
 			recurrenceId = parseRecurrenceId(recurrenceIdProp, startTzId)
 		}
+		// else
+		//   if we generated the UID, we have no way of knowing which event series this recurrenceId refers to.
+		//   in that case, we just don't add the recurrenceId and import the event as a standalone.
 
+		let endTime: Date
+		let endTzId: string | null = null
 		const endProp = getProp(eventObj, "DTEND", true)
-		const endTzId = endProp ? getTzId(endProp) : null
-		const endTime = parseEndTime(eventObj, allDay, startTime, startTzId, zone)
+		if (endProp) {
+			endTzId = endProp ? getTzId(endProp) : null
+			endTime = parseDtEndValue(endProp.value, allDay, startTime, startTzId, endTzId)
+		} else {
+			const durationValue = getPropStringValue(eventObj, "DURATION", true)
+			if (durationValue) {
+				endTime = parseEventDuration(durationValue, startTime)
+			} else {
+				// >For cases where a "VEVENT" calendar component specifies a "DTSTART" property with a DATE value type but no "DTEND" nor
+				// "DURATION" property, the event's duration is taken to be one day.
+				//
+				// https://tools.ietf.org/html/rfc5545#section-3.6.1
+				endTime = oneDayDurationEnd(startTime, allDay, startTzId, zone)
+			}
+		}
 
 		let summary: string = ""
 		const maybeSummary = parseICalText(eventObj, "SUMMARY")
@@ -776,46 +839,98 @@ function parseICalText(eventObj: ICalObject, tag: string) {
 	return text
 }
 
-function parseEndTime(eventObj: ICalObject, allDay: boolean, startTime: Date, startTzId: string | null, calendarTimeZone: string): Date {
-	const endProp = getProp(eventObj, "DTEND", true)
+export function parseDtStartValue(
+	value: string,
+	startTzId: string | null,
+): {
+	date: Date
+	allDay: boolean
+} {
+	const dtParseResult = parseDateTime(value)
 
-	if (endProp) {
-		if (typeof endProp.value !== "string") {
-			throw new ParserError("DTEND value is not a string")
+	// resolve the start time zone
+	let zone: string | null
+	const isAllDay = dtParseResult.hour === null && dtParseResult.minute === null
+	if (isAllDay) {
+		if (startTzId) {
+			console.warn(TAG + ` DTSTART has all-day value ${value}, but also TZID=${startTzId}. Ignoreing TZID!`)
 		}
-
-		const parseEndDateResult = parseDateTime(endProp.value, getTzId(endProp), startTzId)
-
-		const endTime = parseEndDateResult.dateTime.toJSDate()
-		if (endTime > startTime) {
-			return endTime
+		zone = "UTC"
+	} else if (dtParseResult.hasZSuffix) {
+		if (startTzId !== null && startTzId !== "UTC") {
+			throw new ParserError(`Invalid DTSTART has both Z suffix in date-time value ${value} and non-UTC TZID=${startTzId}!`)
 		}
-
-		// as per RFC, these are _technically_ illegal: https://tools.ietf.org/html/rfc5545#section-3.8.2.2
-		if (allDay) {
-			// if the startTime indicates an all-day event, we want to preserve that.
-			// we'll assume a 1-day duration.
-			return DateTime.fromJSDate(startTime).plus({ day: 1 }).toJSDate()
-		} else {
-			// we make a best effort to deliver alarms at the set interval before startTime and set the
-			// event duration to be 1 second
-			// as of now:
-			// * this displays as ending the same minute it starts in the tutanota calendar
-			// * gets exported with a duration of 1 second
-			return DateTime.fromJSDate(startTime).plus({ second: 1 }).toJSDate()
-		}
+		zone = "UTC"
+	} else if (startTzId) {
+		zone = startTzId
 	} else {
-		const durationValue = getPropStringValue(eventObj, "DURATION", true)
+		zone = null
+		console.warn(
+			TAG +
+				" DTSTART time zone is null. The local time zone will be used! " +
+				"This means that the start time of the event will have the same wall-clock time, " +
+				"no matter the time zone (which may be desired by the system generating the .ics file ¯\\(ツ)/¯).",
+		)
+	}
 
-		if (durationValue) {
-			return parseEventDuration(durationValue, startTime)
-		} else {
-			// >For cases where a "VEVENT" calendar component specifies a "DTSTART" property with a DATE value type but no "DTEND" nor
-			// "DURATION" property, the event's duration is taken to be one day.
-			//
-			// https://tools.ietf.org/html/rfc5545#section-3.6.1
-			return oneDayDurationEnd(startTime, allDay, startTzId, calendarTimeZone)
+	return { date: jsDateFromDateTimeParseResult(dtParseResult, zone), allDay: isAllDay }
+}
+
+function parseDtEndValue(value: string, allDay: boolean, startTime: Date, startTzId: string | null, endTzId: string | null): Date {
+	if (typeof value !== "string") {
+		throw new ParserError("DTEND value is not a string")
+	}
+
+	const dtParseResult = parseDateTime(value)
+
+	let zone: string | null
+	// resolve the end time zone
+	const isAllDay = dtParseResult.hour === null && dtParseResult.minute === null
+	if (isAllDay) {
+		if (endTzId !== null && endTzId !== "UTC") {
+			console.warn(TAG + ` DTEND has all-day value ${value}, but also TZID=${endTzId}. Ignoreing TZID!`)
 		}
+		zone = "UTC"
+	} else {
+		if (dtParseResult.hasZSuffix) {
+			if (endTzId !== null && endTzId !== "UTC") {
+				throw new ParserError(`Invalid DTEND has both Z suffix in date-time value ${value} and non-UTC TZID=${endTzId}!`)
+			}
+			zone = "UTC"
+		} else if (endTzId) {
+			zone = endTzId
+		} else if (startTzId) {
+			// If we do NOT have an end time zone, but DO have a start time zone, we use the start time zone
+			zone = startTzId
+		} else {
+			zone = null
+			console.warn(
+				TAG +
+					" DTEND time zone is undefined. The local time zone will be used! " +
+					"This means that the end time of the event will have the same wall-clock time, " +
+					"no matter the time zone (which may be desired by the system generating the .ics file ¯\\(ツ)/¯).",
+			)
+		}
+	}
+
+	const endTime = jsDateFromDateTimeParseResult(dtParseResult, zone)
+
+	if (endTime > startTime) {
+		return endTime
+	}
+
+	// as per RFC, these are _technically_ illegal: https://tools.ietf.org/html/rfc5545#section-3.8.2.2
+	if (allDay) {
+		// if the startTime indicates an all-day event, we want to preserve that.
+		// we'll assume a 1-day duration.
+		return DateTime.fromJSDate(startTime).plus({ day: 1 }).toJSDate()
+	} else {
+		// we make a best effort to deliver alarms at the set interval before startTime and set the
+		// event duration to be 1 second
+		// as of now:
+		// * this displays as ending the same minute it starts in the tutanota calendar
+		// * gets exported with a duration of 1 second
+		return DateTime.fromJSDate(startTime).plus({ second: 1 }).toJSDate()
 	}
 }
 
@@ -854,15 +969,27 @@ export function repeatPeriodToIcalFrequency(repeatPeriod: RepeatPeriod) {
 	}
 }
 
-/** parse a date time */
-export function parseDateTime(
-	value: string,
-	tzId: string | null,
-	fallbackZone: string | null,
-): {
-	dateTime: DateTime
-	isAllDay: boolean
-} {
+type DateTimeParseResult =
+	| {
+			// YYYYMMDD, i.e. date-only case
+			year: number
+			month: number
+			day: number
+			hour: null
+			minute: null
+			hasZSuffix: false
+	  }
+	| {
+			// YYYYMMDDThhmmss, i.e. date-time case
+			year: number
+			month: number
+			day: number
+			hour: number
+			minute: number
+			hasZSuffix: boolean
+	  }
+
+export function parseDateTime(value: string): DateTimeParseResult {
 	value = value.trim()
 
 	let offset = 0
@@ -877,11 +1004,18 @@ export function parseDateTime(
 	if (month === null) {
 		throw new ParserError(`No month in invalid date time string: ${value}!`)
 	}
+	if (month < 1 || month > 12) {
+		throw new ParserError(`Invalid month=${month} in date time string "${value}"! Month must be between 1 and 12.`)
+	}
 	offset += 2
 
 	let day = parsePositiveFixedLenInt(value, offset, 2)
 	if (day === null) {
 		throw new ParserError(`No day in invalid date time string: ${value}!`)
+	}
+	const maxDay = daysInMonth(year, month)
+	if (day < 1 || day > maxDay) {
+		throw new ParserError(`Invalid day=${day} in date time string "${value}"! Expected day between 1 and ${maxDay}.`)
 	}
 	offset += 2
 
@@ -892,60 +1026,122 @@ export function parseDateTime(
 		++offset
 	}
 
-	let hour = 0
-	let minute = 0
-	let zone: string | undefined = tzId ?? fallbackZone ?? undefined
-	const isAllDay = offset >= value.length
-	if (isAllDay) {
-		zone = "UTC"
+	if (offset >= value.length) {
+		// Case: `value` is just a date (YYYYMMDD) without any time (hhmmss)
+		return { year, month, day, hour: null, minute: null, hasZSuffix: false }
 	} else {
-		const hourOrNull = parsePositiveFixedLenInt(value, offset, 2)
-		if (hourOrNull === null) {
+		// Case: `value` is a date-time (YYYYMMDDThhmmss)
+		const hour = parsePositiveFixedLenInt(value, offset, 2)
+		if (hour === null) {
 			throw new ParserError(`No hour in invalid date time string: ${value}!`)
 		}
-		hour = hourOrNull
+		if (hour < 0 || hour > 24) {
+			throw new ParserError(`Invalid hour=${hour} in date time string "${value}! Must be between 0 and 24.`)
+		}
 		offset += 2
 
-		const minuteOrNull = parsePositiveFixedLenInt(value, offset, 2)
-		if (minuteOrNull === null) {
+		const minute = parsePositiveFixedLenInt(value, offset, 2)
+		if (minute === null) {
 			throw new ParserError(`No minute in invalid date time string: ${value}!`)
 		}
-		minute = minuteOrNull
+		if (hour < 0 || hour > 59) {
+			throw new ParserError(`Invalid minute=${minute} in date time string "${value}! Must be between 0 and 59.`)
+		}
 		offset += 2
 
-		parsePositiveFixedLenInt(value, offset, 2) // parse seconds
+		const seconds = parsePositiveFixedLenInt(value, offset, 2)
+		if (seconds === null) {
+			throw new ParserError(`No seconds in invalid date time string: ${value}!`)
+		}
+		if (seconds < 0 || seconds > 59) {
+			throw new ParserError(`Invalid seconds=${seconds} in date time string "${value}! Must be between 0 and 59.`)
+		}
 		offset += 2
 
-		if (offset < value.length && value[offset] === "Z") {
-			zone = "UTC"
-			if (tzId !== null && tzId !== zone) {
-				throw new ParserError(`Failed to parse time from ${value}, due to conflicting time zone representation. Event has a TZID ${tzId} and UTC time.`)
-			}
+		if (hour === 24 && (minute !== 0 || seconds !== 0)) {
+			throw new ParserError(`Invalid date time string "${value}": hour=24 so minute and seconds must be 0, but got ${minute} and ${seconds}.`)
+		}
+
+		const hasZSuffix = offset < value.length && value[offset] === "Z"
+		if (hasZSuffix) {
 			++offset
 		}
+
+		if (offset < value.length) {
+			throw new ParserError(`Invalid characters at end of date time string: ${value}!`)
+		}
+
+		return { year, month, day, hour, minute, hasZSuffix }
 	}
-	if (offset < value.length) {
-		throw new ParserError(`Invalid characters at end of date time string: ${value}!`)
+}
+
+function jsDateFromDateTimeParseResult(dtParseResult: DateTimeParseResult, zone: string | null) {
+	if (dtParseResult.hasZSuffix && zone !== "UTC") {
+		throw new ParserError(
+			`Attempted to use date time parse result ${JSON.stringify(dtParseResult)} with hasZSuffix=true with incompatible non-UTC time zone = ${zone}!`,
+		)
 	}
 
-	if (!zone) {
-		console.warn(TAG + " zone is undefined.  Event time will appear the same in all time zones.")
+	if (dtParseResult.hour === null && dtParseResult.minute === null && !dtParseResult.hasZSuffix) {
+		return new Date(Date.UTC(dtParseResult.year, dtParseResult.month - 1, dtParseResult.day))
+	} else if (zone === "UTC") {
+		return new Date(Date.UTC(dtParseResult.year, dtParseResult.month - 1, dtParseResult.day, dtParseResult.hour, dtParseResult.minute))
+	} else {
+		return DateTime.fromObject(
+			{
+				year: dtParseResult.year,
+				month: dtParseResult.month,
+				day: dtParseResult.day,
+				hour: dtParseResult.hour,
+				minute: dtParseResult.minute,
+			},
+			{ zone: zone ?? undefined },
+		).toJSDate()
+	}
+}
+
+function luxonDateTimeFromDateTimeParseResult(dtParseResult: DateTimeParseResult, zone: string | null) {
+	if (dtParseResult.hasZSuffix && zone !== "UTC") {
+		throw new ParserError(
+			`Attempted to use date time parse result ${JSON.stringify(dtParseResult)} with hasZSuffix=true with incompatible non-UTC time zone = ${zone}!`,
+		)
 	}
 
-	const dateTime = DateTime.fromObject({ year, month, day, hour, minute }, { zone })
-	return { isAllDay, dateTime }
+	return DateTime.fromObject(
+		{
+			year: dtParseResult.year,
+			month: dtParseResult.month,
+			day: dtParseResult.day,
+			hour: dtParseResult.hour ?? 0,
+			minute: dtParseResult.minute ?? 0,
+		},
+		{ zone: zone ?? undefined },
+	)
 }
 
 export function parseUntilRruleTime(value: string, startTzId: string | null): Date {
-	const parseDateTimeResult = parseDateTime(
-		value,
+	const dtParseResult = parseDateTime(value)
+
+	// resolve the repeat rule time zone
+	let zone: string | null
+	const isAllDay = dtParseResult.hour === null && dtParseResult.minute === null
+	if (isAllDay || dtParseResult.hasZSuffix) {
+		zone = "UTC"
+	} else if (startTzId) {
 		// We don't use the zone from the components (RRULE) but the one from start time if it was given.
 		// Don't ask me why but that's how it is.
-		null,
-		startTzId,
-	)
-	let dateTime = parseDateTimeResult.dateTime
-	dateTime = dateTime
+		zone = startTzId
+	} else {
+		zone = null
+		console.warn(
+			TAG +
+				" RRULE UNTIL time zone and start time zone are undefined. The local time zone will be used! " +
+				"This means the UNTIL time will have the same wall-clock time, no matter the time zone " +
+				"(which may be desired by the system generating the .ics file ¯\\(ツ)/¯).",
+		)
+	}
+
+	let dateTime = luxonDateTimeFromDateTimeParseResult(dtParseResult, zone)
 		.plus({ day: 1 }) // rrule until is inclusive in ical but exclusive in Tutanota
 		.startOf("day")
 	if (startTzId) {
@@ -956,23 +1152,6 @@ export function parseUntilRruleTime(value: string, startTzId: string | null): Da
 		dateTime = dateTime.setZone(startTzId, { keepLocalTime: true })
 	}
 	return toValidJSDate(dateTime, value, startTzId)
-}
-
-/**
- * parse a ical time string and return a JS Date object along with a flag that determines
- * whether the time should be considered part of an all-day event
- * @param value {string} the time string to be parsed
- * @param eventTzId {string} the TZID used in this {@link value}
- */
-export function parseTime(
-	value: string,
-	eventTzId: string | null,
-): {
-	date: Date
-	allDay: boolean
-} {
-	const result = parseDateTime(value, eventTzId, null)
-	return { date: result.dateTime.toJSDate(), allDay: result.isAllDay }
 }
 
 function toValidJSDate(dateTime: DateTime, value: string, zone: string | null): Date {

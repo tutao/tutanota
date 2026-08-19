@@ -14,7 +14,6 @@ import {
 	parseProperty,
 	parsePropertyKeyValue,
 	parseRecurrenceId,
-	parseTime,
 	parseUntilRruleTime,
 	propertySequenceParser,
 	repeatPeriodToIcalFrequency,
@@ -261,51 +260,68 @@ o.spec("CalendarParser", function () {
 		})
 	})
 
-	o.spec("parseTime", function () {
-		o.test("time with UTC indicator", function () {
-			o(parseTime("20180115T214000Z", null)).deepEquals({
-				date: new Date(Date.UTC(2018, 0, 15, 21, 40, 0)),
-				allDay: false,
+	o.spec("parseDateTimeToObject", function () {
+		// Happy path
+		o.test("time with Z-suffix UTC indicator", function () {
+			o(parseDateTime("20180115T214000Z")).deepEquals({
+				year: 2018,
+				month: 1,
+				day: 15,
+				hour: 21,
+				minute: 40,
+				hasZSuffix: true,
+			})
+		})
+		o.test("time without Z-suffix UTC indicator", function () {
+			o(parseDateTime("20180115T214000")).deepEquals({
+				year: 2018,
+				month: 1,
+				day: 15,
+				hour: 21,
+				minute: 40,
+				hasZSuffix: false,
+			})
+		})
+		o.test("date-time without time component", function () {
+			o(parseDateTime("20180115T")).deepEquals({
+				year: 2018,
+				month: 1,
+				day: 15,
+				hour: null,
+				minute: null,
+				hasZSuffix: false,
 			})
 		})
 
-		o.test("time with timezone", function () {
-			o(parseTime("20180115T214000", zone)).deepEquals({
-				date: new Date(Date.UTC(2018, 0, 15, 20, 40, 0)),
-				allDay: false,
-			})
-		})
-
-		o.test("All day event doens't care about timezones", function () {
-			o(parseTime("20180115T", zone)).deepEquals({
-				date: new Date(Date.UTC(2018, 0, 15, 0, 0, 0)),
-				allDay: true,
-			})
-		})
-
+		// Sad path
 		o.test("Invalid month throws error", function () {
-			o(() => parseTime("20180015T214000Z", "Europe/Berlin")).throws(ParserError)
+			o(() => parseDateTime("19990011")).throws(ParserError)
+			o(() => parseDateTime("19991311")).throws(ParserError)
 		})
-	})
-
-	o.spec("parseDateTime", function () {
+		o.test("Invalid day throws error", function () {
+			o(() => parseDateTime("20001100")).throws(ParserError)
+			o(() => parseDateTime("20001131")).throws(ParserError)
+		})
+		o.test("throws error on empty string", function () {
+			o.check(() => parseDateTime("")).throws(ParserError)
+		})
 		o.test("does not mistake a valid date-time after invalid string prefix as valid", function () {
-			o.check(() => parseDateTime("invalidPrefix 20331122T001122", "UTC", "UTC")).throws(ParserError)
+			o.check(() => parseDateTime("invalidPrefix 20331122T001122")).throws(ParserError)
 		})
 		o.test("does not mistake a valid all-day date after invalid string prefix as valid", function () {
-			o.check(() => parseDateTime("invalidPrefix 20331122", "UTC", "UTC")).throws(ParserError)
+			o.check(() => parseDateTime("invalidPrefix 20331122")).throws(ParserError)
 		})
 		o.test("does not mistake a valid date-time before invalid string suffix as valid", function () {
-			o.check(() => parseDateTime("20331122T001122 invalidSuffix", "UTC", "UTC")).throws(ParserError)
+			o.check(() => parseDateTime("20331122T001122 invalidSuffix")).throws(ParserError)
 		})
 		o.test("does not mistake a valid all-day date after invalid string prefix as valid", function () {
-			o.check(() => parseDateTime("20331122 invalidSuffix", "UTC", "UTC")).throws(ParserError)
+			o.check(() => parseDateTime("20331122 invalidSuffix")).throws(ParserError)
 		})
 		o.test("does not mistake a valid date-time after invalid numeric prefix as valid", function () {
-			o.check(() => parseDateTime("2020111122T001122", "UTC", "UTC")).throws(ParserError)
+			o.check(() => parseDateTime("2020111122T001122")).throws(ParserError)
 		})
 		o.test("does not mistake a valid all-day date after invalid string prefix as valid", function () {
-			o.check(() => parseDateTime("2020331122", "UTC", "UTC")).throws(ParserError)
+			o.check(() => parseDateTime("2020331122")).throws(ParserError)
 		})
 	})
 
@@ -328,18 +344,30 @@ o.spec("CalendarParser", function () {
 
 		const testParseIllegalCalendarEvents = ({ start, end, expect }) => {
 			const event = makeEvent({ start, end })
-			const { icsCalendarEvent } = parseCalendarEvents(event, "Europe/Berlin").contents[0]
+			const { icsCalendarEvent } = parseCalendarEvents(event, zone).contents[0]
 			o(icsCalendarEvent.endTime.getTime()).equals(expect)
 		}
 
 		o("allday equal", function () {
-			testParseIllegalCalendarEvents({ start: "20220315T", end: "20220315T", expect: parseTime("20220316T", "Europe/Berlin").date.getTime() })
+			testParseIllegalCalendarEvents({
+				start: "20220315T",
+				end: "20220315T",
+				expect: DateTime.fromObject({ year: 2022, month: 3, day: 16 }, { zone: "UTC" /* All-day events use the UTC time zone*/ }).toMillis(),
+			})
 		})
 		o("allday flipped", function () {
-			testParseIllegalCalendarEvents({ start: "20220315T", end: "20220314T", expect: parseTime("20220316T", "Europe/Berlin").date.getTime() })
+			testParseIllegalCalendarEvents({
+				start: "20220315T",
+				end: "20220314T",
+				expect: DateTime.fromObject({ year: 2022, month: 3, day: 16 }, { zone: "UTC" /* All-day events use the UTC time zone*/ }).toMillis(),
+			})
 		})
 		o("allday with an endTime that has hours/minutes/seconds", function () {
-			testParseIllegalCalendarEvents({ start: "20220315T", end: "20220314T225915Z", expect: parseTime("20220316T", "Europe/Berlin").date.getTime() })
+			testParseIllegalCalendarEvents({
+				start: "20220315T",
+				end: "20220314T225915Z",
+				expect: DateTime.fromObject({ year: 2022, month: 3, day: 16 }, { zone: "UTC" /* All-day events use the UTC time zone*/ }).toMillis(),
+			})
 		})
 
 		o("endTime equal", function () {
@@ -571,12 +599,11 @@ o.spec("CalendarParser", function () {
 							"CALSCALE:GREGORIAN\r\n" +
 							"METHOD:PUBLISH\r\n" +
 							"BEGIN:VEVENT\r\n" +
-							"DTSTART;TZID=Europe/Berlin:20000101T020000\r\n" +
-							"DTEND;TZID=Europe/Berlin:20100007T020000\r\n" +
-							"DTSTAMP:20190813T140100Z\r\n" +
+							"DTSTART:20001122T112233Z\r\n" +
+							"DTEND:20001122T112233Z\r\n" +
 							"UID:test@tuta.com\r\n" +
 							"SEQUENCE:0\r\n" +
-							"SUMMARY:Hourly repeating event\r\n" +
+							"SUMMARY:Test supported repeat frequencies\r\n" +
 							`RRULE:FREQ=${supportedRepeatFrequency}\r\n` +
 							"END:VEVENT\r\n" +
 							"END:VCALENDAR",
