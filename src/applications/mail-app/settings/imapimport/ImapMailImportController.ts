@@ -215,6 +215,8 @@ export class ImapMailImportController {
 			let errorCause: null | ImapErrorCause = null
 			if (e.name === "ImapError" && !Number.isNaN(e.data)) {
 				errorCause = e.data as ImapErrorCause
+			} else {
+				errorCause = ImapErrorCause.UNKNOWN
 			}
 
 			if (this.imapErrorHandler.isAuthError(e) && retryAttempts < 1) {
