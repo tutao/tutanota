@@ -126,7 +126,7 @@ export class TutaSseFacade implements SseEventHandler {
 	 */
 	private onNotification = throttleStart(NOTIFICATION_HANDLER_THROTTLE_MS, async () => {
 		if ((await this.sseStorage.getMissedNotificationCheckTime()) == null) {
-			// We set default value for  the case when Push identifier was added but no notifications were received. Then more than
+			// We set default value for the case when Push identifier was added but no notifications were received. Then more than
 			// MISSED_NOTIFICATION_TTL has passed and notifications has expired
 			await this.sseStorage.recordMissedNotificationCheckTime()
 		}
