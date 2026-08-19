@@ -27,6 +27,8 @@ export const TsObject = {
 	},
 }
 
+export type TsRecord<K extends string | number, V> = Record<K, V>
+
 export const TsNumber = {
 	parseInt(str: TsString): TsNumber {
 		return Number.parseInt(str.asString()) as TsNumber
