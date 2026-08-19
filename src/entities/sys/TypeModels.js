@@ -10430,10 +10430,20 @@ const typeModels = {
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2848": {
+			"2881": {
+				"final": true,
+				"name": "notification",
+				"id": 2881,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2878,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"2882": {
 				"final": true,
 				"name": "userAlarmInfo",
-				"id": 2848,
+				"id": 2882,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 2842,
@@ -17868,6 +17878,357 @@ const typeModels = {
 				"refTypeId": 2837,
 				"dependency": null,
 				"transferredAttributeId": 1548
+			}
+		}
+	},
+	"2848": {
+		"name": "DateWrapperTransferAggregatedType",
+		"app": "sys",
+		"version": 155,
+		"since": 155,
+		"type": "AGGREGATED_TYPE",
+		"id": 2848,
+		"rootId": "A3N5cwALIA",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 2073,
+		"values": {
+			"2849": {
+				"final": true,
+				"name": "_id",
+				"id": 2849,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2850": {
+				"final": true,
+				"name": "date",
+				"id": 2850,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 2075
+			}
+		},
+		"associations": {}
+	},
+	"2851": {
+		"name": "CalendarAdvancedRepeatRuleTransferAggregatedType",
+		"app": "sys",
+		"version": 155,
+		"since": 155,
+		"type": "AGGREGATED_TYPE",
+		"id": 2851,
+		"rootId": "A3N5cwALIw",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 2521,
+		"values": {
+			"2852": {
+				"final": true,
+				"name": "_id",
+				"id": 2852,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2853": {
+				"final": true,
+				"name": "ruleType",
+				"id": 2853,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 2523
+			},
+			"2854": {
+				"final": true,
+				"name": "interval",
+				"id": 2854,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 2524
+			}
+		},
+		"associations": {}
+	},
+	"2855": {
+		"name": "RepeatRuleTransferAggregatedType",
+		"app": "sys",
+		"version": 155,
+		"since": 155,
+		"type": "AGGREGATED_TYPE",
+		"id": 2855,
+		"rootId": "A3N5cwALJw",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1557,
+		"values": {
+			"2856": {
+				"final": true,
+				"name": "_id",
+				"id": 2856,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2857": {
+				"final": true,
+				"name": "frequency",
+				"id": 2857,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1559
+			},
+			"2858": {
+				"final": true,
+				"name": "endType",
+				"id": 2858,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1560
+			},
+			"2859": {
+				"final": true,
+				"name": "endValue",
+				"id": 2859,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true,
+				"transferredAttributeId": 1561
+			},
+			"2861": {
+				"final": true,
+				"name": "interval",
+				"id": 2861,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1562
+			},
+			"2862": {
+				"final": true,
+				"name": "timeZone",
+				"id": 2862,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1563
+			}
+		},
+		"associations": {
+			"2860": {
+				"final": true,
+				"name": "excludedDates",
+				"id": 2860,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2848,
+				"dependency": null,
+				"transferredAttributeId": 2076
+			},
+			"2863": {
+				"final": true,
+				"name": "advancedRules",
+				"id": 2863,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2851,
+				"dependency": null,
+				"transferredAttributeId": 2525
+			}
+		}
+	},
+	"2864": {
+		"name": "NotificationSessionKeyTransferAggregatedType",
+		"app": "sys",
+		"version": 155,
+		"since": 155,
+		"type": "AGGREGATED_TYPE",
+		"id": 2864,
+		"rootId": "A3N5cwALMA",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1553,
+		"values": {
+			"2865": {
+				"final": true,
+				"name": "_id",
+				"id": 2865,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2867": {
+				"final": true,
+				"name": "pushIdentifierSessionEncSessionKey",
+				"id": 2867,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": 1556
+			}
+		},
+		"associations": {
+			"2866": {
+				"final": true,
+				"name": "pushIdentifier",
+				"id": 2866,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 625,
+				"dependency": null,
+				"transferredAttributeId": 1555
+			}
+		}
+	},
+	"2868": {
+		"name": "AlarmNotificationTransferAggregatedType",
+		"app": "sys",
+		"version": 155,
+		"since": 155,
+		"type": "AGGREGATED_TYPE",
+		"id": 2868,
+		"rootId": "A3N5cwALNA",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1564,
+		"values": {
+			"2869": {
+				"final": true,
+				"name": "_id",
+				"id": 2869,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2870": {
+				"final": true,
+				"name": "operation",
+				"id": 2870,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": 1566
+			},
+			"2871": {
+				"final": true,
+				"name": "summary",
+				"id": 2871,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1567
+			},
+			"2872": {
+				"final": true,
+				"name": "eventStart",
+				"id": 2872,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1568
+			},
+			"2873": {
+				"final": true,
+				"name": "eventEnd",
+				"id": 2873,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1569
+			}
+		},
+		"associations": {
+			"2874": {
+				"final": true,
+				"name": "alarmInfo",
+				"id": 2874,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 2837,
+				"dependency": null,
+				"transferredAttributeId": 1570
+			},
+			"2875": {
+				"final": true,
+				"name": "repeatRule",
+				"id": 2875,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2855,
+				"dependency": null,
+				"transferredAttributeId": 1571
+			},
+			"2876": {
+				"final": true,
+				"name": "notificationSessionKeys",
+				"id": 2876,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2864,
+				"dependency": null,
+				"transferredAttributeId": 1572
+			},
+			"2877": {
+				"final": true,
+				"name": "user",
+				"id": 2877,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 84,
+				"dependency": null,
+				"transferredAttributeId": 1573
+			}
+		}
+	},
+	"2878": {
+		"name": "NotificationTransferAggregatedType",
+		"app": "sys",
+		"version": 155,
+		"since": 155,
+		"type": "AGGREGATED_TYPE",
+		"id": 2878,
+		"rootId": "A3N5cwALPg",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1706,
+		"values": {
+			"2879": {
+				"final": true,
+				"name": "_id",
+				"id": 2879,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"2880": {
+				"final": true,
+				"name": "alarms",
+				"id": 2880,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2868,
+				"dependency": null,
+				"transferredAttributeId": 1714
 			}
 		}
 	}
