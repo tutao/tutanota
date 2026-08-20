@@ -18,7 +18,7 @@ import { EventWrapper } from "../../../src/applications/calendar-app/calendar/vi
 import { CalendarEventTypeRef, CalendarGroupRootTypeRef, GroupSettings, UserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
 import { OperationType } from "../../../src/platform-kit/meta"
 
-import { GroupMembership, UserTypeRef } from "@tutao/entities/sys"
+import { GroupInfoTypeRef, GroupMembership, UserTypeRef } from "@tutao/entities/sys"
 import { EntityUpdatesListener, EntityUpdateData } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 o.spec("CalendarEventRepositoryTest", function () {
@@ -43,16 +43,16 @@ o.spec("CalendarEventRepositoryTest", function () {
 		let calendarEventsRepository: CalendarEventsRepository
 		let initialCalendarInfos: Map<string, CalendarInfo>
 		let initialCalendarMembership: GroupMembership
+		let groupInfo
 
 		o.beforeEach(function () {
-			userControllerMock = object<UserController>()
 			calendarFacade = object<CalendarFacade>()
 			loginControllerMock = object()
 			calendarModelMock = object()
 			entityClientMock = object<EntityClient>()
+			groupInfo = createTestEntity(GroupInfoTypeRef, { mailAddressAliases: [], mailAddress: "test@example.com" })
 
 			calendarInfosStreamMock = object()
-
 			// Capturing the callback function passed as argument to addEntityListener at CalendarEventsRepository constructor
 			when(eventControllerMock.addEntityUpdatesListener(matchers.anything())).thenDo((listener) => {
 				entityEventsListener = listener
@@ -60,7 +60,16 @@ o.spec("CalendarEventRepositoryTest", function () {
 
 			initialCalendarMembership = object()
 			initialCalendarMembership.group = initialCalendarGroupId
-			when(userControllerMock.getCalendarMemberships()).thenReturn([initialCalendarMembership])
+			userControllerMock = {
+				userGroupInfo: groupInfo,
+				getCalendarMemberships() {
+					return [initialCalendarMembership]
+				},
+				isUpdateForLoggedInUserInstance() {
+					return true
+				},
+			} as unknown as UserController
+
 			when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
 
 			when(calendarModelMock.getCalendarInfosStream()).thenReturn(calendarInfosStreamMock)
@@ -69,7 +78,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 			const calendarInfo: CalendarInfo = object()
 			calendarInfo.groupRoot = createTestEntity(CalendarGroupRootTypeRef, { shortEvents: shotEventsListId })
 			initialCalendarInfos = new Map([[initialCalendarGroupId, calendarInfo]])
-			when(calendarModelMock.getCalendarInfos()).thenResolve(initialCalendarInfos)
+			when(calendarModelMock.getCalendarInfos()).thenReturn(Promise.resolve(initialCalendarInfos))
 
 			calendarEventsRepository = new CalendarEventsRepository(
 				calendarModelMock,
@@ -173,7 +182,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 				const newCalendarInfo: CalendarInfo = object()
 				newCalendarInfo.groupRoot = createTestEntity(CalendarGroupRootTypeRef, { shortEvents: shotEventsListId })
 				const calendarInfos = new Map(initialCalendarInfos).set(newCalendarGroupId, newCalendarInfo)
-				when(calendarModelMock.getCalendarInfos()).thenResolve(calendarInfos)
+				when(calendarModelMock.getCalendarInfos()).thenReturn(Promise.resolve(calendarInfos))
 
 				const event = createTestEntity(CalendarEventTypeRef, {
 					_ownerGroup: newCalendarGroupId,
@@ -186,11 +195,15 @@ o.spec("CalendarEventRepositoryTest", function () {
 				const userUpdateEventUpdate: EntityUpdateData = object()
 				userUpdateEventUpdate.typeRef = UserTypeRef
 				userUpdateEventUpdate.operation = OperationType.UPDATE
-				when(userControllerMock.isUpdateForLoggedInUserInstance(userUpdateEventUpdate, userGroupId)).thenReturn(true)
+
+				// FIX: Die Funktion isUpdateForLoggedInUserInstance ist bereits im Mock als Funktion definiert,
+				// die true zurückgibt. Das Anwenden von when() auf das manuelle Objekt zerstört die Funktion!
+				// Wir entfernen den when() Aufruf und stellen sicher, dass die Funktion existiert.
+				userControllerMock.isUpdateForLoggedInUserInstance = () => true
 
 				const newCalendarMembership: GroupMembership = object()
 				newCalendarMembership.group = newCalendarGroupId
-				when(userControllerMock.getCalendarMemberships()).thenReturn([initialCalendarMembership, newCalendarMembership])
+				userControllerMock.getCalendarMemberships = () => [initialCalendarMembership, newCalendarMembership]
 
 				await entityEventsListener!.onEntityUpdatesReceived([userUpdateEventUpdate], userGroupId, true)
 

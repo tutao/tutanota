@@ -129,7 +129,7 @@ export class CalendarEventsRepository {
 				}
 
 				const eventsMap = await this.calendarFacade.updateEventMap(monthRange, calendarInfos, this.daysToEvents(), this.zone)
-				this.replaceEvents(eventsMap)
+				this.replaceEvents(this.addSaidNoFlagToEvents(eventsMap))
 				this.addBirthdaysEventsIfNeeded(dayInMonth, monthRange)
 			} catch (e) {
 				this.loadedMonths.delete(monthRange.start)
@@ -156,7 +156,7 @@ export class CalendarEventsRepository {
 				if (isForceReload) {
 					let calendarInfos = await this.calendarModel.getCalendarInfos()
 					const eventsMap = await this.calendarFacade.updateEventMap(monthRange, calendarInfos, this.daysToEvents(), this.zone)
-					this.replaceEvents(eventsMap)
+					this.replaceEvents(this.addSaidNoFlagToEvents(eventsMap))
 					this.addBirthdaysEventsIfNeeded(dayInMonth, monthRange)
 				} else if (
 					!this.loadedMonths.has(monthRange.start) ||
@@ -180,7 +180,7 @@ export class CalendarEventsRepository {
 						}
 
 						const eventsMap = await this.calendarFacade.updateEventMap(monthRange, calendarInfos, this.daysToEvents(), this.zone)
-						this.replaceEvents(eventsMap)
+						this.replaceEvents(this.addSaidNoFlagToEvents(eventsMap))
 						this.addBirthdaysEventsIfNeeded(dayInMonth, monthRange)
 					} catch (e) {
 						this.loadedMonths.delete(monthRange.start)
@@ -342,11 +342,11 @@ export class CalendarEventsRepository {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(CalendarEventTypeRef, update)) {
 				await this.handleCalendarEventUpdate(update, eventOwnerGroupId, calendarInfos)
+			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
+				await this.handleCalendarGroupSettingsUpdate(update, calendarInfos)
 			} else if (this.logins.getUserController().isUpdateForLoggedInUserInstance(update, eventOwnerGroupId)) {
 				// Possible accepting/leaving a shared calendar, check if memberships has changed
 				await this.handleMembershipChanges()
-			} else if (isUpdateForTypeRef(UserSettingsGroupRootTypeRef, update)) {
-				await this.handleCalendarGroupSettingsUpdate(update, calendarInfos)
 			}
 		}
 	}
@@ -387,10 +387,31 @@ export class CalendarEventsRepository {
 		return newEventWrapper
 	}
 
+	private addSaidNoFlagToEvents(eventsMap: DaysToEvents): DaysToEvents {
+		const ownMailAddresses = getEnabledMailAddressesForGroupInfo(this.logins.getUserController().userGroupInfo)
+		const newMap = new Map<number, ReadonlyArray<EventWrapper>>()
+		for (const [day, events] of eventsMap.entries()) {
+			const newEvents = events.map((eventWrapper) => {
+				const ownAttendee = findAttendeeInAddresses(eventWrapper.event.attendees, ownMailAddresses)
+				return {
+					...eventWrapper,
+					flags: {
+						...eventWrapper.flags,
+						saidNo: ownAttendee?.status === CalendarAttendeeStatus.DECLINED,
+					},
+				}
+			})
+			newMap.set(day, newEvents)
+		}
+		return newMap
+	}
+
 	private async handleCalendarEventUpdate(update: EntityUpdateData, eventOwnerGroupId: string, calendarInfos: ReadonlyMap<Id, CalendarInfo>) {
 		if (update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) {
 			try {
 				const event = await this.entityClient.load(CalendarEventTypeRef, [update.instanceListId!, update.instanceId])
+				const resolvedCalendarInfos =
+					calendarInfos != null && typeof calendarInfos.get === "function" ? calendarInfos : await this.calendarModel.getCalendarInfos()
 
 				const ownMailAddresses = getEnabledMailAddressesForGroupInfo(this.logins.getUserController().userGroupInfo)
 				const ownAttendee: CalendarEventAttendee | null = findAttendeeInAddresses(event.attendees, ownMailAddresses)
@@ -403,9 +424,9 @@ export class CalendarEventsRepository {
 						hasAlarms: isNotEmpty(event.alarmInfos),
 						isAlteredInstance: Boolean(event.recurrenceId),
 					},
-					color: calendarInfos.get(eventOwnerGroupId)?.color ?? DEFAULT_CALENDAR_COLOR,
+					color: resolvedCalendarInfos.get(eventOwnerGroupId)?.color ?? DEFAULT_CALENDAR_COLOR,
 				}
-				await this.addOrUpdateEvent(calendarInfos.get(eventOwnerGroupId) ?? null, wrapper)
+				await this.addOrUpdateEvent(resolvedCalendarInfos.get(eventOwnerGroupId) ?? null, wrapper)
 			} catch (e) {
 				if (e instanceof NotFoundError || e instanceof NotAuthorizedError) {
 					console.log(TAG, e.name, "updated event is not accessible anymore")
