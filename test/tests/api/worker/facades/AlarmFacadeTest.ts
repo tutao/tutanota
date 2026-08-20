@@ -18,11 +18,9 @@ import {
 	AlarmNotificationTypeRef,
 	AlarmService,
 	CalendarEventRefTypeRef,
-	createAlarmInfo,
 	createAlarmInfoTransferAggregatedType,
-	createAlarmNotification,
+	createAlarmNotificationTransferAggregatedType,
 	createAlarmServicePost,
-	createCalendarEventRef,
 	createCalendarEventRefTransferAggregatedType,
 	createNotificationTransferAggregatedType,
 	createUserAlarmInfoTransferAggregatedType,
@@ -31,7 +29,6 @@ import {
 	PushIdentifier,
 	PushIdentifierTypeRef,
 	User,
-	UserAlarmInfoTransferAggregatedType,
 	UserAlarmInfoTypeRef,
 	UserTypeRef,
 } from "@tutao/entities/sys"
@@ -108,42 +105,33 @@ o.spec("AlarmFacadeTest", function () {
 		})
 
 		o.test("successful scenario", async function () {
-			const calendarEventRef = createCalendarEventRef({
-				listId: listIdPart(personalCalendarEvent._id),
-				elementId: elementIdPart(personalCalendarEvent._id),
+			const alarmInfo = createAlarmInfoTransferAggregatedType({
+				alarmIdentifier: personalAlarmInfoTemplate.alarmIdentifier,
+				calendarRef: createCalendarEventRefTransferAggregatedType({
+					elementId: elementIdPart(personalCalendarEvent._id),
+					listId: listIdPart(personalCalendarEvent._id),
+				}),
+				trigger: personalAlarmInfoTemplate.trigger,
 			})
-			const alarmInfo = createAlarmInfo({ ...personalAlarmInfoTemplate, calendarRef: calendarEventRef })
-			const alarmNotifications: AlarmNotification[] = [
-				createAlarmNotification({
-					alarmInfo,
-					repeatRule: null,
-					notificationSessionKeys: [],
-					operation: OperationType.CREATE,
-					summary: personalCalendarEvent.summary,
-					eventStart: personalCalendarEvent.startTime,
-					eventEnd: personalCalendarEvent.endTime,
-					user: elementIdToId(user._id),
-				}),
-			]
-			const userAlarmInfo: UserAlarmInfoTransferAggregatedType[] = [
-				createUserAlarmInfoTransferAggregatedType({
-					alarmInfo: createAlarmInfoTransferAggregatedType({
-						alarmIdentifier: alarmInfo.alarmIdentifier,
-						calendarRef: createCalendarEventRefTransferAggregatedType({
-							elementId: alarmInfo.calendarRef.elementId,
-							listId: alarmInfo.calendarRef.listId,
-						}),
-						trigger: alarmInfo.trigger,
+			const notification = createNotificationTransferAggregatedType({
+				alarms: [
+					createAlarmNotificationTransferAggregatedType({
+						alarmInfo,
+						repeatRule: null,
+						notificationSessionKeys: [],
+						operation: OperationType.CREATE,
+						summary: personalCalendarEvent.summary,
+						eventStart: personalCalendarEvent.startTime,
+						eventEnd: personalCalendarEvent.endTime,
+						user: elementIdToId(user._id),
 					}),
-				}),
-			]
+				],
+			})
+			const userAlarmInfo = [createUserAlarmInfoTransferAggregatedType({ alarmInfo })]
 			userAlarmInfo[0]._ownerGroup = userGroupMembership.group
 			userAlarmInfo[0]._ownerEncSessionKey = ownerEncSessionKey
 			userAlarmInfo[0]._ownerKeyVersion = userGroupKey.version.toString()
-			const notification = createNotificationTransferAggregatedType({
-				alarms: [],
-			})
-			const alarmServicePostData = createAlarmServicePost({ alarmNotifications, notification, userAlarmInfoData: [], userAlarmInfo })
+			const alarmServicePostData = createAlarmServicePost({ alarmNotifications: [], notification, userAlarmInfoData: [], userAlarmInfo })
 
 			const eventAlarmsTuple: EventAlarmInfoTemplatesTuple = {
 				event: personalCalendarEvent,

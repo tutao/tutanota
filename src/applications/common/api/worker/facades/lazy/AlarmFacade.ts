@@ -11,19 +11,25 @@ import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/Cr
 import { AlarmNotification, NativePushFacade } from "@tutao/native-bridge/generatedIpc/types"
 import {
 	AlarmInfo,
+	AlarmNotificationTransferAggregatedType,
 	AlarmNotificationTypeRef,
 	AlarmService,
 	AlarmServicePost,
 	createAlarmInfo,
 	createAlarmInfoTransferAggregatedType,
 	createAlarmNotification,
+	createAlarmNotificationTransferAggregatedType,
 	createAlarmServicePost,
+	createCalendarAdvancedRepeatRuleTransferAggregatedType,
 	createCalendarEventRef,
 	createCalendarEventRefTransferAggregatedType,
 	createDateWrapper,
+	createDateWrapperTransferAggregatedType,
 	createNotificationSessionKey,
+	createNotificationSessionKeyTransferAggregatedType,
 	createNotificationTransferAggregatedType,
 	createRepeatRule,
+	createRepeatRuleTransferAggregatedType,
 	createUserAlarmInfoTransferAggregatedType,
 	PushIdentifier,
 	RepeatRule,
@@ -104,15 +110,17 @@ export class AlarmFacade {
 
 			for (const alarmInfoTemplate of alarmInfoTemplates) {
 				const userAlarmInfoSessionKey = aes256RandomKey()
+				const calendarEventRefTransferAggregatedType = createCalendarEventRefTransferAggregatedType({
+					listId: eventRef.listId,
+					elementId: eventRef.elementId,
+				})
+				const alarmInfoTransferAggregatedType = createAlarmInfoTransferAggregatedType({
+					alarmIdentifier: alarmInfoTemplate.alarmIdentifier,
+					calendarRef: calendarEventRefTransferAggregatedType,
+					trigger: alarmInfoTemplate.trigger,
+				})
 				const userAlarmInfo = createUserAlarmInfoTransferAggregatedType({
-					alarmInfo: createAlarmInfoTransferAggregatedType({
-						alarmIdentifier: alarmInfoTemplate.alarmIdentifier,
-						calendarRef: createCalendarEventRefTransferAggregatedType({
-							listId: eventRef.listId,
-							elementId: eventRef.elementId,
-						}),
-						trigger: alarmInfoTemplate.trigger,
-					}),
+					alarmInfo: alarmInfoTransferAggregatedType,
 				})
 				userAlarmInfo._ownerGroup = ownerGroup
 				userAlarmInfo._ownerEncSessionKey = this.cryptoWrapper.encryptKey(userGroupKey.object, userAlarmInfoSessionKey)
@@ -123,9 +131,21 @@ export class AlarmFacade {
 				// (Doesn't this mean that if you decrypt one key, you can decrypt all notifications on all devices? What security does this add?
 				// Does it mean that you can't brute force faster if you gain access to notifications from multiple devices?)
 
-				const alarmNotification = createAlarmNotification({
-					alarmInfo: createAlarmInfo({ ...alarmInfoTemplate, calendarRef: eventRef }),
-					repeatRule: event.repeatRule && this.createRepeatRuleForCalendarRepeatRule(event.repeatRule),
+				const alarmNotification = createAlarmNotificationTransferAggregatedType({
+					alarmInfo: alarmInfoTransferAggregatedType,
+					repeatRule:
+						event.repeatRule &&
+						createRepeatRuleTransferAggregatedType({
+							endType: event.repeatRule.endType,
+							endValue: event.repeatRule.endValue,
+							frequency: event.repeatRule.frequency,
+							interval: event.repeatRule.interval,
+							timeZone: event.repeatRule.timeZone,
+							excludedDates: event.repeatRule.excludedDates.map(({ date }) => createDateWrapperTransferAggregatedType({ date })),
+							advancedRules: event.repeatRule.advancedRules.map(({ ruleType, interval }) =>
+								createCalendarAdvancedRepeatRuleTransferAggregatedType({ ruleType, interval }),
+							),
+						}),
 					notificationSessionKeys: [],
 					operation: OperationType.CREATE,
 					summary: event.summary,
@@ -133,11 +153,11 @@ export class AlarmFacade {
 					eventEnd: event.endTime,
 					user: userId,
 				})
-				alarmServicePost.alarmNotifications.push(alarmNotification)
+				notification.alarms.push(alarmNotification)
 			}
 		}
 
-		await this.encryptNotificationKeyForDevices(notificationSessionKey, alarmServicePost.alarmNotifications, pushIdentifiers)
+		await this.encryptNotificationKeyTransferAggregateForDevices(notificationSessionKey, notification.alarms, pushIdentifiers)
 
 		return alarmServicePost
 	}
@@ -180,6 +200,32 @@ export class AlarmFacade {
 		for (let notification of alarmNotifications) {
 			notification.notificationSessionKeys = encSessionKeys.map((esk) => {
 				return createNotificationSessionKey({
+					pushIdentifier: esk.identifierId,
+					pushIdentifierSessionEncSessionKey: esk.pushIdentifierSessionEncSessionKey,
+				})
+			})
+		}
+	}
+
+	/**
+	 * Encrypts {@link notificationSessionKey} for every alarmNotification with the sessionKey of each pushIdentifier.
+	 */
+	private async encryptNotificationKeyTransferAggregateForDevices(
+		notificationSessionKey: AesKey,
+		alarmNotifications: Array<AlarmNotificationTransferAggregatedType>,
+		pushIdentifierList: Array<PushIdentifier>,
+	): Promise<void> {
+		// Makes copies of the notification SKs, each encrypted by a different push identifier SK
+		// PushID SK ->* Notification SK -> alarm fields
+		const maybeEncSessionKeys = await this.encryptNotificationSKWithPushIdentifierSKs(pushIdentifierList, notificationSessionKey)
+
+		// rate limiting against blocking while resolving session keys (necessary)
+		const encSessionKeys = maybeEncSessionKeys.filter(isNotNull)
+
+		// Each alarmNotification contains ALL push identifiers & each pushIdentifierSessionEncryptedSessionKey.  Why?
+		for (let notification of alarmNotifications) {
+			notification.notificationSessionKeys = encSessionKeys.map((esk) => {
+				return createNotificationSessionKeyTransferAggregatedType({
 					pushIdentifier: esk.identifierId,
 					pushIdentifierSessionEncSessionKey: esk.pushIdentifierSessionEncSessionKey,
 				})
