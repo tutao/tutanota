@@ -480,7 +480,6 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 							m(DriveTransferStack, {
 								driveTransfers: this.driveViewModel.transfers(),
 								cancelTransfer: (transferId) => this.driveViewModel.cancelTransfer(transferId),
-								retryTransfer: (transferId) => this.driveViewModel.retryTransfer(transferId),
 								cancelAllTransfers: async () => {
 									const { currentTransfers } = this.driveViewModel.transfers()
 									const activeTransfers = currentTransfers.filter((transfer) => transfer.state === "active" || transfer.state === "waiting")
@@ -502,6 +501,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 										this.driveViewModel.flushTransfers()
 									}
 								},
+								retryTransfer: (transferId) => this.driveViewModel.retryTransfer(transferId),
+								retryFailedTransfers: () => this.driveViewModel.retryFailedTransfers(),
 							} satisfies DriveTransferStackAttrs),
 						],
 						mobileHeader: () => this.renderMobileHeader(headerAttrs, showMoveItemDialog),

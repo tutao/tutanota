@@ -2499,3 +2499,4 @@ export type TranslationKeyType =
 	| "transferTimeRemaining_msg"
 	| "closeWindowWithActiveTransfers_msg"
 	| "dontQuit_action"
+	| "retryFailedTransfers_action"

@@ -18,8 +18,9 @@ import { formatDurationNarrow } from "../../../../ui/utils/Formatter"
 export interface DriveTransferStackAttrs {
 	driveTransfers: DriveTransfers
 	cancelTransfer: (transferId: TransferId) => unknown
-	retryTransfer: (transferId: TransferId) => unknown
 	cancelAllTransfers: () => unknown
+	retryTransfer: (transferId: TransferId) => unknown
+	retryFailedTransfers: () => unknown
 }
 
 // register custom CSS property so that we can animate it.
@@ -94,11 +95,13 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 		return 0
 	}
 
-	view({ attrs: { driveTransfers, cancelTransfer, retryTransfer, cancelAllTransfers } }: Vnode<DriveTransferStackAttrs>): Children {
+	view({ attrs: { driveTransfers, cancelTransfer, cancelAllTransfers, retryTransfer, retryFailedTransfers } }: Vnode<DriveTransferStackAttrs>): Children {
 		const allTransfers = driveTransfers.allTransfers
 		if (allTransfers.length === 0) {
 			return
 		}
+
+		const hasFailedTransfers = allTransfers.some((transfer) => transfer.state === "failed")
 
 		const stackStatus = this.getStackStatus(driveTransfers)
 
@@ -158,6 +161,15 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 						title: this.expanded ? "collapseTransferStack_label" : "expandTransferStack_label",
 						size: ButtonSize.Normal,
 					}),
+
+					hasFailedTransfers
+						? m(IconButton, {
+								click: () => retryFailedTransfers(),
+								icon: Icons.Refresh,
+								title: "retryFailedTransfers_action",
+								size: ButtonSize.Normal,
+							})
+						: null,
 
 					m(IconButton, {
 						click: async () => cancelAllTransfers(),

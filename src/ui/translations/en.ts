@@ -2501,5 +2501,6 @@ export default {
 		"transferTimeRemaining_msg": "{time} remaining",
 		"closeWindowWithActiveTransfers_msg": "There are still ongoing transfers. Closing the app will cancel them. Are you sure you want to proceed?",
 		"dontQuit_action": "Stay in app",
+		"retryFailedTransfers_action": "Retry all failed transfers",
 	}
 }
