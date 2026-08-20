@@ -1,4 +1,4 @@
-import { AppType, DomainConfig, EnvProvider, FeatureType, ProgrammingError, SessionType } from "../../platform-kit/app-env"
+import { AppType, DomainConfig, EnvProvider, FeatureType, PaymentSetup, ProgrammingError, SessionType } from "../../platform-kit/app-env"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "../../ui/utils/LanguageViewModel.js"
@@ -85,6 +85,7 @@ if (isSessionStorageAvailable()) {
 }
 
 assignEnvPlatformId(urlQueryParams)
+assignEnvPaymentSetup(urlQueryParams)
 replaceNativeLogger(window, new Logger())
 
 let currentView: Component<unknown> | null = null
@@ -1014,6 +1015,24 @@ function assignEnvPlatformId(urlQueryParams: Mithril.Params) {
 		} else {
 			throw new ProgrammingError(`Invalid platform id: ${String(platformId)}`)
 		}
+	}
+}
+
+// PaymentSetup is passed by the native part in the URL
+function assignEnvPaymentSetup(urlQueryParams: Mithril.Params) {
+	const paymentSetup = urlQueryParams["paymentSetup"]
+
+	switch (paymentSetup) {
+		case PaymentSetup.Appstore:
+			env.paymentSetup = PaymentSetup.Appstore
+			break
+		case PaymentSetup.Playstore:
+			env.paymentSetup = PaymentSetup.Playstore
+			break
+		case undefined:
+			break
+		default:
+			throw new ProgrammingError(`Invalid payment setup: ${String(paymentSetup)}`)
 	}
 }
 

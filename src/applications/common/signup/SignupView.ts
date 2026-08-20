@@ -1,5 +1,5 @@
 import m, { Children, Vnode } from "mithril"
-import { EnvProvider } from "@tutao/app-env"
+import { EnvProvider, PaymentSetup } from "@tutao/app-env"
 import { InfoLink, lang, MaybeTranslation, Translation, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { BaseTopLevelView } from "../../../ui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView.js"
@@ -199,6 +199,7 @@ export class SignupViewModel {
 		const featureListProvider = await FeatureListProvider.getInitializedInstance(domainConfig)
 		let message: MaybeTranslation | null = null
 		this.options.businessUse(prices.business)
+		// FIXME: adapt for play store payments
 		if (EnvProvider.get().isIOSApp()) {
 			this.options.businessUse(false)
 			const appstoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
@@ -366,7 +367,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 							this.wizardViewModel.targetPlanType,
 							this.wizardViewModel.options.paymentInterval(),
 						)
-						if (EnvProvider.get().isIOSApp()) {
+						if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
 							SignupFlowUsageTestController.completeStage(
 								SignupFlowStage.SELECT_PAYMENT_METHOD,
 								this.wizardViewModel.targetPlanType,
@@ -387,7 +388,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 							this.wizardViewModel.paymentData.paymentMethod,
 						)
 					},
-					isEnabled: (ctx) => ctx.viewModel.targetPlanType !== PlanType.Free && !EnvProvider.get().isIOSApp(),
+					isEnabled: (ctx) => ctx.viewModel.targetPlanType !== PlanType.Free && EnvProvider.get().getPaymentSetup() === PaymentSetup.Default,
 				},
 				{
 					title: "Order Confirmation",

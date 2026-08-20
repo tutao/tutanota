@@ -14,7 +14,7 @@ import {
 	SelectedSubscriptionOptions,
 	UpgradePriceType,
 } from "./FeatureListProvider"
-import { EnvProvider, ProgrammingError } from "@tutao/app-env"
+import { EnvProvider, PaymentSetup, ProgrammingError } from "@tutao/app-env"
 import { Button, ButtonType } from "../../../ui/base/Button.js"
 import { assertNotNull, downcast, lazy, NBSP } from "@tutao/utils"
 import { px, size } from "../../../ui/size.js"
@@ -371,7 +371,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		let priceStr: string
 		let referencePriceStr: string | undefined = undefined
 		let priceType: PriceType
-		if (EnvProvider.get().isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)) {
+		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)) {
 			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetSubscription].toLowerCase())
 			if (prices != null) {
 				switch (interval) {

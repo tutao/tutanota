@@ -12,6 +12,7 @@ export function create(params) {
 		versionNumber: version,
 		dist,
 		mode: mode ?? "Browser",
+		paymentSetup: "default",
 		timeout: 20000,
 		domainConfigs,
 		platformId: null,
