@@ -1,4 +1,4 @@
-import LangApi
+import Tutao_LangApi
 
 console.log("hello", "from", "swift-sdk")
 console.debug(1, 2, 3)
