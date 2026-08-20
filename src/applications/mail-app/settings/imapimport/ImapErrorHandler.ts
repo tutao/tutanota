@@ -205,8 +205,10 @@ export class ImapErrorHandler {
 	}
 
 	private async requestCredentialUpdate(imapAccountSyncState: ImapAccountSyncState) {
-		imapAccountSyncState.status = ImapAccountSyncStatus.AUTH_ERROR
-		// Updated to error state, which will cause an entity event
-		await this.entityClient.update(imapAccountSyncState)
+		if (imapAccountSyncState.status !== ImapAccountSyncStatus.SCHEDULED) {
+			imapAccountSyncState.status = ImapAccountSyncStatus.AUTH_ERROR
+			// Updated to error state, which will cause an entity event
+			await this.entityClient.update(imapAccountSyncState)
+		}
 	}
 }

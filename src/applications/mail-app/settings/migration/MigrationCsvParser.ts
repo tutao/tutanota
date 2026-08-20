@@ -110,9 +110,7 @@ export class MigrationCsvParser {
 		if (!this.allowedDomains) return
 		const domain = email.split("@")[1]
 		if (!domain || !this.allowedDomains.has(domain)) {
-			throw new ParserError(
-				`Email "${email}" uses a domain (${domain}) not in the allowed list ${Array.from(this.allowedDomains).map((domain) => domain)}`,
-			)
+			throw new ParserError(`Email "${email}" uses a domain not in the allowed list`)
 		}
 	}
 

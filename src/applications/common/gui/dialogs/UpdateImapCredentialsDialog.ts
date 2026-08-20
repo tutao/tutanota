@@ -154,6 +154,7 @@ function renderContent(viewModel: UpdateImapCredentialsDialogViewModel) {
 
 function renderImapCredentials(viewModel: UpdateImapCredentialsDialogViewModel) {
 	const imapCredentials = viewModel.imapAccountSyncState.imapAccount
+	const shouldDisplayHostAndPort = viewModel.imapAccountSyncState.mailboxMigrationInformation !== null
 	return m("", [
 		m(
 			".flex.row.gap-16.mt-16",
@@ -181,31 +182,33 @@ function renderImapCredentials(viewModel: UpdateImapCredentialsDialogViewModel) 
 				},
 			}),
 		),
-		m(".flex.row.gap-16.mt-16", [
-			m(TextField, {
-				label: "migrationImapAccountHost_label",
-				class: "",
-				value: imapCredentials.host,
-				oninput: (value) => (imapCredentials.host = value),
-				leadingIcon: {
-					icon: Icons.ServerFilled,
-					color: theme.on_surface_variant,
-				},
-			}),
-			m(TextField, {
-				label: "migrationImapAccountPort_label",
-				class: "",
-				value: imapCredentials.port.toString(),
-				oninput: (value) => {
-					const typedNumber = Number.parseInt(value)
-					imapCredentials.port = Number.isNaN(typedNumber) ? "0" : typedNumber.toString()
-				},
-				leadingIcon: {
-					icon: Icons.KeyFilled,
-					color: theme.on_surface_variant,
-				},
-			}),
-		]),
+		shouldDisplayHostAndPort
+			? m(".flex.row.gap-16.mt-16", [
+					m(TextField, {
+						label: "migrationImapAccountHost_label",
+						class: "",
+						value: imapCredentials.host,
+						oninput: (value) => (imapCredentials.host = value),
+						leadingIcon: {
+							icon: Icons.ServerFilled,
+							color: theme.on_surface_variant,
+						},
+					}),
+					m(TextField, {
+						label: "migrationImapAccountPort_label",
+						class: "",
+						value: imapCredentials.port.toString(),
+						oninput: (value) => {
+							const typedNumber = Number.parseInt(value)
+							imapCredentials.port = Number.isNaN(typedNumber) ? "0" : typedNumber.toString()
+						},
+						leadingIcon: {
+							icon: Icons.KeyFilled,
+							color: theme.on_surface_variant,
+						},
+					}),
+				])
+			: null,
 	])
 }
 

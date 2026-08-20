@@ -137,20 +137,6 @@ function renderContent(
 				value: imapAccount.username,
 				leadingIcon: { icon: Icons.MailFilled, color: theme.on_surface_variant },
 			}),
-			// Host (disabled)
-			m(TextField, {
-				label: "migrationImapAccountHost_label",
-				disabled: true,
-				value: imapAccount.host,
-				leadingIcon: { icon: Icons.ServerFilled, color: theme.on_surface_variant },
-			}),
-			// Port (disabled)
-			m(TextField, {
-				label: "migrationImapAccountPort_label",
-				disabled: true,
-				value: imapAccount.port,
-				leadingIcon: { icon: Icons.KeyFilled, color: theme.on_surface_variant },
-			}),
 			// Password (editable, with toggle)
 			m(TextField, {
 				label: "migrationImapAccountPassword_label",

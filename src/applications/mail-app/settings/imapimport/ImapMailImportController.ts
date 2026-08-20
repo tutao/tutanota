@@ -262,7 +262,9 @@ export class ImapMailImportController {
 			) {
 				continue
 			}
-
+			if (session.imapAccountSyncState.status === ImapAccountSyncStatus.SCHEDULED) {
+				this.displayInitialImapCredentialsDialog(session.imapAccountSyncState)
+			}
 			const imapAccountSyncStateId = session.imapAccountSyncState._id
 			await this.continueImport(imapAccountSyncStateId)
 		}
