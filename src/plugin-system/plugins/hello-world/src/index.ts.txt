@@ -1,0 +1,13 @@
+import type { Plugin } from "tutaPluginSdk";
+
+const plugin: Plugin = {
+  load(context) {
+    context.logger.info("Hello, World!");
+  },
+
+  unload() {
+    console.log("Goodbye, World!");
+  }
+};
+
+export default plugin;

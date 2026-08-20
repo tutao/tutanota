@@ -28,6 +28,5 @@ class WorkerApi extends RpcTarget implements IWorkerApi {
 self.onmessage = async (event) => {
 	const port = event.data as MessagePort
 	const workerApi = new WorkerApi()
-	const hostStub: RpcStub<IHostApi> = newMessagePortRpcSession(port, workerApi)
-	workerApi.hostStub = hostStub // TODO() maybe do some registration ack to signify readiness?
+	workerApi.hostStub = newMessagePortRpcSession(port, workerApi) // TODO() maybe do some registration ack to signify readiness?
 }
