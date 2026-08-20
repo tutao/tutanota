@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package proto.v1;
+
+import "proto/v1/customOptions.proto";
+
+service EventService {
+  rpc Subscribe(SubscribeRequest) returns (stream SubscribeResponse) {
+    option (proto.v1.registerEvent) = true;
+  };
+}
+
+message SubscribeRequest {}
+
+message SubscribeResponse {
+  IncomingMailEvent event = 1;
+}
+
+message UnsubscribeRequest {}
+
+message UnsubscribeResponse {}
+
+message IncomingMailEvent {
+  Email email = 1;
+  string time = 2;
+}
+
+message Email {
+  string subject = 1;
+  string body = 2;
+}

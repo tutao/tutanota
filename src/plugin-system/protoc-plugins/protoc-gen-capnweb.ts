@@ -1,5 +1,6 @@
 import { createEcmaScriptPlugin, type GeneratedFile, type Schema, runNodeJs, getComments, Printable } from "@bufbuild/protoplugin"
-import { type DescFile, type DescMethod } from "@bufbuild/protobuf"
+import { type DescFile, type DescMethod, getOption } from "@bufbuild/protobuf"
+import { registerEvent } from "../gen/proto/v1/customOptions_pb"
 
 // Generates an Interface from .proto file
 // Supports empty method arguments
@@ -30,6 +31,8 @@ function generateServices(file: DescFile, f: GeneratedFile) {
 		for (const method of service.methods) {
 			printComments(f, method)
 			printMethod(f, method)
+
+			// const value = getOption(method, registerEvent)
 		}
 
 		f.print("}")

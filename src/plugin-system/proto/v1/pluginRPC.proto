@@ -6,7 +6,7 @@ package proto.v1;
 service HostApi {
   rpc GetMail(GetMailRequest) returns (GetMailResponse);
   rpc DisplayPopup(DisplayPopupRequest) returns (DisplayPopupResponse);
-  rpc RegisterButton(RegisterButtonRequest) returns (stream ButtonEvent);
+  rpc RegisterButton(RegisterButtonRequest) returns (ButtonEvent);
 }
 
 message GetMailRequest{}

@@ -1,0 +1,16 @@
+[plantuml, puml, svg]
+----
+@startuml
+participant Plugin
+participant Host
+participant External
+
+Plugin -> Host: Subscribe for Incoming Mail Event
+External -> Host: Event
+Host -> Plugin: Incoming Mail Event
+
+
+Plugin -> Host: Unsubscribe for Incoming Mail Event
+External -> Host: Event
+@enduml
+----
