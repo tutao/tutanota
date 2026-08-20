@@ -5,7 +5,7 @@ import { GroupManagementFacade } from "../../../../platform-kit/base/facades/laz
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { MailboxType, MigrationMailboxRow } from "./MigrationCsvParser"
 import { createImapAccount } from "@tutao/entities/tutanota"
-import { GroupInfo, GroupInfoTypeRef, GroupTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
+import { CustomerMigrationInformation, GroupInfo, GroupInfoTypeRef, GroupTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
 import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { DEFAULT_IMAP_IMPORT_MAX_QUOTA } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
 import { OperationId } from "../../../common/api/main/OperationProgressTracker"
@@ -216,6 +216,58 @@ export class CustomerMigrationController {
 		}
 
 		return results
+	}
+
+	async addUserToExistingMigration(user: User, customerMigrationInformation: CustomerMigrationInformation, oldMailAddress: string) {
+		if (customerMigrationInformation.imapConfiguration) {
+			const mailGroupId = getFirstOrThrow(filterMailMemberships(user)).group
+			const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
+			const mailboxMigrationInitializationParameters: MailboxMigrationInitializationParameters = {
+				mailGroupId,
+				name: userGroupInfo.name,
+				initialPassword: null,
+				imapAccount: createImapAccount({
+					host: customerMigrationInformation.imapConfiguration.host,
+					port: customerMigrationInformation.imapConfiguration.port.toString(),
+					username: oldMailAddress,
+					password: null,
+					oAuthTokenEndpointResponse: null,
+					customCertificateData: customerMigrationInformation.imapConfiguration.customCertificateData,
+					ignoreCertificateErrors: customerMigrationInformation.imapConfiguration.ignoreCertificateErrors,
+					useSSL: customerMigrationInformation.imapConfiguration.useSSL,
+				}),
+				provider: parseInt(customerMigrationInformation.imapConfiguration.provider),
+				maxQuota: DEFAULT_IMAP_IMPORT_MAX_QUOTA,
+				userId: elementIdToId(user._id),
+				customerMigrationInformation: customerMigrationInformation._id,
+			}
+			await this.customerMigrationFacade.scheduleMailboxMigration(mailboxMigrationInitializationParameters)
+		}
+	}
+
+	async addMailboxToExistingMigration(groupInfo: GroupInfo, customerMigrationInformation: CustomerMigrationInformation, oldMailAddress: string) {
+		if (customerMigrationInformation.imapConfiguration) {
+			const mailboxMigrationInitializationParameters: MailboxMigrationInitializationParameters = {
+				mailGroupId: groupInfo.group,
+				name: groupInfo.name,
+				initialPassword: null,
+				imapAccount: createImapAccount({
+					host: customerMigrationInformation.imapConfiguration.host,
+					port: customerMigrationInformation.imapConfiguration.port.toString(),
+					username: oldMailAddress,
+					password: null,
+					oAuthTokenEndpointResponse: null,
+					customCertificateData: customerMigrationInformation.imapConfiguration.customCertificateData,
+					ignoreCertificateErrors: customerMigrationInformation.imapConfiguration.ignoreCertificateErrors,
+					useSSL: customerMigrationInformation.imapConfiguration.useSSL,
+				}),
+				provider: parseInt(customerMigrationInformation.imapConfiguration.provider),
+				maxQuota: DEFAULT_IMAP_IMPORT_MAX_QUOTA,
+				userId: null,
+				customerMigrationInformation: customerMigrationInformation._id,
+			}
+			await this.customerMigrationFacade.scheduleMailboxMigration(mailboxMigrationInitializationParameters)
+		}
 	}
 
 	private buildMigrationParams(

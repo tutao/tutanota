@@ -2542,5 +2542,9 @@ export default {
 		"migrationScheduledInfo_msg": "Your administrator has initiated a migration for your account. Please authenticate with your account from the old provider to proceed.",
 		"migrationOAuthSignInInfo_msg": "You will be redirected to your email provider to sign in securely. No password is stored in Tuta.",
 		"migrationScheduled_title": "Migration Scheduled",
+		"migrationAddUserToRunning_action": "Add user to running migration",
+		"migrationAddMailboxToRunning_action": "Add mailbox to running migration",
+		"migrationAddUserExplanation_msg": "You are about to add this user to the currently running email migration. Enter their old email address to schedule the import.",
+		"migrationAddMailboxExplanation_msg": "You are about to add this shared mailbox to the currently running email migration. Enter its old email address to schedule the import.",
 	}
 }

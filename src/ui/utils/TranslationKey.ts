@@ -2546,3 +2546,7 @@ export type TranslationKeyType =
 	| "migrationScheduledInfo_msg"
 	| "migrationOAuthSignInInfo_msg"
 	| "migrationScheduled_title"
+	| "migrationAddUserToRunning_action"
+	| "migrationAddMailboxToRunning_action"
+	| "migrationAddUserExplanation_msg"
+	| "migrationAddMailboxExplanation_msg"

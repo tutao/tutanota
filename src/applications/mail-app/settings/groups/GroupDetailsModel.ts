@@ -8,7 +8,17 @@ import { compareGroupInfos, getGroupInfoDisplayName } from "../../../../platform
 import { UserError } from "../../../common/api/main/UserError.js"
 import { BookingParams } from "../../../common/subscription/BuyDialog.js"
 import { toFeatureType } from "../../../common/subscription/utils/SubscriptionUtils.js"
-import { createGroupInfo, CustomerTypeRef, Group, GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef, GroupTypeRef, UserTypeRef } from "@tutao/entities/sys"
+import {
+	createGroupInfo,
+	CustomerMigrationInformation,
+	CustomerTypeRef,
+	Group,
+	GroupInfo,
+	GroupInfoTypeRef,
+	GroupMemberTypeRef,
+	GroupTypeRef,
+	UserTypeRef,
+} from "@tutao/entities/sys"
 import { BookingItemFeatureType, GroupType } from "../../../../entities/sys/Utils"
 import { MailboxPropertiesTypeRef } from "@tutao/entities/tutanota"
 import { GENERATED_MIN_ID, idToElementId, isSameId, OperationType } from "../../../../platform-kit/meta"
@@ -25,6 +35,7 @@ export class GroupDetailsModel {
 	constructor(
 		groupInfo: GroupInfo,
 		private readonly entityClient: EntityClient,
+		readonly activeCustomerMigrationInfo: CustomerMigrationInformation | null,
 		private readonly updateViewCallback: () => void,
 	) {
 		this.entityClient = entityClient

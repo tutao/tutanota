@@ -12,7 +12,17 @@ import { SecondFactorsEditForm } from "./login/secondfactor/SecondFactorsEditFor
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
 import { elementIdToId, idToElementId, isSameId, isSameSingleId, OperationType } from "../../../platform-kit/meta"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { Customer, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
+import {
+	Customer,
+	CustomerMigrationInformation,
+	CustomerMigrationInformationTypeRef,
+	GroupInfo,
+	GroupInfoTypeRef,
+	GroupMembership,
+	GroupTypeRef,
+	User,
+	UserTypeRef,
+} from "@tutao/entities/sys"
 import { BookingItemFeatureType, GroupType } from "../../../entities/sys/Utils"
 import { HtmlEditor, HtmlEditorMode } from "../../../ui/editor/HtmlEditor.js"
 import { checkAndImportUserData, CSV_USER_FORMAT } from "./ImportUsersViewer.js"
@@ -30,19 +40,9 @@ import { progressIcon } from "../../../ui/base/Icon.js"
 import { toFeatureType } from "../subscription/utils/SubscriptionUtils.js"
 import { UpdatableSettingsDetailsViewer } from "./Interfaces.js"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
-import { CustomerMigrationController } from "../../mail-app/settings/migration/CustomerMigrationController"
-import { mailLocator } from "../../mail-app/mailLocator"
-import { TextField } from "../../../ui/base/TextField"
-import { createImapAccount } from "@tutao/entities/tutanota"
-import { createCustomerMigrationAdminCredentials, createCustomerMigrationImapConfiguration } from "@tutao/entities/sys"
-import { DEFAULT_IMAP_IMPORT_MAX_QUOTA } from "../api/common/utils/imapImportUtils/ImapImportUtils"
-import { IMAP_SSL_PORT, ImapProvider } from "../api/common/utils/imapImportUtils/ImapKnownConfigs"
-import { ImapErrorCause } from "../api/common/error/ImapError"
-import { DialogHeaderBar, DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar"
-import { ButtonType } from "../../../ui/base/Button"
-import { theme } from "../../../ui/theme"
-import { ContentWithOptionsDialog } from "../../../ui/dialogs/ContentWithOptionsDialog"
-import { MailboxMigrationInitializationParameters } from "../api/worker/facades/lazy/CustomerMigrationFacade"
+import { CustomerMigrationInfoStatus } from "../../../entities/tutanota/Utils"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons"
+import { showAddToRunningMigrationDialog } from "../gui/dialogs/AddToRunningMigrationDialog"
 
 assertMainOrNode()
 
@@ -54,6 +54,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	private readonly secondFactorsForm: SecondFactorsEditForm
 	private usedStorage: number | null = null
 	private mailAddressTableModel: MailAddressTableModel | null = null
+	private activeCustomerMigrationInfo: CustomerMigrationInformation | null = null
 	private mailAddressTableExpanded: boolean
 	private isPurchasingNewSharedMailboxGroup: boolean
 
@@ -110,6 +111,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 						user,
 						userGroupInfo: this.userGroupInfo,
 					})
+			this.activeCustomerMigrationInfo = await this.loadActiveCustomerMigrationInfo()
 			m.redraw()
 		})
 
@@ -123,14 +125,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			icon: Icons.PenFilled,
 			size: ButtonSize.Compact,
 		} as const
-		const hasMigrationController = (() => {
-			try {
-				mailLocator.getCustomerMigrationController()
-				return true
-			} catch {
-				return false
-			}
-		})()
 		const passwordFieldAttrs = {
 			label: "password_label",
 			value: "***",
@@ -139,17 +133,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		} as const
 		return m("#user-viewer.fill-absolute.scroll.plr-24.pb-floating", [
 			m(".h4.mt-32", lang.get("userSettings_label")),
-			m(".flex.justify-between.items-center.mt-32", [
-				m(".h4", lang.get("userSettings_label")),
-				hasMigrationController
-					? m(IconButton, {
-							title: "migrationStart_action",
-							icon: Icons.Sync,
-							click: () => this.showImapImportDialog(),
-							size: ButtonSize.Compact,
-						})
-					: null,
-			]),
+			m(".flex.justify-between.items-center.mt-32", [m(".h4", lang.get("userSettings_label"))]),
 			m("", [
 				m(LegacyTextField, {
 					label: "mailAddress_label",
@@ -183,6 +167,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 						onExpanded: (newExpanded) => (this.mailAddressTableExpanded = newExpanded),
 					})
 				: progressIcon(),
+			this.activeCustomerMigrationInfo ? this.renderCreateMigrationButton() : null,
 		])
 	}
 
@@ -409,169 +394,17 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		return user.memberships.filter((m) => m.groupInfo[0] === customer.teamGroups)
 	}
 
-	private async getUserMainMailGroupId(): Promise<Id> {
-		const user = await this.user.getAsync()
-		const mailMembership = getFirstOrThrow(user.memberships.filter((m) => m.groupType === GroupType.Mail))
-		return mailMembership.group
-	}
-
-	private showImapImportDialog(): void {
+	private showAddToMigrationDialog(): void {
 		if (this.userGroupInfo.deleted) {
 			Dialog.message("userAccountDeactivated_msg")
 			return
 		}
 
-		// Check if the controller is available (only on desktop/admin client)
-		let customerMigrationController: CustomerMigrationController
-		try {
-			customerMigrationController = mailLocator.getCustomerMigrationController()
-		} catch {
-			Dialog.message("migrationNoMigrationOnWeb_label")
-			return
-		}
+		const user = this.user.getSync()
+		const customerMigrationInformation = this.activeCustomerMigrationInfo
+		if (user == null || customerMigrationInformation == null) return
 
-		// View model for form state
-		const viewModel = {
-			host: "localhost",
-			port: 143,
-			username: "user@test.com",
-			name: "User",
-			disableStartButton: false,
-		}
-
-		// Build the dialog with header and content
-		const headerBarAttrs: DialogHeaderBarAttrs = {
-			left: [
-				{
-					type: ButtonType.Secondary,
-					label: "close_alt",
-					click: () => {
-						dialog.close()
-					},
-				},
-			],
-			middle: "migration_title",
-		}
-
-		const dialog = new Dialog(DialogType.EditMedium, {
-			view: () => {
-				return m(
-					".flex.col.border-radius",
-					{
-						style: {
-							height: "100%",
-							"background-color": theme.surface_container,
-						},
-					},
-					[
-						m(DialogHeaderBar, headerBarAttrs),
-						m(
-							".plr-24.flex-grow",
-							m(
-								ContentWithOptionsDialog,
-								{
-									mainActionText: "migrationStart_action",
-									mainActionClick: async () => {
-										// Validate required fields
-										if (!viewModel.host || !viewModel.username) {
-											Dialog.message("migrationGenericError_msg")
-											return
-										}
-										viewModel.disableStartButton = true
-										try {
-											const user = await this.user.getAsync()
-											const userId = elementIdToId(user._id)
-											const mailGroupId = await this.getUserMainMailGroupId()
-
-											const imapAccount = createImapAccount({
-												host: viewModel.host,
-												port: viewModel.port.toString(),
-												username: viewModel.username,
-												password: null,
-												oAuthTokenEndpointResponse: null,
-												customCertificateData: null,
-												ignoreCertificateErrors: false,
-												useSSL: viewModel.port.toString() === IMAP_SSL_PORT,
-											})
-
-											const imapConfiguration = createCustomerMigrationImapConfiguration({
-												host: viewModel.host,
-												port: viewModel.port.toString(),
-												useSSL: viewModel.port.toString() === IMAP_SSL_PORT,
-												ignoreCertificateErrors: false,
-												customCertificateData: null,
-												adminCredentials: createCustomerMigrationAdminCredentials({
-													username: viewModel.username,
-													password: null,
-													adminOAuthTokenEndpointResponse: null,
-												}),
-											})
-											const customerMigrationInformation =
-												await mailLocator.customerMigrationFacade.createCustomerMigrationInformation(imapConfiguration)
-
-											const params: MailboxMigrationInitializationParameters = {
-												imapAccount,
-												name: viewModel.name,
-												initialPassword: null,
-												maxQuota: DEFAULT_IMAP_IMPORT_MAX_QUOTA,
-												mailGroupId,
-												provider: ImapProvider.Other,
-												userId: userId,
-												customerMigrationInformation,
-											}
-
-											await showProgressDialog("startingMigration_msg", customerMigrationController.scheduleMigration(params))
-											dialog.close()
-										} catch (e) {
-											if (e.data === ImapErrorCause.AUTH_FAILED) {
-												Dialog.message("migrationAuthFailed_msg")
-											} else {
-												console.error("IMAP import failed", e)
-												Dialog.message("migrationGenericError_msg")
-											}
-										} finally {
-											viewModel.disableStartButton = false
-										}
-									},
-									disableMainActionButton: viewModel.disableStartButton,
-									subActionText: null,
-									subActionClick: () => {},
-								},
-								// Content
-								m(".mt-24", [
-									m(TextField, {
-										label: "migrationImapAccountHost_label",
-										value: viewModel.host,
-										oninput: (v) => (viewModel.host = v),
-										leadingIcon: { icon: Icons.ServerFilled, color: theme.on_surface_variant },
-									}),
-									m(TextField, {
-										label: "migrationImapAccountPort_label",
-										value: viewModel.port.toString(),
-										oninput: (v) => (viewModel.port = parseInt(v, 10) || 993),
-										leadingIcon: { icon: Icons.KeyFilled, color: theme.on_surface_variant },
-									}),
-									m(TextField, {
-										label: "name_label",
-										value: viewModel.name,
-										oninput: (v) => (viewModel.name = v),
-										leadingIcon: { icon: Icons.MailFilled, color: theme.on_surface_variant },
-									}),
-									m(TextField, {
-										label: "migrationAccountUsername_label",
-										value: viewModel.username,
-										oninput: (v) => (viewModel.username = v),
-										leadingIcon: { icon: Icons.MailFilled, color: theme.on_surface_variant },
-									}),
-								]),
-							),
-						),
-					],
-				)
-			},
-		})
-
-		dialog.show()
+		showAddToRunningMigrationDialog({ kind: "user", user }, customerMigrationInformation)
 	}
 
 	private isAdminUser(user: User): boolean {
@@ -663,8 +496,42 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		return locator.logins.getUserController().reloadCustomer()
 	}
 
+	private loadActiveCustomerMigrationInfo(): Promise<CustomerMigrationInformation | null> {
+		return locator.logins
+			.getUserController()
+			.loadCustomerInfo()
+			.then((customerInfo) => {
+				if (customerInfo.migrationInfos) {
+					return locator.entityClient
+						.loadAll(CustomerMigrationInformationTypeRef, customerInfo.migrationInfos)
+						.then(
+							(migrationInfos) =>
+								migrationInfos.find(
+									(migrationInfo) =>
+										migrationInfo.status === CustomerMigrationInfoStatus.RUNNING ||
+										migrationInfo.status === CustomerMigrationInfoStatus.CREATED,
+								) ?? null,
+						)
+				}
+				return null
+			})
+	}
+
 	private loadTeamGroupInfos(): Promise<Array<GroupInfo>> {
 		return this.customer.getAsync().then((customer) => locator.entityClient.loadAll(GroupInfoTypeRef, customer.teamGroups))
+	}
+
+	private renderCreateMigrationButton() {
+		return this.activeCustomerMigrationInfo !== null
+			? m(
+					".mt-32.flex.justify-center",
+					m(PrimaryButton, {
+						label: "migrationAddUserToRunning_action",
+						width: "flex",
+						onclick: () => this.showAddToMigrationDialog(),
+					}),
+				)
+			: null
 	}
 }
 

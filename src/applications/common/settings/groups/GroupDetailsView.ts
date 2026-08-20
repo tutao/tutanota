@@ -18,6 +18,8 @@ import { GroupDetailsModel } from "../../../mail-app/settings/groups/GroupDetail
 import { showBuyDialog } from "../../subscription/BuyDialog.js"
 import { UpdatableSettingsDetailsViewer } from "../Interfaces.js"
 import { GroupType } from "../../../../entities/sys/Utils"
+import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
+import { showAddToRunningMigrationDialog } from "../../gui/dialogs/AddToRunningMigrationDialog"
 
 assertMainOrNode()
 
@@ -33,7 +35,12 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 	}
 
 	renderView(): Children {
-		return m("#user-viewer.fill-absolute.scroll.plr-24", [this.renderHeader(), this.renderCommonInfo(), this.renderMailGroupInfo()])
+		return m("#user-viewer.fill-absolute.scroll.plr-24", [
+			this.renderHeader(),
+			this.renderCommonInfo(),
+			this.renderMailGroupInfo(),
+			this.renderCreateMigrationButton(),
+		])
 	}
 
 	/**
@@ -218,6 +225,31 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 		}
 
 		return [m(".h5.mt-32.mb-8", lang.get("groupMembers_label")), m(Table, membersTableAttrs)]
+	}
+
+	private renderCreateMigrationButton() {
+		return this.model.activeCustomerMigrationInfo !== null
+			? m(
+					".mt-32.flex.justify-center",
+					m(PrimaryButton, {
+						label: "migrationAddMailboxToRunning_action",
+						width: "flex",
+						onclick: () => this.showAddToMigrationDialog(),
+					}),
+				)
+			: null
+	}
+
+	private showAddToMigrationDialog(): void {
+		if (this.model.groupInfo.deleted) {
+			Dialog.message("userAccountDeactivated_msg")
+			return
+		}
+
+		const customerMigrationInformation = this.model.activeCustomerMigrationInfo
+		if (customerMigrationInformation == null) return
+
+		showAddToRunningMigrationDialog({ kind: "sharedMailbox", groupInfo: this.model.groupInfo }, customerMigrationInformation)
 	}
 }
 

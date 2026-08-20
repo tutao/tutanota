@@ -192,6 +192,7 @@ export async function migrationConfigureUsersOnNext(ctx: WizardStepContext<Multi
 		host: data.host,
 		port: data.port.toString(),
 		useSSL: data.useSSL,
+		provider: data.provider.toString(),
 		ignoreCertificateErrors: data.ignoreCertificateErrors,
 		customCertificateData: data.customCertificateData,
 		adminCredentials: createCustomerMigrationAdminCredentials({

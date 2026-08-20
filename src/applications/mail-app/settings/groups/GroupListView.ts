@@ -1,4 +1,4 @@
-import { GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef } from "@tutao/entities/sys"
+import { CustomerMigrationInformation, CustomerMigrationInformationTypeRef, GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef } from "@tutao/entities/sys"
 import m, { Children } from "mithril"
 import { assertNotNull, LazyLoaded, memoized, neverNull, noOp, Nullable } from "../../../../platform-kit/utils"
 import { GroupDetailsView } from "../../../common/settings/groups/GroupDetailsView.js"
@@ -26,6 +26,7 @@ import { IconButton } from "../../../../ui/base/IconButton.js"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CustomerMigrationInfoStatus } from "../../../../entities/tutanota/Utils"
 
 assertMainOrNode()
 const className = "group-list"
@@ -46,19 +47,29 @@ export class GroupListView implements UpdatableSettingsViewer {
 
 	private listId: LazyLoaded<Id>
 	private listStateSubscription: Stream<unknown> | null = null
+	private activeCustomerMigrationInfo: CustomerMigrationInformation | null = null
 
 	constructor(
 		private readonly updateDetailsViewer: (viewer: GroupDetailsView | null) => unknown,
 		private readonly focusDetailsViewer: () => unknown,
 	) {
 		this.listModel = this.makeListModel()
-		this.listId = new LazyLoaded(() => {
-			return locator.logins
-				.getUserController()
-				.reloadCustomer()
-				.then((customer) => {
-					return customer.teamGroups
-				})
+		this.listId = new LazyLoaded(async () => {
+			const customer = await locator.logins.getUserController().reloadCustomer()
+			const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
+			if (customerInfo.migrationInfos) {
+				this.activeCustomerMigrationInfo = await locator.entityClient
+					.loadAll(CustomerMigrationInformationTypeRef, customerInfo.migrationInfos)
+					.then(
+						(migrationInfos) =>
+							migrationInfos.find(
+								(migrationInfo) =>
+									migrationInfo.status === CustomerMigrationInfoStatus.RUNNING ||
+									migrationInfo.status === CustomerMigrationInfoStatus.CREATED,
+							) ?? null,
+					)
+			}
+			return customer.teamGroups
 		})
 
 		this.listModel.loadInitial()
@@ -190,7 +201,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 
 	private readonly onSelectionChanged = memoized((item: GroupInfo | null) => {
 		if (item) {
-			const newSelectionModel = new GroupDetailsModel(item, locator.entityClient, m.redraw)
+			const newSelectionModel = new GroupDetailsModel(item, locator.entityClient, this.activeCustomerMigrationInfo, m.redraw)
 			const detailsViewer = item == null ? null : new GroupDetailsView(newSelectionModel)
 			this.updateDetailsViewer(detailsViewer)
 		}
