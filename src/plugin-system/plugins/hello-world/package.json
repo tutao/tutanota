@@ -1,0 +1,23 @@
+{
+	"name": "hello-world-plugin",
+	"version": "1.0.0",
+	"description": "Test Hello World Plugin",
+	"author": "frm",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"files": [
+		"dist"
+	],
+	"plugin": {
+		"apiVersion": "0.0.1"
+	},
+	"scripts": {
+		"build": "tsc",
+		"prepare": "npm run build"
+	},
+	"dependencies": {},
+	"devDependencies": {
+		"typescript": "^5.8.3"
+	}
+}

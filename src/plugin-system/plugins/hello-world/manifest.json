@@ -1,0 +1,6 @@
+{
+	"name": "Hello World",
+	"description": "A simple example plugin",
+	"version": "1.0.0",
+	"pluginCapabilities": "None"
+}
