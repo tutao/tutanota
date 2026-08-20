@@ -72,11 +72,10 @@ class MigrationViewer implements UpdatableSettingsViewer {
 
 	view(): Children {
 		return m(
-			".fill-absolute.scroll.plr-24.pb-48",
+			".fill-absolute.scroll.plr-24.pb-48.gap-16",
 			{
 				style: {
 					backgroundColor: theme.surface_container,
-					gap: "16px",
 					display: "flex",
 					flexDirection: "column",
 				},
@@ -126,6 +125,7 @@ class MigrationViewer implements UpdatableSettingsViewer {
 	private renderActiveMigrationButtons(activeBatch: MigrationBatchView): Children {
 		return m(".flex.gap-16", [
 			m(TertiaryButton, {
+				width: "flex",
 				label: "migrationCancel_action",
 				onclick: () => this.onCancelMigration(activeBatch),
 			}),
