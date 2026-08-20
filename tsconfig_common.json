@@ -28,7 +28,7 @@
 		"useUnknownInCatchVariables": false,
 		"incremental": true,
 		"paths": {
-			"@tutao/lang-api": ["./src/platform-kit/lang-api/everywhere.ts"],
+			"@tutao/lang-api": ["./src/platform-kit/lang-api/common/index.ts"],
 			"@tutao/lang-api/fingerprintJs": ["./src/platform-kit/lang-api/external-packages/fingerprintJs.ts"],
 
 			"@tutao/app-env": ["./src/platform-kit/app-env"],
