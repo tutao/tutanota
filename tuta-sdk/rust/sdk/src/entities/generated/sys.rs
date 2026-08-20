@@ -758,7 +758,7 @@ pub struct CustomerInfo {
 	pub partnerManagedCustomers: Option<GeneratedId>,
 	#[serde(rename = "2770")]
 	pub revocationRequest: Option<IdTupleGenerated>,
-	#[serde(rename = "2832")]
+	#[serde(rename = "2833")]
 	pub migrationInfos: Option<GeneratedId>,
 }
 
@@ -6660,7 +6660,7 @@ pub struct MailboxMigrationInformation {
 	pub errorCode: Option<i64>,
 	#[serde(rename = "2809")]
 	pub imapAccountSyncState: IdTupleWrapper,
-	#[serde(rename = "2840")]
+	#[serde(rename = "2841")]
 	pub migrationInfo: IdTupleGenerated,
 
 	#[serde(default)]
@@ -6692,6 +6692,8 @@ pub struct CustomerMigrationImapConfiguration {
 	pub customCertificateData: Option<Vec<u8>>,
 	#[serde(rename = "2817")]
 	pub useSSL: bool,
+	#[serde(rename = "2818")]
+	pub provider: i64,
 	#[serde(rename = "2812")]
 	pub adminCredentials: CustomerMigrationAdminCredentials,
 
@@ -6711,31 +6713,31 @@ impl Entity for CustomerMigrationImapConfiguration {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CustomerMigrationInformation {
-	#[serde(rename = "2820")]
-	pub _id: Option<IdTupleGenerated>,
 	#[serde(rename = "2821")]
-	pub _permissions: GeneratedId,
+	pub _id: Option<IdTupleGenerated>,
 	#[serde(rename = "2822")]
-	pub _format: i64,
+	pub _permissions: GeneratedId,
 	#[serde(rename = "2823")]
-	pub _ownerGroup: Option<GeneratedId>,
+	pub _format: i64,
 	#[serde(rename = "2824")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2825")]
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
-	#[serde(rename = "2825")]
-	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "2826")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2827")]
 	#[serde(with = "serde_bytes")]
 	pub _kdfNonce: Option<Vec<u8>>,
-	#[serde(rename = "2827")]
-	pub status: i64,
 	#[serde(rename = "2828")]
-	pub userListProvider: i64,
+	pub status: i64,
 	#[serde(rename = "2829")]
-	pub userListAdminCredentials: Option<CustomerMigrationAdminCredentials>,
+	pub userListProvider: i64,
 	#[serde(rename = "2830")]
-	pub imapConfiguration: Option<CustomerMigrationImapConfiguration>,
+	pub userListAdminCredentials: Option<CustomerMigrationAdminCredentials>,
 	#[serde(rename = "2831")]
+	pub imapConfiguration: Option<CustomerMigrationImapConfiguration>,
+	#[serde(rename = "2832")]
 	pub mailboxMigrationInformation: GeneratedId,
 
 	#[serde(default)]
@@ -6746,7 +6748,7 @@ impl Entity for CustomerMigrationInformation {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Sys,
-			type_id: TypeId::from(2818),
+			type_id: TypeId::from(2819),
 		}
 	}
 }
@@ -6754,18 +6756,18 @@ impl Entity for CustomerMigrationInformation {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CustomerMigrationPostIn {
-	#[serde(rename = "2834")]
-	pub _format: i64,
 	#[serde(rename = "2835")]
+	pub _format: i64,
+	#[serde(rename = "2836")]
 	#[serde(with = "serde_bytes")]
 	pub ownerEncSessionKey: Vec<u8>,
-	#[serde(rename = "2836")]
-	pub ownerKeyVersion: i64,
 	#[serde(rename = "2837")]
-	pub userListProvider: i64,
+	pub ownerKeyVersion: i64,
 	#[serde(rename = "2838")]
-	pub userListAdminCredentials: Option<CustomerMigrationAdminCredentials>,
+	pub userListProvider: i64,
 	#[serde(rename = "2839")]
+	pub userListAdminCredentials: Option<CustomerMigrationAdminCredentials>,
+	#[serde(rename = "2840")]
 	pub imapConfiguration: Option<CustomerMigrationImapConfiguration>,
 
 	#[serde(default)]
@@ -6776,7 +6778,7 @@ impl Entity for CustomerMigrationPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Sys,
-			type_id: TypeId::from(2833),
+			type_id: TypeId::from(2834),
 		}
 	}
 }
@@ -6784,9 +6786,9 @@ impl Entity for CustomerMigrationPostIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CustomerMigrationPostOut {
-	#[serde(rename = "2842")]
-	pub _format: i64,
 	#[serde(rename = "2843")]
+	pub _format: i64,
+	#[serde(rename = "2844")]
 	pub migrationInfo: IdTupleGenerated,
 }
 
@@ -6794,7 +6796,7 @@ impl Entity for CustomerMigrationPostOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Sys,
-			type_id: TypeId::from(2841),
+			type_id: TypeId::from(2842),
 		}
 	}
 }
@@ -6802,9 +6804,9 @@ impl Entity for CustomerMigrationPostOut {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct CustomerMigrationDeleteIn {
-	#[serde(rename = "2845")]
-	pub _format: i64,
 	#[serde(rename = "2846")]
+	pub _format: i64,
+	#[serde(rename = "2847")]
 	pub migrationInfo: IdTupleGenerated,
 }
 
@@ -6812,7 +6814,7 @@ impl Entity for CustomerMigrationDeleteIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Sys,
-			type_id: TypeId::from(2844),
+			type_id: TypeId::from(2845),
 		}
 	}
 }

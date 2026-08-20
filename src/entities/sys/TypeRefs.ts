@@ -6838,6 +6838,7 @@ export type CustomerMigrationImapConfigurationParams = {
 	ignoreCertificateErrors: boolean;
 	customCertificateData: null | Uint8Array<ArrayBuffer>;
 	useSSL: boolean;
+	provider: NumberString;
 
 	adminCredentials: CustomerMigrationAdminCredentials;
 }
@@ -6852,10 +6853,11 @@ export type CustomerMigrationImapConfiguration = {
 	ignoreCertificateErrors: boolean;
 	customCertificateData: null | Uint8Array<ArrayBuffer>;
 	useSSL: boolean;
+	provider: NumberString;
 
 	adminCredentials: CustomerMigrationAdminCredentials;
 }
-export const CustomerMigrationInformationTypeRef: TypeRef<CustomerMigrationInformation> = new TypeRef("sys", 2818)
+export const CustomerMigrationInformationTypeRef: TypeRef<CustomerMigrationInformation> = new TypeRef("sys", 2819)
 
 export function createCustomerMigrationInformation(values: CustomerMigrationInformationParams): CustomerMigrationInformation {
     return Object.assign(create(typeModels[CustomerMigrationInformationTypeRef.typeId], CustomerMigrationInformationTypeRef), values)
@@ -6891,7 +6893,7 @@ export type CustomerMigrationInformation = {
 	imapConfiguration: null | CustomerMigrationImapConfiguration;
 	mailboxMigrationInformation: Id;
 }
-export const CustomerMigrationPostInTypeRef: TypeRef<CustomerMigrationPostIn> = new TypeRef("sys", 2833)
+export const CustomerMigrationPostInTypeRef: TypeRef<CustomerMigrationPostIn> = new TypeRef("sys", 2834)
 
 export function createCustomerMigrationPostIn(values: CustomerMigrationPostInParams): CustomerMigrationPostIn {
     return Object.assign(create(typeModels[CustomerMigrationPostInTypeRef.typeId], CustomerMigrationPostInTypeRef), values)
@@ -6919,7 +6921,7 @@ export type CustomerMigrationPostIn = {
 	userListAdminCredentials: null | CustomerMigrationAdminCredentials;
 	imapConfiguration: null | CustomerMigrationImapConfiguration;
 }
-export const CustomerMigrationPostOutTypeRef: TypeRef<CustomerMigrationPostOut> = new TypeRef("sys", 2841)
+export const CustomerMigrationPostOutTypeRef: TypeRef<CustomerMigrationPostOut> = new TypeRef("sys", 2842)
 
 export function createCustomerMigrationPostOut(values: CustomerMigrationPostOutParams): CustomerMigrationPostOut {
     return Object.assign(create(typeModels[CustomerMigrationPostOutTypeRef.typeId], CustomerMigrationPostOutTypeRef), values)
@@ -6940,7 +6942,7 @@ export type CustomerMigrationPostOut = {
 
 	migrationInfo: IdTuple;
 }
-export const CustomerMigrationDeleteInTypeRef: TypeRef<CustomerMigrationDeleteIn> = new TypeRef("sys", 2844)
+export const CustomerMigrationDeleteInTypeRef: TypeRef<CustomerMigrationDeleteIn> = new TypeRef("sys", 2845)
 
 export function createCustomerMigrationDeleteIn(values: CustomerMigrationDeleteInParams): CustomerMigrationDeleteIn {
     return Object.assign(create(typeModels[CustomerMigrationDeleteInTypeRef.typeId], CustomerMigrationDeleteInTypeRef), values)

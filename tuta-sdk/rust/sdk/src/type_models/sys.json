@@ -2280,13 +2280,13 @@
 				"refTypeId": 2759,
 				"dependency": null
 			},
-			"2832": {
+			"2833": {
 				"final": true,
 				"name": "migrationInfos",
-				"id": 2832,
+				"id": 2833,
 				"type": "LIST_ASSOCIATION",
 				"cardinality": "ZeroOrOne",
-				"refTypeId": 2818,
+				"refTypeId": 2819,
 				"dependency": null
 			}
 		}
@@ -15771,13 +15771,13 @@
 				"refTypeId": 2315,
 				"dependency": null
 			},
-			"2840": {
+			"2841": {
 				"final": false,
 				"name": "migrationInfo",
-				"id": 2840,
+				"id": 2841,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
-				"refTypeId": 2818,
+				"refTypeId": 2819,
 				"dependency": null
 			}
 		}
@@ -15841,6 +15841,14 @@
 				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": true
+			},
+			"2818": {
+				"final": true,
+				"name": "provider",
+				"id": 2818,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
 			}
 		},
 		"associations": {
@@ -15855,114 +15863,114 @@
 			}
 		}
 	},
-	"2818": {
+	"2819": {
 		"name": "CustomerMigrationInformation",
 		"app": "sys",
 		"version": 155,
 		"since": 155,
 		"type": "LIST_ELEMENT_TYPE",
-		"id": 2818,
-		"rootId": "A3N5cwALAg",
+		"id": 2819,
+		"rootId": "A3N5cwALAw",
 		"versioned": false,
 		"encrypted": true,
 		"isPublic": true,
 		"values": {
-			"2820": {
-				"final": true,
-				"name": "_id",
-				"id": 2820,
-				"type": "GeneratedId",
-				"cardinality": "One",
-				"encrypted": false
-			},
 			"2821": {
 				"final": true,
-				"name": "_permissions",
+				"name": "_id",
 				"id": 2821,
 				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"2822": {
-				"final": false,
-				"name": "_format",
+				"final": true,
+				"name": "_permissions",
 				"id": 2822,
-				"type": "Number",
+				"type": "GeneratedId",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"2823": {
-				"final": true,
-				"name": "_ownerGroup",
+				"final": false,
+				"name": "_format",
 				"id": 2823,
-				"type": "GeneratedId",
-				"cardinality": "ZeroOrOne",
+				"type": "Number",
+				"cardinality": "One",
 				"encrypted": false
 			},
 			"2824": {
 				"final": true,
-				"name": "_ownerEncSessionKey",
+				"name": "_ownerGroup",
 				"id": 2824,
-				"type": "Bytes",
+				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
 			"2825": {
 				"final": true,
-				"name": "_ownerKeyVersion",
+				"name": "_ownerEncSessionKey",
 				"id": 2825,
-				"type": "Number",
+				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
 			"2826": {
 				"final": true,
-				"name": "_kdfNonce",
+				"name": "_ownerKeyVersion",
 				"id": 2826,
-				"type": "Bytes",
+				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
 			"2827": {
 				"final": true,
-				"name": "status",
+				"name": "_kdfNonce",
 				"id": 2827,
-				"type": "Number",
-				"cardinality": "One",
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
 			"2828": {
 				"final": true,
-				"name": "userListProvider",
+				"name": "status",
 				"id": 2828,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2829": {
+				"final": true,
+				"name": "userListProvider",
+				"id": 2829,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": true
 			}
 		},
 		"associations": {
-			"2829": {
+			"2830": {
 				"final": true,
 				"name": "userListAdminCredentials",
-				"id": 2829,
+				"id": 2830,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2789,
 				"dependency": null
 			},
-			"2830": {
+			"2831": {
 				"final": true,
 				"name": "imapConfiguration",
-				"id": 2830,
+				"id": 2831,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2810,
 				"dependency": null
 			},
-			"2831": {
+			"2832": {
 				"final": true,
 				"name": "mailboxMigrationInformation",
-				"id": 2831,
+				"id": 2832,
 				"type": "LIST_ASSOCIATION",
 				"cardinality": "One",
 				"refTypeId": 2794,
@@ -15970,65 +15978,65 @@
 			}
 		}
 	},
-	"2833": {
+	"2834": {
 		"name": "CustomerMigrationPostIn",
 		"app": "sys",
 		"version": 155,
 		"since": 155,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2833,
-		"rootId": "A3N5cwALEQ",
+		"id": 2834,
+		"rootId": "A3N5cwALEg",
 		"versioned": false,
 		"encrypted": true,
 		"isPublic": true,
 		"values": {
-			"2834": {
+			"2835": {
 				"final": false,
 				"name": "_format",
-				"id": 2834,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"2835": {
-				"final": true,
-				"name": "ownerEncSessionKey",
 				"id": 2835,
-				"type": "Bytes",
+				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"2836": {
 				"final": true,
-				"name": "ownerKeyVersion",
+				"name": "ownerEncSessionKey",
 				"id": 2836,
-				"type": "Number",
+				"type": "Bytes",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"2837": {
 				"final": true,
-				"name": "userListProvider",
+				"name": "ownerKeyVersion",
 				"id": 2837,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2838": {
+				"final": true,
+				"name": "userListProvider",
+				"id": 2838,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": true
 			}
 		},
 		"associations": {
-			"2838": {
+			"2839": {
 				"final": true,
 				"name": "userListAdminCredentials",
-				"id": 2838,
+				"id": 2839,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2789,
 				"dependency": null
 			},
-			"2839": {
+			"2840": {
 				"final": true,
 				"name": "imapConfiguration",
-				"id": 2839,
+				"id": 2840,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2810,
@@ -16036,68 +16044,68 @@
 			}
 		}
 	},
-	"2841": {
+	"2842": {
 		"name": "CustomerMigrationPostOut",
 		"app": "sys",
 		"version": 155,
 		"since": 155,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2841,
-		"rootId": "A3N5cwALGQ",
+		"id": 2842,
+		"rootId": "A3N5cwALGg",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"2842": {
+			"2843": {
 				"final": false,
 				"name": "_format",
-				"id": 2842,
+				"id": 2843,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"2843": {
+			"2844": {
 				"final": false,
 				"name": "migrationInfo",
-				"id": 2843,
+				"id": 2844,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
-				"refTypeId": 2818,
+				"refTypeId": 2819,
 				"dependency": null
 			}
 		}
 	},
-	"2844": {
+	"2845": {
 		"name": "CustomerMigrationDeleteIn",
 		"app": "sys",
 		"version": 155,
 		"since": 155,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2844,
-		"rootId": "A3N5cwALHA",
+		"id": 2845,
+		"rootId": "A3N5cwALHQ",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"2845": {
+			"2846": {
 				"final": false,
 				"name": "_format",
-				"id": 2845,
+				"id": 2846,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"2846": {
+			"2847": {
 				"final": false,
 				"name": "migrationInfo",
-				"id": 2846,
+				"id": 2847,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
-				"refTypeId": 2818,
+				"refTypeId": 2819,
 				"dependency": null
 			}
 		}

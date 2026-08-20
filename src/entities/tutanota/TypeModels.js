@@ -11495,7 +11495,7 @@ const typeModels = {
 				"id": 2012,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
-				"refTypeId": 2818,
+				"refTypeId": 2819,
 				"dependency": "sys"
 			},
 			"2013": {
