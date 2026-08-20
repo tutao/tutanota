@@ -1,6 +1,7 @@
 package de.tutao.calendar.widget.data
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -11,6 +12,7 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import de.tutao.calendar.widget.WIDGET_CACHE_DATE_PREFIX
 import de.tutao.calendar.widget.WIDGET_LAST_SYNC_PREFIX
 import de.tutao.calendar.widget.WIDGET_SETTINGS_PREFIX
+import de.tutao.calendar.widget.WidgetUpdateTrigger
 import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.LoggedInSdk
@@ -31,7 +33,12 @@ abstract class WidgetRepository() {
 		private const val TAG = "WidgetRepository"
 	}
 
-	open suspend fun storeLastSyncInBatch(context: Context, widgetIds: IntArray, now: Date) {
+	open suspend fun storeLastSyncInBatch(
+		context: Context,
+		widgetIds: IntArray,
+		now: Date,
+		trigger: WidgetUpdateTrigger = WidgetUpdateTrigger.APP
+	) {
 		throw NotImplementedError()
 	}
 
@@ -122,24 +129,28 @@ abstract class WidgetRepository() {
 		return json.decodeFromString<CacheDateDao>(encodedPreference)
 	}
 
-	suspend fun loadLastSync(dataStore: DataStore<Preferences>, widgetId: Int): LastSyncDao? {
+	fun decodeLastSyncFromPreferences(preferences: Preferences, widgetId: Int): LastSyncDao? {
 		val databaseWidgetIdentifier = "${WIDGET_LAST_SYNC_PREFIX}_$widgetId"
 		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
-
-		val preferences = dataStore.data.first()
+		Log.d(TAG, "Decoding preferences: $preferences for widgetId $widgetId. Looking for key $preferencesKey")
 		val encodedPreference = preferences[preferencesKey] ?: return null
-
 		return json.decodeFromString<LastSyncDao>(encodedPreference)
 	}
 
-	suspend fun loadSettings(dataStore: DataStore<Preferences>, widgetId: Int): SettingsDao? {
+	fun decodeSettingsFromPreferences(preferences: Preferences, widgetId: Int): SettingsDao? {
 		val databaseWidgetIdentifier = "${WIDGET_SETTINGS_PREFIX}_$widgetId"
 		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
-
-		val preferences = dataStore.data.first()
+		Log.d(TAG, "Decoding preferences: $preferences for widgetId $widgetId. Looking for key $preferencesKey")
 		val encodedPreference = preferences[preferencesKey] ?: return null
-
 		return json.decodeFromString<SettingsDao>(encodedPreference)
+	}
+
+	suspend fun loadLastSync(dataStore: DataStore<Preferences>, widgetId: Int): LastSyncDao? {
+		return decodeLastSyncFromPreferences(dataStore.data.first(), widgetId)
+	}
+
+	suspend fun loadSettings(dataStore: DataStore<Preferences>, widgetId: Int): SettingsDao? {
+		return decodeSettingsFromPreferences(dataStore.data.first(), widgetId)
 	}
 
 	suspend fun eraseLastSyncForWidget(context: Context, glanceId: GlanceId) {

@@ -14,7 +14,7 @@ class WidgetWorkManager(
 	workParams: WorkerParameters
 ) : CoroutineWorker(appContext, workParams) {
 	companion object {
-		const val TAG = "WidgetWorkManager"
+		private const val TAG = "WidgetWorkManager"
 	}
 
 	override suspend fun doWork(): Result {
@@ -25,7 +25,7 @@ class WidgetWorkManager(
 		val widgetIds =
 			glanceIds.map { glanceId -> GlanceAppWidgetManager(appContext).getAppWidgetId(glanceId) }.toIntArray()
 
-		repository.storeLastSyncInBatch(appContext, widgetIds, Date())
+		repository.storeLastSyncInBatch(appContext, widgetIds, Date(), WidgetUpdateTrigger.WORKER)
 
 		Agenda().updateAll(context = appContext)
 		return Result.success()

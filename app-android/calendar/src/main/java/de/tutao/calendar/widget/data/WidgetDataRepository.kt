@@ -17,7 +17,10 @@ import de.tutao.tutashared.IdTuple
 import de.tutao.tutashared.base64ToBytes
 import de.tutao.tutashared.ipc.UnencryptedCredentials
 import de.tutao.tutashared.toBase64
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.util.Calendar
 import java.util.Date
@@ -80,11 +83,14 @@ class WidgetDataRepository private constructor() : WidgetRepository() {
 			encryptedEventListMap[calendar] = base64String
 		}
 
+		// TODO: Maybe add error handling here, to see if writing to the cache data store fails
+		// TODO: Continue code investigation from here!!!!!
 		val databaseWidgetIdentifier = "${WIDGET_EVENTS_CACHE}_$widgetId"
 		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
 		val encryptedEventListMapJson = json.encodeToString(encryptedEventListMap)
 
 		cacheDataStore.edit { preferences ->
+			Log.i(TAG, "Saving events to dataStore for widget $widgetId")
 			preferences[preferencesKey] = encryptedEventListMapJson
 		}
 
@@ -99,10 +105,19 @@ class WidgetDataRepository private constructor() : WidgetRepository() {
 	): Map<GeneratedId, CalendarEventListDao> {
 		val key = credentials.databaseKey ?: return mapOf()
 
+		val preferences = cacheDataStore.data.firstOrNull()
+		Log.d(TAG, "Cache preferences $preferences")
+
+		if (preferences == null) {
+			Log.w(
+				TAG,
+				"Could not find preferences from provided DataStore. Returning empty data map from loadCache attempt."
+			)
+			return mapOf()
+		}
+
 		val databaseWidgetIdentifier = "${WIDGET_EVENTS_CACHE}_$widgetId"
 		val preferencesKey = stringPreferencesKey(databaseWidgetIdentifier)
-
-		val preferences = cacheDataStore.data.first()
 		Log.i(TAG, "Reading dataStore. Looking for key $preferencesKey")
 		val encodedEventsJson = preferences[preferencesKey] ?: return mapOf()
 
@@ -134,49 +149,48 @@ class WidgetDataRepository private constructor() : WidgetRepository() {
 		credentials: UnencryptedCredentials,
 		loggedInSdk: LoggedInSdk,
 		cryptoFacade: AndroidNativeCryptoFacade
-	): Map<GeneratedId, CalendarEventListDao> {
+	): Map<GeneratedId, CalendarEventListDao> = withContext(Dispatchers.IO) {
 		val calendarFacade = loggedInSdk.calendarFacade()
 		val systemCalendar = Calendar.getInstance(TimeZone.getDefault())
 
-		var calendarEventListMap: Map<GeneratedId, CalendarEventListDao> = HashMap()
+		val start = systemCalendar.timeInMillis.toULong()
 
-		val start = (systemCalendar.timeInMillis).toULong()
 		systemCalendar.add(Calendar.DAY_OF_MONTH, 7)
-
-		systemCalendar.set(Calendar.HOUR, 0)
+		systemCalendar.set(Calendar.HOUR_OF_DAY, 0)
 		systemCalendar.set(Calendar.MINUTE, 0)
 		systemCalendar.set(Calendar.SECOND, 0)
 		systemCalendar.set(Calendar.MILLISECOND, 0)
 
-		val end = (systemCalendar.timeInMillis).toULong()
+		val end = systemCalendar.timeInMillis.toULong()
 
-		calendars.forEach { calendarId ->
+		// Map calendars to their respective event DAOs while filtering out any that throw membership exceptions
+		val calendarEventListMap = calendars.associateWith { calendarId ->
 			try {
+				Log.i(TAG, "Fetching events for calendarId: $calendarId")
 				val events = calendarFacade.getCalendarEvents(calendarId, start, end)
 				Log.i(
 					TAG,
 					"Calendar $calendarId loaded. Found ${events.shortEvents.size} short events. Found ${events.longEvents.size} long events"
 				)
-				calendarEventListMap = calendarEventListMap.plus(
-					calendarId to CalendarEventListDao(
-						events.shortEvents.toDao(),
-						events.longEvents.toDao(),
-						events.birthdayEvents.asDao()
-					)
+				CalendarEventListDao(
+					events.shortEvents.toDao(),
+					events.longEvents.toDao(),
+					events.birthdayEvents.asDao()
 				)
 			} catch (e: ApiCallException.InternalSdkException) {
-				if (e.message.contains("Missing membership")) {
+				if (e.message?.contains("Missing membership") == true) {
 					Log.e(TAG, "InternalSdkException occurred", e)
 					Log.w(TAG, "Missing membership for $calendarId. Calendar will be removed from local cache.")
+					null
 				} else {
 					throw e
 				}
 			}
-		}
+		}.filterValues { it != null }.mapValues { it.value!! }
 
 		storeCache(cacheDataStore, widgetId, calendarEventListMap, cryptoFacade, credentials)
 
-		return calendarEventListMap
+		calendarEventListMap
 	}
 
 	override suspend fun loadEventsFromCache(
@@ -188,8 +202,13 @@ class WidgetDataRepository private constructor() : WidgetRepository() {
 	): Map<GeneratedId, CalendarEventListDao> {
 		Log.i(TAG, "Init loadEvents from cache...")
 		val now = Calendar.getInstance(TimeZone.getDefault()).timeInMillis.toULong()
-		val cachedEvents: MutableMap<GeneratedId, CalendarEventListDao> =
-			loadCache(cacheDataStore, widgetId, cryptoFacade, credentials).toMutableMap()
+
+		var cachedEvents: MutableMap<GeneratedId, CalendarEventListDao> = mutableMapOf()
+
+		runBlocking {
+			cachedEvents = loadCache(cacheDataStore, widgetId, cryptoFacade, credentials).toMutableMap()
+		}
+
 		val cache = cachedEvents.filterKeys { calendars.contains(it) }
 
 		for ((id, events) in cache.entries) {

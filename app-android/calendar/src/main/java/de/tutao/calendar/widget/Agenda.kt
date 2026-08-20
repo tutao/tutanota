@@ -4,12 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -24,7 +21,6 @@ import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
-import androidx.glance.currentState
 import androidx.glance.layout.Column
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
@@ -39,7 +35,7 @@ import de.tutao.calendar.widget.component.LoadingSpinner
 import de.tutao.calendar.widget.component.ScrollableDaysList
 import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.data.WidgetStateDefinition
-import de.tutao.calendar.widget.data.WidgetUIData
+import de.tutao.calendar.widget.data.WidgetUIState
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorHandler
 import de.tutao.calendar.widget.error.WidgetErrorType
@@ -59,6 +55,8 @@ import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.remote.RemoteStorage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.security.SecureRandom
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -84,29 +82,41 @@ class Agenda : GlanceAppWidget() {
 
 	override suspend fun provideGlance(context: Context, id: GlanceId) {
 		Log.d(TAG, "provideGlance called")
-		val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
+		Log.d(TAG, Thread.dumpStack().toString())
 
+		val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
 		val (widgetUIViewModel, userId) = setupWidget(context, appWidgetId)
 
-		val settingsPreferencesKey = stringPreferencesKey("${WIDGET_SETTINGS_PREFIX}_$appWidgetId")
-		val lastSyncPreferencesKey = stringPreferencesKey("${WIDGET_LAST_SYNC_PREFIX}_$appWidgetId")
+		if (widgetUIViewModel.uiState.value is WidgetUIState.NewlyCreated) {
+			Log.i(TAG, "Widget UI state is empty, starting coroutine to populate UI state.")
+
+			withContext(Dispatchers.IO) {
+				widgetUIViewModel.loadUIState(
+					context.widgetDataStore, context.widgetCacheDataStore, LocalDateTime.now()
+				)
+			}
+		}
 
 		provideContent {
-
 			Log.d(TAG, "provideContent called")
 
 			val data by widgetUIViewModel.uiState.collectAsState()
 			val error by widgetUIViewModel.error.collectAsState()
 
-			val preferences = currentState<Preferences>()
-
-			LaunchedEffect(
-				preferences[settingsPreferencesKey], preferences[lastSyncPreferencesKey]
-			) {
-				widgetUIViewModel.loadUIState(
-					context.widgetDataStore, context.widgetCacheDataStore, LocalDateTime.now()
+			if (data is WidgetUIState.Loading) {
+				Log.i(
+					TAG,
+					"Widget UI is still loading... Widget will show a loading state."
 				)
+			} else if (data is WidgetUIState.Available) {
+				Log.i(
+					TAG,
+					"Widget UI has ${(data as WidgetUIState.Available).normalEvents?.values?.flatten()?.size} normal timed events and ${(data as WidgetUIState.Available).allDayEvents?.values?.flatten()?.size} all day events."
+				)
+			} else {
+				Log.d(TAG, "WidgetUIState: $data")
 			}
+
 
 			GlanceTheme(
 				colors = AppTheme.colors
@@ -180,12 +190,7 @@ class Agenda : GlanceAppWidget() {
 	}
 
 	@Composable
-	fun WidgetBody(data: WidgetUIData?, userId: String?) {
-		val hasAllDayEvents = data?.allDayEvents?.values?.any { it.isNotEmpty() } ?: false
-		val hasNormalEvents = data?.normalEvents?.values?.any { it.isNotEmpty() } ?: false
-
-		val onNewEvent = openCalendarEditor(LocalContext.current, userId)
-
+	fun WidgetBody(data: WidgetUIState?, userId: String?) {
 		Column(
 			modifier = GlanceModifier.padding(
 				top = Dimensions.Spacing.space_16.dp,
@@ -194,16 +199,35 @@ class Agenda : GlanceAppWidget() {
 				bottom = 0.dp
 			).background(GlanceTheme.colors.background).fillMaxSize().appWidgetBackground().cornerRadius(20.dp),
 		) {
-			if (data == null) {
-				LoadingSpinner()
-			} else if (!hasAllDayEvents && !hasNormalEvents) { // unique rendering case for totally empty widget
-				EmptyBody(onNewEvent, userId)
-			} else { // normal rendering case
-				ScrollableDaysList(
-					data,
-					onNewEvent = onNewEvent,
-					userId
-				)
+
+			when (data) {
+				is WidgetUIState.Loading -> {
+					LoadingSpinner()
+				}
+
+				is WidgetUIState.Available -> {
+					val hasAllDayEvents =
+						data.allDayEvents?.values?.any { it.isNotEmpty() } ?: false
+					val hasNormalEvents =
+						data.normalEvents?.values?.any { it.isNotEmpty() } ?: false
+
+					val onNewEvent = openCalendarEditor(LocalContext.current, userId)
+
+					if (hasAllDayEvents || hasNormalEvents) {
+						ScrollableDaysList(
+							data,
+							onNewEvent = onNewEvent,
+							userId
+						)
+					} else {
+						EmptyBody(onNewEvent, userId)
+
+					}
+				}
+
+				else -> {
+					Log.w(TAG, "Very unexpected widget state")
+				}
 			}
 		}
 	}
@@ -248,7 +272,7 @@ class Agenda : GlanceAppWidget() {
 
 		GlanceTheme(colors = AppTheme.colors) {
 			WidgetBody(
-				WidgetUIData(
+				WidgetUIState.Available(
 					allDayEvents = allDayEvents,
 					normalEvents = normalEventData,
 				),
@@ -360,7 +384,7 @@ class Agenda : GlanceAppWidget() {
 
 		GlanceTheme(colors = AppTheme.colors) {
 			WidgetBody(
-				WidgetUIData(
+				WidgetUIState.Available(
 					allDayEvents = allDayEvents,
 					normalEvents = normalEventData,
 				),
@@ -436,7 +460,7 @@ class Agenda : GlanceAppWidget() {
 
 		GlanceTheme(colors = AppTheme.colors) {
 			WidgetBody(
-				WidgetUIData(
+				WidgetUIState.Available(
 					allDayEvents = allDayEvents,
 					normalEvents = normalEventData,
 				),
@@ -503,7 +527,7 @@ class Agenda : GlanceAppWidget() {
 
 		GlanceTheme(colors = AppTheme.colors) {
 			WidgetBody(
-				WidgetUIData(
+				WidgetUIState.Available(
 					allDayEvents = allDayEvents,
 					normalEvents = normalEventData,
 				),
@@ -525,7 +549,7 @@ class Agenda : GlanceAppWidget() {
 
 		GlanceTheme(colors = AppTheme.colors) {
 			WidgetBody(
-				WidgetUIData(
+				WidgetUIState.Available(
 					allDayEvents = allDayEvents,
 					normalEvents = normalEventData,
 				),

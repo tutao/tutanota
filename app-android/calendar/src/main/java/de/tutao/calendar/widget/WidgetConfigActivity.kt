@@ -117,7 +117,10 @@ import de.tutao.tutashared.ipc.PersistedCredentials
 import de.tutao.tutashared.parseColor
 import de.tutao.tutashared.remote.RemoteStorage
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.security.SecureRandom
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -141,8 +144,8 @@ class WidgetConfigActivity : AppCompatActivity() {
 			val remoteStorage = RemoteStorage(db)
 
 			val serverURL = remoteStorage.getRemoteUrl()
-			val tempDir= TempDir(applicationContext)
-			val tempFs= TempFs(applicationContext, SecureRandom(),tempDir)
+			val tempDir = TempDir(applicationContext)
+			val tempFs = TempFs(applicationContext, SecureRandom(), tempDir)
 			val crypto = AndroidNativeCryptoFacade(baseContext, tempFs)
 			val sdk =
 				if (serverURL == null) {
@@ -187,14 +190,14 @@ class WidgetConfigActivity : AppCompatActivity() {
 			AppWidgetManager.INVALID_APPWIDGET_ID
 		) ?: AppWidgetManager.INVALID_APPWIDGET_ID
 
+		// Set default result in case the user cancels.
+		val resultValue = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+		setResult(Activity.RESULT_CANCELED, resultValue)
+
 		if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
 			finish()
 			return
 		}
-
-		// Set default result in case the user cancels.
-		val resultValue = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-		setResult(Activity.RESULT_CANCELED, resultValue)
 
 		// The view model depends on the injection of the SDK and CredentialsFacade
 		// So we must pass them to the factory through Extras.
@@ -263,11 +266,9 @@ class WidgetConfigActivity : AppCompatActivity() {
 									lifecycleScope.launch {
 										Log.i(TAG, "Asking for widget reload after user change its settings")
 										val manager = GlanceAppWidgetManager(activityContext)
-										val widget = Agenda()
-										val glanceIds = manager.getGlanceIds(widget.javaClass)
-										glanceIds.forEach { glanceId ->
-											widget.update(context, glanceId)
-										}
+										val glanceId = manager.getGlanceIdBy(appWidgetId)
+										Log.i(TAG, "Reload widget with glanceId ${glanceId}")
+										Agenda().update(context, glanceId)
 									}
 								}
 								setResult(Activity.RESULT_OK, resultValue)
