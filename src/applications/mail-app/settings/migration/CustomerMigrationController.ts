@@ -103,12 +103,14 @@ export class CustomerMigrationController {
 		const groupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, groupsListId)
 		const groupInfoByMailAddress = new Map<string, GroupInfo>()
 		for (const groupInfo of groupInfos) {
-			if (groupInfo.mailAddress) {
-				groupInfoByMailAddress.set(groupInfo.mailAddress, groupInfo)
-			}
-			for (const alias of groupInfo.mailAddressAliases) {
-				if (alias.enabled) {
-					groupInfoByMailAddress.set(alias.mailAddress, groupInfo)
+			if (groupInfo.deleted === null) {
+				if (groupInfo.mailAddress) {
+					groupInfoByMailAddress.set(groupInfo.mailAddress, groupInfo)
+				}
+				for (const alias of groupInfo.mailAddressAliases) {
+					if (alias.enabled) {
+						groupInfoByMailAddress.set(alias.mailAddress, groupInfo)
+					}
 				}
 			}
 		}
