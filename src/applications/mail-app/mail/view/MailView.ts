@@ -51,7 +51,7 @@ import { MobileMailMultiselectionActionBar } from "./MobileMailMultiselectionAct
 import { SelectAllCheckbox } from "../../../../ui/SelectAllCheckbox.js"
 import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../ui/DesktopToolbars.js"
 import { MobileHeader } from "../../../../ui/MobileHeader.js"
-import { MailQuickSearchBar, MailSearchBarAttrs } from "../../MailQuickSearchBar.js"
+import { MailQuickSearchBar } from "./MailQuickSearchBar.js"
 import { MultiselectMobileHeader } from "../../../../ui/MultiselectMobileHeader.js"
 import { MailViewModel } from "./MailViewModel.js"
 import { selectionAttrsForList } from "../../../common/misc/ListModel.js"
@@ -86,7 +86,6 @@ import { showEditLabelDialog } from "./EditLabelDialog"
 import { ButtonSize } from "../../../../ui/base/ButtonSize"
 import { LockedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
-import { LazyComponent } from "../../../common/gui/LazyComponent"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
 
 EnvProvider.assertMainOrNode()
@@ -590,27 +589,24 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					searchBar: () =>
 						// not showing search for external users
 						locator.logins.isInternalUserLoggedIn()
-							? m(LazyComponent<MailSearchBarAttrs, MailQuickSearchBar>, {
-									loader: async () => (await import("../../MailQuickSearchBar.js")).MailQuickSearchBar,
-									attrs: {
-										loadResults: (searchQuery) => this.mailViewModel.getSearchResult(searchQuery),
-										selectResult: (searchQuery, mail) => {
-											this.mailViewModel.selectSearchResult(searchQuery, mail)
-										},
-										shouldOfferUpgrade: locator.logins.getUserController().isFreeAccount(),
-										needsToEnableSearch: () => !mailLocator.mailSearchModel.indexState().mailIndexEnabled,
-										enableSearch: () =>
-											mailLocator.indexerFacade
-												.enableMailIndexing()
-												.then(() => true)
-												.catch(
-													ofClass(IndexingNotSupportedError, () => {
-														Dialog.message(EnvProvider.get().isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
-														return false
-													}),
-												),
-										indexingSupported: mailLocator.mailSearchModel.indexingSupported,
+							? m(MailQuickSearchBar, {
+									loadResults: (searchQuery) => this.mailViewModel.getSearchResult(searchQuery),
+									selectResult: (searchQuery, mail) => {
+										this.mailViewModel.selectSearchResult(searchQuery, mail)
 									},
+									shouldOfferUpgrade: locator.logins.getUserController().isFreeAccount(),
+									needsToEnableSearch: async () => !(await mailLocator.mailSearchModel()).indexState().mailIndexEnabled,
+									enableSearch: () =>
+										mailLocator.indexerFacade
+											.enableMailIndexing()
+											.then(() => true)
+											.catch(
+												ofClass(IndexingNotSupportedError, () => {
+													Dialog.message(EnvProvider.get().isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
+													return false
+												}),
+											),
+									indexingSupported: mailLocator.mailModel.indexingSupported,
 								})
 							: null,
 					...attrs.header,

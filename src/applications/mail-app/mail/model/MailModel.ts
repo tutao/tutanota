@@ -67,6 +67,11 @@ export class MailModel {
 	 */
 	private mailSets: Map<Id, MailboxSets> = new Map()
 
+	#indexingSupported: boolean = true
+	get indexingSupported(): boolean {
+		return this.#indexingSupported
+	}
+
 	constructor(
 		private readonly notifications: Notifications,
 		private readonly mailboxModel: MailboxModel,
@@ -77,6 +82,7 @@ export class MailModel {
 		private readonly connectivityModel: WebsocketConnectivityModel | null,
 		private readonly processInboxHandler: () => ProcessInboxHandler,
 		private readonly bulkMailLoader: BulkMailLoader,
+		private readonly registerIndexingNotAvailableHandler: (handler: () => unknown) => unknown,
 	) {}
 
 	// only init listeners once
@@ -100,6 +106,9 @@ export class MailModel {
 	async init(): Promise<void> {
 		this.initListeners()
 		this.mailSets = await this.loadMailSets()
+		this.registerIndexingNotAvailableHandler(() => {
+			this.#indexingSupported = false
+		})
 	}
 
 	private async loadMailSets(): Promise<Map<Id, MailboxSets>> {

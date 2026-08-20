@@ -67,8 +67,7 @@ import { PartialRecipient } from "../../../../entities/tutanota/Utils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
-import { ContactQuickSearchBar, ContactSearchBarAttrs } from "./ContactQuickSearchBar"
-import { LazyComponent } from "../../../common/gui/LazyComponent"
+import { ContactQuickSearchBar } from "./ContactQuickSearchBar"
 
 EnvProvider.assertMainOrNode()
 
@@ -306,15 +305,12 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 							searchBar: () =>
 								this.inContactListView()
 									? null
-									: m(LazyComponent<ContactSearchBarAttrs, ContactQuickSearchBar>, {
-											loader: async () => (await import("./ContactQuickSearchBar.js")).ContactQuickSearchBar,
-											attrs: {
-												loadResults: (searchQuery) => this.contactViewModel.getSearchResults(searchQuery),
-												selectResult: (searchQuery, contact) => {
-													this.contactViewModel.selectSearchResult(searchQuery, contact)
-												},
-												indexingSupported: mailLocator.contactSearchModel.indexingSupported,
+									: m(ContactQuickSearchBar, {
+											loadResults: (searchQuery) => this.contactViewModel.getSearchResults(searchQuery),
+											selectResult: (searchQuery, contact) => {
+												this.contactViewModel.selectSearchResult(searchQuery, contact)
 											},
+											indexingSupported: async () => (await mailLocator.contactSearchModel()).indexingSupported,
 										}),
 							...attrs.header,
 							buttons: renderHeaderButtons(),

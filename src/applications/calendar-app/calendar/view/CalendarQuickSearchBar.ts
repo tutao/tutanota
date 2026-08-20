@@ -1,14 +1,13 @@
 import { CalendarEvent } from "@tutao/entities/tutanota"
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { QuickSearchBar, SearchBarAttrs } from "../common/search/QuickSearchBar"
-import { lang } from "../../ui/utils/LanguageViewModel"
-import { getTimeZone } from "../common/calendar/date/CalendarUtils"
-import { createEmptyRestriction, LiveSearchResult, SearchQuery } from "../common/search/SearchUtils"
-import { SearchCategoryType } from "../common/api/worker/search/SearchTypes"
-import { formatEventDuration } from "./calendar/gui/DateTimeTextFormatterUtils"
+import { QuickSearchBar, SearchBarAttrs } from "../../../common/gui/QuickSearchBar"
+import { lang } from "../../../../ui/utils/LanguageViewModel"
+import { getTimeZone } from "../../../common/calendar/date/CalendarUtils"
+import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
+import { formatEventDuration } from "../gui/DateTimeTextFormatterUtils"
 
 export interface CalendarSearchBarAttrs {
-	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<CalendarEvent>>
+	loadResults: (searchQuery: QuickSearchQuery) => Promise<LiveSearchResult<CalendarEvent>>
 	selectResult: (searchQuery: SearchQuery, entry: CalendarEvent | null) => unknown
 	shouldOfferUpgrade: boolean
 }
@@ -22,8 +21,6 @@ export class CalendarQuickSearchBar implements ClassComponent<CalendarSearchBarA
 				attrs.loadResults({
 					query,
 					maxResults: 10,
-					// ViewModel will rewrite it anyway
-					restriction: createEmptyRestriction(SearchCategoryType.calendar),
 				}),
 			selectResult: attrs.selectResult,
 			renderResult: (entry) => [

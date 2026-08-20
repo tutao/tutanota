@@ -42,7 +42,6 @@ import { RevocationView, RevocationViewAttrs } from "../common/revocation/Revoca
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
 import { CalendarSearchView, CalendarSearchViewAttrs } from "./calendar/search/view/CalendarSearchView"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel"
-import { Dialog } from "../../ui/base/Dialog"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
@@ -304,6 +303,7 @@ import("../../ui/translations/en.js")
 							drawerAttrs: cache.drawerAttrsFactory(),
 							makeViewModel: cache.makeViewModel,
 							editContact: async (contact: Contact) => {
+								const { Dialog } = await import("../../ui/base/Dialog.js")
 								if (!(await Dialog.confirm("openMailApp_msg", "yes_label"))) return
 								const query = `contactId=${stringToBase64(contact._id.join("/"))}`
 								calendarLocator.systemFacade.openMailApp(stringToBase64(query))

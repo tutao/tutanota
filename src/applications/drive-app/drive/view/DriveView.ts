@@ -58,9 +58,7 @@ import { DriveFolder } from "@tutao/entities/drive"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { DriveMobileSortButton } from "./DriveMobileSortButton"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
-import { Keys } from "../../../../ui/utils/KeyboardKeys"
-import { LazyComponent } from "../../../common/gui/LazyComponent"
-import { DriveQuickSearchBar, DriveSearchBarAttrs } from "./DriveQuickSearchBar"
+import { DriveQuickSearchBar } from "./DriveQuickSearchBar"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
@@ -231,13 +229,10 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 						...attrs.header,
 						buttons: renderHeaderButtons(),
 						searchBar: () => {
-							return m(LazyComponent<DriveSearchBarAttrs, DriveQuickSearchBar>, {
-								loader: async () => (await import("./DriveQuickSearchBar.js")).DriveQuickSearchBar,
-								attrs: {
-									loadResults: async (searchQuery) => await this.driveViewModel.getSearchResult(searchQuery),
-									selectResult: (searchQuery, driveItem) => {
-										this.driveViewModel.selectSearchResult(searchQuery, driveItem)
-									},
+							return m(DriveQuickSearchBar, {
+								loadResults: async (searchQuery) => await this.driveViewModel.getSearchResult(searchQuery),
+								selectResult: (searchQuery, driveItem) => {
+									this.driveViewModel.selectSearchResult(searchQuery, driveItem)
 								},
 							})
 						},

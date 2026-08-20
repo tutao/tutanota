@@ -35,7 +35,7 @@ import { noPatchesAndInstance } from "../api/worker/EventBusClientTest"
 import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
 import { makePopulatedClientModelInfo } from "../TestUtils.js"
 import { ProgressMonitor } from "../../../src/platform-kit/network/ProgressMonitorInterface"
-import { EntityUpdatesListener, EntityUpdateData } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, EntityUpdatesListener } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupType } from "../../../src/entities/sys/Utils"
 import { SearchRouter } from "../../../src/applications/common/search/view/SearchRouter"
 import { CalendarSearchModel } from "../../../src/applications/calendar-app/search/model/CalendarSearchModel"
@@ -97,7 +97,7 @@ o.spec("CalendarViewModel", function () {
 			previewModelFactory,
 			contactPreviewModelFactory,
 			calendarModel,
-			searchModel,
+			async () => searchModel,
 			eventsRepository,
 			new EntityClient(entityClientMock, makePopulatedClientModelInfo()),
 			eventController,

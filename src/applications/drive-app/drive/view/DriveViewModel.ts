@@ -3,7 +3,7 @@ import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../..
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { Router } from "../../../../ui/ScopedThrottledRouter"
-import { assertNotNull, debounceStart, last, memoizedWithHiddenArgument, promiseMap } from "@tutao/utils"
+import { assertNotNull, debounceStart, last, lazyAsync, memoizedWithHiddenArgument, promiseMap } from "@tutao/utils"
 import { DriveTransfers, DriveTransferState } from "./DriveTransferController"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { EventController } from "../../../common/api/main/EventController"
@@ -46,7 +46,7 @@ import { DriveSearchModel } from "../../search/model/DriveSearchModel"
 import { DriveClipboard, DriveModel } from "../model/DriveModel"
 import { listItemSelectionCallbacksFor } from "../../../common/misc/ListModelUtils"
 import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
-import { LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
+import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
 import { DuplicateFilesDialogDecision, showDuplicateFilesChoiceDialog } from "./DriveGuiUtils"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 import { WindowFacade } from "../../../common/misc/WindowFacade"
@@ -128,7 +128,7 @@ export class DriveViewModel {
 		public readonly updateUi: () => unknown,
 		private readonly showWindowCloseConfirmation: () => Promise<boolean>,
 		private readonly connectivityModel: WebsocketConnectivityModel,
-		private readonly searchModel: DriveSearchModel,
+		private readonly searchModel: lazyAsync<DriveSearchModel>,
 		private readonly searchRouter: SearchRouter,
 		private readonly driveModel: DriveModel,
 	) {
@@ -573,9 +573,13 @@ export class DriveViewModel {
 	selectSearchResult(searchQuery: SearchQuery, driveSearchResult: FolderItem | null) {
 		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, driveSearchResult ? elementIdPart(folderItemId(driveSearchResult)) : null)
 	}
-	async getSearchResult(searchQuery: SearchQuery): Promise<LiveSearchResult<FolderItem>> {
+	async getSearchResult({ query, maxResults }: QuickSearchQuery): Promise<LiveSearchResult<FolderItem>> {
 		const fileGroupId = await this.driveFacade.getFileGroupId()
-		return await this.searchModel.searchDrive(searchQuery, fileGroupId, (a: DriveFile | DriveFolder, b: DriveFile | DriveFolder) =>
+		const { createDriveRestriction } = await import("../../search/model/DriveSearchUtils.js")
+		const restriction = createDriveRestriction({ start: null, end: null })
+		return await (
+			await this.searchModel()
+		).searchDrive({ query, maxResults, restriction }, fileGroupId, (a: DriveFile | DriveFolder, b: DriveFile | DriveFolder) =>
 			this.compareDriveItemsForSearch(a, b),
 		)
 	}
