@@ -169,13 +169,13 @@ export class DesktopAlarmStorage {
 	}
 
 	async encryptAlarmNotification(an: AlarmNotification, newDeviceSessionKey: AesKey | null): Promise<EncryptedParsedInstance> {
-		let sk = newDeviceSessionKey
+		let sessionKey = newDeviceSessionKey
 		if (!newDeviceSessionKey) {
 			let notificationSessionKeyWrapper = await this.getNotificationSessionKey(an.notificationSessionKeys)
-			sk = assertNotNull(notificationSessionKeyWrapper).sessionKey
+			sessionKey = assertNotNull(notificationSessionKeyWrapper).sessionKey
 		}
 
-		return await this.alarmStorageInstancePipeline.mapAndEncryptToParsedInstance(AlarmNotificationTypeRef, an, sk)
+		return await this.alarmStorageInstancePipeline.mapAndEncryptToParsedInstance(AlarmNotificationTypeRef, an, sessionKey)
 	}
 
 	public async decryptAlarmNotification(encryptedAlarmNotification: EncryptedAlarmNotification): Promise<AlarmNotification> {

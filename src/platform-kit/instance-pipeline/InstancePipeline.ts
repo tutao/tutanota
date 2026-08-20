@@ -7,7 +7,8 @@ import { EntityAdapter } from "./EntityAdapter"
 import { ClientOnlyTypeModelResolver, TypeModelResolver } from "./EntityFunctions"
 import { Entity, TypeRef } from "@tutao/meta"
 import { IncomingServerJson, OutgoingServerJson, TypeMapper } from "./TypeMapper"
-import { RootPath } from "./EncryptionContextPath"
+import { InstancePath, RootPath } from "./EncryptionContextPath"
+import { InstanceTypeId } from "./InstanceTypeContext"
 
 assertWorkerOrNode()
 
@@ -73,13 +74,20 @@ export class InstancePipeline {
 		return this.decryptAndMapEncryptedInstance(await this.typeMapper.parseServerJson(instance), sk)
 	}
 
-	async decryptAndMapEncryptedInstance<T extends Entity>(encryptedParsedInstance: EncryptedParsedInstance, sk: AesKey | null): Promise<T> {
+	async decryptAndMapEncryptedInstance<T extends Entity>(
+		encryptedParsedInstance: EncryptedParsedInstance,
+		sk: AesKey | null,
+		instanceTypeId: InstanceTypeId = encryptedParsedInstance.getInstanceTypeId(),
+		instancePath: InstancePath = new RootPath(instanceTypeId.app),
+	): Promise<T> {
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(encryptedParsedInstance, this.modelMapper, this.cryptoMapper)
 		const decryptedInstance = await this.cryptoMapper.decryptParsedInstance(
 			encryptedParsedInstance,
 			sk,
 			validateKdfNonceLength(entityAdapter._kdfNonce),
 			this.cryptoMapper.makeOwnerKeyProvider(entityAdapter._ownerGroup),
+			instanceTypeId,
+			instancePath,
 		)
 		return await this.modelMapper.mapToInstance<T>(decryptedInstance)
 	}

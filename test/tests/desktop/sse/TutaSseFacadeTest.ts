@@ -263,7 +263,7 @@ o.spec("TutaSseFacadeTest", () => {
 			verify(alarmScheduler.handleDeleteAlarm("alarmId"))
 		})
 
-		o("alarmnotification with unavailable pushIdentifierSessionKey", async function () {
+		o("alarm notification with unavailable pushIdentifierSessionKey", async function () {
 			const missedNotification = createTestEntity(MissedNotificationTypeRef, {
 				_id: idToElementId("id"),
 				_permissions: "permissionsId",
@@ -297,7 +297,7 @@ o.spec("TutaSseFacadeTest", () => {
 			verify(alarmStorage.getNotificationSessionKey(anything()))
 		})
 
-		o("alarmnotification with corrupt fields", async function () {
+		o("alarm notification with corrupt fields", async function () {
 			const missedNotification = createTestEntity(MissedNotificationTypeRef, {
 				_id: idToElementId("id"),
 				_permissions: "permissionsId",
@@ -347,7 +347,7 @@ o.spec("TutaSseFacadeTest", () => {
 
 			const err = await assertThrows(CryptoError, () => sseFacade.handleAlarmNotification(encryptedMissedNotification))
 			verify(alarmStorage.removePushIdentifierKey(anything()))
-			o(err.message).deepEquals("could not find session key to decrypt alarm notification")
+			o(err.message).deepEquals("an alarm notification could not be decrypted")
 		})
 
 		o.test("passes lastProcessedNotificationId if present", async () => {
