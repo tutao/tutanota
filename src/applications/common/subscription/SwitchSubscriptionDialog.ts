@@ -18,7 +18,7 @@ import {
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { AccountType, AvailablePlanType, GroupType, LegacyPlans, NewBusinessPlans, PaymentMethodType, PlanType } from "../../../entities/sys/Utils"
-import { BookingFailureReason, Const, EnvProvider, UnsubscribeFailureReason } from "@tutao/app-env"
+import { BookingFailureReason, Const, EnvProvider, PaymentSetup, UnsubscribeFailureReason } from "@tutao/app-env"
 import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import stream from "mithril/stream"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
@@ -169,7 +169,7 @@ export async function showSwitchDialog({
 		const hasGlobalFirstYearDiscount = priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
 		const isYearly = paymentInterval() === PaymentInterval.Yearly
 
-		if (EnvProvider.get().isIOSApp() && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)) {
+		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)) {
 			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetPlan].toLowerCase())
 			return hasGlobalFirstYearDiscount && isYearly && !!prices?.isEligibleForIntroOffer && !!prices?.displayOfferYearlyPerYear
 		} else {

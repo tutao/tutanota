@@ -10,6 +10,7 @@ export type EnvType = {
 	staticUrl: string | null // if null the url from the browser is used
 	mode: Mode
 	platformId: PlatformId | null
+	paymentSetup: PaymentSetup
 	dist: boolean
 	versionNumber: string
 	timeout: number
@@ -24,6 +25,15 @@ export const enum PlatformId {
 	Darwin = "darwin",
 	Linux = "linux",
 	Win32 = "win32",
+}
+
+export const enum PaymentSetup {
+	// customers can only pay via app store
+	Appstore = "appstore",
+	// customers can only pay via google play store
+	Playstore = "playstore",
+	/// credit cards, paypal, invoice etc. this includes fdroid
+	Default = "default",
 }
 
 /**
@@ -148,6 +158,10 @@ export class EnvProvider {
 		}
 
 		return this.isApp() && this.env.platformId === PlatformId.Android
+	}
+
+	public getPaymentSetup(): PaymentSetup {
+		return this.env.paymentSetup
 	}
 
 	public isApp(): boolean {
