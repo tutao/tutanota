@@ -2516,3 +2516,4 @@ export type TranslationKeyType =
 	| "driveGenericFilter_label"
 	| "driveFileTypeFilter_label"
 	| "driveAllFileTypes_label"
+	| "retryFailedTransfers_action"

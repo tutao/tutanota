@@ -2518,5 +2518,6 @@ export default {
 		"driveGenericFilter_label":"Other",
 		"driveFileTypeFilter_label":"File type",
 		"driveAllFileTypes_label":"All",
+		"retryFailedTransfers_action": "Retry all failed transfers",
 	}
 }

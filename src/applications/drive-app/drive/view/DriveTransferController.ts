@@ -246,6 +246,13 @@ export class DriveTransferController {
 		}
 	}
 
+	retryFailedTransfers() {
+		const failedTransfers = this.finishedTransfers.filter((transfer) => transfer.state === "failed")
+		for (const failed of failedTransfers) {
+			this.retryTransfer(failed.id)
+		}
+	}
+
 	async flush() {
 		const activeTransfers = this.queue.filter((transfer) => transfer.state === "active" || transfer.state === "waiting")
 		this.queue.splice(0, this.queue.length, ...activeTransfers)
