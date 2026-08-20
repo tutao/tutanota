@@ -587,7 +587,7 @@ export class MailModel {
 	 * Create a label (aka MailSet aka {@link MailSet} of kind {@link MailSetKind.LABEL}) for the group {@param mailGroupId}.
 	 */
 	async createLabel(mailGroupId: Id, labelData: { name: string; color: string; parentLabelId?: IdTuple }) {
-		await this.mailFacade.createLabel(mailGroupId, labelData)
+		return await this.mailFacade.createLabel(mailGroupId, labelData)
 	}
 
 	async updateLabel(label: MailSet, newData: { name: string; color: string; parentFolderId?: IdTuple }) {
@@ -596,6 +596,10 @@ export class MailModel {
 
 	async deleteLabel(label: MailSet) {
 		await this.mailFacade.deleteLabel(label)
+	}
+
+	async createFolder(name: string, parentFolderId: IdTuple | null, mailGroupId: Id) {
+		return await this.mailFacade.createMailFolder(name, parentFolderId, mailGroupId)
 	}
 
 	async getMailSetById(folderElementId: Id): Promise<MailSet | null> {

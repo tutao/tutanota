@@ -80,7 +80,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 			m(TitleSection, {
 				icon: Icons.DownloadFilled,
 				title: lang.getTranslationText("migration_title"),
-				subTitle: lang.getTranslationText("migrationInfo_msg"),
+				subTitle: lang.getTranslationText(this.canEditMigrations ? "migrationInfo_msg" : "migrationInfoReadonly_msg"),
 			}),
 		])
 	}

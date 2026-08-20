@@ -23,6 +23,7 @@ import { ImapErrorHandler, ReadableImapError } from "./ImapErrorHandler"
 import { ImapError, ImapErrorCause } from "../../../common/api/common/error/ImapError"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { showInitialImapCredentialsDialog } from "../../../common/gui/dialogs/InitialImapCredentialsDialog"
+import { randomHexColor } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
 
 assertMainOrNode()
 
@@ -102,7 +103,7 @@ export class ImapMailImportController {
 					const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId)
 					const shouldDisplayInitializationDialog = imapAccountSyncState.status === ImapAccountSyncStatus.SCHEDULED
 					if (shouldDisplayInitializationDialog) {
-						this.displayInitialImapCredentialsDialog(imapAccountSyncState)
+						await this.displayInitialImapCredentialsDialog(imapAccountSyncState)
 					}
 				}
 			}
@@ -140,7 +141,23 @@ export class ImapMailImportController {
 		}
 	}
 
-	private displayInitialImapCredentialsDialog(imapAccountSyncState: ImapAccountSyncState) {
+	private async displayInitialImapCredentialsDialog(imapAccountSyncState: ImapAccountSyncState) {
+		const mailGroupId = assertNotNull(imapAccountSyncState._ownerGroup)
+		const name = imapAccountSyncState.imapAccount.username
+
+		// we do not create a sync label for Gmail, as the rootImportMailSet itself is a label and all labels are
+		// imported under this label, and we fetch All Mail to a folder with the same name and assign labels accordingly.
+		const isGmail = parseInt(imapAccountSyncState.provider) !== ImapProvider.Gmail
+		if (isGmail) {
+			imapAccountSyncState.imapSyncLabel = await this.mailModel.createLabel(mailGroupId, {
+				name,
+				color: randomHexColor(),
+			})
+		}
+
+		imapAccountSyncState.rootImportMailSet = await this.mailModel.createFolder(name, null, mailGroupId)
+		await this.entityClient.update(imapAccountSyncState)
+
 		if (!this.isDisplayingInitialCredentialsPopup) {
 			this.isDisplayingInitialCredentialsPopup = true
 			showInitialImapCredentialsDialog(
@@ -263,7 +280,7 @@ export class ImapMailImportController {
 				continue
 			}
 			if (session.imapAccountSyncState.status === ImapAccountSyncStatus.SCHEDULED) {
-				this.displayInitialImapCredentialsDialog(session.imapAccountSyncState)
+				await this.displayInitialImapCredentialsDialog(session.imapAccountSyncState)
 			}
 			const imapAccountSyncStateId = session.imapAccountSyncState._id
 			await this.continueImport(imapAccountSyncStateId)

@@ -2538,5 +2538,9 @@ export default {
 		"migrationCancel_action": "Cancel migration",
 		"migrationFinish_action": "Finish migration",
 		"migrationPastMigrations_label": "Past migrations",
+		"migrationInfoReadonly_msg": "The Tuta One-Click Migration works seamlessly with most providers.\n\nWe guarantee a completely secure and private migration, where all your data is encrypted on your device and imported mails can never be read by us.\n\nYour migrations are controlled by your administrator. Your administrator has full control over initiating and managing migrations.\n\nPlease reach out to them if you have any questions.",
+		"migrationScheduledInfo_msg": "Your administrator has initiated a migration for your account. Please authenticate with your account from the old provider to proceed.",
+		"migrationOAuthSignInInfo_msg": "You will be redirected to your email provider to sign in securely. No password is stored in Tuta.",
+		"migrationScheduled_title": "Migration Scheduled",
 	}
 }

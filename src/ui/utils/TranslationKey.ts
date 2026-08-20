@@ -2542,3 +2542,7 @@ export type TranslationKeyType =
 	| "migrationCancel_action"
 	| "migrationFinish_action"
 	| "migrationPastMigrations_label"
+	| "migrationInfoReadonly_msg"
+	| "migrationScheduledInfo_msg"
+	| "migrationOAuthSignInInfo_msg"
+	| "migrationScheduled_title"

@@ -26,6 +26,7 @@ import {
 	ImportedImapMailTypeRef,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
+	MailSet,
 	MailSetTypeRef,
 } from "@tutao/entities/tutanota"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient"
@@ -282,5 +283,11 @@ export class ImapFacade {
 
 	async getAllImapFolderSyncStates(imapFolderSyncStateListId: Id): Promise<ImapFolderSyncState[]> {
 		return this.entityClient.loadAll(ImapFolderSyncStateTypeRef, imapFolderSyncStateListId)
+	}
+
+	async getAllMailSets(mailGroupId: Id): Promise<MailSet[]> {
+		const mailBoxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))
+		const mailBox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailBoxGroupRoot.mailbox))
+		return await this.entityClient.loadAll(MailSetTypeRef, mailBox.mailSets.mailSets)
 	}
 }

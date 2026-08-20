@@ -2497,5 +2497,8 @@ export default {
 		"migrationGreetingTimeout_msg": "test",
 		"migrationUseSSL_label": "Connect securely to port(Use SSL)",
 		"multiuserMigration_label": "Migration",
+		"migrationScheduledInfo_msg": "Your administrator has initiated a migration for your account. Please authenticate with your account from the old provider to proceed.",
+		"migrationOAuthSignInInfo_msg": "You will be redirected to your email provider to sign in securely. No password is stored in Tuta.",
+		"migrationScheduled_title": "Migration Scheduled",
 	}
 }
