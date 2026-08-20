@@ -169,7 +169,7 @@ export class TutaSseFacade implements SseEventHandler {
 			const operation = downcast<OperationType>(encryptedAlarmNotification.getOperation())
 			if (operation === OperationType.CREATE) {
 				while (true) {
-					const sk = await this.alarmStorage.getNotificationSessionKey(encryptedMissedNotification.getNotificationSessionKeys())
+					const sk = await this.alarmStorage.getNotificationSessionKey(encryptedAlarmNotification.getNotificationSessionKeys())
 					if (!sk) {
 						// none of the NotificationSessionKeys in the AlarmNotification worked.
 						// this is indicative of a serious problem with the stored keys.
