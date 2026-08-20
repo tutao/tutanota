@@ -211,6 +211,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 			mutableParams["theme"] = encodedTheme
 		}
 		mutableParams["platformId"] = "ios"
+		mutableParams["paymentSetup"] = "appstore"
 		let queryParams = NSURLQueryItem.from(dict: mutableParams)
 		var components = URLComponents.init(url: fileUrl, resolvingAgainstBaseURL: false)!
 		components.queryItems = queryParams
