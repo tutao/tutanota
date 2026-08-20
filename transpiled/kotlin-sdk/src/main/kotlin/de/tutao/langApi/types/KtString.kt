@@ -9,7 +9,7 @@ class KtString(private val inner: String) {
 		return KtInt(0)
 	}
 
-	fun asKtString(): String {
+	fun asPrimitive(): String {
 		return this.inner
 	}
 
