@@ -26,4 +26,8 @@ export class EncryptedAlarmNotification {
 	getUser(): Id {
 		return this.encryptedInstance.getAttributeByName("user").asIdList()[0]
 	}
+
+	getId(): Id {
+		return this.encryptedInstance.getAttributeByName("_id").asId()
+	}
 }
