@@ -1,6 +1,14 @@
 import { DEFAULT_REST_CLIENT_OPTIONS, type RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType, RestTextBody } from "../rest-client/types"
-import { ClientTypeModel, EntityTypeEnum, expandId, POST_MULTIPLE_INDIVIDUAL_POST_FALLBACK_THRESHOLD, LOAD_MULTIPLE_LIMIT, POST_MULTIPLE_LIMIT, TypeRef } from "../meta"
+import {
+	ClientTypeModel,
+	EntityTypeEnum,
+	expandId,
+	LOAD_MULTIPLE_LIMIT,
+	POST_MULTIPLE_INDIVIDUAL_POST_FALLBACK_THRESHOLD,
+	POST_MULTIPLE_LIMIT,
+	TypeRef,
+} from "../meta"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
 	assert,
@@ -97,8 +105,8 @@ type PreparedRestRequestParams = {
  */
 type PostMultipleHandlerResult<T extends PersistentEntity> = {
 	createdIds: Id[]
-	errors?: Error[]
-	failedInstances?: T[]
+	errors: Nullable<Error[]>
+	failedInstances: Nullable<T[]>
 }
 
 /**
@@ -497,7 +505,7 @@ export class EntityRestClient implements EntityRestInterface {
 		const instanceChunks = splitInChunks(POST_MULTIPLE_LIMIT, instances)
 		console.time("Posting multiple with retry")
 		const mapResult = await promiseMap(instanceChunks, (chunk) =>
-			this.postMultipleHandlerWithRetry(listId!, chunk, path, headers, persistencePostReturnTypeModel, clientTypeModel),
+			this.postMultipleHandlerWithRetry(listId as Id, chunk, path, headers, persistencePostReturnTypeModel, clientTypeModel),
 		)
 		console.time("Posting multiple with retry")
 
@@ -571,6 +579,8 @@ export class EntityRestClient implements EntityRestInterface {
 
 			return {
 				createdIds,
+				errors: null,
+				failedInstances: null,
 			}
 		} catch (e) {
 			if (e instanceof PayloadTooLargeError) {
@@ -603,7 +613,7 @@ export class EntityRestClient implements EntityRestInterface {
 		headers: Dict,
 		persistencePostReturnTypeModel: ServerTypeModel,
 		clientTypeModel: ClientTypeModel,
-	) {
+	): Promise<PostMultipleHandlerResult<T>> {
 		console.warn(
 			this.TAG,
 			'setupMultiple failed with "Payload too large".',
@@ -655,7 +665,7 @@ export class EntityRestClient implements EntityRestInterface {
 			if (retryResult.status === "fulfilled") {
 				createdIds.push(...retryResult.value.createdIds)
 
-				if (retryResult.value.errors) {
+				if (retryResult.value.errors !== null) {
 					errors.push(...retryResult.value.errors)
 					failedInstances.push(...(retryResult.value.failedInstances ?? []))
 				}

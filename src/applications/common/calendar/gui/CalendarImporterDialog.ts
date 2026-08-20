@@ -12,7 +12,6 @@ import { CALENDAR_MIME_TYPE } from "../../../../platform-kit/utils/FileConstants
 import { CalendarEvent, CalendarEventTypeRef, CalendarGroupRoot, createFile } from "@tutao/entities/tutanota"
 import { convertToDataFile } from "../../api/worker/utils/DataFile"
 import { UserAlarmInfo, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
-import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../api/worker/facades/lazy/CalendarFacade"
 
 import { CalendarImporter } from "../import/CalendarImporter"
 import { UserController } from "../../api/main/UserController.js"
@@ -172,7 +171,9 @@ export function calendarSelectionDialog(
 
 export async function selectAndParseIcalFile(): Promise<ParsedEventAlarmTuple[]> {
 	const allowedExtensions = ["ical", "ics", "ifb", "icalendar"]
-	const dataFiles = EnvProvider.get().isApp() ? await showNativeFilePicker(allowedExtensions, true) : await showFileChooser(FileChooserMultiMode.Multi, allowedExtensions)
+	const dataFiles = EnvProvider.get().isApp()
+		? await showNativeFilePicker(allowedExtensions, true)
+		: await showFileChooser(FileChooserMultiMode.Multi, allowedExtensions)
 	const contents: ParsedEventAlarmTuple[] = []
 	let failureMessage = ""
 	for (const file of dataFiles) {
