@@ -1,6 +1,6 @@
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { sql } from "../../../../app-kit/local-store/Sql"
-import { untagSqlObject, untagSqlValue } from "../../../../app-kit/local-store/SqlValue"
+import { tagSqlValue, untagSqlObject, untagSqlValue } from "../../../../app-kit/local-store/SqlValue"
 import { NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import {
@@ -24,6 +24,7 @@ import { SqlValue } from "../../../../app-kit/local-store/Types"
 import { decode, encode } from "cborg"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 import { MailImportType } from "../../../../entities/tutanota/Utils"
+import { delay, isEmpty, splitInChunks } from "@tutao/utils"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {
@@ -168,7 +169,21 @@ export class OfflineStoragePersistence {
 		return row != null && untagSqlValue(row.value) === 1
 	}
 
+	/**
+	 * WARNING: Do NOT exceed MAX_SAFE_SQL_VARS (this function will not handle this for you)
+	 */
 	async storeMailData(mailData: readonly MailWithDetailsAndAttachments[]) {
+		if (isEmpty(mailData)) {
+			return
+		}
+
+		let insertMailIndexQuery =
+			"INSERT OR REPLACE INTO mail_index(rowid, subject, toRecipients, ccRecipients, bccRecipients, sender, body, attachments) VALUES "
+		let insertMailIndexParameters = []
+
+		let insertContentIndexQuery = "INSERT OR REPLACE INTO content_mail_index(rowid, sets, receivedDate) VALUES "
+		let insertContentIndexParameters = []
+
 		for (const {
 			mail,
 			mailDetails: { recipients, body },
@@ -179,33 +194,25 @@ export class OfflineStoragePersistence {
 				return
 			}
 
-			const { query, params } = sql`
-				INSERT
-				OR REPLACE INTO mail_index(rowid, subject, toRecipients, ccRecipients, bccRecipients, sender,
-body, attachments)
-VALUES (
-				${rowid},
-				${mail.subject},
-				${serializeMailAddresses(recipients.toRecipients)},
-				${serializeMailAddresses(recipients.ccRecipients)},
-				${serializeMailAddresses(recipients.bccRecipients)},
-				${serializeMailAddresses([mail.sender])},
-				${htmlToText(getMailBodyText(body))},
-				${attachments.map((f) => f.name).join(" ")}
-				)`
-			await this.sqlCipherFacade.run(query, params)
+			insertMailIndexParameters.push([
+				tagSqlValue(rowid),
+				tagSqlValue(mail.subject),
+				tagSqlValue(serializeMailAddresses(recipients.toRecipients)),
+				tagSqlValue(serializeMailAddresses(recipients.ccRecipients)),
+				tagSqlValue(serializeMailAddresses(recipients.bccRecipients)),
+				tagSqlValue(serializeMailAddresses([mail.sender])),
+				tagSqlValue(htmlToText(getMailBodyText(body))),
+				tagSqlValue(attachments.map((f) => f.name).join(" ")),
+			])
 
-			// Sets are element IDs surrounded with spaces
-			const serializedSets = this.formatSetsValue(mail)
-
-			const contentQuery = sql`INSERT
-			OR REPLACE INTO content_mail_index(rowid, sets, receivedDate) VALUES (
-			${rowid},
-			${serializedSets},
-			${mail.receivedDate.getTime()}
-			)`
-			await this.sqlCipherFacade.run(contentQuery.query, contentQuery.params)
+			insertContentIndexParameters.push([tagSqlValue(rowid), tagSqlValue(this.formatSetsValue(mail)), tagSqlValue(mail.receivedDate.getTime())])
 		}
+
+		insertMailIndexQuery += insertMailIndexParameters.map((array) => `(${array.map((_) => "?").join(", ")})`)
+		insertContentIndexQuery += insertContentIndexParameters.map((array) => `(${array.map((_) => "?").join(", ")})`)
+
+		await this.sqlCipherFacade.run(insertMailIndexQuery, insertMailIndexParameters.flat())
+		await this.sqlCipherFacade.run(insertContentIndexQuery, insertContentIndexParameters.flat())
 	}
 
 	async updateMailLocation(mail: Mail) {
@@ -294,52 +301,93 @@ VALUES (
 	}
 
 	async storeEncryptedMailDetailsBlobs(serverTypeModel: ServerTypeModel, blobs: readonly IncomingServerJson[]): Promise<void> {
+		if (isEmpty(blobs)) {
+			return
+		}
 		const typeref = `${serverTypeModel.app}/${serverTypeModel.name}`
 		if (serverTypeModel.type !== EntityTypeEnum.BlobElement) {
 			throw new ProgrammingError(`cannot use OfflineStoragePersistence#storeEncryptedBlobs with ${serverTypeModel.type} (${typeref})`)
 		}
 
-		for (const blob of blobs) {
-			const [archiveId, blobId] = blob.getValueByName("_id").asIdTuple()
+		const versionParam = tagSqlValue(serverTypeModel.version)
 
-			const blobJson = blob.getInnerJson()
-			const encodedBlob = encode(blobJson, { typeEncoders: customTypeEncoders })
-			const { query, params } = sql`INSERT
-			OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (
-			${blobId},
-			${archiveId},
-			${encodedBlob},
-			${typeref},
-			${serverTypeModel.version}
-			)`
-			await this.sqlCipherFacade.run(query, params)
+		for (const blobsChunked of splitInChunks(100, blobs)) {
+			let insertQuery = "INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES "
+			let insertParameters = []
+			for (const blob of blobsChunked) {
+				const [archiveId, blobId] = blob.getValueByName("_id").asIdTuple()
+
+				const blobJson = blob.getInnerJson()
+				const encodedBlob = encode(blobJson, { typeEncoders: customTypeEncoders })
+				insertParameters.push([tagSqlValue(blobId), tagSqlValue(archiveId), tagSqlValue(encodedBlob), tagSqlValue(typeref), versionParam])
+			}
+
+			insertQuery += insertParameters.map((array) => `(${array.map((_) => "?").join(", ")})`)
+			await this.sqlCipherFacade.run(insertQuery, insertParameters.flat())
 		}
 	}
 
-	async retrieveEncryptedMailDetailsBlob(serverTypeModel: ServerTypeModel, blobId: Id): Promise<IncomingServerJson | null> {
+	private pendingEncryptedMailDetailsBlobRetrieval: Promise<Map<Id, IncomingServerJson>> | null = null
+	private pendingEncryptedMailDetailsBlobItems: Set<Id> = new Set()
+
+	retrieveEncryptedMailDetailsBlob(serverTypeModel: ServerTypeModel, blobId: Id): Promise<IncomingServerJson | null> {
 		const typeref = `${serverTypeModel.app}/${serverTypeModel.name}`
 		if (serverTypeModel.type !== EntityTypeEnum.BlobElement) {
 			throw new ProgrammingError(`cannot use OfflineStoragePersistence#retrieveEncryptedBlob with ${serverTypeModel.type} (${typeref})`)
 		}
 
-		const { query, params } = sql`SELECT data
-									  FROM encrypted_mail_details_blobs
-									  WHERE blobId = ${blobId}
-										AND typeref = ${typeref}
-										AND modelVersion = ${serverTypeModel.version}`
+		// if there is a pending request, build onto it (but not too much because we don't want to blow up MAX_SAFE_SQL_VARS or our RAM)
+		if (this.pendingEncryptedMailDetailsBlobRetrieval == null || this.pendingEncryptedMailDetailsBlobItems.size > 100) {
+			this.pendingEncryptedMailDetailsBlobItems = new Set()
 
-		const blobs = await this.sqlCipherFacade.get(query, params)
-		if (blobs == null) {
-			return null
+			const blobItems = this.pendingEncryptedMailDetailsBlobItems
+
+			// collect all requests for the current task slice (delay(0) is just setTimeout(0)) to reduce IPC calls
+			this.pendingEncryptedMailDetailsBlobRetrieval = delay(0).then(async () => {
+				// no more blob IDs will be accepted for this request
+				// of course, if we already have a new promise (due to our limit above), skip this step
+				if (blobItems === this.pendingEncryptedMailDetailsBlobItems) {
+					this.pendingEncryptedMailDetailsBlobItems = new Set()
+					this.pendingEncryptedMailDetailsBlobRetrieval = null
+				}
+
+				const blobItemsArray = Array.from(blobItems)
+				const blobIdQuery = "blobId = ?"
+				const baseQuery = `SELECT data, blobId
+							 FROM encrypted_mail_details_blobs
+							 WHERE typeref = ?
+							   AND modelVersion = ?
+							   AND (${blobItemsArray.map((_) => blobIdQuery).join(" OR ")})`
+
+				const blobs = await this.sqlCipherFacade.all(baseQuery, [
+					tagSqlValue(typeref),
+					tagSqlValue(serverTypeModel.version),
+					...blobItemsArray.map(tagSqlValue),
+				])
+
+				const map: Map<Id, IncomingServerJson> = new Map()
+
+				if (blobs == null) {
+					return map
+				}
+
+				for (const blob of blobs) {
+					const { data, blobId } = untagSqlObject(blob)
+					if (!(data instanceof Uint8Array) || typeof blobId !== "string") {
+						continue
+					}
+
+					const blobJson = decode(data, { tags: customTypeDecoders })
+					map.set(blobId, IncomingServerJson.expectSingleMailDetailsBlob(blobJson, serverTypeModel))
+				}
+
+				return map
+			})
 		}
 
-		const data = untagSqlObject(blobs).data
-		if (!(data instanceof Uint8Array)) {
-			return null
-		}
+		this.pendingEncryptedMailDetailsBlobItems.add(blobId)
 
-		const blobJson = decode(data, { tags: customTypeDecoders })
-		return IncomingServerJson.expectSingleMailDetailsBlob(blobJson, serverTypeModel)
+		return this.pendingEncryptedMailDetailsBlobRetrieval.then((result) => result.get(blobId) ?? null)
 	}
 
 	async deleteEncryptedMailDetailsBlob(blobId: Id): Promise<void> {
