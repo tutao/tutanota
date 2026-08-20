@@ -139,8 +139,9 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 							m(DriveTransferStack, {
 								driveTransfers: this.searchViewModel.transfers(),
 								cancelTransfer: (transferId) => this.searchViewModel.cancelTransfer(transferId),
-								retryTransfer: (transferId) => this.searchViewModel.retryTransfer(transferId),
 								cancelAllTransfers: async () => await this.searchViewModel.cancelAllTransfers(cancelAllTransfersConfirmationDialog),
+								retryTransfer: (transferId) => this.searchViewModel.retryTransfer(transferId),
+								retryFailedTransfers: () => this.searchViewModel.retryFailedTransfers(),
 							} satisfies DriveTransferStackAttrs),
 						],
 						mobileHeader: () => this.renderMobileListHeader(vnode.attrs.header),
