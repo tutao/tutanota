@@ -351,15 +351,28 @@ export class ImapImporter implements ImapSyncFacade {
 				}
 
 				if (!session.imapFolderSyncStates.some((folder) => folder.path === imapMailbox.path)) {
-					const shouldSync = parentFolderSyncState === null || parentFolderSyncState.status !== ImapFolderSyncStatus.NO_SYNC
-					const shouldCreateLabels = isGmail && !isALLSystemFolder
-					const folderSyncState = await this.imapFacade.initializeImapMailSet(
-						imapMailbox,
-						session.imapAccountSyncState,
-						parentImportFolderId,
-						shouldSync,
-						shouldCreateLabels,
-					)
+					const isAdminControlledMigration = session.imapAccountSyncState.mailboxMigrationInformation !== null
+					const mailGroupId = assertNotNull(session.imapAccountSyncState._ownerGroup)
+					let folderSyncState: ImapFolderSyncState | undefined
+					const existingFolder = await this.imapFacade.getFolderForImapMailboxIfExists(imapMailbox, mailGroupId)
+					// We do a specialUse and name-based mapping between ImapMailboxes and user folders if an admin started the migration and the provider is not Gmail
+					if (isAdminControlledMigration && !isGmail && existingFolder) {
+						folderSyncState = await this.imapFacade.createImapFolderSyncStateForExistingFolder(
+							imapMailbox,
+							session.imapAccountSyncState,
+							existingFolder,
+						)
+					} else {
+						const shouldSync = parentFolderSyncState === null || parentFolderSyncState.status !== ImapFolderSyncStatus.NO_SYNC
+						const shouldCreateLabels = isGmail && !isALLSystemFolder
+						folderSyncState = await this.imapFacade.initializeImapMailSet(
+							imapMailbox,
+							session.imapAccountSyncState,
+							parentImportFolderId,
+							shouldSync,
+							shouldCreateLabels,
+						)
+					}
 					if (folderSyncState) {
 						const folderSyncStateIndex = session.imapFolderSyncStates.findIndex((imapFolderSyncState) =>
 							isSameId(folderSyncState._id, imapFolderSyncState._id),

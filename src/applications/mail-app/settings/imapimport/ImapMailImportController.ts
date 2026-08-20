@@ -147,15 +147,19 @@ export class ImapMailImportController {
 
 		// we do not create a sync label for Gmail, as the rootImportMailSet itself is a label and all labels are
 		// imported under this label, and we fetch All Mail to a folder with the same name and assign labels accordingly.
-		const isGmail = parseInt(imapAccountSyncState.provider) !== ImapProvider.Gmail
+		const isGmail = parseInt(imapAccountSyncState.provider) === ImapProvider.Gmail
 		if (isGmail) {
+			imapAccountSyncState.rootImportMailSet = await this.mailModel.createLabel(mailGroupId, {
+				name,
+				color: randomHexColor(),
+			})
+		} else {
 			imapAccountSyncState.imapSyncLabel = await this.mailModel.createLabel(mailGroupId, {
 				name,
 				color: randomHexColor(),
 			})
 		}
 
-		imapAccountSyncState.rootImportMailSet = await this.mailModel.createFolder(name, null, mailGroupId)
 		await this.entityClient.update(imapAccountSyncState)
 
 		if (!this.isDisplayingInitialCredentialsPopup) {

@@ -34,7 +34,7 @@ import { IServiceExecutor } from "../../../../../../platform-kit/network/Service
 import { ProgrammingError } from "@tutao/app-env"
 import { ImapAccountSyncStatus, ImapFolderSyncStatus, MailSetKind } from "../../../../../../entities/tutanota/Utils"
 import { ImapErrorCause } from "../../../common/error/ImapError"
-import { ImapMailbox, ImapMailboxSpecialUse, ImapMailboxStatus } from "../../../common/utils/imapImportUtils/ImapMailbox"
+import { getSpecialUseAsSystemFolderType, ImapMailbox, ImapMailboxSpecialUse, ImapMailboxStatus } from "../../../common/utils/imapImportUtils/ImapMailbox"
 import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade"
 import {
 	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
@@ -45,6 +45,7 @@ import { getElementId, idToElementId } from "@tutao/meta"
 import { parseKeyVersion } from "../../../../../../platform-kit/crypto/CryptoUtils"
 import { randomHexColor } from "../../../common/utils/imapImportUtils/ImapImportUtils"
 import { ImapProvider } from "../../../common/utils/imapImportUtils/ImapKnownConfigs"
+import { FolderSystem } from "../../../common/mail/FolderSystem"
 
 export class ImapFacade {
 	constructor(
@@ -285,9 +286,43 @@ export class ImapFacade {
 		return this.entityClient.loadAll(ImapFolderSyncStateTypeRef, imapFolderSyncStateListId)
 	}
 
-	async getAllMailSets(mailGroupId: Id): Promise<MailSet[]> {
+	async getFolderForImapMailboxIfExists(imapMailbox: ImapMailbox, mailGroupId: string): Promise<MailSet | null> {
 		const mailBoxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))
 		const mailBox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailBoxGroupRoot.mailbox))
-		return await this.entityClient.loadAll(MailSetTypeRef, mailBox.mailSets.mailSets)
+		const allMailSets = await this.entityClient.loadAll(MailSetTypeRef, mailBox.mailSets.mailSets)
+		const folderSystem = new FolderSystem(allMailSets)
+		if (imapMailbox.subFolders) {
+			const specialUseAsSystemFolderType = getSpecialUseAsSystemFolderType(imapMailbox)
+			if (specialUseAsSystemFolderType) {
+				return folderSystem.getSystemFolderByType(specialUseAsSystemFolderType)
+			} else {
+				return folderSystem.getFolderByName(imapMailbox.name ?? "")
+			}
+		}
+		return null
+	}
+
+	async createImapFolderSyncStateForExistingFolder(imapMailbox: ImapMailbox, imapAccountSyncState: ImapAccountSyncState, mailSet: MailSet) {
+		const mailGroupId = assertNotNull(mailSet._ownerGroup)
+		const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
+		const sk = this.cryptoWrapper.aes256RandomKey()
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
+
+		const imapFolderPostIn = createImapFolderPostIn({
+			path: imapMailbox.path,
+			imapAccountSyncState: imapAccountSyncState._id,
+			mailSet: mailSet._id,
+			shouldSync: true,
+			imapSpecialUse: imapMailbox.specialUse ?? null,
+		})
+		imapFolderPostIn.ownerEncSessionKey = ownerEncSessionKey.key
+		imapFolderPostIn.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
+		imapFolderPostIn.ownerGroup = assertNotNull(mailSet._ownerGroup)
+
+		const imapFolderPostOut = await this.serviceExecutor.post(ImapFolderService, imapFolderPostIn, {
+			...DEFAULT_EXTRA_SERVICE_PARAMS,
+			sessionKey: sk,
+		})
+		return this.entityClient.load(ImapFolderSyncStateTypeRef, imapFolderPostOut.imapFolderSyncState)
 	}
 }
