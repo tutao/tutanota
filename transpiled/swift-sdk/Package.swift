@@ -10,11 +10,13 @@ let package = Package(
             name: "swift-sdk",
             targets: ["AppEnv", "LangApi"]
         ),
+        .executable(name: "Cli", targets: ["Cli"])
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
         // Targets can depend on other targets in this package and products from dependencies.
         .target(name: "LangApi", dependencies: [], path: "Sources/LangApi"),
         .target(name: "AppEnv",dependencies: ["LangApi"], path: "Sources/PlatformKit/AppEnv"),
+        .target(name: "Cli", dependencies: ["LangApi"])
     ]
 )
