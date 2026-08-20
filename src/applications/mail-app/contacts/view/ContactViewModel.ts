@@ -2,9 +2,8 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import { EventController } from "../../../common/api/main/EventController.js"
 import { ListElementListModel } from "../../../common/misc/ListElementListModel.js"
-import { compareContacts } from "./ContactGuiUtils.js"
 import { ListState } from "../../../../ui/base/List.js"
-import { assertNotNull, lazyMemoized } from "../../../../platform-kit/utils"
+import { assertNotNull, lazyAsync, lazyMemoized } from "../../../../platform-kit/utils"
 import Stream from "mithril/stream"
 import { Router } from "../../../../ui/ScopedThrottledRouter.js"
 import { Contact, ContactTypeRef } from "@tutao/entities/tutanota"
@@ -15,7 +14,9 @@ import { ConnectionStateListener, WebsocketConnectivityModel } from "../../../co
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { ContactSearchModel } from "../../search/model/ContactSearchModel"
-import { LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
+import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
+import { compareContacts } from "../ContactUtils"
+import { SearchCategoryType } from "../../../common/api/worker/search/SearchTypes"
 
 /** ViewModel for the overall contact view. */
 export class ContactViewModel {
@@ -33,7 +34,7 @@ export class ContactViewModel {
 		private readonly updateUi: () => unknown,
 		private readonly connectivityModel: WebsocketConnectivityModel,
 		private readonly searchRouter: SearchRouter,
-		private readonly searchModel: ContactSearchModel,
+		private readonly searchModel: lazyAsync<ContactSearchModel>,
 	) {}
 
 	readonly listModel: ListElementListModel<Contact> = new ListElementListModel<Contact>({
@@ -142,7 +143,8 @@ export class ContactViewModel {
 	selectSearchResult(searchQuery: SearchQuery, contact: Contact | null) {
 		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, contact ? getElementId(contact) : null)
 	}
-	async getSearchResults(searchQuery: SearchQuery): Promise<LiveSearchResult<Contact>> {
-		return this.searchModel.searchContacts(searchQuery)
+	async getSearchResults({ maxResults, query }: QuickSearchQuery): Promise<LiveSearchResult<Contact>> {
+		const { createEmptyRestriction } = await import("../../../common/search/SearchUtils")
+		return (await this.searchModel()).searchContacts({ query, maxResults, restriction: createEmptyRestriction(SearchCategoryType.contact) })
 	}
 }

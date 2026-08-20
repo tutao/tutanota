@@ -59,6 +59,7 @@ import { CustomerInfo } from "@tutao/entities/sys"
 import { ButtonType } from "../../../ui/base/Button"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { windowFacade } from "../../common/misc/WindowFacade"
+import { MailSearchModel } from "../search/model/MailSearchModel"
 
 EnvProvider.assertMainOrNode()
 
@@ -82,6 +83,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	private customerInfo: CustomerInfo | null
 	private mailAddressTableModel: MailAddressTableModel | null = null
 	private mailAddressTableExpanded: boolean
+	private mailSearchModel: LazyLoaded<MailSearchModel>
 
 	constructor() {
 		this._defaultSender = getDefaultSenderFromUser(mailLocator.logins.getUserController())
@@ -90,12 +92,18 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		this._defaultUnconfidential = mailLocator.logins.getUserController().props.defaultUnconfidential
 		this._sendPlaintext = mailLocator.logins.getUserController().props.sendPlaintextOnly
 		this._noAutomaticContacts = mailLocator.logins.getUserController().props.noAutomaticContacts
-		this._enableMailIndexing = mailLocator.mailSearchModel.indexState().mailIndexEnabled
+		this._enableMailIndexing = mailLocator.mailModel.indexingSupported
 		this._inboxRulesExpanded = stream<boolean>(false)
 		this.mailAddressTableExpanded = false
 		this._inboxRulesTableLines = stream<Array<TableLineAttrs>>([])
 		this._outOfOfficeStatus = stream(lang.get("deactivated_label"))
 		this._indexStateWatch = null
+
+		this.mailSearchModel = new LazyLoaded(() => {
+			const model = mailLocator.mailSearchModel()
+			m.redraw()
+			return model
+		})
 		// normally we would maybe like to get it as an argument but these viewers are created in an odd way
 		mailLocator.mailAddressTableModelForOwnMailbox().then((model) => {
 			this.mailAddressTableModel = model
@@ -342,10 +350,12 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 				{
 					role: "group",
 					oncreate: () => {
-						this._indexStateWatch = mailLocator.mailSearchModel.indexState.map((newValue) => {
-							this._enableMailIndexing = newValue.mailIndexEnabled
+						this.mailSearchModel.getAsync().then((model) => {
+							this._indexStateWatch = model.indexState.map((newValue) => {
+								this._enableMailIndexing = newValue.mailIndexEnabled
 
-							m.redraw()
+								m.redraw()
+							})
 						})
 					},
 					onremove: () => {
@@ -539,8 +549,12 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private renderRebuildSearchIndex() {
-		const searchIndexStateInfo = mailLocator.mailSearchModel.indexState()
+	private renderRebuildSearchIndex(): Children {
+		const mailSearchModel = this.mailSearchModel.getSync()
+		if (mailSearchModel == null) {
+			return null
+		}
+		const searchIndexStateInfo = mailSearchModel.indexState()
 		return m(
 			"",
 			searchIndexStateInfo.progress !== 0

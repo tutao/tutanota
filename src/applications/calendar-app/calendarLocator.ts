@@ -131,7 +131,6 @@ EnvProvider.assertMainOrNode()
 class CalendarLocator implements CommonLocator {
 	clientModelInfo!: ClientModelInfo
 	eventController!: EventController
-	calendarSearchModel!: CalendarSearchModel
 	mailboxModel!: MailboxModel
 	contactModel!: ContactModel
 	entityClient!: EntityClient
@@ -245,6 +244,11 @@ class CalendarLocator implements CommonLocator {
 		const { ReceivedGroupInvitationsModel } = await import("../common/sharing/model/ReceivedGroupInvitationsModel.js")
 		return new ReceivedGroupInvitationsModel<TypeOfGroup>(groupType, this.eventController, this.entityClient, this.logins)
 	}
+
+	readonly calendarSearchModel: lazyAsync<CalendarSearchModel> = lazyMemoized(async () => {
+		const { CalendarSearchModel } = await import("../calendar-app/search/model/CalendarSearchModel.js")
+		return new CalendarSearchModel(this.eventController, this.calendarEventsRepository, this.progressTracker)
+	})
 
 	readonly calendarViewModel = lazyMemoized<Promise<CalendarViewModel>>(async () => {
 		const { CalendarViewModel } = await import("./calendar/view/CalendarViewModel.js")
@@ -611,7 +615,6 @@ class CalendarLocator implements CommonLocator {
 		this.progressTracker = new ProgressTracker()
 		this.eventController = new EventController(calendarLocator.logins)
 		this.syncTracker = new SyncTracker()
-		this.calendarSearchModel = new CalendarSearchModel(this.eventController, this.calendarEventsRepository, this.progressTracker)
 		this.entityClient = new EntityClient(restInterface, this.clientModelInfo)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
@@ -1071,13 +1074,14 @@ class CalendarLocator implements CommonLocator {
 	async calendarSearchViewModelFactory(): Promise<() => CalendarSearchViewModel> {
 		const { CalendarSearchViewModel } = await import("./calendar/search/view/CalendarSearchViewModel.js")
 		const calendarModel = await this.calendarModel()
+		const calendarSearchModel = await this.calendarSearchModel()
 		const redraw = await this.redraw
 		const router = await this.scopedSearchRouter()
 		return () =>
 			new CalendarSearchViewModel(
 				calendarModel,
 				this.logins,
-				this.calendarSearchModel,
+				calendarSearchModel,
 				router,
 				this.eventController,
 				this.entityClient,

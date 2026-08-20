@@ -124,8 +124,7 @@ import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInt
 import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
 import { reverse } from "../../../common/misc/EnumUtils"
 import { isFreeSignupOnly } from "../../../common/misc/LoginUtils"
-import { LazyComponent } from "../../../common/gui/LazyComponent"
-import { CalendarQuickSearchBar, CalendarSearchBarAttrs } from "../../CalendarQuickSearchBar"
+import { CalendarQuickSearchBar } from "./CalendarQuickSearchBar"
 
 export type GroupColors = Map<Id, string>
 
@@ -1176,15 +1175,12 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				header: m(Header, {
 					firstColWidth: this.sidebarColumn.width,
 					searchBar: () =>
-						m(LazyComponent<CalendarSearchBarAttrs, CalendarQuickSearchBar>, {
-							loader: async () => (await import("../../CalendarQuickSearchBar.js")).CalendarQuickSearchBar,
-							attrs: {
-								loadResults: (searchQuery) => this.viewModel.getSearchResult(searchQuery),
-								selectResult: (searchQuery, event) => {
-									this.viewModel.selectSearchResult(searchQuery, event)
-								},
-								shouldOfferUpgrade: locator.logins.getUserController().isFreeAccount(),
+						m(CalendarQuickSearchBar, {
+							loadResults: (searchQuery) => this.viewModel.getSearchResult(searchQuery),
+							selectResult: (searchQuery, event) => {
+								this.viewModel.selectSearchResult(searchQuery, event)
 							},
+							shouldOfferUpgrade: locator.logins.getUserController().isFreeAccount(),
 						}),
 					...attrs.header,
 					buttons: renderHeaderButtons(),

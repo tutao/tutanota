@@ -1,13 +1,13 @@
 import { Contact, ContactTypeRef } from "@tutao/entities/tutanota"
 import { SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
-import { compareContacts } from "../../contacts/view/ContactGuiUtils"
 import { isNotEmpty, lastIndex } from "@tutao/utils"
 import stream from "mithril/stream"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 import { EventController } from "../../../common/api/main/EventController"
 import { applyEntityUpdates, LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
 import { EntityUpdatesListener, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { compareContacts } from "../../contacts/ContactUtils"
 
 export class ContactSearchModel {
 	indexingSupported: boolean = true

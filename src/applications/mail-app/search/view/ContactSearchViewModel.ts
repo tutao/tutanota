@@ -7,13 +7,13 @@ import { debounce, isNotNull, noOp, ofClass, onceAsync } from "@tutao/utils"
 import { CancelledError } from "@tutao/app-env"
 import { getElementId, isSameSingleId } from "@tutao/meta"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
-import { compareContacts } from "../../contacts/view/ContactGuiUtils"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { createEmptyRestriction, emptyListModel, getSearchUrl, isNewSearch, LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
 import { ContactSearchModel } from "../model/ContactSearchModel"
 import Stream from "mithril/stream"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
+import { compareContacts } from "../../contacts/ContactUtils"
 
 export class ContactSearchViewModel {
 	#listModel: ListModel<Contact, Id> = emptyListModel()

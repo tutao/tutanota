@@ -1,4 +1,4 @@
-import { AppType,  Const, EnvProvider, FeatureType, Mode, ProgrammingError } from "@tutao/app-env"
+import { AppType, Const, EnvProvider, FeatureType, Mode, ProgrammingError } from "@tutao/app-env"
 import { EventController } from "../common/api/main/EventController.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
@@ -133,7 +133,6 @@ EnvProvider.assertMainOrNode()
 class DriveLocator implements CommonLocator {
 	clientModelInfo!: ClientModelInfo
 	eventController!: EventController
-	search!: DriveSearchModel
 	mailboxModel!: MailboxModel
 	contactModel!: ContactModel
 	entityClient!: EntityClient
@@ -190,7 +189,6 @@ class DriveLocator implements CommonLocator {
 	transferProgressDispatcher!: TransferProgressDispatcher
 	imapImporter!: ImapSyncFacade
 	searchRouter!: SearchRouter
-	searchModel!: DriveSearchModel
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
@@ -239,6 +237,11 @@ class DriveLocator implements CommonLocator {
 		const redraw = await this.redraw()
 		const transferController = new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController)
 		return new DriveModel(transferController, this.driveFacade, this.entityClient, this.eventController, this.transferProgressDispatcher)
+	})
+
+	readonly searchModel: lazyAsync<DriveSearchModel> = lazyMemoized(async () => {
+		const { DriveSearchModel } = await import("./search/model/DriveSearchModel.js")
+		return new DriveSearchModel(this.eventController, this.entityClient)
 	})
 
 	readonly driveViewModel: lazyAsync<DriveViewModel> = lazyMemoized(async () => {
@@ -578,7 +581,6 @@ class DriveLocator implements CommonLocator {
 		this.eventController = new EventController(driveLocator.logins)
 		this.syncTracker = new SyncTracker()
 		this.entityClient = new EntityClient(restInterface, this.clientModelInfo)
-		this.search = new DriveSearchModel(this.eventController, this.entityClient)
 		this.cryptoFacade = cryptoFacade
 		this.cacheStorage = cacheStorage
 		this.entropyFacade = entropyFacade
@@ -1045,13 +1047,14 @@ class DriveLocator implements CommonLocator {
 		const { DriveSearchViewModel } = await import("../drive-app/search/view/DriveSearchViewModel.js")
 		const redraw = await this.redraw()
 		const searchRouter = await this.scopedSearchRouter()
+		const searchModel = await this.searchModel()
 		const router = await this.throttledRouter()
 		const dateProvider = await this.noZoneDateProvider()
 		const driveOperations = await this.driveOperations()
 		return () =>
 			new DriveSearchViewModel(
 				searchRouter,
-				this.search,
+				searchModel,
 				router,
 				dateProvider,
 				this.logins,

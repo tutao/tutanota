@@ -1,14 +1,13 @@
 import type { ShowMoreAction } from "./QuickSearchBar"
 import { px, size } from "../../../ui/size"
 import { lang } from "../../../ui/utils/LanguageViewModel"
-import { FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { EnvProvider, FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { formatDate } from "../../../ui/utils/Formatter"
 import m, { Children, Component, Vnode } from "mithril"
 import { pureComponent } from "../../../ui/base/PureComponent"
 import { isNotEmpty } from "@tutao/utils"
 
-import { renderSearchInOurApps } from "../gui/AppPromo"
-import { isNonBlockingSearchAvailable } from "../../mail-app/search/model/MailSearchUtils"
+import { renderSearchInOurApps } from "./AppPromo"
 
 export interface SearchBarOverlayAttrs<T> {
 	items: readonly T[]
@@ -96,7 +95,7 @@ export class SearchBarOverlay<T> implements Component<SearchBarOverlayAttrs<T>> 
 		}
 
 		if (indexTimestamp > FULL_INDEXED_TIMESTAMP && !indexInfo) {
-			indexInfo = isNonBlockingSearchAvailable()
+			indexInfo = !EnvProvider.get().isOfflineStorageAvailable() // we have isNonBlockingSearchAvailable() at home
 				? lang.getTranslationText("searchedUntil_msg") + " " + formatDate(new Date(indexTimestamp))
 				: lang.getTranslationText("notAllMailsSearchable_msg")
 		}

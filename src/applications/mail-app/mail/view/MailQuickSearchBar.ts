@@ -1,26 +1,25 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { QuickSearchBar } from "../common/search/QuickSearchBar.js"
+import { QuickSearchBar } from "../../../common/gui/QuickSearchBar.js"
 import { Mail } from "@tutao/entities/tutanota"
-import { lang } from "../../ui/utils/LanguageViewModel"
-import { isTutaTeamMail } from "../common/mailFunctionality/SharedMailUtils"
-import Badge from "../../ui/base/Badge"
-import { companyTeamLabel } from "../../platform-kit/app-env/boot/ClientConstants"
-import { getSenderOrRecipientHeading } from "./mail/view/MailViewerUtils"
-import { formatTimeOrDateOrYesterday } from "../../ui/utils/Formatter"
-import { Icon } from "../../ui/base/Icon"
-import { getMailFolderIcon } from "./mail/view/MailGuiUtils"
-import { mailLocator } from "./mailLocator"
-import { Icons } from "../../ui/base/icons/Icons"
-import { createMailRestriction, getFreeSearchStartDate } from "./search/model/MailSearchUtils"
-import { Dialog } from "../../ui/base/Dialog"
-import { LiveSearchResult, SearchQuery } from "../common/search/SearchUtils"
+import { lang } from "../../../../ui/utils/LanguageViewModel"
+import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils"
+import Badge from "../../../../ui/base/Badge"
+import { companyTeamLabel } from "../../../../platform-kit/app-env/boot/ClientConstants"
+import { getSenderOrRecipientHeading } from "./MailViewerUtils"
+import { formatTimeOrDateOrYesterday } from "../../../../ui/utils/Formatter"
+import { Icon } from "../../../../ui/base/Icon"
+import { getMailFolderIcon } from "./MailGuiUtils"
+import { mailLocator } from "../../mailLocator"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import { Dialog } from "../../../../ui/base/Dialog"
+import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
 import { EnvProvider } from "@tutao/app-env"
 
 export interface MailSearchBarAttrs {
-	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<Mail>>
+	loadResults: (searchQuery: QuickSearchQuery) => Promise<LiveSearchResult<Mail>>
 	selectResult: (searchQuery: SearchQuery, entry: Mail | null) => unknown
 	shouldOfferUpgrade: boolean
-	needsToEnableSearch: () => boolean
+	needsToEnableSearch: () => Promise<boolean>
 	enableSearch: () => Promise<boolean>
 	indexingSupported: boolean
 }
@@ -33,12 +32,6 @@ export class MailQuickSearchBar implements ClassComponent<MailSearchBarAttrs> {
 				attrs.loadResults({
 					query,
 					maxResults: 10,
-					restriction: createMailRestriction({
-						start: null,
-						end: attrs.shouldOfferUpgrade ? getFreeSearchStartDate().getTime() : null,
-						field: null,
-						folderIds: [],
-					}),
 				}),
 			selectResult: attrs.selectResult,
 			renderResult: (entry, isSelected) => this.renderMailResult(entry, isSelected),
@@ -48,7 +41,7 @@ export class MailQuickSearchBar implements ClassComponent<MailSearchBarAttrs> {
 					Dialog.message(EnvProvider.get().isApp() ? "searchDisabledApp_msg" : "searchDisabled_msg")
 					return false
 				}
-				if (attrs.needsToEnableSearch()) {
+				if (await attrs.needsToEnableSearch()) {
 					const confirmed = await Dialog.confirm("enableSearchMailbox_msg", "search_label")
 					if (confirmed) {
 						// do not hold SearchBar for the whole indexing time

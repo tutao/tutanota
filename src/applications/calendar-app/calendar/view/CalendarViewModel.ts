@@ -26,6 +26,7 @@ import {
 	incrementMonth,
 	insertIntoSortedArray,
 	lazy,
+	lazyAsync,
 	memoized,
 	millisToDays,
 	noOp,
@@ -100,7 +101,7 @@ import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { encodeCalendarSearchKey } from "../search/model/CalendarSearchUtils"
 import { CalendarSearchModel } from "../../search/model/CalendarSearchModel"
-import { LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
+import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
 
 export interface EventWrapperFlags {
 	/**
@@ -259,7 +260,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		private readonly createCalendarEventPreviewModel: CalendarEventPreviewModelFactory,
 		private readonly createCalendarContactPreviewModel: CalendarContactPreviewModelFactory,
 		private readonly calendarModel: CalendarModel,
-		private readonly searchModel: CalendarSearchModel,
+		private readonly searchModel: lazyAsync<CalendarSearchModel>,
 		private readonly eventsRepository: CalendarEventsRepository,
 		private readonly entityClient: EntityClient,
 		eventController: EventController,
@@ -1002,8 +1003,10 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, calendarEvent ? encodeCalendarSearchKey(calendarEvent) : null)
 	}
 
-	getSearchResult(searchQuery: SearchQuery): Promise<LiveSearchResult<CalendarEvent>> {
+	async getSearchResult({ query, maxResults }: QuickSearchQuery): Promise<LiveSearchResult<CalendarEvent>> {
 		const selectedDate = this.selectedDate()
+
+		const { createCalendarRestriction } = await import("../search/model/CalendarSearchUtils.js")
 
 		let startDate: Date
 
@@ -1014,13 +1017,14 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		}
 		startDate.setDate(1)
 
-		searchQuery.restriction.start = getStartOfDay(startDate).getTime()
+		const start = getStartOfDay(startDate).getTime()
 
-		let endDate = incrementMonth(new Date(searchQuery.restriction.start), 3)
+		let endDate = incrementMonth(new Date(start), 3)
 		endDate.setDate(0)
-		searchQuery.restriction.end = getEndOfDay(endDate).getTime()
+		const end = getEndOfDay(endDate).getTime()
 
-		return this.searchModel.searchCalendar(searchQuery, this.abortController.signal)
+		const restriction = createCalendarRestriction({ start, end, folderIds: [], eventSeries: true })
+		return (await this.searchModel()).searchCalendar({ query, maxResults, restriction }, this.abortController.signal)
 	}
 
 	deinit() {
