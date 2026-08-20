@@ -10886,7 +10886,7 @@ const typeModels = {
 				"dependency": null
 			},
 			"1926": {
-				"final": true,
+				"final": false,
 				"name": "rootImportMailSet",
 				"id": 1926,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
@@ -10895,7 +10895,7 @@ const typeModels = {
 				"dependency": null
 			},
 			"1927": {
-				"final": true,
+				"final": false,
 				"name": "imapSyncLabel",
 				"id": 1927,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
