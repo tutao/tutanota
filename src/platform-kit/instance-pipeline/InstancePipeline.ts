@@ -7,7 +7,8 @@ import { EntityAdapter } from "./EntityAdapter"
 import { ClientOnlyTypeModelResolver, TypeModelResolver } from "./EntityFunctions"
 import { Entity, TypeRef } from "@tutao/meta"
 import { IncomingServerJson, OutgoingServerJson, TypeMapper } from "./TypeMapper"
-import { RootPath } from "./EncryptionContextPath"
+import { InstancePath, RootPath } from "./EncryptionContextPath"
+import { InstanceTypeId } from "./InstanceTypeContext"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -73,20 +74,29 @@ export class InstancePipeline {
 		return this.decryptAndMapEncryptedInstance(await this.typeMapper.parseServerJson(instance), sk)
 	}
 
-	async decryptAndMapEncryptedInstance<T extends Entity>(encryptedParsedInstance: EncryptedParsedInstance, sk: AesKey | null): Promise<T> {
-		return (await this.decryptAndMapEncryptedInstanceParsed<T>(encryptedParsedInstance, sk)).instance
+	async decryptAndMapEncryptedInstance<T extends Entity>(
+		encryptedParsedInstance: EncryptedParsedInstance,
+		sessionKey: AesKey | null,
+		instanceTypeId: InstanceTypeId = encryptedParsedInstance.getInstanceTypeId(),
+		instancePath: InstancePath = new RootPath(instanceTypeId.app),
+	): Promise<T> {
+		return (await this.decryptAndMapEncryptedInstanceParsed<T>(encryptedParsedInstance, sessionKey, instanceTypeId, instancePath)).instance
 	}
 
 	async decryptAndMapEncryptedInstanceParsed<T extends Entity>(
 		encryptedParsedInstance: EncryptedParsedInstance,
-		sk: AesKey | null,
+		sessionKey: AesKey | null,
+		instanceTypeId: InstanceTypeId = encryptedParsedInstance.getInstanceTypeId(),
+		instancePath: InstancePath = new RootPath(instanceTypeId.app),
 	): Promise<MappedDecryptedInstance<T>> {
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(encryptedParsedInstance, this.modelMapper, this.cryptoMapper)
 		const decryptedInstance = await this.cryptoMapper.decryptParsedInstance(
 			encryptedParsedInstance,
-			sk,
+			sessionKey,
 			validateKdfNonceLength(entityAdapter._kdfNonce),
 			this.cryptoMapper.makeOwnerKeyProvider(entityAdapter._ownerGroup),
+			instanceTypeId,
+			instancePath,
 		)
 		return {
 			instance: await this.modelMapper.mapToInstance<T>(decryptedInstance),
