@@ -1,6 +1,5 @@
 import o from "@tutao/otest"
 import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
-import { compareContacts } from "../../../src/applications/mail-app/contacts/view/ContactGuiUtils.js"
 import { createTestEntity } from "../TestUtils.js"
 import {
 	extractStructuredAddresses,
@@ -11,6 +10,7 @@ import {
 
 import { ContactAddressType, ContactPhoneNumberType } from "../../../src/entities/tutanota/Utils"
 import { BirthdayTypeRef, ContactAddressTypeRef, ContactMailAddressTypeRef, ContactPhoneNumberTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
+import { compareContacts } from "../../../src/applications/mail-app/contacts/ContactUtils"
 
 o.spec("ContactUtilsTest", function () {
 	let compare = function (c1Firstname, c1Lastname, c1MailAddress, c2Firstname, c2Lastname, c2MailAddress, byFirstName, expectedResult) {

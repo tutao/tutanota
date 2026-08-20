@@ -3,7 +3,7 @@ import { Notifications } from "../../../src/ui/Notifications.js"
 
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient.js"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock.js"
-import { downcast } from "../../../src/platform-kit/utils"
+import { downcast, noOp } from "../../../src/platform-kit/utils"
 import { LoginController } from "../../../src/applications/common/api/main/LoginController.js"
 import { instance, matchers, object, when } from "testdouble"
 import { UserController } from "../../../src/applications/common/api/main/UserController.js"
@@ -83,6 +83,7 @@ o.spec("MailModelTest", function () {
 			connectivityModel,
 			() => object(),
 			object(),
+			noOp,
 		)
 	})
 
@@ -150,6 +151,7 @@ o.spec("MailModelTest", function () {
 					connectivityModel,
 					() => processInboxHandler,
 					object(),
+					noOp,
 				),
 				(m: MailModel) => {
 					m.getFolderSystemByGroupId = (groupId) => {

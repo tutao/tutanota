@@ -65,7 +65,21 @@ export const allowedImports = {
 	"calendar-importer": ["polyfill-helpers", "common-min", "common", "boot", "date", "date-gui"],
 	"mail-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "ui-extra"],
 	"mail-editor": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "sanitizer", "sharing", "date-gui"],
-	search: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "calendar-view", "contacts", "date", "date-gui", "sharing"],
+	search: [
+		"polyfill-helpers",
+		"common-min",
+		"common",
+		"boot",
+		"gui-base",
+		"main",
+		"mail-view",
+		"calendar-view",
+		"contacts",
+		"date",
+		"date-gui",
+		"sharing",
+		"drive",
+	],
 	// ContactMergeView needs HtmlEditor even though ContactEditor doesn't?
 	contacts: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "date", "date-gui", "mail-editor"],
 	"calendar-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "date", "date-gui", "sharing", "contacts", "calendar-importer"],
@@ -301,7 +315,6 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/applications/common/api/main") ||
 		isIn("src/applications/mail-app/mail/model") ||
 		isIn("src/applications/mail-app/contacts/model") ||
-		isIn("src/applications/mail-app/search/model") ||
 		isIn("src/applications/calendar-app/calendar/search/model") ||
 		isIn("src/applications/common/misc") ||
 		isIn("src/applications/common/file") ||
@@ -330,7 +343,12 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "worker"
 	} else if (moduleId.includes("pow-worker") || moduleId.includes("ProofOfWorkCaptchaUtils")) {
 		return "pow-worker"
-	} else if (isIn(`src/applications/mail-app/search`) || isIn(`src/applications/calendar-app/calendar/search`) || isIn("src/applications/common/search")) {
+	} else if (
+		isIn(`src/applications/mail-app/search`) ||
+		isIn(`src/applications/calendar-app/calendar/search`) ||
+		isIn("src/applications/drive-app/search") ||
+		isIn("src/applications/common/search")
+	) {
 		return "search"
 	} else if (isIn("src/applications/calendar-app/calendar/view")) {
 		return "calendar-view"

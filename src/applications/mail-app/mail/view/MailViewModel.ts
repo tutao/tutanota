@@ -7,6 +7,7 @@ import {
 	isEmpty,
 	isNotEmpty,
 	isNotNull,
+	lazyAsync,
 	lazyMemoized,
 	mapWith,
 	mapWithout,
@@ -65,7 +66,8 @@ import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../p
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { MailSearchModel } from "../../search/model/MailSearchModel"
 
-import { SearchQuery } from "../../../common/search/SearchUtils"
+import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
+import { LoginController } from "../../../common/api/main/LoginController"
 
 export interface MailOpenedListener {
 	onEmailOpened(mail: Mail): unknown
@@ -145,7 +147,8 @@ export class MailViewModel {
 		private readonly updateUi: () => unknown,
 		private readonly syncTracker: SyncTracker,
 		private readonly searchRouter: SearchRouter,
-		private readonly searchModel: MailSearchModel,
+		private readonly searchModel: lazyAsync<MailSearchModel>,
+		private readonly logins: LoginController,
 	) {}
 
 	getSelectedMailSetKind(): MailSetKind | null {
@@ -314,7 +317,10 @@ export class MailViewModel {
 
 		let mail: Mail | null
 		try {
-			mail = await this.entityClient.load(MailTypeRef, [listId, mailId], { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })
+			mail = await this.entityClient.load(MailTypeRef, [listId, mailId], {
+				...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+				cacheMode: CacheMode.WriteOnly,
+			})
 		} catch (e) {
 			if (isOfflineError(e)) {
 				return
@@ -975,11 +981,20 @@ export class MailViewModel {
 	getMoveMode(folder: MailSet): MoveMode {
 		return this.groupMailsByConversation(folder) ? MoveMode.Conversation : MoveMode.Mails
 	}
+
 	selectSearchResult(searchQuery: SearchQuery, mail: Mail | null) {
 		this.searchRouter.routeTo(searchQuery.query, searchQuery.restriction, mail ? getElementId(mail) : null)
 	}
-	getSearchResult(searchQuery: SearchQuery) {
-		return this.searchModel.searchMails(searchQuery)
+
+	async getSearchResult({ query, maxResults }: QuickSearchQuery): Promise<LiveSearchResult<Mail>> {
+		const { createMailRestriction, getFreeSearchStartDate } = await import("../../search/model/MailSearchUtils.js")
+		const restriction = createMailRestriction({
+			start: null,
+			end: this.logins.getUserController().isFreeAccount() ? getFreeSearchStartDate().getTime() : null,
+			field: null,
+			folderIds: [],
+		})
+		return (await this.searchModel()).searchMails({ query, maxResults, restriction })
 	}
 
 	deinit() {

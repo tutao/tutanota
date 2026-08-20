@@ -213,3 +213,4 @@ export function createEmptyRestriction(category: SearchCategoryType): SearchRest
 		eventSeries: null,
 	}
 }
+export type QuickSearchQuery = Pick<SearchQuery, "query" | "maxResults">

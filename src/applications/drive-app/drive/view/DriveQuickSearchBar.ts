@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { QuickSearchBar, SearchBarAttrs } from "../../../common/search/QuickSearchBar"
+import { QuickSearchBar, SearchBarAttrs } from "../../../common/gui/QuickSearchBar"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { DriveFolder } from "@tutao/entities/drive"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
@@ -8,11 +8,10 @@ import { FolderItem } from "./DriveUtils"
 import { getDisplayType, getFileIcon, getItemIconFill } from "../model/DriveMimeUtils"
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { FontIcons } from "../../../../ui/base/icons/FontIcons"
-import { LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
-import { createDriveRestriction } from "../../search/model/DriveSearchUtils"
+import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
 
 export interface DriveSearchBarAttrs {
-	loadResults: (searchQuery: SearchQuery) => Promise<LiveSearchResult<FolderItem>>
+	loadResults: (searchQuery: QuickSearchQuery) => Promise<LiveSearchResult<FolderItem>>
 	selectResult: (searchQuery: SearchQuery, entry: FolderItem | null) => unknown
 }
 
@@ -24,7 +23,6 @@ export class DriveQuickSearchBar implements ClassComponent<DriveSearchBarAttrs> 
 				attrs.loadResults({
 					query,
 					maxResults: 10,
-					restriction: createDriveRestriction({ start: null, end: null }),
 				}),
 			selectResult: attrs.selectResult,
 			renderResult: (entry: FolderItem, isSelected: boolean) => {
