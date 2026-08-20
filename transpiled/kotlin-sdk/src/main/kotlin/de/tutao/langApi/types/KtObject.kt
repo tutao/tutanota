@@ -1,13 +1,24 @@
 package de.tutao.langApi.types
 
-class KtObject {
-    companion object {
-        fun <T> freeze(list: List<T>): List<T> {
-            return list.toList()
-        }
+import de.tutao.langApi.TsArray
+import de.tutao.langApi.TsList
 
-        fun <T> freeze(list: Array<T>): List<T> {
-            return list.toList()
-        }
-    }
+class KtObject {
+	companion object {
+		fun <T> freeze(list: List<T>): List<T> {
+			return list.toList()
+		}
+
+		fun <T> freeze(list: Array<T>): Array<T> {
+			return list
+		}
+
+		fun <T> freeze(list: TsList<T>): TsList<T> {
+			return list
+		}
+
+		fun <T> freeze(list: TsArray<T>): TsArray<T> {
+			return list
+		}
+	}
 }

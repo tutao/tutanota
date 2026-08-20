@@ -13,18 +13,21 @@ export type TsArray<T> = {
 	map<U>(callbackfn: (value: T, index: TsInt, array: T[]) => U, thisArg?: any): TsArray<U>
 }
 
+// mutating array
 export const TsArray = {
-	from<T>(arr: Array<T>): TsArray<T> {
+	from<T>(...arr: Array<T>): TsArray<T> {
 		return arr as unknown as TsArray<T>
 	},
 }
 
+// read-only array
 export type TsList<T> = TsArray<T>
 export const TsList = TsArray
 
 export const TsObject = {
 	keys(obj: any): TsArray<TsString> {
-		return TsArray.from(Object.keys(obj).map((k) => TsString.fromString(k)))
+		const keys = Object.keys(obj).map((k) => TsString.fromString(k))
+		return TsArray.from(...keys)
 	},
 
 	freeze<T>(obj: T): Readonly<T> {
