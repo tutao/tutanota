@@ -1,6 +1,14 @@
 package de.tutao.langApi
 
-open class TutanotaError(val name: TsString, override val message: String? = null) : Error()
+import de.tutao.langApi.types.KtString
 
-open class ProgrammingError(msg: TsString?) :
-	TutanotaError(TsString("ProgrammingError"), msg?.asKtString() ?: "Unknown Programming Error")
+open class TutanotaError(
+	val name: KtString,
+	val errMessage: KtString = KtString("Unspecified error message")
+) : Error() {
+	override val message: String?
+		get() = this.errMessage.asPrimitive()
+}
+
+open class ProgrammingError(msg: KtString?) :
+	TutanotaError(KtString("ProgrammingError"), msg ?: KtString("Unknown Programming Error"))

@@ -37,7 +37,7 @@ class TypeChecks {
 
 		fun hasProperty(propertyName: TsString, obj: Any? = globalThis): Boolean {
 			if (obj === globalThis) {
-				val propertyName = propertyName.asKtString()
+				val propertyName = propertyName.asPrimitive()
 				return propertyName === "env"
 			}
 

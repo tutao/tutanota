@@ -57,7 +57,7 @@ class KtDouble(private val inner: Double) {
 		}
 
 		fun parseDouble(doubleStr: TsString): KtDouble {
-			return KtDouble(doubleStr.asKtString().toDouble())
+			return KtDouble(doubleStr.asPrimitive().toDouble())
 		}
 	}
 
