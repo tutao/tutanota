@@ -501,6 +501,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 										this.driveViewModel.flushTransfers()
 									}
 								},
+								retryTransfer: (transferId) => this.driveViewModel.retryTransfer(transferId),
+								retryFailedTransfers: () => this.driveViewModel.retryFailedTransfers(),
 							} satisfies DriveTransferStackAttrs),
 						],
 						mobileHeader: () => this.renderMobileHeader(headerAttrs, showMoveItemDialog),

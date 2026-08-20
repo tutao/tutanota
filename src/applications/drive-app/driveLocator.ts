@@ -1,4 +1,4 @@
-import { AppType,  Const, EnvProvider, FeatureType, Mode, ProgrammingError } from "@tutao/app-env"
+import { AppType, Const, EnvProvider, FeatureType, Mode, ProgrammingError } from "@tutao/app-env"
 import { EventController } from "../common/api/main/EventController.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
