@@ -418,7 +418,54 @@ o.spec("ExpandedInboxRuleHandler", () => {
 	})
 
 	o.spec("getLabelResultValue", () => {
-		// FIXME
+		const labelA = createTestEntity(MailSetTypeRef, {
+			_id: ["listId", "labelAid"],
+			folderType: MailSetKind.LABEL,
+		})
+
+		const labelB = createTestEntity(MailSetTypeRef, {
+			_id: ["listId", "labelBid"],
+			folderType: MailSetKind.LABEL,
+		})
+
+		o.test("return an empty array when inbox rule does not have a LABEL result", async () => {
+			const rule = _createRule([], [_createRuleResult(InboxRuleResultType.READ, null)])
+			const labelResultValue = await ruleHandler.getLabelResultValue(rule, object<MailboxDetail>())
+			o.check(labelResultValue).deepEquals([])
+		})
+
+		o.test("ignore null values in LABEL results", async () => {
+			const rule = _createRule(
+				[],
+				[_createRuleResult(InboxRuleResultType.LABEL, null), _createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelAid"])],
+			)
+
+			const labels = object<Map<string, MailSet>>()
+			when(labels.get(labelA._id[1])).thenReturn(labelA)
+			when(mailModel.getLabelsByGroupId(anything())).thenReturn(labels)
+
+			const labelResultValue = await ruleHandler.getLabelResultValue(rule, object<MailboxDetail>())
+			o.check(labelResultValue).deepEquals([labelA])
+		})
+
+		o.test("return an array with all appropriate labels when inbox rule has multiple LABEL results", async () => {
+			const rule = _createRule(
+				[],
+				[
+					_createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelAid"]),
+					_createRuleResult(InboxRuleResultType.READ, null),
+					_createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelBid"]),
+				],
+			)
+
+			const labels = object<Map<string, MailSet>>()
+			when(labels.get(labelA._id[1])).thenReturn(labelA)
+			when(labels.get(labelB._id[1])).thenReturn(labelB)
+			when(mailModel.getLabelsByGroupId(anything())).thenReturn(labels)
+
+			const labelResultValue = await ruleHandler.getLabelResultValue(rule, object<MailboxDetail>())
+			o.check(labelResultValue).deepEquals([labelA, labelB])
+		})
 	})
 
 	o.spec("getReadResultValue", () => {
@@ -448,9 +495,13 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		let mailTwo: Mail
 		let moveTargetFolder: MailSet
 		let moveTargetFolderTwo: MailSet
+		let labelA: MailSet
+		let labelB: MailSet
+		let labelC: MailSet
 		let rule: ExpandedInboxRule
 		let ruleTwo: ExpandedInboxRule
 		let folders: FolderSystem
+		let labels: Map<string, MailSet>
 
 		o.beforeEach(() => {
 			mailOne = _createMailWithDifferentEnvelopeSender({ subject: "hello friend" })
@@ -465,10 +516,29 @@ o.spec("ExpandedInboxRuleHandler", () => {
 				folderType: MailSetKind.CUSTOM,
 			})
 
+			labelA = createTestEntity(MailSetTypeRef, {
+				_id: ["listId", "labelAid"],
+				folderType: MailSetKind.LABEL,
+			})
+			labelB = createTestEntity(MailSetTypeRef, {
+				_id: ["listId", "labelBid"],
+				folderType: MailSetKind.LABEL,
+			})
+			labelC = createTestEntity(MailSetTypeRef, {
+				_id: ["listId", "labelCid"],
+				folderType: MailSetKind.LABEL,
+			})
+
 			folders = object<FolderSystem>()
 			when(folders.getFolderById(moveTargetFolder._id[1])).thenReturn(moveTargetFolder)
 			when(folders.getFolderById(moveTargetFolderTwo._id[1])).thenReturn(moveTargetFolderTwo)
 			when(mailModel.getMailboxFoldersForId(anything())).thenResolve(folders)
+
+			labels = object<Map<string, MailSet>>()
+			when(labels.get(labelA._id[1])).thenReturn(labelA)
+			when(labels.get(labelB._id[1])).thenReturn(labelB)
+			when(labels.get(labelC._id[1])).thenReturn(labelC)
+			when(mailModel.getLabelsByGroupId(anything())).thenReturn(labels)
 
 			rule = _createRule([], [_createRuleResult(InboxRuleResultType.MOVE, moveTargetFolder._id)])
 			ruleTwo = _createRule([], [_createRuleResult(InboxRuleResultType.MOVE, moveTargetFolderTwo._id)])
@@ -524,8 +594,52 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			await ruleHandler.applyRules(matchedList, object<MailboxDetail>())
 
 			verify(mailModel.markMails([mailOne._id, mailTwo._id], false), { times: 1 })
-			// check that move is not called
+			// check that move & label are not called
 			verify(mailModel.moveMails(anything(), anything(), anything()), { times: 0 })
+			verify(mailModel.applyLabels(anything(), anything(), anything()), { times: 0 })
+		})
+
+		o.test("multiple mails receiving different labels are applied separately", async () => {
+			const ruleAB = _createRule(
+				[],
+				[_createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelAid"]), _createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelBid"])],
+			)
+			const ruleAC = _createRule(
+				[],
+				[_createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelAid"]), _createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelCid"])],
+			)
+
+			const matchedList = [
+				{ mail: mailOne, inboxRule: ruleAB },
+				{ mail: mailTwo, inboxRule: ruleAC },
+			]
+			await ruleHandler.applyRules(matchedList, object<MailboxDetail>())
+
+			verify(mailModel.applyLabels([mailOne._id], [labelA, labelB], []), { times: 1 })
+			verify(mailModel.applyLabels([mailTwo._id], [labelA, labelC], []), { times: 1 })
+			// these were the only two calls
+			verify(mailModel.applyLabels(anything(), anything(), anything()), { times: 2 })
+		})
+
+		o.test("multiple mails receiving the same label combination get them applied together", async () => {
+			const ruleAB = _createRule(
+				[],
+				[_createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelAid"]), _createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelBid"])],
+			)
+			const ruleBA = _createRule(
+				[],
+				[_createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelBid"]), _createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelAid"])],
+			)
+
+			const matchedList = [
+				{ mail: mailOne, inboxRule: ruleAB },
+				{ mail: mailTwo, inboxRule: ruleBA },
+			]
+			await ruleHandler.applyRules(matchedList, object<MailboxDetail>())
+
+			verify(mailModel.applyLabels([mailOne._id, mailTwo._id], [labelA, labelB], []), { times: 1 })
+			// this was the only call
+			verify(mailModel.applyLabels(anything(), anything(), anything()), { times: 1 })
 		})
 
 		o.test("all results on a rule are applied", async () => {

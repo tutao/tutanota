@@ -1,6 +1,6 @@
-import { assertNotNull, asyncFind, isEmpty, promiseMap, splitInChunks } from "@tutao/utils"
+import { assertNotNull, asyncFind, isEmpty, isNotNull, promiseMap, splitInChunks } from "@tutao/utils"
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
-import { EnvProvider, ProgrammingError } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailModel, MoveMode } from "./MailModel"
@@ -56,8 +56,14 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 	}
 
 	async getLabelResultValue(inboxRule: ExpandedInboxRule, mailboxDetail: MailboxDetail): Promise<MailSet[]> {
-		// FIXME implement
-		return []
+		const labelResult =
+			inboxRule.results.filter((result) => result.type === InboxRuleResultType.LABEL && result.value != null).map((result) => result.value) ?? []
+		if (labelResult.length === 0) {
+			return []
+		}
+
+		const labels = this.mailModel.getLabelsByGroupId(assertNotNull(mailboxDetail.mailbox._ownerGroup))
+		return labelResult.map((labelId) => labels.get(elementIdPart(labelId!))).filter(isNotNull)
 	}
 
 	getReadResultValue(inboxRule: ExpandedInboxRule): boolean {
@@ -212,16 +218,25 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 	// The excludeMove option is because ProcessInboxHandler handles the move along with the spam classifier, but other inbox rule results need to be handled
 	async applyRules(list: Array<{ mail: Mail; inboxRule: ExpandedInboxRule }>, mailboxDetail: MailboxDetail, excludeMove: boolean = false) {
 		const moveToFolderMap: Map<Id, { mailIds: IdTuple[]; mailSet: MailSet }> = new Map()
+		// index is sorted array of label's element ids joined
+		const labelsToMailsMap: Map<string, { mailIds: IdTuple[]; mailSets: MailSet[] }> = new Map()
 		const mailsToMarkRead: Array<IdTuple> = []
 
 		for (const item of list) {
-			await this.gatherInboxRuleResults(item.mail, item.inboxRule, mailboxDetail, moveToFolderMap, mailsToMarkRead)
+			await this.gatherInboxRuleResults(item.mail, item.inboxRule, mailboxDetail, moveToFolderMap, labelsToMailsMap, mailsToMarkRead)
 		}
 
 		// Apply moves
 		if (!excludeMove && moveToFolderMap.size > 0) {
 			for (const { mailIds, mailSet } of moveToFolderMap.values()) {
 				await this.mailModel.moveMails(mailIds, mailSet, MoveMode.Mails)
+			}
+		}
+
+		// Apply labels
+		if (labelsToMailsMap.size > 0) {
+			for (const { mailIds, mailSets } of labelsToMailsMap.values()) {
+				await this.mailModel.applyLabels(mailIds, mailSets, [])
 			}
 		}
 
@@ -236,8 +251,10 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 		inboxRule: ExpandedInboxRule,
 		mailboxDetail: MailboxDetail,
 		moveToFolderMap: Map<Id, { mailIds: IdTuple[]; mailSet: MailSet }>,
+		labelsToMailsMap: Map<string, { mailIds: IdTuple[]; mailSets: MailSet[] }>,
 		mailsToMarkRead: Array<IdTuple>,
 	) {
+		let handledLabels = false
 		for (const result of inboxRule.results) {
 			switch (result.type) {
 				case InboxRuleResultType.MOVE: {
@@ -255,8 +272,21 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 				case InboxRuleResultType.READ:
 					mailsToMarkRead.push(mail._id)
 					break
-				case InboxRuleResultType.LABEL:
-					throw new ProgrammingError("not implemented")
+				case InboxRuleResultType.LABEL: {
+					if (handledLabels) break
+					handledLabels = true
+					const labels = await this.getLabelResultValue(inboxRule, mailboxDetail)
+					const key = labels
+						.map((l) => getElementId(l))
+						.sort()
+						.join()
+					if (labelsToMailsMap.has(key)) {
+						labelsToMailsMap.get(key)!.mailIds.push(mail._id)
+					} else {
+						labelsToMailsMap.set(key, { mailIds: [mail._id], mailSets: labels })
+					}
+					break
+				}
 				case InboxRuleResultType.EXCLUDE_SPAM:
 					// Exclude spam does not need to be handled here. It only is checked in conjunction with SpamClassifier in ProcessInboxHandler
 					break
