@@ -70,7 +70,7 @@ pipeline {
 		string(
 				name: 'branch',
 				defaultValue: "*/master",
-				description: "the branch to build the release from, will be propagated to the sub-jobs."
+				description: "the branch to build the release from, will be propagated to the sub-jobs <br> the branch to build the release from (make sure the branch is pushed to tutao/private-issues, use the \"scm management/update-private-issues\" jenkins job)"
 		)
 		persistentString(
 				name: "notify to",

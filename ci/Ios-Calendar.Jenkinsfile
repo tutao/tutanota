@@ -24,7 +24,7 @@ pipeline {
 		string(
 				name: 'branch',
 				defaultValue: "*/master",
-				description: "the branch to build the release from"
+				description: "the branch to build the release from (make sure the branch is pushed to tutao/private-issues, use the \"scm management/update-private-issues\" jenkins job)"
 		)
 	}
 
