@@ -30,7 +30,7 @@ export const MultiUserMigrationSummaryPage: Component<WizardStepComponentAttrs<M
 		const failed = data.results.filter((r) => !r.success)
 		const hasCredentials = data.results.some((r) => r.success && r.generatedPassword)
 
-		return m(".mt-24", [
+		return m("", [
 			m(TitleSection, {
 				icon: successCount === data.results.length ? Icons.Checkmark : Icons.InfoFilled,
 				iconOptions: { color: successCount === data.results.length ? theme.success : theme.on_surface_variant },

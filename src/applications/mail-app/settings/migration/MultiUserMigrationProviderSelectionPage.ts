@@ -18,7 +18,7 @@ assertMainOrNode()
 export const MultiUserMigrationProviderSelectionPage: Component<WizardStepComponentAttrs<MultiUserMigrationData>> = {
 	view({ attrs: { ctx } }: Vnode<WizardStepComponentAttrs<MultiUserMigrationData>>): Children {
 		const data = ctx.viewModel
-		return m(".mt-24", [
+		return m("", [
 			m(TitleSection, {
 				icon: Icons.MailFilled,
 				iconOptions: { color: theme.on_surface_variant },
