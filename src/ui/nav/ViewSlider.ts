@@ -164,11 +164,11 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	}
 
 	private getColumnsForMainSlider(): Array<ViewColumn> {
-		return this.viewColumns.filter((c) => c.columnType === ColumnType.Background || c.isVisible)
+		return this.viewColumns.filter((c) => c.enabled && (c.columnType === ColumnType.Background || c.isVisible))
 	}
 
 	private getColumnsForOverlay(): Array<ViewColumn> {
-		return this.viewColumns.filter((c) => c.columnType === ColumnType.Foreground && !c.isVisible)
+		return this.viewColumns.filter((c) => c.enabled && c.columnType === ColumnType.Foreground && !c.isVisible)
 	}
 
 	private createModalBackground(): Children {
@@ -216,7 +216,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 			this.focus(this.viewColumns[1])
 		}
 
-		this.focusedColumn = this.focusedColumn || this.mainColumn
+		this.focusedColumn = this.focusedColumn && this.focusedColumn.enabled ? this.focusedColumn : this.mainColumn
 		let visibleColumns: ViewColumn[] = [this.focusedColumn.columnType === ColumnType.Background ? this.focusedColumn : this.mainColumn]
 
 		let remainingSpace = window.innerWidth - visibleColumns[0].minWidth
@@ -268,13 +268,13 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	getNextVisibleColumn(visibleColumns: ViewColumn[], allColumns: ViewColumn[]): ViewColumn | null {
 		// First: try to find a background column which is not visible
 		let nextColumn = allColumns.find((column) => {
-			return column.columnType === ColumnType.Background && visibleColumns.indexOf(column) < 0
+			return column.columnType === ColumnType.Background && column.enabled && visibleColumns.indexOf(column) < 0
 		})
 
 		if (!nextColumn) {
 			// Second: if no more background columns are available add the foreground column to the visible columns
 			nextColumn = allColumns.find((column) => {
-				return column.columnType === ColumnType.Foreground && visibleColumns.indexOf(column) < 0
+				return column.columnType === ColumnType.Foreground && column.enabled && visibleColumns.indexOf(column) < 0
 			})
 		}
 
@@ -412,6 +412,13 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 		let offset = 0
 
 		for (let column of this.viewColumns) {
+			if (!column.enabled) {
+				// disabled columns never take up any space in the sliding container, regardless of viewport width
+				column.offset = offset
+				column.width = 0
+				continue
+			}
+
 			if (column.columnType === ColumnType.Background || column.isVisible) {
 				column.offset = offset
 				offset += column.width
@@ -470,7 +477,7 @@ export class ViewSlider implements Component<ViewSliderAttrs> {
 	}
 
 	allColumnsVisible(): boolean {
-		return this.visibleBackgroundColumns.length === this.viewColumns.length
+		return this.visibleBackgroundColumns.length === this.viewColumns.filter((c) => c.enabled).length
 	}
 
 	attachTouchHandler(element: HTMLElement) {

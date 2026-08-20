@@ -24,6 +24,8 @@ export class ViewColumn implements Component<Attrs> {
 	columnType: ColumnType
 	readonly minWidth: number
 	maxWidth: number
+	// when false, the ViewSlider never treats this column as a candidate to show, regardless of available width
+	enabled: boolean
 	private readonly headerCenter: MaybeLazy<MaybeTranslation>
 	private readonly ariaLabel: lazy<string>
 	private readonly testId: string | null
@@ -85,6 +87,7 @@ export class ViewColumn implements Component<Attrs> {
 		this.offset = 0
 		this.isInForeground = false
 		this.isVisible = false
+		this.enabled = true
 		// fixup for old-style components
 		this.view = this.view.bind(this)
 	}

@@ -1,6 +1,6 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
-import { SettingsFolder } from "../../common/settings/SettingsFolder.js"
+import { SettingsFolder, SettingsFolderColumnLayout } from "../../common/settings/SettingsFolder.js"
 import { GlobalSettingsViewer } from "./GlobalSettingsViewer"
 import { DesktopSettingsViewer } from "./DesktopSettingsViewer"
 import { MailSettingsViewer } from "./MailSettingsViewer"
@@ -460,7 +460,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						},
 						undefined,
 						"settings",
-						true,
+						SettingsFolderColumnLayout.TwoColumn,
 					),
 				)
 			}
@@ -705,7 +705,9 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		if (!this._currentViewer) {
 			this.detailsViewer = null
 			this._currentViewer = this._selectedFolder.viewerCreator()
-			this._settingsColumn.maxWidth = this._selectedFolder.wantsWideDetailsColumn
+			const useTwoColumnLayout = this._selectedFolder.columnLayout === SettingsFolderColumnLayout.TwoColumn
+			this._settingsDetailsColumn.enabled = !useTwoColumnLayout
+			this._settingsColumn.maxWidth = useTwoColumnLayout
 				? layout_size.second_col_max_width + layout_size.third_col_max_width
 				: SETTINGS_COLUMN_DEFAULT_MAX_WIDTH
 			this.viewSlider.updateVisibleBackgroundColumns()

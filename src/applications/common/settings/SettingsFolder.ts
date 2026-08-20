@@ -12,6 +12,11 @@ interface SettingsFolderPath {
 	id: string | null
 }
 
+export const enum SettingsFolderColumnLayout {
+	Default,
+	TwoColumn,
+}
+
 export class SettingsFolder<T> {
 	readonly url: string
 	private readonly path: SettingsFolderPath
@@ -25,8 +30,7 @@ export class SettingsFolder<T> {
 	 * @param viewerCreator A function to produce instances of {@link UpdatableSettingsViewer}.
 	 * @param data Additional data that the folder can carry
 	 * @param pathId used in case the settings must be under a different path
-	 * @param wantsWideDetailsColumn if true, the settings column is widened at the expense of the details column
-	 * while this folder is selected (for folders whose viewer needs more room than the usual list+details split)
+	 * @param columnLayout how the settings/details columns are laid out while this folder is selected, see {@link SettingsFolderColumnLayout}
 	 */
 	constructor(
 		readonly name: () => MaybeTranslation,
@@ -35,7 +39,7 @@ export class SettingsFolder<T> {
 		readonly viewerCreator: lazy<UpdatableSettingsViewer>,
 		readonly data: T,
 		readonly pathId = "settings",
-		readonly wantsWideDetailsColumn = false,
+		readonly columnLayout: SettingsFolderColumnLayout = SettingsFolderColumnLayout.Default,
 	) {
 		this.path = typeof path === "string" ? { folder: path, id: null } : path
 		this.url =
