@@ -65,6 +65,9 @@ import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 EnvProvider.assertWorkerOrNode()
 
 const TAG = "[OfflineMailIndexer]"
+
+// we do not want to bump this up any higher, as it determines how big our range requests are, and we can potentially
+// break MAX_SAFE_SQL_VARS
 const INDEX_CHUNK_SIZE = 1000
 
 /**
