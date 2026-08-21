@@ -7,7 +7,7 @@ import { EntityUpdateData } from "../../../platform-kit/instance-pipeline/utils/
 import { elementIdPart, isSameId } from "@tutao/meta"
 import m, { Children } from "mithril"
 import type { MailboxDetail, MailboxModel } from "../../common/mailFunctionality/MailboxModel"
-import { lang } from "../../../ui/utils/LanguageViewModel"
+import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { PrimaryButton, SecondaryButton } from "../../../ui/base/buttons/VariantButtons"
@@ -26,17 +26,18 @@ import { InboxRuleModel } from "../mail/model/InboxRuleModel"
 import { MessageBanner } from "../../../ui/base/MessageBanner"
 import { Switch } from "../../../ui/base/Switch"
 import { IconButton } from "../../../ui/base/IconButton"
-import { createDropdown } from "../../../ui/base/Dropdown"
+import { createDropdown, DropdownButtonAttrs } from "../../../ui/base/Dropdown"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
 import { ExpandedInboxRuleHandler } from "../mail/model/ExpandedInboxRuleHandler"
 import { ExpandedInboxRule, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
-import { assertNotNull, isEmpty, promiseMap, splitInChunks } from "@tutao/utils"
+import { assertNotNull, isEmpty, isNotNull, promiseMap, splitInChunks } from "@tutao/utils"
 import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../entities/tutanota/Utils"
 import { resolveMailSetEntries } from "../mail/model/MailSetListModel"
 import { MoveMode } from "../mail/model/MailModel"
 import { isOfflineError } from "@tutao/rest-client/error"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { Icon, IconSize } from "../../../ui/base/Icon"
+import { contextDropdown } from "../../../ui/base/GuiUtils"
 
 EnvProvider.assertMainOrNode()
 
@@ -165,6 +166,14 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 						ev.stopPropagation()
 						ev.preventDefault()
 					},
+					// show actions of edit button on right click as well
+					oncontextmenu: (e: MouseEvent) => {
+						// If text is selected show typical right click menu, so text can be copied
+						// also disable while dragging so these two don't interfere on mobile
+						if (window.getSelection()?.toString() === "" && this.draggingOverRuleIndex == null) {
+							contextDropdown(e, this.getActionsForRule(index, rule))
+						}
+					},
 				},
 				m(
 					Card,
@@ -191,6 +200,11 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 									assertNotNull(e.currentTarget as HTMLElement).parentElement!.parentElement!.setAttribute("draggable", "false"),
 								ontouchend: (e: Event) =>
 									assertNotNull(e.currentTarget as HTMLElement).parentElement!.parentElement!.setAttribute("draggable", "false"),
+								oncontextmenu: (e: MouseEvent) => {
+									// context menu here could interfere with our other events
+									e.preventDefault()
+									e.stopPropagation()
+								},
 							},
 							m(
 								"",
@@ -219,57 +233,31 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 							rule.name,
 						),
 						// toggle button
-						m(Switch, {
-							ariaLabel: "deactivate_action",
-							checked: rule.enabled,
-							onclick: async (checked: boolean) => {
-								rule.enabled = checked
-								await this.model.saveInboxRule(rule)
+						m(
+							"",
+							{
+								// don't context menu on input element, that feels weird
+								oncontextmenu: (e: MouseEvent) => {
+									e.preventDefault()
+									e.stopPropagation()
+								},
 							},
-						}),
+							m(Switch, {
+								ariaLabel: "deactivate_action",
+								checked: rule.enabled,
+								onclick: async (checked: boolean) => {
+									rule.enabled = checked
+									await this.model.saveInboxRule(rule)
+								},
+							}),
+						),
 						// actions button
 						m(IconButton, {
 							label: "edit_action",
 							icon: Icons.More,
 							size: ButtonSize.Normal,
 							click: createDropdown({
-								lazyButtons: () => [
-									{
-										label: "edit_action",
-										click: () =>
-											mailLocator.mailboxModel
-												.getUserMailboxDetails()
-												.then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, this.inboxRuleModel, rule)),
-									},
-									index > 1
-										? {
-												label: "moveToTop_action",
-												click: () => this.model.moveRuleToFirst(rule, index),
-											}
-										: null,
-									index > 0
-										? {
-												label: "moveUp_action",
-												click: () => this.model.moveRuleUp(rule, index),
-											}
-										: null,
-									index < this.model.orderedInboxRules.length - 1
-										? {
-												label: "moveDown_action",
-												click: () => this.model.moveRuleDown(rule, index),
-											}
-										: null,
-									index < this.model.orderedInboxRules.length - 2
-										? {
-												label: "moveToBottom_action",
-												click: () => this.model.moveRuleToLast(rule, index),
-											}
-										: null,
-									{
-										label: "delete_action",
-										click: () => this.model.deleteInboxRule(rule),
-									},
-								],
+								lazyButtons: () => this.getActionsForRule(index, rule),
 								width: 260,
 							}),
 						}),
@@ -315,6 +303,46 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		//
 		// 	m.redraw()
 		// })
+	}
+
+	private getActionsForRule(index: number, rule: ExpandedInboxRule): DropdownButtonAttrs[] {
+		return [
+			{
+				label: "edit_action" as TranslationKey,
+				click: () =>
+					mailLocator.mailboxModel
+						.getUserMailboxDetails()
+						.then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, this.inboxRuleModel, rule)),
+			},
+			index > 1
+				? {
+						label: "moveToTop_action" as TranslationKey,
+						click: () => this.model.moveRuleToFirst(rule, index),
+					}
+				: null,
+			index > 0
+				? {
+						label: "moveUp_action" as TranslationKey,
+						click: () => this.model.moveRuleUp(rule, index),
+					}
+				: null,
+			index < this.model.orderedInboxRules.length - 1
+				? {
+						label: "moveDown_action" as TranslationKey,
+						click: () => this.model.moveRuleDown(rule, index),
+					}
+				: null,
+			index < this.model.orderedInboxRules.length - 2
+				? {
+						label: "moveToBottom_action" as TranslationKey,
+						click: () => this.model.moveRuleToLast(rule, index),
+					}
+				: null,
+			{
+				label: "delete_action" as TranslationKey,
+				click: () => this.model.deleteInboxRule(rule),
+			},
+		].filter(isNotNull)
 	}
 
 	// This is kept around to support old inbox rules, remove once they are no longer used
