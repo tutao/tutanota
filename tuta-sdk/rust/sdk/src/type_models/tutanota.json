@@ -1701,37 +1701,37 @@
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"2053": {
-				"final": false,
-				"name": "externalMailEncMailGroupInfoInstanceKey",
-				"id": 2053,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false,
-				"transferredAttributeId": null
-			},
 			"2054": {
 				"final": false,
-				"name": "externalMailGroupInfoInstanceKeyVersion",
+				"name": "externalMailEncMailGroupInfoInstanceKey",
 				"id": 2054,
-				"type": "Number",
+				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
 			"2055": {
 				"final": false,
-				"name": "externalUserEncUserGroupInfoInstanceKey",
+				"name": "externalMailGroupInfoInstanceKeyVersion",
 				"id": 2055,
-				"type": "Bytes",
+				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
 			"2056": {
 				"final": false,
-				"name": "externalUserGroupInfoInstanceKeyVersion",
+				"name": "externalUserEncUserGroupInfoInstanceKey",
 				"id": 2056,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2057": {
+				"final": false,
+				"name": "externalUserGroupInfoInstanceKeyVersion",
+				"id": 2057,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
@@ -2744,10 +2744,10 @@
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2043": {
+			"2044": {
 				"final": true,
 				"name": "mailSet",
-				"id": 2043,
+				"id": 2044,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2037,
@@ -5990,37 +5990,37 @@
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"2047": {
-				"final": true,
-				"name": "sharedGroupEncInviterGroupInfoInstanceKey",
-				"id": 2047,
-				"type": "Bytes",
-				"cardinality": "ZeroOrOne",
-				"encrypted": false,
-				"transferredAttributeId": null
-			},
 			"2048": {
 				"final": true,
-				"name": "inviterGroupInfoInstanceKeyVersion",
+				"name": "sharedGroupEncInviterGroupInfoInstanceKey",
 				"id": 2048,
-				"type": "Number",
+				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
 			"2049": {
 				"final": true,
-				"name": "sharedGroupEncSharedGroupInfoInstanceKey",
+				"name": "inviterGroupInfoInstanceKeyVersion",
 				"id": 2049,
-				"type": "Bytes",
+				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
 			"2050": {
 				"final": true,
-				"name": "sharedGroupInfoInstanceKeyVersion",
+				"name": "sharedGroupEncSharedGroupInfoInstanceKey",
 				"id": 2050,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2051": {
+				"final": true,
+				"name": "sharedGroupInfoInstanceKeyVersion",
+				"id": 2051,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
@@ -6189,19 +6189,19 @@
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"2051": {
+			"2052": {
 				"final": true,
 				"name": "sharedGroupEncInviteeGroupInfoInstanceKey",
-				"id": 2051,
+				"id": 2052,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"2052": {
+			"2053": {
 				"final": true,
 				"name": "inviteeGroupInfoInstanceKeyVersion",
-				"id": 2052,
+				"id": 2053,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
@@ -9103,10 +9103,10 @@
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2046": {
+			"2047": {
 				"final": true,
 				"name": "mailSet",
-				"id": 2046,
+				"id": 2047,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2037,
@@ -9195,10 +9195,10 @@
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2045": {
+			"2046": {
 				"final": true,
 				"name": "mailSet",
-				"id": 2045,
+				"id": 2046,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2037,
@@ -13147,35 +13147,44 @@
 			},
 			"2039": {
 				"final": true,
-				"name": "_ownerEncSessionKey",
+				"name": "_ownerGroup",
 				"id": 2039,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 589
+			},
+			"2040": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 2040,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": 434
 			},
-			"2040": {
+			"2041": {
 				"final": true,
 				"name": "_ownerKeyVersion",
-				"id": 2040,
+				"id": 2041,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": 1399
 			},
-			"2041": {
+			"2042": {
 				"final": true,
 				"name": "name",
-				"id": 2041,
+				"id": 2042,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": true,
 				"transferredAttributeId": 435
 			},
-			"2044": {
+			"2045": {
 				"final": true,
 				"name": "color",
-				"id": 2044,
+				"id": 2045,
 				"type": "String",
 				"cardinality": "ZeroOrOne",
 				"encrypted": true,
@@ -13183,10 +13192,10 @@
 			}
 		},
 		"associations": {
-			"2042": {
+			"2043": {
 				"final": true,
 				"name": "parentFolder",
-				"id": 2042,
+				"id": 2043,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 429,

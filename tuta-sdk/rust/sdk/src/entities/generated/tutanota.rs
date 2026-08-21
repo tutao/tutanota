@@ -558,15 +558,15 @@ pub struct ExternalUserData {
 	pub kdfVersion: i64,
 	#[serde(rename = "1429")]
 	pub internalMailGroupKeyVersion: i64,
-	#[serde(rename = "2053")]
+	#[serde(rename = "2054")]
 	#[serde(with = "serde_bytes")]
 	pub externalMailEncMailGroupInfoInstanceKey: Option<Vec<u8>>,
-	#[serde(rename = "2054")]
-	pub externalMailGroupInfoInstanceKeyVersion: Option<i64>,
 	#[serde(rename = "2055")]
+	pub externalMailGroupInfoInstanceKeyVersion: Option<i64>,
+	#[serde(rename = "2056")]
 	#[serde(with = "serde_bytes")]
 	pub externalUserEncUserGroupInfoInstanceKey: Option<Vec<u8>>,
-	#[serde(rename = "2056")]
+	#[serde(rename = "2057")]
 	pub externalUserGroupInfoInstanceKeyVersion: Option<i64>,
 	#[serde(rename = "151")]
 	pub userGroupData: CreateExternalUserGroupData,
@@ -927,7 +927,7 @@ pub struct CreateMailFolderData {
 	pub ownerKeyVersion: Option<i64>,
 	#[serde(rename = "452")]
 	pub parentFolder: Option<IdTupleGenerated>,
-	#[serde(rename = "2043")]
+	#[serde(rename = "2044")]
 	pub mailSet: Option<MailSetTransferAggregatedType>,
 
 	#[serde(default)]
@@ -2162,15 +2162,15 @@ pub struct SharedGroupData {
 	pub sharedGroup: GeneratedId,
 	#[serde(rename = "1420")]
 	pub sharedGroupKeyVersion: i64,
-	#[serde(rename = "2047")]
+	#[serde(rename = "2048")]
 	#[serde(with = "serde_bytes")]
 	pub sharedGroupEncInviterGroupInfoInstanceKey: Option<Vec<u8>>,
-	#[serde(rename = "2048")]
-	pub inviterGroupInfoInstanceKeyVersion: Option<i64>,
 	#[serde(rename = "2049")]
+	pub inviterGroupInfoInstanceKeyVersion: Option<i64>,
+	#[serde(rename = "2050")]
 	#[serde(with = "serde_bytes")]
 	pub sharedGroupEncSharedGroupInfoInstanceKey: Option<Vec<u8>>,
-	#[serde(rename = "2050")]
+	#[serde(rename = "2051")]
 	pub sharedGroupInfoInstanceKeyVersion: Option<i64>,
 }
 
@@ -2240,10 +2240,10 @@ pub struct GroupInvitationPutData {
 	pub userGroupKeyVersion: i64,
 	#[serde(rename = "1419")]
 	pub sharedGroupKeyVersion: i64,
-	#[serde(rename = "2051")]
+	#[serde(rename = "2052")]
 	#[serde(with = "serde_bytes")]
 	pub sharedGroupEncInviteeGroupInfoInstanceKey: Option<Vec<u8>>,
-	#[serde(rename = "2052")]
+	#[serde(rename = "2053")]
 	pub inviteeGroupInfoInstanceKeyVersion: Option<i64>,
 	#[serde(rename = "1015")]
 	pub receivedInvitation: IdTupleGenerated,
@@ -3493,7 +3493,7 @@ pub struct ManageLabelServicePostIn {
 	pub ownerGroup: GeneratedId,
 	#[serde(rename = "1489")]
 	pub data: Option<ManageLabelServiceLabelData>,
-	#[serde(rename = "2046")]
+	#[serde(rename = "2047")]
 	pub mailSet: Option<MailSetTransferAggregatedType>,
 
 	#[serde(default)]
@@ -3536,7 +3536,7 @@ pub struct ManageLabelServicePutIn {
 	pub label: IdTupleGenerated,
 	#[serde(rename = "1499")]
 	pub data: Option<ManageLabelServiceLabelData>,
-	#[serde(rename = "2045")]
+	#[serde(rename = "2046")]
 	pub mailSet: Option<MailSetTransferAggregatedType>,
 
 	#[serde(default)]
@@ -5090,15 +5090,17 @@ pub struct MailSetTransferAggregatedType {
 	#[serde(rename = "2038")]
 	pub _id: Option<CustomId>,
 	#[serde(rename = "2039")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2040")]
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
-	#[serde(rename = "2040")]
-	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "2041")]
-	pub name: String,
-	#[serde(rename = "2044")]
-	pub color: Option<String>,
+	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "2042")]
+	pub name: String,
+	#[serde(rename = "2045")]
+	pub color: Option<String>,
+	#[serde(rename = "2043")]
 	pub parentFolder: Option<IdTupleGenerated>,
 
 	#[serde(default)]
