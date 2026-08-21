@@ -22,7 +22,7 @@ import {
 	WebsocketCounterData,
 } from "@tutao/entities/sys"
 import { idToElementId, isSameId, isSameSingleId, OperationType } from "@tutao/meta"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CacheSyncStatus, EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { ImapImporter } from "../../../mail-app/workerUtils/imapimport/ImapImporter"
 
 /** A bit of glue to distribute event bus events across the app. */
@@ -73,9 +73,40 @@ export class EventBusEventCoordinator implements EventBusListener {
 		this.eventController.onCountersUpdateReceived(counter)
 	}
 
-	async onSyncDone(): Promise<void> {
-		this.syncTracker.markSyncAsDone()
+	async onSyncStatusChanged(cacheSyncStatus: CacheSyncStatus): Promise<void> {
+		this.syncTracker.updateSyncStatus(cacheSyncStatus)
 
+		if (this.syncTracker.isSyncDone) {
+			await this.onSyncDone()
+		}
+	}
+
+	onOperationStatusUpdate(update: OperationStatusUpdate) {
+		this.eventController.onOperationStatusUpdate(update)
+	}
+
+	private async entityEventsReceived(data: readonly EntityUpdateData[]): Promise<void> {
+		// This is a compromise to not add entityClient to UserFacade which would introduce a circular dep.
+		const groupKeyUpdates: IdTuple[] = [] // GroupKeyUpdates all in the same list
+		const user = this.userFacade.getUser()
+		if (user == null) return
+		for (const update of data) {
+			if (update.operation === OperationType.UPDATE && isUpdateForTypeRef(UserTypeRef, update) && isSameId(user._id, idToElementId(update.instanceId))) {
+				await this.userFacade.updateUser(await this.entityClient.load(UserTypeRef, user._id))
+			} else if (
+				(update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) &&
+				isUpdateForTypeRef(UserGroupKeyDistributionTypeRef, update) &&
+				isSameSingleId(user.userGroup.group, update.instanceId)
+			) {
+				await (await this.cacheManagementFacade()).tryUpdatingUserGroupKey()
+			} else if (update.operation === OperationType.CREATE && isUpdateForTypeRef(GroupKeyUpdateTypeRef, update)) {
+				groupKeyUpdates.push([assertNotNull(update.instanceListId), update.instanceId])
+			}
+		}
+		await this.keyRotationFacade.updateGroupMembershipsInOneList(groupKeyUpdates)
+	}
+
+	private async onSyncDone() {
 		if (this.userFacade.isLeader() && !EnvProvider.get().isAdminClient()) {
 			const userIdentityKeyCreationAction = {
 				execute: async () => {
@@ -134,30 +165,5 @@ export class EventBusEventCoordinator implements EventBusListener {
 		}
 		await this.rolloutFacade.configureRollout(RolloutType.EncryptionOfAttributesViaAead, useAead)
 		await this.rolloutFacade.processRollout(RolloutType.EncryptionOfAttributesViaAead)
-	}
-
-	onOperationStatusUpdate(update: OperationStatusUpdate) {
-		this.eventController.onOperationStatusUpdate(update)
-	}
-
-	private async entityEventsReceived(data: readonly EntityUpdateData[]): Promise<void> {
-		// This is a compromise to not add entityClient to UserFacade which would introduce a circular dep.
-		const groupKeyUpdates: IdTuple[] = [] // GroupKeyUpdates all in the same list
-		const user = this.userFacade.getUser()
-		if (user == null) return
-		for (const update of data) {
-			if (update.operation === OperationType.UPDATE && isUpdateForTypeRef(UserTypeRef, update) && isSameId(user._id, idToElementId(update.instanceId))) {
-				await this.userFacade.updateUser(await this.entityClient.load(UserTypeRef, user._id))
-			} else if (
-				(update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) &&
-				isUpdateForTypeRef(UserGroupKeyDistributionTypeRef, update) &&
-				isSameSingleId(user.userGroup.group, update.instanceId)
-			) {
-				await (await this.cacheManagementFacade()).tryUpdatingUserGroupKey()
-			} else if (update.operation === OperationType.CREATE && isUpdateForTypeRef(GroupKeyUpdateTypeRef, update)) {
-				groupKeyUpdates.push([assertNotNull(update.instanceListId), update.instanceId])
-			}
-		}
-		await this.keyRotationFacade.updateGroupMembershipsInOneList(groupKeyUpdates)
 	}
 }

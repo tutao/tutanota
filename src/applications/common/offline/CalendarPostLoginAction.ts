@@ -1,19 +1,14 @@
 import { LoginController } from "../api/main/LoginController.js"
 import { CalendarModel } from "../../calendar-app/calendar/model/CalendarModel.js"
-import { CUSTOM_MIN_ID } from "../../../platform-kit/meta"
 import { EntityClient } from "../../../platform-kit/network/EntityClient.js"
 import { ProgressTracker } from "../api/main/ProgressTracker.js"
-import { noOp, promiseMap } from "../../../platform-kit/utils"
+import { promiseMap } from "../../../platform-kit/utils"
 import { SessionType } from "../../../platform-kit/app-env"
 import { SyncTracker } from "../api/main/SyncTracker"
 import { LoggedInEvent, PostLoginAction } from "../../../app-kit/native-bridge/common/PostLoginAction.js"
-import { ExposedCacheStorage } from "../../../app-kit/local-store/CacheStorage"
 import { NoopProgressMonitor } from "../../../platform-kit/network/ProgressMonitorInterface"
 import { CalendarEventTypeRef } from "@tutao/entities/tutanota"
-import { isExpectedErrorForSynchronization } from "@tutao/rest-client/error"
-import { showSnackBar } from "../../../ui/base/SnackBar"
-import { lang } from "../../../ui/utils/LanguageViewModel"
-import { ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CacheSyncStatus, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 export class CalendarPostLoginAction implements PostLoginAction {
 	constructor(
@@ -31,9 +26,9 @@ export class CalendarPostLoginAction implements PostLoginAction {
 
 		// we preload all calendar events once to ensure that the calendar
 		// can be accessed offline on desktop and mobile
-		this.syncTracker.addSyncDoneListener({
+		this.syncTracker.addSyncListener({
 			id: "CalendarPostLoginAction",
-			onSyncDone: async () => {
+			onSyncStatusChange: async () => {
 				// 3 work to load calendar info, 2 work to load short and long events
 				const workPerCalendar = 3 + 2
 				const totalWork = this.logins.getUserController().getCalendarMemberships().length * workPerCalendar
@@ -50,6 +45,7 @@ export class CalendarPostLoginAction implements PostLoginAction {
 				progressMonitor.completed()
 			},
 			priority: ListenerPriority.HIGH,
+			targetStatus: CacheSyncStatus.OnlineSyncDone,
 		})
 	}
 

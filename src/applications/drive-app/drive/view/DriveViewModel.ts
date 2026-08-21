@@ -1,5 +1,5 @@
 import { elementIdPart, getElementId, isSameSingleId, listIdPart, OperationType } from "@tutao/meta"
-import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CacheSyncStatus, EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { Router } from "../../../../ui/ScopedThrottledRouter"
@@ -44,8 +44,7 @@ import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFol
 import { isWebFile } from "../../../../ui/utils/FileUtils"
 import { handleRestError, isOfflineError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { WebFileResolver } from "./WebFileResolver"
-import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
-import { WsConnectionState } from "../../../../platform-kit/network/Constants"
+import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -177,14 +176,13 @@ export class DriveViewModel {
 	public readonly initialized: Promise<void>
 	public resolveInitialized: (value: PromiseLike<void> | void) => void = (value: void) => {}
 
-	private readonly connectionStateListener = {
+	private readonly syncListener: SyncListener = {
 		id: "DriveViewModel",
 		priority: ListenerPriority.NORMAL,
-		onConnectionStateChanged: async (connectionState: WsConnectionState) => {
-			if (connectionState === WsConnectionState.connected) {
-				await this.listModel.reload()
-			}
+		onSyncStatusChange: async () => {
+			await this.listModel.reload()
 		},
+		targetStatus: CacheSyncStatus.OnlineSyncOngoing,
 	}
 
 	constructor(
@@ -198,7 +196,7 @@ export class DriveViewModel {
 		private readonly transferController: DriveTransferController,
 		private readonly webFileResolver: WebFileResolver | null,
 		public readonly updateUi: () => unknown,
-		private readonly connectivityModel: WebsocketConnectivityModel,
+		private readonly syncTracker: SyncTracker,
 	) {
 		this.userMailAddress = getDefaultSenderFromUser(this.loginController.getUserController())
 		this.initialized = new Promise((resolve, reject) => {
@@ -237,7 +235,7 @@ export class DriveViewModel {
 			priority: ListenerPriority.NORMAL,
 		})
 
-		this.connectivityModel.addConnectionStateListener(this.connectionStateListener)
+		this.syncTracker.addSyncListener(this.syncListener)
 
 		this.uploadProgressListener.addUploadListener((info: UploadProgressInfo) => {
 			this.transferController.onChunkUploaded(info.transferId, info.uploadedBytes)
@@ -336,7 +334,7 @@ export class DriveViewModel {
 	)
 
 	deinit() {
-		this.connectivityModel.removeConnectionStateListener(this.connectionStateListener)
+		this.syncTracker.removeSyncListener(this.syncListener)
 	}
 
 	private async onEntityUpdatesReceived(events: ReadonlyArray<EntityUpdateData>) {

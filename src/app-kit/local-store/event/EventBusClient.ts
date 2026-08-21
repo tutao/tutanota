@@ -63,6 +63,8 @@ export const enum EventBusState {
 export const ENTITY_EVENT_BATCH_EXPIRE_MS = 44 * 24 * 60 * 60 * 1000
 export const MAX_EVENT_QUEUE_LENGTH_BEFORE_FLUSHING = 500
 
+const INITIAL_SYNC_SMALL_WORK_ESTIMATE: number = 100
+
 const RETRY_AFTER_SERVICE_UNAVAILABLE_ERROR_MS = 30000
 const NORMAL_SHUTDOWN_CLOSE_CODE = 1
 /**
@@ -99,7 +101,7 @@ export interface EventBusListener {
 
 	onError(tutanotaError: Error): void
 
-	onSyncDone(): unknown
+	onSyncStatusChanged(cacheSyncStatus: CacheSyncStatus): unknown
 
 	onOperationStatusUpdate(update: OperationStatusUpdate): unknown
 }
@@ -189,8 +191,6 @@ export class EventBusClient {
 	 * @param connectMode
 	 */
 	async connect(connectMode: ConnectMode) {
-		await this.cache.setCacheSyncStatus(CacheSyncStatus.OnlineSyncOngoing)
-
 		console.log(TAG, "ws connect reconnect:", connectMode === ConnectMode.Reconnect, "state:", this.state)
 		// make sure a retry will be cancelled by setting _serviceUnavailableRetry to null
 		this.serviceUnavailableRetry = null
@@ -410,7 +410,7 @@ export class EventBusClient {
 				await this.waitForEmptyQueue()
 				// if we received no missed batches and lastMissedBatchId remains null, we should call the syncDone listener directly
 				if (this.lastMissedBatchId === null) {
-					this.listener.onSyncDone()
+					this.listener.onSyncStatusChanged(CacheSyncStatus.OnlineSyncDone)
 				}
 				setTimeout(() => this.progressMonitor?.completed(), PROGRESS_SYNC_DONE_TIMEOUT_DEBOUNCE_MS)
 				break
@@ -418,6 +418,15 @@ export class EventBusClient {
 			case MessageType.InitialSyncWorkEstimate: {
 				const newWorkEstimate = Number.parseInt(value)
 				console.log(TAG, "InitialSyncWorkEstimate: ", newWorkEstimate)
+				this.isInitialSyncDone = false
+				if (newWorkEstimate < INITIAL_SYNC_SMALL_WORK_ESTIMATE) {
+					await this.listener.onSyncStatusChanged(CacheSyncStatus.OnlineSyncOngoingFewUpdates)
+					await this.cache.setCacheSyncStatus(CacheSyncStatus.OnlineSyncOngoingFewUpdates)
+				} else {
+					await this.listener.onSyncStatusChanged(CacheSyncStatus.OnlineSyncOngoing)
+					await this.cache.setCacheSyncStatus(CacheSyncStatus.OnlineSyncOngoing)
+				}
+
 				if (newWorkEstimate === 0) {
 					break
 				}
@@ -658,6 +667,7 @@ export class EventBusClient {
 		this.reset()
 
 		this.connectivityListener.updateWebSocketState(WsConnectionState.terminated)
+		this.listener.onSyncStatusChanged(CacheSyncStatus.Offline)
 	}
 
 	/**
@@ -712,7 +722,7 @@ export class EventBusClient {
 
 			// call syncDone listener right after the last missed batch is processed
 			if (batch.batchId === this.lastMissedBatchId && this.isInitialSyncDone) {
-				this.listener.onSyncDone()
+				this.listener.onSyncStatusChanged(CacheSyncStatus.OnlineSyncDone)
 			}
 		} catch (e) {
 			if (e instanceof ServiceUnavailableError) {

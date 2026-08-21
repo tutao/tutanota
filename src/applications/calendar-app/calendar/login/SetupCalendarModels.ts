@@ -8,7 +8,7 @@ import { remindActiveOutOfOfficeNotification } from "../../../common/misc/OutOfO
 import { EnvProvider } from "@tutao/app-env"
 import { showSnackBar } from "../../../../ui/base/SnackBar"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CacheSyncStatus, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 export async function setupCalendarModels(
 	lazyCalendarModel: lazyAsync<CalendarModel>,
@@ -35,9 +35,9 @@ export async function setupCalendarModels(
 
 function handleExternalSync(calendarModel: CalendarModel, syncTracker: SyncTracker) {
 	if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
-		syncTracker.addSyncDoneListener({
+		syncTracker.addSyncListener({
 			id: "SetupCalendarModel",
-			onSyncDone: async () => {
+			onSyncStatusChange: async () => {
 				calendarModel.syncExternalCalendars().catch(async (e) => {
 					showSnackBar({
 						message: lang.makeTranslation("exception_msg", e.message),
@@ -51,6 +51,7 @@ function handleExternalSync(calendarModel: CalendarModel, syncTracker: SyncTrack
 				calendarModel.scheduleExternalCalendarSync()
 			},
 			priority: ListenerPriority.HIGH,
+			targetStatus: CacheSyncStatus.OnlineSyncDone,
 		})
 	}
 }

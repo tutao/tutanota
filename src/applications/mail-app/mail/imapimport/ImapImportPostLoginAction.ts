@@ -11,7 +11,7 @@ import { filterMailMemberships } from "../../../common/api/common/utils/IndexUti
 import { MailBox, MailboxGroupRootTypeRef, MailBoxTypeRef } from "@tutao/entities/tutanota"
 import { ImapMailImportController } from "../../settings/imapimport/ImapMailImportController"
 import { idToElementId } from "@tutao/meta"
-import { ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CacheSyncStatus, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 /**
  * continue an IMAP import tasks after login if there is one
@@ -45,12 +45,13 @@ export class ImapImportPostLoginAction implements PostLoginAction {
 
 			await this.imapMailImportController.init(mailboxesOfUser)
 
-			this.syncTracker.addSyncDoneListener({
+			this.syncTracker.addSyncListener({
 				id: "ImapImportPostLoginAction",
-				onSyncDone: async () => {
+				onSyncStatusChange: async () => {
 					await this.imapMailImportController.continueAllImportsAfterLogin()
 				},
 				priority: ListenerPriority.LOW,
+				targetStatus: CacheSyncStatus.OnlineSyncDone,
 			})
 		}
 	}

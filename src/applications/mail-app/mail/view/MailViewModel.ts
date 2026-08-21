@@ -16,7 +16,7 @@ import {
 import { ListLoadingState, ListState } from "../../../../ui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
-import { ConnectionStateListener, WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
+import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel.js"
 import { isOfflineError, NotAuthorizedError, NotFoundError, PreconditionFailedError } from "../../../../platform-kit/rest-client/error"
 import { UserError } from "../../../common/api/main/UserError.js"
 import Stream from "mithril/stream"
@@ -36,7 +36,7 @@ import { mailLocator } from "../../mailLocator"
 import { getLabelsWithParentLabelNamesPrepended, moveMails } from "./MailGuiUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { UndoModel } from "../../UndoModel"
-import { SyncTracker } from "../../../common/api/main/SyncTracker"
+import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 import {
@@ -53,6 +53,7 @@ import {
 import { ImapAccountSyncStatus, MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { elementIdPart, getElementId, isSameId, isSameSingleId, OperationType } from "../../../../platform-kit/meta"
 import {
+	CacheSyncStatus,
 	EntityUpdateData,
 	EntityUpdatesListener,
 	isUpdateForTypeRef,
@@ -116,14 +117,13 @@ export class MailViewModel {
 		priority: ListenerPriority.HIGH,
 	}
 
-	private readonly connectionStateListener: ConnectionStateListener = {
+	private readonly syncListener: SyncListener = {
 		id: "MailViewModel",
 		priority: ListenerPriority.NORMAL,
-		onConnectionStateChanged: async (connectionState: WsConnectionState) => {
-			if (connectionState === WsConnectionState.connected) {
-				await this.listModel?.reload()
-			}
+		onSyncStatusChange: async () => {
+			await this.listModel?.reload()
 		},
+		targetStatus: CacheSyncStatus.OnlineSyncOngoing,
 	}
 
 	constructor(
@@ -456,7 +456,7 @@ export class MailViewModel {
 	init() {
 		this.onceInit()
 
-		this.connectivityModel.addConnectionStateListener(this.connectionStateListener)
+		this.syncTracker.addSyncListener(this.syncListener)
 
 		const conversationDisabled = this.conversationPrefProvider.getConversationViewShowOnlySelectedMail()
 		const mailListModePref = !conversationDisabled && this.conversationPrefProvider.getMailListDisplayMode() === MailListDisplayMode.CONVERSATIONS
@@ -971,7 +971,7 @@ export class MailViewModel {
 	}
 
 	deinit() {
-		this.connectivityModel.removeConnectionStateListener(this.connectionStateListener)
+		this.syncTracker.removeSyncListener(this.syncListener)
 	}
 }
 

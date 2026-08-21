@@ -371,7 +371,7 @@ class MailLocator implements CommonLocator {
 	readonly contactViewModel = lazyMemoized(async () => {
 		const { ContactViewModel } = await import("./contacts/view/ContactViewModel.js")
 		const router = new ScopedThrottledRouter("/contact")
-		return new ContactViewModel(this.contactModel, this.entityClient, this.eventController, router, await this.redraw(), this.connectivityModel)
+		return new ContactViewModel(this.contactModel, this.entityClient, this.eventController, router, await this.redraw(), this.syncTracker)
 	})
 
 	readonly contactListViewModel = lazyMemoized(async () => {
@@ -425,7 +425,7 @@ class MailLocator implements CommonLocator {
 			this.contactModel,
 			this.groupSettingsModel,
 			this.operationProgressTracker,
-			this.connectivityModel,
+			this.syncTracker,
 		)
 	})
 
@@ -587,7 +587,7 @@ class MailLocator implements CommonLocator {
 				undoModel,
 				this.transferProgressDispatcher,
 				this.operationProgressTracker,
-				this.connectivityModel,
+				this.syncTracker,
 			)
 	}
 
@@ -1439,7 +1439,7 @@ class MailLocator implements CommonLocator {
 			driveUploadStackModel,
 			EnvProvider.get().isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp, this.desktopSystemFacade) : null,
 			redraw,
-			this.connectivityModel,
+			this.syncTracker,
 		)
 		await model.init()
 

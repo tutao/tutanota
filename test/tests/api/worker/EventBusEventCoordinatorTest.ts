@@ -17,7 +17,7 @@ import { IdentityKeyCreator } from "../../../../src/platform-kit/base/base-crypt
 import { noPatchesAndInstance } from "./EventBusClientTest"
 import { idToElementId, OperationType } from "../../../../src/platform-kit/meta"
 import { Group, GroupKeyUpdateTypeRef, GroupMembershipTypeRef, GroupTypeRef, User, UserGroupKeyDistributionTypeRef, UserTypeRef } from "@tutao/entities/sys"
-import { CachingStatus, EntityUpdateData } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CacheSyncStatus, CachingStatus, EntityUpdateData } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 o.spec("EventBusEventCoordinatorTest", () => {
 	let eventBusEventCoordinator: EventBusEventCoordinator
@@ -85,14 +85,14 @@ o.spec("EventBusEventCoordinatorTest", () => {
 
 	o.spec("onSyncDone", function () {
 		o("sends signal to main thread", async function () {
-			await eventBusEventCoordinator.onSyncDone()
+			await eventBusEventCoordinator.onSyncStatusChanged(CacheSyncStatus.OnlineSyncDone)
 
-			verify(syncTrackerMock.markSyncAsDone())
+			verify(syncTrackerMock.updateSyncStatus(CacheSyncStatus.OnlineSyncDone))
 		})
 
 		o("executes rollout onSyncDone", async function () {
 			when(userFacade.isLeader()).thenReturn(true)
-			await eventBusEventCoordinator.onSyncDone()
+			await eventBusEventCoordinator.onSyncStatusChanged(CacheSyncStatus.OnlineSyncDone)
 			verify(rolloutFacadeMock.configureRollout(RolloutType.UserIdentityKeyCreation, matchers.anything()))
 			verify(rolloutFacadeMock.processRollout(RolloutType.UserIdentityKeyCreation))
 			verify(rolloutFacadeMock.configureRollout(RolloutType.SharedMailboxIdentityKeyCreation, matchers.anything()))
@@ -104,7 +104,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		o("executes UserIdentityKeyCreation rollout", async function () {
 			when(userFacade.isLeader()).thenReturn(true)
 
-			await eventBusEventCoordinator.onSyncDone()
+			await eventBusEventCoordinator.onSyncStatusChanged(CacheSyncStatus.OnlineSyncDone)
 
 			const captor = matchers.captor()
 			verify(rolloutFacadeMock.configureRollout(RolloutType.UserIdentityKeyCreation, captor.capture()))
@@ -122,7 +122,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 			const error = object<Error>()
 			when(identityKeyCreator.createIdentityKeyPairForExistingUsers()).thenReject(error)
 
-			await eventBusEventCoordinator.onSyncDone()
+			await eventBusEventCoordinator.onSyncStatusChanged(CacheSyncStatus.OnlineSyncDone)
 			const captor = matchers.captor()
 			verify(rolloutFacadeMock.configureRollout(RolloutType.UserIdentityKeyCreation, captor.capture()))
 			verify(rolloutFacadeMock.processRollout(RolloutType.UserIdentityKeyCreation))
@@ -141,7 +141,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		o("does not stop if SharedMailboxIdentityKeyCreation rollout throws", async function () {
 			when(userFacade.isLeader()).thenReturn(true)
 
-			await eventBusEventCoordinator.onSyncDone()
+			await eventBusEventCoordinator.onSyncStatusChanged(CacheSyncStatus.OnlineSyncDone)
 
 			const captor = matchers.captor()
 			verify(rolloutFacadeMock.configureRollout(RolloutType.SharedMailboxIdentityKeyCreation, captor.capture()))
@@ -163,7 +163,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		o("executes SharedMailboxIdentityKeyCreation rollout", async function () {
 			when(userFacade.isLeader()).thenReturn(true)
 
-			await eventBusEventCoordinator.onSyncDone()
+			await eventBusEventCoordinator.onSyncStatusChanged(CacheSyncStatus.OnlineSyncDone)
 
 			const captor = matchers.captor()
 			verify(rolloutFacadeMock.configureRollout(RolloutType.SharedMailboxIdentityKeyCreation, captor.capture()))
@@ -178,7 +178,7 @@ o.spec("EventBusEventCoordinatorTest", () => {
 		o("does not execute rollouts, except for enabling AEAD encryption, if it is not the leader client", async function () {
 			when(userFacade.isLeader()).thenReturn(false)
 
-			await eventBusEventCoordinator.onSyncDone()
+			await eventBusEventCoordinator.onSyncStatusChanged(CacheSyncStatus.OnlineSyncDone)
 			verify(rolloutFacadeMock.processRollout(matchers.anything()), { times: 1 })
 			verify(rolloutFacadeMock.processRollout(RolloutType.EncryptionOfAttributesViaAead))
 		})

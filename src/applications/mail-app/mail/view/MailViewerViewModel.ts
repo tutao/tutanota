@@ -83,6 +83,7 @@ import {
 import { isPermanentDeleteAllowedMailSetKind } from "../MailUtils"
 import { haveSameId, isSameId, OperationType } from "@tutao/meta"
 import {
+	CacheSyncStatus,
 	EntityUpdateData,
 	EntityUpdatesListener,
 	isUpdateForTypeRef,
@@ -90,8 +91,7 @@ import {
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EncryptionAuthStatus, EnvProvider, FeatureType, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
-import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
-import { WsConnectionState } from "../../../../platform-kit/network/Constants"
+import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -189,14 +189,14 @@ export class MailViewerViewModel {
 		private readonly undoModel: UndoModel,
 		private readonly transferProgressDispatcher: TransferProgressDispatcher,
 		private readonly operationProgressTracker: OperationProgressTracker,
-		private readonly connectivityModel: WebsocketConnectivityModel,
+		private readonly syncTracker: SyncTracker,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {
 			this.showFolder()
 		}
 		this.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
-		this.connectivityModel.addConnectionStateListener(this.connectionStateListener)
+		this.syncTracker.addSyncListener(this.syncListener)
 	}
 
 	private readonly entityUpdatesListener: EntityUpdatesListener = {
@@ -223,16 +223,14 @@ export class MailViewerViewModel {
 		priority: ListenerPriority.HIGH,
 	}
 
-	private readonly connectionStateListener = {
+	private readonly syncListener: SyncListener = {
 		id: "MailViewerViewModel",
 		priority: ListenerPriority.NORMAL,
-		onConnectionStateChanged: async (connectionState: WsConnectionState) => {
-			console.log("MailViewerViewModel connection state changed to", connectionState)
-			if (connectionState === WsConnectionState.connected) {
-				const updatedMail = await this.entityClient.load(MailTypeRef, this.mail._id)
-				this.updateMail({ mail: updatedMail })
-			}
+		onSyncStatusChange: async () => {
+			const updatedMail = await this.entityClient.load(MailTypeRef, this.mail._id)
+			this.updateMail({ mail: updatedMail })
 		},
+		targetStatus: CacheSyncStatus.OnlineSyncOngoing,
 	}
 
 	private async determineRelevantRecipient() {
@@ -282,7 +280,7 @@ export class MailViewerViewModel {
 			this.isAlreadyDeinit = true
 
 			this.eventController.removeEntityUpdatesListener(this.entityUpdatesListener)
-			this.connectivityModel.removeConnectionStateListener(this.connectionStateListener)
+			this.syncTracker.removeSyncListener(this.syncListener)
 
 			if (this.sanitizeUrlifyTimeoutId) {
 				clearTimeout(this.sanitizeUrlifyTimeoutId)

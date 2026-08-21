@@ -9,7 +9,13 @@ import {
 	listIdPart,
 	OperationType,
 } from "../../../../platform-kit/meta"
-import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import {
+	CacheSyncStatus,
+	EntityUpdateData,
+	isUpdateFor,
+	isUpdateForTypeRef,
+	ListenerPriority,
+} from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { CalendarEvent, CalendarEventTypeRef, CalendarGroupRoot, Contact, ContactTypeRef, GroupSettings } from "@tutao/entities/tutanota"
 import { CustomerInfoTypeRef, GroupInfo, ReceivedGroupInvitation } from "@tutao/entities/sys"
 import { GroupType, NewPaidPlans } from "../../../../entities/sys/Utils"
@@ -95,7 +101,7 @@ import { selectAndParseIcalFile } from "../../../common/calendar/gui/CalendarImp
 import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
 import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
 import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
-import { WsConnectionState } from "../../../../platform-kit/network/Constants"
+import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 
 export interface EventWrapperFlags {
 	/**
@@ -238,14 +244,13 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	private scrollByListener: ScrollByListener = noOp
 
-	private readonly connectionStateListener = {
+	private readonly syncListener: SyncListener = {
 		id: "CalendarViewModel",
 		priority: ListenerPriority.NORMAL,
-		onConnectionStateChanged: async (connectionState: WsConnectionState) => {
-			if (connectionState === WsConnectionState.connected) {
-				await this.preloadMonthsAroundSelectedDate(true)
-			}
+		onSyncStatusChange: async () => {
+			await this.preloadMonthsAroundSelectedDate(true)
 		},
+		targetStatus: CacheSyncStatus.OnlineSyncOngoing,
 	}
 
 	constructor(
@@ -265,7 +270,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		private readonly contactModel: ContactModel,
 		private readonly groupSettingsModel: lazy<Promise<GroupSettingsModel>>,
 		private readonly operationProgressTracker: OperationProgressTracker,
-		private readonly connectivityModel: WebsocketConnectivityModel,
+		private readonly syncTracker: SyncTracker,
 	) {
 		this.calendarColorsMap = memoized((availableCalendars: ReadonlyArray<CalendarInfoBase>) => {
 			const calendarColors = new Map()
@@ -329,7 +334,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 
 	/** init is called every time the view is opened */
 	init() {
-		this.connectivityModel.addConnectionStateListener(this.connectionStateListener)
+		this.syncTracker.addSyncListener(this.syncListener)
 	}
 
 	/**
@@ -984,7 +989,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	deinit() {
-		this.connectivityModel.removeConnectionStateListener(this.connectionStateListener)
+		this.syncTracker.removeSyncListener(this.syncListener)
 	}
 }
 
