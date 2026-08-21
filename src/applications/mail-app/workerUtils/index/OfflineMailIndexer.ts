@@ -7,10 +7,10 @@ import {
 	collectToMap,
 	difference,
 	getFirstOrThrow,
-	groupBy,
 	groupByAndMap,
 	isEmpty,
 	isNotEmpty,
+	isNotNull,
 	lastThrow,
 	LazyLoaded,
 	promiseMap,
@@ -19,10 +19,10 @@ import {
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
-import { InstancePipeline, ServerTypeModelResolver } from "@tutao/instance-pipeline"
+import { DecryptedParsedInstance, InstancePipeline, ServerTypeModelResolver } from "@tutao/instance-pipeline"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes"
-import { EntityClient } from "../../../../platform-kit/network/EntityClient"
+import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 import {
 	compareNewestFirst,
 	compareOldestFirst,
@@ -61,6 +61,7 @@ import { CommonImportedMail } from "./WebMailIndexer"
 import { MailImportType, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { isDraft } from "../../mail/model/MailChecks"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
+import type { CacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -69,6 +70,13 @@ const TAG = "[OfflineMailIndexer]"
 // we do not want to bump this up any higher, as it determines how big our range requests are, and we can potentially
 // break MAX_SAFE_SQL_VARS
 const INDEX_CHUNK_SIZE = 1000
+
+interface MailWithDetailsAndAttachmentsBlob extends MailWithDetailsAndAttachments {
+	/**
+	 * This will not be set if the blob is already cached or the mail is a draft
+	 */
+	incomingMailDetailsBlob?: DecryptedParsedInstance
+}
 
 /**
  * Mail indexer that efficiently indexes the entire user (i.e. all mailboxes they have access to)
@@ -84,6 +92,7 @@ export class OfflineMailIndexer implements MailIndexer {
 		private readonly infoMessageHandler: InfoMessageHandler,
 		private readonly newMailDownloader: MailIndexerNewMailDownloader,
 		private readonly instancePipeline: InstancePipeline,
+		private readonly cacheStorage: CacheStorage,
 		private readonly indexChunkSize: number = INDEX_CHUNK_SIZE,
 	) {}
 
@@ -302,17 +311,27 @@ export class OfflineMailIndexer implements MailIndexer {
 				return
 			}
 
+			// Load all files into cache (we should be able to retrieve these later if we are successful) so we don't
+			// have network requests for each email with attachments later
 			const attachmentIds: IdTuple[] = mails.flatMap((mails) => mails.attachments)
-			const attachmentsByList: Map<Id, IdTuple[]> = groupBy(attachmentIds, listIdPart)
+			await loadMultipleFromLists(FileTypeRef, this.entityClient, attachmentIds)
 
-			// load all files into cache (we should be able to retrieve these later if we are successful)
-			for (const [list, ids] of attachmentsByList.entries()) {
-				await this.entityClient.loadMultiple(FileTypeRef, list, ids.map(elementIdPart))
+			// Attempt to get all blobs from storage
+			//
+			// Of course, we want to do this in chunks to reduce IPC calls.
+			const mailDetailsBlobIds = mails.map((mail) => mail.mailDetails).filter(isNotNull)
+			const archives = groupByAndMap(mailDetailsBlobIds, listIdPart, elementIdPart)
+			const mailDetailsBlobs: Map<Id, MailDetailsBlob> = new Map()
+			for (const [list, blobIds] of archives.entries()) {
+				const localBlobs = await this.cacheStorage.provideMultiple(MailDetailsBlobTypeRef, list, blobIds)
+				for (const b of localBlobs) {
+					mailDetailsBlobs.set(getElementId(b), b)
+				}
 			}
 
 			const lastMail = lastThrow(mails)
 			currentId = getElementId(lastMail)
-			await this.indexNonRecentMails(mails, archiveDownloadPromises, async () => {
+			await this.indexNonRecentMails(mails, archiveDownloadPromises, mailDetailsBlobs, async () => {
 				await updateStorageProgress(1, totalMailsDownloaded++)
 			})
 			await this.offlineStoragePersistence.updateIndexingElement(mailGroup, lastMail._id)
@@ -325,15 +344,16 @@ export class OfflineMailIndexer implements MailIndexer {
 	private async indexNonRecentMails(
 		mails: readonly Mail[],
 		archiveDownloadPromises: Map<Id, Promise<unknown>> = new Map(),
+		cachedMailDetailsBlobs: Map<Id, MailDetailsBlob>,
 		onMailStore?: () => Promise<unknown>,
 	) {
 		const mailDetailsBlobTypeModel = await this.mailDetailsBlobTypeModel.getAsync()
 
-		const mailsToStore: MailWithDetailsAndAttachments[] = []
+		const mailsToStore: MailWithDetailsAndAttachmentsBlob[] = []
 		await promiseMap(
 			mails,
 			async (mail) => {
-				const data = await this.loadNonRecentMail(mail, mailDetailsBlobTypeModel, archiveDownloadPromises)
+				const data = await this.loadNonRecentMail(mail, mailDetailsBlobTypeModel, archiveDownloadPromises, cachedMailDetailsBlobs)
 				if (data != null) {
 					mailsToStore.push(data)
 					await onMailStore?.()
@@ -343,6 +363,12 @@ export class OfflineMailIndexer implements MailIndexer {
 		)
 
 		if (!isEmpty(mailsToStore)) {
+			const mailDetailsBlobs = mailsToStore.map(({ incomingMailDetailsBlob }) => incomingMailDetailsBlob).filter(isNotNull)
+
+			if (!isEmpty(mailDetailsBlobs)) {
+				await this.cacheStorage.putMultiple(MailDetailsBlobTypeRef, mailDetailsBlobs)
+			}
+
 			await this.offlineStoragePersistence.storeMailData(mailsToStore)
 		}
 	}
@@ -351,12 +377,24 @@ export class OfflineMailIndexer implements MailIndexer {
 		mail: Mail,
 		mailDetailsBlobTypeModel: ServerTypeModel,
 		archiveDownloadPromises: Map<Id, Promise<unknown>>,
-	): Promise<MailWithDetailsAndAttachments | null> {
+		cachedMailDetailsBlobs: Map<Id, MailDetailsBlob>,
+	): Promise<MailWithDetailsAndAttachmentsBlob | null> {
 		if (isDraft(mail)) {
 			return await this.newMailDownloader(mail._id)
 		}
 
 		const mailDetailsBlobId = assertNotNull(mail.mailDetails)
+		const attachments = await this.mailFacade.loadAttachments(mail)
+
+		// if the blob is already stored, we don't want to reload it (or recache it)
+		const cachedMailDetailsBlob = cachedMailDetailsBlobs.get(elementIdPart(mailDetailsBlobId))
+		if (cachedMailDetailsBlob != null) {
+			return {
+				mail,
+				mailDetails: cachedMailDetailsBlob.details,
+				attachments,
+			}
+		}
 
 		const retrieveBlob = () => {
 			return this.offlineStoragePersistence.retrieveEncryptedMailDetailsBlob(mailDetailsBlobTypeModel, elementIdPart(mailDetailsBlobId))
@@ -364,6 +402,7 @@ export class OfflineMailIndexer implements MailIndexer {
 
 		// Get the mail details blob cached from persistence, first
 		let storedBlobJson: IncomingServerJson | null = await retrieveBlob()
+
 		if (storedBlobJson == null) {
 			// Wasn't there; we'll need to download the archive
 			const archiveId = listIdPart(mailDetailsBlobId)
@@ -401,14 +440,14 @@ export class OfflineMailIndexer implements MailIndexer {
 
 		try {
 			const mailSessionKey = assertNotNull(await this.crypto.resolveSessionKey(mail))
-			const mailDetails = await this.instancePipeline.decryptAndMap<MailDetailsBlob>(storedBlobJson, mailSessionKey)
-			const attachments = await this.mailFacade.loadAttachments(mail)
-
+			const json = await this.instancePipeline.typeMapper.parseServerJson(storedBlobJson)
+			const mailDetails = await this.instancePipeline.decryptAndMapEncryptedInstanceParsed<MailDetailsBlob>(json, mailSessionKey)
 			return {
 				mail,
-				mailDetails: mailDetails.details,
+				mailDetails: mailDetails.instance.details,
 				attachments,
-			} satisfies MailWithDetailsAndAttachments
+				incomingMailDetailsBlob: mailDetails.decryptedParsedInstance,
+			} satisfies MailWithDetailsAndAttachmentsBlob
 		} catch (e) {
 			// Usually we should be able to resolve the session key, but some emails are permanently stuck in this state
 			// due to being corrupted.
@@ -510,7 +549,7 @@ export class OfflineMailIndexer implements MailIndexer {
 				return await this.entityClient.loadMultiple(MailTypeRef, list, elements)
 			})
 			const mailsFlat = mails.flat()
-			await this.indexNonRecentMails(mailsFlat, archiveDownloadPromises, async () => {
+			await this.indexNonRecentMails(mailsFlat, archiveDownloadPromises, new Map(), async () => {
 				const update = this.createSearchIndexStateInfo(Math.max(1, (indexedMailCount / mailIds.length) * 100), indexedMailCount++)
 				await this.infoMessageHandler.onSearchIndexStateUpdate(update)
 			})
