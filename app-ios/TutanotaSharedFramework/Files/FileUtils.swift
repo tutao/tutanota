@@ -89,7 +89,7 @@ extension URL {
 		}
 	}
 	static func from(fileUrl: String) throws -> URL {
-		guard let url = URL(string: fileUrl), url.scheme == "file" else { throw FileError(message: "not a file URL: \(fileUrl)") }
+		guard let url = URL(string: fileUrl), (url.scheme == "file" || url.scheme == TUTANOTA_SHARE_SCHEME) else { throw FileError(message: "not a file URL: \(fileUrl)") }
 		return url
 	}
 }
