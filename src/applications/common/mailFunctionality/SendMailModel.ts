@@ -907,13 +907,6 @@ export class SendMailModel {
 		return this.sendAt
 	}
 
-	getSendAtTime(): Time | null {
-		if (this.sendAt) {
-			return Time.fromDate(this.sendAt)
-		}
-		return null
-	}
-
 	setDefaultSendAtDate(): void {
 		let nextDay = new Date()
 		nextDay.setDate(nextDay.getDate() + 1)

@@ -11,29 +11,33 @@ import { lang, Translation } from "../../../../../ui/utils/LanguageViewModel"
 import { Keys } from "../../../../../ui/utils/KeyboardKeys"
 
 export type TimePickerAttrs = {
-	time: Time | null
-	onTimeSelected: (time: Time | null) => unknown
+	time: Time
+	onTimeSelected: (time: Time) => unknown
 	timeFormat: TimeFormat
 	disabled?: boolean
 	valid?: boolean
 	ariaLabel: Translation
 	classes?: Array<string>
-	renderAsTextField: boolean
+	forMailSendTime: boolean
 }
 
 interface TimeOption {
-	value: Time | null
+	value: Time
 	ariaValue: string
 	name: string
 }
 
 export class TimePicker implements Component<TimePickerAttrs> {
-	private selectedTime: Time | null = null
+	private selectedTime: Time
 	private timeDropdownOptions: TimeOption[] = []
 	private inputText: string = ""
 	private inputTextIsValid: boolean = true
+	private inputIsFocused: boolean = false
 
 	constructor({ attrs }: Vnode<TimePickerAttrs>) {
+		this.selectedTime = attrs.time
+		this.setValidInputTextFromTime(this.selectedTime, attrs)
+
 		for (let hour = 0; hour < 24; hour++) {
 			for (let minute = 0; minute < 60; minute += 30) {
 				this.timeDropdownOptions.push(this.createTimeOption(new Time(hour, minute), attrs))
@@ -42,11 +46,11 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	}
 
 	view({ attrs }: Vnode<TimePickerAttrs>): Children {
-		if (attrs.time && !(this.selectedTime && attrs.time.isEqual(this.selectedTime))) {
+		if (!this.inputIsFocused) {
 			this.setValidInputTextFromTime(attrs.time, attrs)
 		}
 
-		return m(Select<TimeOption, Time | null>, {
+		return m(Select<TimeOption, Time>, {
 			classes: ["overflow-visible"],
 			onchange: (timeOption) => {
 				this.inputText = timeOption.name
@@ -63,12 +67,12 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			tabIndex: Number(TabIndex.Programmatic),
 			renderDisplay: () => this.renderInputFields(attrs),
 			renderOption: (option) => this.renderTimeOption(option),
-		} satisfies SelectAttributes<TimeOption, Time | null>)
+		} satisfies SelectAttributes<TimeOption, Time>)
 	}
 
 	private renderInputFields(attrs: TimePickerAttrs): Children {
 		let returnValue: ChildArray = []
-		if (attrs.renderAsTextField) {
+		if (attrs.forMailSendTime) {
 			returnValue.push(
 				m(LegacyTextField, {
 					style: {
@@ -82,6 +86,9 @@ export class TimePicker implements Component<TimePickerAttrs> {
 					keyHandler: (key) => {
 						this.handleKeyPress(key.key, attrs)
 						return true
+					},
+					onfocus: () => {
+						this.inputIsFocused = true
 					},
 					onblur: () => this.onConfirmInput(attrs),
 				} satisfies LegacyTextFieldAttrs),
@@ -101,6 +108,9 @@ export class TimePicker implements Component<TimePickerAttrs> {
 					value: this.inputText,
 					oninput: (textInputValue) => this.handleTextInput(textInputValue, attrs),
 					onkeydown: (event: KeyboardEvent) => this.handleKeyPress(event.key, attrs),
+					onfocus: () => {
+						this.inputIsFocused = true
+					},
 					onblur: () => this.onConfirmInput(attrs),
 					type: TextFieldType.Text,
 				} satisfies SingleLineTextFieldAttrs<TextFieldType.Text>),
@@ -164,11 +174,13 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	private handleTextInput(textInputValue: string, attrs: TimePickerAttrs) {
 		this.inputText = textInputValue
 		const parsedTime = Time.parseFromString(this.inputText)
-		this.inputTextIsValid = parsedTime !== null
-		if (this.inputTextIsValid && (!this.selectedTime || !parsedTime!.isEqual(this.selectedTime))) {
+		if (parsedTime !== null && (!this.selectedTime || !parsedTime!.isEqual(this.selectedTime))) {
 			// Update the time if we were able to parse a new time from the text input
+			this.inputTextIsValid = true
 			this.selectedTime = parsedTime
 			attrs.onTimeSelected(this.selectedTime)
+		} else {
+			this.inputTextIsValid = false
 		}
 	}
 
@@ -187,26 +199,24 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		// Close the dropdown and unfocus the text input
 		const active = document.activeElement as HTMLElement | null
 		active?.blur()
+		this.inputIsFocused = false
+	}
+
+	private convertTimeToString(time: Time, timeFormat: TimeFormat): string {
+		if (timeFormat === TimeFormat.TWELVE_HOURS) {
+			return time.to12HourString(true)
+		} else {
+			return time.to24HourString()
+		}
 	}
 
 	private setValidInputTextFromTime(time: Time, attrs: TimePickerAttrs) {
-		if (attrs.timeFormat === TimeFormat.TWELVE_HOURS) {
-			this.inputText = time.to12HourString(true)
-		} else {
-			this.inputText = time.to24HourString()
-		}
+		this.inputText = this.convertTimeToString(time, attrs.timeFormat)
 		this.inputTextIsValid = true
 	}
 
-	private createTimeOption(time: Time | null, attrs: TimePickerAttrs): TimeOption {
-		let timeString: string
-		if (time === null) {
-			timeString = "--"
-		} else if (attrs.timeFormat === TimeFormat.TWELVE_HOURS) {
-			timeString = time.to12HourString(true)
-		} else {
-			timeString = time.to24HourString()
-		}
+	private createTimeOption(time: Time, attrs: TimePickerAttrs): TimeOption {
+		const timeString = this.convertTimeToString(time, attrs.timeFormat)
 		return { value: time, name: timeString, ariaValue: timeString }
 	}
 }

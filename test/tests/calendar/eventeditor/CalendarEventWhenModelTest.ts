@@ -306,6 +306,27 @@ o.spec("CalendarEventWhenModel", function () {
 		// 	o(result.endTime.toISOString()).equals(eventWithDefaults.endTime?.toISOString())("default end time was correctly applied")
 		// 	o(isAllDayEvent(result)).equals(false)("the result is not considered all-day")
 		// })
+		o("changing from a 2 day duration to a 1 day duration for an all-day event is allowed", function () {
+			const model = new CalendarEventWhenModel(
+				createTestEntity(CalendarEventTypeRef, { startTime: new Date("2023-04-27T00:00:00.000Z"), endTime: new Date("2023-04-28T00:00:00.000Z") }),
+				"UTC",
+				noOp,
+			)
+			model.isAllDay = true
+			model.endDate = new Date("2023-04-27T00:00:00.000Z")
+
+			o(model.startDate.getFullYear()).equals(2023)
+			o(model.startDate.getMonth() + 1).equals(4)
+			o(model.startDate.getDate()).equals(27)
+			o(model.startDate.getHours()).equals(0)
+			o(model.startDate.getMinutes()).equals(0)
+
+			o(model.endDate.getFullYear()).equals(2023)
+			o(model.endDate.getMonth() + 1).equals(4)
+			o(model.endDate.getDate()).equals(27)
+			o(model.endDate.getHours()).equals(0)
+			o(model.endDate.getMinutes()).equals(0)
+		})
 	})
 
 	o.spec("timezones", function () {

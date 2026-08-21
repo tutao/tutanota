@@ -742,7 +742,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 												},
 											},
 											m(DatePicker, {
-												date: model.getSendAtDate() ?? new Date(),
+												date: sendAt,
 												onDateSelected: (date) => {
 													model.setSendAtDate(date)
 												},
@@ -758,15 +758,11 @@ export class MailEditor implements Component<MailEditorAttrs> {
 												},
 											},
 											m(TimePicker, {
-												time: model.getSendAtTime(),
-												onTimeSelected: (time: Time | null) => {
-													if (time) {
-														model.setSendAtTime(time)
-													}
-												},
+												time: Time.fromDate(sendAt),
+												onTimeSelected: (time: Time) => model.setSendAtTime(time),
 												timeFormat: getTimeFormatForUser(model.logins.getUserController().userSettingsGroupRoot),
 												ariaLabel: lang.getTranslation("sendTime_label"),
-												renderAsTextField: true,
+												forMailSendTime: true,
 											} satisfies TimePickerAttrs),
 										),
 										this.renderInvalidSendAtMessage(),

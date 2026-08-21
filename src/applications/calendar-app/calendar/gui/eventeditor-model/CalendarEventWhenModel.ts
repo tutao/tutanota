@@ -55,12 +55,10 @@ export class CalendarEventWhenModel {
 		public readonly calendarTimeZone: string,
 		private readonly uiUpdateCallback: () => void = noOp,
 	) {
-		const defaultTimes = getEventWithDefaultTimes(initialValues.startTime)
-		const defaultStartTime = normalizeTime(defaultTimes.startTime)
-		const defaultEndTime = normalizeTime(defaultTimes.endTime)
+		let defaultTimes = getEventWithDefaultTimes(initialValues.startTime)
 		const initialTimes: CalendarEventTimes = {
-			startTime: initialValues.startTime ? normalizeTime(initialValues.startTime) : defaultStartTime,
-			endTime: initialValues.endTime ? normalizeTime(initialValues.endTime) : defaultEndTime,
+			startTime: initialValues.startTime ? normalizeTime(initialValues.startTime) : normalizeTime(defaultTimes.startTime),
+			endTime: initialValues.endTime ? normalizeTime(initialValues.endTime) : normalizeTime(defaultTimes.endTime),
 		}
 
 		this._isAllDay = isAllDayEvent(initialTimes)
@@ -86,18 +84,26 @@ export class CalendarEventWhenModel {
 			this.end.hour = 0
 			this.end.minute = 0
 			this.end.timeZone = null
+
+			// if the event is all-day, we want to set the start and end times to the default times,
+			// when toggling all-day off
+			let defaultTimes = getEventWithDefaultTimes()
+			this.startValuesToRestoreWhenToggleAllDayOff = {
+				hour: defaultTimes.startTime.getHours(),
+				minute: defaultTimes.startTime.getMinutes(),
+				timeZone: null,
+			}
+			this.endValuesToRestoreWhenToggleAllDayOff = { hour: defaultTimes.endTime.getHours(), minute: defaultTimes.endTime.getMinutes(), timeZone: null }
 		} else {
 			const initialStartDateTime = DateTime.fromJSDate(initialTimes.startTime, { zone: this.getEffectiveStartTimeZone() })
 			const initialEndDateTime = DateTime.fromJSDate(initialTimes.endTime, { zone: this.getEffectiveEndTimeZone() })
 
 			this.setStartFromDateTime(initialStartDateTime)
 			this.setEndFromDateTime(initialEndDateTime)
-		}
 
-		// if the event is all-day, we want to set the start and end times to the default times,
-		// when toggling all-day off
-		this.startValuesToRestoreWhenToggleAllDayOff = { hour: defaultStartTime.getHours(), minute: defaultStartTime.getMinutes(), timeZone: null }
-		this.endValuesToRestoreWhenToggleAllDayOff = { hour: defaultEndTime.getHours(), minute: defaultEndTime.getMinutes(), timeZone: null }
+			this.startValuesToRestoreWhenToggleAllDayOff = { hour: 0, minute: 0, timeZone: null }
+			this.endValuesToRestoreWhenToggleAllDayOff = { hour: 0, minute: 0, timeZone: null }
+		}
 
 		this.logPrefix = "[" + this.constructor.name + "] "
 	}
@@ -369,9 +375,6 @@ export class CalendarEventWhenModel {
 		const oldEndMonth = this.end.month
 		const oldEndDay = this.end.day
 
-		if (this._isAllDay) {
-			newEndDate.setDate(newEndDate.getDate() + 1)
-		}
 		this.end.year = newEndDate.getFullYear()
 		this.end.month = newEndDate.getMonth() + 1
 		this.end.day = newEndDate.getDate()
