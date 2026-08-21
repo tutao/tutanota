@@ -68,16 +68,16 @@ export class SwipeHandler {
 			this.directionLock = DirectionLock.Vertical
 
 			if (!this.isAnimating) {
-				// Reset the row
-				window.requestAnimationFrame(() => {
-					if (!this.isAnimating) {
-						this.reset({
-							x,
-							y,
-						})
-					}
-				})
+				this.onVerticalDrag(y)
+				e.preventDefault()
+				e.stopPropagation()
 			}
+		} else if (this.directionLock === DirectionLock.Vertical) {
+			if (!this.isAnimating) {
+				this.onVerticalDrag(y)
+			}
+			e.preventDefault()
+			e.stopPropagation()
 		}
 	}
 
@@ -88,14 +88,20 @@ export class SwipeHandler {
 	private gestureEnd(e: TouchEvent) {
 		const delta = this.getDelta(e)
 
-		if (!this.isAnimating && this.directionLock === DirectionLock.Horizontal) {
-			// Gesture is completed
-			this.animating = this.onHorizontalGestureCompleted(delta)
-			this.isAnimating = true
-		} else if (!this.isAnimating) {
-			// Gesture is not completed, reset row
-			this.animating = this.reset(delta)
-			this.isAnimating = true
+		if (!this.isAnimating) {
+			if (this.directionLock === DirectionLock.Horizontal) {
+				// Horizontal gesture is completed
+				this.animating = this.onHorizontalGestureCompleted(delta)
+				this.isAnimating = true
+			} else if (this.directionLock === DirectionLock.Vertical) {
+				// Vertical gesture completed
+				this.animating = this.onVerticalGestureCompleted(delta)
+				this.isAnimating = true
+			} else if (!this.isAnimating) {
+				// Gesture is not completed, reset row
+				this.animating = this.reset(delta)
+				this.isAnimating = true
+			}
 		}
 
 		this.animating.then(() => (this.isAnimating = false))
@@ -107,6 +113,14 @@ export class SwipeHandler {
 	}
 
 	onHorizontalGestureCompleted(delta: { x: number; y: number }): Promise<unknown> {
+		// noOp
+		return Promise.resolve()
+	}
+	onVerticalDrag(yDelta: number) {
+		// noOp
+	}
+
+	onVerticalGestureCompleted(delta: { x: number; y: number }): Promise<unknown> {
 		// noOp
 		return Promise.resolve()
 	}

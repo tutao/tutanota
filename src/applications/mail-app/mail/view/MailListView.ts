@@ -84,8 +84,10 @@ export class MailListView implements Component<MailListViewAttrs> {
 			? ({
 					renderLeftSpacer: () => this.renderLeftSpacer(),
 					renderRightSpacer: () => this.renderRightSpacer(),
+					renderDownSpacer: () => this.renderDownSpacer(),
 					swipeLeft: (listElement: Mail) => this.onSwipeLeft(listElement),
 					swipeRight: (listElement: Mail) => this.onSwipeRight(listElement),
+					swipeDown: () => this.onSwipeDown(),
 					isDisabledForEntity: (listElement: Mail) => !isMailMovable(listElement, mailLocator.mailModel),
 				} satisfies SwipeConfiguration<Mail>)
 			: null,
@@ -460,6 +462,13 @@ export class MailListView implements Component<MailListViewAttrs> {
 		}
 	}
 
+	private async onSwipeDown(): Promise<void> {
+		const mailSet = this.mailViewModel.getMailSet()
+		if (mailSet) {
+			await this.mailViewModel.deleteMailSetEntryRangeFolder(mailSet, true)
+		}
+	}
+
 	private renderLeftSpacer(): Children {
 		return this.showingDraft
 			? [
@@ -489,6 +498,15 @@ export class MailListView implements Component<MailListViewAttrs> {
 				icon: Icons.TrashFilled,
 			}),
 			m(".pl-4", lang.get("delete_action")),
+		]
+	}
+
+	private renderDownSpacer(): Children {
+		return [
+			m(Icon, {
+				icon: Icons.Refresh,
+			}),
+			m("span", lang.getTranslationText("refresh_action")),
 		]
 	}
 }
