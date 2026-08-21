@@ -268,7 +268,7 @@ class DriveLocator implements CommonLocator {
 			this.userManagementFacade,
 			EnvProvider.get().isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp, this.desktopSystemFacade) : null,
 			redraw,
-			this.connectivityModel,
+			this.syncTracker,
 			this.searchModel,
 			this.searchRouter,
 			await this.driveOperations(),

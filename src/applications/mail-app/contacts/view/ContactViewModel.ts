@@ -9,9 +9,13 @@ import { Router } from "../../../../ui/ScopedThrottledRouter.js"
 import { Contact, ContactTypeRef } from "@tutao/entities/tutanota"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig.js"
 import { getElementId } from "../../../../platform-kit/meta"
-import { EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { ConnectionStateListener, WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
-import { WsConnectionState } from "../../../../platform-kit/network/Constants"
+import {
+	CacheSyncStatus,
+	EntityUpdatesListener,
+	isUpdateForTypeRef,
+	ListenerPriority,
+} from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { ContactSearchModel } from "../../search/model/ContactSearchModel"
 import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
@@ -32,7 +36,7 @@ export class ContactViewModel {
 		private readonly eventController: EventController,
 		private readonly router: Router,
 		private readonly updateUi: () => unknown,
-		private readonly connectivityModel: WebsocketConnectivityModel,
+		private readonly syncTracker: SyncTracker,
 		private readonly searchRouter: SearchRouter,
 		private readonly searchModel: lazyAsync<ContactSearchModel>,
 	) {}
@@ -53,7 +57,8 @@ export class ContactViewModel {
 
 	/** init is called every time the view is opened */
 	async init(contactListId?: Id) {
-		this.connectivityModel.addConnectionStateListener(this.connectivityListener)
+		this.syncTracker.addSyncListener(this.syncListener)
+
 		// update url if the view was just opened
 		if (contactListId == null) this.updateUrl()
 		if (this.contactListId) return
@@ -91,13 +96,12 @@ export class ContactViewModel {
 		priority: ListenerPriority.NORMAL,
 	}
 
-	private readonly connectivityListener: ConnectionStateListener = {
+	private readonly syncListener: SyncListener = {
 		id: "ContactViewModel",
 		priority: ListenerPriority.NORMAL,
-		onConnectionStateChanged: async (connectionState) => {
-			if (connectionState === WsConnectionState.connected) {
-				await this.listModel?.reload()
-			}
+		targetStatus: CacheSyncStatus.OnlineSyncOngoing,
+		onSyncStatusChange: async () => {
+			await this.listModel?.reload()
 		},
 	}
 
@@ -135,7 +139,7 @@ export class ContactViewModel {
 	}
 
 	deinit() {
-		this.connectivityModel.removeConnectionStateListener(this.connectivityListener)
+		this.syncTracker.removeSyncListener(this.syncListener)
 		this.listModelStateStream?.end(true)
 		this.listModelStateStream = null
 	}

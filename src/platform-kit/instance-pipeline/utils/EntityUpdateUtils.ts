@@ -81,6 +81,9 @@ export type EntityUpdatesListener = {
 }
 export enum CacheSyncStatus {
 	Offline = "Offline",
+	// cacheSyncStatus can either be in OnlineSyncOngoing or OnlineSyncOngoingFewUpdates
+	// (both transition to OnlineSyncDone afterwards)
 	OnlineSyncOngoing = "OnlineSyncOngoing",
+	OnlineSyncOngoingFewUpdates = "OnlineSyncOngoingFewUpdates",
 	OnlineSyncDone = "OnlineSyncDone",
 }

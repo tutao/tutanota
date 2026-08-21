@@ -119,7 +119,13 @@ import {
 	UserAlarmInfoTypeRef,
 } from "@tutao/entities/sys"
 import { isSharedGroupOwner } from "../../../../entities/sys/Utils"
-import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import {
+	CacheSyncStatus,
+	EntityUpdateData,
+	isUpdateFor,
+	isUpdateForTypeRef,
+	ListenerPriority,
+} from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { OperationId, OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { formatNotificationForDisplay } from "../../../../ui/utils/Formatter"
 import {
@@ -242,10 +248,11 @@ export class CalendarModel {
 			priority: ListenerPriority.HIGH,
 		})
 
-		syncTracker.addSyncDoneListener({
+		syncTracker.addSyncListener({
 			id: "CalendarModel",
-			onSyncDone: async () => this.requestWidgetRefresh(),
 			priority: ListenerPriority.HIGH,
+			targetStatus: CacheSyncStatus.OnlineSyncDone,
+			onSyncStatusChange: async () => this.requestWidgetRefresh(),
 		})
 
 		this.birthdayCalendarInfo = this.createBirthdayCalendarInfo()

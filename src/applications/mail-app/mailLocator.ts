@@ -373,7 +373,7 @@ class MailLocator implements CommonLocator {
 			this.eventController,
 			router,
 			await this.redraw(),
-			this.connectivityModel,
+			this.syncTracker,
 			await this.unscopedSearchRouter(),
 			this.contactSearchModel,
 		)
@@ -436,7 +436,7 @@ class MailLocator implements CommonLocator {
 			this.contactModel,
 			this.groupSettingsModel,
 			this.operationProgressTracker,
-			this.connectivityModel,
+			this.syncTracker,
 			await this.unscopedSearchRouter(),
 		)
 	})
@@ -598,7 +598,7 @@ class MailLocator implements CommonLocator {
 				undoModel,
 				this.transferProgressDispatcher,
 				this.operationProgressTracker,
-				this.connectivityModel,
+				this.syncTracker,
 			)
 	}
 
@@ -1489,7 +1489,7 @@ class MailLocator implements CommonLocator {
 			this.userManagementFacade,
 			EnvProvider.get().isDesktop() ? new WebFileResolver(window.nativeApp, this.fileApp, this.desktopSystemFacade) : null,
 			redraw,
-			this.connectivityModel,
+			this.syncTracker,
 			this.driveSearchModel,
 			await this.unscopedSearchRouter(),
 			await this.driveOperations(),

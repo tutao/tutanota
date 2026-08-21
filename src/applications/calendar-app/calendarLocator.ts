@@ -277,7 +277,7 @@ class CalendarLocator implements CommonLocator {
 			this.contactModel,
 			this.groupSettingsModel,
 			this.operationProgressTracker,
-			this.connectivityModel,
+			this.syncTracker,
 			await this.unscopedSearchRouter(),
 		)
 	})
