@@ -63,7 +63,7 @@ pipeline {
 				stage('Staging') {
 					when { expression { return params.STAGING } }
 					environment {
-						APK_SIGN_ALIAS = "test.tutao.de"
+						APK_SIGN_ALIAS = "debug.tutao.de"
 					}
 					steps {
 						echo "Building STAGING ${VERSION}"
@@ -72,7 +72,7 @@ pipeline {
 								string(credentialsId: 'apk-sign-store-pass', variable: "APK_SIGN_STORE_PASS"),
 								string(credentialsId: 'apk-sign-key-pass', variable: "APK_SIGN_KEY_PASS")
 						]) {
-							sh 'node android.js -b releaseTest test'
+							sh 'node android.js -b debug test'
 						}
 						stash includes: STAGING_APK_FILE_PATH, name: 'apk-staging'
 					} // steps
