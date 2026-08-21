@@ -44,7 +44,7 @@ o.spec("ImapSync", () => {
 	})
 
 	o.test("getImapMailboxesFromServer - delegates and returns result", async () => {
-		const expectedMailboxes: ReadonlyArray<ImapMailbox> = [{ path: "INBOX" }]
+		const expectedMailboxes: ImapMailbox[] = [{ path: "INBOX" }]
 		when(mockSyncSession.getImapMailboxesFromServer(imapCredentials)).thenResolve(expectedMailboxes)
 
 		const result = await imapSync.getImapMailboxesFromServer(imapCredentials)

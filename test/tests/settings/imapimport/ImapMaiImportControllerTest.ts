@@ -160,7 +160,7 @@ o.spec("ImapMailImportController", () => {
 			await controller.continueImport(imapAccountSyncStateIdMock)
 		} catch (imapException) {
 			o(imapException.message).equals("Some error")
-			o(imapException.data).equals(1)
+			o(imapException.data.cause).equals(1)
 		}
 	})
 
@@ -236,7 +236,7 @@ o.spec("ImapMailImportController", () => {
 	o.test("getImapMailboxesFromServer - delegates to imapImporter", async () => {
 		const imapCredentials = {} as ImapCredentials
 		const expected = { result: { imapMailboxes: [], imapCredentials: imapCredentials } }
-		when(imapImporter.getImapMailboxesFromServer(imapCredentials)).thenResolve({ result: [] })
+		when(imapImporter.getImapMailboxesFromServer(imapCredentials)).thenResolve([])
 		const result = await controller.doInitialConnectAndGetImapMailboxes(imapCredentials)
 		o.check(result).deepEquals(expected)
 	})

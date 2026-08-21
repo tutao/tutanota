@@ -2,7 +2,7 @@
 
 import { ImapSyncContext } from "../types/ImapSyncContext"
 import { ImapCredentials } from "../types/ImapCredentials"
-import { ImapGetMailboxResult } from "../types/ImapGetMailboxResult"
+import { ImapMailbox } from "../types/ImapMailbox"
 /**
  * Facade implemented by the native desktop client starting and stopping an IMAP sync.
  */
@@ -15,7 +15,7 @@ export interface ImapSyncSystemFacade {
 	/**
 	 * Fetches the folders from the IMAP server, to be used for the folder mapping step
 	 */
-	getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ImapGetMailboxResult>
+	getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ReadonlyArray<ImapMailbox>>
 
 	/**
 	 * Stop a specific running IMAP sync.

@@ -130,7 +130,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 									.continueImport(accountSyncStateId, true)
 									.catch((e) => {
 										//Auth failing errors do not need to bubble up as programming errors.
-										if (e.data !== ImapErrorCause.AUTH_FAILED) {
+										if (e.data.cause !== ImapErrorCause.AUTH_FAILED) {
 											throw e
 										}
 									})
@@ -151,7 +151,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 								.continueImport(accountSyncStateId)
 								.catch((e) => {
 									//Auth failing errors do not need to bubble up as programming errors.
-									if (e.data !== ImapErrorCause.AUTH_FAILED) {
+									if (e.data.cause !== ImapErrorCause.AUTH_FAILED) {
 										throw e
 									}
 								})

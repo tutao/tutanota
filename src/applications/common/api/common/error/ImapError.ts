@@ -74,7 +74,7 @@ export function fromImapFlowError(imapFlowError: any) {
 		default:
 			if (imapFlowError.authenticationFailed) {
 				cause = ImapErrorCause.AUTH_FAILED
-				new ImapError(imapFlowError.message, cause, "AUTHENTICATIONFAILED")
+				return new ImapError(imapFlowError.message, cause, "AUTHENTICATIONFAILED")
 			} else {
 				cause = ImapErrorCause.UNKNOWN
 				console.warn("Unknown IMAP error code: " + code)

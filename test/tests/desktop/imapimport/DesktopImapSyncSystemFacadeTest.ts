@@ -60,25 +60,22 @@ o.spec("DesktopImapSyncSystemFacade", () => {
 		o.check(e).equals(imapErrorMock)
 	})
 
-	o.test("getImapMailboxesFromServer - returns success result with mailboxes", async () => {
+	o.test("getImapMailboxesFromServer - returns mailboxes", async () => {
 		const mailboxesMock = [{ path: "INBOX", name: "INBOX" }]
 		when(transientImapSyncMock.getImapMailboxesFromServer(imapCredentialsMock)).thenResolve(mailboxesMock)
 
 		const result = await facade.getImapMailboxesFromServer(imapCredentialsMock)
 
-		o.check(result.result).equals(mailboxesMock)
-		o.check(result.error).equals(undefined)
+		o.check(result).equals(mailboxesMock)
 		verify(transientImapSyncMock.getImapMailboxesFromServer(imapCredentialsMock), { times: 1 })
 	})
 
-	o.test("getImapMailboxesFromServer - returns error result on exception", async () => {
+	o.test("getImapMailboxesFromServer - propagates thrown error", async () => {
 		const testError = new Error("Network failure")
 		when(transientImapSyncMock.getImapMailboxesFromServer(imapCredentialsMock)).thenReject(testError)
 
-		const result = await facade.getImapMailboxesFromServer(imapCredentialsMock)
-
-		o.check(result.result).equals(undefined)
-		o.check(result.error!.data).equals(ImapErrorCause.UNKNOWN)
+		const e = await assertThrows(Error, async () => await facade.getImapMailboxesFromServer(imapCredentialsMock))
+		o.check(e).equals(testError)
 	})
 
 	o.test("stopSync - stops and removes existing sync", async () => {
