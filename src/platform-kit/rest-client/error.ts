@@ -60,7 +60,7 @@ export class RequestTimeoutError extends TutanotaError {
 	}
 }
 
-export class PreconditionFailedError extends TutanotaError {
+export class PreconditionFailedError extends TutanotaError<string | null> {
 	static CODE: number = 412
 	// data field is respected by the WorkerProtocol. Other fields might not be passed
 	data: string | null
@@ -198,7 +198,7 @@ export function handleRestError(
 	path: Nullable<string> = null,
 	errorId: Nullable<string> = null,
 	precondition: Nullable<string> = null,
-): TutanotaError {
+): TutanotaError<string | null> {
 	const message = `${errorCode}: ${isNotNull(errorId) ? errorId + " " : ""}${isNotNull(precondition) ? precondition + " " : ""}${path}`
 
 	switch (errorCode) {
@@ -273,7 +273,7 @@ export function handleRestError(
 	}
 }
 
-export class SuspensionError extends TutanotaError {
+export class SuspensionError extends TutanotaError<string | null> {
 	// milliseconds to wait
 	readonly data: string | null
 

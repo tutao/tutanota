@@ -3,7 +3,7 @@
 import { TutanotaError } from "@tutao/app-env"
 import { filterInt } from "@tutao/utils"
 
-export class SuspensionError extends TutanotaError {
+export class SuspensionError extends TutanotaError<string> {
 	// milliseconds to wait
 	readonly data: string | null
 	constructor(message: string, suspensionTime: string | null) {
