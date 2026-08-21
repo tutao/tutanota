@@ -2546,5 +2546,9 @@ export default {
 		"migrationAddMailboxToRunning_action": "Add mailbox to running migration",
 		"migrationAddUserExplanation_msg": "You are about to add this user to the currently running email migration. Enter their old email address to schedule the import.",
 		"migrationAddMailboxExplanation_msg": "You are about to add this shared mailbox to the currently running email migration. Enter its old email address to schedule the import.",
+		"migrationComplete_action": "Complete migration",
+		"migrationNotAllMailboxesCompleteYet_msg": "Not all mailboxes have completed their migration, please make sure this is done before completing the migration.",
+		"migrationFinishing_msg": "Finishing migration ...",
+		"migrationCompleting_msg": "Completing migration ...",
 	}
 }

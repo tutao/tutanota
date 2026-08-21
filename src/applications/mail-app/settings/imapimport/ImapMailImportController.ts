@@ -279,7 +279,8 @@ export class ImapMailImportController {
 				session.imapAccountSyncState.status === ImapAccountSyncStatus.CANCELED ||
 				session.imapAccountSyncState.status === ImapAccountSyncStatus.PAUSED ||
 				session.imapAccountSyncState.status === ImapAccountSyncStatus.AUTH_ERROR ||
-				session.imapAccountSyncState.status === ImapAccountSyncStatus.ERROR
+				session.imapAccountSyncState.status === ImapAccountSyncStatus.ERROR ||
+				session.imapAccountSyncState.status === ImapAccountSyncStatus.COMPLETED_SUCCESSFULLY
 			) {
 				continue
 			}
@@ -342,11 +343,15 @@ export class ImapMailImportController {
 	}
 
 	shouldRenderClockIcon(session: ImapImportUiSession) {
-		return session.imapAccountSyncStatus === ImapAccountSyncStatus.POSTPONED
+		return session.imapAccountSyncStatus === ImapAccountSyncStatus.POSTPONED || session.imapAccountSyncStatus === ImapAccountSyncStatus.SCHEDULED
 	}
 
 	shouldRenderCheckmarkIcon(session: ImapImportUiSession) {
 		return session.imapAccountSyncStatus === ImapAccountSyncStatus.FINISHED
+	}
+
+	shouldRenderCompleteIcon(session: ImapImportUiSession) {
+		return session.imapAccountSyncStatus === ImapAccountSyncStatus.COMPLETED_SUCCESSFULLY
 	}
 
 	shouldRenderErrorIcon(session: ImapImportUiSession) {

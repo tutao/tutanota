@@ -2550,3 +2550,7 @@ export type TranslationKeyType =
 	| "migrationAddMailboxToRunning_action"
 	| "migrationAddUserExplanation_msg"
 	| "migrationAddMailboxExplanation_msg"
+	| "migrationComplete_action"
+	| "migrationNotAllMailboxesCompleteYet_msg"
+	| "migrationFinishing_msg"
+	| "migrationCompleting_msg"

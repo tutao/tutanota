@@ -608,7 +608,9 @@ export class ImapImporter implements ImapSyncFacade {
 		})
 		const [activeSessions, canceledSessions] = partition(
 			imapImportUiSessions,
-			(imapImportUiSession) => imapImportUiSession.imapAccountSyncStatus !== ImapAccountSyncStatus.CANCELED,
+			(imapImportUiSession) =>
+				imapImportUiSession.imapAccountSyncStatus !== ImapAccountSyncStatus.CANCELED &&
+				imapImportUiSession.imapAccountSyncStatus !== ImapAccountSyncStatus.COMPLETED_SUCCESSFULLY,
 		)
 		return Promise.resolve({ activeSessions, canceledSessions })
 	}

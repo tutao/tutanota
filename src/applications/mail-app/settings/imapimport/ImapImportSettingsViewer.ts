@@ -303,12 +303,13 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 
 	private renderPastSyncSessionsForMailboxCancelledSessions(canceledImapImportUiSessionsForMailGroup: ImapImportUiSession[]): Children {
 		return canceledImapImportUiSessionsForMailGroup.map((session) => {
-			const statusIcon = Icons.Checkmark
+			const isCompletedSuccessfully = session.imapAccountSyncStatus === ImapAccountSyncStatus.COMPLETED_SUCCESSFULLY
+			const statusIcon = isCompletedSuccessfully ? Icons.SuccessFilled : Icons.Checkmark
 			const statusIconParameters: Partial<IconAttrs> = {
 				icon: statusIcon,
 				class: "",
 				style: {
-					fill: theme.on_surface,
+					fill: isCompletedSuccessfully ? theme.success : theme.on_surface,
 				},
 			}
 			const importedMailsMessage = lang.getTranslation("migrationHistoryTotalImportedMails_msg", {
