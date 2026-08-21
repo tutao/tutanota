@@ -87,6 +87,26 @@ o.spec("OfflineStoragePersistence", () => {
 		o.check(await persistence.getIndexedGroups()).deepEquals([mailGroupData, contactGroupData])
 	})
 
+	o.test("clearEncryptedMailDetailsBlobs", async () => {
+		for (let a = 10; a < 15; a++) {
+			for (let b = 100; b < 105; b++) {
+				const { query, params } = sql`INSERT
+				OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (
+				${`${a + b}`},
+				${`${b}`},
+				${new Uint8Array([1, 2, 3, 4])},
+				'tutanota/mail',
+				1337
+				)`
+				await sqlCipherFacade.run(query, params)
+			}
+		}
+
+		o.check(await persistence.getDownloadedArchives()).deepEquals([])
+		await persistence.clearEncryptedMailDetailsBlobs()
+		o.check((await persistence.getDownloadedArchives()).sort()).deepEquals(["100", "101", "102", "103", "104"])
+	})
+
 	o.test("addIndexedGroup", async () => {
 		const mailGroupData: IndexedGroupData = {
 			groupId: "mailGroup",
