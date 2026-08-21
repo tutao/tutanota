@@ -27,7 +27,6 @@ import { lang, LanguageViewModel } from "../../../src/ui/utils/LanguageViewModel
 import { NativePushServiceApp } from "../../../src/applications/common/native/NativePushServiceApp.js"
 import { AlarmScheduler } from "../../../src/applications/common/calendar/date/AlarmScheduler"
 import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest"
-import { DoubledObject, matchers, object, when } from "testdouble"
 import { ContactModel } from "../../../src/applications/common/contactsFunctionality/ContactModel"
 import { OperationProgressTracker } from "../../../src/applications/common/api/main/OperationProgressTracker"
 import {
@@ -65,6 +64,7 @@ import { GroupType } from "../../../src/entities/sys/Utils"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../src/entities/tutanota/Utils"
 import { IcsCalendarEvent, ParsedCalendarData, ParsedEventAlarmTuple } from "../../../src/applications/calendar-app/calendar/export/CalendarParser"
 import en from "../../../src/ui/translations/en"
+import { DoubledObject, matchers, object, when } from "testdouble"
 
 o.spec("CalendarModel", function () {
 	const { anything } = matchers
@@ -297,6 +297,7 @@ o.spec("CalendarModel", function () {
 			baseParsedCalendarData = {
 				method: CalendarMethod.REPLY,
 				contents: [baseParsedEventReply],
+				parseEventErrors: [],
 			}
 
 			userGroupInfo = object()
@@ -354,6 +355,7 @@ o.spec("CalendarModel", function () {
 						alarms: [],
 					},
 				],
+				parseEventErrors: [],
 			}
 
 			const createCalendarEventsResult: CreateCalendarEventsResult = object()
@@ -507,14 +509,10 @@ o.spec("CalendarModel", function () {
 		})
 
 		o.spec("Previously replied events", function () {
-			o("Simple update should NOT create a ghost bubble", async function () {
-				const eventByUid: ResolvedUidIndexEntry = object()
-				baseExistingProgenitor.pendingInvitation = false
-				eventByUid.progenitor = baseExistingProgenitor as CalendarEventProgenitor
-				eventByUid.alteredInstances = []
-				when(calendarFacadeMock.getEventsByUid(anything(), anything(), anything())).thenResolve(eventByUid)
+			let sentEvent: IcsCalendarEvent
 
-				const sentEvent = createTestEntity(CalendarEventTypeRef, {
+			o.beforeEach(function () {
+				sentEvent = createTestEntity(CalendarEventTypeRef, {
 					summary: "v2",
 					uid,
 					sequence: "2",
@@ -522,16 +520,25 @@ o.spec("CalendarModel", function () {
 						address: ORGANIZER,
 					}),
 					startTime: baseExistingProgenitor.startTime,
-				})
+				}) as IcsCalendarEvent
+			})
+
+			o("Simple update should NOT create a ghost bubble", async function () {
+				const eventByUid: ResolvedUidIndexEntry = object()
+				baseExistingProgenitor.pendingInvitation = false
+				eventByUid.progenitor = baseExistingProgenitor as CalendarEventProgenitor
+				eventByUid.alteredInstances = []
+				when(calendarFacadeMock.getEventsByUid(anything(), anything(), anything())).thenResolve(eventByUid)
 
 				await calendarModel.processParsedCalendarDataFromCalendarEventUpdate(ORGANIZER, {
 					method: CalendarMethod.REQUEST,
 					contents: [
 						{
-							icsCalendarEvent: sentEvent as CalendarEventProgenitor,
+							icsCalendarEvent: sentEvent,
 							alarms: [],
 						},
 					],
+					parseEventErrors: [],
 				})
 
 				const eventCaptor = matchers.captor()
@@ -546,7 +553,56 @@ o.spec("CalendarModel", function () {
 				o(oldEvent).deepEquals(baseExistingProgenitor)
 			})
 
-			o("Update from deleted contact should still be processed", function () {})
+			o("Updates should still be applied if the update comes from original sender", async function () {
+				const originalSender = "original-sender@tuta.io"
+				baseExistingProgenitor.sender = originalSender // Make sure the original event was created with the addres of who sent the invitation
+				baseExistingProgenitor.attendees[1].status = CalendarAttendeeStatus.ACCEPTED // User already accepted previous reply
+				when(calendarFacadeMock.getEventsByUid(anything(), anything(), anything())).thenResolve(baseCalendarEventUidIndexEntry)
+
+				await calendarModel.processParsedCalendarDataFromCalendarEventUpdate(originalSender, {
+					method: CalendarMethod.REQUEST,
+					contents: [
+						{
+							icsCalendarEvent: sentEvent,
+							alarms: [],
+						},
+					],
+					parseEventErrors: [],
+				})
+
+				const eventCaptor = matchers.captor()
+				const oldEventCaptor = matchers.captor()
+				verify(calendarFacadeMock.updateCalendarEvent(eventCaptor.capture(), anything(), oldEventCaptor.capture()))
+
+				const updatedEvent = eventCaptor.value
+				const oldEvent = oldEventCaptor.value
+				o(updatedEvent.summary).equals(sentEvent.summary)
+				o(updatedEvent.sequence).equals(sentEvent.sequence)
+				o(updatedEvent.pendingInvitation).equals(false)
+				o(oldEvent).deepEquals(baseExistingProgenitor)
+			})
+
+			o("Updates should be ignored if the update comes from a different address than the original sender or organizer", async function () {
+				const originalSender = "original-sender@tuta.io"
+				baseExistingProgenitor.attendees[1].status = CalendarAttendeeStatus.ACCEPTED // User already accepted previous reply
+				baseExistingProgenitor.sender = originalSender // Make sure the original event was created with the addres of who sent the invitation
+				when(calendarFacadeMock.getEventsByUid(anything(), anything(), anything())).thenResolve(baseCalendarEventUidIndexEntry)
+
+				await calendarModel.processParsedCalendarDataFromCalendarEventUpdate(UNKNOWN_SENDER, {
+					method: CalendarMethod.REQUEST,
+					contents: [
+						{
+							icsCalendarEvent: sentEvent,
+							alarms: [],
+						},
+					],
+					parseEventErrors: [],
+				})
+
+				verify(calendarFacadeMock.getEventsByUid(anything(), anything(), anything()), { times: 1 })
+				verify(calendarModel.handleNewCalendarEventInvitationFromIcs(anything(), anything(), anything()), { times: 0 })
+				verify(calendarModel.handleExistingCalendarEventInvitationFromIcs(anything(), anything(), anything(), anything(), anything()), { times: 0 })
+			})
 		})
 
 		o("event entity is re-created when the start time changes", async function () {
@@ -618,6 +674,7 @@ o.spec("CalendarModel", function () {
 						alarms: [],
 					},
 				],
+				parseEventErrors: [],
 			})
 
 			const oldEventCaptor = matchers.captor()
@@ -658,6 +715,7 @@ o.spec("CalendarModel", function () {
 			baseParsedCalendarDataCancel = {
 				method: CalendarMethod.CANCEL,
 				contents: [baseParsedEvent],
+				parseEventErrors: [],
 			}
 		})
 
@@ -765,7 +823,7 @@ o.spec("CalendarModel", function () {
 		o("If user has never replied or interacted with this calendarEvent, the CalendarEventUpdates should be ignored", async function () {
 			when(calendarFacadeMock.getEventsByUid(anything(), anything(), anything())).thenResolve(null)
 
-			await calendarModel.processParsedCalendarDataFromCalendarEventUpdate(UNKNOWN_SENDER, {
+			await calendarModel.processParsedCalendarDataFromCalendarEventUpdate(ORGANIZER, {
 				method: CalendarMethod.REQUEST,
 				contents: [
 					{
@@ -773,13 +831,14 @@ o.spec("CalendarModel", function () {
 						alarms: [],
 					},
 				],
+				parseEventErrors: [],
 			})
 			verify(calendarFacadeMock.getEventsByUid(anything(), anything(), anything()), { times: 1 })
 			verify(calendarModel.handleNewCalendarEventInvitationFromIcs(anything(), anything(), anything()), { times: 0 })
 			verify(calendarModel.handleExistingCalendarEventInvitationFromIcs(anything(), anything(), anything(), anything(), anything()), { times: 0 })
 		})
 
-		o("Updates to previously replied/interacted calendarEvents should still be applied", async function () {
+		o("Updates to previously replied/interacted calendarEvents should still be applied if the update comes from the organizer", async function () {
 			baseExistingProgenitor.attendees[1].status = CalendarAttendeeStatus.ACCEPTED // User already accepted previous reply
 			when(calendarFacadeMock.getEventsByUid(anything(), anything(), anything())).thenResolve(baseCalendarEventUidIndexEntry)
 			when(contactModelMock.searchForContact(ORGANIZER)).thenResolve(null)
@@ -792,6 +851,7 @@ o.spec("CalendarModel", function () {
 						alarms: [],
 					},
 				],
+				parseEventErrors: [],
 			})
 
 			const eventCaptor = matchers.captor()

@@ -1,6 +1,6 @@
 import { Styles } from "./styles"
 import { component_size, font_size, layout_size, px, size } from "./size"
-import { EnvProvider } from "../platform-kit/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { lang } from "./utils/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
 import { BaseThemeProvider, getElevatedBackground, getNavigationMenuBg, isLightTheme, theme } from "./theme"
@@ -2673,16 +2673,6 @@ export class MainStyles {
 					"border-bottom": "9px solid transparent",
 					"border-left": "6px solid green",
 				},
-				".time-field": {
-					width: "80px",
-				},
-				".time-picker input": {
-					color: "rgba(0, 0, 0, 0)",
-				},
-				".time-picker-fake-display": {
-					bottom: "1.6em",
-					left: "0.1em",
-				},
 				".calendar-agenda-time-column": {
 					width: px(80),
 				},
@@ -3056,6 +3046,11 @@ export class MainStyles {
 				".tutaui-text-field::placeholder": {
 					color: theme.on_surface_variant,
 				},
+				".tutaui-text-field[aria-invalid='true']": {
+					color: theme.on_error_container,
+					"background-color": theme.error_container,
+					"border-color": theme.on_error_container,
+				},
 				".text-editor-placeholder": {
 					position: "absolute",
 					top: px(size.spacing_12),
@@ -3150,11 +3145,6 @@ export class MainStyles {
 					display: "grid",
 					"grid-template-columns": "6fr 3fr",
 					"column-gap": px(size.spacing_8),
-				},
-				".time-selection-grid > *": {
-					overflow: "hidden",
-					"white-space": "nowrap",
-					"text-overflow": "clip",
 				},
 				".invisible": {
 					all: "none",

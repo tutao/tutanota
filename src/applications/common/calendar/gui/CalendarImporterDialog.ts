@@ -1,7 +1,6 @@
 import { elementIdPart, isSameSingleId, listIdPart } from "@tutao/meta"
 import { FileChooserMultiMode, showFileChooser, showNativeFilePicker } from "../../file/FileController.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
-import { ParserError } from "../../misc/parsing/ParserCombinator.js"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog.js"
 import { lang, MaybeTranslation } from "../../../../ui/utils/LanguageViewModel.js"
 import { serializeCalendar } from "../../../calendar-app/calendar/export/CalendarExporter.js"
@@ -13,11 +12,10 @@ import { CALENDAR_MIME_TYPE } from "../../../../platform-kit/utils/FileConstants
 import { CalendarEvent, CalendarEventTypeRef, CalendarGroupRoot, createFile } from "@tutao/entities/tutanota"
 import { convertToDataFile } from "../../api/worker/utils/DataFile"
 import { UserAlarmInfo, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
-import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../api/worker/facades/lazy/CalendarFacade"
 
 import { CalendarImporter } from "../import/CalendarImporter"
 import { UserController } from "../../api/main/UserController.js"
-import { parseCalendarFile, ParsedEventAlarmTuple } from "../../../calendar-app/calendar/export/CalendarParser"
+import { parseCalendarFile, ParsedCalendarData, ParsedEventAlarmTuple } from "../../../calendar-app/calendar/export/CalendarParser"
 import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../../../ui/base/List"
 import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow"
 import { component_size } from "../../../../ui/size"
@@ -171,50 +169,34 @@ export function calendarSelectionDialog(
 	}).show()
 }
 
-/**
- * Used to track altered instances that need to have excluded dates added to their progenitors during import operations.
- *
- * Not all other calendar providers add excluded dates to their repeating iCalendar progenitors.
- * Therefore, we need to identify all the excluded dates ourselves and add them to the appropriate progenitor.
- *
- * **progenitorsToCreate**: is a Map to track new progenitors that do not exist in a user's calendar yet,
- * and therefore exclusions can be added before first creation.
- *
- * **progenitorsToUpdate**: is a Map progenitors that already exist in a user's calendar, and therefore we need to
- * fetch and update them with these exclusions after the new altered instances have been imported and created.
- *
- * Both Maps use the *progenitor's UID as a key*, to ensure fast lookup speed if we have a large number of altered instances.
- *
- */
-export type ProgenitorsToUpdateExclusionDates = {
-	alteredInstancesForNewProgenitors: Map<CalendarEventProgenitor, CalendarEventAlteredInstance[]>
-	alteredInstancesForExistingProgenitors: Map<CalendarEventProgenitor, CalendarEventAlteredInstance[]>
-}
-
 export async function selectAndParseIcalFile(): Promise<ParsedEventAlarmTuple[]> {
-	try {
-		const allowedExtensions = ["ical", "ics", "ifb", "icalendar"]
-		const dataFiles = EnvProvider.get().isApp()
-			? await showNativeFilePicker(allowedExtensions, true)
-			: await showFileChooser(FileChooserMultiMode.Multi, allowedExtensions)
-		const contents = dataFiles.map((file) => parseCalendarFile(file).contents)
-		return contents.flat()
-	} catch (e) {
-		if (e instanceof ParserError) {
-			console.log("Failed to parse file", e)
-			Dialog.message(
-				lang.makeTranslation(
-					"confirm_msg",
-					lang.get("importReadFileError_msg", {
-						"{filename}": e.filename ?? "",
-					}),
-				),
-			)
-			return []
-		} else {
-			throw e
+	const allowedExtensions = ["ical", "ics", "ifb", "icalendar"]
+	const dataFiles = EnvProvider.get().isApp()
+		? await showNativeFilePicker(allowedExtensions, true)
+		: await showFileChooser(FileChooserMultiMode.Multi, allowedExtensions)
+	const contents: ParsedEventAlarmTuple[] = []
+	let failureMessage = ""
+	for (const file of dataFiles) {
+		const result: ParsedCalendarData = parseCalendarFile(file)
+		contents.push(...result.contents)
+
+		const succeededEventsCount = contents.length
+		const failedEventsCount = result.parseEventErrors.length
+		if (failedEventsCount > 0) {
+			failureMessage +=
+				lang.getTranslation("importFileFailuresError_msg", {
+					"{failedEventsCount}": failedEventsCount,
+					"{filename}": file.name,
+					"{succeededEventsCount}": succeededEventsCount,
+				}).text + "\n"
 		}
 	}
+
+	if (failureMessage.length > 0) {
+		// await so that other importer-related dialogs don't pop up and interfere with this msg.
+		await Dialog.message(lang.makeTranslation("confirm_msg", failureMessage))
+	}
+	return contents
 }
 
 /** export all events from a calendar, using the alarmInfos the current user has access to and ignoring the other ones that may be set on the event. */

@@ -1,5 +1,5 @@
-import { pad } from "@tutao/utils"
 import { DateTime } from "luxon"
+import { ProgrammingError } from "@tutao/app-env"
 
 /**
  * A wrapper around time handling for the calendar stuff, mostly for the CalendarEventWhenModel
@@ -48,59 +48,35 @@ export class Time {
 	 * Accepts 2, 2:30, 2:5, 02:05, 02:30, 24:30, 2430, 12:30pm, 12:30 p.m.
 	 */
 	static parseFromString(timeString: string): Time | null {
-		let suffix // am/pm indicator or undefined
+		// Parse timeString using regex
+		const regex = /^(?:(\d\d?):(\d\d?)|(\d\d?)(\d\d)?)\s*(?:([ap])(?:m|\.m\.))?$/i
+		let matches = timeString.match(regex)
+		if (!matches) {
+			return null
+		}
+		const hourMatch: string | undefined = matches[1] ?? matches[3]
+		const minuteMatch: string | undefined = matches[2] ?? matches[4]
+		const isAm = matches[5] === "a" || matches[5] === "A"
+		const isPm = matches[5] === "p" || matches[5] === "P"
+		const is12HourClock = isAm || isPm
 
-		let hours // numeric hours
-
-		let minutes // numeric minutes
-
-		// See if the time includes a colon separating hh:mm
-		let mt = timeString.match(/^(\d{1,2}):(\d{1,2})\s*(am|pm|a\.m\.|p\.m\.)?$/i)
-
-		if (mt != null) {
-			suffix = mt[3]
-			hours = parseInt(mt[1], 10)
-			minutes = parseInt(mt[2], 10)
-		} else {
-			// Interpret 127am as 1:27am or 2311 as 11:11pm, e.g.
-			mt = timeString.match(/^(\d{1,4})\s*(am|pm|a\.m\.|p\.m\.)?$/i)
-
-			if (mt != null) {
-				suffix = mt[2]
-				const digits = mt[1]
-
-				// Hours only?
-				if (digits.length <= 2) {
-					hours = parseInt(digits, 10)
-					minutes = 0
-				} else {
-					hours = parseInt(digits.substring(0, digits.length - 2), 10)
-					minutes = parseInt(digits.slice(-2), 10)
-				}
-			} else {
-				return null
-			}
+		// Convert hours and minutes to integers
+		let hour = parseInt(hourMatch, 10)
+		let minute = minuteMatch ? parseInt(minuteMatch, 10) : 0
+		if (!Number.isSafeInteger(hour) || !Number.isSafeInteger(minute) || hour < 0 || minute < 0) {
+			throw new ProgrammingError(`Got unexpected hours match "${hourMatch}" and/or minute match "${minuteMatch}" from regex = ${regex}!`)
 		}
 
-		if (isNaN(hours) || isNaN(minutes) || minutes > 59) {
+		// Return null if hours or minutes are invalid
+		if (hour > 23 || (is12HourClock && hour > 12) || minute > 59) {
 			return null
 		}
 
-		if (suffix) {
-			suffix = suffix.toUpperCase()
+		if (is12HourClock) {
+			hour = Time.convert12HourClockHourTo24HourClock(hour, isPm)
 		}
 
-		if (suffix === "PM" || suffix === "P.M.") {
-			if (hours > 12) return null
-			if (hours !== 12) hours = hours + 12
-		} else if (suffix === "AM" || suffix === "A.M.") {
-			if (hours > 12) return null
-			if (hours === 12) hours = 0
-		} else if (hours > 23) {
-			return null
-		}
-
-		return new Time(hours, minutes)
+		return new Time(hour, minute)
 	}
 
 	/**
@@ -124,28 +100,28 @@ export class Time {
 		return this._hour === otherTime._hour && this._minute === otherTime._minute
 	}
 
-	toString(amPmFormat?: { withAmPmSuffix: boolean }): string {
-		return amPmFormat ? this.to12HourString(amPmFormat.withAmPmSuffix) : this.to24HourString()
-	}
-
 	to12HourString(withAmPmSuffix: boolean): string {
-		const minutesString = pad(this._minute, 2)
-
-		if (this._hour === 0) {
-			return `12:${minutesString}${withAmPmSuffix ? " am" : ""}`
-		} else if (this._hour === 12) {
-			return `12:${minutesString}${withAmPmSuffix ? " pm" : ""}`
-		} else if (this._hour > 12) {
-			return `${this._hour - 12}:${minutesString}${withAmPmSuffix ? " pm" : ""}`
-		} else {
-			return `${this._hour}:${minutesString}${withAmPmSuffix ? " am" : ""}`
+		let result = this.hourTo12HourClock().toString() + ":"
+		if (this._minute < 10) {
+			result += "0"
 		}
+		result += this._minute.toString()
+		if (withAmPmSuffix) {
+			result += this.isHourPm() ? " pm" : " am"
+		}
+		return result
 	}
 
 	to24HourString(): string {
-		const hours = pad(this._hour, 2)
-		const minutes = pad(this._minute, 2)
-		return `${hours}:${minutes}`
+		let result = ""
+		if (this._hour < 10) {
+			result += "0"
+		}
+		result += this._hour.toString() + ":"
+		if (this._minute < 10) {
+			result += "0"
+		}
+		return result + this._minute.toString()
 	}
 
 	toObject(): {
@@ -219,23 +195,28 @@ export class Time {
 		return this
 	}
 
-	/*
+	/** Returns true if this time is equal to otherTime. */
+	isEqual(otherTime: Time) {
+		return this._hour === otherTime._hour && this._minute === otherTime._minute
+	}
+
+	/**
 	 * Checks if this is after {@link param}
 	 *
-	 * @param {Time} timeB - Time to compare this with
-	 * @returns {boolean} Whether this is after or not timeB
+	 * @param timeB - Time to compare this with
+	 * @returns Whether this is after or not timeB
 	 */
-	isAfter(timeB: Time) {
+	isAfter(timeB: Time): boolean {
 		return this.asMinutes() > timeB.asMinutes()
 	}
 
-	/*
+	/**
 	 * Checks if this is before {@link param}
 	 *
-	 * @param {Time} timeB - Time to compare this with
-	 * @returns {boolean} Whether this is before or not timeB
+	 * @param timeB - Time to compare this with
+	 * @returns Whether this is before or not timeB
 	 */
-	isBefore(timeB: Time) {
+	isBefore(timeB: Time): boolean {
 		return this.asMinutes() < timeB.asMinutes()
 	}
 
@@ -243,5 +224,30 @@ export class Time {
 		const hour = minutes / 60
 		const restMinutes = minutes % 60
 		return new Time(hour, restMinutes)
+	}
+
+	private isHourPm() {
+		return this._hour >= 12
+	}
+
+	private hourTo12HourClock(): number {
+		let hour = this._hour
+		if (this.isHourPm()) {
+			hour -= 12
+		}
+		if (hour === 0) {
+			hour = 12
+		}
+		return hour
+	}
+
+	private static convert12HourClockHourTo24HourClock(hour: number, isPm: boolean) {
+		if (hour === 12) {
+			hour = 0
+		}
+		if (isPm) {
+			hour += 12
+		}
+		return hour
 	}
 }

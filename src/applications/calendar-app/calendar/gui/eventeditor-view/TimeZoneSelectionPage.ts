@@ -6,7 +6,7 @@ import { PrimaryButton, PrimaryButtonAttrs, SecondaryButton } from "../../../../
 import { TimeZoneSelectorDropdown } from "./TimeZoneSelectorDropdown"
 import { Checkbox, CheckboxAttrs } from "../../../../../ui/base/Checkbox"
 import { CalendarEventWhenModel } from "../eventeditor-model/CalendarEventWhenModel"
-import { DateTime, IANAZone } from "luxon"
+import { DateTime } from "luxon"
 
 export type TimeZoneSelectionPageAttrs = {
 	width: number
@@ -22,8 +22,8 @@ export class TimeZoneSelectionPage implements Component<TimeZoneSelectionPageAtt
 	private selectedEndTimeZone: string
 
 	constructor({ attrs }: Vnode<TimeZoneSelectionPageAttrs>) {
-		this.selectedStartTimeZone = attrs.whenModel.getStartTimeZoneOrDefault()
-		this.selectedEndTimeZone = attrs.whenModel.getEndTimeZoneOrDefault()
+		this.selectedStartTimeZone = attrs.whenModel.getEffectiveStartTimeZone()
+		this.selectedEndTimeZone = attrs.whenModel.getEffectiveEndTimeZone()
 	}
 
 	view({ attrs }: Vnode<TimeZoneSelectionPageAttrs>): Children {
@@ -44,11 +44,9 @@ export class TimeZoneSelectionPage implements Component<TimeZoneSelectionPageAtt
 					m(SecondaryButton, {
 						label: lang.getTranslation("removeTimeZone_action"),
 						onclick: () => {
-							attrs.onRemoveTimeZone()
+							attrs.whenModel.removeTimeZones()
 							attrs.onToggleSeparateStartAndEndTimeZone(false)
-
-							this.selectedStartTimeZone = attrs.whenModel.getStartTimeZoneOrDefault()
-							this.selectedEndTimeZone = attrs.whenModel.getEndTimeZoneOrDefault()
+							attrs.onRemoveTimeZone()
 						},
 						width: "flex",
 					} satisfies PrimaryButtonAttrs),

@@ -60,7 +60,7 @@ export class ImportInteractionHandler {
 		}
 
 		const acceptSkippingInversedDates = await this.partialImportConfirmation(
-			rejectedEvents.get(EventImportRejectionReason.Inversed) ?? [],
+			rejectedEvents.get(EventImportRejectionReason.InvalidEndBeforeStart) ?? [],
 			"importEndNotAfterStartInEvent_msg",
 			importedParsedEvents.length,
 		)
@@ -69,7 +69,7 @@ export class ImportInteractionHandler {
 		}
 
 		const acceptSkippingPre1970 = await this.partialImportConfirmation(
-			rejectedEvents.get(EventImportRejectionReason.Pre1970) ?? [],
+			rejectedEvents.get(EventImportRejectionReason.InvalidPre1970) ?? [],
 			"importPre1970StartInEvent_msg",
 			importedParsedEvents.length,
 		)

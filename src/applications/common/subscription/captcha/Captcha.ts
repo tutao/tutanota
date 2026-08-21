@@ -74,7 +74,7 @@ export async function runCaptchaFlow({
 		try {
 			let attributionToken: string | null = null
 			if (EnvProvider.get().isIOSApp()) {
-				attributionToken = await mailLocator.systemFacade.getAppleAdsAttributionToken()
+				attributionToken = await locator.systemFacade.getAppleAdsAttributionToken()
 			}
 
 			captchaReturn = await locator.serviceExecutor.execute(

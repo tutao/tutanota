@@ -1035,6 +1035,19 @@ o.spec("EntityRestClient", function () {
 	})
 
 	o.spec("Setup multiple", function () {
+		function mockSetupMultipleSuccessCall(version, untypedGroupMembers: Array<OutgoingServerJson>, untypedPersistentPostReturn: Array<OutgoingServerJson>) {
+			when(
+				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
+					headers: { ...authHeader, v: String(version) },
+					queryParams: { count: untypedGroupMembers.length.toString() },
+					responseType: MediaType.Json,
+					body: new RestTextBody(OutgoingServerJson.getJsonRepresentationOfMultiple(untypedGroupMembers)),
+				}),
+				{ times: 1 },
+			).thenResolve(OutgoingServerJson.getJsonRepresentationOfMultiple(untypedPersistentPostReturn))
+		}
+
 		o("Less than 100 entities created should result in a single rest request", async function () {
 			const newGroupMembers = groupMembers(1)
 			const { version } = await typeModelResolver.resolveClientTypeReference(GroupMemberTypeRef)
@@ -1050,16 +1063,7 @@ o.spec("EntityRestClient", function () {
 			})
 			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
 
-			when(
-				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
-					...DEFAULT_REST_CLIENT_OPTIONS,
-					headers: { ...authHeader, v: String(version) },
-					queryParams: { count: "1" },
-					responseType: MediaType.Json,
-					body: new RestTextBody(OutgoingServerJson.getJsonRepresentationOfMultiple(untypedGroupMembers)),
-				}),
-				{ times: 1 },
-			).thenResolve(OutgoingServerJson.getJsonRepresentationOfMultiple([untypedPersistentPostReturn]))
+			mockSetupMultipleSuccessCall(version, untypedGroupMembers, [untypedPersistentPostReturn])
 
 			const result = await entityRestClient.setupMultiple("listId", newGroupMembers)
 
@@ -1082,16 +1086,7 @@ o.spec("EntityRestClient", function () {
 				return await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, instance, null)
 			})
 
-			when(
-				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
-					...DEFAULT_REST_CLIENT_OPTIONS,
-					headers: { ...authHeader, v: String(version) },
-					queryParams: { count: "100" },
-					responseType: MediaType.Json,
-					body: new RestTextBody(OutgoingServerJson.getJsonRepresentationOfMultiple(untypedGroupMembers)),
-				}),
-				{ times: 1 },
-			).thenResolve(OutgoingServerJson.getJsonRepresentationOfMultiple(untypedPostReturns))
+			mockSetupMultipleSuccessCall(version, untypedGroupMembers, untypedPostReturns)
 
 			const result = await entityRestClient.setupMultiple("listId", newGroupMembers)
 			o(result).deepEquals(resultIds)
@@ -1113,27 +1108,8 @@ o.spec("EntityRestClient", function () {
 				return await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, instance, null)
 			})
 
-			when(
-				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
-					...DEFAULT_REST_CLIENT_OPTIONS,
-					headers: { ...authHeader, v: String(version) },
-					queryParams: { count: "100" },
-					responseType: MediaType.Json,
-					body: new RestTextBody(OutgoingServerJson.getJsonRepresentationOfMultiple(untypedGroupMembers.slice(0, 100))),
-				}),
-				{ times: 1 },
-			).thenResolve(OutgoingServerJson.getJsonRepresentationOfMultiple(untypedPostReturns.slice(0, 100)))
-
-			when(
-				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
-					...DEFAULT_REST_CLIENT_OPTIONS,
-					headers: { ...authHeader, v: String(version) },
-					queryParams: { count: "1" },
-					responseType: MediaType.Json,
-					body: new RestTextBody(OutgoingServerJson.getJsonRepresentationOfMultiple(untypedGroupMembers.slice(100))),
-				}),
-				{ times: 1 },
-			).thenResolve(OutgoingServerJson.getJsonRepresentationOfMultiple(untypedPostReturns.slice(100)))
+			mockSetupMultipleSuccessCall(version, untypedGroupMembers.slice(0, 100), untypedPostReturns.slice(0, 100))
+			mockSetupMultipleSuccessCall(version, untypedGroupMembers.slice(100), untypedPostReturns.slice(100))
 
 			const result = await entityRestClient.setupMultiple("listId", newGroupMembers)
 			o(result).deepEquals(resultIds)
@@ -1181,7 +1157,7 @@ o.spec("EntityRestClient", function () {
 			o(result.errors.every((e) => e instanceof restError.BadRequestError)).equals(true)
 		})
 
-		o("Post multiple: When a PayloadTooLarge error occurs individual instances are posted", async function () {
+		o("Post multiple: When PayloadTooLarge occurs at or below threshold, it falls back to individual requests", async function () {
 			const listId = "listId"
 			const instances = groupMembers(3)
 			const idArray = ["0", null, "2"] // GET fails for id 1
@@ -1216,6 +1192,79 @@ o.spec("EntityRestClient", function () {
 			o(result.errors.length).equals(1)
 			o(result.errors[0] instanceof restError.InternalServerError).equals(true)
 			o(result.failedInstances).deepEquals([instances[1]])
+		})
+
+		o("Post multiple: When PayloadTooLarge occurs above threshold, it splits and retries recursively", async function () {
+			const listId = "listId"
+			// 50 entities is > single post request fallback threshold (20), but < POST_MULTIPLE_LIMIT (100)
+			const originalChunkSize = 50
+			const instances = groupMembers(originalChunkSize)
+
+			const resultIds = countFrom(0, originalChunkSize).map(String)
+			const untypedPostReturns = await promiseMap(resultIds, async (id) => {
+				const instance = createTestEntity(PersistenceResourcePostReturnTypeRef, {
+					generatedId: id,
+					permissionListId: "permissionListId",
+				})
+				return await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, instance, null)
+			})
+
+			const { version } = await typeModelResolver.resolveClientTypeReference(GroupMemberTypeRef)
+			const untypedGroupMembers = await promiseMap(instances, async (group) => {
+				return instancePipeline.mapAndEncrypt(GroupMemberTypeRef, group, null)
+			})
+
+			// First bulk call throws PayloadTooLargeError, forcing a split, Math.floor(chunkSize / 2), into two chunks of 25
+			when(
+				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
+					headers: { ...authHeader, v: String(version) },
+					queryParams: { count: untypedGroupMembers.length.toString() },
+					responseType: MediaType.Json,
+					body: new RestTextBody(OutgoingServerJson.getJsonRepresentationOfMultiple(untypedGroupMembers)),
+				}),
+				{ times: 1 },
+			).thenReject(new restError.PayloadTooLargeError("too large"))
+
+			const firstRetryChunkEntities = untypedGroupMembers.slice(0, untypedGroupMembers.length / 2)
+			const firstRetryChunkUntypedPersistentPostReturn = untypedPostReturns.slice(0, untypedPostReturns.length / 2)
+
+			// First chunk of the retry succeeds
+			mockSetupMultipleSuccessCall(version, firstRetryChunkEntities, firstRetryChunkUntypedPersistentPostReturn)
+
+			const secondRetryChunkEntities = untypedGroupMembers.slice(untypedGroupMembers.length / 2, untypedGroupMembers.length)
+			const secondRetryChunkUntypedPersistentPostReturn = untypedPostReturns.slice(untypedPostReturns.length / 2, untypedPostReturns.length)
+
+			// Second chunk fails, forcing another split
+			when(
+				restClient.request(`/rest/sys/groupmember/listId`, HttpMethod.POST, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
+					headers: { ...authHeader, v: String(version) },
+					queryParams: { count: secondRetryChunkEntities.length.toString() },
+					responseType: MediaType.Json,
+					body: new RestTextBody(OutgoingServerJson.getJsonRepresentationOfMultiple(secondRetryChunkEntities)),
+				}),
+				{ times: 1 },
+			).thenReject(new restError.PayloadTooLargeError("second chunk retry too large"))
+
+			// Second split happens for the second half of the original list, creating 3 chunks = 12, 12, 1
+			const newChunkSize = Math.floor(secondRetryChunkEntities.length / 2) // floor(25/2) = 12
+			mockSetupMultipleSuccessCall(
+				version,
+				secondRetryChunkEntities.slice(0, newChunkSize),
+				secondRetryChunkUntypedPersistentPostReturn.slice(0, newChunkSize),
+			)
+			mockSetupMultipleSuccessCall(
+				version,
+				secondRetryChunkEntities.slice(newChunkSize, secondRetryChunkEntities.length - 1),
+				secondRetryChunkUntypedPersistentPostReturn.slice(newChunkSize, secondRetryChunkUntypedPersistentPostReturn.length - 1),
+			)
+			mockSetupMultipleSuccessCall(version, secondRetryChunkEntities.slice(-1), secondRetryChunkUntypedPersistentPostReturn.slice(-1))
+
+			const result = await entityRestClient.setupMultiple(listId, instances)
+
+			verify(restClient.request(anything(), anything(), anything()), { ignoreExtraArgs: true, times: 6 })
+			o(result.sort((a, b) => Number.parseInt(a) - Number.parseInt(b))).deepEquals(resultIds)
 		})
 	})
 

@@ -32,14 +32,13 @@ import {
 	ParserError,
 	StringIterator,
 } from "../../../common/misc/parsing/ParserCombinator"
-import { EndType, RepeatPeriod, TimeConstants } from "@tutao/app-env"
+import { EndType, ProgrammingError, RepeatPeriod, TimeConstants } from "@tutao/app-env"
 import { reverse } from "../../../common/misc/EnumUtils"
 import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
 import { availableIANATimeZones, windowsToIANATimeZones } from "../../../common/calendar/TimeZoneData"
-import { DateTimeFormatterWrapper } from "../../../common/calendar/DateTimeFormatterWrapper"
 
 const TAG = "[CalendarParser]"
 
@@ -80,7 +79,8 @@ export type ParsedEventAlarmTuple = {
 }
 export type ParsedCalendarData = {
 	method: string
-	contents: Array<ParsedEventAlarmTuple>
+	contents: ParsedEventAlarmTuple[]
+	parseEventErrors: ParserError[]
 }
 export type StrippedCalendarEventAttendee = {
 	status: NumberString
@@ -104,48 +104,6 @@ type ICalDuration = {
 	week?: number
 	hour?: number
 	minute?: number
-}
-type DateComponents = {
-	year: number
-	month: number
-	day: number
-	zone?: string
-}
-type TimeComponents = {
-	hour: number
-	minute: number
-}
-type DateTimeComponents = DateComponents & TimeComponents
-
-type TimeDuration = {
-	type: "time"
-	hour?: number
-	minute?: number
-	second?: number
-}
-type DateDuration = {
-	type: "date"
-	day: number
-	time: TimeDuration | null
-}
-type WeekDuration = {
-	type: "week"
-	week: number
-}
-
-function parseDateString(dateString: string): {
-	year: number
-	month: number
-	day: number
-} {
-	const year = parseInt(dateString.slice(0, 4))
-	const month = parseInt(dateString.slice(4, 6))
-	const day = parseInt(dateString.slice(6, 8))
-	return {
-		year,
-		month,
-		day,
-	}
 }
 
 function getProp(obj: ICalObject, tag: string, optional: false): Property
@@ -439,7 +397,7 @@ export function triggerToAlarmInterval(eventStart: Date, triggerValue: string): 
 	}
 }
 
-export function parseRrule(rawRruleValue: string, tzId: string | null): RepeatRule {
+export function parseRrule(rawRruleValue: string, startTzId: string | null): RepeatRule {
 	let rruleValue
 
 	try {
@@ -453,7 +411,7 @@ export function parseRrule(rawRruleValue: string, tzId: string | null): RepeatRu
 	}
 
 	const frequency = icalFrequencyToRepeatPeriod(rruleValue["FREQ"])
-	const until = rruleValue["UNTIL"] ? parseUntilRruleTime(rruleValue["UNTIL"], tzId) : null
+	const until = rruleValue["UNTIL"] ? parseUntilRruleTime(rruleValue["UNTIL"], startTzId) : null
 	const count = rruleValue["COUNT"] ? parseInt(rruleValue["COUNT"]) : null
 	const endType: EndType = until != null ? EndType.UntilDate : count != null ? EndType.Count : EndType.Never
 	const interval = rruleValue["INTERVAL"] ? parseInt(rruleValue["INTERVAL"]) : 1
@@ -467,8 +425,8 @@ export function parseRrule(rawRruleValue: string, tzId: string | null): RepeatRu
 		advancedRules: parseAdvancedRule(rruleValue),
 	})
 
-	if (typeof tzId === "string") {
-		repeatRule.timeZone = tzId
+	if (typeof startTzId === "string") {
+		repeatRule.timeZone = startTzId
 	}
 
 	return repeatRule
@@ -512,17 +470,8 @@ export function parseExDates(excludedDatesProps: Property[]): DateWrapper[] {
 }
 
 export function parseRecurrenceId(recurrenceIdProp: Property, tzId: string | null): Date {
-	const components = parseTimeIntoComponents(recurrenceIdProp.value)
-	// rrule until is inclusive in ical but exclusive in Tutanota
-	const filledComponents = components
-	// if minute is not provided it is an all day date YYYYMMDD
-	const allDay = !("minute" in components)
-	// We don't use the zone from the components (RRULE) but the one from start time if it was given.
-	// Don't ask me why but that's how it is.
-	const effectiveZone = allDay ? "UTC" : (components.zone ?? getTzId(recurrenceIdProp) ?? tzId ?? undefined)
-	delete filledComponents["zone"]
-	const luxonDate = DateTime.fromObject(filledComponents, { zone: effectiveZone })
-	return toValidJSDate(luxonDate, recurrenceIdProp.value, tzId)
+	const result = parseDateTime(recurrenceIdProp.value, getTzId(recurrenceIdProp), tzId ?? null)
+	return toValidJSDate(result.dateTime, recurrenceIdProp.value, tzId)
 }
 
 /**
@@ -552,13 +501,44 @@ function parseEventDuration(durationValue: string, startTime: Date): Date {
 }
 
 function getTzId(prop: Property): string | null {
-	const tzIdValue = prop.params["TZID"]
+	let tzIdValue: string = prop.params["TZID"]
 	if (!tzIdValue) {
 		return null
 	}
+	tzIdValue = tzIdValue.trim()
 
 	if (availableIANATimeZones.includes(tzIdValue)) {
 		return tzIdValue
+	}
+
+	// Special-case handling for time zone IDs starting with GMT/UTC, followed by an optional offset: +/-h[h][mm]
+	// We throw an error if the seconds value is non-zero, because we have no easy way to map them to an IANA time zone
+	// using the Intl API.
+	const threeCharPrefix = tzIdValue.length >= 3 ? tzIdValue.slice(0, 3).toUpperCase() : null
+	if (threeCharPrefix !== null && (threeCharPrefix === "UTC" || threeCharPrefix === "GMT")) {
+		if (tzIdValue.length === 3) {
+			return "UTC"
+		} else {
+			const regexMatches = tzIdValue.slice(3).match(/^([+-]\d\d?)(\d\d)?$/)
+			if (regexMatches === null) {
+				throw new ParserError(`${TAG} Invalid GMT/UTC TZID parameter in property ${prop.name}: TZID=${tzIdValue}.`)
+			}
+			const [_, hourString, minuteString] = regexMatches
+			let hour = parseInt(hourString)
+			if (hour === 0) {
+				return "UTC"
+			}
+			if (hour < -12 || hour > 14) {
+				throw new ParserError(`${TAG} Invalid hour in GMT/UTC TZID parameter in property ${prop.name}: TZID=${tzIdValue}.`)
+			}
+			const minute = minuteString ? parseInt(minuteString) : 0
+			if (minute !== 0) {
+				// our system cannot currently handle minute offsets.
+				throw new ParserError(`${TAG} Incompatible GMT/UTC TZID with minute offset in property ${prop.name}: TZID=${tzIdValue}.`)
+			}
+			// Etc/UTC is the reverse of normal UTC.  Same with GMT.  (See: https://data.iana.org/time-zones/tzdb/etcetera)
+			return `Etc/GMT${hour < 0 ? "+" : "-"}${Math.abs(hour)}`
+		}
 	}
 
 	const timeZoneFromWindowsMap = windowsToIANATimeZones[tzIdValue]
@@ -566,12 +546,15 @@ function getTzId(prop: Property): string | null {
 		return timeZoneFromWindowsMap
 	}
 
-	const resolveTimeZone = new DateTimeFormatterWrapper().resolveTimeZone(tzIdValue)
-	if (resolveTimeZone) {
-		return resolveTimeZone
+	try {
+		return Intl.DateTimeFormat("en-US", { timeZone: tzIdValue }).resolvedOptions().timeZone
+	} catch (e) {
+		if (e instanceof RangeError) {
+			throw new ParserError(`${TAG} Invalid timezone in property ${prop.name}: TZID=${tzIdValue}.`)
+		} else {
+			throw e
+		}
 	}
-
-	throw new ParserError(`${TAG} Invalid timezone in property ${prop.name}=${tzIdValue}.`)
 }
 
 function oneDayDurationEnd(startTime: Date, allDay: boolean, tzId: string | null, zone: string): Date {
@@ -624,125 +607,141 @@ export function parseCalendarEvents(icalObject: ICalObject, userCalendarTimeZone
 	const methodProp = getProp(icalObject, "METHOD", true)
 	const method = methodProp ? methodProp.value : CalendarMethod.PUBLISH
 	const eventObjects = icalObject.children.filter((obj) => obj.type === "VEVENT")
-	const contents = getContents(eventObjects, userCalendarTimeZone)
+	const [contents, parseEventErrors] = getContents(eventObjects, userCalendarTimeZone)
 
 	return {
 		method,
 		contents,
+		parseEventErrors,
 	}
 }
 
-function getContents(eventObjects: ICalObject[], zone: string): Array<ParsedEventAlarmTuple> {
-	return eventObjects.map((eventObj, index) => {
-		const startProp = getProp(eventObj, "DTSTART", false)
-		const startTzId: string | null = getTzId(startProp)
-		const { date: startTime, allDay } = parseTime(startProp.value, startTzId)
-
-		// start time and tzid is sorted, so we can worry about event identity now before proceeding...
-		let hasValidUid = false
-		let uid: string | null = null
+function getContents(eventObjects: ICalObject[], zone: string): [ParsedEventAlarmTuple[], ParserError[]] {
+	const contents: ParsedEventAlarmTuple[] = []
+	const errors: ParserError[] = []
+	for (let i = 0; i < eventObjects.length; ++i) {
 		try {
-			uid = getPropStringValue(eventObj, "UID", false)
-			hasValidUid = true
+			contents.push(parseEventObject(eventObjects[i], i, zone))
 		} catch (e) {
 			if (e instanceof ParserError) {
-				// Also parse event and create new UID if none is set
-				uid = `import-${Date.now()}-${index}@tuta.com`
+				errors.push(e)
 			} else {
 				throw e
 			}
 		}
+	}
+	return [contents, errors]
+}
 
-		const recurrenceIdProp = getProp(eventObj, "RECURRENCE-ID", true)
-		let recurrenceId: Date | null = null
-		if (recurrenceIdProp != null && hasValidUid) {
-			// if we generated the UID, we have no way of knowing which event series this recurrenceId refers to.
-			// in that case, we just don't add the recurrenceId and import the event as a standalone.
-			recurrenceId = parseRecurrenceId(recurrenceIdProp, startTzId)
+function parseEventObject(eventObj: ICalObject, index: number, zone: string) {
+	const startProp = getProp(eventObj, "DTSTART", false)
+	const startTzId: string | null = getTzId(startProp)
+	const { date: startTime, allDay } = parseTime(startProp.value, startTzId)
+
+	// start time and tzid is sorted, so we can worry about event identity now before proceeding...
+	let hasValidUid = false
+	let uid: string | null = null
+	try {
+		uid = getPropStringValue(eventObj, "UID", false)
+		hasValidUid = true
+	} catch (e) {
+		if (e instanceof ParserError) {
+			// Also parse event and create new UID if none is set
+			uid = `import-${Date.now()}-${index}@tuta.com`
+		} else {
+			throw e
+		}
+	}
+
+	const recurrenceIdProp = getProp(eventObj, "RECURRENCE-ID", true)
+	let recurrenceId: Date | null = null
+	if (recurrenceIdProp != null && hasValidUid) {
+		// if we generated the UID, we have no way of knowing which event series this recurrenceId refers to.
+		// in that case, we just don't add the recurrenceId and import the event as a standalone.
+		recurrenceId = parseRecurrenceId(recurrenceIdProp, startTzId)
+	}
+
+	const endProp = getProp(eventObj, "DTEND", true)
+	const endTzId = endProp ? getTzId(endProp) : null
+	const endTime = parseEndTime(eventObj, allDay, startTime, startTzId, zone)
+
+	let summary: string = ""
+	const maybeSummary = parseICalText(eventObj, "SUMMARY")
+	if (maybeSummary) summary = maybeSummary
+
+	let location: string = ""
+	const maybeLocation = parseICalText(eventObj, "LOCATION")
+	if (maybeLocation) location = maybeLocation
+
+	const rruleProp = getPropStringValue(eventObj, "RRULE", true)
+	const excludedDateProps = eventObj.properties.filter((p) => p.name === "EXDATE")
+
+	let repeatRule: RepeatRule | null = null
+	if (rruleProp != null) {
+		repeatRule = parseRrule(rruleProp, startTzId)
+		repeatRule.excludedDates = parseExDates(excludedDateProps)
+	}
+
+	const description = parseICalText(eventObj, "DESCRIPTION") ?? ""
+
+	const sequenceProp = getProp(eventObj, "SEQUENCE", true)
+	let sequence: string = "0"
+	if (sequenceProp) {
+		const sequenceNumber = filterInt(sequenceProp.value)
+
+		if (Number.isNaN(sequenceNumber)) {
+			throw new ParserError("SEQUENCE value is not a number")
 		}
 
-		const endProp = getProp(eventObj, "DTEND", true)
-		const endTzId = endProp ? getTzId(endProp) : null
-		const endTime = parseEndTime(eventObj, allDay, startTime, startTzId, zone)
+		// Convert it back to NumberString. Could use original one but this feels more robust.
+		sequence = String(sequenceNumber)
+	}
 
-		let summary: string = ""
-		const maybeSummary = parseICalText(eventObj, "SUMMARY")
-		if (maybeSummary) summary = maybeSummary
+	const attendees = getAttendees(eventObj)
 
-		let location: string = ""
-		const maybeLocation = parseICalText(eventObj, "LOCATION")
-		if (maybeLocation) location = maybeLocation
+	const organizerProp = getProp(eventObj, "ORGANIZER", true)
+	let organizer: EncryptedMailAddress | null = null
+	if (organizerProp) {
+		const organizerAddress = parseMailtoValue(organizerProp.value)
 
-		const rruleProp = getPropStringValue(eventObj, "RRULE", true)
-		const excludedDateProps = eventObj.properties.filter((p) => p.name === "EXDATE")
-
-		let repeatRule: RepeatRule | null = null
-		if (rruleProp != null) {
-			repeatRule = parseRrule(rruleProp, startTzId)
-			repeatRule.excludedDates = parseExDates(excludedDateProps)
+		if (organizerAddress && isMailAddress(organizerAddress, false)) {
+			organizer = createEncryptedMailAddress({
+				address: organizerAddress,
+				name: organizerProp.params["name"] || "",
+			})
+		} else {
+			console.log("organizer has no address or address is invalid, ignoring: ", organizerAddress)
 		}
+	}
 
-		const description = parseICalText(eventObj, "DESCRIPTION") ?? ""
+	const icsCalendarEvent: IcsCalendarEvent = {
+		summary,
+		description,
+		startTime,
+		endTime,
+		location,
+		uid,
+		sequence,
+		recurrenceId,
+		repeatRule,
+		attendees,
+		organizer,
+		startTimeZone: allDay ? null : startTzId,
+		endTimeZone: allDay ? null : endTzId,
+	}
 
-		const sequenceProp = getProp(eventObj, "SEQUENCE", true)
-		let sequence: string = "0"
-		if (sequenceProp) {
-			const sequenceNumber = filterInt(sequenceProp.value)
+	let alarms: AlarmInfoTemplate[] = []
 
-			if (Number.isNaN(sequenceNumber)) {
-				throw new ParserError("SEQUENCE value is not a number")
-			}
+	try {
+		alarms = getAlarms(eventObj, startTime)
+	} catch (e) {
+		console.log("alarm is invalid for event: ", icsCalendarEvent.summary, icsCalendarEvent.startTime)
+	}
 
-			// Convert it back to NumberString. Could use original one but this feels more robust.
-			sequence = String(sequenceNumber)
-		}
-
-		const attendees = getAttendees(eventObj)
-
-		const organizerProp = getProp(eventObj, "ORGANIZER", true)
-		let organizer: EncryptedMailAddress | null = null
-		if (organizerProp) {
-			const organizerAddress = parseMailtoValue(organizerProp.value)
-
-			if (organizerAddress && isMailAddress(organizerAddress, false)) {
-				organizer = createEncryptedMailAddress({
-					address: organizerAddress,
-					name: organizerProp.params["name"] || "",
-				})
-			} else {
-				console.log("organizer has no address or address is invalid, ignoring: ", organizerAddress)
-			}
-		}
-
-		const icsCalendarEvent: IcsCalendarEvent = {
-			summary,
-			description,
-			startTime,
-			endTime,
-			location,
-			uid,
-			sequence,
-			recurrenceId,
-			repeatRule,
-			attendees,
-			organizer,
-			startTimeZone: allDay ? null : startTzId,
-			endTimeZone: allDay ? null : endTzId,
-		}
-
-		let alarms: AlarmInfoTemplate[] = []
-
-		try {
-			alarms = getAlarms(eventObj, startTime)
-		} catch (e) {
-			console.log("alarm is invalid for event: ", icsCalendarEvent.summary, icsCalendarEvent.startTime)
-		}
-
-		return {
-			icsCalendarEvent,
-			alarms,
-		}
-	})
+	return {
+		icsCalendarEvent,
+		alarms,
+	}
 }
 
 function getAttendees(eventObj: ICalObject) {
@@ -821,13 +820,9 @@ function parseEndTime(eventObj: ICalObject, allDay: boolean, startTime: Date, st
 			throw new ParserError("DTEND value is not a string")
 		}
 
-		let endTzId: string | null = getTzId(endProp)
-		if (!endTzId && !parseTimeIntoComponents(endProp.value).zone) {
-			endTzId = startTzId
-		}
+		const parseEndDateResult = parseDateTime(endProp.value, getTzId(endProp), startTzId)
 
-		const parsedEndTime = parseTime(endProp.value, endTzId)
-		const endTime = parsedEndTime.date
+		const endTime = parseEndDateResult.dateTime.toJSDate()
 		if (endTime > startTime) {
 			return endTime
 		}
@@ -861,138 +856,121 @@ function parseEndTime(eventObj: ICalObject, allDay: boolean, startTime: Date, st
 }
 
 function icalFrequencyToRepeatPeriod(value: string): RepeatPeriod {
-	const convertedValue = {
-		DAILY: RepeatPeriod.DAILY,
-		WEEKLY: RepeatPeriod.WEEKLY,
-		MONTHLY: RepeatPeriod.MONTHLY,
-		YEARLY: RepeatPeriod.ANNUALLY,
-	}[value]
-	if (convertedValue == null) {
-		throw new ParserError("Invalid frequency: " + value)
+	switch (value) {
+		case "DAILY":
+			return RepeatPeriod.DAILY
+		case "WEEKLY":
+			return RepeatPeriod.WEEKLY
+		case "MONTHLY":
+			return RepeatPeriod.MONTHLY
+		case "YEARLY":
+			return RepeatPeriod.ANNUALLY
+
+		case "HOURLY":
+		case "MINUTELY":
+		case "SECONDLY":
+			throw new ParserError("Unsupported ICal frequency: " + value)
+		default:
+			throw new ParserError("Invalid ICal frequency: " + value)
 	}
-	return convertedValue
 }
 
 export function repeatPeriodToIcalFrequency(repeatPeriod: RepeatPeriod) {
-	// Separate variable to declare mapping type
-	const mapping: Record<RepeatPeriod, string> = {
-		[RepeatPeriod.DAILY]: "DAILY",
-		[RepeatPeriod.WEEKLY]: "WEEKLY",
-		[RepeatPeriod.MONTHLY]: "MONTHLY",
-		[RepeatPeriod.ANNUALLY]: "YEARLY",
+	switch (repeatPeriod) {
+		case RepeatPeriod.DAILY:
+			return "DAILY"
+		case RepeatPeriod.WEEKLY:
+			return "WEEKLY"
+		case RepeatPeriod.MONTHLY:
+			return "MONTHLY"
+		case RepeatPeriod.ANNUALLY:
+			return "YEARLY"
+		default:
+			throw new ProgrammingError(`Invalid RepeatPeriod=${repeatPeriod}!`)
 	}
-	return mapping[repeatPeriod]
 }
 
 /** parse a time */
-export function parseTimeIntoComponents(value: string): DateComponents | DateTimeComponents {
-	const trimmedValue = value.trim()
-
-	if (/[0-9]{8}T[0-9]{6}Z/.test(trimmedValue)) {
-		// date with time in UTC
-		const { year, month, day } = parseDateString(trimmedValue)
-		const hour = parseInt(trimmedValue.slice(9, 11))
-		const minute = parseInt(trimmedValue.slice(11, 13))
-		return {
-			year,
-			month,
-			day,
-			hour,
-			minute,
-			zone: "UTC",
-		}
-	} else if (/[0-9]{8}T[0-9]{6}/.test(trimmedValue)) {
-		// date with time in local timezone
-		const { year, month, day } = parseDateString(trimmedValue)
-		const hour = parseInt(trimmedValue.slice(9, 11))
-		const minute = parseInt(trimmedValue.slice(11, 13))
-		return {
-			year,
-			month,
-			day,
-			hour,
-			minute,
-		}
-	} else if (/[0-9]{8}/.test(trimmedValue)) {
-		// all day events
-		return Object.assign({}, parseDateString(trimmedValue))
-	} else {
-		throw new ParserError("Failed to parse time: " + trimmedValue)
+export function parseDateTime(
+	value: string,
+	tzId: string | null,
+	fallbackZone: string | null,
+): {
+	dateTime: DateTime
+	isAllDay: boolean
+	hasZSuffix: boolean
+} {
+	const matchGroups = value.trim().match(/(\d\d\d\d)(\d\d)(\d\d)(?:T(\d\d)(\d\d)\d\d(Z?))?/)
+	if (matchGroups === null) {
+		throw new ParserError("Failed to parse time: " + value.trim())
 	}
+	const year = parseInt(matchGroups[1])
+	const month = parseInt(matchGroups[2])
+	const day = parseInt(matchGroups[3])
+	let hour = parseInt(matchGroups[4])
+	let minute = parseInt(matchGroups[5])
+	const hasZSuffix = matchGroups[6] === "Z"
+	const isAllDay = Number.isNaN(hour)
+	if (isAllDay) {
+		hour = 0
+		minute = 0
+	}
+	let zone: string | undefined
+	if (isAllDay) {
+		zone = "UTC"
+	} else if (hasZSuffix) {
+		if (tzId !== null && tzId !== "UTC") {
+			throw new ParserError(`Failed to parse time from ${value}, due to conflicting time zone representation. Event has a TZID ${tzId} and UTC time.`)
+		}
+		zone = "UTC"
+	} else if (tzId) {
+		zone = tzId
+	} else if (fallbackZone) {
+		zone = fallbackZone
+	} else {
+		console.warn(TAG + " zone is undefined.  Event time will appear the same in all time zones.")
+	}
+	const dateTime = DateTime.fromObject({ year, month, day, hour, minute }, { zone })
+	return { isAllDay, dateTime, hasZSuffix }
 }
 
-export function parseUntilRruleTime(value: string, zone: string | null): Date {
-	const components = parseTimeIntoComponents(value)
-	// rrule until is inclusive in ical but exclusive in Tutanota
-	const filledComponents = components
-	// if minute is not provided it is an all day date YYYYMMDD
-	const allDay = !("minute" in components)
-	// We don't use the zone from the components (RRULE) but the one from start time if it was given.
-	// Don't ask me why but that's how it is.
-	const effectiveZone = allDay ? "UTC" : (zone ?? undefined)
-	delete filledComponents["zone"]
-	const luxonDate = DateTime.fromObject(filledComponents, { zone: effectiveZone })
-	const startOfNextDay = luxonDate
-		.plus({
-			day: 1,
-		})
+export function parseUntilRruleTime(value: string, startTzId: string | null): Date {
+	const parseDateTimeResult = parseDateTime(
+		value,
+		// We don't use the zone from the components (RRULE) but the one from start time if it was given.
+		// Don't ask me why but that's how it is.
+		null,
+		startTzId,
+	)
+	let dateTime = parseDateTimeResult.dateTime
+	dateTime = dateTime
+		.plus({ day: 1 }) // rrule until is inclusive in ical but exclusive in Tutanota
 		.startOf("day")
-	return toValidJSDate(startOfNextDay, value, zone)
+	if (startTzId) {
+		// If the value has a Z suffix, indicating it's a UTC date time, the time zone of parseDateTimeResult.dateTime
+		// will be UTC. However, our current behavior expects the start of the day in the start time zone, so we
+		// convert it here. This does not seem like the correct behavior and is likely A SOURCE OF BUGS, but we may
+		// rely on it for view logic... TO BE INVESTIGATED!
+		dateTime = dateTime.setZone(startTzId, { keepLocalTime: true })
+	}
+	return toValidJSDate(dateTime, value, startTzId)
 }
 
 /**
  * parse a ical time string and return a JS Date object along with a flag that determines
  * whether the time should be considered part of an all-day event
  * @param value {string} the time string to be parsed
- * @param eventTzid {string} the TZID used in this {@link value}
+ * @param eventTzId {string} the TZID used in this {@link value}
  */
 export function parseTime(
 	value: string,
-	eventTzid: string | null,
+	eventTzId: string | null,
 ): {
 	date: Date
 	allDay: boolean
 } {
-	const components = parseTimeIntoComponents(value)
-
-	// if minute is not provided it is an all day date YYYYMMDD
-	const isAllDay = !("minute" in components)
-
-	if (!isAllDay && components.zone && eventTzid) {
-		throw new ParserError(`Failed to parse time from ${value}, due to conflicting time zone representation. Event has a TZID ${eventTzid} and UTC time.`)
-	}
-
-	const effectiveZone = isAllDay ? "UTC" : (eventTzid ?? components.zone)
-	if (effectiveZone === undefined) {
-		console.warn(TAG + ` effectiveZone is undefined.  Local timezone will be used.`)
-	}
-
-	delete components["zone"]
-
-	const filledComponents = Object.assign(
-		{},
-		isAllDay
-			? {
-					hour: 0,
-					minute: 0,
-					second: 0,
-					millisecond: 0,
-				}
-			: {},
-		components,
-	)
-
-	try {
-		const dateTime = DateTime.fromObject(filledComponents, { zone: effectiveZone })
-		return { date: toValidJSDate(dateTime, value, eventTzid ?? null), allDay: isAllDay }
-	} catch (e) {
-		if (e instanceof ParserError) {
-			throw e
-		}
-		throw new ParserError(
-			`failed to parse time from ${value} to ${JSON.stringify(filledComponents)}, effectiveZone: ${effectiveZone}, original error: ${e.message}`,
-		)
-	}
+	const result = parseDateTime(value, eventTzId, null)
+	return { date: result.dateTime.toJSDate(), allDay: result.isAllDay }
 }
 
 function toValidJSDate(dateTime: DateTime, value: string, zone: string | null): Date {

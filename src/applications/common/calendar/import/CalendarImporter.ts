@@ -209,8 +209,8 @@ export class CalendarImporter {
 }
 
 export enum EventImportRejectionReason {
-	Pre1970,
-	Inversed,
+	InvalidPre1970,
+	InvalidEndBeforeStart,
 	InvalidDate,
 	Duplicate,
 	DuplicateInIcs,
@@ -314,12 +314,12 @@ function determineRejectionReason(
 		throw new Error("Uid is not set for imported event")
 	}
 	switch (checkEventValidity(event)) {
-		case CalendarEventValidity.InvalidContainsInvalidDate:
+		case CalendarEventValidity.InvalidDate:
 			return EventImportRejectionReason.InvalidDate
 		case CalendarEventValidity.InvalidEndBeforeStart:
-			return EventImportRejectionReason.Inversed
+			return EventImportRejectionReason.InvalidEndBeforeStart
 		case CalendarEventValidity.InvalidPre1970:
-			return EventImportRejectionReason.Pre1970
+			return EventImportRejectionReason.InvalidPre1970
 	}
 
 	const isExistingDuplicate = existingEventUidGroup.some((ev) => shallowIsSameEvent(ev, event))

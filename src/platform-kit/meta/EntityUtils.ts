@@ -59,6 +59,9 @@ export const LOAD_MULTIPLE_LIMIT = 100
 export const POST_MULTIPLE_LIMIT = 100
 export const DELETE_MULTIPLE_LIMIT = 100
 
+/** Number of entities required to fallback into single post request at setupMultiple retry */
+export const POST_MULTIPLE_INDIVIDUAL_POST_FALLBACK_THRESHOLD = POST_MULTIPLE_LIMIT / 5
+
 export const enum EntityIdEncoding {
 	Base64Ext,
 	Base64URL,
