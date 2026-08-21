@@ -11,6 +11,7 @@ import {
 	groupByAndMap,
 	isEmpty,
 	isNotEmpty,
+	isNotNull,
 	lastThrow,
 	LazyLoaded,
 	promiseMap,
@@ -19,7 +20,7 @@ import {
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
-import { InstancePipeline, ServerTypeModelResolver } from "@tutao/instance-pipeline"
+import { DecryptedParsedInstance, InstancePipeline, ServerTypeModelResolver } from "@tutao/instance-pipeline"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
@@ -61,6 +62,7 @@ import { CommonImportedMail } from "./WebMailIndexer"
 import { MailImportType, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { isDraft } from "../../mail/model/MailChecks"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
+import type { CacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -69,6 +71,10 @@ const TAG = "[OfflineMailIndexer]"
 // we do not want to bump this up any higher, as it determines how big our range requests are, and we can potentially
 // break MAX_SAFE_SQL_VARS
 const INDEX_CHUNK_SIZE = 1000
+
+interface MailWithDetailsAndAttachmentsBlob extends MailWithDetailsAndAttachments {
+	mailDetailsBlob?: DecryptedParsedInstance
+}
 
 /**
  * Mail indexer that efficiently indexes the entire user (i.e. all mailboxes they have access to)
@@ -84,6 +90,7 @@ export class OfflineMailIndexer implements MailIndexer {
 		private readonly infoMessageHandler: InfoMessageHandler,
 		private readonly newMailDownloader: MailIndexerNewMailDownloader,
 		private readonly instancePipeline: InstancePipeline,
+		private readonly cacheStorage: CacheStorage,
 		private readonly indexChunkSize: number = INDEX_CHUNK_SIZE,
 	) {}
 
@@ -311,6 +318,10 @@ export class OfflineMailIndexer implements MailIndexer {
 			}
 
 			const lastMail = lastThrow(mails)
+
+			// FIXME: remove
+			console.log(TAG, `Loading ${mails.length} mails, ${currentId} - ${getElementId(lastMail)}`)
+
 			currentId = getElementId(lastMail)
 			await this.indexNonRecentMails(mails, archiveDownloadPromises, async () => {
 				await updateStorageProgress(1, totalMailsDownloaded++)
@@ -329,7 +340,7 @@ export class OfflineMailIndexer implements MailIndexer {
 	) {
 		const mailDetailsBlobTypeModel = await this.mailDetailsBlobTypeModel.getAsync()
 
-		const mailsToStore: MailWithDetailsAndAttachments[] = []
+		const mailsToStore: MailWithDetailsAndAttachmentsBlob[] = []
 		await promiseMap(
 			mails,
 			async (mail) => {
@@ -343,6 +354,11 @@ export class OfflineMailIndexer implements MailIndexer {
 		)
 
 		if (!isEmpty(mailsToStore)) {
+			const mailDetailsBlobs = mailsToStore.map(({ mailDetailsBlob }) => mailDetailsBlob).filter(isNotNull)
+			if (!isEmpty(mailDetailsBlobs)) {
+				await this.cacheStorage.putMultiple(MailDetailsBlobTypeRef, mailDetailsBlobs)
+			}
+
 			await this.offlineStoragePersistence.storeMailData(mailsToStore)
 		}
 	}
@@ -351,7 +367,7 @@ export class OfflineMailIndexer implements MailIndexer {
 		mail: Mail,
 		mailDetailsBlobTypeModel: ServerTypeModel,
 		archiveDownloadPromises: Map<Id, Promise<unknown>>,
-	): Promise<MailWithDetailsAndAttachments | null> {
+	): Promise<MailWithDetailsAndAttachmentsBlob | null> {
 		if (isDraft(mail)) {
 			return await this.newMailDownloader(mail._id)
 		}
@@ -401,14 +417,16 @@ export class OfflineMailIndexer implements MailIndexer {
 
 		try {
 			const mailSessionKey = assertNotNull(await this.crypto.resolveSessionKey(mail))
-			const mailDetails = await this.instancePipeline.decryptAndMap<MailDetailsBlob>(storedBlobJson, mailSessionKey)
+			const json = await this.instancePipeline.typeMapper.parseServerJson(storedBlobJson)
+			const mailDetails = await this.instancePipeline.decryptAndMapEncryptedInstanceParsed<MailDetailsBlob>(json, mailSessionKey)
 			const attachments = await this.mailFacade.loadAttachments(mail)
 
 			return {
 				mail,
-				mailDetails: mailDetails.details,
+				mailDetails: mailDetails.instance.details,
 				attachments,
-			} satisfies MailWithDetailsAndAttachments
+				mailDetailsBlob: mailDetails.decryptedParsedInstance,
+			} satisfies MailWithDetailsAndAttachmentsBlob
 		} catch (e) {
 			// Usually we should be able to resolve the session key, but some emails are permanently stuck in this state
 			// due to being corrupted.
