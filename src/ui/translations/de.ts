@@ -2510,5 +2510,6 @@ export default {
 		"markRead_action": "Gelesen markieren",
 		"markUnread_action": "Ungelesen markieren",
 		"inboxRuleSenderEquals_action": "Absenderadresse",
+		"selectLabel_action": "Label(s) auswählen",
 	}
 }

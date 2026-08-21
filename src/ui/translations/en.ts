@@ -2510,5 +2510,6 @@ export default {
 		"inboxRuleHasAttachment_label": "Has attachment",
 		"inboxRuleHasNoAttachment_label": "Has no attachment",
 		"whenCondition_label": "When",
+		"selectLabel_action": "Select label(s)",
 	}
 }
