@@ -65,6 +65,9 @@ import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 EnvProvider.assertWorkerOrNode()
 
 const TAG = "[OfflineMailIndexer]"
+
+// we do not want to bump this up any higher, as it determines how big our range requests are, and we can potentially
+// break MAX_SAFE_SQL_VARS
 const INDEX_CHUNK_SIZE = 1000
 
 /**
@@ -359,11 +362,9 @@ export class OfflineMailIndexer implements MailIndexer {
 			return this.offlineStoragePersistence.retrieveEncryptedMailDetailsBlob(mailDetailsBlobTypeModel, elementIdPart(mailDetailsBlobId))
 		}
 
-		let storedBlobJson: IncomingServerJson | null
-
 		// Get the mail details blob cached from persistence, first
-		const internalBlob = await retrieveBlob()
-		if (internalBlob == null) {
+		let storedBlobJson: IncomingServerJson | null = await retrieveBlob()
+		if (storedBlobJson == null) {
 			// Wasn't there; we'll need to download the archive
 			const archiveId = listIdPart(mailDetailsBlobId)
 			const pendingPromise = archiveDownloadPromises.get(archiveId)
@@ -391,11 +392,10 @@ export class OfflineMailIndexer implements MailIndexer {
 			}
 
 			storedBlobJson = await retrieveBlob()
-		} else {
-			storedBlobJson = internalBlob
 		}
 
 		if (storedBlobJson == null) {
+			console.warn(TAG, `Could not retrieve ${mail._id}'s MailDetailsBlob (tried twice, blob id = ${mail.mailDetails})`)
 			return null
 		}
 
