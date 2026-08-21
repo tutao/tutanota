@@ -267,7 +267,9 @@ export class EnvProvider {
 	}
 
 	static assertMainOrNode(): void {
-		if (!assertionsEnabled) return
+		if (!assertionsEnabled) {
+			return
+		}
 
 		if (!EnvProvider.isMainOrNode()) {
 			throw new ProgrammingError("this code must not run in the worker thread")
@@ -279,7 +281,9 @@ export class EnvProvider {
 	}
 
 	public static assertMainOrNodeBoot(): void {
-		if (!assertionsEnabled) return
+		if (!assertionsEnabled) {
+			return
+		}
 
 		if (!EnvProvider.isMainOrNode()) {
 			throw new ProgrammingError("this code must not run in the worker thread")
@@ -287,7 +291,9 @@ export class EnvProvider {
 	}
 
 	public static assertWorkerOrNode(): void {
-		if (!assertionsEnabled) return
+		if (!assertionsEnabled) {
+			return
+		}
 
 		if (!EnvProvider.isWorkerOrNode()) {
 			throw new ProgrammingError("this code must not run in the gui thread")
