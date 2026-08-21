@@ -1,4 +1,4 @@
-import { CryptoMapper, EncryptedParsedInstance, SymmetricGroupKeyLoader } from "./CryptoMapper"
+import { CryptoMapper, DecryptedParsedInstance, EncryptedParsedInstance, SymmetricGroupKeyLoader } from "./CryptoMapper"
 import { ModelMapper } from "./ModelMapper"
 import { lazy, Nullable } from "@tutao/utils"
 import { AesKey, makeNullableSubKeyInfoWithSessionKeyCbcThenHmac, SubKeyInfo, SymmetricCipherFacade, validateKdfNonceLength } from "@tutao/crypto"
@@ -58,6 +58,13 @@ export class InstancePipeline {
 	}
 
 	async decryptAndMapEncryptedInstance<T extends Entity>(encryptedParsedInstance: EncryptedParsedInstance, sk: AesKey | null): Promise<T> {
+		return (await this.decryptAndMapEncryptedInstanceParsed<T>(encryptedParsedInstance, sk)).instance
+	}
+
+	async decryptAndMapEncryptedInstanceParsed<T extends Entity>(
+		encryptedParsedInstance: EncryptedParsedInstance,
+		sk: AesKey | null,
+	): Promise<MappedDecryptedInstance<T>> {
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(encryptedParsedInstance, this.modelMapper, this.cryptoMapper)
 		const decryptedInstance = await this.cryptoMapper.decryptParsedInstance(
 			encryptedParsedInstance,
@@ -65,6 +72,14 @@ export class InstancePipeline {
 			validateKdfNonceLength(entityAdapter._kdfNonce),
 			this.cryptoMapper.makeOwnerKeyProvider(entityAdapter._ownerGroup),
 		)
-		return await this.modelMapper.mapToInstance<T>(decryptedInstance)
+		return {
+			instance: await this.modelMapper.mapToInstance<T>(decryptedInstance),
+			decryptedParsedInstance: decryptedInstance,
+		}
 	}
+}
+
+interface MappedDecryptedInstance<T> {
+	instance: T
+	decryptedParsedInstance: DecryptedParsedInstance
 }
