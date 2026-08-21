@@ -1,6 +1,6 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ElementId, ListElementId } from "@tutao/meta"
+import { ListElementId, ElementId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 
 
@@ -3853,7 +3853,7 @@ export type AlarmServicePostParams = {
 
 	alarmNotifications: AlarmNotification[];
 	userAlarmInfoData: UserAlarmInfoData[];
-	notification: null | NotificationTransferAggregatedType;
+	missedNotification: null | MissedNotificationTransferAggregatedType;
 	userAlarmInfo: UserAlarmInfoTransferAggregatedType[];
 }
 
@@ -3866,7 +3866,7 @@ export type AlarmServicePost = {
 
 	alarmNotifications: AlarmNotification[];
 	userAlarmInfoData: UserAlarmInfoData[];
-	notification: null | NotificationTransferAggregatedType;
+	missedNotification: null | MissedNotificationTransferAggregatedType;
 	userAlarmInfo: UserAlarmInfoTransferAggregatedType[];
 }
 export const DnsRecordTypeRef: TypeRef<DnsRecord> = new TypeRef("sys", 1581)
@@ -7127,24 +7127,24 @@ export type AlarmNotificationTransferAggregatedType = {
 	notificationSessionKeys: NotificationSessionKeyTransferAggregatedType[];
 	user: Id;
 }
-export const NotificationTransferAggregatedTypeTypeRef: TypeRef<NotificationTransferAggregatedType> = new TypeRef("sys", 2878)
+export const MissedNotificationTransferAggregatedTypeTypeRef: TypeRef<MissedNotificationTransferAggregatedType> = new TypeRef("sys", 2878)
 
-export function createNotificationTransferAggregatedType(values: NotificationTransferAggregatedTypeParams): NotificationTransferAggregatedType {
-    return Object.assign(create(typeModels[NotificationTransferAggregatedTypeTypeRef.typeId], NotificationTransferAggregatedTypeTypeRef), values)
+export function createMissedNotificationTransferAggregatedType(values: MissedNotificationTransferAggregatedTypeParams): MissedNotificationTransferAggregatedType {
+    return Object.assign(create(typeModels[MissedNotificationTransferAggregatedTypeTypeRef.typeId], MissedNotificationTransferAggregatedTypeTypeRef), values)
 }
 
-export type NotificationTransferAggregatedTypeParams = {
+export type MissedNotificationTransferAggregatedTypeParams = {
 
 
 
-	alarms: AlarmNotificationTransferAggregatedType[];
+	alarmNotifications: AlarmNotificationTransferAggregatedType[];
 }
 
-export type NotificationTransferAggregatedType = {
-	_type: TypeRef<NotificationTransferAggregatedType>;
-	_original?: NotificationTransferAggregatedType
+export type MissedNotificationTransferAggregatedType = {
+	_type: TypeRef<MissedNotificationTransferAggregatedType>;
+	_original?: MissedNotificationTransferAggregatedType
 
 	_id: Id;
 
-	alarms: AlarmNotificationTransferAggregatedType[];
+	alarmNotifications: AlarmNotificationTransferAggregatedType[];
 }

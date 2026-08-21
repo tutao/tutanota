@@ -3796,7 +3796,7 @@ pub struct AlarmServicePost {
 	#[serde(rename = "2730")]
 	pub userAlarmInfoData: Vec<UserAlarmInfoData>,
 	#[serde(rename = "2881")]
-	pub notification: Option<NotificationTransferAggregatedType>,
+	pub missedNotification: Option<MissedNotificationTransferAggregatedType>,
 	#[serde(rename = "2882")]
 	pub userAlarmInfo: Vec<UserAlarmInfoTransferAggregatedType>,
 
@@ -6973,14 +6973,14 @@ impl Entity for AlarmNotificationTransferAggregatedType {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct NotificationTransferAggregatedType {
+pub struct MissedNotificationTransferAggregatedType {
 	#[serde(rename = "2879")]
 	pub _id: Option<CustomId>,
 	#[serde(rename = "2880")]
-	pub alarms: Vec<AlarmNotificationTransferAggregatedType>,
+	pub alarmNotifications: Vec<AlarmNotificationTransferAggregatedType>,
 }
 
-impl Entity for NotificationTransferAggregatedType {
+impl Entity for MissedNotificationTransferAggregatedType {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Sys,

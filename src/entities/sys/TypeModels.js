@@ -10432,7 +10432,7 @@ const typeModels = {
 			},
 			"2881": {
 				"final": true,
-				"name": "notification",
+				"name": "missedNotification",
 				"id": 2881,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
@@ -18197,7 +18197,7 @@ const typeModels = {
 		}
 	},
 	"2878": {
-		"name": "NotificationTransferAggregatedType",
+		"name": "MissedNotificationTransferAggregatedType",
 		"app": "sys",
 		"version": 155,
 		"since": 155,
@@ -18207,7 +18207,7 @@ const typeModels = {
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
-		"targetTypeId": 1706,
+		"targetTypeId": 1693,
 		"values": {
 			"2879": {
 				"final": true,
@@ -18222,13 +18222,13 @@ const typeModels = {
 		"associations": {
 			"2880": {
 				"final": true,
-				"name": "alarms",
+				"name": "alarmNotifications",
 				"id": 2880,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 2868,
 				"dependency": null,
-				"transferredAttributeId": 1714
+				"transferredAttributeId": 1703
 			}
 		}
 	}
