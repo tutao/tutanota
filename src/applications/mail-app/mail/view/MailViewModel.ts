@@ -808,7 +808,7 @@ export class MailViewModel {
 		}
 	}
 
-	private async deleteMailSetEntryRangeFolder(targetFolder: MailSet, shouldReload: boolean = false) {
+	async deleteMailSetEntryRangeFolder(targetFolder: MailSet, shouldReload: boolean = false) {
 		// This deletes the range of MailSetEntries for a targetFolder entries list,
 		// currently used when importing mails from a file or Migration.
 		// This makes sure that we keep already downloaded MailSetEntries in the cache but still show
