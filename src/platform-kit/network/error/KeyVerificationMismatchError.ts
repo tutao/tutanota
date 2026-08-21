@@ -2,7 +2,7 @@
 
 import { TutanotaError } from "@tutao/app-env"
 
-export class KeyVerificationMismatchError extends TutanotaError {
+export class KeyVerificationMismatchError extends TutanotaError<ReadonlyArray<string>> {
 	data: ReadonlyArray<string>
 
 	constructor(message: string) {

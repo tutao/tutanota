@@ -17,15 +17,17 @@ export enum ImapErrorCause {
 	GMAIL_ALL_MAILS_IMAP_DISABLED,
 }
 
-export class ImapError extends TutanotaError {
-	// uses data and stack as variable name because otherwise objToError fails to properly create error instance with promise reject
-	data: ImapErrorCause
-	stack: string
+export type ImapErrorData = {
+	cause: ImapErrorCause
+	code: string
+}
+
+export class ImapError extends TutanotaError<ImapErrorData> {
+	data: ImapErrorData
 
 	constructor(message: string, cause: ImapErrorCause = ImapErrorCause.UNKNOWN, code: string = "") {
 		super("ImapError", message)
-		this.data = cause
-		this.stack = code
+		this.data = { cause, code }
 	}
 }
 
