@@ -7,6 +7,7 @@ import {
 	collectToMap,
 	difference,
 	getFirstOrThrow,
+	groupBy,
 	groupByAndMap,
 	isEmpty,
 	isNotEmpty,
@@ -38,6 +39,7 @@ import {
 	TypeRef,
 } from "@tutao/meta"
 import {
+	FileTypeRef,
 	ImportedFileMailTypeRef,
 	ImportedImapMailTypeRef,
 	Mail,
@@ -53,11 +55,12 @@ import {
 import { User } from "@tutao/entities/sys"
 import { GroupType } from "../../../../entities/sys/Utils"
 import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFacade"
-import { isDraft } from "../../mail/model/MailChecks"
-import { ConnectionError } from "@tutao/rest-client/error"
+import { ConnectionError, NotAuthorizedError } from "@tutao/rest-client/error"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 import { CommonImportedMail } from "./WebMailIndexer"
 import { MailImportType, MailSetKind } from "../../../../entities/tutanota/Utils"
+import { isDraft } from "../../mail/model/MailChecks"
+import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -162,6 +165,8 @@ export class OfflineMailIndexer implements MailIndexer {
 	private async fullyIndexUser(user: User): Promise<void> {
 		this.fullyIndexed = false
 
+		const start = performance.now()
+
 		const mailGroups = filterMailMemberships(user).map((membership) => membership.group)
 		const indexedGroups = await this.offlineStoragePersistence.getIndexedGroups()
 
@@ -222,9 +227,14 @@ export class OfflineMailIndexer implements MailIndexer {
 			console.log(TAG, `Indexed ${mailGroupsToAdd.length} mailbox(es) and ${indexedMailCount} mail(s) in ${indexEnd - indexStart} ms`)
 		}
 
+		console.log(TAG, `Updating UI...`)
 		this.fullyIndexed = true
 		await this.infoMessageHandler.onSearchIndexStateUpdate(this.createSearchIndexStateInfo(0, indexedMailCount))
+		const end = performance.now()
+		console.log(TAG, `Fully indexed (took ${end - start} ms). Cleaning up...`)
 		await this.offlineStoragePersistence.clearEncryptedMailDetailsBlobs()
+		const cleanupEnd = performance.now()
+		console.log(TAG, `Cleaned up and fully indexed (took ${cleanupEnd - end} ms)`)
 	}
 
 	private async indexMailbox(
@@ -243,6 +253,8 @@ export class OfflineMailIndexer implements MailIndexer {
 		for (const mailList of allMailBags) {
 			if (groupData.lastIndexedEntityListId === mailList || !firstBiggerThanSecondBase64Ext(mailList, groupData.lastIndexedEntityListId)) {
 				const startingId = groupData.lastIndexedEntityListId === mailList ? groupData.lastIndexedEntityElementId : GENERATED_MAX_ID
+				console.log(TAG, `Indexing mailbag with mail list ${mailList}`)
+				const indexMailbagStart = performance.now()
 				await this.indexMailbag(groupData.groupId, mailList, startingId, async (newMailsIndexed, currentMailbagMailsDownloaded) => {
 					// We don't know how many mails a user has in a mailbox, so this curve actually never reaches 1 (but
 					// reaches ~99.98% after 5000 mails)
@@ -251,6 +263,8 @@ export class OfflineMailIndexer implements MailIndexer {
 					const currentMailbagDownloadedPartialProgress = 1 - 5000 ** (-currentMailbagMailsDownloaded / 5000)
 					await mailboxProgress((indexedMailbags + currentMailbagDownloadedPartialProgress) / totalMailbags, newMailsIndexed)
 				})
+				const indexMailbagEnd = performance.now()
+				console.log(TAG, `Finished indexing mail list ${mailList} (took ${indexMailbagEnd - indexMailbagStart} ms)`)
 			}
 
 			indexedMailbags += 1
@@ -268,10 +282,29 @@ export class OfflineMailIndexer implements MailIndexer {
 		const archiveDownloadPromises = new Map()
 		let totalMailsDownloaded = 0
 
+		let mails: Mail[] = []
 		while (!this.abortController.signal.aborted) {
-			const mails = await this.entityClient.loadRange(MailTypeRef, mailList, currentId, this.indexChunkSize, true)
+			try {
+				mails = await this.entityClient.loadRange(MailTypeRef, mailList, currentId, this.indexChunkSize, true)
+			} catch (e) {
+				if (e instanceof NotAuthorizedError) {
+					console.warn("NotAuthorized: ", e)
+					return
+				} else {
+					throw e
+				}
+			}
+
 			if (isEmpty(mails)) {
 				return
+			}
+
+			const attachmentIds: IdTuple[] = mails.flatMap((mails) => mails.attachments)
+			const attachmentsByList: Map<Id, IdTuple[]> = groupBy(attachmentIds, listIdPart)
+
+			// load all files into cache (we should be able to retrieve these later if we are successful)
+			for (const [list, ids] of attachmentsByList.entries()) {
+				await this.entityClient.loadMultiple(FileTypeRef, list, ids.map(elementIdPart))
 			}
 
 			const lastMail = lastThrow(mails)
@@ -341,8 +374,16 @@ export class OfflineMailIndexer implements MailIndexer {
 			} else {
 				console.log(TAG, `Downloading archive ${archiveId}...`)
 				const storePromise = abortAware(this.abortController, async () => {
+					const downloadStart = performance.now()
 					const blobs = await this.blobFacade.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, archiveId)
-					return await this.offlineStoragePersistence.storeEncryptedMailDetailsBlobs(mailDetailsBlobTypeModel, blobs)
+					const downloadEnd = performance.now()
+					console.log(
+						TAG,
+						`Finished downloading archive ${archiveId} (${blobs.length} blob(s), took ${downloadEnd - downloadStart} ms), storing in offline db...`,
+					)
+					await this.offlineStoragePersistence.storeEncryptedMailDetailsBlobs(mailDetailsBlobTypeModel, blobs)
+					const storeEnd = performance.now()
+					console.log(TAG, `Finished storing archive ${archiveId} in offline db (took ${storeEnd - downloadEnd} ms)`)
 				})
 
 				archiveDownloadPromises.set(archiveId, storePromise)
@@ -357,15 +398,28 @@ export class OfflineMailIndexer implements MailIndexer {
 		if (storedBlobJson == null) {
 			return null
 		}
-		const mailSessionKey = assertNotNull(await this.crypto.resolveSessionKey(mail))
-		const mailDetails = await this.instancePipeline.decryptAndMap<MailDetailsBlob>(storedBlobJson, mailSessionKey)
-		const attachments = await this.mailFacade.loadAttachments(mail)
 
-		return {
-			mail,
-			mailDetails: mailDetails.details,
-			attachments,
-		} satisfies MailWithDetailsAndAttachments
+		try {
+			const mailSessionKey = assertNotNull(await this.crypto.resolveSessionKey(mail))
+			const mailDetails = await this.instancePipeline.decryptAndMap<MailDetailsBlob>(storedBlobJson, mailSessionKey)
+			const attachments = await this.mailFacade.loadAttachments(mail)
+
+			return {
+				mail,
+				mailDetails: mailDetails.details,
+				attachments,
+			} satisfies MailWithDetailsAndAttachments
+		} catch (e) {
+			// Usually we should be able to resolve the session key, but some emails are permanently stuck in this state
+			// due to being corrupted.
+			if (e instanceof CryptoError || e instanceof SessionKeyNotFoundError) {
+				console.warn(`Decryption error when trying to index mail ${mail._id} (skipping):`, e)
+				return null
+			} else {
+				console.error(`Error when trying to load mail ${mail._id} for indexing:`, e)
+				throw e
+			}
+		}
 	}
 
 	private processIndexQueue() {
