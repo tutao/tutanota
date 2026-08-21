@@ -13,7 +13,7 @@ export const enum ImportErrorCategories {
 	ImportTargetFolderDeleted,
 }
 
-export class MailImportError extends TutanotaError {
+export class MailImportError extends TutanotaError<ImportErrorData> {
 	data: ImportErrorData
 
 	constructor(data: ImportErrorData) {

@@ -2,7 +2,10 @@
 
 import { TutanotaError } from "@tutao/app-env"
 
-export class ImportError extends TutanotaError {
+export type ImportErrorData = {
+	numFailed: number
+}
+export class ImportError extends TutanotaError<ImportErrorData> {
 	data: {
 		numFailed: number
 	}

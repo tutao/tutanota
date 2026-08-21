@@ -11,7 +11,8 @@ import { TypeChecks } from "./TsTypeChecks.js"
  * added to the ErrorNameToType map in Utils.js.
  */
 
-export class TutanotaError extends Error {
+export class TutanotaError<T = never> extends Error {
+	data: T | null = null
 	name: string
 	message: string
 
