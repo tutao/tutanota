@@ -1,7 +1,7 @@
 import { SseClient, SseEventHandler } from "./SseClient.js"
 import TutaNotificationHandler from "./TutaNotificationHandler.js"
 import { makeTaggedLogger } from "../DesktopLog.js"
-import { elementIdPart, hasError, OperationType } from "@tutao/meta"
+import { AppNameEnum, elementIdPart, hasError, ModelAssociation, OperationType } from "@tutao/meta"
 import {
 	assertNotNull,
 	base64ToBase64Url,
@@ -33,6 +33,8 @@ import {
 	sysTypeModels,
 } from "@tutao/entities/sys"
 import { IncomingServerJson, OutgoingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
+import { InstancePath, RootPath } from "../../../../platform-kit/instance-pipeline/EncryptionContextPath"
+import { InstanceTypeId } from "../../../../platform-kit/instance-pipeline/InstanceTypeContext"
 
 const log = makeTaggedLogger("[SSEFacade]")
 
@@ -170,16 +172,26 @@ export class TutaSseFacade implements SseEventHandler {
 			if (operation === OperationType.CREATE) {
 				while (true) {
 					const sk = await this.alarmStorage.getNotificationSessionKey(encryptedAlarmNotification.getNotificationSessionKeys())
-					if (!sk) {
-						// none of the NotificationSessionKeys in the AlarmNotification worked.
+					if (sk == null) {
+						// none of the NotificationSessionKeys worked.
 						// this is indicative of a serious problem with the stored keys.
 						// therefore, we should invalidate the sseInfo and throw away
 						// our pushEncSessionKeys.
 						throw new CryptoError("could not find session key to decrypt alarm notification")
 					}
+					const instanceTypeId: InstanceTypeId = {
+						app: AppNameEnum.Sys,
+						name: "Notification",
+						id: 1706,
+					}
+					const instancePath: InstancePath = new RootPath(instanceTypeId.app)
+						.addAssociationId({ transferredAttributeId: null, id: 1714 } as ModelAssociation)
+						.addAggregateId(encryptedAlarmNotification.getId())
 					const alarmNotification = await this.nativeInstancePipeline.decryptAndMapEncryptedInstance<AlarmNotification>(
 						alarmNotificationUntyped,
-						assertNotNull(sk).sessionKey,
+						sk.sessionKey,
+						instanceTypeId,
+						instancePath,
 					)
 					if (hasError(alarmNotification)) {
 						// some property of the AlarmNotification couldn't be decrypted with the selected key
