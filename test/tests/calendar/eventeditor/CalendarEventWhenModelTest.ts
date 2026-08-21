@@ -14,10 +14,9 @@ import { CalendarEvent, CalendarEventTypeRef, CalendarRepeatRule } from "@tutao/
 import { createDateWrapper, createRepeatRule, DateWrapperTypeRef, RepeatRuleTypeRef } from "@tutao/entities/sys"
 import { getTimeZone } from "../../../../src/applications/common/calendar/date/CalendarUtils"
 
-const TEST_NAME = "CalendarEventWhenModel"
-o.spec(TEST_NAME, function () {
+o.spec("CalendarEventWhenModel", function () {
 	if (getTimeZone() !== "Europe/Berlin") {
-		console.info(`Skipping time zone dependent test "${TEST_NAME}" for zone ${getTimeZone()}`)
+		console.info(`Skipping time zone dependent test "CalendarEventWhenModel" for zone ${getTimeZone()}`)
 		return
 	}
 	type PartialCalendarEvent = {
@@ -54,6 +53,20 @@ o.spec(TEST_NAME, function () {
 			const result = model.result
 			o(result.startTime.toISOString()).equals("2023-04-27T08:30:00.000Z")
 			o(result.endTime.toISOString()).equals("2023-04-27T09:00:00.000Z")
+		})
+		o("setting start time to 01:00 then to 13:00 maintains correct end time, maintaining event duration", function () {
+			const model = getModelBerlin({
+				startTime: new Date("2023-04-27T08:27:00.000Z"),
+				endTime: new Date("2023-04-27T08:57:00.000Z"),
+			})
+
+			model.startTime = new Time(1, 0)
+			o(model.startTime.to24HourString()).equals("01:00")
+			o(model.endTime.to24HourString()).equals("01:30")
+
+			model.startTime = new Time(13, 0)
+			o(model.startTime.to24HourString()).equals("13:00")
+			o(model.endTime.to24HourString()).equals("13:30")
 		})
 		o("if the start date is changed while not all-day, the end time changes by the same amount", function () {
 			const model = getModelBerlin({

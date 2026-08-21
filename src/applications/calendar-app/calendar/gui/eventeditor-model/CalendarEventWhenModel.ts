@@ -30,8 +30,14 @@ type UiDateTime = {
 	year: number
 	month: number
 	day: number
-	hour: number | null
-	minute: number | null
+	hour: number
+	minute: number
+	timeZone: string | null
+}
+
+type ValuesToRestoreWhenToggleAllDayOff = {
+	hour: number
+	minute: number
 	timeZone: string | null
 }
 
@@ -40,6 +46,9 @@ export class CalendarEventWhenModel {
 	private _isAllDay: boolean
 	private start: UiDateTime
 	private end: UiDateTime
+	private startValuesToRestoreWhenToggleAllDayOff: ValuesToRestoreWhenToggleAllDayOff
+	private endValuesToRestoreWhenToggleAllDayOff: ValuesToRestoreWhenToggleAllDayOff
+	private readonly logPrefix: string
 
 	constructor(
 		private readonly initialValues: CalendarEventParams,
@@ -47,45 +56,50 @@ export class CalendarEventWhenModel {
 		private readonly uiUpdateCallback: () => void = noOp,
 	) {
 		const defaultTimes = getEventWithDefaultTimes(initialValues.startTime)
+		const defaultStartTime = normalizeTime(defaultTimes.startTime)
+		const defaultEndTime = normalizeTime(defaultTimes.endTime)
 		const initialTimes: CalendarEventTimes = {
-			startTime: initialValues.startTime ? normalizeTime(initialValues.startTime) : normalizeTime(defaultTimes.startTime),
-			endTime: initialValues.endTime ? normalizeTime(initialValues.endTime) : normalizeTime(defaultTimes.endTime),
+			startTime: initialValues.startTime ? normalizeTime(initialValues.startTime) : defaultStartTime,
+			endTime: initialValues.endTime ? normalizeTime(initialValues.endTime) : defaultEndTime,
 		}
 
 		this._isAllDay = isAllDayEvent(initialTimes)
 		this.repeatRule = clone(initialValues.repeatRule ?? null)
 
+		this.start = { year: -1, month: -1, day: -1, hour: 0, minute: 0, timeZone: initialValues.startTimeZone }
+		this.end = { year: -1, month: -1, day: -1, hour: 0, minute: 0, timeZone: initialValues.endTimeZone }
+
 		if (this._isAllDay) {
-			this.start = {
-				year: initialTimes.startTime.getUTCFullYear(),
-				month: initialTimes.startTime.getUTCMonth() + 1,
-				day: initialTimes.startTime.getUTCDate(),
-				hour: null,
-				minute: null,
-				timeZone: null,
-			}
+			this.start.year = initialTimes.startTime.getUTCFullYear()
+			this.start.month = initialTimes.startTime.getUTCMonth() + 1
+			this.start.day = initialTimes.startTime.getUTCDate()
+			this.start.hour = 0
+			this.start.minute = 0
+			this.start.timeZone = null
 
 			// -1 from the date because the endDate displayed in editor is inclusive but endDate saved is exclusive
 			const eventEndJsDate = new Date(initialTimes.endTime)
 			eventEndJsDate.setUTCDate(eventEndJsDate.getUTCDate() - 1)
-			this.end = {
-				year: eventEndJsDate.getUTCFullYear(),
-				month: eventEndJsDate.getUTCMonth() + 1,
-				day: eventEndJsDate.getUTCDate(),
-				hour: null,
-				minute: null,
-				timeZone: null,
-			}
+			this.end.year = eventEndJsDate.getUTCFullYear()
+			this.end.month = eventEndJsDate.getUTCMonth() + 1
+			this.end.day = eventEndJsDate.getUTCDate()
+			this.end.hour = 0
+			this.end.minute = 0
+			this.end.timeZone = null
 		} else {
-			this.start = { year: -1, month: -1, day: -1, hour: null, minute: null, timeZone: initialValues.startTimeZone }
-			this.end = { year: -1, month: -1, day: -1, hour: null, minute: null, timeZone: initialValues.endTimeZone }
+			const initialStartDateTime = DateTime.fromJSDate(initialTimes.startTime, { zone: this.getEffectiveStartTimeZone() })
+			const initialEndDateTime = DateTime.fromJSDate(initialTimes.endTime, { zone: this.getEffectiveEndTimeZone() })
 
-			const startDateTime = DateTime.fromJSDate(initialTimes.startTime, { zone: this.getEffectiveStartTimeZone() })
-			const endDateTime = DateTime.fromJSDate(initialTimes.endTime, { zone: this.getEffectiveEndTimeZone() })
-
-			this.setStartFromDateTime(startDateTime)
-			this.setEndFromDateTime(endDateTime)
+			this.setStartFromDateTime(initialStartDateTime)
+			this.setEndFromDateTime(initialEndDateTime)
 		}
+
+		// if the event is all-day, we want to set the start and end times to the default times,
+		// when toggling all-day off
+		this.startValuesToRestoreWhenToggleAllDayOff = { hour: defaultStartTime.getHours(), minute: defaultStartTime.getMinutes(), timeZone: null }
+		this.endValuesToRestoreWhenToggleAllDayOff = { hour: defaultEndTime.getHours(), minute: defaultEndTime.getMinutes(), timeZone: null }
+
+		this.logPrefix = "[" + this.constructor.name + "] "
 	}
 
 	/**
@@ -97,8 +111,16 @@ export class CalendarEventWhenModel {
 		this.start.year = dateTime.year
 		this.start.month = dateTime.month
 		this.start.day = dateTime.day
-		this.start.hour = dateTime.hour
-		this.start.minute = dateTime.minute
+		if (this._isAllDay) {
+			if (dateTime.hour !== 0 || dateTime.minute !== 0) {
+				this.logWarn(`Tried to set all-day event start from datetime with non-zero hour=${dateTime.hour} and/or non-zero minute=${dateTime.minute}!`)
+			}
+			this.start.hour = 0
+			this.start.minute = 0
+		} else {
+			this.start.hour = dateTime.hour
+			this.start.minute = dateTime.minute
+		}
 	}
 
 	/**
@@ -110,8 +132,16 @@ export class CalendarEventWhenModel {
 		this.end.year = dateTime.year
 		this.end.month = dateTime.month
 		this.end.day = dateTime.day
-		this.end.hour = dateTime.hour
-		this.end.minute = dateTime.minute
+		if (this._isAllDay) {
+			if (dateTime.hour !== 0 || dateTime.minute !== 0) {
+				this.logWarn(`Tried to set all-day event end from datetime with non-zero hour=${dateTime.hour} and/or non-zero minute=${dateTime.minute}!`)
+			}
+			this.end.hour = 0
+			this.end.minute = 0
+		} else {
+			this.end.hour = dateTime.hour
+			this.end.minute = dateTime.minute
+		}
 	}
 
 	getStartDateTime() {
@@ -120,8 +150,8 @@ export class CalendarEventWhenModel {
 				year: this.start.year,
 				month: this.start.month,
 				day: this.start.day,
-				hour: this.start.hour ?? 0,
-				minute: this.start.minute ?? 0,
+				hour: this.start.hour,
+				minute: this.start.minute,
 			},
 			{ zone: this.getEffectiveStartTimeZone() },
 		)
@@ -133,8 +163,8 @@ export class CalendarEventWhenModel {
 				year: this.end.year,
 				month: this.end.month,
 				day: this.end.day,
-				hour: this.end.hour ?? 0,
-				minute: this.end.minute ?? 0,
+				hour: this.end.hour,
+				minute: this.end.minute,
 			},
 			{ zone: this.getEffectiveEndTimeZone() },
 		)
@@ -151,22 +181,29 @@ export class CalendarEventWhenModel {
 
 		this._isAllDay = value
 		if (this._isAllDay) {
-			// reset time zone if allDay is true (prevents bugs where timezone info is still shown for all day events)
+			// Hour, minute and time zone values need to be cleared when toggling all-day on.
+			// We save the values before clearing them, so they can be restored when toggling all-day off.
+			this.startValuesToRestoreWhenToggleAllDayOff.hour = this.start.hour
+			this.startValuesToRestoreWhenToggleAllDayOff.minute = this.start.minute
+			this.startValuesToRestoreWhenToggleAllDayOff.timeZone = this.start.timeZone
+			this.endValuesToRestoreWhenToggleAllDayOff.hour = this.end.hour
+			this.endValuesToRestoreWhenToggleAllDayOff.minute = this.end.minute
+			this.endValuesToRestoreWhenToggleAllDayOff.timeZone = this.end.timeZone
+			// clear the values
+			this.start.hour = 0
+			this.start.minute = 0
 			this.start.timeZone = null
+			this.end.hour = 0
+			this.end.minute = 0
 			this.end.timeZone = null
 		} else {
-			if (this.start.hour === null || this.start.minute === null || this.end.hour === null || this.end.minute === null) {
-				if (this.start.hour !== null || this.start.minute !== null || this.end.hour !== null || this.end.minute !== null) {
-					throw new ProgrammingError("Start and end hours/minutes inconsistently initialized!")
-				}
-
-				// set start & end times to default times
-				const defaultTimes = getEventWithDefaultTimes()
-				this.start.hour = defaultTimes.startTime.getHours()
-				this.start.minute = defaultTimes.startTime.getMinutes()
-				this.end.hour = defaultTimes.endTime.getHours()
-				this.end.minute = defaultTimes.endTime.getMinutes()
-			}
+			// restore the hours, minutes and timezone values that we saved before toggling all-day on
+			this.start.hour = this.startValuesToRestoreWhenToggleAllDayOff.hour
+			this.start.minute = this.startValuesToRestoreWhenToggleAllDayOff.minute
+			this.start.timeZone = this.startValuesToRestoreWhenToggleAllDayOff.timeZone
+			this.end.hour = this.endValuesToRestoreWhenToggleAllDayOff.hour
+			this.end.minute = this.endValuesToRestoreWhenToggleAllDayOff.minute
+			this.end.timeZone = this.endValuesToRestoreWhenToggleAllDayOff.timeZone
 		}
 
 		if (this.repeatRule != null) {
@@ -193,11 +230,8 @@ export class CalendarEventWhenModel {
 	 * will return 00:00 for all-day events.
 	 */
 	get startTime(): Time {
-		if (this._isAllDay) {
-			return new Time(0, 0)
-		}
-		if (this.start.hour === null || this.start.minute === null) {
-			throw new ProgrammingError("Start hour or minute not initialized for non all-day event!")
+		if (this._isAllDay && (this.start.hour !== 0 || this.start.minute !== 0)) {
+			throw new ProgrammingError(`Model for all-day event has invalid non-zero start hour=${this.start.hour} and/or minute=${this.start.minute}!`)
 		}
 		return new Time(this.start.hour, this.start.minute)
 	}
@@ -211,17 +245,23 @@ export class CalendarEventWhenModel {
 			return
 		}
 
-		const keepDurationBetweenStartAndEnd = this.hasValidStartBeforeEnd()
+		let oldHour = this.start.hour
+		let oldMinute = this.start.minute
+		let newHour = v.hour
+		let newMinute = v.minute
 
-		let hourDiff = v.hour - (this.start.hour ?? 0)
-		let minuteDiff = v.minute - (this.start.minute ?? 0)
+		if (newHour !== oldHour || newMinute !== oldMinute) {
+			// we do not keep the duration if the event has an invalid start after end to allow the user to recover
+			// from the invalid state
+			const keepDurationBetweenStartAndEnd = this.hasValidStartBeforeEnd()
 
-		this.start.hour = v.hour
-		this.start.minute = v.minute
+			this.start.hour = newHour
+			this.start.minute = newMinute
 
-		if (keepDurationBetweenStartAndEnd && (hourDiff !== 0 || minuteDiff !== 0)) {
-			this.setEndFromDateTime(this.getEndDateTime().plus({ hours: hourDiff, minutes: minuteDiff }))
-			this.uiUpdateCallback()
+			if (keepDurationBetweenStartAndEnd) {
+				this.setEndFromDateTime(this.getEndDateTime().plus({ hours: newHour - oldHour, minutes: newMinute - oldMinute }))
+				this.uiUpdateCallback()
+			}
 		}
 	}
 
@@ -230,11 +270,8 @@ export class CalendarEventWhenModel {
 	 * will return 00:00 for all-day events independently of the time zone.
 	 */
 	get endTime(): Time {
-		if (this._isAllDay) {
-			return new Time(0, 0)
-		}
-		if (this.end.hour === null || this.end.minute === null) {
-			throw new ProgrammingError("End hour or minute not initialized for non all-day event!")
+		if (this._isAllDay && (this.end.hour !== 0 || this.end.minute !== 0)) {
+			throw new ProgrammingError(`Model for all-day event has invalid non-zero end hour=${this.end.hour} and/or minute=${this.end.minute}!`)
 		}
 		return new Time(this.end.hour, this.end.minute)
 	}
@@ -260,7 +297,7 @@ export class CalendarEventWhenModel {
 	/** set the duration of the event in minutes, effectively setting the endDate and endTime. */
 	set duration(duration: { minutes: number }) {
 		if (duration.minutes < 0) {
-			console.warn(`Attempted to set invalid negative event duration = ${duration.minutes}mins!`)
+			this.logWarn(`Attempted to set invalid negative event duration = ${duration.minutes}mins!`)
 			return
 		}
 		this.setEndFromDateTime(this.getStartDateTime().plus(duration).setZone(this.getEffectiveEndTimeZone()))
@@ -277,7 +314,7 @@ export class CalendarEventWhenModel {
 			// tackle because it is a rare case and only getting rarer.
 
 			const thisYear = new Date().getFullYear()
-			console.warn(`User attempted to set date before 1970: '${date}' Overwriting year with current year = ${thisYear}!`)
+			this.logWarn(`User attempted to set date before 1970: '${date}' Overwriting year with current year = ${thisYear}!`)
 			date.setFullYear(thisYear)
 		}
 	}
@@ -343,7 +380,7 @@ export class CalendarEventWhenModel {
 			if (this.hasValidStartBeforeEnd()) {
 				this.uiUpdateCallback()
 			} else {
-				console.log("tried to set the end date to before the start date")
+				this.logInfo("tried to set the end date to before the start date")
 				// rollback to old values
 				this.end.year = oldEndYear
 				this.end.month = oldEndMonth
@@ -619,7 +656,7 @@ export class CalendarEventWhenModel {
 	 */
 	excludeDate(date: Date): void {
 		if (this.repeatRule == null) {
-			console.log("tried to add an exclusion for an event without a repeat rule. should probably delete the event.")
+			this.logWarn("tried to add an exclusion for an event without a repeat rule. should probably delete the event.")
 			return
 		}
 		const timeToInsert = date.getTime()
@@ -686,7 +723,12 @@ export class CalendarEventWhenModel {
 	}
 
 	hasValidStartBeforeEnd(): boolean {
-		return this.getStartDateTime().diff(this.getEndDateTime()).as("minutes") < 0
+		const durationInMinutes = this.getEndDateTime().diff(this.getStartDateTime()).as("minutes")
+		if (this._isAllDay) {
+			return durationInMinutes >= 0
+		} else {
+			return durationInMinutes > 0
+		}
 	}
 
 	get result() {
@@ -742,6 +784,14 @@ export class CalendarEventWhenModel {
 
 	public removeRepeatRule() {
 		this.repeatRule = null
+	}
+
+	private logInfo(message: string) {
+		console.info(this.logPrefix + message)
+	}
+
+	private logWarn(message: string) {
+		console.warn(this.logPrefix + message)
 	}
 }
 

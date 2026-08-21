@@ -18,7 +18,7 @@ android {
 		compileSdk = 36
 		applicationId = "de.tutao.tutanota"
 		minSdk = 26
-		targetSdk = 35
+		targetSdk = 36
 		versionCode = 396701
 		versionName = "357.260820.0"
 
