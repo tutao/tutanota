@@ -18,6 +18,7 @@ import { component_size, size } from "../../../../ui/size"
 import { showDropdown } from "../../../../ui/base/Dropdown"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { Styles } from "../../../../ui/styles"
+import { assertNotNull } from "@tutao/utils"
 
 interface AssignedLabel {
 	name: string
@@ -36,18 +37,16 @@ export interface LabelsDropDownSelectorAttrs {
  * DropDown that displays labels and allows selecting them
  */
 export class LabelsDropDownSelector implements ClassComponent<LabelsDropDownSelectorAttrs> {
-	view({ attrs }: Vnode<LabelsDropDownSelectorAttrs>): Children {
-		const showDropDown = (event: MouseEvent) => {
-			const dom = event.target as HTMLElement
-			new LabelsDropdown(dom, dom.getBoundingClientRect(), Styles.get().isDesktopLayout() ? 300 : 200, attrs.items, async (addedLabels) => {
-				attrs.onLabelsApplied(addedLabels)
-			}).show()
-		}
+	private selectorDom: HTMLElement | null = null
 
+	view({ attrs }: Vnode<LabelsDropDownSelectorAttrs>): Children {
 		return m(TextField, {
 			value: lang.getTranslationText(attrs.label),
 			isReadOnly: true,
-			onclick: showDropDown,
+			onclick: () => this.showDropdown(attrs),
+			onDomWrapperCreated: (dom) => {
+				this.selectorDom = dom
+			},
 			class: "click ",
 			leadingIcon: attrs.icon,
 			injectionsRight: () =>
@@ -57,12 +56,19 @@ export class LabelsDropDownSelector implements ClassComponent<LabelsDropDownSele
 					m(IconButton, {
 						icon: Icons.ArrowDown,
 						label: "show_action",
-						click: showDropDown,
+						click: () => this.showDropdown(attrs),
 						size: ButtonSize.Compact,
 					}),
 				),
 			doShowBorder: true,
 		})
+	}
+
+	private showDropdown(attrs: LabelsDropDownSelectorAttrs) {
+		const dom = assertNotNull(this.selectorDom)
+		new LabelsDropdown(dom, dom.getBoundingClientRect(), Styles.get().isDesktopLayout() ? 300 : 200, attrs.items, async (addedLabels) => {
+			attrs.onLabelsApplied(addedLabels)
+		}).show()
 	}
 }
 
@@ -213,7 +219,7 @@ class LabelsDropdown implements ModalComponent {
 		// restrict label height to showing maximum 6 labels to avoid overflow
 		const displayedLabels = Math.min(this.items.length, 6)
 		const height = (displayedLabels + 1) * component_size.button_height + size.spacing_8 * 2
-		showDropdown(this.origin, this.dom, height, this.width).then(() => {
+		showDropdown(this.origin, this.dom, height, this.width, "top", false).then(() => {
 			const firstLabel = vnode.dom.getElementsByTagName("label-item").item(0)
 			if (firstLabel !== null) {
 				;(firstLabel as HTMLElement).focus()
