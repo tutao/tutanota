@@ -1,9 +1,7 @@
 import { ImapSync } from "./imapsync/ImapSync.js"
-import { fromImapFlowError, ImapError, ImapErrorCause } from "../../api/common/error/ImapError.js"
-import { ImapGetMailboxResult } from "../../api/common/utils/imapImportUtils/ImapGetMailboxResult"
+import { ImapMailbox } from "../../api/common/utils/imapImportUtils/ImapMailbox"
 import { ImapCredentials, ImapSyncSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { ImapSyncContext } from "../../api/common/utils/imapImportUtils/ImapSyncContext"
-import { first } from "@tutao/utils"
 
 export type ImapSyncFactory = (accountSyncId: IdTuple) => ImapSync
 export type ImapInitFolderSyncFactory = () => ImapSync
@@ -26,21 +24,8 @@ export class DesktopImapSyncSystemFacade implements ImapSyncSystemFacade {
 		return sync.startImapSync(imapSyncContext)
 	}
 
-	async getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ImapGetMailboxResult> {
-		try {
-			const mailboxes = await this.imapInitFolderSyncFactory().getImapMailboxesFromServer(imapCredentials)
-			return { result: mailboxes }
-		} catch (e) {
-			const errorList = e.errors ?? [e]
-			const firstError = first(errorList)
-			if (firstError instanceof ImapError) {
-				return { error: firstError }
-			} else if (firstError) {
-				return { error: fromImapFlowError(firstError) }
-			} else {
-				return { error: new ImapError("initial connection failed", ImapErrorCause.INITIAL_CONNECT_FAILED) }
-			}
-		}
+	async getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ImapMailbox[]> {
+		return await this.imapInitFolderSyncFactory().getImapMailboxesFromServer(imapCredentials)
 	}
 
 	async stopSync(accountSyncId: IdTuple): Promise<void> {

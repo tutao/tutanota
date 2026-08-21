@@ -26,7 +26,7 @@ export class ImapSync {
 		return this.syncSession.stopSyncSession()
 	}
 
-	async getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ReadonlyArray<ImapMailbox>> {
+	async getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ImapMailbox[]> {
 		return await this.syncSession.getImapMailboxesFromServer(imapCredentials)
 	}
 }
