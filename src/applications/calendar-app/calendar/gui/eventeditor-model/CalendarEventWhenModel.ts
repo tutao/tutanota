@@ -251,12 +251,13 @@ export class CalendarEventWhenModel {
 		let newMinute = v.minute
 
 		if (newHour !== oldHour || newMinute !== oldMinute) {
-			this.start.hour = newHour
-			this.start.minute = newMinute
-
 			// we do not keep the duration if the event has an invalid start after end to allow the user to recover
 			// from the invalid state
 			const keepDurationBetweenStartAndEnd = this.hasValidStartBeforeEnd()
+
+			this.start.hour = newHour
+			this.start.minute = newMinute
+
 			if (keepDurationBetweenStartAndEnd) {
 				this.setEndFromDateTime(this.getEndDateTime().plus({ hours: newHour - oldHour, minutes: newMinute - oldMinute }))
 				this.uiUpdateCallback()
