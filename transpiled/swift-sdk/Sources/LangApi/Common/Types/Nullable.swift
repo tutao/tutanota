@@ -1,1 +1,1 @@
-public typealias Nullable<T> = T?;
+public typealias Nullable<T> = T?
