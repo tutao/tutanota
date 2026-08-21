@@ -250,6 +250,7 @@ export class MailFacade {
 			parentFolder: parent,
 			color: null,
 		})
+		mailSet._ownerGroup = ownerGroupId
 		mailSet._ownerEncSessionKey = ownerEncSessionKey.key
 		mailSet._ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
 		const newFolder = createCreateMailFolderData({
@@ -257,7 +258,6 @@ export class MailFacade {
 			parentFolder: null,
 			mailSet,
 		})
-		newFolder.ownerGroup = ownerGroupId
 		const postReturn = await this.serviceExecutor.post(MailFolderService, newFolder, {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
 			sessionKey,
