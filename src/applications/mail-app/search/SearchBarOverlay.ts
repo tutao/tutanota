@@ -18,7 +18,7 @@ import { getSenderOrRecipientHeading } from "../mail/view/MailViewerUtils.js"
 import { mailLocator } from "../mailLocator.js"
 import { renderSearchInOurApps } from "./view/SearchView"
 import { isTutaTeamMail } from "../../common/mailFunctionality/SharedMailUtils"
-import { companyTeamLabel } from "../../../platform-kit/app-env/boot/ClientConstants"
+import { TeamLabels } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { formatEventDuration } from "../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
 import { isNonBlockingSearchAvailable } from "./model/SearchUtils"
 
@@ -142,7 +142,7 @@ export class SearchBarOverlay implements Component<SearchBarOverlayAttrs> {
 							{
 								classes: ".small.mr-8",
 							},
-							companyTeamLabel,
+							TeamLabels.companyTeamLabel,
 						)
 					: null,
 				m("small.text-ellipsis", getSenderOrRecipientHeading(mail, true)),

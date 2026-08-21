@@ -22,7 +22,7 @@ import { liveDataAttrs } from "../../../../ui/AriaUtils.js"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager.js"
 import { AttachmentBubble, getAttachmentType } from "../../../../ui/AttachmentBubble.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../../../ui/cards.js"
-import { companyTeamLabel } from "../../../../platform-kit/app-env/boot/ClientConstants.js"
+import { TeamLabels } from "../../../../platform-kit/app-env/boot/ClientConstants.js"
 import { getMailAddressDisplayText, isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { LabelsPopup } from "./LabelsPopup.js"
@@ -686,7 +686,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					{
 						classes: ".mr-8",
 					},
-					companyTeamLabel,
+					TeamLabels.companyTeamLabel,
 				)
 			: null
 	}
